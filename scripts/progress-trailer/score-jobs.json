@@ -1,0 +1,16 @@
+{
+ "_doc": "PROGRESS-TRAILER PT8 (E468): the progress trailer's score. ~/ml/music/minimax-music3/.venv/bin/python scripts/music/gen/gen_minimax.py --jobs $PWD/scripts/progress-trailer/score-jobs.json --keys progress/score --seeds 401,402,403,404 --out <scratch> under lockf -k ~/projects/localai/.model.lock; music_scan.py picks the take by its hits against the plan's bars; scripts/steam-trailer/music_stems.py splits it (other / bass / drums / vocals) and the arrangement unmutes stems per chapter (§3.4). Fixed 120 bpm: a bar is 2 s.",
+ "lyrics": {
+  "progress": "[Intro]\n[Instrumental]\n[Build]\n[Instrumental]\n[Build]\n[Break]\n[Climax]\n[Outro]"
+ },
+ "jobs": {
+  "progress/score": {
+   "style": "orchestral",
+   "slot": "trailer",
+   "duration": 66,
+   "lyrics": "progress",
+   "bpm": 120,
+   "prompt": "Genre: modern hybrid cinematic trailer music that grows from a tiny toy into a full orchestra, for a video about a video game being built day by day. BPM: 120, steady grid. Key: D major. Instrumental only, no vocals, no choir words. Structure: opens almost empty, a lone music box or felt piano motif, innocent and a little naive, for the first 12 seconds; at 12 seconds warm strings and a soft bass join the same motif; at 22 seconds light drums and a ticking percussion pulse enter and the motif becomes confident; at 32 seconds the full hybrid orchestra arrives, driving low strings, big drums, wide synth pads, the motif now heroic; at 44 seconds a sudden complete stop, two seconds of near silence; then a fast riser and sub swell; at 50 seconds a huge drop, the full orchestra slamming back with the motif in brass and pounding percussion; one final massive hit at 54 seconds and a long ringing tail to the end. Production: modern trailer mix, wide stereo, punchy low end, clean transients on the bar lines."
+  }
+ }
+}

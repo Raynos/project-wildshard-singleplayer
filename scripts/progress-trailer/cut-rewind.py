@@ -2,6 +2,7 @@
 """cut-rewind.py — assemble the rewind (PROGRESS-TRAILER §2.2 0:46) from its four takes, one per build.
 
   python3 scripts/progress-trailer/cut-rewind.py <out.mp4> <take-dir day 1> <day 8> <day 15> <day 22> [--from=0.4] [--cuts=2,4,6]
+      [--frames-out=<dir>]   also (or, with out '-', only) write the cut as an edit.mjs frame dir (%06d.jpg + meta.json)
 
 Each take is the same input track (shots/rewind.mjs) filmed with the same `--ramp`, so sample i of every take is the same
 simulation moment. The receipt's ramp and sub are replayed to know each sample's simulation time; the fire time comes from
@@ -41,20 +42,34 @@ receipts = [json.load(open(os.path.join(d, 'receipt.json'))) for d in takes]
 fire = next(e['t'] for e in receipts[-1]['events'] if e['e'] == 'fire') - receipts[-1]['simStart']
 bounds = [START] + [fire + c / BOLT for c in CUTS] + [float('inf')]
 times = sample_times(receipts[-1])
-tmp = tempfile.mkdtemp(prefix='rewind-')
+sub = receipts[-1].get('sub', 1)
+fo = opt.get('frames-out')
+tmp = fo or tempfile.mkdtemp(prefix='rewind-')
+os.makedirs(tmp, exist_ok=True)
+for f in os.listdir(tmp):
+    os.unlink(os.path.join(tmp, f))
 n = 0
+# a segment starts on a whole 60 fps frame (a multiple of sub samples), so edit.mjs blends sub-samples of one take only
+def snap(t):
+    i = next((j for j, x in enumerate(times) if x >= t), len(times))
+    return i - i % sub
+edges = [snap(b) if b != float('inf') else len(times) for b in bounds]
 for k, d in enumerate(takes):
     for i, t in enumerate(times):
-        if bounds[k] <= t < bounds[k + 1]:
+        if edges[k] <= i < edges[k + 1]:
             src = os.path.join(d, f'{i:06d}.jpg')
             if not os.path.exists(src):
                 sys.exit(f'{src} missing (a --dry take?)')
             os.symlink(src, os.path.join(tmp, f'{n:06d}.jpg'))
             n += 1
     print(f'take {k + 1}: sim {bounds[k]:.3f}–{min(bounds[k + 1], times[-1]):.3f} s')
-subprocess.run(['ffmpeg', '-v', 'error', '-y', '-framerate', '60', '-i', os.path.join(tmp, '%06d.jpg'), '-vf', 'scale=1280:720',
-                '-c:v', 'libx264', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out], check=True)
-for f in os.listdir(tmp):
-    os.unlink(os.path.join(tmp, f))
-os.rmdir(tmp)
-print(f'{out}: {n} frames, {n / 60:.2f} s')
+if fo:
+    json.dump({'sub': sub, 'shard': 'none', 'takes': [r['sha'] for r in receipts], 'cuts': CUTS}, open(os.path.join(fo, 'meta.json'), 'w'))
+if out != '-':
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-framerate', str(60 * sub), '-i', os.path.join(tmp, '%06d.jpg'), '-vf', f"select='not(mod(n\\,{sub}))',setpts=N/(60*TB),scale=1280:720",
+                    '-r', '60', '-c:v', 'libx264', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out], check=True)
+if not fo:
+    for f in os.listdir(tmp):
+        os.unlink(os.path.join(tmp, f))
+    os.rmdir(tmp)
+print(f'{out}: {n} samples, {n / (60 * sub):.2f} s')

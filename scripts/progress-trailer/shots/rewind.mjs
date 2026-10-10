@@ -4,6 +4,8 @@
 // their woods. Tracers are off (§2.3, `prepare`).
 // --opt {"spot": [x, z], "aim": [x, y, z] (absolute; omitted on the authoring run: the nearest stag's head),
 //        "fire": frame, "from": [dyaw, dpitch] (the look starts this far off the aim and eases on)}.
+// The fire event logs the stag's head at the shot: a longer lead-in moves a grazing stag, so day 22 is shot twice (the
+// second pass aims at the logged head) and the other builds replay that second pass's track.
 export const shot = {
   name: 'rewind',
   era: 'app',
@@ -51,7 +53,12 @@ export const shot = {
     const [oy, op] = o.from ?? [0.06, -0.03], k = Math.min(1, f / 40), e = 1 - (1 - k) ** 3; // ease onto the aim
     p.yaw = yaw + oy * (1 - e);
     p.pitch = pitch + op * (1 - e);
-    if (f === (o.fire ?? 60)) { window.__takeWeapon.tryFire(); window.__takeEvents.push({ t: window.__sim.t, e: 'fire' }); }
+    if (f === (o.fire ?? 60)) {
+      // where the target's head is at the shot (the authoring pass logs it; the next pass aims there, on every build)
+      const h = window.__stag?.headWorld ? window.__stag.headWorld(p.position.clone()) : null;
+      window.__takeEvents.push({ t: window.__sim.t, e: 'fire', head: h ? [h.x, h.y, h.z].map((v) => Math.round(v * 1000) / 1000) : null });
+      window.__takeWeapon.tryFire();
+    }
     if (window.__stag && !window.__killed && (window.__stag.alive === false || window.__stag.state === 'dead')) { window.__killed = true; window.__takeEvents.push({ t: window.__sim.t, e: 'kill' }); }
   }.toString(),
   accept(r) {
