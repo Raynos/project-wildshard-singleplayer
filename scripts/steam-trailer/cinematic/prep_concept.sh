@@ -25,7 +25,7 @@ fi
 # b15, under the end card: a hold on b07's last frame with a very slow push (council R2C-1: the map behind the card is b07's)
 if [ -s "$OUT/b07.mp4" ]; then
   ffmpeg -loglevel error -y -sseof -0.1 -i "$OUT/b07.mp4" -frames:v 1 "$OUT/b07-last.png"
-  ffmpeg -loglevel error -y -loop 1 -t 5.05 -i "$OUT/b07-last.png" -vf "zoompan=z='1+0.0004*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1920x1080:fps=60" \
+  ffmpeg -loglevel error -y -loop 1 -framerate 60 -t 5.05 -i "$OUT/b07-last.png" -vf "zoompan=z='1+0.0004*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1920x1080:fps=60" \
     -t 5.05 -an -c:v libx264 -crf 14 -pix_fmt yuv420p "$OUT/b15.mp4"
   echo "[prep] b15 (hold on b07)"
 fi
