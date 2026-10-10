@@ -486,3 +486,48 @@ There is no clock tick, artificial draw or change to frame pacing.
 Seven focused clock/gate/sampler tests, current-HEAD-plus-own-hunks strict
 and touched root lint pass. The next matched capture retains delivered
 rAF, callback-start and polling intervals independently on both surfaces.
+
+## Native-rAF matched result: desktop PASS, Safari cadence still OPEN
+
+Runtime `77380da36`, 2026-10-10. Quiet 18:20:21–18:31:27 UTC, removed
+in finally, no expiry. Coordinator reported a Nine bake Chromium during
+18:20:21–18:21:10: that interval receives **no timing credit**. Desktop
+capture starts 18:21:24; its first measured route starts 18:21:37. All
+six routes and both standing poses occur after the exclusion. Initial
+build/boot work during the exclusion is not used as timing evidence.
+
+Desktop full G270 route ends 18:29:28: all six complete, zero errors or
+refusals; 13,321 completed draws, zero missing counters. Native-rAF
+p95/p99 33.4/33.4 ms, standing 33.4/33.4, measured quantum 0.1 ms:
+**cadence PASS** under the unchanged absolute and relative rules.
+Callback-start p95/p99 34.1/35.5 and polling 33.4/33.4 stay diagnostic.
+Crossing sync maximum 26.8 ms, demanded wait 3.1 ms, activation 6 ms:
+install PASS. First crossroads compiles zero; explicit-warm-up gate has
+2,380 explicit calls, invocation maximum 6.5 ms and whole-task observer
+upper bound 50 ms. Route load medians 8.79/10.80/7.60/4.94/4.24/4.45;
+maximum 14.44. No whole-route draw-zero claim is inferred from a gate
+that selects only the explicit warm-up intervals.
+
+Safari Auto Driftwood→Signal→Driftwood subset 18:29:37–18:31:19:
+both routes complete, zero errors/refusals, 1,714 completed draws and
+zero missing counters. Native-rAF p95/p99 36/53 ms, standing 34/34,
+quantum 1 ms: **cadence FAIL**, two quanta above standing. Callback-start
+37/53 and polling 48/67 are retained separately. Crossing sync
+20/1/9/0 ms, demanded wait 3 ms, activation at most 3 ms: install PASS.
+394 explicit calls, zero draw/driver/unclassified calls; invocation
+maximum 5 ms. Whole warm-task bound remains unavailable, not zero.
+Route load medians 17.73/13.53, maxima 19.91/16.71: **under load**.
+Phone memory remains G269; this is not full G270 phone coverage.
+
+Of the Safari route frames, 262 overlap Driftwood world (p95 46 ms),
+126 Signal world (36 ms), and 1,218 no recorded hook (35 ms).
+Those are wall overlaps, not CPU charges. Remaining cadence attribution
+therefore starts with world preparation scheduling, without inventing a
+CPU-task owner or relaxing the cadence limit.
+
+All owned preview/browser/Simulator/Inspector/proxy resources closed.
+Raw scratch `attempt-7738-desktop.json` SHA-256
+`6fffe45d22fbe9ae7611b0252feaed4bf53386054bd2735dd96ce93da3ac4710`;
+`attempt-7738-safari.json`
+`7f061a1c896591f192337f52222e2c24cc045335ba16d30c2eca0b425490ea84`.
+Proof `.git/proofs/20261010T125830-sf22-native-raf-matched-69715.json`.
