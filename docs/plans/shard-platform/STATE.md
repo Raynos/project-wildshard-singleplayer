@@ -27,11 +27,13 @@
 
 The template and fixtures have no legacy folder; their old measure is about 95 %.
 
-**Lanes (Jake G289: 2 Opus + 5 Codex)**
+**Lanes (Jake 10-10: 3 Opus + 5 Codex, "3 is a sweet middle split")**
 
 | Lane | Work |
 |---|---|
-| (Opus) | both slots free until Jake picks on the audit |
+| op-hitch24 | Pine 17.9 s herd-skinning freeze · quiet cell-entry proof |
+| op-look25 | grid vs SHARD SELECT looks per shard · SF23 skirts |
+| op-hitch26 | world-build long tasks (placement, colliders) on entry |
 | sp-x1 | Nalati witness gaps → compatible |
 | sp-x2 | Antler King on phasedBoss done (`063bb0a1c`) · Pine witness gaps · Linux exact-output list |
 | sp-x4 | Driftwood witness gaps → compatible |
