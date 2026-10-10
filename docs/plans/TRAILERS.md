@@ -4,7 +4,8 @@
 (ten experiments, Jake's verdicts: LTX Layout-To-Render on a Blender grey (#9) and LTX from a Qwen keyframe (#10b) win);
 **CT2** script draft 4 after council rounds 1–2; **draft 1 of the cinematic trailer is cut** (67 s, every shot LTX-2.5,
 sent to Jake 2026-10-10; `art/trailers/round-3-draft1/`) — **Jake: "looks insanely AI"**, so Part B pauses for **Part C**:
-four 15-second trailers, one idea each (E471, §3b). Open: TR9, CT2–CT6, T15-1–T15-5.
+four 15-second trailers, one idea each (E471, §3b; V1 / V2 kept for the builder trailer); then **Part D**, a
+15-second cinematic for players in the WoW-2004 spirit (E472, §3c). Open: TR9, CT2–CT6, T15-6, P15-0–P15-1.
 
 ## 0. Why
 
@@ -126,7 +127,19 @@ are made, shown to him and reviewed. Part B (CT2–CT6) is paused behind this. T
 | T15-2 | **V2 · The map that draws itself** — ink motion design in HTML, frames via `titles.mjs --titles-html` | 15 s cut | lane |
 | T15-3 | **V3 · Postcards** — printed cards on a road map, HTML / CSS 3D | 15 s cut | lane |
 | T15-4 | **V4 · The seam** — two paintings from one grey layout, camera projection (`cinematic/still_mesh.py`, `still_cam.py`) | 15 s cut | trailer agent |
-| T15-5 | Score and hits per variant; the four sent to Jake; council round 2 reviews the four cuts | Jake has the four; `council/register.md` | trailer agent |
+| T15-5 | ✅ Score and hits per variant; the four sent to Jake (2026-10-10); council round 2 reviews the four cuts | Jake has the four | trailer agent |
+| T15-6 | **Parked: round 2 on V1 and V2** (the builder trailer) — Jake: *"V1 and V2 have potential, V4 is not a moving trailer. V3 is just images."* (V3, V4 dropped). Council round 2's fixes are in `t15/council/review-seat-{A,B,C}.md` (V1: a bigger terminal crop, no scratch path, a player line, no ghost captions; V2: a centred caption *…with Claude Code*, heavier highway, no blank cartouche). Parked behind Part D by Jake's E472 | Jake has V1.2 and V2.2 | trailer agent |
+
+## 3c. Part D — a 15-second cinematic trailer for players (E472)
+
+Jake, 2026-10-10: *"none of this is a trailer for the gameplay … Think of something like the classical trailer for World
+of Warcraft … 2004 … Cinematic trailer … two completely different trailers … one for the building experience … the
+other … for the MMO players."* Ten ideas ranked by wow, a council, the top three made. `trailers/p15/`.
+
+| Row | What | Done when | Owner |
+|---|---|---|---|
+| P15-0 | Ten ideas (`p15/ideas.md`); council round 1 ranks them by wow and picks three | `p15/council/selection.md` | trailer agent |
+| P15-1 | The three made: character sheets and keyframes (OpenAI Image 2.5), shots (LTX-2.5 image-to-video), score and hits, cut | Jake has the three | trailer agent |
 
 ## 4. Not in this plan
 

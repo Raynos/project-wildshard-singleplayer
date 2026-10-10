@@ -26,3 +26,6 @@ Settled. A seat may reopen an item only with new evidence (a file and line, a qu
     BiRefNet (cut-outs), Real-ESRGAN, Blender 5.2 headless, Playwright HTML → PNG frames (`scripts/steam-trailer/titles.mjs`),
     the real Claude Code terminal recorder (`build-beat.mjs`), MiniMax Music 3, MOSS-SoundEffect v2 + Stable Audio 3,
     ffmpeg. The four are made in one session, so each must be buildable in roughly 2–4 hours of agent work.
+11. **Jake's verdict on the four cuts** (2026-10-10): *"V1 and V2 have potential, V4 is not a moving trailer. V3 is just
+    images."* V3 and V4 are dropped; V1 (prompt to glyphs) and V2 (the map that draws itself) go to a second round.
+    Motion is the bar: a camera move over a still, or cards landing on a still map, does not count as a moving trailer.
