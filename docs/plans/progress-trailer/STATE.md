@@ -11,5 +11,7 @@
   re-proven on `2d2c5815a`); the rig also films slow motion, speed ramps and 120 Hz sub-steps in edit.mjs's format.
 - **PT2 begun**: 16 Pine Hollow points where all four builds' ground matches; a day-22 stag grazes 2 m from (220, −10)
   (`progress/progress-trailer/pt2-probe/`).
-- Next: PT2 (re-probe day 8 on `2d2c5815a`, the rewind spot and its four-build sheet, each beat's spot and verb).
+- **Rewind spot chosen**: (230, 0) at the day-22 stags, ground 0 m on all four builds; sheet
+  `progress/progress-trailer/pt2-rewind-spot.jpg` (cuts 1 → 8 → 15, day 22 carries the impact).
+- Next: PT2's remaining scouting (each play beat's spot and verb; the lapse camera adapter and stages).
 - Open rows: PT2–PT11.

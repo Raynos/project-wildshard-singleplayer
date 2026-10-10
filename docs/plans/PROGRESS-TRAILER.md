@@ -151,6 +151,12 @@ says so.
   shard, 16 points match within 0.1 m on all four builds; at the east edge, (220, −10), a day-22 stag grazed 2 m away.
   Every point with its nearest day-22 stag: `progress/progress-trailer/pt2-probe/pine-ground-and-deer.json` (day 8 was
   probed on the branch build; PT2 re-probes `2d2c5815a`). Day-22 deer keep ~30 m from a standing player.
+- **The rewind spot (PT2 (b), 2026-10-10)**: (230, 0), looking west-southwest at the day-22 stag group at (221.5, −9.7)
+  (≈ 12.9 m; the stags stand in the same places every run). A 2.5 m grid there, re-probed with main's day 8, found 122
+  matching points, 33 of them 9–15 m from a stag; the ground is 0 m on all four builds. Its four-build sheet,
+  `progress/progress-trailer/pt2-rewind-spot.jpg`: 1 → 8 better (grass, the crossbow's look), 8 → 15 the remaster (the
+  forest, deer), 15 → 22 the same world with a herd of antlered stags. By Jake's rule the cuts are day 1 → 8 → 15 and
+  the day-22 take carries the impact. (Facing east from (210, −7.5) shows the shard's boundary wall behind the stag.)
 
 ### 3.2 HEAD shots and the shared tools (the trailer agent's pipeline, unedited)
 
