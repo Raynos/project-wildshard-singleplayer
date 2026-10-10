@@ -7,7 +7,8 @@
 // plane half a rise under its nosing line, so the depth test shows each card on the back half of every tread only — the
 // per-step broken reflection — and a flat set on each landing.
 // SHARD-PLATFORM M3: the card program's GLSL and row, the look, the cut and the stair's gains are data (data/streaks.ts).
-import { Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, Uint16BufferAttribute, Vector3, Vector4 } from 'three';
+import { Mesh, Vector3, Vector4 } from 'three';
+import { emitterCardsGeometry } from '@wildshard/sdk/looks/emitterCards';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import type { Emitter } from '@wildshard/sdk/looks/vertexSpill';
 import { STAIR_DASH, STAIR_GAIN, STAIR_WIDTH, STREAK_CUT, STREAK_LOOK, STREAK_PROGRAMS } from '../data/streaks';
@@ -37,20 +38,7 @@ export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole:
       uHole: { value: hole },
     },
   });
-  const g = new InstancedBufferGeometry();
-  g.setAttribute('position', new Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 3));
-  g.setAttribute('aCorner', new Float32BufferAttribute([-1, 0, 1, 0, 1, 1, -1, 1], 2));
-  g.setIndex(new Uint16BufferAttribute([0, 1, 2, 0, 2, 3], 1));
-  const e = new Float32Array(emitters.length * 3), col = new Float32Array(emitters.length * 3), size = new Float32Array(emitters.length * 3);
-  emitters.forEach((m, i) => {
-    e.set([m.at.x, m.at.y, m.at.z], i * 3);
-    col.set([m.color.r, m.color.g, m.color.b], i * 3);
-    size.set([m.w, m.h, m.power], i * 3);
-  });
-  g.setAttribute('aE', new InstancedBufferAttribute(e, 3));
-  g.setAttribute('aCol', new InstancedBufferAttribute(col, 3));
-  g.setAttribute('aSize', new InstancedBufferAttribute(size, 3));
-  g.instanceCount = emitters.length;
+  const g = emitterCardsGeometry(emitters);
   const m = new Mesh(g, mat);
   m.frustumCulled = false;
   m.renderOrder = 4;

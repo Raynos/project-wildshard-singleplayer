@@ -271,6 +271,8 @@
     "./systems/kit/kitConvert": "./systems/kit/kitConvert.ts",
     "./systems/looks/mistGeometry": "./systems/looks/mistGeometry.ts",
     "./systems/signs/fontWait": "./systems/signs/fontWait.ts",
+    "./systems/props/pathMovers": "./systems/props/pathMovers.ts",
+    "./systems/looks/emitterCards": "./systems/looks/emitterCards.ts",
     "./icons": "./icons.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts",
     "./shard/list": "./shard/list.ts",

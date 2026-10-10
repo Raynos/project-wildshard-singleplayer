@@ -73,7 +73,8 @@ import { cullHandedBatches } from '@wildshard/sdk/cull/handedBatches';
 import { convertKits } from '@wildshard/sdk/kit/kitConvert';
 import { waitForFonts } from '@wildshard/sdk/looks/fontWait';
 import { mistSheetsGeometry, steamPuffsGeometry } from '@wildshard/sdk/looks/mistGeometry';
-import { FONT_LOAD, KIT_YIELD_MS, SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
+import { type MoverPath, moveAlong, moverStart } from '@wildshard/sdk/props/pathMovers';
+import { FONT_LOAD, KIT_YIELD_MS, MOVERS, SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
 import { lodReady } from '@wildshard/sdk/cull/meshLod';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
@@ -316,21 +317,19 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
   const neon = neonMaterial(shared, atlas.textures);
   nd.look.neon = { mat: neon, atlas };
-  /** a mover's copies (one object each: the world moves them), named for the budget lanes */
-  const movers = (model: ModelDef<object>, pls: readonly Placement<object>[], id: string): Object3D[] => {
-    const placed = place(model, pls, { ctx: nd.ctx, draw: 'single', parent: root, piece: { id } });
-    const copies = pls.length === 1 ? [placed.object] : [...placed.object.children];
+  /** a mover's copies (one object each: the world moves them along its path), named for the budget lanes */
+  const movers = (model: ModelDef<object>, paths: readonly MoverPath[], id: string): { body: Object3D; path: MoverPath }[] => {
+    const placed = place(model, paths.map(moverStart), { ctx: nd.ctx, draw: 'single', parent: root, piece: { id } });
+    const copies = paths.length === 1 ? [placed.object] : [...placed.object.children];
     named(placed.object, 'movers');
     for (const o of copies) named(o, 'movers');
-    return copies;
+    return paths.flatMap((path, i) => { const body = copies[i]; return body === undefined ? [] : [{ body, path }]; });
   };
-  const one = (list: readonly Object3D[]): Object3D => list[0] ?? new Group();
-  const gx0 = CABLE.x0 + 5 + (CABLE.x1 - CABLE.x0 - 10) * (0.5 + 0.5 * Math.sin(-0.62));
-  const train = one(movers(monorailTrain, [{ x: -100, y: Y0 + 25.5, z: -27 }], 'nds-train'));
-  const gondola = one(movers(cableGondola, [{ x: gx0, y: CABLE.y + ((gx0 - CABLE.x0) / (CABLE.x1 - CABLE.x0)) * 0.8, z: CABLE.z }], 'nds-gondola'));
-  const droneAt = [0, 1].map((i) => ({ phase: i * 2.4, r: 22 + i * 14, y: Y0 + 58 + i * 16 }));
-  const bodies = movers(drone, droneAt.map((d) => ({ x: 8 + Math.cos(d.phase) * d.r, y: d.y + Math.sin(d.phase) * 1.5, z: -8 + Math.sin(d.phase) * d.r, yaw: -d.phase })), 'nds-drones');
-  const drones = droneAt.flatMap((d, i) => { const body = bodies[i]; return body === undefined ? [] : [{ body, ...d }]; });
+  const running = [
+    ...movers(monorailTrain, [{ kind: 'loop', ...MOVERS.train, y: Y0 + MOVERS.train.y }], 'nds-train'),
+    ...movers(cableGondola, [{ kind: 'cable', ...CABLE, ...MOVERS.gondola }], 'nds-gondola'),
+    ...movers(drone, MOVERS.drones.map((d): MoverPath => ({ kind: 'orbit', x: d.x, y: Y0 + d.y, z: d.z, r: d.r, rate: d.rate, phase: d.phase, bob: d.bob, bobRate: d.bobRate })), 'nds-drones'),
+  ];
   const signsMesh = named(new Mesh(signs.build(), neon), 'signs');
   root.add(signsMesh);
   // every sign hung is a copy of the sign model (models/signs.ts), registered where it is drawn
@@ -409,14 +408,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     shared.u.uNear.value = camera.near;
     shared.u.uCam.value.setFromMatrixPosition(camera.matrixWorld);
     shared.bandWindow();
-    train.position.set(-100 + ((t * 16) % 300), Y0 + 25.5, -27);
-    const gx = CABLE.x0 + 5 + (CABLE.x1 - CABLE.x0 - 10) * (0.5 + 0.5 * Math.sin(t * 0.12 - 0.62));
-    gondola.position.set(gx, CABLE.y + ((gx - CABLE.x0) / (CABLE.x1 - CABLE.x0)) * 0.8, CABLE.z);
-    for (const d of drones) {
-      const a = t * 0.045 + d.phase;
-      d.body.position.set(8 + Math.cos(a) * d.r, d.y + Math.sin(t * 0.3 + d.phase) * 1.5, -8 + Math.sin(a) * d.r);
-      d.body.rotation.y = -a;
-    }
+    for (const m of running) moveAlong(m.body, m.path, t);
   };
   const cull = (camera: PerspectiveCamera): void => {
     culler.update(camera);

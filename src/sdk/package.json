@@ -145,6 +145,8 @@
     "./kit/kitConvert": "./kit/kitConvert.ts",
     "./looks/mistGeometry": "./looks/mistGeometry.ts",
     "./looks/fontWait": "./looks/fontWait.ts",
+    "./props/pathMovers": "./props/pathMovers.ts",
+    "./looks/emitterCards": "./looks/emitterCards.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/classKit": "./kit/classKit.ts",
     "./kit/ruledKit": "./kit/ruledKit.ts",
