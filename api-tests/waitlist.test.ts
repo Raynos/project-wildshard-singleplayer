@@ -88,6 +88,15 @@ describe('a plain form post (the site without its script)', () => {
 });
 
 describe('GET', () => {
+  it('counts each email once, with its newest signup', async () => {
+    const entry = (id: string, cell: string): string => JSON.stringify({ id, email: 'same@b.co', build: 'x', cell, receivedAt: id });
+    stored.set('waitlist/2026-10-10T01-00-00.000Z-aaaaaaaa.json', entry('2026-10-10T01-00-00.000Z-aaaaaaaa', 'A1'));
+    stored.set('waitlist/2026-10-10T02-00-00.000Z-bbbbbbbb.json', entry('2026-10-10T02-00-00.000Z-bbbbbbbb', 'E5'));
+    const res = await GET(new Request('https://x.test/api/waitlist', { headers: { 'x-review-password': 'pw', 'x-forwarded-for': '7.7.7.7' } }));
+    const body: unknown = await res.json();
+    expect(body).toEqual({ entries: [expect.objectContaining({ email: 'same@b.co', cell: 'E5' })] });
+  });
+
   it('the admin site may read (GET with the password header), the site may only write', () => {
     const pre = (origin: string): Response => OPTIONS(new Request('https://x.test/api/waitlist', { method: 'OPTIONS', headers: { origin } }));
     const admin = pre('https://wildshard-admin.vercel.app');

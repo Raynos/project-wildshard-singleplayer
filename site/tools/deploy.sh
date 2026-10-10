@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy the marketing site (MARKETING-SITE MS4, E465): by hand, never from a push, the same way as the drafts site.
+# Deploy the marketing site (MARKETING-SITE MS4, E465): by hand or from CI on a push to site/ (site-deploy.yml).
 # Builds from a clean export of HEAD (nobody's half-finished files ship), then uploads the static output to the Vercel
 # project `wildshard-site` (no Git link). Public from the first deploy (Jake, Q4).
 #
@@ -33,7 +33,7 @@ cp site/vercel-project.json "$work/dist-site/.vercel/project.json"
 echo "deploy-site: uploading"
 deploy=(vercel deploy "$work/dist-site" --prod --yes --scope raynos-projects)
 if [ -n "${VERCEL_BUILD_TOKEN:-}" ]; then deploy+=(--token "$VERCEL_BUILD_TOKEN"); fi
-url="$("${deploy[@]}" 2>/dev/null | grep -Eo "https://[^ ]+vercel.app" | tail -1)"
+url="$("${deploy[@]}" | grep -Eo "https://[^ ]+vercel.app" | tail -1)" # the CLI's own errors stay visible
 echo "deploy-site: $url"
 
 live="https://wildshard-site.vercel.app"

@@ -2,9 +2,8 @@
 //
 //   node site/tools/publish-media.ts <folder>
 //
-// <folder> holds the encoded loops (kept out of git): `trailer-1280.mp4`, `trailer-720.mp4` and, per shard (optional: a
-// folder with only the trailer keeps the manifest's shard loops),
-// `<slug>-card.mp4` (5:4, the phone card) and `<slug>-wide.mp4` (16:9, the desktop card). Each file is uploaded once,
+// <folder> holds the encoded loops (kept out of git): `trailer-1280.mp4`, `trailer-720.mp4` and, for any shards whose loops
+// change, `<slug>-card.mp4` (5:4, the phone card) and `<slug>-wide.mp4` (16:9, the desktop card). Each file is uploaded once,
 // public, under a content-hashed name (`site/media/<name>-<hash8>.mp4`), so a re-run with unchanged files uploads
 // nothing and a changed file gets a new URL (the Blob CDN caches a year). The poster is a small WebP in
 // site/public/media/, served by the site itself.
@@ -29,8 +28,6 @@ interface Media {
   loops: Record<string, Loop>;
 }
 
-/** The order the shard cards appear on the page; a slug not listed here follows, sorted. */
-const SHARD_ORDER = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack'];
 const POSTER = '/media/trailer-alpha-poster.webp'; // renamed when the alpha trailer replaced the loop, so cached phones fetch it
 
 const repo = resolve(import.meta.dirname, '..', '..');
@@ -96,11 +93,6 @@ async function main(): Promise<void> {
     .filter((f) => f.endsWith('-card.mp4'))
     .map((f) => f.slice(0, -'-card.mp4'.length))
     .filter((s) => existsSync(join(dir, `${s}-wide.mp4`)));
-  const rank = (s: string): number => {
-    const i = SHARD_ORDER.indexOf(s);
-    return i === -1 ? SHARD_ORDER.length : i;
-  };
-  slugs.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
 
   const media: Media = {
     trailer: {
@@ -108,10 +100,10 @@ async function main(): Promise<void> {
       mp4Phone: await publish(dir, 'trailer-720.mp4', token, known),
       poster: POSTER,
     },
-    loops: {},
+    // start from the loops the manifest already names: the folder only replaces the shards it holds (the page looks
+    // loops up by slug, so their order doesn't matter)
+    loops: existsSync(manifestPath) ? (JSON.parse(readFileSync(manifestPath, 'utf8')) as Media).loops : {},
   };
-  // a folder with only the trailer (TRAILERS TR7, the alpha trailer) keeps the shard loops the manifest already names
-  if (slugs.length === 0 && existsSync(manifestPath)) media.loops = (JSON.parse(readFileSync(manifestPath, 'utf8')) as Media).loops;
   for (const slug of slugs) {
     media.loops[slug] = {
       card: await publish(dir, `${slug}-card.mp4`, token, known),

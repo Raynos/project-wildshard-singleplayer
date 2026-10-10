@@ -15,6 +15,8 @@ import { clientIp, newId, passwordOk, rateLimited } from './inbox.js';
 export const MAX_BODY_BYTES = 8 * 1024;
 export const MAX_BUILD_CHARS = 500;
 export const RATE_LIMIT_PER_MIN = 10;
+/** Blob reads in flight at once when the admin lists the signups */
+const READ_BATCH = 50;
 const PREFIX = 'waitlist/';
 const SITE_ORIGINS = ['https://wildshard.io', 'https://wildshard-site.vercel.app'];
 /** the admin site reads the list (GET, with the review password) */
@@ -130,6 +132,12 @@ export async function GET(req: Request): Promise<Response> {
     for (const b of page.blobs) if (b.pathname.endsWith('.json')) paths.push(b.pathname);
     cursor = page.hasMore ? page.cursor : undefined;
   } while (cursor !== undefined);
-  const entries = (await Promise.all(paths.map(readEntry))).filter((e): e is WaitlistEntry => e !== null);
-  return json(req, 200, { entries: entries.toSorted((a, b) => a.id.localeCompare(b.id)) });
+  // read in slices, so thousands of signups don't open thousands of Blob reads at once
+  const entries: WaitlistEntry[] = [];
+  for (let i = 0; i < paths.length; i += READ_BATCH) {
+    for (const e of await Promise.all(paths.slice(i, i + READ_BATCH).map(readEntry))) if (e !== null) entries.push(e);
+  }
+  // one author per email: someone who signs up again (another cell, a reload) counts once, with their newest signup
+  const newest = new Map(entries.toSorted((a, b) => a.id.localeCompare(b.id)).map((e) => [e.email, e]));
+  return json(req, 200, { entries: [...newest.values()].toSorted((a, b) => a.id.localeCompare(b.id)) });
 }

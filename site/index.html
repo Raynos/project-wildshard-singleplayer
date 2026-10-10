@@ -326,6 +326,7 @@
   // the loops are softer than the wide stills) on hover. The trailer is a plain <video> in the markup.
   var media = {}; try { media = JSON.parse(document.getElementById("media").textContent || "{}"); } catch (e) { media = {}; }
   var wide = window.matchMedia("(min-width: 1024px)").matches;
+  var hover = window.matchMedia("(hover: hover) and (min-width: 1024px)").matches; // a mouse: loops on hover; touch (iPad too): in view
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function start(v, src) { if (!v.src) v.src = src; var p = v.play(); if (p && p.catch) p.catch(function () {}); }
   document.querySelectorAll("[data-loop]").forEach(function (shot) {
@@ -335,12 +336,12 @@
     v.className = "loop"; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute("aria-hidden", "true"); v.preload = "none";
     v.addEventListener("playing", function () { v.classList.add("on"); });
     shot.appendChild(v);
-    if (wide) {
+    if (hover) {
       var card = shot.closest(".shard") || shot;
       card.addEventListener("mouseenter", function () { start(v, m.wide); });
       card.addEventListener("mouseleave", function () { v.pause(); v.classList.remove("on"); });
     } else if ("IntersectionObserver" in window) {
-      new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) start(v, m.card); else if (v.src) v.pause(); }); }, { threshold: 0.4 }).observe(shot);
+      new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) start(v, wide ? m.wide : m.card); else if (v.src) v.pause(); }); }, { threshold: 0.4 }).observe(shot);
     }
   });
 

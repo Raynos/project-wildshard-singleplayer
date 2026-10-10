@@ -2,6 +2,8 @@
 // page's slots must match exactly, and the text must render safely.
 // oxlint-disable-next-line import/no-nodejs-modules -- The test reads the committed COPY.md and page template.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- vm.Script compiles the page's inline scripts without running them.
+import { Script } from 'node:vm';
 import { fillCopy, inline, parseCopy, plain, unusedCopy } from '../site/tools/copy';
 import { describe, expect, it } from 'vitest';
 
@@ -44,6 +46,14 @@ describe('site/COPY.md and the pages', () => {
 });
 
 describe('the pages', () => {
+  it('every inline script on every page parses once the copy is filled in (a typo would silently kill the page script)', () => {
+    const copy = parseCopy(readFileSync('site/COPY.md', 'utf8'));
+    for (const page of PAGES) {
+      const { html } = fillCopy(readFileSync(page, 'utf8'), copy);
+      for (const [, body = ''] of html.matchAll(/<script>([\s\S]*?)<\/script>/gu)) expect(() => new Script(body)).not.toThrow(); // compiles, never runs
+    }
+  });
+
   it('every link to the game opens in a new tab (Jake: "All the play icons should always open a new tab")', () => {
     const links = PAGES.flatMap((page) => readFileSync(page, 'utf8').match(/<a [^>]*href="https:\/\/wildshard-singleplayer\.vercel\.app[^"]*"[^>]*>/gu) ?? []);
     expect(links.length).toBeGreaterThan(0);
