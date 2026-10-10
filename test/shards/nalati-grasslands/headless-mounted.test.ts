@@ -11,6 +11,8 @@ import { nalatiGroupsOf } from '../../../src/shards/nalati-grasslands/runtime/gr
 import { HITCH_HORSE_SPOTS } from '../../../src/shards/nalati-grasslands/world/layout';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
+import { RIVER, TERRAIN } from '../../../src/shards/nalati-grasslands/world/terrain';
+import { basinBody } from '../../../src/engine/world/water/body';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
@@ -43,6 +45,7 @@ it('rides only the two real camp horses with a separate lying motor, then restor
     const id = campIds[0]; if (id === undefined) throw new Error('Missing camp horse');
     const a = host.entities.get(id); if (a === undefined) throw new Error('Missing camp actor');
     expect(ride.mount(id)).toBe(true); expect(ride.mount(id)).toBe(false);
+    expect(host.playerMode).toBe('ride');
     expect(host.player.motor.snapshot().enabled).toBe(false); expect(a.driven).toBe(true);
     expect(ride.body.motor?.opts.length).toBe(2.4);
     const start = a.position.clone();
@@ -59,6 +62,7 @@ it('rides only the two real camp horses with a separate lying motor, then restor
     expect(a.motor).toBeNull(); // the native body LOD owns no second upright creature capsule
     const count = host.physics.world.colliders.len();
     ride.dismount(); expect(host.physics.world.colliders.len()).toBe(count - 1);
+    expect(host.playerMode).toBe('foot');
     expect(host.player.motor.snapshot().enabled).toBe(true); expect(a.driven).toBe(false); expect(ride.horse).toBeNull();
     expect(nalatiGroupsOf(host)?.env.playerMounted).toBe(false);
     expect(host.player.position.distanceTo(a.position)).toBeGreaterThan(1);
@@ -78,6 +82,7 @@ it('reconnects the saved lying capsule without duplication and reproduces the ac
     const saved = snapshotSimHost(original), count = original.physics.world.colliders.len();
     restored = restoreSimHost(plan.level, { ...plan.ports, rapier }, saved, fresh => { install(fresh, true); });
     expect(restored.physics.world.colliders.len()).toBe(count);
+    expect(restored.playerMode).toBe('ride');
     expect(mounted(restored).body.motor?.snapshot()).toEqual(mounted(original).body.motor?.snapshot());
     expect(mounted(restored).body.snapshotBody()).toEqual(mounted(original).body.snapshotBody());
     expect(mounted(restored).phase(id)).toBe(mounted(original).phase(id));
@@ -130,4 +135,38 @@ it('crouches through the actual standing controller, refuses the grounded jump, 
     original.step({ ...walk, crouch: false, jump: true });
     expect(original.playerFall.grounded).toBe(false); expect(original.playerFall.vy).toBeGreaterThan(0);
   } finally { restored?.dispose(); fast.dispose(); original.dispose(); }
+});
+
+it('swims with held dive/surface in the actual Kunes basin, restores that swim, and returns to the riverbank', () => {
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    const river = basinBody('river', TERRAIN), heightAt = plan.ports?.heightAt;
+    if (heightAt === undefined) throw new Error('Missing baked Nalati height query');
+    // The actual baked Kunes channel is ~1.64 m deep here: it swims, but its floor prevents a latched deep dive.
+    const site = { x: -116, z: 152, ground: heightAt(-116, 152) };
+    expect(river.restAt(site.x, site.z)).toBe(RIVER.level);
+    expect(RIVER.level - site.ground).toBeGreaterThan(1.2);
+    original.player.position.set(site.x, site.ground + 0.1, site.z);
+    const idle: SimCommand = { moveX: 0, moveZ: 0, yaw: 0, commandVersion: 1 };
+    original.step(idle);
+    expect(original.hasWater).toBe(true); expect(original.playerMode).toBe('swim');
+    for (let tick = 0; tick < 60; tick++) original.step(idle);
+    const floating = original.player.position.y;
+    for (let tick = 0; tick < 60; tick++) original.step({ ...idle, dive: true, crouch: true });
+    expect(original.playerSwim.diving).toBe(false);
+    expect(original.player.position.y).toBeLessThan(floating);
+    expect(original.player.position.y).toBeGreaterThanOrEqual(site.ground);
+    expect(mounted(original).rider.crouching).toBe(false);
+    const saved = snapshotSimHost(original);
+    restored = restoreSimHost(plan.level, { ...plan.ports, rapier }, saved, fresh => { install(fresh, true); });
+    expect(restored.hasWater).toBe(true); expect(restored.playerMode).toBe('swim');
+    for (let tick = 0; tick < 90; tick++) { original.step({ ...idle, surface: true }); restored.step({ ...idle, surface: true }); }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    expect(original.playerSwim.diving).toBe(false);
+    // The page's terrain mask is dry on this bank, even though the river has a global rest level.
+    const bankZ = RIVER.z(site.x) + RIVER.half(site.x) + 20;
+    expect(river.restAt(site.x, bankZ)).toBeNull();
+    original.player.position.set(site.x, heightAt(site.x, bankZ) + 0.1, bankZ);
+    original.step(idle); expect(original.playerMode).toBe('foot');
+  } finally { restored?.dispose(); original.dispose(); }
 });

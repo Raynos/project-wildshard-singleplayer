@@ -281,7 +281,7 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * the wild herd and Argymaq's herd, seeded on the 'ai' stream as the page seeds them) deciding on the host's clocks, the flock
  * and its dog (runtime/headlessCreatures.ts). Not yet owned (fail-closed, see
  * progress/shard-platform/handoffs/sf72-nalati12.md): the remaining dusk/night/storm elite brains, the
- * Golden King and the Storm Titan, taming/companions and deep-water player motion, the weapons, the dusk / night spawns as the day clock
+ * Golden King and the Storm Titan, taming/companions, the weapons, the dusk / night spawns as the day clock
  * passes them, the quests and their facts, and the entry proof; `finish` refuses.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
@@ -294,6 +294,10 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
   return { level, ports: { ground: false, heightAt }, install: (host, context) => {
     // the creature floor casts into this world at install, restoring too (the saved physics then replaces it)
     addNalatiWorld(host, bake);
+    // The manifest's basinBody('river', TERRAIN): the Kunes and brook mask, at their shared rest level.
+    // Install before restore too, so the saved swimmer uses the same water on its first resumed tick.
+    const surfaceAt = (x: number, z: number): number | null => TERRAIN.pondMask(x, z) > 0 ? TERRAIN.waterLevel() : null;
+    host.useWater({ surfaceAt });
     // the page's day clock, stepped at the start of every tick (restoring too: the host then restores its saved `day`); the
     // roster reads it at install, the boot's phase (the level's `day.start`, if any, moves both)
     const clock = host.useDayClock(nalatiDayClock());
@@ -325,7 +329,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     installed.creatures = installNalatiCreatures(host, { elites: bindings, bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, mounted: () => nalatiMountedOf(host)?.mounted === true, crouching: () => nalatiMountedOf(host)?.rider.crouching === true, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
     // The same two camp identities and authored road order as ride/ride.ts; taming adds other mountables later.
     const mountable = bodies.filter(b => HITCH_HORSE_SPOTS.some(p => p.x === b.boot.position.x && p.z === b.boot.position.z)).map(b => b.actor.entityId);
-    installNalatiMountedPlayer(host, { groups, mountable, heightAt, waterLevel: TERRAIN.waterLevel, wetAt: nalatiWetAt,
+    installNalatiMountedPlayer(host, { groups, mountable, heightAt, waterLevel: TERRAIN.waterLevel, surfaceAt, wetAt: nalatiWetAt,
       inBounds: (x, z, margin) => Math.abs(x) < NALATI_GROUND_SIZE / 2 - margin && Math.abs(z) < NALATI_GROUND_SIZE / 2 - margin,
       roads: [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL] });
     scare = (x, z) => { manager().scare(x, z, 60); };
