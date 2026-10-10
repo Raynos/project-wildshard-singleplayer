@@ -20,7 +20,7 @@ const oiled = (i: number): string => `oiled.${String(i)}`, lit = (i: number): st
  * well's crank raises the bucket (raised from the start once the oil is taken), and only then is the oil jar taken; oil is
  * poured into each waymark's bowl by hand and lit with a light crack; the tower fire lights by hand once all three burn.
  * The bucket, the oiled bowls, the burning bowls and the fire are transient marks (exact continuation); a lit bowl is
- * always an oiled one. The browser's line of sight on the prompts is not modelled headless.
+ * always an oiled one. Both hosts use the captured page prompt order and the client nearest/LOS picker.
  */
 export const SIGNAL_INTERACTIONS = parseInteractionRows({
   marks: [{ id: 'raised', initial: { all: [FLAG.oil] } }, { id: 'fire' }, ...each(i => [{ id: oiled(i) }, { id: lit(i) }]).flat()],

@@ -1,14 +1,12 @@
-import { rowsHeadlessRuntime, bakedSpots } from '@wildshard/sdk/rowsHeadless';
+import { bakedSpots } from '@wildshard/sdk/rowsHeadless';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
-import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../data/brains';
-import { SIGNAL_HEADLESS } from '../data/headless';
+import { prepareSignalRuntime } from './signalPlan';
 import baked from './physics.baked.json' with { type: 'json' };
 
-/** The built world's prompt spots and crack targets (baked from the browser, world/build.ts order), strictly. */
+/** The built world's prompt spots and crack targets, in actual world/build.ts registration order. */
 export const signalSpots = (): ReturnType<typeof bakedSpots> => bakedSpots(baked);
 /**
- * Signal Dunes' renderer-free trusted runtime (SF72 / SF27): its rows (data/headless.ts) on the SDK's rows headless
- * runtime, with the browser-baked metadata (scripts/bake-signal-physics.mjs) and the declared species catalogue.
+ * Signal's renderer-free native owners compose locally: declared species homes, Matriarch, quest and lash rows,
+ * with the shipping held-heavy input. Its browser metadata comes from generators/bake-signal-physics.mjs.
  */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = rowsHeadlessRuntime({ ...SIGNAL_HEADLESS, baked,
-  homes: { ...SIGNAL_HEADLESS.homes, species: SIGNAL_SPECIES, strikes: SIGNAL_STRIKES, modules: SIGNAL_MODULES } });
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = prepareSignalRuntime;

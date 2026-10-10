@@ -85,12 +85,15 @@ The current `data/headless.ts` lash rows close the old cooldown and lash-timing 
 `LashRuntime` as the browser weapon, including cooldown refusal, unroll, the heavy's second lash, pull and stagger.
 World crack commands start that lash and the quest row runs only when it lands; they also spend its cooldown.
 The crank's heavy world crack remains a `script` command. These are implemented mechanics; this whole-shard tape
-alone does not exercise every lash reaction. The player protocol now carries HEAVY, but Signal's `rowsHeadless`
-adapter still maps creature attack commands to light lashes only; held-heavy creature attacks remain a host gap.
+alone does not exercise every lash reaction. Signal now composes the native owners in its own `runtime/signalPlan.ts`,
+including the shipping held-heavy creature input: any held release throws the double crack, replacing a same-tick
+light swing and clearing its cooldown. Quiet mid-hold restore preserves the last named aim. The actual native strider
+fixture observes both contacts and exact 60-tick shipping-worker continuation. Named aim is still a bounded command
+port; this does not model camera target selection.
 Signal and Driftwood now use the same client prompt picker against native collision, with actual page registration
 order, reach, weak priority and sight-owner metadata. Named acts must answer the selected visible prompt, and unhosted
 prompts still compete. Native wall and restored-world assertions pass for both hosts; their real gameplay routes and
-continuations pass. Signal's held-heavy creature binding remains open; the passing whole-shard report does not hide it.
+continuations pass. Signal's held-heavy native binding is also covered by its real creature and shipping-worker fixture; camera aiming remains a bounded input port.
 
 ### Sky Reach (`far-reach`)
 
