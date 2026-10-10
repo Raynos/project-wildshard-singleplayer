@@ -28,12 +28,6 @@
         0.08
       ]
     },
-    "lineWidth": {
-      "type": "float",
-      "value": 1.4,
-      "min": 0,
-      "max": 8
-    },
     "outlineWidth": {
       "type": "float",
       "value": 0.004,
@@ -51,6 +45,12 @@
       "value": 3,
       "min": 1,
       "max": 8
+    },
+    "shade": {
+      "type": "float",
+      "value": 0.35,
+      "min": 0,
+      "max": 1
     }
   },
   "nodes": {
@@ -58,99 +58,9 @@
       "op": "param",
       "param": "paper"
     },
-    "uv": {
-      "op": "uv"
-    },
-    "fw": {
-      "op": "fwidth",
-      "in": [
-        "uv"
-      ]
-    },
-    "lwP": {
-      "op": "param",
-      "param": "lineWidth"
-    },
-    "w": {
-      "op": "mul",
-      "in": [
-        "fw",
-        "lwP"
-      ]
-    },
-    "e0": {
-      "op": "smoothstep",
-      "in": [
-        [
-          0,
-          0
-        ],
-        "w",
-        "uv"
-      ]
-    },
-    "uv1": {
-      "op": "oneMinus",
-      "in": [
-        "uv"
-      ]
-    },
-    "e1": {
-      "op": "smoothstep",
-      "in": [
-        [
-          0,
-          0
-        ],
-        "w",
-        "uv1"
-      ]
-    },
-    "e": {
-      "op": "min",
-      "in": [
-        "e0",
-        "e1"
-      ]
-    },
-    "ex": {
-      "op": "swizzle",
-      "in": [
-        "e"
-      ],
-      "mask": "x"
-    },
-    "ey": {
-      "op": "swizzle",
-      "in": [
-        "e"
-      ],
-      "mask": "y"
-    },
-    "border": {
-      "op": "min",
-      "in": [
-        "ex",
-        "ey"
-      ]
-    },
-    "line": {
-      "op": "oneMinus",
-      "in": [
-        "border"
-      ]
-    },
     "inkP": {
       "op": "param",
       "param": "ink"
-    },
-    "base": {
-      "op": "mix",
-      "in": [
-        "paperP",
-        "inkP",
-        "line"
-      ]
     },
     "glow": {
       "op": "const",
@@ -170,9 +80,6 @@
     },
     "sh": {
       "op": "sunShadow"
-    },
-    "alb": {
-      "op": "albedo"
     },
     "ndl": {
       "op": "dot",
@@ -251,7 +158,7 @@
     "d0": {
       "op": "mul",
       "in": [
-        "alb",
+        "paperP",
         "c"
       ]
     },
@@ -307,45 +214,10 @@
         "keep"
       ]
     },
-    "irr": {
-      "op": "irradiance"
-    },
-    "irrL": {
-      "op": "dot",
-      "in": [
-        "irr",
-        [
-          0.333,
-          0.333,
-          0.333
-        ]
-      ]
-    },
-    "a0": {
-      "op": "mul",
-      "in": [
-        "washP",
-        "irrL"
-      ]
-    },
-    "a1": {
-      "op": "mul",
-      "in": [
-        "a0",
-        "alb"
-      ]
-    },
-    "a2": {
-      "op": "mul",
-      "in": [
-        "a1",
-        0.3183098861837907
-      ]
-    },
     "ambient": {
       "op": "mul",
       "in": [
-        "a2",
+        "a1",
         "keep"
       ]
     },
@@ -452,11 +324,29 @@
         "oNn",
         "oW"
       ]
+    },
+    "shadeP": {
+      "op": "param",
+      "param": "shade"
+    },
+    "a0": {
+      "op": "mul",
+      "in": [
+        "washP",
+        "paperP"
+      ]
+    },
+    "a1": {
+      "op": "mul",
+      "in": [
+        "a0",
+        "shadeP"
+      ]
     }
   },
   "stages": {
     "surface": {
-      "colour": "base",
+      "colour": "paperP",
       "roughness": 1,
       "metalness": 0,
       "emissive": "glow"

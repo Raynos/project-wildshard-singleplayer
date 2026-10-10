@@ -13,8 +13,12 @@ The look (`data/look.ts`) is the ink / cel valley admitted by `test/shardfile-g1
 - **`ground`**: the terrain's material, an engine-owned toon preset reference in sage green
   (`{ family: 'graph', preset, version: 1 }`).
 - **`rock`**: every prop's material, an authored cel graph (`data/rock.graph.json`, from `scripts/tsl-spike/stress.js`
-  `inkGraph`: paper albedo with face-border ink, three hard sun bands with a flat ink-wash shade, a silhouette line, a light
-  posterise and the outline stage's inverted hull).
+  `inkGraph`: flat paper, three hard sun bands over a flat ink-wash shade, a silhouette line, a light posterise and the
+  outline stage's inverted hull). It departs from the spike in three places, which together drew every prop black: the
+  shade is a flat `wash × paper × shade` tone, not the irradiance ambient (at ~0.02 it fell under the posterise's first
+  step and the dark grade flooded every shadow-side face with ink); the sun lights flat paper, not the stock albedo (the
+  props' grey-box vertex colours, 0x888888, cut it 4×); and the UV face border is gone (these props carry SF56's packed
+  measure UVs, `measureUv`, every coordinate above 64, which read as all border), so the edge post inks the creases.
 - **`look.post`**: one authored pass, the (2b) edge post (`data/edge.post.json`, `inkPostGraph`): depth and normal-crease
   edges inked over the tone-mapped colour, faded with distance. It reads colour, depth and the normal pre-pass; the
   stack's static cost includes the pre-pass (budget v1: 1,000 per pixel at 2×, summed with the heaviest neighbour).

@@ -4,7 +4,7 @@ import edge from './edge.post.json' with { type: 'json' };
 /**
  * The ink / cel valley (SF59's second G169 fixture, `art/grid/round-19-art-styles/C-ink-cel-valley-inside.jpg`): the terrain
  * binds `ground`, an engine-owned toon preset reference in sage green; every prop binds `rock`, an authored cel graph
- * (`rock.graph.json`: paper albedo with face-border ink, the sun in three hard bands with a flat ink-wash shade, a
+ * (`rock.graph.json`: flat paper untinted by the props' grey-box vertex colours, the sun in three hard bands over a flat ink-wash shade, a
  * silhouette line, a light posterise and the outline stage's inverted hull). `look.post` is its one authored pass
  * (`edge.post.json`, the (2b) edge post): depth and normal-crease edges inked over the tone-mapped colour, faded with
  * distance; it reads colour, depth and the normal pre-pass. With Settings ▸ Debug ▸ Look ▸ "Graph materials" off the
