@@ -40,6 +40,18 @@ it('captures uncaptured late resources at owner exit, leaving shared assets with
   expect(scene.children).toEqual([]); assets.release('shared-material'); expect(materialDispose).toHaveBeenCalledOnce();
 });
 
+it('does not adopt an observed texture again during its own closing tree capture', () => {
+  const page = new Scope('page'), owner = page.child('observed tree'), assets = new AssetService(), scene = new Scene();
+  const root = new Group(), texture = new Texture(), material = new MeshBasicMaterial({ map: texture }), geometry = new BoxGeometry();
+  scene.add(root); root.add(new Mesh(geometry, material)); ownSceneTree(root, owner, assets);
+  const textureDispose = vi.spyOn(texture, 'dispose'), materialDispose = vi.spyOn(material, 'dispose'), geometryDispose = vi.spyOn(geometry, 'dispose');
+  const ownership = new SceneOwnership(scene, page, assets); ownership.capture(); ownership.capture();
+  expect(owner.census.textures).toBe(1); expect(textureDispose).not.toHaveBeenCalled();
+  owner.dispose(); page.dispose();
+  expect(textureDispose).toHaveBeenCalledOnce(); expect(materialDispose).toHaveBeenCalledOnce(); expect(geometryDispose).toHaveBeenCalledOnce();
+  expect(scene.children).toEqual([]); expect(Object.values(page.census).every(count => count === 0)).toBe(true);
+});
+
 
 it('never lets page post capture retain a regional sampler after its owner retires', () => {
   const page = new Scope('page'), assets = new AssetService(), ownership = new SceneOwnership(new Scene(), page, assets);

@@ -66,7 +66,9 @@ export function sceneObjectOwner(node: Object3D): Scope | null {
 /** Adopt an otherwise unowned resource. Existing owners (including batch-private allocations) stay authoritative. */
 export function ownSceneResource(resource: Disposable3, scope: Scope): void {
   const owner = resourceOwners.get(resource);
-  if (owner !== undefined && !owner.disposed) return;
+  // A final tree capture runs after this scope's resource cleanups. Its existing ownership still prevents a second
+  // native disposal; only newly discovered resources need immediate capture on the already-closing scope.
+  if (owner !== undefined && (!owner.disposed || owner === scope)) return;
   markResourceOwner(resource, scope);
   if (resource instanceof Texture) {
     // A backdrop may explicitly free a sampler before its delegated scope closes. Native disposal remains exact once.
