@@ -100,6 +100,11 @@ export interface FrameLookPort {
    * holds the page's values when the region takes the frame and puts them back when it leaves
    */
   readonly post?: (instance?: string) => FramePost | null;
+  /**
+   * be told a live region's cell owner weight each frame (1 inside its cell, blended across the edge band, 0 on the road):
+   * a shard's own post stack fades by it (SF59 step 4). Returns the release (absent on a port with no frame weights).
+   */
+  readonly owned?: (instance: string, weight: (w: number) => void) => () => void;
 }
 
 const ports = new WeakMap<object, FrameLookPort>();

@@ -41,7 +41,8 @@ import {
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, positionGeometry, positionLocal,
   positionViewDirection, positionWorld, texture, time, uniform, uv, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
-import { targetTexture } from '../nodes/engineNodesHandler';
+import { Pass } from 'postprocessing';
+import { retargetableTexture } from '../nodes/engineNodesHandler';
 import {
   GRAPH_OPS, SUN_OPS, validateGraph, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
   type GraphRef, type GraphValidationOptions, type GraphValueType,
@@ -81,6 +82,13 @@ export interface CompiledGraph {
   readonly outline: NodeMaterial | null;
   /** move the scene camera's clip range `sceneDepth` linearises with (a post graph compiled with `depth`; else a no-op) */
   readonly setDepthRange: (near: number, far: number) => void;
+  /** swap a post graph's scene inputs to other textures (the composer's input buffer each frame): no program change */
+  readonly setTargets: (targets: { readonly scene?: THREE.Texture; readonly depth?: THREE.Texture; readonly normal?: THREE.Texture }) => void;
+  /**
+   * a post graph's weight (compiled with `scene`): its output mixed over the scene colour by `w` (0 … 1), so a shard's
+   * stack fades with its cell's owner weight where two frames blend; 1 (the default) is the graph's own colour exactly
+   */
+  readonly setWeight: (w: number) => void;
 }
 
 /** the instance matrices' arrays as instanced buffers, shared by every graph that reads `objectOrigin` */
@@ -331,6 +339,14 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
 
   // the scene camera's clip range for `sceneDepth` (uniforms: a camera change moves no program)
   const depthNear = uniform(opts.depth?.near ?? 0.1), depthFar = uniform(opts.depth?.far ?? 1000);
+  // every scene-input sample, by input, so `setTargets` can move them to the composer's buffers
+  const taps: Record<'scene' | 'depth' | 'normal', ((next: THREE.Texture) => void)[]> = { scene: [], depth: [], normal: [] };
+  const tap = (slot: 'scene' | 'depth' | 'normal', map: THREE.Texture, at: Node<'vec2'>): Node<'vec4'> => {
+    const sample = retargetableTexture(map, at);
+    taps[slot].push(sample.retarget);
+    return sample.node;
+  };
+  const weight = uniform(1);
   interface Scope { readonly nodes: Readonly<Record<string, GraphNode>>; readonly parent: Scope | null; readonly memo: Map<string, Val>; readonly acc: Val | null; readonly index: Val | null }
   const root: Scope = { nodes: ir.nodes, parent: null, memo: new Map(), acc: null, index: null };
   // the lighting stage's inputs, live only while its sub-graph builds; a node reading a sun input memoizes per light
@@ -386,20 +402,20 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'litColour': if (litIn !== null) return { t: 'vec3', n: litIn }; break;
       case 'sceneColour': {
         if (opts.scene === undefined) throw new Error('material graph: a post graph reads sceneColour, so compile it with { scene }');
-        return { t: 'vec4', n: targetTexture(opts.scene, uv()) };
+        return { t: 'vec4', n: tap('scene', opts.scene, uv()) };
       }
       case 'sceneColourAt': {
         if (opts.scene === undefined) throw new Error('material graph: a post graph reads sceneColourAt, so compile it with { scene }');
-        return { t: 'vec4', n: targetTexture(opts.scene, asVec2(one())) };
+        return { t: 'vec4', n: tap('scene', opts.scene, asVec2(one())) };
       }
       case 'sceneDepth': {
         if (opts.depth === undefined) throw new Error('material graph: a post graph reads sceneDepth, so compile it with { depth }');
-        const raw = new ConvertNode<'float'>(new SplitNode(targetTexture(opts.depth.texture, a === undefined ? uv() : asVec2(a)), 'x'), 'float');
+        const raw = new ConvertNode<'float'>(new SplitNode(tap('depth', opts.depth.texture, a === undefined ? uv() : asVec2(a)), 'x'), 'float');
         return { t: 'float', n: perspectiveDepthToViewZ(raw, depthNear, depthFar).negate() };
       }
       case 'sceneNormal': {
         if (opts.normal === undefined) throw new Error('material graph: a post graph reads sceneNormal, so compile it with { normal }');
-        const packed = new ConvertNode<'vec3'>(new SplitNode(targetTexture(opts.normal, a === undefined ? uv() : asVec2(a)), 'xyz'), 'vec3');
+        const packed = new ConvertNode<'vec3'>(new SplitNode(tap('normal', opts.normal, a === undefined ? uv() : asVec2(a)), 'xyz'), 'vec3');
         return { t: 'vec3', n: packed.mul(2).sub(1).normalize() };
       }
       case 'const': return literal(n.value ?? 0);
@@ -504,7 +520,11 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const postMaterial = (): NodeMaterial => {
     const m = new MeshBasicNodeMaterial({ depthTest: false, depthWrite: false });
     const colour = out(st.post?.colour);
-    if (colour !== null) m.colorNode = new ConvertNode<'vec3'>(widen(colour, 'vec3'), 'vec3');
+    if (colour !== null) {
+      const own = new ConvertNode<'vec3'>(widen(colour, 'vec3'), 'vec3');
+      // with the scene bound, the pass fades over it by its weight (the engine's blend: one more tap of the colour input)
+      m.colorNode = opts.scene === undefined ? own : new ConvertNode<'vec3'>(new MathNode('mix', new SplitNode(tap('scene', opts.scene, uv()), 'xyz'), own, weight), 'vec3');
+    }
     m.vertexNode = vec4(positionLocal.xy, 0, 1);
     m.fog = false;
     return m;
@@ -578,10 +598,65 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   return {
     material, cost: checked.cost, bindings, selects, outline,
     setDepthRange(near, far) { depthNear.value = near; depthFar.value = far; },
+    setTargets(targets) {
+      for (const slot of ['scene', 'depth', 'normal'] as const) { const next = targets[slot]; if (next !== undefined) for (const retarget of taps[slot]) retarget(next); }
+    },
+    setWeight(w) { weight.value = Math.min(1, Math.max(0, w)); },
     setParam(name, value) {
       const set = setters.get(name);
       if (set === undefined) throw new Error(`material graph: no param ${name}`);
       set(value);
     },
   };
+}
+
+/**
+ * A compiled post graph as one pass of the engine's composer (SHARD-PLATFORM SF59 step 4): each frame its scene inputs
+ * move to the composer's input buffer (and its depth texture, when the pass reads `sceneDepth`: `needsDepthTexture` asks
+ * the composer for one), the scene camera's clip range feeds the depth's linearisation, and the graph draws the
+ * composer's fullscreen triangle into the output buffer. A pass at weight 0 is disabled, so it costs nothing.
+ */
+export class GraphPostPass extends Pass {
+  private readonly graph: CompiledGraph;
+  private readonly sceneCamera: THREE.Camera;
+  private readonly readsDepth: boolean;
+  constructor(graph: CompiledGraph, sceneCamera: THREE.Camera, readsDepth: boolean) {
+    super('GraphPostPass');
+    this.graph = graph; this.sceneCamera = sceneCamera; this.readsDepth = readsDepth;
+    this.needsDepthTexture = readsDepth;
+    this.fullscreenMaterial = graph.material;
+  }
+  /** the stack's owner weight (0 … 1): the graph fades over the scene; 0 skips the pass */
+  setWeight(w: number): void { this.graph.setWeight(w); this.enabled = w > 0; }
+  override setDepthTexture(depthTexture: THREE.Texture): void { this.graph.setTargets({ depth: depthTexture }); }
+  override render(renderer: THREE.WebGLRenderer, inputBuffer: THREE.WebGLRenderTarget | null, outputBuffer: THREE.WebGLRenderTarget | null): void {
+    if (inputBuffer !== null) this.graph.setTargets({ scene: inputBuffer.texture });
+    const camera = this.sceneCamera;
+    if (this.readsDepth && camera instanceof THREE.PerspectiveCamera) this.graph.setDepthRange(camera.near, camera.far);
+    renderer.setRenderTarget(this.renderToScreen ? null : outputBuffer);
+    renderer.render(this.scene, this.camera);
+  }
+}
+
+/**
+ * The normal pre-pass a post stack pays once when a pass reads `sceneNormal` (SF59 (2b)): the scene again with packed
+ * view-space normals into its own target (no background, the shadow maps not redrawn); `texture` is what the passes'
+ * `normal` input reads. Swaps no buffer.
+ */
+export class GraphNormalPrepass extends Pass {
+  readonly target = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: true });
+  private readonly normals = new THREE.MeshNormalMaterial();
+  constructor(scene: THREE.Scene, camera: THREE.Camera) {
+    super('GraphNormalPrepass', scene, camera);
+    this.needsSwap = false;
+  }
+  get texture(): THREE.Texture { return this.target.texture; }
+  override render(renderer: THREE.WebGLRenderer): void {
+    const scene = this.scene, auto = renderer.shadowMap.autoUpdate, override = scene.overrideMaterial, background = scene.background;
+    renderer.shadowMap.autoUpdate = false; scene.overrideMaterial = this.normals; scene.background = null;
+    try { renderer.setRenderTarget(this.target); renderer.clear(); renderer.render(scene, this.camera); }
+    finally { scene.overrideMaterial = override; scene.background = background; renderer.shadowMap.autoUpdate = auto; }
+  }
+  override setSize(width: number, height: number): void { this.target.setSize(width, height); }
+  override dispose(): void { this.target.dispose(); this.normals.dispose(); super.dispose(); }
 }

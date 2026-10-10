@@ -5,7 +5,7 @@
  * (`nodes/engineNodesHandler.ts`) on the renderer once and returns it. Nothing on the default render path calls it, so a
  * shard without a graph material pays nothing and its programs stay byte for byte.
  */
-import type { attachOutline, compileGraph } from './graph/compile';
+import type { attachOutline, compileGraph, GraphNormalPrepass, GraphPostPass } from './graph/compile';
 import type { EngineNodesHandler } from './nodes/engineNodesHandler';
 import type { Renderer } from './renderer';
 
@@ -29,6 +29,10 @@ export interface GraphCompiler {
   readonly compileGraph: typeof compileGraph;
   /** add a compiled graph's outline stage to a mesh as its second draw (SF59 step 7) */
   readonly attachOutline: typeof attachOutline;
+  /** a compiled post graph as a composer pass (SF59 step 4) */
+  readonly GraphPostPass?: typeof GraphPostPass;
+  /** the normal pre-pass a post stack reading `sceneNormal` pays once */
+  readonly GraphNormalPrepass?: typeof GraphNormalPrepass;
 }
 
 /**
@@ -37,6 +41,6 @@ export interface GraphCompiler {
  */
 export async function loadGraphCompiler(renderer: Renderer): Promise<GraphCompiler> {
   await loadGraphBackend(renderer);
-  const { attachOutline: attach, compileGraph: compile } = await import('./graph/compile');
-  return { compileGraph: compile, attachOutline: attach };
+  const { attachOutline: attach, compileGraph: compile, GraphPostPass: PostPass, GraphNormalPrepass: NormalPrepass } = await import('./graph/compile');
+  return { compileGraph: compile, attachOutline: attach, GraphPostPass: PostPass, GraphNormalPrepass: NormalPrepass };
 }

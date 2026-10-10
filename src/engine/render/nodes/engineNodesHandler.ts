@@ -81,6 +81,14 @@ class TargetTextureNode extends TextureNode {
 export function targetTexture(map: THREE.Texture, uvNode?: Node<'vec2'>): Node<'vec4'> {
   return nodeObject(new TargetTextureNode(map, uvNode ?? null));
 }
+/**
+ * `targetTexture` whose texture can be swapped after the build (a post pass reads the composer's input buffer, which
+ * ping-pongs between two targets): `retarget` moves the sampled texture, never the program.
+ */
+export function retargetableTexture(map: THREE.Texture, uvNode?: Node<'vec2'>): { readonly node: Node<'vec4'>; readonly retarget: (next: THREE.Texture) => void } {
+  const texture = new TargetTextureNode(map, uvNode ?? null);
+  return { node: nodeObject(texture), retarget: (next) => { texture.value = next; } };
+}
 
 /** a colour-space node is a vec4 node (its d.ts types it without the vec4 extensions) */
 function asVec4(node: object): Node<'vec4'> {

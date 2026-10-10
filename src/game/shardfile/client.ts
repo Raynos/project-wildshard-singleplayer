@@ -28,6 +28,10 @@ import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';
 import { leaseClientLibrary } from './clientLibrary';
 import { compendiumSketches } from './sketch';
 import { clientMaterials } from './clientMaterials';
+import { clientPostStack } from './clientPost';
+import { loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
+import { frameLookOf } from '../grid/frameLook';
+import { setting } from '@wildshard/engine/ui/Settings';
 import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
 import { loadClientSkins, type ClientSkin } from './clientSkins';
 import { clientViews } from './clientViews';
@@ -143,6 +147,16 @@ export class ShardfileClient {
       priorX = position.x; priorZ = position.z;
     } });
     ctx.system({ id: 'game.shardfile.presentation', phase: 'update', run: (dt) => { presentation.tick(dt); } });
+    // SF59 step 4: the shard's own post stack (Debug ▸ Look ▸ "Graph materials", default off); in the grid it fades with its
+    // cell's owner weight, standalone it stays whole
+    const post = await clientPostStack(this.source, this.assets.retained, { compiler: () => loadGraphCompiler(world.game.renderer), composer: () => world.game.composer, scene: world.game.rootScene, camera: world.game.camera }, ctx.scope, { enabled: setting('graphMaterials') === 'on' });
+    if (post !== null) {
+      const owned = frameLookOf(world.game.rootScene)?.owned;
+      if (owned !== undefined) ctx.scope.onDispose(owned(this.bindings.instance, post.weight));
+      ctx.debug.expose('shardfilePost', { state: post.state });
+      let placed = false;
+      ctx.system({ id: 'game.shardfile.post', phase: 'update', run: () => { if (!placed) placed = post.install(); } });
+    }
     ctx.debug.expose('shardfileResidency', { tiles, allocator, mode: 'standalone', workers: false });
   }
 

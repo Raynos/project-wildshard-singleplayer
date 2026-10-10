@@ -306,6 +306,7 @@ export class GridFrame {
     this.stack(null, { weight: (w) => { this.roadSky.weight(w); } });
     this.lookEffect.blendMode.opacity.value = 0; this.lutEffect.blendMode.opacity.value = 0;
     const unbind = bindFrameLook(host.scene, { contribute: (instance, look) => this.contribute(instance, look), sky: (instance, layer) => this.sky(instance, layer),
+      owned: (instance, weight) => this.stack(instance, { weight }),
       post: (instance?: string): FramePost | null => (this.chainPost === null ? null : { hueSat: this.chainPost.saturation, rays: this.chainPost.rays ?? null,
         vol: instance === undefined || this.cine === null ? null : this.cine.port(instance) }) });
     scope.onDispose(() => {
