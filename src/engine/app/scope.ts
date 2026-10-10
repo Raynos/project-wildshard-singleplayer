@@ -90,6 +90,14 @@ export class Scope {
   get disposing(): boolean { return this.tearing; }
   private tearing = false;
   belongsTo(scope: Scope): boolean { return this === scope || (this.parent?.belongsTo(scope) ?? false); }
+  /** Both owners are retiring within the same active synchronous disposal; each keeps its own final cleanups. */
+  sharesTeardown(other: Scope): boolean {
+    if (this.tearing && other.belongsTo(this)) return true;
+    for (let ancestor = this.parent; ancestor !== undefined; ancestor = ancestor.parent) {
+      if (ancestor.tearing && other.belongsTo(ancestor)) return true;
+    }
+    return false;
+  }
   get census(): ScopeCensus {
     const counts = emptyCensus();
     for (const cleanup of this.cleanups) counts[cleanup.kind]++;

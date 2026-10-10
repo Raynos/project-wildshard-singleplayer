@@ -133,3 +133,39 @@ it('finds nested delegated owners in one tree walk, preserving parent-first reso
   expect(freed).toHaveBeenCalledOnce(); expect(lateFreed).toHaveBeenCalledOnce();
   page.dispose(); expect(Object.values(page.census).every(count => count === 0)).toBe(true);
 });
+
+it('captures a delegated sibling only at its own final cleanup during shared parent teardown', () => {
+  const page = new Scope('page'), inner = page.child('world'), outer = page.child('view'), assets = new AssetService();
+  const scene = new Scene(), root = new Group(), nested = new Group(); scene.add(root); root.add(nested);
+  ownSceneTree(root, outer, assets); ownSceneTree(nested, inner, assets);
+  const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), early = new Texture(), late = new Texture();
+  let reads = 0, texture = early;
+  Object.defineProperty(material, 'fixtureUniforms', { enumerable: true, get: () => { reads++; return { value: texture }; } });
+  nested.add(new Mesh(geometry, material));
+  const ownership = new SceneOwnership(scene, page, assets); ownership.capture();
+  const earlyFree = vi.spyOn(early, 'dispose'), lateFree = vi.spyOn(late, 'dispose');
+  reads = 0; texture = late; page.dispose();
+  expect(reads).toBe(1); expect(earlyFree).toHaveBeenCalledOnce(); expect(lateFree).toHaveBeenCalledOnce();
+  expect(scene.children).toEqual([]); expect(Object.values(page.census).every(count => count === 0)).toBe(true);
+});
+
+it('still captures late resources for an independent delegated sibling that outlives the outer root', () => {
+  const page = new Scope('page'), inner = page.child('world'), outer = page.child('view'), assets = new AssetService();
+  const root = new Group(), nested = new Group(); root.add(nested);
+  ownSceneTree(root, outer, assets); ownSceneTree(nested, inner, assets);
+  const late = new Texture(), material = new MeshBasicMaterial({ map: late }); nested.add(new Mesh(new BoxGeometry(), material));
+  const freed = vi.spyOn(late, 'dispose');
+  outer.dispose(); expect(inner.census.textures).toBe(1); expect(freed).not.toHaveBeenCalled();
+  inner.dispose(); expect(freed).toHaveBeenCalledOnce(); page.dispose();
+});
+
+it('does not re-adopt shared resources from an already closed sibling in the same parent teardown', () => {
+  const page = new Scope('page'), inner = page.child('world'), outer = page.child('view'), assets = new AssetService();
+  const root = new Group(), nested = new Group(), texture = new Texture(), material = new MeshBasicMaterial({ map: texture });
+  const geometry = new BoxGeometry(); root.add(new Mesh(geometry, material), nested); nested.add(new Mesh(geometry, material));
+  ownSceneTree(root, outer, assets); ownSceneTree(nested, inner, assets);
+  const freed = [texture, material, geometry].map(resource => vi.spyOn(resource, 'dispose'));
+  // Deliberately no prior capture: both owners discover the shared resources during their final cleanups.
+  page.dispose(); for (const dispose of freed) expect(dispose).toHaveBeenCalledOnce();
+  expect(Object.values(page.census).every(count => count === 0)).toBe(true);
+});

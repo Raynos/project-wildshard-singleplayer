@@ -339,6 +339,8 @@ shard's scope (`ctx.scope`), so a verb never takes a scope.
 | `child(name)`, `belongsTo(scope)`, `disposed` | sub-scopes |
 | `census` (`ScopeCensus`) | counts per kind, for the leak test |
 
+`Scope.sharesTeardown(other)` detects a common ancestor currently running synchronous disposal. Delegated sibling scene owners then keep their own final resource capture without repeating it through the outer scene. An independently disposed outer root still captures a live delegated owner that can outlive it; late textures remain owned, and shared native resources are freed once.
+
 **The construction owner.** Engine code that builds a reusable service doesn't take a scope argument everywhere;
 it asks for the current owner instead.
 

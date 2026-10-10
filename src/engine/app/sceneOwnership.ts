@@ -68,7 +68,7 @@ export function ownSceneResource(resource: Disposable3, scope: Scope): void {
   const owner = resourceOwners.get(resource);
   // A final tree capture runs after this scope's resource cleanups. Its existing ownership still prevents a second
   // native disposal; only newly discovered resources need immediate capture on the already-closing scope.
-  if (owner !== undefined && (!owner.disposed || owner === scope)) return;
+  if (owner !== undefined && (!owner.disposed || owner === scope || scope.sharesTeardown(owner))) return;
   markResourceOwner(resource, scope);
   if (resource instanceof Texture) {
     // A backdrop may explicitly free a sampler before its delegated scope closes. Native disposal remains exact once.
@@ -100,7 +100,9 @@ export function ownSceneTree(root: Object3D, scope: Scope, assets: Pick<AssetSer
       ownSceneResource(resource, scope);
     }
     // Keep parent adoption before child capture, without a second full walk to rediscover the delegated roots.
-    for (const child of delegated) child.capture();
+    // A sibling retiring in this same synchronous parent teardown will run its own final capture shortly.
+    // Live independent owners still need capture now; they can outlive this root.
+    for (const child of delegated) if (!scope.sharesTeardown(child.scope)) child.capture();
   };
   delegatedScenes.set(root, { scope, capture });
   scope.onDispose(() => {
