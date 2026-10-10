@@ -1,0 +1,25 @@
+{
+ "_doc": "E472 TRAILERS P15: the player cinematics' sound design. Stable Audio 3 Medium (MOSS v2 too when its memory gate allows), the better take by CLAP rank (sfx_pick.py). `desc` is the CLAP ranking text.",
+ "families": {
+  "p15-gallop": {"kind": "loop", "duration": 6, "desc": "a horse galloping fast on grass, close",
+   "prompt": "A single horse galloping fast across open grassland, close to the microphone: heavy rhythmic hoofbeats, breath, tack jingling, wind. Cinematic sound effect, no music."},
+  "p15-splash": {"kind": "oneshot", "duration": 3, "desc": "a horse landing in shallow surf with a big splash",
+   "prompt": "A galloping horse lands hard in shallow sea surf: a big heavy water splash and spray, then hooves splashing on through the shallows. Cinematic sound effect, no music."},
+  "p15-hit": {"kind": "oneshot", "duration": 4, "desc": "a huge deep cinematic trailer impact boom",
+   "prompt": "One huge deep cinematic trailer impact: a massive low boom with a metallic crack and a long rumbling tail. Trailer sound design, no music."},
+  "p15-whoosh": {"kind": "oneshot", "duration": 2, "desc": "a fast cinematic whoosh",
+   "prompt": "A single fast cinematic whoosh rushing past the camera, clean cut-off. Trailer sound design, no music."},
+  "p15-steps": {"kind": "loop", "duration": 4, "desc": "several people walking in boots on asphalt",
+   "prompt": "Four people walking slowly together in heavy boots on an asphalt road, armour and buckles clinking softly, a faint wind. No music, no voices."},
+  "p15-rumble": {"kind": "oneshot", "duration": 5, "desc": "a giant creature rising with a deep ground rumble and roar",
+   "prompt": "A colossal creature rising out of a forest: deep ground rumble, trees cracking, a low monstrous bellow building to a roar. Cinematic creature sound design, no music."},
+  "p15-blades": {"kind": "oneshot", "duration": 2, "desc": "several swords drawn from scabbards at once",
+   "prompt": "Several metal swords drawn from their scabbards at the same moment: a sharp ringing shing of steel, close. Cinematic sound effect, no music."},
+  "p15-wind": {"kind": "loop", "duration": 6, "desc": "rushing wind of a skydiving freefall",
+   "prompt": "The roaring rushing wind of a skydiver in freefall, cloth flapping hard, high altitude air. Cinematic sound effect, no music."},
+  "p15-dragon": {"kind": "oneshot", "duration": 4, "desc": "a huge dragon roar echoing through a city",
+   "prompt": "A huge dragon roars, a deep resonant roar echoing between tall buildings in the rain, with a rumbling growl tail. Cinematic creature sound design, no music."},
+  "p15-rain": {"kind": "loop", "duration": 6, "desc": "rain on rooftops in a city at night",
+   "prompt": "Steady rain falling on tiled rooftops and neon signs in a city at night, water dripping, a distant hum. No music, no voices."}
+ }
+}

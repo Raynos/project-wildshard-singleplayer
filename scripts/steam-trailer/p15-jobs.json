@@ -1,0 +1,32 @@
+{
+ "_doc": "E472 TRAILERS P15: one ~16 s cue per player cinematic (≈12.5 s of picture + the end card). ~/ml/music/minimax-music3/.venv/bin/python scripts/music/gen/gen_minimax.py --jobs $PWD/scripts/steam-trailer/p15-jobs.json --keys p15/crossing,p15/party,p15/leap --seeds 601,602 --out <scratch> (under lockf -k ~/projects/localai/.model.lock).",
+ "lyrics": {
+  "short": "[Intro]\n[Build]\n[Climax]\n[Outro]"
+ },
+ "jobs": {
+  "p15/crossing": {
+   "style": "orchestral",
+   "slot": "trailer",
+   "duration": 16,
+   "lyrics": "short",
+   "bpm": 120,
+   "prompt": "Genre: epic fantasy game cinematic trailer music, full orchestra, taiko drums, galloping string ostinato, heroic brass. BPM: 120. Key: D minor. Instrumental only, no vocals. Sixteen seconds. Opens already moving with a driving galloping string ostinato and low drums for four seconds; at about four seconds a rising swell; at about six and a half seconds a sudden half-second silence, then a huge orchestral hit and the theme bursts out brighter in D major with soaring horns; at about eleven seconds a final rising brass phrase cut off by one massive ringing hit at twelve and a half seconds, then a long tail."
+  },
+  "p15/party": {
+   "style": "orchestral",
+   "slot": "trailer",
+   "duration": 16,
+   "lyrics": "short",
+   "bpm": 90,
+   "prompt": "Genre: epic fantasy game cinematic trailer music, orchestra, deep choir, war drums, low brass. BPM: 90. Key: C minor. Instrumental only, wordless choir allowed. Sixteen seconds. Opens with heavy slow marching drums and low cello under a dusk mood for six seconds; at about six and a half seconds the music drops to a deep rumbling silence with a single ominous low brass note as a giant appears; at about eight and a half seconds a colossal choir and brass hit and an aggressive rising battle theme; at about twelve and a half seconds one final huge hit and a long ringing tail."
+  },
+  "p15/leap": {
+   "style": "orchestral",
+   "slot": "trailer",
+   "duration": 16,
+   "lyrics": "short",
+   "bpm": 110,
+   "prompt": "Genre: soaring adventurous fantasy game cinematic trailer music, orchestra with strings, flutes, choir and big drums. BPM: 110. Key: E-flat major. Instrumental only, wordless choir allowed. Sixteen seconds. Opens with a quick light running string figure for three seconds; at three seconds the music drops away to airy weightless choir and high strings as if falling through the sky; at about seven and a half seconds a huge soaring orchestral swell and driving drums as she flies; at about ten and a half seconds a dark powerful brass motif as a dragon appears; one final ringing hit at twelve and a half seconds and a long tail."
+  }
+ }
+}
