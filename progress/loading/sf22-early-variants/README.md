@@ -89,3 +89,66 @@ Simulator memory authority remains the G269 phone runs, not this subset.
 Raw scratch: `attempt-56dde-streamed-far-owner.json`, beside the prior
 owner captures, SHA-256 `88a1da827baf00f888db1cdb18e4763d4257bd8ad00b38e97c251370707d3904`.
 Proof: `.git/proofs/20261010T082450-sf22-streamed-far-56dde-43341.json`.
+
+
+## Matched hidden-model run: compilation closed, cadence still open
+
+Pin `2495c2bbc5fba185bac3cfb27537d975b84b8f65`, phone 2×,
+Developer off, Auto, 5 Mbit/s and 3 / 10 s asset stalls. Proof process
+completed successfully; that means the measurements completed, **not that
+all SF22 gates passed**. All six desktop real-input routes and the ordinary
+Simulator Driftwood → Signal → Driftwood subset completed with zero
+refusals / game errors. Preview, browser, Inspector and Simulator closed.
+The owned quiet marker was removed in `finally` (13:47:47–13:58:42 UTC).
+
+Desktop timing from 13:47–13:53 UTC is **discarded**: two external cold
+Nalati browser captures overlapped the first three routes (commit
+`8b144a8d0` at 13:52:31 UTC). Load jumped 7.97 → 13.17 at 13:50:14.
+Their raw values remain visible, but neither low median CPU load nor a
+passing raw cadence result establishes isolation from the other GPU client.
+No complete matched desktop timing pass is credited from this run.
+
+| Desktop route | UTC interval | Median load | Raw p95 / p99 ms | Timing credit |
+| --- | --- | ---: | ---: | --- |
+| Driftwood → Pine | 13:48:56–13:50:52 | 10.39 | 33.4 / 33.5 | Discarded |
+| Pine → Nalati | 13:50:52–13:52:28 | 6.84 | 33.4 / 33.5 | Discarded |
+| Nalati → template-2 | 13:52:28–13:53:07 | 4.80 | 33.4 / 33.5 | Discarded |
+| template-2 → Sky | 13:53:07–13:54:58 | 5.57 | 33.4 / 33.4 | Outside reported overlap |
+| Sky → Signal | 13:54:58–13:55:41 | 4.50 | 33.4 / 33.5 | Outside reported overlap |
+| Signal → Driftwood | 13:55:41–13:56:20 | 3.99 | 33.4 / 33.4 | Outside reported overlap |
+
+The raw desktop aggregate is p95 33.4 / p99 33.5 ms, with observed
+0.1 ms timestamp quantum and same-session standing p95 33.4 ms.
+Synchronous crossing maximum is 19.6 ms, demand wait maximum 3.2 ms;
+the affected route intervals above carry no timing credit. First-crossroads
+draw/driver calls are zero. The all-route warm-task gate **fails**: a 51 ms
+Long Task overlaps Driftwood `afterPlay` on the Signal approach, outside the
+excluded interval. Maximum synchronous `renderer.compile` invocation is
+6.4 ms; that API duration does not bound its containing task. The failed
+51 ms task remains a separate scheduling item.
+
+Safari measured 13:56:54–13:58:35 UTC, after the reported capture overlap.
+Both routes completed with **zero draw/driver or unclassified shader calls**:
+394 route calls were explicit warm-ups; the previous two sword calls are
+gone. Synchronous crossing durations are **18 / 0 / 9 / 0 ms**, demand waits
+3 / 4 / 4 / 3 ms, and activation maximum 3 ms. Maximum explicit compile
+invocation is 5 ms. Safari exposes no Long Task observer: the containing
+warm-task bound is **unavailable**, not zero and not a pass.
+
+Safari cadence still **fails**: aggregate p95 **47 ms**, p99 **69 ms**,
+against same-session standing p95 34 ms and observed 1 ms timestamp quantum.
+Forward raw p95 / p99 is 48 / 89 ms (median load 17.60, **under load**);
+return is 46 / 53 ms (median load 12.76). Zero shader calls at draw time
+has not established 30 fps. The next diagnostic reads the existing drawn
+frame work/update/render rings to distinguish frame work from waiting,
+without native program queries or an assumed GPU attribution.
+Simulator memory authority remains the G269 phone runs; this is only the
+honest Auto Driftwood/Signal subset, not full-G270 Simulator admission.
+
+Raw scratch, not committed: `attempt-2495-hidden-model-desktop.json`
+SHA-256 `e32080ef82fe6124fd7308fd21f38ace129463d68e705e43a9059a736a346c15`;
+`attempt-2495-hidden-model-safari.json`
+`be689401540f2ba5d946dc894b76bfdc113fdea50119762e2a0a02d4e355f3c2`;
+`quiet-2495-hidden-model.json`
+`0f6bf72b20262af13055e1ee99b928895d6229622cf8fd73b131bd69c7867b4d`.
+Proof `.git/proofs/20261010T083631-sf22-hidden-model-clean-matched-73207.json`.
