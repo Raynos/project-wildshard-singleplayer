@@ -550,8 +550,8 @@
     "checkpointCaptured": true,
     "checkpointTick": 27851,
     "suffixTicksExecuted": 1200,
-    "hash": "b95b9abb5713cdf21ce20bcc886144da4efbbfe6b43d2266923ae0990e3648cc",
-    "replayHash": "b95b9abb5713cdf21ce20bcc886144da4efbbfe6b43d2266923ae0990e3648cc",
+    "hash": "834d45b26cf06eb73e48dad636e590e48a3e959a716dc1eaa12ac598fa0fd429",
+    "replayHash": "834d45b26cf06eb73e48dad636e590e48a3e959a716dc1eaa12ac598fa0fd429",
     "checkpoint": {
       "state": "fight",
       "phase": 1
