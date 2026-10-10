@@ -1,3 +1,8 @@
+/**
+ * Rigid skins (SHARD-PLATFORM M3; ex a dune shard's code-built creatures): a creature built from rigid parts, each a
+ * three.js geometry with one flat colour riding one bone, merged into one skinned, vertex-coloured, flat-shaded geometry;
+ * `placed` stands a part in the body's frame. Build-time and runtime alike; nothing here knows a shard.
+ */
 import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute, type BufferGeometry as Geo } from 'three';
 
 /** One rigid part of a creature: a three.js geometry, its flat colour and the one bone it rides. */
