@@ -30,6 +30,8 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Check the copy (every slot filled, every entry used, scripts parse, game links open a new tab)
+        run: pnpm exec vitest run test/site-copy.test.ts
       - run: npm install --global vercel@59.11.2
       - name: Deploy the site
         env:
