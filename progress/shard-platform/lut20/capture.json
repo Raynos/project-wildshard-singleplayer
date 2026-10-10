@@ -1,0 +1,371 @@
+{
+  "version": {
+    "build": "fd8039b-mv2e2380",
+    "time": "2026-10-10T12:46:54.411Z"
+  },
+  "started": "2026-10-10T12:51:14.553Z",
+  "shards": {
+    "sunscar-dunes": {
+      "errors": [],
+      "shots": {
+        "sunscar-dunes-grid-A": {
+          "name": "sunscar-dunes-grid-A",
+          "route": [],
+          "frame": {
+            "local": [
+              237.3855858775787,
+              0.02018506096376682,
+              6.01522147322185e-05
+            ],
+            "feet": {
+              "x": -317.61,
+              "z": 0
+            },
+            "inside": "sunscar-dunes",
+            "owner": "sunscar-dunes",
+            "chain": {
+              "owner": "sunscar-dunes",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0.12,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.15,
+                0.9,
+                0.3,
+                0.55,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": "sunscar-dunes",
+                "weight": 1,
+                "vol": [
+                  1,
+                  0.55
+                ],
+                "chroma": 0.0006,
+                "grain": 0.12,
+                "target": [
+                  402,
+                  681
+                ],
+                "depth": "scene",
+                "sceneDepth": true
+              }
+            }
+          }
+        },
+        "sunscar-dunes-grid-B": {
+          "name": "sunscar-dunes-grid-B",
+          "route": [],
+          "frame": {
+            "local": [
+              237.25713976984844,
+              0.020887247887939386,
+              0.0001363229095526215
+            ],
+            "feet": {
+              "x": -317.74,
+              "z": 0
+            },
+            "inside": "sunscar-dunes",
+            "owner": "sunscar-dunes",
+            "chain": {
+              "owner": "sunscar-dunes",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0.12,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.15,
+                0.9,
+                0.3,
+                0.55,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": "sunscar-dunes",
+                "weight": 1,
+                "vol": [
+                  1,
+                  0.55
+                ],
+                "chroma": 0.0006,
+                "grain": 0.12,
+                "target": [
+                  402,
+                  681
+                ],
+                "depth": "scene",
+                "sceneDepth": true
+              }
+            }
+          }
+        },
+        "sunscar-dunes-select": {
+          "name": "sunscar-dunes-select",
+          "lut": {
+            "skyLut": null,
+            "compositeLutAmount": null
+          }
+        }
+      }
+    },
+    "nalati-grasslands": {
+      "errors": [],
+      "shots": {
+        "nalati-grasslands-grid-A": {
+          "name": "nalati-grasslands-grid-A",
+          "route": [],
+          "frame": {
+            "local": [
+              -237.3282781293965,
+              0.019998769314233833,
+              0.0008704409653989414
+            ],
+            "feet": {
+              "x": 317.67,
+              "z": 0
+            },
+            "inside": "nalati-grasslands",
+            "owner": "nalati-grasslands",
+            "chain": {
+              "owner": "nalati-grasslands",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                0,
+                1,
+                0.08,
+                0,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            }
+          }
+        },
+        "nalati-grasslands-grid-B": {
+          "name": "nalati-grasslands-grid-B",
+          "route": [],
+          "frame": {
+            "local": [
+              -237.22186256834902,
+              0.019999579962658942,
+              -0.002943618544961918
+            ],
+            "feet": {
+              "x": 317.78,
+              "z": 0
+            },
+            "inside": "nalati-grasslands",
+            "owner": "nalati-grasslands",
+            "chain": {
+              "owner": "nalati-grasslands",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                0,
+                1,
+                0.08,
+                0,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            }
+          }
+        },
+        "nalati-grasslands-select": {
+          "name": "nalati-grasslands-select",
+          "lut": {
+            "skyLut": null,
+            "compositeLutAmount": null
+          }
+        }
+      }
+    },
+    "nine-dragon-stack": {
+      "errors": [],
+      "shots": {
+        "nine-dragon-stack-grid-A": {
+          "name": "nine-dragon-stack-grid-A",
+          "route": [],
+          "frame": {
+            "local": [
+              0.9500003601433107,
+              125.00020142614812,
+              7.499999128356421
+            ],
+            "feet": {
+              "x": 555.95,
+              "z": -547.5
+            },
+            "inside": "nine-dragon-stack",
+            "owner": "nine-dragon-stack",
+            "chain": {
+              "owner": "nine-dragon-stack",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0.1,
+                0,
+                0.1,
+                0,
+                0
+              ],
+              "post": [
+                0.6,
+                0.9,
+                0.3,
+                0.55,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": "nine-dragon-stack",
+                "weight": 1,
+                "vol": [
+                  1,
+                  0.3
+                ],
+                "chroma": 0.0006,
+                "grain": 0.12,
+                "target": [
+                  402,
+                  681
+                ],
+                "depth": "scene",
+                "sceneDepth": true
+              }
+            }
+          },
+          "sameFrameA": null
+        },
+        "nine-dragon-stack-grid-B": {
+          "name": "nine-dragon-stack-grid-B",
+          "route": [],
+          "frame": {
+            "local": [
+              0.9500003601433107,
+              125.00020142614812,
+              7.499999128356421
+            ],
+            "feet": {
+              "x": 555.95,
+              "z": -547.5
+            },
+            "inside": "nine-dragon-stack",
+            "owner": "nine-dragon-stack",
+            "chain": {
+              "owner": "nine-dragon-stack",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0.1,
+                0,
+                0.1,
+                0,
+                0
+              ],
+              "post": [
+                0.6,
+                0.9,
+                0.3,
+                0.55,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": "nine-dragon-stack",
+                "weight": 1,
+                "vol": [
+                  1,
+                  0.3
+                ],
+                "chroma": 0.0006,
+                "grain": 0.12,
+                "target": [
+                  402,
+                  681
+                ],
+                "depth": "scene",
+                "sceneDepth": true
+              }
+            }
+          },
+          "sameFrameA": "nine-dragon-stack-declared-lut"
+        },
+        "nine-dragon-stack-select": {
+          "name": "nine-dragon-stack-select",
+          "lut": {
+            "skyLut": null,
+            "compositeLutAmount": 1
+          }
+        }
+      }
+    }
+  },
+  "finished": "2026-10-10T12:55:15.428Z",
+  "nineDragonRerun": {
+    "started": "2026-10-10T12:56:27.958Z",
+    "finished": "2026-10-10T12:57:45.932Z",
+    "why": "adds the same-frame A (the carried LUT held at opacity 0 in B's page)"
+  }
+}

@@ -67,6 +67,9 @@ export function shardRender(): LookStrategy {
     // (E281) the engine's cloud layer (a white cumulus dome for the daylight shards) has no place in a blue-hour sky
     // under the sky screens; the shard's own painted sky (look/style.ts) is the whole sky: the layer is never built
     sky: { clouds: false, planet: true },
+    // the learned LUT its composite applies, declared so a grid cell (which carries the engine chain, not this compose)
+    // can carry it too (op-lut20; behind the grid's default-off Debug row)
+    lut: LUT_URL,
     compose(c: LookComposeContext): LookComposition {
       const world = ndRuntime().world;
       // AO at the city's scale, faded with the fog (data/aoLook.ts)

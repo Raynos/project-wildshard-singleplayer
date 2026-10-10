@@ -47,7 +47,7 @@ import { addTerrain, resampleTerrain } from '@wildshard/engine/physics/terrain';
 import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
 import { createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
-import { loadLUT } from '@wildshard/engine/boot/bakedApi';
+import { loadCarriedLUT, loadLUT } from '@wildshard/engine/boot/bakedApi';
 import { Terrain } from '@wildshard/engine/world/Terrain';
 import { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import { Forest } from '@wildshard/engine/world/forest/Forest';
@@ -242,6 +242,13 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
               }
               else if (outcome === 'off' && !left() && (look.post?.() ?? null) !== null) {
                 const own = await loadLUT(level.id);
+                if (own !== null && left()) own.dispose();
+                else if (own !== null) { lut = own; ownSceneResource(own, resident); resident.onDispose(() => { lut = null; }); }
+              }
+              // op-lut20: a look that applies its learned LUT inside its own compose declares it (`ExtendLook.lut`): the
+              // cell carries it where nothing else gave one, behind its default-off Debug row (a look change on the grid)
+              if (lut === null && levelLook !== null && levelLook.mode !== 'replace' && !left() && (look.post?.() ?? null) !== null) {
+                const own = await loadCarriedLUT(levelLook.lut, `${level.id}-declared-lut`);
                 if (own !== null && left()) own.dispose();
                 else if (own !== null) { lut = own; ownSceneResource(own, resident); resident.onDispose(() => { lut = null; }); }
               }

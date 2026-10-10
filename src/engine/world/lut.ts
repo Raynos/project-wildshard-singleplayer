@@ -23,15 +23,23 @@ export function lutUrl(slug: string): string | null {
   return url in publicBytes() ? url : null;
 }
 
-export async function loadLUT(slug: string): Promise<LookupTexture | null> {
+/** the shard's learned LUT (`lutUrl`) as a LookupTexture; null without a file */
+export function loadLUT(slug: string): Promise<LookupTexture | null> {
   const url = lutUrl(slug);
-  if (url === null) return null;
+  return url === null ? Promise.resolve(null) : loadLUTFile(url, `${slug}-lut`);
+}
+
+/**
+ * Any LUT file in the format above (a look's declared `ExtendLook.lut`, op-lut20) as the same LookupTexture `loadLUT`
+ * makes; null (and the loader's warning) when it is missing or the wrong size.
+ */
+export async function loadLUTFile(url: string, name: string): Promise<LookupTexture | null> {
   const data = await fetchLut(url); // the one loader (render/lut.ts)
   if (data === null) return null;
   const lut = new LookupTexture(data, LUT_SIZE);
   lut.type = THREE.UnsignedByteType;
   lut.colorSpace = THREE.NoColorSpace;
-  lut.name = `${slug}-lut`;
+  lut.name = name;
   lut.needsUpdate = true;
   return lut;
 }

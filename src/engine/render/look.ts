@@ -196,6 +196,12 @@ export interface ExtendLook extends LookParts {
    * so a compose that asks the other kind throws.
    */
   chain?: EngineChainKind;
+  /**
+   * The learned colour LUT its compose applies inside its own effects (a file in `render/lut.ts`'s 33³ format, its public
+   * URL), declared so a grid cell can carry it without composing, like `chain` (op-lut20). Absent: its LUT is its
+   * backdrop's (`SkyBackdrop.lut`) or its level's own file. Standalone the compose applies it as before.
+   */
+  lut?: string;
   compose: (c: LookComposeContext) => LookComposition;
 }
 
