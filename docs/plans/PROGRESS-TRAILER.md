@@ -163,6 +163,14 @@ says so.
   settings in the save store), `?tracer=0` on day 8, none on day 1; `take.mjs`'s `prepare(page)` runs such UI steps and
   records them. The speed ramp starts after the release (a ramp before it shifts every system's random draws and the
   hip spread with them). `cut-rewind.py` cuts the four takes where the bolt has flown 2 / 4 / 6 m.
+- **The play shots (PT2 (a) scouted, dry takes accepted, 2026-10-10)**: week 1 `shots/w1-combo.mjs` (main's day 8: the
+  wooden sword's three-tap combo on a beach boar the build spawned, 140 → 100 hp, and it turns on the player: the two
+  week-1 shots are that fight's strike and the boar's charge); week 2 `shots/d15-square.mjs` (the sword in the rain
+  square) and `shots/w2-gallop.mjs` (the build's own `?ride=gallop`, 11 m in 2.5 s across the steppe); week 3
+  `shots/w3-hover.mjs` (`player.setHover`, the board runs Sunrest's rope bridge toward the windmill isle, 31 m, the first
+  0.3 s cut while the spawn settles) and `shots/w3-whip.mjs` with `prey: strider` (three cracks at a dune strider that
+  charges the camera; the Matriarch version passes overhead too fast to read at dusk, so the whip's target moved, as
+  §2.2's last paragraph allows).
 
 ### 3.2 HEAD shots and the shared tools (the trailer agent's pipeline, unedited)
 
