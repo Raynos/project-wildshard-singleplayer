@@ -975,6 +975,353 @@ Play the world.
 
 Seven shards today, each its own world and its own look. Free, in your browser, on your phone or desktop.
 
+## Play · verbs
+
+- Explore seven shards, each with its own look and its own rules.
+- Fight with a sword, a bow, a whip or a war fan: lock on, dodge, charge a heavy.
+- Ride a horse you broke yourself, or the hoverboard every shard gives you.
+- Follow each quest to its boss, and earn a title on the way.
+
+# Play page · every shard in full (sources: each shard's README in src/shards/, its plan in docs/plans/, docs/SHARDS.md)
+
+<!-- The badges are the game's own (Settings ▸ Developer plays the Experimental ones). Names, images and the Play / Build
+links are the home page's entries. Each "facts" line starts with its **label**. -->
+
+## Play · shards question
+
+show me every shard, in full
+
+## Play · shards title
+
+Seven shards, in full.
+
+## Play · shards intro
+
+One engine, seven worlds, and no two look alike. Here's what you carry, fight and find in each one.
+
+## Play · shards index label
+
+The seven shards
+
+## Play · badge open
+
+Open to all
+
+## Play · badge early
+
+Early access
+
+## Play · badge experimental
+
+Experimental
+
+## Play · badge developer
+
+Developer only
+
+## Play · Driftwood Isle look
+
+Faceted low-poly toon
+
+## Play · Driftwood Isle text
+
+A small island in a bright toon ocean: a pier, a sailboat, a ring shrine in the jungle, a wreck in the cove. No textures at all, just flat-shaded facets, from day into night.
+
+## Play · Driftwood Isle facts
+
+- **Carry** A wooden sword and the hoverboard. An iron sword waits on the wreck's deck.
+- **Fight** Reef crabs, coconut monkeys, wild boar, and a drowned sailor who walks at night.
+- **Find** Fifteen pieces of sea glass, treasure on the seabed (swim down for it), a zipline ride.
+- **Quest** The Sealed Ring: Wendell the castaway, three glyph shards and the Ring Shrine.
+- **Boss** Captain Brine, the Drowned Captain.
+
+## Play · Pine Hollow look
+
+Photoreal
+
+## Play · Pine Hollow text
+
+A boreal forest round a sheltered hollow: a ranger's cabin, a pond under a granite ridge, a mill hamlet. The day turns from dawn fog to lantern-lit night, with rain rolling through 2,600 pines.
+
+## Play · Pine Hollow facts
+
+- **Carry** A crossbow and the hoverboard; later a lever-action rifle and the Warden's Longbow.
+- **Hunt** Deer, boar, elk and bear, some in rare coats; four elites; moss-grown thralls after dark.
+- **Find** The fire lookout's zipline, a canoe, the bear cave, amber resin; a journal and a trophy wall to fill.
+- **Quest** The Warden's Hollow: relight the ranger's three waystone lanterns. The lodge posts contracts.
+- **Boss** The Antler King.
+
+## Play · Nalati Grasslands look
+
+Painterly
+
+## Play · Nalati Grasslands text
+
+A high Tian Shan steppe, painted: the braided Kunes river, the nomad camp, the golden Sky Grassland and Snow Lotus Valley, each zone in its own colour, to a Kazakh score.
+
+## Play · Nalati Grasslands facts
+
+- **Carry** A bow, a sabre and a spear, and the hoverboard.
+- **Ride** Break a wild stallion, name it, whistle it to you and hunt from the saddle. Win a round of kokpar.
+- **Fight** Wolves, snow leopards, balbal warriors at dusk, ghost riders by night and five named elites.
+- **Quest** Three chapters for Baqyt Ata, the camp elder: Tulpar, The Golden King, Father of the Wind.
+- **Bosses** The Golden King in his kurgan, and Jel Ata, the Storm Titan, who comes with the storm.
+
+## Play · Signal Dunes look
+
+Dusk, just after sunset
+
+## Play · Signal Dunes text
+
+Dark orange dunes just after sunset, under an orange band fading up to indigo and the first stars. The signal tower waits on a far crest.
+
+## Play · Signal Dunes facts
+
+- **Carry** A braided leather bullwhip and the hoverboard.
+- **Whip** A light crack, a heavy double crack, a pull that yanks a creature or a lever, a crack that lights a brazier.
+- **Fight** Dune rays gliding against the dusk, burrowing skitterers in packs, charging dune striders.
+- **Quest** Sefa the caravan scout: the buried caravan's logbook, oil from the dry well, three braziers, the signal fire.
+- **Boss** The Dune Matriarch rises at the fire's signal: sweeping dives, a sandstorm, then down within the whip's reach.
+
+## Play · Sky Reach look
+
+Golden-hour low poly
+
+## Play · Sky Reach text
+
+Eight grassy islands over a sea of cloud at golden hour. Rope bridges carry you on foot; the glowing glass bridges carry only a hoverboard. On foot, you fall straight through.
+
+## Play · Sky Reach facts
+
+- **Carry** A war fan and the hoverboard. Swing to slash, hold for a sweep, GUST to blow creatures back, and off the edge.
+- **Fight** Drift rays, sky goats you can gust off an island, gale wisps that shove you toward the drop.
+- **Quest** The bridge-keeper's notes, the roost cleared, three wind vanes turned by GUST, the bridge raised to the storm crown.
+- **Boss** The Storm Roc: walls of wind that push you to the edge, diving strikes, then grounded on the crown.
+
+## Play · Nine Dragon Stack look
+
+Jiehua neon: ruled lines and neon
+
+## Play · Nine Dragon Stack text
+
+Lantern Square, halfway up a city stacked 500 metres high: wet granite, a cinnabar gate, neon calligraphy, the Yamen Well dropping into silk fog. Today a fragment: the square, the Well's rim, the stair-street.
+
+## Play · Nine Dragon Stack facts
+
+- **Carry** The Neon Jian, a straight sword with a glowing edge, and the Fei Zhua, a grapple on your wrist.
+- **Move** Zip up to dragon hooks, climb the stair-street, cross the Well on its catwalks, through the crowd.
+- **Fight** No creatures yet: the gate's combat check is a practice dummy.
+- **Planned** The whole city, nine strata from the clouds down.
+
+## Play · The Template look
+
+Greybox
+
+## Play · The Template text
+
+The greybox every new shard starts from: a road in from each edge, a set piece at every entry, a hover test course, a ziggurat, an overpass. Grey on purpose: an author's world begins here.
+
+# Play page · the controls (sources: src/game/inputContexts.ts, src/engine/player/TouchControls.ts, src/engine/ui/styles/touch.css)
+
+## Play · controls question
+
+how do I play it on my phone?
+
+## Play · controls title
+
+Two thumbs, or keys and a mouse.
+
+## Play · controls intro
+
+Built phone-first: in portrait, everything sits under your thumbs. The left thumb moves; the right thumb looks and fights. On desktop it's keys and a mouse.
+
+## Play · phone pane
+
+touch · phone, portrait
+
+## Play · hud description
+
+A diagram of the touch controls on a phone held upright: the move stick bottom left, look and attack bottom right, lock, dodge and jump above them, the hoverboard and weapon swap on the left edge
+
+## Play · diagram tag
+
+Diagram
+
+## Play · hud pause
+
+Pause
+
+## Play · hud horse
+
+Horse
+
+## Play · hud hover
+
+Hover
+
+## Play · hud swap
+
+Swap
+
+## Play · hud free look
+
+drag to look
+
+## Play · hud use
+
+Use
+
+## Play · hud lock
+
+Lock
+
+## Play · hud dodge
+
+Dodge
+
+## Play · hud jump
+
+Jump
+
+## Play · hud move
+
+Move
+
+## Play · hud look
+
+Look
+
+## Play · hud attack
+
+Attack
+
+## Play · phone controls
+
+- **Move** A stick under your left thumb. Push it all the way forward to sprint.
+- **Look** Drag anywhere on the right half of the screen.
+- **Attack** Tap for a combo; hold to charge a heavy and let go to swing. A bow: hold to draw.
+- **Jump, dodge** Right thumb, just above the bar.
+- **Lock** Appears when something is in reach, or tap the enemy. Flick to switch targets.
+- **Use** A wide button appears when there's someone to talk to or something to open.
+- **Edge** Hover rides the board, Swap changes weapon; in Nalati, Horse calls yours.
+
+## Play · desktop pane
+
+desktop · keyboard and mouse
+
+## Play · desktop controls
+
+- `W` `A` `S` `D` move · `Shift` sprint · the mouse looks
+- `Left click` or `F` attack · `Right click` heavy, or aim
+- `Space` jump · `V` dodge · `Z` or `Middle click` lock on
+- `E` use, talk · `Q` swap · `1` to `9` pick a weapon
+- `H` hoverboard · `R` reload
+- `Tab` bag · `M` map · `J` journal · `Esc` pause
+- Swimming: `Space` dive · `Shift` surface
+- In the saddle: `Shift` gallop · `X` whistle your horse · hold `G` to offer your hand
+
+## Play · desktop note
+
+Every key can be rebound in Settings.
+
+# Play page · live today, coming next (sources: docs/plans/SHARD-PLATFORM.md, docs/design/mmo/MMO-REQUIREMENTS.md, src/game/grid/menu.ts)
+
+## Play · next question
+
+can I play with friends yet?
+
+## Play · next title
+
+Live today. Next, together.
+
+## Play · next intro
+
+Today it's a single-player alpha, on the engine the MMO is built on. Next: one world, and other players in it.
+
+## Play · concept description
+
+Concept painting: two players on a jungle shard, glowing seams running between shards, a volcanic shard beyond
+
+## Play · concept caption
+
+Where it's going, not the game today: two players on a jungle shard, the next shard's volcano across the seam.
+
+## Play · live label
+
+Live today
+
+## Play · live
+
+- Driftwood Isle, Pine Hollow and Nalati Grasslands, open to everyone: free, on phone and desktop.
+- Sky Reach, Signal Dunes and Nine Dragon Stack are Experimental: still being built, and shown locked in the game until they open.
+- Quests, loot and feats in every open shard; your progress saves on your device.
+
+## Play · coming label
+
+Coming for players
+
+## Play · coming
+
+- **Infinite Wildshard:** the shards on one 3 × 3 grid, joined by roads: walk from one into the next, no loading screen. In testing now.
+- **Travel, not teleport:** the hoverboard at 30 m/s on the highway, about 14 m/s inside a shard. No fast travel.
+- **Multiplayer:** play a shard with other people, on a server that runs the rules. Rooms of 32; a full shard opens a copy and keeps your party together.
+- **You travel too:** your name, with a title beneath it, and chat: everyone, this shard, and nearby.
+- **The 5 × 5 grid:** 25 shards, most of them built by players.
+
+## Play · mmo page link
+
+How the MMO works →
+
+# Play page · install (the steps are the home page's Install entries)
+
+## Play · install question
+
+can I put it on my phone like an app?
+
+## Play · install title
+
+On your Home Screen.
+
+## Play · install intro
+
+No app store: it's a web app. Add it once and it opens full screen, in portrait, with its own icon.
+
+## Play · install devices
+
+- **iPhone** Safari ▸ Share ▸ Add to Home Screen ▸ Add
+- **Android** Chrome ▸ ⋮ ▸ Add to Home screen ▸ Install
+
+## Play · install perks
+
+- Full screen, no browser bars.
+- A shard you've loaded once plays offline.
+
+# Play page · the end
+
+## Play · end prompt
+
+play it
+
+## Play · end title
+
+Your turn.
+
+## Play · end text
+
+Free, in your browser, on your phone or desktop. No account, nothing to install.
+
+## Play · end button
+
+Play now ↗
+
+## Play · end button note
+
+opens the game in a new tab
+
+## Play · build link
+
+Next: build a shard of your own →
+
 # Build page (wildshard.io/build/)
 
 ## Build page · title
@@ -997,6 +1344,363 @@ Build a shard.
 
 Describe a world to Claude or any coding agent. It builds a shard you can walk, and one day everyone else can too.
 
+<!-- The top: an example session (illustrative, not a real log), what's real today, and who does what. -->
+
+## Build · session path
+
+~/shards/my-shard · an example
+
+## Build · session prompt
+
+a lighthouse on a storm coast, and a keeper who won't leave
+
+## Build · session line 1
+
+· `wildshard new my-shard`: the template, one 500 m cell
+
+## Build · session line 2
+
+· three pitches and a look, for you to pick
+
+## Build · session line 3
+
+· the grey world first: a road in from every edge
+
+## Build · session line 4
+
+✓ `wildshard validate`: every budget, every edge
+
+## Build · session line 5
+
+· `wildshard dev`: walk it in your browser
+
+## Build · status
+
+**Today:** the SDK and its checks build the shards of our own alpha. **When creator keys open:** you install them and build yours.
+
+## Build · you title
+
+You
+
+## Build · you points
+
+- The idea, in one line.
+- Every pick: the pitch, the look, the map.
+- Play the grey slice; say what's dull.
+
+## Build · agent title
+
+Your agent
+
+## Build · agent points
+
+- Writes the shard: ground, places, creatures, quests.
+- Brings each pick to you as pictures first.
+- Runs build and validate after every step.
+
+## Build · agent note
+
+Claude Code, Codex, Cursor, OpenCode: any coding agent that can edit files and run a terminal. In our experience **Claude Opus 5.5** makes the best shards today.
+
+# Build page · the six steps
+
+## Build · steps question
+
+what do I actually do?
+
+## Build · steps title
+
+Six steps, in full.
+
+## Build · steps intro
+
+From a key to a cell on the grid. Steps 1 and 6 open with creator keys; the four between them are how our own shards are built today.
+
+## Build · step 1 text
+
+Keys aren't open yet. Join the waitlist and we'll write when they are. Your key ties every shard you upload to your name.
+
+## Build · step 2 text
+
+The SDK is the shard format and four commands: `new`, `build`, `validate`, `dev`. The skill teaches your agent the order to work in: the idea and a playable slice first, the look last.
+
+## Build · step 2 command
+
+wildshard new my-shard
+
+## Build · step 2 terminal
+
+✓ copied the template · one 500 m cell, ready to build
+
+## Build · step 3 text
+
+Start with one line. Before it builds anything, your agent comes back with pictures: three pitches, a look, a map, first-person views. You pick at every stage. Then it builds the world in grey, so you play it before it's pretty.
+
+## Build · step 3 link
+
+See one sentence become a shard ↓
+
+## Build · step 4 text
+
+Every build is measured against the shard's budgets, and anything over them refuses to build. Validate then runs your shard with no screen and walks every road in from the edges.
+
+## Build · step 4 terminal
+
+✓ budgets · ✓ 60 ticks · ✓ 92 paths in from the edges
+
+## Build · step 5 text
+
+`wildshard dev` opens the real game with your shard in it, on desktop or on your phone. Save a file and it rebuilds and reloads; a broken build keeps the last good one on screen.
+
+## Build · step 6 text
+
+When uploads open, your shard takes its own cell on the grid, beside everyone else's, with your name on it.
+
+# Build page · one sentence to a shard (Thin Ice's whole chain)
+
+## Build · chain question
+
+can one sentence really become a shard?
+
+## Build · chain title
+
+One sentence to a shard.
+
+## Build · chain intro
+
+Thin Ice is our own dry run of step 3: one line, five stages, a plan we're going to build. The shard itself isn't built yet.
+
+## Build · pitch label
+
+Pitch
+
+## Build · pitch image description
+
+Pitch C, Thin Ice: racing over black ice above a drowned village
+
+## Build · pitch caption
+
+Three pitches. We picked Thin Ice: race the ice on a sled-board and find the village that drowned beneath it.
+
+## Build · style label
+
+Style
+
+## Build · style image description
+
+Art direction: the village under an aurora
+
+## Build · style caption
+
+Three looks tried; we kept "Aurora, kept simple".
+
+## Build · map label
+
+Map
+
+## Build · map image description
+
+The map of the fjord, revision 2
+
+## Build · map caption
+
+The map, from a 3D blockout: eleven places and three beacons.
+
+# Build page · the template
+
+## Build · template question
+
+where does every shard start?
+
+## Build · template title
+
+The template.
+
+## Build · template intro
+
+Every author starts from the same grey shard: a complete, working project you copy and make your own. It builds, validates and walks on day one.
+
+## Build · template tag
+
+In engine · The Template
+
+## Build · template path
+
+my-shard/
+
+## Build · template files
+
+- `shard.config.ts` who the shard is: its name and its rules
+- `data/` ground, props, creatures, items, water, the look, the sounds
+- `quests/` the adventure, step by step
+- `behaviour/` small scripts, run in a sandbox
+- `generators/` build-time code that fills the 500 m cell: roads, set pieces, districts
+- `assets/` models, textures and sounds, baked
+
+## Build · template note
+
+The template has one of everything on purpose: delete what you won't use.
+
+# Build page · budgets and validation, in plain words (the deep version is the /mmo page)
+
+## Build · budgets question
+
+what keeps a shard fast on my phone?
+
+## Build · budgets title
+
+Budgets, checked every build.
+
+## Build · budgets intro
+
+A shard has to run on a phone, next to its neighbours. So every build is measured, and a new shard over budget doesn't build.
+
+## Build · budgets
+
+- **1 GB** memory while you play, 1.8 GB while loading: everything in view, neighbours and engine included.
+- **8 MB** for a shard's shared library, and about 300 KB for each tile of ground.
+- **8 draws** and 40,000 triangles for each tile near you; one draw for a whole shard far away.
+- **¼ frame** for scripts, about 4 ms, in a sandbox with a fuel limit.
+- **60 fps** on desktop and 30 on a phone, measured, not estimated.
+
+## Build · validate path
+
+~/shards/my-shard
+
+## Build · validate command
+
+wildshard validate my-shard
+
+## Build · validate line 1
+
+✓ PASS · every budget measured, no refusals
+
+## Build · validate line 2
+
+✓ 60 ticks with no screen · no script failed
+
+## Build · validate line 3
+
+✓ 92 paths walked in from all four edges
+
+## Build · validate refusal
+
+✗ REFUSAL: library download budget bytes: 8000001 > 8000000
+
+## Build · validate text
+
+One byte over and nothing is written. Validate plays your shard with no screen, then walks 92 paths in from all four edges: a wall, a cliff or deep water across a road fails it, whatever the shard says about itself.
+
+## Build · mmo deep link
+
+The shardfile and the sandbox, in depth →
+
+# Build page · the tools
+
+## Build · tools question
+
+what tools do I get?
+
+## Build · tools title
+
+The tools.
+
+## Build · tools intro
+
+What we build our own shards with today, and what comes next. Each new tool arrives when a new shard needs it.
+
+## Build · tool in use tag
+
+In use
+
+## Build · tool draft tag
+
+Draft
+
+## Build · tool next tag
+
+Next
+
+## Build · tool 1 name
+
+The wildshard CLI
+
+## Build · tool 1 line
+
+`new`, `build`, `validate`, `dev`: a project from the template, a checked package, and a preview that reloads as you save.
+
+## Build · tool 2 name
+
+Explore, in the game
+
+## Build · tool 2 line
+
+Every model, set and place of a shard in the real engine: turn a model, walk a set, try a feature in its own playground.
+
+## Build · tool 3 name
+
+The drafts site
+
+## Build · tool 3 line
+
+A shard before it's built: every stage's pictures and picks, a slider between any two versions of a view, the planned models and sets as mock-ups, and Map Lab, which tests a map for walkable ground and sightlines before any ground exists.
+
+## Build · tool 4 name
+
+The WorldClaw skills
+
+## Build · tool 4 line
+
+The workflow as skills for your agent: guided, with you at every pick; zero-shot, from one sentence; or a fast low-poly sketch to try a layout.
+
+## Build · tool 5 name
+
+Composition, Coverage, Beats
+
+## Build · tool 5 line
+
+New tabs in the game's Explore: place things by hand, see which ground is polished, and play a shard from any beat.
+
+# Build page · shards that grow (the points are the home page's Grow · points)
+
+## Build · grow question
+
+does a shard stay the same forever?
+
+## Build · grow title
+
+Shards that grow.
+
+## Build · grow intro
+
+An uploaded shard is a start, not an end: you keep changing it, with friends, while players are inside.
+
+## Build · grow note
+
+Planned for the MMO · not live yet
+
+# Build page · the end: founding authors and the waitlist
+
+## Build · grid description
+
+The first 5 by 5 grid: seven shards and the centre placed, seventeen cells still empty
+
+## Build · grid yours
+
+Yours?
+
+## Build · grid note
+
+The first grid · seventeen cells still empty
+
+## Build · author button
+
+Become an author
+
+## Build · author button note
+
+join the waitlist · claim a cell
+
 # MMO page (wildshard.io/mmo/)
 
 ## MMO page · title
@@ -1018,6 +1722,521 @@ How the MMO works.
 ## MMO · intro
 
 The technical side, for the curious and for authors: what a shard is, how shards fit together, and how far along the road we are.
+
+<!-- MS31. Every claim on this page comes from a doc or the code; each block's note says where. Status as of 2026-10-10. -->
+
+## MMO · status
+
+**Today:** a single-player alpha: seven shards, and a 3 × 3 grid you can walk across. **Next:** multiplayer, uploads, creator keys. Every part below says which it is.
+
+<!-- The flow: MMO-REQUIREMENTS A2, A3, S1, W6; docs/SHARDFILE.md (the build product); src/sdk/cli.ts (new, dev, build, validate). -->
+
+## MMO · flow label
+
+From your machine to the grid, in four steps
+
+## MMO · tag planned
+
+Planned · not built yet
+
+## MMO · flow 1 label
+
+01 · your machine
+
+## MMO · flow 1 title
+
+Build anything
+
+## MMO · flow 1 text
+
+Claude or any coding agent writes the code, with any tool you like. The code stays home; only its output ships.
+
+## MMO · flow 2 label
+
+02 · the package
+
+## MMO · flow 2 title
+
+A shardfile
+
+## MMO · flow 2 text
+
+`wildshard build` bakes it into data, assets and sandboxed WebAssembly.
+
+## MMO · flow 3 label
+
+03 · admission
+
+## MMO · flow 3 title
+
+Checked before play
+
+## MMO · flow 3 text
+
+`wildshard validate` runs on your machine the check the server will run.
+
+## MMO · flow 4 label
+
+04 · the grid
+
+## MMO · flow 4 title
+
+Placed by the server
+
+## MMO · flow 4 text
+
+Upload it with your creator key; the server gives it a cell and everyone walks in.
+
+<!-- The shardfile: docs/SHARDFILE.md ("Shardfile 0.x", its section table), docs/api/SHARDFILE.md (coverage line), site/shardfile.json. -->
+
+## MMO · shardfile question
+
+what is a shard, exactly?
+
+## MMO · shardfile title
+
+The shardfile.
+
+## MMO · shardfile intro
+
+One sealed package: a `shard.json`, and every other file named by its SHA-256. No three.js objects, no functions, no custom shaders: only data the engine reads.
+
+## MMO · shardfile note
+
+The template's real shard.json: `runtime: null` means no trusted code at all
+
+## MMO · shardfile sections label
+
+What else is in a shard.json?
+
+## MMO · shardfile sections
+
+- `identity`: slug, name, author, revision, seed. Never a grid position: placement is the server's.
+- `look`: sky, sun, fog and grade, from the platform's fixed families, with a day cycle.
+- `sim` and `state`: a 60 Hz fixed step, and named shared and per-player fields, each public, owner-only or host-only.
+- `creatures`, `encounters`, `quests`, `items`: brains, packs, bosses and their phases, quest graphs and loot, as rows.
+- `edge` and `entryways`: four edge profiles, and an 8 m opening at the middle of every edge, at road height.
+- `tiles`, `files`, `budgets`: 62.5 m and 125 m tiles, every file's bytes, triangles and draws, and the caps it promises.
+
+## MMO · shardfile sections note
+
+Version 0.1: 6,018 schema paths, every one in the generated reference. An unknown key fails.
+
+<!-- Budgets: docs/SHARDFILE.md "Budget-first admission", its section table (budgets, entryways), "Minimal singleplayer load"; src/engine/core/config.ts CONTENT_CAPS. -->
+
+## MMO · budgets question
+
+how is a stranger's shard safe on my phone?
+
+## MMO · budgets title
+
+Budgets first.
+
+## MMO · budgets intro
+
+Nothing loads until it fits. A shard declares what it costs, and admission checks the real bytes against it before anyone plays it.
+
+## MMO · budgets terminal path
+
+~/shards/my-shard
+
+## MMO · budgets command
+
+wildshard validate my-shard
+
+## MMO · budgets command output
+
+prints a report card: memory at the worst spot, draws, triangles, script CPU and fuel, download size, time to playable
+
+## MMO · budgets step 1
+
+Strict data
+
+## MMO · budgets step 1 text
+
+Checked as JSON before a field is read: functions, classes and unknown keys are refused.
+
+## MMO · budgets step 2
+
+Exact bytes
+
+## MMO · budgets step 2 text
+
+Every file's exact size and SHA-256, again on every load.
+
+## MMO · budgets step 3
+
+Hard caps
+
+## MMO · budgets step 3 text
+
+Library ≤ 25 MB in memory, 8 MB to download; simulation ≤ 25 MB and 2 MB. The whole page: 1,000 MB playing, 1,800 loading.
+
+## MMO · budgets step 4
+
+Four roads in
+
+## MMO · budgets step 4 text
+
+An 8 m opening mid-edge, flat, clear and dry. Miss one: "illegal shard".
+
+## MMO · budgets step 5
+
+A measured run
+
+## MMO · budgets step 5 text
+
+The simulation runs headless for 240 ticks to measure script CPU and fuel.
+
+## MMO · budgets note
+
+Built for the phone: an iPhone at 30 fps, inside 1.0 GB
+
+<!-- The sandbox: docs/SCRIPT-ABI.md; MMO-REQUIREMENTS R1, R3, R4 and §7 O4 (AssemblyScript first). -->
+
+## MMO · sandbox question
+
+can a shard run its own code?
+
+## MMO · sandbox title
+
+Behaviour in a sandbox.
+
+## MMO · sandbox intro
+
+Yes, for new behaviour: a puzzle, a boss's mind, a gadget. It's written in AssemblyScript, compiled to WebAssembly, and run metered, with nothing to reach.
+
+## MMO · sandbox stat 1
+
+256 KiB
+
+## MMO · sandbox stat 1 label
+
+the most one module can be
+
+## MMO · sandbox stat 2
+
+4 MiB
+
+## MMO · sandbox stat 2 label
+
+of memory, at most
+
+## MMO · sandbox stat 3
+
+2M
+
+## MMO · sandbox stat 3 label
+
+fuel per call, 8M a tick for all of them
+
+## MMO · sandbox stat 4
+
+0
+
+## MMO · sandbox stat 4 label
+
+clocks, randomness, network, DOM or files
+
+## MMO · sandbox points
+
+- **It only touches its own shard.** It writes its declared fields, spawns, moves and sends events within limits, and asks the world four things: raycast, overlap, nearest walkable point, path.
+- **A runaway is stopped, not waited on.** Every loop pays fuel. On a trap nothing it wrote is kept, and after three failures the module is switched off.
+- **The same result everywhere.** Every float is guarded, so the same bytes give the same answer in Node and in Safari's WebKit: a gate checks it on every push.
+
+## MMO · sandbox note
+
+Script ABI v0 · AssemblyScript first; other languages can target the same interface later
+
+<!-- The grid: src/game/grid/singleplayer.json (today's 3 × 3, pitch 555), src/engine/core/config.ts, MMO-REQUIREMENTS W1–W8, docs/GRID-SIMULATION.md (6 m / 10 m, four sims), the journey (9 Oct, the grid goes public). -->
+
+## MMO · grid question
+
+how do shards become one world?
+
+## MMO · grid title
+
+The grid.
+
+## MMO · grid intro
+
+Every shard is a 500 m cube, built alone, then placed on the grid. A 15 m highway runs between shards and the platform eases each edge down to it: centres sit 555 m apart.
+
+## MMO · grid map description
+
+Today's grid to scale: a 3 by 3 of 500 metre cells with the highway between them. Pine Hollow north, the Template north-east, Signal Dunes west, Driftwood Isle in the middle, Nalati east, Sky Reach south, three open plots.
+
+## MMO · grid open plot
+
+Open plot
+
+## MMO · grid cell size
+
+500 m
+
+## MMO · grid pitch
+
+555 m
+
+## MMO · grid north
+
+N ↑
+
+## MMO · grid map caption
+
+Today's grid, to scale: six shards and three open plots, live in single player. The MMO's first grid is 5 × 5.
+
+## MMO · seam description
+
+A seam, to scale: a shard's edge, a 20 metre strip, the 15 metre highway, a 20 metre strip, the next shard
+
+## MMO · seam shard
+
+shard
+
+## MMO · seam strip
+
+20 m strip
+
+## MMO · seam highway
+
+15 m highway
+
+## MMO · seam next shard
+
+next
+
+## MMO · seam note
+
+The platform builds each strip from both neighbours' edges, so the seam always meets
+
+## MMO · grid points
+
+- **No loading screen.** The next shard gets ready while you're on the road. You enter its simulation 6 m before its edge and leave 10 m after, so a border never flickers.
+- **The crossroads is the worst case.** Where four shards meet, four corners are within ~39 m, so every budget is proven there. At most four shard simulations are in memory.
+- **Each shard owns its frame.** Inside, it sets the sky, sun, fog, grade and post. On the highway, the neutral road look.
+
+<!-- The layers: AGENTS.md "Engine layers" (E405), docs/ENGINE.md, src/sdk/cli.ts; MMO-REQUIREMENTS T2–T4; SHARD-PLATFORM STATE (2026-10-10). -->
+
+## MMO · layers question
+
+what's the engine, and what's mine?
+
+## MMO · layers title
+
+Four layers.
+
+## MMO · layers intro
+
+The code is four packages, and imports only point down. Guards in the repo refuse anything that points up or sideways.
+
+## MMO · layer 4 name
+
+src/shards/<slug>
+
+## MMO · layer 4 text
+
+One folder per shard. A shard never imports another.
+
+## MMO · layer 3 name
+
+@wildshard/sdk
+
+## MMO · layer 3 text
+
+What authors build against: the shardfile schema, the `wildshard` CLI and the runtime facades.
+
+## MMO · layer 2 name
+
+@wildshard/game
+
+## MMO · layer 2 text
+
+Knows it is Wildshard, never a particular shard. Holds what two or more shards share.
+
+## MMO · layer 1 name
+
+@wildshard/engine
+
+## MMO · layer 1 text
+
+Rendering, physics, input, audio. Knows no game and no shard: content arrives as data.
+
+## MMO · layers today
+
+**The truth today:** the template is pure data. The six older shards still carry their own TypeScript in a `runtime/` folder while they move onto the format, in stages: 80/20, then 90/10, then 100/0.
+
+<!-- Multiplayer, as planned (not built): MMO-REQUIREMENTS M1, M2, M6, M8, M9; OCTOBER-BACKLOG saga 3 ("no live plan yet"); SHARD-PLATFORM M1 (headless sim). -->
+
+## MMO · together question
+
+how will we play together?
+
+## MMO · together title
+
+Multiplayer, as planned.
+
+## MMO · together intro
+
+Not built yet: today every shard is single player. This is the design the shardfile is built to fit.
+
+## MMO · net description
+
+Planned: your phone sends inputs to the shard's room on the server, which runs the shared simulation and sends the shared state back
+
+## MMO · net phone
+
+Your phone
+
+## MMO · net phone text
+
+predicts only your own character
+
+## MMO · net up
+
+inputs →
+
+## MMO · net down
+
+← shared state
+
+## MMO · net room
+
+The room
+
+## MMO · net room text
+
+the shard's simulation, headless, on the server
+
+## MMO · together points
+
+- **The server decides everything shared:** creatures, combat, loot, quests. Hits are settled against what you saw.
+- **Rooms of up to 32.** A full shard opens a copy and keeps parties together.
+- **Two wallets.** Your name, title, cosmetics and catalogue gear travel; a shard's own coins and items stay in it, so no shard can break the economy.
+- **One ledger.** Only what the server saw can grant a reward, and only once: a dropped connection never pays twice.
+
+## MMO · together today
+
+**Already true:** the simulation runs without a renderer (the template's runs in Node), and every `shard.json` declares a `serverBudget`, a promise for the server that doesn't exist yet.
+
+<!-- Ownership and pricing: MMO-REQUIREMENTS O1, O4, O6, O7, O9, O10, U5. -->
+
+## MMO · own question
+
+who owns a shard, and what does it cost?
+
+## MMO · own title
+
+Yours. Free.
+
+## MMO · own intro
+
+You keep the rights to what you build. Uploading gives Wildshard a licence to host it and show it in the world.
+
+## MMO · own points
+
+- Playing is free. Building is free with your own agent. Uploads are never charged.
+- Your creator key is your author identity: it signs your uploads.
+- A renovated shard keeps its original author's name; a remix of a public shard credits it automatically.
+- The first authors to upload become Founding Authors, with a plaque on their shard.
+
+## MMO · own note
+
+Promised in the MMO's requirements (O9, O10, U5). Uploads and keys aren't built yet.
+
+<!-- The road: MMO-REQUIREMENTS §5 (milestones), SHARD-PLATFORM STATE.md 2026-10-10 (M1 done; M2 SF22 desktop pass, Safari cadence fail; M3 0 of 6 at 80/20), OCTOBER-BACKLOG ("no live plan yet for multiplayer or the API server"). No dates (§1.1). -->
+
+## MMO · road question
+
+how far along is it?
+
+## MMO · road title
+
+The honest road.
+
+## MMO · road intro
+
+States, not dates: the MMO's milestones, read from the plans on 10 October 2026.
+
+## MMO · road done
+
+✓ done
+
+## MMO · road doing
+
+in progress
+
+## MMO · road todo
+
+not started
+
+## MMO · road 1 title
+
+The package
+
+## MMO · road 1 text
+
+The template boots from its shardfile with no trusted code, and its simulation runs in Node with no renderer.
+
+## MMO · road 2 title
+
+The grid
+
+## MMO · road 2 text
+
+A 3 × 3 you can walk across with no loading screen. The crossroads test passes on desktop; on iPhone, frame pacing still misses.
+
+## MMO · road 3 title
+
+Every shard on the format
+
+## MMO · road 3 text
+
+The template is data only; the six older shards are moving onto it, none at 80/20 yet.
+
+## MMO · road 4 title
+
+Multiplayer
+
+## MMO · road 4 text
+
+Two players in one shard on an authoritative server. Designed; no plan yet.
+
+## MMO · road 5 title
+
+Uploads and creator keys
+
+## MMO · road 5 text
+
+An outside author uploads a validated shard and it appears on the grid.
+
+## MMO · road 6 title
+
+The 25-shard grid
+
+## MMO · road 6 text
+
+Twenty-five shards live, the highway between them, and profiles that travel.
+
+## MMO · next label
+
+Where next
+
+## MMO · next build
+
+Build a shard →
+
+## MMO · next build note
+
+what it's like
+
+## MMO · next play
+
+Play →
+
+## MMO · next play note
+
+every shard in full
 
 # Footer
 
