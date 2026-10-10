@@ -19,6 +19,8 @@
     "./systems/looks/rainCurtain": "./systems/looks/rainCurtain.ts",
     "./systems/looks/trample": "./systems/looks/trample.ts",
     "./systems/looks/shaderFamily": "./systems/looks/shaderFamily.ts",
+    "./systems/looks/cascade": "./systems/looks/cascade.ts",
+    "./systems/looks/facetedSky": "./systems/looks/facetedSky.ts",
     "./systems/looks/riggedHulls": "./systems/looks/riggedHulls.ts",
     "./systems/looks/riggedHullRows": "./systems/looks/riggedHullRows.ts",
     "./systems/looks/renderPass": "./systems/looks/renderPass.ts",

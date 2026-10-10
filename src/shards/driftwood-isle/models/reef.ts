@@ -15,6 +15,12 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { REEF_GLSL } from '../data/reefGlsl';
+
+/** the GLSL is data (data/reefGlsl.ts); `@{name}` splices the fragments this module passes */
+const REEF_FAMILY = new ShaderFamily(REEF_GLSL, {});
+
 
 export interface ReefParams {
   /** size, 1 = the builders' metre scale */
@@ -44,16 +50,7 @@ export function reefMaterial(ctx: ModelContext): { material: THREE.MeshStandardM
       Object.assign(shader.uniforms, uniforms);
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nattribute vec2 sway; uniform float uTime;')
-        .replace('#include <begin_vertex>', /* glsl */`
-          vec3 transformed = vec3( position );
-          {
-            // the current: a slow surge with a faster ripple on top; the tips of the fronds travel, the roots stay put
-            float w = sway.x, ph = sway.y;
-            float g = sin(uTime * 0.8 + ph) * 0.7 + sin(uTime * 1.9 + ph * 1.7) * 0.3;
-            transformed.x += g * w * 0.35;
-            transformed.z += cos(uTime * 0.65 + ph * 1.3) * w * 0.28;
-            transformed.y -= abs(g) * w * 0.08;
-          }`);
+        .replace('#include <begin_vertex>', REEF_FAMILY.glsl(REEF_GLSL.swayBegin));
     }, { mode: 'replace', key: 'seabed-sway' });
     ctx.sky.setupMaterial(material);
     return { material, uniforms };

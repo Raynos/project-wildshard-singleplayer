@@ -29,6 +29,9 @@ import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { GULLS_GLSL } from '../data/gullsGlsl';
+
 
 export interface GullsSpec {
   /** world positions a gull can stand on (feet); posts, gunwales, rock tops, sand */
@@ -59,6 +62,11 @@ const PART = { body: 0, wingL: 1, wingR: 2, head: 3, legL: 4, legR: 5 } as const
 /** pivots, gull-local (forward = +z, up = +y, right = +x) — mirrored in the shader */
 type Vec3 = readonly [number, number, number];
 const SHOULDER_X = 0.06, SHOULDER_Y = 0.045, ELBOW_X = 0.36, NECK: Vec3 = [0, 0.05, 0.15], HIP: Vec3 = [0, -0.06, 0.0];
+/** the GLSL is data (data/gullsGlsl.ts); `@{name}` splices the fragments this module passes: the rig's joint positions */
+const GULLS_FAMILY = new ShaderFamily({
+  ...GULLS_GLSL, ELBOW_X: ELBOW_X.toFixed(3), SHOULDER_Y_LIFT: (SHOULDER_Y + 0.01).toFixed(3), SHOULDER_X: SHOULDER_X.toFixed(3), SHOULDER_Y: SHOULDER_Y.toFixed(3),
+  NECK_X: NECK[0].toFixed(3), NECK_Z: NECK[2].toFixed(3), HIP_Y: HIP[1].toFixed(3), HIP_Z: HIP[2].toFixed(3),
+}, {});
 
 // oxlint-disable-next-line oxc/no-const-enum -- inlined by rolldown; keeps the gull state machine branch-free
 const enum S { Perched = 0, Hop = 1, Takeoff = 2, Wheel = 3, Landing = 4, Guide = 5 }
@@ -262,40 +270,8 @@ export class Gulls {
       attachFogUniforms(shader);
       Object.assign(shader.uniforms, this.uniforms);
       shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', /* glsl */`#include <common>
-          attribute float aPart; attribute vec4 aAnim;
-          mat2 rot2(float a) { float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }`)
-        .replace('#include <begin_vertex>', /* glsl */`
-          vec3 transformed = vec3( position );
-          {
-            float part = aPart;
-            float flap = aAnim.x, headYaw = aAnim.y, fold = aAnim.z, tuck = aAnim.w;
-            if (part == 1.0 || part == 2.0) {
-              // wing: shorten + sweep back along the flank when perched (tuck 0), fold the hand about the elbow,
-              // swing the whole wing about the shoulder (flap, about +z), then sweep about the shoulder (about +y)
-              float side = part == 1.0 ? -1.0 : 1.0;
-              bool hand = abs(position.x) > ${ELBOW_X.toFixed(3)} - 0.001;
-              vec2 e = vec2(${ELBOW_X.toFixed(3)} * side, ${(SHOULDER_Y + 0.01).toFixed(3)});
-              vec2 s = vec2(${SHOULDER_X.toFixed(3)} * side, ${SHOULDER_Y.toFixed(3)});
-              vec2 xy = transformed.xy;
-              float k = 1.0 - 0.45 * (1.0 - tuck);
-              xy.x = (xy.x - s.x) * k + s.x; e.x = (e.x - s.x) * k + s.x;
-              if (hand) xy = rot2(-fold * side) * (xy - e) + e;
-              xy = rot2(flap * side) * (xy - s) + s;
-              transformed.xy = xy;
-              float sw = (1.0 - tuck) * 1.25;
-              vec2 sz = vec2(s.x, 0.02);
-              transformed.xz = rot2(-sw * side) * (transformed.xz - sz) + sz;
-            } else if (part == 3.0) {
-              // head: turn about the neck (y axis)
-              vec2 n = vec2(${NECK[0].toFixed(3)}, ${NECK[2].toFixed(3)});
-              transformed.xz = rot2(headYaw) * (transformed.xz - n) + n;
-            } else if (part >= 4.0) {
-              // legs: tuck back under the tail in flight (about the hip, x axis)
-              vec2 h = vec2(${HIP[1].toFixed(3)}, ${HIP[2].toFixed(3)});
-              transformed.yz = rot2(-tuck * 1.35) * (transformed.yz - h) + h;
-            }
-          }`);
+        .replace('#include <common>', GULLS_FAMILY.glsl(GULLS_GLSL.vertexCommon))
+        .replace('#include <begin_vertex>', GULLS_FAMILY.glsl(GULLS_GLSL.vertexBegin));
     }, { mode: 'replace', key: 'gulls-anim' });
     this.sky.setupMaterial(mat);
     this.mesh = new THREE.InstancedMesh(geo, mat, n);

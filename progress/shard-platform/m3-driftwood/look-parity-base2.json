@@ -1,0 +1,206 @@
+{
+  "build": "0170315-mv1spcdu",
+  "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, Time of day midday (paused), time and cloud time 10, viewmodel hidden",
+  "tiers": {
+    "phone": {
+      "pieces": 34,
+      "colliderCount": 1929,
+      "colliders": "1a05aca7fcdbe598d79e3970bbc2f93189f7b89c059dfe3dab95cdefa8a4b963",
+      "gpuBytes": 196341473,
+      "programs": 145,
+      "shaderCount": 204,
+      "shaders": "c949968f9e4e8cad0fafa7a78407d08271e119d2b162ea2fd4943fa8bc1e29c9"
+    },
+    "desktop": {
+      "pieces": 34,
+      "colliderCount": 2082,
+      "colliders": "0bc0666f9768bc858e397213d04f4e04c2d4dcf8f18ad7b068a199bdfbbff4a6",
+      "gpuBytes": 394431598,
+      "programs": 158,
+      "shaderCount": 228,
+      "shaders": "6a966d06537e315c09860dee4b52407c5b5b57f937317475d6ee64fb16c34826"
+    }
+  },
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "beach-sea",
+      "player": [
+        100,
+        2.6,
+        1
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 119,
+      "triangles": 740235,
+      "lit": 1095048,
+      "pixels": "1c2efb529aebd2b2d81e9341c79245458c481ae042242748385be8603048e4aa"
+    },
+    {
+      "tier": "phone",
+      "pose": "wreck",
+      "player": [
+        130,
+        1.2,
+        10
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 115,
+      "triangles": 733925,
+      "lit": 1095048,
+      "pixels": "0c03fc34dac5bfa812c460b6696e1e49b6d12bf7aea8b41b41ee21cb8ebb111f"
+    },
+    {
+      "tier": "phone",
+      "pose": "lookout",
+      "player": [
+        93.6,
+        33.4,
+        95.9
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 104,
+      "triangles": 693607,
+      "lit": 1095048,
+      "pixels": "9254f54ce354e0b78addd9af5f899cf6041275913559bdcb6350a27c631c3da0"
+    },
+    {
+      "tier": "phone",
+      "pose": "cave",
+      "player": [
+        142,
+        0.4,
+        14
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 113,
+      "triangles": 725465,
+      "lit": 1095048,
+      "pixels": "d98b2ad7eb56fbe8ebf9590c62ae30a4ce8f1661f0c53e20ccadd40bbbfa0218"
+    },
+    {
+      "tier": "phone",
+      "pose": "vista",
+      "player": [
+        -46,
+        17.2,
+        -100
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 118,
+      "triangles": 772241,
+      "lit": 1095048,
+      "pixels": "88db7c713b4ab46f05e11606ec22fa521e46ca86cf18755be7fa3cb1d01e845c"
+    },
+    {
+      "tier": "phone",
+      "pose": "altar",
+      "player": [
+        -99,
+        7.1,
+        109
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 150,
+      "triangles": 853079,
+      "lit": 1095048,
+      "pixels": "2f2d811f3fa0e856b5711a8b184bfb56c9bc04bbad7a53f83e9f3be6a99a7a51"
+    },
+    {
+      "tier": "desktop",
+      "pose": "beach-sea",
+      "player": [
+        100,
+        2.6,
+        1
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 235,
+      "triangles": 2147443,
+      "lit": 615663,
+      "pixels": "717769c3824a75b447250c20819a41ddd81f7b2372f188458a3f0f9b0a32a427"
+    },
+    {
+      "tier": "desktop",
+      "pose": "wreck",
+      "player": [
+        130,
+        1.2,
+        10
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 215,
+      "triangles": 2103721,
+      "lit": 615663,
+      "pixels": "38d18d2007ca7bd69ee7fd5111ccb30e6dd8dd436a923c663657a87d265438cf"
+    },
+    {
+      "tier": "desktop",
+      "pose": "lookout",
+      "player": [
+        93.6,
+        33.4,
+        95.9
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 233,
+      "triangles": 2108912,
+      "lit": 615663,
+      "pixels": "4ce5f44b4e923a23f877eb5f2156faed49070cb2bd86d6c7627c479e506bb669"
+    },
+    {
+      "tier": "desktop",
+      "pose": "cave",
+      "player": [
+        142,
+        0.4,
+        14
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 270,
+      "triangles": 2188261,
+      "lit": 615663,
+      "pixels": "5a8741c4940aedfc33d06cc81be31922321fee5a85d3aee766eaf544357fd475"
+    },
+    {
+      "tier": "desktop",
+      "pose": "vista",
+      "player": [
+        -46,
+        17.2,
+        -100
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 309,
+      "triangles": 2506752,
+      "lit": 615663,
+      "pixels": "826a70e710927933734a9236e0ff6087a9d7c994748dbe4b3584b7701c9d5e2a"
+    },
+    {
+      "tier": "desktop",
+      "pose": "altar",
+      "player": [
+        -99,
+        7.1,
+        109
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 450,
+      "triangles": 2746784,
+      "lit": 615663,
+      "pixels": "9b185d52dd366e3feb84fd62273198ea39c31438a8231a8a2dc33aaf800360fe"
+    }
+  ]
+}

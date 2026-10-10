@@ -82,6 +82,8 @@
     "./looks/signs": "./looks/signs.ts",
     "./looks/neonText": "./looks/neonText.ts",
     "./looks/shaderFamily": "./looks/shaderFamily.ts",
+    "./looks/cascade": "./looks/cascade.ts",
+    "./looks/facetedSky": "./looks/facetedSky.ts",
     "./looks/renderPass": "./looks/renderPass.ts",
     "./looks/weave": "./looks/weave.ts",
     "./looks/strandCloth": "./looks/strandCloth.ts",
