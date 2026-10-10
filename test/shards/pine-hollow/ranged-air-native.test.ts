@@ -11,7 +11,9 @@ import { installPineRangedMotion } from '../../../src/shards/pine-hollow/runtime
 import { installPineLongbow, LONGBOW_STEP } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLongbow';
 import { installPineCrossbow, CROSSBOW_STEP } from '../../../src/shards/pine-hollow/runtime/weapons/headlessCrossbow';
 import { ARROW_FLIGHT } from '../../../src/shards/pine-hollow/weapons/longbowFlight';
-import { boltFlight } from '../../../src/shards/pine-hollow/loadout/ammo';
+import { boltFlight, type BoltKind } from '../../../src/shards/pine-hollow/loadout/ammo';
+import { boltFlightStep } from '../../../src/shards/pine-hollow/weapons/crossbow/flight';
+import { CROSSBOW_PROFILE } from '../../../src/shards/pine-hollow/weapons/crossbow/profiles';
 import { SIM_LEVEL } from '../../fixtures/sim-level/level';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import * as v from 'valibot';
@@ -78,4 +80,49 @@ it('reads rainy iron-bolt multipliers on each native substep and leaves dry fall
     expect(Math.abs(live(wet).vel[2])).toBeLessThan(Math.abs(live(dry).vel[2]));
     expect(wet.rng.stream('gameplay').snapshot()).toEqual(dry.rng.stream('gameplay').snapshot());
   } finally { wet.dispose(); dry.dispose(); }
+});
+
+it('keeps the launched special bolt kind after selection changes and restores its exact wet-flight suffix', () => {
+  const target = SIM_LEVEL.entities[0]; if (target === undefined) throw new Error('Missing real target');
+  const ranged: SimLevel = { ...level, entities: [{ ...target, at: { x: 0, y: 0, z: -80 } }] };
+  const savedBolts = v.object({ bolts: v.array(v.object({ active: v.boolean(), pos: vec, vel: vec, ammo: v.optional(v.picklist(['iron', 'pitch', 'broadhead']), 'iron') })) });
+  for (const kind of ['pitch', 'broadhead'] as const) {
+    let selected: BoltKind = kind, fire = true;
+    const install = (host: SimHost): void => { installPineCrossbow(host, { shots: () => fire ? [target.id] : [], enabled: () => true,
+      bodies: () => [], ammunition: () => selected, flight: ammo => boltFlight(ammo, 1) }); };
+    const original = createSimHost(ranged, { rapier }); install(original); let restored: SimHost | undefined;
+    try {
+      original.step(); fire = false; selected = 'iron';
+      const read = (host: SimHost) => {
+        const row = v.parse(savedBolts, host.adapters.get(CROSSBOW_STEP)?.snapshot()).bolts.find(bolt => bolt.active);
+        if (row === undefined) throw new Error('No special bolt'); return row;
+      };
+      const before = read(original); expect(before.ammo).toBe(kind);
+      const pos = new Vector3(...before.pos), vel = new Vector3(...before.vel);
+      for (let i = 0; i < 4; i++) boltFlightStep(pos, vel, 1 / 240, boltFlight(kind, 1), CROSSBOW_PROFILE);
+      original.step(); expect(read(original).pos).toEqual(pos.toArray()); expect(read(original).vel).toEqual(vel.toArray());
+      const saved = snapshotSimHost(original);
+      restored = restoreSimHost(ranged, { rapier }, saved, install); expectSameSimSnapshot(snapshotSimHost(restored), saved);
+      for (let i = 0; i < 100; i++) { original.step(); restored.step(); }
+      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    } finally { restored?.dispose(); original.dispose(); }
+  }
+});
+
+it('applies the captured broadhead multiplier to a real boar even after switching the rail back to iron', () => {
+  const target = SIM_LEVEL.entities[0]; if (target === undefined) throw new Error('Missing authored boar');
+  const ranged: SimLevel = { ...level, entities: [{ ...target, at: { x: 0, y: 0, z: -12 } }] };
+  const amounts: number[] = [];
+  for (const kind of ['iron', 'broadhead'] as const) {
+    const host = createSimHost(ranged, { rapier }); let fire = true, selected: BoltKind = kind;
+    try {
+      const body = host.entities.get(target.id); if (body === undefined) throw new Error('Missing real native boar'); body.scripted = true;
+      host.events.on('damage.dealt', ({ req }) => { if (req.target === body.combatActor()) amounts.push(req.amount); }, host.scope);
+      installPineCrossbow(host, { shots: () => fire ? [target.id] : [], enabled: () => true, bodies: () => [body], ammunition: () => selected });
+      host.step(); fire = false; selected = 'iron';
+      for (let i = 0; i < 60 && amounts.length < (kind === 'iron' ? 1 : 2); i++) host.step();
+    } finally { host.dispose(); }
+  }
+  expect(amounts).toHaveLength(2); const plain = amounts[0]; if (plain === undefined) throw new Error('No plain bolt hit');
+  expect(amounts[1]).toBe(plain * 1.4);
 });

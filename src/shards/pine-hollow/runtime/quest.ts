@@ -19,6 +19,8 @@ import { PinePeople } from './people';
 import { PineLodge, PINE_LODGE, PINE_LODGE_ACT } from './lodge';
 import { eliteOf } from '../quest/contracts';
 import { pineBenchPose } from '../quest/benchPose';
+import { PineTrader, PINE_TRADE, PINE_TRADE_CLOSE, type PineTradeSkin } from './trader';
+import { PINE_AMMO_SAVED, type PineAmmunition } from './weapons/ammunition';
 import baked from './spots.baked.json' with { type: 'json' };
 
 /** The script command actor that carries Pine's [E] prompts (`{ kind: 'script', actorId: PINE_INTERACT, value: PINE_ACT.* }`). */
@@ -28,6 +30,8 @@ export const PINE_ACT = { talk: 0, logA: 1, logB: 2, glass: 3, flint: 4, pond: 5
   token1: 10, token2: 11, token3: 12, token4: 13, token5: 14, token6: 15, token7: 16, token8: 17, bench: 18, miller: 19, trader: 20, kingBow: 21, cancelTalk: -1 } as const;
 /** The quest keeper's fixed-step id (the stag's walk, the dawn's clock, the clock's fast-forward, the ride, the feats' counts). */
 export const QUEST_STEP = 'pine.quest';
+/** The page's bolt-cycle action, accepted only while its crossbow is live and no modal owns the player. */
+export const PINE_AMMO = 'pine.ammo';
 
 /** The browser player's eye above the feet (engine Player EYE): prompts pick by eye distance (Interactables.pickInteractable). */
 const EYE = 1.68;
@@ -51,10 +55,13 @@ export type PineSpots = v.InferOutput<typeof Spots>;
 export function pineSpots(): PineSpots { return v.parse(Spots, baked); }
 
 const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite, to: finite });
+const TradeSaved = v.strictObject({ modal: v.strictObject({ version: v.literal(1), open: v.boolean() }),
+  skins: v.pipe(v.array(v.picklist(['hollow-ash', 'scarback-furnace'])), v.maxLength(2), v.check(skins => new Set(skins).size === skins.length)) });
 const Saved = v.strictObject({ stag: v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(['none', 'stare', 'trot', 'gone']), t: finite }),
   dawn: finite, fast: v.nullable(Fast), zip: v.nullable(v.strictObject({ s: finite, v: finite })), rifle: v.boolean(),
   counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
-  pack: v.optional(PinePackSchema, () => ({ counts: {}, order: [] })), dialogue: v.optional(v.unknown(), null), lodge: v.optional(v.unknown()), hollowAsh: v.optional(v.boolean(), false) });
+  pack: v.optional(PinePackSchema, () => ({ counts: {}, order: [] })), dialogue: v.optional(v.unknown(), null), lodge: v.optional(v.unknown()), hollowAsh: v.optional(v.boolean(), false),
+  trader: v.optional(TradeSaved), ammunition: v.optional(PINE_AMMO_SAVED) });
 
 /** The day clock the quest fast-forwards (the host's, PineDayNight's law). */
 export interface PineQuestDay { phase: number; readonly night: number }
@@ -69,6 +76,9 @@ export interface PineQuestPorts {
   readonly coins: (amount: number, entity: string) => void;
   /** The actual crossbow owner applies the page quiver cap. */
   readonly addBolts: (count: number) => void;
+  /** Required for native Mott trades; isolated old quest fixtures without a complete kit cannot open the shop. */
+  readonly ammunition?: PineAmmunition;
+  readonly canSelectAmmo?: () => boolean;
   /** the host's day clock (null: none, as a page without a sky clock: no fast-forward, no night wait) */
   readonly day: () => PineQuestDay | null;
   /** PineDayNight's night (0 day … 1 night) */
@@ -84,6 +94,8 @@ export interface PineQuest {
   /** The dialogue modal owns use input and suppresses weapon actions until completion or cancellation. */
   readonly talking: () => boolean;
   readonly lodge: PineLodge;
+  readonly trader: PineTrader;
+  readonly ownsTradeFinish: (skin: PineTradeSkin) => boolean;
   /** Lodge finish ownership is gameplay state; its material view remains on the page. */
   readonly ownsLodgeFinish: () => boolean;
   /** the lever-action was just taken: the page's pickup selects it (read once, by the loadout's next pick) */
@@ -170,10 +182,19 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   if (people === undefined || boardPrompt === undefined) throw new Error('Pine needs captured NPC and lodge prompts');
   const personSpots = { ranger: people.find(person => person.kind === 'ranger'),
     miller: people.find(person => person.kind === 'miller'), trader: people.find(person => person.kind === 'trader') };
+  let hollowAsh = false;
+  let tradeSkins = new Set<PineTradeSkin>();
+  const trader = new PineTrader({ pack, owns: skin => skin === 'hollow-ash' && hollowAsh || [...tradeSkins].some(owned => owned === skin),
+    room: (kind, n) => ports.ammunition?.room(kind, n) ?? false,
+    addBolts: ports.addBolts,
+    addAmmo: (kind, n) => { if (ports.ammunition === undefined) throw new Error('Pine shop requires an ammunition owner'); ports.ammunition.add(kind, n); },
+    ownSkin: skin => { tradeSkins.add(skin); } });
+  const initialTrader = trader.snapshot();
   const dialogue = new PinePeople(flags, people, kind => {
     if (kind === 'miller' && flags.has('errand:thanked') && !flags.has('errand:paid')) {
       flags.set('errand:paid'); pack.add('lodge-ribbon', 3); pack.add('amber-resin', 4);
     }
+    if (kind === 'trader' && ports.ammunition !== undefined) trader.open();
   });
   const near = (p: { x: number; y: number; z: number } | null, radius: number): boolean => {
     if (p === null || radius <= 0) return false;
@@ -250,7 +271,6 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
 
   let counts: Record<string, number> = {};
   const feats = createPineFacts({ read: () => ({ ...counts }), write: current => { counts = current; }, emit: ports.fact });
-  let hollowAsh = false;
   const lodge = new PineLodge({ prompt: boardPrompt, radius: boardPrompt.radius,
     addItem: (id, n) => { pack.add(id, n); }, addBolts: ports.addBolts, ownSkin: () => { hollowAsh = true; },
     streak: total => { feats.event('streak', total); } });
@@ -264,7 +284,8 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   };
   const act = (value: number): void => {
     if (state.zip.on) return; // the ride owns the player
-    if (value === PINE_ACT.cancelTalk) { dialogue.dismiss(); lodge.use(PINE_LODGE_ACT.close, eye); return; }
+    if (value === PINE_ACT.cancelTalk) { dialogue.dismiss(); lodge.use(PINE_LODGE_ACT.close, eye); trader.use(PINE_TRADE_CLOSE); return; }
+    if (trader.active) { trader.use(PINE_TRADE_CLOSE); return; }
     if (lodge.active) { lodge.use(PINE_LODGE_ACT.close, eye); return; }
     if (dialogue.active) { dialogue.press('ranger'); return; } // modal USE advances text; it cannot also take another prompt
     if (value === PINE_ACT.kingBow) { eye.copy(host.player.position); eye.y += EYE; ports.takeKingReward?.(eye); return; }
@@ -305,7 +326,9 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     for (let c = 0; c < MAX_COMMANDS; c++) {
       const command = list[c]; if (command === undefined) break;
       if (command.actorId === PINE_INTERACT) act(command.value);
-      else if (command.actorId === PINE_LODGE && !dialogue.active && !state.zip.on) {
+      else if (command.actorId === PINE_TRADE && !dialogue.active && !lodge.active && !state.zip.on) trader.use(command.value);
+      else if (command.actorId === PINE_AMMO && command.value === 0 && !dialogue.active && !trader.active && !lodge.active && !state.zip.on && ports.canSelectAmmo?.() === true) ports.ammunition?.cycle();
+      else if (command.actorId === PINE_LODGE && !dialogue.active && !trader.active && !state.zip.on) {
         eye.copy(host.player.position); eye.y += EYE; lodge.use(command.value, eye);
       }
     }
@@ -328,19 +351,27 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (lead?.kind === 'vanish' && lead.done) flags.set('followed:stag');
   }, {
     snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.save(), fast: fast.on === null ? null : { ...fast.on }, zip: state.zip.on ? { s: state.zip.s, v: state.zip.v } : null,
-      rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}), lodge: lodge.snapshot(), ...(hollowAsh ? { hollowAsh } : {}) }),
+      rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}), lodge: lodge.snapshot(), ...(hollowAsh ? { hollowAsh } : {}),
+      ...(trader.active || tradeSkins.size > 0 ? { trader: { modal: trader.snapshot(), skins: [...tradeSkins] } } : {}),
+      ...(ports.ammunition?.changed === true ? { ammunition: ports.ammunition.snapshot() } : {}) }),
     restore: value => {
       const saved = v.parse(Saved, value);
       const restoreDialogue = dialogue.prepareRestore(saved.dialogue);
       const lodgeState = saved.lodge === undefined ? initialLodge : saved.lodge;
       const restoreLodge = lodge.prepareRestore(lodgeState);
+      const restoreTrader = trader.prepareRestore(saved.trader?.modal ?? initialTrader);
+      if (saved.ammunition !== undefined && ports.ammunition === undefined) throw new RangeError('Pine saved ammunition has no owner');
+      const restoreAmmo = ports.ammunition?.prepareRestore(saved.ammunition);
       const finish = v.parse(v.object({ board: v.object({ claimed: v.number() }), open: v.boolean() }), lodgeState);
       if (saved.hollowAsh !== (finish.board.claimed >= 3) || (finish.open && saved.dialogue !== null)) throw new RangeError('Invalid Pine lodge/modal ownership');
+      if (saved.trader?.modal.open === true && (finish.open || saved.dialogue !== null || saved.zip !== null || ports.ammunition === undefined)) throw new RangeError('Invalid Pine trader/modal ownership');
       stag.load(saved.stag); clock.load(saved.dawn); fast.on = saved.fast; state.zip.on = saved.zip !== null; state.zip.s = saved.zip?.s ?? 0; state.zip.v = saved.zip?.v ?? 0; state.rifle = saved.rifle;
       counts = { ...saved.counts };
       pack.restore(saved.pack);
-      restoreDialogue(); restoreLodge(); hollowAsh = saved.hollowAsh;
+      restoreDialogue(); restoreLodge(); restoreTrader(); restoreAmmo?.(); hollowAsh = saved.hollowAsh; tradeSkins = new Set(saved.trader?.skins);
     },
   });
-  return { quests, stag, pack, riding: () => state.zip.on, talking: () => dialogue.active || lodge.active, lodge, ownsLodgeFinish: () => hollowAsh, takeRifle: () => { const took = state.rifle; state.rifle = false; return took; } };
+  return { quests, stag, pack, riding: () => state.zip.on, talking: () => dialogue.active || lodge.active || trader.active, lodge, trader,
+    ownsTradeFinish: skin => tradeSkins.has(skin) || skin === 'hollow-ash' && hollowAsh,
+    ownsLodgeFinish: () => hollowAsh, takeRifle: () => { const took = state.rifle; state.rifle = false; return took; } };
 }

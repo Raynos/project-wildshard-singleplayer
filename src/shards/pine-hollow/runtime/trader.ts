@@ -14,6 +14,8 @@ export interface PineTraderPorts {
   readonly pack: { count: (id: TradeItem) => number; take: (id: TradeItem, n: number) => boolean };
   readonly owns: (skin: string) => boolean;
   readonly room: Room;
+  /** The page's plain-bolt swap tops up the currently loaded crossbow stack, after checking iron-stack room. */
+  readonly addBolts: (n: number) => void;
   readonly addAmmo: (kind: AmmoKind, n: number) => void;
   readonly ownSkin: (skin: PineTradeSkin) => void;
 }
@@ -36,7 +38,7 @@ export class PineTrader {
     if (trade === undefined || !tradeState(trade, this.ports.pack, this.ports.owns, this.ports.room).ok) return false;
     for (let i = 0; i < 3; i++) { const give = trade.give[i]; if (give === undefined) break; this.ports.pack.take(give.item, give.n); }
     const got = trade.get;
-    if ('bolts' in got) this.ports.addAmmo('iron', got.bolts);
+    if ('bolts' in got) this.ports.addBolts(got.bolts);
     else if ('ammo' in got) this.ports.addAmmo(got.ammo, got.n);
     else this.ports.ownSkin(got.skin);
     return true;

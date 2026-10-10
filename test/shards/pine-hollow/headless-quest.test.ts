@@ -11,7 +11,8 @@ import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/pine-hollow/shard.config';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { installPine, PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, pineTerrainGrid, prepareHeadlessRuntime, type PineInstall } from '../../../src/shards/pine-hollow/runtime/headless';
-import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
+import { PINE_ACT, PINE_INTERACT, PINE_AMMO, QUEST_STEP, pineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
+import { PINE_TRADE, PINE_TRADE_CLOSE } from '../../../src/shards/pine-hollow/runtime/trader';
 import { PINE_LODGE, PINE_LODGE_ACT } from '../../../src/shards/pine-hollow/runtime/lodge';
 import { PinePackSchema } from '../../../src/shards/pine-hollow/runtime/pack';
 import * as v from 'valibot';
@@ -35,13 +36,14 @@ beforeAll(async () => {
 });
 
 /** The tick's inputs a test holds: its prompt presses and the night it reads; the facts the quest filed. */
-interface Tick { press: number[]; lodge?: number[]; night: number; facts: string[] }
+interface Tick { press: number[]; lodge?: number[]; trade?: number[]; ammo?: number[]; night: number; facts: string[] }
 function parts(tick: Tick): PineInstall {
   const bytes = readFileSync(PINE_NAVMESH_ASSET), nav = parseNavmesh(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
   if (nav === null) throw new Error('navmesh');
   nav.datum = () => 0;
   return { bake, grid: pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), nav, heightAt, spawnY: source.spawn.y, night: () => tick.night,
-    interact: () => [...tick.press.map(value => ({ actorId: PINE_INTERACT, value })), ...(tick.lodge ?? []).map(value => ({ actorId: PINE_LODGE, value }))], fact: (name, entity) => { tick.facts.push(`${name}/${entity}`); } };
+    interact: () => [...tick.press.map(value => ({ actorId: PINE_INTERACT, value })), ...(tick.lodge ?? []).map(value => ({ actorId: PINE_LODGE, value })),
+      ...(tick.trade ?? []).map(value => ({ actorId: PINE_TRADE, value })), ...(tick.ammo ?? []).map(value => ({ actorId: PINE_AMMO, value }))], fact: (name, entity) => { tick.facts.push(`${name}/${entity}`); } };
 }
 const boot = (tick: Tick): { host: SimHost } & ReturnType<typeof installPine> => { const host = createSimHost(plan.level, { ...plan.ports, rapier }); return { host, ...installPine(host, parts(tick)) }; };
 const restore = (tick: Tick, saved: SimSnapshot): SimHost => {
@@ -93,6 +95,45 @@ it('hosts Brandt and Mott at their actual prompts, resumes the chosen reading an
     expect(trader.prompt).not.toEqual(trader.at);
     press(host, tick, trader.prompt, PINE_ACT.trader); finishTalk(host, tick, quest.talking);
     expect(host.flags.has('talked:trader')).toBe(true);
+  } finally { resumed?.dispose(); host.dispose(); }
+}, 60_000);
+
+it('opens Mott only after his reading, pays the real kit and restores the open trade without duplicate rewards', () => {
+  const tick: Tick = { press: [], night: 0, facts: [] }, { host, quest, crossbow, lever, longbow, ammunition, loadout } = boot(tick);
+  let resumed: SimHost | undefined;
+  try {
+    const spot = spots.people?.find(person => person.kind === 'trader'); if (spot === undefined) throw new Error('No actual Mott prompt');
+    const use = (value: number): void => { tick.trade = [value]; host.step(still); tick.trade = []; };
+    quest.pack.add('deer-hide', 3); quest.pack.add('boar-hide'); quest.pack.add('venison', 2);
+    quest.pack.add('bear-pelt'); quest.pack.add('boar-tusk', 2); quest.pack.add('lodge-ribbon', 3); quest.pack.add('amber-resin', 40);
+    crossbow.state.quiver = 20; longbow.state.arrows = 10;
+    use(0); expect(crossbow.state.quiver).toBe(20); expect(quest.pack.count('deer-hide')).toBe(3);
+    press(host, tick, spot.prompt, PINE_ACT.trader); expect(quest.trader.active).toBe(false); stepN(host, 10);
+    for (let i = 0; i < 20 && !quest.trader.active; i++) { tick.press = [PINE_ACT.talk]; host.step(still); tick.press = []; }
+    expect(quest.trader.active).toBe(true); expect(quest.talking()).toBe(true); expect(loadout.live(PINE_WEAPON.crossbow)).toBe(false);
+    for (let i = 0; i < 7; i++) use(i);
+    expect(crossbow.state.quiver).toBe(30); expect(ammunition.count('pitch')).toBe(10); expect(ammunition.count('broadhead')).toBe(8);
+    expect(lever.store.reserve).toBe(35); expect(longbow.state.arrows).toBe(20);
+    expect(quest.ownsTradeFinish('hollow-ash')).toBe(true); expect(quest.ownsTradeFinish('scarback-furnace')).toBe(true);
+    const pack = quest.pack.snapshot(); use(5); use(6); expect(quest.pack.snapshot()).toEqual(pack);
+    tick.ammo = [0]; host.step(still); tick.ammo = []; expect(ammunition.selected).toBe('iron');
+    const adapter = host.adapters.get(QUEST_STEP); if (adapter === undefined) throw new Error('No quest continuation');
+    const beforeQuest = v.parse(v.record(v.string(), v.unknown()), adapter.snapshot());
+    expect(() => adapter.restore({ ...beforeQuest, zip: { s: 0, v: 1 } })).toThrow('Invalid Pine trader/modal ownership');
+    expect(adapter.snapshot()).toEqual(beforeQuest);
+    expect(() => adapter.restore({ ...beforeQuest, trader: { modal: { version: 1, open: true }, skins: ['unknown'] } })).toThrow();
+    expect(adapter.snapshot()).toEqual(beforeQuest);
+    const saved = snapshotSimHost(host), before = tick.facts.length;
+    resumed = restore(tick, saved); expectSameSimSnapshot(snapshotSimHost(resumed), saved); expect(tick.facts).toHaveLength(before);
+    for (let i = 0; i < 120; i++) { host.step(still); resumed.step(still); }
+    expectSameSimSnapshot(snapshotSimHost(resumed), snapshotSimHost(host));
+    use(PINE_TRADE_CLOSE); expect(quest.talking()).toBe(false);
+    tick.ammo = [0]; host.step(still); tick.ammo = []; expect(ammunition.selected).toBe('pitch'); expect(crossbow.state.quiver).toBe(10);
+    resumed.dispose();
+    const selectedSave = snapshotSimHost(host); resumed = restore(tick, selectedSave);
+    expectSameSimSnapshot(snapshotSimHost(resumed), selectedSave);
+    for (let i = 0; i < 120; i++) { host.step(still); resumed.step(still); }
+    expectSameSimSnapshot(snapshotSimHost(resumed), snapshotSimHost(host));
   } finally { resumed?.dispose(); host.dispose(); }
 }, 60_000);
 

@@ -47,7 +47,7 @@ export class PineAmmunition {
   /** Omit unused/default parked state from existing continuations; the crossbow already saves its live iron count. */
   get changed(): boolean { return this.selected !== 'iron' || this.count('pitch') !== 0 || this.count('broadhead') !== 0; }
   prepareRestore(value: unknown): () => void {
-    const saved = v.parse(PINE_AMMO_SAVED, value);
+    const saved = v.parse(PINE_AMMO_SAVED, value === undefined ? { selected: 'iron', iron: this.ports.crossbow.state.quiver, pitch: 0, broadhead: 0 } : value);
     if (saved[saved.selected] !== this.ports.crossbow.state.quiver) throw new RangeError('Pine selected ammunition disagrees with its weapon');
     return () => { this.quiver.selected = saved.selected; Object.assign(this.quiver.counts, { iron: saved.iron, pitch: saved.pitch, broadhead: saved.broadhead }); };
   }

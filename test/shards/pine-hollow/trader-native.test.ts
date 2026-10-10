@@ -9,7 +9,8 @@ function setup() {
   const ammo: Record<AmmoKind, number> = { iron: 0, pitch: 0, broadhead: 0, cartridge: 0, arrow: 0 };
   const room = (kind: AmmoKind, n: number): boolean => kind === 'cartridge' || ammo[kind] + n <= (kind === 'arrow' ? 20 : 30);
   const trader = new PineTrader({ pack: { count: pack.count, take: (id, n) => { effects.push(['take', id, n]); return pack.take(id, n); } },
-    owns: skin => owned.has(skin), room, addAmmo: (kind, n) => { effects.push(['ammo', kind, n]); ammo[kind] += n; },
+    owns: skin => owned.has(skin), room, addBolts: n => { effects.push(['ammo', 'iron', n]); ammo.iron += n; },
+    addAmmo: (kind, n) => { effects.push(['ammo', kind, n]); ammo[kind] += n; },
     ownSkin: skin => { effects.push(['skin', skin]); owned.add(skin); } });
   return { trader, pack, owned, ammo, effects, room };
 }
@@ -50,4 +51,12 @@ it('silently restores the modal and rejects malformed continuation before changi
   for (const bad of [{ ...saved, version: 2 }, { ...saved, open: 1 }, { ...saved, extra: 1 }, null]) {
     expect(() => trader.restore(bad)).toThrow(); expect(trader.snapshot()).toEqual(saved); expect(effects).toEqual([]);
   }
+});
+
+it('preserves the page plain-bolt callback even when the crossbow currently holds special ammunition', () => {
+  const pack = createPinePack(); pack.add('deer-hide', 2);
+  let iron = 20, pitch = 7;
+  const trader = new PineTrader({ pack, owns: () => false, room: (kind, n) => kind === 'iron' && iron + n <= 30,
+    addBolts: n => { pitch = Math.min(30, pitch + n); }, addAmmo: () => { iron++; }, ownSkin: () => undefined });
+  trader.open(); expect(trader.use(0)).toBe(true); expect(iron).toBe(20); expect(pitch).toBe(17);
 });

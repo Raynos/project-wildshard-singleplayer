@@ -20,6 +20,7 @@ import { PINE_QUESTS } from '../data/quests';
 import { installHollowQuest, pineSpots, PINE_INTERACT, type PineQuestPorts } from './quest';
 import { isPineEdgeWall, provePineEntries } from './entries';
 import { installPineAir } from './air';
+import { PineAmmunition } from './weapons/ammunition';
 import { installPineNight } from './night';
 import { PINE_LODGE } from './lodge';
 import { installPineRangedMotion } from './weapons/motion';
@@ -167,6 +168,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   quest: ReturnType<typeof installHollowQuest>;
   air: ReturnType<typeof installPineAir>;
   thralls: ReturnType<typeof installPineNight>;
+  ammunition: PineAmmunition;
 } {
   const { bake, grid, nav, heightAt } = parts;
   // the page's own day clock (look/dayKeys.ts PINE_DAY, as PineDayNight builds it), stepped by the host before every step and
@@ -202,16 +204,20 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // The air callback is registered after quest, but all weapon flight runs after bodies. They read that same owner.
   let air: ReturnType<typeof installPineAir> | null = null;
   const atmosphere = (): ReturnType<typeof installPineAir> => { if (air === null) throw new Error('Pine air is not installed'); return air; };
+  let ammunition: PineAmmunition | null = null;
   const crossbow = installPineCrossbow(host, { shots, enabled: () => loadout.live(PINE_WEAPON.crossbow), bodies, aim,
-    flight: () => boltFlight('iron', atmosphere().weather.rain) });
+    ammunition: () => ammunition?.selected ?? 'iron', flight: kind => boltFlight(kind, atmosphere().weather.rain) });
   const lever = installPineLever(host, { shots, enabled: () => loadout.live(PINE_WEAPON.lever), bodies, aim, speedFactor });
   const longbow = installPineLongbow(host, { heavy, enabled: () => loadout.live(PINE_WEAPON.longbow), bodies, aim, speedFactor,
     wind: { vecAt: (x, z, out) => atmosphere().wind.vecAt(x, z, out) } });
+  const ammunitionOwner = new PineAmmunition({ crossbow, lever, longbow }); ammunition = ammunitionOwner;
+  host.onStep('pine.ammunition', () => { ammunitionOwner.update(); }, undefined, 'afterBodies');
+  host.events.on('player.died', () => { ammunitionOwner.loadKind('iron'); }, host.scope);
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
   quest = installHollowQuest(host, { quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
     fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night,
-    takeKingReward: eye => king.takeReward(eye) });
+    takeKingReward: eye => king.takeReward(eye), ammunition: ammunitionOwner, canSelectAmmo: () => loadout.live(PINE_WEAPON.crossbow) });
   // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster
   // ports keep callbacks and restore adapters in that same order even when the population adds live bodies.
   const thralls = installPineNight(host, { night, heightAt, spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant),
@@ -219,5 +225,5 @@ export function installPine(host: SimHost, parts: PineInstall): {
   air = installPineAir(host, () => day.phase, parts.weatherMode);
   roster = installPineRoster(host, { bake, grid, nav, spawnY: parts.spawnY, saved: parts.saved });
   elites.initialize();
-  return { roster, elites, king, crossbow, lever, longbow, loadout, quest, air, thralls };
+  return { roster, elites, king, crossbow, lever, longbow, loadout, quest, air, thralls, ammunition: ammunitionOwner };
 }
