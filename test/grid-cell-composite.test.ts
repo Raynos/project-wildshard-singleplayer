@@ -71,6 +71,74 @@ describe('op-frame21 grid cell composite', () => {
     pass.dispose();
   });
 
+  it('a whole-chain composite fades every other page colour effect out by its weight, and puts them back (op-look30)', () => {
+    const scope = new Scope('look30'), scene = new Scene(), camera = new PerspectiveCamera();
+    const home = cells[4]; if (home === undefined) throw new Error('Missing home');
+    const feet = { x: 0, z: 0 };
+    const gradeEffect = new GradeEffect(), saturation = new HueSaturationEffect(), contrast = new BrightnessContrastEffect(), tone = new ToneMappingEffect();
+    const bloom = new BloomEffect({ intensity: 0.4 }), vignette = new VignetteEffect({ darkness: 0.35 });
+    const pass = new EffectPass(camera, bloom, vignette, tone, saturation, contrast, gradeEffect), recompile = vi.spyOn(pass, 'recompile').mockImplementation(() => undefined);
+    const passes: Pass[] = [pass];
+    const composer = legacyDouble<EffectComposer>({ passes, addPass: (p: Pass, at?: number) => { passes.splice(at ?? passes.length, 0, p); },
+      removePass: (p: Pass) => { const i = passes.indexOf(p); if (i !== -1) passes.splice(i, 1); } });
+    const frame = new GridFrame({ host: { scene, camera, composer: () => composer,
+      post: () => ({ grade: gradeEffect, saturation, contrast, bloom, vignette, tone }) }, scope, cells, home, homeIsFrame: false, half, feet: () => feet });
+    const port = frameLookOf(scene); if (port?.composite === undefined) throw new Error('no composite port');
+    frame.frame(); // install
+    const list = passEffects(pass); if (list === null) throw new Error('no list');
+    const page = list.filter((effect) => effect !== tone); // bloom, vignette, the grades, the frame's look layer, LUT and grade
+    const blends = page.map((effect) => effect.blendMode.blendFunction);
+    const releaseLook = port.contribute('1,0', { fog: null, chain: regionChain(toLevelSpec(PINE_HOLLOW), () => null, undefined, { ao: true }, wholeChainKnobs(true)) });
+    const display = new Effect('composite', 'void mainImage(const in vec4 i, const in vec2 uv, out vec4 o) { o = i; }');
+    const release = port.composite('1,0', { display }, 'chain');
+    const placed = recompile.mock.calls.length; // the placement and its blend changes (one program at the next draw)
+    // SRC ignores its opacity: it blends NORMAL, which at opacity 1 draws what SRC drew
+    expect(page.every((effect) => effect.blendMode.blendFunction !== BlendFunction.SRC)).toBe(true);
+    const opacity = (): number[] => page.map((effect) => Number(effect.blendMode.opacity.value));
+    frame.frame(); // at home (the road side of the cell): every page effect drawn in full
+    expect(opacity().every((o) => o === 1 || o === 0)).toBe(true);
+    expect(frame.state().chain.bypass).toBe(0);
+    const full = opacity();
+    feet.x = pitch; frame.frame(); // inside: its display alone
+    expect([display.blendMode.opacity.value, tone.blendMode.opacity.value]).toEqual([1, 0]);
+    expect(opacity()).toEqual(page.map(() => 0));
+    expect(frame.state().chain.bypass).toBe(1);
+    feet.x = pitch - half; frame.frame(); // the edge band's centre line: half and half
+    expect(opacity()).toEqual(full.map((o) => o * 0.5));
+    feet.x = pitch; frame.frame(); frame.frame(); // a faded value is never read back as a page fade's own
+    feet.x = half + 27.5; frame.frame(); // the road: the page's own again
+    expect(opacity()).toEqual(full);
+    expect(display.blendMode.opacity.value).toBe(0);
+    expect(recompile).toHaveBeenCalledTimes(placed); // crossings move opacities only
+    release();
+    expect(page.map((effect) => effect.blendMode.blendFunction)).toEqual(blends); // SRC back
+    expect(passEffects(pass)?.includes(display)).toBe(false);
+    releaseLook();
+    scope.dispose();
+    pass.dispose();
+  });
+
+  it('a tone-only composite (Sky Reach\'s NEUTRAL curve) leaves the page chain as it is', () => {
+    const scope = new Scope('look30-tone'), scene = new Scene(), camera = new PerspectiveCamera();
+    const home = cells[4]; if (home === undefined) throw new Error('Missing home');
+    const gradeEffect = new GradeEffect(), saturation = new HueSaturationEffect(), contrast = new BrightnessContrastEffect(), tone = new ToneMappingEffect();
+    const pass = new EffectPass(camera, tone, saturation, contrast, gradeEffect);
+    vi.spyOn(pass, 'recompile').mockImplementation(() => undefined);
+    const passes: Pass[] = [pass];
+    const composer = legacyDouble<EffectComposer>({ passes, addPass: (p: Pass, at?: number) => { passes.splice(at ?? passes.length, 0, p); }, removePass: () => undefined });
+    const frame = new GridFrame({ host: { scene, camera, composer: () => composer, post: () => ({ grade: gradeEffect, saturation, contrast, tone }) },
+      scope, cells, home, homeIsFrame: false, half, feet: () => ({ x: pitch, z: 0 }) });
+    const port = frameLookOf(scene); if (port?.composite === undefined) throw new Error('no composite port');
+    frame.frame();
+    port.contribute('1,0', { fog: null, chain: regionChain(toLevelSpec(PINE_HOLLOW), () => null, 'clean', { ao: true }) });
+    port.composite('1,0', { display: new SkyNeutralToneEffect() }, 'tone');
+    frame.frame();
+    expect([saturation, contrast, gradeEffect].map((effect) => effect.blendMode.blendFunction)).toEqual([BlendFunction.SRC, BlendFunction.SRC, BlendFunction.SRC]);
+    expect(frame.state().chain.bypass).toBe(0);
+    scope.dispose();
+    pass.dispose();
+  });
+
   it('a composite placed before the install is placed by it', () => {
     const scope = new Scope('frame21-late'), scene = new Scene(), camera = new PerspectiveCamera();
     const home = cells[4]; if (home === undefined) throw new Error('Missing home');

@@ -351,7 +351,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           const place = framePort?.composite;
           if (cellComposite !== null && place !== undefined && viewRoot !== null && !composited) {
             composited = true;
-            try { resident.onDispose(place(cell.instance, cellComposite.build({ root: viewRoot, camera: game.camera, renderer: game.renderer, tier: TIER, scope: resident }))); }
+            try { resident.onDispose(place(cell.instance, cellComposite.build({ root: viewRoot, camera: game.camera, renderer: game.renderer, tier: TIER, scope: resident }), cellComposite.replaces)); }
             catch (error) { console.warn(`[region composite] ${cell.instance}`, error); }
           }
         },

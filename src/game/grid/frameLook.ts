@@ -108,9 +108,11 @@ export interface FrameLookPort {
   /**
    * a live region's own post composite (its look's `ExtendLook.cell`, SF63 / G158): its display in the place of the page's
    * tone mapping and its side passes before the colour pass, run and faded in by its weight while it carries the frame
-   * (after `contribute`; absent on a port with no carried chains). Returns the release, which frees them.
+   * (after `contribute`; absent on a port with no carried chains). `replaces` 'chain' (op-look30): the display is its whole
+   * colour chain, so the page's other colour effects fade out by its weight as well (default 'tone'). Returns the release,
+   * which frees them.
    */
-  readonly composite?: (instance: string, post: LookCellPost) => () => void;
+  readonly composite?: (instance: string, post: LookCellPost, replaces?: 'chain' | 'tone') => () => void;
 }
 
 const ports = new WeakMap<object, FrameLookPort>();

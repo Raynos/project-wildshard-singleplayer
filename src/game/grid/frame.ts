@@ -32,6 +32,9 @@
  * - **A region's own composite** (SF63 / G158, `ExtendLook.cell`): a resident region whose look declares its post composite
  *   puts its display after the shell's tone mapping (like a 'replace' chain's display transform) and its side passes before
  *   the colour pass; they run only while it carries the frame, and its weight fades its display in and the tone mapping out.
+ *   A composite that is its whole colour chain (`LookCellComposite.replaces` 'chain', op-look30) also fades every other
+ *   effect of the page's colour pass out by that weight (bloom, vignette, fringe, the grades, the LUT, the frame's grade),
+ *   so inside its cell its display alone shades the frame, as standalone, blended back across the edge band.
  * - **Owner stacks** (`FrameStack`): each owner may hang a stack on the frame that is told its weight every frame. The
  *   home's grade fade is the first; SF59's per-shard post stacks (catalogue effects as data) hang here the same way.
  * Select a shard never builds this (grid page mode only).
@@ -122,7 +125,9 @@ export interface GridFrameState {
     /** SF63: the page chain's knobs as drawn: bloom intensity, threshold, smoothing, vignette darkness, god rays' opacity, AO strength (0 while its pass is skipped) (−1: none) */
     readonly post: readonly [number, number, number, number, number, number];
     /** SF63 follow-up: a cinematic region's shafts, fringe and grain in the page's colour pass (null: not installed) */
-    readonly fx: FrameCinematicState | null };
+    readonly fx: FrameCinematicState | null;
+    /** op-look30: how far the page's colour effects are faded out for a whole-chain composite (0: drawn, 1: its display alone) */
+    readonly bypass: number };
 }
 
 /**
@@ -251,6 +256,54 @@ export function chainKnobs(post: FramePostEffects, knobs: RegionPost | undefined
   };
 }
 
+/** The page's colour effects faded out for a whole-chain composite (op-look30, `chainBypass`). */
+export interface ChainBypass {
+  /** the effects it fades, in the pass's order */
+  readonly effects: readonly Effect[];
+  /** fade them out by `w` (0: as their writers left them, 1: none drawn): the frame's last write before the draw */
+  readonly apply: (w: number) => void;
+  /** put back each opacity this wrote, unless someone wrote it since (the frame's first step, before any writer) */
+  readonly restore: () => void;
+  /** the weight last applied */
+  readonly weight: () => number;
+  /** the opacities and blend functions back as they were */
+  readonly dispose: () => void;
+}
+
+/**
+ * op-look30: the page's colour effects faded out by a whole-chain composite's weight. An effect that blends SRC ignores its
+ * opacity, so it blends NORMAL instead (NORMAL at opacity 1 draws what SRC drew; the change recompiles with the placement
+ * that built this) and its full value stays 1 whatever its opacity reads (what SRC drew). Opacities are written last
+ * before the draw and put back first in the next frame, so the page's own fades (`opacityFade`, the rays' clock) never
+ * read a faded value back as their own.
+ */
+export function chainBypass(effects: readonly Effect[]): ChainBypass {
+  const read = (u: Uniform): number => { const v: unknown = u.value; return typeof v === 'number' ? v : 1; };
+  const entries = effects.map((effect) => {
+    const src = effect.blendMode.blendFunction === BlendFunction.SRC;
+    if (src) effect.blendMode.blendFunction = BlendFunction.NORMAL;
+    return { effect, src, opacity: effect.blendMode.opacity, own: Number.NaN, written: Number.NaN };
+  });
+  let applied = 0;
+  const restore = (): void => {
+    for (const e of entries) { if (!Number.isNaN(e.written) && read(e.opacity) === e.written) e.opacity.value = e.own; e.written = Number.NaN; }
+  };
+  return {
+    effects,
+    apply: (w) => {
+      applied = Math.min(1, Math.max(0, w));
+      for (const e of entries) {
+        if (!e.src && applied === 0) continue; // as its writers left it
+        e.own = read(e.opacity);
+        e.written = (e.src ? 1 : e.own) * (1 - applied); e.opacity.value = e.written;
+      }
+    },
+    restore,
+    weight: () => applied,
+    dispose: () => { restore(); for (const e of entries) if (e.src) e.effect.blendMode.blendFunction = BlendFunction.SRC; },
+  };
+}
+
 /** three's tone-mapping chunk, which a colour pass may include once (op-frame22) */
 const TONE_CHUNK = /#include\s*<tonemapping_pars_fragment>/u;
 
@@ -292,6 +345,10 @@ export class GridFrame {
   private readonly cellPasses = new Map<string, readonly Pass[]>();
   /** SF63: each resident region's own display transform (a 'replace' chain's), placed after the page's tone mapping */
   private readonly displays = new Map<string, Effect>();
+  /** op-look30: the resident regions whose composite is their whole colour chain (`replaces` 'chain') */
+  private readonly wholes = new Set<string>();
+  /** op-look30: the page's colour effects a whole-chain carrier fades out (built while one is resident and the pass installed) */
+  private bypass: ChainBypass | null = null;
   private readonly roadSky = new RoadSky();
   private readonly restore: (() => void)[] = [];
   private faded = 0;
@@ -316,7 +373,7 @@ export class GridFrame {
     this.lookEffect.blendMode.opacity.value = 0; this.lutEffect.blendMode.opacity.value = 0;
     const unbind = bindFrameLook(host.scene, { contribute: (instance, look) => this.contribute(instance, look), sky: (instance, layer) => this.sky(instance, layer),
       owned: (instance, weight) => this.stack(instance, { weight }),
-      composite: (instance, post) => this.composite(instance, post),
+      composite: (instance, post, replaces) => this.composite(instance, post, replaces),
       post: (instance?: string): FramePost | null => (this.chainPost === null ? null : { hueSat: this.chainPost.saturation, rays: this.chainPost.rays ?? null,
         vol: instance === undefined || this.cine === null ? null : this.cine.port(instance) }) });
     scope.onDispose(() => {
@@ -386,9 +443,10 @@ export class GridFrame {
   /**
    * A live region's own post composite (SF63 / G158, `ExtendLook.cell`): its display after the shell's tone mapping, its side
    * passes before the colour pass (both placed now, one recompile, or at the install), run and faded in by its weight
-   * while it carries the frame. Returns the release, which removes and frees them.
+   * while it carries the frame. `replaces` 'chain' (op-look30): its display is the whole colour chain, so the page's other
+   * colour effects fade out by its weight too. Returns the release, which removes and frees them.
    */
-  composite(instance: string, post: LookCellPost): () => void {
+  composite(instance: string, post: LookCellPost, replaces: 'chain' | 'tone' = 'tone'): () => void {
     if (!this.live.has(instance)) throw new Error(`Grid frame has no live look for ${instance} to composite`);
     if (this.displays.has(instance) || this.cellPasses.has(instance)) throw new Error(`Grid frame already has a display for ${instance}`);
     const display = post.display, passes = [...(post.passes ?? [])];
@@ -398,6 +456,7 @@ export class GridFrame {
     display.blendMode.blendFunction = BlendFunction.NORMAL; display.blendMode.opacity.value = 0;
     for (const p of passes) p.enabled = false;
     this.displays.set(instance, display); this.cellPasses.set(instance, passes);
+    if (replaces === 'chain') { this.wholes.add(instance); this.rebypass(); }
     this.placePasses(passes); this.placeDisplay(display, true);
     if (this.carrier?.instance === instance) this.drop(); // taken again next frame, with its composite
     return () => {
@@ -405,7 +464,9 @@ export class GridFrame {
       if (this.carrier?.instance === instance) this.drop();
       this.displays.delete(instance); this.cellPasses.delete(instance);
       const colour = this.colour, i = colour?.effects.indexOf(display) ?? -1;
-      if (colour !== null && i !== -1) { colour.effects.splice(i, 1); colour.pass.recompile(); }
+      if (colour !== null && i !== -1) colour.effects.splice(i, 1);
+      if (this.wholes.delete(instance)) this.rebypass(); // with the same recompile
+      if (colour !== null && i !== -1) colour.pass.recompile();
       for (const p of passes) colour?.composer.removePass(p);
       display.dispose(); for (const p of passes) p.dispose();
     };
@@ -436,6 +497,7 @@ export class GridFrame {
   frame(): void {
     const at = this.feet();
     this.weights = frameOwners(this.cells, at.x, at.z, this.half, this.band);
+    this.bypass?.restore(); // the writers below see their own values
     if (this.chainPost !== null) this.carry();
     this.graded = frameGrade(this.weights, this.homeInstance, this.ownerGrades());
     this.effect.set(this.graded);
@@ -444,6 +506,7 @@ export class GridFrame {
       for (const stack of set) stack.weight(w);
     }
     if (!this.installed) this.install();
+    this.bypass?.apply(this.carrier !== null && this.wholes.has(this.carrier.instance) ? this.chainWeight : 0);
   }
 
   private install(): void {
@@ -492,7 +555,8 @@ export class GridFrame {
         unstack = this.stack(this.homeInstance, fade);
       }
       effects.push(this.effect);
-      this.restore.push(() => { unstack(); const i = effects.indexOf(this.effect); if (i !== -1) effects.splice(i, 1); pass.recompile(); });
+      this.rebypass();
+      this.restore.push(() => { unstack(); this.bypass?.dispose(); this.bypass = null; const i = effects.indexOf(this.effect); if (i !== -1) effects.splice(i, 1); pass.recompile(); });
       pass.recompile();
       return;
     }
@@ -520,6 +584,19 @@ export class GridFrame {
     if (colour === null || colour.effects.includes(display)) return;
     colour.effects.splice(colour.effects.indexOf(colour.tone) + 1, 0, display);
     if (recompile) colour.pass.recompile();
+  }
+
+  /**
+   * op-look30: (re)build the fade of the page's colour effects for a whole-chain composite: every effect of the shell's
+   * colour pass but the tone mapping (faded by `take`) and the regions' displays, while a whole-chain region is resident and
+   * the pass is installed (the callers recompile next). Nothing resident: the effects are as they were.
+   */
+  private rebypass(): void {
+    const colour = this.colour, displays = new Set(this.displays.values());
+    const page = colour === null || this.wholes.size === 0 ? [] : colour.effects.filter((effect) => effect !== colour.tone && !displays.has(effect));
+    const now = this.bypass?.effects ?? [];
+    if (page.length === now.length && page.every((effect, i) => effect === now[i])) return; // the same effects: nothing to redo
+    this.bypass?.dispose(); this.bypass = page.length === 0 ? null : chainBypass(page);
   }
 
   /** the owners' grades: a live region's own over its declared one; neutral for one whose whole chain is carried */
@@ -647,7 +724,8 @@ export class GridFrame {
       grade: [round(g.exposure), round(g.saturation), round(g.contrast), round(g.tint[0]), round(g.tint[1]), round(g.tint[2])],
       roadSky: round(this.roadSky.drawn),
       skies: Object.fromEntries([...this.skies].map(([k, layer]) => [k, layer.state()])),
-      chain: { owner: this.carrier?.instance ?? null, weight: round(this.chainWeight), lut: this.chainLut, values: this.chainValues(), post: this.postValues(), fx: this.cine?.state() ?? null },
+      chain: { owner: this.carrier?.instance ?? null, weight: round(this.chainWeight), lut: this.chainLut, values: this.chainValues(), post: this.postValues(), fx: this.cine?.state() ?? null,
+        bypass: round(this.bypass?.weight() ?? 0) },
     };
   }
 }
