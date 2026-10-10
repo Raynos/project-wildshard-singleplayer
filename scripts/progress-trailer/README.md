@@ -1,7 +1,7 @@
 # The progress trailer — re-make recipe (PROGRESS-TRAILER PT11, E468)
 
 The 60 s "building my first MMO" trailer: first-person play on each chapter's own historical build, authoring
-time-lapses of real builds per stage, every number from git. Plan: `docs/plans/PROGRESS-TRAILER.md`. Keep every output
+time-lapses of real builds per stage, every number from git. Plan (archived): `project/archive/2026-10-10-progress-trailer.md`. Keep every output
 in one private scratch folder (`$T`); every browser run goes through `scripts/browser-lane.sh`.
 
 ## 1. Builds (any SHA, from its own lockfile, through the build lane)

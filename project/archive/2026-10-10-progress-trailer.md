@@ -1,6 +1,6 @@
 # Plan: PROGRESS-TRAILER — "building my first MMO", half first-person play, half shard authoring (E468)
 
-**State:** see [progress-trailer/STATE.md](progress-trailer/STATE.md).
+**State:** `done` 2026-10-10 — archived; cut 2 sent to Jake, who picked YouTube + X ([2026-10-10-progress-trailer/STATE.md](2026-10-10-progress-trailer/STATE.md)).
 
 ## 0. Why
 
@@ -18,7 +18,7 @@ at the end of day 8 had no Nalati: it merged on 24 Sep, day 9.)
 
 Round 1 audited v1 with three fresh seats (Codex capture engineer, Claude evidence, Claude red-team trailer director):
 37 findings, 15 must-fix. Rounds 2–4 reviewed this plan: 38 findings (10 must-fix; the round-2 Codex seat timed out),
-31 (5 must-fix), 22 (2 must-fix), all fixed below; the council ended at its four-round cap. Files and the register in [progress-trailer/reviews/](progress-trailer/reviews/).
+31 (5 must-fix), 22 (2 must-fix), all fixed below; the council ended at its four-round cap. Files and the register in [2026-10-10-progress-trailer/reviews/](2026-10-10-progress-trailer/reviews/).
 What v1 got wrong:
 - **No gameplay at all**: every "first-person" shot is an eye-height dolly with the viewmodel hidden. v1 has less play
   than the alpha trailer already on the site (its sword combo and horseback archery; the grapple is in the Nine Dragon
@@ -260,7 +260,7 @@ bolt ≥ 6 px). The cold open, the day-1 wall and take, the breath and the rewin
 | PT7 | ✅ (2026-10-10) **Receipts and titles**: `titles.mjs --titles-html` (`af87b952b`, §3.2); the cards, rail, counter and compressed clock in `scripts/progress-trailer/titles.html`; `dayOf`, counts, shards and spans computed (§2.3) | a test renders the cards from git and asserts the chapter counts 29 / 660 / 2,495 / 5,729, the lapse stage counts (232, 1,483, 3,117 …) and day 24 on 9 Oct | progress-trailer agent |
 | PT8 | ✅ (2026-10-10; cut 2 adds the stage tick, keyclicks, the grapple's own sounds and the sub swell; the generated sounds are Stable Audio 3 Medium only, MOSS's memory check refused to start on the shared machine) **Score and SFX** (§3.4) | the cue (picked of four seeds) and the SFX on disk with credits; the mix at −14 LUFS / −1 dBTP on the encoded file | progress-trailer agent |
 | PT9 | ✅ (2026-10-10, cut 1 sent to Jake: `progress/progress-trailer/wildshard-progress-trailer-540p.mp4`) **Cut and conform** the master from one EDL through the shared `edit.mjs` (historical clips `grade: 'none'`) | the 16:9 master plays whole; a phone copy sent to Jake | progress-trailer agent |
-| PT10 | **Jake's verdict and where it goes** (YouTube, X, the site): his notes become rows here | his words recorded | Jake |
+| PT10 | ✅ (2026-10-10: Jake picked YouTube + X, a devlog post; the site keeps the alpha trailer; the upload files are `~/Movies/Wildshard/wildshard-progress-trailer-1080p60.mp4` and `…-720p-x.mp4`, posting is Jake's) **Jake's verdict and where it goes** (YouTube, X, the site): his notes become rows here | his words recorded | Jake |
 | PT11 | ✅ (2026-10-10: `scripts/progress-trailer/README.md`; `week4-drill.mjs` builds the week-4 EDL to 3,600 frames) **Re-make recipe and the week-4 drill** (§3.5) | the README's commands run as written; a dry week-4 entry renders to exactly 3,600 frames by §3.5's order | progress-trailer agent |
 
 ## 5. Not in this plan
@@ -277,3 +277,4 @@ Asked with the question tool, 2026-10-09:
   impact, then one cut day 1 → day 22), 2026-10-09 (R4C-3).
 - **The breath reads "claude code as the UI for building"**, 2026-10-09 (R4C-7).
 - **Week 3 is the hover held ≈ 2.5 s across the gap, then the whip; no gust**, 2026-10-09 (R4C-1).
+- **Where it goes: YouTube + X**, a devlog post; the site keeps the alpha trailer, 2026-10-10 (PT10).
