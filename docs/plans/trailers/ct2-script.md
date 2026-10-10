@@ -1,6 +1,6 @@
 # CT2 — the cinematic concept trailer: script, shots and how each is made (TRAILERS Part B, E466)
 
-**Draft 3 (2026-10-10)** — draft 2 after council round 1 (`council/register.md`; the seats' files `council/round-1-seat-*.md`).
+**Draft 4 (2026-10-10)** — after council rounds 1 and 2 (`council/register.md`; the seats' files `council/round-<n>-seat-*.md`).
 Built on Jake's CT1 verdicts and his highway note (the frozen ledger: [council/ledger.md](council/ledger.md)). Draft 1
 (the blue-lattice storyboard) is superseded.
 
@@ -22,8 +22,12 @@ Built on Jake's CT1 verdicts and his highway note (the frozen ledger: [council/l
 - **The new shard** (one canonical look, R1A-6, R1C-2): `art/trailers/round-2-highway/hero-shard.jpg` — a floating cube of
   land, a low hill, a pine wood, a river to a front-edge waterfall, **one round stone tower with a slate cone roof**, a
   cobbled road to the front edge, brown cliffs with roots. Every shot that shows it uses that image as a reference.
-- **One neighbour map** (R1A-6): the new shard's plot sits with Driftwood south, Pine Hollow west, Signal Dunes east,
-  Nine Dragon north-east, Nalati north-west, Sky Reach north (as `look-grid-night`).
+- **One neighbour map** (R1A-6, fixed to the pictures R2B-4): around the new shard's plot — Sky Reach north-west, Nalati
+  north, Nine Dragon north-east, Pine Hollow west, Signal Dunes east, Driftwood south (`b07.jpg`; `b01` is b07 with the
+  plot empty, `b15` a hold on b07). The crossroads (8) and the drive (9) happen elsewhere on the endless grid, at the
+  engine's own junction (Driftwood, Nalati, Pine Hollow, a template plot: `look-crossroads`).
+- **The hero has four roads** (R2A-2, R2B-3): cobbled roads from the tower to all four edge midpoints, where they meet
+  the highway's entries; draft 1's blockout and shot-6 still carry them, `hero-shard.jpg` (one road) is re-made for draft 2.
 - **No upload ritual** (Jake, 2026-10-09: "drop the upload ritual" for the site, MARKETING-SITE.md §7; R1C-new): the
   upload is the shard leaving its builder's staging space and arriving in the world.
 - **Staging before the world** (VISION §Isolation; R1A-5, R1B-1): shots 3–5 happen on the floating shard **alone** (the
@@ -37,9 +41,11 @@ Built on Jake's CT1 verdicts and his highway note (the frozen ledger: [council/l
 | **Atmosphere** (a place and a mood: 2, 3, 4, 5, 7, 8, 10–13, 15) | a **keyframe** (the storyboard frame or an in-engine view, repainted by Qwen-Image-2.1 with calm, readable detail) → **LTX-2.5 image-to-video** | #10b (a Qwen repaint of the grey blockout) — ~8.4 min of lock per shot |
 | Out | per-frame repaint (#4–#6, jarring), Wan (#7, #8), a busy OpenAI keyframe straight to LTX (#10) | Jake, 2026-10-10 |
 
-**Draft 1 (2026-10-10)** makes every shot except 6 as atmosphere (image-to-video from the storyboard repainted by Qwen) and
-shot 6 by Layout-To-Render on CT1's grey dock blockout with a highway look still; the blockout kit (CT3) lands for
-draft 2.
+**Draft 1 (2026-10-10)** — atmosphere shots: the OpenAI storyboard frame straight to LTX image-to-video (the Qwen repaint
+of finished frames **failed the gate**: night turned to day, Nine Dragon's neon lost, R2B-5; Qwen stays for repainting
+grey); shot 6: Layout-To-Render on the **highway** dock blockout (`dock_blockout.py --highway`, R2A-1) with a look still
+painted from its first grey frame and the hero; shot 3: a wipe between the aligned half-grey and hero stills (R2C-7);
+shot 15: a hold on shot 7. The full blockout kit (CT3) lands for draft 2.
 
 **Gates** (R1A-4, R1A-8): reject a bad keyframe before any video (composition, the hero shard's tower, Driftwood's
 facets, no lattice); each shot gets **one take plus two re-rolls**: a topology failure (roads, the plot, the tower) →
@@ -47,17 +53,17 @@ fix the guide or the still, not the seed; a limb failure → smaller, slower fig
 After the cap the shot is replaced by a shorter stable insert of the same beat (a hold on its approved still with a slow
 push in the edit); never grey or raw engine footage.
 
-**Motion rules:** one motion per shot; the camera carries the movement; figures small, far and **slow** (walk, not
+**Motion rules:** one motion per shot; never the same slow push-in twice in a row (R2B-7); the camera carries the movement; figures small, far and **slow** (walk, not
 gallop, R1A-2); big rigid things hold. Shot 14 is generated as a **push-in and played in reverse** (R1C: LTX keeps detail
-best at a clip's start). Light changes (streetlights coming on) are untested in CT1 (R1B-5): a re-roll, then a cut on
+best at a clip's start); its keyframe has no water or smoke to run backwards (R2B-8). Light changes (streetlights coming on) are untested in CT1 (R1B-5): a re-roll, then a cut on
 the change if it doesn't land.
 
 ## The shots
 
 | # | t (s) | Shot | Kind | What we see / the motion |
 |---|---|---|---|---|
-| 1 | 0–4 | **The empty plot** | directed | Night, very high over the lit grid; one dark empty plot in the middle. A slow push down toward it. *Full concept label over this image.* |
-| 2 | 4–8 | **The prompt** | atmosphere | An author at a desk at night, from behind, a monitor's glow (2.5 s) → a cut to **the real Claude Code session** (TR5's recording, `progress/trailers/tr5-lookout-session.cast`, 1.5 s, sped up; R1C-6). Caption 1. |
+| 1 | 0–4 | **The empty plot** | directed | Night, high over the lit grid: b07's exact view with the plot empty. A slow push down toward it. *The full concept label in the lower third (R2C-4), clear of the plot.* |
+| 2 | 4–8 | **The prompt** | atmosphere | An author at a desk at night, from behind, a monitor's glow. Caption 1. Draft 2 adds a **real Claude Code session that builds this shard** on the monitor (R1C-6); TR5's recording is another job (a Sky Reach lookout) and is not used (R2C-3). |
 | 3 | 8–14 | **The build** | atmosphere | The hero shard alone in the void, half grey blocks, half painted, the colour sweeping across. Draft 1: image-to-video from the half-grey keyframe; draft 2: two passes (grey, painted) wiped in the edit (R1A-3, R1C-5). Caption 2. |
 | 4 | 14–18 | **Walking it** | atmosphere | Golden hour on the hero shard, alone above the clouds: the small author walks the cobbled road from the tower toward the waterfall edge |
 | 5 | 18–22 | **The upload** | atmosphere | The hero shard rises out of the void trailing white-gold light. Caption 3. |
@@ -75,7 +81,7 @@ the change if it doesn't land.
 ## Captions (overlays, large, phone-safe)
 
 1. *Describe a world.* (shot 2) · 2. *Claude Code builds it.* (shot 3) · 3. *Upload it.* (shot 5) · 4. *Players arrive.*
-(shot 7). No upload API exists yet; the end card's *Build it in Claude Code* is the pitch, labelled concept (R1B-10).
+(shot 7) · 5. *Every shard built by a player.* (shot 9, R2C-6). No upload API exists yet; the end card's *Build it in Claude Code* is the pitch, labelled concept (R1B-10).
 
 ## Sound
 
@@ -88,5 +94,6 @@ on the cuts; cars and towns as soft beds.
 Measured lock time per shot: ~8.4 min (image-to-video) / ~12 min (Layout-To-Render), so one pass of 14 shots ≈ 2–2.3 h
 of model lock, before re-rolls and other agents' queue. Order: the storyboard and keyframes (remote, parallel) → the
 critical shots first (6, 3, 5, 7) → the rest → the score (it queues on the same lock) → the cut with overlays and a
-temp mix while takes land. Production state lives in the scratchpad job list (`ct2/draft1.sh`, resumable: a finished
-shot is skipped on re-run).
+temp mix while takes land. Production state: the scripts are in `scripts/steam-trailer/cinematic/` (`dock_blockout.py`,
+`prep_concept.sh`, `ltx-run.sh`) and `cuts/concept.mjs`; the per-session job list and the shot prompts sit in the
+lead's scratchpad and are written into CT5's row when a draft ships (R2B-9).

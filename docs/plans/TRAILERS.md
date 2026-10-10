@@ -73,12 +73,12 @@ the bake-off is [trailers/ct1-shot.md](trailers/ct1-shot.md); the research [trai
 
 ### 3.1 What it shows
 
-~67 s, labelled **Concept trailer · not gameplay**: an empty plot in the night grid → an author types one line into
-Claude Code → the shard builds from grey to colour → the author walks it → the nine-beacon upload ritual → it goes live
-in the plot between the highways → headlights stream in → the crossroads where four shards meet → a drive between two
-styles → Nalati, Signal Dunes, Sky Reach, Nine Dragon → the pull-out over shards and highways to the horizon → *Play it
-in the browser. Build it in Claude Code.* · wildshard.io. **The world is the engine's** (Jake, 2026-10-10): our six
-shards in their own styles, divided by the 15 m highway with road entries and roundabouts; no glowing lattice.
+~67 s, labelled **Concept trailer · not gameplay** on every frame: an empty plot in the night grid → an author describes a
+world in Claude Code → the shard builds from grey to colour, alone in its staging space → the author walks it → it is
+uploaded and comes down into the plot between the highways → headlights stream in → the crossroads → a drive between two
+styles → Nalati, Signal Dunes, Sky Reach, Nine Dragon → the pull-out → *Play it in the browser. Build it in Claude Code.*
+· wildshard.io. **The world is the engine's** (Jake, 2026-10-10): our six shards in their own styles, divided by the 15 m
+highway with road entries and roundabouts; no glowing lattice, no upload ritual (Jake dropped it, MARKETING-SITE §7).
 
 ### 3.2 How it is made (CT1, decided)
 
@@ -105,10 +105,10 @@ always an overlay.
 | CT0 | ✅ **Jake's picks** (2026-10-09): the bake-off, local models only | answers recorded | Jake |
 | CT1 | ✅ **Bake-off** (2026-10-10) — ten experiments on one shot, the board sent, Jake's verdicts recorded (§3.2, §5) | Jake picks a way | trailer agent |
 | CT2 | ◐ **Script, look and storyboard, draft 2** — rebuilt on the highway (ct2-script.md), the round-2 look (`art/trailers/round-2-highway/`: three references, six shard concept paintings from in-engine views, the storyboard), put through a council (`trailers/council/`) | Jake has read the draft | trailer agent + Jake |
-| CT3 | **The blockout kit** — `scripts/steam-trailer/cinematic/` grows from `dock_blockout.py` into a shared kit (highway grid with markings and roundabouts, plots, the floating shard, beacons, cars, a rider) and one blockout per directed shot (1, 3, 6, 7, 9, 14) | each directed shot has grey / depth / normal at 1280 × 704 | trailer agent |
-| CT4 | **Look stills and keyframes** — one per shot (Qwen-Image-2.1 local, OpenAI for hero stills), from the blockout's first frame or an in-engine capture, in the round-2 look | every shot has its still | trailer agent |
-| CT5 | **The shots** — LTX Layout-To-Render (directed) or image-to-video (atmosphere), 4–6 s each; weak takes re-rolled with a new seed | 14 shots at 1280 × 704 | trailer agent |
-| CT6 | **Score, cut, ship** — the MiniMax cue (`concept-jobs.json`), trailer SFX, the cut on the cue's hits, overlays (the typed prompt, the end card, the label), upscale to 1920 × 1056, the site's slot beside the alpha trailer | wildshard.io plays it | trailer agent |
+| CT3 | **The blockout kit** — `scripts/steam-trailer/cinematic/dock_blockout.py --highway` (the engine's grid: flat roads, roundabouts, road entries, the hero shard with four roads; no lattice, no beacons) grows into a kit with one blockout per directed shot (1, 6, 9, 14); shot 6's is done (draft 1) | each directed shot has grey / depth / normal at 1280 × 704 | trailer agent |
+| CT4 | **Look stills and keyframes** — directed shots: a still painted from the grey's first frame (OpenAI or Qwen; Qwen only repaints grey: on finished frames it failed the gate, night → day, R2B-5); atmosphere shots: the storyboard frame itself, re-made from `hero-shard.jpg` wherever the new shard shows; every still passes the keyframe gate (composition, the hero's tower, Driftwood's facets, time of day, no lattice) | every shot has a gated still | trailer agent |
+| CT5 | **The shots** — LTX Layout-To-Render (directed) or image-to-video (atmosphere), 4–6 s each, critical shots first (6, 5, 7, 1); one take + two re-rolls by failure kind, then a stable insert (ct2-script §Gates) | 14 shots at 1280 × 704 | trailer agent |
+| CT6 | **Score, cut, ship** — MiniMax take 404 of `concept-jobs.json` (its big hit on the cut into shot 6), trailer SFX, `cuts/concept.mjs` + `cinematic/prep_concept.sh` (1920 × 1080 crop, b14 reversed, b03 a wipe, b15 a hold), overlays (the concept tag on every frame, five captions, the end card), the site's slot beside the alpha trailer | wildshard.io plays it | trailer agent |
 
 ## 4. Not in this plan
 
@@ -127,8 +127,9 @@ A Steam page trailer (FINISH-LINE SC4 keeps the 45 s cut), the app-store preview
 - **Image models for the cinematic: Qwen-Image-2.1 and OpenAI Image 2.5** (Jake, 2026-10-09: *"Use qwen image it's a
   trailer fuck off with non commercial"*, *"you can use OpenAI image 2.5 as well as qwen image 2.1"*). No licence caveat
   on the trailer's image model.
-- **The cinematic's method: keyframe → LTX-2.5** (Jake, 2026-10-10, on the CT1 board: *"Experiment 10 looks surprisingly
-  good"*; *"Experiment 8 failed, experiment 7 barely moves"*). Keyframes by OpenAI Image 2.5 (his pick).
+- **The cinematic's method** (Jake, 2026-10-10, on the CT1 board): #9 (LTX on a Blender grey) and #10b (LTX from a Qwen
+  keyframe) *"look way better than experiment 10"*; #10 *"surprisingly good"*; #8 *"failed"*, #7 *"barely moves"*, #6
+  *"way too jarring"*. Stills: OpenAI Image 2.5 (his pick) and Qwen-Image-2.1 for repainting grey.
 - **The look follows the engine, not the concept art** (Jake, 2026-10-10): *"way too heavily built around the concept art …
   What we actually did in the alpha in-game is we have the road network instead … the fact that there is a highway and not
   this blue is really important"*. Shards are our real ones in their own styles, divided by the 15 m server-owned highway

@@ -20,6 +20,9 @@ import bpy
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 OUT = argv[0] if argv else "/tmp/ct1-blockout"
 FRAMES = int(argv[argv.index("--frames") + 1]) if "--frames" in argv else 145
+# --highway (CT2 draft 3, council R2A-1 / R2C-2): the engine's world — flat grey roads with roundabouts and a road entry at
+# each plot edge's midpoint instead of lattice walls, no beacons, the hero shard's river and four roads, a closer last frame
+HIGHWAY = "--highway" in argv
 W, H, FPS = 1280, 704, 24
 CELL, WALL = 20.0, 0.25          # a cell is 20 m here (the shard's 500 m, scaled); a lattice wall's thickness
 N = 4                            # the grid runs -N..N cells each way (9 × 9)
@@ -58,6 +61,9 @@ CLAY = mat("clay", (0.62, 0.62, 0.62))
 DARK = mat("pit", (0.18, 0.18, 0.18))
 GLOW = mat("lattice", (0.8, 0.8, 0.8), emit=1.2)
 BEACON = mat("beacon", (0.9, 0.9, 0.9), emit=0.4)
+ROADM = mat("road", (0.36, 0.36, 0.38))
+WATER = mat("river", (0.25, 0.27, 0.30))
+ROAD = 1.6                       # --highway: the road between plots (the 15 m highway, widened to read at this scale)
 
 
 def add(obj, m):
@@ -84,7 +90,11 @@ def cyl(x, y, z, r, h, m=CLAY, verts=10):
 
 # ── the grid: biome cells, each a slab with its own landform, and the lattice walls between them ─────────────────────
 def biome(cx, cy, kind):
-    box(cx, cy, -1.0, CELL - WALL, CELL - WALL, 2.0)                       # the cell's ground slab, top at z = 0
+    side = CELL - (ROAD if HIGHWAY else WALL)
+    box(cx, cy, -1.0, side, side, 2.0)                                     # the cell's ground slab, top at z = 0
+    if HIGHWAY:                                                            # the four road entries, level with the highway
+        for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+            box(cx + dx * (side / 2 - 1.5), cy + dy * (side / 2 - 1.5), 0.02, 0.8 if dx == 0 else 3.0, 3.0 if dx == 0 else 0.8, 0.04, ROADM)
     if kind == "mesa":
         for _ in range(rng.randint(3, 6)):
             box(cx + rng.uniform(-7, 7), cy + rng.uniform(-7, 7), 0, rng.uniform(1.5, 4), rng.uniform(1.5, 4), rng.uniform(1.5, 5))
@@ -116,32 +126,41 @@ for i in range(-N, N + 1):
             continue
         biome(cx, cy, KINDS[(i * 3 + j * 5) % len(KINDS)] if rng.random() > 0.15 else rng.choice(KINDS))
 box(0, 0, -9.0, CELL * (2 * N + 3), CELL * (2 * N + 3), 1.0, DARK)        # a floor under it all: no see-through gaps
-for k in range(-N, N + 2):                                                 # the lattice: walls of light on every seam
-    e = (k - 0.5) * CELL
-    box(e, 0, 0.6, WALL, CELL * (2 * N + 1), 1.2, GLOW)
-    box(0, e, 0.6, CELL * (2 * N + 1), WALL, 1.2, GLOW)
-
-# the nine beacons round the empty cell (corners, edge midpoints, centre) — they flare as the shard seats
-beacons = []
-h = CELL / 2 - 0.6
-for bx in (-h, 0, h):
-    for by in (-h, 0, h):
-        beacons.append(cyl(bx, by, -5.0 if (bx, by) == (0, 0) else 0, 0.18, 6.0 if (bx, by) != (0, 0) else 4.0, BEACON))
-em = BEACON.node_tree.nodes["Principled BSDF"].inputs["Emission Strength"]
-for f, v in ((1, 0.4), (DOCK - 10, 0.8), (DOCK, 9.0), (DOCK + 12, 4.0), (FRAMES, 3.0)):
-    em.default_value = v
-    em.keyframe_insert("default_value", frame=f)
-ge = GLOW.node_tree.nodes["Principled BSDF"].inputs["Emission Strength"]
-for f, v in ((1, 1.2), (DOCK, 1.2), (DOCK + 6, 3.5), (FRAMES, 2.0)):
-    ge.default_value = v
-    ge.keyframe_insert("default_value", frame=f)
+if HIGHWAY:                                                                 # the highway: flat roads, roundabouts at every crossing
+    box(0, 0, -0.06, CELL * (2 * N + 1), CELL * (2 * N + 1), 0.1, ROADM)
+    for a in range(-N, N + 2):
+        for b in range(-N, N + 2):
+            x, y = (a - 0.5) * CELL, (b - 0.5) * CELL
+            cyl(x, y, -0.02, ROAD * 1.1, 0.05, ROADM, verts=24)
+            cyl(x, y, 0.0, ROAD * 0.5, 0.35, CLAY, verts=20)
+            for t in (0.25, 0.5, 0.75):                                    # streetlights along each road
+                cyl(x + CELL * t, y + ROAD * 0.45, 0, 0.05, 0.9, CLAY, verts=6)
+                cyl(x + ROAD * 0.45, y + CELL * t, 0, 0.05, 0.9, CLAY, verts=6)
+else:
+    for k in range(-N, N + 2):                                             # the lattice: walls of light on every seam
+        e = (k - 0.5) * CELL
+        box(e, 0, 0.6, WALL, CELL * (2 * N + 1), 1.2, GLOW)
+        box(0, e, 0.6, CELL * (2 * N + 1), WALL, 1.2, GLOW)
+    # the nine beacons round the empty cell (corners, edge midpoints, centre) — they flare as the shard seats
+    h = CELL / 2 - 0.6
+    for bx in (-h, 0, h):
+        for by in (-h, 0, h):
+            cyl(bx, by, -5.0 if (bx, by) == (0, 0) else 0, 0.18, 6.0 if (bx, by) != (0, 0) else 4.0, BEACON)
+    em = BEACON.node_tree.nodes["Principled BSDF"].inputs["Emission Strength"]
+    for f, v in ((1, 0.4), (DOCK - 10, 0.8), (DOCK, 9.0), (DOCK + 12, 4.0), (FRAMES, 3.0)):
+        em.default_value = v
+        em.keyframe_insert("default_value", frame=f)
+    ge = GLOW.node_tree.nodes["Principled BSDF"].inputs["Emission Strength"]
+    for f, v in ((1, 1.2), (DOCK, 1.2), (DOCK + 6, 3.5), (FRAMES, 2.0)):
+        ge.default_value = v
+        ge.keyframe_insert("default_value", frame=f)
 
 # ── the shard: a floating cube of land, parented to one empty that flies it down ────────────────────────────────────
 bpy.ops.object.empty_add(location=(0, 0, 0))
 shard = bpy.context.object
 shard.name = "shard"
 parts = []
-S = CELL - WALL - 0.6
+S = CELL - (ROAD if HIGHWAY else WALL) - 0.6
 parts.append(box(0, 0, -4.0, S, S, 8.0))                                   # the cube of earth, top at z = 0
 bpy.ops.mesh.primitive_cone_add(vertices=6, radius1=S * 0.5, radius2=0, depth=12, location=(0, 0, -14), rotation=(math.pi, 0, 0))
 parts.append(add(bpy.context.object, CLAY))                                # the rocky underside, a floating island's keel
@@ -161,6 +180,13 @@ for _ in range(16):                                                        # pin
     parts.append(cone(x, y, 0.5, rng.uniform(0.6, 0.9), rng.uniform(2.2, 3.2)))
 parts.append(cyl(-5, -4, 0, 1.0, 5.0, verts=12))                           # the small stone tower
 parts.append(cone(-5, -4, 5.0, 1.4, 2.0, verts=12))
+if HIGHWAY:                                                                 # the hero shard: four roads to the edge midpoints, a river
+    parts.append(box(0, -S / 4, 0.03, 0.8, S / 2, 0.06, ROADM))
+    parts.append(box(0, S / 4, 0.03, 0.8, S / 2, 0.06, ROADM))
+    parts.append(box(-S / 4, 0, 0.03, S / 2, 0.8, 0.06, ROADM))
+    parts.append(box(S / 4, 0, 0.03, S / 2, 0.8, 0.06, ROADM))
+    for k, (x, y, r) in enumerate(((2.5, 4.5, 0.4), (4.0, 1.5, 0.9), (5.5, -2.0, 0.3), (6.5, -6.0, 0.7))):
+        parts.append(box(x, y, 0.02, 0.9, 4.2, 0.05, WATER, rot=r))
 for p in parts:
     p.parent = shard
 
@@ -186,7 +212,10 @@ cam.data.clip_start, cam.data.clip_end = 0.5, 2000
 track = cam.constraints.new("TRACK_TO")
 track.target = aim
 track.track_axis, track.up_axis = "TRACK_NEGATIVE_Z", "UP_Y"
-for f, loc, lens in ((1, (-20, -26, 72), 24), (DOCK - 30, (-34, -50, 42), 24), (DOCK, (-48, -70, 42), 26), (FRAMES, (-58, -84, 50), 28)):
+CAM = ((1, (-20, -26, 72), 24), (DOCK - 30, (-34, -50, 42), 24), (DOCK, (-48, -70, 42), 26), (FRAMES, (-58, -84, 50), 28))
+if HIGHWAY:                                                                # end closer: #9 lost its detail on the widest frames
+    CAM = ((1, (-20, -26, 72), 24), (DOCK - 30, (-30, -44, 40), 24), (DOCK, (-38, -54, 34), 26), (FRAMES, (-42, -60, 34), 28))
+for f, loc, lens in CAM:
     cam.location = loc
     cam.data.lens = lens
     cam.keyframe_insert("location", frame=f)

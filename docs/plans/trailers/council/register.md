@@ -25,3 +25,22 @@ One row per finding (or per merged group where the seats found the same thing). 
 | R1B-10 | should | end card | "Build it in Claude Code" with no upload API yet | settled — the pitch, labelled concept (MARKETING-SITE §1.1) |
 | R1B (score prompt) | nit | concept-jobs.json | the cue's prompt still says "stitched together by light" | parked — music only, no picture |
 | other nits / should-adds | — | various | wording, extra beats | parked; see the seats' files |
+
+## Round 2 (2026-10-10) — A: 7 (4 must) · B: 14 (5 must) · C: 11 (4 must) — must-fix 18 → 8 (merged)
+
+| ID | Sev | Where | Finding (merged) | Status |
+|---|---|---|---|---|
+| R2A-1 · R2B-2 · R2C-2 | must | shot 6 | draft 1 ran Layout-To-Render on CT1's lattice blockout (walls, beacon pillars, no roads) | fixed — `dock_blockout.py --highway` (roads, roundabouts, entries, the hero's four roads, a closer end) + a still painted from it |
+| R2A-2 · R2B-3 | must | hero, shots 6–7 | the canonical hero has one road and no four entries | partly fixed — the blockout and the shot-6 still carry four roads; `hero-shard.jpg` re-made for draft 2 |
+| R2A-3 · R2B-4 · R2C-1 | must | b01, b06, b15, the map | the hero fix stopped at four frames; the map contradicted its images | fixed — b01 = b07 emptied, b06 from the highway blockout + hero, b15 = a hold on b07; the map rewritten to b07; crossroads / drive placed elsewhere on the grid |
+| R2A-4 · R2B-1 | must | TRAILERS §3.1, CT3–CT6, §5 | the plan's rows still described draft 2 (the ritual, old shots, seed re-roll, 1056) | fixed — rows rewritten to draft 4 |
+| R2B-5 | must | draft-1 keyframes | the Qwen repaint failed the gate (night → day, neon lost) | fixed — atmosphere shots use the OpenAI frames; Qwen only repaints grey; the gate checks time of day and style |
+| R2C-3 | must | shot 2 | the recorded session is another job and unreadable | fixed — removed from draft 1; draft 2 records a matching session |
+| R2C-4 | must | shot 1 | the full label covers the hook | fixed — moved to the lower third |
+| R2A-5 | should | production | not critical-first; a stale clip counts as done | fixed — order 6, 5, 7, 1 …; rejected clips are moved out by hand |
+| R2A-6 · R2C-7 | should | shot 3 | the build's temporal change unproved | fixed — a wipe between the aligned stills |
+| R2C-6 | should | captions | nothing says "built by players" after 32 s | fixed — caption 5 on shot 9 |
+| R2C-8 | should | corner tag | too wide, unreadable on a phone | fixed — smaller |
+| R2B-7, R2B-8, R2B-9, R2B-10 | should | rules, shot 14, state, board | push-in rule dropped; reversed water; state path; stale board | fixed — rule restored; b14 checked; scripts named; the board re-made with draft 1 |
+| R2A-7 · R2C-5 · R2C-9 · R2C-10 | should | b07 beach, staging, the 5→6 bridge, crossroads map | Driftwood naturalistic in b07; staging changes sky; a hard space→world cut | parked for draft 2 (a toon re-make of b07's beach, one staging sky, a light-flash bridge) |
+| R2B-6 | should | register IDs | round-1 seat-B IDs mis-cited, four rows missing | parked — the seat file is the source of truth |
