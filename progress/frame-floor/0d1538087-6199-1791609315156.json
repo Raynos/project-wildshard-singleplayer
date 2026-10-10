@@ -1,0 +1,575 @@
+{
+  "schema": 2,
+  "sha": "0d15380877c17131d8681a5d88fcfbc340ce8487",
+  "runId": "6199-1791609315156",
+  "device": "frame-floor-iphone-17-pro",
+  "when": "2026-10-10T05:20:26.084Z",
+  "elapsedSeconds": 310.937,
+  "underTenMinutes": true,
+  "frames": 120,
+  "settleMs": 2000,
+  "shards": [
+    "pastel-plain"
+  ],
+  "surface": "both",
+  "developer": "on",
+  "settings": {
+    "graphMaterials": "on",
+    "tier": "desktop",
+    "fps": "auto"
+  },
+  "deviceSaves": {},
+  "expectedSystems": [],
+  "gridScenario": "baseline",
+  "glObserver": "off",
+  "travelGlCensus": false,
+  "harnessRevision": "9bd04b23869533ea8ac18581f83394bafe6206e8",
+  "complete": true,
+  "pass": true,
+  "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+  "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+  "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+  "limitations": [
+    "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+    "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+    "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+  ],
+  "results": [
+    {
+      "surface": "desktop",
+      "rows": [
+        {
+          "shard": "pastel-plain",
+          "complete": true,
+          "pass": true,
+          "seconds": 13.553,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "graphMaterials": "on",
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "fcd2a604-bbcf-45eb-b398-5be48d913c6d",
+              "telemetry.heartbeat": {
+                "session": "f032d579-8356-4600-a27b-1c8b0201337d",
+                "build": "0d15380-mv1y2s1i",
+                "level": "",
+                "stage": "boot",
+                "at": 1791609578839,
+                "fps": 0,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "00:19:39 pqsw +0s boot · nav navigate · ?chunk=pastel-plain&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "00:19:40 pqsw +1s world ready · first-paint 60ms, first-contentful-paint 60ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791609579338,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18": {
+                  "renderer": 15,
+                  "sky": 2.5,
+                  "terrain": 0.5,
+                  "cards": 0.5,
+                  "forest": 5.099999904632568,
+                  "physics": 1.299999713897705,
+                  "edge": 4.099999904632568,
+                  "grass": 0.09999990463256836,
+                  "cabins": 0,
+                  "props": 87.2999997138977,
+                  "animals": 0.7999997138977051,
+                  "weapon": 0,
+                  "menu": 3.9000000953674316,
+                  "shaders": 427.40000009536743,
+                  "firstFrame": 351.09999990463257,
+                  "audio": 0.09999990463256836
+                }
+              }
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input",
+              "game.shardfile.client-script-views.restore",
+              "physics.bodies.pre",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "game.shardfile.residency",
+              "game.shardfile.sim",
+              "game.shardfile.client-scripts",
+              "game.shardfile.targets",
+              "player.update",
+              "game.shardfile.presentation",
+              "game.shardfile.post",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "shardfile.item-fov",
+              "game.loot",
+              "engine.compendium.installCompendium",
+              "game.quest.pastel.quest",
+              "engine.input.trace",
+              "engine.input.edges",
+              "engine.hud.pins",
+              "engine.declared.counters",
+              "game.shardfile.client-script-views.apply"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": 0.00032933259967649064,
+              "y": -0.3295996019805898,
+              "z": 0.0003288139282631164,
+              "yaw": 0,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "no declared parity cameras; reversed spawn fallback",
+          "scan": [
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": 0.00032933259967649064,
+                "y": -0.3295996019805898,
+                "z": 0.0003288139282631164,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 2.8,
+              "calls": 148,
+              "triangles": 113323
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.00032933259967649064,
+                "y": -0.3295996019805898,
+                "z": 0.0003288139282631164,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.4,
+              "callbackP99Ms": 18.4,
+              "callbackMaxMs": 18.8,
+              "gameP95Ms": 17.4,
+              "workP95Ms": 2.8,
+              "calls": 155,
+              "triangles": 117092,
+              "position": {
+                "x": 0.0011347495383233763,
+                "y": -0.329550262860721,
+                "z": 0.0011329566125368729
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "pastel-plain",
+                    "samples": 120,
+                    "p95Ms": 0.40000009536743164,
+                    "maxMs": 0.6000003814697266,
+                    "calls": 2400
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": 0.00032933259967649064,
+                "y": -0.3295996019805898,
+                "z": 0.0003288139282631164,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.9,
+              "callbackP99Ms": 18.6,
+              "callbackMaxMs": 20,
+              "gameP95Ms": 17.5,
+              "workP95Ms": 2.7,
+              "calls": 146,
+              "triangles": 113179,
+              "position": {
+                "x": 0.0011380190433101234,
+                "y": -0.3296505515972967,
+                "z": 0.0011362130958332273
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "pastel-plain",
+                    "samples": 120,
+                    "p95Ms": 0.40000009536743164,
+                    "maxMs": 3.4000000953674316,
+                    "calls": 2400
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "surface": "sim",
+      "rows": [
+        {
+          "shard": "pastel-plain",
+          "complete": true,
+          "pass": true,
+          "seconds": 24.745,
+          "floorMs": 33.3,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "Apple GPU",
+            "viewport": [
+              402,
+              714
+            ],
+            "devicePixelRatio": 3,
+            "renderScale": 2,
+            "canvas": [
+              804,
+              1428
+            ],
+            "developer": true,
+            "settings": {
+              "graphMaterials": "on",
+              "tier": "phone",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "a43ca9a7-2419-45de-a76a-87e1405bccd0",
+              "telemetry.heartbeat": {
+                "session": "ded6e1d1-8e98-4823-888b-36fa3b08336c",
+                "build": "0d15380-mv1y2s1i",
+                "level": "pastel-plain",
+                "stage": "play",
+                "at": 1791609607695,
+                "fps": 0,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "00:20:04 apgv +0s boot · nav navigate · ?chunk=pastel-plain&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "00:20:06 apgv +2s world ready · first-contentful-paint 103ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible"
+              ],
+              "life.traceAt": 1791609604562,
+              "titleArrival.once": null,
+              "boot.times": {
+                "phone:8": {
+                  "renderer": 29,
+                  "sky": 3,
+                  "terrain": 0,
+                  "cards": 0,
+                  "forest": 8,
+                  "physics": 42,
+                  "edge": 6,
+                  "grass": 0,
+                  "cabins": 0,
+                  "props": 200,
+                  "animals": 1,
+                  "weapon": 0,
+                  "menu": 9,
+                  "shaders": 998,
+                  "firstFrame": 351,
+                  "audio": 0
+                }
+              }
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input",
+              "game.shardfile.client-script-views.restore",
+              "physics.bodies.pre",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "game.shardfile.residency",
+              "game.shardfile.sim",
+              "game.shardfile.client-scripts",
+              "game.shardfile.targets",
+              "player.update",
+              "game.shardfile.presentation",
+              "game.shardfile.post",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "shardfile.item-fov",
+              "game.loot",
+              "engine.compendium.installCompendium",
+              "game.quest.pastel.quest",
+              "engine.input.trace",
+              "engine.input.edges",
+              "engine.hud.pins",
+              "engine.declared.counters",
+              "game.shardfile.client-script-views.apply"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": 0.00032606398690404603,
+              "y": -0.32949660128360847,
+              "z": 0.0003255579742926784,
+              "yaw": 0,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+          },
+          "cameraSource": "no declared parity cameras; reversed spawn fallback",
+          "scan": [
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": 0.00032606398690404603,
+                "y": -0.32949660128360847,
+                "z": 0.0003255579742926784,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 34,
+              "workP95Ms": 6,
+              "calls": 84,
+              "triangles": 60814
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.00032606398690404603,
+                "y": -0.32949660128360847,
+                "z": 0.0003255579742926784,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 34,
+              "callbackP95Ms": 34,
+              "callbackP99Ms": 36,
+              "callbackMaxMs": 36,
+              "gameP95Ms": 34,
+              "workP95Ms": 4,
+              "calls": 87,
+              "triangles": 62280,
+              "position": {
+                "x": 0.0015391096287658002,
+                "y": -0.3296755620249314,
+                "z": 0.0015367335065548104
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "pastel-plain",
+                    "samples": 120,
+                    "p95Ms": 1,
+                    "maxMs": 1.000000000001819,
+                    "calls": 2880
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "cpuLimitMs": 8.333333333333334,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": 0.00032606398690404603,
+                "y": -0.32949660128360847,
+                "z": 0.0003255579742926784,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 35,
+              "callbackP95Ms": 36,
+              "callbackP99Ms": 37,
+              "callbackMaxMs": 39,
+              "gameP95Ms": 34,
+              "workP95Ms": 5,
+              "calls": 81,
+              "triangles": 58366,
+              "position": {
+                "x": 0.0015260609150118398,
+                "y": -0.3296757560528931,
+                "z": 0.0015237111249462032
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "pastel-plain",
+                    "samples": 120,
+                    "p95Ms": 1.000000000003638,
+                    "maxMs": 7,
+                    "calls": 2880
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "cpuLimitMs": 8.333333333333334,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+    "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded"
+  }
+}
