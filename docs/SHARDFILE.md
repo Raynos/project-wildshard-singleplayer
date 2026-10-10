@@ -237,10 +237,10 @@ the same program budget and raw graph caps, including unused nodes.
 `worldToLocal(vec3)` changes a world-space direction to model space in the vertex
 stage; `viewToWorld(vec3)` changes a view-space direction to a unit world-space
 direction in mesh stages. Types and stage placement remain validated.
-These additions keep IR version 1. The engine compiler supports the second hull
-draw, but the shardfile client's current one-material-per-ID adapter does not yet
-attach an outline mesh: admitted outline data is preserved and costed, but is not
-yet drawn by that client. A mesh-level binding is still required.
+These additions keep IR version 1. The shardfile client draws the hull as each
+bound mesh's second draw through a mesh-level hook (terrain, prop tiles, panels,
+models and water) while Settings ▸ Debug ▸ Look ▸ "Graph materials" is on; with
+the row off, or for a budget fallback, nothing is attached.
 
 Before typing or compilation, graph admission bounds the raw JSON to 64,000
 UTF-8 bytes, depth 64 and 160 declared nodes across every nested node table,
@@ -259,6 +259,30 @@ scalar channels use float params and colour channels use colour/vec3 params.
 Bindings change uniforms only. Runtime graph compilation and binding are SF59's
 renderer adapter; existing preset entries keep their defaults. This additive slot
 keeps SHARDFILE_VERSION in 0.x; the format never freezes.
+
+**Graph files and preset references (SF59).** A graph material may also point at its
+program instead of carrying it inline:
+
+- `{ family: "graph", file: "<hash>" }` names a `kind: "json"` file in the library
+  closure. Product admission decodes its bytes as UTF-8 JSON (at most 64,000 bytes)
+  holding one `kind: "material"` graph, which validates under the same author caps and
+  the shard's admitted bindings as an inline graph. Each texture param must name a
+  KTX2 file that the graph file's row declares as a direct dependency, so the texture
+  is charged with the closure. A graph file is authored content and is never trusted
+  as a preset.
+- `{ family: "graph", preset: <family entry>, version: 1 }` names an engine-owned,
+  immutable built-in preset: a `toon`, `painterly`, `emissive` or `pbr` family entry
+  (validated by its family schema) that the engine re-expresses as graph IR
+  (`familyPresetGraph`, read with the shard's `look.familyLooks`). Content never
+  supplies the preset's nodes, so its program compiles under the trusted preset budget
+  (512 nodes, 4 samplers, 1,024 instructions), never the author caps. Admission refuses
+  any preset IR version 1 cannot express, giving the engine's reason
+  (`presetRefusal`): a PBR surface other than the measure layer alone, a painted
+  terrain, an emissive sky, an additive blend or a fog share other than 1. Another
+  `version` is refused. While the "Graph materials" Debug row is off, a preset
+  reference draws its own family material, which the preset is held to parity with.
+
+Props texture slots (`props.materials`) bind only an inline graph.
 
 `@wildshard/sdk/commonsCosts` exposes the defining cost schemas and
 `assertCommonsCosts(hashes, table)`. A product declares one entry per required

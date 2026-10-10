@@ -16,7 +16,7 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Shardfile } from './schema';
 import { setting } from '@wildshard/engine/ui/Settings';
 import { loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
-import { materialTextureRefs } from './materials';
+import { graphFileTextureRefs, materialTextureRefs } from './materials';
 import { clientGraphs, graphOutlineHook, isGraphEntry, type GraphOutlineHook, type GraphReadout, type GraphSources } from './clientGraphs';
 import { SKIN_LOOK_RECIPE, parseSkinFile, skinLookParameters } from './skins';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
@@ -53,7 +53,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   const textures = new Map<string, Texture>(), uses = new Map<string, 'colour' | 'data'>();
   const named = shard.props === null ? undefined : propMaterialsOf(shard.props);
   const splat = shard.props === null ? undefined : splatTerrainOf(shard.props);
-  const refs = new Set([...materialTextureRefs(shard.look.materials), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named), ...splatTextureRefs(splat)]);
+  const refs = new Set([...materialTextureRefs(shard.look.materials), ...graphFileTextureRefs(shard.look.materials, (hash) => assets.get(hash)), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named), ...splatTextureRefs(splat)]);
   const splatRefs = new Set(splatTextureRefs(splat));
   if (refs.size > 0) {
     const loader = new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(renderer);
@@ -82,7 +82,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   const graphsOn = options.graphs ?? setting('graphMaterials') === 'on';
   const compiler = graphsOn && carriesGraph(shard, assets) ? await loadGraphCompiler(renderer) : null;
   if (scope.disposed) throw new Error('Material scope unloaded during the graph compiler load');
-  const graphs = clientGraphs(shard, { compiler, fallback: (entry) => familyMaterial(entry, context), textures: (ref) => resolveTexture(ref, 'colour') });
+  const graphs = clientGraphs(shard, { compiler, fallback: (entry) => familyMaterial(entry, context), textures: (ref) => resolveTexture(ref, 'colour'), file: (hash) => assets.get(hash) });
   if (options.sources !== undefined) graphs.bind(options.sources);
   const compile = (entry: unknown): Material => {
     if (!isGraphEntry(entry)) return scope.own(familyMaterial(entry, context));

@@ -24,8 +24,8 @@
  * `PRESET_GRAPH_BUDGET`.
  */
 import {
-  MEASURE_SLOT, type EmissiveLookParams, type EmissiveMaterialParams, type MeasureLayerParams, type PainterlyLookParams,
-  type PainterlyMaterialParams, type PbrMaterialParams, type ToonLookParams, type ToonMaterialParams,
+  MEASURE_SLOT, presetRefusal, type EmissiveLookParams, type EmissiveMaterialParams, type FamilyMaterialParams, type MeasureLayerParams,
+  type PainterlyLookParams, type PainterlyMaterialParams, type PbrMaterialParams, type ToonLookParams, type ToonMaterialParams,
 } from '../families/params';
 import { GRAPH_IR_VERSION, type GraphBudget, type GraphIr, type GraphNode, type GraphParam, type GraphRef } from '../../core/materialGraph';
 
@@ -785,4 +785,25 @@ export function painterlyGraph(params: PainterlyMaterialParams, look: PainterlyL
       ...(!sway ? {} : { 'vertex.offset': { offset: 'swayOffset' } }),
     },
   };
+}
+
+/** the family looks a preset reads (the shard's own `look.familyLooks`, defaults filled) */
+export interface PresetLooks { readonly toon: ToonLookParams; readonly painterly: PainterlyLookParams; readonly emissive: EmissiveLookParams }
+/** the clock params a preset's runtime moves as its family look ticks (seconds since the material was made) */
+export const PRESET_CLOCK_PARAMS: readonly string[] = Object.freeze(['cloudTime', 'swayTime', 'clock']);
+
+/**
+ * The engine-owned, immutable preset reference (SF59, C4-R1-B9): a material that names a built-in preset carries a
+ * family entry, and this is the only door from that entry to graph IR. Content never supplies the preset's nodes, so the
+ * program compiles under `PRESET_GRAPH_BUDGET`, not the author caps. Throws with `presetRefusal`'s reason for an entry IR
+ * version 1 cannot express (admission refuses the same entries with the same rule).
+ */
+export function familyPresetGraph(entry: FamilyMaterialParams, looks: PresetLooks): GraphIr {
+  const refusal = presetRefusal(entry);
+  if (refusal !== null) throw new Error(refusal);
+  if (entry.family === 'toon') return toonGraph(entry, looks.toon);
+  if (entry.family === 'painterly') return painterlyGraph(entry, looks.painterly);
+  if (entry.family === 'emissive') return emissiveGraph(entry, looks.emissive);
+  if (entry.measure === null) throw new Error('pbr preset: no measure layer');
+  return pbrMeasureGraph(entry, entry.measure);
 }

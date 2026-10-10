@@ -457,6 +457,27 @@ export type FamilyMaterialParams = v.InferOutput<typeof FamilyMaterialSchema>;
 /** What an author or a build writes: omitted fields take the family's defaults. */
 export type FamilyMaterialInput = v.InferInput<typeof FamilyMaterialSchema>;
 
+/** the preset reference version a material names (`{ family: "graph", preset, version }`); another version is refused */
+export const GRAPH_PRESET_VERSION = 1;
+/**
+ * Why a family entry has no built-in graph preset (SF59), or null when it has one: the one rule admission and the
+ * engine's preset door (`graph/presets.ts` `familyPresetGraph`) share. IR version 1 cannot express a PBR surface other than
+ * the measure layer alone (maps or a ground layer), a painted terrain, an emissive sky, an additive blend or a fog share
+ * other than 1.
+ */
+export function presetRefusal(entry: FamilyMaterialParams): string | null {
+  if (entry.family === 'painterly' && entry.terrain !== undefined) return 'painterly preset: a painted terrain is not expressible in IR version 1';
+  if (entry.family === 'pbr' && (entry.measure === null || entry.ground !== null || entry.maps.colour !== null || entry.maps.normal !== null || entry.maps.orm !== null)) return 'pbr preset: IR version 1 expresses the measure layer alone (no maps, no ground layer)';
+  if (entry.family === 'emissive') {
+    const missing: string[] = [];
+    if (entry.sky !== null) missing.push('a sky (atan / asin, a screen-position input, back-face depth-off unfogged render state)');
+    if (entry.blend === 'additive') missing.push('an additive blend (no blend mode)');
+    if (entry.fog !== 1) missing.push(`a fog share of ${entry.fog} (the fog epilogue is not a stage)`);
+    if (missing.length > 0) return `emissive preset: IR version 1 cannot express ${missing.join('; ')}`;
+  }
+  return null;
+}
+
 /** Validate a material entry and fill the family's defaults; throws a readable error on bad data. */
 export function parseFamilyMaterial(input: unknown): FamilyMaterialParams {
   const r = v.safeParse(FamilyMaterialSchema, input);

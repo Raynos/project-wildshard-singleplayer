@@ -27,7 +27,7 @@ const product = (graph: unknown) => {
 };
 it('preserves lighting and flatShading through full admission with scoped state and day bindings', () => {
   const program = lighting(), source = parseShardfile(product(program)), material = source.look.materials['lit'];
-  if (material?.family !== 'graph') throw new Error('expected graph material');
+  if (material?.family !== 'graph' || !('graph' in material)) throw new Error('expected graph material');
   expect(material.graph).toEqual(program); expect(materialGraphRules(source)).toEqual([]);
   const checked = validateGraph(material.graph);
   if (!checked.ok) throw new Error(checked.errors.join('; '));

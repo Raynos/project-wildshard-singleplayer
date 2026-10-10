@@ -99,7 +99,8 @@ export function performanceReport(source: Shardfile, observations: PerformanceOb
       triangles: libraryView.triangles + (source.far?.triangles ?? 0) + tiles.reduce((sum, tile) => sum + tile.triangles, 0) };
   });
   const graphs: PerformanceReport['graphs'] = [];
-  for (const [id, material] of Object.entries(source.look.materials)) if (material.family === 'graph') {
+  // inline graphs (a graph file is checked with its bytes at product admission; a preset is engine-owned, under its own budget)
+  for (const [id, material] of Object.entries(source.look.materials)) if (material.family === 'graph' && 'graph' in material) {
     const result = validateGraph(material.graph);
     if (!result.ok) throw new Error(`Report requires an admitted material graph: ${id}`);
     graphs.push({ id, ...result.cost });

@@ -12,7 +12,7 @@ it('round trips a graph material through full author admission without changing 
   const input = product(graph()), parsed = parseShardfile(JSON.parse(new TextDecoder().decode(new TextEncoder().encode(JSON.stringify(input)))));
   expect(parsed.look.materials['surface']).toEqual(input.look.materials.surface);
   const material = parsed.look.materials['surface'];
-  if (material?.family !== 'graph') throw new Error('expected graph material');
+  if (material?.family !== 'graph' || !('graph' in material)) throw new Error('expected graph material');
   expect(validateGraph(material.graph)).toMatchObject({ ok: true, cost: { nodes: 1, samplers: 0, instructions: 0 } });
   expect(materialTextureRefs(parsed.look.materials)).toEqual([]);
   expect(parseShardfile(source()).look.materials).toEqual({});

@@ -103,6 +103,7 @@ export function validatePropMaterials(materials: PropMaterials, context: {
     if (family === undefined) throw new Error(`props material "${name}": ${row.id} is not an admitted material ID`);
     for (const [slotName, value] of propMaterialSlots(row)) {
       if (family === 'graph') {
+        if (entry?.family === 'graph' && !('graph' in entry)) throw new Error(`props material "${name}": its texture slots bind an inline graph, not a graph file or a preset reference`);
         const param = entry?.family === 'graph' ? entry.graph.params?.[slotName] : undefined;
         if (param?.type !== 'texture') throw new Error(`props material "${name}": graph ${row.id} has no texture param "${slotName}" for its ${slotName} slot`);
       } else if (!(FAMILY_SLOTS[family] ?? []).includes(slotName)) throw new Error(`props material "${name}": the ${family} family draws no ${slotName} slot`);

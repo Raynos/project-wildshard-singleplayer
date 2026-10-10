@@ -70,7 +70,7 @@ export function propSurfaces(materials: PropMaterials, ports: {
       if (slot === 'occlusion') maps.occlusionStrength = value.strength ?? 1;
     }
     let material: Material;
-    if (entry?.family === 'graph' && slots.length > 0) {
+    if (entry?.family === 'graph' && 'graph' in entry && slots.length > 0) {
       // the slot files fill the graph's own texture params of the same names (admitted: validatePropMaterials)
       const params = { ...entry.graph.params };
       for (const [slot, value] of slots) { const param = params[slot]; if (param?.type !== 'texture') throw new Error(`props material "${name}": graph ${row.id} has no texture param ${slot}`); params[slot] = { ...param, value: value.file }; }

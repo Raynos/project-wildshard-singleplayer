@@ -18,7 +18,7 @@ function product(graph: unknown) {
 }
 it('preserves the outline and object-space inputs through full admission under the existing cost model', () => {
   const program = outlined(), source = parseShardfile(product(program)), entry = source.look.materials['ink'];
-  if (entry?.family !== 'graph') throw new Error('Missing graph');
+  if (entry?.family !== 'graph' || !('graph' in entry)) throw new Error('Missing graph');
   expect(entry.graph).toEqual(program); expect(materialGraphRules(source)).toEqual([]);
   expect(() => parseShardfile(product({ ...program, stages: { ...program.stages, surface: { colour: 'world' } } }))).not.toThrow();
   const full = validateGraph(entry.graph), plain = validateGraph({ ...program, stages: { surface: program.stages.surface, 'vertex.offset': program.stages['vertex.offset'] } });

@@ -21,15 +21,20 @@
  *   already in the graph's admitted cost (`validateGraph` counts the `outlineVertex` / `outline` programs).
  */
 import { Color, Mesh, SRGBColorSpace, type Material, type Object3D, type Texture } from 'three';
-import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphIr, type GraphParamType } from '@wildshard/engine/core/materialGraph';
+import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphBudget, type GraphIr, type GraphParamType } from '@wildshard/engine/core/materialGraph';
 import { DATA_LOOK_DAY, dataLookClock, lookSample, sampleLook, type LookSample } from '@wildshard/engine/render/dataLook';
 import type { GraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { graphBindingSources } from './materials';
+import { graphBindingSources, graphFileJson, presetLooks } from './materials';
+import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '@wildshard/engine/render/families/params';
+import { familyPresetGraph, PRESET_CLOCK_PARAMS, PRESET_GRAPH_BUDGET } from '@wildshard/engine/render/graph/presets';
 import type { Shardfile } from './schema';
 
-/** A graph material entry as the catalogue and a skin binding carry it. */
-export interface GraphMaterialEntry { readonly family: 'graph'; readonly graph: unknown }
+/**
+ * A graph material entry as the catalogue and a skin binding carry it: inline IR (`graph`), a graph file of the library
+ * closure (`file`, a hash) or an engine-owned preset reference (`preset`, a family entry, with its `version`).
+ */
+export interface GraphMaterialEntry { readonly family: 'graph'; readonly graph?: unknown; readonly file?: unknown; readonly preset?: unknown; readonly version?: unknown }
 /** Is this material entry a graph (the family selector only; the graph itself is validated on compile)? */
 export function isGraphEntry(entry: unknown): entry is GraphMaterialEntry {
   return typeof entry === 'object' && entry !== null && !Array.isArray(entry) && Reflect.get(entry, 'family') === 'graph';
@@ -85,7 +90,7 @@ export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided'>
  * The graph side of a shardfile's materials. `compiler` is null while the Debug row is off (every graph falls back);
  * `fallback` compiles a family entry on the family looks; `textures` resolves an admitted texture reference.
  */
-export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options: { compiler: GraphCompiler | null; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string) => Texture }): {
+export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options: { compiler: GraphCompiler | null; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string) => Texture; file?: (hash: string) => Uint8Array | undefined }): {
   compile: (entry: GraphMaterialEntry) => Material; tick: (dt: number) => void; bind: (sources: GraphSources) => void; readout: GraphReadout;
   /** the outline stage of a material this compiled (null: no `stages.outline`, a fallback preset, or not a graph) */
   outline: (material: Material) => GraphOutline | null;
@@ -137,20 +142,42 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options:
     for (const f of feeds) f.set();
   };
 
+  const looks = presetLooks(source.look.familyLooks);
+  /** the preset clocks: seconds since the client was made, as each family look's own clock (both tick by dt) */
+  let elapsed = 0;
+  const clocks: (() => void)[] = [];
+  /**
+   * an entry → the IR a compiler receives and its budget: a preset through the engine-owned door under the preset budget
+   * (`family` is its entry, what it draws while the row is off), a graph file's JSON and inline IR under the author caps
+   */
+  const resolve = (entry: GraphMaterialEntry): { graph: unknown; budget: GraphBudget; preset: boolean; family: Readonly<Record<string, unknown>> | null } => {
+    if (entry.preset !== undefined) {
+      if (entry.version !== GRAPH_PRESET_VERSION) throw new Error(`material graph refused: preset version ${String(entry.version)} (${GRAPH_PRESET_VERSION})`);
+      const family = parseFamilyMaterial(entry.preset);
+      return { graph: familyPresetGraph(family, looks), budget: PRESET_GRAPH_BUDGET, preset: true, family };
+    }
+    if (typeof entry.file === 'string') return { graph: graphFileJson(entry.file, (hash) => options.file?.(hash)), budget: DEFAULT_GRAPH_BUDGET, preset: false, family: null };
+    return { graph: entry.graph, budget: DEFAULT_GRAPH_BUDGET, preset: false, family: null };
+  };
   const compile = (entry: GraphMaterialEntry): Material => {
+    const resolved = resolve(entry), graph = resolved.graph, budget = resolved.budget;
+    // a preset reference while the row is off draws its own family: the preset is held to parity with it
+    if (resolved.family !== null && options.compiler === null) { readout.fallback++; readout.reasons.push('graph materials row off'); return options.fallback(resolved.family); }
     // validation with the admitted lists first: a refusal (an unknown binding, a bad program) throws, row on or off
-    const checked = validateGraph(entry.graph, { dayKeys, stateFields, budget: DEFAULT_GRAPH_BUDGET });
+    const checked = validateGraph(graph, { dayKeys, stateFields, budget });
     if (!checked.ok) {
       const refusals = checked.errors.filter((error) => !error.startsWith('budget:'));
       if (refusals.length > 0) throw new Error(`material graph refused:\n  ${refusals.join('\n  ')}`);
       // only the budget refused it: the shape is valid, so its lighting model picks the preset
-      const shape: object = typeof entry.graph === 'object' && entry.graph !== null ? entry.graph : {};
+      if (resolved.family !== null) { readout.fallback++; readout.reasons.push(checked.errors.join('; ')); return options.fallback(resolved.family); }
+      const shape: object = typeof graph === 'object' && graph !== null ? graph : {};
       readout.fallback++; readout.reasons.push(checked.errors.join('; '));
       return options.fallback(graphFallbackEntry({ model: Reflect.get(shape, 'model') === 'unlit' ? 'unlit' : 'standard', doubleSided: Reflect.get(shape, 'doubleSided') === true }));
     }
     const ir = checked.graph;
     if (options.compiler === null) { readout.fallback++; readout.reasons.push('graph materials row off'); return options.fallback(graphFallbackEntry(ir)); }
-    const compiler = options.compiler, compiled = compiler.compileGraph(ir, { dayKeys, stateFields, budget: DEFAULT_GRAPH_BUDGET, textures: options.textures });
+    const compiler = options.compiler, compiled = compiler.compileGraph(ir, { dayKeys, stateFields, budget, textures: options.textures });
+    if (resolved.preset) for (const name of PRESET_CLOCK_PARAMS) if (ir.params?.[name] !== undefined) clocks.push(() => { compiled.setParam(name, elapsed); });
     const hull = compiled.outline;
     if (hull !== null) outlines.set(compiled.material, { material: hull, attach: (mesh) => compiler.attachOutline(mesh, hull) });
     for (const { param, bind } of compiled.bindings) {
@@ -164,7 +191,10 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options:
   };
   return {
     compile, readout, outline: (material) => outlines.get(material) ?? null,
-    tick: (dt) => { if (feeds.length === 0) return; if (sources.hour === undefined) ownClock?.update(dt); refresh(); },
+    tick: (dt) => {
+      elapsed += dt; for (const clock of clocks) clock();
+      if (feeds.length === 0) return; if (sources.hour === undefined) ownClock?.update(dt); refresh();
+    },
     bind: (next) => { sources = { ...sources, ...next }; if (feeds.length > 0) refresh(); },
   };
 }
