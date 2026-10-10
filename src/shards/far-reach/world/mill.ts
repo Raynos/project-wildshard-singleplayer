@@ -2,7 +2,8 @@ import { Group, Mesh, MeshStandardMaterial, DoubleSide, Float32BufferAttribute, 
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { MILL_CANVAS_EDITS, MILL_TOWER_EDITS } from '../data/millLook';
-import { fit, hdMaterial, skyHd } from './meshes';
+import { fitModel } from '@wildshard/sdk/looks/modelIntake';
+import { hdMaterial, skyHd } from './meshes';
 import { onPaintedDispose } from '../look/image';
 import { MILL_COURSES, MILL_TOWER } from '../data/millShape';
 import { skyBakedPiece } from './baked';
@@ -106,7 +107,7 @@ function modelledSet(): Made | null {
   const t = skyHd('mill-tower'), f = skyHd('mill-foot');
   if (t === null || f === null) return null;
   // the tower: unit height first, its stub found and turned to +z, then scaled so the stub sits at the code hub's height
-  const g = fit(t.geometry, { size: 1, by: 'height', floor: 0, centre: 'base' });
+  const g = fitModel(t.geometry, { size: 1, by: 'height', floor: 0, centre: 'base' });
   const s0 = stubOf(g); g.rotateY(-s0.a);
   const k = MODELLED.hub / s0.y; g.scale(k, k, k);
   // the footing's mean radius to the code tower's (the collider's box and the meadow's hole are sized on it)
@@ -123,7 +124,7 @@ function modelledSet(): Made | null {
   g.computeBoundingBox(); g.computeBoundingSphere();
   const made = new Mesh(stoneCourses(g, s.y - 1.2), towerMaterial(t.map)); made.name = 'far.mill.tower';
   // the rock foot: fitted to its span, squashed, sunk into the deck
-  const fg = fit(f.geometry, { size: MODELLED.foot.span, by: 'span', floor: 0, centre: 'box' }); fg.computeBoundingBox();
+  const fg = fitModel(f.geometry, { size: MODELLED.foot.span, by: 'span', floor: 0, centre: 'box' }); fg.computeBoundingBox();
   const fh = fg.boundingBox ? fg.boundingBox.max.y : 1; fg.scale(1, MODELLED.foot.h / Math.max(1e-3, fh), 1); fg.rotateY(0.7);
   fg.translate(0, -MODELLED.foot.sink, 0);
   // past the walk ring, nothing stands more than the lip proud of the deck (a smooth fall-off, no cliff)

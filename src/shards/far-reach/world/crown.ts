@@ -1,6 +1,7 @@
 import { InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type Group } from 'three';
 import { CROWN, DAIS } from '../data/layout';
-import { fit, hdMaterial, skyHd } from './meshes';
+import { fitModel } from '@wildshard/sdk/looks/modelIntake';
+import { hdMaterial, skyHd } from './meshes';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { CROWN_DAIS_EDITS } from '../data/paintLook';
@@ -34,14 +35,14 @@ function carvedSet(stones: readonly Stone[]): Mesh[] | null {
   const out: Mesh[] = [], m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
   for (const [k, made] of [a, b].entries()) {
     const list = stones.filter((_, i) => i % 2 === k);
-    const g = fit(made.geometry, { size: 1, by: 'height', floor: 0, centre: 'base' });
+    const g = fitModel(made.geometry, { size: 1, by: 'height', floor: 0, centre: 'base' });
     const mesh = new InstancedMesh(g, hdMaterial(made.map), list.length); mesh.name = `far.crown.stone-${k}`;
     list.forEach((st, i) => {
       q.setFromAxisAngle(up, st.yaw + CARVED.yaw); m.compose(new Vector3(st.x, CROWN.y - CARVED.sink, st.z), q, new Vector3(st.h, st.h, st.h)); mesh.setMatrixAt(i, m);
     });
     mesh.computeBoundingSphere(); out.push(mesh);
   }
-  const dg = fit(d.geometry, { size: DAIS.r * 2, by: 'span', floor: 0, centre: 'base' }); dg.computeBoundingBox();
+  const dg = fitModel(d.geometry, { size: DAIS.r * 2, by: 'span', floor: 0, centre: 'base' }); dg.computeBoundingBox();
   const h = dg.boundingBox ? dg.boundingBox.max.y : 1; dg.scale(1, CARVED.daisH / Math.max(1e-3, h), 1);
   const daisMat = hdMaterial(d.map);
   // the paint came out red-brown; mockup D's dais is weathered grey stone with a warm cast

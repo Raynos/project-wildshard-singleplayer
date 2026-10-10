@@ -1,7 +1,9 @@
 import { Color, Float32BufferAttribute, MeshStandardMaterial, Uint16BufferAttribute, type BufferGeometry } from 'three';
 import { readSourceModel, skinnedGlb, type RawTexture, type SkinnedBone, type SkinnedOutput } from '@wildshard/sdk/bake/skinned';
 import type { AnimalDims } from '@wildshard/engine/entities/species/registry';
-import { bindRigid, facetedGeometry, fit, hdGeometry } from '../world/meshes';
+import { bindRigid } from '@wildshard/sdk/looks/modelLibrary';
+import { facetedGeometry, fitModel, hdGeometry } from '@wildshard/sdk/looks/modelIntake';
+import { SKY_AO_FLOOR } from '../world/meshes';
 import { SKY_CREATURE_SOURCES, type SkyCreatureExtras } from '../data/creatures';
 import type { SkyCreature } from '../boot/files';
 
@@ -9,7 +11,7 @@ import type { SkyCreature } from '../boot/files';
  * Build-time only (SHARD-PLATFORM M3, the offline skinned-model bake): Sky Reach's three generated creature bodies, baked by
  * `scripts/bake-sky-rigs.mjs` into `public/assets/far-reach/rigs/<creature>.glb` (the Roc's painted map inside it, the source's
  * exact WebP bytes, so the KTX2 bake makes its phone stand-in as it did for the source). Each generated source is read offline through the runtime's own intake
- * (`world/meshes.ts` facetedGeometry / hdGeometry), fitted, re-skinned and recoloured here exactly as the runtime did it,
+ * (`@wildshard/sdk/looks/modelIntake` facetedGeometry / hdGeometry), fitted, re-skinned and recoloured here exactly as the runtime did it,
  * and written as a standard skinned GLB (`@wildshard/sdk/bake/skinned`); the client only loads it (`species/bodies.ts`).
  * The code stand-ins (and the code-built gale wisp) stay in `species/`: headless builds them. `test/shards/far-reach/creature-bake.test.ts`
  * is the byte-exact stale gate.
@@ -96,7 +98,7 @@ function rocSkin(g: BufferGeometry, pitch: number): { bones: SkinnedBone[]; len:
 const ROC_HD = { pitch: 1.1, yaw: 0, selfLight: 0.35 } as const;
 function rocHd(source: BufferGeometry, texture: RawTexture): Body {
   const g = source.toNonIndexed(); source.dispose();
-  g.rotateY(ROC_HD.yaw); fit(g, { size: ROC_SPAN, by: 'span', middle: 1.6, pitch: ROC_HD.pitch });
+  g.rotateY(ROC_HD.yaw); fitModel(g, { size: ROC_SPAN, by: 'span', middle: 1.6, pitch: ROC_HD.pitch });
   g.setAttribute('color', new Float32BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
   const { bones, len } = rocSkin(g, ROC_HD.pitch);
   return { bones, geometry: g, texture, facetJitter: 0, selfLight: ROC_HD.selfLight,
@@ -129,7 +131,7 @@ const GOAT_LEG = 0.42;
  * above the shoulder is the head and horns.
  */
 function goatMesh(source: BufferGeometry): Body {
-  const g = warmCoat(fit(source, { size: 1.45, by: 'span', floor: 0 })), b = g.boundingBox, p = g.getAttribute('position');
+  const g = warmCoat(fitModel(source, { size: 1.45, by: 'span', floor: 0 })), b = g.boundingBox, p = g.getAttribute('position');
   const h = b ? b.max.y : 1.3, z0 = b ? b.min.z : -0.7, z1 = b ? b.max.z : 0.7, legTop = h * GOAT_LEG, head = z1 - (z1 - z0) * 0.3;
   // each leg's top: the mean x / z of its quadrant's low vertices
   const sum = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]], quad = (x: number, z: number): number => (z > 0 ? 0 : 2) + (x > 0 ? 0 : 1);
@@ -168,7 +170,7 @@ function paleRay(g: BufferGeometry, tailZ: number): void {
  * the body bone. Facets outboard of the fin roots ride the wings; the back of the centre line (the whip) rides the tail.
  */
 function rayMesh(source: BufferGeometry): Body {
-  const g = fit(source, { size: 5.4, by: 'span', middle: 0.3 }), p = g.getAttribute('position');
+  const g = fitModel(source, { size: 5.4, by: 'span', middle: 0.3 }), p = g.getAttribute('position');
   let z0 = Infinity, z1 = -Infinity;
   for (let i = 0; i < p.count; i++) if (Math.abs(p.getX(i)) < RAY_WING_ROOT) { z0 = Math.min(z0, p.getZ(i)); z1 = Math.max(z1, p.getZ(i)); }
   const len = Math.max(0.5, z1 - z0), head = z1 - len * 0.18, tail = z0 + len * 0.45;
@@ -185,7 +187,7 @@ export async function skyCreatureBodies(read: (url: string) => Uint8Array): Prom
   const painted = hdGeometry(roc.gltf.scene, (material) => roc.texture(material) !== null), texture = painted === null ? null : roc.texture(painted.material);
   if (painted === null || texture === null) throw new Error('storm-roc: no textured mesh');
   const faceted = async (creature: 'sky-goat' | 'drift-ray'): Promise<BufferGeometry> => {
-    const g = facetedGeometry((await readSourceModel(read(SKY_CREATURE_SOURCES[creature]))).gltf.scene);
+    const g = facetedGeometry((await readSourceModel(read(SKY_CREATURE_SOURCES[creature]))).gltf.scene, SKY_AO_FLOOR);
     if (g === null) throw new Error(`${creature}: no mesh`);
     return g;
   };

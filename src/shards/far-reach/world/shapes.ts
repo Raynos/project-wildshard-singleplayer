@@ -4,7 +4,8 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { DECK_WOOD_EDITS, HOVER_FRAME_EDITS, POST_WEATHER_EDITS } from '../data/bridgeLook';
 import { ropeSag } from '../layout';
-import { fit, hdMaterial, skyHd, skyMesh, splitAbove } from './meshes';
+import { fitModel, splitAbove } from '@wildshard/sdk/looks/modelIntake';
+import { hdMaterial, skyHd, skyMesh } from './meshes';
 import { towerMill } from './mill';
 import { skyBakedGeometry } from './baked';
 
@@ -124,7 +125,7 @@ function deckWood(): MeshStandardMaterial {
 function kitDeck(length: number, width: number, sag: (s: number) => number): InstancedMesh | null {
   const source = skyMesh('bridge-deck'); if (source === null) return null;
   // fitted along its long axis (x), then turned so that axis runs down the span
-  const g = fit(source, { size: DECK_SEGMENT, by: 'span', floor: 0 }); g.rotateY(Math.PI / 2); g.computeBoundingBox();
+  const g = fitModel(source, { size: DECK_SEGMENT, by: 'span', floor: 0 }); g.rotateY(Math.PI / 2); g.computeBoundingBox();
   const b = g.boundingBox; if (b === null) return null;
   const n = Math.max(1, Math.round(length / DECK_SEGMENT)), seg = length / n;
   g.translate(-(b.min.x + b.max.x) / 2, -b.max.y, -(b.min.z + b.max.z) / 2);
@@ -151,7 +152,7 @@ function hdPosts(width: number, length: number): InstancedMesh | null {
   patchShader(material, 'far.post-weather', PATCH_ORDER.decorate, (shader) => {
     editShader(shader, spliceEdits(POST_WEATHER_EDITS, { weather: WEATHER.post.toFixed(2) }));
   }, { key: (prior) => `${prior}|far.post-weather` });
-  const g = fit(source.geometry, { size: HD_POST.height, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(g, material, 4);
+  const g = fitModel(source.geometry, { size: HD_POST.height, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(g, material, 4);
   const m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0), one = new Vector3(1, 1, 1);
   let i = 0;
   for (const side of [-1, 1]) for (const z of [0, -length]) {
@@ -165,7 +166,7 @@ function hdPosts(width: number, length: number): InstancedMesh | null {
 function kitPosts(width: number, length: number): InstancedMesh | null {
   const textured = hdPosts(width, length); if (textured !== null) return textured;
   const source = skyMesh('bridge-post'); if (source === null) return null;
-  const g = fit(source, { size: POST_HEIGHT, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(greyWood(g), flat(0xffffff, { vertexColors: true }), 4), m = new Matrix4();
+  const g = fitModel(source, { size: POST_HEIGHT, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(greyWood(g), flat(0xffffff, { vertexColors: true }), 4), m = new Matrix4();
   let i = 0;
   for (const side of [-1, 1]) for (const z of [0, -length]) { m.makeTranslation(side * (width / 2 + 0.12), -0.05, z); mesh.setMatrixAt(i++, m); }
   mesh.computeBoundingSphere(); return mesh;
@@ -197,7 +198,7 @@ const VANE_ROTOR_Y = 2.2;
 export function vane(): { group: Group; rotor: Object3D } {
   const group = new Group(), rotor = new Group(), model = skyMesh('wind-vane');
   if (model !== null) {
-    const g = fit(model, { size: 3.6, by: 'height', floor: 0, centre: 'base' }), [post, top] = splitAbove(g, VANE_ROTOR_Y), mat = flat(0xffffff, { vertexColors: true });
+    const g = fitModel(model, { size: 3.6, by: 'height', floor: 0, centre: 'base' }), [post, top] = splitAbove(g, VANE_ROTOR_Y), mat = flat(0xffffff, { vertexColors: true });
     group.add(new Mesh(post, mat)); top.translate(0, -VANE_ROTOR_Y, 0); rotor.add(new Mesh(top, mat)); rotor.position.y = VANE_ROTOR_Y; group.add(rotor);
     return { group, rotor };
   }

@@ -3,7 +3,8 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { TREE_BARK_EDITS } from '../data/paintLook';
 import type { SkyHdName } from '../boot/files';
-import { fit, hdMaterial, skyHd } from './meshes';
+import { fitModel } from '@wildshard/sdk/looks/modelIntake';
+import { hdMaterial, skyHd } from './meshes';
 
 /**
  * The modelled trees (E407, top-10 row 2; `art/far-reach/round-26-trees/`): the mockups' natural conifers of varied
@@ -33,7 +34,7 @@ export function trees(at: readonly (readonly [number, number, number, number])[]
   const m = new Matrix4(), q = new Quaternion(), tilt = new Quaternion(), up = new Vector3(0, 1, 0), side = new Vector3();
   for (const [name, list] of byModel) {
     const made = skyHd(name); if (made === null) return null;
-    const g = fit(made.geometry, { size: TREES[name].height, by: 'height', floor: -0.15, centre: 'base' });
+    const g = fitModel(made.geometry, { size: TREES[name].height, by: 'height', floor: -0.15, centre: 'base' });
     const material = hdMaterial(made.map);
     // the paint's bark came out magenta-red: toward a warm grey-brown; the foliage kept
     patchShader(material, 'far.tree-bark', PATCH_ORDER.decorate, (shader) => {

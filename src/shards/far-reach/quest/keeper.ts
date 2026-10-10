@@ -1,5 +1,6 @@
 import { AdditiveBlending, BufferGeometry, CapsuleGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, SphereGeometry, Vector3, type Object3D } from 'three';
-import { fit, hdMaterial, skyHd, skyMesh, splitTriangles } from '../world/meshes';
+import { fitModel, splitTriangles } from '@wildshard/sdk/looks/modelIntake';
+import { hdMaterial, skyHd, skyMesh } from '../world/meshes';
 import type { NpcDef } from '@wildshard/engine/quest/core';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
@@ -101,7 +102,7 @@ const halo = (): Mesh<SphereGeometry, MeshBasicMaterial> => new Mesh(new SphereG
 /** The textured keeper (Hunyuan3D-2's painted keeper): body + the waving right arm on its shoulder pivot, its forearm on the elbow. */
 function textured(): Made | null {
   const made = skyHd('keeper-hd'); if (made === null) return null;
-  const g = fit(made.geometry, { size: KEEPER_MODEL.height, by: 'height', floor: 0, centre: 'base' }), A = KEEPER_HD.arm, [sx, sy, sz] = KEEPER_HD.shoulder;
+  const g = fitModel(made.geometry, { size: KEEPER_MODEL.height, by: 'height', floor: 0, centre: 'base' }), A = KEEPER_HD.arm, [sx, sy, sz] = KEEPER_HD.shoulder;
   const [body, arm] = splitTriangles(g, (x, y) => y > A.y0 && y < A.y1 && x < A.a + A.b * y);
   const material = hdMaterial(made.map), group = new Group(), shoulder = new Group();
   // his scarf and sash a warm rust-brown, not a loud red (council: 'the keeper's red scarf reads louder than the mockup's
@@ -124,7 +125,7 @@ function textured(): Made | null {
 function generated(): Made | null {
   const hd = textured(); if (hd !== null) return hd;
   const g = skyMesh('keeper'); if (g === null) return null;
-  fit(g, { size: KEEPER_MODEL.height, by: 'height', floor: 0, centre: 'base' }); g.rotateY(KEEPER_MODEL.yaw);
+  fitModel(g, { size: KEEPER_MODEL.height, by: 'height', floor: 0, centre: 'base' }); g.rotateY(KEEPER_MODEL.yaw);
   whiten(g); const lantern = lanternAt(g), A = KEEPER_MODEL.arm, [sx, sy, sz] = KEEPER_MODEL.shoulder;
   const [body, arm] = split(g, (x, y) => x < A.x && y > A.y0 && y < A.y1);
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, flatShading: true });
