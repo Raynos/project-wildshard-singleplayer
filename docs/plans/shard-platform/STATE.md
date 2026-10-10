@@ -25,7 +25,7 @@
 | Driftwood | 97.7 % |
 | Pine | 100.1 % |
 
-**Lanes (Jake's own word 10-10: 3 Opus + 5 Codex; a relayed "2 Opus" doesn't override it)**
+**Lanes (Jake G323: 3 Opus + 5 Codex)**
 
 | Lane | Work |
 |---|---|
