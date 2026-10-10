@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate reads the committed bake the client loads.
 import { readdirSync, readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The stale gate inflates the shipped dressing bake.
+import { inflateSync } from 'node:zlib';
 import { InstancedMesh, Matrix4, Mesh, Vector3, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { colliderRows } from '@wildshard/sdk/bake/kinds';
@@ -23,6 +25,10 @@ import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../../../src/shards/far-r
 import { cardField, cardFieldRow, cardGroup, cardGroupRow } from '@wildshard/sdk/looks/cardField';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { skyBakedPiece, skyKnollHulls } from '../../../src/shards/far-reach/world/baked';
+import { bakeSkyDressing, buildDressing } from '../../../src/shards/far-reach/generators/dressing';
+import dressingRows from '../../../src/shards/far-reach/data/dressing.json' with { type: 'json' };
+import { dressIslands, heroStoneDiscs } from '../../../src/shards/far-reach/world/dressing';
+import { decodeInstanceSets, unshuffleLanes } from '@wildshard/sdk/looks/bakedInstances';
 import { BAKED_PIECES } from '../../../src/shards/far-reach/boot/files';
 import { ISLES, KNOLLS, STEP, WINCH_HOUSE } from '../../../src/shards/far-reach/data/layout';
 import winchHouse from '../../../src/shards/far-reach/data/winchHouse.json' with { type: 'json' };
@@ -193,5 +199,21 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
     const puffs = cardField(cards, cardFieldRow(cards, skyCardRows.cumulus), sun);
     expect([puffs.name, puffs.renderOrder, puffs.geometry.instanceCount]).toEqual(['far.cumulus', -5, puffs.geometry.getAttribute('aAt').count]);
     glow.geometry.dispose(); for (const m of glow.materials) m.dispose(); puffs.geometry.dispose(); puffs.material.dispose();
+  });
+  it('the island dressing is its generator\'s copies (the stale gate) and the page draws exactly their matrices and colours', () => {
+    const { rows, bytes, discs } = bakeSkyDressing();
+    expect({ lanes: sha(bytes), sets: rows, discs }).toEqual(dressingRows);
+    // the shipped binary inflates to the generator's lanes
+    const shipped = inflateSync(readFileSync(new URL('dressing.bin', folder)));
+    expect(sha(new Uint8Array(shipped))).toBe(dressingRows.lanes);
+    expect(heroStoneDiscs()).toEqual(discs);
+    const sets = decodeInstanceSets(unshuffleLanes(new Uint8Array(shipped)), dressingRows.sets), drawn = dressIslands(sets).meshes, built = buildDressing();
+    expect(drawn.length).toBe(built.length);
+    built.forEach(([, live], i) => {
+      const mesh = drawn[i];
+      expect(mesh?.count).toBe(live.count);
+      expect(new Uint8Array(mesh?.instanceMatrix.array.buffer ?? new ArrayBuffer(0))).toEqual(new Uint8Array(live.instanceMatrix.array.buffer));
+      expect(mesh?.instanceColor?.array).toEqual(live.instanceColor?.array);
+    });
   });
 });

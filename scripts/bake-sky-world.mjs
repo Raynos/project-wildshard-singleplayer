@@ -8,6 +8,7 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { deflateSync } from 'node:zlib';
 import { pathToFileURL } from 'node:url';
 
 const root = resolve(import.meta.dirname, '..'), project = resolve(root, 'src/shards/far-reach');
@@ -32,6 +33,14 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
   const generator = await import(pathToFileURL(resolve(project, file)).href);
   writeFileSync(resolve(project, `data/${rows}.json`), `${JSON.stringify(generator[name](), null, 2)}\n`);
   console.info(`far-reach ${rows}: data/${rows}.json`);
+}
+// the instance bakes: a generator's placed copies as float32 instance matrices + colours (lane-shuffled, deflated)
+{
+  const { bakeSkyDressing } = await import(pathToFileURL(resolve(project, 'generators/dressing.ts')).href);
+  const { rows, bytes, discs } = bakeSkyDressing(), bin = deflateSync(bytes, { level: 9 });
+  writeFileSync(resolve(out, 'dressing.bin'), bin);
+  writeFileSync(resolve(project, 'data/dressing.json'), `${JSON.stringify({ lanes: createHash('sha256').update(bytes).digest('hex'), sets: rows, discs }, null, 2)}\n`);
+  console.info(`far-reach dressing: ${String(bytes.length)} bytes → baked/dressing.bin (${String(bin.length)} deflated), ${rows.map((r) => `${r.name} ${String(r.count)}`).join(', ')}`);
 }
 // the folder holds exactly this bake: no orphan GLB from an older bake ships
 for (const entry of readdirSync(out)) if (entry.endsWith('.glb') && !keep.has(entry)) rmSync(resolve(out, entry));

@@ -40,7 +40,7 @@ import { loadPainted } from '../look/image';
 import { setStormPaint } from '../world/storm';
 import { rayWake } from '../world/rayWake';
 import { meadow, type Meadow } from '../world/meadow';
-import { heroStoneDiscs } from '../world/dressing';
+import { heroStoneDiscs, loadSkyDressing } from '../world/dressing';
 import { SUN_DIR } from '../look/sun';
 import { StormRocBoss } from '../combat/stormRoc';
 import { BOSS_REWARD, ROC_ID } from './rocEncounter';
@@ -104,7 +104,7 @@ export class SkyReachPlugin extends ShardPlugin {
     ctx.strings(STRINGS);
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     // and the world pieces baked offline (SF72, world/baked.ts)
-    await Promise.all([preloadSkyMeshes(), loadSkyBaked()]);
+    await Promise.all([preloadSkyMeshes(), loadSkyBaked(), loadSkyDressing()]);
     // the fan's painted silk; without it (offline, a test page) the fan keeps its plain teal, as the models keep their code stand-ins
     const leaf = await loadPainted(FAN_LEAF_URL, 'far.fan-leaf');
     if (leaf !== null) { this.leaf = leaf; ctx.scope.own(leaf); }

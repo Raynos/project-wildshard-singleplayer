@@ -86,6 +86,7 @@
     "./looks/cardField": "./looks/cardField.ts",
     "./looks/discLayer": "./looks/discLayer.ts",
     "./looks/tileField": "./looks/tileField.ts",
+    "./looks/bakedInstances": "./looks/bakedInstances.ts",
     "./looks/shaderEdits": "./looks/shaderEdits.ts",
     "./looks/rainFx": "./looks/rainFx.ts",
     "./species/herdShelter": "./species/herdShelter.ts",

@@ -187,7 +187,6 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
       const y = code ? s.y : skyHd.topAt(s, x, z); if (y !== null) pineAt.push([x, code ? y : y - 0.2, z, size]);
     }
   }
-  if (skyHd.fallback.length > 0) skyGroup.add(dressIslands(skyHd.fallback, 7321, false, 0.35).group);
   root.add(skyGroup);
   ctx.piece({ id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE, object: skyGroup });
   // the card-branch firs when the branch sheet loaded (E392), else the code pines
