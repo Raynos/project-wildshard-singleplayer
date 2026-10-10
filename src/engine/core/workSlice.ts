@@ -10,6 +10,7 @@
  *   for (const item of items) { work(item); if (slice.due()) await slice.yield(); }
  */
 import { resourceScope } from '../app/resources';
+import type { Scope } from '../app/scope';
 import { diagnosticNow } from './clock';
 
 /** The longest synchronous stretch a sliced builder runs before it lets a frame through (ms). */
@@ -28,16 +29,20 @@ export interface WorkSlice {
 /** Resolve on a fresh timer task, where the browser may draw a due frame first. Not a MessageChannel: Blink dispatches
  *  queued port messages in one task until its own yield threshold, which merged 8 ms slices into ~100 ms tasks with no
  *  frame between them (measured, Nine Dragon's cell entry). Nested timers clamp to 4 ms: idle time, not frame time. */
-export function yieldTask(): Promise<void> {
-  return new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
+export function yieldTask(owner?: Scope): Promise<void> {
+  return new Promise<void>((resolve) => { (owner ?? resourceScope()).timeout(0, resolve); });
 }
 
-/** A slice clock for one sliced build (`budgetMs` defaults to `WORK_SLICE_MS`). */
-export function workSlice(budgetMs: number = WORK_SLICE_MS): WorkSlice {
+/**
+ * A slice clock for one sliced build (`budgetMs` defaults to `WORK_SLICE_MS`). `owner` holds its yield timers: by default
+ * the ambient owner at each yield; a page-lifetime memo that keeps painting after the build that asked for it (a creature
+ * coat) passes the page scope, so a left level's closed scope never strands it mid-yield.
+ */
+export function workSlice(budgetMs: number = WORK_SLICE_MS, owner?: Scope): WorkSlice {
   let start = diagnosticNow();
   const slice: WorkSlice = {
     due: () => diagnosticNow() - start >= budgetMs,
-    yield: async () => { await yieldTask(); start = diagnosticNow(); },
+    yield: async () => { await yieldTask(owner); start = diagnosticNow(); },
     check: () => (slice.due() ? slice.yield() : undefined),
   };
   return slice;

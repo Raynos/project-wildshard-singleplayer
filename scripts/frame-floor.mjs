@@ -150,16 +150,28 @@ async function cameras() {
   const authored = await window.__wildshard.world.game.level.capturePoses?.() ?? {};
   return Object.entries(authored).flatMap(([name, c]) => c.probe ? [{ ...c.probe, name: c.probe.name ?? name }] : c.feet ? [{ name, x: c.feet[0], y: c.feet[1], z: c.feet[2], yaw: -c.yaw * Math.PI / 180, pitch: c.pitch * Math.PI / 180 }] : []);
 }
+/** `n` drawn frames; n = 0: every frame until `window.__frameFloorDriveDone` is set and no runtime hook is running
+ *  (the whole drive, then whatever its cells still build after it: Pine's afterKit outlived the 120-frame travel row). */
 function sample(n) {
   const g = window.__wildshard.world.game, meter = g.app?.cpu;
+  const whole = n === 0;
   if (!meter) return Promise.reject(new Error('Content CPU meter unavailable; use an SF62-capable pin'));
   meter.enabled = true;
   return new Promise((resolve, reject) => {
     const interval = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [], cpuOwners = new Map();
+    let idleChecks = 0, checkedAt = -1;
+    const finished = () => {
+      if (!whole) return interval.length >= n;
+      if (window.__frameFloorDriveDone !== true || interval.length === checkedAt || interval.length % 30 !== 0) return false;
+      checkedAt = interval.length;
+      const current = window.__wildshard.shard.grid?.state().live.runtimeTiming?.current ?? null;
+      idleChecks = current === null ? idleChecks + 1 : 0;
+      return idleChecks >= 2;
+    };
     let cpuFrames = 0, cpuFrame = -1;
     let count = g.frameCount, last = 0, lastCallback = 0, skipped = 0, first = true;
     let raf = 0;
-    const timeout = setTimeout(() => { cancelAnimationFrame(raf); reject(new Error(`Drawn-frame sampler stalled (${interval.length}/${n})`)); }, 30000);
+    const timeout = setTimeout(() => { cancelAnimationFrame(raf); reject(new Error(`Drawn-frame sampler stalled (${interval.length}/${n})`)); }, whole ? 240000 : 30000);
     const tick = (timestamp) => {
       const now = performance.now();
       if (g.frameCount !== count) {
@@ -180,13 +192,15 @@ function sample(n) {
         }
         first = false; count = g.frameCount; last = timestamp; lastCallback = now;
       }
-      if (interval.length < n) { raf = requestAnimationFrame(tick); return; }
+      if (!finished()) { raf = requestAnimationFrame(tick); return; }
       clearTimeout(timeout);
       const pct = (v, p) => { const sorted = [...v].sort((a, b) => a - b); return sorted[Math.max(0, Math.ceil(sorted.length * p) - 1)]; };
       const round = (v) => Math.round(v * 1000) / 1000;
       resolve({ frames: interval.length, skipped, medianFps: round(1000 / pct(interval, 0.5)), p50Ms: round(pct(interval, 0.5)),
         p95Ms: round(pct(interval, 0.95)), p99Ms: round(pct(interval, 0.99)), maxMs: round(pct(interval, 1)),
         callbackP95Ms: round(pct(callbackInterval, 0.95)), callbackP99Ms: round(pct(callbackInterval, 0.99)), callbackMaxMs: round(pct(callbackInterval, 1)),
+        // a freeze is one frame of thousands: p95 / p99 never see it, so a long window also counts its long frames
+        longFrames: { over50Ms: interval.filter((ms) => ms > 50).length, over100Ms: interval.filter((ms) => ms > 100).length },
         gameP95Ms: round(pct(ring, 0.95)), workP95Ms: round(pct(work, 0.95)), calls: pct(calls, 0.5), triangles: pct(triangles, 0.5),
         position: { x: window.__wildshard.world.player.position.x, y: window.__wildshard.world.player.position.y, z: window.__wildshard.world.player.position.z },
         cpu: { enabled: meter.snapshot().enabled, frames: cpuFrames, owners: [...cpuOwners].map(([id, row]) => ({ id, samples: row.ms.length, p95Ms: pct(row.ms, 0.95), maxMs: pct(row.ms, 1), calls: row.calls })) },
@@ -195,6 +209,9 @@ function sample(n) {
     raf = requestAnimationFrame(tick);
   });
 }
+
+/** the whole-drive sampler's expression (`sample(0)`) */
+const SAMPLE_WHOLE = `(${sample.toString()})(0)`;
 
 // Runtime.evaluate on Safari does not await JavaScript promises. Poll an explicit result envelope;
 // Target.* multiplexing is supported; a new document invalidates the measurement rather than replaying it.
@@ -306,6 +323,12 @@ async function measureShard(driver, shard, deadline) {
         // Camera probes can leave the owned shell on the road. Finish source admission before measuring motion.
         await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`, 130000);
         const profileStart = driver.profile ? await driver.profile.start() : null;
+        await driver.evaluate('(window.__frameFloorDriveDone = false, true)');
+        // the whole drive, and every runtime hook still building once it has arrived (the 120-frame travel row ends early)
+        const wholeDrive = (async () => {
+          try { return { value: await driver.evaluate(SAMPLE_WHOLE, 260000) }; }
+          catch (error) { return { error: error instanceof Error ? error : new Error('Whole-drive sampler failed', { cause: error }) }; }
+        })();
         const moving = (async () => {
           try { return { value: await driver.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`, 160000) }; }
           catch (error) { return { error: error instanceof Error ? error : new Error('Grid floor drive failed', { cause: error }) }; }
@@ -313,15 +336,18 @@ async function measureShard(driver, shard, deadline) {
         await sleep(1000);
         const motion = await driver.evaluate(`(${sample.toString()})(${frames})`);
         const driven = await moving; if (driven.error) throw driven.error;
+        await driver.evaluate('(window.__frameFloorDriveDone = true, true)');
+        const whole = await wholeDrive; if (whole.error) throw whole.error;
         const cpuProfile = driver.profile && profileStart !== null ? summarizeTravelProfile(await driver.profile.stop(), profileStart, await driver.evaluate('window.__frameFloorLongTasks ?? []'), plan.name) : null;
         const witness = driven.value, failures = gridFloorWitnessFailures(witness);
         if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
         scenarios.push(witness);
-        rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface), ...(cpuProfile === null ? {} : { cpuProfile }) });
+        rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface) });
+        rows.push({ pose: { name: `grid-${plan.name}-drive` }, ...whole.value, ...assess(whole.value, surface), ...(cpuProfile === null ? {} : { cpuProfile }) });
         await sleep(settleMs);
         const standing = await driver.evaluate(`(${sample.toString()})(${frames})`);
         rows.push({ pose: { name: `grid-${plan.name}` }, ...standing, ...assess(standing, surface) });
-        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; interior ${standing.medianFps} fps / ${standing.p95Ms} ms; residents=${witness.after.live.live.residents.join(',')}`);
+        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms; interior ${standing.medianFps} fps / ${standing.p95Ms} ms; residents=${witness.after.live.live.residents.join(',')}`);
       }
       if (gridCellPose !== null) {
         // the entered cell's own pose (its local frame), held standing once its runtime is ready again

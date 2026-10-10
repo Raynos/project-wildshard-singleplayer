@@ -13,5 +13,7 @@ const PINE_CREATURES = riggedHulls(PINE_HULLS, { rig: (hull) => pineCreatureRigU
 export const preloadPineCreatures: () => Promise<void> = PINE_CREATURES.preload;
 /** the rigged hull for (kind, variant) bound to the variant's bones; null → keep the procedural mesh */
 export const skinPineHull: typeof PINE_CREATURES.skin = PINE_CREATURES.skin;
+/** resolves once every coat a Pine hull started is painted (the looks' `settle`: a herd waits for it before it shows) */
+export const pineCoatsPainted: () => Promise<void> = PINE_CREATURES.painted;
 /** the coat bake's source (scripts/bake-coats.mjs, through the `harness.shard.pine-hollow` capture handle's `coats`) */
 export const pineCoatSources: typeof PINE_CREATURES.coatSources = PINE_CREATURES.coatSources;

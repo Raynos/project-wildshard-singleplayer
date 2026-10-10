@@ -22,7 +22,7 @@ import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/ent
  */
 import * as THREE from 'three';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
-import { adoptCoat, coatAtlas, type CoatSpec } from './coatAtlas';
+import { adoptCoat, coatAtlas, coatAtlasSliced, coatsPainted, type CoatSpec } from './coatAtlas';
 import type { HullFlapRow, HullPalette, RiggedHullsRow } from './riggedHullRows';
 import { DEER_PALETTE } from '../species/deer';
 import { ELK_PALETTE } from '../species/elk';
@@ -47,6 +47,8 @@ export interface RiggedHulls {
   skin: (kind: string, variant: string, bones: readonly BoneDef[], eyes: readonly EyeSpot[], definition?: VariantDef) => CreatureHull | null;
   /** the coat bake's source: every coat that repaints its hull, as a lossless PNG data URL keyed by its KTX2 table name */
   coatSources: () => { url: string; png: string }[];
+  /** resolves once every coat `skin` started is painted (`skin` paints a new coat in slices; a look's `settle`) */
+  painted: () => Promise<void>;
 }
 
 interface Rig {
@@ -186,7 +188,7 @@ export function riggedHulls(row: RiggedHullsRow, urls: RiggedHullUrls): RiggedHu
     const out: BoneDef[] = bones.map((b, i) => { const p = rig.joints[i]?.pos; return { name: b.name, parent: b.parent, pos: p ? [p.x, p.y, p.z] : b.pos }; });
     const v = definition ?? variantDef(kind, variant);
     const thrall = Boolean(v.traits?.['thrall']);
-    const map = rig.map ? coatAtlas(`${name}:${kind}:${variant}`, coatSpec(name), { geometry: rig.geometry, map: rig.map, flap: rig.flap }, v, out) : null;
+    const map = rig.map ? coatAtlasSliced(`${name}:${kind}:${variant}`, coatSpec(name), { geometry: rig.geometry, map: rig.map, flap: rig.flap }, v, out) : null;
     let geometry = rig.geometry;
     if (thrall) {
       const key = `${name}:${kind}:${variant}`;
@@ -199,7 +201,7 @@ export function riggedHulls(row: RiggedHullsRow, urls: RiggedHullUrls): RiggedHu
     return { geometry, map, normalMap: rig.normalMap, bones: out, overgrown: thrall, ...(fur !== undefined ? { fur } : {}) };
   };
 
-  return { hullOf, preload, skin, coatSources };
+  return { hullOf, preload, skin, coatSources, painted: coatsPainted };
 }
 
 /** true when the rig's skin joints are `bones` by name, in order (their rest positions are the rig's) */

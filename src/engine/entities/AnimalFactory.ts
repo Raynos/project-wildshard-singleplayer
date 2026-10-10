@@ -299,6 +299,12 @@ export class AnimalFactory {
     if (!this.render.waitForModels) for (const preload of app.species.preloads()) void preload().catch(() => undefined);
   }
 
+  /** Resolves once the active level's looks have finished what their hulls started (`SpeciesLook.settle`: a coat painted
+   *  in slices); read under the level whose models were made. */
+  settled(): Promise<void> {
+    return Promise.all(app.species.settles().map((settle) => settle())).then(() => undefined);
+  }
+
   /** The cached model for (kind, variant id). An unknown variant id falls back to the species' first variant. */
   model(kind: AnimalKind, variant?: string): AnimalModel {
     const species = speciesDef(kind);

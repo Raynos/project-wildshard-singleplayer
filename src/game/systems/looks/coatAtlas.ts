@@ -22,6 +22,8 @@ import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { smoothstep } from '@wildshard/engine/core/noise';
+import { pageScope } from '@wildshard/engine/app/resources';
+import { workSlice } from '@wildshard/engine/core/workSlice';
 
 /** sRGB 0..1 (read only: a coat recipe may be data). */
 type RGB = readonly [number, number, number];
@@ -58,6 +60,23 @@ const enc = (v: number): number => toSrgb[Math.min(LUT_N, Math.max(0, Math.round
 const cache = new Map<string, THREE.Texture>();
 const _ab = new THREE.Vector3(), _ap = new THREE.Vector3();
 
+/**
+ * A coat's paint as steps: the generator yields between short stretches (a few hundred triangles, a few thousand
+ * texels), so `coatAtlasSliced` can let frames through while `coatAtlas` drains it in one go — the same work, in the same
+ * order, to the same bytes.
+ */
+type Steps<T = void> = Generator<void, T, undefined>;
+/** run every step now */
+function drain<T>(steps: Steps<T>): T {
+  for (;;) { const r = steps.next(); if (r.done === true) return r.value; }
+}
+/** texels between two yields of a per-texel pass */
+const TEXEL_CHUNK = 4096;
+/** a coat being painted in slices: `finish` paints the rest now (a synchronous caller needs the bytes) */
+const painting = new WeakMap<THREE.Texture, { finish: () => void }>();
+/** every sliced paint still running */
+const pending = new Set<Promise<void>>();
+
 // ── 3D value noise (seeded hash lattice), for marks that are solid over the body ──
 function hash3(x: number, y: number, z: number): number {
   let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(z, 1274126177);
@@ -86,7 +105,7 @@ interface Surface { w: number; h: number; pos: Float32Array; nrm: Float32Array; 
 const surfaces = new WeakMap<THREE.BufferGeometry, Surface>();
 
 /** rasterise the hull's triangles into atlas space (each texel: the interpolated position / normal), gutters dilated */
-function surfaceOf(geo: THREE.BufferGeometry, w: number, h: number, flipY: boolean): Surface {
+function* surfaceOf(geo: THREE.BufferGeometry, w: number, h: number, flipY: boolean): Steps<Surface> {
   const hit = surfaces.get(geo);
   if (hit?.w === w && hit.h === h) return hit;
   const pos = new Float32Array(w * h * 3), nrm = new Float32Array(w * h * 3), covered = new Uint8Array(w * h);
@@ -95,6 +114,7 @@ function surfaceOf(geo: THREE.BufferGeometry, w: number, h: number, flipY: boole
   const vi = (t: number, k: number): number => (idx ? idx.getX(t * 3 + k) : t * 3 + k);
   const sx = [0, 0, 0], sy = [0, 0, 0], ids = [0, 0, 0];
   for (let t = 0; t < nTri; t++) {
+    if ((t & 255) === 255) yield;
     for (let k = 0; k < 3; k++) {
       const i = vi(t, k); ids[k] = i;
       sx[k] = U.getX(i) * w; sy[k] = (flipY ? 1 - U.getY(i) : U.getY(i)) * h;
@@ -123,7 +143,9 @@ function surfaceOf(geo: THREE.BufferGeometry, w: number, h: number, flipY: boole
   let front = covered;
   for (let pass = 0; pass < 4; pass++) {
     const next = new Uint8Array(front);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h; y++) {
+      if ((y & 31) === 31) yield;
+      for (let x = 0; x < w; x++) {
       const o = y * w + x;
       if (front[o] !== 0) continue;
       for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
@@ -134,6 +156,7 @@ function surfaceOf(geo: THREE.BufferGeometry, w: number, h: number, flipY: boole
         for (let c = 0; c < 3; c++) { pos[o * 3 + c] = pos[q * 3 + c] ?? 0; nrm[o * 3 + c] = nrm[q * 3 + c] ?? 0; }
         next[o] = 2;
         break;
+      }
       }
     }
     front = next;
@@ -170,11 +193,12 @@ export function coatDiffers(spec: CoatSpec, v: VariantDef): boolean {
  * Rasterise the triangles `want` accepts into atlas space: `visit(texel, l0, l1, l2, i0, i1, i2)` per covered texel with
  * its barycentrics and the triangle's vertex indices.
  */
-function rasterTris(geo: THREE.BufferGeometry, w: number, h: number, flipY: boolean, want: (i0: number, i1: number, i2: number) => boolean,
-  visit: (o: number, l0: number, l1: number, l2: number, i0: number, i1: number, i2: number) => void): void {
+function* rasterTris(geo: THREE.BufferGeometry, w: number, h: number, flipY: boolean, want: (i0: number, i1: number, i2: number) => boolean,
+  visit: (o: number, l0: number, l1: number, l2: number, i0: number, i1: number, i2: number) => void): Steps {
   const U = geo.getAttribute('uv'), idx = geo.getIndex();
   const nTri = idx ? idx.count / 3 : U.count / 3;
   for (let t = 0; t < nTri; t++) {
+    if ((t & 255) === 255) yield;
     const i0 = idx ? idx.getX(t * 3) : t * 3, i1 = idx ? idx.getX(t * 3 + 1) : t * 3 + 1, i2 = idx ? idx.getX(t * 3 + 2) : t * 3 + 2;
     if (!want(i0, i1, i2)) continue;
     const x0 = U.getX(i0) * w, x1 = U.getX(i1) * w, x2 = U.getX(i2) * w;
@@ -208,6 +232,11 @@ const flapMaps = new WeakMap<THREE.BufferGeometry, FlapMap & { W: number; H: num
  * it (a per-texel copy is a mosaic) and keeps the flap's own hair detail.
  */
 export function flapTransplant(geo: THREE.BufferGeometry, flap: Uint8Array, W: number, H: number, flipY: boolean): FlapMap | null {
+  return drain(flapSteps(geo, flap, W, H, flipY));
+}
+
+/** flapTransplant as steps */
+function* flapSteps(geo: THREE.BufferGeometry, flap: Uint8Array, W: number, H: number, flipY: boolean): Steps<FlapMap | null> {
   const hit = flapMaps.get(geo);
   if (hit?.W === W && hit.H === H) return hit;
   const P = geo.getAttribute('position'), N = geo.getAttribute('normal');
@@ -219,7 +248,7 @@ export function flapTransplant(geo: THREE.BufferGeometry, flap: Uint8Array, W: n
   // the flap's texels (+ their position, normal and feather)
   const dst: number[] = [], wt: number[] = [], at: number[] = [];
   const mark = new Uint8Array(W * H);
-  rasterTris(geo, W, H, flipY, (i0, i1, i2) => flap[i0] === 1 || flap[i1] === 1 || flap[i2] === 1, (o, l0, l1, l2, i0, i1, i2) => {
+  yield* rasterTris(geo, W, H, flipY, (i0, i1, i2) => flap[i0] === 1 || flap[i1] === 1 || flap[i2] === 1, (o, l0, l1, l2, i0, i1, i2) => {
     if (mark[o] === 1) return;
     mark[o] = 1;
     dst.push(o);
@@ -227,38 +256,94 @@ export function flapTransplant(geo: THREE.BufferGeometry, flap: Uint8Array, W: n
     for (const A of [P, N]) for (let c = 0; c < 3; c++) at.push(l0 * A.getComponent(i0, c) + l1 * A.getComponent(i1, c) + l2 * A.getComponent(i2, c));
   });
   // every other texel of the body, in a 2 cm grid
-  const s = surfaceOf(geo, W, H, flipY);
-  const CELL = 0.02, grid = new Map<string, number[]>();
-  const cell = (x: number, y: number, z: number): string => `${Math.floor(x / CELL)},${Math.floor(y / CELL)},${Math.floor(z / CELL)}`;
-  for (let o = 0; o < W * H; o++) {
-    if (s.covered[o] !== 1 || mark[o] === 1) continue;
-    const k = cell(s.pos[o * 3] ?? 0, s.pos[o * 3 + 1] ?? 0, s.pos[o * 3 + 2] ?? 0);
-    const list = grid.get(k);
-    if (list) list.push(o); else grid.set(k, [o]);
-  }
+  const s = yield* surfaceOf(geo, W, H, flipY);
+  const grid = yield* cellGrid(s, mark, 0.02, 8);
   const src = new Int32Array(dst.length).fill(-1);
   for (let j = 0; j < dst.length; j++) {
+    if ((j & 127) === 127) yield;
     const px = at[j * 6] ?? 0, py = at[j * 6 + 1] ?? 0, pz = at[j * 6 + 2] ?? 0, nx = at[j * 6 + 3] ?? 0, ny = at[j * 6 + 4] ?? 0, nz = at[j * 6 + 5] ?? 0;
     const qx = px + (px >= xc ? shift : -shift);
-    const cx = Math.floor(qx / CELL), cy = Math.floor(py / CELL), cz = Math.floor(pz / CELL);
-    let best = -1, bd = Infinity;
-    for (let r = 0; r <= 8 && best < 0; r++) {
-      for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++) for (let dz = -r; dz <= r; dz++) {
-        if (Math.max(Math.abs(dx), Math.abs(dy), Math.abs(dz)) !== r) continue;
-        const list = grid.get(`${cx + dx},${cy + dy},${cz + dz}`);
-        if (!list) continue;
-        for (const o of list) {
-          if ((s.nrm[o * 3] ?? 0) * nx + (s.nrm[o * 3 + 1] ?? 0) * ny + (s.nrm[o * 3 + 2] ?? 0) * nz < 0.2) continue;
-          const d = ((s.pos[o * 3] ?? 0) - qx) ** 2 + ((s.pos[o * 3 + 1] ?? 0) - py) ** 2 + ((s.pos[o * 3 + 2] ?? 0) - pz) ** 2;
-          if (d < bd) { bd = d; best = o; }
-        }
-      }
-    }
-    src[j] = best;
+    src[j] = grid.nearest(qx, py, pz, nx, ny, nz);
   }
   const out = { dst: Int32Array.from(dst), src, w: Float32Array.from(wt), W, H };
   flapMaps.set(geo, out);
   return out;
+}
+
+/** A texel grid for flapTransplant's nearest-texel search: `nearest` answers what a ring-by-ring walk over the cells would. */
+interface CellGrid { nearest: (qx: number, qy: number, qz: number, nx: number, ny: number, nz: number) => number }
+
+/**
+ * The covered, unmarked texels of `s` bucketed into `cell`-sized cubes (dense arrays, ascending texel order per cell, plus
+ * each cell's normal bounds). `nearest` walks rings 0…`rings` round the query's cell (dx, then dy, then dz ascending; only
+ * a ring's own shell) and returns, from the first ring holding any texel whose normal faces the query's (dot ≥ 0.2), the
+ * nearest such texel (the first of equals), or -1. A cell whose normal bounds cannot reach 0.2 is skipped whole: its
+ * every texel would fail the same test (each bound term is ≥ the texel's term, summed in the same order).
+ * The texel walk once took 5-9 s per bear hull on the main thread with string-keyed cells (E435 SF63: Pine's herd spawn).
+ */
+function* cellGrid(s: Surface, mark: Uint8Array, cell: number, rings: number): Steps<CellGrid> {
+  const n = s.covered.length;
+  let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity, count = 0;
+  for (let o = 0; o < n; o++) {
+    if ((o & 0x7fff) === 0x7fff) yield;
+    if (s.covered[o] !== 1 || mark[o] === 1) continue;
+    const cx = Math.floor((s.pos[o * 3] ?? 0) / cell), cy = Math.floor((s.pos[o * 3 + 1] ?? 0) / cell), cz = Math.floor((s.pos[o * 3 + 2] ?? 0) / cell);
+    x0 = Math.min(x0, cx); y0 = Math.min(y0, cy); z0 = Math.min(z0, cz); x1 = Math.max(x1, cx); y1 = Math.max(y1, cy); z1 = Math.max(z1, cz);
+    count++;
+  }
+  if (count === 0) return { nearest: () => -1 };
+  const sx = x1 - x0 + 1, sy = y1 - y0 + 1, sz = z1 - z0 + 1, cells = sx * sy * sz;
+  const cellOf = new Int32Array(n).fill(-1), start = new Int32Array(cells + 1);
+  for (let o = 0; o < n; o++) {
+    if ((o & 0x7fff) === 0x7fff) yield;
+    if (s.covered[o] !== 1 || mark[o] === 1) continue;
+    const c = ((Math.floor((s.pos[o * 3] ?? 0) / cell) - x0) * sy + (Math.floor((s.pos[o * 3 + 1] ?? 0) / cell) - y0)) * sz + (Math.floor((s.pos[o * 3 + 2] ?? 0) / cell) - z0);
+    cellOf[o] = c;
+    start[c + 1] = (start[c + 1] ?? 0) + 1;
+  }
+  for (let c = 0; c < cells; c++) start[c + 1] = (start[c + 1] ?? 0) + (start[c] ?? 0);
+  const items = new Int32Array(count), fill = start.slice(0, cells);
+  const lo = new Float32Array(cells * 3).fill(Infinity), hi = new Float32Array(cells * 3).fill(-Infinity);
+  for (let o = 0; o < n; o++) {
+    if ((o & 0x7fff) === 0x7fff) yield;
+    const c = cellOf[o] ?? -1;
+    if (c < 0) continue;
+    const k = fill[c] ?? 0;
+    items[k] = o; fill[c] = k + 1;
+    for (let a = 0; a < 3; a++) {
+      const v = s.nrm[o * 3 + a] ?? 0;
+      if (v < (lo[c * 3 + a] ?? 0)) lo[c * 3 + a] = v;
+      if (v > (hi[c * 3 + a] ?? 0)) hi[c * 3 + a] = v;
+    }
+  }
+  const pos = s.pos, nrm = s.nrm;
+  const nearest = (qx: number, qy: number, qz: number, nx: number, ny: number, nz: number): number => {
+    const cx = Math.floor(qx / cell) - x0, cy = Math.floor(qy / cell) - y0, cz = Math.floor(qz / cell) - z0;
+    let best = -1, bd = Infinity;
+    const visit = (X: number, Y: number, Z: number): void => {
+      if (X < 0 || Y < 0 || Z < 0 || X >= sx || Y >= sy || Z >= sz) return;
+      const c = (X * sy + Y) * sz + Z, a = start[c] ?? 0, b = start[c + 1] ?? 0;
+      if (a === b) return;
+      const bx = Math.max(nx * (lo[c * 3] ?? 0), nx * (hi[c * 3] ?? 0)), by = Math.max(ny * (lo[c * 3 + 1] ?? 0), ny * (hi[c * 3 + 1] ?? 0));
+      const bz = Math.max(nz * (lo[c * 3 + 2] ?? 0), nz * (hi[c * 3 + 2] ?? 0));
+      if (bx + by + bz < 0.2) return;
+      for (let k = a; k < b; k++) {
+        const o = items[k] ?? 0;
+        if ((nrm[o * 3] ?? 0) * nx + (nrm[o * 3 + 1] ?? 0) * ny + (nrm[o * 3 + 2] ?? 0) * nz < 0.2) continue;
+        const d = ((pos[o * 3] ?? 0) - qx) ** 2 + ((pos[o * 3 + 1] ?? 0) - qy) ** 2 + ((pos[o * 3 + 2] ?? 0) - qz) ** 2;
+        if (d < bd) { bd = d; best = o; }
+      }
+    };
+    for (let r = 0; r <= rings; r++) {
+      for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++) {
+        if (dx === -r || dx === r || dy === -r || dy === r) { for (let dz = -r; dz <= r; dz++) visit(cx + dx, cy + dy, cz + dz); }
+        else { visit(cx + dx, cy + dy, cz - r); if (r > 0) visit(cx + dx, cy + dy, cz + r); }
+      }
+      if (best >= 0) break;
+    }
+    return best;
+  };
+  return { nearest };
 }
 
 /**
@@ -266,7 +351,7 @@ export function flapTransplant(geo: THREE.BufferGeometry, flap: Uint8Array, W: n
  * own texels (a per-texel copy alone came back as a mosaic — neighbouring texels take their fur from different charts),
  * times the flap's own hair detail (its luminance over its blurred luminance), feathered by `w`.
  */
-function applyFlapFill(m: FlapMap, px: Uint8ClampedArray, W: number, H: number): void {
+function* applyFlapFill(m: FlapMap, px: Uint8ClampedArray, W: number, H: number): Steps {
   const n = W * H, mask = new Float32Array(n), col = new Float32Array(n * 3), lum = new Float32Array(n);
   for (let j = 0; j < m.dst.length; j++) {
     const d = m.dst[j] ?? 0, sI = m.src[j] ?? -1;
@@ -277,31 +362,20 @@ function applyFlapFill(m: FlapMap, px: Uint8ClampedArray, W: number, H: number):
   }
   // masked separable box blur (2 passes each way), radius ~6 texels at 1024²
   const R = Math.max(2, Math.round(6 * W / 1024));
-  const blur = (src: Float32Array, k: number): Float32Array => {
+  const blur = function* blur(src: Float32Array, k: number): Steps<Float32Array> {
     let cur = src, wts = mask;
     for (let pass = 0; pass < 4; pass++) {
       const horiz = pass % 2 === 0, out = new Float32Array(n * k), ow = new Float32Array(n);
       const len = horiz ? W : H, lines = horiz ? H : W;
       for (let li = 0; li < lines; li++) {
-        const at = (t: number): number => (horiz ? li * W + t : t * W + li);
-        const acc = new Float64Array(k);
-        let aw = 0;
-        for (let t = -R; t < len + R; t++) {
-          const a = t + R, b = t - R - 1;
-          if (a < len && a >= 0) { const o = at(a), mw = wts[o] ?? 0; aw += mw; for (let c = 0; c < k; c++) acc[c] = (acc[c] ?? 0) + (cur[o * k + c] ?? 0) * mw; }
-          if (b >= 0 && b < len) { const o = at(b), mw = wts[o] ?? 0; aw -= mw; for (let c = 0; c < k; c++) acc[c] = (acc[c] ?? 0) - (cur[o * k + c] ?? 0) * mw; }
-          if (t < 0 || t >= len) continue;
-          const o = at(t);
-          if ((mask[o] ?? 0) === 0 || aw <= 1e-6) continue;
-          for (let c = 0; c < k; c++) out[o * k + c] = (acc[c] ?? 0) / aw;
-          ow[o] = 1;
-        }
+        if ((li & 31) === 31) yield;
+        blurLine(cur, wts, mask, out, ow, k, len, R, horiz ? li * W : li, horiz ? 1 : W);
       }
       cur = out; wts = ow;
     }
     return cur;
   };
-  const bc = blur(col, 3), bl = blur(lum, 1);
+  const bc = yield* blur(col, 3), bl = yield* blur(lum, 1);
   for (let j = 0; j < m.dst.length; j++) {
     const d = m.dst[j] ?? 0, w = m.w[j] ?? 0;
     if ((mask[d] ?? 0) === 0 || w <= 0) continue;
@@ -310,6 +384,26 @@ function applyFlapFill(m: FlapMap, px: Uint8ClampedArray, W: number, H: number):
       const v = Math.min(255, (bc[d * 3 + c] ?? 0) * detail);
       px[d * 4 + c] = (px[d * 4 + c] ?? 0) + (v - (px[d * 4 + c] ?? 0)) * w;
     }
+  }
+}
+
+/**
+ * One line of applyFlapFill's masked box blur: texel `base + t * stride` for t in 0…len, `cur` (k channels) weighted by
+ * `wts` over ±R into `out` where `mask` is set (`ow` = 1 where written). A plain function, not a step: its loop is the hot
+ * one, and the engine optimises a plain loop at once where a generator's first resumes run cold.
+ */
+function blurLine(cur: Float32Array, wts: Float32Array, mask: Float32Array, out: Float32Array, ow: Float32Array, k: number, len: number, R: number, base: number, stride: number): void {
+  const acc = new Float64Array(k);
+  let aw = 0;
+  for (let t = -R; t < len + R; t++) {
+    const a = t + R, b = t - R - 1;
+    if (a < len && a >= 0) { const o = base + a * stride, mw = wts[o] ?? 0; aw += mw; for (let c = 0; c < k; c++) acc[c] = (acc[c] ?? 0) + (cur[o * k + c] ?? 0) * mw; }
+    if (b >= 0 && b < len) { const o = base + b * stride, mw = wts[o] ?? 0; aw -= mw; for (let c = 0; c < k; c++) acc[c] = (acc[c] ?? 0) - (cur[o * k + c] ?? 0) * mw; }
+    if (t < 0 || t >= len) continue;
+    const o = base + t * stride;
+    if ((mask[o] ?? 0) === 0 || aw <= 1e-6) continue;
+    for (let c = 0; c < k; c++) out[o * k + c] = (acc[c] ?? 0) / aw;
+    ow[o] = 1;
   }
 }
 
@@ -332,9 +426,65 @@ export function adoptCoat(key: string, tex: THREE.Texture): void { cache.set(key
  * the blaze and the scars). Returns `rig.map` itself when nothing changes, or when the atlas can't be read.
  */
 export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantDef, bones: readonly BoneDef[]): THREE.Texture {
+  const start = coatStart(key, spec, rig, v, bones);
+  if (start instanceof THREE.Texture) { painting.get(start)?.finish(); return start; }
+  drain(start.steps);
+  return remember(key, new THREE.CanvasTexture(start.paint()), rig.map);
+}
+
+/**
+ * `coatAtlas` painted in slices (`workSlice`, on the page scope: the coat is a page-lifetime memo). It returns at once a
+ * texture that shows the hull's own atlas until the paint is done, then the coat (the same bytes `coatAtlas` makes); the
+ * texture is cached under `key` from the start, so every copy of the variant shares it. `coatsPainted()` resolves once
+ * every sliced paint has finished: a herd waits for it before it is shown, so no animal is ever seen in the stand-in.
+ * A synchronous `coatAtlas` of the same key finishes the paint on the spot. Each first coat of a hull used to be one
+ * 0.2-9 s main-thread task in Pine Hollow's herd spawn (E435 SF63).
+ */
+export function coatAtlasSliced(key: string, spec: CoatSpec, rig: CoatRig, v: VariantDef, bones: readonly BoneDef[]): THREE.Texture {
+  const start = coatStart(key, spec, rig, v, bones);
+  if (start instanceof THREE.Texture) return start;
+  const map = rig.map;
+  const state = { stopped: false, done: false };
+  const tex = remember(key, new THREE.Texture(map.image), map, () => { state.stopped = true; });
+  tex.needsUpdate = true;
+  const complete = (): void => {
+    if (state.done) return;
+    state.done = true;
+    painting.delete(tex);
+    tex.image = start.paint();
+    tex.needsUpdate = true;
+  };
+  painting.set(tex, { finish: () => { if (state.done) return; drain(start.steps); complete(); } });
+  const run = (async (): Promise<void> => {
+    const slice = workSlice(undefined, pageScope);
+    for (;;) {
+      if (state.done || state.stopped) return;
+      if (start.steps.next().done === true) break;
+      if (slice.due()) await slice.yield();
+    }
+    complete();
+  })();
+  pending.add(run);
+  void run.finally(() => { pending.delete(run); });
+  return tex;
+}
+
+/** resolves once every coat `coatAtlasSliced` started has been painted (or its texture disposed) */
+export async function coatsPainted(): Promise<void> {
+  while (pending.size > 0) await Promise.all(pending);
+}
+
+/** a coat to paint: its steps (the pixels, in place) and `paint()`, the finished canvas */
+interface CoatJob { steps: Steps; paint: () => HTMLCanvasElement }
+
+/**
+ * The texture when the coat needs no paint (the hull's own coat, a cached coat, a KTX2 hull, no DOM), else the paint as
+ * steps. Everything that reads the species registry (the source tint) is read here, synchronously, under the caller's
+ * level: a slice runs later, under whatever level is active then.
+ */
+function coatStart(key: string, spec: CoatSpec, rig: CoatRig, v: VariantDef, bones: readonly BoneDef[]): THREE.Texture | CoatJob {
   const map = rig.map;
   const flap = rig.flap ?? null;
-  const measured = spec.measured?.[v.id];
   if (!coatDiffers(spec, v) && flap === null) return map;
   const hit = cache.get(key);
   if (hit) return hit;
@@ -350,10 +500,35 @@ export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantD
   if (!ctx) return map;
   ctx.drawImage(img, 0, 0);
   const data = ctx.getImageData(0, 0, W, H);
-  const px = data.data;
+  const source = srcTint(spec), own = isOwnCoat(spec, v.tint);
+  return {
+    steps: paintCoat(spec, rig, v, bones, data.data, W, H, source, own),
+    paint: () => { ctx.putImageData(data, 0, 0); return canvas; },
+  };
+}
+
+/** cache a coat's texture under `key` with the hull map's sampling; `retired` runs when it is disposed */
+function remember(key: string, tex: THREE.Texture, map: THREE.Texture, retired?: () => void): THREE.Texture {
+  tex.flipY = map.flipY; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = map.anisotropy;
+  tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
+  tex.name = `${map.name}:${key}`;
+  cache.set(key, tex);
+  cacheUntilDisposed(tex, () => { if (cache.get(key) === tex) cache.delete(key); retired?.(); });
+  return tex;
+}
+
+/**
+ * The coat's pixels, in place on `px` (the atlas, RGBA bytes, W × H), as steps: the flap transplant, the recolour, the
+ * marks and the grizzle. `source` / `own`: the source tint and whether the variant keeps the hull's own tones (coatStart).
+ */
+function* paintCoat(spec: CoatSpec, rig: CoatRig, v: VariantDef, bones: readonly BoneDef[], px: Uint8ClampedArray, W: number, H: number,
+  source: Readonly<Record<string, RGB>> | undefined, own: boolean): Steps {
+  const map = rig.map;
+  const flap = rig.flap ?? null;
+  const measured = spec.measured?.[v.id];
   const geometry = rig.geometry, flipY = map.flipY;
   // ── 0. a pressed flap takes the rump's fur beside it ──
-  if (flap !== null) { const fm = flapTransplant(geometry, flap, W, H, flipY); if (fm) applyFlapFill(fm, px, W, H); }
+  if (flap !== null) { const fm = yield* flapSteps(geometry, flap, W, H, flipY); if (fm) yield* applyFlapFill(fm, px, W, H); }
   const texel = (u: number, vv: number): number => {
     const x = Math.min(W - 1, Math.max(0, Math.floor((u - Math.floor(u)) * W)));
     const yy = flipY ? 1 - vv : vv;
@@ -362,10 +537,10 @@ export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantD
   };
   // linear working copy
   const lin = new Float32Array(W * H * 3);
-  for (let i = 0, o = 0; i < W * H; i++, o += 4) { lin[i * 3] = toLin[px[o] ?? 0] ?? 0; lin[i * 3 + 1] = toLin[px[o + 1] ?? 0] ?? 0; lin[i * 3 + 2] = toLin[px[o + 2] ?? 0] ?? 0; }
+  for (let i0 = 0; i0 < W * H; i0 += TEXEL_CHUNK) { if (i0 > 0) yield; for (let i = i0, o = i0 * 4, i1 = Math.min(W * H, i0 + TEXEL_CHUNK); i < i1; i++, o += 4) { lin[i * 3] = toLin[px[o] ?? 0] ?? 0; lin[i * 3 + 1] = toLin[px[o + 1] ?? 0] ?? 0; lin[i * 3 + 2] = toLin[px[o + 2] ?? 0] ?? 0; } }
 
   // ── 1. recolour by the palette keys ──
-  if (measured !== undefined || !isOwnCoat(spec, v.tint)) {
+  if (measured !== undefined || !own) {
     const uv = geometry.getAttribute('uv'), idx = geometry.getIndex();
     const nTri = idx ? idx.count / 3 : uv.count / 3;
     const lums: number[] = [];
@@ -397,14 +572,14 @@ export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantD
     };
     const measuredSrc = measured !== undefined ? [meanAt(0.12), meanAt(0.55), meanAt(0.92)] : null;
     const tgtOf = (k: string): RGB => measured?.[k] ?? v.tint?.[k] ?? spec.palette[k] ?? [1, 1, 1];
-    const srcOf = (k: string): RGB => srcTint(spec)?.[k] ?? spec.palette[k] ?? [1, 1, 1];
+    const srcOf = (k: string): RGB => source?.[k] ?? spec.palette[k] ?? [1, 1, 1];
     const srcLin = (k: string, i: number): [number, number, number] => measuredSrc?.[i] ?? linOf(srcOf(k));
     const ratios = spec.keys.map((k, ki) => { const a = linOf(tgtOf(k)), b = srcLin(k, ki); return a.map((x, i) => Math.min(14, x / Math.max(1e-3, b[i] ?? 1))); });
     const satOf = (c: [number, number, number]): number => { const mx = Math.max(...c); return mx > 0 ? 1 - Math.min(...c) / mx : 0; };
     // measured: the per-channel ratios already land every key's mean exactly on its target — no extra saturation push
     const sats = spec.keys.map((k, ki) => (measuredSrc !== null ? 1 : Math.min(1.3, satOf(linOf(tgtOf(k))) / Math.max(0.05, satOf(srcLin(k, ki))))));
     const l0 = Ls[0] ?? 0, l1 = Ls[1] ?? 0, l2 = Ls[2] ?? 0;
-    for (let i = 0; i < W * H; i++) {
+    for (let i0 = 0; i0 < W * H; i0 += TEXEL_CHUNK) { if (i0 > 0) yield; for (let i = i0, i1 = Math.min(W * H, i0 + TEXEL_CHUNK); i < i1; i++) {
       const r = lin[i * 3] ?? 0, g = lin[i * 3 + 1] ?? 0, b = lin[i * 3 + 2] ?? 0;
       const L = Math.log(Math.max(1e-4, 0.2126 * r + 0.7152 * g + 0.0722 * b));
       const k0 = L < l1 ? 0 : L < l2 ? 1 : 2, k1 = L <= l0 ? 0 : L < l2 ? k0 + 1 : 2;
@@ -419,13 +594,13 @@ export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantD
         mr *= dd(lr); mg *= dd(lg); mb *= dd(lb);
       }
       lin[i * 3] = Math.min(1, r * mr); lin[i * 3 + 1] = Math.min(1, g * mg); lin[i * 3 + 2] = Math.min(1, b * mb);
-    }
+    } }
   }
 
   // ── 2. the marks, by where each texel sits on the animal ──
   const marks = marksOf(v);
   if (marks.piebald || marks.blaze || marks.scar || marks.thrall) {
-    const s = surfaceOf(geometry, W, H, flipY);
+    const s = yield* surfaceOf(geometry, W, H, flipY);
     const box = geometry.boundingBox ?? new THREE.Box3().setFromBufferAttribute(geometry.getAttribute('position') as THREE.BufferAttribute);
     const height = Math.max(0.2, box.max.y - box.min.y);
     const neck = boneAt(bones, 'neck1'), body = boneAt(bones, 'body'), head = boneAt(bones, 'head');
@@ -445,7 +620,7 @@ export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantD
     const white = linOf([0.93, 0.91, 0.86]), cream = linOf([0.82, 0.74, 0.58]), scarCol = linOf([0.78, 0.62, 0.55]);
     const mossDark = linOf([0.09, 0.13, 0.04]), mossLight = linOf([0.34, 0.41, 0.11]), lichen = linOf([0.47, 0.52, 0.42]), bark = linOf([0.13, 0.095, 0.065]);
     const sc = 1 / height;   // noise in units of the animal's height, so a boar and an elk wear the same-sized moss
-    for (let i = 0; i < W * H; i++) {
+    for (let i0 = 0; i0 < W * H; i0 += TEXEL_CHUNK) { if (i0 > 0) yield; for (let i = i0, i1 = Math.min(W * H, i0 + TEXEL_CHUNK); i < i1; i++) {
       if (s.covered[i] === 0) continue;
       p.set(s.pos[i * 3] ?? 0, s.pos[i * 3 + 1] ?? 0, s.pos[i * 3 + 2] ?? 0);
       const ny = s.nrm[i * 3 + 1] ?? 0, nz = s.nrm[i * 3 + 2] ?? 0;
@@ -501,7 +676,7 @@ export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantD
         }
       }
       lin[i * 3] = Math.min(1, Math.max(0, r)); lin[i * 3 + 1] = Math.min(1, Math.max(0, g)); lin[i * 3 + 2] = Math.min(1, Math.max(0, b));
-    }
+    } }
   }
 
   // ── 3. a measured coat's grizzle (`measured[v.id].grizzle` = the tips' colour): silver
@@ -509,13 +684,13 @@ export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantD
   //    fade darker. Brown stays brown under it ──
   const grizzle = measured?.['grizzle'];
   if (grizzle !== undefined) {
-    const s = surfaceOf(geometry, W, H, flipY);
+    const s = yield* surfaceOf(geometry, W, H, flipY);
     const box = geometry.boundingBox ?? new THREE.Box3().setFromBufferAttribute(geometry.getAttribute('position') as THREE.BufferAttribute);
     const y0 = box.min.y, hgt = Math.max(0.2, box.max.y - box.min.y), sc = 1 / hgt;
     const neck = boneAt(bones, 'neck1'), body = boneAt(bones, 'body');
     const hump = neck && body ? neck.z - 0.25 * (neck.z - body.z) : null;   // the shoulder hump, just behind the neck
     const tip = linOf(grizzle);
-    for (let i = 0; i < W * H; i++) {
+    for (let i0 = 0; i0 < W * H; i0 += TEXEL_CHUNK) { if (i0 > 0) yield; for (let i = i0, i1 = Math.min(W * H, i0 + TEXEL_CHUNK); i < i1; i++) {
       if (s.covered[i] === 0) continue;
       const x = s.pos[i * 3] ?? 0, y = s.pos[i * 3 + 1] ?? 0, z = s.pos[i * 3 + 2] ?? 0, ny = s.nrm[i * 3 + 1] ?? 0;
       const h = (y - y0) * sc;   // 0 at the paws, 1 at the top of the hump
@@ -533,16 +708,8 @@ export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantD
       // the legs fade darker toward the paws
       const leg = 1 - 0.3 * smoothstep(0.45, 0.12, h);
       lin[i * 3] = Math.min(1, Math.max(0, r * leg)); lin[i * 3 + 1] = Math.min(1, Math.max(0, g * leg)); lin[i * 3 + 2] = Math.min(1, Math.max(0, b * leg));
-    }
+    } }
   }
 
-  for (let i = 0, o = 0; i < W * H; i++, o += 4) { px[o] = enc(lin[i * 3] ?? 0); px[o + 1] = enc(lin[i * 3 + 1] ?? 0); px[o + 2] = enc(lin[i * 3 + 2] ?? 0); }
-  ctx.putImageData(data, 0, 0);
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.flipY = map.flipY; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = map.anisotropy;
-  tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
-  tex.name = `${map.name}:${key}`;
-  cache.set(key, tex);
-  cacheUntilDisposed(tex, () => { if (cache.get(key) === tex) cache.delete(key); });
-  return tex;
+  for (let i0 = 0; i0 < W * H; i0 += TEXEL_CHUNK) { if (i0 > 0) yield; for (let i = i0, o = i0 * 4, i1 = Math.min(W * H, i0 + TEXEL_CHUNK); i < i1; i++, o += 4) { px[o] = enc(lin[i * 3] ?? 0); px[o + 1] = enc(lin[i * 3 + 1] ?? 0); px[o + 2] = enc(lin[i * 3 + 2] ?? 0); } }
 }

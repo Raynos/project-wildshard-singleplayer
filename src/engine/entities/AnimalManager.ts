@@ -404,12 +404,14 @@ export class AnimalManager {
     await this.factory.ready;   // Pine Hollow's generated hulls (pineCreatures.ts) before the first herd: a model is made once
     if (frame === undefined) {
       for (const _herd of this.spawnHerds()) await pause();
+      await this.factory.settled();   // the herds' coats, painted in slices (SpeciesLook.settle), before any animal is shown
       return this.finish();
     }
     // Each resumed herd reads its retained level/terrain/services, never the intervening page frame.
     // Keep the ambient binding synchronous: another region may enter while pause() is pending.
     const herds = this.spawnHerds();
     while (!frame.run(app, () => herds.next()).done) await pause();
+    await frame.run(app, () => this.factory.settled());
     return frame.run(app, () => this.finish());
   }
 

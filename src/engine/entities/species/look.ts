@@ -19,6 +19,9 @@ export interface SpeciesLook extends Pick<SpeciesDef, 'rigContract' | 'fur' | 'b
   hasSkin?: (variant: VariantDef) => boolean;
   loadSkin?: (variant: VariantDef) => Promise<void>;
   preload?: () => Promise<void>;
+  /** resolves once the work `skin` started for the hulls made so far is done (a coat painted in slices): a herd waits for
+   *  it before it is shown */
+  settle?: () => Promise<void>;
   skin?: (variant: VariantDef, bones: readonly BoneDef[], eyes: readonly EyeSpot[]) => CreatureHull | null;
 }
 
@@ -75,6 +78,11 @@ export class SpeciesService {
   preloads(): readonly (() => Promise<void>)[] {
     const scope = this.active(); if (scope === null) return [];
     return [...new Set(this.looks.filter((entry) => entry.scope.belongsTo(scope)).flatMap((entry) => entry.value.preload ? [entry.value.preload] : []))];
+  }
+  /** The active level's looks' `settle` hooks (each once). */
+  settles(): readonly (() => Promise<void>)[] {
+    const scope = this.active(); if (scope === null) return [];
+    return [...new Set(this.looks.filter((entry) => entry.scope.belongsTo(scope)).flatMap((entry) => entry.value.settle ? [entry.value.settle] : []))];
   }
   /** A registered model hull can be replaced by the look's procedural builder. */
   hasProceduralFallback(): boolean {
