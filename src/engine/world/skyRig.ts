@@ -411,6 +411,14 @@ export class SkyRig {
     this.shadowFade?.warm();
   }
 
+  /** Apply the current backdrop-owner weights before shader preparation, without advancing the sky clock,
+   * cloud time, alternating-cascade cadence or simulation. The next ordinary frame restores/reapplies these slots. */
+  prepareLayers(): void {
+    for (let i = this.layerUndo.length - 1; i >= 0; i--) this.layerUndo[i]?.();
+    this.layerUndo.length = 0;
+    if (this.layers.size > 0) this.applyLayers(0);
+  }
+
   update(dt = 0): void {
     // G223: what a layered backdrop moved last frame goes back before the level's own backdrop runs
     for (let i = this.layerUndo.length - 1; i >= 0; i--) this.layerUndo[i]?.();

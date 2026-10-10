@@ -559,6 +559,10 @@ export class GridSession {
     }
   }
 
+  /** Publish the current feet's existing sky/grade owners before boot shader preparation.
+   * This runs only the presentation frame; no neighbour tick, input, physics or simulation is advanced. */
+  prepareFrame(): void { this.frame?.frame(); }
+
   /** The readout: what each cell shows, the rings and the allocator. */
   state(): GridSessionState {
     const stats = this.rings.stats(), resident = new Set(this.rings.resident().map((key) => key.split(':')[0]));

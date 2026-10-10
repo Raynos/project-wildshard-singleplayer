@@ -46,6 +46,10 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
 
   await macrotask();
   game.buildComposer();
+  // The first live late/render phases would otherwise publish the home PMREM and install its grade only after
+  // shaders/firstFrame, invalidating every warmed world key. Settle the same presentation owners without a tick.
+  ctx.grid?.prepareFrame();
+  game.sky.prepareLayers();
   // Compile programs in batches with a visible count, then draw the first frames as a step —
   // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;

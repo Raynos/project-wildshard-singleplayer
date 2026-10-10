@@ -671,7 +671,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   app.ui.bind(game.levelScope, () => hud.promptText);
   boot.runtime.play = { animals, weapons, primary: crossbow, rifle, secondary: longbow, inventory, owned, progress, hud, menu, fullMap, audio, music, skins, wearSkin, touchUi, nolock, disposeRifleDrop: () => { boot.runtime.hooks.disposeRifleDrop?.(); }, cues: combatCues, firstHints, minimap, bodyShadow };
   const getPlayground = (): Playground | null => playground;
-  return { ...ctx, gridLive, leakPhysics, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground };
+  return { ...ctx, grid, gridLive, leakPhysics, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground };
 }
 
 export const playStage: typeof buildPlay = buildPlay;

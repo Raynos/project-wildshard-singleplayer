@@ -1099,6 +1099,14 @@ work is removed from the weak material registry. The shared fire effect register
 flipbook fetch here, preserving its texture pixels, samplers, shaders and procedural
 failure fallback while avoiding a late first-draw upload.
 
+**Initial layered presentation.** `SkyRig.prepareLayers()` restores prior layer
+slots and applies the current owner weights at zero delta before shader preparation.
+It advances neither backdrop time nor alternating-cascade cadence. The game grid's
+`GridSession.prepareFrame()` publishes its existing feet-based sky/grade owners and
+installs the existing composer effects. Boot calls these after composer construction,
+before collecting jobs, so warm-up sees the same PMREM and post-chain as the first
+live frame. The ordinary frame still restores and applies layers in its usual order.
+
 ### 13.2 Shader patches
 
 Every shader patch goes through `patchShader(material, id, order, fn, { scope, mode?, key? })`. A raw

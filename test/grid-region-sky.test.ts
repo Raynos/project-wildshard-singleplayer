@@ -8,6 +8,7 @@ import { AssetService } from '../src/engine/app/assets';
 import { SceneOwnership, sceneObjectOwner } from '../src/engine/app/sceneOwnership';
 import { Scope } from '../src/engine/app/scope';
 import type { SkyBackdrop, SkyBackdropTargets } from '../src/engine/render/look';
+import { SkyRig } from '../src/engine/world/skyRig';
 import { BackdropLayer, LAYER_SKY_ORDER } from '../src/engine/world/backdropLayer';
 import { cloudLayer } from '../src/engine/world/skyBackdrop';
 import type { DayCycleClock } from '../src/engine/world/dayCycle';
@@ -284,4 +285,28 @@ it('keeps the exact sky claim visible inside its own measured increment and char
   expect(allocator.entries().find(row => row.id === regionSkyClaimId('cell-a'))?.accountedBytes).toBe(4000);
   expect(allocator.cost().input.page).toBe(4000);
   scope.dispose(); expect(allocator.entries()).toEqual([]); expect(hung).toHaveLength(0); expect(sky.layers.size).toBe(0);
+});
+
+it('settles the current layered environment before boot without advancing cascade cadence or clocks', () => {
+  const scene = new Scene(), targets = pageTargets(), camera = new PerspectiveCamera();
+  homeWrite(targets, scene, 0);
+  const baseline = snap(targets, scene), layer = new BackdropLayer({ targets, scene }, { onDispose: () => undefined });
+  const backdrop = regionBackdrop(layer.holder), deltas: number[] = [], update = backdrop.update;
+  backdrop.update = (dt, view) => { deltas.push(dt); update(dt, view); };
+  layer.attach(backdrop); layer.weight = 1;
+  const sky: unknown = Object.create(SkyRig.prototype);
+  if (!(sky instanceof SkyRig)) throw new Error('Sky prototype missing');
+  const undo: (() => void)[] = [], csm = { update: vi.fn() };
+  Reflect.set(sky, 'layers', new Set([layer])); Reflect.set(sky, 'layerUndo', undo);
+  Reflect.set(sky, 'camera', camera); Reflect.set(sky, 'csm', csm); Reflect.set(sky, 'texelBias', false);
+  Reflect.set(sky, 'farTick', 1); const time = { value: 42 }; Reflect.set(sky, 'cloudUniforms', { uTime: time });
+  sky.prepareLayers();
+  const prepared = snap(targets, scene); expect(scene.environment).not.toBeNull();
+  expect(deltas).toEqual([0]); expect(time.value).toBe(42); expect(Reflect.get(sky, 'farTick')).toBe(1);
+  sky.prepareLayers(); expect(snap(targets, scene)).toEqual(prepared); expect(undo).toHaveLength(1);
+  // This is exactly the next ordinary update's layer phase, after it restores the page slots.
+  undo.pop()?.(); homeWrite(targets, scene, 0); const leave = layer.apply(0, camera);
+  expect(snap(targets, scene)).toEqual(prepared); leave?.(); expect(snap(targets, scene)).toEqual(baseline);
+  layer.weight = 0; sky.prepareLayers(); expect(scene.environment).toBeNull();
+  layer.dispose();
 });

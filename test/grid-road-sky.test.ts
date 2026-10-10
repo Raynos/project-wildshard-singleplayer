@@ -1,3 +1,4 @@
+import { GridSession } from '../src/game/grid/session';
 // SHARD-PLATFORM G242 (Jake's pick B, "grid dawn"): the road's own dome and key light are a base layer on the page's one
 // sky (src/game/grid/roadSky.ts, src/engine/world/backdropLayer.ts `applyLayers`). Across a cell's edge band the road blends
 // straight into the region's own sky (nothing of the page shows through), and at road weight 0 the page and the region are
@@ -149,7 +150,10 @@ it('the frame lays the road sky on the page sky rig once it is built, and draws 
   grid.frame();
   expect(grid.state().roadSky).toBe(1); // alone on the scene
   expect(scene.getObjectByName('road-sky')?.parent).toBe(scene);
-  built = true; grid.frame();
+  const session: unknown = Object.create(GridSession.prototype);
+  if (!(session instanceof GridSession)) throw new Error('Grid session prototype missing');
+  Reflect.set(session, 'frame', grid);
+  built = true; session.prepareFrame();
   expect(warmed).toBe(1);
   expect(road.weight).toBe(1);
   road.apply(1 / 60, camera);
