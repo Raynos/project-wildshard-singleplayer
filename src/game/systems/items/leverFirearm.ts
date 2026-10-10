@@ -290,7 +290,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     for (let i = 0; i < this.view.tracer.count; i++) this.tracers.push(new HitLine(this.game.scene));
 
     const cam = this.game.camera;
-    cam.add(this.model);
+    this.game.viewmodel.mountOwnPass(this.model, cam); // its own depth clear; staged while its cell prepares (op-hitch41)
     if (!cam.parent) this.game.scene.add(cam);
     this.game.scene.add(this.puffs.points);
 

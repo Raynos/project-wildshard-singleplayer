@@ -26,3 +26,27 @@ it('a sliced build\'s model made after an await joins its construction\'s hidden
   expect(after.parent).toBe(root);
   page.dispose();
 });
+
+it('a camera-space model with its own depth clear waits in its preparing owner\'s stage, unprepared, else mounts on the camera', async () => {
+  const page = new Scope('page'), resident = page.child('resident'), root = new ViewmodelRoot(), camera = new Group();
+  camera.add(root);
+  const stage = root.stage(resident);
+  const ownClear = (): Group => { const group = model(); const clear = new Mesh(new BoxGeometry(), new MeshStandardMaterial()); clear.renderOrder = 999; group.add(clear); return group; };
+  const leave = bindConstructionEnvironment(resident, () => () => undefined);
+  const spear = ownClear(), live = ownClear();
+  try {
+    await Promise.resolve(); // made after an await, like Nalati's spear
+    root.mountOwnPass(spear, camera);
+    withOwner(page, () => { root.mountOwnPass(live, camera); });
+  } finally { leave(); }
+  expect(spear.parent).toBe(stage); expect(live.parent).toBe(camera);
+  stage.visible = true; root.syncClearer();
+  // its own pass stays its own: no shared-queue render order, no transparent copy, no shared clear for it
+  const [part, clear] = spear.children;
+  if (!(part instanceof Mesh) || !(clear instanceof Mesh)) throw new Error('model parts');
+  expect(clear.renderOrder).toBe(999); expect(part.renderOrder).toBe(0);
+  expect(part.material instanceof MeshStandardMaterial && part.material.transparent).toBe(false);
+  expect(root.children.find((child) => child instanceof Mesh)?.visible).toBe(false);
+  page.dispose();
+  expect(stage.parent).toBe(null);
+});

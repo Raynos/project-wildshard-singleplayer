@@ -187,7 +187,7 @@ export class JavelinSpear<P extends JavelinSpearProfile = JavelinSpearProfile> e
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
     this.build();
     const cam = this.game.camera;
-    cam.add(this.model);
+    this.game.viewmodel.mountOwnPass(this.model, cam); // its own depth clear; staged while its cell prepares (op-hitch41)
     if (!cam.parent) this.game.scene.add(cam);
     this.aimBlock = aimRay(() => this.player.sampleAimCommand()); this.blocks.aim = this.aimBlock; this.blocks.vm = this.lookBlock;
   }
