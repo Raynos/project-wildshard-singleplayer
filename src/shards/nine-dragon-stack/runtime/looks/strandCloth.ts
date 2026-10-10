@@ -1,4 +1,4 @@
-import type { ClothSheetRow, ClothBreeze, ClothAttributes, StrandTasselRow } from "../../data/clothTypes";
+import type { ClothSheetRow, ClothBreeze, ClothAttributes, StrandTasselRow } from "../../data/cloth";
 // Strand cloth (SHARD-PLATFORM M3): Verlet sway for small hanging cloth on a held item, as data rows. Points live in the
 // caller's space, pinned to a pivot that rides the item, relaxed against distance constraints a few sub-steps a frame;
 // each frame rewrites one dynamic geometry of fixed topology the caller built (tube rings / a sheet grid, in the order

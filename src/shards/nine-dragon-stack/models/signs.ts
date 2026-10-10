@@ -13,9 +13,8 @@
 import type { Object3D } from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import type { PlacedSign } from '../runtime/signs/signAtlas';
-import type { SignModelParams } from "../data/signModelTypes";
 import { type SignModelLook, registerSignCopies, signParts } from "../runtime/signs/signModel";
-import { SIGN_DEFAULTS, SIGN_MODEL, SIGN_VARIANTS, type SignStyle } from '../data/signs';
+import { SIGN_DEFAULTS, SIGN_MODEL, SIGN_VARIANTS, type SignStyle, type SignModelParams } from '../data/signs';
 import { ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/signs.ts';

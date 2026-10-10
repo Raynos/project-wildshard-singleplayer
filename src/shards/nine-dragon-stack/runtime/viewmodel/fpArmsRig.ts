@@ -1,4 +1,4 @@
-import type { FpArmsRow, Vec3, FpCapsuleEnd } from "../../data/armsTypes";
+import type { FpArmsRow, Vec3, FpCapsuleEnd } from "../../data/arms";
 // fpArmsRig — a baked first-person arm rig played on two channels with its living parts (SHARD-PLATFORM M3, ex Nine
 // Dragon's vm/fpArms.ts). Nothing here knows a shard: the rig's sockets, attach points, cloth colliders, holds and lag are
 // a data row (`FpArmsRow`), the meshes' materials and the parts the GLB can't hold (a knot, a halo) are the caller's hooks.

@@ -1,4 +1,4 @@
-import type { NeonTextLook } from "../../data/neonTypes";
+import type { NeonTextLook } from "../../data/signs";
 import {
   BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, type IUniform, ShaderMaterial,
   type ShaderMaterialParameters, Uint32BufferAttribute, Vector3,

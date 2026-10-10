@@ -5,9 +5,8 @@ import { GRAPPLE_PLAYGROUND } from '../src/shards/nine-dragon-stack/playground/r
 // and flies clear of every other box; the horse track's bends are wider than a gallop's turn and inside the field.
 import { afterAll, describe, expect, it } from 'vitest';
 import { registerPlayground, PLAYGROUND_CARDS, asPlaygroundId, playgroundsFor } from '../src/engine/practice/playground/catalog';
-import type { HookCoursePad as CoursePad } from "../src/shards/nine-dragon-stack/data/courseTypes";
 import { hookCourseHooks, hookCoursePad, hookCoursePadLabelAt, type HookCourseHook as CourseHook } from "../src/shards/nine-dragon-stack/runtime/tools/hookCourse";
-import { GRAPPLE_COURSE } from '../src/shards/nine-dragon-stack/data/grappleCourse';
+import { GRAPPLE_COURSE, type HookCoursePad as CoursePad } from '../src/shards/nine-dragon-stack/data/grappleCourse';
 import { FIELD, HORSE_START, JUMPS, LAP_M, OVAL, POST_OFF, RIDER_START, ovalLine } from '../src/shards/nalati-grasslands/playground/horseCourse';
 import { practiceRoom } from '../src/engine/core/practiceRoom';
 import { placesWithDiscovery } from '../src/engine/quest/view';

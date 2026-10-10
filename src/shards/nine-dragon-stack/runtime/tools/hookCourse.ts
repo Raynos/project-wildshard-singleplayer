@@ -1,4 +1,4 @@
-import type { HookCourseRow, HookCoursePad } from "../../data/courseTypes";
+import type { HookCourseRow, HookCoursePad } from "../../data/grappleCourse";
 // hookCourse — a grapple tool's practice course as a playground (SHARD-PLATFORM M3, ex Nine Dragon's
 // playground/GrapplePlayground.ts). Nothing here knows a shard: the course (the room, the pads, the hooks on their lips, the
 // run, its words and colours) is a data row (`HookCourseRow`), and the tool that bites the hooks is the caller's.

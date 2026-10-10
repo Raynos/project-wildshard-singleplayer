@@ -1,4 +1,4 @@
-import type { SignModelParams, SignModelRow } from "../../data/signModelTypes";
+import type { SignModelParams, SignModelRow } from "../../data/signs";
 // signModel — a sign model over the sign system (SHARD-PLATFORM M3, ex Nine Dragon's models/signs.ts): one model, its
 // variants the sign styles, a copy's params its words, colours and size. `signParts` builds one sign alone, centred on the
 // origin and facing +z (the Model Explorer's specimen): a calligraphy style through the SDF neon (./neonText: its board

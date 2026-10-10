@@ -1,4 +1,4 @@
-import type { SignAtlasLayout, SignLen, SignStep, SignPaint, SignStyleRow } from "../../data/signTypes";
+import type { SignAtlasLayout, SignLen, SignStep, SignPaint, SignStyleRow } from "../../data/signs";
 import {
   BufferGeometry, CanvasTexture, Color, DataTexture, Float32BufferAttribute, LinearFilter, LinearMipmapLinearFilter, RedFormat, SRGBColorSpace,
   type Texture, Uint32BufferAttribute, UnsignedByteType, Vector3,

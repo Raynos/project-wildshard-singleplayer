@@ -1,4 +1,4 @@
-import type { GrappleAimRow } from "../../data/grappleTypes";
+import type { GrappleAimRow } from "../../data/grapple";
 // grappleAim — a grapple tool's aim, line and zip view (SHARD-PLATFORM M3, ex Nine Dragon's grapple/FeiZhua.ts). Nothing
 // here knows a shard: the law (where a hook may be seen, where a zip lands, how the capsule moves) is the caller's, handed
 // in as `GrappleAimRules`; the words, icons, colours, styles, system ids and mesh names are a data row (`GrappleAimRow`).
