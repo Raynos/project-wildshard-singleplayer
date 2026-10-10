@@ -135,8 +135,20 @@ function millDrum(): ColliderDesc {
   }
   return { kind: 'hull', x: MILL.x, y: DECK, z: MILL.z, points, surface: 'stone' };
 }
-/** The world, with SF49-g's four Rising Islet entries (G183; the only way in since G194). */
-export function buildWorld(ctx: ShardContext): BuiltWorld {
+/** A fresh timer task of `ctx`'s scope: the world build's pause between pieces, and what follows it (the meadow) starts
+ *  on one too (op-hitch41). Rejects once the scope has closed: an unloaded cell stops building. */
+export function nextBuildTask(ctx: ShardContext): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (ctx.scope.timeout(0, resolve) === 0) reject(new Error('Sky Reach was unloaded during its world build'));
+  });
+}
+/**
+ * The world, with SF49-g's four Rising Islet entries (G183; the only way in since G194), built a piece (or a few small
+ * ones) per task (op-hitch41: a grid cell builds it on the road, in play, where the whole build was one 366 ms task on
+ * the iOS Simulator). The same pieces in the same order, the same seeded draws.
+ */
+export async function buildWorld(ctx: ShardContext): Promise<BuiltWorld> {
+  const pause = (): Promise<void> => nextBuildTask(ctx);
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
     keeper: STRINGS.keeper, ruin: STRINGS.ruin, step: STRINGS.step, crown: STRINGS.crown };
@@ -153,6 +165,7 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
       editShader(shader, ISLE_CUT_EDITS);
     }, { key: (prior) => `${prior}|far.isle-cut` });
     ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? (gate ? STRINGS.gateIsle : isle.id), category: 'ground', file: FILE, object: mesh, colliders: islandColliders(isle), surface: 'grass' });
+    await pause();
   }
   // the grassy rises (E399: proposal B's hill on the bridge's axis, mockup D's look down into the arena), walkable on their hulls
   // (SF72: built offline, generators/knoll.ts → baked/knolls.glb; each collided by its rows' hull)
@@ -162,6 +175,7 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
     const knoll = knolls.kinds.get(k.id) ?? new Group(); knoll.name = `far.knoll.${k.id}`; root.add(knoll);
     ctx.piece({ id: `far.${k.id}.knoll`, name: names[isle.id] ?? isle.id, category: 'ground', file: FILE, object: knoll, colliders: [hull], surface: 'grass' });
   }
+  await pause();
   const pineAt: [number, number, number, number][] = [];
   for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) pineAt.push([isle.x + dx, isle.y, isle.z + dz, s]);
   // a pine on each gate isle beside the chain posts (the board's tree over the islet)
@@ -174,11 +188,13 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
   // G99: in a grid cell only the isles inside the 500 m cube (ctx.cube); standalone every one
   const skyIsles = skyIslesIn(ctx.cube), half = ctx.cube?.half ?? null;
   const skyHd = skyIsleModels(skyIsles); skyGroup.add(skyHd.group);
+  await pause();
   // the playable islands' keels in the same painted rock (E399 round 2, seat C: 'under the bridge a flat sage-green cliff
   // wall'): a model under each island, its turf 1.8 m under the walkable top (its turf mounds poked up through the arena floor at 0.7 m), so
   // the rock below are the textured ones; the code top and its colliders are unchanged, nothing here collides
   const keels = skyIsleModels(keelIsles(ISLES), true);
   keels.group.name = 'far.isle-keels'; skyGroup.add(keels.group);
+  await pause();
   for (const s of SKY_ISLES) {
     // an isle out of the cube still draws its pines' numbers, so the seeded stream (and every isle inside) matches standalone
     const kept = half === null || inCube(s, half), code = kept && skyHd.fallback.includes(s);
@@ -189,6 +205,7 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
       // on a model, the fir stands on its turf (a little sunk), or not at all where the turf is not
       const y = code ? s.y : skyHd.topAt(s, x, z); if (y !== null) pineAt.push([x, code ? y : y - 0.2, z, size]);
     }
+    if (code) await pause();
   }
   root.add(skyGroup);
   ctx.piece({ id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE, object: skyGroup });
@@ -196,29 +213,35 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
   // the modelled trees (top-10 row 2) where they loaded, else the card-branch firs (E392), else the code pines
   const sheet = firSheet(), forest = trees(pineAt) ?? (sheet !== null ? firs(pineAt, sheet) : pines(pineAt)); root.add(forest);
   ctx.piece({ id: 'far.pines', name: STRINGS.pines, category: 'props', file: FILE, object: forest });
+  await pause();
   // the meadow and the roots (loop 2): grass clumps, flowers, stones, hanging roots; no colliders
   const dress = dressIslands(); root.add(dress.group);
   ctx.piece({ id: 'far.dressing', name: STRINGS.meadow, category: 'props', file: FILE, object: dress.group });
+  await pause();
   // the skyline: decorative 3-D islands and waterfalls out past the archipelago, and the windmill isle's fall
   const sky = skyline(ISLES, (isle, a) => skyHd.lipAt(isle, a), skyIsles); root.add(sky);
+  await pause();
 
   const rope = flat(PALETTE.rope);
   // faint glass while you walk (E399, the council: 'translucent rectangles' over the windmill isle from the spawn): the glowing
   // frame shows the path; the plugin fills the glass in while you ride
   const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.25, transparent: true, opacity: 0.16, depthWrite: false, flatShading: false, roughness: 0.15, metalness: 0.1 });
   // SF49-g (G183): each gate isle's rope bridge to its island is one more rope span of the same builder
-  const bridges = [...SPANS, ...RISING_ISLETS.map((entry) => entry.bridge)].map((span): Piece => {
+  const bridges: Piece[] = [];
+  for (const span of [...SPANS, ...RISING_ISLETS.map((entry) => entry.bridge)]) {
     const hover = span.kind === 'hover', length = spanLength(span), bridge = hover ? hoverBridge(length, span.width, hoverDeck) : ropeBridge(span.id, rope);
     bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.set(spanPitch(span), spanYaw(span), 0, 'YXZ');
     const piece: Piece = { id: span.id, name: hover ? STRINGS.hover : STRINGS.rope, category: 'buildings', file: FILE, object: bridge,
       colliders: hover ? [deckCollider(span)] : saggedColliders(span), surface: 'wood' };
     if (hover) piece.mode = 'board'; // SF34: a hover-only deck, solid only under the board
-    return piece;
-  });
+    bridges.push(piece);
+    await pause();
+  }
   // SF49-g (G183): the Rising Islets' static parts (the road lips, the chain posts); the islets move in the plugin's movers
   // G200: played alone (no road beyond the lips) each lip ends at a railed timber sky dock with a beacon; in a grid cell the
   // road socket continues there, so no dock
   for (const piece of [...bridges, ...isletPieces(), ...skyDocksFor(ctx.cube)]) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
+  await pause();
 
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
   const ramp = hoverBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck);
@@ -226,6 +249,7 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
   // the wind column: a spiral of streaks and leaves up the ramp (loop 3; the plugin turns it)
   const wind = updraftFx(UPDRAFT_FX, new Vector3(UPDRAFT.x0, UPDRAFT.y + 2.2, UPDRAFT.z0), new Vector3(UPDRAFT.x1, UPDRAFT.y1 + 2.2, UPDRAFT.z1));
   for (const o of wind.objects) root.add(o); wind.update(0);
+  await pause();
   ctx.piece({ id: 'far.updraft', name: STRINGS.updraft, category: 'buildings', file: FILE, object: ramp, colliders: [updraftCollider()], surface: 'wood', mode: 'board' });
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
@@ -235,10 +259,12 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
   ctx.piece({ id: FALLEN_BRIDGE.id, name: STRINGS.fallen, category: 'buildings', file: FILE, object: fallen,
     colliders: [deckCollider(FALLEN_BRIDGE), ...railColliders(FALLEN_BRIDGE)], surface: 'wood', active: () => state.raised });
 
+  await pause();
   const mill = windmill(); mill.group.position.set(MILL.x, 30, MILL.z); mill.group.rotation.y = MILL.yaw; root.add(mill.group);
   ctx.piece({ id: 'far.windmill', name: STRINGS.mill, category: 'buildings', file: FILE, object: mill.group,
     colliders: [boxDesc({ x: MILL.x, z: MILL.z, hw: 2.3, hd: 2.3, rot: -MILL.yaw, yBottom: 30, yTop: 39 }, 'stone'), millDrum()], surface: 'stone' });
 
+  await pause();
   const drum = winch(); drum.position.set(WINCH.x, WINCH.y, WINCH.z); root.add(drum);
   ctx.piece({ id: 'far.winch', name: STRINGS.winch, category: 'props', file: FILE, object: drum,
     colliders: [boxDesc({ x: WINCH.x, z: WINCH.z, hw: 0.8, hd: 0.2, rot: 0, yBottom: WINCH.y, yTop: WINCH.y + 1.2 }, 'wood')], surface: 'wood' });
@@ -255,16 +281,20 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
   const notesAt = new Vector3(NOTES.x, NOTES.y + 1.3, NOTES.z);
   const notes: Interactable = { label: STRINGS.readNotes, position: notesAt, radius: 2.6, onInteract: () => undefined };
 
-  const vanes = VANES.map((v) => {
+  await pause();
+  const vanes: BuiltWorld['vanes'][number][] = [];
+  for (const v of VANES) {
     const built = vane(); built.group.position.set(v.x, v.y, v.z); root.add(built.group);
     ctx.piece({ id: `far.vane.${v.id}`, name: STRINGS.vane, category: 'props', file: FILE, object: built.group,
       colliders: vaneColliders(v.x, v.z, v.y), surface: 'wood' });
-    return { id: v.id, at: new Vector3(v.x, v.y + 3.3, v.z), rotor: built.rotor };
-  });
+    vanes.push({ id: v.id, at: new Vector3(v.x, v.y + 3.3, v.z), rotor: built.rotor });
+    await pause();
+  }
 
   // the arena (loop 4, mockup D): standing stones with wind glyphs, pennant ropes, the compass-rose dais
   // (SF72: built offline, generators/crown.ts → baked/crown.glb; its colliders, the dais and each stone, are the rows')
   const arena = crownArena(); root.add(arena.group);
+  await pause();
   ctx.piece({ id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, object: arena.group, surface: 'stone', colliders: arena.colliders });
   // the winch house on the high step (loop 5): the updraft view's landmark
   // (SF72: built offline, generators/winchHouse.ts → baked/winch-house.glb; drawn from the bake)
@@ -275,9 +305,11 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
   const nest = skyBakedPiece('roost'); nest.root.name = 'far.roost.nest'; root.add(nest.root);
   ctx.piece({ id: 'far.roost.nest', name: STRINGS.roost, category: 'props', file: FILE, object: nest.root, colliders: nest.colliders, surface: 'wood' });
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
+  await pause();
   const stormTex = seaTexture(); ctx.scope.own(stormTex);
   const storm = crownStorm(SUN_DIR, stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
 
+  await pause();
   const islets = isletViews();
   root.add(islets.group);
   ctx.root.add(root); ownPrimitives(root, ctx.scope);
