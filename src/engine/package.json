@@ -192,6 +192,7 @@
     "./player/Skins": "./player/Skins.ts",
     "./player/TouchControls": "./player/TouchControls.ts",
     "./player/WeaponPickup": "./player/WeaponPickup.ts",
+    "./player/modes": "./player/modes.ts",
     "./player/bladeGlow": "./player/bladeGlow.ts",
     "./player/dodge": "./player/dodge.ts",
     "./player/nalatiArms": "./player/nalatiArms.ts",

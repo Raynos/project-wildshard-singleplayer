@@ -19,6 +19,7 @@ import type { Animal } from '../entities/AnimalView';
 import { app } from '../app/runtime';
 import { currentOwner, enteredOwner } from '../app/ownership';
 import type { Scope } from '../app/scope';
+import type { PlayerMode } from '../combat/health';
 import { labelObjectTree } from '../render/gpuLabels';
 
 interface Vec3 { x: number; y: number; z: number }
@@ -202,6 +203,11 @@ export interface Piece {
   followRotation?: boolean;
   /** Collide only while this says so (a door mid-swing is let through, never pins anyone). */
   active?: () => boolean;
+  /**
+   * Collide only in this player mode (SF34: a hover-only deck is `mode: 'board'`, solid under the hoverboard and air on
+   * foot): `add` turns it into `active`, read from the level's player (`app.player.mode`). Never both with `active`.
+   */
+  mode?: PlayerMode;
   /** the model's catalog entry (`models()`), set only by `place` / `listModel` (src/engine/models/): check-models rule 6 fails any other */
   model?: ModelEntry;
 }
@@ -265,6 +271,11 @@ export class WorldRegistry {
 
   /** Register a built thing: every listener sees it now; later listeners see it on subscribe. */
   add<P extends Piece>(piece: P): P {
+    const mode = piece.mode;
+    if (mode !== undefined) {
+      if (piece.active !== undefined) throw new Error(`Piece ${piece.id} sets both mode and active`);
+      piece.active = () => app.player?.mode === mode;
+    }
     if (piece.object) labelObjectTree(piece.object, piece.id, `${piece.file}#${piece.name}`);
     this.pieces.push(piece);
     this.untilOwnerOrRetire(() => { const i = this.pieces.indexOf(piece); if (i !== -1) this.pieces.splice(i, 1); });

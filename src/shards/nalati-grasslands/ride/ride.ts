@@ -3,6 +3,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager, AnimalSound } from '@wildshard/engine/entities/AnimalManager';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { Player } from '@wildshard/engine/player/Player';
+import { registerPlayerMode } from '@wildshard/sdk/playerModes';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -92,6 +93,8 @@ export function wireRide(ctx: RideCtx): Ride {
   });
   for (const h of ctx.wildlife.campHorses) mount.addMountable(h, 'Camp horse');
   const hud = new RideHUD(mount, ctx.camera, ctx.ctx);
+  // SF34: the saddle is the platform's ride mode, shown on RideHUD's band (Mount enters and exits it)
+  if (ctx.ctx !== undefined) registerPlayerMode({ player: ctx.player }, { id: 'ride', hud: 'ride' }, ctx.ctx.scope);
   const taming = new Taming({
     ...(ctx.persistence === undefined ? {} : { bond: ctx.persistence.bond }),
     player: ctx.player, mount, animals: ctx.animals, hud, herds: () => ctx.wildlife.herds, rest,

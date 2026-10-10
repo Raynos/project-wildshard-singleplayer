@@ -86,7 +86,8 @@ export class SkyReachPlugin extends ShardPlugin {
   readonly player = new Vector3();
   built: BuiltWorld | null = null; fan: WarFan | null = null; quest: QuestState | null = null; boss: StormRocBoss | null = null;
   rays: Animal[] = []; roostRays: Animal[] = []; goats: Animal[] = []; wisps: Animal[] = []; roc: Animal | null = null;
-  /** Is the player riding the hoverboard? Hover decks and the updraft collide only then (ENGINE §5 `app.player.mode`). */
+  /** Is the player riding the hoverboard? The fan stows and the decks glow then; the hover decks and the updraft are
+   *  `mode: 'board'` pieces, which collide only then (SF34, ENGINE §5 `app.player.mode`). */
   private board: () => boolean = () => false;
   flags: Flags | null = null;
   /** Sets the quest as a player has it at the crown (capture staging, `stage`). */
@@ -121,7 +122,7 @@ export class SkyReachPlugin extends ShardPlugin {
     setMillTextures({ stone: millStone, canvas: millCanvas, ivy: millIvy });
     setFirSheet(branches);
     setIsleTextures({ rock, meadow: meadowTex });
-    this.built = buildWorld(ctx, () => this.board());
+    this.built = buildWorld(ctx);
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
     const field = meadow(SUN_DIR, ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades, ISLES, heroStoneDiscs());

@@ -132,7 +132,7 @@ function millDrum(): ColliderDesc {
   return { kind: 'hull', x: MILL.x, y: DECK, z: MILL.z, points, surface: 'stone' };
 }
 /** The world, with SF49-g's four Rising Islet entries (G183; the only way in since G194). */
-export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorld {
+export function buildWorld(ctx: ShardContext): BuiltWorld {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
     keeper: STRINGS.keeper, ruin: STRINGS.ruin, step: STRINGS.step, crown: STRINGS.crown };
@@ -210,7 +210,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
     bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.set(spanPitch(span), spanYaw(span), 0, 'YXZ');
     const piece: Piece = { id: span.id, name: hover ? STRINGS.hover : STRINGS.rope, category: 'buildings', file: FILE, object: bridge,
       colliders: hover ? [deckCollider(span)] : saggedColliders(span), surface: 'wood' };
-    if (hover) piece.active = isBoard;
+    if (hover) piece.mode = 'board'; // SF34: a hover-only deck, solid only under the board
     return piece;
   });
   // SF49-g (G183): the Rising Islets' static parts (the road lips, the chain posts); the islets move in the plugin's movers
@@ -224,7 +224,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   // the wind column: a spiral of streaks and leaves up the ramp (loop 3; the plugin turns it)
   const wind = updraftFx(new Vector3(UPDRAFT.x0, UPDRAFT.y + 2.2, UPDRAFT.z0), new Vector3(UPDRAFT.x1, UPDRAFT.y1 + 2.2, UPDRAFT.z1));
   for (const o of wind.objects) root.add(o); wind.update(0);
-  ctx.piece({ id: 'far.updraft', name: STRINGS.updraft, category: 'buildings', file: FILE, object: ramp, colliders: [updraftCollider()], surface: 'wood', active: isBoard });
+  ctx.piece({ id: 'far.updraft', name: STRINGS.updraft, category: 'buildings', file: FILE, object: ramp, colliders: [updraftCollider()], surface: 'wood', mode: 'board' });
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
   const state = { raised: false, raising: false };

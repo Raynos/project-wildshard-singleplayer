@@ -17,6 +17,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { inState } from '@wildshard/engine/app/systems';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Tool } from '@wildshard/engine/combat/Tool';
+import { registerPlayerMode } from '@wildshard/sdk/playerModes';
 import type { EquipmentHost } from '@wildshard/engine/combat/view/EquipmentHost';
 import type { TouchRelabel } from '@wildshard/engine/ui/hudSlots';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -165,8 +166,8 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
   shard.hud.pin(() => chip.position(), chip.el);
   const input = shard.app.input;
   const context = { ...GRAPPLE_CONTEXT, touch: { relabel: {} } };
-  input.register(context, scope);
-  let contextOn = false;
+  // SF34: Fei Zhua is the platform's grapple mode: its context, its LOCK disc and its zip (the fixed step's traversal)
+  const mode = registerPlayerMode({ player: ctx.player, events: shard.app.events, input }, { id: 'grapple', hud: 'lock', context, traverse: zip }, scope);
   let restLabel: (() => void) | undefined;
   const enabled = (): boolean => toolEnabled() && ctx.enabled() && inState('play', 'practice', 'playground')(shard.app);
   // ── the reach cache: per hook, its screen spot this frame (cheap), and its sight + landing from the round robin ──
@@ -247,8 +248,7 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
     if (typeof restLabel === 'function') restLabel();
     restLabel = undefined;
     const active = lock !== null && lock !== HINT_REST;
-    if (active && !contextOn) { input.push('grapple', scope); contextOn = true; }
-    if (!active && contextOn) { input.pop('grapple'); contextOn = false; }
+    mode.context(active);
     const jump = lock === HINT_LOCKED ? HINT_ZIP : lock === HINT_ARMED ? HINT_FIRE : null;
     context.touch.relabel = { ...(lock === null ? {} : { lock }), ...(jump === null ? {} : { jump }) };
     input.repaint();
@@ -300,11 +300,11 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
     if (input.pressed('lock') && lockPress()) input.consume('lock');
     if (input.pressed('jump') && jumpPress()) input.consume('jump');
   } }, scope);
-  shard.app.events.answer('player.traversal', (dt) => {
-    if (typeof dt !== 'number') return dt;
+  /** The grapple mode's traversal: while the claw flies, reels or docks, it moves the capsule on the fixed step. */
+  function zip(dt: number): boolean {
     if (!enabled() || sim.phase === 'idle') return false;
     return traverseFeats(sim, dt, fact);
-  }, scope);
+  }
 
   shard.app.addSystem({ id: 'fei-zhua.rope', phase: 'fixed.post', run: (dt) => {
     if (sim.phase === 'idle') return;

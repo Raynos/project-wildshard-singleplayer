@@ -6,6 +6,7 @@ import type { InputService } from '@wildshard/engine/input/InputService';
 import type { RideCommandSample } from '@wildshard/engine/input/commands';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { lockOn } from '@wildshard/engine/player/AimTargets';
+import { enterPlayerMode, exitPlayerMode } from '@wildshard/sdk/playerModes';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import { inChunk, waterLevel } from '@wildshard/engine/world/Heightfield';
@@ -306,7 +307,7 @@ export class Mount extends MountedBody {
     }
     this.land();
     this.eyeY = this.feet.y;
-    p.ride = this;
+    enterPlayerMode(p, 'ride', this); // SF34: the platform's ride mode hands the horse the frame
     p.setBodyEnabled(false);   // the on-foot capsule leaves the world while you ride (the horse is the body; Player gates it on `ride`)
     wildEnv.playerMounted = true;
     this.onMountChange?.(a);
@@ -334,7 +335,7 @@ export class Mount extends MountedBody {
     p.position.set(x, Math.max(heightAt(x, z), this.onDeck ? this.feet.y : -Infinity), z);
     p.velocity.set(0, 0, 0);
     p.onGround = true;
-    p.ride = null;
+    exitPlayerMode(p, 'ride');
     p.setBodyEnabled(true);
     this.horse = null; p.mountedOn = null;
     this.breaking = false; this.breakRoll = 0; this.breakShake = 0;
@@ -399,7 +400,7 @@ export class Mount extends MountedBody {
 
   drive(dt: number): void {
     const a = this.horse, p = this.player;
-    if (a === null) { p.ride = null; return; }
+    if (a === null) { exitPlayerMode(p, 'ride'); return; }
     if (!a.alive || a.hidden) { this.dismount(true); return; }
     // ── the look the player gave since last frame (mouse, a LOOK drag, the aim assist): it restarts the free-look clock ──
     if (Math.abs(angDiff(p.yaw, this.camYaw)) > 1e-4 || Math.abs(p.pitch - this.camPitch) > 1e-4) this.lookIdle = 0;
