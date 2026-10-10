@@ -5,8 +5,8 @@ import { isMesh, viewmodelMaterial, whiteColors } from '@wildshard/engine/combat
 import type { Game } from '@wildshard/engine/core/Game';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import type { ShardContext } from "../../plugin/context";
-import { paintedPrimitives, type PaintedPrimitiveRow } from './mergedPrimitives';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { paintedPrimitives, type PaintedPrimitiveRow } from '@wildshard/game/systems/kit/mergedPrimitives';
 
 /**
  * A first-person tool held through a timed beat (SHARD-PLATFORM M3, the kit system): a gloved hand holding a knife, a

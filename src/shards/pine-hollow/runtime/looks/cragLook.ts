@@ -2,7 +2,7 @@
 // standard material (world/crags.ts `cragMaterial` applies them through @wildshard/sdk/looks/shaderEdits inside its
 // patch), the cave shaft's program and the cave's look near its mouth (CAVE_LOOK: @wildshard/sdk/kit/caveInterior). The vertex `cdata` = (AO, sun reach, wet, rock): AO multiplies the indirect light,
 // sun reach the directional lights only; `ctint` = (tint shade, tint path / face skin).
-import type { CaveLookRow } from '@wildshard/game/systems/kit/caveInterior';
+import type { CaveLookRow } from '../kit/caveInterior';
 import type { ShaderEditRow } from '@wildshard/game/systems/looks/shaderEdits';
 
 /** the granite's albedo lift (E322 F-L1) */

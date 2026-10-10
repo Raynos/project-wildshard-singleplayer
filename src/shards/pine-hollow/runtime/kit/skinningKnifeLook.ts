@@ -1,6 +1,6 @@
 // Pine Hollow's skinning knife as data (SHARD-PLATFORM M3, the kit system's held tool: @wildshard/sdk/kit/heldTool;
 // models/skinningKnife.ts holds it through the skinning beat).
-import type { HeldToolRow } from '@wildshard/sdk/kit/heldTool';
+import type { HeldToolRow } from './heldTool';
 
 /**
  * The skinning beat's first-person knife (PINE-HOLLOW-REMASTER §5 Polish): a gloved right hand holding a drop-point

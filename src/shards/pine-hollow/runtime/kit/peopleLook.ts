@@ -1,5 +1,5 @@
-import type { PrimitivePartRow } from '@wildshard/sdk/kit/primitiveParts';
-import type { StandInPersonRow } from '@wildshard/sdk/npc/standInPerson';
+import type { PrimitivePartRow } from './primitiveParts';
+import type { StandInPersonRow } from '@wildshard/game/systems/npc/standInPerson';
 
 /**
  * The hamlet's stand-in people (PINE-HOLLOW-REMASTER PH-C1 / C6) as primitive parts in add order (@wildshard/sdk/kit/primitiveParts,
@@ -109,7 +109,7 @@ export const NPC_TRADER_BODY: readonly PrimitivePartRow[] = [
 ];
 
 /**
- * The people's numbers (@wildshard/sdk/npc/standInPerson): a 0.56 m square collider from 0.3 m under the feet to 1.8 m
+ * The people's numbers (@wildshard/game/systems/npc/standInPerson): a 0.56 m square collider from 0.3 m under the feet to 1.8 m
  * over them, the talk prompt at 1.6 m, drawn inside 140 m and casting a shadow inside 45 m, turning to face you inside
  * 9 m; the stand-in walks at 0.72 m/s, 0.72 m a cycle; the lantern's flame a small over-bright sphere; the ranger points
  * toward the old-growth 5.5 – 8 s into every 9 s of talk; the stand-in breathes and sways as it talks.

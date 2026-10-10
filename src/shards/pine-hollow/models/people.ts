@@ -12,10 +12,10 @@ import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
  */
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
-import { buildPrimitiveParts, type PrimitivePartRow } from '@wildshard/sdk/kit/primitiveParts';
+import { buildPrimitiveParts, type PrimitivePartRow } from '../runtime/kit/primitiveParts';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { standInPerson, type StandInPerson } from '@wildshard/sdk/npc/standInPerson';
-import { NPC_FIGURE, NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } from '../data/peopleLook';
+import { NPC_FIGURE, NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } from '../runtime/kit/peopleLook';
 import { KINGS_CLEARING } from '../layout';
 import { npcModels, type NpcModels } from '../quest/npcModels';
 import { MILLER, RANGER, TRADER } from '../quest/wardensHollow';

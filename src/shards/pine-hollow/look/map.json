@@ -81,6 +81,7 @@
     "world",
     "generators",
     "models",
-    "runtime/looks"
+    "runtime/looks",
+    "runtime/kit"
   ]
 }

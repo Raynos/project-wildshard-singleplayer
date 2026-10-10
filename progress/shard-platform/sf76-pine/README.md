@@ -28,3 +28,10 @@ move with their trusted runtime types. Pin `2841ba47cd1c3c9d2d2afc8188e1ec4529ce
 actual physics payload and map image remain exact. Seventeen focused
 weapon/cache/loadout checks, root strict and touched lint pass; 46 existing
 performance-debt occurrences transfer through immutable source hashes.
+
+Five Pine-only kit implementations return verbatim to `runtime/kit/`;
+the five SDK facades are deleted. Pin `00cf64f3aaf131943711ecddcab22921a7dd1b66`
+keeps the actual physics gameplay payload and map pixels byte-identical.
+Ten crag checks, root strict and touched lint pass. Thirty-one existing
+performance sites transfer by source hash; one existing sandbox site
+(`heldTool.ts`) is listed in the coordinator approval rows.

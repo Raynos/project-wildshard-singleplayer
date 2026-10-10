@@ -5,7 +5,7 @@ import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/en
 import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { hullSpots } from '@wildshard/sdk/kit/hullSpots';
+import { hullSpots } from '../runtime/kit/hullSpots';
 import { buildPrimitive, mergePrimitives, standardMaterial } from '@wildshard/sdk/kit/mergedPrimitives';
 import { KING_COAT, KING_DRESS, KING_OWN_RIG } from '../data/antlerKingLook';
 import { KING_BONES, animateKing, observeKingPose } from '../combat/kingRig';

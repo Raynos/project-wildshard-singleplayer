@@ -3181,6 +3181,126 @@
     "src/shards/driftwood-isle/runtime/viewmodel/toonArms.ts:unbounded-loop:e977d76633aebbf38938b88e26a8d1458a76fa97f89a1f672454f44485dbaa3f": {
       "count": 1,
       "row": "SF46"
+    },
+    "src/shards/pine-hollow/runtime/kit/caveInterior.ts:frame-allocation:e43f3c07f77d996f7a27fda52fe0478b84d2c5638b731eee9e4abd2a9094618c": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/caveInterior.ts:unbounded-loop:12872fa3eb7c83344e72035f75a013407fcb403f9beb3614a23976f2ef551adc": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/caveInterior.ts:unbounded-loop:9b954b9f2bdd71fa00f33a0bd4f104a843f962d68b59606b3914291f1d4d606f": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/caveInterior.ts:unbounded-loop:00138ac5a1665f9d4517a07b579bc7921dbbe34dbf0b10936c126fd9eb20db83": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/caveInterior.ts:unbounded-loop:12ce59440953e06b0b3155e9bc2a10647b3e09838bd3bb2533887e401fea9691": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/caveInterior.ts:unbounded-loop:d9f84823309a322b61dae18553170eb57a46e06a85516fbbaee7ce454e8f9387": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/caveInterior.ts:unbounded-loop:d7ae909ee9c00cce71980cdc94026f8ccfaab529150c9e1144668357f18cc36c": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/caveInterior.ts:unbounded-loop:1baedc34370bde9e0bffd876628490239325aa3fd9b41e6e2cb301d994047c06": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/caveInterior.ts:unbounded-loop:b676da9520be84c2ea79dae001173a0993a76cbd1d52fafd28c63936e36bacfb": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/glbNodes.ts:unbounded-loop:c2ad6f5131e31505feb855e2c24e1e8fc9bebf100ee9cb322672f5a8f719f719": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/glbNodes.ts:unbounded-loop:7e4c45c13d0e8ecae6c0ef5b6701a9a9a2a0b6fb75eed92239e12b1201b12bb5": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/glbNodes.ts:raw-render:20a18598e801a55e2c2ff17aad6ad442cd246ccfcbbfdab207b419813a5bed61": {
+      "count": 2,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/glbNodes.ts:unbounded-loop:053ca3f3248c2eef57844c1ed023105a324cb1b6f6085c48a223056199575b7c": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:frame-allocation:31cc261244b716b83b38139b8f62388424af4a0d510ad60e301216691df5d5a4": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:frame-allocation:ed41c49791cf33831ed7976f612cc37344af384dbb98bfe6285afb8333ceda4a": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:frame-allocation:75a740b915abaa3639fe36ada2d0b4c4b97d8a25fc7a1fd64d36beb95c39b9d1": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:unbounded-loop:6471531a86e39ac8c2ccc90f12e414207298482184d1bf90258983d3de18370b": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:unbounded-loop:f54e7c2364b0fbbb40de87e3382ffaf4832d8db736ba4d0534f98bdcc1922b6d": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:raw-render:37de407479eab2fb53f78a51a1a54eec96688320644c6949e20c0f81ee958ad6": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:unbounded-loop:91082d4e153986813c61c23acc9de4daa8441e28559d87c44a023d6c139ccbce": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:unbounded-loop:2b6de3cbec4c6b7bea3d369ef380de5ecdc82cf1ed99bf317057a005ac9c6f7e": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:raw-render:c39bf1fcb0d20122b496c0873be24c82e78d542cb8f70ca747eadcf06262d189": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:frame-allocation:894828686260a1386cceb55c646939dbbe5f45317db4a68f8ac5368a36b158a7": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:unbounded-loop:84bb5d33c9926c98069069df61daf0cc1728c6605710adbc97fc77edfd6e33eb": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/heldTool.ts:dom:03d7519b1a2130338258733b6f773e9fd79655efef24e24134697be08ae35ec3": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/hullSpots.ts:unbounded-loop:a477cdc3150267ac93010f03478b15b53d201c0622cd4df10704e85b3bb1bcf9": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/hullSpots.ts:unbounded-loop:79948c2249393c74f418cf91c84b94d2cb9d71a7517663030d0ba01a649e9232": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/primitiveParts.ts:unbounded-loop:91897bf7a60a0c57066e69b5798624199b3c30f45d34049ed1dab2c84dbec157": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/primitiveParts.ts:unbounded-loop:474d5a0a4c9623fad3f66a27068293e7e46e739b4b5e890713b67a82faa615b6": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/kit/primitiveParts.ts:unbounded-loop:d39a22472352acf970d335f48d880e0f7d4238c5b14ce87f36b35b37f647b76b": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
     }
   }
 }

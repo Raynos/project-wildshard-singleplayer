@@ -18,8 +18,8 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { Game } from '@wildshard/engine/core/Game';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { HeldTool, heldToolSpecimen, type HeldToolRow } from '@wildshard/sdk/kit/heldTool';
-import { KNIFE_LOOK } from '../data/skinningKnifeLook';
+import { HeldTool, heldToolSpecimen, type HeldToolRow } from '../runtime/kit/heldTool';
+import { KNIFE_LOOK } from '../runtime/kit/skinningKnifeLook';
 import { BEAT } from '../life/lifeMath';
 
 /** the Blender knife's file */
