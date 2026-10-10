@@ -67,6 +67,16 @@ export function parseCell(v: unknown): string | null {
   return CELL_RE.test(s) && s !== CENTRE ? s : null;
 }
 
+/** a plain form post goes back to the page it came from (one of the site's origins), at `#hash` */
+export function backToSite(req: Request, hash: string): Response {
+  let origin = SITE_ORIGINS[0] ?? 'https://wildshard.io';
+  try {
+    const from = new URL(req.headers.get('referer') ?? '').origin;
+    if (allowedOrigins().has(from)) origin = from;
+  } catch { /* no or bad referer: the main site */ }
+  return new Response(null, { status: 303, headers: { location: `${origin}/#${hash}`, 'cache-control': 'no-store' } });
+}
+
 export function OPTIONS(req: Request): Response {
   return new Response(null, { status: 204, headers: corsHeaders(req) });
 }
@@ -76,13 +86,17 @@ export async function POST(req: Request): Promise<Response> {
   if (declared > MAX_BODY_BYTES) return json(req, 413, { error: 'body too large' });
   const raw = await req.text();
   if (Buffer.byteLength(raw) > MAX_BODY_BYTES) return json(req, 413, { error: 'body too large' });
-  const body = parseJson(raw);
+  // the site's form posts JSON from its script, or a plain urlencoded form when the script didn't run; a plain post is
+  // answered with a redirect back to the page (#thanks, or #author to try again)
+  const plainForm = (req.headers.get('content-type') ?? '').includes('application/x-www-form-urlencoded');
+  const reply = (status: number, payload: Record<string, unknown>): Response => (plainForm ? backToSite(req, status === 200 ? 'thanks' : 'author') : json(req, status, payload));
+  const body = plainForm ? Object.fromEntries(new URLSearchParams(raw)) : parseJson(raw);
   if (!isRecord(body)) return json(req, 400, { error: 'bad json' });
-  if (rateLimited(clientIp(req), Date.now(), RATE_LIMIT_PER_MIN)) return json(req, 429, { error: 'slow down' });
+  if (rateLimited(clientIp(req), Date.now(), RATE_LIMIT_PER_MIN)) return reply(429, { error: 'slow down' });
   // the honeypot: answer as if it worked, store nothing
-  if (typeof body['website'] === 'string' && body['website'] !== '') return json(req, 200, { ok: true });
+  if (typeof body['website'] === 'string' && body['website'] !== '') return reply(200, { ok: true });
   const email = parseEmail(body['email']);
-  if (email === null) return json(req, 400, { error: 'bad email' });
+  if (email === null) return reply(400, { error: 'bad email' });
   const id = newId();
   const entry: WaitlistEntry = {
     id,
@@ -92,7 +106,7 @@ export async function POST(req: Request): Promise<Response> {
     receivedAt: new Date().toISOString(),
   };
   await blobStore().put(`${PREFIX}${id}.json`, JSON.stringify(entry, null, 2), { access: 'private', addRandomSuffix: false, contentType: 'application/json' });
-  return json(req, 200, { ok: true });
+  return reply(200, { ok: true });
 }
 
 async function readEntry(pathname: string): Promise<WaitlistEntry | null> {

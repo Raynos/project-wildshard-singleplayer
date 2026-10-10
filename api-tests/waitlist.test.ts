@@ -71,6 +71,22 @@ describe('POST', () => {
   });
 });
 
+describe('a plain form post (the site without its script)', () => {
+  const form = (fields: Record<string, string>, referer = 'https://wildshard.io/'): Request =>
+    new Request('https://x.test/api/waitlist', { method: 'POST', body: new URLSearchParams(fields).toString(), headers: { 'content-type': 'application/x-www-form-urlencoded', referer, 'x-forwarded-for': '9.9.9.9' } });
+  it('stores the signup and sends the browser back to #thanks', async () => {
+    const res = await POST(form({ email: 'a@b.co', build: 'a fjord', cell: 'D4', website: '' }));
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe('https://wildshard.io/#thanks');
+    expect([...stored.values()].map((v): unknown => JSON.parse(v))).toMatchObject([{ email: 'a@b.co', build: 'a fjord', cell: 'D4' }]);
+  });
+  it('a bad email goes back to #author and stores nothing; an unknown referer goes to the main site', async () => {
+    const res = await POST(form({ email: 'nope' }, 'https://evil.example/'));
+    expect(res.headers.get('location')).toBe('https://wildshard.io/#author');
+    expect(put).not.toHaveBeenCalled();
+  });
+});
+
 describe('GET', () => {
   it('the admin site may read (GET with the password header), the site may only write', () => {
     const pre = (origin: string): Response => OPTIONS(new Request('https://x.test/api/waitlist', { method: 'OPTIONS', headers: { origin } }));

@@ -58,8 +58,10 @@
 </header>
 
 <div class="trailer bk">
-  <video id="trailer" muted loop playsinline controls preload="metadata" src="%TRAILER_PHONE%" poster="/media/trailer-alpha-poster.webp" aria-label="{{@Trailer · description}}"></video>
-  <button class="play-btn" id="trailer-play" type="button" hidden aria-label="{{@Trailer · play button}}">▶</button>
+  <video id="trailer" controls autoplay muted loop playsinline preload="metadata" poster="/media/trailer-alpha-poster.webp" aria-label="{{@Trailer · description}}">
+    <source media="(min-width: 1024px)" src="%TRAILER_WIDE%" type="video/mp4">
+    <source src="%TRAILER_PHONE%" type="video/mp4">
+  </video>
   <span class="tag">{{Trailer · tag}}</span>
 </div>
 
@@ -297,15 +299,16 @@
       <div class="founding bk">{{Author · founding authors}}</div>
     </div>
     <div class="body">
-      <form class="bk" id="waitlist" novalidate>
+      <form class="bk" id="waitlist" action="https://wildshard-singleplayer.vercel.app/api/waitlist" method="post">
         <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Author · form path}}</span></div>
         <label class="field" id="f-email"><span class="lab">{{Author · email label}}</span><input type="email" name="email" placeholder="{{@Author · email placeholder}}" autocomplete="email" inputmode="email" required aria-describedby="err-email"><span class="err" id="err-email" role="alert"></span></label>
       <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
         <label class="field" id="f-build"><span class="lab">{{Author · build label}}</span><span class="prompt-field"><textarea name="build" rows="3" placeholder="{{@Author · build placeholder}}" required aria-describedby="err-build"></textarea></span><span class="err" id="err-build" role="alert"></span></label>
         <div class="field"><span class="lab">{{Author · claim label}}</span>
-          <div class="claimmap map"><svg id="claim-map" viewBox="0 0 300 300" role="img" aria-label="{{@Author · claim map description}}"></svg></div></div>
+          <div class="claim-grid" role="radiogroup" aria-label="{{@Author · claim map description}}"><label class="cell"><input type="radio" name="cell" value="A1"><i>A1</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="B1"><i>B1</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="C1"><i>C1</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="D1"><i>D1</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="E1"><i>E1</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="A2"><i>A2</i><b>{{Map · your wish}}</b></label><span class="cell taken"><i>B2</i><b>{{Map · Driftwood}}</b></span><span class="cell taken"><i>C2</i><b>{{Map · Pine}}</b></span><span class="cell taken"><i>D2</i><b>{{Map · Nalati}}</b></span><label class="cell"><input type="radio" name="cell" value="E2"><i>E2</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="A3"><i>A3</i><b>{{Map · your wish}}</b></label><span class="cell taken"><i>B3</i><b>{{Map · Dunes}}</b></span><span class="cell centre"><i>C3</i><b>{{Map · centre}}</b></span><span class="cell taken"><i>D3</i><b>{{Map · Sky Reach}}</b></span><label class="cell"><input type="radio" name="cell" value="E3"><i>E3</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="A4"><i>A4</i><b>{{Map · your wish}}</b></label><span class="cell taken"><i>B4</i><b>{{Map · Template}}</b></span><span class="cell taken"><i>C4</i><b>{{Map · Nine Dragon}}</b></span><label class="cell"><input type="radio" name="cell" value="D4"><i>D4</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="E4"><i>E4</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="A5"><i>A5</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="B5"><i>B5</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="C5"><i>C5</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="D5"><i>D5</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="E5"><i>E5</i><b>{{Map · your wish}}</b></label></div></div>
         <button class="send" type="submit"><span id="send-label">{{Author · send button}}</span> <small>{{Author · send button note}}</small></button>
       <p class="field lab" style="margin:0;font-family:var(--mono);font-size:10.5px;color:var(--mute)">{{Author · privacy note}}</p>
+        <p class="thanks" id="thanks">{{Author · thanks}}</p>
       </form>
       <div class="ends">
         <span class="bk soon" aria-disabled="true">{{Author · discord button}}</span>
@@ -319,63 +322,12 @@
 
 <script>
 (function () {
-  // the grid, drawn twice: the world map (lit shards) and the claim map (your wish)
-  var NS = "http://www.w3.org/2000/svg";
-  var LIT = { "B2": {{$Map · Driftwood}}, "C2": {{$Map · Pine}}, "D2": {{$Map · Nalati}}, "B3": {{$Map · Dunes}}, "D3": {{$Map · Sky Reach}}, "C4": {{$Map · Nine Dragon}}, "B4": {{$Map · Template}} };
-  var COLS = "ABCDE";
-  function el(n, a, txt) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); if (txt) e.textContent = txt; return e; }
-  function draw(svg, opts) {
-    var cell = 48, gap = 9, o = 22;
-    for (var r = 0; r < 5; r++) for (var c = 0; c < 5; c++) {
-      var id = COLS[c] + (r + 1), x = o + c * (cell + gap), y = o + r * (cell + gap);
-      var cls = "cell";
-      if (id === "C3") cls += " centre"; else if (opts.lit && LIT[id]) cls += " lit";
-      svg.appendChild(el("rect", { x: x, y: y, width: cell, height: cell, "class": cls }));
-      var name = id === "C3" ? {{$Map · centre}} : (opts.lit ? LIT[id] : null);
-      svg.appendChild(el("text", { x: x + 4, y: y + 9, "class": "k" }, id));
-      if (name) svg.appendChild(el("text", { x: x + 4, y: y + cell - 5, "class": id === "C3" ? "c" : "" }, name));
-      if (opts.claim === id) {
-        svg.appendChild(el("rect", { x: x - 3, y: y - 3, width: cell + 6, height: cell + 6, "class": "claim" }));
-        svg.appendChild(el("text", { x: x + 4, y: y + cell - 5, "class": "a" }, {{$Map · your wish}}));
-      }
-    }
-    // the highway between the cells, and the seams round the grid
-    for (var i = 1; i < 5; i++) {
-      var p = o + i * (cell + gap) - gap / 2;
-      svg.appendChild(el("line", { x1: p, y1: o - 6, x2: p, y2: 300 - o + 6 - 9, "class": "road" }));
-      svg.appendChild(el("line", { x1: o - 6, y1: p, x2: 300 - o + 6 - 9, y2: p, "class": "road" }));
-    }
-    var s = 5 * cell + 4 * gap;
-    svg.appendChild(el("rect", { x: o - 8, y: o - 8, width: s + 16, height: s + 16, "class": "seam" }));
-  }
-  var gridMap = document.getElementById("grid-map");
-  if (gridMap) draw(gridMap, { lit: true });
-
-  // MS11: motion. The trailer plays muted once it is near the screen; each shard card fades its loop in over the still:
-  // on a phone when the card is in view, on desktop (where the loops are softer than the wide stills) on hover.
+  // MS11: motion. Each shard card fades its loop in over the still: on a phone when the card is in view, on desktop (where
+  // the loops are softer than the wide stills) on hover. The trailer is a plain <video> in the markup.
   var media = {}; try { media = JSON.parse(document.getElementById("media").textContent || "{}"); } catch (e) { media = {}; }
   var wide = window.matchMedia("(min-width: 1024px)").matches;
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function start(v, src, refused) { if (!v.src) v.src = src; var p = v.play(); if (p && p.catch) p.catch(function () { if (refused) refused(); }); }
-  var trailer = document.getElementById("trailer");
-  if (trailer && media.trailer) {
-    // the markup already holds the phone encode (the build writes it), so a tap on the native controls always plays; a
-    // wide screen swaps in the 1280 px one before anything has loaded
-    var tsrc = wide ? media.trailer.mp4 : media.trailer.mp4Phone;
-    if (trailer.getAttribute("src") !== tsrc) trailer.src = tsrc;
-    // iOS in Low Power Mode refuses every autoplay — rejecting it, or leaving it "playing" at 0:00 without a word: either
-    // way the big button starts it, with sound
-    var tapBtn = document.getElementById("trailer-play");
-    var refused = function () { if (trailer.currentTime === 0) { trailer.pause(); tapBtn.hidden = false; } };
-    trailer.addEventListener("playing", function () { tapBtn.hidden = true; });
-    tapBtn.addEventListener("click", function () { tapBtn.hidden = true; trailer.muted = false; start(trailer, tsrc, refused); });
-    // reduced motion: no autoplay, the poster and the controls wait for a tap
-    if (!still) {
-      var autoplay = function () { start(trailer, tsrc, refused); setTimeout(refused, 2500); };
-      if ("IntersectionObserver" in window) new IntersectionObserver(function (es, o) { es.forEach(function (e) { if (e.isIntersecting) { autoplay(); o.disconnect(); } }); }, { rootMargin: "200px" }).observe(trailer);
-      else autoplay();
-    }
-  }
+  function start(v, src) { if (!v.src) v.src = src; var p = v.play(); if (p && p.catch) p.catch(function () {}); }
   document.querySelectorAll("[data-loop]").forEach(function (shot) {
     var m = media.loops && media.loops[shot.getAttribute("data-loop")];
     if (!m || still) return;
@@ -396,22 +348,9 @@
   var moreBtn = document.querySelector(".more-shards");
   if (moreBtn) moreBtn.addEventListener("click", function () { document.querySelector(".shards").classList.add("open"); moreBtn.setAttribute("aria-expanded", "true"); });
 
-  // the claim map: tap an empty cell to wish for it (not the centre, not a shard that's playable today)
-  var claimSvg = document.getElementById("claim-map"), claimed = "";
-  function redrawClaim() { while (claimSvg.firstChild) claimSvg.removeChild(claimSvg.firstChild); draw(claimSvg, { lit: true, claim: claimed }); }
-  redrawClaim();
-  claimSvg.style.cursor = "pointer";
-  claimSvg.addEventListener("click", function (ev) {
-    var box = claimSvg.getBoundingClientRect(), x = (ev.clientX - box.left) / box.width * 300, y = (ev.clientY - box.top) / box.height * 300;
-    var c = Math.floor((x - 22) / 57), row = Math.floor((y - 22) / 57);
-    if (c < 0 || c > 4 || row < 0 || row > 4) return;
-    var id = COLS[c] + (row + 1);
-    if (id === "C3" || LIT[id]) return;
-    claimed = claimed === id ? "" : id; redrawClaim();
-  });
-
   // the waitlist posts to the game's API (api/waitlist.ts)
-  var form = document.getElementById("waitlist"), label = document.getElementById("send-label");
+  var form = document.getElementById("waitlist"), label = document.getElementById("send-label"), send = form.querySelector(".send");
+  form.noValidate = true; // the script shows its own messages; without it, the browser's own checks and a plain post
   // say in red what's missing, under the field, and clear it as soon as the field is touched
   function fieldError(name, message) {
     var box = document.getElementById("f-" + name), err = document.getElementById("err-" + name);
@@ -426,32 +365,19 @@
     var buildError = build === "" ? {{$Author · error no build}} : "";
     fieldError("email", emailError); fieldError("build", buildError);
     if (emailError || buildError) { (emailError ? form.email : form.build).focus(); return; }
-    var data = { email: email, build: build, cell: claimed, website: form.website.value };
-    label.textContent = {{$Author · sending}};
+    var cell = form.querySelector("input[name=cell]:checked");
+    var data = { email: email, build: build, cell: cell ? cell.value : "", website: form.website.value };
+    label.textContent = {{$Author · sending}}; send.disabled = true;
     fetch("https://wildshard-singleplayer.vercel.app/api/waitlist", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) })
-      .then(function (res) { label.textContent = res.ok ? {{$Author · sent}} : (res.status === 400 ? {{$Author · bad email}} : {{$Author · failed}}); })
-      .catch(function () { label.textContent = {{$Author · failed}}; });
+      .then(function (res) { label.textContent = res.ok ? {{$Author · sent}} : (res.status === 400 ? {{$Author · bad email}} : {{$Author · failed}}); send.disabled = res.ok; })
+      .catch(function () { label.textContent = {{$Author · failed}}; send.disabled = false; });
   });
-  var ink = document.querySelectorAll(".ink");
-  if ("IntersectionObserver" in window) {
-    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("drawn"); io.unobserve(e.target); } }); }, { threshold: .25 });
-    ink.forEach(function (n) { io.observe(n); });
-  } else ink.forEach(function (n) { n.classList.add("drawn"); });
-
-  // the hero types itself, then the world opens out of the pane
-  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // the hero types its prompt (the full text is in the markup; CSS opens the world and shows the build lines)
   var p = document.getElementById("typed"), t = p.querySelector(".t"), full = p.getAttribute("data-text");
-  var lines = Array.prototype.slice.call(document.querySelectorAll(".hero .line")), world = document.getElementById("world");
-  function finish() { t.textContent = full; lines.forEach(function (l) { l.classList.add("on"); }); world.classList.add("open"); }
-  if (reduce) { finish(); return; }
+  if (still) return;
   p.style.minHeight = p.offsetHeight + "px"; // hold the full prompt's height, so typing never shifts the page
   t.textContent = ""; var i = 0;
-  requestAnimationFrame(function () { world.classList.add("open"); });
-  (function type() {
-    i += 1; t.textContent = full.slice(0, i);
-    if (i < full.length) { setTimeout(type, 24 + Math.random() * 30); return; }
-    lines.forEach(function (l, k) { setTimeout(function () { l.classList.add("on"); }, 220 + k * 260); });
-  })();
+  (function type() { i += 1; t.textContent = full.slice(0, i); if (i < full.length) setTimeout(type, 24 + Math.random() * 30); })();
 })();
 </script>
 </body>

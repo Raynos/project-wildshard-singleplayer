@@ -64,11 +64,14 @@
   .pane-body { padding: 16px 14px 14px; }
   .hero .ask { font-size: 15px; line-height: 1.55; font-weight: 500; }
   .hero .out { margin-top: 10px; }
-  .js .line { opacity: 0; transition: opacity .2s; } .js .line.on { opacity: 1; }
+  /* the hero, in CSS: the build lines come in one by one while the world opens (nothing waits on the script) */
+  .hero .line { animation: line-in .3s ease-out both; }
+  .hero .line:nth-child(1) { animation-delay: 1.6s; } .hero .line:nth-child(2) { animation-delay: 1.9s; } .hero .line:nth-child(3) { animation-delay: 2.2s; }
+  @keyframes line-in { from { opacity: 0; } to { opacity: 1; } }
   .world { position: relative; margin-top: -1px; height: 396px; z-index: 1;
     clip-path: polygon(var(--g) 0, calc(100% - var(--g)) 0, 100% 34%, 100% 100%, 0 100%, 0 34%); }
-  .js .world { clip-path: polygon(var(--g) 0, calc(100% - var(--g)) 0, calc(100% - var(--g)) 0, calc(100% - var(--g)) 0, var(--g) 0, var(--g) 0); transition: clip-path 1.1s cubic-bezier(.7,0,.2,1); }
-  .js .world.open { clip-path: polygon(var(--g) 0, calc(100% - var(--g)) 0, 100% 34%, 100% 100%, 0 100%, 0 34%); }
+  .world { animation: world-open 1.1s cubic-bezier(.7,0,.2,1) .15s both; }
+  @keyframes world-open { from { clip-path: polygon(var(--g) 0, calc(100% - var(--g)) 0, calc(100% - var(--g)) 0, calc(100% - var(--g)) 0, var(--g) 0, var(--g) 0); } to { clip-path: polygon(var(--g) 0, calc(100% - var(--g)) 0, 100% 34%, 100% 100%, 0 100%, 0 34%); } }
   .world picture { display: contents; }
   .world img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 73%; }
   .world::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
@@ -121,8 +124,6 @@
   .trailer { margin: 0 var(--g); position: relative; }
   .trailer video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000; }
   .trailer img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-  .trailer .play-btn[hidden] { display: none; }
-  .trailer .play-btn { cursor: pointer; z-index: 2; }
   .trailer .play-btn { position: absolute; inset: 0; margin: auto; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center;
     background: rgba(5,10,18,.6); border: 1.5px solid var(--act); box-shadow: 0 0 24px var(--act-glow); color: var(--act); font-size: 22px; padding-left: 4px; }
   .trailer .tag { position: absolute; left: 10px; top: 10px; }
@@ -170,8 +171,10 @@
   .shard p { margin: 5px 0 0; color: #b3c8d8; font-size: 16px; line-height: 1.4; max-width: 36ch; }
   /* phones: the three picked shards in full, the rest behind one line (Jake, E465); desktop shows all seven */
   .more-shards { display: block; width: 100%; margin: 4px 0 0; padding: 14px; background: none; border: 1px dashed var(--cyan-line); color: var(--act); font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
-  @media (max-width: 1023px) { .shards:not(.open) .shard.more { display: none; } .shards.open + .more-shards { display: none; } }
-  @media (min-width: 1024px) { .more-shards { display: none; } }
+  /* without the script every card shows and the button stays hidden */
+  .more-shards { display: none !important; } .js .more-shards { display: block !important; }
+  @media (max-width: 1023px) { .js .shards:not(.open) .shard.more { display: none; } .js .shards.open + .more-shards { display: none !important; } }
+  @media (min-width: 1024px) { .js .more-shards { display: none !important; } }
   .shard.grey .shot img { filter: saturate(.2); }
 
   /* how a shard is made: C's terminal */
@@ -283,7 +286,23 @@
   .field .err { display: block; margin-top: 6px; font-family: var(--mono); font-size: 11.5px; color: #ff6b78; }
   .field .err:empty { display: none; }
   .prompt-field { display: block; }
-  .claimmap { padding: 4px 6px 0; }
+  /* the claim map: 25 plain cells; a free one is a radio button, the shards and the centre are taken */
+  .claim-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; padding: 8px; border: 1.4px solid var(--violet); box-shadow: 0 0 8px rgba(164,135,255,.35); max-width: 420px; }
+  .claim-grid .cell { min-width: 0; position: relative; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 4px 5px; border: 1px solid var(--cyan-line); background: rgba(143,227,255,.03); font-family: var(--mono); font-size: 8.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+  .claim-grid .cell i { font-style: normal; }
+  .claim-grid .cell b { font-weight: 500; font-size: 7.6px; letter-spacing: .02em; line-height: 1.1; color: var(--ink); overflow-wrap: anywhere; }
+  .claim-grid .taken { background: rgba(143,227,255,.16); border-color: var(--cyan); box-shadow: 0 0 6px rgba(143,227,255,.5); }
+  .claim-grid .centre { background: rgba(164,135,255,.22); border-color: var(--violet); }
+  .claim-grid .centre b { color: var(--violet); }
+  .claim-grid label { cursor: pointer; }
+  .claim-grid label b { visibility: hidden; color: var(--act); }
+  .claim-grid input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; box-shadow: none; cursor: pointer; }
+  .claim-grid label:has(input:checked) { border: 2px dashed var(--act); box-shadow: 0 0 8px var(--act-glow); }
+  .claim-grid label:has(input:checked) b { visibility: visible; }
+  .claim-grid label:has(input:focus-visible) { outline: 2px solid var(--act); outline-offset: 2px; }
+  /* a post without the script lands back here with #thanks */
+  .thanks { display: none; margin: 0; padding: 14px; color: var(--act); font-family: var(--mono); font-size: 12.5px; }
+  .thanks:target { display: block; }
   .send { display: flex; justify-content: space-between; align-items: center; width: 100%; border: 0; padding: 16px 14px; cursor: pointer; background: var(--act); color: var(--act-ink);
     font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 0 26px var(--act-glow); }
   .send small { font-family: var(--mono); font-weight: 400; font-size: 11px; letter-spacing: .06em; }
@@ -403,7 +422,7 @@
     form { margin-top: 0; }
     .field { padding: 16px 20px; }
     .field input, .field textarea { font-size: 16px; padding: 14px; }
-    .claimmap { max-width: 420px; }
+
     .send { padding: 20px; font-size: 26px; }
     .ends a { min-height: 64px; font-size: 21px; }
     .mail { font-size: 14px; }
@@ -411,8 +430,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .cursor { animation: none; } .js .line { opacity: 1; transition: none; }
-    .js .world { clip-path: polygon(var(--g) 0, calc(100% - var(--g)) 0, 100% 34%, 100% 100%, 0 100%, 0 34%); transition: none; }
+    .cursor, .hero .line, .world { animation: none; }
     .ink path, .ink rect, .ink line { transition: none; stroke-dashoffset: 0; }
   }
 
