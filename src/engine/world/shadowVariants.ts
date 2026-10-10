@@ -25,7 +25,7 @@ export function shadowBytes(size: number, cascades: number, ghosts: number): num
 export const PHONE_RIG_MAPS = { size: 2048, cascades: 3, ghosts: 2 } as const;
 
 /** the targets whose colour texture is gone (a second detach would free a deleted texture) */
-const depthOnly = new WeakSet<THREE.WebGLRenderTarget>();
+const depthOnly = new WeakSet();
 
 /**
  * Detach a shadow map's colour texture from its framebuffer and free it: the depth texture is all the shaders read. For
@@ -49,6 +49,12 @@ export function dropShadowColour(renderer: Renderer, rt: THREE.WebGLRenderTarget
   state.bindFramebuffer(gl.FRAMEBUFFER, null);
   if (ok) gl.deleteTexture(tex);
   else console.warn('[sky] E174: a depth-only shadow framebuffer is incomplete here: the colour texture stays');
+}
+
+/** Whether `rt`'s colour texture was let go (`dropShadowColour`): a stand-in for it must drop its own too (op-hitch33,
+ *  render/parkedDraws.ts), or its depth draws build pipelines with a colour attachment the real map does not have. */
+export function shadowColourDropped(rt: THREE.RenderTarget): boolean {
+  return depthOnly.has(rt);
 }
 
 export class ShadowMaps {
