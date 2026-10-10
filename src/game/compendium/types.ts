@@ -1,7 +1,7 @@
 /**
  * The Compendium engine's data contract (PINE-HOLLOW-REMASTER PH-C5). A shard registers ONE `ShardCompendium` — its
  * entries, its trophy wall and a skin — and the engine does the rest: the per-entry state machine and its save
- * (state.ts), the game hooks that feed it (tracker.ts), the book (Journal.ts) and the wall (src/shards/pine-hollow/world/trophyWall.ts).
+ * (state.ts), the game hooks that feed it (tracker.ts), the book (Journal.ts) and the wall (trophyWall.ts).
  *
  *   registerCompendium({ chunkId, skin, entries, trophies })   // registry.ts; Pine Hollow's is shards/pine-hollow.ts
  *

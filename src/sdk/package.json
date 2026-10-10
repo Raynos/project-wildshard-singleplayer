@@ -88,6 +88,8 @@
     "./looks/keyedSky": "./looks/keyedSky.ts",
     "./looks/keyedSkyRows": "./looks/keyedSkyRows.ts",
     "./species/clips": "./species/clips.ts",
+    "./species/riggedHulls": "./species/riggedHulls.ts",
+    "./species/riggedHullRows": "./species/riggedHullRows.ts",
     "./items/lashView": "./items/lashView.ts",
     "./items/lashWeapon": "./items/lashWeapon.ts",
     "./items/magazineFirearm": "./items/magazineFirearm.ts",

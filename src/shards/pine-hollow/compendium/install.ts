@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { installCompendium, type CompendiumHost } from '@wildshard/game/compendium/install';
 import { PINE_HOLLOW_COMPENDIUM } from '../compendium';
-import { TrophyWall } from '../world/trophyWall';
+import { TrophyWall } from '@wildshard/game/compendium/trophyWall';
 
 export function installPineCompendium(host: CompendiumHost): ReturnType<typeof installCompendium> {
   return installCompendium({ ...host, wall: (state, journal) => {

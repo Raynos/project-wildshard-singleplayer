@@ -1,8 +1,10 @@
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import type { AnimalFactory } from '@wildshard/engine/entities/AnimalFactory';
-import { declarePanel, mountPanel, panelScope, type PanelView } from '@wildshard/sdk/panels';
+import { declarePanel, type PanelView } from '@wildshard/engine/ui/panel';
+import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
 /**
- * The trophy wall (PINE-HOLLOW-REMASTER PH-C4, board B4 wall = C: art/pine-hollow/round-4-journal-ui/C-wall-chalk-outlines.jpg).
+ * The trophy wall (SHARD-PLATFORM M3: the game's, any shard's compendium may hang one; first drawn for a remaster's
+ * journal board, the chalk-outline wall).
  * A wall of mount slots from the shard's compendium (`ShardCompendium.trophies`): a slot whose entry is TAKEN shows the
  * animal's own head and shoulders on a wooden shield; the rest show a chalk outline and the name in chalk. Looking at a
  * slot shows a tip under the crosshair ("NOT YET TAKEN" / the name + the joke title) and offers "[E] Examine …", which
@@ -17,7 +19,7 @@ import { declarePanel, mountPanel, panelScope, type PanelView } from '@wildshard
  * of the wall into the room. Cheap: ONE merged mesh for every mount + shield (vertex colours, one MeshStandardMaterial)
  * and ONE merged mesh for every chalk decal (a canvas atlas); no lights, nothing per frame but a ray-plane test.
  * The mount geometry is the species' bind-pose model clipped at the neck (AnimalFactory.model): the generated hull where
- * the animal is one (Pine Hollow PH-M1, pineCreatures.ts — its coat atlas sampled into the vertex colours, so the wall
+ * the animal is one (`riggedHulls` — its coat atlas sampled into the vertex colours, so the wall
  * stays one mesh), else the procedural model's own paint.
  */
 import * as THREE from 'three';
@@ -100,7 +102,7 @@ function texturePixels(map: THREE.Texture): { data: Uint8ClampedArray; w: number
 /** the head and shoulders of a (kind, variant) model: its bind-pose triangles in front of the neck's base, above the chest */
 function mountGeometry(factory: AnimalFactory, kind: string, variant: string): THREE.BufferGeometry | null {
   const model = factory.model(kind, variant);
-  // a generated hull (PH-M1): white vertex colours under a photo atlas — the atlas, sampled at each vertex, is its paint
+  // a generated hull: white vertex colours under a photo atlas — the atlas, sampled at each vertex, is its paint
   const atlas = model.hull !== undefined && model.fur.map ? texturePixels(model.fur.map) : null;
   const uv = atlas ? model.geometry.getAttribute('uv') : null, col = model.geometry.getAttribute('color');
   const sc = new THREE.Color();
@@ -143,7 +145,7 @@ function mountGeometry(factory: AnimalFactory, kind: string, variant: string): T
 }
 
 export class TrophyWall {
-  readonly scope = panelScope('trophyWall');
+  readonly scope = uiScope('trophyWall');
   readonly group = new THREE.Group();
   /** one prompt for the whole wall: it moves to the slot you look at ("[E] Examine Old Ironhide"), radius 0 otherwise */
   readonly interactable: { position: THREE.Vector3; radius: number; label: string; onInteract: () => void };
@@ -175,7 +177,7 @@ export class TrophyWall {
     this.interactable = { position: new THREE.Vector3(0, -1e4, 0), radius: 0, label: 'Examine', onInteract: () => { if (this.looked) this.onExamine?.(this.looked.slot.entry); } };
     if (opts.tip === true) {
       this.tip = declarePanel({ cls: 'ws-cmp-tip' });
-      mountPanel(this.tip, this.scope);
+      mountUi(this.tip.root, this.scope);
     }
     this.group.name = 'trophy-wall';
     opts.anchor.add(this.group);

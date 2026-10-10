@@ -1,29 +1,30 @@
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 /**
- * pineCoats — one rigged Pine Hollow hull, every coat (PINE-HOLLOW-REMASTER PH-M1 / PH-M2): the hull's photoreal atlas
- * recoloured per variant, plus the marks a recolour cannot make, painted onto the atlas by where each texel sits on the
- * animal (pineCreatures.ts).
+ * coatAtlas — one rigged creature hull, every coat (SHARD-PLATFORM M3: the generic coat-variant painter, `riggedHulls`'
+ * coats): the hull's photoreal atlas recoloured per variant, plus the marks a recolour cannot make, painted onto the atlas
+ * by where each texel sits on the animal.
  *
- *   const map = pineCoatAtlas(key, spec, rig, variantDef, bones)   // a CanvasTexture (cached by key), or the rig's map
- *                                                                  // itself when the coat is the hull's own
- *   adoptPineCoat(key, ktx2)                                       // the KTX2 path: the baked coat stands in (G187)
+ *   const map = coatAtlas(key, spec, rig, variantDef, bones)   // a CanvasTexture (cached by key), or the rig's map
+ *                                                              // itself when the coat is the hull's own
+ *   adoptCoat(key, ktx2)                                       // the KTX2 path: the baked coat stands in
  *
- * 1. Recolour (Nalati's creatureCoats.ts method, made shard-agnostic): the species' palette names three coat keys — dark,
- *    body and light. The atlas's own levels for them are measured (texel luminance sampled over the mesh at the 12th / 55th
- *    / 92nd percentiles); every texel sits between two keys by its log luminance and is multiplied, in linear RGB, by the
- *    matching blend of target ÷ source (target = the variant's palette, source = the variant the hull was generated as).
- *    Multiplying keeps every hair of the photo texture; only the tones move (white deer, black boar, the pale elk, Old
- *    Ironhide's iron grey, the brown bear's Grizzled Sow, …).
- * 2. Marks (VariantDef.traits): `piebald` (white patches), `blaze` (the black bear's cream chest crescent), `scar` (pale
- *    healed stripes over Scarback's withers) and `thrall` (PH-M2, board B3 pick A "Overgrown": the coat dark and dead,
- *    moss on the back and the upper flanks, lichen spots, bark scabs). Each texel's rest-pose position and normal come from
- *    rasterising the hull's triangles into the atlas (`surfaceOf`, cached per rig), so a mark is solid 3D noise over the
- *    body, seamless across the atlas's charts (the charts' gutters are dilated so mip levels don't bleed).
+ * 1. Recolour: the species' palette names three coat keys — dark, body and light. The atlas's own levels for them are
+ *    measured (texel luminance sampled over the mesh at the 12th / 55th / 92nd percentiles); every texel sits between two
+ *    keys by its log luminance and is multiplied, in linear RGB, by the matching blend of target ÷ source (target = the
+ *    variant's palette, source = the variant the hull was generated as). Multiplying keeps every hair of the photo
+ *    texture; only the tones move (a white deer, a black boar, a pale elk, an iron-grey boar, a grizzled bear, …).
+ * 2. Marks (VariantDef.traits): `piebald` (white patches), `blaze` (a cream chest crescent), `scar` (pale healed stripes
+ *    over the withers) and `thrall` (the coat dark and dead, moss on the back and the upper flanks, lichen spots, bark
+ *    scabs). Each texel's rest-pose position and normal come from rasterising the hull's triangles into the atlas
+ *    (`surfaceOf`, cached per rig), so a mark is solid 3D noise over the body, seamless across the atlas's charts (the
+ *    charts' gutters are dilated so mip levels don't bleed).
  */
 import * as THREE from 'three';
-import type { RGB } from '@wildshard/engine/entities/species/loft';
 import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { smoothstep } from '@wildshard/engine/core/noise';
+
+/** sRGB 0..1 (read only: a coat recipe may be data). */
+type RGB = readonly [number, number, number];
 
 export interface CoatSpec {
   /** the species default palette (the variant's `tint` overrides keys of it) */
@@ -33,7 +34,7 @@ export interface CoatSpec {
   /** the palette keys: [dark, body, light] */
   keys: readonly [string, string, string];
   /**
-   * E322 F-M2 (Debug ▸ Bear fix = B): per variant id, the coat keys' target tones (sRGB). The SOURCE tones are then
+   * Per variant id, the coat keys' target tones (sRGB). The SOURCE tones are then
    * measured off the atlas itself (the mean colour round each key's luminance percentile), not taken from the palette,
    * so the hull's own tones land exactly on the targets. A variant not listed keeps the palette path. A `grizzle` entry
    * (the tips' colour) paints silver guard-hair tips over the hump, the shoulders and the back, the legs darker.
@@ -42,8 +43,8 @@ export interface CoatSpec {
 }
 
 /**
- * What a coat reads from the rig: its rest-pose geometry (position, normal, uv, index) and its atlas. `flap` (E322 F-M2,
- * bearFix.ts): per vertex, 1 where a generator's flap was pressed onto the body — those texels take the rump's colour
+ * What a coat reads from the rig: its rest-pose geometry (position, normal, uv, index) and its atlas. `flap` (riggedHulls'
+ * flap trim): per vertex, 1 where a generator's flap was pressed onto the body — those texels take the rump's colour
  * beside the patch, keeping their own hair detail (flapTransplant + applyFlapFill), feathered across the border.
  */
 export interface CoatRig { geometry: THREE.BufferGeometry; map: THREE.Texture; flap?: Uint8Array | null }
@@ -319,18 +320,18 @@ function boneAt(bones: readonly BoneDef[], name: string): THREE.Vector3 | null {
 }
 
 /**
- * G187 cut 2: a coat baked offline (scripts/bake-coats.mjs renders every coat with pineCoatAtlas itself, then encodes
- * it as KTX2) stands in for the canvas under the same key; the KTX2 path adopts them at preload (hulls.ts), so
- * pineCoatAtlas returns the compressed texture and never reads the hull's pixels.
+ * A coat baked offline (scripts/bake-coats.mjs renders every coat with coatAtlas itself, then encodes it as KTX2) stands
+ * in for the canvas under the same key; the KTX2 path adopts them at preload (riggedHulls), so coatAtlas returns the
+ * compressed texture and never reads the hull's pixels.
  */
-export function adoptPineCoat(key: string, tex: THREE.Texture): void { cache.set(key, tex);
+export function adoptCoat(key: string, tex: THREE.Texture): void { cache.set(key, tex);
   cacheUntilDisposed(tex, () => { if (cache.get(key) === tex) cache.delete(key); }); }
 
 /**
  * The hull's atlas in variant `v`'s coat (cached by `key`). `bones` are the rest joints the rig is bound to (they place
  * the blaze and the scars). Returns `rig.map` itself when nothing changes, or when the atlas can't be read.
  */
-export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantDef, bones: readonly BoneDef[]): THREE.Texture {
+export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantDef, bones: readonly BoneDef[]): THREE.Texture {
   const map = rig.map;
   const flap = rig.flap ?? null;
   const measured = spec.measured?.[v.id];
@@ -351,7 +352,7 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
   const data = ctx.getImageData(0, 0, W, H);
   const px = data.data;
   const geometry = rig.geometry, flipY = map.flipY;
-  // ── 0. a pressed flap (E322 F-M2) takes the rump's fur beside it ──
+  // ── 0. a pressed flap takes the rump's fur beside it ──
   if (flap !== null) { const fm = flapTransplant(geometry, flap, W, H, flipY); if (fm) applyFlapFill(fm, px, W, H); }
   const texel = (u: number, vv: number): number => {
     const x = Math.min(W - 1, Math.max(0, Math.floor((u - Math.floor(u)) * W)));
@@ -385,7 +386,7 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
     lums.sort((p, q) => p - q);
     const pct = (p: number): number => lums[Math.min(lums.length - 1, Math.floor(p * lums.length))] ?? 0.1;
     const Ls = [Math.log(Math.max(1e-4, pct(0.12))), Math.log(Math.max(1e-4, pct(0.55))), Math.log(Math.max(1e-4, pct(0.92)))];
-    // measured (E322 F-M2): each key's source = the atlas's mean linear colour over ±5 % round its percentile
+    // measured: each key's source = the atlas's mean linear colour over ±5 % round its percentile
     cols.sort((p, q) => p[0] - q[0]);
     const meanAt = (p: number): [number, number, number] => {
       const a = Math.max(0, Math.floor((p - 0.05) * cols.length)), b = Math.min(cols.length, Math.ceil((p + 0.05) * cols.length));
@@ -428,7 +429,7 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
     const box = geometry.boundingBox ?? new THREE.Box3().setFromBufferAttribute(geometry.getAttribute('position') as THREE.BufferAttribute);
     const height = Math.max(0.2, box.max.y - box.min.y);
     const neck = boneAt(bones, 'neck1'), body = boneAt(bones, 'body'), head = boneAt(bones, 'head');
-    // Scarback's three healed rakes over the withers (fixed per key, so the same boar always wears the same scars)
+    // three healed rakes over the withers (fixed per key, so the same boar always wears the same scars)
     const rakes: { a: THREE.Vector3; b: THREE.Vector3 }[] = [];
     if (marks.scar && body && neck) {
       for (let k = 0; k < 3; k++) {
@@ -503,7 +504,7 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
     }
   }
 
-  // ── 3. a measured coat's grizzle (E322 F-M2: the Grizzled Sow — `measured[v.id].grizzle` = the tips' colour): silver
+  // ── 3. a measured coat's grizzle (`measured[v.id].grizzle` = the tips' colour): silver
   //    guard-hair tips over the hump, the shoulders and the back, streaky, riding the photo's own bright hairs; the legs
   //    fade darker. Brown stays brown under it ──
   const grizzle = measured?.['grizzle'];
