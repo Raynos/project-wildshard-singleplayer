@@ -1,4 +1,6 @@
 import * as v from 'valibot';
+import { interactionRules } from '@wildshard/sdk/interactions';
+import { PINE_LANTERN_IDS, pineQuestRows } from './graph';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import type { Music } from '@wildshard/engine/audio/Music';
@@ -185,6 +187,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     finder: { x: finder.x, y: deckY + 1.1, z: finder.z },
     bench: { x: bench.x, y: deckY, z: bench.z, yaw: ZIP_YAW - Math.PI / 4 },
   });
+  const graph = interactionRules(flags, pineQuestRows(table));
   const kit = new Interactables({ scene: game.scene, sky, player, flags, place, floorAt, prompts: h.interactables }).build(table);
   ctx.system({ id: 'quest.kit', phase: 'update', after: ['engine.compendium.installCompendium'], before: ['quest.pool', 'hud.combat', 'main.frame'], run: (dt, t) => { kit.update(dt, t); } });
 
@@ -262,8 +265,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       get label() { return flags.has(n.needs) ? `Relight ${n.name}` : n.cold; },
       onInteract: () => {
         if (flags.has(flag)) return;
-        if (!flags.has(n.needs)) { hud.toast(n.cold); kitSfx.interact('locked', it.position); return; }
-        flags.set(flag);
+        if (!graph.run(PINE_LANTERN_IDS[id]).ok) { hud.toast(n.cold); kitSfx.interact('locked', it.position); return; }
         lm?.setLit(id, true);
         shot('lanternCreak', it.position); // its little door swung open, then the wick takes
         ui.timeout(350, () => { shot('lanternLight', it.position); });

@@ -5,7 +5,8 @@ import { test } from '@wildshard/engine/world/interact/flags';
 import { autoFlag, type InteractDef } from '@wildshard/engine/world/interact/types';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/game/shardfile/quests';
-import { DeclaredQuests } from '@wildshard/game/quest/declared';
+import { installQuestGraph } from '@wildshard/game/quest/questGraph';
+import { PINE_GRAPH, PINE_LANTERN_IDS, pineQuestRows } from '../quest/graph';
 import { LANTERN_FLAGS } from '../quest/wardensHollow';
 import { pineTable, RESIN_COUNT, TOKEN_NAMES } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
@@ -85,7 +86,7 @@ export interface PineQuestPorts {
   readonly night: () => number;
 }
 export interface PineQuest {
-  readonly quests: DeclaredQuests;
+  readonly quests: ReturnType<typeof installQuestGraph>['quests'];
   readonly stag: StagWalk;
   /** The page's authored seven-kind pack, shared add/trade law, silently restored with the quest. */
   readonly pack: ReturnType<typeof createPinePack>;
@@ -174,7 +175,9 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (list === undefined) return;
     for (let k = 0; k < MAX_SETS; k++) { const f = list[k]; if (f === undefined) break; flags.set(f, on); }
   };
-  const quests = new DeclaredQuests(host, ports.quests, { fact: ports.fact, coins: ports.coins });
+  const graph = installQuestGraph(host, { quests: ports.quests, interactions: pineQuestRows(table), npcs: [], graph: PINE_GRAPH },
+    { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
+  const quests = graph.quests;
   const chapter = quests.quests[0];
   if (chapter === undefined) throw new Error('Pine declares the Warden\'s Hollow');
   const eye = new Vector3(), at = new Vector3();
@@ -211,10 +214,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   };
   const interact = (r: Rule): void => {
     const d = r.d;
-    if (!shown(r) || !test(flags, d.requires)) return; // a locked row only toasts
-    if (d.kind === 'lever') { if (d.latch !== true || !flags.has(r.lever)) raiseAll(d.sets, flags.toggle(r.lever)); return; }
-    if (r.auto !== null) flags.set(r.auto);
-    raiseAll(d.sets, true);
+    if (!graph.run(d.id).ok) return; // the shared table flag law; a locked row only toasts
     if (d.kind === 'bench') {
       const pose = pineBenchPose(bench, bench.yaw);
       at.set(pose.x, pose.y, pose.z); host.player.motor.resetAt(at); host.player.position.copy(at);
@@ -277,10 +277,8 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const initialLodge = lodge.snapshot();
 
   // ── the prompts ──
-  const LIT = { pond: 'lit:pond', ridge: 'lit:ridge', den: 'lit:den' } as const;
-  const lantern = (id: 'pond' | 'ridge' | 'den', needs: string): void => {
-    const flag = LIT[id];
-    if (!flags.has(flag) && flags.has(needs) && near(spots.lanterns[id], spots.lanterns[id].radius)) flags.set(flag);
+  const lantern = (id: 'pond' | 'ridge' | 'den'): void => {
+    if (near(spots.lanterns[id], spots.lanterns[id].radius)) graph.run(PINE_LANTERN_IDS[id]);
   };
   const act = (value: number): void => {
     if (state.zip.on) return; // the ride owns the player
@@ -295,9 +293,9 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
       if (spot !== undefined && near(spot.prompt, spot.prompt.radius)) dialogue.press(speaker);
       return;
     }
-    if (value === PINE_ACT.pond) { lantern('pond', 'taken:pond-glass'); return; }
-    if (value === PINE_ACT.ridge) { lantern('ridge', 'taken:ridge-flint'); return; }
-    if (value === PINE_ACT.den) { lantern('den', 'talked:ranger'); return; }
+    if (value === PINE_ACT.pond) { lantern('pond'); return; }
+    if (value === PINE_ACT.ridge) { lantern('ridge'); return; }
+    if (value === PINE_ACT.den) { lantern('den'); return; }
     if (value === PINE_ACT.zip) { if (near(spots.zip.prompt, spots.zip.prompt.radius)) { state.zip.on = true; state.zip.s = ZIP_START; state.zip.v = ZIP_LAUNCH_V; } return; }
     if (value === PINE_ACT.rifle) { if (!flags.has(LEVER_FLAG) && near(spots.rifle, spots.rifle.radius)) { flags.set(LEVER_FLAG); state.rifle = true; } return; }
     const r = rowOf(value);

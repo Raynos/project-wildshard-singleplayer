@@ -19,6 +19,7 @@
  *           lantern on the shard is lit, the dawn sting plays, the reward: the caption, amber resin, the title
  */
 import type { NpcDef, QuestDef } from '@wildshard/engine/quest/core';
+import { parseNpcDialogueRow } from '@wildshard/sdk/questGraph';
 
 export const QUEST_DONE = 'quest:warden-done';
 /** the lanterns' flags (index.ts raises them at the waystone prompts; PineLandmarks.setLit follows them) */
@@ -89,7 +90,7 @@ export const WARDENS_HOLLOW: QuestDef = {
   completeFlag: QUEST_DONE,
 };
 
-export const RANGER: NpcDef = {
+export const RANGER: NpcDef = parseNpcDialogueRow({
   id: 'ranger',
   name: 'Hale, ranger of the Hollow',
   dialogue: [
@@ -127,9 +128,9 @@ export const RANGER: NpcDef = {
       'Light the lanterns again and we will see what is what. Start at the pond. Its glass is in the beaver pool, under the dam.',
     ], sets: ['talked:ranger'] },
   ],
-};
+});
 
-export const MILLER: NpcDef = {
+export const MILLER: NpcDef = parseNpcDialogueRow({
   id: 'miller',
   name: 'Brandt, the miller',
   dialogue: [
@@ -148,9 +149,9 @@ export const MILLER: NpcDef = {
       'Clear the race after dark, would you? I will make it worth the walk.',
     ], sets: ['errand:asked'] },
   ],
-};
+});
 
-export const TRADER: NpcDef = {
+export const TRADER: NpcDef = parseNpcDialogueRow({
   id: 'trader',
   name: 'Mott, the trader',
   dialogue: [
@@ -160,7 +161,7 @@ export const TRADER: NpcDef = {
       'Bolts for your bow, and a finish or two for the particular. Let us see what you have.',
     ], sets: ['talked:trader'] },
   ],
-};
+});
 
 /** the miller's errand: its flags (the runtime raises `errand:done` when the millrace thralls are down) */
 export const ERRAND_EXTERNAL = ['errand:asked', 'errand:done', 'errand:thanked', 'talked:trader', 'wait:night'];
