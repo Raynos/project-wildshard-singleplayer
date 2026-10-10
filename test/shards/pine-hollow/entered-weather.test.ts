@@ -15,7 +15,7 @@ import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import * as backdrop from '../../../src/shards/pine-hollow/look/skyBackdrop';
 import { installWeather } from '../../../src/shards/pine-hollow/world/weather';
-import { PineWeatherFX } from '../../../src/shards/pine-hollow/world/PineWeatherFX';
+import { RainFx } from '../../../src/game/systems/looks/rainFx';
 import { AMMO_ROWS } from '../../../src/shards/pine-hollow/loadout/effects';
 import { legacyDouble } from '../../fake/FakeGame';
 
@@ -32,8 +32,8 @@ it('freezes the same rain state on the road and restores every borrowed weather 
     clock: legacyDouble<backdrop.PineSkyBackdrop['clock']>({ phase: 0.42 }),
   }));
   // The production weather loop and shared uniforms run; this fixture needs no GPU rain geometry.
-  vi.spyOn(PineWeatherFX.prototype, 'build').mockImplementation(function buildWithoutGpu(this: PineWeatherFX) { return this; });
-  vi.spyOn(PineWeatherFX.prototype, 'update').mockImplementation(() => undefined);
+  vi.spyOn(RainFx.prototype, 'build').mockImplementation(function buildWithoutGpu(this: RainFx) { return this; });
+  vi.spyOn(RainFx.prototype, 'update').mockImplementation(() => undefined);
   const read = () => ({ height: fogUniforms.fogHeight.value, falloff: fogUniforms.fogHeightFalloff.value,
     wet: weatherUniforms.uWet.value, blob: weatherUniforms.fogBlob.value.toArray(), amount: weatherUniforms.fogBlobAmt.value,
     rain: waterWeather.uRainRings.value, wind: windBoost.value, mod: { ...mod }, veil: veil.value.toArray(),

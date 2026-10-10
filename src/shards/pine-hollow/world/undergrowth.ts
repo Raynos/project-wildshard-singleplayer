@@ -1,26 +1,17 @@
-import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
-import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader, type ShaderStages } from '@wildshard/sdk/looks/shaderEdits';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { bakedUndergrowth } from '@wildshard/engine/world/BakedTerrain';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
-import { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Placement, type UnderPlacements } from '@wildshard/engine/world/forest/placement';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { windUniforms } from '@wildshard/engine/world/TreeFactory';
-import { patchWindField } from '@wildshard/engine/world/wind';
-import { UNDER_SHAPES, type UnderShape } from './undergrowthKit';
+import { GroundCover, type GroundCoverDraw, type GroundCoverKind } from '@wildshard/sdk/looks/groundCover';
+import { UNDER_SHAPES } from './undergrowthKit';
 import { UNDER_EDITS, UNDER_VERTEX_EDITS } from '../data/forestLook';
+import { UNDER_LOOK } from '../data/undergrowthLook';
 
 /**
  * Forest-floor undergrowth: ferns, low round-leaf shrubs and needle/twig litter — the field (world): where every copy
  * goes, each kind's geometry, texture and material. Each kind is a model (src/shards/pine-hollow/models/fern.ts …) that
- * `place` draws instanced into `group` and culls per 32 m cell round the forest's view (E315: `kinds`, `matrixOf`,
- * `UNDER_CELLS`; src/shards/pine-hollow/world/drawnModels.ts).
+ * `place` draws instanced into `group` and culls per 32 m cell round the forest's view (E315: `kinds`, `groundCoverMatrix`,
+ * `groundCoverCells`; src/shards/pine-hollow/world/drawnModels.ts).
  *
  *   const under = new Undergrowth(sky, forest).build();
  *   scene.add(under.group);
@@ -37,181 +28,29 @@ import { UNDER_EDITS, UNDER_VERTEX_EDITS } from '../data/forestLook';
  * Six draw calls (+ fern & shrub shadow passes). Instances scale to 0 beyond `fadeFar` metres
  * in the vertex shader so distant ones cost nothing in the fragment stage.
  *
+ * The field is the SDK's ground cover (@wildshard/sdk/looks/groundCover): one program for every kind, the distance fade
+ * and the wind; its look is data/undergrowthLook.ts, its edits data/forestLook.ts; the textures are painted here.
+ *
  * Public: `group` (the kinds' placed meshes go in it), `kinds` (each kind's parts), `layout`, `counts`, `view`.
  */
 
-const FADE_FAR = TIER_CONFIG.undergrowthFar, FADE_BAND = Math.min(25, FADE_FAR * 0.3);
-/** how `place` culls the field's copies (the old CelledInstances: 32 m cells, a copy reaches 2.5 m, gone 2 m past the fade) */
-export const UNDER_CELLS = { size: 32, pad: 2.5, far: FADE_FAR + 2 } as const;
-
 /** one kind as the field draws it: its geometry, its material (and its shadow's) — a model's parts (E315) */
-export interface UnderKindDraw {
-  readonly geometry: THREE.BufferGeometry;
-  readonly material: THREE.MeshStandardMaterial;
-  readonly castShadow: boolean;
-  readonly customDepthMaterial?: THREE.Material;
-}
-export type UnderKind = keyof UnderPlacements;
+export type UnderKindDraw = GroundCoverDraw;
+/** one of the field's six kinds */
+export type UnderKind = GroundCoverKind;
 
-const underUniforms = {
-  uFadeFar: { value: FADE_FAR },
-  uFadeBand: { value: FADE_BAND },
-  uSunDir: { value: new THREE.Vector3(0, 1, 0) },
-  uSunColor: { value: new THREE.Color(1, 0.93, 0.8) },
-  uViewerPos: { value: new THREE.Vector3() },   // the player's camera (shadow passes see the light's cameraPosition)
-};
-
-const UP = new THREE.Vector3(0, 1, 0);
-
-export class Undergrowth {
-  group = new THREE.Group();
-  /** each kind's parts (the field's shader material): its model draws them (E315) */
-  kinds!: Readonly<Record<UnderKind, UnderKindDraw>>;
-  counts = { ferns: 0, shrubs: 0, litter: 0, stones: 0, moss: 0, reeds: 0 };
-  /** where every copy of every kind stands (E315 M2: each kind is a model the field draws; its card counts these) */
-  layout: UnderPlacements = { ferns: [], shrubs: [], litter: [], stones: [], moss: [], reeds: [] };
-
-  constructor(private sky: Sky, private forest: Forest) {}
-
-  /** the view the copies are culled from: the forest's padded frustum, refilled when it moves or turns */
-  get view(): Forest { return this.forest; }
-
-  build(): this {
-    const g = this.stages();
-    while (g.next().done !== true) { /* every stage in one go */ }
-    return this;
+/** Pine Hollow's forest floor: the SDK ground cover with its look, shapes, edits and painted textures. */
+export class Undergrowth extends GroundCover {
+  /** the field over `forest`, lit by `sky` */
+  constructor(sky: Sky, forest: Forest) {
+    super({
+      sky, forest, look: UNDER_LOOK, shapes: UNDER_SHAPES, edits: { lit: UNDER_EDITS, vertex: UNDER_VERTEX_EDITS },
+      paint: { ferns: makeFernTexture, shrubs: makeShrubTexture, litter: makeLitterTexture, stones: makeStoneTexture, moss: makeMossTexture, reeds: makeReedTexture },
+    });
   }
-
-  /**
-   * `build()` with the event loop let in between its stages (`pause`, e.g. a macrotask): the textures, then
-   * each kind's placement pass. Same rolls, same placements; in one call it was a ~290 ms task at 4x CPU.
-   */
-  async buildAsync(pause: () => Promise<void>): Promise<this> {
-    const g = this.stages();
-    while (g.next().done !== true) await pause();
-    return this;
-  }
-
-  private *stages(): Generator<void, void, undefined> {
-    // the sky's own objects (not copies): the day / night clock moves the sun by mutating them in place
-    underUniforms.uSunDir.value = this.sky.sunDir;
-    underUniforms.uSunColor.value = this.sky.sunColor;
-    const fernTex = makeFernTexture(), shrubTex = makeShrubTexture(), litterTex = makeLitterTexture();
-    const fernMat = this.makeMaterial(fernTex, 'fern', 0.35, 0.5);
-    const shrubMat = this.makeMaterial(shrubTex, 'shrub', 0.25, 0.5);
-    const litterMat = this.makeMaterial(litterTex, 'litter', 0.0, 0.35);
-    litterMat.roughness = 1;
-    const stoneTex = makeStoneTexture(), mossTex = makeMossTexture(), reedTex = makeReedTexture();
-    const stoneMat = this.makeMaterial(stoneTex, 'stone', 0.0, 0.5);
-    stoneMat.roughness = 0.75;
-    const mossMat = this.makeMaterial(mossTex, 'moss', 0.0, 0.4);
-    mossMat.roughness = 1;
-    // flat ground layers: pull towards the camera so the terrain mesh (±5 cm off heightAt) never swallows them
-    for (const m of [litterMat, stoneMat, mossMat]) { m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2; }
-    const reedMat = this.makeMaterial(reedTex, 'reed', 0.5, 0.45);
-    yield;
-
-    const place = yield* this.placements();
-    this.layout = place;
-    this.kinds = {
-      ferns: kindDraw(toGeometry(UNDER_SHAPES.ferns), fernMat, true, fernTex, 0.35),
-      shrubs: kindDraw(toGeometry(UNDER_SHAPES.shrubs), shrubMat, true, shrubTex, 0.25),
-      litter: kindDraw(toGeometry(UNDER_SHAPES.litter), litterMat, false),
-      stones: kindDraw(toGeometry(UNDER_SHAPES.stones), stoneMat, false),
-      moss: kindDraw(toGeometry(UNDER_SHAPES.moss), mossMat, false),
-      reeds: kindDraw(toGeometry(UNDER_SHAPES.reeds), reedMat, true, reedTex, 0.5),
-    };
-    this.counts = { ferns: place.ferns.length, shrubs: place.shrubs.length, litter: place.litter.length, stones: place.stones.length, moss: place.moss.length, reeds: place.reeds.length };
-  }
-
-  /**
-   * Where everything goes (src/engine/world/forest/placement.ts): the build's decision log replayed when the chunk's
-   * terrain.bin carries one that fits this build — no candidate tested at launch — else the tests run.
-   */
-  private *placements(): Generator<void, UnderPlacements, undefined> {
-    const baked = bakedUndergrowth();
-    if (baked) {
-      try {
-        const p = yield* placeUndergrowth(this.forest.trees, this.forest, DecisionLog.replay(baked.bits, baked.length));
-        if (sameChecksum(placementChecksum(p), baked.checksum)) return p;
-        console.warn('[baked] undergrowth decision log does not fit this build; placing at launch');
-      } catch (e) { console.warn(`[baked] undergrowth decision log not used (${(e as Error).message}); placing at launch`); }
-    }
-    return yield* placeUndergrowth(this.forest.trees, this.forest, DecisionLog.record());
-  }
-
-  /** `playerPos` in the floor's own frame; the fade compares world positions, so it goes out through the group's world matrix (a grid region's offset, G223; identity standalone) */
-  update(_dt: number, playerPos: THREE.Vector3): void { underUniforms.uViewerPos.value.copy(playerPos).applyMatrix4(this.group.matrixWorld); }
-
-  private makeMaterial(tex: THREE.Texture, key: string, wind: number, alphaTest: number) {
-    const mat = new THREE.MeshStandardMaterial({ map: tex, alphaTest, side: THREE.DoubleSide, roughness: 0.8, metalness: 0 });
-    mat.name = `under-${key}`;
-    patchShader(mat, 'pine.undergrowth', PATCH_ORDER.material, (shader) => {
-      attachFogUniforms(shader);
-      Object.assign(shader.uniforms, underUniforms);
-      patchUndergrowthVertex(shader, wind);
-      editShader(shader, UNDER_EDITS); // ../data/forestLook.ts
-    }, { mode: 'replace', key: 'under' }); // `key` names the material; wind is a uniform, so every kind shares ONE program (was 6 — ~150 ms each on iOS)
-    this.sky.setupMaterial(mat);
-    return mat;
-  }
-
-}
-
-/** a kind's parts: its geometry and material, and — where the tier casts its shadow — the alpha-tested shadow material */
-function kindDraw(geometry: THREE.BufferGeometry, material: THREE.MeshStandardMaterial, shadow: boolean, tex?: THREE.Texture, wind = 0): UnderKindDraw {
-  const castShadow = shadow && TIER_CONFIG.undergrowthShadows;
-  if (!castShadow || !tex) return { geometry, material, castShadow };
-  const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5, side: THREE.DoubleSide });
-  patchShader(depth, 'pine.undergrowth-depth', PATCH_ORDER.material, (shader) => { patchUndergrowthVertex(shader, wind); }, { mode: 'replace', key: 'under-depth' }); // wind is a uniform: one depth program for every kind
-  return { geometry, material, castShadow, customDepthMaterial: depth };
-}
-
-const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _n = new THREE.Vector3();
-
-/** a copy's transform: tilted to the ground's normal, turned about it, scaled */
-export function matrixOf(it: Placement, target = new THREE.Matrix4()): THREE.Matrix4 {
-  _n.set(it.nx, it.ny, it.nz);
-  _q2.setFromUnitVectors(UP, _n);
-  _q.setFromAxisAngle(UP, it.rot).premultiply(_q2);
-  return target.compose(_p.set(it.x, it.y, it.z), _q, _s.set(it.scale, it.scale, it.scale));
-}
-
-/** Distance fade (scale to 0) + gentle wind, shared by the lit and the shadow-depth materials. */
-function patchUndergrowthVertex(shader: ShaderStages & { uniforms: Record<string, THREE.IUniform> }, wind: number) {
-  shader.uniforms['uWindScale'] = { value: wind }; // per material, not baked into the source: the program is shared
-  patchWindField(shader); // the shared clock + gust front (wind.ts, PH-L6)
-  shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
-  shader.uniforms['uFadeFar'] = underUniforms.uFadeFar;
-  shader.uniforms['uFadeBand'] = underUniforms.uFadeBand;
-  shader.uniforms['uViewerPos'] = underUniforms.uViewerPos;
-  editShader(shader, UNDER_VERTEX_EDITS); // ../data/forestLook.ts
-}
-
-// ------------------------------------------------------------------ geometry
-
-function toGeometry({ position: verts, normal: norms, uv: uvs, index: idx }: UnderShape): THREE.BufferGeometry {
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-  geo.setAttribute('normal', new THREE.Float32BufferAttribute(norms, 3));
-  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  geo.setIndex(idx);
-  geo.computeBoundingSphere();
-  return geo;
 }
 
 // ------------------------------------------------------------------ textures
-
-function canvasTexture(c: HTMLCanvasElement) {
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-  tex.anisotropy = 8;
-  tex.minFilter = THREE.LinearMipmapLinearFilter;
-  // Per-build immutable pixels; lit and depth materials share this exact texture, with no CPU readers.
-  if (memorySaverOn()) gpuOnlyTexture(tex, 'undergrowth/canvas');
-  return tex;
-}
 
 function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D {
   const g = c.getContext('2d');
@@ -246,7 +85,7 @@ function makeFernTexture() {
   g.beginPath(); g.moveTo(stemX(0), stemY(0));
   for (let i = 1; i <= 20; i++) { const t = i / 20; g.lineTo(stemX(t), stemY(t)); }
   g.stroke();
-  return canvasTexture(c);
+  return c;
 }
 
 function drawPinna(g: CanvasRenderingContext2D, bx: number, by: number, ang: number, len: number, wid: number, side: number, t: number, rng: Rng) {
@@ -307,7 +146,7 @@ function makeShrubTexture() {
     g.strokeStyle = 'rgba(170,190,90,0.4)'; g.lineWidth = 1;
     g.beginPath(); g.moveTo(x, y + r * 0.8); g.lineTo(x, y - r * 0.8); g.stroke();
   }
-  return canvasTexture(c);
+  return c;
 }
 
 /** Dark pebbles: a scatter of shaded grey ellipses with a light rim. */
@@ -325,7 +164,7 @@ function makeStoneTexture() {
     g.fillStyle = grad;
     g.beginPath(); g.ellipse(x, y, rx, ry, a, 0, Math.PI * 2); g.fill();
   }
-  return canvasTexture(c);
+  return c;
 }
 
 /** Moss: a velvety stipple of tiny dark-green tufts, dense in the middle, ragged at the edge. */
@@ -350,7 +189,7 @@ function makeMossTexture() {
     g.fillStyle = bright ? `rgb(${92 + v * 30},${122 + v * 30},${44 + v * 10})` : `rgb(${34 + v * 26},${58 + v * 34},${20 + v * 10})`;
     g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
   }
-  return canvasTexture(c);
+  return c;
 }
 
 /** Reed blades: a few tall, very thin, slightly bent blades with brown seed heads. */
@@ -371,7 +210,7 @@ function makeReedTexture() {
       g.beginPath(); g.ellipse(x0 + bendX, top + 6, 4.5, 16, bendX * 0.01, 0, Math.PI * 2); g.fill();
     }
   }
-  return canvasTexture(c);
+  return c;
 }
 
 /** Fallen needles, twigs and a few leaves on a transparent background. */
@@ -400,5 +239,5 @@ function makeLitterTexture() {
     g.fillStyle = `rgb(${100 + rng.range(0, 40)},${68 + rng.range(0, 24)},36)`;
     g.beginPath(); g.ellipse(x, y, rng.range(9, 15), rng.range(5, 8), rng.range(0, Math.PI), 0, Math.PI * 2); g.fill();
   }
-  return canvasTexture(c);
+  return c;
 }

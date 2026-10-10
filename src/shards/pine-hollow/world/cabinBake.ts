@@ -14,6 +14,7 @@ import { flatPositions, shadowProxy, twoSidedPositions, type WeldBuild, type Wel
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { GeometryPack, fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import rows from '../data/cabins.json' with { type: 'json' };
 import { CabinRowsSchema, type CabinRows, type BakedBuilding, type BakedLight, type BakedNode, type Door, type Fire, type Floor, type KitMat, type LightAnchor, type PropKind, type Room, type Swing } from './logKit';
 import type { Mats } from './homestead';
@@ -23,42 +24,10 @@ export const CABIN_BAKE_URL = '/assets/pine-hollow/baked/cabins.bin';
 /** the bake's rows, parsed strictly once */
 export const CABIN_ROWS: CabinRows = v.parse(CabinRowsSchema, rows);
 
-/** The decoded binary: each geometry's blocks, read fresh for every building built from it (nothing is shared). */
-export class CabinGeometries {
-  private readonly at: number[] = [];
-  private readonly buffer: ArrayBuffer;
-  constructor(bytes: Uint8Array) {
-    if (bytes.length !== CABIN_ROWS.bytes) throw new Error(`[cabins] the bake holds ${String(bytes.length)} bytes, its rows ${String(CABIN_ROWS.bytes)}`);
-    this.buffer = new ArrayBuffer(bytes.length); new Uint8Array(this.buffer).set(bytes);
-    let offset = 0;
-    const pad = (n: number): number => Math.ceil(n / 4) * 4;
-    for (const g of CABIN_ROWS.geometries) {
-      this.at.push(offset);
-      for (const [, size] of g.attrs) offset += pad(g.unique * size * 4);
-      offset += pad(g.indexCount * (g.own === 'u32' || (g.own === null && g.unique >= 65536) ? 4 : 2));
-    }
-    if (offset !== bytes.length) throw new Error('[cabins] the bake does not match its rows');
-  }
-  /** geometry `i` as the builder made it: a copy its caller owns */
-  geometry(i: number): THREE.BufferGeometry {
-    const row = CABIN_ROWS.geometries[i], start = this.at[i];
-    if (row === undefined || start === undefined) throw new Error(`[cabins] no baked geometry ${String(i)}`);
-    let offset = start;
-    const blocks = row.attrs.map(([, size]) => { const a = new Float32Array(this.buffer, offset, row.unique * size); offset += Math.ceil(a.byteLength / 4) * 4; return a; });
-    const wide = row.own === 'u32' || (row.own === null && row.unique >= 65536);
-    const index = wide ? new Uint32Array(this.buffer, offset, row.indexCount) : new Uint16Array(this.buffer, offset, row.indexCount);
-    const g = new THREE.BufferGeometry();
-    row.attrs.forEach(([name, size], k) => {
-      const block = blocks[k];
-      if (block === undefined) return;
-      if (row.own !== null) { g.setAttribute(name, new THREE.BufferAttribute(block.slice(), size)); return; }
-      const out = new Float32Array(row.count * size);
-      for (let j = 0; j < row.count; j++) { const src = (index[j] ?? 0) * size; for (let c = 0; c < size; c++) out[j * size + c] = block[src + c] ?? 0; }
-      g.setAttribute(name, new THREE.BufferAttribute(out, size));
-    });
-    if (row.own !== null) g.setIndex(new THREE.BufferAttribute(index.slice(), 1));
-    return g;
-  }
+/** The decoded binary (the SDK's geometry pack over the bake's rows): each geometry read fresh for every building built from it. */
+export class CabinGeometries extends GeometryPack {
+  /** `bytes` the inflated bake */
+  constructor(bytes: Uint8Array) { super(bytes, CABIN_ROWS, 'cabins'); }
 }
 
 /** the hamlet's roofs for the map: each building's footprint (+1 m of eave), turned with it */
@@ -69,9 +38,7 @@ export function hamletRoofs(): { x: number; z: number; rot: number; w: number; d
 /** Fetch and inflate the bake; a bake that fails to load is a page fault (`console.error`), and the buildings stand absent. */
 export async function loadCabinBake(): Promise<CabinGeometries | null> {
   try {
-    const response = await fetch(CABIN_BAKE_URL);
-    if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${CABIN_BAKE_URL}`);
-    return new CabinGeometries(new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer()));
+    return new CabinGeometries(await fetchDeflated(CABIN_BAKE_URL));
   } catch (error: unknown) {
     console.error('[pine-hollow] the baked log buildings did not load:', error);
     return null;

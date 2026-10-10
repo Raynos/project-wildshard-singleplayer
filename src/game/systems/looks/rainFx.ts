@@ -1,40 +1,3 @@
-import { rainCurtain } from '@wildshard/game/systems/looks/rainCurtain';
-import { RAIN_PROGRAM } from './rainProgram';
-/**
- * PineWeatherFX — what Pine Hollow's rain looks like (PH-L10): the rain around the camera with the canopy's drips in it,
- * the puddles in the ground's low spots. Everything reads `PineWeather`; nothing here decides anything. (The wet PBR is a
- * uniform in every lit shader — Atmosphere.ts `weatherUniforms.uWet` — and the rings on the pond and the creek are the
- * water program's — waterSurface.ts `waterWeather`; the sky is the clock's `PineDayNight.mod`.)
- *
- *   const fx = new PineWeatherFX({ sky, trees, roofAt, phone }).build();  scene.add(fx.group)
- *   fx.update(dt, weather, fogColor, wind, camera)   // the camera: the extras (splashes round it, drops on its lens)
- *
- * THE RAIN: Nalati's camera-local curtain (WeatherFX.buildRain) — N streak quads in a box round the eye, world-anchored by
- * a wrapped offset (no CPU per drop), built in the vertex shader, the count following the intensity. Pine Hollow's twist
- * is the COVER MAP: a 256² texture over the slab (≈ 2 m a texel) of the crowns (R, from `forest.trees`) and the roofs
- * (G, the cabins' floors + porches): under a roof no rain falls; under the crowns most of it is caught and what gets through
- * falls as fat slow-looking drips off the needles — the canopy drips, in the same draw.
- * THE PUDDLES: irregular draped discs in the concave spots of the roads and trails, merged into one mesh drawn by the
- * water's own program ('ph-water': the clock's sky in them, the rain's rings, a dark wet rim) at a fading alpha: 0 new
- * programs.
- *
- * THE CAVE MOUTH (E322 F-L5): the cover map's roofs reach the bear cave's passage (`roofAt` knows its footprint) but the
- * 2 m texels start it a metre in and the arch's hood stood open to the sky — a box in the cave's frame (BEAR_CAVE: the
- * mouth, the hood and the first metres in, under the arch's height) is tested exactly in the rain's vertex shader.
- *
- * A PRACTICE ROOM (the arena, a playground: `practiceRoom.open`) has none of it: no curtain, no extras (E322 F-L5, E350 F-X4).
- *
- * RAIN EXTRAS (E322 F-L5; Jake picked them, always on in the rain, none in a practice room):
- *  · splashes at the player's feet: a ring of crowns + ripples on the ground within a few metres of the eye, respawned on
- *    the CPU (≤ 96 slots, one instanced draw), none under a roof / in the cave, fewer under the crowns;
- *  · puddles off the trails too: the meadows' concave spots, appended to the same puddle mesh (a draw range, 0 draws more);
- *  · drops on the lens: ≤ 20 screen-space quads (NDC, no scene sample, no blur pass): a darker rim, the sky's light pooled
- *    in the lower half, a glint — they land while you face the open sky and bead, slide and dry.
- *
- * Draws: 0 while dry (all hidden). Raining: the rain + the puddles + the splashes + the lens = 4.
- * Programs: +3 (the rain, the splashes, the lens), built at boot (the meshes are in the scene, hidden, when the precompile
- * walks it).
- */
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
@@ -46,45 +9,99 @@ import { normalAt, splatAt, trailDistance, cabinMask, pondMask, streamAt, inChun
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
-import { BEAR_CAVE } from '../layout';
-import type { PineWeather } from './weatherProfile';
+import { fogGLSL } from './fogProgram';
+import { rainCurtain } from './rainCurtain';
+import { ShaderFamily, type ShaderProgramRow } from './shaderFamily';
 
-const COVER_N = 256;
-/** the cave's hood in its own frame (lx across, lz into the rock; the mouth faces −lz): half width, from, to, height over
- *  the mouth's ground — the arch's opening is 2.6 × 4.8 m (caveArch.ts `openCaveArch`); the cover map takes over at lz ≈ 1.5 */
-const CAVE_HOOD = { hw: 3.2, lz0: -1.4, lz1: 4.5, up: 5.6 };
-/** splash slots (a ring buffer) and lens-drop slots */
-const SPLASH_N = { phone: 64, desktop: 96 };
-const LENS_N = { phone: 14, desktop: 20 };
+/**
+ * A wooded level's rain as rows (SHARD-PLATFORM M3): the rain round the camera with the canopy's drips in it, the puddles in
+ * the ground's low spots, the splashes at the player's feet and the drops on the lens. Everything reads a weather reading
+ * (rain, wet); nothing here decides anything. The shard gives its sizes and its three programs as data, its trees, where
+ * its roofs are and, optionally, one hood (a cave's mouth) where no rain falls.
+ *
+ *   const fx = new RainFx({ sky, trees, roofAt, phone, seed, look, programs, hood }).build();  scene.add(fx.group)
+ *   fx.update(dt, weather, fogColor, wind, camera)   // the camera: the extras (splashes round it, drops on its lens)
+ *
+ * THE RAIN: a camera-local curtain (`rainCurtain`) — N streak quads in a box round the eye, world-anchored by a wrapped
+ * offset (no CPU per drop), built in the vertex shader, the count following the intensity. The COVER MAP: a `coverN`²
+ * texture over the slab of the crowns (R, from `trees`) and the roofs (G, `roofAt`): the rain program stops the rain under
+ * a roof and turns most of it under the crowns into drips off the needles, in the same draw. Its uniforms: `uCover` /
+ * `uCoverK` (world x/z → uv = p · k + 0.5), `uCave` (the hood's frame: x, z, cos yaw, sin yaw) and `uCaveBox` (half width,
+ * lz from, lz to, the ceiling's world y; all 0 with no hood, which nothing is inside).
+ * THE PUDDLES: irregular draped discs in the concave spots of the roads and trails (and the open meadows' dips after them),
+ * merged into one mesh drawn by the water's own program at a fading alpha: 0 new programs.
+ * THE EXTRAS: the splashes (a ring of crowns + ripples on the ground within a few metres of the eye, respawned on the CPU,
+ * one instanced draw; none under a roof or the hood, fewer under the crowns) and the lens drops (screen-space quads: they
+ * land while you face the open sky and bead, slide and dry).
+ *
+ * A practice room (`practiceRoom.open`) has none of it. Draws: 0 while dry (all hidden); raining: the rain + the puddles +
+ * the splashes + the lens = 4. Programs: +3 (the rain, the splashes, the lens), built at boot (the meshes are in the scene,
+ * hidden, when the precompile walks it).
+ */
 
-export interface PineWeatherFXOpts {
+/** A count per device tier. */
+export interface TierCount { readonly phone: number; readonly desktop: number }
+
+/** The rain's sizes as data: the cover map's texels, the streaks, the splash and lens-drop slots, the puddles. */
+export interface RainFxLook {
+  readonly coverN: number;
+  readonly streaks: TierCount;
+  readonly splashes: TierCount;
+  readonly lensDrops: TierCount;
+  /** puddles on / beside the trails, then in the open dips; each a disc of `seg` sides through `rings` (radius, depth) */
+  readonly puddles: { readonly trail: TierCount; readonly open: TierCount; readonly seg: number; readonly rings: readonly (readonly [number, number])[] };
+}
+
+/** The rain's three programs (`@{fog}` splices the atmosphere's fog GLSL). */
+export interface RainFxPrograms {
+  readonly rain: ShaderProgramRow;
+  readonly splash: ShaderProgramRow;
+  readonly lens: ShaderProgramRow;
+}
+
+/** A hood where no rain falls: a box in a frame at (x, z) turned by `rot` (lx across, lz in), under `top` (world y). */
+export interface RainHood { readonly x: number; readonly z: number; readonly rot: number; readonly hw: number; readonly lz0: number; readonly lz1: number; readonly top: number }
+
+/** What the rain reads each frame: how hard it rains and how wet the ground is (0..1). */
+export interface RainReading { readonly rain: number; readonly wet: number }
+
+/** What a rain system is built from. */
+export interface RainFxOptions {
+  /** the group's name (a capture finds it by it) */
+  name: string;
   sky: Sky;
   trees: readonly TreeInstance[];
-  /** a roof over (x, z) (a cabin's floor / porch deck under it) */
+  /** a roof over (x, z) */
   roofAt: (x: number, z: number) => boolean;
   phone: boolean;
   seed: number;
+  look: RainFxLook;
+  programs: RainFxPrograms;
+  hood?: RainHood;
 }
 
-export class PineWeatherFX {
+/** The camera-local rain, the puddles, the splashes and the lens drops of a wooded level (see the module's comment). */
+export class RainFx {
+  /** everything it draws (hidden while dry) */
   readonly group = new THREE.Group();
+  /** the curtain */
   rain!: THREE.Mesh;
+  /** the merged puddle discs */
   puddles!: THREE.Mesh;
   /** R = crown cover 0..1, G = roof; world x/z → uv = (p + CHUNK_HALF) / (2 CHUNK_HALF) */
   cover!: THREE.DataTexture;
-  private coverData = new Uint8Array(COVER_N * COVER_N * 4);
-  private readonly rainU = {
-    uOffset: { value: new THREE.Vector3() }, uR: { value: 16 }, uVel: { value: new THREE.Vector3(0, -9, 0) }, uLen: { value: 0.9 },
-    uCol: { value: new THREE.Color(0.6, 0.65, 0.75) }, uAlpha: { value: 0.3 }, uWidth: { value: 0.012 },
-    uCover: { value: null as THREE.Texture | null }, uCoverK: { value: 1 / (2 * CHUNK_HALF) },
-    /** the cave's frame (x, z, cos yaw, sin yaw) and its hood box (half width, lz from, lz to, the ceiling's world y) */
-    uCave: { value: new THREE.Vector4(BEAR_CAVE.x, BEAR_CAVE.z, Math.cos(BEAR_CAVE.rot), Math.sin(BEAR_CAVE.rot)) },
-    uCaveBox: { value: new THREE.Vector4(CAVE_HOOD.hw, CAVE_HOOD.lz0, CAVE_HOOD.lz1, heightAt(BEAR_CAVE.x, BEAR_CAVE.z) + CAVE_HOOD.up) },
+  private readonly coverN: number;
+  private readonly coverData: Uint8Array;
+  private readonly rainU: {
+    uOffset: { value: THREE.Vector3 }; uR: { value: number }; uVel: { value: THREE.Vector3 }; uLen: { value: number };
+    uCol: { value: THREE.Color }; uAlpha: { value: number }; uWidth: { value: number };
+    uCover: { value: THREE.Texture | null }; uCoverK: { value: number }; uCave: { value: THREE.Vector4 }; uCaveBox: { value: THREE.Vector4 };
   };
   private readonly puddleFade = { value: 0 };
   private readonly rainCount: number;
-  /** E322 F-L5 Rain extras: the splashes at the feet, the lens drops */
+  /** the splashes at the feet */
   splashes!: THREE.Mesh;
+  /** the drops on the lens */
   lens!: THREE.Mesh;
   private readonly splashU = { uTime: { value: 0 }, uCol: { value: new THREE.Color(0.8, 0.84, 0.9) }, uAlpha: { value: 0.5 } };
   private splashAttr!: THREE.InstancedBufferAttribute;
@@ -99,12 +116,26 @@ export class PineWeatherFX {
   private readonly eye = new THREE.Vector3();
   private readonly fwd = new THREE.Vector3(0, 0, -1);
   private readonly xrng: Rng;
+  private readonly family: ShaderFamily<keyof RainFxPrograms>;
 
-  constructor(private readonly o: PineWeatherFXOpts) {
-    this.rainCount = o.phone ? 3200 : 6000;
+  /** `o`: the trees, roofs, tier, seed, the look and programs as data, and an optional hood. */
+  constructor(private readonly o: RainFxOptions) {
+    this.coverN = o.look.coverN;
+    this.coverData = new Uint8Array(this.coverN * this.coverN * 4);
+    const hood = o.hood;
+    this.rainU = {
+      uOffset: { value: new THREE.Vector3() }, uR: { value: 16 }, uVel: { value: new THREE.Vector3(0, -9, 0) }, uLen: { value: 0.9 },
+      uCol: { value: new THREE.Color(0.6, 0.65, 0.75) }, uAlpha: { value: 0.3 }, uWidth: { value: 0.012 },
+      uCover: { value: null }, uCoverK: { value: 1 / (2 * CHUNK_HALF) },
+      uCave: { value: hood ? new THREE.Vector4(hood.x, hood.z, Math.cos(hood.rot), Math.sin(hood.rot)) : new THREE.Vector4() },
+      uCaveBox: { value: hood ? new THREE.Vector4(hood.hw, hood.lz0, hood.lz1, hood.top) : new THREE.Vector4() },
+    };
+    this.rainCount = o.phone ? o.look.streaks.phone : o.look.streaks.desktop;
     this.xrng = new Rng(o.seed ^ 0x7e11);
+    this.family = new ShaderFamily({ fog: fogGLSL }, o.programs);
   }
 
+  /** Builds the cover map and the four meshes into `group`. */
   build(): this {
     this.cover = this.buildCover();
     this.rainU.uCover.value = this.cover;
@@ -113,21 +144,23 @@ export class PineWeatherFX {
     this.splashes = this.buildSplashes();
     this.lens = this.buildLens();
     this.group.add(this.rain, this.puddles, this.splashes, this.lens);
-    this.group.name = 'pine-weather';
+    this.group.name = this.o.name;
     return this;
   }
 
   /** crown cover (0..1) at (x, z), from the CPU copy of the cover map (the animals' shelter, the ambience) */
   coverAt(x: number, z: number): number {
-    const i = Math.floor((x + CHUNK_HALF) / (2 * CHUNK_HALF) * COVER_N), j = Math.floor((z + CHUNK_HALF) / (2 * CHUNK_HALF) * COVER_N);
-    if (i < 0 || j < 0 || i >= COVER_N || j >= COVER_N) return 0;
-    return (this.coverData[(j * COVER_N + i) * 4] ?? 0) / 255;
+    const N = this.coverN;
+    const i = Math.floor((x + CHUNK_HALF) / (2 * CHUNK_HALF) * N), j = Math.floor((z + CHUNK_HALF) / (2 * CHUNK_HALF) * N);
+    if (i < 0 || j < 0 || i >= N || j >= N) return 0;
+    return (this.coverData[(j * N + i) * 4] ?? 0) / 255;
   }
 
-  /** no rain reaches (x, y, z): under a cabin's roof (the cover map's G) or in the cave's mouth / hood */
+  /** no rain reaches (x, y, z): under a roof (the cover map's G) or in the hood */
   private dryAt(x: number, y: number, z: number): boolean {
-    const i = Math.floor((x + CHUNK_HALF) / (2 * CHUNK_HALF) * COVER_N), j = Math.floor((z + CHUNK_HALF) / (2 * CHUNK_HALF) * COVER_N);
-    if (i >= 0 && j >= 0 && i < COVER_N && j < COVER_N && (this.coverData[(j * COVER_N + i) * 4 + 1] ?? 0) > 127) return true;
+    const N = this.coverN;
+    const i = Math.floor((x + CHUNK_HALF) / (2 * CHUNK_HALF) * N), j = Math.floor((z + CHUNK_HALF) / (2 * CHUNK_HALF) * N);
+    if (i >= 0 && j >= 0 && i < N && j < N && (this.coverData[(j * N + i) * 4 + 1] ?? 0) > 127) return true;
     const c = this.rainU.uCave.value, b = this.rainU.uCaveBox.value, dx = x - c.x, dz = z - c.y;
     const lx = dx * c.z - dz * c.w, lz = dx * c.w + dz * c.z;
     return Math.abs(lx) < b.x && lz > b.y && lz < b.z && y < b.w;
@@ -135,7 +168,7 @@ export class PineWeatherFX {
 
   // ─────────────────────────── the cover map ───────────────────────────
   private buildCover(): THREE.DataTexture {
-    const d = this.coverData, N = COVER_N, cell = (2 * CHUNK_HALF) / N;
+    const d = this.coverData, N = this.coverN, cell = (2 * CHUNK_HALF) / N;
     const cov = new Float32Array(N * N);
     for (const t of this.o.trees) {
       const r = Math.max(1.6, 0.16 * t.height + 0.8), i0 = (t.x + CHUNK_HALF) / cell, j0 = (t.z + CHUNK_HALF) / cell, rc = r / cell;
@@ -163,12 +196,14 @@ export class PineWeatherFX {
 
   // ─────────────────────────── rain around the camera ───────────────────────────
   private buildRain(): THREE.Mesh {
-    return rainCurtain({ count: this.rainCount, seed: this.o.seed, uniforms: this.rainU, program: RAIN_PROGRAM });
+    const row = this.family.row('rain');
+    return rainCurtain({ count: this.rainCount, seed: this.o.seed, uniforms: this.rainU, program: { vertexShader: this.family.glsl(row.vertex), fragmentShader: this.family.glsl(row.fragment) } });
   }
 
   // ─────────────────────────── puddles in the low spots ───────────────────────────
   private buildPuddles(): THREE.Mesh {
-    const rng = new Rng(this.o.seed ^ 0x9dd1), want = this.o.phone ? 55 : 90;
+    const pl = this.o.look.puddles;
+    const rng = new Rng(this.o.seed ^ 0x9dd1), want = this.o.phone ? pl.trail.phone : pl.trail.desktop;
     const spots: { x: number; z: number; r: number }[] = [];
     // the low spots on or beside the roads and trails: a point a few cm under the ground 2 m round it
     for (let tries = 0; tries < 30000 && spots.length < want; tries++) {
@@ -182,9 +217,9 @@ export class PineWeatherFX {
       spots.push({ x, z, r: rng.range(0.6, 1.5) });
     }
     const trailSpots = spots.length;
-    // E322 F-L5 (Rain extras): the meadows' low spots too — open (little crown over them), flat, not rock, the dips; their own
-    // random stream and appended, so the trails' puddles stay exactly as they were
-    const rx = new Rng(this.o.seed ^ 0x51ab), wantOff = this.o.phone ? 36 : 60;
+    // the meadows' low spots too — open (little crown over them), flat, not rock, the dips; their own random stream and
+    // appended, so the trails' puddles stay exactly as they were
+    const rx = new Rng(this.o.seed ^ 0x51ab), wantOff = this.o.phone ? pl.open.phone : pl.open.desktop;
     for (let tries = 0; tries < 40000 && spots.length < trailSpots + wantOff; tries++) {
       const x = rx.range(-CHUNK_HALF, CHUNK_HALF), z = rx.range(-CHUNK_HALF, CHUNK_HALF);
       if (!inChunk(x, z, 12) || trailDistance(x, z) <= 2.4 || this.coverAt(x, z) > 0.45) continue;
@@ -197,8 +232,8 @@ export class PineWeatherFX {
       spots.push({ x, z, r: rx.range(0.8, 2.0) });
     }
     // one merged mesh: each puddle a draped disc — deep centre, the water's edge, a wet dark rim, fading out
-    const RINGS: readonly [number, number][] = [[0, 0.05], [0.55, 0.04], [1.0, 0.004], [1.12, -0.1], [1.35, -0.42]];
-    const SEG = 14;
+    const RINGS = pl.rings;
+    const SEG = pl.seg;
     const pos: number[] = [], uv: number[] = [], aw: number[] = [], idx: number[] = [];
     for (const s of spots) {
       const base = pos.length / 3, ph = rng.range(0, 6.283), ph2 = rng.range(0, 6.283), stretch = rng.range(1, 1.7), rot = rng.range(0, Math.PI);
@@ -237,7 +272,7 @@ export class PineWeatherFX {
     material.polygonOffset = true; material.polygonOffsetFactor = -2; material.polygonOffsetUnits = -4; // on the ground, not in it
     const mesh = new THREE.Mesh(geo, material);
     mesh.name = 'puddles';
-    mesh.receiveShadow = true; // the creek's flags: the same 'ph-water' program
+    mesh.receiveShadow = true; // the creek's flags: the same water program
     mesh.renderOrder = 4;
     mesh.visible = false;
     mesh.userData['spots'] = trailSpots;
@@ -245,13 +280,13 @@ export class PineWeatherFX {
     return mesh;
   }
 
-  // ─────────────────────────── splashes at the feet (Rain extras) ───────────────────────────
+  // ─────────────────────────── splashes at the feet ───────────────────────────
   /**
    * One instanced draw: per slot a flat ripple ring (verts 0–3) and an upright crown of droplets facing the eye (4–7), both
    * built in the vertex shader from (x, y, z, born) and the clock; a dead slot collapses off screen.
    */
   private buildSplashes(): THREE.Mesh {
-    const n = this.o.phone ? SPLASH_N.phone : SPLASH_N.desktop;
+    const n = this.o.phone ? this.o.look.splashes.phone : this.o.look.splashes.desktop;
     const geo = new THREE.InstancedBufferGeometry();
     const corner = new Float32Array([-1, -1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0, -1, 0, 1, 1, 0, 1, -1, 1, 1, 1, 1, 1]);
     geo.setAttribute('position', new THREE.BufferAttribute(corner, 3)); // xy the corner, z 0 ring / 1 crown
@@ -261,53 +296,7 @@ export class PineWeatherFX {
     geo.setAttribute('aSplash', this.splashAttr);
     geo.instanceCount = n;
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    const mat = new THREE.ShaderMaterial({
-      uniforms: this.splashU, transparent: true, depthWrite: false, side: THREE.DoubleSide,
-      vertexShader: /* glsl */`
-        attribute vec4 aSplash;
-        uniform float uTime;
-        varying vec2 vUv; varying float vAge; varying float vKind; varying float vSeed;
-        void main() {
-          float age = ( uTime - aSplash.w ) / 0.42;
-          vUv = position.xy; vKind = position.z; vAge = age;
-          vSeed = fract( sin( dot( aSplash.xz, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
-          if ( age < 0.0 || age > 1.0 ) { gl_Position = vec4( 2.0, 2.0, 2.0, 1.0 ); return; }
-          vec3 p = aSplash.xyz;
-          if ( position.z < 0.5 ) {
-            float r = mix( 0.02, 0.17, sqrt( age ) ) * ( 0.7 + 0.6 * vSeed );
-            p += vec3( position.x * r, 0.012, position.y * r );
-          } else {
-            vec3 toEye = cameraPosition - p; toEye.y = 0.0;
-            vec3 side = normalize( vec3( - toEye.z, 0.0, toEye.x ) + 1e-4 );
-            float w = 0.045 + 0.035 * age, h = 0.07 * ( 0.7 + 0.6 * vSeed );
-            p += side * position.x * w + vec3( 0.0, position.y * h, 0.0 );
-          }
-          gl_Position = projectionMatrix * viewMatrix * vec4( p, 1.0 );
-        }`,
-      fragmentShader: /* glsl */`
-        uniform vec3 uCol; uniform float uAlpha;
-        varying vec2 vUv; varying float vAge; varying float vKind; varying float vSeed;
-        void main() {
-          float a;
-          if ( vKind < 0.5 ) {
-            // a ripple ring widening and thinning out
-            float d = length( vUv );
-            a = smoothstep( 0.14, 0.0, abs( d - 0.85 ) ) * ( 1.0 - vAge ) * 0.55;
-          } else {
-            // the crown: five droplets thrown up and out on arcs, falling back
-            a = 0.0;
-            for ( int i = 0; i < 5; i++ ) {
-              float fi = float( i ), s = ( fi - 2.0 ) / 2.0 + ( vSeed - 0.5 ) * 0.3;
-              vec2 c = vec2( s * 0.75 * vAge, 4.0 * vAge * ( 1.0 - vAge ) * ( 0.95 - 0.35 * abs( s ) ) * 1.9 - 0.9 );
-              a += smoothstep( 0.16, 0.06, length( ( vUv - c ) * vec2( 1.0, 0.8 ) ) );
-            }
-            a *= 1.0 - vAge * vAge;
-          }
-          a *= uAlpha;
-          if ( a < 0.01 ) discard;
-          gl_FragColor = vec4( uCol, a );
-        }`,
-    });
+    const mat = this.family.material('splash', {}, { uniforms: this.splashU });
     const m = new THREE.Mesh(geo, mat);
     m.frustumCulled = false; m.renderOrder = 21; m.visible = false; m.name = 'rain-splashes';
     return m;
@@ -338,10 +327,10 @@ export class PineWeatherFX {
     if (wrote) a.needsUpdate = true;
   }
 
-  // ─────────────────────────── drops on the lens (Rain extras) ───────────────────────────
-  /** ≤ 20 quads in clip space over everything (no depth, no scene sample): see `lensDrop` in the fragment shader */
+  // ─────────────────────────── drops on the lens ───────────────────────────
+  /** quads in clip space over everything (no depth, no scene sample) */
   private buildLens(): THREE.Mesh {
-    const n = this.o.phone ? LENS_N.phone : LENS_N.desktop;
+    const n = this.o.phone ? this.o.look.lensDrops.phone : this.o.look.lensDrops.desktop;
     const geo = new THREE.InstancedBufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0]), 3));
     geo.setIndex([0, 1, 2, 1, 3, 2]);
@@ -350,37 +339,7 @@ export class PineWeatherFX {
     geo.setAttribute('aDrop', this.lensAttr);
     geo.instanceCount = 0;
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    const mat = new THREE.ShaderMaterial({
-      uniforms: this.lensU, transparent: true, depthTest: false, depthWrite: false,
-      vertexShader: /* glsl */`
-        attribute vec4 aDrop;
-        uniform float uAspect;
-        varying vec2 vUv; varying float vA; varying float vSeed;
-        void main() {
-          vUv = position.xy; vA = aDrop.w;
-          vSeed = fract( sin( aDrop.x * 91.3 + aDrop.y * 47.1 ) * 1753.1 );
-          // a bead is a little taller than wide once it runs
-          gl_Position = vec4( aDrop.xy + position.xy * aDrop.z * vec2( 1.0 / uAspect, 1.15 ), 0.0, 1.0 );
-        }`,
-      fragmentShader: /* glsl */`
-        uniform vec3 uSky; uniform vec3 uGround;
-        varying vec2 vUv; varying float vA; varying float vSeed;
-        void main() {
-          // an uneven outline (a bead is never a circle)
-          float ang = atan( vUv.y, vUv.x );
-          float r = length( vUv ) * ( 1.0 + 0.07 * sin( ang * 3.0 + vSeed * 6.3 ) + 0.04 * sin( ang * 5.0 - vSeed * 4.0 ) );
-          if ( r > 1.0 ) discard;
-          // the lens a drop makes shows the world upside down and small: the bright sky pooled low, the dark ground high
-          float body = smoothstep( 1.0, 0.0, r );
-          vec3 col = mix( uGround, uSky, smoothstep( 0.5, -0.6, vUv.y ) );
-          float rim = smoothstep( 0.72, 0.95, r ) * smoothstep( 1.0, 0.95, r );
-          col = mix( col, uGround * 0.35, rim * 0.8 );
-          float glint = smoothstep( 0.22, 0.0, length( vUv - vec2( -0.32, 0.4 ) ) );
-          col += glint * 0.9;
-          float a = ( 0.28 + 0.4 * rim + 0.5 * glint ) * smoothstep( 1.0, 0.9, r ) * vA * mix( 0.8, 1.0, body );
-          gl_FragColor = vec4( col, a );
-        }`,
-    });
+    const mat = this.family.material('lens', {}, { uniforms: this.lensU });
     const m = new THREE.Mesh(geo, mat);
     m.frustumCulled = false; m.renderOrder = 1000; m.visible = false; m.name = 'rain-lens';
     // the screen's shape, read as it draws
@@ -423,9 +382,8 @@ export class PineWeatherFX {
 
   // ─────────────────────────────── per frame ───────────────────────────────
   /** `fogColor` the scene fog's (the rain's tint), `wind` the world wind (m/s, xz) for the slant, `cam` the view (the extras) */
-  update(dt: number, w: PineWeather, fogColor: THREE.Color, wind: { x: number; z: number }, cam?: THREE.Camera): void {
-    // E350 F-X4: the curtain is camera-local, so it followed the eye into a practice room (the arena's hall, a playground):
-    // none there, like the extras below; it is back the frame the room closes (`practiceRoom.open`, E321)
+  update(dt: number, w: RainReading, fogColor: THREE.Color, wind: { x: number; z: number }, cam?: THREE.Camera): void {
+    // the curtain is camera-local, so it would follow the eye into a practice room: none there, like the extras below
     const rainOn = w.rain > 0.01 && !practiceRoom.open;
     this.rain.visible = rainOn;
     if (rainOn) {
@@ -443,7 +401,7 @@ export class PineWeatherFX {
     }
     this.puddleFade.value = THREE.MathUtils.smoothstep(w.wet, 0.05, 0.6);
     this.puddles.visible = this.puddleFade.value > 0.01;
-    // E322 F-L5: the extras — none in a practice room (E321: its x / z is no spot on the shard)
+    // the extras — none in a practice room (its x / z is no spot on the level)
     if (practiceRoom.open) { this.splashes.visible = false; this.lens.visible = false; this.drops.length = 0; return; }
     if (cam) { cam.getWorldPosition(this.eye); cam.getWorldDirection(this.fwd); }
     this.splashU.uTime.value += dt;

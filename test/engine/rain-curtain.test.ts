@@ -1,9 +1,15 @@
 import * as THREE from 'three';
 import { expect, it } from 'vitest';
 import { rainCurtain } from '../../src/game/systems/looks/rainCurtain';
-import { RAIN_PROGRAM as PINE_RAIN } from '../../src/shards/pine-hollow/world/rainProgram';
+import { fogGLSL } from '../../src/game/systems/looks/fogProgram';
+import { ShaderFamily } from '../../src/game/systems/looks/shaderFamily';
+import { PINE_RAIN_PROGRAMS } from '../../src/shards/pine-hollow/data/weatherLook';
 import { RAIN_PROGRAM as STEPPE_RAIN } from '../../src/shards/nalati-grasslands/world/rainProgram';
 import frozen from './fixtures/rain-curtain-e357.json';
+
+// Pine Hollow's curtain program is a data row spliced with the fog GLSL (SHARD-PLATFORM M3, the SDK rain system)
+const pineFamily = new ShaderFamily({ fog: fogGLSL }, PINE_RAIN_PROGRAMS);
+const PINE_RAIN = { vertexShader: pineFamily.glsl(PINE_RAIN_PROGRAMS.rain.vertex), fragmentShader: pineFamily.glsl(PINE_RAIN_PROGRAMS.rain.fragment) };
 
 const hash = async (bytes: string | Uint8Array): Promise<string> => {
   const input = new Uint8Array(typeof bytes === 'string' ? new TextEncoder().encode(bytes) : bytes);
