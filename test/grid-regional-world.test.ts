@@ -1,7 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- This lifecycle fixture uses the production native Rapier binary.
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeAll, expect, it, vi } from 'vitest';
-import { Fog, Group, Mesh, MeshLambertMaterial, PlaneGeometry, Scene, Vector3 } from 'three';
+import { DataTexture, Fog, Group, Mesh, MeshLambertMaterial, PlaneGeometry, Scene, Vector3 } from 'three';
+import { ownSceneResource } from '../src/engine/app/sceneOwnership';
 import { registerSpecies, speciesDef } from '../src/engine/entities/species/registry';
 import { App } from '../src/engine/app/app';
 import { withOwner } from '../src/engine/app/ownership';
@@ -277,6 +278,36 @@ it('hands the same resolved look backdrop to the regional sky and keeps it alive
     await Promise.resolve(); expect(warmed).toBe(false);
     finishSky(); await warm; expect(warmed).toBe(true);
     prepared.region.dispose(); expect(dispose).toHaveBeenCalledOnce();
+  } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
+});
+
+it('borrows the warmed sky environment without taking or repeating its native disposal', async () => {
+  const f = fixture(), environment = new DataTexture(), disposed = vi.fn<() => void>();
+  f.allocator.markMeasuredPage(f.claim.id);
+  environment.addEventListener('dispose', disposed);
+  const skyOwner = f.scope.child('fixture sky'); ownSceneResource(environment, skyOwner);
+  const holder = new Scene(); holder.environment = environment;
+  Object.setPrototypeOf(f.world.sky, SkyRig.prototype);
+  Reflect.set(f.world.sky, 'scopeLevelLook', () => null);
+  Reflect.set(f.world.sky, 'layeredBackdrop', () => Promise.resolve({
+    backdrop: { dispose: noop, gpuBytes: () => 4, gpuCeiling: () => 4, lut: null },
+    layer: { holder, attach: noop, weight: 0, state: () => ({ weight: 0, drawn: false, bytes: 4 }),
+      dispose: () => { skyOwner.dispose(); } },
+  }));
+  const level: LevelSpec = { ...f.region, look: () => Promise.resolve({ compose: () => ({}), backdrop: () => { throw new Error('The fixture sky owns its build'); } }) };
+  const look: FrameLookPort = { contribute: () => noop, sky: () => noop };
+  const foundation = createRegionalWorldFoundation({ rapier, level: () => level, terrain: drawnGround,
+    pause: () => Promise.resolve(), checkpoint: () => true, light: null, look });
+  try {
+    const prepared = await foundation(f.request);
+    const view = createRegionalView({ cell: f.request.cell, home: { x: 0, z: 0 }, scene: f.game.rootScene, physics: prepared.region.host.physics, slot: f.app,
+      assets: f.app.assets, allocator: f.allocator, claim: f.claim, scope: f.scope, ground: prepared.ground });
+    prepared.world(view); await prepared.beforeWarm?.();
+    const scene = view.root.children.find(child => child instanceof Scene);
+    if (!(scene instanceof Scene)) throw new Error('Missing regional scene');
+    expect(scene.environment).toBe(environment); expect(disposed).not.toHaveBeenCalled();
+    prepared.region.dispose();
+    expect(scene.environment).toBeNull(); expect(disposed).toHaveBeenCalledOnce();
   } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
 });
 

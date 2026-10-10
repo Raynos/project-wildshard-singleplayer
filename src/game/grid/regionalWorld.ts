@@ -237,6 +237,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 // The subtree is not a render target. Warm-up borrows the same sky environment the page will draw
                 // on entry, after the real sky build and its unchanged residency admission have finished.
                 scene.environment = made.environment;
+                resident.onDispose(() => { scene.environment = null; }); // borrowed: the sky layer owns its disposal
               }
               else if (outcome === 'off' && !left() && (look.post?.() ?? null) !== null) {
                 const own = await loadLUT(level.id);
