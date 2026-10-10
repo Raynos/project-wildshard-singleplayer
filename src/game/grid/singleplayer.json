@@ -117,6 +117,19 @@
         500,
         500
       ]
+    },
+    {
+      "instance": "ink-cel-valley-solo",
+      "slug": "ink-cel-valley",
+      "cell": [
+        1,
+        -1
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
     }
   ],
   "grid": {
@@ -296,6 +309,14 @@
         "cell": [
           -1,
           1
+        ]
+      },
+      {
+        "instance": "ink-cel-valley-1",
+        "slug": "ink-cel-valley",
+        "cell": [
+          1,
+          -1
         ]
       }
     ],

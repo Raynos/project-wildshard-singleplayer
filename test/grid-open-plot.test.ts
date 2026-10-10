@@ -23,8 +23,11 @@ it('keeps the three open plots while G258 / G270 open the five real public shard
   expect(kinds).toEqual(['plot', 'shard', 'template', 'shard', 'plot', 'shard', 'plot', 'shard']);
   // a plot is never a shard cell: no slug, no `at` hit, no instance lookup
   for (const plot of grid.plots) { expect(grid.at(plot.origin.x, plot.origin.z)).toBeUndefined(); expect(() => grid.cell(plot.instance)).toThrow(); }
-  // Developer fills the SW plot with Blender Template and the NW plot with Pastel Plain (SF59); DEVSERVER also replaces the SE plot.
-  expect(new GridAssembly({ developer: true, devserver: false }).plots.map((row) => row.instance)).toEqual(['open-plot-se']);
+  // Developer fills the SW plot with Blender Template, the NW plot with Pastel Plain and the SE plot with Ink & Cel Valley (SF59);
+  // DEVSERVER's Nine Dragon takes the SE cell over Ink & Cel Valley.
+  expect(new GridAssembly({ developer: true, devserver: false }).plots.map((row) => row.instance)).toEqual([]);
+  expect(new GridAssembly({ developer: true, devserver: false }).at(555, -555)?.slug).toBe('ink-cel-valley');
+  expect(new GridAssembly({ developer: true, devserver: true }).at(555, -555)?.slug).toBe('nine-dragon-stack');
   expect(new GridAssembly({ developer: true, devserver: true }).plots.map((row) => row.instance)).toEqual([]);
 });
 

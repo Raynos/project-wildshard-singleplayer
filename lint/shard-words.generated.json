@@ -3,6 +3,7 @@
     "blender-template",
     "driftwood-isle",
     "far-reach",
+    "ink-cel-valley",
     "nalati-grasslands",
     "nine-dragon-stack",
     "pastel-plain",
@@ -19,6 +20,8 @@
     "far.creature.galeWisp",
     "far.creature.skyGoat",
     "far.creature.stormRoc",
+    "Ink & Cel Valley",
+    "ink-cel-valley",
     "Nalati Grasslands",
     "nalati-grasslands",
     "Nine Dragon Stack",
@@ -116,6 +119,14 @@
       "assets": [
         "public/assets/far-reach/**",
         "public/assets/lut/far-reach.bin"
+      ]
+    },
+    "ink-cel-valley": {
+      "name": "Ink & Cel Valley",
+      "ids": [],
+      "settings": [],
+      "assets": [
+        "public/assets/ink-cel-valley/map/**"
       ]
     },
     "nalati-grasslands": {

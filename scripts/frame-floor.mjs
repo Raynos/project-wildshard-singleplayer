@@ -17,7 +17,7 @@ import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGri
 
 const ROOT = resolvePath(import.meta.dirname, '..');
 const SCRIPT = import.meta.filename;
-const ALL = ['_template', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'blender-template', 'pastel-plain', 'grid'];
+const ALL = ['_template', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'blender-template', 'pastel-plain', 'ink-cel-valley', 'grid'];
 const args = process.argv.slice(2);
 const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const shards = flag('shards', ALL.join(',')).split(',');

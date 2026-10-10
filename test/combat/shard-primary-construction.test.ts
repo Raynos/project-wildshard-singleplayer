@@ -27,6 +27,7 @@ import { CROSSBOW } from '../../src/shards/pine-hollow/weapons/equipment';
 import { Bullwhip } from '../../src/shards/sunscar-dunes/weapons/Bullwhip';
 import { ITEMS } from '../../src/shards/_template/data/items';
 import { ITEMS as PASTEL_ITEMS } from '../../src/shards/pastel-plain/data/items';
+import { ITEMS as INK_ITEMS } from '../../src/shards/ink-cel-valley/data/items';
 import { fakeWorld } from '../fake/world';
 import { legacyDouble } from '../fake/FakeGame';
 import { buildSword as buildOriginalSword } from '../../src/game/systems/items/declaredSword';
@@ -77,9 +78,11 @@ const constructors: Record<string, (fixture: Fixture) => readonly Weapon[]> = {
   '_template': (fixture) => declaredPrimary(ITEMS, fixture),
   // SF59's pastel fixture is a template copy: the same declared whip and lantern rows under its own ids
   'pastel-plain': (fixture) => declaredPrimary(PASTEL_ITEMS, fixture),
+  // SF59's ink fixture is the second template copy
+  'ink-cel-valley': (fixture) => declaredPrimary(INK_ITEMS, fixture),
 };
 /** a template-style shard's primary and secondary, installed from its declared item rows */
-function declaredPrimary(items: typeof ITEMS | typeof PASTEL_ITEMS, { services, scope }: Fixture): readonly Weapon[] {
+function declaredPrimary(items: typeof ITEMS | typeof PASTEL_ITEMS | typeof INK_ITEMS, { services, scope }: Fixture): readonly Weapon[] {
   const actor: Actor = { id: 'actor.player', tags: ['actor.player'], state: [], attributes: { health: 100, maxHealth: 100 },
     alive: true, applyDamage: () => false };
   services.input.register({ id: 'weapon.melee', actions: ['attack', 'heavy', 'lock'], keys: { attack: ['Mouse0'], heavy: ['Mouse2'] } }, scope);

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "tilesHash": "d2e3087b807753973e9207e90f52609cedf679a20cbc461d9d2d83b13b52dc77",
+  "image": "/assets/ink-cel-valley/map/top.webp",
+  "size": 1000,
+  "metres": 500,
+  "north": "+z",
+  "east": "-x",
+  "style": "stylized:ground",
+  "bytes": 35206
+}

@@ -9,21 +9,22 @@ import { installBounds } from '../src/engine/world/bounds';
 it('assembles shipped, Developer and DEVSERVER grids exclusively from the platform catalogue', () => {
   for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
     const grid = new GridAssembly({ developer, devserver, nineDragon });
-    const nine = devserver && nineDragon ? 1 : 0; // G270: five real shards, Template 1, two plots and Template 2's slot (Developer: Blender Template, SF59 Pastel Plain)
-    expect(grid.cells).toHaveLength(6 + nine + (developer ? 2 : 0)); expect(grid.plots).toHaveLength(3 - nine - (developer ? 2 : 0)); expect(new Set([...grid.cells, ...grid.plots].map((cell) => cell.instance)).size).toBe(9);
+    const nine = devserver && nineDragon ? 1 : 0; // G270: five real shards, Template 1, two plots and Template 2's slot (Developer: Blender Template, SF59 Pastel Plain and Ink & Cel Valley, which DEVSERVER's Nine Dragon replaces)
+    const ink = developer && nine === 0 ? 1 : 0;
+    expect(grid.cells).toHaveLength(6 + nine + (developer ? 2 : 0) + ink); expect(grid.plots).toHaveLength(3 - nine - (developer ? 2 : 0) - ink); expect(new Set([...grid.cells, ...grid.plots].map((cell) => cell.instance)).size).toBe(9);
     expect(grid.cell('driftwood-isle').cell).toEqual([0, 0]);
     expect(grid.cell('pine-hollow').cell).toEqual([0, 1]);
     expect(grid.cell('nalati-grasslands').cell).toEqual([1, 0]);
     expect(grid.at(-555, 0)?.slug).toBe('sunscar-dunes');
     expect(grid.at(0, -555)?.slug).toBe('far-reach');
-    expect(grid.at(555, -555)?.slug).toBe(devserver && nineDragon ? 'nine-dragon-stack' : undefined);
-    expect(grid.plots.map((plot) => plot.instance)).toEqual([...(developer ? [] : ['open-plot-nw', 'open-plot-sw']), ...(nine === 1 ? [] : ['open-plot-se'])]);
+    expect(grid.at(555, -555)?.slug).toBe(devserver && nineDragon ? 'nine-dragon-stack' : (developer ? 'ink-cel-valley' : undefined));
+    expect(grid.plots.map((plot) => plot.instance)).toEqual([...(developer ? [] : ['open-plot-nw', 'open-plot-sw']), ...(nine === 1 || developer ? [] : ['open-plot-se'])]);
     expect(grid.cells.filter((cell) => cell.slug === '_template')).toHaveLength(1);
     expect(grid.at(-555, -555)?.slug).toBe(developer ? 'blender-template' : undefined);
     expect(grid.at(-555, 555)?.slug).toBe(developer ? 'pastel-plain' : undefined);
   }
   expect(new GridAssembly({ developer: false, devserver: true }).at(555, -555)?.slug).toBe('nine-dragon-stack');
-  expect(catalogue.placements).toHaveLength(9);
+  expect(catalogue.placements).toHaveLength(10);
 });
 
 it('admits G258 Pine, Nalati, Sky Reach and G270 Signal Dunes in the same public and Developer cells', () => {
