@@ -12,6 +12,7 @@
     "./ai/flock": "./ai/flock.ts",
     "./ai/orbitDiver": "./ai/orbitDiver.ts",
     "./ai/patrolDiver": "./ai/patrolDiver.ts",
+    "./ai/phasedFlyer": "./ai/phasedFlyer.ts",
     "./ai/burstFlyer": "./ai/burstFlyer.ts",
     "./ai/challengeGrazer": "./ai/challengeGrazer.ts",
     "./ai/ramGrazer": "./ai/ramGrazer.ts",

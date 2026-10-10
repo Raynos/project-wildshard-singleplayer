@@ -14,7 +14,7 @@ import source from '../../../src/shards/sunscar-dunes/shard.config';
 import { SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
 import { BASIN } from '../../../src/shards/sunscar-dunes/data/layout';
 import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
-import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/combat/matriarchFight';
+import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/data/matriarchFight';
 import { MATRIARCH_STEP } from '../../../src/shards/sunscar-dunes/runtime/matriarch';
 import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/whip';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';

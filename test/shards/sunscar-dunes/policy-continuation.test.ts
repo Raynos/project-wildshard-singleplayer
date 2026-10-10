@@ -10,7 +10,6 @@ import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapsho
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { canReach } from '../../../src/engine/ai/reach';
-import { MatriarchBrain } from '../../../src/shards/sunscar-dunes/runtime/species/matriarch';
 import { speciesBrains } from '../../../src/sdk/speciesBrains';
 import type { HomeObservation, SpeciesPolicy } from '../../../src/game/shardfile/speciesBrains';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../../../src/shards/sunscar-dunes/data/brains';
@@ -28,11 +27,10 @@ function recipe(kind: Kind): SimSpawn {
     spec: { ...base.spec, kind: kind === 'skitterer' ? 'sandSkitterer' : 'duneMatriarch',
       ...(kind === 'matriarch' ? { flight: { altitude: 18, above: 'ground', climbRate: 7, diveRate: 20, lockRange: 60 } } : {}) } };
 }
-/** The skitterer's shipping policy is its admitted species script (SF27); the Matriarch's is her runtime brain. */
+/** The skitterer's shipping policy is its admitted species script, the Matriarch's her phased-flyer row (SF27). */
 function shipping(kind: Kind, actor: AnimalSim): SpeciesPolicy<HomeObservation> {
-  if (kind === 'matriarch') return new MatriarchBrain<AnimalSim>(actor);
-  const policy = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES).policy('sandSkitterer', actor);
-  if (policy === null) throw new Error('Missing skitterer script policy');
+  const policy = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES).policy(kind === 'matriarch' ? 'duneMatriarch' : 'sandSkitterer', actor);
+  if (policy === null) throw new Error(`Missing ${kind} policy`);
   return policy;
 }
 /** A policy's state name: the script's first slot (0 buried … 3 retreat) or the Matriarch's state. */
@@ -93,8 +91,8 @@ it.each(['skitterer', 'matriarch'] as const)('refuses malformed %s policy state 
     }
   } finally { host.dispose(); }
 });
-it('imports the four actual gameplay policies without DOM or renderer modules', () => {
+it('imports the three runtime species modules without DOM or renderer modules', () => {
   const result = spawnSync(execPath, ['--experimental-transform-types', '--disable-warning=ExperimentalWarning', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e',
-    "for (const name of ['duneRay','strider','skitterer','matriarch']) await import('./src/shards/sunscar-dunes/runtime/species/'+name+'.ts'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
+    "for (const name of ['duneRay','strider','skitterer']) await import('./src/shards/sunscar-dunes/runtime/species/'+name+'.ts'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
 });

@@ -6,23 +6,27 @@ import { strikeFromData, type StrikeData } from '@wildshard/engine/ai/strikeRows
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { ChallengeGrazerBrain } from '@wildshard/engine/ai/challengeGrazer';
 import { PatrolDiverBrain } from '@wildshard/engine/ai/patrolDiver';
+import { PhasedFlyerBrain } from '@wildshard/engine/ai/phasedFlyer';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGrazer } from './grazers';
 import { parsePatrolDiver, type PatrolDiverSchema, type ShardPatrolDiver } from './flyers';
+import { parsePhasedFlyer, type PhasedFlyerSchema, type ShardPhasedFlyer } from './phasedFlyers';
 import { parseScriptSpecies, ScriptSpeciesPolicy, SpeciesScriptLane, type ScriptSpeciesData, type ScriptSpeciesSchema } from './speciesScripts';
 import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, type KeptHomeRow } from './homeKeeper';
 
 /**
  * A species row's declared brain (SHARD-PLATFORM SF27): a platform archetype and its data, resolved the same way by the
  * browser client (`SpeciesBrains.bind`) and the headless host (`installSpeciesHomes`). A challenge grazer's circling
- * phase is the actor seed's slot in `[0, phaseSlots)` (`seedSlot`), so a pack spreads round its home.
+ * phase is the actor seed's slot in `[0, phaseSlots)` (`seedSlot`), so a pack spreads round its home. A `phased-flyer` is
+ * a boss flyer its encounter drives through memory fields (circle, dive, climb; grounded from a phase).
  */
 export type SpeciesBrain =
   | { readonly archetype: 'challenge-grazer'; readonly data: v.InferInput<typeof ChallengeGrazerSchema>; readonly phaseSlots: number }
   | { readonly archetype: 'patrol-diver'; readonly data: v.InferInput<typeof PatrolDiverSchema> }
+  | { readonly archetype: 'phased-flyer'; readonly data: v.InferInput<typeof PhasedFlyerSchema> }
   | { readonly archetype: 'script'; readonly data: v.InferInput<typeof ScriptSpeciesSchema> };
 /** A species' gameplay data with an optional declared brain; a row without one keeps its runtime's own policy. */
 export type BrainedSpecies = Omit<SpeciesRow, 'parent' | 'think' | 'act'> & { readonly brain?: SpeciesBrain };
@@ -44,6 +48,7 @@ export interface HomeObservation {
 type Admitted =
   | { readonly archetype: 'challenge-grazer'; readonly data: ShardChallengeGrazer; readonly phaseSlots: number; readonly charge: StrikeSpec; readonly close: StrikeSpec }
   | { readonly archetype: 'patrol-diver'; readonly data: ShardPatrolDiver; readonly strike: StrikeSpec }
+  | { readonly archetype: 'phased-flyer'; readonly data: ShardPhasedFlyer; readonly dive: readonly StrikeSpec[]; readonly grounded: readonly StrikeSpec[] }
   | { readonly archetype: 'script'; readonly data: ScriptSpeciesData; readonly lane: SpeciesScriptLane; readonly catalogue: readonly StrikeSpec[] };
 
 /** A stable small integer per actor (its seed hashed) in `[0, n)`: the slot a pack member takes round a ring. */
@@ -77,6 +82,10 @@ function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, S
       return { archetype: brain.archetype, data, phaseSlots: brain.phaseSlots, charge: strikeOf(strikes, data.charge, kind), close: strikeOf(strikes, data.close, kind) };
     }
     case 'patrol-diver': { const data = parsePatrolDiver(brain.data); return { archetype: brain.archetype, data, strike: strikeOf(strikes, data.strike, kind) }; }
+    case 'phased-flyer': {
+      const data = parsePhasedFlyer(brain.data);
+      return { archetype: brain.archetype, data, dive: data.dive.map(id => strikeOf(strikes, id, kind)), grounded: data.grounded.map(id => strikeOf(strikes, id, kind)) };
+    }
     case 'script': {
       const data = parseScriptSpecies(brain.data), bytes = modules.get(data.module);
       if (bytes === undefined) throw new Error(`Species ${kind}'s brain module ${data.module} was not supplied`);
@@ -98,6 +107,11 @@ function browserCallbacks(brain: Admitted): { callbacks: Callbacks; live: (actor
     case 'patrol-diver': {
       const live = new WeakMap<Animal, PatrolDiverBrain<Animal>>();
       const of = (a: Animal): PatrolDiverBrain<Animal> => { let value = live.get(a); if (value === undefined) { value = new PatrolDiverBrain(a, brain.data, brain.data.home, brain.strike); live.set(a, value); } return value; };
+      return { live: a => live.has(a), callbacks: { think: (a, c) => { of(a).think(c); }, act: (a, c) => { of(a).act(c); } } };
+    }
+    case 'phased-flyer': {
+      const live = new WeakMap<Animal, PhasedFlyerBrain<Animal>>();
+      const of = (a: Animal): PhasedFlyerBrain<Animal> => { let value = live.get(a); if (value === undefined) { value = new PhasedFlyerBrain(a, brain.data, brain); live.set(a, value); } return value; };
       return { live: a => live.has(a), callbacks: { think: (a, c) => { of(a).think(c); }, act: (a, c) => { of(a).act(c); } } };
     }
     case 'script': {
@@ -133,6 +147,7 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
       switch (brain.archetype) {
         case 'challenge-grazer': return new ChallengeGrazerBrain(actor, brain.data, brain.charge, brain.close);
         case 'patrol-diver': return new PatrolDiverBrain(actor, brain.data, brain.data.home, brain.strike);
+        case 'phased-flyer': return new PhasedFlyerBrain(actor, brain.data, brain);
         case 'script': return new ScriptSpeciesPolicy(actor, brain.lane, brain.catalogue);
         default: throw new Error('Unknown admitted brain archetype');
       }

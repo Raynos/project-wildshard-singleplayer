@@ -15,7 +15,8 @@ import { stormMaterial } from '../world/stormFx';
 import { lastLightAll } from '../look/light';
 import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from '../quests/signal';
 import source from '../shard.config';
-import { MATRIARCH_ID, MATRIARCH_REWARD, matriarchDefinition, matriarchFight, MATRIARCH_RECORD } from './matriarchFight';
+import { markedBossFight } from '@wildshard/sdk/bossFight';
+import { MATRIARCH_DEFINITION, MATRIARCH_FIGHT, MATRIARCH_ID, MATRIARCH_RECORD, MATRIARCH_REWARD } from '../data/matriarchFight';
 import type { SignalWorld } from '../world/build';
 
 type Flags = SignalWorld['flags'];
@@ -41,7 +42,7 @@ export const STORM = { dist: 0.03, color: new Color(0x8a5238), shells: [[46, 0.8
  * The Dune Matriarch (C5): a huge ray that rises from the basin when the signal fire is lit. Phase I sweeping dives,
  * phase II a sand storm (the fog closes in, she dives from higher and more often), phase III grounded: she crawls on
  * the basin floor, sweeps her tail and buffets, and the whip reaches her. The engine's `BossBrain` owns the intro,
- * the thresholds, checkpoints and retry, and the victory; the renderer-free script (combat/matriarchFight.ts) owns her
+ * the thresholds, checkpoints and retry, and the victory; the renderer-free marked boss fight (data/matriarchFight.ts MATRIARCH_FIGHT) owns her
  * body and the storm's goal; this class adds the storm's fog and sand shells, the boss bar and the coin burst.
  */
 export class DuneMatriarch extends BossBrain {
@@ -64,7 +65,7 @@ export class DuneMatriarch extends BossBrain {
       ctx.scope.own(shell.geometry); ctx.scope.own(shell.material); ctx.scope.onDispose(() => { shell.removeFromParent(); });
       return shell;
     });
-    const fight = matriarchFight<Animal>({ body: { spawn: (previous) => body.spawn(previous), retire: (a) => { body.retire(a); } }, rewardPoint: at,
+    const fight = markedBossFight<Animal>(MATRIARCH_FIGHT, { body: { spawn: (previous) => body.spawn(previous), retire: (a) => { body.retire(a); } }, rewardPoint: at,
       respawnPoint: () => ({ pos: new Vector3(BASIN.x, ctx.manifest.ground.terrain?.heightAt(BASIN.x, BASIN.z + BASIN.r + 4) ?? 0, BASIN.z + BASIN.r + 4), yaw: 0 }),
       victory: () => { ctx.game.runtime?.play?.hud.toast(saved.rewardTaken ? STRINGS.bossRewardAgain : STRINGS.bossReward); onDown?.(); },
       update: (dt, storm) => {
@@ -84,7 +85,7 @@ export class DuneMatriarch extends BossBrain {
       } });
     const presentation = new BossBar(); ctx.scope.onDispose(() => { presentation.scope.dispose(); });
     ctx.answer('damage.modify', (request) => { const animal = fight.body(); return request !== null && animal !== null && request.target === animal.combatActor() && fight.invulnerable() ? null : request; });
-    super(matriarchDefinition(), fight.script,
+    super(MATRIARCH_DEFINITION, fight.script,
       { events: ctx.app.events, player: { position: player }, lockInput: (on) => { ctx.game.runtime?.play?.weapons.setEnabled(!on); },
         respawn: (pos, yaw) => { const motor = ctx.game.runtime?.world?.player; if (motor) { motor.position.copy(pos); motor.yaw = yaw; } }, skipHeld: () => ctx.app.input.held('skip'),
         faceToward: (target) => { const motor = ctx.game.runtime?.world?.player; if (motor) motor.yaw = Math.atan2(motor.position.x - target.x, motor.position.z - target.z); },

@@ -2272,7 +2272,24 @@ at most one declared strike event, which the host turns into reach, then an atta
 atan2 on the host's Math, a large argument split at multiples of 8192), so a script matches the TypeScript policy it
 replaces bit for bit. `ScriptSpeciesPolicy` holds the slots and the strike clock; its continuation is those two, never
 module memory. Signal's skitterer is the first (`behaviour/skitterer.as`), held to its old policy by
-`test/shards/sunscar-dunes/skitterer-script.test.ts`.
+`test/shards/sunscar-dunes/skitterer-script.test.ts`. The `modules` argument is a plain row (SHA-256 → base64), so a
+shard keeps it in `data/`.
+
+**Phased flyers and marked boss fights (SF27).** A row's brain may be `{ archetype: 'phased-flyer', data }`
+(`@wildshard/game/shardfile/phasedFlyers`, engine `@wildshard/engine/ai/phasedFlyer` `PhasedFlyerBrain`): a boss flyer
+whose encounter drives it through three memory fields (`fields`: `fight`, `rise`, `phase`). Before the fight it drifts
+round and rises `dormant.from` → `dormant.to` with `rise`; in the fight it circles `center` at `circleRadius` (aiming
+`orbitLead` ahead) at `altitudes[phase]`, dives on the player's chest (`targetHeight`) with its `dive` strikes (never
+under `skim`, `diveSlope` m of altitude per metre to the chest), climbs away for `climbSeconds` and rests
+`restSeconds[phase]` before the next dive; from `groundedPhase` it lies at `lieAltitude`, crawls to `standOff` and
+strikes with its `grounded` strikes. Its continuation is `{ version: 1, actor, state, clock, wait, struck, strikes }`.
+`@wildshard/game/shardfile/bossFight` (SDK `@wildshard/sdk/bossFight`) `markedBossFight(row, ports)` is the matching
+view-free `BossScript`: a fresh body per checkpoint at `hpShares[checkpoint]`, the intro's rise over `riseSeconds`, the
+phase marks, a storm (0..1, goal 1 in `stormPhases`, eased over `stormFade` s) the views read through `update(dt, storm)`,
+invulnerability through the beats and the victory, inside a circular `arena`; its continuation is `{ stormGoal, storm,
+invulnerable }`. The browser runs it under its views and the headless host through `installBossRow`. Signal's Dune
+Matriarch is the first (`data/brains.ts` MATRIARCH_BRAIN, `data/matriarchFight.ts` MATRIARCH_FIGHT), held to her old
+brain by `test/shards/sunscar-dunes/matriarch-brain.test.ts`.
 
 
 ### Exported creature skins and clips

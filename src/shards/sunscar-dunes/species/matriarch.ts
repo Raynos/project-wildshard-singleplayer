@@ -1,16 +1,15 @@
 import { clipAnimate } from '@wildshard/sdk/species/clips';
-import { MatriarchBrain } from '../runtime/species/matriarch';
-import { MATRIARCH_DATA, MATRIARCH_CLIPS } from '../data/species/matriarch';
+import { speciesBrains } from '@wildshard/sdk/speciesBrains';
+import { MATRIARCH_DATA, MATRIARCH_CLIPS, MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA } from '../data/species/matriarch';
+import { MATRIARCH_BRAIN } from '../data/brains';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { BufferGeometry } from 'three';
 import { DUNE_RAY_LOOK, mantaBody, rayGeometry } from './duneRay';
 
-const brains = new WeakMap<Animal, MatriarchBrain>();
-const brain = (a: Animal): MatriarchBrain => { let value = brains.get(a); if (!value) { value = new MatriarchBrain(a); brains.set(a, value); } return value; };
-
-export const DUNE_MATRIARCH: SpeciesRow = { ...MATRIARCH_DATA, think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
+/** Her species row: her gameplay data and her declared phased-flyer brain (data/brains.ts MATRIARCH_BRAIN, SF27). */
+export const DUNE_MATRIARCH: SpeciesRow = { ...MATRIARCH_DATA,
+  ...speciesBrains([{ ...MATRIARCH_DATA, brain: MATRIARCH_BRAIN }], [MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA]).bind(MATRIARCH_DATA.kind) };
 
 /** Her own body: the generated manta (species/duneRay.ts mantaBody), untinted. */
 export const matriarchBody = (): BufferGeometry | null => mantaBody();

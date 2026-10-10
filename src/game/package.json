@@ -173,6 +173,7 @@
     "./quest/dialogue": "./quest/dialogue.ts",
     "./shardfile/quests": "./shardfile/quests.ts",
     "./shardfile/hybridRows": "./shardfile/hybridRows.ts",
+    "./shardfile/bossFight": "./shardfile/bossFight.ts",
     "./shardfile/bossRow": "./shardfile/bossRow.ts",
     "./shardfile/bakedKinds": "./shardfile/bakedKinds.ts",
     "./shardfile/homeKeeper": "./shardfile/homeKeeper.ts",

@@ -93,7 +93,7 @@ export class SignalDunesPlugin extends ShardPlugin {
   }
   override kit(ctx: ShardContext): void {
     ctx.rows.weapon(WHIP_ROW);
-    // SF27: the ray, the skitterer (an admitted species script) and the strider run their rows' declared brains; the Matriarch her runtime policy
+    // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
     const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES); this.brains = brains;
     ctx.rows.species([{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, { ...SKITTERER_DATA, ...brains.bind(SKITTERER_DATA.kind) }, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, DUNE_MATRIARCH]); ctx.rows.speciesLook([DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK]);
     ctx.rows.encounter([{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }]);

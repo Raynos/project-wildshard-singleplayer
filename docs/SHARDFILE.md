@@ -924,7 +924,12 @@ or `patrol-diver`, its data the same strict schema as the `creatures.brains` fam
 declaration drives both. Rows without a brain keep their runtime policy. A `script`
 brain names an admitted AssemblyScript module by hash with parameters, up to 8 state
 slots, up to 4 actor memory fields, motion bounds and 1–8 declared strikes; its module
-comes to `speciesBrains` as the bake's base64 and is checked against the hash.
+comes to `speciesBrains` as the bake's base64 (a plain `{ sha256: base64 }` row) and is
+checked against the hash. A `phased-flyer` brain is a boss flyer (circle, chest dive and
+climb with its `dive` strikes; grounded from `groundedPhase` with its `grounded` strikes)
+that its encounter steers through `fight` / `rise` / `phase` memory fields;
+`markedBossFight(row, ports)` (`@wildshard/sdk/bossFight`) is the view-free fight that
+writes them: arena, health share per checkpoint, rise seconds, storm phases and fade.
 
 Custom policies and numeric state share one module union and one host: memory,
 fuel, queries, effects, events and quarantine are charged once per fixed tick,
