@@ -18,7 +18,8 @@ const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts'); in
 await import('../../../src/shards/driftwood-isle/runtime/headless.ts');
 await import('./worker.ts');
 const witness = await import('./witness.ts');
-function inputFiles() { return new Set([...loaded, ...['test/proof/driftwood-isle/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]); }
+const { default: source } = await import('../../../src/shards/driftwood-isle/shard.config.ts');
+function inputFiles() { return new Set([...loaded, ...source.files.map(file => new URL(`src/shards/driftwood-isle/assets/${file.hash}`, ROOT).href), ...['test/proof/driftwood-isle/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]); }
 function inputs() {
   const files = inputFiles();
   const hash = createHash('sha256');
@@ -34,8 +35,8 @@ if (mode !== 'fresh' && mode !== 'reef') {
     manifest: new URL('checkpoints/manifest.json', import.meta.url), select: witness.setCheckpointDirectory,
     generate: async () => witness.recordGameplay(await witness.driftwoodRapier(), fingerprint),
     record: mode === 'checkpoints', forceCompare: mode === 'checkpoints' || mode === 'compare-checkpoints', compare: !['checkpoints', 'cache-record'].includes(mode) });
-  if (['checkpoints', 'cache-record', 'compare-checkpoints'].includes(mode)) {
-    checkpointResult = { status: 'generated', inputs: fingerprint, key: generated.key, hit: generated.hit, manifest: generated.manifest };
+  if (['checkpoints', 'cache-record', 'compare-checkpoints', 'cache-verify', 'checkpoint-directory'].includes(mode)) {
+    checkpointResult = { status: 'generated', inputs: fingerprint, directory: generated.directory, key: generated.key, hit: generated.hit, manifest: generated.manifest };
   }
 }
 const freshness = () => { const result = witness.checkpointsFresh(inputs()); if (result.status !== 'fresh') throw new Error(`Stale Driftwood checkpoints: ${JSON.stringify(result)}`); return result; };

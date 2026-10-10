@@ -19,18 +19,29 @@ const witness = await import('./witness.ts');
 // Admission loads this exact entry in every mode, so fresh/checkpoints/replay hash the same runtime closure.
 await import('../../../src/shards/nine-dragon-stack/runtime/headless.ts');
 installAppIdentity(WILDSHARD_IDENTITY);
+function inputFiles() { return [...loaded, ...['test/proof/nine-dragon-stack/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]; }
 function inputs() {
-  const files = [...loaded, new URL('public/assets/physics/rapier.wasm', ROOT).href].sort();
+  const files = [...new Set(inputFiles())].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   const hash = createHash('sha256');
   for (const url of files) hash.update(url.slice(ROOT.href.length)).update('\0').update(readFileSync(new URL(url))).update('\0');
   return hash.digest('hex');
 }
+const { generateWitness } = await import('../../../scripts/witness-generation.mjs');
 const mode = process.argv.at(2) ?? 'all', fingerprint = inputs();
-if (mode === 'fresh') {
+let checkpointResult;
+if (mode !== 'fresh') {
+  const generated = await generateWitness({ root: ROOT, slug: 'nine-dragon-stack', inputs: fingerprint, files: inputFiles(),
+    manifest: new URL('checkpoints/manifest.json', import.meta.url), select: witness.setCheckpointDirectory,
+    generate: async () => witness.writeCheckpoints(await witness.nineRapier(), fingerprint),
+    record: mode === 'checkpoints', forceCompare: mode === 'checkpoints' || mode === 'compare-checkpoints', compare: !['checkpoints', 'cache-record'].includes(mode) });
+  if (['checkpoints', 'cache-record', 'compare-checkpoints', 'cache-verify', 'checkpoint-directory'].includes(mode)) checkpointResult = { status: 'generated', inputs: fingerprint, directory: generated.directory, key: generated.key, hit: generated.hit, manifest: generated.manifest };
+}
+
+if (checkpointResult !== undefined) console.info(JSON.stringify(checkpointResult));
+else if (mode === 'fresh') {
   const result = witness.checkpointsFresh(fingerprint);
   console.info(JSON.stringify(result)); process.exitCode = result.status === 'fresh' ? 0 : 1;
-} else if (mode === 'checkpoints') {
-  console.info(JSON.stringify(await witness.writeCheckpoints(await witness.nineRapier(), fingerprint)));
+
 } else {
   if (!['all', 'headless', 'replay', 'replay-ride', 'replay-crossing', 'ledger'].includes(mode)) throw new Error('Unknown compatibility proof mode');
   const rapier = await witness.nineRapier(), results = {};

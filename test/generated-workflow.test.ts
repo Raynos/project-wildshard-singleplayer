@@ -15,7 +15,7 @@ import { checkShardfileReference } from '../scripts/docs/gen-shardfile-reference
 import { approvedIncreases, checkCommitted, regenerateCommitted, verifiedStamp } from '../scripts/regenerate-committed.mjs';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
 import { precommitGenerated } from '../scripts/precommit-generated.mjs';
-import { manifestOutcome, refreshWitnesses, withInputs } from '../scripts/witness-manifests.mjs';
+import { manifestOutcome, prepareWitnesses, refreshWitnesses, withInputs } from '../scripts/witness-manifests.mjs';
 import { cachedWitnessManifest } from '../scripts/witness-checkpoints.mjs';
 
 function fixture(run: (root: string, put: (file: string, value: string) => void, git: (args: string[]) => string) => void | Promise<void>): Promise<void> {
@@ -214,7 +214,7 @@ describe('SF6b witness manifests re-recorded at the serialized push', () => {
 const read = file => readFileSync(new URL(file, import.meta.url), 'utf8').trim();
 const inputs = read('inputs.txt'), manifest = JSON.parse(read('checkpoints/manifest.json'));
 if (process.argv[2] === 'fresh') { console.info(JSON.stringify({ status: manifest.inputs === inputs ? 'fresh' : 'stale', inputs, recorded: manifest.inputs })); process.exitCode = manifest.inputs === inputs ? 0 : 1; }
-else if (process.argv[2] === 'cache-record') {
+else if (['cache-record', 'cache-verify'].includes(process.argv[2])) {
   manifest.inputs = inputs; manifest.ticks = Number(read('ticks.txt'));
   console.info(JSON.stringify({ manifest: JSON.stringify(manifest, null, 2) + '\\n' }));
 } else throw new Error('mode');
@@ -223,6 +223,7 @@ else if (process.argv[2] === 'cache-record') {
       await expect(refreshWitnesses(root, resolve(root, 'receipts'))).resolves.toEqual({ 'test/proof/fake/checkpoints/manifest.json': withInputs(committed, 'bb') });
       expect(existsSync(resolve(directory, 'a.snap.gz'))).toBe(false);
       await expect(refreshWitnesses(root, resolve(root, 'receipts'))).resolves.toEqual({});
+      await expect(prepareWitnesses(root)).resolves.toBeUndefined();
       put('test/proof/fake/ticks.txt', '8');
       await expect(refreshWitnesses(root, resolve(root, 'receipts'))).rejects.toThrow(/recorded outcome|hashes or outcomes/u);
       expect(readFileSync(resolve(directory, 'manifest.json'), 'utf8')).toBe(withInputs(committed, 'bb'));

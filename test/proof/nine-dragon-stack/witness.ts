@@ -2,6 +2,7 @@
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Committed native checkpoints are compressed proof data.
 import { gzipSync, gunzipSync } from 'node:zlib';
+import { readWitnessManifest } from '../../../scripts/witness-checkpoints.mjs';
 import * as v from 'valibot';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
@@ -83,15 +84,17 @@ const TICKS = AIM + 2 + 210;
 /** Each replay test owns one checkpoint and compares two short continuations in the same process (no recorded float oracle). */
 export type CheckpointName = 'ride' | 'crossing';
 const SLICES = { ride: { from: 400, to: 460 }, crossing: { from: 940, to: TICKS } } as const;
-const CHECKPOINTS = new URL('test/proof/nine-dragon-stack/checkpoints/', ROOT);
+let CHECKPOINTS = new URL('test/proof/nine-dragon-stack/checkpoints/', ROOT);
 const CheckpointSchema = v.strictObject({ tick: v.pipe(v.number(), v.integer()), snapshot: v.string() });
 const ManifestSchema = v.strictObject({ inputs: v.string(), ticks: v.strictObject({ ride: v.literal(400), crossing: v.literal(940) }) });
-const MANIFEST = new URL('manifest.json', CHECKPOINTS);
+let MANIFEST = new URL('manifest.json', CHECKPOINTS);
+/** Select the shared generator's verified outputs for native recording and replay. */
+export function setCheckpointDirectory(directory: URL): void { CHECKPOINTS = directory; MANIFEST = new URL('manifest.json', directory); }
 const checkpointFile = (name: CheckpointName): URL => new URL(`${name}.snap.gz`, CHECKPOINTS);
 const readCheckpoint = (name: CheckpointName) => v.parse(CheckpointSchema, JSON.parse(gunzipSync(readFileSync(checkpointFile(name))).toString('utf8')));
 /** The loaded modules, physics bake and WASM must match before any committed checkpoint is admitted. */
 export function checkpointsFresh(inputs: string): { status: 'fresh' | 'stale'; inputs: string; recorded: string } {
-  const manifest = v.parse(ManifestSchema, JSON.parse(readFileSync(MANIFEST, 'utf8')));
+  const manifest = v.parse(ManifestSchema, readWitnessManifest(MANIFEST));
   return { status: manifest.inputs === inputs ? 'fresh' : 'stale', inputs, recorded: manifest.inputs };
 }
 /** Write checkpoints from the real uninterrupted command tape; regeneration is explicit, never part of a passing test. */

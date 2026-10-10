@@ -9,6 +9,7 @@ import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../src/engine/sim/snapshot';
 import { SIM_LEVEL, fightCommand } from '../fixtures/sim-level/level';
 import { expectSameSimSnapshot } from '../fake/simSnapshot';
+import { nativeCompatibility } from '../proof/compatibility/native';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -70,10 +71,20 @@ const rows = [
   ['nine-dragon-stack', 'ride'], ['nine-dragon-stack', 'crossing'],
   ['pine-hollow', 'ridge'], ['pine-hollow', 'night'], ['pine-hollow', 'king'], ['pine-hollow', 'dam'], ['pine-hollow', 'fallen'],
 ] as const;
+const checkpointDirectories = new Map<string, string>();
+function checkpointDirectory(slug: string): string {
+  const cached = checkpointDirectories.get(slug);
+  if (cached !== undefined) return cached;
+  const result = nativeCompatibility(slug, 'checkpoint-directory');
+  if (result.status !== 0) throw new Error(`Native checkpoint generation failed: ${result.stderr}`);
+  const { directory } = v.parse(v.object({ directory: v.string() }), JSON.parse(result.stdout));
+  checkpointDirectories.set(slug, directory); return directory;
+}
 
 it.each(rows)('keeps the pre-extension %s / %s finite checkpoint wire byte-identical', (slug, name) => {
-  const input: unknown = JSON.parse(gunzipSync(readFileSync(`test/proof/${slug}/checkpoints/${name}.snap.gz`)).toString('utf8'));
+  const directory = checkpointDirectory(slug);
+  const input: unknown = JSON.parse(gunzipSync(readFileSync(`${directory}/${name}.snap.gz`)).toString('utf8'));
   const wire = v.parse(Checkpoint, input).snapshot;
-  const basis = slug === 'pine-hollow' ? new Uint8Array(gunzipSync(readFileSync('test/proof/pine-hollow/checkpoints/basis.snap.gz'))) : undefined;
+  const basis = slug === 'pine-hollow' ? new Uint8Array(gunzipSync(readFileSync(`${directory}/basis.snap.gz`))) : undefined;
   expect(serializeSimSnapshot(decodeSimSnapshot(wire, basis), basis)).toBe(wire);
-}, 20_000); // One codec round trip of each already-committed native checkpoint; no gameplay is replayed here.
+}, 20_000); // CI prepares caches before Vitest; this test checks the real generated wire's codec round trip.

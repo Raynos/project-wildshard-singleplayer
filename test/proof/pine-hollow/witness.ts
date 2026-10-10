@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Committed gameplay checkpoints are compressed native save wires.
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { Vector3 } from 'three';
+import { readWitnessManifest } from '../../../scripts/witness-checkpoints.mjs';
 import * as v from 'valibot';
 import source from '../../../src/shards/pine-hollow/shard.config';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
@@ -347,12 +348,14 @@ export async function tapeProof(rapier: Rapier, limit = 60_000): Promise<object>
 // ── Committed gameplay checkpoints and bounded CI continuations ──
 export const CHECKPOINT_NAMES = ['dam', 'ridge', 'night', 'king', 'fallen'] as const;
 export type CheckpointName = typeof CHECKPOINT_NAMES[number];
-const CHECKPOINTS = new URL('test/proof/pine-hollow/checkpoints/', ROOT);
-const MANIFEST = new URL('manifest.json', CHECKPOINTS);
+let CHECKPOINTS = new URL('test/proof/pine-hollow/checkpoints/', ROOT);
+let MANIFEST = new URL('manifest.json', CHECKPOINTS);
 const CheckpointSchema = v.strictObject({ tick: v.number(), tape: v.strictObject({ leg: v.number(), waypoint: v.number(), ticks: v.number(), best: v.number(), stall: v.number() }), snapshot: v.string() });
 const ManifestSchema = v.strictObject({ inputs: v.string(), ticks: v.record(v.string(), v.number()), hashes: v.record(v.string(), v.string()) });
 const checkpointFile = (name: CheckpointName): URL => new URL(`${name}.snap.gz`, CHECKPOINTS);
-const BASIS = new URL('basis.snap.gz', CHECKPOINTS);
+let BASIS = new URL('basis.snap.gz', CHECKPOINTS);
+/** Select the shared generator's verified outputs for native recording and replay. */
+export function setCheckpointDirectory(directory: URL): void { CHECKPOINTS = directory; MANIFEST = new URL('manifest.json', directory); BASIS = new URL('basis.snap.gz', directory); }
 const readCheckpoint = (name: CheckpointName): { tick: number; tape: TapeState; snapshot: SimSnapshot } => {
   const row = v.parse(CheckpointSchema, JSON.parse(gunzipSync(readFileSync(checkpointFile(name))).toString('utf8')));
   return { ...row, snapshot: decodeSimSnapshot(row.snapshot, gunzipSync(readFileSync(BASIS))) };
@@ -402,7 +405,7 @@ export async function writeCheckpoints(rapier: Rapier, inputs: string): Promise<
   } finally { session.host.dispose(); }
 }
 export function checkpointsFresh(inputs: string): object {
-  const manifest = v.parse(ManifestSchema, JSON.parse(readFileSync(MANIFEST, 'utf8')));
+  const manifest = v.parse(ManifestSchema, readWitnessManifest(MANIFEST));
   if (Object.keys(manifest.ticks).join(',') !== CHECKPOINT_NAMES.join(',')) throw new Error('Incomplete Pine checkpoint set');
   if (Object.keys(manifest.hashes).join(',') !== [...CHECKPOINT_NAMES, 'dawn'].join(',')) throw new Error('Incomplete Pine canonical digests');
   return { status: manifest.inputs === inputs ? 'fresh' : 'stale', inputs, recorded: manifest.inputs, ticks: manifest.ticks };
@@ -415,7 +418,7 @@ export async function walkSlice(rapier: Rapier, to: CheckpointName | 'dawn'): Pr
   try {
     const ticks = playUntil(start.session, start.tape, host => to === 'dawn' ? host.flags.has(QUEST_DONE) : atCheckpoint(to, host), SLICE);
     const host = start.session.host, hash = digest(host);
-    const manifest = v.parse(ManifestSchema, JSON.parse(readFileSync(MANIFEST, 'utf8')));
+    const manifest = v.parse(ManifestSchema, readWitnessManifest(MANIFEST));
     if (hash !== manifest.hashes[to]) throw new Error(`Inexact ${to} gameplay continuation`);
     return { status: 'passed', resumedFrom: from ?? 'spawn', resumedTick: start.tick, ticksExecuted: ticks, to, tick: host.state.tick,
       alive: host.player.health.attributes.health > 0, flags: host.flags.all, facts: facts(start.session.effects), king: kingRow(host).boss, hash };

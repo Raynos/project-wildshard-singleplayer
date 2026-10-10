@@ -22,22 +22,36 @@ const witness = await import('./witness.ts');
 installAppIdentity(WILDSHARD_IDENTITY);
 
 /** The headless inputs: every repo module the witness loaded (the runtime, the engine, the tape), the physics module and the shard's assets. */
-function inputs() {
+function inputFiles() {
   const assets = new URL('src/shards/far-reach/assets/', ROOT);
-  const files = [...loaded, new URL('public/assets/physics/rapier.wasm', ROOT).href, ...readdirSync(assets).map(name => new URL(name, assets).href)].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  return [...loaded, ...['test/proof/far-reach/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href), ...readdirSync(assets).map(name => new URL(name, assets).href)];
+}
+function inputs() {
+  const files = [...new Set(inputFiles())].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   const hash = createHash('sha256');
   for (const url of files) hash.update(url.slice(ROOT.href.length)).update('\0').update(readFileSync(new URL(url))).update('\0');
   return hash.digest('hex');
 }
 
+const { generateWitness } = await import('../../../scripts/witness-generation.mjs');
 const mode = process.argv.at(2) ?? 'all';
+let checkpointResult;
+if (mode !== 'fresh') {
+  const fingerprint = inputs();
+  const generated = await generateWitness({ root: ROOT, slug: 'far-reach', inputs: fingerprint, files: inputFiles(),
+    manifest: new URL('checkpoints/manifest.json', import.meta.url), select: witness.setCheckpointDirectory,
+    generate: async () => witness.writeCheckpoints(await witness.skyRapier(), fingerprint),
+    record: mode === 'checkpoints', forceCompare: mode === 'checkpoints' || mode === 'compare-checkpoints', compare: !['checkpoints', 'cache-record'].includes(mode) });
+  if (['checkpoints', 'cache-record', 'compare-checkpoints', 'cache-verify', 'checkpoint-directory'].includes(mode)) checkpointResult = { status: 'generated', inputs: fingerprint, directory: generated.directory, key: generated.key, hit: generated.hit, manifest: generated.manifest };
+}
+
 const proofs = { headless: witness.headlessProof, replay: witness.replayProof, ledger: witness.ledgerProof };
 const slices = { 'slice-step': witness.stepSlice, 'slice-replay': witness.replaySlice, 'slice-storm': witness.stormSlice, 'slice-ledger': witness.ledgerSlice };
-if (mode === 'fresh') {
+if (checkpointResult !== undefined) console.info(JSON.stringify(checkpointResult));
+else if (mode === 'fresh') {
   const result = witness.checkpointsFresh(inputs());
   console.info(JSON.stringify(result)); process.exitCode = result.status === 'fresh' ? 0 : 1;
-} else if (mode === 'checkpoints') {
-  console.info(JSON.stringify(await witness.writeCheckpoints(await witness.skyRapier(), inputs())));
+
 } else if (mode in slices) {
   const result = await slices[mode](await witness.skyRapier());
   console.info(JSON.stringify({ slug: 'far-reach', entry: witness.ENTRY, [mode]: result })); process.exitCode = result.status === 'passed' ? 0 : 1;

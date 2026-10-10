@@ -68,6 +68,25 @@ function payloads(root, slug) {
   return new Map(readdirSync(dir).sort().map((name) => [name, readFileSync(resolve(dir, name))]));
 }
 
+/** Prepare native witness caches before Vitest's bounded continuations; cold generation belongs outside their timeout.
+ * @param {string} root @returns {Promise<void>} */
+export async function prepareWitnesses(root) {
+  const logs = mkdtempSync(resolve(tmpdir(), 'wildshard-witness-prepare-'));
+  try {
+    const results = await Promise.allSettled(witnessSlugs(root).map(async slug => {
+      const committed = readFileSync(resolve(root, 'test/proof', slug, 'checkpoints/manifest.json'), 'utf8');
+      if (!Object.hasOwn(JSON.parse(committed), 'cache')) return;
+      const run = await witness(root, slug, 'cache-verify', logs);
+      if (run.code !== 0) throw new Error(`${slug}: native cache preparation failed (exit ${String(run.code)}):\n${run.stderr.slice(-2000)}`);
+      const result = JSON.parse(run.stdout.trim().split('\n').at(-1) ?? '');
+      if (typeof result.manifest !== 'string') throw new Error(`${slug}: cache preparation returned no manifest`);
+      compareWitnessManifests(committed, result.manifest);
+    }));
+    const failures = results.flatMap(result => result.status === 'rejected' ? [result.reason instanceof Error ? result.reason.message : String(result.reason)] : []);
+    if (failures.length > 0) throw new Error(`Native cache preparation failed:\n${failures.join('\n')}`);
+  } finally { rmSync(logs, { recursive: true, force: true }); }
+}
+
 /**
  * Refresh every stale witness manifest in an immutable export. Returns { file: refreshed manifest text } for the stale
  * ones; throws, naming each shard and its differing payloads, when a re-record changes any byte but the inputs hash.
@@ -126,9 +145,13 @@ export async function refreshWitnesses(root, cache) {
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const args = process.argv.slice(2), [flag = '', root = '', cache = '', result = ''] = args;
   try {
-    if (args.length !== 4 || flag !== '--refresh') throw new Error('Use --refresh <export> <cache-dir> <result.json>');
-    const from = performance.now(), refreshed = await refreshWitnesses(resolve(root), resolve(cache));
-    writeFileSync(resolve(result), JSON.stringify(refreshed));
-    console.log(`witness-manifests: ${String(Object.keys(refreshed).length)} of ${String(witnessSlugs(resolve(root)).length)} re-recorded in ${((performance.now() - from) / 1000).toFixed(1)} s, payloads byte-identical`);
+    if (args.length === 2 && flag === '--prepare') {
+      await prepareWitnesses(resolve(root)); console.log('witness-manifests: native checkpoint caches verified');
+    } else {
+      if (args.length !== 4 || flag !== '--refresh') throw new Error('Use --prepare <export> or --refresh <export> <cache-dir> <result.json>');
+      const from = performance.now(), refreshed = await refreshWitnesses(resolve(root), resolve(cache));
+      writeFileSync(resolve(result), JSON.stringify(refreshed));
+      console.log(`witness-manifests: ${String(Object.keys(refreshed).length)} of ${String(witnessSlugs(resolve(root)).length)} re-recorded in ${((performance.now() - from) / 1000).toFixed(1)} s, payloads byte-identical`);
+    }
   } catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

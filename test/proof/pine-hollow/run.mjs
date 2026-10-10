@@ -19,17 +19,29 @@ const { installAppIdentity } = await import('../../../src/engine/app/identity.ts
 const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts');
 const witness = await import('./witness.ts');
 installAppIdentity(WILDSHARD_IDENTITY);
+function inputFiles() { return [...loaded, ...['test/proof/pine-hollow/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm', 'public/assets/baked/pine-hollow/terrain.bin', 'public/assets/baked/pine-hollow/navmesh.bin'].map(path => new URL(path, ROOT).href)]; }
 function inputs() {
-  const files = [...loaded, ...['test/proof/pine-hollow/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm', 'public/assets/baked/pine-hollow/terrain.bin', 'public/assets/baked/pine-hollow/navmesh.bin'].map(path => new URL(path, ROOT).href)].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+  const files = [...new Set(inputFiles())].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   const hash = createHash('sha256');
   for (const url of files) hash.update(url.slice(ROOT.href.length)).update('\0').update(readFileSync(new URL(url))).update('\0');
   return hash.digest('hex');
 }
+const { generateWitness } = await import('../../../scripts/witness-generation.mjs');
 const mode = process.argv.at(2) ?? 'all';
-if (mode === 'fresh') {
+let checkpointResult;
+if (mode !== 'fresh') {
+  const fingerprint = inputs();
+  const generated = await generateWitness({ root: ROOT, slug: 'pine-hollow', inputs: fingerprint, files: inputFiles(),
+    manifest: new URL('checkpoints/manifest.json', import.meta.url), select: witness.setCheckpointDirectory,
+    generate: async () => witness.writeCheckpoints(await witness.pineRapier(), fingerprint),
+    record: mode === 'checkpoints', forceCompare: mode === 'checkpoints' || mode === 'compare-checkpoints', compare: !['checkpoints', 'cache-record'].includes(mode) });
+  if (['checkpoints', 'cache-record', 'compare-checkpoints', 'cache-verify', 'checkpoint-directory'].includes(mode)) checkpointResult = { status: 'generated', inputs: fingerprint, directory: generated.directory, key: generated.key, hit: generated.hit, manifest: generated.manifest };
+}
+
+if (checkpointResult !== undefined) console.info(JSON.stringify(checkpointResult));
+else if (mode === 'fresh') {
   const result = witness.checkpointsFresh(inputs()); console.info(JSON.stringify(result)); process.exitCode = result.status === 'fresh' ? 0 : 1;
-} else if (mode === 'checkpoints') {
-  console.info(JSON.stringify(await witness.writeCheckpoints(await witness.pineRapier(), inputs())));
+
 } else if (mode.startsWith('slice-')) {
   const name = mode.slice(6);
   if (!witness.CHECKPOINT_NAMES.includes(name) && name !== 'dawn') throw new Error('Unknown Pine walk slice');

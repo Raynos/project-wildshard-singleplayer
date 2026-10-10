@@ -2,6 +2,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The committed checkpoints are gzipped snapshot wires.
 import { gunzipSync, gzipSync } from 'node:zlib';
+import { readWitnessManifest } from '../../../scripts/witness-checkpoints.mjs';
 import * as v from 'valibot';
 import source from '../../../src/shards/far-reach/shard.config';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
@@ -395,9 +396,11 @@ const CHECKPOINT_NAMES: readonly CheckpointName[] = ['step', 'gale', 'storm'];
 const CheckpointSchema = v.object({ tick: v.number(), tape: v.object({ leg: v.number(), waypoint: v.number(), ticks: v.number(), hold: v.nullable(v.tuple([v.number(), v.number()])) }), snapshot: v.string() });
 const ManifestSchema = v.object({ inputs: v.string(), ticks: v.object({ step: v.number(), gale: v.number(), storm: v.number() }) });
 type Checkpoint = v.InferOutput<typeof CheckpointSchema>;
-const CHECKPOINTS = new URL('test/proof/far-reach/checkpoints/', ROOT);
+let CHECKPOINTS = new URL('test/proof/far-reach/checkpoints/', ROOT);
 const checkpointFile = (name: CheckpointName): URL => new URL(`${name}.snap.gz`, CHECKPOINTS);
-const MANIFEST = new URL('manifest.json', CHECKPOINTS);
+let MANIFEST = new URL('manifest.json', CHECKPOINTS);
+/** Select the shared generator's verified outputs for native recording and replay. */
+export function setCheckpointDirectory(directory: URL): void { CHECKPOINTS = directory; MANIFEST = new URL('manifest.json', directory); }
 const readCheckpoint = (name: CheckpointName): Checkpoint => v.parse(CheckpointSchema, JSON.parse(gunzipSync(readFileSync(checkpointFile(name))).toString('utf8')));
 /** A slice's own budget: past it the slice failed (the tape is stuck), never a long CI wait. */
 const SLICE = 10_000;
@@ -442,7 +445,7 @@ export async function writeCheckpoints(rapier: Rapier, inputs: string): Promise<
 }
 /** `run.mjs fresh`: the committed checkpoints were written from these headless inputs. */
 export function checkpointsFresh(inputs: string): object {
-  const manifest = v.parse(ManifestSchema, JSON.parse(readFileSync(MANIFEST, 'utf8')));
+  const manifest = v.parse(ManifestSchema, readWitnessManifest(MANIFEST));
   return { status: manifest.inputs === inputs ? 'fresh' : 'stale', inputs, recorded: manifest.inputs, ticks: manifest.ticks };
 }
 

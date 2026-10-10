@@ -281,4 +281,5 @@ jobs:
       - name: Vitest shard ${{ matrix.shard }}/8
         run: |
           pnpm gen
+          node scripts/witness-manifests.mjs --prepare .
           python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --shard=${{ matrix.shard }}/8 --reporter=dot --reporter=github-actions
