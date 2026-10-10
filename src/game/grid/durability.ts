@@ -17,11 +17,15 @@ const schema = v.nullable(v.strictObject({ revision: v.pipe(v.number(), v.intege
   integrity: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffffff))) }));
 type SavedRegion = v.InferOutput<typeof schema>;
 const continuation = { key: 'platform.region', scope: 'shard' as const, version: 1, schema, initial: (): SavedRegion => null };
-function regionIntegrity(value: NonNullable<SavedRegion>): number {
-  return fnv1a32(JSON.stringify({ revision: value.revision, snapshot: value.snapshot, logical: value.logical, mode: value.mode }));
+function regionBody(value: NonNullable<SavedRegion>): string {
+  return JSON.stringify({ revision: value.revision, snapshot: value.snapshot, logical: value.logical, mode: value.mode });
 }
-function storedCharacters(value: SavedRegion): number {
-  return JSON.stringify({ keys: { [continuation.key]: { v: continuation.version, data: value } } }).length;
+function regionIntegrity(value: NonNullable<SavedRegion>): number { return fnv1a32(regionBody(value)); }
+// The fixed wrapper and numeric seal do not escape JSON. Count them without serializing the large snapshot twice.
+const envelopeCharacters = JSON.stringify({ keys: { [continuation.key]: { v: continuation.version, data: {} } } }).length - 2;
+function sealRegion(value: NonNullable<SavedRegion>): { value: NonNullable<SavedRegion>; characters: number } {
+  const body = regionBody(value), integrity = fnv1a32(body);
+  return { value: { ...value, integrity }, characters: envelopeCharacters + body.length + ',"integrity":'.length + String(integrity).length };
 }
 
 /** Durable local continuation and rewards for one stable placement; coordinates never enter a save key. */
@@ -128,16 +132,11 @@ export class GridRegionDurability {
     const wire = yield* serializeSimSnapshotSteps(snapshot, this.physicsBasis);
     yield;
     if (!this.flush()) return false; // facts emitted while the stages waited are durable before the region is
-    let value: SavedRegion = { revision: this.identity.revision, snapshot: wire, logical, mode: 'exact' };
-    value.integrity = regionIntegrity(value);
-    if (storedCharacters(value) > SIM_REGION_SNAPSHOT_CHAR_BUDGET) {
-      value = { ...value, snapshot: null, mode: 'logical' };
-      value.integrity = regionIntegrity(value);
-    }
-    const characters = storedCharacters(value);
-    if (characters > SIM_REGION_SNAPSHOT_CHAR_BUDGET) throw new Error('Logical regional progress exceeds its durable character budget');
-    const durable = this.saved.write(value);
-    if (durable) this.receipt = { mode: value.mode, characters };
+    let sealed = sealRegion({ revision: this.identity.revision, snapshot: wire, logical, mode: 'exact' });
+    if (sealed.characters > SIM_REGION_SNAPSHOT_CHAR_BUDGET) sealed = sealRegion({ ...sealed.value, snapshot: null, mode: 'logical' });
+    if (sealed.characters > SIM_REGION_SNAPSHOT_CHAR_BUDGET) throw new Error('Logical regional progress exceeds its durable character budget');
+    const durable = this.saved.write(sealed.value);
+    if (durable) this.receipt = { mode: sealed.value.mode, characters: sealed.characters };
     return durable;
   }
 }
