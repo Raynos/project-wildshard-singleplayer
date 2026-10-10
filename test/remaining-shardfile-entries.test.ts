@@ -14,13 +14,14 @@ import { SUNSCAR_DUNES } from '../src/shards/sunscar-dunes/manifest';
 import { NINE_DRAGON_STACK } from '../src/shards/nine-dragon-stack/manifest';
 
 const cases = [
-  { Plugin: SkyPlugin, manifest: SKY_REACH },
-  { Plugin: SignalPlugin, manifest: SUNSCAR_DUNES },
-  { Plugin: NinePlugin, manifest: NINE_DRAGON_STACK },
-];
+  { Plugin: SkyPlugin, manifest: SKY_REACH, publicEntry: 'legacy' },
+  // G326: a public card flips to its shardfile entry once boot, a walk and parity with legacy pass (op-ship38)
+  { Plugin: SignalPlugin, manifest: SUNSCAR_DUNES, publicEntry: 'shardfile' },
+  { Plugin: NinePlugin, manifest: NINE_DRAGON_STACK, publicEntry: 'shardfile' },
+] as const;
 
-it.each(cases)('$manifest.slug admits its current SHARDFILE runtime and keeps ordinary legacy stage contexts unchanged', async ({ Plugin, manifest }) => {
-  expect(shardEntries(manifest)).toEqual({ legacy: true, shardfile: true, public: 'legacy' });
+it.each(cases)('$manifest.slug admits its current SHARDFILE runtime and keeps ordinary legacy stage contexts unchanged', async ({ Plugin, manifest, publicEntry }) => {
+  expect(shardEntries(manifest)).toEqual({ legacy: true, shardfile: true, public: publicEntry });
   for (const shardfile of [false, true]) {
     const legacy = vi.fn(), hybrid = vi.fn();
     class Legacy extends ShardPlugin {
