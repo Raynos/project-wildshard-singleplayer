@@ -5,15 +5,14 @@ import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { BufferGeometry } from 'three';
-import { mantaBody } from './manta';
-import { DUNE_RAY_LOOK, rayGeometry } from './duneRay';
+import { DUNE_RAY_LOOK, mantaBody, rayGeometry } from './duneRay';
 
 const brains = new WeakMap<Animal, MatriarchBrain>();
 const brain = (a: Animal): MatriarchBrain => { let value = brains.get(a); if (!value) { value = new MatriarchBrain(a); brains.set(a, value); } return value; };
 
 export const DUNE_MATRIARCH: SpeciesRow = { ...MATRIARCH_DATA, think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
 
-/** Her own body: the generated manta (`manta.ts`), untinted. */
+/** Her own body: the generated manta (species/duneRay.ts mantaBody), untinted. */
 export const matriarchBody = (): BufferGeometry | null => mantaBody();
 
 /** Her generated body at 3.6× (the code ray's when the file did not load), slower wingbeats; grounded, the wings drape on the sand, the head dips and the tail lifts to sweep. */

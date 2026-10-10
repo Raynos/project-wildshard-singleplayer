@@ -45,6 +45,7 @@
     "./systems/looks/bakedIsland": "./systems/looks/bakedIsland.ts",
     "./systems/looks/bakedGround": "./systems/looks/bakedGround.ts",
     "./systems/looks/mapPalette": "./systems/looks/mapPalette.ts",
+    "./systems/looks/fittedHull": "./systems/looks/fittedHull.ts",
     "./systems/looks/paintedStrips": "./systems/looks/paintedStrips.ts",
     "./systems/looks/duskCurves": "./systems/looks/duskCurves.ts",
     "./systems/looks/modelLibrary": "./systems/looks/modelLibrary.ts",

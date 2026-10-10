@@ -3,7 +3,9 @@ import { DUNE_RAY, RAY_CLIPS } from '../data/species/duneRay';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 'three';
-import { mantaBody, type MantaTint } from './manta';
+import { bandSkin } from '@wildshard/sdk/looks/fittedHull';
+import { MANTA_HULL, RAY_TINT } from '../data/species/hulls';
+import { duneMesh } from '../world/meshes';
 
 /** Bones (absolute bind space, +Z forward): body first, then head, the two wings and the tail. */
 const rayBones = (): { name: string; parent: string | null; pos: [number, number, number] }[] => [
@@ -48,8 +50,11 @@ export function rayGeometry(): BufferGeometry {
   return geometry;
 }
 
-/** The ray's hide on the Matriarch's generated body (round 1): a lighter sand-brown back, a pale bone belly. */
-const RAY_TINT: MantaTint = { top: [0.62, 0.52, 0.5], belly: [0.42, 0.3, 0.24], bellyMix: 0.7 }; // council round 2: a dark silhouette, not a pale card
+/** The generated manta (data/species/hulls.ts MANTA_HULL), tinted when `tint` is given; null when its file did not load. */
+export function mantaBody(tint: typeof RAY_TINT | null = null): BufferGeometry | null {
+  const source = duneMesh('dune-matriarch');
+  return source === null ? null : bandSkin(source, MANTA_HULL, tint);
+}
 
 export const DUNE_RAY_LOOK: SpeciesLook = { id: 'sunscar.look.duneRay', species: DUNE_RAY.id, kind: 'duneRay', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'sunscar.duneRay', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
