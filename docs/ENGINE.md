@@ -1459,6 +1459,14 @@ It writes only caller-owned vectors; collision queries, pickup cadence, attachme
 
 `smoothstep` (`@wildshard/engine/core/noise`) also drives DeathFade and the bow/spear authored curves; the normalized fade uses edges zero and one. Unclamped and early-return curves retain their distinct behavior.
 
+`@wildshard/engine/combat/view/rangedFeel` separates `prepareRangedFeel(game)`
+from entered listeners: it builds the existing camera/debris resources and returns
+a `RangedFeelInstaller(events, scope, rowFor)`. Prepare while an admitted resident
+is hidden, before shader warm-up; bind the returned installer only during entry.
+It uses the same particle pool, seeded bursts, hit-stop and camera laws.
+`installRangedFeel(game, events, scope, rowFor)` retains the immediate prepare-and-bind
+contract for ordinary callers. Listener disposal and re-entry remain scope-owned.
+
 ## 19. Creatures and AI
 
 `AnimalManager.replace(retired, x, z, yaw, variant?, placement?)` rebuilds one of that manager’s retired creatures with fresh rig and state, the same species and logical identity, and ordinary spawn RNG draws. It refuses foreign, live, already-replaced and simulation-bound views, or a live duplicate of the identity, before construction. This supports an authored home’s respawn after a portable logical checkpoint; it does not restore its former AI memory or reuse an authoritative simulation identity. Ordinary `spawn` is unchanged.

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
-import { installRangedFeel } from '@wildshard/engine/combat/view/rangedFeel';
+import { installRangedFeel, prepareRangedFeel } from '@wildshard/engine/combat/view/rangedFeel';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -27,7 +27,10 @@ export function installPinePresentation(o: { game: Game; weapons: EquipmentServi
   const events = weapons.events;
   if (events) {
     if (o.context === undefined) installRangedFeel(game, events, game.levelScope, (id) => [CROSSBOW, LEVER, LONGBOW].find((row) => row.id === id));
-    else installEnteredRuntimeService(o.context, (scope) => { installRangedFeel(game, events, scope, (id) => [CROSSBOW, LEVER, LONGBOW].find((row) => row.id === id)); });
+    else {
+      const bindFeel = prepareRangedFeel(game);
+      installEnteredRuntimeService(o.context, (scope) => { bindFeel(events, scope, (id) => [CROSSBOW, LEVER, LONGBOW].find((row) => row.id === id)); });
+    }
   }
   // ── the charge lanes of the wild bears and boars ──
   const tells = Array.from({ length: LANES }, () => o.makeTell(TELL));
