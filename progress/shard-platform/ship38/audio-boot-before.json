@@ -1,0 +1,35 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "card": "Nalati Grasslands",
+  "version": {
+    "build": "3d8c2ef-mv2vpxe9",
+    "time": "2026-10-10T21:01:16.862Z"
+  },
+  "contexts": [],
+  "beforeTap": [
+    {
+      "at": 9291,
+      "ms": 97.6,
+      "gestured": false,
+      "href": "?sw=0&chunk=nalati-grasslands-legacy",
+      "stack": "    at jh (http://127.0.0.1:4400/assets/session-RzBy_iuj.js:306:36950) <-     at nU (http://127.0.0.1:4400/assets/session-RzBy_iuj.js:2212:14399) <-     at async cU (http://127.0.0.1:4400/assets/session-RzBy_iuj.js:2212:21517) <-     at async Object.finish (http://127.0.0.1:4400/assets/session-RzBy_iuj.js:306:4128) <-     at async http://127.0.0.1:4400/assets/runtime-DWXApLVh.js:1:37571 <-     at async l (http://127.0.0.1:4400/assets/runtime-DWXApLVh.js:1:37091) <-     at async q.load (http://127.0.0.1:4400/assets/runtime-DWXApLVh.js:1:37544)"
+    }
+  ],
+  "afterTap": [
+    {
+      "at": 9291,
+      "ms": 97.6,
+      "gestured": false,
+      "href": "?sw=0&chunk=nalati-grasslands-legacy",
+      "stack": "    at jh (http://127.0.0.1:4400/assets/session-RzBy_iuj.js:306:36950) <-     at nU (http://127.0.0.1:4400/assets/session-RzBy_iuj.js:2212:14399) <-     at async cU (http://127.0.0.1:4400/assets/session-RzBy_iuj.js:2212:21517) <-     at async Object.finish (http://127.0.0.1:4400/assets/session-RzBy_iuj.js:306:4128) <-     at async http://127.0.0.1:4400/assets/runtime-DWXApLVh.js:1:37571 <-     at async l (http://127.0.0.1:4400/assets/runtime-DWXApLVh.js:1:37091) <-     at async q.load (http://127.0.0.1:4400/assets/runtime-DWXApLVh.js:1:37544)"
+    }
+  ],
+  "profile": {
+    "audioContextSelfMs": {
+      "AudioContext": 98,
+      "window.AudioContext": 0
+    },
+    "durationMs": 20243
+  },
+  "errors": []
+}

@@ -24,7 +24,7 @@ try {
   page.on('pageerror', (e) => report.errors.push(String(e.message).slice(0, 200)));
   const cdp = await ctx.newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-  await page.goto(`${base}/?mute=1&sw=0`, { waitUntil: 'commit' });
+  await page.goto(`${base}/?sw=0`, { waitUntil: 'commit' });
   await page.locator('.ws-main-select').click();
   await page.evaluate((name) => {
     const el = [...document.querySelectorAll('.ws-menu-card')].find((e) => e.querySelector('b')?.textContent === name);

@@ -1,0 +1,24 @@
+{
+  "base": "http://127.0.0.1:4402",
+  "card": "Nalati Grasslands",
+  "version": {
+    "build": "ff7cc0d-mv2vvas0",
+    "time": "2026-10-10T21:05:28.041Z"
+  },
+  "contexts": [],
+  "beforeTap": [],
+  "afterTap": [
+    {
+      "at": 23187,
+      "ms": 183.1,
+      "gestured": true,
+      "href": "?sw=0&chunk=nalati-grasslands-legacy",
+      "stack": "    at an (http://127.0.0.1:4402/assets/unlock-Bpqhvo3H.js:74:5424) <-     at dn (http://127.0.0.1:4402/assets/unlock-Bpqhvo3H.js:74:6217) <-     at Ph.graph (http://127.0.0.1:4402/assets/session-Bct7NIyT.js:306:38360) <-     at get ctx (http://127.0.0.1:4402/assets/session-Bct7NIyT.js:306:39615) <-     at Ph.resume (http://127.0.0.1:4402/assets/session-Bct7NIyT.js:306:41672) <-     at http://127.0.0.1:4402/assets/session-Bct7NIyT.js:306:41625 <-     at S (http://127.0.0.1:4402/assets/unlock-Bpqhvo3H.js:1:2583)"
+    }
+  ],
+  "profile": {
+    "audioContextSelfMs": {},
+    "durationMs": 22990
+  },
+  "errors": []
+}
