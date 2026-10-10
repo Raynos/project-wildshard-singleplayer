@@ -152,3 +152,57 @@ SHA-256 `e32080ef82fe6124fd7308fd21f38ace129463d68e705e43a9059a736a346c15`;
 `quiet-2495-hidden-model.json`
 `0f6bf72b20262af13055e1ee99b928895d6229622cf8fd73b131bd69c7867b4d`.
 Proof `.git/proofs/20261010T083631-sf22-hidden-model-clean-matched-73207.json`.
+
+
+## Existing-frame-ring attribution after the priority push
+
+The first CPU-owner attempt was interrupted at the coordinator's request:
+its quiet marker was released for the priority push; brief Safari startup
+and the aborted attempt carry **no timing credit**. The replacement waited
+for the next pusher ok/RED result and actual `push-main` exit before opening
+its own quiet window, 14:47:32–14:50:19 UTC (removed in `finally`). Same
+`2495c2bbc` runtime, Auto / Developer off / phone 2×, shaped network and
+held-input Driftwood → Signal → Driftwood. This diagnostic adds only reads
+of the existing completed-frame work/update/render rings, draw counts and
+fixed-step count; no new engine timing hooks, GL queries or scoped CPU hooks.
+
+Both routes completed with no refusal / game error and zero draw/driver
+compiles (394 explicit warm-ups). Sync crossings 20 / 0 / 11 / 0 ms;
+demand waits 4 / 3 / 3 / 3 ms. The task bound remains unavailable on Safari.
+Raw aggregate cadence **fails**, p95 49 / p99 72 ms, standing p95 34 ms,
+observed timestamp quantum 1 ms. Per-route machine loads remain explicit:
+
+| Interval | Load median (min–max) | Cadence p95 / max ms | Work p95 / max ms | Update p95 / max ms | Render p95 / max ms |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Driftwood → Signal | 17.94 (15.15–19.56), under load | 50 / 165 | 9 / 31 | 5 / 27 | 4 / 14 |
+| Signal → Driftwood | 12.66 (11.61–15.15), brief load >15 | 48 / 131 | 8 / 44 | 5 / 23 | 3 / 21 |
+| Standing A, actual final pose | — | 34 / 36 | 7 / 12 | 4 / 8 | 3 / 4 |
+| Standing B, same pose | — | 34 / 39 | 7 / 10 | 4 / 7 | 3 / 4 |
+
+The largest forward frame gap is at 28,432 ms: **165 ms between drawn
+frames, only 5 ms in the completed frame** (update 3 / render 2). That gap
+spans Signal `kit` (28,267–28,286), `afterKit` (28,287–28,338) and `play`
+(28,346–28,426), with no shader calls. A 104 ms gap at 29,065 overlaps
+Signal `afterPlay`, again only 3 ms in the completed game frame. Return
+road gaps at 57,971 / 58,294 / 62,335 ms overlap Driftwood `world`, with
+only 3 ms game-frame work. These gaps are **not measured GPU durations**,
+and hook overlap does not identify a synchronous CPU task: asynchronous
+admission work, event-loop scheduling and native waiting remain possible.
+The next task-level attribution must retain that distinction.
+
+The return entry has a separate outlier: 131 ms frame interval at 64,117,
+44 ms completed-frame work (update 23 / render 21), after Driftwood
+activation (64,004–64,005). This is real CPU-side frame work above 33 ms,
+not a new compile. Standing rendering still holds 34 ms at the same final
+pose with ~1.35 million triangles and 160 median draw calls.
+
+Nine Dragon's separate cell-entry/portal hitch is queued on `f369a63aa`,
+using its defining `gridFloorPlans(..., 'cell', {cell: 'nine-dragon'})` route
+and the same rings/hooks/shader journal. It is a DEVSERVER diagnostic,
+separate from the composite comparison, not a public G270 gate.
+
+Raw scratch `attempt-2495-safari-frame-work.json`, SHA-256
+`70ecb580de8c93aca4c9f18cf92d5a57331bd7d9951ee066b5e94773d4e61f53`.
+Proof `.git/proofs/20261010T091757-sf22-safari-frame-work-after-push-32331.json`.
+All resources from this run closed; the queued Nine diagnostic owns its own
+bounded quiet window and resource cleanup. No 30 fps or phone-memory pass.
