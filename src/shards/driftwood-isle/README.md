@@ -45,7 +45,7 @@ Layout debt (grandfathered in `lint/shard-layout.json`): `fpArms.ts`, `tiers.ts`
 The captain's hat, sea-glass chime, sailcloth cape and boat's three meshes are lossless offline GLBs. Their original builders live in `generators/`;
 `boot/fixedGeometry.ts` loads their geometry before placement, while the model controllers keep the original toon
 materials, wind and collectible slots. Rebuild with
-`node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-driftwood-fixed-models.mjs`.
+`node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs`.
 Add `--check` to compare the committed GLBs and slot rows without writing; `scripts/bake-check.mjs` runs this check.
 
 Phone 30 fps (9.6 ms CPU), desktop 60 fps (4.8 ms). Cold play on 4G within 30 s. F2 ceilings for the poses `pier`,

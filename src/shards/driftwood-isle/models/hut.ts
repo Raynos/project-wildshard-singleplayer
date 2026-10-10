@@ -6,7 +6,7 @@
  * geometries (the kit mesh and the unlit flames, baked/fixed-models/hut-*.glb) and its layout (data/hutBake.json: the
  * legacy boxes, the physics descriptors, the anchors and the floor), all in own space — the origin is the cabin's centre
  * on the ground, the door at −z turned by the site's `rot`. A changed site needs a rebake
- * (scripts/bake-driftwood-fixed-models.mjs); `hutLayout` refuses one it was not baked for.
+ * (src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs); `hutLayout` refuses one it was not baked for.
  *
  * Anchors (own space, y = floor, yaw = facing, 0 = +Z): npc (the castaway's spot by his campfire in front of the
  * steps, facing the path), hutChest (against the back wall inside, facing the door), door (the doorway), porch (the

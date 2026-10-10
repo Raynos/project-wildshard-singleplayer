@@ -46,7 +46,7 @@ const Row = v.strictObject({ id: v.string(), kind: v.string(), ...xyz, yaw: fini
 const Prompt = v.strictObject({ label: v.string(), ...xyz, radius: finite });
 const Spots = v.object({ version: v.literal(1), rows: v.array(Row), talk: Prompt, sword: Prompt, reward: v.strictObject({ ...xyz, yaw: finite, pitch: finite, phase: finite }),
   zipline: v.strictObject({ top: v.strictObject(xyz), bottom: v.strictObject(xyz), sag: finite, prompt: v.strictObject({ ...xyz, radius: finite }) }) });
-/** The page's placements (scripts/bake-driftwood-spots.mjs), strictly. */
+/** The page's placements (src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs), strictly. */
 export type DriftwoodSpots = v.InferOutput<typeof Spots>;
 /** Driftwood's baked interactable spots, parsed strictly. */
 export function driftwoodSpots(): DriftwoodSpots { return v.parse(Spots, baked); }

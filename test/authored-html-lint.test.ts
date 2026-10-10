@@ -16,6 +16,8 @@ mkdirSync(join(root, 'src'), { recursive: true });
 writeFileSync(join(root, 'package.json'), '{"type":"module"}');
 writeFileSync(join(root, '.oxlintrc.json'), JSON.stringify({ jsPlugins: [resolve('lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: { 'wildshard/no-authored-html': 'error' } }));
 const cases = [
+  { id: 'module-write', ext: 'mjs', code: 'const write=(text)=>text;write("fixed");', count: 0 },
+  { id: 'module-unsafe', ext: 'mjs', code: 'export function render(html){node.innerHTML=html;}render("fixed");', count: 1 },
   { id: 'direct', code: 'declare const source: {title:string}; node.innerHTML=source.title;', count: 1 },
   { id: 'computed', code: 'declare const source: {title:string}; const key="innerHTML"; node[key]=source.title;', count: 1 },
   { id: 'alias', code: `declare const source: {text:string}; const alias=source.text; const next=alias; node.outerHTML=\`<span>\${next}</span>\`;`, count: 1 },
@@ -49,11 +51,11 @@ const cases = [
   { id: 'static-array-projection', code: 'declare const rows:{text:string}[];node.innerHTML=rows.map(row=>"<i></i>").join("");', count: 0 },
   { id: 'static-tuple-projection', code: `const rows=[["one","One"],["two","Two"]];node.innerHTML=rows.map(([id,label])=>\`<b data-id="\${id}">\${label}</b>\`).join("");`, count: 0 },
 ] as const;
-for (const row of cases) writeFileSync(join(root, `src/${row.id}.ts`), `export {};\nconst node=document.createElement('div');\n${row.code}`);
+for (const row of cases) writeFileSync(join(root, `src/${row.id}.${'ext' in row ? row.ext : 'ts'}`), `export {};\nconst node=document.createElement('div');\n${row.code}`);
 const result = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', join(root, '.oxlintrc.json'), '-f', 'json', 'src'], { cwd: root, encoding: 'utf8', timeout: 30_000 });
 interface Diagnostic { filename: string; code: string; message: string }
 const diagnostics = (JSON.parse(result.stdout) as { diagnostics: Diagnostic[] }).diagnostics;
 it('loads the defining HTML guard without a plugin or process failure', () => { expect(result.status, result.stderr).toBe(1); expect(result.stderr).toBe(''); });
 it.each(cases)('$id', (row) => {
-  expect(diagnostics.filter((site) => site.filename === `src/${row.id}.ts` && site.code === 'wildshard(no-authored-html)'), row.code).toHaveLength(row.count);
+  expect(diagnostics.filter((site) => site.filename === `src/${row.id}.${'ext' in row ? row.ext : 'ts'}` && site.code === 'wildshard(no-authored-html)'), row.code).toHaveLength(row.count);
 });

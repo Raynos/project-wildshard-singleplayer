@@ -8,7 +8,7 @@
  * The builder runs where the hut stands: its site (x, z, which way the door faces) and the native terrain under its
  * stilts, braces and step stringers (the baked AO reads it too). It hands over the geometry in own space (the site's
  * origin subtracted) and the layout the page reads back from `data/hutBake.json`: the legacy boxes, the physics
- * descriptors, the anchors and the floor (deck, steps, floor y). scripts/bake-driftwood-fixed-models.mjs writes both.
+ * descriptors, the anchors and the floor (deck, steps, floor y). src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs writes both.
  */
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';

@@ -6,15 +6,15 @@
 // radius; the iron sword's prompt point on the wreck's rack (its guarded radius at load); the reward spot the finale computed from the ring
 // and the planet; and the sluice gate's collider as the registry built it. Two independent captures must match exactly.
 // `inputs` hashes the sources the spots come from (scripts/driftwood-spots-inputs.mjs): the quest test refuses a stale bake.
-// scripts/browser-lane.sh node scripts/bake-driftwood-spots.mjs --url=<clean candidate preview> [--revision=<sha>]
+// scripts/browser-lane.sh node src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs --url=<clean candidate preview> [--revision=<sha>]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { saveFixture } from './debug-settings.mjs';
-import { driftwoodSpotsInputs } from './driftwood-spots-inputs.mjs';
+import { saveFixture } from '../../../../scripts/debug-settings.mjs';
+import { driftwoodSpotsInputs } from '../../../../scripts/driftwood-spots-inputs.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 const arg = name => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
 const url = arg('url');
 if (url === undefined) throw new Error('bake-driftwood-spots requires a clean-candidate --url');

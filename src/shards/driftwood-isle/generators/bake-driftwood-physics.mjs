@@ -8,15 +8,15 @@
 // movers (the moored boat, the rope bridge's chain) are bodies, not baked world. Two independent same-page captures must
 // match exactly. Then the altar is used (`used:altar`): the Drowned Captain's native spec and his pool (where the finale
 // spawns him, at his spawn yaw) are read off the body the finale spawned; his draws and id are the stream's at play time.
-// scripts/browser-lane.sh node scripts/bake-driftwood-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--inputs=<clean tree>] [--census]
+// scripts/browser-lane.sh node src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--inputs=<clean tree>] [--census]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { driftwoodPhysicsInputs } from './driftwood-physics-inputs.mjs';
-import { saveFixture } from './debug-settings.mjs';
+import { driftwoodPhysicsInputs } from '../../../../scripts/driftwood-physics-inputs.mjs';
+import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 const arg = name => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
 const url = arg('url');
 if (url === undefined) throw new Error('bake-driftwood-physics requires a clean-candidate --url');

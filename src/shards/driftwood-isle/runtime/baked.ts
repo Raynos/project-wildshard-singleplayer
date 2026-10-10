@@ -3,7 +3,7 @@ import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { DriftwoodPoseRecipe } from './posedVolumes';
 import baked from './physics.baked.json' with { type: 'json' };
 
-/** The baked floor's lattice (Rapier's own heightfield as the page built it, scripts/bake-driftwood-physics.mjs). */
+/** The baked floor's lattice (Rapier's own heightfield as the page built it, src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs). */
 export const DRIFTWOOD_GROUND_RES = 256, DRIFTWOOD_GROUND_SIZE = 500;
 
 const finite = v.pipe(v.number(), v.finite()), xyz = v.strictObject({ x: finite, y: finite, z: finite }), xz = v.strictObject({ x: finite, z: finite });
@@ -49,7 +49,7 @@ const bytesOf = (text: string): Uint8Array => Uint8Array.from(atob(text), c => c
 const floats = (text: string): Float32Array => new Float32Array(bytesOf(text).buffer);
 
 let parsed: DriftwoodBake | null = null;
-/** Driftwood's trusted native bake (scripts/bake-driftwood-physics.mjs), strictly parsed and decoded once. */
+/** Driftwood's trusted native bake (src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs), strictly parsed and decoded once. */
 export function driftwoodBake(): DriftwoodBake {
   if (parsed !== null) return parsed;
   const bake = v.parse(Bake, baked), RES = DRIFTWOOD_GROUND_RES, SIZE = DRIFTWOOD_GROUND_SIZE, d = SIZE / (RES - 1);

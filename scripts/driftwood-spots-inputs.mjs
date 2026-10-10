@@ -7,7 +7,7 @@ const MOVERS = new Set(['src/shards/driftwood-isle/data/movers.ts']);
 
 /**
  * Exact source inputs of Driftwood Isle's quest spots (runtime/spots.baked.json, read off the built page by
- * scripts/bake-driftwood-spots.mjs): the interactables table and the adventure that places it (quest/), the POI modules
+ * src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs): the interactables table and the adventure that places it (quest/), the POI modules
  * whose anchors and floors it stands on (world/, data/), Wendell (npc/), the finale's reward spot, the shard's config and
  * manifest, the kit's own placement (engine Interactables) and the physics ground. A changed input refuses the bake until
  * it is re-read from the page (SF72).

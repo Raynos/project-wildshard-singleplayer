@@ -33,7 +33,7 @@ export function driftwoodDayClock(): DayCycle<Preset> {
 const MAX_COMMANDS = 1024;
 
 /** The browser's baked navmesh (public/assets/baked/driftwood-isle/navmesh.bin), from its exact-bytes copy
- *  (scripts/bake-driftwood-navmesh.mjs), parsed by the engine's renderer-free navmesh module. */
+ *  (src/shards/driftwood-isle/generators/bake-driftwood-navmesh.mjs), parsed by the engine's renderer-free navmesh module. */
 export function driftwoodNavmesh(): Navmesh {
   const bytes = Uint8Array.from(atob(navmeshBaked.bytes), c => c.codePointAt(0) ?? 0), nav = parseNavmesh(bytes.buffer);
   if (nav === null) throw new Error('Driftwood navmesh copy does not parse');

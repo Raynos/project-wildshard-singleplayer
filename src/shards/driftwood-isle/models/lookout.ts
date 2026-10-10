@@ -7,7 +7,7 @@
  * (baked/fixed-models/lookout.glb, one LowPolyKit mesh with the banner's sway channel) and its layout
  * (data/lookoutBake.json: the legacy boxes, the physics descriptors, the anchors and the floor), all in own space — the
  * origin is the tower's centre on the ground, the stair descending local −z turned by the site's `rot`. A changed site
- * or zipline target needs a rebake (scripts/bake-driftwood-fixed-models.mjs); `lookoutLayout` refuses one it was not
+ * or zipline target needs a rebake (src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs); `lookoutLayout` refuses one it was not
  * baked for.
  *
  * Anchors (own space, y = platform unless noted, yaw = facing, 0 = +Z): beacon (the back-right corner of the platform),

@@ -36,7 +36,7 @@ function checkerFor(root, filename) {
   const parsed = config ? ts.parseJsonConfigFileContent(ts.readConfigFile(config, (path) => ts.sys.readFile(path)).config, ts.sys, key) : null;
   const names = cached?.names ?? new Set(globSync('src/**/*.{ts,tsx}', { cwd: key }).map((path) => resolve(key, path)).filter((path) => path.endsWith('.merge.d.ts') ? true : CANDIDATE.test(readFileSync(path, 'utf8'))));
   names.add(file);
-  const options = { ...parsed?.options, noEmit: true, strict: true, skipLibCheck: true };
+  const options = { ...parsed?.options, noEmit: true, strict: true, skipLibCheck: true, allowJs: true };
   // A rebuild (an edited file in a long-lived process) reparses only what changed.
   const parsedFiles = cached?.parsedFiles ?? new Map(), base = ts.createCompilerHost(options);
   const host = { ...base, getSourceFile: (name, language, onError, fresh) => {

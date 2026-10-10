@@ -208,7 +208,7 @@ function clearCrabs(host: SimHost, at: { x: number; z: number }, r: number): voi
 
 it('bakes one spot per interactables row and the page\'s day clock spellings', () => {
   expect(spots.rows.map(r => r.id)).toEqual(DRIFTWOOD_INTERACT.rows.map(d => d.id));
-  // the spots were read off a page built from these exact sources (scripts/bake-driftwood-spots.mjs re-reads them)
+  // the spots were read off a page built from these exact sources (src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs re-reads them)
   expect(v.parse(v.object({ inputs: v.record(v.string(), v.string()) }), spotsBake).inputs).toEqual(driftwoodSpotsInputs(process.cwd()));
   const backdrop = readFileSync('src/shards/driftwood-isle/look/backdrop.ts', 'utf8');
   expect(backdrop).toContain('const CYCLE_S = 48 * 60;'); expect(DRIFTWOOD_CYCLE_S).toBe(48 * 60);
