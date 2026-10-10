@@ -1,7 +1,7 @@
 {
  "version": 1,
- "revision": "12409b8aea7a044696902daeff934f6df27d8d10",
- "build": "12409b8-mv1sqodl",
+ "revision": "13373ebbcd23f86a601df84954ddcd3fd1b4be76",
+ "build": "13373eb-mv1tkr0o",
  "profile": "iPhone 16 Pro / phone / DPR2",
  "inputs": {
   "src/engine/physics/terrain.ts": "0ad84357568a1054e5658c7c187e2c3abbd48b0f84fdefae6fc78e0289f4ada0",
@@ -18,7 +18,7 @@
   "src/shards/driftwood-isle/data/gullsGlsl.ts": "8eaf5ccfb8eda7ae9aa82f1b651ec518206bb17bd21e0b46d66b0a573f46e72d",
   "src/shards/driftwood-isle/data/items.ts": "198fcb5fa13d3061adadc97ae09fccea392a06aace78649183839bbb73802e64",
   "src/shards/driftwood-isle/data/ledger.ts": "8cae1a67ef0b84feb291803461f5a683ac28cac5a0fc7c715765d8d4dcb0f257",
-  "src/shards/driftwood-isle/data/modelFiles.ts": "821238df1cf634c9c64ed729fb9421e91e9f07e8e779d66da2ed74059ecf27f1",
+  "src/shards/driftwood-isle/data/modelFiles.ts": "a117dba8b7d7f3d2aedbc5994afb9fb420bf9e50a0ceeb7ff2ef8e0b3a35ce13",
   "src/shards/driftwood-isle/data/oceanGlsl.ts": "2f7b902f9f248abfccd7333e77ecbd123177f8b08edd44d24bd83e5ee1403f6d",
   "src/shards/driftwood-isle/data/quests.ts": "d9ec83bdeb9644c1f2a711ade27af5d79be082cf8966c31187510a32c23b33b2",
   "src/shards/driftwood-isle/data/reefGlsl.ts": "956f50c8e284229e5f8699016e0b5fc314c328b673f4f0d0aff146a3d1c30742",

@@ -1,0 +1,118 @@
+{
+  "sourceBase": "13373ebbcd23f86a601df84954ddcd3fd1b4be76",
+  "scope": "fixed pickup blade and fittings; native metallic materials, item orb, centring, tilt, glow, guarding and pickup behavior unchanged",
+  "newGlbBytes": 72140,
+  "metricsBefore": {
+    "publicLines": 1355,
+    "customLines": 16284,
+    "runtimeLines": 5878,
+    "trustedRuntimeLines": 3376,
+    "publicShare": 0.07681841374227565,
+    "legacy": {
+      "generators": 839,
+      "data": 1134,
+      "runtime": 21878
+    }
+  },
+  "metricsAfter": {
+    "publicLines": 1459,
+    "customLines": 16190,
+    "runtimeLines": 5781,
+    "trustedRuntimeLines": 3279,
+    "publicShare": 0.08266757323361097,
+    "legacy": {
+      "generators": 955,
+      "data": 1136,
+      "runtime": 21774
+    }
+  },
+  "nativeParity": {
+    "build": "13373eb-mv1tkr0o",
+    "profile": "iPhone 16 Pro / phone / DPR2 / Metal",
+    "method": "original versus baked blade/fittings on the actual guarded pickup, temporarily lifted 8 m above the occluding wreck; native metallic materials, scale, tilt, local centring and frozen clock; original position and visibility restored",
+    "rows": [
+      {
+        "part": "blade",
+        "pose": 0,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 21933
+      },
+      {
+        "part": "blade",
+        "pose": 1,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 24238
+      },
+      {
+        "part": "blade",
+        "pose": 2,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 27592
+      },
+      {
+        "part": "fittings",
+        "pose": 0,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 8132
+      },
+      {
+        "part": "fittings",
+        "pose": 1,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 9332
+      },
+      {
+        "part": "fittings",
+        "pose": 2,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 10226
+      }
+    ]
+  },
+  "bakes": {
+    "physics.baked.json": {
+      "payloadIdentical": true,
+      "recordedInputs": 129
+    },
+    "spots.baked.json": {
+      "payloadIdentical": true,
+      "recordedInputs": 80
+    }
+  },
+  "map": {
+    "rebaked": true,
+    "imageByteIdentical": false
+  },
+  "ao": {
+    "checkPassed": true,
+    "tableByteIdentical": true
+  },
+  "checks": {
+    "focusedTests": 21,
+    "strict": true,
+    "touchedLint": true,
+    "committedOriginalGeometryExact": true
+  },
+  "downwardImports": {
+    "netIncrease": 0,
+    "movedEngineImport": "math/color from weapon to generator"
+  }
+}

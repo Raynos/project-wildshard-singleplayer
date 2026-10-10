@@ -1,5 +1,7 @@
 /** Fixed low-poly geometry, baked offline without changing its vertex colours or wind channels. */
 export const FIXED_MODEL_FILES = {
+  ironSwordBlade: '/assets/driftwood-isle/baked/fixed-models/iron-sword-blade.glb',
+  ironSwordFittings: '/assets/driftwood-isle/baked/fixed-models/iron-sword-fittings.glb',
   hat: '/assets/driftwood-isle/baked/fixed-models/captain-hat.glb',
   cape: '/assets/driftwood-isle/baked/fixed-models/sailcloth-cape.glb',
   boatHull: '/assets/driftwood-isle/baked/fixed-models/boat-hull.glb',

@@ -13,6 +13,7 @@ import { PLAQUE_GAP } from '../src/shards/driftwood-isle/models/trophyPlaques.ts
 
 import { counterGeometry } from '../src/shards/driftwood-isle/generators/tradeCounter.ts';
 
+import { ironSwordGeometry } from '../src/shards/driftwood-isle/generators/ironSword.ts';
 import { coverGeometry } from '../src/shards/driftwood-isle/generators/groundCover.ts';
 
 const assets = new URL('../public/assets/driftwood-isle/baked/fixed-models/', import.meta.url);
@@ -29,6 +30,7 @@ const emit = (name, geometry) => {
   write(new URL(`${name}.glb`, assets), glb);
   geometry.dispose();
 };
+for (const [part, geometry] of Object.entries(ironSwordGeometry())) emit(`iron-sword-${part}`, geometry);
 emit('captain-hat', captainHatGeometry());
 emit('sailcloth-cape', sailclothCapeGeometry());
 for (const [part, geometry] of Object.entries(boatGeometry())) emit(`boat-${part}`, geometry);

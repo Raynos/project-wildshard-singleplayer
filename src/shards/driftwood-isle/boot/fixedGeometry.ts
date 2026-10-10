@@ -12,6 +12,9 @@ export const BOAT_GEAR_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.boatGear);
 export const TROPHY_PLAQUES_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.trophyPlaques);
 export const TROPHY_DROP_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.trophyDrop);
 export const COUNTER_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.tradeCounter, { _sway: 'aSway' });
+/** Pickup parts retain their native materials and local centring. */
+export const IRON_SWORD_BLADE_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.ironSwordBlade);
+export const IRON_SWORD_FITTINGS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.ironSwordFittings);
 let ready = false;
 /** Explorer may open these models before the island's world hook has run. */
 export function fixedGeometryReady(): boolean { return ready; }
@@ -19,6 +22,7 @@ export function fixedGeometryReady(): boolean { return ready; }
 export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array>): Promise<void> {
   await Promise.all([
     loadCoverGeometry(bytes),
+    IRON_SWORD_BLADE_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.ironSwordBlade)), IRON_SWORD_FITTINGS_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.ironSwordFittings)),
     HAT_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.hat)), CHIME_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.chime)),
     CAPE_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.cape)), BOAT_HULL_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatHull)),
     BOAT_SAIL_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatSail)), BOAT_GEAR_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatGear)),
