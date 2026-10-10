@@ -1937,6 +1937,342 @@
     "src/shards/nine-dragon-stack/runtime/cull/meshLod.ts:unbounded-loop:63b04d4fb87c5fac52f433ed4e1f6b72a7991a7a7d05ac9fed3312077a66e2e7": {
       "count": 1,
       "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:85cb410b71d361457c989f1a7232e06895850675333c15fd8e3bb5959d46881b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:8f37e1e408d7f94976edc2efe22d1917c47b69e340a2e7a7243777eeb1e19aa9": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:2de899bf4de4bf546257215d9b979da453910c84e943e9e7dd1cc5e998674016": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:eab7c5dba4632ac342504a83b2c2b522f1d4bf28749c8bd69bf5ba07845a26b3": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:f06ad0bc4edde4c3b343381c57549c3d05e81522d3d0a7c8280bc3a090250003": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:6c0137484c85fdb6c3b8d4321fe3bc19a7ba9ce257ae4c33f23d89f52148e763": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:fe79a3772dade60511ca9a4ab3243c272e1d3d368bb7370a6cb604aac96dea09": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:dd1d73fc3eef6cfbb69dc5d03f80ab6b3ae5be29bef6df5ef32190ed5b2b4c1d": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:33f073f1e070dde984d5883bb64da62ea43d38d2d7c01e98a9c0dacc03df9d32": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:70fa46501c028078e0d697ab38feba1b7d105150d3fa3e380d0586cdd97f392b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:3c44adf9deedac49ffe282b7269f3be5f72ac91594c9466dc232ea29d1e84d19": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:329b52bd001dbf71f5f034905159b7da8ddaf59ad4f37744cd456a51dabf8c10": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:17c0c1e2f7b7cfa5c03f397d5b8ac04664d324d692eebe47fc654d414f06ae8c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:a9c7f34e44e809aee99aba2171ef32e83c6d51ab99e18a826ca0fad9bf064370": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:1ba912a10a16549b634a677cfecde651f452c763c6197f12f1105190fe2fa52c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:7156323114c7a800a0d92600b356414c89d70a5a9bc1ff904575b3dd17b41ec9": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:3bdb678a677444845a29b814456c8a54910a45ba5b5be3d0ba66137f22dd3966": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:46ee05caeebdf70595fe0474c21c6258c89ecd26f6aa40a02376080142d77ad6": {
+      "count": 2,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:6a73d6b74dc04e87ad1f6baf40a911806c7b20c69c28a3ade9ffff3c3e8a8261": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:9602124ddfe8b20fdc182613d184ebebdeb1af85e3f99a5e1b2f54665c8069b4": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:f9021082f6101e2a0fd8074ae029c27b000e8e67f8dd8d7eae11347a80f2f02f": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:f7b034760f62aa08c25d01d28c135a45c84823cacba70c37767a0ee51d9b9e44": {
+      "count": 3,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:35988d6936df9363d85c5d38a6e0a5eac866fee6189f8d42976245d03a24daf0": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:async:f8120c6f7b3fcb34d4252a2f5a4a0e3bc1e6608f88c11874a9bd37d3040a9e83": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:d5703f70e3f736ac9847d93622abee29ae3a403366c7e05ada440a106fcecb30": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:2d75354ff97202ba4fd8807747548752263246d54161f6960df8bb5ae235a49b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:9548bcbff9abea26765f6a8afa78922e7445538f2112b6828b855b498e6defb1": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:eb6e32f726c331dc1c2cf44d39d444af0dfe30740ef2376e02c0636bad0ebb3f": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:912237af43e8a47fcf99834cea26cf9456882e208564084c324a2d9bb734e662": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:1b0418a407283449f3543d5300050131c652404177b2e5cf920e8ffae976a887": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:43ca5dbf9daefed416bde0da6ee4698c113f116f102e6d01b22ef279a624a1cf": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:cbb6b41fb9a8ec5c24e757d06c87df331557ec5298c1cfbfc684ce493aa36319": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:731736345fffddca83899b8154aaa5cae20f7762f13e5bd236673f74ffe36bcc": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:93b2b20230f87c725ca12605abfd978f1ece7a6101472ec83acad6c3c95a11cc": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:9170130bde42e7ea0067c3bac5ebf56c68a3ff8b10af793979e058ab07ef9a21": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:836b074d5611a4ea9e69ded19b119099ef0071de285a9f21fe91a0f8c5ac1fc5": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:5cf7587bfd5583f357609b7a767cdd3c0c5363a173b55c96e852124f36227b4f": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:7cb80d5b186ce8bfd9ff57484ba341db9e685dae5c3d2283f9ccb9b5d1b3e88c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:07dc4530136e352bf1a3aabba78b0c30285662e02885e97f42cfb98e44263276": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:eec3440b0c6becd8d54e26d2a0bf7064610e09f3153a40011e655a397b7ca118": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:91e601478b357303493a5b974bee46a6d583fe19691c8989db49a8eb550fa796": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:5009c88394b1cb5f700383e6842ac2470289e2ba7fcf1348ed56256944a1b2f8": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:500abd3038f6d2582d3b1db97b011c07e258ce6d5eec3b78e1ae09172b4d99a3": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:1382c73e48b670b7c902e14cc08cc3b7e2687402ed264ad1e9cc26b1ca7e3144": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:f7794fe5d7b5c5d4e20a12234ba1665504f464bd0ea581d76ebd5b3f0294595b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:a405ba3f93ac059e4c65f6bdb8b0931e9942c4618ced2164e6ebae4219223eac": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:1e472ffc9897b769139f1610310c69ea7beac607992e4c045652150fe0422b6f": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:598a044a76df0e49b1b6802a96ae10027cddeb506ea34b8385378a92bae46bd9": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:60c962400e60210a71292e514ed45cbaab63cef39617622097f6ed089f5f1c2a": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:d4882b97224cd4b114e9dcef4c12167372ad918c7fd788e06cd6801781594068": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:89bbfc193dc73c9c51f889a58b24548edd0a5f24702b1f6d045a58d0e327a229": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:01de58653128af3f236a1c5d01ae6a9e7c86dab2cfbc2857ac26caebd9ebc071": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:7128105567f81d826494f7274b351f1a0159a163886a4e3aab69923e8c276f4a": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:286d194ab906fa78a3c751fd5fd6028bf0adaba54ef922379e4044a365e10bac": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:7f55bb09260076abe075b124fb02c40ceb73804d6ff570b6b00beb7ee9a0958a": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:1d0c7395860ca9e8586a0e7348a8f2708bce5cf3bee8ad0179c2192507f65b50": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:920c06f06dfcfeda3d071135ae70fd7594f331ad417c46120ffb56ca4f69be30": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:6205a898ca2e7ceb3bed7464344d6bf89e919484281a189d597b7dc34bb27f2d": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:41c767a43e1be5f5c986f0e77453c67ee0aa20c8e24dc3a3bc0c24aa7cdeaac7": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:1456a4147029e621df7fb97df16339a4111ee14abd9aeb2410d2e90734a337c4": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:e08afc151056def90146540d727f21483a5b1f8c909a19a481030dc1a46d4ed8": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:3190601d29b9cd7b1175eef62e2cb2940971f57d59ef90157bc9d30be89578c4": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:3aa6297456bbde299574871e8232427ef7920ad587b56705ed1ad2b19c75afe1": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:22e1692e467407c3b48f95507159ce97ecd5c449c2de9e6fda48f1524e1a18b5": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:f161febe828e2a6d6539e6d255b2576f0138d22582c08abbe1d2fd4cd0e6a033": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:362a6669f0b747c94b916bf88186c3dc37d7bcbdc56463ed7f602730b5e8721b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:33071540e7c89885b21d14b308d055ab2e95e7fe87ea12d21c9976e98a9bfb8b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:69486e993f1da90dddd5f9fc38539c39cdf953f2c757f7320529f2dc19c409c2": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:8ca423cf858cee366bd408fa22fd041c68b0bbfddd7f349f043f411f4d0a3f3f": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:a379538c4bdd52c6d5b7b515299bf8f896983616e9253be038b50e4d696e5985": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:f9450dc90881a62dc6aa20640bd50963041c9e4eb98d2b796ea9bb961f92820a": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:c2631dc516e4fa39c333c3dbd5699e16a7c3b43a2f8c65bd287746f4548113df": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:c571d3b68c50bd7adb92fa1ab43b2c74ab37049eb2f48102dd7617d7388b6978": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:unbounded-loop:0b54a835b9d30d286cec0dc49c6900449f0665139ed17f192b6924cac97cf88c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:d107e1a57ecc0cb08b745166a6d3c35eaa9add78f53ff246fa03a122f8738550": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambienceMix.ts:frame-allocation:aaa2d428b8e7b4a356109583cd28ee6c9dfafd40e29797bed40556fc7e6e9d73": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/synthBeds.ts:unbounded-loop:338bdfbffe7bf5020c777776592848243ae9ffb2e70ac6a9a66cc4b85a01e526": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/synthBeds.ts:unbounded-loop:cc3a110728ff416ac86a95b53a6c9058a750ee06b7f27bd12f99cfdae94996d7": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/synthBeds.ts:unbounded-loop:248e5c31018cf22819f38ffc368589b2f213681e95a43abfe264d0e175e6cd0a": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/synthBeds.ts:unbounded-loop:ae95d80b1b121011a4d3f61a93ade07e91bf3bf8f22a7bddb8b104938603c298": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/synthBeds.ts:unbounded-loop:a07a3e62dc627dbf0e3794cb9775b15fde589ad2ba82d137d6c7880dce13684f": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/synthBeds.ts:unbounded-loop:523e3465736532ac6d1413769a0cb13727a5c483a1e459930471f39188993130": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/synthBeds.ts:unbounded-loop:dd78663cf1497184d3771a94a090bec9ab6f43c8b2187ab071c3d9d7ab41c525": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/synthBeds.ts:unbounded-loop:eae7a2ec83667a479ea2a20387ff216399d467086025567d0b35665f6775817e": {
+      "count": 1,
+      "row": "SF46"
     }
   }
 }

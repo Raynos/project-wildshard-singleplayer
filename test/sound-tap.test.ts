@@ -12,7 +12,7 @@ const schedulers: Readonly<Record<string, readonly string[]>> = {
   'src/engine/audio/Audio.ts': ['scheduleBubble'],
   'src/shards/pine-hollow/runtime/audio/synth.ts': ['scheduleGust', 'scheduleBird'],
   'src/shards/nalati-grasslands/runtime/audio/synth.ts': ['scheduleLark', 'scheduleCricket', 'scheduleCrackle'],
-  'src/game/systems/audio/ambienceMix.ts': ['scheduleOneShot'],
+  'src/shards/driftwood-isle/runtime/audio/ambienceMix.ts': ['scheduleOneShot'],
   'src/shards/pine-hollow/runtime/audio/ambience.ts': ['scheduleThrall'],
 };
 
@@ -38,7 +38,7 @@ describe('every sound source is observed', () => {
       '../src/engine/audio/Stems.ts', '../src/engine/audio/Voices.ts', '../src/engine/audio/ambience.ts',
       '../src/engine/audio/aacSource.ts',
       '../src/engine/audio/synth.ts',
-      '../src/game/systems/audio/ambienceMix.ts', '../src/game/systems/audio/synthBeds.ts',
+      '../src/shards/driftwood-isle/runtime/audio/ambienceMix.ts', '../src/shards/driftwood-isle/runtime/audio/synthBeds.ts',
       '../src/shards/driftwood-isle/runtime/audio/shrineHum.ts',
       '../src/shards/nalati-grasslands/runtime/audio/synth.ts',
       '../src/shards/pine-hollow/life/index.ts',

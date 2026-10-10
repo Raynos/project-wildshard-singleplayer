@@ -3,7 +3,7 @@
 // (the outdoor beds' occlusion low-pass, muffled in the hold and the cave), `ambient` (the bus), `surfPan` (the surf's
 // line emitter on the shoreline) and `fallPan` (the waterfall's emitter at the plunge pool, not occluded). The marks start
 // the profile's schedulers (the swells, the birds, the cave drips) in their place in the build.
-import type { SynthBedGraph } from '@wildshard/game/systems/audio/synthBeds';
+import type { SynthBedGraph } from './synthBeds';
 
 /** The island's beds: surf (body + hiss on the shoreline emitter; the swells ride their gains), lapping under a pier, the
  *  breeze, palm rustle (bright leaf noise through a noise-driven flutter, panned toward the palms), the lookout's high wind

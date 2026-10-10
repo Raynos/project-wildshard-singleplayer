@@ -1,6 +1,6 @@
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
-import { AmbienceMix } from '@wildshard/game/systems/audio/ambienceMix';
+import { AmbienceMix } from './ambienceMix';
 import { ISLAND_MIX, type IslandZone } from './islandMix';
 import { IslandBed, ISLAND_BED } from './sfx';
 /**
