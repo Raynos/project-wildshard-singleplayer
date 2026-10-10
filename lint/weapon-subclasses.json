@@ -1,13 +1,6 @@
 {
   "about": "SF54 / Jake G140: exact pre-existing kit weapon transfers, never new subclass capacity. Retire at SF36; metadata is immutable and entries only shrink.",
   "transfers": {
-    "src/shards/nalati-grasslands/weapons/Rifle.ts": {
-      "class": "Rifle",
-      "from": "src/kit/weapons/firearm/Rifle.ts",
-      "runtime": "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts",
-      "base": "Weapon",
-      "owner": "SF36"
-    },
     "src/shards/pine-hollow/weapons/crossbow/Crossbow.ts": {
       "class": "Crossbow",
       "from": "src/kit/weapons/crossbow/Crossbow.ts",

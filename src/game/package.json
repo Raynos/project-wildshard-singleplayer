@@ -179,6 +179,7 @@
     "./systems/items/lash": "./systems/items/lash.ts",
     "./systems/items/lashView": "./systems/items/lashView.ts",
     "./systems/items/lashWeapon": "./systems/items/lashWeapon.ts",
+    "./systems/items/magazineFirearm": "./systems/items/magazineFirearm.ts",
     "./systems/tools/hoverboard": "./systems/tools/hoverboard.ts",
     "./icons": "./icons.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts",
