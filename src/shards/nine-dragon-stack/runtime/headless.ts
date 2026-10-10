@@ -26,7 +26,7 @@ const Piece = v.strictObject({ id: v.string(), name: v.string(), category: v.str
   surface: v.exactOptional(Surface), colliderOwner: v.exactOptional(v.string()),
   // a followed piece (the Well safety cap) baked at rest: its frame is the world's, so it stands where its boxes say
   follows: v.optional(v.strictObject({ matrix: v.pipe(v.array(finite), v.check(m => m.length === 16 && m.every((x, i) => x === IDENTITY[i]), 'a baked followed piece rests at the world frame')), rotation: v.boolean() })) });
-/** The browser-baked native colliders (scripts/bake-nine-physics.mjs), strictly. */
+/** The browser-baked native colliders (src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs), strictly. */
 export const NINE_PIECES = v.parse(v.array(Piece), baked.pieces);
 /** The Fei Zhua's dragon hooks (the ring centres the claw bites) as the page's world placed them, from the same bake. */
 export const NINE_HOOKS: readonly Vector3[] = v.parse(v.array(Vec), baked.hooks).map(({ x, y, z }) => new Vector3(x, y, z));

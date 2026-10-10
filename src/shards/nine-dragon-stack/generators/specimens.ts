@@ -4,7 +4,7 @@
  * kit's pieces, the movers,
  * the wall kit's pieces, the balustrade panel's far copy, and the world's banyan crown over the layout's plan. Written
  * as one binary (a JSON head of keyed geometry rows, then each geometry's typed arrays, ./bakeWrite.ts);
- * `scripts/bake-nine-layout.mjs` deflates them to public/assets/nine-dragon/baked/specimens.bin (what the page builds
+ * `src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs` deflates them to public/assets/nine-dragon/baked/specimens.bin (what the page builds
  * at load) and specimens-explorer.bin (what only the Explorer's specimens draw) and stamps ../data/specimens.json; the page reads it by key (../world/specimens.ts). The stale gate and the live-vs-baked parity:
  * test/shards/nine-dragon-stack/specimens-bake.test.ts.
  */

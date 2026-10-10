@@ -71,7 +71,7 @@ function records(ctx: Ctx, calls: unknown): unknown {
 }
 
 describe('Nine Dragon bakes its layout offline (G285)', () => {
-  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun scripts/bake-nine-layout.mjs)', () => {
+  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs)', () => {
     const bin = bakeNineLayout(), bytes = shipped();
     expect({ bin: sha(bin), bytes: bin.length }).toEqual({ bin: LAYOUT_STAMP.bin, bytes: LAYOUT_STAMP.bytes });
     expect(sha(bytes)).toBe(LAYOUT_STAMP.bin);

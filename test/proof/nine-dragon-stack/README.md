@@ -26,7 +26,7 @@ renderer-bound system decides a gameplay outcome. Decorative crowd, light and vi
 runtime presentation.
 
 **Runs headless (proven):**
-- the browser-baked native colliders of the grid cell (`runtime/physics.baked.json`, `scripts/bake-nine-physics.mjs`):
+- the browser-baked native colliders of the grid cell (`runtime/physics.baked.json`, `src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs`):
   the fragment at +125 m, the four landing decks open to the road (the standalone end caps removed), the square's slab,
   the Well's crossings and safety cap, every placed model's colliders;
 - the player capsule walking them from the declared spawn, by tick commands;
@@ -48,7 +48,7 @@ runtime presentation.
   reach, sight past the Well's rail, the landing test, fire → bite → lift → zip → vault → settle, or a miss reeled back,
   with snapshot / restore); the page's `grapple/FeiZhua.ts` drives it and draws the rope, markers and FX, and the host's
   `runtime/grapple.ts` drives it from tick commands (a LOCK script press, the aim's pitch as a script value, the player
-  command's JUMP), on the 31 dragon hooks the physics bake records (`hooks`, `scripts/bake-nine-physics.mjs`). The aim is
+  command's JUMP), on the 31 dragon hooks the physics bake records (`hooks`, `src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs`). The aim is
   the player's eye at the command's heading and pitch projected as the phone's portrait camera, so the hook nearest the
   screen's centre is the one the claw takes, as on the page. `headless-runtime.test.ts` also zips onto the east tower's
   ledge from the arrival and restores mid-zip byte-exactly;

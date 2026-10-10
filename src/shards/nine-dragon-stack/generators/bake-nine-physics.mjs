@@ -4,15 +4,15 @@
 // declared portal floors (deck.<edge> ×4, square), the Well's crossings, the Well safety cap with its `active` state, and
 // every placed model's own colliders (balustrade, gate posts, banyan planter, stalls, market), and the Fei Zhua's dragon
 // hooks (the ring centres its course bites, `nd.grapple`). Nine has no creature, so no actor is baked. Two independent same-page captures must match exactly.
-// scripts/browser-lane.sh node scripts/bake-nine-physics.mjs --url=<clean candidate DEVSERVER preview> [--revision=<sha>]
+// scripts/browser-lane.sh node src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs --url=<clean candidate DEVSERVER preview> [--revision=<sha>]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { ninePhysicsInputs } from './nine-physics-inputs.mjs';
-import { saveFixture } from './debug-settings.mjs';
+import { ninePhysicsInputs } from '../../../../scripts/nine-physics-inputs.mjs';
+import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 const url = process.argv.find(arg => arg.startsWith('--url='))?.slice(6);
 if (url === undefined) throw new Error('bake-nine-physics requires a clean-candidate --url');
 const revision = process.argv.find(arg => arg.startsWith('--revision='))?.slice(11)

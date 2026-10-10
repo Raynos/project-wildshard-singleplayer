@@ -3,7 +3,7 @@
  * model whose geometry is a pure function of committed code — the stalls, the paifang, the banyan with its crown, the
  * shrine and the stele, the models drawn into the kits, the wall kit's pieces, the movers, the balustrade panel's far
  * copy — and the world's own canopy over the layout's plan are built at build time by `../generators/specimens.ts`
- * (`scripts/bake-nine-layout.mjs`), keyed as the models key their geometry, in two binaries: what the page itself builds
+ * (`src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs`), keyed as the models key their geometry, in two binaries: what the page itself builds
  * at load (the movers, the wall kit, the in-kit models' boxes, the panel's far copy, the crown: `boot`, fetched with the
  * layout) and what only the Model Explorer's specimens draw (the stalls, the gates, the banyan …: `explorer`, fetched the
  * first time a specimen asks, world/modelLook.ts `withSpecimens`). Each model reads its geometry by key; its materials,
@@ -55,7 +55,7 @@ export class SpecimenBake {
   /** the geometry baked under `key` (a copy the caller owns); a key the bake lacks is a stale bake or a new variant */
   geometry(key: string): BufferGeometry {
     const entry = this.at.get(key);
-    if (entry === undefined) throw new Error(`[nine-dragon] the specimens bake has no '${key}' (rebake: scripts/bake-nine-layout.mjs)`);
+    if (entry === undefined) throw new Error(`[nine-dragon] the specimens bake has no '${key}' (rebake: src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs)`);
     return readBakedGeometry(entry.bytes, 0, entry.row);
   }
   /** read `key` once and drop its bytes (what the page draws once: the crown) */

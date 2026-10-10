@@ -1,7 +1,7 @@
 /**
  * Nine Dragon's layout drawn from its offline bake (G285, SF72 "bake the code-built worlds"). The layout step — the
  * square, the towers, the Well (../generators/square.ts, towers.ts, well.ts) — is a pure function of committed code, so
- * `../generators/layout.ts` runs it at build time (`scripts/bake-nine-layout.mjs`) and stores the build context it fills:
+ * `../generators/layout.ts` runs it at build time (`src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs`) and stores the build context it fills:
  * every kit's built geometry, the facade dressing (pieces, windows, sign slots, the shell), the instance lists, the
  * models drawn into kits, the map's floor plan, the emitters, the crossings' colliders, the lion and set queues, the
  * banyan's plan, and the 1,156 sign calls in the order the builders made them. `restoreLayout` fills a page's `Ctx` from
@@ -23,7 +23,7 @@ import { restoreCrossingColliders, wellSheets } from './wellBounds';
 import { banyanOut } from './banyanPlan';
 import rows from '../data/layout.json' with { type: 'json' };
 
-/** the bake's binary (`scripts/bake-nine-layout.mjs`); listed in the boot's world reads (../boot/files.ts) */
+/** the bake's binary (`src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs`); listed in the boot's world reads (../boot/files.ts) */
 export const LAYOUT_BAKE_URL = '/assets/nine-dragon/baked/layout.bin';
 /** the bake's stamp: the inflated binary's hash and size (the stale gate, test/shards/nine-dragon-stack/layout-bake.test.ts) */
 export const LAYOUT_STAMP = v.parse(v.strictObject({ version: v.literal(1), bin: v.string(), bytes: v.number() }), rows);

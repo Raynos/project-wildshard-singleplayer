@@ -6,16 +6,16 @@
 // it (src/shards/nine-dragon-stack/world/layoutBake.ts). test/shards/nine-dragon-stack/layout-bake.test.ts is the stale gate.
 // Then the code-built models' geometry and the world's banyan crown (generators/specimens.ts) to baked/specimens.bin,
 // stamped in data/specimens.json (world/specimens.ts; stale gate test/shards/nine-dragon-stack/specimens-bake.test.ts).
-// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-nine-layout.mjs
+// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs
 import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
-import { bakeNineLayout } from '../src/shards/nine-dragon-stack/generators/layout.ts';
-import { bakeNineSpecimens } from '../src/shards/nine-dragon-stack/generators/specimens.ts';
-import { banyanOut } from '../src/shards/nine-dragon-stack/world/banyanPlan.ts';
+import { bakeNineLayout } from './layout.ts';
+import { bakeNineSpecimens } from './specimens.ts';
+import { banyanOut } from '../world/banyanPlan.ts';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 
 const stampOf = (bin) => ({ version: 1, bin: createHash('sha256').update(bin).digest('hex'), bytes: bin.length });
 
