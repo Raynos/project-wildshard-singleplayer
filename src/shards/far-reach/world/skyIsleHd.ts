@@ -2,10 +2,17 @@ import { BackSide, Box3, Color, DoubleSide, FrontSide, Group, InstancedMesh, Mat
 import type { SkyHdName } from '../boot/files';
 import type { Isle } from '../data/layout';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader, type ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { SKY_ISLE_CLIP_EDITS, SKY_ISLE_ROCK, SKY_ISLE_ROCK_EDITS } from '../data/skyIsleLook';
 import { hdMaterial, skyHd } from './meshes';
 import type { SkyIsle } from './skyIsles';
 import { SKY, SUN_DIR } from '../look/sun';
 
+const SPLICE = new ShaderFamily({}, {});
+/** `rows` with every `@{name}` in their text replaced from `extra`. */
+const spliced = (rows: readonly ShaderEditRow[], extra: Readonly<Record<string, string>>): ShaderEditRow[] =>
+  rows.map((r) => (typeof r.put === 'string' ? { stage: r.stage, find: r.find, put: SPLICE.glsl(r.put, extra) } : r));
 /** A hex colour as a linear-space GLSL vec3 (the shader's output space before the post chain). */
 function linear(hex: number): string { const c = new Color(hex); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; }
 
@@ -214,28 +221,9 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
     // the rock grey-brown, the turf kept green (E399: from below the paint read olive-yellow; the mockups' undersides are
     // sandy-grey stone with darker crevices)
     patchShader(material, 'far.sky-isle-rock', PATCH_ORDER.decorate, (shader) => {
-      shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-  { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.3, 0.59, 0.11));
-    float turf = ${clipTop ? '0.0' : 'smoothstep(0.02, 0.12, c.g - max(c.r, c.b) * 0.92)'};
-    vec3 stone = vec3(l) * vec3(1.02, 0.96, 0.88) * (0.75 + 0.35 * smoothstep(0.15, 0.6, l));
-    // (row 1, the lead: the canopies read olive-grey; the mockups' crowns are lush green lit warm by the low sun)
-    vec3 leaf = mix(vec3(l), c, 1.35) * vec3(1.02, 1.12, 0.78) * 1.15;
-    diffuseColor.rgb = mix(stone, clamp(leaf, 0.0, 1.0), turf); }`).replace('#include <dithering_fragment>', `#include <dithering_fragment>
-  // the low sun behind them catches their edges gold (round 9, the seats: 'pale flat mesas'; mockup A's crags are dark
-  // masses with sunlit gold rims)
-  // strongest on the sun's side (round 10, seat B: every edge lit alike), a share on the rest (round 12: sun-side only
-  // left the crags facing the spawn dark)
-  { float farRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 3.0) * (0.4 + 0.6 * smoothstep(-0.1, 0.5, dot(normalize(normal), normalize((viewMatrix * vec4(${SUN_DIR.x.toFixed(4)}, ${SUN_DIR.y.toFixed(4)}, ${SUN_DIR.z.toFixed(4)}, 0.0)).xyz))));
-    // (top-10 row 9: the mockups light their isles from behind: the masses turned from the low sun fall into a soft
-    // shade, the faces toward it brighten, so each reads as a lit volume, not a flat beige cut-out)
-    float farSunTurn = smoothstep(-0.45, 0.65, dot(normalize(normal), normalize((viewMatrix * vec4(${SUN_DIR.x.toFixed(4)}, ${SUN_DIR.y.toFixed(4)}, ${SUN_DIR.z.toFixed(4)}, 0.0)).xyz)));
-    gl_FragColor.rgb *= mix(${SKY_ISLE_HD.shade[0].toFixed(2)}, ${SKY_ISLE_HD.shade[1].toFixed(2)}, farSunTurn);
-    gl_FragColor.rgb = gl_FragColor.rgb * 0.95 + vec3(1.0, 0.7, 0.36) * farRim * 0.55; }
-  gl_FragColor.rgb = mix(gl_FragColor.rgb, ${linear(SKY_ISLE_HAZE.color)}, clamp((length(vViewPosition) - ${SKY_ISLE_HAZE.near.toFixed(1)}) / ${(SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near).toFixed(1)}, 0.0, 1.0) * ${SKY_ISLE_HAZE.max.toFixed(2)});`);
-      if (clipTop) {
-        shader.vertexShader = `varying float farLocalY;\n${shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  farLocalY = position.y;')}`;
-        shader.fragmentShader = `varying float farLocalY;\n${shader.fragmentShader.replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n  if (farLocalY > 0.02) discard;')}`;
-      }
+      editShader(shader, spliced(clipTop ? [...SKY_ISLE_ROCK_EDITS, ...SKY_ISLE_CLIP_EDITS] : SKY_ISLE_ROCK_EDITS, { turf: clipTop ? '0.0' : SKY_ISLE_ROCK.turf,
+        sunX: SUN_DIR.x.toFixed(4), sunY: SUN_DIR.y.toFixed(4), sunZ: SUN_DIR.z.toFixed(4), shadeLo: SKY_ISLE_HD.shade[0].toFixed(2), shadeHi: SKY_ISLE_HD.shade[1].toFixed(2),
+        hazeColor: linear(SKY_ISLE_HAZE.color), hazeNear: SKY_ISLE_HAZE.near.toFixed(1), hazeSpan: (SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near).toFixed(1), hazeMax: SKY_ISLE_HAZE.max.toFixed(2) }));
     }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim-sun${clipTop ? '|clip' : ''}` });
     const mesh = new InstancedMesh(u.geometry, material, list.length); mesh.name = `far.sky-isles.${name}`;
     list.forEach((s, k) => {

@@ -1,5 +1,7 @@
 import { Group, Mesh, MeshStandardMaterial, DoubleSide, Float32BufferAttribute, type BufferGeometry, type InstancedMesh, type Material, type Object3D, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader } from '@wildshard/sdk/looks/shaderEdits';
+import { MILL_CANVAS_EDITS, MILL_TOWER_EDITS } from '../data/millLook';
 import { fit, hdMaterial, skyHd } from './meshes';
 import { onPaintedDispose } from '../look/image';
 import { MILL_COURSES, MILL_TOWER } from '../data/millShape';
@@ -96,11 +98,7 @@ function towerMaterial(map: Texture): MeshStandardMaterial {
   const m = hdMaterial(map);
   painted(MILL_TEX.stone, (st) => { const t = st.clone(); t.channel = 1; m.bumpMap = t; m.bumpScale = 2; });
   patchShader(m, 'far.mill-tower', PATCH_ORDER.decorate, (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), diffuseColor.rgb, 0.2);
-#ifdef USE_BUMPMAP
-  diffuseColor.rgb *= mix(1.0, texture2D(bumpMap, vBumpMapUv).g * 1.45, 0.35);
-#endif`);
+    editShader(shader, MILL_TOWER_EDITS);
   }, { key: (prior) => `${prior}|far.mill-tower` });
   return m;
 }
@@ -186,29 +184,7 @@ export function towerMill(nodes?: ReadonlyMap<string, InstancedMesh>): { group: 
   const clothMat = new MeshStandardMaterial({ color: 0xece0c6, roughness: 0.95, metalness: 0, side: DoubleSide, emissive: 0x302820, alphaTest: 0.5 });
   painted(MILL_TEX.canvas, (t) => { clothMat.map = t; clothMat.emissiveMap = t; clothMat.color.set(0xffffff); clothMat.needsUpdate = true; });
   patchShader(clothMat, 'far.mill-canvas', PATCH_ORDER.decorate, (shader) => {
-    shader.vertexShader = `attribute vec3 farCloth;\nvarying vec3 vFarCloth;\n${shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vFarCloth = farCloth;')}`;
-    shader.fragmentShader = `varying vec3 vFarCloth;
-float farCH(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float farCN(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(farCH(i), farCH(i + vec2(1.0, 0.0)), u.x), mix(farCH(i + vec2(0.0, 1.0)), farCH(i + vec2(1.0, 1.0)), u.x), u.y); }
-${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
-  { vec2 q = vFarCloth.xy; float seed = vFarCloth.z;
-    float n = farCN(q * vec2(14.0, 40.0) + seed * 17.0) * 0.65 + farCN(q * vec2(5.0, 13.0) + seed * 5.0) * 0.35;
-    float edge = min(min(q.x, 1.0 - q.x), min(q.y * 2.5, (1.0 - q.y) * 2.5));
-    float torn = step(edge, 0.05 * n);
-    // two sails have lost a ragged corner at the outer rail's hub end
-    torn = max(torn, step(0.45, seed) * step(length((q - vec2(1.0, 0.0)) * vec2(1.0, 1.6)), 0.22 + 0.22 * n));
-    if (farCN(q * vec2(6.0, 15.0) + seed * 31.0) > 0.94) torn = 1.0;
-    diffuseColor.a *= 1.0 - torn;
-#ifdef USE_MAP
-    // the painted canvas is a warm beige swatch: toward the targets' sun-bleached cream
-    diffuseColor.rgb = min(vec3(1.0), mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), 0.25) * vec3(1.12, 1.06, 0.96));
-    // (E399 seats: the sails 'read like pale glass panes'; the mockups' canvas is a weathered tan between dark frames)
-#else
-    float weave = 0.92 + 0.08 * sin(q.x * 300.0) * sin(q.y * 700.0);
-    diffuseColor.rgb *= weave * mix(1.0, 0.8, smoothstep(0.62, 0.8, n)) * mix(0.8, 1.0, smoothstep(0.0, 0.3, q.y));
-#endif
-  }`)}`;
+    editShader(shader, MILL_CANVAS_EDITS);
   }, { key: (prior) => `${prior}|far.mill-canvas` });
   // the four lattice frames (one kind, an instance per arm) and the four canvases, each turned to its arm
   put(hub, 'frame', new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0 }));
