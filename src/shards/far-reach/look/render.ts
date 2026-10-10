@@ -3,6 +3,8 @@ import { ToneMappingMode } from 'postprocessing';
 import { loadLUT } from '@wildshard/engine/boot/bakedApi';
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import { patchShader, PATCH_ORDER } from '@wildshard/engine/render/shaderPatches';
+import { editShader, type ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+import { ROSE_FOG_EDITS } from '../data/roseFogLook';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
@@ -18,6 +20,11 @@ import { PANO_SUN } from './panoramaData';
 import { loadPainted } from './image';
 import { TEX_URL } from '../boot/files';
 
+
+const SPLICE = new ShaderFamily({}, {});
+/** `rows` with every `@{name}` in their text replaced from `extra`. */
+const spliced = (rows: readonly ShaderEditRow[], extra: Readonly<Record<string, string>>): ShaderEditRow[] =>
+  rows.map((r) => (typeof r.put === 'string' ? { stage: r.stage, find: r.find, put: SPLICE.glsl(r.put, extra) } : r));
 
 /** A fixed golden-hour clock: Sky Reach does not run a day cycle (no `dayCycle` in `uses`). */
 export function createDay(): DayCycle {
@@ -59,14 +66,15 @@ export async function skyReachLook(): Promise<LookStrategy> {
       dome.renderOrder = -10; dome.frustumCulled = false; scene.add(dome);
       scope.own(dome.geometry); scope.own(dome.material); scope.onDispose(() => { dome.removeFromParent(); });
       scene.fog = new Fog(new Color(SKY.fog), FOG.near, FOG.far);
+      const fogEdits = spliced(ROSE_FOG_EDITS, { HEADING_GLSL, near: FOG.near.toFixed(1), span: (FOG.far - FOG.near).toFixed(1), max: FOG.max.toFixed(2),
+        sunX: SUN_DIR.x.toFixed(4), sunY: SUN_DIR.y.toFixed(4), sunZ: SUN_DIR.z.toFixed(4), sunHaze: SUN_HAZE.toFixed(2) });
       scene.traverse((object) => {
         if (!primitive(object) || object === dome) return;
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
           // the haze takes the painted horizon's colour in the direction you look (gold toward the sun, rose-lavender away)
           patchShader(material, 'far.rose-fog', PATCH_ORDER.decorate, (shader) => {
             shader.uniforms['farHaze'] = { value: haze };
-            shader.fragmentShader = `#ifndef FAR_HAZE\n#define FAR_HAZE\nuniform sampler2D farHaze;\n${HEADING_GLSL}\n#endif\n${shader.fragmentShader.replace('#include <fog_fragment>',
-              `#ifdef USE_FOG\n vec3 farV=vFogWorldPos-cameraPosition; gl_FragColor.rgb=mix(gl_FragColor.rgb,texture2D(farHaze,vec2(farHeading(farV),0.5)).rgb,clamp((length(farV)-${FOG.near.toFixed(1)})/${(FOG.far - FOG.near).toFixed(1)},0.0,1.0)*${FOG.max.toFixed(2)});\n float farSun=pow(max(dot(normalize(farV),vec3(${SUN_DIR.x.toFixed(4)},${SUN_DIR.y.toFixed(4)},${SUN_DIR.z.toFixed(4)})),0.0),24.0); gl_FragColor.rgb=mix(gl_FragColor.rgb,vec3(1.0,0.8,0.52),farSun*clamp((length(farV)-15.0)/160.0,0.0,1.0)*${SUN_HAZE.toFixed(2)});\n#endif`)}`;
+            editShader(shader, fogEdits);
           }, { scope });
         }
       });

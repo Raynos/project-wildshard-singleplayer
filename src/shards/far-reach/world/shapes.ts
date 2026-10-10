@@ -1,10 +1,18 @@
 import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry, DoubleSide, Euler, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3, type Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader, type ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { DECK_WOOD_EDITS, HOVER_FRAME_EDITS, POST_WEATHER_EDITS } from '../data/bridgeLook';
 import { ropeSag } from '../layout';
 import { fit, hdMaterial, skyHd, skyMesh, splitAbove } from './meshes';
 import { towerMill } from './mill';
 import { skyBakedGeometry } from './baked';
+
+const SPLICE = new ShaderFamily({}, {});
+/** `rows` with every `@{name}` in their text replaced from `extra`. */
+const spliced = (rows: readonly ShaderEditRow[], extra: Readonly<Record<string, string>>): ShaderEditRow[] =>
+  rows.map((r) => (typeof r.put === 'string' ? { stage: r.stage, find: r.find, put: SPLICE.glsl(r.put, extra) } : r));
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
 export const PALETTE = {
@@ -35,8 +43,7 @@ function glassDeck(length: number, width: number, glass: MeshStandardMaterial): 
   // proposal B' from 60 m and more): full within ~25 m of the camera, a third beyond ~60 m (round 7, seat C: the updraft's
   // cue must still read from the spawn)
   patchShader(frameMat, 'far.hover-frame', PATCH_ORDER.decorate, (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-  totalEmissiveRadiance *= mix(1.0, 0.3, smoothstep(25.0, 60.0, length(vViewPosition)));`);
+    editShader(shader, HOVER_FRAME_EDITS);
   }, { key: (prior) => `${prior}|far.hover-frame` });
   const bars: Mesh[] = [];
   for (const side of [-1, 1]) { const bar = new Mesh(new BoxGeometry(0.1, 0.1, length), frameMat); bar.position.set(side * (width / 2 - 0.05), -0.04, -length / 2); bars.push(bar); }
@@ -116,22 +123,7 @@ const WEATHER = { deck: 0.6, post: 0.8 } as const;
 function deckWood(): MeshStandardMaterial {
   const m = flat(0xffffff, { vertexColors: true, flatShading: false, roughness: 0.9 });
   patchShader(m, 'far.deck-wood', PATCH_ORDER.decorate, (shader) => {
-    shader.vertexShader = `varying vec3 vFarDeck;\n${shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vFarDeck = position;')}`;
-    shader.fragmentShader = `varying vec3 vFarDeck;
-float farDH(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float farDN(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(farDH(i), farDH(i + vec2(1.0, 0.0)), u.x), mix(farDH(i + vec2(0.0, 1.0)), farDH(i + vec2(1.0, 1.0)), u.x), u.y); }
-${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
-  { vec2 q = vFarDeck.xz;
-    float plank = floor(q.y * 6.0 + 0.5);
-    float grain = farDN(vec2(q.x * 3.0 + plank * 7.1, q.y * 90.0)) * 0.6 + farDN(vec2(q.x * 9.0, q.y * 260.0 + plank)) * 0.4;
-    float tone = 0.78 + 0.32 * farDH(vec2(plank, 3.7));
-    float wear = 1.0 - smoothstep(0.15, 0.9, abs(q.x) / 1.3);
-    diffuseColor.rgb *= tone * (0.82 + 0.3 * grain);
-    // weathered grey-brown timber, silvered most down the walked middle (round 14 prep: C's deck read orange, 120/87/58
-    // over the mockup's grey-brown bridge)
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))) * vec3(1.05, 1.0, 0.94), ${WEATHER.deck.toFixed(2)} + wear * 0.3);
-  }`)}`;
+    editShader(shader, spliced(DECK_WOOD_EDITS, { weather: WEATHER.deck.toFixed(2) }));
   }, { key: (prior) => `${prior}|far.deck-wood` });
   return m;
 }
@@ -163,10 +155,7 @@ function hdPosts(width: number, length: number): InstancedMesh | null {
   // the timber weathered to the mockups' silver-grey (its paint came out orange-brown); the gold hemp and the iron band,
   // brighter or bluer than the wood, kept
   patchShader(material, 'far.post-weather', PATCH_ORDER.decorate, (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-  { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.3, 0.59, 0.11));
-    float wood = (1.0 - smoothstep(0.32, 0.5, l)) * smoothstep(0.0, 0.04, c.r - c.b);
-    diffuseColor.rgb = mix(c, vec3(l) * vec3(1.06, 1.0, 0.92), wood * ${WEATHER.post.toFixed(2)}); }`);
+    editShader(shader, spliced(POST_WEATHER_EDITS, { weather: WEATHER.post.toFixed(2) }));
   }, { key: (prior) => `${prior}|far.post-weather` });
   const g = fit(source.geometry, { size: HD_POST.height, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(g, material, 4);
   const m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0), one = new Vector3(1, 1, 1);
