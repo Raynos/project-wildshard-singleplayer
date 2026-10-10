@@ -696,9 +696,10 @@ export class Game {
   async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean): Promise<void> {
     const composer = this._composer;
     if (composer === null || !navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent)) return;
-    const { prepareSceneRoots, waitForDrawnFrame } = await import('../render/precompile');
+    const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
     const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.engineScope, () => this.frameCount, current) : undefined;
-    await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, current, pause);
+    await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, current, pause,
+      setting('buildPacing') === 'uploads' ? LIVE_UPLOAD_BUDGET : undefined);
   }
 
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
@@ -712,10 +713,12 @@ export class Game {
     const futureEnvironment = futureScene.environment;
     const current = (): boolean => !owner.disposed;
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
-    const { precompileLevel, warmComposerFrame, waitForDrawnFrame } = await import('../render/precompile');
+    const { precompileLevel, warmComposerFrame, waitForDrawnFrame, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET } = await import('../render/precompile');
     const pause = isolateImageUploads && this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
+    // op-hitch32: the Developer tool `buildPacing` = `uploads` batches the image uploads under a per-frame budget.
+    const uploadBudget = setting('buildPacing') !== 'uploads' ? undefined : isolateImageUploads ? LIVE_UPLOAD_BUDGET : SLICED_UPLOAD_BUDGET;
     await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads,
-      ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }) }), current);
+      ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
     // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
     // desktop, up to 1011 ms Simulator, in `activate`); draw it a few objects a frame into a 1×1 scissor first.
     if (futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible) {
@@ -903,8 +906,8 @@ export class Game {
     this.kickLoop = () => { if (!this.dead && performance.now() - lastRun > 1000) this.engineScope.raf(loop); };
     this.primeFrame = () => { if (!this.dead) forceFrame = true; };
     // op-hitch26: sliced builds in play pace themselves to these frames only with the default-off Developer tool on
-    setFramePacing(setting('buildPacing') === 'on');
-    this.engineScope.onDispose(onSettingChange('buildPacing', (v) => { setFramePacing(v === 'on'); }));
+    setFramePacing(setting('buildPacing') !== 'off');
+    this.engineScope.onDispose(onSettingChange('buildPacing', (v) => { setFramePacing(v !== 'off'); }));
     setLoopState('running');
     loop();
   }

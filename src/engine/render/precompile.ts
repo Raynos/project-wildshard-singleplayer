@@ -190,12 +190,14 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
 /** Prepare newly resident roots against current page lighting and its declared exterior state before exposure.
  * Borrow original materials and object flags in the ordinary painted compile/link/upload slices. Live parents,
  * visibility, uniforms, lighting and render targets stay unchanged; the resident owner fences every slice.
- * An optional live-draw barrier spaces batches; initial boot uses ordinary browser paint opportunities. */
+ * An optional live-draw barrier spaces batches; initial boot uses ordinary browser paint opportunities.
+ * An optional upload budget batches the isolated image uploads per drawn frame (op-hitch32). */
 export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera, scene: THREE.Scene,
-  target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean, pause?: () => Promise<void>): Promise<void> {
+  target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean, pause?: () => Promise<void>,
+  uploadBudget?: UploadBudget): Promise<void> {
   const { jobs, materials } = sceneJobs(scene, target, 1, roots);
   jobs.push(...exteriorJobs(scene, target, false, roots));
-  await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause);
+  await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget);
 }
 
 /** Prepare registered override passes with their real caster flags and camera layers. Borrowed materials, geometry,
@@ -421,6 +423,60 @@ export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
 
 const frame = (): Promise<void> => new Promise((resolve) => { pageScope.raf(() => { pageScope.timeout(0, resolve); }); }); // a real paint between (the page's: no ambient owner read mid-build, SF57)
 
+/**
+ * A per-frame budget for live image uploads (op-hitch32). Isolated preparation (WebKit's entered world) uploads one image
+ * per drawn frame, and other browsers check 12 ms only after each upload; with a budget, a frame takes uploads while their
+ * measured time stays under `ms`, predicting the next one's cost from its decoded size before it starts, so a large image
+ * uploads alone and a slice never starts an upload it cannot fit. The Developer tool `buildPacing` = `uploads` turns it on
+ * (`Game`), default off.
+ */
+export interface UploadBudget {
+  /** Measured upload milliseconds one drawn frame may hold. */
+  ms: number;
+  /** Decoded bytes one drawn frame may hold; a larger image uploads alone. */
+  bytes: number;
+}
+
+/** The Developer tool's budget for isolated (WebKit) uploads: about a quarter of a 30 fps frame, 8 MiB of decoded texels. */
+export const LIVE_UPLOAD_BUDGET: UploadBudget = { ms: 8, bytes: 8 * 1024 * 1024 };
+
+/** The Developer tool's budget for other browsers' slices: under the 12 ms checked after the fact, and 64 MiB. */
+export const SLICED_UPLOAD_BUDGET: UploadBudget = { ms: 10, bytes: 64 * 1024 * 1024 };
+
+/** Decoded bytes an uncompressed texture's upload moves (with a third more for generated mips); 0 when unknown. */
+export function imageUploadBytes(texture: THREE.Texture): number {
+  const one = (image: unknown): number => {
+    if (typeof image !== 'object' || image === null) return 0;
+    const data: unknown = Reflect.get(image, 'data');
+    if (ArrayBuffer.isView(data)) return data.byteLength;
+    const size = (key: string): number => { const v: unknown = Reflect.get(image, key); return typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : 0; };
+    return (size('naturalWidth') || size('width')) * (size('naturalHeight') || size('height')) * Math.max(1, size('depth')) * 4;
+  };
+  const image: unknown = texture.image;
+  const texels = Array.isArray(image) ? image.reduce((sum: number, face: unknown) => sum + one(face), 0) : one(image);
+  return Math.round(texture.generateMipmaps ? texels * 4 / 3 : texels);
+}
+
+/** One drawn frame's batch of image uploads under a budget, predicting each upload's time from the measured rate. */
+interface UploadBatch { full: (bytes: number) => boolean; add: (bytes: number, ms: number) => void; reset: () => void; pending: () => boolean }
+function newUploadBatch(budget: UploadBudget): UploadBatch {
+  let ms = 0, bytes = 0, count = 0, totalMs = 0, totalBytes = 0;
+  return {
+    full: next => {
+      if (count === 0) return false;
+      // The byte-weighted rate so far predicts the next upload; nothing measured yet, the frame is full.
+      const predicted = totalBytes === 0 ? budget.ms : next * totalMs / totalBytes;
+      return bytes + next > budget.bytes || ms + predicted > budget.ms;
+    },
+    add: (b, t) => {
+      ms += t; bytes += b; count++;
+      if (b > 0) { totalMs += t; totalBytes += b; }
+    },
+    reset: () => { ms = 0; bytes = 0; count = 0; },
+    pending: () => count > 0,
+  };
+}
+
 /** Wait for a new completed game draw, then a paint opportunity. A capped/skipped rAF cannot release preparation;
  * cancellation rejects before another batch. Does not advance simulation, force a draw or change frame pacing. */
 export function waitForDrawnFrame(scope: Scope, drawn: () => number, current: () => boolean): Promise<void> {
@@ -448,6 +504,7 @@ export function waitForDrawnFrame(scope: Scope, drawn: () => number, current: ()
  * `total` = jobs + programs once the programs are known. Live preparation may isolate image
  * uploads so an unpredictable native upload cannot join another upload in the same painted slice.
  * An optional pause port requires a completed live draw between batches instead of a browser rAF the game may skip.
+ * An optional upload budget batches image uploads per frame under it (op-hitch32).
  */
 export async function runPrecompile(
   renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
@@ -456,6 +513,7 @@ export async function runPrecompile(
   current: () => boolean = () => true,
   isolateImageUploads = false,
   pause: () => Promise<void> = frame,
+  uploadBudget?: UploadBudget,
 ): Promise<PrecompileReport> {
   // Page siblings can retire while a neighbour's preparation yields. The inventory is
   // borrowed: disposal cancels only that resource's upload, not the live neighbour.
@@ -466,13 +524,14 @@ export async function runPrecompile(
     watched.add(texture); observer.listenOnceEmitter(texture, 'dispose', () => { retired.add(texture); });
   };
   for (const texture of textures) watch(texture);
-  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause); }
+  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget); }
   finally { observer.dispose(); }
 }
 
 async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress: ((done: number, total: number, detail: string) => void) | undefined, textures: THREE.Texture[],
-  current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void, isolateImageUploads: boolean, pause: () => Promise<void>): Promise<PrecompileReport> {
+  current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void, isolateImageUploads: boolean, pause: () => Promise<void>,
+  uploadBudget: UploadBudget | undefined): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
   const borrowed = new Set<THREE.Material>();
@@ -546,9 +605,15 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // isolates native uploads; a post-upload time check alone can overshoot before it yields.
   tSlice = performance.now();
   const base = jobs.length + units;
+  // op-hitch32: with an upload budget, live preparation batches image uploads per frame under it: several instead of one
+  // when isolated, and a predicted overshoot waits for the next frame instead of the 12 ms check after the fact.
+  const batch = uploadBudget !== undefined ? newUploadBatch(uploadBudget) : undefined;
   for (const [i, tex] of uploadTextures.entries()) {
     checkCurrent();
     const compressed = tex instanceof THREE.CompressedTexture;
+    const bytes = compressed ? 0 : imageUploadBytes(tex);
+    if (batch !== undefined && !compressed && !retired.has(tex) && batch.full(bytes)) { await pause(); checkCurrent(); batch.reset(); }
+    const tUpload = performance.now();
     if (!retired.has(tex)) {
       if (compressed) {
         try { await uploadCompressedTexture(renderer, tex, () => current() && !retired.has(tex)); }
@@ -556,9 +621,12 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       } else renderer.initTexture(tex);
     }
     onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
-    if (compressed) { checkCurrent(); tSlice = performance.now(); }
+    if (compressed) { checkCurrent(); tSlice = performance.now(); batch?.reset(); }
+    else if (batch !== undefined) { if (!retired.has(tex)) batch.add(bytes, performance.now() - tUpload); }
     else if (isolateImageUploads || performance.now() - tSlice > 12) { await pause(); checkCurrent(); tSlice = performance.now(); }
   }
+  // The batch's last uploads keep their own drawn frame before whatever follows warm-up, as isolation did.
+  if (batch?.pending() === true) await pause();
   checkCurrent();
   return { materials, jobs: jobs.length, programs: n, parallel };
 }
@@ -576,7 +644,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** The installing scene's PMREM when futureLighting includes sibling content outside that scene. */ futureEnvironment?: THREE.Texture;
     /** Temporary program holders survive until this frame leaves; content materials remain borrowed. */ owner?: Pick<Scope, 'onDispose'>;
     /** Yield after each image upload during live preparation; ordinary boot keeps batched uploads. */ isolateImageUploads?: boolean;
-    /** A live presentation barrier; initial boot keeps the ordinary browser paint opportunity. */ pause?: () => Promise<void> } = {}): Promise<number> {
+    /** A live presentation barrier; initial boot keeps the ordinary browser paint opportunity. */ pause?: () => Promise<void>;
+    /** Batch image uploads per frame under this budget (op-hitch32): several when isolated, none started past it. */ uploadBudget?: UploadBudget } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
     const tracedBoot = bootTraceActive();
@@ -620,7 +689,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     if (policy?.scene !== false) jobs.push(...exteriorJobs(scene, rt, policy?.shadows !== false));
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
-    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause);
+    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget);
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
     return report.materials;
   

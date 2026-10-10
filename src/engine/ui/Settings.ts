@@ -127,7 +127,7 @@ export const OPTION_VALUES = {
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
   regionShadowFocus: ['off', 'tight'],                 // SF63: inside a grid cell whose level casts with the phone's split rig, the page's one cascade pulls in to 22 m at 2048² (SkyRig.focusCascade, src/game/grid/regionShadow.ts) — live
-  buildPacing: ['off', 'on'],                          // op-hitch26 (SF63): builds in play pace their stretches to drawn frames (src/engine/core/framePacing.ts) — live; a Developer tool, default off until a quiet floor
+  buildPacing: ['off', 'on', 'uploads'],               // op-hitch26 (SF63): builds in play pace their stretches to drawn frames (src/engine/core/framePacing.ts) — live; a Developer tool, default off until a quiet floor. op-hitch32: uploads = on, plus WebKit's isolated warm-up image uploads batched under a drawn-frame budget (src/engine/render/precompile.ts UploadBudget)
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];

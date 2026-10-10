@@ -815,6 +815,16 @@ upload. Compressed textures retain their fenced upload path. Ordinary boot and d
 This bounds combined upload work; it cannot split or guarantee the duration of one native upload.
 For a running WebKit game, `Game.warmEnteredFrame` and `Game.warmSceneRoots` supply `waitForDrawnFrame` as the
 `pause` callback. It waits for a fresh completed game draw and a paint opportunity; a capped/skipped browser rAF
+Isolation costs a drawn frame per image: Pine's entered warm-up took 7.8 s on the Simulator at 30 fps (op-hitch27).
+An optional `UploadBudget` (`{ ms, bytes }`, `precompileLevel`'s `uploadBudget`, `prepareSceneRoots`' and
+`runPrecompile`'s last argument) batches the image uploads instead: several per frame while their measured time stays
+under `ms`, the next one's cost predicted before it starts from its decoded size (`imageUploadBytes`) and the
+byte-weighted rate measured so far, so a large image still uploads alone and one native upload can overshoot by itself
+only. Without isolation (desktop) the same budget replaces the 12 ms check made after each upload, so a slice never
+starts an upload it cannot fit. Compressed textures keep their fenced path. `Game` passes `LIVE_UPLOAD_BUDGET` (8 ms, 8 MiB; isolated) or `SLICED_UPLOAD_BUDGET`
+(10 ms, 64 MiB) only when the Developer tool `buildPacing` is `uploads` (pacing on as well); default off until a quiet
+floor backs it.
+
 cannot release the next preparation batch. Scope retirement or an obsolete owner rejects and clears its scheduling
 handles. It never advances simulation or forces a draw. Initial boot (no completed draw yet) and desktop keep the
 ordinary paint barrier. `prepareSceneRoots` and `precompileLevel` accept the same optional callback.
