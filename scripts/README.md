@@ -244,6 +244,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [generation-inventory.mjs](./generation-inventory.mjs)
 - [generation-jobs.json](./generation-jobs.json)
 - [generation-level.mjs](./generation-level.mjs)
+- [generation-linux.d.mts](./generation-linux.d.mts)
+- [generation-linux.mjs](./generation-linux.mjs)
 - [generation-registry.mjs](./generation-registry.mjs)
 - [generation-sources.d.mts](./generation-sources.d.mts)
 - [generation-sources.mjs](./generation-sources.mjs)
