@@ -148,6 +148,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 ## Capture, boards and mockups
 
 - [creature-lineup.mjs](./creature-lineup.mjs)
+- [generation-capture.d.mts](./generation-capture.d.mts)
+- [generation-capture.mjs](./generation-capture.mjs)
 - [hero-shots.mjs](./hero-shots.mjs)
 - [ktx2-ab-board.py](./ktx2-ab-board.py)
 - [mockup-local.sh](./mockup-local.sh)
@@ -241,6 +243,10 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [generation-inventory.d.mts](./generation-inventory.d.mts)
 - [generation-inventory.mjs](./generation-inventory.mjs)
 - [generation-jobs.json](./generation-jobs.json)
+- [generation-level.mjs](./generation-level.mjs)
+- [generation-registry.mjs](./generation-registry.mjs)
+- [generation-sources.d.mts](./generation-sources.d.mts)
+- [generation-sources.mjs](./generation-sources.mjs)
 - [green-prefix.d.mts](./green-prefix.d.mts)
 - [green-prefix.mjs](./green-prefix.mjs)
 - [grid-approach-regression.d.mts](./grid-approach-regression.d.mts)
