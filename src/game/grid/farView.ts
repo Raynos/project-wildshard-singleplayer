@@ -6,7 +6,7 @@
  * boundary-face flag in TEXCOORD_0.y (G222: 1 lip, 2 foot), where the material lays rock strata over the shard's cliff
  * palette.
  */
-import { BufferAttribute, BufferGeometry, Color, Mesh, MeshLambertMaterial, MeshStandardMaterial, Vector3, type Object3D } from 'three';
+import { BufferAttribute, BufferGeometry, Color, Mesh, MeshLambertMaterial, MeshStandardMaterial, Vector3, type Material, type Object3D } from 'three';
 import { patchShader } from '@wildshard/engine/render/shaderPatches';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { FarLookRuntime, FarProxyMesh } from './farProxy';
@@ -82,9 +82,13 @@ export function farProxyGeometry(mesh: FarProxyMesh): BufferGeometry {
     .setAttribute('color', new BufferAttribute(mesh.colours, 3)).setAttribute('uv', new BufferAttribute(uv, 2)).setIndex(new BufferAttribute(mesh.index, 1));
 }
 
-/** Install a proxy under a cell root (the rings' upload port). It never casts or receives shadows (§3.2: only near L0). */
-export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: FarLookRuntime, positionalMask = false): FarProxyView {
+/**
+ * Install a proxy under a cell root (the rings' upload port). It never casts or receives shadows (§3.2: only near L0).
+ * `decorate` patches its material before anything compiles it (G321 part 4: the horizon fade).
+ */
+export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: FarLookRuntime, positionalMask = false, decorate?: (material: Material) => void): FarProxyView {
   const { material, setMask, frame } = farProxyMaterial(look, positionalMask), mesh = new Mesh(geometry, material);
+  decorate?.(material);
   mesh.name = 'far-proxy'; mesh.castShadow = false; mesh.receiveShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
   geometry.computeBoundingSphere(); root.add(mesh);
   let disposed = false;
@@ -104,7 +108,7 @@ export interface FarPrepared { readonly geometry: BufferGeometry; readonly look:
  * an instance's far.glb off the frame (GLTF parse, region in uv.x) with its far.json look. Optional `prepare` borrows
  * the admitted view while hidden; `upload` exposes that same view after preparation, and `discard` retires it.
  */
-export function farRingPorts(options: { root: (instance: string) => Object3D; load: (instance: string) => Promise<FarPrepared>; prepare?: (view: FarProxyView) => Promise<void> }): {
+export function farRingPorts(options: { root: (instance: string) => Object3D; load: (instance: string) => Promise<FarPrepared>; prepare?: (view: FarProxyView) => Promise<void>; decorate?: (material: Material) => void }): {
   fetch: (tile: { instance: string }, done: (result: FarPrepared | Error) => void) => void;
   upload: (tile: { instance: string }, data: FarPrepared) => FarProxyView;
   discard: (tile: { instance: string }, data: FarPrepared) => void;
@@ -119,7 +123,7 @@ export function farRingPorts(options: { root: (instance: string) => Object3D; lo
           if (options.prepare !== undefined) {
             let view: FarProxyView | undefined;
             try {
-              view = installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask);
+              view = installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate);
               view.mesh.visible = false;
               await options.prepare(view);
               staged.set(data, view);
@@ -136,7 +140,7 @@ export function farRingPorts(options: { root: (instance: string) => Object3D; lo
     },
     upload: (tile, data) => {
       const view = staged.get(data);
-      if (view === undefined) return installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask);
+      if (view === undefined) return installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate);
       staged.delete(data); view.mesh.visible = true;
       return view;
     },

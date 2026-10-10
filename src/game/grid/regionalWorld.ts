@@ -251,6 +251,14 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           // G223 / G232: its level's own sky backdrop laid over the one sky by its owner weight
           if (look !== null && sky instanceof SkyRig) skyReady = (async () => {
             try {
+              // G321: a level whose world draws its own whole sky (`SkyDressing.ownSky`: a painted dome in its scene, no
+              // backdrop) owns the horizon in its cell as a backdrop does; its sky fades with its world, so the layer only
+              // tells the frame its weight (the road's void floor stands down by it)
+              const hang = look.sky;
+              if (levelLook?.backdrop === undefined && levelLook?.sky?.ownSky === true && hang !== undefined && !left()) {
+                let drawn = 0;
+                resident.onDispose(hang(cell.instance, { weight: (w) => { drawn = w; }, state: () => ({ weight: drawn, drawn: drawn > 0, bytes: 0, reserved: 0 }) }));
+              }
               const made: { backdrop: LayeredBackdrop | null; environment: (() => Texture | null) | null } = { backdrop: null, environment: null };
               const measured = textures.mode === 'img' ? request.manifest.runtimeCost?.imagesFirst ?? request.manifest.runtimeCost : request.manifest.runtimeCost;
               const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident,

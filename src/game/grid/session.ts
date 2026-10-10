@@ -83,6 +83,7 @@ import { cellScreenStatus, installCellScreens, type CellScreenInput, type CellSc
 import { installOpenPlots, openPlotColliders, type OpenPlotState } from './openPlot';
 import type { MemoryAdmissionWarning } from './memoryAdmission';
 import { TIER } from '@wildshard/engine/core/tier';
+import { horizonFade } from './horizonFade';
 
 declare const __BUILD_ID__: string; // vite.config.ts define; absent under Node
 
@@ -314,6 +315,13 @@ export class GridSession {
     this.road = platformRoad.road; this.seams = platformRoad.seams;
     // G321: inside a cell whose shard draws its own sky, its backdrop owns the horizon: the road's void floor fades by it
     if (frame !== null) host.scope.onDispose(frame.horizon(platformRoad.horizon));
+    // G321 part 4: and what stands outside that cell (the road's far reaches here; the neighbours' far proxies, haze bands
+    // and ring tiles as they arrive) dithers out by it beyond the near road
+    const horizon = horizonFade(host.scope);
+    for (const root of platformRoad.roots) if (root.name !== 'grid-void') horizon.patch(root); // the void floor fades itself
+    if (frame !== null) host.scope.onDispose(frame.horizon((owned, cell) => {
+      horizon.set(owned, cell === null ? null : { x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z, half: CHUNK_HALF });
+    }));
     // SF17b's per-view road budget (§3.2, G101): what the view camera draws of the road system, and what stays resident
     const roadRoots = platformRoad.roots;
     this.roadBudget = { view: () => { const camera = host.frame?.camera; return camera === undefined ? null : roadViewCost(roadRoots, camera, this.roadPlans); }, resident: () => roadResident(roadRoots, this.roadPlans) };
@@ -376,7 +384,7 @@ export class GridSession {
     // G223: an entered regional runtime draws its own cell; its coarse root (far proxy, tiles) hides until it leaves
     host.scope.onDispose(bindCellCover(host.scene, cellCoverPort((id) => roots.get(id))));
     const far = farRingPorts({
-      ...(host.prepareFar === undefined ? {} : { prepare: host.prepareFar }),
+      ...(host.prepareFar === undefined ? {} : { prepare: host.prepareFar }), decorate: horizon.patch,
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },
       load: async (id) => {
         let loaded: Awaited<ReturnType<typeof loadFar>>;
@@ -390,6 +398,7 @@ export class GridSession {
       const band = data.look.band, view = far.upload(tile, data), untag = frame.proxy(view), dispose = view.dispose;
       // SF19b (G94 / G95): a shard that declares a band shows its mood at its border from the road; inside its cell it owns the frame (G158)
       const root = roots.get(tile.instance), unband = band === undefined || root === undefined ? () => undefined : installHazeBand(root, band, CHUNK_HALF);
+      const haze = root?.getObjectByName('haze-band'); if (haze !== undefined) horizon.patch(haze);
       view.dispose = () => { unband(); untag(); dispose(); };
       return view;
     } };
@@ -407,7 +416,10 @@ export class GridSession {
     host.frame?.onLate((dt) => { this.life.late(dt); this.panels.late(); frame?.frame(); });
     const tiles = neighbourTiles(host.scope), tileCost = clientRingCatalogue(tiles.instances);
     this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000 : tileCost(id, level, x, z)),
-      levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports));
+      levelPorts<FarPrepared, PreparedRingTile>(farPorts, { ...tiles.ports,
+        // G321 part 4: a ring tile's materials may be its shard's family materials, shared with that shard's live cell, so
+        // they fade only where a fragment stands outside the owning cell; patched as the tile arrives, before it draws
+        fetch: (tile, report) => { tiles.ports.fetch(tile, (result) => { if (!(result instanceof Error)) horizon.patch(result.group, 'outside'); report(result); }); } }));
     if (host.renderer !== undefined) void this.admitTiles(host.renderer, roots, tiles.instances);
     host.scope.onDispose(() => {
       this.rings.dispose();

@@ -7,6 +7,7 @@ uniform mat4 uBakeMatrix;
 uniform vec3 uBakeInfo;
 uniform sampler2D tBakeContact;
 uniform vec4 uContactXf;
+// both read at a world position (a grid cell's receivers add their root: the maps are baked where the level is drawn)
 // 1 = lit, 0 = in a static caster's shadow (the key light's direction at the last bake)
 float bakedShadow(vec3 wp) {
   if (uBakeInfo.x < 0.5) return 1.0;
@@ -58,6 +59,6 @@ float bakedContact(vec3 wp) {
       varying vec3 vWP;
       void main() {
         float g = texture2D(tHeight, (vWP.xz - uHXf.xy) * uHXf.z).r;
-        gl_FragColor = vec4(clamp(vWP.y - g, 0.0, 8.0), 0.0, 0.0, 1.0);
+        gl_FragColor = vec4(clamp(vWP.y - uHXf.w - g, 0.0, 8.0), 0.0, 0.0, 1.0);
       }`,
 };

@@ -154,8 +154,9 @@ export function shardRender(): LookStrategy {
 
   return {
     // (E281) the engine's cloud layer (a white cumulus dome for the daylight shards) has no place in a blue-hour sky
-    // under the sky screens; the shard's own painted sky (look/style.ts) is the whole sky: the layer is never built
-    sky: { clouds: false, planet: true },
+    // under the sky screens; the shard's own painted sky (look/style.ts) is the whole sky: the layer is never built, and
+    // inside its grid cell that sky owns the horizon (`ownSky`, G321)
+    sky: { clouds: false, planet: true, ownSky: true },
     // the learned LUT its composite applies, declared so a grid cell (which carries the engine chain, not this compose)
     // can carry it too (op-lut20; behind the grid's default-off Debug row)
     lut: LUT_URL,

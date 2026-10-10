@@ -129,6 +129,12 @@ export interface SkyDressing {
   /** false: the engine's planet is not built (`sky.planet` stays an empty group outside the scene) — the level paints its own */
   planet: boolean;
   /**
+   * true: the level's world draws its whole sky itself (a painted dome or backdrop in its own scene, not a `backdrop`
+   * factory). Wherever the level is drawn beside other content (a grid cell), that sky owns the horizon by the level's
+   * weight, as a `backdrop` does (SHARD-PLATFORM G321). Absent: the level's sky is the engine's or its `backdrop`.
+   */
+  ownSky?: boolean;
+  /**
    * Sun surface/corona visibility at build; each omitted flag defaults to true. Lighting is unchanged. `rays` (E398):
    * with the disc off (a level whose painted sky has the sun), keep the disc as the god rays' source only: it is never
    * drawn in the frame, but the rays pass masks it. `true` = at the light's sun; `{ azimuth, elevation }` (degrees, the

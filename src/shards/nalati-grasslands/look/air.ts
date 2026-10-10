@@ -66,10 +66,12 @@ export function patchCloudShadows(): void {
     .replaceAll('getDirectionalLightInfo( directionalLights[0], directLight );', hook('getDirectionalLightInfo( directionalLights[0], directLight );'));
 }
 
-/** the sky dressing: no engine cloud layer and no planet (the dome paints the sky); the engine's cloud fbm drives the cloud shadows */
+/** the sky dressing: no engine cloud layer and no planet (the dome paints the sky); the engine's cloud fbm drives the cloud shadows.
+ *  The panorama dome is its world's own sky (`ownSky`): inside its grid cell it owns the horizon (G321) */
 export const NALATI_SKY: SkyDressing = {
   clouds: false,
   planet: false,
+  ownSky: true,
   build: (_sky, cloudField) => {
     patchCloudShadows();
     paintedAir.fogCloudTex.value = cloudField;

@@ -55,13 +55,16 @@ function depthMaterial(): THREE.ShaderMaterial {
 }
 
 /** the casters' material for the contact pass: how far above the ground this fragment stands (m) */
-function contactMaterial(tHeight: THREE.Texture): THREE.ShaderMaterial {
+function contactMaterial(tHeight: THREE.Texture, xf: THREE.Vector4): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
-    uniforms: { tHeight: { value: tHeight }, uHXf: { value: new THREE.Vector4(-256, -256, 1 / 512, 512) } },
+    // `xf` x, y: the height texture's corner where the level is drawn (its origin − 256), z: 1 / its size, w: the origin's height
+    uniforms: { tHeight: { value: tHeight }, uHXf: { value: xf } },
     vertexShader: LOOK_BAKE_GLSL_DATA_FAMILY.glsl(LOOK_BAKE_GLSL_DATA.bakeVertex),
     fragmentShader: LOOK_BAKE_GLSL_DATA_FAMILY.glsl(LOOK_BAKE_GLSL_DATA.bakeFragment),
   });
 }
+
+const _at = new THREE.Vector3();
 
 export class StaticBake {
   private readonly shadowRT: THREE.WebGLRenderTarget;
@@ -70,7 +73,10 @@ export class StaticBake {
   private readonly contactCam = new THREE.OrthographicCamera(-HALF, HALF, HALF, -HALF, 1, 600);
   private readonly depthMat = depthMaterial();
   private readonly contactMat: THREE.ShaderMaterial;
+  private readonly contactXf = new THREE.Vector4(-256, -256, 1 / 512, 0);
   private readonly lastDir = new THREE.Vector3(0, -1, 0);
+  /** where the level's frame is drawn (its scene's world position: zero standalone, the cell's root in a grid cell) */
+  private readonly origin = new THREE.Vector3();
   private dirty = true;
   /** contact darkening strength (0 = off) */
   contact = 0.45;
@@ -82,7 +88,7 @@ export class StaticBake {
     this.contactRT = new THREE.WebGLRenderTarget(AO_SIZE, AO_SIZE, {
       type: THREE.HalfFloatType, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter, depthBuffer: true,
     });
-    this.contactMat = contactMaterial(tHeight);
+    this.contactMat = contactMaterial(tHeight, this.contactXf);
     this.shadowCam.layers.set(LAYER);
     this.contactCam.layers.set(LAYER);
     // straight down over the slab: image right = +x, image up = −z (bakedContact's uv follows)
@@ -138,6 +144,9 @@ export class StaticBake {
 
   /** each frame: re-bake when the key light has swung past the threshold (or the casters changed) */
   update(keyDir: THREE.Vector3): void {
+    this.scene.updateWorldMatrix(true, false);
+    const at = _at.setFromMatrixPosition(this.scene.matrixWorld);
+    if (!at.equals(this.origin)) { this.origin.copy(at); this.dirty = true; }
     if (!this.dirty && keyDir.dot(this.lastDir) > REBAKE_COS) return;
     this.lastDir.copy(keyDir);
     this.dirty = false;
@@ -157,12 +166,14 @@ export class StaticBake {
     scene.background = null;
     try {
       // the key's view of the slab: an orthographic box turned to the light, wide enough for the diagonal
-      const cam = this.shadowCam;
+      // (G321 part 4) in the level's own frame, where its scene is drawn: a grid cell's casters and receivers stand at its
+      // root, so both maps are centred there and the receivers read them at their world position
+      const cam = this.shadowCam, o = this.origin;
       const d = keyDir.clone().normalize();
-      cam.position.copy(d).multiplyScalar(650).add(new THREE.Vector3(0, 10, 0));
+      cam.position.copy(d).multiplyScalar(650).add(o).add(new THREE.Vector3(0, 10, 0));
       cam.up.set(0, 1, 0);
       if (Math.abs(d.y) > 0.99) cam.up.set(0, 0, -1);
-      cam.lookAt(0, 10, 0);
+      cam.lookAt(o.x, o.y + 10, o.z);
       const r = HALF * 1.42;
       cam.left = -r; cam.right = r; cam.top = r; cam.bottom = -r; cam.near = 300; cam.far = 1000;
       cam.updateProjectionMatrix(); cam.updateMatrixWorld();
@@ -174,6 +185,11 @@ export class StaticBake {
       // depth bias: ~0.25 m in the camera's depth range
       bakeUniforms.uBakeInfo.value.set(1, 0.25 / (cam.far - cam.near), 1 / SIZE);
       // the contact map: the casters' height above the ground, straight down
+      this.contactCam.position.set(o.x, o.y + 300, o.z);
+      this.contactCam.lookAt(o);
+      this.contactCam.updateMatrixWorld();
+      this.contactXf.set(o.x - 256, o.z - 256, 1 / 512, o.y);
+      bakeUniforms.uContactXf.value.set(o.x - HALF, o.z - HALF, 1 / (HALF * 2), bakeUniforms.uContactXf.value.w);
       scene.overrideMaterial = this.contactMat;
       renderer.setRenderTarget(this.contactRT);
       renderer.setClearColor(0x000000, 1);

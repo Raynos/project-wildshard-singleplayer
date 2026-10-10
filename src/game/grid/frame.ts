@@ -365,8 +365,10 @@ export class GridFrame {
   private roadFov = Number.NaN;
   private lensWritten = Number.NaN;
   /** G321: what fades by how much the regions' own skies own the frame (the road's void floor), and that share as told */
-  private readonly horizons = new Set<(owned: number) => void>();
+  private readonly horizons = new Set<(owned: number, cell: FrameCell | null) => void>();
   private skyShare = 0;
+  /** G321 part 4: the cell whose own sky owns most of the frame (null on the road) */
+  private skyCell: FrameCell | null = null;
   private readonly restore: (() => void)[] = [];
   private faded = 0;
   private installed = false;
@@ -506,10 +508,11 @@ export class GridFrame {
   /**
    * G321: be told, each frame, how much of the frame the live regions' own skies own (the sum of their cells' weights,
    * 0..1): inside a cell whose shard draws its own sky its backdrop owns the horizon, so the road's void floor fades by it.
-   * Returns the release.
+   * `cell` is the cell whose own sky owns most of it (null on the road; op-sky43: what stands outside it fades). Returns the
+   * release.
    */
-  horizon(fade: (owned: number) => void): () => void {
-    this.horizons.add(fade); fade(this.skyShare);
+  horizon(fade: (owned: number, cell: FrameCell | null) => void): () => void {
+    this.horizons.add(fade); fade(this.skyShare, this.skyCell);
     return () => { this.horizons.delete(fade); };
   }
 
@@ -534,10 +537,13 @@ export class GridFrame {
       for (const stack of set) stack.weight(w);
     }
     this.lens();
-    let owned = 0;
-    for (const instance of this.skies.keys()) owned += this.weights.cells.get(instance) ?? 0;
-    this.skyShare = Math.min(1, owned);
-    for (const fade of this.horizons) fade(this.skyShare);
+    let owned = 0, top = 0, cell: FrameCell | null = null;
+    for (const instance of this.skies.keys()) {
+      const w = this.weights.cells.get(instance) ?? 0; owned += w;
+      if (w > top) { top = w; cell = this.cells.find((c) => c.instance === instance) ?? null; }
+    }
+    this.skyShare = Math.min(1, owned); this.skyCell = cell;
+    for (const fade of this.horizons) fade(this.skyShare, this.skyCell);
     if (!this.installed) this.install();
     this.bypass?.apply(this.carrier !== null && this.wholes.has(this.carrier.instance) ? this.chainWeight : 0);
   }

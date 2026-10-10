@@ -99,8 +99,8 @@ void main() {
   vSelf = mix(.3, 1., pow(t, .9)) * mix(.6, 1., r);
   vT = t;
   vFogWorldPos = p + modelMatrix[3].xyz;
-  vSh = bakedShadow(p + vec3(0., .12, 0.));   // the static bake
-  vSelf *= mix(bakedContact(root), 1., t * .5);   // the contact shade under the yurts / rocks / trunks, most at the roots
+  vSh = bakedShadow(p + modelMatrix[3].xyz + vec3(0., .12, 0.));   // the static bake
+  vSelf *= mix(bakedContact(root + modelMatrix[3].xyz), 1., t * .5);   // the contact shade under the yurts / rocks / trunks, most at the roots
   vec4 mv = viewMatrix * vec4(p + modelMatrix[3].xyz, 1.);
   vFogDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
@@ -153,7 +153,7 @@ void main() {
   float sway = sin(uTime * 2. + r * 30.) * .03 * position.y;
   vec3 p = vec3(xz.x, groundH(xz) - .02, xz.y) + vec3(right.x, 0., right.y) * (position.x * w + sway) + vec3(0., position.y * h * s, 0.);
   vUv = position.xy + vec2(.5, 0.); vType = type; vFogWorldPos = p + modelMatrix[3].xyz; vSeed = r;
-  vSh = bakedShadow(p + vec3(0., .12, 0.)) * bakedContact(p) + 0.001;
+  vSh = bakedShadow(p + modelMatrix[3].xyz + vec3(0., .12, 0.)) * bakedContact(p + modelMatrix[3].xyz) + 0.001;
   vec4 mv = viewMatrix * vec4(p + modelMatrix[3].xyz, 1.);
   vFogDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
@@ -270,9 +270,9 @@ void main() {
   float gold = clamp(smoothstep(.42, .78, gFbm(xz * .21 + 11.)) * .85 + fld.g * .45, 0., 1.) * (1. - .7 * lush);
   vTint = mix(mix(vec3(.86, .98, .78), vec3(.68, .92, .7), lush), vec3(1.12, .98, .7), gold) * mix(.78, 1.08, r) * mix(.85, 1.05, patchN);
   vT = t;
-  vSelf = mix(.42, 1., smoothstep(0., .8, t)) * mix(bakedContact(root), 1., t * .5);
+  vSelf = mix(.42, 1., smoothstep(0., .8, t)) * mix(bakedContact(root + modelMatrix[3].xyz), 1., t * .5);
   vFogWorldPos = p + modelMatrix[3].xyz;
-  vSh = bakedShadow(p + vec3(0., .12, 0.));
+  vSh = bakedShadow(p + modelMatrix[3].xyz + vec3(0., .12, 0.));
   vec4 mv = viewMatrix * vec4(p + modelMatrix[3].xyz, 1.);
   vFogDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
