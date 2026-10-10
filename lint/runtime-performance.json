@@ -1765,6 +1765,178 @@
     "src/shards/sunscar-dunes/runtime/brains.ts:frame-allocation:5373bef9a440cc7a5a25b82a195dba994485533329e7a836a4c0f402e9020999": {
       "count": 1,
       "row": "SF50"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/figureCrowd.ts:unbounded-loop:d96dce10729ad1eba5819bc0397f5f262ff2aeb626b4cb1a9652ac7387d6fb66": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/figureCrowd.ts:unbounded-loop:c3b27b73785517e80934a7c78db0f911eb3c02b532a94cfca77374b60db63f48": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/figureCrowd.ts:unbounded-loop:ed58d36d83400016413aaa26c9a16e84e6805f20a20231238a02585b39e9c4f3": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/figureCrowd.ts:unbounded-loop:3b3ff4a37318befbe806c78f2fd3fd7d7fbd6e80ffe1eaf455dec50ac45725d5": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/figureCrowd.ts:unbounded-loop:91543d29e066a70474b7198a8bd8193ce3753c72127673bd683d3f32fcb2e979": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/figureCrowd.ts:unbounded-loop:ea92ce8333aa87d90004c067a946c09615494132594459eef98c28b5a41fb23b": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/figureCrowd.ts:unbounded-loop:29e2ac1df06120c53c9c3efa17f684cf102e19d8a4d8afb88bb96bc6a8f30f03": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/handedBatches.ts:unbounded-loop:020af95e84a677734e661075431cfcccaea3eab97162c4fa5062d310521a3ddb": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:1356d87ab4f9bbf430586bf97d0bd31dc034c46e48845dd4d33bf0f1519ce012": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:a67446e59466aac13567d8c6c2b7361ede459984b0e1283915c4bb0329066c0b": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:4c2b07cf3815362e01a2251aaf7f8d3e86fbbc71704c711540da7aa5acf5ef88": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:f3cf3da17b94c7b3d746c8dfce400fe834f0ea6e01299b0ccab024ff1f52cecc": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:f2944709d53311da9ef33dbf5448e4badc5c589dd1d58c6ba2aa08716d474fcd": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:adb11338badc22f50a218b3a9e22621905e5ae2c098f2790846b592fdd44fa86": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:ca2adc1353d26cba882cce2724feb6a4e5ed5f52f09fb50f7904d6bb775c31b8": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:b122ba0093a199344471210b4f427fcc6dcd1784a2d7fe516d66c40c097f8e97": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:frame-allocation:a72920d7fdbc226a860404fb5c7aef75304baf510668a26897a500a702564d75": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:frame-allocation:6e809dcf0ea3cfe915b39626ef63ee976099b816fd7d7edd23855e895bd258c4": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:765b47f95380e07a753898a20f4f3bf9f29832cecd93224d733b3c7263c275c1": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:9703aaea2707fb9fa9490cc81934d312c77866deddf5e9f87d472d6aa16542da": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:3536f60a3dee08163c6707e2fc358ebb07ea4c4f70d32b6dbffe7fa4489f160c": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:2405af0f95452ebd6f1b118b5db7fbf253f5c456b64efa8a15086a4c54d5c31f": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:ad377c9c933b81d1b962950fb04474e68effd528ff25e65e0a257dc6bf34afa2": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:ce31cab815eb3519dfb4e548d2df2931f15c22bb9761f145f061ef2d5c0fc086": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:frame-allocation:fcd1cef8be5dfe8b99704578e3b698b5bf74318be133813a72492b0210873b6b": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:frame-allocation:6fe0e9c2f51df12e7915be01ad970519eb6e33f6b6401c98aa84371771e8fe73": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:45052c2002d8b7c14681ac402b1c6d4366130520d8cd2918d69ab2771b6c16e1": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:ad914a241727b95847f77d7e8cb0ca57ad93f84f8db593d0da4c42aa4eebb889": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:ec33376629a3f442ffc5beb8b0bd7cf24f741a8ab64be0003946839d0df2c704": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:80c9131423a298e4940fbc9c8e02529d809e5f63d2780f9936197cfdf47d1a47": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:9540a472e45651fd0708c1d803ee7dedfbe7d88d91beb0c93dafc6107d64c010": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:6f90a3347ed0ea11df8cf73e5cd739b9faf2ade657e2a1a38f0b75c93f36a19f": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:unbounded-loop:b217278dc299659ace5a0e7a8451a6742fba4adcf5a828b44e55dd0f47b8868e": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:frame-allocation:8acefd62a0d1ce2fdff89d5352f95d94e224b52cf9d79796d8eaf714eeb72d81": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/instanceCuller.ts:frame-allocation:92e6f8713dae035dc0056c40974cdfa1469c34dbdd3c66b779157fcaea086c74": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/meshLod.ts:unbounded-loop:9c7afe2e79a7c87782224de5fb25d74d3af2dfd291e8733ed44ef222fecf86a6": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/meshLod.ts:unbounded-loop:494f82e9bdeda578b515cccc6ac88ef38d1bec4d87a0b6e905647f6422e03921": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/meshLod.ts:unbounded-loop:41fece399743d7f87b040a369aca5f4956f609404f516d339ff6854c444c844b": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/meshLod.ts:unbounded-loop:2bf1afa1c1741c8aa50caa0826e7199920aabcc42e0c580e180f43c032fbbeee": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/meshLod.ts:unbounded-loop:d376105877bc91b14e1d0f94263d1ef7adc071e32d09ed593d7093bad2517e48": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/meshLod.ts:unbounded-loop:1386c9cccbcf875f644a98cd078849445f9bdce89b0b38de12c9e2718e9bfd93": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/meshLod.ts:unbounded-loop:7b4c35d0d619675652666506564ab89c2c8d095986d75abcc3940b3b3cd20ff4": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
+    },
+    "src/shards/nine-dragon-stack/runtime/cull/meshLod.ts:unbounded-loop:63b04d4fb87c5fac52f433ed4e1f6b72a7991a7a7d05ac9fed3312077a66e2e7": {
+      "count": 1,
+      "row": "SF76 G303 verbatim move-back"
     }
   }
 }

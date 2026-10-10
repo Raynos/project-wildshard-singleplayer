@@ -38,7 +38,7 @@ import { installLight } from '../look/light/install';
 import { glowUniforms } from '../look/light/glow';
 import { gradeUniforms } from '../look/light/grade';
 import { dealCrowd } from './crowd';
-import { FigureCrowd } from '@wildshard/sdk/cull/figureCrowd';
+import { FigureCrowd } from '../runtime/cull/figureCrowd';
 import { CROWD_LEVELS } from '../data/lod';
 import { buildCanopy } from './canopy';
 import { placeSquareProps } from './squareProps';
@@ -69,15 +69,15 @@ import { loadSpecimens } from './specimens';
 import { buildEntryDecks } from './entries';
 import { CABLE, SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
 import { merge } from './hero/kitx';
-import { type InstanceCullerView, InstanceCuller } from '@wildshard/sdk/cull/instanceCuller';
-import { cullHandedBatches } from '@wildshard/sdk/cull/handedBatches';
+import { type InstanceCuller as InstanceCullerView, InstanceCuller } from '../runtime/cull/instanceCuller';
+import { cullHandedBatches } from '../runtime/cull/handedBatches';
 import { convertKits } from '@wildshard/sdk/kit/kitConvert';
 import { waitForFonts } from '@wildshard/sdk/looks/fontWait';
 import { mistSheetsGeometry, steamPuffsGeometry } from '@wildshard/sdk/looks/mistGeometry';
 import { type MoverPath, moveAlong } from '@wildshard/sdk/props/pathMovers';
 import { type RunningMover, placeMovers } from '@wildshard/sdk/props/moverCopies';
 import { FONT_LOAD, KIT_YIELD_MS, MOVERS, SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
-import { lodReady } from '@wildshard/sdk/cull/meshLod';
+import { lodReady } from '../runtime/cull/meshLod';
 import { addKitMeshes } from '@wildshard/sdk/kit/kitMeshes';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
@@ -114,7 +114,7 @@ export interface NineDragonWorld {
   update: (t: number, camera: PerspectiveCamera) => void;
   /**
    * per frame, with the camera as it is drawn (the render hook's `frame`, after the updaters and the late hooks): the
-   * world-wide instanced batches culled per instance (@wildshard/sdk/cull/instanceCuller) and the crowd's figures picked
+   * world-wide instanced batches culled per instance (../runtime/cull/instanceCuller) and the crowd's figures picked
    */
   cull: (camera: PerspectiveCamera) => void;
   /** the per-instance culling (its `stats` for the budget ruler) */

@@ -5,7 +5,7 @@
 //   const tris = namePlacedDraws(place(model, placements, opts), 'facade-balcony');
 import { InstancedMesh, type Object3D } from 'three';
 import type { Placed } from '@wildshard/engine/models/place';
-import { triCount } from '../cull/meshLod';
+import { triCount } from './meshLod';
 
 /** Name a placed model's object and its level-0 instanced mesh `name`; returns level 0's triangles per copy (0 with no instanced mesh). */
 export function namePlacedDraws(placed: Placed, name: string): number {

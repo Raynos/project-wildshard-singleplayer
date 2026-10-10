@@ -1,6 +1,6 @@
 // Dome B (E169): the crowd's colourways. The walker and the sitter are models (models/crowd.ts: the TRELLIS casts, their
 // colourways and levels); this file deals the figures out to the colourways (`dealCrowd`); the SDK's figure crowd
-// (@wildshard/sdk/cull/figureCrowd) culls them per figure with the levels in data/lod.ts.
+// (../runtime/cull/figureCrowd) culls them per figure with the levels in data/lod.ts.
 import type { BufferGeometry, Matrix4 } from 'three';
 
 /**

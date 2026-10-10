@@ -12,9 +12,9 @@ import type { BufferGeometry } from 'three';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
 import { BLUE_UMBRELLA, type SitterPick, type WalkerPick } from '../world/crowd';
 import { LOD_FAR, LOD_NEAR, LOD_TRIS, MID_FROM, MID_PX } from '../data/lod';
-import { tintAbove } from '@wildshard/sdk/cull/figureCrowd';
+import { tintAbove } from '../runtime/cull/figureCrowd';
 import { loadGlb } from '../world/hero/glb';
-import { PX_PER_M, clusterLod, simplifiedCopy } from '@wildshard/sdk/cull/meshLod';
+import { PX_PER_M, clusterLod, simplifiedCopy } from '../runtime/cull/meshLod';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/crowd.ts';

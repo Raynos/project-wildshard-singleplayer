@@ -11,7 +11,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '@wildshard/engine/models/model';
-import { PX_PER_M, simplifiedCopy } from '@wildshard/sdk/cull/meshLod';
+import { PX_PER_M, simplifiedCopy } from '../runtime/cull/meshLod';
 import { SCULPT_PX } from '../data/lod';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
