@@ -138,8 +138,9 @@ other … for the MMO players."* Ten ideas ranked by wow, a council, the top thr
 
 | Row | What | Done when | Owner |
 |---|---|---|---|
-| P15-0 | Ten ideas (`p15/ideas.md`); council round 1 ranks them by wow and picks three | `p15/council/selection.md` | trailer agent |
-| P15-1 | The three made: character sheets and keyframes (OpenAI Image 2.5), shots (LTX-2.5 image-to-video), score and hits, cut | Jake has the three | trailer agent |
+| P15-0 | ✅ Ten ideas (`p15/ideas.md`); council round 1 ranks them by wow and picks the Crossing, the Party, Leap of Faith (with the dragon) | `p15/council/selection.md` | trailer agent |
+| P15-1 | ✅ The three made and sent to Jake (2026-10-10): character sheets and 11 keyframes (`art/trailers/round-5-p15/`), LTX shots (3 re-rolls), MiniMax cues 601, Stable Audio 3 hits, cut on the score's onsets (`scripts/steam-trailer/p15/assemble.py`) | Jake has the three | trailer agent |
+| P15-2 | Jake's verdict on the three; the next round on the winner | Jake's pick | trailer agent |
 
 ## 4. Not in this plan
 
