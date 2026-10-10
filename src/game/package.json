@@ -314,6 +314,8 @@
     "./systems/props/moverCopies": "./systems/props/moverCopies.ts",
     "./systems/kit/kitMeshes": "./systems/kit/kitMeshes.ts",
     "./systems/props/bakedColliders": "./systems/props/bakedColliders.ts",
+    "./systems/looks/reflectionCards": "./systems/looks/reflectionCards.ts",
+    "./systems/signs/signModel": "./systems/signs/signModel.ts",
     "./icons": "./icons.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts",
     "./quest/npcRow": "./quest/npcRow.ts",

@@ -3,15 +3,16 @@
 // c / (c + h) of the way from the eye — stretched along the view ray by the gloss, broken on the same flagstone joints
 // as the ground (STONES_GLSL, shared with the Jiehua ground), with a jagged two-octave ripple edge, striation, dashes and
 // grain. It replaces the quarter-res mirror pass. The reflecting plane is the square's floor at `uGroundY` (the square and
-// its street), or (round 14, dome C1's stair-street) a stair flight's slope: `stairStreaks` lays a card set on each flight's
-// plane half a rise under its nosing line, so the depth test shows each card on the back half of every tread only — the
-// per-step broken reflection — and a flat set on each landing.
-// SHARD-PLATFORM M3: the card program's GLSL and row, the look, the cut and the stair's gains are data (data/streaks.ts).
-import { Mesh, Vector3, Vector4 } from 'three';
-import { emitterCardsGeometry } from '@wildshard/sdk/looks/emitterCards';
+// its street), or (round 14, dome C1's stair-street) a stair flight's slope: a card set on each flight's plane half a rise
+// under its nosing line, so the depth test shows each card on the back half of every tread only — the per-step broken
+// reflection — and a flat set on each landing.
+// SHARD-PLATFORM M3: the card sets are the SDK's reflection cards (@wildshard/sdk/looks/reflectionCards); the card
+// program's GLSL and row, the look, the cut and the stair's row are data (data/streaks.ts).
+import { type Mesh, Vector4 } from 'three';
+import { type ReflectCardProgram, type StairCardPlan, reflectionCards, stairReflectionCards } from '@wildshard/sdk/looks/reflectionCards';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import type { Emitter } from '@wildshard/sdk/looks/vertexSpill';
-import { STAIR_DASH, STAIR_GAIN, STAIR_WIDTH, STREAK_CUT, STREAK_LOOK, STREAK_PROGRAMS } from '../data/streaks';
+import { STAIR_CARDS, STREAK_CUT, STREAK_LOOK, STREAK_PROGRAMS } from '../data/streaks';
 import { LOOK_FRAGMENTS, type Shared } from './style';
 
 const STREAK_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, STREAK_PROGRAMS);
@@ -20,60 +21,14 @@ const STREAK_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, STREAK_PROGRAMS);
  *  brightness floor (0 = off), w −1 = no whole-card reject (the A / B harness) */
 export const STREAK_PERF = new Vector4(STREAK_CUT.tails, STREAK_CUT.floor, 0, 0);
 
-/** a reflecting plane: a point on it, its axis along x (tilted with a slope), its normal, and its extent (x0, z0, x1, z1) */
-export interface StreakPlane { o: Vector3; u: Vector3; n: Vector3; clip: Vector4 }
+const program = (shared: Shared): ReflectCardProgram<'card'> => ({ family: STREAK_FAMILY, program: 'card', shared: shared.u, look: STREAK_LOOK, perf: STREAK_PERF });
 
-const NO_CLIP = new Vector4(-1e5, -1e5, 1e5, 1e5);
-
-export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole: Vector4, plane?: StreakPlane, gain = 1, lift = 0, width: number = STREAK_LOOK.cardWidth, dash: number = STREAK_LOOK.cardDash): Mesh {
-  const L = STREAK_LOOK;
-  const P = plane ?? { o: new Vector3(0, shared.u.uGroundY.value, 0), u: new Vector3(1, 0, 0), n: new Vector3(0, 1, 0), clip: NO_CLIP };
-  const mat = STREAK_FAMILY.material('card', shared.u, {
-    uniforms: {
-      uPlaneO: { value: P.o.clone() }, uPlaneU: { value: P.u.clone().normalize() }, uPlaneN: { value: P.n.clone().normalize() }, uClip: { value: P.clip.clone() },
-      uSpread: { value: new Vector4(L.tailNear, L.tailFar, width, 0.6) },
-      uCardK: { value: new Vector4(L.cardGain * gain, dash, L.cardJog, 1) },
-      uLift: { value: lift },
-      uPerf: { value: STREAK_PERF },
-      uHole: { value: hole },
-    },
-  });
-  const g = emitterCardsGeometry(emitters);
-  const m = new Mesh(g, mat);
-  m.frustumCulled = false;
-  m.renderOrder = 4;
-  return m;
+/** the square's card set: on its floor at `uGroundY`, none in the Well's open shaft (`hole`) */
+export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole: Vector4): Mesh {
+  return reflectionCards(program(shared), emitters, { groundY: shared.u.uGroundY.value, hole });
 }
 
-/** the stair-street's flights and landings, as world/stairPlan.ts exports them */
-export interface StairPlan {
-  flights: readonly { x0: number; x1: number; y0: number }[];
-  landings: readonly { x0: number; x1: number; y: number }[];
-  rise: number;
-  run: number;
-  z0: number;
-  z1: number;
-}
-
-/**
- * (render, round 14, dome C1) the wet stair-street's streaks: per flight, a card set on the plane half a rise under the
- * nosing line (y = y0 + rise / 2 + (x − x0) · rise / run) — the treads' backs show through the depth test, the fronts
- * hide under their nosings — and a flat set on each landing. One draw per flight / landing.
- */
-export function stairStreaks(shared: Shared, emitters: readonly Emitter[], plan: StairPlan): Mesh[] {
-  const slope = plan.rise / plan.run;
-  const out: Mesh[] = [];
-  const none = new Vector4(0, 0, 0, 0);
-  for (const f of plan.flights) {
-    out.push(buildStreaks(shared, emitters, none, {
-      o: new Vector3(f.x0, f.y0 + plan.rise * 0.5, 0), u: new Vector3(1, slope, 0), n: new Vector3(-slope, 1, 0),
-      clip: new Vector4(f.x0, plan.z0, f.x1, plan.z1),
-    }, STAIR_GAIN, plan.rise * 0.42, STAIR_WIDTH, STAIR_DASH));
-  }
-  for (const l of plan.landings) {
-    out.push(buildStreaks(shared, emitters, none, {
-      o: new Vector3(l.x0, l.y, 0), u: new Vector3(1, 0, 0), n: new Vector3(0, 1, 0), clip: new Vector4(l.x0, plan.z0, l.x1, plan.z1),
-    }, STAIR_GAIN, 0, STAIR_WIDTH, STAIR_DASH));
-  }
-  return out;
+/** (render, round 14, dome C1) the wet stair-street's card sets: one per flight and per landing (data/streaks.ts STAIR_CARDS) */
+export function stairStreaks(shared: Shared, emitters: readonly Emitter[], plan: StairCardPlan): Mesh[] {
+  return stairReflectionCards(program(shared), emitters, plan, STAIR_CARDS);
 }

@@ -3,6 +3,7 @@
 // (@wildshard/sdk/looks/shaderFamily). The flag layout's GLSL is data/paint.ts'; `@{name}` splices what look/style.ts
 // passes the family (the datum, the flagstones' course height).
 import type { ShaderProgramRow } from '@wildshard/sdk/looks/shaderFamily';
+import type { ReflectCardRow, StairCardRow } from '@wildshard/sdk/looks/reflectionCards';
 import { FOG_GLSL, NOISE_GLSL, STONES_GLSL } from './look';
 import { NOISE_VS } from './light';
 import { FLAG_GLSL } from './paint';
@@ -206,7 +207,8 @@ void main() {
 
 // (render, E281) width 0.4 → 0.3 and dash 0.45 → 0.6: the square's runs smeared into one sheet of colour; the targets'
 // are separate broken stripes with the stone between them
-export const STREAK_LOOK = { cardGain: 1.15, cardDash: 0.6, cardJog: 0.45, tailNear: 0.9, tailFar: 0.95, cardWidth: 0.3, fine: 0.4, warm: 1.5 } as const;
+// (the SDK reflection cards' row: the min distance 0.6 m, the saturation kept whole, drawn at order 4)
+export const STREAK_LOOK = { cardGain: 1.15, cardDash: 0.6, cardJog: 0.45, tailNear: 0.9, tailFar: 0.95, cardWidth: 0.3, fine: 0.4, warm: 1.5, minDistance: 0.6, saturationKeep: 1, renderOrder: 4 } as const satisfies ReflectCardRow & { readonly fine: number; readonly warm: number };
 
 /** (E283, Jake's pick after the before / after stills in art/nine-dragon-stack/round-24-mockup-pass/render/e283-streaks/)
  *  the tail-by-brightness reference and the brightness floor: the square's cards at mockup A 1.6–2.0 → 0.11 ms on the
@@ -215,11 +217,11 @@ export const STREAK_CUT = { tails: 2.5, floor: 0.3 } as const;
 
 /** (dome C1: the tread runs read faint against the targets' continuous lines) the stair's cards are brighter: each
  *  shows on half a tread only */
-// (render, E281) 2 → 1.3: mockup C's treads carry thin runs, not a curtain (the phone's cards also run at full strength now)
-export const STAIR_GAIN = 1.3;
-/** (render, E281: the stair lane's eye-check — full-saturation bands the whole flight wide drowned the treads) the stair's
- *  runs are thin and broken: mockup C's three or four narrow stripes up the flight, every tread edge readable */
-export const STAIR_WIDTH = 0.12, STAIR_DASH = 0.8;
+// (render, E281) gain 2 → 1.3: mockup C's treads carry thin runs, not a curtain (the phone's cards also run at full strength now).
+// (render, E281: the stair lane's eye-check — full-saturation bands the whole flight wide drowned the treads) the stair's
+// runs are thin and broken (width 0.12, dash 0.8): mockup C's three or four narrow stripes up the flight, every tread edge
+// readable. A flight's cards rise 0.42 of a step's rise toward the nosing line as the view steepens.
+export const STAIR_CARDS = { gain: 1.3, width: 0.12, dash: 0.8, lift: 0.42 } as const satisfies StairCardRow;
 
 /** the card program: additive, the target's alpha kept; every card set's plane, gains and hole are its own uniforms */
 export const STREAK_PROGRAMS = {

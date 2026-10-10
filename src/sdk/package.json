@@ -186,6 +186,8 @@
     "./props/moverCopies": "./props/moverCopies.ts",
     "./kit/kitMeshes": "./kit/kitMeshes.ts",
     "./props/bakedColliders": "./props/bakedColliders.ts",
+    "./looks/reflectionCards": "./looks/reflectionCards.ts",
+    "./looks/signModel": "./looks/signModel.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/classKit": "./kit/classKit.ts",
     "./kit/ruledKit": "./kit/ruledKit.ts",

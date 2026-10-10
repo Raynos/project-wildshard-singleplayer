@@ -4,6 +4,7 @@
 // Song regular script.
 import type { NeonTextLook } from '@wildshard/sdk/looks/neonText';
 import type { SignAtlasLayout, SignSegment, SignStep, SignStyleRow } from '@wildshard/sdk/looks/signs';
+import type { SignModelParams, SignModelRow, SignVariantRow } from '@wildshard/sdk/looks/signModel';
 
 export const KAI = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", serif';
 export const SONG = '"Noto Serif TC", "Songti TC", "STSong", "PMingLiU", serif';
@@ -90,3 +91,24 @@ export const NEON_LOOK: NeonTextLook = {
   mono: 0, tubeRadius: 0.05, rim: 0.024, thicken: 0.022, seam: 0.0, seamWidth: 0.008, haloReach: 0.12, haloGain: 0.22,
   frameInset: 0.075, frameRadius: 0.016, frameCorner: 0.04, boardLift: 0.035, board: 0x34333a, gain: 4.2,
 };
+
+/** the sign model (models/signs.ts, @wildshard/sdk/looks/signModel): the calligraphy styles and their gain scale (a tube's
+ *  default 4.4 draws the SDF tubes at 4.2), the etch runs sideways, the boards' depths (neon 9 cm, a blade 12 cm, else
+ *  10 cm, standing 3 cm off the face), the variant each style is shown as, the two drawn pieces */
+export const SIGN_MODEL = {
+  key: 'nds:sign', calligraphyStyles: ['tube'], calligraphyGain: 4.4, tubeGain: 4.2, sideways: ['etch'],
+  neonDepth: 0.09, bladeDepth: 0.12, depth: 0.1, standoff: 0.03,
+  variantOf: { tube: 'neon', box: 'lightbox' }, pieces: { atlas: 'nds-signs', neon: 'nds-signs-neon' },
+} as const satisfies SignModelRow;
+
+/** the sign model's defaults: a red neon calligraphy sign */
+export const SIGN_DEFAULTS = { style: 'tube', text: '重慶小麵', color: '#ff3b30', vertical: false, size: 0.5, blade: false, gain: 5 } as const satisfies SignModelParams<SignStyle>;
+
+/** a variant per style, each with words the fragment hangs (their atlas cells are drawn) */
+export const SIGN_VARIANTS = [
+  { id: 'neon', label: 'Neon calligraphy (重慶小麵)', params: { style: 'tube', text: '重慶小麵', color: '#ff3b30', vertical: false, size: 0.5, gain: 5 } },
+  { id: 'lightbox', label: 'Lightbox (九記牛腩麵)', params: { style: 'box', text: '九記牛腩麵', color: '#fff1dc', vertical: false, size: 0.34, board: 0xa8261a, gain: 2.0 } },
+  { id: 'plaque', label: 'Plaque (福德祠)', params: { style: 'plaque', text: '福德祠', color: '#f0c86a', vertical: false, size: 0.13, gain: 1.3 } },
+  { id: 'paper', label: 'Paper strip (牛腩麵)', params: { style: 'paper', text: '牛腩麵', color: '#f3e7cf', ink: '#b8261a', vertical: true, size: 0.13, gain: 1.15 } },
+  { id: 'banner', label: 'Banner (麵)', params: { style: 'banner', text: '麵', color: '#b8261a', ink: '#efe8d8', vertical: true, size: 0.72, blade: true, gain: 1.35 } },
+] as const satisfies readonly SignVariantRow<SignStyle>[];
