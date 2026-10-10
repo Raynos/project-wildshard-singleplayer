@@ -30,8 +30,11 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   - **A recorded digest never passes through V8's native transcendentals** (`Math.sin / cos / tan / exp / log / atan2 /
     asin / pow`, or `**` with a non-integer exponent): they round differently on arm64 and x64. Install
     `test/fake/portableMath.ts` for the file (`installPortableMath()`), keep its terrain analytic, and check the digest
-    under x64 Node too (Rosetta: nodejs.org's darwin-x64 build, `NAPI_RS_NATIVE_LIBRARY_PATH` pointing at
-    `@rolldown/binding-darwin-x64`). Comparing two runs inside one process needs none of this.
+    under x64 Node too (Rosetta: `scripts/x64-vitest.sh --setup` once per Mac fetches nodejs.org's darwin-x64 build and
+    the matching `@rolldown/binding-darwin-x64` into `~/.local/node-x64`; `scripts/x64-vitest.sh <files>` runs them).
+    The push gate's `x64-digests` step runs the `*-oracle` / `*-tape` / `sim-memory-interval` tests that way on every
+    gate (~45 s beside vitest; SF74 W28), and skips green on a Mac without the setup. Comparing two runs inside one
+    process needs none of this.
   - **Headless suites' budget:** a test's local time under `--coverage` stays under a third of its timeout (the nightly coverage run uses the same timeouts). A restore
     checkpoint costs 10–20 s under coverage (the string round trip of the native world), so: one checkpoint per test
     (`it.each`), one string round trip per checkpoint, continuations compared with `expectSameSimSnapshot`

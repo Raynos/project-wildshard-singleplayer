@@ -170,6 +170,9 @@ if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ]; then
     for baker in $(node scripts/bake-check.mjs --list-node); do cached "bake-$baker" node scripts/bake-check.mjs --node-only --only="$baker"; done
   else cached bake-check node scripts/bake-check.mjs --node-only; fi
   job vitest vitest_step
+  # SF74 W28 (speed audit #9a): the digest tests again under x64 Node (Rosetta), so a Linux-x64-only float red fails
+  # here, not in push CI (~45 s beside vitest; skips, green, on a Mac without scripts/x64-vitest.sh --setup).
+  [ -f scripts/x64-vitest.sh ] && job x64-digests bash scripts/x64-vitest.sh --digests
   job script-conformance env BROWSER_LANE_PRIORITY=1 bash scripts/browser-lane.sh --max 5 node scripts/script-conformance.mjs
   # vite build writes nothing in the tree after gen (checked 2026-10-07), so it runs beside the readers
   chain shardfiles node scripts/build-shardfiles.mjs \
