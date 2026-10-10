@@ -4,21 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#050a12">
-<title>{{Page · title}}</title>
+<title>{{Page · browser title}}</title>
 <meta name="description" content="{{@Page · description}}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="canonical" href="https://wildshard.io/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{@Page · title}}">
-<meta property="og:title" content="{{@Page · title}}">
+<meta property="og:title" content="{{@Page · browser title}}">
 <meta property="og:description" content="{{@Page · description}}">
 <meta property="og:url" content="https://wildshard.io/">
 <meta property="og:image" content="https://wildshard.io/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{@Page · image description}}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{@Page · title}}">
+<meta name="twitter:title" content="{{@Page · browser title}}">
 <meta name="twitter:description" content="{{@Page · description}}">
 <meta name="twitter:image" content="https://wildshard.io/og.jpg">
 <link rel="preload" href="/fonts/rajdhani-700.woff2" as="font" type="font/woff2" crossorigin>
@@ -54,6 +55,7 @@
       <a class="door play bk" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Hero · play button}}<small>{{Hero · play button note}}</small></a>
       <a class="door author" href="#author">{{Hero · author button}}<small>{{Hero · author button note}}</small></a>
     </nav>
+    <p class="status">{{Hero · status}}</p>
   </div>
 </header>
 
@@ -301,13 +303,40 @@
       <form class="bk" id="waitlist" action="https://wildshard-singleplayer.vercel.app/api/waitlist" method="post">
         <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Author · form path}}</span></div>
         <label class="field" id="f-email"><span class="lab">{{Author · email label}}</span><input type="email" name="email" placeholder="{{@Author · email placeholder}}" autocomplete="email" inputmode="email" required aria-describedby="err-email"><span class="err" id="err-email" role="alert"></span></label>
-      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
-        <label class="field" id="f-build"><span class="lab">{{Author · build label}}</span><span class="prompt-field"><textarea name="build" rows="3" placeholder="{{@Author · build placeholder}}" required aria-describedby="err-build"></textarea></span><span class="err" id="err-build" role="alert"></span></label>
+        <input class="trap" type="text" name="trap" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <label class="field" id="f-build"><span class="lab">{{Author · build label}}</span><span class="prompt-field"><textarea name="build" rows="3" maxlength="500" placeholder="{{@Author · build placeholder}}" required aria-describedby="err-build"></textarea></span><span class="err" id="err-build" role="alert"></span></label>
         <div class="field"><span class="lab">{{Author · claim label}}</span>
-          <div class="claim-grid" role="radiogroup" aria-label="{{@Author · claim map description}}"><label class="cell"><input type="radio" name="cell" value="A1"><i>A1</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="B1"><i>B1</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="C1"><i>C1</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="D1"><i>D1</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="E1"><i>E1</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="A2"><i>A2</i><b>{{Map · your wish}}</b></label><span class="cell taken"><i>B2</i><b>{{Map · Driftwood}}</b></span><span class="cell taken"><i>C2</i><b>{{Map · Pine}}</b></span><span class="cell taken"><i>D2</i><b>{{Map · Nalati}}</b></span><label class="cell"><input type="radio" name="cell" value="E2"><i>E2</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="A3"><i>A3</i><b>{{Map · your wish}}</b></label><span class="cell taken"><i>B3</i><b>{{Map · Dunes}}</b></span><span class="cell centre"><i>C3</i><b>{{Map · centre}}</b></span><span class="cell taken"><i>D3</i><b>{{Map · Sky Reach}}</b></span><label class="cell"><input type="radio" name="cell" value="E3"><i>E3</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="A4"><i>A4</i><b>{{Map · your wish}}</b></label><span class="cell taken"><i>B4</i><b>{{Map · Template}}</b></span><span class="cell taken"><i>C4</i><b>{{Map · Nine Dragon}}</b></span><label class="cell"><input type="radio" name="cell" value="D4"><i>D4</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="E4"><i>E4</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="A5"><i>A5</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="B5"><i>B5</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="C5"><i>C5</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="D5"><i>D5</i><b>{{Map · your wish}}</b></label><label class="cell"><input type="radio" name="cell" value="E5"><i>E5</i><b>{{Map · your wish}}</b></label></div></div>
-        <button class="send" type="submit"><span id="send-label">{{Author · send button}}</span> <small>{{Author · send button note}}</small></button>
-      <p class="field lab" style="margin:0;font-family:var(--mono);font-size:10.5px;color:var(--mute)">{{Author · privacy note}}</p>
-        <p class="thanks" id="thanks">{{Author · thanks}}</p>
+          <div class="claim-grid" role="radiogroup" aria-label="{{@Author · claim map description}}">
+            <label class="cell"><input type="radio" name="cell" value="A1"><i>A1</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="B1"><i>B1</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="C1"><i>C1</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="D1"><i>D1</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="E1"><i>E1</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="A2"><i>A2</i><b>{{Map · your wish}}</b></label>
+            <span class="cell taken"><i>B2</i><b>{{Map · Driftwood}}</b></span>
+            <span class="cell taken"><i>C2</i><b>{{Map · Pine}}</b></span>
+            <span class="cell taken"><i>D2</i><b>{{Map · Nalati}}</b></span>
+            <label class="cell"><input type="radio" name="cell" value="E2"><i>E2</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="A3"><i>A3</i><b>{{Map · your wish}}</b></label>
+            <span class="cell taken"><i>B3</i><b>{{Map · Dunes}}</b></span>
+            <span class="cell centre"><i>C3</i><b>{{Map · centre}}</b></span>
+            <span class="cell taken"><i>D3</i><b>{{Map · Sky Reach}}</b></span>
+            <label class="cell"><input type="radio" name="cell" value="E3"><i>E3</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="A4"><i>A4</i><b>{{Map · your wish}}</b></label>
+            <span class="cell taken"><i>B4</i><b>{{Map · Template}}</b></span>
+            <span class="cell taken"><i>C4</i><b>{{Map · Nine Dragon}}</b></span>
+            <label class="cell"><input type="radio" name="cell" value="D4"><i>D4</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="E4"><i>E4</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="A5"><i>A5</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="B5"><i>B5</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="C5"><i>C5</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="D5"><i>D5</i><b>{{Map · your wish}}</b></label>
+            <label class="cell"><input type="radio" name="cell" value="E5"><i>E5</i><b>{{Map · your wish}}</b></label>
+          </div>
+        </div>
+        <button class="send" type="submit"><span id="send-label" aria-live="polite">{{Author · send button}}</span> <small>{{Author · send button note}}</small></button>
+        <p class="privacy">{{Author · privacy note}}</p>
+        <p class="thanks" id="thanks" role="status">{{Author · thanks}}</p>
       </form>
       <div class="ends">
         <span class="bk soon" aria-disabled="true">{{Author · discord button}}</span>
@@ -317,7 +346,7 @@
     </div>
   </div>
 </section>
-<footer><span style="display:inline-flex;align-items:center;gap:8px"><img src="/favicon.svg" width="18" height="18" alt="" loading="lazy" decoding="async">{{Footer · name}}</span><a href="/press/">{{Footer · press link}}</a><span>&gt; <span class="cursor" aria-hidden="true"></span></span></footer>
+<footer><span class="brand"><img src="/favicon.svg" width="18" height="18" alt="" loading="lazy" decoding="async">{{Footer · name}}</span><a href="/press/">{{Footer · press link}}</a><span>&gt; <span class="cursor" aria-hidden="true"></span></span></footer>
 
 <script>
 (function () {
@@ -327,6 +356,7 @@
   var wide = window.matchMedia("(min-width: 1024px)").matches;
   var hover = window.matchMedia("(hover: hover) and (min-width: 1024px)").matches; // a mouse: loops on hover; touch (iPad too): in view
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (still) { var trailer = document.getElementById("trailer"); trailer.removeAttribute("autoplay"); trailer.pause(); } // it waits for a tap
   function start(v, src) { if (!v.src) v.src = src; var p = v.play(); if (p && p.catch) p.catch(function () {}); }
   document.querySelectorAll("[data-loop]").forEach(function (shot) {
     var m = media.loops && media.loops[shot.getAttribute("data-loop")];
@@ -350,6 +380,7 @@
 
   // the waitlist posts to the game's API (api/waitlist.ts)
   var form = document.getElementById("waitlist"), label = document.getElementById("send-label"), send = form.querySelector(".send");
+  var thanks = document.getElementById("thanks"), thanksText = thanks.textContent; thanks.textContent = ""; // filled when it's true, so it's announced
   form.noValidate = true; // the script shows its own messages; without it, the browser's own checks and a plain post
   // say in red what's missing, under the field, and clear it as soon as the field is touched
   function fieldError(name, message) {
@@ -366,10 +397,13 @@
     fieldError("email", emailError); fieldError("build", buildError);
     if (emailError || buildError) { (emailError ? form.email : form.build).focus(); return; }
     var cell = form.querySelector("input[name=cell]:checked");
-    var data = { email: email, build: build, cell: cell ? cell.value : "", website: form.website.value };
+    var data = { email: email, build: build, cell: cell ? cell.value : "", trap: form.trap.value };
     label.textContent = {{$Author · sending}}; send.disabled = true;
     fetch("https://wildshard-singleplayer.vercel.app/api/waitlist", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) })
-      .then(function (res) { label.textContent = res.ok ? {{$Author · sent}} : (res.status === 400 ? {{$Author · bad email}} : {{$Author · failed}}); send.disabled = res.ok; })
+      .then(function (res) {
+        label.textContent = res.ok ? {{$Author · sent}} : (res.status === 400 ? {{$Author · bad email}} : {{$Author · failed}}); send.disabled = res.ok;
+        if (res.ok) { thanks.textContent = thanksText; thanks.classList.add("on"); }
+      })
       .catch(function () { label.textContent = {{$Author · failed}}; send.disabled = false; });
   });
   // the hero types its prompt (the full text is in the markup; CSS opens the world and shows the build lines)

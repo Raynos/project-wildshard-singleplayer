@@ -1,7 +1,7 @@
-// api/waitlist.ts — the marketing site's waitlist: email and cell parsing, the honeypot, CORS for the site only, the
-// password-gated list; Vercel Blob is installed, not mocked (E422).
+// api/waitlist.ts — the marketing site's waitlist: email and cell parsing, the honeypot, the site's origins only, one
+// file per email, the password-gated list; Vercel Blob is installed, not mocked (E422).
 import { GET, OPTIONS, POST, parseCell, parseEmail } from '../api/waitlist';
-import { resetRateLimit } from '../api/inbox';
+import { rateLimited, resetRateLimit } from '../api/inbox';
 import { useBlobStore } from '../api/_blobStore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -35,9 +35,10 @@ describe('parsing', () => {
     expect(parseEmail('a@b')).toBeNull();
     expect(parseEmail(42)).toBeNull();
   });
-  it('parseCell takes A1–E5 but never the fixed centre', () => {
+  it("parseCell takes an empty cell of A1–E5, never a shard's or the centre", () => {
     expect(parseCell('d4')).toBe('D4');
     expect(parseCell('C3')).toBeNull();
+    expect(parseCell('B2')).toBeNull();
     expect(parseCell('F1')).toBeNull();
     expect(parseCell(undefined)).toBeNull();
   });
@@ -57,17 +58,35 @@ describe('POST', () => {
     expect(put).not.toHaveBeenCalled();
   });
   it('the honeypot answers ok and stores nothing', async () => {
-    expect((await POST(post({ email: 'a@b.co', website: 'spam.example' }))).status).toBe(200);
+    expect((await POST(post({ email: 'a@b.co', trap: 'spam.example' }))).status).toBe(200);
     expect(put).not.toHaveBeenCalled();
   });
-  it('another origin gets no CORS header', async () => {
+  it('another origin is refused and stores nothing (CORS alone would only hide the answer)', async () => {
     const res = await POST(post({ email: 'a@b.co' }, 'https://evil.example'));
+    expect(res.status).toBe(403);
     expect(res.headers.get('access-control-allow-origin')).toBeNull();
+    expect(put).not.toHaveBeenCalled();
     expect(OPTIONS(new Request('https://x.test/api/waitlist', { method: 'OPTIONS', headers: { origin: SITE } })).headers.get('access-control-allow-origin')).toBe(SITE);
+  });
+  it('an idea over 500 characters is a 400, not cut short', async () => {
+    expect((await POST(post({ email: 'a@b.co', build: 'x'.repeat(501) }))).status).toBe(400);
+    expect(put).not.toHaveBeenCalled();
+  });
+  it('one file per email: signing up again replaces the earlier wish', async () => {
+    await POST(post({ email: 'a@b.co', cell: 'A1' }));
+    await POST(post({ email: 'A@b.co ', cell: 'E5' }));
+    expect([...stored.values()].map((v): unknown => JSON.parse(v))).toMatchObject([{ email: 'a@b.co', cell: 'E5' }]);
+    expect([...stored.keys()][0]).not.toContain('a@b.co');
   });
   it('rate-limits at 10 a minute per IP', async () => {
     for (let i = 0; i < 10; i++) expect((await POST(post({ email: `u${i}@b.co` }))).status).toBe(200);
     expect((await POST(post({ email: 'late@b.co' }))).status).toBe(429);
+  });
+  it('a full rate table forgets idle IPs, never a limited one', () => {
+    const now = 1_000_000;
+    for (let i = 0; i < 11; i++) rateLimited('9.9.9.9', now, 10);
+    for (let i = 0; i < 600; i++) rateLimited(`10.0.${i >> 8}.${i & 255}`, now - 120_000, 10);
+    expect(rateLimited('9.9.9.9', now + 1, 10)).toBe(true);
   });
 });
 
@@ -79,6 +98,11 @@ describe('a plain form post (the site without its script)', () => {
     expect(res.status).toBe(303);
     expect(res.headers.get('location')).toBe('https://wildshard.io/#thanks');
     expect([...stored.values()].map((v): unknown => JSON.parse(v))).toMatchObject([{ email: 'a@b.co', build: 'a fjord', cell: 'D4' }]);
+  });
+  it("a post from another site's form is refused", async () => {
+    const res = await POST(new Request('https://x.test/api/waitlist', { method: 'POST', body: 'email=a%40b.co', headers: { 'content-type': 'application/x-www-form-urlencoded', origin: 'https://evil.example', 'x-forwarded-for': '9.9.9.8' } }));
+    expect(res.status).toBe(403);
+    expect(put).not.toHaveBeenCalled();
   });
   it('a bad email goes back to #author and stores nothing; an unknown referer goes to the main site', async () => {
     const res = await POST(form({ email: 'nope' }, 'https://evil.example/'));

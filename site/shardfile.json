@@ -1,0 +1,24 @@
+{
+  "version": "0.1",
+  "identity": {
+    "author": "Wildshard",
+    "name": "Template shard",
+    "revision": 1,
+    "seed": 357,
+    "slug": "template"
+  },
+  "requires": {
+    "sdk": "0.1"
+  },
+  "authorCaps": {
+    "players": 32,
+    "speed": 15
+  },
+  "serverBudget": {
+    "commandsPerTick": 32,
+    "entities": 100,
+    "memory": 16000000,
+    "tickMicros": 5000
+  },
+  "runtime": null
+}

@@ -11,14 +11,15 @@
 <link rel="canonical" href="https://wildshard.io/press/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{@Page · title}}">
-<meta property="og:title" content="{{@Page · title}}">
+<meta property="og:title" content="{{@Press page · title}}">
 <meta property="og:description" content="{{@Page · description}}">
 <meta property="og:url" content="https://wildshard.io/press/">
 <meta property="og:image" content="https://wildshard.io/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{@Page · image description}}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{@Page · title}}">
+<meta name="twitter:title" content="{{@Press page · title}}">
 <meta name="twitter:description" content="{{@Page · description}}">
 <meta name="twitter:image" content="https://wildshard.io/og.jpg">
 <link rel="preload" href="/fonts/rajdhani-700.woff2" as="font" type="font/woff2" crossorigin>
@@ -33,7 +34,7 @@
   <section id="press">
     <div class="side">
       <div class="q"><p class="ask">{{Press · question}}</p></div>
-      <h2>{{Press · title}}</h2>
+      <h1 class="title">{{Press · title}}</h1>
       <p class="lede">{{Press · intro}}</p>
     </div>
     <div class="body">
@@ -41,6 +42,17 @@
         <img class="press-logo" src="/press/logo.svg" alt="{{@Press · logo description}}" loading="lazy" decoding="async">
         <p class="blurb">{{Press · one-line blurb}}</p>
         <p class="blurb">{{Press · paragraph blurb}}</p>
+        <div class="shots">
+          <a href="/press/shot-driftwood-isle.jpg" download><img src="/press/thumbs/shot-driftwood-isle.webp" width="640" height="360" alt="{{@Driftwood Isle · image description}}" loading="lazy" decoding="async"><span>{{Driftwood Isle · name}}</span></a>
+          <a href="/press/shot-pine-hollow.jpg" download><img src="/press/thumbs/shot-pine-hollow.webp" width="640" height="360" alt="{{@Pine Hollow · image description}}" loading="lazy" decoding="async"><span>{{Pine Hollow · name}}</span></a>
+          <a href="/press/shot-nalati-grasslands.jpg" download><img src="/press/thumbs/shot-nalati-grasslands.webp" width="640" height="360" alt="{{@Nalati Grasslands · image description}}" loading="lazy" decoding="async"><span>{{Nalati Grasslands · name}}</span></a>
+          <a href="/press/shot-signal-dunes.jpg" download><img src="/press/thumbs/shot-signal-dunes.webp" width="640" height="360" alt="{{@Signal Dunes · image description}}" loading="lazy" decoding="async"><span>{{Signal Dunes · name}}</span></a>
+          <a href="/press/shot-sky-reach.jpg" download><img src="/press/thumbs/shot-sky-reach.webp" width="640" height="360" alt="{{@Sky Reach · image description}}" loading="lazy" decoding="async"><span>{{Sky Reach · name}}</span></a>
+          <a href="/press/shot-nine-dragon-stack.jpg" download><img src="/press/thumbs/shot-nine-dragon-stack.webp" width="640" height="360" alt="{{@Nine Dragon Stack · image description}}" loading="lazy" decoding="async"><span>{{Nine Dragon Stack · name}}</span></a>
+        </div>
+        <p class="blurb">{{Press · colours and type}}</p>
+        <p class="lab kit-lab">{{Press · kit contents label}}</p>
+        <ul class="kit">{{list:Press · kit contents}}</ul>
         <div class="press-links">
           <a href="/press/wildshard-press-kit.zip" download>{{Press · download kit}}</a>
           <a href="/press/logo.svg" download>{{Press · download logo svg}}</a>
@@ -52,6 +64,6 @@
     </div>
   </section>
 </main>
-<footer><span style="display:inline-flex;align-items:center;gap:8px"><img src="/favicon.svg" width="18" height="18" alt="" loading="lazy" decoding="async">{{Footer · name}}</span><a href="/press/">{{Footer · press link}}</a><span>&gt; <span class="cursor" aria-hidden="true"></span></span></footer>
+<footer><span class="brand"><img src="/favicon.svg" width="18" height="18" alt="" loading="lazy" decoding="async">{{Footer · name}}</span><a href="/press/">{{Footer · press link}}</a><span>&gt; <span class="cursor" aria-hidden="true"></span></span></footer>
 </body>
 </html>

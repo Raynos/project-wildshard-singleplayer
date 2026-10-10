@@ -1,24 +1,25 @@
 // The marketing site's build (MARKETING-SITE MS4, E465): its own root, its own public/, its own output. Nothing from
 // the game's src/ or vite plugins: the sites share the repo, not a bundle (as drafts/, J15).
-//   pnpm build:site   → dist-site/      pages: index.html (the home page), press/index.html (the press kit)
+//   pnpm build:site   → dist-site/      pages: index.html (the home page), press/index.html (the press kit), 404.html
 // Every word on every page comes from site/COPY.md (site/tools/copy.ts fills the {{…}} slots; Jake edits that file):
 // a slot with no entry, or an entry no page uses, stops the build. Two blocks are filled from elsewhere:
-//   <!--gen:shardfile-->  the template's real shard.json, fetched from the live game (MS15)
+//   <!--gen:shardfile-->  site/shardfile.json: an excerpt of the template's real shard.json (MS15), checked in, so the
+//                         site builds when the game is down
 //   <!--gen:media-->      site/media.json: the trailer and shard loops on Blob (MS11, site/tools/publish-media.ts);
 //                         %TRAILER_WIDE% / %TRAILER_PHONE% put the trailer encodes straight into its <source> tags
-// It also emits /version.json, which site/tools/deploy.sh reads back. deploy.sh builds a clean export (no .git), so it
+// It also emits /version.json, which site/tools/deploy.sh reads back, and press/wildshard-press-kit.zip: the files in
+// public/press/ and a README whose words are the press page's (so the kit never drifts from the site; needs `zip`). deploy.sh builds a clean export (no .git), so it
 // passes SITE_BUILD_SHA; a local build asks this checkout.
 import { defineConfig, type Plugin } from 'vite';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fillCopy, parseCopy, unusedCopy } from './tools/copy.ts';
+import { fillCopy, parseCopy, plain, unusedCopy } from './tools/copy.ts';
 
 const root = import.meta.dirname;
-const GAME = 'https://wildshard-singleplayer.vercel.app';
 /** every page of the site, as a path under site/ */
-const PAGES = ['index.html', 'press/index.html'];
+const PAGES = ['index.html', 'press/index.html', '404.html'];
 
 const sha = process.env.SITE_BUILD_SHA
   ?? execFileSync('git', ['-C', root, 'rev-parse', '--short', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
@@ -44,15 +45,9 @@ function loadCopy(): Map<string, string> {
 }
 
 // ---- MS15 · the shardfile peek -------------------------------------------------------------------------------------
-async function shardfileHtml(): Promise<string> {
-  const res = await fetch(`${GAME}/shardfiles/_template/shard.json`);
-  if (!res.ok) throw new Error(`site shardfile: ${GAME}/shardfiles/_template/shard.json answered ${res.status}`);
-  const f = fields(await res.json());
-  if (f === null) throw new Error('site shardfile: not a JSON object');
-  const { version, identity, requires, authorCaps, serverBudget, runtime } = f;
-  const { sdk } = fields(requires) ?? {};
-  const pick = { version, identity, requires: { sdk }, authorCaps, serverBudget, runtime: runtime ?? null };
-  for (const [k, v] of Object.entries(pick)) if (v === undefined) throw new Error(`site shardfile: the template's shard.json has no ${k}`);
+function shardfileHtml(): string {
+  const pick = fields(JSON.parse(readFileSync(join(root, 'shardfile.json'), 'utf8')));
+  if (pick === null) throw new Error('site/shardfile.json: not a JSON object');
   const k = (s: string): string => `<span class="k">"${esc(s)}"</span>`;
   const val = (v: unknown): string => (typeof v === 'string' ? `<span class="s">"${esc(v)}"</span>` : esc(JSON.stringify(v)));
   // a phone is ~40 mono characters wide: nested objects of three or more fields go one per line
@@ -65,30 +60,51 @@ async function shardfileHtml(): Promise<string> {
   return `<span class="c">{</span>\n${lines.join(',\n')}\n<span class="c">}</span>`;
 }
 
+// ---- MS20 · the press kit ------------------------------------------------------------------------------------------
+const KIT = ['logo.svg', 'logo-mono.svg', 'logo.png', 'mark.svg', 'mark.png', 'shot-driftwood-isle.jpg', 'shot-pine-hollow.jpg',
+  'shot-nalati-grasslands.jpg', 'shot-signal-dunes.jpg', 'shot-sky-reach.jpg', 'shot-nine-dragon-stack.jpg'];
+function pressKit(outDir: string, copy: Map<string, string>): void {
+  const words = (k: string): string => plain(copy.get(k) ?? '');
+  const readme = ['PROJECT WILDSHARD - PRESS KIT', 'https://wildshard.io', '', words('Press · one-line blurb'), '',
+    words('Press · paragraph blurb'), '', words('Press · colours and type'), '', words('Press · kit contents label').toUpperCase(),
+    ...(copy.get('Press · kit contents') ?? '').split('\n').map(plain), '', 'project.wildshard@gmail.com', ''].join('\n');
+  const press = join(outDir, 'press');
+  const dir = join(press, 'wildshard-press-kit');
+  mkdirSync(dir, { recursive: true });
+  for (const f of KIT) copyFileSync(join(root, 'public', 'press', f), join(dir, f));
+  writeFileSync(join(dir, 'README.txt'), readme);
+  execFileSync('zip', ['-qrX', 'wildshard-press-kit.zip', 'wildshard-press-kit'], { cwd: press });
+  rmSync(dir, { recursive: true });
+}
+
 function generated(): Plugin {
   let copy: Map<string, string> | null = null;
+  const media = fields(JSON.parse(readFileSync(join(root, 'media.json'), 'utf8')));
   return {
     name: 'site-generated',
-    async transformIndexHtml(template) {
+    transformIndexHtml(template) {
       copy ??= loadCopy();
       const { html } = fillCopy(template, copy);
       let out = html;
       if (out.includes('<!--gen:media-->')) {
-        out = out.replace('<!--gen:media-->', JSON.stringify(JSON.parse(readFileSync(join(root, 'media.json'), 'utf8'))).replaceAll('</', String.raw`<\/`));
+        out = out.replace('<!--gen:media-->', JSON.stringify(media).replaceAll('</', String.raw`<\/`));
       }
       if (out.includes('%TRAILER_PHONE%')) {
         // the trailer is a plain <video>: both encodes go straight into its <source> tags
-        const { trailer } = fields(JSON.parse(readFileSync(join(root, 'media.json'), 'utf8'))) ?? {};
+        const { trailer } = media ?? {};
         const { mp4, mp4Phone } = fields(trailer) ?? {};
         if (typeof mp4 !== 'string' || typeof mp4Phone !== 'string') throw new Error('site/media.json has no trailer.mp4 / mp4Phone');
         out = out.replace('%TRAILER_PHONE%', esc(mp4Phone)).replace('%TRAILER_WIDE%', esc(mp4));
       }
-      if (out.includes('<!--gen:shardfile-->')) out = out.replace('<!--gen:shardfile-->', await shardfileHtml());
+      if (out.includes('<!--gen:shardfile-->')) out = out.replace('<!--gen:shardfile-->', shardfileHtml());
       if (out.includes('<!--gen:')) throw new Error('site: a <!--gen:…--> block was left unfilled');
       return out;
     },
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ build: BUILD, time: new Date().toISOString() }) });
+    },
+    writeBundle({ dir }) {
+      if (dir !== undefined) pressKit(dir, copy ?? loadCopy());
     },
   };
 }
@@ -102,7 +118,7 @@ export default defineConfig({
     emptyOutDir: true,
     target: 'es2022',
     sourcemap: false,
-    rolldownOptions: { input: Object.fromEntries(PAGES.map((p) => [p.replace(/\/?index\.html$/u, '') || 'main', join(root, p)])) },
+    rolldownOptions: { input: Object.fromEntries(PAGES.map((p) => [p.replace(/\/?index\.html$/u, '').replace(/\.html$/u, '') || 'main', join(root, p)])) },
   },
   plugins: [generated()],
 });

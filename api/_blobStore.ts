@@ -9,7 +9,7 @@ export interface BlobEntry { readonly pathname: string; readonly uploadedAt: Dat
 export interface BlobPage { readonly blobs: BlobEntry[]; readonly hasMore: boolean; readonly cursor?: string | undefined }
 /** what the functions use of a blob store: private JSON / JPEG files under a prefix */
 export interface BlobStore {
-  readonly put: (path: string, body: Parameters<typeof put>[1], opts: { access: 'private'; addRandomSuffix: boolean; contentType: string }) => Promise<unknown>;
+  readonly put: (path: string, body: Parameters<typeof put>[1], opts: { access: 'private'; addRandomSuffix: boolean; allowOverwrite?: boolean; contentType: string }) => Promise<unknown>;
   readonly get: (path: string, opts: { access: 'private'; useCache: boolean }) => Promise<{ readonly stream: ReadableStream<Uint8Array> | null } | null>;
   readonly list: (opts: { prefix: string; limit: number; cursor?: string }) => Promise<BlobPage>;
   readonly del: (paths: string[]) => Promise<void>;

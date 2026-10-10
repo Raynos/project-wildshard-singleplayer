@@ -8,7 +8,6 @@ Every piece of text on wildshard.io lives in this file.
   if a heading is missing, renamed or used twice.
 - Inline formatting works: **bold**, `code`, and [links](https://wildshard.io).
 - A piece whose text is a list ("- " lines) can have more or fewer lines.
-- Words in {curly braces} are filled in by the build (numbers from the plans); keep them.
 - Notes like this block (an HTML comment) are never shown; add your own anywhere.
 - To publish: commit it (the site redeploys itself on push), or run `pnpm deploy:site`.
 -->
@@ -19,9 +18,17 @@ Every piece of text on wildshard.io lives in this file.
 
 Project Wildshard
 
+## Page · browser title
+
+Project Wildshard · the infinite MMO built by its players
+
+## Page · image description
+
+The Project Wildshard logo over Sky Reach's floating islands, in engine
+
 ## Page · description
 
-The infinite MMO in your browser, where every shard of the world is built by a player in Claude Code.
+The infinite MMO in your browser, where every shard of the world is built by a player with Claude or any coding agent.
 
 # Hero
 
@@ -83,9 +90,13 @@ Become an author
 
 ## Hero · author button note
 
-in Claude Code
+with Claude or any coding agent
 
 # Trailer
+
+## Hero · status
+
+**Alpha today:** seven single-player shards. **Next:** multiplayer, uploads and creator keys.
 
 ## Trailer · description
 
@@ -103,14 +114,14 @@ An infinite MMO, built by its players.
 
 ## What · intro
 
-Wildshard is an infinite MMO that runs in your browser. Every piece of content is its own shard, built by another player in Claude Code, and the world grows with every one. Play anything, with anyone: a step beyond a Minecraft server.
+Wildshard is an infinite MMO that runs in your browser. Every piece of content is its own shard, built by another player with Claude or any coding agent, and the world grows with every one. Play anything, with anyone: a step beyond a Minecraft server.
 
 ## What · points
 
 - Explore an open world that never stops growing.
 - Fight, quest and ride together, on desktop or phone.
 - Every shard has its own look, its own rules and its own author.
-- Anyone can add one: describe it to Claude Code, then bring it into the world.
+- Anyone can add one: describe it to Claude or any coding agent, then bring it into the world.
 
 ## What · concept art tag
 
@@ -273,7 +284,7 @@ how do I make one?
 
 ## How · title
 
-Claude Code is the level editor.
+Claude, or any coding agent, is the level editor.
 
 ## How · terminal path
 
@@ -281,7 +292,7 @@ Claude Code is the level editor.
 
 ## How · step 1
 
-Get a creator key
+Get a creator key (when keys open)
 
 ## How · step 1 terminal
 
@@ -289,11 +300,11 @@ key ws_live_•••••••• ✓ signed in as you
 
 ## How · step 2
 
-Install the Wildshard skill and SDK in your own Claude Code
+Install the Wildshard skill and SDK in Claude or any coding agent
 
 ## How · step 3
 
-Describe it. Claude builds it on a floating cube
+Describe it. Your agent builds it on a floating cube
 
 ## How · step 3 prompt
 
@@ -317,7 +328,7 @@ Walk it locally
 
 ## How · step 6
 
-Upload it to the world
+Upload it to the world (when uploads open)
 
 # One sentence to a shard
 
@@ -351,7 +362,7 @@ Pitch C, Thin Ice: racing over black ice above a drowned village
 
 ## Sentence · step 2 caption
 
-Three pitches; Jake picked Thin Ice.
+Three pitches; we picked Thin Ice.
 
 ## Sentence · step 3 label
 
@@ -391,7 +402,7 @@ First-person views before a line of the level is built.
 
 ## Sentence · note
 
-WorldClaw dry run · concept images, not the built shard
+Our own dry run · concept images, not the built shard
 
 # How shards fit together
 
@@ -433,7 +444,7 @@ template · shard.json (excerpt)
 
 ## Together · shardfile note
 
-The template's real shard.json, read from the live game at build time
+The template's real shard.json
 
 # Shards that grow
 
@@ -556,7 +567,7 @@ The journey so far.
 
 ## Journey · intro
 
-Twenty-one days, one engine, seven shards, built by two humans and a fleet of agents.
+Three weeks, one engine, seven shards, built by two humans and a fleet of agents.
 
 ## Journey · 1 date
 
@@ -954,11 +965,25 @@ The Project Wildshard logo: a 3 by 3 lattice with a lit violet centre, and the w
 
 ## Press · one-line blurb
 
-**One line.** Project Wildshard is a browser MMO where every shard of the world is built by a player in Claude Code.
+**One line.** Project Wildshard is a browser MMO where every shard of the world is built by a player with Claude or any coding agent.
 
 ## Press · paragraph blurb
 
-**A paragraph.** Project Wildshard is a first-person sandbox MMO that runs in the browser on desktop and phone. Its world is a grid of 500-metre shards, and every shard is built by a player: authors describe a world to their own Claude Code, which builds it with the Wildshard SDK, and upload it to the shared grid in an in-game ritual. Seven single-player shards already run on the engine, each in its own look, from a toon island to a painterly steppe and a neon city stacked 500 metres high.
+**A paragraph.** Project Wildshard is a first-person sandbox MMO that runs in the browser on desktop and phone. Its world is a grid of 500-metre shards, and every shard is built by a player: authors describe a world to Claude or any coding agent, which builds it with the Wildshard SDK, and upload it to the shared grid. Today it is a single-player alpha: seven shards already run on the engine, each in its own look, from a toon island to a painterly steppe and a neon city stacked 500 metres high.
+
+## Press · colours and type
+
+**Colours:** navy #050a12 · cyan #8fe3ff · violet #a487ff. **Type:** Rajdhani, JetBrains Mono.
+
+## Press · kit contents label
+
+In the kit
+
+## Press · kit contents
+
+- The logo lockup and the mark, as SVG and PNG, plus a one-colour logo for light backgrounds
+- Six in-engine screenshots at 1920 × 1080, real captures, not paint-overs
+- Both blurbs, the colours and the type
 
 ## Press · download kit
 
@@ -989,3 +1014,17 @@ Project Wildshard
 ## Footer · press link
 
 Press kit
+
+# Not found (404.html)
+
+## Not found · title
+
+Nothing in this cell yet.
+
+## Not found · text
+
+This page isn't on the map. The world is still growing: maybe someone will build here.
+
+## Not found · home link
+
+Back to Project Wildshard

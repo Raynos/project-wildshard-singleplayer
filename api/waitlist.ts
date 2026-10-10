@@ -6,9 +6,12 @@
  *
  * The POST is public: the site (`site/index.html`) calls it cross-origin, so CORS allows the site's origins only
  * (`wildshard.io` and `wildshard-site.vercel.app`, plus any in `WAITLIST_ORIGINS`, comma-separated). A claimed
- * cell is a wish, not a promise: any grid cell but the fixed centre. `website` is a honeypot a person never fills.
+ * cell is a wish, not a promise: any empty grid cell (not a shard's, not the centre). `trap` is a honeypot a person never
+ * fills. A browser post from any other origin is refused (CORS only hides the answer; it doesn't stop the write), and
+ * each email has one file, so signing up again replaces the earlier wish.
  * Rate limit 10 / min per IP per warm instance. The GET reuses the review inbox's password (`REVIEW_PASSWORD`).
  */
+import { createHash } from 'node:crypto';
 import { blobStore, type BlobPage } from './_blobStore.js';
 import { clientIp, newId, passwordOk, rateLimited } from './inbox.js';
 
@@ -23,7 +26,8 @@ const SITE_ORIGINS = ['https://wildshard.io', 'https://wildshard-site.vercel.app
 const ADMIN_ORIGINS = new Set(['https://wildshard-admin.vercel.app']);
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,253}\.[^\s@]{2,}$/u;
 const CELL_RE = /^[A-E][1-5]$/u;
-const CENTRE = 'C3';
+/** the cells the site shows as taken: the shards on the map and the fixed centre */
+const TAKEN = new Set(['B2', 'C2', 'D2', 'B3', 'C3', 'D3', 'B4', 'C4']);
 
 export interface WaitlistEntry { id: string; email: string; build: string; cell: string | null; receivedAt: string }
 
@@ -62,11 +66,11 @@ export function parseEmail(v: unknown): string | null {
   return s.length <= 320 && EMAIL_RE.test(s) ? s : null;
 }
 
-/** A claimable cell (`A1`…`E5`, not the fixed centre), or null. */
+/** A claimable cell (`A1`…`E5`, not a taken one), or null. */
 export function parseCell(v: unknown): string | null {
   if (typeof v !== 'string') return null;
   const s = v.trim().toUpperCase();
-  return CELL_RE.test(s) && s !== CENTRE ? s : null;
+  return CELL_RE.test(s) && !TAKEN.has(s) ? s : null;
 }
 
 /** a plain form post goes back to the page it came from (one of the site's origins), at `#hash` */
@@ -92,22 +96,28 @@ export async function POST(req: Request): Promise<Response> {
   // answered with a redirect back to the page (#thanks, or #author to try again)
   const plainForm = (req.headers.get('content-type') ?? '').includes('application/x-www-form-urlencoded');
   const reply = (status: number, payload: Record<string, unknown>): Response => (plainForm ? backToSite(req, status === 200 ? 'thanks' : 'author') : json(req, status, payload));
+  const origin = req.headers.get('origin');
+  if (origin !== null && !allowedOrigins().has(origin)) return json(req, 403, { error: 'not from the site' });
   const body = plainForm ? Object.fromEntries(new URLSearchParams(raw)) : parseJson(raw);
   if (!isRecord(body)) return json(req, 400, { error: 'bad json' });
   if (rateLimited(clientIp(req), Date.now(), RATE_LIMIT_PER_MIN)) return reply(429, { error: 'slow down' });
   // the honeypot: answer as if it worked, store nothing
-  if (typeof body['website'] === 'string' && body['website'] !== '') return reply(200, { ok: true });
+  if (typeof body['trap'] === 'string' && body['trap'] !== '') return reply(200, { ok: true });
   const email = parseEmail(body['email']);
   if (email === null) return reply(400, { error: 'bad email' });
+  const build = typeof body['build'] === 'string' ? body['build'].trim() : '';
+  if (build.length > MAX_BUILD_CHARS) return reply(400, { error: 'idea too long' });
   const id = newId();
   const entry: WaitlistEntry = {
     id,
     email,
-    build: typeof body['build'] === 'string' ? body['build'].trim().slice(0, MAX_BUILD_CHARS) : '',
+    build,
     cell: parseCell(body['cell']),
     receivedAt: new Date().toISOString(),
   };
-  await blobStore().put(`${PREFIX}${id}.json`, JSON.stringify(entry, null, 2), { access: 'private', addRandomSuffix: false, contentType: 'application/json' });
+  // one file per email (its hash, so the path holds no address): signing up again replaces the earlier entry
+  const key = createHash('sha256').update(email).digest('hex').slice(0, 32);
+  await blobStore().put(`${PREFIX}${key}.json`, JSON.stringify(entry, null, 2), { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
   return reply(200, { ok: true });
 }
 
@@ -137,7 +147,7 @@ export async function GET(req: Request): Promise<Response> {
   for (let i = 0; i < paths.length; i += READ_BATCH) {
     for (const e of await Promise.all(paths.slice(i, i + READ_BATCH).map(readEntry))) if (e !== null) entries.push(e);
   }
-  // one author per email: someone who signs up again (another cell, a reload) counts once, with their newest signup
+  // one author per email: signups before 2026-10-10 were a file per post, so an email can still have several; the newest counts
   const newest = new Map(entries.toSorted((a, b) => a.id.localeCompare(b.id)).map((e) => [e.email, e]));
   return json(req, 200, { entries: [...newest.values()].toSorted((a, b) => a.id.localeCompare(b.id)) });
 }
