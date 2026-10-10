@@ -802,6 +802,8 @@ The AGENTS.md, ENGINE.md and SHARDS.md edits belong to SF78's commit, not this o
 
 ## 8. Open questions for Jake
 
+**Answered 2026-10-10 (G312–G318):** Q1 real shards only (the template doesn't count); Q2 yes, `@wildshard/format`; Q3 identical or an Opus clip check; Q4 no cap, own column; Q5 **keep engine and game separate for good** (§2.7 is withdrawn); Q6 yes, `scene.json` never committed; Q7 commit when a cold rebuild is over 30 s and the output under 2 MB.
+
 G311 settled the first question (real three.js), so seven remain.
 
 | # | Question | Recommendation |
