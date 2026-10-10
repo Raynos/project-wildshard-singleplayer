@@ -1,7 +1,7 @@
 import { CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TorusGeometry, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
-import { FAN_SILK_EDITS } from '../data/paintLook';
+import { FAN_SILK_EDITS } from '../runtime/looks/paintLook';
 import { gloveHand, heroHand } from './glove';
 import { fanShape } from './fanShapes';
 

@@ -1,4 +1,4 @@
-import type { GustRow, UpdraftRow } from '@wildshard/sdk/looks/windFx';
+import type { GustRow, UpdraftRow } from '../runtime/looks/windFx';
 
 /**
  * Sky Reach's visible wind (style bible §7, loop 3; drawn by @wildshard/sdk/looks/windFx): the fan's GUST, a cone of

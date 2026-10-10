@@ -2,7 +2,7 @@ import { Color, Float32BufferAttribute, MeshStandardMaterial, Uint16BufferAttrib
 import { readSourceModel, skinnedGlb, type RawTexture, type SkinnedBone, type SkinnedOutput } from '@wildshard/sdk/bake/skinned';
 import type { AnimalDims } from '@wildshard/engine/entities/species/registry';
 import { bindRigid } from '@wildshard/sdk/looks/modelLibrary';
-import { facetedGeometry, fitModel, hdGeometry } from '@wildshard/sdk/looks/modelIntake';
+import { facetedGeometry, fitModel, hdGeometry } from '../runtime/looks/modelIntake';
 import { SKY_AO_FLOOR } from '../world/meshes';
 import { SKY_CREATURE_SOURCES, type SkyCreatureExtras } from '../data/creatures';
 import type { SkyCreature } from '../boot/files';

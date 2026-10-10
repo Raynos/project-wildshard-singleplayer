@@ -1,10 +1,10 @@
 import { InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type Group } from 'three';
 import { CROWN, DAIS } from '../data/layout';
-import { fitModel } from '@wildshard/sdk/looks/modelIntake';
+import { fitModel } from '../runtime/looks/modelIntake';
 import { hdMaterial, skyHd } from './meshes';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { CROWN_DAIS_EDITS } from '../data/paintLook';
+import { CROWN_DAIS_EDITS } from '../runtime/looks/paintLook';
 import { crownStones, type Stone } from '../runtime/crownLayout';
 import { skyBakedPiece } from './baked';
 

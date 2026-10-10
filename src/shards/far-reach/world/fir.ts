@@ -1,6 +1,6 @@
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { FIR_EDITS } from '../data/paintLook';
+import { FIR_EDITS } from '../runtime/looks/paintLook';
 import { onPaintedDispose } from '../look/image';
 import { skyBakedGeometry } from './baked';
 import { DoubleSide, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type Texture } from 'three';

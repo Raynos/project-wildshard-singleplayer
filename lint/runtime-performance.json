@@ -5805,6 +5805,202 @@
     "src/shards/pine-hollow/runtime/species/limbRig.ts:unbounded-loop:b5cae9ec9756b8fbeba0b66d854880fb4ae7259bf1c65826267e6e1675ade63b": {
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:88fe10f5f4972a75cf2d7e9af285b2d8f1138dabea4238b6635702b9769c08f3": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:547faf1bc35eb6cb6fa2cc5bd0760e6f976a883cba42eafdf9512f8dd8038fbb": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:426944a087c7688d4aeaf569788f89f3aa45161cc6e3561461d4e7204f7f5985": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:a3998f7480bdf7689133ec4f5353bfc8fc41c4ae7c03838e8a8654062163730f": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:8a3cd784e5e94a454a26c24d57cfbc644609f04fc8d3178a3ad72540282ad3ca": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:dd25ca3e4a7eeffefb4b275eb37a77a44c52dea0603ebe31e256c37986b638e6": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:a27313189bdb5adea0d1ba29349220fd839288c5439d030570e4bcf0486022c7": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:15e5e5123741977bc7e14ace60aec714542f00fa29a8023ad0dc6bfc85c960cb": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/bakedInstances.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/cardField.ts:unbounded-loop:fca4ece2832b3bb82bc404c653c7e0eab75c289def306a4a7fb0e9f01e2c03d1": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/cardField.ts:unbounded-loop:89a37248488844f4a81ba1fa59a9c990cac731f82ff1c5c03ddf7e522d5248e8": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/cardField.ts:unbounded-loop:a99effd0e649fc816ded26de67be5a53ae4c072ae8ec7bfbf0d96ab90642dbf3": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/cardField.ts:unbounded-loop:a16f0fc18596c6381b709d9f7d7f08a4bf4ab6eb760fd94dec98619b6aeeb14d": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/cardField.ts:unbounded-loop:0c5234d7acb09754efca31c7939fe412e88efc6327a0dd3ccd21de28e9600989": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/cardField.ts:unbounded-loop:4d71a911e64e0d8bffd89ac92e5a8bd5290cca8249bd62f9167277d90b983359": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:unbounded-loop:39fe31033bb389042978c270323b39329c382da0d4ad50895eab91e8fb9fe601": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:raw-render:7137caee0606c99dd8e6e1bbbb7269bee0c17c2a0264afddcd19e5347f66fc51": {
+      "count": 2,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 4,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:unbounded-loop:f9a56ffd157aed817dd319fa28b80e26ef293234591a3b83a2167ccdca561c4d": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:unbounded-loop:d8830802385f2f48b8cceaccdbd5ccae404af1c5d57f637147b8114af69adb79": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:unbounded-loop:a4c15e4827a2ee26615066f15acc1a295e2f4f3ac5a61bd17aaf7e51ead8e2aa": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:unbounded-loop:a52e24316cd6f9047dde2795021609ee3194309549625e86f31a6265d0e61e85": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:unbounded-loop:13b483367ff40d8e2bbafe1266a3daff874c0cbf9ac8c3ea2cbfb4dc802f8805": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:unbounded-loop:4f14b2f5965117f6334d8acd0083dde026468b6b4071315896f038d5fd5d22ef": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:unbounded-loop:25af886385c4d021e3bd0e9004a0f7ab886bbc702c0fd143b7fd5bc2fe3188cd": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:unbounded-loop:4888ee5d6c7bac48d00c61580787284ae666d119b331bd76542164817a29a81b": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/modelIntake.ts:unbounded-loop:0ad740e8fb4dedb727c05309a0f5c79b81175a452cc3b94831d92cf0f67be89e": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/tileField.ts:unbounded-loop:210d4897071e4b9de6ab60136020e8b8f2aa8f79851822f0c1795f167eb4134c": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/tileField.ts:unbounded-loop:d5baec5abdb4e66dba6a829ccf59107ae23c52acda63780a12eac805b2e6dd9a": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/tileField.ts:unbounded-loop:4cec8ae8f184154befcffcad61e57d6aee121fbe7992db0af2f32a80664ac2f9": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/tileField.ts:unbounded-loop:97a6c575554ce15ecd4cc4c4b248af3857fa8d0815339735f798607d7ade964b": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/wakeRibbon.ts:unbounded-loop:74fd5c8905fcc00134295c4d5ce8fc80ae594ddaa416f103302016362516ae6a": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/wakeRibbon.ts:unbounded-loop:f5e346819e0ad46ab4404328bd26f95f1637666462e8675288f235b4e0cfe943": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/wakeRibbon.ts:unbounded-loop:7a941ed3b60744d071a6c8e426f415876916000a4826bd0ba232e9784fccaf9e": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/wakeRibbon.ts:unbounded-loop:5a89923816b079f0f73f27aefb9e9a55d7bea0f82c2af810f17819dd7b0b59dc": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/wakeRibbon.ts:unbounded-loop:23ed2ebb9e1ae69b4bb85bd9f60889f831c805c7939899e36dd33d595da27235": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/wakeRibbon.ts:frame-allocation:13785dbada2f1775d558ed3f6705464ac69d97924c175b3b8c96153065c04009": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/wakeRibbon.ts:frame-allocation:8475dbcc4409c6c98c97515491ca3bffd197932d2242903c28e9c9510974b48c": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/windFx.ts:unbounded-loop:3cbbd10be26bad1d2294702ae4c992b033b9b8e91083ec14869a5f61f34df3e6": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/windFx.ts:unbounded-loop:0b535dac6c702d94c9a85cf6265c62d8f992d3c683fa89152b546487a906a662": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/windFx.ts:unbounded-loop:c0a2a01fe11e72d0e605836760c731ecb49491138a1cbf55065d15bd07819e9c": {
+      "count": 2,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/windFx.ts:unbounded-loop:e09f75c4730705e926dc7d7b2a3c002047c687a301a19d46c1576733cd4225cb": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/windFx.ts:unbounded-loop:bdf321a5695f1c93a7389d84c472ca488e37b333379b87fab57600c35e534d2c": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/windFx.ts:frame-allocation:c265f86209dda49e5730cebc2c40eabae4b2a30a942ea4ec855be05e2a47b582": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/windFx.ts:frame-allocation:831fdae8f451de3b11d3f2a5f4097407c3d5164a27fae52484262371ccbd953d": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/windFx.ts:frame-allocation:cf11dc0cd272729bcca6c7a711f88c6aaab9d238a4eca419f4c279589b3b7a7e": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/windFx.ts:unbounded-loop:1aa6f06afa0e3a5a30dfac5c2af615095a69413b701bed821688d55453577bf6": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/windFx.ts:unbounded-loop:48145aa664ae3af42ceb2a02d4b25abd0f58b0cc111bcb47c66fd7269813534d": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/far-reach/runtime/looks/windFx.ts:unbounded-loop:d759ba1a51ac5a22ebe5e302a1e7dd936ff8f368573a6491f0358ae8b9f7225b": {
+      "count": 1,
+      "row": "SF76"
     }
   }
 }

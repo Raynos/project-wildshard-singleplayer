@@ -3,7 +3,7 @@ import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { onPaintedDispose } from '../look/image';
 
 import { STORM } from '../data/storm';
-import { STORM_PROGRAMS } from '../data/stormLook';
+import { STORM_PROGRAMS } from '../runtime/looks/stormLook';
 
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
 export const STORM_COLORS = { belly: 0x343046, mid: 0x7e7286, top: 0xe8c6a8, gold: 0xffc983, bolt: 0xe2d6ff, haze: 0xedc9b0 } as const;

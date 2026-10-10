@@ -3,7 +3,7 @@ import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app
 import { releaseDecodedOnUpload } from '../look/image';
 import { preloadSkyBodies } from '../species/bodies';
 import { SKY_HD, SKY_MESHES, skyHdUrl, skyMeshUrl, type SkyHdName, type SkyMeshName } from '../boot/files';
-import { facetedGeometry, hdGeometry } from '@wildshard/sdk/looks/modelIntake';
+import { facetedGeometry, hdGeometry } from '../runtime/looks/modelIntake';
 import { MeshStandardMaterial, type BufferGeometry, type Texture } from 'three';
 
 /**

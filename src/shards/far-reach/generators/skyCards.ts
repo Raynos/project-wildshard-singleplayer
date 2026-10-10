@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { cardFloats, type CardFieldRow, type CardGroupRow, type CardRow } from '@wildshard/sdk/looks/cardField';
+import { cardFloats, type CardFieldRow, type CardGroupRow, type CardRow } from '../runtime/looks/cardField';
 import { ISLES, SPANS } from '../data/layout';
 import { SKY_ISLES } from '../data/skyIsles';
 import { SUN_DIR } from '../look/sun';

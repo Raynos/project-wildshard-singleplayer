@@ -1,4 +1,4 @@
-import type { WakeRibbonRow } from '@wildshard/sdk/looks/wakeRibbon';
+import type { WakeRibbonRow } from '../runtime/looks/wakeRibbon';
 
 /**
  * A drift ray's luminous wake (E399 round 10, seat A, proposal B: 'the ray's ordinary curling luminous wake beside the

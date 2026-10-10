@@ -1,11 +1,11 @@
 import { AdditiveBlending, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
 import { buildPrimitive } from '@wildshard/sdk/kit/mergedPrimitives';
-import { fitModel, splitTriangles } from '@wildshard/sdk/looks/modelIntake';
+import { fitModel, splitTriangles } from '../runtime/looks/modelIntake';
 import { hdMaterial, skyHd, skyMesh } from '../world/meshes';
 import type { NpcDef } from '@wildshard/engine/quest/core';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { KEEPER_SCARF_EDITS } from '../data/paintLook';
+import { KEEPER_SCARF_EDITS } from '../runtime/looks/paintLook';
 import { FLAGS } from './flags';
 import { STRINGS } from '../data/strings';
 import { SPAWN } from '../data/layout';

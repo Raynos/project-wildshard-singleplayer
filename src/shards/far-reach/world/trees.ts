@@ -1,9 +1,9 @@
 import { Group, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { TREE_BARK_EDITS } from '../data/paintLook';
+import { TREE_BARK_EDITS } from '../runtime/looks/paintLook';
 import type { SkyHdName } from '../boot/files';
-import { fitModel } from '@wildshard/sdk/looks/modelIntake';
+import { fitModel } from '../runtime/looks/modelIntake';
 import { hdMaterial, skyHd } from './meshes';
 
 /**

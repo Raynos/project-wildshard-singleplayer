@@ -1,5 +1,5 @@
 import { CircleGeometry, Mesh, type ShaderMaterial } from 'three';
-import type { ShaderFamily, UniformMap } from './shaderFamily';
+import type { ShaderFamily, UniformMap } from '@wildshard/game/systems/looks/shaderFamily';
 
 /**
  * A horizontal disc drawn by a shard's own program, as a declared row (SHARD-PLATFORM M3, look-family rows): a cloud sea
