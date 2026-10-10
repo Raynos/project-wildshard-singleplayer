@@ -1,0 +1,140 @@
+[
+ {
+  "dir": "d01-hunt-568a1463-456fbd3c",
+  "speed": 1,
+  "sub": 1,
+  "ramp": null,
+  "samples": null,
+  "frames": 330,
+  "accepted": false,
+  "events": [
+   [
+    1.267,
+    "fire"
+   ]
+  ]
+ },
+ {
+  "dir": "d01-hunt-568a1463-0b938938",
+  "speed": 0.25,
+  "sub": 2,
+  "ramp": null,
+  "samples": 1200,
+  "frames": 150,
+  "accepted": true,
+  "events": [
+   [
+    1.267,
+    "fire"
+   ],
+   [
+    1.66,
+    "kill"
+   ]
+  ]
+ },
+ {
+  "dir": "d01-hunt-568a1463-845b4384",
+  "speed": 1,
+  "sub": 1,
+  "ramp": null,
+  "samples": null,
+  "frames": 330,
+  "accepted": true,
+  "events": [
+   [
+    2.0,
+    "fire"
+   ],
+   [
+    2.517,
+    "kill"
+   ]
+  ]
+ },
+ {
+  "dir": "d01-hunt-568a1463-3ef3cb5b",
+  "speed": 1,
+  "sub": 1,
+  "ramp": null,
+  "samples": null,
+  "frames": 330,
+  "accepted": false,
+  "events": [
+   [
+    2.0,
+    "fire"
+   ]
+  ]
+ },
+ {
+  "dir": "d01-hunt-568a1463-f29bf59c",
+  "speed": 1,
+  "sub": 1,
+  "ramp": [
+   [
+    1.2,
+    1
+   ],
+   [
+    1.28,
+    0.05
+   ],
+   [
+    1.58,
+    0.05
+   ],
+   [
+    1.64,
+    1
+   ]
+  ],
+  "samples": 510,
+  "frames": 150,
+  "accepted": true,
+  "events": [
+   [
+    1.27,
+    "fire"
+   ],
+   [
+    1.668,
+    "kill"
+   ]
+  ]
+ },
+ {
+  "dir": "d01-hunt-568a1463-dad0d6a8",
+  "speed": 1,
+  "sub": 1,
+  "ramp": null,
+  "samples": null,
+  "frames": 330,
+  "accepted": false,
+  "events": [
+   [
+    2.0,
+    "fire"
+   ]
+  ]
+ },
+ {
+  "dir": "d01-hunt-568a1463-466da15c",
+  "speed": 1,
+  "sub": 1,
+  "ramp": null,
+  "samples": null,
+  "frames": 330,
+  "accepted": true,
+  "events": [
+   [
+    1.267,
+    "fire"
+   ],
+   [
+    1.667,
+    "kill"
+   ]
+  ]
+ }
+]
