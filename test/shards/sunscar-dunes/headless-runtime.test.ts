@@ -15,10 +15,10 @@ import source from '../../../src/shards/sunscar-dunes/shard.config';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import { SIGNAL_SPAWNS } from '../../../src/shards/sunscar-dunes/data/spawns';
 import { SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
-import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/whip';
 import { WHIP_ITEM } from '../../../src/shards/sunscar-dunes/data/items';
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
-import { HOMES_STEP, prepareHeadlessRuntime, SIGNAL_ATTACKERS } from '../../../src/shards/sunscar-dunes/runtime/headless';
+import { prepareHeadlessRuntime } from '../../../src/shards/sunscar-dunes/runtime/headless';
+import { HOMES_STEP, SIGNAL_ATTACKERS, WHIP_STEP } from '../../../src/shards/sunscar-dunes/data/headless';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(`src/shards/sunscar-dunes/assets/${file.hash}`))]));

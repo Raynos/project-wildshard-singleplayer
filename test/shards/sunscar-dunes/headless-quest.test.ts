@@ -13,8 +13,9 @@ import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/da
 import { brazierFlag } from '../../../src/shards/sunscar-dunes/quests/brazierFlag';
 import { COMPLETE_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
-import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/whip';
-import { INTERACTIONS_STEP, type SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest';
+import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/data/headless';
+import type { QuestGraphSpot as SignalSpot } from '../../../src/game/quest/questGraph';
+import { SIGNAL_GRAPH } from '../../../src/shards/sunscar-dunes/quests/graph';
 import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
@@ -115,7 +116,7 @@ it('restores the transient well / oil / waymark state mid-quest and continues ex
     act(original, SIGNAL_ACT.logbook, spot(interact, 'logbook'));
     act(original, SIGNAL_ACT.crank, spot(crack, 'well.crank')); // raised but not yet taken: transient continuation
     const saved = serializeSimSnapshot(snapshotSimHost(original.host));
-    expect(snapshotSimHost(original.host).adapters.find(a => a.id === INTERACTIONS_STEP)?.state).toContain('"raised":true');
+    expect(snapshotSimHost(original.host).adapters.find(a => a.id === SIGNAL_GRAPH.step)?.state).toContain('"raised":true');
     restored = restore(saved);
     expectSameSimSnapshot(snapshotSimHost(restored.host), decodeSimSnapshot(saved));
     for (const run of [original, restored]) {

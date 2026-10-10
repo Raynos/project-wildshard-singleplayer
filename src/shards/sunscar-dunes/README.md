@@ -24,7 +24,7 @@ alone (E357 Z3, round 4). No engine edits.
 | `assets` | `public/assets/sunscar-dunes/models/` (C6: the caravan, the dry well, the waymark brazier and the dune strider, Hunyuan3D-2 GLBs, 240 KB); card art is a bundled SVG, every other model is code |
 | `dev.poses` | spawn, whip, ray, quest (standing) and the tower deck (eye only), in degrees |
 | saves | the quest flags only (`Flags`): the paid reward (`sunscar.signal.paid`) and the Matriarch's record (`sunscar.matriarch.defeated` / `.paid`); the old `sunscar.signal` and `bossesSave` entries are read once to carry a current save over (C26), never written. Coins go through the platform purse (`bindRuntimeCoins`) |
-| quest start | Sefa the caravan scout stands beside the spawn, 8 m to the right and behind (round 17: at 5 m the tracker dropped her distance) (`quest/scout.ts` SCOUT_AT; E407 row 9): the first look is the empty dune vista and the tower, as the mockups show; her pin and wave bring the player round to her |
+| quest start | Sefa the caravan scout stands beside the spawn, 8 m to the right and behind (round 17: at 5 m the tracker dropped her distance) (`data/flags.ts` SCOUT_AT, her row `quests/scout.ts` SCOUT_NPC; E407 row 9): the first look is the empty dune vista and the tower, as the mockups show; her pin and wave bring the player round to her |
 
 ## Its custom code, and why
 

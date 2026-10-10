@@ -1,14 +1,14 @@
 import { BackSide, ShaderMaterial, type Color } from 'three';
-import { WIND } from './dunes';
 
 /**
- * The sand storm's blown-sand sheets (review R5 / TOP-15 #11, style bible FX): a shell around the player whose shader
- * draws long streaks racing downwind (`WIND`), denser near the horizon and the ground, pulsing in gusts, over a dusty
- * veil. `fine` shells (the near one) streak faster and thinner. Opacity is the storm's strength × the shell's share.
+ * A sand storm's blown-sand sheet (SF27, first Signal Dunes' review R5 / TOP-15 #11): a back-faced shell around the player
+ * whose shader draws long streaks racing downwind (`wind`, x / z), denser near the horizon and the ground, pulsing in gusts,
+ * over a dusty veil. `fine` shells (the near one) streak faster and thinner. Its `uOpacity` is the storm's strength × the
+ * shell's share; `uTime` drives the streaks.
  */
-export function stormMaterial(color: Color, fine: boolean): ShaderMaterial {
+export function stormShellMaterial(color: Color, fine: boolean, wind: { readonly x: number; readonly z: number }): ShaderMaterial {
   return new ShaderMaterial({
-    // depth-tested (round 1, R1B-17): what stands nearer than the shell (the Matriarch diving at you) draws in front of
+    // depth-tested (round 1, R1B-17): what stands nearer than the shell (a boss diving at you) draws in front of
     // it, the distance stays veiled; with depthTest off the shells hid her even at 10 m
     side: BackSide, transparent: true, depthWrite: false, depthTest: true, fog: false,
     uniforms: { uColor: { value: color.clone() }, uOpacity: { value: 0 }, uTime: { value: 0 } },
@@ -28,7 +28,7 @@ float sNoise(vec2 p) {
 void main() {
   vec3 d = normalize(vDir);
   // Azimuth measured from the downwind direction: streaks run along it and race that way.
-  vec2 w = normalize(vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}));
+  vec2 w = normalize(vec2(${wind.x.toFixed(3)}, ${wind.z.toFixed(3)}));
   float az = atan(d.x * w.y - d.z * w.x, d.x * w.x + d.z * w.y);
   float el = d.y;
   float speed = ${fine ? '2.4' : '1.1'}, rows = ${fine ? '260.0' : '120.0'}, len = ${fine ? '7.0' : '4.0'};

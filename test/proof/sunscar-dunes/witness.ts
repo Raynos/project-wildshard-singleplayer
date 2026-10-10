@@ -13,9 +13,8 @@ import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan } from '../../../
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { HeadlessSimulation } from '../../../src/sdk/headless';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
-import type { SignalSpot } from '../../../src/shards/sunscar-dunes/runtime/quest';
+import type { QuestGraphSpot as SignalSpot } from '../../../src/game/quest/questGraph';
 import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
-import { MATRIARCH_STEP } from '../../../src/shards/sunscar-dunes/runtime/matriarch';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/data/matriarchFight';
 import { lashContact } from '../../../src/game/systems/items/lash';
 import { WHIP_ITEM } from '../../../src/shards/sunscar-dunes/data/items';
@@ -88,7 +87,7 @@ function step(session: Session, commands: readonly HeadlessCommand[]): HeadlessE
 
 interface Encounter { state: string; phase: number; checkpoint: number; attempts: number; storm: number; saved: { defeated: boolean; rewardTaken: boolean; kills: number } }
 function encounter(host: SimHost): Encounter {
-  const saved = snapshotSimHost(host).adapters.find(adapter => adapter.id === MATRIARCH_STEP)?.state;
+  const saved = snapshotSimHost(host).adapters.find(adapter => adapter.id === MATRIARCH_ID)?.state;
   if (typeof saved !== 'string') throw new Error('Missing Matriarch continuation');
   const value = JSON.parse(saved) as { boss: Omit<Encounter, 'storm'>; fight: { storm: number } };
   return { ...value.boss, storm: value.fight.storm };

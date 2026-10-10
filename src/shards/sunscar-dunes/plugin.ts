@@ -1,4 +1,4 @@
-import { standaloneEntry } from './runtime/standalone';
+import { standaloneHybridEntry } from '@wildshard/sdk/standaloneEntry';
 import { speciesBrains, type SpeciesBrains } from '@wildshard/sdk/speciesBrains';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from './data/brains';
 import { SKITTERER_DATA } from './data/species/skitterer';
@@ -33,7 +33,8 @@ import { installCreatures } from './combat/creatures';
 import { SAND_SKITTERER_LOOK } from './species/skitterer';
 import { DUNE_STRIDER_LOOK } from './species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from './species/matriarch';
-import { installMatriarch, type DuneMatriarch } from './combat/matriarch';
+import { installMatriarch } from './combat/matriarch';
+import type { MarkedBoss } from '@wildshard/sdk/markedBoss';
 import { SAND_TILES, SKIRT } from './look/render';
 
 // the slot merges through @wildshard/engine (deep engine paths do not resolve); a program sees it only when it includes this file
@@ -54,7 +55,7 @@ function duskOf(places: SignalWorld): number {
 export class SignalDunesPlugin extends ShardPlugin {
   readonly player = new Vector3(); whip: Bullwhip | null = null; quest: QuestState | null = null;
   fire: SignalFire | null = null; places: SignalWorld | null = null; creatures: ReturnType<typeof installCreatures> | null = null;
-  matriarch: DuneMatriarch | null = null;
+  matriarch: MarkedBoss | null = null;
   /** The dune ray now flying (captures drive it). */
   get ray(): Animal | null { return this.creatures?.ray() ?? null; }
   /**
@@ -155,7 +156,7 @@ export class SignalDunesPlugin extends ShardPlugin {
   }
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
-export default standaloneEntry(SignalDunesPlugin);
+export default standaloneHybridEntry(SignalDunesPlugin, { name: 'Signal Dunes', source: () => import('./shard.config'), entry: 'runtime/index.ts', runtime: () => import('./runtime/index') });
 
 /** Resolve only the declared first-party entry, preserving the standalone constructor. */
 export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {

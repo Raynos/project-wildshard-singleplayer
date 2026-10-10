@@ -1,5 +1,4 @@
 import type { QuestMarker, QuestState } from '@wildshard/engine/quest/core';
-import { boxDesc } from '@wildshard/engine/world/registry';
 import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
 import { installEnteredQuestPresentation, installQuestPresentation, type QuestPresentation, type QuestPresentationOptions } from '@wildshard/game/quest/presentation';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -11,7 +10,9 @@ import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { lastLightAll } from '../look/light';
 import { ownPrimitives } from '../world/resources';
-import { scout, scoutNpc } from './scout';
+import { installPivotNpc, npcDef } from '@wildshard/sdk/pivotNpc';
+import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
+import { duneMesh } from '../world/meshes';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
 import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG } from '../quests/signal';
 import { bindRuntimeCoins, bindRuntimeQuest, type RuntimeCoins, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
@@ -73,18 +74,12 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
     return undefined;
   };
   // Sefa, the caravan scout, starts the quest on the spawn crest (P4; Driftwood's Wendell): she waves until you talk.
-  const sefa = scout(groundAt);
-  if (sefa !== null) {
-    ctx.root.add(sefa.group); ownPrimitives(sefa.group, ctx.scope); lastLightAll(sefa.group, ctx.scope);
-    // She is solid: a 0.6 m column you walk round, not through (loop 3); she turns in place, so the box stays square.
-    const y = sefa.group.position.y;
-    ctx.piece({ id: 'sunscar.scout', name: STRINGS.scoutName, category: 'props', file: 'src/shards/sunscar-dunes/quest/scout.ts', object: sefa.group,
-      colliders: [boxDesc({ x: SCOUT_AT.x, z: SCOUT_AT.z, hw: 0.3, hd: 0.3, rot: 0, yBottom: y - 0.3, yTop: y + 1.7 }, 'flesh')], surface: 'flesh' });
-    ctx.system({ id: 'sunscar.scout', phase: 'update', run: (dt, t) => { sefa.update(dt, t, player, flags.has(SCOUT_FLAG)); } });
-  }
+  const figure = duneMesh(SCOUT_MODEL);
+  const sefa = figure === null ? null : installPivotNpc(ctx, SCOUT_NPC, { source: figure, groundAt, player, met: () => flags.has(SCOUT_FLAG), file: 'src/shards/sunscar-dunes/quests/scout.ts',
+    dress: (group) => { ownPrimitives(group, ctx.scope); lastLightAll(group, ctx.scope); } });
   const live = runtime?.world && runtime.play ? runtime : null;
   const presentation: QuestPresentationOptions = { places: [...PLACES], introTitle: STRINGS.quest,
-    ...(sefa === null ? {} : { npc: { npc: scoutNpc(COMPLETE_FLAG), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: 3.5 } }),
+    ...(sefa === null ? {} : { npc: { npc: npcDef(SCOUT_NPC), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: SCOUT_NPC.talkRadius } }),
     reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete, finish: pay } };
   const entered = live !== null && retainsRuntimeServices(ctx) ? installEnteredQuestPresentation(ctx, quest, presentation) : null;
   const view = live === null || entered !== null ? null : installQuestPresentation(ctx, quest, presentation);

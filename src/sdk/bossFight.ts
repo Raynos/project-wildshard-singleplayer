@@ -1,5 +1,7 @@
+import * as v from 'valibot';
 import type { BossDefinition as EngineBossDefinition } from '@wildshard/engine/ai/BossBrain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { MarkedBossPresentationSchema as presentationSchema, parseMarkedBossPresentation as parsePresentation, type MarkedBossPresentation as PlatformPresentation } from '@wildshard/game/shardfile/markedBossPresentation';
 import { markedBossFight as platformFight, type MarkedBossFight as PlatformFight, type MarkedBossFightPorts as PlatformPorts,
   type MarkedBossFightRow as PlatformRow, type MarkedBossFightState as PlatformState } from '@wildshard/game/shardfile/bossFight';
 
@@ -19,3 +21,9 @@ export type MarkedBossFight<A extends AnimalSim> = PlatformFight<A>;
  * invulnerability and the victory; the browser runs it under its views, the headless host through `installBossRow`.
  */
 export function markedBossFight<A extends AnimalSim>(row: MarkedBossFightRow, ports: MarkedBossFightPorts<A>): MarkedBossFight<A> { return platformFight(row, ports); }
+/** A marked boss fight's browser presentation row (SF27, SF7f): arena floor, respawn, the storm's fog and sand shells, the toasts. */
+export const MarkedBossPresentationSchema = v.pipe(presentationSchema);
+/** A validated marked boss presentation row. */
+export type MarkedBossPresentation = PlatformPresentation;
+/** Compile an authored marked boss presentation row; an unknown field refuses. */
+export function parseMarkedBossPresentation(input: unknown): PlatformPresentation { return parsePresentation(input); }

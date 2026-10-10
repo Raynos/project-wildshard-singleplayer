@@ -8,7 +8,9 @@ import { skittererBody } from '../species/skitterer';
 import { striderSpecimen } from '../species/strider';
 import { rayGeometry } from '../species/duneRay';
 import { matriarchBody } from '../species/matriarch';
-import { scoutModelGroup } from '../quest/scout';
+import { pivotNpcParts } from '@wildshard/sdk/pivotNpc';
+import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
+import { duneMesh } from '../world/meshes';
 import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';
 import caravanRows from '../data/caravan.json' with { type: 'json' };
 import wellRows from '../data/well.json' with { type: 'json' };
@@ -50,4 +52,4 @@ export const matriarchModel = defineModel({ id: 'sunscar-dunes/dune-matriarch', 
   build: () => creature(matriarchBody() ?? rayGeometry(), 3.6) });
 /** Sefa, the caravan scout who gives the quest (loop 2): the generated figure at her own origin. */
 export const scoutModel = defineModel({ id: 'sunscar-dunes/caravan-scout', name: STRINGS.scoutName, category: 'people', pipeline: ['hunyuan'], file: FILE, defaults: {},
-  build: () => scoutModelGroup() });
+  build: () => { const source = duneMesh(SCOUT_MODEL); return source === null ? new Group() : pivotNpcParts(SCOUT_NPC, source).root; } });

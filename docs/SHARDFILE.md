@@ -929,7 +929,11 @@ checked against the hash. A `phased-flyer` brain is a boss flyer (circle, chest 
 climb with its `dive` strikes; grounded from `groundedPhase` with its `grounded` strikes)
 that its encounter steers through `fight` / `rise` / `phase` memory fields;
 `markedBossFight(row, ports)` (`@wildshard/sdk/bossFight`) is the view-free fight that
-writes them: arena, health share per checkpoint, rise seconds, storm phases and fade. A
+writes them: arena, health share per checkpoint, rise seconds, storm phases and fade. Its browser presentation is a row too (`parseMarkedBossPresentation`): the arena floor, the respawn
+point, the storm's fog and blown-sand shells, and the toasts. A quest's runtime is declared as well
+(`@wildshard/sdk/questGraph`): `parseQuestGraph` names the interaction rows' command actor, their marks' step and the
+actions a row starts (`{ row, summon }` arms a boss); `parseNpcRow` declares a quest-giver (where it stands, its talk,
+its pivot figure and its dialogue), and the trusted runtime stands it in the world with `@wildshard/sdk/pivotNpc`. A
 `phased-raptor` (`phasedRaptor(data)`, `@wildshard/sdk/flyers`) is a perched boss bird its
 encounter holds directly: take-off, lap, and per phase its own approach and strike.
 

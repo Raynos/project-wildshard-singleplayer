@@ -2225,7 +2225,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 `@wildshard/engine/combat/items` owns fixed-step cooldown, held charge, queued command aim and lantern fuel/light state. An admitted hook on the existing shared `ScriptHost` may select only its requested action for its host-bound item handle; configured contacts, damage and effects remain trusted. `@wildshard/game/shardfile/items` validates JSON rows, input contexts, loadout and module references, constructs trusted ownership aliases and resolves injected `ItemFamily` constructors. `installDeclaredItems` returns the normal primary/secondary/extras/order/install handoff plus the authoritative runtime map and fixed-step callback. `@wildshard/game/systems/items/declared` supplies melee and lantern factories with scoped primitive views; the fixture uses the template whip and lantern numbers and a content-addressed 740-byte AssemblyScript module. Toggle/refill use action3/action4; UI reads `remainingFuel` and `lightOn` from the same runtime. The existing template switches at SF16. Bound creature views expose `simulationBound`: the legacy manager skips their decisions, damage, separation and movement-body allocation, while retaining pose/query hitboxes.
 
-`@wildshard/game/systems/items/lash` provides renderer-free `LashRuntime` for a declared weapon row. `lashSpec` combines its contact, damage and cooldown data with lash timing and move ids. The owner supplies aim, combat targets, world crack targets and the damage pipeline; `cool` and `advance` run on its existing clock. `snapshot` / `restore` retain the unroll and second-lash continuation. The browser keeps its cord and charge view while the headless owner supplies physical contact volumes. `lashVolumeHit`, `lashLane` and `lashContact` share the contact geometry. `@wildshard/game/systems/items/lashHost` `installLashHost(host, { step, row, timing, moves, eye, commands, targets })` is a declared lash weapon in the renderer-free host (SF27): locked on, each lash leaves the player's eye toward the commanded creature's body or a world command's target spot (a target gone keeps the last aim); it takes the first body it meets (head balls and body capsules), else a chest in its lane, else a target row's spot (`LashTargetRow`: an interaction row's act, its spot and radius, and `crack: 'light'` — a crack's first lash — or `'heavy'` — the double crack's second, its first wraps); `cracked()` names the act it reached this tick, which the interaction step's crack rows read. Its continuation is `{ version: 2, …lash, target, world, dir }`. Signal's whip is the first (`runtime/whip.ts`, the well's crank and the waymark bowls as its targets).
+`@wildshard/game/systems/items/lash` provides renderer-free `LashRuntime` for a declared weapon row. `lashSpec` combines its contact, damage and cooldown data with lash timing and move ids. The owner supplies aim, combat targets, world crack targets and the damage pipeline; `cool` and `advance` run on its existing clock. `snapshot` / `restore` retain the unroll and second-lash continuation. The browser keeps its cord and charge view while the headless owner supplies physical contact volumes. `lashVolumeHit`, `lashLane` and `lashContact` share the contact geometry. `@wildshard/game/systems/items/lashHost` `installLashHost(host, { step, row, timing, moves, eye, commands, targets })` is a declared lash weapon in the renderer-free host (SF27): locked on, each lash leaves the player's eye toward the commanded creature's body or a world command's target spot (a target gone keeps the last aim); it takes the first body it meets (head balls and body capsules), else a chest in its lane, else a target row's spot (`LashTargetRow`: an interaction row's act, its spot and radius, and `crack: 'light'` — a crack's first lash — or `'heavy'` — the double crack's second, its first wraps); `cracked()` names the act it reached this tick, which the interaction step's crack rows read. Its continuation is `{ version: 2, …lash, target, world, dir }`. Signal's whip is the first (`data/headless.ts` SIGNAL_HEADLESS.lash, the well's crank and the waymark bowls as its targets).
 
 `@wildshard/game/systems/items/weaponHooks` is the weapon families' hook surface (SF36). A family holds
 `hooks: WeaponHooks | null` (null, the default, is its row rule) and asks `hooks.damage({ phase, base, facts })` where it
@@ -2290,6 +2290,32 @@ invulnerability through the beats and the victory, inside a circular `arena`; it
 invulnerable }`. The browser runs it under its views and the headless host through `installBossRow`. Signal's Dune
 Matriarch is the first (`data/brains.ts` MATRIARCH_BRAIN, `data/matriarchFight.ts` MATRIARCH_FIGHT), held to her old
 brain by `test/shards/sunscar-dunes/matriarch-brain.test.ts`.
+
+`@wildshard/game/shardfile/markedBoss` (SDK `@wildshard/sdk/markedBoss`) is the browser side (SF27 / SF7f):
+`installMarkedBoss(ctx, rows, { player, body, record, coins, lit, onDown })` builds a `MarkedBoss` (the engine's
+`BossBrain` over `markedBossFight`) from `{ definition, fight, presentation, reward }`, registers it with the encounters,
+arms it when `lit` holds (else `summon` arms it and toasts the summons), answers the death checkpoint and updates it each
+frame. Its presentation row (`@wildshard/game/shardfile/markedBossPresentation`, SDK `parseMarkedBossPresentation`) is the
+arena `floor` the coin burst leaves from, the `respawn` point, the storm's look (a weather fog of `dist` in `color`, eased
+with the storm strength, and blown-sand shells `[radius, opacity]` streaking down `wind`,
+`@wildshard/game/systems/looks/stormShell` `stormShellMaterial`) and its toasts; the boss bar is the engine's `BossBar`.
+`carriedBossRecord(ctx, flags, id, names)` is `bossFlagRecord` after carrying a save's old `bossesSave` entry over once.
+Headless, `@wildshard/game/shardfile/markedBossRow` `installMarkedBossRow(host, spec, { body, fact, coins })` runs the same
+rows on `installBossRow`, its victory raising `spec.victory.flag` and emitting its fact.
+
+`@wildshard/game/quest/questGraph` `installQuestGraph(host, { quests, interactions, npcs, graph }, ports)` runs a shard's
+declared quest graph headless (SF27): `DeclaredQuests` plus the interaction step at the baked spots and each quest-giver's
+talk spot, its runtime row (`parseQuestGraph`: `actor`, `step`, `actions`: `{ row, summon }` arms a boss when the row
+runs). A quest-giver is an NPC row (`@wildshard/game/quest/npcRow` `parseNpcRow`, `npcDef`, `npcSpot`): id, name, talk spot,
+place, home facing, met flag, talk height and reach, face and wave ranges, its solid column, its pivot figure (model,
+height, neck, shoulder, arm cut, material) and its dialogue. `@wildshard/game/quest/pivotNpc` (SDK `@wildshard/sdk/pivotNpc`)
+`installPivotNpc(ctx, row, { source, groundAt, player, met, file, dress })` stands it in a level; `pivotNpcParts` is its
+Model Explorer figure. The SDK's `@wildshard/sdk/rowsHeadless` `rowsHeadlessRuntime(manifest)` is a whole trusted
+`prepareHeadlessRuntime` from rows: the baked metadata (`bakedSpecs`, `bakedSpots`), the homes and their brains (with
+`holds`: a home's memory field held until a flag), the marked boss, the lash item, the quest graph and the terrain entry
+walk (`@wildshard/game/shardfile/terrainEntries` `proveTerrainEntries`). `@wildshard/sdk/standaloneEntry`
+`standaloneHybridEntry(Native, { name, source, entry, runtime })` is a first-party primary's standalone hybrid entry.
+Signal Dunes is the first on all of them (`data/headless.ts`, `quests/graph.ts`, `quests/scout.ts`, `data/matriarchFight.ts`).
 
 **Phased raptors (SF27).** `@wildshard/engine/ai/phasedRaptor` `PhasedRaptorBrain(actor, spec, strikes, shove)` (schema
 `@wildshard/game/shardfile/phasedRaptors`, SDK `@wildshard/sdk/flyers` `phasedRaptor(data)`) is a boss bird its encounter
