@@ -18,7 +18,7 @@ import { inCube, skyIslesIn } from './skyIsles';
 import { keelIsles, skyIsleModels } from './skyIsleHd';
 import { skyBakedPiece, skyKnollHulls } from './baked';
 import { skyline } from './distant';
-import { PALETTE, flat, pines, plankBridge, vane, windmill, winch } from './shapes';
+import { PALETTE, flat, hoverBridge, pines, ropeBridge, vane, windmill, winch } from './shapes';
 import { bookStand } from './bookStand';
 import { BOOK_STAND } from '../data/bookStand';
 import { MILL_DRUM } from './mill';
@@ -202,13 +202,13 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
   // the skyline: decorative 3-D islands and waterfalls out past the archipelago, and the windmill isle's fall
   const sky = skyline(ISLES, (isle, a) => skyHd.lipAt(isle, a), skyIsles); root.add(sky);
 
-  const plank = flat(PALETTE.plank), rope = flat(PALETTE.rope);
+  const rope = flat(PALETTE.rope);
   // faint glass while you walk (E399, the council: 'translucent rectangles' over the windmill isle from the spawn): the glowing
   // frame shows the path; the plugin fills the glass in while you ride
   const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.25, transparent: true, opacity: 0.16, depthWrite: false, flatShading: false, roughness: 0.15, metalness: 0.1 });
   // SF49-g (G183): each gate isle's rope bridge to its island is one more rope span of the same builder
   const bridges = [...SPANS, ...RISING_ISLETS.map((entry) => entry.bridge)].map((span): Piece => {
-    const hover = span.kind === 'hover', length = spanLength(span), bridge = plankBridge(length, span.width, hover ? hoverDeck : plank, hover ? null : rope);
+    const hover = span.kind === 'hover', length = spanLength(span), bridge = hover ? hoverBridge(length, span.width, hoverDeck) : ropeBridge(span.id, rope);
     bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.set(spanPitch(span), spanYaw(span), 0, 'YXZ');
     const piece: Piece = { id: span.id, name: hover ? STRINGS.hover : STRINGS.rope, category: 'buildings', file: FILE, object: bridge,
       colliders: hover ? [deckCollider(span)] : saggedColliders(span), surface: 'wood' };
@@ -221,7 +221,7 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
   for (const piece of [...bridges, ...isletPieces(), ...skyDocksFor(ctx.cube)]) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
 
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
-  const ramp = plankBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck, null);
+  const ramp = hoverBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck);
   ramp.position.set(UPDRAFT.x0, UPDRAFT.y, UPDRAFT.z0); ramp.rotation.set(UPDRAFT_ANGLE, spanYaw(UPDRAFT), 0, 'YXZ'); root.add(ramp);
   // the wind column: a spiral of streaks and leaves up the ramp (loop 3; the plugin turns it)
   const wind = updraftFx(UPDRAFT_FX, new Vector3(UPDRAFT.x0, UPDRAFT.y + 2.2, UPDRAFT.z0), new Vector3(UPDRAFT.x1, UPDRAFT.y1 + 2.2, UPDRAFT.z1));
@@ -230,7 +230,7 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
   const state = { raised: false, raising: false };
-  const fallen = new Group(), deck = plankBridge(spanLength(FALLEN_BRIDGE), FALLEN_BRIDGE.width, plank, rope, false);
+  const fallen = new Group(), deck = ropeBridge(FALLEN_BRIDGE.id, rope);
   fallen.add(deck); fallen.position.set(FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0); fallen.rotation.set(FALLEN_ANGLE, spanYaw(FALLEN_BRIDGE), 0, 'YXZ'); root.add(fallen);
   ctx.piece({ id: FALLEN_BRIDGE.id, name: STRINGS.fallen, category: 'buildings', file: FILE, object: fallen,
     colliders: [deckCollider(FALLEN_BRIDGE), ...railColliders(FALLEN_BRIDGE)], surface: 'wood', active: () => state.raised });

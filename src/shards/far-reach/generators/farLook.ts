@@ -16,6 +16,7 @@ import { BufferAttribute, BufferGeometry, Color, Vector3 } from 'three';
 import { skyHdUrl } from '../boot/files';
 import { ISLE_CUT, ISLE_KEEL_CUT, SKY_ISLE_MODELS, type SkyIsle, type SkyIsleModel } from '../data/skyIsles';
 import { keelIsles, skyIslePose, skyIsleUnit, skyIsleWear, type SkyIsleUnit } from '../world/skyIsleHd';
+import { skyIsleFrame } from './skyIsleFrames';
 import { skyIslesIn } from '../world/skyIsles';
 import { ISLES, MILL, PINES, WINDMILL, type Isle } from '../data/layout';
 import { apothem } from '../layout';
@@ -208,7 +209,7 @@ export async function farParts(tools: FarModelTools): Promise<FarPart[]> {
   for (const name of SKY_ISLE_MODELS) {
     const raw = await tools.model(`public${skyHdUrl(name)}`), geometry = new BufferGeometry();
     geometry.setAttribute('position', new BufferAttribute(Float32Array.from(raw.positions), 3)).setIndex(new BufferAttribute(Uint32Array.from(raw.index), 1));
-    const unit = skyIsleUnit(geometry), positions = Float32Array.from(geometry.getAttribute('position').array), kept = tools.decimate(positions, raw.index, FAR_ISLES.triangles);
+    const unit = skyIsleUnit(geometry, skyIsleFrame(geometry)), positions = Float32Array.from(geometry.getAttribute('position').array), kept = tools.decimate(positions, raw.index, FAR_ISLES.triangles);
     // compact to the vertices the decimated index keeps
     const slot = new Map<number, number>(), pos: number[] = [], col: number[] = [];
     const index = Uint32Array.from(kept, (i) => {

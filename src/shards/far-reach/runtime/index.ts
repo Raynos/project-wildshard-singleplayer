@@ -24,6 +24,7 @@ import { GUST_FX } from '../data/windLook';
 import { RISING_ISLETS, type RisingIslet } from '../world/islets';
 import { FALL_TIME } from '../world/distant';
 import { WarFan } from '../weapons/WarFan';
+import { loadSkyFan } from '../weapons/fanShapes';
 import type { FanTarget } from '../weapons/fanStrikes';
 import { turnVanes } from '../quest/vanes';
 import { FAN_ROW } from '../weapons/rows';
@@ -35,6 +36,7 @@ import { GALE_WALL } from './stormRocBrain';
 import { bindPlayerPush, setHome } from '../species/rig';
 import { preloadSkyMeshes } from '../world/meshes';
 import { loadSkyBaked } from '../world/baked';
+import { loadSkyBridges } from '../world/shapes';
 import { setIsleTextures } from '../world/isle';
 import { setFirSheet } from '../world/fir';
 import { setMillTextures } from '../world/mill';
@@ -108,7 +110,7 @@ export class SkyReachPlugin extends ShardPlugin {
     ctx.strings(STRINGS);
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     // and the world pieces baked offline (SF72, world/baked.ts)
-    await Promise.all([preloadSkyMeshes(), loadSkyBaked(), loadSkyDressing()]);
+    await Promise.all([preloadSkyMeshes(), loadSkyBaked(), loadSkyDressing(), loadSkyBridges(), loadSkyFan()]);
     // the fan's painted silk; without it (offline, a test page) the fan keeps its plain teal, as the models keep their code stand-ins
     const leaf = await loadPainted(FAN_LEAF_URL, 'far.fan-leaf');
     if (leaf !== null) { this.leaf = leaf; ctx.scope.own(leaf); }

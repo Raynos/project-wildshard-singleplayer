@@ -66,6 +66,10 @@ const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { 'winch-house': '/asse
 export const bakedUrl = (piece: BakedPiece): string => BAKED_URLS[piece];
 /** The island dressing's baked instance sets (world/dressing.ts; SHARD-PLATFORM M3). */
 export const DRESSING_URL = '/assets/far-reach/baked/dressing.bin';
+/** The rope bridges' baked geometry pack (world/shapes.ts `ropeBridge`; SHARD-PLATFORM M3, generators/bridges.ts). */
+export const BRIDGES_URL = '/assets/far-reach/baked/bridges.bin';
+/** The war fan's baked shapes (weapons/fanModel.ts `fanParts`; SHARD-PLATFORM M3, generators/fan.ts). */
+export const FAN_URL = '/assets/far-reach/baked/fan.bin';
 /** The painted textures (E392, `art/far-reach/round-17-mockup-loop/textures/`): keel rock, meadow ground, the cumulus atlas. */
 export const TEX_URL = { rock: '/assets/far-reach/tex/rock.webp', meadow: '/assets/far-reach/tex/meadow.webp', clouds: '/assets/far-reach/tex/clouds.webp', branches: '/assets/far-reach/tex/branches.webp', cloudsea: '/assets/far-reach/tex/cloudsea.webp', maelstrom: '/assets/far-reach/tex/maelstrom.webp', stormeye: '/assets/far-reach/tex/stormeye.webp',
   millStone: '/assets/far-reach/tex/mill-stone.webp', millCanvas: '/assets/far-reach/tex/mill-canvas.webp', millIvy: '/assets/far-reach/tex/mill-ivy.webp' } as const;
@@ -77,7 +81,7 @@ export const PANO_URL = { desktop: '/assets/far-reach/sky/panorama.webp', phone:
 /** Sky Reach downloads its painted sky (look/sky.ts), its generated models (C6, `world/meshes.ts`), its baked world pieces (`world/baked.ts`) and creature bodies (`species/bodies.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
 // The HD models name their KTX2 stand-ins when this boot loads KTX2 (the phone's default, G253, manifest.ts): images otherwise.
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = (tier, tex) => ({
-  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(skyMeshUrl), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(skyHdUrl(name))), ...BAKED_PIECES.map(bakedUrl), DRESSING_URL,
+  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(skyMeshUrl), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(skyHdUrl(name))), ...BAKED_PIECES.map(bakedUrl), DRESSING_URL, BRIDGES_URL, FAN_URL,
     ...SKY_CREATURES.map((creature) => filePolicy(tier, tex, GPU_FILES).gpu(SKY_CREATURE_RIGS[creature]))], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();

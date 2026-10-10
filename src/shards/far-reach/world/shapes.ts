@@ -1,10 +1,12 @@
-import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry, DoubleSide, Euler, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3, type Object3D } from 'three';
+import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3, type Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { DECK_WOOD_EDITS, HOVER_FRAME_EDITS, POST_WEATHER_EDITS } from '../data/bridgeLook';
-import { ropeSag } from '../layout';
 import { fitModel, splitAbove } from '@wildshard/sdk/looks/modelIntake';
+import { GeometryPack, fetchDeflated, packedRows } from '@wildshard/sdk/kit/geometryPack';
+import bridgeRows from '../data/bridges.json' with { type: 'json' };
+import { BRIDGES_URL } from '../boot/files';
 import { hdMaterial, skyHd, skyMesh } from './meshes';
 import { towerMill } from './mill';
 import { skyBakedGeometry } from './baked';
@@ -49,72 +51,24 @@ function glassDeck(length: number, width: number, glass: MeshStandardMaterial): 
   return [slab, ...bars];
 }
 
-const ONE = new Vector3(1, 1, 1);
-/** The plank's tilt at `s` along the sag: its forward end follows the curve down then up. */
-function sagTilt(sag: (s: number) => number, s: number): Quaternion {
-  const ds = 0.05, slope = (sag(s + ds) - sag(s - ds)) / (2 * ds);
-  return new Quaternion().setFromEuler(new Euler(-Math.atan(slope), 0, 0));
-}
-/** A rope hung `at` metres over the deck line at `x`, sagging `k` times the deck's sag. */
-function hungRope(length: number, sag: (s: number) => number, x: number, at: number, k: number, radius: number): TubeGeometry {
-  const pts: Vector3[] = [];
-  for (let i = 0; i <= 16; i++) { const s = (i / 16) * length; pts.push(new Vector3(x, at - sag(s) * k, -s)); }
-  return new TubeGeometry(new CatmullRomCurve3(pts), 48, radius, 6, false);
-}
-/** A plank bridge along a local -Z run of `length` metres, `width` wide, deck top at local y 0. */
-export function plankBridge(length: number, width: number, material: MeshStandardMaterial, rails: MeshStandardMaterial | null, hangs = true): Group {
-  // a rigid deck (the crown's drawbridge swings up whole) does not sag
-  const sag = (s: number): number => hangs ? ropeSag(length, s) : 0;
-  const group = new Group(), step = 0.62, count = Math.max(1, Math.floor(length / step)), m = new Matrix4();
-  if (rails === null) { group.add(...glassDeck(length, width, material)); return group; }
-  // a rope bridge lays the generated plank segments when the kit loaded, hanging along its sag (layout ropeSag)
-  const kit = kitDeck(length, width, sag);
-  if (kit !== null) group.add(kit);
-  else {
-    const planks = new InstancedMesh(new BoxGeometry(width, 0.08, 0.5), material, count);
-    for (let i = 0; i < count; i++) { const s = (i + 0.5) * (length / count); m.compose(new Vector3(0, -0.06 - sag(s), -s), sagTilt(sag, s), ONE); planks.setMatrixAt(i, m); }
-    planks.computeBoundingSphere(); group.add(planks);
-  }
-  const posts = kitPosts(width, length);
-  if (posts !== null) group.add(posts);
-  for (const side of [-1, 1]) {
-    // the hand ropes (E399 round 6, seat A: 'tied rails'; the seats since round 5: 'smooth orange ropes in deep unsupported
-    // curves'): a thick top rope from the post heads, drawn tighter than the deck, a lighter mid rope, and ties from the top
-    // rope down to the deck's edge every 1.25 m, as the mockups' bridges are netted
-    const x = side * width / 2, topAt = 1.45, topK = 0.7, ties: BufferGeometry[] = [];
-    // (round 7, seat B: 'every 1.25 m the sides read as fences and ladders'): every 2.5 m and thin, the sky reads through
-    for (let t = 2.5; t < length - 1.2; t += 2.5) {
-      const deckY = -sag(t), ropeY = topAt - sag(t) * topK, tie = new CylinderGeometry(0.009, 0.009, ropeY - deckY, 4, 1);
-      tie.translate(x, (ropeY + deckY) / 2, -t); ties.push(tie.toNonIndexed());
-    }
-    group.add(new Mesh(hungRope(length, sag, x, topAt, topK, 0.045), rails), new Mesh(hungRope(length, sag, x, 0.7, 0.88, 0.026), rails));
-    if (ties.length > 0) { group.add(new Mesh(mergeGeometries(ties), rails)); for (const g of ties) g.dispose(); }
-    if (posts === null) for (const z of [0, -length]) { const post = new Mesh(new BoxGeometry(0.16, 1.3, 0.16), flat(PALETTE.trunk)); post.position.set(side * width / 2, 0.55, z); group.add(post); }
-  }
-  return group;
+/** A hover deck along a local -Z run of `length` metres, `width` wide, top at local y 0, in the shared `glass`. */
+export function hoverBridge(length: number, width: number, glass: MeshStandardMaterial): Group {
+  const group = new Group(); group.add(...glassDeck(length, width, glass)); return group;
 }
 
-/** Weathered wood (E392: the targets' planks and posts are silver-grey-brown; the generated kit's are saturated orange):
- * the geometry's own vertex colours pulled most of the way to their grey. */
-function greyWood(g: BufferGeometry): BufferGeometry {
-  if (!g.hasAttribute('color')) return g;
-  const c = g.getAttribute('color');
-  for (let i = 0; i < c.count; i++) {
-    const r = c.getX(i), gg = c.getY(i), b = c.getZ(i), lum = r * 0.3 + gg * 0.59 + b * 0.11;
-    c.setXYZ(i, r + (lum * 1.04 - r) * 0.65, gg + (lum * 0.99 - gg) * 0.65, b + (lum * 0.92 - b) * 0.65);
-  }
-  c.needsUpdate = true; return g;
+let bridges: InstanceType<typeof GeometryPack> | null = null;
+const BRIDGE_ROWS = packedRows(bridgeRows);
+/** Load the rope bridges' bake (with the other baked pieces, before the world is built); a failed load stands them undrawn. */
+export async function loadSkyBridges(): Promise<void> {
+  try { bridges = new GeometryPack(await fetchDeflated(BRIDGES_URL), BRIDGE_ROWS, 'far-reach bridges'); } catch (e: unknown) { console.error('[far-reach] the baked rope bridges did not load; they stand undrawn:', e); }
 }
-/** The rope-bridge kit (Hunyuan3D-2 from `art/far-reach/round-9-bridge/ref-bridge-*.jpg`): a plank deck segment about this long, and an anchor post this tall. */
-const DECK_SEGMENT = 4.8, POST_HEIGHT = 1.6;
-/** The generated deck segments laid end to end along local −Z, top at y 0, stretched to the span's width; null without the kit. */
-/**
- * The deck's painted wood (E399 round 2, seat C: 'flat-shaded planks with jagged facets next to the textured posts'):
- * smooth-shaded, a grain of fine streaks along each plank (the local x runs across the deck, z along it), a tone per plank
- * across the deck, silvered wear down the middle where feet go, darker toward the plank ends.
- */
 /** How far the bridge timber is greyed toward weathered silver: the deck's planks (plus their worn middle) and the post's wood. */
 const WEATHER = { deck: 0.6, post: 0.8 } as const;
+/**
+ * The deck's painted wood (E399 round 2, seat C: 'flat-shaded planks with jagged facets next to the textured posts'):
+ * smooth-shaded, a grain of fine streaks along each plank, a tone per plank across the deck, silvered wear down the middle
+ * where feet go, darker toward the plank ends.
+ */
 function deckWood(): MeshStandardMaterial {
   const m = flat(0xffffff, { vertexColors: true, flatShading: false, roughness: 0.9 });
   patchShader(m, 'far.deck-wood', PATCH_ORDER.decorate, (shader) => {
@@ -122,57 +76,51 @@ function deckWood(): MeshStandardMaterial {
   }, { key: (prior) => `${prior}|far.deck-wood` });
   return m;
 }
-function kitDeck(length: number, width: number, sag: (s: number) => number): InstancedMesh | null {
-  const source = skyMesh('bridge-deck'); if (source === null) return null;
-  // fitted along its long axis (x), then turned so that axis runs down the span
-  const g = fitModel(source, { size: DECK_SEGMENT, by: 'span', floor: 0 }); g.rotateY(Math.PI / 2); g.computeBoundingBox();
-  const b = g.boundingBox; if (b === null) return null;
-  const n = Math.max(1, Math.round(length / DECK_SEGMENT)), seg = length / n;
-  g.translate(-(b.min.x + b.max.x) / 2, -b.max.y, -(b.min.z + b.max.z) / 2);
-  // (round 6, seat A: 'thinner plank wedges'; the seats: 'a solid dark near edge'): half the kit's plank depth, the walking top unchanged
-  g.scale(width / Math.max(1e-3, b.max.x - b.min.x), 0.5, seg / Math.max(1e-3, b.max.z - b.min.z)); g.computeVertexNormals();
-  // weathered wood (E392: the mockups' planks are grey-brown, ours read saturated orange)
-  greyWood(g);
-  const mesh = new InstancedMesh(g, deckWood(), n), m = new Matrix4();
-  for (let i = 0; i < n; i++) { const s = (i + 0.5) * seg; m.compose(new Vector3(0, -sag(s), -s), sagTilt(sag, s), ONE); mesh.setMatrixAt(i, m); }
-  mesh.computeBoundingSphere(); return mesh;
-}
 /**
- * The textured anchor post (E392/E399, mockup A: weathered silver-grey timber wrapped in thick hemp rope under an iron
- * band, on a footing of mossy stones; `art/far-reach/round-19-hero-models/`): its height, and how far its middle stands
- * outside the rope rails (half its stone footing).
+ * The textured anchor post, 1.9 m tall on its footing, in its material (E392/E399, mockup A: weathered silver-grey timber wrapped in thick hemp rope under
+ * an iron band; `art/far-reach/round-19-hero-models/`), or null when its model did not load: the timber weathered to the
+ * mockups' silver-grey (its paint came out orange-brown); the gold hemp and the iron band, brighter or bluer, kept.
  */
-const HD_POST = { height: 1.9, out: 0.3 } as const;
-/** The textured posts at the span's four corners, their hanging rope ends turned outward; null when it did not load. */
-function hdPosts(width: number, length: number): InstancedMesh | null {
+function anchorPost(): { geometry: BufferGeometry; material: MeshStandardMaterial } | null {
   const source = skyHd('post-hd'); if (source === null) return null;
   const material = hdMaterial(source.map);
-  // the timber weathered to the mockups' silver-grey (its paint came out orange-brown); the gold hemp and the iron band,
-  // brighter or bluer than the wood, kept
   patchShader(material, 'far.post-weather', PATCH_ORDER.decorate, (shader) => {
     editShader(shader, spliceEdits(POST_WEATHER_EDITS, { weather: WEATHER.post.toFixed(2) }));
   }, { key: (prior) => `${prior}|far.post-weather` });
-  const g = fitModel(source.geometry, { size: HD_POST.height, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(g, material, 4);
-  const m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0), one = new Vector3(1, 1, 1);
-  let i = 0;
-  for (const side of [-1, 1]) for (const z of [0, -length]) {
-    // the file's knot hangs on its +x side: turned so it hangs on the post's outer side either way
-    q.setFromAxisAngle(up, side > 0 ? 0 : Math.PI);
-    m.compose(new Vector3(side * (width / 2 + HD_POST.out), -0.05, z), q, one); mesh.setMatrixAt(i++, m);
+  return { geometry: fitModel(source.geometry, { size: 1.9, by: 'height', floor: 0, centre: 'base' }), material };
+}
+/**
+ * A rope span from its bake (SHARD-PLATFORM M3: generators/bridges.ts, by span id; `kit` is the Explorer's one segment):
+ * the generated deck segments in their painted wood along the sag, the textured posts at its corners, the hand ropes (tubes
+ * through their baked points) and ties in `rails`. Empty when the bake did not load (the span's colliders are its own).
+ */
+export function ropeBridge(id: string, rails: MeshStandardMaterial): Group {
+  const group = new Group(), span = bridgeRows.spans.find((s) => s.id === id), pack = bridges;
+  if (pack === null || span === undefined) return group;
+  const instanced = (geometry: BufferGeometry, material: MeshStandardMaterial, block: number): InstancedMesh => {
+    const at = pack.floats(block), mesh = new InstancedMesh(geometry, material, at.length / 16); mesh.instanceMatrix.array.set(at); mesh.computeBoundingSphere(); return mesh;
+  };
+  // the deck segment stretched to the span (its normals as the stretch leaves them), one instance per segment along the sag
+  const [sx = 1, sy = 1, sz = 1] = span.deck.scale, deck = pack.geometry(bridgeRows.deck);
+  deck.scale(sx, sy, sz); deck.computeVertexNormals(); deck.computeBoundingBox();
+  group.add(instanced(deck, deckWood(), span.deck.at));
+  const post = anchorPost(); if (post !== null) group.add(instanced(post.geometry, post.material, span.posts));
+  const rope = (r: { r: number; at: readonly number[] }): Mesh => {
+    const points = Array.from({ length: r.at.length / 3 }, (_, i) => new Vector3(r.at[i * 3], r.at[i * 3 + 1], -(r.at[i * 3 + 2] ?? 0)));
+    return new Mesh(new TubeGeometry(new CatmullRomCurve3(points), 48, r.r, 6, false), rails);
+  };
+  for (const side of span.sides) {
+    group.add(rope(side.top), rope(side.mid));
+    const ties: BufferGeometry[] = [];
+    for (let i = 0; i + 3 < side.ties.length; i += 4) {
+      const tie = new CylinderGeometry(0.009, 0.009, side.ties[i + 3], 4, 1); tie.translate(side.ties[i] ?? 0, side.ties[i + 1] ?? 0, -(side.ties[i + 2] ?? 0)); ties.push(tie.toNonIndexed());
+    }
+    if (ties.length > 0) { group.add(new Mesh(mergeGeometries(ties), rails)); for (const g of ties) g.dispose(); }
   }
-  mesh.computeBoundingSphere(); return mesh;
+  return group;
 }
-/** The generated anchor posts at the span's four corners, just outside the rope rails (the textured ones when they loaded); null without the kit. */
-function kitPosts(width: number, length: number): InstancedMesh | null {
-  const textured = hdPosts(width, length); if (textured !== null) return textured;
-  const source = skyMesh('bridge-post'); if (source === null) return null;
-  const g = fitModel(source, { size: POST_HEIGHT, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(greyWood(g), flat(0xffffff, { vertexColors: true }), 4), m = new Matrix4();
-  let i = 0;
-  for (const side of [-1, 1]) for (const z of [0, -length]) { m.makeTranslation(side * (width / 2 + 0.12), -0.05, z); mesh.setMatrixAt(i++, m); }
-  mesh.computeBoundingSphere(); return mesh;
-}
-/** The rope-bridge kit for the Model Explorer: one deck segment with its four posts and the code ropes. */
-export function bridgeKit(): Group { return plankBridge(DECK_SEGMENT, 2.6, flat(PALETTE.plank), flat(PALETTE.rope)); }
+/** The rope-bridge kit for the Model Explorer: one deck segment with its four posts and the ropes. */
+export function bridgeKit(): Group { return ropeBridge('kit', flat(PALETTE.rope)); }
 
 /** The windmill: the code-built tower mill (loop 5, world/mill.ts); the generated C6 tower stays in the Model Explorer. */
 export function windmill(): { group: Group; hub: Object3D } {

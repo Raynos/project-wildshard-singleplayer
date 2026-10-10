@@ -1,10 +1,11 @@
-import { BackSide, Box3, Color, DoubleSide, FrontSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Vector3, type BufferAttribute, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
+import { BackSide, Color, DoubleSide, FrontSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Vector3, type BufferAttribute, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
 import type { Isle } from '../data/layout';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { SKY_ISLE_CLIP_EDITS, SKY_ISLE_ROCK, SKY_ISLE_ROCK_EDITS } from '../data/skyIsleLook';
 import { ISLE_KEEL_CUT, KEEL_TOP, SKY_ISLE_HD, SKY_ISLE_MODELS, SKY_ISLE_WEAR, type SkyIsle, type SkyIsleModel } from '../data/skyIsles';
 import { hdMaterial, skyHd } from './meshes';
+import FRAMES from '../data/skyIsleFrames.json' with { type: 'json' };
 import { SKY, SUN_DIR } from '../look/sun';
 
 /** A hex colour as a linear-space GLSL vec3 (the shader's output space before the post chain). */
@@ -15,8 +16,8 @@ function linear(hex: number): string { const c = new Color(hex); return `vec3(${
  * council seat read the code isles as "dark bare rock islands" from below, where the mockups' are lush (a thick mossy
  * turf spilling over the rim, warm sandy-grey stratified rock, long roots and moss trailing beneath). Three codex
  * references on white → BiRefNet cutout → Hunyuan3D-2 turbo shape + 2048 paint → decimated, a 1024 WebP map, meshopt.
- * Each model is brought to a unit frame once (its turf level at y 0, its rim's median radius 1, centred on its top),
- * then every isle that uses it is one instance, scaled to its rim radius and keel depth and turned to its own yaw.
+ * Each model is brought to a unit frame once (its turf level at y 0, its rim's median radius 1, centred on its top: found
+ * offline, generators/skyIsleFrames.ts), then every isle that uses it is one instance, scaled to its rim radius and keel depth and turned to its own yaw.
  * No trees in the models: the card firs stand on the turf (`topAt`). A model that failed to load leaves its isles to
  * the code builder (`world/isle.ts`).
  */
@@ -36,8 +37,6 @@ export const keelIsles = (isles: readonly Isle[]): SkyIsle[] => isles.map((isle)
 /** `bulge`: the model's widest horizontal reach under its turf (deck radii), where its overhangs and bushes spill out. */
 export interface SkyIsleUnit { readonly geometry: BufferGeometry; readonly depth: number; readonly rim: Float32Array; readonly probe: Mesh; readonly bulge: number }
 interface Unit extends SkyIsleUnit { readonly map: Texture }
-
-const median = (v: number[]): number => { const s = [...v].sort((a, b) => a - b); return s[Math.floor(s.length / 2)] ?? 0; };
 
 /**
  * A probe's straight-down rays without walking every triangle (rt3-crossing2). Three's Mesh.raycast tests all of a model's
@@ -101,34 +100,19 @@ export function skyIsleHitDown(probe: Mesh, origin: Vector3): number | undefined
   return y;
 }
 
-/** Bring a loaded model to the unit frame (see the module note); moves the geometry in place. Node-safe (the far bake). */
-export function skyIsleUnit(geometry: BufferGeometry): SkyIsleUnit {
+/**
+ * A model's unit frame as baked (generators/skyIsleFrames.ts, `data/skyIsleFrames.json`): the move (its top's centre and
+ * turf level, `tx` / `deck` / `tz`) and the scale (`k`, its rim's median radius to 1) that bring it there, its rim radius
+ * per angle bin and its widest reach under the turf, both in unit radii.
+ */
+export interface SkyIsleFrame { model: string; tx: number; deck: number; tz: number; k: number; bulge: number; rim: number[] }
+
+/** Bring a loaded model to the unit frame by its `frame` (see the module note); moves the geometry in place. Node-safe (the far bake). */
+export function skyIsleUnit(geometry: BufferGeometry, frame: Omit<SkyIsleFrame, 'model'>): SkyIsleUnit {
   const probe = new Mesh(geometry, new MeshBasicMaterial({ side: DoubleSide }));
-  const p = geometry.getAttribute('position') as BufferAttribute, box = new Box3().setFromBufferAttribute(p);
-  const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2, half = Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2;
-  // the turf: the median first hit straight down over the middle of the top (bushes and the crag's outcrop are outliers)
-  const hits: number[] = [];
-  for (let i = -3; i <= 3; i++) for (let k = -3; k <= 3; k++) {
-    const hit = skyIsleHitDown(probe, new Vector3(cx + (i / 3) * half * 0.45, box.max.y + 1, cz + (k / 3) * half * 0.45)); if (hit !== undefined) hits.push(hit);
-  }
-  const deck = median(hits), lip = deck - (box.max.y - box.min.y) * 0.06;
-  // the top's footprint: its centre, and its radius per angle (the farthest vertex near the turf level in each bin)
-  const top = new Box3();
-  for (let i = 0; i < p.count; i++) if (p.getY(i) > lip) top.expandByPoint(new Vector3(p.getX(i), p.getY(i), p.getZ(i)));
-  const tx = (top.min.x + top.max.x) / 2, tz = (top.min.z + top.max.z) / 2, bins = SKY_ISLE_HD.rimBins, rim = new Float32Array(bins);
-  for (let i = 0; i < p.count; i++) {
-    if (p.getY(i) <= lip) continue;
-    const dx = p.getX(i) - tx, dz = p.getZ(i) - tz, b = Math.floor(((Math.atan2(dz, dx) / (Math.PI * 2)) + 1) * bins) % bins;
-    rim[b] = Math.max(rim[b] ?? 0, Math.hypot(dx, dz));
-  }
-  const k = 1 / Math.max(1e-6, median([...rim].filter((r) => r > 0)));
-  let bulge = 0;
-  for (let i = 0; i < p.count; i++) if (p.getY(i) <= deck) bulge = Math.max(bulge, Math.hypot(p.getX(i) - tx, p.getZ(i) - tz) * k);
-  geometry.translate(-tx, -deck, -tz); geometry.scale(k, k, k);
-  for (let b = 0; b < bins; b++) rim[b] = (rim[b] ?? 0) * k;
+  geometry.translate(-frame.tx, -frame.deck, -frame.tz); geometry.scale(frame.k, frame.k, frame.k);
   geometry.computeBoundingBox(); geometry.computeBoundingSphere();
-  const depth = -(geometry.boundingBox?.min.y ?? -1);
-  return { geometry, depth, rim, probe, bulge };
+  return { geometry, depth: -(geometry.boundingBox?.min.y ?? -1), rim: Float32Array.from(frame.rim), probe, bulge: frame.bulge };
 }
 
 /**
@@ -164,7 +148,10 @@ export interface SkyIsleHd {
 /** `clipTop` (the playable islands' keels): everything above the model's turf is cut away, so its canopy never pokes through a deck. */
 export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIsleHd {
   const units = new Map<SkyIsleModel, Unit>();
-  for (const name of SKY_ISLE_MODELS) { const m = skyHd(name); if (m !== null) units.set(name, { ...skyIsleUnit(m.geometry), map: m.map }); }
+  for (const name of SKY_ISLE_MODELS) {
+    const m = skyHd(name), frame = FRAMES.find((f) => f.model === name);
+    if (m !== null && frame !== undefined) units.set(name, { ...skyIsleUnit(m.geometry, frame), map: m.map });
+  }
   const group = new Group(), fallback: SkyIsle[] = [], placed = new Map<string, { u: Unit; yaw: number; sy: number }>();
   const byModel = new Map<SkyIsleModel, SkyIsle[]>();
   isles.forEach((s, i) => {
