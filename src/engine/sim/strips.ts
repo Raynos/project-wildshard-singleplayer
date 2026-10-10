@@ -1,7 +1,7 @@
 import { diagnosticNow } from '../core/clock';
 import { validateEdgeProfile } from './edgeProfiles';
 import { SHORE_DEPTH } from './shore';
-import { seamGeometry, cornerSeamGeometry, SEAM_OFFSETS, type SeamEdge, type SeamFeature, type SeamTurnIn } from './seamGeometry';
+import { seamGeometry, cornerSeamGeometry, seamGeometrySteps, cornerSeamGeometrySteps, SEAM_OFFSETS, type SeamEdge, type SeamFeature, type SeamTurnIn } from './seamGeometry';
 
 /** Deterministic platform seam data, independent of rendering, devices and physics wrappers. */
 export interface StripProfile { readonly heights: readonly number[]; readonly colours: readonly (readonly number[])[]; readonly roadHeight: number }
@@ -44,7 +44,7 @@ export function generatePlatform(cells: readonly PlatformCell[], empty: StripPro
 /**
  * `generatePlatform` in slices (rt3-crossing): the same strips, in the same order, but `pause` is awaited whenever a
  * slice of strip generation has run `budgetMs`, so a page building its platform during a load keeps painting instead of
- * freezing for the whole generation (40 strips, seconds on a throttled phone). A strip is the unit: one never splits.
+ * freezing for the whole generation. Native seam certification yields within a strip; output is published only when complete.
  */
 export async function generatePlatformSliced(cells: readonly PlatformCell[], empty: StripProfile, pause: () => Promise<void>, budgetMs = 12): Promise<readonly GeneratedStrip[]> {
   const steps = platformSteps(cells, empty);
@@ -55,7 +55,7 @@ export async function generatePlatformSliced(cells: readonly PlatformCell[], emp
   }
 }
 
-/** The generator behind both: yields after each strip or crossroads it adds, returns the whole platform. */
+/** Shared ordered construction: partial seam certification remains private until each strip is complete. */
 function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile): Generator<void, readonly GeneratedStrip[]> {
   validateEdgeProfile(empty);
   if (cells.length === 0 || cells.length > 9 || new Set(cells.map((c) => c.instance)).size !== cells.length
@@ -78,26 +78,35 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile): Ge
     if (key === undefined) { key = exactKey(profile); profiles.set(profile, key); }
     return key;
   };
-  const strip = (input: Parameters<typeof generateStrip>[0]): GeneratedStrip => {
+  function* strip(input: Parameters<typeof generateStrip>[0]): Generator<void, GeneratedStrip> {
     const key = exactKey([input.axis, input.profiles.map(profileKey), input.observations]);
     let shape = shapes.get(key);
-    if (shape === undefined) { shape = generateStrip(input); shapes.set(key, shape); }
+    if (shape === undefined) {
+      input.profiles.forEach(validateEdgeProfile);
+      const edges = input.profiles.map((profile, i): SeamEdge => ({ profile, ...(input.observations?.[i] ?? { entryWidth: 0 }) }));
+      const low = edges[0], high = edges[1]; if (low === undefined || high === undefined) throw new Error('Missing platform edge');
+      const generated = yield* seamGeometrySteps({ ...input, edges: [low, high] });
+      shape = place(input.id, generated.mesh, input.adjacent, generated.features, generated.turnIn); shapes.set(key, shape);
+    }
     return place(input.id, { ...shape.mesh, origin: { ...input.origin } }, input.adjacent, shape.features, shape.turnIn);
-  };
-  const cross = (input: Parameters<typeof generateCrossroads>[0]): GeneratedStrip => {
+  }
+  function* cross(input: Parameters<typeof generateCrossroads>[0]): Generator<void, GeneratedStrip> {
     const key = exactKey(['cross', input.corners]);
     let shape = shapes.get(key);
-    if (shape === undefined) { shape = generateCrossroads(input); shapes.set(key, shape); }
+    if (shape === undefined) {
+      const generated = yield* cornerSeamGeometrySteps(input);
+      shape = place(input.id, generated.mesh, input.adjacent, generated.features); shapes.set(key, shape);
+    }
     return place(input.id, { ...shape.mesh, origin: { ...input.origin } }, input.adjacent, shape.features);
-  };
+  }
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ; z <= maxZ; z++) {
     const low = get(x, z), high = get(x + 1, z);
-    result.push(strip({ id: `gap.x.${x}.${z}`, axis: 'x', origin: { x: x * 555 + 277.5, z: z * 555 }, profiles: [low?.edges.east ?? empty, high?.edges.west ?? empty], adjacent: present([low, high]), observations: [low?.observations?.east ?? { entryWidth: 0 }, high?.observations?.west ?? { entryWidth: 0 }] }));
+    result.push(yield* strip({ id: `gap.x.${x}.${z}`, axis: 'x', origin: { x: x * 555 + 277.5, z: z * 555 }, profiles: [low?.edges.east ?? empty, high?.edges.west ?? empty], adjacent: present([low, high]), observations: [low?.observations?.east ?? { entryWidth: 0 }, high?.observations?.west ?? { entryWidth: 0 }] }));
     yield;
   }
   for (let z = minZ - 1; z <= maxZ; z++) for (let x = minX; x <= maxX; x++) {
     const low = get(x, z), high = get(x, z + 1);
-    result.push(strip({ id: `gap.z.${x}.${z}`, axis: 'z', origin: { x: x * 555, z: z * 555 + 277.5 }, profiles: [low?.edges.north ?? empty, high?.edges.south ?? empty], adjacent: present([low, high]), observations: [low?.observations?.north ?? { entryWidth: 0 }, high?.observations?.south ?? { entryWidth: 0 }] }));
+    result.push(yield* strip({ id: `gap.z.${x}.${z}`, axis: 'z', origin: { x: x * 555, z: z * 555 + 277.5 }, profiles: [low?.edges.north ?? empty, high?.edges.south ?? empty], adjacent: present([low, high]), observations: [low?.observations?.north ?? { entryWidth: 0 }, high?.observations?.south ?? { entryWidth: 0 }] }));
     yield;
   }
   const corner = (cell: PlatformCell | undefined, horizontal: 'north' | 'south', vertical: 'east' | 'west'): StripCorner => {
@@ -110,7 +119,7 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile): Ge
   };
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ - 1; z <= maxZ; z++) {
     const sw = get(x, z), se = get(x + 1, z), nw = get(x, z + 1), ne = get(x + 1, z + 1);
-    result.push(cross({ id: `cross.${x}.${z}`, origin: { x: x * 555 + 277.5, z: z * 555 + 277.5 }, corners: [corner(sw, 'north', 'east'), corner(se, 'north', 'west'), corner(nw, 'south', 'east'), corner(ne, 'south', 'west')], adjacent: present([sw, se, nw, ne]) }));
+    result.push(yield* cross({ id: `cross.${x}.${z}`, origin: { x: x * 555 + 277.5, z: z * 555 + 277.5 }, corners: [corner(sw, 'north', 'east'), corner(se, 'north', 'west'), corner(nw, 'south', 'east'), corner(ne, 'south', 'west')], adjacent: present([sw, se, nw, ne]) }));
     yield;
   }
   return result;

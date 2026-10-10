@@ -1,5 +1,5 @@
 import { edgeSample, edgeSampleLocations } from './edgeProfiles';
-import { seamLatticeRows } from './seamLattice';
+import { seamLatticeSteps } from './seamLattice';
 import { SHORE_DEPTH, SHORE_REVETMENT_INNER_FACE } from './shore';
 import type { StripCorner, StripMesh, StripProfile } from './strips';
 
@@ -95,6 +95,12 @@ function cliffFoot(edgeHeight: number, cornerWeight = 1): { u: number; bottom: n
 
 /** Build the G90 corridor, preserving all native sample locations and using the same triangles for every world and the renderer. */
 export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 'z'; readonly origin: { readonly x: number; readonly z: number }; readonly edges: readonly [SeamEdge, SeamEdge] }): SeamGeometry {
+  const steps = seamGeometrySteps(input);
+  for (;;) { const next = steps.next(); if (next.done === true) return next.value; }
+}
+
+/** Ordered seam construction with paint opportunities inside its native lattice certification. */
+export function* seamGeometrySteps(input: { readonly id: string; readonly axis: 'x' | 'z'; readonly origin: { readonly x: number; readonly z: number }; readonly edges: readonly [SeamEdge, SeamEdge] }): Generator<void, SeamGeometry> {
   input.edges.forEach(validateEdge);
   const native = edgeSampleLocations(input.edges.map((edge) => edge.profile));
   const along = [...new Set([...native, 0, ...input.edges.flatMap((edge) => [-edge.entryWidth / 2, edge.entryWidth / 2]), ...input.edges.flatMap((edge) => edge.outflows?.flatMap((row) => [row.from, row.to]) ?? [])])].sort((a, b) => a - b);
@@ -104,7 +110,7 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
     const edge = input.edges[u < 0 ? 0 : 1], sample = edgeSample(edge.profile, v), weight = blend(u);
     writer.vertex(u, weight === 0 ? 0 : edgeFloor(edge, sample.height) * weight, v, neutral.map((c, channel) => c + ((sample.colour[channel] ?? c) - c) * weight));
   }
-  const retained = seamLatticeRows({ positions: writer.positions, colours: writer.colours, columns: count, along });
+  const retained = yield* seamLatticeSteps({ positions: writer.positions, colours: writer.colours, columns: count, along });
   const columns = Array.from({ length: count }, (_, col) => col);
   for (let band = 1; band < columns.length; band++) {
     const col = columns[band], previous = columns[band - 1];
@@ -275,6 +281,12 @@ function revetment(writer: MeshWriter, edge: SeamEdge, side: -1 | 1, along: read
 
 /** Four B-clamped corner fields join the corridors; physical faces turn10m around each corner, outside both road lanes. */
 export function cornerSeamGeometry(input: { readonly id: string; readonly origin: { readonly x: number; readonly z: number }; readonly corners: readonly [StripCorner, StripCorner, StripCorner, StripCorner] }): { readonly mesh: StripMesh; readonly features: readonly SeamFeature[] } {
+  const steps = cornerSeamGeometrySteps(input);
+  for (;;) { const next = steps.next(); if (next.done === true) return next.value; }
+}
+
+/** Ordered seam construction with paint opportunities inside its native lattice certification. */
+export function* cornerSeamGeometrySteps(input: { readonly id: string; readonly origin: { readonly x: number; readonly z: number }; readonly corners: readonly [StripCorner, StripCorner, StripCorner, StripCorner] }): Generator<void, { readonly mesh: StripMesh; readonly features: readonly SeamFeature[] }> {
   if (input.corners.some((c) => !Number.isFinite(c.height) || Math.abs(c.height) > 250 || c.colour.some((n) => !Number.isFinite(n) || n < 0 || n > 1))) throw new RangeError('Invalid seam corner');
   const writer = new MeshWriter('x'), count = SEAM_OFFSETS.length;
   for (const z of SEAM_OFFSETS) for (const x of SEAM_OFFSETS) {
@@ -283,7 +295,7 @@ export function cornerSeamGeometry(input: { readonly id: string; readonly origin
     const weight = blend(x) * blend(z);
     writer.vertex(x, weight === 0 ? 0 : cornerFloor(corner) * weight, z, neutral.map((c, i) => c + ((corner.colour[i] ?? c) - c) * weight));
   }
-  const retained = seamLatticeRows({ positions: writer.positions, colours: writer.colours, columns: count, along: SEAM_OFFSETS, corner: true });
+  const retained = yield* seamLatticeSteps({ positions: writer.positions, colours: writer.colours, columns: count, along: SEAM_OFFSETS, corner: true });
   for (let col = 1; col < count; col++) {
     const left = retained[col - 1], right = retained[col];
     if (left === undefined || right === undefined) throw new Error('Missing corner column');

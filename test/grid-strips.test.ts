@@ -62,14 +62,37 @@ describe('deterministic shared platform seams', () => {
 
 // rt3-crossing: the cold grid start built these 40 strips in one main-thread task (11.8 s at 4x CPU under "Weapons · HUD").
 // The sliced generator is the same platform, strip for strip, with a paint opportunity whenever a slice runs out.
-it('generates the same platform in slices, pausing between strips once a slice has used its budget', async () => {
+it('generates the same platform in slices, pausing within certified strips once a slice has used its budget', async () => {
   const empty = { heights: Array.from({ length: 257 }, () => 0), colours: Array.from({ length: 257 }, () => [0.25, 0.25, 0.25]), roadHeight: 0 };
   const cells = [-1, 0, 1].flatMap((x) => [-1, 0, 1].map((z) => ({ instance: `${x}/${z}`, origin: { x: x * 555, z: z * 555 }, cell: [x, z] as const, edges: { north: empty, south: empty, east: empty, west: empty } })));
   let pauses = 0;
   const sliced = await generatePlatformSliced(cells, empty, () => { pauses++; return Promise.resolve(); }, 0);
   expect(sliced).toEqual(generatePlatform(cells, empty));
-  expect(pauses).toBe(40); // a zero budget pauses after every strip and crossroads
+  expect(pauses).toBeGreaterThan(40); // Certification yields inside the strips and crossroads as well.
   let none = 0;
   expect(await generatePlatformSliced(cells, empty, () => { none++; return Promise.resolve(); }, Number.POSITIVE_INFINITY)).toHaveLength(40);
   expect(none).toBe(0);
 }, 60_000);
+
+
+it('preserves the pre-slicing native 256/257 shore and cliff mesh bytes, placements and features', async () => {
+  const native = (count: number, height: number): StripProfile => ({
+    heights: Array.from({ length: count }, (_, i) => height + (i === 0 || i === count - 1 ? 0 : Math.sin(i / 8))),
+    colours: Array.from({ length: count }, (_, i) => [0.2 + (i === 0 || i === count - 1 ? 0 : 0.1 * Math.sin(i / 6)), 0.3, 0.4]), roadHeight: 0,
+  });
+  const cells = [native(256, -12), native(257, 100)].map((edge, i) => ({ instance: `region${i}`, origin: { x: i * 555, z: 0 }, cell: [i, 0] as const,
+    edges: { north: edge, south: edge, east: edge, west: edge },
+    observations: { north: { entryWidth: 0, waterSurface: 0 }, south: { entryWidth: 0, waterSurface: 0 }, east: { entryWidth: 0, waterSurface: 0 }, west: { entryWidth: 0, waterSurface: 0 } },
+  }));
+  const strips = generatePlatform(cells, native(257, 0)), chunks: Uint8Array[] = [], encode = new TextEncoder();
+  for (const strip of strips) {
+    chunks.push(encode.encode(JSON.stringify([strip.id, strip.mesh.origin, strip.features, strip.turnIn, strip.duplicates.map(duplicate => [duplicate.instance, duplicate.mesh.origin])])));
+    for (const data of [strip.mesh.positions, strip.mesh.colours, strip.mesh.indices]) chunks.push(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+  }
+  // Captured from the original synchronous algorithm before introducing intra-strip yield points.
+  const bytes = new Uint8Array(chunks.reduce((total, chunk) => total + chunk.byteLength, 0));
+  let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+  expect(Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('')).toBe('fc30c110b70581434ba4691f96e02b2d0c0b4ad65f86968482312a6a87a31d89');
+  expect(strips).toHaveLength(13);
+});

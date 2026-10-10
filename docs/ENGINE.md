@@ -81,6 +81,12 @@ two-phase unloads through the session's one allocator. `@wildshard/engine/sim/st
 highway, strip and crossroads meshes with local duplicates; where an edge observes a sea at exactly 0 over seabed (the
 shore rule, G149) the strip holds 0 to the cell edge and builds a +0.6 m rip-rap revetment there (feature `revetment`,
 part of the collider), and a shard clips its sea at `SHORE_REVETMENT_INNER_FACE` from `@wildshard/engine/sim/shore`.
+`sim/strips.generatePlatformSliced` uses the same ordered geometry/certification generator as
+synchronous `generatePlatform`, awaiting its supplied paint pause when the slice budget expires.
+It yields within adaptive native-lattice subdivision and vertex-removal checks, rather than waiting
+for an entire strip to finish; partial strips remain private. `sim/seamGeometry` and `sim/seamLattice`
+expose the ordered step generators for this scheduling. Vertex/index/colour bytes, features,
+regional placement and the certification tolerances are identical to synchronous construction.
 `@wildshard/engine/physics/frame` prepares rider/mount
 motor transfers. `@wildshard/game/grid/state` fingerprints authored continuation without global placement or
 platform colliders. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.

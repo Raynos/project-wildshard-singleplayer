@@ -49,22 +49,29 @@ function fits(field: Field, start: number, end: number, firstColumn: number, las
 
 /** Adaptive interior rows, certified against the original dense triangles; native boundary columns remain complete. */
 export function seamLatticeRows(field: Field): readonly number[][] {
+  const steps = seamLatticeSteps(field);
+  for (;;) { const next = steps.next(); if (next.done === true) return next.value; }
+}
+
+/** The same ordered certification, yielding between bounded subdivision and vertex-removal checks. */
+export function* seamLatticeSteps(field: Field): Generator<void, readonly number[][]> {
   const rows = field.along.length;
   if (rows < 2 || field.columns < 4 || field.positions.length !== rows * field.columns * 3 || field.colours.length !== field.positions.length) throw new RangeError('Invalid seam floor lattice');
   const dense = [0];
   for (const at of field.along) dense.push((dense.at(-1) ?? 0) + (Math.abs(at) <= 2 ? 1 : 0));
-  const plan = (firstColumn: number, lastColumn: number): number[] => {
+  function* plan(firstColumn: number, lastColumn: number): Generator<void, number[]> {
     const kept = [0];
-    const visit = (start: number, end: number): void => {
+    function* visit(start: number, end: number): Generator<void> {
+      yield;
       if (end === start + 1 || ((dense[end] ?? 0) === (dense[start + 1] ?? 0)
         && (field.along[end] ?? 0) - (field.along[start] ?? 0) <= CONTACT_SPAN && fits(field, start, end, firstColumn, lastColumn))) { kept.push(end); return; }
-      const middle = Math.floor((start + end) / 2); visit(start, middle); visit(middle, end);
-    };
-    visit(0, rows - 1);
+      const middle = Math.floor((start + end) / 2); yield* visit(start, middle); yield* visit(middle, end);
+    }
+    yield* visit(0, rows - 1);
     return kept;
-  };
+  }
   const retained = Array.from({ length: field.columns }, () => new Set<number>());
-  for (let column = 1; column < field.columns; column++) for (const row of plan(column - 1, column)) {
+  for (let column = 1; column < field.columns; column++) for (const row of (yield* plan(column - 1, column))) {
     retained[column - 1]?.add(row); retained[column]?.add(row);
   }
   const native = Array.from({ length: rows }, (_unused, row) => row);
@@ -94,6 +101,7 @@ export function seamLatticeRows(field: Field): readonly number[][] {
     // Reuse their rounded values until this column completes; no field survives the generation.
     const triangleError = seamTriangleErrorEvaluator(field);
     for (let i = 1; i < kept.length - 1;) {
+      yield;
       const row: number = kept[i] ?? 0, previous = kept[i - 1] ?? 0, next = kept[i + 1] ?? 0;
       if (Math.abs(field.along[row] ?? 0) <= 2) { i++; continue; }
       output[column] = kept.filter(value => value !== row);
