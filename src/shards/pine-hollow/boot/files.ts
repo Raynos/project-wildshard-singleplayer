@@ -5,9 +5,11 @@ import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
 import { pineHeroUrls } from '../world/heroFiles';
-import { pineSkyKeyUrls } from '../look/skyKeys';
+import { PINE_SKY } from '../data/sky';
 
 const uniq = (urls: readonly string[]): string[] => [...new Set(urls)];
+/** every sky key's baked pair (data/sky.ts): the boot pack holds all seven, so the clock never fetches a key mid-play (E44) */
+const PINE_SKY_KEY_URLS = Object.values(PINE_SKY.keys).flatMap((k) => [PINE_SKY.keyFiles.color, PINE_SKY.keyFiles.gain].map((f) => f.replaceAll('{id}', k.id)));
 /** the KTX2 table the boot lists read: the generated one, or with the memory trim's ASTC 6×6 overlay (boot/gpuTable.ts, G180 B2) */
 let table: typeof GPU_FILES = GPU_FILES;
 /** boot/gpuTable.ts, when the manifest's KTX2 table resolves (the boot's ktx2 stage, before any list is read) */
@@ -70,7 +72,7 @@ export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
   const props = uniq(['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk'].map(lod));
   const skyJson = `${bakedDir}sky.json`, color = `${hdri}.sky.jpg`, gain = `${hdri}.gain.png`;
   return {
-    sky: [...(color in publicBytes() && gain in publicBytes() ? [color, gain] : [`${hdri}.hdr`]), ...(skyJson in publicBytes() ? [skyJson] : []), ...pineSkyKeyUrls().filter((url) => url in publicBytes())].map(gpu),
+    sky: [...(color in publicBytes() && gain in publicBytes() ? [color, gain] : [`${hdri}.hdr`]), ...(skyJson in publicBytes() ? [skyJson] : []), ...PINE_SKY_KEY_URLS.filter((url) => url in publicBytes())].map(gpu),
     baked: Object.keys(publicBytes()).filter((url) => url.startsWith(`${bakedDir}tex/`) && !url.includes('.phone.') && !BAKED_UNREAD.test(url)).map(gpu),
     terrain: terrain.map(gpu), trees: trees.map(gpu), physics: ['/assets/physics/rapier.wasm', ...(`${bakedDir}navmesh.bin` in publicBytes() ? [`${bakedDir}navmesh.bin`] : [])], cabins,
     props: [...worldReads(tier, tex), ...props, ...pineHeroUrls().filter((url) => url in publicBytes()), ...rigNames.map((name) => `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`).filter((url) => url in publicBytes())].map(gpu).concat(coatReads(tier, tex), viewmodelReads(tier, tex)),

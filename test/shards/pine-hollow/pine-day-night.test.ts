@@ -3,7 +3,9 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { PINE_PHASES, pineMoonAt, pineNightAt, pineSunAt } from '../../../src/shards/pine-hollow/look/dayKeys';
-import { PINE_SKY_KEYS } from '../../../src/shards/pine-hollow/look/skyKeys';
+import { PINE_SKY } from '../../../src/shards/pine-hollow/data/sky';
+
+const PINE_SKY_KEYS = PINE_SKY.keys;
 
 const DAY = 20 / 24;
 const deg = (r: number): number => (r * 180) / Math.PI;

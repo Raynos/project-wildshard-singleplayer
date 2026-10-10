@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { packSkyKeyRgb9e5 } from '../../../src/shards/pine-hollow/look/skyKeyFormat';
+import { packSkyKeyRgb9e5 } from '@wildshard/sdk/looks/keyedSky';
 
 describe('Pine memory trim: the HDRI sky key as RGB9_E5 (SF47-g)', () => {
   it('keeps every RGB half float, drops the constant alpha and asks the GPU for 4 bytes a texel', () => {

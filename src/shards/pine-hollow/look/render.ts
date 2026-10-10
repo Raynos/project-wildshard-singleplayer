@@ -1,27 +1,7 @@
-import { preloadBakedTextures, loadLUT } from '@wildshard/engine/boot/bakedApi';
-import type { LookStrategy, SkyBackdropFactory } from '@wildshard/engine/render/look';
-import * as THREE from 'three';
-import { PineSkyBackdrop, registerPineBackdrop, unregisterPineBackdrop } from './skyBackdrop';
-import { pineSunAt } from './dayKeys';
+import type { LookStrategy } from '@wildshard/engine/render/look';
+import { keyedSkyBackdrop } from '@wildshard/sdk/looks/keyedSky';
+import { PINE_KEYED_DAY } from './dayKeys';
 import { pineMemoryTrim } from '../debug/options';
 
-const backdrop: SkyBackdropFactory = async ({ sky, scene, renderer, level, tier, look }) => {
-  const [pine, , lut] = await Promise.all([PineSkyBackdrop.create(renderer, scene, level.tiers?.[tier]?.envSteps === true, pineMemoryTrim(), tier === 'phone' && pineMemoryTrim()), preloadBakedTextures(), loadLUT(level.id)]);
-  registerPineBackdrop(sky, pine);
-  if (look) Object.assign(pine.look, { vol: look.vol, fogDist: look.fogDist, sat: look.sat, ambient: look.ambient, sky: look.sky });
-  pineSunAt(pine.phase, sky.sunDir);
-  scene.background = null;
-  scene.add(pine.dome);
-  return {
-    clock: pine.clock, horizon: new THREE.Color(...level.sky.fogSunColor), lut,
-    bind: (targets) => { pine.bind(targets); },
-    update: (dt, camera) => { pine.update(dt, camera); },
-    rebuild: () => { pine.rebuild(); },
-    attachPost: (post) => { pine.attachPost(post); },
-    dispose: () => { unregisterPineBackdrop(sky, pine); pine.dispose(); },
-    gpuBytes: () => pine.gpuBytes(),
-    gpuCeiling: () => pine.gpuCeiling(),
-  };
-};
-
-export function shardRender(): LookStrategy { return { compose: () => ({}), backdrop }; }
+/** Pine Hollow's look: the engine's chain under its keyed day / night sky (data/sky.ts); the memory trim packs the keys. */
+export function shardRender(): LookStrategy { return { compose: () => ({}), backdrop: keyedSkyBackdrop(PINE_KEYED_DAY, pineMemoryTrim) }; }
