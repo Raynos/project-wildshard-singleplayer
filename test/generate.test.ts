@@ -1,4 +1,7 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { chromium } from 'playwright';
+// oxlint-disable-next-line import/no-nodejs-modules -- The fake producer's executable is its cache identity.
+import { execPath } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- This fixture exercises isolated on-disk Node generators.
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Each producer runs in an owned temporary directory.
@@ -11,7 +14,7 @@ import { compareGeneration } from '../scripts/generation-linux.mjs';
 import { discoverGeneration, generationInputs, generateShardJob, reportGeneration, type GenerationComparison, type ShardGenerationJob } from '../scripts/generate.mjs';
 
 const roots:string[]=[];
-afterEach(()=>{for(const root of roots.splice(0))rmSync(root,{recursive:true,force:true});});
+afterEach(()=>{vi.restoreAllMocks();for(const root of roots.splice(0))rmSync(root,{recursive:true,force:true});});
 function fixture():{root:string;job:ShardGenerationJob} {
   const root=mkdtempSync(resolve(tmpdir(),'generation-runner-test-'));roots.push(root);
   const put=(file:string,text:string):void=>{mkdirSync(dirname(resolve(root,file)),{recursive:true});writeFileSync(resolve(root,file),text);};
@@ -65,6 +68,8 @@ describe('G292 shard generation entry',()=>{
   });
   it('fences shared browser commands without exempting their raw output bytes',async()=>{
     const {root,job}=fixture(),revision='1'.repeat(40);
+    // This producer is a Node fixture, not a browser capture. Fence its actual executable without installed Chromium.
+    const executable=vi.spyOn(chromium,'executablePath').mockReturnValue(execPath);
     const server=createServer((request,response)=>{
       if(request.url==='/version.json') response.end(JSON.stringify({build:`${revision.slice(0,7)}-fixture`}));
       else response.end('bit-exact');
@@ -76,7 +81,7 @@ describe('G292 shard generation entry',()=>{
       writeFileSync(resolve(root,job.entry),`import {writeFileSync} from 'node:fs';const url=process.argv.find(arg=>arg.startsWith('--url=')).slice(6);writeFileSync('public/out/value.bin',await (await fetch(new URL('input',url))).text());`);
       const previewJob={...job,browser:true,preview:true,command:[job.entry,'--url=<preview-url>']};
       const result=await generateShardJob(root,previewJob,{cacheDir:resolve(root,'cache'),preview:{url,revision}});
-      expect(result.hit).toBe(false);
+      expect(result.hit).toBe(false);expect(executable).toHaveBeenCalled();
       writeFileSync(resolve(root,job.outputs[0] ?? ''),'changed');
       await expect(generateShardJob(root,previewJob,{cacheDir:resolve(root,'cache'),preview:{url,revision}})).rejects.toThrow('Committed generated output differs');
       await expect(generateShardJob(root,{...previewJob,preview:false},{cacheDir:resolve(root,'cache')})).rejects.toThrow('Undeclared preview command');
