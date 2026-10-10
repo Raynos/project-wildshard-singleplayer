@@ -11,14 +11,15 @@ import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
+import { BuildingLife } from '@wildshard/sdk/props/buildingLife';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
-import { CABIN_DOOR_EDITS, CABIN_MOSS_EDITS, CABIN_PARTICLE_GLSL, CABIN_PARTICLE_KINDS } from '../data/cabinLook';
+import { CABIN_DOOR_EDITS, CABIN_LIFE, CABIN_MOSS_EDITS, CABIN_PARTICLE_GLSL, CABIN_PARTICLE_KINDS } from '../data/cabinLook';
 import { mergeParts, type PropPart } from '../models/logCabin';
-import { PROP_KINDS, type Door, type Fire, type Floor, type LightAnchor, type PropKind, type Room, type Swing } from './logKit';
+import { PROP_KINDS, type PropKind } from './logKit';
 import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from './cabinBake';
 
 /**
@@ -242,49 +243,29 @@ export interface CabinBuilding {
   readonly weld: WeldBuild;
 }
 
-/** a place the phone's pooled lights may visit: a building (its anchors, rooms and door) or a lamp site */
-interface LightSite { root: THREE.Object3D; anchors: LightAnchor[]; lit?: () => boolean; rooms?: readonly Room[]; door?: [number, number] }
-
-export class Cabins implements BuildingOwner {
+/**
+ * The homestead: the buildings built from the bake, and their life (@wildshard/sdk/props/buildingLife, the look
+ * ../data/cabinLook.ts `CABIN_LIFE`: doors, fires and lamps on the clock, the phone's pooled lights, swings, the wheel,
+ * floors and solids). The particles' night hold is Pine's (`cabinNight`).
+ */
+export class Cabins extends BuildingLife implements BuildingOwner {
   group = new THREE.Group();
   /** the hamlet's one set: its root, posed at the hamlet's centre (null without extra buildings); `place` welds into it */
   cluster: THREE.Group | null = null;
   /** metres the hamlet's buildings stand from its root (its detail bands are this much longer) */
   clusterPad = 0;
-  /** radians per second of every mill wheel (the miller's errand can stop it: 0) */
-  wheelSpeed = 0.55;
-  private wheels: THREE.Object3D[] = [];
-  colliders: Collider[] = [];
-  interactables: Interactable[] = [];
-  firePits: { x: number; y: number; z: number }[] = [];
-  private doors: Door[] = [];
-  private fires: Fire[] = [];
-  private swings: Swing[] = [];
-  private particleMats = new Set<THREE.ShaderMaterial>();
-  private floors: Floor[] = [];
-  /** PHYSICS P3: static boxes that are only in colliderDescs() (floors, porch, step, plinth, furniture, props) */
-  private solids: ColliderDesc[] = [];
-  /** the buildings and the lamp sites the phone's pooled lights may visit, in that order */
-  private sites: LightSite[] = [];
-  /** phone tier: the one shared set of point lights, taken from the scene's LightPool at boot (a constant NUM_POINT_LIGHTS
-   *  keeps every shader from recompiling); they follow the nearest cabin's top-ranked anchors */
-  private sharedLights: THREE.PointLight[] = [];
-  /** emissive materials lit by the clock (window glass, lantern glass) and their full-night intensity (PH-L3) */
-  private lampMats: { mat: THREE.MeshStandardMaterial; full: number }[] = [];
-  private nearestCabin = -1;
-  /** the eye is inside the nearest building (or at its door): its room lamp + hearth take the pooled pair */
-  private indoors = false;
-  /** the nearest building's anchors in the order the pooled pair takes them */
-  private order: LightAnchor[] = [];
-  private tmpL = new THREE.Vector3();
   private cabinCount = 0;
   private tmpV = new THREE.Vector3();
   /** every building, as its model sees it (E315 M2) */
   readonly buildings: CabinBuilding[] = [];
   /** what the buildings were built from: kept for the Model Explorer's specimens */
   private loaded: { mats: Mats; props: Record<PropKind, PropPart[]>; firePit: THREE.Object3D; lantern: THREE.Object3D; geometries: CabinGeometries } | null = null;
+  private readonly sky: Sky;
 
-  constructor(private sky: Sky) {}
+  constructor(sky: Sky) {
+    super(CABIN_LIFE);
+    this.sky = sky;
+  }
 
   /** what the buildings were built from (their materials, the props' scans, the fire pit and the lantern, the bake); null before `build` */
   get kit(): { readonly mats: Mats; readonly props: Readonly<Record<PropKind, readonly PropPart[]>>; readonly firePit: THREE.Object3D; readonly lantern: THREE.Object3D; readonly geometries: CabinGeometries } | null { return this.loaded; }
@@ -292,7 +273,7 @@ export class Cabins implements BuildingOwner {
   /** what the building just built by `b` is, for its model */
   private record(b: LogBuilding, id: string, index: number, x: number, y: number, z: number, rot: number, hamlet: boolean): void {
     this.buildings.push({ id, index, x, y, z, rot, root: b.root, hamlet, colliders: b.colliderDescs(), floors: b.floors, props: b.props, firePit: b.firePitObj, lantern: b.lanternObj, weld: b.weldBuild() });
-    this.sites.push({ root: b.root, anchors: b.anchors, rooms: b.rooms, door: b.doorAt });
+    this.addSite({ root: b.root, anchors: b.anchors, rooms: b.rooms, door: b.doorAt });
   }
 
   /** a prop kind's parts (for its model's specimen), their node transforms baked in; null before `build` */
@@ -315,7 +296,7 @@ export class Cabins implements BuildingOwner {
     this._lamp(mats.glass, mats.glass.emissiveIntensity);
     // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
     // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)
-    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < SHARED_CABIN_LIGHTS; k++) this.sharedLights.push(LightPool.for(this.sky.sceneRoot).acquire(0xffa050, 0, 10, 2));
+    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < SHARED_CABIN_LIGHTS; k++) this.addSharedLight(LightPool.for(this.sky.sceneRoot).acquire(0xffa050, 0, 10, 2));
     if (geometries === null) return { group: this.group, colliders: this.colliders, interactables: this.interactables };
     this.loaded = { mats, props, firePit: firePitGltf.scene, lantern: lanternGltf.scene, geometries };
     const models = { firePit: firePitGltf.scene, lantern: lanternGltf.scene };
@@ -357,117 +338,12 @@ export class Cabins implements BuildingOwner {
   /** each cabin's own root, in CABIN_SITES order (Explore's catalog shows one at a time) — not the cluster's buildings */
   get roots(): readonly THREE.Object3D[] { return this.buildings.slice(0, this.cabinCount).map((b) => b.root); }
 
-  /**
-   * PHYSICS P3: every cabin's static collision in world space — the legacy boxes (walls, chimney, porch posts and rails,
-   * bed, table, woodpiles, fire pit, benches) minus the door boxes, plus the floors / porch decks / porch steps whose tops
-   * are `floorHeightAt`, the stone plinths, and the furniture drawn without a legacy box (chairs, shelves, hearth, the
-   * crates / barrels / buckets). src/engine/physics/pieces.ts turns it into Rapier colliders.
-   */
-  colliderDescs(): ColliderDesc[] {
-    const doorBoxes = new Set(this.doors.map((d) => d.collider));
-    return [...this.colliders.filter((c) => !doorBoxes.has(c)).map((c) => boxDesc(c)), ...this.solids];
-  }
-
-  /**
-   * PHYSICS P3: one piece per door — the leaf as a box in its pivot's local frame (the pivot turns about +Y as the door
-   * swings inward), for a kinematic body that follows the pivot. `swinging()` is true from the moment the door is
-   * toggled until it is fully shut or fully open (`active: () => !swinging()` lets the player through mid-swing).
-   */
-  doorPieces(): { id: string; pivot: THREE.Object3D; colliders: ColliderDesc[]; swinging: () => boolean }[] {
-    return this.doors.map((d) => ({ id: d.id, pivot: d.pivot, colliders: [d.slab], swinging: () => d.t !== (d.open ? 1 : 0) }));
-  }
-
-  /** world y of a floor / deck under (x,z) if inside a cabin or porch footprint */
-  floorHeightAt(x: number, z: number): number | undefined {
-    for (const f of this.floors) {
-      const c = Math.cos(f.rot), s = Math.sin(f.rot);
-      const lx = (x - f.x) * c - (z - f.z) * s, lz = (x - f.x) * s + (z - f.z) * c;
-      if (Math.abs(lx) <= f.hw && Math.abs(lz) <= f.hd) return f.y;
-    }
-    return undefined;
-  }
-
+  /** per frame: the buildings' life from the eye and the clock (the phone's pooled lights, doors, flicker, swings, the
+   *  wheel), then the particles' night hold */
   update(dt: number, t: number): void {
-    // the phone's shared lights follow the nearest lit building (the detail bands are `place`'s: src/engine/models/weld.ts)
     const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmpV);
-    let nearest = -1, nearestD2 = Infinity;
-    for (const [i, s] of this.sites.entries()) {
-      const d2 = s.root.position.distanceToSquared(this.tmpV);
-      if (s.anchors.length > 0 && d2 < nearestD2 && (s.lit?.() ?? true)) { nearestD2 = d2; nearest = i; }
-    }
-    for (const w of this.wheels) w.rotation.x += dt * this.wheelSpeed;
-    const l = this.sites[nearest];
-    if (this.sharedLights.length > 0 && nearest >= 0 && l !== undefined) {
-      // indoors (the eye over one of its rooms' floors, or within 3 m of its door) the room light and the hearth take the
-      // pair, so the room is lit at night; outdoors the fire pit and the porch lantern keep it (intensity only either way)
-      let indoors = false;
-      if (l.rooms && l.door) {
-        const p = l.root.worldToLocal(this.tmpL.copy(this.tmpV));
-        indoors = l.rooms.some((r) => Math.abs(p.x - r.x) <= r.hw && Math.abs(p.z - r.z) <= r.hd) || Math.hypot(p.x - l.door[0], p.z - l.door[1]) < 3;
-      }
-      if (nearest !== this.nearestCabin || indoors !== this.indoors) {
-        this.nearestCabin = nearest; this.indoors = indoors;
-        const indoorRank = (a: LightAnchor): number => (a.rank === 2 ? 0 : a.rank === 3 ? 1 : a.rank + 2);
-        this.order = indoors ? [...l.anchors].sort((a, b) => indoorRank(a) - indoorRank(b)) : l.anchors;
-        this.fires = this.fires.filter((f) => !this.sharedLights.includes(f.light));
-        this.sharedLights.forEach((light, i) => {
-          const a = this.order[i];
-          if (!a) { light.intensity = 0; return; }
-          light.color.set(a.color); light.distance = a.distance; light.decay = a.decay;
-          this.fires.push({ light, base: a.intensity, seed: a.seed, kind: a.kind });
-        });
-      }
-      this.sharedLights.forEach((light, i) => { const a = this.order[i]; if (a) a.anchor.getWorldPosition(light.position); });
-    }
-    for (const d of this.doors) {
-      const target = d.open ? 1 : 0;
-      if (d.t === target) continue;
-      d.t = Math.max(0, Math.min(1, d.t + Math.sign(target - d.t) * dt / 0.6));
-      const e = d.t < 0.5 ? 2 * d.t * d.t : 1 - (-2 * d.t + 2) ** 2 / 2; // ease in-out
-      d.pivot.rotation.y = -e * 1.85;
-    }
-    // the night lights on the clock (PH-L3): by intensity only — the light count never changes. `sky.lamps` is 0 by day …
-    // 1 by night (the fixed sunset keeps 1: every light as before). A fire burns all day; lanterns and rooms are lit at dusk
-    const lamps = this.sky.lamps, fireK = 0.7 + 0.3 * lamps, lampK = 0.1 + 0.9 * lamps;
-    for (const f of this.fires) {
-      const n = Math.sin(t * 11 + f.seed) * 0.5 + Math.sin(t * 23.7 + f.seed * 2.3) * 0.3 + Math.sin(t * 3.1 + f.seed) * 0.2;
-      f.light.intensity = f.base * (1 + 0.28 * n) * (f.kind === 'fire' ? fireK : lampK);
-    }
-    for (const m of this.lampMats) m.mat.emissiveIntensity = m.full * (0.2 + 0.8 * lamps);
-    cabinNight.uLamps.value = lamps; cabinNight.uShade.value = 1 - 0.8 * this.sky.night;
-    for (const sw of this.swings) { sw.pivot.rotation.z = Math.sin(t * 1.35 + sw.seed) * 0.05 + Math.sin(t * 2.9 + sw.seed * 1.7) * 0.015; sw.pivot.rotation.x = Math.cos(t * 1.1 + sw.seed) * 0.03; }
-    for (const m of this.particleMats) { const u = m.uniforms['uTime']; if (u !== undefined) u.value = t; }
-  }
-
-  private readonly doorBars = new Map<Interactable, () => boolean>();
-  private readonly doorListeners = new Set<(door: Interactable, opening: boolean) => void>();
-  /** bar a door: while `barred()` says true its use does nothing (the caller toasts / plays why) */
-  barDoor(door: Interactable, barred: () => boolean): void { this.doorBars.set(door, barred); }
-  /** hear every door that moves (`opening`: it swung open); returns the unsubscribe */
-  onDoor(fn: (door: Interactable, opening: boolean) => void): () => void { this.doorListeners.add(fn); return () => { this.doorListeners.delete(fn); }; }
-  /** @internal */ _doorUse(d: Door, toggle: () => void): void {
-    if (this.doorBars.get(d.interactable)?.() === true) return;
-    toggle();
-    for (const fn of this.doorListeners) fn(d.interactable, d.open);
-  }
-  /** @internal */ _door(d: Door): void { this.doors.push(d); this.colliders.push(d.collider); this.interactables.push(d.interactable); }
-  /** @internal */ _fire(f: Fire): void { this.fires.push(f); }
-  /** @internal */ _lamp(mat: THREE.MeshStandardMaterial, full: number): void { this.lampMats.push({ mat, full }); }
-  /** @internal */ _swing(sw: Swing): void { this.swings.push(sw); }
-  /** @internal */ _particles(m: THREE.ShaderMaterial): void { this.particleMats.add(m); }
-  /** @internal */ _floor(f: Floor): void { this.floors.push(f); }
-  /** @internal */ _solid(d: ColliderDesc, _prop: boolean): void { this.solids.push(d); }
-  /** @internal */ _wheel(o: THREE.Object3D): void { this.wheels.push(o); }
-  /** @internal */ _collider(c: Collider): void { this.colliders.push(c); }
-  /** @internal */ _firePit(at: { x: number; y: number; z: number }): void { this.firePits.push(at); }
-
-  /**
-   * PH-B3: a lamp the phone's pooled pair may visit when it is the nearest lit site (a waystone lantern): `anchor` sits in
-   * world space (a child of a group at the origin). No light of its own on any tier; `lit()` false keeps the pair away.
-   */
-  addLampSite(anchor: THREE.Object3D, color: number, intensity: number, distance: number, lit: () => boolean = () => true): void {
-    const a: LightAnchor = { anchor, color, intensity, distance, decay: 2, seed: anchor.position.x * 0.37, kind: 'lamp', rank: 0 };
-    this.sites.push({ root: anchor, anchors: [a], lit });
+    this.tick(dt, t, this.tmpV, this.sky.lamps);
+    cabinNight.uLamps.value = this.sky.lamps; cabinNight.uShade.value = 1 - 0.8 * this.sky.night;
   }
 }
 

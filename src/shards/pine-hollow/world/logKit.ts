@@ -6,9 +6,7 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import type { Interactable } from '@wildshard/engine/world/interact/types';
+import type { BuildingDoor, BuildingFloor, BuildingFlicker, BuildingLightAnchor, BuildingLightKind, BuildingRoom, BuildingSwing } from '@wildshard/sdk/props/buildingLife';
 
 /** boards across the wood_trunk_wall texture, and its size (m) along the board grain */
 export const BOARDS = 7, BOARD_LEN = 1.25;
@@ -16,20 +14,20 @@ export const BOARDS = 7, BOARD_LEN = 1.25;
 /** a building part's material: the PBR sets (homestead.ts `Mats`) a baked part names */
 export type KitMat = 'log' | 'endGrain' | 'chink' | 'roof' | 'beam' | 'deck' | 'door' | 'stone' | 'bark' | 'iron' | 'cloth' | 'char';
 
-export interface Door {
-  id: string; pivot: THREE.Object3D; open: boolean; t: number; collider: Collider; interactable: Interactable;
-  /** PHYSICS P3: the leaf as a box in the pivot's local frame */
-  slab: ColliderDesc;
-}
+/** a door: its pivot, state, legacy box, prompt and leaf (@wildshard/sdk/props/buildingLife runs it) */
+export type Door = BuildingDoor;
 /** `kind`: a fire burns all day and only reads stronger at night; a lamp (lantern, room light) is lit by the clock (PH-L3) */
-export type LightKind = 'fire' | 'lamp';
-export interface Fire { light: THREE.PointLight; base: number; seed: number; kind: LightKind }
+export type LightKind = BuildingLightKind;
+/** a light of its own that flickers */
+export type Fire = BuildingFlicker;
 /** phone tier: a point light's slot — the shared lights jump to the nearest cabin's anchors (`rank`: which ones get a light) */
-export interface LightAnchor { anchor: THREE.Object3D; color: number; intensity: number; distance: number; decay: number; seed: number; kind: LightKind; rank: number }
-/** a room's floor rectangle in the building's frame (inside = the pooled pair lights the room: Cabins.update) */
-export interface Room { x: number; z: number; hw: number; hd: number }
-export interface Swing { pivot: THREE.Object3D; seed: number }
-export interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
+export type LightAnchor = BuildingLightAnchor;
+/** a room's floor rectangle in the building's frame (inside = the pooled pair lights the room) */
+export type Room = BuildingRoom;
+/** a swinging pivot (a hung lantern) */
+export type Swing = BuildingSwing;
+/** a floor / deck rectangle in world space */
+export type Floor = BuildingFloor;
 export type PropKind = 'crate' | 'barrel' | 'bucket' | 'hatchet';
 export const PROP_KINDS: readonly PropKind[] = ['crate', 'barrel', 'bucket', 'hatchet'];
 

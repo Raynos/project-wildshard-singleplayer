@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { setActiveChunk } from '../../../src/game/shard/registry';
 import { placeCrags, skinWeight, skinTile } from '../../../src/shards/pine-hollow/generators/crags';
 import { caveLocal, caveWorld, skinGeometry, CRAG_IDS, CRAG_HERO, type CragId, type CragSize } from '../../../src/shards/pine-hollow/world/cragBake';
-import type { CaveMeta } from '../../../src/shards/pine-hollow/world/crags';
+import type { CaveMeta } from '../../../src/sdk/kit/caveInterior';
 import { trailDistance, normalAt } from '../../../src/engine/world/Heightfield';
 import { DEN, LOOKOUT } from '../../../src/shards/pine-hollow/layout';
 import kitJson from '../../../public/assets/models/pine-hollow-crags/crags.json?raw';

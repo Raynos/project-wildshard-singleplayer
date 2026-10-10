@@ -1,7 +1,8 @@
 // Pine Hollow's crag and cave looks as data (SHARD-PLATFORM M3, look-family rows): the triplanar granite's edits of the
 // standard material (world/crags.ts `cragMaterial` applies them through @wildshard/sdk/looks/shaderEdits inside its
-// patch) and the cave shaft's program. The vertex `cdata` = (AO, sun reach, wet, rock): AO multiplies the indirect light,
+// patch), the cave shaft's program and the cave's look near its mouth (CAVE_LOOK: @wildshard/sdk/kit/caveInterior). The vertex `cdata` = (AO, sun reach, wet, rock): AO multiplies the indirect light,
 // sun reach the directional lights only; `ctint` = (tint shade, tint path / face skin).
+import type { CaveLookRow } from '@wildshard/sdk/kit/caveInterior';
 import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
 
 /** the granite's albedo lift (E322 F-L1) */
@@ -171,4 +172,19 @@ export const CAVE_SHAFT_GLSL = {
           float near = smoothstep( 0.8, 4.0, length( vP - cameraPosition ) ); // walked into, it thins out instead of whiting the view
           gl_FragColor = vec4( vec3( 1.0, 0.93, 0.78 ) * body * along * mote * near * uI, 1.0 );
         }`,
+};
+
+/**
+ * The bear cave near its mouth (world/crags.ts hands it to @wildshard/sdk/kit/caveInterior): the shaft and the drips draw
+ * within 60 m; under the roof (the floor at the eye's depth, clamped to the passage, + 7 m) the sun's disc goes; the walls'
+ * fill is 0.05 + 1.6 × day; the shaft is 0.2 × day × min(1, 0.4 + 2 × max(0, sun.y)) + 0.02; each drip forms on a
+ * 1.7 s + (i mod 5) × 0.53 s clock, then falls.
+ */
+export const CAVE_LOOK: CaveLookRow = {
+  near: 60,
+  under: { height: 7, lzMin: -4, lzMax: 36 },
+  fill: [0.05, 1.6],
+  surface: 'rock',
+  shaft: { vertex: CAVE_SHAFT_GLSL.vertex, fragment: CAVE_SHAFT_GLSL.fragment, radialSegments: 20, heightSegments: 6, renderOrder: 7, gain: 0.2, sunBase: 0.4, sunGain: 2, floor: 0.02 },
+  drips: { color: 0xcfd8dc, size: 0.045, opacity: 0.85, period: 1.7, periodStep: 0.53, kinds: 5, phaseStep: 0.37, gravity: 9.8, hang: 0.04, minDrop: 0.2 },
 };
