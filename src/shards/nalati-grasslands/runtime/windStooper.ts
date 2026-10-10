@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 
 /** Real terrain, wind, altitude, shared random, head/contact and entered tell authority for a wind-borne stooper. */
 export interface WindStooperPorts<A extends AnimalSim> {

@@ -9,8 +9,7 @@ import { variantMods } from '../../../src/engine/entities/species/registry';
 import { Rng } from '../../../src/engine/core/rng';
 import { EAGLE_SPECIES } from '../../../src/shards/nalati-grasslands/species/eagle';
 import type { QyranPorts } from '../../../src/shards/nalati-grasslands/runtime/qyranKeeper';
-import { speciesBrains, type BrainedSpecies, type SpeciesStooper } from '../../../src/sdk/speciesBrains';
-import { readWindStooperSpec } from '../../../src/engine/ai/windStooper';
+import { WindStooperBrain, readWindStooperSpec } from '../../../src/shards/nalati-grasslands/runtime/windStooper';
 import { QyranOracle } from '../../fixtures/nalati-qyran-oracle/shipping';
 import bodies from '../../fixtures/nalati-qyran-oracle/shipping.json' with { type: 'json' };
 import source from '../../fixtures/nalati-qyran-oracle/source.json' with { type: 'json' };
@@ -26,9 +25,8 @@ const spec = readWindStooperSpec({
     cooldown: 7, randomCooldown: 2, phaseCooldown: 4.5, phaseRandom: 1.5 },
   ground: { onScale: 0.55, idleScale: 0.42, seconds: 2, damage: 2.5 },
 });
-const species: BrainedSpecies = { id: 'species.eagle', kind: 'eagle', label: 'Eagle', walkSpeed: 0.5, variants: [{ id: 'qyran', label: 'Storm wing', weight: 1, rarity: 'legendary', scale: [3, 3], hp: 600 }], brain: { archetype: 'wind-stooper', data: spec } };
-function policy(ports: QyranPorts<AnimalSim>): SpeciesStooper<AnimalSim> {
-  return speciesBrains([species], []).stooper('eagle', { ...ports, grounded: () => { ports.feed('Qyran is GROUNDED'); }, cry: at => { ports.sound('eagle_cry', at); } });
+function policy(ports: QyranPorts<AnimalSim>): WindStooperBrain<AnimalSim> {
+  return new WindStooperBrain(spec, { ...ports, grounded: () => { ports.feed('Qyran is GROUNDED'); }, cry: at => { ports.sound('eagle_cry', at); } });
 }
 function fixture() {
   const variant = EAGLE_SPECIES.variants.find(row => row.id === 'qyran');
@@ -115,12 +113,8 @@ it('restores the fixed stoop target, orbit and cooldown without draws and refuse
   expect(a.events.slice(-2)).toEqual([['hide'], ['chevron', null]]);
 });
 
-it('strictly admits every field before mutation and refuses hidden altitude/frame authority', () => {
-  const f = fixture(), brains = speciesBrains([species], []);
-  expect(() => brains.bind('eagle')).toThrow(/altitude\/frame ports/u);
-  expect(() => brains.policy('eagle', f.actor)).toThrow(/altitude\/frame ports/u);
-  expect(() => brains.decision('eagle', f.actor)).toThrow(/not a native decision/u);
-  expect(() => brains.stooper('absent', { ...f.ports, grounded: () => { f.events.push(['grounded']); }, cry: at => { f.events.push(['cry', ...at]); } })).toThrow(/does not declare/u);
+it('strictly validates every field before native state mutation', () => {
+  const f = fixture();
   const before = f.actor.snapshot(), rng = f.rng.snapshot();
   for (const invalid of [{ ...spec, extra: 1 }, { ...spec, orbit: { ...spec.orbit, radius: 0 } },
     { ...spec, stoop: { ...spec.stoop, speed: 41 } }, { ...spec, cruise: { ...spec.cruise, ease: Number.NaN } },

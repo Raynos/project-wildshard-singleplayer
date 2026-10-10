@@ -15,7 +15,6 @@
     "./ai/patrolDiver": "./ai/patrolDiver.ts",
     "./ai/ledgePouncer": "./ai/ledgePouncer.ts",
     "./ai/packHowler": "./ai/packHowler.ts",
-    "./ai/windStooper": "./ai/windStooper.ts",
     "./ai/phasedFlyer": "./ai/phasedFlyer.ts",
     "./ai/phasedRaptor": "./ai/phasedRaptor.ts",
     "./ai/burstFlyer": "./ai/burstFlyer.ts",

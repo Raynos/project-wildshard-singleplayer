@@ -1,21 +1,21 @@
 import type { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { speciesBrains, type SpeciesStooper, type SpeciesStooperPorts } from '@wildshard/sdk/speciesBrains';
-import { NALATI_ELITE_SPECIES, QYRAN_GROUNDED } from '../data/eliteBrains';
+import { WindStooperBrain, type WindStooperPorts } from './windStooper';
+import { QYRAN_BRAIN, QYRAN_GROUNDED } from './qyranData';
 
 /** Existing native body, wind/altitude/contact and entered cue ports. */
-export interface QyranPorts<A extends AnimalSim> extends Omit<SpeciesStooperPorts<A>, 'grounded' | 'cry'> {
+export interface QyranPorts<A extends AnimalSim> extends Omit<WindStooperPorts<A>, 'grounded' | 'cry'> {
   readonly feed: (text: string) => void; readonly sound: (cue: 'eagle_cry', at: Vector3) => void;
 }
-/** Thin trusted binding of the declared wind-stooper row, used by the page and renderer-free host. */
+/** Trusted binding of Nalati's own wind-stooper tuning, used by the page and renderer-free host. */
 export class QyranKeeper<A extends AnimalSim> {
-  private readonly policy: SpeciesStooper<A>;
+  private readonly policy: WindStooperBrain<A>;
   /** Native manager cadence bound once without per-frame allocation. */
-  readonly think: SpeciesStooper<A>['think'];
+  readonly think: WindStooperBrain<A>['think'];
   /** Exact encounter frame law over the authoritative body/altitude state. */
-  readonly tick: SpeciesStooper<A>['tick'];
+  readonly tick: WindStooperBrain<A>['tick'];
   constructor(ports: QyranPorts<A>) {
-    this.policy = speciesBrains(NALATI_ELITE_SPECIES, []).stooper('eagle', { ...ports,
+    this.policy = new WindStooperBrain(QYRAN_BRAIN.data, { ...ports,
       grounded: () => { ports.feed(QYRAN_GROUNDED); }, cry: at => { ports.sound('eagle_cry', at); } });
     this.think = this.policy.think.bind(this.policy); this.tick = this.policy.tick.bind(this.policy);
   }
@@ -28,7 +28,7 @@ export class QyranKeeper<A extends AnimalSim> {
   /** Grounded weak point through the real head query. */
   damage(actor: A, point: Vector3): number { return this.policy.damage(actor, point); }
   /** Complete original keeper wire; no draws or events. */
-  snapshot(): ReturnType<SpeciesStooper<A>['snapshot']> { return this.policy.snapshot(); }
+  snapshot(): ReturnType<WindStooperBrain<A>['snapshot']> { return this.policy.snapshot(); }
   /** Strict complete validation before any mutation. */
   restore(input: unknown): void { this.policy.restore(input); }
 }
