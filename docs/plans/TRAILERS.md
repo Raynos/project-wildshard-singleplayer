@@ -140,7 +140,18 @@ other … for the MMO players."* Ten ideas ranked by wow, a council, the top thr
 |---|---|---|---|
 | P15-0 | ✅ Ten ideas (`p15/ideas.md`); council round 1 ranks them by wow and picks the Crossing, the Party, Leap of Faith (with the dragon) | `p15/council/selection.md` | trailer agent |
 | P15-1 | ✅ The three made and sent to Jake (2026-10-10): character sheets and 11 keyframes (`art/trailers/round-5-p15/`), LTX shots (3 re-rolls), MiniMax cues 601, Stable Audio 3 hits, cut on the score's onsets (`scripts/steam-trailer/p15/assemble.py`) | Jake has the three | trailer agent |
-| P15-2 | Jake's verdict on the three; the next round on the winner | Jake's pick | trailer agent |
+| P15-2 | ✅ Jake's verdict (2026-10-10): *"The trailers are great, but the presentation and content of the trailer suggest a AAA game … they imply a product that would cost millions to make. And I've got $1,000"* → Part E | — | trailer agent |
+
+## 3d. Part E — the engine-true concept trailer (E474)
+
+Jake picked the engine-true concept (question tool, 2026-10-10): the Crossing's idea, made from **real in-engine frames
+and our own in-game models** (the Nalati kokpar rider and horse), edited only to add the rider, then animated with
+LTX. The promise is this game a few months on, not a AAA game. The rider keeps one model across worlds (the game does
+not restyle the player); the worlds change around him. `docs/process/CINEMATICS.md` §1 holds the lesson.
+
+| Row | What | Done when | Owner |
+|---|---|---|---|
+| E15-1 | Four keyframes from alpha-trailer frames (Nalati grass, the grid's highway, Driftwood's wreck beach, Pine Hollow's road) + the in-game rider; LTX shots; the cut on a cue | Jake has the 15 s cut | trailer agent |
 
 ## 4. Not in this plan
 
