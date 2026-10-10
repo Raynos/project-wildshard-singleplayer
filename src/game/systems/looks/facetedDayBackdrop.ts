@@ -16,6 +16,8 @@
  * planet's lit side. The light fades to nothing at the horizon, swaps sun ↔ moon while dark, and fades back.
  */
 import * as THREE from 'three';
+import { prepareOffscreenBuild } from '@wildshard/engine/render/offscreenBuild';
+import { resourceScope } from '@wildshard/engine/app/resources';
 import { preloadBakedTextures, loadLUT } from '@wildshard/engine/boot/bakedApi';
 import type { SkyBackdropFactory } from '@wildshard/engine/render/look';
 import { setting, type OptionValue } from '@wildshard/engine/ui/Settings';
@@ -158,6 +160,7 @@ export function facetedDayBackdrop(spec: FacetedDayBackdropSpec): SkyBackdropFac
   };
   const startSun = new THREE.Vector3(style.startSun[0], style.startSun[1], style.startSun[2]).normalize();
   return async ({ sky, scene, renderer, level }) => {
+    const owner = resourceScope();
     const [, lut] = await Promise.all([preloadBakedTextures(), loadLUT(level.id)]);
     sky.sunDir.copy(startSun);
     const st = new FacetedSky(sky.sunDir, spec.sky.glsl, spec.sky.palette, spec.sky.seed).build();
@@ -178,7 +181,15 @@ export function facetedDayBackdrop(spec: FacetedDayBackdropSpec): SkyBackdropFac
       envRT = rt;
       scene.environment = rt.texture;
     };
-    refreshEnvironment();
+    const prepared: { generator: THREE.PMREMGenerator | null } = { generator: null };
+    try {
+      envRT = await prepareOffscreenBuild(renderer, commands => {
+        prepared.generator = new THREE.PMREMGenerator(commands);
+        return prepared.generator.fromScene(st.envScene, 0, 1, 3000, { size: envSize });
+      }, () => !owner.disposed, { webKitOnly: true });
+      pmrem = prepared.generator;
+      scene.environment = envRT.texture;
+    } catch (error) { prepared.generator?.dispose(); throw error; }
     scene.environmentIntensity = level.sky.envIntensity;
     spec.light.uFogZenith.value.copy(st.u.uZenith.value); // the colour-ramp fog fades into the dome's own gradient
     let clock: FacetedDayClock | null = null;

@@ -1109,7 +1109,11 @@ captured per draw; samplers remain borrowed. The live renderer and original
 uniform references are restored before each yield. Canvas/cube/mip draws and
 depth-clear commands refuse; at most 256 passes are accepted. Owner cancellation
 retires the returned target. A retained factory renderer forwards normally after
-capture. This scheduling port does not change shader sources or texture formats.
+capture. This scheduling port does not change shader sources or texture formats. Pass
+`{webKitOnly: true}` to keep other browsers on the synchronous factory path.
+HDR and faceted-sky initial environments use this policy; retained day-clock
+refreshes keep their existing synchronous calls. `CompileJob.toneMapping?`
+prepares a captured pass with its own mapping and restores the page value.
 
 **Asynchronous material resources.** `@wildshard/engine/render/materialPreparation`
 defines `registerMaterialPreparation(material, work)` and

@@ -100,11 +100,13 @@ function captureCommands(renderer: Renderer): { commands: Renderer; draws: Draw[
 /** Capture a synchronous, offscreen-only factory such as PMREM, prepare its actual shader variants,
  * then replay its draws in painted slices. The factory retains its meshes/materials until resolution;
  * cameras, viewports and scalar/vector uniforms are captured, while samplers stay borrowed.
- * Canvas draws refuse. Live renderer state is restored before every yield, failure and return. */
+ * Canvas draws refuse. Live renderer state is restored before every yield, failure and return.
+ * `webKitOnly` leaves other browsers on the synchronous factory path. */
 export async function prepareOffscreenBuild(renderer: Renderer, build: (commands: Renderer) => THREE.WebGLRenderTarget,
-  current: () => boolean): Promise<THREE.WebGLRenderTarget> {
+  current: () => boolean, options: { webKitOnly?: boolean } = {}): Promise<THREE.WebGLRenderTarget> {
   const check = (): void => { if (!current()) throw new Error('Offscreen build owner left'); };
   check();
+  if (options.webKitOnly === true && (!navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent))) return build(renderer);
   const capture = captureCommands(renderer), draws = capture.draws;
   let output: THREE.WebGLRenderTarget;
   try { output = build(capture.commands); } catch (error) { draws.length = 0; throw error; } finally { capture.finish(); }
@@ -118,7 +120,7 @@ export async function prepareOffscreenBuild(renderer: Renderer, build: (commands
       link(draw.root, copy);
       if (isMesh(copy) && draw.material !== null) copy.material = draw.material;
       if (isScene(copy) && draw.background !== undefined) copy.background = draw.background;
-      return { label: engineString('s_4bdf150dd0ed', [index + 1]), root: copy, camera: draw.camera, target: isScene(copy) ? copy : null, rt: draw.target };
+      return { label: engineString('s_4bdf150dd0ed', [index + 1]), root: copy, camera: draw.camera, target: isScene(copy) ? copy : null, rt: draw.target, toneMapping: draw.toneMapping };
     });
     await runPrecompile(renderer, new THREE.PerspectiveCamera(), jobs, new Set(draws.flatMap(draw => [...draw.uniforms.keys()])).size, undefined, undefined, current);
     for (const draw of draws) {

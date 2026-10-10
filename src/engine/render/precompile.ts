@@ -59,6 +59,8 @@ export interface CompileJob {
   rt: THREE.WebGLRenderTarget | null;
   /** compile with the target scene's fog cleared (the shadow pass and the background box see no fog) */
   fogOff?: boolean;
+  /** The offscreen factory's tone mapping during this variant, restored before yielding. */
+  toneMapping?: THREE.ToneMapping;
   /** Borrowed environment of a parked world's first draw. Applied only during synchronous compile, never a paint. */
   environment?: THREE.Texture;
   /** Release only stand-in resources, after their owner's real draws no longer need the cached programs. */
@@ -436,16 +438,17 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   let tFrame = performance.now();
   for (const [i, job] of jobs.entries()) {
     checkCurrent();
-    const prevRt = renderer.getRenderTarget();
+    const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
     const environment = job.target?.environment ?? null;
     try {
       if (job.fogOff && job.target) job.target.fog = null;
       if (job.environment !== undefined && job.target) job.target.environment = job.environment;
+      if (job.toneMapping !== undefined) renderer.toneMapping = job.toneMapping;
       renderer.setRenderTarget(job.rt);
       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
     } finally {
-      renderer.setRenderTarget(prevRt);
+      renderer.setRenderTarget(prevRt); renderer.toneMapping = prevTone;
       if (job.fogOff && job.target) job.target.fog = fog;
       if (job.environment !== undefined && job.target) job.target.environment = environment;
     }

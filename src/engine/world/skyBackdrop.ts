@@ -1,5 +1,6 @@
 import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
+import { prepareOffscreenBuild } from '../render/offscreenBuild';
 import type { Renderer } from '../render/renderer';
 import type { Scope } from '../app/scope';
 import type { SkyRig as Sky } from './skyRig';
@@ -122,14 +123,22 @@ export class SkyBackdropView {
     if (!S.sun) { if (baked) this.sunDir.fromArray(baked.sunDir).normalize(); else this.findSun(hdr); }
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     // three tasks, not one 130 ms one at 4x CPU: the PMREM program compile, the 2048x1024 half-float upload, then the
-    // cube-UV render + blur passes (same calls, same result — only the task boundaries move)
+    // cube-UV render + blur passes. WebKit additionally prepares the exact offscreen variants and
+    // paints between their original draws; the output and desktop factory calls are unchanged.
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     pmrem.compileEquirectangularShader();
     await macrotask();
     this.renderer.initTexture(hdr);
     await macrotask();
-    const env = pmrem.fromEquirectangular(hdr).texture;
-    pmrem.dispose();
+    const prepared: { generator: THREE.PMREMGenerator | null } = { generator: null };
+    let env: THREE.Texture;
+    try {
+      const target = await prepareOffscreenBuild(this.renderer, commands => {
+        prepared.generator = commands === this.renderer ? pmrem : new THREE.PMREMGenerator(commands);
+        return prepared.generator.fromEquirectangular(hdr);
+      }, () => !this.scope.disposed, { webKitOnly: true });
+      env = target.texture;
+    } finally { prepared.generator?.dispose(); if (prepared.generator !== pmrem) pmrem.dispose(); }
     this.scene.environment = env;
     this.scene.environmentIntensity = S.envIntensity;
     this.scene.background = hdr;

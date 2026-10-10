@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { prepareOffscreenBuild } from '../src/engine/render/offscreenBuild';
 import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
@@ -11,7 +11,7 @@ function recorder() {
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Renderer prototype');
   let target: THREE.WebGLRenderTarget | null = null;
-  const draws: unknown[] = [], compiled: unknown[] = [], ids = new Map<THREE.Texture, number>();
+  const draws: unknown[] = [], compiled: unknown[] = [], compiledTones: number[] = [], ids = new Map<THREE.Texture, number>();
   const value = (input: unknown): unknown => {
     if (isTexture(input)) {
       if (!ids.has(input)) ids.set(input, ids.size);
@@ -35,7 +35,7 @@ function recorder() {
     state: { buffers: { depth: { getReversed: () => false } } }, getClearColor: (color: THREE.Color) => color.set(0x123456),
     getRenderTarget: () => target, getActiveCubeFace: () => 0, getActiveMipmapLevel: () => 0,
     setRenderTarget: (next: THREE.WebGLRenderTarget | null) => { target = next; }, initTexture: () => undefined,
-    compile: (root: THREE.Object3D) => { compiled.push(root); },
+    compile: (root: THREE.Object3D) => { compiled.push(root); compiledTones.push(renderer.toneMapping); },
     render: (root: THREE.Object3D, camera: THREE.Camera) => {
       draws.push({ viewport: target?.viewport.toArray(), scissor: target?.scissor.toArray(), scissorTest: target?.scissorTest,
         autoClear: renderer.autoClear, toneMapping: renderer.toneMapping, xr: renderer.xr.enabled,
@@ -43,7 +43,7 @@ function recorder() {
     },
   };
   for (const [key, member] of Object.entries(methods)) Reflect.set(renderer, key, member);
-  return { renderer, draws, compiled };
+  return { renderer, draws, compiled, compiledTones };
 }
 
 it('replays Three PMREM HDR passes with exact uniforms, samplers, cameras, viewport and state, yielding between draws', async () => {
@@ -81,7 +81,7 @@ it('captures the six actual scene-camera faces and restores source uniforms by i
   const baseline = generator.fromScene(scene, 0, 1, 3000, { size: 32 });
   try {
     const output = await prepareOffscreenBuild(after.renderer, renderer => { scheduled = new THREE.PMREMGenerator(renderer); return scheduled.fromScene(scene, 0, 1, 3000, { size: 32 }); }, () => true);
-    expect(after.draws).toEqual(before.draws); expect(material.uniforms['direction']?.value).toBe(direction); expect(material.uniformsNeedUpdate).toBe(false);
+    expect(after.draws).toEqual(before.draws); expect(after.compiledTones).toEqual(before.draws.map(draw => { if (draw === null || typeof draw !== 'object') throw new Error('Missing native draw'); const tone: unknown = Reflect.get(draw, 'toneMapping'); return tone; })); expect(material.uniforms['direction']?.value).toBe(direction); expect(material.uniformsNeedUpdate).toBe(false);
     const retained: unknown = scheduled;
     if (!(retained instanceof THREE.PMREMGenerator)) throw new Error('No scheduled generator');
     output.dispose(); retained.dispose();
@@ -101,4 +101,15 @@ it('refuses canvas work and aborts an owner that leaves during shader preparatio
     await expect(prepareOffscreenBuild(before.renderer, renderer => { renderer.setRenderTarget(output); renderer.render(root, camera); return output; }, () => current)).rejects.toThrow('owner left');
     expect(before.draws).toHaveLength(0); expect(retired).toBe(true); expect(before.renderer.getRenderTarget()).toBeNull();
   } finally { root.geometry.dispose(); root.material.dispose(); installScopeEnvironment(prior); }
+});
+
+
+it('keeps Chromium factories on their original synchronous renderer path', async () => {
+  vi.stubGlobal('navigator', { userAgent: 'AppleWebKit/537.36 Chrome/130.0' });
+  const record = recorder(), output = new THREE.WebGLRenderTarget();
+  try {
+    let factoryRenderer: THREE.WebGLRenderer | null = null;
+    const result = await prepareOffscreenBuild(record.renderer, renderer => { factoryRenderer = renderer; return output; }, () => true, { webKitOnly: true });
+    expect(factoryRenderer).toBe(record.renderer); expect(result).toBe(output); expect(record.compiled).toHaveLength(0);
+  } finally { output.dispose(); vi.unstubAllGlobals(); }
 });
