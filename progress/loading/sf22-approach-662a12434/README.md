@@ -128,3 +128,31 @@ The Simulator image-fallback refusal above stands. Forced compressed Simulator r
 memory ruler; the memory verdict remains the G269 phone runs. Remaining work is Pine departure cleanup,
 first-drawn shader variants, long world/afterKit waits and drawn-frame cadence. Immutable raw completed-circuit
 artifact: `attempt-c040-midpoint-result.json` in the scratch directory above. No raw archive is committed.
+
+## PMREM and resource-capture attribution
+
+The two-leg diagnostic on `1112e45b38d18d8d1bb47360df3fe6ee6460a762` entered Pine and Nalati without refusals or
+errors. Pine departure was 36.4 ms (2.2 ms save, 0.1 ms frame, 34.1 ms leave), while entered activation was
+2.8 ms for Pine and 5.3 ms for Nalati. Pine still issued 70 shader calls in its first second; this repeat does
+**not** credit the initial PMREM warm-up change. Nested disposal observations attributed 12.4 ms to the regional
+world and 10.6 ms to its view. Those wall intervals overlap and the callback observer adds overhead; this is
+attribution, not a complete circuit or normative timing verdict.
+
+The missing environment has a concrete lifecycle cause: the keyed sky creates its PMREM during layer attachment,
+but the first implementation read the holder's environment before attachment, when it was null. `7e2a66d3a`
+reads it after the real attachment. Its fixture creates the environment at that same point and proves the
+regional scene borrows it without a second native disposal (`528d247e1`). No sky, visibility, claims or look change.
+
+`8d5286dff` also walks each shared material/uniform container once within a scene resource capture, with a new
+visited set on the next capture. Late resources and independent delegated owners remain discoverable. A local
+Node comparison of 4,096 meshes sharing three resources used 24 interleaved pairs, discarding four warm-up pairs:
+median walk time was 7.28 → 0.84 ms, with identical resource identities. This is a synthetic CPU attribution,
+not a measured crossing or phone saving. The subsequent two-leg `8d5286dff` diagnostic does not credit a live
+departure saving: Pine departure was 45.4 ms, with 42.3 ms leave, under one-minute route-load medians 28.13 / 34.28.
+Its warm-target readout confirms the bound scene was the correct `region-scene:pine-hollow`, with a null
+environment; Nalati's environment was null too. This rules out the suspected wrong-scene binding for that run
+and corroborates the attachment-order cause. The repeat predates `7e2a66d3a`.
+
+Immutable raw diagnostic: `attempt-1112-environment-disposal.json` in the scratch directory above. Scope callback
+timing and program-key snapshots run only in diagnostic mode in the next harness; the full-route timing run omits
+those extra observers. Memory remains the G269 phone verdict and the Simulator fallback refusal stays recorded.
