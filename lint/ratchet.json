@@ -223,7 +223,6 @@
   },
   "wildshard/shard-sandbox": {
     "src/shards/driftwood-isle/boot/sources.ts": 2,
-    "src/shards/driftwood-isle/look/backdrop.ts": 2,
     "src/shards/driftwood-isle/quest/Complete.ts": 2,
     "src/shards/driftwood-isle/quest/install.ts": 3,
     "src/shards/nalati-grasslands/boot/files.ts": 6,
