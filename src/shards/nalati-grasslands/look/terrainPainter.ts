@@ -52,7 +52,7 @@ export function* buildPainterlyGeometry(f: PainterField): Generator<void, THREE.
   const res = TERRAIN_RES, n = res - 1, d = CHUNK_SIZE / n;
   const hs = new Float32Array(res * res);
   for (let iz = 0; iz < res; iz++) {
-    if (iz > 0 && iz % 64 === 0) yield;
+    if (iz > 0 && iz % 32 === 0) yield; // SF67: 64 rows of heights were ~100 ms at 4x CPU
     for (let ix = 0; ix < res; ix++) hs[iz * res + ix] = f.heightAt(-CHUNK_HALF + ix * d, -CHUNK_HALF + iz * d);
   }
   yield;
@@ -64,7 +64,7 @@ export function* buildPainterlyGeometry(f: PainterField): Generator<void, THREE.
   const out: [number, number, number] = [0, 0, 0];
   const segs = trailSegments(f);
   for (let iz = 0; iz < res; iz++) {
-    if (iz > 0 && iz % 48 === 0) yield;
+    if (iz > 0 && iz % 24 === 0) yield; // SF67: 48 rows a task were 95-130 ms at 4x CPU
     for (let ix = 0; ix < res; ix++) {
       const i = iz * res + ix, x = -CHUNK_HALF + ix * d, z = -CHUNK_HALF + iz * d;
       const y = H(ix, iz);

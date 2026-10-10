@@ -10,6 +10,7 @@
  *   const skins = await loadClientSkins(source, assets, compile, scope);   // world stage
  *   clientSpeciesLooks(rows, recipes, materials, skins);                   // kit stage
  */
+import { macrotask } from '@wildshard/engine/boot/plan';
 import { InterpolateLinear, Matrix4, Quaternion, Vector3, MeshStandardMaterial, MeshLambertMaterial, type AnimationClip, type Bone, type BufferGeometry, type Material, type KeyframeTrack, type Interpolant } from 'three';
 import type { ClipName } from '@wildshard/engine/anim/rig';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -67,6 +68,7 @@ export async function loadClientSkins(source: Pick<Shardfile, 'rows' | 'files'>,
   const skins = new Map<string, ClientSkin>();
   for (const look of source.rows.looks) {
     if (look.recipe !== SKIN_LOOK_RECIPE) continue;
+    if (skins.size > 0) await macrotask(); // SF67: a skin a task (the template's two were one 124-132 ms task at 4x CPU)
     const parameters = skinLookParameters(look), json = assets.get(parameters.skin); if (json === undefined) throw new Error(`skin look ${look.id}: missing admitted skin file`);
     const { row, binding } = parseSkinFile(json), declared = source.files.find((file) => file.hash === parameters.skin);
     if (declared?.dependencies.length !== 1 || declared.dependencies[0] !== row.file) throw new Error(`skin look ${look.id}: the skin file must depend on exactly its GLB`);
@@ -77,6 +79,7 @@ export async function loadClientSkins(source: Pick<Shardfile, 'rows' | 'files'>,
       return compiled;
     };
     const player = await loadSkin(glb, row, binding, material(), scope);
+    await macrotask(); // the GLB's parse and the clips' sampling a task apart
     const geometry = player.mesh.geometry, joints = player.mesh.skeleton.bones;
     geometry.clearGroups(); geometry.addGroup(0, geometry.index?.count ?? geometry.getAttribute('position').count, 0);
     // animated limbs and the corpse never leave this (the factory's margin for procedural creatures)

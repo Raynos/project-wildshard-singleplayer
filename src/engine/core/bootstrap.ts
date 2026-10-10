@@ -15,7 +15,7 @@ import { Player } from '../player/Player';
 import type { SkyRig as Sky } from '../world/skyRig';
 import { Tour } from './Tour';
 import * as Heightfield from '../world/Heightfield';
-import { slicer, type StepRunner } from '../boot/plan';
+import { macrotask, slicer, type StepRunner } from '../boot/plan';
 import { needsTerrainCollider, type LevelSpec } from '../level/spec';
 import { loadRapier } from '../physics/rapier';
 import { Physics } from '../physics/Physics';
@@ -64,6 +64,9 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
   const navmesh = loadNavmesh(def.id); // the shard's baked navmesh (P6b), a declared boot file; the `physics` step awaits it
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const game = await step('renderer', async (progress) => {
+    // SF67: the session's file lists and prefetch, then the context and the renderer, were one 100-116 ms task at 4x CPU.
+    // (No task between the context check and the renderer: three reads the context's capabilities at once, E257.)
+    await macrotask();
     const context = await readyWebGLContext(canvas, (state) => {
       progress.detail('Waiting for graphics to recover');
       recordBootCheckpoint('renderer:waiting', { ...state });

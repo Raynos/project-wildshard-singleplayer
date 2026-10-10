@@ -27,11 +27,16 @@ type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBa
 
 /** Write text only when it changed: an unchanged textContent write still dirties layout. */
 const set = (el: HTMLElement, text: string): void => { if (el.textContent !== text) el.textContent = text; };
+/** The same for a `data-*` attribute: the plan republishes on every byte chunk and sub-step, and every attribute write
+ *  (even an unchanged one) invalidates style and queues a mutation record (SF67). */
+const setData = (el: HTMLElement, key: string, value: string): void => { if (el.dataset[key] !== value) el.dataset[key] = value; };
 
 /** Renderer-independent admission facts; the caller owns its phases and actual byte counter. */
 export interface LoadingAdmission {
   phase: string; detail: string; bytesRead: number; bytesTotal: number; filesDone: number; filesTotal: number;
 }
+/** The loading panel's repaint cadence while a step runs (20 Hz: the clock's tenths still tick); done and errors paint at once. */
+const PAINT_MS = 50;
 let currentLoading: { id: string; loading: Loading } | null = null;
 /** the loading screen: the download and set-up bars, the boot steps' rows, the tier and the diagnostics */
 export class Loading {
@@ -45,6 +50,8 @@ export class Loading {
   private dirty = false;
   private lastFrameAt = performance.now();
   private lastDiagnosticAt = 0;
+  private lastPaintAt = 0;
+  private lastPaintStep = '';
   private longestPauseMs = 0;
   private longestPauseAt = '';
   private lastFrameStep = '';
@@ -107,7 +114,7 @@ export class Loading {
       this.hasProductAdmission = true;
       this.admissionUnits = Math.max(this.admissionUnits, progress.phase === 'complete' ? 4 : progress.phase === 'cache' ? 3 : progress.phase === 'validation' ? 2 : progress.phase === 'assets' || progress.phase === 'hash' ? 1 : 0);
     }
-    this.root.dataset['step'] = `admission.${progress.phase}`;
+    setData(this.root, 'step', `admission.${progress.phase}`);
     this.dirty = true;
   }
 
@@ -131,15 +138,13 @@ export class Loading {
         download: v.done ? 1 : bytesTotal > 0 ? Math.min(0.999, bytesRead / bytesTotal) : v.download,
         setup: this.hasProductAdmission ? (v.setup * BOOT_STEPS.length + this.admissionUnits) / (BOOT_STEPS.length + 4) : v.setup };
     }
-    const hardware: { hardwareConcurrency?: number | undefined } = navigator;
-    this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), hardware.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), window.__ws_sw ? engineString('s_5c75b0e90774') : '']);
     this.view = v;
     recordBootProgress(v);
     this.dirty = true;
     const pct = (f: number): string => String(Math.floor(f * 100));
-    this.root.dataset['download'] = pct(v.download);
-    this.root.dataset['setup'] = pct(v.setup);
-    this.root.dataset['step'] = v.step;
+    setData(this.root, 'download', pct(v.download));
+    setData(this.root, 'setup', pct(v.setup));
+    setData(this.root, 'step', v.step);
     if (v.error) { this.els.foot.textContent = v.error; this.paintNow(); }
     else if (v.done) this.paintNow();
   }
@@ -150,6 +155,9 @@ export class Loading {
     const v = this.view;
     if (!v) { this.paintAdmissionNow(); return; }
     this.dirty = false;
+    // the tier line once a frame, not on every published view (it reads the viewport, which may rotate)
+    const hardware: { hardwareConcurrency?: number | undefined } = navigator;
+    set(this.els.tier, engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), hardware.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), window.__ws_sw ? engineString('s_5c75b0e90774') : '']));
     const pct = (f: number): string => String(Math.floor(f * 100));
     set(this.els.dlPct, pct(v.download));
     set(this.els.suPct, pct(v.setup));
@@ -175,8 +183,8 @@ export class Loading {
     const total = p.phase === 'modules' && this.admissionUnits === 4 ? read : p.bytesTotal > 0 ? this.moduleBytes + (p.phase === 'descriptor' ? p.bytesTotal : this.descriptorBytes + p.bytesTotal) : 0;
     const download = total > 0 ? Math.min(0.999, read / total) : 0;
     const setup = this.admissionUnits / (BOOT_STEPS.length + 4);
-    this.root.dataset['download'] = String(Math.floor(download * 100));
-    this.root.dataset['setup'] = String(Math.floor(setup * 100));
+    setData(this.root, 'download', String(Math.floor(download * 100)));
+    setData(this.root, 'setup', String(Math.floor(setup * 100)));
     set(this.els.dlPct, String(Math.floor(download * 100))); set(this.els.suPct, String(Math.floor(setup * 100)));
     this.els.dlBar.style.width = `${download * 100}%`; this.els.suBar.style.width = `${setup * 100}%`;
     this.els.bar.style.width = `${(download + setup) * 50}%`;
@@ -212,6 +220,11 @@ export class Loading {
     if (this.view) this.lastFrameStep = `${this.view.label}${this.view.detail ? `: ${this.view.detail}` : ''}`;
     else if (this.admission) this.lastFrameStep = this.admission.detail;
     if (now - this.lastDiagnosticAt > 250) { this.paintDiagnostics(); this.lastDiagnosticAt = now; }
+    // SF67: within a step the clock, bars and rows repaint at most PAINT_MS apart, not every frame: each repaint is a style,
+    // layout and paint of the panel (~3 ms a frame at 4x CPU, ~1.2 s of a Nalati load). A new step paints on its first frame.
+    const step = this.view?.step ?? this.admission?.phase ?? '';
+    if (step === this.lastPaintStep && now - this.lastPaintAt < PAINT_MS) return;
+    this.lastPaintAt = now; this.lastPaintStep = step;
     const s = (now - this.t0) / 1000;
     set(this.els.clock, engineString('s_c0951c6055b1', [String(Math.floor(s / 60)).padStart(2, '0'), (s % 60).toFixed(1).padStart(4, '0')]));
     // the running step's ms is live: repaint rows so its clock moves without a plan event
