@@ -38,6 +38,7 @@
     "./brains": "./brains.ts",
     "./speciesBrains": "./speciesBrains.ts",
     "./bossFight": "./bossFight.ts",
+    "./phasedBoss": "./phasedBoss.ts",
     "./accent": "./accent.ts",
     "./panels": "./panels.ts",
     "./groupBrains": "./groupBrains.ts",

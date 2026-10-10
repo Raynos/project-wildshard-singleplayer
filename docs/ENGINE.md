@@ -2319,6 +2319,27 @@ invulnerable }`. The browser runs it under its views and the headless host throu
 Matriarch is the first (`data/brains.ts` MATRIARCH_BRAIN, `data/matriarchFight.ts` MATRIARCH_FIGHT), held to her old
 brain by `test/shards/sunscar-dunes/matriarch-brain.test.ts`.
 
+**Phased boss fights (SF27).** `@wildshard/game/shardfile/phasedBoss` (SDK `@wildshard/sdk/phasedBoss`)
+`phasedBossFight(row, ports)` is the richer sibling of `markedBossFight`: one body fought through a declared state machine.
+A `PhasedBossRow` holds the arena frame (`origin`, `bounds`), the body's `rest` and `shieldSpot`, the `phases` (hp share
+at each checkpoint, memory at a reset, how a resumed checkpoint begins, what entering the phase does: a roar act that may
+shed a memory field, a mode, cooldowns, view calls, hazards started or stopped), the `modes` (each its damage rule, 0 =
+immune and above 1 a soft opening; `shielded` = the bar shimmers and hp is locked; its look, its glow, its 10 Hz motion
+`hold` / `fight` / `face` / `goto`, its timed beats `timeouts` and its `enter` effect), the attack patterns as strike rows
+(`attacks`: a charged `burst` that fires expanding rings, a `combo` of cuts with per-cut damage, reach, arc and shove, the
+commit turn and the chase; pairs are `[normal, enraged]` from `enragedFrom`), the `hits` rule (head sphere, an armour
+melee breaks), a `crown` weak point worn by headshots, the hazards (`rings`, a timed `pour` that piles drift on the arena,
+a sweeping `sweep` beam that also burns the boss), the `adds` (waves from spots in alternating pairs while the shielded
+mode holds, a reinforce wait, the beat when the last falls) and the `victory`. Every dressing change is a declared, named
+VIEW call (`views`: `arena.lid.open`, `arena.shaft`, `arena.shield`, `adds.spot`, `boss.glow`, `strike.arc`,
+`hazard.ring`, `hazard.pour.fall`, `hazard.sweep`, `victory.heap`, …), numbers only, world space; the shard's
+`BossViewBinding` must bind exactly the declared names. The ports lend the arena (floor heights, drift pile / clear /
+drain, the threshold, the seal), the bodies (spawn, retire, bind the species brain, ready), the adds' spawn, the player,
+the hit resolvers (`cut`, `hazard` by strike name), the rng and the feed. It returns the engine's `BossScript`, the body's
+`brain` (think / act / damageMul the species forwards), the bodies and `snapshot()`. Nalati's Golden King is the first
+(`combat/goldenKingRow.ts`, views `combat/goldenKingViews.ts`), replayed tick for tick against the shipped fight
+(`test/fixtures/species-oracle/goldenKing.ts`) by `test/shards/nalati-grasslands/golden-king-phased.test.ts`.
+
 `@wildshard/game/shardfile/markedBoss` (SDK `@wildshard/sdk/markedBoss`) is the browser side (SF27 / SF7f):
 `installMarkedBoss(ctx, rows, { player, body, record, coins, lit, onDown })` builds a `MarkedBoss` (the engine's
 `BossBrain` over `markedBossFight`) from `{ definition, fight, presentation, reward }`, registers it with the encounters,

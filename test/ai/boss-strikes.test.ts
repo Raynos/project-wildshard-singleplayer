@@ -2,7 +2,8 @@ import { app } from '../../src/engine/app/runtime';
 import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
-import { GoldenKingFight } from '../../src/shards/nalati-grasslands/combat/goldenKing';
+// the shipped fight, kept as the oracle the platform phased fight replays exactly (test/shards/nalati-grasslands/golden-king-phased.test.ts)
+import { GoldenKingFight } from '../fixtures/species-oracle/goldenKing';
 import { StormTitan, StormTitanFight } from '../../src/shards/nalati-grasslands/combat/stormTitan';
 import { AntlerKingFight } from '../../src/shards/pine-hollow/runtime/antlerKing';
 import { DUNGEON } from '../../src/shards/nalati-grasslands/world/KurganDungeon';

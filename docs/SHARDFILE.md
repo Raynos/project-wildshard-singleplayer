@@ -937,6 +937,13 @@ its pivot figure and its dialogue), and the trusted runtime stands it in the wor
 `phased-raptor` (`phasedRaptor(data)`, `@wildshard/sdk/flyers`) is a perched boss bird its
 encounter holds directly: take-off, lap, and per phase its own approach and strike.
 
+A boss with stances, adds and arena tricks is a phased boss fight (`phasedBossFight(row, ports)`,
+`@wildshard/sdk/phasedBoss`): its modes (damage rule, hp lock, motion, timed beats), phases (checkpoint hp, roar, what
+entering each does), attack rows (a charged burst, a cut combo), weak points, adds in waves and hazards (expanding rings,
+timed pours, a sweeping beam) are one data row; every dressing change is a named view call (`arena.lid.open`,
+`hazard.sweep`, …) the shard binds to its own meshes, so the fight's logic is the platform's and only the view stays in
+the shard (Nalati's Golden King: `combat/goldenKingRow.ts`, `combat/goldenKingViews.ts`).
+
 Custom policies and numeric state share one module union and one host: memory,
 fuel, queries, effects, events and quarantine are charged once per fixed tick,
 with independent binding cadences. Brain effects request bounded motion and
