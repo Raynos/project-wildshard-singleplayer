@@ -6,6 +6,7 @@ import { strikeFromData, type StrikeData } from '@wildshard/engine/ai/strikeRows
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { ChallengeGrazerBrain } from '@wildshard/engine/ai/challengeGrazer';
 import { PatrolDiverBrain } from '@wildshard/engine/ai/patrolDiver';
+import { LedgePouncerBrain, readPouncerSpec, type PouncerPorts, type PouncerSpec } from '@wildshard/engine/ai/ledgePouncer';
 import { PhasedFlyerBrain } from '@wildshard/engine/ai/phasedFlyer';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
@@ -24,6 +25,7 @@ import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, 
  * a boss flyer its encounter drives through memory fields (circle, dive, climb; grounded from a phase).
  */
 export type SpeciesBrain =
+  | { readonly archetype: 'ledge-pouncer'; readonly data: PouncerSpec }
   | { readonly archetype: 'challenge-grazer'; readonly data: v.InferInput<typeof ChallengeGrazerSchema>; readonly phaseSlots: number }
   | { readonly archetype: 'patrol-diver'; readonly data: v.InferInput<typeof PatrolDiverSchema> }
   | { readonly archetype: 'phased-flyer'; readonly data: v.InferInput<typeof PhasedFlyerSchema> }
@@ -46,6 +48,7 @@ export interface HomeObservation {
 }
 
 type Admitted =
+  | { readonly archetype: 'ledge-pouncer'; readonly data: PouncerSpec }
   | { readonly archetype: 'challenge-grazer'; readonly data: ShardChallengeGrazer; readonly phaseSlots: number; readonly charge: StrikeSpec; readonly close: StrikeSpec }
   | { readonly archetype: 'patrol-diver'; readonly data: ShardPatrolDiver; readonly strike: StrikeSpec }
   | { readonly archetype: 'phased-flyer'; readonly data: ShardPhasedFlyer; readonly dive: readonly StrikeSpec[]; readonly grounded: readonly StrikeSpec[] }
@@ -56,6 +59,8 @@ export function seedSlot(seed: number, n: number): number { return Math.floor(Ma
 
 /** The admitted brains of a species catalogue, by kind: the browser rows, the live witness and the headless policies. */
 export interface SpeciesBrains {
+  /** A retained pouncer bound to explicit ledge/query/contact/frame ports, identical for browser and native bodies. */
+  pouncer: <A extends AnimalSim>(kind: string, ports: PouncerPorts<A>) => LedgePouncerBrain<A>;
   /** The kinds that run a declared brain. */
   readonly kinds: ReadonlySet<string>;
   /**
@@ -76,6 +81,7 @@ function strikeOf(strikes: ReadonlyMap<string, StrikeSpec>, id: string, kind: st
 }
 function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, StrikeSpec>, modules: ReadonlyMap<string, Uint8Array>): Admitted {
   switch (brain.archetype) {
+    case 'ledge-pouncer': return { archetype: brain.archetype, data: readPouncerSpec(brain.data) };
     case 'challenge-grazer': {
       const data = parseChallengeGrazer(brain.data);
       if (!Number.isInteger(brain.phaseSlots) || brain.phaseSlots < 1 || brain.phaseSlots > 64) throw new Error(`Species ${kind}'s phase slots must be an integer in 1..64`);
@@ -98,6 +104,7 @@ type Callbacks = Required<Pick<SpeciesRow, 'think' | 'act'>>;
 /** Browser callbacks bound to one policy per animal (built at its first decision); `live` answers the witness. */
 function browserCallbacks(brain: Admitted): { callbacks: Callbacks; live: (actor: Animal) => boolean } {
   switch (brain.archetype) {
+    case 'ledge-pouncer': throw new Error('A ledge pouncer requires explicit frame/query ports through pouncer(kind, ports)');
     case 'challenge-grazer': {
       const live = new WeakMap<Animal, ChallengeGrazerBrain<Animal>>(), slots = brain.phaseSlots;
       const of = (a: Animal): ChallengeGrazerBrain<Animal> => { let value = live.get(a); if (value === undefined) { value = new ChallengeGrazerBrain(a, brain.data, brain.charge, brain.close); live.set(a, value); } return value; };
@@ -135,6 +142,11 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
   const witnesses: { archetype: string; live: (actor: Animal) => boolean }[] = [];
   return {
     kinds: new Set(admitted.keys()),
+    pouncer: (kind, ports) => {
+      const brain = admitted.get(kind);
+      if (brain?.archetype !== 'ledge-pouncer') throw new Error(`Species ${kind} does not declare a ledge-pouncer brain`);
+      return new LedgePouncerBrain(brain.data, ports);
+    },
     bind: kind => {
       const brain = admitted.get(kind);
       if (brain === undefined) throw new Error(`Species ${kind} declares no brain`);
@@ -145,6 +157,7 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
       const brain = admitted.get(kind);
       if (brain === undefined) return null;
       switch (brain.archetype) {
+        case 'ledge-pouncer': throw new Error('A ledge pouncer requires explicit frame/query ports through pouncer(kind, ports)');
         case 'challenge-grazer': return new ChallengeGrazerBrain(actor, brain.data, brain.charge, brain.close);
         case 'patrol-diver': return new PatrolDiverBrain(actor, brain.data, brain.data.home, brain.strike);
         case 'phased-flyer': return new PhasedFlyerBrain(actor, brain.data, brain);

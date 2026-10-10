@@ -1,3 +1,5 @@
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import type { LedgePouncerBrain, PouncerPorts, PouncerContext, PouncerLedge } from '@wildshard/engine/ai/ledgePouncer';
 import { admitSpeciesBrains, type BrainedSpecies as PlatformBrainedSpecies, type SpeciesBrain as PlatformSpeciesBrain,
   type SpeciesBrains as PlatformSpeciesBrains } from '@wildshard/game/shardfile/speciesBrains';
 import { moduleBytes } from '@wildshard/game/shardfile/speciesScripts';
@@ -18,3 +20,12 @@ export type SpeciesBrains = PlatformSpeciesBrains;
 export function speciesBrains(species: readonly BrainedSpecies[], strikes: readonly StrikeData[], modules: Readonly<Record<string, string>> = {}): SpeciesBrains {
   return admitSpeciesBrains(species, strikes.map(row => strike(row)), new Map(Object.entries(modules).map(([hash, base64]) => [hash, moduleBytes(base64)] as const)));
 }
+
+/** A retained declared pouncer's decisions, frame law and exact continuation, with a trusted native body. */
+export type SpeciesPouncer<A extends AnimalSim> = LedgePouncerBrain<A>;
+/** Native ledge, height/head/contact and presentation authority for a declared pouncer. */
+export type SpeciesPouncerPorts<A> = PouncerPorts<A>;
+/** The manager decision clock and native path authority, independent of the fixed frame clock. */
+export type SpeciesPouncerContext<A> = PouncerContext<A>;
+/** One native solid ledge in a pouncer's bounded observation set. */
+export type SpeciesPouncerLedge = PouncerLedge;

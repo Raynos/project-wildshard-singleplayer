@@ -2275,6 +2275,11 @@ lifetime remain explicit. `snapshot` / atomic `restore` retain every clock, leap
 marker; the prior runtime keeper wire shape and output order stay exact. `readPouncerSpec` rejects unknown fields,
 nonfinite tuning, reversed ranges, invalid strike fractions and conflicting pose fields before constructing a policy.
 
+A declared `ledge-pouncer` uses `PouncerSpec` and `brains.pouncer(kind, ports)` to bind its retained controller in both
+browser and headless runtimes. Its encounter supplies the frame clock, engagement/leash state and actual ledges and
+queries; `bind` / `policy` refuse this kind without that authority rather than invent a `HomeObservation`. Contacts and
+presentation still pass through the explicit ports. This preserves deferred spawn, actor identity and frame/brain order.
+
 **Species scripts (SF27).** A row's brain may be `{ archetype: 'script', data }`
 (`@wildshard/game/shardfile/speciesScripts`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,
 up to 8 numeric `slots` (its state, with spawn values), up to 4 actor `memory` fields it reads and writes (a pose's
