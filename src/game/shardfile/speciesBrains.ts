@@ -180,7 +180,7 @@ function decisionOf<A extends AnimalSim>(brain: Admitted, actor: A): SpeciesDeci
     case 'skirmisher': return { archetype: brain.archetype, policy: new SkirmisherBrain(actor, brain.data) };
     case 'guardian': return { archetype: brain.archetype, policy: new GuardianBrain(actor, brain.data) };
     case 'perch-hunter': return { archetype: brain.archetype, policy: new PerchHunterBrain(actor, brain.data) };
-    case 'challenge-grazer': case 'patrol-diver': case 'phased-flyer': case 'script': case 'ledge-pouncer':
+    case 'challenge-grazer': case 'patrol-diver': case 'phased-flyer': case 'script': case 'ledge-pouncer': case 'pack-howler':
       throw new Error(`Species ${brain.archetype} is not a native decision family`);
     default: throw new Error('Unknown admitted brain archetype');
   }
