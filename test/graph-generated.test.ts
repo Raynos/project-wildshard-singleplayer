@@ -33,13 +33,15 @@ describe('staged graph resolves generated modules consistently with HEAD', () =>
 it('keeps frozen reach and cycle checks while excluding only exact inventoried edges', () => {
   const legacy = 'src/shards/coast-legacy/plugin.ts';
   const files = new Map([
-    [legacy, "import '@wildshard/engine/app/runtime';"],
-    ['src/shards/fake-legacy/plugin.ts', "import '@wildshard/engine/app/runtime';"],
+    // G288: downward shard imports are never counted, so the counted edge here is a cross-shard one
+    [legacy, "import '@wildshard/engine/app/runtime'; import '../other/a';"],
+    ['src/shards/fake-legacy/plugin.ts', "import '@wildshard/engine/app/runtime'; import '../other/a';"],
+    ['src/shards/other/a.ts', 'export const a = 1;'],
     ['src/engine/app/runtime.ts', 'export const runtime = 1;'],
   ]);
   const frozen = { shards: { 'coast-legacy': { files: { 'plugin.ts': 'x' } } } };
   const run = () => graph([...files.keys()], path => files.get(path) ?? '', path => files.has(path), frozen);
-  expect(run().edges).toEqual({ 'shards/fake-legacy → engine': 1 });
+  expect(run().edges).toEqual({ 'shards/fake-legacy → shards/other': 1 });
   files.set('src/engine/app/runtime.ts', "import '../../shards/coast-legacy/plugin';");
   expect(run().violations).toContain('src/engine/app/runtime.ts reaches into src/shards/coast-legacy/plugin.ts: only src/shards.generated.ts imports a shard (its manifest), and a plugin loads only by import() from its own manifest');
   expect(run().violations.some(reason => reason.startsWith('cycle across'))).toBe(true);
