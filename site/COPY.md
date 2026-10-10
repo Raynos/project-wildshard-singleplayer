@@ -95,6 +95,10 @@ The alpha trailer: gameplay captured in engine from every shard, looping without
 
 Alpha · captured in engine
 
+## Trailer · play button
+
+Play the trailer
+
 # What is Wildshard
 
 ## What · question

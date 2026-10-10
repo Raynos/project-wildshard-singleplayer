@@ -58,7 +58,8 @@
 </header>
 
 <div class="trailer bk">
-  <video id="trailer" muted loop playsinline preload="none" poster="/media/trailer-loop-poster.webp" aria-label="{{@Trailer · description}}"></video>
+  <video id="trailer" muted loop playsinline preload="none" poster="/media/trailer-alpha-poster.webp" aria-label="{{@Trailer · description}}"></video>
+  <button class="play-btn" id="trailer-play" type="button" hidden aria-label="{{@Trailer · play button}}">▶</button>
   <span class="tag">{{Trailer · tag}}</span>
 </div>
 
@@ -355,12 +356,16 @@
   var media = {}; try { media = JSON.parse(document.getElementById("media").textContent || "{}"); } catch (e) { media = {}; }
   var wide = window.matchMedia("(min-width: 1024px)").matches;
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function start(v, src) { if (!v.src) v.src = src; var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+  function start(v, src, refused) { if (!v.src) v.src = src; var p = v.play(); if (p && p.catch) p.catch(function () { if (refused) refused(); }); }
   var trailer = document.getElementById("trailer");
   if (trailer && media.trailer && !still) {
     var tsrc = wide ? media.trailer.mp4 : media.trailer.mp4Phone;
-    if ("IntersectionObserver" in window) new IntersectionObserver(function (es, o) { es.forEach(function (e) { if (e.isIntersecting) { start(trailer, tsrc); o.disconnect(); } }); }, { rootMargin: "200px" }).observe(trailer);
-    else start(trailer, tsrc);
+    // iOS in Low Power Mode refuses every autoplay: then a tap starts it, with sound and controls
+    var tapBtn = document.getElementById("trailer-play");
+    var refused = function () { tapBtn.hidden = false; };
+    tapBtn.addEventListener("click", function () { tapBtn.hidden = true; trailer.muted = false; trailer.controls = true; start(trailer, tsrc, refused); });
+    if ("IntersectionObserver" in window) new IntersectionObserver(function (es, o) { es.forEach(function (e) { if (e.isIntersecting) { start(trailer, tsrc, refused); o.disconnect(); } }); }, { rootMargin: "200px" }).observe(trailer);
+    else start(trailer, tsrc, refused);
   }
   document.querySelectorAll("[data-loop]").forEach(function (shot) {
     var m = media.loops && media.loops[shot.getAttribute("data-loop")];

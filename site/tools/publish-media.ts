@@ -31,7 +31,7 @@ interface Media {
 
 /** The order the shard cards appear on the page; a slug not listed here follows, sorted. */
 const SHARD_ORDER = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack'];
-const POSTER = '/media/trailer-loop-poster.webp';
+const POSTER = '/media/trailer-alpha-poster.webp'; // renamed when the alpha trailer replaced the loop, so cached phones fetch it
 
 const repo = resolve(import.meta.dirname, '..', '..');
 const manifestPath = join(repo, 'site', 'media.json');
