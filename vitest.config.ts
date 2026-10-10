@@ -24,6 +24,11 @@ export const HEAVY_INTEGRATION_TESTS = [
   'test/proof/compatibility/determinism.test.ts',
   'test/proof/driftwood-isle/reef.test.ts',
   'test/proof/driftwood-isle/replay.test.ts',
+  // These native hosts and exact geometry comparisons also exceeded their existing
+  // deadlines while sharing the parallel pool; retain their complete proofs here.
+  'test/proof/blender-template/replay.test.ts',
+  'test/proof/nine-dragon-stack/headless.test.ts',
+  'test/shards/driftwood-isle/trailside-bake.test.ts',
 ];
 
 export default defineConfig({

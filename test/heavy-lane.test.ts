@@ -190,7 +190,7 @@ it('refuses an unwrapped app build at config loading without compiling the app',
   expect(result.stdout + result.stderr).toContain('heavy-lane.py build');
 });
 
-it('collects each test file once and keeps exactly seven integration files', () => {
+it('collects each test file once and serializes the build, native continuation and geometry proofs', () => {
   const { env } = fixture();
   const inventory: unknown = JSON.parse(execFileSync('pnpm', ['exec', 'vitest', 'list', '--filesOnly', '--json'], { env, encoding: 'utf8' }));
   if (!Array.isArray(inventory)) throw new Error('invalid Vitest file inventory');
@@ -200,7 +200,21 @@ it('collects each test file once and keeps exactly seven integration files', () 
     const row: unknown = entry;
     if (row === null || typeof row !== 'object' || !('file' in row) || typeof row.file !== 'string' || !('projectName' in row)) throw new Error('invalid Vitest file row');
     expect(files.has(row.file)).toBe(false); files.add(row.file);
-    if (row.projectName === 'integration') integration.push(row.file.split('/').at(-1) ?? '');
+    if (row.projectName === 'integration') integration.push(row.file.slice(resolvePath('.').length + 1));
   }
-  expect(integration.sort()).toEqual(['grid-collision-strips.test.ts', 'immutable-vegetation-canvases-off.test.ts', 'immutable-vegetation-canvases.test.ts', 'live-grid.test.ts', 'sdk-repo-build.test.ts', 'shardfile-splat-admission.test.ts', 'template-copy-scaffold.test.ts']);
+  expect(integration.sort()).toEqual([
+    'test/grid-collision-strips.test.ts',
+    'test/immutable-vegetation-canvases-off.test.ts',
+    'test/immutable-vegetation-canvases.test.ts',
+    'test/live-grid.test.ts',
+    'test/proof/blender-template/replay.test.ts',
+    'test/proof/compatibility/determinism.test.ts',
+    'test/proof/driftwood-isle/reef.test.ts',
+    'test/proof/driftwood-isle/replay.test.ts',
+    'test/proof/nine-dragon-stack/headless.test.ts',
+    'test/sdk-repo-build.test.ts',
+    'test/shardfile-splat-admission.test.ts',
+    'test/shards/driftwood-isle/trailside-bake.test.ts',
+    'test/template-copy-scaffold.test.ts',
+  ]);
 });
