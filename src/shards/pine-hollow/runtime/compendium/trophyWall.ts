@@ -25,9 +25,9 @@ import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { readTexturePixels } from '@wildshard/engine/core/ktx2';
-import { loadHandFont } from "./Journal";
-import type { CompendiumState } from "./state";
-import type { TrophySlot } from "./types";
+import { loadHandFont } from "@wildshard/game/compendium/Journal";
+import type { CompendiumState } from "@wildshard/game/compendium/state";
+import type { TrophySlot } from "@wildshard/game/compendium/types";
 
 export interface TrophyWallOptions {
   anchor: THREE.Object3D;

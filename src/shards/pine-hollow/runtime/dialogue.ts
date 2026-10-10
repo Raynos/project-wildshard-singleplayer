@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { NpcDialogue, type DialogueFlags } from '@wildshard/game/quest/dialogue';
+import { NpcDialogue, type DialogueFlags } from './quest/npcDialogue';
 import type { NpcDef } from '@wildshard/engine/quest/core';
 import { RANGER } from '../quest/wardensHollow';
 

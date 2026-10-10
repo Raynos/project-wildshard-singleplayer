@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type { DialogueFlags } from '@wildshard/game/quest/dialogue';
+import type { DialogueFlags } from './quest/npcDialogue';
 import { RANGER, MILLER, TRADER } from '../quest/wardensHollow';
 import { PineDialogue } from './dialogue';
 

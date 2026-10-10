@@ -127,6 +127,7 @@ export const DONE = {
     'src/shards/nine-dragon-stack/vm/geo.ts': { why: "the viewmodel's geometry library (`Geo`, merged per rigid group): the fp arms' knot, the jian's parts and the facade kit's pieces build with it; it draws nothing of its own — the arms are the Gear model nine-dragon-stack/fp-arms (models/gear.ts, M5)", counts: { mergeGeometries: 1 } },
   },
   'pine-hollow': {
+    'src/shards/pine-hollow/runtime/compendium/trophyWall.ts': { why: "the compendium's trophy wall (SHARD-PLATFORM M3, moved from Pine Hollow's world/): its mounts, each a creature's head built from its rig, merged into one draw", counts: { mergeGeometries: 2 } },
     'src/shards/pine-hollow/runtime/looks/posedInstances.ts': { why: "the posed-instances look (SHARD-PLATFORM M3, moved from Pine Hollow's models/wildlife.ts, a models file): a shard's small posable creatures packed into one geometry and drawn as one instanced mesh, each instance its own kind and pose", counts: { InstancedMesh: 1 } },
     'src/shards/pine-hollow/runtime/kit/primitiveParts.ts': { why: "the kit system's primitive-parts builder (SHARD-PLATFORM M3, moved from Pine Hollow's models/people.ts, a models file): a stand-in figure's or a ride prop's parts merged into one geometry, no thing of its own", counts: { mergeGeometries: 1 } },
     'src/shards/pine-hollow/runtime/viewmodel/gloveHands.ts': { why: "Gear: a held weapon's gloved hands (SHARD-PLATFORM M3, moved from Pine Hollow's weapons/hunterHands.ts, whose entry still covers its frozen legacy copy): the fist and its forearm merged per hand, part of the weapon's own first-person build", counts: { mergeGeometries: 2 } },
@@ -150,7 +151,6 @@ export const DONE = {
     'src/engine/entities/AnimalFactory.ts': { why: "the species rigs' builder: a creature's parts merged per bone (creatures are models, M5: each shard's roster)", counts: { mergeGeometries: 4 } },
     'src/engine/fx/Impacts.ts': { why: 'hit sparks and debris: an effect', counts: { InstancedMesh: 1 } },
     'src/game/loot/CoinBurst.ts': { why: 'the coins bursting from a kill: an effect', counts: { InstancedMesh: 1 } },
-    'src/game/compendium/trophyWall.ts': { why: "the compendium's trophy wall (SHARD-PLATFORM M3, moved from Pine Hollow's world/): its mounts, each a creature's head built from its rig, merged into one draw", counts: { mergeGeometries: 2 } },
     'src/game/cosmetics/bodyShadow.ts': { why: "the player's own shadow-casting body: the player, not a thing in the world", counts: { mergeGeometries: 2 } },
     'src/game/systems/items/declaredSword.ts': { why: "SF54: the declared kit.sword item view's private copy of the low-poly sword build (Gear), moved with the declared item families out of the kit; deleted when they graduate", counts: { mergeGeometries: 2 } },
     'src/engine/player/nalatiArms.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 1 } },

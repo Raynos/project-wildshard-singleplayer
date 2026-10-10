@@ -44,3 +44,9 @@ and map pixels are exact. The map stamp additionally includes HEAD’s
 documentation-only coat-table update. Twenty-six focused checks, root
 strict and touched lint pass; 166 existing performance sites transfer by
 source hash. Newly exposed import debt is in the coordinator approval file.
+
+Pine’s trophy-wall view and NPC dialogue continuation now live verbatim
+in `runtime/compendium/` and `runtime/quest/`. The trophy SDK facade is
+deleted. Five dialogue/continuation checks, root strict and touched lint
+pass; 29 existing performance sites transfer by source hash. This group
+changes no collider, clip, placement or map input.

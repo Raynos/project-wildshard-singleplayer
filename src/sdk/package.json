@@ -120,7 +120,6 @@
     "./species/clips": "./species/clips.ts",
     "./species/limbRig": "./species/limbRig.ts",
     "./species/rigidSkin": "./species/rigidSkin.ts",
-    "./compendium/trophyWall": "./compendium/trophyWall.ts",
     "./items/lashView": "./items/lashView.ts",
     "./items/lashHold": "./items/lashHold.ts",
     "./items/lashWeapon": "./items/lashWeapon.ts",

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { NpcDialogue } from '../../src/game/quest/dialogue';
+import { NpcDialogue } from '../../src/shards/pine-hollow/runtime/quest/npcDialogue';
 import { Flags } from '../../src/engine/world/interact/flags';
 import type { NpcDef } from '../../src/engine/quest/core';
 
