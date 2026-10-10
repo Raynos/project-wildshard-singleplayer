@@ -42,7 +42,7 @@ export interface PineSolid {
 }
 /** A baked body at load: the manager's id, kind / variant, herd slot (−1: none), native spec, seed, scale; elites are `scripted`. */
 export interface PineBakedActor { readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number; readonly spec: AnimalSimSpec; readonly seed: number; readonly scale: number; readonly scripted: boolean }
-/** The trusted browser bake (scripts/bake-pine-physics.mjs), parsed strictly and decoded once. */
+/** The trusted browser bake (src/shards/pine-hollow/generators/bake-pine-physics.mjs), parsed strictly and decoded once. */
 export interface PineBake {
   readonly ground: { readonly heights: Float32Array; readonly friction: number; readonly groups: number; readonly scale: { x: number; y: number; z: number }; readonly at: { x: number; y: number; z: number } };
   /** Page-rig rest-space head/main/chest hit volumes and ribcage, measured from the native inverse binds. */

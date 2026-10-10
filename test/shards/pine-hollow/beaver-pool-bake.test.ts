@@ -3,14 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { platform } from 'node:process';
 import { POOL_ROWS } from '../../../src/shards/pine-hollow/world/beaverPool';
 import committed from '../../../src/shards/pine-hollow/data/beaverPool.json' with { type: 'json' };
-import { bakePoolRows } from '../../../scripts/bake-pine-beaver-pool.mjs';
-import { installPineGround } from '../../../scripts/bake-pine-crags.mjs';
+import { bakePoolRows } from '../../../src/shards/pine-hollow/generators/bake-pine-beaver-pool.mjs';
+import { installPineGround } from '../../../src/shards/pine-hollow/generators/bake-pine-crags.mjs';
 import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 
 describe('Pine Hollow bakes its beaver pool meshes offline (G285)', () => {
   // Exact against a bake recorded on the Mac; Linux's libm differs in the last ulp (CI 38008817381, the crag bake's gate),
   // so the stale gate runs where bakes are made (the local push gate), not on the Linux runners.
-  it.runIf(platform === 'darwin')('the committed blocks are exact against their generator (the stale gate: rerun scripts/bake-pine-beaver-pool.mjs)', () => {
+  it.runIf(platform === 'darwin')('the committed blocks are exact against their generator (the stale gate: rerun src/shards/pine-hollow/generators/bake-pine-beaver-pool.mjs)', () => {
     expect(installPineGround()).toBe(PINE_HOLLOW.seed);
     expect(bakePoolRows()).toEqual(committed);
   });

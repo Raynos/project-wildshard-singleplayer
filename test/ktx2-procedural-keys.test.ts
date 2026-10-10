@@ -12,7 +12,7 @@ import { TIER } from '../src/engine/core/tier';
 import { viewmodelBakeUrl } from '../src/engine/player/viewmodelTextures';
 import { GPU_FILES } from '../src/shards/pine-hollow/ktx2.generated';
 import { pineCoatUrl } from '../src/shards/pine-hollow/species/rigs';
-import coats from '../scripts/bake-pine-coats.json';
+import coats from '../src/shards/pine-hollow/generators/bake-pine-coats.json';
 import sets from '../scripts/bake-viewmodel-sets.json';
 
 it('keeps procedural fallback pixels distinct from real compressed files on both tiers', () => {

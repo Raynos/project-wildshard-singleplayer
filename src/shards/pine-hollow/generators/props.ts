@@ -1,5 +1,5 @@
 /**
- * Pine Hollow's forest props scattered (E315 M2; G285: an offline bake). Build-time only: `scripts/bake-pine-props.mjs`
+ * Pine Hollow's forest props scattered (E315 M2; G285: an offline bake). Build-time only: `src/shards/pine-hollow/generators/bake-pine-props.mjs`
  * runs `bakePineProps` over Pine Hollow's baked terrain (the page's own grid), the scans' footprints (the boulder set's six
  * rocks and the fallen log, read from their LOD GLBs as the page loads them) and the forest's trunks (the physics bake's
  * `trees`), and writes every placement to `../data/props.json`; the page places the scans there (../world/props.ts) and

@@ -22,7 +22,7 @@ import propJson from '../data/props.json' with { type: 'json' };
  *   await props.build(registry, macrotask);      // places and registers them; `registry` null: a dev page / the bake
  *
  * Where they stand is an offline bake (G285, SF72 "bake the code-built worlds"): `../generators/props.ts` scatters them at
- * build time over the page's own baked terrain, the scans' footprints and the forest's trunks (`scripts/bake-pine-props.mjs`),
+ * build time over the page's own baked terrain, the scans' footprints and the forest's trunks (`src/shards/pine-hollow/generators/bake-pine-props.mjs`),
  * and `../data/props.json` holds every copy's pose. Drawing is `place`'s: the six rock shapes share the scan's material, so
  * they are ONE BatchedMesh where multi-draw exists (one InstancedMesh per shape without), stumps and logs one InstancedMesh
  * per scan part; every copy is culled by range, angular size and the forest's padded view frustum (`cull.view`: the

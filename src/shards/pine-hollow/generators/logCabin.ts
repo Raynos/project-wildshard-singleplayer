@@ -1,5 +1,5 @@
 /**
- * The log kit (E315 M2; PINE-HOLLOW-REMASTER; G285: an offline bake). Build-time only: `scripts/bake-pine-cabins.mjs`
+ * The log kit (E315 M2; PINE-HOLLOW-REMASTER; G285: an offline bake). Build-time only: `src/shards/pine-hollow/generators/bake-pine-cabins.mjs`
  * runs `bakePineCabins` over Pine Hollow's baked terrain and writes every log building — the three cabins (the ranger's in
  * the Hollow, the east cabin, the ridge cabin) and the mill hamlet's five (the lodge, the trader's stall, the miller's
  * house, the watermill, the shed) — to `public/assets/pine-hollow/baked/cabins.bin` (zlib) + `data/cabins.json`; the page

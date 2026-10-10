@@ -1,6 +1,6 @@
 /**
  * The fire lookout built (E315 M2; PINE-HOLLOW-REMASTER PH-B3; G285: an offline bake). Build-time only:
- * `scripts/bake-pine-lookout.mjs` runs `bakeFireLookout` on the cabins' timber kit (../world/timber.ts) and writes what the
+ * `src/shards/pine-hollow/generators/bake-pine-lookout.mjs` runs `bakeFireLookout` on the cabins' timber kit (../world/timber.ts) and writes what the
  * builder leaves (each material's parts, the glass, the colliders, deck floors and anchors) to
  * `public/assets/pine-hollow/baked/lookout.bin` + `../data/lookout.json`; the page finishes the timber from them
  * (../models/fireLookout.ts) and never runs this. test/shards/pine-hollow/lookout-bake.test.ts is the stale gate. The

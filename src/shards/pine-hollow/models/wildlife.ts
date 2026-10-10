@@ -65,7 +65,7 @@ export type WildRows = vb.InferOutput<typeof WildRowsSchema>;
 export const WILD_BAKE_KINDS: readonly WildKind[] = [KIND.raven, KIND.owl, KIND.woodpecker, KIND.hare];
 /** the bake's rows, parsed strictly once */
 export const WILD_ROWS: WildRows = vb.parse(WildRowsSchema, wildJson);
-/** the bake's binary (`scripts/bake-pine-wildlife.mjs`); listed in the boot's world reads (../boot/files.ts) */
+/** the bake's binary (`src/shards/pine-hollow/generators/bake-pine-wildlife.mjs`); listed in the boot's world reads (../boot/files.ts) */
 export const WILDLIFE_BAKE_URL = '/assets/pine-hollow/baked/wildlife.bin';
 
 /** one kind's baked blocks: position, normal, colour, pivot (3 a vertex), info, atlas (4 a vertex), its local triangles */

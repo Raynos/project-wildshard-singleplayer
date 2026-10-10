@@ -15,7 +15,7 @@ import baked from './physics.baked.json' with { type: 'json' };
 export const PINE_HERD_STREAM = 1337 + 31;
 
 const finite = v.pipe(v.number(), v.finite());
-/** The forest's trunk circles as the page's hunting brain read them (scripts/bake-pine-physics.mjs `trees`: x, z, r). */
+/** The forest's trunk circles as the page's hunting brain read them (src/shards/pine-hollow/generators/bake-pine-physics.mjs `trees`: x, z, r). */
 export function pineTrees(): readonly TreeInstance[] {
   return v.parse(v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])), baked.trees)
     .map(([x, z, r]) => ({ x, y: 0, z, r, variant: 0, scale: 1, rot: 0, height: 0, tint: new Color() }));

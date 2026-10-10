@@ -7,7 +7,7 @@ import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { PineKingPose } from '../../../src/shards/pine-hollow/runtime/kingPoseHost';
 import { readKingCollisionBake } from '../../../src/shards/pine-hollow/runtime/kingCollisionBake';
 import { advanceKingPose, applyKingPose, newPose, type KingPoseInput } from '../../../src/shards/pine-hollow/combat/kingRig';
-import { readKingRig } from '../../../scripts/bake-pine-king-collision.mjs';
+import { readKingRig } from '../../../src/shards/pine-hollow/generators/bake-pine-king-collision.mjs';
 import { ShippingAnimalPoseOracle } from '../../fixtures/animal-pose/shipping';
 import raw from '../../../src/shards/pine-hollow/runtime/kingCollision.baked.json';
 

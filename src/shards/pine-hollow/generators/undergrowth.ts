@@ -1,5 +1,5 @@
 /**
- * The forest floor's undergrowth shapes (G285: an offline bake). Build-time only: `scripts/bake-pine-undergrowth.mjs`
+ * The forest floor's undergrowth shapes (G285: an offline bake). Build-time only: `src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs`
  * runs `bakePineUndergrowth` and writes each kind's geometry (the fern rosette, the shrub's crossed quads, the litter,
  * pebble and moss quads, the reed clump) to `../data/undergrowth.json`; the page builds them from it
  * (../world/undergrowth.ts `UNDER_SHAPES`) and never runs this. test/shards/pine-hollow/undergrowth-bake.test.ts is the

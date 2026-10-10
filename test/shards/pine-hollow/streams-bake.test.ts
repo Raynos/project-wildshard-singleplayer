@@ -6,12 +6,12 @@ import { inflateSync } from 'node:zlib';
 import { unshuffleLanes } from '../../../src/shards/pine-hollow/world/bakeBytes';
 import { STREAM_ROWS, streamGeometry } from '../../../src/shards/pine-hollow/world/streams';
 import committed from '../../../src/shards/pine-hollow/data/streams.json' with { type: 'json' };
-import { bakeStreamRows } from '../../../scripts/bake-pine-streams.mjs';
+import { bakeStreamRows } from '../../../src/shards/pine-hollow/generators/bake-pine-streams.mjs';
 
 const shipped = (): Uint8Array => unshuffleLanes(new Uint8Array(inflateSync(readFileSync(new URL('../../../public/assets/pine-hollow/baked/streams.bin', import.meta.url)))));
 
 describe('Pine Hollow bakes its running water offline (G285)', () => {
-  it('the committed bake is byte-exact against its generator (the stale gate: rerun scripts/bake-pine-streams.mjs)', () => {
+  it('the committed bake is byte-exact against its generator (the stale gate: rerun src/shards/pine-hollow/generators/bake-pine-streams.mjs)', () => {
     const { rows, bin } = bakeStreamRows();
     expect(rows).toEqual(committed);
     expect(shipped()).toEqual(bin);

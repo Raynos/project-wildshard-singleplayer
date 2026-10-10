@@ -30,7 +30,7 @@ const ROOT = resolve(import.meta.dirname, '..');
 const PUB = resolve(ROOT, 'public');
 /** per shard: the KTX2 folder, the table, and (Nalati) the folder of the lossless images the table names */
 const SHARDS = {
-  'pine-hollow': { ktx2: 'assets/gpu/pine-hollow/creatures/coats', table: 'scripts/bake-pine-coats.json', images: null, doc: 'G187 cut 2' },
+  'pine-hollow': { ktx2: 'assets/gpu/pine-hollow/creatures/coats', table: 'src/shards/pine-hollow/generators/bake-pine-coats.json', images: null, doc: 'G187 cut 2' },
   'nalati-grasslands': { ktx2: 'assets/gpu/nalati/models/coats', table: 'scripts/bake-nalati-coats.json', images: 'assets/nalati/models/coats', doc: 'SHARD-PLATFORM G226' },
 };
 const argv = process.argv.slice(2);

@@ -9,7 +9,7 @@ import process from 'node:process';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP, KING_BONES, KING_CLIP_NAMES, advanceKingPose, applyKingPose, clipPose, kingRest, newPose, type KingPose, type KingPoseInput, type KingRest } from '../../../src/shards/pine-hollow/combat/kingRig';
-import { readKingRig } from '../../../scripts/bake-pine-king-collision.mjs';
+import { readKingRig } from '../../../src/shards/pine-hollow/generators/bake-pine-king-collision.mjs';
 import pinned from './king-clips.json' with { type: 'json' };
 
 /** mulberry32: the same trace on every machine */

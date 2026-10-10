@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Matrix4, Vector3 } from 'three';
 import * as v from 'valibot';
-import { readKingRig } from '../../../../scripts/bake-pine-king-collision.mjs';
+import { readKingRig } from '../../../../src/shards/pine-hollow/generators/bake-pine-king-collision.mjs';
 import { advanceKingPose, newPose } from '../../../../src/shards/pine-hollow/combat/kingRig.ts';
 import { KingCollision } from '../../../../src/shards/pine-hollow/runtime/kingCollision.ts';
 import { readKingCollisionBake } from '../../../../src/shards/pine-hollow/runtime/kingCollisionBake.ts';

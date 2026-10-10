@@ -15,7 +15,7 @@ import { pathToFileURL } from 'node:url';
 
 /** Committed bakes with recorded input hashes: the output file, the script that bakes it and its exported bake function. */
 export const RECORDED_BAKES = [
-  { file: 'src/shards/pine-hollow/runtime/kingCollision.baked.json', script: 'scripts/bake-pine-king-collision.mjs', bake: 'bakeKingCollision' },
+  { file: 'src/shards/pine-hollow/runtime/kingCollision.baked.json', script: 'src/shards/pine-hollow/generators/bake-pine-king-collision.mjs', bake: 'bakeKingCollision' },
 ];
 /** @param {string} file */
 export const isRecordedBake = (file) => RECORDED_BAKES.some((row) => row.file === file);

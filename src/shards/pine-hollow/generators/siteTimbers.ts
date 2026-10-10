@@ -1,6 +1,6 @@
 /**
  * The zipline landing and the creek footbridge built (E315 M2; PINE-HOLLOW-REMASTER PH-B3; G285: an offline bake), on the
- * cabins' timber kit (../world/timber.ts). Build-time only: `scripts/bake-pine-site-timbers.mjs` runs `bakeSiteTimbers`
+ * cabins' timber kit (../world/timber.ts). Build-time only: `src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs` runs `bakeSiteTimbers`
  * over Pine Hollow's baked terrain (the page's own grid), and writes what each builder leaves, at its site and on the
  * turntable's flat ground, to `public/assets/pine-hollow/baked/site-timbers.bin` + `../data/siteTimbers.json`; the page
  * finishes the timbers from them (../world/timberSites.ts) and never runs this. test/shards/pine-hollow/site-timbers-bake.test.ts

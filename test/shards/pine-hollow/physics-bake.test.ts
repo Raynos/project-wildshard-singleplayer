@@ -99,5 +99,5 @@ it('captures the loaded King chest and cage in rest model space, outside the old
   expect(row.ribs[2]).toBeGreaterThan(front[2]);
   expect(row.ribs[1]).toBeGreaterThan(1);
   expect(baked.inputs['src/engine/entities/AnimalView.ts']).toBeDefined();
-  expect(baked.inputs['scripts/bake-pine-physics.mjs']).toBeDefined();
+  expect(baked.inputs['src/shards/pine-hollow/generators/bake-pine-physics.mjs']).toBeDefined();
 });

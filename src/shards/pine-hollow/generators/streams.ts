@@ -1,6 +1,6 @@
 /**
  * Pine Hollow's running water shaped (PINE-HOLLOW-REMASTER PH-L9; G285: an offline bake). Build-time only:
- * `scripts/bake-pine-streams.mjs` runs `bakePineStreams` with the Pine level selected and its baked terrain installed (the
+ * `src/shards/pine-hollow/generators/bake-pine-streams.mjs` runs `bakePineStreams` with the Pine level selected and its baked terrain installed (the
  * page's heights and normals) and writes the one water mesh — the creek ribbon from the beaver dam to the slab's south
  * edge, the waterfall's sheet down the Ridge's face, the plunge ring on the pond — to
  * `public/assets/pine-hollow/baked/streams.bin` (zlib) + `../data/streams.json` (with the fall's plunge and face-foot

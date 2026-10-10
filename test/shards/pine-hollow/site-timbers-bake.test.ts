@@ -10,14 +10,14 @@ import { SITE_TIMBER_ROWS } from '../../../src/shards/pine-hollow/world/timberSi
 import { TimberBlocks } from '../../../src/shards/pine-hollow/world/timberBake';
 import { unshuffleLanes } from '../../../src/shards/pine-hollow/world/bakeBytes';
 import committed from '../../../src/shards/pine-hollow/data/siteTimbers.json' with { type: 'json' };
-import { bakeSiteTimberRows } from '../../../scripts/bake-pine-site-timbers.mjs';
+import { bakeSiteTimberRows } from '../../../src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs';
 
 const shipped = (): Uint8Array => unshuffleLanes(new Uint8Array(inflateSync(readFileSync(new URL('../../../public/assets/pine-hollow/baked/site-timbers.bin', import.meta.url)))));
 
 describe('Pine Hollow bakes its zipline landing and creek footbridge offline (G285)', () => {
   // Exact against a bake recorded on the Mac; Linux's libm differs in the last ulp (CI 38008817381, the crag bake's gate),
   // so the stale gate runs where bakes are made (the local push gate), not on the Linux runners.
-  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun scripts/bake-pine-site-timbers.mjs)', () => {
+  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs)', () => {
     const { rows, bin } = bakeSiteTimberRows();
     // the ground they fit is the level's, and their streams are the level seed's
     expect(rows.seed).toBe(PINE_HOLLOW.seed);

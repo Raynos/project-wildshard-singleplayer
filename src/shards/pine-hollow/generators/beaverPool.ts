@@ -1,6 +1,6 @@
 /**
  * The beaver pool's two water meshes laid out (E322 F-L6; G285: an offline bake). Build-time only:
- * `scripts/bake-pine-beaver-pool.mjs` runs `bakeBeaverPool` over Pine Hollow's baked terrain (the page's own grid) and
+ * `src/shards/pine-hollow/generators/bake-pine-beaver-pool.mjs` runs `bakeBeaverPool` over Pine Hollow's baked terrain (the page's own grid) and
  * writes both meshes' blocks to `../data/beaverPool.json`; the page builds the meshes from them (../world/beaverPool.ts)
  * and never runs this. test/shards/pine-hollow/beaver-pool-bake.test.ts is the stale gate.
  *

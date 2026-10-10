@@ -2,7 +2,7 @@
 import { resolve } from 'node:path';
 import { Matrix4, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { readKingRig } from '../../../scripts/bake-pine-king-collision.mjs';
+import { readKingRig } from '../../../src/shards/pine-hollow/generators/bake-pine-king-collision.mjs';
 import { advanceKingPose, applyKingPose, newPose, type KingPoseInput } from '../../../src/shards/pine-hollow/combat/kingRig';
 import { readKingCollisionBake } from '../../../src/shards/pine-hollow/runtime/kingCollisionBake';
 import { KingQueryPose } from '../../../src/shards/pine-hollow/runtime/kingQueryPose';

@@ -9,14 +9,14 @@ import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import { CRAG_ROWS, CragSkin } from '../../../src/shards/pine-hollow/world/cragBake';
 import { unshuffleLanes } from '../../../src/shards/pine-hollow/world/bakeBytes';
 import committed from '../../../src/shards/pine-hollow/data/crags.json' with { type: 'json' };
-import { bakeCragRows, installPineGround } from '../../../scripts/bake-pine-crags.mjs';
+import { bakeCragRows, installPineGround } from '../../../src/shards/pine-hollow/generators/bake-pine-crags.mjs';
 
 const shipped = (tier: 'phone' | 'desktop'): Uint8Array => unshuffleLanes(new Uint8Array(inflateSync(readFileSync(new URL(`../../../public/assets/pine-hollow/baked/crags.${tier}.bin`, import.meta.url)))));
 
 describe('Pine Hollow bakes its crags offline (G285)', () => {
   // Byte-exact against a bake recorded on the Mac; Linux's libm differs in the last ulp (CI 38008817381: tiltX …043 vs …046),
   // so the stale gate runs where bakes are made (the local push gate), not on the Linux runners.
-  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun scripts/bake-pine-crags.mjs)', async () => {
+  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun src/shards/pine-hollow/generators/bake-pine-crags.mjs)', async () => {
     // the ground the crags stand on is the level's: its baked grid carries the level seed (1337)
     expect(installPineGround()).toBe(PINE_HOLLOW.seed);
     const { rows, bins } = await bakeCragRows();

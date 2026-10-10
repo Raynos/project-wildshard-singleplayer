@@ -32,6 +32,11 @@ describe('check-paths CLI on a temporary repository', () => {
     expect(out.status).toBe(1);
     expect(out.output).toContain('scripts/plant.mjs:1: missing path src/planted-missing.ts');
   });
+  it('checks shard-owned Node baker paths after tooling moves into generators', () => {
+    const out = scan({ 'src/shards/alpha/generators/bake.mjs': "const path = 'src/planted-missing.ts';" });
+    expect(out.status).toBe(1);
+    expect(out.output).toContain('src/shards/alpha/generators/bake.mjs:1: missing path src/planted-missing.ts');
+  });
   it('names a planted empty code glob and exits 1', () => {
     const out = scan({ 'test/plant.test.ts': "const modules = import.meta.glob<string>(['../src/planted-empty/*.ts', '!../src/ignored.ts']);" });
     expect(out.status).toBe(1);

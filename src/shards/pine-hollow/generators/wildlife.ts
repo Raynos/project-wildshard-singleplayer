@@ -1,5 +1,5 @@
 /**
- * Pine Hollow's procedural wildlife shapes (G285: an offline bake). Build-time only: `scripts/bake-pine-wildlife.mjs` runs
+ * Pine Hollow's procedural wildlife shapes (G285: an offline bake). Build-time only: `src/shards/pine-hollow/generators/bake-pine-wildlife.mjs` runs
  * `bakePineWildlife` and writes the raven's, the great grey owl's, the pileated woodpecker's and the snowshoe hare's
  * geometry (ellipsoids, cones and feather sheets at their real size, forward = +z, up = +y, smooth-shaded, per-vertex
  * roughness and feather / fur mottling) to `public/assets/pine-hollow/baked/wildlife.bin` (its 4-byte words in four lanes,

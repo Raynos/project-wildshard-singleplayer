@@ -11,13 +11,13 @@ import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import { CABIN_ROWS, CabinGeometries, LogBuilding, NO_OWNER } from '../../../src/shards/pine-hollow/world/cabinBake';
 import type { Mats } from '../../../src/shards/pine-hollow/world/homestead';
 import committed from '../../../src/shards/pine-hollow/data/cabins.json' with { type: 'json' };
-import { pineCabinHeights } from '../../../scripts/bake-pine-cabins.mjs';
+import { pineCabinHeights } from '../../../src/shards/pine-hollow/generators/bake-pine-cabins.mjs';
 
 const sha = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 const packed = (): Uint8Array => new Uint8Array(inflateSync(readFileSync(new URL('../../../public/assets/pine-hollow/baked/cabins.bin', import.meta.url))));
 
 describe('Pine Hollow bakes its log buildings offline (G285)', () => {
-  it('the committed bake is byte-exact against its generator (the stale gate: rerun scripts/bake-pine-cabins.mjs)', () => {
+  it('the committed bake is byte-exact against its generator (the stale gate: rerun src/shards/pine-hollow/generators/bake-pine-cabins.mjs)', () => {
     const { bin, rows } = bakePineCabins(pineCabinHeights()), shipped = packed();
     expect({ bin: sha(bin), bytes: bin.length, ...rows }).toEqual(committed);
     expect(sha(shipped)).toBe(committed.bin);

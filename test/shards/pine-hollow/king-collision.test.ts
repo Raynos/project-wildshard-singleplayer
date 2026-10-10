@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { bakeKingCollision, readKingRig } from '../../../scripts/bake-pine-king-collision.mjs';
+import { bakeKingCollision, readKingRig } from '../../../src/shards/pine-hollow/generators/bake-pine-king-collision.mjs';
 import { advanceKingPose, applyKingPose, clipPose, newPose, type KingPoseInput } from '../../../src/shards/pine-hollow/combat/kingRig';
 import { KingCollision } from '../../../src/shards/pine-hollow/runtime/kingCollision';
 import { readKingCollisionBake } from '../../../src/shards/pine-hollow/runtime/kingCollisionBake';

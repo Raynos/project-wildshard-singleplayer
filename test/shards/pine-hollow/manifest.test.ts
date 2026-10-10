@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import { bootSources, worldReads } from '../../../src/shards/pine-hollow/boot/files';
 import before from './boot-before.json';
-import bakedCoats from '../../../scripts/bake-pine-coats.json';
+import bakedCoats from '../../../src/shards/pine-hollow/generators/bake-pine-coats.json';
 import bakedViewmodel from '../../../scripts/bake-viewmodel-sets.json';
 
 /** G187 cut 2: the coats baked to KTX2 (scripts/bake-coats.mjs) ride the KTX2 lists only, never the image ones */

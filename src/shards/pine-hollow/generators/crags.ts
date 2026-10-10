@@ -1,6 +1,6 @@
 /**
  * The Ridge's granite placed and its face skin built (PINE-HOLLOW-REMASTER PH-B2; G285: an offline bake). Build-time only:
- * `scripts/bake-pine-crags.mjs` runs `bakePineCrags` over Pine Hollow's baked terrain (the page's own grid), the kit's
+ * `src/shards/pine-hollow/generators/bake-pine-crags.mjs` runs `bakePineCrags` over Pine Hollow's baked terrain (the page's own grid), the kit's
  * module footprints (crags.glb + crags-b.glb) and the forest's trunks (the physics bake's `trees`), and writes every
  * placement and each tier's skin tiles to `../data/crags.json` + `public/assets/pine-hollow/baked/crags.<tier>.bin` (zlib);
  * the page draws them (../world/cragBake.ts, ../world/crags.ts) and never runs this. test/shards/pine-hollow/crag-bake.test.ts

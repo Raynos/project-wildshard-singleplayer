@@ -6,7 +6,7 @@
  * crag-top pad. Placed once on the Ridge (src/shards/pine-hollow/world/landmarks.ts), its anchors (`zipTop`, `launch`)
  * handed to the ride. One merged mesh per material; the detail set drops past the cabins' detail distance.
  *
- * Built offline (G285, SF72 "bake the code-built worlds"): `../generators/fireLookout.ts` (`scripts/bake-pine-lookout.mjs`)
+ * Built offline (G285, SF72 "bake the code-built worlds"): `../generators/fireLookout.ts` (`src/shards/pine-hollow/generators/bake-pine-lookout.mjs`)
  * leaves each material's parts and the glass in `public/assets/pine-hollow/baked/lookout.bin` and the colliders, floors and
  * anchors in `../data/lookout.json`; here the timber is finished from them (../world/timberBake.ts), as the builder's own was.
  *
@@ -22,7 +22,7 @@ import lookoutJson from '../data/lookout.json' with { type: 'json' };
 /** the timber's name and its stream (the level seed + this) */
 export const LOOKOUT_NAME = 'fire-lookout';
 export const LOOKOUT_SEED = 901;
-/** the bake's binary (`scripts/bake-pine-lookout.mjs`); listed in the boot's world reads (../boot/files.ts) */
+/** the bake's binary (`src/shards/pine-hollow/generators/bake-pine-lookout.mjs`); listed in the boot's world reads (../boot/files.ts) */
 export const LOOKOUT_BAKE_URL = '/assets/pine-hollow/baked/lookout.bin';
 
 const num = v.pipe(v.number(), v.finite());

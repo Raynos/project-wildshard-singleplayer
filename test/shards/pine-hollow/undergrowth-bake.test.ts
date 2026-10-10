@@ -6,7 +6,7 @@ import { UnderShapesSchema } from '../../../src/shards/pine-hollow/world/undergr
 import committed from '../../../src/shards/pine-hollow/data/undergrowth.json' with { type: 'json' };
 
 describe('Pine Hollow bakes its undergrowth shapes offline (G285)', () => {
-  it('the committed shapes are exact against their generator (the stale gate: rerun scripts/bake-pine-undergrowth.mjs)', () => {
+  it('the committed shapes are exact against their generator (the stale gate: rerun src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs)', () => {
     expect(bakePineUndergrowth()).toEqual(committed);
     // the shapes' streams are the level seed's, as the page's engine SEED is while the floor builds
     expect(PINE_SEED).toBe(PINE_HOLLOW.seed);

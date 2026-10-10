@@ -1,6 +1,6 @@
 /**
  * Pine Hollow's log buildings drawn from their offline bake (G285, SF72 "bake the code-built worlds"). The shapes are built
- * at build time (`../generators/logCabin.ts`, `scripts/bake-pine-cabins.mjs`): the binary holds every geometry (zlib, read
+ * at build time (`../generators/logCabin.ts`, `src/shards/pine-hollow/generators/bake-pine-cabins.mjs`): the binary holds every geometry (zlib, read
  * behind the loading screen), `../data/cabins.json` every building's record. Here a record becomes the building the
  * homestead (./homestead.ts) and `place` (./cabins.ts) work with: its root with what draws on its own (the door on its pivot,
  * the glows, the fire pit and lantern model copies, smoke and flames, the wheel, its lights or the phone's anchors), its
@@ -18,7 +18,7 @@ import rows from '../data/cabins.json' with { type: 'json' };
 import { CabinRowsSchema, type CabinRows, type BakedBuilding, type KitMat, type PropKind } from './logKit';
 import type { Mats } from './homestead';
 
-/** the bake's binary (`scripts/bake-pine-cabins.mjs`); listed in the boot's world reads (../boot/files.ts) */
+/** the bake's binary (`src/shards/pine-hollow/generators/bake-pine-cabins.mjs`); listed in the boot's world reads (../boot/files.ts) */
 export const CABIN_BAKE_URL = '/assets/pine-hollow/baked/cabins.bin';
 /** the bake's rows, parsed strictly once */
 export const CABIN_ROWS: CabinRows = v.parse(CabinRowsSchema, rows);

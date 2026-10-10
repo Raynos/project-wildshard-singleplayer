@@ -33,7 +33,7 @@ const MUD_FILM = -0.34;
 const num = v.pipe(v.number(), v.finite());
 const Mesh = { position: v.array(num), uv: v.array(num), aWater: v.array(num), index: v.array(v.pipe(v.number(), v.integer(), v.minValue(0))) };
 /** the two meshes' blocks (f32-exact; the still surface with the ground under each vertex), baked offline (G285:
- *  ../generators/beaverPool.ts over the page's own terrain, `scripts/bake-pine-beaver-pool.mjs`) */
+ *  ../generators/beaverPool.ts over the page's own terrain, `src/shards/pine-hollow/generators/bake-pine-beaver-pool.mjs`) */
 export const PoolRowsSchema = v.strictObject({ still: v.strictObject({ ...Mesh, ground: v.array(num) }), trickle: v.strictObject(Mesh) });
 export type PoolRows = v.InferOutput<typeof PoolRowsSchema>;
 /** the bake's rows, parsed strictly once */

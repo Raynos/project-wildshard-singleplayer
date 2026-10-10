@@ -5,13 +5,13 @@ import { PINE_SEED } from '../../../src/shards/pine-hollow/generators/undergrowt
 import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import { PROP_ROWS } from '../../../src/shards/pine-hollow/world/props';
 import committed from '../../../src/shards/pine-hollow/data/props.json' with { type: 'json' };
-import { bakePropRows, pineTrunkCircles } from '../../../scripts/bake-pine-props.mjs';
-import { installPineGround } from '../../../scripts/bake-pine-crags.mjs';
+import { bakePropRows, pineTrunkCircles } from '../../../src/shards/pine-hollow/generators/bake-pine-props.mjs';
+import { installPineGround } from '../../../src/shards/pine-hollow/generators/bake-pine-crags.mjs';
 
 describe('Pine Hollow bakes its forest props offline (G285)', () => {
   // Exact against a bake recorded on the Mac; Linux's libm differs in the last ulp (CI 38008817381, the crag bake's gate),
   // so the stale gate runs where bakes are made (the local push gate), not on the Linux runners.
-  it.runIf(platform === 'darwin')('the committed poses are exact against their generator (the stale gate: rerun scripts/bake-pine-props.mjs)', async () => {
+  it.runIf(platform === 'darwin')('the committed poses are exact against their generator (the stale gate: rerun src/shards/pine-hollow/generators/bake-pine-props.mjs)', async () => {
     // the ground the props stand on is the level's (its grid carries the seed); their streams are the level seed's
     expect(installPineGround()).toBe(PINE_HOLLOW.seed);
     expect(PINE_SEED).toBe(PINE_HOLLOW.seed);

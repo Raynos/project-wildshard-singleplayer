@@ -43,7 +43,7 @@ function check(file, text, path, index, folder = ROOT) {
   if (!found) failures.add(`${file}:${text.slice(0, index).split('\n').length}: ${GLOB.test(path) ? 'empty glob' : 'missing path'} ${path}`);
 }
 
-const tooling = globSync(['scripts/**/*.{mjs,js,sh,py,json}', 'vite.config.ts', 'vite/**/*.ts', '.oxlintrc.json'], { cwd: ROOT });
+const tooling = globSync(['scripts/**/*.{mjs,js,sh,py,json}', 'src/shards/*/generators/**/*.mjs', 'vite.config.ts', 'vite/**/*.ts', '.oxlintrc.json'], { cwd: ROOT });
 for (const file of tooling) {
   if (file === allowFile || file === 'scripts/normalize/move.dry-run.json') continue; // allowances are checked against their named file, not as paths in this JSON
   const text = readFileSync(resolve(ROOT, file), 'utf8');

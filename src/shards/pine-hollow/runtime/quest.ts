@@ -52,7 +52,7 @@ const Spots = v.object({ version: v.literal(1),
   people: v.exactOptional(v.pipe(v.array(v.strictObject({ kind: v.picklist(['ranger', 'miller', 'trader']), prompt: Prompt, at: Point })), v.length(3), v.check(people => new Set(people.map(person => person.kind)).size === 3))),
   board: v.exactOptional(Prompt), talk: Prompt, lanterns: v.strictObject({ pond: Prompt, ridge: Prompt, den: Prompt }),
   zip: v.strictObject({ prompt: Prompt, top: Point, bottom: Point, landing: Point }), rifle: Prompt });
-/** The page's placements (scripts/bake-pine-spots.mjs), strictly. */
+/** The page's placements (src/shards/pine-hollow/generators/bake-pine-spots.mjs), strictly. */
 export type PineSpots = v.InferOutput<typeof Spots>;
 /** Pine's baked quest spots, parsed strictly. */
 export function pineSpots(): PineSpots { return v.parse(Spots, baked); }
@@ -113,7 +113,7 @@ interface Rule { readonly d: InteractDef; readonly prompt: { x: number; y: numbe
 /**
  * "The Warden's Hollow" in the renderer-free host (SF72): the declared quest rows through the game's declared quest path
  * (`DeclaredQuests` on `host.flags`, its `pine.feat.quest` fact through the platform's fact port) and the page's own rules
- * for every beat, each at the point the page placed it (baked: scripts/bake-pine-spots.mjs), driven by `script` commands at
+ * for every beat, each at the point the page placed it (baked: src/shards/pine-hollow/generators/bake-pine-spots.mjs), driven by `script` commands at
  * the browser's prompt radii from the player's eye:
  *  - Hale's talk (3.2 m from his head) plays the shared dialogue clock and raises its `sets` only on completion:
  *    `talked:ranger` starts the quest, `wait:night` asks the clock for the night;

@@ -65,7 +65,7 @@ const LIST_FILE = resolve(ROOT, 'scripts/bake-ktx2.list.json');
 const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const CHECK = argv.includes('--check');
-const DRY = argv.includes('--dry') || CHECK, FORCE = argv.includes('--force') && !CHECK;
+const DRY = argv.includes('--dry') ? true : CHECK, FORCE = argv.includes('--force') && !CHECK;
 const missing = new Set();
 const staleSource = (served) => { missing.add(served); console.log(`bake-ktx2: STALE ${served} (source/settings cache entry or output missing)`); };
 const ONLY = flag('only', '');
@@ -252,7 +252,7 @@ const CPU_READ = [/^\/assets\/nalati\/models\/[^/]+\.rigged\.glb$/, /^\/assets\/
  * G187: textures baked by their own scripts (table name → KTX2, per tier): cut 2, Pine Hollow's coats, painted and encoded
  * by scripts/bake-coats.mjs (G226: Nalati's too); cut 3, the weapon viewmodel sets, drawn and encoded by scripts/bake-viewmodel-sets.mjs
  */
-const BAKED = ['scripts/bake-pine-coats.json', 'scripts/bake-nalati-coats.json', 'scripts/bake-viewmodel-sets.json'].map((f) => resolve(ROOT, f)).filter((f) => existsSync(f)).map((f) => JSON.parse(readFileSync(f, 'utf8')));
+const BAKED = ['src/shards/pine-hollow/generators/bake-pine-coats.json', 'scripts/bake-nalati-coats.json', 'scripts/bake-viewmodel-sets.json'].map((f) => resolve(ROOT, f)).filter((f) => existsSync(f)).map((f) => JSON.parse(readFileSync(f, 'utf8')));
 /** GLBs with embedded images, per tier: [tier, served URL, file] */
 const glbJobs = [];
 for (const f of walk(ASSETS).filter((x) => x.endsWith('.glb') && !CPU_READ.some((re) => re.test(pub(x))))) {

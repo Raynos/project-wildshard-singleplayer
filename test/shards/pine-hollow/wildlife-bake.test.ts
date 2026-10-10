@@ -8,14 +8,14 @@ import { inflateSync } from 'node:zlib';
 import { unshuffleLanes } from '../../../src/shards/pine-hollow/world/bakeBytes';
 import { KIND, WILD_BAKE_KINDS, WILD_ROWS, WildlifeMesh, useWildShapes, wildShapes } from '../../../src/shards/pine-hollow/models/wildlife';
 import committed from '../../../src/shards/pine-hollow/data/wildlife.json' with { type: 'json' };
-import { bakeWildlifeRows } from '../../../scripts/bake-pine-wildlife.mjs';
+import { bakeWildlifeRows } from '../../../src/shards/pine-hollow/generators/bake-pine-wildlife.mjs';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 
 const shipped = (): Uint8Array => unshuffleLanes(new Uint8Array(inflateSync(readFileSync(new URL('../../../public/assets/pine-hollow/baked/wildlife.bin', import.meta.url)))));
 
 describe('Pine Hollow bakes its procedural wildlife offline (G285)', () => {
   // Math.sin / hypot in the mottling and the ellipsoids: byte-exact where the bake was made (macOS)
-  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun scripts/bake-pine-wildlife.mjs)', () => {
+  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun src/shards/pine-hollow/generators/bake-pine-wildlife.mjs)', () => {
     const { rows, bin } = bakeWildlifeRows();
     expect(rows).toEqual(committed);
     expect(shipped()).toEqual(bin);

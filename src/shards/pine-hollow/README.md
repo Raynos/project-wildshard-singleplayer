@@ -37,6 +37,16 @@ the title deck.
 
 Layout debt (grandfathered): `compendium.ts` next to `compendium/`, `debug/`, `dev/`, `feats.ts`, `items.ts`, `life/`.
 
+## Regenerating the shard (G298)
+
+The twelve `bake-pine-*.mjs` entrypoints, their type declarations and the coats table live in `generators/` beside
+the TypeScript that builds their outputs. From the repository root, run a Node baker with
+`node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-cabins.mjs`
+(substitute the baker name). The physics and spots captures use `scripts/browser-lane.sh node` with the same owned
+entrypoint path and a matching clean-candidate `--url`; their two independent reads must agree. The existing bake
+tests regenerate and compare the exact payloads; King input-hash refreshes read this folder through
+`scripts/bake-input-hashes.mjs`. Generated geometry and data are unchanged by the entrypoint move.
+
 ## Budgets
 
 Phone 30 fps (9.6 ms CPU), desktop 60 fps (4.8 ms). Cold play on 4G within 40 s. F2 ceilings for the poses `gate`,

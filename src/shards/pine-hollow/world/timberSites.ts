@@ -2,7 +2,7 @@
  * Pine Hollow's two site-fitted timber landmarks, the zipline landing and the creek footbridge (E315 M2; PH-B3), where
  * they stand and their offline bake (G285, SF72 "bake the code-built worlds"). Each is fitted to the ground under it: the
  * landing's posts and stair foot, the bridge's deck from bank to bank and its trestles down to the gully's floor. Their
- * builders run at build time (`../generators/siteTimbers.ts`, `scripts/bake-pine-site-timbers.mjs`) over the page's own
+ * builders run at build time (`../generators/siteTimbers.ts`, `src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs`) over the page's own
  * baked terrain, once at their sites and once on the Model Explorer's flat turntable; the binary
  * (`public/assets/pine-hollow/baked/site-timbers.bin`) holds their parts in that order, `../data/siteTimbers.json` the rows.
  */
@@ -49,7 +49,7 @@ export type SiteTimberRows = v.InferOutput<typeof SiteTimberRowsSchema>;
 /** the bake's rows, parsed strictly once */
 export const SITE_TIMBER_ROWS: SiteTimberRows = v.parse(SiteTimberRowsSchema, siteJson);
 
-/** the bake's binary (`scripts/bake-pine-site-timbers.mjs`); listed in the boot's world reads (../boot/files.ts) */
+/** the bake's binary (`src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs`); listed in the boot's world reads (../boot/files.ts) */
 export const SITE_TIMBER_BAKE_URL = '/assets/pine-hollow/baked/site-timbers.bin';
 const KEY = 'pine-hollow/site-timbers:bake';
 

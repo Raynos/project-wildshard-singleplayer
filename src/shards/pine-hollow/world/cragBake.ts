@@ -1,6 +1,6 @@
 /**
  * The Ridge's crags from their offline bake (G285, SF72 "bake the code-built worlds"). Where the kit's modules stand and the
- * face skin's tiles are built at build time (`../generators/crags.ts`, `scripts/bake-pine-crags.mjs`) over the page's own
+ * face skin's tiles are built at build time (`../generators/crags.ts`, `src/shards/pine-hollow/generators/bake-pine-crags.mjs`) over the page's own
  * baked terrain: `../data/crags.json` holds every placement and each tier's tile table, and
  * `public/assets/pine-hollow/baked/crags.<tier>.bin` (zlib) each tier's two skin resolutions. Here a tile becomes the
  * geometry the crags' one batch draws (./crags.ts), exactly as the builder made it. The file ships in lanes (./bakeBytes.ts).
@@ -55,7 +55,7 @@ export type SkinRows = CragRows['skin'][Tier];
 
 /** the bake's rows, parsed strictly once */
 export const CRAG_ROWS: CragRows = v.parse(CragRowsSchema, cragJson);
-/** the bake's binary for a tier (`scripts/bake-pine-crags.mjs`); listed in the boot's world reads (../boot/files.ts) */
+/** the bake's binary for a tier (`src/shards/pine-hollow/generators/bake-pine-crags.mjs`); listed in the boot's world reads (../boot/files.ts) */
 export const cragBakeUrl = (tier: Tier): string => (tier === 'phone' ? '/assets/pine-hollow/baked/crags.phone.bin' : '/assets/pine-hollow/baked/crags.desktop.bin');
 
 const pad4 = (bytes: number): number => Math.ceil(bytes / 4) * 4;

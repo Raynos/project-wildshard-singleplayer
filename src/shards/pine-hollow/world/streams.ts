@@ -35,7 +35,7 @@ const num = v.pipe(v.number(), v.finite()), xyz = v.tuple([num, num, num]);
 const StreamRows = v.strictObject({ bin: v.string(), bytes: num, vertices: num, indices: num, wide: v.boolean(), plunge: xyz, faceFoot: xyz });
 /** the bake's rows, parsed strictly once */
 export const STREAM_ROWS = v.parse(StreamRows, streamJson);
-/** the bake's binary (`scripts/bake-pine-streams.mjs`); listed in the boot's world reads (../boot/files.ts) */
+/** the bake's binary (`src/shards/pine-hollow/generators/bake-pine-streams.mjs`); listed in the boot's world reads (../boot/files.ts) */
 export const STREAM_BAKE_URL = '/assets/pine-hollow/baked/streams.bin';
 /** the spray's program rows, spliced with the fog GLSL (data/streamLook.ts) */
 const SPRAY_FAMILY = new ShaderFamily({ fog: fogGLSL }, SPRAY_PROGRAMS);
