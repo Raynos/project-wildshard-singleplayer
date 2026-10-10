@@ -53,7 +53,7 @@ for (const [name, key] of Object.entries(PINE_SKY_KEYS)) {
   const stem = resolve(ROOT, `public/assets/hdri/${key.id}_2k`);
   const out = { color: `${stem}.key.jpg`, gain: `${stem}.key.gain.png` };
   if (!force && existsSync(out.color) && existsSync(out.gain)) { console.log(`bake-sky-keys: ${name} (${key.id}) up to date`); continue; }
-  const t0 = performance.now();
+  const t0 = process.hrtime.bigint();
   const hdr = readFileSync(await hdrFile(key.id));
   const img = new HDRLoader().parse(hdr.buffer.slice(hdr.byteOffset, hdr.byteOffset + hdr.byteLength));
   const { width: W, height: H, data } = img;
@@ -62,7 +62,7 @@ for (const [name, key] of Object.entries(PINE_SKY_KEYS)) {
   for (let p = 0; p < W * H; p++) for (let c = 0; c < 3; c++) src[p * 3 + c] = isHalf ? DataUtils.fromHalfFloat(data[p * 4 + c]) : data[p * 4 + c];
   const note = paintOutSun(src, W, H, key.paint);
   encodeSky(W, H, (p, c) => src[p * 3 + c], out);
-  console.log(`bake-sky-keys: ${name} (${key.id}) ${W}x${H} ${note} in ${Math.round(performance.now() - t0)} ms`);
+  console.log(`bake-sky-keys: ${name} (${key.id}) ${W}x${H} ${note} in ${Math.round(Number(process.hrtime.bigint() - t0) / 1e6)} ms`);
 }
 
 // ── the disc ──
