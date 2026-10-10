@@ -193,3 +193,44 @@ page errors in all 6 runs):
 Programs: the finish2 counts are higher than finish's (Driftwood 185 → 221 phone, Pine 206 → 252) on today's HEAD, with or
 without `e3137df46` (which compiles nothing: Nalati's A/B reads 197 / 197). SF59's per-region budget was not re-measured
 in this lane; the rise comes from what landed since `a3442abae`, and is the coordinator's to attribute.
+
+## finish3 (op-sf63b, 2026-10-09): Pine's "regression" is SHARD SELECT's, Driftwood's shadow A/B, Nalati back in
+
+**Pine.** The grid did not regress: SHARD SELECT did. Since SF73's frozen copies (`10a4fbc7d`) SHARD SELECT plays
+`pine-hollow-legacy`, and the engine builds every offline-bake URL from the level id (`BakedTerrain.bakedTerrainUrl`,
+`physics/navmeshUrl`, `boot/bakedTextures`, `skyBackdrop` sky.json, `BakedCards`, `viewmodelTextures`).
+`/assets/baked/pine-hollow-legacy/terrain.bin` is not in the byte table, so `loadBakedTerrain` returns false without a word
+and the copy runs on the analytic heightfield (h(119.5, −3.6) = −0.027 against the bake's 0.043). Placement then draws a
+different stream: 962 trees against the bake's 918, which the grid, the headless runtime and `physics.baked.json` all use.
+At the cand3 base `64a1f0b4b` SHARD SELECT drew the same 918 as the grid. It also had the conifer through the camera at
+forest-e, and the grid had no clouds then either (the cand3 board shows both, in both columns). The proof is an instrumented
+dangling build: `[hf-probe] load pine-hollow-legacy installed false url null`; the forest probe shows the same seed, the
+same tree count cap, and no input changing mid-placement. A copy's baked folder belongs to SF73: reported to sp-x5, with a
+suggested fix (a baked-folder slug on `LevelSpec`, the primary's for a registered copy, read by those six readers). Pine's
+grid cell is unchanged here.
+Still open: the cell's sky has no cirrus / cumulus. Its BackdropLayer is resident (8.6 MB), so this is not a refusal;
+it was already missing at cand3.
+
+**Driftwood's shadows** (`c9a859b31`): Debug ▸ Look ▸ "Grid cell shadows". With Page / Tight, a split-rig level's
+entered cell pulls the page's one cascade in to 22 m at 2048² (no recompile; desktop untouched). Measured inside the cell
+on the phone: 1024² ±88 m → 2048² ±24 m, engine/render-target GPU 48.7 → 73.9 MB (**+25.2 MB**, not ≈ +12: the 2048²
+colour and depth pair), programs 221 → 222. Board for Jake: `art/sf63/round-1-driftwood-shadows/board-ab.jpg`. The gulls
+were not looked at.
+
+**Nalati** (HEAD `b7126a805`, after sp-x5's dialogue fix: it enters again, 0 page errors). JSONs: `parity-nalati-*-finish3.json`;
+boards: `board-nalati-*.jpg`.
+
+| Tier | entry-e | entry-n | inside-e | inside-w | programs |
+|---|---|---|---|---|---|
+| phone | 13.0 | 21.2 | 19.8 | 20.0 | 239 → 243 |
+| desktop | 10.7 | 23.2 | 18.6 | 19.1 | 264 → 268 |
+
+The finish2 A/B (base `855f0db8e` + fix) read phone 12.8 / 20.3 / 13.8 / 15.2. The inside poses got worse since then:
+the grid's grass reads paler and yellower than standalone, and the sky is a little brighter (grid − standalone
++4 / +5 / +11 at inside-e). At entry-n the slope is still darker, and the dark slab still stands at the right edge of the cell.
+
+**Programs against SF59** (grid, phone, the same drive; base `64a1f0b4b` → HEAD `b7126a805`): Pine 206 → 252, Driftwood
+181 → 221. By material name: `family:pbr` +9 / +8 (shardfile family presets in the neighbouring open-plot and template
+cells, SF59 / G285), the grid shell's floors and seam curtain +3 (Driftwood), Pine's crossbow viewmodel parts +5. About 30
+unnamed standard-material variants on each (fog-hooked, with no program key of their own) cannot be pinned to a commit
+without a bisect.
