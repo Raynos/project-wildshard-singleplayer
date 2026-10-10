@@ -1,0 +1,332 @@
+<!doctype html>
+<!-- T15-3 · Postcards (E471, TRAILERS §3b). A locked top-down shot of a printed Wildshard highway map; four printed
+     postcards are dealt onto their plots, a blank card slides into the last plot, the planned road around it is
+     printed in, and a cursor types on the blank card. Rendered frame by frame by ../../titles.mjs (see README.md). -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>T15-3 Postcards</title>
+<style>
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; src: url('../../../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400; src: url('../../../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2') format('woff2'); }
+:root {
+  --paper: #ece5d3;      /* map paper */
+  --ink: #2b2723;        /* map key-line ink */
+  --road: #e9b74e;       /* highway fill, one spot ink */
+  --plot: #cfd8b4;       /* plot tint (screened) */
+  --island: #a9c08a;
+  --card: #f5f1e7;       /* blank card stock */
+  --claude: #d97757;     /* Claude Code accent */
+}
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); }
+#stage { position: absolute; inset: 0; perspective: 2200px; perspective-origin: 960px 540px; overflow: hidden; }
+#map { position: absolute; left: 0; top: 0; }
+.shadow { position: absolute; left: 0; top: 0; background: #1b1610; border-radius: 3px; will-change: transform; }
+.card { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; will-change: transform; overflow: hidden;
+  border-radius: 2px; background: var(--card); }
+.card img { position: absolute; left: 0; top: 0; width: 100%; height: 307px; display: block; }
+/* the printer's caption strip under the picture: who built the place */
+.card .cap { position: absolute; left: 13px; right: 13px; bottom: 6px; display: flex; justify-content: space-between;
+  font: 600 13px/1 'Gill Sans', 'Futura', sans-serif; letter-spacing: .1em; color: #4f453b; }
+/* paper grain + one soft light from the top left, on every card */
+.card .grain { position: absolute; inset: 0; mix-blend-mode: multiply; opacity: .55; background-size: 256px 256px; }
+.card .sheen { position: absolute; inset: 0; background: linear-gradient(128deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%, rgba(0,0,0,.05) 100%); }
+.card .edge { position: absolute; inset: 0; box-shadow: inset 0 0 0 1px rgba(60,45,30,.16), inset -1px -1px 0 rgba(60,45,30,.10); border-radius: 2px; }
+/* the blank card: Claude Code's prompt, typed */
+.term { position: absolute; left: 30px; top: 96px; font-family: 'JetBrains Mono', monospace; font-weight: 500; color: #24211d; white-space: pre; }
+.term .l1 { font-size: 36px; line-height: 50px; height: 50px; }
+.term .l2 { font-size: 60px; line-height: 78px; height: 78px; }
+.term .pr { color: var(--claude); }
+.cursor { display: inline-block; background: #24211d; width: .6em; height: 1.08em; vertical-align: -0.22em; }
+#light { position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(130% 110% at 22% 12%, rgba(255,250,240,.10) 0%, rgba(255,250,240,0) 45%, rgba(40,28,15,.13) 100%); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="map" width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div id="cards"></div>
+  <div id="light"></div>
+</div>
+<script>
+// ---------------------------------------------------------------------------------------------------------------
+// Layout: the map's grid. Plots are 440 px squares, roads 90 px bands; the frame shows three columns × two rows plus
+// slivers of the plots beyond, so the grid reads as running on past the frame.
+const P = 440, R = 90, PER = P + R;
+const VX = [-365, 165, 695, 1225, 1755, 2285];      // vertical road centre lines
+const HY = [-475, 55, 585, 1115];                    // horizontal road centre lines
+const W = 460, H = 331;                              // a postcard: the 3:2 print plus a 24 px caption strip
+const ART = '../../../../art/trailers/round-4-t15/v3-postcards/';
+const CARDS = [
+  // id, plot centre, entry point (off frame, where the hand comes from), final skew, beat time
+  { id: 'driftwood', x: 430,  y: 320, from: [-260, 120],  rz: -2.2, t0: 0.20, by: '@mara',    no: '04·12', stock: '#f8f1e6' },
+  { id: 'nalati',    x: 960,  y: 320, from: [880, -330],  rz: 1.6,  t0: 1.80, by: '@aigerim', no: '05·12', stock: '#f3eae0' },
+  { id: 'pine',      x: 1490, y: 320, from: [2180, 160],  rz: -1.2, t0: 3.40, by: '@jonas',   no: '06·12', stock: '#f2ece3' },
+  { id: 'ninedragon',x: 430,  y: 850, from: [-280, 1180], rz: 2.3,  t0: 5.00, by: '@wen',     no: '04·13', stock: '#efebe7' },
+];
+const BLANK = { x: 960, y: 850, rz: -0.8, t0: 6.55, t1: 7.35 };
+const INK = { t0: 7.50, t1: 8.20 };
+// the map marks the one unclaimed plot (column, row of the plot grid)
+const OWNERS = { '2,2': 'OPEN' };
+const L1 = 'greetings from:', L2 = 'your world';
+
+// ---------------------------------------------------------------------------------------------------------------
+// The printed map (built once). Key-line ink, one spot colour for the highway, a screened tint for the plots.
+const NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('map');
+const el = (tag, attrs, parent = svg) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+function buildMap() {
+  const defs = el('defs', {});
+  defs.innerHTML = `
+    <pattern id="dots" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <circle cx="3" cy="3" r="1.55" fill="#b9c79a"/></pattern>
+    <pattern id="dotsSand" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <circle cx="3" cy="3" r="1.3" fill="#d9c9a0"/></pattern>
+    <filter id="paperGrain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 .30  0 0 0 0 .24  0 0 0 0 .16  0 0 0 -.9 .62"/>
+    </filter>
+    <filter id="fibres" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".012 .05" numOctaves="3" seed="3"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 .35  0 0 0 0 .28  0 0 0 0 .18  0 0 0 -1.4 .9"/>
+    </filter>
+    <clipPath id="inkClip"><rect class="ink"/><rect class="ink"/><rect class="ink"/><rect class="ink"/></clipPath>`;
+  el('rect', { x: 0, y: 0, width: 1920, height: 1080, fill: 'var(--paper)' });
+  // plots (and the slivers beyond the frame)
+  for (let i = 0; i < VX.length - 1; i++) for (let j = 0; j < HY.length - 1; j++) {
+    const x = VX[i] + R / 2, y = HY[j] + R / 2;
+    el('rect', { x, y, width: P, height: P, fill: '#e3e2c8' });
+    el('rect', { x, y, width: P, height: P, fill: 'url(#dots)', opacity: .9 });
+    el('rect', { x: x + 6, y: y + 6, width: P - 12, height: P - 12, fill: 'none', stroke: '#6f7a58', 'stroke-width': 1, 'stroke-dasharray': '1 3', opacity: .8 });
+    el('rect', { x, y, width: P, height: P, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.3 });
+    if (i === 3 && j === 2) continue;   // the legend plot carries the cartouche instead
+    const label = el('text', { x: x + 14, y: y + P - 13, 'font-family': 'Futura', 'font-size': 15, 'letter-spacing': 2, fill: '#3f4636' });
+    const owner = OWNERS[`${i},${j}`];
+    label.textContent = `PLOT ${String(i + 3).padStart(2, '0')}·${String(j + 11)}` + (owner ? `  ·  ${owner}` : '');
+  }
+  // the legend plot (bottom right): the sheet's cartouche
+  legend(1270, 630);
+  // roads: planned segments (pencil outline) and printed segments
+  const planned = [['h', 2, 2, 3], ['v', 2, 2, 3], ['v', 3, 2, 3]];   // [axis, line index, from, to] around the blank plot
+  const isPlanned = (axis, k, a) => planned.some(([ax, kk, f]) => ax === axis && kk === k && f === a);
+  const roadsBuilt = el('g', {}), roadsInk = el('g', { 'clip-path': 'url(#inkClip)' }), roadsPlan = el('g', {});
+  for (let k = 0; k < HY.length; k++) for (let a = 0; a < VX.length - 1; a++) {
+    const seg = ['h', HY[k], VX[a], VX[a + 1]];
+    if (isPlanned('h', k, a)) { plannedRoad(roadsPlan, ...seg); road(roadsInk, ...seg); } else road(roadsBuilt, ...seg);
+  }
+  for (let k = 0; k < VX.length; k++) for (let a = 0; a < HY.length - 1; a++) {
+    const seg = ['v', VX[k], HY[a], HY[a + 1]];
+    if (isPlanned('v', k, a)) { plannedRoad(roadsPlan, ...seg); road(roadsInk, ...seg); } else road(roadsBuilt, ...seg);
+  }
+  for (const x of VX) for (const y of HY) roundabout(x, y);
+  shield(1225, 300, 'H7', 'v'); shield(400, 55, 'H2', 'h'); shield(1490, 585, 'H4', 'h'); shield(165, 820, 'H9', 'v');
+  // folds of a road map, then the paper itself
+  for (const fx of [480, 960, 1440]) fold(fx, 'v');
+  fold(540, 'h');
+  el('rect', { x: 0, y: 0, width: 1920, height: 1080, filter: 'url(#fibres)', opacity: .35 });
+  el('rect', { x: 0, y: 0, width: 1920, height: 1080, filter: 'url(#paperGrain)', opacity: .5 });
+}
+function road(g, axis, c, a, b) {
+  const half = 30, path = (w) => axis === 'h' ? { x: a, y: c - w, width: b - a, height: 2 * w } : { x: c - w, y: a, width: 2 * w, height: b - a };
+  el('rect', { ...path(half + 1.6), fill: 'var(--ink)' }, g);
+  const mis = path(half); mis.x += 1.1; mis.y += 0.7;     // the spot ink sits a hair off the key line
+  el('rect', { ...mis, fill: 'var(--road)' }, g);
+  const m = 46;   // the centre line stops at the roundabouts
+  el('line', axis === 'h' ? { x1: a + m, y1: c, x2: b - m, y2: c } : { x1: c, y1: a + m, x2: c, y2: b - m },
+    g).setAttribute('style', 'stroke:#2b2723;stroke-width:1.6;stroke-dasharray:11 9');
+}
+function plannedRoad(g, axis, c, a, b) {
+  const half = 30, m = 50;
+  for (const s of [-1, 1]) {
+    const l = axis === 'h' ? { x1: a + m, y1: c + s * half, x2: b - m, y2: c + s * half } : { x1: c + s * half, y1: a + m, x2: c + s * half, y2: b - m };
+    el('line', l, g).setAttribute('style', 'stroke:#5a554d;stroke-width:1.5;stroke-dasharray:7 6;opacity:.85');
+  }
+}
+function roundabout(x, y) {
+  el('circle', { cx: x, cy: y, r: 51.6, fill: 'var(--ink)' });
+  el('circle', { cx: x + 1.1, cy: y + 0.7, r: 50, fill: 'var(--road)' });
+  el('circle', { cx: x, cy: y, r: 24, fill: 'var(--island)', stroke: 'var(--ink)', 'stroke-width': 1.6 });
+  el('circle', { cx: x, cy: y, r: 37, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.2, 'stroke-dasharray': '6 7', opacity: .8 });
+}
+function shield(x, y, text, axis) {
+  const g = el('g', { transform: `translate(${x},${y})` });
+  el('rect', { x: -19, y: -12, width: 38, height: 24, rx: 4, fill: '#f6efdc', stroke: 'var(--ink)', 'stroke-width': 1.5 }, g);
+  const t = el('text', { x: 0, y: 6, 'text-anchor': 'middle', 'font-family': 'Futura', 'font-weight': 700, 'font-size': 16, fill: 'var(--ink)' }, g);
+  t.textContent = text;
+}
+function fold(p, axis) {
+  const g = axis === 'v' ? { x: p - 7, y: 0, width: 14, height: 1080 } : { x: 0, y: p - 7, width: 1920, height: 14 };
+  const id = `f${axis}${p}`;
+  const grad = el('linearGradient', axis === 'v' ? { id, x1: 0, x2: 1, y1: 0, y2: 0 } : { id, x1: 0, x2: 0, y1: 0, y2: 1 }, svg.querySelector('defs'));
+  grad.innerHTML = '<stop offset="0" stop-color="#3a2a18" stop-opacity="0"/><stop offset=".48" stop-color="#3a2a18" stop-opacity=".16"/><stop offset=".52" stop-color="#fffaf0" stop-opacity=".45"/><stop offset="1" stop-color="#fffaf0" stop-opacity="0"/>';
+  el('rect', { ...g, fill: `url(#${id})` });
+}
+function legend(x, y) {
+  const g = el('g', { transform: `translate(${x},${y})` });
+  el('rect', { x: 26, y: 26, width: P - 52, height: P - 52, fill: '#f3ecda', stroke: 'var(--ink)', 'stroke-width': 1.5 }, g);
+  el('rect', { x: 32, y: 32, width: P - 64, height: P - 64, fill: 'none', stroke: 'var(--ink)', 'stroke-width': .8 }, g);
+  const txt = (s, a) => { const t = el('text', { 'font-family': 'Futura', fill: 'var(--ink)', ...a }, g); t.textContent = s; return t; };
+  txt('WILDSHARD', { x: 56, y: 92, 'font-size': 34, 'font-weight': 700, 'letter-spacing': 7 });
+  txt('HIGHWAY MAP · SHEET 7', { x: 57, y: 120, 'font-size': 14, 'letter-spacing': 3.2 });
+  el('line', { x1: 56, y1: 138, x2: P - 56, y2: 138, stroke: 'var(--ink)', 'stroke-width': 1 }, g);
+  const rows = [['road', 'Highway, two lanes'], ['ring', 'Roundabout'], ['plot', 'Shard plot'], ['plan', 'Planned road']];
+  rows.forEach(([k, s], i) => {
+    const ry = 172 + i * 44;
+    if (k === 'road') { el('rect', { x: 56, y: ry - 12, width: 64, height: 18, fill: 'var(--road)', stroke: 'var(--ink)', 'stroke-width': 1.4 }, g);
+      el('line', { x1: 60, y1: ry - 3, x2: 116, y2: ry - 3, style: 'stroke:#2b2723;stroke-width:1.2;stroke-dasharray:6 5' }, g); }
+    if (k === 'ring') { el('circle', { cx: 88, cy: ry - 3, r: 13, fill: 'var(--road)', stroke: 'var(--ink)', 'stroke-width': 1.4 }, g);
+      el('circle', { cx: 88, cy: ry - 3, r: 6, fill: 'var(--island)', stroke: 'var(--ink)', 'stroke-width': 1.2 }, g); }
+    if (k === 'plot') { el('rect', { x: 72, y: ry - 16, width: 32, height: 26, fill: 'url(#dots)', stroke: 'var(--ink)', 'stroke-width': 1.2 }, g); }
+    if (k === 'plan') { for (const dy of [-11, 5]) el('line', { x1: 56, y1: ry + dy, x2: 120, y2: ry + dy, style: 'stroke:#5a554d;stroke-width:1.4;stroke-dasharray:6 5' }, g); }
+    txt(s, { x: 138, y: ry + 3, 'font-size': 17, 'letter-spacing': .6 });
+  });
+  // scale bar
+  for (let i = 0; i < 4; i++) el('rect', { x: 56 + i * 40, y: 344, width: 40, height: 7, fill: i % 2 ? '#f3ecda' : 'var(--ink)', stroke: 'var(--ink)', 'stroke-width': 1 }, g);
+  txt('0', { x: 53, y: 372, 'font-size': 12 }); txt('100 m', { x: 200, y: 372, 'font-size': 12 });
+  // north arrow
+  el('path', { d: `M ${P - 78} 360 l 12 -48 l 12 48 l -12 -12 z`, fill: 'var(--ink)' }, g);
+  txt('N', { x: P - 72, y: 300, 'font-size': 14, 'font-weight': 700 });
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Cards
+const grainURL = (() => {
+  const s = `<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='11'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .44  0 0 0 0 .36  0 0 0 -1.1 .72'/></filter><rect width='256' height='256' filter='url(#g)'/></svg>`;
+  return `url("data:image/svg+xml;utf8,${encodeURIComponent(s)}")`;
+})();
+const host = document.getElementById('cards');
+function makeCard(c, blank) {
+  const sh = document.createElement('div'); sh.className = 'shadow';
+  const ct = document.createElement('div'); ct.className = 'shadow';
+  const card = document.createElement('div'); card.className = 'card';
+  sh.style.width = ct.style.width = card.style.width = W + 'px';
+  sh.style.height = ct.style.height = card.style.height = H + 'px';
+  if (!blank) {
+    const img = document.createElement('img'); img.src = ART + c.id + '.jpg'; card.appendChild(img);
+    card.style.background = c.stock;
+    card.insertAdjacentHTML('beforeend', `<div class="cap"><span>BUILT BY ${c.by.toUpperCase()}</span><span>No. ${c.no}</span></div>`);
+  }
+  card.insertAdjacentHTML('beforeend', `<div class="grain" style="background-image:${grainURL}"></div><div class="sheen"></div><div class="edge"></div>`);
+  host.append(sh, ct, card);
+  return { sh, ct, card };
+}
+const ease = {
+  outCubic: (x) => 1 - (1 - x) ** 3,
+  inOutCubic: (x) => x < .5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2,
+  outQuart: (x) => 1 - (1 - x) ** 4,
+};
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+// a damped wobble after an impact (paper flattening onto the table)
+const settle = (u, amp, freq, damp) => u <= 0 ? 0 : amp * Math.exp(-damp * u) * Math.sin(freq * u);
+
+// One dealt card. A hand off-frame drops it: it flies in from `from` at ~380 px height, falls with gravity, the leading
+// corner touches, the trailing edge slaps flat, and it skids a short way on its air cushion before it stops.
+const FLY = 0.50, SKID = 0.42;
+function dealtPose(c, t) {
+  const u = t - c.t0;
+  if (u < 0) return null;
+  const [fx, fy] = c.from;
+  const dx = c.x - fx, dy = c.y - fy, len = Math.hypot(dx, dy), ux = dx / len, uy = dy / len;
+  // along the table: one continuous, decelerating move over flight + skid (air drag, then friction); touchdown comes
+  // at ~95 % of the way, so the card slides its last ~20 px on the map
+  const s = 1 - (1 - clamp01(u / (FLY + SKID))) ** 4;
+  const x = lerp(fx, c.x, s), y = lerp(fy, c.y, s);
+  // the spin unwinds on the same continuous curve, into the card's final skew
+  const rz = c.rz + (c.rz > 0 ? -11 : 11) * (1 - clamp01(u / (FLY + SKID))) ** 3;
+  let h, rx, ry;
+  const tiltX = -uy * 9, tiltY = ux * 9;                   // leading edge down
+  if (u < FLY) {
+    const k = u / FLY;
+    h = 380 * (1 - k * k);                                 // vertical: gravity
+    rx = tiltX * (0.4 + 0.6 * k); ry = tiltY * (0.4 + 0.6 * k);
+  } else {
+    const v = u - FLY;
+    h = Math.max(0, settle(v, 7, 26, 11));                 // one small hop as the air escapes
+    const slap = Math.exp(-v * 30) * Math.cos(v * 42);     // trailing edge slaps down
+    rx = tiltX * slap; ry = tiltY * slap;
+  }
+  return { x, y, h, rz, rx, ry };
+}
+function blankPose(t) {
+  const b = BLANK;
+  if (t < b.t0) return null;
+  const k = clamp01((t - b.t0) / (b.t1 - b.t0));
+  // pushed in flat along the table from the bottom edge: a quick push, a long glide, a stop
+  const kp = 1 - (1 - k) ** 3.4;
+  const y = lerp(1300, b.y, kp) + settle(t - b.t1, -3, 18, 9);
+  const x = lerp(b.x + 26, b.x, kp);
+  const rz = lerp(-5.5, b.rz, ease.outCubic(k));
+  return { x, y, h: 2.5 * (1 - k), rz, rx: 0, ry: 0 };
+}
+function apply(o, p) {
+  const vis = p ? '' : 'none';
+  o.card.style.display = o.sh.style.display = o.ct.style.display = vis;
+  if (!p) return;
+  const { x, y, h, rz, rx, ry } = p;
+  o.card.style.transform = `translate3d(${x - W / 2}px, ${y - H / 2}px, ${h}px) rotateZ(${rz}deg) rotateX(${rx}deg) rotateY(${ry}deg)`;
+  // shadows fall to the lower right (light from the upper left), lengthen, soften and fade with height
+  const off = 2.2 + h * 0.34, blur = 3 + h * 0.10, op = 0.34 / (1 + h / 160);
+  o.sh.style.transform = `translate(${x - W / 2 + off}px, ${y - H / 2 + off * 1.25}px) rotate(${rz}deg)`;
+  o.sh.style.filter = `blur(${blur}px)`; o.sh.style.opacity = op;
+  const ch = clamp01(1 - h / 6);                           // tight contact shadow only on the table
+  o.ct.style.transform = `translate(${x - W / 2 + 0.8}px, ${y - H / 2 + 1.2}px) rotate(${rz}deg)`;
+  o.ct.style.filter = 'blur(1.2px)'; o.ct.style.opacity = 0.42 * ch;
+}
+
+// typing: a person's rhythm, fixed (seeded) so every render is identical
+function rng(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+const KEYS = (() => {
+  const r = rng(42), out = []; let t = 8.55;
+  const all = L1 + '\n' + L2;
+  for (const ch of all) {
+    if (ch === '\n') { t += 0.32; out.push({ ch, t }); continue; }
+    t += 0.055 + r() * 0.05 + (ch === ' ' ? 0.03 : 0);
+    out.push({ ch, t });
+  }
+  return out;
+})();
+const CURSOR_ON = 8.15;
+
+let built = false, objs = [], blank, term, ink = [];
+const setRect = (r, x, y, w, h) => { r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', Math.max(0, w)); r.setAttribute('height', Math.max(0, h)); };
+function init() {
+  if (built) return; built = true;
+  buildMap();
+  ink = [...svg.querySelectorAll('#inkClip .ink')];
+  objs = CARDS.map((c) => makeCard(c, false));
+  blank = makeCard({ id: 'blank' }, true);
+  blank.card.insertAdjacentHTML('beforeend', '<div class="term"><div class="l1"></div><div class="l2"></div></div>');
+  term = blank.card.querySelector('.term');
+}
+init();
+
+window.setPortrait = () => {};
+window.pose = (card, t) => {
+  init();
+  CARDS.forEach((c, i) => apply(objs[i], dealtPose(c, t)));
+  apply(blank, blankPose(t));
+  // the planned road is printed in from the two roundabouts above the blank plot, down and across
+  // the across segment closes from both roundabouts to the middle, then the two sides run down past the frame
+  const ku = clamp01((t - INK.t0) / (INK.t1 - INK.t0));
+  const kh = ease.inOutCubic(clamp01(ku / 0.6)), kv = ease.inOutCubic(clamp01((ku - 0.25) / 0.75));
+  const [L, Rr, Y] = [VX[2], VX[3], HY[2]], half = (Rr - L) / 2, down = 1080 - Y + 40;
+  setRect(ink[0], L, Y - 40, half * kh, 80);
+  setRect(ink[1], Rr - half * kh, Y - 40, half * kh, 80);
+  setRect(ink[2], L - 40, Y, 80, down * kv);
+  setRect(ink[3], Rr - 40, Y, 80, down * kv);
+  // typed text
+  let s = '', last = -1;
+  for (const k of KEYS) if (t >= k.t) { s += k.ch; last = k.t; }
+  const [a, b = null] = s.split('\n');
+  const onL2 = b !== null;
+  const since = last < 0 ? t - CURSOR_ON : t - last;
+  const blinkOn = since < 0.5 || Math.floor((since - 0.5) / 0.53) % 2 === 1;
+  const showCursor = t >= CURSOR_ON && blinkOn;
+  const cur = showCursor ? '<span class="cursor"></span>' : '<span class="cursor" style="visibility:hidden"></span>';
+  term.querySelector('.l1').innerHTML = t < CURSOR_ON ? '' : `<span class="pr">&gt; </span>${a || ''}${onL2 ? '' : cur}`;
+  term.querySelector('.l2').innerHTML = onL2 ? `${b}${cur}` : '';
+};
+</script>
+</body>
+</html>
