@@ -1099,6 +1099,18 @@ retire. `offscreenPreparations(scene)` reads registrations; `offscreenJobs(scene
 collects detached compile jobs across the page's nested scenes. `CompileJob.camera?`
 overrides the page camera for those jobs, keeping light-layer program keys exact. Set `positionOnly: true` only when the authored vertex shader reads no normal, colour or UV attributes; preparation then keeps the real draw cache's one representative per object flag set, including instancing, batching and skinning, without adding unused attribute programs.
 
+**Offscreen builds.** `@wildshard/engine/render/offscreenBuild` defines
+`prepareOffscreenBuild(renderer, build, current)`. A synchronous offscreen factory
+keeps its meshes and materials alive until this promise resolves. Its ordinary
+2D-target draws are captured, their exact shader variants prepared in painted
+slices, and their original draws replayed in order with a paint between passes.
+Camera poses, target viewport/scissor, renderer settings and vector uniforms are
+captured per draw; samplers remain borrowed. The live renderer and original
+uniform references are restored before each yield. Canvas/cube/mip draws and
+depth-clear commands refuse; at most 256 passes are accepted. Owner cancellation
+retires the returned target. A retained factory renderer forwards normally after
+capture. This scheduling port does not change shader sources or texture formats.
+
 **Asynchronous material resources.** `@wildshard/engine/render/materialPreparation`
 defines `registerMaterialPreparation(material, work)` and
 `waitMaterialPreparations(materials, current)`. Register the existing loader's promise
