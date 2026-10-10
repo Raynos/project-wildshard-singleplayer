@@ -1,7 +1,7 @@
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
-import { AmbienceMix, type AmbienceMixSet } from '@wildshard/sdk/audio/ambienceMix';
-import { ISLAND_MIX, type IslandZone } from '../../data/islandMix';
+import { AmbienceMix } from '@wildshard/game/systems/audio/ambienceMix';
+import { ISLAND_MIX, type IslandZone } from './islandMix';
 import { IslandBed, ISLAND_BED } from './sfx';
 /**
  * IslandAmbience — Driftwood Isle's zoned soundscape (S1) and reverb zones + underwater (S2), project/archive/2026-09-23-driftwood-remaster.md;
@@ -28,8 +28,8 @@ import { IslandBed, ISLAND_BED } from './sfx';
  * - **cove**: the waterfall on its own PannerNode at the plunge pool (rumble + body + splash), drips in the sea cave.
  * - **underwater**: a bubble bed; the master low-pass (Audio.setUnderwater) ramps to 500 Hz over 150 ms on this shard.
  * Everything crossfades by position with 300 ms time constants; walls muffle the outdoor beds (hold / cave occlusion).
- * SHARD-PLATFORM M3: the beds are data/islandBeds.ts, the rest of the mix (emitters, zone weights, levels, rooms, diag, zone,
- * the swell / bird / drip one-shots) data/islandMix.ts, run by @wildshard/sdk/audio/ambienceMix; this profile hands it the
+ * SHARD-PLATFORM M3: the beds are runtime/audio/islandBeds.ts, the rest of the mix (emitters, zone weights, levels, rooms, diag, zone,
+ * the swell / bird / drip one-shots) runtime/audio/islandMix.ts, run by runtime/audio/ambienceMix; this profile hands it the
  * ports (the ground, the sea, the palms, the wreck and the cove, the waterfall's foot, the wind the palms sway in).
  *
  * Reverb (S2): ConvolverNodes with generated IRs (gen.ts: hold 0.6 s, cave 1.5 s, shrine 2.5 s), fed from the sfx bus
@@ -61,9 +61,9 @@ export interface IslandAmbienceOpts {
 const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.driftwood');
 const CAVE = requireAudioZone(PROFILE, 'cave');
 
-/** Driftwood's ambience profile: the island synth bed until the zoned mix is built, then the mix of data/islandMix.ts. */
+/** Driftwood's ambience profile: the island synth bed until the zoned mix is built, then the mix of runtime/audio/islandMix.ts. */
 export class IslandAmbience {
-  private readonly mix: AmbienceMixSet<Zone>;
+  private readonly mix: AmbienceMix<Zone>;
 
   constructor(audio: Audio, o: IslandAmbienceOpts) {
     const f = o.cove?.fall.foot, c = o.cove?.cave, fall = { x: f?.[0] ?? 127.5, z: f?.[1] ?? 18 };

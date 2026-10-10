@@ -1,10 +1,10 @@
 // SHARD-PLATFORM M3 (audio rows): Driftwood Isle's ambience mix as data (runtime/audio/ambience.ts runs it through
-// @wildshard/sdk/audio/ambienceMix): the surf's shoreline emitter and the waterfall's, the zone weights, every bed's level,
+// runtime/audio/ambienceMix): the surf's shoreline emitter and the waterfall's, the zone weights, every bed's level,
 // the occlusion of the hold and the cave, the reverb rooms, the diag, the dominant zone and the one-shots (the swells on the
 // surf, the jungle birds, the cave drips). Names: the profile's zones (`jungle.x`, `cave.inner` …), levels (`level.surf`)
 // and wet sends (`wet.hold`); the ports `ground`, `sea`, `night`, `underwater`, `t`, `windTime`, `windStrength`, the
 // bounds `holdBox` / `caveBox`, the points `fall` and `cave`, the palms' nearness `palms.sum` / `.dx` / `.dz`.
-import type { AmbienceMixRows } from '@wildshard/sdk/audio/ambienceMix';
+import type { AmbienceMixRows } from '@wildshard/game/systems/audio/ambienceMix';
 import { ISLAND_BEDS } from './islandBeds';
 
 /** The island's dominant zones. */
