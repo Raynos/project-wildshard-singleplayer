@@ -6,7 +6,8 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import type { BufferGeometry } from 'three';
-import { duneRig, undrawnRig } from '../world/meshes';
+import { undrawnRig } from '@wildshard/sdk/looks/modelLibrary';
+import { duneRig } from '../world/meshes';
 
 const brains = new WeakMap<Animal, SkittererBrain>();
 const brain = (a: Animal): SkittererBrain => { let value = brains.get(a); if (!value) { value = new SkittererBrain(a); brains.set(a, value); } return value; };

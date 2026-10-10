@@ -1,7 +1,8 @@
 import { type BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TubeGeometry, Vector3 } from 'three';
 import { braidColours, coilPoints as heldCoil, LashCord, plaitedCord, type CordRgb, type LashCordView } from '@wildshard/sdk/items/lashView';
 import { COIL_A, COIL_B, GLOW, LASH_CORD, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B } from '../data/whip';
-import { duneHd, duneMesh, heldSurface, smoothColors } from '../world/meshes';
+import { smoothColors } from '@wildshard/sdk/looks/modelLibrary';
+import { duneHd, duneMesh, heldSurface } from '../world/meshes';
 import { COIL_SURFACE } from '../data/surfaces';
 
 /** The hero glove's fit in the whip model's frame (metres, radians): its span, its offset and its turn. */

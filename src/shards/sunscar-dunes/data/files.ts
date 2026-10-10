@@ -1,3 +1,6 @@
+import type { ModelLibraryRows } from '@wildshard/sdk/looks/modelLibrary';
+import { FACET_AO_FLOOR, HD_LOOKS } from './surfaces';
+
 /**
  * Signal Dunes' asset files as rows: the generated models, the baked world pieces and creature rigs, the painted skies. The
  * boot lists them (`boot/files.ts`), the loaders read them (`world/meshes.ts`, `world/baked.ts`, `look/painted.ts`).
@@ -57,6 +60,11 @@ export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = {
 export const DUNE_RIGS = ['skitterer'] as const;
 export type DuneRigName = (typeof DUNE_RIGS)[number];
 export const DUNE_RIG_URLS: Readonly<Record<DuneRigName, string>> = { skitterer: '/assets/sunscar-dunes/rigs/skitterer.glb' };
+/** The model library `world/meshes.ts` loads (`@wildshard/sdk/looks/modelLibrary`): the lists above, the AO floor, the hero dressing. */
+export const DUNE_MODELS: ModelLibraryRows<DuneMeshName, DuneHdName, DuneRigName> = {
+  meshes: DUNE_MESHES, meshUrls: DUNE_MESH_URLS, hd: DUNE_HD, hdUrls: DUNE_HD_URLS, rigs: DUNE_RIGS, rigUrls: DUNE_RIG_URLS,
+  aoFloor: FACET_AO_FLOOR, hdLooks: HD_LOOKS,
+};
 
 /** The painted dusk skies, one per dusk stage (look/painted.ts, art/sunscar-dunes/round-25-sky; E409 second top-10 row 2). */
 export const PAINTED_STAGES = ['early', 'late'] as const;

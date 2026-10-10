@@ -99,6 +99,7 @@
     "./looks/toonLight": "./looks/toonLight.ts",
     "./looks/bakedIsland": "./looks/bakedIsland.ts",
     "./looks/bakedGround": "./looks/bakedGround.ts",
+    "./looks/modelLibrary": "./looks/modelLibrary.ts",
     "./looks/instancedTiles": "./looks/instancedTiles.ts",
     "./looks/facetedOcean": "./looks/facetedOcean.ts",
     "./looks/facetedDay": "./looks/facetedDay.ts",

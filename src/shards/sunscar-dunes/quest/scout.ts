@@ -1,6 +1,7 @@
 import { Group, Mesh, MeshStandardMaterial, Vector3, type BufferGeometry } from 'three';
 import type { NpcDef } from '@wildshard/engine/quest/core';
-import { duneMesh, fit, without } from '../world/meshes';
+import { fitGeometry, withoutTriangles } from '@wildshard/sdk/looks/modelLibrary';
+import { duneMesh } from '../world/meshes';
 import { SPAWN } from '../data/layout';
 import { SCOUT_AT, SCOUT_FLAG } from '../data/flags';
 import { STRINGS } from '../data/strings';
@@ -27,8 +28,8 @@ const isHead = (_x: number, y: number): boolean => y >= NECK.y;
  */
 export function scoutParts(): { root: Group; head: Group; arm: Group } | null {
   const source = duneMesh('caravan-scout'); if (source === null) return null;
-  const whole = fit(source, { size: HEIGHT, by: 'height' });
-  const keep = (cut: (x: number, y: number, z: number) => boolean): BufferGeometry => without(whole.clone(), cut);
+  const whole = fitGeometry(source, { size: HEIGHT, by: 'height' });
+  const keep = (cut: (x: number, y: number, z: number) => boolean): BufferGeometry => withoutTriangles(whole.clone(), cut);
   const body = keep((x, y) => isHead(x, y) || isRightArm(x, y)), head = keep((x, y) => !isHead(x, y)), arm = keep((x, y) => !isRightArm(x, y) || isHead(x, y));
   whole.dispose();
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, flatShading: true });

@@ -1,5 +1,6 @@
 import { Float32BufferAttribute, Uint16BufferAttribute, type BufferGeometry } from 'three';
-import { duneMesh, fit } from '../world/meshes';
+import { fitGeometry } from '@wildshard/sdk/looks/modelLibrary';
+import { duneMesh } from '../world/meshes';
 
 const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
 
@@ -14,7 +15,7 @@ export interface MantaTint { top: readonly [number, number, number]; belly: read
  */
 export function mantaBody(tint: MantaTint | null = null): BufferGeometry | null {
   const source = duneMesh('dune-matriarch'); if (source === null) return null;
-  const g = fit(source, { size: 5.3, by: 'span', floor: 0.05 }), b = g.boundingBox;
+  const g = fitGeometry(source, { size: 5.3, by: 'span', floor: 0.05 }), b = g.boundingBox;
   if (b !== null) g.translate(0, 0, 1.78 - b.max.z);
   const p = g.getAttribute('position'), n = p.count, index = new Uint16Array(n * 4), weight = new Float32Array(n * 4);
   for (let i = 0; i < n; i++) {

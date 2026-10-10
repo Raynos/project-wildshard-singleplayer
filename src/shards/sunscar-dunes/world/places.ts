@@ -9,7 +9,8 @@ import wellRows from '../data/well.json' with { type: 'json' };
 import brazierRows from '../data/braziers.json' with { type: 'json' };
 import { bakedColliders } from '@wildshard/game/shardfile/bakedKinds';
 import { bakedPiece, type BakedWorld } from './baked';
-import { duneHd, duneMaterial, duneMesh, fit, without } from './meshes';
+import { facetMaterial, fitGeometry, withoutTriangles } from '@wildshard/sdk/looks/modelLibrary';
+import { duneHd, duneMesh } from './meshes';
 
 /**
  * Signal Dunes' places (SHARD-PLATFORM SF72): the caravan's and the well's code-built parts and every place's colliders
@@ -28,7 +29,7 @@ const mat = (color: number, extra: Partial<{ metalness: number; side: typeof Dou
 /** A generated model's painted material a step lighter (round 2, R1C-2: the iron brazier and the well read black at dusk). */
 export const litDune = (): MeshStandardMaterial => {
   // the bowls measured 2 against the sand's 31 (check pass): lifted paint and a faint warm self-light, never black on lit sand
-  const m = duneMaterial(); m.color.setRGB(4.2, 3.7, 3.2); m.emissive.setRGB(0.07, 0.045, 0.03); m.roughness = 0.7; return m;
+  const m = facetMaterial(); m.color.setRGB(4.2, 3.7, 3.2); m.emissive.setRGB(0.07, 0.045, 0.03); m.roughness = 0.7; return m;
 };
 const box = (w: number, h: number, d: number, material: Material): Mesh => new Mesh(new BoxGeometry(w, h, d), material);
 const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh => { mesh.position.set(x, y, z); parent.add(mesh); return mesh; };
@@ -83,8 +84,8 @@ export function buildWell(baked: BakedWorld): WellParts {
   const well = new Group(); well.position.set(WELL.x, y, WELL.z); root.add(well);
   const generated = duneMesh('dry-well');
   if (generated) {
-    const fitted = fit(generated, { size: WELL_FIT, by: 'span' }), maxX = fitted.boundingBox?.max.x ?? 2;
-    well.add(new Mesh(without(fitted, (cx, cy, cz) => cx > maxX - 0.3 || (Math.hypot(cx, cz) < 0.5 && cy > 0.75 && cy < 1.95)), litDune()));
+    const fitted = fitGeometry(generated, { size: WELL_FIT, by: 'span' }), maxX = fitted.boundingBox?.max.x ?? 2;
+    well.add(new Mesh(withoutTriangles(fitted, (cx, cy, cz) => cx > maxX - 0.3 || (Math.hypot(cx, cz) < 0.5 && cy > 0.75 && cy < 1.95)), litDune()));
   }
   // The shaft: a dark disc inside the ring.
   at(new Mesh(new CylinderGeometry(R - 0.3, R - 0.3, 0.05, 16), new MeshBasicMaterial({ color: 0x0a0605 })), 0, 0.62, 0, well);

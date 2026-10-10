@@ -3,7 +3,8 @@ import { DUNE_STRIDER, STRIDER_CLIPS } from '../data/species/strider';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import type { BufferGeometry } from 'three';
-import { bindRigid, duneMesh, fit, undrawnRig } from '../world/meshes';
+import { bindRigid, fitGeometry, undrawnRig } from '@wildshard/sdk/looks/modelLibrary';
+import { duneMesh } from '../world/meshes';
 
 const LEGS: readonly [string, number, number][] = [['legFL', -0.42, 0.75], ['legFR', 0.42, 0.75], ['legBL', -0.42, -0.8], ['legBR', 0.42, -0.8]];
 const bones = (): { name: string; parent: string | null; pos: [number, number, number] }[] => [
@@ -17,7 +18,7 @@ const bones = (): { name: string; parent: string | null; pos: [number, number, n
  * bone at its leg's top), the front fifth above the withers is the head and horns, the back tenth the tail.
  */
 function striderMesh(source: BufferGeometry): { bones: ReturnType<typeof bones>; geometry: BufferGeometry; h: number } {
-  const g = fit(source, { size: 3.6, by: 'span', yaw: Math.PI / 2 }), b = g.boundingBox, p = g.getAttribute('position');
+  const g = fitGeometry(source, { size: 3.6, by: 'span', yaw: Math.PI / 2 }), b = g.boundingBox, p = g.getAttribute('position');
   const h = b ? b.max.y : 2.8, z0 = b ? b.min.z : -1.8, z1 = b ? b.max.z : 1.8, legTop = h * 0.5, head = z1 - (z1 - z0) * 0.2, tail = z0 + (z1 - z0) * 0.1;
   // each leg's top: the mean x / z of its quadrant's low vertices (FL, FR, BL, BR as in LEGS: left is −X)
   const quad = (x: number, z: number): number => (z > 0 ? 0 : 2) + (x < 0 ? 0 : 1), sum = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]];

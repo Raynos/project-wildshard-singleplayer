@@ -1,4 +1,6 @@
+import type { HdLookRow } from '@wildshard/sdk/looks/modelLibrary';
 import type { FirelightLook, SurfaceLook, ViewerLightLook } from '@wildshard/sdk/looks/surfaceLooks';
+import type { DuneHdName } from './files';
 
 /**
  * Signal Dunes' surface looks as rows (SHARD-PLATFORM SF72, look-family rows) on the platform's surface families
@@ -41,3 +43,20 @@ export const BRAZIER_SURFACE: readonly SurfaceLook[] = [
 
 /** The camp's lantern and cookfire light the wagon, the crates and the sacks. */
 export const CAMP_SURFACE: readonly SurfaceLook[] = [FIRELIGHT];
+
+/**
+ * The hero models' dressing over the matte base (`world/meshes.ts`): E399 / E407 row 4 / round 16 (mockup D): the glove
+ * keeps its own painted leather, matte with a soft sheen, the viewer-side light and the leather grain, unrimmed and
+ * unfogged; round 8-10 (mockup C): the brazier's soot-dark iron and weathered stone, warm only where the fire lights it;
+ * the camp (the wagon, the crates, the sacks): the lantern and the cookfire light it.
+ */
+export const HD_LOOKS: Readonly<Partial<Record<DuneHdName, HdLookRow>>> = {
+  'glove-hd4': { color: [0.92, 0.84, 0.76], roughness: 0.34, fog: false, userData: { sunscarNoRim: true }, surface: GLOVE_SURFACE },
+  'brazier-hd': { color: [0.5, 0.46, 0.44], surface: BRAZIER_SURFACE },
+  'wagon-hd2': { surface: CAMP_SURFACE },
+  'crates-hd': { surface: CAMP_SURFACE },
+  'sacks-hd': { surface: CAMP_SURFACE },
+};
+
+/** How much of a facet model's baked AO survives: a facet in full occlusion keeps this share of its colour. */
+export const FACET_AO_FLOOR = 0.55;
