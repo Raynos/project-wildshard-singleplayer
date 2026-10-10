@@ -42,7 +42,8 @@ export class MountedReins {
   sectorWas = 2; skidT = 0; panicT = 0; panicRear = 0; panicYaw = 0; jolt = 0;
   onRoad = false; beat = false; spurFlash = 0; turnLead = 0;
   readonly spur = new RhythmSpur();
-  constructor(private readonly speeds: HorseSpeeds) {}
+  private readonly speeds: HorseSpeeds;
+  constructor(speeds: HorseSpeeds) { this.speeds = speeds; }
   /** All decision clocks and queued input edges; physical motor and presentation continuation belong to their drivers. */
   snapshot(): MountedReinsState {
     return v.parse(ReinsState, { version: 1, steed: this.steed, winded: this.winded, breaking: this.breaking, heading: this.heading, speed: this.speed,

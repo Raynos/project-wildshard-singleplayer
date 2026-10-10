@@ -22,7 +22,8 @@ const Saved = v.strictObject({ laneT: finite, runT: finite, lastState: v.string(
 export class ArgymaqKeeper<A extends AnimalSim> {
   private laneT = 0; private runT = 0; private lastState = '';
   private readonly laneFrom = new Vector3(); private readonly laneTo = new Vector3();
-  constructor(private readonly ports: ArgymaqPorts<A>) {}
+  private readonly ports: ArgymaqPorts<A>;
+  constructor(ports: ArgymaqPorts<A>) { this.ports = ports; }
   tick(a: A | null, h: ArgymaqHerd<A> | null, dt: number, t: number, engaged: boolean): void {
     if (a === null || h === null) return;
     const lane = this.ports.lane;

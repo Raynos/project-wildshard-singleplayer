@@ -82,7 +82,8 @@ export class MountedBody extends MountedReins {
     if (o === null) return true;
     this.contactHit = o; return false;
   };
-  constructor(private readonly bodySpeeds: HorseSpeeds) { super(bodySpeeds); }
+  private readonly bodySpeeds: HorseSpeeds;
+  constructor(bodySpeeds: HorseSpeeds) { super(bodySpeeds); this.bodySpeeds = bodySpeeds; }
 
   /** Scalar continuation; the native capsule is captured separately and reconnected after world replacement. */
   snapshotBody(): MountedBodyState {

@@ -30,9 +30,10 @@ export class MarmotBrain {
   private readonly bands = new BodyBandClocks();
   private readonly point = { x: 0, y: 0, z: 0 };
   private readonly rng: Rng;
+  private readonly ground: MarmotGround;
   private readonly ids = Array.from({ length: MAX }, (_, index) => `marmot:${String(index)}`);
   private acc = 0;
-  constructor(seed: number, private readonly ground: MarmotGround) { this.rng = new Rng(seed ^ 0x6a2b); }
+  constructor(seed: number, ground: MarmotGround) { this.ground = ground; this.rng = new Rng(seed ^ 0x6a2b); }
 
   build(sites: readonly { x: number; z: number }[], perSite = 5): void {
     if (sites.length > 64 || !Number.isInteger(perSite) || perSite < 3 || this.rows.length + sites.length * perSite > MAX) throw new RangeError('Marmot colony bound exceeded');

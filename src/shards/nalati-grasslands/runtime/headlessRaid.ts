@@ -31,9 +31,13 @@ export class HeadlessSheepRaid {
   private readonly dir = new Vector3();
   private readonly ai: () => number;
 
-  constructor(private readonly host: SimHost, private readonly groups: NalatiGroups, private readonly flock: FlockBrain | null,
-    private readonly horse: AnimalSim | null, private readonly preyAt: (index: number) => PackPrey,
-    private readonly spawnPack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>) {
+  private readonly host: SimHost; private readonly groups: NalatiGroups; private readonly flock: FlockBrain | null;
+  private readonly horse: AnimalSim | null; private readonly preyAt: (index: number) => PackPrey;
+  private readonly spawnPack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>;
+  constructor(host: SimHost, groups: NalatiGroups, flock: FlockBrain | null,
+    horse: AnimalSim | null, preyAt: (index: number) => PackPrey,
+    spawnPack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>) {
+    this.host = host; this.groups = groups; this.flock = flock; this.horse = horse; this.preyAt = preyAt; this.spawnPack = spawnPack;
     this.raidT = groups.firstRaid;
     this.ai = () => host.rng.stream('ai').next();
     const raid = () => this;

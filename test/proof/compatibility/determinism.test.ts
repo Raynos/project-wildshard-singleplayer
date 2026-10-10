@@ -10,7 +10,7 @@ it.each(['nalati-grasslands'])(
     const first = nativeCompatibility(slug), second = nativeCompatibility(slug);
     expect(first.status).toBe(1); expect(first.stderr).toBe(''); expect(second).toEqual(first);
     const report: unknown = JSON.parse(first.stdout);
-    expect(report).toMatchObject({ compatible: false, headless: { ticksExecuted: 0 }, replay: { checkpointCaptured: false } });
+    expect(report).toMatchObject({ compatible: false, headless: { nativeBoot: true, ticksExecuted: 180 }, replay: { checkpointCaptured: true, codecByteExact: true, suffixTicksExecuted: 60 } });
   },
 );
 
