@@ -7,7 +7,7 @@ import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { getActiveChunk, setActiveChunk } from '../../src/game/shard/registry';
 import type { Animal } from '../../src/engine/entities/AnimalView';
 import { LaneCharge } from '../../src/shards/pine-hollow/combat/ctx';
-import { AntlerKingFight } from '../../src/shards/pine-hollow/runtime/antlerKing';
+import { AntlerKingProbe } from '../fake/antlerKing';
 import { canReach } from '../../src/engine/ai/reach';
 import { headingTo, inArc } from '../../src/shards/pine-hollow/combat/combatMath';
 import { pineContact, PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';
@@ -81,14 +81,16 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
   });
   it('B4 Antler sweep rejects a log and retains24 in the open', () => {
     setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');
-    const hurt = vi.fn(noop), fight = legacyActor(AntlerKingFight.prototype, {
-      mode: 'sweep', modeT: 0.9, open: 0, sweepCd: 0, stompCd: 10, callCd: 10,
-      ctx: { reach: (actor: Animal, point: THREE.Vector3) => canReach(actor, point, activePhysics()), player: { position: new THREE.Vector3(0, 0, -1.2) }, hurt, trauma: noop },
-      tellRing: { setTime: noop, ring: noop, hide: noop }, tickWaves: noop,
+    const hurt = vi.fn(noop), fight = new AntlerKingProbe(a, {
+      reach: (actor, point) => canReach(actor, point, activePhysics()),
+      player: { position: new THREE.Vector3(0, 0, -1.2), onGround: true, shove: noop }, hurt,
     });
-    invokeLegacy(fight, 'fight', a, 1 / 60, 0); expect(hurt).not.toHaveBeenCalled();
-    setActivePhysics(null); Reflect.set(fight, 'mode', 'sweep'); Reflect.set(fight, 'modeT', 0.9);
-    invokeLegacy(fight, 'fight', a, 1 / 60, 1); expect(hurt).toHaveBeenCalledExactlyOnceWith(a, 24);
+    const position = a.position.clone();
+    fight.seed({ mode: 'sweep', modeT: 0.9 - 1 / 60, open: 0, sweepCd: 0, stompCd: 10, callCd: 10 });
+    fight.update(1 / 60, 0, true); expect(hurt).not.toHaveBeenCalled();
+    a.position.copy(position);
+    setActivePhysics(null); fight.seed({ mode: 'sweep', modeT: 0.9 - 1 / 60 });
+    fight.update(1 / 60, 1, true); expect(hurt).toHaveBeenCalledExactlyOnceWith(a, 24);
   });
   it('B4 Blackpaw swipe rejects cover and retains22 in the open', () => {
     setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');

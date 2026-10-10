@@ -33,7 +33,8 @@ abstract class RoamingGoals<B extends RoamingBossBody,L,K extends string,A exten
   protected abstract callAdds(n: number): void;
   protected abstract action(k: B, action: A): void;
   protected abstract roar(k: B): void;
-  protected constructor(protected readonly row: RoamingBossRow<K,A,Q>) { this.mode = row.names.idle; this.strikeCd = row.initial.strikeCd; this.burstCd = row.initial.burstCd; this.summonCd = row.initial.summonCd; }
+  protected readonly row: RoamingBossRow<K,A,Q>;
+  protected constructor(row: RoamingBossRow<K,A,Q>) { this.row = row; this.mode = row.names.idle; this.strikeCd = row.initial.strikeCd; this.burstCd = row.initial.burstCd; this.summonCd = row.initial.summonCd; }
   protected setMode(mode: string): void { this.mode = mode; this.modeT = 0; }
 
   protected fight(k: B, dt: number, t: number): void {

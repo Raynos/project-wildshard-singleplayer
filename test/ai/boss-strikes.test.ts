@@ -5,7 +5,7 @@ import { overrideTerrain } from '../../src/engine/world/Heightfield';
 // the shipped fight, kept as the oracle the platform phased fight replays exactly (test/shards/nalati-grasslands/golden-king-phased.test.ts)
 import { GoldenKingFight } from '../fixtures/species-oracle/goldenKing';
 import { StormTitan, StormTitanFight } from '../../src/shards/nalati-grasslands/combat/stormTitan';
-import { AntlerKingFight } from '../../src/shards/pine-hollow/runtime/antlerKing';
+import { AntlerKingProbe } from '../fake/antlerKing';
 import { DUNGEON } from '../../src/shards/nalati-grasslands/world/KurganDungeon';
 import { KINGS_CLEARING } from '../../src/shards/pine-hollow/layout';
 import { CAIRN } from '../../src/shards/nalati-grasslands/layout';
@@ -99,17 +99,18 @@ describe('boss contacts executed through original production methods', () => {
   it.each([false, true])('S36 Antler root-ring jump%s keeps its20 damage and .9m half width', (jump) => {
     const f = creature('crab', 'small'), hurt = vi.fn(noop), pos = new THREE.Vector3(KINGS_CLEARING.x, 0, KINGS_CLEARING.z + 5);
     f.animal.position.set(KINGS_CLEARING.x, 0, KINGS_CLEARING.z);
-    const fight = legacyActor(AntlerKingFight.prototype, { ctx: { reach: () => true, player: { position: pos, onGround: !jump }, hurt, trauma: noop },
-      waves: [{ on: true, delay: 0, r: 4.4, hit: false, g: tell() }] });
-    invokeLegacy(fight, 'tickWaves', f.animal, 1 / 60, 0); invokeLegacy(fight, 'tickWaves', f.animal, 1 / 60, 1);
+    const fight = new AntlerKingProbe(f.animal, { player: { position: pos, onGround: !jump, shove: noop }, hurt });
+    fight.seed({ waves: [{ on: true, delay: 0, r: 4.4, hit: false }, { on: false, delay: 0, r: 0, hit: false }] });
+    fight.update(1 / 60, 0, true); fight.update(1 / 60, 1, true);
     expect(hurt).toHaveBeenCalledTimes(jump ? 0 : 1); if (!jump) expect(hurt).toHaveBeenCalledWith(f.animal, 20, true);
   });
   it('S39 fallen lanterns deliver9 per .8s only inside the3m fire zone', () => {
-    const f = creature('crab', 'small'), hurt = vi.fn(noop), flame = visual();
-    const fight = legacyActor(AntlerKingFight.prototype, { ctx: { reach: () => true, player: { position: new THREE.Vector3() }, hurt },
-      lanterns: [{ fallT: 1, x: 0, y: 0, z: 0, acc: 0 }], fallen: [{ flame, ring: tell() }], darkK: 0, won: false, king: f.animal });
-    invokeLegacy(fight, 'hazards', 0.79, 0, true); expect(hurt).not.toHaveBeenCalled();
-    invokeLegacy(fight, 'hazards', 0.02, 0.81, true); expect(hurt).toHaveBeenCalledWith(f.animal, 9, true);
+    const f = creature('crab', 'small'), hurt = vi.fn(noop);
+    const fight = new AntlerKingProbe(f.animal, { hurt });
+    fight.seed({ lanterns: [{ fallT: 1, x: 0, y: 0, z: 0, acc: 0 },
+      { fallT: -1, x: 0, y: 0, z: 0, acc: 0 }, { fallT: -1, x: 0, y: 0, z: 0, acc: 0 }] });
+    fight.update(0.79, 0, true); expect(hurt).not.toHaveBeenCalled();
+    fight.update(0.02, 0.81, true); expect(hurt).toHaveBeenCalledWith(f.animal, 9, true);
   });
   it('S27 grass fire delivers4 every .5s and preserves8 damage/second', () => {
     const hurt = vi.fn(noop), fight = legacyActor(StormTitanFight.prototype, {
@@ -142,10 +143,12 @@ describe('boss contacts executed through original production methods', () => {
   });
   it('S35 Antler sweep hits24 after .9s in the near arc', () => {
     const f = creature('crab', 'small'), hurt = vi.fn(noop);
-    const fight = legacyActor(AntlerKingFight.prototype, { mode: 'sweep', modeT: 0.89, open: 0, sweepCd: 0, stompCd: 10, callCd: 10,
-      ctx: { reach: () => true, player: { position: f.ctx.player }, hurt, trauma: noop }, tellRing: tell(), tickWaves: noop });
-    invokeLegacy(fight, 'fight', f.animal, 1 / 60, 0); expect(hurt).not.toHaveBeenCalled();
-    Reflect.set(fight, 'modeT', 0.9); invokeLegacy(fight, 'fight', f.animal, 1 / 60, 1);
-    expect(hurt).toHaveBeenCalledExactlyOnceWith(f.animal, 24); expect(Reflect.get(fight, 'sweepCd')).toBe(5);
+    const fight = new AntlerKingProbe(f.animal, { player: { position: f.ctx.player, onGround: true, shove: noop }, hurt });
+    fight.seed({ mode: 'sweep', modeT: 0.89 - 1 / 60, open: 0, sweepCd: 0, stompCd: 10, callCd: 10 });
+    const position = f.animal.position.clone();
+    fight.update(1 / 60, 0, true); expect(hurt).not.toHaveBeenCalled();
+    f.animal.position.copy(position);
+    fight.seed({ modeT: 0.9 - 1 / 60 }); fight.update(1 / 60, 1, true);
+    expect(hurt).toHaveBeenCalledExactlyOnceWith(f.animal, 24); expect(fight.fightState(() => 'king').sweepCd).toBe(5);
   });
 });
