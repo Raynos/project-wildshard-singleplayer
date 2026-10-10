@@ -22,7 +22,8 @@
  */
 import * as THREE from 'three';
 import type { SkyRig as Sky } from '../world/skyRig';
-import { SWIM_SPEED, STROKE_PERIOD, type Player } from './Player';
+import type { Player } from './Player';
+import { SWIM_SPEED, STROKE_PERIOD } from './swim';
 import { activeLevel } from '../level/selection';
 import { isMesh, viewmodelMaterial, whiteColors } from '../combat/view/ranged';
 import { Rng } from '../core/rng';

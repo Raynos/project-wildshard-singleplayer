@@ -13,7 +13,9 @@ import { Player } from '../../src/engine/player/Player';
 import { playerModes, type ModePlayer, type PlayerModeDriver } from '../../src/engine/player/modes';
 import { WorldRegistry, type Piece } from '../../src/engine/world/registry';
 import { basinBody } from '../../src/engine/world/water/body';
-import { currentPlayerMode, enterPlayerMode, exitPlayerMode, registerPlayerMode } from '../../src/sdk/playerModes';
+import { currentHeadlessMode, currentPlayerMode, enterHeadlessMode, enterPlayerMode, exitHeadlessMode, exitPlayerMode, registerHeadlessMode, registerPlayerMode } from '../../src/sdk/playerModes';
+import { createSimHost, SIM_API_VERSION, type SimCommand, type SimLevel } from '../../src/engine/sim';
+import { restoreSimHost, snapshotSimHost } from '../../src/engine/sim/snapshot';
 import { DRIFTWOOD_SEA } from '../../src/shards/driftwood-isle/world/sea';
 import { RIVER, TERRAIN } from '../../src/shards/nalati-grasslands/world/terrain';
 import { legacyDouble } from '../fake/FakeGame';
@@ -150,3 +152,112 @@ describe('SF34 swim and wade parity (Driftwood, Nalati)', () => {
   });
 });
 
+
+/** A bare headless level: no creatures, the player standing at (0, -2) on the shelf. */
+function swimLevel(shelf: number): SimLevel {
+  return { version: SIM_API_VERSION, id: 'swim-tape', seed: 1, ground: { size: 200, height: shelf }, player: { at: { x: 0, y: shelf, z: -2 }, yaw: 0, speed: 4.3 },
+    entities: [], quests: [], weapon: { id: 'probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
+}
+/** The browser tape's command at step i, as the headless host's world-space command (north = -z). */
+function swimCommand(i: number): SimCommand {
+  const moveY = i < 30 ? 0 : i < 460 ? 1 : i < 640 ? 0 : i < 1190 ? -1 : 0;
+  return { moveX: i >= 600 && i < 640 ? 0.6 : 0, moveZ: -moveY, yaw: 0, ...(i === 60 ? { jump: true } : {}),
+    dive: i >= 470 && i < 530, surface: i >= 540 && i < 600 };
+}
+/**
+ * The same walk into the water on the headless host (SimHost.useWater: the shared water law, player/swim.ts), over one
+ * shard's water level and the browser tape's shelf and drop-off; `restoreAt` snapshots and restores the host mid-swim.
+ */
+async function headlessSwimTape(level: number, restoreAt = -1): Promise<{ values: number[]; modes: string[]; steps: number[] }> {
+  const R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer());
+  const shelf = level - 1, deep = level - 3, sim = swimLevel(shelf);
+  const install = (host: ReturnType<typeof createSimHost>, fresh: boolean): void => {
+    if (fresh) {
+      host.physics.world.createCollider(R.ColliderDesc.cuboid(60, 0.5, 60).setTranslation(0, deep - 0.5, 0).setCollisionGroups(groups('WORLD')));
+      host.physics.world.createCollider(R.ColliderDesc.cuboid(20, (shelf - deep) / 2, 15).setTranslation(0, (shelf + deep) / 2, 5).setCollisionGroups(groups('WORLD')));
+    }
+    host.useWater({ surfaceAt: () => level });
+  };
+  const ports = { rapier: R, ground: false, heightAt: (_x: number, z: number) => (z > -10 ? shelf : deep) } as const;
+  let host = createSimHost(sim, ports);
+  install(host, true);
+  const values: number[] = [], modes: string[] = [], steps: number[] = [];
+  try {
+    for (let i = 0; i < 1200; i++) {
+      if (i === restoreAt) {
+        const saved = snapshotSimHost(host);
+        host.dispose();
+        host = restoreSimHost(sim, ports, saved, (fresh) => { install(fresh, false); });
+      }
+      host.step(swimCommand(i));
+      const mode = currentHeadlessMode(host);
+      if (modes.at(-1) !== mode) { modes.push(mode); steps.push(i); }
+      const p = host.player.position, v = host.playerSwim.on ? host.swimVelocity : { x: 0, y: host.playerFall.vy, z: 0 };
+      values.push(p.x, p.y - level, p.z, v.x, v.y, v.z, host.playerFall.grounded ? 1 : 0);
+    }
+  } finally { host.dispose(); }
+  return { values, modes, steps };
+}
+
+describe('SF34 headless modes and swim (SimHost.modes, SimHost.useWater)', () => {
+  const driftwood = siteLevel(DRIFTWOOD_SEA, [[0, 400], [400, 0], [-400, 0], [0, -400]]);
+  const nalati = siteLevel(basinBody('river', TERRAIN), Array.from({ length: 41 }, (_, i) => [i * 25 - 500, RIVER.z(i * 25 - 500)] as const));
+
+  it('runs the water law headless: the browser tape wades, swims, dives and wades out alike on both shards', async () => {
+    const a = await headlessSwimTape(driftwood), b = await headlessSwimTape(nalati), page = await swimTape(driftwood);
+    // the browser's modes in the same order (the headless walk has no acceleration, so the hand-overs land a few ticks apart)
+    expect(a.modes).toEqual(page.modes);
+    expect(b.modes).toEqual(a.modes);
+    expect(b.steps).toEqual(a.steps);
+    const worst = a.values.reduce((max, value, i) => Math.max(max, Math.abs(value - (b.values[i] ?? Number.NaN))), 0);
+    expect(worst).toBeLessThan(0.05);
+    // swimming, both hosts float at the same height under the surface (the law's float depth), settled before the dive
+    const at = (tape: { values: number[] }, step: number): number => tape.values[step * 7 + 1] ?? Number.NaN;
+    expect(Math.abs(at(a, 465) - at(page, 465))).toBeLessThan(0.05);
+  });
+
+  it('restores a swimming host exactly (the swim is snapshot state)', async () => {
+    const straight = await headlessSwimTape(driftwood), resumed = await headlessSwimTape(driftwood, 500);
+    expect(resumed.values).toEqual(straight.values);
+    expect(resumed.modes).toEqual(straight.modes);
+  });
+
+  it('enters a driven mode headless: its driver owns the motion ahead of usePlayerDriver, and board colliders follow the mode', async () => {
+    const R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer());
+    const host = createSimHost(swimLevel(0), { rapier: R }), scope = new Scope('headless-ride');
+    try {
+      const deck = host.physics.world.createCollider(R.ColliderDesc.cuboid(2, 0.1, 2).setTranslation(0, 3, -8).setCollisionGroups(groups('WORLD')));
+      host.boardColliders([deck]);
+      expect(deck.isEnabled()).toBe(false);
+      host.step({ moveX: 0, moveZ: 0, yaw: 0, hover: true });
+      expect(currentHeadlessMode(host)).toBe('board'); expect(deck.isEnabled()).toBe(true);
+      host.step({ moveX: 0, moveZ: 0, yaw: 0, hover: true });
+      const calls: string[] = [];
+      registerHeadlessMode(host, { id: 'ride', hud: 'ride', enter: () => { calls.push('enter'); }, exit: () => { calls.push('exit'); } }, scope);
+      let walked = 0;
+      host.usePlayerDriver({ input: () => false, step: () => undefined });
+      enterHeadlessMode(host, 'ride', { input: () => true, step: () => { walked++; } });
+      const before = host.player.position.clone();
+      host.step({ moveX: 1, moveZ: 0, yaw: 0 });
+      expect(walked).toBe(1); expect(host.player.position.distanceTo(before)).toBe(0); // the saddle owns the frame
+      expect(currentHeadlessMode(host)).toBe('ride');
+      exitHeadlessMode(host, 'ride');
+      host.step({ moveX: 1, moveZ: 0, yaw: 0 });
+      expect(walked).toBe(1); expect(host.player.position.x).toBeGreaterThan(before.x); // back on the ordinary walk
+      expect(calls).toEqual(['enter', 'exit']);
+    } finally { scope.dispose(); host.dispose(); }
+  });
+
+  it('keeps a host whose water is everywhere dry on the exact bytes of a host with no water', async () => {
+    const R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer());
+    const run = (water: boolean): string => {
+      const host = createSimHost(swimLevel(0), { rapier: R });
+      if (water) host.useWater({ surfaceAt: () => null });
+      try {
+        for (let i = 0; i < 240; i++) host.step({ moveX: Math.sin(i / 20), moveZ: -1, yaw: 0, ...(i === 30 ? { jump: true } : {}), ...(i === 90 ? { dodge: true } : {}) });
+        return JSON.stringify({ ...snapshotSimHost(host), events: null });
+      } finally { host.dispose(); }
+    };
+    expect(run(true)).toBe(run(false));
+  });
+});

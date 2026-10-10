@@ -58,21 +58,22 @@ export interface PlayerModeDef {
   readonly exit?: () => void;
 }
 
-/** A registered driven mode. */
-export interface PlayerModeHandle {
+/** A registered driven mode (`D`: the page Player's frame driver, or a headless host's SimPlayerDriver). */
+export interface PlayerModeHandle<D = PlayerModeDriver> {
   readonly id: DrivenMode;
   /** Entered (a driver holds the frame) or traversing (the last fixed step's traversal moved the capsule). */
   readonly active: boolean;
   /** Hand the frame to `driver` until `exit`. */
-  enter: (driver: PlayerModeDriver) => void;
+  enter: (driver: D) => void;
   exit: () => void;
   /** Push (true) or pop (false) the mode's input context. */
   context: (on: boolean) => void;
 }
 
-/** What the registry reads and writes on the Player (structural, so a headless or test player can stand in). */
-export interface ModePlayer {
-  ride: PlayerModeDriver | null;
+/** What the registry reads and writes on the Player (structural, so a headless or test player can stand in): its driver
+ *  slot (`D`: the page Player's `ride`, or SimHost's mode driver, sim.ts) and its motor state. */
+export interface ModePlayer<D = PlayerModeDriver> {
+  ride: D | null;
   readonly hover: boolean;
   readonly swimming: boolean;
   readonly wading: boolean;
@@ -89,21 +90,27 @@ export function motorMode(player: Pick<ModePlayer, 'hover' | 'swimming' | 'wadin
   return player.hover ? 'board' : player.swimming ? 'swim' : player.wading ? 'wade' : 'foot';
 }
 
-/** One Player's mode registry. */
-export class PlayerModes {
+/**
+ * Does a mode-only piece collide (`Piece.mode` on the page, SimHost's board-only colliders headless)? Only while the
+ * player's current mode is the piece's: one rule for both hosts.
+ */
+export function modeCollides(pieceMode: PlayerModeId, current: PlayerModeId | undefined): boolean { return current === pieceMode; }
+
+/** One player's mode registry: the page Player's (`playerModes(player)`), or a headless host's (`SimHost.modes`). */
+export class PlayerModes<D = PlayerModeDriver> {
   private readonly defs = new Map<DrivenMode, PlayerModeDef>();
   private readonly traversing = new Set<DrivenMode>();
-  private entered: { readonly id: DrivenMode; readonly driver: PlayerModeDriver } | null = null;
+  private entered: { readonly id: DrivenMode; readonly driver: D } | null = null;
 
-  private readonly player: ModePlayer;
-  constructor(player: ModePlayer) { this.player = player; }
+  private readonly player: ModePlayer<D>;
+  constructor(player: ModePlayer<D>) { this.player = player; }
 
   /**
    * Declare a driven mode for `scope`'s lifetime: its context is registered with `input`, its traversal answers `events`'
    * `player.traversal` ask (after any earlier answer, which it passes through). A later declaration of the same id (the
    * next level's, before the last one's scope ends) replaces it until its own scope ends.
    */
-  register(def: PlayerModeDef, scope: Scope, ports: { readonly events?: Events; readonly input?: ModeInput } = {}): PlayerModeHandle {
+  register(def: PlayerModeDef, scope: Scope, ports: { readonly events?: Events; readonly input?: ModeInput } = {}): PlayerModeHandle<D> {
     if (def.traverse !== undefined && ports.events === undefined) throw new Error(`Player mode ${def.id} traverses: it needs the events`);
     if (def.context !== undefined && ports.input === undefined) throw new Error(`Player mode ${def.id} has an input context: it needs the input`);
     this.defs.set(def.id, def);
@@ -138,7 +145,7 @@ export class PlayerModes {
   }
 
   /** Hand the frame to `driver` in mode `id` (the Player's `ride` slot); a declared `enter` hook runs after. */
-  enter(id: DrivenMode, driver: PlayerModeDriver): void {
+  enter(id: DrivenMode, driver: D): void {
     if (this.entered !== null && this.entered.id !== id) throw new Error(`Player mode ${this.entered.id} holds the frame`);
     this.entered = { id, driver };
     this.player.ride = driver;

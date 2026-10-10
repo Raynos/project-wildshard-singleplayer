@@ -1,5 +1,6 @@
 import { hoverSpeed } from './hoverSpeed';
 import { walkingSpeed } from './walk';
+import { deepWater, entryKeep, NO_SPRINT_DEPTH, pondBob, stepSwim, swimEntry, swimStroke, wadeFraction, type SwimPorts } from './swim';
 import { combatSpeedFactor } from './combatMotion';
 import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardStepOut } from './board';
 import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../input/commands';
@@ -43,26 +44,8 @@ const HOVER_ROLL = 6 * Math.PI / 180; // camera roll cap, reached at HOVER_ROLL_
 const HOVER_ROLL_AT = 7;
 const HOVER_PITCH = 0.03;             // rad nose-down at top speed
 
-// ── water: wading → swimming (see `waterSurface`, `depth`, `wading`, `swimming`) ──
-const WADE_MAX = 1.1;                 // m of water over the ground: shallower = wade on foot, deeper = swim (hysteresis below)
-const SWIM_IN = WADE_MAX + 0.1;       // ground depth at which walking becomes swimming …
-const SWIM_OUT = WADE_MAX - 0.05;     // … and swimming becomes wading again (the seabed / a beach rising under you)
-const NO_SPRINT_DEPTH = 0.6;          // knee-deep and up: no sprint
-const FLOAT_DEPTH = EYE - 0.35;       // feet float this far under the surface → the eye sits 0.35 m above it
-export const SWIM_SPEED = 4.3 * 0.6;  // m/s, 60 % of walking (Hands.ts paces the stroke against it)
-const SWIM_ACCEL = 5;                 // /s — sluggish in water
-const BUOY_K = 14;                    // spring to the float height (ω ≈ 3.7 rad/s) …
-const BUOY_C = 3.5;                   // … under-damped (ζ ≈ 0.47): a plunge off a pier dips the head under and pops back up
-const CLIMB_REACH = 1.3;              // m a platform top may sit above the surface and still be climbed onto from the water
-const CLIMB_K = 30; const CLIMB_C = 10; // stiffer pull when hauling out onto a deck
-const CLIMB_PROBE = 0.7;              // m ahead of the feet where a platform is looked for while swimming toward it
-export const STROKE_PERIOD = 0.85;    // s between strokes at full swim speed (`onStroke`; Hands.ts runs one arm cycle per stroke)
-// ── diving (hold DIVE to go down, hold SURFACE to come up; nothing else moves you vertically — no drowning, no stamina) ──
-const DIVE_SPEED = 1.6;               // m/s descent while DIVE is held …
-const SURFACE_SPEED = 2.0;            // … and ascent while SURFACE is held
-const DIVE_EASE = 5;                  // /s — a short ease-in / ease-out on the vertical speed (a heavy, watery start)
-const DIVE_ENTER = 0.35;              // m below the float height at which the dive "latches" (neutral buoyancy from here down)
-const DIVE_SWIM = 0.85;               // horizontal swim speed underwater, as a fraction of the surface swim
+// ── water: wading → swimming (see `waterSurface`, `depth`, `wading`, `swimming`): the law and its tuning are player/swim.ts,
+// shared with SimHost (SF34)
 // ── slopes (on foot, on terrain — not platforms, not water, never the hoverboard): past MAX_CLIMB_DEG the motor won't climb ──
 const SLOPE_SLIDE = 0.6;              // ground normal y below this (≈ 53°) under the feet: you slide down it with no control
 const SLIDE_SPEED = 3.2;              // m/s down the fall line while sliding …
@@ -146,7 +129,9 @@ export class Player {
   onSwimChange?: (on: boolean) => void;
   /** one swim stroke while moving through water (audio) */
   onStroke?: () => void;
-  private inWater = false; private strokeTime = 0; private climbTo: number | null = null; private climbCooldown = 0; private entryKeep = 0.3;
+  private inWater = false; private entryKeep = 0.3;
+  /** the swim law's clocks (player/swim.ts SwimState): the stroke phase, a haul-out's deck top and its cooldown */
+  strokeTime = 0; climbTo: number | null = null; climbCooldown = 0;
   private readonly waterLine: WaterLineView;
   /** Ground grace window, authored by the active level. */
   coyoteMs = COYOTE_MS;
@@ -247,6 +232,25 @@ export class Player {
   }
   private groundHeightAt(x: number, z: number): number { return this.frameQueries === null ? heightAt(x, z) : this.frameQueries.heightAt(x, z); }
   private walkableSurfaces(): readonly ((x: number, z: number) => number | undefined)[] { return this.frameQueries?.platforms ?? this.platforms; }
+  private readonly swimOut: { water: number | null } = { water: null };
+  private swimGround: () => number = () => 0;
+  private swimPortsCache: SwimPorts | null = null;
+  /** The swim law's ports (player/swim.ts) over this Player's motor, water, platforms and colliders; `ground` is the step's. */
+  private swimPorts(ground: () => number): SwimPorts {
+    this.swimGround = ground;
+    const walkable = (): readonly ((x: number, z: number) => number | undefined)[] => this.walkableSurfaces();
+    this.swimPortsCache ??= {
+      move: (feet, want) => this.motor.move(feet, want, true), // pilings, walls, hulls: still solid in the water
+      water: (x, z) => this.waterSurfaceAt(x, z),
+      ground: () => this.swimGround(),
+      get platforms() { return walkable(); },
+      floor: (x, z, fromY, maxDrop) => floorBelow(this.physics, x, z, fromY, maxDrop, this.motor.collider),
+      // the open sea: ride the Ocean's own Gerstner swell (DRIFTWOOD-REMASTER W3); the pond keeps its gentle sine bob
+      bob: (x, z) => { const sea = app.world.water.sea; return sea !== null ? sea.surfaceAt(x, z) - sea.level : pondBob(this.waveTime); },
+      leave: () => { this.setSwimming(false); },
+    };
+    return this.swimPortsCache;
+  }
 
   /** The input service owns mouse events; the player owns look sensitivity and lock offsets. */
   look(x: number, y: number): void {
@@ -372,14 +376,8 @@ export class Player {
   }
   /** deep water at (x, z) with no deck over it — where a dash must not carry you */
   private deepAt(x: number, z: number): boolean {
-    const ws = this.waterSurfaceAt(x, z);
-    if (ws === null || ws - this.groundHeightAt(x, z) <= WADE_MAX) return false;
-    for (const p of this.walkableSurfaces()) { const y = p(x, z); if (y !== undefined && y > ws - 0.5) return false; }
-    // a pier / jetty / boat deck over the water — or any floor the feet are on, however high: the practice arena stands
-    // 900 m over Driftwood's sea, and a probe from just over the surface found no deck there and killed every dodge (E285)
-    const top = Math.max(ws + 3, this.position.y + 0.5);
-    const deck = floorBelow(this.physics, x, z, top, top - ws + 0.5, this.motor.collider);
-    return deck === undefined || deck <= ws - 0.5;
+    return deepWater(x, z, this.position.y, this.waterSurfaceAt(x, z), this.groundHeightAt(x, z), this.walkableSurfaces(),
+      (fx, fz, fromY, maxDrop) => floorBelow(this.physics, fx, fz, fromY, maxDrop, this.motor.collider));
   }
 
   /**
@@ -480,7 +478,7 @@ export class Player {
     const hover = this.hover;
     const swim = this.swimming && !hover;
     // wading: how deep the feet are right now (last step's resolve) — slows walking, kills sprint past the knee
-    const wadeT = !hover && !swim && this.onGround ? Math.min(1, this.depth / WADE_MAX) : 0;
+    const wadeT = !hover && !swim ? wadeFraction(this.onGround, this.depth) : 0;
     this.crouching = !hover && !swim && this.crouchWanted;
     this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && command.sprint && fwd > 0 && !this.crouching;
     const speed = walkingSpeed(this.crouching, this.sprinting, wadeT, this.moveScale, this.effectMoveScale);
@@ -552,88 +550,22 @@ export class Player {
       this.onPlatform = false;
       this.waterSurface = ws; this.depth = 0; this.wading = false;
     } else if (swim) {
-      // ── swimming: sluggish horizontal drift, buoyancy (not gravity) eases the feet to the float height; no jump / sprint / crouch ──
-      const v = this.velocity;
-      const swimSpeed = SWIM_SPEED * (this.diving ? DIVE_SWIM : 1); // a touch slower under the surface
-      v.x += (mx * swimSpeed - v.x) * Math.min(1, SWIM_ACCEL * dt);
-      v.z += (mz * swimSpeed - v.z) * Math.min(1, SWIM_ACCEL * dt);
-      want.x = v.x * dt; want.y = 0; want.z = v.z * dt;
-      const r = this.motor.move(this.position, want, true); // pilings, walls, hulls: still solid in the water
-      const p = this.position;
-      // pinned against a piling / bollard while hauling out: let go of the climb (and don't grab again for a beat) so we
-      // sink back to the float height instead of hanging in the air beside the deck
-      const blocked = r.horizontalFreedom < 0.25;
-      if (this.climbTo !== null && blocked) { this.climbTo = null; this.climbCooldown = 0.6; }
-      this.climbCooldown = Math.max(0, this.climbCooldown - dt);
-      const ws = this.waterSurfaceAt(p.x, p.z);
-      const g = groundAt();
+      // ── swimming (player/swim.ts, the law SimHost shares): sluggish drift, buoyancy (not gravity) eases the feet to the
+      // float height; no jump / sprint / crouch ──
+      const v = this.velocity, out = this.swimOut;
       this.onPlatform = false;
-      if (ws === null) {
+      const left = stepSwim(this.position, v, want, this, { mx, mz, len, dive: this.diveHeld, surface: this.surfaceHeld }, this.swimPorts(groundAt), dt, out);
+      const ws = out.water;
+      if (left === 'dry' || ws === null) {
         // drifted off the water (the pond's mask edge) — back on foot; gravity takes it from here
-        this.setSwimming(false); this.onGround = false; this.waterSurface = null; this.depth = 0; this.wading = false;
+        this.onGround = false; this.waterSurface = null; this.depth = 0; this.wading = false;
       } else {
-        const groundDepth = ws - g;
-        // climbing out: moving toward a platform (the pier deck) whose top is within reach above the surface — and we are
-        // not already under it — latches a pull-up to its level; groundAt() then accepts it and we stand up on the deck
-        if (len > 0.3) {
-          const px = p.x + mx * CLIMB_PROBE, pz = p.z + mz * CLIMB_PROBE;
-          let here = false, ahead: number | undefined;
-          for (const pl of this.walkableSurfaces()) {
-            if (pl(p.x, p.z) !== undefined) here = true;
-            const y = pl(px, pz);
-            if (y !== undefined && y > ws - 0.3 && y - ws < CLIMB_REACH && (ahead === undefined || y < ahead)) ahead = y;
-          }
-          // decks as colliders (P4): a surface within reach over the water here / just ahead
-          const top = ws + CLIMB_REACH + 0.2;
-          const overHere = floorBelow(this.physics, p.x, p.z, top, CLIMB_REACH + 0.5, this.motor.collider);
-          if (overHere !== undefined && overHere > ws - 0.3) here = true;
-          const y = floorBelow(this.physics, px, pz, top, CLIMB_REACH + 0.5, this.motor.collider);
-          if (y !== undefined && y > ws - 0.3 && y - ws < CLIMB_REACH && (ahead === undefined || y < ahead)) ahead = y;
-          if (ahead !== undefined && this.climbCooldown === 0 && (!here || this.climbTo !== null)) this.climbTo = ahead;
-          else if (this.climbTo !== null && ahead === undefined && !here) this.climbTo = null;
-        } else this.climbTo = null;
-        if (groundDepth < SWIM_OUT) {
-          // the bottom rose under us (beach / seabed / a deck we climbed onto): stand up and wade out
-          this.setSwimming(false);
-          this.position.y = Math.max(this.position.y, g); this.velocity.y = 0; this.onGround = true;
-          this.landImpulse = 0.06;
-        } else {
-          const climbing = this.climbTo !== null;
-          // the open sea: ride the Ocean's own Gerstner swell (DRIFTWOOD-REMASTER W3); the pond keeps its gentle sine bob
-          const sea = app.world.water.sea;
-          const bob = sea !== null ? sea.surfaceAt(this.position.x, this.position.z) - sea.level : Math.sin(this.waveTime * 1.4) * 0.05 + Math.sin(this.waveTime * 2.3 + 1.0) * 0.02;
-          const floatY = ws - FLOAT_DEPTH + bob;
-          if (climbing) this.diving = false;
-          if (!climbing && (this.diving || this.diveHeld)) {
-            // ── diving: the vertical speed is driven, not sprung — DIVE eases you down, SURFACE eases you up, neither holds
-            // the depth (neutral buoyancy: no bobbing back up). The seabed / a collider still stops you.
-            const wantV = this.diveHeld && !this.surfaceHeld ? -DIVE_SPEED : this.surfaceHeld ? SURFACE_SPEED : 0;
-            v.y += (wantV - v.y) * Math.min(1, DIVE_EASE * dt);
-            p.y += v.y * dt;
-            if (p.y < g) { p.y = g; if (v.y < 0) v.y = 0; }
-            if (p.y < floatY - DIVE_ENTER) this.diving = true;
-            if (p.y >= floatY) {
-              // broke the surface (SURFACE held to the top, or DIVE released before the latch): the float logic takes it from here
-              this.diving = false; p.y = floatY; v.y = Math.max(0, v.y) * 0.6;
-            }
-          } else {
-            const target = climbing ? (this.climbTo as number) + 0.02 : floatY;
-            const kk = climbing ? CLIMB_K : BUOY_K, cc = climbing ? CLIMB_C : BUOY_C;
-            v.y += (kk * (target - p.y) - cc * v.y) * dt;
-            p.y += v.y * dt;
-            if (p.y < g) { p.y = g; if (v.y < 0) v.y = 0; }
-          }
-          this.onGround = false;
-        }
+        if (left === 'stood') { this.onGround = true; this.landImpulse = 0.06; } // stood up on the rising bottom: wade out
+        else this.onGround = false;
         this.waterSurface = ws;
         this.depth = Math.max(0, ws - this.position.y);
         this.wading = false;
-        // strokes: one per STROKE_PERIOD at full speed, scaled by how fast we are actually moving
-        const hs = Math.hypot(v.x, v.z);
-        if (hs > 0.4) {
-          this.strokeTime += dt * (hs / SWIM_SPEED) / STROKE_PERIOD;
-          if (this.strokeTime >= 1) { this.strokeTime -= 1; this.onStroke?.(); }
-        } else this.strokeTime = Math.min(this.strokeTime, 0.6);
+        swimStroke(this, v, dt, () => { this.onStroke?.(); });
       }
       this.hoverLat = this.hoverFwd = this.hoverAccel = this.hoverBob = 0;
     } else {
@@ -686,10 +618,10 @@ export class Player {
       const ws = this.waterSurfaceAt(this.position.x, this.position.z);
       const groundDepth = ws === null ? 0 : ws - g;
       const wet = ws !== null && this.position.y < ws;
-      if (wet && groundDepth > SWIM_IN) {
+      if (swimEntry(this.position.y, ws, g)) {
         // deep enough to float: hand over to the swim branch (this step's fall speed is mostly eaten by the splash)
         this.setSwimming(true);
-        this.entryKeep = this.velocity.y < -6 ? 0.45 : 0.3; // a hard plunge keeps enough speed to dip the head under for a beat
+        this.entryKeep = entryKeep(this.velocity.y); // a hard plunge keeps enough speed to dip the head under for a beat
         this.velocity.y *= this.entryKeep; this.onGround = false; this.strokeTime = 0;
         if (this.position.y < g) this.position.y = g;
       } else if (grounded) {

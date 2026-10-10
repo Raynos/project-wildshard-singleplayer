@@ -53,6 +53,9 @@ export interface SimSnapshot {
     fall?: { vy: number; grounded: boolean } | undefined; shove?: { t: number; vx: number; vz: number } | undefined;
     /** SF72: the riding hoverboard (SimHost.playerBoard + boardVelocity); absent on foot, so a host that never boards keeps its bytes. */
     board?: { velocity: number[]; air: boolean; bob: number; ground: boolean } | undefined;
+    /** SF34: the swim (SimHost.playerSwim + swimVelocity) while swimming or its haul-out cooldown runs; absent otherwise,
+     *  so a host without water keeps its bytes. */
+    swim?: { on: boolean; velocity: number[]; diving: boolean; climbTo: number | null; climbCooldown: number; stroke: number; stood: boolean } | undefined;
     /** SF72: the on-foot jump clocks (SimHost.playerJump; `ago` null = never grounded since: no coyote), present once the
      *  host has had a JUMP press; the running dash (playerDash) and the dodge clocks (playerDodge) only while they run. */
     jump?: { ago: number | null; left: 0 | 1 } | undefined; dash?: { t: number; vx: number; vz: number } | undefined;
@@ -206,6 +209,7 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
       ...(host.playerFall.grounded && host.playerFall.vy === 0 ? {} : { fall: { ...host.playerFall } }),
       ...(host.playerShove.t > 0 ? { shove: { ...host.playerShove } } : {}),
       ...(host.playerBoard.on ? { board: { velocity: host.boardVelocity.toArray(), air: host.playerBoard.hoverAir, bob: host.playerBoard.hoverBob, ground: host.playerBoard.onGround } } : {}),
+      ...swimField(host),
       ...jumpFields(host) },
     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
     events: host.events.snapshot((value) => encode(value, host)), physics: physics(host.physics.snapshot()), colliderTags,
@@ -214,6 +218,11 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
     ...(host.boardColliderHandles().length > 0 ? { boardColliders: [...host.boardColliderHandles()] } : {}), ...dayField(host) };
 }
 
+/** The swim (SF34) while it runs or its haul-out cooldown does, else omitted. */
+function swimField(host: SimHost): Pick<SimSnapshot['player'], 'swim'> {
+  const swim = host.playerSwim;
+  return swim.on || swim.stood || swim.climbCooldown > 0 ? { swim: { on: swim.on, velocity: host.swimVelocity.toArray(), diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, stroke: swim.strokeTime, stood: swim.stood } } : {};
+}
 /** The jump, dash and dodge state (SF72), each omitted while unused or at rest, so a host that never jumps or dodges keeps its bytes. */
 function jumpFields(host: SimHost): Pick<SimSnapshot['player'], 'jump' | 'dash' | 'dodge'> {
   const jump = host.playerJump, dash = host.playerDash, dodge = host.playerDodge;
@@ -258,6 +267,11 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
     const board = saved.player.board;
     Object.assign(host.playerBoard, board === undefined ? { on: false, hoverAir: false, hoverBob: 0, onGround: false } : { on: true, hoverAir: board.air, hoverBob: board.bob, onGround: board.ground });
     if (board === undefined) host.boardVelocity.set(0, 0, 0); else host.boardVelocity.fromArray(board.velocity);
+    const swim = saved.player.swim;
+    if ((swim !== undefined && (swim.velocity.length !== 3 || !swim.velocity.every(Number.isFinite) || (swim.on && (board !== undefined || !host.hasWater))))) throw new RangeError('Snapshot swim does not match');
+    Object.assign(host.playerSwim, swim === undefined ? { on: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0, stood: false }
+      : { on: swim.on, diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, strokeTime: swim.stroke, stood: swim.stood });
+    if (swim === undefined) host.swimVelocity.set(0, 0, 0); else host.swimVelocity.fromArray(swim.velocity);
     const jump = saved.player.jump;
     host.playerJump = jump === undefined ? null : { ago: jump.ago ?? Infinity, left: jump.left };
     Object.assign(host.playerDash, saved.player.dash ?? { t: 0, vx: 0, vz: 0 });

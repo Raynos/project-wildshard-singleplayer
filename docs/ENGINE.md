@@ -1965,6 +1965,21 @@ they collide only while the player rides, synced before each step's physics. On 
 ignored and `impulsePlayer` with upward speed lifts the board off, as on the client. The snapshot keeps the ride
 (`player.board`) and the handles (`boardColliders`) only when present, so a host that never boards keeps its bytes.
 
+**Player modes and water (SF34).** The player's modes are one registry for both hosts (`@wildshard/engine/player/modes`,
+SDK `@wildshard/sdk/playerModes`): the page Player's is `playerModes(player)`, a host's is `host.modes` over its own
+player. The motor modes (`foot`, `board`, `swim`, `wade`) read the player's own state; a driven mode (`ride`, `grapple`;
+`glide` / `climb` / `drive` approved) is declared `PlayerModeDef { id, hud, context?, traverse?, enter?, exit? }` and
+entered with a driver: on the page a `PlayerModeDriver` takes the Player's `ride` slot; headless a `SimPlayerDriver`
+(`enterHeadlessMode(host, 'ride', driver)`) owns the motion ahead of any `usePlayerDriver` driver until
+`exitHeadlessMode`; the entered driver is not snapshot state, so the installer re-enters it from its own adapter before
+restore. A headless host runs no traversal or input context yet. A mode-only piece collides only in its mode, one rule
+(`modeCollides`) on both hosts: `Piece.mode: 'board'` on the page, `boardColliders` headless, synced from `host.modes`.
+The water law (wade, then swim past 1.2 m of water over the ground, the dive and the haul-out) is `player/swim.ts`,
+run by the client Player and, once a runtime calls `host.useWater({ surfaceAt, bob? })` (once, in its install, before
+restore), by the headless player: the walk slows by the wade, the jump saps, a landing in water is soft, a dash stops
+at deep water, `SimCommand.dive` / `surface` are the held swim controls and the board rides the surface. The swim rides
+`SimSnapshot.player.swim` only while it runs; a host without water keeps its exact bytes.
+
 **Body bands (SF72).** By default a host steps and collides every body every tick. A native shard's headless runtime
 calls `useBodyBands({ rates?, rate?, present?, physics? })` once, in its install (before restore), to run its bodies as the page's
 creature manager does: each body updates on its tick rate (§12; `rate(body)` names it, default `'always'` for a driven

@@ -2,12 +2,15 @@
  * The player modes a shard runs (SHARD-PLATFORM SF34, G3): the platform's motor modes (on foot, the hoverboard, swim and
  * wade) come with every shard; a shard brings an approved driven mode (ride, grapple) through `registerPlayerMode` and
  * holds the frame with `enterPlayerMode` / `exitPlayerMode`. A hover-only piece is a world piece with `mode: 'board'`.
- * The engine's registry is `@wildshard/engine/player/modes`; these are its shard-facing calls.
+ * The engine's registry is `@wildshard/engine/player/modes`; these are its shard-facing calls. A headless runtime runs the
+ * same registry on its SimHost (`host.modes`) with the `*HeadlessMode` calls: its driver is a SimPlayerDriver, and the
+ * motor modes (the board, swim and wade once the host has water: `host.useWater`) follow the page Player's own laws.
  */
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
+import type { SimPlayerDriver } from '@wildshard/engine/sim';
 import {
-  motorMode as engineMotorMode, playerModes, type DrivenMode as EngineDrivenMode, type ModeHud as EngineModeHud, type ModeInput, type ModePlayer as EngineModePlayer,
+  motorMode as engineMotorMode, playerModes, type PlayerModes, type DrivenMode as EngineDrivenMode, type ModeHud as EngineModeHud, type ModeInput, type ModePlayer as EngineModePlayer,
   type MotorMode as EngineMotorMode, type PlayerModeDef as EnginePlayerModeDef, type PlayerModeDriver as EnginePlayerModeDriver,
   type PlayerModeHandle as EnginePlayerModeHandle, type PlayerModeId as EnginePlayerModeId,
 } from '@wildshard/engine/player/modes';
@@ -24,8 +27,8 @@ export type ModeHud = EngineModeHud;
 export type PlayerModeDriver = EnginePlayerModeDriver;
 /** A driven mode's declaration: id, HUD slot, input context, traversal and enter / exit hooks. */
 export type PlayerModeDef = EnginePlayerModeDef;
-/** A registered driven mode. */
-export type PlayerModeHandle = EnginePlayerModeHandle;
+/** A registered driven mode (`D`: the page's frame driver, or a headless SimPlayerDriver). */
+export type PlayerModeHandle<D = PlayerModeDriver> = EnginePlayerModeHandle<D>;
 /** The player the modes run on. */
 export type ModePlayer = EngineModePlayer;
 
@@ -48,3 +51,15 @@ export function exitPlayerMode(player: ModePlayer, id: DrivenMode): void { playe
 export function currentPlayerMode(player: ModePlayer): PlayerModeId { return playerModes(player).current(); }
 /** The motor mode alone: the board over the water, swimming over wading. */
 export function motorMode(player: Pick<ModePlayer, 'hover' | 'swimming' | 'wading'>): MotorMode { return engineMotorMode(player); }
+
+/** A headless host's modes (SimHost: the same registry, its driver a SimPlayerDriver). */
+export interface HeadlessModeHost { readonly modes: PlayerModes<SimPlayerDriver> }
+/** Declare a driven mode on a headless host for `scope`'s lifetime (its hooks; a headless host runs no traversal or input
+ *  context yet, so a def with `traverse` or `context` is refused). */
+export function registerHeadlessMode(host: HeadlessModeHost, def: PlayerModeDef, scope: Scope): PlayerModeHandle<SimPlayerDriver> { return host.modes.register(def, scope); }
+/** Hand the headless player's motion to `driver` in mode `id` until `exitHeadlessMode` (ahead of any usePlayerDriver driver). */
+export function enterHeadlessMode(host: HeadlessModeHost, id: DrivenMode, driver: SimPlayerDriver): void { host.modes.enter(id, driver); }
+/** Hand the headless player's motion back from mode `id` (a no-op when `id` does not hold it). */
+export function exitHeadlessMode(host: HeadlessModeHost, id: DrivenMode): void { host.modes.exit(id); }
+/** The headless player's current mode: an entered driver, else the motor mode (board, swim, wade, foot). */
+export function currentHeadlessMode(host: HeadlessModeHost): PlayerModeId { return host.modes.current(); }
