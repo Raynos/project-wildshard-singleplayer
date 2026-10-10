@@ -37,3 +37,12 @@ cell is unchanged (grid before vs after: 0 % of pixels over 16 levels).
 
 The grid's camera frames the same pose wider than SHARD SELECT; the cell's grass is not SHARD SELECT's lush carpet; the
 road's cyan grid floor shows at the horizon below the cloud sea.
+
+## Pick board: Sky Reach's island shapes, random per session or one fixed draw (`isles-board.jpg`)
+
+Sky Reach's islands (`world/build.ts` → `world/isle.ts islandMesh`) draw their shapes from the session's `cosmetic`
+stream, which a live page seeds with a crypto salt (`pageSeed`), so every session builds its own set. `isles.mjs` shoots
+SHARD SELECT at the same spawn, two views, for three live sessions (A–C, seeds 2383178495 / 746608938 / 2127680057) and
+the fixed draw the witness and captures replay (D, harness seed 357), muted iPhone 16 Pro portrait. Measured against D,
+A–C differ on 0.7–2.2 % of pixels (over 24 levels, grass and cloud motion included): the shapes change only in their
+edge and keel detail, which is hard to see at play distance.

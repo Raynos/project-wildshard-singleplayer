@@ -1,0 +1,36 @@
+{
+  "sessions": {
+    "live-1": {
+      "errors": [],
+      "shots": [
+        "isles-live-1-spawn.png",
+        "isles-live-1-right.png"
+      ],
+      "seed": 2383178495
+    },
+    "live-2": {
+      "errors": [],
+      "shots": [
+        "isles-live-2-spawn.png",
+        "isles-live-2-right.png"
+      ],
+      "seed": 746608938
+    },
+    "live-3": {
+      "errors": [],
+      "shots": [
+        "isles-live-3-spawn.png",
+        "isles-live-3-right.png"
+      ],
+      "seed": 2127680057
+    },
+    "fixed": {
+      "errors": [],
+      "shots": [
+        "isles-fixed-spawn.png",
+        "isles-fixed-right.png"
+      ],
+      "seed": 357
+    }
+  }
+}
