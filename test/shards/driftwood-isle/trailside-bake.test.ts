@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Admit the native terrain and committed geometry rather than network assets.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exact-bit bakes are recorded on macOS; libm may differ by a final ulp on Linux.
+import { platform } from 'node:process';
 import { beforeAll, expect, it } from 'vitest';
 import { MeshStandardMaterial } from 'three';
 import { bakedSamplers, parseBakedTerrain } from '../../../src/engine/world/BakedTerrain';
@@ -17,7 +19,7 @@ beforeAll(async () => {
   await loadTrailsideGeometry(new Map([[FIXED_MODEL_FILES.trailside, new Uint8Array(readFileSync(`public${FIXED_MODEL_FILES.trailside}`))]]));
 });
 
-it('retains every original trail vertex channel and the native posts, signs, planks, boxes and legacy colliders', () => {
+it.runIf(platform === 'darwin')('retains every original trail vertex channel and the native posts, signs, planks, boxes and legacy colliders', () => {
   const grid = parseBakedTerrain(Uint8Array.from(readFileSync('public/assets/baked/driftwood-isle/terrain.bin')).buffer);
   if (grid === null) throw new Error('Native terrain missing');
   const binding = new HeightfieldBinding(toLevelSpec(DRIFTWOOD_ISLE)); binding.install(bakedSamplers(grid));
