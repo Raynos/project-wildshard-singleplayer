@@ -8,7 +8,7 @@
 // the instanced ones are handed to the fragment's own cullers (the SDK's instance culler and figure crowd, look/lanterns.ts
 // `Lanterns`). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  type BufferGeometry, Color, Group, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
+  Color, Group, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
 } from 'three';
 import { Ctx, type InKit, type Piece } from './ctx';
 import { Kit } from './kit';
@@ -73,9 +73,11 @@ import { cullHandedBatches } from '@wildshard/sdk/cull/handedBatches';
 import { convertKits } from '@wildshard/sdk/kit/kitConvert';
 import { waitForFonts } from '@wildshard/sdk/looks/fontWait';
 import { mistSheetsGeometry, steamPuffsGeometry } from '@wildshard/sdk/looks/mistGeometry';
-import { type MoverPath, moveAlong, moverStart } from '@wildshard/sdk/props/pathMovers';
+import { type MoverPath, moveAlong } from '@wildshard/sdk/props/pathMovers';
+import { type RunningMover, placeMovers } from '@wildshard/sdk/props/moverCopies';
 import { FONT_LOAD, KIT_YIELD_MS, MOVERS, SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
 import { lodReady } from '@wildshard/sdk/cull/meshLod';
+import { addKitMeshes } from '@wildshard/sdk/kit/kitMeshes';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
 const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';
@@ -236,24 +238,13 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   nd.look.canLod = canLod;
   const squareSets = await placeSquareProps({ ctx: nd.ctx, look: nd.look, culler: batches, root });
   phaseDone('square props', phaseStart);
-  // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below)
-  const farKits: [Mesh, number][] = [];
-  const kitMeshes = new Map<string, Mesh>();
-  const kitMesh = (name: string, g: BufferGeometry, m: typeof mat): void => {
-    // (E264: the kits are ~100 MB of vertex data at the phone's World Explorer peak; nothing rewrites them after the build)
-    gpuOnlyAttributes(g, STATIC_GEOMETRY);
-    const mesh = named(new Mesh(g, m), `kit:${name}`);
-    root.add(mesh);
-    if (m === mat) kitMeshes.set(name, mesh);
-    const far = ctx.farOf.get(name);
-    if (far !== undefined) farKits.push([mesh, far]);
-  };
-  for (const [name, g] of kitGeos) kitMesh(name, g, mat);
-  for (const [name, g] of alphaGeos) kitMesh(name, g, matA);
+  // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below; E264: the kits are ~100 MB of
+  // vertex data at the phone's World Explorer peak, GPU-only once built)
+  const kits = addKitMeshes(root, { solid: kitGeos, alpha: alphaGeos }, { solid: mat, alpha: matA }, ctx.farOf, STATIC_GEOMETRY);
   // the models drawn into the kits (models/inKit.ts: the brass dragon hooks, stools, scooters, mahjong tables and
   // brush-drawn figures; the paifang, the banyan …; E346: the Well's balustrade, the crossings' lotus and lamp posts)
   // registered on their kits' meshes
-  const meshOfKit = (k: Kit): Mesh | undefined => kitMeshes.get(kitName.get(k) ?? '');
+  const meshOfKit = (k: Kit): Mesh | undefined => kits.byName.get(kitName.get(k) ?? '');
   const inKit = ctx.inKit.filter((c) => !IN_KIT.some((m) => m.id === c.model));
   if (inKit.length > 0) throw new Error(`nine-dragon: '${inKit[0]?.model}' is drawn into a kit but is no model here (world/build.ts)`);
   const inKitPlaced: InKitPlaced[] = IN_KIT.flatMap((model) => model.register(nd.ctx, ctx.inKit, meshOfKit));
@@ -309,14 +300,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
   const neon = neonMaterial(shared, atlas.textures);
   nd.look.neon = { mat: neon, atlas };
-  /** a mover's copies (one object each: the world moves them along its path), named for the budget lanes */
-  const movers = (model: ModelDef<object>, paths: readonly MoverPath[], id: string): { body: Object3D; path: MoverPath }[] => {
-    const placed = place(model, paths.map(moverStart), { ctx: nd.ctx, draw: 'single', parent: root, piece: { id } });
-    const copies = paths.length === 1 ? [placed.object] : [...placed.object.children];
-    named(placed.object, 'movers');
-    for (const o of copies) named(o, 'movers');
-    return paths.flatMap((path, i) => { const body = copies[i]; return body === undefined ? [] : [{ body, path }]; });
-  };
+  const movers = (model: ModelDef<object>, paths: readonly MoverPath[], id: string): RunningMover[] => placeMovers(model, paths, { ctx: nd.ctx, parent: root, id, name: 'movers' });
   const running = [
     ...movers(monorailTrain, [{ kind: 'loop', ...MOVERS.train, y: Y0 + MOVERS.train.y }], 'nds-train'),
     ...movers(cableGondola, [{ kind: 'cable', ...CABLE, ...MOVERS.gondola }], 'nds-gondola'),
@@ -387,7 +371,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // (The crowd and the paper lanterns cull themselves; the facade's windows are drawn whole — E283: packing and
   // re-uploading the ~4 k one-quad windows in view cost more than drawing all ~10 k.)
   cullHandedBatches(culler, handed, CULL_R);
-  for (const [mesh, far] of farKits) culler.addFar(mesh, far);
+  for (const [mesh, far] of kits.far) culler.addFar(mesh, far);
   progress(1, 'world ready');
   Reflect.set(window, '__ndPhaseProfile', phaseProfile);
 

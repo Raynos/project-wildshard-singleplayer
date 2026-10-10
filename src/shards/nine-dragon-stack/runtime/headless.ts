@@ -6,6 +6,7 @@ import { addPiece } from '@wildshard/engine/physics/pieces';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { bakedColliderDesc, bakedColliderSchemas } from '@wildshard/sdk/props/bakedColliders';
 import { portalLinkEntries } from '@wildshard/game/shardfile/portalLink';
 import { provePortalLinks } from '@wildshard/game/shardfile/portalLinkProof';
 import { JIAN_ROW } from '../vm/jianRow';
@@ -17,18 +18,9 @@ import baked from './physics.baked.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
 const SURFACES: readonly Material[] = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand'];
-const Surface = v.picklist(SURFACES);
 const Vec = v.strictObject({ x: finite, y: finite, z: finite });
-const Placed = { x: finite, y: finite, z: finite, yaw: v.exactOptional(finite), rot: v.exactOptional(v.strictObject({ x: finite, y: finite, z: finite, w: finite })), surface: v.exactOptional(Surface) };
-/** One baked collider, strictly: every engine `ColliderDesc` kind the page registered, an unknown field refuses the bake. */
-const Collider = v.variant('kind', [
-  v.strictObject({ kind: v.literal('box'), ...Placed, hx: finite, hy: finite, hz: finite }),
-  v.strictObject({ kind: v.literal('capsule'), ...Placed, halfHeight: finite, radius: finite }),
-  v.strictObject({ kind: v.literal('ball'), ...Placed, radius: finite }),
-  v.strictObject({ kind: v.literal('hull'), ...Placed, points: v.array(finite) }),
-  v.strictObject({ kind: v.literal('trimesh'), ...Placed, vertices: v.array(finite), indices: v.array(v.pipe(finite, v.integer(), v.minValue(0))) }),
-  v.strictObject({ kind: v.literal('treads'), from: Vec, to: Vec, width: finite, count: v.pipe(finite, v.integer(), v.minValue(1)), surface: v.exactOptional(Surface) }),
-]);
+/** One baked collider, strictly (@wildshard/sdk/props/bakedColliders): every engine `ColliderDesc` kind the page registered, an unknown field refuses the bake. */
+const { Surface, Collider } = bakedColliderSchemas(SURFACES);
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 const Piece = v.strictObject({ id: v.string(), name: v.string(), category: v.string(), file: v.string(), colliders: v.array(Collider), active: v.boolean(),
   surface: v.exactOptional(Surface), colliderOwner: v.exactOptional(v.string()),
@@ -41,11 +33,6 @@ export const NINE_HOOKS: readonly Vector3[] = v.parse(v.array(Vec), baked.hooks)
 /** The Well safety cap's piece: the colliders the Fei Zhua's lifting crossing switches off (NdRuntime.guardOpen). */
 export const GUARD_PIECE = 'nds-grapple-guard';
 
-function desc(c: v.InferOutput<typeof Collider>): ColliderDesc {
-  if (c.kind === 'hull') return { ...c, points: Float32Array.from(c.points) };
-  if (c.kind === 'trimesh') return { ...c, vertices: Float32Array.from(c.vertices), indices: Uint32Array.from(c.indices) };
-  return c;
-}
 /** The engine's own HUD / Weapon Explorer arena (engine/practice), registered under every Developer page: not Nine's world. */
 const PRACTICE = 'src/engine/practice/';
 /** The fragment's floors piece (world/install.ts), which carries the standalone deck caps. */
@@ -71,7 +58,7 @@ export function addNinePieces(physics: Physics): { added: number; guard: number[
   const guard: number[] = [];
   NINE_PIECES.forEach(piece => {
     if (!piece.active || piece.file.startsWith(PRACTICE)) return;
-    const colliders = piece.colliders.map(desc);
+    const colliders = piece.colliders.map(bakedColliderDesc);
     const made = addPiece(physics, { id: piece.id, name: piece.name, category: 'buildings', file: piece.file, colliders: piece.id === FLOORS ? withoutCaps(colliders) : colliders,
       ...(piece.surface === undefined ? {} : { surface: piece.surface }), colliderOwner: piece.colliderOwner ?? piece.id });
     if (piece.id === GUARD_PIECE) guard.push(...made.colliders.map(collider => collider.handle));

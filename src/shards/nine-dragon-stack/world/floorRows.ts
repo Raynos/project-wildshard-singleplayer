@@ -10,62 +10,41 @@
 // footprint admits), and an end wall closes each deck.
 import { ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { type EdgeFrame, type FrameBox as DeckBox, deckParts as sdkDeckParts, edgeFrame, frameCollider, inFrame as sdkInFrame, spanCollider } from '@wildshard/sdk/props/edgeDecks';
+import { DECK, DECK_CAP } from '../data/decks';
 import { PLAZA, Y0 } from '../layout';
 import { DECK_PORTALS, SQUARE_FLOOR, deckFloorId, type ShardEdge } from './portalPlan';
 
 /** half the deck's opening: the canonical ENTRY_WIDTH (8 m) entry, centred on the edge's midpoint */
 export const OPENING_HALF = ENTRY_WIDTH / 2;
-/** how deep each deck runs in from the edge (the 15 m socket plus a metre to the end wall) */
-export const DECK_DEPTH = 16;
+/** how deep each deck runs in from the edge (data/decks.ts) */
+export const DECK_DEPTH = DECK.depth;
 /** a floor slab's thickness under its top (the decks' and the fragment's floors) */
-export const SLAB = 1.2;
-/** the parapets beside the opening: thickness and height (a stone rail, not a jump block) */
-export const RAIL_T = 0.6;
-const RAIL_H = 1.1;
-/** the end wall: thickness and height */
-const WALL_T = 0.8, WALL_H = 6;
+export const SLAB = DECK.slab;
+/** the deck's sizes for the SDK's edge decks (@wildshard/sdk/props/edgeDecks) */
+const SIZES = { half: OPENING_HALF, ...DECK };
 
 /** a box from its extents (min / max corners) */
-export function span(x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, surface: 'stone' | 'wood' | 'metal' = 'stone'): ColliderDesc {
-  return { kind: 'box', x: (x0 + x1) / 2, y: (y0 + y1) / 2, z: (z0 + z1) / 2, hx: Math.abs(x1 - x0) / 2, hy: Math.abs(y1 - y0) / 2, hz: Math.abs(z1 - z0) / 2, surface };
-}
+export const span: typeof spanCollider = spanCollider;
 /** SF8c (G224): the square's slab, the floor the portal nodes in Lantern Square stand on (shard.config.ts declares it) */
 export function squareFloor(): ColliderDesc { return span(PLAZA.x0, Y0 - SLAB, PLAZA.z0, PLAZA.x1 + 0.6, Y0, PLAZA.z1 + 0.6); }
 
-/** one deck's frame: its edge, its edge-midpoint, the inward unit axis (along) and the across axis */
-export interface Frame { edge: ShardEdge; mx: number; mz: number; ix: number; iz: number }
-export const FRAMES: readonly Frame[] = [
-  { edge: 'north', mx: 0, mz: CHUNK_HALF, ix: 0, iz: -1 }, { edge: 'south', mx: 0, mz: -CHUNK_HALF, ix: 0, iz: 1 },
-  { edge: 'east', mx: CHUNK_HALF, mz: 0, ix: -1, iz: 0 }, { edge: 'west', mx: -CHUNK_HALF, mz: 0, ix: 1, iz: 0 },
-];
+/** one deck's frame: its edge, its edge-midpoint, the inward unit axis */
+export type Frame = EdgeFrame;
 /** an axis-aligned box in a deck's frame (its centre, size and vertical extent) */
-export interface FrameBox { x: number; z: number; sx: number; sz: number; y0: number; y1: number }
-
+export type FrameBox = DeckBox;
+/** the four decks' frames, north, south, east, west */
+export const FRAMES: readonly Frame[] = (['north', 'south', 'east', 'west'] as const).map((edge) => edgeFrame(edge, CHUNK_HALF));
 /** an axis-aligned box in a deck's frame: `a0..a1` metres in from the edge, `c0..c1` across, `y0..y1` up */
-export function inFrame(f: Frame, a0: number, a1: number, c0: number, c1: number, y0: number, y1: number): FrameBox {
-  const along = (a: number): [number, number] => [f.mx + f.ix * a, f.mz + f.iz * a];
-  const [ax0, az0] = along(a0), [ax1, az1] = along(a1);
-  // the across axis is x for a north / south deck, z for an east / west one
-  const xs = f.ix === 0 ? [c0, c1] : [ax0, ax1], zs = f.ix === 0 ? [az0, az1] : [c0, c1];
-  const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs);
-  return { x: (x0 + x1) / 2, z: (z0 + z1) / 2, sx: x1 - x0, sz: z1 - z0, y0, y1 };
-}
-
+export const inFrame: typeof sdkInFrame = sdkInFrame;
 /** each deck's parts: the slab, the two parapets just outside the opening, the end wall past the socket */
-export function deckParts(f: Frame): { slab: FrameBox; rails: FrameBox[]; walls: FrameBox[] } {
-  const h = OPENING_HALF, c0 = -h - RAIL_T, c1 = h + RAIL_T;
-  return {
-    slab: inFrame(f, 0, DECK_DEPTH, c0, c1, -SLAB, 0),
-    rails: [inFrame(f, 0, DECK_DEPTH, -h - RAIL_T, -h, 0, RAIL_H), inFrame(f, 0, DECK_DEPTH, h, h + RAIL_T, 0, RAIL_H)],
-    walls: [inFrame(f, DECK_DEPTH, DECK_DEPTH + WALL_T, c0, c1, -SLAB, WALL_H)],
-  };
-}
+export const deckParts = (f: Frame): { slab: FrameBox; rails: FrameBox[]; walls: FrameBox[] } => sdkDeckParts(f, SIZES);
 
-/** G200: the standalone balustrade across a deck's open end (world/entries.ts draws it): its sizes */
-export const CAP = { depth: 0.7, rail: 1.15, pedestal: 0.6, pedestalH: 1.3, pillar: 0.8, pillarH: 3.4 } as const;
+/** G200: the standalone balustrade across a deck's open end (world/entries.ts draws it): its sizes (data/decks.ts) */
+export const CAP: typeof DECK_CAP = DECK_CAP;
 /** the balustrade's colliding parts: its plinth, its top rail, the brazier's pedestal and the two lantern pillars */
 export function capParts(f: Frame): { plinth: FrameBox; rail: FrameBox; pedestal: FrameBox; pillars: FrameBox[] } {
-  const h = OPENING_HALF, c = h + RAIL_T / 2, p = CAP.pillar / 2;
+  const h = OPENING_HALF, c = h + DECK.railT / 2, p = CAP.pillar / 2;
   return {
     plinth: inFrame(f, 0, CAP.depth, -h, h, 0, 0.3),
     rail: inFrame(f, 0, CAP.depth, -h, h, 0, CAP.rail),
@@ -74,7 +53,7 @@ export function capParts(f: Frame): { plinth: FrameBox; rail: FrameBox; pedestal
   };
 }
 
-const box = (b: FrameBox): ColliderDesc => ({ kind: 'box', x: b.x, y: (b.y0 + b.y1) / 2, z: b.z, hx: b.sx / 2, hy: (b.y1 - b.y0) / 2, hz: b.sz / 2, surface: 'stone' });
+const box = frameCollider;
 
 /** the four decks' collision: the slabs (tops at y = 0), the parapets and the end walls; with `caps` (standalone, G200)
  *  the balustrade, its brazier's pedestal and the two lantern pillars across each deck's open end */
