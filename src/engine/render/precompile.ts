@@ -180,12 +180,13 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
 
 /** Prepare newly resident roots against current page lighting and its declared exterior state before exposure.
  * Borrow original materials and object flags in the ordinary painted compile/link/upload slices. Live parents,
- * visibility, uniforms, lighting and render targets stay unchanged; the resident owner fences every slice. */
+ * visibility, uniforms, lighting and render targets stay unchanged; the resident owner fences every slice.
+ * An optional live-draw barrier spaces batches; initial boot uses ordinary browser paint opportunities. */
 export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera, scene: THREE.Scene,
-  target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean): Promise<void> {
+  target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean, pause?: () => Promise<void>): Promise<void> {
   const { jobs, materials } = sceneJobs(scene, target, 1, roots);
   jobs.push(...exteriorJobs(scene, target, false, roots));
-  await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current);
+  await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause);
 }
 
 /** Prepare registered override passes with their real caster flags and camera layers. Borrowed materials, geometry,
@@ -411,10 +412,33 @@ export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
 
 const frame = (): Promise<void> => new Promise((resolve) => { pageScope.raf(() => { pageScope.timeout(0, resolve); }); }); // a real paint between (the page's: no ambient owner read mid-build, SF57)
 
+/** Wait for a new completed game draw, then a paint opportunity. A capped/skipped rAF cannot release preparation;
+ * cancellation rejects before another batch. Does not advance simulation, force a draw or change frame pacing. */
+export function waitForDrawnFrame(scope: Scope, drawn: () => number, current: () => boolean): Promise<void> {
+  if (scope.disposed || !current()) return Promise.reject(new Error('Shader warm-up owner left'));
+  const before = drawn();
+  return new Promise<void>((resolve, reject) => {
+    let done = false;
+    const forget = scope.capture('disposers', () => { if (!done) { done = true; reject(new Error('Shader warm-up owner left')); } });
+    const finish = (): void => {
+      if (done) return;
+      done = true; forget();
+      if (current()) resolve(); else reject(new Error('Shader warm-up owner left'));
+    };
+    const poll = (): void => { scope.raf(() => {
+      if (done) return;
+      if (!current()) { finish(); return; }
+      if (drawn() > before) scope.timeout(0, finish); else poll();
+    }); };
+    poll();
+  });
+}
+
 /**
  * Issue every job, then wait for the driver: reports (done, total, detail) monotonically —
  * `total` = jobs + programs once the programs are known. Live preparation may isolate image
  * uploads so an unpredictable native upload cannot join another upload in the same painted slice.
+ * An optional pause port requires a completed live draw between batches instead of a browser rAF the game may skip.
  */
 export async function runPrecompile(
   renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
@@ -422,6 +446,7 @@ export async function runPrecompile(
   textures: THREE.Texture[] = collectTextures(jobs),
   current: () => boolean = () => true,
   isolateImageUploads = false,
+  pause: () => Promise<void> = frame,
 ): Promise<PrecompileReport> {
   // Page siblings can retire while a neighbour's preparation yields. The inventory is
   // borrowed: disposal cancels only that resource's upload, not the live neighbour.
@@ -432,13 +457,13 @@ export async function runPrecompile(
     watched.add(texture); observer.listenOnceEmitter(texture, 'dispose', () => { retired.add(texture); });
   };
   for (const texture of textures) watch(texture);
-  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads); }
+  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause); }
   finally { observer.dispose(); }
 }
 
 async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress: ((done: number, total: number, detail: string) => void) | undefined, textures: THREE.Texture[],
-  current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void, isolateImageUploads: boolean): Promise<PrecompileReport> {
+  current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void, isolateImageUploads: boolean, pause: () => Promise<void>): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
   const borrowed = new Set<THREE.Material>();
@@ -469,7 +494,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     }
     onProgress?.(i + 1, total(), `${materials} materials · ${i + 1} / ${jobs.length} batches · ${mode}`);
     // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
-    if (performance.now() - tFrame > 12 || i === jobs.length - 1) { await frame(); tFrame = performance.now(); }
+    if (performance.now() - tFrame > 12 || i === jobs.length - 1) { await pause(); tFrame = performance.now(); }
   }
   created.push(...newProgramsSince(renderer, before));
   const n = created.length;
@@ -482,7 +507,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       for (const p of created) if (p.isReady()) ready++;
       onProgress?.(jobs.length + ready, jobs.length + units + textures.length, `${ready} / ${n} programs linked · parallel`);
       if (ready >= n) break;
-      await frame();
+      await pause();
     }
   }
   // Phase B: resolve each link. COMPLETION_STATUS only says the front end is done — ANGLE Metal
@@ -497,7 +522,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     checkCurrent();
     p.getUniforms();
     onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
-    if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
+    if (performance.now() - tSlice > 12) { await pause(); tSlice = performance.now(); }
   }
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
   const uploadTextures = [...new Set([...textures, ...collectTextures(jobs)])];
@@ -517,7 +542,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     }
     onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
     if (compressed) { checkCurrent(); tSlice = performance.now(); }
-    else if (isolateImageUploads || performance.now() - tSlice > 12) { await frame(); checkCurrent(); tSlice = performance.now(); }
+    else if (isolateImageUploads || performance.now() - tSlice > 12) { await pause(); checkCurrent(); tSlice = performance.now(); }
   }
   checkCurrent();
   return { materials, jobs: jobs.length, programs: n, parallel };
@@ -535,7 +560,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** A parked content subtree whose lights become visible on entry; no live light/visibility change. */ futureLighting?: THREE.Object3D;
     /** The installing scene's PMREM when futureLighting includes sibling content outside that scene. */ futureEnvironment?: THREE.Texture;
     /** Temporary program holders survive until this frame leaves; content materials remain borrowed. */ owner?: Pick<Scope, 'onDispose'>;
-    /** Yield after each image upload during live preparation; ordinary boot keeps batched uploads. */ isolateImageUploads?: boolean } = {}): Promise<number> {
+    /** Yield after each image upload during live preparation; ordinary boot keeps batched uploads. */ isolateImageUploads?: boolean;
+    /** A live presentation barrier; initial boot keeps the ordinary browser paint opportunity. */ pause?: () => Promise<void> } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
     const tracedBoot = bootTraceActive();
@@ -550,7 +576,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
       // SF67: sliced with a painted frame between (it was one 0.3 s task on Driftwood at 4×); the pieces are the same
       let tChunk = performance.now();
       const pauseChunking = async (): Promise<void> => {
-        await frame();
+        await (options.pause ?? frame)();
         if (options.current?.() === false) throw new Error('Shader warm-up owner left');
         tChunk = performance.now();
       };
@@ -579,7 +605,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     if (policy?.scene !== false) jobs.push(...exteriorJobs(scene, rt, policy?.shadows !== false));
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
-    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads);
+    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause);
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
     return report.materials;
   

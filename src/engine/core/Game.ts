@@ -691,8 +691,9 @@ export class Game {
   async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean): Promise<void> {
     const composer = this._composer;
     if (composer === null || !navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent)) return;
-    const { prepareSceneRoots } = await import('../render/precompile');
-    await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, current);
+    const { prepareSceneRoots, waitForDrawnFrame } = await import('../render/precompile');
+    const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.engineScope, () => this.frameCount, current) : undefined;
+    await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, current, pause);
   }
 
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
@@ -706,9 +707,10 @@ export class Game {
     const futureEnvironment = futureScene.environment;
     const current = (): boolean => !owner.disposed;
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
-    const { precompileLevel, warmComposerFrame } = await import('../render/precompile');
+    const { precompileLevel, warmComposerFrame, waitForDrawnFrame } = await import('../render/precompile');
+    const pause = isolateImageUploads && this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
     await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads,
-      ...(futureEnvironment === null ? {} : { futureEnvironment }) }), current);
+      ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }) }), current);
   }
 
   /**

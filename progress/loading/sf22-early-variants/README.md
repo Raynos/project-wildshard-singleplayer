@@ -317,3 +317,41 @@ Raw scratch `attempt-0b191-safari-gl-wall.json`, SHA-256
 `1cf34c1eabb6a7b969f82683aff41cff1e043295e554b84fa893d83a4e351b06`.
 Proof `.git/proofs/20261010T112602-sf22-safari-raf-gl-wall-18482.json`.
 All owned preview / Safari / Inspector / proxy resources closed.
+
+## Isolated-image matched result and completed-draw barrier
+
+Runtime `791f8871f`, 2026-10-10, quiet marker 16:37:49–16:49:35 UTC
+(removed in finally; no expiry). Desktop ran 16:38:38–16:47:41;
+Safari ran 16:47:46–16:49:27. Same shaped network and real held-input
+routes, diagnostic callback/GL wrappers disabled, all resources closed.
+
+Desktop's six routes complete without errors/refusals. Drawn p95/p99
+33.4/33.4 ms equals standing 33.4 within the observed 0.1 ms quantum:
+cadence PASS. Crossing synchronous maximum 25.1 ms, demanded wait
+maximum 3.3 ms: install PASS. First crossroads has zero shader calls.
+Explicit route warm-ups: 2,900; no overlapping task above the observer's
+50 ms threshold. This is a task upper bound, not a measured zero.
+Per-route load medians 4.78/3.62/3.34/2.85/2.99/3.74 (all maxima <6).
+
+Safari Auto's honest Driftwood → Signal → Driftwood subset completes
+without refusals/errors. Synchronous work 18/1/8/1 ms and demanded wait
+3 ms pass; 394 explicit warm-ups, zero draw/driver compiles. Cadence
+FAIL: p95 47 / p99 63 ms against standing 34 and observed quantum 1 ms.
+Forward load median 16.96, return 12.15; both include load >15, so timing
+is under load. Safari's warm-task bound remains unavailable, not zero.
+No improvement credited to image isolation. Memory remains G269 phone
+runs; this subset is not full G270 coverage.
+
+The scheduling forward waits for a fresh completed game draw and a paint
+opportunity between live WebKit preparation batches. Browser rAFs skipped
+by the game cap cannot release the next batch. Initial boot and desktop
+retain ordinary paint opportunities; resources, samplers and upload order
+stay unchanged. Focused tests cover skipped frames, custom barriers and
+retirement before/after a draw, with no retained handles. Matched cadence
+verification of this forward is pending; SF22 Safari remains OPEN.
+
+Scratch evidence: `attempt-791f-desktop.json` SHA-256
+`61b4a06649b457672df912c69a871a2f48dcbfa0e869688453d621e0ab061034`,
+`attempt-791f-safari.json`
+`db25269ad063c1781d6ef576c85690a2f42442deb2e9441ef4a88fb811813a9d`.
+Proof `.git/proofs/20261010T113418-sf22-isolated-images-matched-49487.json`.

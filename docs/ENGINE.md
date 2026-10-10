@@ -797,10 +797,15 @@ in `finally` before yielding or drawing. This changes compilation inputs only, w
 visibility change or disposal ownership. Cancellation and driver errors restore the page too.
 
 During WebKit entered-world preparation, `Game.warmEnteredFrame` requests isolated image uploads.
-`precompileLevel` accepts `isolateImageUploads`; `runPrecompile` also accepts it as its final optional argument.
+`precompileLevel` accepts `isolateImageUploads`; `runPrecompile` accepts it before its optional `pause` callback.
 Each image keeps its original texture/source/sampler and upload order, with a paint opportunity before the next
 upload. Compressed textures retain their fenced upload path. Ordinary boot and desktop keep batched uploads.
 This bounds combined upload work; it cannot split or guarantee the duration of one native upload.
+For a running WebKit game, `Game.warmEnteredFrame` and `Game.warmSceneRoots` supply `waitForDrawnFrame` as the
+`pause` callback. It waits for a fresh completed game draw and a paint opportunity; a capped/skipped browser rAF
+cannot release the next preparation batch. Scope retirement or an obsolete owner rejects and clears its scheduling
+handles. It never advances simulation or forces a draw. Initial boot (no completed draw yet) and desktop keep the
+ordinary paint barrier. `prepareSceneRoots` and `precompileLevel` accept the same optional callback.
 
 ## 9. Saves
 
