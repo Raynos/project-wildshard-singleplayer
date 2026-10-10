@@ -61,3 +61,31 @@ The native fixture covers awaited additions, unrelated page callbacks, exact
 material/geometry identity, unchanged camera transforms, depth-clear order
 and cancellation. No shader, clock, equipment or gameplay rule changes;
 matched performance remains open.
+
+
+## Completed streamed-far owner diagnostic
+
+Pin `56dde3a5cd410415da5b1b33ccf72aa9605634a6`, iOS Simulator
+Safari, phone 2×, Developer off, Auto, Driftwood → Signal → Driftwood.
+The same aggregate 5 Mbit/s queue and 3 / 10 s asset stalls were used.
+Both real-input routes completed, zero refusals / game errors / GL faults;
+all browser, Inspector, sampler and preview resources closed.
+
+Within the two route windows, 392 shader calls were explicit warm-ups and
+**2 were draw/driver calls**. The 4 far-proxy calls are gone, as are the
+previous sky / march calls. Both remaining calls are `sword`, at 75,702 ms,
+inside Driftwood `afterKit` (75,570–75,719 ms), before `afterPlay`
+(75,873–76,450 ms). This directly corroborates the constructor exposure
+fixed by `d7caa82c4` / `2495c2bbc`; those fixes are not in this diagnostic.
+Maximum synchronous explicit warm-up interval: 23 ms.
+
+Crossing synchronous durations: 32 / 2 / 13 / 0 ms; demand waits:
+5 / 8 / 5 / 5 ms; activation: 4 / 2 / 4 ms. Raw route cadence:
+p95 71 / p99 135 ms. Median machine load: 117.01 forward / 107.95 return.
+This exact-source/native-program diagnostic is intrusive, with **no timing
+or cadence credit**; a matched uninstrumented run remains required.
+Simulator memory authority remains the G269 phone runs, not this subset.
+
+Raw scratch: `attempt-56dde-streamed-far-owner.json`, beside the prior
+owner captures, SHA-256 `88a1da827baf00f888db1cdb18e4763d4257bd8ad00b38e97c251370707d3904`.
+Proof: `.git/proofs/20261010T082450-sf22-streamed-far-56dde-43341.json`.
