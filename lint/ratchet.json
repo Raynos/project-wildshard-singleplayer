@@ -182,6 +182,8 @@
     "src/shards/pine-hollow/debug/options.ts": 2,
     "src/shards/pine-hollow/dev/perfLap.ts": 1,
     "src/shards/pine-hollow/feats.ts": 1,
+    "src/shards/pine-hollow/generators/bake-pine-crags.mjs": 1,
+    "src/shards/pine-hollow/generators/bake-pine-lookout.mjs": 1,
     "src/shards/pine-hollow/items.ts": 1,
     "src/shards/pine-hollow/life/index.ts": 3,
     "src/shards/pine-hollow/loadout/finishes.ts": 1,
