@@ -2,7 +2,8 @@
 // G285: Nine Dragon's layout bake, HEAD against a candidate on identical world pixels. One run captures one served build:
 // per tier (phone, desktop), the three standing mockup poses (A spawn rail, B Well edge, C stair-street), each a plain
 // scene render (no post) at one frozen time with the movers and the viewmodel hidden, read back whole and hashed, with the
-// render's draws and triangles; the WebGL allocation census's total GPU bytes; every registered piece's colliders, hashed.
+// render's draws and triangles; the WebGL allocation census's total GPU bytes; the linked program count and any shader
+// compile error; every registered piece's colliders, hashed.
 // `--compare=a.json,b.json` diffs two captures. Through browser-lane; only summary numbers are saved.
 //   scripts/browser-lane.sh node scripts/proof-nine-layout-parity.mjs --url=<DEVSERVER preview> --output=<summary.json>
 //   node scripts/proof-nine-layout-parity.mjs --compare=<base.json>,<candidate.json>
@@ -22,7 +23,7 @@ if (compare !== undefined) {
     const other = b.rows[i];
     for (const key of ['tier', 'pose', 'pixels', 'calls', 'triangles', 'width', 'height']) if (row[key] !== other?.[key]) diffs.push(`${row.tier}/${row.pose}: ${key} ${row[key]} ≠ ${other?.[key]}`);
   }
-  for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount']) for (const tier of Object.keys(a.tiers)) if (a.tiers[tier][key] !== b.tiers[tier]?.[key]) diffs.push(`${tier}: ${key} ${a.tiers[tier][key]} ≠ ${b.tiers[tier]?.[key]}`);
+  for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount', 'programs']) for (const tier of Object.keys(a.tiers)) if (a.tiers[tier][key] !== b.tiers[tier]?.[key]) diffs.push(`${tier}: ${key} ${a.tiers[tier][key]} ≠ ${b.tiers[tier]?.[key]}`);
   console.log(diffs.length === 0 ? `nine-layout-parity: ${a.build} = ${b.build} on ${a.rows.length} poses (pixels, draws, triangles), GPU bytes and colliders` : diffs.join('\n'));
   process.exit(diffs.length === 0 ? 0 : 1);
 }
@@ -43,6 +44,8 @@ try {
     await installInit(context, { lane: 'nine-layout-parity', sha: version.build, browser: 'chromium', tier });
     await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
     const page = await context.newPage(); page.on('pageerror', error => errors.push(String(error)));
+    // a shader that fails to compile is a console error from three, not a page error
+    page.on('console', message => { if (message.type() === 'error' && /Shader Error|Program Info Log|WebGLProgram/u.test(message.text())) errors.push(message.text().slice(0, 400)); });
     await page.goto(new URL(`/?chunk=nine-dragon-stack&mute=1&skipintro=1&nolock=1&sw=0&tier=${tier}`, url).href, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.__wildshard?.world?.chunk?.slug === 'nine-dragon-stack' && (window.__wildshard.world.game?.lastFrame?.calls ?? 0) > 60 && !document.querySelector('.ws-load'), undefined, { timeout: 400000, polling: 1000 });
     await sleep(4000);
@@ -100,6 +103,8 @@ try {
     }
     const census = await page.evaluate(() => window.__sc_gl().reduce((n, row) => n + row.totalBytes, 0));
     tiers[tier].gpuBytes = census;
+    // the linked programs after the three poses (the renderer's cache: a split or merged program shows here)
+    tiers[tier].programs = await page.evaluate(() => window.__wildshard.world.game.renderer.info.programs?.length ?? -1);
     await context.close();
   }
   if (errors.length > 0) throw new Error(`Native page errors: ${JSON.stringify(errors)}`);

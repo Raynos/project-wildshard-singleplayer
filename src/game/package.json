@@ -18,6 +18,7 @@
     "./systems/species/clips": "./systems/species/clips.ts",
     "./systems/looks/rainCurtain": "./systems/looks/rainCurtain.ts",
     "./systems/looks/trample": "./systems/looks/trample.ts",
+    "./systems/looks/shaderFamily": "./systems/looks/shaderFamily.ts",
     "./systems/viewmodel/armClips": "./systems/viewmodel/armClips.ts",
     "./systems/viewmodel/armRig": "./systems/viewmodel/armRig.ts",
     "./systems/viewmodel/rigArms": "./systems/viewmodel/rigArms.ts",

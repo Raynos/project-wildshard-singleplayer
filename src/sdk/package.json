@@ -80,6 +80,7 @@
     "./looks/duskDome": "./looks/duskDome.ts",
     "./looks/signs": "./looks/signs.ts",
     "./looks/neonText": "./looks/neonText.ts",
+    "./looks/shaderFamily": "./looks/shaderFamily.ts",
     "./species/clips": "./species/clips.ts",
     "./items/lashView": "./items/lashView.ts",
     "./items/lashWeapon": "./items/lashWeapon.ts",

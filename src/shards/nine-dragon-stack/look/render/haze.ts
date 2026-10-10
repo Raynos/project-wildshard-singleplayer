@@ -8,19 +8,13 @@
 //  2. add: one full-screen additive draw into the scene target (bilinear from ¼ res; the haze is smooth), before the
 //     bleed so the halos bloom and soak the paper like any light.
 import {
-  AddEquation, CustomBlending, HalfFloatType, LinearFilter, Matrix4, NoBlending, OneFactor, type PerspectiveCamera, ShaderMaterial,
-  type Texture, type TextureDataType, UnsignedByteType, Vector2, Vector4, WebGLRenderTarget, ZeroFactor,
+  HalfFloatType, LinearFilter, Matrix4, type PerspectiveCamera, type ShaderMaterial,
+  type Texture, type TextureDataType, UnsignedByteType, Vector2, Vector4, WebGLRenderTarget,
 } from 'three';
 import { Pass } from 'postprocessing';
-import { LIGHTVOL_GLSL } from '../light/lightvol';
 import type { Shared } from '../style';
-import { VM_SLICE } from './bleed';
+import { PASS_FAMILY, stepSplices } from './family';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-
-const VS = /* glsl */ `
-varying vec2 vUv;
-void main() { vUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 1.0, 1.0); }
-`;
 
 export interface HazeSettings {
   /** in-scatter strength (σ at the datum, 1/m) */
@@ -42,62 +36,6 @@ export interface HazeSettings {
 /** off by default (round 14): even thresholded (σ 0.035 over 0.9) it washed the stair-street warm and only faintly haloed
  *  the paifang at phone size — `window.__ndRender.haze.set({ density: 0.025 })` to look again */
 export const HAZE_DEFAULTS: HazeSettings = { density: 0, maxDist: 70, steps: 14, height: 18, drift: 0.5, forward: 0.35, cap: 1.4, thr: 1.0 };
-
-const FS_MARCH = (steps: number): string => /* glsl */ `
-uniform highp sampler2D tDepth;
-uniform mat4 uInvProj;
-uniform mat4 uCamWorld;
-uniform vec2 uNF;
-uniform vec4 uHz;     // x: σ, y: max distance, z: height falloff (m), w: drift
-uniform vec4 uHz2;    // x: forward lobe, y: time, z: the per-step irradiance cap, w: its threshold
-uniform float uGroundY;
-varying vec2 vUv;
-${LIGHTVOL_GLSL}
-float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
-float n3(vec3 p) {
-  vec3 i = floor(p), f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  float a = h12(i.xy + i.z * 17.0), b = h12(i.xy + vec2(1.0, 0.0) + i.z * 17.0);
-  float c = h12(i.xy + vec2(0.0, 1.0) + i.z * 17.0), d = h12(i.xy + vec2(1.0, 1.0) + i.z * 17.0);
-  float e = h12(i.xy + (i.z + 1.0) * 17.0), g = h12(i.xy + vec2(1.0, 0.0) + (i.z + 1.0) * 17.0);
-  float hh = h12(i.xy + vec2(0.0, 1.0) + (i.z + 1.0) * 17.0), k = h12(i.xy + vec2(1.0, 1.0) + (i.z + 1.0) * 17.0);
-  return mix(mix(mix(a, b, f.x), mix(c, d, f.x), f.y), mix(mix(e, g, f.x), mix(hh, k, f.x), f.y), f.z);
-}
-void main() {
-  float d = texture(tDepth, vUv).r;
-  vec4 vr = uInvProj * vec4(vUv * 2.0 - 1.0, 1.0, 1.0);
-  vec3 dirV = normalize(vr.xyz / vr.w);
-  float dist = uHz.y;
-  if (d < 1.0 && d >= ${VM_SLICE.toFixed(2)}) {
-    float z = (uNF.x * uNF.y) / ((uNF.y - uNF.x) * d - uNF.y);
-    dist = min(dist, -z / max(-dirV.z, 1e-4));
-  }
-  vec3 cam = (uCamWorld * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-  vec3 dirW = normalize(mat3(uCamWorld) * dirV);
-  float ds = dist / ${steps.toFixed(1)};
-  float jit = h12(gl_FragCoord.xy + fract(uHz2.y * 7.31) * 53.0);
-  vec3 acc = vec3(0.0);
-  for (int i = 0; i < ${steps}; i++) {
-    float t = (float(i) + jit) * ds;
-    vec3 p = cam + dirW * t;
-    // the rain's medium: densest in the square's air, thinning upward, drifting slowly
-    float hk = exp(-max(p.y - uGroundY, 0.0) / uHz.z);
-    float nz = n3(p * vec3(0.22, 0.12, 0.22) + vec3(0.0, uHz2.y * 0.35, uHz2.y * 0.08));
-    float sigma = uHz.x * hk * mix(1.0, 0.4 + 1.2 * nz, uHz.w);
-    acc += max(min(lpRaw(p), vec3(uHz2.z)) - uHz2.w, 0.0) * sigma;
-  }
-  acc *= ds;
-  // a mild forward lobe: looking toward the square's lights (level) the air glows more than looking down at the stone
-  acc *= 1.0 + uHz2.x * (1.0 - abs(dirW.y));
-  gl_FragColor = vec4(min(acc, vec3(8.0)), 1.0);
-}
-`;
-
-const FS_ADD = /* glsl */ `
-uniform sampler2D tSrc;
-varying vec2 vUv;
-void main() { gl_FragColor = vec4(texture(tSrc, vUv).rgb, 0.0); }
-`;
 
 export class HazePass extends Pass {
   private rt: WebGLRenderTarget | null = null;
@@ -123,16 +61,12 @@ export class HazePass extends Pass {
       uLpGain: s.uLpGain, uLpSky: s.uLpSky, uLpAmb: s.uLpAmb, uLpSpec: s.uLpSpec, uLpCut: s.uLpCut, uLpAmber: s.uLpAmber,
     };
     this.mMarch = this.marchMaterial();
-    this.mAdd = new ShaderMaterial({
-      vertexShader: VS, fragmentShader: FS_ADD, uniforms: this.uAdd, name: 'NdHazeAdd', depthTest: false, depthWrite: false, transparent: true,
-      blending: CustomBlending, blendEquation: AddEquation, blendSrc: OneFactor, blendDst: OneFactor,
-      blendEquationAlpha: AddEquation, blendSrcAlpha: ZeroFactor, blendDstAlpha: OneFactor,
-    });
+    this.mAdd = PASS_FAMILY.material('hazeAdd', this.uAdd);
     this.fullscreenMaterial = this.mMarch;
   }
 
   private marchMaterial(): ShaderMaterial {
-    return new ShaderMaterial({ vertexShader: VS, fragmentShader: FS_MARCH(this.steps), uniforms: this.uMarch, name: 'NdHazeMarch', depthTest: false, depthWrite: false, blending: NoBlending });
+    return PASS_FAMILY.material('hazeMarch', this.uMarch, { fragments: stepSplices(this.steps) });
   }
 
   set(s: Partial<HazeSettings>): void {
