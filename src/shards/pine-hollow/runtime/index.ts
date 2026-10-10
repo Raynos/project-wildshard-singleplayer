@@ -37,6 +37,7 @@ import { installPineLoadout } from '../loadout/loadout';
 import { installPineCombat } from '../combat/install';
 import { installPineQuest } from '../quest/index';
 import { installPineLife } from '../life/index';
+import { preloadPineWildlife } from '../models/wildlife';
 import { installPineAudio } from './audio/wiring';
 import { ForestAmbience } from './audio/ambience';
 import { installWeather } from '../world/weather';
@@ -220,6 +221,7 @@ export class PineHollow extends ShardPlugin {
     for (const spot of landmarks?.crags?.caveSpots() ?? []) ambience.addSpot({ zone: 'cave', ...spot, fade: 3 });
     installWeather(ctx, { game, sky, trees: forest.trees, animals, particles, ambience,
       roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.inCave(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
+    await preloadPineWildlife(); // the procedural animals' baked shapes (G285), behind the loading screen
     const life = installPineLife({ ctx, game, sky, player, animals, weapons, audio, sfx: ambience.sfx, trees: forest.trees, trunks: forest.factory.variants, params,
       places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,
       visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' });

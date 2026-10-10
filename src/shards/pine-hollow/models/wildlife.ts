@@ -1,7 +1,7 @@
 /**
  * The small wildlife of Pine Hollow (PINE-HOLLOW-REMASTER PH-M5) in ONE instanced draw: the raven, the great grey owl, the
- * pileated woodpecker and the snowshoe hare. Each is built here from ellipsoids, cones
- * and feather sheets at its real size (forward = +z, up = +y), smooth-shaded, PBR (per-vertex roughness: a raven's glossy
+ * pileated woodpecker and the snowshoe hare. Each is built offline (G285: ../generators/wildlife.ts → baked/wildlife.bin,
+ * read by `preloadPineWildlife` before `installPineLife`) from ellipsoids, cones and feather sheets at its real size (forward = +z, up = +y), smooth-shaded, PBR (per-vertex roughness: a raven's glossy
  * black, an owl's matte down), vertex-coloured with feather / fur mottling — no textures. All four models live in one
  * geometry; an instance draws only its own kind (the others collapse to a point in the vertex shader), so the whole
  * menagerie is one draw call and one program, parked in the scene before the boot's precompile.
@@ -19,22 +19,25 @@
  */
 import * as THREE from 'three';
 import type { BirdMesh, BirdSet } from '../life/birdModels';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import * as vb from 'valibot';
+import wildJson from '../data/wildlife.json' with { type: 'json' };
+import { fetchBake } from '../world/bakeBytes';
 
 export const KIND = { raven: 0, owl: 1, woodpecker: 2, hare: 4 } as const;
 export type WildKind = (typeof KIND)[keyof typeof KIND];
 
 /** vertex part ids (aPart): what the vertex shader turns */
-const P = { body: 0, wingL: 1, wingR: 2, head: 3, legs: 4, tail: 5, hBody: 10, hHead: 11, hEars: 12, hHind: 13, hFore: 14 } as const;
+export const P = { body: 0, wingL: 1, wingR: 2, head: 3, legs: 4, tail: 5, hBody: 10, hHead: 11, hEars: 12, hHind: 13, hFore: 14 } as const;
 /** the hare's neck: its ears turn with the head about this point */
-const HARE_NECK: V3 = [0, 0.235, 0.15];
+export const HARE_NECK: V3 = [0, 0.235, 0.15];
 
-type V3 = readonly [number, number, number];
-type Paint = (p: V3, n: V3) => THREE.Color;
+export type V3 = readonly [number, number, number];
 
 /** one instance's pose for `WildlifeMesh.write` */
 export interface WildPose {
@@ -52,79 +55,68 @@ export interface WildPose {
 }
 export const newPose = (kind: WildKind): WildPose => ({ kind, x: 0, y: -999, z: 0, yaw: 0, pitch: 0, roll: 0, scale: 1, a0: 0, a1: 0, a2: 0, a3: 0, b1: 0, b2: 0 });
 
-// ─────────────── the geometry builder ───────────────
-const _c = new THREE.Color();
-/** a hash in 0..1 of a point (the mottling) */
-const hash3 = (x: number, y: number, z: number): number => { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); };
+// ─────────────── the baked shapes ───────────────
+const num = vb.pipe(vb.number(), vb.finite());
+const WildRowsSchema = vb.strictObject({ bin: vb.string(), bytes: num, kinds: vb.array(vb.strictObject({ kind: vb.picklist([KIND.raven, KIND.owl, KIND.woodpecker, KIND.hare]), vertices: num, indices: num })) });
+/** ../data/wildlife.json: the bake's hash and size, and each kind's vertex and index counts in the binary's order */
+export type WildRows = vb.InferOutput<typeof WildRowsSchema>;
+/** the order the bake writes the procedural kinds in (../generators/wildlife.ts) */
+export const WILD_BAKE_KINDS: readonly WildKind[] = [KIND.raven, KIND.owl, KIND.woodpecker, KIND.hare];
+/** the bake's rows, parsed strictly once */
+export const WILD_ROWS: WildRows = vb.parse(WildRowsSchema, wildJson);
+/** the bake's binary (`scripts/bake-pine-wildlife.mjs`); listed in the boot's world reads (../boot/files.ts) */
+export const WILDLIFE_BAKE_URL = '/assets/pine-hollow/baked/wildlife.bin';
 
-class Builder {
-  readonly pos: number[] = []; readonly nor: number[] = []; readonly col: number[] = []; readonly idx: number[] = [];
-  readonly part: number[] = []; readonly kind: number[] = []; readonly pivot: number[] = []; readonly rough: number[] = []; readonly emis: number[] = [];
-  /** the atlas: uv, the texture's weight (1 = a modelled bird, 0 = vertex colour only) and the pose variant (−1 = every
-   *  pose, 0 = perched / folded, 1 = flying) */
-  readonly uv: number[] = []; readonly tex: number[] = []; readonly variant: number[] = [];
-  k = 0;
-  vert(p: V3, n: V3, c: THREE.Color, part: number, pivot: V3, rough: number, emis: number, uv: readonly [number, number] = [0, 0], tex = 0, variant = -1): number {
-    this.pos.push(p[0], p[1], p[2]); this.nor.push(n[0], n[1], n[2]); this.col.push(c.r, c.g, c.b);
-    this.part.push(part); this.kind.push(this.k); this.pivot.push(pivot[0], pivot[1], pivot[2]); this.rough.push(rough); this.emis.push(emis);
-    this.uv.push(uv[0], uv[1]); this.tex.push(tex); this.variant.push(variant);
-    return this.pos.length / 3 - 1;
+/** one kind's baked blocks: position, normal, colour, pivot (3 a vertex), info, atlas (4 a vertex), its local triangles */
+interface WildShape { readonly pos: Float32Array; readonly nor: Float32Array; readonly col: Float32Array; readonly pivot: Float32Array; readonly info: Float32Array; readonly tex: Float32Array; readonly idx: Uint32Array }
+
+/** the procedural kinds from the bake's bytes (inflated, lanes put back) */
+export function wildShapes(bytes: Uint8Array): ReadonlyMap<WildKind, WildShape> {
+  if (bytes.length !== WILD_ROWS.bytes) throw new Error(`[wildlife] the bake holds ${String(bytes.length)} bytes, its rows ${String(WILD_ROWS.bytes)}`);
+  const buffer = new ArrayBuffer(bytes.length); new Uint8Array(buffer).set(bytes);
+  const out = new Map<WildKind, WildShape>();
+  let at = 0;
+  const floats = (count: number): Float32Array => { const a = new Float32Array(buffer, at, count); at += count * 4; return a; };
+  for (const { kind, vertices: n, indices } of WILD_ROWS.kinds) {
+    const pos = floats(n * 3), nor = floats(n * 3), col = floats(n * 3), pivot = floats(n * 3), info = floats(n * 4), tex = floats(n * 4);
+    out.set(kind, { pos, nor, col, pivot, info, tex, idx: new Uint32Array(buffer, at, indices) });
+    at += indices * 4;
   }
+  return out;
+}
 
-  /**
-   * An ellipsoid at `c` with radii `r`, turned by `rot` (x, y, z radians, applied z → y → x… as three's Euler XYZ), its
-   * radius along its own z scaled by `taper(u)` (u −1 tail → +1 nose). Smooth normals from the ellipsoid's gradient.
-   */
-  blob(c: V3, r: V3, paint: Paint, part: number, pivot: V3, o: { rough?: number; emis?: number; rot?: V3; taper?: (u: number) => number; w?: number; h?: number } = {}): void {
-    const w = o.w ?? 12, h = o.h ?? 8, rough = o.rough ?? 0.75, emis = o.emis ?? 0;
-    const m = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(o.rot?.[0] ?? 0, o.rot?.[1] ?? 0, o.rot?.[2] ?? 0));
-    const nm = new THREE.Matrix3().getNormalMatrix(m);
-    const v = new THREE.Vector3(), n = new THREE.Vector3();
+let shapes: ReadonlyMap<WildKind, WildShape> | null = null;
+let loading: Promise<void> | null = null;
+/** Fetch the bake behind the loading screen (the play hook awaits it before `installPineLife`), once. A bake that fails
+ *  to load is a page fault (`console.error`), and the procedural animals stand absent. */
+export function preloadPineWildlife(): Promise<void> {
+  loading ??= (async (): Promise<void> => {
+    try { shapes = wildShapes(await fetchBake(WILDLIFE_BAKE_URL)); } catch (error: unknown) { console.error('[pine-hollow] the baked wildlife did not load:', error); }
+  })();
+  return loading;
+}
+/** the bake's bytes handed in instead of fetched (a test reading the committed file) */
+export function useWildShapes(bytes: Uint8Array): void { shapes = wildShapes(bytes); loading = Promise.resolve(); }
+/** whether the bake has been read */
+export const wildlifeBaked = (): boolean => shapes !== null;
+
+/** the shared geometry's arrays, filled from baked kinds and the modelled birds in draw order */
+class Packer {
+  readonly pos: number[] = []; readonly nor: number[] = []; readonly col: number[] = []; readonly pivot: number[] = [];
+  readonly info: number[] = []; readonly tex: number[] = []; readonly idx: number[] = [];
+  /** a procedural kind from the bake (nothing while the bake is absent) */
+  baked(kind: WildKind): void {
+    const s = shapes?.get(kind);
+    if (s === undefined) return;
     const base = this.pos.length / 3;
-    for (let j = 0; j <= h; j++) {
-      const th = (j / h) * Math.PI; // 0 = the nose (+z) … π = the tail
-      const u = Math.cos(th), s = Math.sin(th);
-      const t = o.taper ? o.taper(u) : 1;
-      for (let i = 0; i <= w; i++) {
-        const ph = (i / w) * Math.PI * 2;
-        const ex = Math.cos(ph) * s, ey = Math.sin(ph) * s, ez = u;
-        v.set(ex * r[0] * t, ey * r[1] * t, ez * r[2]).applyMatrix4(m);
-        n.set(ex / r[0], ey / r[1], ez / r[2]).applyMatrix3(nm).normalize();
-        const p: V3 = [v.x + c[0], v.y + c[1], v.z + c[2]];
-        this.vert(p, [n.x, n.y, n.z], paint(p, [n.x, n.y, n.z]), part, pivot, rough, emis);
-      }
-    }
-    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
-      const a = base + j * (w + 1) + i, b = a + 1, d = a + (w + 1), e = d + 1;
-      this.idx.push(a, d, b, b, d, e);
-    }
+    this.pos.push(...s.pos); this.nor.push(...s.nor); this.col.push(...s.col); this.pivot.push(...s.pivot); this.info.push(...s.info); this.tex.push(...s.tex);
+    for (const i of s.idx) this.idx.push(base + i);
   }
-
-  /** a cone from a ring at `base` (radius `rad`, facing `tip`) to `tip` — beaks, crests, claws */
-  cone(base: V3, tip: V3, rad: number, paint: Paint, part: number, pivot: V3, rough = 0.5, segs = 6): void {
-    const ax = new THREE.Vector3(tip[0] - base[0], tip[1] - base[1], tip[2] - base[2]);
-    const len = ax.length(); ax.normalize();
-    const up = Math.abs(ax.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
-    const e1 = new THREE.Vector3().crossVectors(ax, up).normalize(), e2 = new THREE.Vector3().crossVectors(ax, e1);
-    const tipI = this.vert(tip, [ax.x, ax.y, ax.z], paint(tip, [ax.x, ax.y, ax.z]), part, pivot, rough, 0);
-    const ring: number[] = [];
-    for (let i = 0; i < segs; i++) {
-      const a = (i / segs) * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
-      const p: V3 = [base[0] + (e1.x * ca + e2.x * sa) * rad, base[1] + (e1.y * ca + e2.y * sa) * rad, base[2] + (e1.z * ca + e2.z * sa) * rad];
-      const nn = new THREE.Vector3(e1.x * ca + e2.x * sa, e1.y * ca + e2.y * sa, e1.z * ca + e2.z * sa).multiplyScalar(len).addScaledVector(ax, rad).normalize();
-      ring.push(this.vert(p, [nn.x, nn.y, nn.z], paint(p, [nn.x, nn.y, nn.z]), part, pivot, rough, 0));
-    }
-    for (let i = 0; i < segs; i++) { const a = ring[i], b = ring[(i + 1) % segs]; if (a !== undefined && b !== undefined) this.idx.push(a, b, tipI); }
+  /** one vertex: its place, normal, colour, the part's pivot, (part, kind, roughness, emissive), (atlas uv, textured, pose) */
+  vert(p: V3, n: V3, c: THREE.Color, pivot: V3, info: readonly [number, number, number, number], tex: readonly [number, number, number, number]): void {
+    this.pos.push(p[0], p[1], p[2]); this.nor.push(n[0], n[1], n[2]); this.col.push(c.r, c.g, c.b); this.pivot.push(pivot[0], pivot[1], pivot[2]);
+    this.info.push(...info); this.tex.push(...tex);
   }
-
-  /** a flat sheet (a fan over the convex outline `pts`, normal `n`): wings, tails, feet — drawn double-sided */
-  sheet(pts: readonly V3[], n: V3, paint: Paint, part: number, pivot: V3, rough = 0.8): void {
-    const first = pts[0];
-    if (first === undefined) return;
-    const ids = pts.map((p) => this.vert(p, n, paint(p, n), part, pivot, rough, 0));
-    for (let i = 1; i + 1 < ids.length; i++) { const a = ids[0], b = ids[i], c = ids[i + 1]; if (a !== undefined && b !== undefined && c !== undefined) this.idx.push(a, b, c); }
-  }
-
   geometry(): THREE.BufferGeometry {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
@@ -132,136 +124,10 @@ class Builder {
     g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
     g.setAttribute('aPivot', new THREE.Float32BufferAttribute(this.pivot, 3));
     // the scalars packed into two vec4s (WebGL's 16 attribute slots: the instance matrix takes four of them)
-    const n = this.part.length, info = new Float32Array(n * 4), tex = new Float32Array(n * 4);
-    for (let i = 0; i < n; i++) {
-      info[i * 4] = this.part[i] ?? 0; info[i * 4 + 1] = this.kind[i] ?? 0; info[i * 4 + 2] = this.rough[i] ?? 0.8; info[i * 4 + 3] = this.emis[i] ?? 0;
-      tex[i * 4] = this.uv[i * 2] ?? 0; tex[i * 4 + 1] = this.uv[i * 2 + 1] ?? 0; tex[i * 4 + 2] = this.tex[i] ?? 0; tex[i * 4 + 3] = this.variant[i] ?? -1;
-    }
-    g.setAttribute('aInfo', new THREE.BufferAttribute(info, 4));
-    g.setAttribute('aTexV', new THREE.BufferAttribute(tex, 4));
+    g.setAttribute('aInfo', new THREE.BufferAttribute(new Float32Array(this.info), 4));
+    g.setAttribute('aTexV', new THREE.BufferAttribute(new Float32Array(this.tex), 4));
     g.setIndex(this.idx);
     return g;
-  }
-}
-
-/** a paint of `hex`, mottled ±`m` by position (feathers / fur), darker toward the back when `back` > 0 */
-function mottle(hex: string, m = 0.12, freq = 60, back = 0): Paint {
-  const base = new THREE.Color(hex);
-  return (p, n) => {
-    const k = 1 - m + 2 * m * hash3(Math.floor(p[0] * freq), Math.floor(p[1] * freq), Math.floor(p[2] * freq)) - back * Math.max(0, n[1]) * 0.35;
-    return _c.copy(base).multiplyScalar(k).clone();
-  };
-}
-const flat = (hex: string): Paint => { const c = new THREE.Color(hex); return () => c.clone(); };
-
-/**
- * A wing of `side` (+1 right, −1 left): a feather sheet from the shoulder out to the wrist, then the slotted primaries
- * (`fingers` slim feathers fanned at the tip — the raven's and the owl's fingered silhouette). `span` from the shoulder,
- * `chord` at the root. Its pivot is the shoulder.
- */
-function wing(b: Builder, side: number, shoulder: V3, span: number, chord: number, fingers: number, paint: Paint, rough: number): void {
-  const part = side < 0 ? P.wingL : P.wingR;
-  const [sx, sy, sz] = shoulder, X = (d: number): number => sx + side * d;
-  const up: V3 = [0, 1, 0];
-  // the arm: root chord → the wrist (0.55 span), a slight forward lead at the wrist
-  const wr = span * 0.55, wc = chord * 0.8;
-  b.sheet([[X(0), sy, sz + chord * 0.45], [X(wr), sy + 0.01, sz + chord * 0.35], [X(wr), sy + 0.01, sz - wc + chord * 0.35], [X(0), sy, sz - chord * 0.55]], up, paint, part, shoulder, rough);
-  // the hand: wrist → the tip
-  const hc = wc * 0.9;
-  b.sheet([[X(wr), sy + 0.01, sz + chord * 0.35], [X(span * 0.8), sy + 0.005, sz + chord * 0.1], [X(span * 0.8), sy + 0.005, sz + chord * 0.1 - hc * 0.8], [X(wr), sy + 0.01, sz - wc + chord * 0.35]], up, paint, part, shoulder, rough);
-  // the primaries: slim feathers fanned from the hand's outer edge
-  for (let f = 0; f < fingers; f++) {
-    const u = fingers === 1 ? 0.5 : f / (fingers - 1);
-    const rootZ = sz + chord * 0.1 - hc * 0.8 * u, ang = (0.35 - u * 0.7) * 0.6;
-    const len = span * (0.24 - Math.abs(u - 0.35) * 0.08), wdt = chord * 0.09;
-    const tx = X(span * 0.8) + side * Math.cos(ang) * len, tz = rootZ + Math.sin(ang) * len;
-    b.sheet([[X(span * 0.8), sy + 0.005, rootZ + wdt], [tx, sy, tz + wdt * 0.3], [tx, sy, tz - wdt * 0.3], [X(span * 0.8), sy + 0.005, rootZ - wdt]], up, paint, part, shoulder, rough);
-  }
-}
-
-function legs(b: Builder, hip: V3, len: number, paint: Paint): void {
-  for (const s of [-1, 1]) {
-    const top: V3 = [hip[0] + s * 0.025, hip[1], hip[2]], foot: V3 = [hip[0] + s * 0.03, hip[1] - len, hip[2] + 0.01];
-    b.cone(top, foot, 0.009, paint, P.legs, hip, 0.6, 4);
-    b.sheet([[foot[0] - 0.02, foot[1], foot[2] + 0.04], [foot[0] + 0.02, foot[1], foot[2] + 0.04], [foot[0], foot[1], foot[2] - 0.02]], [0, 1, 0], paint, P.legs, hip, 0.6);
-  }
-}
-
-// ─────────────── the four models ───────────────
-function raven(b: Builder): void {
-  b.k = KIND.raven;
-  const black = mottle('#1b1c22', 0.1, 70), gloss = 0.6, neck: V3 = [0, 0.05, 0.14];
-  b.blob([0, 0, 0], [0.085, 0.085, 0.19], black, P.body, [0, 0, 0], { rough: gloss, taper: (u) => 0.75 + 0.25 * Math.sqrt(Math.max(0, 1 - (u - 0.25) ** 2)) });
-  b.blob([0, 0.055, 0.2], [0.055, 0.058, 0.072], black, P.head, neck, { rough: gloss });
-  b.blob([0, 0.02, 0.15], [0.05, 0.06, 0.05], black, P.head, neck, { rough: 0.5 }); // the shaggy throat
-  b.cone([0, 0.052, 0.255], [0, 0.03, 0.345], 0.021, flat('#101014'), P.head, neck, 0.35);
-  // the wedge tail (the raven's tell against a crow's fan)
-  b.sheet([[-0.035, 0.012, -0.16], [0.035, 0.012, -0.16], [0.085, 0.004, -0.39], [0, 0.0, -0.44], [-0.085, 0.004, -0.39]], [0, 1, 0], black, P.tail, [0, 0, -0.16], gloss);
-  for (const s of [-1, 1]) wing(b, s, [s * 0.055, 0.04, 0.02], 0.56, 0.3, 5, black, 0.82);
-  legs(b, [0, -0.06, 0.0], 0.12, flat('#15151a'));
-}
-
-function owl(b: Builder): void {
-  b.k = KIND.owl;
-  const grey = mottle('#6d665c', 0.18, 45, 0.6), neck: V3 = [0, 0.06, 0.2];
-  const barred: Paint = (p, n) => { const c = grey(p, n); return c.multiplyScalar(0.82 + 0.18 * Math.sin(p[2] * 70 + p[0] * 20)); };
-  b.blob([0, 0, 0], [0.14, 0.13, 0.25], barred, P.body, [0, 0, 0], { rough: 0.9, taper: (u) => 0.8 + 0.2 * Math.sqrt(Math.max(0, 1 - u * u)) });
-  // the great round head, its pale facial disc ringed in dark concentric bars, set looking along +z
-  const hc: V3 = [0, 0.07, 0.3];
-  const disc: Paint = (p, n) => {
-    if (n[2] < 0.35) return grey(p, n);
-    const d = Math.hypot(p[0] - hc[0], p[1] - hc[1]);
-    const ring = 0.75 + 0.25 * Math.cos(d * 95);
-    return new THREE.Color('#a8a196').multiplyScalar(ring * (d > 0.1 ? 0.55 : 1));
-  };
-  b.blob(hc, [0.125, 0.12, 0.1], disc, P.head, neck, { rough: 0.95, w: 14, h: 10 });
-  for (const s of [-1, 1]) b.blob([s * 0.036, 0.085, 0.395], [0.017, 0.017, 0.008], flat('#e2b41c'), P.head, neck, { rough: 0.2, emis: 1, w: 8, h: 5 });
-  for (const s of [-1, 1]) b.blob([s * 0.036, 0.085, 0.399], [0.007, 0.007, 0.006], flat('#050505'), P.head, neck, { rough: 0.1, w: 6, h: 4 });
-  b.cone([0, 0.06, 0.39], [0, 0.035, 0.415], 0.011, flat('#d9c23a'), P.head, neck, 0.4, 5);
-  b.sheet([[-0.06, 0.02, -0.2], [0.06, 0.02, -0.2], [0.08, 0.015, -0.4], [0, 0.015, -0.42], [-0.08, 0.015, -0.4]], [0, 1, 0], barred, P.tail, [0, 0, -0.2], 0.9);
-  for (const s of [-1, 1]) wing(b, s, [s * 0.1, 0.05, 0.04], 0.64, 0.36, 5, barred, 0.9);
-  legs(b, [0, -0.08, 0.02], 0.09, mottle('#8b8478', 0.1));
-}
-
-function woodpecker(b: Builder): void {
-  b.k = KIND.woodpecker;
-  const black = mottle('#16161a', 0.08, 70), neck: V3 = [0, 0.04, 0.11];
-  b.blob([0, 0, 0], [0.058, 0.06, 0.15], black, P.body, [0, 0, 0], { rough: 0.55 });
-  // the head: black, a white stripe from the bill down the neck, the red crest swept back
-  const face: Paint = (p, n) => (Math.abs(n[0]) > 0.55 && p[1] < 0.075 && p[1] > 0.035 ? new THREE.Color('#e8e4da') : p[1] > 0.078 ? new THREE.Color('#b8231b') : black(p, n));
-  b.blob([0, 0.05, 0.16], [0.042, 0.045, 0.055], face, P.head, neck, { rough: 0.5 });
-  b.cone([0, 0.085, 0.16], [0, 0.1, 0.1], 0.032, flat('#c0261d'), P.head, neck, 0.5);
-  b.cone([0, 0.05, 0.205], [0, 0.045, 0.28], 0.012, flat('#4a4a4e'), P.head, neck, 0.35);
-  b.blob([0, 0.005, 0.1], [0.04, 0.035, 0.05], (p, n) => (Math.abs(n[0]) > 0.6 ? new THREE.Color('#e8e4da') : black(p, n)), P.head, neck, { rough: 0.6 });
-  // the stiff pointed tail it props itself on the trunk with
-  b.sheet([[-0.03, 0.01, -0.12], [0.03, 0.01, -0.12], [0.02, 0, -0.29], [0, 0, -0.31], [-0.02, 0, -0.29]], [0, 1, 0], black, P.tail, [0, 0, -0.12], 0.55);
-  for (const s of [-1, 1]) wing(b, s, [s * 0.04, 0.03, 0.02], 0.34, 0.2, 4, black, 0.85);
-  legs(b, [0, -0.045, 0.02], 0.07, flat('#3c3c40'));
-}
-
-function hare(b: Builder): void {
-  b.k = KIND.hare;
-  // a snowshoe hare in its summer coat: agouti brown-grey, a darker back, a buff belly, pale feet, dark-tipped ears
-  const fur = mottle('#6f5a47', 0.22, 110, 1.2), belly = mottle('#a89c88', 0.12, 90), pale = mottle('#85776a', 0.12, 90);
-  const coat: Paint = (p, n) => (n[1] < -0.6 ? belly(p, n) : fur(p, n));
-  const face: Paint = (p, n) => (n[2] > 0.55 && p[1] < 0.27 ? mottle('#8c7661', 0.12, 110)(p, n) : coat(p, n));
-  const head: V3 = HARE_NECK;
-  b.blob([0, 0.165, -0.03], [0.092, 0.1, 0.2], coat, P.hBody, [0, 0, 0], { rough: 0.95, taper: (u) => 0.8 + 0.2 * Math.sqrt(Math.max(0, 1 - (u + 0.3) ** 2)) });
-  b.blob([0, 0.16, 0.11], [0.068, 0.08, 0.075], coat, P.hBody, [0, 0, 0], { rough: 0.95 });
-  b.blob([0, 0.262, 0.195], [0.047, 0.052, 0.072], face, P.hHead, head, { rough: 0.95, rot: [0.3, 0, 0] });
-  for (const s of [-1, 1]) b.blob([s * 0.039, 0.278, 0.218], [0.008, 0.01, 0.009], flat('#2a1a0c'), P.hHead, head, { rough: 0.1, w: 8, h: 5 });
-  b.blob([0, 0.24, 0.262], [0.011, 0.009, 0.007], flat('#5e4640'), P.hHead, head, { rough: 0.5, w: 6, h: 4 });
-  // the ears: long, dark-tipped, up and a little back; they lie flat on a run
-  const ear: Paint = (p, n) => (p[1] > 0.41 ? new THREE.Color('#1e1813') : n[2] > 0.35 ? new THREE.Color('#9a8270') : fur(p, n));
-  for (const s of [-1, 1]) b.blob([s * 0.03, 0.36, 0.165], [0.017, 0.078, 0.028], ear, P.hEars, [s * 0.025, 0.295, 0.185], { rough: 0.95, rot: [-0.35, 0, s * -0.12], w: 8, h: 6 });
-  b.blob([0, 0.19, -0.215], [0.024, 0.024, 0.02], flat('#cfc6b6'), P.hBody, [0, 0, 0], { rough: 1, w: 8, h: 5 });
-  for (const s of [-1, 1]) {
-    const hip: V3 = [s * 0.062, 0.16, -0.085];
-    b.blob([s * 0.062, 0.12, -0.085], [0.04, 0.068, 0.095], coat, P.hHind, hip, { rough: 0.95 });
-    b.blob([s * 0.06, 0.018, -0.035], [0.022, 0.016, 0.085], pale, P.hHind, hip, { rough: 1, w: 8, h: 5 });
-    const sh: V3 = [s * 0.042, 0.15, 0.13];
-    b.blob([s * 0.042, 0.085, 0.14], [0.021, 0.065, 0.024], coat, P.hFore, sh, { rough: 0.95, w: 8, h: 5 });
-    b.blob([s * 0.042, 0.01, 0.158], [0.016, 0.01, 0.026], pale, P.hFore, sh, { rough: 1, w: 6, h: 4 });
   }
 }
 
@@ -273,8 +139,7 @@ function hare(b: Builder): void {
  * The mesh arrives already in the pose frame the life code drives (birdModels.ts: the perched ones pre-tilted against
  * the pitch their perch gives them, the feet at the stand height).
  */
-function modelled(b: Builder, m: BirdMesh): void {
-  b.k = m.kind;
+function modelled(b: Packer, m: BirdMesh): void {
   const pos = m.geo.getAttribute('position'), nor = m.geo.getAttribute('normal'), uv = m.geo.getAttribute('uv');
   const white = new THREE.Color(1, 1, 1);
   const base = b.pos.length / 3;
@@ -282,7 +147,7 @@ function modelled(b: Builder, m: BirdMesh): void {
   for (let i = 0; i < pos.count; i++) {
     const p: V3 = [pos.getX(i), pos.getY(i), pos.getZ(i)], n: V3 = [nor.getX(i), nor.getY(i), nor.getZ(i)];
     const k = m.parts[i] ?? 0, part = PART[k] ?? P.body, pivot = PIVOT[k] ?? [0, 0, 0];
-    b.vert(p, n, white, part, pivot, m.rough, m.eyes && part === P.head ? 1 : 0, [uv.getX(i), uv.getY(i)], 1, m.fly ? 1 : 0);
+    b.vert(p, n, white, pivot, [part, m.kind, m.rough, m.eyes && part === P.head ? 1 : 0], [uv.getX(i), uv.getY(i), 1, m.fly ? 1 : 0]);
   }
   const idx = m.geo.getIndex();
   if (idx) for (let i = 0; i < idx.count; i++) b.idx.push(base + idx.getX(i));
@@ -397,9 +262,9 @@ float wlEye(vec3 t) { return smoothstep(0.3, 0.5, t.r) * smoothstep(0.18, 0.3, t
 
   /** the shared geometry: the hare (and, without `birds`, the procedural birds) + the modelled birds' two poses each */
   private build(birds: BirdSet | null): THREE.InstancedBufferGeometry {
-    const b = new Builder();
-    if (birds) { for (const m of birds.meshes) modelled(b, m); } else { raven(b); owl(b); woodpecker(b); }
-    hare(b);
+    const b = new Packer();
+    if (birds) { for (const m of birds.meshes) modelled(b, m); } else { b.baked(KIND.raven); b.baked(KIND.owl); b.baked(KIND.woodpecker); }
+    b.baked(KIND.hare);
     const src = b.geometry();
     const geo = new THREE.InstancedBufferGeometry();
     for (const [k, v] of Object.entries(src.attributes)) geo.setAttribute(k, v);
@@ -459,12 +324,10 @@ const REST: Readonly<Record<WildKind, Partial<Omit<WildPose, 'kind'>>>> = {
 /** one kind's own model in the shared geometry's layout (WildlifeMesh's `build`, the other kinds left out): the hare, or a
  *  bird — its two generated poses when `birds` has landed, else the procedural one; `from` lends the per-instance pose */
 function kindGeometry(kind: WildKind, birds: BirdSet | null, from: THREE.BufferGeometry): THREE.InstancedBufferGeometry {
-  const b = new Builder();
-  if (kind === KIND.hare) hare(b);
+  const b = new Packer();
+  if (kind === KIND.hare) b.baked(kind);
   else if (birds) { for (const m of birds.meshes) if (m.kind === kind) modelled(b, m); }
-  else if (kind === KIND.raven) raven(b);
-  else if (kind === KIND.owl) owl(b);
-  else woodpecker(b);
+  else b.baked(kind);
   const src = b.geometry();
   const geo = new THREE.InstancedBufferGeometry();
   for (const [k, v] of Object.entries(src.attributes)) geo.setAttribute(k, v);
@@ -494,5 +357,6 @@ export function wildlifeSpecimen(ctx: ModelContext, kind: WildKind, birds: BirdS
 export const snowshoeHare: ModelDef<object> = defineModel<object>({
   id: 'pine-hollow/snowshoe-hare', name: 'Snowshoe hare', category: 'creatures', pipeline: 'code', file: FILE, surface: 'flesh',
   defaults: {},
-  build: (ctx) => wildlifeSpecimen(ctx, KIND.hare),
+  build: (ctx) => wildlifeBaked() ? wildlifeSpecimen(ctx, KIND.hare)
+    : loadingSpecimen('pine-hollow/snowshoe-hare', [0.2, 0.42, 0.5], async () => { await preloadPineWildlife(); return wildlifeSpecimen(ctx, KIND.hare); }),
 });

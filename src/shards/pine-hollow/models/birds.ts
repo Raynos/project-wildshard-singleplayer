@@ -10,7 +10,8 @@
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { loadBirdModels, type BirdSet } from '../life/birdModels';
-import { KIND, wildlifeSpecimen, type WildKind } from './wildlife';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import { KIND, preloadPineWildlife, wildlifeBaked, wildlifeSpecimen, type WildKind } from './wildlife';
 
 const FILE = 'src/shards/pine-hollow/models/birds.ts';
 
@@ -25,7 +26,9 @@ function birdsOf(ctx: ModelContext): Birds {
 
 /** a bird's specimen: the generated one when it has landed, else the procedural stand-in, swapped when it lands */
 function bird(id: string, kind: WildKind): (ctx: ModelContext) => THREE.Object3D {
-  return (ctx) => {
+  const card = (ctx: ModelContext): THREE.Object3D => {
+    // the procedural stand-ins are an offline bake (G285): read first, as the play hook reads it
+    if (!wildlifeBaked()) return loadingSpecimen(id, [0.6, 0.3, 0.8], async () => { await preloadPineWildlife(); return card(ctx); });
     const birds = birdsOf(ctx);
     const holder = new THREE.Group();
     holder.add(wildlifeSpecimen(ctx, kind, birds.set));
@@ -40,6 +43,7 @@ function bird(id: string, kind: WildKind): (ctx: ModelContext) => THREE.Object3D
     }
     return holder;
   };
+  return card;
 }
 
 /** the common raven: 2–3 to every fresh kill (4 in the flock), and 3 more that fly ahead of you as breadcrumbs */

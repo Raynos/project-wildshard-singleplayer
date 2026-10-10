@@ -54,6 +54,8 @@ export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {
     '/assets/pine-hollow/baked/lookout.bin',
     // the zipline landing's and the creek footbridge's offline bake (G285, world/timberSites.ts)
     '/assets/pine-hollow/baked/site-timbers.bin',
+    // the procedural wildlife's offline bake (G285, models/wildlife.ts)
+    '/assets/pine-hollow/baked/wildlife.bin',
   ].map(gpu).filter((url) => url in publicBytes());
 }
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
