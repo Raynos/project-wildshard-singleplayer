@@ -1,4 +1,4 @@
 [
- {"id": "end", "card": "endC", "dur": 3},
+ {"id": "end", "card": "endC", "dur": 3, "credits": "Images: OpenAI Image  ·  Music: MiniMax-Music3  ·  Sound effects: Stable Audio 3 — Powered by Stability AI  ·  Built with Claude Code"},
  {"id": "cap-v4", "card": "bigcap", "dur": 6.4, "text": "Every shard is built by someone else."}
 ]

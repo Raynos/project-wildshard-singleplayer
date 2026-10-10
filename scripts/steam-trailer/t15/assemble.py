@@ -14,7 +14,7 @@ V, D = sys.argv[1], sys.argv[2]
 R = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 SCORE = {  # the picked MiniMax take per variant (score/<key>/minimax3-<seed>.wav)
     'v1-glyphs': 't15-v1/minimax3-501.wav', 'v2-map': 't15-v2/minimax3-501.wav',
-    'v3-postcards': 't15-v3/minimax3-501.wav', 'v4-seam': 't15-v4/minimax3-501.wav',
+    'v3-postcards': 't15-v3/minimax3-502.wav', 'v4-seam': 't15-v4/minimax3-502.wav',
 }
 # (family, at seconds, gain dB, seconds to keep or None, fade-out s)
 SFX = {
@@ -24,6 +24,8 @@ SFX = {
                      ('t15-card', 5.3, -6, None, 0), ('t15-slide', 6.5, -8, None, 0), ('t15-typing', 8.15, -11, 2.3, 0.15)],
     'v4-seam': [('t15-wind', 0.0, -12, 12.0, 0), ('t15-wind', 11.5, -16, 3.5, 2.5)],
 }
+if os.environ.get('T15_NOSFX'):  # a picture check before the sound effects exist
+    SFX[V] = []
 OVERRIDE = os.path.join(D, V, 'mix.json')  # a variant may carry its own placements (e.g. a lane's timing)
 if os.path.exists(OVERRIDE):
     o = json.load(open(OVERRIDE)); SCORE[V] = o.get('score', SCORE[V]); SFX[V] = [tuple(x) for x in o.get('sfx', SFX[V])]
@@ -54,7 +56,7 @@ json.dump(edl, open(os.path.join(work, 'edl.json'), 'w'), indent=1)
 # the mix: score + hits, loudness-normalised, 15 s with a short tail fade
 inputs, chains, labels = ['-i', os.path.join(D, 'score', SCORE[V])], ['[0:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=0:15.5[m]'], ['[m]']
 for k, (fam, at, gain, keep, fade) in enumerate(SFX[V]):
-    inputs += ['-i', os.path.join(D, 'sfx-best', f'{fam}.wav')]
+    inputs += ['-i', os.path.join(D, 'sfx-best', f'tr-{fam}.wav')]
     trim = f',atrim=0:{keep}' if keep else ''
     fo = f',afade=t=out:st={max(0, (keep or 2) - fade)}:d={fade}' if fade else ''
     chains.append(f'[{k + 1}:a]aformat=sample_rates=48000:channel_layouts=stereo{trim}{fo},volume={gain}dB,adelay={int(at * 1000)}|{int(at * 1000)}[s{k}]')

@@ -273,6 +273,7 @@ window.pose = (card, t, o) => {
     $('#endC .url').style.opacity = ease(ramp(t, 1.2, 1.7));
     $('#endC .label').style.opacity = ease(ramp(t, 1.4, 1.9));
     $('#endC .credits').style.opacity = ease(ramp(t, 1.6, 2.2));
+    if (o && o.credits) $('#endC .credits').textContent = o.credits; // a trailer made another way names its own tools (T15)
   } else if (card === 'end') {
     const v = ease(ramp(t, 0, 0.9));
     $('#end .veil').style.opacity = v;
