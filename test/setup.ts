@@ -57,6 +57,9 @@ installNalatiSpeciesForTests();
 // Nalati's species bodies are an offline bake the page fetches: tests read the committed file (species/bodies.ts)
 const { provideNalatiBodies, unshuffleBodyLanes } = await import('../src/shards/nalati-grasslands/species/bodies');
 provideNalatiBodies(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/bodies.bin')))));
+// and its camps' and bridge's places bake (world/placeBake.ts)
+const { provideNalatiPlaces } = await import('../src/shards/nalati-grasslands/world/placeBake');
+provideNalatiPlaces(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/places.bin')))));
 // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
 const { PINE_BOAR } = await import('../src/shards/pine-hollow/species/rows');
 const { PINE_BOAR_LOOK } = await import('../src/shards/pine-hollow/species/looks');

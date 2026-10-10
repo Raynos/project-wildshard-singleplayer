@@ -93,26 +93,38 @@ const isGenerated = <P>(b: Build<P>): b is GeneratedBuild<P> => 'gen' in b;
 const firsts = new WeakMap<object, { at: PaintAt; p: object }>();
 const ORIGIN: PaintAt = { x: 0, y: 0, z: 0, yaw: 0 };
 
+/** a painted specimen's geometry: one copy on a kit of its own, moved to the origin, each with its textured layer (null:
+ *  the POI material) — `painted`'s build without its materials (the places bake's specimens, generators/places.ts) */
+function specimenParts<P extends object>(paint: Paint<P>, spec: PaintSpec, build: object, p: P): { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] {
+  const first = spec.fitted === true ? firsts.get(build) : undefined;
+  const at = first?.at ?? ORIGIN;
+  const params: P = first ? { ...p, ...first.p } : p;
+  const ground: Ground = first ? (x, z) => heightAt(x, z) : () => at.y;
+  const kit = new PaintKit(spec.seed);
+  paint(kit, at, params, { ground, flutter: new Flutter(), smoke: new Smoke() });
+  const o: FinishOpts = { ...spec.finish, ground };
+  const parts: { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] = [];
+  const move = (g: THREE.BufferGeometry): THREE.BufferGeometry => { g.translate(-at.x, -at.y, -at.z); g.computeBoundingSphere(); g.computeBoundingBox(); return g; };
+  if (!kit.empty) parts.push({ geometry: move(kit.finish(o)), layer: null });
+  for (const name of spec.layers ?? []) {
+    const g = kit.finishTextured(o, name);
+    if (g) parts.push({ geometry: move(g), layer: name });
+  }
+  return parts;
+}
+
 /** a painted model's `build`: its specimen, one copy on a kit of its own, moved to the origin */
 export function painted<P extends object>(paint: Paint<P>, spec: PaintSpec): PaintedBuild<P> {
-  const build = (ctx: ModelContext, p: P): ModelPart[] => {
-    const first = spec.fitted === true ? firsts.get(build) : undefined;
-    const at = first?.at ?? ORIGIN;
-    const params: P = first ? { ...p, ...first.p } : p;
-    const ground: Ground = first ? (x, z) => heightAt(x, z) : () => at.y;
-    const kit = new PaintKit(spec.seed);
-    paint(kit, at, params, { ground, flutter: new Flutter(), smoke: new Smoke() });
-    const o: FinishOpts = { ...spec.finish, ground };
-    const parts: ModelPart[] = [];
-    const move = (g: THREE.BufferGeometry): THREE.BufferGeometry => { g.translate(-at.x, -at.y, -at.z); g.computeBoundingSphere(); g.computeBoundingBox(); return g; };
-    if (!kit.empty) parts.push({ geometry: move(kit.finish(o)), material: poiMaterial(ctx.sky), castShadow: true, receiveShadow: true });
-    for (const name of spec.layers ?? []) {
-      const g = kit.finishTextured(o, name);
-      if (g) parts.push({ geometry: move(g), material: texturedMaterial(ctx.sky, name), castShadow: true, receiveShadow: true });
-    }
-    return parts;
-  };
+  const build = (ctx: ModelContext, p: P): ModelPart[] => specimenParts(paint, spec, build, p)
+    .map(({ geometry, layer }) => ({ geometry, material: layer === null ? poiMaterial(ctx.sky) : texturedMaterial(ctx.sky, layer), castShadow: true, receiveShadow: true }));
   return Object.assign(build, { paint, spec });
+}
+
+/** a painted model's specimen geometry for `p` (its build's parts without materials); refuses any other model */
+export function paintedSpecimen<P extends object>(def: ModelDef<P>, p: P): { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] {
+  const b = def.build;
+  if (!isPainted(b)) throw new Error(`paintedSpecimen: ${def.id} is not a painted model`);
+  return specimenParts(b.paint, b.spec, b, p);
 }
 
 export interface GeneratedSpec<P> {
@@ -130,6 +142,11 @@ export interface GeneratedSpec<P> {
   readonly collide?: (at: ModelPlacement, p: P) => Made;
 }
 
+/** tell the Explorer a model's specimen has filled in (it re-frames the card) */
+export function modelReady(id: string): void {
+  if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id } }));
+}
+
 /** a generated (GLB) model's `build`: its specimen is the loaded file (filled in when it lands) */
 export function generated<P extends object>(spec: GeneratedSpec<P>): GeneratedBuild<P> {
   const build = (ctx: ModelContext): THREE.Object3D => {
@@ -138,7 +155,7 @@ export function generated<P extends object>(spec: GeneratedSpec<P>): GeneratedBu
       const mesh = new THREE.Mesh(m.geometry, m.material);
       mesh.castShadow = true; mesh.receiveShadow = true;
       g.add(mesh);
-      if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id: spec.id } }));
+      modelReady(spec.id);
       return m;
     }).catch((e: unknown) => { console.warn(`[nalati] model ${spec.name} failed`, e); });
     return g;
@@ -148,8 +165,9 @@ export function generated<P extends object>(spec: GeneratedSpec<P>): GeneratedBu
 
 const _box = new THREE.Box3(), _part = new THREE.Box3(), _pt = new THREE.Vector3();
 
-/** one model's copies in a set: where they stand, their boxes, what they made */
-interface Member {
+/** one model's copies in a set as data: where they stand, their boxes, what they made (the places bake writes these rows,
+ *  generators/places.ts; the page places them back, ./placeBake.ts) */
+export interface MemberData {
   readonly draw: Draw;
   /** true: its copies are painted into the set's kit (its mesh), false: the set's generated instances (its group) */
   readonly inKit: boolean;
@@ -160,7 +178,41 @@ interface Member {
   readonly solid: ColliderDesc[];
   readonly descs: ColliderDesc[];
   readonly floors: Platform[];
+}
+
+/** a set's generated models' instances of one model: their look and placements */
+export interface InstanceData { readonly look: ModelLook; readonly castShadow: boolean; readonly placements: ModelPlacement[] }
+
+/** one model's copies in a set, and how they are placed */
+interface Member extends MemberData {
   place: (o: SetRegister, object: THREE.Object3D) => Placed;
+}
+
+/** place one model's copies (`drawnInto` the set's mesh or group): what NalatiSet.register does per model */
+export function placeMember<P extends object>(def: ModelDef<P>, m: MemberData, o: SetRegister, object: THREE.Object3D): Placed {
+  const floor = m.floors.length === 0 ? undefined : m.floors.length === 1 ? m.floors[0] : highest(m.floors);
+  return place<P>(def, m.placements, {
+    ctx: o.ctx, draw: m.draw, ...(o.registry === undefined ? {} : { registry: o.registry }),
+    drawnInto: { object, boxes: Float32Array.from(m.boxes), colliders: [...m.solid, ...m.descs] },
+    piece: { solidFloor: true, ...(floor === undefined ? {} : { floor }), ...(o.split === undefined ? {} : { split: o.split }) },
+  });
+}
+
+/** instance a set's generated models into `group` as their files land: one InstancedMesh per model (a failed load draws
+ *  nothing and logs once; its colliders were registered already) */
+export function flushInstances(instances: Iterable<readonly [NalatiModelName, InstanceData]>, group: THREE.Object3D, sky: Sky): void {
+  for (const [name, l] of instances) {
+    if (l.placements.length === 0) continue;
+    loadNalatiModel(sky, name, l.look).then((m) => { group.add(instanceModel(m, l.placements, { castShadow: l.castShadow })); return m; })
+      .catch((e: unknown) => { console.warn(`[nalati] model ${name} failed`, e); });
+  }
+}
+
+/** a set's generated models' triangles (the POI's perf report) */
+export function instanceTris(instances: Iterable<readonly [NalatiModelName, InstanceData]>): number {
+  let n = 0;
+  for (const [name, l] of instances) n += MODEL_TRIS[name] * l.placements.length;
+  return n;
 }
 
 export interface SetRegister {
@@ -183,7 +235,7 @@ export class NalatiSet {
   readonly kit: Kit;
   private readonly members = new Map<string, Member>();
   /** the generated models' instances, per model, in the order they were first put */
-  private readonly instances = new Map<NalatiModelName, { look: ModelLook; castShadow: boolean; placements: ModelPlacement[] }>();
+  private readonly instances = new Map<NalatiModelName, InstanceData>();
   private tracking = false;
   /** every box every copy made, in order (the POI's `colliders` data) */
   readonly boxes: Box[] = [];
@@ -221,14 +273,7 @@ export class NalatiSet {
     if (!m) {
       const mm: Member = {
         draw, inKit, placements: [], boxes: [], solid: [], descs: [], floors: [],
-        place: (o, object) => {
-          const floor = mm.floors.length === 0 ? undefined : mm.floors.length === 1 ? mm.floors[0] : highest(mm.floors);
-          return place<P>(def, mm.placements, {
-            ctx: o.ctx, draw: mm.draw, ...(o.registry === undefined ? {} : { registry: o.registry }),
-            drawnInto: { object, boxes: Float32Array.from(mm.boxes), colliders: [...mm.solid, ...mm.descs] },
-            piece: { solidFloor: true, ...(floor === undefined ? {} : { floor }), ...(o.split === undefined ? {} : { split: o.split }) },
-          });
-        },
+        place: (o, object) => placeMember(def, mm, o, object),
       };
       this.members.set(def.id, mm);
       m = mm;
@@ -292,16 +337,14 @@ export class NalatiSet {
   }
 
   /** the generated models' triangles (the POI's perf report) */
-  tris(): number { let n = 0; for (const [name, l] of this.instances) n += MODEL_TRIS[name] * l.placements.length; return n; }
+  tris(): number { return instanceTris(this.instances); }
 
-  /** instance the generated models into `group` as their files land: one InstancedMesh per model (a failed load draws
-   *  nothing and logs once; its colliders were registered already) */
-  flush(group: THREE.Object3D, sky: Sky): void {
-    for (const [name, l] of this.instances) {
-      if (l.placements.length === 0) continue;
-      loadNalatiModel(sky, name, l.look).then((m) => { group.add(instanceModel(m, l.placements, { castShadow: l.castShadow })); return m; })
-        .catch((e: unknown) => { console.warn(`[nalati] model ${name} failed`, e); });
-    }
+  /** instance the generated models into `group` as their files land (`flushInstances`) */
+  flush(group: THREE.Object3D, sky: Sky): void { flushInstances(this.instances, group, sky); }
+
+  /** the set as data, in order: each model's copies (by model id) and the generated instances (the places bake) */
+  rows(): { readonly members: readonly (readonly [string, MemberData])[]; readonly instances: readonly (readonly [NalatiModelName, InstanceData])[] } {
+    return { members: [...this.members.entries()], instances: [...this.instances.entries()] };
   }
 
   /** place every model of the set, in the order they were first put (so the physics sees the old builder's colliders

@@ -19,8 +19,9 @@ import { fieldstone } from '../../../src/shards/nalati-grasslands/models/fieldst
 import { kurganEntrance } from '../../../src/shards/nalati-grasslands/models/kurganEntrance';
 import { balbal } from '../../../src/shards/nalati-grasslands/models/balbal';
 import { checkModels, ON_CONTRACT } from '../../../scripts/check-models.mjs';
-import { yurt } from '../../../src/shards/nalati-grasslands/models/yurt';
-import { barrel, corral } from '../../../src/shards/nalati-grasslands/models/campProps';
+// the painted defs the places bake paints with (the page's defs draw the bake: world/placeBake.ts)
+import { yurtPainted as yurt } from '../../../src/shards/nalati-grasslands/generators/yurt';
+import { barrelPainted as barrel, corralPainted as corral } from '../../../src/shards/nalati-grasslands/generators/campProps';
 import { kazan, firewood } from '../../../src/shards/nalati-grasslands/models/campGenerated';
 import { fence, fenceRun, addFence } from '../../../src/shards/nalati-grasslands/models/fence';
 import { signpost, boardSpots } from '../../../src/shards/nalati-grasslands/models/signpost';

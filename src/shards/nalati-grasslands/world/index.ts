@@ -35,6 +35,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { Flutter } from './Flutter';
 import { Smoke } from './Smoke';
 import { nomadCampSteps } from './NomadCamp';
+import { preloadNalatiPlaces } from './placeBake';
 import { buildBridge } from './Bridge';
 import { buildRoadFurniture } from './RoadFurniture';
 import { summerCampSteps } from './SummerCamp';
@@ -85,6 +86,7 @@ export class NalatiPOIs {
   /** `build`, a task apart per POI (SF67: the camp, the kurgans and the crags were 0.4–1.2 s of one task at 4× CPU); the
    *  same pieces in the same order from the same rng streams */
   async buildSliced(yieldTask: () => Promise<void>): Promise<this> {
+    await preloadNalatiPlaces(); // the camps' and the bridge's bake (./placeBake.ts)
     const steps = this.steps();
     while (steps.next().done !== true) await yieldTask();
     return this;

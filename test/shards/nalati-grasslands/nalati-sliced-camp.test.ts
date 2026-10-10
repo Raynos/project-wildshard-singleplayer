@@ -39,7 +39,7 @@ it('builds the camp a part a task with the one-task camp', () => {
   const steps = nomadCampSteps({ sky, ground, flutter: new Flutter(), smoke: new Smoke() });
   let parts = 0, step = steps.next();
   while (step.done !== true) { parts++; step = steps.next(); }
-  expect(parts).toBeGreaterThan(10);
+  expect(parts).toBe(4); // the places bake: a baked mesh a task (the yard, the felt, the painted mesh, the timber)
   const camp = step.value;
   expect(fingerprint([camp.object], [camp.colliders, camp.tris])).toBe(fingerprint([eager.object], [eager.colliders, eager.tris]));
 });
@@ -48,7 +48,7 @@ it('builds the summer camp and the kurgan field a part a task with their one-tas
   const ctx = () => ({ sky, ground, flutter: new Flutter(), smoke: new Smoke() });
   const drain = <T>(steps: Generator<void, T>): [T, number] => { let parts = 0; for (;;) { const step = steps.next(); if (step.done === true) return [step.value, parts]; parts++; } };
   const summer = buildSummerCamp(ctx()), [summerSliced, summerParts] = drain(summerCampSteps(ctx()));
-  expect(summerParts).toBeGreaterThan(4);
+  expect(summerParts).toBe(4); // a baked mesh a task
   expect(fingerprint([summerSliced.object], [summerSliced.colliders, summerSliced.tris])).toBe(fingerprint([summer.object], [summer.colliders, summer.tris]));
   const field = buildKurganField(ctx()), [fieldSliced, fieldParts] = drain(kurganFieldSteps(ctx()));
   expect(fieldParts).toBeGreaterThan(4);
