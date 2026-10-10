@@ -38,8 +38,8 @@ for (const baker of NODE_BAKERS) if (only === undefined || only === baker) {
 
 const metal = only === undefined && process.platform === 'darwin' && spawnSync('system_profiler', ['SPDisplaysDataType'], { encoding: 'utf8' }).stdout.includes('Metal');
 if (only !== undefined) { /* one node baker: no GPU bakers */ }
-else if (!metal) console.log('bake-check: GPU bakers skipped (no Metal): bake-cards, bake-textures');
-else if (skipGpu) console.log('bake-check: GPU bakers queued: bake-cards, bake-textures');
+else if (!metal) console.log('bake-check: GPU bakers skipped (no Metal): bake-textures');
+else if (skipGpu) console.log('bake-check: GPU bakers queued: bake-textures');
 else if (!state.failed) {
   const scratch = mkdtempSync(join(tmpdir(), 'bake-check-'));
   let preview;
@@ -64,8 +64,9 @@ else if (!state.failed) {
       }
       if (!ready) throw new Error('bake-check: preview did not start');
       const base = join(ROOT, 'public/assets/baked');
-      for (const slug of readdirSync(base).sort()) for (const kind of ['cards', 'textures']) {
-        if (existsSync(join(base, slug, `${kind}.json`))) run(['scripts/browser-lane.sh', '--max', '4', process.execPath, `scripts/bake-${kind}.mjs`, '--check', '--url', url, '--chunk', slug], 'bash');
+      // bake-cards retired (SF87): no shard ships branch cards since G285 (a11cce5d2)
+      for (const slug of readdirSync(base).sort()) {
+        if (existsSync(join(base, slug, 'textures.json'))) run(['scripts/browser-lane.sh', '--max', '4', process.execPath, 'scripts/bake-textures.mjs', '--check', '--url', url, '--chunk', slug], 'bash');
       }
     }
   } finally {
