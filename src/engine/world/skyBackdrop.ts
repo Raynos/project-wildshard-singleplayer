@@ -4,7 +4,7 @@ import type { Renderer } from '../render/renderer';
 import type { Scope } from '../app/scope';
 import type { SkyRig as Sky } from './skyRig';
 import type { SkySpec } from '../level/data';
-import type { LevelSpec } from '../level/spec';
+import { levelBakedId, type LevelSpec } from '../level/spec';
 import type { SkyDressing } from '../render/look';
 import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
@@ -58,7 +58,7 @@ export class SkyBackdropView {
 
   /** the default rig (no backdrop): the HDRI is the background and the IBL; returns the fog colour. */
   async setupHDRI(): Promise<THREE.Color> {
-    const { sky: S, id } = this.level;
+    const { sky: S } = this.level, id = levelBakedId(this.level);
     const hdriName = S.hdri;
     if (hdriName === undefined) throw new Error('Sky: the HDRI rig needs level.sky.hdri');
     // baked procedural textures (clouds, fur…) and the baked sun / horizon (scripts/bake-sky.mjs) ride along with the HDR

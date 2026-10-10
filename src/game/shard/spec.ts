@@ -1,14 +1,17 @@
 import type { EngineMechanism, LevelSpec } from '@wildshard/engine/level/spec';
 import { bakedMapUrl, type ShardManifest } from './manifest';
+import { legacyContentIdentity } from './list';
 
 const ENGINE_MECHANISMS: ReadonlySet<string> = new Set(['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice']);
 const engineMechanism = (value: string): value is EngineMechanism => ENGINE_MECHANISMS.has(value);
 
-/** Pure, node-safe boundary. Only authored engine policy crosses it, never title or game metadata. */
+/** Node-safe boundary. Only authored engine policy crosses it, never title or game metadata. */
 export function toLevelSpec(manifest: ShardManifest): LevelSpec {
+  const bakedId = manifest.legacy === true ? legacyContentIdentity(manifest.slug) : undefined;
   const { style: creatureStyle, dev } = manifest; // opaque authored metadata, copied without a rendering decision
   return {
     id: manifest.slug,
+    ...(bakedId === undefined ? {} : { bakedId }),
     seed: manifest.seed, treeCount: manifest.treeCount, label: manifest.label,
     ...(dev === undefined ? {} : { capturePoses: async () => Object.fromEntries(Object.entries(await dev.poses()).map(([name, pose]) => [name, { eye: pose.eye, yaw: pose.yaw, pitch: pose.pitch, ...(pose.feet === undefined ? {} : { feet: pose.feet }), ...(pose.probe === undefined ? {} : { probe: pose.probe }) }])) }),
     ...(manifest.horizonStrips === undefined ? {} : { horizonStrips: manifest.horizonStrips }),

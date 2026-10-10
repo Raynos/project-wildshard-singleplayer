@@ -16,7 +16,7 @@ import type { SkyRig as Sky } from '../world/skyRig';
 import { Tour } from './Tour';
 import * as Heightfield from '../world/Heightfield';
 import { macrotask, slicer, type StepRunner } from '../boot/plan';
-import { needsTerrainCollider, type LevelSpec } from '../level/spec';
+import { levelBakedId, needsTerrainCollider, type LevelSpec } from '../level/spec';
 import { loadRapier } from '../physics/rapier';
 import { Physics } from '../physics/Physics';
 import { setActiveBodies, setActivePhysics } from '../physics/active';
@@ -61,7 +61,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
   // The selected shard was resolved before main.ts removes ?chunk from a standalone PWA URL.
   const def = level;
   const rapier = loadRapier(); // streamed compile from the first moment of boot; the `physics` step below awaits it
-  const navmesh = loadNavmesh(def.id); // the shard's baked navmesh (P6b), a declared boot file; the `physics` step awaits it
+  const navmesh = loadNavmesh(def.id, levelBakedId(def)); // the shard's baked navmesh (P6b), a declared boot file; the `physics` step awaits it
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const game = await step('renderer', async (progress) => {
     // SF67: the session's file lists and prefetch, then the context and the renderer, were one 100-116 ms task at 4x CPU.

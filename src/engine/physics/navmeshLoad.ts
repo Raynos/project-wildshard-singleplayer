@@ -18,10 +18,11 @@ export function setActiveNavmesh(levelId: string, navmesh: Navmesh | null): void
  * Fetch and parse the level `levelId`'s navmesh and make it the active one (the `physics` step; the file is a declared boot file, so
  * the loading bar counts it and the service worker caches it). Resolves null — a warning, never a failure — when the
  * build has none or it doesn't parse: the creatures then steer as they did before the navmesh.
+ * `bakedId` selects an authored offline folder; cache ownership remains the independent `levelId`.
  */
-export async function loadNavmesh(levelId: string): Promise<Navmesh | null> {
+export async function loadNavmesh(levelId: string, bakedId = levelId): Promise<Navmesh | null> {
   if (app.navmeshId === levelId) return app.navmesh;
-  const url = navmeshUrl(levelId);
+  const url = navmeshUrl(bakedId);
   if (url === null) return null;
   try {
     const res = await fetch(url);

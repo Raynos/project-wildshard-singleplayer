@@ -428,6 +428,13 @@ the update-phase event reports the final mode for that frame, so intermediate ch
 
 ## 5a. LevelSpec and LevelContext: all the engine sees of a level
 
+`LevelSpec.bakedId` optionally names the offline resource folder independently of `id`.
+`levelBakedId(level)` (the defining `engine/level/spec` module) resolves it, defaulting to `id`.
+Terrain, procedural textures, HDR sky metadata/LUT and viewmodel planes use that resolved folder;
+`loadNavmesh(levelId, bakedId?)` keeps cache ownership under `levelId` while fetching that folder.
+The game supplies it only for an inventoried, registered legacy copy, preserving its separate level and save identity.
+Branch-card URL readers take the resolved folder too (Pine already names its original folder explicitly).
+
 The engine never reads a manifest. `@wildshard/game`'s `toLevelSpec(manifest)` turns it into a `LevelSpec`, then calls
 `app.loadLevel(spec, hooks)`. The hooks wrap your plugin's `world`, `kit` and `play`.
 

@@ -1,3 +1,4 @@
+import { levelBakedId } from '../../level/spec';
 import { app } from '../../app/runtime';
 import * as THREE from 'three';
 import type { Game } from '../../core/Game';
@@ -92,7 +93,7 @@ const WORKER_TIMEOUT_MS = 20000;
  * to draw: every one on the images path, or with no stand-in.
  */
 async function adoptBakedSets(sets: readonly SetName[]): Promise<SetName[]> {
-  const slug = activeLevel().id;
+  const slug = levelBakedId(activeLevel());
   const planes = ['col', 'nrm', 'arm'] as const;
   await Promise.all(sets.map(async (name) => {
     const [map, normalMap, armMap] = await Promise.all(planes.map((plane) => ktx2Texture(viewmodelBakeUrl(slug, name, plane)).catch(() => null)));

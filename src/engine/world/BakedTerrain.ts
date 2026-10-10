@@ -15,6 +15,7 @@ import { publicBytes } from '../boot/tables';
 import { captureHeightfield, type HeightfieldBinding } from './Heightfield';
 import { SEED } from '../core/config';
 import type { TerrainField } from '../level/data';
+import { levelBakedId } from '../level/spec';
 
 export interface BakedGrid { res: number; size: number; seed: number; /** retained legacy header field; the build checks complete output bytes */ landscapeHash: number; heights: Float32Array; splat: Uint8Array; /** the undergrowth decision log, when the bake has one */ undergrowth: BakedPlacement | null }
 
@@ -115,7 +116,7 @@ export function installBakedGrid(grid: BakedGrid, binding: HeightfieldBinding = 
 export async function loadBakedTerrain(binding: HeightfieldBinding = captureHeightfield()): Promise<boolean> {
   const levelId = binding.level.id, seed = binding.level.seed ?? SEED;
   if (installed.has(binding)) return true;
-  const url = bakedTerrainUrl(levelId);
+  const url = bakedTerrainUrl(levelBakedId(binding.level));
   if (!url || new URLSearchParams(location.search).has('nobake')) return false; // ?nobake=1: A/B against the analytic field
   try {
     const res = await fetch(url);

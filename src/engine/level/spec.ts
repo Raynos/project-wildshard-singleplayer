@@ -61,6 +61,8 @@ export interface LoadoutSpec {
 export interface LevelSpec {
   blender?: { area: { x0: number; x1: number; z0: number; z1: number }; models: readonly string[] };
   id: string;
+  /** Optional offline asset folder; level/save identity stays `id`. Omit for the ordinary same-folder path. */
+  bakedId?: string;
   seed?: number; treeCount?: number; label?: string;
   creatureStyle?: string; creatures?: CreatureRenderSpec;
   debugOptions?: readonly string[];
@@ -102,3 +104,6 @@ export function resolveTierKnobs(defaults: TierKnobs, kit: TierKnobs, level: Tie
 export function needsTerrainCollider(spec: Pick<LevelSpec, 'ground'>): boolean {
   return spec.ground.terrain !== undefined && spec.ground.structures !== true;
 }
+
+/** Offline resource identity supplied by the level author, independent of simulation and save identity. */
+export function levelBakedId(level: Pick<LevelSpec, 'id' | 'bakedId'>): string { return level.bakedId ?? level.id; }

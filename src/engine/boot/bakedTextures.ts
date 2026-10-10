@@ -18,6 +18,7 @@ import { fetchImage, tierUrl, versionedUrl } from './bytes';
 import { TIER } from '../core/tier';
 import { ktx2Texture } from '../core/ktx2';
 import { activeLevel } from '../level/selection';
+import { levelBakedId } from '../level/spec';
 import { labelAsset, labelClone } from '../render/gpuLabels';
 
 const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
@@ -51,7 +52,7 @@ function urlFor(slug: string, name: string): string | null {
 export async function preloadBakedTextures(): Promise<number> {
   if (NOBAKE) return 0;
   const level = activeLevel();
-  const slug = level.id;
+  const slug = levelBakedId(level);
   const urls = bakedTextureUrls(slug, level.boot.bakedUnread);
   const common = level.boot.files(TIER).filter((u) => u.startsWith(COMMON) && u.endsWith('.bin'));
   await Promise.all([...common.map(async (u) => {
@@ -82,7 +83,7 @@ export function bakedBytes(url: string, length: number): Uint8Array | null {
  * `make()`'s result. `lossless` picks PNG over JPEG at export (normal maps, masks).
  */
 export function bakedTexture(name: string, make: () => THREE.Texture, opts: { lossless?: boolean } = {}): THREE.Texture {
-  const slug = activeLevel().id;
+  const slug = levelBakedId(activeLevel());
   const url = NOBAKE ? null : urlFor(slug, name);
   const image = url ? loaded.get(url) : undefined;
   if (image instanceof THREE.CompressedTexture) { // mips come with the file; callers set wrap / filters / colorSpace as for an image
