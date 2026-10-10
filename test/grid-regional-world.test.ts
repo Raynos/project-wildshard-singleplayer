@@ -281,17 +281,17 @@ it('hands the same resolved look backdrop to the regional sky and keeps it alive
   } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
 });
 
-it('borrows the warmed sky environment without taking or repeating its native disposal', async () => {
+it('borrows the sky environment created by attachment without taking or repeating its native disposal', async () => {
   const f = fixture(), environment = new DataTexture(), disposed = vi.fn<() => void>();
   f.allocator.markMeasuredPage(f.claim.id);
   environment.addEventListener('dispose', disposed);
   const skyOwner = f.scope.child('fixture sky'); ownSceneResource(environment, skyOwner);
-  const holder = new Scene(); holder.environment = environment;
+  const holder = new Scene();
   Object.setPrototypeOf(f.world.sky, SkyRig.prototype);
   Reflect.set(f.world.sky, 'scopeLevelLook', () => null);
   Reflect.set(f.world.sky, 'layeredBackdrop', () => Promise.resolve({
     backdrop: { dispose: noop, gpuBytes: () => 4, gpuCeiling: () => 4, lut: null },
-    layer: { holder, attach: noop, weight: 0, state: () => ({ weight: 0, drawn: false, bytes: 4 }),
+    layer: { holder, attach: () => { holder.environment = environment; }, weight: 0, state: () => ({ weight: 0, drawn: false, bytes: 4 }),
       dispose: () => { skyOwner.dispose(); } },
   }));
   const level: LevelSpec = { ...f.region, look: () => Promise.resolve({ compose: () => ({}), backdrop: () => { throw new Error('The fixture sky owns its build'); } }) };

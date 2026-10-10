@@ -216,7 +216,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           // G223 / G232: its level's own sky backdrop laid over the one sky by its owner weight
           if (look !== null && sky instanceof SkyRig) skyReady = (async () => {
             try {
-              const made: { backdrop: LayeredBackdrop | null; environment: Texture | null } = { backdrop: null, environment: null };
+              const made: { backdrop: LayeredBackdrop | null; environment: (() => Texture | null) | null } = { backdrop: null, environment: null };
               const measured = textures.mode === 'img' ? request.manifest.runtimeCost?.imagesFirst ?? request.manifest.runtimeCost : request.manifest.runtimeCost;
               const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident,
                 ...(measured?.residentBaseMB === undefined ? {} : { coveredBy: request.claim.id }), layered: async () => {
@@ -224,7 +224,8 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null), planet: levelLook?.sky?.planet !== false, clouds: levelLook?.sky?.clouds !== false });
                 if (layered === null) return null;
                 made.backdrop = layered.backdrop;
-                made.environment = layered.layer.holder.environment;
+                // Attachment binds the clock and creates its PMREM. Read that environment after attach, not before.
+                made.environment = () => layered.layer.holder.environment;
                 // its clock turns the page's saturation with its hour as standalone, where the page carries its chain
                 // and its shafts where the page carries a cinematic chain's (SF63 follow-up)
                 const post = look.post?.(cell.instance) ?? null;
@@ -236,7 +237,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 lut = made.backdrop?.lut ?? null;
                 // The subtree is not a render target. Warm-up borrows the same sky environment the page will draw
                 // on entry, after the real sky build and its unchanged residency admission have finished.
-                scene.environment = made.environment;
+                scene.environment = made.environment?.() ?? null;
                 resident.onDispose(() => { scene.environment = null; }); // borrowed: the sky layer owns its disposal
               }
               else if (outcome === 'off' && !left() && (look.post?.() ?? null) !== null) {
