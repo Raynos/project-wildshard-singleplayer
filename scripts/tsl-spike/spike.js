@@ -41,6 +41,12 @@
 //   family-toonwater / graph-toonwater  as the toon pair under a water level at 3 m (strength 3, so the metric sees them): the caustics (SF59 step 7)
 //   family-paintsway / graph-paintsway  as the painterly pair with the wind sway on (sway 0.3): the vertex offset from the
 //              instance origin and the geometry's height, frozen at the look's clock 0 (SF59 step 7)
+//   preset-toon  the boxes from an admitted shardfile whose material is a PRESET REFERENCE ({ family: "graph", preset:
+//              <the toon entry>, version: 1 }) through clientMaterials (graphs on): the engine-owned preset door, held to
+//              parity with family-toon (no cold-compile constant: the program is the engine's, content adds nothing)
+//   graph-inkpost  graph-ink plus its edge post (stress.js inkPostGraph, SF59 (2b)) as the screen pass, compiled by the
+//              graph compiler over the scene colour, the target's depth texture and a normal pre-pass (the scene again
+//              with a MeshNormalMaterial override into a second target, shadows not redrawn): the post's cost at 2×
 // SF59 step 2: the TSL variants run the ENGINE's back-end (src/engine/render/nodes/, loaded lazily through
 // render/graphBackend.ts): its output transform, its target-texture flip fix, its fog epilogue and its tent shadow filter.
 // Every variant installs the engine's tent (shadowFilter.ts, 7×7 at radius 1.5), as the game's sky rig does.
@@ -58,7 +64,7 @@ import { loadGraphBackend, loadGraphCompiler } from '@wildshard/engine/render/gr
 import { emissiveGraph, painterlyGraph, pbrMeasureGraph, PRESET_GRAPH_BUDGET, toonGraph } from '@wildshard/engine/render/graph/presets';
 import { compileToon, ToonLook } from '@wildshard/engine/render/families/toon';
 import { compilePainterly, PainterlyLook } from '@wildshard/engine/render/families/painterly';
-import { inkGraph, opsOf, pastelGraph } from './stress.js';
+import { inkGraph, inkPostGraph, opsOf, pastelGraph } from './stress.js';
 import { targetTexture } from '@wildshard/engine/render/nodes/engineNodesHandler';
 import { installFrameCounter, renderCount } from '@wildshard/engine/render/frameCounter';
 import { installShadowFilter } from '@wildshard/engine/world/shadowFilter';
@@ -114,7 +120,8 @@ const LABELS = VARIANT.endsWith('-labels');
 const EMIT = VARIANT.endsWith('-emit') || VARIANT.endsWith('-tube');
 const SHARDFILE = VARIANT.endsWith('-sf');
 const WATER = VARIANT.endsWith('-toonwater'), SWAY = VARIANT.endsWith('-paintsway');
-const TOON = VARIANT.endsWith('-toon') || WATER, PAINT = VARIANT.endsWith('-paint') || SWAY, STRESS = VARIANT === 'graph-pastel' || VARIANT === 'graph-ink';
+const INKPOST = VARIANT === 'graph-inkpost', PRESET = VARIANT === 'preset-toon';
+const TOON = VARIANT.endsWith('-toon') || WATER, PAINT = VARIANT.endsWith('-paint') || SWAY, STRESS = VARIANT === 'graph-pastel' || VARIANT === 'graph-ink' || INKPOST;
 const compiler = GRAPH && !SHARDFILE ? await loadGraphCompiler(renderer) : null; // the graph compiler, the same lazy door
 
 // ── the scene ──
@@ -282,7 +289,7 @@ if (LABELS) {
 /** graph / graph-roles: the boxes from the compiler (the preset IR plus the page's cold-compile constant on the glow) */
 function graphMat() {
   if (TOON || PAINT || STRESS) {
-    const ir = VARIANT === 'graph-pastel' ? pastelGraph(Number(NONCE)) : VARIANT === 'graph-ink' ? inkGraph(Number(NONCE)) : TOON ? toonGraph(toonParams, toonLook.params) : painterlyGraph(paintParams, paintLook.params);
+    const ir = VARIANT === 'graph-pastel' ? pastelGraph(Number(NONCE)) : VARIANT === 'graph-ink' || INKPOST ? inkGraph(Number(NONCE)) : TOON ? toonGraph(toonParams, toonLook.params) : painterlyGraph(paintParams, paintLook.params);
     const withNonce = STRESS ? ir : { ...ir, nodes: { ...ir.nodes, nonceE: { op: 'const', value: Number(NONCE) } }, stages: { ...ir.stages, surface: { ...ir.stages.surface, emissive: 'nonceE' } } };
     const g = compiler.compileGraph(withNonce, { budget: PRESET_GRAPH_BUDGET });
     graphReadout = { cost: g.cost, selects: g.selects, ops: opsOf(ir), outline: g.outline !== null };
@@ -333,8 +340,20 @@ async function shardfileMat() {
   shardfileReadout = { ...look.graphs.readout, material: material.type };
   return material;
 }
+/** preset-toon: the same fixture path as graph-sf, the material a preset reference to the page's toon entry */
+async function presetMat() {
+  const base = emptyShardfile({ slug: 'preset-fixture', name: 'Preset fixture', author: 'Local', seed: 1, revision: 1 });
+  const shard = parseShardfile({ ...base, look: { ...base.look, materials: { box: { family: 'graph', preset: { family: 'toon', colour: [0.85, 0.62, 0.42], vertexColours: false }, version: 1 } } } });
+  const rules = materialGraphRules(shard);
+  if (rules.length > 0) throw new Error(`spike: preset fixture refused: ${rules.join('; ')}`);
+  const look = await clientMaterials(shard, new Map(), renderer, new Scope('sf59.preset'), { graphs: true });
+  const material = look.materials.get('box');
+  if (material === undefined) throw new Error('spike: no preset material');
+  shardfileReadout = { ...look.graphs.readout, material: material.type };
+  return material;
+}
 const familyStyled = () => (TOON ? compileToon(toonParams, toonLook) : compilePainterly(paintParams, paintLook, () => { throw new Error('spike: no textures'); }));
-const boxMat = SHARDFILE ? await shardfileMat() : !tsl && (TOON || PAINT) ? familyStyled() : VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : GRAPH ? graphMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : EMIT ? compileEmissive(emitParams, emitLook, emitTextures) : familyMat();
+const boxMat = PRESET ? await presetMat() : SHARDFILE ? await shardfileMat() : !tsl && (TOON || PAINT) ? familyStyled() : VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : GRAPH ? graphMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : EMIT ? compileEmissive(emitParams, emitLook, emitTextures) : familyMat();
 if (!tsl && VARIANT !== 'warmup') {
   patchShader(boxMat, 'spike.nonce', PATCH_ORDER.decorate, (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace(/\}\s*$/, `  gl_FragColor.rgb += vec3( ${NONCE} );\n}`);
@@ -362,6 +381,18 @@ if (graphOutline instanceof MeshBasicNodeMaterial) compiler.attachOutline(boxes,
 // ── the screen pass: the engine's half-float target, then a grade + filmic + vignette to the screen ──
 const W = Math.floor(window.innerWidth * 2), H = Math.floor(window.innerHeight * 2);
 const target = new THREE.WebGLRenderTarget(W, H, { type: THREE.HalfFloatType, depthBuffer: true });
+// graph-inkpost: the post reads the scene's depth (a depth texture on the target) and a normal pre-pass target
+if (INKPOST) target.depthTexture = new THREE.DepthTexture(W, H);
+const normalTarget = INKPOST ? new THREE.WebGLRenderTarget(W, H, { depthBuffer: true }) : null;
+const normalOverride = new THREE.MeshNormalMaterial();
+let postReadout = null;
+/** graph-inkpost: the ink valley's edge post through the graph compiler, over the three scene inputs */
+function inkPost() {
+  if (compiler === null || normalTarget === null) throw new Error('spike: inkpost needs the compiler');
+  const g = compiler.compileGraph(inkPostGraph(Number(NONCE)), { scene: target.texture, depth: { texture: target.depthTexture, near: camera.near, far: camera.far }, normal: normalTarget.texture });
+  postReadout = { cost: g.cost, ops: opsOf(inkPostGraph()) };
+  return g.material;
+}
 const post = { exposure: 1.1, saturation: 1.15, lift: [0.02, 0.01, 0.03], gain: [1.02, 1.0, 0.96], vignette: 0.35 };
 const GLSL_POST = /* glsl */`
 uniform sampler2D tSrc; uniform float uExposure, uSaturation, uVignette; uniform vec3 uLift, uGain; varying vec2 vUv;
@@ -402,13 +433,20 @@ function tslPost() {
   return m;
 }
 const postScene = new THREE.Scene();
-const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), VARIANT === 'tsl-post' || VARIANT === 'tsl-sway' ? tslPost() : glslPost());
+const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), INKPOST ? inkPost() : VARIANT === 'tsl-post' || VARIANT === 'tsl-sway' ? tslPost() : glslPost());
 quad.frustumCulled = false;
 postScene.add(quad);
 const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
 function frame() {
   if (csm !== null) csm.update();
+  if (normalTarget !== null) {
+    // the normal pre-pass: the scene again with packed view normals, shadows not redrawn
+    const auto = renderer.shadowMap.autoUpdate;
+    renderer.shadowMap.autoUpdate = false; scene.overrideMaterial = normalOverride;
+    renderer.setRenderTarget(normalTarget); renderer.render(scene, camera);
+    scene.overrideMaterial = null; renderer.shadowMap.autoUpdate = auto;
+  }
   renderer.setRenderTarget(target);
   renderer.render(scene, camera);
   renderer.setRenderTarget(null);
@@ -476,7 +514,7 @@ async function run() {
   const err = gl.getError();
   if (err !== gl.NO_ERROR) errors.push(`gl error ${err}`);
   return {
-    variant: VARIANT, ua: navigator.userAgent, shardfile: shardfileReadout, graph: graphReadout, size: [W, H], instances: GRID * GRID,
+    variant: VARIANT, ua: navigator.userAgent, shardfile: shardfileReadout, graph: graphReadout, post: postReadout, size: [W, H], instances: GRID * GRID,
     uniformBlockLimit: gl.getParameter(gl.MAX_UNIFORM_BLOCK_SIZE),
     compileMs: round(tCompile, 1), firstDrawMs: round(tFirst, 1), stallMs: round(tCompile + tFirst, 1),
     nodeBuildMs: handler ? round(handler.buildMs, 1) : 0, nodeBuilds: handler ? handler.builds : 0,

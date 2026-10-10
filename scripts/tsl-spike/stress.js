@@ -104,6 +104,39 @@ export function inkGraph(nonce = 0) {
   };
 }
 
+/**
+ * C's edge post (SF59 (2b)): the ink valley's screen pass as a post graph over the scene inputs: a depth edge (the centre
+ * view distance against four depth taps, relative, so a far ridge and a near rock ink alike), a normal crease (the centre
+ * normal against two normal taps) and the colour, tone-mapped (x / (1 + x)) and crushed to ink on an edge, faded by the
+ * distance so the far valley stays a wash. Three samplers (colour, depth, normal); the normal needs the pre-pass.
+ * `nonce`: the bench's cold-compile constant.
+ */
+export function inkPostGraph(nonce = 0) {
+  const taps = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const nodes = {
+    uv: N('screenUV'), px: { op: 'param', param: 'texel' }, inkP: { op: 'param', param: 'ink' }, widthP: { op: 'param', param: 'width' },
+    c: N('sceneColour'), rgb: SW('c', 'xyz'), d: N('sceneDepth'), n: N('sceneNormal'), step: N('mul', 'px', 'widthP'),
+  };
+  let dsum = 0;
+  taps.forEach(([x, y], i) => {
+    nodes[`o${i}`] = N('mul', 'step', [x, y]); nodes[`u${i}`] = N('add', 'uv', `o${i}`);
+    nodes[`d${i}`] = N('sceneDepth', `u${i}`); nodes[`dd${i}`] = N('sub', `d${i}`, 'd'); nodes[`da${i}`] = N('abs', `dd${i}`);
+    nodes[`ds${i}`] = dsum === 0 ? N('add', `da${i}`, 0) : N('add', dsum, `da${i}`); dsum = `ds${i}`;
+    if (i < 2) { nodes[`n${i}`] = N('sceneNormal', `u${i}`); nodes[`nd${i}`] = N('dot', 'n', `n${i}`); }
+  });
+  Object.assign(nodes, {
+    dRel: N('div', dsum, 'd'), dEdge: N('smoothstep', 0.08, 0.2, 'dRel'),
+    nMin: N('min', 'nd0', 'nd1'), nEdge: N('smoothstep', 0.85, 0.6, 'nMin'),
+    edge: N('max', 'dEdge', 'nEdge'), fade: N('smoothstep', 160, 40, 'd'), inkAmt: N('mul', 'edge', 'fade'),
+    tm1: N('add', 'rgb', 1), tone: N('div', 'rgb', 'tm1'), out0: N('mix', 'tone', 'inkP', 'inkAmt'), out: N('add', 'out0', nonce),
+  });
+  return {
+    version: 1, kind: 'post',
+    params: { texel: { type: 'vec2', value: [1 / 804, 1 / 1428] }, width: { type: 'float', value: 1.5, min: 0.5, max: 4 }, ink: { type: 'colour', value: [0.06, 0.05, 0.08] } },
+    nodes, stages: { post: { colour: 'out' } },
+  };
+}
+
 /** the IR ops a graph uses (the record G169 asks for), sorted */
 export function opsOf(graph) {
   const ops = new Set();

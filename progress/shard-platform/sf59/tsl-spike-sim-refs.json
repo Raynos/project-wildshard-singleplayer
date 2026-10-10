@@ -1,0 +1,558 @@
+{
+  "surface": "sim",
+  "parity": [
+    {
+      "pair": "family-toon vs graph-toon",
+      "mean": 0.0,
+      "max": 20,
+      "over8pct": 0.0,
+      "psnr": 83.8
+    },
+    {
+      "pair": "family-toon vs preset-toon",
+      "mean": 0.0,
+      "max": 20,
+      "over8pct": 0.0,
+      "psnr": 83.8
+    },
+    {
+      "pair": "graph-toon vs preset-toon",
+      "mean": 0.0,
+      "max": 1,
+      "over8pct": 0.0,
+      "psnr": 106.5
+    },
+    {
+      "pair": "graph-ink vs graph-inkpost",
+      "mean": 47.822,
+      "max": 199,
+      "over8pct": 100.0,
+      "psnr": 13.2
+    }
+  ],
+  "rows": [
+    {
+      "variant": "family-toon",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+      "shardfile": null,
+      "graph": null,
+      "post": null,
+      "size": [
+        804,
+        1428
+      ],
+      "instances": 2500,
+      "uniformBlockLimit": 16384,
+      "compileMs": 7,
+      "firstDrawMs": 873,
+      "stallMs": 880,
+      "nodeBuildMs": 0,
+      "nodeBuilds": 0,
+      "programs": 4,
+      "programsAtEnd": 4,
+      "shaders": [
+        {
+          "name": "family:pbr",
+          "vs": 20522,
+          "fs": 86874
+        },
+        {
+          "name": "family:toon",
+          "vs": 19992,
+          "fs": 86762
+        },
+        {
+          "name": "glsl:post",
+          "vs": 1633,
+          "fs": 2561
+        },
+        {
+          "name": "",
+          "vs": 14869,
+          "fs": 12582
+        }
+      ],
+      "rafMs": {
+        "median": 17,
+        "p95": 17,
+        "max": 78
+      },
+      "fps": 58.8,
+      "workMs": {
+        "median": 0,
+        "p95": 1,
+        "max": 1
+      },
+      "syncedMs": {
+        "median": 1,
+        "p95": 1.4,
+        "max": 2
+      },
+      "engineRenders": 1126,
+      "threeFrame": 1126,
+      "calls": 1,
+      "triangles": 2,
+      "memory": {
+        "geometries": 3,
+        "textures": 6
+      },
+      "heapMB": null,
+      "heapAtStartMB": null,
+      "errors": []
+    },
+    {
+      "variant": "graph-toon",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+      "shardfile": null,
+      "graph": {
+        "cost": {
+          "nodes": 203,
+          "samplers": 0,
+          "instructions": 445
+        },
+        "selects": {
+          "light": 1,
+          "branch": 0
+        },
+        "ops": [
+          "abs",
+          "add",
+          "albedo",
+          "div",
+          "dot",
+          "floor",
+          "fract",
+          "irradiance",
+          "lt",
+          "max",
+          "mix",
+          "mul",
+          "normalView",
+          "oneMinus",
+          "param",
+          "positionWorld",
+          "saturate",
+          "select",
+          "smoothstep",
+          "sub",
+          "sunColour",
+          "sunDirection",
+          "sunShadow",
+          "swizzle",
+          "viewDirection",
+          "viewToWorld"
+        ],
+        "outline": false
+      },
+      "post": null,
+      "size": [
+        804,
+        1428
+      ],
+      "instances": 2500,
+      "uniformBlockLimit": 16384,
+      "compileMs": 116,
+      "firstDrawMs": 737,
+      "stallMs": 853,
+      "nodeBuildMs": 100,
+      "nodeBuilds": 1,
+      "programs": 4,
+      "programsAtEnd": 4,
+      "shaders": [
+        {
+          "name": "",
+          "vs": 14869,
+          "fs": 12582
+        },
+        {
+          "name": "family:pbr",
+          "vs": 20522,
+          "fs": 86874
+        },
+        {
+          "name": "graph:material",
+          "vs": 3609,
+          "fs": 43397
+        },
+        {
+          "name": "glsl:post",
+          "vs": 1633,
+          "fs": 2561
+        }
+      ],
+      "rafMs": {
+        "median": 17,
+        "p95": 17,
+        "max": 58
+      },
+      "fps": 58.8,
+      "workMs": {
+        "median": 0,
+        "p95": 1,
+        "max": 9
+      },
+      "syncedMs": {
+        "median": 1.9,
+        "p95": 2.2,
+        "max": 2.2
+      },
+      "engineRenders": 1126,
+      "threeFrame": 1689,
+      "calls": 1,
+      "triangles": 2,
+      "memory": {
+        "geometries": 3,
+        "textures": 7
+      },
+      "heapMB": null,
+      "heapAtStartMB": null,
+      "errors": []
+    },
+    {
+      "variant": "preset-toon",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+      "shardfile": {
+        "compiled": 1,
+        "fallback": 0,
+        "reasons": [],
+        "material": "MeshStandardNodeMaterial"
+      },
+      "graph": null,
+      "post": null,
+      "size": [
+        804,
+        1428
+      ],
+      "instances": 2500,
+      "uniformBlockLimit": 16384,
+      "compileMs": 120,
+      "firstDrawMs": 750,
+      "stallMs": 870,
+      "nodeBuildMs": 101,
+      "nodeBuilds": 1,
+      "programs": 4,
+      "programsAtEnd": 4,
+      "shaders": [
+        {
+          "name": "",
+          "vs": 14869,
+          "fs": 12582
+        },
+        {
+          "name": "family:pbr",
+          "vs": 20522,
+          "fs": 86874
+        },
+        {
+          "name": "graph:material",
+          "vs": 3652,
+          "fs": 43464
+        },
+        {
+          "name": "glsl:post",
+          "vs": 1633,
+          "fs": 2561
+        }
+      ],
+      "rafMs": {
+        "median": 17,
+        "p95": 17,
+        "max": 18
+      },
+      "fps": 58.8,
+      "workMs": {
+        "median": 0,
+        "p95": 1,
+        "max": 2
+      },
+      "syncedMs": {
+        "median": 2,
+        "p95": 2.2,
+        "max": 2.3
+      },
+      "engineRenders": 1126,
+      "threeFrame": 1689,
+      "calls": 1,
+      "triangles": 2,
+      "memory": {
+        "geometries": 3,
+        "textures": 7
+      },
+      "heapMB": null,
+      "heapAtStartMB": null,
+      "errors": []
+    },
+    {
+      "variant": "graph-ink",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+      "shardfile": null,
+      "graph": {
+        "cost": {
+          "nodes": 75,
+          "samplers": 0,
+          "instructions": 188
+        },
+        "selects": {
+          "light": 1,
+          "branch": 0
+        },
+        "ops": [
+          "add",
+          "albedo",
+          "cameraPosition",
+          "const",
+          "div",
+          "dot",
+          "floor",
+          "fwidth",
+          "gt",
+          "irradiance",
+          "length",
+          "litColour",
+          "min",
+          "mix",
+          "mul",
+          "normalize",
+          "normalLocal",
+          "normalView",
+          "oneMinus",
+          "param",
+          "positionWorld",
+          "saturate",
+          "select",
+          "smoothstep",
+          "step",
+          "sub",
+          "sunColour",
+          "sunDirection",
+          "sunShadow",
+          "swizzle",
+          "uv",
+          "viewDirection"
+        ],
+        "outline": true
+      },
+      "post": null,
+      "size": [
+        804,
+        1428
+      ],
+      "instances": 2500,
+      "uniformBlockLimit": 16384,
+      "compileMs": 114,
+      "firstDrawMs": 588,
+      "stallMs": 702,
+      "nodeBuildMs": 88,
+      "nodeBuilds": 2,
+      "programs": 5,
+      "programsAtEnd": 5,
+      "shaders": [
+        {
+          "name": "",
+          "vs": 14867,
+          "fs": 12580
+        },
+        {
+          "name": "family:pbr",
+          "vs": 20522,
+          "fs": 86874
+        },
+        {
+          "name": "graph:material",
+          "vs": 3560,
+          "fs": 33059
+        },
+        {
+          "name": "graph:outline",
+          "vs": 2885,
+          "fs": 4040
+        },
+        {
+          "name": "glsl:post",
+          "vs": 1633,
+          "fs": 2561
+        }
+      ],
+      "rafMs": {
+        "median": 17,
+        "p95": 17,
+        "max": 79
+      },
+      "fps": 58.8,
+      "workMs": {
+        "median": 0,
+        "p95": 1,
+        "max": 12
+      },
+      "syncedMs": {
+        "median": 1.9,
+        "p95": 2.3,
+        "max": 2.5
+      },
+      "engineRenders": 1126,
+      "threeFrame": 2252,
+      "calls": 1,
+      "triangles": 2,
+      "memory": {
+        "geometries": 4,
+        "textures": 7
+      },
+      "heapMB": null,
+      "heapAtStartMB": null,
+      "errors": []
+    },
+    {
+      "variant": "graph-inkpost",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+      "shardfile": null,
+      "graph": {
+        "cost": {
+          "nodes": 75,
+          "samplers": 0,
+          "instructions": 188
+        },
+        "selects": {
+          "light": 1,
+          "branch": 0
+        },
+        "ops": [
+          "add",
+          "albedo",
+          "cameraPosition",
+          "const",
+          "div",
+          "dot",
+          "floor",
+          "fwidth",
+          "gt",
+          "irradiance",
+          "length",
+          "litColour",
+          "min",
+          "mix",
+          "mul",
+          "normalize",
+          "normalLocal",
+          "normalView",
+          "oneMinus",
+          "param",
+          "positionWorld",
+          "saturate",
+          "select",
+          "smoothstep",
+          "step",
+          "sub",
+          "sunColour",
+          "sunDirection",
+          "sunShadow",
+          "swizzle",
+          "uv",
+          "viewDirection"
+        ],
+        "outline": true
+      },
+      "post": {
+        "cost": {
+          "nodes": 48,
+          "samplers": 3,
+          "instructions": 118
+        },
+        "ops": [
+          "abs",
+          "add",
+          "div",
+          "dot",
+          "max",
+          "min",
+          "mix",
+          "mul",
+          "param",
+          "sceneColour",
+          "sceneDepth",
+          "sceneNormal",
+          "screenUV",
+          "smoothstep",
+          "sub",
+          "swizzle"
+        ]
+      },
+      "size": [
+        804,
+        1428
+      ],
+      "instances": 2500,
+      "uniformBlockLimit": 16384,
+      "compileMs": 139,
+      "firstDrawMs": 765,
+      "stallMs": 904,
+      "nodeBuildMs": 111,
+      "nodeBuilds": 3,
+      "programs": 7,
+      "programsAtEnd": 7,
+      "shaders": [
+        {
+          "name": "",
+          "vs": 14867,
+          "fs": 12580
+        },
+        {
+          "name": "family:pbr",
+          "vs": 20522,
+          "fs": 86874
+        },
+        {
+          "name": "graph:material",
+          "vs": 3560,
+          "fs": 33059
+        },
+        {
+          "name": "graph:outline",
+          "vs": 2885,
+          "fs": 4040
+        },
+        {
+          "name": "graph:post",
+          "vs": 1088,
+          "fs": 3858
+        },
+        {
+          "name": "",
+          "vs": 16318,
+          "fs": 8343
+        },
+        {
+          "name": "",
+          "vs": 16341,
+          "fs": 8343
+        }
+      ],
+      "rafMs": {
+        "median": 17,
+        "p95": 17,
+        "max": 17
+      },
+      "fps": 58.8,
+      "workMs": {
+        "median": 1,
+        "p95": 1,
+        "max": 5
+      },
+      "syncedMs": {
+        "median": 2.5,
+        "p95": 2.8,
+        "max": 2.8
+      },
+      "engineRenders": 1689,
+      "threeFrame": 3378,
+      "calls": 1,
+      "triangles": 2,
+      "memory": {
+        "geometries": 4,
+        "textures": 9
+      },
+      "heapMB": null,
+      "heapAtStartMB": null,
+      "errors": []
+    }
+  ]
+}

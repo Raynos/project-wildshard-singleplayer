@@ -5,5 +5,7 @@ import type { GraphIr } from '../../src/engine/core/materialGraph';
 export function pastelGraph(nonce?: number): GraphIr;
 /** C, the ink / cel valley, as a lit material graph */
 export function inkGraph(nonce?: number): GraphIr;
+/** C's edge post (SF59 (2b)): a post graph over sceneColour, sceneDepth taps and sceneNormal taps */
+export function inkPostGraph(nonce?: number): GraphIr;
 /** the IR ops a graph uses, sorted */
 export function opsOf(graph: GraphIr): string[];
