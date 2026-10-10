@@ -9,6 +9,7 @@ import { SceneOwnership, sceneObjectOwner } from '../src/engine/app/sceneOwnersh
 import { Scope } from '../src/engine/app/scope';
 import type { SkyBackdrop, SkyBackdropTargets } from '../src/engine/render/look';
 import { BackdropLayer, LAYER_SKY_ORDER } from '../src/engine/world/backdropLayer';
+import { cloudLayer } from '../src/engine/world/skyBackdrop';
 import type { DayCycleClock } from '../src/engine/world/dayCycle';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import type { FrameSkyLayer } from '../src/game/grid/frameLook';
@@ -243,6 +244,19 @@ it('keeps a layered level\'s gas giant on the camera after its dome, fades it by
   expect(planet.visible).toBe(true); expect(planet.position.toArray()).toEqual([10, 1702, -5]); expect(opacity.value).toBe(0.5);
   layer.weight = 0; layer.apply(0.016, camera); expect(planet.visible).toBe(false);
   layer.dispose(); expect(planet.parent).toBeNull();
+});
+
+it('builds the engine cloud layer on the uniforms it is handed, so a layered level\'s clock drives its own copy (SF63)', () => {
+  const field = new Texture(), own = { uTime: { value: 3 }, uSunDir: { value: new Vector3(0, 1, 0) }, uSunColor: { value: new Color(1, 0.9, 0.8) }, uLight: { value: new Color(1, 1, 1) }, uCloudLit: { value: new Color(1, 1, 1) }, uCloudAlpha: { value: 0.6 } };
+  const clouds = cloudLayer(field, own, 0);
+  if (!(clouds.material instanceof ShaderMaterial)) throw new Error('Missing cloud material');
+  const u = clouds.material.uniforms;
+  expect(u['uCloudAlpha']).toBe(own.uCloudAlpha); expect(u['uSunDir']).toBe(own.uSunDir); expect(u['uTime']).toBe(own.uTime);
+  expect(u['tClouds']?.value).toBe(field); expect(clouds.renderOrder).toBe(-10); expect(clouds.material.transparent).toBe(true);
+  // the page's own and a layer's copy share one program: the same shader text
+  const page = cloudLayer(field, { ...own, uCloudAlpha: { value: 1 } }, 0);
+  if (!(page.material instanceof ShaderMaterial)) throw new Error('Missing cloud material');
+  expect(page.material.fragmentShader).toBe(clouds.material.fragmentShader);
 });
 
 it('keeps the exact sky claim visible inside its own measured increment and charges it again after parent retirement', async () => {

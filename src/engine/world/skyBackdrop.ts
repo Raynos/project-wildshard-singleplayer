@@ -29,6 +29,53 @@ async function loadBakedSky(levelId: string, hdri: string): Promise<{ sunDir: [n
   } catch { return null; }
 }
 
+/** The cloud layer's uniforms (`SkyBackdropView.cloudUniforms`, or a layered level's own set: `SkyRig.layeredBackdrop`). */
+export type CloudLayerUniforms = SkyBackdropView['cloudUniforms'];
+
+/**
+ * The engine's thin procedural cirrus / cumulus layer on a sky dome, over the cloud fbm `tex` (`big` 1: a painted sky's
+ * big cumulus): the page's own (`SkyBackdropView.buildClouds`) and, SF63, a grid region's layered level's
+ * (`SkyRig.layeredBackdrop`); one program for both.
+ */
+export function cloudLayer(tex: THREE.Texture, uniforms: CloudLayerUniforms, big: number): THREE.Mesh {
+  const geo = new THREE.SphereGeometry(1400, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { ...uniforms, tClouds: { value: tex }, uBig: { value: big } },
+    transparent: true, depthWrite: false, side: THREE.BackSide,
+    vertexShader: /* glsl */`
+        varying vec3 vDir;
+        void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: /* glsl */`
+        uniform sampler2D tClouds; uniform float uTime; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uBig; uniform vec3 uLight; uniform vec3 uCloudLit; uniform float uCloudAlpha;
+        varying vec3 vDir;
+        void main() {
+          vec3 d = normalize(vDir);
+          if (d.y < 0.02) discard;
+          // project onto a flat cloud plane at height ~1 for a believable perspective
+          vec2 p = d.xz / (d.y + 0.15);
+          vec2 uv = p * mix(0.5, 0.26, uBig) + vec2(uTime * 0.004, uTime * 0.002);
+          float a = texture2D(tClouds, uv).r;
+          float b = texture2D(tClouds, uv * mix(3.1, 2.2, uBig) + vec2(-uTime * 0.006, uTime * 0.003)).r;
+          float dens = a * mix(0.7, 0.82, uBig) + b * mix(0.3, 0.18, uBig);
+          float cover = mix(smoothstep(0.52, 0.8, dens), smoothstep(0.55, 0.6, dens), uBig);
+          float horizon = smoothstep(0.02, 0.22, d.y);
+          float sunAmt = max(dot(d, uSunDir), 0.0);
+          vec3 lit = mix(vec3(0.62, 0.66, 0.74), vec3(1.0, 0.94, 0.86), smoothstep(0.3, 0.9, a));
+          // painted cumulus: the belly (thin, low density) blue-grey, the piled-up tops bright, the sun side warm
+          float top = smoothstep(0.56, 0.78, dens) * (0.6 + 0.4 * smoothstep(0.4, 0.8, b));
+          vec3 painted = mix(vec3(0.66, 0.74, 0.9), vec3(1.25, 1.22, 1.18), top);
+          lit = mix(lit, painted, uBig);
+          lit = mix(lit, uSunColor * 1.3, pow(sunAmt, 6.0) * 0.6) * uCloudLit;
+          float alpha = cover * horizon * mix(0.85, 0.97, uBig) * uCloudAlpha;
+          gl_FragColor = vec4(lit * uLight, alpha);
+        }`,
+  });
+  const clouds = new THREE.Mesh(geo, mat);
+  clouds.frustumCulled = false;
+  clouds.renderOrder = -10;
+  return clouds;
+}
+
 /** The default background and visible sky pieces, independent of the lighting/shadow rig. */
 export class SkyBackdropView {
   sunDisc!: THREE.Mesh;
@@ -117,7 +164,6 @@ export class SkyBackdropView {
   buildClouds(): void {
     const dressing = this.dressing;
     if (dressing !== null && !dressing.clouds && dressing.build === undefined) return; // no layer and no cloud field asked for
-    const geo = new THREE.SphereGeometry(1400, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
     const tex = bakedTexture('clouds', makeCloudTexture); // 512² six-octave simplex on a torus (cloudField.ts): ~400 ms at 4× CPU when neither file is there
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
     this.cloudTex = tex;
@@ -131,40 +177,7 @@ export class SkyBackdropView {
     const big = this.level.sky.painted ? 1.0 : 0.0;
     this.cloudUniforms.uSunDir.value.copy(this.sunDir);
     this.cloudUniforms.uSunColor.value.set(...this.level.sky.cloudSunColor);
-    const mat = new THREE.ShaderMaterial({
-      uniforms: { ...this.cloudUniforms, tClouds: { value: tex }, uBig: { value: big } },
-      transparent: true, depthWrite: false, side: THREE.BackSide,
-      vertexShader: /* glsl */`
-        varying vec3 vDir;
-        void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-      fragmentShader: /* glsl */`
-        uniform sampler2D tClouds; uniform float uTime; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uBig; uniform vec3 uLight; uniform vec3 uCloudLit; uniform float uCloudAlpha;
-        varying vec3 vDir;
-        void main() {
-          vec3 d = normalize(vDir);
-          if (d.y < 0.02) discard;
-          // project onto a flat cloud plane at height ~1 for a believable perspective
-          vec2 p = d.xz / (d.y + 0.15);
-          vec2 uv = p * mix(0.5, 0.26, uBig) + vec2(uTime * 0.004, uTime * 0.002);
-          float a = texture2D(tClouds, uv).r;
-          float b = texture2D(tClouds, uv * mix(3.1, 2.2, uBig) + vec2(-uTime * 0.006, uTime * 0.003)).r;
-          float dens = a * mix(0.7, 0.82, uBig) + b * mix(0.3, 0.18, uBig);
-          float cover = mix(smoothstep(0.52, 0.8, dens), smoothstep(0.55, 0.6, dens), uBig);
-          float horizon = smoothstep(0.02, 0.22, d.y);
-          float sunAmt = max(dot(d, uSunDir), 0.0);
-          vec3 lit = mix(vec3(0.62, 0.66, 0.74), vec3(1.0, 0.94, 0.86), smoothstep(0.3, 0.9, a));
-          // painted cumulus: the belly (thin, low density) blue-grey, the piled-up tops bright, the sun side warm
-          float top = smoothstep(0.56, 0.78, dens) * (0.6 + 0.4 * smoothstep(0.4, 0.8, b));
-          vec3 painted = mix(vec3(0.66, 0.74, 0.9), vec3(1.25, 1.22, 1.18), top);
-          lit = mix(lit, painted, uBig);
-          lit = mix(lit, uSunColor * 1.3, pow(sunAmt, 6.0) * 0.6) * uCloudLit;
-          float alpha = cover * horizon * mix(0.85, 0.97, uBig) * uCloudAlpha;
-          gl_FragColor = vec4(lit * uLight, alpha);
-        }`,
-    });
-    this.clouds = new THREE.Mesh(geo, mat);
-    this.clouds.frustumCulled = false;
-    this.clouds.renderOrder = -10;
+    this.clouds = cloudLayer(tex, this.cloudUniforms, big);
     this.scene.add(this.clouds);
   }
 

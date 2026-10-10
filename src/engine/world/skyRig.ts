@@ -1,4 +1,5 @@
-import { PLANET_DIST, SkyBackdropView } from './skyBackdrop';
+import { PLANET_DIST, SkyBackdropView, cloudLayer } from './skyBackdrop';
+import { ownSceneResource } from '../app/sceneOwnership';
 import { BackdropLayer, applyLayers } from './backdropLayer';
 import { app } from '../app/runtime';
 import { resourceScope } from '../app/resources';
@@ -241,14 +242,17 @@ export class SkyRig {
    * G223 / G232: build a level's backdrop as a layer over this sky (`layerBackdrop`): a grid region's own sky inside its
    * cell. Null before the sky is built. The caller attaches the backdrop to the layer (`layer.attach`) once its memory is
    * admitted, or disposes both. SF63: a level whose sky has a gas giant (`sky.planet`) gets its own on the layer
-   * (`layerPlanet`), unless `planet` is false (its look's sky dressing paints its own: `SkyDressing.planet`).
+   * (`layerPlanet`), unless `planet` is false (its look's sky dressing paints its own: `SkyDressing.planet`); and a backdrop
+   * with no sky layer of its own (`SkyBackdrop.clouds`) gets the engine's cloud layer on the layer, as standalone `build`
+   * gives it one (`layerClouds`), unless `clouds` is false (its look's sky dressing: `SkyDressing.clouds`).
    */
-  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly scope?: Scope; readonly air?: () => THREE.Fog | null; readonly planet?: boolean }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
+  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly scope?: Scope; readonly air?: () => THREE.Fog | null; readonly planet?: boolean; readonly clouds?: boolean }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
     const layer = this.layerBackdrop({ ...(options.air === undefined ? {} : { air: options.air }), ...(options.scope === undefined ? {} : { owner: options.scope }) });
     if (layer === null) return null;
     try {
       const backdrop = await factory({ sky: this, scene: layer.holder, renderer: this.renderer, level: options.level, tier: TIER, look: options.level.lookLayer ?? null });
       if (options.planet !== false) this.layerPlanet(layer, options.level); // before the layer binds the clock (its crisp disc)
+      if (options.clouds !== false && backdrop.clouds === undefined) this.layerClouds(layer, options.level);
       return { layer, backdrop };
     } catch (error) { layer.dispose(); throw error; }
   }
@@ -268,6 +272,20 @@ export class SkyRig {
     view.buildPlanet();
     air.remove(view.planet);
     layer.follow(view.planet, view.planetDir, PLANET_DIST, giant.uOpacity);
+  }
+
+  /**
+   * SF63: a layered level's engine cloud layer (the one standalone `build` gives a backdrop without its own sky layer), on
+   * the layer's cloud targets, so the level's clock tints and fades it as standalone (`T.cloud`); it drifts on the page's
+   * cloud time. Drawn after the layer's dome (`BackdropLayer.follow`) at the clock's opacity times the layer's weight. Its
+   * cloud fbm is the page's (`cloudField`, kept by the page sky), so the region adds only the dome mesh and its material.
+   */
+  private layerClouds(layer: BackdropLayer, level: LevelSpec): void {
+    const own = layer.targets.cloud, field = this.visual.cloudField(), fade = { value: 0 }, alpha = { value: own.uCloudAlpha.value };
+    ownSceneResource(field, this.scope); // the page's sampler: a region's layer never adopts it
+    const clouds = cloudLayer(field, { uTime: this.cloudUniforms.uTime, uSunDir: own.uSunDir, uSunColor: own.uSunColor, uLight: { value: new THREE.Color(1, 1, 1) }, uCloudLit: own.uCloudLit, uCloudAlpha: alpha }, level.sky.painted ? 1 : 0);
+    clouds.onBeforeRender = () => { alpha.value = own.uCloudAlpha.value * fade.value; };
+    layer.follow(clouds, new THREE.Vector3(), 0, fade);
   }
 
   /**

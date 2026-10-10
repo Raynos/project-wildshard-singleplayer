@@ -110,16 +110,18 @@ export class SkyRig {
 
   constructor(private game: Game, private sky: Sky, keys: SkyKeyProfile, def: ShardManifest) {
     const S = def.sky, G = def.grade, A = def.atmosphere;
-    const l = sky.csm.lights[0];
     const P = S.painted ?? { zenith: [0.1, 0.28, 0.85] as RGB, horizon: [0.62, 0.78, 0.98] as RGB, ground: [0.3, 0.36, 0.3] as RGB, glow: [1.0, 0.82, 0.55] as RGB };
     const fog = game.scene.fog as THREE.Fog | null;
     const vs = A.volumetric?.strength ?? 0.55;
     this.day = {
       el: 14,
-      sun: l ? rgbOf(l.color) : S.sunColor, sunI: l ? l.intensity : S.sunIntensity,
+      // the def's own light, as SkyRig.build starts it (standalone the live values are these at this point): inside a grid
+      // cell the shared sky is still the road's when the region builds (SF63: the cell lit with the road's key, fill and
+      // environment read paler and flatter than standalone)
+      sun: S.sunColor, sunI: S.sunIntensity,
       zenith: P.zenith, horizon: P.horizon, ground: P.ground, glow: P.glow, stars: 0,
-      hemiSky: rgbOf(sky.hemi.color), hemiGround: rgbOf(sky.hemi.groundColor), hemiI: sky.hemi.intensity, env: game.scene.environmentIntensity,
-      fog: fog ? rgbOf(fog.color) : P.horizon, fogSun: rgbOf(fogUniforms.fogSunColor.value),
+      hemiSky: rgbOf(new THREE.Color(S.hemiSky)), hemiGround: rgbOf(new THREE.Color(S.hemiGround)), hemiI: S.hemiIntensity, env: S.envIntensity,
+      fog: fog ? rgbOf(fog.color) : P.horizon, fogSun: S.fogSunColor,
       shade: rgbOf(painterlyUniforms.uPShade.value), rim: rgbOf(painterlyUniforms.uPRimColor.value),
       cloudSun: S.cloudSunColor, cloud: [1, 1, 1], planet: [1, 1, 1],
       shadowTint: G.shadowTint, highTint: G.highTint, lift: G.lift, gain: G.gain, sat: G.saturation, contrast: G.contrast,
