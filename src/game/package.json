@@ -221,6 +221,7 @@
     "./shardfile/migrations": "./shardfile/migrations.ts",
     "./shardfile/brains": "./shardfile/brains.ts",
     "./shardfile/speciesBrains": "./shardfile/speciesBrains.ts",
+    "./shardfile/phasedRaptors": "./shardfile/phasedRaptors.ts",
     "./shardfile/speciesScripts": "./shardfile/speciesScripts.ts",
     "./shardfile/brainRuntime": "./shardfile/brainRuntime.ts",
     "./shardfile/accent": "./shardfile/accent.ts",

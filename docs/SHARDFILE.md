@@ -929,7 +929,9 @@ checked against the hash. A `phased-flyer` brain is a boss flyer (circle, chest 
 climb with its `dive` strikes; grounded from `groundedPhase` with its `grounded` strikes)
 that its encounter steers through `fight` / `rise` / `phase` memory fields;
 `markedBossFight(row, ports)` (`@wildshard/sdk/bossFight`) is the view-free fight that
-writes them: arena, health share per checkpoint, rise seconds, storm phases and fade.
+writes them: arena, health share per checkpoint, rise seconds, storm phases and fade. A
+`phased-raptor` (`phasedRaptor(data)`, `@wildshard/sdk/flyers`) is a perched boss bird its
+encounter holds directly: take-off, lap, and per phase its own approach and strike.
 
 Custom policies and numeric state share one module union and one host: memory,
 fuel, queries, effects, events and quarantine are charged once per fixed tick,
