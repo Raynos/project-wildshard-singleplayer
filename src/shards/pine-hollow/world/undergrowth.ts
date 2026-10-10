@@ -4,7 +4,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { paintCanvas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
 import { GroundCover, type GroundCoverDraw, type GroundCoverKind } from '@wildshard/sdk/looks/groundCover';
 import { UNDER_SHAPES } from './undergrowthKit';
-import { UNDER_EDITS, UNDER_VERTEX_EDITS } from '../data/forestLook';
+import { UNDER_EDITS, UNDER_VERTEX_EDITS } from '../runtime/looks/forestLook';
 import { UNDER_LOOK } from '../data/undergrowthLook';
 import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PAINT } from '../data/undergrowthPaint';
 

@@ -11,6 +11,13 @@ Capture pin: `6d0ddab468024667271c7088443f07ee66e07724`.
 - Focused shader, shelter, physics, King-table and map checks: 24 passed.
 - Root strict TypeScript and touched type-aware lint passed.
 
-The weapon/viewmodel group remains uncommitted: moving its unchanged
-source exposes 92 sealed runtime-performance sites. An exact-source
-relocation policy is awaiting approval; no lint rule was weakened.
+Forest edit rows also moved unchanged to `runtime/looks/forestLook.ts`.
+Capture pin: `f63d57011c9cfbd01da3af6db24be0e822a0dfd7`.
+Two actual page physics captures match the prior gameplay payload exactly;
+the map image retains the same hash above. Root strict, touched lint and
+three tree/undergrowth checks pass.
+
+Weapon/viewmodel copies remain verbatim. The SF76 exact-source transfer
+guard now supports their 92 existing runtime-performance occurrences.
+The item classes additionally expose SF2 inheritance counts (8 -> 11,
+Weapon 1 -> 4), which require the corresponding move-only provenance rule.

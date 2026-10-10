@@ -1,7 +1,7 @@
 // Pine Hollow's forest looks as data (SHARD-PLATFORM M3, look-family rows): the trees' and the undergrowth's edits of the
-// standard material (world/treeFactory.ts and world/undergrowth.ts apply them through @wildshard/sdk/looks/shaderEdits
+// standard material (world/treeFactory.ts and world/undergrowth.ts apply them through @wildshard/game/systems/looks/shaderEdits
 // inside their patches, after the engine's wind / fade patches).
-import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+import type { ShaderEditRow } from '@wildshard/game/systems/looks/shaderEdits';
 
 /** the impostor crosses: alpha sharpened by its own derivative, both faces lit by the vertex normal, a little fill */
 export const TREE_FAR_EDITS: readonly ShaderEditRow[] = [
