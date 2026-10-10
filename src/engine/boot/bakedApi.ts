@@ -1,7 +1,6 @@
 /** Fetch after level selection; the public data API must not load the content registry. */
 import type { DataTexture } from 'three';
 import type { LookupTexture } from 'postprocessing';
-import { setting } from '../ui/Settings';
 
 /**
  * The engine's tileable cloud fbm baked at build (world/cloudField.ts, scripts/bake-cloud-field.mjs): raw grey bytes. A level
@@ -24,6 +23,8 @@ export async function loadLUT(id: string): Promise<LookupTexture | null> {
  * (`gridDeclaredLut`) is on, default off (op-lut20); else, or without a readable file, null.
  */
 export async function loadCarriedLUT(url: string | undefined, name: string): Promise<LookupTexture | null> {
-  if (url === undefined || setting('gridDeclaredLut') !== 'on') return null;
+  if (url === undefined) return null;
+  const { setting } = await import('../ui/Settings');
+  if (setting('gridDeclaredLut') !== 'on') return null;
   return (await import('../world/lut')).loadLUTFile(url, name);
 }
