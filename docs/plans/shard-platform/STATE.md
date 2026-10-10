@@ -12,7 +12,7 @@
 
 **Live:** production `7f51e883a`.
 
-**Shares (old public/custom measure; G291 replaces it: custom runtime TS ≤ 20 % of the frozen legacy folder, sp-x2 rewriting the metric)**
+**Shares (old public/custom measure; G291 replaces it: custom runtime TS ≤ 20 % of the frozen legacy folder, sp-x2 rewriting the metric per G291 + G294, report-only first)**
 
 | Shard | Share |
 |---|---|
@@ -61,7 +61,7 @@ sp-x3 is an idle retired pane with no work assigned.
 **Rows:** SF36 done · SF59 done · SF34 engine done · SF63 parity done · SF22 desktop PASS.
 
 **Decisions:**
-- G290: every output generated from in-repo SDK TypeScript, never a one-time bake. G291: 80/20 vs legacy size; one-shard game systems under Opus audit.
+- G290–G295: outputs generated from in-repo SDK TS (build-time + cache; commit only small expensive ones, Blender GLBs stay); 80/20 = custom runtime ≤ 20 % of legacy; a system is public only with 2+ shards; data rows → generic SDK → AS → runtime TS. Audit flags: cec76797f wind-stooper (Nalati-only).
 - Bakes are cost-gated (shrine / shipwreck refused, Nalati dressing plan refused, kurgan interior refused).
 - SF22 cadence counts within one 0.1 ms quantum; warm-up compiles count only if their task exceeds 50 ms.
 
