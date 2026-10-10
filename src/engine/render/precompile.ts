@@ -14,6 +14,7 @@ import { shaderPatchTextures } from './shaderPatches';
 import { uploadCompressedTexture } from './compressedUpload';
 import { linkStandIn } from '../app/sceneOwnership';
 import { offscreenPreparations } from './offscreenPreparation';
+import { waitMaterialPreparations } from './materialPreparation';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -372,6 +373,9 @@ export async function runPrecompile(
 ): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
+  const borrowed = new Set<THREE.Material>();
+  for (const job of jobs) job.root.traverse(object => { for (const material of materialsOf(object)) borrowed.add(material); });
+  await waitMaterialPreparations([...borrowed], current);
   const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
   const before = snapshotPrograms(renderer);
   const created: ProgramLike[] = [];

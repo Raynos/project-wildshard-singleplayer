@@ -1,3 +1,4 @@
+import { registerMaterialPreparation } from '@wildshard/engine/render/materialPreparation';
 import { AdditiveBlending, BufferGeometry, CustomBlending, LinearFilter, LinearMipmapLinearFilter, OneFactor, OneMinusSrcAlphaFactor, Float32BufferAttribute, Mesh, NormalBlending, PlaneGeometry, Points, ShaderMaterial, SRGBColorSpace, Texture, Vector4, type Group, type Object3D, type Vector3 } from 'three';
 
 /**
@@ -54,7 +55,7 @@ export interface FireFx {
   resetLights: () => void;
   /** Advances every fire's shared clock. */
   tick: (t: number) => void;
-  /** Fetches the flipbook (off the boot path; a failure keeps the procedural flame); returns the dispose to run on unload. */
+  /** Starts the flipbook fetch; shader preparation awaits its publication. A failure keeps the procedural flame; returns the unload disposer. */
   loadBook: () => () => void;
   /** Up to four burning fires: xyz the flame, w its gain (0 when out). */
   readonly lights: { value: Vector4[] };
@@ -317,7 +318,7 @@ void main() {
     tick: (t) => { time.value = t; },
     loadBook: () => {
       const gen = ++bookGen, source = style.book;
-      if (source !== null) void (async () => {
+      if (source !== null) registerMaterialPreparation(flameMaterial, (async () => {
         try {
           const response = await fetch(source.url);
           if (!response.ok) throw new Error(`${String(response.status)} ${source.url}`);
@@ -329,7 +330,7 @@ void main() {
         } catch (error: unknown) {
           console.warn('[fireFx] fire flipbook not loaded:', error);
         }
-      })();
+      })());
       return () => { bookGen++; book.value?.dispose(); book.value = null; hasBook.value = 0; };
     },
   };

@@ -1088,6 +1088,17 @@ retire. `offscreenPreparations(scene)` reads registrations; `offscreenJobs(scene
 collects detached compile jobs across the page's nested scenes. `CompileJob.camera?`
 overrides the page camera for those jobs, keeping light-layer program keys exact. Set `positionOnly: true` only when the authored vertex shader reads no normal, colour or UV attributes; preparation then keeps the real draw cache's one representative per object flag set, including instancing, batching and skinning, without adding unused attribute programs.
 
+**Asynchronous material resources.** `@wildshard/engine/render/materialPreparation`
+defines `registerMaterialPreparation(material, work)` and
+`waitMaterialPreparations(materials, current)`. Register the existing loader's promise
+before preparation starts. Preparation awaits publication before compiling and
+collecting upload samplers; it starts no additional fetch. A loader may resolve after
+its own fallback, or reject to refuse preparation. Cancellation remains the loader's
+responsibility; preparation checks its current owner before and after waits. Settled
+work is removed from the weak material registry. The shared fire effect registers its
+flipbook fetch here, preserving its texture pixels, samplers, shaders and procedural
+failure fallback while avoiding a late first-draw upload.
+
 ### 13.2 Shader patches
 
 Every shader patch goes through `patchShader(material, id, order, fn, { scope, mode?, key? })`. A raw

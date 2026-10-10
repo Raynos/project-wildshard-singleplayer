@@ -52,3 +52,32 @@ Simulator claim.
 
 Raw diagnostic stays in the lane scratchpad, SHA-256
 `10031dcf196b893df2654e7ccbb5c55d764f2bffe4a28fd836dac980a435f80f`.
+
+## Post-slice diagnostic
+
+Pin `dab8f2189652281104513d3af65d29a8be2ede10`, build
+`dab8f21-mv231a21` (2026-10-10T07:38:18.235Z), same six G270 routes,
+5 Mbit/s and 3/10 s stalls, phone-tier muted Chromium, Developer off and Memory
+saver off. All twelve transitions completed without refusals/errors. One-minute
+load ranged 4.92–23.22; clocks and exact compiled source maps were retained.
+CPU profiler and upload wrappers were enabled: these are owner diagnostics,
+not a normative cadence or physical-phone verdict.
+
+The road-construction task maximum fell from 503 ms to 91 ms. Native seam
+certification no longer appeared in a task above 100 ms. Raw remaining boot tasks
+were 103 ms (landscape/terrain/physics), 146 ms (harness fingerprint), 118 ms
+(audio graph) and 416 ms (driver program-info work). Every first-entry window had
+no observed task above 50 ms and zero draw-time shader compiles in this run;
+Signal nevertheless paid a 34.7 ms first-draw texture upload, traced by exact
+ImageBitmap identity to `sunscar.fire.book`, its `uBook` uniform (2048 × 2048).
+The shared fire fetch was still pending when preparation collected samplers.
+
+The route recorded 1,556 explicit shader warm-ups, zero draw/driver or unclassified
+calls, no warm-up-containing task above the observer's 50 ms threshold, and a
+7.4 ms maximum individual warm-up invocation. The 50 ms task upper bound is a
+threshold observation, not a claim that an exact 50 ms task occurred. Lower load
+than the pre-slice capture also limits direct timing comparison; exact output
+identity remains covered by the focused tests.
+
+Raw diagnostic stays outside git, SHA-256
+`95c7f8c829ab66f8071811d9ed010e0a8e91c4714f467ba4705ff083b1cdff64`.
