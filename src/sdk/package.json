@@ -97,6 +97,7 @@
     "./looks/keyedSky": "./looks/keyedSky.ts",
     "./looks/keyedSkyRows": "./looks/keyedSkyRows.ts",
     "./species/clips": "./species/clips.ts",
+    "./species/limbRig": "./species/limbRig.ts",
     "./species/riggedHulls": "./species/riggedHulls.ts",
     "./compendium/trophyWall": "./compendium/trophyWall.ts",
     "./species/riggedHullRows": "./species/riggedHullRows.ts",

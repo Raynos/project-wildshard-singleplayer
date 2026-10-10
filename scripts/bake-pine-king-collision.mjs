@@ -21,7 +21,8 @@ const kingSpec = v.object({ dims: v.object({ headAt: triple, bodyAt: triple,
   bodyPitch: finite, bodyHalfLen: finite, fore: v.object({ bone: v.literal('chest'), at: triple, halfLen: finite }) }) });
 export const KING_COLLISION_INPUTS = [
   'public/assets/pine-hollow/creatures/antler-king-rig.phone.rigged.glb',
-  'src/shards/pine-hollow/combat/kingRig.ts', 'src/shards/pine-hollow/combat/kingTiming.ts',
+  'src/shards/pine-hollow/combat/kingRig.ts', 'src/shards/pine-hollow/data/kingClips.ts', 'src/game/systems/species/limbRig.ts',
+  'src/shards/pine-hollow/combat/kingTiming.ts',
   'src/shards/pine-hollow/runtime/physics.baked.json', 'src/shards/pine-hollow/runtime/kingCollision.ts',
   'src/shards/pine-hollow/runtime/kingCollisionBake.ts', 'src/game/combat/collisionPose.ts',
   'scripts/bake-pine-king-collision.mjs', 'test/fake/portableMath.ts',
