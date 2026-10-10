@@ -5,10 +5,10 @@
 import { app } from '../../src/engine/app/runtime';
 import { Scope } from '../../src/engine/app/scope';
 import { hasSpecies } from '../../src/engine/entities/species/registry';
-import type { RiggedHullsRow } from '../../src/game/systems/looks/riggedHullRows';
+import type { RiggedHullsRow } from '../../src/shards/pine-hollow/runtime/looks/riggedHullRows';
 import { installKitSpecies } from '../../src/game/systems/species/install';
-import { riggedHulls } from '../../src/game/systems/looks/riggedHulls';
-import { PINE_HULLS } from '../../src/shards/pine-hollow/data/hulls';
+import { riggedHulls } from '../../src/shards/pine-hollow/runtime/looks/riggedHulls';
+import { PINE_HULLS } from '../../src/shards/pine-hollow/runtime/looks/hulls';
 import { pineCoatUrl, pineCreatureRigUrl } from '../../src/shards/pine-hollow/species/rigs';
 import { PINE_BEAR_LOOK, PINE_BOAR_LOOK, pineElkLook } from '../../src/shards/pine-hollow/species/looks';
 import { PINE_SPECIES, pineElk } from '../../src/shards/pine-hollow/species/rows';
