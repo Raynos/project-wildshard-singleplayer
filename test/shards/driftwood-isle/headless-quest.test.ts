@@ -279,12 +279,25 @@ it('plays the Sealed Ring\'s interactables at the page\'s points: talk, chest, b
     put(original, spots.reward.x + 3, spots.reward.y, spots.reward.z);
     for (let tick = 0; tick < 120; tick++) original.step(still);
     expect(F.has(REWARD_FLAG)).toBe(false);
+    const reward = (host: SimHost) => v.parse(v.object({ reward: v.object({ elapsed: v.number(), player: v.object({ pitch: v.number(), carried: v.boolean() }) }) }), host.adapters.get(QUEST_STEP)?.snapshot()).reward;
+    expect(reward(original).player.carried).toBe(true);
+    expect(original.player.position.distanceTo(new Vector3(spots.reward.x, spots.reward.y, spots.reward.z))).toBeLessThan(0.4);
+    expect(original.playerImpulse.lengthSq()).toBe(0);
     restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
     expect(pack(restored)).toEqual(pack(original));
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
     for (let tick = 0; tick < 330; tick++) { original.step(still); restored.step(still); }
     expect([original.flags.has(REWARD_FLAG), original.flags.has(QUEST_DONE), restored.flags.has(QUEST_DONE)]).toEqual([true, true, true]);
     expect(facts()).toContain('driftwood.quest@quest:1');
+    expect(reward(original).elapsed).toBe(-2); expect(reward(restored)).toEqual(reward(original));
+    expect(reward(original).player.carried).toBe(true); expect(F.has('seen:complete')).toBe(true);
+    expect(original.player.position).toEqual(new Vector3(spots.reward.x, spots.reward.y, spots.reward.z));
+    expect(original.player.yaw).toBe(spots.reward.yaw); expect(reward(original).player.pitch).toBe(spots.reward.pitch);
+    expect(original.dayClock?.phase).toBeGreaterThanOrEqual(spots.reward.phase);
+    // Restoring after the director has finished must retain the completion owner's carry and camera fence.
+    restored.dispose(); restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    for (let tick = 0; tick < 10; tick++) { original.step(still); restored.step(still); }
+    expect(restored.player.yaw).toBe(spots.reward.yaw); expect(reward(restored)).toEqual(reward(original));
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
   } finally { tape = []; restored?.dispose(); original.dispose(); }
 }, 60_000);

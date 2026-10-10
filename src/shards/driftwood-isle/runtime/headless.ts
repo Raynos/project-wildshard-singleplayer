@@ -99,6 +99,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard }) 
     if (!context.restoring) addDriftwoodWorld(host, bake);
     const island = installIsland(host, { bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
     const captain = installCaptain(host, bake, island);
+    const reward = { started: false };
     const observation = { altar: 0, dead: 0, seen: 0, 'player-x': 0, 'player-z': 0, 'reward-x': spots.reward.x, 'reward-z': spots.reward.z };
     const finale = new DriftwoodScriptFinale(createDirector(), { observe: () => {
       observation.altar = Number(host.flags.has('used:altar')); observation.dead = Number(host.flags.has('dead:captain'));
@@ -106,8 +107,9 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard }) 
       return observation;
     }, publish: event => {
       if (event === 'captain.restore' || event === 'captain.wake') captain.publish(event);
+      else if (event === 'reward.start') reward.started = true;
       else if (event === 'reward.finish') host.flags.set('seen:reward');
-      // The native encounter owns death; the renderer owns reward caption/camera presentation.
+      // The native encounter owns death; the quest keeper owns the same reward pose/carry continuation.
     } }, context.restoring);
     const offFinale = host.flags.onChange((flag, on) => { if (on && (flag === 'used:altar' || flag === 'dead:captain')) finale.changed(); });
     host.scope.onDispose(offFinale);
@@ -130,7 +132,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard }) 
     installDriftwoodQuest(host, { quests: shard.quests, table: DRIFTWOOD_INTERACT, spots, feats: DRIFTWOOD_FEATS, fact, coins, bodies: island.bodies,
       commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []),
       floorAt: (x, z) => Math.max(heightAt(x, z), bake.holdFloorAt(x, z) ?? Number.NEGATIVE_INFINITY), ironTaken: () => { held.equip(1); },
-      finale, waterLevel: LOWERED_SEA, restoring: context.restoring, walk: () => walkOf(context.commands(), level.player.speed) });
+      finale, reward, waterLevel: LOWERED_SEA, restoring: context.restoring, walk: () => walkOf(context.commands(), level.player.speed) });
     // the bodies spawned in play (a new practice crab, the captain) reinstall after every install-time step
     island.settle();
     host.onStep('driftwood.poses', island.publishPoses, undefined, 'afterBodies');

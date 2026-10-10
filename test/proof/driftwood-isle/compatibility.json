@@ -2,18 +2,18 @@
   "slug": "driftwood-isle",
   "entry": "runtime/headless.ts",
   "compatible": false,
-  "scope": "Real Sealed Ring and reef journeys, earned chest pack, Captain/swim continuations and emitted ledger facts; not whole-shard compatibility",
-  "inputs": "a0d93e6f2b197b2b7bd5bb6b3e5246bd93cd919087bd6bff3ecfc18b6eead8c6",
+  "scope": "Real Sealed Ring and reef journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility",
+  "inputs": "efe0eabadb48df4ca69fe25e2b93f985275dc5e3488ed83f702e7e17b90953d5",
   "open": [
     "Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.",
     "Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.",
-    "Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and native zipline carry/landing are reproduced; travel to the zipline launch, reward camera/player carry and every sea-glass path remain outside this witness.",
+    "Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and native zipline carry/landing are reproduced; travel to the zipline launch, completion-card world freeze/resume and every sea-glass path remain outside this witness.",
     "Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness."
   ],
   "headless": {
     "status": "passed",
     "ticksExecuted": 10000,
-    "hash": "757b880e05b74c5a0cac34da83c3c31de8763cb108901bee94516d82ad3edafb",
+    "hash": "fdf52532f784711c50adc30d44b072ee01c6a3174eb58f0beebf5d6c25e4fcab",
     "entries": {
       "lanes": 92,
       "steps": 34118
@@ -96,9 +96,9 @@
       "attempt": true,
       "waitForReturn": false
     },
-    "suffixTicksExecuted": 918,
-    "hash": "d3b99eb4c63ae35652da6fc509bf106b1ffaaea1f81ffcbb9aa7fd30d5e18a6a",
-    "replayHash": "d3b99eb4c63ae35652da6fc509bf106b1ffaaea1f81ffcbb9aa7fd30d5e18a6a",
+    "suffixTicksExecuted": 945,
+    "hash": "4da8615a22051fd8c96fbcd73ceae891a6c602d4c1cb7cf44a0d0ae1df5b8a76",
+    "replayHash": "4da8615a22051fd8c96fbcd73ceae891a6c602d4c1cb7cf44a0d0ae1df5b8a76",
     "effects": [
       {
         "tick": 19681,
@@ -119,12 +119,19 @@
     ],
     "workerTicks": 60,
     "workerExact": true,
-    "victory": true
+    "victory": true,
+    "reward": {
+      "elapsed": -2,
+      "player": {
+        "pitch": 0.6632251157578453,
+        "carried": true
+      }
+    }
   },
   "ledger": {
     "status": "passed",
     "resumedTick": 18898,
-    "ticksExecuted": 918,
+    "ticksExecuted": 945,
     "rules": 10,
     "facts": [
       {
@@ -314,6 +321,6 @@
     "surfaced": true,
     "treasureCount": 1,
     "durableReload": true,
-    "hash": "2b880c3912c4e07e283d44ec6968ca251111fbf2d5247946a36943f8624bafe0"
+    "hash": "22a12a3e975e254cb3f1a121b6ccdce1b9e71fa4ef617adc7e6707063ce8d8bb"
   }
 }

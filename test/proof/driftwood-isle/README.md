@@ -62,7 +62,7 @@ continuations. The real tape earns two doubloons from Wendell's chest and three 
 separate from purse coins (the 10k prefix still has two; the strongbox opens at tick 11,101). A focused native prompt test opens the actual reef chest, earns its eight doubloons and
 treasure fact, then restores exactly and refuses a duplicate opening. That test places the player at the prompt and
 does not claim underwater travel by itself; the independent reef journey above now covers that approach. Reward
-carry/camera and travel to the zipline launch remain open.
+carry/camera is hosted below; travel to the zipline launch remains open.
 
 The finale now executes the same immutable AssemblyScript director in the page and trusted worker. Its complete
 author continuation replaces the quest adapter's native `reward` timer in the three checkpoints. All other canonical
@@ -71,3 +71,13 @@ and profile prefixes remain exact. The real Captain replay still starts at tick 
 and reward in 918 ticks; the restored worker agrees for 60 ticks. The page's previous finale is retained only as a
 test oracle, with 10k event/pose decisions and a silent restored author suffix. Whole-shard compatibility remains false
 for the laws listed in `open`; moving the timer to a script does not close those gaps.
+
+The existing native reward pose keeper now consumes the admitted director events in the real post-player phase.
+Its sole player owner carries the player to the authored position/yaw/pitch, eases the golden-hour clock, clears
+impulse and preserves the completion handoff. Mid-beat and finished-state restore are exact and silent.
+The completion card's world freeze/resume and its menu choices remain unhosted; whole-shard compatibility stays false.
+
+Hosting the actual reward carry changes the recorded tape from 19,816 to 19,843 ticks (+27): the player
+now finishes its approach under the shipping eased carry, rather than continuing ordinary walking. The living
+Captain checkpoint remains tick 18,898 at 190 HP, the quest fact stays tick 19,681, and the exact replay suffix
+is 945 ticks. These are real gameplay outcomes with unchanged authored tuning.

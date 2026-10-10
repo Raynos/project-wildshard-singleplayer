@@ -43,10 +43,10 @@ const identity = { instance: 'driftwood-witness', shard: source.identity.slug, r
 export const OPEN = [
   'Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.',
   'Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.',
-  'Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and native zipline carry/landing are reproduced; travel to the zipline launch, reward camera/player carry and every sea-glass path remain outside this witness.',
+  'Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and native zipline carry/landing are reproduced; travel to the zipline launch, completion-card world freeze/resume and every sea-glass path remain outside this witness.',
   'Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness.',
 ];
-export const SCOPE = 'Real Sealed Ring and reef journeys, earned chest pack, Captain/swim continuations and emitted ledger facts; not whole-shard compatibility';
+export const SCOPE = 'Real Sealed Ring and reef journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility';
 export function driftwoodRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
 function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
   return createTrustedHeadlessResident({ shard: source, assets, rapier }, { module: MODULE }, snapshot);
@@ -289,7 +289,10 @@ export async function replayProof(rapier: Rapier): Promise<object> {
     }
     const endHash = digest(original), replayHash = digest(restored); sameEffects(a, b); sameEffects(a, expected(m, cp.tick, until));
     if (endHash !== replayHash || !original.host.flags.has('dead:captain') || !original.host.flags.has('quest:driftwood-done')) throw new Error('Captain continuation/reward diverged');
-    return { status: 'passed', resumedFrom: cp.name, prefixTicks: 0, checkpointCaptured: true, checkpointTick: cp.tick, hp, encounter: JSON.parse(encounter) as unknown, suffixTicksExecuted: until - cp.tick, hash: endHash, replayHash, effects: a, workerTicks: 60, workerExact: true, victory: true };
+    const reward = v.parse(v.object({ reward: v.object({ elapsed: v.literal(-2), player: v.object({ pitch: v.number(), carried: v.literal(true) }) }) }), original.host.adapters.get(QUEST_STEP)?.snapshot()).reward;
+    const target = driftwoodSpots().reward;
+    if (!original.host.flags.has('seen:complete') || Math.hypot(original.host.player.position.x - target.x, original.host.player.position.y - target.y, original.host.player.position.z - target.z) !== 0 || original.host.player.yaw !== target.yaw || reward.player.pitch !== target.pitch || original.host.dayClock === undefined || original.host.dayClock.phase < target.phase) throw new Error('Native reward carry/pose/clock handoff diverged');
+    return { status: 'passed', resumedFrom: cp.name, prefixTicks: 0, checkpointCaptured: true, checkpointTick: cp.tick, hp, encounter: JSON.parse(encounter) as unknown, suffixTicksExecuted: until - cp.tick, hash: endHash, replayHash, effects: a, workerTicks: 60, workerExact: true, victory: true, reward };
   } finally { await worker?.dispose(); restored?.dispose(); original.dispose(); }
 }
 

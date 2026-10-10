@@ -17,6 +17,7 @@ import { QUEST_DONE } from '../quest/questLine';
 import baked from './spots.baked.json' with { type: 'json' };
 import { DriftwoodPack } from './pack';
 import { DriftwoodZipline } from './zipline';
+import { DriftwoodReward } from './reward';
 import type { DriftwoodScriptFinale } from './scriptFinale';
 
 /** The script command actor that carries Driftwood's [E] prompts (`{ kind: 'script', actorId: DRIFTWOOD_INTERACT, value }`). */
@@ -76,6 +77,8 @@ export interface DriftwoodQuestPorts {
   readonly restoring: boolean;
   /** The admitted finale, stepped at this keeper's existing post-player/ride phase. */
   readonly finale: DriftwoodScriptFinale;
+  /** Events from the same admitted director, consumed at the native post-player reward phase. */
+  readonly reward: { readonly started: boolean };
 }
 
 /** The fixed cuboid the page baked for a kit collider box (its centre and half extents), or throws: the world lacks it. */
@@ -106,7 +109,7 @@ interface Rule {
 }
 const Watch = v.strictObject({ lost: finite, wedge: finite, from: v.strictObject(xyz) });
 const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), finale: v.string(), iron: v.boolean(), counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
-  pack: v.unknown(), zipline: v.unknown(),
+  pack: v.unknown(), zipline: v.unknown(), reward: v.unknown(),
   barrel: v.nullable(v.strictObject({ handle: v.pipe(finite, v.integer(), v.minValue(0)), watch: Watch })) });
 /** the barrel body's collider owner (a plain value, so the snapshot's collider tags carry it) */
 const BARREL_OWNER = { kind: 'barrel', id: 'tide-barrel' } as const;
@@ -124,7 +127,7 @@ const BARREL_OWNER = { kind: 'barrel', id: 'tide-barrel' } as const;
  * Chest contents enter the actual authored pack through the page's inventory law, in table order, after the row's
  * automatic and explicit flags. The pack is part of the quest continuation; opening an already open chest adds nothing.
  * Not modelled: the prompts' line of sight; the nearest-prompt pick (a command names its row);
- * the reward view's carry of the player; travel to the zipline launch; the shown strongbox's collider (the
+ * the completion card's freeze/resume controls; travel to the zipline launch; the shown strongbox's collider (the
  * baked world keeps the load-time set). The puzzle barrel is the kit's own body (world/interact/barrel.ts BARREL_BODY) at
  * its baked home in the host's world, which the player's capsule pushes on the page's law (PLAYER_BODY), with the kit's
  * never-jam rule (BarrelWatch, each tick on the walk the player asks for); the open sluice drops its baked collider (on the
@@ -149,19 +152,30 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const pack = new DriftwoodPack();
   // The page's carried branch leaves the motor alone and clears impulse/velocity before the ride's post-player update.
   // This one player owner will also host the reward carry; an inactive ride retains the ordinary host motion law.
-  const rider = { position: host.player.position, velocity: new Vector3() };
-  let carried = false;
+  const rider = { position: host.player.position, velocity: new Vector3(), pitch: 0, carried: false,
+    get yaw(): number { return host.player.yaw; }, set yaw(value: number) { host.player.yaw = value; } };
   const zipline = new DriftwoodZipline({ top: new Vector3(spots.zipline.top.x, spots.zipline.top.y, spots.zipline.top.z),
     bottom: new Vector3(spots.zipline.bottom.x, spots.zipline.bottom.y, spots.zipline.bottom.z), sag: spots.zipline.sag }, on => {
-    carried = on;
+    rider.carried = on;
     if (!on) flags.set('used:zipline');
   });
   host.usePlayerDriver({ input: command => {
-    if (!carried) return false;
-    if (command !== undefined) host.player.yaw = command.yaw;
+    if (!rider.carried) return false;
+    if (command !== undefined && !flags.has(REWARD_FLAG)) host.player.yaw = command.yaw;
     host.playerImpulse.set(0, 0, 0); rider.velocity.set(0, 0, 0); host.playerFall.grounded = false;
     return true;
   }, step: () => undefined });
+  const reward = new DriftwoodReward(rider, host.dayClock, {
+    at: new Vector3(spots.reward.x, spots.reward.y, spots.reward.z), yaw: spots.reward.yaw, pitch: spots.reward.pitch, phase: spots.reward.phase,
+    when: () => ports.reward.started,
+    finish: () => {
+      // Complete.showAfterReward takes carry ownership on its first showing. The card's world freeze and menu
+      // choices remain outside this host; preserve its actual carry/seen fence rather than inventing a release.
+      if (flags.has('seen:complete')) return false;
+      flags.set('seen:complete'); return true;
+    },
+  });
+  host.scope.onDispose(() => { reward.dispose(); });
   const eye = new Vector3(), at = new Vector3(), keyPrompt = { x: 0, y: 0, z: 0 }, slab = { x: 0, y: 0, z: 0 }, half = { x: 0, y: PLATE_DEPTH, z: 0 };
   const state: { key: { x: number; y: number; z: number } | null; iron: boolean } = { key: null, iron: false };
   const feats = ports.feats.filter(f => f.kind === undefined).map(f => ({ id: f.id, count: f.count, name: `driftwood.${f.id}`,
@@ -307,7 +321,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     const b = barrel;
     if (b !== null) {
       service.post(dt);
-      const asked = ports.walk(); walked.x = carried ? 0 : asked.x; walked.z = carried ? 0 : asked.z;
+      const asked = ports.walk(); walked.x = rider.carried ? 0 : asked.x; walked.z = rider.carried ? 0 : asked.z;
       if (watch?.check(b.curr, dt, env) === true) sendHome(b);
       service.pre(dt);
     }
@@ -318,12 +332,14 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     zipline.update(dt, rider);
     // Only the admitted script owns finale timing; the native quest/body clock keeps its original phase.
     ports.finale.update(dt);
+    reward.update(dt, flags.has(REWARD_FLAG));
   }, {
-    snapshot: () => ({ key: state.key, finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: zipline.snapshot(), counts: Object.fromEntries(feats.map(f => [f.id, f.n])),
+    snapshot: () => ({ key: state.key, finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: zipline.snapshot(), reward: reward.snapshot(), counts: Object.fromEntries(feats.map(f => [f.id, f.n])),
       barrel: barrel === null || watch === null ? null : barrelState(barrel.rb.handle, watch) }),
     restore: value => {
       const saved = v.parse(Saved, value);
-      zipline.restore(saved.zipline); carried = zipline.isRiding;
+      zipline.restore(saved.zipline);
+      reward.restore(saved.reward);
       pack.restore(saved.pack);
       ports.finale.restore(saved.finale); state.key = saved.key; state.iron = saved.iron;
       feats.forEach(f => { f.n = saved.counts[f.id] ?? 0; });
