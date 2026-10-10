@@ -1,3 +1,4 @@
+import { loadCoverGeometry } from './coverGeometry';
 import { modelGeometry } from '@wildshard/sdk/modelGeometry';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 
@@ -17,6 +18,7 @@ export function fixedGeometryReady(): boolean { return ready; }
 /** Called explicitly by the world hook before any synchronous placement or later loot factory. Explicit bytes admit the same templates in Node fixtures. */
 export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array>): Promise<void> {
   await Promise.all([
+    loadCoverGeometry(bytes),
     HAT_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.hat)), CHIME_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.chime)),
     CAPE_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.cape)), BOAT_HULL_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatHull)),
     BOAT_SAIL_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatSail)), BOAT_GEAR_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatGear)),

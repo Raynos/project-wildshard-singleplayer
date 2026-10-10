@@ -26,6 +26,20 @@ describe('Driftwood boot sources (E357 S4.1, 08 §6.1 step 7)', () => {
       '/assets/driftwood-isle/baked/fixed-models/trophy-plaques.glb',
       '/assets/driftwood-isle/baked/fixed-models/trophy-drop.glb',
       '/assets/driftwood-isle/baked/fixed-models/sea-glass-chime.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-tuft.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-fern.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-hibiscus.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-daisy.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-pebble.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-shells.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-starfish.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-bush.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-tuftFar.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-fernFar.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-hibiscusFar.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-daisyFar.glb',
+      '/assets/driftwood-isle/baked/fixed-models/cover-bushFar.glb',
+
     ]);
     expect(files.terrain).toHaveLength(1);
     expect(files.terrain.every((url) => url.includes('/baked/driftwood-isle/terrain'))).toBe(true);

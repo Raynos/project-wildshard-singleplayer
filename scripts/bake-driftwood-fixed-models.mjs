@@ -13,6 +13,8 @@ import { PLAQUE_GAP } from '../src/shards/driftwood-isle/models/trophyPlaques.ts
 
 import { counterGeometry } from '../src/shards/driftwood-isle/generators/tradeCounter.ts';
 
+import { coverGeometry } from '../src/shards/driftwood-isle/generators/groundCover.ts';
+
 const assets = new URL('../public/assets/driftwood-isle/baked/fixed-models/', import.meta.url);
 const check = process.argv.includes('--check');
 const write = (url, bytes) => {
@@ -39,4 +41,7 @@ emit('trophy-drop', drop.geometry);
 const { ranges, boards, empty, full } = plaques;
 write(new URL('../src/shards/driftwood-isle/data/trophySlots.json', import.meta.url), `${JSON.stringify({ ranges, boards, empty, full }, null, 2)}\n`);
 emit('trade-counter', counterGeometry());
+const cover = coverGeometry();
+for (const [name, geometry] of Object.entries(cover.geometry)) emit(`cover-${name}`, geometry);
+write(new URL('../src/shards/driftwood-isle/data/coverLook.json', import.meta.url), `${JSON.stringify(cover.look, null, 2)}\n`);
 material.dispose();

@@ -1,0 +1,323 @@
+{
+  "sourceBase": "e878223d2a635d7cd0328377fa878f2d8bbf68bb",
+  "scope": "eight near cover meshes, five far silhouettes and eight mean-colour/projected-area rows; runtime placement, density, wind, handover, double buffers and dune-log authority unchanged",
+  "newGlbBytes": 80544,
+  "metricsBefore": {
+    "publicLines": 718,
+    "customLines": 17006,
+    "runtimeLines": 6088,
+    "trustedRuntimeLines": 3586,
+    "publicShare": 0.040510042879711126,
+    "legacy": {
+      "generators": 688,
+      "data": 600,
+      "runtime": 22658
+    }
+  },
+  "metricsAfter": {
+    "publicLines": 852,
+    "customLines": 16957,
+    "runtimeLines": 5985,
+    "trustedRuntimeLines": 3483,
+    "publicShare": 0.04784097928013926,
+    "legacy": {
+      "generators": 839,
+      "data": 613,
+      "runtime": 22589
+    }
+  },
+  "nativeParity": {
+    "build": "e878223-mv1sgmzq",
+    "profile": "iPhone 16 Pro / phone / DPR2 / Metal",
+    "method": "original versus baked fixed vertex channels on every native instanced near/far cover tier; unchanged native wind material and shared runtime instance channels, frozen clock; two visible poses per model",
+    "rows": [
+      {
+        "model": "tuft",
+        "pose": 0,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 17227
+      },
+      {
+        "model": "tuft",
+        "pose": 1,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 14471
+      },
+      {
+        "model": "fern",
+        "pose": 0,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 32134
+      },
+      {
+        "model": "fern",
+        "pose": 1,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 32190
+      },
+      {
+        "model": "hibiscus",
+        "pose": 0,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 20009
+      },
+      {
+        "model": "hibiscus",
+        "pose": 1,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 16824
+      },
+      {
+        "model": "daisy",
+        "pose": 0,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 9825
+      },
+      {
+        "model": "daisy",
+        "pose": 1,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 8664
+      },
+      {
+        "model": "pebble",
+        "pose": 0,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 32746
+      },
+      {
+        "model": "pebble",
+        "pose": 1,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 32009
+      },
+      {
+        "model": "shells",
+        "pose": 0,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 6686
+      },
+      {
+        "model": "shells",
+        "pose": 1,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 6281
+      },
+      {
+        "model": "starfish",
+        "pose": 0,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 2072
+      },
+      {
+        "model": "starfish",
+        "pose": 1,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 2061
+      },
+      {
+        "model": "bush",
+        "pose": 0,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 124834
+      },
+      {
+        "model": "bush",
+        "pose": 1,
+        "distance": 3,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 126005
+      },
+      {
+        "model": "tuftFar",
+        "pose": 0,
+        "distance": 35,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 17193
+      },
+      {
+        "model": "tuftFar",
+        "pose": 1,
+        "distance": 35,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 19909
+      },
+      {
+        "model": "fernFar",
+        "pose": 0,
+        "distance": 35,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 17043
+      },
+      {
+        "model": "fernFar",
+        "pose": 1,
+        "distance": 35,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 19024
+      },
+      {
+        "model": "hibiscusFar",
+        "pose": 0,
+        "distance": 35,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 12509
+      },
+      {
+        "model": "hibiscusFar",
+        "pose": 1,
+        "distance": 35,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 9663
+      },
+      {
+        "model": "daisyFar",
+        "pose": 0,
+        "distance": 24,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 247
+      },
+      {
+        "model": "daisyFar",
+        "pose": 1,
+        "distance": 24,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 4303
+      },
+      {
+        "model": "bushFar",
+        "pose": 0,
+        "distance": 35,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 75782
+      },
+      {
+        "model": "bushFar",
+        "pose": 1,
+        "distance": 35,
+        "width": 804,
+        "height": 1362,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "visiblePixels": 74062
+      }
+    ]
+  },
+  "bakes": {
+    "physics.baked.json": {
+      "payloadIdentical": true,
+      "recordedInputs": 122
+    },
+    "spots.baked.json": {
+      "payloadIdentical": true,
+      "recordedInputs": 73
+    }
+  },
+  "map": {
+    "rebaked": true,
+    "imageByteIdentical": false
+  },
+  "ao": {
+    "deterministicBothTiers": true,
+    "tableByteIdentical": true
+  },
+  "checks": {
+    "focusedTests": 28,
+    "strict": true,
+    "touchedLint": true
+  },
+  "downwardImports": {
+    "engine": 4,
+    "sdk": 1
+  }
+}
