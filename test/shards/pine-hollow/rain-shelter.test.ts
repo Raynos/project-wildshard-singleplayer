@@ -1,7 +1,7 @@
 import { Color } from 'three';
 import { expect, it } from 'vitest';
 import { AnimalManager } from '../../../src/engine/entities/AnimalManager';
-import { HerdShelter } from '../../../src/game/systems/species/herdShelter';
+import { HerdShelter } from '../../../src/shards/pine-hollow/runtime/species/herdShelter';
 import { PINE_HERD_SHELTER } from '../../../src/shards/pine-hollow/runtime/looks/weatherLook';
 import { PineRainShelter, type PineShelterTree } from '../../../src/shards/pine-hollow/runtime/rainShelter';
 import { legacyActor } from '../../fake/legacyActor';

@@ -50,3 +50,28 @@ in `runtime/compendium/` and `runtime/quest/`. The trophy SDK facade is
 deleted. Five dialogue/continuation checks, root strict and touched lint
 pass; 29 existing performance sites transfer by source hash. This group
 changes no collider, clip, placement or map input.
+
+The two building systems, stand-in NPC, limb pose law, herd shelter and
+batched LOD helper return verbatim to Pine runtime; six SDK facades are
+deleted. Two trusted rows move with their runtime types. Capture pin
+`6d80fb968227804da7d8d401a873728de7c2c18c`: actual Pine, Driftwood and Nalati
+physics gameplay payloads are exact, and Pine map pixels remain exact.
+Driftwood’s capture stamp includes HEAD’s defining-class import-only
+forward (619608526), with the same class implementation. Forty-six
+focused pose/building/shelter/LOD checks, root strict and touched lint
+pass; 59 existing performance sites transfer by immutable source hash.
+
+The 30 focused physics/table/map checks also pass on the captured source.
+After this group, the metric still reports 3,014 solely-attributed
+platform lines (custom/frozen remains a report, not a passed claim):
+
+| Remaining bucket | Code lines | State |
+| --- | ---: | --- |
+| Crossbow / lever firearm implementations + SDK facades | 1,075 | Verbatim candidate blocked by SF2 subclass ceilings |
+| Elite script host + SDK facade | 178 | 13 exact script checks pass; blocked by SF2 ScriptWorld ceiling |
+| Composition-root species content and views | 982 | Existing global/legacy registration users need classification |
+| Composition-root effects + facade | 78 | Existing page/global installation user needs classification |
+| Pickup content | 86 | Historical frozen consumer retained |
+| Engine helpers | 615 | Typed query/render helpers; listed honestly by graph metric |
+
+No coupling ceiling is raised and no class is rewritten to evade it.

@@ -44,7 +44,7 @@ import type { ForestAmbience } from '../runtime/audio/ambience';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PineWeather, wetProjectile, type PineWeatherMode } from './weatherProfile';
 import { RainFx } from '../runtime/looks/rainFx';
-import { HerdShelter } from '@wildshard/sdk/species/herdShelter';
+import { HerdShelter } from '../runtime/species/herdShelter';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { PINE_CAVE_HOOD, PINE_HERD_SHELTER, PINE_RAIN, PINE_RAIN_PROGRAMS } from '../runtime/looks/weatherLook';
 import { BEAR_CAVE, OLD_GROWTH } from '../layout';

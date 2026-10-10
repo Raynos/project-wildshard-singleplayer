@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { buildPrimitiveParts, type PrimitivePartRow } from '../runtime/kit/primitiveParts';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { standInPerson, type StandInPerson } from '@wildshard/sdk/npc/standInPerson';
+import { standInPerson, type StandInPerson } from '../runtime/npc/standInPerson';
 import { NPC_FIGURE, NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } from '../runtime/kit/peopleLook';
 import { KINGS_CLEARING } from '../layout';
 import { npcModels, type NpcModels } from '../quest/npcModels';

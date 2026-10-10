@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import type { BoneDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { addLimbPose, applyLimbPose, limbRest, newLimbPose, playPoseClip, scaleLimbPose, zeroLimbPose, type LimbPose, type LimbPoseRest, type LimbRest } from '@wildshard/sdk/species/limbRig';
-import { KING_CLIPS, KING_GAITS as GAITS, KING_RIG } from '../data/kingClips';
+import { addLimbPose, applyLimbPose, limbRest, newLimbPose, playPoseClip, scaleLimbPose, zeroLimbPose, type LimbPose, type LimbPoseRest, type LimbRest } from '../runtime/species/limbRig';
+import { KING_CLIPS, KING_GAITS as GAITS, KING_RIG } from '../runtime/species/kingClips';
 
 /**
  * The Antler King's OWN rig (E322 F-M1; Jake picked B — A, the Bark Warden hull baked onto the elk's bones, walking like

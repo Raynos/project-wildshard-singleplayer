@@ -1,6 +1,6 @@
 // Pine Hollow's baked log buildings, how they dress and band (SHARD-PLATFORM M3, the props system's baked buildings:
 // @wildshard/sdk/props/bakedBuilding; world/cabinBake.ts assembles every building of the bake with it).
-import type { BakedBuildingLook } from '@wildshard/sdk/props/bakedBuilding';
+import type { BakedBuildingLook } from './bakedBuilding';
 
 /**
  * The log buildings' look: the small kit parts drawn only within the tier's detail distance (strap iron, cloth, char,

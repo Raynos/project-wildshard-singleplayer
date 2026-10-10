@@ -1,4 +1,4 @@
-import type { LimbRigSpec, PoseClip, PoseExpr, PoseSet } from '@wildshard/sdk/species/limbRig';
+import type { LimbRigSpec, PoseClip, PoseExpr, PoseSet } from './limbRig';
 
 /**
  * The Antler King's rig and clips as rows (E322 F-M1 body plan; SHARD-PLATFORM M3: the hand-written clip functions of

@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { BuildingDoor, BuildingFloor, BuildingFlicker, BuildingLightAnchor, BuildingLightKind, BuildingRoom, BuildingSwing } from '@wildshard/sdk/props/buildingLife';
+import type { BuildingDoor, BuildingFloor, BuildingFlicker, BuildingLightAnchor, BuildingLightKind, BuildingRoom, BuildingSwing } from '../runtime/props/buildingLife';
 
 /** boards across the wood_trunk_wall texture, and its size (m) along the board grain */
 export const BOARDS = 7, BOARD_LEN = 1.25;

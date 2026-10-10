@@ -45,7 +45,7 @@ import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { TerrainCut } from '@wildshard/engine/physics/terrain';
 import { PATCH_ORDER, patchShader, setProgramKey } from '@wildshard/engine/render/shaderPatches';
-import { BatchedLodSet, geometrySize, type BatchedLodSetView, type LodPlanRow } from '@wildshard/sdk/cull/batchedLod';
+import { BatchedLodSet, geometrySize, type BatchedLodSet as BatchedLodSetView, type LodPlanRow } from '../runtime/cull/batchedLod';
 import { CaveInterior, type CaveInterior as CaveInteriorView, type CaveMeta } from '../runtime/kit/caveInterior';
 import { loadGlbNodes, trimeshDesc } from '../runtime/kit/glbNodes';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';

@@ -82,6 +82,10 @@
     "generators",
     "models",
     "runtime/looks",
-    "runtime/kit"
+    "runtime/kit",
+    "runtime/props",
+    "runtime/npc",
+    "runtime/species",
+    "runtime/cull"
   ]
 }

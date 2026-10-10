@@ -13,7 +13,7 @@ import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { installMossOverlay } from '../runtime/looks/mossOverlay';
 import { riseParticleMaterial } from '../runtime/looks/riseParticles';
 import { flattenGlbParts, loadLodGlb } from '../runtime/kit/lodGlb';
-import { BuildingLife } from '@wildshard/sdk/props/buildingLife';
+import { BuildingLife } from '../runtime/props/buildingLife';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
