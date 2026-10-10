@@ -1,10 +1,11 @@
-/** An unclamped actual frame-clock interval with the original polling interval and counter coverage alongside it. */
+/** Delivered-frame interval with callback-start and polling intervals and counter coverage alongside it. */
 export interface DrawnFrameObservation {
-  at: number; dt: number; observedAt: number; polledDt: number; drawnFrame: number; missedFrames: number;
+  at: number; dt: number; rafDt: number; startedAt: number; startedDt: number;
+  observedAt: number; polledDt: number; drawnFrame: number; missedFrames: number;
 }
-/** Observe a completed Game frame using its clock.oldTime value, without calling getDelta/getElapsedTime. */
+/** Observe a completed Game frame using frameRafTime, clock.oldTime and the polling callback timestamp. */
 export interface DrawnFrameSampler {
-  sample: (frame: number, drawnAt: number, observedAt: number) => DrawnFrameObservation | null;
+  sample: (frame: number, rafAt: number, startedAt: number, observedAt: number) => DrawnFrameObservation | null;
 }
-/** Separate actual drawn-frame cadence from the rAF callback that later notices the frame counter. */
+/** Separate delivered-draw cadence from callback-start jitter and the callback that later notices the counter. */
 export function createDrawnFrameSampler(): DrawnFrameSampler;

@@ -285,6 +285,9 @@ export class Game {
   updateMs = new Float32Array(120); renderMs = new Float32Array(120);
   /** frames drawn since start() */
   frameCount = 0;
+  /** Browser rAF timestamp of the last completed draw; null for the initial synchronous draw.
+   * Cadence reads this delivered-frame clock; callback-start work and polling use separate clocks. */
+  frameRafTime: number | null = null;
   /** E357 F2: simulation time observed only on a drawn frame; the wall clock still runs behind menus. */
   private _frameTime = 0;
   get frameTime(): number { return this._frameTime; }
@@ -880,7 +883,9 @@ export class Game {
       const done = performance.now(), work = done - lastRun;
       noteFrameDrawn(done); // sliced builds in play pace their stretches to drawn frames (framePacing.ts)
       this.app.cpu.end();
-      this.workMs[this.frameI] = work; this.frameCount++;
+      this.workMs[this.frameI] = work;
+      this.frameRafTime = now ?? null;
+      this.frameCount++;
       this.updateMs[this.frameI] = renderAt - lastRun; this.renderMs[this.frameI] = done - renderAt;
       if (on) frameCost.end(realDt * 1000, renderAt - lastRun, done - renderAt, cap > 0 ? 1000 / cap : 0);
       this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles;

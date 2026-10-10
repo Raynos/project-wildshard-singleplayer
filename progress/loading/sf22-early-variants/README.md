@@ -461,3 +461,28 @@ browser, Simulator, Inspector and proxy resources closed. Raw scratch
 `attempt-6d4b-safari.json`
 `1bfd33a6c5afe0eb2be7edd235649b431637b6658609b049fdfb44d6a07bc946`.
 Proof `.git/proofs/20261010T123512-sf22-actual-clock-matched-90693.json`.
+
+## Coordinator clock ruling: delivered rAF timestamps are normative
+
+The 2026-10-10 ruling grades cadence on the browser's rAF timestamp for
+**each completed game draw**, matching SF0. Callback-start jitter and the
+later polling observer stay diagnostic only. Both unchanged absolute
+33.3 ms-plus-measured-quantum and standing-relative bounds use that one
+clock; any missing completed-draw counter still refuses credit.
+`rafCadenceWithinQuantum` enforces that selection with focused fixtures
+that retain deliberately different callback-start and polling intervals.
+
+The `6d4bf911b` raw record contains callback-start and polling timestamps,
+but not the actual game's delivered rAF timestamps. Its observer's rAF
+is not substituted for the game callback. Therefore the regraded
+**desktop and Safari cadence verdicts are INCOMPLETE**, requiring the
+next matched capture; the earlier callback-start FAIL numbers remain
+visible above as diagnostics, without normative timing credit. Existing
+install/compile observations are unchanged. `Game.frameRafTime` publishes
+only the last successful draw's browser timestamp with `frameCount`;
+the initial synchronous draw has no browser timestamp and stays null.
+There is no clock tick, artificial draw or change to frame pacing.
+
+Seven focused clock/gate/sampler tests, current-HEAD-plus-own-hunks strict
+and touched root lint pass. The next matched capture retains delivered
+rAF, callback-start and polling intervals independently on both surfaces.

@@ -722,6 +722,11 @@ drawing (and the tool is on), and `slicer()` then caps its stretches at `WORK_SL
 `workSlice()` yield all go through `paceYield`: when a frame is due they wait until the loop has drawn it (rAF, then a
 timer task after the paint). With the tool off, or off the road (the loading screen, Node bakers and tests), nothing changes.
 
+`Game.frameRafTime` is the browser rAF timestamp attached to the last completed draw; it is null for the
+initial synchronous draw. Read it with `frameCount` for delivered-frame cadence, retaining missing counter
+increments as incomplete coverage. `clock.oldTime` measures callback-start timing, and an observer's own
+rAF timestamp measures polling timing; neither substitutes for the delivered draw timestamp.
+
 `beginLoading({id, name, trace?})` from `@wildshard/engine/ui/Loading` adopts the first-HTML panel before product hydration. Repeating it for the same active identity returns the same panel and clock. `Loading.paintAdmission({phase, detail, bytesRead, bytesTotal, filesDone, filesTotal})` shows actual pre-plan work; an unknown total stays explicit. `waiting(detail)` identifies module or service waits. The session then hands its ordinary plan to that instance with `paint(view)`, preserving verified admission bytes and reaching 100 only at plan completion. The first HTML reads the title-arrival display name without consuming its one-shot navigation intent.
 
 ### Pre-entry safe

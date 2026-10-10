@@ -22,3 +22,16 @@ export function cadenceWithinQuantum(crossingP95, standingP95, quantum, limit = 
   const equalWithinStep = (value, reference) => Number((value - reference).toFixed(6)) <= quantum;
   return standingP95.every(value => equalWithinStep(value, limit)) && equalWithinStep(crossingP95, Math.min(...standingP95));
 }
+
+/** Grade only completed draws' browser rAF intervals; callback-start and polling clocks never set cadence.
+ * Both route and standing coverage must contain no missing draws. Absolute and relative limits are unchanged. */
+export function rafCadenceWithinQuantum(crossing, standing, quantum, limit = 33.3) {
+  const covered = rows => rows.length > 0 && rows.every(row => Number.isFinite(row.rafDt)
+    && row.rafDt > 0 && row.missedFrames === 0);
+  const p95 = rows => {
+    const intervals = rows.map(row => row.rafDt).sort((a, b) => a - b);
+    return intervals[Math.ceil(intervals.length * 0.95) - 1];
+  };
+  return covered(crossing) && standing.length > 0 && standing.every(covered)
+    && cadenceWithinQuantum(p95(crossing), standing.map(p95), quantum, limit);
+}
