@@ -355,3 +355,37 @@ Scratch evidence: `attempt-791f-desktop.json` SHA-256
 `attempt-791f-safari.json`
 `db25269ad063c1781d6ef576c85690a2f42442deb2e9441ef4a88fb811813a9d`.
 Proof `.git/proofs/20261010T113418-sf22-isolated-images-matched-49487.json`.
+
+## Completed-draw matched result: Safari cadence still open
+
+Runtime `c29b3330a`, quiet 17:04:22–17:15:23 UTC, 2026-10-10;
+marker removed in finally, no expiry. Desktop 17:05:15–17:13:18:
+six routes complete, zero errors/refusals, p95/p99 33.4/33.4 ms against
+standing 33.4 (observed quantum 0.1). Crossing sync maximum 20.1 ms,
+demanded wait 6.4 ms, activation 4.1 ms: PASS. First crossroads has zero
+shader calls. Per-route load medians 4.16/4.00/5.22/4.63/4.77/4.84,
+all maxima below 6. Explicit warm-up invocation maximum 6.9 ms;
+whole-task observer upper bound remains 50 ms, not zero.
+
+Safari Auto subset 17:13:26–17:15:13: both routes complete, zero
+errors/refusals; sync 25/0/8/0 ms, demanded wait at most 4 ms, activation
+at most 3 ms: install PASS. All 394 shader calls are explicit warm-ups;
+draw/driver calls zero. Cadence FAIL: p95 54 / p99 83 ms, standing 34,
+observed quantum 1. Route load medians 21.90 and 32.42 (ranges
+16.71–26.93 and 26.13–33.88): **under load despite the quiet marker**.
+No improvement or regression credited versus `791f`; Safari warm-task
+bound remains unavailable and memory remains G269 phone runs.
+
+Of 1,716 route frames, 1,204 overlap no recorded runtime-hook wall
+interval; their p95 is 50 ms. The largest gaps (187 / 177 ms) precede
+Signal's constructor/world. Hook wall overlaps do not measure CPU time.
+The next diagnostic records the actual game-loop rAF callback and draw
+decision, separating native delivery gaps from the frame-cap skip.
+No further scheduler change is inferred from these loaded timings.
+
+Raw scratch `attempt-c29b-desktop.json` SHA-256
+`a71c01e3b9da70d784e731c80265c6a5c4e3d31745511915bf74b937e40512b7`,
+`attempt-c29b-safari.json`
+`7a16e6ffbcfd419a07ff96af8689e09818436a29c94832d52c2ae9f32054c5cd`.
+Proof `.git/proofs/20261010T120002-sf22-completed-draw-queued-44467.json`.
+All owned preview / browser / Simulator / Inspector / proxy resources closed.
