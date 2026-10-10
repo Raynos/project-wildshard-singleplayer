@@ -21,7 +21,9 @@ it('G307 reports every game boundary syntax and enforces exact runtime plugin ex
     { file: 'src/shards/ember/alias.ts', code: "export { state } from '@wildshard/game/state'; export * from '@wildshard/game/state';", count: 2 },
     { file: 'src/shards/ember/relative.ts', code: "import { state } from '../../game/state';", count: 1 },
     { file: 'src/shards/ember/dynamic.ts', code: `import(\`@wildshard/game/\${name}\`); import('@wildshard/game/' + name);`, count: 2 },
-    { file: 'src/shards/ember/runtime/state.ts', code: "import { state } from '@wildshard/game/state';", count: 0 },
+    { file: 'src/shards/ember/runtime/state.ts', code: "import { state } from '@wildshard/game/state';", count: 1 },
+    { file: 'src/shards/ember/runtime/plugin.ts', code: "import { context } from '@wildshard/game/plugin/context';", count: 0 },
+    { file: 'src/shards/ember/runtime/hidden-plugin.ts', code: "import { context } from '@wildshard/game/plugin/hidden';", count: 1 },
     { file: 'src/shards/ember/runtime/private.ts', code: "import { state } from '@wildshard/game/private';", count: 1 },
     { file: 'src/shards/ember/runtime/relative.ts', code: "import { state } from '../../../game/state';", count: 1 },
     { file: 'src/shards/ember/runtime/dynamic.ts', code: `import(\`@wildshard/game/\${name}\`);`, count: 1 },
@@ -42,7 +44,7 @@ it('G307 reports every game boundary syntax and enforces exact runtime plugin ex
       const target = join(root, 'node_modules', name); mkdirSync(dirname(target), { recursive: true });
       symlinkSync(resolve('node_modules', name), target, 'dir');
     }
-    put('src/game/package.json', JSON.stringify({ name: '@wildshard/game', exports: { './state': './state.ts' } }));
+    put('src/game/package.json', JSON.stringify({ name: '@wildshard/game', exports: { './state': './state.ts', './plugin/context': './plugin/context.ts' } }));
     put('src/game/state.ts', 'export const state = 1;');
     put('src/shards/ember/manifest.ts', "export const MANIFEST = { slug: 'ember' };");
     put('src/shards/ember-legacy/manifest.ts', "export const MANIFEST = { slug: 'ember-legacy', legacy: true };");

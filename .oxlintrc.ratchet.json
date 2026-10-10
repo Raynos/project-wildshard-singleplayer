@@ -34,6 +34,10 @@
     "wildshard/engine-internal": "error",
     "wildshard/no-reexport": "error",
     "wildshard/shard-services": "error",
-    "wildshard/shard-game-imports": "error"
+    "wildshard/shard-game-imports": "error",
+    "wildshard/shard-game-plugins": "error",
+    "wildshard/generator-imports": "error",
+    "wildshard/shard-engine-imports": "error",
+    "wildshard/sdk-no-facade": "error"
   }
 }

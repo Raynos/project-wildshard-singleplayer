@@ -20,7 +20,7 @@ import { simClosure, simRoot } from './sim-closure.mjs';
 import { authoredHtmlSites } from './authored-html.mjs';
 import { runtimeCommonsClosure } from './commons-closure.mjs';
 import { runtimePerformanceViolations } from './runtime-performance.mjs';
-import { shardGameImport, legacyNpcImport, gamePluginImportViolation } from './shard-imports.mjs';
+import { shardGameImport, shardEngineImport, generatorImportViolation, legacyNpcImport, gamePluginImportViolation } from './shard-imports.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
@@ -906,6 +906,76 @@ const shardGamePlugins = rule('Trusted runtime imports only defining game plugin
   };
 });
 
+const boundaryVisitors = check => ({
+  ...importsVisitor(node => { check(node,importPrefix(node.source),computedSpecifier(node.source)); }),
+  TSImportType(node) { check(node,importPrefix(node.source),computedSpecifier(node.source)); },
+  TSExternalModuleReference(node) { check(node,importPrefix(node.expression)); },
+  CallExpression(node) {
+    if(node.callee.type==='Identifier' && node.callee.name==='require')check(node,importPrefix(node.arguments[0]),computedSpecifier(node.arguments[0]));
+  },
+});
+
+const generatorImports = rule('Generator and data imports stay on the authoring surface (DS0.3)', context => {
+  if(legacySourcePath(pathOf(context))!==null)return {};
+  return boundaryVisitors((node,source,computed)=>{
+    const reason=computed && generatorImportViolation(context.filename,'<computed>')!==null
+      ? 'author imports require a literal module path' : generatorImportViolation(context.filename,source);
+    if(reason!==null)report(context,node,`${reason}: ${source}`);
+  });
+});
+
+const shardEngineImports = rule('Direct shard engine imports shrink during the plugin migration (DS0.3)', context => {
+  if(!pathOf(context).startsWith('src/shards/') || legacySourcePath(pathOf(context))!==null)return {};
+  return boundaryVisitors((node,source)=>{
+    if(shardEngineImport(context.filename,source))report(context,node,`Direct engine import belongs to the plugin migration count: ${source}`);
+  });
+});
+
+const sdkNoFacade = rule('The authoring SDK never aliases a game or engine runtime binding (G307)', context => {
+  if(!pathOf(context).startsWith('src/sdk/'))return {};
+  return { Program(node) {
+    const imported=new Map(), aliases=new Map(), candidates=[];
+    const external=source=>shardGameImport(context.filename,source) || shardEngineImport(context.filename,source);
+    const reference=value=>{
+      const n=unwrap(value);
+      if(n?.type==='Identifier')return n.name;
+      if(n?.type==='MemberExpression' || n?.type==='TSQualifiedName')return reference(n.object ?? n.left);
+      if(n?.type==='TSTypeReference')return reference(n.typeName);
+      if(n?.type==='TSTypeQuery')return reference(n.exprName);
+      return null;
+    };
+    for(const statement of node.body) {
+      if(statement.type==='ImportDeclaration' && external(importPrefix(statement.source))) {
+        for(const item of statement.specifiers)imported.set(item.local.name,importPrefix(statement.source));
+      }
+      const declaration=statement.type==='ExportNamedDeclaration'?statement.declaration:statement;
+      if(declaration?.type==='VariableDeclaration')for(const item of declaration.declarations) {
+        if(item.id.type==='Identifier')aliases.set(item.id.name,reference(item.init));
+        if(statement.type==='ExportNamedDeclaration')candidates.push({node:item,name:item.id.name,ref:reference(item.init)});
+      }
+      if(declaration?.type==='TSTypeAliasDeclaration') {
+        aliases.set(declaration.id.name,reference(declaration.typeAnnotation));
+        if(statement.type==='ExportNamedDeclaration')candidates.push({node:declaration,name:declaration.id.name,ref:reference(declaration.typeAnnotation),source:declaration.typeAnnotation.type==='TSImportType'?importPrefix(declaration.typeAnnotation.source):null});
+      }
+      if(statement.type==='ExportNamedDeclaration' && statement.source && external(importPrefix(statement.source))) {
+        candidates.push({node:statement,name:'re-export',source:importPrefix(statement.source)});
+      } else if(statement.type==='ExportNamedDeclaration')for(const item of statement.specifiers ?? [])candidates.push({node:item,name:item.exported.name,ref:item.local.name});
+      if(statement.type==='ExportAllDeclaration' && external(importPrefix(statement.source)))candidates.push({node:statement,name:'re-export',source:importPrefix(statement.source)});
+      if(statement.type==='ExportDefaultDeclaration')candidates.push({node:statement,name:'default',ref:reference(statement.declaration)});
+    }
+    for(const candidate of candidates) {
+      let ref=candidate.ref, source=candidate.source;
+      const seen=new Set();
+      while(typeof ref==='string' && !seen.has(ref)) {
+        seen.add(ref);
+        if(imported.has(ref)){source=imported.get(ref);break;}
+        ref=aliases.get(ref);
+      }
+      if(typeof source==='string' && external(source))report(context,candidate.node,`Delete SDK facade ${candidate.name}; import the defining runtime module directly: ${source}`);
+    }
+  } };
+});
+
 // SF54/SF73: the unchanged historical implementations serve registered frozen copies only.
 const legacyNpcImports = rule('Historical NPC exports serve only registered frozen consumers', (context) => {
   const filename = pathOf(context);
@@ -941,6 +1011,9 @@ const plugin = {
     'no-reexport': noReexport,
     'shard-game-imports': shardGameImports,
     'shard-game-plugins': shardGamePlugins,
+    'generator-imports': generatorImports,
+    'shard-engine-imports': shardEngineImports,
+    'sdk-no-facade': sdkNoFacade,
     'legacy-npc-imports': legacyNpcImports,
     'runtime-commons': runtimeCommons,
     'runtime-performance': runtimePerformance,

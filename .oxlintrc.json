@@ -189,6 +189,10 @@
         "wildshard/layer": "error",
         // G307/SF78: report-only until SF76 move-backs finish; run scripts/game-plugins.mjs --report.
         "wildshard/shard-game-plugins": "off",
+        // SF79 DS0.3: seeded shrink-only counts during the move-backs; report before promotion.
+        "wildshard/generator-imports": "off",
+        "wildshard/shard-engine-imports": "off",
+        "wildshard/sdk-no-facade": "off",
         // E405 LP2: engine code names no shard, creature, item or game word (wire contracts: lint/ratchet.json allow)
         "wildshard/engine-words": "error",
         // E405 LP3 / LP4: the game and the kit name no particular shard

@@ -2638,3 +2638,23 @@ identity. They retire with the old consumers; no duplicate class or service
 registry exists. The remaining exports are transitional while the schema and
 app-shell consumers migrate. DS0.2's final ≤20, `./plugin/*`-only surface is not
 yet claimed.
+
+
+### Authoring boundary checks (SF79 DS0.3)
+
+`generator-imports` restricts shard `generators/`, `data/`, `quests/` and
+`shard.config.ts` to three.js, the authoring SDK, commons and their own shard
+files. Module paths must be literal. `shard-engine-imports` records every direct
+primary-shard engine import, including relative paths and type imports.
+`sdk-no-facade` refuses public value/type aliases of game or engine bindings;
+the SDK defines authoring implementations rather than another runtime interface.
+`shard-game-plugins` allows game imports only from `runtime/`, through published
+`@wildshard/game/plugin/*` definitions. Exact sealed legacy source paths remain
+exempt. Static, dynamic, require and type-import syntax are checked.
+
+These four rules are report-only in the root config during the move-backs and
+measured in `.oxlintrc.ratchet.json` for shrink-only debt. The serialized pusher
+seeds the generated ratchet from its clean tree; builders do not edit counts.
+`node scripts/game-plugins.mjs --report --json` exposes the current diagnostics.
+Root enforcement follows consumer migration; existing layer and sandbox guards
+remain active throughout.

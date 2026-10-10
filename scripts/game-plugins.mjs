@@ -74,8 +74,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     const scratch = mkdtempSync(resolve(tmpdir(), 'game-plugin-report-'));
     try {
       const config = resolve(scratch, 'config.json');
-      writeFileSync(config, JSON.stringify({ jsPlugins: [resolve(ROOT, 'lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: { 'wildshard/shard-game-plugins': 'warn' } }));
-      const result = spawnSync(process.execPath, [resolve(ROOT, 'node_modules/oxlint/bin/oxlint'), '-c', config, 'src/shards'], { cwd: ROOT, encoding: 'utf8' });
+      writeFileSync(config, JSON.stringify({ jsPlugins: [resolve(ROOT, 'lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: { 'wildshard/shard-game-plugins': 'warn', 'wildshard/generator-imports': 'warn', 'wildshard/shard-engine-imports': 'warn', 'wildshard/sdk-no-facade': 'warn' } }));
+      const result = spawnSync(process.execPath, [resolve(ROOT, 'node_modules/oxlint/bin/oxlint'), '-c', config, ...(process.argv.includes('--json') ? ['-f', 'json'] : []), 'src/shards', 'src/sdk'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
       process.stdout.write(result.stdout);
       process.stderr.write(result.stderr);
       if (result.error) throw result.error;
