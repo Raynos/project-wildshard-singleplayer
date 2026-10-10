@@ -62,8 +62,11 @@ export class JiehuaEffect extends Effect {
   refl: RowRenderPassView | null = null;
   /** the unsharp mask's strength below 3× */
   sharpen = 0.35;
+  /** poses its view before each frame reads it (SF63: a grid cell's view in the world's own frame); null standalone */
+  pose: (() => void) | null = null;
 
   override update(renderer: Renderer, inputBuffer: WebGLRenderTarget): void {
+    this.pose?.();
     const u = this.u, s = this.shared.u, cam = this.view;
     u.tTight.value = this.source?.output('tight') ?? null;
     u.tWide.value = this.source?.output('wide') ?? null;

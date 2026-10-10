@@ -28,6 +28,8 @@ uniform float uLift;
 uniform float uCardWarm;
 uniform vec4 uClip; // (render) the plane's extent (x0, z0, x1, z1); −1e5 … 1e5 = none
 uniform vec4 uPerf; // (E283) x: the tail-by-brightness reference (0 = off), y: a brightness floor (0 = off), w: −1 = no reject (the A / B harness)
+// the world's frame in the page (data/look.ts SHARED_UNIFORMS): aE, uCam and the card optics are in the world's own frame
+uniform vec3 uRootAt;
 varying vec2 vC;
 varying vec3 vWorld;
 varying vec3 vCol;
@@ -68,7 +70,7 @@ void main() {
   vCol *= 1.0 + uCardWarm * clamp((aCol.r - aCol.b) / max(aCol.r, 1e-3), 0.0, 1.0);
   // (render) an emitter on screen is mirrored by the screen-space reflection (render/reflect.ts): its card fades to
   // uCardOn; the cards stay for what is above or beside the frame (the signs over the street)
-  vec4 ce = projectionMatrix * viewMatrix * vec4(aE, 1.0);
+  vec4 ce = projectionMatrix * viewMatrix * vec4(aE + uRootAt, 1.0);
   vec2 en = ce.xy / max(ce.w, 1e-4);
   float onScreen = step(0.0, ce.w) * (1.0 - smoothstep(0.8, 1.0, max(abs(en.x), abs(en.y))));
   vCol *= mix(1.0, uCardOn, onScreen);
@@ -136,7 +138,7 @@ void main() {
   // (render) the silk fog's transmittance per corner (it varies slowly along a card; per pixel it was the cards' dearest
   // term under their overdraw)
   vFogT = silkFog(vWorld, 1.0).a;
-  gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.0);
+  gl_Position = projectionMatrix * viewMatrix * vec4(vWorld + uRootAt, 1.0);
   // (render, the spawn's dearest pass) a card too dim to see — a far lit window through the silk — is not drawn at all:
   // judged once per card at its mirror point (every corner agrees), it collapses outside the clip volume
   float fogM = silkFog(fromPlane(vec3(camL.x + radial.x * sM, 0.0, camL.z + radial.y * sM)), 1.0).a;

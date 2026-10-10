@@ -241,6 +241,7 @@ attribute float aR;
 uniform vec4 uHalo;
 uniform vec4 uHaloKind;
 uniform vec4 uHaloFar;
+uniform vec3 uRootAt;
 ${NOISE_VS}
 ${FOG_GLSL}
 varying vec2 vC;
@@ -254,7 +255,8 @@ void main() {
   float R = aR * uHalo.y * mix(1.0, uHaloFar.w, far);
   // pulled toward the eye by its radius: the wall behind a lantern does not cut the disc
   vec3 c = aAt + toEye / max(d, 1e-3) * min(R, d * 0.5);
-  vec4 mv = viewMatrix * vec4(c, 1.0);
+  // aAt and uCam are in the world's own frame; the view is the page's (uRootAt: data/look.ts SHARED_UNIFORMS)
+  vec4 mv = viewMatrix * vec4(c + uRootAt, 1.0);
   // the screen-size cap: R never spans more than uHalo.w of the view's height (projectionMatrix[1][1] = 1 / tan(fov/2))
   float cap = uHalo.w * 2.0 * max(-mv.z, 0.01) / projectionMatrix[1][1];
   float Rs = min(R, cap);

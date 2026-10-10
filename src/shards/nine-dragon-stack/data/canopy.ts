@@ -21,6 +21,7 @@ attribute vec2 aTone;
 attribute vec3 aSpill;
 attribute vec4 aLump;
 uniform float uPlate;
+uniform vec3 uRootAt;
 varying vec3 vWorld;
 varying vec3 vN;
 varying vec4 vUv;
@@ -34,11 +35,12 @@ ${FOG_GLSL}
 invariant gl_Position;
 void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
-  vWorld = wp.xyz;
+  // the world's own frame (uRootAt: data/look.ts SHARED_UNIFORMS)
+  vWorld = wp.xyz - uRootAt;
 #ifndef DEPTH_ONLY
   // the silk fog per VERTEX: the crown is ~20 m across and the fog varies over tens of metres, and the cards overdraw
   // 2–4 layers deep, so the 9-band fog loop must not run per fragment (the phone's cost is the canopy's fill)
-  vFog = silkFog(wp.xyz, 1.0);
+  vFog = silkFog(vWorld, 1.0);
 #else
   vFog = vec4(0.0, 0.0, 0.0, 1.0);
 #endif

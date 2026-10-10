@@ -4,7 +4,8 @@
 // silhouette, 晕染 bleed, window glow, drizzle, shoulder, the learned LUT, grain) — the clean room's frame, rebuilt on
 // the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
 // `window.__wildshard.shard['nd.render']` (captures / A/B, no URL switch): the live pieces and their switches.
-import { Mesh, type Object3D, type PerspectiveCamera, ShaderMaterial, Vector4 } from 'three';
+import { Matrix4, Mesh, type Object3D, PerspectiveCamera, ShaderMaterial, type Vector2, Vector4 } from 'three';
+import { Pass } from 'postprocessing';
 import type { LookComposeContext, LookComposition, LookStrategy } from '@wildshard/engine/render/look';
 import type { Tier } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -58,11 +59,46 @@ const PHONE_CARD_GAIN = 1;
 const SKY_ORDER = 900;
 
 /** The Jiehua composite and the side passes it reads (the wet floor, the haze march, the bleed pyramid; none on the phone). */
-interface Composite { reflect: RowRenderPassView | null; haze: RowRenderPassView | null; bleed: RowRenderPassView | null; jiehua: JiehuaEffect }
+interface Composite { reflect: RowRenderPassView | null; haze: RowRenderPassView | null; bleed: RowRenderPassView | null; jiehua: JiehuaEffect; pose: (() => void) | null }
 
-/** Build the composite for a camera on a tier: standalone (compose) and inside a grid cell (`cell`) build the same one. */
-function buildComposite(camera: PerspectiveCamera, tier: Tier, glow: ReturnType<typeof glowUniforms>, grade: ReturnType<typeof gradeUniforms>): Composite {
+/**
+ * (SF63) the page camera seen from the world's root: inside a grid cell the root stands at the cell's render offset and the
+ * programs shade in the root's frame (data/look.ts `uRootAt`), so the composite's depth reconstruction runs there too.
+ * `pose` re-poses `view` from the camera; call it before anything reads `view` in a frame.
+ */
+function rootView(camera: PerspectiveCamera, root: Object3D): { view: PerspectiveCamera; pose: () => void } {
+  const view = new PerspectiveCamera(), m = new Matrix4();
+  view.name = 'nd-root-view';
+  const pose = (): void => {
+    camera.updateMatrixWorld();
+    m.copy(root.matrixWorld).invert().multiply(camera.matrixWorld);
+    m.decompose(view.position, view.quaternion, view.scale);
+    view.fov = camera.fov; view.zoom = camera.zoom; view.aspect = camera.aspect; view.near = camera.near; view.far = camera.far;
+    view.projectionMatrix.copy(camera.projectionMatrix);
+    view.projectionMatrixInverse.copy(camera.projectionMatrixInverse);
+    view.updateMatrixWorld(true);
+  };
+  pose();
+  return { view, pose };
+}
+
+/** (SF63) a draw-free pass at the head of a cell's side passes: poses the root view before they read it */
+class PoseView extends Pass {
+  constructor(private readonly pose: () => void) {
+    super('NdPoseView');
+    this.needsSwap = false;
+  }
+  override render(): void { this.pose(); }
+}
+
+/**
+ * Build the composite for a camera on a tier: standalone (compose) and inside a grid cell (`cell`, `root`: the world's root,
+ * whose frame the cell's reconstruction runs in) build the same one.
+ */
+function buildComposite(camera: PerspectiveCamera, tier: Tier, glow: ReturnType<typeof glowUniforms>, grade: ReturnType<typeof gradeUniforms>, root: Object3D | null = null): Composite {
   const world = ndRuntime().world;
+  const framed = root === null ? null : rootView(camera, root);
+  const view = framed?.view ?? camera;
   let reflect: RowRenderPassView | null = null;
   let haze: RowRenderPassView | null = null;
   let bleed: RowRenderPassView | null = null;
@@ -76,16 +112,20 @@ function buildComposite(camera: PerspectiveCamera, tier: Tier, glow: ReturnType<
     const stairRect = new Vector4(STAIR.x0, STAIR.z0, 102, STAIR.z1);
     const s = world.shared.u, time = (): number => s.uTime.value;
     const family = PASS_FAMILY;
-    reflect = new RowRenderPass(REFLECT_PASS, { family, camera, params: { time }, links: { uRect: { value: rect }, uRect2: { value: stairRect }, uK: { value: new Vector4(Y0, 1, 0.045, 0.12) } } });
-    haze = new RowRenderPass(HAZE_PASS, { family, camera, params: { time }, links: { ...s, uGroundY: { value: Y0 } } });
-    bleed = new RowRenderPass(BLEED_PASS, { family, camera, links: glow });
+    reflect = new RowRenderPass(REFLECT_PASS, { family, camera: view, params: { time }, links: { uRect: { value: rect }, uRect2: { value: stairRect }, uK: { value: new Vector4(Y0, 1, 0.045, 0.12) } } });
+    haze = new RowRenderPass(HAZE_PASS, { family, camera: view, params: { time }, links: { ...s, uGroundY: { value: Y0 } } });
+    bleed = new RowRenderPass(BLEED_PASS, { family, camera: view, links: glow });
   }
-  const jiehua = new JiehuaEffect(camera, world.shared, glow, grade);
+  const jiehua = new JiehuaEffect(view, world.shared, glow, grade);
   jiehua.source = bleed;
   jiehua.haze = haze;
   jiehua.refl = reflect;
-  return { reflect, haze, bleed, jiehua };
+  jiehua.pose = framed?.pose ?? null;
+  return { reflect, haze, bleed, jiehua, pose: framed?.pose ?? null };
 }
+
+/** the drawing buffer the screen-space pieces measure: what `frame` reads of a renderer */
+interface Buffer { getPixelRatio: () => number; getDrawingBufferSize: (target: Vector2) => Vector2 }
 
 /** (E281) the phone's streak cards at their full wet-ground gain */
 function phoneCardGain(streaks: readonly Object3D[]): void {
@@ -101,6 +141,16 @@ export function shardRender(): LookStrategy {
   const grade = gradeUniforms();
   void (async (): Promise<void> => { const t = await loadLut(LUT_URL); if (t !== null) { grade.uLut.value = t; grade.uLutAmt.value = 1; } })();
   let lastPr = 0;
+  /** (SF63) inside a grid cell (no compose, no handle): the page's renderer, for the line widths and the buffer size */
+  let cellBuffer: Buffer | null = null;
+  // line widths are authored at 3× (look/style.ts uDpr). Below 3× a ruled line is thinner in buffer pixels and the
+  // upscale to the screen softens it further: the phone's 2× draws them 20 % heavier, so they read at the clean
+  // room's 3× weight (r12's mockup captures were drawn at 3×); and the drawing buffer's size for the screen-space pieces
+  const lines = (renderer: Buffer, shared: Shared): void => {
+    const pr = renderer.getPixelRatio();
+    if (pr !== lastPr) { lastPr = pr; shared.u.uDpr.value = (pr / 3) * (pr < 2.5 ? 1.2 : 1); }
+    renderer.getDrawingBufferSize(shared.u.uRes.value);
+  };
 
   return {
     // (E281) the engine's cloud layer (a white cumulus dome for the daylight shards) has no place in a blue-hour sky
@@ -114,7 +164,9 @@ export function shardRender(): LookStrategy {
     cell: {
       replaces: 'chain',
       build: (c) => {
-        const { reflect, haze, bleed, jiehua } = buildComposite(c.camera, c.tier, glow, grade);
+        cellBuffer = c.renderer;
+        c.scope.onDispose(() => { cellBuffer = null; });
+        const { reflect, haze, bleed, jiehua, pose } = buildComposite(c.camera, c.tier, glow, grade, ndRuntime().world.root);
         // its scene-side parts, as compose sets them: the streak cards' gain (the whole wet-floor reflection where no
         // reflection pass runs) and, without the bleed pyramid, the phone's light halos
         const { meshes: streaks, uniforms: cardOns } = meshesWithUniform(c.root, 'uCardOn');
@@ -126,7 +178,7 @@ export function shardRender(): LookStrategy {
           world.root.add(halos.mesh);
           c.scope.onDispose(() => { halos.mesh.removeFromParent(); halos.mesh.geometry.dispose(); halos.mesh.material.dispose(); });
         }
-        return { display: jiehua, passes: reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed] };
+        return { display: jiehua, passes: reflect === null || haze === null || bleed === null ? [] : [...(pose === null ? [] : [new PoseView(pose)]), reflect, haze, bleed] };
       },
     },
     compose(c: LookComposeContext): LookComposition {
@@ -152,17 +204,21 @@ export function shardRender(): LookStrategy {
       return { beforeChain, chain: [jiehua] };
     },
     frame(): void {
-      ndRuntime().cull();
-      const world = ndRuntime().world;
-      if (handle === null) return;
-      // line widths are authored at 3× (look/style.ts uDpr); the drawing buffer's size for the screen-space pieces
-      // line widths are authored at 3× (look/style.ts uDpr). Below 3× a ruled line is thinner in buffer pixels and the
-      // upscale to the screen softens it further: the phone's 2× draws them 20 % heavier, so they read at the clean
-      // room's 3× weight (r12's mockup captures were drawn at 3×)
-      const pr = handle.renderer.getPixelRatio();
-      if (pr !== lastPr) { lastPr = pr; world.shared.u.uDpr.value = (pr / 3) * (pr < 2.5 ? 1.2 : 1); }
-      const s = world.shared.u.uRes.value;
-      handle.renderer.getDrawingBufferSize(s);
+      const rt = ndRuntime();
+      rt.cull();
+      const world = rt.world;
+      if (handle === null) {
+        // (SF63) a grid cell: its line widths, buffer size and lanterns as standalone, the lanterns bucketed for the camera
+        // in the world's own frame (the runtime's world update writes uCam there)
+        if (cellBuffer !== null) lines(cellBuffer, world.shared);
+        const view = rt.camera;
+        world.shared.u.uCam.value.setFromMatrixPosition(view.matrixWorld);
+        world.shared.bandWindow();
+        world.shared.u.uNear.value = view.near;
+        updateLanterns(view);
+        return;
+      }
+      lines(handle.renderer, world.shared);
       // the eye the materials' silk fog is measured from: the camera as it is drawn (the world's updater runs before the
       // late hooks pose the camera, so it lags a frame — and a posed capture camera would fog from the player's eye)
       world.shared.u.uCam.value.setFromMatrixPosition(handle.camera.matrixWorld);

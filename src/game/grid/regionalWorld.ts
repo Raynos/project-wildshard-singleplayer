@@ -322,6 +322,13 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           // its look's per-frame parts (its sky dressing's update, its frame hook) while entered: they write its own uniforms only
           const scopedLook = regionLook;
           if (scopedLook !== null) app.addSystem({ id: `grid.look.${cell.instance}.frame`, phase: 'update', run: (dt, t) => { scopedLook.frame(dt, t); } }, entry);
+          // a look whose light and fog change nothing on this page has no scoped look, yet its frame hook (its cullers,
+          // its per-frame uniforms) is its own: it runs while entered, after the late hooks, as Game runs it before the draw
+          // (look25, SF63 / G158: with its own composite, behind the same default-off Debug row)
+          else if (levelLook?.frame !== undefined && cellComposite !== null) {
+            const own = levelLook;
+            app.addSystem({ id: `grid.look.${cell.instance}.frame`, phase: 'late', run: (dt, t) => { own.frame?.(dt, t); } }, entry);
+          }
         },
         afterKit: async () => {
           if (resident.disposed) throw new Error('Regional world left before its creatures');

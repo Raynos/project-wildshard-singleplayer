@@ -17,6 +17,7 @@ const VS_LANTERN = /* glsl */ `
 attribute float aPart;
 attribute float aSeed;
 uniform float uTime;
+uniform vec3 uRootAt;
 varying vec3 vLocal;
 varying vec3 vN;
 varying vec3 vWorld;
@@ -29,7 +30,8 @@ void main() {
   vec3 p = position - vec3(0.0, 0.3, 0.0);
   p = vec3(p.x, p.y * cos(a) - p.z * sin(a), p.y * sin(a) + p.z * cos(a)) + vec3(0.0, 0.3, 0.0);
   vec4 wp = modelMatrix * instanceMatrix * vec4(p, 1.0);
-  vWorld = wp.xyz;
+  // the world's own frame (uRootAt: data/look.ts SHARED_UNIFORMS)
+  vWorld = wp.xyz - uRootAt;
   vN = normalize(mat3(modelMatrix * instanceMatrix) * normal);
   vec4 vp = viewMatrix * wp;
   vViewZ = -vp.z;

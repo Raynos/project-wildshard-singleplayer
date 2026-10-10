@@ -42,6 +42,7 @@ attribute vec3 aTan;
 attribute vec4 aPat;
 attribute vec2 aMisc;
 uniform vec3 uCam;
+uniform vec3 uRootAt;
 uniform vec2 uShrink;
 varying vec3 vWorld;
 varying vec3 vNormal;
@@ -55,6 +56,10 @@ void main() {
   vec3 pos = position;
 #ifdef USE_INSTANCING
   m = m * instanceMatrix;
+#endif
+  // the world's own frame (uRootAt: data/look.ts SHARED_UNIFORMS)
+  m[3].xyz -= uRootAt;
+#ifdef USE_INSTANCING
   // small clutter shrinks into the wall past uShrink.x .. uShrink.y (it is fog and wash there anyway)
   if (uShrink.y > 0.0) pos *= 1.0 - smoothstep(uShrink.x, uShrink.y, distance(m[3].xyz, uCam));
 #endif
@@ -76,7 +81,7 @@ void main() {
 #endif
   vPat = vec4(aPat.x - 32.0 * keep, aPat.yzw);
   vMisc = aMisc;
-  vec4 vp = viewMatrix * wp;
+  vec4 vp = viewMatrix * vec4(wp.xyz + uRootAt, 1.0);
   vViewZ = -vp.z;
   gl_Position = projectionMatrix * vp;
 }
@@ -350,8 +355,11 @@ flat varying vec3 vTint;
 flat varying vec3 vN;
 varying float vViewZ;
 uniform vec3 uCam;
+uniform vec3 uRootAt;
 void main() {
   mat4 m = modelMatrix * instanceMatrix;
+  // the world's own frame (uRootAt: data/look.ts SHARED_UNIFORMS)
+  m[3].xyz -= uRootAt;
   vec3 ax = m[0].xyz, ay = m[1].xyz, az = m[2].xyz;
   float W = length(ax), H = length(ay);
   vec3 ux = ax / W, uy = ay / H, uz = normalize(az);
@@ -369,7 +377,7 @@ void main() {
 #ifdef USE_INSTANCING_COLOR
   vTint = instanceColor;
 #endif
-  vec4 vp = viewMatrix * wp;
+  vec4 vp = viewMatrix * vec4(wp.xyz + uRootAt, 1.0);
   vViewZ = -vp.z;
   gl_Position = projectionMatrix * vp;
 }

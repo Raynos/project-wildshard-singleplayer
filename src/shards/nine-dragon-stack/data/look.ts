@@ -61,6 +61,12 @@ export const LOOKS: Readonly<Record<LookName, LookPreset>> = {
 export const SHARED_UNIFORMS = {
   uTime: 0,
   uCam: { v3: [0, 0, 0] },
+  /**
+   * the world's frame in the page: its root's world translation (0 standalone; a grid cell's render offset, SF63). The
+   * programs shade in the world's own frame (uCam and every vWorld are root-local, so its rects, bands, light volume and
+   * flagstones line up wherever the root stands); only the projection adds it back
+   */
+  uRootAt: { v3: [0, 0, 0] },
   uRes: { v2: [1, 1] },
   /** device px per CSS px / 3: line widths are authored at 3× */
   uDpr: 1,
@@ -388,11 +394,14 @@ flat varying vec4 vPat;
 flat varying vec4 vMisc;
 varying vec2 vOff;
 varying vec3 vSpill;
+uniform vec3 uRootAt;
 void main() {
   mat4 m = modelMatrix;
 #ifdef USE_INSTANCING
   m = m * instanceMatrix;
 #endif
+  // the world's own frame (uRootAt: SHARED_UNIFORMS)
+  m[3].xyz -= uRootAt;
   vec4 wp = m * vec4(position, 1.0);
   vWorld = wp.xyz;
   vNormal = normalize(mat3(m) * normal);
@@ -405,7 +414,7 @@ void main() {
   vMisc = aMisc;
   vOff = aOff;
   vSpill = aSpill;
-  vec4 vp = viewMatrix * wp;
+  vec4 vp = viewMatrix * vec4(wp.xyz + uRootAt, 1.0);
   vViewZ = -vp.z;
   gl_Position = projectionMatrix * vp;
 }
@@ -923,14 +932,16 @@ varying vec3 vColor;
 varying vec3 vTint;
 flat varying vec4 vNeon;
 varying float vViewZ;
+uniform vec3 uRootAt;
 void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
+  wp.xyz -= uRootAt;
   vWorld = wp.xyz;
   vUv = uv;
   vColor = color;
   vTint = aTint;
   vNeon = aNeon;
-  vec4 vp = viewMatrix * wp;
+  vec4 vp = viewMatrix * vec4(wp.xyz + uRootAt, 1.0);
   vViewZ = -vp.z;
   gl_Position = projectionMatrix * vp;
 }
@@ -993,10 +1004,11 @@ void main() {
 // ── the silk sky (only the Crown's strip of it shows) ──
 export const VS_SKY = /* glsl */ `
 uniform vec3 uCam;
+uniform vec3 uRootAt;
 varying vec3 vDir;
 void main() {
   vDir = position;
-  vec4 p = projectionMatrix * viewMatrix * vec4(position + uCam, 1.0);
+  vec4 p = projectionMatrix * viewMatrix * vec4(position + uCam + uRootAt, 1.0);
   // (E337) just inside the far plane, not on it: the sky draws after the world's opaques with a depth test (render.ts). At
   // z = w exactly its depth is 1.0 only where the GPU's z / w rounds to exactly 1; a driver that lands a hair over the
   // cleared 1.0 fails the test on every sky pixel — a black sky between the towers (Jake's desktop Chrome). 0.99999
@@ -1113,11 +1125,13 @@ export const VS_SCREEN = /* glsl */ `
 varying vec2 vUv;
 varying vec3 vWorld;
 varying float vViewZ;
+uniform vec3 uRootAt;
 void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
+  wp.xyz -= uRootAt;
   vWorld = wp.xyz;
   vUv = uv;
-  vec4 vp = viewMatrix * wp;
+  vec4 vp = viewMatrix * vec4(wp.xyz + uRootAt, 1.0);
   vViewZ = -vp.z;
   gl_Position = projectionMatrix * vp;
 }
@@ -1212,9 +1226,10 @@ varying vec2 vUv;
 varying vec3 vWorld;
 varying float vBand;
 varying float vAlpha;
+uniform vec3 uRootAt;
 void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
-  vWorld = wp.xyz;
+  vWorld = wp.xyz - uRootAt;
   vUv = uv;
   vBand = aBand;
   vAlpha = aAlpha;
@@ -1253,6 +1268,7 @@ attribute vec3 aCenter;
 attribute vec2 aCorner;
 attribute float aSeed;
 uniform float uTime;
+uniform vec3 uRootAt;
 varying vec2 vC;
 varying float vA;
 varying vec3 vWorld;
@@ -1260,7 +1276,7 @@ void main() {
   float ph = fract(uTime * 0.16 + aSeed);
   vec3 c = aCenter + vec3(sin(aSeed * 17.0 + uTime * 0.4) * 0.3 * ph, ph * 3.2, cos(aSeed * 9.0) * 0.2 * ph);
   float s = 0.35 + ph * 1.1;
-  vec4 mv = viewMatrix * vec4(c, 1.0);
+  vec4 mv = viewMatrix * vec4(c + uRootAt, 1.0);
   mv.xy += aCorner * s;
   vC = aCorner;
   vA = smoothstep(0.0, 0.15, ph) * (1.0 - ph);
@@ -1327,12 +1343,12 @@ export const PROGRAMS = {
   // (render, E281) depth-tested at the far plane (xyww): drawn after the world's opaques (render.ts sets its order) it
   // shades only the pixels where the sky shows, not the whole screen under the city
   sky: {
-    vertex: VS_SKY, fragment: FS_SKY, shared: ['uCam', 'uSutra', 'uSilk', 'uSkyTop', 'uSkyHorizon', 'uSkyline', 'uFogBaseCol'],
+    vertex: VS_SKY, fragment: FS_SKY, shared: ['uCam', 'uRootAt', 'uSutra', 'uSilk', 'uSkyTop', 'uSkyHorizon', 'uSkyline', 'uFogBaseCol'],
     uniforms: { uSkyCloud: { v2: [0.45, 1.4] } }, side: 'back', depthWrite: false, depthTest: true,
   },
   screen: { vertex: VS_SCREEN, fragment: FS_SCREEN, uniforms: { uPitch: 0.14, uFogScale: 0.12 }, side: 'double' },
   sheet: { vertex: VS_SHEET, fragment: FS_SHEET, transparent: true, depthWrite: false, side: 'double', blend: 'keepAlpha' },
-  steam: { vertex: VS_STEAM, fragment: FS_STEAM, shared: ['uTime', 'uSutra'], transparent: true, depthWrite: false, blend: 'keepAlpha' },
+  steam: { vertex: VS_STEAM, fragment: FS_STEAM, shared: ['uTime', 'uSutra', 'uRootAt'], transparent: true, depthWrite: false, blend: 'keepAlpha' },
   line: {
     vertex: VS_LINE, fragment: FS_LINE, shared: ['uRes'], uniforms: { uWidth: 2.5, uColor: { rgb: 0x7ff3ff }, uGain: 5 },
     transparent: true, blend: 'addKeepAlpha', depthWrite: false, side: 'double',

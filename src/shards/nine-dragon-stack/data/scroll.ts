@@ -9,9 +9,11 @@ export const VS_SCROLL = /* glsl */ `
 varying vec2 vUv;
 varying vec3 vWorld;
 varying float vViewZ;
+uniform vec3 uRootAt;
 void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
-  vWorld = wp.xyz;
+  // the world's own frame (uRootAt: data/look.ts SHARED_UNIFORMS)
+  vWorld = wp.xyz - uRootAt;
   vUv = uv;
   vec4 vp = viewMatrix * wp;
   vViewZ = -vp.z;

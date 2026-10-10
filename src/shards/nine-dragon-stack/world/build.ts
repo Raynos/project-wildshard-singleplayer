@@ -151,7 +151,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const signs = new SignBuilder(atlas);
   const glyphs = new GlyphField(chars(FONT_CHARS), glyphLayout(tier), KAI_STACK);
   // the neon is fogged by the clean room's banded silk (FOG_GLSL), emissive at half strength
-  const neonSigns = new NeonText({ uniforms: shared.u, glsl: { noise: NOISE_GLSL, fog: `${FOG_GLSL}\n#define signFog(w) silkFog(w, 1.0)\n`, emitFog: EMIT_FOG }, blending: ADD_KEEP_ALPHA, look: NEON_LOOK }, glyphs);
+  // the signs' programs place them with modelMatrix (page space); the fog reads the world's own frame (data/look.ts uRootAt)
+  const neonSigns = new NeonText({ uniforms: shared.u, glsl: { noise: NOISE_GLSL, fog: `${FOG_GLSL}\nuniform vec3 uRootAt;\n#define signFog(w) silkFog((w) - uRootAt, 1.0)\n`, emitFog: EMIT_FOG }, blending: ADD_KEEP_ALPHA, look: NEON_LOOK }, glyphs);
   signs.calligraphy = neonSigns;
   shared.u.uGroundY.value = Y0;
   // the shaft's silk mist fills dome C's SHAFT box (the main shaft and its run north)
