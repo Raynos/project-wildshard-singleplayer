@@ -213,7 +213,14 @@ export class VolumetricsEffect extends Effect {
   /** the separate march's target size (null: the march runs in place) */
   targetSize(): readonly [number, number] | null { return this.rt === null ? null : [this.rt.width, this.rt.height]; }
   /** Compile the separate march's program now (a page that adds this effect late warms it at install, not at first use). */
-  warm(renderer: Renderer): void { if (this.marchScene !== null) renderer.compile(this.marchScene, this.marchCam); }
+  warm(renderer: Renderer): void {
+    if (this.marchScene === null || this.rt === null) return;
+    // Output colour space / tone mapping participate in the key even for a raw ShaderMaterial.
+    // Compile in the march's real target, as update() draws it, rather than the current canvas.
+    const previous = renderer.getRenderTarget();
+    try { renderer.setRenderTarget(this.rt); renderer.compile(this.marchScene, this.marchCam); }
+    finally { renderer.setRenderTarget(previous); }
+  }
 
   override update(renderer: Renderer, inputBuffer?: WebGLRenderTarget): void {
     // an effect added to a pass after its last resize (a page's late install) takes its size from the frame it composites
