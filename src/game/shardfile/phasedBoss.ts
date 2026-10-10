@@ -1,3 +1,4 @@
+import { createRoamingBossFight } from './phasedBossRoaming';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { MathUtils, Vector3 } from 'three';
 
@@ -283,7 +284,7 @@ export interface PhasedBossFight<A extends PhasedBossBody> {
  * shard lends the arena, the bodies and the view bindings. `script` runs under the engine's `BossBrain`; the species
  * forwards its think / act / damage rule to `brain`. Every rng draw, spawn and view call keeps the shipped order.
  */
-export function phasedBossFight<A extends PhasedBossBody>(row: PhasedBossRow, ports: PhasedBossPorts<A>): PhasedBossFight<A> {
+function fixedPhasedBossFight<A extends PhasedBossBody>(row: PhasedBossRow, ports: PhasedBossPorts<A>): PhasedBossFight<A> {
   const declared = new Set(row.views);
   for (const name of row.views) if (typeof ports.views[name] !== 'function') throw new Error(`phased boss: view ${name} is not bound`);
   for (const name of Object.keys(ports.views)) if (!declared.has(name)) throw new Error(`phased boss: view ${name} is not declared`);
@@ -704,4 +705,108 @@ export function phasedBossFight<A extends PhasedBossBody>(row: PhasedBossRow, po
     snapshot: () => structuredClone(s),
     kill: () => { const k = king; if (k?.alive === true) { s.invuln = false; s.mode = names.fight; k.headWorld(_h); k.applyDamage(k.hp + 10, _h, _w.set(0, 0, -1)); } },
   };
+}
+
+/** Minimal world-space body for a roaming phased encounter, independent of a rendered model. */
+export interface RoamingBossBody {
+  readonly position: Vector3; readonly lookTarget: Vector3; lookWeight: number; yaw: number; hp: number;
+  readonly maxHp: number; readonly alive: boolean; herd: number;
+  place: (x: number, z: number, yaw: number) => void;
+  setMotion: (yaw: number, speed: number, turn: number) => void;
+  startAttack: (duration: number) => void; cancelAttack: () => void;
+}
+/** A lent charge runner; its actual strike law and continuation remain owned by the host. */
+export interface RoamingBossLane<B, L> {
+  readonly state: string; readonly t: number; readonly busy: boolean;
+  idle: () => boolean; start: (a: B, x: number, z: number, tell: number) => void;
+  update: (a: B, dt: number, t: number, player: Vector3, hurt: (damage: number) => void) => void;
+  cancel: () => void; recoverNow: () => void; snapshot: () => L; restore: (state: L) => void;
+}
+/** A falling arena hazard, including its deterministic damage accumulator. */
+export interface RoamingBossHazard { x: number; z: number; y: number; fallT: number; acc: number }
+/** One expanding ring's live state; a host may attach its own view to the same object. */
+export interface RoamingBossRing { r: number; on: boolean; hit: boolean; delay: number }
+/** One phase's movement, openings, summons and arena changes. */
+export interface RoamingBossPhase {
+  readonly at: number; readonly beginMode: string; readonly chaseSpeed: number; readonly recoverySeconds: number;
+  readonly burstCooldown: number; readonly summons: boolean; readonly rings: number; readonly darkness: boolean;
+  readonly enter?: { readonly mode: string; readonly drop?: boolean; readonly summonDelay?: number; readonly resetChain?: boolean; readonly roar?: boolean };
+}
+/** A stance's policy and damage rule; mode names are authored, not interpreted as content identities. */
+export interface RoamingBossMode {
+  readonly kind: 'idle'|'intro'|'pursue'|'strike'|'burst'|'wait-rings'|'recover'|'summon'|'lanes'|'dead';
+  readonly damage: number;
+}
+/** Roaming encounters use authored strike clocks, lane chains, falling hazards and roaming adds on the same phasedBoss entry. */
+export interface RoamingBossRow<K extends string, A extends string, Q extends string> {
+  readonly kind: 'roaming'; readonly origin: { readonly x: number; readonly z: number };
+  readonly phases: readonly RoamingBossPhase[]; readonly modes: Readonly<Record<string, RoamingBossMode>>;
+  readonly names: { readonly idle: string; readonly intro: string; readonly dead: string; readonly pursue: string; readonly strike: string; readonly burst: string; readonly wait: string; readonly recover: string; readonly summon: string };
+  readonly arena: { readonly entry: number; readonly wall: number; readonly fog: number; readonly leash: number; readonly wallPad: number; readonly clampPad: number; readonly shoveBase: number; readonly shoveGain: number; readonly shoveDistance: number; readonly shoveSpan: number; readonly epsilon: number };
+  readonly seal: { readonly inSeconds: number; readonly outSeconds: number; readonly darkIn: number; readonly darkOut: number };
+  readonly opening: { readonly mode: string; readonly lanesMode: string; readonly inRate: number; readonly outRate: number; readonly inactiveRate: number };
+  readonly damage: { readonly invulnerable: number; readonly weakOpen: number; readonly weakClosed: number; readonly opening: number };
+  readonly initial: { readonly strikeCd: number; readonly burstCd: number; readonly summonCd: number };
+  readonly recoveryTurn: number;
+  readonly reset: { readonly glow: number; readonly strikeCd: number; readonly burstCd: number; readonly summonCd: number; readonly herd: number };
+  readonly intro: { readonly short: number; readonly long: number; readonly glowStart: number; readonly glowEnd: number; readonly lookEnd: number; readonly roarAt: number; readonly crossingStep: number; readonly absentHeight: number };
+  readonly begin: { readonly glow: number; readonly summonDelay: number }; readonly victoryGlow: number;
+  readonly points: { readonly rewardZ: number; readonly rewardY: number; readonly respawnZ: number; readonly respawnYaw: number };
+  readonly strike: { readonly id: string; readonly clip: { readonly duration: number; readonly hitPhase: number }; readonly action: A; readonly reach: number; readonly chaseNear: number; readonly chaseTurn: number; readonly turn: number; readonly radius: number; readonly cooldown: number; readonly tell: readonly [number,number,number,number,number]; readonly trauma: number; readonly contactTrauma: number };
+  readonly burst: { readonly clip: { readonly duration: number; readonly hitPhase: number }; readonly action: A; readonly after: number; readonly turn: number; readonly radius: number; readonly tell: readonly [number,number,number,number,number]; readonly trauma: number };
+  readonly rings: { readonly gap: number; readonly speed: number; readonly trauma: number; readonly strike: string };
+  readonly summon: { readonly clip: { readonly duration: number; readonly hitPhase: number }; readonly action: A; readonly count: number; readonly limit: number; readonly cooldown: number; readonly turn: number };
+  readonly lanes: { readonly stop: number; readonly speed: number; readonly turn: number; readonly burstRange: number; readonly after: number; readonly tell: number; readonly action: A; readonly batch: number; readonly rest: number; readonly chainRest: number; readonly soundTicks: number; readonly trauma: number };
+  readonly adds: { readonly kinds: readonly K[]; readonly radius: number; readonly far: number; readonly near: number; readonly fast: number; readonly slow: number; readonly turn: number; readonly chargeRange: number; readonly rate: number; readonly tell: number; readonly trauma: number; readonly leashPad: number };
+  readonly hazards: { readonly count: number; readonly angleStart: number; readonly angleStep: number; readonly angleOffset: number; readonly radius: number; readonly radiusStep: number; readonly fallSeconds: number; readonly every: number; readonly damage: number; readonly strike: string; readonly fromPhase: number };
+  readonly sounds: { readonly intro: Q; readonly roar: Q; readonly burst: Q; readonly add: Q; readonly charge: Q };
+}
+/** The host lends bodies, collision/strike resolvers, separate random streams and named presentation effects. */
+export interface RoamingBossPorts<B extends RoamingBossBody, L, R, K extends string, A extends string, Q extends string> {
+  readonly player: { readonly position: Vector3; readonly onGround: boolean; shove: (x: number,z: number,speed: number) => void };
+  readonly groundAt: (x: number,z: number) => number;
+  readonly body: { readonly make: () => B; readonly retire: (a: B) => void; readonly park: (a: B) => void; readonly unpark: (a: B) => void };
+  readonly adds: { readonly spawn: (kind: K,x: number,z: number,yaw: number) => B; readonly retire: (a: B) => void; readonly lanes: () => readonly RoamingBossLane<B,L>[] };
+  readonly lane: () => RoamingBossLane<B,L>; readonly rings: () => RoamingBossRing[];
+  readonly random: { readonly call: { next: () => number; snapshot: () => R; restore: (r: R) => void }; readonly charge: { next: () => number; snapshot: () => R; restore: (r: R) => void } };
+  readonly contact: (a: B,strike: string,hit: (damage: number) => void,options?: { readonly ringRadius?: number; readonly airborne?: boolean; readonly origin?: {x: number;y: number;z: number} }) => boolean;
+  readonly weakPoint: (p: Vector3) => boolean; readonly hurt: (a: B,damage: number,throughWalls?: boolean) => void;
+  readonly trauma: (v: number) => void; readonly shot: (sound: Q,at: Vector3) => void;
+  readonly views: {
+    readonly glow: (v: number) => void; readonly hung: (on: boolean) => void; readonly focus: (a: B,out: Vector3) => Vector3;
+    readonly room: (dt: number,t: number) => void; readonly light: (on: boolean) => void;
+    readonly action: (a: B,move: A) => void; readonly roar: (a: B) => void; readonly burst: (a: B) => void;
+    readonly hazard: (i: number,f: RoamingBossHazard,t: number,event: 'drop'|'fall'|'land'|'burn'|'out'|'placed') => void;
+    readonly add: (a: B,event: 'in'|'out') => void; readonly ring: (i: number,t: number,at: Vector3|null) => void;
+    readonly tell: { setTime: (t: number) => void; ring: (x: number,z: number,radius: number,alpha: number) => void; hide: () => void };
+  };
+}
+/** Exact roaming continuation: the serializer names bodies and the host owns lane and RNG schemas. */
+export interface RoamingBossState<L,R> {
+  body: string|null; present: boolean; sealed: boolean; sealK: number; darkK: number; glow: number; invuln: boolean; lockHp: number; won: boolean;
+  phase: number; mode: string; modeT: number; strikeCd: number; burstCd: number; summonCd: number; chain: number; open: number;
+  lane: L; rings: RoamingBossRing[]; hazards: RoamingBossHazard[];
+  adds: {a: string;lane: number;mode: 'approach'|'charge'}[]; addLanes: L[]; rngs: R[];
+}
+/** A roaming fight exposes live scalar/view state and an exact save/restore port alongside its BossScript. */
+export interface RoamingBossFight<B extends RoamingBossBody,L,R> extends BossScript {
+  body: B|null; present: boolean; phase: number; mode: string;
+  readonly sealK: number; readonly darkK: number; readonly glow: number; readonly open: number; readonly won: boolean;
+  readonly hazards: readonly RoamingBossHazard[];
+  readonly adds: readonly {a:B;lane:RoamingBossLane<B,L>;mode:'approach'|'charge'}[];
+  spawn: () => B;
+  setPresent: (on: boolean) => void;
+  snapshot: (id: (b: B) => string) => RoamingBossState<L,R>;
+  restore: (state: RoamingBossState<L,R>,find: (id: string) => B|null) => void;
+  damageMul: (body: B,point: Vector3) => number;
+}
+
+/** Run a fixed arena or roaming phased encounter from its data and actual host ports. */
+export function phasedBossFight<B extends RoamingBossBody,L,R,K extends string,A extends string,Q extends string>(row: RoamingBossRow<K,A,Q>,ports: RoamingBossPorts<B,L,R,K,A,Q>): RoamingBossFight<B,L,R>;
+/** Run the original fixed-arena policy; its arithmetic and ordered view effects are unchanged. */
+export function phasedBossFight<B extends PhasedBossBody>(row: PhasedBossRow,ports: PhasedBossPorts<B>): PhasedBossFight<B>;
+export function phasedBossFight<B extends PhasedBossBody,C extends RoamingBossBody,L,R,K extends string,A extends string,Q extends string>(row: PhasedBossRow|RoamingBossRow<K,A,Q>,ports: PhasedBossPorts<B>|RoamingBossPorts<C,L,R,K,A,Q>): PhasedBossFight<B>|RoamingBossFight<C,L,R> {
+  if ('kind' in row && 'random' in ports) return createRoamingBossFight(row,ports);
+  if ('kind' in row || 'random' in ports) throw new Error('Phased boss row/host policy mismatch');
+  return fixedPhasedBossFight(row,ports);
 }

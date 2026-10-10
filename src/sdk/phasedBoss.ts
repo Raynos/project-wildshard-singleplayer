@@ -1,5 +1,6 @@
 import { phasedBossFight as platformFight, type PhasedBossBody as PlatformBody, type PhasedBossFight as PlatformFight, type PhasedBossPorts as PlatformPorts,
-  type PhasedBossRow as PlatformRow, type BossViewBinding as PlatformViews, type BossViewCall as PlatformViewCall, type PhasedBossState as PlatformState } from '@wildshard/game/shardfile/phasedBoss';
+  type PhasedBossRow as PlatformRow, type BossViewBinding as PlatformViews, type BossViewCall as PlatformViewCall, type PhasedBossState as PlatformState,
+  type RoamingBossBody as MobileBody, type RoamingBossRow as MobileRow, type RoamingBossPorts as MobilePorts, type RoamingBossFight as MobileFight } from '@wildshard/game/shardfile/phasedBoss';
 
 /** A phased boss fight's row (SHARD-PLATFORM SF27): modes, phases, attack rows, adds, hazards and the declared view names. */
 export type PhasedBossRow = PlatformRow;
@@ -19,4 +20,15 @@ export type BossViewCall = PlatformViewCall;
  * A phased boss fight from its row (SF27): a declared state machine of modes with timed beats, strike rows, invulnerability
  * windows, adds and arena hazards, view-free; the shard binds the named views and lends its arena.
  */
-export function phasedBossFight<A extends PlatformBody>(row: PlatformRow, ports: PlatformPorts<A>): PlatformFight<A> { return platformFight(row, ports); }
+export function phasedBossFight<B extends MobileBody,L,R,K extends string,A extends string,Q extends string>(row: MobileRow<K,A,Q>,ports: MobilePorts<B,L,R,K,A,Q>): MobileFight<B,L,R>;
+/** Run the fixed-arena phase, combo and hazard policy. */
+export function phasedBossFight<B extends PlatformBody>(row: PlatformRow, ports: PlatformPorts<B>): PlatformFight<B>;
+export function phasedBossFight<B extends PlatformBody,C extends MobileBody,L,R,K extends string,A extends string,Q extends string>(row: PlatformRow|MobileRow<K,A,Q>,ports: PlatformPorts<B>|MobilePorts<C,L,R,K,A,Q>): PlatformFight<B>|MobileFight<C,L,R> {
+  if('kind' in row && 'random' in ports)return platformFight(row,ports);
+  if('kind' in row || 'random' in ports)throw new Error('Phased boss row/host policy mismatch');
+  return platformFight(row,ports);
+}
+/** A roaming phased encounter: stance modes, strike clocks, lane chains, falling hazards and mobile adds as data. */
+export type RoamingBossRow<K extends string,A extends string,Q extends string> = MobileRow<K,A,Q>;
+/** Exact roaming policy continuation and BossScript on the host's actual bodies and lane schema. */
+export type RoamingBossFight<B extends MobileBody,L,R> = MobileFight<B,L,R>;

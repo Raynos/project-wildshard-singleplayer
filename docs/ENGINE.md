@@ -2416,6 +2416,15 @@ the hit resolvers (`cut`, `hazard` by strike name), the rng and the feed. It ret
 (`combat/goldenKingRow.ts`, views `combat/goldenKingViews.ts`), replayed tick for tick against the shipped fight
 (`test/fixtures/species-oracle/goldenKing.ts`) by `test/shards/nalati-grasslands/golden-king-phased.test.ts`.
 
+The same installer accepts a `RoamingBossRow` (`kind: 'roaming'`) for a pursuing boss: named mode policies,
+phase HP/reset checkpoints, authored strike clips, expanding rings, falling/burning hazards, lane chains and roaming
+adds. Its ports lend actual collision contacts, bodies, charge lanes, player state and independent summon/charge RNG
+streams; presentation stays in the shard through explicit view calls. `snapshot(id)` / `restore(state, find)` retain
+body identities, hazard clocks, lane state and both streams. Pine's `data/kingFight.ts` declares the Antler King;
+`combat/kingFight.ts` binds the page and native hosts and translates the existing saved continuation without changing
+its fields or order. The frozen shipping fight and goals in `test/fixtures/species-oracle/antlerKing*.ts` cover every
+mode, phase transition, view/contact ordering and restored suffix tick for tick. The fixed-arena policy above is unchanged.
+
 `@wildshard/game/shardfile/markedBoss` (SDK `@wildshard/sdk/markedBoss`) is the browser side (SF27 / SF7f):
 `installMarkedBoss(ctx, rows, { player, body, record, coins, lit, onDown })` builds a `MarkedBoss` (the engine's
 `BossBrain` over `markedBossFight`) from `{ definition, fight, presentation, reward }`, registers it with the encounters,
