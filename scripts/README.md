@@ -28,6 +28,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-ktx2.mjs](./bake-ktx2.mjs)
 - [bake-loader.mjs](./bake-loader.mjs)
 - [bake-maps.mjs](./bake-maps.mjs)
+- [bake-nalati-bodies.d.mts](./bake-nalati-bodies.d.mts)
+- [bake-nalati-bodies.mjs](./bake-nalati-bodies.mjs)
 - [bake-nalati-coats.json](./bake-nalati-coats.json)
 - [bake-nalati-physics.mjs](./bake-nalati-physics.mjs)
 - [bake-navmesh.mjs](./bake-navmesh.mjs)
