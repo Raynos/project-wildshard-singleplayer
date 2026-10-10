@@ -49,7 +49,9 @@ import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
 import { gridHomeSim, gridCells, type GridHomeSimulation } from './boot';
 import { findShard } from '../shard/registry';
-import { gridShardfileProduct } from './products';
+import { gridPostCosts, gridShardfileProduct } from './products';
+import { gridPostPairRefusal } from './postPairs';
+import { postStackCost } from '../shardfile/postStack';
 import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from './recovery';
 import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from './roadRecovery';
 import { GridCellWaitingError } from './refusal';
@@ -538,6 +540,10 @@ export class LiveGridSession {
     const retained = await pending, { source, assets } = retained.admitted;
     let releaseProduct = retained.release;
     try {
+    // SF59: a stack that with an adjacent cell's exceeds the per-pixel budget where their frames blend is refused here
+    const costs = gridPostCosts(this.ports.allocator), own = postStackCost(source, (hash) => assets.get(hash)).cost;
+    const pair = gridPostPairRefusal(this.ports.assembly, cell, own, (slug) => costs.get(slug));
+    if (pair !== null) throw new Error(pair);
     if (source.runtime !== null) return await this.admitRuntime(cell, retained);
     let durability = this.durability.get(cell.instance);
     if (durability === undefined) {

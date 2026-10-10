@@ -8,7 +8,9 @@
  *   materials already wait behind for a physical-iPhone reading); otherwise nothing loads and the frame is unchanged.
  * - **The owner weight:** `weight(w)` fades every pass over the scene (0 disables them, so a stack outside its cell costs
  *   nothing); standalone it stays 1, in the grid the frame hands it its cell's owner weight.
- * - Bound params keep their declared values here (a post binding is admitted, not yet fed).
+ * - **Bound params move:** a pass's day and state bindings are fed like the material graphs' (`graphParamFeeds`): the
+ *   frame owner's hour samples the shard's own look keys, a state binding reads the live public state (the field's
+ *   declared default until `bind` hands the source); `tick` moves them each frame.
  */
 import { Texture, type Camera, type Scene } from 'three';
 import type { EffectComposer, Pass } from 'postprocessing';
@@ -16,6 +18,7 @@ import { validateGraph } from '@wildshard/engine/core/materialGraph';
 import type { GraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { graphBindingSources, graphFileJson } from './materials';
+import { graphParamFeeds, type GraphSources } from './clientGraphs';
 import type { Shardfile } from './schema';
 
 /** What the client made of a shard's post stack. */
@@ -26,6 +29,12 @@ export interface ClientPost {
   readonly state: () => { readonly passes: number; readonly weight: number; readonly normal: boolean };
   /** insert the passes once the page's composer exists (false: not built yet, call again next frame) */
   readonly install: () => boolean;
+  /** move the bound params (the shard's own day clock advances by `dt` until a frame owner's hour is bound) */
+  readonly tick: (dt: number) => void;
+  /** hand the bound params their live sources: the frame owner's hour and the shard's public state */
+  readonly bind: (sources: GraphSources) => void;
+  /** how many bound params the stack feeds */
+  readonly bound: () => number;
 }
 
 /** The composer's first effect pass (the engine's colour pass and what follows): a shard's passes go before it. */
@@ -57,6 +66,7 @@ export async function clientPostStack(shard: Pick<Shardfile, 'look' | 'state'>, 
   // buffers (`GraphPostPass.render`, `setDepthTexture`); the placeholder is never drawn
   const placeholder = new Texture();
   const passes: Pass[] = [];
+  const feeds = graphParamFeeds(shard);
   const posts = graphs.map((checked) => {
     const compiled = compiler.compileGraph(checked.graph, {
       dayKeys: [...day.keys()], stateFields: state,
@@ -64,6 +74,7 @@ export async function clientPostStack(shard: Pick<Shardfile, 'look' | 'state'>, 
       ...(checked.inputs.depth ? { depth: { texture: placeholder, near: 0.1, far: 1000 } } : {}),
       ...(normal === null ? {} : { normal: normal.texture }),
     });
+    feeds.attach(compiled, checked.graph.params);
     return new PostPass(compiled, page.camera, checked.inputs.depth);
   });
   let weight = 1, installed: Pick<EffectComposer, 'passes' | 'addPass' | 'removePass'> | null = null;
@@ -84,6 +95,7 @@ export async function clientPostStack(shard: Pick<Shardfile, 'look' | 'state'>, 
     },
     weight: (w) => { weight = Math.min(1, Math.max(0, w)); for (const pass of posts) pass.setWeight(weight); if (normal !== null) normal.enabled = weight > 0; },
     state: () => ({ passes: passes.length, weight, normal: normal !== null }),
+    tick: feeds.tick, bind: feeds.bind, bound: feeds.count,
   };
 }
 

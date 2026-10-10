@@ -28,7 +28,8 @@ import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';
 import { leaseClientLibrary } from './clientLibrary';
 import { compendiumSketches } from './sketch';
 import { clientMaterials } from './clientMaterials';
-import { clientPostStack } from './clientPost';
+import type { GraphSources } from './clientGraphs';
+import { clientPostStack, type ClientPost } from './clientPost';
 import { loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
 import { frameLookOf } from '../grid/frameLook';
 import { setting } from '@wildshard/engine/ui/Settings';
@@ -105,6 +106,7 @@ export class ShardfileClient {
   private readonly assets: ClientAssets;
   private readonly bindings: ShardfileClientBindings;
   private presentation: Awaited<ReturnType<typeof clientMaterials>> | undefined;
+  private post: ClientPost | null = null;
   private skins: ReadonlyMap<string, ClientSkin> = new Map();
   private worldTiles: Awaited<ReturnType<typeof clientWorld>> | undefined;
   private sim: ShardfileSimulation | undefined;
@@ -150,12 +152,13 @@ export class ShardfileClient {
     // SF59 step 4: the shard's own post stack (Debug ▸ Look ▸ "Graph materials", default off); in the grid it fades with its
     // cell's owner weight, standalone it stays whole
     const post = await clientPostStack(this.source, this.assets.retained, { compiler: () => loadGraphCompiler(world.game.renderer), composer: () => world.game.composer, scene: world.game.rootScene, camera: world.game.camera }, ctx.scope, { enabled: setting('graphMaterials') === 'on' });
+    this.post = post; ctx.scope.onDispose(() => { if (this.post === post) this.post = null; });
     if (post !== null) {
       const owned = frameLookOf(world.game.rootScene)?.owned;
       if (owned !== undefined) ctx.scope.onDispose(owned(this.bindings.instance, post.weight));
       ctx.debug.expose('shardfilePost', { state: post.state });
       let placed = false;
-      ctx.system({ id: 'game.shardfile.post', phase: 'update', run: () => { if (!placed) placed = post.install(); } });
+      ctx.system({ id: 'game.shardfile.post', phase: 'update', run: (dt) => { if (!placed) placed = post.install(); post.tick(dt); } });
     }
     ctx.debug.expose('shardfileResidency', { tiles, allocator, mode: 'standalone', workers: false });
   }
@@ -287,9 +290,11 @@ export class ShardfileClient {
     this.sim = sim;
     yield;
     // SF59: graph params read the frame owner's clock (the level backdrop's, G158) and the live public state
-    this.presentation?.graphs.bind({ hour: () => world.game.sky.dayNight?.hour ?? null, state: (scope, name) => {
+    const graphSources: GraphSources = { hour: () => world.game.sky.dayNight?.hour ?? null, state: (scope, name) => {
       const value = sim.lane?.world.view(health.id)[scope][name]; return typeof value === 'number' ? value : undefined;
-    } });
+    } };
+    this.presentation?.graphs.bind(graphSources);
+    this.post?.bind(graphSources); // the post stack's bound params read the same clock and state
     const authoredDay = source.rows.days[0], day = ctx.app.dayCycle ?? (authoredDay === undefined ? null : declaredDay(authoredDay));
     const ownsDay = ctx.app.dayCycle === null && day !== null;
     if (ownsDay) ctx.app.registerDayCycle(day, ctx.scope);

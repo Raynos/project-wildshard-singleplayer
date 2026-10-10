@@ -79,32 +79,31 @@ export function graphOutlineHook(outline: (material: Material) => GraphOutline |
 /** One bound param's feed, prepared once. */
 interface Feed { readonly set: () => void }
 
-/** A family entry a graph falls back to: the plain preset of its lighting model. */
-export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided'>): Readonly<Record<string, unknown>> {
-  // as clientMaterials' implicit family surfaces: plain and vertex-coloured, PBR dielectric
-  const doubleSided = graph.doubleSided ?? false;
-  return graph.model === 'unlit' ? { family: 'emissive', vertexColours: true, doubleSided } : { family: 'pbr', vertexColours: true, metalness: 0, doubleSided };
+/** The bound-param side of a set of compiled graphs: `attach` wires a compiled graph's bindings, `tick` / `bind` move them. */
+export interface GraphParamFeeds {
+  /** wire every bound param of `compiled` (its declared types in `params`) and set them once now */
+  readonly attach: (compiled: { readonly bindings: readonly { readonly param: string; readonly bind: GraphBinding }[]; readonly setParam: (name: string, value: readonly number[] | number) => void }, params: GraphIr['params']) => void;
+  /** advance the shard's own clock (when no frame owner's hour is bound) and move every bound param */
+  readonly tick: (dt: number) => void;
+  /** hand the feeds their live sources (the frame owner's hour, the shard state) and move every bound param */
+  readonly bind: (sources: GraphSources) => void;
+  /** how many bound params are wired */
+  readonly count: () => number;
 }
 
 /**
- * The graph side of a shardfile's materials. `compiler` is null while the Debug row is off (every graph falls back);
- * `fallback` compiles a family entry on the family looks; `textures` resolves an admitted texture reference.
+ * The feeds of a shard's bound graph params (SF59): a day binding samples the shard's own look keys at the frame owner's
+ * hour (its own day clock until one is bound), a state binding reads the live state source or the field's declared
+ * default. Shared by the material graphs and the shard's post stack (`clientPost.ts`), so both read one clock.
  */
-export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options: { compiler: GraphCompiler | null; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string) => Texture; file?: (hash: string) => Uint8Array | undefined }): {
-  compile: (entry: GraphMaterialEntry) => Material; tick: (dt: number) => void; bind: (sources: GraphSources) => void; readout: GraphReadout;
-  /** the outline stage of a material this compiled (null: no `stages.outline`, a fallback preset, or not a graph) */
-  outline: (material: Material) => GraphOutline | null;
-} {
-  const lists = graphBindingSources(source), dayKeys = [...lists.day.keys()], stateFields = lists.state;
-  const feeds: Feed[] = [], readout: GraphReadout = { compiled: 0, fallback: 0, reasons: [] };
+export function graphParamFeeds(source: Pick<Shardfile, 'look' | 'state'>): GraphParamFeeds {
+  const feeds: Feed[] = [];
   let sources: GraphSources = {}, dayBound = false;
   const ownClock = source.look.keys.length > 0 ? dataLookClock(source.look.day ?? DATA_LOOK_DAY, source.look.dayOverride) : null;
   const sample: LookSample = lookSample();
   const defaults = new Map<string, number>();
   for (const scope of ['shared', 'player'] as const) for (const field of source.state[scope]) if (typeof field.default === 'number') defaults.set(`${scope}.${field.name}`, field.default);
   const srgb = new Color();
-  const outlines = new WeakMap<Material, GraphOutline>();
-
   const feed = (setParam: (name: string, value: readonly number[] | number) => void, param: string, type: GraphParamType, bind: GraphBinding): Feed => {
     if ('state' in bind) {
       const key = bind.state, dot = key.indexOf('.'), scope = key.slice(0, dot), name = key.slice(dot + 1);
@@ -141,6 +140,39 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options:
     if (dayBound && source.look.keys.length > 0) sampleLook(source.look.keys, hour() / 24, sample);
     for (const f of feeds) f.set();
   };
+  return {
+    attach: (compiled, params) => {
+      for (const { param, bind } of compiled.bindings) {
+        const spec = params?.[param]; if (spec === undefined) throw new Error(`material graph: no param ${param}`);
+        feeds.push(feed((name, value) => { compiled.setParam(name, value); }, param, spec.type, bind));
+      }
+      refresh(); // the first frame already carries the bound values
+    },
+    tick: (dt) => { if (feeds.length === 0) return; if (sources.hour === undefined) ownClock?.update(dt); refresh(); },
+    bind: (next) => { sources = { ...sources, ...next }; if (feeds.length > 0) refresh(); },
+    count: () => feeds.length,
+  };
+}
+
+/** A family entry a graph falls back to: the plain preset of its lighting model. */
+export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided'>): Readonly<Record<string, unknown>> {
+  // as clientMaterials' implicit family surfaces: plain and vertex-coloured, PBR dielectric
+  const doubleSided = graph.doubleSided ?? false;
+  return graph.model === 'unlit' ? { family: 'emissive', vertexColours: true, doubleSided } : { family: 'pbr', vertexColours: true, metalness: 0, doubleSided };
+}
+
+/**
+ * The graph side of a shardfile's materials. `compiler` is null while the Debug row is off (every graph falls back);
+ * `fallback` compiles a family entry on the family looks; `textures` resolves an admitted texture reference.
+ */
+export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options: { compiler: GraphCompiler | null; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string) => Texture; file?: (hash: string) => Uint8Array | undefined }): {
+  compile: (entry: GraphMaterialEntry) => Material; tick: (dt: number) => void; bind: (sources: GraphSources) => void; readout: GraphReadout;
+  /** the outline stage of a material this compiled (null: no `stages.outline`, a fallback preset, or not a graph) */
+  outline: (material: Material) => GraphOutline | null;
+} {
+  const lists = graphBindingSources(source), dayKeys = [...lists.day.keys()], stateFields = lists.state;
+  const feeds = graphParamFeeds(source), readout: GraphReadout = { compiled: 0, fallback: 0, reasons: [] };
+  const outlines = new WeakMap<Material, GraphOutline>();
 
   const looks = presetLooks(source.look.familyLooks);
   /** the preset clocks: seconds since the client was made, as each family look's own clock (both tick by dt) */
@@ -180,21 +212,13 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options:
     if (resolved.preset) for (const name of PRESET_CLOCK_PARAMS) if (ir.params?.[name] !== undefined) clocks.push(() => { compiled.setParam(name, elapsed); });
     const hull = compiled.outline;
     if (hull !== null) outlines.set(compiled.material, { material: hull, attach: (mesh) => compiler.attachOutline(mesh, hull) });
-    for (const { param, bind } of compiled.bindings) {
-      const spec = ir.params?.[param]; if (spec === undefined) throw new Error(`material graph: no param ${param}`);
-      const f = feed((name, value) => { compiled.setParam(name, value); }, param, spec.type, bind);
-      feeds.push(f);
-    }
+    feeds.attach(compiled, ir.params);
     readout.compiled++;
-    refresh(); // the first frame already carries the bound values
     return compiled.material;
   };
   return {
     compile, readout, outline: (material) => outlines.get(material) ?? null,
-    tick: (dt) => {
-      elapsed += dt; for (const clock of clocks) clock();
-      if (feeds.length === 0) return; if (sources.hour === undefined) ownClock?.update(dt); refresh();
-    },
-    bind: (next) => { sources = { ...sources, ...next }; if (feeds.length > 0) refresh(); },
+    tick: (dt) => { elapsed += dt; for (const clock of clocks) clock(); feeds.tick(dt); },
+    bind: feeds.bind,
   };
 }

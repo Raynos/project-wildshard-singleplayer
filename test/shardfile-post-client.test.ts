@@ -61,3 +61,32 @@ it('refuses a pass whose graph file is missing', async () => {
   const post = await clientPostStack(source, new Map([[hash, bytes]]), page(composer()), new Scope('t'), { enabled: true });
   expect(post?.install()).toBe(true);
 });
+
+it('feeds a pass\'s day and state bindings: the declared default first, then the bound clock and state', async () => {
+  const bound = { version: 1, kind: 'post', params: { tint: { type: 'vec3', value: [1, 1, 1], bind: { day: 'sun.colour' } }, glow: { type: 'float', value: 0, bind: { state: 'shared.glow' } } },
+    nodes: { c: { op: 'sceneColour' }, rgb: { op: 'swizzle', in: ['c'], mask: 'xyz' }, t: { op: 'param', param: 'tint' }, g: { op: 'param', param: 'glow' }, m: { op: 'mul', in: ['rgb', 't'] }, out: { op: 'add', in: ['m', 'g'] } },
+    stages: { post: { colour: 'out' } } };
+  const base = emptyShardfile({ slug: 'post-client', name: 'Post client', author: 'Local', seed: 1, revision: 1 });
+  const key = (time: number, sun: number[]) => ({ time, sky: { zenith: [0.35, 0.42, 0.5], horizon: [0.75, 0.75, 0.75] }, fog: { colour: [0.4, 0.43, 0.46], density: 0, near: 60, far: 180 },
+    sun: { colour: sun, intensity: 1 }, ambient: { sky: [0.33, 0.39, 0.46], ground: [0.12, 0.12, 0.12], intensity: 0.7 } });
+  const source = parseShardfile({ ...base, state: { ...base.state, shared: [{ id: 7, name: 'glow', type: 'f64', privacy: 'public', default: 0.25 }] },
+    look: { ...base.look, keys: [key(0, [0.1, 0.2, 0.3]), key(0.5, [0.9, 0.8, 0.7])], post: [{ graph: bound }] } });
+  const values = new Map<string, unknown>();
+  const spy: GraphCompiler = { ...compiler, compileGraph: (input, opts) => {
+    const compiled = compileGraph(input, opts);
+    return { ...compiled, setParam: (name, value) => { values.set(name, typeof value === 'number' ? value : Array.from(value, Number)); compiled.setParam(name, value); } };
+  } };
+  const post = await clientPostStack(source, new Map(), { ...page(composer()), compiler: () => Promise.resolve(spy) }, new Scope('t'), { enabled: true });
+  if (post === null) throw new Error('expected a stack');
+  expect(post.bound()).toBe(2);
+  expect(values.get('glow')).toBe(0.25);
+  let hour = 12, glow = 0.75;
+  post.bind({ hour: () => hour, state: (scope, name) => (scope === 'shared' && name === 'glow' ? glow : undefined) });
+  expect(values.get('glow')).toBe(0.75);
+  const noon = values.get('tint');
+  expect(Array.isArray(noon) ? noon.map((x) => Math.round(Number(x) * 100) / 100) : noon).toEqual([0.9, 0.8, 0.7]);
+  hour = 0; glow = 0.5; post.tick(1 / 60);
+  expect(values.get('glow')).toBe(0.5);
+  const midnight = values.get('tint');
+  expect(Array.isArray(midnight) ? midnight.map((x) => Math.round(Number(x) * 100) / 100) : midnight).toEqual([0.1, 0.2, 0.3]);
+});

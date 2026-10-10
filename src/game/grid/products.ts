@@ -8,6 +8,8 @@ import { admitProduct, boundedResponse, type AdmittedProduct, type ProductOption
 import { browserShardfileOptions } from '../shardfile/loader';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '../shardfile/admissionLimits';
 import { ProductLeases } from './productLeases';
+import { GridPostCosts } from './postPairs';
+import { postStackCost } from '../shardfile/postStack';
 import type { ResidencyAllocator } from './allocator';
 
 /** One admitted product and the options its assets resolve against (ClientAssets reads further tiles through them). */
@@ -16,6 +18,13 @@ export interface GridProduct { readonly admitted: AdmittedProduct; readonly opti
 export interface GridProductOwner { allocator: ResidencyAllocator; scope: { readonly disposed: boolean; onDispose: (dispose: () => void) => void } }
 
 const products = new WeakMap<ResidencyAllocator, ProductLeases<Omit<GridProduct, 'release'>>>();
+const postCosts = new WeakMap<ResidencyAllocator, GridPostCosts>();
+/** The page's admitted post stack costs (SF59): every product admitted on `allocator` records its own (placement sums them per adjacent pair, `postPairs.ts`). */
+export function gridPostCosts(allocator: ResidencyAllocator): GridPostCosts {
+  let costs = postCosts.get(allocator);
+  if (costs === undefined) { costs = new GridPostCosts(); postCosts.set(allocator, costs); }
+  return costs;
+}
 /** The slug's admitted data or trusted hybrid declaration; runtime entry still requires a separate regional factory. */
 export function gridShardfileProduct(slug: string, owner: GridProductOwner): Promise<GridProduct> | null {
   const manifest = findShard(slug), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
@@ -30,6 +39,9 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner): Pro
   return cache.acquire(slug, async reserve => {
     const url = new URL(descriptor, location.href), options = { ...browserShardfileOptions(new URL('.', url).href, true), memory: owner.allocator.memory };
     const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await fetch(url.href), limits.sourceBytes)));
-    return { admitted: await admitProduct(input, { ...options, reserve }), options };
+    const admitted = await admitProduct(input, { ...options, reserve });
+    // admission already refused a stack past the budget on its own; the cost is what placement sums per adjacent pair
+    gridPostCosts(owner.allocator).record(slug, postStackCost(admitted.source, (hash) => admitted.assets.get(hash)).cost);
+    return { admitted, options };
   }).then(lease => ({ ...lease.value, release: lease.release }));
 }

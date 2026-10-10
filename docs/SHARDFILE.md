@@ -297,14 +297,20 @@ is the sum of its passes' instruction estimates, per pixel at 2× render scale, 
 `POST_NORMAL_PREPASS_COST` (160) once if any pass reads `sceneNormal`. Admission
 refuses a stack over 1,000 instructions. Where two cells' frames blend,
 `postPairRefusal` checks the pair's sum against the same 1,000 (a normal pre-pass both
-stacks read is counted once). The check is static, with no runtime sensing. Older
+stacks read is counted once). Grid placement runs it: each admitted product records its
+stack's cost on the page (`gridPostCosts`), and a cell's admission sums its stack with
+each adjacent admitted cell's (`gridPostPairRefusal`, `src/game/grid/postPairs.ts`), so
+of two neighbours whose stacks together exceed it, the one admitted second is refused
+(the cell screen's "too big"). The check is static, with no runtime sensing. Older
 products without `look.post` parse unchanged. While Settings ▸ Debug ▸ Look ▸
 "Graph materials" is on (default off), the shardfile client compiles the stack into
 composer passes. They are inserted before the engine's colour pass, so the
 platform's grade, tone mapping and anti-aliasing still run after them, with one
 normal pre-pass when any pass reads `sceneNormal`. In the grid the stack fades with
 its cell's owner weight (the frame's `owned` hook). At weight 0 every pass is off.
-Post params keep their declared values: a post binding is admitted but not yet fed.
+Bound post params move like the material graphs' (`graphParamFeeds`): a day binding
+samples the shard's look keys at the frame owner's hour, a state binding reads the
+live public state (its declared default until the simulation binds).
 
 `@wildshard/sdk/commonsCosts` exposes the defining cost schemas and
 `assertCommonsCosts(hashes, table)`. A product declares one entry per required

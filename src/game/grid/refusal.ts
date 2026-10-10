@@ -26,7 +26,7 @@ export class GridCellWaitingError extends Error {
 // today's admission messages, until each thrower is typed (the M3 waits throw GridCellWaitingError once liveSession adopts it)
 const WAITING = /is not a shardfile shard|declares a hybrid runtime \(M3\)|disposed/u;
 const UPGRADE = /needs a compatible client|needs a format version/u;
-const TOO_BIG = /residency|shared budget|admission deferred|can be evicted|cache capacity exceeded/u;
+const TOO_BIG = /residency|shared budget|admission deferred|can be evicted|cache capacity exceeded|where the two frames blend/u;
 
 /** The reason a failed admission refuses its shard, or null when the cell is only waiting (M3) or the page is closing. */
 export function classifyRefusal(error: unknown): ShardRefusal | null {
