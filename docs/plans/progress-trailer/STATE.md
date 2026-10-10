@@ -8,5 +8,7 @@
   authoring lapses; the rewind moment is "one bolt, four builds".
 - The trailer agent's hooks for HEAD shots landed (`64c6d84f0`: shot / cut files from our folder, InputService held
   movement, real sub-steps), §3.2.
-- **Next:** PT1 (the era capture rig's 5 s proofs on the four SHAs), then PT2 scouting.
-- Open rows: PT1–PT11.
+- **PT1 done**: real input-driven, fixed-step takes accepted on day 1 (crossbow headshot), 8 (sword), 15 (sword in the
+  rain), 22 (war fan, InputService); `progress/progress-trailer/pt1-proofs.jpg`.
+- Council round 2 on the plan running (B and C in; A pending): the fixes land in one commit, then PT2.
+- Open rows: PT2–PT11.
