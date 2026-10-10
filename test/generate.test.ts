@@ -12,7 +12,7 @@ afterEach(()=>{for(const root of roots.splice(0))rmSync(root,{recursive:true,for
 function fixture():{root:string;job:ShardGenerationJob} {
   const root=mkdtempSync(resolve(tmpdir(),'generation-runner-test-'));roots.push(root);
   const put=(file:string,text:string):void=>{mkdirSync(dirname(resolve(root,file)),{recursive:true});writeFileSync(resolve(root,file),text);};
-  for(const file of ['scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs']){mkdirSync(dirname(resolve(root,file)),{recursive:true});copyFileSync(resolve(file),resolve(root,file));}
+  for(const file of ['scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs']){mkdirSync(dirname(resolve(root,file)),{recursive:true});copyFileSync(resolve(file),resolve(root,file));}
   const entry='src/shards/sample/generators/bake-sample.mjs';
   put(entry,`import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';import {resolve} from 'node:path';const root=resolve(import.meta.dirname,'../../../..');mkdirSync(resolve(root,'public/out'),{recursive:true});writeFileSync(resolve(root,'public/out/value.bin'),readFileSync(resolve(root,'src/shards/sample/data/value.txt')));`);
   put('src/shards/sample/generators/bake-undeclared.mjs','// future producer');
@@ -47,7 +47,7 @@ describe('G292 shard generation entry',()=>{
     const {root,job}=fixture();
     writeFileSync(resolve(root,job.entry),'// no generation');
     const output='src/shards/sample/data/value.txt';
-    await expect(generateShardJob(root,{...job,outputs:[output]},{cacheDir:resolve(root,'cache')})).rejects.toThrow('did not write declared outputs');
+    await expect(generateShardJob(root,{...job,outputs:[output],seedOutputs:[output]},{cacheDir:resolve(root,'cache')})).rejects.toThrow('did not write declared outputs');
     expect(readFileSync(resolve(root,output),'utf8')).toBe('bit-exact');
   });
   it('rejects duplicate outputs, ownership escapes and input symlinks',()=>{

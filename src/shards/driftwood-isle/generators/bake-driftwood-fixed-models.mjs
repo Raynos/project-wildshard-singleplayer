@@ -22,7 +22,7 @@ import { originalHut, originalLookout } from '../../../../scripts/bake/driftwood
 const assets = new URL('../../../../public/assets/driftwood-isle/baked/fixed-models/', import.meta.url);
 const check = process.argv.includes('--check');
 const write = (url, bytes) => {
-  if (existsSync(url) && readFileSync(url).equals(Buffer.from(bytes))) return;
+  if (!process.argv.includes('--force-write') && existsSync(url) && readFileSync(url).equals(Buffer.from(bytes))) return;
   if (check) { console.error(`bake-fixed-models: STALE ${url.pathname}`); process.exitCode = 1; }
   else writeFileSync(url, bytes);
 };

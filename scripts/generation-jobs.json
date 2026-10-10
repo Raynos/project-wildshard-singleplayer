@@ -6,10 +6,179 @@
       "id": "nine-layout",
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs",
-      "command": ["--experimental-transform-types", "--import", "./scripts/bake-loader.mjs", "src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs"],
-      "inputRoots": ["src/engine", "src/game", "src/sdk", "src/commons", "src/shards/nine-dragon-stack", "scripts/bake-loader.mjs", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"],
-      "outputs": ["public/assets/nine-dragon/baked/layout.bin", "public/assets/nine-dragon/baked/specimens.bin", "public/assets/nine-dragon/baked/specimens-explorer.bin", "src/shards/nine-dragon-stack/data/layout.json", "src/shards/nine-dragon-stack/data/specimens.json"],
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nine-dragon-stack",
+        "scripts/bake-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "public/assets/nine-dragon/baked/layout.bin",
+        "public/assets/nine-dragon/baked/specimens.bin",
+        "public/assets/nine-dragon/baked/specimens-explorer.bin",
+        "src/shards/nine-dragon-stack/data/layout.json",
+        "src/shards/nine-dragon-stack/data/specimens.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/nine-dragon-stack/data/layout.json",
+        "src/shards/nine-dragon-stack/data/specimens.json"
+      ]
+    },
+    {
+      "id": "driftwood-fixed-models",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs",
+        "--force-write"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/driftwood-isle",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/driftwood-isle/terrain.bin",
+        "public/assets/models/driftwood-blender/voxel-ao.bin"
+      ],
+      "outputs": [
+        "public/assets/driftwood-isle/baked/fixed-models/boat-gear.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/boat-hull.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/boat-sail.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/captain-hat.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cove-glow.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cove-pools.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cove-rocks.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cove-structure.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-bush.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-bushFar.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-daisy.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-daisyFar.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-fern.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-fernFar.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-hibiscus.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-hibiscusFar.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-pebble.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-shells.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-starfish.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-tuft.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-tuftFar.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/hut-flames.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/hut-kit.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/iron-sword-blade.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/iron-sword-fittings.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/lookout.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/sailcloth-cape.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/sea-glass-chime.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/trade-counter.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/trailside.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/trophy-drop.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/trophy-plaques.glb",
+        "src/shards/driftwood-isle/data/chimeSlots.json",
+        "src/shards/driftwood-isle/data/trophySlots.json",
+        "src/shards/driftwood-isle/data/coverLook.json",
+        "src/shards/driftwood-isle/data/coveBake.json",
+        "src/shards/driftwood-isle/data/trailsideBake.json",
+        "src/shards/driftwood-isle/data/hutBake.json",
+        "src/shards/driftwood-isle/data/lookoutBake.json"
+      ],
+      "seedOutputs": [
+        "src/shards/driftwood-isle/data/chimeSlots.json",
+        "src/shards/driftwood-isle/data/trophySlots.json",
+        "src/shards/driftwood-isle/data/coverLook.json",
+        "src/shards/driftwood-isle/data/coveBake.json",
+        "src/shards/driftwood-isle/data/trailsideBake.json",
+        "src/shards/driftwood-isle/data/hutBake.json",
+        "src/shards/driftwood-isle/data/lookoutBake.json"
+      ],
       "platform": "darwin"
+    },
+    {
+      "id": "driftwood-navmesh",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-driftwood-navmesh.mjs",
+      "command": [
+        "src/shards/driftwood-isle/generators/bake-driftwood-navmesh.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/bake-driftwood-navmesh.mjs",
+        "public/assets/baked/driftwood-isle/navmesh.bin"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/runtime/navmesh.baked.json"
+      ],
+      "seedOutputs": [],
+      "platform": "portable"
+    },
+    {
+      "id": "driftwood-physics",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs",
+      "command": [
+        "src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/driftwood-isle",
+        "scripts",
+        "public",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/runtime/physics.baked.json"
+      ],
+      "platform": "darwin",
+      "capture": true
+    },
+    {
+      "id": "driftwood-spots",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs",
+      "command": [
+        "src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/driftwood-isle",
+        "scripts",
+        "public",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/runtime/spots.baked.json"
+      ],
+      "platform": "darwin",
+      "capture": true
     }
   ]
 }

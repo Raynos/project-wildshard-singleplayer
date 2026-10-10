@@ -34,3 +34,10 @@ Warm elapsedMs includes output-hash verification. Initial input-map collection a
 the small-and-expensive committed exception (<200 KB **and** >60 s). Blender GLBs remain committed under G293. Browser
 captures and other undeclared producers remain retained until their build path is explicitly proven; the inventory's
 missing producer/timing evidence is a blocker to deletion.
+
+Browser capture jobs require a pinned preview and run through `scripts/browser-lane.sh`. They hash the preview's source
+and public inputs plus the Chromium executable; the build id is fenced before/after. Invoke the producer against the
+immutable preview export, rather than mixing current working sources with an older page. Cold/forced cache comparison
+remains byte-exact. Comparison to older committed captures excludes **only** top-level `revision`, `build`, and `inputs`;
+all nested gameplay, clock, actor and collider data stays exact. New provenance is reported and retained in the cache;
+no capture overwrites committed files. Seed outputs are explicitly declared, not copied by default.
