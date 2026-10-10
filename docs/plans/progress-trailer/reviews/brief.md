@@ -68,3 +68,12 @@ nearby; then walk **the battery S1–S12** through the plan. A finding outside t
 with evidence. PT1 is done and proven (`scripts/progress-trailer/`, `progress/progress-trailer/pt1-proofs.jpg`).
 Write `round-3-seat-<A|B|C>.md`: findings table (IDs `R3<seat>-<k>`), battery walk, verdict line. Under ~80 lines.
 **Write your file within your first 20 minutes, then refine it** (round 2's Codex seat timed out with nothing written).
+
+## Round 4 (the last; COUNCIL.md caps a council at four)
+
+Review **the diff since round 3** (`git diff a3f3c58ca 57a256a96 -- docs/plans/PROGRESS-TRAILER.md`): did each round-3
+fix (the register's R3 rows) land, and did it break something nearby; then walk **the battery S1–S12**. A finding
+outside the diff counts only if it is must-fix with evidence. Anything still open after this round goes to Jake as a
+decision with one recommended answer, so for a choice only Jake can make, say so and give your recommendation.
+Write `round-4-seat-<A|B|C>.md`: findings table (IDs `R4<seat>-<k>`), battery walk, verdict line. Under ~60 lines.
+Write your file within your first 15 minutes, then refine it.
