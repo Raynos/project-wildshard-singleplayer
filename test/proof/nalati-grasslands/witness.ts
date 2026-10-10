@@ -15,7 +15,7 @@ import { canonicalSimDigest } from '../../fake/simState';
 export const NALATI_WITNESS_GAPS = ['qyran', 'qara-and-night-roster', 'golden-king', 'storm-titan', 'taming', 'sabre-and-held-heavy', 'quests-and-gameplay-ledger'] as const;
 
 /** Execute the shipping native installer and restore its complete codec continuation without a browser shim. */
-export async function nalatiNativeWitness(replay: boolean): Promise<object> {
+export async function nalatiNativeWitness(replay: boolean, gameplay = true): Promise<object> {
   assert.equal(typeof window, 'undefined'); assert.equal(typeof document, 'undefined');
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const assets = new Map([NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
@@ -47,6 +47,9 @@ export async function nalatiNativeWitness(replay: boolean): Promise<object> {
       assert.equal(canonicalSimDigest(snapshotSimHost(restored)), suffixHash, 'Complete native suffix must match exactly');
     }
     const ticksExecuted = first.state.tick;
+    if (!gameplay) return { scope: 'native-boot-codec-suffix', entry: 'runtime/headless.ts', compatible: false, missing: NALATI_WITNESS_GAPS,
+      headless: { status: 'partial', stage: 'gameplay-coverage', nativeBoot: true, actors: 35, colliders, ticksExecuted, checkpointHash },
+      replay: { status: 'partial', checkpointCaptured: true, codecByteExact: true, suffixTicksExecuted: 60, suffixHash, wholeShard: false } };
     if (plan.proveEntries === undefined) throw new Error('Native entry proof must be hosted');
     const entries = plan.proveEntries(first);
     assert.equal(entries.lanes, 92, 'Every native opening needs all 23 capsule lanes');

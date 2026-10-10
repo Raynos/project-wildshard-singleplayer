@@ -29,6 +29,10 @@ export const HEAVY_INTEGRATION_TESTS = [
   // deadlines while sharing the parallel pool; retain their complete proofs here.
   'test/proof/blender-template/replay.test.ts',
   'test/proof/nine-dragon-stack/headless.test.ts',
+  // Nalati now runs the living-horse journey and all 92 native entry lanes; retain
+  // its complete codec/bond proofs at their original 20 s deadlines after the unit pool drains.
+  'test/proof/nalati-grasslands/headless.test.ts',
+  'test/proof/nalati-grasslands/replay.test.ts',
   'test/shards/driftwood-isle/trailside-bake.test.ts',
 ];
 

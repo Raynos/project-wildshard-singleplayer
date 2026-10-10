@@ -1,17 +1,18 @@
 import { expect, it } from 'vitest';
-import { nativeCompatibility } from './native';
+import { nalatiWitness } from '../nalati-grasslands/native';
 import { signalWitness } from '../sunscar-dunes/native';
 import { skyWitness } from '../far-reach/native';
 import { nineWitness } from '../nine-dragon-stack/native';
 import { pineWitness } from '../pine-hollow/native';
 import { driftwoodWitness } from '../driftwood-isle/native';
 
+// The complete entry/taming journeys stay in run.mjs all and their native tests; compare the short codec suffix here.
 it.each(['nalati-grasslands'])(
-  '%s reports identical fail-closed results in independent native processes', slug => {
-    const first = nativeCompatibility(slug), second = nativeCompatibility(slug);
+  '%s reports identical fail-closed results in independent native processes', () => {
+    const first = nalatiWitness('slice-replay'), second = nalatiWitness('slice-replay');
     expect(first.status).toBe(1); expect(first.stderr).toBe(''); expect(second).toEqual(first);
     const report: unknown = JSON.parse(first.stdout);
-    expect(report).toMatchObject({ compatible: false, headless: { nativeBoot: true, ticksExecuted: 180 }, replay: { checkpointCaptured: true, codecByteExact: true, suffixTicksExecuted: 60 } });
+    expect(report).toMatchObject({ scope: 'native-boot-codec-suffix', compatible: false, headless: { nativeBoot: true, ticksExecuted: 180 }, replay: { checkpointCaptured: true, codecByteExact: true, suffixTicksExecuted: 60 } });
   },
 );
 
