@@ -1,0 +1,17 @@
+# SHARD-PLATFORM: Jake's open picks (coordinator, 2026-10-10)
+
+These are the picks still open in `docs/plans/shard-platform/STATE.md`. Each one says what the choice is, gives a
+recommendation and points to its evidence. Where no board exists yet, that's stated, along with what a lane would make.
+
+| Pick | The question | Recommendation | Evidence |
+|---|---|---|---|
+| **SF67 audio** | Create the Web Audio context on the first tap (so the first sound plays with no silent gap) instead of on load | **Yes, on first tap.** iOS Safari refuses audio until a gesture anyway, so a context made at load starts suspended | No board: it's behaviour, not a look. SF67 row in the plan |
+| **SF63 Driftwood shadows "Tight"** | Driftwood's grid cell focuses the page's one shadow cascade (sharper shadows near the player), for about +25 MB | **B (Tight)** only if the +25 MB fits the 1.0 GB Explorer budget on the phone reading (G269); otherwise A | `art/sf63/round-1-driftwood-shadows/board-ab.jpg` (A/B, iPhone portrait, midday, pier + wreck); commit `c9a859b31` (default-off Debug row) |
+| **Sky isles random per session** | Sky Reach's decorative sky isles draw from the session's random stream; baking them needs one fixed layout (it unblocks Sky's biggest bake) | **Fixed layout, baked** (the current session's draw, replayed exactly, so the look doesn't change) | No board yet. The isle rows are `333762a1f` / `d27cb0010`; a lane would make a board of 3 sessions against the fixed bake |
+| **SF59 fixture looks** | The two fixture shards' material-graph looks (ink-cel-valley, pastel-plain) | Taste call; keep both as they are unless one reads wrong on the phone | `progress/shard-platform/sf59/` (tsl-spike boards: `tsl-spike-desktop.jpg`, `tsl-spike-sim.jpg`, presets, lighting) and `progress/shard-platform/sf59-pastel/` |
+| **Public Pine / Nalati off the legacy copies** | Public SHARD SELECT still serves the frozen legacy folders for Pine and Nalati | **Not yet.** G320 says a legacy folder goes only after the shard meets 80/20 (custom ≤ 20 % of legacy) **and** its outputs pass the nightly clean-room rebuild. Pine is at 100 % and Nalati at 95 % today | `progress/shard-platform/g258-public/README.md`; G263 / G291 / G320 in the plan |
+| **G260 Blender board** | The Blender Template shard's look and filled layout | Taste call | `art/blender-template/round-2-look/board.jpg`, `art/blender-template/round-3-filled/board.jpg` |
+
+**Bug, not a pick (being fixed by the coordinator):** the Template card in SHARD SELECT boots Driftwood when entered through
+its default button. The template's slug is `_template`, and it only enters through the card's SHARDFILE button
+(`progress/shard-platform/look30/README.md`).
