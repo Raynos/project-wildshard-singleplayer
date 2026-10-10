@@ -358,12 +358,27 @@ export class BackdropLayer {
   /** Prepare final page variants before this attached layer's first visible frame on WebKit.
    * Borrow the actual materials and page lighting; preserve visibility, parents, blending,
    * uniforms and target. The resident scope fences every painted slice. Other browsers
-   * retain the existing whole-world warm-up path. */
+   * compile its hidden pieces against the page scene (`compileHidden`, G321). */
   async prepare(renderer: Renderer, camera: PerspectiveCamera, target: WebGLRenderTarget | null): Promise<void> {
     if (this.disposed || this.scope.disposed) throw new Error('Backdrop layer left before preparation');
     if (this.backdrop === null) throw new Error('Backdrop layer preparation requires attachment');
-    if (!navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent)) return;
+    if (!navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent)) { await this.compileHidden(renderer, camera); return; }
     await prepareSceneRoots(renderer, camera, this.host.scene, target, this.domes, () => !this.disposed && !this.scope.disposed);
+  }
+
+  /**
+   * G321: elsewhere than WebKit, its hidden domes and dressing compile here (`compileAsync` against the page scene), not at
+   * the first frame its weight shows them: the page's whole-world warm-up walks visible objects only, so each piece's
+   * program otherwise linked mid-crossing (op-sky36's frame floor: 4 more long frames entering Sky Reach's cell).
+   */
+  private async compileHidden(renderer: Renderer, camera: PerspectiveCamera): Promise<void> {
+    const pending: Promise<unknown>[] = [];
+    for (const dome of this.domes) {
+      const was = dome.visible;
+      dome.visible = true;
+      try { pending.push(renderer.compileAsync(dome, camera, this.host.scene)); } finally { dome.visible = was; }
+    }
+    await Promise.all(pending);
   }
 
   /**
