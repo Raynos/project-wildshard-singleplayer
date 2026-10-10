@@ -1,6 +1,6 @@
 {
   "schema": "generation-jobs/1",
-  "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their source commands. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Report-only build integration retains every committed output until CI/Vercel proof.",
+  "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
       "id": "nine-layout",
@@ -250,7 +250,10 @@
       "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/cabins.json"
-      ]
+      ],
+      "buildOutputs": {
+        "public/assets/pine-hollow/baked/cabins.bin": "a9a08e6ceb639dda4eb6f0ed9a7828ef42e67c496b2c782cbd0ebf2e91b41d16"
+      }
     },
     {
       "id": "pine-crags",
@@ -720,7 +723,10 @@
       "platform": "native",
       "seedOutputs": [
         "src/shards/nalati-grasslands/data/bodies.json"
-      ]
+      ],
+      "buildOutputs": {
+        "public/assets/nalati/baked/bodies.bin": "c67650e6bc32a48f4ec881a1da56f9d99acde78ea46b544fa639a0e8256e9e5f"
+      }
     },
     {
       "id": "nalati-places",
@@ -824,7 +830,11 @@
         "public/assets/far-reach/rigs/drift-ray.glb"
       ],
       "platform": "native",
-      "seedOutputs": []
+      "seedOutputs": [],
+      "buildOutputs": {
+        "public/assets/far-reach/rigs/sky-goat.glb": "e31d03b209296aa9013d742de8d208ad1f2c89d8b98df9f856b76c905314e273",
+        "public/assets/far-reach/rigs/storm-roc.glb": "7910131a6b2f73336db59f72f50c7660bcafcb776ce7b7032aeca55e0dfbe2aa"
+      }
     },
     {
       "id": "sky-world",
@@ -996,7 +1006,10 @@
       "platform": "native",
       "seedOutputs": [
         "src/shards/sunscar-dunes/data/sand.json"
-      ]
+      ],
+      "buildOutputs": {
+        "public/assets/sunscar-dunes/sand/grain.bin": "69aad1286ef4fea28573fb9717b748de24663ad21169bf1480b1b93565f672b9"
+      }
     },
     {
       "id": "signal-world",

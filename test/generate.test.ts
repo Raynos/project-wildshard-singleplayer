@@ -10,8 +10,10 @@ import { platform as hostPlatform, tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- A local scalar preview fixture tests the build fence without a game browser.
 import { createServer } from 'node:http';
+// oxlint-disable-next-line import/no-nodejs-modules -- Pinned output digests are part of build admission.
+import { createHash } from 'node:crypto';
 import { compareGeneration } from '../scripts/generation-linux.mjs';
-import { discoverGeneration, generationInputs, generateShardJob, reportGeneration, type GenerationComparison, type ShardGenerationJob } from '../scripts/generate.mjs';
+import { discoverGeneration, generationInputs, generateShardJob, prepareGeneration, reportGeneration, type GenerationComparison, type ShardGenerationJob } from '../scripts/generate.mjs';
 
 const roots:string[]=[];
 afterEach(()=>{vi.restoreAllMocks();for(const root of roots.splice(0))rmSync(root,{recursive:true,force:true});});
@@ -28,6 +30,40 @@ function fixture():{root:string;job:ShardGenerationJob} {
   return {root,job};
 }
 describe('G292 shard generation entry',()=>{
+  it('restores only admitted build outputs, checks the complete job and keeps its key when outputs disappear',async()=>{
+    const {root,job}=fixture(),cacheDir=resolve(root,'cache'),output=job.outputs[0];
+    if(output===undefined) throw new Error('Missing fixture output');
+    const sibling='public/out/retained.bin';
+    writeFileSync(resolve(root,job.entry),`${readFileSync(resolve(root,job.entry),'utf8')}writeFileSync(resolve(root,'${sibling}'),'retained');`);
+    writeFileSync(resolve(root,sibling),'retained');
+    const active={...job,outputs:[output,sibling],inputRoots:[...job.inputRoots,'public/out'],buildOutputs:{[output]:createHash('sha256').update('bit-exact').digest('hex')}};
+    writeFileSync(resolve(root,'scripts/generation-jobs.json'),JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs:[active]}));
+    const cold=await generateShardJob(root,active,{cacheDir});
+    rmSync(resolve(root,output));rmSync(resolve(root,sibling));
+    await prepareGeneration(root,{cacheDir});
+    expect(readFileSync(resolve(root,output),'utf8')).toBe('bit-exact');expect(existsSync(resolve(root,sibling))).toBe(false);
+    const warm=await generateShardJob(root,active,{cacheDir});expect(warm.hit).toBe(true);expect(warm.key).toBe(cold.key);
+    writeFileSync(resolve(root,sibling),'wrong retained bytes');
+    await expect(prepareGeneration(root,{cacheDir})).rejects.toThrow('Committed generated output differs');
+    expect(readFileSync(resolve(root,sibling),'utf8')).toBe('wrong retained bytes');
+  });
+  it('refuses a pinned hash mismatch even when no committed output exists',async()=>{
+    const {root,job}=fixture(),output=job.outputs[0];
+    if(output===undefined) throw new Error('Missing fixture output');
+    const active={...job,buildOutputs:{[output]:'0'.repeat(64)}};
+    writeFileSync(resolve(root,'scripts/generation-jobs.json'),JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs:[active]}));
+    rmSync(resolve(root,output));
+    await expect(prepareGeneration(root,{cacheDir:resolve(root,'cache')})).rejects.toThrow('Build output hash differs');
+    expect(existsSync(resolve(root,output))).toBe(false);
+  });
+  it('refuses build activation for an undeclared output, a schema seed or a Darwin-only job',()=>{
+    const {root,job}=fixture(),output=job.outputs[0];
+    if(output===undefined) throw new Error('Missing fixture output');
+    for(const active of [{...job,buildOutputs:{'public/undeclared.bin':'0'.repeat(64)}},{...job,seedOutputs:[output],buildOutputs:{[output]:'0'.repeat(64)}},{...job,platform:'darwin',buildOutputs:{[output]:'0'.repeat(64)}}]) {
+      writeFileSync(resolve(root,'scripts/generation-jobs.json'),JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs:[active]}));
+      expect(()=>discoverGeneration(root)).toThrow('Invalid build-time outputs');
+    }
+  });
   it('reports uncovered entry points and missing outputs without claiming a build proof',()=>{
     const {root,job}=fixture();
     expect(discoverGeneration(root).unregistered).toEqual(['src/shards/sample/generators/bake-undeclared.mjs']);

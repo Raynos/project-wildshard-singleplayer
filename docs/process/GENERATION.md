@@ -6,9 +6,12 @@ That sidecar names the retained source command, input roots, outputs and platfor
 are reported as migration gaps. The full committed-output inventory is in
 [the G292 report](../../progress/shard-platform/g292-outputs.md).
 
-`pnpm gen`, used by Vercel and CI, runs the **report-only** phase. It validates declarations and prints uncovered
-producers and missing outputs, without introducing a gate failure for migration gaps. No committed output is removed
-in this rollout. Nine Dragon's layout/specimens pilot is Darwin-normative: Linux retains those files and reports that
+`pnpm gen`, used by Vercel, CI and the push gate's Vercel export, prepares the sidecar's explicitly admitted
+`buildOutputs` before asset tables and shard packing. The first cohort is Sky's goat and Roc rigs, Nalati's bodies,
+Pine's cabins and Signal's grain tile. Each admitted file has a pinned SHA256: a cold job generates in isolation,
+a warm job verifies its cache, and only missing admitted files are restored after the complete job passes.
+Different committed bytes or generated hashes refuse the build. Other jobs remain report-only migration gaps.
+Nine Dragon's layout/specimens pilot is Darwin-normative: Linux retains those files and reports that
 its bit-exact comparison is unavailable. Native witness jobs run on Linux too, with separate OS/architecture keys.
 
 Run one declared job with `node scripts/generate.mjs --job=nine-layout`. Add `--compare` to force fresh generation and
@@ -18,6 +21,9 @@ the producer must write every declared output, so a copied seed cannot masquerad
 seeds requires separating schemas from generated data before uncommitting them.
 
 Jobs hash every regular file in their declared conservative input roots plus the runner, sidecar, loader and lockfile.
+Produced files are excluded from input keys unless explicitly declared as schema seeds, so removing or restoring an
+admitted output does not invalidate its own cache. The complete output list remains verified even when only part of
+a job is admitted for build restoration. `buildOutputs` cannot admit schema seeds, Darwin-only or browser jobs.
 Bakers with dynamic reads must declare their complete source/asset closure. Conservative extra inputs cost cache hits,
 not correctness. Node commands run without a shell in a fresh, dependency-linked source copy, never against the shared
 checkout. All outputs are verified before publishing. Changing inputs during copying or generation refuses publication.
