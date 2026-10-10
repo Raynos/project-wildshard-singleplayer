@@ -73,6 +73,28 @@ describe('AnimalGroup', () => {
     expect(g.last.skipped).toBe(1);
   });
 
+  it('skips a near animal whose pose did not change (not ticked this frame), and updates it once any bone moves', () => {
+    const g = new AnimalGroup(), a = fake(2);
+    g.add(a.mesh); g.own(a); g.updateMatrixWorld();
+    g.updateMatrixWorld(); // poseFrozen stays false: nothing moved, so the pass keeps every matrix
+    expect(g.last).toEqual({ skipped: 1, updated: 0 });
+    a.bones[2]?.position.set(0, 0.31, 0.2); g.updateMatrixWorld();
+    expect(g.last.updated).toBe(1);
+    expect(actual(a)).toEqual(reference(a, g.position));
+    g.updateMatrixWorld();
+    expect(g.last.skipped).toBe(1);
+    // a node that sets its own matrix: its matrix is what is compared
+    const b1 = a.bones[1];
+    if (b1 === undefined) throw new Error('rig');
+    b1.matrixAutoUpdate = false; b1.updateMatrix(); g.updateMatrixWorld();
+    expect(g.last.updated).toBe(1);
+    g.updateMatrixWorld();
+    expect(g.last.skipped).toBe(1);
+    b1.matrix.makeRotationY(0.4); g.updateMatrixWorld();
+    expect(g.last.updated).toBe(1);
+    expect(a.bones[2]?.matrixWorld.elements).toEqual(reference(a, g.position)[3]);
+  });
+
   it('hides the bone subtrees that draw nothing, keeps their matrices, and shows a chain something is attached to', () => {
     const g = new AnimalGroup(), a = fake(1), skin = new THREE.Mesh();
     a.mesh.add(skin);
