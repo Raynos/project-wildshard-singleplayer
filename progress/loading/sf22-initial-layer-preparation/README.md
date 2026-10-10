@@ -165,3 +165,70 @@ This closes the disposed-inventory native GL fault and the desktop SF22 gates,
 not the loading budget: the initial boot still contains a 129 ms task, and a
 208 ms route task outside the measured crossing install remains open. Raw evidence
 stays in the lane scratchpad; only this summary is committed.
+
+
+## Safari proof-server correction
+
+The earlier same-pin preboot FAIL is a harness failure, not a production grid
+intent regression. The custom subset HTTP server added
+`Cross-Origin-Opener-Policy: same-origin` and
+`Cross-Origin-Embedder-Policy: require-corp`, which production's `vercel.json`
+does not send. Its valid saved intent and settings disappeared before the first
+body script or application module ran. The grid consumer ran once and read
+already-absent records.
+
+A minimal no-game Safari page reproduces the storage loss: head/body reads
+contain both seeded records, but the 100 ms read contains neither. Repeating the
+page without those extra headers preserves both records. A 500 ms delayed write
+survives in the first document, but preparing verified storage in a settled page
+does not fix the following isolated app navigation. The correction removes only
+the proof server's added headers; the original head fixture, real intent path,
+settings, network shaping, admission and runtime stay unchanged.
+
+The failed diagnostic attempts remain recorded (no route or timing credit):
+boot diagnosis `d88dca480852278b12fd0709e92f4f1c3216a92dd16b7fd3b76333081f2721ca`;
+consumer trace `3ae7fe32300f28ea7045bd6e5d3ba836270f438141b5aa0fef8af8b14a214303`;
+settled-fixture attempt `cc8a9c7193b8e6420522028a744c8ddead7e7a6a7928e825d3c14ac24c821c9b`.
+The minimal isolated-page evidence is
+`bbf465086c908255b9b38c6d0fdb86a975f1790993d85631d952a373a2271594`.
+
+The matching ordinary-header minimal-page evidence is
+`39676dafb760406af551af8f53decca3ab023c795777af20af5a35046f1e6ca7`.
+
+## Corrected Safari Auto subset on 5ee864810
+
+With production-style headers, Safari boots `platform.grid`, Developer OFF,
+phone tier, live clock, render scale 2, and honest Auto image fallback. It
+completes Driftwood → Signal → Driftwood with zero refusals or page/journal
+errors, using held input through four crossings at 5 Mbit/s. The actual 3 s
+stall hits Signal's caravan-scout GLB; the 10 s stall hits Driftwood's terrain
+on the return. No compressed-texture override is used.
+
+| Crossing | Synchronous install ms | Demand wait ms |
+| --- | ---: | ---: |
+| Driftwood → road | 16 | 4 |
+| Road → Signal | 1 | 3 |
+| Signal → road | 5 | 2 |
+| Road → Driftwood | 0 | 2 |
+
+Both entered activation intervals also pass: Signal 1 ms, Driftwood 3 ms
+(the initial home activation is 2 ms). The unchanged 33 ms install gate PASS.
+Cadence FAIL: 1,668 drawn-frame samples have p95 47 ms / p99 73 ms; the two
+route p95s are 49 / 45 ms. There are 46 draw-or-driver compileShader calls
+and 236 explicit warm-up calls during the routes; the largest renderer.compile
+invocation is 6 ms. Safari has no Long Task observer here, so neither zero
+on-demand compilation nor the warm-up task bound is credited. This is a
+completed install pass with remaining cadence/shader gaps, not a full SF22 pass.
+
+Route load medians are 14.54 / 11.38, ranges 13.31–16.28 / 9.38–13.31. The
+first route is marked under load because it exceeds 15. The owned quiet marker
+ran 10:12:15–10:15:31 UTC on 2026-10-10 (3 min 16 s), did not expire, and
+was removed in finally. Safari, Inspector, proxy, Simulator and preview closed;
+zero Simulators remain booted. Evidence SHA-256:
+`1f0fe578f2e1a8304c1f8159691805d300a53a6d50235c825be74937f816c771`.
+
+The subset covers only Auto-admissible Driftwood and Signal, not all G270
+cells or a physical-phone cadence verdict. The Simulator's image-envelope
+refusal for Pine/Nalati/Sky stays truthful. Phone memory remains G269.
+Desktop remains the six-route SF22 PASS above; loading's initial 129 ms and
+outside-install 208 ms task remain open. Raw data stays outside git.
