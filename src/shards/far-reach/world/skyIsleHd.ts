@@ -5,7 +5,7 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { SKY_ISLE_CLIP_EDITS, SKY_ISLE_ROCK, SKY_ISLE_ROCK_EDITS } from '../data/skyIsleLook';
 import { hdMaterial, skyHd } from './meshes';
-import type { SkyIsle } from './skyIsles';
+import type { SkyIsle } from '../data/skyIsles';
 import { SKY, SUN_DIR } from '../look/sun';
 
 /** A hex colour as a linear-space GLSL vec3 (the shader's output space before the post chain). */

@@ -6,7 +6,8 @@ import { expect, it } from 'vitest';
 import { InstancedMesh, Matrix4, Vector3 } from 'three';
 import { ISLES } from '../../../src/shards/far-reach/data/layout';
 import { skyline } from '../../../src/shards/far-reach/world/distant';
-import { SKY_ISLES, skyIslesIn } from '../../../src/shards/far-reach/world/skyIsles';
+import { SKY_ISLES } from '../../../src/shards/far-reach/data/skyIsles';
+import { skyIslesIn } from '../../../src/shards/far-reach/world/skyIsles';
 
 const CUBE = { half: 250 } as const;
 

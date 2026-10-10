@@ -1,6 +1,6 @@
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Quaternion, ShaderMaterial, Vector3 } from 'three';
 import type { Isle } from '../data/layout';
-import { SKY_ISLES, type SkyIsle } from './skyIsles';
+import { SKY_ISLES, type SkyIsle } from '../data/skyIsles';
 
 /**
  * The falls (loop 5): waterfalls off the playable isles' rims into the cloud sea (the targets have them; council R1C-9).
