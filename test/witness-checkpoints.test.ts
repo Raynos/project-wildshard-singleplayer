@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Paths belong to the fixture's cache.
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
-import { cachedWitnessManifest, checkpointHashes, compareWitnessManifests, readWitnessManifest } from '../scripts/witness-checkpoints.mjs';
+import { cachedWitnessManifest, checkpointHashes, compareWitnessManifests, readWitnessManifest, witnessPayloadHashes } from '../scripts/witness-checkpoints.mjs';
 
 const INPUTS = 'a'.repeat(64);
 const fixture = (): string => mkdtempSync(join(tmpdir(), 'witness-cache-test-'));
@@ -18,9 +18,14 @@ it('records small hash manifests, validates transport metadata, and refuses Darw
   const root = fixture();
   try {
     write(root);
+    expect(witnessPayloadHashes(join(root, 'manifest.json'))).toBeUndefined();
     const original = cachedWitnessManifest(root);
     expect(original).toContain('DO NOT EDIT'); expect(original).toContain('end.snap.gz');
     writeFileSync(join(root, 'manifest.json'), original);
+    const hashes = witnessPayloadHashes(join(root, 'manifest.json'));
+    expect(hashes?.['end.snap.gz']).toBe(checkpointHashes(root)['end.snap.gz']);
+    rmSync(join(root, 'end.snap.gz'));
+    expect(witnessPayloadHashes(join(root, 'manifest.json'))).toEqual(hashes);
     expect(readWitnessManifest(join(root, 'manifest.json'))).toEqual({ inputs: INPUTS, ticks: { end: 42 } });
     expect(() => compareWitnessManifests(original, original.replace(INPUTS, 'b'.repeat(64)), 'darwin')).not.toThrow();
     const changed = original.replace('42', '43');

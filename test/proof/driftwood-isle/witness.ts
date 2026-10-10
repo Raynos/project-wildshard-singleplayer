@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep native snapshot artefacts compact.
 import { gzipSync, gunzipSync } from 'node:zlib';
 import * as v from 'valibot';
-import { readWitnessManifest } from '../../../scripts/witness-checkpoints.mjs';
+import { readWitnessManifest, witnessPayloadHashes } from '../../../scripts/witness-checkpoints.mjs';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import { CAPTAIN_STEP } from '../../../src/shards/driftwood-isle/runtime/captain';
 import { DRIFTWOOD_ACT, DRIFTWOOD_INTERACT, driftwoodSpots, QUEST_STEP } from '../../../src/shards/driftwood-isle/runtime/quest';
@@ -149,8 +149,14 @@ export async function recordGameplay(rapier: Rapier, inputs: string): Promise<ob
   } finally { fork?.dispose(); session.dispose(); }
 }
 export function checkpointsFresh(inputs: string): { status: string; inputs: string; recorded: string; ticks: number } {
-  const m = manifest(); tape(m);
-  for (const cp of m.checkpoints) if (hash(readFileSync(new URL(`${cp.name}.snap.gz`, DIR))) !== cp.sha) throw new Error(`Stale ${cp.name} checkpoint`);
+  const m = manifest(), payloads = witnessPayloadHashes(MANIFEST);
+  if (payloads === undefined) {
+    tape(m);
+    for (const cp of m.checkpoints) if (hash(readFileSync(new URL(`${cp.name}.snap.gz`, DIR))) !== cp.sha) throw new Error(`Stale ${cp.name} checkpoint`);
+  } else {
+    if (payloads['commands.json.gz'] !== m.tape) throw new Error('Stale gameplay tape hash');
+    for (const cp of m.checkpoints) if (payloads[`${cp.name}.snap.gz`] !== cp.sha) throw new Error(`Stale ${cp.name} checkpoint hash`);
+  }
   return { status: m.inputs === inputs ? 'fresh' : 'stale', inputs, recorded: m.inputs, ticks: m.ticks };
 }
 
