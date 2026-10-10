@@ -79,7 +79,7 @@ const rgbOf = (c: THREE.Color): RGB => [c.r, c.g, c.b];
 const MOON_COLOR: RGB = [0.62, 0.74, 1.0];
 const MOON_I = 0.95;
 
-const _a = new THREE.Color(), _b = new THREE.Color();
+const _a = new THREE.Color();
 function lerpRGB(out: THREE.Color, a: RGB, b: RGB, t: number): void { out.setRGB(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t); }
 const lerpN = (a: number, b: number, t: number): number => a + (b - a) * t;
 
@@ -110,7 +110,6 @@ export class SkyRig {
 
   constructor(private game: Game, private sky: Sky, keys: SkyKeyProfile, def: ShardManifest) {
     const S = def.sky, G = def.grade, A = def.atmosphere;
-    this.volumetric = A.volumetric;
     const l = sky.csm.lights[0];
     const P = S.painted ?? { zenith: [0.1, 0.28, 0.85] as RGB, horizon: [0.62, 0.78, 0.98] as RGB, ground: [0.3, 0.36, 0.3] as RGB, glow: [1.0, 0.82, 0.55] as RGB };
     const fog = game.scene.fog as THREE.Fog | null;
@@ -191,10 +190,7 @@ export class SkyRig {
     if (halo) { this.halo = halo; this.baseHaloScale.copy(halo.scale); }
   }
 
-  private readonly gradeScratch: { shadowTint: RGB; highTint: RGB; lift: RGB; gain: RGB } = { shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1] };
   private readonly fogDist: number;
-  /** the level's volumetric medium (read once: the def does not change while the shard runs) */
-  private readonly volumetric: ShardManifest['atmosphere']['volumetric'];
   private readonly fogHeight: number;
   private readonly bright: number;
 
@@ -238,26 +234,11 @@ export class SkyRig {
     u.uZenith.value.copy(L.zenith); u.uHorizon.value.copy(L.horizon); u.uGround.value.copy(L.ground); u.uGlow.value.copy(L.glow);
     u.uSunDir.value.copy(L.sunDir); u.uMoonDir.value.copy(L.keyDir); u.uMoon.value = L.moon * L.disc; u.uStars.value = L.stars;
     u.uTime.value += dt; u.uFlash.value = this.flash;
-    const post = game.post;
-    if (post) {
-      const g = this.gradeScratch;
-      L.shadowTint.toArray(g.shadowTint); L.highTint.toArray(g.highTint); L.lift.toArray(g.lift); L.gain.toArray(g.gain);
-      post.grade.set(g);
-      post.saturation.saturation = L.saturation;
-      post.contrast.contrast = L.contrast;
-      post.contrast.brightness = L.brightness;
-      // the volumetric light (built in the same buildComposer as `post`): it copies the direction, so every frame is fine
-      _b.copy(L.volColor).multiplyScalar(L.moon > 0 ? 0.6 : 1);
-      game.volumetrics.setSun(L.keyDir, _b);
-      game.volumetrics.setFogColor(L.fogColor);
-      this.setVolStrength(L.volStrength);
-    }
+    // No engine chain: Nalati's look is a 'replace' chain (grade.ts: its one GradeV2Effect), so `game.post` is null on its own
+    // page and the hour's grade reaches the frame through `uV2LookSat` (light.ts). Inside its grid cell `game.post` is the
+    // page shell's chain, which the frame carries neutral for a replace look (SF63): writing the level's saturation 0.1 /
+    // contrast 0.15 and split tone into it every frame graded the cell twice (darker, bluer, harder than standalone).
     this.dome.position.copy(game.camera.position);
-  }
-
-  private setVolStrength(s: number): void {
-    const A = this.volumetric;
-    this.game.volumetrics.setMedium({ height: A?.height ?? -8, falloff: A?.falloff ?? 0.12, density: A?.density ?? 0.0045, strength: s });
   }
 }
 

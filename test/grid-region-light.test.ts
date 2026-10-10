@@ -102,7 +102,9 @@ it('puts back every shared light value a Nalati region wrote when it is left, an
   expect(inside).not.toEqual(page);
   const parts = ['sunDir', 'sunColor', 'want', 'lightDirection', 'mapSize', 'lights', 'hemi', 'disc', 'halo', 'visual', 'painterly', 'fog', 'weather', 'weatherFog', 'post', 'march'] as const;
   // every channel the readout covers really was written by Nalati's own writers
-  expect(parts.filter((key) => page[key] === inside[key])).toEqual(['lightDirection']); // the stepped shadow direction moves in the rig's update(), never in a setter
+  // the stepped shadow direction moves in the rig's update(), never in a setter; the engine chain's grade and march stay the
+  // page's: Nalati's own chain is a 'replace' one, so its rig never writes an engine chain (SF63: in its grid cell that graded twice)
+  expect(parts.filter((key) => page[key] === inside[key])).toEqual(['lightDirection', 'post', 'march']);
   const rim = painterlyUniforms.uPRimColor.value.toArray();
   first.dispose();
   expect(readout(sky, game)).toEqual(page);
