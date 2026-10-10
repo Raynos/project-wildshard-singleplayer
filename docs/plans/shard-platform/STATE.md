@@ -1,12 +1,12 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-10 05:55 CT.** Councils done. Part A only.
+**2026-10-10 06:30 CT.** Councils done. Part A only.
 
 **Milestones**
 - **M1:** done.
 - **M2:**
   - **SF22 desktop:** PASS on a quiet machine (`d393dc95b`, 5ee864810). 6/6 crossings, max 30.1 ms, 0 GL faults (GL1281 fixed), 0 draw compiles.
-  - **SF22 Safari:** install PASS; cadence FAIL (p95 47, 46 draw compiles; sp-x5).
+  - **SF22 Safari:** install PASS; cadence FAIL (p95 47 / p99 68, 18 draw/driver compiles left; clean run 9df2b3e3e; sp-x5 wires offscreen PMREM variants).
   - **Memory:** G269.
 - **M3:** open. Pine, Driftwood and Nalati runtime still exceeds the 20 % cap.
 
@@ -19,9 +19,9 @@
 | Template | 95.5 % |
 | Fixtures | 95.7 % |
 | Nine | 70.4 % |
-| Signal | 59.3 % |
+| Signal | 64.1 % |
 | Sky | 45.8 % |
-| Pine | 24.3 % |
+| Pine | 24.5 % |
 | Driftwood | 19.1 % |
 | Nalati | 14.1 % |
 
@@ -29,15 +29,12 @@ The metric now counts local `.json` imports (`64559e6b1`).
 
 **Lanes (Jake G289: 2 Opus + 5 Codex)**
 
-Opus: five live, finishing naturally with no refill until two remain. The two kept slots do graphics/UI only.
+Opus: two lanes, graphics/UI only.
 
 | Lane | Work |
 |---|---|
-| op-sf27d | boss-fight system / Golden King |
-| op-sky87 | war fan family + flock homes |
-| op-nine17 | Nine view |
-| op-pine92 | Pine elites + herd brains |
-| op-signal84 | Signal onto the shardfile client |
+| op-nine18 | Nine look slices toward 80/20 |
+| op-look19 | SF19b: each shard's look under one frame (G94/G95/G96) |
 
 Codex, each queued three deep:
 
@@ -47,7 +44,7 @@ Codex, each queued three deep:
 | sp-x2 | Pine quests → quest runtime · SF24 Pine events · Antler King → the boss system |
 | sp-x4 | Driftwood creatures → species brains · Driftwood quests · SF24 Driftwood finale |
 | sp-x5 | SF22 Safari cadence · SF75 telemetry · SF58 hardening |
-| sp-x6 | Driftwood bakes (cost-gated) · SF30 movers (winch, bridges, boat) · SF34 template modes + headless traversal |
+| sp-x6 | SF30 movers done (566779cf3) · SF34 template modes landing · Sky flock keeper → species homes |
 
 sp-x3 is an idle retired pane with no work assigned.
 
