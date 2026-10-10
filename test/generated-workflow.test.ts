@@ -16,6 +16,7 @@ import { approvedIncreases, checkCommitted, regenerateCommitted, verifiedStamp }
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
 import { precommitGenerated } from '../scripts/precommit-generated.mjs';
 import { manifestOutcome, refreshWitnesses, withInputs } from '../scripts/witness-manifests.mjs';
+import { cachedWitnessManifest } from '../scripts/witness-checkpoints.mjs';
 
 function fixture(run: (root: string, put: (file: string, value: string) => void, git: (args: string[]) => string) => void | Promise<void>): Promise<void> {
   const root = realpathSync(mkdtempSync(resolve(tmpdir(), 'sf6b-fixture-')));
@@ -24,7 +25,7 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
   return (async () => {
     try {
       cpSync('lint', resolve(root, 'lint'), { recursive: true });
-      for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/regenerate-committed.mjs', 'scripts/witness-manifests.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/legacy-shards.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs', 'scripts/sim-node-loader.mjs', 'scripts/docs/schema-reference.mjs', 'scripts/docs/gen-shardfile-reference.mjs', 'scripts/docs/read-shardfile-reference.mjs', 'scripts/docs/sdk-schemas.mjs']) {
+      for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/regenerate-committed.mjs', 'scripts/witness-manifests.mjs', 'scripts/witness-checkpoints.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/legacy-shards.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs', 'scripts/sim-node-loader.mjs', 'scripts/docs/schema-reference.mjs', 'scripts/docs/gen-shardfile-reference.mjs', 'scripts/docs/read-shardfile-reference.mjs', 'scripts/docs/sdk-schemas.mjs']) {
         mkdirSync(dirname(resolve(root, file)), { recursive: true }); cpSync(file, resolve(root, file));
       }
       for (const file of ['.oxlintrc.json', '.oxlintrc.ratchet.json']) cpSync(file, resolve(root, file));
@@ -199,6 +200,34 @@ function fakeWitness(put: (file: string, value: string) => void, inputs = 'aa'):
   put('test/proof/fake/checkpoints/a.snap.gz', 'p1'); put('test/proof/fake/checkpoints/manifest.json', fakeManifest(inputs));
 }
 describe('SF6b witness manifests re-recorded at the serialized push', () => {
+  it('refreshes a cached witness through its small manifest without writing committed payloads', async () => {
+    const root = realpathSync(mkdtempSync(resolve(tmpdir(), 'cached-witness-fixture-')));
+    const put = (file: string, value: string): void => { mkdirSync(dirname(resolve(root, file)), { recursive: true }); writeFileSync(resolve(root, file), value); };
+    try {
+      put('scripts/sim-node-loader.mjs', ''); fakeWitness(put);
+      const directory = resolve(root, 'test/proof/fake/checkpoints');
+      const committed = cachedWitnessManifest(directory);
+      put('test/proof/fake/checkpoints/manifest.json', committed);
+      // Simulate the later payload-removal phase: the recorder returns cached metadata; the push never writes a gzip.
+      rmSync(resolve(directory, 'a.snap.gz'));
+      put('test/proof/fake/run.mjs', `import { readFileSync } from 'node:fs';
+const read = file => readFileSync(new URL(file, import.meta.url), 'utf8').trim();
+const inputs = read('inputs.txt'), manifest = JSON.parse(read('checkpoints/manifest.json'));
+if (process.argv[2] === 'fresh') { console.info(JSON.stringify({ status: manifest.inputs === inputs ? 'fresh' : 'stale', inputs, recorded: manifest.inputs })); process.exitCode = manifest.inputs === inputs ? 0 : 1; }
+else if (process.argv[2] === 'cache-record') {
+  manifest.inputs = inputs; manifest.ticks = Number(read('ticks.txt'));
+  console.info(JSON.stringify({ manifest: JSON.stringify(manifest, null, 2) + '\\n' }));
+} else throw new Error('mode');
+`);
+      put('test/proof/fake/inputs.txt', 'bb');
+      await expect(refreshWitnesses(root, resolve(root, 'receipts'))).resolves.toEqual({ 'test/proof/fake/checkpoints/manifest.json': withInputs(committed, 'bb') });
+      expect(existsSync(resolve(directory, 'a.snap.gz'))).toBe(false);
+      await expect(refreshWitnesses(root, resolve(root, 'receipts'))).resolves.toEqual({});
+      put('test/proof/fake/ticks.txt', '8');
+      await expect(refreshWitnesses(root, resolve(root, 'receipts'))).rejects.toThrow(/recorded outcome|hashes or outcomes/u);
+      expect(readFileSync(resolve(directory, 'manifest.json'), 'utf8')).toBe(withInputs(committed, 'bb'));
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  }, 30_000);
   it('blanks only the top-level inputs hash', () => {
     const text = '{\n  "inputs": "aa",\n  "nested": {\n    "inputs": "zz"\n  }\n}\n';
     expect(manifestOutcome(text)).toBe('{\n  "inputs": "",\n  "nested": {\n    "inputs": "zz"\n  }\n}\n');

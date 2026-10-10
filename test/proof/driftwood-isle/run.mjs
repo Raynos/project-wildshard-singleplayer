@@ -18,15 +18,28 @@ const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts'); in
 await import('../../../src/shards/driftwood-isle/runtime/headless.ts');
 await import('./worker.ts');
 const witness = await import('./witness.ts');
+function inputFiles() { return new Set([...loaded, ...['test/proof/driftwood-isle/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]); }
 function inputs() {
-  const files = new Set([...loaded, ...['test/proof/driftwood-isle/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]);
+  const files = inputFiles();
   const hash = createHash('sha256');
   for (const url of [...files].sort((a, b) => a < b ? -1 : a > b ? 1 : 0)) hash.update(url.slice(ROOT.href.length)).update('\0').update(readFileSync(new URL(url))).update('\0');
   return hash.digest('hex');
 }
+const { generateWitness } = await import('../../../scripts/witness-generation.mjs');
 const mode = process.argv.at(2) ?? 'all';
+let checkpointResult;
+if (mode !== 'fresh' && mode !== 'reef') {
+  const fingerprint = inputs();
+  const generated = await generateWitness({ root: ROOT, slug: 'driftwood-isle', inputs: fingerprint, files: inputFiles(),
+    manifest: new URL('checkpoints/manifest.json', import.meta.url), select: witness.setCheckpointDirectory,
+    generate: async () => witness.recordGameplay(await witness.driftwoodRapier(), fingerprint),
+    record: mode === 'checkpoints', forceCompare: mode === 'checkpoints' || mode === 'compare-checkpoints', compare: !['checkpoints', 'cache-record'].includes(mode) });
+  if (['checkpoints', 'cache-record', 'compare-checkpoints'].includes(mode)) {
+    checkpointResult = { status: 'generated', inputs: fingerprint, key: generated.key, hit: generated.hit, manifest: generated.manifest };
+  }
+}
 const freshness = () => { const result = witness.checkpointsFresh(inputs()); if (result.status !== 'fresh') throw new Error(`Stale Driftwood checkpoints: ${JSON.stringify(result)}`); return result; };
-if (mode === 'checkpoints') console.info(JSON.stringify(await witness.recordGameplay(await witness.driftwoodRapier(), inputs())));
+if (checkpointResult !== undefined) console.info(JSON.stringify(checkpointResult));
 else if (mode === 'fresh') { const result = witness.checkpointsFresh(inputs()); console.info(JSON.stringify(result)); process.exitCode = result.status === 'fresh' ? 0 : 1; }
 else {
   // The reef proof starts at a fresh real spawn and never consumes the Sealed Ring checkpoints.

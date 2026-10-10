@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep native snapshot artefacts compact.
 import { gzipSync, gunzipSync } from 'node:zlib';
 import * as v from 'valibot';
+import { readWitnessManifest } from '../../../scripts/witness-checkpoints.mjs';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import { CAPTAIN_STEP } from '../../../src/shards/driftwood-isle/runtime/captain';
 import { DRIFTWOOD_ACT, DRIFTWOOD_INTERACT, driftwoodSpots, QUEST_STEP } from '../../../src/shards/driftwood-isle/runtime/quest';
@@ -22,7 +23,9 @@ import { playDriftwood } from './tape';
 export const ENTRY = 'runtime/headless.ts';
 const ROOT = new URL('../../../', import.meta.url), MODULE = new URL(`src/shards/driftwood-isle/${ENTRY}`, ROOT).href;
 const WORKER = new URL('worker.ts', import.meta.url).href;
-const DIR = new URL('checkpoints/', import.meta.url), MANIFEST = new URL('manifest.json', DIR);
+let DIR = new URL('checkpoints/', import.meta.url), MANIFEST = new URL('manifest.json', DIR);
+/** Select a generator-owned output directory; native recorders and replay readers share this explicit port. */
+export function setCheckpointDirectory(directory: URL): void { DIR = directory; MANIFEST = new URL('manifest.json', DIR); }
 const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/driftwood-isle/assets/${file.hash}`, ROOT)))]));
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0));
 const Frame = v.pipe(v.array(TickCommandSchema), v.maxLength(1024));
@@ -48,7 +51,7 @@ export function driftwoodRapier(): Promise<Rapier> { return loadRapier(readFileS
 function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
   return createTrustedHeadlessResident({ shard: source, assets, rapier }, { module: MODULE }, snapshot);
 }
-function manifest(): Recorded { return v.parse(Manifest, JSON.parse(readFileSync(MANIFEST, 'utf8'))); }
+function manifest(): Recorded { return v.parse(Manifest, readWitnessManifest(MANIFEST)); }
 function tape(m: Recorded): HeadlessCommand[][] {
   const bytes = readFileSync(new URL('commands.json.gz', DIR));
   if (hash(bytes) !== m.tape) throw new Error('Gameplay tape bytes are stale');

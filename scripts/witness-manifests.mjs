@@ -14,6 +14,7 @@ import { closeSync, existsSync, mkdirSync, mkdtempSync, openSync, readFileSync, 
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { compareWitnessManifests } from './witness-checkpoints.mjs';
 
 export const WITNESS_MANIFEST = /^test\/proof\/[^/]+\/checkpoints\/manifest\.json$/u;
 /** @param {string} file */
@@ -38,7 +39,8 @@ export function witnessSlugs(root) {
   return readdirSync(proof).filter((slug) => existsSync(resolve(proof, slug, 'run.mjs')) && existsSync(resolve(proof, slug, 'checkpoints/manifest.json'))).sort();
 }
 
-/** One witness mode in a fresh Node (the tests' own invocation; transform types for the Driftwood worker classes). */
+/** One witness mode in a fresh Node (the tests' own invocation; transform types for the Driftwood worker classes).
+ * @param {string} root @param {string} slug @param {string} mode @param {string} logs */
 async function witness(root, slug, mode, logs) {
   const out = resolve(logs, `${slug}-${mode}.out`), err = resolve(logs, `${slug}-${mode}.err`);
   const outFd = openSync(out, 'w'), errFd = openSync(err, 'w');
@@ -48,7 +50,8 @@ async function witness(root, slug, mode, logs) {
     return { code, stdout: readFileSync(out, 'utf8'), stderr: readFileSync(err, 'utf8') };
   } finally { closeSync(outFd); closeSync(errFd); }
 }
-/** The `fresh` mode's JSON report: { status, inputs, recorded }. */
+/** The `fresh` mode's JSON report: { status, inputs, recorded }.
+ * @param {string} root @param {string} slug @param {string} logs */
 async function freshness(root, slug, logs) {
   const run = await witness(root, slug, 'fresh', logs);
   const line = run.stdout.trim().split('\n').at(-1) ?? '';
@@ -57,8 +60,9 @@ async function freshness(root, slug, logs) {
   if ((report.status !== 'fresh' && report.status !== 'stale') || typeof report.inputs !== 'string') throw new Error(`${slug}: unexpected fresh report ${line}`);
   return report;
 }
+/** @param {string | Uint8Array} bytes */
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
-/** name → bytes of every committed checkpoint file. */
+/** name → bytes of every committed checkpoint file. @param {string} root @param {string} slug */
 function payloads(root, slug) {
   const dir = resolve(root, 'test/proof', slug, 'checkpoints');
   return new Map(readdirSync(dir).sort().map((name) => [name, readFileSync(resolve(dir, name))]));
@@ -78,6 +82,19 @@ export async function refreshWitnesses(root, cache) {
       const file = `test/proof/${slug}/checkpoints/manifest.json`, before = payloads(root, slug);
       const committed = (before.get('manifest.json') ?? Buffer.alloc(0)).toString('utf8');
       const report = await freshness(root, slug, logs);
+      if (Object.hasOwn(JSON.parse(committed), 'cache')) {
+        const run = await witness(root, slug, 'cache-record', logs);
+        if (run.code !== 0) throw new Error(`${slug}: cached recorder failed (exit ${String(run.code)}):\n${run.stderr.slice(-2000)}`);
+        const result = JSON.parse(run.stdout.trim().split('\n').at(-1) ?? '');
+        if (typeof result.manifest !== 'string') throw new Error(`${slug}: cached recorder returned no manifest`);
+        compareWitnessManifests(committed, result.manifest);
+        if (result.manifest !== withInputs(committed, report.inputs)) throw new Error(`${slug}: cached recorder changed its recorded outcome or input fence`);
+        if (result.manifest === committed) return null;
+        writeFileSync(resolve(root, file), result.manifest);
+        const check = await freshness(root, slug, logs);
+        if (check.status !== 'fresh') throw new Error(`${slug}: cached manifest is still stale`);
+        return [file, result.manifest];
+      }
       if (report.status === 'fresh') return null;
       const key = sha([slug, report.inputs, manifestOutcome(committed), ...[...before].filter(([name]) => name !== 'manifest.json').map(([name, bytes]) => `${name}:${sha(bytes)}`)].join('\0'));
       const receipt = resolve(cache, key);
