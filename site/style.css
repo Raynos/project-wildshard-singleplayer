@@ -307,14 +307,12 @@
     .shards { display: grid; grid-template-columns: 1fr 1fr; gap: 44px 28px; }
     .shard { margin: 0; }
     .shard .ask { font-size: 12.5px; min-height: 66px; }
-    .shard .shot img { object-position: 50% 50% !important; }
     .shard h3 { font-size: 31px; margin-top: 14px; }
     .shard h3 a { font-size: 12px; }
     .shard p { font-size: 17px; }
     .shard.grey { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto 1fr; column-gap: 28px; }
     .shard.grey .ask { grid-column: 1; grid-row: 1; min-height: 0; }
     .shard.grey .shot { grid-column: 1; grid-row: 2 / 4; aspect-ratio: 2 / 1; }
-    .shard.grey .shot img { transform: scale(1.2) !important; transform-origin: 100% 54% !important; object-position: 50% 54% !important; }
     .shard.grey h3 { grid-column: 2; grid-row: 2; margin-top: 0; justify-content: flex-start; gap: 20px; }
     .shard.grey p { grid-column: 2; grid-row: 3; }
 

@@ -131,10 +131,6 @@ Concept art
 
 Concept painting: a vast world of player-built shards, stitched together by glowing seams
 
-## What · painting 2 description
-
-Concept painting: players on a jungle shard, with a volcanic shard beyond
-
 # Shards you can play
 
 ## Shards · question
@@ -276,6 +272,57 @@ Loop
 
 + 4 more shards
 
+# How shards fit together
+
+## Together · question
+
+how do ten strangers' shards make one MMO?
+
+## Together · title
+
+Many authors. One world.
+
+## Together · intro
+
+A shard is a sealed package of data and baked assets, built against one versioned API. The engine runs every shard the same way, so worlds by different authors sit side by side on one map, with one player, one inventory and one set of rules, and no shard can break another.
+
+## Together · package heading
+
+every shard is
+
+## Together · holds 1
+
+data the engine reads, never code it trusts
+
+## Together · holds 2
+
+baked assets inside fixed budgets
+
+## Together · holds 3
+
+behaviour in a sandbox (wasm)
+
+## Together · never holds
+
+code that can reach another shard, or your browser
+
+## Together · shardfile title
+
+template · shard.json (excerpt)
+
+## Together · shardfile note
+
+The template's real shard.json
+
+# How shards fit together · the points under the package
+
+## Grow · points
+
+- Co-edit with friends.
+- Renovate abandoned shards.
+- Your name and title travel with you.
+- Two wallets, so no shard can break the economy.
+
 # How a shard is made
 
 ## How · question
@@ -330,19 +377,7 @@ Walk it locally
 
 Upload it to the world (when uploads open)
 
-# One sentence to a shard
-
-## Sentence · question
-
-can Claude really build a whole shard from one line?
-
-## Sentence · title
-
-One sentence to a shard.
-
-## Sentence · intro
-
-Our own dry run, Thin Ice: from one line to a playable plan in a day of steering.
+# How a shard is made · Thin Ice, inside step 3
 
 ## Sentence · step 1 label
 
@@ -351,42 +386,6 @@ The line
 ## Sentence · the line
 
 a frozen fjord where you are the last ferryman
-
-## Sentence · step 2 label
-
-Pitch
-
-## Sentence · step 2 image description
-
-Pitch C, Thin Ice: racing over black ice above a drowned village
-
-## Sentence · step 2 caption
-
-Three pitches; we picked Thin Ice.
-
-## Sentence · step 3 label
-
-Style
-
-## Sentence · step 3 image description
-
-Art direction: the village under an aurora
-
-## Sentence · step 3 caption
-
-Art direction: "Aurora, kept simple".
-
-## Sentence · step 4 label
-
-Map
-
-## Sentence · step 4 image description
-
-The map of the fjord, revision 2
-
-## Sentence · step 4 caption
-
-The map, from a 3D blockout.
 
 ## Sentence · step 5 label
 
@@ -403,155 +402,6 @@ First-person views before a line of the level is built.
 ## Sentence · note
 
 Our own dry run · concept images, not the built shard
-
-# How shards fit together
-
-## Together · question
-
-how do ten strangers' shards make one MMO?
-
-## Together · title
-
-Many authors. One world.
-
-## Together · intro
-
-A shard is a sealed package of data and baked assets, built against one versioned API. The engine runs every shard the same way, so worlds by different authors sit side by side on one map, with one player, one inventory and one set of rules, and no shard can break another.
-
-## Together · package heading
-
-every shard is
-
-## Together · holds 1
-
-data the engine reads, never code it trusts
-
-## Together · holds 2
-
-baked assets inside fixed budgets
-
-## Together · holds 3
-
-behaviour in a sandbox (wasm)
-
-## Together · never holds
-
-code that can reach another shard, or your browser
-
-## Together · shardfile title
-
-template · shard.json (excerpt)
-
-## Together · shardfile note
-
-The template's real shard.json
-
-# Shards that grow
-
-## Grow · question
-
-does a shard stay the same forever?
-
-## Grow · title
-
-Shards that grow.
-
-## Grow · points
-
-- Co-edit with friends.
-- Renovate abandoned shards.
-- Your name and title travel with you.
-- Two wallets, so no shard can break the economy.
-
-# Coming worlds
-
-## Ideas · question
-
-what could I build?
-
-## Ideas · title
-
-Coming worlds.
-
-## Ideas · intro
-
-Shards nobody has built yet. One of them could be yours.
-
-## The Clockwork Tide · image description
-
-Concept art for The Clockwork Tide, an idea for a shard
-
-## The Clockwork Tide · name
-
-The Clockwork Tide
-
-## The Clockwork Tide · line
-
-A canal city on a 20-minute tide.
-
-## Skyforge Regatta · image description
-
-Concept art for Skyforge Regatta, an idea for a shard
-
-## Skyforge Regatta · name
-
-Skyforge Regatta
-
-## Skyforge Regatta · line
-
-Sky-sailing races through floating islands.
-
-## Ashfall Bastion · image description
-
-Concept art for Ashfall Bastion, an idea for a shard
-
-## Ashfall Bastion · name
-
-Ashfall Bastion
-
-## Ashfall Bastion · line
-
-A co-op siege on a volcanic fortress.
-
-## Lantern Night Market · image description
-
-Concept art for Lantern Night Market, an idea for a shard
-
-## Lantern Night Market · name
-
-Lantern Night Market
-
-## Lantern Night Market · line
-
-A social hub that only opens at dusk.
-
-## The Underways · image description
-
-Concept art for The Underways, an idea for a shard
-
-## The Underways · name
-
-The Underways
-
-## The Underways · line
-
-A deep mine in the 100 m below ground.
-
-## The Drowned Archive · image description
-
-Concept art for The Drowned Archive, an idea for a shard
-
-## The Drowned Archive · name
-
-The Drowned Archive
-
-## The Drowned Archive · line
-
-A sunken library, explored underwater.
-
-## Ideas · note
-
-Ideas · not built · concept art
 
 # The journey
 
@@ -685,113 +535,95 @@ Driftwood Isle from the air, on the grid
 
 Next: multiplayer, uploads, and the infinite world.
 
-# Who's building it
+# Coming worlds
 
-## Who · question
+## Ideas · question
 
-who's building it?
+what could I build?
 
-## Who · title
+## Ideas · title
 
-Built the way its authors will build.
+Coming worlds.
 
-## Who · figure 1
+## Ideas · intro
 
-2
+Shards nobody has built yet. One of them could be yours.
 
-## Who · words 1
+## The Clockwork Tide · image description
 
-humans
+Concept art for The Clockwork Tide, an idea for a shard
 
-## Who · figure 2
+## The Clockwork Tide · name
 
-+
+The Clockwork Tide
 
-## Who · words 2
+## The Clockwork Tide · line
 
-a fleet of Claude Code agents
+A canal city on a 20-minute tide.
 
-# FAQ
+## Skyforge Regatta · image description
 
-## FAQ · question
+Concept art for Skyforge Regatta, an idea for a shard
 
-questions
+## Skyforge Regatta · name
 
-## FAQ · title
+Skyforge Regatta
 
-FAQ.
+## Skyforge Regatta · line
 
-## FAQ · 1 question
+Sky-sailing races through floating islands.
 
-What can I play it on?
+## Ashfall Bastion · image description
 
-## FAQ · 1 answer
+Concept art for Ashfall Bastion, an idea for a shard
 
-Any modern browser, on desktop and phone. No install.
+## Ashfall Bastion · name
 
-## FAQ · 2 question
+Ashfall Bastion
 
-Is it free?
+## Ashfall Bastion · line
 
-## FAQ · 2 answer
+A co-op siege on a volcanic fortress.
 
-Playing is free, in your browser. Building is free too: bring your own coding agent. We never charge for uploading a shard.
+## Lantern Night Market · image description
 
-## FAQ · 3 question
+Concept art for Lantern Night Market, an idea for a shard
 
-Which agent can build a shard?
+## Lantern Night Market · name
 
-## FAQ · 3 answer
+Lantern Night Market
 
-Any of them: Claude Code, Codex, Cursor, OpenCode, whatever you use. In our experience Claude Opus 5.5 makes the best shards today.
+## Lantern Night Market · line
 
-## FAQ · 4 question
+A social hub that only opens at dusk.
 
-Who owns my shard?
+## The Underways · image description
 
-## FAQ · 4 answer
+Concept art for The Underways, an idea for a shard
 
-You do. You keep the rights to what you build; uploading lets us host it and show it in the world. Abandoned shards can be renovated by new authors, and your name stays on as the original author.
+## The Underways · name
 
-## FAQ · 5 question
+The Underways
 
-What can't a shard do?
+## The Underways · line
 
-## FAQ · 5 answer
+A deep mine in the 100 m below ground.
 
-Run code that can touch your browser, go over its budgets, block the roads into it, or mint loot that breaks other shards: a shard ships data and baked assets, checked by the validator before it can join the grid.
+## The Drowned Archive · image description
 
-# Install it
+Concept art for The Drowned Archive, an idea for a shard
 
-## Install · question
+## The Drowned Archive · name
 
-can I play it on my phone?
+The Drowned Archive
 
-## Install · title
+## The Drowned Archive · line
 
-Play it now.
+A sunken library, explored underwater.
 
-## Install · play button
+## Ideas · note
 
-Play now ↗
-
-## Install · play button note
-
-in your browser, nothing to install
-
-## Install · home screen intro
-
-Want it on your phone like an app? Add it to your Home Screen:
-
-## Install · steps
-
-- Open the game in Safari or Chrome.
-- Tap Share, then **Add to Home Screen**.
-- It opens full screen, like an app.
-
-## Install · apps note
-
-iOS and Android apps: coming
+Ideas · not built · concept art
 
 # Become an author
 
@@ -932,6 +764,88 @@ Centre
 ## Map · your wish
 
 Your wish
+
+# FAQ
+
+## FAQ · question
+
+questions
+
+## FAQ · title
+
+FAQ.
+
+## FAQ · 1 question
+
+What can I play it on?
+
+## FAQ · 1 answer
+
+Any modern browser, on desktop and phone. No install.
+
+## FAQ · 2 question
+
+Is it free?
+
+## FAQ · 2 answer
+
+Playing is free, in your browser. Building is free too: bring your own coding agent. We never charge for uploading a shard.
+
+## FAQ · 3 question
+
+Which agent can build a shard?
+
+## FAQ · 3 answer
+
+Any of them: Claude Code, Codex, Cursor, OpenCode, whatever you use. In our experience Claude Opus 5.5 makes the best shards today.
+
+## FAQ · 4 question
+
+Who owns my shard?
+
+## FAQ · 4 answer
+
+You do. You keep the rights to what you build; uploading lets us host it and show it in the world. Abandoned shards can be renovated by new authors, and your name stays on as the original author.
+
+## FAQ · 5 question
+
+What can't a shard do?
+
+## FAQ · 5 answer
+
+Run code that can touch your browser, go over its budgets, block the roads into it, or mint loot that breaks other shards: a shard ships data and baked assets, checked by the validator before it can join the grid.
+
+# FAQ · install it (the last answer)
+
+## FAQ · shardfile question
+
+What's inside a shard?
+
+## Install · title
+
+Play it now.
+
+## Install · play button
+
+Play now ↗
+
+## Install · play button note
+
+in your browser, nothing to install
+
+## Install · home screen intro
+
+Want it on your phone like an app? Add it to your Home Screen:
+
+## Install · steps
+
+- Open the game in Safari or Chrome.
+- Tap Share, then **Add to Home Screen**.
+- It opens full screen, like an app.
+
+## Install · apps note
+
+iOS and Android apps: coming
 
 # Press kit page (wildshard.io/press/)
 
