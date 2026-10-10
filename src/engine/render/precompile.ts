@@ -129,6 +129,15 @@ function objectKey(o: BatchedLike, positionOnly = false): string {
     `|${positionOnly ? '' : `${a['uv1'] ? 1 : 0}${a['uv2'] ? 1 : 0}${a['uv3'] ? 1 : 0}${a['tangent'] ? 1 : 0}${a['color'] ? 1 : 0}${a['normal'] ? 1 : 0}`}|${morph}`;
 }
 
+/** The program a material last compiled to (three's material properties), or undefined; identity only. */
+function currentProgram(renderer: Renderer, material: THREE.Material): unknown {
+  // Test doubles of the renderer carry no property store.
+  const store: unknown = Reflect.get(renderer, 'properties');
+  const get: unknown = typeof store === 'object' && store !== null ? Reflect.get(store, 'get') : undefined;
+  const properties: unknown = typeof get === 'function' ? Reflect.apply(get, store, [material]) : undefined;
+  return typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'currentProgram') : undefined;
+}
+
 const materialsOf = (o: THREE.Object3D): THREE.Material[] => { const m = (o as MeshLike).material; return Array.isArray(m) ? m : m ? [m] : []; };
 
 type BatchedLike = MeshLike & { isBatchedMesh?: boolean; _colorsTexture?: THREE.DataTexture | null };
@@ -473,6 +482,10 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
   const before = snapshotPrograms(renderer);
   const created: ProgramLike[] = [];
+  // op-hitch31: the programs the jobs' materials compiled to, including ones issued before `before` (a captured
+  // offscreen factory such as PMREM issues its own in `_compileMaterial` during capture). Without them the replayed
+  // draw was their first use: a blocking link query (53-99 ms getProgramInfoLog on the Simulator) in one frame.
+  const jobPrograms = new Set<unknown>();
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now();
@@ -487,6 +500,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.toneMapping !== undefined) renderer.toneMapping = job.toneMapping;
       renderer.setRenderTarget(job.rt);
       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
+      job.root.traverse(object => { for (const material of materialsOf(object)) jobPrograms.add(currentProgram(renderer, material)); });
     } finally {
       renderer.setRenderTarget(prevRt); renderer.toneMapping = prevTone;
       if (job.fogOff && job.target) job.target.fog = fog;
@@ -497,6 +511,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     if (performance.now() - tFrame > 12 || i === jobs.length - 1) { await pause(); tFrame = performance.now(); }
   }
   created.push(...newProgramsSince(renderer, before));
+  for (const program of before) if (jobPrograms.has(program)) created.push(program);
   const n = created.length;
   // Phase A (parallel drivers): wait for COMPLETION_STATUS_KHR on every program, counting them up.
   const units = parallel ? 2 * n : n;

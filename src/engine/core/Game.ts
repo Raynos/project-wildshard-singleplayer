@@ -716,6 +716,13 @@ export class Game {
     const pause = isolateImageUploads && this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
     await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads,
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }) }), current);
+    // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
+    // desktop, up to 1011 ms Simulator, in `activate`); draw it a few objects a frame into a 1×1 scissor first.
+    if (futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible) {
+      const { warmParkedDraws } = await import('../render/parkedDraws');
+      const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
+      await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current, drawnPause, { environment: futureEnvironment });
+    }
   }
 
   /**
