@@ -679,26 +679,7 @@ codex to 100% usage to get this plan built out."*
 - Claude is the scarce plan: council seats run as **two Codex seats + one Claude seat** from round 2; Opus subagents
   only for O rows and visual judging.
 
-**Pacing Codex and Opus (Jake, 2026-10-08; moved here from SUBAGENTS.md on 2026-10-10, since Codex lanes are this plan's grant, not a repo-wide tool):**
-Jake: the goal is for **Codex to hit 0 % while Claude still has a 10 % reserve**, never the other way round. Claude is the top-level
-agent, so its last 10 % is a reserve tank for discussions with Jake and for coordinating. Codex left unspent at the reset is wasted;
-running out of Claude with Codex to spare is worse.
-
-- **Graphical work is Opus-only:** rendering, shaders / GLSL, three.js, materials, looks, sky, post effects, captures, boards, pixel
-  proofs. Codex lanes do **non-graphical engineering only**: data, loaders, sim, physics, residency, harnesses, CI, tests, memory
-  accounting, tooling.
-- **Read the budgets before dispatching new work:** `openusage` (JSON, 5-minute cache): `providers.claude.resources.weekly.remaining`
-  and `providers.codex.resources.weekly.remaining`, each with its `resetsAt`.
-- **Pace each provider to its target:**
-  - Claude may spend `weekly.remaining − 10` points before its reset.
-  - Codex may spend all of its `weekly.remaining` before its reset.
-  - Divide by the hours to each reset to get a burn rate per hour per provider.
-  - When a provider burns faster than its rate, give it fewer lanes / no new tasks (its lanes finish the commit in flight, report over
-    herdr, go idle).
-  - When it burns slower, give it more of the non-graphical work.
-  - When in doubt, lean on Codex: a slightly early Codex zero is fine; touching Claude's reserve is not.
-- **Re-check at least every few hours and at every new batch of work.** Record the reading and the lane split in the plan's §9 / State
-  line when it changes.
+- Codex / Opus routing and openusage pacing: [SUBAGENTS.md](../process/SUBAGENTS.md) § Large multi-week plans (this plan is one).
 
 ### 9.4 The frame floor (G55)
 
