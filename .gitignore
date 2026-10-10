@@ -67,3 +67,10 @@ src/**/*.generated.*
 # SF74 W13 (Jake, G281): API docs and the surface are build outputs of `pnpm gen` (scripts/gen-api.mjs), never committed
 /docs/api/
 /lint/api-surface.json
+
+# G292: SHA256-pinned outputs restored by pnpm gen; retained generators and provenance are in scripts/generation-jobs.json.
+/public/assets/pine-hollow/baked/cabins.bin
+/public/assets/nalati/baked/bodies.bin
+/public/assets/far-reach/rigs/sky-goat.glb
+/public/assets/far-reach/rigs/storm-roc.glb
+/public/assets/sunscar-dunes/sand/grain.bin
