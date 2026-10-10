@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 // oxlint-disable-next-line import/no-nodejs-modules -- This lifecycle witness admits the production native physics binary.
 import { readFileSync } from 'node:fs';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { app } from '../src/engine/app/runtime';
 import { withOwner } from '../src/engine/app/ownership';
@@ -58,7 +58,7 @@ it('recreates a home finale twice without retaining page encounters, callbacks o
   try {
     cells.enter(cell); await plugin.world(context); await plugin.kit(context); await plugin.play(context);
     for (let visit = 0; visit < 2; visit++) {
-      expect(ready.at(-1)).toBe(true); expect(game.registrationScope).toBe(page); expect(game.levelScope).toBe(page);
+      await vi.waitFor(() => { expect(ready.at(-1)).toBe(true); }); expect(game.registrationScope).toBe(page); expect(game.levelScope).toBe(page);
       expect(app.encounters.get('boss.captain')).toBeDefined(); expect(app.encounters.runtime('boss.captain')).toBeDefined();
       expect(physics.world.colliders.len()).toBe(1);
       for (const system of app.systemsByPhase().update) system.run(1 / 60, visit);

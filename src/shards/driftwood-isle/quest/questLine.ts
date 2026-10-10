@@ -5,7 +5,8 @@
  * `dead:captain` on the kills, `seen:reward` after the reward view).
  */
 import { SHARD_FLAGS } from './interactables';
-import type { NpcDef, QuestDef } from '@wildshard/engine/quest/core';
+import type { QuestDef } from '@wildshard/engine/quest/core';
+import { parseNpcDialogueRow } from '@wildshard/sdk/questGraph';
 
 export const QUEST_DONE = 'quest:driftwood-done';
 
@@ -64,7 +65,8 @@ export const DRIFTWOOD_QUEST: QuestDef = {
 /** the flags the quest reads that come from Adventure.ts, not the table */
 export const QUEST_EXTERNAL = ['talked:castaway', 'dead:sailor', 'dead:captain', 'seen:reward'];
 
-export const CASTAWAY: NpcDef = {
+/** Validated dialogue for Wendell's native pivot figure; its rig and motion remain unchanged. */
+export const CASTAWAY = parseNpcDialogueRow({
   id: 'castaway',
   name: 'Wendell, castaway',
   dialogue: [
@@ -94,4 +96,4 @@ export const CASTAWAY: NpcDef = {
       'Take the flint and steel from my sea chest inside — the lookout beacon will want lighting. And mind the drowned sailor in the wreck.',
     ], sets: ['talked:castaway'] },
   ],
-};
+});

@@ -63,3 +63,11 @@ separate from purse coins (the 10k prefix still has two; the strongbox opens at 
 treasure fact, then restores exactly and refuses a duplicate opening. That test places the player at the prompt and
 does not claim underwater travel by itself; the independent reef journey above now covers that approach. Reward
 carry/camera and travel to the zipline launch remain open.
+
+The finale now executes the same immutable AssemblyScript director in the page and trusted worker. Its complete
+author continuation replaces the quest adapter's native `reward` timer in the three checkpoints. All other canonical
+fields (physics, actors, strikes, RNG, clock, flags, pack and native keepers), the 19,816-tick command tape, fact ticks
+and profile prefixes remain exact. The real Captain replay still starts at tick 18,898 with 190 HP and reaches victory
+and reward in 918 ticks; the restored worker agrees for 60 ticks. The page's previous finale is retained only as a
+test oracle, with 10k event/pose decisions and a silent restored author suffix. Whole-shard compatibility remains false
+for the laws listed in `open`; moving the timer to a script does not close those gaps.

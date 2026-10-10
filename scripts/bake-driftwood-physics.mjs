@@ -39,6 +39,7 @@ try {
   }, null, { timeout: 240000 });
   await page.waitForTimeout(1500);
   const capture = (wantCensus) => {
+    const read = () => {
     const w = window.__wildshard.world, g = w.game, physics = g.app.physics, animals = w.animals;
     const copy = value => JSON.parse(JSON.stringify(value, (_key, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
     // the hunting brain's memories (src/engine/ai/hunt.ts, the manager's private `hunt`)
@@ -120,10 +121,13 @@ try {
     });
     return wantCensus ? { kinds, actors: actors.map(a => `${a.kind}.${a.variant}.${a.herd}`), herds: herds.length, habitat: { ...habitat, hold: habitat.hold && { ...habitat.hold, floor: habitat.hold.floor.filter(y => y !== null).length }, perches: habitat.perches.length, perchBases: habitat.perchBases.length }, pieces: pieces.length, solids: solids.length, solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ ...gr, heights: gr.heights.length })) }
       : { actors, herds, habitat, pieces, grounds, solids };
+    };
+    // Independent native reads in one protocol task: no live AI frame can change a wander goal between them.
+    return wantCensus ? read() : [read(), read()];
   };
   if (census) { console.log(JSON.stringify(await page.evaluate(capture, true), null, 1)); console.log(JSON.stringify(errors)); }
   else {
-    const first = await page.evaluate(capture, false), second = await page.evaluate(capture, false);
+    const [first, second] = await page.evaluate(capture, false);
     // the finale's captain: set the altar's flag, read his body before any frame moves him, then his spec once more
     const captain = await page.evaluate(() => {
       const w = window.__wildshard.world, snap = w.game.app.debug.snapshot(), adv = window.__adventure ?? snap['driftwood.adventure'] ?? snap.adventure;

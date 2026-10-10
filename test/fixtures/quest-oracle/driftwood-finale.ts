@@ -1,3 +1,4 @@
+// Exact shipping native finale captured from 2c5d0ed7f; exercised as the production-code oracle.
 /**
  * The finale (A6 + D3/D5): the Drowned Captain and the golden-hour reward view.
  *
@@ -10,15 +11,11 @@
  *     holds there, the caption fades in; seven seconds later `seen:reward` completes the quest and the clock runs on.
  */
 import * as THREE from 'three';
-import type { FinaleHost } from '../quest/Finale';
+import type { FinaleHost } from '../../../src/shards/driftwood-isle/quest/Finale';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
-import type { Adventure, AdventureWorld, AdvAnimal } from '../quest/adventure';
-import { DrownedCaptain, CAPTAIN_DEF } from '../combat/captain';
-import { installDeclaredDirector } from '@wildshard/game/shardfile/directorClient';
-import { director } from '@wildshard/sdk/director';
-import declaration from '../data/director.json' with { type: 'json' };
-import { driftwoodDirectorBytes, DriftwoodScriptFinale } from './scriptFinale';
+import type { Adventure, AdventureWorld, AdvAnimal } from '../../../src/shards/driftwood-isle/quest/adventure';
+import { DrownedCaptain, CAPTAIN_DEF } from '../../../src/shards/driftwood-isle/combat/captain';
 
 const GOLDEN = 0.745;          // DayNight phase of the golden-hour key (its KEYS table: GOLDEN at 0.74)
 const ARENA = 22;
@@ -43,9 +40,9 @@ export interface FinaleWorld<A extends AdvAnimal> {
 interface FinaleRecipe extends Finale {
   observe: () => Readonly<Record<string, number>>;
   publish: (key: string) => void;
-  step: (dt: number) => void;
+  step: () => void;
 }
-function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, app: FinaleHost): FinaleRecipe {
+function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, directed: boolean, app: FinaleHost): FinaleRecipe {
   const { flags, place } = adv;
   const pool = place({ poi: 'shrine', anchor: 'shrine.pool', x: 0, z: 8 });
   const ringP = place({ poi: 'shrine', anchor: 'shrine.ring', x: 0, z: 0, dy: 3.8 });
@@ -98,7 +95,10 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
     }
     if (f === 'dead:captain') { w.hud.toast('Captain Brine sinks for good. The ring hums — go and stand in it'); w.music.sting('chunk'); }
   };
-
+  if (!directed) {
+    flags.onChange(changed);
+    if (flags.has('used:altar') && !flags.has('dead:captain')) spawn(); // a reload mid-fight: he waits under the pool
+  }
 
   // ── per frame: wake on approach, the boss bar, the reward view ──
   let started = false, completed = false;
@@ -108,11 +108,12 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
     ...(w.setViewmodel === undefined ? {} : { setViewmodel: w.setViewmodel }), sting: () => { w.music.sting('chunk'); } }, {
     kicker: 'The Sealed Ring · opened', title: 'Driftwood Isle', subtitle: 'The planet in the ring, at golden hour',
     at: rewardAt, ...rewardPose,
-    when: () => started,
-    finish: () => adv.complete?.showAfterReward() === true,
+    when: () => directed ? started : flags.has('dead:captain') && !flags.has('seen:reward') && Math.hypot(w.player.position.x - rewardAt.x, w.player.position.z - rewardAt.z) < 7,
+    finish: () => { if (!directed) flags.set('seen:reward'); return adv.complete?.showAfterReward() === true; },
   });
   w.game.onUpdate((dt) => {
     encounter.update(dt, app.clock.now);
+    if (!directed) reward.update(dt);
   }, 'shard.driftwood-isle.installFinale');
   return { captain: () => captain, rewardAt, rewardPose,
     observe: () => ({ altar: Number(flags.has('used:altar')), dead: Number(flags.has('dead:captain')), seen: Number(flags.has('seen:reward')),
@@ -125,23 +126,11 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
       else if (key === 'reward.finish') { completed = true; flags.set('seen:reward'); }
       else throw new Error('Unknown finale director event');
     },
-    step: dt => { reward.update(dt, completed); },
+    step: () => { reward.update(1 / 60, completed); },
   };
 }
 
-/** SF24 decisions/timers are data + bounded script; captain combat and reward camera/renderer remain runtime recipes (G51). */
-export async function installDirectorFinale<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, context: Parameters<typeof installDeclaredDirector>[0], app: FinaleHost): Promise<Finale> {
-  const recipe = finaleRecipe(adv, w, app);
-  const lane = await installDeclaredDirector(context, { data: director(declaration), seed: 357, systemId: 'shard.driftwood.director', clock: 'external',
-    bytes: () => Promise.resolve(driftwoodDirectorBytes()),
-    observe: recipe.observe, publish: (event) => { recipe.publish(event.key); },
-  });
-  const clock = new DriftwoodScriptFinale(lane, { observe: recipe.observe, publish: recipe.publish });
-  context.scope.onDispose(adv.flags.onChange((flag, on) => {
-    if (on && (flag === 'used:altar' || flag === 'dead:captain')) clock.changed();
-  }));
-  // G51: the page's existing rendered clock owns the reward view. Decisions use the same elapsed dt,
-  // while the trusted headless keeper uses its normal fixed clock; neither installs a second scheduler.
-  w.game.onUpdate(dt => { clock.update(dt); recipe.step(dt); }, 'shard.driftwood.director');
-  return recipe;
+/** The unchanged shipping decisions remain the default-off path and real replay oracle until SF46 selects the director. */
+export function installLegacyFinale<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, app: FinaleHost): Finale {
+  return finaleRecipe(adv, w, false, app);
 }

@@ -31,6 +31,7 @@ export function on_tick(): void {
     if (nowDead && !dead) event(9003);
     altar = nowAltar; dead = nowDead;
   }
+  if (input(1) === 0) return; // Immediate flag delivery cannot advance or start the post-player reward beat.
   const dx = input(9)-input(11), dz = input(10)-input(12);
   if (reward === -1 && nowDead && !seen && sqrt(dx*dx+dz*dz) < parameter(0)) { reward = 0; event(9004); }
   if (reward >= 0) {

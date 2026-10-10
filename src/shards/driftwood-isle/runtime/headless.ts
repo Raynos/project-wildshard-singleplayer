@@ -8,6 +8,7 @@ import { waveHeight } from '@wildshard/engine/world/waves';
 import { driftwoodBake, driftwoodSpecs, type DriftwoodBake } from './baked';
 import { installIsland } from './keeper';
 import { installCaptain } from './captain';
+import { DriftwoodScriptFinale, prepareDriftwoodDirector } from './scriptFinale';
 import { driftwoodSwordProfiles, installDriftwoodSwords } from './swords';
 import { installDriftwoodKills } from './kills';
 import { DRIFTWOOD_FEATS } from '../quest/rows';
@@ -82,7 +83,8 @@ function walkOf(list: ReturnType<HeadlessRuntimeInstallation['commands']>, speed
   return { x: x * k, z: z * k };
 }
 
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard }) => {
+  const createDirector = await prepareDriftwoodDirector();
   const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(), swords = driftwoodSwordProfiles(shard.items.rows), spots = driftwoodSpots();
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: 500, height: 0 },
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
@@ -96,7 +98,19 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
     host.useWater({ surfaceAt: DRIFTWOOD_SEA.restAt, bob: (x, z) => waveHeight(x, z, host.clock.now) });
     if (!context.restoring) addDriftwoodWorld(host, bake);
     const island = installIsland(host, { bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
-    installCaptain(host, bake, island);
+    const captain = installCaptain(host, bake, island);
+    const observation = { altar: 0, dead: 0, seen: 0, 'player-x': 0, 'player-z': 0, 'reward-x': spots.reward.x, 'reward-z': spots.reward.z };
+    const finale = new DriftwoodScriptFinale(createDirector(), { observe: () => {
+      observation.altar = Number(host.flags.has('used:altar')); observation.dead = Number(host.flags.has('dead:captain'));
+      observation.seen = Number(host.flags.has('seen:reward')); observation['player-x'] = host.player.position.x; observation['player-z'] = host.player.position.z;
+      return observation;
+    }, publish: event => {
+      if (event === 'captain.restore' || event === 'captain.wake') captain.publish(event);
+      else if (event === 'reward.finish') host.flags.set('seen:reward');
+      // The native encounter owns death; the renderer owns reward caption/camera presentation.
+    } }, context.restoring);
+    const offFinale = host.flags.onChange((flag, on) => { if (on && (flag === 'used:altar' || flag === 'dead:captain')) finale.changed(); });
+    host.scope.onDispose(offFinale);
     // the swords after the keeper: a swing's wake decides in the frame the keeper already stepped (a zero step)
     const input = { attack: null as string | null, heavy: false, heavyTarget: null as string | null };
     const held = installDriftwoodSwords(host, swords, island, () => {
@@ -116,7 +130,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
     installDriftwoodQuest(host, { quests: shard.quests, table: DRIFTWOOD_INTERACT, spots, feats: DRIFTWOOD_FEATS, fact, coins, bodies: island.bodies,
       commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []),
       floorAt: (x, z) => Math.max(heightAt(x, z), bake.holdFloorAt(x, z) ?? Number.NEGATIVE_INFINITY), ironTaken: () => { held.equip(1); },
-      waterLevel: LOWERED_SEA, restoring: context.restoring, walk: () => walkOf(context.commands(), level.player.speed) });
+      finale, waterLevel: LOWERED_SEA, restoring: context.restoring, walk: () => walkOf(context.commands(), level.player.speed) });
     // the bodies spawned in play (a new practice crab, the captain) reinstall after every install-time step
     island.settle();
     host.onStep('driftwood.poses', island.publishPoses, undefined, 'afterBodies');

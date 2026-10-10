@@ -3,6 +3,8 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
+import { app } from '../src/engine/app/runtime';
+import { installLegacyFinale } from './fixtures/quest-oracle/driftwood-finale';
 import { setDev } from '../src/engine/core/devMode';
 import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
@@ -31,38 +33,39 @@ function fixture() {
   flags.onChange((key, on) => { if (on && key === 'seen:reward') record('reward.finish'); });
   return { scope, flags, events, player, world, adventure, systems,
     fixed: () => { for (const system of systems) system.run(1 / 60, tick / 60); },
-    frame: () => { for (const frame of frames) frame(1 / 60, tick / 60); },
+    frame: (dt = 1 / 60) => { for (const frame of frames) frame(dt, tick * dt); },
     tick: (value: number) => { tick = value; },
   };
 }
 describe('SF24 shipping Driftwood director boot', () => {
-  it('keeps Legacy as the default, with no author fetch or fixed director system', async () => {
-    const h = fixture(), fetch = vi.fn(() => Promise.reject(new Error('Legacy must never load script'))); vi.stubGlobal('fetch', fetch);
-    const installed = await withOwner(h.scope, () => installFinale(h.adventure, h.world, { scope: h.scope, system: (value) => { h.systems.push(value); }, debugRow: (row) => { expect(row.initial).toBe('off'); } }));
+  it('installs the admitted script by default with Developer off and no separate author download', async () => {
+    const h = fixture(), fetch = vi.fn(() => Promise.reject(new Error('The admitted module is embedded'))); vi.stubGlobal('fetch', fetch);
+    const installed = await withOwner(h.scope, () => installFinale(h.adventure, h.world, { scope: h.scope, system: (value) => { h.systems.push(value); } }));
     expect(fetch).not.toHaveBeenCalled(); expect(h.systems).toEqual([]);
-    h.tick(10); h.flags.set('used:altar'); h.frame();
+    h.tick(10); h.flags.set('used:altar'); h.fixed(); h.frame();
     expect(h.events).toEqual([{ tick: 10, key: 'captain.wake' }]); expect(installed.captain()?.mem['awake']).toBe(1);
   });
-  it('runs the saved Script choice through the real recipe with exactly the legacy event ticks and poses', async () => {
+  it.each([60, 30, 20])('runs the admitted script through the real recipe at %i Hz with exactly the shipping event ticks and poses', async hz => {
     setDev(true);
     const bytes = Uint8Array.from(readFileSync(`src/shards/driftwood-isle/assets/${declaration.module}`));
     vi.stubGlobal('fetch', () => Promise.resolve(new Response(bytes)));
     const legacy = fixture(), directed = fixture();
-    const a = withOwner(legacy.scope, () => installFinale(legacy.adventure, legacy.world));
+    const a = withOwner(legacy.scope, () => installLegacyFinale(legacy.adventure, legacy.world, app));
     const b = await withOwner(directed.scope, () => installFinale(directed.adventure, directed.world, { scope: directed.scope,
-      system: (value) => { directed.systems.push(value); }, debugRow: (row) => { row.change('on'); } }));
-    expect(directed.systems.map((system) => system.phase)).toEqual(['fixed.post']);
+      system: (value) => { directed.systems.push(value); } }));
+    expect(directed.systems).toEqual([]);
     for (let tick = 1; tick <= 10000; tick++) {
       for (const h of [legacy, directed]) { h.tick(tick); if (tick === 10) h.flags.set('used:altar'); if (tick === 200) h.flags.set('dead:captain'); }
       legacy.player.position.copy(tick >= 220 ? a.rewardAt : new Vector3(20, 0, 0));
       directed.player.position.copy(tick >= 220 ? b.rewardAt : new Vector3(20, 0, 0));
-      directed.fixed(); legacy.frame(); directed.frame();
+      directed.fixed(); legacy.frame(1 / hz); directed.frame(1 / hz);
       expect(directed.events).toEqual(legacy.events);
       expect(directed.player.position.toArray()).toEqual(legacy.player.position.toArray());
       expect([directed.player.yaw, directed.player.pitch, directed.player.carried]).toEqual([legacy.player.yaw, legacy.player.pitch, legacy.player.carried]);
       expect(directed.world.sky.dayNight?.phase).toBe(legacy.world.sky.dayNight?.phase);
     }
     expect(directed.flags.all).toEqual(legacy.flags.all);
-    expect(directed.events).toEqual([{ tick: 10, key: 'captain.wake' }, { tick: 200, key: 'captain.dead' }, { tick: 220, key: 'reward.start' }, { tick: 640, key: 'reward.finish' }]);
+    expect(directed.events.slice(0, 3)).toEqual([{ tick: 10, key: 'captain.wake' }, { tick: 200, key: 'captain.dead' }, { tick: 220, key: 'reward.start' }]);
+    expect(directed.events[3]?.key).toBe('reward.finish');
   }, 60000);
 });

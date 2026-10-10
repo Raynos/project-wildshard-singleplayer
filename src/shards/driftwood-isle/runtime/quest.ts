@@ -8,13 +8,16 @@ import type { GroupName } from '@wildshard/engine/physics/groups';
 import { autoFlag, type InteractDef, type InteractTable } from '@wildshard/engine/world/interact/types';
 import { test } from '@wildshard/engine/world/interact/flags';
 import type { QuestData } from '@wildshard/game/shardfile/quests';
-import { DeclaredQuests } from '@wildshard/game/quest/declared';
+import type { DeclaredQuests } from '@wildshard/game/quest/declared';
+import { installQuestGraph } from '@wildshard/game/quest/questGraph';
 import type { AchievementDef } from '@wildshard/game/achievements';
 import { SEA_GLASS_FLAG, SHARD_FLAGS } from '../quest/interactables';
+import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from '../data/questGraph';
 import { QUEST_DONE } from '../quest/questLine';
 import baked from './spots.baked.json' with { type: 'json' };
 import { DriftwoodPack } from './pack';
 import { DriftwoodZipline } from './zipline';
+import type { DriftwoodScriptFinale } from './scriptFinale';
 
 /** The script command actor that carries Driftwood's [E] prompts (`{ kind: 'script', actorId: DRIFTWOOD_INTERACT, value }`). */
 export const DRIFTWOOD_INTERACT = 'driftwood.interact';
@@ -33,10 +36,8 @@ const PROMPT_R = 2.5, TOUCH_R = 1.1, TOUCH_DY = 2.2, PLATE_INSET = 0.1, PLATE_DE
 const TALK_R = 3.2;
 /** The iron sword's prompt (weapons/IronSword.ts): 2.6 m from the eye once no drowned sailor guards it. */
 const SWORD_R = 2.6;
-/** The reward beat (runtime/finale.ts, game/quest/reward.ts): it starts within 7 m of the spot and ends 7 s later. */
-const REWARD_R = 7, REWARD_HOLD = 7;
 const MAX_COMMANDS = 1024, MAX_ROWS = 64, MAX_BODIES = 64;
-const TALKED_FLAG = 'talked:castaway', CAPTAIN_DEAD = 'dead:captain';
+const TALKED_FLAG = 'talked:castaway';
 const PLATE_SEES: readonly GroupName[] = ['PLAYER', 'ITEM'], anyOwner = (): boolean => true;
 
 const finite = v.pipe(v.number(), v.finite()), xyz = { x: finite, y: finite, z: finite };
@@ -73,6 +74,8 @@ export interface DriftwoodQuestPorts {
   readonly walk: () => { readonly x: number; readonly z: number };
   /** a restoring install: the barrel's native body comes back with the saved world, never spawned again */
   readonly restoring: boolean;
+  /** The admitted finale, stepped at this keeper's existing post-player/ride phase. */
+  readonly finale: DriftwoodScriptFinale;
 }
 
 /** The fixed cuboid the page baked for a kit collider box (its centre and half extents), or throws: the world lacks it. */
@@ -102,7 +105,7 @@ interface Rule {
   readonly taken: string; readonly open: string; readonly lit: string; readonly used: string; readonly lever: string; readonly plate: string;
 }
 const Watch = v.strictObject({ lost: finite, wedge: finite, from: v.strictObject(xyz) });
-const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), reward: finite, iron: v.boolean(), counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
+const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), finale: v.string(), iron: v.boolean(), counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
   pack: v.unknown(), zipline: v.unknown(),
   barrel: v.nullable(v.strictObject({ handle: v.pipe(finite, v.integer(), v.minValue(0)), watch: Watch })) });
 /** the barrel body's collider owner (a plain value, so the snapshot's collider tags carry it) */
@@ -140,7 +143,9 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     return { d, spot, auto: autoFlag(d), sets: d.sets ?? [], gives, loot, taken: `taken:${d.id}`, open: `open:${d.id}`, lit: `lit:${d.id}`, used: `used:${d.id}`,
       lever: `lever:${d.id}`, plate: `plate:${d.id}`, lockKey: (d.kind === 'chest' || d.kind === 'door') && d.lock !== undefined ? `key:${d.lock}` : null };
   });
-  const quests = new DeclaredQuests(host, ports.quests, { fact: ports.fact, coins: ports.coins });
+  const graph = installQuestGraph(host, { quests: ports.quests, interactions: DRIFTWOOD_ACTIONS, npcs: [], graph: DRIFTWOOD_GRAPH },
+    { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
+  const quests = graph.quests;
   const pack = new DriftwoodPack();
   // The page's carried branch leaves the motor alone and clears impulse/velocity before the ride's post-player update.
   // This one player owner will also host the reward carry; an inactive ride retains the ordinary host motion law.
@@ -158,7 +163,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     return true;
   }, step: () => undefined });
   const eye = new Vector3(), at = new Vector3(), keyPrompt = { x: 0, y: 0, z: 0 }, slab = { x: 0, y: 0, z: 0 }, half = { x: 0, y: PLATE_DEPTH, z: 0 };
-  const state: { key: { x: number; y: number; z: number } | null; reward: number; iron: boolean } = { key: null, reward: -1, iron: false };
+  const state: { key: { x: number; y: number; z: number } | null; iron: boolean } = { key: null, iron: false };
   const feats = ports.feats.filter(f => f.kind === undefined).map(f => ({ id: f.id, count: f.count, name: `driftwood.${f.id}`,
     entities: Array.from({ length: f.count }, (_, k) => `${f.id}:${String(k + 1)}`), n: 0 }));
   if (feats.length > MAX_ROWS || feats.some(f => f.count > MAX_ROWS)) throw new RangeError('Driftwood feats exceed their finite bound');
@@ -186,14 +191,12 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const interact = (r: Rule): void => {
     const d = r.d;
     if (!shown(r) || locked(r) || d.kind === 'plate' || d.kind === 'barrel') return;
-    if (d.kind === 'lever') {
-      if (d.latch !== true || !flags.has(r.lever)) raiseAll(r.sets, flags.toggle(r.lever));
-      return;
-    }
-    if (d.kind === 'door' && d.look === 'plank' && flags.has(r.open)) { flags.clear(r.open); return; }
-    if (d.kind !== 'chest') raiseAll(r.gives, true);
-    if (r.auto !== null) flags.set(r.auto);
-    raiseAll(r.sets, true);
+    // Physical doors retain their toggle law; other prompts commit the admitted graph row.
+    if (d.kind === 'door') {
+      if (d.look === 'plank' && flags.has(r.open)) { flags.clear(r.open); return; }
+      if (r.auto !== null) flags.set(r.auto);
+      raiseAll(r.sets, true);
+    } else if (!graph.run(d.id).ok) return;
     if (d.kind === 'chest') {
       for (let k = 0; k < MAX_ROWS; k++) {
         const loot = r.loot[k]; if (loot === undefined) break;
@@ -214,7 +217,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     return false;
   };
   const act = (value: number): void => {
-    if (value === DRIFTWOOD_ACT.talk) { if (near(spots.talk, TALK_R) && !flags.has(TALKED_FLAG)) flags.set(TALKED_FLAG); return; }
+    if (value === DRIFTWOOD_ACT.talk) { if (near(spots.talk, TALK_R)) graph.run('castaway.talk'); return; }
     if (value === DRIFTWOOD_ACT.sword) {
       // while guarded the prompt shrinks to the rack (1.4 m) and E only says why (weapons/IronSword.ts)
       if (!state.iron && !guarded() && near(spots.sword, SWORD_R)) { state.iron = true; ports.ironTaken(); }
@@ -266,7 +269,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
       if (down !== flags.has(r.plate)) { flags.set(r.plate, down); raiseAll(r.sets, down); }
     } else if (d.kind === 'pickup' && d.touch === true) {
       const dx = feet.x - r.spot.x, dz = feet.z - r.spot.z;
-      if (dx * dx + dz * dz < TOUCH_R * TOUCH_R && Math.abs(feet.y - r.spot.y) < TOUCH_DY) { flags.set(r.taken); raiseAll(r.sets, true); }
+      if (dx * dx + dz * dz < TOUCH_R * TOUCH_R && Math.abs(feet.y - r.spot.y) < TOUCH_DY) { graph.run(d.id); }
     } else if (d.kind === 'door' && d.latch === true && d.opensWhen !== undefined && !flags.has(r.open) && test(flags, d.opensWhen)) flags.set(r.open);
   };
   // the puzzle barrel (Interactables.placeLive's 'barrel'): the kit's body at its home, upright on the row's yaw, in its
@@ -313,18 +316,16 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     if (sluiceRule !== undefined && flags.has(sluiceRule.open) && sluice?.isEnabled() === true) sluice.setEnabled(false);
     // Adventure's zipline update is after the player/kit and before the finale's reward beat.
     zipline.update(dt, rider);
-    // the reward beat: the view eases in, and its end completes the quest
-    const feet = host.player.position;
-    if (state.reward === -1 && flags.has(CAPTAIN_DEAD) && !flags.has(REWARD_FLAG) && Math.hypot(feet.x - spots.reward.x, feet.z - spots.reward.z) < REWARD_R) state.reward = 0;
-    if (state.reward >= 0) { state.reward += dt; if (state.reward > REWARD_HOLD) { state.reward = -2; flags.set(REWARD_FLAG); } }
+    // Only the admitted script owns finale timing; the native quest/body clock keeps its original phase.
+    ports.finale.update(dt);
   }, {
-    snapshot: () => ({ key: state.key, reward: state.reward, iron: state.iron, pack: pack.snapshot(), zipline: zipline.snapshot(), counts: Object.fromEntries(feats.map(f => [f.id, f.n])),
+    snapshot: () => ({ key: state.key, finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: zipline.snapshot(), counts: Object.fromEntries(feats.map(f => [f.id, f.n])),
       barrel: barrel === null || watch === null ? null : barrelState(barrel.rb.handle, watch) }),
     restore: value => {
       const saved = v.parse(Saved, value);
       zipline.restore(saved.zipline); carried = zipline.isRiding;
       pack.restore(saved.pack);
-      state.key = saved.key; state.reward = saved.reward; state.iron = saved.iron;
+      ports.finale.restore(saved.finale); state.key = saved.key; state.iron = saved.iron;
       feats.forEach(f => { f.n = saved.counts[f.id] ?? 0; });
       if ((saved.barrel === null) !== (home === null)) throw new Error('Incompatible Driftwood barrel continuation');
       if (saved.barrel !== null && home !== null) { watch = new BarrelWatch(home, leash); watch.restore(saved.barrel.watch); adopt = saved.barrel.handle; }

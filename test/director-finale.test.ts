@@ -8,7 +8,9 @@ import { withOwner } from '../src/engine/app/ownership';
 import { Flags } from '../src/engine/world/interact/flags';
 import { parseDirector } from '../src/game/shardfile/director';
 import { createDirectorLane } from '../src/game/shardfile/directorRuntime';
-import { installFinale, type FinaleWorld } from '../src/shards/driftwood-isle/quest/Finale';
+import type { FinaleWorld } from '../src/shards/driftwood-isle/quest/Finale';
+import { app } from '../src/engine/app/runtime';
+import { installLegacyFinale } from './fixtures/quest-oracle/driftwood-finale';
 import type { AdvAnimal } from '../src/shards/driftwood-isle/quest/adventure';
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 
@@ -26,10 +28,10 @@ it('SF24 compares every director event tick with the actual shipping Driftwood f
     hud: { toast: (text) => { if (text.startsWith('Captain Brine sinks')) emit('captain.dead'); } },
     music: { combat: () => { emit('captain.wake'); }, sting: () => { if (updating) emit('reward.start'); } },
   };
-  const finale = withOwner(scope, () => installFinale({ flags, spine: null, complete: null,
+  const finale = withOwner(scope, () => installLegacyFinale({ flags, spine: null, complete: null,
     place: (point) => ({ x: point.x, y: point.dy ?? 0, z: point.z, yaw: 0 }),
     floorAt: () => 0, setAnchor: () => { /* Placement is exercised by installFinale; markers are outside this event replay. */ },
-  }, world));
+  }, world, app));
   flags.onChange((flag, on) => { if (on && flag === 'seen:reward') emit('reward.finish'); });
   const observe = () => ({ altar: Number(flags.has('used:altar')), dead: Number(flags.has('dead:captain')), seen: Number(flags.has('seen:reward')),
     'player-x': player.position.x, 'player-z': player.position.z, 'reward-x': finale.rewardAt.x, 'reward-z': finale.rewardAt.z });
