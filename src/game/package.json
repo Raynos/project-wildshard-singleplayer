@@ -87,6 +87,7 @@
     "./systems/kit/tangentKit": "./systems/kit/tangentKit.ts",
     "./systems/kit/propGlb": "./systems/kit/propGlb.ts",
     "./systems/kit/primitiveParts": "./systems/kit/primitiveParts.ts",
+    "./systems/kit/mergedPrimitives": "./systems/kit/mergedPrimitives.ts",
     "./systems/looks/posedInstances": "./systems/looks/posedInstances.ts",
     "./systems/kit/kitParts": "./systems/kit/kitParts.ts",
     "./systems/looks/keyedSkyDay": "./systems/looks/keyedSkyDay.ts",

@@ -1,11 +1,12 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Animal } from '@wildshard/engine/entities/AnimalView';
 import { skinPlain, type Paint } from '@wildshard/engine/entities/species/loft';
 import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { buildPrimitive, mergePrimitives, standardMaterial } from '@wildshard/sdk/kit/mergedPrimitives';
+import { KING_COAT, KING_DRESS, KING_OWN_RIG } from '../data/antlerKingLook';
 import { KING_BONES, animateKing, observeKingPose } from '../combat/kingRig';
 import { bindKingQueryView } from '../runtime/kingQueryView';
 import { readKingCollisionBake } from '../runtime/kingCollisionBake';
@@ -27,7 +28,7 @@ import kingCollision from '../runtime/kingCollision.baked.json' with { type: 'js
  * `public/assets/pine-hollow/creatures/antler-king-rig[.phone].rigged.glb` (art/pine-hollow/round-25-e322-king-rig/,
  * src/shards/pine-hollow/combat/kingRig.ts; the Bark Warden hull on the elk's bones went with the Debug row) — and `dressAntlerKing`
  * hangs the lanterns off its own rack and drops the skull plate (the hull has its skull face); the ribcage rides his chest
- * bone. With Debug ▸ Creatures = Procedural (no hulls) he is kingRig's placeholder boxes with the lanterns at LANTERN_AT.
+ * bone. With Debug ▸ Creatures = Procedural (no hulls) he is kingRig's placeholder boxes with the lanterns at KING_DRESS.lanterns.
  *
  * THE SWAP: everything model-specific is here — `KING_VARIANT` (the coat), `KING_ANTLER_SCALE`, and `dressAntlerKing()`
  * (the one factory the fight calls on a freshly spawned King). When PH-M3's Bark Warden hull exists, `dressAntlerKing`
@@ -37,30 +38,17 @@ import kingCollision from '../runtime/kingCollision.baked.json' with { type: 'js
  */
 
 /** the stand-in's size: the elk ×2.6 → ~3.9 m at the shoulder, ~7 m to the antler tips */
-export const KING_SCALE = 2.6;
-export const KING_ANTLER_SCALE = 1.5;
-export const KING_HP = 1500;
+export const KING_SCALE = KING_COAT.scale[0];
+export const KING_ANTLER_SCALE = KING_COAT.traits.antlerScale;
+export const KING_HP = KING_COAT.hp;
 
-/** the coat: bark-dark hide, moss on the mane and the rump, pale weathered antlers (elk.ts palette keys) */
+/** the coat (../data/antlerKingLook.ts `KING_COAT`): bark-dark hide, moss on the mane and the rump, pale weathered antlers */
 export const KING_VARIANT: VariantDef = {
-  id: 'warden', label: 'The Antler King', weight: 1, rarity: 'legendary', scale: [KING_SCALE, KING_SCALE], hp: KING_HP,
-  tint: {
-    body: [0.15, 0.12, 0.09], bodyDark: [0.09, 0.075, 0.055], neck: [0.085, 0.075, 0.055], mane: [0.13, 0.17, 0.08],
-    belly: [0.07, 0.06, 0.045], rump: [0.19, 0.22, 0.12], legDark: [0.065, 0.055, 0.045],
-    antler: [0.42, 0.38, 0.31], antlerTip: [0.78, 0.74, 0.64],
-  },
-  // selfLight: on the Bark Warden hull (PH-M3) his bark and bone feed back as emissive, so he reads in the dark arena
-  traits: { antlers: 1, antlerScale: KING_ANTLER_SCALE, selfLight: 0.45 },
+  ...KING_COAT, scale: [KING_COAT.scale[0], KING_COAT.scale[1]],
+  tint: Object.fromEntries(Object.entries(KING_COAT.tint).map(([k, c]): [string, [number, number, number]] => [k, [c[0], c[1], c[2]]])),
 };
 
-/** where the three lanterns hang (head-bone local, model units): off the left dagger tine, the right beam, the right fifth tine */
-const LANTERN_AT: [number, number, number][] = [[-0.6, 1.5, -0.19], [0.7, 1.02, -0.82], [0.84, 1.6, -0.67]];
-const RIB_R = 0.36;
-/** the ribcage basket, E322 F-M1's upright rig: in the barrel chest's front, under the hump (chest-bone local; the hull's
- *  chest front is at z 1.37–1.43 between 1.6 and 1.75 m, the chest joint at (0, 2.1, 0.735)) */
-const RIB_AT: [number, number, number] = [0, -0.45, 0.47];
-
-const AMBER = new THREE.Color(1.0, 0.56, 0.16);
+const RIB_R = KING_DRESS.ribR;
 
 /** the shared geometries + materials (built once at boot, so their programs are compiled with the rest) */
 export interface KingKit {
@@ -68,35 +56,18 @@ export interface KingKit {
   frameMat: THREE.MeshStandardMaterial; glassMat: THREE.MeshStandardMaterial; ribMat: THREE.MeshStandardMaterial; coreMat: THREE.MeshStandardMaterial; skullMat: THREE.MeshStandardMaterial;
 }
 
+/** the lantern, the ribcage, the core and the skull plate, and their iron, amber and bone (../data/antlerKingLook.ts `KING_DRESS`) */
 export function makeKingKit(sky: Sky): KingKit {
-  // the lantern: a cap, a base, four bars and the hanging ring, ~0.3 × 0.16 model units (≈ 0.8 m on the King)
-  const parts: THREE.BufferGeometry[] = [];
-  const cap = new THREE.ConeGeometry(0.1, 0.08, 8); cap.translate(0, 0.12, 0); parts.push(cap);
-  const base = new THREE.CylinderGeometry(0.085, 0.09, 0.025, 8); base.translate(0, -0.1, 0); parts.push(base);
-  for (let i = 0; i < 4; i++) { const b = new THREE.BoxGeometry(0.012, 0.2, 0.012); const a = (i / 4) * Math.PI * 2 + Math.PI / 4; b.translate(Math.cos(a) * 0.075, 0.0, Math.sin(a) * 0.075); parts.push(b); }
-  const ring = new THREE.TorusGeometry(0.03, 0.008, 5, 10); ring.translate(0, 0.18, 0); parts.push(ring);
-  const chain = new THREE.CylinderGeometry(0.006, 0.006, 0.3, 4); chain.translate(0, 0.33, 0); parts.push(chain);
-  const frameGeo = mergeGeometries(parts.map((g) => g.toNonIndexed()), false);
-  const glassGeo = new THREE.CylinderGeometry(0.062, 0.062, 0.17, 10);
-  // the ribs: five horizontal half-hoops round the front (+z), widest in the middle, plus the sternum
-  const ribs: THREE.BufferGeometry[] = [];
-  for (let i = 0; i < 5; i++) {
-    const y = (i - 2) * 0.13, r = RIB_R * Math.sqrt(1 - (y / (RIB_R * 1.25)) ** 2);
-    const t = new THREE.TorusGeometry(r, 0.028, 5, 18, Math.PI);
-    t.rotateX(Math.PI / 2); t.translate(0, y, 0);
-    ribs.push(t.toNonIndexed());
-  }
-  const sternum = new THREE.CylinderGeometry(0.03, 0.03, 0.6, 5); sternum.translate(0, 0, RIB_R * 0.98); ribs.push(sternum.toNonIndexed());
-  const ribGeo = mergeGeometries(ribs, false);
-  const coreGeo = new THREE.IcosahedronGeometry(RIB_R * 0.72, 1);
-  const skullGeo = new THREE.IcosahedronGeometry(1, 2); skullGeo.scale(0.15, 0.12, 0.34);
+  const D = KING_DRESS;
+  const frameGeo = mergePrimitives(D.frame), glassGeo = buildPrimitive(D.glass);
+  const ribGeo = mergePrimitives(D.ribs), coreGeo = buildPrimitive(D.core), skullGeo = buildPrimitive(D.skull);
   const lit = (m: THREE.MeshStandardMaterial) => { sky.setupMaterial(m); return m; };
-  const glow = (i: number) => new THREE.MeshStandardMaterial({ color: 0x000000, emissive: AMBER, emissiveIntensity: i, roughness: 0.6, metalness: 0, fog: false });
+  const glow = (i: number) => standardMaterial({ ...D.glowMat, emissive: D.amber, emissiveIntensity: i });
   return {
     frameGeo, glassGeo, ribGeo, coreGeo, skullGeo,
-    frameMat: lit(new THREE.MeshStandardMaterial({ color: 0x2b2520, roughness: 0.55, metalness: 0.75 })),
-    glassMat: glow(3), ribMat: glow(2), coreMat: glow(4),
-    skullMat: lit(new THREE.MeshStandardMaterial({ color: 0xd9d0b8, roughness: 0.85, metalness: 0 })),
+    frameMat: lit(standardMaterial(D.frameMat)),
+    glassMat: glow(D.glow.glass), ribMat: glow(D.glow.ribs), coreMat: glow(D.glow.core),
+    skullMat: lit(standardMaterial(D.skullMat)),
   };
 }
 
@@ -169,20 +140,20 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
   const hull = isHull(a);
   // The procedural fallback keeps its own dimensions; only the real measured GLB uses the native collision table.
   const collision = hull ? bindKingQueryView(a, readKingCollisionBake(kingCollision), receive => observeKingPose(a, receive)) : null;
-  for (const p of hullLanterns(a) ?? LANTERN_AT) {
+  for (const p of hullLanterns(a) ?? KING_DRESS.lanterns) {
     const l = makeLantern();
     l.position.set(p[0], p[1], p[2]);
     head.add(l); lanterns.push(l); own.push(l);
   }
   if (!hull) {
     const skull = new THREE.Mesh(kit.skullGeo, kit.skullMat);
-    skull.position.set(0, 0.03, 0.2); skull.rotation.x = 0.55; skull.castShadow = false;
+    skull.position.set(KING_DRESS.skullAt[0], KING_DRESS.skullAt[1], KING_DRESS.skullAt[2]); skull.rotation.x = KING_DRESS.skullTilt; skull.castShadow = false;
     head.add(skull); own.push(skull);
   }
   const cage = new THREE.Group();
   cage.name = 'king-ribcage'; // The offline capture reads this actual attachment, independently of FK queries.
   // the ribcage rides the chest, which rears and recoils with him
-  cage.position.set(RIB_AT[0], RIB_AT[1], RIB_AT[2]);
+  cage.position.set(KING_DRESS.ribAt[0], KING_DRESS.ribAt[1], KING_DRESS.ribAt[2]);
   const ribs = new THREE.Mesh(kit.ribGeo, kit.ribMat), core = new THREE.Mesh(kit.coreGeo, kit.coreMat);
   ribs.castShadow = false; core.castShadow = false;
   cage.add(core, ribs);
@@ -203,7 +174,7 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
       collision.publishRibs(); return collision.query.ribs(out);
     },
     ribcageRadius: RIB_R * scale * 1.15,
-    setGlow: (k) => { glow = k; kit.glassMat.emissiveIntensity = 3 * k; kit.ribMat.emissiveIntensity = 2 * k; kit.coreMat.emissiveIntensity = 4 * k; },
+    setGlow: (k) => { glow = k; kit.glassMat.emissiveIntensity = KING_DRESS.glow.glass * k; kit.ribMat.emissiveIntensity = KING_DRESS.glow.ribs * k; kit.coreMat.emissiveIntensity = KING_DRESS.glow.core * k; },
     setOpen: (k, t) => {
       const breathe = 1 + 0.04 * Math.sin(t * 3.1);
       ribs.scale.set((1 + 0.45 * k) * breathe, 1 + 0.12 * k, (1 + 0.3 * k) * breathe);
@@ -219,31 +190,21 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
 // ─────────────── his own rig (E322 F-M1) ───────────────
 
 /** the stand-in paint of the own rig's placeholder parts (only seen if its hull fails to load) */
-const BARK: Paint = (out) => { out.setRGB(0.12, 0.1, 0.075); };
+const BARK: Paint = (out) => { out.setRGB(KING_OWN_RIG.bark[0], KING_OWN_RIG.bark[1], KING_OWN_RIG.bark[2]); };
 
-/** the placeholder body the factory merges before the hull replaces it: a box on the body, one on the head */
+/** the placeholder body the factory merges before the hull replaces it: a box on the body, one on the head; the hit
+ *  volumes (../data/antlerKingLook.ts `KING_OWN_RIG`) */
 function buildOwnRig(): AnimalSpecies {
   const bones = KING_BONES.map((b) => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] as [number, number, number] }));
   const at = (n: string): [number, number, number] => bones.find((b) => b.name === n)?.pos ?? [0, 0, 0];
   const bi = (n: string): number => Math.max(0, bones.findIndex((b) => b.name === n));
-  const torso = new THREE.BoxGeometry(1.3, 1.2, 2.2); torso.translate(at('body')[0], at('body')[1], at('body')[2]);
-  const skull = new THREE.BoxGeometry(0.4, 0.4, 0.6); skull.translate(at('head')[0], at('head')[1], at('head')[2] + 0.3);
-  const eye = new THREE.SphereGeometry(0.04, 8, 6); eye.translate(0.14, at('head')[1], at('head')[2] + 0.35);
+  const R = KING_OWN_RIG, e = R.eye;
+  const torso = new THREE.BoxGeometry(...R.torso); torso.translate(at('body')[0], at('body')[1], at('body')[2]);
+  const skull = new THREE.BoxGeometry(...R.skull); skull.translate(at('head')[0], at('head')[1], at('head')[2] + R.skullAhead);
+  const eye = new THREE.SphereGeometry(e.r, e.w, e.h); eye.translate(e.x, at('head')[1], at('head')[2] + e.ahead);
   return {
     bones, furParts: [skinPlain(torso, bi('body'), 'body', BARK)], hardParts: [skinPlain(skull, bi('head'), 'head', BARK)], eyeParts: [skinPlain(eye, bi('head'), 'eye', BARK)],
-    // the hitbox path (src/engine/physics/creatures.ts) reads these, fitted to his hull (E350 F-X2, scripts/e350-king-measure.mjs:
-    // rays from a standing eye over his silhouette in idle, the rear, the slam, the gallop and the sweep; hit volumes vs
-    // the visible torso, shoulders and face — 77 % landed / 14 % through / 8 % from air, against 61 / 22 / 17 for the
-    // elk-sized capsule it replaces). ×2.6: the barrel a capsule on the body bone, r 1.46 m, tilted 22° up to the front
-    // and set back under the hips; the fore block (shoulders, chest, hump) a capsule r 1.79 m across the chest bone; the
-    // head ball r 0.83 m on the face, not the joint. All three ride their bones (the rear, the sweep's dive). The motor
-    // capsule stays 0.9 m wide (CreatureBodies clamps it)
-    dims: {
-      bodyY: 1.85, bodyHalfLen: 0.45, bodyRadius: 0.56, headRadius: 0.32, legLen: 1.85, halfWidth: 0.8,
-      feet: [[0.65, 1.25], [-0.66, 1.25], [0.57, -1.42], [-0.6, -1.42]],
-      bodyAt: [0, -0.3, -0.32], bodyPitch: 0.38, headAt: [0, -0.06, 0.12],
-      fore: { bone: 'chest', at: [0, -0.14, 0.05], halfLen: 0.22, radius: 0.69 },
-    },
+    dims: { ...R.dims, feet: R.dims.feet.map((f): [number, number] => [f[0], f[1]]) },
   };
 }
 

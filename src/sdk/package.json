@@ -156,6 +156,7 @@
     "./kit/tangentKit": "./kit/tangentKit.ts",
     "./kit/propGlb": "./kit/propGlb.ts",
     "./kit/primitiveParts": "./kit/primitiveParts.ts",
+    "./kit/mergedPrimitives": "./kit/mergedPrimitives.ts",
     "./looks/posedInstances": "./looks/posedInstances.ts",
     "./kit/kitParts": "./kit/kitParts.ts",
     "./audio/synthBeds": "./audio/synthBeds.ts",
