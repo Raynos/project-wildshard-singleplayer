@@ -60,7 +60,7 @@ export const skyIsleWear = (s: Isle, i: number): SkyIsleModel => WEAR[s.id]?.[0]
 /**
  * The playable islands' keels (world/build.ts; E399 round 2): a model under each island, its turf `keelTop` under the
  * walkable top, its rim `keelScale` of the deck's; `cut` is where the code top's own rock is cut away. Shared with the far
- * proxy's bake (look/far.ts), so the neighbour view hangs the same keels.
+ * proxy's bake (generators/farLook.ts), so the neighbour view hangs the same keels.
  */
 export const ISLE_CUT = 1.4, KEEL_TOP = 1.0;
 export const ISLE_KEEL_CUT: Readonly<Record<string, { cut: number; keelTop: number; keelScale: number }>> = { windmill: { cut: 0.8, keelTop: 0.6, keelScale: 0.78 } };

@@ -14,7 +14,7 @@ import { staticGlb } from '../../src/sdk/bake/glb';
 import { canonicalJson, contentHash } from '../../src/sdk/project';
 import { farLook as template } from '../../src/shards/_template/generators/farLook';
 import { farLook as driftwood } from '../../src/shards/driftwood-isle/look/far';
-import { farGrid as farReachGrid, farLook as farReach, farParts as farReachParts } from '../../src/shards/far-reach/look/far';
+import { farGrid as farReachGrid, farLook as farReach, farParts as farReachParts } from '../../src/shards/far-reach/generators/farLook';
 import { farLook as nalati } from '../../src/shards/nalati-grasslands/look/far';
 import { farGrid as nineDragonGrid, farLook as nineDragon } from '../../src/shards/nine-dragon-stack/look/far';
 import { farLook as pineHollow } from '../../src/shards/pine-hollow/look/far';

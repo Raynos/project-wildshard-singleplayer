@@ -1,5 +1,6 @@
 /**
- * Sky Reach's far proxy (SHARD-PLATFORM SF23 / SF49), read only by the far baker (scripts/bake/far-proxies.mjs). Sky Reach
+ * Sky Reach's far proxy (SHARD-PLATFORM SF23 / SF49), a generator read only by the far baker (scripts/bake/far-proxies.mjs,
+ * as the template's generators/farLook.ts; it was look/far.ts). Sky Reach
  * has no ground: its land is models floating over the painted cloud sea. So its proxy is model-based: a flat grid under
  * the cloud sheet (`farGrid`, one quad per region: the sheet at −8, `PAINTED_SEA.y`, hides the void beneath), and its
  * islands as parts (`farParts`): the six textured island models decimated by the baker and hung exactly where the shard
