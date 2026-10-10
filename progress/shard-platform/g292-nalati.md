@@ -1,6 +1,7 @@
 # G292 Nalati producer rollout
 
-Three declared entry points, nine retained outputs. Report-only; no output or native continuation is replaced.
+Three declared entry points, nine retained outputs. All three producers are proven cold/warm/forced on Darwin.
+Report-only; no output or native continuation is replaced.
 
 | Producer | Outputs | Cold ms | Warm ms | Forced ms | Cache key |
 | --- | ---: | ---: | ---: | ---: | --- |
@@ -12,7 +13,7 @@ those same hashes. Places uses the real Chromium generator, with its executable 
 the renderer’s desktop-reference budget import. An initial missing-budget attempt refused publication, then the complete
 closure passed. Bodies and places retain their eight files; no Linux bit-exact claim.
 
-Physics: strict comparison REFUSED at preview pin `1090df8a2b5b6b65b251922068c5d9fdd9ea66b9`. The only differences
+Historical blocker (resolved by `8b144a8d0`): strict comparison REFUSED at preview pin `1090df8a2b5b6b65b251922068c5d9fdd9ea66b9`. The only differences
 from its retained capture are `spawns[21].mem._graze` (0.0004400006294250488 vs 0.0004399995803833008) and
 `spawns[23].yaw` (-2.498531545425934 vs -2.4985315443768923). These are real actor continuation fields, not provenance.
 The baker’s RAF first-sight observation sees actors after a small live-clock update; it already documents the shepherd’s
@@ -48,3 +49,17 @@ actor identity, other memory, group state and grass observation are unchanged. T
 existing native roster/raid/elite/restore tests and strip-only compatibility process are checked without relaxing assertions.
 All browser leases close after capture. This resolves the physics producer blocker; outputs remain committed pending
 the separate build-time retention rollout.
+
+## Runner re-proof after the first-sight fix
+
+At committed preview `8b144a8d09283b34b19c4e8cc2aacef8bb68a539`, the shared runner passes retained gameplay comparison and
+complete cold/forced cache hashes exactly. Warm hits verify the same output hash. No nested actor/clock exclusion
+is added. The former BLOCKED physics producer is now **proven on Darwin arm64**; Linux remains unavailable for
+this normative browser capture. All nine retained files stay in git.
+
+| Producer | Cold ms | Warm ms | Forced ms | Cache key |
+| --- | ---: | ---: | ---: | --- |
+| nalati-physics | 10822.423 | 2.872 | 9383.7 | `4da3665f3589b5d1f5e5b3224fba782715eda91e0188971601ffe506e17578cd` |
+
+Both fresh browser processes and their lane leases closed. No Simulator, full suite, continuation rebake or output
+removal was needed for this re-proof.
