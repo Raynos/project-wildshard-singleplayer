@@ -65,3 +65,26 @@ inventory prepared before first draw changes. Seven focused preparation files /
 29 tests, strict checking against committed HEAD plus owned hunks, and touched
 lint pass. No new public API or workspace import edge. Browser timing improvement
 for this inventory correction remains unmeasured.
+
+
+## Matched cleanup rerun and Safari Auto subset
+
+On f2a6921fb, desktop again completed five real-input shaped-network routes before
+the Signal → Driftwood return timed out. Upload refusal 1281 was first named
+`nalati-cards`, then an unnamed ASTC-format texture at Driftwood. Extra native
+upload/program-query wrappers were absent; no page exception followed cleanup.
+The upload cause is still open. Desktop evidence SHA-256:
+`0d2013c60915ac2e4ffb33fd52b52b715594ebebfa2e4b923a1a647feccbb48e`.
+
+The same build's iOS Simulator Safari Auto subset completed Driftwood → Signal →
+Driftwood: four crossings, zero refusals/errors. Activation costs were 2.3 / 2.0 ms;
+entry commits 0.28 / 0.24 ms. Driftwood departure was 36.92 ms (checkpoint 0.94 ms,
+commit 0.48 ms, remainder 35.5 ms), so the unchanged 33 ms install gate FAILS.
+Signal departure was 7.30 ms. Demand waits were 3.82 / 3.30 / 3.08 / 18.62 ms.
+Drawn-frame p95 was 61 ms, p99 102 ms: cadence FAILS. Both routes were under heavy
+machine load (medians 130.08 and 126.08; range 123.83–131.17). These are valid
+under-load observations, not an isolated performance verdict. Safari longtask
+observation is unavailable; it is not credited as zero. This subset proves no
+all-G270 or phone-memory pass; phone memory remains G269. Safari evidence SHA-256:
+`b2ad3b8bea16b128767bdbb8bad19ee8dc5c8deced477982f7beee0991fd307b`.
+Both browsers, Safari/Inspector/proxy, Simulator and preview closed in finally.
