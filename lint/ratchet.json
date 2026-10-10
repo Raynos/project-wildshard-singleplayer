@@ -170,7 +170,6 @@
     "src/shards/nine-dragon-stack/manifest.ts": 1,
     "src/shards/nine-dragon-stack/plugin.ts": 3,
     "src/shards/nine-dragon-stack/vm/arms.ts": 2,
-    "src/shards/nine-dragon-stack/vm/fpArms.ts": 2,
     "src/shards/nine-dragon-stack/vm/jianRow.ts": 2,
     "src/shards/nine-dragon-stack/vm/swordSupport.ts": 1,
     "src/shards/nine-dragon-stack/world/entries.ts": 1,
