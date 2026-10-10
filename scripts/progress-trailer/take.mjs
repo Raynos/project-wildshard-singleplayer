@@ -1,7 +1,7 @@
 // take.mjs — one input-driven, fixed-step first-person take on a historical build (PROGRESS-TRAILER §3.1, E468).
 //
 //   scripts/browser-lane.sh --max 30 node scripts/progress-trailer/take.mjs --shot=scripts/progress-trailer/shots/d01-hunt.mjs \
-//     --url=http://127.0.0.1:<port> --out=<scratch>/takes [--frames=<n>] [--opt='<json>'] [--dry]
+//     --url=http://127.0.0.1:<port> --out=<scratch>/takes [--frames=<n>] [--opt='<json>'] [--sub=2] [--speed=0.25] [--scale=2] [--dry]
 //
 // The build is one `build-rev.sh` made (its dist/SHA names the commit). The shot module exports `shot` =
 //   { name, era: 'legacy' | 'app', query, warmSec, frames, setup, step, accept }
@@ -9,11 +9,14 @@
 // (f, t, S), S = what setup returned) are function sources, and `accept(receipt)` refuses a take that did not happen.
 // `--opt` is JSON the setup reads as window.__takeOpt (which prey, which approach); setup and step push
 // { t, e, … } onto window.__takeEvents (the SFX cue list) and may define window.__takeFinal().
-// Every frame is one game frame of exactly 1/60 s: the page runs on Playwright's fake clock, the era adapter pins the
-// game's delta (legacy: the THREE clock's getDelta; app: app.clock.setCapture(60)), and the runner asserts that each
-// step drew exactly one frame. Both adapters define window.__hold(code, on) for held movement (the key set, or the
-// InputService where the player reads one). 1920×1080, desktop, muted, every DOM element hidden except the main canvas (the
-// viewmodel is in the canvas and stays). Writes <out>/<name>-<sha8>-<recipe8>/ with frames + receipt.json.
+// Every sample is one game frame of exactly speed / (60 × sub) s of simulation: the page runs on Playwright's fake clock,
+// the era adapter pins the game's delta (legacy: the THREE clock's getDelta; app: app.clock.setCapture), and the runner
+// asserts that each sample drew exactly one frame. `--speed` < 1 is true slow motion; `--sub 2` takes two samples per
+// 60 fps output frame (edit.mjs blends them: motion blur). `step` runs once per 1/60 s of simulation whatever the
+// speed and sub, so one input track replays identically across builds and speeds. Both adapters define window.__hold(code, on) for held movement (the key set, or the
+// InputService where the player reads one). 1920×1080 × scale, desktop, muted, every DOM element hidden except the main
+// canvas (the viewmodel is in the canvas and stays). Writes <out>/<name>-<sha8>-<recipe8>/ in edit.mjs's frame format
+// (%06d.jpg per sample + meta.json { sub, shard: 'none' } — no shard grade) with receipt.json.
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -27,8 +30,10 @@ const { chromium } = require('playwright');
 const arg = (k, d = '') => process.argv.find((a) => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const SHOT = resolve(arg('shot')), URL_BASE = arg('url'), OUT = resolve(arg('out', 'takes')), DRY = process.argv.includes('--dry');
 const { shot } = await import(pathToFileURL(SHOT).href);
-const FRAMES = Number(arg('frames', '')) || shot.frames;
-const recipe = createHash('sha1').update(readFileSync(SHOT)).update(readFileSync(import.meta.filename)).update(arg('opt', '{}')).digest('hex');
+const FRAMES = Number(arg('frames', '')) || shot.frames; // the take's length in 1/60 s simulation frames
+const SUB = Number(arg('sub', '1')), SPEED = Number(arg('speed', '1')), SCALE = Number(arg('scale', '1'));
+const SAMPLES = Math.round((FRAMES / SPEED) * SUB);
+const recipe = createHash('sha1').update(readFileSync(SHOT)).update(readFileSync(import.meta.filename)).update(arg('opt', '{}')).update(`${SUB}/${SPEED}/${SCALE}`).digest('hex');
 const sha = (await (await fetch(`${URL_BASE}/SHA`)).text()).trim();
 const dir = join(OUT, `${shot.name}-${sha.slice(0, 8)}-${recipe.slice(0, 8)}`);
 mkdirSync(dir, { recursive: true });
@@ -38,7 +43,7 @@ const ADAPT = {
   legacy: `(() => {
     const w = window.__world, g = w.game;
     window.__sim = { t: 0, frames: 0 };
-    g.clock.getDelta = () => { window.__sim.t += 1 / 60; g.clock.elapsedTime = window.__sim.t; return 1 / 60; };
+    g.clock.getDelta = () => { window.__sim.t += window.__dt; g.clock.elapsedTime = window.__sim.t; return window.__dt; };
     const render = g.composer.render.bind(g.composer);
     g.composer.render = (dt) => { window.__sim.frames++; return render(dt); };
     window.__hold = (code, on) => { if (on) w.player.keys.add(code); else w.player.keys.delete(code); };
@@ -46,7 +51,7 @@ const ADAPT = {
   })()`,
   app: `(() => {
     const w = window.__wildshard.world, g = w.game;
-    g.app.clock.setCapture(60);
+    g.app.clock.setCapture(1 / window.__dt);
     window.__sim = { get t() { return g.app.clock.now; }, get frames() { return g.app.clock.frame; } };
     // held movement: the InputService where the player reads one (day 22 on), else the key set (day 15)
     const ACTION = { KeyW: 'move.forward', KeyS: 'move.back', KeyA: 'move.left', KeyD: 'move.right', ShiftLeft: 'sprint', Space: 'jump' };
@@ -63,15 +68,15 @@ const WORLD = { legacy: 'window.__world', app: 'window.__wildshard?.world' };
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const errors = [];
-const receipt = { shot: shot.name, sha, recipe, era: shot.era, url: `${URL_BASE}/?${shot.query}`, frames: 0, steps: [], events: [], errors };
+const receipt = { shot: shot.name, sha, recipe, era: shot.era, url: `${URL_BASE}/?${shot.query}`, sub: SUB, speed: SPEED, scale: SCALE, frames: 0, samples: 0, steps: [], events: [], errors };
 try {
-  const page = await (await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 })).newPage();
+  const page = await (await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: SCALE })).newPage();
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 300)));
   await page.clock.install();
   await page.goto(receipt.url, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(`Boolean(${WORLD[shot.era]}?.game)`, undefined, { timeout: 300000, polling: 1000 });
   await page.waitForTimeout((shot.warmSec ?? 10) * 1000); // stream the world in (real time, the fake clock still flows)
-  receipt.adapter = await page.evaluate(ADAPT[shot.era]);
+  receipt.adapter = await page.evaluate(`window.__dt = ${SPEED / (60 * SUB)}; ${ADAPT[shot.era]}`);
   await page.evaluate(`window.__takeOpt = ${arg('opt', '{}')}; window.__takeEvents = []`);
   receipt.opt = JSON.parse(arg('opt', '{}'));
   receipt.setup = await page.evaluate(`window.__takeSetup = (${shot.setup})(); window.__takeSetup`);
@@ -88,15 +93,19 @@ try {
   await page.clock.pauseAt(Date.now() + 1000);
   receipt.simStart = await page.evaluate('window.__sim.t');
   const step = `(${shot.step})`;
-  for (let f = 0; f < FRAMES; f++) {
-    await page.evaluate(`${step}(${f}, ${f / 60}, window.__takeSetup)`);
+  writeFileSync(join(dir, 'meta.json'), JSON.stringify({ sub: SUB, shard: 'none', sha, speed: SPEED }));
+  let f = -1; // the 1/60 s simulation frame the input track is on
+  for (let i = 0; i < SAMPLES; i++) {
+    const simF = Math.floor(((i * SPEED) / SUB) + 1e-6);
+    while (f < simF && f < FRAMES - 1) { f++; await page.evaluate(`${step}(${f}, ${f / 60}, window.__takeSetup)`); }
     const before = await page.evaluate('window.__sim.frames');
     let after = before;
     for (let k = 0; k < 40 && after === before; k++) { await page.clock.runFor(2); after = await page.evaluate('window.__sim.frames'); }
     receipt.steps.push(after - before);
-    if (!DRY || f % 30 === 0) await page.screenshot({ path: join(dir, `${String(f).padStart(5, '0')}.jpg`), type: 'jpeg', quality: 92 });
-    if (f % 60 === 0) console.log(`frame ${f}/${FRAMES}`);
+    if (!DRY || i % (30 * SUB) === 0) await page.screenshot({ path: join(dir, `${String(i).padStart(6, '0')}.jpg`), type: 'jpeg', quality: 92 });
+    if (i % (60 * SUB) === 0) console.log(`sample ${i}/${SAMPLES}`);
   }
+  receipt.samples = SAMPLES;
   receipt.frames = FRAMES;
   receipt.simEnd = await page.evaluate('window.__sim.t');
   receipt.events = await page.evaluate('window.__takeEvents ?? []');

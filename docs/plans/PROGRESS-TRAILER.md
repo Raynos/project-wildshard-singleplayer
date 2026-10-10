@@ -114,9 +114,12 @@ a later build reads worse, a verb missing), the beat changes to the nearest hone
 - **Capture context**: 1920 × 1080 × 2 (3840 × 2160 frames), desktop (no touch), `tier=desktop` where the build reads
   it, muted, through `scripts/browser-lane.sh`; the phone-capture rule's exception, as steam-trailer's. Never
   `weather=clear` on a shot whose look is its weather (the rain square).
-- **Still to add (PT3)**: `speed` and `sub` in the adapter (`getDelta` = speed / (60 × sub) per sample: 0.25× for the
-  rewind; `sub 2` for 120 Hz motion blur) and output in `edit.mjs`'s frame format (`%06d.jpg` + `meta.json`
-  `{ sub, shard }`), so takes enter the edit as frames and lapses, stills and the terminal as `video` clips.
+- **Slow motion and sub-steps** (landed after PT1): `--speed` (`getDelta` / `setCapture` = speed / (60 × sub) per
+  sample: 0.25× for the rewind) and `--sub 2` (two samples per 60 fps frame, blended into motion blur by `edit.mjs`);
+  `step` runs once per 1/60 s of simulation whatever the speed, so one input track replays identically: day 1's hunt
+  fires at +1.27 s and drops the stag at +1.66 s at 1× and at 0.25× / sub 2 alike. Takes are written in `edit.mjs`'s
+  frame format (`%06d.jpg` per sample + `meta.json` `{ sub, shard: 'none' }`, so no shard grade), `--scale 2` for
+  3840 × 2160; lapses, stills and the terminal enter the edit as `video` clips.
 - **A lapse camera adapter (PT2)**: the free camera from v1's `install-world.js` (camera posed after the frame's update,
   `player.spawn` under it so the world streams), proven on the first and last SHA of each lapse; each lapse stage
   carries its SHA, entry URL and pose. A lapse starts at its first loadable SHA.
