@@ -149,6 +149,7 @@
     "./props/pathMovers": "./props/pathMovers.ts",
     "./looks/emitterCards": "./looks/emitterCards.ts",
     "./looks/lightVolume": "./looks/lightVolume.ts",
+    "./looks/paintArray": "./looks/paintArray.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/classKit": "./kit/classKit.ts",
     "./kit/ruledKit": "./kit/ruledKit.ts",
