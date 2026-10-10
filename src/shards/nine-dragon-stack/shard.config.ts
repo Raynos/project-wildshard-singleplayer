@@ -5,7 +5,7 @@ import { ND_AUDIO } from './data/audio';
 import { NINE_ITEMS } from './data/items';
 import { NINE_LEDGER } from './data/ledger';
 import { portalLinks, type ShardEdge } from './world/portalPlan';
-import { portalFloorRows } from './world/floorRows';
+import { portalFloorRows } from './generators/portalFloors';
 
 // The trusted runtime preserves today's fragment geometry; audio is selected by its declared section. G285: its two feats
 // are ledger rows (data/ledger.ts) the runtime emits as they are played (world/feats.ts); the platform grants each once.

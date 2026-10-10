@@ -73,5 +73,13 @@
     "void": "transparent",
     "shadow": 0.4,
     "rim": "#14161d"
-  }
+  },
+  "inputs": [
+    "shard.config.ts",
+    "layout.ts",
+    "world",
+    "generators",
+    "models",
+    "data/floorPlan.ts"
+  ]
 }

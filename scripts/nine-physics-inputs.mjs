@@ -13,6 +13,8 @@ const UNCOLLIDED = new Set(['jian.ts', 'portalRide.ts', 'portalVeil.ts'].map(nam
  */
 export function ninePhysicsInputs(root) {
   const paths = ['shard.config.ts', 'layout.ts', 'terrain.ts', 'places.ts', 'runtime/state.ts'].map(path => `src/shards/nine-dragon-stack/${path}`);
+  // DS1.3: the declared portal floors now compile through the retained authoring reader.
+  for (const file of ['scene', 'physics', 'sceneTransform', 'entries', 'spawns']) paths.push(`src/sdk/${file}.ts`);
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

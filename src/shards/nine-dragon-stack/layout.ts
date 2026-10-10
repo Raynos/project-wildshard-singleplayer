@@ -2,14 +2,16 @@
 // Yamen Well opens on the left behind a stone balustrade, the paifang stands ahead, the banyan and the mahjong tables
 // on the right, the street runs on north through the gate under a skybridge, the monorail and the Cable Deck's screens.
 
+import { NINE_FLOOR_PLAN } from './data/floorPlan';
+
 /** Lantern Square's datum (stratum 6, +125 m) */
-export const Y0 = 125;
+export const Y0 = NINE_FLOOR_PLAN.datum;
 
 /** the Yamen Well's shaft */
 export const WELL = { x0: -28, x1: 0, z0: -44, z1: 16, water: -245 } as const;
 
 /** the open plaza (the Well's balustrade is its west edge) */
-export const PLAZA = { x0: 0, x1: 22, z0: -26, z1: 20 } as const;
+export const PLAZA = NINE_FLOOR_PLAN.square;
 
 /** the paifang: centre x, z, bay posts */
 export const GATE = { x: 6.05, z: -24.5, posts: [0.6, 3.9, 8.2, 11.5] as const, s: 1.85 } as const;

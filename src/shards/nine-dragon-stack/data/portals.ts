@@ -2,6 +2,7 @@
 // world/portalRide.ts): the four road-height decks' rings and the square's one ring out, placed and ridden by the SDK's
 // ring portals (@wildshard/sdk/portals/ringPortals, portals/walkInRide, portals/rideVeil). Heights are over the square's
 // datum (layout.ts Y0).
+import { NINE_FLOOR_PLAN } from './floorPlan';
 import type { PanelNode } from '@wildshard/sdk/panels';
 
 /** the ring's radius to its tube's centre, the tube's radius, and how high its centre floats over the floor */
@@ -39,7 +40,7 @@ export const SQUARE_ARRIVAL_AT = { id: 'portal.square.arrival', x: 0.95, dy: 0, 
 export const SQUARE_ROUTE_TURNS = [[5.5, 2], [6, -14]] as const;
 
 /** the shardfile collider ids the portal nodes stand on (shard.config.ts declares them: world/entries.ts portalFloors) */
-export const PORTAL_FLOORS = { deckPrefix: 'deck.', square: 'square' } as const;
+export const PORTAL_FLOORS = NINE_FLOOR_PLAN.ids;
 
 /** the fade veil: a full-screen violet dark over the HUD, faded by the ride (SF28: a declared panel) */
 export const PORTAL_VEIL = { cls: 'nd-portal-veil', style: {
