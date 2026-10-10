@@ -68,6 +68,11 @@ describe('check-models after M6: every area is held (E315)', () => {
 });
 
 it('retains model identity and contract checks on exact frozen copies', () => {
+  const legacyCove = 'src/shards/driftwood-isle-legacy/world/Cove.ts';
+  const twoMerges = 'mergeGeometries(a); mergeGeometries(b);';
+  expect(checkModels({ [legacyCove]: twoMerges }).violations).toEqual([]);
+  expect(checkModels({ [legacyCove]: `${twoMerges} mergeGeometries(c);` }).violations.some(v => v.includes('3 × mergeGeometries'))).toBe(true);
+  expect(checkModels({ 'src/shards/driftwood-isle/world/Cove.ts': twoMerges }).violations.some(v => v.includes('2 × mergeGeometries'))).toBe(true);
   const model = 'src/shards/driftwood-isle-legacy/models/boat.ts';
   expect(checkModels({ [model]: "defineModel({ id: 'driftwood-isle/boat' });" }).violations).toEqual([]);
   expect(checkModels({ [model]: "defineModel({ id: 'another/boat' });" }).violations.some(v => v.includes('must start'))).toBe(true);
