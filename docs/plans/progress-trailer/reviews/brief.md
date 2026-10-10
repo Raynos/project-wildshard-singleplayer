@@ -59,3 +59,12 @@ table). This is the plan's first review, so the surface is the whole plan, plus 
 plan (not v1). The register lists round 1 and how the plan answered it; a repeat of a closed row without new evidence
 is closed on sight. Write `round-2-seat-<A|B|C>.md`: findings table (IDs `R2<seat>-<k>`), battery walk, verdict line.
 No recommendation section this round: fixes go in each finding's Fix column. Under ~120 lines.
+
+## Round 3 (the fixes)
+
+The surface shrinks (COUNCIL.md §4): review **the diff since round 2** (`git diff 556456b44 a3f3c58ca --
+docs/plans/PROGRESS-TRAILER.md`): did each round-2 fix (the register's R2 rows) land, and did it break something
+nearby; then walk **the battery S1–S12** through the plan. A finding outside the diff counts only if it is must-fix
+with evidence. PT1 is done and proven (`scripts/progress-trailer/`, `progress/progress-trailer/pt1-proofs.jpg`).
+Write `round-3-seat-<A|B|C>.md`: findings table (IDs `R3<seat>-<k>`), battery walk, verdict line. Under ~80 lines.
+**Write your file within your first 20 minutes, then refine it** (round 2's Codex seat timed out with nothing written).
