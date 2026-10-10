@@ -240,7 +240,12 @@ def main():
         pid = r["prompt_id"]
         while True:
             time.sleep(3)
-            h = http(f"/history/{pid}", port=args.port)
+            try:
+                h = http(f"/history/{pid}", port=args.port)
+            except (TimeoutError, OSError):  # the server stalls its HTTP loop while it decodes / saves frames
+                if srv.poll() is not None:
+                    sys.exit("ComfyUI died mid-run; see " + log.name)
+                continue
             if pid in h:
                 st = h[pid].get("status", {})
                 if st.get("status_str") == "error" or not st.get("completed", True):

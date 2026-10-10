@@ -15,10 +15,10 @@ for f in "$IN"/b*.mp4; do
   echo "[prep] $id"
 done
 # b03, the build (council R2C-7): the half-grey still and the finished hero still are pixel-aligned, so the colour sweeps
-# across as a soft wipe right → left over 6 s while a slow push-in runs
+# across as a soft wipe right → left over 6 s while a slow push-in runs (16:9 stills cropped to the 1964 × 1080 aspect)
 if [ -n "$HALF" ] && [ -n "$HERO" ]; then
   ffmpeg -loglevel error -y -loop 1 -t 6.05 -i "$HALF" -loop 1 -t 6.05 -i "$HERO" -filter_complex \
-    "[0]scale=2200:-2,fps=60[a];[1]scale=2200:-2,fps=60[b];[a][b]xfade=transition=wipeleft:duration=4.2:offset=0.9,zoompan=z='1+0.0006*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1964x1080:fps=60,crop=1920:1080" \
+    "[0]scale=2200:-2,crop=2200:1210,fps=60[a];[1]scale=2200:-2,crop=2200:1210,fps=60[b];[a][b]xfade=transition=wipeleft:duration=4.2:offset=0.9,zoompan=z='1+0.0006*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1964x1080:fps=60,crop=1920:1080" \
     -t 6.05 -an -c:v libx264 -crf 14 -pix_fmt yuv420p "$OUT/b03.mp4"
   echo "[prep] b03 (wipe)"
 fi
