@@ -113,7 +113,7 @@ export function greenPrefix(root, tip, out) {
   let checks = 0;
   for (let i = index; i >= 0; i--) {
     const sha = commits[i];
-    if (sha === undefined || red.has(sha)) continue;
+    if (red.has(sha)) continue;
     if (!existsSync(join(common, 'generated-verified', sha))) {
       if (checks >= MAX_GENERATED_CHECKS) break;
       checks++;
