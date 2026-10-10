@@ -108,6 +108,7 @@
     "./looks/instancedTiles": "./looks/instancedTiles.ts",
     "./looks/streamedCover": "./looks/streamedCover.ts",
     "./looks/coverGrid": "./looks/coverGrid.ts",
+    "./looks/reefBed": "./looks/reefBed.ts",
     "./looks/facetedOcean": "./looks/facetedOcean.ts",
     "./looks/facetedDay": "./looks/facetedDay.ts",
     "./looks/facetedDayBackdrop": "./looks/facetedDayBackdrop.ts",

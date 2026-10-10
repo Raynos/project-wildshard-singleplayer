@@ -46,6 +46,7 @@
     "./systems/looks/instancedTiles": "./systems/looks/instancedTiles.ts",
     "./systems/looks/streamedCover": "./systems/looks/streamedCover.ts",
     "./systems/looks/coverGrid": "./systems/looks/coverGrid.ts",
+    "./systems/looks/reefBed": "./systems/looks/reefBed.ts",
     "./systems/looks/facetedOcean": "./systems/looks/facetedOcean.ts",
     "./systems/looks/facetedDay": "./systems/looks/facetedDay.ts",
     "./systems/looks/facetedDayBackdrop": "./systems/looks/facetedDayBackdrop.ts",

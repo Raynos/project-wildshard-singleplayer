@@ -1,7 +1,7 @@
 {
  "version": 1,
- "revision": "05ac2351acf6ba686c784b34e649f2a76b67dd50",
- "build": "05ac235-mv1zjakg",
+ "revision": "29d252374",
+ "build": "29d2523-mv202q6w",
  "profile": "iPhone 16 Pro / phone / DPR2",
  "inputs": {
   "src/engine/physics/terrain.ts": "0ad84357568a1054e5658c7c187e2c3abbd48b0f84fdefae6fc78e0289f4ada0",
@@ -31,6 +31,7 @@
   "src/shards/driftwood-isle/data/quests.ts": "d9ec83bdeb9644c1f2a711ade27af5d79be082cf8966c31187510a32c23b33b2",
   "src/shards/driftwood-isle/data/reefGlsl.ts": "956f50c8e284229e5f8699016e0b5fc314c328b673f4f0d0aff146a3d1c30742",
   "src/shards/driftwood-isle/data/runtimeCost.ts": "1cc31272878c926574cf2c168172463c3df167fec2291d8c51abbb293ef6e03d",
+  "src/shards/driftwood-isle/data/seabedLook.ts": "95e8dad9f3b5074f9517985cf383d8c9b458c00ad80fbd258857c5db6a2d00a4",
   "src/shards/driftwood-isle/data/skyDay.ts": "efbd6203bd9187ef8e4e221cd914747433e595ad497cfb938c4c6835a421d054",
   "src/shards/driftwood-isle/data/skyGlsl.ts": "5c3bcfdf6a1afd71d7e3ca85925c9d264103bfeca825ec290d0794ed4aeceb65",
   "src/shards/driftwood-isle/data/skyPalette.ts": "e16e3eb7e55dcdaec8ab269bff2c5eb4e2350980770be111e60a440bce05d717",
@@ -78,7 +79,7 @@
   "src/shards/driftwood-isle/world/Palms.ts": "4904cf171428b3714856c8ecab08abc0c70f6556cca5fca79a51a5d324538b22",
   "src/shards/driftwood-isle/world/Pier.ts": "e92e9b8c9ef3eda00880b1e10f756248a47e05bb7e9f0236a4b0ba25b9d05d13",
   "src/shards/driftwood-isle/world/RopeBridge.ts": "5018e2f506689b59dadae702ba220f82d2bc6b8d0aafeb43db3a3d7d8c05dcc1",
-  "src/shards/driftwood-isle/world/Seabed.ts": "d4e66bcb3492eb293f8ae7bdc215443151b2eca99179bdb76f37f4764a25a72e",
+  "src/shards/driftwood-isle/world/Seabed.ts": "ed1bec626a0739f965a98fb2e4b42da97d2128f5e64a682dc796b531636285eb",
   "src/shards/driftwood-isle/world/Shrine.ts": "7519d76d4a31334e9382e5f97ee19781362af41df437087554d352ad9711f2c4",
   "src/shards/driftwood-isle/world/Trailside.ts": "0f49ab228667d03c7412f6d10e232114427df47987e1163aea3ccb9ea7547993",
   "src/shards/driftwood-isle/world/Waterfall.ts": "8b094862f0d4f95b2e831ee8bd92e737a0f46455c0ad1952970ae2248e2fd01b",
