@@ -102,7 +102,9 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
   const prepareAudio = (): { audio: LevelAudio; music: LevelMusic } => {
     if (preparedAudio) return preparedAudio;
     const audio = new Audio(manifest.audio);
-    if (params.has('mute')) { audio.muted = true; audio.master.disconnect(); } // headless tests / captures: never make a sound
+    // headless tests / captures: never make a sound (the master builds at gain 0 while muted; reading it here built the
+    // AudioContext during load, G325)
+    if (params.has('mute')) audio.muted = true;
     // the Wildshard theme (project/archive/2026-09-23-music.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
     // the page's one score (the shell's): built with the first shard, routed through the running shard's master (Music.attach)
     const music = session.music ?? asShell(() => new Music(audio));

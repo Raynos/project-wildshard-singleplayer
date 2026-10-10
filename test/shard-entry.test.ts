@@ -8,6 +8,8 @@ import { shardEntries, shardEntry, shardEntryChoices } from '../src/game/shard/e
 import { buildTitleDeck, titleCards } from '../src/game/titleDeck';
 import { GAME_STRINGS } from '../src/game/strings';
 import { PORT_SHARES } from '../src/game/shard/portShares.generated';
+import { shardEntryManifest } from '../src/game/shard/legacy';
+import { shards } from '../src/game/shard/list';
 
 class MemoryStorage {
   private data = new Map<string, string>();
@@ -104,6 +106,26 @@ describe('SF65: SHARD SELECT\'s LEGACY / SHARDFILE buttons', () => {
     }
     // G241: the template is the live shardfile-only card
     expect(deck.cards.find((card) => card.slug === '_template')?.entries).toEqual({ legacy: false, shardfile: true, public: 'shardfile' });
+    deck.dispose(); deck.root.remove();
+  });
+});
+
+describe('op-ship38: the Template card enters the template by every enabled way in', () => {
+  it('SHARDFILE and ENTER / a key enter `_template`; LEGACY stays disabled; travel resolves both entries to the template', () => {
+    setDev(true);
+    const onEnter = vi.fn<(card: { slug: string }, entry: string) => void>();
+    const deck = buildTitleDeck({ cards: titleCards(true), active: null, onEnter, onExplore: () => undefined, onSettings: () => undefined });
+    document.body.append(deck.root);
+    const play = deck.root.querySelector<HTMLButtonElement>('.ws-menu-play'), shardfile = deck.root.querySelector<HTMLButtonElement>('.ws-menu-shardfile');
+    if (play === null || shardfile === null) throw new Error('Missing entry buttons');
+    deck.select(deck.cards.findIndex((card) => card.slug === '_template'), false);
+    expect(play.disabled).toBe(true); // G241: SHARDFILE ONLY · NO LEGACY
+    expect(shardfile.disabled).toBe(false);
+    play.click(); shardfile.click(); deck.activate();
+    expect(onEnter.mock.calls.map(([card, entry]) => [card.slug, entry])).toEqual([['_template', 'shardfile'], ['_template', 'shardfile']]);
+    // where `travel` sends either entry: the template itself, never another shard (`?chunk=template`, an unknown slug, boots
+    // the default shard, Driftwood: that, not the card, was look30's Driftwood)
+    for (const mode of ['legacy', 'shardfile'] as const) expect(shardEntryManifest(shards(), '_template', mode)?.slug, mode).toBe('_template');
     deck.dispose(); deck.root.remove();
   });
 });
