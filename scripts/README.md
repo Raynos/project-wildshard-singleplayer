@@ -362,6 +362,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [script-conformance.mjs](./script-conformance.mjs)
 - [sf22-cadence.d.mts](./sf22-cadence.d.mts)
 - [sf22-cadence.mjs](./sf22-cadence.mjs)
+- [sf22-shader-observer.d.mts](./sf22-shader-observer.d.mts)
+- [sf22-shader-observer.mjs](./sf22-shader-observer.mjs)
 - [sf22-shaders.d.mts](./sf22-shaders.d.mts)
 - [sf22-shaders.mjs](./sf22-shaders.mjs)
 - [shard-coupling.d.mts](./shard-coupling.d.mts)
