@@ -179,6 +179,7 @@
     "./shardfile/hybridRows": "./shardfile/hybridRows.ts",
     "./shardfile/bossFight": "./shardfile/bossFight.ts",
     "./shardfile/bossRow": "./shardfile/bossRow.ts",
+    "./shardfile/heldBossFight": "./shardfile/heldBossFight.ts",
     "./shardfile/bakedKinds": "./shardfile/bakedKinds.ts",
     "./shardfile/homeKeeper": "./shardfile/homeKeeper.ts",
     "./shardfile/runtimeProduct": "./shardfile/runtimeProduct.ts",

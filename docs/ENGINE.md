@@ -2337,6 +2337,12 @@ hold off at `standOff` and back away inside it (`retreat`), or walk up at a fixe
 current, windup, angle, rest, chest, takeoff, wasFighting, aim, strikes }`. Sky Reach's Storm Roc is the first
 (`data/brains.ts` ROC_BRAIN and ROC_STRIKES, its perch placed by `runtime/stormRocBrain.ts`), held to its old brain by
 `test/shards/far-reach/roc-continuation.test.ts`.
+`@wildshard/game/shardfile/heldBossFight` `heldBossFight(row, body, brain, onVictory)` is the view-free `BossScript` of a
+boss whose one body stays through every checkpoint (a retry resets it in place): a circular `arena` over a `floor`, its
+health share per checkpoint (`hpShares`, so its phase thresholds), the intro's look and the victory at `rewardPoint`, and
+the `respawn` of a player who dies in the fight; it drives the brain's `phase`, `fighting` and `restart()` (a phased
+raptor has them) and keeps `{ hp, invulnerable }`. The headless host runs it on `installBossRow`. Sky Reach's Storm Roc
+is the first (`data/rocFight.ts` ROC_FIGHT and ROC_DEFINITION).
 
 
 ### Exported creature skins and clips

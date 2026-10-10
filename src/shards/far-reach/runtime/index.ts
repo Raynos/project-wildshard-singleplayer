@@ -49,7 +49,7 @@ import { meadow, type Meadow } from '../world/meadow';
 import { heroStoneDiscs, loadSkyDressing } from '../world/dressing';
 import { SUN_DIR } from '../look/sun';
 import { StormRocBoss } from '../combat/stormRoc';
-import { BOSS_REWARD, ROC_ID } from './rocEncounter';
+import { BOSS_REWARD, ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
 import { FLAGS, vaneFlag } from '../quest/flags';
 import { installSkyCues } from './audio/cues';

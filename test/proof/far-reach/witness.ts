@@ -22,7 +22,7 @@ import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM } from '../../../src/shards/far-reach/runtime/fan';
 import { ROOST_IDS, SKY_ACT, SKY_INTERACT } from '../../../src/shards/far-reach/runtime/quest';
 import { ROC_STEP } from '../../../src/shards/far-reach/runtime/roc';
-import { ROC_ID } from '../../../src/shards/far-reach/runtime/rocEncounter';
+import { ROC_ID } from '../../../src/shards/far-reach/data/rocFight';
 
 /**
  * Sky Reach's whole-shard witness (E435 §C / SF72) on its trusted renderer-free entry, `runtime/headless.ts`, composed

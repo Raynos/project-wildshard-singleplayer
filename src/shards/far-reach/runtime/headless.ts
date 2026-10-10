@@ -16,7 +16,7 @@ import { DRIFT_RAY_VARIANTS, SKY_GOAT_VARIANTS, STORM_ROC_VARIANTS } from './var
 import { GALE_WISP } from '../species/galeWisp';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
 import { installSkyRoc } from './roc';
-import { ROC_ID } from './rocEncounter';
+import { ROC_ID } from '../data/rocFight';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM, installSkyFan, type FanCommand } from './fan';
 import { installSkyMovers, verifiedMoverModules, type SkyMovers } from './headlessMovers';
 import { installSkyQuest, skyWinchPermission } from './quest';

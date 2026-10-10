@@ -20,7 +20,7 @@ import { FAN_GUST, FAN_SWING, SKY_ITEMS } from '../../../src/shards/far-reach/da
 import { FAN_ROW } from '../../../src/shards/far-reach/weapons/rows';
 import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
 import { ROC_STEP } from '../../../src/shards/far-reach/runtime/roc';
-import { PHASES } from '../../../src/shards/far-reach/runtime/rocEncounter';
+import { PHASES } from '../../../src/shards/far-reach/data/rocFight';
 import { FLOCK_STEP, SKY_KILL_Y } from '../../../src/shards/far-reach/runtime/flock';
 import { SKY_REACH } from '../../../src/shards/far-reach/manifest';
 import { prepareHeadlessRuntime } from '../../../src/shards/far-reach/runtime/headless';

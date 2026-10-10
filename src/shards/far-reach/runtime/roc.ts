@@ -2,7 +2,8 @@ import { installBossRow } from '@wildshard/game/shardfile/bossRow';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { FLAGS } from '../quest/flags';
-import { BOSS_REWARD, ROC_ID, rocBossDefinition, rocEncounter } from './rocEncounter';
+import { BOSS_REWARD, ROC_ID } from '../data/rocFight';
+import { rocBossDefinition, rocEncounter } from './rocEncounter';
 import type { StormRocBrain } from './stormRocBrain';
 
 /** The Roc encounter's fixed-step id; its continuation is BossBrain's plus the script's HP and shield. */
