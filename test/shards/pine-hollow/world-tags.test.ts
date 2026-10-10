@@ -16,7 +16,7 @@ beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/ph
 const level: SimLevel = { ...SIM_LEVEL, entities: [], quests: [], ground: { size: 500, height: -20 } };
 const plain = { shape: 1, groups: groups('WORLD'), friction: 0.5, body: null, rot: [0, 0, 0, 1], half: [1, 1, 1] };
 const bake: PineBake = { ground: { heights: new Float32Array(PINE_GROUND_RES ** 2), at: { x: 0, y: -20, z: 0 }, scale: { x: 500, y: 1, z: 500 }, groups: groups('WORLD'), friction: 0.5 },
-  kingHit: { head: [0, 0, 0], body: [[0, 0, 0], [0, 0, 0]], fore: [[0, 0, 0], [0, 0, 0]], ribs: [0, 0, 0], radius: 1 }, actors: [], parked: [], herds: [],
+  kingHit: { head: [0, 0, 0], body: [[0, 0, 0], [0, 0, 0]], fore: [[0, 0, 0], [0, 0, 0]], ribs: [0, 0, 0], radius: 1 }, actors: [], parked: [], herds: [], shelterTrees: [],
   solids: [parsePineSolid({ ...plain, at: [10, 2, 10], ownerId: 'piece:door', material: 'stone' }),
     parsePineSolid({ ...plain, at: [15, 2, 10], ownerId: 'piece:door', material: 'metal' }),
     parsePineSolid({ ...plain, at: [20, 2, 10], ownerId: 'declared:door', material: 'rock' }),
