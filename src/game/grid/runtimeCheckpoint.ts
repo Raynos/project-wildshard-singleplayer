@@ -5,12 +5,11 @@ import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
 
 const finite = v.pipe(v.number(), v.finite());
 const health = v.pipe(finite, v.minValue(0), v.maxValue(1_000_000_000));
-const position = v.pipe(finite, v.minValue(-250), v.maxValue(250));
-// Horizontal coordinates stay in the owned chunk; native WORLD falls can pass below its ground (e.g. a sky void).
-// AnimalSim's restore law accepts any finite height, so the logical save must not refuse an ordinary falling body.
+// Native WORLD falls can pass below the finite border walls, then continue horizontally in the void.
+// AnimalSim.restore accepts every finite native position; the continuation preserves that law without clamping.
 const actor = v.strictObject({ id: v.pipe(v.string(), v.minLength(1), v.maxLength(160)),
   kind: v.pipe(v.string(), v.minLength(1), v.maxLength(160)), hp: health, maxHp: health, alive: v.boolean(),
-  x: position, y: finite, z: position, yaw: finite });
+  x: finite, y: finite, z: finite, yaw: finite });
 const schema = v.nullable(v.strictObject({ revision: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
   actors: v.pipe(v.array(actor), v.maxLength(4096), v.check(rows => new Set(rows.map(row => row.id)).size === rows.length
     && rows.every(row => row.hp <= row.maxHp && row.alive === (row.hp > 0)), 'Invalid runtime creature continuation')) }));

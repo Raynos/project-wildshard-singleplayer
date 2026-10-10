@@ -64,12 +64,13 @@ Pine, Nalati, `template-2` and Sky Reach all admitted and entered with no issue.
 117.376 / 74.669 / 80.197 / 111.287 s; one-minute load medians were 43.46 / 45.50 / 46.94 / 34.69.
 The run then refused Sky's departure, so Signal and the return home remain unproved. All owned resources closed.
 
-The native creature fall reached y = −622.6604614257812. Its logical checkpoint incorrectly used the horizontal
-±250 m chunk bound for height as well. The forward matches `AnimalSim.restore`: finite vertical positions,
-unchanged bounded horizontal positions and unchanged identity, health, quota and durable-write checks. A real
-eight-second `AnimalSim` WORLD fall is checkpointed and restored exactly; non-finite heights still refuse without
-replacing the previous save. The world/fall law is unchanged. This is the existing logical HP/pose continuation,
-not a claim of full creature-physics continuation.
+The refusal reported a native coordinate of −622.6604614257812. Its field was not captured; the original
+attribution to height alone was incomplete. The vertical-only forward did not fix departure. A real Rapier witness
+shows why the remaining horizontal bound is invalid too: a native WORLD fall passes below the border walls
+(they end at y = −250), and steering then continues horizontally in the void. `AnimalSim.restore` accepts all
+finite native positions. The follow-up preserves that exact position law, without clamping or changing the fall,
+border or steering law. Non-finite coordinates, identity/health failures and quota refusal still preserve the
+previous durable save. This is the existing logical HP/pose continuation, not full creature-physics continuation.
 
 Departure commits still measured 45.1 ms for Pine and 123.1 ms for the template. Entry commits measured
 0.2 / 0.1 / 0.0 / 0.1 ms and entered activations 3.7 / 4.8 / n/a / 1.5 ms. The run did not contain the subsequent
@@ -77,3 +78,17 @@ checkpoint/frame/disposal timing boundaries (`7e1f3d40b`), so these departure ow
 The earlier Pine first-entry 439 ms long task contained 26 `compileShader` calls after its activation: approach
 warm-up did not cover all first-drawn program variants. That remains open alongside the long world/afterKit waits.
 No complete SF22 timing or memory pass is claimed.
+
+## Future-light warm-up repeat: unresolved first-draw variants and departure owners
+
+The repeat on `e48562761643dcefd5fea9f02a7868330ab77a6f` again entered Pine, Nalati, the template and Sky, then
+refused Sky departure on a native coordinate outside ±250. Signal and return-home remain open. The phased
+crossing clock now attributes Pine departure to 3.1 ms save + 0.1 ms motor/frame commit + 39.7 ms leave/disposal;
+template departure is 100.8 ms save + 0.1 ms frame commit + 0.2 ms changed callbacks. No departure pass is claimed.
+
+Detached future lights warm post-entry counts without changing the drawn lights, but first-frame compilation is
+still open: Pine activation was 3.3 ms inside a 367 ms task with 70 shader calls in its following second; Nalati
+activation was 4.3 ms inside an 82 ms task with 18 calls; Sky activation was 1.2 ms with no calls in that window.
+The next diagnostic records shader light-count defines to distinguish remaining variants; these calls include the
+following second and are not an exact per-frame count. Route load medians were 26.29 / 43.62 / 42.32 / 20.80,
+so timing is under load. All owned browser/preview resources closed.

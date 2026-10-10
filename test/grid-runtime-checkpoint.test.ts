@@ -1,5 +1,10 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise finite native border walls with the production Rapier binary.
+import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
+import { gridCreatureConstraint, installGridBorders } from '../src/engine/physics/gridBorders';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { createSimHost } from '../src/engine/sim';
 import { SaveStore } from '../src/engine/saves/store';
 import { regionalRuntimeCheckpoint } from '../src/game/grid/runtimeCheckpoint';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -29,7 +34,7 @@ it('validates every restored identity before mutation and refuses invalid health
   a.hp = 55; expect(save.checkpoint({ animals: [a] })).toBe(true);
   const other = animal('changed'); expect(() => save.restore({ animals: [other] })).toThrow('Missing stable');
   expect(other.hp).toBe(other.maxHp);
-  a.position.x = 251; expect(() => save.checkpoint({ animals: [a] })).toThrow(); a.position.x = 0;
+  a.position.x = Infinity; expect(() => save.checkpoint({ animals: [a] })).toThrow(); a.position.x = 0;
   a.hp = a.maxHp + 1; expect(() => save.checkpoint({ animals: [a] })).toThrow(); a.hp = 42;
   local.fail = true; expect(save.checkpoint({ animals: [a] })).toBe(false); local.fail = false;
   const fresh = animal(); regionalRuntimeCheckpoint(new SaveStore({ local, session: null }), { id: 'pine-hollow', shard: 'pine-hollow' }, 1).restore({ animals: [fresh] }); expect(fresh.hp).toBe(55);
@@ -54,6 +59,31 @@ it('checkpoints the native WORLD fall below the chunk without clamping its durab
   }
   const afterRefusal = animal(); save.restore({ animals: [afterRefusal] });
   expect(afterRefusal.position.toArray()).toEqual(pose);
+});
+
+it('preserves native horizontal motion after a WORLD fall passes below the finite border walls', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
+  const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier, playerBody: false, ground: false });
+  try {
+    installGridBorders(host.physics, host.scope);
+    const a = animal(); a.place(249, 0, Math.PI / 2, 0); a.groundHeight = () => -1000;
+    a.motionConstraint = gridCreatureConstraint(() => host.physics, 0.5);
+    a.setMotion(Math.PI / 2, 50);
+    for (let tick = 0; tick < 480; tick++) { host.physics.step(); a.step(1 / 60); }
+    expect(a.position.y).toBeLessThan(-250);
+    expect(a.position.x).toBeGreaterThan(250);
+    const local = new MemoryStorage(), pose = a.position.toArray();
+    const save = regionalRuntimeCheckpoint(new SaveStore({ local, session: null }), { id: 'sky-copy', shard: 'far-reach' }, 1);
+    expect(save.checkpoint({ animals: [a] })).toBe(true);
+    const rebuilt = animal(); save.restore({ animals: [rebuilt] });
+    expect(rebuilt.position.toArray()).toEqual(pose);
+    for (const axis of ['x', 'y', 'z'] as const) for (const invalid of [Number.NaN, Infinity, -Infinity]) {
+      const previous = a.position[axis]; a.position[axis] = invalid;
+      expect(() => save.checkpoint({ animals: [a] })).toThrow(); a.position[axis] = previous;
+    }
+    const afterRefusal = animal(); save.restore({ animals: [afterRefusal] });
+    expect(afterRefusal.position.toArray()).toEqual(pose);
+  } finally { host.dispose(); }
 });
 
 it('refuses corrupt or future stored continuations without repairing their bytes', () => {
