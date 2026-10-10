@@ -19,7 +19,7 @@ import { Smoke } from '../world/Smoke';
 import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE } from '../world/layout';
 import type { Box } from '../world/solid';
 import type { Ground } from '../world/types';
-import { specimenKey, type DeckRow, type EffectRow, type MemberRow, type PlaceGeometryRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
+import { specimenKey, type DeckRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceGeometryRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
 import { kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle } from '../models/campGenerated';
 import { EAGLE_PERCH_H } from '../models/campProps';
 import { yurtPainted } from './yurt';
@@ -30,6 +30,7 @@ import {
   hitchingRailPainted, waterTroughPainted, saddleRackPainted, corralPainted, hayPilePainted, feedTroughPainted, rugLinePainted,
   choppingBlockPainted, milkCansPainted, tetherLinePainted, kurtBoardPainted, ribbonPostPainted,
 } from './campProps';
+import { DRESSING_GEOS } from './dressingGeos';
 
 // ── the cloth and smoke a place makes, recorded in order ──────────────────────────────────────────────────────────────
 
@@ -334,9 +335,10 @@ export interface PlacesBake<R> { readonly rows: readonly R[]; readonly bin: Uint
 
 /**
  * The bake over the page's ground (its baked terrain sampler): the three places in the page's order (the camp, the
- * bridge, the summer camp), then the specimens (the bridge's fitted to its first placement, so after the places).
+ * bridge, the summer camp), then the specimens (the bridge's fitted to its first placement, so after the places), then
+ * the dressing's scatter shapes (their own binary, `dressing.bin`).
  */
-export function bakeNalatiPlaces(ground: Ground): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow> } {
+export function bakeNalatiPlaces(ground: Ground): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
   setTerrainHeight(ground);
   const blocks: Uint8Array[] = [];
   const rows = [nomadCamp, bridge, summerCamp].map((build): PlaceRow => {
@@ -354,7 +356,10 @@ export function bakeNalatiPlaces(ground: Ground): { places: PlacesBake<PlaceRow>
   const places = { rows, bin: join(blocks) };
   const specimenBlocks: Uint8Array[] = [];
   const specimens = specimenJobs().flatMap((run) => run(specimenBlocks));
-  return { places, specimens: { rows: specimens, bin: join(specimenBlocks) } };
+  // the dressing's scatter shapes (generators/dressingGeos.ts): ground-free, indexed, kept as built
+  const dressingBlocks: Uint8Array[] = [];
+  const dressing = DRESSING_GEOS.map(([key, build]): DressingGeoRow => ({ key, geometry: writeGeometry(build(), dressingBlocks, `dressing ${key}`) }));
+  return { places, specimens: { rows: specimens, bin: join(specimenBlocks) }, dressing: { rows: dressing, bin: join(dressingBlocks) } };
 }
 
 /** the bake over the page's baked terrain grid (public/assets/baked/nalati-grasslands/terrain.bin), as the page samples it */

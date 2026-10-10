@@ -17,6 +17,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { readBakedGeometry, type BakedGeometryRow } from '@wildshard/sdk/kit/bakedGeometry';
 import placesJson from '../data/places.json' with { type: 'json' };
 import specimensJson from '../data/placeSpecimens.json' with { type: 'json' };
+import dressingJson from '../data/dressingGeos.json' with { type: 'json' };
 import type { NalatiTexName } from '../look/nalatiTextures';
 import { unshuffleBodyLanes } from '../species/bodies';
 import type { ModelPlacement, NalatiModelName } from './glbPaint';
@@ -52,9 +53,13 @@ export interface PlaceRow {
 }
 /** a model specimen: its key (model id + params), its parts */
 export interface SpecimenRow { readonly key: string; readonly parts: readonly PlaceMeshRow[] }
+/** a dressing scatter shape (generators/dressingGeos.ts): its key ('boulder:3', 'rose:lite' …), its indexed geometry */
+export interface DressingGeoRow { readonly key: string; readonly geometry: PlaceGeometryRow }
 
 export const NALATI_PLACES_URL = '/assets/nalati/baked/places.bin';
 export const NALATI_SPECIMENS_URL = '/assets/nalati/baked/specimens.bin';
+/** the dressing's scatter shapes' bake (fetched beside the places') */
+export const NALATI_DRESSING_URL = '/assets/nalati/baked/dressing.bin';
 
 interface Bake<R> { readonly bin: string; readonly bytes: number; readonly rows: readonly R[] }
 /** a bake's rows as written by generators/places.ts (its stamp checked here; the rows are the generator's own types) */
@@ -67,6 +72,7 @@ function bakeOf<R>(v: unknown, what: string): Bake<R> {
 }
 const PLACES = bakeOf<PlaceRow>(placesJson, 'places.json');
 const SPECIMENS = bakeOf<SpecimenRow>(specimensJson, 'placeSpecimens.json');
+const DRESSING = bakeOf<DressingGeoRow>(dressingJson, 'dressingGeos.json');
 
 /** the deck's floor function (placement only): the bridge painter's own `prof`, from its data */
 export function deckFloor(row: DeckRow): Platform & { readonly row: DeckRow } {
@@ -92,7 +98,7 @@ function geometryAt(bytes: Uint8Array, at: number, row: PlaceGeometryRow): THREE
   return flat;
 }
 
-function offsets<R>(bake: Bake<R>, raw: Uint8Array, geos: (r: R) => readonly PlaceMeshRow[], what: string): number[] {
+function offsets<R>(bake: Bake<R>, raw: Uint8Array, geos: (r: R) => readonly { readonly geometry: PlaceGeometryRow }[], what: string): number[] {
   if (raw.length !== bake.bytes) throw new Error(`[nalati-grasslands] the ${what} bake holds ${String(raw.length)} bytes, its rows ${String(bake.bytes)}`);
   const out: number[] = [];
   let at = 0;
@@ -119,12 +125,41 @@ export function useNalatiPlaces(raw: Uint8Array): void {
 /** Read the raw binary only when a place is first built (a Node test setup). */
 export function provideNalatiPlaces(read: () => Uint8Array): void { placesProvider = read; }
 
-/** Fetch, inflate and read the places bake once (NalatiPOIs.buildSliced). A failed load is a console.error page fault. */
+/** Fetch, inflate and read the places bake once, and the dressing's shapes beside it (NalatiPOIs.buildSliced,
+ *  NalatiDressing.build). A failed load is a console.error page fault. */
 export function preloadNalatiPlaces(): Promise<void> {
   placesLoading ??= (async (): Promise<void> => {
     try { useNalatiPlaces(await fetchLanes(NALATI_PLACES_URL)); } catch (error: unknown) { console.error('[nalati-grasslands] the baked places did not load:', error); }
   })();
-  return placesLoading;
+  return Promise.all([placesLoading, loadNalatiDressing()]).then(() => undefined);
+}
+
+let dressing: { bytes: Uint8Array; at: number[] } | null = null;
+let dressingLoading: Promise<void> | null = null;
+let dressingProvider: (() => Uint8Array) | null = null;
+
+/** Hand the dressing shapes' raw binary (inflated, lanes put back) to the page; a test passes the committed file's. */
+export function useNalatiDressing(raw: Uint8Array): void {
+  dressing = { bytes: raw, at: offsets(DRESSING, raw, (r) => [r], 'dressing') };
+  dressingLoading = Promise.resolve();
+}
+/** Read the dressing shapes' raw binary only when one is first asked for (a Node test setup). */
+export function provideNalatiDressing(read: () => Uint8Array): void { dressingProvider = read; }
+
+/** Fetch, inflate and read the dressing shapes' bake once (also the Explorer's, for a dressing specimen). */
+export function loadNalatiDressing(): Promise<void> {
+  dressingLoading ??= (async (): Promise<void> => {
+    try { useNalatiDressing(await fetchLanes(NALATI_DRESSING_URL)); } catch (error: unknown) { console.error('[nalati-grasslands] the baked dressing shapes did not load:', error); }
+  })();
+  return dressingLoading;
+}
+
+/** A dressing scatter shape by its key ('boulder:3', 'rose:lite' …), as its builder made it; null before the bake is in. */
+export function bakedDressingGeo(key: string): THREE.BufferGeometry | null {
+  if (dressing === null && dressingProvider !== null) { const read = dressingProvider; dressingProvider = null; useNalatiDressing(read()); }
+  const bake = dressing, i = DRESSING.rows.findIndex((r) => r.key === key), row = DRESSING.rows[i];
+  if (row === undefined) throw new Error(`[nalati-grasslands] no baked dressing shape '${key}'`);
+  return bake === null ? null : geometryAt(bake.bytes, bake.at[i] ?? 0, row.geometry);
 }
 
 const color = (c: unknown): THREE.ColorRepresentation => {

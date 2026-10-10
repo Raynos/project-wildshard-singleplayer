@@ -36,4 +36,9 @@ describe('Nalati bakes its painted places offline (SHARD-PLATFORM M3)', () => {
     expect(bakeDifference('places', mine, rebaked, (r) => r.meshes)).toBeNull();
     expect(made.rows.map((r) => r.name)).toEqual(committed.places.rows.rows.map((r) => r.name));
   }, 30_000);
+  it.runIf(platform === 'darwin')('the committed dressing shapes re-encode from their generator (generators/dressingGeos.ts)', () => {
+    const committed = committedPlaces(), made = bakeNalatiPlacesOnTerrain(terrain()).dressing;
+    expect(bakeDifference('dressing', committed.dressing, made, (r) => [r])).toBeNull();
+    expect(made.rows.map((r) => r.key)).toEqual(committed.dressing.rows.rows.map((r) => r.key));
+  }, 30_000);
 });

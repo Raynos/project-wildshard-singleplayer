@@ -46,9 +46,9 @@ import { loadNalatiModel, modelsOn } from '../glbPaint';
 import type { NalatiSet } from '../painted';
 import { hullAt, hullCandidates, type Box } from '../solid';
 import {
-  boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds, fitRock, GENERATED_ROCK, ROCK_LOOK,
-  boulderGeo, slabGeo, stoneGeo, juniperGeo, roseGeo, willowGeo, lupinGeo, daisyGeo, reedGeo,
+  boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds, fitRock, GENERATED_ROCK, ROCK_LOOK, dressingGeo,
 } from '../../models/dressing';
+import { preloadNalatiPlaces } from '../placeBake';
 
 const PHONE = TIER === 'phone';
 
@@ -139,6 +139,7 @@ export class NalatiDressing {
     const plan = this.plan = await planDressing(this.forest, yieldTask);
     lap('plan');
     await yieldTask();
+    await preloadNalatiPlaces(); // the scatter shapes' bake (../placeBake.ts; in already when the POIs built first)
     t0 = diagnosticNow();
 
     const rock = painterlyMaterial(this.sky, { rim: 0.3, bands: 0.8 });
@@ -176,16 +177,16 @@ export class NalatiDressing {
         add(slab, 'slab', fitRock(b3, GENERATED_ROCK.slab.half), b3.material, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
       }
     } else {
-      add(boulder, 'boulder', boulderGeo(0xb01d, PHONE ? 2 : 3), rock, plan.boulder, FAR.rock, { castShadow: true, keepNear: 40 });
-      add(slab, 'slab', slabGeo(0x51ab, PHONE ? 2 : 3), rock, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
+      add(boulder, 'boulder', dressingGeo(`boulder:${PHONE ? 2 : 3}`), rock, plan.boulder, FAR.rock, { castShadow: true, keepNear: 40 });
+      add(slab, 'slab', dressingGeo(`slab:${PHONE ? 2 : 3}`), rock, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
     }
-    add(stone, 'stone', stoneGeo(0x5707), rock, plan.stone, FAR.small);
-    add(juniper, 'juniper', juniperGeo(0x1a9), shrub, plan.juniper, FAR.shrub, { castShadow: !PHONE });
-    add(wildRose, 'rose', roseGeo(0x805e, PHONE), shrub, plan.rose, FAR.shrub, { castShadow: !PHONE });
-    add(dwarfWillow, 'willow', willowGeo(0x3170), shrub, plan.willow, FAR.shrub, { castShadow: !PHONE });
-    add(lupin, 'lupin', lupinGeo(0x1ab1, PHONE), flower, plan.lupin, FAR.flower);
-    add(daisy, 'daisy', daisyGeo(0xda15), flower, plan.daisy, FAR.flower);
-    add(reeds, 'reed', reedGeo(0x4eed), reed, plan.reed, FAR.shrub);
+    add(stone, 'stone', dressingGeo('stone'), rock, plan.stone, FAR.small);
+    add(juniper, 'juniper', dressingGeo('juniper'), shrub, plan.juniper, FAR.shrub, { castShadow: !PHONE });
+    add(wildRose, 'rose', dressingGeo(PHONE ? 'rose:lite' : 'rose'), shrub, plan.rose, FAR.shrub, { castShadow: !PHONE });
+    add(dwarfWillow, 'willow', dressingGeo('willow'), shrub, plan.willow, FAR.shrub, { castShadow: !PHONE });
+    add(lupin, 'lupin', dressingGeo(PHONE ? 'lupin:lite' : 'lupin'), flower, plan.lupin, FAR.flower);
+    add(daisy, 'daisy', dressingGeo('daisy'), flower, plan.daisy, FAR.flower);
+    add(reeds, 'reed', dressingGeo('reed'), reed, plan.reed, FAR.shrub);
     lap('layers');
     cover.clear();
     addCover(plan.boulder, 0.9); addCover(plan.slab, 1.1); addCover(plan.juniper, 0.85); addCover(plan.rose, 0.5); addCover(plan.willow, 0.4);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // SHARD-PLATFORM M3 (Nalati's 80/20, the places bake): the spring camp, the Kunes bridge and the summer camp painted
-// offline, with the Explorer specimens of every model they paint. The generator
+// offline, with the Explorer specimens of every model they paint, and the dressing's scatter shapes (dressing.bin). The generator
 // (src/shards/nalati-grasslands/generators/places.ts) is bundled by vite as it stands and run in a muted Chromium page over
 // the page's baked terrain grid: the places' colliders come out of it, and Chromium's sin / cos / atan2 are the page's to
 // the last bit (Node's differ in the last bit; measured). It writes each bake's binary (every geometry's float bytes,
@@ -64,9 +64,9 @@ export function alike(a, b, path, skip, tol = 1e-9) {
   return null;
 }
 
-/** The committed places and specimens bakes (rows, raw binary) as the page reads them. */
+/** The committed places, specimens and dressing-shape bakes (rows, raw binary) as the page reads them. */
 export function committedPlaces() {
-  return Object.fromEntries([['places', 'places.bin', 'places.json'], ['specimens', 'specimens.bin', 'placeSpecimens.json']].map(([file, bin, json]) => {
+  return Object.fromEntries([['places', 'places.bin', 'places.json'], ['specimens', 'specimens.bin', 'placeSpecimens.json'], ['dressing', 'dressing.bin', 'dressingGeos.json']].map(([file, bin, json]) => {
     const rows = JSON.parse(readFileSync(resolve(DATA, json), 'utf8')), raw = unshuffle(new Uint8Array(inflateSync(readFileSync(resolve(OUT, bin)))));
     if (raw.length !== rows.bytes || createHash('sha256').update(raw).digest('hex') !== rows.bin) throw new Error(`bake-nalati-places: ${bin} is not its rows' binary`);
     return [file, { rows, raw }];
@@ -90,12 +90,12 @@ if (import.meta.main && process.argv.includes('--check')) {
   const { bakeNalatiPlacesOnTerrain } = await import('../src/shards/nalati-grasslands/generators/places.ts');
   const node = bakeNalatiPlacesOnTerrain(terrainBuffer()), committed = committedPlaces();
   let failed = false;
-  for (const { file, made, geos } of [{ file: 'places', made: node.places, geos: (r) => r.meshes }, { file: 'specimens', made: node.specimens, geos: (r) => r.parts }]) {
+  for (const { file, made, geos } of [{ file: 'places', made: node.places, geos: (r) => r.meshes }, { file: 'specimens', made: node.specimens, geos: (r) => r.parts }, { file: 'dressing', made: node.dressing, geos: (r) => [r] }]) {
     const diff = bakeDifference(file, committed[file], made, geos);
     if (diff !== null) { console.error(`bake-nalati-places: the committed ${file} bake is stale: ${diff}`); failed = true; }
   }
   if (failed) process.exit(1);
-  console.info('bake-nalati-places: the places and specimens bakes match a Node rebake (rows within 1e-9, floats within 2^-20)');
+  console.info('bake-nalati-places: the places, specimens and dressing bakes match a Node rebake (rows within 1e-9, floats within 2^-20)');
   process.exit(0);
 }
 
@@ -125,12 +125,12 @@ if (import.meta.main) {
       const bytes = Uint8Array.from(atob(terrainB64), (c) => c.codePointAt(0) ?? 0);
       const out = window.NalatiPlaces.bakeNalatiPlacesOnTerrain(bytes.buffer);
       const b64 = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCodePoint(...u8.subarray(i, i + 0x8000)); return btoa(s); };
-      return { places: { rows: JSON.stringify(out.places.rows), bin: b64(out.places.bin) }, specimens: { rows: JSON.stringify(out.specimens.rows), bin: b64(out.specimens.bin) }, ua: navigator.userAgent };
+      return { places: { rows: JSON.stringify(out.places.rows), bin: b64(out.places.bin) }, specimens: { rows: JSON.stringify(out.specimens.rows), bin: b64(out.specimens.bin) }, dressing: { rows: JSON.stringify(out.dressing.rows), bin: b64(out.dressing.bin) }, ua: navigator.userAgent };
     }, Buffer.from(readFileSync(TERRAIN)).toString('base64'));
     if (errors.length > 0) throw new Error(`bake-nalati-places: page errors: ${errors.join('; ')}`);
   } finally { await browser.close(); }
   mkdirSync(OUT, { recursive: true });
-  for (const { name, json, part } of [{ name: 'places', json: 'places.json', part: baked.places }, { name: 'specimens', json: 'placeSpecimens.json', part: baked.specimens }]) {
+  for (const { name, json, part } of [{ name: 'places', json: 'places.json', part: baked.places }, { name: 'specimens', json: 'placeSpecimens.json', part: baked.specimens }, { name: 'dressing', json: 'dressingGeos.json', part: baked.dressing }]) {
     const bin = new Uint8Array(Buffer.from(part.bin, 'base64')), packed = deflateSync(shuffle(bin), { level: 9 });
     writeFileSync(resolve(OUT, `${name}.bin`), packed);
     writeFileSync(resolve(DATA, json), `${JSON.stringify(stamp(bin, JSON.parse(part.rows)))}\n`);
