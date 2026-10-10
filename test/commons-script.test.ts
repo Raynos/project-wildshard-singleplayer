@@ -7,7 +7,7 @@ import { contentHash } from '../src/sdk/project';
 import { ScriptHost } from '../src/engine/script/host';
 import { ScriptWorld } from '../src/engine/script/effects';
 import { MOVER_FIELD_RANGES, moverScriptEntities } from '../src/game/shardfile/movers';
-import { moverQueries } from '../src/game/shardfile/moverRuntime';
+import { moverQueries } from "../src/game/plugin/mover";
 import { MOVERS as DRIFT } from '../src/shards/driftwood-isle/data/movers';
 import { MOVERS as SKY } from '../src/shards/far-reach/data/movers';
 

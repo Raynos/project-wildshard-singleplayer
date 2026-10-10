@@ -1,7 +1,7 @@
 import type { LevelContext, DebugRowSpec } from '@wildshard/engine/level/context';
-import { developerToolsEnabled } from '../shard/runtimeVariant';
-import { parseDirector, type DirectorData, type DirectorEvent } from './director';
-import { createDirectorLane, type DirectorLane } from './directorRuntime';
+import { developerToolsEnabled } from "../shard/runtimeVariant";
+import { parseDirector, type DirectorData, type DirectorEvent } from "../shardfile/director";
+import { createDirectorLane, type DirectorLane } from "../shardfile/directorRuntime";
 
 const DEBUG_ROWS = [{ purpose: 'developer', id: 'shardDirectors', group: 'tools', label: 'Shard directors (data)',
   choices: [{ value: 'off', text: 'Legacy' }, { value: 'on', text: 'Script' }], initial: 'off', reload: true,

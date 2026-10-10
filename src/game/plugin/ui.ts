@@ -11,18 +11,20 @@ import type { Place } from '@wildshard/engine/world/interact/types';
 import { QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildshard/engine/quest/core';
 import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from '@wildshard/engine/quest/view';
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
-import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from './reward';
+import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from "../quest/reward";
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
-import type { ShardContext } from "../plugin/context";
-import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
-import './presentation.css';
+import type { ShardContext } from "./context";
+import { installEnteredRuntimeService, retainsRuntimeServices } from "./lifecycle";
+import "../quest/presentation.css";
 
+/** World position and label for a quest objective, with an optional dialogue NPC. */
 export interface QuestTarget {
   position: Vector3;
   label: string;
   short?: string;
   npc?: QuestPresentationNpc;
 }
+/** Authored dialogue and proximity hooks for a quest giver or step target. */
 export interface QuestPresentationNpc {
   npc: NpcDef;
   at: Vector3;
@@ -34,11 +36,14 @@ export interface QuestPresentationNpc {
   onOpen?: NonNullable<NpcTalkOpts['onOpen']>;
   onDone?: NonNullable<NpcTalkOpts['onDone']>;
 }
+/** A quest step with its display title and world target. */
 export interface PresentedQuestStep extends Omit<QuestStep, 'objective'> {
   title: string;
   target: QuestTarget;
 }
+/** Quest data whose steps have authored presentation targets. */
 export interface PresentedQuestDef extends Omit<QuestDef, 'steps'> { steps: PresentedQuestStep[] }
+/** Scoped marker, dialogue, reward and toast choices for the existing quest UI. */
 export interface QuestPresentationOptions {
   flags?: Flags;
   /** Resolve existing POI-local markers; simple target positions need no resolver. */
@@ -58,6 +63,7 @@ export interface QuestPresentationOptions {
   mapMarkers?: boolean;
   minimapMarks?: boolean;
 }
+/** Owned play services required to present a quest without owning its state. */
 export interface QuestPresentationHost {
   scope: Scope;
   player: QuestRewardPlayer;
@@ -71,6 +77,7 @@ export interface QuestPresentationHost {
   setViewmodel?: (on: boolean) => void;
   dayNight?: { phase: number } | null;
 }
+/** The live quest presentation and its entered-scope update/disposal ports. */
 export interface QuestPresentation {
   quest: QuestState;
   chip: QuestChip;

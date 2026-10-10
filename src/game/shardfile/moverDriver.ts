@@ -3,7 +3,7 @@ import { ScriptWorld } from '@wildshard/engine/script/effects';
 import type { ScriptQuery } from '@wildshard/engine/script/host';
 import type { ScriptRole, ScriptSchedule } from '@wildshard/engine/script/composition';
 import { parseMovers, moverScriptEntities, MOVER_FIELD_RANGES, type MoverData } from './movers';
-import { moverQueries, type MoverRuntime } from './moverRuntime';
+import { moverQueries, type MoverRuntime } from "../plugin/mover";
 
 const finite = v.pipe(v.number(), v.finite());
 const entity = v.strictObject({ id: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), name: v.pipe(v.string(), v.maxLength(128)),

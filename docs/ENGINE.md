@@ -2658,3 +2658,28 @@ seeds the generated ratchet from its clean tree; builders do not edit counts.
 `node scripts/game-plugins.mjs --report --json` exposes the current diagnostics.
 Root enforcement follows consumer migration; existing layer and sandbox guards
 remain active throughout.
+
+
+### Existing runtime definitions under plugin modules
+
+The following modules contain the existing implementations; there is no facade
+or parallel registration service. Their old export keys temporarily point to the
+same files while runtime consumers and sealed legacy copies migrate.
+
+| Public definition | Existing API |
+|---|---|
+| `plugin/context` | `ShardContext`, `shardContext`, `ShardPlugin` |
+| `plugin/lifecycle` | retained context and entered-service/input lifetime hooks |
+| `plugin/headless` | runtime row bindings for quests, items, ledger, state and spawns |
+| `plugin/brain` | `SpeciesBrains` and the shared home/brain installers |
+| `plugin/bossPhase` | declared boss phase runtime and trusted observations |
+| `plugin/mover` | `MoverRuntime` and declared mover host installation |
+| `plugin/director` | `DirectorInstallation`, `installDeclaredDirector` |
+| `plugin/ui` | entered quest and input presentation |
+| `plugin/clientScript` | `ClientScriptViews` over detached script frames |
+
+All internal game callers use relative imports. Source relocation preserves
+implementations, constructor identity and installed behaviour; plugin paths do
+not introduce new gameplay APIs. Weapon-family, mode, audio and raw-look surfaces
+still need consolidation. The final ≤20 export gate remains open until old
+schema/app and runtime consumers can retire their aliases.

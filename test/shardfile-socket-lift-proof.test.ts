@@ -8,7 +8,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { Physics } from '../src/engine/physics/Physics';
 import { Scope } from '../src/engine/app/scope';
 import { groups } from '../src/engine/physics/groups';
-import { MoverRuntime, createMoverHost } from '../src/game/shardfile/moverRuntime';
+import { MoverRuntime, createMoverHost } from "../src/game/plugin/mover";
 import { parseMovers } from '../src/game/shardfile/movers';
 import { parseSocketLift, type SocketLiftEntry } from '../src/game/shardfile/socketLift';
 import { proveSocketLift } from '../src/game/shardfile/socketLiftProof';

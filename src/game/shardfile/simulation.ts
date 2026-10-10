@@ -26,7 +26,7 @@ import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from './sc
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from './groupRuntime';
 import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from './crowdRuntime';
 import { MoverScriptDriver } from './moverDriver';
-import { MoverRuntime } from './moverRuntime';
+import { MoverRuntime } from "../plugin/mover";
 import { socketLiftEntries } from './socketLift';
 import { portalLinkEntries, portalLinkRules } from './portalLink';
 import { validatePortalFloors } from './portalFloor';

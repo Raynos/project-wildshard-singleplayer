@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { clipHitReached } from '../combat/clipTiming';
-import type { RoamingBossBody, RoamingBossRow, RoamingBossPorts, RoamingBossLane, RoamingBossHazard, RoamingBossState, RoamingBossFight } from './phasedBoss';
+import type { RoamingBossBody, RoamingBossRow, RoamingBossPorts, RoamingBossLane, RoamingBossHazard, RoamingBossState, RoamingBossFight } from "../plugin/bossPhase";
 
 const headingTo = (ax: number,az: number,bx: number,bz: number): number => Math.atan2(bx-ax,bz-az);
 const clamp01 = (v: number): number => Math.min(1,Math.max(0,v));

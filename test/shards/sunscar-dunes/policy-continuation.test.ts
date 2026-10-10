@@ -11,7 +11,7 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { canReach } from '../../../src/engine/ai/reach';
 import { speciesBrains } from '../../../src/sdk/speciesBrains';
-import type { HomeObservation, SpeciesPolicy } from '../../../src/game/shardfile/speciesBrains';
+import type { HomeObservation, SpeciesPolicy } from "../../../src/game/plugin/brain";
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../../../src/shards/sunscar-dunes/data/brains';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { SIM_LEVEL } from '../../fixtures/sim-level/level';

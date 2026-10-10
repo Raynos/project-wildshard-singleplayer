@@ -1,6 +1,6 @@
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { WeaponHooks } from '../systems/items/weaponHooks';
-import { directorVariant } from './directorClient';
+import { directorVariant } from "../plugin/director";
 import { createWeaponHookLane, parseWeaponHooks, type WeaponHookLane } from './weaponHooks';
 
 /** A weapon that takes hooks: the family's `hooks` slot (null = its row rule). */

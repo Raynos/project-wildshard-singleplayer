@@ -9,7 +9,7 @@ import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { SIM_LEVEL } from '../../fixtures/sim-level/level';
 import { SkittererBrain } from '../../fixtures/species-oracle/skitterer';
 import { speciesBrains } from '../../../src/sdk/speciesBrains';
-import type { HomeObservation, SpeciesPolicy } from '../../../src/game/shardfile/speciesBrains';
+import type { HomeObservation, SpeciesPolicy } from "../../../src/game/plugin/brain";
 import { sha256, moduleBytes } from '../../../src/game/shardfile/speciesScripts';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES, SKITTERER_BRAIN } from '../../../src/shards/sunscar-dunes/data/brains';
 import skitterer from '../../../src/shards/sunscar-dunes/behaviour/skitterer.json' with { type: 'json' };

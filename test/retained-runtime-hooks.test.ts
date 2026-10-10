@@ -5,7 +5,7 @@ import { createLevelInstallation } from '../src/engine/level/installation';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { withOwner } from '../src/engine/app/ownership';
 import { shardContext } from "../src/game/plugin/context";
-import { installEnteredRuntimeService, RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
+import { installEnteredRuntimeService, RetainedRuntimeHooks } from "../src/game/plugin/lifecycle";
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
 import { emptyShardfile } from '../src/sdk/author';
 

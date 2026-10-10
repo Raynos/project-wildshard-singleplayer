@@ -4,7 +4,7 @@ import { decodeTerrainTile, type TerrainTileData } from '@wildshard/engine/world
 import type { ResidencyAllocator } from '../grid/allocator';
 import type { ClientAssets } from './clientAssets';
 import { clientGround } from './clientGround';
-import { runtimeBinds } from './hybridRows';
+import { runtimeBinds } from "../plugin/headless";
 import type { Shardfile } from './schema';
 import { clientWorld, type ClientWorldViews } from './clientWorld';
 

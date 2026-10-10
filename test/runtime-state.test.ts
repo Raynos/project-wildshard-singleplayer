@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { SaveStore } from '../src/engine/saves/store';
 import { App } from '../src/engine/app/app';
-import { bindRuntimeState, withoutRuntimeRows } from '../src/game/shardfile/hybridRows';
+import { bindRuntimeState, withoutRuntimeRows } from "../src/game/plugin/headless";
 import { installRuntimeState } from '../src/game/shardfile/runtimeState';
 import { parseShardfile } from '../src/game/shardfile/schema';
 import { emptyShardfile } from '../src/sdk/author';

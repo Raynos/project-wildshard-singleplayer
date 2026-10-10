@@ -2,9 +2,9 @@ import { Scene, type Vector3 } from 'three';
 import type { QuestState } from '@wildshard/engine/quest/core';
 import { CoinBurst } from '../loot/CoinBurst';
 import type { ShardContext } from "../plugin/context";
-import { retainsRuntimeServices } from '../shard/retainedHooks';
-import type { RuntimeCoins } from '../shardfile/hybridRows';
-import { installEnteredQuestPresentation, installQuestPresentation, type QuestPresentation, type QuestPresentationOptions } from './presentation';
+import { retainsRuntimeServices } from "../plugin/lifecycle";
+import type { RuntimeCoins } from "../plugin/headless";
+import { installEnteredQuestPresentation, installQuestPresentation, type QuestPresentation, type QuestPresentationOptions } from "../plugin/ui";
 import type { QuestRewardSpec } from './reward';
 
 /** A quest's coin reward: the burst that flies the coins to the player and `pay`, which pays once per save. */

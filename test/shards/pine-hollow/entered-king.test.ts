@@ -4,7 +4,7 @@ import { BufferGeometry, Group, MeshBasicMaterial, PerspectiveCamera, Scene, typ
 import { App } from '../../../src/engine/app/app';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import { shardContext } from "../../../src/game/plugin/context";
-import { installEnteredRuntimeService, RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
+import { installEnteredRuntimeService, RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
 import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { installPineCombatObservers } from '../../../src/shards/pine-hollow/runtime/combatService';

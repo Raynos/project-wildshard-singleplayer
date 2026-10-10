@@ -11,7 +11,7 @@ import { Scope } from '../src/engine/app/scope';
 import { groups } from '../src/engine/physics/groups';
 import { tagCollider } from '../src/engine/physics/surface';
 import { installDeclaredPropColliders } from '../src/engine/physics/declaredProps';
-import { MoverRuntime, createMoverHost } from '../src/game/shardfile/moverRuntime';
+import { MoverRuntime, createMoverHost } from "../src/game/plugin/mover";
 import { parseMovers } from '../src/game/shardfile/movers';
 import { PropsSchema, propColliderDescriptors } from '../src/game/shardfile/props';
 import { parseSocketLift, type SocketLiftEntry } from '../src/game/shardfile/socketLift';

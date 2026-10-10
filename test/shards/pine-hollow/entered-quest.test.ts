@@ -7,7 +7,7 @@ import { DialogueBox, RewardCaption, ObjectiveLine } from '../../../src/engine/q
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { ShopPanel } from '../../../src/game/loot/ui/ShopPanel';
 import { shardContext } from "../../../src/game/plugin/context";
-import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
+import { RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
 import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { newBoard } from '../../../src/shards/pine-hollow/quest/contracts';

@@ -1,4 +1,4 @@
-import { admitSpeciesBrains } from '../../src/game/shardfile/speciesBrains';
+import { admitSpeciesBrains } from "../../src/game/plugin/brain";
 import { afterAll, describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { PerchHunterBrain } from '../../src/engine/ai/perchHunter';

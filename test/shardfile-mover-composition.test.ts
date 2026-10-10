@@ -7,7 +7,7 @@ import { compileScript } from '../scripts/compile-script.mjs';
 import { createShardfileComposedLane } from '../src/game/shardfile/scriptComposition';
 import { MoverScriptDriver } from '../src/game/shardfile/moverDriver';
 import { parseMovers } from '../src/game/shardfile/movers';
-import { MoverRuntime } from '../src/game/shardfile/moverRuntime';
+import { MoverRuntime } from "../src/game/plugin/mover";
 import { Scope } from '../src/engine/app/scope';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';

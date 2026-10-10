@@ -15,7 +15,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { createShardfileClientScripts, type ClientScriptTarget } from '../shardfile/clientScripts';
 import { loadClientSkins, SkinDriver, type ClientSkin } from '../shardfile/clientSkins';
-import { ClientScriptViews, type ClientScriptViewTarget, type ClientScriptViewState } from '../shardfile/clientScriptViews';
+import { ClientScriptViews, type ClientScriptViewTarget, type ClientScriptViewState } from "../plugin/clientScript";
 import type { ShardfileSimulation } from '../shardfile/simulation';
 import type { Shardfile } from '../shardfile/schema';
 import type { GridCell } from './assembly';

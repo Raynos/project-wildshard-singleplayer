@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { createShardfileSim } from '../../../src/game/shardfile/simulation';
-import { withoutRuntimeRows } from '../../../src/game/shardfile/hybridRows';
+import { withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import { proveShardfileEntries } from '../../../src/game/shardfile/socketLiftProof';
 import { validateShardfileAssets } from '../../../src/game/shardfile/validate';
 import { contentHash } from '../../../src/sdk/project';

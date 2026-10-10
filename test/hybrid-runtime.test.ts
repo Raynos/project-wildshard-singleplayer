@@ -11,7 +11,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { RuntimeSchema, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../src/game/shardfile/runtime';
 import { HybridResidentWorld, HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident, type HybridRuntimeOptions } from '../src/game/shardfile/hybrid';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
-import { installEnteredRuntimeInput, installEnteredRuntimeService } from '../src/game/shard/retainedHooks';
+import { installEnteredRuntimeInput, installEnteredRuntimeService } from "../src/game/plugin/lifecycle";
 import { installDeclaredItems } from '../src/game/shardfile/items';
 import nalatiSource from '../src/shards/nalati-grasslands/shard.config';
 import skySource from '../src/shards/far-reach/shard.config';

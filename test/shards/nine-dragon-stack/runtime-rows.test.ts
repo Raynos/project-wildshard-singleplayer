@@ -7,7 +7,7 @@ import type { GameServices, ShardContext } from "../../../src/game/plugin/contex
 import { installDeclaredItems, type DeclaredItemPorts } from '../../../src/game/shardfile/items';
 import { declaredKitItemFamilies } from '../../../src/game/systems/items/declared';
 import type { ItemFamilyPorts } from '../../../src/engine/combat/itemFamilies';
-import { withoutRuntimeRows } from '../../../src/game/shardfile/hybridRows';
+import { withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import manifest from '../../../src/shards/nine-dragon-stack/manifest';
 import { JIAN_ROW } from '../../../src/shards/nine-dragon-stack/vm/jianRow';

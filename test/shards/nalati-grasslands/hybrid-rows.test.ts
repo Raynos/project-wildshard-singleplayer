@@ -3,7 +3,7 @@ import { App } from '../../../src/engine/app/app';
 import { Weapon } from '../../../src/engine/combat/Weapon';
 import { TabRegistry } from '../../../src/engine/ui/tabs';
 import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
-import { withoutRuntimeRows } from '../../../src/game/shardfile/hybridRows';
+import { withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import manifest from '../../../src/shards/nalati-grasslands/manifest';
 import { NALATI_QUESTS } from '../../../src/shards/nalati-grasslands/quest';

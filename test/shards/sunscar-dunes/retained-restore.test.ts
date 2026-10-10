@@ -16,7 +16,7 @@ import { SaveStore } from '../../../src/engine/saves/store';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { regionalRuntimeCheckpoint } from '../../../src/game/grid/runtimeCheckpoint';
 import { shardContext } from "../../../src/game/plugin/context";
-import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
+import { RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
 import type { ShardRuntime, ShardPlayHost } from '../../../src/game/shard/runtime';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { SUNSCAR_DUNES } from '../../../src/shards/sunscar-dunes/manifest';

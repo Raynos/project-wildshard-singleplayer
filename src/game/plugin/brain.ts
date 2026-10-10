@@ -15,13 +15,13 @@ import { canReach } from '@wildshard/engine/ai/reach';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
-import { parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGrazer } from './grazers';
-import { parsePatrolDiver, type PatrolDiverSchema, type ShardPatrolDiver } from './flyers';
-import { parsePhasedFlyer, type PhasedFlyerSchema, type ShardPhasedFlyer } from './phasedFlyers';
-import { parseScriptSpecies, ScriptSpeciesPolicy, SpeciesScriptLane, type ScriptSpeciesData, type ScriptSpeciesSchema } from './speciesScripts';
-import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, type KeptHomeRow } from './homeKeeper';
+import { parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGrazer } from "../shardfile/grazers";
+import { parsePatrolDiver, type PatrolDiverSchema, type ShardPatrolDiver } from "../shardfile/flyers";
+import { parsePhasedFlyer, type PhasedFlyerSchema, type ShardPhasedFlyer } from "../shardfile/phasedFlyers";
+import { parseScriptSpecies, ScriptSpeciesPolicy, SpeciesScriptLane, type ScriptSpeciesData, type ScriptSpeciesSchema } from "../shardfile/speciesScripts";
+import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, type KeptHomeRow } from "../shardfile/homeKeeper";
 import { parseSkirmisher, parseGuardian, parsePerchHunter, type SkirmisherSchema, type GuardianSchema, type PerchHunterSchema,
-  type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from './brains';
+  type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from "../shardfile/brains";
 
 /**
  * A species row's declared brain (SHARD-PLATFORM SF27): a platform archetype and its data, resolved the same way by the

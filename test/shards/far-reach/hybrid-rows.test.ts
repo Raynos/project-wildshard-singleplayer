@@ -4,7 +4,7 @@ import { Scope } from '../../../src/engine/app/scope';
 import { withOwner } from '../../../src/engine/app/ownership';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { Progress } from '../../../src/game/Progress';
-import { bindRuntimeQuest, withoutRuntimeRows } from '../../../src/game/shardfile/hybridRows';
+import { bindRuntimeQuest, withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import { parseShardfile } from '../../../src/game/shardfile/schema';
 import { bossesSave, inventorySave, ownedSave, progressSave, purseSave } from '../../../src/game/saves';
 import source from '../../../src/shards/far-reach/shard.config';

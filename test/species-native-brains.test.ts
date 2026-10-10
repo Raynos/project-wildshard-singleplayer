@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it, vi } from 'vitest';
-import { admitSpeciesBrains } from '../src/game/shardfile/speciesBrains';
+import { admitSpeciesBrains } from "../src/game/plugin/brain";
 import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../src/shards/driftwood-isle/data/brains';
 import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { creature } from './fake/creature';

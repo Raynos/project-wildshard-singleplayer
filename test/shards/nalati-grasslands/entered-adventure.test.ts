@@ -6,7 +6,7 @@ import { withOwner } from '../../../src/engine/app/ownership';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import { QuestChip } from '../../../src/engine/quest/view';
 import { RewardCaption } from '../../../src/engine/quest/view/ui';
-import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
+import { RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
 import { shardContext } from "../../../src/game/plugin/context";
 import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../../src/sdk/author';

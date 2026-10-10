@@ -8,7 +8,7 @@ import { Scope } from '../../../src/engine/app/scope';
 import { buildTerrain } from '../../../src/engine/world/terrainField';
 import { ClientAssets } from '../../../src/game/shardfile/clientAssets';
 import { clientViews } from '../../../src/game/shardfile/clientViews';
-import { runtimeBoundWorldFiles, withoutRuntimeRows } from '../../../src/game/shardfile/hybridRows';
+import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import { bindRuntimeTerrain } from '../../../src/game/shardfile/runtimeWorld';
 import { parseShardfile } from '../../../src/game/shardfile/schema';
 import { signalDunesTiles } from '../../../src/shards/sunscar-dunes/generators/tiles';

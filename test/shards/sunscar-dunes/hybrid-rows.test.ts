@@ -5,7 +5,7 @@ import { TabRegistry } from '../../../src/engine/ui/tabs';
 import type { ItemFamily } from '../../../src/engine/combat/itemFamilies';
 import type { GameServices } from "../../../src/game/plugin/context";
 import { Ledger } from '../../../src/game/ledger';
-import { bindRuntimeCoins, runtimeSpawnRows, bindRuntimeItems, bindRuntimeLedger, bindRuntimeQuest, withoutRuntimeRows } from '../../../src/game/shardfile/hybridRows';
+import { bindRuntimeCoins, runtimeSpawnRows, bindRuntimeItems, bindRuntimeLedger, bindRuntimeQuest, withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import { purseSave, shardSave } from '../../../src/game/saves';
 import { RESPAWN } from '../../../src/shards/sunscar-dunes/data/spawns';
 import { parseShardfile } from '../../../src/game/shardfile/schema';

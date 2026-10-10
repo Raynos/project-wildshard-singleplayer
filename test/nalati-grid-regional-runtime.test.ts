@@ -28,7 +28,7 @@ import { NALATI_GRASSLANDS } from '../src/shards/nalati-grasslands/manifest';
 import source from '../src/shards/nalati-grasslands/shard.config';
 import RuntimePlugin from '../src/shards/nalati-grasslands/runtime/index';
 import { HybridRuntimeSession } from '../src/game/shardfile/hybrid';
-import { installEnteredRuntimeService } from '../src/game/shard/retainedHooks';
+import { installEnteredRuntimeService } from "../src/game/plugin/lifecycle";
 import { bindEnteredEnvironment } from '../src/shards/nalati-grasslands/runtime/enteredEnvironment';
 import { wildEnv } from '../src/shards/nalati-grasslands/creatures/env';
 import { fakeWorld } from './fake/world';

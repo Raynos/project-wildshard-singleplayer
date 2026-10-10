@@ -1,4 +1,4 @@
-import { createRoamingBossFight } from './phasedBossRoaming';
+import { createRoamingBossFight } from "../shardfile/phasedBossRoaming";
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { MathUtils, Vector3 } from 'three';
 
@@ -805,6 +805,7 @@ export interface RoamingBossFight<B extends RoamingBossBody,L,R> extends BossScr
 export function phasedBossFight<B extends RoamingBossBody,L,R,K extends string,A extends string,Q extends string>(row: RoamingBossRow<K,A,Q>,ports: RoamingBossPorts<B,L,R,K,A,Q>): RoamingBossFight<B,L,R>;
 /** Run the original fixed-arena policy; its arithmetic and ordered view effects are unchanged. */
 export function phasedBossFight<B extends PhasedBossBody>(row: PhasedBossRow,ports: PhasedBossPorts<B>): PhasedBossFight<B>;
+/** Select the admitted fixed or roaming policy, refusing mismatched host ports. */
 export function phasedBossFight<B extends PhasedBossBody,C extends RoamingBossBody,L,R,K extends string,A extends string,Q extends string>(row: PhasedBossRow|RoamingBossRow<K,A,Q>,ports: PhasedBossPorts<B>|RoamingBossPorts<C,L,R,K,A,Q>): PhasedBossFight<B>|RoamingBossFight<C,L,R> {
   if ('kind' in row && 'random' in ports) return createRoamingBossFight(row,ports);
   if ('kind' in row || 'random' in ports) throw new Error('Phased boss row/host policy mismatch');

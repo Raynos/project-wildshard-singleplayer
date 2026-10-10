@@ -9,7 +9,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { KinematicMover, type MoverPose } from '@wildshard/engine/physics/mover';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
-import { MOVER_FIELDS, MOVER_FIELD_RANGES, moverScriptEntities, parseMovers, type MoverData } from './movers';
+import { MOVER_FIELDS, MOVER_FIELD_RANGES, moverScriptEntities, parseMovers, type MoverData } from "../shardfile/movers";
 
 /** Transitional standalone composition; a full session injects its existing host and merges entities/rules/queries instead. */
 export async function createMoverHost(data: MoverData, assets: ReadonlyMap<string, Uint8Array>, physicsQueries: ScriptQuery): Promise<ScriptHost> {

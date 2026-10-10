@@ -23,7 +23,7 @@ import type { LiveGridRegion } from './live';
 import type { GridLoadout } from './wallet';
 import { runtimeAccountedBytes, type RuntimeCost } from './runtimeCost';
 import { createRegionalView, type RegionalView } from './regionalView';
-import { installEnteredRuntimeService } from '../shard/retainedHooks';
+import { installEnteredRuntimeService } from "../plugin/lifecycle";
 import { Progress } from '../Progress';
 import { Inventory } from '../Inventory';
 import { Owned } from '../loot/Owned';

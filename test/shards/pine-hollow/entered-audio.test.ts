@@ -5,7 +5,7 @@ import { withOwner } from '../../../src/engine/app/ownership';
 import { Audio } from '../../../src/engine/audio/Audio';
 import { Music } from '../../../src/engine/audio/Music';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
-import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
+import { RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
 import { shardContext } from "../../../src/game/plugin/context";
 import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../../src/sdk/author';

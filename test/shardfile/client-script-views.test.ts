@@ -9,7 +9,7 @@ import { createSimHost } from '../../src/engine/sim';
 import { snapshotSimHost } from '../../src/engine/sim/snapshot';
 import { loadRapier } from '../../src/engine/physics/rapier';
 import { Scope } from '../../src/engine/app/scope';
-import { ClientScriptViews, type ClientScriptViewTarget } from '../../src/game/shardfile/clientScriptViews';
+import { ClientScriptViews, type ClientScriptViewTarget } from "../../src/game/plugin/clientScript";
 import { CLIENT_IDLE_HASH, TEMPLATE_CLIENT_SCRIPTS } from '../../src/shards/_template/data/clientScripts';
 import { compileScript } from '../../scripts/compile-script.mjs';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';

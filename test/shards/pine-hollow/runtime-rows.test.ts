@@ -7,7 +7,7 @@ import { QuestState } from '../../../src/engine/quest/core';
 import { Progress } from '../../../src/game/Progress';
 import { Ledger, LedgerEmitter } from '../../../src/game/ledger';
 import { SaveStore } from '../../../src/engine/saves/store';
-import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState, withoutRuntimeRows } from '../../../src/game/shardfile/hybridRows';
+import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState, withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import source from '../../../src/shards/pine-hollow/shard.config';
 import { PINE_FEATS } from '../../../src/shards/pine-hollow/feats';
 import { WARDENS_HOLLOW, QUEST_EXTERNAL, QUEST_DONE } from '../../../src/shards/pine-hollow/quest/wardensHollow';

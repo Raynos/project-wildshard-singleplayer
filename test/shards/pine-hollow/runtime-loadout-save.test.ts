@@ -14,7 +14,7 @@ import type { Owned } from '../../../src/game/loot/Owned';
 import type { Bow } from '../../../src/game/weapons/Bow';
 import type { LeverRifleWeapon } from '../../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import type { CrossbowWeapon } from '../../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
-import { bindRuntimeState } from '../../../src/game/shardfile/hybridRows';
+import { bindRuntimeState } from "../../../src/game/plugin/headless";
 import source from '../../../src/shards/pine-hollow/shard.config';
 import { installPineLoadout } from '../../../src/shards/pine-hollow/loadout/loadout';
 import { LEVER, LONGBOW } from '../../../src/shards/pine-hollow/weapons/equipment';

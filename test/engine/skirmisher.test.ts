@@ -1,4 +1,4 @@
-import { admitSpeciesBrains } from '../../src/game/shardfile/speciesBrains';
+import { admitSpeciesBrains } from "../../src/game/plugin/brain";
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the committed physics binary without a Vite wasm closure dependency.
 import { readFile } from 'node:fs/promises';
