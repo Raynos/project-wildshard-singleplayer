@@ -1,80 +1,77 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-10 03:40 CT.** Councils done. Part A only.
+**2026-10-10 05:55 CT.** Councils done. Part A only.
 
 **Milestones**
 - **M1:** done.
-- **M2:** SF22 desktop PASS (`63636a567`). Since then:
-  - Pine departure is 14.9 ms.
-  - Pine and Nalati compile 0 shaders in the first second; Signal's first draw is closed.
-  - The boot first-live task fell from 394 to 69 ms.
-  - Open: a GL 1281 on the Signal→Driftwood return crossing (sp-x5 is on it) and the 50 ms preparation budget.
-  - The memory verdict is Jake's G269.
-- **M3:** open. 1 of 7 shipping shards at 80/20.
+- **M2:**
+  - **SF22 desktop:** PASS on a quiet machine (`d393dc95b`, 5ee864810). 6/6 crossings, max 30.1 ms, 0 GL faults (GL1281 fixed), 0 draw compiles.
+  - **SF22 Safari:** install PASS; cadence FAIL (p95 47, 46 draw compiles; sp-x5).
+  - **Memory:** G269.
+- **M3:** open. Pine, Driftwood and Nalati runtime still exceeds the 20 % cap.
 
-**Live:** production **`f39297f`** (08:35 UTC). The boot smoke had been red on the fixture cells' missing far proxies; fixed in `10117685c`.
+**Live:** production `7f51e883a`.
 
-**80/20 shares:**
+**Shares (80/20)**
 
 | Shard | Share |
 |---|---|
-| Template | 90.4 % |
-| Nine | 67.3 % |
-| Signal | 45.2 % |
-| Sky | 40.0 % |
-| Pine | 22.9 % |
-| Driftwood | 18.3 % |
-| Nalati | 13.8 % |
+| Template | 95.5 % |
+| Fixtures | 95.7 % |
+| Nine | 70.4 % |
+| Signal | 59.3 % |
+| Sky | 45.8 % |
+| Pine | 24.3 % |
+| Driftwood | 19.1 % |
+| Nalati | 14.1 % |
 
-The fixture shards are at about 89 %.
+The metric now counts local `.json` imports (`64559e6b1`).
 
-**Long pole:** gameplay. SF27 brains is piloting on Signal (op-sf27a). Its scoping is in op-signal83's report:
-1. species-row brains;
-2. an AS creature host;
-3. boss / summon rows;
-4. lash targets;
-5. a declarative headless manifest;
-6. quest actions.
+**Lanes (Jake G289: 2 Opus + 5 Codex)**
 
-**Rows**
-- **SF36:** done.
-- **SF59:** done (fixture shards pastel-plain / ink-cel-valley pass the graphs-on floors).
-- **SF34:** engine done, shard wiring landed (Nalati / Driftwood water).
-- **SF63:** parity fixed; the point-light program variants are an open trade.
-- **SF22:** see M2.
+Opus: five live, finishing naturally with no refill until two remain. The two kept slots do graphics/UI only.
 
-**Lanes**
-- **Codex:**
-  - sp-x1 Nalati
-  - sp-x2 Pine
-  - sp-x4 Driftwood
-  - sp-x5 SF22
-  - sp-x6 Driftwood bakes
-- **Opus:**
-  - op-sf27a SF27
-  - op-nine15 Nine
-  - op-pine89 Pine
-  - op-drift86 Driftwood models
+| Lane | Work |
+|---|---|
+| op-sf27d | boss-fight system / Golden King |
+| op-sky87 | war fan family + flock homes |
+| op-nine17 | Nine view |
+| op-pine92 | Pine elites + herd brains |
+| op-signal84 | Signal onto the shardfile client |
 
-**Rules learned tonight** (all in the lane brief):
-- harnesses use the capture clock;
-- `SERVE_OWNER`;
-- the model-contract allowance includes legacy-copy paths;
-- shared physics inputs mean rebaking every stale shard;
-- doc every export;
-- bit-exact bake gates run on darwin only;
-- never touch the shared index.
+Codex, each queued three deep:
 
-**Decisions (coordinator)**
-- Two measurement rulings for SF22: cadence within one 0.1 ms quantum, and warm-up compiles ≤ 50 ms tasks don't count.
-- Nalati dressing-plan bake refused; places bake accepted.
-- Kurgan interior bake declined (2 MB for 217 ms).
-- Weapon hooks share the "Shard directors (data)" row.
+| Lane | Queue |
+|---|---|
+| sp-x1 | Nalati elites → species / AS brains · Nalati witness → compatible · SF24 Nalati events |
+| sp-x2 | Pine quests → quest runtime · SF24 Pine events · Antler King → the boss system |
+| sp-x4 | Driftwood creatures → species brains · Driftwood quests · SF24 Driftwood finale |
+| sp-x5 | SF22 Safari cadence · SF75 telemetry · SF58 hardening |
+| sp-x6 | Driftwood bakes (cost-gated) · SF30 movers (winch, bridges, boat) · SF34 template modes + headless traversal |
+
+sp-x3 is an idle retired pane with no work assigned.
+
+**Platform systems shipped tonight (SF27, for every shard)**
+- species-row brains;
+- AS script brains;
+- phased-flyer / phased-raptor;
+- marked and held boss fights;
+- lash host;
+- quest runtime and pivot NPC;
+- marked-boss presentation;
+- rows-built headless runtime.
+
+**Rows:** SF36 done · SF59 done · SF34 engine done · SF63 parity done · SF22 desktop PASS.
+
+**Decisions:**
+- Bakes are cost-gated (shrine / shipwreck refused, Nalati dressing plan refused, kurgan interior refused).
+- SF22 cadence counts within one 0.1 ms quantum; warm-up compiles count only if their task exceeds 50 ms.
 
 **Jake**
-- **SF67:** AudioContext on first tap? Pick.
-- **SF63:** Driftwood grid shadows "Tight" (+25 MB, board `art/sf63/round-1-driftwood-shadows/board-ab.jpg`). Pick.
-- **Sky's isles:** random per session; baking them unblocks Sky's biggest bake. Pick.
-- **SF59 fixture looks (taste):** pastel reads grey; ink shade 0.35.
-- G269 phone runs; G260 Blender board.
+- **SF67:** create the AudioContext on first tap? Pick.
+- **SF63:** Driftwood grid shadows "Tight", +25 MB. Pick.
+- **Sky isles:** random per session; baking unblocks Sky's biggest bake. Pick.
+- **SF59:** fixture looks (taste).
+- **G269:** phone runs.
+- **G260:** Blender board.
 - **Public Pine / Nalati:** flip them off the legacy copies.
