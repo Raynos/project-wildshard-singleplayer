@@ -915,6 +915,14 @@ sphere strike; the burst contact shove is an authorized host operation. Decision
 default to six ticks, policy action and body work run once per fixed step, and
 mutable flight/policy/strike state restores without observations or RNG draws.
 
+A trusted runtime's species rows may carry `brain: { archetype, data }` (SF27,
+`@wildshard/sdk/speciesBrains`): `challenge-grazer` (plus integer `phaseSlots` 1–64)
+or `patrol-diver`, its data the same strict schema as the `creatures.brains` family.
+`speciesBrains(species, strikes)` admits the catalogue before any row or policy is built
+(unknown archetype, failed schema or unresolved strike refuses); the client spreads
+`bind(kind)` onto the row and the headless host calls `installSpeciesHomes`, so one
+declaration drives both. Rows without a brain keep their runtime policy.
+
 Custom policies and numeric state share one module union and one host: memory,
 fuel, queries, effects, events and quarantine are charged once per fixed tick,
 with independent binding cadences. Brain effects request bounded motion and

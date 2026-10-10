@@ -2245,6 +2245,19 @@ admitted snapshot after every call, so a hook is pure and carries no continuatio
 
 `@wildshard/engine/ai/strikeRows` binds admitted `StrikeData` to the existing `StrikeRunner`. Scores are data (`constant` or `horizontal-distance` with a strict `above` boundary), evaluated without RNG, rendering or actor memory; `range: null` explicitly preserves an unlimited native contact range. `@wildshard/sdk/species` validates these rows and gameplay-only species data before native registration. Brain callbacks and view recipes stay with the trusted runtime.
 
+**Species brains (SF27).** `@wildshard/game/shardfile/speciesBrains` (SDK `@wildshard/sdk/speciesBrains`) puts a
+platform brain on a species row: `brain: { archetype, data }`, today `challenge-grazer` (with `phaseSlots`: the actor
+seed's slot in `[0, phaseSlots)` is its circling phase, `seedSlot`) or `patrol-diver`, its data the archetype's strict
+schema (`shardfile/grazers`, `shardfile/flyers`). `speciesBrains(species, strikes)` admits a catalogue: each strike row
+passes the SDK strike schema, each brain its schema, and every strike a brain names resolves, before any row or policy
+exists. The browser spreads `brains.bind(kind)` onto the species row (`think` / `act` bound to one policy per animal;
+`brains.witness(animal)` names the archetype it runs); the headless host calls `installSpeciesHomes(host, spec)`,
+the platform home keeper (`installHomeKeeper`) whose bodies take their species' brain, or the runtime's `custom` policy
+for a kind with none (a unique boss), all observing through one reused `HomeObservation` per body; contacts file through
+the host's combat pipeline inside the 70° strike arc with a clear line (`creature.<kind>`, `feel.blow`, `cover.checked`,
+the move `contactMove(kind)`). Both sides build the same engine brain from the same admitted data, so a row behaves the
+same in the client and the headless host. Signal Dunes' ray and strider are the first (`data/brains.ts` SIGNAL_SPECIES).
+
 
 ### Exported creature skins and clips
 

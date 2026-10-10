@@ -1,5 +1,8 @@
 import { standaloneEntry } from './runtime/standalone';
-import { declaredDuneRows } from './runtime/brains';
+import { speciesBrains, type SpeciesBrains } from '@wildshard/sdk/speciesBrains';
+import { SIGNAL_SPECIES, SIGNAL_STRIKES } from './data/brains';
+import { DUNE_RAY } from './data/species/duneRay';
+import { DUNE_STRIDER } from './data/species/strider';
 import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
@@ -18,7 +21,6 @@ import { lastLightAll } from './look/light';
 import { setDusk, stepDusk } from './look/dusk';
 import { preloadDuneMeshes } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
-import { DUNE_RAY } from './data/species/duneRay';
 import { DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
 import { WHIP_ROW, whipIcon } from './weapons/rows';
@@ -28,7 +30,6 @@ import { FLAG, SCOUT_FLAG } from './data/flags';
 import { installSunscarCues } from './runtime/audio/cues';
 import { installCreatures } from './combat/creatures';
 import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from './species/skitterer';
-import { DUNE_STRIDER } from './data/species/strider';
 import { DUNE_STRIDER_LOOK } from './species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from './species/matriarch';
 import { installMatriarch, type DuneMatriarch } from './combat/matriarch';
@@ -84,16 +85,16 @@ export class SignalDunesPlugin extends ShardPlugin {
     // G99: in a grid cell nothing draws past the cube (the dune skirt stops at its edge; the platform drops the ranges)
     if (ctx.cube !== null) SKIRT.fit(ctx.cube.half);
   }
-  private brainPolicies: ReturnType<typeof declaredDuneRows> | null = null;
+  private brains: SpeciesBrains | null = null;
   /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */
   brainWitness(): { id: string; kind: string; family: string | null }[] {
-    return (this.creatures?.all() ?? []).filter(actor => actor.kind === 'duneRay' || actor.kind === 'duneStrider').map(actor => ({ id: actor.entityId, kind: actor.kind, family: this.brainPolicies?.witness(actor) ?? null }));
+    return (this.creatures?.all() ?? []).filter(actor => actor.kind === 'duneRay' || actor.kind === 'duneStrider').map(actor => ({ id: actor.entityId, kind: actor.kind, family: this.brains?.witness(actor) ?? null }));
   }
   override kit(ctx: ShardContext): void {
     ctx.rows.weapon(WHIP_ROW);
-    this.brainPolicies = declaredDuneRows();
-    ctx.rows.species([{ ...DUNE_RAY, ...this.brainPolicies.rows[0] }, SAND_SKITTERER,
-      { ...DUNE_STRIDER, ...this.brainPolicies.rows[2] }, DUNE_MATRIARCH]); ctx.rows.speciesLook([DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK]);
+    // SF27: the ray and the strider run their rows' declared brains; the skitterer and the Matriarch their runtime policies
+    const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES); this.brains = brains;
+    ctx.rows.species([{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, SAND_SKITTERER, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, DUNE_MATRIARCH]); ctx.rows.speciesLook([DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK]);
     ctx.rows.encounter([{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }]);
     const rt = ctx.game.runtime;
     // SF50-p / M3: the whip is its shardfile's declared item row; the platform installs it, resolving this runtime's own family.

@@ -3,7 +3,8 @@ import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { registerSpecies, type ThinkCtx } from '../../src/engine/entities/species/registry';
 import { speciesWithLook } from '../../src/engine/entities/species/look';
 import { declaredSkyRows } from '../../src/shards/far-reach/runtime/brains';
-import { declaredDuneRows } from '../../src/shards/sunscar-dunes/runtime/brains';
+import { speciesBrains } from '../../src/sdk/speciesBrains';
+import { SIGNAL_SPECIES, SIGNAL_STRIKES } from '../../src/shards/sunscar-dunes/data/brains';
 import { SKY_GOAT, SKY_GOAT_LOOK } from '../../src/shards/far-reach/species/skyGoat';
 import { DRIFT_RAY, DRIFT_RAY_LOOK } from '../../src/shards/far-reach/species/driftRay';
 import { GALE_WISP, GALE_WISP_LOOK } from '../../src/shards/far-reach/species/galeWisp';
@@ -19,11 +20,17 @@ import { DriftRayBrain } from '../fixtures/flight-oracle/orbit';
 import { GaleWispBrain } from '../fixtures/flight-oracle/burst';
 import { DuneRayBrain } from '../fixtures/flight-oracle/patrol';
 import type { Animal } from '../../src/engine/entities/AnimalView';
+import type { SpeciesRow } from '../../src/engine/ai/species';
 import { DECK, RAY_HOMES } from '../../src/shards/far-reach/data/layout';
 import { STORM_ROC } from '../../src/shards/far-reach/species/stormRoc';
 import { SAND_SKITTERER } from '../../src/shards/sunscar-dunes/species/skitterer';
 import { DUNE_MATRIARCH } from '../../src/shards/sunscar-dunes/species/matriarch';
 
+/** Signal's browser rows as plugin.ts registers them (SF27): the rows' declared brains, the runtime's skitterer and Matriarch. */
+function declaredDuneRows(): { rows: SpeciesRow[]; witness: (actor: Animal) => string | null } {
+  const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES);
+  return { rows: [{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, SAND_SKITTERER, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, DUNE_MATRIARCH], witness: brains.witness };
+}
 // SF72: a lane strike with no `motion` is swept and ends at its `active` window (the Roc's gale wall); the captured goat's
 // RAM ran as a charge, which the shipping RAM now declares (`motion: {}`). The source-hashed fixture keeps its bytes, so
 // the capture's RAM gets the same declaration here (test/shards/far-reach/goat-ram-oracle.test.ts: goats byte-identical).

@@ -1,13 +1,18 @@
 import * as v from 'valibot';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
-import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
+import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { addBakedTerrainCollider } from '@wildshard/engine/physics/terrainTiles';
 import { addPiece } from '@wildshard/engine/physics/pieces';
 import type { Material } from '@wildshard/engine/physics/surface';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
 import { SCOUT_FLAG } from '../data/flags';
-import { installSignalHomes } from './homes';
+import { installSpeciesHomes, type HomeObservation, type SpeciesPolicy } from '@wildshard/game/shardfile/speciesBrains';
+import { speciesBrains } from '@wildshard/sdk/speciesBrains';
+import { SIGNAL_SPECIES, SIGNAL_STRIKES } from '../data/brains';
+import { SEED } from '../data/layout';
+import { SkittererBrain } from './species/skitterer';
+import { MatriarchBrain } from './species/matriarch';
 import { installSignalWhip, WHIP_ID, type WhipCommand, type WhipWorldTarget } from './whip';
 import { installSignalQuest, type SignalSpots } from './quest';
 import { SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../quests/interactions';
@@ -19,6 +24,16 @@ import baked from './physics.baked.json' with { type: 'json' };
 
 /** `fight.attackers` in manifest.ts (E297); the headless test holds the two equal (the manifest itself imports views). */
 export const SIGNAL_ATTACKERS = 2;
+/** The homes keeper's fixed-step id; its continuation also names the live roster to reinstall before restore. */
+export const HOMES_STEP = 'sunscar.homes';
+/** The browser's 'legacy' decision band: 10 Hz decisions, bodies every frame (AnimalManager scheduler). */
+const THINK = { every: 6, dt: 0.1 } as const;
+/** The runtime's own policies for the kinds that declare no brain: the skitterer's burrow hunt and the Matriarch's fight. */
+function signalPolicy(kind: string, actor: AnimalSim): SpeciesPolicy<HomeObservation> {
+  if (kind === 'sandSkitterer') return new SkittererBrain(actor);
+  if (kind === 'duneMatriarch') return new MatriarchBrain<AnimalSim>(actor);
+  throw new Error(`Signal Dunes has no policy for ${kind}`);
+}
 
 const finite = v.pipe(v.number(), v.finite());
 /** One baked native simulation spec, strictly: an unknown or missing field refuses the bake rather than defaulting. */
@@ -50,8 +65,10 @@ export function signalSpecs(): ReadonlyMap<string, AnimalSimSpec> {
 
 /**
  * Signal Dunes' renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the admitted terrain
- * collider and heights, the browser-baked native colliders, and the 13 declared homes with their shipping policies,
- * creature stream, attack tokens and respawn clocks, the whip as its declared item row (a player command's attack is
+ * collider and heights, the browser-baked native colliders, and the 13 declared homes on the platform's species homes
+ * (SF27 `installSpeciesHomes`: the ray's and the strider's declared brains from data/brains.ts, the skitterer's and the
+ * Matriarch's runtime policies; the creature stream, attack tokens and respawn clocks; the ray holds its strikes until
+ * the player has met Sefa), the whip as its declared item row (a player command's attack is
  * its light crack), the signal quest with its declared interaction rows (`script` commands on `sunscar.interact`, quests/interactions.ts),
  * and the Dune Matriarch's encounter (runtime/matriarch.ts), armed by the signal fire, her body the keeper's after the
  * homes, and the entry proof: a player capsule walks in from every declared entryway on the native terrain
@@ -84,9 +101,14 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
   });
   const reach = { light: whip.light.range, heavy: whip.heavy.range }, matriarchRow = SIGNAL_SPAWNS.bosses.find(row => row.id === MATRIARCH_ID);
   if (matriarchRow === undefined) throw new Error('Signal Dunes declares the Matriarch\'s boss row');
+  if (SIGNAL_SPAWNS.homes.length !== 13) throw new Error('Signal declares 13 homes');
+  const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES);
   return { level, ports: { ground: false, heightAt }, proveEntries: host => proveSignalEntries(host.physics, shard.entryways, heightAt), install: (host, context) => {
     if (!context.restoring) colliders(host);
-    const keeper = installSignalHomes(host, { specs, attackers: SIGNAL_ATTACKERS, held: () => !host.flags.has(SCOUT_FLAG), boss: matriarchRow }, context.snapshot);
+    const keeper = installSpeciesHomes(host, { step: HOMES_STEP, seed: SEED, homes: SIGNAL_SPAWNS.homes, boss: matriarchRow, specs, species: SIGNAL_SPECIES, brains,
+      attackers: SIGNAL_ATTACKERS, think: THINK, contactMove: kind => `sunscar.${kind}.contact`, custom: signalPolicy,
+      // the ray (home 0) circles its home without striking until the player has met Sefa (R1B-13)
+      beforeStep: homes => { const actor = homes[0]?.actor; if (actor) actor.mem['held'] = host.flags.has(SCOUT_FLAG) ? 0 : 1; } }, context.snapshot);
     if (keeper.boss === null) throw new Error('Signal Dunes declares the Matriarch\'s body');
     const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
     const coins = (amount: number, actorId: string): void => { context.emit({ kind: 'coins', amount, actorId }); };

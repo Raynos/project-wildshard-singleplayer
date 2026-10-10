@@ -7,7 +7,7 @@ import { BASIN } from '../data/layout';
 import { BASIN_FLOOR } from '../world/dunes';
 import { FACT, MATRIARCH_FLAG } from '../quests/signal';
 import { MATRIARCH_ID, MATRIARCH_RECORD, MATRIARCH_REWARD, matriarchDefinition, matriarchFight } from '../combat/matriarchFight';
-import type { SignalBossBody } from './homes';
+import type { KeptBossBody } from '@wildshard/game/shardfile/homeKeeper';
 
 /** Her encounter's fixed-step id; its continuation is `BossBrain`'s plus the script's storm and invulnerability. */
 export const MATRIARCH_STEP = MATRIARCH_ID;
@@ -17,7 +17,7 @@ const Fight = v.strictObject({ stormGoal: finite, storm: finite, invulnerable: v
 
 /** What her encounter is lent: her body in the creature keeper and the platform's effect ports. */
 export interface SignalMatriarchPorts {
-  readonly body: SignalBossBody;
+  readonly body: KeptBossBody;
   readonly fact: (name: string, entity: string) => void;
   readonly coins: (amount: number, entity: string) => void;
 }
@@ -25,7 +25,7 @@ export interface SignalMatriarchPorts {
 /**
  * The Dune Matriarch's encounter in the renderer-free host (SF72) on the platform's boss row (`installBossRow`: the
  * engine's `BossBrain` with the host's damage / checkpoint answers and one continuation) over her view-free script
- * (combat/matriarchFight.ts), with her body in the creature keeper (runtime/homes.ts: the stream's six draws per reset,
+ * (combat/matriarchFight.ts), with her body in the creature keeper (runtime/headless.ts' species homes: the stream's six draws per reset,
  * the shared tokens, her `MatriarchBrain` at the 10 Hz cadence). The signal fire's light arms her (`summon`); her
  * invulnerability through a beat refuses hits; victory sets `MATRIARCH_FLAG` (the quest's last step) and emits her fact,
  * and the first fall pays her 20 coins. A player death in her fight returns them to the basin's rim, her body fresh at

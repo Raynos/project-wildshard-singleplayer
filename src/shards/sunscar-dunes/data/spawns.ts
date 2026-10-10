@@ -14,7 +14,7 @@ const skitterers = PACKS.flatMap((p) => Array.from({ length: p.n }, (_, i) => {
  * The dune's creatures (C2) as declared rows its runtime binds (`runtime.spawns`, SF50-p): one dune ray over the tower,
  * three skitterer packs burrowed along the paths, two striders grazing the far flats, each home `sunscar.home:<authored
  * index>` in that order; and the Dune Matriarch's body in the basin. The species, brains and the boss script stay the
- * runtime's (species/, runtime/brains.ts, combat/matriarch.ts).
+ * runtime's (species/, data/brains.ts, combat/matriarch.ts).
  */
 export const SIGNAL_SPAWNS = {
   homes: [home(0, 'duneRay', RAY_HOME.x, RAY_HOME.z, 0),
