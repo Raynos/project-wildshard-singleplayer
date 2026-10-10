@@ -179,6 +179,512 @@
       ],
       "platform": "darwin",
       "capture": true
+    },
+    {
+      "id": "pine-beaver-pool",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-beaver-pool.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-beaver-pool.mjs",
+        "--generation-shard=pine-hollow"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "public/assets/models/pine-hollow-crags",
+        "scripts/generation-level.mjs"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/beaverPool.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/pine-hollow/data/beaverPool.json"
+      ]
+    },
+    {
+      "id": "pine-cabins",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
+        "--generation-shard=pine-hollow"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "scripts/generation-level.mjs"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/baked/cabins.bin",
+        "src/shards/pine-hollow/data/cabins.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/pine-hollow/data/cabins.json"
+      ]
+    },
+    {
+      "id": "pine-crags",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-crags.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-crags.mjs",
+        "--generation-shard=pine-hollow"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "public/assets/models/pine-hollow-crags",
+        "scripts/generation-level.mjs"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/baked/crags.phone.bin",
+        "public/assets/pine-hollow/baked/crags.desktop.bin",
+        "src/shards/pine-hollow/data/crags.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/pine-hollow/data/crags.json"
+      ]
+    },
+    {
+      "id": "pine-king-collision",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-king-collision.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-king-collision.mjs",
+        "--generation-shard=pine-hollow"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "public/assets/pine-hollow/creatures/antler-king-rig.phone.rigged.glb",
+        "test/fake/portableMath.ts",
+        "scripts/generation-level.mjs"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/runtime/kingCollision.baked.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/pine-hollow/runtime/kingCollision.baked.json"
+      ],
+      "recordedInputs": true
+    },
+    {
+      "id": "pine-lookout",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
+        "--generation-shard=pine-hollow"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "public/assets/models/pine-hollow-crags",
+        "scripts/generation-level.mjs"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/baked/lookout.bin",
+        "src/shards/pine-hollow/data/lookout.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/pine-hollow/data/lookout.json"
+      ]
+    },
+    {
+      "id": "pine-props",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-props.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-props.mjs",
+        "--generation-shard=pine-hollow"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "public/assets/models/pine-hollow-crags",
+        "public/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb",
+        "public/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb",
+        "scripts/generation-level.mjs"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/props.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/pine-hollow/data/props.json"
+      ]
+    },
+    {
+      "id": "pine-site-timbers",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs",
+        "--generation-shard=pine-hollow"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "public/assets/models/pine-hollow-crags",
+        "scripts/generation-level.mjs"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/baked/site-timbers.bin",
+        "src/shards/pine-hollow/data/siteTimbers.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/pine-hollow/data/siteTimbers.json"
+      ]
+    },
+    {
+      "id": "pine-streams",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-streams.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-streams.mjs",
+        "--generation-shard=pine-hollow"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "scripts/generation-level.mjs"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/baked/streams.bin",
+        "src/shards/pine-hollow/data/streams.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/pine-hollow/data/streams.json"
+      ]
+    },
+    {
+      "id": "pine-undergrowth",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs",
+        "--generation-shard=pine-hollow"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "scripts/generation-level.mjs"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/undergrowth.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/pine-hollow/data/undergrowth.json"
+      ]
+    },
+    {
+      "id": "pine-wildlife",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-wildlife.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-wildlife.mjs",
+        "--generation-shard=pine-hollow"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "scripts/generation-level.mjs"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/baked/wildlife.bin",
+        "src/shards/pine-hollow/data/wildlife.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/pine-hollow/data/wildlife.json"
+      ]
+    },
+    {
+      "id": "pine-physics",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-physics.mjs",
+      "command": [
+        "src/shards/pine-hollow/generators/bake-pine-physics.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts",
+        "public",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/runtime/physics.baked.json"
+      ],
+      "platform": "darwin",
+      "capture": true
+    },
+    {
+      "id": "pine-spots",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-spots.mjs",
+      "command": [
+        "src/shards/pine-hollow/generators/bake-pine-spots.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts",
+        "public",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/runtime/spots.baked.json"
+      ],
+      "platform": "darwin",
+      "capture": true
+    },
+    {
+      "id": "pine-hdri-keys",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-hdri-keys.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/pine-hollow/generators/bake-hdri-keys.mjs",
+        "--generation-shard=pine-hollow",
+        "--force"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/pine-hollow",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "scripts/generation-level.mjs"
+      ],
+      "outputs": [
+        "public/assets/hdri/qwantani_dawn_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_dawn_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_sunrise_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_sunrise_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_mid_morning_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_mid_morning_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_late_afternoon_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_late_afternoon_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_sunset_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_sunset_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_dusk_2_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_dusk_2_puresky_2k.key.gain.png",
+        "public/assets/hdri/qwantani_moon_noon_puresky_2k.key.jpg",
+        "public/assets/hdri/qwantani_moon_noon_puresky_2k.key.gain.png"
+      ],
+      "platform": "darwin",
+      "externalInputs": [
+        {
+          "path": "public/assets/hdri/qwantani_dawn_puresky_2k.hdr",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/qwantani_dawn_puresky_2k.hdr",
+          "sha256": "4058e43a7c38d74ff2c85a440ac7171cf807c92c90a1dd248b83753ebe383726"
+        },
+        {
+          "path": "public/assets/hdri/qwantani_sunrise_puresky_2k.hdr",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/qwantani_sunrise_puresky_2k.hdr",
+          "sha256": "25dd4ac46b584706a6777b9fe69325eecdb9edb541a0ad2dcc18486349474c93"
+        },
+        {
+          "path": "public/assets/hdri/qwantani_mid_morning_puresky_2k.hdr",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/qwantani_mid_morning_puresky_2k.hdr",
+          "sha256": "c7df6496906754b8068e78a1766c79ac7438b7cd7c17e7b3f9c7f851d7125b44"
+        },
+        {
+          "path": "public/assets/hdri/qwantani_late_afternoon_puresky_2k.hdr",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/qwantani_late_afternoon_puresky_2k.hdr",
+          "sha256": "d1c4d610811b7b94328d67fa48fc107078af21318197e5b937310c825d72074d"
+        },
+        {
+          "path": "public/assets/hdri/qwantani_sunset_puresky_2k.hdr",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/qwantani_sunset_puresky_2k.hdr",
+          "sha256": "d66e08231e9c09ca40c6d035214ae8efb638782745c82addbb2a063fa32cabef"
+        },
+        {
+          "path": "public/assets/hdri/qwantani_dusk_2_puresky_2k.hdr",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/qwantani_dusk_2_puresky_2k.hdr",
+          "sha256": "440d1b5d29c79bea0985a13777642df6829e80399602a9d5f39bc20203ae6d1b"
+        },
+        {
+          "path": "public/assets/hdri/qwantani_moon_noon_puresky_2k.hdr",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/qwantani_moon_noon_puresky_2k.hdr",
+          "sha256": "05e53b6a04836127bd7a91a69f09e66d0185f24d1fcbb59d8bb5ac5f7be6e683"
+        }
+      ],
+      "toolCommands": [
+        [
+          "magick",
+          "-version"
+        ]
+      ]
     }
   ]
 }

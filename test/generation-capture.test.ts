@@ -6,6 +6,10 @@ describe('captured generation comparison',()=>{
   it('excludes only explicit top-level source provenance',()=>{
     expect(captureOutcome(JSON.stringify(capture))).toBe(captureOutcome(JSON.stringify({...capture,revision:'new',build:'new-build',inputs:{a:'new-hash'}})));
   });
+  it('supports older capture headers without inventing a missing input map',()=>{
+    const {inputs:_inputs,...older}=capture;
+    expect(captureOutcome(JSON.stringify(older))).toBe(captureOutcome(JSON.stringify(capture)));
+  });
   it('retains every actor, clock, collision and nested provenance value',()=>{
     const before=captureOutcome(JSON.stringify(capture));
     expect(captureOutcome(JSON.stringify({...capture,actors:[{id:1,at:{x:2.0000001,y:3,z:4}}]}))).not.toBe(before);

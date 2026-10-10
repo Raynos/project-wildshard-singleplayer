@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 import * as v from 'valibot';
 
-const Header=v.looseObject({version:v.number(),revision:v.string(),build:v.string(),inputs:v.record(v.string(),v.string())});
+const Header=v.looseObject({version:v.number(),revision:v.string(),build:v.string(),inputs:v.optional(v.record(v.string(),v.string()))});
 const Preview=v.strictObject({url:v.string(),revision:v.pipe(v.string(),v.regex(/^[0-9a-f]{40}$/u))});
 const Version=v.object({build:v.string()});
 

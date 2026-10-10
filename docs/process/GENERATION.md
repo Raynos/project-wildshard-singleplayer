@@ -38,6 +38,19 @@ missing producer/timing evidence is a blocker to deletion.
 Browser capture jobs require a pinned preview and run through `scripts/browser-lane.sh`. They hash the preview's source
 and public inputs plus the Chromium executable; the build id is fenced before/after. Invoke the producer against the
 immutable preview export, rather than mixing current working sources with an older page. Cold/forced cache comparison
-remains byte-exact. Comparison to older committed captures excludes **only** top-level `revision`, `build`, and `inputs`;
+remains byte-exact. Comparison to older committed captures excludes **only** top-level `revision`, `build`, and `inputs` (where recorded);
 all nested gameplay, clock, actor and collider data stays exact. New provenance is reported and retained in the cache;
 no capture overwrites committed files. Seed outputs are explicitly declared, not copied by default.
+
+Digest-pinned external inputs (for example, uncommitted raw HDRIs) also use this backend. The sidecar declares an
+HTTPS URL and SHA256 for each input; a changed upstream file refuses publication. The verified raw source is copied
+into the isolated tree before the baker runs, so an OS temp cache or mutable discovery API cannot select different
+bytes. Encoder jobs include the executable's bytes and version output in their key. No raw source is committed.
+
+`recordedInputs` is restricted to `RECORDED_BAKES` in `bake-input-hashes.mjs`. It compares committed data using that
+existing rule: only the top-level `inputs` map may differ. Cache cold/forced hashes, including that map, must still
+match exactly. This exception cannot be applied to arbitrary outputs or combined with browser provenance exclusion.
+
+Node jobs that read active-level terrain explicitly preload `scripts/generation-level.mjs` after the TypeScript loader,
+with `--generation-shard=<slug>`. It installs that one real manifest, without discovering or loading other shards. The
+preload and the manifest belong to the declared input closure; a missing composition root never falls back to a fake level.

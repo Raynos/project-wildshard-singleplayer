@@ -5,15 +5,16 @@ import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
-import { bakeInputHashes } from './bake-input-hashes.mjs';
+import { bakeOutcome, isRecordedBake, bakeInputHashes } from './bake-input-hashes.mjs';
 import { generationOutputHashes, runGenerationJob } from './generation-cache.mjs';
 import { captureOutcome, capturePreview } from './generation-capture.mjs';
+import { externalGenerationInputs, generationTools } from './generation-sources.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
 
 const path = v.pipe(v.string(),v.check(value=>value.length>0 && !isAbsolute(value) && !value.includes('\\') && value.split('/').every(part=>part!=='' && part!=='.' && part!=='..')));
-const Descriptor = v.strictObject({id:v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)),shard:v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u)),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false)});
+const Descriptor = v.strictObject({id:v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)),shard:v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u)),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
 const Catalog = v.strictObject({schema:v.literal('generation-jobs/1'),notice:v.pipe(v.string(),v.includes('DO NOT EDIT')),jobs:v.array(Descriptor)});
-const infrastructure=['scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs'];
+const infrastructure=['scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs'];
 
 /** Recursively collect regular inputs; links cannot escape the declared source tree. @param {string} root @param {string[]} roots */
 export function generationInputs(root,roots) {
@@ -41,6 +42,8 @@ export function discoverGeneration(root,catalogPath='scripts/generation-jobs.jso
   for (const job of catalog.jobs) {
     if(ids.has(job.id)) throw new Error(`Duplicate generation id ${job.id}`);ids.add(job.id);
     if(!job.entry.startsWith(`src/shards/${job.shard}/generators/`) || !/\.(?:mjs|ts)$/u.test(job.entry) || !job.command.includes(job.entry)) throw new Error(`Generator must be owned by ${job.shard}: ${job.entry}`);
+    if(job.recordedInputs && (job.capture || job.outputs.some(file=>!isRecordedBake(file)))) throw new Error(`Recorded-input comparison is not registered: ${job.id}`);
+    if(new Set(job.externalInputs.map(row=>row.path)).size!==job.externalInputs.length || job.externalInputs.some(row=>job.outputs.includes(row.path))) throw new Error(`Invalid external inputs ${job.id}`);
     if(job.seedOutputs.some(file=>!job.outputs.includes(file))) throw new Error(`Undeclared output seed ${job.id}`);
     if(!existsSync(resolve(root,job.entry)) || job.outputs.length===0 || job.inputRoots.length===0) throw new Error(`Incomplete generation job ${job.id}`);
     for(const file of job.outputs) {if(outputs.has(file)) throw new Error(`Duplicate generated output ${file}`);outputs.add(file);}
@@ -69,10 +72,13 @@ function nodeProducer(cwd,command) {
  * @param {{cacheDir?:string,forceCompare?:boolean,restore?:boolean,catalogPath?:string,preview?:{url:string,revision:string}}} [options] */
 export async function generateShardJob(root,descriptor,options={}) {
   const job=v.parse(Descriptor,descriptor), catalog=options.catalogPath ?? 'scripts/generation-jobs.json';
+  if(job.recordedInputs && (job.capture || job.outputs.some(file=>!isRecordedBake(file)))) throw new Error(`Recorded-input comparison is not registered: ${job.id}`);
   const preview=job.capture ? await capturePreview(options.preview ?? {url:'',revision:''}) : undefined;
-  const controller=bakeInputHashes(import.meta.dirname,['generate.mjs','generation-capture.mjs']);
+  const controller=bakeInputHashes(import.meta.dirname,['generate.mjs','generation-capture.mjs','generation-sources.mjs']);
+  const external=await externalGenerationInputs(job.externalInputs,options.cacheDir);
+  const tools=generationTools(job.toolCommands);
   const inputs=generationInputs(root,[...job.inputRoots,...infrastructure.filter(file=>existsSync(resolve(root,file))),catalog]);
-  const result=await runGenerationJob(root,{id:job.id,inputs,command:['node',...job.command,...(preview===undefined?[]:[`--url=${preview.url}`,`--revision=${preview.revision}`,'--inputs=<stage>'])],outputs:job.outputs,platform:job.platform,tools:{...controller,descriptor:JSON.stringify(job),...(preview===undefined?{}:{previewBuild:preview.build,browserDigest:preview.browserDigest})}},{
+  const result=await runGenerationJob(root,{id:job.id,inputs,command:['node',...job.command,...(preview===undefined?[]:[`--url=${preview.url}`,`--revision=${preview.revision}`,'--inputs=<stage>'])],outputs:job.outputs,platform:job.platform,tools:{...controller,...tools,descriptor:JSON.stringify(job),...(preview===undefined?{}:{previewBuild:preview.build,browserDigest:preview.browserDigest})}},{
     ...(options.cacheDir===undefined?{}:{cacheDir:options.cacheDir}),...(options.forceCompare===undefined?{}:{forceCompare:options.forceCompare}),
     generate:async directory=>{
       const tree=realpathSync(mkdtempSync(resolve(tmpdir(),'wildshard-generation-')));
@@ -87,6 +93,7 @@ export async function generateShardJob(root,descriptor,options={}) {
         for(const file of job.outputs) if(!job.seedOutputs.includes(file)) rmSync(resolve(tree,file),{force:true});
         const seeded=job.seedOutputs.filter(file=>existsSync(resolve(tree,file)));
         for(const file of seeded) utimesSync(resolve(tree,file),1,1);
+        for(const source of external) {const to=resolve(tree,source.path);mkdirSync(dirname(to),{recursive:true});copyFileSync(source.file,to);}
         linkNodeModules(realpathSync(root),tree);
         await nodeProducer(tree,[...job.command,...(preview===undefined?[]:[`--url=${preview.url}`,`--revision=${preview.revision}`,`--inputs=${tree}`])]);
         if(preview!==undefined && (await capturePreview({url:preview.url,revision:preview.revision})).build!==preview.build) throw new Error('Capture preview changed during generation');
@@ -99,7 +106,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   });
   const present=job.outputs.filter(file=>existsSync(resolve(root,file)));
   const expected=generationOutputHashes(root,present);
-  const different=present.filter(file=>job.capture ? captureOutcome(readFileSync(resolve(root,file),'utf8'))!==captureOutcome(readFileSync(resolve(result.directory,file),'utf8')) : expected[file]!==result.hashes[file]);
+  const different=present.filter(file=>job.capture ? captureOutcome(readFileSync(resolve(root,file),'utf8'))!==captureOutcome(readFileSync(resolve(result.directory,file),'utf8')) : job.recordedInputs ? bakeOutcome(readFileSync(resolve(root,file),'utf8'))!==bakeOutcome(readFileSync(resolve(result.directory,file),'utf8')) : expected[file]!==result.hashes[file]);
   if(different.length>0) throw new Error(`Committed generated output differs: ${different.join(', ')}. No source output was overwritten.`);
   if(options.restore===true) for(const file of job.outputs) if(!existsSync(resolve(root,file))) {mkdirSync(dirname(resolve(root,file)),{recursive:true});copyFileSync(resolve(result.directory,file),resolve(root,file));}
   return result;
