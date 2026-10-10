@@ -3,8 +3,9 @@
 
     python3 scripts/progress-trailer/mixbuild.py <config.json> <mix.json>
 
-config: { work, sfx (the PT8 sound dir: era/<sha8>/…, files/<dNN>/…, trailer-reuse/tr-*.wav), score (wav), music_hit (the
-score's drop, s), edl (assemble.mjs's edl.json), rewind_takes [4 take dirs, day 1 → 22], rewind_from (s) }
+config: { work, sfx (the PT8 sound dir: era/<sha8>/…, files/<dNN|head>/…, trailer-reuse/tr-*.wav, sfx-best/tr-*.wav), score
+(wav), music_hit (the score's drop, s), edl (assemble.mjs's edl.json), rewind_takes [4 take dirs, day 1 → 22], rewind_from (s),
+receipts (receipts.mjs's receipts.json: the breath's key times), lapse_stages { <clip shot>: [stage t0 …] } }
 Each play clip gets its take's own recorded sound (era/<sha8>/take-<shot>.wav, whose t = 0.5 s lead + take time), trimmed to
 the clip's in-point and length; each lapse its build's bed, low; the rewind the four builds' beds swapped at its cuts, the
 build's own crossbow shot, the trailer riser peaking on the kill, the kill, a trailer impact and sub drop; the breath ducks
@@ -76,9 +77,23 @@ events += [
     {'sound': f'{S}/files/d22/boltImpact-flesh--boltImpact-flesh-2-13ed7f2c.wav', 'at': kill_at, 'gain_db': 0},
     {'sound': f'{S}/trailer-reuse/tr-impact.wav', 'at': kill_at, 'gain_db': -2},
     {'sound': f'{S}/trailer-reuse/tr-subdrop.wav', 'at': kill_at, 'gain_db': -4},
-    {'sound': f'{S}/trailer-reuse/tr-whoosh.wav', 'at': 0.15, 'gain_db': -6},
-    {'sound': f'{S}/trailer-reuse/tr-impact.wav', 'at': 1.95, 'gain_db': -6},
+    {'sound': f'{S}/sfx-best/tr-subswell-rev.wav', 'at': fire_at, 'gain_db': -8},
+    # the cold open: today's build's own grapple sounds (feizhua.*, extracted from HEAD's sprite) on the take's beats
+    {'sound': f'{S}/files/head/feizhua.fire--feizhua.fire-2-b084bf8c.wav', 'at': 0.24, 'gain_db': -2},
+    {'sound': f'{S}/files/head/feizhua.zip--feizhua.zip-3-00c1262f.wav', 'at': 0.32, 'gain_db': -4},
+    {'sound': f'{S}/files/head/feizhua.bite--feizhua.bite-1-cf340fc8.wav', 'at': 0.7, 'gain_db': -4},
+    {'sound': f'{S}/files/head/feizhua.reel--feizhua.reel-1-62feefcb.wav', 'at': 0.78, 'gain_db': -5},
+    {'sound': f'{S}/files/head/feizhua.dock--feizhua.dock-2-6669a863.wav', 'at': 1.9, 'gain_db': -3},
+    {'sound': f'{S}/files/head/land-hard--land-hard-3-5aed2a6b.wav', 'at': 1.97, 'gain_db': -4},
 ]
+beds.append({'sound': f'{S}/files/head/nd.well--bed.nd.well-1-ccb30904.wav', 'at': 0, 'dur': 2.0, 'gain_db': -14, 'fade': 0.1})
+# a soft tick on every lapse stage swap (§3.3), and the breath's keyclicks on its typed keys (receipts.json)
+for c in edl['clips']:
+    for t0 in cfg.get('lapse_stages', {}).get(c['shot'], [])[1:]:
+        events.append({'sound': f'{S}/sfx-best/tr-tick.wav', 'at': c['at'] + t0, 'gain_db': -10})
+breath_at = next(t['at'] for t in edl['titles'] if t['id'] == 'breath')
+for k in json.load(open(cfg['receipts']))['breath']['keys']:
+    events.append({'sound': f"{S}/sfx-best/{'tr-keyclick' if k['ch'] != ' ' else 'tr-keyclick-alt'}.wav", 'at': breath_at + k['t'], 'gain_db': -9})
 for e in events:
     if e.get('peak') == 'auto':
         dur = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', e['sound']], capture_output=True, text=True).stdout)
