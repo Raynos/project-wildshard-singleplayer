@@ -119,6 +119,10 @@ wildshard`), the door becomes *install the skill*; when the API exists, *request
 | MS26 | ⬜ **AAA wave 2** (a desktop + phone board for Jake first) — the hero cycles 3–4 shards under its prompt; desktop's empty sticky column holds the 5 × 5 grid, the shard in view lit; the claim grid at the form's width and the claimed cell lighting up with the visitor's own idea on success; a real footer (Play, Press, email); a screenshot strip on the press page | Jake's picks, live | marketing-site agent, Jake |
 | MS27 | ⬜ **One world, shown** — an in-engine clip of walking from one shard into the next with no loading screen, as the second beat after the hero (both seats: the best MMO proof sits at the bottom of the journey today) | the clip live, captured from a HEAD build | marketing-site agent, once the grid's seamless travel ships (SHARD-PLATFORM) |
 | MS28 | ✅ **Code tidy** (Jake 2026-10-10: "Delete both") — ✅ the 70 dead CSS lines and the `!important` toggles of "+4 more"; ✅ the build-time shardfile fetch (`site/shardfile.json`, a checked-in excerpt); ✅ media.json read once; ✅ the CI deploy runs `test/site-copy.test.ts` first; ✅ the shard cards' inline crop hacks and their desktop `!important` undo (with MS24) | the lines gone, the build green | marketing-site agent |
+| MS29 | ⬜ **/play: what playing is like** (saga 1, OCTOBER-BACKLOG) — every shard in full (its loop, its look, what you do there: fight, ride, explore, the boss), the controls on phone and desktop, the frontier concept painting the home page dropped, install to the home screen in full (the FAQ keeps one line and links here), what's live today and what's coming for players (travel between shards, multiplayer) | the page live, phone and desktop, words in COPY.md | marketing-site agent |
+| MS30 | ⬜ **/build: what building a shard is like** (saga 2) — the six steps in full; Thin Ice's whole five-stage chain (line, pitch, style, map, first-person view) that the home page cut to two; the template shard; "Claude or any coding agent", with Opus 5.5 best today; budgets and validation in plain words; shards that grow (co-edit, renovate, title travels with you); founding authors and the claim map, ending at the waitlist | the page live, phone and desktop | marketing-site agent |
+| MS31 | ⬜ **/mmo: how the MMO works, for the curious and for authors** (saga 3) — the shardfile from `docs/SHARDFILE.md` and `docs/api/SHARDFILE.md` (the full `shard.json`, what a package holds and never holds, budget-first admission, the script sandbox), the grid (500 m cells, seams, seamless travel), the engine and the SDK layers, ownership and pricing (MMO-REQUIREMENTS O9 / O10), server authority and multiplayer as planned, and the honest road (each plan's state) | the page live; every claim traced to a doc or the code | marketing-site agent |
+| MS32 | ⬜ **One site, four pages** — a shared top bar on every page (Play · Build · The MMO · Press, Play now ↗), a "More →" link from each home section to its page, the footer links, the sitemap; the build checks every page's copy as it does today | the four pages linked both ways, live | marketing-site agent |
 
 ## 5. Not in this plan
 
@@ -174,3 +178,8 @@ Two read-only seats, one brief, the live site screen by screen (WebKit, phone 40
   MS27 waits on the grid.
 - **Jake's picks (2026-10-10):** build MS23 + MS24 now; MS25 "Show me a board first"; the agent line "Claude or any
   coding agent is better phrasing"; MS28 "Delete both" (the dead CSS and the live fetch).
+
+- **Three saga pages (Jake 2026-10-10):** *"having this homepage, having this page about what it's like playing the game,
+  having a page about what it's like building zones, shards in the game, and having that last page with the technical
+  details of Project Wildshard"*: the October plan's three sagas (play, build, the MMO) become /play, /build and /mmo
+  (MS29–MS32), and what the audit cut from the home page lands there.
