@@ -339,6 +339,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [regenerate-committed.mjs](./regenerate-committed.mjs)
 - [release-url.sh](./release-url.sh)
 - [script-conformance.mjs](./script-conformance.mjs)
+- [sdk-externals.d.mts](./sdk-externals.d.mts)
+- [sdk-externals.mjs](./sdk-externals.mjs)
 - [sf22-cadence.d.mts](./sf22-cadence.d.mts)
 - [sf22-cadence.mjs](./sf22-cadence.mjs)
 - [sf22-drawn-frames.d.mts](./sf22-drawn-frames.d.mts)
