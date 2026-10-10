@@ -49,6 +49,7 @@ const rgb = (c: Rgb): THREE.Color => new THREE.Color(c[0], c[1], c[2]);
 /** three's light chunk line the light model goes after */
 const AFTER = '#define RE_IndirectSpecular		RE_IndirectSpecular_Physical';
 
+/** A toon light model and colour-ramp fog from a shard's GLSL rows and tunables, with its installers and live uniforms. */
 export class ToonLight {
   readonly uniforms: ToonLightUniforms;
   private readonly toonGlsl: string;

@@ -73,6 +73,7 @@ export interface OceanColliderBox { x: number; z: number; hw: number; hd: number
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
 
+/** A faceted stylized sea from a shard's look and def: build it, ring its standing colliders with foam, step its waves. */
 export class FacetedOcean {
   group = new THREE.Group();
   mesh!: THREE.Mesh;

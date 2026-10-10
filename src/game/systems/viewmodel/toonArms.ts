@@ -75,6 +75,7 @@ interface Dress { arms: MeshStandardMaterial; wood: MeshStandardMaterial; iron: 
 const CLIPS = { ...ARM_CLIPS, ...SWIM_CLIPS };
 
 /** Toon first-person arms: a skinned rig with two swords and swimming hands, dressed from a shard's ToonArmsLook rows. */
+/** Toon first-person arms from a shard's look row and GLSL rows: the held swords' and swimming rigs, and a specimen card. */
 export class ToonArms {
   readonly contract: RigContract;
   readonly bake: RigBake;
