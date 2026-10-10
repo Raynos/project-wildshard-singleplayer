@@ -1,0 +1,16 @@
+{
+  "_doc": "E466 TRAILERS CT4: the concept trailer's score (docs/plans/trailers/ct2-script.md § Sound). ~/ml/music/minimax-music3/.venv/bin/python scripts/music/gen/gen_minimax.py --jobs $PWD/scripts/steam-trailer/concept-jobs.json --keys trailer/concept --seeds 401,402,403,404 --out <scratch>; music_scan.py picks the take and its hits.",
+  "lyrics": {
+    "trailer": "[Intro]\n[Instrumental]\n[Build]\n[Instrumental]\n[Climax]\n[Outro]"
+  },
+  "jobs": {
+    "trailer/concept": {
+      "style": "orchestral",
+      "slot": "trailer",
+      "duration": 72,
+      "lyrics": "trailer",
+      "bpm": 96,
+      "prompt": "Genre: epic cinematic concept trailer music, hybrid orchestra with shimmering analog synths and a wordless choir pad. BPM: 96. Key: D minor rising to F major. Instrumental only, no vocals singing words. A seventy-second trailer cue for a vast fantasy world made of many floating lands stitched together by light. Structure: opens in near silence with a lone soft synth tone and distant shimmering bells in deep space for eight seconds; a gentle piano and string motif enters as something is created; a slow rising swell of strings and choir builds through a ritual of light to a first big orchestral hit at about 26 seconds; then driving low strings, taiko drums and pulsing synths carry a montage of worlds at full energy with a soaring heroic brass theme; the biggest climax at about 56 seconds as the camera pulls back over the whole world; ends on one final ringing hit and a long shimmering tail. Production: modern Hollywood trailer mix, wide stereo, deep low end, big hall reverb, clean punchy hits."
+    }
+  }
+}
