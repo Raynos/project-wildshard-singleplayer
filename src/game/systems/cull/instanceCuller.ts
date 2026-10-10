@@ -65,6 +65,7 @@ function isInstanced(a: unknown): a is InstancedBufferAttribute {
   return typeof a === 'object' && a !== null && 'isInstancedBufferAttribute' in a && a.isInstancedBufferAttribute === true;
 }
 
+/** Culls an instanced mesh's instances against the camera and distance bands, measured from the caller's frame. */
 export class InstanceCuller {
   private readonly list: Entry[] = [];
   private readonly fars: FarEntry[] = [];

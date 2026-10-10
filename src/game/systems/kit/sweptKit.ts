@@ -26,6 +26,7 @@ export interface SweptLook {
 const tc = new Color();
 const _bp = new Vector3();
 
+/** A geometry builder of smooth swept shapes: tubes along a path, ellipsoids, flat cards and raw meshes. */
 export class SweptKit {
   private readonly pos: number[] = [];
   private readonly nor: number[] = [];

@@ -19,6 +19,7 @@ export interface RewardBowPower {
 /** Construction: the starter bow's options (its row is replaced by the reward's), the power and the bow it replaces. */
 export type RewardBowOptions = BowOptions & { power: RewardBowPower; previous?: Bow };
 
+/** A reward bow that replaces the current bow: its arrows, streak and pierce come from the shard's power row. */
 export class RewardBow extends Bow {
   constructor(world: BowWorld, targets: Targets, row: EquipmentRow, opts: RewardBowOptions) {
     super(world, targets, { ...opts, row });

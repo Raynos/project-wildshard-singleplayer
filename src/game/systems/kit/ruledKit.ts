@@ -32,6 +32,7 @@ const tc = new Color();
 const _bp = new Vector3();
 const va = new Vector3(), vb = new Vector3(), vc = new Vector3(), vd = new Vector3(), vn = new Vector3(), vt = new Vector3();
 
+/** A geometry builder of ruled primitives (quads, boxes, beams, wires, cylinders, limbs, lathes, blobs) whose faces carry ruled-edge and pattern flags. */
 export class RuledKit {
   private readonly pos: number[] = [];
   private readonly nor: number[] = [];

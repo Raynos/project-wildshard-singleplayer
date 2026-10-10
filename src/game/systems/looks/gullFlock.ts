@@ -100,6 +100,7 @@ const GULL_SCALE = 1.3, FOOT = 0.17 * GULL_SCALE;
 const GUIDE_SPEED = 12, GUIDE_BORROW_M = 60, V_BACK = 3.5, V_SIDE = 3;
 const _p = new THREE.Vector3(), _q = new THREE.Vector3(), _m = new THREE.Matrix4(), _quat = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(GULL_SCALE, GULL_SCALE, GULL_SCALE);
 
+/** An instanced flock of flapping gulls flying a shard's corridors in its palette. */
 export class GullFlock {
   group = new THREE.Group();
   mesh!: THREE.InstancedMesh;

@@ -33,6 +33,7 @@ export const AXIS_Z = new Vector3(0, 0, 1);
 const tc = new Color();
 const vn = new Vector3(), vt = new Vector3(), vs = new Vector3();
 
+/** A geometry builder of packed, instance-ready faces that copies one builder into another through a matrix. */
 export class TangentKit {
   private pos: number[] = [];
   private nor: number[] = [];

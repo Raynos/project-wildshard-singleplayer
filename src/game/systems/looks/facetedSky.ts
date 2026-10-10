@@ -30,6 +30,7 @@ export interface FacetedSkyGlsl {
   readonly cloudFragment: string;
 }
 
+/** A stylized faceted sky dome with a cumulus ring, coloured from a shard's palette. */
 export class FacetedSky {
   dome!: THREE.Mesh;
   clouds!: THREE.Mesh;

@@ -61,6 +61,7 @@ export interface MountedSwordOptions<P extends MountedSwordProfile> {
   readonly power?: MountedSwordPower<MountedSword<P>>;
 }
 
+/** A sword that fights from the saddle: the combo, the held heavy, pass slashes with a chain, gallop arcs, dressed from a shard row. */
 export class MountedSword<P extends MountedSwordProfile = MountedSwordProfile> extends Sword {
   /** set by the riding code every frame in the saddle (`null` on foot): taps become the pass slash */
   mount: MountedSwordMount | null = null;

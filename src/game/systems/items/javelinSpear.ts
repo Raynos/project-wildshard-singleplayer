@@ -114,6 +114,7 @@ const _qSway = new THREE.Quaternion(), _qHol = new THREE.Quaternion(), _vArm = n
 
 
 
+/** A melee spear that is also thrown: thrusts, javelin throws that stick, lie or drop, pickup and the couched lance, dressed from a shard row. */
 export class JavelinSpear<P extends JavelinSpearProfile = JavelinSpearProfile> extends Melee<P> {
   override readonly reach = this.profile.reach;
   readonly state: WeaponState;

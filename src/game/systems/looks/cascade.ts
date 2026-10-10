@@ -64,6 +64,7 @@ const ROWS_F = [0, 0.14, SHELF, 0.42, 0.56, 0.7, 0.85, 1];
 /** the columns across the curtain; the odd ones stand proud, so the sheet is pleated into flat facets */
 const COLS = 6;
 
+/** A terraced waterfall: its curtain, pool rings and foam puffs, from a shard's cascade row. */
 export class Cascade implements CascadeLike {
   group = new THREE.Group();
   private u = { uTime: { value: 0 } };
