@@ -37,6 +37,7 @@
     "./migrations": "./migrations.ts",
     "./brains": "./brains.ts",
     "./speciesBrains": "./speciesBrains.ts",
+    "./eliteScripts": "./eliteScripts.ts",
     "./bossFight": "./bossFight.ts",
     "./phasedBoss": "./phasedBoss.ts",
     "./accent": "./accent.ts",

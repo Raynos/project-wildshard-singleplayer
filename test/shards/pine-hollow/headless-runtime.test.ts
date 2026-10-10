@@ -261,9 +261,9 @@ console.log(JSON.stringify({ refused, snapped: nav.closestWalkable({ x: 0, y: 0,
   expect(out.refused).toContain('No level has been configured'); expect(out.snapped).toBe(true);
 });
 
-it('imports the trusted headless runtime, the elites\' goals and the bare lane without DOM or renderer modules', () => {
+it('imports the trusted headless runtime, the elites\' scripts and the bare lane without DOM or renderer modules', () => {
   const result = spawnSync(execPath, ['--disable-warning=ExperimentalWarning', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e',
-    "const m = await import('./src/shards/pine-hollow/runtime/headless.ts'); if (typeof m.prepareHeadlessRuntime !== 'function') throw new Error('no factory'); const g = await import('./src/shards/pine-hollow/combat/EliteGoals.ts'), l = await import('./src/shards/pine-hollow/combat/lane.ts'); if (typeof g.ironhideGoal !== 'function' || typeof l.Lane !== 'function') throw new Error('no goals'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
+    "const m = await import('./src/shards/pine-hollow/runtime/headless.ts'); if (typeof m.prepareHeadlessRuntime !== 'function') throw new Error('no factory'); const g = await import('./src/shards/pine-hollow/combat/eliteScripts.ts'), l = await import('./src/shards/pine-hollow/combat/lane.ts'); if (typeof g.pineEliteScripts !== 'function' || typeof l.Lane !== 'function') throw new Error('no elite scripts'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
 });
 

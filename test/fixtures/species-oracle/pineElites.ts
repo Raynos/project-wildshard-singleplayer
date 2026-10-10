@@ -1,23 +1,177 @@
+// SF27 oracle: Pine Hollow's four named elites' TypeScript scripts and goals exactly as they shipped before their fights
+// became admitted elite scripts (src/shards/pine-hollow/behaviour/*.as, data/eliteBrains.ts). test/shards/pine-hollow/elite-scripts.test.ts
+// replays both over many ticks at several seeds and holds every position, mode, field, lane, strike and hit equal.
 import type { Vector3 } from 'three';
+import type { BrainPoint } from '@wildshard/engine/ai/strikes';
+import type { Lane, LaneBody } from '../../../src/shards/pine-hollow/combat/lane';
+import { bugleHour, fleeHeading, behindPlayer, fadeCooldown, headingTo } from '../../../src/shards/pine-hollow/combat/combatMath';
+import { PINE_STRIKES, pineContact, PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
-import { BEAR_CAVE } from '../layout';
-import { eliteScript, stepElite, type EliteScript, type EliteScriptPorts, type EliteScriptRow } from '@wildshard/sdk/eliteScripts';
-import { BLACKPAW_BRAIN, GHOST_STAG_BRAIN, IMPERIAL_BULL_BRAIN, IRONHIDE_BRAIN, PINE_ELITE_MODULES } from '../data/eliteBrains';
-import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from './eliteRoster';
-import { pineEliteStreams, type PineEliteStreams } from './eliteStreams';
-import { behindPlayer, bugleHour, fadeCooldown, headingTo } from './combatMath';
-import { PINE_LANES, PINE_STRIKES, pineContact } from './strikes';
-import type { Lane, LaneBody } from './lane';
+import { BEAR_CAVE } from '../../../src/shards/pine-hollow/layout';
+import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/combat/eliteRoster';
+import { pineEliteStreams, type PineEliteStreams } from '../../../src/shards/pine-hollow/combat/eliteStreams';
+
+/** What a goal reads of the world, renderer-free (the page's PineCtx satisfies it over its Animal). */
+interface GoalEnv<B extends LaneBody> {
+  reach: (actor: B, target: BrainPoint) => boolean;
+  player: { readonly position: Vector3 };
+  trauma: (k: number) => void; god: boolean; dusk: () => number; night: () => number; stun: (s: number) => void;
+}
+interface GoalHost<B extends LaneBody> {
+  env: GoalEnv<B>;
+  def: { lair: { x: number; z: number }; leashR: number };
+  mode: string; modeT: number; p2: boolean;
+  toPlayer: (a: B) => { d: number; yaw: number };
+  setMode: (mode: string) => void; sig: () => void;
+  hurt: (a: B, damage: number, exempt?: boolean) => void;
+  voice: (name: string, a: B) => void;
+  next: () => number;
+}
+interface IronhideGoal<B extends LaneBody> extends GoalHost<B> { lane: Lane<B>; again: boolean }
+interface GhostGoal<B extends LaneBody> extends GoalHost<B> {
+  cd: number; lastHit: number; fadeT: number; autoT: number;
+  fade: (a: B) => void; comeBack: (a: B) => void;
+}
+interface BlackpawGoal<B extends LaneBody> extends GoalHost<B> {
+  lane: Lane<B>; roarCd: number; swipeT: number; readonly ringR: number;
+  ring: { setTime: (t: number) => void; ring: (x: number, z: number, radius: number, alpha: number) => void; hide: () => void };
+  burstOut: (a: B) => void; roarFx: (a: B) => void;
+}
+interface ImperialGoal<B extends LaneBody> extends GoalHost<B> {
+  lane: Lane<B>; bugledPhase: number; rivals: readonly unknown[];
+  tickRivals: (dt: number, t: number) => void; callRivals: (a: B) => void;
+}
+
+/** Complete move selectors and clocks, renderer-free over any lane body (SF72); the resident adapters own geometry, tells and effects. */
+export function ironhideGoal<B extends LaneBody>(h: IronhideGoal<B>, a: B, dt: number, t: number): void {
+    const p = h.env.player.position, { d, yaw } = h.toPlayer(a);
+    a.lookTarget.copy(p); a.lookWeight = 1;
+    if (h.mode === 'charge') {
+      h.lane.update(a, dt, t, p, (dmg) => { h.hurt(a, dmg); h.env.trauma(0.45); });
+      if (h.lane.state === 'run' && h.lane.t < dt * 1.5) h.voice('boar_squeal', a);
+      if (!h.lane.busy) {
+        if (h.again) { h.again = false; h.lane.start(a, p.x, p.z, 0.55, 1.1); return; }
+        h.setMode('circle');
+      }
+      return;
+    }
+    // circle: trot round you at ~13 m (the tangent, bent in or out to hold the radius), then charge
+    const want = 13, side = Math.sin(a.seed * 31) > 0 ? 1 : -1;
+    const tangent = yaw + side * Math.PI / 2, bend = Math.max(-1, Math.min(1, (d - want) / 8)) * 0.9 * side;
+    a.setMotion(tangent - bend, 4.2, 2.8);
+    if (h.mode === 'idle' || h.mode === 'home') h.setMode('circle');
+    if (h.modeT > (h.p2 ? 1.4 : 2.6) && d < 30) {
+      h.lane.start(a, p.x, p.z, h.p2 ? 0.62 : 0.9, h.p2 ? 1.12 : 1);
+      h.again = h.p2 && h.next() < 0.55;
+      h.voice('boar_grunt', a);
+      h.setMode('charge'); h.sig();
+    }
+  
+}
+
+export function ghostGoal<B extends LaneBody>(h: GhostGoal<B>, a: B, dt: number, t: number): void {
+    void t;
+    const p = h.env.player.position, { d, yaw } = h.toPlayer(a);
+    h.cd -= dt;
+    const hit = a.lastHitT > h.lastHit; if (hit) h.lastHit = a.lastHitT;
+    if (h.mode === 'faded') {
+      h.fadeT -= dt;
+      if (h.fadeT <= 0) h.comeBack(a);
+      return;
+    }
+    if (h.cd <= 0 && (hit || d < 12)) { h.fade(a); return; }
+    if (h.p2 && h.mode === 'flee') { h.autoT -= dt; if (h.autoT <= 0 && h.cd <= 0) { h.autoT = 3.5 + h.next() * 1.5; h.fade(a); return; } }
+    if (h.mode === 'stare') {
+      a.setMotion(yaw, 0, 4); a.lookTarget.copy(p); a.lookWeight = 1;
+      if (h.modeT > (h.p2 ? 1.1 : 1.6) || hit) h.setMode('flee');
+      return;
+    }
+    if (h.mode !== 'flee') h.setMode('flee');
+    const L = h.def.lair;
+    a.setMotion(fleeHeading(a.position.x, a.position.z, p.x, p.z, L.x, L.z, h.def.leashR * 0.55), 7, 3.2);
+    a.lookWeight = 0;
+    if (h.modeT > 2.6 + (a.seed % 1) * 1.4) h.setMode('stare');
+  
+}
+
+export function blackpawGoal<B extends LaneBody>(h: BlackpawGoal<B>, a: B, dt: number, t: number): void {
+    const p = h.env.player.position, { d, yaw } = h.toPlayer(a);
+    h.roarCd -= dt;
+    h.ring.setTime(t);
+    a.lookTarget.copy(p); a.lookWeight = 1;
+    if (h.mode === 'lurk') { h.burstOut(a); h.setMode('roar'); a.startAttack(1.1); h.voice('bear_growl', a); return; }
+    if (h.mode === 'roar') {
+      // the tell: the ring round him swells and pulses; the roar roots anyone still in it
+      a.setMotion(yaw, 0, 3);
+      const k = Math.min(1, h.modeT / 1.1);
+      h.ring.ring(a.position.x, a.position.z, h.ringR * (0.7 + 0.3 * k), 0.35 + 0.6 * k * (0.7 + 0.3 * Math.sin(t * 20)));
+      if (h.modeT >= 1.1) {
+        h.ring.hide();
+        h.voice('bear_roar', a);
+        h.roarFx(a);
+        h.env.trauma(0.3);
+        if (!h.env.god) pineContact(a, p, h.p2 ? PINE_STRIKES.roarPhase2 : PINE_STRIKES.roar, (damage) => { h.env.stun(1.3); h.hurt(a, damage, true); h.env.trauma(0.4); }, () => h.env.reach(a, p));
+        h.roarCd = h.p2 ? 5.5 : 10;
+        if (d > 5) { h.lane.start(a, p.x, p.z, h.p2 ? 0.6 : 0.75, h.p2 ? 1.12 : 1); h.setMode('charge'); } else h.setMode('stalk');
+      }
+      return;
+    }
+    if (h.mode === 'charge') {
+      h.lane.update(a, dt, t, p, (dmg) => { h.hurt(a, dmg); h.env.trauma(0.5); });
+      if (!h.lane.busy) h.setMode('stalk');
+      return;
+    }
+    if (h.mode === 'swipe') {
+      a.setMotion(yaw, 0, 2.5);
+      if (h.swipeT >= 0) { h.swipeT -= dt; if (h.swipeT < 0) { h.voice('bear_growl', a); pineContact(a, p, PINE_STRIKES.swipe, (damage) => { h.hurt(a, damage); h.env.trauma(0.35); }, () => h.env.reach(a, p)); } }
+      if (h.modeT > 1.2) h.setMode('stalk');
+      return;
+    }
+    // stalk: walk you down, then pick a move
+    if (h.mode !== 'stalk') h.setMode('stalk');
+    a.setMotion(yaw, d > 3 ? (h.p2 ? 4 : 3.2) : 0, 2.2);
+    if (h.roarCd <= 0 && d < 12) { h.setMode('roar'); a.startAttack(1.1); h.voice('bear_growl', a); }
+    else if (d < 3.6) { h.setMode('swipe'); h.swipeT = 0.55; a.startAttack(0.55); }
+    else if (d > 7 && d < 22 && h.modeT > 2.2) { h.lane.start(a, p.x, p.z, h.p2 ? 0.6 : 0.75, h.p2 ? 1.12 : 1); h.setMode('charge'); }
+  
+}
+
+export function imperialGoal<B extends LaneBody>(h: ImperialGoal<B>, a: B, dt: number, t: number): void {
+    const p = h.env.player.position, { d, yaw } = h.toPlayer(a);
+    h.tickRivals(dt, t);
+    a.lookTarget.copy(p); a.lookWeight = 1;
+    const phase = h.p2 ? 1 : 0;
+    if (h.mode === 'bugle') {
+      // head up, the long call; the rivals answer out of the trees
+      a.setMotion(yaw, 0, 2); a.lookTarget.y += 12;
+      if (h.modeT > 0.2 && h.modeT - dt <= 0.2) h.voice('elk_bugle', a);
+      if (h.modeT >= 1.8) { h.callRivals(a); h.setMode('posture'); }
+      return;
+    }
+    if (h.mode === 'charge') {
+      h.lane.update(a, dt, t, p, (dmg) => { h.hurt(a, dmg); h.env.trauma(0.5); });
+      if (!h.lane.busy) h.setMode('posture');
+      return;
+    }
+    if (h.mode !== 'posture') h.setMode('posture');
+    if (h.bugledPhase < phase && h.rivals.length === 0 && bugleHour(h.env.dusk(), h.env.night())) {
+      h.bugledPhase = phase; h.setMode('bugle'); h.sig(); return;
+    }
+    // posture: hold 18–26 m off, side-on steps, facing you
+    const back = d < 18 ? -1 : d > 26 ? 1 : 0;
+    const side = Math.sin(t * 0.7 + a.seed * 9) > 0 ? 1 : -1;
+    a.setMotion(back === 0 ? yaw + side * 1.2 : back > 0 ? yaw : yaw + Math.PI, back === 0 ? 1.2 : 3.5, 2.2);
+    if (h.modeT > (h.p2 ? 2 : 3.2)) { h.lane.start(a, p.x, p.z, h.p2 ? 0.75 : 1.0, h.p2 ? 1.12 : 1); h.voice('deer_call', a); h.setMode('charge'); }
+  
+}
 
 /**
  * Pine Hollow's four named elites' scripts, renderer-free (SF72): Old Ironhide, the Ghost Stag, Old Blackpaw and the Imperial
  * Bull as one implementation over any body and world (each satisfies the game's `EliteCoreScript`). The page (elites.ts) gives them its Animals, its decals, puffs and voices;
  * a renderer-free host (runtime/elites.ts) gives them its bodies, bare lanes and silent effects. Every random draw is the elite's
  * own seeded stream (eliteStreams.ts). The rules around them (lair, aware / engaged / leash, phase 2, respawn) are the game's
- * `EliteCore` (@wildshard/game/eliteSystem). Their fights — the moves and clocks — are admitted elite scripts (SF27:
- * behaviour/<name>.as, data/eliteBrains.ts); these classes are their hosts (spawn, lair, tells, the actions a script names)
- * and keep the continuation's field names. The behaviour is told in elites.ts.
+ * `EliteCore` (@wildshard/game/eliteSystem). Their moves and clocks live in EliteGoals.ts; the behaviour is told in elites.ts.
  */
 
 /** An elite's body as the scripts drive it: the page's Animal and a renderer-free host's body alike. */
@@ -85,18 +239,13 @@ export abstract class PineEliteScript<B extends PineEliteBody> extends EliteBrai
   readonly streams: PineEliteStreams;
   override readonly def: (typeof PINE_ELITE_DEFS)[string];
   readonly env: PineEliteWorld<B>;
-  /** the elite's admitted fight script (its slots are the fight's state) */
-  readonly script: EliteScript;
-  constructor(id: string, env: PineEliteWorld<B>, row: EliteScriptRow, seed?: number) {
+  constructor(id: string, env: PineEliteWorld<B>, seed?: number) {
     const def = PINE_ELITE_DEFS[id];
     if (def === undefined) throw new Error(`no elite '${id}'`);
     // the level seed's own streams (eliteStreams.ts), never Math.random or the page's salted ones: the same elite every boot
     const streams = pineEliteStreams(def.id, seed);
     super(def, { player: env.player, random: () => streams.fight.next() }); this.def = def; this.env = env;
     this.streams = streams;
-    const bytes = PINE_ELITE_MODULES[row.module];
-    if (bytes === undefined) throw new Error(`pine elite '${id}' has no module`);
-    this.script = eliteScript(row, bytes, () => streams.fight.next());
     const who = PINE_ELITE_ANIMALS[def.id];
     if (who === undefined) throw new Error(`pine elite '${def.id}' has no animal`);
     this.who = who;
@@ -131,83 +280,47 @@ export abstract class PineEliteScript<B extends PineEliteBody> extends EliteBrai
   lanes(): readonly Lane<B>[] { return []; }
   /** its streams (a continuation saves their states) */
   rngs(): readonly PineEliteStreams['fight'][] { return [this.streams.spawn, this.streams.fight]; }
-  /** the fight: one engaged step of its admitted script (the row's lanes step first, then its verbs in order) */
-  protected fight(a: B, dt: number, t: number): void {
-    const { d, yaw } = this.toPlayer(a);
-    stepElite(this.script, { body: a, dt, t, mode: this.mode, modeT: this.modeT, p2: this.p2, d, yaw, player: this.env.player.position, god: this.env.god }, this.scriptPorts(a, dt, t));
-  }
-  /** the verbs' world: the shared voices, lanes and contacts, and this elite's own actions */
-  protected scriptPorts(a: B, dt: number, t: number): EliteScriptPorts {
-    const lane = (i: number): Lane<B> => { const l = this.lanes()[i]; if (l === undefined) throw new Error(`pine elite '${this.def.id}' has no lane ${String(i)}`); return l; };
-    const p = this.env.player.position;
-    return {
-      setMode: (mode) => { this.setMode(mode); }, voice: (name) => { this.voice(name, a); }, signature: () => { this.sig(); },
-      lane: (i) => this.lanes()[i] ?? null, stepLane: (i, trauma) => { lane(i).update(a, dt, t, p, (dmg) => { this.hurt(a, dmg); this.env.trauma(trauma); }); },
-      startLane: (i, tell, speedMul) => { lane(i).start(a, p.x, p.z, tell, speedMul); },
-      contact: (row) => {
-        const spec = Object.values(PINE_STRIKES).find(s => s.id === row.strike);
-        if (spec === undefined) throw new Error(`pine elite '${this.def.id}' names no strike ${row.strike}`);
-        pineContact(a, p, spec, (damage) => { if (row.stun > 0) this.env.stun(row.stun); this.hurt(a, damage, row.throughWalls); this.env.trauma(row.trauma); }, () => this.env.reach(a, p));
-      },
-      trauma: (k) => { this.env.trauma(k); },
-      ring: () => undefined, ringHide: () => undefined,
-      action: (name) => { this.act(name, a); },
-    };
-  }
-  /** one of the elite's own actions its script names */
-  protected act(name: string, _a: B): void { throw new Error(`pine elite '${this.def.id}' has no action ${name}`); }
 }
 
 // ─────────────────────────────── Old Ironhide ───────────────────────────────
 
 export class Ironhide<B extends PineEliteBody> extends PineEliteScript<B> {
   readonly lane: Lane<B>;
+  again = false;
   constructor(env: PineEliteWorld<B>, seed?: number) {
-    super('ironhide', env, IRONHIDE_BRAIN, seed);
+    super('ironhide', env, seed);
     this.lane = env.lane(PINE_LANES.ironhide);
   }
-  /** a second charge is owed (phase 2) */
-  get again(): boolean { return this.script.slot('again') !== 0; }
   protected override clearTells(): void { this.lane.cancel(); }
   force(): void { const a = this.animal; if (a) { const p = this.env.player.position; this.lane.start(a, p.x, p.z, 60); this.setMode('charge'); } }
+  protected fight(a: B, dt: number, t: number): void { ironhideGoal(this, a, dt, t); }
   protected override extra(): PineEliteFields { return { again: this.again }; }
-  protected override restoreExtra(_num: (k: string) => number, bool: (k: string) => boolean): void { this.script.setSlot('again', bool('again') ? 1 : 0); }
+  protected override restoreExtra(_num: (k: string) => number, bool: (k: string) => boolean): void { this.again = bool('again'); }
   override lanes(): readonly Lane<B>[] { return [this.lane]; }
 }
 
 // ─────────────────────────────── the Ghost Stag ───────────────────────────────
 
-/** the Ghost Stag's never-hit mark in its `lastHit` slot (the row's initial value) */
-const NEVER = GHOST_STAG_BRAIN.slots.find(s => s.field === 'lastHit')?.initial ?? -1e6;
-
 export class GhostStag<B extends PineEliteBody> extends PineEliteScript<B> {
-  constructor(env: PineEliteWorld<B>, seed?: number) {
-    super('ghost-stag', env, GHOST_STAG_BRAIN, seed);
-    if (GHOST_STAG_BRAIN.parameters[2] !== this.def.leashR) throw new Error("the Ghost Stag's script leash is not its lair's");
-  }
-  /** seconds until it may fade again */
-  get cd(): number { return this.script.slot('cd'); }
-  /** seconds left faded */
-  get fadeT(): number { return this.script.slot('fadeT'); }
-  /** phase 2: seconds to its next fade of its own */
-  get autoT(): number { return this.script.slot('autoT'); }
-  /** the body's last hit time it has seen (-Infinity: none yet) */
-  get lastHit(): number { const v = this.script.slot('lastHit'); return v <= NEVER ? -Infinity : v; }
-  protected override onSpawn(a: B): void { this.script.setSlot('lastHit', Math.max(NEVER, a.lastHitT)); this.script.setSlot('cd', 3); }
+  cd = 3;
+  lastHit = -Infinity;
+  fadeT = 0;
+  autoT = 5;
+  constructor(env: PineEliteWorld<B>, seed?: number) { super('ghost-stag', env, seed); }
+  protected override onSpawn(a: B): void { this.lastHit = a.lastHitT; this.cd = 3; }
   protected override clearTells(): void {
     const a = this.animal;
     if (a && this.mode === 'faded') this.reappear(a, a.position.x, a.position.z);
   }
-  force(): void {
-    const a = this.animal; if (!a) return;
-    this.vanish(a); this.script.setSlot('fadeT', 2); this.script.setSlot('cd', fadeCooldown(this.p2)); this.setMode('faded'); this.sig();
-  }
-  protected override act(name: string, a: B): void { if (name === 'fade') this.vanish(a); else if (name === 'comeBack') this.comeBack(a); else super.act(name, a); }
-  /** the fade: a pale burst, gone — no hitbox, no aim assist, no bar (the script keeps its 2 s and the cooldown) */
-  private vanish(a: B): void {
+  force(): void { const a = this.animal; if (a) this.fade(a); }
+  protected fight(a: B, dt: number, t: number): void { ghostGoal(this, a, dt, t); }
+  /** the fade: a pale burst, gone — no hitbox, no aim assist, no bar — for 2 s */
+  fade(a: B): void {
     this.env.fx.fade(a);
     this.env.voice('deer_call', a);
     a.hidden = true; this.env.show(a, false); a.setMotion(a.yaw, 0, 1);
+    this.fadeT = 2; this.cd = fadeCooldown(this.p2);
+    this.setMode('faded'); this.sig();
   }
   /** back behind you, 14–18 m off, on dry walkable ground inside its leash */
   comeBack(a: B): void {
@@ -229,8 +342,7 @@ export class GhostStag<B extends PineEliteBody> extends PineEliteScript<B> {
   }
   protected override extra(): PineEliteFields { return { cd: this.cd, lastHit: this.lastHit === -Infinity ? null : this.lastHit, fadeT: this.fadeT, autoT: this.autoT, hidden: this.animal?.hidden === true }; }
   protected override restoreExtra(num: (k: string) => number, bool: (k: string) => boolean, raw: PineEliteFields): void {
-    this.script.setSlot('cd', num('cd')); this.script.setSlot('lastHit', raw['lastHit'] === null ? NEVER : num('lastHit'));
-    this.script.setSlot('fadeT', num('fadeT')); this.script.setSlot('autoT', num('autoT'));
+    this.cd = num('cd'); this.lastHit = raw['lastHit'] === null ? -Infinity : num('lastHit'); this.fadeT = num('fadeT'); this.autoT = num('autoT');
     const a = this.animal; if (a) { a.hidden = bool('hidden'); this.env.show(a, !a.hidden); }
   }
 }
@@ -240,17 +352,15 @@ export class GhostStag<B extends PineEliteBody> extends PineEliteScript<B> {
 export class Blackpaw<B extends PineEliteBody> extends PineEliteScript<B> {
   readonly ring: PineRingTell;
   readonly lane: Lane<B>;
+  roarCd = 0;
+  swipeT = -1;
   constructor(env: PineEliteWorld<B>, seed?: number) {
-    super('blackpaw', env, BLACKPAW_BRAIN, seed);
+    super('blackpaw', env, seed);
     this.ring = env.ring();
     this.lane = env.lane(PINE_LANES.blackpaw);
   }
-  /** seconds until he may roar again */
-  get roarCd(): number { return this.script.slot('roarCd'); }
-  /** seconds until the swipe lands (negative: none pending) */
-  get swipeT(): number { return this.script.slot('swipeT'); }
   protected override onSpawn(a: B): void { this.lurk(a); }
-  protected override clearTells(): void { this.ring.hide(); this.lane.cancel(); this.script.setSlot('swipeT', -1); }
+  protected override clearTells(): void { this.ring.hide(); this.lane.cancel(); this.swipeT = -1; }
   get ringR(): number { return this.p2 ? 11 : 8; }
   /** in the cave: out of sight at the mouth */
   private lurk(a: B): void {
@@ -277,15 +387,11 @@ export class Blackpaw<B extends PineEliteBody> extends PineEliteScript<B> {
     this.env.fx.burstOut(a);
     this.sig();
   }
-  protected override scriptPorts(a: B, dt: number, t: number): EliteScriptPorts {
-    return { ...super.scriptPorts(a, dt, t),
-      ring: (radius, alpha) => { this.ring.ring(a.position.x, a.position.z, radius, alpha); }, ringHide: () => { this.ring.hide(); },
-      ringTime: () => { this.ring.setTime(t); } };
-  }
-  protected override act(name: string, a: B): void { if (name === 'burstOut') this.burstOut(a); else if (name === 'roarFx') this.env.fx.roar(a, this.ringR); else super.act(name, a); }
+  roarFx(a: B): void { this.env.fx.roar(a, this.ringR); }
+  protected fight(a: B, dt: number, t: number): void { blackpawGoal(this, a, dt, t); }
   protected override extra(): PineEliteFields { return { roarCd: this.roarCd, swipeT: this.swipeT, hidden: this.animal?.hidden === true }; }
   protected override restoreExtra(num: (k: string) => number, bool: (k: string) => boolean): void {
-    this.script.setSlot('roarCd', num('roarCd')); this.script.setSlot('swipeT', num('swipeT'));
+    this.roarCd = num('roarCd'); this.swipeT = num('swipeT');
     const a = this.animal; if (a) { a.hidden = bool('hidden'); this.env.show(a, !a.hidden); }
   }
   override lanes(): readonly Lane<B>[] { return [this.lane]; }
@@ -299,15 +405,14 @@ export class ImperialBull<B extends PineEliteBody> extends PineEliteScript<B> {
   readonly lane: Lane<B>;
   private readonly rivalLanes: Lane<B>[];
   rivals: Rival<B>[] = [];
+  bugledPhase = -1;
   constructor(env: PineEliteWorld<B>, seed?: number) {
-    super('imperial-bull', env, IMPERIAL_BULL_BRAIN, seed);
+    super('imperial-bull', env, seed);
     this.lane = env.lane(PINE_LANES.imperial);
     this.rivalLanes = [0, 1].map(() => env.lane(PINE_LANES.rival));
   }
-  /** the last phase he bugled in (-1: none yet) */
-  get bugledPhase(): number { return this.script.slot('bugledPhase'); }
   protected override clearTells(): void { this.lane.cancel(); }
-  override reset(): void { super.reset(); this.releaseRivals(); this.script.setSlot('bugledPhase', -1); }
+  override reset(): void { super.reset(); this.releaseRivals(); this.bugledPhase = -1; }
   override trophy(): void { super.trophy(); this.releaseRivals(); }
   override despawn(): void { this.releaseRivals(); super.despawn(); }
   private releaseRivals(): void { for (const r of this.rivals) { r.lane.cancel(); this.env.release(r.a); } this.rivals = []; }
@@ -341,12 +446,7 @@ export class ImperialBull<B extends PineEliteBody> extends PineEliteScript<B> {
     }
     this.rivals = this.rivals.filter((r) => r.a.alive || r.lane.busy);
   }
-  /** the rivals run first (they charge too); the script then reads how many live and whether it is the bugle hour */
-  protected override fight(a: B, dt: number, t: number): void { this.tickRivals(dt, t); super.fight(a, dt, t); }
-  protected override scriptPorts(a: B, dt: number, t: number): EliteScriptPorts {
-    return { ...super.scriptPorts(a, dt, t), hostValues: () => [this.rivals.length, bugleHour(this.env.dusk(), this.env.night()) ? 1 : 0] };
-  }
-  protected override act(name: string, a: B): void { if (name === 'callRivals') this.callRivals(a); else super.act(name, a); }
+  protected fight(a: B, dt: number, t: number): void { imperialGoal(this, a, dt, t); }
   /** each rival lane's bull as its creature number (`creature:<n>`) and its mode; null: that lane has none */
   protected override extra(): PineEliteFields {
     const out: PineEliteFields = { bugledPhase: this.bugledPhase };
@@ -358,7 +458,7 @@ export class ImperialBull<B extends PineEliteBody> extends PineEliteScript<B> {
     return out;
   }
   protected override restoreExtra(num: (k: string) => number, bool: (k: string) => boolean, raw: PineEliteFields): void {
-    this.script.setSlot('bugledPhase', num('bugledPhase'));
+    this.bugledPhase = num('bugledPhase');
     this.rivals = [];
     this.rivalLanes.forEach((lane, i) => {
       if (raw[`rival${String(i)}`] === null) return;

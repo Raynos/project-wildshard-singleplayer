@@ -11,7 +11,7 @@ import { AntlerKingFight } from '../../src/shards/pine-hollow/runtime/antlerKing
 import { canReach } from '../../src/engine/ai/reach';
 import { headingTo, inArc } from '../../src/shards/pine-hollow/combat/combatMath';
 import { pineContact, PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';
-import { blackpawGoal } from '../../src/shards/pine-hollow/combat/EliteGoals';
+import { blackpawGoal } from '../fixtures/species-oracle/pineElites';
 import { legacyMethods } from '../fake/legacySource';
 import { Spear, SPEAR_PROFILE } from '../../src/shards/nalati-grasslands/runtime/weapons/Spear';
 import { NaizagaiPower } from '../../src/shards/nalati-grasslands/runtime/weapons/Naizagai';
@@ -92,7 +92,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
   });
   it('B4 Blackpaw swipe rejects cover and retains22 in the open', () => {
     setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');
-    const path = 'src/shards/pine-hollow/combat/eliteScripts.ts', globals = { canReach, headingTo, inArc, pineContact, PINE_STRIKES, blackpawGoal, THREE, _v: new THREE.Vector3() };
+    const path = 'test/fixtures/species-oracle/pineElites.ts', globals = { canReach, headingTo, inArc, pineContact, PINE_STRIKES, blackpawGoal, THREE, _v: new THREE.Vector3() };
     const proto = legacyMethods(path, 'Blackpaw', globals), base = legacyMethods(path, 'PineEliteScript', globals);
     Object.setPrototypeOf(base, EliteBrain.prototype); Object.setPrototypeOf(proto, base);
     const hurt = vi.fn(noop), fight = legacyActor(proto, { ports: { player: { position: new THREE.Vector3(0, 0, -1.2) } }, mode: 'swipe', modeT: 0, swipeT: 0.01, roarCd: 0, p2: false,

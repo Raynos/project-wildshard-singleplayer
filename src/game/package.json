@@ -227,6 +227,7 @@
     "./shardfile/speciesBrains": "./shardfile/speciesBrains.ts",
     "./shardfile/phasedRaptors": "./shardfile/phasedRaptors.ts",
     "./shardfile/speciesScripts": "./shardfile/speciesScripts.ts",
+    "./shardfile/eliteScripts": "./shardfile/eliteScripts.ts",
     "./shardfile/brainRuntime": "./shardfile/brainRuntime.ts",
     "./shardfile/accent": "./shardfile/accent.ts",
     "./shardfile/scriptComposition": "./shardfile/scriptComposition.ts",
