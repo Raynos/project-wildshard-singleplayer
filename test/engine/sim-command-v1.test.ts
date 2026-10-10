@@ -17,6 +17,17 @@ beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/ph
 const legacy = { kind: 'player', moveX: 0.4, moveZ: -0.2, yaw: 0.3 } as const;
 const steer = { keyX: -1, keyY: 1, stickX: 0.25, stickY: 0.4 };
 
+it('preserves held swim controls at worker admission and forwarding without changing dry command bytes', () => {
+  for (const dive of [true, false]) for (const surface of [true, false]) {
+    const wire = { ...legacy, dive, surface };
+    expect(v.parse(TickCommandSchema, wire)).toEqual(wire);
+    expect(simPlayerCommand(wire)).toEqual({ moveX: legacy.moveX, moveZ: legacy.moveZ, yaw: legacy.yaw, dive, surface });
+  }
+  expect(JSON.stringify(simPlayerCommand(legacy))).toBe('{"moveX":0.4,"moveZ":-0.2,"yaw":0.3}');
+  for (const bad of [{ ...legacy, dive: 1 }, { ...legacy, surface: 'yes' }, { ...legacy, dive: null },
+    { ...legacy, dive: undefined }, { ...legacy, surface: undefined }]) expect(v.safeParse(TickCommandSchema, bad).success).toBe(false);
+});
+
 it('keeps old wire/forward bytes and admits only explicitly versioned finite local controls', () => {
   expect(JSON.stringify(v.parse(TickCommandSchema, legacy))).toBe(JSON.stringify(legacy));
   expect(JSON.stringify(simPlayerCommand(legacy))).toBe('{"moveX":0.4,"moveZ":-0.2,"yaw":0.3}');

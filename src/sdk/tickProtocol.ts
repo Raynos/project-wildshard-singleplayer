@@ -9,9 +9,10 @@ export const TickCommandSchema = v.variant('kind', [
   // the JUMP / DODGE press (SimCommand.jump / .dodge). `heavy` is a HELD state, not a press: the HEAVY hold is down this
   // tick (the touch ATTACK hold, the desktop latch), aimed at `targetId` when the crosshair is on one; the first tick
   // without it releases. The runtime's weapon reads it with its own law (SweptMeleeCore.step's `held`; a hold-to-release
-  // weapon's charge); SimHost has no heavy of its own.
+  // weapon's charge); SimHost has no heavy of its own. `dive` / `surface` are held booleans read by the installed water law.
   v.pipe(v.strictObject({ kind: v.literal('player'), moveX: finite, moveZ: finite, yaw: finite, attack: v.optional(v.strictObject({ targetId: text })), hover: v.optional(v.literal(true)),
     jump: v.optional(v.literal(true)), dodge: v.optional(v.literal(true)), heavy: v.optional(v.strictObject({ targetId: v.optional(text) })),
+    dive: v.exactOptional(v.boolean()), surface: v.exactOptional(v.boolean()),
     commandVersion: v.exactOptional(v.literal(1)), steer: v.exactOptional(v.strictObject({ keyX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), keyY: v.pipe(finite, v.minValue(-1), v.maxValue(1)),
       stickX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), stickY: v.pipe(finite, v.minValue(-1), v.maxValue(1)) })), sprint: v.exactOptional(v.boolean()), crouch: v.exactOptional(v.boolean()) }),
     v.check(command => command.commandVersion === 1 || (command.steer === undefined && command.sprint === undefined && command.crouch === undefined), 'Raw movement requires commandVersion 1')),
@@ -26,6 +27,7 @@ export function simPlayerCommand(command: Extract<HeadlessCommand, { kind: 'play
     ...(command.attack === undefined ? {} : { attack: { ...command.attack } }),
     ...(command.hover === undefined ? {} : { hover: command.hover }), ...(command.jump === undefined ? {} : { jump: command.jump }),
     ...(command.dodge === undefined ? {} : { dodge: command.dodge }),
+    ...(command.dive === undefined ? {} : { dive: command.dive }), ...(command.surface === undefined ? {} : { surface: command.surface }),
     ...(command.commandVersion === undefined ? {} : { commandVersion: command.commandVersion }),
     ...(command.steer === undefined ? {} : { steer: { ...command.steer } }),
     ...(command.sprint === undefined ? {} : { sprint: command.sprint }), ...(command.crouch === undefined ? {} : { crouch: command.crouch }) };
