@@ -52,3 +52,18 @@ it('gates per-owner CPU even when the frame cadence passes, and refuses missing 
   expect(assess(expensive, 'sim').cpuPass).toBe(true);
   expect(assess({ ...result, cpu: { enabled: false, frames: 0, owners: [] } }, 'desktop').pass).toBe(false);
 });
+
+it('fails a whole-drive row on one long frame that median and p95 never see (100 ms desktop / 200 ms Simulator)', async () => {
+  const end = source.indexOf('function grade(record)');
+  const start = source.indexOf('function assess(result, surfaceName)');
+  interface Graded { pass: boolean; maxFramePass: boolean; maxFrameLimitMs: number | null; miss: string | null }
+  const assess = runInNewContext(`(${source.slice(start, end).trim()})`) as (sample: object, surface: string) => Graded;
+  const result = await measure(1000 / 60);
+  const drive = (maxMs: number) => ({ ...result, maxMs, pose: { name: 'grid-template-interior-drive' } });
+  expect(assess(drive(99), 'desktop')).toMatchObject({ pass: true, maxFramePass: true, maxFrameLimitMs: 100 });
+  expect(assess(drive(13316), 'desktop')).toMatchObject({ pass: false, maxFramePass: false, miss: 'long frame: max 13316 ms > 100 ms' });
+  expect(assess(drive(150), 'sim')).toMatchObject({ maxFramePass: true, maxFrameLimitMs: 200 });
+  expect(assess(drive(232), 'sim').maxFramePass).toBe(false);
+  // the 120-frame travel and standing rows keep median / p95 grading only
+  expect(assess({ ...result, maxMs: 500, pose: { name: 'grid-template-interior-travel' } }, 'desktop')).toMatchObject({ maxFramePass: true, maxFrameLimitMs: null });
+});

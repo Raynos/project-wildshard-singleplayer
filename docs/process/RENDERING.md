@@ -49,6 +49,16 @@ still applies where no tier policy selects a mode. Configure final samplers befo
 upload, retain compressed mips until the first successful real draw, and reject an
 unresident clone without upload data. Cache presence alone does not prove GPU residency.
 
+## The frame floor (`scripts/frame-floor.mjs`)
+
+- Jake's rule: **60–120 fps on desktop and 30–60 fps on the iOS Simulator at all moments.** Each row grades the
+  integer-rounded median fps (≥ 60 / ≥ 30), p95 (≤ 17.5 / ≤ 35 ms) and each content owner's CPU p95.
+- **The long-frame gate** (SF63, 2026-10-10): a grid scenario's whole-drive row (`grid-<plan>-drive`: the drive plus
+  every runtime build still running after it, with its frames over 50 / 100 ms counted) also **fails if any one frame
+  is over 100 ms on desktop or 200 ms on the Simulator**. A 13 s freeze is one frame in thousands: median and p95 never
+  see it, and it once passed. The 120-frame travel and standing rows keep median / p95 grading only.
+- `--regrade=<progress/frame-floor/….json>` reapplies the current policy to an old result without rerendering;
+  `--cpu-profile=<scratch dir>` attributes desktop travel legs' long tasks (diagnostic only).
 
 ## Physics (Rapier)
 
