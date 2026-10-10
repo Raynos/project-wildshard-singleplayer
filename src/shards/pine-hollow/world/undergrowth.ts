@@ -5,6 +5,7 @@ import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader, type ShaderStages } from '@wildshard/sdk/looks/shaderEdits';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { bakedUndergrowth } from '@wildshard/engine/world/BakedTerrain';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
@@ -13,6 +14,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { patchWindField } from '@wildshard/engine/world/wind';
 import { UNDER_SHAPES, type UnderShape } from './undergrowthKit';
+import { UNDER_EDITS, UNDER_VERTEX_EDITS } from '../data/forestLook';
 
 /**
  * Forest-floor undergrowth: ferns, low round-leaf shrubs and needle/twig litter — the field (world): where every copy
@@ -148,22 +150,7 @@ export class Undergrowth {
       attachFogUniforms(shader);
       Object.assign(shader.uniforms, underUniforms);
       patchUndergrowthVertex(shader, wind);
-      shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', /* glsl */`#include <common>
-          varying float vH;
-          uniform vec3 uSunDir; uniform vec3 uSunColor;`)
-        .replace('#include <map_fragment>', /* glsl */`#include <map_fragment>
-          diffuseColor.rgb *= mix( 0.55, 1.0, smoothstep( 0.0, 0.5, vH ) );`)
-        .replace('#include <alphatest_fragment>', /* glsl */`
-          diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( fwidth( diffuseColor.a ), 1e-4 ) + 0.5, 0.0, 1.0 );
-          if ( diffuseColor.a < 0.5 ) discard;`)
-        .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replace('normal *= faceDirection;', ''))
-        .replace('#include <lights_fragment_begin>', /* glsl */`#include <lights_fragment_begin>
-          {
-            vec3 sunV = normalize( ( viewMatrix * vec4( uSunDir, 0.0 ) ).xyz );
-            float bl = pow( max( dot( normalize( - vViewPosition ), sunV ), 0.0 ), 5.0 );
-            reflectedLight.indirectDiffuse += diffuseColor.rgb * ( 0.05 + bl * 0.35 ) * uSunColor;
-          }`);
+      editShader(shader, UNDER_EDITS); // ../data/forestLook.ts
     }, { mode: 'replace', key: 'under' }); // `key` names the material; wind is a uniform, so every kind shares ONE program (was 6 — ~150 ms each on iOS)
     this.sky.setupMaterial(mat);
     return mat;
@@ -191,39 +178,14 @@ export function matrixOf(it: Placement, target = new THREE.Matrix4()): THREE.Mat
 }
 
 /** Distance fade (scale to 0) + gentle wind, shared by the lit and the shadow-depth materials. */
-function patchUndergrowthVertex(shader: { vertexShader: string; uniforms: Record<string, THREE.IUniform> }, wind: number) {
+function patchUndergrowthVertex(shader: ShaderStages & { uniforms: Record<string, THREE.IUniform> }, wind: number) {
   shader.uniforms['uWindScale'] = { value: wind }; // per material, not baked into the source: the program is shared
   patchWindField(shader); // the shared clock + gust front (wind.ts, PH-L6)
   shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
   shader.uniforms['uFadeFar'] = underUniforms.uFadeFar;
   shader.uniforms['uFadeBand'] = underUniforms.uFadeBand;
   shader.uniforms['uViewerPos'] = underUniforms.uViewerPos;
-  shader.vertexShader = shader.vertexShader
-    .replace('#include <common>', /* glsl */`#include <common>
-      uniform float uWindStrength; uniform float uWindScale; uniform float uFadeFar; uniform float uFadeBand; uniform vec3 uViewerPos;
-      varying float vH;`)
-    .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
-      {
-        mat3 im = mat3( instanceMatrix );
-        vec3 ipos = ( modelMatrix * vec4( instanceMatrix[3].xyz, 1.0 ) ).xyz;
-        float dist = distance( ipos, uViewerPos );
-        float fade = 1.0 - smoothstep( uFadeFar - uFadeBand, uFadeFar, dist );
-        transformed *= fade;
-        float h = uv.y;
-        vH = h;
-        float s2 = dot( im[0], im[0] );
-        vec3 wpos = ( modelMatrix * instanceMatrix * vec4( transformed, 1.0 ) ).xyz;
-        vec2 dir = windDirXZ();
-        float phase = dot( wpos.xz, dir ) * 0.32;
-        float swell = sin( uWindTime * 1.25 - phase ) * 0.5 + 0.5;
-        float gust = min( windGustAt( wpos.xz ), 1.3 ) * ( 0.35 + 0.65 * swell * swell ) * 1.25;
-        float flutter = sin( uWindTime * 5.0 + wpos.x * 3.0 + wpos.z * 2.0 );
-        float amp = ( 0.01 + gust * 0.05 ) * uWindStrength * uWindScale * 4.0;
-        float w = h * h;
-        vec3 off = vec3( dir.x * amp + flutter * 0.006, 0.0, dir.y * amp + flutter * 0.004 ) * w;
-        off.y = - length( off.xz ) * 0.3;
-        transformed += ( off * im ) / max( s2, 1e-6 ) * fade;
-      }`);
+  editShader(shader, UNDER_VERTEX_EDITS); // ../data/forestLook.ts
 }
 
 // ------------------------------------------------------------------ geometry

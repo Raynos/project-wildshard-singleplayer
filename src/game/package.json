@@ -20,6 +20,7 @@
     "./systems/looks/rainCurtain": "./systems/looks/rainCurtain.ts",
     "./systems/looks/trample": "./systems/looks/trample.ts",
     "./systems/looks/shaderFamily": "./systems/looks/shaderFamily.ts",
+    "./systems/looks/shaderEdits": "./systems/looks/shaderEdits.ts",
     "./systems/looks/cascade": "./systems/looks/cascade.ts",
     "./systems/looks/facetedSky": "./systems/looks/facetedSky.ts",
     "./systems/looks/gullFlock": "./systems/looks/gullFlock.ts",

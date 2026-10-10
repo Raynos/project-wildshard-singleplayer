@@ -10,11 +10,13 @@ import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
+import { CABIN_DOOR_EDITS, CABIN_MOSS_EDITS, CABIN_PARTICLE_GLSL, CABIN_PARTICLE_KINDS } from '../data/cabinLook';
 import { mergeParts, type PropPart } from '../models/logCabin';
 import { PROP_KINDS, type Door, type Fire, type Floor, type LightAnchor, type PropKind, type Room, type Swing } from './logKit';
 import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from './cabinBake';
@@ -101,8 +103,7 @@ async function loadMats(sky: Sky): Promise<Mats> {
   // the rough_pine_door scan is a saturated orange-red: pull it toward a weathered grey-brown in the shader
   patchShader(m.door, 'pine.cabin-door', PATCH_ORDER.material, (shader) => {
     attachFogUniforms(shader);
-    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-      diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.333))), diffuseColor.rgb, 0.45) * vec3(0.9, 0.95, 1.0);`);
+    editShader(shader, CABIN_DOOR_EDITS); // ../data/cabinLook.ts
   }, { mode: 'replace', key: 'cabin-door' });
   for (const k of ['log', 'endGrain', 'chink', 'roof', 'beam', 'deck', 'door', 'stone', 'glass', 'bark', 'iron', 'cloth', 'char'] as const) sky.setupMaterial(m[k]);
   return m;
@@ -178,11 +179,7 @@ const SHARED_CABIN_LIGHTS = 2;
 /** Billboard particle material driven entirely by uTime (no per-frame CPU work). */
 function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
   noiseTex ??= cacheUntilDisposed(makeNoiseTexture(), () => { noiseTex = undefined; });
-  const cfg = {
-    smoke: { life: 11.0, rise: 12.0, spread: 0.25, size: [0.7, 4.6], wind: [1.6, 0.0, 0.45], blend: THREE.NormalBlending, fog: true },
-    flame: { life: 0.85, rise: 0.95, spread: 0.36, size: [0.95, 0.3], wind: [0, 0, 0], blend: THREE.AdditiveBlending, fog: false },
-    ember: { life: 2.8, rise: 3.4, spread: 0.4, size: [0.04, 0.012], wind: [0.3, 0, 0.15], blend: THREE.AdditiveBlending, fog: false },
-  }[kind];
+  const cfg = CABIN_PARTICLE_KINDS[kind];
   const uniforms: Record<string, THREE.IUniform> = {
     uTime: { value: 0 }, uLife: { value: cfg.life }, uRise: { value: cfg.rise }, uSpread: { value: cfg.spread },
     uSize: { value: new THREE.Vector2(cfg.size[0], cfg.size[1]) }, uWind: { value: new THREE.Vector3(...cfg.wind) }, tNoise: { value: noiseTex },
@@ -190,97 +187,10 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
     ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), uKind: { value: { smoke: 0, flame: 1, ember: 2 }[kind] },
   };
   return new THREE.ShaderMaterial({
-    // one program for smoke / flame / ember: the kind is a uniform branch, not a define, and every kind carries the
-    // fog uniforms (only smoke applies them) — three per-define variants were three ~150 ms compiles on the iPhone
-    uniforms, transparent: true, depthWrite: false, blending: cfg.blend, fog: true, side: THREE.DoubleSide,
-    vertexShader: /* glsl */`
-      attribute vec4 seed;
-      uniform float uTime, uLife, uRise, uSpread; uniform vec2 uSize; uniform vec3 uWind; uniform vec3 uSunDir; uniform int uKind;
-      varying vec2 vUv; varying float vAge; varying vec4 vSeed; varying vec2 vSunView;
-      #include <fog_pars_vertex>
-      void main() {
-        float age = fract(uTime / uLife * (0.85 + 0.3 * seed.z) + seed.w);
-        vAge = age; vSeed = seed; vUv = uv;
-        float ang = seed.y * 6.2831853;
-        vec3 p = vec3(cos(ang), 0.0, sin(ang)) * uSpread * sqrt(seed.z);
-        if (uKind == 1) {
-          p.y += age * uRise * (0.6 + 0.8 * seed.x);
-          p.xz *= 1.0 - age * 0.55;
-          p.x += sin(uTime * 7.0 + seed.x * 20.0) * 0.06 * age;
-          p.z += cos(uTime * 6.3 + seed.y * 20.0) * 0.06 * age;
-        } else {
-          p.y += age * uRise * (0.7 + 0.6 * seed.x);
-          p.x += sin(age * 9.0 + seed.x * 12.0) * 0.12 * age + sin(uTime * 1.3 + seed.y * 9.0) * 0.08 * age;
-          p.z += cos(age * 7.0 + seed.y * 12.0) * 0.12 * age;
-        }
-        vec3 windW = vec3(0.0);
-        if (uKind != 1) {
-          // wind is a world-space vector: undo the cabin's yaw so every plume drifts the same way
-          windW = (inverse(mat3(modelMatrix)) * uWind) * age * age * (0.6 + 0.8 * seed.x);
-          if (uKind == 0) {
-            windW += (inverse(mat3(modelMatrix)) * vec3(sin(uTime * 0.37 + seed.x * 6.0), 0.0, cos(uTime * 0.29 + seed.y * 6.0))) * 0.9 * age * age;
-          }
-          p += windW;
-        }
-        vSunView = normalize((viewMatrix * vec4(uSunDir, 0.0)).xy + vec2(1e-4));
-        float size = mix(uSize.x, uSize.y, age) * (0.75 + 0.5 * seed.x);
-        if (uKind == 0) {
-          size = mix(uSize.x, uSize.y, pow(age, 0.7)) * (0.75 + 0.5 * seed.x) * smoothstep(0.0, 0.08, age);
-        }
-        vec3 transformed = p;
-        vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
-        float rot = seed.x * 6.28 + age * (seed.y - 0.5) * 2.0;
-        vec2 q = position.xy * size;
-        if (uKind == 0) {
-          q = vec2(q.x * cos(rot) - q.y * sin(rot), q.x * sin(rot) + q.y * cos(rot));
-        }
-        if (uKind == 1) {
-          q.y *= 1.9;
-        }
-        mvPosition.xy += q;
-        gl_Position = projectionMatrix * mvPosition;
-        #include <fog_vertex>
-      }`,
-    fragmentShader: /* glsl */`
-      uniform sampler2D tNoise; uniform float uTime; uniform vec3 uSunColor; uniform int uKind; uniform float uShade; uniform float uLamps;
-      varying vec2 vUv; varying float vAge; varying vec4 vSeed; varying vec2 vSunView;
-      #include <fog_pars_fragment>
-      void main() {
-        vec2 d = vUv - 0.5;
-        if (uKind == 0) {
-          float n = texture2D(tNoise, vUv * 1.3 + vSeed.xy * 3.0 + vec2(uTime * 0.015, -uTime * 0.04)).r;
-          float n2 = texture2D(tNoise, vUv * 3.1 + vSeed.zw * 5.0 + vec2(-uTime * 0.03, -uTime * 0.02)).r;
-          float m = smoothstep(0.5, 0.08, length(d) + (n - 0.5) * 0.42 + (n2 - 0.5) * 0.15);
-          float a = m * 0.55 * smoothstep(0.0, 0.08, vAge) * (1.0 - smoothstep(0.3, 1.0, vAge));
-          // lit on the sun side of each puff, cool blue-grey in its own shadow
-          float lit = smoothstep(-0.55, 0.6, dot(d * 2.0, vSunView) + (n - 0.5) * 0.6);
-          vec3 col = mix(vec3(0.36, 0.38, 0.44), vec3(0.95, 0.9, 0.85) * uSunColor * 1.25, lit) * (0.85 + 0.3 * n2) * uShade;
-          // the chimney's glow (PH-L3): the young plume catches the hearth's light from below at night
-          col += vec3(1.0, 0.42, 0.12) * 0.16 * uLamps * (1.0 - smoothstep(0.0, 0.1, vAge)) * (1.0 - uShade);
-          gl_FragColor = vec4(col, a);
-          #include <fog_fragment>
-        }
-        if (uKind == 1) {
-          vec2 uv = vUv;
-          float n1 = texture2D(tNoise, uv * vec2(1.2, 0.7) + vec2(vSeed.x * 4.0, -uTime * 0.9 - vSeed.y * 5.0)).r;
-          float n2 = texture2D(tNoise, uv * vec2(2.3, 1.4) + vec2(-vSeed.y * 3.0, -uTime * 1.6 + vSeed.x * 7.0)).r;
-          float n = n1 * 0.65 + n2 * 0.35;
-          float width = mix(0.42, 0.06, uv.y) * (0.7 + 0.6 * n);
-          float body = smoothstep(width, width * 0.25, abs(d.x + (n - 0.5) * 0.25 * uv.y));
-          body *= smoothstep(0.0, 0.18, uv.y) * smoothstep(1.0, 0.55, uv.y + (n - 0.5) * 0.4);
-          float life = smoothstep(0.0, 0.1, vAge) * (1.0 - smoothstep(0.55, 1.0, vAge));
-          float heat = body * (1.0 - uv.y * 0.6) * (1.0 - vAge * 0.5);
-          vec3 col = mix(vec3(1.0, 0.18, 0.02), vec3(1.0, 0.62, 0.12), smoothstep(0.15, 0.6, heat));
-          col = mix(col, vec3(1.0, 0.96, 0.75), smoothstep(0.55, 1.0, heat));
-          gl_FragColor = vec4(col * body * life * 1.8, body * life);
-        }
-        if (uKind == 2) {
-          float m = smoothstep(0.5, 0.15, length(d));
-          float flick = 0.6 + 0.4 * sin(uTime * 17.0 + vSeed.x * 40.0);
-          float life = smoothstep(0.0, 0.05, vAge) * (1.0 - smoothstep(0.4, 1.0, vAge));
-          gl_FragColor = vec4(vec3(1.0, 0.55, 0.15) * 2.5 * m * flick * life, m * life);
-        }
-      }`,
+    // one program for smoke / flame / ember (../data/cabinLook.ts `CABIN_PARTICLE_GLSL`: the kind is a uniform branch)
+    uniforms, transparent: true, depthWrite: false, blending: cfg.blend === 'additive' ? THREE.AdditiveBlending : THREE.NormalBlending, fog: true, side: THREE.DoubleSide,
+    vertexShader: CABIN_PARTICLE_GLSL.vertex,
+    fragmentShader: CABIN_PARTICLE_GLSL.fragment,
   });
 }
 
@@ -290,7 +200,7 @@ const isMesh = (o: THREE.Object3D): o is THREE.Mesh => 'isMesh' in o;
 /**
  * Procedural moss / lichen overlay: value-noise patches in world space, denser where the `moss`
  * vertex attribute is high (eaves, foundation base) and on faces turned away from the sun, with a
- * soft normal bump along the patch edges.
+ * soft normal bump along the patch edges (the GLSL edits: ../data/cabinLook.ts `CABIN_MOSS_EDITS`).
  */
 function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | 'stone') {
   const strength = kind === 'roof' ? 1.0 : 0.6;
@@ -299,55 +209,7 @@ function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | '
     shader.uniforms['uMossSun'] = { value: sky.sunDir };
     shader.uniforms['uMossStrength'] = { value: strength };
     shader.uniforms['uMossUpOnly'] = { value: kind === 'roof' ? 1.0 : 0.0 };
-    shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', `#include <common>
-        attribute float moss; varying float vMoss; varying vec3 vMossPos; varying vec3 vMossN;`)
-      .replace('#include <begin_vertex>', `#include <begin_vertex>
-        vMoss = moss; vMossPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vMossN = normalize(mat3(modelMatrix) * objectNormal);`);
-    shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>
-        uniform vec3 uMossSun; uniform float uMossStrength, uMossUpOnly;
-        varying float vMoss; varying vec3 vMossPos; varying vec3 vMossN;
-        float mossHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-        float mossNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
-          return mix(mix(mossHash(i), mossHash(i + vec2(1, 0)), f.x), mix(mossHash(i + vec2(0, 1)), mossHash(i + vec2(1, 1)), f.x), f.y); }
-        float mossFbm(vec2 p) { mat2 r = mat2(0.8, 0.6, -0.6, 0.8); vec2 p2 = r * p * 2.13 + 3.7; vec2 p3 = r * p2 * 2.02 + 9.1;
-          return mossNoise(p) * 0.5 + mossNoise(p2) * 0.3 + mossNoise(p3) * 0.2; }
-        float mossMask;`)
-      .replace('#include <map_fragment>', `#include <map_fragment>
-        {
-          #ifdef USE_MAP
-            vec2 mp = vMapUv * vec2(1.6, 3.6) + vMossPos.xz * 0.2;       // patches stretched along the planks
-          #else
-            vec2 mp = vMossPos.xz * 2.0 + vMossPos.y * 0.35;
-          #endif
-          float n = mossFbm(mp) * 0.8 + mossFbm(mat2(0.6, 0.8, -0.8, 0.6) * mp * 2.7 + 11.0) * 0.2;
-          float patchy = 0.55 + 0.9 * mossNoise(mp * 0.3 + 2.0);            // large-scale variation so some stretches stay bare
-          float shade = 1.0 - smoothstep(-0.3, 0.5, dot(vMossN, uMossSun));
-          float density = (0.2 + 0.75 * pow(vMoss, 1.6) + 0.18 * shade) * patchy * uMossStrength * mix(1.0, smoothstep(-0.05, 0.45, vMossN.y), uMossUpOnly);
-          float th = 0.8 - density * 0.5;
-          mossMask = smoothstep(th, th + 0.22, n);
-          float lichen = smoothstep(0.74, 0.86, mossFbm(mat2(0.6, 0.8, -0.8, 0.6) * mp * 4.0 + 17.0)) * density * 0.35;
-          vec3 mossCol = mix(vec3(0.02, 0.038, 0.009), vec3(0.075, 0.115, 0.03), mossFbm(mp * 2.0 + 5.0));
-          mossCol *= clamp(0.6 + 3.0 * dot(diffuseColor.rgb, vec3(0.33)), 0.6, 1.25);   // let the plank grain show through the mat
-          vec3 lichenCol = vec3(0.055, 0.07, 0.04);
-          diffuseColor.rgb = mix(diffuseColor.rgb, mossCol, mossMask);
-          diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol, lichen * (1.0 - mossMask));
-        }`)
-      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-        roughnessFactor = mix(roughnessFactor, 0.97, mossMask);`)
-      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-        {
-          // bump along the moss patch edges (same maths as three's perturbNormalArb)
-          float mh = mossMask * 0.35;
-          vec2 dHdxy = vec2(dFdx(mh), dFdy(mh));
-          vec3 sp = -vViewPosition;
-          vec3 vSigmaX = dFdx(sp), vSigmaY = dFdy(sp);
-          vec3 R1 = cross(vSigmaY, normal), R2 = cross(normal, vSigmaX);
-          float fDet = dot(vSigmaX, R1) * faceDirection;
-          vec3 vGrad = sign(fDet) * (dHdxy.x * R1 + dHdxy.y * R2);
-          normal = normalize(abs(fDet) * normal - vGrad * 6.0);
-        }`);
+    editShader(shader, CABIN_MOSS_EDITS); // ../data/cabinLook.ts
   }, { mode: 'replace', key: 'cabin-moss' }); // strength / upOnly are uniforms: roof and stone share one program
 }
 

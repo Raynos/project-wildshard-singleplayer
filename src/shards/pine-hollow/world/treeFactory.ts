@@ -4,9 +4,11 @@ import { loadTexture, loadPBRArray } from '@wildshard/engine/core/assets';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { LookReplaceContext } from '@wildshard/engine/render/look';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls } from '@wildshard/engine/world/forest/treeSet';
 import { TreeFactory, patchFade, patchWind, type FadeBand } from '@wildshard/engine/world/TreeFactory';
+import { TREE_CROWN_EDITS, TREE_FAR_EDITS } from '../data/forestLook';
 import { PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
 import { PINE_TREE_ASSETS } from './treeAssets';
 
@@ -33,13 +35,7 @@ export class PineTreeFactory extends TreeFactory {
     });
     patchShader(far, 'pine.tree-far', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader); patchWind(shader); patchFade(shader, this.fade.far);
-      shader.fragmentShader = shader.fragmentShader
-        .replace('#include <alphatest_fragment>', /* glsl */`
-          diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( fwidth( diffuseColor.a ), 1e-4 ) + 0.5, 0.0, 1.0 );
-          if ( diffuseColor.a < 0.5 ) discard;`)
-        .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replace('normal *= faceDirection;', ''))
-        .replace('#include <lights_fragment_begin>', `#include <lights_fragment_begin>
-          reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.06;`);
+      editShader(shader, TREE_FAR_EDITS); // ../data/forestLook.ts
       if (crownTop) patchImpostorCrownTop(shader, this.crownTop);
     }, { mode: 'replace', key: (crownTop ? 'tree-far-crown' : 'tree-far') });
     return far;
@@ -79,31 +75,7 @@ export class PineTreeFactory extends TreeFactory {
       });
       patchShader(m, 'pine.crown', PATCH_ORDER.material, (shader) => {
         attachFogUniforms(shader); patchWind(shader); patchFade(shader, band);
-        shader.fragmentShader = shader.fragmentShader
-          // both faces of a card take the crown-bent vertex normal: a crown lights as a volume from any side
-          .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replace('normal *= faceDirection;', ''))
-          .replace('#include <normal_fragment_maps>', `
-            {
-              vec3 upV = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
-              diffuseColor.rgb *= mix( 1.0, 0.6, smoothstep( 0.2, -0.7, dot( nonPerturbedNormal, upV ) ) );
-            }
-            #include <normal_fragment_maps>
-            {
-              vec3 upV = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
-              normal = normalize( mix( normal, upV, 0.25 ) );
-            }`)
-          .replace('#include <lights_fragment_begin>', `#include <lights_fragment_begin>
-            {
-              // needle / leaf translucency: the sun through the crown toward the viewer glows
-              #if NUM_DIR_LIGHTS > 0
-                vec3 Lv = directionalLights[0].direction;
-                vec3 Vv = normalize( vViewPosition );
-                float vdotl = saturate( dot( -Vv, Lv ) );
-                float trans = pow( vdotl, 5.0 ) * 0.55 + 0.08;
-                reflectedLight.indirectDiffuse += diffuseColor.rgb * directionalLights[0].color * trans * 0.35;
-              #endif
-              reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.04;
-            }`);
+        editShader(shader, TREE_CROWN_EDITS); // ../data/forestLook.ts
         patchCardCrownTop(shader, this.crownTop);
       }, { mode: 'replace', key: `${key}-crown` });
       return m;
