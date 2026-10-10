@@ -31,8 +31,8 @@ after a longer wait the whole context is re-cached at full price.
 
 **Only a large, multi-week plan uses this** (Jake, 2026-10-10: *"codex and openusage based routing … should be only for large
 multi week plans"*), today SHARD-PLATFORM and GAME-NORMALIZATION. Every other session builds as the main agent with at most 3
-Claude subagents and starts no Codex panes. Such a plan may run up to 5 Opus + 5 Codex lanes; Jake sets its current split
-(SHARD-PLATFORM G289: 2 Opus + 5 Codex).
+Claude subagents and starts no Codex panes. Such a plan may run up to **3 Opus + 3 Codex** lanes. SHARD-PLATFORM alone may run up to 5 + 5, Jake's exception
+(*"we are doing a 5 exception for shard platform because I'm impatient"*); its current split is G289, 2 Opus + 5 Codex.
 
 Jake: the goal is for **Codex to hit 0 % while Claude still has a 10 % reserve**, never the other way round. Claude is the top-level
 agent, so its last 10 % is a reserve tank for discussions with Jake and for coordinating. Codex left unspent at the reset is wasted;

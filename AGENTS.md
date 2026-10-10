@@ -100,7 +100,7 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
   checks of what they touched. The gpu-gate parity CI runs nightly and at milestones, not on every push.
 - **At most 3 agents per session** (Jake, 2026-10-10: *"What we write down and commit in AGENTS.md is 3 agents"*).
 - **Codex lanes and openusage routing are for large multi-week plans only** (Jake, 2026-10-10; today SHARD-PLATFORM and
-  GAME-NORMALIZATION, up to 5 Opus + 5 Codex, split set by Jake): graphical work is Opus-only, Codex does non-graphical
+  GAME-NORMALIZATION), up to **3 Opus + 3 Codex** lanes; SHARD-PLATFORM alone may run up to 5 + 5 (Jake's exception): graphical work is Opus-only, Codex does non-graphical
   engineering, both paced with `openusage` so Codex reaches 0 % as Claude reaches its 10 % reserve. Any other session
   starts no Codex panes. `codex exec` for mockups and a council's Codex seat are not lanes.
 
