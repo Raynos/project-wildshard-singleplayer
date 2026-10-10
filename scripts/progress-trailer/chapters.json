@@ -1,0 +1,17 @@
+{
+  "_": "PROGRESS-TRAILER chapters as data (§3.5). receipts.mjs computes every on-screen number from these SHAs (§2.3); a lapse's stages come from scripts/progress-trailer/lapses/<lapse>.mjs when that module exists (its stages[].sha and t0), else from `stages` here (evenly spaced). Subjects are ≤ 7 words; {hours} is the span `span` computes.",
+  "origin": "402198440",
+  "fps": 60,
+  "chapters": [
+    { "id": "day1", "label": "DAY 1", "sha": "568a1463f", "wall": { "dur": 3, "stills": "progress/[0-9][0-9][0-9]-*", "minGapFrames": 4 } },
+    { "id": "week1", "label": "WEEK 1", "sha": "2d2c5815a",
+      "lapse": { "name": "driftwood", "dur": 6, "subject": "Driftwood Isle is born", "stages": ["3a83028ec", "2d2c5815a"] } },
+    { "id": "week2", "label": "WEEK 2", "sha": "19a434635",
+      "lapse": { "name": "nine-dragon", "dur": 6, "subject": "Nine Dragon Stack", "stages": ["3719d1d8e", "19a434635"] } },
+    { "id": "week3", "label": "WEEK 3", "sha": "c9aaa62ab",
+      "lapse": { "name": "sky-reach", "dur": 8, "subject": "The first {hours} hours", "span": ["54e37d4dd", "6066f959c"],
+        "stages": ["54e37d4dd", "6066f959c", "c9aaa62ab"], "open": 2 } }
+  ],
+  "breath": { "sha": "b39cc8b8a", "path": "sources/WILDSHARD.md", "excerpt": "claude code as the UI for building", "dur": 2, "typeStart": 0.08, "typeEnd": 0.78 },
+  "end": { "count": { "dur": 3, "from": "c9aaa62ab", "hit": 0.9 }, "cta": { "dur": 3, "text": "Play free", "url": "wildshard.io" } }
+}

@@ -1,0 +1,308 @@
+<!doctype html>
+<!-- PROGRESS-TRAILER cards (row PT7, PT6's breath; E468). Rendered by the trailer agent's shared tool:
+       scripts/browser-lane.sh --max 10 node scripts/steam-trailer/titles.mjs <out> <cards.json> --titles-html=scripts/progress-trailer/titles.html
+     cards.json comes from scripts/progress-trailer/receipts.mjs: every number, date and SHA on a card arrives in its opts,
+     computed from git (§2.3); nothing on this page is typed in by hand but the words "an empty repo.", "WILDSHARD" and the CTA.
+     Every card is a pure function of (card, t, opts), screenshotted over a transparent background at 60 fps.
+
+     Its own visual language (not the alpha trailer's Rajdhani / cyan / violet glow): a git ledger. Ink-black chrome,
+     JetBrains Mono for every receipt (SHA in amber, counts and clocks in paper white, `+` in diff green), Avenir Next
+     Condensed for the one read block per screen, hairline rules, a block caret; things land by typing and stepping,
+     never by blurring in.
+
+     Cards (window.pose(card, t, opts)):
+       origin    over black: "16 Sep 2026: an empty repo."                    opts { date, rest, sha, dur }
+       wall      the authoring frame, its inset the day-1 wall of 21 tiles (7 × 3) landing at their times on the clock
+                 compressed from the origin to the chapter SHA; the band reads the chapter label  opts { stills[{src,t}], rail[{sha,s,t}], clock{t0,t1,span}, label, dateYear, dur }
+       frame     the authoring frame over a lapse: inset transparent (the lapse picture goes under it, at window.insetAt(t, opts)),
+                 rail at the real commits per screen-second between stages, band subject then chapter label, the stage
+                 counter rolling on each swap; `open` s: over the last `open` seconds the chrome slides out and the inset
+                 grows to full-bleed                                          opts { stages[{sha,count,date,at,subject}], railBase, rail[{sha,s}], subject, label, labelAt, open, dur }
+       breath    the authoring frame, its inset the `+` diff line the words were in, typed by `keys` (the keyclick track)
+                                                                              opts { excerpt, sha, path, line, date, time, keys[{t,ch}], rail, dur }
+       endCount  over transparent: "WILDSHARD" · "Day <n> · <count> commits", the count rolling to land on `hit`   opts { day, count, from, hit, dur }
+       endCta    over transparent: "Play free" · "wildshard.io"               opts { text, url, dur }
+     16:9 only (Jake, PT0): setPortrait exists for titles.mjs and changes nothing.
+     window.legibility() lists the read blocks on screen with their cap height in px (§2.3: ≥ 56 at 1080). -->
+<html><head><meta charset="utf-8">
+<style>
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400; src: url('../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; src: url('../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 700; src: url('../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-700-normal.woff2') format('woff2'); }
+:root {
+  --ink: #0a0b0a; --ink2: #0e100f; --rule: rgba(236, 232, 220, 0.12);
+  --paper: #f1ede3; --dim: rgba(241, 237, 227, 0.46); --faint: rgba(241, 237, 227, 0.26);
+  --amber: #e8b04a; --green: #56d364; --addbg: rgba(46, 160, 67, 0.16);
+}
+html, body { margin: 0; width: 1920px; height: 1080px; background: transparent; overflow: hidden; }
+.card { position: absolute; inset: 0; display: none; }
+.card.on { display: block; }
+.mono { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+.disp { font-family: 'Avenir Next Condensed', 'DIN Condensed', sans-serif; font-weight: 700; color: var(--paper); }
+.amber { color: var(--amber); }
+.green { color: var(--green); }
+.caret { display: inline-block; width: 0.55em; height: 0.82em; margin-left: 0.08em; background: var(--green); vertical-align: -0.06em; }
+
+/* the authoring frame: rail 480 · inset 1440 × 810 · band 135 under it (header strip 135 over it) */
+#chrome .panel { position: absolute; background: var(--ink); }
+#chrome .rail { left: 0; top: 0; width: 480px; height: 1080px; background: var(--ink2); box-shadow: inset -1px 0 0 var(--rule); overflow: hidden; }
+#chrome .rail .hd { position: absolute; left: 32px; top: 84px; font-size: 20px; color: var(--dim); white-space: nowrap; }
+#chrome .rail .lines { position: absolute; left: 0; right: 0; top: 135px; bottom: 26px; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 38%); }
+#chrome .rail .ln { position: absolute; left: 32px; right: 18px; height: 24px; font-size: 15px; line-height: 24px; white-space: nowrap; overflow: hidden; color: var(--faint); }
+#chrome .rail .ln b { font-weight: 500; color: rgba(232, 176, 74, 0.55); margin-right: 0.9em; }
+#chrome .rail .ln.now { color: var(--paper); }
+#chrome .rail .ln.now b { color: var(--amber); }
+#chrome .head { height: 135px; box-shadow: inset 0 -1px 0 var(--rule); }
+#chrome .head .row { position: absolute; left: 40px; right: 40px; top: 84px; font-size: 20px; color: var(--dim); white-space: nowrap; overflow: hidden; }
+#chrome .head .row .dot { color: var(--green); }
+#chrome .head .row .sha { color: var(--amber); margin: 0 0.9em 0 1.4em; }
+#chrome .band { height: 135px; box-shadow: inset 0 1px 0 var(--rule); }
+#chrome .band .read { position: absolute; left: 48px; top: 0; height: 135px; line-height: 135px; font-size: 84px; white-space: nowrap; }
+#chrome .band .path { position: absolute; left: 48px; top: 0; height: 135px; line-height: 135px; font-size: 24px; color: var(--dim); white-space: nowrap; }
+#chrome .band .meta { position: absolute; top: 38px; text-align: right; font-size: 20px; line-height: 30px; white-space: nowrap; }
+#chrome .band .m2 { color: var(--dim); }
+#chrome .band .big { position: absolute; right: 48px; top: 0; height: 135px; line-height: 135px; font-size: 78px; color: var(--paper); white-space: nowrap; }
+#chrome .inset { overflow: hidden; background: transparent; }
+#chrome .inset .edge { position: absolute; inset: 0; box-shadow: inset 0 0 0 1px var(--rule); pointer-events: none; }
+#chrome .wallgrid { position: absolute; inset: 0; background: var(--ink); display: none; }
+#chrome .tile { position: absolute; overflow: hidden; background: #000; }
+#chrome .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#chrome .tile .fl { position: absolute; inset: 0; background: var(--paper); }
+#chrome .tile .tm { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 10px 7px; font-size: 14px; color: rgba(241, 237, 227, 0.8);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.7)); }
+#chrome .diff { position: absolute; inset: 0; background: #0c0f0d; display: none; }
+#chrome .diff .tab { position: absolute; left: 0; top: 0; right: 0; height: 64px; box-shadow: inset 0 -1px 0 var(--rule); }
+#chrome .diff .tab span { position: absolute; left: 40px; top: 20px; font-size: 20px; color: var(--dim); }
+#chrome .diff .ctx { position: absolute; left: 0; right: 0; height: 34px; font-size: 18px; line-height: 34px; color: var(--faint); white-space: nowrap; overflow: hidden; }
+#chrome .diff .ctx i { font-style: normal; display: inline-block; width: 96px; text-align: right; margin-right: 34px; }
+#chrome .diff .add { position: absolute; left: 0; right: 0; top: 292px; height: 226px; background: var(--addbg); box-shadow: inset 4px 0 0 var(--green); }
+#chrome .diff .gut { position: absolute; left: 0; width: 96px; top: 292px; text-align: right; font-size: 24px; line-height: 113px; color: var(--dim); }
+#chrome .diff .plus { position: absolute; left: 120px; top: 292px; font-size: 78px; line-height: 113px; color: var(--green); }
+#chrome .diff .txt { position: absolute; left: 200px; right: 60px; top: 292px; font-size: 78px; line-height: 113px; color: #e3f6e6; white-space: pre-wrap; }
+#chrome .diff .txt .el { color: rgba(227, 246, 230, 0.42); }
+
+/* origin: over black */
+#origin { background: #000; }
+#origin .ln { position: absolute; left: 0; right: 0; top: 470px; text-align: center; white-space: nowrap; }
+#origin .d { font-size: 78px; color: var(--amber); }
+#origin .r { font-size: 96px; margin-left: 0.28em; }
+#origin .caret { font-size: 84px; margin-left: 0.12em; }
+#origin .rc { position: absolute; left: 0; right: 0; top: 640px; text-align: center; font-size: 20px; color: var(--faint); }
+
+/* end cards: over transparent (the grid runs under them) */
+.scrim { position: absolute; inset: 0; background: radial-gradient(ellipse 62% 52% at 50% 50%, rgba(6, 7, 6, 0.72), rgba(6, 7, 6, 0.38) 70%, rgba(6, 7, 6, 0.2)); }
+.endc { position: absolute; left: 0; right: 0; text-align: center; white-space: nowrap; text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6); }
+#endCount .w { top: 318px; font-size: 176px; line-height: 1; letter-spacing: 0.06em; margin-left: 0.06em; }
+#endCount .rule { position: absolute; left: 610px; width: 700px; top: 540px; height: 2px; background: var(--green); transform-origin: center; }
+#endCount .n { top: 580px; font-size: 78px; line-height: 1.2; color: var(--paper); }
+#endCount .n .c { display: inline-block; text-align: right; }
+#endCta .w { top: 340px; font-size: 150px; line-height: 1; }
+#endCta .u { top: 548px; font-size: 78px; line-height: 1.2; color: var(--green); }
+</style></head>
+<body>
+<!-- every face in use from the first paint, so document.fonts.ready (titles.mjs waits on it) covers them all -->
+<div aria-hidden="true" style="position:absolute;left:-9999px;top:0;opacity:0"><span class="mono" style="font-weight:400">0</span><span class="mono">0</span><span class="mono" style="font-weight:700">0</span><span class="disp">0</span></div>
+<div class="card" id="chrome">
+  <div class="panel rail"><div class="hd mono"><span class="green">$</span> git log --oneline</div><div class="lines"></div></div>
+  <div class="panel head"><div class="row mono"><span class="dot">●</span> main<span class="sha"></span><span class="sub"></span></div></div>
+  <div class="panel inset"><div class="wallgrid"></div>
+    <div class="diff"><div class="tab"><span class="mono"></span></div><div class="ctx c1 mono"></div><div class="ctx c2 mono"></div><div class="add"></div><div class="gut mono"></div><div class="plus mono">+</div><div class="txt mono read" data-read="breath"></div><div class="ctx c3 mono"></div></div>
+    <div class="edge"></div></div>
+  <div class="panel band"><div class="read disp" data-read="band"></div><div class="path mono"></div><div class="meta mono"><div class="m1 amber"></div><div class="m2"></div></div><div class="big mono"></div></div>
+</div>
+<div class="card" id="origin"><div class="ln"><span class="d mono read" data-read="origin"></span><span class="r disp read" data-read="origin"></span><span class="caret"></span></div><div class="rc mono"></div></div>
+<div class="card" id="endCount"><div class="scrim"></div><div class="endc w disp read" data-read="end">WILDSHARD</div><div class="rule"></div><div class="endc n mono read" data-read="end"></div></div>
+<div class="card" id="endCta"><div class="scrim"></div><div class="endc w disp read" data-read="cta"></div><div class="endc u mono read" data-read="cta"></div></div>
+<script>
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);                         // out-cubic
+const expo = (x) => (x >= 1 ? 1 : 1 - Math.pow(2, -10 * clamp(x)));          // out-expo: a counter that lands
+const inOut = (x) => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const ramp = (t, a, b) => clamp((t - a) / (b - a));
+const $ = (s) => document.querySelector(s);
+const fmt = (n) => Math.round(n).toLocaleString('en-US');
+const FPS = 60, LH = 24, POOL = 46;
+const RAIL_BOTTOM = 1080 - 135 - 26 - LH;                                     // the newest line's top inside .lines
+const hhmm = (unix) => new Date((unix - 5 * 3600) * 1000).toISOString().slice(11, 16);   // UTC−5, as receipts.mjs
+const blink = (t) => (Math.floor(t * 2) % 2 === 0 ? 1 : 0);                   // the caret on the 120 bpm beat
+
+// the rail's line pool (texture: the newest line at the bottom, the older ones scrolling up and fading)
+const linesEl = $('#chrome .rail .lines');
+const pool = Array.from({ length: POOL }, () => { const d = document.createElement('div'); d.className = 'ln mono'; d.innerHTML = '<b></b><span></span>'; linesEl.appendChild(d); return d; });
+// vertical motion blur for a fast rail (an SVG filter, so only y blurs)
+document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute"><filter id="vblur" x="0" y="-5%" width="100%" height="110%"><feGaussianBlur id="vblurk" stdDeviation="0 0"/></filter></svg>');
+const drawRail = (lines, p, v) => {
+  // p: lines revealed (fractional, scrolls smoothly); v: speed in px per frame
+  const top = Math.ceil(p) - 1;
+  pool.forEach((d, k) => {
+    const i = top - k;
+    const ln = lines[i];
+    if (!ln || i < 0) { d.style.display = 'none'; return; }
+    d.style.display = 'block';
+    d.style.top = `${RAIL_BOTTOM - (p - 1 - i) * LH}px`;
+    d.firstChild.textContent = ln.sha; d.lastChild.textContent = ln.s;
+    d.classList.toggle('now', i === top);
+  });
+  const sd = v > 8 ? Math.min(18, (v - 8) * 0.5) : 0;            // day 1 crawls sharp; Driftwood on runs, Nine Dragon and Sky Reach blur
+  $('#vblurk').setAttribute('stdDeviation', `0 ${sd.toFixed(2)}`);
+  linesEl.style.filter = sd > 0.2 ? 'url(#vblur)' : 'none';
+};
+
+// the inset's rect at t (the lapse renderer puts the picture here): fixed, then over the last `open` s it grows to full-bleed
+window.insetAt = (t, o) => {
+  const e = o.open ? inOut(ramp(t, o.dur - o.open, o.dur)) : 0;
+  return { x: 480 * (1 - e), y: 135 * (1 - e), w: 1440 + 480 * e, h: 810 + 270 * e };
+};
+const layoutChrome = (r) => {
+  const set = (el, x, y, w, h) => { el.style.left = `${x}px`; el.style.top = `${y}px`; el.style.width = `${w}px`; el.style.height = `${h}px`; };
+  set($('#chrome .rail'), r.x - 480, 0, 480, 1080);
+  set($('#chrome .head'), r.x, r.y - 135, r.w, 135);
+  set($('#chrome .inset'), r.x, r.y, r.w, r.h);
+  set($('#chrome .band'), r.x, r.y + r.h, r.w, 135);
+};
+const band = ({ read = '', path = '', m1 = '', m2 = '', big = '', bigColor = 'var(--paper)' }) => {
+  $('#chrome .band .read').textContent = read; $('#chrome .band .path').textContent = path;
+  $('#chrome .band .m1').textContent = m1; $('#chrome .band .m2').textContent = m2;
+  const b = $('#chrome .band .big'); b.textContent = big; b.style.color = bigColor;
+  $('#chrome .band .meta').style.right = `${48 + b.getBoundingClientRect().width + 28}px`;
+};
+const head = (sha, sub) => { $('#chrome .head .sha').textContent = sha; $('#chrome .head .sub').textContent = sub; };
+
+// the day-1 wall's tiles: 7 × 3 in the 1440 × 810 inset
+const COLS = 7, ROWS = 3, GAP = 6;
+const TW = (1440 - GAP * (COLS + 1)) / COLS, TH = (810 - GAP * (ROWS + 1)) / ROWS;
+const grid = $('#chrome .wallgrid');
+let tilesFor = null;
+const buildTiles = (stills) => {
+  if (tilesFor === stills) return;
+  tilesFor = stills; grid.innerHTML = '';
+  stills.forEach((s, i) => {
+    const d = document.createElement('div'); d.className = 'tile';
+    d.style.left = `${GAP + (i % COLS) * (TW + GAP)}px`; d.style.top = `${GAP + Math.floor(i / COLS) * (TH + GAP)}px`;
+    d.style.width = `${TW}px`; d.style.height = `${TH}px`;
+    d.innerHTML = `<img src="${s.src}"><div class="tm mono"></div><div class="fl"></div>`;
+    d.querySelector('.tm').textContent = s.clock ?? '';
+    grid.appendChild(d);
+  });
+};
+
+window.setPortrait = (on) => { document.body.classList.toggle('portrait', on); }; // 16:9 only (PT0)
+
+window.pose = (card, t, o) => {
+  const chrome = card === 'wall' || card === 'frame' || card === 'breath';
+  document.querySelectorAll('.card').forEach((c) => c.classList.toggle('on', chrome ? c.id === 'chrome' : c.id === card));
+  if (chrome) {
+    layoutChrome(window.insetAt(t, card === 'frame' ? o : { dur: o.dur, open: 0 }));
+    $('#chrome .wallgrid').style.display = card === 'wall' ? 'block' : 'none';
+    $('#chrome .diff').style.display = card === 'breath' ? 'block' : 'none';
+    $('#chrome .inset .edge').style.display = card === 'frame' ? 'block' : 'none';
+  }
+
+  if (card === 'origin') {
+    $('#origin .d').textContent = `${o.date}:`; $('#origin .r').textContent = o.rest;
+    $('#origin .caret').style.opacity = blink(t);
+    $('#origin .rc').textContent = `${o.sha} · commit 1`;
+  } else if (card === 'wall') {
+    // the clock runs from the origin (frame 0) to the chapter SHA (the last frame); rail lines and tiles land at their commits' moments
+    buildTiles(o.stills);
+    const k = Math.min(1, t / o.clock.span);
+    const now = o.clock.t0 + k * (o.clock.t1 - o.clock.t0);
+    const landed = o.rail.filter((l) => l.t <= t + 1e-6).length;
+    const p = o.rail.reduce((a, l) => a + ease(ramp(t, l.t, l.t + 0.1)), 0);
+    const p1 = o.rail.reduce((a, l) => a + ease(ramp(t + 1 / FPS, l.t, l.t + 0.1)), 0);
+    drawRail(o.rail, Math.max(p, 0.0001), (p1 - p) * LH);
+    const last = o.rail[Math.max(0, landed - 1)];
+    head(last ? last.sha : '', last ? last.s : '');
+    grid.querySelectorAll('.tile').forEach((d, i) => {
+      const s = o.stills[i];
+      const a = t + 1e-6 - s.t;
+      d.style.visibility = a >= 0 ? 'visible' : 'hidden';
+      const f = ramp(a, 0, 8 / FPS);
+      d.style.transform = `scale(${1.1 - 0.1 * ease(f)})`;
+      d.style.zIndex = a >= 0 && f < 1 ? 2 : 1;
+      d.querySelector('.fl').style.opacity = a >= 0 ? (1 - f) * 0.85 : 0;
+    });
+    band({ read: o.label, m1: o.dateYear, m2: `${landed} commit${landed === 1 ? '' : 's'}`, big: hhmm(now) });
+  } else if (card === 'frame') {
+    // stage k holds [at_k, at_k+1); between two stages the rail runs from one stage's count to the next (the real
+    // commits per screen-second); the counter shows the stage's own count and rolls to it on the swap
+    const S = o.stages;
+    let k = 0; while (k + 1 < S.length && t >= S[k + 1].at) k++;
+    const idxAt = (tt) => {
+      let j = 0; while (j + 1 < S.length && tt >= S[j + 1].at) j++;
+      const a = S[j], b = S[j + 1];
+      if (!b) return a.count - o.railBase;
+      return a.count - o.railBase + (b.count - a.count) * clamp((tt - a.at) / (b.at - a.at));
+    };
+    const p = idxAt(t) + 1, p1 = idxAt(t + 1 / FPS) + 1;
+    drawRail(o.rail, p, (p1 - p) * LH);
+    const st = S[k], prev = S[k - 1];
+    const roll = prev ? ease(ramp(t, st.at, st.at + 0.3)) : 1;
+    const shown = prev ? prev.count + (st.count - prev.count) * roll : st.count;
+    const flash = prev && t - st.at < 4 / FPS;
+    head(st.sha, st.subject);
+    band({ read: t >= o.labelAt ? o.label : o.subject, m1: st.date, m2: 'commits', big: fmt(shown), bigColor: flash ? 'var(--green)' : 'var(--paper)' });
+  } else if (card === 'breath') {
+    // one bar: the + line the words were in, typed key by key (keys = the click track); the full line holds ≥ 1.2 s
+    drawRail(o.rail, o.rail.length, 0);
+    const last = o.rail[o.rail.length - 1];
+    head(o.sha, last ? last.s : '');
+    const typed = o.keys.filter((k) => k.t <= t + 1e-6).length;
+    const done = typed >= o.keys.length;
+    const txt = $('#chrome .diff .txt');
+    txt.innerHTML = '';
+    const lead = document.createElement('span'); lead.className = 'el'; lead.textContent = '… '; txt.appendChild(lead);
+    txt.appendChild(document.createTextNode(o.excerpt.slice(0, typed)));
+    if (done) { const tail = document.createElement('span'); tail.className = 'el'; tail.textContent = ' …'; txt.appendChild(tail); }
+    const c = document.createElement('span'); c.className = 'caret'; c.style.opacity = done ? blink(t - o.keys[o.keys.length - 1].t) : 1; txt.appendChild(c);
+    $('#chrome .diff .tab span').textContent = `${o.path}  ·  new file`;
+    $('#chrome .diff .gut').textContent = String(o.line);
+    // the neighbouring + lines of the same file (texture: real, small, faint)
+    const ctx = (el, c, y) => { el.style.top = `${y}px`; el.innerHTML = '<i></i><span class="green">+</span> <span></span>'; el.firstChild.textContent = String(c.n); el.lastChild.textContent = c.s; };
+    [['.c1', 200], ['.c2', 240], ['.c3', 540]].forEach(([sel, y], i) => { const c = o.context[i]; if (c) ctx($(`#chrome .diff ${sel}`), c, y); });
+    band({ path: `${o.path} · line ${o.line}`, m1: o.date, m2: o.sha, big: o.time });
+  } else if (card === 'endCount') {
+    // the counter rolls from week 3's count and lands on `hit` (the final hit in the score)
+    const k = expo(ramp(t, 0.05, o.hit));
+    const landed = t >= o.hit;
+    $('#endCount .w').style.opacity = ease(ramp(t, 0, 0.25));
+    const n = $('#endCount .n');
+    n.innerHTML = `Day ${o.day} · <span class="c"></span> commits`;
+    const c = n.querySelector('.c'); c.textContent = fmt(o.from + (o.count - o.from) * k);
+    c.style.minWidth = `${fmt(o.count).length * 0.6}em`;
+    c.style.color = landed && t - o.hit < 6 / FPS ? 'var(--green)' : 'var(--paper)';
+    n.style.opacity = ease(ramp(t, 0, 0.2));
+    $('#endCount .rule').style.transform = `scaleX(${landed ? ease(ramp(t, o.hit, o.hit + 0.35)) : 0})`;
+  } else if (card === 'endCta') {
+    $('#endCta .w').textContent = o.text; $('#endCta .u').textContent = o.url;
+    $('#endCta .w').style.opacity = ease(ramp(t, 0, 0.2));
+    $('#endCta .u').style.opacity = ease(ramp(t, 0.12, 0.35));
+  }
+};
+
+// the read blocks on screen now: { block, text, words, capPx (the smallest part's cap height), fits }
+window.legibility = () => {
+  const cv = document.createElement('canvas').getContext('2d');
+  const groups = new Map();
+  document.querySelectorAll('.card.on .read').forEach((el) => {
+    const cs = getComputedStyle(el);
+    if (!el.textContent.trim() || cs.display === 'none' || el.offsetParent === null) return;
+    cv.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const scale = el.getBoundingClientRect().height / (el.offsetHeight || 1);
+    const cap = cv.measureText('H').actualBoundingBoxAscent * scale;
+    const r = el.getBoundingClientRect();
+    const meta = el.closest('.band')?.querySelector('.meta')?.getBoundingClientRect();   // the band's read stops short of the counter
+    const fits = r.left >= -0.5 && r.right <= 1920.5 && el.scrollWidth <= el.clientWidth + 1 && (!meta || r.right <= meta.left - 24);
+    const key = el.dataset.read ?? '';
+    const g = groups.get(key) ?? { block: key, parts: [], capPx: Infinity, fits: true, font: [] };
+    g.parts.push(el.textContent.trim()); g.capPx = Math.min(g.capPx, cap); g.fits = g.fits && fits; g.font.push(cs.fontFamily.split(',')[0]);
+    groups.set(key, g);
+  });
+  return [...groups.values()].map((g) => {
+    const text = g.parts.join(' ').replace(/\s+/g, ' ');
+    return { block: g.block, text, words: text.split(' ').filter((w) => /[\p{L}\p{N}]/u.test(w)).length, capPx: +g.capPx.toFixed(1), fits: g.fits, font: g.font.join(' + ') };
+  });
+};
+</script>
+</body></html>
