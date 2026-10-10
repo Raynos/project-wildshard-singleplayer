@@ -37,8 +37,8 @@ import { Smoke } from './Smoke';
 import { nomadCampSteps } from './NomadCamp';
 import { buildBridge } from './Bridge';
 import { buildRoadFurniture } from './RoadFurniture';
-import { buildSummerCamp } from './SummerCamp';
-import { buildKurganField, type KurganEntrance } from './KurganField';
+import { summerCampSteps } from './SummerCamp';
+import { kurganFieldSteps, type KurganEntrance } from './KurganField';
 import { buildBalbals, type Balbals } from './Balbals';
 import { buildEagleRock } from './EagleRock';
 import { buildCairn } from './Cairn';
@@ -99,25 +99,25 @@ export class NalatiPOIs {
       this.colliders.push(...p.colliders);
     };
     const run = (name: string, f: (c: PoiCtx) => PoiPiece) => { const t0 = diagnosticNow(); const p = f(ctx); add(name, p, diagnosticNow() - t0); };
-    {
-      // the camp a part a task (SF67): its own build time, the yields left out
-      const camp = nomadCampSteps(ctx);
+    // a builder a part a task (SF67): its own build time, the yields left out
+    const timed = function* timed<T>(parts: Generator<void, T>): Generator<void, { value: T; ms: number }> {
       let ms = 0;
       for (;;) {
-        const t0 = diagnosticNow(), step = camp.next(); ms += diagnosticNow() - t0;
-        if (step.done === true) { add('camp', step.value, ms); break; }
+        const t0 = diagnosticNow(), step = parts.next(); ms += diagnosticNow() - t0;
+        if (step.done === true) return { value: step.value, ms };
         yield;
       }
-    }
+    };
+    { const camp = yield* timed(nomadCampSteps(ctx)); add('camp', camp.value, camp.ms); }
     yield;
     run('bridge', buildBridge);
     yield;
     run('roads', buildRoadFurniture);
     yield;
-    run('summerCamp', buildSummerCamp);
+    { const summer = yield* timed(summerCampSteps(ctx)); add('summerCamp', summer.value, summer.ms); }
     yield;
     let crownSpots: { x: number; z: number; yaw: number; scale: number }[] = [];
-    run('kurgans', (c) => { const k = buildKurganField(c); this.kurganEntrance = k.entrance; crownSpots = k.balbalSpots; return k.piece; });
+    { const k = yield* timed(kurganFieldSteps(ctx)); this.kurganEntrance = k.value.entrance; crownSpots = k.value.balbalSpots; add('kurgans', k.value.piece, k.ms); }
     yield;
     // the balbals stand only on the kurgan crowns (layout v2: the balbal circle is cut)
     run('balbals', (c) => { const b = buildBalbals(c, crownSpots); this.balbals = b.balbals; return b.piece; });

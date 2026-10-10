@@ -23,7 +23,16 @@ import { kurganEntrance, DROMOS_DEPTH } from '../models/kurganEntrance';
 
 export interface KurganEntrance { x: number; y: number; z: number; facing: number }
 
-export function buildKurganField(ctx: PoiCtx): { piece: PoiPiece; entrance: KurganEntrance; balbalSpots: { x: number; z: number; yaw: number; scale: number }[] } {
+export interface KurganField { piece: PoiPiece; entrance: KurganEntrance; balbalSpots: { x: number; z: number; yaw: number; scale: number }[] }
+
+export function buildKurganField(ctx: PoiCtx): KurganField {
+  const steps = kurganFieldSteps(ctx);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+
+/** `buildKurganField` a part a step (SF67: one ~105 ms task at 4x CPU): a yield after each kurgan and before the merged
+ *  mesh; the yields draw nothing, so the same field */
+export function* kurganFieldSteps(ctx: PoiCtx): Generator<void, KurganField> {
   const { sky, ground } = ctx;
   const kit = new PaintKit(0x4b62);
   const rng = kit.rng;
@@ -54,6 +63,7 @@ export function buildKurganField(ctx: PoiCtx): { piece: PoiPiece; entrance: Kurg
       const x = k.x + Math.cos(a) * d, z = k.z + Math.sin(a) * d, s = rng.range(0.15, 0.4);
       set.paint(fieldstone, { x, y: ground(x, z), z, yaw: 0 }, { s, squash: 0.55, rough: 0.22, lift: 0.1, look: 'kurgan' });
     }
+    yield;
   }
 
   // ── the great kurgan's entrance ──
@@ -77,7 +87,8 @@ export function buildKurganField(ctx: PoiCtx): { piece: PoiPiece; entrance: Kurg
     }
   });
 
-  const mesh = kit.mesh(sky, { ground });
+  yield;
+  const mesh = yield* kit.meshSteps(sky, { ground });
   mesh.name = 'nalati-kurgans';
   const entrance: KurganEntrance = { x: front.x, y: floorY, z: front.z, facing: D };
   return {

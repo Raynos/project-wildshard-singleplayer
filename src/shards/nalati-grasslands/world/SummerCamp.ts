@@ -20,6 +20,13 @@ import { cart, barrel, feltRug, tetherLine, kurtBoard, ribbonPost } from '../mod
 import { kazan, chest } from '../models/campGenerated';
 
 export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
+  const steps = summerCampSteps(ctx);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+
+/** `buildSummerCamp` a part a step (SF67: one ~120 ms task at 4x CPU): a yield after each yurt, before the yard and before
+ *  the merged layers; the yields draw nothing, so the same camp */
+export function* summerCampSteps(ctx: PoiCtx): Generator<void, PoiPiece> {
   const { sky, ground, smoke } = ctx;
   const kit = new PaintKit(0x5a33);
   const set = new NalatiSet(kit, ctx);
@@ -33,6 +40,7 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
     let gy = ground(x, z);
     for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; gy = Math.min(gy, ground(x + Math.cos(t) * y.r, z + Math.sin(t) * y.r)); }
     set.paint(yurt, { x, y: gy, z, yaw: rot }, { r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false, base: 'lattice', pennant: false });
+    yield;
   }
   {
     const x = cx + 1, z = cz - 1, y = ground(x, z);
@@ -53,13 +61,16 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
   set.paint(ribbonPost, on(cx - 2.5, cz + 1.2), {});
   const group = new THREE.Group();
   group.name = 'nalati-summer-camp';
+  yield;
   {
     const wear = [wearDisc(cx, cz, 6.5), wearDisc(cx - 12, cz + 1, 3.5), wearPath(cx - 12, cz + 1, cx, cz, 1.6)];
     for (const y of Y) { const a = (y.a * Math.PI) / 180; wear.push(wearPath(cx + Math.cos(a) * (y.d - y.r - 0.3), cz + Math.sin(a) * (y.d - y.r - 0.3), cx, cz, 1.4)); }
     group.add(buildYardDecal(sky, ground, { x: cx - 3, z: cz, half: 16 }, (x, z) => { let m = 0; for (const w of wear) { const v = w(x, z); if (v > m) m = v; } return m; }));
   }
+  yield;
   const felt = kit.texturedMesh(sky, 'felt', { ground });
-  const mesh = kit.mesh(sky, { ground });
+  yield;
+  const mesh = yield* kit.meshSteps(sky, { ground });
   group.add(mesh);
   let tris = mesh.geometry.getAttribute('position').count / 3;
   if (felt) { group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }
