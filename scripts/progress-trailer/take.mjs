@@ -1,7 +1,7 @@
 // take.mjs — one input-driven, fixed-step first-person take on a historical build (PROGRESS-TRAILER §3.1, E468).
 //
 //   scripts/browser-lane.sh --max 30 node scripts/progress-trailer/take.mjs --shot=scripts/progress-trailer/shots/d01-hunt.mjs \
-//     --url=http://127.0.0.1:<port> --out=<scratch>/takes [--frames=<n>] [--opt='<json>'] [--sub=2] [--speed=0.25] [--scale=2] [--dry]
+//     --url=http://127.0.0.1:<port> --out=<scratch>/takes [--frames=<n>] [--opt='<json>'] [--sub=2] [--speed=0.25] [--scale=2] [--era=…] [--query=…] [--dry]
 //
 // The build is one `build-rev.sh` made (its dist/SHA names the commit). The shot module exports `shot` =
 //   { name, era: 'legacy' | 'app', query, warmSec, frames, setup, step, accept }
@@ -31,6 +31,7 @@ const arg = (k, d = '') => process.argv.find((a) => a.startsWith(`--${k}=`))?.sl
 const SHOT = resolve(arg('shot')), URL_BASE = arg('url'), OUT = resolve(arg('out', 'takes')), DRY = process.argv.includes('--dry');
 const { shot } = await import(pathToFileURL(SHOT).href);
 const FRAMES = Number(arg('frames', '')) || shot.frames; // the take's length in 1/60 s simulation frames
+const ERA = arg('era', shot.era); // a probe shot runs on either era
 const SUB = Number(arg('sub', '1')), SPEED = Number(arg('speed', '1')), SCALE = Number(arg('scale', '1'));
 const SAMPLES = Math.round((FRAMES / SPEED) * SUB);
 const recipe = createHash('sha1').update(readFileSync(SHOT)).update(readFileSync(import.meta.filename)).update(arg('opt', '{}')).update(`${SUB}/${SPEED}/${SCALE}`).digest('hex');
@@ -68,15 +69,15 @@ const WORLD = { legacy: 'window.__world', app: 'window.__wildshard?.world' };
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const errors = [];
-const receipt = { shot: shot.name, sha, recipe, era: shot.era, url: `${URL_BASE}/?${shot.query}`, sub: SUB, speed: SPEED, scale: SCALE, frames: 0, samples: 0, steps: [], events: [], errors };
+const receipt = { shot: shot.name, sha, recipe, era: ERA, url: `${URL_BASE}/?${arg('query', shot.query)}`, sub: SUB, speed: SPEED, scale: SCALE, frames: 0, samples: 0, steps: [], events: [], errors };
 try {
   const page = await (await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: SCALE })).newPage();
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 300)));
   await page.clock.install();
   await page.goto(receipt.url, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(`Boolean(${WORLD[shot.era]}?.game)`, undefined, { timeout: 300000, polling: 1000 });
+  await page.waitForFunction(`Boolean(${WORLD[ERA]}?.game)`, undefined, { timeout: 300000, polling: 1000 });
   await page.waitForTimeout((shot.warmSec ?? 10) * 1000); // stream the world in (real time, the fake clock still flows)
-  receipt.adapter = await page.evaluate(`window.__dt = ${SPEED / (60 * SUB)}; ${ADAPT[shot.era]}`);
+  receipt.adapter = await page.evaluate(`window.__dt = ${SPEED / (60 * SUB)}; ${ADAPT[ERA]}`);
   await page.evaluate(`window.__takeOpt = ${arg('opt', '{}')}; window.__takeEvents = []`);
   receipt.opt = JSON.parse(arg('opt', '{}'));
   receipt.setup = await page.evaluate(`window.__takeSetup = (${shot.setup})(); window.__takeSetup`);

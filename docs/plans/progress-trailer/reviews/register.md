@@ -80,3 +80,34 @@ Every finding, across rounds. Status: `fixed` + commit · `rejected` + reason ·
 | R2C-20 | 2 | C | should-fix | §3.5 | "The newest chapter takes the drop slot" contradicts §2.2: the drop is the rewind, which holds every chapter | fixed | PROGRESS-TRAILER.md §3.5 |
 | R2C-21 | 2 | C | nit | §2.1 "exactly half" | The grid reveal is counted as authoring but isn't authoring | fixed | PROGRESS-TRAILER.md §2.1 about half |
 | R2A | 2 | A | — | — | Seat A (Codex) hit its 60 min timeout without writing a file | — | its lens (the era adapters) was proven by PT1's takes; Codex sits in round 3 |
+| R3A-1 | 3 | A | should-fix | §3.1 frame check; PT2–PT3 | The defined QA cannot ask the stated question or certify a standing eye | fixed | PROGRESS-TRAILER.md §3.1 "Checked" (two steps) |
+| R3A-2 | 3 | A | should-fix | §2.2 cold-open/terminal; §2.3 legibility | The new universal reading limit conflicts with the prescribed content, so PT6/PT7 must choose which rule to violate. | fixed | PROGRESS-TRAILER.md §2.3 per-block legibility, §2.2 card/breath/end cards |
+| R3A-3 | 3 | A | should-fix | §3.5; PT11 | The week-4 recipe gives no executable allocation of the 60 s budget after adding both a play beat and a lapse | fixed | PROGRESS-TRAILER.md §3.5 seconds order, PT11 |
+| R3A-4 | 3 | A | must-fix | §2.2 Sky Reach; §3.3 camera speed; PT5 | The named overview-to-spawn crane cannot reach the promised match cut in eight seconds at ≤3 m/s. | fixed | PROGRESS-TRAILER.md §2.2 0:32, §3.3 near-spawn crane |
+| R3B-1 | 3 | B | must-fix | §3.1 "Reference frames per era" (R2B-7's | The check can't do what it says, so R1B-1's bare plain passes it | fixed | PROGRESS-TRAILER.md §3.1 "Checked", honest references |
+| R3B-2 | 3 | B | should-fix | §2.2 0:11.6 "counter 29 → 624", 0:22.6 " | The counter is "computed per SHA", but its range is the chapters' | fixed | PROGRESS-TRAILER.md §2.3 counter per stage, §2.2 counts, PT7 |
+| R3B-3 | 3 | B | should-fix | §2.1 "every boundary snaps to the cue's  | §2.2's times aren't on a 120 bpm grid | fixed | PROGRESS-TRAILER.md §2.2 re-timed on bars, §2.1 |
+| R3B-4 | 3 | B | should-fix | §2.2 0:48–0:52.5; §3.5 "≈ 0.6 s"; PT2 (b | The rewind's slow motion isn't tied to the stag's distance | fixed | PROGRESS-TRAILER.md §2.2 rewind speed ramp, PT3 done-when |
+| R3B-5 | 3 | B | should-fix | §2.1 authoring frame vs §2.2 0:32 "final | The diff added a contradiction: the Sky Reach hand-off can't match-cut | fixed | PROGRESS-TRAILER.md §2.2 0:32 inset grows to full-bleed, §3.3 lapse renderer |
+| R3B-6 | 3 | B | should-fix | §2.2 0:45 "≤ 12 words", §2.3 "never a di | TR5's own prompt can't be shown under these rules | fixed | PROGRESS-TRAILER.md §2.2 0:44 breath (day-1 line), PT6 |
+| R3B-7 | 3 | B | should-fix | §2.2 0:52.5 "Every shard … every cell in | (a) `g-reveal` doesn't show every cell, or every shard | fixed | PROGRESS-TRAILER.md §2.2 0:52 "one world", §2.3 shard rule |
+| R3B-8 | 3 | B | should-fix | §2.2 0:03.6 day-1 stills | "Each appearing at its commit's moment" breaks on the real times | fixed | PROGRESS-TRAILER.md §2.2 0:04 wall |
+| R3B-9 | 3 | B | should-fix | §2.1 "week 3 four of ~1.2 s"; §2.2 0:40  | Four shots, three named: the hover off the edge, a gust, the whip. | fixed | PROGRESS-TRAILER.md §2.2 0:40 week 3 named |
+| R3B-10 | 3 | B | nit | §2.2 totals | "Play ≈ 29 s, cards and close ≈ 6 s" are wrong | fixed | PROGRESS-TRAILER.md §2.2 totals |
+| R3B-11 | 3 | B | nit | §2.2 end card; §2.1 lapses | (a) "Day N · week N+1" reuses N | fixed | PROGRESS-TRAILER.md §2.2 end cards, §3.5 week rule, §2.1 |
+| R3B-12 | 3 | B | nit | §2.3 era-true, PT9; §2.2 0:32 | (a) `grade: 'null'` works only by fall-through: `GRADES['null']` is undefined, then `?? 'null'` | fixed | PROGRESS-TRAILER.md §2.3 grade none, 6066f959c |
+| R3C-1 | 3 | C | must-fix | §2.1 "every boundary snaps to the cue's  | The sheet is off its own grid | fixed | PROGRESS-TRAILER.md §2.2 re-timed on bars |
+| R3C-2 | 3 | C | must-fix | §2.2 0:48 rewind, §3.5 "≈ 0.6 s per segm | As specced, the rewind doesn't read | fixed | PROGRESS-TRAILER.md §2.2 rewind ramp, PT2/PT3 |
+| R3C-3 | 3 | C | must-fix | §2.1 authoring frame × §2.2 0:32 "final  | The inset breaks the match cut that R2C-9 fixed | fixed | PROGRESS-TRAILER.md §2.2 0:32, §3.3 |
+| R3C-4 | 3 | C | should-fix | §3.4 additive cue, "four seeds … ±0.25 s | A MiniMax prompt cannot be trusted to bring in a music box, then strings at bar 9, then percussion at bar 14 | fixed | PROGRESS-TRAILER.md §3.4 stems |
+| R3C-5 | 3 | C | should-fix | §2.2 0:48 "on the drop" vs §3.4 "the dro | The two sections place the drop at different times | fixed | PROGRESS-TRAILER.md §3.4 the climax in sound |
+| R3C-6 | 3 | C | should-fix | §2.2 0:45 breath, PT6 | Neither PT6 source fits the slot | fixed | PROGRESS-TRAILER.md §2.2 0:44, PT6 |
+| R3C-7 | 3 | C | should-fix | §2.1 frame, §3.3 "≤ 48 characters … in t | The authoring frame risks reading as a slide deck, and its numbers clash | fixed | PROGRESS-TRAILER.md §2.1 band + real-rate rail, §3.3 |
+| R3C-8 | 3 | C | should-fix | §2.2 0:03.6 day-1 stills, PT5 | On the commit clock, the 21 stills come out as dead air followed by a strobe | fixed | PROGRESS-TRAILER.md §2.2 0:04 wall |
+| R3C-9 | 3 | C | should-fix | §2.1 escalation, §2.2 0:40 week 3 | The escalation starves the best footage | fixed | PROGRESS-TRAILER.md §2.1, §2.2 0:40 earned hold |
+| R3C-10 | 3 | C | should-fix | PT2 (b), §2.3 honest | "Not worse" is not the same as "better" | fixed | PROGRESS-TRAILER.md PT2 (visibly better), §3.1 Checked |
+| R3C-11 | 3 | C | should-fix | §3.5 week 4 | Adding a chapter costs about 10 s (a play beat plus a lapse) | fixed | PROGRESS-TRAILER.md §3.5 |
+| R3C-12 | 3 | C | should-fix | §2.2 0:54.3 end card, §2.3 "≤ 7 words" | The end card runs 13 words in one card, and 7.5 s of grid plus static card follow the climax. | fixed | PROGRESS-TRAILER.md §2.2 0:54 two cards |
+| R3C-13 | 3 | C | nit | §2.2 0:40 | "Four shots" lists three verbs, and "a gust" is unnamed. | fixed | PROGRESS-TRAILER.md §2.2 0:40 |
+| R3C-14 | 3 | C | nit | §2.2 totals line | The sheet sums to play 26.1, authoring 25 and cards/close 8.9, not 29 / 25 / 6. | fixed | PROGRESS-TRAILER.md §2.2 totals |
+| R3C-15 | 3 | C | nit | §2.2 0:00 cold open, S12 | The share thumbnail is a shot already published in the Nine Dragon teaser. | fixed | PROGRESS-TRAILER.md §2.2 0:00 new start pose |

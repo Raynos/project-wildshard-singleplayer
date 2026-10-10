@@ -45,12 +45,15 @@ v1 stays committed as the record; this plan replaces it.
   terminal inside the authoring beat.
 - **About half and half** (Jake's word; within ±3 s): first-person play and authoring alternate; time passing *is* the
   authoring. Cards and the close sit between them.
-- **It escalates.** Play shots get shorter each chapter (day 1 is one 5 s take, week 1 three of ~1.7 s, week 2 three of
-  ~1.5 s, week 3 four of ~1.2 s); lapses get longer (3 → 6 → 5 → 8 s, Sky Reach is the showpiece). Every boundary
-  snaps to the cue's beat grid (§3.4).
+- **It escalates, then holds.** Play shots get shorter each chapter (day 1 is one 5 s take, week 1 two of 2 s, week 2
+  two of 2 s, week 3 two ~1 s cuts and then an earned hold of ≥ 2 s); the lapses grow to Sky Reach's 8 s showpiece.
+  Every boundary is on the 120 bpm grid (a beat 0.5 s, a bar 2 s); §2.2's times are targets that move to the picked
+  take's real bars (§3.4).
 - **Two halves you can tell apart at a glance.** Play is always full-bleed with no UI. Authoring always uses one frame:
-  the picture inset at 1440 × 810 and a 480 px rail on the left scrolling the real commit subjects between stages, with
-  the commit counter and the date.
+  the picture inset at 1440 × 810; under it a 135 px band with the commit counter, the date and one legible subject
+  (≤ 7 words); on the left a 480 px monospace `git log --oneline` rail that scrolls at **the real commits per
+  screen-second** (day 1 crawls, Driftwood runs, Nine Dragon and Sky Reach blur), so the rail shows the acceleration
+  itself. The one place the frame opens into play is the end of Sky Reach (§2.2).
 - **Not the alpha again** (S12): the history leads (the rewind, the lapses, era-true sound) and the score grows by
   arrangement, so a viewer who saw the alpha trailer sees a different film.
 
@@ -58,23 +61,24 @@ v1 stays committed as the record; this plan replaces it.
 
 | Time | Half | Beat | Source |
 |---|---|---|---|
-| 0:00–0:02.2 | play | **Cold open**: the grapple across Nine Dragon's void; frame 0 is the rim with the claw target in view (it is the share thumbnail); hard cut to black on the landing frame | HEAD, the Nine Dragon teaser's `nd-grapple` (`scripts/steam-trailer/shots/nine-dragon.mjs`), from in-point 0 (PT4) |
-| 0:02.2–0:03.6 | card | Over black, silence but the landing's tail: **"On 16 Sep 2026 this repo was empty."** | the date of `402198440`, computed (PT7) |
-| 0:03.6–0:06.6 | author | **Day 1 is built**: the 21 stills present at `568a1463f`, ordered by the time of the commit that added each, each appearing at its commit's moment on a clock compressed from 22:13 to 23:58; the real subjects scroll in the rail | `git log` of `progress/[0-9][0-9][0-9]-*` up to `568a1463f` (PT5) |
-| 0:06.6–0:11.6 | play | **Day 1**, one 5 s take: stalk, raise the crossbow, the stag drops. Card "DAY 1 · 29 commits · 1 h 46 min" | `568a1463f`, `shots/d01-hunt.mjs` (PT3) |
-| 0:11.6–0:17.6 | author | **Driftwood Isle is born**: 5–6 stages from `3a83028ec` ("open ocean + the south pier", 18 Sep) to `8a58b9d1e`'s pier, one slow camera; counter 29 → 624 | lapse SHAs picked in PT2 (PT5) |
-| 0:17.6–0:22.6 | play | **Week 1**, three shots: the wooden sword's three-tap combo on Driftwood; a mounted gallop across the Nalati steppe; a shot from the saddle (PT2 confirms each verb on the build) | `8a58b9d1e` (PT3) |
-| 0:22.6–0:27.6 | author | **Nine Dragon Stack**: a partial square to the full stack (it was neon from its first commit: no grey stage), in-engine from `3719d1d8e` (26 Sep) to `19a434635`; counter → 2,495. If PT2's stages don't read as growth, this lapse becomes the Pine Hollow remaster (24–25 Sep) | PT2, PT5 |
-| 0:27.6–0:32 | play | **Week 2**, Nine Dragon only, three shots: the sword in the rain square, the stair street, the crowd | `19a434635` (PT3) |
-| 0:32–0:40 | author | **Sky Reach**: grey pucks to a golden archipelago, a 16:9 re-render at archive-picked SHAs from the `aerial-overview` camera craning down to the spawn view; the last stage is `c9aaa62ab` itself, whose final frame is the week-3 take's frame 0 (same SHA, same pose). Caption "the first 43 hours" over the archive stages; the last stage carries its own date | archive SHAs `54e37d4dd` … `6066f959`, then `c9aaa62ab` (PT5) |
-| 0:40–0:45 | play | **Week 3**, four shots: from that eye, hover off the edge across the gap; a gust; the whip on the Dune Matriarch | `c9aaa62ab` (PT3) |
-| 0:45–0:48 | author | **The breath, how it is made**: music out, keyclicks only; a real Claude Code session's own prompt typed large (≤ 12 words, typed in 1.5 s, held 1.5 s) | the session (PT6) |
-| 0:48–0:52.5 | play | **The rewind moment, on the drop: one bolt, four builds.** One input track hip-fires the crossbow at a real stag at one Pine Hollow spot; in true slow motion (0.25×) three hard cuts swap day 1 → 8 → 15 → 22 while the bolt flies, the ambient bed changing at each cut; on day 22 it drops the stag | the four SHAs (PT2, PT3) |
-| 0:52.5–0:54.3 | close | **Every shard, one world**: the grid from the top, every cell in view | HEAD `g-reveal` (`shots/grid.mjs`) from in-point 0.05 (PT4) |
-| 0:54.3–1:00 | card | The counter lands on HEAD's commit count on the final hit; end card **WILDSHARD · play free in your browser · wildshard.io · Day N · week N+1 next week** | computed (PT7) |
+| 0:00–0:02 | play | **Cold open**: the grapple across Nine Dragon's void, re-captured from a new rim and start look (frame 0 is the share thumbnail and must not be the teaser's); hard cut to black on the landing frame | HEAD, `nd-grapple` (`scripts/steam-trailer/shots/nine-dragon.mjs`) with a new start pose (PT4) |
+| 0:02–0:04 | card | Over black, silence but the landing's tail: **"16 Sep 2026: an empty repo."** | the date of `402198440`, computed (PT7) |
+| 0:04–0:07 | author | **Day 1 is built**: a wall of the 21 stills present at `568a1463f`, each landing as a tile (7 × 3 in the inset) at its commit's moment on a clock compressed from 22:13 to 23:58; the grid is empty for the first 0.86 s under "22:13"; a commit's stills land together in file order, each held ≥ 4 frames; it ends on the whole of day 1 at once | `git log` of `progress/[0-9][0-9][0-9]-*` up to `568a1463f` (PT5) |
+| 0:07–0:12 | play | **Day 1**, one 5 s take: stalk, raise the crossbow, the stag drops. Card "DAY 1 · 29 commits" | `568a1463f`, `shots/d01-hunt.mjs` (PT3) |
+| 0:12–0:18 | author | **Driftwood Isle is born**: 5–6 stages from `3a83028ec` ("open ocean + the south pier", 18 Sep) to `8a58b9d1e`'s pier, one slow camera; the counter shows each stage's own count (232 → 624) | lapse SHAs picked in PT2 (PT5) |
+| 0:18–0:22 | play | **Week 1**, two shots of 2 s: the wooden sword's three-tap combo on Driftwood; a mounted gallop across the Nalati steppe (PT2 confirms each verb on the build) | `8a58b9d1e` (PT3) |
+| 0:22–0:28 | author | **Nine Dragon Stack**: a partial square to the full stack (neon from its first commit: no grey stage), in-engine from `3719d1d8e` (26 Sep, count 1,483) to `19a434635` (2,495). If PT2's stages don't read as growth, this lapse becomes the Pine Hollow remaster (24–25 Sep) | PT2, PT5 |
+| 0:28–0:32 | play | **Week 2**, Nine Dragon only, two shots of 2 s: the sword in the rain square; the stair street | `19a434635` (PT3) |
+| 0:32–0:40 | author | **Sky Reach in its first 43 hours**: grey pucks to a golden archipelago, a 16:9 re-render at archive-picked SHAs from the `aerial-overview` camera (slow, ≤ 3 m/s); on a beat it cuts to a near-spawn crane for the last stage, `c9aaa62ab` itself; over the last bar the rail slides out and the inset grows to full-bleed, landing on the week-3 take's frame 0 (same SHA, same pose) | archive SHAs `54e37d4dd` … `6066f959c`, then `c9aaa62ab` (PT5) |
+| 0:40–0:44 | play | **Week 3**: from that eye, hover off the edge across the gap; the war fan's gust; then **the earned hold**, ≥ 2 s: the whip on the Dune Matriarch through a hit and her reaction | `c9aaa62ab` (PT3) |
+| 0:44–0:46 | author | **The breath**: one bar of silence but keyclicks; Jake's day-1 line appears as the `+` line it was (a verbatim excerpt of "you use claude code as the UI for building"), with its SHA and time: **"you use claude code as the UI"** (`b39cc8b8a`, 16 Sep 22:22, `sources/WILDSHARD.md`) | git (PT6) |
+| 0:46–0:52 | play | **The rewind moment: one bolt, four builds.** At one Pine Hollow spot whose ground matches on all four builds (PT2), the player spawns at the firing spot on frame 0 and one input track (look and fire only, hip-fire) is replayed on each build. A speed ramp: 1× through the raise and release; ≈ 0.05× from the release through three hard cuts (day 1 → 8 → 15 → 22) while the bolt is 2 / 4 / 6 m out and the crossbow model changes in the player's hands; back to 1× before impact, so the hit, the stag's fall and the drop (on 0:50) land at real speed | the four SHAs (PT2, PT3) |
+| 0:52–0:54 | close | **One world**: the grid from above | HEAD `g-reveal` (`shots/grid.mjs`) from in-point 0.05 (PT4) |
+| 0:54–1:00 | card | Two cards on bars: **"WILDSHARD · Day 24 · 7,0xx commits"** landing on the final hit (the counter rolls to HEAD's count), then **"Play free · wildshard.io"** | computed (PT7) |
 
-Play ≈ 29 s, authoring ≈ 25 s, cards and close ≈ 6 s. If PT2's scouting shows a beat can't be shot honestly (no prey,
-a later build reads worse, a verb missing), the beat changes to the nearest honest one and its row says so.
+Play ≈ 25 s, authoring ≈ 25 s, cards and close ≈ 10 s (about half and half). If PT2's scouting shows a beat can't be shot
+honestly (no prey, a later build reads worse, a verb missing), the beat changes to the nearest honest one and its row
+says so.
 
 ### 2.3 Rules
 
@@ -86,17 +90,20 @@ a later build reads worse, a verb missing), the beat changes to the nearest hone
   teleports mid-shot, calmed, added or moved animals. **True slow motion of a real take is allowed** (the simulation
   time-dilated, §3.1). The HUD is hidden; the viewmodel stays.
 - **Honest authoring**: lapses are real builds at real SHAs, captioned with their real date; a stage that reads worse
-  than the one before it is dropped (stages are monotonic). The terminal beat shows a real session's own prompt, never a
-  different prompt typed over it.
-- **Era-true**: historical clips get no finishing grade (`grade: 'null'` in the EDL) and their own build's sound
-  (§3.4); the progress is the build's, not the grade's.
+  than the one before it is dropped (stages are monotonic). Words shown as someone's are theirs, verbatim, with their
+  SHA and date; never a different prompt typed over a session.
+- **Era-true**: historical clips get no per-shard grade (`grade: 'none'` in the EDL; `edit.mjs`'s vignette and grain
+  are the same over every clip) and their own build's sound (§3.4); the progress is the build's, not the grade's.
 - **Receipts** (S10): every number, date and SHA on screen is computed from git by the render:
   - `dayOf(sha)` = calendar days (UTC−5) from `402198440` (16 Sep, day 1) to the commit, plus 1 (9 Oct is day 24);
-  - commit counts = `git rev-list --count <sha>`;
-  - shards = the slugs in `SHARDS` (not `LEGACY_SHARDS`, not `_template` or `blender-template`): 6 at `c9aaa62ab`;
-  - spans between two named SHAs ("the first 43 hours" = `54e37d4dd` → `6066f959`).
-- **Legible on the phone**: anything meant to be read is ≥ 56 px cap height at 1080 (≈ 11 pt letterboxed on an iPhone),
-  ≤ 7 words, on screen ≥ 1.2 s; the terminal prompt ≥ 64 px. Rails and scrolling subjects are texture.
+  - commit counts = `git rev-list --count <sha>` of the SHA on screen (a lapse's counter shows each stage's own count
+    and rolls between stages on the swap);
+  - spans between two named SHAs ("the first 43 hours" = `54e37d4dd` → `6066f959c`).
+  (No shard count is on screen; if one is added, it is the `src/shards/*/manifest.ts` folders at that SHA minus `_*`,
+  `*-legacy` and `blender-template`: 6 at `c9aaa62ab`.)
+- **Legible on the phone**: every block of text meant to be read (a card, the band's subject, the breath's line) is
+  ≥ 56 px cap height at 1080 (≈ 11 pt letterboxed on an iPhone), ≤ 7 words, on screen ≥ 1.2 s; a longer message is
+  split into cards. The rail is texture.
 - Cards name only what is on screen.
 
 ## 3. How
@@ -123,12 +130,19 @@ a later build reads worse, a verb missing), the beat changes to the nearest hone
 - **A lapse camera adapter (PT2)**: the free camera from v1's `install-world.js` (camera posed after the frame's update,
   `player.spawn` under it so the world streams), proven on the first and last SHA of each lapse; each lapse stage
   carries its SHA, entry URL and pose. A lapse starts at its first loadable SHA.
-- **Reference frames per era** for the frame check: day 1, the 21 stills at `568a1463f`; day 8,
-  `progress/wildshard-trailer.mp4` (18 Sep) and the numbered stills of 18–23 Sep; days 15 and 22, the 2 Oct captures
-  (`progress/<slug>/20261002-0011-0d59505c/`). "Checked" means `scripts/decide/decide.sh qa` on the take's first,
-  middle and last frames with the question "is this the 3D world, unobstructed, from a standing eye?".
+- **"Checked"** is two steps, both written into the receipt: (1) `scripts/decide/decide.sh qa --set capture-status`
+  on the first, middle and last frames, the gate for loading, blank, menu and error screens only (it cannot judge a
+  bare plain); (2) the executing agent reads those frames beside the era's reference in the PT2 contact sheet and writes
+  one line per frame: the world streamed in (forest, props), prey present where the beat needs it, and, for the rewind
+  and the lapses, visibly better than the previous era. References, dated honestly: day 1, the 21 stills at `568a1463f`;
+  day 8, the numbered stills committed 22–23 Sep (days 7–8, 62 of them); days 15 and 22, the nearest capture,
+  `progress/<slug>/20261002-0011-0d59505c/` (day 17).
 - Learned in PT1: `player.spawn` drops onto the terrain (under a pier deck, into the sea), so every spot is scouted;
   wrapping day 8's weapon hooks recursed, so melee cue events are the presses themselves.
+- Learned in PT2's first probe (`shots/probe-pine.mjs`): Pine Hollow's remaster reshaped the ground (days 1 and 8 agree,
+  days 15 and 22 agree, the pairs differ by 0.6–2 m near the day-22 herds at (97, −220)); on a 20 m grid over the
+  shard, 20 points match within 0.1 m on all four builds, among them the south trail at (0, −210…−230), (120…140, 150),
+  (−140, 130) and (−180, 90). The rewind's spot is one of them.
 
 ### 3.2 HEAD shots and the shared tools (the trailer agent's pipeline, unedited)
 
@@ -146,31 +160,39 @@ prompt; `build-beat.mjs` shows how it renders). Mix and edit run unchanged.
   slice of the path.
 - **Stages are picked** from git and the dated captures where the picture changes most, and kept only if PT2's contact
   sheet shows them monotonic.
-- **One subject per lapse is legible** (its first clause, ≤ 48 characters, cut by the render) in the rail; the rest
-  scroll as texture.
-- **Day 1** is the 21 stills (§2.2), not a re-render. **Sky Reach** uses the archive only to pick SHAs: its stills are
-  780 × 1688 portrait with the touch HUD and their framing moves, so the picture is the 16:9 re-render.
+- **One subject per lapse is legible** (≤ 7 words, cut by the render) in the band under the inset; the rail scrolls at
+  the real commit rate as texture.
+- **The lapse renderer** writes finished 1920 × 1080 `video` clips with the picture already set into the inset and the
+  band; the rail and band text come from `titles.html` (`edit.mjs` only scales clips to full frame). Sky Reach's last
+  bar grows the inset to full-bleed.
+- **Day 1** is the wall of 21 stills (§2.2), not a re-render. **Sky Reach** uses the archive only to pick SHAs: its
+  stills are 780 × 1688 portrait with the touch HUD and their framing moves, so the picture is the 16:9 re-render (the
+  overview stages, then a cut on a beat to the near-spawn crane: 98 m of descent can't fit 8 s at ≤ 3 m/s).
 
 ### 3.4 Sound
 
-- **A score that grows like the game**: a MiniMax Music 3 cue at a fixed 120 bpm (a bar is 2 s, so 2 / 4 / 6 / 8 s beats
-  are whole bars) in an additive arrangement: day 1 a solo music box or felt piano motif; + strings at week 1;
-  + percussion at week 2; the full hybrid at week 3; music out for the breath; the drop on the day-22 impact; a final hit
-  on the counter. Four seeds; the pick is the one whose `music_scan.py` hits fall within ±0.25 s of §2.2's boundaries,
-  else the boundaries move to the take and §2.2 is updated. The rewind's cut hits are `tr:impact`s on the cut frames.
+- **A score that grows like the game**: one full hybrid MiniMax Music 3 cue at a fixed 120 bpm, picked of four seeds by
+  `music_scan.py`, split into stems with htdemucs (as `cuts/nine-dragon.mjs` does) and **arranged by unmuting stems at
+  the chapter starts**: melody alone under day 1, + bass and strings at week 1, + drums at week 2, everything at week 3.
+  The cue's in-point is chosen so its strongest downbeat lands on the day-22 impact, and §2.2's boundaries move to the
+  take's real bars (the primary method, not a fallback).
+- **The climax in sound**: the breath is one bar of silence but keyclicks; under the slow section a riser and a sub swell
+  (trailer families); the four ambient beds play at real pitch and swap at each cut (four builds you can hear), and only
+  the bolt's whoosh is pitched down; **the drop and a `tr:impact` land on the impact frame**; a final hit on the counter.
 - **Era-true SFX**: days 15, 22 and HEAD from that SHA's own sound files (`git show <sha>:public/…`), placed on the
   take's logged events; days 1 and 8 ship no audio files, so their own WebAudio synth (`crossbowFire`, `boltImpact`,
   `kill`) is rendered in an `OfflineAudioContext` on the served build. MOSS-SoundEffect v2 and Stable Audio 3 Medium
-  (the better take) only for trailer families (whoosh, impact, riser, sub), the lapse tick and the keyclicks. In the
-  rewind the ambient bed swaps at every cut: four builds you can hear.
+  (the better take) only for trailer families (whoosh, impact, riser, sub), the lapse tick and the keyclicks.
 - `mix.py` to −14 LUFS, −1 dBTP, checked on the encoded file.
 
 ### 3.5 Week 4 and after
 
 The chapters are data (`scripts/progress-trailer/chapters.json`: date, SHA, play takes, lapse stages). The rewind takes
-every chapter SHA (≤ 6), its slow motion recomputed so each segment stays ≈ 0.6 s on screen. A new chapter adds a play
-beat and a lapse; to stay at 60 s the oldest non-day-1 chapter's play beat compresses first. Day 1 and the rewind never
-compress.
+every chapter SHA (≤ 6), its slow section recomputed so each segment stays readable (bolt ≥ 6 px at each cut). A new
+chapter costs about 10 s (a play beat and a lapse) and the film stays 60 s (3,600 frames). The seconds come, in order,
+from: (1) the oldest middle chapter folds into one 4 s beat (a 2.5 s lapse and one 1.5 s shot); (2) the end cards
+shrink to 4 s; (3) every lapse caps at 5 s except the newest, which keeps the 8 s showpiece. The cold open, the day-1
+wall and take, the breath and the rewind never compress. The newest chapter's week = (dayOf(chapter) − 1) / 7.
 
 ## 4. Rows
 
@@ -178,16 +200,16 @@ compress.
 |---|---|---|---|
 | PT0 | ✅ **Jake's picks** (2026-10-09): 16:9 only, 60 s | answers in §6 | Jake |
 | PT1 | ✅ **The historical capture rig** (2026-10-09) — `scripts/progress-trailer/`: `build-rev.sh` (any SHA from its own lockfile), `take.mjs` (two era adapters, fake-clock stepping with one game frame per step asserted, `window.__hold` for held moves, a receipt and cache key per take), proof shots `shots/d01-hunt.mjs` (a headshot kill on a stag the build spawned), `d08-hut.mjs`, `d15-square.mjs`, `d22-sunrest.mjs` (the InputService drives day 22); sheet `progress/progress-trailer/pt1-proofs.jpg`. Learned: `player.spawn` drops onto the terrain (under a pier deck, into the sea), so spots need scouting; wrapping day 8's weapon hooks recursed, so melee cue events are the presses | a 5 s input-driven proof take on each of the four SHAs, viewmodel visible, one game frame per sample asserted, receipt written | progress-trailer agent |
-| PT2 | **Scout**: (a) every play beat's spot and verb on its build (week 1's combo, gallop and saddle shot at `8a58b9d1e`; week 3's hover and gust at `c9aaa62ab`); (b) the rewind spot: one Pine Hollow spot on all four builds where the eye height differs by < 0.1 m and stags graze on day 22, with an explicit start pose (day 1 spawns at (0, −236), days 8–22 at (0, −235): `568a1463f:src/main.ts:92`, `8a58b9d1e:src/chunks/pine-hollow.ts:21`, `c9aaa62ab:src/shards/pine-hollow/layout.ts:29`); (c) the lapse camera adapter on each lapse's first and last SHA, and each lapse's stages; (d) whether Nine Dragon's stages read as growth | one contact sheet per beat and lapse, each frame checked (§3.1); §2.2 updated where a beat moves | progress-trailer agent |
-| PT3 | **The play takes**: `speed` / `sub` and `edit.mjs` frame output in the adapter; every §2.2 play beat on its SHA; the rewind as one input track authored on the day-22 take at a real stag, replayed byte-identical on days 1, 8 and 15, hip-fire (day 1's sight zooms to 50°, later builds to 58°), each take logging the bolt's position per frame so each cut lands where the incoming bolt has flown the same distance | every take accepted by its receipt and checked; the rewind's four takes share one input track | progress-trailer agent |
+| PT2 | **Scout**: (a) every play beat's spot and verb on its build (week 1's combo, gallop and saddle shot at `8a58b9d1e`; week 3's hover and gust at `c9aaa62ab`); (b) the rewind spot: one Pine Hollow spot on all four builds where the ground differs by < 0.1 m (§3.1 lists the candidates) and stags graze on day 22, with an explicit start pose (day 1 spawns at (0, −236), days 8–22 at (0, −235): `568a1463f:src/main.ts:92`, `8a58b9d1e:src/chunks/pine-hollow.ts:21`, `c9aaa62ab:src/shards/pine-hollow/layout.ts:29`); (c) the lapse camera adapter on each lapse's first and last SHA, and each lapse's stages; (d) whether Nine Dragon's stages read as growth. The rewind spot is one of §3.1's matching points, aimed where the builds show the most authored change, with a day-22 stag within 14 m (≥ 80 px at impact) | one contact sheet per beat and lapse, each frame checked (§3.1), the rewind spot's four frames each visibly better than the last (else escalate to Jake before PT3); §2.2 updated where a beat moves | progress-trailer agent |
+| PT3 | **The play takes**: `speed` / `sub` and `edit.mjs` frame output in the adapter; every §2.2 play beat on its SHA; the rewind as one look-and-fire input track (spawn at the firing spot on frame 0) authored on the day-22 take at a real stag, replayed byte-identical on days 1, 8 and 15, hip-fire (day 1's sight zooms to 50°, later builds to 58°), with the §2.2 speed ramp, each take logging the bolt's position per frame so each cut lands where the incoming bolt has flown the same distance | every take accepted by its receipt and checked; the rewind's four takes share one input track; the bolt ≥ 6 px at each cut frame, the stag ≥ 80 px at impact and down before the grid | progress-trailer agent |
 | PT4 | **HEAD shots** (the cold open `nd-grapple`, the grid `g-reveal`) through the trailer agent's `capture.mjs --shots-file` (`64c6d84f0`) | the takes exist at 1080p60, in-points as §2.2 | progress-trailer agent |
-| PT5 | **The lapses** (§3.3): day 1's 21 stills on their compressed clock (3 s, no camera); Driftwood (6 s) and Nine Dragon (5 s), moving camera, 5–6 stages; Sky Reach (8 s), the re-render ending on the week-3 take's frame 0 | each lapse plays at its §2.2 length in the authoring frame with the rail, counter and date | progress-trailer agent |
-| PT6 | **The Claude Code beat**: TR5's session (`progress/trailers/tr5-lookout-session.cast`) showing its own first prompt, or a new session that opens with the words of the ask whose result is on screen next | 3 s, prompt ≥ 64 px cap height at 1080, cited in the receipt | progress-trailer agent |
-| PT7 | **Receipts and titles**: `titles.mjs --titles-html` (`af87b952b`, §3.2); the cards, rail, counter and compressed clock in `scripts/progress-trailer/titles.html`; `dayOf`, counts, shards and spans computed (§2.3) | a test renders the cards from git and asserts 29 / 624 / 2,495 / 5,729, day 24 on 9 Oct and 6 shards at `c9aaa62ab` | progress-trailer agent |
+| PT5 | **The lapses** (§3.3): day 1's wall of 21 stills on their compressed clock (3 s, no camera); Driftwood (6 s) and Nine Dragon (6 s), moving camera, 5–6 stages; Sky Reach (8 s), the overview stages then the near-spawn crane, its last bar opening to full-bleed on the week-3 take's frame 0 | each lapse plays at its §2.2 length in the authoring frame with the rail, counter and date | progress-trailer agent |
+| PT6 | **The breath**: Jake's day-1 line "you use claude code as the UI" (`b39cc8b8a`, `sources/WILDSHARD.md`) shown as its `+` diff line with SHA and time, keyclicks under it (TR5's session `progress/trailers/tr5-lookout-session.cast` may run as texture in a lapse's rail, dated "9 Oct · a real session"; its 68-word prompt is never the read) | 2 s, ≥ 56 px cap height, verbatim, cited in the receipt | progress-trailer agent |
+| PT7 | **Receipts and titles**: `titles.mjs --titles-html` (`af87b952b`, §3.2); the cards, rail, counter and compressed clock in `scripts/progress-trailer/titles.html`; `dayOf`, counts, shards and spans computed (§2.3) | a test renders the cards from git and asserts 29 / 624 / 2,495 / 5,729, the lapse stage counts (232, 1,483, 3,117 …) and day 24 on 9 Oct | progress-trailer agent |
 | PT8 | **Score and SFX** (§3.4) | the cue (picked of four seeds) and the SFX on disk with credits; the mix at −14 LUFS / −1 dBTP on the encoded file | progress-trailer agent |
-| PT9 | **Cut and conform** the master from one EDL through the shared `edit.mjs` (historical clips `grade: 'null'`) | the 16:9 master plays whole; a phone copy sent to Jake | progress-trailer agent |
+| PT9 | **Cut and conform** the master from one EDL through the shared `edit.mjs` (historical clips `grade: 'none'`) | the 16:9 master plays whole; a phone copy sent to Jake | progress-trailer agent |
 | PT10 | **Jake's verdict and where it goes** (YouTube, X, the site): his notes become rows here | his words recorded | Jake |
-| PT11 | **Re-make recipe and the week-4 drill** (§3.5) | the README's commands run as written; a dry week-4 entry renders | progress-trailer agent |
+| PT11 | **Re-make recipe and the week-4 drill** (§3.5) | the README's commands run as written; a dry week-4 entry renders to exactly 3,600 frames by §3.5's order | progress-trailer agent |
 
 ## 5. Not in this plan
 
