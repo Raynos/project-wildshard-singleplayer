@@ -132,6 +132,9 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 - **Every pick is one labelled A / B / C board**, iPhone portrait; **every image Jake sees has burned-in labels** saying what each panel is (a file name is not enough). Motion is a video. Mockups are for UI and art
   direction, never for rendering or perf bugs (show the real game instead).
 - A plan with prototypes gets one read-only review page.
+- **Generated video, trailers and cutscenes** → [docs/process/CINEMATICS.md](docs/process/CINEMATICS.md): motion is
+  the bar (a camera over a still is not a trailer), never a montage of unrelated clips, and promise only what the game
+  can ship.
 
 ## HUD changes are coordinated over herdr (E332)
 
