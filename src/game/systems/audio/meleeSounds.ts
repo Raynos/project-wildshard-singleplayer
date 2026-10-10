@@ -1,6 +1,6 @@
 import type { ImpactKind } from '@wildshard/engine/audio/Audio';
 import { tap } from '@wildshard/engine/core/harnessTap';
-import type { WeaponSynth } from './weaponVoices';
+import type { WeaponSynth } from "../../plugin/audio";
 
 export function swordSwing(audio: WeaponSynth): void {
   tap.sound?.('swordSwing');

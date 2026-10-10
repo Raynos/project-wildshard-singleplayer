@@ -2683,3 +2683,10 @@ implementations, constructor identity and installed behaviour; plugin paths do
 not introduce new gameplay APIs. Weapon-family, mode, audio and raw-look surfaces
 still need consolidation. The final ≤20 export gate remains open until old
 schema/app and runtime consumers can retire their aliases.
+
+
+`plugin/audio` defines the existing `CombatAudio`, `sharedCombatCues`,
+`WeaponSynth`, `sharedWeaponVoices` and `declaredWeaponVoices` in one module.
+Their mixer operations, sampled/synth routes, RNG order and cue IDs are unchanged.
+The two former audio export keys point at this same implementation while callers
+migrate; internal audio recipes import its types relatively.

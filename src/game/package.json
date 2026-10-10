@@ -5,7 +5,7 @@
   "exports": {
     "./combat/collisionPose": "./combat/collisionPose.ts",
     "./combat/clipTiming": "./combat/clipTiming.ts",
-    "./systems/audio/combatCues": "./systems/audio/combatCues.ts",
+    "./systems/audio/combatCues": "./plugin/audio.ts",
     "./systems/looks/fogProgram": "./systems/looks/fogProgram.ts",
     "./systems/looks/grassField": "./systems/looks/grassField.ts",
     "./systems/looks/particles": "./systems/looks/particles.ts",
@@ -211,7 +211,7 @@
     "./shardfile/nativeGround": "./shardfile/nativeGround.ts",
     "./shardfile/splatTerrain": "./shardfile/splatTerrain.ts",
     "./shardfile/validationReceipt": "./shardfile/validationReceipt.ts",
-    "./systems/audio/weaponVoices": "./systems/audio/weaponVoices.ts",
+    "./systems/audio/weaponVoices": "./plugin/audio.ts",
     "./systems/audio/silentScore": "./systems/audio/silentScore.ts",
     "./systems/audio/forest": "./systems/audio/forest.ts",
     "./systems/effects/starter": "./systems/effects/starter.ts",
@@ -262,6 +262,7 @@
     "./plugin/mover": "./plugin/mover.ts",
     "./plugin/director": "./plugin/director.ts",
     "./plugin/ui": "./plugin/ui.ts",
-    "./plugin/clientScript": "./plugin/clientScript.ts"
+    "./plugin/clientScript": "./plugin/clientScript.ts",
+    "./plugin/audio": "./plugin/audio.ts"
   }
 }
