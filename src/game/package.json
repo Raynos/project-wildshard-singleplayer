@@ -41,6 +41,7 @@
     "./systems/looks/toonLight": "./systems/looks/toonLight.ts",
     "./systems/looks/bakedIsland": "./systems/looks/bakedIsland.ts",
     "./systems/looks/bakedGround": "./systems/looks/bakedGround.ts",
+    "./systems/looks/paintedStrips": "./systems/looks/paintedStrips.ts",
     "./systems/looks/duskCurves": "./systems/looks/duskCurves.ts",
     "./systems/looks/modelLibrary": "./systems/looks/modelLibrary.ts",
     "./systems/looks/instancedTiles": "./systems/looks/instancedTiles.ts",

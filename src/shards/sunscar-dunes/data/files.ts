@@ -3,7 +3,7 @@ import { FACET_AO_FLOOR, HD_LOOKS } from './surfaces';
 
 /**
  * Signal Dunes' asset files as rows: the generated models, the baked world pieces and creature rigs, the painted skies. The
- * boot lists them (`boot/files.ts`), the loaders read them (`world/meshes.ts`, `world/baked.ts`, `look/painted.ts`).
+ * boot lists them (`boot/files.ts`), the loaders read them (`world/meshes.ts`, `world/baked.ts`, look/render.ts's painted sky).
  */
 
 /**
@@ -66,7 +66,7 @@ export const DUNE_MODELS: ModelLibraryRows<DuneMeshName, DuneHdName, DuneRigName
   aoFloor: FACET_AO_FLOOR, hdLooks: HD_LOOKS,
 };
 
-/** The painted dusk skies, one per dusk stage (look/painted.ts, art/sunscar-dunes/round-25-sky; E409 second top-10 row 2). */
+/** The painted dusk skies, one per dusk stage (look/render.ts through @wildshard/sdk/looks/paintedStrips, art/sunscar-dunes/round-25-sky; E409 second top-10 row 2). */
 export const PAINTED_STAGES = ['early', 'late'] as const;
 export type PaintedStage = (typeof PAINTED_STAGES)[number];
 export const PAINTED_URLS: Readonly<Record<PaintedStage, string>> = { early: '/assets/sunscar-dunes/sky/dusk-early.webp', late: '/assets/sunscar-dunes/sky/dusk-late.webp' };

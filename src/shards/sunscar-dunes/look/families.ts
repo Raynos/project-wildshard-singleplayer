@@ -7,9 +7,8 @@ import type { GroundLayerParams } from '@wildshard/engine/render/families/params
 import { GROUND_HALF } from '../data/layout';
 import { SHADOW_HALF } from '../data/sand';
 import { WIND } from '../world/dunes';
-import { PAINTED } from './painted';
 import { duskDomeSun } from '@wildshard/sdk/looks/duskDome';
-import { SKY_STYLE } from '../data/sky';
+import { PAINTED, SKY_STYLE } from '../data/sky';
 import { SAND_DUSK } from '../data/dusk';
 import { duskRow } from '@wildshard/sdk/looks/duskCurves';
 

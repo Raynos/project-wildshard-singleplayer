@@ -9,7 +9,8 @@ import { duneHeight } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';
 import { duskDomeMaterial } from '@wildshard/sdk/looks/duskDome';
 import { SKY_STYLE } from '../data/sky';
-import { loadPaintedSky } from './painted';
+import { loadPaintedStrips } from '@wildshard/sdk/looks/paintedStrips';
+import { PAINTED_STAGES, PAINTED_URLS } from '../data/files';
 import { familySand, familySky, type FamilySand, type FamilySky } from './families';
 import { KEY_DIR, SAND_MAPS, SKIRT_GRID, SKIRT_SWELL } from '../data/sand';
 import sandMeans from '../data/sand.json' with { type: 'json' };
@@ -132,7 +133,8 @@ export function signalDunesLook(): LookStrategy {
     // No sun disc or halo (G25): the sun has just set; the dome paints the afterglow.
     sky: { clouds: false, planet: false, sun: { disc: false, halo: false } },
     backdrop: async ({ sky }) => {
-      const stages = await loadPaintedSky();
+      const strips = await loadPaintedStrips(PAINTED_STAGES, PAINTED_URLS, 'sunscar.sky', '[sunscar-dunes] painted sky');
+      const stages = strips?.[0] !== undefined && strips[1] !== undefined ? [strips[0], strips[1]] as const : null;
       if (stages) {
         // SF50 / SF10a (A10): the emissive family's sky over the two painted stages; the dusk is its look's blend
         const procedural = dome.material, skyScope = new Scope('sunscar-dunes.sky'), family = familySky(stages, DUSK.value, skyScope);
