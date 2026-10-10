@@ -86,7 +86,7 @@
     "src/shards/nine-dragon-stack/look/light/lightvol.ts": 2,
     "src/shards/nine-dragon-stack/playground/GrapplePlayground.ts": 1,
     "src/shards/nine-dragon-stack/vm/fpArms.ts": 1,
-    "src/shards/nine-dragon-stack/world/build.ts": 18,
+    "src/shards/nine-dragon-stack/world/build.ts": 9,
     "src/shards/nine-dragon-stack/world/facade/batch.ts": 3,
     "src/shards/pine-hollow/life/index.ts": 5,
     "src/shards/pine-hollow/quest/nightThralls.ts": 1,
