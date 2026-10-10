@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // bake-hdri-keys.mjs — Pine Hollow's day / night sky keys (PINE-HOLLOW-REMASTER PH-L2) as gain-mapped pairs.
 //
-// For every key in src/shards/pine-hollow/data/sky.ts (`keys`): take `public/assets/hdri/<id>_2k.hdr` when the repo has it, else fetch the
+// For every key in src/shards/pine-hollow/runtime/looks/sky.ts (`keys`): take `public/assets/hdri/<id>_2k.hdr` when the repo has it, else fetch the
 // 2k .hdr from Poly Haven (CC0) into the OS temp dir (the .hdr is not committed), paint the HDRI's own sun (or moon) disc
 // out, and write `public/assets/hdri/<id>_2k.key.jpg` + `<id>_2k.key.gain.png` — the pair src/engine/world/BakedSky.ts decodes
 // (~0.3 MB instead of a 4–5 MB RGBE file).
@@ -23,7 +23,7 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { DataUtils } from 'three';
-import { PINE_SKY } from '../data/sky.ts';
+import { PINE_SKY } from '../runtime/looks/sky';
 
 const PINE_SKY_KEYS = PINE_SKY.keys;
 

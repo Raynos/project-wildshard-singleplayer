@@ -9,9 +9,9 @@ import { normalAt, splatAt, trailDistance, cabinMask, pondMask, streamAt, inChun
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
-import { fogGLSL } from './fogProgram';
-import { rainCurtain } from './rainCurtain';
-import { ShaderFamily, type ShaderProgramRow } from './shaderFamily';
+import { fogGLSL } from '@wildshard/game/systems/looks/fogProgram';
+import { rainCurtain } from '@wildshard/game/systems/looks/rainCurtain';
+import { ShaderFamily, type ShaderProgramRow } from '@wildshard/game/systems/looks/shaderFamily';
 
 /**
  * A wooded level's rain as rows (SHARD-PLATFORM M3): the rain round the camera with the canopy's drips in it, the puddles in

@@ -18,7 +18,7 @@ import * as THREE from 'three';
 import type { Placement } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
 import type { Placement as UnderPlacement } from '@wildshard/engine/world/forest/placement';
-import { groundCoverCells, groundCoverMatrix as matrixOf } from '@wildshard/sdk/looks/groundCover';
+import { groundCoverCells, groundCoverMatrix as matrixOf } from '../runtime/looks/groundCover';
 import type { Undergrowth } from './undergrowth';
 import type { FieldModelsContext } from '@wildshard/game/shard/manifest';
 import { PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';

@@ -1,5 +1,5 @@
 import type { LookStrategy } from '@wildshard/engine/render/look';
-import { keyedSkyBackdrop } from '@wildshard/sdk/looks/keyedSky';
+import { keyedSkyBackdrop } from '../runtime/looks/keyedSky';
 import { PINE_KEYED_DAY } from './dayKeys';
 import { pineMemoryTrim } from '../debug/options';
 

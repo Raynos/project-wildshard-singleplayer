@@ -1,5 +1,5 @@
-import { riggedHulls } from '@wildshard/sdk/species/riggedHulls';
-import { PINE_HULLS } from '../data/hulls';
+import { riggedHulls } from '../runtime/looks/riggedHulls';
+import { PINE_HULLS } from '../runtime/looks/hulls';
 import { pineCoatUrl, pineCreatureRigUrl } from './rigs';
 
 /**

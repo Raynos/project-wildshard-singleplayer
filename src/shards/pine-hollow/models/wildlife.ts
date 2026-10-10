@@ -23,7 +23,7 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { PosedInstances, PosedPacker, type PosedInstancesLook, type PosedInstancesView } from '@wildshard/sdk/looks/posedInstances';
+import { PosedInstances, PosedPacker, type PosedInstancesLook, type PosedInstances as PosedInstancesView } from '../runtime/looks/posedInstances';
 import { spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import * as vb from 'valibot';
 import { WILDLIFE_LOOK } from '../runtime/looks/wildlifeLook';

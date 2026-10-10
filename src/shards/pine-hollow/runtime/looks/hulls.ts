@@ -1,4 +1,4 @@
-import type { RiggedHullsRow } from '@wildshard/sdk/species/riggedHullRows';
+import type { RiggedHullsRow } from './riggedHullRows';
 
 /**
  * Pine Hollow's generated creature hulls as a rigged-hull row (`@wildshard/sdk/species/riggedHulls`; PINE-HOLLOW-REMASTER

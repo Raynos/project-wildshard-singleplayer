@@ -15,7 +15,7 @@ import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import * as backdrop from '../../../src/shards/pine-hollow/look/skyBackdrop';
 import { installWeather } from '../../../src/shards/pine-hollow/world/weather';
-import { RainFx } from '../../../src/game/systems/looks/rainFx';
+import { RainFx } from '../../../src/shards/pine-hollow/runtime/looks/rainFx';
 import { AMMO_ROWS } from '../../../src/shards/pine-hollow/loadout/effects';
 import { legacyDouble } from '../../fake/FakeGame';
 

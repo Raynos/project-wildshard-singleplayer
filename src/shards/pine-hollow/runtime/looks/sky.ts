@@ -1,4 +1,4 @@
-import type { KeyedSkyStyle } from '@wildshard/sdk/looks/keyedSkyRows';
+import type { KeyedSkyStyle } from './keyedSkyRows';
 
 /**
  * Pine Hollow's day / night sky as a keyed-sky row (`@wildshard/sdk/looks/keyedSky`; PINE-HOLLOW-REMASTER PH-L2, Jake's

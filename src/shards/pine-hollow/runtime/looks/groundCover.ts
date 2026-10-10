@@ -10,7 +10,7 @@ import { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Pl
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { patchWindField } from '@wildshard/engine/world/wind';
-import { editShader, type ShaderEditRow, type ShaderStages } from './shaderEdits';
+import { editShader, type ShaderEditRow, type ShaderStages } from '@wildshard/game/systems/looks/shaderEdits';
 
 /**
  * A forest floor's ground cover as rows (SHARD-PLATFORM M3): the engine's undergrowth placement (ferns, shrubs, litter,

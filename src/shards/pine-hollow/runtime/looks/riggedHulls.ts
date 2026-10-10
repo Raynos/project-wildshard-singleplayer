@@ -25,10 +25,10 @@ import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { app } from '@wildshard/engine/app/runtime';
 import { adoptCoat, coatAtlas, coatAtlasSliced, coatPainting, type CoatSpec } from './coatAtlas';
 import type { HullFlapRow, HullPalette, RiggedHullsRow } from './riggedHullRows';
-import { DEER_PALETTE } from '../species/deer';
-import { ELK_PALETTE } from '../species/elk';
-import { BEAR_PALETTE } from '../species/view/bear';
-import { BOAR_PALETTE } from '../species/view/boar';
+import { DEER_PALETTE } from '@wildshard/game/systems/species/deer';
+import { ELK_PALETTE } from '@wildshard/game/systems/species/elk';
+import { BEAR_PALETTE } from '@wildshard/game/systems/species/view/bear';
+import { BOAR_PALETTE } from '@wildshard/game/systems/species/view/boar';
 
 const PALETTES: Readonly<Record<HullPalette, Readonly<Record<string, RGB>>>> = { deer: DEER_PALETTE, elk: ELK_PALETTE, bear: BEAR_PALETTE, boar: BOAR_PALETTE };
 

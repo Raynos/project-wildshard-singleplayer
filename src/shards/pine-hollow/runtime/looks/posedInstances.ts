@@ -3,7 +3,7 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { editShader, type ShaderEditRow } from './shaderEdits';
+import { editShader, type ShaderEditRow } from '@wildshard/game/systems/looks/shaderEdits';
 
 /**
  * Posed instances (SHARD-PLATFORM M3, moved from Pine Hollow's models/wildlife.ts): several small posable models (birds,

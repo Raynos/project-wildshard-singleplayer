@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { PINE_PHASES, pineMoonAt, pineNightAt, pineSunAt } from '../../../src/shards/pine-hollow/look/dayKeys';
-import { PINE_SKY } from '../../../src/shards/pine-hollow/data/sky';
+import { PINE_SKY } from '../../../src/shards/pine-hollow/runtime/looks/sky';
 
 const PINE_SKY_KEYS = PINE_SKY.keys;
 

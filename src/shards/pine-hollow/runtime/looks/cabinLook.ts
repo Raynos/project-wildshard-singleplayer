@@ -3,7 +3,7 @@
 // hearth particles' program and kinds, and how the homestead moves and lights (CABIN_LIFE: @wildshard/sdk/props/buildingLife).
 import type { BuildingLifeLook } from '@wildshard/game/systems/props/buildingLife';
 import type { ShaderEditRow } from '@wildshard/game/systems/looks/shaderEdits';
-import type { RiseParticleRow } from '@wildshard/game/systems/looks/riseParticles';
+import type { RiseParticleRow } from './riseParticles';
 
 /** the rough_pine_door scan is a saturated orange-red: pulled toward a weathered grey-brown */
 export const CABIN_DOOR_EDITS: readonly ShaderEditRow[] = [

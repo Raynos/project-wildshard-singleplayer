@@ -35,3 +35,12 @@ keeps the actual physics gameplay payload and map pixels byte-identical.
 Ten crag checks, root strict and touched lint pass. Thirty-one existing
 performance sites transfer by source hash; one existing sandbox site
 (`heldTool.ts`) is listed in the coordinator approval rows.
+
+Eleven Pine-only look implementations and the LOD-glTF helper return
+verbatim to `runtime/looks/` and `runtime/kit/`; eleven SDK facades are
+deleted. Dependent trusted rows move with their defining types. Capture
+pin `aa791f664eefe46463f79d4c1db3e7176daf2bb4`: physics gameplay payload
+and map pixels are exact. The map stamp additionally includes HEAD’s
+documentation-only coat-table update. Twenty-six focused checks, root
+strict and touched lint pass; 166 existing performance sites transfer by
+source hash. Newly exposed import debt is in the coordinator approval file.

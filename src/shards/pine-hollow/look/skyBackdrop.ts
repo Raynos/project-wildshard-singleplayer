@@ -1,5 +1,5 @@
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import { keyedSkyOf, type KeyedSkyHandle, type SkyWeather } from '@wildshard/sdk/looks/keyedSky';
+import { keyedSkyOf, type KeyedSky as KeyedSkyHandle, type SkyWeather } from '../runtime/looks/keyedSky';
 
 /** Pine Hollow's sky (look/render.ts builds it from data/sky.ts on the SDK's keyed sky). */
 export type PineSkyBackdrop = KeyedSkyHandle;

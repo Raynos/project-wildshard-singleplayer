@@ -2,10 +2,10 @@ import { SEED } from '@wildshard/engine/core/config';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { paintCanvas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
-import { GroundCover, type GroundCoverDraw, type GroundCoverKind } from '@wildshard/sdk/looks/groundCover';
+import { GroundCover, type GroundCoverDraw, type GroundCoverKind } from '../runtime/looks/groundCover';
 import { UNDER_SHAPES } from './undergrowthKit';
 import { UNDER_EDITS, UNDER_VERTEX_EDITS } from '../runtime/looks/forestLook';
-import { UNDER_LOOK } from '../data/undergrowthLook';
+import { UNDER_LOOK } from '../runtime/looks/undergrowthLook';
 import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PAINT } from '../data/undergrowthPaint';
 
 /**
