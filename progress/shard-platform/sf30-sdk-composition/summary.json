@@ -1,0 +1,119 @@
+{
+  "candidate": "d037ab1fed93f4eb7ace5bb3e0c8d3c543f1a919",
+  "speciesCandidate": "0a43925a45e3a2e0b2c003ecf27ae9345484028c",
+  "nativeProfile": "iPhone 16 Pro / phone / DPR2 / Metal",
+  "nativePayloadsIdentical": true,
+  "nativeClosureMerge": {
+    "src/shards/driftwood-isle/runtime/physics.baked.json": [],
+    "src/shards/driftwood-isle/runtime/spots.baked.json": [],
+    "src/shards/far-reach/runtime/physics.baked.json": [
+      "src/shards/far-reach/runtime/index.ts"
+    ]
+  },
+  "map": "actual recapture; unchanged image and stamp",
+  "walk": [
+    {
+      "shard": "driftwood-isle",
+      "leg": "pier",
+      "stuck": 0
+    },
+    {
+      "shard": "driftwood-isle",
+      "leg": "hut",
+      "stuck": 0
+    },
+    {
+      "shard": "driftwood-isle",
+      "leg": "bridge",
+      "stuck": 0
+    },
+    {
+      "shard": "driftwood-isle",
+      "leg": "lookout",
+      "stuck": 0
+    },
+    {
+      "shard": "driftwood-isle",
+      "leg": "wreck",
+      "stuck": 0
+    },
+    {
+      "shard": "driftwood-isle",
+      "leg": "cave",
+      "stuck": 0
+    },
+    {
+      "shard": "driftwood-isle",
+      "leg": "shrine",
+      "stuck": 0
+    },
+    {
+      "shard": "driftwood-isle",
+      "leg": "boat",
+      "stuck": 0
+    },
+    {
+      "shard": "far-reach",
+      "leg": "windmill",
+      "stuck": 0
+    },
+    {
+      "shard": "far-reach",
+      "leg": "grove",
+      "stuck": 0
+    },
+    {
+      "shard": "far-reach",
+      "leg": "roost",
+      "stuck": 0
+    },
+    {
+      "shard": "far-reach",
+      "leg": "keeper",
+      "stuck": 0
+    },
+    {
+      "shard": "far-reach",
+      "leg": "keeper-to-roost",
+      "stuck": 0
+    },
+    {
+      "shard": "far-reach",
+      "leg": "ruin",
+      "stuck": 0
+    },
+    {
+      "shard": "far-reach",
+      "leg": "rising islet north in",
+      "stuck": 0
+    },
+    {
+      "shard": "far-reach",
+      "leg": "rising islet east in",
+      "stuck": 0
+    },
+    {
+      "shard": "far-reach",
+      "leg": "sky dock north",
+      "stuck": 0
+    },
+    {
+      "shard": "far-reach",
+      "leg": "sky dock west",
+      "stuck": 0
+    }
+  ],
+  "focusedSourceTests": 20,
+  "focusedBakeAndSkyReplayTests": 25,
+  "driftwoodReplay": {
+    "checkpoint": "captain",
+    "workerTicks": 60,
+    "workerExact": true,
+    "victory": true,
+    "canonicalHash": "c3f697e836cd6cabfd2a767e114483dd70450ce80cad676bb6d97c572f472422",
+    "freshness": "input-only manifest refresh belongs to the serialized pusher; committed payload replay passed"
+  },
+  "strict": "isolated candidate source and tests",
+  "lint": "touched candidate files",
+  "resources": "preview 4400 and every browser closed"
+}

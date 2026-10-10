@@ -16,7 +16,7 @@ import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, VANES, WISP_HOME
 import { apothem } from '../layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { skyMoverViews } from './movers';
-import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/shardfile/moverRuntime';
+import { installDeclaredMovers, type MoverRuntimeInstance as MoverRuntime } from '@wildshard/sdk/runtime/movers';
 import { commandSocketLift } from '@wildshard/game/shardfile/socketLiftProof';
 import { isletCalls, type IsletCalls } from '../world/risingIslet';
 import { gustFx } from '@wildshard/sdk/looks/windFx';

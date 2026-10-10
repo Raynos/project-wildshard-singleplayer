@@ -1,5 +1,5 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { installDeclaredMovers } from '@wildshard/game/shardfile/moverRuntime';
+import { installDeclaredMovers } from '@wildshard/sdk/runtime/movers';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
 import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';

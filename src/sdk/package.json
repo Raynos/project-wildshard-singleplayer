@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./runtime/movers": "./runtime/movers.ts",
     "./runtime/audio/combatCues": "./runtime/audio/combatCues.ts",
     "./runtime/viewmodel/armClips": "./runtime/viewmodel/armClips.ts",
     "./runtime/viewmodel/armRig": "./runtime/viewmodel/armRig.ts",
@@ -254,6 +255,10 @@
   },
   "publishConfig": {
     "exports": {
+      "./runtime/movers": {
+        "types": "./dist/types/sdk/runtime/movers.d.ts",
+        "default": "./dist/runtime/movers.js"
+      },
       "./runtime/viewmodel/armClips": {
         "types": "./dist/types/sdk/runtime/viewmodel/armClips.d.ts",
         "default": "./dist/runtime/viewmodel/armClips.js"

@@ -1,7 +1,7 @@
 {
  "version": 1,
- "revision": "3fd3a7205ed00e21922a7e4a24e171686ba83461",
- "build": "3fd3a72-mv285z6u",
+ "revision": "d037ab1fed93f4eb7ace5bb3e0c8d3c543f1a919",
+ "build": "d037ab1-mv2akjoh",
  "profile": "iPhone 16 Pro / phone / DPR2",
  "inputs": {
   "src/engine/physics/terrain.ts": "0ad84357568a1054e5658c7c187e2c3abbd48b0f84fdefae6fc78e0289f4ada0",
@@ -19,6 +19,7 @@
   "src/shards/driftwood-isle/data/coverLook.json": "77dc5ab7a337327d783fabe6a0941bee06e64a11a210f5cdc0ea76e81e4c3a63",
   "src/shards/driftwood-isle/data/director.json": "b6e0645e85bf27b91f1051a27cfb67e4c1874ab2d6208beab5a4f04369a847b0",
   "src/shards/driftwood-isle/data/edges.ts": "d4487db1e8a08fb84833b6b27a920129e7ab0ae2ca361970f8d896c4160ef8bb",
+  "src/shards/driftwood-isle/data/enemySpecies.ts": "d30f3014a165ba79b6e72e76cfb19d13efd6e5ae2e919ced91c6ed59a8308554",
   "src/shards/driftwood-isle/data/fpArmsGlsl.ts": "30e0a7e36966417926057a7a5622f76654e43236f83347eabfcb56b328b934c4",
   "src/shards/driftwood-isle/data/fpArmsLook.ts": "e6f5340da2a6fcf73fddaaffab38b72babbcb1de456f3b4360735ca22bb100dc",
   "src/shards/driftwood-isle/data/groundCoverLook.ts": "58f761629407a07f3040bbfbeec57e4d3716e4f9d7215b3d43b1cabc7cf69cd3",

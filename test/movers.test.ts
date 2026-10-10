@@ -14,7 +14,7 @@ import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { KinematicMover } from '../src/engine/physics/mover';
 import { waveHeight } from '../src/engine/world/waves';
 import { MOVER_FIELD_RANGES, moverScriptEntities, parseMovers, type MoverData } from '../src/game/shardfile/movers';
-import { MoverRuntime, moverQueries, createMoverHost } from '../src/game/shardfile/moverRuntime';
+import { MoverRuntime, moverQueries, createMoverHost } from '../src/sdk/runtime/movers';
 import { MOVERS as DRIFT } from '../src/shards/driftwood-isle/data/movers';
 import { MOVERS as SKY } from '../src/shards/far-reach/data/movers';
 import { SPANS } from '../src/shards/far-reach/data/layout';

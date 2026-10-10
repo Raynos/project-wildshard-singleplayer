@@ -3,6 +3,7 @@ import { SCRIPT_PARAMETER_QUERY, ScriptHost, type ScriptQuery } from '@wildshard
 import { ScriptWorld } from '@wildshard/engine/script/effects';
 import { scriptPhysicsQueries } from '@wildshard/engine/script/queries';
 import type { World } from '@wildshard/engine/core/bootstrap';
+import type { SimHost } from '@wildshard/engine/sim';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Physics } from '@wildshard/engine/physics/Physics';
@@ -177,4 +178,74 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
   if (options.onDispose !== undefined) ctx.scope.onDispose(options.onDispose);
   ctx.debug.expose(`movers.${options.systemId}`, { showRest: () => { runtime.showRest(); } }); // the map bake poses movers at rest
   return runtime;
+}
+
+const moverFinite = v.pipe(v.number(), v.finite());
+const moverNatural = v.pipe(moverFinite, v.integer(), v.minValue(0));
+const headlessMoverSaved = v.strictObject({
+  host: v.strictObject({ tick: v.pipe(moverFinite, v.integer(), v.minValue(-1)),
+    used: v.strictObject({ effects: moverNatural, spawns: moverNatural, events: moverNatural, queries: moverNatural, fuel: moverNatural }),
+    pending: v.array(v.strictObject({ type: moverNatural, target: moverNatural, value: moverFinite })),
+    modules: v.array(v.strictObject({ name: v.string(), memory: v.array(moverNatural), globals: v.array(v.strictObject({ name: v.string(), type: v.picklist(['number', 'bigint']), value: v.string() })), failures: moverNatural, disabled: v.boolean() })) }),
+  world: v.array(v.strictObject({ id: moverNatural, name: v.string(), position: v.tuple([moverFinite, moverFinite, moverFinite]), fields: v.record(v.string(), moverFinite), frozen: v.boolean(), interactive: v.boolean() })),
+  movers: v.string(),
+});
+
+/** A headless platform installation exposes published poses and refused script calls. */
+export interface HeadlessMovers { readonly runtime: MoverRuntime; failures: () => number }
+/** Explicit native ownership; the getter follows replacement worlds after a restore. */
+export interface HeadlessMoverPorts { physics: () => SimHost['physics']; scope: SimHost['scope']; restoring: boolean }
+/** A caller-driven set owns its script host, entities and trusted permission table. */
+export interface HeadlessMoverSet extends HeadlessMovers { host: ScriptHost; world: ScriptWorld; permissions: Map<string, number> }
+/** Stable continuation identity and trusted permissions for a SimHost installation. */
+export interface HeadlessMoverInstallation {
+  systemId: string; restoring: boolean;
+  initialPermissions?: ReadonlyMap<string, number>;
+  permissions?: () => ReadonlyMap<string, number>;
+}
+
+/** Copy and SHA-256-check each declared module before constructing a headless host. */
+export async function verifiedMoverModules(assets: ReadonlyMap<string, Uint8Array>, rows: MoverData): Promise<ReadonlyMap<string, Uint8Array>> {
+  return new Map(await Promise.all([...new Set(parseMovers(rows).map(row => row.module))].map(async hash => {
+    const bytes = assets.get(hash); if (bytes === undefined) throw new Error('Mover module was not admitted');
+    const copy = Uint8Array.from(bytes), digest = new Uint8Array(await crypto.subtle.digest('SHA-256', copy));
+    if ([...digest].map(b => b.toString(16).padStart(2, '0')).join('') !== hash) throw new Error('Mover module hash mismatch');
+    return [hash, copy] as const;
+  })));
+}
+
+/** Construct native movers without stepping; the caller explicitly owns the fixed clock. */
+export function createHeadlessMovers(rows: MoverData, modules: ReadonlyMap<string, Uint8Array>, ports: HeadlessMoverPorts, initialPermissions: ReadonlyMap<string, number> = new Map()): HeadlessMoverSet {
+  const data = parseMovers(rows);
+  const world = new ScriptWorld({ fields: MOVER_FIELD_RANGES, archetypes: [], events: [], maxEntities: 32 }, moverScriptEntities(data));
+  const physicsQuery: ScriptQuery = (kind, input, entity) => scriptPhysicsQueries({ physics: ports.physics(), navigation: { closestWalkable: () => null, findPath: () => null }, handle: () => undefined })(kind, input, entity);
+  const host = new ScriptHost({ world, query: moverQueries(data, physicsQuery) });
+  for (const hash of new Set(data.map(row => row.module))) {
+    const bytes = modules.get(hash); if (bytes === undefined) throw new Error('Unverified mover module');
+    host.install(hash, bytes);
+  }
+  const runtime = new MoverRuntime(data, { host, physics: ports.physics, scope: ports.scope, restoring: ports.restoring });
+  return { runtime, host, world, permissions: new Map(initialPermissions), failures: () => host.failureCount };
+}
+
+/** Advance the script clock, publish platform poses, then capture any native chains. */
+export function stepHeadlessMovers(movers: Pick<HeadlessMoverSet, 'runtime' | 'host' | 'permissions'>, tick: number, permissions: ReadonlyMap<string, number> = movers.permissions): void {
+  movers.host.beginTick(tick); movers.runtime.step(tick, permissions); movers.runtime.capture();
+}
+
+/** Install one fixed-step owner and preserve exact guest/native continuation without an installation tick. */
+export function installHeadlessMovers(host: SimHost, rows: MoverData, modules: ReadonlyMap<string, Uint8Array>, options: HeadlessMoverInstallation): HeadlessMovers {
+  const movers = createHeadlessMovers(rows, modules, { physics: () => host.physics, scope: host.scope, restoring: options.restoring }, options.initialPermissions);
+  host.onStep(options.systemId, () => { stepHeadlessMovers(movers, host.state.tick, options.permissions?.() ?? movers.permissions); }, {
+    snapshot: () => JSON.stringify({ host: movers.host.checkpoint(), world: movers.world.state(), movers: movers.runtime.snapshotState() }),
+    restore: value => {
+      if (typeof value !== 'string') throw new Error('Invalid mover continuation');
+      const saved = v.parse(headlessMoverSaved, JSON.parse(value));
+      movers.host.restoreState(saved.host);
+      movers.world.restore(saved.world.map(row => ({ ...row, fields: Object.fromEntries(Object.entries(row.fields).map(([key, field]) => [Number(key), field])) })));
+      movers.runtime.restoreState(saved.movers);
+    },
+    physicsRestored: () => { movers.runtime.reconnect(); },
+  });
+  return { runtime: movers.runtime, failures: movers.failures };
 }

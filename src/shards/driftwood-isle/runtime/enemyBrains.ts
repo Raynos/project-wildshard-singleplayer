@@ -1,13 +1,9 @@
 import { Vector3 } from 'three';
-import { SkirmisherBrain } from '@wildshard/engine/ai/skirmisher';
-import { GuardianBrain } from '@wildshard/engine/ai/guardian';
-import { PerchHunterBrain } from '@wildshard/engine/ai/perchHunter';
 import { HURT_ARC, type HuntBody, type HuntBrain } from '@wildshard/engine/ai/hunt';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
-import { skirmisher, guardian, perchHunter } from '@wildshard/sdk/brains';
-import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../data/brains';
+import { driftwoodSpeciesBrains } from './speciesBrains';
 import { CrabBrain } from '../species/crab';
 import { SailorBrain } from '../species/sailor';
 import { stepSailorRise } from '../species/sailorPose';
@@ -78,9 +74,15 @@ export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: r
     snapshot: () => policy.snapshot(),
     restore: value => { policy.restore(value); },
   });
-  if (kind === 'crab') { const policy = new SkirmisherBrain(actor, skirmisher(CRAB_BRAIN)); return wrap(new CrabBrain<HuntBody, Ports>(actor, (_a, c) => { policy.think(c); }), policy); }
-  if (kind === 'sailor') { const policy = new GuardianBrain(actor, guardian(SAILOR_BRAIN)); return wrap(new SailorBrain<HuntBody, Ports>(actor, (_a, c) => { policy.think(c); }), policy); }
-  if (kind === 'monkey') { const policy = new PerchHunterBrain(actor, perchHunter(MONKEY_BRAIN)); return wrap(new MonkeyBrain<HuntBody, Ports>(actor, (_a, c) => { policy.think(c); }), policy); }
+  if (driftwoodSpeciesBrains.kinds.has(kind)) {
+    const decision = driftwoodSpeciesBrains.decision(kind, actor), policy = decision.policy;
+    switch (decision.archetype) {
+      case 'skirmisher': return wrap(new CrabBrain<HuntBody, Ports>(actor, (_a, c) => { decision.policy.think(c); }), policy);
+      case 'guardian': return wrap(new SailorBrain<HuntBody, Ports>(actor, (_a, c) => { decision.policy.think(c); }), policy);
+      case 'perch-hunter': return wrap(new MonkeyBrain<HuntBody, Ports>(actor, (_a, c) => { decision.policy.think(c); }), policy);
+      default: throw new Error('Unknown admitted Driftwood enemy decision');
+    }
+  }
   if (kind === 'captain') { const brain = new CaptainBrain<HuntBody>(actor); return wrap(brain, { snapshot: () => brain.snapshot(), restore: value => { brain.restore(value); } }); }
   throw new Error(`Driftwood has no enemy policy for ${kind}`);
 }

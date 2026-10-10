@@ -1974,6 +1974,17 @@ must apply the same Developer fence before selecting a reload-only system. `mani
 The composition root installs the gold coin geometry recipe with `installCoinModel()` from
 `@wildshard/game/loot/coinModel`; loot simulation imports only the recipe port, without geometry construction.
 
+### Declared platform movers
+
+`@wildshard/sdk/runtime/movers` exposes the declared platform owner to shard runtime code.
+`installDeclaredMovers` admits guest modules and installs scoped page fixed steps; views read published poses.
+`verifiedMoverModules` detaches and SHA-256-checks admitted bytes before headless construction.
+`createHeadlessMovers` and `stepHeadlessMovers` give an existing scheduler explicit clock ownership.
+`installHeadlessMovers` installs that owner on a SimHost with a stable system id and trusted permission source.
+Its continuation retains guest memory/globals, entity fields, pending commands and native body handles;
+native restore reconnects those handles without an installation tick. Adopted views and chains require
+their existing native owner and cannot use the platform/static headless restore path.
+
 ### Embedded simulation
 
 `@wildshard/engine/sim` exports `SIM_API_VERSION`, `SimLevel`, `SimCommand`, `SimHost` and `createSimHost`.

@@ -1,4 +1,4 @@
-import type { MoverInstallation, MoverView } from '@wildshard/game/shardfile/moverRuntime';
+import type { MoverInstallation, MoverView } from '@wildshard/sdk/runtime/movers';
 import { MOVERS } from '../data/movers';
 import type { DriftwoodWorld } from '../world/build';
 

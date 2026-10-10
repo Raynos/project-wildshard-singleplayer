@@ -1,4 +1,4 @@
-import type { MoverInstallation, MoverView } from '@wildshard/game/shardfile/moverRuntime';
+import type { MoverInstallation, MoverView } from '@wildshard/sdk/runtime/movers';
 import source from '../shard.config';
 import { SKY_MOVERS, isIsletMover as isIslet } from './moverRows';
 import { runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
