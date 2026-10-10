@@ -159,6 +159,8 @@ export const DONE = {
     'src/engine/world/interact/Interactables.ts': { why: "draws the interactables' copies (models in src/engine/models/interact.ts, placed drawnInto its batches)", counts: { BatchedMesh: 2 } },
     'src/engine/world/lowpolyKit.ts': { why: "a geometry kit the models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
     'src/engine/world/geometryKit.ts': { why: "the engine geometry kit's shape builders (a rope's segments merged; no thing of its own)", counts: { mergeGeometries: 1 } },
+    'src/game/systems/kit/sweptKit.ts': { why: "the kit system's swept builder (SHARD-PLATFORM M3, moved from Nine Dragon's world/hero/kitx.ts, whose legacy copy keeps its entry): merges a region's curved pieces into one geometry (world); it draws nothing of its own", counts: { mergeGeometries: 1 } },
+    'src/game/systems/kit/classKit.ts': { why: "the kit system's class builder (SHARD-PLATFORM M3, moved from Nine Dragon's vm/geo.ts, whose legacy copy keeps its entry): a close-up geometry library merged per rigid group (held gear's parts); it draws nothing of its own", counts: { mergeGeometries: 1 } },
   },
 };
 
