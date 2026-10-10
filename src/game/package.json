@@ -21,6 +21,7 @@
     "./systems/looks/trample": "./systems/looks/trample.ts",
     "./systems/looks/shaderFamily": "./systems/looks/shaderFamily.ts",
     "./systems/looks/cardField": "./systems/looks/cardField.ts",
+    "./systems/looks/discLayer": "./systems/looks/discLayer.ts",
     "./systems/looks/shaderEdits": "./systems/looks/shaderEdits.ts",
     "./systems/looks/cascade": "./systems/looks/cascade.ts",
     "./systems/looks/facetedSky": "./systems/looks/facetedSky.ts",

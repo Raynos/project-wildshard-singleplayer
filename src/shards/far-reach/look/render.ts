@@ -7,7 +7,9 @@ import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
-import { seaTexture, cloudSea, maelstrom, paintedMaelstrom, paintedSea } from './cloudSea';
+import { seaTexture } from './cloudSea';
+import { discLayer } from '@wildshard/sdk/looks/discLayer';
+import { SEA_DISCS, SEA_PROGRAMS } from '../data/cloudSeaLook';
 import { cardField, cardFieldRow, cardGroup, cardGroupRow } from '@wildshard/sdk/looks/cardField';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import SKY_CARDS from '../data/skyCards.json' with { type: 'json' };
@@ -69,7 +71,8 @@ export async function skyReachLook(): Promise<LookStrategy> {
         }
       });
       // the layered cloud sea goes in after the fog patch (its own haze; no scene fog)
-      const seaTex = seaTexture(), sea = cloudSea(SUN_DIR, seaTex); scope.own(seaTex);
+      const seaTex = seaTexture(), seaFamily = new ShaderFamily({}, SEA_PROGRAMS), time = { value: 0 };
+      const seaShared = { tex: { value: seaTex }, sunDir: { value: SUN_DIR }, time }, sea = { meshes: [discLayer(seaFamily, SEA_DISCS.seaLow, seaShared)], time }; scope.own(seaTex);
       // the procedural sheet only stands in when the painted sea is missing (it drew over the painted one)
       for (const mesh of sea.meshes) { if (seaPaint === null) scene.add(mesh); scope.own(mesh.geometry); scope.own(mesh.material); }
       scope.onDispose(() => { for (const mesh of sea.meshes) mesh.removeFromParent(); });
@@ -81,10 +84,10 @@ export async function skyReachLook(): Promise<LookStrategy> {
       // the painted cloud sea (E392), wound into the maelstrom under the crown; without its texture the procedural maelstrom disc
       if (seaPaint !== null) {
         scope.own(seaPaint);
-        if (vortex !== null) { const swirlDisc = paintedMaelstrom(vortex, sea.time); scene.add(swirlDisc); scope.own(vortex); scope.own(swirlDisc.geometry); scope.own(swirlDisc.material); scope.onDispose(() => { swirlDisc.removeFromParent(); }); }
-        for (const upper of [false, true]) { const painted = paintedSea(seaPaint, sea.time, upper); scene.add(painted); scope.own(painted.geometry); scope.own(painted.material); scope.onDispose(() => { painted.removeFromParent(); }); }
+        if (vortex !== null) { const swirlDisc = discLayer(seaFamily, SEA_DISCS.paintedMaelstrom, seaShared, { painted: { value: vortex } }); scene.add(swirlDisc); scope.own(vortex); scope.own(swirlDisc.geometry); scope.own(swirlDisc.material); scope.onDispose(() => { swirlDisc.removeFromParent(); }); }
+        for (const upper of [false, true]) { const painted = discLayer(seaFamily, upper ? SEA_DISCS.paintedSeaUpper : SEA_DISCS.paintedSea, seaShared, { painted: { value: seaPaint } }); scene.add(painted); scope.own(painted.geometry); scope.own(painted.material); scope.onDispose(() => { painted.removeFromParent(); }); }
       } else {
-        const swirl = maelstrom(SUN_DIR, seaTex, sea.time); scene.add(swirl); scope.own(swirl.geometry); scope.own(swirl.material); scope.onDispose(() => { swirl.removeFromParent(); });
+        const swirl = discLayer(seaFamily, SEA_DISCS.maelstrom, seaShared); scene.add(swirl); scope.own(swirl.geometry); scope.own(swirl.material); scope.onDispose(() => { swirl.removeFromParent(); });
       }
       // cumulus over the sea (loop 5): the islands rise out of billowing cloud (the camera-facing puffs baked by
       // generators/skyCards.ts: the ring field, the keel puffs, the bridge gaps, the crown bank and the banks beyond)
