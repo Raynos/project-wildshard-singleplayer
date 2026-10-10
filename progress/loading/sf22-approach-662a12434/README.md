@@ -227,3 +227,30 @@ For the complete `e2b543` journal the observed step is **0.1 ms**, crossing p95 
 standing p95 values **33.40000000002328 ms**. The cadence verdict therefore **passes under this explicit ruling**.
 The earlier raw 33.3 ms comparison is preserved above as the originally recorded result. Overall SF22 remains
 open on Signal's 314 ms first draw and crossroads compilation attribution; the crossing-install pass is unchanged.
+
+## Whole-view matched repeat
+
+The full matched run on `dbef738da006288ed81a3368ffbecd5c0f66b86c` completed in 667 seconds, with all six entries,
+twelve crossings, five activations, zero refusals/errors/network failures and 25 shaped stalls. It includes the
+whole-view light fix, preceding shadow variants and single delegated-owner walk. Signal's first entered second
+had **zero shader calls and no >50 ms task**, versus 62 calls and a 314 ms task previously. Pine had two calls
+and a 73 ms overlapping task; Nalati fourteen calls and a 75 ms task. Sky and Driftwood return also had zero calls.
+The remaining Pine pair has instancing/instance-colour flags; no causal object owner is inferred from those flags.
+
+The whole first crossroads vicinity (91 observed frames, plus one-second padding on both sides, 147133.7–152133.5
+ms) contained **232 explicit renderer.compile warm-up calls and zero draw-or-driver calls**. A separate 62 ms
+task overlapped Driftwood's world hook. All shader calls in this window have now been attributed to explicit
+background warm-up, not first-draw compilation. The original literal zero-compilation gate stays false; no gate
+change is silently inferred from this classification. The observer distinguishes synchronous renderer.compile
+nesting; draw-or-driver elsewhere can include composer warm draws.
+
+The observed timestamp quantum was 0.1 ms; crossing and both standing p95 values were 33.40000000002328 ms,
+so cadence passes the explicit resolution rule. Maximum frame interval was 266.7 ms. **Crossing installation
+fails this repeat**: Pine departure was 38.9 ms (save 3.0, frame 0.0, leave 35.9). All other synchronous crossing
+totals were ≤20.6 ms, entry commits ≤0.2 ms, readiness waits 1.6–3.7 ms and activations ≤5.7 ms. Route load medians
+were 29.70, 36.80, 34.53, 23.70, 20.50 and 11.04; timings are under load. Pine world / afterKit still took 52.3 /
+18.1 s of awaited wall time, Nalati world up to 28.6 s, and Sky world 46.1 s. The 32.0 ms preceding circuit is kept,
+but it does not erase this repeat's failure or establish a robust departure pass.
+
+All owned resources closed. Memory remains G269's phone verdict and the Simulator's honest fallback refusal.
+Immutable raw artifact: `attempt-dbef-whole-view-full.json` in the scratch directory above; no raw archive committed.
