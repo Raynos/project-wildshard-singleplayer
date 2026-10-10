@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { GROUND_HALF } from '../data/layout';
 import { GRAIN_TILE, KEY_DIR, SAND_MAP, SHADOW_HALF, SKIRT_SWELL } from '../data/sand';
-import { swellSkirtAt } from '@wildshard/sdk/looks/bakedGround';
+import { swellSkirtAt } from '../runtime/looks/bakedGround';
 import { signalDunesField } from './tiles';
 
 /**

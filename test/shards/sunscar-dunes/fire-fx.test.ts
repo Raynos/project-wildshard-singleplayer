@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Group, Mesh, Points, Vector3, type ShaderMaterial } from 'three';
-import { createFireFx, type FireStyle } from '../../../src/game/systems/looks/fireFx';
+import { createFireFx, type FireStyle } from '../../../src/shards/sunscar-dunes/runtime/looks/fireFx';
 import { FIRE_STYLE, WAYMARK_FIRE, COOKFIRE } from '../../../src/shards/sunscar-dunes/data/fire';
 // The seven fire materials as Signal Dunes' own code built them before its fires became rows (HEAD c08ce5e69, world/fireFx.ts).
 import before from './fire-shaders.json' with { type: 'json' };

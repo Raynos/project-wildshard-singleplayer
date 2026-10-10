@@ -19,8 +19,8 @@ import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/ter
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import type { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { familyMaterial } from '@wildshard/engine/render/families/registry';
-import { bindRuntimeProductTerrain } from '../../shardfile/runtimeProduct';
-import type { Shardfile } from '../../shardfile/schema';
+import { bindRuntimeProductTerrain } from '@wildshard/game/shardfile/runtimeProduct';
+import type { Shardfile } from '@wildshard/game/shardfile/schema';
 
 /** One baked map: its file (a zlib stream of `size`² × `channels` raw bytes), the byte a failed load stands in with, its sampling. */
 export interface BakedMapRow {

@@ -2,8 +2,8 @@ import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import { bakeTerrain, type BakedTerrain } from '@wildshard/sdk/bake/terrain';
 import { SEED, TRAIL } from '../data/layout';
 import { duneHeight } from '../world/dunes';
-import { mapPalette } from '@wildshard/sdk/looks/mapPalette';
-import { SIGNAL_DUNES_MAP } from '../data/minimap';
+import { mapPalette } from '../runtime/looks/mapPalette';
+import { SIGNAL_DUNES_MAP } from '../runtime/looks/minimap';
 
 /** The lattice step of the 257² bake (500 m / 256). */
 const STEP = 500 / 256;

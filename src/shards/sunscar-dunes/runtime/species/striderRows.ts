@@ -1,7 +1,7 @@
 import type { SpeciesData, StrikeData } from '@wildshard/sdk/species';
-import { STRINGS } from '../strings';
+import { STRINGS } from '../../data/strings';
 import type { SpeciesClips } from '@wildshard/sdk/species/clips';
-import type { QuadrupedLookRow } from '@wildshard/sdk/looks/fittedHull';
+import type { QuadrupedLookRow } from '../looks/fittedHull';
 
 export const STRIDE = { notice: 24, charge: 17, walk: 1.1, approach: 2.4, homeR: 16, lose: 40, face: 0.7 } as const;
 

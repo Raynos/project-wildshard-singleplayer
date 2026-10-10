@@ -23,7 +23,7 @@ import { CHARGE, HORNS } from '../../src/shards/sunscar-dunes/runtime/species/st
 import { BITE } from '../../src/shards/sunscar-dunes/runtime/species/skitterer';
 import { MAW, TAIL_SWEEP, BUFFET } from '../fixtures/species-oracle/matriarch';
 import { DUNE_RAY, RAY } from '../../src/shards/sunscar-dunes/data/species/duneRay';
-import { DUNE_STRIDER, STRIDE } from '../../src/shards/sunscar-dunes/data/species/strider';
+import { DUNE_STRIDER, STRIDE } from '../../src/shards/sunscar-dunes/runtime/species/striderRows';
 import { SKITTERER_DATA, SKITTER } from '../../src/shards/sunscar-dunes/data/species/skitterer';
 import { MATRIARCH_DATA, MATRIARCH, MATRIARCH_HP } from '../../src/shards/sunscar-dunes/data/species/matriarch';
 import { PINE_LANES, PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';

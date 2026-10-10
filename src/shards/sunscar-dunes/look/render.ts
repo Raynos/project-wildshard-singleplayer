@@ -1,10 +1,10 @@
 import { DUSK } from './dusk';
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
-import { CubeSkirt, TintedTileGround } from '@wildshard/sdk/looks/bakedGround';
-import { duskLook, loadDuskSandMaps, type DuskSandMaps } from '@wildshard/sdk/looks/duskLook';
+import { CubeSkirt, TintedTileGround } from '../runtime/looks/bakedGround';
+import { duskLook, loadDuskSandMaps, type DuskSandMaps } from '../runtime/looks/duskLook';
 import { SEED, SPAWN, TRAIL } from '../data/layout';
-import { SIGNAL_DUSK_LOOK } from '../data/renderLook';
+import { SIGNAL_DUSK_LOOK } from '../runtime/looks/renderLook';
 import { SAND_MAPS } from '../data/sand';
 import sandMeans from '../data/sand.json' with { type: 'json' };
 import { duneHeight, WIND } from '../world/dunes';

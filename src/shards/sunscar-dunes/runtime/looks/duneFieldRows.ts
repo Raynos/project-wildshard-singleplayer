@@ -1,5 +1,5 @@
-import type { DuneFieldRow } from '@wildshard/sdk/looks/duneField';
-import { BASIN, CREST_LINES, CRESTS, LANDFORMS, PADS, SPAWN } from './layout';
+import type { DuneFieldRow } from './duneField';
+import { BASIN, CREST_LINES, CRESTS, LANDFORMS, PADS, SPAWN } from '../../data/layout';
 
 /**
  * Signal Dunes' crescent dunes (P2) as rows on the SDK's dune field (`@wildshard/sdk/looks/duneField`): 6-12 m knife-edge

@@ -5405,6 +5405,170 @@
     "src/shards/pine-hollow/runtime/quest/npcDialogue.ts:frame-allocation:f7b034760f62aa08c25d01d28c135a45c84823cacba70c37767a0ee51d9b9e44": {
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/bakedGround.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/bakedGround.ts:unbounded-loop:27433d8c6921aadc5698475d3d02615ce70483fc954a7ce526f0ce01a4dd907e": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/bakedGround.ts:unbounded-loop:eff96b05c4fde145755bd3fa52def08a5cb172fd3f581b04ca80aeada8820a7d": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/bakedGround.ts:unbounded-loop:5f22120f39c1f527e57a88e59ec9010a1c8a7d32d386a998b68821bb15759f8f": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duneField.ts:unbounded-loop:ca2b5c9b3e7181f0535d7b08f1d50acb2febbf9f1e0332ac37c52d1bbace0dc0": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duneField.ts:unbounded-loop:bb15e913535a8e2f295c588781ec9f1edb30c5bdb1276928676d54d78202be58": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duneField.ts:unbounded-loop:a9c566e087fda199c0758e59b2461c63afaacece759b0c926666adf3a500064c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duneField.ts:unbounded-loop:856671cc8c7dab0965ce4680d7695a4c20d6f484dccfa3c4679d4cfe024af2de": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duneField.ts:unbounded-loop:66e2bf963c3a5f34f3e1300d4e632dee3f2ba0f340f127bf9928cadd4d4395cc": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duneField.ts:unbounded-loop:90a7235796dabce30a037285df4e576cabca68b5c181b2c7d48ed2e95aae3939": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duneField.ts:unbounded-loop:76171b940d6ae169a3a580b0f3ab5005ad446cc0621350b56a42ac91d937e31b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duneField.ts:unbounded-loop:5cceaeef76bf1d064d989d2de37239f8201ef17291e58877d4b697a5cf32aade": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duneField.ts:unbounded-loop:3c357dbf2a1bdfc0975f92213b138d71b863744445929386fa8176323a1f6ae4": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duskCurves.ts:unbounded-loop:8233d15e03616e72a8418b543f1d606b3a9419b396b6b3289211e65706635003": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duskCurves.ts:unbounded-loop:46a445207fe22b25bd2a7cee85b03c5ecb42687617a5d813f3fceba2b9d255a9": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duskFamilies.ts:frame-allocation:08210d5e61ee06b337ee8cdfdc60c467654dd32643fec76915c0334bcff7cd5a": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duskFamilies.ts:frame-allocation:845eb4ee3b74eb051a52c7e5db60cd250c41f1601cebbb1a76d4fe4d513fe2b5": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duskFamilies.ts:frame-allocation:d54c338e92d535a9ea6dd6a1686189e558f56ffe8293dbc7c547355c50671456": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duskFamilies.ts:frame-allocation:986ce1c5c3d756a5dd452927656cef67dce5d2de160df7539dce12c2b6005b03": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duskFamilies.ts:dom:13f93d59979e55205485c38f5f052b87c828d7ca9129d79f88ceb360c4b0403f": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duskFamilies.ts:frame-allocation:72767016d75b24cc81e346b8083d1c54c40c2f75d9008712b4735ba1ee71dead": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duskLook.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 8,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duskLook.ts:unbounded-loop:cc351fe563104f9bb583e1a66acace6da3c88cf9bb7033e08255da5d05cc250c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/duskLook.ts:unbounded-loop:b16a8f37b3cc0079e35de3f2e32e760054a3059c096a1f89aa72b46de3851735": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/fireFx.ts:unbounded-loop:82e11e0322277887d6ed889d6f9a9ef463bcf663181e38ef3e6eb806fcee9bf7": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/fireFx.ts:unbounded-loop:d608c38d8e72965bfe3cc82606547d4bfbfee87c477dd2a403c74ada74a8f8e4": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/fireFx.ts:unbounded-loop:0554d453978c285829ef7a8d8f530f7b0e68f3608bf58aa49a2b2520773108b1": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/fireFx.ts:unbounded-loop:b5abeef98a585d6276e5ccd30145138e98cc3e836b0cd730d93135f03c9cbaa6": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/fireFx.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/fittedHull.ts:unbounded-loop:ac96edc2a9a3e74fa8e315ee70c46d9d4b123e58e0dadaa98b29cfdae7ac49b0": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/fittedHull.ts:unbounded-loop:d8b81f67534a7cd78a0a801d1fd09f572aec1e95d7016aabb8342be2a25de724": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/fittedHull.ts:unbounded-loop:1841159f3ce0c1d1ae4770fecc2769b40da9c95c715cc86146af970a82f947f8": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/fittedHull.ts:unbounded-loop:a08afe8f126a8f5450db54aa2d202ff590af2e110fd880fd09f060ef02adcdf9": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/mapPalette.ts:unbounded-loop:89b6dff94b50887568319b12534ae579d106d172ae4f33b80a3a762f6f1a1f7b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/mapPalette.ts:unbounded-loop:1a80069c4a99af4ea8be6759ea985a88c295ebad5f8d5d8f149396380dc87365": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/mapPalette.ts:unbounded-loop:dec59d32836372aea6536b00c1359c9d402d6a8793b81d0532c48456d93c1529": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/mapPalette.ts:unbounded-loop:f9785c2370985314e1c1c4e584be5620a75f9c0c84600a55ffd82f88f0a06efe": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/mapPalette.ts:unbounded-loop:430b8204fb30abaf43048f998395075890b5e7bd323cd4691e95dc4aac05d4d3": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/mapPalette.ts:unbounded-loop:50f0cfc511d08ee535b72744dc9345b7afbe7aaec3c162597d36dcf0a8758d5f": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/paintedStrips.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/looks/paintedStrips.ts:unbounded-loop:b1a20494558ab68ea38bf9e6dbae137966cbd80d9ab574ce600eda40d5a2a10c": {
+      "count": 1,
+      "row": "SF46"
     }
   }
 }

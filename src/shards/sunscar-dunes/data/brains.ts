@@ -2,7 +2,7 @@ import type { BrainedSpecies, SpeciesBrain } from '@wildshard/sdk/speciesBrains'
 import type { StrikeData } from '@wildshard/sdk/species';
 import { BASIN, RAY_HOME } from './layout';
 import { DUNE_RAY, SWOOP_DATA } from './species/duneRay';
-import { DUNE_STRIDER, CHARGE_DATA, HORNS_DATA } from './species/strider';
+import { DUNE_STRIDER, CHARGE_DATA, HORNS_DATA } from '../runtime/species/striderRows';
 import { SKITTERER_DATA, BITE_DATA, SKITTER } from './species/skitterer';
 import skitterer from '../behaviour/skitterer.json' with { type: 'json' };
 import { MATRIARCH, MATRIARCH_DATA, MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA } from './species/matriarch';

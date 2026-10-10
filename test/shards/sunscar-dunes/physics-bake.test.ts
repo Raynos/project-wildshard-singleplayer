@@ -7,7 +7,7 @@ import { SIGNAL_SPAWNS } from '../../../src/shards/sunscar-dunes/data/spawns';
 import { Rng } from '../../../src/engine/core/rng';
 import { SEED } from '../../../src/shards/sunscar-dunes/data/layout';
 import { DUNE_RAY } from '../../../src/shards/sunscar-dunes/data/species/duneRay';
-import { DUNE_STRIDER } from '../../../src/shards/sunscar-dunes/data/species/strider';
+import { DUNE_STRIDER } from '../../../src/shards/sunscar-dunes/runtime/species/striderRows';
 import { SKITTERER_DATA } from '../../../src/shards/sunscar-dunes/data/species/skitterer';
 import { MATRIARCH_DATA } from '../../../src/shards/sunscar-dunes/data/species/matriarch';
 

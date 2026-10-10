@@ -1,7 +1,7 @@
-import type { DuskSandRow, DuskSkyRow } from '@wildshard/sdk/looks/duskFamilies';
+import type { DuskSandRow, DuskSkyRow } from './duskFamilies';
 import { SAND_DUSK } from './dusk';
-import { GROUND_HALF } from './layout';
-import { SHADOW_HALF } from './sand';
+import { GROUND_HALF } from '../../data/layout';
+import { SHADOW_HALF } from '../../data/sand';
 import { PAINTED } from './sky';
 
 /**

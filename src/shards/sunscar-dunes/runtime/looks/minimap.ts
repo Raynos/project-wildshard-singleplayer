@@ -1,6 +1,6 @@
-import type { MapMark, MapPaletteRow } from '@wildshard/sdk/looks/mapPalette';
-import { BASIN, BRAZIERS, CARAVAN, RIDGES, TOWER, WELL } from './layout';
-import { STRINGS } from './strings';
+import type { MapMark, MapPaletteRow } from './mapPalette';
+import { BASIN, BRAZIERS, CARAVAN, RIDGES, TOWER, WELL } from '../../data/layout';
+import { STRINGS } from '../../data/strings';
 
 /**
  * Signal Dunes' map look (loop 4; review #14, mockup B) as rows for @wildshard/sdk/looks/mapPalette: the manifest's

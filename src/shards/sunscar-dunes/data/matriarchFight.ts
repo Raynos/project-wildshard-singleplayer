@@ -1,5 +1,5 @@
 import { parseMarkedBossPresentation, type BossDefinition, type MarkedBossFightRow } from '@wildshard/sdk/bossFight';
-import { DUNE_FIELD } from './duneField';
+import { DUNE_FIELD } from '../runtime/looks/duneFieldRows';
 import { BASIN } from './layout';
 import { STRINGS } from './strings';
 import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from '../quests/signal';

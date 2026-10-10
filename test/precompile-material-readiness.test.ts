@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { registerMaterialPreparation, waitMaterialPreparations } from '../src/engine/render/materialPreparation';
 import { collectTextures, runPrecompile, sceneJobs } from '../src/engine/render/precompile';
 import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
-import { createFireFx } from '../src/game/systems/looks/fireFx';
+import { createFireFx } from '../src/shards/sunscar-dunes/runtime/looks/fireFx';
 import { FIRE_STYLE } from '../src/shards/sunscar-dunes/data/fire';
 
 function deferred(): { work: Promise<void>; finish: () => void } {

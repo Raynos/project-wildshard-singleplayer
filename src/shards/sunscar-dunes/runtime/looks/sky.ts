@@ -1,4 +1,4 @@
-import type { DuskDomeStyle } from '@wildshard/sdk/looks/duskDome';
+import type { DuskDomeStyle } from './duskDome';
 
 /**
  * Signal Dunes' procedural dusk dome as a row (SHARD-PLATFORM SF72, look-family rows) on the platform's dome

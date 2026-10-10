@@ -1,4 +1,4 @@
-import type { DuskCurve, DuskRow } from '@wildshard/sdk/looks/duskCurves';
+import type { DuskCurve, DuskRow } from './duskCurves';
 
 /**
  * How Signal Dunes' light moves with the quest's dusk (`look/dusk.ts` DUSK, 0 the first frame's sunset … 1 the blue

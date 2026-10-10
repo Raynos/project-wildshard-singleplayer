@@ -1,4 +1,4 @@
-import type { BandSkinRow, HullTint, LoftedBandHullRow, QuadrupedHullRow } from '@wildshard/sdk/looks/fittedHull';
+import type { BandSkinRow, HullTint, LoftedBandHullRow, QuadrupedHullRow } from '../looks/fittedHull';
 
 /**
  * The generated strider's hull (C6: Hunyuan3D-2 from `art/sunscar-dunes/round-7-models/ref-strider.jpg`, its head along −X,

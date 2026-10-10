@@ -1,9 +1,9 @@
-import type { DuskLookRow } from '@wildshard/sdk/looks/duskLook';
+import type { DuskLookRow } from './duskLook';
 import { AERIAL_FOG, FAR_HAZE, FILL, FOG_SUN, KEY_DIM } from './dusk';
-import { KEY_DIR, SKIRT_GRID, SKIRT_SWELL } from './sand';
+import { KEY_DIR, SKIRT_GRID, SKIRT_SWELL } from '../../data/sand';
 import { SKY_STYLE } from './sky';
 import { SAND_LOOK, SKY_LOOK } from './familyLook';
-import { PAINTED_STAGES, PAINTED_URLS } from './files';
+import { PAINTED_STAGES, PAINTED_URLS } from '../../data/files';
 
 /**
  * "Last Light"'s colours and clock as rows (look/render.ts builds its key, fog, sand tint and day clock from them;

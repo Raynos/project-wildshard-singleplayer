@@ -3,8 +3,8 @@ import { DUNE_RAY, RAY_CLIPS } from '../data/species/duneRay';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import type { BufferGeometry } from 'three';
-import { bandSkin, loftedBandHull } from '@wildshard/sdk/looks/fittedHull';
-import { MANTA_HULL, RAY_CODE_HULL, RAY_TINT } from '../data/species/hulls';
+import { bandSkin, loftedBandHull } from '../runtime/looks/fittedHull';
+import { MANTA_HULL, RAY_CODE_HULL, RAY_TINT } from '../runtime/species/hullsRows';
 import { duneMesh } from '../world/meshes';
 
 /** Bones (absolute bind space, +Z forward): body first, then head, the two wings and the tail. */
