@@ -98,8 +98,10 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 - **Heavy proofs run per milestone, not per slice** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`): the soak, frame floor, boot smoke and Simulator runs at each
   milestone and before a deploy that changes the grid; the physics walk only after collider changes; slices land on quick
   checks of what they touched. The gpu-gate parity CI runs nightly and at milestones, not on every push.
-- **Hard ceiling for the build fleet: at most 5 Opus and at most 5 Codex agents live at once** (Jake, 2026-10-09: *"max
-  five opus, max five codecs. That's the new fucking rule"*); never more, whatever the usage headroom.
+- **The build fleet: at most 3 Opus and at most 3 Codex agents live at once** (Jake, 2026-10-10: *"What we write down and
+  commit in AGENTS.md is 3 agents"*). The one exception is the SHARD-PLATFORM plan, allowed up to 5 + 5 because it is
+  exceptionally large (Jake, 2026-10-09), and currently held at 2 Opus + 5 Codex (G289). Only Jake changes a cap; never
+  more, whatever the usage headroom.
 - **Codex vs Opus by remaining usage** (Jake, 2026-10-08): graphical work is Opus-only, Codex does non-graphical engineering;
   pace both with `openusage` so Codex reaches 0 % as Claude reaches its 10 % reserve (lean on Codex).
 
