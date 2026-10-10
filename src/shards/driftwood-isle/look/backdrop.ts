@@ -13,7 +13,7 @@
  */
 import type { SkyBackdropFactory } from '@wildshard/engine/render/look';
 import { facetedDayBackdrop } from '@wildshard/sdk/looks/facetedDayBackdrop';
-import { SKY_GLSL } from '../data/skyGlsl';
+import { SKY_GLSL } from '../runtime/glsl/skyGlsl';
 import { DRIFTWOOD_FACETED_DAY } from './dayKeys';
 import { CUMULUS_SEED, MIDDAY_SKY } from './stylizedSky';
 import { toonUniforms } from './toon';

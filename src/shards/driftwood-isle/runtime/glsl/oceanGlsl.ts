@@ -1,4 +1,4 @@
-// SHARD-PLATFORM M3 (look-family rows): world/Ocean.ts's GLSL as data for the SDK shader family (@wildshard/sdk/looks/shaderFamily).
+// SHARD-PLATFORM M3 (look-family rows): world/Ocean.ts's trusted GLSL for the existing shader family.
 // `@{name}` splices another fragment here, or what that module passes (another module's GLSL, a number from its layout).
 export const OCEAN_GLSL = {
   vertexCommon: /* glsl */`#include <common>

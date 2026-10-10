@@ -10,7 +10,7 @@
  *   game.onUpdate((dt) => fall.update(dt));
  */
 import { Cascade, type CascadeLike, type CascadeSpec } from '@wildshard/sdk/looks/cascade';
-import { WATERFALL_GLSL } from '../data/waterfallGlsl';
+import { WATERFALL_GLSL } from '../runtime/glsl/waterfallGlsl';
 
 /** where the cascade pours, how wide, and its terraces (the SDK cascade's spec without the shard's GLSL) */
 export type WaterfallSpec = Omit<CascadeSpec, 'glsl' | 'patchId'>;

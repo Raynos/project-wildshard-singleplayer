@@ -32,7 +32,7 @@
  * no cloud shadow — still the ramp.
  */
 import { ToonLight, type ToonLightUniforms } from '@wildshard/sdk/looks/toonLight';
-import { TOON_GLSL_ROWS } from '../data/toonGlsl';
+import { TOON_GLSL_ROWS } from '../runtime/glsl/toonGlsl';
 import { TOON_TUNE } from '../data/toonLook';
 
 /**

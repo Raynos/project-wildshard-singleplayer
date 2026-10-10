@@ -14,7 +14,7 @@
  */
 import type * as THREE from 'three';
 import { CoverGrid as SdkCoverGrid, coverJitter as sdkCoverJitter, coverSample as sdkCoverSample, coverSeenGlsl, tintTerrain as sdkTintTerrain, triAreas as sdkTriAreas, type CoverSample as SdkCoverSample, type CoverTintRow, type CoverTri as SdkCoverTri } from '@wildshard/sdk/looks/coverGrid';
-import { COVER_GLSL, COVER_TINT } from '../data/coverGlsl';
+import { COVER_GLSL, COVER_TINT } from '../runtime/glsl/coverGlsl';
 
 const TINT: CoverTintRow = { glsl: COVER_GLSL, ...COVER_TINT };
 

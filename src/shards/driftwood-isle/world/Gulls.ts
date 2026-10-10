@@ -15,7 +15,7 @@
 import type * as THREE from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { GullFlock } from '@wildshard/sdk/looks/gullFlock';
-import { GULLS_GLSL } from '../data/gullsGlsl';
+import { GULLS_GLSL } from '../runtime/glsl/gullsGlsl';
 import { GULL_CORRIDORS, GULL_PALETTE } from '../data/gullsLook';
 
 const LOOK = { palette: GULL_PALETTE, glsl: GULLS_GLSL, patchId: 'driftwood.gulls' };

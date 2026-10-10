@@ -24,7 +24,7 @@ import { HUT, LOOKOUT, SHRINE, WRECK, ISLAND } from '../manifest';
 import { Cove } from './Cove';
 import { copyCoverGeometry } from '../boot/coverGeometry';
 import COVER_LOOK from '../data/coverLook.json' with { type: 'json' };
-import { GROUND_COVER } from '../data/groundCoverLook';
+import { GROUND_COVER } from '../runtime/glsl/groundCoverLook';
 import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, COVER_SEEN_GLSL, coverSample, coverJitter } from './coverTint';
 import { driftLog, driftLogBox } from '../models/driftLog';

@@ -41,7 +41,7 @@ import type { PalmSpec } from './Palms';
 import { WORLD_DROP } from './sea';
 import { smallRock, type SmallRockParams } from '../models/smallRock';
 import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../models/cove';
-import { ISLAND_CLIP, ISLAND_LOOK, ISLAND_PROPS, ISLAND_TERRAIN, ISLAND_TIERS } from '../data/islandLook';
+import { ISLAND_CLIP, ISLAND_LOOK, ISLAND_PROPS, ISLAND_TERRAIN, ISLAND_TIERS } from '../runtime/glsl/islandLook';
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
 import { bakedPropsMaterial, bakedTerrainMaterial, clipGridTerrain, clipInstancedRect, decodeFloatBlock, droppedPlacements, dropNearestTriangles, dropTriangles, encodeFloatBlock, placementSets, protosFromMeshes, simplifiedProto, simplifierReady, sunBounceLevel, tileRect, usedPlacements, type IslandCoverFade, type IslandProto } from '@wildshard/sdk/looks/bakedIsland';
 import { TiledInstances, type CoverTriangle, type TiledInstanceSet } from '@wildshard/sdk/looks/instancedTiles';

@@ -31,7 +31,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { OCEAN } from '../manifest';
 import { islandKnobs } from '../tiers';
 import { toonUniforms } from '../look/toon';
-import { OCEAN_GLSL } from '../data/oceanGlsl';
+import { OCEAN_GLSL } from '../runtime/glsl/oceanGlsl';
 import { OCEAN_PATCH } from '../data/oceanLook';
 
 export class Ocean extends FacetedOcean {

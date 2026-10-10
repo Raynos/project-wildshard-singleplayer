@@ -1,4 +1,4 @@
-// SHARD-PLATFORM M3 (look-family rows): fpArms.ts's GLSL as data for the SDK toon arms (@wildshard/sdk/viewmodel/toonArms);
+// SHARD-PLATFORM M3 (look-family rows): fpArms.ts's trusted GLSL for the SDK toon arms (@wildshard/sdk/viewmodel/toonArms);
 // `@{name}` is spliced by the system: SUNWARD (the shadow lookup's reach), the blade's DQ_S / DQ_Y / BASE / BASE_END / HALF_W / TAPER.
 export const FP_ARMS_GLSL = {
   shadowCommon: /* glsl */`#include <common>

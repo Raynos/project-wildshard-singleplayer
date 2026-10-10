@@ -16,7 +16,7 @@ import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engin
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { REEF_GLSL } from '../data/reefGlsl';
+import { REEF_GLSL } from '../runtime/glsl/reefGlsl';
 
 /** the GLSL is data (data/reefGlsl.ts); `@{name}` splices the fragments this module passes */
 const REEF_FAMILY = new ShaderFamily(REEF_GLSL, {});
