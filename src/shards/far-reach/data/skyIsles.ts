@@ -57,3 +57,41 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   { id: 'sky.b3', x: 20, z: 95, r: 16, y: 60, keel: 26, pines: 5, fall: 4.71238898038469 },
   { id: 'sky.b4', x: -95, z: -250, r: 20, y: 62, keel: 32, pines: 6, fall: 3.7699111843077517 },
 ];
+
+/**
+ * Top-10 row 1 (E407, `art/far-reach/round-25-isles/`): the mockups' islands, rounded rock masses with overhangs, bushy
+ * canopies spilling over the rim and heavy root and vine curtains (the round-21 three were flat grassy tops over a keel:
+ * 'pancakes'). Codex refs from crops of mockups A, C, D and proposal B, then BiRefNet, Hunyuan3D-2 turbo + paint, finish.sh.
+ */
+export const SKY_ISLE_MODELS = ['isle-mass-hd', 'isle-canopy-hd', 'isle-falls-hd', 'isle-spire-hd', 'isle-twin-hd', 'isle-shelf-hd'] as const;
+export type SkyIsleModel = (typeof SKY_ISLE_MODELS)[number];
+
+/**
+ * Tuning: how much of its own paint a model feeds back as light (its shaded underside still reads warm), the map's tint (the
+ * paint's lime turf read loud beside the playable meadows), how far off the turf level a fir may stand (unit frame), the keel
+ * stretch's limits.
+ */
+// (row 1: the new models' paint is darker than round 21's; the mockups' crags read warm and hazed against the low sun)
+/** `keelInset`: a playable island's keel is fitted so its widest rock under the cut stands at this share of the deck's radius. */
+/** `shade`: the light on a face by its turn to the low sun, [turned away, facing it] (top-10 row 9). */
+export const SKY_ISLE_HD = { selfLight: 0.14, shade: [0.7, 1.18], tint: 1.0, turf: 0.2, stretch: [0.8, 1.35], rimBins: 48, keelInset: 0.88 } as const;
+
+/** Which model each sky isle wears, and its yaw (radians): every model in each view, none turned the same way twice. */
+export const SKY_ISLE_WEAR: Readonly<Record<string, readonly [SkyIsleModel, number]>> = {
+  'sky.l1': ['isle-falls-hd', 0.4], 'sky.l2': ['isle-canopy-hd', 2.1], 'sky.l3': ['isle-shelf-hd', 4.0], 'sky.l4': ['isle-mass-hd', 5.3], 'sky.l5': ['isle-twin-hd', 1.0],
+  'sky.r1': ['isle-spire-hd', 2.8], 'sky.r2': ['isle-falls-hd', 3.5], 'sky.r3': ['isle-shelf-hd', 4.6], 'sky.r4': ['isle-canopy-hd', 0.9], 'sky.r5': ['isle-mass-hd', 1.7],
+  // the cluster over the mill (the lead's ruling): the big masses and the twin, overlapping
+  'sky.o1': ['isle-mass-hd', 0.2], 'sky.o2': ['isle-shelf-hd', 3.0], 'sky.o3': ['isle-twin-hd', 2.2], 'sky.o4': ['isle-canopy-hd', 4.4], 'sky.o5': ['isle-spire-hd', 5.1], 'sky.o6': ['isle-falls-hd', 0.7],
+  'sky.b1': ['isle-twin-hd', 5.6], 'sky.b2': ['isle-spire-hd', 3.9], 'sky.b3': ['isle-mass-hd', 2.5], 'sky.b4': ['isle-canopy-hd', 4.9],
+  // the playable islands' keels (clipped under their decks): the rock masses with root curtains
+  'keel.sunrest': ['isle-mass-hd', 1.1], 'keel.windmill': ['isle-mass-hd', 0.3], 'keel.grove': ['isle-twin-hd', 2.4], 'keel.roost': ['isle-spire-hd', 4.0],
+  'keel.keeper': ['isle-shelf-hd', 5.0], 'keel.ruin': ['isle-mass-hd', 3.3], 'keel.step': ['isle-falls-hd', 0.9], 'keel.crown': ['isle-spire-hd', 2.0],
+};
+
+/**
+ * The playable islands' keels (world/build.ts; E399 round 2): a model under each island, its turf `keelTop` under the
+ * walkable top, its rim `keelScale` of the deck's; `cut` is where the code top's own rock is cut away. Shared with the far
+ * proxy's bake (generators/farLook.ts), so the neighbour view hangs the same keels.
+ */
+export const ISLE_CUT = 1.4, KEEL_TOP = 1.0;
+export const ISLE_KEEL_CUT: Readonly<Record<string, { cut: number; keelTop: number; keelScale: number }>> = { windmill: { cut: 0.8, keelTop: 0.6, keelScale: 0.78 } };

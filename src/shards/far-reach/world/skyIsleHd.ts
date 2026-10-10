@@ -1,11 +1,10 @@
 import { BackSide, Box3, Color, DoubleSide, FrontSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Vector3, type BufferAttribute, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
-import type { SkyHdName } from '../boot/files';
 import type { Isle } from '../data/layout';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { SKY_ISLE_CLIP_EDITS, SKY_ISLE_ROCK, SKY_ISLE_ROCK_EDITS } from '../data/skyIsleLook';
+import { ISLE_KEEL_CUT, KEEL_TOP, SKY_ISLE_HD, SKY_ISLE_MODELS, SKY_ISLE_WEAR, type SkyIsle, type SkyIsleModel } from '../data/skyIsles';
 import { hdMaterial, skyHd } from './meshes';
-import type { SkyIsle } from '../data/skyIsles';
 import { SKY, SUN_DIR } from '../look/sun';
 
 /** A hex colour as a linear-space GLSL vec3 (the shader's output space before the post chain). */
@@ -22,50 +21,15 @@ function linear(hex: number): string { const c = new Color(hex); return `vec3(${
  * the code builder (`world/isle.ts`).
  */
 /**
- * Top-10 row 1 (E407, `art/far-reach/round-25-isles/`): the mockups' islands, rounded rock masses with overhangs, bushy
- * canopies spilling over the rim and heavy root and vine curtains (the round-21 three were flat grassy tops over a keel:
- * 'pancakes'). Codex refs from crops of mockups A, C, D and proposal B, then BiRefNet, Hunyuan3D-2 turbo + paint, finish.sh.
- */
-export const SKY_ISLE_MODELS = ['isle-mass-hd', 'isle-canopy-hd', 'isle-falls-hd', 'isle-spire-hd', 'isle-twin-hd', 'isle-shelf-hd'] as const satisfies readonly SkyHdName[];
-export type SkyIsleModel = (typeof SKY_ISLE_MODELS)[number];
-
-/**
- * Tuning: how much of its own paint a model feeds back as light (its shaded underside still reads warm), the map's tint (the
- * paint's lime turf read loud beside the playable meadows), how far off the turf level a fir may stand (unit frame), the keel
- * stretch's limits.
- */
-// (row 1: the new models' paint is darker than round 21's; the mockups' crags read warm and hazed against the low sun)
-/** `keelInset`: a playable island's keel is fitted so its widest rock under the cut stands at this share of the deck's radius. */
-/** `shade`: the light on a face by its turn to the low sun, [turned away, facing it] (top-10 row 9). */
-export const SKY_ISLE_HD = { selfLight: 0.14, shade: [0.7, 1.18], tint: 1.0, turf: 0.2, stretch: [0.8, 1.35], rimBins: 48, keelInset: 0.88 } as const;
-/**
  * The aerial haze on the sky isles (E399 round 6, measured on mockup A's isle band, x 0.1-0.9, y 0.27-0.42: its darkest
  * isle rock is a hazed mauve, 107,81,77, where ours read dark brown, 75,58,38): toward the warm haze over `near`..`far` metres, at most `max`.
  */
 export const SKY_ISLE_HAZE = { color: SKY.fog, near: 60, far: 320, max: 0.22 } as const;
 
-/** Which model each sky isle wears, and its yaw (radians): every model in each view, none turned the same way twice. */
-const WEAR: Readonly<Record<string, readonly [SkyIsleModel, number]>> = {
-  'sky.l1': ['isle-falls-hd', 0.4], 'sky.l2': ['isle-canopy-hd', 2.1], 'sky.l3': ['isle-shelf-hd', 4.0], 'sky.l4': ['isle-mass-hd', 5.3], 'sky.l5': ['isle-twin-hd', 1.0],
-  'sky.r1': ['isle-spire-hd', 2.8], 'sky.r2': ['isle-falls-hd', 3.5], 'sky.r3': ['isle-shelf-hd', 4.6], 'sky.r4': ['isle-canopy-hd', 0.9], 'sky.r5': ['isle-mass-hd', 1.7],
-  // the cluster over the mill (the lead's ruling): the big masses and the twin, overlapping
-  'sky.o1': ['isle-mass-hd', 0.2], 'sky.o2': ['isle-shelf-hd', 3.0], 'sky.o3': ['isle-twin-hd', 2.2], 'sky.o4': ['isle-canopy-hd', 4.4], 'sky.o5': ['isle-spire-hd', 5.1], 'sky.o6': ['isle-falls-hd', 0.7],
-  'sky.b1': ['isle-twin-hd', 5.6], 'sky.b2': ['isle-spire-hd', 3.9], 'sky.b3': ['isle-mass-hd', 2.5], 'sky.b4': ['isle-canopy-hd', 4.9],
-  // the playable islands' keels (clipped under their decks): the rock masses with root curtains
-  'keel.sunrest': ['isle-mass-hd', 1.1], 'keel.windmill': ['isle-mass-hd', 0.3], 'keel.grove': ['isle-twin-hd', 2.4], 'keel.roost': ['isle-spire-hd', 4.0],
-  'keel.keeper': ['isle-shelf-hd', 5.0], 'keel.ruin': ['isle-mass-hd', 3.3], 'keel.step': ['isle-falls-hd', 0.9], 'keel.crown': ['isle-spire-hd', 2.0],
-};
 const FALLBACK: readonly SkyIsleModel[] = SKY_ISLE_MODELS;
-/** The model a sky isle (or a playable keel) wears: its `WEAR` row, else the `i`-th model in turn. */
-export const skyIsleWear = (s: Isle, i: number): SkyIsleModel => WEAR[s.id]?.[0] ?? FALLBACK[i % FALLBACK.length] ?? 'isle-mass-hd';
+/** The model a sky isle (or a playable keel) wears: its `SKY_ISLE_WEAR` row, else the `i`-th model in turn. */
+export const skyIsleWear = (s: Isle, i: number): SkyIsleModel => SKY_ISLE_WEAR[s.id]?.[0] ?? FALLBACK[i % FALLBACK.length] ?? 'isle-mass-hd';
 
-/**
- * The playable islands' keels (world/build.ts; E399 round 2): a model under each island, its turf `keelTop` under the
- * walkable top, its rim `keelScale` of the deck's; `cut` is where the code top's own rock is cut away. Shared with the far
- * proxy's bake (generators/farLook.ts), so the neighbour view hangs the same keels.
- */
-export const ISLE_CUT = 1.4, KEEL_TOP = 1.0;
-export const ISLE_KEEL_CUT: Readonly<Record<string, { cut: number; keelTop: number; keelScale: number }>> = { windmill: { cut: 0.8, keelTop: 0.6, keelScale: 0.78 } };
 export const keelIsles = (isles: readonly Isle[]): SkyIsle[] => isles.map((isle) => ({ ...isle, id: `keel.${isle.id}`, y: isle.y - (ISLE_KEEL_CUT[isle.id]?.keelTop ?? KEEL_TOP), r: isle.r * (ISLE_KEEL_CUT[isle.id]?.keelScale ?? 0.97), pines: 0, fall: null }));
 
 /** A model in its unit frame, with a probe of its turf and its rim radius per angle. */
@@ -175,7 +139,7 @@ export function skyIsleUnit(geometry: BufferGeometry): SkyIsleUnit {
  */
 export function skyIslePose(s: Isle, u: SkyIsleUnit, k: number, clipTop: boolean): { readonly yaw: number; readonly r: number; readonly sy: number } {
   const r = clipTop ? s.r * Math.min(1, SKY_ISLE_HD.keelInset / Math.max(1e-3, u.bulge)) : s.r;
-  const yaw = WEAR[s.id]?.[1] ?? k * 2.39996, [lo, hi] = SKY_ISLE_HD.stretch, sy = Math.min(hi * s.r / r, Math.max(lo, s.keel / (r * u.depth)));
+  const yaw = SKY_ISLE_WEAR[s.id]?.[1] ?? k * 2.39996, [lo, hi] = SKY_ISLE_HD.stretch, sy = Math.min(hi * s.r / r, Math.max(lo, s.keel / (r * u.depth)));
   return { yaw, r, sy };
 }
 
