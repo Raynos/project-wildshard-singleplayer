@@ -765,6 +765,9 @@ const globalObject = (raw) => { const n = unwrap(raw); return n?.type === 'Ident
 const shardSandbox = rule('Shard services, globals, settings and assets stay inside their context (E362 AG11)', (context) => {
   const own = layerOf(pathOf(context));
   if (own?.name !== 'shards') return {};
+  // G298: a shard's Node bakers (generators/**/*.mjs) are build tooling that moved in from scripts/; they never ship to the
+  // client, so the sandbox (which guards what runs in a ShardContext) doesn't apply to them.
+  if (/^src\/shards\/[^/]+\/generators\/.+\.m?js$/u.test(pathOf(context))) return {};
   const meta = shardWords.shards[own.slug] ?? { settings: [], assets: [] };
   const settings = new Set(meta.settings), globals = new Set(), documents = new Set(), strings = new Map();
   const text = (raw) => stringOf(raw) ?? (unwrap(raw)?.type === 'Identifier' ? strings.get(unwrap(raw).name) ?? null : null);

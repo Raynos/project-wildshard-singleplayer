@@ -238,6 +238,20 @@
     "count": 1
   },
   {
+    "id": "generator-node-baker",
+    "file": "src/shards/nalati-grasslands/generators/bake-nalati-example.mjs",
+    "rule": "shard-sandbox",
+    "code": "globalThis.document.title;",
+    "count": 0
+  },
+  {
+    "id": "generator-ts-still-guarded",
+    "file": "src/shards/nalati-grasslands/generators/example.ts",
+    "rule": "shard-sandbox",
+    "code": "globalThis.document.title;",
+    "count": 1
+  },
+  {
     "id": "owned-setting",
     "file": "src/shards/nalati-grasslands/owned-setting.ts",
     "rule": "shard-sandbox",
