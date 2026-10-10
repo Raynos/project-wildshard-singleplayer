@@ -10,6 +10,6 @@ recommendation and points to its evidence. Where no board exists yet, that's sta
 | **SF59 fixture looks** | The two fixture shards' material-graph looks (ink-cel-valley, pastel-plain) | Taste call; keep both as they are unless one reads wrong on the phone | `progress/shard-platform/sf59/` (tsl-spike boards: `tsl-spike-desktop.jpg`, `tsl-spike-sim.jpg`, presets, lighting) and `progress/shard-platform/sf59-pastel/` |
 | **G260 Blender board** | The Blender Template shard's look and filled layout | Taste call | `art/blender-template/round-2-look/board.jpg`, `art/blender-template/round-3-filled/board.jpg` |
 
-**Bug, not a pick (being fixed by the coordinator):** the Template card in SHARD SELECT boots Driftwood when entered through
+**Bug, not a pick (lane op-ship38 is fixing it):** the Template card in SHARD SELECT boots Driftwood when entered through
 its default button. The template's slug is `_template`, and it only enters through the card's SHARDFILE button
 (`progress/shard-platform/look30/README.md`).
