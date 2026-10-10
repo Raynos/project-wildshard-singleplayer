@@ -79,6 +79,9 @@ interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheck
 // The motor's 6/10 m frame bands are independent. Residency waits five continuous fixed-step seconds outside
 // a further five seconds of travel distance, so a boulevard U-turn never churns a world at its request threshold.
 const COLD_DWELL_TICKS = 5 * 60;
+// Contact corrections at a closed readiness wall are not a U-turn. Accumulate real horizontal travel
+// before selecting another approach, so sub-centimetre capsule recoil cannot evict the world just prepared.
+const APPROACH_TRAVEL_METRES = 0.1;
 
 /** One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;
  * owned homes begin on neutral page physics and transfer the sole preallocation claim to their first runtime. */
@@ -337,7 +340,8 @@ export class LiveGridHost {
     if (this.disposed) return;
     this.fixedTick++;
     const feet = this.worldFeet(), previous = this.previousFeet;
-    this.previousFeet = feet;
+    const travelled = previous !== undefined && Math.hypot(feet.x - previous.x, feet.z - previous.z) >= APPROACH_TRAVEL_METRES;
+    if (previous === undefined || travelled) this.previousFeet = feet;
     // Request the closest cells that fit the shard count. Requesting all eight within a wide cold bound
     // would repeatedly evict and rebuild earlier admissions even while the traveller stands still.
     // Unsupported far proxies do not consume the count before enterable cells inside the cold readiness bound.
@@ -358,7 +362,7 @@ export class LiveGridHost {
     // just-retired source behind the traveller. Stationary/missed first samples retain the original wall reach.
     if (this.ports.home.mode === 'owned' && this.active === null && this.requests.size === 0) {
       const wallReach = 6 + this.ports.player.motor.opts.radius + 0.5 + this.ports.readiness.link.speed / 60;
-      const moving = previous === undefined ? undefined : candidates.find(cell => this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
+      const moving = !travelled ? undefined : candidates.find(cell => this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
       const approach = moving ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
       if (approach !== undefined && !this.issues.has(approach.instance)) {
         const reach = moving === undefined ? wallReach : Math.max(wallReach, readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance);

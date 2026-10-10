@@ -201,6 +201,34 @@ it('uses the network approach bound after source disposal, without rebuilding th
   } finally { f.finish(); }
 });
 
+it('keeps a prepared approach across readiness-wall capsule recoil, then honours an actual road U-turn', async () => {
+  const f = await open(undefined, undefined, 10);
+  const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+  try {
+    const entered = await f.registry.prepare(null, 'driftwood-isle'); entered.commit();
+    const road = await f.registry.prepare('driftwood-isle', null); road.commit();
+    expect(f.registry.unload('driftwood-isle')).toBe(true);
+    f.player.position.set(0, 0.5, 275); f.registry.beforeFixed();
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    expect(f.registry.ready('pine-hollow')).toBe(true);
+    f.player.position.set(0, 0.5, 298.36); f.registry.beforeFixed();
+    for (let tick = 0; tick < 120; tick++) {
+      f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: tick % 2 === 0 ? -0.004 : 0.004 }); f.shell.physics.step();
+      f.registry.beforeFixed(); await settle();
+      expect(f.registry.ready('pine-hollow')).toBe(true);
+    }
+    expect(f.creates).toEqual(['driftwood-isle', 'pine-hollow']);
+    expect(f.disposals).toEqual(['driftwood-isle']);
+    expect(f.owner.allocator.has('sim:pine-hollow')).toBe(true);
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.5 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    expect(f.disposals).toEqual(['driftwood-isle', 'pine-hollow']);
+    expect(f.creates).toEqual(['driftwood-isle', 'pine-hollow', 'driftwood-isle']);
+    expect(f.hosts.size).toBe(1);
+  } finally { f.finish(); }
+});
+
 it('holds a refused speculative retirement and its full claim across a road U-turn until durability retry', async () => {
   const f = await open(undefined, undefined, 10);
   const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
