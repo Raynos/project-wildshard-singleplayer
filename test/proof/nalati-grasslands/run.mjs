@@ -1,8 +1,12 @@
-// Fail-closed compatibility probe: partial ledger coverage is not whole-shard compatibility.
-// oxlint-disable-next-line import/no-nodejs-modules -- Native proof mode and failure status are CLI results, not game configuration.
+// Partial gameplay coverage remains a failed whole-shard compatibility result.
+// oxlint-disable-next-line import/no-nodejs-modules -- Native proof mode and exit status are CLI results.
 import process from 'node:process';
 import { compatibilityProbe } from '../compatibility/fixture.ts';
+import { nalatiNativeWitness } from './witness.ts';
 
-const result = await compatibilityProbe('nalati-grasslands', 'runtime/index.ts', process.argv.at(2) ?? 'all');
-console.info(JSON.stringify(result));
+const mode = process.argv.at(2) ?? 'all';
+if (!['all', 'headless', 'replay', 'ledger'].includes(mode)) throw new Error('Unknown compatibility proof mode');
+const ledger = mode === 'all' || mode === 'ledger' ? await compatibilityProbe('nalati-grasslands', 'runtime/headless.ts', 'ledger') : {};
+const native = mode === 'ledger' ? {} : await nalatiNativeWitness(mode !== 'headless');
+console.info(JSON.stringify({ slug: 'nalati-grasslands', ...ledger, ...native }));
 process.exitCode = 1;

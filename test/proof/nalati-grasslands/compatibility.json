@@ -1,409 +1,55 @@
 {
   "audit": {
-    "sourceRevision": "67773a54ce8117510dbcd73be74bf93d297e6b3e",
-    "command": "node --import ./scripts/sim-node-loader.mjs test/proof/nalati-grasslands/run.mjs all",
+    "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/nalati-grasslands/run.mjs all",
     "exitStatus": 1,
-    "scope": "real entry import and partial declared-row ledger contracts; no gameplay proxy"
+    "scope": "actual native boot and exact codec/restore suffix; declared ledger contract remains partial"
   },
   "slug": "nalati-grasslands",
-  "entry": "runtime/index.ts",
+  "entry": "runtime/headless.ts",
   "compatible": false,
   "headless": {
-    "status": "blocked",
-    "stage": "runtime-entry",
-    "dependency": "Renderer dependency in Node simulation: repo:/src/engine/app/runtime.ts",
-    "ticksExecuted": 0
+    "status": "partial",
+    "stage": "gameplay-coverage",
+    "nativeBoot": true,
+    "actors": 35,
+    "colliders": 2696,
+    "ticksExecuted": 180,
+    "checkpointHash": "44e7920792a16d02378aee8fb1993e05745dfddd5c4afaac6a9bf1cafb88ce3b"
   },
   "replay": {
-    "status": "blocked",
-    "dependency": "Renderer dependency in Node simulation: repo:/src/engine/app/runtime.ts",
-    "checkpointCaptured": false,
-    "suffixTicksExecuted": 0,
-    "reason": "No real headless runtime; no encounter checkpoint or complete continuation can be captured"
+    "status": "partial",
+    "checkpointCaptured": true,
+    "codecByteExact": true,
+    "suffixTicksExecuted": 60,
+    "suffixHash": "462facf8193b2c48b902f78aa18a0cbdcccac8a963d5aae98aa7cf4903ea668b",
+    "wholeShard": false
   },
   "declarations": {
     "sourceLoaded": true,
-    "ordinarySpawns": 0,
-    "scripts": 0,
-    "runtimeBinds": [
-      "quests",
-      "ledger",
-      "state",
-      "items",
-      "spawns"
-    ],
-    "runtimeSpawns": {
-      "homes": [],
-      "bosses": [
-        {
-          "id": "nalati.golden-king",
-          "kind": "golden-king",
-          "look": "king",
-          "at": [
-            -40,
-            -95.6
-          ],
-          "yaw": 0
-        }
-      ]
-    },
     "quests": [
       "tulpar",
       "golden-king",
       "father-wind"
     ],
-    "ledgerRules": [
-      {
-        "fact": "nalati.feat.storm-titan",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "storm-titan",
-            "title": "Partly Cloudy",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.golden-king",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "golden-king",
-            "title": "Grave Robber (Licensed)",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.aqbars",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "aqbars",
-            "title": "Crazy Cat Person",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.kokbori",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "kokbori",
-            "title": "Good Boy Denier",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.qyran",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "qyran",
-            "title": "Birdwatcher (Aggressive)",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.qara-batyr",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "qara-batyr",
-            "title": "Night Shift",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.argymaq",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "argymaq",
-            "title": "Horse Whisperer (Shouting)",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.tame",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "tame",
-            "title": "Stable Genius",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.kokpar",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "kokpar",
-            "title": "Varsity Goat Carrier",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.quest.tulpar",
-        "origin": {
-          "kind": "engine",
-          "source": "quest.complete"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "tulpar",
-            "title": "Formerly On Foot",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.quest.golden-king",
-        "origin": {
-          "kind": "engine",
-          "source": "quest.complete"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "chapter-king",
-            "title": "Honorary Balbal",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.quest.father-wind",
-        "origin": {
-          "kind": "engine",
-          "source": "quest.complete"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "chapter-wind",
-            "title": "Weather Complainer (Successful)",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.wolf5",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "wolf5",
-            "title": "Pack Leader (Self-Appointed)",
-            "threshold": 5
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.wolf25",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "wolf25",
-            "title": "Not Afraid Of The Big Bad Anything",
-            "threshold": 25
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.alpha",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "alpha",
-            "title": "Sigma Grindset Survivor",
-            "threshold": 1
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.balbal5",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "balbal5",
-            "title": "Licensed Stonemason",
-            "threshold": 5
-          }
-        ]
-      },
-      {
-        "fact": "nalati.feat.ghost10",
-        "origin": {
-          "kind": "engine",
-          "source": "encounter.outcome"
-        },
-        "rewards": [
-          {
-            "kind": "achievement",
-            "id": "ghost10",
-            "title": "Ghost Rider (No Relation)",
-            "threshold": 10
-          }
-        ]
-      }
-    ]
+    "ledgerRules": 17
   },
   "ledger": {
     "status": "partial",
     "rules": 17,
     "facts": 17,
-    "achievements": [
-      {
-        "id": "storm-titan",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "golden-king",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "aqbars",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "kokbori",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "qyran",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "qara-batyr",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "argymaq",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "tame",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "kokpar",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "tulpar",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "chapter-king",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "chapter-wind",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "wolf5",
-        "count": 1,
-        "earned": false
-      },
-      {
-        "id": "wolf25",
-        "count": 1,
-        "earned": false
-      },
-      {
-        "id": "alpha",
-        "count": 1,
-        "earned": true
-      },
-      {
-        "id": "balbal5",
-        "count": 1,
-        "earned": false
-      },
-      {
-        "id": "ghost10",
-        "count": 1,
-        "earned": false
-      }
-    ],
     "durableReload": true,
     "refusedWriteRetried": true,
     "duplicateStable": true,
     "gameplayEmissionProven": false
-  }
+  },
+  "missing": [
+    "qyran",
+    "qara-and-night-roster",
+    "golden-king",
+    "storm-titan",
+    "taming",
+    "sabre-and-held-heavy",
+    "quests-and-gameplay-ledger",
+    "entryways"
+  ]
 }
