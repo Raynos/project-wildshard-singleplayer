@@ -1,5 +1,5 @@
 import { Color, Float32BufferAttribute, MeshStandardMaterial, Uint16BufferAttribute, type BufferGeometry } from 'three';
-import { readSourceModel, skinnedGlb, type RawTexture, type SkinnedBone, type SkinnedOutput } from '@wildshard/sdk/bake/skinned';
+import { readSourceModel, skinnedGlb, type RawTexture, type SkinnedBone, type SkinnedOutput } from './skinned';
 import type { AnimalDims } from '@wildshard/engine/entities/species/registry';
 import { bindRigid } from '@wildshard/sdk/looks/modelLibrary';
 import { facetedGeometry, fitModel, hdGeometry } from '../runtime/looks/modelIntake';

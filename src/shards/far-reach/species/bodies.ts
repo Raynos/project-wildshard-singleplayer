@@ -1,6 +1,6 @@
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
-import { skinnedModel, type SkinnedModel } from '@wildshard/sdk/skinnedModel';
+import { skinnedModel, type SkinnedModel } from '../runtime/skinnedModel';
 import { SKY_CREATURES, SKY_CREATURE_RIGS, type SkyCreature } from '../boot/files';
 import type { SkyCreatureExtras } from '../data/creatures';
 import { releaseDecodedOnUpload } from '../look/image';

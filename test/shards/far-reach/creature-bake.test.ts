@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Byte comparison of the baked channels.
 import { Buffer } from 'node:buffer';
-import { skinnedModel } from '@wildshard/sdk/skinnedModel';
+import { skinnedModel } from '../../../src/shards/far-reach/runtime/skinnedModel';
 import { bakeSkyCreatures, skyCreatureBodies } from '../../../src/shards/far-reach/generators/creatures';
 import { SKY_CREATURES, SKY_CREATURE_RIGS } from '../../../src/shards/far-reach/boot/files';
 

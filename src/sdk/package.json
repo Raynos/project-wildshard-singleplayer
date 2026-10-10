@@ -109,8 +109,6 @@
     "./items/coneStrikes": "./items/coneStrikes.ts",
     "./compileScript": "./compileScript.ts",
     "./sourceManifest": "./sourceManifest.ts",
-    "./skinnedModel": "./skinnedModel.ts",
-    "./bake/skinned": "./bake/skinned.ts",
     "./looks/offscreenPreparation": "./looks/offscreenPreparation.ts",
     "./runtime/prompts": "./runtime/prompts.ts",
     "./buildBehaviour": "./buildBehaviour.ts",
