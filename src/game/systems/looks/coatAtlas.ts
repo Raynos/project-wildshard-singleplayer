@@ -74,8 +74,8 @@ function drain<T>(steps: Steps<T>): T {
 const TEXEL_CHUNK = 4096;
 /** a coat being painted in slices: `finish` paints the rest now (a synchronous caller needs the bytes) */
 const painting = new WeakMap<THREE.Texture, { finish: () => void }>();
-/** every sliced paint still running */
-const pending = new Set<Promise<void>>();
+/** every sliced paint still running, by its texture */
+const pending = new WeakMap<THREE.Texture, Promise<void>>();
 
 // ── 3D value noise (seeded hash lattice), for marks that are solid over the body ──
 function hash3(x: number, y: number, z: number): number {
@@ -435,8 +435,8 @@ export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantD
 /**
  * `coatAtlas` painted in slices (`workSlice`, on the page scope: the coat is a page-lifetime memo). It returns at once a
  * texture that shows the hull's own atlas until the paint is done, then the coat (the same bytes `coatAtlas` makes); the
- * texture is cached under `key` from the start, so every copy of the variant shares it. `coatsPainted()` resolves once
- * every sliced paint has finished: a herd waits for it before it is shown, so no animal is ever seen in the stand-in.
+ * texture is cached under `key` from the start, so every copy of the variant shares it. `coatPainting(texture)` resolves
+ * once its paint has finished: a herd waits for it before it is shown, so no animal is ever seen in the stand-in.
  * A synchronous `coatAtlas` of the same key finishes the paint on the spot. Each first coat of a hull used to be one
  * 0.2-9 s main-thread task in Pine Hollow's herd spawn (E435 SF63).
  */
@@ -464,14 +464,14 @@ export function coatAtlasSliced(key: string, spec: CoatSpec, rig: CoatRig, v: Va
     }
     complete();
   })();
-  pending.add(run);
-  void run.finally(() => { pending.delete(run); });
+  pending.set(tex, run);
+  void run.finally(() => { pending.delete(tex); });
   return tex;
 }
 
-/** resolves once every coat `coatAtlasSliced` started has been painted (or its texture disposed) */
-export async function coatsPainted(): Promise<void> {
-  while (pending.size > 0) await Promise.all(pending);
+/** the paint `coatAtlasSliced` is still running on `tex` (resolves once it is painted or disposed), else undefined */
+export function coatPainting(tex: THREE.Texture): Promise<void> | undefined {
+  return pending.get(tex);
 }
 
 /** a coat to paint: its steps (the pixels, in place) and `paint()`, the finished canvas */

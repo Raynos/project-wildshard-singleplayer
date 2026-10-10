@@ -19,9 +19,6 @@ export interface SpeciesLook extends Pick<SpeciesDef, 'rigContract' | 'fur' | 'b
   hasSkin?: (variant: VariantDef) => boolean;
   loadSkin?: (variant: VariantDef) => Promise<void>;
   preload?: () => Promise<void>;
-  /** resolves once the work `skin` started for the hulls made so far is done (a coat painted in slices): a herd waits for
-   *  it before it is shown */
-  settle?: () => Promise<void>;
   skin?: (variant: VariantDef, bones: readonly BoneDef[], eyes: readonly EyeSpot[]) => CreatureHull | null;
 }
 
@@ -37,6 +34,8 @@ interface Scoped<T> { value: T; scope: Scope }
 export class SpeciesService {
   private readonly rows: Scoped<SpeciesRow>[] = [];
   private readonly looks: Scoped<SpeciesLook>[] = [];
+  /** skin work still running (a coat painted in slices), under the level that made the hull */
+  private readonly unsettled: Scoped<Promise<void>>[] = [];
   private cache = new WeakMap<Scope, Map<string, SpeciesDef>>();
   private readonly active: () => Scope | null;
   constructor(active: () => Scope | null) { this.active = active; }
@@ -79,10 +78,19 @@ export class SpeciesService {
     const scope = this.active(); if (scope === null) return [];
     return [...new Set(this.looks.filter((entry) => entry.scope.belongsTo(scope)).flatMap((entry) => entry.value.preload ? [entry.value.preload] : []))];
   }
-  /** The active level's looks' `settle` hooks (each once). */
+  /** Work a look's `skin` started for a hull of the active level and finishes later (a coat painted in slices): `settles()`
+   *  waits for it, so a herd is never shown in the stand-in. Runtime state, never a hook on the look row (SP3: rows are data). */
+  track(work: Promise<void>): void {
+    const scope = this.active(); if (scope === null) return;
+    const entry = { value: work, scope }; this.unsettled.push(entry);
+    const drop = (): void => { const i = this.unsettled.indexOf(entry); if (i !== -1) this.unsettled.splice(i, 1); };
+    void work.then(drop, drop);
+  }
+  /** The active level's unfinished skin work (`track`), as one wait (none when everything is done). */
   settles(): readonly (() => Promise<void>)[] {
     const scope = this.active(); if (scope === null) return [];
-    return [...new Set(this.looks.filter((entry) => entry.scope.belongsTo(scope)).flatMap((entry) => entry.value.settle ? [entry.value.settle] : []))];
+    const work = this.unsettled.filter((entry) => entry.scope.belongsTo(scope)).map((entry) => entry.value);
+    return work.length === 0 ? [] : [() => Promise.all(work).then(() => undefined)];
   }
   /** A registered model hull can be replaced by the look's procedural builder. */
   hasProceduralFallback(): boolean {
