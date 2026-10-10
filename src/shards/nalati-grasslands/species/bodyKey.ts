@@ -3,8 +3,11 @@ import type { AnimalDims, BoneDef, VariantDef } from '@wildshard/engine/entities
 /** The bake the page fetches (`species/bodies.ts`); here, renderer-free, so the boot manifest can declare it. */
 export const NALATI_BODIES_URL = '/assets/nalati/baked/bodies.bin';
 
-/** The loft families Nalati bakes (`generators/bodies.ts`): the horse (and the riders' and elites' horses), the canid. */
-export type BodyFamily = 'horse' | 'canid';
+/**
+ * The loft families Nalati bakes (`generators/bodies.ts`): the horse (and the riders' and elites' horses), the canid, and the
+ * named elites' and statues' own rigs (the snow leopard, the eagle, the Golden King, the balbals).
+ */
+export type BodyFamily = 'horse' | 'canid' | 'leopard' | 'eagle' | 'goldenKing' | 'balbal';
 
 /** Every baked geometry's channels, in the binary's order: the lofts' one layout (then a u16 index). */
 export const BODY_ATTRS = [['position', 3], ['normal', 3], ['uv', 2], ['color', 3], ['skinIndex', 4], ['skinWeight', 4], ['furLen', 1]] as const;

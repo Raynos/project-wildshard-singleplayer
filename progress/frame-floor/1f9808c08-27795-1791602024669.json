@@ -1,0 +1,397 @@
+{
+  "schema": 2,
+  "sha": "1f9808c089b86152a7293395cfe7d03214a16359",
+  "runId": "27795-1791602024669",
+  "device": "frame-floor-iphone-17-pro",
+  "when": "2026-10-10T03:19:40.278Z",
+  "elapsedSeconds": 355.631,
+  "underTenMinutes": true,
+  "frames": 120,
+  "settleMs": 2000,
+  "shards": [
+    "nalati-grasslands"
+  ],
+  "surface": "desktop",
+  "developer": "on",
+  "settings": {
+    "tier": "desktop",
+    "fps": "auto"
+  },
+  "deviceSaves": {},
+  "expectedSystems": [],
+  "gridScenario": "baseline",
+  "glObserver": "off",
+  "travelGlCensus": false,
+  "harnessRevision": "941c4cef5b7177da6cea344e60ed981f36bb9078",
+  "complete": true,
+  "pass": true,
+  "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+  "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+  "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+  "limitations": [
+    "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+    "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+    "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+  ],
+  "results": [
+    {
+      "surface": "desktop",
+      "rows": [
+        {
+          "shard": "nalati-grasslands",
+          "complete": true,
+          "pass": true,
+          "seconds": 21.4,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "80477c0a-6250-4dd0-b20a-c6ff45655afc",
+              "telemetry.heartbeat": {
+                "session": "1e838959-4e27-49bf-b056-2ceefb893c51",
+                "build": "1f9808c-mv1ts26b",
+                "level": "nalati-grasslands",
+                "stage": "play",
+                "at": 1791602363888,
+                "fps": 60,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "22:19:19 btf7 +0s boot · nav navigate · ?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "22:19:21 btf7 +3s world ready · first-paint 56ms, first-contentful-paint 56ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791602359097,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18:nalati-grasslands": {
+                  "renderer": 13.199999809265137,
+                  "sky": 79.40000009536743,
+                  "terrain": 183,
+                  "cards": 9.099999904632568,
+                  "forest": 37.40000009536743,
+                  "physics": 3.1999998092651367,
+                  "edge": 18.699999809265137,
+                  "grass": 79.59999990463257,
+                  "cabins": 0,
+                  "props": 976.1999998092651,
+                  "animals": 87,
+                  "weapon": 0.09999990463256836,
+                  "menu": 6.200000286102295,
+                  "shaders": 484.1000003814697,
+                  "firstFrame": 107,
+                  "audio": 327
+                }
+              }
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              },
+              {
+                "level": "info",
+                "text": "[shadow] 14 casters in 272 pieces (313768 tris)"
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "shard.nalati.stealth.crouch",
+              "shard.nalati.ride.input",
+              "engine.player.input",
+              "physics.bodies.pre",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "player.update",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "shard.nalati.quest",
+              "hud.combat",
+              "main.world",
+              "shard.nalati.painterly",
+              "shard.nalati.water",
+              "shard.nalati.pois",
+              "shard.nalati.dressing",
+              "shard.nalati.weather.fx",
+              "shard.nalati.titan",
+              "shard.nalati.look",
+              "shard.nalati.elites",
+              "shard.nalati.boss",
+              "shard.nalati.wildlife",
+              "shard.nalati.stealth",
+              "shard.nalati.night",
+              "shard.nalati.ride",
+              "shard.nalati.skins",
+              "shard.nalati.sound",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "shard.nalati-grasslands.bind",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "engine.input.trace",
+              "engine.input.edges",
+              "shard.nalati.reins",
+              "engine.hud.pins"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": 2.5286598591411913e-7,
+              "y": 0.012399999563058373,
+              "z": 232.00000048283368,
+              "yaw": 0,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "camp",
+                "x": 60,
+                "z": 214,
+                "yaw": -1.5707963267948966,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 4.8,
+              "calls": 253,
+              "triangles": 4914245
+            },
+            {
+              "pose": {
+                "name": "bridge",
+                "x": 0,
+                "z": 200,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 7.1,
+              "calls": 485,
+              "triangles": 5831583
+            },
+            {
+              "pose": {
+                "name": "plains",
+                "x": 65,
+                "z": 0,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 16.8,
+              "workP95Ms": 7.1,
+              "calls": 347,
+              "triangles": 6289942
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 2.5286598591411913e-7,
+                "y": 0.012399999563058373,
+                "z": 232.00000048283368,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.5,
+              "callbackP99Ms": 18.4,
+              "callbackMaxMs": 18.7,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 7.6,
+              "calls": 513,
+              "triangles": 6210369,
+              "position": {
+                "x": 1.7757445208016476e-7,
+                "y": 0.020099610243050847,
+                "z": 231.99999937489915
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nalati-grasslands",
+                    "samples": 120,
+                    "p95Ms": 1.0000004768371582,
+                    "maxMs": 1.5000004768371582,
+                    "calls": 3240
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "plains",
+                "x": 65,
+                "z": 0,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.1,
+              "callbackP99Ms": 17.4,
+              "callbackMaxMs": 17.5,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 5.4,
+              "calls": 349,
+              "triangles": 6286945,
+              "position": {
+                "x": 64.99944796093541,
+                "y": 25.94697995600982,
+                "z": -0.0005996613056140632
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nalati-grasslands",
+                    "samples": 120,
+                    "p95Ms": 0.900001049041748,
+                    "maxMs": 1.0000004768371582,
+                    "calls": 3240
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "bridge",
+                "x": 0,
+                "z": 200,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18.4,
+              "callbackP99Ms": 18.8,
+              "callbackMaxMs": 20,
+              "gameP95Ms": 18.4,
+              "workP95Ms": 5.2,
+              "calls": 492,
+              "triangles": 5835487,
+              "position": {
+                "x": 0.0007362694524957192,
+                "y": -0.17504263297087164,
+                "z": 199.99888071647797
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "nalati-grasslands",
+                    "samples": 120,
+                    "p95Ms": 0.8000001907348633,
+                    "maxMs": 4.099999904632568,
+                    "calls": 3240
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+    "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded"
+  }
+}

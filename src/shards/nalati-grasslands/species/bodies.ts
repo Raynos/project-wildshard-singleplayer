@@ -12,11 +12,20 @@ import { BODY_ATTRS, NALATI_BODIES_URL, bodyKey, type BodyFamily, type BodyGeome
  * A body that was never loaded is a page fault (`nalatiBody` throws, naming the key).
  */
 const tuple3 = (p: readonly number[]): [number, number, number] => [p[0] ?? 0, p[1] ?? 0, p[2] ?? 0];
+/** a body's capsule axis as its type (the upright rigs': the Golden King, the balbals) */
+const capsuleAxis = (axis: string | undefined): Pick<AnimalDims, 'capsuleAxis'> => {
+  if (axis === undefined) return {};
+  if (axis !== 'y' && axis !== 'z') throw new Error(`[nalati-grasslands] a baked body's capsule axis is ${axis}`);
+  return { capsuleAxis: axis };
+};
 /** The rows as their types: the bones' and feet's JSON arrays as the tuples the lofts made. */
 export const NALATI_BODY_ROWS: BodyRows = {
   bin: rowsJson.bin, bytes: rowsJson.bytes,
-  bodies: rowsJson.bodies.map((b) => ({ key: b.key, bones: b.bones.map((x) => ({ name: x.name, parent: x.parent, pos: tuple3(x.pos) })),
-    dims: { ...b.dims, feet: b.dims.feet.map((f): [number, number] => [f[0] ?? 0, f[1] ?? 0]) }, fur: b.fur, hard: b.hard, eye: b.eye })),
+  bodies: rowsJson.bodies.map((b) => {
+    const { capsuleAxis: axis, ...dims } = b.dims;
+    return { key: b.key, bones: b.bones.map((x) => ({ name: x.name, parent: x.parent, pos: tuple3(x.pos) })),
+      dims: { ...dims, feet: dims.feet.map((f): [number, number] => [f[0] ?? 0, f[1] ?? 0]), ...capsuleAxis(axis) }, fur: b.fur, hard: b.hard, eye: b.eye };
+  }),
 };
 
 let bytes: Uint8Array | null = null;

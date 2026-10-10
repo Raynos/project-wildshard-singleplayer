@@ -11,6 +11,10 @@ import { bakeBody, distinctBodies, geometryRow } from '../../../src/shards/nalat
 import { bodyKey } from '../../../src/shards/nalati-grasslands/species/bodyKey';
 import { HORSE_SPECIES } from '../../../src/shards/nalati-grasslands/species/horse';
 import { WOLF_SPECIES } from '../../../src/shards/nalati-grasslands/species/wolf';
+import { LEOPARD_SPECIES } from '../../../src/shards/nalati-grasslands/species/leopard';
+import { EAGLE_SPECIES } from '../../../src/shards/nalati-grasslands/species/eagle';
+import { GOLDENKING_SPECIES } from '../../../src/shards/nalati-grasslands/species/goldenKing';
+import { BALBAL_SPECIES } from '../../../src/shards/nalati-grasslands/species/balbal';
 
 const shipped = (): Uint8Array => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync(new URL('../../../public/assets/nalati/baked/bodies.bin', import.meta.url)))));
 /** byte-for-byte equality (MBs: toEqual would print the whole buffer on a miss) */
@@ -21,14 +25,14 @@ const joined = (blocks: readonly Uint8Array[]): Uint8Array => {
   for (const b of blocks) { out.set(b, at); at += b.length; }
   return out;
 };
-const looks = { horse: HORSE_SPECIES.build, canid: WOLF_SPECIES.build };
+const looks = { horse: HORSE_SPECIES.build, canid: WOLF_SPECIES.build, leopard: LEOPARD_SPECIES.build, eagle: EAGLE_SPECIES.build, goldenKing: GOLDENKING_SPECIES.build, balbal: BALBAL_SPECIES.build };
 describe("Nalati bakes its species bodies offline (SHARD-PLATFORM M3)", () => {
   // The full stale gate is `scripts/bake-nalati-bodies.mjs --check` (bake-check's node baker, every body). Here: the lofts
-  // on one horse and one canid (the first of each family's rows) against the committed bytes the page reads back.
+  // on the first body of each family (horse, canid, leopard, eagle, Golden King, balbal) against the committed bytes the page reads back.
   // Math.sin / hypot in the lofts and the paint: byte-exact where the bake was made (macOS)
-  it.runIf(platform === 'darwin')('a horse and a canid rebake byte-exact to the committed bodies (rerun scripts/bake-nalati-bodies.mjs)', () => {
+  it.runIf(platform === 'darwin')('one body per family rebakes byte-exact to the committed bodies (rerun scripts/bake-nalati-bodies.mjs)', () => {
     useNalatiBodies(shipped());
-    for (const family of ['horse', 'canid'] as const) {
+    for (const family of ['horse', 'canid', 'leopard', 'eagle', 'goldenKing', 'balbal'] as const) {
       const pick = distinctBodies().find((b) => b.family === family);
       if (pick === undefined) throw new Error(`no ${family} body`);
       const baked: Uint8Array[] = [], read: Uint8Array[] = [], row = bakeBody(family, pick.variant, baked);

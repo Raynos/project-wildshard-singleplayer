@@ -1,17 +1,29 @@
 import type { BufferAttribute, BufferGeometry, InterleavedBufferAttribute } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { AnimalSpecies, VariantDef } from '@wildshard/engine/entities/species/registry';
+import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import { buildHorse } from './horseBody';
 import { buildCanid } from './canidBody';
+import { buildFelid } from './leopardBody';
+import { buildEagle } from './eagleBody';
+import { buildKing } from './goldenKingBody';
+import { buildBalbal } from './balbalBody';
 import { HORSE_SPECIES } from '../species/horse';
 import { WOLF_SPECIES, SHEEPDOG_VARIANTS } from '../species/wolf';
 import { KOKBORI_SPECIES } from '../species/kokbori';
 import { GHOSTRIDER_SPECIES } from '../species/ghostRider';
+import { LEOPARD_SPECIES } from '../species/leopard';
+import { EAGLE_SPECIES } from '../species/eagle';
+import { GOLDENKING_SPECIES } from '../species/goldenKing';
+import { BALBAL_SPECIES } from '../species/balbal';
 import { argymaqDefinition } from '../combat/eliteRoster';
 import { BODY_ATTRS, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRow, type BodyRows } from '../species/bodyKey';
 
+/** what a family's variant list needs of its species row */
+type AnimalSpeciesRow = Pick<SpeciesDef, 'variants' | 'spawnOnly'>;
+
 /**
- * Build-time only (SHARD-PLATFORM M3, Nalati's species bodies bake): every horse-family and canid body the page can make,
+ * Build-time only (SHARD-PLATFORM M3, Nalati's species bodies bake): every horse-family, canid, leopard, eagle, Golden King
+ * and balbal body the page can make,
  * built here by the lofts that `species/horse.ts` and `species/wolf.ts` used to run on the page (`horseBody.ts`,
  * `canidBody.ts`), in the painterly page's loft resolution, the only one a page builds (`bodyKey`). A body depends on its variant's
  * `traits` and `tint` only (the builders read nothing else, and no rng), so each distinct pair is baked once under its
@@ -29,10 +41,15 @@ export function bodyVariants(): { family: BodyFamily; variant: VariantDef }[] {
   // combat/elites.ts registerGhostHorse: Qara Batyr on the black horse when the ghost riders' own row is absent
   horse.push({ ...black, id: 'captain', traits: { ...black.traits, mane: 1.8 } });
   const canid = [...WOLF_SPECIES.variants, ...(WOLF_SPECIES.spawnOnly ?? []), ...SHEEPDOG_VARIANTS, ...KOKBORI_SPECIES.variants];
-  return [...horse.map((variant) => ({ family: 'horse' as const, variant })), ...canid.map((variant) => ({ family: 'canid' as const, variant }))];
+  // the elites' and statues' own rigs after the horses and canids (the binary keeps its earlier bodies' bytes first)
+  const own = (family: BodyFamily, species: AnimalSpeciesRow): { family: BodyFamily; variant: VariantDef }[] => [...species.variants, ...(species.spawnOnly ?? [])].map((variant) => ({ family, variant }));
+  return [...horse.map((variant) => ({ family: 'horse' as const, variant })), ...canid.map((variant) => ({ family: 'canid' as const, variant })),
+    ...own('leopard', LEOPARD_SPECIES), ...own('eagle', EAGLE_SPECIES), ...own('goldenKing', GOLDENKING_SPECIES), ...own('balbal', BALBAL_SPECIES)];
 }
 
-const BUILD: Readonly<Record<BodyFamily, (v: VariantDef, rng: Rng) => AnimalSpecies>> = { horse: buildHorse, canid: buildCanid };
+const BUILD: Readonly<Record<BodyFamily, (v: VariantDef, rng: Rng) => AnimalSpecies>> = {
+  horse: buildHorse, canid: buildCanid, leopard: buildFelid, eagle: buildEagle, goldenKing: buildKing, balbal: buildBalbal,
+};
 
 /** one geometry: its row, and its blocks' bytes in order (each padded to whole words); refuses any other layout */
 export function geometryRow(g: BufferGeometry, blocks: Uint8Array[]): BodyGeometryRow {
