@@ -1,4 +1,5 @@
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import type { PackHowlerBrain, HowlerPorts } from '@wildshard/engine/ai/packHowler';
 import type { LedgePouncerBrain, PouncerPorts, PouncerContext, PouncerLedge } from '@wildshard/engine/ai/ledgePouncer';
 import { admitSpeciesBrains, type BrainedSpecies as PlatformBrainedSpecies, type SpeciesBrain as PlatformSpeciesBrain,
   type SpeciesBrains as PlatformSpeciesBrains } from '@wildshard/game/shardfile/speciesBrains';
@@ -29,3 +30,8 @@ export type SpeciesPouncerPorts<A> = PouncerPorts<A>;
 export type SpeciesPouncerContext<A> = PouncerContext<A>;
 /** One native solid ledge in a pouncer's bounded observation set. */
 export type SpeciesPouncerLedge = PouncerLedge;
+
+/** Declared pack-leader decisions, frame law and exact continuation bound to an actual native body. */
+export type SpeciesHowler<A extends AnimalSim> = PackHowlerBrain<A>;
+/** Real pack, shared AI stream, environment and entered presentation authority for a declared howler. */
+export type SpeciesHowlerPorts<A extends AnimalSim> = HowlerPorts<A>;

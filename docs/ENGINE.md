@@ -2310,6 +2310,13 @@ admitted `{ archetype, policy }`; it retains native contact, rise/sink, perch an
 `brains.decision(kind, actor)` supplies the same admitted policy to a renderer-free native body adapter. Construction
 and restore perform no decisions or RNG draws. Automatic `bind` / `policy` without that body ownership refuses.
 
+A declared `pack-howler` uses strict `HowlerSpec` tuning (`@wildshard/engine/ai/packHowler`) and
+`brains.howler(kind, ports)`. The runtime supplies its real pack, shared AI stream, gaze/grass and path queries,
+engagement/phase clock, contacts and named presentation events. The platform owns the circling, interruption,
+regroup and melee law and its complete continuation; restore consumes no RNG and emits no events. `bind`, `policy`
+and `decision` refuse this archetype without those explicit frame/pack ports. The SDK exposes its retained surface
+as `SpeciesHowler` / `SpeciesHowlerPorts`; spawn identity and deferred timing remain with the runtime.
+
 **Species scripts (SF27).** A row's brain may be `{ archetype: 'script', data }`
 (`@wildshard/game/shardfile/speciesScripts`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,
 up to 8 numeric `slots` (its state, with spawn values), up to 4 actor `memory` fields it reads and writes (a pose's
