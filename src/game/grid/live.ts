@@ -98,6 +98,13 @@ function headsToEntry(cell: GridCell, feet: GridPoint, previous: GridPoint): boo
   return offset <= ENTRY_WIDTH / 2;
 }
 
+/** A background admission (prefetch, road approach) that fails is recorded as the cell's issue and, until an explicit
+ *  retry, not attempted again: say so once, or a failed build (op-hitch33: a throwing warm-up) leaves only a route timeout. */
+async function background(instance: string, admission: Promise<unknown>, alive: () => boolean): Promise<void> {
+  try { await admission; }
+  catch (error) { if (alive()) console.error(`[grid] ${instance}: admission failed; it stays closed until a retry`, error); }
+}
+
 /** One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;
  * owned homes begin on neutral page physics and transfer the sole preallocation claim to their first runtime. */
 export class LiveGridHost {
@@ -370,7 +377,7 @@ export class LiveGridHost {
     this.retireColdRegions();
     for (const cell of nearby) {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
-      if (distance <= estimate.distance && !this.issues.has(cell.instance)) void this.prefetch([cell.instance]).catch(() => undefined);
+      if (distance <= estimate.distance && !this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
     }
     // Once the source has left, spend the road approach on the destination's admitted world rather than waiting
     // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the
@@ -387,7 +394,7 @@ export class LiveGridHost {
           // Never overlap opaque worlds, retry a failed save each tick, or discard an in-flight crossing reservation.
           for (const [instance] of this.residents) if (instance !== approach.instance
             && !this.roadRetirementRefused.has(instance) && !this.unload(instance)) this.roadRetirementRefused.add(instance);
-          if (this.residents.size === 0) void this.ensure(approach.instance).catch(() => undefined);
+          if (this.residents.size === 0) void background(approach.instance, this.ensure(approach.instance), () => !this.disposed);
         }
       }
     }

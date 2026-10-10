@@ -156,6 +156,10 @@ const DEFAULT_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 2 };
  * Draw every visible drawable under the hidden `root` into a 1×1 scissor of `target`, and its casters into the shadow
  * stand-ins, a slice per `pause()`. `environment` is the environment the entry frame will draw with (a parked sky can
  * differ from the road's). `current` fences every slice; a left owner rejects before the next draw.
+ *
+ * A slice that throws ends the warm-up, never the entry (op-hitch33): the warm-up only moves first-draw cost earlier, and
+ * a throw here once failed the cell's admission, which the crossing then retried for good without a word. The error is
+ * logged, every flag is already restored, and the warm resolves with what it drew; the entry frame pays the rest.
  */
 export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THREE.Camera,
   target: THREE.WebGLRenderTarget | null, root: THREE.Object3D, current: () => boolean, pause: () => Promise<void>,
@@ -166,7 +170,8 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   try {
     for (const slice of slices) {
       if (!current()) throw new Error('Parked draw owner left');
-      drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns);
+      try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns); }
+      catch (error) { console.error(`[parked draws] the pre-draw stopped after ${String(drawn)} drawables; the entry frame draws the rest`, error); return drawn; }
       drawn += slice.length;
       await pause();
     }

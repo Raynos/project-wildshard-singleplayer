@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { BoxGeometry, DepthTexture, DirectionalLight, Group, Mesh, MeshStandardMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, UnsignedIntType, WebGLRenderTarget, type Camera, type Object3D, type Texture, type Vector4 } from 'three';
 import { SHADOW_LAYER } from '../src/engine/core/shadowLayer';
 import { parkedDrawSlices, warmParkedDraws, type ParkedDrawRenderer } from '../src/engine/render/parkedDraws';
@@ -95,4 +95,27 @@ it('draws the slice\'s casters into a stand-in of each light\'s shadow map, benc
   expect(lamp.shadow.autoUpdate).toBe(true); expect(unmapped.shadow.autoUpdate).toBe(true);
   expect(shadowMap.autoUpdate).toBe(false); expect(disposed).toBe(1);
   for (const p of [roadProxy, proxy, otherProxy]) expect(p.layers.mask).toBe(1 << SHADOW_LAYER);
+});
+
+it('a slice that throws ends the warm-up with a logged error, never the entry, and leaves every flag restored', async () => {
+  const scene = new Scene(), root = new Group(), a = mesh(), b = mesh(), sun = new DirectionalLight();
+  a.castShadow = true; root.add(a, b); root.visible = false; scene.add(root, sun);
+  const shadowMap = { autoUpdate: true, needsUpdate: false, type: PCFShadowMap };
+  const errors: unknown[][] = [];
+  const log = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => { errors.push(args); });
+  let renders = 0;
+  const renderer: ParkedDrawRenderer = {
+    shadowMap, render: () => { renders++; if (renders === 2) throw new TypeError('render state is null'); },
+    getRenderTarget: () => null, setRenderTarget: () => undefined, getActiveCubeFace: () => 0, getActiveMipmapLevel: () => 0,
+    getScissor: (out) => out.set(0, 0, 0, 0), setScissor: () => undefined, getScissorTest: () => false, setScissorTest: () => undefined,
+  };
+  try {
+    const drawn = await warmParkedDraws(renderer, scene, new PerspectiveCamera(), null, root, () => true, () => Promise.resolve(), { budget: { drawables: 1, newMaterials: 8 } });
+    expect(drawn).toBe(1); expect(renders).toBe(2);
+    expect(errors).toHaveLength(1); expect(errors[0]?.[1]).toBeInstanceOf(TypeError);
+    expect(root.visible).toBe(false); expect(b.layers.mask).toBe(1); expect(b.frustumCulled).toBe(true); expect(sun.layers.mask).toBe(1);
+    expect(shadowMap.autoUpdate).toBe(true);
+    // a left owner still rejects: that is the entry being abandoned, not a failed warm-up
+    await expect(warmParkedDraws(renderer, scene, new PerspectiveCamera(), null, root, () => false, () => Promise.resolve())).rejects.toThrow('Parked draw owner left');
+  } finally { log.mockRestore(); }
 });

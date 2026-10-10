@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Use the production Rapier binary for world ownership and motor transfers.
 import { readFileSync } from 'node:fs';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { GridAssembly } from '../src/game/grid/assembly';
@@ -48,4 +48,36 @@ it('reserves both borrowed home and the active cell before prefetching, without 
     expect(registry.state().issues).toEqual({});
     expect(owner.allocator.has('sim:driftwood-isle')).toBe(true);
   } finally { registry.dispose(); owner.dispose(); player.motor.dispose(); page.dispose(); }
+});
+
+it('logs a failed background admission once, records its issue and does not rebuild it every tick (op-hitch33)', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
+  const assembly = new GridAssembly({ developer: false, devserver: false });
+  const page = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
+  const owner = new PageResidency(), home = owner.admitHome('driftwood-isle', 1000);
+  const player = { position: page.player.position, yaw: 0, health: page.player.health, owner: {}, motor: page.releasePlayerMotor() };
+  const attempts: string[] = [], errors: unknown[][] = [];
+  const log = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => { errors.push(args); });
+  const registry = new LiveGridHost(assembly, {
+    home: { instance: home.instance, physics: page.physics, bytes: home.bytes, residency: home, checkpoint: () => true }, player,
+    allocator: owner.allocator, maxResidents: 4, continuations: 'durable',
+    highway: { bytes: 1000, create: () => {
+      const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier, playerBody: false });
+      return { host, dispose: () => { host.dispose(); } };
+    } },
+    // every neighbour's build throws (a warm-up that crashed inside its entered hooks)
+    admit: cell => Promise.resolve({ bytes: 1000, reloadsCheckpoint: true, create: () => { attempts.push(cell.instance); return Promise.reject(new TypeError('warm-up threw')); } }),
+    save: () => true, gameplayReady: () => true, bindFrame: () => undefined,
+    readiness: { link: { speed: 30, linkBitsPerSecond: 1000, requestLatencySeconds: 0.25, maxStallSeconds: 10 },
+      bundle: () => ({ criticalWireBytes: 100_000, hybridWireBytes: 0, decodeSeconds: 1, runtimeParseSeconds: 0 }) },
+  });
+  const settle = async (): Promise<void> => { for (let turn = 0; turn < 100; turn++) await Promise.resolve(); };
+  try {
+    for (let tick = 0; tick < 120; tick++) { registry.beforeFixed(); await settle(); }
+    const failed = Object.keys(registry.state().issues);
+    expect(failed.length).toBeGreaterThan(0);
+    expect([...attempts].sort()).toEqual([...failed].sort()); // one build per cell, never a silent retry loop
+    expect(errors).toHaveLength(failed.length);
+    for (const row of errors) { expect(String(row[0])).toMatch(/^\[grid\] .+: admission failed/); expect(row[1]).toBeInstanceOf(TypeError); }
+  } finally { log.mockRestore(); registry.dispose(); owner.dispose(); player.motor.dispose(); page.dispose(); }
 });
