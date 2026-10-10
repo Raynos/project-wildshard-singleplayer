@@ -1,4 +1,5 @@
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import type { WindStooperBrain, WindStooperPorts } from '@wildshard/engine/ai/windStooper';
 import type { PackHowlerBrain, HowlerPorts } from '@wildshard/engine/ai/packHowler';
 import type { LedgePouncerBrain, PouncerPorts, PouncerContext, PouncerLedge } from '@wildshard/engine/ai/ledgePouncer';
 import { admitSpeciesBrains, type BrainedSpecies as PlatformBrainedSpecies, type SpeciesBrain as PlatformSpeciesBrain,
@@ -35,3 +36,8 @@ export type SpeciesPouncerLedge = PouncerLedge;
 export type SpeciesHowler<A extends AnimalSim> = PackHowlerBrain<A>;
 /** Real pack, shared AI stream, environment and entered presentation authority for a declared howler. */
 export type SpeciesHowlerPorts<A extends AnimalSim> = HowlerPorts<A>;
+
+/** Retained wind/orbit/stoop law and exact continuation bound to an authoritative native body. */
+export type SpeciesStooper<A extends AnimalSim> = WindStooperBrain<A>;
+/** Native altitude, terrain, wind, shared RNG, head/contact and transient tell authority. */
+export type SpeciesStooperPorts<A extends AnimalSim> = WindStooperPorts<A>;

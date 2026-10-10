@@ -2355,6 +2355,13 @@ regroup and melee law and its complete continuation; restore consumes no RNG and
 and `decision` refuse this archetype without those explicit frame/pack ports. The SDK exposes its retained surface
 as `SpeciesHowler` / `SpeciesHowlerPorts`; spawn identity and deferred timing remain with the runtime.
 
+A declared `wind-stooper` uses strict `WindStooperSpec` (`@wildshard/engine/ai/windStooper`) and
+`brains.stooper(kind, ports)` (SDK `SpeciesStooper` / `SpeciesStooperPorts`). The runtime supplies native terrain,
+wind, home/player/phase, head/contact and tell authority plus its shared random stream. The platform owns the
+moving downwind orbit, altitude law, tell target, hit/miss stoop, grounded weak point and cooldown; every clock,
+orbit centre and fixed target is captured and validated atomically. Restore neither steps nor emits events or draws.
+`bind`, `policy` and `decision` refuse it without those explicit frame/altitude ports; actor/spawn identity stays runtime.
+
 **Species scripts (SF27).** A row's brain may be `{ archetype: 'script', data }`
 (`@wildshard/game/shardfile/speciesScripts`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,
 up to 8 numeric `slots` (its state, with spawn values), up to 4 actor `memory` fields it reads and writes (a pose's
