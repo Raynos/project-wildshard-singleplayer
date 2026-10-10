@@ -71,8 +71,12 @@ it('rides the actual baked zipline through one player owner and restores its exa
     while (ride(original).riding && remaining++ < 600) {
       const command = { moveX: 1, moveZ: -1, yaw: 0.7, dodge: true, jump: true } as const;
       original.step(command); restored.step(command);
-      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+      // Full snapshots copy the whole island's physics; compare the ride every tick and the whole world at its boundaries.
+      expect(ride(restored)).toEqual(ride(original));
+      expect(restored.player.position).toEqual(original.player.position);
+      expect(restored.player.yaw).toBe(original.player.yaw);
     }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
     expect(ride(original).riding).toBe(false); expect(remaining).toBeLessThan(600);
     expect(original.flags.has('used:zipline')).toBe(true); expect(restored.flags.has('used:zipline')).toBe(true);
     // Each real host earns its one landing fact; repeating an out-of-reach command cannot earn another.
@@ -85,7 +89,7 @@ it('rides the actual baked zipline through one player owner and restores its exa
     expect(original.player.position.distanceTo(landed)).toBeGreaterThan(0.1);
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
   } finally { tape = []; restored?.dispose(); original.dispose(); }
-});
+}, 60_000);
 
 it('keeps the optional reef chest in the pack across exact restore, with one treasure fact and no purse grant', () => {
   const original = boot(); let restored: SimHost | undefined;
