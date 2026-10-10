@@ -7,6 +7,10 @@ import { installEngineStrings } from '../src/engine/strings';
  * to throw (iOS private mode) spies on it (`restoreMocks` in vitest.config.ts undoes the spy).
  */
 import { beforeEach, vi } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- the setup reads Nalati's committed bodies bake (species/bodies.ts)
+import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- the committed bake is a zlib stream the page inflates
+import { inflateSync } from 'node:zlib';
 
 export class MemoryStorage {
   private data = new Map<string, string>();
@@ -50,6 +54,9 @@ const { installDriftwoodSpecies } = await import('../src/shards/driftwood-isle/s
 installDriftwoodSpecies();
 const { installNalatiSpeciesForTests } = await import('../src/shards/nalati-grasslands/species/rows');
 installNalatiSpeciesForTests();
+// Nalati's species bodies are an offline bake the page fetches: tests read the committed file (species/bodies.ts)
+const { provideNalatiBodies, unshuffleBodyLanes } = await import('../src/shards/nalati-grasslands/species/bodies');
+provideNalatiBodies(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/bodies.bin')))));
 // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
 const { PINE_BOAR } = await import('../src/shards/pine-hollow/species/rows');
 const { PINE_BOAR_LOOK } = await import('../src/shards/pine-hollow/species/looks');

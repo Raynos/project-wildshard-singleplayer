@@ -5,6 +5,7 @@ import { speciesWithLook, type SpeciesLook } from '@wildshard/engine/entities/sp
 import { registerSpecies, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
 import { creatureHull, creatureRigs, type CreatureRigs } from './hulls';
+import { preloadNalatiBodies } from './bodies';
 import { HORSE_SPECIES } from './horse';
 import { WOLF_SPECIES } from './wolf';
 import { SHEEPDOG_SPECIES } from './sheepdog';
@@ -40,7 +41,8 @@ export function nalatiLook(def: SpeciesDef, rigs: CreatureRigs = creatureRigs): 
       ...(v.traits === undefined ? {} : { traits: v.traits }),
     }])),
     material: painterlyAnimalMaterial,
-    preload: () => rigs.preload(),
+    // the rigged hulls and the baked bodies (species/bodies.ts): the factory awaits both before the first herd
+    preload: () => Promise.all([rigs.preload(), preloadNalatiBodies()]).then(() => undefined),
     hasSkin: v => creatureHull(def.kind, v.id) !== null,
     loadSkin: async v => { const name = creatureHull(def.kind, v.id); if (name !== null) await rigs.load(name); },
     skin: (v, bones) => { const hull = rigs.skin(def.kind, v.id, bones); return hull === null ? null : { ...hull, normalMap: null, overgrown: false }; },

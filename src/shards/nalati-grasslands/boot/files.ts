@@ -6,6 +6,7 @@ import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
 import { NALATI_COAT_DIR } from '../species/coatDir';
+import { NALATI_BODIES_URL } from '../species/bodyKey';
 
 const models = ['eagle', 'cauldron', 'firewood', 'kumis-churn', 'chest', 'saddle', 'balbal', 'boulder-1', 'boulder-2', 'boulder-3', 'watchtower', 'snow-lotus', 'horse-saddled', 'kokpar-rider'];
 const rigs = ['horse-wild', 'horse-saddled', 'wolf', 'snow-leopard', 'sheep', 'eagle', 'collie', 'ghost-horse', 'golden-king'];
@@ -21,6 +22,8 @@ export function worldFiles(tier: Tier): string[] {
     '/assets/nalati/models/horse-wild.far.glb', '/assets/nalati/models/kokpar-rider.far.glb',
     ...rigs.map((name) => `/assets/nalati/models/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`),
     ...coatFiles(),
+    // the species bodies' offline bake (SHARD-PLATFORM M3, species/bodies.ts)
+    NALATI_BODIES_URL,
   ].filter((url) => phone(url) in publicBytes() || url in publicBytes());
 }
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {

@@ -1,0 +1,218 @@
+{
+  "build": "283a2c0-mv1rmsa8",
+  "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, clock pinned and paused, time 10, viewmodel hidden",
+  "tiers": {
+    "phone": {
+      "pieces": 81,
+      "colliderCount": 2682,
+      "colliders": "32c4895f844425b5d2dbc1e708acf0cbccb933d2384406e10528ec120aee8627",
+      "gpuBytes": 228787512,
+      "programs": 142,
+      "shaderCount": 216,
+      "shaders": "8b0aab3ea8374ca0883d6d41e89e4cd554085ba443ebdcb467cd7dee9a380def"
+    },
+    "desktop": {
+      "pieces": 82,
+      "colliderCount": 2770,
+      "colliders": "d2343b098f0b32d9a6409c371d8ab513b26cc2010abb56f688c499b7f0d87687",
+      "gpuBytes": 550454914,
+      "programs": 159,
+      "shaderCount": 240,
+      "shaders": "0d0d205a6fb81827fa2ae7ee5a8cabcd632aaa2991f9082fcd8fe3581cc1c44f"
+    }
+  },
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "camp",
+      "player": [
+        102,
+        35.1,
+        92
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 74,
+      "triangles": 1120373,
+      "lit": 1095048,
+      "pixels": "d2f255633896e8cdc4cf7b0b0c3c95bd48c70eb7a273afaa1671ebafb8fd719b",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/phone-camp.rgba"
+    },
+    {
+      "tier": "phone",
+      "pose": "plateau",
+      "player": [
+        82,
+        53.2,
+        -78
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 58,
+      "triangles": 946588,
+      "lit": 1095048,
+      "pixels": "ae71bda0901087ff588c2bc26505c2c0e2dd7b5d257fe792faf86f9ac3d2fb0f",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/phone-plateau.rgba"
+    },
+    {
+      "tier": "phone",
+      "pose": "horses",
+      "player": [
+        150,
+        49.5,
+        -62
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 58,
+      "triangles": 842222,
+      "lit": 1095048,
+      "pixels": "e600d545960c19341077367954bab8215b2c130802c1aab9bca96b564ffb6863",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/phone-horses.rgba"
+    },
+    {
+      "tier": "phone",
+      "pose": "gully",
+      "player": [
+        64,
+        -4.6,
+        203
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 75,
+      "triangles": 1070683,
+      "lit": 1095048,
+      "pixels": "61e164e06e2e8eb7168497245d55c57a62d1d639657de80f691e6dd0827c5501",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/phone-gully.rgba"
+    },
+    {
+      "tier": "phone",
+      "pose": "rail",
+      "player": [
+        73.5,
+        -4.7,
+        206
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 65,
+      "triangles": 984926,
+      "lit": 1095048,
+      "pixels": "8ca8fe7351fef2c4ab1840d6730d9bbf6b4c379590da180349e6f5defabc01c6",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/phone-rail.rgba"
+    },
+    {
+      "tier": "phone",
+      "pose": "kurgan",
+      "player": [
+        -128,
+        71.2,
+        -62
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 58,
+      "triangles": 880254,
+      "lit": 1095048,
+      "pixels": "baac46d38acb8bd31e8c70460401b67b93584b7504ad7e090f0f60a4ad16c2ad",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/phone-kurgan.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "camp",
+      "player": [
+        102,
+        35.1,
+        92
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 188,
+      "triangles": 3307913,
+      "lit": 615663,
+      "pixels": "c28bbff86b3fb8b394ded4e26c9f99460641ee22084574c335a1846571a9ac33",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/desktop-camp.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "plateau",
+      "player": [
+        82,
+        53.2,
+        -78
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 92,
+      "triangles": 2662984,
+      "lit": 615663,
+      "pixels": "d7d3c7b08e47fc8483df5c876ac229752d74fb9dc4fd5880cda0c3f237ae9b15",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/desktop-plateau.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "horses",
+      "player": [
+        150,
+        49.5,
+        -62
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 92,
+      "triangles": 2485773,
+      "lit": 615663,
+      "pixels": "c6d0731edcff7cd89107a20c94b15a028d0d9543649c23e4869c29c9cb5b9445",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/desktop-horses.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "gully",
+      "player": [
+        64,
+        -4.6,
+        203
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 278,
+      "triangles": 3398744,
+      "lit": 615663,
+      "pixels": "53372fea7f88107a1223e90e882df90ea2e0d21893f764edbe810ebb189b4cd5",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/desktop-gully.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "rail",
+      "player": [
+        73.5,
+        -4.7,
+        206
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 149,
+      "triangles": 2749382,
+      "lit": 615663,
+      "pixels": "1fe46e75168ccf35f31ad34c3ba4fe844d06486f94b6217162567de6c69c5fec",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/desktop-rail.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "kurgan",
+      "player": [
+        -128,
+        71.2,
+        -62
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 111,
+      "triangles": 2511684,
+      "lit": 615663,
+      "pixels": "df61e8d207b1db06ab1140911b963ed33005983a50e44e6e1c882cd2e855abe1",
+      "raw": "/private/tmp/claude-501/sp-builders/op-nalati81/raw-cand2/desktop-kurgan.rgba"
+    }
+  ]
+}
