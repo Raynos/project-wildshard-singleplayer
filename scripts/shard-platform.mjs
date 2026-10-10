@@ -182,7 +182,7 @@ export function checkShares(recorded, lines) {
 }
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const recorded = JSON.parse(readFileSync(resolve(ROOT, LIST), 'utf8')), lines = shardLines();
-  if (process.argv.includes('--json')) console.log(JSON.stringify(Object.fromEntries(Object.entries(lines).map(([slug, row]) => [slug, { ...row, baseline: recorded.baseline[slug], milestones: milestoneFlags(slug, row) }])), null, 2));
+  if (process.argv.includes('--json')) console.log(JSON.stringify(Object.fromEntries(Object.entries(lines).map(([slug, row]) => [slug, { ...row, baseline: recorded.baseline[slug], ceiling: recorded.enforced[slug] ?? Math.floor(recorded.baseline[slug] * 0.2), enforced: Object.hasOwn(recorded.enforced, slug), milestones: milestoneFlags(slug, row) }])), null, 2));
   else {
     console.log('shard                  public   custom  public SDK    runtime+trusted ceiling    legacy TS');
     for (const [slug, row] of Object.entries(lines)) {
