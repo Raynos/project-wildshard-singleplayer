@@ -5,7 +5,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { nalatiSkinEffect } from './effects';
 import * as THREE from 'three';
 import type { Bow } from '@wildshard/game/weapons/Bow';
-import type { Sabre } from '../runtime/weapons/Sabre';
+import type { SabreWeapon } from '../runtime/weapons/Sabre';
 import { horseBones } from '../species/horse';
 import { skyMarkedAtlas } from '../species/coats';
 
@@ -61,7 +61,7 @@ export class NalatiSkinLocker extends CosmeticsLocker<NalatiSkinSlot, NalatiSkin
 
 export interface SkinTargets {
   mounted?: () => Animal | null;
-  sabre: Sabre | null;
+  sabre: SabreWeapon | null;
   bow: Bow | null;
   /** the Golden Bow is yours (its repaint is the bow's base look under a skin) */
   golden: () => boolean;

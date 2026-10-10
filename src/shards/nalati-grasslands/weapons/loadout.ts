@@ -16,7 +16,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 
 
-import { Sabre, type MountState } from '../runtime/weapons/Sabre';
+import { Sabre, type MountState, type SabreWeapon } from '../runtime/weapons/Sabre';
 import { Spear } from '../runtime/weapons/Spear';
 import { BOW } from './equipment';
 
@@ -32,9 +32,9 @@ export const NALATI_BOW = { ...BOW_PROFILE, poses: POSE, arrowX: 0.02, arrowY: 0
  * the normal equipment service owns selection, swaps and reward replacements. */
 export interface NalatiWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface NalatiLoadout {
-  base: Sabre;
+  base: SabreWeapon;
   bow: Bow;
-  sabre: Sabre;
+  sabre: SabreWeapon;
   spear: Spear;
   extras: Weapon[];
   install: (weapons: EquipmentService) => void;
@@ -64,7 +64,7 @@ export async function buildNalatiLoadoutSliced(world: NalatiWorld, targets: Targ
   return loadoutOf(world, targets, allowUnlocked, sabre, spear, bow);
 }
 
-function loadoutOf(world: NalatiWorld, targets: Targets, allowUnlocked: boolean, sabre: Sabre, spear: Spear, bow: Bow): NalatiLoadout {
+function loadoutOf(world: NalatiWorld, targets: Targets, allowUnlocked: boolean, sabre: SabreWeapon, spear: Spear, bow: Bow): NalatiLoadout {
   const kit: NalatiLoadout = {
     base: sabre, bow, sabre, spear,
     extras: [bow, spear],

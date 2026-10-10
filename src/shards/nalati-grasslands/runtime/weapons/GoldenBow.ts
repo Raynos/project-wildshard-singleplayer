@@ -1,11 +1,11 @@
 import { sourceMultiplier } from '@wildshard/engine/combat/effects/types';
-import type { Targets } from '@wildshard/engine/combat/types';
 import { isMesh } from '@wildshard/engine/combat/view/ranged';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from '../../weapons/effects';
 import * as THREE from 'three';
-import { Bow, type BowInstance, type BowWorld, type BowOptions } from '@wildshard/sdk/runtime/weapons/starterBow';
+import type { BowInstance } from '@wildshard/sdk/runtime/weapons/starterBow';
+import { rewardBowType } from '@wildshard/sdk/items/rewardBow';
 import { BOW } from '../../weapons/equipment';
 
 
@@ -18,7 +18,7 @@ import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
  * a string of light … it draws 20 % faster than the recurve. A full draw fires a SUN ARROW that pierces through one target
  * and leaves a gold streak. A sun arrow into a balbal's amber crack shatters it."
  *
- * GoldenBow extends the shared Bow family. The reward replaces the original bow in its slot and keeps its quiver,
+ * GoldenBow is a row over the platform's reward bow (SF36). The reward replaces the original bow in its slot and keeps its quiver,
  * mounted state and composed source multipliers. GoldenBowPower owns the preloaded sun streak and piercing timeline;
  * its update clock stays with the boss runtime. The golden draw boost survives mounted gait and rear-shot adjustments.
  */
@@ -228,15 +228,6 @@ export function goldenBowModel(sky: Sky): THREE.Object3D {
 
 export const GOLDEN_BOW = { ...BOW, id: 'weapon.golden-bow' as const,
   ui: { ...BOW.ui, name: 'Golden Bow', swapName: 'Golden Bow' }, meta: { ...BOW.meta, name: 'Golden Bow' } };
-/** Reward behavior shares the Bow family and keeps the source's preloaded streak clock. */
-export class GoldenBow extends Bow {
-  constructor(world: BowWorld, targets: Targets, opts: BowOptions & { power: GoldenBowPower; previous?: BowInstance }) {
-    super(world, targets, { ...opts, row: GOLDEN_BOW });
-    if (opts.previous) {
-      this.damageMultiplier = opts.previous.damageMultiplier;
-      this.onLoose = opts.previous.onLoose;
-      this.carryMountState(opts.previous);
-    }
-    opts.power.apply(this);
-  }
-}
+/** The Golden Bow as a row over the platform's reward bow: GOLDEN_BOW's row, its power applied once the replaced bow's
+ *  multiplier, loose hook and saddle are carried over; the power keeps its preloaded streak clock. */
+export const GoldenBow = rewardBowType(GOLDEN_BOW);

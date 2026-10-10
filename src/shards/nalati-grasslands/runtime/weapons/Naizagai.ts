@@ -1,7 +1,7 @@
-import { Sabre, SABRE_PROFILE, type SabreOptions } from './Sabre';
+import { Sabre, SABRE_PROFILE, type SabreWeapon } from './Sabre';
+import { mountedSwordVariant } from '@wildshard/sdk/items/mountedSword';
 import { app } from '@wildshard/engine/app/runtime';
-import type { Targets } from '@wildshard/engine/combat/types';
-import type { SwordWorld, Move } from '@wildshard/engine/combat/view/melee';
+import type { Move } from '@wildshard/engine/combat/view/melee';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { castRay, floorBelow } from '@wildshard/engine/physics/query';
@@ -15,7 +15,7 @@ import { fxMaterial, FX, annulus, type FxMaterial } from '@wildshard/engine/fx/g
 /**
  * NAIZAGAI — the Storm Sabre of Jel Ata (Nalati row B14's reward; docs/design/nalati/elites-and-bosses.md "5 — Victory";
  * mockup art/nalati-grasslands/round-3/2-storm-titan/titan-5-victory-reward.jpg). Not a fork of the sabre: B3's `Sabre`
- * replaced by a Sabre subclass; the power meshes stay preloaded (`apply()` once the orb is taken, and at every boot after):
+ * replaced by its Naizagai row (`mountedSwordVariant`); the power meshes stay preloaded (`apply()` once the orb is taken, and at every boot after):
  *
  *   · the blade goes pale storm-blue steel with a cold glow (the steel extras material, recoloured);
  *   · MOUNTED at a full gallop (≥ 11 m/s), every slash throws a LIGHTNING CRESCENT 15 m forward along your look: 40 damage
@@ -129,7 +129,7 @@ export const NAIZAGAI_PROFILE = {
     callRadius: CALL_R, callTime: CALL_T, stormMultiplier: 1.25, stormArcs: 2, clearArcs: 1 },
 };
 export class NaizagaiPower {
-  private sabre: Sabre | null = null;
+  private sabre: SabreWeapon | null = null;
   private wasSwinging = false;
   private pendingSwing: Move | null = null;
   private readonly crescent: THREE.Mesh;
@@ -160,7 +160,7 @@ export class NaizagaiPower {
   get applied(): boolean { return this.sabre !== null; }
 
   /** the upgrade (idempotent): the blade recoloured storm-blue; the moves hook in through update() */
-  apply(sabre: Sabre): void {
+  apply(sabre: SabreWeapon): void {
     sabre.row = { ...sabre.row, id: 'weapon.naizagai', meta: { ...sabre.meta, name: 'Naizagai' } };
     if (this.sabre === sabre) return;
     this.sabre = sabre;
@@ -285,12 +285,6 @@ export class NaizagaiPower {
 }
 
 
-/** The reward is a Sabre behavior subclass; its preloaded power meshes remain on the shard's Titan clock. */
-export class Naizagai extends Sabre {
-  private readonly power: NaizagaiPower;
-  constructor(world: SwordWorld, targets: Targets, opts: SabreOptions & { power: NaizagaiPower }) {
-    super(world, targets, { ...opts, profile: NAIZAGAI_PROFILE });
-    this.power = opts.power; this.power.apply(this);
-  }
-  protected override onSwingStart(move: Move): void { this.power.onSwingStart(move); }
-}
+/** The reward is a row over the sabre (an `instanceof Sabre`): NAIZAGAI_PROFILE, its power applied once it is built and told
+ *  of every swing's start; the preloaded power meshes stay on the shard's Titan clock. */
+export const Naizagai = mountedSwordVariant(Sabre, NAIZAGAI_PROFILE);

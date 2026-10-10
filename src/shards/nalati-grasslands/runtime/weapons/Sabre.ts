@@ -1,12 +1,10 @@
 import { SABRE } from '../../weapons/equipment';
 import * as THREE from 'three';
 import type { SwordWorld, SwordRig, SwordMoveSet, Move } from '@wildshard/engine/combat/view/melee';
+import { mountedSwordType, type MountedSwordMount, type MountedSwordRowOptions, type MountedSwordWeapon } from '@wildshard/sdk/items/mountedSword';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { key } from '@wildshard/sdk/runtime/weapons/starterMoves';
 import { SWORD_WOOD } from '@wildshard/sdk/runtime/weapons/starterMeleeProfile';
-import { Sword } from '@wildshard/sdk/runtime/weapons/Sword';
-import { app } from '@wildshard/engine/app/runtime';
-import type { Targets } from '@wildshard/engine/combat/types';
 import { lin } from '@wildshard/engine/math/color';
 import { forearm } from '@wildshard/engine/player/nalatiArms';
 import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from '../../weapons/meleeGeo';
@@ -210,70 +208,23 @@ export const SABRE_PROFILE: MeleeProfile & { mounted: { reach: number; cooldown:
   blade: SABRE_BLADE,
 };
 
-export interface SabreOptions { allowUnlocked?: boolean; profile?: typeof SABRE_PROFILE }
+/** The sabre's row type: SABRE_PROFILE's shape (its `blade` shapes the kylysh). */
+export type SabreProfile = typeof SABRE_PROFILE;
+/** A built sabre (Naizagai included): the type the riding, skin and Titan code hold. */
+export type SabreWeapon = MountedSwordWeapon<SabreProfile>;
+/** The same built sabre under the class's old type name: combat/stormTitan.ts holds it, and that file is a Nalati
+ *  physics-bake input (scripts/nalati-physics-inputs.mjs), so a rename there would force a rebake for no behaviour. */
+// oxlint-disable-next-line no-redeclare -- TypeScript keeps a type alias and a const apart (type vs value space); this is the class's old type name
+export type Sabre = SabreWeapon;
 /** the B7 riding hook: the horse's ground speed (m/s) and heading (rad, the player's yaw convention) */
-export interface MountState { speed: number; yaw: number }
+export type MountState = MountedSwordMount;
+/** construction: the unlock policy and an optional profile over SABRE_PROFILE */
+export type SabreOptions = MountedSwordRowOptions<SabreProfile>;
 
-export class Sabre extends Sword {
-  /** set by the riding code every frame in the saddle (`null` on foot): taps become the pass slash */
-  mount: MountState | null = null;
-  /** mounted hits in the running pass chain (0 = none) — the HUD's "2 HIT" chip */
-  passChain = 0;
-  private chainT = 0;
-  private mountCd = 0;
-
-  constructor(world: SwordWorld, targets?: Targets, opts: SabreOptions = {}) {
-    const rig = buildSabre(meleeMaterial(world.sky), steelMaterial(world.sky), (opts.profile ?? SABRE_PROFILE).blade);
-    super(world, targets, { row: opts.profile ?? SABRE_PROFILE, profile: opts.profile ?? SABRE_PROFILE, allowUnlocked: opts.allowUnlocked ?? false, rig }); // portrait: the hand clear of the CROUCH / DODGE discs
-    this.sabreProfile = opts.profile ?? SABRE_PROFILE;
-  }
-  private readonly sabreProfile: typeof SABRE_PROFILE;
-  protected override onMoveHit(move: Move): void {
-    if (move !== PASS_LEFT && move !== PASS_RIGHT) return;
-    this.passChain = this.chainT > 0 ? this.passChain + 1 : 1;
-    this.chainT = this.sabreProfile.mounted.chainWindow;
-  }
-  /** Reward replacement retains the riding clock and loot-adjusted heavy strength. */
-  carryPassState(previous: Sabre): void {
-    this.mount = previous.mount; this.passChain = previous.passChain;
-    this.chainT = previous.chainT; this.mountCd = previous.mountCd; this.heavyMult = previous.heavyMult;
-  }
-
-  get mounted(): boolean { return this.mount !== null; }
-  /** s until the pass chain lapses */
-  get passChainLeft(): number { return this.chainT; }
-
-  override tryFire(): void {
-    const m = this.mount;
-    if (m === null) { super.tryFire(); return; }
-    if (this.mountCd > 0 || this.chargingHeavy) return;
-    const side = this.passSide(m);
-    const chainMul = Math.min(this.sabreProfile.mounted.chainMax, 1 + this.sabreProfile.mounted.chainStep * (this.chainT > 0 ? this.passChain : 0));
-    this.damage = Math.round(this.sabreProfile.damage * (1 + Math.max(0, m.speed) / this.sabreProfile.mounted.speedDivisor) * chainMul);
-    if (this.strikeMove(side < 0 ? PASS_LEFT : PASS_RIGHT, false)) this.mountCd = this.sabreProfile.mounted.cooldown;
-  }
-
-  /** −1 = left, +1 = right of the horse's heading: the nearest live animal within this.sabreProfile.mounted.sense, else the way you look */
-  private passSide(m: MountState): number {
-    const p = this.player.position;
-    const fx = -Math.sin(m.yaw), fz = -Math.cos(m.yaw), rx = Math.cos(m.yaw), rz = -Math.sin(m.yaw);
-    let best = Infinity, side = 0;
-    for (const t of app.aimTargets) {
-      if (!t.alive || t.hidden === true) continue;
-      const dx = t.position.x - p.x, dz = t.position.z - p.z, d = Math.hypot(dx, dz);
-      if (d > this.sabreProfile.mounted.sense || d >= best) continue;
-      if (dx * fx + dz * fz < this.sabreProfile.mounted.behind) continue; // well behind: already passed
-      best = d; side = dx * rx + dz * rz >= 0 ? 1 : -1;
-    }
-    if (side !== 0) return side;
-    const look = Math.atan2(Math.sin(this.player.yaw - m.yaw), Math.cos(this.player.yaw - m.yaw));
-    return look > 0 ? -1 : 1; // yaw grows to the left
-  }
-
-  override update(dt: number, t: number): void {
-    this.mountCd = Math.max(0, this.mountCd - dt);
-    if (this.chainT > 0) { this.chainT = Math.max(0, this.chainT - dt); if (this.chainT === 0) this.passChain = 0; }
-    if (!this.swinging) this.damage = this.sabreProfile.damage; // a pass slash sets its own number for its one swing
-    super.update(dt, t);
-  }
+/** the kylysh on the world's sky: the painterly material, the PBR steel, the profile's blade */
+function sabreRig(world: SwordWorld, profile: SabreProfile): SwordRig {
+  return buildSabre(meleeMaterial(world.sky), steelMaterial(world.sky), profile.blade); // portrait: the hand clear of the CROUCH / DODGE discs
 }
+
+/** The sabre as a row over the platform's mounted sword: SABRE_PROFILE (or `opts.profile`), the kylysh and its passes. */
+export const Sabre = mountedSwordType<SabreProfile>({ profile: SABRE_PROFILE, rig: sabreRig, passes: { left: PASS_LEFT, right: PASS_RIGHT } });

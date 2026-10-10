@@ -90,6 +90,8 @@
     "./items/magazineFirearm": "./items/magazineFirearm.ts",
     "./items/boltCrossbow": "./items/boltCrossbow.ts",
     "./items/leverFirearm": "./items/leverFirearm.ts",
+    "./items/mountedSword": "./items/mountedSword.ts",
+    "./items/rewardBow": "./items/rewardBow.ts",
     "./compileScript": "./compileScript.ts",
     "./sourceManifest": "./sourceManifest.ts",
     "./modelGeometry": "./modelGeometry.ts",
