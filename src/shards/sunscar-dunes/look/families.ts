@@ -10,6 +10,8 @@ import { WIND } from '../world/dunes';
 import { PAINTED } from './painted';
 import { duskDomeSun } from '@wildshard/sdk/looks/duskDome';
 import { SKY_STYLE } from '../data/sky';
+import { SAND_DUSK } from '../data/dusk';
+import { duskRow } from '@wildshard/sdk/looks/duskCurves';
 
 /**
  * Signal Dunes' sky and sand on the engine's material families (SHARD-PLATFORM SF50 / SF10a, A10): the sand is the PBR
@@ -23,29 +25,11 @@ import { SKY_STYLE } from '../data/sky';
 /** Where the afterglow is brightest (`data/sky.ts`): the faces turned from it fall dark in the late dusk. */
 const SUN_GLOW = duskDomeSun(SKY_STYLE);
 
-const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const mix3 = (a: readonly [number, number, number], b: readonly [number, number, number], t: number): [number, number, number] => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
-
-/** The sand's dusk terms at one dusk value (0 the first frame's sunset … 1 the blue hour). */
+/** The sand's dusk terms at one dusk value (0 the first frame's sunset … 1 the blue hour; the curves are data/dusk.ts SAND_DUSK). */
 export function sandAtDusk(dusk: number, grain: { readonly mean: number; readonly glintMean: number }): Pick<GroundLayerParams, 'contrast' | 'grain' | 'albedo' | 'shade' | 'away'> {
-  const d = Math.min(1, Math.max(0, dusk));
-  return {
-    // round 8 / 11: the ripples' contrast falls with the dusk (mockup B's late sand is dim and soft)
-    contrast: { near: 0.52, far: 0.26, window: [4, 26], strength: 1 - 0.55 * smooth(0.2, 0.6, d) - 0.2 * smooth(0.6, 0.9, d) },
-    // the blue hour's sky light models no grain (mockups B-D): the grain clumps fade as the dusk deepens
-    grain: { map: 'sd:grain', mean: grain.mean, glintMean: grain.glintMean, strength: 1 - 0.75 * smooth(0.2, 0.6, d) },
-    // round 12: the sunset step's sand a step darker
-    albedo: 0.8 + 0.2 * smooth(0, 0.3, d),
-    // round 1 / loop 6 / R2B-1: a cool blue-grey shade at sunset turning a warm brown at dusk, never blue-black; the dusk's
-    // lavender floor (round 8: the late views' sand dim warm brown-violet, not black)
-    shade: {
-      tint: mix3([0.95, 0.9, 1.3], [0.95, 0.85, 0.9], d), gain: 1.05 + 0.1 * d,
-      lift: [0.016 * (1 - d), 0.013 * (1 - d), 0.02 * (1 - d)], amount: 0.9, edge: 0.14,
-      floor: [0.013 * d + 0.006 * smooth(0.15, 0.5, d), 0.008 * d + 0.004 * smooth(0.15, 0.5, d), 0.009 * d + 0.003 * smooth(0.15, 0.5, d)],
-    },
-    // rounds 12-24: in the late dusk the faces turned from the afterglow fall dark (x0.45), the faces toward it keep their light
-    away: { from: [SUN_GLOW.x, SUN_GLOW.z], amount: 0.55 * smooth(0.3, 0.85, d) },
-  };
+  const row = duskRow(SAND_DUSK, Math.min(1, Math.max(0, dusk))) as Pick<GroundLayerParams, 'contrast' | 'albedo' | 'shade'> & { readonly grainStrength: number; readonly away: number };
+  return { contrast: row.contrast, grain: { map: 'sd:grain', mean: grain.mean, glintMean: grain.glintMean, strength: row.grainStrength }, albedo: row.albedo, shade: row.shade,
+    away: { from: [SUN_GLOW.x, SUN_GLOW.z], amount: row.away } };
 }
 
 /** The sand's family entry: the PBR family with Signal Dunes' ground layer over the baked maps `sd:grain` / `sd:trail` / `sd:shadow`. */

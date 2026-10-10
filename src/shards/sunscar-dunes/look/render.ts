@@ -1,4 +1,6 @@
 import { DUSK, fillAt, keyAt } from './dusk';
+import { curveAt } from '@wildshard/sdk/looks/duskCurves';
+import { AERIAL_FOG, FAR_HAZE, FOG_SUN } from '../data/dusk';
 import { Color, Fog, Mesh, SphereGeometry, Vector3, type DataTexture, type HemisphereLight, type Material, type Texture } from 'three';
 import type { LookStrategy, PainterField } from '@wildshard/engine/render/look';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
@@ -42,8 +44,6 @@ const DEEP_KEY = new Color(0.78, 0.42, 0.4);
 // round 22 (the lead after round 21: the light band's 0x5e5288 turned A's mid dunes and D's far land milky lilac): the
 // horizon's darker violet near the ground
 export const FOG = { color: 0x3e3452, near: 80, far: 430 } as const;
-/** The distance fog's density (the engine's exponential fog, per metre): row 10's aerial perspective. */
-const AERIAL_FOG = 0.0013; // round 22 (the lead: subtle in front of ~300 m): 18 % at 150 m, 32 % at 300 m, 48 % at 500 m (0.0028: 34 / 57 / 75 %) // loop 6: a deep dusk haze, not lilac; E409 second top-10 row 10 (aerial perspective: the mockups' far dunes go violet-blue, blue/red 0.62-0.88): the horizon sky's lighter violet-blue (round 21b)
 // loop 6: lit sand a gold-orange, less saturated and a little lighter than loop 5 (the targets' lit faces)
 // E399 (council round 2, R2B-1: the mockups' ground measures warm brown, R/B ~3): less blue in every tone
 const SAND = new Color(0.5, 0.23, 0.075),
@@ -161,28 +161,12 @@ export function signalDunesLook(): LookStrategy {
           painted?.sky.update(DUSK.value);
           sand?.update(DUSK.value, FIRE_LIGHTS.value);
           if (hemi) hemi.intensity = hemiBase * fillAt(DUSK.value);
-          const late = Math.min(1, Math.max(0, (DUSK.value - 0.2) / 0.5));
-          // round 22: the fog keeps the horizon sky's lighter violet-blue at every step (it went toward the near-black DUSK_FOG late)
+          // round 22: the fog keeps the horizon sky's lighter violet-blue at every step; the sun-side tint, the far ranges' haze
+          // and the aerial fog follow their dusk curves (data/dusk.ts)
           fogOf?.().color.set(FOG.color);
-          // row 10: the sun-side tint at a third (with the thicker distance fog it lit the far land toward the glow)
-          // round 26 (seat B after round 25: D's far ranges, hazed toward the dark fog colour, cut the glow line, 15-17 against
-          // 160): the sun-side tint no longer dims late, so the ranges toward the glow take its colour (the late fog is thin)
-          fogSun?.copy(fogSunBase).multiplyScalar(0.35 * (1 + 2.5 * late)); // brighter toward the glow as the land darkens (a lift, never toward black; the spawn pair at dusk 0 unchanged)
-          // round 21b: the far ranges' haze full at the sunset step (A's ranges 36 against 70) and falling to 15 % by the late
-          // waymarks (D's land under the horizon 56 against 17)
-          const hz = Math.min(1, Math.max(0, (DUSK.value - 0.55) / 0.3));
-          haze?.copy(hazeBase).multiplyScalar(1 - 0.85 * hz * hz * (3 - 2 * hz));
-          // round 12 (D: a pale haze strip on the far land under the ranges; the mockup's land there near-black): thinner late
-          // E409 second top-10 row 10 (aerial perspective): the engine's exponential distance fog thick enough to carry the far
-          // dunes toward its violet-blue (~35 % at 150 m; it was ~3 %, thinned late since round 12 when the haze was lilac and
-          // paled D's far land), the same at every dusk step
-          // round 21b (seat B after round 20: the haze darkened the far land, A's ranges 36 against 70, blue/red 0.58 against
-          // 0.83-0.88): aerial perspective goes toward the horizon sky's violet-blue, lighter; one density at every dusk step
-          // round 22 (seats B and C after round 20: the late views' far land 32-55 against the mockups' 16-27, A's at sunset
-          // short of its haze): the haze is sunlight scattered in the air, so it thins as the light goes, never thickens:
-          // full at the sunset step, a fifth by the blue hour; always toward the same lighter colour, a lift that fades
-          const thin = Math.min(1, Math.max(0, (DUSK.value - 0.3) / 0.45));
-          if (fogDist) fogDist.value = AERIAL_FOG * (1 - 0.8 * thin * thin * (3 - 2 * thin));
+          fogSun?.copy(fogSunBase).multiplyScalar(curveAt(FOG_SUN, DUSK.value));
+          haze?.copy(hazeBase).multiplyScalar(curveAt(FAR_HAZE, DUSK.value));
+          if (fogDist) fogDist.value = curveAt(AERIAL_FOG, DUSK.value);
         },
         rebuild: () => undefined, attachPost: () => undefined };
     },
