@@ -134,6 +134,19 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
   return { jobs, materials: mats.size };
 }
 
+/** Compile a parked subtree against the light counts its first visible frame will have. Three gathers visible lights
+ * from both the target scene and each job root. Detached light clones add only the future lights absent from the
+ * target's visible traversal; live visibility, intensity, parents and the page's drawn light count stay unchanged.
+ * Post/background jobs targeting another scene keep that scene's lighting. */
+export function includeFutureLights(jobs: readonly CompileJob[], target: THREE.Scene, future: THREE.Object3D): void {
+  if (future === target) return;
+  const visible = new Set<THREE.Light>();
+  target.traverseVisible(object => { if (object instanceof THREE.Light) visible.add(object); });
+  const added: THREE.Light[] = [];
+  future.traverseVisible(object => { if (object instanceof THREE.Light && !visible.has(object)) added.push(object); });
+  for (const job of jobs) if (job.target === target) for (const light of added) job.root.add(light.clone(false));
+}
+
 /**
  * A job's disposer made outside the function that collects the job's stand-ins (SF57 leak5). A closure shares its
  * function's one context: made inside `shadowJobs`, the disposer (held by the warm-up's owner until that frame leaves)
@@ -382,6 +395,7 @@ export async function runPrecompile(
 /** The level supplies compile policy; the mechanism owns all shader jobs. */
 export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void,
   options: { /** Entered frames reuse their existing caster geometry. */ chunkCasters?: boolean; /** Fence yielded work to its entered owner. */ current?: () => boolean;
+    /** A parked content subtree whose lights become visible on entry; no live light/visibility change. */ futureLighting?: THREE.Object3D;
     /** Temporary program holders survive until this frame leaves; content materials remain borrowed. */ owner?: Pick<Scope, 'onDispose'> } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
@@ -417,6 +431,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const bg = backgroundJob(scene, rt);
     if (bg && policy?.background !== false) jobs.push(bg); else bg?.dispose?.();
     if (policy?.post !== false) jobs.push(...postJobs(game.composer, rt));
+    if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting);
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
     const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current);

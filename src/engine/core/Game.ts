@@ -675,9 +675,10 @@ export class Game {
   async warmEnteredFrame(owner: Scope): Promise<void> {
     const composer = this._composer;
     if (composer === null) return;
+    const futureLighting = this.scene;
     const current = (): boolean => !owner.disposed;
     const { precompileLevel, warmComposerFrame } = await import('../render/precompile');
-    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner }), current);
+    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting }), current);
   }
 
   /**

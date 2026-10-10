@@ -770,6 +770,11 @@ callback for sampler changes before publication (including baked cards). Final r
 allocation, complete sampler/storage key and source version; disposed textures or empty unresident clones refuse
 with a descriptive error rather than attempting an upload from released pixels.
 
+`Game.warmEnteredFrame(owner)` captures the installing content scene before yielding. Shader preparation includes
+that parked scene's future lights through detached light clones in compile jobs targeting the rendered root. This
+warms the first visible frame's light-count variants without showing the parked world, changing live light counts,
+or adding per-frame lighting work. Visible lights are not counted twice; unrelated post targets keep their own lighting.
+
 ## 9. Saves
 
 All persistent state goes through `SaveStore` (`app.saves`, also exported as `saves`). Raw `localStorage` /
