@@ -11,7 +11,7 @@ import { orbitDiver, burstFlyer } from '@wildshard/sdk/flyers';
 import { GOAT_BRAIN, RAY_BRAIN, WISP_BRAIN } from '../data/brains';
 import { DIVE, RAM } from './strikes';
 import { BURST } from '../species/galeWisp';
-import { StormRocBrain } from './stormRocBrain';
+import { stormRocBrain, type StormRocBrain } from './stormRocBrain';
 import type { Home } from '../data/layout';
 
 /** Sky's fight is telegraphed (manifest `fight.telegraphed`): a self-thinking species hurts only inside 70° of its facing. */
@@ -59,6 +59,6 @@ export function flockBrain(kind: string, label: string, actor: AnimalSim, home: 
   if (kind === 'driftRay') return wrap(new OrbitDiverBrain(actor, orbitDiver({ ...RAY_BRAIN, home }), home, DIVE), null);
   if (kind === 'galeWisp') return wrap(new BurstFlyerBrain(actor, burstFlyer({ ...WISP_BRAIN, home }), home, BURST), null);
   if (kind === 'skyGoat') return wrap(new RamGrazerBrain(actor, ramGrazer(GOAT_BRAIN), RAM), null);
-  if (kind === 'stormRoc') { const roc = new StormRocBrain<AnimalSim>(actor, shove); return wrap(roc, roc); }
+  if (kind === 'stormRoc') { const roc = stormRocBrain<AnimalSim>(actor, shove); return wrap(roc, roc); }
   throw new Error(`Sky has no shipping policy for ${kind}`);
 }

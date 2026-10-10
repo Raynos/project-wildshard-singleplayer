@@ -6,7 +6,8 @@ import { readFileSync } from 'node:fs';
 import { registerSpecies } from '../../../src/engine/entities/species/registry';
 import { speciesWithLook } from '../../../src/engine/entities/species/look';
 import { overrideTerrain } from '../../../src/engine/world/Heightfield';
-import { StormRocBrain } from '../../../src/shards/far-reach/runtime/stormRocBrain';
+import { PhasedRaptorBrain } from '../../../src/engine/ai/phasedRaptor';
+import { stormRocBrain, type StormRocBrain } from '../../../src/shards/far-reach/runtime/stormRocBrain';
 import { STORM_ROC, STORM_ROC_LOOK } from '../../../src/shards/far-reach/species/stormRoc';
 import { bindPlayerPush } from '../../../src/shards/far-reach/species/rig';
 import { CROWN, DAIS } from '../../../src/shards/far-reach/data/layout';
@@ -25,7 +26,7 @@ function fixture(next: boolean): ReturnType<typeof creature> & { policy: StormRo
     if (policy === undefined) throw new Error('Roc was not installed'); policy.act(ctx);
   });
   const shoves: number[][] = [];
-  policy = next ? new StormRocBrain(f.animal) : new ShippingRoc(f.animal);
+  policy = next ? stormRocBrain(f.animal) : new ShippingRoc(f.animal);
   return { ...f, get frame(): number { return f.frame; }, get policy(): StormRocBrain | ShippingRoc {
     if (policy === undefined) throw new Error('Missing Roc'); return policy;
   }, set policy(value: StormRocBrain | ShippingRoc) { policy = value; }, shoves };
@@ -65,10 +66,10 @@ it('matches the shipping Roc for 10,000 ticks across all phases, calm, reach, to
 });
 it.each([1400, 3400, 6400])('restores the exact body and policy suffix at tick %i without effects or RNG draws', at => {
   const f = fixture(true), restored = fixture(true);
-  if (!(f.policy instanceof StormRocBrain) || !(restored.policy instanceof StormRocBrain)) throw new Error('Expected native Roc policy');
+  if (!(f.policy instanceof PhasedRaptorBrain) || !(restored.policy instanceof PhasedRaptorBrain)) throw new Error('Expected native Roc policy');
   for (let tick = 0; tick < at; tick++) { drive(f, tick); drive(restored, tick); }
   const state = f.policy.snapshot(), actor = f.animal.snapshot(), rng = f.ctx.rng.snapshot();
-  const next = new StormRocBrain(restored.animal), effects = restored.hits.length, attacks = restored.starts.length;
+  const next = stormRocBrain(restored.animal), effects = restored.hits.length, attacks = restored.starts.length;
   restored.animal.restore(actor); restored.ctx.rng.restore(rng); next.restore(state); restored.policy = next;
   expect(restored.ctx.rng.snapshot()).toEqual(rng); expect(restored.animal.snapshot()).toEqual(actor);
   expect(restored.hits.length).toBe(effects); expect(restored.starts.length).toBe(attacks);
@@ -76,7 +77,7 @@ it.each([1400, 3400, 6400])('restores the exact body and policy suffix at tick %
   expect(restored.hits).toEqual(f.hits); expect(restored.starts).toEqual(f.starts); expect(restored.shoves).toEqual(f.shoves);
 });
 it('rejects invalid continuations before mutating the policy', () => {
-  const f = fixture(true), policy = f.policy; if (!(policy instanceof StormRocBrain)) throw new Error('Expected Roc');
+  const f = fixture(true), policy = f.policy; if (!(policy instanceof PhasedRaptorBrain)) throw new Error('Expected Roc');
   const saved = policy.snapshot(); expect(() => { policy.restore(null); }).toThrow('continuation');
   if (typeof saved !== 'string') throw new Error('Expected bounded continuation');
   expect(() => { policy.restore(saved.replace('"phase":0', '"phase":9')); }).toThrow();

@@ -40,11 +40,13 @@ const perchYaw = (): number => {
 const ROC = phasedRaptor({ ...ROC_BRAIN, perch: { ...PERCH(), yaw: perchYaw() } });
 /** The phase its encounter sets (runtime/rocEncounter.ts clamps to it). */
 export type RocPhase = 0 | 1 | 2;
+/** The Storm Roc's body brain: a platform phased raptor (@wildshard/engine/ai/phasedRaptor) on its declared row. */
+export type StormRocBrain<A extends AnimalSim = Animal> = PhasedRaptorBrain<A>;
 /**
- * The Storm Roc's body: a platform phased raptor (@wildshard/engine/ai/phasedRaptor) on its declared row. The boss script
+ * A Roc body's brain on its declared row (data/brains.ts ROC_BRAIN, perched on the crown). The boss script
  * (runtime/rocEncounter.ts) owns the fight and sets its phase; `shove` is the gale wall's player push (the browser's
  * pushPlayer; the headless host's impulse).
  */
-export class StormRocBrain<A extends AnimalSim = Animal> extends PhasedRaptorBrain<A> {
-  constructor(actor: A, shove: (yaw: number, speed: number, lift: number) => void = pushPlayer) { super(actor, ROC, [STOOP, GALE_WALL, SWEEP], shove); }
+export function stormRocBrain<A extends AnimalSim>(actor: A, shove: (yaw: number, speed: number, lift: number) => void = pushPlayer): StormRocBrain<A> {
+  return new PhasedRaptorBrain(actor, ROC, [STOOP, GALE_WALL, SWEEP], shove);
 }
