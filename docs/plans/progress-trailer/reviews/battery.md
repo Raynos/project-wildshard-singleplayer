@@ -16,3 +16,4 @@ is a finding. Seats may add scenarios; they stay.
 | S9 | **Epic.** Name the one moment a viewer would rewind to. If there isn't one, that is a finding. |
 | S10 | **Receipts.** A commenter checks an on-screen number, date or SHA against the public commit log. Is every one generated from git by the render, with its SHA? (R1B, round 1) |
 | S11 | **Same spot, four builds.** A viewer can see the game get better at one fixed place and verb; no later build reads worse. (R1C, round 1) |
+| S12 | **Not the alpha again.** A viewer who saw the alpha trailer on wildshard.io: is this trailer visibly its own (history leads, its own sound and score)? (R2C, round 2) |

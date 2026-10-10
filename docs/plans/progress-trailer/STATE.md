@@ -10,5 +10,6 @@
   movement, real sub-steps), §3.2.
 - **PT1 done**: real input-driven, fixed-step takes accepted on day 1 (crossbow headshot), 8 (sword), 15 (sword in the
   rain), 22 (war fan, InputService); `progress/progress-trailer/pt1-proofs.jpg`.
-- Council round 2 on the plan running (B and C in; A pending): the fixes land in one commit, then PT2.
+- Council round 2 on the plan: 38 findings (10 must-fix) from seats B and C, all fixed in the plan (the Codex seat timed
+  out); round 3 (three fresh seats on the diff) next, then PT2.
 - Open rows: PT2–PT11.
