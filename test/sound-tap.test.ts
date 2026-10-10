@@ -12,7 +12,7 @@ const schedulers: Readonly<Record<string, readonly string[]>> = {
   'src/engine/audio/Audio.ts': ['scheduleBubble'],
   'src/shards/pine-hollow/runtime/audio/synth.ts': ['scheduleGust', 'scheduleBird'],
   'src/shards/nalati-grasslands/runtime/audio/synth.ts': ['scheduleLark', 'scheduleCricket', 'scheduleCrackle'],
-  'src/shards/driftwood-isle/runtime/audio/ambience.ts': ['scheduleBird', 'scheduleDrip', 'scheduleSwell'],
+  'src/game/systems/audio/ambienceMix.ts': ['scheduleOneShot'],
   'src/shards/pine-hollow/runtime/audio/ambience.ts': ['scheduleThrall'],
 };
 
@@ -38,8 +38,8 @@ describe('every sound source is observed', () => {
       '../src/engine/audio/Stems.ts', '../src/engine/audio/Voices.ts', '../src/engine/audio/ambience.ts',
       '../src/engine/audio/aacSource.ts',
       '../src/engine/audio/synth.ts',
-      '../src/game/systems/audio/synthBeds.ts',
-      '../src/shards/driftwood-isle/runtime/audio/ambience.ts', '../src/shards/driftwood-isle/runtime/audio/shrineHum.ts',
+      '../src/game/systems/audio/ambienceMix.ts', '../src/game/systems/audio/synthBeds.ts',
+      '../src/shards/driftwood-isle/runtime/audio/shrineHum.ts',
       '../src/shards/nalati-grasslands/runtime/audio/synth.ts',
       '../src/shards/pine-hollow/life/index.ts',
     ].sort()); // S3.5 merges three independent players; every remaining source still requires its content tap.
@@ -91,7 +91,7 @@ describe('every sound source is observed', () => {
         };
         visit(ast);
       }
-      expect(callbacks).toBe(12); // S4.3: the island bed's gust is its own scheduler (Driftwood's sfx.ts), beside the mixer's forest gust
+      expect(callbacks).toBe(10); // S4.3: the island bed's gust is its own scheduler (Driftwood's sfx.ts); M3: Driftwood's swell / bird / drip are rows on ambienceMix's one scheduler
       expect(countdowns).toBe(4);
       snapshot.dispose();
     } finally { api.close(); }
