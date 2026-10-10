@@ -550,14 +550,18 @@ const simNoRender = rule('Headless simulation checks its complete runtime import
   } };
 });
 
-// SHARD-PLATFORM SP5: generator code runs on the author's machine and never ships, so only the bake and other generators
-// import it; check-chunks refuses a generator module in any built chunk, this catches the import that would put it there.
+// DS1.3: generator code runs only at build time. The shard's author entry composes local generators; runtime never
+// imports them; check-chunks refuses a generator module in any built chunk, this catches the import that would put it there.
 const GENERATOR = /^src\/shards\/[^/]+\/generators(?:\/|$)/u;
-const noRuntimeGenerator = rule('Generators are imported only by the bake and other generators (SHARD-PLATFORM SP5)', (context) => {
+const noRuntimeGenerator = rule('Generators are imported only by authoring entries, bakers and other generators (DS1.3)', (context) => {
   if (GENERATOR.test(pathOf(context))) return {};
   return importsVisitor((node) => {
-    const source = importPrefix(node.source); // a template's leading quasi resolves too (`./generators/${name}`)
-    if (source !== null && GENERATOR.test(modulePath(context.filename, source))) report(context, node, 'Runtime code cannot import a generator: bake its output into data/ or public/assets/ instead');
+    const source = importPrefix(node.source);
+    if (source === null) return;
+    const target = modulePath(context.filename, source), author = /^src\/shards\/([^/]+)\/shard\.config\.ts$/u.exec(pathOf(context));
+    // The retained build entry may compose its own literal generators. Runtime/data/manifest imports still refuse.
+    if (author !== null && !computedSpecifier(node.source) && target.startsWith(`src/shards/${author[1]}/generators/`)) return;
+    if (GENERATOR.test(target)) report(context, node, 'Runtime code cannot import a generator: bake its output into data/ or public/assets/ instead');
   });
 });
 
