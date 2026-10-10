@@ -272,6 +272,10 @@ Loop
 
 + 4 more shards
 
+## Shards · more page link
+
+Every shard in full →
+
 # How shards fit together
 
 ## Together · question
@@ -305,6 +309,10 @@ behaviour in a sandbox (wasm)
 ## Together · never holds
 
 code that can reach another shard, or your browser
+
+## Together · more page link
+
+How the MMO works →
 
 ## Together · shardfile title
 
@@ -376,6 +384,10 @@ Walk it locally
 ## How · step 6
 
 Upload it to the world (when uploads open)
+
+## How · more page link
+
+What building a shard is like →
 
 # How a shard is made · Thin Ice, inside step 3
 
@@ -847,17 +859,39 @@ Want it on your phone like an app? Add it to your Home Screen:
 
 iOS and Android apps: coming
 
+# Top bar and footer (every page but the home page has the bar; every page has the footer)
+
+## Nav · label
+
+Pages
+
+## Nav · play
+
+Play
+
+## Nav · build
+
+Build
+
+## Nav · mmo
+
+The MMO
+
+## Nav · press
+
+Press
+
 # Press kit page (wildshard.io/press/)
 
 ## Press page · title
 
 Press kit · Project Wildshard
 
-## Press page · home link
+## Nav · home
 
 Project Wildshard
 
-## Press page · play link
+## Nav · play now
 
 Play now ↗
 
@@ -918,6 +952,72 @@ Mark (SVG)
 ## Press · contact label
 
 Contact:
+
+# Play page (wildshard.io/play/)
+
+## Play page · title
+
+Play · Project Wildshard
+
+## Play page · description
+
+What it's like to play Project Wildshard: seven shards in seven looks, in your browser, free.
+
+## Play · question
+
+what is it like to play?
+
+## Play · title
+
+Play the world.
+
+## Play · intro
+
+Seven shards today, each its own world and its own look. Free, in your browser, on your phone or desktop.
+
+# Build page (wildshard.io/build/)
+
+## Build page · title
+
+Build · Project Wildshard
+
+## Build page · description
+
+What it is like to build a shard of Project Wildshard with Claude or any coding agent.
+
+## Build · question
+
+what is it like to build one?
+
+## Build · title
+
+Build a shard.
+
+## Build · intro
+
+Describe a world to Claude or any coding agent. It builds a shard you can walk, and one day everyone else can too.
+
+# MMO page (wildshard.io/mmo/)
+
+## MMO page · title
+
+The MMO · Project Wildshard
+
+## MMO page · description
+
+How Project Wildshard works: the shardfile, the grid, the engine and the road to the MMO.
+
+## MMO · question
+
+how does it actually work?
+
+## MMO · title
+
+How the MMO works.
+
+## MMO · intro
+
+The technical side, for the curious and for authors: what a shard is, how shards fit together, and how far along the road we are.
 
 # Footer
 

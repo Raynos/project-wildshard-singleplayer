@@ -1,6 +1,7 @@
 // The marketing site's build (MARKETING-SITE MS4, E465): its own root, its own public/, its own output. Nothing from
 // the game's src/ or vite plugins: the sites share the repo, not a bundle (as drafts/, J15).
-//   pnpm build:site   → dist-site/      pages: index.html (the home page), press/index.html (the press kit), 404.html
+//   pnpm build:site   → dist-site/      pages: index.html (the home page), play/, build/ and mmo/ (the three sagas,
+//                                       MS29–MS31), press/index.html (the press kit), 404.html
 // Every word on every page comes from site/COPY.md (site/tools/copy.ts fills the {{…}} slots; Jake edits that file):
 // a slot with no entry, or an entry no page uses, stops the build. Two blocks are filled from elsewhere:
 //   <!--gen:shardfile-->  site/shardfile.json: an excerpt of the template's real shard.json (MS15), checked in, so the
@@ -19,7 +20,7 @@ import { fillCopy, parseCopy, plain, unusedCopy } from './tools/copy.ts';
 
 const root = import.meta.dirname;
 /** every page of the site, as a path under site/ */
-const PAGES = ['index.html', 'press/index.html', '404.html'];
+const PAGES = ['index.html', 'play/index.html', 'build/index.html', 'mmo/index.html', 'press/index.html', '404.html'];
 
 const sha = process.env.SITE_BUILD_SHA
   ?? execFileSync('git', ['-C', root, 'rev-parse', '--short', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
