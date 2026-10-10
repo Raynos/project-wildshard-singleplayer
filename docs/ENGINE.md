@@ -2265,6 +2265,16 @@ the host's combat pipeline inside the 70° strike arc with a clear line (`creatu
 the move `contactMove(kind)`). Both sides build the same engine brain from the same admitted data, so a row behaves the
 same in the client and the headless host. Signal Dunes' ray and strider are the first (`data/brains.ts` SIGNAL_SPECIES).
 
+**Ledge pouncers (SF27).** `@wildshard/engine/ai/ledgePouncer` exposes `LedgePouncerBrain`, a view-free stalking,
+paired-swipe and ballistic-pounce policy. Its strictly admitted `PouncerSpec` holds perception ranges, ledge selection,
+movement, turn rates, tell/strike/cooldown clocks, weak-point multipliers and named pose fields. `PouncerPorts` provides
+the actual ledges (at most six), native height/head queries, player/home/phase, tell events and authoritative hit/knock
+callbacks; it never infers collision. `think(body, context)` follows the manager's decision cadence, `act(body)` follows
+the body's attack phase, and `tick(body, dt, t, engaged, leashing)` follows the fixed frame clock. Spawn, reset and tell
+lifetime remain explicit. `snapshot` / atomic `restore` retain every clock, leap endpoint, retreat goal and paired hit
+marker; the prior runtime keeper wire shape and output order stay exact. `readPouncerSpec` rejects unknown fields,
+nonfinite tuning, reversed ranges, invalid strike fractions and conflicting pose fields before constructing a policy.
+
 **Species scripts (SF27).** A row's brain may be `{ archetype: 'script', data }`
 (`@wildshard/game/shardfile/speciesScripts`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,
 up to 8 numeric `slots` (its state, with spawn values), up to 4 actor `memory` fields it reads and writes (a pose's
