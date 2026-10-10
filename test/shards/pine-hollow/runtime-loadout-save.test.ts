@@ -13,7 +13,7 @@ import type { Inventory } from '../../../src/game/Inventory';
 import type { Owned } from '../../../src/game/loot/Owned';
 import type { Bow } from '../../../src/game/weapons/Bow';
 import type { LeverRifle } from '../../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
-import type { Crossbow } from '../../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
+import type { CrossbowWeapon } from '../../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 import { bindRuntimeState } from '../../../src/game/shardfile/hybridRows';
 import source from '../../../src/shards/pine-hollow/shard.config';
 import { installPineLoadout } from '../../../src/shards/pine-hollow/loadout/loadout';
@@ -27,7 +27,7 @@ it('C26 restores current special ammunition through the real installer and leave
   const rifle = legacyDouble<LeverRifle>({ row: LEVER, state: legacyDouble<LeverRifle['state']>({ reserve: 0, ammo: 0 }) });
   const longbow = legacyDouble<Bow>({ row: LONGBOW, state: legacyDouble<Bow['state']>({ bolts: 0 }) });
   const current = legacyDouble<Weapon>({ enabled: true, id: 'crossbow', ammoSelect: () => undefined });
-  const crossbow = legacyDouble<Crossbow>({ boltMaterial: new MeshStandardMaterial(), state: legacyDouble<Crossbow['state']>({ bolts: 30, loaded: true, reloading: false }) });
+  const crossbow = legacyDouble<CrossbowWeapon>({ boltMaterial: new MeshStandardMaterial(), state: legacyDouble<CrossbowWeapon['state']>({ bolts: 30, loaded: true, reloading: false }) });
   try {
     const loadout = installPineLoadout({ scope, scene: new Scene(), cues: new CombatCues(), crossbow, rifle, longbow,
       weapons: legacyDouble<EquipmentService>({ enabled: true, current, events: app.events, has: () => false }),

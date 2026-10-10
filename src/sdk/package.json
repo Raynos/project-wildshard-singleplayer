@@ -85,6 +85,7 @@
     "./items/lashView": "./items/lashView.ts",
     "./items/lashWeapon": "./items/lashWeapon.ts",
     "./items/magazineFirearm": "./items/magazineFirearm.ts",
+    "./items/boltCrossbow": "./items/boltCrossbow.ts",
     "./compileScript": "./compileScript.ts",
     "./sourceManifest": "./sourceManifest.ts",
     "./modelGeometry": "./modelGeometry.ts",
