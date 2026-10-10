@@ -81,7 +81,7 @@ export function inventoryOutputs(root, revision = 'HEAD') {
       if (candidates.length === 1) generator=candidates[0] ?? null;
     }
     if (generator === null && /^public\/assets\/baked\/[^/]+\/terrain\.bin$/u.test(row.path)) generator='scripts/bake-chunk.mjs';
-    if (generator === null && row.path.startsWith('public/assets/baked/template-props/')) generator='src/shards/_template/generators/kit.ts + scripts/build-shardfiles.mjs';
+    if (generator === null && row.path.startsWith('public/assets/baked/template-props/')) generator=['src/shards/_template/generators/kit.ts','scripts/build-shardfiles.mjs'].join(' + ');
     const darwinOnly = owner === 'nine-dragon-stack' && /\/(?:layout|specimens(?:-explorer)?)\.(?:bin|json)$/u.test(row.path) ? true : null;
     const item = {...row,generator,seconds:null,darwinOnly,blender:blender.has(row.path) && row.path.endsWith('.glb'),frozen:frozen.has(row.path)};
     rows.push({...item,policy:outputPolicy(item)});
