@@ -2,7 +2,7 @@ import { pageScope, resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 import { engineString } from '../strings';
 import * as THREE from 'three';
-import { Pass, type EffectComposer } from 'postprocessing';
+import { Pass, ToneMappingEffect, ToneMappingMode, type EffectComposer } from 'postprocessing';
 import { newProgramsSince, snapshotPrograms, type ProgramLike } from '../boot/perflog';
 import { bootTraceActive } from '../boot/bootTrace';
 import type { Renderer } from './renderer';
@@ -303,12 +303,14 @@ export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget |
   const walk = (v: unknown, toScreenIn: boolean, depth: number): void => {
     let toScreen = toScreenIn;
     if (v === null || typeof v !== 'object' || visited.has(v) || depth > 4) return;
+    // AGX never updates its adaptation passes. Bloom still draws luminance when its threshold is zero.
+    if (v instanceof ToneMappingEffect && v.mode !== ToneMappingMode.REINHARD2_ADAPTIVE) return;
+    if (v instanceof Pass && !v.enabled) return;
     const o = v as Record<string, unknown> & { isMaterial?: boolean; isObject3D?: boolean; isScene?: boolean; isTexture?: boolean; isWebGLRenderTarget?: boolean; isCamera?: boolean; isMesh?: boolean };
     if (o.isMaterial) {
       const m = o as unknown as THREE.ShaderMaterial;
-      // only screen shaders a frame really draws: the tone-mapping effect's adaptive-luminance pair is idle
-      // under AGX, and the god-rays light source's MeshBasicMaterial already has its in-scene program
-      const idle = !m.isShaderMaterial || m.name === 'AdaptiveLuminanceMaterial' || (m.name === 'LuminanceMaterial' && !('THRESHOLD' in m.defines));
+      // The god-rays light source's MeshBasicMaterial already has its in-scene program.
+      const idle = !m.isShaderMaterial;
       if (!idle && !found.has(m)) found.set(m, toScreen);
       return;
     }

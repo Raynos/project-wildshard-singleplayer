@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { BatchedMesh, BoxGeometry, Color, Group, Mesh, MeshDepthMaterial, MeshStandardMaterial, Scene, PerspectiveCamera, WebGLRenderer } from 'three';
 import { sceneJobs, shadowJobs, postJobs } from '../src/engine/render/precompile';
 
-import { EffectComposer } from 'postprocessing';
+import { BloomEffect, EffectComposer, EffectPass, ToneMappingEffect, ToneMappingMode } from 'postprocessing';
 import { WorldRenderPass } from '../src/engine/core/worldDepth';
 
 function fixture(): Scene {
@@ -68,4 +68,39 @@ it('releases temporary shadow program holders without disposing borrowed caster 
   for (const dispose of released) expect(dispose).toHaveBeenCalledOnce();
   expect(borrowedMaterial).not.toHaveBeenCalled(); expect(borrowedGeometry).not.toHaveBeenCalled();
   custom.dispose();
+});
+
+
+it('prepares enabled bloom without a threshold and skips the inactive AGX adaptation passes', () => {
+  const composer = new EffectComposer(), bloom = new BloomEffect({ luminanceThreshold: 0, luminanceSmoothing: 0 });
+  const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
+  const pass = new EffectPass(new PerspectiveCamera(), bloom, tone);
+  composer.passes.push(pass);
+  try {
+    const jobs = postJobs(composer, composer.inputBuffer);
+    const materials = jobs.flatMap(job => job.root.children).filter((object): object is Mesh => object instanceof Mesh)
+      .flatMap(object => Array.isArray(object.material) ? object.material : [object.material]);
+    expect(bloom.luminanceMaterial.defines).not.toHaveProperty('THRESHOLD');
+    expect(materials).toContain(bloom.luminanceMaterial);
+    expect(materials.filter(material => material.name === 'LuminanceMaterial')).toEqual([bloom.luminanceMaterial]);
+    expect(materials).not.toContain(tone.adaptiveLuminanceMaterial);
+    for (const job of jobs) job.dispose?.();
+  } finally { composer.dispose(); }
+});
+
+
+it('includes actual adaptive tone passes when enabled and omits a disabled composer pass', () => {
+  const composer = new EffectComposer(), tone = new ToneMappingEffect({ mode: ToneMappingMode.REINHARD2_ADAPTIVE });
+  const pass = new EffectPass(new PerspectiveCamera(), tone);
+  composer.passes.push(pass);
+  try {
+    const jobs = postJobs(composer, composer.inputBuffer);
+    const materials = jobs.flatMap(job => job.root.children).filter((object): object is Mesh => object instanceof Mesh)
+      .flatMap(object => Array.isArray(object.material) ? object.material : [object.material]);
+    expect(materials).toContain(tone.adaptiveLuminanceMaterial);
+    expect(materials.filter(material => material.name === 'LuminanceMaterial')).toHaveLength(1);
+    for (const job of jobs) job.dispose?.();
+    pass.enabled = false;
+    expect(postJobs(composer, composer.inputBuffer)).toEqual([]);
+  } finally { composer.dispose(); }
 });

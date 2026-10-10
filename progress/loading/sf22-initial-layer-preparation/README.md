@@ -47,3 +47,21 @@ were 19.72, 12.76, 9.58, 8.46 and 6.77 for the five completed routes; the first 
 under load (>15). Evidence SHA-256:
 `79685f1385a84e8cd1017b5bb862e3a9da9dd8193ab0c80b516a7009d8b978ef`.
 Raw evidence stays in the lane scratchpad, not git.
+
+
+## Enabled zero-threshold bloom preparation
+
+The slow boot program is `LuminanceMaterial`, first drawn by the bloom update in
+`Game.firstFrame`. The preparation inventory incorrectly inferred that every
+luminance material without `THRESHOLD` was idle. The grid's ordinary effect law can
+set threshold and smoothing to zero; its enabled bloom luminance pass still draws.
+A real BloomEffect/EffectPass inventory regression fails before the correction.
+
+Preparation now skips inactive tone adaptation by the actual ToneMappingEffect
+mode, and skips disabled passes, while retaining enabled zero-threshold bloom.
+Adaptive mode's real luminance/adaptation materials remain admitted too. Materials,
+defines, target sizes, uniforms and draw behaviour are unchanged; only the program
+inventory prepared before first draw changes. Seven focused preparation files /
+29 tests, strict checking against committed HEAD plus owned hunks, and touched
+lint pass. No new public API or workspace import edge. Browser timing improvement
+for this inventory correction remains unmeasured.
