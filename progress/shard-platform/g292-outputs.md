@@ -1887,3 +1887,87 @@ Unresolved producer rows are migration blockers, not permission to delete their 
 Darwin arm64 Nine layout/specimens: one isolated cold generation (8.670 s backend), verified warm hit (16.684 ms backend), and forced fresh comparison (8.462 s backend). All five outputs match committed bytes: three compressed bins and two JSON stamps. Cache key `1aebd9b391eb6a50a558f23928209f85c85edc0dc22a64ddbdee262ad3234a2f`. These backend timings exclude initial input-map/key collection, and are not a Linux portability claim. The large bins are build/cache candidates; the small stamps do not meet the >60 s expensive exception in this pilot. Outputs remain committed.
 
 The first build integration is report-only (`pnpm gen` -> `scripts/generate.mjs`). Its explicit sidecar currently registers Nine's layout job; all uncovered shard bake entry points remain reported. Native witness consumers share the same `scripts/generation-cache.mjs` backend and supply exact loaded inputs; there is no second witness cache. See [the generation contract](../../../docs/process/GENERATION.md).
+
+## Linux CI exact-output evidence (2026-10-10)
+
+Artifacts: [ae913bcc2 portability run](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/38061317479) and [9c3b969c2 portability run](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/38061684999), schema `generation-portability/1`, Linux x64 / Node v24.21.0. Both report the same 60 raw byte-exact outputs, four different outputs and 14 unavailable outputs. Raw SHA256 equality is required here; semantic equivalence is not byte-exactness. No output is removed by this receipt.
+
+The two requested runs used verified Linux cache hits for successful jobs: their elapsed times are warm validation, not cold generation. The later 22decbc7c artifact has real cache misses for 13 successful jobs and produces identical hashes for every one of these 60 files. The table uses that later backend time and marks hit/miss explicitly. Times are per job, not per file or end-to-end build. A dash means a failed job supplied no successful time. File sizes are committed bytes at ae913bcc2. `partial` means this file matched but another output in the same job differed; those jobs cannot yet lose outputs as a unit.
+
+| Linux byte-exact output | Bytes | Producer | Backend seconds | Cache | Job |
+|---|---:|---|---:|---|---|
+| `public/assets/far-reach/baked/book-stand.glb` | 48844 | `sky-world` | — | unavailable | partial |
+| `public/assets/far-reach/baked/bridges.bin` | 18767 | `sky-world` | — | unavailable | partial |
+| `public/assets/far-reach/baked/crown.glb` | 816084 | `sky-world` | — | unavailable | partial |
+| `public/assets/far-reach/baked/docks.glb` | 14692 | `sky-world` | — | unavailable | partial |
+| `public/assets/far-reach/baked/dressing.bin` | 158897 | `sky-world` | — | unavailable | partial |
+| `public/assets/far-reach/baked/fan.bin` | 66719 | `sky-world` | — | unavailable | partial |
+| `public/assets/far-reach/baked/geometries.glb` | 113876 | `sky-world` | — | unavailable | partial |
+| `public/assets/far-reach/baked/knolls.glb` | 54004 | `sky-world` | — | unavailable | partial |
+| `public/assets/far-reach/baked/mill.glb` | 1021940 | `sky-world` | — | unavailable | partial |
+| `public/assets/far-reach/baked/roost.glb` | 114424 | `sky-world` | — | unavailable | partial |
+| `public/assets/far-reach/baked/winch-house.glb` | 284152 | `sky-world` | — | unavailable | partial |
+| `public/assets/far-reach/rigs/drift-ray.glb` | 169996 | `sky-rigs` | 0.901 | cold miss | matched |
+| `public/assets/far-reach/rigs/sky-goat.glb` | 205400 | `sky-rigs` | 0.901 | cold miss | matched |
+| `public/assets/far-reach/rigs/storm-roc.glb` | 945328 | `sky-rigs` | 0.901 | cold miss | matched |
+| `public/assets/nalati/baked/bodies.bin` | 2585539 | `nalati-bodies` | 1.100 | cold miss | matched |
+| `public/assets/pine-hollow/baked/cabins.bin` | 1275516 | `pine-cabins` | 1.070 | cold miss | matched |
+| `public/assets/pine-hollow/baked/crags.desktop.bin` | 972869 | `pine-crags` | — | unavailable | partial |
+| `public/assets/pine-hollow/baked/crags.phone.bin` | 534984 | `pine-crags` | — | unavailable | partial |
+| `public/assets/pine-hollow/baked/lookout.bin` | 112374 | `pine-lookout` | 0.872 | cold miss | matched |
+| `public/assets/pine-hollow/baked/site-timbers.bin` | 146271 | `pine-site-timbers` | 1.088 | cold miss | matched |
+| `public/assets/pine-hollow/baked/streams.bin` | 66579 | `pine-streams` | 0.732 | cold miss | matched |
+| `public/assets/pine-hollow/baked/wildlife.bin` | 47208 | `pine-wildlife` | 0.799 | cold miss | matched |
+| `public/assets/sunscar-dunes/baked/caravan.glb` | 26036 | `signal-world` | 1.254 | cold miss | matched |
+| `public/assets/sunscar-dunes/baked/dressing.glb` | 127120 | `signal-world` | 1.254 | cold miss | matched |
+| `public/assets/sunscar-dunes/baked/rocks.glb` | 11552 | `signal-world` | 1.254 | cold miss | matched |
+| `public/assets/sunscar-dunes/baked/tower.glb` | 25288 | `signal-world` | 1.254 | cold miss | matched |
+| `public/assets/sunscar-dunes/baked/well.glb` | 4252 | `signal-world` | 1.254 | cold miss | matched |
+| `public/assets/sunscar-dunes/rigs/skitterer.glb` | 38732 | `signal-rigs` | 0.612 | cold miss | matched |
+| `public/assets/sunscar-dunes/sand/grain.bin` | 212256 | `signal-sand` | 2.850 | cold miss | matched |
+| `public/assets/sunscar-dunes/sand/shadow.bin` | 9721 | `signal-sand` | 2.850 | cold miss | matched |
+| `public/assets/sunscar-dunes/sand/trail.bin` | 4979 | `signal-sand` | 2.850 | cold miss | matched |
+| `src/shards/driftwood-isle/runtime/navmesh.baked.json` | 229543 | `driftwood-navmesh` | 0.001 | warm hit | matched |
+| `src/shards/far-reach/data/bookStand.json` | 1673 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/crown.json` | 2786 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/docks.json` | 28556 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/dressing.json` | 6948 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/fan.json` | 1301 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/geometries.json` | 1366 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/knolls.json` | 18006 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/mill.json` | 3938 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/roost.json` | 11015 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/seaTexture.json` | 21879 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/skyCards.json` | 33332 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/skyIsleFrames.json` | 8626 | `sky-world` | — | unavailable | partial |
+| `src/shards/far-reach/data/winchHouse.json` | 3896 | `sky-world` | — | unavailable | partial |
+| `src/shards/nalati-grasslands/data/bodies.json` | 63069 | `nalati-bodies` | 1.100 | cold miss | matched |
+| `src/shards/pine-hollow/data/beaverPool.json` | 89720 | `pine-beaver-pool` | 0.932 | cold miss | matched |
+| `src/shards/pine-hollow/data/cabins.json` | 82361 | `pine-cabins` | 1.070 | cold miss | matched |
+| `src/shards/pine-hollow/data/lookout.json` | 6786 | `pine-lookout` | 0.872 | cold miss | matched |
+| `src/shards/pine-hollow/data/siteTimbers.json` | 7173 | `pine-site-timbers` | 1.088 | cold miss | matched |
+| `src/shards/pine-hollow/data/streams.json` | 256 | `pine-streams` | 0.732 | cold miss | matched |
+| `src/shards/pine-hollow/data/undergrowth.json` | 18616 | `pine-undergrowth` | 0.843 | cold miss | matched |
+| `src/shards/pine-hollow/data/wildlife.json` | 265 | `pine-wildlife` | 0.799 | cold miss | matched |
+| `src/shards/sunscar-dunes/data/braziers.json` | 1666 | `signal-world` | 1.254 | cold miss | matched |
+| `src/shards/sunscar-dunes/data/caravan.json` | 3459 | `signal-world` | 1.254 | cold miss | matched |
+| `src/shards/sunscar-dunes/data/dressing.json` | 1124 | `signal-world` | 1.254 | cold miss | matched |
+| `src/shards/sunscar-dunes/data/rocks.json` | 7375 | `signal-world` | 1.254 | cold miss | matched |
+| `src/shards/sunscar-dunes/data/sand.json` | 72 | `signal-sand` | 2.850 | cold miss | matched |
+| `src/shards/sunscar-dunes/data/tower.json` | 9889 | `signal-world` | 1.254 | cold miss | matched |
+| `src/shards/sunscar-dunes/data/well.json` | 4116 | `signal-world` | 1.254 | cold miss | matched |
+
+The four raw differences are: `src/shards/far-reach/data/bridges.json`, `src/shards/pine-hollow/data/crags.json`, `src/shards/pine-hollow/data/props.json`, `src/shards/pine-hollow/runtime/kingCollision.baked.json`. Pine crags' two binary outputs and Sky world's other outputs matched individually; their JSON differences still block those complete jobs. No libm tolerance is treated as a pass.
+
+HDRI keys: all 14 `.key.jpg` / `.key.gain.png` outputs are unavailable because source HDRI inputs are missing from CI, not byte-exact. Eleven Darwin-only jobs were explicitly skipped, so this workflow makes no Linux claim for their outputs (including browser physics/spots captures and Nine layout). Undeclared shared producers are outside this result.
+
+Follow-up [22decbc7c artifact](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/38062527198): the same 60 files remain exact and `src/shards/pine-hollow/runtime/kingCollision.baked.json` also becomes raw-exact (matched job, 0.700 s). Its prior stale input hashes were the fourth difference above; the two Pine scatter JSONs and Sky bridges JSON still differ. This is evidence for that pin, not a promise about later gameplay bakes.
+
+**Large, cheap, complete-job candidates** (>=200,000 bytes, successful cold job <=60 s):
+- `public/assets/far-reach/rigs/sky-goat.glb` (205400 bytes; `sky-rigs`, 0.901 s).
+- `public/assets/far-reach/rigs/storm-roc.glb` (945328 bytes; `sky-rigs`, 0.901 s).
+- `public/assets/nalati/baked/bodies.bin` (2585539 bytes; `nalati-bodies`, 1.100 s).
+- `public/assets/pine-hollow/baked/cabins.bin` (1275516 bytes; `pine-cabins`, 1.070 s).
+- `public/assets/sunscar-dunes/sand/grain.bin` (212256 bytes; `signal-sand`, 2.850 s).
+
+Driftwood navmesh (229,543 bytes) also matches, but all three reports show a warm hit: these artifacts provide no cold timing for its cheap/expensive classification. These are later-removal candidates only: current input keys and the deployed cold build path must still match, and G293 Blender-authored GLBs stay committed regardless of this table. Small/cheap outputs default to build-time caching too, but this table does not delete them. The native witness payload cohort has separate ARM/x64 + Linux evidence and was retired by 91a3d7cba; this asset workflow does not claim to measure those checkpoint jobs.
