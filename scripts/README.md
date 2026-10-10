@@ -55,6 +55,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-pine-streams.d.mts](./bake-pine-streams.d.mts)
 - [bake-pine-streams.mjs](./bake-pine-streams.mjs)
 - [bake-pine-undergrowth.mjs](./bake-pine-undergrowth.mjs)
+- [bake-pine-wildlife.d.mts](./bake-pine-wildlife.d.mts)
+- [bake-pine-wildlife.mjs](./bake-pine-wildlife.mjs)
 - [bake-signal-physics.mjs](./bake-signal-physics.mjs)
 - [bake-signal-rigs.mjs](./bake-signal-rigs.mjs)
 - [bake-signal-sand.mjs](./bake-signal-sand.mjs)

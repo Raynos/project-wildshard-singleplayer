@@ -316,7 +316,6 @@
     "src/shards/pine-hollow/quest/index.ts": 1,
     "src/shards/pine-hollow/runtime/antlerKing.ts": 1,
     "src/shards/pine-hollow/runtime/audio/sfx.ts": 1,
-    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts": 1,
     "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts": 1,
     "src/shards/pine-hollow/world/PineWeatherFX.ts": 2,
     "src/shards/pine-hollow/world/weather.ts": 1
