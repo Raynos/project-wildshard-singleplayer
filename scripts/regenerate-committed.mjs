@@ -89,7 +89,14 @@ export async function regenerateCommitted(root, approvalFile) {
     let witnesses = Promise.resolve({});
     try {
       committedExport(root, base, scratch);
-      witnesses = Promise.all([refreshWitnessManifests(root, scratch), refreshRecordedBakes(scratch)]).then(([manifests, bakes]) => ({ ...manifests, ...bakes }));
+      witnesses = (async () => {
+        const bakes = await refreshRecordedBakes(scratch);
+        // Witnesses load recorded bakes too. Materialize their final bytes before hashing or re-recording witnesses.
+        // Running these in parallel can commit a manifest for the old bake beside the newly refreshed bake.
+        for (const [file, content] of Object.entries(bakes)) writeFileSync(resolve(scratch, file), content);
+        const manifests = await refreshWitnessManifests(root, scratch);
+        return { ...manifests, ...bakes };
+      })();
       witnesses.catch(() => undefined); // awaited below; never an unhandled rejection while the generators run
       const { generatedFiles } = await import(pathToFileURL(resolve(scratch, 'scripts/generated-files.mjs')).href);
       const candidate = generatedFiles(scratch), increases = generatedIncreases(measurement(root, base), candidate.measurement);

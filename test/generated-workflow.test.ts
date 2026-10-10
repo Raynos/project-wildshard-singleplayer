@@ -225,6 +225,22 @@ describe('SF6b witness manifests re-recorded at the serialized push', () => {
       await expect(refreshWitnesses(root, cache)).rejects.toThrow('fake: the re-record on clean HEAD changed manifest.json (recorded outcome)');
     } finally { rmSync(root, { recursive: true, force: true }); }
   }, 30_000);
+  it('refreshes recorded bake files before hashing witnesses that load them', async () => {
+    await fixture(async (root, put, git) => {
+      fakeWitness(put);
+      put('scripts/bake-loader.mjs', '');
+      put('scripts/bake-input-hashes.mjs', `import { writeFileSync } from 'node:fs';
+writeFileSync(process.argv[4], JSON.stringify({ 'test/proof/fake/inputs.txt': 'bb' }));
+`);
+      git(['add', '--', 'test', 'scripts/bake-loader.mjs', 'scripts/bake-input-hashes.mjs']);
+      git(['commit', '-qm', 'witness consumes a recorded bake']);
+      const sha = await regenerateCommitted(root);
+      expect(git(['show', `${sha}:test/proof/fake/inputs.txt`])).toBe('bb');
+      expect(git(['show', `${sha}:test/proof/fake/checkpoints/manifest.json`])).toBe(fakeManifest('bb').trim());
+      expect(git(['show', `${sha}:test/proof/fake/checkpoints/a.snap.gz`])).toBe('p1');
+      await expect(refreshWitnesses(root, resolve(root, 'cache'))).resolves.toEqual({});
+    });
+  }, 30_000);
   it('commits refreshed input hashes in the regeneration commit and refuses a changed payload without touching HEAD', async () => {
     await fixture(async (root, put, git) => {
       fakeWitness(put); git(['add', '--', 'test']); git(['commit', '-qm', 'witness', '--', 'test']);
