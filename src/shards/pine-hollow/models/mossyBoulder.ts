@@ -26,8 +26,8 @@ export interface MossyBoulderParams {
   readonly solid: boolean;
 }
 
-/** one rock of the set in its own space: the drawn part, its hull, and its footprint for the scatter */
-interface Shape { geometry: THREE.BufferGeometry; material: THREE.Material; hull: Float32Array; radius: number; height: number }
+/** one rock of the set in its own space: the drawn part and its hull (its footprint is the props bake's, ../generators/props.ts) */
+interface Shape { geometry: THREE.BufferGeometry; material: THREE.Material; hull: Float32Array }
 
 const KEY = 'pine-hollow/mossy-boulder';
 
@@ -40,16 +40,11 @@ export async function loadMossyBoulder(ctx: ModelContext): Promise<void> {
     const bb = g.boundingBox ?? new THREE.Box3(), c = bb.getCenter(new THREE.Vector3());
     const local = new THREE.Matrix4().makeTranslation(-c.x, -bb.min.y, -c.z); // centred, base on y = 0
     const hull = supportPoints(g, local);
-    return { geometry: bakePart(g, local), material: p.material, hull, radius: Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) / 2, height: bb.max.y - bb.min.y };
+    return { geometry: bakePart(g, local), material: p.material, hull };
   }));
 }
 
 const shapes = (ctx: ModelContext): Shape[] => ctx.once<Shape[]>(KEY, () => { throw new Error('[mossy-boulder] loadMossyBoulder(ctx) first'); });
-
-/** each rock's footprint radius and height (metres, at scale 1), for the scatter */
-export function boulderSizes(ctx: ModelContext): { radius: number; height: number }[] {
-  return shapes(ctx).map((s) => ({ radius: s.radius, height: s.height }));
-}
 
 export const mossyBoulder = defineModel<MossyBoulderParams>({
   id: 'pine-hollow/mossy-boulder', name: 'Mossy boulder', category: 'nature', pipeline: 'cc0',

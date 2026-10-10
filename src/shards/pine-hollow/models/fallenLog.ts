@@ -3,7 +3,7 @@
  * (`public/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb`), its node transform baked in (its own space: the trunk
  * lies along its local X). It collides as ONE capsule along that axis, as thick as the bark's mean distance from it over
  * the middle 80 % of the length (the root flare and the broken tip are the ends' 10 %). Placed by
- * src/shards/pine-hollow/world/props.ts near the trail edges, lying along the slope.
+ * src/shards/pine-hollow/world/props.ts (scattered by ../generators/props.ts) near the trail edges, lying along the slope.
  *
  *   await loadFallenLog(ctx);   // place() is synchronous: the GLB first
  */
@@ -17,9 +17,6 @@ interface Log {
   parts: { geometry: THREE.BufferGeometry; material: THREE.Material }[];
   /** the capsule, own space */
   capsule: ColliderDesc;
-  /** for the scatter (the scan's first part, before its node transform): half its length along X, and its lowest point */
-  halfLen: number;
-  bottom: number;
 }
 
 const KEY = 'pine-hollow/fallen-log';
@@ -33,7 +30,7 @@ export async function loadFallenLog(ctx: ModelContext): Promise<void> {
     if (!p0) throw new Error('[fallen-log] dead_tree_trunk has no parts');
     p0.geometry.computeBoundingBox();
     const bb = p0.geometry.boundingBox ?? new THREE.Box3();
-    const halfLen = (bb.max.x - bb.min.x) / 2, bottom = bb.min.y;
+    const halfLen = (bb.max.x - bb.min.x) / 2;
     const centre = bb.getCenter(new THREE.Vector3()), pos = p0.geometry.getAttribute('position');
     let rSum = 0, rN = 0;
     for (let i = 0; i < pos.count; i++) {
@@ -47,17 +44,11 @@ export async function loadFallenLog(ctx: ModelContext): Promise<void> {
     const c = centre.clone().applyMatrix4(p0.matrix), axis = new THREE.Vector3(1, 0, 0).applyQuaternion(q);
     const r = radius * sc.x, rot = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
     const capsule: ColliderDesc = { kind: 'capsule', x: c.x, y: c.y, z: c.z, halfHeight: Math.max(0.05, halfLen * sc.x - r), radius: r, rot: { x: rot.x, y: rot.y, z: rot.z, w: rot.w } };
-    return { parts: parts.map((p) => ({ geometry: bakePart(p.geometry, p.matrix), material: p.material })), capsule, halfLen, bottom };
+    return { parts: parts.map((p) => ({ geometry: bakePart(p.geometry, p.matrix), material: p.material })), capsule };
   });
 }
 
 const log = (ctx: ModelContext): Log => ctx.once<Log>(KEY, () => { throw new Error('[fallen-log] loadFallenLog(ctx) first'); });
-
-/** the scan's half-length along its axis and its lowest point (metres, at scale 1), for the scatter */
-export function fallenLogSize(ctx: ModelContext): { halfLen: number; bottom: number } {
-  const l = log(ctx);
-  return { halfLen: l.halfLen, bottom: l.bottom };
-}
 
 export const fallenLog = defineModel<Record<string, never>>({
   id: 'pine-hollow/fallen-log', name: 'Fallen log', category: 'nature', pipeline: 'cc0',

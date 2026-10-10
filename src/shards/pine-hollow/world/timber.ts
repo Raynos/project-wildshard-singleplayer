@@ -119,6 +119,15 @@ export class Timber {
     return this.root;
   }
   facts(): TimberFacts { return { colliders: this.out, floors: this.floors, anchors: this.anchors }; }
+  /** what the builder left before `finish`: each material's parts in order, and the glass (an offline bake reads them) */
+  built(): { parts: ReadonlyMap<MatKey, readonly THREE.BufferGeometry[]>; glass: readonly THREE.BufferGeometry[] } { return { parts: this.parts, glass: this.glass }; }
+  /** a timber from its offline bake: its parts, glass and facts as the builder left them, ready to `finish` */
+  static baked(name: string, parts: ReadonlyMap<MatKey, THREE.BufferGeometry[]>, glass: readonly THREE.BufferGeometry[], facts: TimberFacts): Timber {
+    const t = new Timber(name, 0);
+    for (const [key, list] of parts) t.parts.set(key, list);
+    t.glass.push(...glass); t.out.push(...facts.colliders); t.floors.push(...facts.floors); Object.assign(t.anchors, facts.anchors);
+    return t;
+  }
 }
 
 function mergeList(list: THREE.BufferGeometry[]): THREE.BufferGeometry | undefined {
