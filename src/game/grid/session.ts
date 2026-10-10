@@ -57,7 +57,7 @@ import { loadShardfileFar } from './shardfileFar';
 import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
 import type { RoadLookState } from './roadLook';
-import { installPlatformRoad } from './roadLookPlatform';
+import { installPlatformRoad, installPlatformRoadSliced, type PlatformRoad } from './roadLookPlatform';
 import { collisionStrips, type CollisionMesh, type CollisionStrip } from './collisionStrips';
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
 import type { SeamLookState } from './seamLook';
@@ -266,10 +266,19 @@ export class GridSession {
     // rt3-crossing: the 40-strip platform generation was one main-thread task (11.8 s at 4x CPU, the cold start's long
     // park under "Weapons · HUD"); generate it here in slices between paints, then construct with the finished strips
     const strips = await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, () => yieldGridAdmission(host.scope)));
-    return new GridSession(host, edges, allocator, strips);
+    const instance = pageGridInstance();
+    if (instance === null) throw new Error('A grid session needs a grid page');
+    const home = assembly.cell(instance), roadScope = host.scope.child('grid-road-construction');
+    const admission = new PlatformRenderResidency(allocator, roadScope), plans = new Map<Mesh, CullPlan>();
+    try {
+      const road = await installPlatformRoadSliced({ strips, home, pitch: assembly.pitch,
+        layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene, scope: roadScope,
+        camera: () => host.frame?.camera, plans, admission }, () => yieldGridAdmission(roadScope));
+      return new GridSession(host, edges, allocator, strips, { road, plans });
+    } catch (error) { roadScope.dispose(); throw error; }
   }
 
-  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[]) {
+  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad; readonly plans: Map<Mesh, CullPlan> }) {
     this.host = host;
     this.mapImages = new CellMinimaps(host.scope, (slug) => bakedMapUrl(findShard(slug)?.minimap?.image));
     const residency = host.residency;
@@ -295,7 +304,8 @@ export class GridSession {
     const layout = roadLayout(this.assembly, (slug) => findShard(slug)?.name ?? slug);
     // G112: every grid admits exact CPU/GPU byte plans on its early home/region/ring allocator.
     const admission = new PlatformRenderResidency(this.allocator, host.scope);
-    const platformRoad = installPlatformRoad({ strips, home, pitch: this.assembly.pitch, layout,
+    if (preparedRoad !== undefined) for (const [mesh, plan] of preparedRoad.plans) this.roadPlans.set(mesh, plan);
+    const platformRoad = preparedRoad?.road ?? installPlatformRoad({ strips, home, pitch: this.assembly.pitch, layout,
       scene: host.scene, scope: host.scope, camera: () => host.frame?.camera, plans: this.roadPlans,
       admission });
     this.strips = collisionStrips(strips);

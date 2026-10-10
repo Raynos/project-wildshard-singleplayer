@@ -3,7 +3,7 @@ import { BufferAttribute, BufferGeometry } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
-import { PlatformRenderAdmissionError, PlatformRenderResidency } from '../src/game/grid/renderResidency';
+import { allocateRenderSteps, PlatformRenderAdmissionError, PlatformRenderResidency } from '../src/game/grid/renderResidency';
 import { runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 
@@ -85,4 +85,35 @@ it('preserves construction and cleanup failures while still releasing its claim'
   if (!(cleanup instanceof Error)) throw new Error('Expected cleanup error');
   expect(cleanup.message).toContain('Texture cleanup failed');
   expect(allocator.entries()).toEqual([]); scope.dispose();
+});
+
+it('holds the exact claim while paused and refunds failure or cancellation before another build', () => {
+  const scope = new Scope('sliced-render'), allocator = new ResidencyAllocator(), admission = new PlatformRenderResidency(allocator, scope);
+  const plan = { id: 'sliced', jsBytes: 100, gpuBytes: 200 };
+  let builds = 0, cleanups = 0, closed = 0;
+  const build = function* build(owner: Scope): Generator<void, void> {
+    builds++; owner.onDispose(() => { expect(allocator.has('platform:render:sliced')).toBe(true); cleanups++; });
+    try { yield; throw new Error('Late cull failure'); } finally { closed++; }
+  };
+  const failed = allocateRenderSteps(admission, plan, build);
+  expect(failed.next().done).toBe(false);
+  expect(allocator.cost().accounted).toBe(300);
+  expect(() => failed.next()).toThrow('Late cull failure');
+  expect(allocator.entries()).toEqual([]);
+  const cancelled = allocateRenderSteps(admission, plan, build);
+  expect(cancelled.next().done).toBe(false);
+  cancelled.return();
+  expect(allocator.entries()).toEqual([]);
+  const retired = allocateRenderSteps(admission, plan, build);
+  expect(retired.next().done).toBe(false);
+  scope.dispose(); expect(() => retired.next()).toThrow('disposed');
+  expect(builds).toBe(3); expect(cleanups).toBe(3); expect(closed).toBe(3); expect(allocator.entries()).toEqual([]);
+});
+
+it('refuses a sliced allocation before its builder advances', () => {
+  const scope = new Scope('sliced-refusal'), allocator = new ResidencyAllocator({ playing: 1 }), admission = new PlatformRenderResidency(allocator, scope);
+  let advanced = false;
+  const refused = allocateRenderSteps(admission, { id: 'sliced', jsBytes: 100, gpuBytes: 200 }, function* build() { advanced = true; yield; });
+  expect(() => refused.next()).toThrow(PlatformRenderAdmissionError);
+  expect(advanced).toBe(false); expect(allocator.entries()).toEqual([]); scope.dispose();
 });

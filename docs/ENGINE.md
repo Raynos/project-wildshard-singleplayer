@@ -2264,6 +2264,16 @@ The list itself is generated at build time: [docs/api/EXPORTS.md](api/EXPORTS.md
 
 ### Seamless grid crossing (SF20a)
 
+Grid road construction uses one ordered builder for synchronous callers and the sliced
+`GridSession.create` path. Internal `roadCull.ts` step generators yield during exact
+byte planning, triangle clipping, attribute copies and bin/LOD sorting. The internal
+`installPlatformRoadSliced` runner offers a paint after its 12 ms cooperative budget;
+one batch can exceed that budget, so it is not a hard task-time guarantee.
+`allocateRenderSteps` admits each exact byte plan before advancing its builder and
+releases resources before its claim on failure or cancellation. Only completed culled
+meshes and plans enter the scene. The final attributes, indices, LODs, materials and
+collision ownership are unchanged.
+
 `@wildshard/game/grid/crossing` stages destination admission ahead of the fixed step, then commits a rollback-safe frame change only after local and residency checkpoints succeed. `installGridCrossing` connects the signed assembly and residency driver without another simulation, player or navigation service. Local equipment is stowed at the cell edge before the strip re-frame; superseded and failed admissions retain the current frame. `GridCrossing.timings()` copies the last 32 committed checkpoint/frame-change/changed-callback intervals. The grid readout publishes them as `crossingTiming`; trusted retained-service activation has its own `runtimeTiming` `activate` row. Both use the diagnostic performance clock. Each committed crossing also records `requestedAt` (the fixed-step demand) and `readyAt` (completed admission): `readyAt - requestedAt` exposes an entry wait separately from the synchronous `end - start`. A short commit alone never proves a ready-before-entry crossing.
 
 `@wildshard/game/grid/wallet` binds the existing inventory and purse keys and item continuation to a stable instance. Coins and shard items stay local, while catalogue equipment, titles and achievements remain in the profile ledger. Border stow cancels charged and queued attacks, retains selection and fuel, and restores prior pause/dialogue visibility on return. Fresh-document item restoration rebases the continuation clock. Select a shard and explore continue through `travel/travel`; first-party grid and standalone saves use the same instance identity.

@@ -13,8 +13,8 @@ import {
 } from 'three';
 import type { GridCell } from './assembly';
 import { coverageMaterial, coverageTable, gpuOnlyTextureBytes, uniformPart, type CoverageColours, type SolidPart } from './roadSolid';
-import { bytePlan, cullInto, gpuOnlyRoad, meshBytes, type CullSource, type RoadCuller } from './roadCull';
-import type { PlatformRenderAdmission, PlatformRenderBytePlan } from './renderResidency';
+import { bytePlan, cullIntoSteps, finishRoadSteps, gpuOnlyRoad, meshBytes, meshBytesSteps, type CullSource, type RoadCuller } from './roadCull';
+import { allocateRenderSteps, type PlatformRenderAdmission, type PlatformRenderBytePlan } from './renderResidency';
 import {
   ENTRY_ASPHALT, GAP_HALF, RING_ISLAND, RING_OUTER, ROAD_HALF, SEGMENT_HALF, TURN_IN_HALF, segmentPoint,
   type ArmSide, type LookScope, type RoadJunction, type RoadLayout, type RoadSign, type SignLine,
@@ -439,7 +439,10 @@ export function roadLookPlans(layout: RoadLayout, home: GridCell, cull?: RoadCul
  * one solid material. With `admission` (G144, the Grid memory admission row) each textured mesh is built only after its
  * byte plan is admitted, and disposes on the admission's scope; without it the build is unchanged.
  */
-export function installRoadLook(input: RoadLookInput): RoadLookState {
+export function installRoadLook(input: RoadLookInput): RoadLookState { return finishRoadSteps(installRoadLookSteps(input)); }
+
+/** The same admitted road builders, with paint opportunities during their counts and clipped indices. */
+export function* installRoadLookSteps(input: RoadLookInput): Generator<void, RoadLookState> {
   const { layout, home, scene, scope, admission } = input, group = new Group(), hook = typeof input.cull === 'function' ? input.cull : undefined, cull = typeof input.cull === 'function' ? undefined : input.cull;
   if (admission !== undefined && hook !== undefined) throw new Error('Road admission needs a RoadCuller (its pitch plans the culled bytes)');
   group.name = 'grid-boulevard';
@@ -449,17 +452,24 @@ export function installRoadLook(input: RoadLookInput): RoadLookState {
   scene.add(group);
   scope.onDispose(() => { group.removeFromParent(); });
   for (const source of sources) {
-    const build = (owner: LookScope): Mesh => {
+    const build = function* build(owner: LookScope): Generator<void, Mesh> {
+      yield;
       const map = source.paint(), material = source.material(map);
       const mesh = new Mesh(source.mesher.geometry(), material);
       owner.onDispose(() => { mesh.removeFromParent(); mesh.geometry.dispose(); map.dispose(); material.dispose(); });
       mesh.name = source.name; if (source.overlay) mesh.receiveShadow = true;
-      mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); group.add(mesh);
-      if (cull !== undefined) cullInto(cull, mesh); else hook?.(mesh);
+      mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
+      if (cull !== undefined) yield* cullIntoSteps(cull, mesh); else hook?.(mesh);
+      group.add(mesh);
       if (admission !== undefined) gpuOnlyRoad(mesh, [map]); // G144: admitted, its vertex arrays and canvas go on upload (nothing repaints it)
       return mesh;
     };
-    if (admission === undefined) build(scope); else admission.allocate(texturedPlan(source, cull), build);
+    if (admission === undefined) yield* build(scope);
+    else {
+      const bytes = yield* meshBytesSteps([mesherSource(source.mesher)], ROAD_FLOATS, cull === undefined ? undefined : { pitch: cull.pitch }, true);
+      const plan = bytePlan(source.id, bytes, gpuOnlyTextureBytes(source.width, source.height, 1, source.source, source.texelBytes));
+      yield* allocateRenderSteps(admission, plan, build);
+    }
   }
   return { segments: layout.segments.length, junctions: layout.junctions.length, roundabouts: layout.junctions.filter((j) => j.roundabout).length, signs: layout.signs.length, lights: layout.lights.length, draws: sources.length };
 }

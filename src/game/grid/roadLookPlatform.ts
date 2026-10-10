@@ -14,13 +14,14 @@
  * copy (they are counted in `road.curtain`).
  */
 import { Mesh, type Camera, type Object3D } from 'three';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { GridCell } from './assembly';
 import type { LookScope, RoadLayout } from './roadLayout';
-import type { PlatformRenderAdmission, PlatformRenderBytePlan } from './renderResidency';
-import { installRoadLook, type RoadLookState } from './roadLook';
+import { allocateRenderSteps, type PlatformRenderAdmission, type PlatformRenderBytePlan } from './renderResidency';
+import { installRoadLookSteps, type RoadLookState } from './roadLook';
 import { installVoidLook } from './voidLook';
 import { CURTAIN_FLOATS, curtainGeometry, curtainMaterial, curtainSource, gravel, riprap, seamSolidSource, stone, strata, type SeamCurtain, type SeamLookState, type SeamPiece } from './seamLook';
-import { bytePlan, cullInto, gpuOnlyRoad, meshBytes, ROAD_LOD, type CullPlan, type RoadCuller } from './roadCull';
+import { bytePlan, cullIntoSteps, finishRoadSteps, gpuOnlyRoad, meshBytes, meshBytesSteps, ROAD_LOD, type CullPlan, type RoadCuller } from './roadCull';
 import { GRAIN_LAYERS, GRAIN_SIZE, gpuOnlyTextureBytes, grainArray, SOLID_FLOATS, solidGeometry, solidMaterial, solidSource, type SolidPart } from './roadSolid';
 
 /** What the road system reads and where it draws. */
@@ -54,29 +55,58 @@ export function curtainPlan(curtain: SeamCurtain, pitch: number): PlatformRender
 
 /** Install the platform's road system; everything disposes with `scope` (or, admitted, with each allocation's child scope). */
 export function installPlatformRoad(input: PlatformRoadInput): PlatformRoad {
+  const road = finishRoadSteps(platformRoadSteps(input));
+  if (road === undefined) throw new Error('Road construction cancelled');
+  return road;
+}
+
+/** Paint between admission and cull batches; synchronous callers retain the identical ordered builder. */
+export async function installPlatformRoadSliced(input: PlatformRoadInput, pause: () => Promise<void>, options: { readonly budgetMs?: number; readonly now?: () => number } = {}): Promise<PlatformRoad> {
+  const budget = options.budgetMs ?? 12, now = options.now ?? diagnosticNow;
+  if (!Number.isFinite(budget) || budget < 0) throw new RangeError('Invalid road construction slice budget');
+  const steps = platformRoadSteps(input);
+  let start = now(), completed = false;
+  try {
+    for (;;) {
+      const next = steps.next();
+      if (next.done === true) {
+        if (next.value === undefined) throw new Error('Road construction cancelled');
+        completed = true; return next.value;
+      }
+      if (now() - start >= budget) { await pause(); start = now(); }
+    }
+  } finally { if (!completed) steps.return(undefined); }
+}
+
+function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformRoad | undefined> {
   const { strips, home, pitch, layout, scene, scope, admission } = input;
   const culler: RoadCuller = { pitch, plans: input.plans, ...(input.camera === undefined ? {} : { camera: input.camera }) };
-  const admit = (plan: () => PlatformRenderBytePlan, build: (owner: LookScope) => void): void => {
-    admission.allocate(plan(), build);
-  };
   // the seams' materials keyed by the generator's feature ranges: the same triangles the world collides with
   const seams = seamSolidSource(strips, home, undefined, pitch);
   const parts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { parts.push(part); };
-  const road = installRoadLook({ layout, home, scene, scope, solid, cull: culler, admission });
+  const road = yield* installRoadLookSteps({ layout, home, scene, scope, solid, cull: culler, admission });
   installVoidLook({ rail: layout.rail, home, scene, scope, solid, admission });
   const meshes: Mesh[] = [];
-  admit(() => deckPlan(parts, pitch), (owner) => {
+  yield;
+  const deckBytes = yield* meshBytesSteps(parts.map(solidSource), SOLID_FLOATS, { pitch, lod: ROAD_LOD }, true);
+  const deckAdmission = bytePlan('road.deck', deckBytes, gpuOnlyTextureBytes(GRAIN_SIZE, GRAIN_SIZE, GRAIN_LAYERS.length, 'data'));
+  yield* allocateRenderSteps(admission, deckAdmission, function* buildDeck(owner) {
+    yield;
     const grain = grainArray({ gravel, stone, strata, riprap }), material = solidMaterial(grain), deck = new Mesh(solidGeometry(parts), material);
     owner.onDispose(() => { deck.removeFromParent(); deck.geometry.dispose(); material.dispose(); grain.dispose(); });
     deck.name = 'grid-deck'; deck.receiveShadow = true;
-    deck.castShadow = false; deck.matrixAutoUpdate = false; deck.updateMatrix(); scene.add(deck); cullInto(culler, deck, ROAD_LOD); meshes.push(deck);
+    deck.castShadow = false; deck.matrixAutoUpdate = false; deck.updateMatrix();
+    yield* cullIntoSteps(culler, deck, ROAD_LOD); scene.add(deck); meshes.push(deck);
     gpuOnlyRoad(deck, [grain]); // G144: admitted, its JS copies go on upload (the plan counts them gone)
   });
-  admit(() => curtainPlan(seams.curtain, pitch), (owner) => {
+  const curtainBytes = yield* meshBytesSteps([curtainSource(seams.curtain)], CURTAIN_FLOATS, { pitch }, true);
+  yield* allocateRenderSteps(admission, bytePlan('road.curtain', curtainBytes), function* buildCurtain(owner) {
+    yield;
     const material = curtainMaterial(home), curtain = new Mesh(curtainGeometry(seams.curtain), material);
     owner.onDispose(() => { curtain.removeFromParent(); curtain.geometry.dispose(); material.dispose(); });
     curtain.name = 'grid-seam-curtain'; curtain.receiveShadow = false;
-    curtain.castShadow = false; curtain.matrixAutoUpdate = false; curtain.updateMatrix(); scene.add(curtain); cullInto(culler, curtain); meshes.push(curtain);
+    curtain.castShadow = false; curtain.matrixAutoUpdate = false; curtain.updateMatrix();
+    yield* cullIntoSteps(culler, curtain); scene.add(curtain); meshes.push(curtain);
     gpuOnlyRoad(curtain, []);
   });
   // Disposer closures retain this build environment. Only the admitted meshes need to survive;

@@ -59,3 +59,23 @@ export class PlatformRenderResidency implements PlatformRenderAdmission {
     }
   }
 }
+
+/** Admit before advancing a sliced builder; failure or cancellation disposes its resources before the claim. */
+export function* allocateRenderSteps<T>(admission: PlatformRenderAdmission, plan: PlatformRenderBytePlan, build: (scope: Scope) => Generator<void, T | undefined>): Generator<void, T | undefined> {
+  const admitted = admission.allocate(plan, owner => ({ owner, steps: build(owner) }));
+  let completed = false;
+  try {
+    for (;;) {
+      if (admitted.owner.disposed) throw new Error('Platform render session is disposed');
+      const next = admitted.steps.next();
+      if (next.done === true) { completed = true; return next.value; }
+      yield;
+    }
+  } catch (error) {
+    try { admitted.owner.dispose(); }
+    catch (cleanup) { throw new AggregateError([error, cleanup], 'Platform render construction and cleanup failed', { cause: cleanup }); }
+    throw error;
+  } finally {
+    if (!completed) { try { admitted.steps.return(undefined); } finally { admitted.owner.dispose(); } }
+  }
+}

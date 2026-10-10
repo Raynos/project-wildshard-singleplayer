@@ -11,7 +11,7 @@ import { loadGridEdgeProfiles } from '../src/game/grid/edgeProfiles';
 import { readGridEdges } from '../src/game/grid/edgeSources';
 import { PlatformRenderAdmissionError, PlatformRenderResidency, type PlatformRenderAdmission, type PlatformRenderBytePlan } from '../src/game/grid/renderResidency';
 import { roadLayout } from '../src/game/grid/roadLayout';
-import { installPlatformRoad } from '../src/game/grid/roadLookPlatform';
+import { installPlatformRoad, installPlatformRoadSliced } from '../src/game/grid/roadLookPlatform';
 import { installRoadLook } from '../src/game/grid/roadLook';
 import { installVoidLook } from '../src/game/grid/voidLook';
 import { gravel, riprap, seamSolid, stone, strata } from '../src/game/grid/seamLook';
@@ -110,6 +110,30 @@ function install(assembly: GridAssembly, strips: readonly GeneratedStrip[], admi
   return { scene, plans, road, home, layout };
 }
 const SLOW = 180_000;
+
+it('slices the actual native road plans and clipped meshes without changing bytes or publishing unfinished geometry', async () => {
+  const { assembly, strips } = await real(), syncScope = new Scope('road-sync'), slicedScope = new Scope('road-sliced');
+  const syncAllocator = new ResidencyAllocator(), slicedAllocator = new ResidencyAllocator();
+  const syncAdmission = new PlatformRenderResidency(syncAllocator, syncScope), slicedAdmission = new PlatformRenderResidency(slicedAllocator, slicedScope);
+  try {
+    const sync = install(assembly, strips, syncAdmission, syncScope), scene = new Group(), plans = new Map<Mesh, CullPlan>();
+    let pauses = 0;
+    const sliced = await installPlatformRoadSliced({ strips, home: sync.home, pitch: assembly.pitch, layout: sync.layout,
+      scene, scope: slicedScope, plans, admission: slicedAdmission }, () => {
+      pauses++;
+      for (const mesh of meshesOf([scene])) {
+        if (mesh.name !== 'grid-void-floor') expect(plans.has(mesh)).toBe(true);
+      }
+      return Promise.resolve();
+    }, { budgetMs: 0 });
+    expect(pauses).toBeGreaterThan(100);
+    expect(meshesOf(sliced.roots).map(digest).sort()).toEqual(meshesOf(sync.road.roots).map(digest).sort());
+    const source = (p: Map<Mesh, CullPlan>): string[] => [...p].map(([m, plan]) => `${m.name}:${Array.from(plan.source).join(',')}`).sort();
+    expect(source(plans)).toEqual(source(sync.plans));
+    expect(slicedAllocator.entries()).toEqual(syncAllocator.entries());
+  } finally { syncScope.dispose(); slicedScope.dispose(); }
+  expect(syncAllocator.entries()).toEqual([]); expect(slicedAllocator.entries()).toEqual([]);
+}, SLOW);
 
 it('plans exactly the bytes every platform render builder allocates on the real 3 x 3 platform (G144)', async () => {
   const { assembly, strips } = await real(), scope = new Scope('road-bytes'), allocator = new ResidencyAllocator(), residency = new PlatformRenderResidency(allocator, scope);
