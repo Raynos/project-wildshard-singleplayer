@@ -3,7 +3,7 @@
 **State:** `draft` 2026-10-10 — Jake's three sagas and four backlog items, in his words only (E469); unowned, nothing built.
 
 Only Jake writes this backlog (2026-10-10: *"the backlog should only contain things I write"*). Agents record his words
-verbatim and add nothing of their own.
+verbatim; any added context only with his yes (*"You can add a bit more context if you want but always ask me"*).
 
 ## 1. The sagas
 
