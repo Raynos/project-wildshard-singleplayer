@@ -19,7 +19,8 @@ import { skyMoverViews } from './movers';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/shardfile/moverRuntime';
 import { commandSocketLift } from '@wildshard/game/shardfile/socketLiftProof';
 import { isletCalls, type IsletCalls } from '../world/risingIslet';
-import { gustFx } from '../world/windFx';
+import { gustFx } from '@wildshard/sdk/looks/windFx';
+import { GUST_FX } from '../data/windLook';
 import { RISING_ISLETS, type RisingIslet } from '../world/islets';
 import { FALL_TIME } from '../world/distant';
 import { WarFan } from '../weapons/WarFan';
@@ -243,7 +244,7 @@ export class SkyReachPlugin extends ShardPlugin {
     } });
 
     // GUST: a cone of wind streaks and petals leaves the fan (style bible §7); a vane inside the cone starts turning (step 3).
-    const fxRandom = ctx.app.rng.stream('cosmetic'), gustView = gustFx(() => fxRandom.next());
+    const fxRandom = ctx.app.rng.stream('cosmetic'), gustView = gustFx(GUST_FX, () => fxRandom.next());
     const gustObjects = boundedRows(gustView.objects);
     for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const object = gustObjects[i]; if (object === undefined) break; ctx.root.add(object); }
     ctx.scope.onDispose(() => { gustView.dispose(); });

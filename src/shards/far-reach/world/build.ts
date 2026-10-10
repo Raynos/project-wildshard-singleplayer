@@ -25,7 +25,8 @@ import { KEEPER_STAND } from '../quest/keeper';
 import { ownPrimitives } from './resources';
 import { crownStorm, type CrownStorm } from './storm';
 import { STORM } from '../data/storm';
-import { updraftFx, type UpdraftFx } from './windFx';
+import { updraftFx, type UpdraftFx } from '@wildshard/sdk/looks/windFx';
+import { UPDRAFT_FX } from '../data/windLook';
 import { SUN_DIR } from '../look/sun';
 import { seaTexture } from '../look/cloudSea';
 import { GATE_ISLES, isletPieces, isletViews, type IsletViews } from './risingIslet';
@@ -222,7 +223,7 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
   const ramp = plankBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck, null);
   ramp.position.set(UPDRAFT.x0, UPDRAFT.y, UPDRAFT.z0); ramp.rotation.set(UPDRAFT_ANGLE, spanYaw(UPDRAFT), 0, 'YXZ'); root.add(ramp);
   // the wind column: a spiral of streaks and leaves up the ramp (loop 3; the plugin turns it)
-  const wind = updraftFx(new Vector3(UPDRAFT.x0, UPDRAFT.y + 2.2, UPDRAFT.z0), new Vector3(UPDRAFT.x1, UPDRAFT.y1 + 2.2, UPDRAFT.z1));
+  const wind = updraftFx(UPDRAFT_FX, new Vector3(UPDRAFT.x0, UPDRAFT.y + 2.2, UPDRAFT.z0), new Vector3(UPDRAFT.x1, UPDRAFT.y1 + 2.2, UPDRAFT.z1));
   for (const o of wind.objects) root.add(o); wind.update(0);
   ctx.piece({ id: 'far.updraft', name: STRINGS.updraft, category: 'buildings', file: FILE, object: ramp, colliders: [updraftCollider()], surface: 'wood', mode: 'board' });
 

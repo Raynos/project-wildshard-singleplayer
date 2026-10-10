@@ -26,6 +26,7 @@
     "./systems/looks/tileField": "./systems/looks/tileField.ts",
     "./systems/looks/bakedInstances": "./systems/looks/bakedInstances.ts",
     "./systems/looks/shaderEdits": "./systems/looks/shaderEdits.ts",
+    "./systems/looks/windFx": "./systems/looks/windFx.ts",
     "./systems/looks/rainFx": "./systems/looks/rainFx.ts",
     "./systems/species/herdShelter": "./systems/species/herdShelter.ts",
     "./systems/looks/groundCover": "./systems/looks/groundCover.ts",

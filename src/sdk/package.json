@@ -88,6 +88,7 @@
     "./looks/tileField": "./looks/tileField.ts",
     "./looks/bakedInstances": "./looks/bakedInstances.ts",
     "./looks/shaderEdits": "./looks/shaderEdits.ts",
+    "./looks/windFx": "./looks/windFx.ts",
     "./looks/rainFx": "./looks/rainFx.ts",
     "./species/herdShelter": "./species/herdShelter.ts",
     "./looks/groundCover": "./looks/groundCover.ts",
