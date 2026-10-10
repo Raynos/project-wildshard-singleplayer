@@ -3,6 +3,7 @@ import { pageGridIntents } from './intent';
 import { gridMode, type MenuMode } from './menu';
 import { devserverCellOn } from './debug';
 import { findShard } from '../shard/registry';
+import { chooseShardEntry } from '../shard/entryMode';
 import { travel } from '../travel/travel';
 import type { HomeResidencyClaim } from './pageResidency';
 import { clearGridRecovery, pageGridRecovery } from './recoveryBoot';
@@ -37,6 +38,8 @@ export function enterGrid(): void {
   const home = gridHome();
   const target = findShard(home.slug);
   if (target === undefined) throw new Error(`The grid's home cell names no shard: ${home.slug}`);
+  // INFINITE WILDSHARD enters the catalogue home, never SHARD SELECT's frozen LEGACY copy.
+  chooseShardEntry(target.slug, 'shardfile');
   pageGridIntents().set({ instance: home.instance, slug: target.slug });
   travel({ to: target.slug, mode: 'enter' });
 }
