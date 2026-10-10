@@ -124,7 +124,6 @@ export const DONE = {
     'src/shards/pine-hollow/world/logKit.ts': { why: "G285: the log kit's shared log shape (`logGeo`: a log's side and its two end caps merged) that the cabin bake and the landmarks' timber build with; it draws nothing of its own", counts: { mergeGeometries: 1 } },
     'src/shards/pine-hollow/world/treeFactory.ts': { why: "the forest field's authored tree geometry, moved from TreeFactory (world, not a placed thing)", counts: { mergeGeometries: 1 } },
     'src/shards/pine-hollow/weapons/longbowView.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
-    'src/shards/pine-hollow/world/trophyWall.ts': { why: "the trophy wall's mounts: each a creature's head built from its rig (creatures, M5)", counts: { mergeGeometries: 2 } },
     'src/shards/pine-hollow/runtime/weapons/LeverRifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 8 } },
     'src/shards/pine-hollow/world/crags.ts': { why: 'the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground)', counts: { BatchedMesh: 1 } },
     'src/shards/pine-hollow/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders", counts: { 'registry add with object': 1 } },
