@@ -37,6 +37,7 @@ import { tap, ambientTick } from '../core/harnessTap';
 // (the Driftwood shrine's −3 dB, src/shards/driftwood-isle/audio/shrineHum.ts).
 //
 import type { Audio } from './Audio';
+import { audioUnlocked, whenAudioUnlocked } from './unlock';
 import type { Scope } from '../app/scope';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle as MusicGenre } from '../ui/Settings';
 import { Deck, decodeStyle, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
@@ -578,7 +579,8 @@ export class Music {
   get stats(): Engine['stats'] { return this.engine.stats; }
   get volume(): number { return this._volume; }
   set volume(v: number) { setNumber('music', v); }
-  get isPlaying(): boolean { return this.playing !== undefined; }
+  /** playing, or queued for the first gesture (G325) */
+  get isPlaying(): boolean { return this.playing !== undefined || this.queued !== undefined; }
   get genre(): MusicGenre { return this._genre; }
   /** diagnostics (dev / headless checks): what is sounding, the tension stem's live gain, what was fetched and how long it took */
   get stems(): { style: MusicGenre; source: 'synth' | 'stems'; slot: SlotName | undefined; tension: number | undefined; synthOn: boolean; synthMix: number | undefined; duck: number | undefined; loads: { file: string; bytes: number; ms: number }[]; failed: string[]; scene: string; phase: BossPhase; layers: number[] } {
@@ -631,6 +633,16 @@ export class Music {
 
   /** start an arrangement (the game uses 'theme'); restarts if already playing. The stems start at once when decoded, else the synth. */
   play(name: ArrangementName = 'theme'): void {
+    if (audioUnlocked()) { this.queued?.cancel(); this.queued = undefined; this.start(name); return; }
+    // G325: before the page's first gesture there is no AudioContext; the start waits for that gesture (the last name asked wins)
+    if (this.queued !== undefined) { this.queued.name = name; return; }
+    const wait: { name: ArrangementName; cancel: () => void } = { name, cancel: () => undefined };
+    this.queued = wait;
+    wait.cancel = whenAudioUnlocked(() => { if (this.queued !== wait) return; this.queued = undefined; this.start(wait.name); }).cancel;
+  }
+  /** the music start a `play` before the first gesture is waiting for (G325) */
+  private queued: { name: ArrangementName; cancel: () => void } | undefined;
+  private start(name: ArrangementName): void {
     const t = this.ctx.currentTime + 0.05;
     if (this.playing) { this.stopTimer(); this.synthOn = false; this.engine.end(t); this.deck?.fadeOut(t, 0.05); this.deck = undefined; }
     this.playing = name;
@@ -799,6 +811,7 @@ export class Music {
 
   /** fade over a bar and silence every voice */
   stop(): void {
+    this.queued?.cancel(); this.queued = undefined;
     if (!this.playing) return;
     const t = this.ctx.currentTime;
     if (this.synthOn) {

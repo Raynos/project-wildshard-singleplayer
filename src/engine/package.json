@@ -62,6 +62,7 @@
     "./audio/preload": "./audio/preload.ts",
     "./audio/score/score": "./audio/score/score.ts",
     "./audio/surface": "./audio/surface.ts",
+    "./audio/unlock": "./audio/unlock.ts",
     "./audio/util": "./audio/util.ts",
     "./blocks": "./blocks.ts",
     "./boot": "./boot.ts",

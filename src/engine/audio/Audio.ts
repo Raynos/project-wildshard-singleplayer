@@ -14,6 +14,7 @@ import type { Scope } from '../app/scope';
 import type { CueMap, CueOpts } from './Cues';
 import type { Music } from './Music';
 import type { LevelAudioBank } from './levelAudio';
+import { audioUnlocked, claimPageAudioContext, releasePageAudioContext, whenAudioUnlocked } from './unlock';
 
 /**
  * Audio — every sound is synthesised with WebAudio (no files).
@@ -85,24 +86,8 @@ const rnd = (a: number, b: number) => a + audioRandom() * (b - a);
 
 interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: GainNode; ambient: GainNode; shade: GainNode; shadeLp: BiquadFilterNode; muffle: BiquadFilterNode; comp: DynamicsCompressorNode; noise: AudioBuffer }
 
-/**
- * The page's one AudioContext (E155: every resident shard has its own Audio — its buses, beds, samples — on this one
- * context; iOS unlocks a context once, and a parked shard's graph is simply cut from the speakers, see `park`).
- */
-let sharedCtx: AudioContext | undefined;
-
-/**
- * Create the page's one AudioContext now, without any shard's graph (SF67): the constructor is a ~130 ms native task at
- * 4× CPU, so a boot that will call `resume()` straight away (an arrival entering the world) pays it in a task of its own
- * instead of inside the first frame's. Nothing else changes: `graph()` builds its nodes on this context as before, and a
- * context made outside a gesture starts suspended either way.
- */
-export function primeAudioContext(): void {
-  if (sharedCtx !== undefined) return;
-  const w: { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext } = window; // old Safari: prefixed only
-  const AC = w.AudioContext ?? w.webkitAudioContext;
-  if (AC !== undefined) sharedCtx = new AC({ latencyHint: 'interactive' });
-}
+// The page's one AudioContext lives in ./unlock (E155: every resident shard has its own Audio — its buses, beds, samples — on
+// this one context; iOS unlocks a context once, and a parked shard's graph is simply cut from the speakers, see `park`).
 
 export class Audio extends PlayerVoices {
   private readonly scope = resourceScope().child('Audio');
@@ -168,6 +153,7 @@ export class Audio extends PlayerVoices {
     return { activeVoices: currentOwner()?.census.sounds ?? 0, beds: this.liveBeds?.() ?? (this.bedNodes.length > 0 ? 1 : 0), buses: this.g ? 8 : 0 };
   }
   unloadLevel(): void {
+    this.queuedResume?.cancel(); this.queuedResume = undefined;
     this.started = false;
     this.stopBed();
     this.hum?.stop(); this.hum = undefined; this.humOn = false;
@@ -184,11 +170,8 @@ export class Audio extends PlayerVoices {
   /** the graph, built on first use: master → muffle → compressor → out, with the sfx and ambient buses and a 2 s noise buffer */
   private graph(): Graph {
     if (this.g) return this.g;
-    const w: { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext } = window; // old Safari: prefixed only
-    const AC = w.AudioContext ?? w.webkitAudioContext;
-    if (AC === undefined) throw new Error('WebAudio unsupported');
-    const ctx = sharedCtx ?? new AC({ latencyHint: 'interactive' });
-    sharedCtx = ctx;
+    const ctx = claimPageAudioContext();
+    if (ctx === undefined) throw new Error('WebAudio unsupported');
     const master = ctx.createGain(); master.gain.value = this._muted ? 0 : 0.6;
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -12; comp.knee.value = 18; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.16;
@@ -297,8 +280,15 @@ export class Audio extends PlayerVoices {
   get muted(): boolean { return this._muted; }
   set muted(v: boolean) { this._muted = v; if (this.g) this.g.master.gain.setTargetAtTime(v ? 0 : 0.6, this.g.ctx.currentTime, 0.05); }
 
-  /** Call from a user gesture (it builds the graph there — iOS unlocks a context made inside a gesture). Idempotent. */
+  /** a `resume()` asked for before the first gesture (G325), run by it */
+  private queuedResume: { cancel: () => void } | undefined;
+  /** Call from a user gesture (it builds the graph there — iOS unlocks a context made inside a gesture). Idempotent.
+   *  Before the page's first gesture (G325, `installAudioUnlock`) it queues and runs inside that gesture instead. */
   resume(): void {
+    if (!audioUnlocked()) {
+      this.queuedResume ??= whenAudioUnlocked(() => { this.queuedResume = undefined; this.resume(); });
+      return;
+    }
     const built = this.g !== undefined, c = this.ctx;
     if (c.state !== 'running') void c.resume();
     if (!built && this.underwater) { this.underwater = false; this.setUnderwater(true); } // dove before the first gesture
@@ -596,6 +586,7 @@ export class Audio extends PlayerVoices {
 
   private stopBed() {
     this.synthBeds.get(this.bed)?.stop();
+    if (this.bedNodes.length === 0) return; // nothing sounding (and before the first gesture, no context to ask the time)
     const t = this.ctx.currentTime;
     for (const n of this.bedNodes) {
       if (n instanceof GainNode) { n.gain.cancelScheduledValues(t); n.gain.setTargetAtTime(0, t, 0.6); }
@@ -642,7 +633,7 @@ export class Audio extends PlayerVoices {
     return g;
   }
 
-  dispose(): void { for (const bed of this.synthBeds.values()) bed.stop(); this.scope.cancelTimer(this.bubbleTimer); if (this.g) { if (this.g.ctx === sharedCtx) sharedCtx = undefined; void this.g.ctx.close(); } }
+  dispose(): void { this.queuedResume?.cancel(); this.queuedResume = undefined; for (const bed of this.synthBeds.values()) bed.stop(); this.scope.cancelTimer(this.bubbleTimer); if (this.g) { releasePageAudioContext(this.g.ctx); void this.g.ctx.close(); } }
 }
 
 export { Audio as GameAudio };
