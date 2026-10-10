@@ -5,7 +5,8 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own temporary fixture paths only.
 import { dirname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { checkShares, codeLines, milestoneFlags, shardLines, type ShardLines, type ShardPlatformList } from '../scripts/shard-platform.mjs';
+import { checkShares, codeLines, milestoneFlags, rawShaderLines, shaderCodeLines, shardLines, type ShardLines, type ShardPlatformList } from '../scripts/shard-platform.mjs';
+import { shardContent } from '../scripts/shard-platform-content.mjs';
 
 const recorded = JSON.parse(readFileSync('lint/shard-platform.json', 'utf8')) as ShardPlatformList;
 function fixture(run: (root: string, put: (path: string, source: string) => void) => void, sdk = true): void {
@@ -153,9 +154,9 @@ describe('SF6 platform measures', () => {
       put('src/shards/alpha/runtime/output.ts', `// @generated\n${'export const padded = 1;\n'.repeat(100)}`);
       put('src/shards/alpha/behaviour/tick.as', 'export function tick(): i32 { return 1; }\n');
       const row = alpha(root);
-      expect(row.conversion).toEqual({ metric: 'runtime-vs-legacy', customRuntimeLines: 2, shardRuntimeLines: 2, legacyLines: 11,
+      expect(row.conversion).toEqual({ metric: 'runtime-vs-legacy', customRuntimeLines: 2, shardRuntimeLines: 2, rawGlslLines: 0, additionalGlslLines: 0, legacyLines: 11,
         legacyFolder: 'alpha-legacy', legacyRevision: 'a'.repeat(40), runtimeShare: 2 / 11, passed: true,
-        gameSystemAttribution: { status: 'import-graph', review: 'pending-opus-audit', lines: 0, modules: [] } });
+        gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: 0, modules: [] } });
       expect(row.legacyShare).toBe(row.publicShare);
       expect(row.publicShare).toBeLessThan(0.8); // the old share cannot veto the new pass
       expect(Object.keys(shardLines(root))).toEqual(['alpha']);
@@ -169,9 +170,9 @@ describe('SF6 platform measures', () => {
   it('G291 explicitly reports a missing frozen copy without inventing a denominator or pass', () => {
     fixture((root, put) => {
       put('src/shards/alpha/runtime/play.ts', 'export const play = 1;\n');
-      expect(alpha(root).conversion).toEqual({ metric: 'legacy-share', customRuntimeLines: 1, shardRuntimeLines: 1, legacyLines: null,
+      expect(alpha(root).conversion).toEqual({ metric: 'legacy-share', customRuntimeLines: 1, shardRuntimeLines: 1, rawGlslLines: 0, additionalGlslLines: 0, legacyLines: null,
         legacyFolder: null, legacyRevision: null, runtimeShare: null, passed: null,
-        gameSystemAttribution: { status: 'import-graph', review: 'pending-opus-audit', lines: 0, modules: [] } });
+        gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: 0, modules: [] } });
       expect(checkShares({ baseline: { alpha: 10 }, enforced: { alpha: 0 } }, shardLines(root)).join(',')).toContain('ceiling 0');
     });
   });
@@ -187,10 +188,11 @@ describe('SF6 platform measures', () => {
       put('src/shards/alpha/runtime/b.ts', "import '@wildshard/sdk/family';\n");
       put('src/shards/alpha/tests/fake.test.ts', "import '@wildshard/sdk/not-runtime';\n");
       const attributed = alpha(root).conversion.gameSystemAttribution;
-      expect(attributed).toEqual({ status: 'import-graph', review: 'pending-opus-audit', lines: 7, modules: [
+      expect(attributed).toEqual({ status: 'import-graph', review: 'G294-primary-reach', lines: 107, modules: [
+        { path: 'src/engine/private.ts', lines: 100 },
         { path: 'src/game/impl/a.ts', lines: 3 }, { path: 'src/game/impl/b.ts', lines: 2 }, { path: 'src/sdk/impl/facade.ts', lines: 2 },
       ] });
-      expect(alpha(root).conversion.customRuntimeLines).toBe(10);
+      expect(alpha(root).conversion.customRuntimeLines).toBe(110);
       // A frozen historical caller is not a second primary user.
       put('src/shards/alpha-legacy/manifest.ts', "import '@wildshard/sdk/family';\n");
       put('src/shards/alpha-legacy/plugin.ts', 'export const plugin = 1;\n');
@@ -219,7 +221,7 @@ describe('SF6 platform measures', () => {
       const row = alpha(root);
       expect(milestoneFlags('alpha', row, root)).toMatchObject({ compatible: false, transitional: true, boot: false, gridReady: false });
       for (const name of ['boot', 'headless', 'replay', 'ledger', 'grid-ready']) put(`test/proof/alpha/${name}.test.ts`, '/* proof fixture: production convention is executable vitest tests */\n');
-      expect(milestoneFlags('alpha', row, root)).toEqual({ boot: true, headless: true, replay: true, ledger: true, gridReady: true, compatible: true, transitional: true });
+      expect(milestoneFlags('alpha', row, root)).toEqual({ boot: true, headless: true, replay: true, ledger: true, gridReady: true, compatible: false, transitional: true, witnessCompatible: true });
     });
   });
   it('reads a canonical witness result over the test files, so a fail-closed witness never reads as a pass', () => {
@@ -234,7 +236,55 @@ describe('SF6 platform measures', () => {
       put('test/proof/alpha/compatibility.json', witness('passed', false, false, 1));
       expect(milestoneFlags('alpha', row, root)).toMatchObject({ headless: true, replay: true, ledger: false, compatible: false, transitional: true });
       put('test/proof/alpha/compatibility.json', witness('passed', true, true, 0));
-      expect(milestoneFlags('alpha', row, root)).toMatchObject({ headless: true, replay: true, ledger: true, compatible: true, transitional: false });
+      expect(milestoneFlags('alpha', row, root)).toMatchObject({ headless: true, replay: true, ledger: true, compatible: true, transitional: false, witnessCompatible: true });
+    });
+  });
+  it('G306 counts GLSL data and files as custom exactly once, never graph nodes or generated shader outputs', () => {
+    fixture((root, put) => {
+      put('src/shards/alpha/data/shader.ts', 'export const vertexBegin = `vec3 transformed = position;\n// padding\ntransformed.x += 1.0;`;\n');
+      put('src/shards/alpha/data/material.ts', 'export const graph = { nodes: [{ op: "add" }] };\n');
+      put('src/shards/alpha/data/terrain.glsl', '// padding\nvoid main() {\n gl_Position = vec4(1.0);\n}\n');
+      put('src/shards/alpha/runtime/view.ts', 'export const fragmentShader = `void main() {\n gl_FragColor = vec4(1.0);\n}`;\n');
+      put('src/shards/alpha/data/terrain.generated.glsl', 'void main() {}\n'.repeat(100));
+      expect(alpha(root).conversion).toMatchObject({ shardRuntimeLines: 3, rawGlslLines: 8, additionalGlslLines: 5, customRuntimeLines: 8 });
+      expect(shaderCodeLines('#include "https://source" // comment\n/* pad\n pad */\nvec3 x;')).toBe(2);
+      expect(rawShaderLines('export const description = "No raw shader source";', 'data.ts')).toBe(0);
+    });
+  });
+  it('G304 keeps a passing trusted-simulation witness transitional, including Nine-style compatible:true records', () => {
+    fixture((root, put) => {
+      put('src/shards/alpha/data/rows.ts', 'export const rows = 1;\n');
+      for (const name of ['headless', 'replay', 'ledger']) put(`test/proof/alpha/${name}.test.ts`, '/* executable witness fixture */');
+      put('test/proof/alpha/compatibility.json', JSON.stringify({ entry: 'runtime/headless.ts', compatible: true, audit: { exitStatus: 0 },
+        headless: { status: 'passed' }, replay: { status: 'passed' }, ledger: { status: 'passed', gameplayEmissionProven: true } }));
+      expect(milestoneFlags('alpha', alpha(root), root)).toMatchObject({ headless: true, replay: true, ledger: true, witnessCompatible: true, compatible: false, transitional: true });
+    });
+  });
+
+  it('G304 counts only built content, names private binaries, and never credits missing or malformed products', () => {
+    fixture((root, put) => {
+      expect(shardContent('alpha', root)).toMatchObject({ status: 'missing', tiles: null, files: null, colliders: null, structuralWorld: null });
+      put('public/shardfiles/alpha/shard.json', '{broken');
+      expect(shardContent('alpha', root).status).toBe('invalid');
+      const product = { tiles: [{ lod: 0 }, { lod: 1 }], files: [{ hash: 'mesh', kind: 'glb' }, { hash: 'texture', kind: 'ktx2' }],
+        terrain: null, nativeGround: null, runtime: null,
+        props: { colliders: [{ shapes: [{ kind: 'box' }, { kind: 'treads', count: 3 }] }] },
+        meshCollision: { tiles: [{ file: 'collider' }], panels: [{ file: 'panel' }] } };
+      put('public/shardfiles/alpha/shard.json', JSON.stringify(product));
+      expect(shardContent('alpha', root)).toMatchObject({ status: 'built', tiles: { total: 2, l0: 1, l1: 1 }, files: { total: 2, kinds: { glb: 1, ktx2: 1 } },
+        colliders: { descriptors: 1, shapes: 4, meshTiles: 1, meshPanels: 1, heightfield: false }, structuralWorld: true, trustedSimulation: false, privateBinaries: [] });
+      put('src/shards/alpha/runtime/physics.baked.json', '{}');
+      put('public/assets/baked/alpha/layout.bin', 'binary fixture');
+      put('public/shardfiles/alpha/shard.json', JSON.stringify({ ...product, runtime: { entry: 'runtime/main.ts' }, nativeGround: { file: 'ground' },
+        files: [...product.files, { hash: 'private', kind: 'binary' }] }));
+      expect(shardContent('alpha', root)).toMatchObject({ status: 'built', structuralWorld: false, trustedSimulation: true,
+        privateBinaries: [
+          'public/assets/baked/alpha/layout.bin', 'src/shards/alpha/runtime/physics.baked.json',
+          'shard.json files:private (opaque binary; decoder ownership requires audit)',
+          'shard.json nativeGround:ground (trusted native collider owner)',
+        ] });
+      put('public/shardfiles/alpha/shard.json', JSON.stringify({ ...product, props: { colliders: [{ shapes: [{ kind: 'treads', count: -1 }] }] } }));
+      expect(shardContent('alpha', root).status).toBe('invalid');
     });
   });
 });

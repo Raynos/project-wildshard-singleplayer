@@ -1,5 +1,5 @@
 {
-  "about": "G291/G294 report-only: authored shard runtime TS plus singly-reached game/SDK TS divided by its registered frozen legacy TS size; PASS <=20 %. Exclude generators/data from shard runtime, tests/generated/baked files from every count. A game/SDK module is public only when reached by >=2 primary shards or _template (frozen copies excluded). Classification awaits Opus audit. Secondary legacy-share and the immutable historical baseline/ceilings below keep their prior gate enforcement unchanged; no new failures from the definition change.",
+  "about": "G291/G294/G306 report-only: authored shard runtime TS plus raw GLSL (including shader literals in data/generators) and singly-reached platform source divided by the registered frozen legacy TS size; PASS <=20 %. Tests and generated/baked output never count. Runtime TS excludes generators/data; raw shaders are custom in every folder. A module is public only when reached by >=2 primary shards or _template (frozen copies excluded). Source/runtime TS and additional GLSL are charged once. G304 built-content counts and private binary paths are reported separately; trusted simulation remains transitional even with passing witnesses. Historical baseline/ceilings below keep their old enforcement; the new report adds no failure.",
   "baselineAt": "b96fed1a1",
   "baseline": {
     "_template": 550,

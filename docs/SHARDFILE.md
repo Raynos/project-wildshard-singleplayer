@@ -1217,3 +1217,36 @@ map. `presentationCard` resolves each distinct hash once to a MIME-sniffed inert
 `data:image/...;base64,...` URL. The returned ordinary session hooks run later; the
 caller remains responsible for product admission and the library lease.
 
+
+
+## Conversion and content reports (G291 / G294 / G304 / G306)
+
+`node scripts/shard-platform.mjs --json` reports conversion against each primary
+shard's registered frozen `<slug>-legacy` TypeScript inventory. The numerator is
+nonblank authored runtime TS, additional raw GLSL, and deduplicated platform code
+with only that primary user. A second primary user or the template makes a shared
+module public; frozen copies do not supply users. Moving code to engine, game or
+SDK does not remove its attribution. Tests and generated/baked outputs never
+contribute; ordinary authored generator/data TS is outside runtime TS, but raw
+shader literals in those folders and `.glsl` files remain custom. Shader lines
+already within counted runtime TS are not added twice. SF59 graph nodes are data.
+The frozen denominator remains TypeScript, including its authored generators/data,
+with the same generated/test exclusion. The new definition is report-only;
+existing historical enforcement stays active during base repair.
+
+The same command reads `public/shardfiles/<folder>/shard.json`, or another emitted
+product directory supplied with `--products=<directory>`. It reports L0/L1 tiles,
+file kinds, declared collider descriptors/expanded shapes, mesh collision tile
+and panel references, and the heightfield separately. It names `.bin` and
+`*.baked.json` files under the shard and its native baked folder, opaque admitted
+binaries, and `nativeGround` ownership. Missing or malformed products are explicitly
+unavailable, with null counts; the report never imports `shard.config.ts` or bakes
+a product to invent evidence. `structuralWorld` is only a declaration candidate,
+not an admission, completeness or physics proof. Trusted runtime ownership and
+private world binaries prevent that candidate from reading as a completed port.
+
+Headless/replay/ledger results remain visible. `witnessCompatible` preserves a
+passing native witness, while conversion's `compatible` is false and
+`transitional` is true as long as trusted runtime simulation remains. This includes
+Nine Dragon's current native headless worker even if its recorded witness says
+`compatible: true`; passing continuations do not imply a data-owned simulation.
