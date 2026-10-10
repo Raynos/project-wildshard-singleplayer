@@ -19,6 +19,11 @@ export const HEAVY_INTEGRATION_TESTS = [
   'test/immutable-vegetation-canvases-off.test.ts',
   'test/immutable-vegetation-canvases.test.ts',
   'test/shardfile-splat-admission.test.ts',
+  // Native tapes and SDK workers keep their deadlines after the main pool has drained.
+  // Checkpoint caches are prepared before Vitest; reef and Signal still execute their real spawn journeys.
+  'test/proof/compatibility/determinism.test.ts',
+  'test/proof/driftwood-isle/reef.test.ts',
+  'test/proof/driftwood-isle/replay.test.ts',
 ];
 
 export default defineConfig({
