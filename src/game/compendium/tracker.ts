@@ -10,7 +10,8 @@
  *   game.onUpdate((dt) => tracker.update(dt, camera, animals.animals));
  *   animals.onKill = (a) => { …; tracker.killed(a); };
  */
-import type { CompendiumState } from './state';
+import * as v from 'valibot';
+import type { CompendiumRules } from './rules';
 
 interface V3 { x: number; y: number; z: number }
 /** what the tracker reads off an Animal (src/engine/entities/Animal.ts) */
@@ -25,6 +26,12 @@ export const SPOT_CONE = 0.62;
 /** a place is "heard of" from its radius × REACH */
 export const REACH = 3;
 const PERIOD = 0.25;
+const ids = v.pipe(v.array(v.pipe(v.string(), v.minLength(1), v.maxLength(256))), v.maxLength(1024),
+  v.check(values => new Set(values).size === values.length));
+const Saved = v.strictObject({ version: v.literal(1), acc: v.pipe(v.number(), v.finite(), v.minValue(0), v.check(value => value < PERIOD)),
+  heard: ids, spotted: ids, inside: ids });
+/** Session identity sets and the exact polling clock, separate from durable entry statistics. */
+export type CompendiumTrackerSnapshot = v.InferOutput<typeof Saved>;
 
 export interface TrackerOptions {
   /** a clear line from the eye to the animal (physics ray); absent = always clear */
@@ -41,7 +48,40 @@ export class CompendiumTracker {
   private readonly cosCone = Math.cos(SPOT_CONE);
   private readonly to = { x: 0, y: 0, z: 0 };
 
-  constructor(private state: CompendiumState, private opts: TrackerOptions = {}) {}
+  private readonly state: CompendiumRules;
+  private readonly opts: TrackerOptions;
+  constructor(state: CompendiumRules, opts: TrackerOptions = {}) { this.state = state; this.opts = opts; }
+
+  /** Serialize only current owned animal identities. Retired animals cannot be observed again; weak sets never pin them. */
+  snapshot(animals: readonly TrackedAnimal[], identity: (animal: TrackedAnimal) => string): CompendiumTrackerSnapshot {
+    const owned = this.identities(animals, identity);
+    return { version: 1, acc: this.acc,
+      heard: [...owned].filter(([, animal]) => this.heard.has(animal)).map(([id]) => id),
+      spotted: [...owned].filter(([, animal]) => this.spotted.has(animal)).map(([id]) => id), inside: [...this.inside] };
+  }
+
+  /** Rebind session identity to actual restored bodies. Every id and place validates before any clock/set changes. */
+  prepareRestore(input: unknown, animals: readonly TrackedAnimal[], identity: (animal: TrackedAnimal) => string): () => void {
+    const saved = v.parse(Saved, input), owned = this.identities(animals, identity);
+    if (saved.heard.some(id => !owned.has(id)) || saved.spotted.some(id => !owned.has(id))
+      || saved.inside.some(id => this.state.entry(id)?.place === undefined)) throw new RangeError('Unknown compendium tracker identity');
+    const bodies = (list: readonly string[]): WeakSet<TrackedAnimal> => new WeakSet(list.map(id => {
+      const animal = owned.get(id); if (animal === undefined) throw new RangeError('Missing compendium tracker body'); return animal;
+    }));
+    const heard = bodies(saved.heard), spotted = bodies(saved.spotted), inside = new Set(saved.inside);
+    return () => { this.acc = saved.acc; this.heard = heard; this.spotted = spotted; this.inside = inside; };
+  }
+
+  private identities(animals: readonly TrackedAnimal[], identity: (animal: TrackedAnimal) => string): Map<string, TrackedAnimal> {
+    if (animals.length > 1024) throw new RangeError('Compendium tracker identity capacity exceeded');
+    const owned = new Map<string, TrackedAnimal>();
+    for (const animal of animals) {
+      const id = identity(animal);
+      if (id.length === 0 || id.length > 256 || owned.has(id)) throw new RangeError('Invalid compendium tracker identity');
+      owned.set(id, animal);
+    }
+    return owned;
+  }
 
   /** body mass of a kill: the entry's scale-1 mass × the individual's scale³ */
   massOf(a: TrackedAnimal): number {
