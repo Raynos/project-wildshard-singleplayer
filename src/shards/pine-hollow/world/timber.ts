@@ -1,5 +1,5 @@
 /**
- * The timber kit Pine Hollow's landmark models are built with (E315 M2; moved from src/shards/pine-hollow/world/landmarks.ts): a
+ * The timber kit Pine Hollow's landmark models are finished with (E315 M2; moved from src/shards/pine-hollow/world/landmarks.ts): a
  * building's parts in its OWN frame, on the cabins' own kit and materials (src/engine/world/Cabin.ts `cabinMats`, `logGeo`,
  * `boxUV`, `finishParts`): one merged mesh per material, two position-only shadow proxies, no new programs. Its
  * colliders and deck floors are gathered in the same frame; `place` carries them to the placement.
@@ -9,17 +9,14 @@
  * drops with distance — the old PineLandmarks.update, as data.
  */
 import * as THREE from 'three';
-import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { cabinMats, type Mats, type MatKey } from './homestead';
 import { finishParts } from '../models/logCabin';
-import { logGeo, boxUV } from './logKit';
 
 type V3 = THREE.Vector3;
-export const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);
+const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);
 
 /** a walkable deck rectangle: centre, turn, half extents, height (own space, or world once placed) */
 export interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
@@ -35,69 +32,14 @@ export class Timber {
   readonly root = new THREE.Group();
   readonly detail: THREE.Object3D[] = [];
   readonly far: THREE.Object3D[] = [];
-  readonly glass: THREE.BufferGeometry[] = [];
-  readonly rng: Rng;
-  readonly out: ColliderDesc[] = [];
-  readonly floors: Floor[] = [];
-  readonly anchors: Record<string, V3> = {};
-  private parts = new Map<MatKey, THREE.BufferGeometry[]>();
-  private m = new THREE.Matrix4();
+  private readonly glass: THREE.BufferGeometry[] = [];
+  private readonly out: ColliderDesc[] = [];
+  private readonly floors: Floor[] = [];
+  private readonly anchors: Record<string, V3> = {};
+  private readonly parts = new Map<MatKey, THREE.BufferGeometry[]>();
 
-  constructor(name: string, seed: number) {
-    this.rng = new Rng(SEED + seed);
-    this.root.name = name;
-  }
+  private constructor(name: string) { this.root.name = name; }
 
-  add(key0: MatKey, geo: THREE.BufferGeometry, m?: THREE.Matrix4): void {
-    if (m) geo.applyMatrix4(m);
-    const g = geo.index ? geo.toNonIndexed() : geo;
-    // fewer materials, fewer draws (a landmark is mostly seen from afar): the decks are the beams' planks
-    const key: MatKey = key0 === 'deck' ? 'beam' : key0;
-    const list = this.parts.get(key);
-    if (list === undefined) this.parts.set(key, [g]); else list.push(g);
-  }
-  /** a box of w × h × d centred at (x, y, z), turned ry about +Y (then rz, rx) */
-  box(key: MatKey, w: number, h: number, d: number, x: number, y: number, z: number, uv = 1, ry = 0, rz = 0, rx = 0): void {
-    const g = boxUV(new THREE.BoxGeometry(w, h, d), uv, this.rng.next(), this.rng.next());
-    this.m.makeRotationFromEuler(new THREE.Euler(rx, ry, rz, 'YXZ')).setPosition(x, y, z);
-    this.add(key, g, this.m);
-  }
-  /** a round log from a to b (peeled 'log' texture, or 'bark') with end grain caps */
-  log(a: V3, b: V3, r: number, key: 'log' | 'bark' = 'log', segs = 10): void {
-    const d = new THREE.Vector3().subVectors(b, a), len = d.length();
-    if (len < 0.02) return;
-    const { side, caps } = logGeo(len, r, this.rng.int(0, 6), this.rng.range(0, 2), segs, key === 'bark');
-    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), d.normalize());
-    const m = new THREE.Matrix4().makeRotationFromQuaternion(q).setPosition(a.clone().lerp(b, 0.5));
-    this.add(key, side, m.clone());
-    this.add(key, caps, m); // the caps in the log's own material: one draw per landmark for its logs
-  }
-  /** a sawn beam (square section `s`) from a to b */
-  beam(a: V3, b: V3, s: number, key: MatKey = 'beam'): void {
-    const d = new THREE.Vector3().subVectors(b, a), len = d.length();
-    const g = boxUV(new THREE.BoxGeometry(len, s, s), 1, this.rng.next(), this.rng.next());
-    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), d.normalize());
-    this.add(key, g, new THREE.Matrix4().makeRotationFromQuaternion(q).setPosition(a.clone().lerp(b, 0.5)));
-  }
-  /** a static box collider: centre (lx, lz), half extents, from y0 to y1 above the frame's origin */
-  solid(lx: number, lz: number, hx: number, hz: number, y0: number, y1: number, localYaw = 0, surface: 'wood' | 'stone' = 'wood'): void {
-    this.out.push({ kind: 'box', x: lx, y: (y0 + y1) / 2, z: lz, hx, hy: (y1 - y0) / 2, hz, yaw: localYaw, surface });
-  }
-  /** a box collider along a sloped segment a → b (a leg, a deck on a slope): `hw` across (±Z of the segment), `hh` thick */
-  solidAlong(a: V3, b: V3, hw: number, hh: number): void {
-    const d = new THREE.Vector3().subVectors(b, a), len = d.length();
-    const rot = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), d.clone().normalize());
-    const mid = a.clone().lerp(b, 0.5);
-    this.out.push({ kind: 'box', x: mid.x, y: mid.y, z: mid.z, hx: len / 2, hy: hh, hz: hw, rot: { x: rot.x, y: rot.y, z: rot.z, w: rot.w }, surface: 'wood' });
-  }
-  /** a stair (Rapier treads): `count` risers from `from` (the first tread's foot) to `to` (the top edge) */
-  treads(from: V3, to: V3, width: number, count: number): void {
-    this.out.push({ kind: 'treads', from: { x: from.x, y: from.y, z: from.z }, to: { x: to.x, y: to.y, z: to.z }, width, count, surface: 'wood' });
-  }
-  /** a walkable deck rectangle for `floorHeightAt` (placement only: the colliders are the real floor) */
-  floor(lx: number, lz: number, hw: number, hd: number, y: number): void {
-    this.floors.push({ x: lx, z: lz, rot: 0, hw, hd, y });
-  }
   /**
    * Merge the parts per material, add the glass, and tag what drops with distance: the detail set within the cabins'
    * detail distance + `pad`, the far set within twice it (+ `pad`); the detail's shadows off on a tier without them.
@@ -119,11 +61,9 @@ export class Timber {
     return this.root;
   }
   facts(): TimberFacts { return { colliders: this.out, floors: this.floors, anchors: this.anchors }; }
-  /** what the builder left before `finish`: each material's parts in order, and the glass (an offline bake reads them) */
-  built(): { parts: ReadonlyMap<MatKey, readonly THREE.BufferGeometry[]>; glass: readonly THREE.BufferGeometry[] } { return { parts: this.parts, glass: this.glass }; }
   /** a timber from its offline bake: its parts, glass and facts as the builder left them, ready to `finish` */
   static baked(name: string, parts: ReadonlyMap<MatKey, THREE.BufferGeometry[]>, glass: readonly THREE.BufferGeometry[], facts: TimberFacts): Timber {
-    const t = new Timber(name, 0);
+    const t = new Timber(name);
     for (const [key, list] of parts) t.parts.set(key, list);
     t.glass.push(...glass); t.out.push(...facts.colliders); t.floors.push(...facts.floors); Object.assign(t.anchors, facts.anchors);
     return t;

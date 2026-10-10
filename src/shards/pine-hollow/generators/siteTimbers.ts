@@ -16,7 +16,7 @@ import type * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { ZIPLINE } from '../layout';
-import { Timber, V } from '../world/timber';
+import { TimberBuilder, V } from './timberKit';
 import { BRIDGE, BRIDGE_HALF, LANDING, bridgeSite, landingSite, type SiteTimberRows } from '../world/timberSites';
 import { TimberRecorder } from './timberBake';
 
@@ -25,7 +25,7 @@ type Ground = (lx: number, lz: number) => number;
 
 const LANDING_DIMS = { hx: 1.5, hz: 1.6, deck: ZIPLINE.to.deck, gantry: 3.8, cable: 3.3 };
 
-function buildLanding(t: Timber, g: (lx: number, lz: number) => number): void {
+function buildLanding(t: TimberBuilder, g: (lx: number, lz: number) => number): void {
   // the N road runs under the deck along local Z (the cable's line): the posts stand 3 m apart either side of it, the
   // X-bracing is on the road's sides only, and the stair comes down off the −X side, away from the road
   const { hx, hz, deck } = LANDING_DIMS;
@@ -76,7 +76,7 @@ function buildLanding(t: Timber, g: (lx: number, lz: number) => number): void {
   t.anchors['zipBottom'] = V(0, deck + LANDING_DIMS.cable, hz + 0.05); t.anchors['landing'] = V(0, deck, 0);
 }
 
-function buildBridge(t: Timber, half: number, g: (lx: number, lz: number) => number): void {
+function buildBridge(t: TimberBuilder, half: number, g: (lx: number, lz: number) => number): void {
   const yA = g(-half, 0) + 0.25, yB = g(half, 0) + 0.25;
   const deckAt = (s: number): number => yA + (yB - yA) * ((s + half) / (half * 2));
   const W = 1.9;
@@ -117,8 +117,8 @@ function siteGround(frame: THREE.Matrix4, y: number): Ground {
 /** The bake: each timber at its site and on the turntable (the landing on flat ground, the bridge 1.2 m over its gully). */
 export function bakeSiteTimbers(): { bin: Uint8Array; rows: Omit<SiteTimberRows, 'bin' | 'bytes'> } {
   const recorder = new TimberRecorder();
-  const landing = (g: Ground): ReturnType<TimberRecorder['record']> => { const t = new Timber(LANDING.name, LANDING.seed); buildLanding(t, g); return recorder.record(t); };
-  const bridge = (g: Ground): ReturnType<TimberRecorder['record']> => { const t = new Timber(BRIDGE.name, BRIDGE.seed); buildBridge(t, BRIDGE_HALF, g); return recorder.record(t); };
+  const landing = (g: Ground): ReturnType<TimberRecorder['record']> => { const t = new TimberBuilder(LANDING.seed); buildLanding(t, g); return recorder.record(t); };
+  const bridge = (g: Ground): ReturnType<TimberRecorder['record']> => { const t = new TimberBuilder(BRIDGE.seed); buildBridge(t, BRIDGE_HALF, g); return recorder.record(t); };
   const ls = landingSite(), bs = bridgeSite();
   const rows = {
     seed: SEED,

@@ -6,7 +6,7 @@
  */
 import type * as THREE from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import type { Timber } from '../world/timber';
+import type { TimberBuilder } from './timberKit';
 import { TIMBER_ATTRS, type ColliderRow, type TimberRow } from '../world/timberBake';
 
 /** +0 for -0 (JSON writes both as 0; a quaternion's -0 turns nothing) */
@@ -40,7 +40,7 @@ export class TimberRecorder {
   }
 
   /** record a built (unfinished) timber: its blocks appended to the binary, its row returned */
-  record(t: Timber): TimberRow {
+  record(t: TimberBuilder): TimberRow {
     const { parts, glass } = t.built();
     const partRows = [...parts].map(([key, list]) => ({ key, counts: this.counts(list) }));
     const glassRow = this.counts(glass);

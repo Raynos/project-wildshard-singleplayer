@@ -15,8 +15,8 @@ import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { boxUV } from '../world/logKit';
 import { ZIPLINE } from '../layout';
-import { Timber, V } from '../world/timber';
-import { LOOKOUT_NAME, LOOKOUT_SEED, type LookoutRows } from '../models/fireLookout';
+import { TimberBuilder, V } from './timberKit';
+import { LOOKOUT_SEED, type LookoutRows } from '../models/fireLookout';
 import { TimberRecorder } from './timberBake';
 
 type V3 = THREE.Vector3;
@@ -25,7 +25,7 @@ type V3 = THREE.Vector3;
 const TOWER = { base: 3.0, top: 2.1, deck: ZIPLINE.from.deck, deckHalf: 3.4, cab: 2.4, cabH: 2.3, flights: 5, flightRise: ZIPLINE.from.deck / 5, riser: 7, tread: 0.36, stairHalf: 1.26, landing: 0.9 } as const;
 const LAUNCH = { half: 0.8, out: 1.4, gantry: 3.6, cable: 3.3 };
 
-function buildLookout(t: Timber): void {
+function buildLookout(t: TimberBuilder): void {
   const { base, top, deck, deckHalf, cab, cabH } = TOWER;
   const legAt = (sx: number, sz: number, h: number): V3 => {
     const f = (h + 0.4) / (deck - 0.2 + 0.4);
@@ -213,7 +213,7 @@ function buildLookout(t: Timber): void {
 
 /** The bake: the lookout built at the level seed, its parts' and glass's attribute blocks in one binary, the rest as rows. */
 export function bakeFireLookout(): { bin: Uint8Array; rows: Omit<LookoutRows, 'bin' | 'bytes'> } {
-  const t = new Timber(LOOKOUT_NAME, LOOKOUT_SEED);
+  const t = new TimberBuilder(LOOKOUT_SEED);
   buildLookout(t);
   const recorder = new TimberRecorder();
   const row = recorder.record(t);
