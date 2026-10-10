@@ -1074,6 +1074,31 @@
       ],
       "platform": "darwin",
       "capture": true
+    },
+    {
+      "id": "nine-physics",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs",
+      "command": [
+        "src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nine-dragon-stack",
+        "scripts",
+        "public",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/runtime/physics.baked.json"
+      ],
+      "platform": "darwin",
+      "capture": true
     }
   ]
 }
