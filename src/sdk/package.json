@@ -208,7 +208,6 @@
     "./items/boltCrossbow": "./items/boltCrossbow.ts",
     "./items/leverFirearm": "./items/leverFirearm.ts",
     "./items/mountedSword": "./items/mountedSword.ts",
-    "./items/rewardBow": "./items/rewardBow.ts",
     "./items/javelinSpear": "./items/javelinSpear.ts",
     "./items/coneFan": "./items/coneFan.ts",
     "./items/coneStrikes": "./items/coneStrikes.ts",

@@ -5,7 +5,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from '../../weapons/effects';
 import * as THREE from 'three';
 import type { BowInstance } from '@wildshard/sdk/runtime/weapons/starterBow';
-import { rewardBowType } from '@wildshard/sdk/items/rewardBow';
+import { rewardBowType } from './rewardBow';
 import { BOW } from '../../weapons/equipment';
 
 

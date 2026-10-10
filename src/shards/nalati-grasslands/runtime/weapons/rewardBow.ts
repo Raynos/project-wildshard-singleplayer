@@ -1,6 +1,6 @@
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
-import { Bow, type BowOptions, type BowWorld } from '../../weapons/Bow';
+import { Bow, type BowOptions, type BowWorld } from '@wildshard/game/weapons/Bow';
 
 /**
  * The reward bow family (SHARD-PLATFORM SF36): a legendary bow that takes the starter bow's slot. It is the starter bow
