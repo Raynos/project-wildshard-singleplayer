@@ -45,7 +45,7 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
 export const NINE_DRAGON_STACK: ShardManifest = {
   api: 1,
   runtimeCost: NINE_DRAGON_RUNTIME_COST,
-  entries: { legacy: true, shardfile: true, public: 'legacy' },
+  entries: { legacy: true, shardfile: true, public: 'shardfile' }, // G326: public card flipped once boot, walk and parity passed (op-ship38)
   gridShardfile: '/shardfiles/nine-dragon-stack/shard.json',
   trustedRuntime: { get slug() { return NINE_DRAGON_STACK.slug; }, entry: 'runtime/index.ts' },
   kitLook: 'pbr',

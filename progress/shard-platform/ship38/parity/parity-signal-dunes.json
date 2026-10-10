@@ -1,0 +1,104 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "card": "Signal Dunes",
+  "version": {
+    "build": "3d8c2ef-mv2vpxe9",
+    "time": "2026-10-10T21:01:16.862Z"
+  },
+  "sides": {
+    "legacy": {
+      "mode": "legacy",
+      "errors": [],
+      "consoleErrors": [],
+      "shard": "sunscar-dunes-legacy",
+      "bootMs": 5595,
+      "shots": [
+        "view-1",
+        "view-2",
+        "view-3"
+      ]
+    },
+    "shardfile": {
+      "mode": "shardfile",
+      "errors": [],
+      "consoleErrors": [],
+      "shard": "sunscar-dunes",
+      "bootMs": 4489,
+      "shots": [
+        "view-1",
+        "view-2",
+        "view-3"
+      ]
+    }
+  },
+  "poses": [
+    {
+      "name": "view-1",
+      "x": 0,
+      "y": 21.37,
+      "z": 69.99,
+      "yaw": 0,
+      "pitch": -0.05
+    },
+    {
+      "name": "view-2",
+      "x": 0,
+      "y": 21.37,
+      "z": 69.99,
+      "yaw": 2.0944,
+      "pitch": -0.05
+    },
+    {
+      "name": "view-3",
+      "x": 0,
+      "y": 21.37,
+      "z": 69.99,
+      "yaw": 4.1888,
+      "pitch": -0.05
+    }
+  ],
+  "diffs": [
+    {
+      "pose": "view-1",
+      "mae": 3.1,
+      "legacy": [
+        83.4,
+        48.8,
+        54.1
+      ],
+      "shardfile": [
+        83.6,
+        48.9,
+        54.1
+      ]
+    },
+    {
+      "pose": "view-2",
+      "mae": 4.1,
+      "legacy": [
+        60.4,
+        31.6,
+        52.1
+      ],
+      "shardfile": [
+        60,
+        31.5,
+        52
+      ]
+    },
+    {
+      "pose": "view-3",
+      "mae": 7.8,
+      "legacy": [
+        73.1,
+        29.4,
+        31.9
+      ],
+      "shardfile": [
+        73.5,
+        29.4,
+        31.8
+      ]
+    }
+  ]
+}

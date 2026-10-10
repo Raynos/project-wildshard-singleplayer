@@ -20,7 +20,7 @@ const feet = (x: number, z: number): [number, number, number] => [x, ground(x, z
 
 export const SUNSCAR_DUNES: ShardManifest = {
   runtimeCost: SIGNAL_DUNES_RUNTIME_COST,
-  entries: { legacy: true, shardfile: true, public: 'legacy' },
+  entries: { legacy: true, shardfile: true, public: 'shardfile' }, // G326: public card flipped once boot, walk and parity passed (op-ship38)
   gridShardfile: '/shardfiles/sunscar-dunes/shard.json',
   trustedRuntime: { get slug() { return SUNSCAR_DUNES.slug; }, entry: 'runtime/index.ts' },
   budgets: BUDGETS, api: 1, slug: 'sunscar-dunes', order: 50, status: 'experimental', name: STRINGS.name, label: '(+2, −1)', seed: SEED,

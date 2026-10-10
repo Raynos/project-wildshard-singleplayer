@@ -1,0 +1,104 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "card": "Pine Hollow",
+  "version": {
+    "build": "3d8c2ef-mv2vpxe9",
+    "time": "2026-10-10T21:01:16.862Z"
+  },
+  "sides": {
+    "legacy": {
+      "mode": "legacy",
+      "errors": [],
+      "consoleErrors": [],
+      "shard": "pine-hollow-legacy",
+      "bootMs": 12129,
+      "shots": [
+        "view-1",
+        "view-2",
+        "view-3"
+      ]
+    },
+    "shardfile": {
+      "mode": "shardfile",
+      "errors": [],
+      "consoleErrors": [],
+      "shard": "pine-hollow",
+      "bootMs": 12819,
+      "shots": [
+        "view-1",
+        "view-2",
+        "view-3"
+      ]
+    }
+  },
+  "poses": [
+    {
+      "name": "view-1",
+      "x": 0,
+      "y": 0.02,
+      "z": -235,
+      "yaw": 3.14,
+      "pitch": -0.05
+    },
+    {
+      "name": "view-2",
+      "x": 0,
+      "y": 0.02,
+      "z": -235,
+      "yaw": 5.2344,
+      "pitch": -0.05
+    },
+    {
+      "name": "view-3",
+      "x": 0,
+      "y": 0.02,
+      "z": -235,
+      "yaw": 7.328799999999999,
+      "pitch": -0.05
+    }
+  ],
+  "diffs": [
+    {
+      "pose": "view-1",
+      "mae": 16,
+      "legacy": [
+        88.6,
+        95.7,
+        103.8
+      ],
+      "shardfile": [
+        98.6,
+        102.4,
+        107.1
+      ]
+    },
+    {
+      "pose": "view-2",
+      "mae": 17.9,
+      "legacy": [
+        122.2,
+        126.6,
+        126.6
+      ],
+      "shardfile": [
+        135,
+        138,
+        134.3
+      ]
+    },
+    {
+      "pose": "view-3",
+      "mae": 16.3,
+      "legacy": [
+        117.7,
+        121.8,
+        117.4
+      ],
+      "shardfile": [
+        129.1,
+        130.7,
+        122.5
+      ]
+    }
+  ]
+}

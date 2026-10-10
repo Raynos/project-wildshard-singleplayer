@@ -1,0 +1,104 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "card": "Nine Dragon Stack",
+  "version": {
+    "build": "3d8c2ef-mv2vpxe9",
+    "time": "2026-10-10T21:01:16.862Z"
+  },
+  "sides": {
+    "legacy": {
+      "mode": "legacy",
+      "errors": [],
+      "consoleErrors": [],
+      "shard": "nine-dragon-stack-legacy",
+      "bootMs": 6294,
+      "shots": [
+        "view-1",
+        "view-2",
+        "view-3"
+      ]
+    },
+    "shardfile": {
+      "mode": "shardfile",
+      "errors": [],
+      "consoleErrors": [],
+      "shard": "nine-dragon-stack",
+      "bootMs": 5637,
+      "shots": [
+        "view-1",
+        "view-2",
+        "view-3"
+      ]
+    }
+  },
+  "poses": [
+    {
+      "name": "view-1",
+      "x": 0.95,
+      "y": 125.02,
+      "z": 7.5,
+      "yaw": -0.21,
+      "pitch": -0.05
+    },
+    {
+      "name": "view-2",
+      "x": 0.95,
+      "y": 125.02,
+      "z": 7.5,
+      "yaw": 1.8843999999999999,
+      "pitch": -0.05
+    },
+    {
+      "name": "view-3",
+      "x": 0.95,
+      "y": 125.02,
+      "z": 7.5,
+      "yaw": 3.9787999999999997,
+      "pitch": -0.05
+    }
+  ],
+  "diffs": [
+    {
+      "pose": "view-1",
+      "mae": 1.6,
+      "legacy": [
+        105.7,
+        98.4,
+        100.8
+      ],
+      "shardfile": [
+        105.7,
+        98.4,
+        100.8
+      ]
+    },
+    {
+      "pose": "view-2",
+      "mae": 1.6,
+      "legacy": [
+        87,
+        80.7,
+        86
+      ],
+      "shardfile": [
+        87,
+        80.7,
+        86
+      ]
+    },
+    {
+      "pose": "view-3",
+      "mae": 1.8,
+      "legacy": [
+        82.6,
+        70.5,
+        76.1
+      ],
+      "shardfile": [
+        82.6,
+        70.5,
+        76.1
+      ]
+    }
+  ]
+}
