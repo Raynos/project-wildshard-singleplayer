@@ -34,13 +34,12 @@ v1 stays committed as the record; this plan replaces it.
 
 ## 2. The trailer
 
-### 2.1 Shape (defaults until PT0)
+### 2.1 Shape (Jake's picks, §6)
 
 - **A 16:9 master, 1920 × 1080 at 60 fps, 60 s** (YouTube, X, the site beside the alpha trailer). All three seats lead
   with landscape: first person needs horizontal field of view, the day-1 game is a desktop pointer-lock game, a terminal
   and a time-lapse need width, and the shared pipeline is 16:9.
-- **A 9:16 derivative, 1080 × 1920, ~45 s**, recomposed, never stretched or blindly cropped: gameplay on top, authoring
-  underneath (the split-screen grammar of Shorts / TikTok), each shot captured natively for its panel.
+- **16:9 only** (Jake, PT0): no 9:16 cut; on the phone it plays letterboxed.
 - **Not an OS screen recording** ("desktop" as window chrome reads as a screen share); desktop appears only as the
   terminal inside the authoring beats.
 - **Exactly half and half**: 30 s of first-person play, 30 s of authoring, alternating; time passing *is* the authoring.
@@ -63,7 +62,7 @@ v1 stays committed as the record; this plan replaces it.
 | 0:57–1:00 | author | **Every shard, one world**: the grid fly-in, then the end card "Day 23 · 7,0xx commits · 6 shards · built with Claude Code" | HEAD `grid.mjs` (PT4); numbers from git (PT7) |
 
 If PT2's scouting shows a beat can't be shot honestly (no prey at the spot, a later build reads worse, a hook missing),
-the beat changes to the nearest honest one and the row says so. The 9:16 cut keeps the same order, shorter.
+the beat changes to the nearest honest one and the row says so.
 
 ### 2.3 Rules
 
@@ -131,16 +130,16 @@ chapter always takes the drop slot and older ones compress. Adding a week is one
 
 | # | Row | Done when | Owner |
 |---|---|---|---|
-| PT0 | **Jake's picks**: the format (16:9 master + recomposed 9:16, or other) and the length (60 s recommended) | answers in §6 | Jake |
+| PT0 | ✅ **Jake's picks** (2026-10-09): 16:9 only, 60 s | answers in §6 | Jake |
 | PT1 | **The historical capture rig** (§3.1): `build-rev.sh` + era adapters + fixed-step proof + receipts + cache | a 5 s input-driven proof take on each of the four SHAs, viewmodel visible, one game frame per sample asserted, receipt written | progress-trailer agent |
 | PT2 | **Scout** every play beat's spot on its build, and the rewind spot (Pine's south trail at (0, −236), spawn "unchanged from v1") on all four, after ≥ 10 s warm-up; drop or move any beat where a later build reads worse | one contact sheet per beat, each frame checked against its era's capture; §2.2 updated where a beat moves | progress-trailer agent |
-| PT3 | **The play takes** (§2.2 play rows, the rewind moment's four synchronised takes) on their SHAs, at both aspects | every take refused or accepted by its receipt; first / middle / last frames checked | progress-trailer agent |
-| PT4 | **HEAD shots** (cold open, grid fly-in) through the trailer agent's pipeline after their request lands (§3.2) | the takes exist at 1080p60 and 9:16 | progress-trailer agent, the trailer agent for the hooks |
+| PT3 | **The play takes** (§2.2 play rows, the rewind moment's four synchronised takes) on their SHAs, at 16:9 | every take refused or accepted by its receipt; first / middle / last frames checked | progress-trailer agent |
+| PT4 | **HEAD shots** (cold open, grid fly-in) through the trailer agent's pipeline after their request lands (§3.2) | the takes exist at 1080p60 | progress-trailer agent, the trailer agent for the hooks |
 | PT5 | **The lapses** (§3.3): day-1 stills, Driftwood days 2–8, Nine Dragon to week 2, Sky Reach's 43 hours | each lapse plays 6–8 s with a moving camera, real captions and the counter | progress-trailer agent |
 | PT6 | **The Claude Code beat**: TR5's real session from the trailer agent, one real prompt from `docs/tasks/asks/` typed large | 3 s, legible on a phone | progress-trailer agent |
 | PT7 | **Receipts and titles**: every on-screen number and date generated from git; cards and the end card through the shared titles | a test re-renders the cards from git and matches | progress-trailer agent |
 | PT8 | **Score and SFX** (§3.4) | the cue and SFX on disk with credits; the mix at −14 LUFS / −1 dBTP on the encoded file | progress-trailer agent |
-| PT9 | **Cut and conform** both masters from one EDL through the shared `edit.mjs` | the 16:9 master and the 9:16 cut play whole; a phone copy sent to Jake | progress-trailer agent |
+| PT9 | **Cut and conform** the master from one EDL through the shared `edit.mjs` | the 16:9 master plays whole; a phone copy sent to Jake | progress-trailer agent |
 | PT10 | **Jake's verdict and where it goes** (YouTube, X, the site): his notes become rows here | his words recorded | Jake |
 | PT11 | **Re-make recipe and the week-4 drill** (§3.5) | the README's commands run as written; a dry week-4 entry renders | progress-trailer agent |
 
@@ -151,4 +150,6 @@ cut (FINISH-LINE SC4). `scripts/steam-trailer/` stays the trailer agent's; this 
 
 ## 6. Jake's picks
 
-(PT0, asked with the question tool.)
+Asked with the question tool, 2026-10-09:
+- **Format: 16:9 only**, a 1920 × 1080 / 60 fps master (not the recommended 16:9 + 9:16 stack).
+- **Length: 60 s.**
