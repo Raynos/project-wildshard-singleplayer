@@ -14,7 +14,7 @@
 // (@wildshard/sdk/looks/shaderFamily); this module makes the family (the splices the data cannot hold), the live shared
 // uniforms and each material.
 import { Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, type ShaderMaterial, type Texture, type IUniform, UnsignedByteType, Vector2, Vector3, Vector4 } from 'three';
-import { BLEND_ADD_KEEP_ALPHA, BLEND_KEEP_ALPHA, ShaderFamily, setUniforms, uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
+import { BLEND_ADD_KEEP_ALPHA, BLEND_KEEP_ALPHA, ShaderFamily, setUniforms, uniformsFrom, type UniformRows, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
 import { Y0 } from '../layout';
 import { FLAG, PAINT_GLSL, paintUniforms } from './paint';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
@@ -23,7 +23,7 @@ import { METAL, SUTRA } from '../util';
 import { Rng } from '@wildshard/engine/core/rng';
 import {
   EMIT_FOG as LOOK_EMIT_FOG, FOG_GLSL as LOOK_FOG, NOISE_GLSL as LOOK_NOISE, PAPER_GLSL as LOOK_PAPER, PROGRAMS, SHARED_UNIFORMS,
-  STONES_GLSL as LOOK_STONES, lookPreset, type LookName,
+  STONES_GLSL as LOOK_STONES, BANDS, LOOKS, type LookName,
 } from '../data/look';
 
 /** the splices only the shard knows (the datum, the flagstones, paint, light) */
@@ -40,6 +40,15 @@ export const STONES_GLSL = LOOK_FAMILY.glsl(LOOK_STONES);
 export const EMIT_FOG: string = LOOK_EMIT_FOG;
 
 const c = (hex: number): Color => new Color(hex);
+
+/** a look's preset as uniform rows (`setUniforms`), from data/look.ts' bands and looks */
+export function lookPreset(name: LookName): UniformRows {
+  const p = LOOKS[name];
+  return {
+    uSutra: name === 'sutra' ? 1 : 0, uBandCols: { rgbs: BANDS.map((b) => b[name]) }, uFogBaseCol: { rgb: p.fog },
+    uSkyTop: { rgb: p.sky[0] }, uSkyHorizon: { rgb: p.sky[1] }, uWashTint: { v3: p.tint }, uShade: { rgb: p.shade },
+  };
+}
 
 /** a 256² plain-weave silk, normalised to the full range (the ink lab's: the first one was ±2 % and invisible) */
 function silkWeave(): DataTexture {

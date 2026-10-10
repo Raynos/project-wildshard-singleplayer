@@ -56,15 +56,6 @@ export const LOOKS: Readonly<Record<LookName, LookPreset>> = {
   sutra: { fog: 0x22325a, sky: [0x0a1224, 0x1d2b4a], tint: [1, 1, 1], shade: 0xadb2bf },
 };
 
-/** a look's preset as uniform rows (`setUniforms`) */
-export function lookPreset(name: LookName): UniformRows {
-  const p = LOOKS[name];
-  return {
-    uSutra: name === 'sutra' ? 1 : 0, uBandCols: { rgbs: BANDS.map((b) => b[name]) }, uFogBaseCol: { rgb: p.fog },
-    uSkyTop: { rgb: p.sky[0] }, uSkyHorizon: { rgb: p.sky[1] }, uWashTint: { v3: p.tint }, uShade: { rgb: p.shade },
-  };
-}
-
 /** uniforms every world program shares, as rows (one live object each, so a write reaches every material); the silk
  *  weave, the metals, the sutra's paper and the paint's and light volume's textures are added by look/style.ts */
 export const SHARED_UNIFORMS = {
