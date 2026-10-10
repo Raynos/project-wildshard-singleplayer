@@ -44,6 +44,6 @@
 
 **Jake (open picks; details `docs/reviews/shard-platform-open-picks.md`):**
 - SF63 Driftwood shadows Tight: `art/sf63/round-1-driftwood-shadows/board-ab.jpg`
-- Sky isles fixed vs random: no board yet (rows `333762a1f`)
+- Sky isles fixed vs random: `progress/shard-platform/sky36/isles-board.jpg` (recommend D, fixed)
 - SF59 fixture looks: `progress/shard-platform/sf59/tsl-spike-desktop.jpg`, `sf59-pastel/`
 - G260 Blender: `art/blender-template/round-2-look/board.jpg`, `round-3-filled/board.jpg`
