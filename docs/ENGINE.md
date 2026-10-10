@@ -2323,7 +2323,8 @@ rows on `installBossRow`, its victory raising `spec.victory.flag` and emitting i
 `@wildshard/game/quest/questGraph` `installQuestGraph(host, { quests, interactions, npcs, graph }, ports)` runs a shard's
 declared quest graph headless (SF27): `DeclaredQuests` plus the interaction step at the baked spots and each quest-giver's
 talk spot, its runtime row (`parseQuestGraph`: `actor`, `step`, `actions`: `{ row, summon }` arms a boss when the row
-runs). A quest-giver is an NPC row (`@wildshard/game/quest/npcRow` `parseNpcRow`, `npcDef`, `npcSpot`): id, name, talk spot,
+runs). `drive: "external"` lets an existing modal/ride owner deliver `run(id)` without a second step or snapshot; transient marks refuse without their own continuation. `compileQuestTable(table, bindings)` compiles only supported latched-lever, pickup and bench flag effects, preserving ordered sets and leaving geometry, inventory and sitting with their existing owners.
+A skinned NPC can use `parseNpcDialogueRow` (SDK `questGraph`) to validate its unchanged dialogue without inventing pivot-body data. A quest-giver is an NPC row (`@wildshard/game/quest/npcRow` `parseNpcRow`, `npcDef`, `npcSpot`): id, name, talk spot,
 place, home facing, met flag, talk height and reach, face and wave ranges, its solid column, its pivot figure (model,
 height, neck, shoulder, arm cut, material) and its dialogue. `@wildshard/game/quest/pivotNpc` (SDK `@wildshard/sdk/pivotNpc`)
 `installPivotNpc(ctx, row, { source, groundAt, player, met, file, dress })` stands it in a level; `pivotNpcParts` is its

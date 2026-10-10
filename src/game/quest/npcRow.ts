@@ -10,6 +10,16 @@ const point = v.strictObject({ x: finite, z: finite });
 const vec3 = v.tuple([finite, finite, finite]);
 const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names) });
 
+
+/** Dialogue data independent of its rendered body. Skinned stand-in NPCs keep their own figure installer. */
+export const NpcDialogueRowSchema = v.strictObject({ id: name, name: text,
+  dialogue: v.pipe(v.array(v.strictObject({ when: v.exactOptional(condition), lines: v.pipe(v.array(text), v.minLength(1), v.maxLength(16)), sets: v.exactOptional(names) })), v.minLength(1), v.maxLength(16)),
+});
+/** Validated dialogue row; directly consumed by both the page and native NpcDialogue. */
+export type NpcDialogueRow = v.InferOutput<typeof NpcDialogueRowSchema>;
+/** Validate the dialogue without inventing pivot-figure fields for a skinned NPC. */
+export function parseNpcDialogueRow(input: unknown): NpcDialogueRow { return v.parse(NpcDialogueRowSchema, input); }
+
 /**
  * A quest-giver NPC as a declared row (SHARD-PLATFORM SF27, the pivot-NPC row): who it is, where it stands and what it
  * says, and how its figure moves. The figure is one generated model split onto pivots (not skinned): the head turns at
@@ -30,7 +40,7 @@ export const NpcRowSchema = v.strictObject({
    */
   figure: v.strictObject({ model: name, height: positive, neck: vec3, shoulder: vec3, armBelowX: finite, armAboveY: finite,
     roughness: v.pipe(finite, v.minValue(0), v.maxValue(1)), flat: v.boolean() }),
-  dialogue: v.pipe(v.array(v.strictObject({ when: v.exactOptional(condition), lines: v.pipe(v.array(text), v.minLength(1), v.maxLength(16)), sets: v.exactOptional(names) })), v.minLength(1), v.maxLength(16)),
+  dialogue: NpcDialogueRowSchema.entries.dialogue,
 });
 /** A validated quest-giver NPC row (`NpcRowSchema`). */
 export type NpcRow = v.InferOutput<typeof NpcRowSchema>;

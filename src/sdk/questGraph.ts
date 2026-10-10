@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { NpcRowSchema as npcSchema, parseNpcRow as parseNpc, type NpcRow as Npc } from '@wildshard/game/quest/npcRow';
+import { NpcRowSchema as npcSchema, parseNpcRow as parseNpc, parseNpcDialogueRow as parseDialogue, type NpcDialogueRow as Dialogue, type NpcRow as Npc } from '@wildshard/game/quest/npcRow';
 import { QuestGraphSchema as graphSchema, parseQuestGraph as parseGraph, type QuestGraphRow as Graph } from '@wildshard/game/quest/questGraph';
 
 /** A quest-giver NPC row (SF27): who it is, where it stands, what it says and how its pivot figure moves. */
@@ -14,3 +14,6 @@ export const QuestGraphSchema = v.pipe(graphSchema);
 export type QuestGraphRow = Graph;
 /** Compile an authored quest graph runtime row; an unknown field refuses. */
 export function parseQuestGraph(input: unknown): Graph { return parseGraph(input); }
+
+/** Compile dialogue for a skinned or pivot NPC while its existing view owns the figure. */
+export function parseNpcDialogueRow(input: unknown): Dialogue { return parseDialogue(input); }
