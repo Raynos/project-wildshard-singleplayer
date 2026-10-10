@@ -109,6 +109,7 @@
     "./looks/mapPalette": "./looks/mapPalette.ts",
     "./looks/fittedHull": "./looks/fittedHull.ts",
     "./looks/duskFamilies": "./looks/duskFamilies.ts",
+    "./looks/duneField": "./looks/duneField.ts",
     "./looks/paintedStrips": "./looks/paintedStrips.ts",
     "./looks/duskCurves": "./looks/duskCurves.ts",
     "./looks/modelLibrary": "./looks/modelLibrary.ts",
