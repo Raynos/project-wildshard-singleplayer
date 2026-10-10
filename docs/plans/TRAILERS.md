@@ -3,7 +3,8 @@
 **State:** `in progress` 2026-10-10 — **Part A done** (the alpha trailer, live on wildshard.io). **Part B: CT1 done**
 (ten experiments, Jake's verdicts: LTX Layout-To-Render on a Blender grey (#9) and LTX from a Qwen keyframe (#10b) win);
 **CT2** script draft 4 after council rounds 1–2; **draft 1 of the cinematic trailer is cut** (67 s, every shot LTX-2.5,
-sent to Jake 2026-10-10; `art/trailers/round-3-draft1/`). Next: council round 3 on the cut, Jake's notes, draft 2. Open: TR9, CT2–CT6.
+sent to Jake 2026-10-10; `art/trailers/round-3-draft1/`) — **Jake: "looks insanely AI"**, so Part B pauses for **Part C**:
+four 15-second trailers, one idea each (E471, §3b). Open: TR9, CT2–CT6, T15-1–T15-5.
 
 ## 0. Why
 
@@ -110,6 +111,22 @@ always an overlay.
 | CT4 | **Look stills and keyframes** — directed shots: a still painted from the grey's first frame (OpenAI or Qwen; Qwen only repaints grey: on finished frames it failed the gate, night → day, R2B-5); atmosphere shots: the storyboard frame itself, re-made from `hero-shard.jpg` wherever the new shard shows; every still passes the keyframe gate (composition, the hero's tower, Driftwood's facets, time of day, no lattice) | every shot has a gated still | trailer agent |
 | CT5 | **The shots** — LTX Layout-To-Render (directed) or image-to-video (atmosphere), 4–6 s each, critical shots first (6, 5, 7, 1); one take + two re-rolls by failure kind, then a stable insert (ct2-script §Gates) | 14 shots at 1280 × 704 — **draft 1: all 13 generated shots pass the gate**, b06 on its re-roll (the Layout-To-Render take lost the look after ~2 s to the grey's style; image-to-video from its look still held it) | trailer agent |
 | CT6 | **Score, cut, ship** — MiniMax take 404 of `concept-jobs.json` (its big hit on the cut into shot 6), trailer SFX, `cuts/concept.mjs` + `cinematic/prep_concept.sh` (1920 × 1080 crop, b14 reversed, b03 a wipe, b15 a hold), overlays (the concept tag on every frame, five captions, the end card), the site's slot beside the alpha trailer | wildshard.io plays it — draft 1 cut (temp mix, the stills-built b03 / b15) | trailer agent |
+
+## 3b. Part C — four 15-second trailers (E471)
+
+Jake, 2026-10-10, on CT2 draft 1: *"it looks insanely AI … really like AI software clips put together"*; he asks for
+**one 15-second trailer that focuses on one thing**, no in-engine footage: twenty ideas, a council picks four, the four
+are made, shown to him and reviewed. Part B (CT2–CT6) is paused behind this. The ideas, the diagnosis and the council:
+`trailers/t15/` (`ideas.md`, `council/selection.md`).
+
+| Row | What | Done when | Owner |
+|---|---|---|---|
+| T15-0 | ✅ Twenty ideas; council round 1 picks V1 prompt-to-glyphs, V2 the map that draws itself, V3 postcards, V4 the seam | `council/selection.md` | trailer agent |
+| T15-1 | **V1 · Prompt to glyphs** — a real Claude Code recording → a glyph mosaic → the painted island | 15 s cut | trailer agent |
+| T15-2 | **V2 · The map that draws itself** — ink motion design in HTML, frames via `titles.mjs --titles-html` | 15 s cut | lane |
+| T15-3 | **V3 · Postcards** — printed cards on a road map, HTML / CSS 3D | 15 s cut | lane |
+| T15-4 | **V4 · The seam** — two paintings from one grey layout, camera projection (`cinematic/still_mesh.py`, `still_cam.py`) | 15 s cut | trailer agent |
+| T15-5 | Score and hits per variant; the four sent to Jake; council round 2 reviews the four cuts | Jake has the four; `council/register.md` | trailer agent |
 
 ## 4. Not in this plan
 
