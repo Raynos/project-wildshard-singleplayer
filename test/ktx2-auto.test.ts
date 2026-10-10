@@ -23,6 +23,8 @@ import { OPTION_VALUES, saveSetting } from '../src/engine/ui/Settings';
 type SP = typeof sp;
 // Unadmitted descriptors carry picker metadata. Their immutable KTX2 files enter the separate shardfile admission path.
 const LEGACY_SHARDS = SHARDS.filter((manifest) => manifest.shardfile === undefined);
+/** every frozen legacy copy's own KTX2 table (scripts/bake-ktx2.mjs output, kept with the frozen folder) */
+const FROZEN_GPU_FILES = import.meta.glob<{ GPU_FILES: { readonly phone: Readonly<Record<string, string>>; readonly desktop: Readonly<Record<string, string>> } }>('../src/shards/*-legacy/ktx2.generated.ts', { eager: true });
 const texPick = (v: string | undefined): (typeof OPTION_VALUES.tex)[number] => OPTION_VALUES.tex.find((x) => x === v) ?? 'auto';
 
 /**
@@ -265,6 +267,8 @@ describe('the bake keeps no file a KTX2 set does not read (E173, scripts/bake-kt
       const from = dirOf(u.replace(/^\/assets\/gpu\//, '/assets/'));
       for (const im of json.images ?? []) if (im.uri !== undefined) used.add(join(from, im.uri));
     }
+    // a frozen *-legacy copy (SF73) keeps its own GPU_FILES table and boots from it (the LEGACY button, G239): what it names is used
+    for (const table of Object.values(FROZEN_GPU_FILES)) for (const tier of ['phone', 'desktop'] as const) for (const u of Object.values(table.GPU_FILES[tier])) used.add(u);
     expect(GPU.length).toBeGreaterThan(100);
     expect(GPU.filter((f) => !used.has(f))).toEqual([]);
   });
