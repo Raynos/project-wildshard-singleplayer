@@ -12,8 +12,9 @@ export type SpeciesBrains = PlatformSpeciesBrains;
 /**
  * Admit a shard's species catalogue and its strike rows (SF27): each strike passes the SDK's strict strike schema, each
  * declared brain its archetype's schema, and every strike a brain names resolves, before any row or policy is built; a
- * `script` brain's module comes in `modules` (its SHA-256 → the base64 its bake wrote) and is admitted on its own ScriptHost.
+ * `script` brain's module comes in `modules` (a plain row: its SHA-256 → the base64 its bake wrote) and is admitted on its own
+ * ScriptHost.
  */
-export function speciesBrains(species: readonly BrainedSpecies[], strikes: readonly StrikeData[], modules: ReadonlyMap<string, string> = new Map()): SpeciesBrains {
-  return admitSpeciesBrains(species, strikes.map(row => strike(row)), new Map([...modules].map(([hash, base64]) => [hash, moduleBytes(base64)] as const)));
+export function speciesBrains(species: readonly BrainedSpecies[], strikes: readonly StrikeData[], modules: Readonly<Record<string, string>> = {}): SpeciesBrains {
+  return admitSpeciesBrains(species, strikes.map(row => strike(row)), new Map(Object.entries(modules).map(([hash, base64]) => [hash, moduleBytes(base64)] as const)));
 }

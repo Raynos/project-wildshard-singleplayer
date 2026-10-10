@@ -70,7 +70,7 @@ it('admits exactly the committed module bytes under the declared hash', () => {
   expect(sha256(bytes)).toBe(skitterer.module);
   expect(SKITTERER_BRAIN.archetype === 'script' && SKITTERER_BRAIN.data.module).toBe(skitterer.module);
   const tampered = `${skitterer.bytes.slice(0, 60)}${skitterer.bytes[60] === 'A' ? 'B' : 'A'}${skitterer.bytes.slice(61)}`;
-  expect(() => speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, new Map([[skitterer.module, tampered]]))).toThrow(/hash/u);
+  expect(() => speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, { [skitterer.module]: tampered })).toThrow(/hash/u);
   expect(() => speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES)).toThrow(/not supplied/u);
 });
 it.each([[11, 3], [29, -4], [53, 0.5]])('the admitted skitterer script plays the shipping policy exactly (seed %i)', (seed, x) => {

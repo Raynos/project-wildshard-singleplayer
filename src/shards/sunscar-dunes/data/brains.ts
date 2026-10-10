@@ -26,8 +26,8 @@ export const RAY_BRAIN: SpeciesBrain = { archetype: 'patrol-diver', data: { id: 
 export const SKITTERER_BRAIN: SpeciesBrain = { archetype: 'script', data: { id: 'sunscar.brain.skitterer', kind: 'script', module: skitterer.module,
   parameters: [SKITTER.wake, SKITTER.sleep, SKITTER.burst, SKITTER.run, SKITTER.ring, SKITTER.retreat, SKITTER.rebury, BITE_DATA.range ?? 0],
   slots: [0, 0, 0], memory: [{ field: 'burrow', initial: 1 }], maxSpeed: SKITTER.run, maxTurnRate: 8, strikes: [{ event: 1, strike: BITE_DATA.id }] } };
-/** The admitted species script modules by hash (base64 from the bake). */
-export const SIGNAL_MODULES: ReadonlyMap<string, string> = new Map([[skitterer.module, skitterer.bytes]]);
+/** The admitted species script modules: each module's SHA-256 → the base64 its bake wrote (a plain JSON row). */
+export const SIGNAL_MODULES: Readonly<Record<string, string>> = { [skitterer.module]: skitterer.bytes };
 
 /**
  * Signal Dunes' species catalogue in home-kind order (SF27): the ray, the skitterer and the strider run their declared
