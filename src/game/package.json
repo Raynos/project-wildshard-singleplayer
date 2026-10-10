@@ -23,6 +23,7 @@
     "./systems/looks/cascade": "./systems/looks/cascade.ts",
     "./systems/looks/facetedSky": "./systems/looks/facetedSky.ts",
     "./systems/looks/gullFlock": "./systems/looks/gullFlock.ts",
+    "./systems/viewmodel/toonArms": "./systems/viewmodel/toonArms.ts",
     "./systems/looks/toonLight": "./systems/looks/toonLight.ts",
     "./systems/looks/facetedOcean": "./systems/looks/facetedOcean.ts",
     "./systems/looks/facetedDay": "./systems/looks/facetedDay.ts",
