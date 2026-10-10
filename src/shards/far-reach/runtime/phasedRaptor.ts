@@ -1,10 +1,10 @@
 import { Vector3 } from 'three';
 import * as v from 'valibot';
-import type { AnimalSim } from '../entities/AnimalSim';
-import type { SimValue } from '../sim';
-import { CreatureBrain } from './CreatureBrain';
-import { StrikeRunner, type StrikeContext, type StrikeSpec } from './strikes';
-import { readStrikeState } from './strikeState';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import type { SimValue } from '@wildshard/engine/sim';
+import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
+import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
+import { readStrikeState } from '@wildshard/engine/ai/strikeState';
 
 /**
  * How a phased raptor closes on the player before it strikes in one phase: hang `above` the player within `standOff`

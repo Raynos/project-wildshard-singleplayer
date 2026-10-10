@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { registerSpecies } from '../../../src/engine/entities/species/registry';
 import { speciesWithLook } from '../../../src/engine/entities/species/look';
 import { overrideTerrain } from '../../../src/engine/world/Heightfield';
-import { PhasedRaptorBrain } from '../../../src/engine/ai/phasedRaptor';
+import { PhasedRaptorBrain } from '../../../src/shards/far-reach/runtime/phasedRaptor';
 import { stormRocBrain, type StormRocBrain } from '../../../src/shards/far-reach/runtime/stormRocBrain';
 import { STORM_ROC, STORM_ROC_LOOK } from '../../../src/shards/far-reach/species/stormRoc';
 import { bindPlayerPush } from '../../../src/shards/far-reach/species/rig';

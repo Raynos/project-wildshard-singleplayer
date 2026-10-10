@@ -1,9 +1,9 @@
-import { PhasedRaptorBrain } from '@wildshard/engine/ai/phasedRaptor';
+import { PhasedRaptorBrain } from './phasedRaptor';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { phasedRaptor } from '@wildshard/sdk/flyers';
+import { parsePhasedRaptor } from './phasedRaptors';
 import { strike } from '@wildshard/sdk/species';
 import { CROWN } from '../data/layout';
 import { ROC_BRAIN, ROC_STRIKES } from '../data/brains';
@@ -37,7 +37,7 @@ const perchYaw = (): number => {
   return Math.atan2(-spin * dz, spin * dx);
 };
 /** The Roc's admitted phased-raptor declaration, perched on the crown. */
-const ROC = phasedRaptor({ ...ROC_BRAIN, perch: { ...PERCH(), yaw: perchYaw() } });
+const ROC = parsePhasedRaptor({ ...ROC_BRAIN, perch: { ...PERCH(), yaw: perchYaw() } });
 /** The phase its encounter sets (runtime/rocEncounter.ts clamps to it). */
 export type RocPhase = 0 | 1 | 2;
 /** The Storm Roc's body brain: a platform phased raptor (@wildshard/engine/ai/phasedRaptor) on its declared row. */

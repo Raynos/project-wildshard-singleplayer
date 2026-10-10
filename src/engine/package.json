@@ -14,7 +14,6 @@
     "./ai/orbitDiver": "./ai/orbitDiver.ts",
     "./ai/patrolDiver": "./ai/patrolDiver.ts",
     "./ai/phasedFlyer": "./ai/phasedFlyer.ts",
-    "./ai/phasedRaptor": "./ai/phasedRaptor.ts",
     "./ai/burstFlyer": "./ai/burstFlyer.ts",
     "./ai/challengeGrazer": "./ai/challengeGrazer.ts",
     "./ai/ramGrazer": "./ai/ramGrazer.ts",

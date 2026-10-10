@@ -2470,19 +2470,6 @@ walk (`@wildshard/game/shardfile/terrainEntries` `proveTerrainEntries`). `@wilds
 `standaloneHybridEntry(Native, { name, source, entry, runtime })` is a first-party primary's standalone hybrid entry.
 Signal Dunes is the first on all of them (`data/headless.ts`, `quests/graph.ts`, `quests/scout.ts`, `data/matriarchFight.ts`).
 
-**Phased raptors (SF27).** `@wildshard/engine/ai/phasedRaptor` `PhasedRaptorBrain(actor, spec, strikes, shove)` (schema
-`@wildshard/game/shardfile/phasedRaptors`, SDK `@wildshard/sdk/flyers` `phasedRaptor(data)`) is a boss bird its encounter
-drives directly through `phase`, `fighting` and `restart()` (it is not a species-row archetype: the encounter holds the
-brain). Out of a fight it flies back to `perch` and faces `perch.yaw`; as a fight begins it takes off (`takeoff`: seconds,
-the speed it gathers, its swing onto the player and the lean it writes to the `fields.lean` memory field), then for
-`phases[phase]` it laps that phase's `orbit`, closes on the player (`stalk`: hang `above` the player within `standOff`,
-hold off at `standOff` and back away inside it (`retreat`), or walk up at a fixed `speed`; ready `over` the player, in a
-`band` or within its strike's range), makes its `strike` (a `dive` onto the target after the windup, else held; a
-`shove` pushes the player along the committed heading) and rests `rest` s; calm stands it down. `stageLap`,
-`stageOpening` and `stageStalk` stage captures. Its continuation is `{ version: 1, actor, state, phase, fighting,
-current, windup, angle, rest, chest, takeoff, wasFighting, aim, strikes }`. Sky Reach's Storm Roc is the first
-(`data/brains.ts` ROC_BRAIN and ROC_STRIKES, its perch placed by `runtime/stormRocBrain.ts`), held to its old brain by
-`test/shards/far-reach/roc-continuation.test.ts`.
 `@wildshard/game/shardfile/heldBossFight` `heldBossFight(row, body, brain, onVictory)` is the view-free `BossScript` of a
 boss whose one body stays through every checkpoint (a retry resets it in place): a circular `arena` over a `floor`, its
 health share per checkpoint (`hpShares`, so its phase thresholds), the intro's look and the victory at `rewardPoint`, and

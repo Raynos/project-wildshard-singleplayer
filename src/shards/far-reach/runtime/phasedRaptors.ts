@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type { PhasedRaptorSpec } from '@wildshard/engine/ai/phasedRaptor';
+import type { PhasedRaptorSpec } from './phasedRaptor';
 
 const key = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
 const field = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9._:-]*$/u), v.maxLength(128));
