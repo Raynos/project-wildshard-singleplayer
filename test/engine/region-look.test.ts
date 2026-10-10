@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { Scope } from '../../src/engine/app/scope';
-import { applyLookChunks, captureLookChunks, lookChunksFor, scopeLookChunks } from '../../src/engine/render/regionLook';
+import { applyLookChunks, captureLookChunks, lookChunksFor, noLookChunks, scopeLookChunks } from '../../src/engine/render/regionLook';
 import { addFogUniforms, attachFogUniforms } from '../../src/engine/world/Atmosphere';
 import { bindLevelSelection, boundLevelLook } from '../../src/engine/level/selection';
 import type { LevelSpec } from '../../src/engine/level/spec';
@@ -61,6 +61,19 @@ describe('region look (SF63)', () => {
     expect(scoped.sweep()).toBe(1);
     scope.dispose();
     expect(standard.customProgramCacheKey()).toBe(keyBefore);
+  });
+
+  it('runs the look\'s world patch on every unshared material it sweeps, even with no chunk overrides, until the scope ends (G321)', () => {
+    const root = new THREE.Group(), scope = new Scope('region'), patched: THREE.Material[] = [];
+    const standard = new THREE.MeshStandardMaterial(), shared = new THREE.MeshStandardMaterial();
+    root.add(new THREE.Mesh(new THREE.BoxGeometry(), standard), new THREE.Mesh(new THREE.BoxGeometry(), shared));
+    const worldPatch = (material: THREE.Material, owner: Scope): void => { patched.push(material); expect(owner).toBe(scope); };
+    const scoped = scopeLookChunks(root, noLookChunks('test-world'), scope, { isShared: (m) => m === shared }, { worldPatch });
+    expect(scoped.sweep()).toBe(0); // no chunk patch: the look's installs changed nothing
+    expect(patched).toEqual([standard]);
+    scoped.sweep();
+    expect(patched).toEqual([standard]); // once a material
+    scope.dispose();
   });
 
   it('inlines the region text (nested includes too) and keeps one declaration of a uniform a material owned itself', () => {

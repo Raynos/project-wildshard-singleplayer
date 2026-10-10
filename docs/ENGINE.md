@@ -1040,13 +1040,14 @@ Both shapes take these optional parts:
 
 | Part | What it does |
 |---|---|
-| `backdrop` (`SkyBackdropFactory` → `SkyBackdrop`) | your sky backdrop and day clock. It gets `SkyBackdropContext`, `SkyBackdropTargets`, `SkyBackdropPost` |
+| `backdrop` (`SkyBackdropFactory` → `SkyBackdrop`) | your sky backdrop and day clock. It gets `SkyBackdropContext`, `SkyBackdropTargets`, `SkyBackdropPost`. `SkyBackdrop.dressing` (G321): its world-anchored sky pieces in your level's own frame (a cloud sea, cloud puffs, a glow at a painted sun); the engine adds them to the scene standalone, and a grid cell's layer draws them at its region's origin (their programs read the view and camera in your level's frame), faded by the cell's weight |
 | `sky` (`SkyDressing`) | `{ clouds, planet, sun?: { disc?: boolean, halo?: boolean, rays?: boolean \| { azimuth, elevation } }, build?, update? }`: which engine sky objects to build/show |
 | `lighting` (`LightingRig`), `shadows` (`ShadowStyle`) | the light model and shadow rig |
 | `fog` (`FogModel`), `fogControl` | your fog patch (`{ order, install }`) and suspend / resume for Explore and playgrounds |
 | `terrainPainter` (`TerrainPainter`, `PainterField`) | `build(terrain, field, scope)` builds the ground mesh; `scope` is the owning level scope |
 | `grass` (`GrassDriver`, `GrassLayer`) | grass |
 | `frame(dt, t)`, `dispose()` | per-frame work and cleanup |
+| `worldPatch(material, scope)` (G321) | your own patch on each of your world's materials (a haze by heading): your compose runs it on its scene standalone; a grid cell runs it on every unshared material under its region's root |
 
 **Sky dressing sun.** `sky.sun.disc` and `sky.sun.halo` independently select the engine sun surface and corona at
 build time; each defaults to `true` when omitted. For a sky that paints its own sun or needs no visible sun:

@@ -1,4 +1,4 @@
-import type { Color, DirectionalLight, Fog, Group, HemisphereLight, Mesh, Object3D, Sprite, Texture, Vector3, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import type { Color, DirectionalLight, Fog, Group, HemisphereLight, Material, Mesh, Object3D, Sprite, Texture, Vector3, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import type { BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, Effect, EffectComposer, GodRaysEffect, HueSaturationEffect, LookupTexture, LUT3DEffect, NoiseEffect, Pass, ToneMappingEffect, VignetteEffect } from 'postprocessing';
 import type { N8AOPostPass } from 'n8ao';
 import type { GradeEffect } from '../core/Grade';
@@ -185,6 +185,13 @@ interface LookParts {
   terrainPainter?: TerrainPainter;
 
   grass?: GrassDriver;
+  /**
+   * Its own patch on each of its world's materials (a haze that takes its painted horizon's colour by heading), declared so
+   * a grid cell applies it to the materials under its region's root (SHARD-PLATFORM G321, `render/regionLook.ts`) as its
+   * compose applies it to its scene standalone; `scope` frees the patch. A material the asset cache shares is left alone
+   * in a cell (another region may draw it).
+   */
+  worldPatch?: (material: Material, scope: Scope) => void;
 }
 
 /** 'extend' (the default): the level's passes go in slots around the engine's chain */
@@ -309,6 +316,13 @@ export interface SkyBackdrop {
   attachPost: (post: SkyBackdropPost) => void;
   /** the backdrop's own sky layer (a dome): Game keeps it on the camera, and the engine builds no cloud layer */
   clouds?: Object3D;
+  /**
+   * Its world-anchored sky pieces, placed in its level's own frame (a cloud sea under floating islands, camera-facing cloud
+   * puffs, a glow at its painted sun): standalone `SkyRig.build` adds them to the page scene where they stand; a grid
+   * cell's layer (`BackdropLayer`) draws them at its region's origin, faded by its owner weight (SHARD-PLATFORM G321). A
+   * look's compose that patches its scene's materials leaves these alone (they are the sky's, not the world's).
+   */
+  dressing?: Object3D;
   /** 'late': `update` runs at the end of Sky.update, after the shadow cascades (default: first, before them) */
   updateAt?: 'early' | 'late';
   /** false: the planet keeps its built opacity (default: it fades in with the clock's night) */

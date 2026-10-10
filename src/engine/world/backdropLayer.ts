@@ -32,6 +32,12 @@
  *   straight on the page's shared light (where the blend then overwrote them with the layer's stale copy).
  * - **Its sun disc and halo**: hidden on its own targets (its look's `sky.sun` off, or its clock hiding them), the page's
  *   are hidden from half weight on, like the environment swap.
+ * - **Its world-anchored sky pieces** (`SkyBackdrop.dressing`, G321: a cloud sea, cloud puffs, a sun glow): drawn in the
+ *   page scene in its level's own frame at its region's origin (`origin`): their programs read the view and the camera
+ *   shifted by the origin (`wsLayerView`, `wsLayerOrigin`), so a piece that reads world positions in its shader (a puff
+ *   billboarded on its own attribute, a sea wound round a fixed point) draws exactly as standalone; each one's output is
+ *   faded by the weight (`wsLayerFade`: its alpha, or its whole colour where it blends `One`), and the pieces keep their
+ *   own render order and blending. Hidden, and not drawn, at weight 0.
  * - **Its dispose**: the dome leaves the page scene, the backdrop's own `dispose` frees its textures and targets, and the
  *   last frame's moved values go back at the next update.
  *
@@ -46,9 +52,10 @@
  * like any layer, so inside a cell the page and the region's layer are exactly what they were without it.
  */
 import {
-  Box3, BufferGeometry, Color, ConstantAlphaFactor, CustomBlending, DirectionalLight, Fog, HemisphereLight, Material, Mesh,
-  MeshBasicMaterial, OneMinusConstantAlphaFactor, Scene, Sprite, SpriteMaterial, Vector3, type Object3D, type PerspectiveCamera, type WebGLRenderTarget,
+  Box3, BufferGeometry, Color, ConstantAlphaFactor, CustomBlending, DirectionalLight, Fog, HemisphereLight, Material, Matrix4, Mesh,
+  MeshBasicMaterial, OneFactor, OneMinusConstantAlphaFactor, Scene, Sprite, SpriteMaterial, Vector3, type Camera, type Object3D, type PerspectiveCamera, type WebGLRenderTarget,
 } from 'three';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 import type { Scope } from '../app/scope';
 import { resourceScope } from '../app/resources';
 import { ownSceneResource, ownSceneTree } from '../app/sceneOwnership';
@@ -82,7 +89,7 @@ export const LAYER_DOME_REACH = 0.75;
  * What a layer runs of a backdrop: a level's whole `SkyBackdrop` fits, and so does a fixed sky that only binds its own light
  * and draws a dome (G242's road sky; no clock, no post).
  */
-export type LayeredSkyBackdrop = Pick<SkyBackdrop, 'lut' | 'bind' | 'update' | 'rebuild'> & Partial<Pick<SkyBackdrop, 'clouds' | 'dispose' | 'gpuBytes'>>;
+export type LayeredSkyBackdrop = Pick<SkyBackdrop, 'lut' | 'bind' | 'update' | 'rebuild'> & Partial<Pick<SkyBackdrop, 'clouds' | 'dressing' | 'dispose' | 'gpuBytes'>>;
 
 /** One shared value the layer moves: held before it writes, blended toward its own, put back at the next frame. */
 interface Slot { readonly save: () => void; readonly blend: (w: number) => void; readonly undo: () => void }
@@ -152,6 +159,28 @@ function layerOrders(roots: readonly Object3D[], centre: number, band: number): 
   return new Map(keyed.map(({ node, key }) => [node, rank.get(key) ?? centre]));
 }
 
+/** the dressing programs' uniforms (`levelFrameSource`): the view and camera in the level's frame, and the weight */
+const DRESS_VIEW = 'wsLayerView', DRESS_ORIGIN = 'wsLayerOrigin', DRESS_FADE = 'wsLayerFade';
+const MAIN = /\bvoid\s+main\s*\(\s*(?:void\s*)?\)/;
+/** a source's own text after its `#version` line, if it has one (which must stay first) */
+function prepend(source: string, text: string): string {
+  const version = /^[ \t]*#version[^\n]*\n/u.exec(source);
+  return version === null ? text + source : version[0] + text + source.slice(version[0].length);
+}
+/**
+ * G321: a dressing program's stage read in its level's own frame (exposed for tests): its view, model-view and camera
+ * position become the level frame's (the page's view times the origin's translation, the camera less the origin); the
+ * fragment stage's output is faded by the layer's weight: its alpha, or (`whole`, a piece that blends `One` of its source)
+ * its whole colour.
+ */
+export function levelFrameSource(source: string, stage: 'vertex' | 'fragment', whole = false): string {
+  const own = `uniform mat4 ${DRESS_VIEW};\nuniform vec3 ${DRESS_ORIGIN};\n${stage === 'fragment' ? `uniform float ${DRESS_FADE};\n` : ''}`
+    + `#define viewMatrix ${DRESS_VIEW}\n${stage === 'vertex' ? `#define modelViewMatrix (${DRESS_VIEW} * modelMatrix)\n` : ''}#define cameraPosition (cameraPosition - ${DRESS_ORIGIN})\n`;
+  if (stage === 'vertex') return prepend(source, own);
+  if (!MAIN.test(source)) throw new Error('Layer dressing: a fragment stage without main()');
+  return `${prepend(source.replace(MAIN, 'void wsLayerMain()'), own)}\nvoid main() { wsLayerMain(); gl_FragColor${whole ? '' : '.a'} *= ${DRESS_FADE}; }\n`;
+}
+
 /** What the layer reads: the rig's live targets and the page scene it draws into. */
 export interface BackdropLayerHost {
   readonly targets: SkyBackdropTargets;
@@ -189,9 +218,18 @@ export class BackdropLayer {
   private drawn = false;
   private disposed = false;
   private readonly onDispose: () => void;
+  /** G321: where its level's frame stands on the page (its dressing's origin; the page origin without one) */
+  private readonly origin: () => Vector3;
+  /** G321: its dressing's uniforms: the view in its level's frame, the origin and the weight */
+  private readonly dressView = { value: new Matrix4() };
+  private readonly dressOrigin = { value: new Vector3() };
+  private readonly dressFade = { value: 0 };
+  private readonly dressShift = new Matrix4();
 
-  constructor(host: BackdropLayerHost, options: { readonly air?: () => Fog | null; readonly onDispose: () => void; readonly owner?: Scope; readonly assets?: Pick<AssetService, 'isAcquired'>; readonly base?: boolean }) {
+  constructor(host: BackdropLayerHost, options: { readonly air?: () => Fog | null; readonly onDispose: () => void; readonly owner?: Scope; readonly assets?: Pick<AssetService, 'isAcquired'>; readonly base?: boolean; readonly origin?: () => Vector3 }) {
     this.host = host;
+    const zero = new Vector3();
+    this.origin = options.origin ?? ((): Vector3 => zero);
     this.base = options.base === true;
     this.scope = (options.owner ?? resourceScope()).child('BackdropLayer');
     this.assets = options.assets ?? { isAcquired: () => false };
@@ -282,7 +320,39 @@ export class BackdropLayer {
       this.host.scene.add(child);
       this.domes.push(child);
     }
+    // G321: its world-anchored sky pieces, drawn in its level's frame at its region's origin, faded by the weight
+    if (backdrop.dressing !== undefined) this.dress(backdrop.dressing);
     backdrop.bind(this.targets);
+  }
+
+  /** G321: a backdrop's `dressing` into the page scene, its programs in its level's frame (`levelFrameSource`). */
+  private dress(dressing: Object3D): void {
+    ownSceneTree(dressing, this.scope, this.assets);
+    const view = (camera: Camera): void => {
+      const o = this.origin();
+      this.dressOrigin.value.copy(o);
+      this.dressView.value.multiplyMatrices(camera.matrixWorldInverse, this.dressShift.makeTranslation(o.x, o.y, o.z));
+    };
+    dressing.traverse((node) => {
+      const materials = meshMaterials(node);
+      if (materials.length === 0) return;
+      const prior = node.onBeforeRender.bind(node);
+      node.onBeforeRender = (renderer, scene, camera, geometry, material, group) => { prior(renderer, scene, camera, geometry, material, group); view(camera); };
+      for (const m of materials) {
+        const whole = m.premultipliedAlpha || (m.blending === CustomBlending && m.blendSrc === OneFactor);
+        m.transparent = true;
+        patchShader(m, 'layer.dressing', PATCH_ORDER.view + 45, (shader) => {
+          shader.uniforms[DRESS_VIEW] = this.dressView; shader.uniforms[DRESS_ORIGIN] = this.dressOrigin; shader.uniforms[DRESS_FADE] = this.dressFade;
+          shader.vertexShader = levelFrameSource(shader.vertexShader, 'vertex');
+          shader.fragmentShader = levelFrameSource(shader.fragmentShader, 'fragment', whole);
+        }, { scope: this.scope, key: (before) => `${before}|layer-dressing:${whole ? 'whole' : 'alpha'}` });
+        m.needsUpdate = true;
+      }
+    });
+    dressing.removeFromParent();
+    dressing.visible = false;
+    this.host.scene.add(dressing);
+    this.domes.push(dressing);
   }
 
   /** Prepare final page variants before this attached layer's first visible frame on WebKit.
@@ -352,6 +422,7 @@ export class BackdropLayer {
     if (backdrop.clouds !== undefined && this.domeReach > 0 && this.domeReach < reach) backdrop.clouds.scale.copy(this.domeScale).multiplyScalar(reach / this.domeReach);
     for (const f of this.followers) { f.piece.position.copy(camera.position).addScaledVector(f.dir, f.dist); f.opacity.value = w; }
     for (const m of this.materials) m.blendAlpha = w;
+    this.dressFade.value = w;
     for (const slot of this.slots) slot.save();
     for (const slot of this.slots) slot.blend(w);
     return () => { for (let i = this.slots.length - 1; i >= 0; i--) this.slots[i]?.undo(); };

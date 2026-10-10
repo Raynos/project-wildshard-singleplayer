@@ -1,4 +1,4 @@
-import { Color, Fog, Mesh, type Object3D, type Texture } from 'three';
+import { Color, Fog, Group, Material, Mesh, type Object3D, type Texture } from 'three';
 import { ToneMappingMode } from 'postprocessing';
 import { loadLUT } from '@wildshard/engine/boot/bakedApi';
 import type { LookStrategy } from '@wildshard/engine/render/look';
@@ -45,13 +45,54 @@ export async function skyReachLook(): Promise<LookStrategy> {
   // the painted dome and its haze strip, made once by whichever asks first (the backdrop, before the compose)
   let sky: { readonly dome: ReturnType<typeof skyDome>; readonly haze: Texture } | null = null;
   const makeSky = (): { readonly dome: ReturnType<typeof skyDome>; readonly haze: Texture } => {
-    const haze = fogLut(), dome = skyDome(pano, haze);
+    const haze = fogLut(), dome = skyDome(pano, haze); pending.add(haze); // freed with the look where no compose or layer takes it
     dome.renderOrder = -10; dome.frustumCulled = false;
     sky = { dome, haze };
     return sky;
   };
-  let seaTime: { value: number } | null = null;
-  let glowUpdate: ((t: number) => void) | null = null;
+  // G321: the sky pieces that stand in the world (the cloud sea, the sun's bloom and shafts, the cumulus puffs), made once
+  // by whichever asks first (the backdrop, before the compose): its `dressing`, which standalone the sky adds to the scene
+  // and a grid cell's layer draws at its region's origin by its owner weight. Its textures go with the look's `dispose`.
+  let dressing: { readonly group: Group; readonly meshes: ReadonlySet<Object3D>; readonly time: { value: number }; readonly glow: (t: number) => void } | null = null;
+  const makeDressing = (): NonNullable<typeof dressing> => {
+    const group = new Group(); group.name = 'far.sky-dressing';
+    // the layered cloud sea (its own haze; no scene fog)
+    const seaTex = seaTexture(), seaFamily = new ShaderFamily({}, SEA_PROGRAMS), time = { value: 0 }; pending.add(seaTex);
+    const seaShared = { tex: { value: seaTex }, sunDir: { value: SUN_DIR }, time };
+    // the procedural sheet only stands in when the painted sea is missing (it drew over the painted one)
+    if (seaPaint === null) group.add(discLayer(seaFamily, SEA_DISCS.seaLow, seaShared));
+    // the sun's bloom and light shafts at the painted sun (E392; data/skyCardsLook.ts, baked by generators/skyCards.ts)
+    const cards = new ShaderFamily(SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS), sun = { uSun: { value: SUN_DIR } };
+    const glow = cardGroup(cards, cardGroupRow(cards, SKY_CARDS.sunGlow), sun); group.add(glow.group);
+    // the painted cloud sea (E392), wound into the maelstrom under the crown; without its texture the procedural maelstrom disc
+    if (seaPaint !== null) {
+      if (vortex !== null) group.add(discLayer(seaFamily, SEA_DISCS.paintedMaelstrom, seaShared, { painted: { value: vortex } }));
+      for (const upper of [false, true]) group.add(discLayer(seaFamily, upper ? SEA_DISCS.paintedSeaUpper : SEA_DISCS.paintedSea, seaShared, { painted: { value: seaPaint } }));
+    } else group.add(discLayer(seaFamily, SEA_DISCS.maelstrom, seaShared));
+    // cumulus over the sea (loop 5): the islands rise out of billowing cloud (the camera-facing puffs baked by
+    // generators/skyCards.ts: the ring field, the keel puffs, the bridge gaps, the crown bank and the banks beyond)
+    if (cloudAtlas !== null) group.add(cardField(cards, cardFieldRow(cards, SKY_CARDS.cumulus), sun, { uAtlas: { value: cloudAtlas } }));
+    const meshes = new Set<Object3D>(); group.traverse((node) => { meshes.add(node); });
+    dressing = { group, meshes, time, glow: glow.update };
+    return dressing;
+  };
+  // the haze takes the painted horizon's colour in the direction you look (gold toward the sun, rose-lavender away): its
+  // compose patches its scene's materials; a grid cell (G321) its region's, as the look's `worldPatch`
+  const fogEdits = spliceEdits(ROSE_FOG_EDITS, { HEADING_GLSL, near: FOG.near.toFixed(1), span: (FOG.far - FOG.near).toFixed(1), max: FOG.max.toFixed(2),
+    sunX: SUN_DIR.x.toFixed(4), sunY: SUN_DIR.y.toFixed(4), sunZ: SUN_DIR.z.toFixed(4), sunHaze: SUN_HAZE.toFixed(2) });
+  const roseFog: NonNullable<LookStrategy['worldPatch']> = (material, scope) => {
+    const { haze } = sky ?? makeSky();
+    patchShader(material, 'far.rose-fog', PATCH_ORDER.decorate, (shader) => {
+      shader.uniforms['farHaze'] = { value: haze };
+      editShader(shader, fogEdits);
+    }, { scope });
+  };
+  /** the dressing's geometries and materials (its textures are the look's `pending`) */
+  const dressingParts = (group: Object3D): { geometry: { dispose: () => void }; material: Material }[] => {
+    const parts: { geometry: { dispose: () => void }; material: Material }[] = [];
+    group.traverse((node) => { if (primitive(node)) for (const material of Array.isArray(node.material) ? node.material : [node.material]) if (material instanceof Material) parts.push({ geometry: node.geometry, material }); });
+    return parts;
+  };
   return { mode: 'extend',
     // the clean chain is declared as well as composed, so a grid cell carries it without composing (absent: cinematic)
     chain: 'clean',
@@ -75,45 +116,19 @@ export async function skyReachLook(): Promise<LookStrategy> {
       const { dome, haze } = sky ?? makeSky(); scope.own(pano); scope.own(haze);
       scope.own(dome.geometry); scope.own(dome.material); scope.onDispose(() => { dome.removeFromParent(); });
       scene.fog = new Fog(new Color(SKY.fog), FOG.near, FOG.far);
-      const fogEdits = spliceEdits(ROSE_FOG_EDITS, { HEADING_GLSL, near: FOG.near.toFixed(1), span: (FOG.far - FOG.near).toFixed(1), max: FOG.max.toFixed(2),
-        sunX: SUN_DIR.x.toFixed(4), sunY: SUN_DIR.y.toFixed(4), sunZ: SUN_DIR.z.toFixed(4), sunHaze: SUN_HAZE.toFixed(2) });
+      // the sky's own pieces stand in the scene already (the backdrop's `dressing`, which `SkyRig.build` adds): not the world's
+      const own = dressing ?? makeDressing();
+      if (own.group.parent === null) scene.add(own.group);
+      for (const part of dressingParts(own.group)) { scope.own(part.geometry); scope.own(part.material); }
+      scope.onDispose(() => { own.group.removeFromParent(); });
       scene.traverse((object) => {
-        if (!primitive(object) || object === dome) return;
-        for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-          // the haze takes the painted horizon's colour in the direction you look (gold toward the sun, rose-lavender away)
-          patchShader(material, 'far.rose-fog', PATCH_ORDER.decorate, (shader) => {
-            shader.uniforms['farHaze'] = { value: haze };
-            editShader(shader, fogEdits);
-          }, { scope });
-        }
+        if (!primitive(object) || object === dome || own.meshes.has(object)) return;
+        for (const material of Array.isArray(object.material) ? object.material : [object.material]) roseFog(material, scope);
       });
-      // the layered cloud sea goes in after the fog patch (its own haze; no scene fog)
-      const seaTex = seaTexture(), seaFamily = new ShaderFamily({}, SEA_PROGRAMS), time = { value: 0 };
-      const seaShared = { tex: { value: seaTex }, sunDir: { value: SUN_DIR }, time }, sea = { meshes: [discLayer(seaFamily, SEA_DISCS.seaLow, seaShared)], time }; scope.own(seaTex);
-      // the procedural sheet only stands in when the painted sea is missing (it drew over the painted one)
-      for (const mesh of sea.meshes) { if (seaPaint === null) scene.add(mesh); scope.own(mesh.geometry); scope.own(mesh.material); }
-      scope.onDispose(() => { for (const mesh of sea.meshes) mesh.removeFromParent(); });
-      seaTime = sea.time;
-      // the sun's bloom and light shafts at the painted sun (E392; data/skyCardsLook.ts, baked by generators/skyCards.ts)
-      const cards = new ShaderFamily(SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS), sun = { uSun: { value: SUN_DIR } };
-      const glow = cardGroup(cards, cardGroupRow(cards, SKY_CARDS.sunGlow), sun); scene.add(glow.group); glowUpdate = glow.update;
-      scope.own(glow.geometry); for (const m of glow.materials) scope.own(m); scope.onDispose(() => { glow.group.removeFromParent(); });
-      // the painted cloud sea (E392), wound into the maelstrom under the crown; without its texture the procedural maelstrom disc
-      if (seaPaint !== null) {
-        scope.own(seaPaint);
-        if (vortex !== null) { const swirlDisc = discLayer(seaFamily, SEA_DISCS.paintedMaelstrom, seaShared, { painted: { value: vortex } }); scene.add(swirlDisc); scope.own(vortex); scope.own(swirlDisc.geometry); scope.own(swirlDisc.material); scope.onDispose(() => { swirlDisc.removeFromParent(); }); }
-        for (const upper of [false, true]) { const painted = discLayer(seaFamily, upper ? SEA_DISCS.paintedSeaUpper : SEA_DISCS.paintedSea, seaShared, { painted: { value: seaPaint } }); scene.add(painted); scope.own(painted.geometry); scope.own(painted.material); scope.onDispose(() => { painted.removeFromParent(); }); }
-      } else {
-        const swirl = discLayer(seaFamily, SEA_DISCS.maelstrom, seaShared); scene.add(swirl); scope.own(swirl.geometry); scope.own(swirl.material); scope.onDispose(() => { swirl.removeFromParent(); });
-      }
-      // cumulus over the sea (loop 5): the islands rise out of billowing cloud (the camera-facing puffs baked by
-      // generators/skyCards.ts: the ring field, the keel puffs, the bridge gaps, the crown bank and the banks beyond)
-      if (cloudAtlas !== null) {
-        const puffs = cardField(cards, cardFieldRow(cards, SKY_CARDS.cumulus), sun, { uAtlas: { value: cloudAtlas } }); scene.add(puffs); scope.own(cloudAtlas); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
-      }
       return { chain };
     },
     lighting: { install: installPaintedLight },
+    worldPatch: roseFog,
     // the panorama paints the one sun (council R1B-1: the engine's disc drew a second one above it)
     // god rays from the painted sun (E398): the disc stays out of the frame, only the rays' source; the engine compass
     // faces (-sin az, cos az), the panorama heading (sin h, -cos h), so az = h + 180
@@ -125,14 +140,17 @@ export async function skyReachLook(): Promise<LookStrategy> {
     // its clock writes its fog colour, so a grid cell draws Sky Reach's own sky, golden sun and air by its owner weight
     backdrop: async ({ sky: rig }) => {
       const clock = createDay(), key = new Color(SKY.key), fog = new Color(SKY.fog), lut = await loadLUT('far-reach');
-      const own = sky ?? makeSky();
+      const own = sky ?? makeSky(), pieces = dressing ?? makeDressing();
       let air: (() => Fog | null) | null = null;
-      return { clock, horizon: new Color(SKY.horizon), lut, clouds: own.dome,
+      return { clock, horizon: new Color(SKY.horizon), lut, clouds: own.dome, dressing: pieces.group,
         bind: (targets) => { air = () => (targets.underwater() ? null : targets.fog); },
-        update: (dt: number) => { clock.update(dt); rig.setKeyLight(SUN_DIR, key, 2); air?.()?.color.copy(fog); if (seaTime !== null) { seaTime.value += dt; glowUpdate?.(seaTime.value); } },
+        update: (dt: number) => { clock.update(dt); rig.setKeyLight(SUN_DIR, key, 2); air?.()?.color.copy(fog); pieces.time.value += dt; pieces.glow(pieces.time.value); },
         rebuild: () => undefined, attachPost: () => undefined,
         // a grid cell's layer frees what it drew (standalone the compose owns the dome and its haze)
-        dispose: () => { own.dome.removeFromParent(); own.dome.geometry.dispose(); own.dome.material.dispose(); own.haze.dispose(); } };
+        dispose: () => {
+          own.dome.removeFromParent(); own.dome.geometry.dispose(); own.dome.material.dispose(); own.haze.dispose();
+          pieces.group.removeFromParent(); for (const part of dressingParts(pieces.group)) { part.geometry.dispose(); part.material.dispose(); }
+        } };
     },
   };
 }

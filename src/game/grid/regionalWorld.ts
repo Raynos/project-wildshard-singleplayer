@@ -35,7 +35,7 @@
  * reserved (`regionalRuntimeAccountedBytes`); this module reserves nothing beside it but the optional region sky's claim
  * (`regionSky.ts`). Generic game code (E405).
  */
-import { Fog, Group, Material, Mesh, Scene, type Object3D, type Texture } from 'three';
+import { Fog, Group, Material, Mesh, Scene, Vector3, type Object3D, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { TexturePolicyBinding, registerGpuFiles, texMode } from '@wildshard/engine/boot/gpuFiles';
@@ -240,6 +240,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           // ... which is the owner's air in the one frame, with its level's grade, while the region is resident
           const look = ports.look === undefined ? frameLookOf(game.rootScene) : ports.look;
           framePort = look; viewRoot = view.root;
+          const regionOrigin = new Vector3();
           // G232: on a neutral page shell its whole grade chain (grade, look layer, learned LUT) is carried exactly
           let lut: Texture | null = null;
           const ao = level.tiers?.[TIER]?.ao ?? TIER_CONFIG.ao;
@@ -256,7 +257,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
               const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident,
                 ...(measured?.residentBaseMB === undefined ? {} : { coveredBy: request.claim.id }), layered: async () => {
                 const make = levelLook?.backdrop;
-                const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null), planet: levelLook?.sky?.planet !== false, clouds: levelLook?.sky?.clouds !== false, sun: levelLook?.sky?.sun });
+                const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null), planet: levelLook?.sky?.planet !== false, clouds: levelLook?.sky?.clouds !== false, sun: levelLook?.sky?.sun,
+                  // G321: its world-anchored sky pieces stand at the region's root, where its level's frame is drawn
+                  origin: () => regionOrigin.setFromMatrixPosition(view.root.matrixWorld) });
                 if (layered === null) return null;
                 made.backdrop = layered.backdrop;
                 // Attachment binds the clock and creates its PMREM. Read that environment after attach, not before.

@@ -24,7 +24,9 @@
  *    `vFogWorldPos` read relative to the region's origin (`wsLookOrigin`, the root's world position, kept by `sweep`).
  *    The macros wrap the region's chunk text only: a page chunk left as an include inside it, and every other line of the
  *    material, read the page frame as before.
- * 4. **Its per-frame parts** (SF63 part 2): the look's sky dressing (`LookStrategy.sky`) builds inside the same sandbox
+ * 4. **Its world patch** (G321, `LookStrategy.worldPatch`): the look's own patch on its world's materials (a haze by
+ *    heading) runs on every material the sweep reaches, before the chunk patch, as its compose runs it standalone.
+ * 5. **Its per-frame parts** (SF63 part 2): the look's sky dressing (`LookStrategy.sky`) builds inside the same sandbox
  *    (its chunk writes become region overrides; its own uniforms, such as a cloud field, stay its own), and its `update`
  *    and the look's `frame` run from `frame(dt, t)`, which the caller runs only while the player is in the cell.
  *
@@ -46,12 +48,14 @@ export interface LookChunks {
   readonly uniforms: readonly Readonly<Record<string, THREE.IUniform>>[];
 }
 
-/** The look parts a region scopes: its light model, fog, sky dressing and per-frame hook (`LookStrategy`'s). */
+/** The look parts a region scopes: its light model, fog, sky dressing, per-frame hook and world patch (`LookStrategy`'s). */
 export interface RegionLookParts {
   readonly lighting?: LightingRig;
   readonly fog?: FogModel;
   readonly sky?: SkyDressing;
   readonly frame?: (dt: number, t: number) => void;
+  /** G321: its own patch on each of its world's materials (`LookStrategy.worldPatch`), applied by `sweep` */
+  readonly worldPatch?: (material: THREE.Material, scope: Scope) => void;
 }
 /** What a sky dressing's `build` is handed: the page's sky rig and the engine's cloud fbm. */
 export interface DressingHost {
@@ -172,6 +176,9 @@ function dedupeUniforms(source: string, names: ReadonlySet<string>): string {
   });
 }
 
+/** A look with no chunk overrides (its installs changed nothing on this page), for a region that scopes only its world patch. */
+export const noLookChunks = (id: string): LookChunks => ({ id, chunks: {}, uniforms: [] });
+
 /** Which overridden chunks a material's program would read (empty: leave it alone). */
 export function lookChunksFor(material: THREE.Material, look: LookChunks): ReadonlySet<string> {
   let vertex: string, fragment: string;
@@ -221,14 +228,16 @@ export interface ScopedLook {
  * Scope the look to `root`'s materials (`sweep`, see `ScopedLook`). A material compiled before its patch is recompiled
  * once. `parts`: the look's per-frame hooks `frame` runs.
  */
-export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: Scope, options: LookScopeOptions = {}, parts: Pick<RegionLookParts, 'sky' | 'frame'> = {}): ScopedLook {
+export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: Scope, options: LookScopeOptions = {}, parts: Pick<RegionLookParts, 'sky' | 'frame' | 'worldPatch'> = {}): ScopedLook {
   const done = new WeakSet<THREE.Material>();
   const origin: THREE.IUniform<THREE.Vector3> = { value: new THREE.Vector3() };
   let count = 0;
   const visit = (material: THREE.Material): void => {
     if (done.has(material)) return;
     done.add(material);
-    if (options.isShared?.(material) === true || lookChunksFor(material, look).size === 0) return;
+    if (options.isShared?.(material) === true) return;
+    if (parts.worldPatch !== undefined) { parts.worldPatch(material, scope); material.needsUpdate = true; }
+    if (lookChunksFor(material, look).size === 0) return;
     // three keys a program by its shader id (or a ShaderMaterial's original source id) and this key, never the patched text
     patchShader(material, 'region.look', PATCH_ORDER.view + 40, (shader) => { applyLookChunks(shader, look, origin); }, { scope, key: (before) => `${before}|look:${look.id}` });
     material.needsUpdate = true; count++;

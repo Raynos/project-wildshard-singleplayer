@@ -1,10 +1,11 @@
 // SHARD-PLATFORM G321 (Jake, 2026-10-10: "when you enter a shard, you enter it with its sky"): a grid cell draws its
 // shard's own sky dome, key light, fill, environment intensity and sun-disc choice through the page's one sky rig.
 import { expect, it } from 'vitest';
-import { BoxGeometry, Color, DirectionalLight, Fog, HemisphereLight, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, ShaderMaterial, SphereGeometry, Sprite, SpriteMaterial, Vector3 } from 'three';
+import { AdditiveBlending, BoxGeometry, Color, CustomBlending, DirectionalLight, Fog, Group, HemisphereLight, Matrix4, Mesh, OneFactor, type WebGLProgramParametersWithUniforms, type WebGLRenderer, MeshBasicMaterial, PerspectiveCamera, Scene, ShaderMaterial, SphereGeometry, Sprite, SpriteMaterial, Vector3 } from 'three';
+import { legacyDouble } from './fake/FakeGame';
 import type { SkyBackdrop, SkyBackdropTargets } from '../src/engine/render/look';
 import type { DayCycleClock } from '../src/engine/world/dayCycle';
-import { BackdropLayer, LAYER_DOME_REACH, layerKeyedSky, seedLayerTargets, type LayerLevelLight } from '../src/engine/world/backdropLayer';
+import { BackdropLayer, LAYER_DOME_REACH, layerKeyedSky, levelFrameSource, seedLayerTargets, type LayerLevelLight } from '../src/engine/world/backdropLayer';
 
 /** a page's shared sky state, as SkyRig binds it (the road's light) */
 function pageTargets(): SkyBackdropTargets {
@@ -109,4 +110,56 @@ it('hands every other page sky member through unchanged (G321)', () => {
   expect(keyed.bump()).toBe(1);
   expect(page.count).toBe(1);
   layer.dispose();
+});
+
+/** run a material's chained `onBeforeCompile` on a stand-in program source (what three hands it) */
+function compiled(material: ShaderMaterial): WebGLProgramParametersWithUniforms {
+  const shader = legacyDouble<WebGLProgramParametersWithUniforms>({ vertexShader: material.vertexShader, fragmentShader: material.fragmentShader, uniforms: { ...material.uniforms } });
+  material.onBeforeCompile(shader, legacyDouble<WebGLRenderer>({}));
+  return shader;
+}
+
+it('draws a backdrop\'s world-anchored dressing in its level frame at the region origin, faded by the weight (G321)', () => {
+  const scene = new Scene(), camera = new PerspectiveCamera(60, 1, 0.1, 2600), origin = new Vector3(1000, 0, -1000);
+  camera.position.set(1010, 30, -1005); camera.updateMatrixWorld();
+  const layer = new BackdropLayer({ targets: pageTargets(), scene }, { onDispose: () => undefined, origin: () => origin });
+  const sea = new Mesh(new BoxGeometry(), new ShaderMaterial({ transparent: true, vertexShader: 'varying vec3 wp; void main(){ wp = (modelMatrix * vec4(position, 1.0)).xyz; gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }',
+    fragmentShader: 'varying vec3 wp; void main(){ gl_FragColor = vec4(wp - cameraPosition, 0.5); }' }));
+  const glow = new Mesh(new BoxGeometry(), new ShaderMaterial({ transparent: true, blending: CustomBlending, blendSrc: OneFactor, blendDst: OneFactor, fragmentShader: 'void main() { gl_FragColor = vec4(1.0); }' }));
+  const puff = new Mesh(new BoxGeometry(), new ShaderMaterial({ transparent: true, blending: AdditiveBlending, fragmentShader: 'void main(void){ gl_FragColor = vec4(1.0); }' }));
+  const dressing = new Group(); dressing.add(sea, glow, puff);
+  layer.attach({ lut: null, dressing, bind: () => undefined, update: () => undefined, rebuild: () => undefined });
+  expect(dressing.parent).toBe(scene);
+  expect(dressing.position.toArray()).toEqual([0, 0, 0]); // in its level frame: the programs shift, not the node
+  expect(layer.apply(1 / 60, camera)).toBeNull();
+  expect(dressing.visible).toBe(false);
+
+  layer.weight = 0.25;
+  layer.apply(1 / 60, camera);
+  expect(dressing.visible).toBe(true);
+  const seaShader = compiled(sea.material), glowShader = compiled(glow.material), puffShader = compiled(puff.material);
+  expect(seaShader.vertexShader).toContain('#define viewMatrix wsLayerView');
+  expect(seaShader.vertexShader).toContain('#define modelViewMatrix (wsLayerView * modelMatrix)');
+  expect(seaShader.fragmentShader).toContain('#define cameraPosition (cameraPosition - wsLayerOrigin)');
+  expect(seaShader.fragmentShader).toMatch(/void main\(\) \{ wsLayerMain\(\); gl_FragColor\.a \*= wsLayerFade; \}\n$/);
+  expect(glowShader.fragmentShader).toContain('gl_FragColor *= wsLayerFade;'); // it blends One: its whole colour fades
+  expect(puffShader.fragmentShader).toContain('void wsLayerMain()');
+  expect(puffShader.fragmentShader).toContain('gl_FragColor.a *= wsLayerFade;');
+  expect(seaShader.uniforms['wsLayerFade']?.value).toBe(0.25);
+  expect(sea.material.customProgramCacheKey()).toContain('layer-dressing:alpha');
+  expect(glow.material.customProgramCacheKey()).toContain('layer-dressing:whole');
+
+  // just before it draws: the page view times the origin's translation, the origin itself
+  sea.onBeforeRender(legacyDouble<WebGLRenderer>({}), scene, camera, sea.geometry, sea.material, legacyDouble<Group>({}));
+  const view: unknown = seaShader.uniforms['wsLayerView']?.value, expected = camera.matrixWorldInverse.clone().multiply(new Matrix4().makeTranslation(1000, 0, -1000));
+  expect(view instanceof Matrix4 && view.equals(expected)).toBe(true);
+  expect(seaShader.uniforms['wsLayerOrigin']?.value).toEqual(origin);
+
+  layer.dispose();
+  expect(dressing.parent).toBeNull();
+});
+
+it('refuses a dressing fragment stage with no main()', () => {
+  expect(() => levelFrameSource('void other(){}', 'fragment')).toThrow(/without main/);
+  expect(levelFrameSource('#version 300 es\nvoid main(){}', 'vertex').startsWith('#version 300 es\nuniform mat4 wsLayerView;')).toBe(true);
 });

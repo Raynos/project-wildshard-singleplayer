@@ -1,0 +1,931 @@
+{
+ "before": {
+  "version": {
+   "build": "795868b-mv2v9tk4",
+   "time": "2026-10-10T20:48:45.556Z"
+  },
+  "started": "2026-10-10T20:54:25.585Z",
+  "shards": {
+   "far-reach": {
+    "errors": [],
+    "consoleErrors": 0,
+    "consoleSamples": [],
+    "shots": {
+     "far-reach-select": {
+      "name": "far-reach-select",
+      "frame": {
+       "look": {
+        "fog": [
+         0.871,
+         0.584,
+         0.468
+        ],
+        "env": 1,
+        "key": [
+         1,
+         0.644,
+         0.361
+        ],
+        "keyI": 2,
+        "sunDir": [
+         -0.136,
+         0.105,
+         -0.985
+        ],
+        "hemi": [
+         [
+          0.578,
+          0.565,
+          0.716
+         ],
+         [
+          0.342,
+          0.314,
+          0.413
+         ],
+         1.4
+        ],
+        "disc": true,
+        "layerDomes": 0,
+        "regionSky": null,
+        "sky": {
+         "pieces": {
+          "far.painted-maelstrom": "own",
+          "far.painted-sea": "own",
+          "far.painted-sea.upper": "own",
+          "far.cumulus": "own"
+         },
+         "roseFog": "276/296",
+         "envMap": null
+        }
+       },
+       "loadout": {
+        "current": "far-fan",
+        "list": [
+         "far-fan"
+        ],
+        "tools": [
+         "tool.hoverboard"
+        ]
+       },
+       "local": [
+        0,
+        30.02,
+        -5.5
+       ],
+       "inside": null,
+       "owner": null,
+       "chain": null,
+       "passes": [
+        "RenderPass",
+        "EffectPass",
+        "EffectPass"
+       ],
+       "colour": [
+        "GodRaysEffect@0.12",
+        "BloomEffect@1",
+        "VignetteEffect@1",
+        "ToneMappingEffect@1",
+        "HueSaturationEffect@1",
+        "BrightnessContrastEffect@1",
+        "GradeEffect@1",
+        "LUT3DEffect@1"
+       ],
+       "nine": {
+        "camNoRoot": 1,
+        "camNoRootNames": [
+         "far.meadow"
+        ]
+       }
+      }
+     },
+     "far-reach-grid-before": {
+      "name": "far-reach-grid-before",
+      "home": false,
+      "route": [],
+      "frame": {
+       "look": {
+        "fog": [
+         0.871,
+         0.584,
+         0.468
+        ],
+        "env": 1,
+        "key": [
+         1,
+         0.644,
+         0.361
+        ],
+        "keyI": 2,
+        "sunDir": [
+         -0.136,
+         0.105,
+         -0.985
+        ],
+        "hemi": [
+         [
+          0.578,
+          0.565,
+          0.716
+         ],
+         [
+          0.342,
+          0.314,
+          0.413
+         ],
+         1.4
+        ],
+        "disc": false,
+        "layerDomes": 1,
+        "regionSky": {
+         "far-reach": {
+          "weight": 1,
+          "drawn": true,
+          "bytes": 0,
+          "reserved": 0
+         }
+        },
+        "sky": {
+         "pieces": {},
+         "roseFog": "0/39",
+         "envMap": null
+        }
+       },
+       "loadout": {
+        "current": "far-fan",
+        "list": [
+         "far-fan"
+        ],
+        "tools": [
+         "tool.hoverboard"
+        ]
+       },
+       "local": [
+        0,
+        30.02,
+        -5.5
+       ],
+       "inside": "far-reach",
+       "owner": "far-reach",
+       "chain": {
+        "owner": "far-reach",
+        "weight": 1,
+        "lut": true,
+        "values": [
+         0,
+         0,
+         0.12,
+         0,
+         0
+        ],
+        "post": [
+         0.35,
+         0.7,
+         0.08,
+         0.35,
+         -1,
+         -1
+        ],
+        "fx": {
+         "carrier": null,
+         "weight": 0,
+         "vol": [
+          0,
+          0.55
+         ],
+         "chroma": 0,
+         "grain": 0,
+         "target": [
+          1,
+          1
+         ],
+         "depth": "scene",
+         "sceneDepth": false
+        },
+        "bypass": 0
+       },
+       "passes": [
+        "RenderPass",
+        "EffectPass",
+        "EffectPass"
+       ],
+       "colour": [
+        "ChromaticAberrationEffect@1",
+        "VolumetricsEffect@0",
+        "BloomEffect@1",
+        "VignetteEffect@1",
+        "ToneMappingEffect@0",
+        "SkyNeutralToneEffect@1",
+        "HueSaturationEffect@1",
+        "BrightnessContrastEffect@1",
+        "GradeEffect@1",
+        "GradeLookEffect@1",
+        "LUT3DEffect@1",
+        "NoiseEffect@0",
+        "GridFrameGrade@1"
+       ],
+       "nine": {
+        "camNoRoot": 1,
+        "camNoRootNames": [
+         "far.meadow"
+        ]
+       }
+      },
+      "probes": []
+     }
+    },
+    "pose": {
+     "x": -1.3435500600678107e-06,
+     "y": 30.020045514371304,
+     "z": -5.5000225281035515,
+     "heading": -3.141592653589793
+    }
+   },
+   "sunscar-dunes": {
+    "errors": [],
+    "consoleErrors": 0,
+    "consoleSamples": [],
+    "shots": {
+     "sunscar-dunes-select": {
+      "name": "sunscar-dunes-select",
+      "frame": {
+       "look": {
+        "fog": [
+         0.048,
+         0.034,
+         0.084
+        ],
+        "env": 1,
+        "key": [
+         1,
+         0.68,
+         0.34
+        ],
+        "keyI": 1.85,
+        "sunDir": [
+         -0.34,
+         0.2,
+         -0.919
+        ],
+        "hemi": [
+         [
+          0.156,
+          0.084,
+          0.065
+         ],
+         [
+          0.195,
+          0.058,
+          0.019
+         ],
+         0.8
+        ],
+        "disc": false,
+        "layerDomes": 0,
+        "regionSky": null,
+        "sky": {
+         "pieces": {},
+         "roseFog": "0/214",
+         "envMap": null
+        }
+       },
+       "loadout": {
+        "current": "sunscar-whip",
+        "list": [
+         "sunscar-whip"
+        ],
+        "tools": [
+         "tool.hoverboard"
+        ]
+       },
+       "local": [
+        0,
+        21.3,
+        69.99
+       ],
+       "inside": null,
+       "owner": null,
+       "chain": null,
+       "passes": [
+        "RenderPass",
+        "EffectPass",
+        "EffectPass"
+       ],
+       "colour": [
+        "BloomEffect@1",
+        "VignetteEffect@1",
+        "ToneMappingEffect@1",
+        "HueSaturationEffect@1",
+        "BrightnessContrastEffect@1",
+        "GradeEffect@1"
+       ],
+       "nine": null
+      }
+     },
+     "sunscar-dunes-grid-before": {
+      "name": "sunscar-dunes-grid-before",
+      "home": false,
+      "route": [],
+      "frame": {
+       "look": {
+        "fog": [
+         0.048,
+         0.034,
+         0.084
+        ],
+        "env": 1,
+        "key": [
+         1,
+         0.68,
+         0.34
+        ],
+        "keyI": 1.85,
+        "sunDir": [
+         -0.34,
+         0.2,
+         -0.919
+        ],
+        "hemi": [
+         [
+          0.156,
+          0.084,
+          0.065
+         ],
+         [
+          0.195,
+          0.058,
+          0.019
+         ],
+         0.8
+        ],
+        "disc": false,
+        "layerDomes": 1,
+        "regionSky": {
+         "sunscar-dunes": {
+          "weight": 1,
+          "drawn": true,
+          "bytes": 0,
+          "reserved": 0
+         }
+        },
+        "sky": {
+         "pieces": {},
+         "roseFog": "0/89",
+         "envMap": null
+        }
+       },
+       "loadout": {
+        "current": "sunscar-whip",
+        "list": [
+         "sunscar-whip"
+        ],
+        "tools": [
+         "tool.hoverboard"
+        ]
+       },
+       "local": [
+        0,
+        21.3,
+        70
+       ],
+       "inside": "sunscar-dunes",
+       "owner": "sunscar-dunes",
+       "chain": {
+        "owner": "sunscar-dunes",
+        "weight": 1,
+        "lut": false,
+        "values": [
+         0.12,
+         0,
+         0.12,
+         0,
+         0
+        ],
+        "post": [
+         0.15,
+         0.9,
+         0.08,
+         0.35,
+         -1,
+         -1
+        ],
+        "fx": {
+         "carrier": null,
+         "weight": 0,
+         "vol": [
+          0,
+          0.55
+         ],
+         "chroma": 0,
+         "grain": 0,
+         "target": [
+          1,
+          1
+         ],
+         "depth": "scene",
+         "sceneDepth": false
+        },
+        "bypass": 0
+       },
+       "passes": [
+        "RenderPass",
+        "EffectPass",
+        "EffectPass"
+       ],
+       "colour": [
+        "ChromaticAberrationEffect@1",
+        "VolumetricsEffect@0",
+        "BloomEffect@1",
+        "VignetteEffect@1",
+        "ToneMappingEffect@1",
+        "HueSaturationEffect@1",
+        "BrightnessContrastEffect@1",
+        "GradeEffect@1",
+        "GradeLookEffect@1",
+        "LUT3DEffect@0",
+        "NoiseEffect@0",
+        "GridFrameGrade@1"
+       ],
+       "nine": null
+      },
+      "probes": []
+     }
+    },
+    "pose": {
+     "x": 0.0021537231455113215,
+     "y": 21.30245255466477,
+     "z": 69.99615744925632,
+     "heading": -3.141592653589793
+    }
+   }
+  },
+  "finished": "2026-10-10T20:55:54.740Z"
+ },
+ "after": {
+  "version": {
+   "build": "fa54a61-mv2vd4aq",
+   "time": "2026-10-10T20:51:19.398Z"
+  },
+  "started": "2026-10-10T20:54:30.329Z",
+  "shards": {
+   "far-reach": {
+    "errors": [],
+    "consoleErrors": 0,
+    "consoleSamples": [],
+    "shots": {
+     "far-reach-select": {
+      "name": "far-reach-select",
+      "frame": {
+       "look": {
+        "fog": [
+         0.871,
+         0.584,
+         0.468
+        ],
+        "env": 1,
+        "key": [
+         1,
+         0.644,
+         0.361
+        ],
+        "keyI": 2,
+        "sunDir": [
+         -0.136,
+         0.105,
+         -0.985
+        ],
+        "hemi": [
+         [
+          0.578,
+          0.565,
+          0.716
+         ],
+         [
+          0.342,
+          0.314,
+          0.413
+         ],
+         1.4
+        ],
+        "disc": true,
+        "layerDomes": 0,
+        "regionSky": null,
+        "sky": {
+         "pieces": {
+          "far.painted-maelstrom": "own",
+          "far.painted-sea": "own",
+          "far.painted-sea.upper": "own",
+          "far.cumulus": "own"
+         },
+         "roseFog": "276/296",
+         "envMap": null
+        }
+       },
+       "loadout": {
+        "current": "far-fan",
+        "list": [
+         "far-fan"
+        ],
+        "tools": [
+         "tool.hoverboard"
+        ]
+       },
+       "local": [
+        0,
+        30.02,
+        -5.5
+       ],
+       "inside": null,
+       "owner": null,
+       "chain": null,
+       "passes": [
+        "RenderPass",
+        "EffectPass",
+        "EffectPass"
+       ],
+       "colour": [
+        "GodRaysEffect@0.12",
+        "BloomEffect@1",
+        "VignetteEffect@1",
+        "ToneMappingEffect@1",
+        "HueSaturationEffect@1",
+        "BrightnessContrastEffect@1",
+        "GradeEffect@1",
+        "LUT3DEffect@1"
+       ],
+       "nine": {
+        "camNoRoot": 1,
+        "camNoRootNames": [
+         "far.meadow"
+        ]
+       }
+      }
+     },
+     "far-reach-grid-after": {
+      "name": "far-reach-grid-after",
+      "home": false,
+      "route": [],
+      "frame": {
+       "look": {
+        "fog": [
+         0.871,
+         0.584,
+         0.468
+        ],
+        "env": 0,
+        "key": [
+         1,
+         0.644,
+         0.361
+        ],
+        "keyI": 2,
+        "sunDir": [
+         -0.136,
+         0.105,
+         -0.985
+        ],
+        "hemi": [
+         [
+          0.578,
+          0.565,
+          0.716
+         ],
+         [
+          0.342,
+          0.314,
+          0.413
+         ],
+         1.4
+        ],
+        "disc": false,
+        "layerDomes": 1,
+        "regionSky": {
+         "far-reach": {
+          "weight": 1,
+          "drawn": true,
+          "bytes": 0,
+          "reserved": 0
+         }
+        },
+        "sky": {
+         "pieces": {
+          "far.painted-maelstrom": 1,
+          "far.painted-sea": 1,
+          "far.painted-sea.upper": 1,
+          "far.cumulus": 1
+         },
+         "roseFog": "39/39",
+         "envMap": null
+        }
+       },
+       "loadout": {
+        "current": "far-fan",
+        "list": [
+         "far-fan"
+        ],
+        "tools": [
+         "tool.hoverboard"
+        ]
+       },
+       "local": [
+        0,
+        30.02,
+        -5.5
+       ],
+       "inside": "far-reach",
+       "owner": "far-reach",
+       "chain": {
+        "owner": "far-reach",
+        "weight": 1,
+        "lut": true,
+        "values": [
+         0,
+         0,
+         0.12,
+         0,
+         0
+        ],
+        "post": [
+         0.35,
+         0.7,
+         0.08,
+         0.35,
+         -1,
+         -1
+        ],
+        "fx": {
+         "carrier": null,
+         "weight": 0,
+         "vol": [
+          0,
+          0.55
+         ],
+         "chroma": 0,
+         "grain": 0,
+         "target": [
+          1,
+          1
+         ],
+         "depth": "scene",
+         "sceneDepth": false
+        },
+        "bypass": 0
+       },
+       "passes": [
+        "RenderPass",
+        "EffectPass",
+        "EffectPass"
+       ],
+       "colour": [
+        "ChromaticAberrationEffect@1",
+        "VolumetricsEffect@0",
+        "BloomEffect@1",
+        "VignetteEffect@1",
+        "ToneMappingEffect@0",
+        "SkyNeutralToneEffect@1",
+        "HueSaturationEffect@1",
+        "BrightnessContrastEffect@1",
+        "GradeEffect@1",
+        "GradeLookEffect@1",
+        "LUT3DEffect@1",
+        "NoiseEffect@0",
+        "GridFrameGrade@1"
+       ],
+       "nine": {
+        "camNoRoot": 1,
+        "camNoRootNames": [
+         "far.meadow"
+        ]
+       }
+      },
+      "probes": []
+     }
+    },
+    "pose": {
+     "x": -1.3435500600678107e-06,
+     "y": 30.020045514371304,
+     "z": -5.5000225281035515,
+     "heading": -3.141592653589793
+    }
+   },
+   "sunscar-dunes": {
+    "errors": [],
+    "consoleErrors": 0,
+    "consoleSamples": [],
+    "shots": {
+     "sunscar-dunes-select": {
+      "name": "sunscar-dunes-select",
+      "frame": {
+       "look": {
+        "fog": [
+         0.048,
+         0.034,
+         0.084
+        ],
+        "env": 1,
+        "key": [
+         1,
+         0.68,
+         0.34
+        ],
+        "keyI": 1.85,
+        "sunDir": [
+         -0.34,
+         0.2,
+         -0.919
+        ],
+        "hemi": [
+         [
+          0.156,
+          0.084,
+          0.065
+         ],
+         [
+          0.195,
+          0.058,
+          0.019
+         ],
+         0.8
+        ],
+        "disc": false,
+        "layerDomes": 0,
+        "regionSky": null,
+        "sky": {
+         "pieces": {},
+         "roseFog": "0/214",
+         "envMap": null
+        }
+       },
+       "loadout": {
+        "current": "sunscar-whip",
+        "list": [
+         "sunscar-whip"
+        ],
+        "tools": [
+         "tool.hoverboard"
+        ]
+       },
+       "local": [
+        0,
+        21.3,
+        69.99
+       ],
+       "inside": null,
+       "owner": null,
+       "chain": null,
+       "passes": [
+        "RenderPass",
+        "EffectPass",
+        "EffectPass"
+       ],
+       "colour": [
+        "BloomEffect@1",
+        "VignetteEffect@1",
+        "ToneMappingEffect@1",
+        "HueSaturationEffect@1",
+        "BrightnessContrastEffect@1",
+        "GradeEffect@1"
+       ],
+       "nine": null
+      }
+     },
+     "sunscar-dunes-grid-after": {
+      "name": "sunscar-dunes-grid-after",
+      "home": false,
+      "route": [],
+      "frame": {
+       "look": {
+        "fog": [
+         0.048,
+         0.034,
+         0.084
+        ],
+        "env": 0,
+        "key": [
+         1,
+         0.68,
+         0.34
+        ],
+        "keyI": 1.85,
+        "sunDir": [
+         -0.34,
+         0.2,
+         -0.919
+        ],
+        "hemi": [
+         [
+          0.156,
+          0.084,
+          0.065
+         ],
+         [
+          0.195,
+          0.058,
+          0.019
+         ],
+         0.8
+        ],
+        "disc": false,
+        "layerDomes": 1,
+        "regionSky": {
+         "sunscar-dunes": {
+          "weight": 1,
+          "drawn": true,
+          "bytes": 0,
+          "reserved": 0
+         }
+        },
+        "sky": {
+         "pieces": {},
+         "roseFog": "0/89",
+         "envMap": null
+        }
+       },
+       "loadout": {
+        "current": "sunscar-whip",
+        "list": [
+         "sunscar-whip"
+        ],
+        "tools": [
+         "tool.hoverboard"
+        ]
+       },
+       "local": [
+        0,
+        21.3,
+        70
+       ],
+       "inside": "sunscar-dunes",
+       "owner": "sunscar-dunes",
+       "chain": {
+        "owner": "sunscar-dunes",
+        "weight": 1,
+        "lut": false,
+        "values": [
+         0.12,
+         0,
+         0.12,
+         0,
+         0
+        ],
+        "post": [
+         0.15,
+         0.9,
+         0.08,
+         0.35,
+         -1,
+         -1
+        ],
+        "fx": {
+         "carrier": null,
+         "weight": 0,
+         "vol": [
+          0,
+          0.55
+         ],
+         "chroma": 0,
+         "grain": 0,
+         "target": [
+          1,
+          1
+         ],
+         "depth": "scene",
+         "sceneDepth": false
+        },
+        "bypass": 0
+       },
+       "passes": [
+        "RenderPass",
+        "EffectPass",
+        "EffectPass"
+       ],
+       "colour": [
+        "ChromaticAberrationEffect@1",
+        "VolumetricsEffect@0",
+        "BloomEffect@1",
+        "VignetteEffect@1",
+        "ToneMappingEffect@1",
+        "HueSaturationEffect@1",
+        "BrightnessContrastEffect@1",
+        "GradeEffect@1",
+        "GradeLookEffect@1",
+        "LUT3DEffect@0",
+        "NoiseEffect@0",
+        "GridFrameGrade@1"
+       ],
+       "nine": null
+      },
+      "probes": []
+     }
+    },
+    "pose": {
+     "x": 0.0021537231455113215,
+     "y": 21.30245255466477,
+     "z": 69.99615744925632,
+     "heading": -3.141592653589793
+    }
+   }
+  },
+  "finished": "2026-10-10T20:55:59.649Z"
+ }
+}

@@ -4,7 +4,7 @@ import { BackdropLayer, applyLayers, layerKeyedSky, seedLayerTargets } from './b
 import { app } from '../app/runtime';
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
-import { captureLookChunks, scopeLookChunks, type LookScopeOptions, type RegionLookParts, type ScopedLook } from '../render/regionLook';
+import { captureLookChunks, noLookChunks, scopeLookChunks, type LookScopeOptions, type RegionLookParts, type ScopedLook } from '../render/regionLook';
 import * as THREE from 'three';
 import type { Renderer } from '../render/renderer';
 import { TIER, TIER_CONFIG } from '../core/tier';
@@ -192,6 +192,7 @@ export class SkyRig {
     const backdrop = this.backdrop, fog = this.scene.fog, halo = this.visual.sunHalo;
     if (backdrop?.clouds) this.visual.attachClouds(backdrop.clouds); // its own sky layer (a dome): Game.ts keeps `clouds` on the camera
     else this.visual.buildClouds();
+    if (backdrop?.dressing) this.scene.add(backdrop.dressing); // its world-anchored sky pieces, where they stand (G321)
     // the backdrop's clock turns every knob above from here on
     if (fog instanceof THREE.Fog) {
       // `fog` is read live: a look that replaces scene.fog after this bind (in its compose) would otherwise leave the
@@ -230,7 +231,7 @@ export class SkyRig {
    * and drawn under, every other layer, at its weight's share of what they leave (`applyLayers`). Null before the sky is
    * built.
    */
-  layerBackdrop(options: { readonly air?: () => THREE.Fog | null; readonly owner?: Scope; readonly base?: boolean } = {}): BackdropLayer | null {
+  layerBackdrop(options: { readonly air?: () => THREE.Fog | null; readonly owner?: Scope; readonly base?: boolean; readonly origin?: () => THREE.Vector3 } = {}): BackdropLayer | null {
     const targets = this.targets;
     if (targets === null) return null;
     const layer = new BackdropLayer({ targets, scene: this.scene }, { ...options, assets: app.assets, onDispose: () => { this.layers.delete(layer); } });
@@ -247,10 +248,11 @@ export class SkyRig {
    * gives it one (`layerClouds`), unless `clouds` is false (its look's sky dressing: `SkyDressing.clouds`).
    * G321: the layer starts from its level's own declared light (`seedLayerTargets`), the factory's `sky` moves the layer's
    * key light, not the page's (`layerKeyedSky`), and `sun` (its look's dressing, `SkyDressing.sun`) with the disc or halo
-   * off hides the page's inside its cell.
+   * off hides the page's inside its cell. `origin`: where its level's own frame stands on the page (a grid region's root),
+   * at which the layer draws the backdrop's world-anchored sky pieces (`SkyBackdrop.dressing`).
    */
-  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly scope?: Scope; readonly air?: () => THREE.Fog | null; readonly planet?: boolean; readonly clouds?: boolean; readonly sun?: { readonly disc?: boolean; readonly halo?: boolean } | undefined }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
-    const layer = this.layerBackdrop({ ...(options.air === undefined ? {} : { air: options.air }), ...(options.scope === undefined ? {} : { owner: options.scope }) });
+  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly scope?: Scope; readonly air?: () => THREE.Fog | null; readonly planet?: boolean; readonly clouds?: boolean; readonly sun?: { readonly disc?: boolean; readonly halo?: boolean } | undefined; readonly origin?: () => THREE.Vector3 }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
+    const layer = this.layerBackdrop({ ...(options.air === undefined ? {} : { air: options.air }), ...(options.scope === undefined ? {} : { owner: options.scope }), ...(options.origin === undefined ? {} : { origin: options.origin }) });
     if (layer === null) return null;
     try {
       seedLayerTargets(layer, options.level);
@@ -295,16 +297,18 @@ export class SkyRig {
   }
 
   /**
-   * SF63: a level's light model, fog and sky dressing (`LookStrategy.lighting` / `fog` / `sky`) on the materials under
+   * SF63: a level's light model, fog, sky dressing and world patch (`LookStrategy.lighting` / `fog` / `sky` / `worldPatch`) on the materials under
    * `root` only (G232: a grid region keeps its own look inside its cell), as region-keyed program variants
    * (`render/regionLook.ts`); the page's chunks and programs never change. Null when the level's installs change nothing
-   * on this page. `sweep` patches materials added since (call it before each frame
+   * on this page and it has no world patch. `sweep` patches materials added since (call it before each frame
    * the subtree draws); `frame` runs the look's per-frame parts (its dressing's `update`, its `frame`: call it only while
    * the player is in the cell); the patches leave with `scope`.
    */
   scopeLevelLook(root: THREE.Object3D, level: { readonly id: string }, look: RegionLookParts, scope: Scope, options: LookScopeOptions = {}): ScopedLook | null {
     const chunks = captureLookChunks(level.id, look, { sky: this, cloudField: () => this.visual.cloudField() });
-    return chunks === null ? null : scopeLookChunks(root, chunks, scope, options, look);
+    // G321: a look whose installs change nothing here still patches its world's materials with its own `worldPatch`
+    if (chunks === null && look.worldPatch === undefined) return null;
+    return scopeLookChunks(root, chunks ?? noLookChunks(level.id), scope, options, look);
   }
 
   attachPost(post: SkyBackdropPost): void { this.backdrop?.attachPost(post); }
