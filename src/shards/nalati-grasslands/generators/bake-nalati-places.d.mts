@@ -1,4 +1,4 @@
-import type { DressingGeoRow, PlaceGeometryRow, PlaceRow, SpecimenRow } from '../src/shards/nalati-grasslands/world/placeBake';
+import type { DressingGeoRow, PlaceGeometryRow, PlaceRow, SpecimenRow } from '../world/placeBake';
 /** A committed bake as the page reads it: its stamped rows and the raw binary (inflated, lanes put back). */
 export interface CommittedPlacesBake<R> { readonly rows: { readonly bin: string; readonly bytes: number; readonly rows: readonly R[] }; readonly raw: Uint8Array }
 /** The raw binary from its shipped lanes (every 4-byte word's first bytes, then its second …). */

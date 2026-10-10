@@ -5,15 +5,15 @@
 // the lone spruces' trunk circles and tops, the yurts the lightning's shelter reads, and the bodies AnimalManager simulates at load (Wildlife's wolf pack, the wild herd with
 // its stallion, the flock's dog and the camp's two saddled horses) with their model-derived simulation specs, seeds, scales,
 // herd membership, tick-0 spots, headings and memories, and the declared groups' tick-0 continuations. Two independent same-page captures must match exactly.
-// scripts/browser-lane.sh node scripts/bake-nalati-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--census]
+// scripts/browser-lane.sh node src/shards/nalati-grasslands/generators/bake-nalati-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--census]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { nalatiPhysicsInputs } from './nalati-physics-inputs.mjs';
-import { saveFixture } from './debug-settings.mjs';
+import { nalatiPhysicsInputs } from '../../../../scripts/nalati-physics-inputs.mjs';
+import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 const url = process.argv.find(arg => arg.startsWith('--url='))?.slice(6);
 if (url === undefined) throw new Error('bake-nalati-physics requires a clean-candidate --url');
 const census = process.argv.includes('--census');

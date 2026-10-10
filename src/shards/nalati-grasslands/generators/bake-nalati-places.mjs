@@ -10,14 +10,14 @@
 // `--check` (Node, the stale gate: bake-check.mjs's node baker `nalati-places`, macOS only): reruns the generator in Node and compares every row number and every
 // expanded vertex float with the committed bake, within 1e-9 for the rows' doubles and 2^-20 for the stored float32s (a
 // last-bit double difference can round a float32 one step), failing on any structural difference.
-// Usage: scripts/browser-lane.sh node scripts/bake-nalati-places.mjs    (run in a clean export)
-//        node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-nalati-places.mjs --check
+// Usage: scripts/browser-lane.sh node src/shards/nalati-grasslands/generators/bake-nalati-places.mjs    (run in a clean export)
+//        node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nalati-grasslands/generators/bake-nalati-places.mjs --check
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync, inflateSync } from 'node:zlib';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 const OUT = resolve(root, 'public/assets/nalati/baked');
 const DATA = resolve(root, 'src/shards/nalati-grasslands/data');
 const TERRAIN = resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin');
@@ -87,7 +87,7 @@ if (import.meta.main && process.argv.includes('--check')) {
   // Linux's libm differs from the Mac's in the last ulp (Pine's crags, CI 38008817381), and a last-bit difference can tip a
   // painter's branch; the gate runs where the bakes are made (the local push gate on macOS)
   if (process.platform !== 'darwin') { console.info('bake-nalati-places: --check skipped (checked on macOS, where the bake is made)'); process.exit(0); }
-  const { bakeNalatiPlacesOnTerrain } = await import('../src/shards/nalati-grasslands/generators/places.ts');
+  const { bakeNalatiPlacesOnTerrain } = await import('./places.ts');
   const node = bakeNalatiPlacesOnTerrain(terrainBuffer()), committed = committedPlaces();
   let failed = false;
   for (const { file, made, geos } of [{ file: 'places', made: node.places, geos: (r) => r.meshes }, { file: 'specimens', made: node.specimens, geos: (r) => r.parts }, { file: 'dressing', made: node.dressing, geos: (r) => [r] }]) {

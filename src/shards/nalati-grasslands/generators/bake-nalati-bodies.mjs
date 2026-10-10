@@ -8,14 +8,14 @@
 // every body and fails on any byte that differs from the committed rows and binary. The lofts' Math.sin / hypot are
 // byte-exact where the bake was made (macOS), so elsewhere --check says so and passes. test/shards/nalati-grasslands/
 // bodies-bake.test.ts rebakes a representative pair of bodies and proves the page reads every one back bit-exact.
-// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-nalati-bodies.mjs [--check]
+// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nalati-grasslands/generators/bake-nalati-bodies.mjs [--check]
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync, inflateSync } from 'node:zlib';
-import { bakeNalatiBodies } from '../src/shards/nalati-grasslands/generators/bodies.ts';
+import { bakeNalatiBodies } from './bodies.ts';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 
 /** The binary in four byte lanes (every word's first bytes, then its second …): floats compress better so. */
 export function shuffleBodyLanes(bin) {
@@ -46,7 +46,7 @@ if (import.meta.main) {
     const committed = readFileSync(rowsPath, 'utf8'), shipped = unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync(resolve(out, 'bodies.bin')))));
     const sameBin = shipped.length === bin.length && shipped.every((v, i) => v === bin[i]);
     if (committed !== `${JSON.stringify(rows)}\n` || !sameBin) {
-      console.error('bake-nalati-bodies: the committed bodies bake is stale (rerun scripts/bake-nalati-bodies.mjs)');
+      console.error('bake-nalati-bodies: the committed bodies bake is stale (rerun src/shards/nalati-grasslands/generators/bake-nalati-bodies.mjs)');
       process.exit(1);
     }
     console.info(`bake-nalati-bodies: ${String(rows.bodies.length)} bodies byte-exact (${rows.bin.slice(0, 12)})`);

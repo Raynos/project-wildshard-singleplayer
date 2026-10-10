@@ -30,7 +30,7 @@ for (const baker of NODE_BAKERS) if (only === undefined || only === baker) {
   // Fixed-model metadata retains unrounded doubles; libm can differ by a final ulp from the macOS-authored bake.
   if (baker === 'driftwood-fixed-models' && process.platform !== 'darwin') {
     console.info('bake-check: driftwood-fixed-models skipped (byte-exact on macOS, where the bake is made)');
-  } else run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', `scripts/bake-${baker}.mjs`, '--check']);
+  } else run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', baker.startsWith('nalati-') ? `src/shards/nalati-grasslands/generators/bake-${baker}.mjs` : `scripts/bake-${baker}.mjs`, '--check']);
 }
 
 const metal = only === undefined && process.platform === 'darwin' && spawnSync('system_profiler', ['SPDisplaysDataType'], { encoding: 'utf8' }).stdout.includes('Metal');
