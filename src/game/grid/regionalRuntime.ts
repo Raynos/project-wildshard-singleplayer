@@ -270,7 +270,11 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               // a set that failed to arrive is drawn by its weapon as before: the head start is never a gate
               await viewmodelSets?.catch((error: unknown) => { console.warn(`[viewmodel textures] ${request.cell.instance}`, error); });
               if (left()) throw new Error('Regional runtime left while drawing its weapons\' textures');
-              const kit = await ownerTask(owner, () => build(targets, request.page.play.nolock));
+              // G324: its own sword's viewmodel, as its standalone loadout hands it over (`ShardManifest.sword`): without it a
+              // sword shard's weapon drew the engine's wooden sword in its cell (Nine Dragon's Jian)
+              const sword = await ownerTask(owner, () => request.manifest.sword?.() ?? Promise.resolve(null));
+              if (left()) throw new Error('Regional runtime left while loading its sword');
+              const kit = await ownerTask(owner, () => build(targets, request.page.play.nolock, sword));
               if (left()) {
                 for (const weapon of [kit.primary, kit.rifle, kit.secondary, ...(kit.extras ?? [])]) weapon?.dispose();
                 throw new Error('Regional runtime left while building equipment');

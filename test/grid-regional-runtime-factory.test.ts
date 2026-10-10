@@ -406,3 +406,31 @@ it('retires failed road construction with its runtime owner while keeping the re
     expect(cleanup).toBe(2);
   } finally { prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
 });
+
+it('equips the cell\'s own loadout, built with its own sword, on entry and gives the road loadout back on leave (G324)', async () => {
+  const f = fixture(), sword = { portraitPullX: 0.25 };
+  const prepared = await f.regional({ ...f.request, manifest: { ...PINE_HOLLOW, sword: () => Promise.resolve(sword) } });
+  const handed: unknown[] = [], own = new EmptyEquipment();
+  class Runtime extends ShardPlugin {
+    override kit(ctx: ShardContext): void {
+      const rt = ctx.game.runtime; if (rt === undefined) throw new Error('Missing local runtime');
+      rt.buildEquipment = (_targets, _nolock, viewmodel) => { handed.push(viewmodel); return Promise.resolve({ primary: own, rifle: null, secondary: null }); };
+    }
+  }
+  const session = new HybridRuntimeSession(new Map([['pine-hollow', prepared.resident]]), [
+    { slug: 'pine-hollow', entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) },
+  ], f.scope);
+  try {
+    expect(await session.installAhead('pine-hollow')).toBe(true);
+    expect(handed).toEqual([sword]);
+    expect(f.equipment.service.current).toBe(f.road.current);
+    for (let visit = 0; visit < 2; visit++) {
+      prepared.loadout.interior(); expect(await session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' })).toBe(true);
+      expect(f.equipment.service.current).toBe(own);
+      prepared.loadout.stow(); session.leave();
+      expect(f.equipment.service.current).toBe(f.road.current);
+    }
+    expect(handed).toHaveLength(1);
+  } finally { prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
+  expect(f.allocator.entries()).toEqual([]);
+});
