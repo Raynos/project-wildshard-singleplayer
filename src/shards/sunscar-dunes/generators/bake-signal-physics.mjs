@@ -4,15 +4,15 @@
 // the Matriarch's spec once play summons her (the quest's own actions, then the player walks into her basin), and every
 // native collider piece, and the quest's interaction spots and crack targets. Two independent same-page captures must
 // match exactly.
-// scripts/browser-lane.sh node scripts/bake-signal-physics.mjs --url=<clean candidate preview> [--revision=<sha>]
+// scripts/browser-lane.sh node src/shards/sunscar-dunes/generators/bake-signal-physics.mjs --url=<clean candidate preview> [--revision=<sha>]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { signalPhysicsInputs } from './signal-physics-inputs.mjs';
-import { saveFixture } from './debug-settings.mjs';
+import { signalPhysicsInputs } from '../../../../scripts/signal-physics-inputs.mjs';
+import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 const url = process.argv.find(arg => arg.startsWith('--url='))?.slice(6);
 if (url === undefined) throw new Error('bake-signal-physics requires a clean-candidate --url');
 const revision = process.argv.find(arg => arg.startsWith('--revision='))?.slice(11)

@@ -9,7 +9,7 @@ import { duneRig, preloadDuneMeshes } from '../../../src/shards/sunscar-dunes/wo
 const folder = new URL('../../../public/assets/sunscar-dunes/rigs/', import.meta.url);
 
 describe('Signal Dunes bakes its code-built creature bodies offline (SHARD-PLATFORM SF72, SF67 fix 3)', () => {
-  it('the committed skitterer rig is byte-exact against its generator (the stale gate: rerun scripts/bake-signal-rigs.mjs)', () => {
+  it('the committed skitterer rig is byte-exact against its generator (the stale gate: rerun src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs)', () => {
     expect(new Uint8Array(readFileSync(new URL('skitterer.glb', folder)))).toEqual(bakeSignalSkitterer().glb);
     // the folder holds exactly this bake: no orphan GLB from an older bake ships
     expect(readdirSync(folder).filter((name) => name.endsWith('.glb')).sort()).toEqual(DUNE_RIGS.map((name) => `${name}.glb`).sort());

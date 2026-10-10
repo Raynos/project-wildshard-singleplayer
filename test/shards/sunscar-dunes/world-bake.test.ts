@@ -46,7 +46,7 @@ const near = (got: InstancedMesh, want: InstancedMesh): void => {
 };
 
 describe('Signal Dunes bakes its code-built world offline (SHARD-PLATFORM SF72, SF67 fix 3)', () => {
-  it('every committed piece is byte-exact against its generator (the stale gate: rerun scripts/bake-signal-world.mjs)', () => {
+  it('every committed piece is byte-exact against its generator (the stale gate: rerun src/shards/sunscar-dunes/generators/bake-signal-world.mjs)', () => {
     for (const piece of BAKED_PIECES) {
       const { glb, ...rows } = BAKES[piece]();
       expect({ glb: sha(glb), ...rows }).toEqual(ROWS[piece]);

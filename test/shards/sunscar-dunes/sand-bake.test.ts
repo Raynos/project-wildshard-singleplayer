@@ -21,7 +21,7 @@ afterEach(() => { vi.restoreAllMocks(); });
 describe('Signal Dunes bakes its sand maps offline (SHARD-PLATFORM SF72, RENDERING.md)', () => {
   const bake = bakeSignalSand();
 
-  it('the committed maps and means are byte-exact against the generator (the stale gate: rerun scripts/bake-signal-sand.mjs)', () => {
+  it('the committed maps and means are byte-exact against the generator (the stale gate: rerun src/shards/sunscar-dunes/generators/bake-signal-sand.mjs)', () => {
     expect(unzlibSync(committed(SAND_FILES.shadow))).toEqual(bake.shadow);
     expect(unzlibSync(committed(SAND_FILES.trail))).toEqual(bake.trail);
     expect(unzlibSync(committed(SAND_FILES.grain))).toEqual(bake.grain);
