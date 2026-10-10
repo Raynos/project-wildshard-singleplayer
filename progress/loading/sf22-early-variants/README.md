@@ -196,13 +196,38 @@ activation (64,004–64,005). This is real CPU-side frame work above 33 ms,
 not a new compile. Standing rendering still holds 34 ms at the same final
 pose with ~1.35 million triangles and 160 median draw calls.
 
-Nine Dragon's separate cell-entry/portal hitch is queued on `f369a63aa`,
-using its defining `gridFloorPlans(..., 'cell', {cell: 'nine-dragon'})` route
-and the same rings/hooks/shader journal. It is a DEVSERVER diagnostic,
-separate from the composite comparison, not a public G270 gate.
+Nine Dragon's queued cell-entry diagnostic was withdrawn before any build,
+browser or Simulator acquisition when the coordinator assigned that hitch
+and the desktop 51 ms Driftwood `afterPlay` task to `op-hitch23`. There is
+no Nine measurement from this lane.
 
 Raw scratch `attempt-2495-safari-frame-work.json`, SHA-256
 `70ecb580de8c93aca4c9f18cf92d5a57331bd7d9951ee066b5e94773d4e61f53`.
 Proof `.git/proofs/20261010T091757-sf22-safari-frame-work-after-push-32331.json`.
-All resources from this run closed; the queued Nine diagnostic owns its own
-bounded quiet window and resource cleanup. No 30 fps or phone-memory pass.
+All resources from this run closed. No 30 fps or phone-memory pass.
+
+
+## Same-document Safari task-clock pilot: unavailable
+
+On `0b191cf2a`, the already-booted grid document was profiled through its
+existing Inspector connection, after entering the public home. The page's
+`performance.now()` measured the deliberate diagnostic task at
+**12,381–12,393 ms (12 ms)**. Inspector accepted Timeline and ScriptProfiler
+commands without protocol errors, returning **40 timeline records and one
+profile**. All **658** start/end/sample timestamps were **zero**. No
+positive mapping to the known page-clock interval exists. This reproduces
+the SF67 clock limitation even without a navigation or target reconnect.
+
+The shaped route was deliberately omitted after clock validation failed.
+The proof's exit 0 means the pilot and cleanup completed; it is **not** a
+cadence, warm-task, crossing or CPU-attribution pass. No task duration is
+inferred from stack counts or zero Inspector clocks. Task-level attribution
+through these protocols is blocked; existing frame-ring and hook-wall
+measurements remain the evidence above. A bounded page-callback diagnostic
+may expose measured callback work, but cannot cover every native or async
+continuation and must stay separate from normative timing credit.
+
+Pilot 16:16:48–16:17:09 UTC, 2026-10-10; no quiet window requested. Preview,
+Safari, Inspector and proxy closed. Raw scratch SHA-256
+`c8c1fa7be5488786a6db97025d75bb23c3a35e98121a0bfec0d69ee60d15a658`.
+Proof `.git/proofs/20261010T111519-sf22-safari-task-clock-pilot-86332.json`.
