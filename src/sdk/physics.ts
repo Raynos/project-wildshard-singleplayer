@@ -79,9 +79,16 @@ export abstract class Collider extends Object3D {
 /** Box dimensions are full width, height and depth, like three.js BoxGeometry. */
 export class BoxCollider extends Collider {
     private rotationEncoding: 'auto' | 'yaw' | 'quaternion' = 'auto';
-    constructor(public width = 1, public height = 1, public depth = 1, surface?: Surface) {
+    /** Full authored dimensions in metres. */
+    width: number;
+    /** Full authored dimensions in metres. */
+    height: number;
+    /** Full authored dimensions in metres. */
+    depth: number;
+    constructor(width = 1, height = 1, depth = 1, surface?: Surface) {
         super(surface);
         positive(width, height, depth);
+        this.width = width; this.height = height; this.depth = depth;
     }
     /** Adopt an existing authoring row as a real Object3D, retaining its rotation encoding for byte-stable migration. */
     static fromData(row: BoxColliderData): BoxCollider {
@@ -119,11 +126,16 @@ export class BoxCollider extends Collider {
 }
 /** Capsule radius and straight length follow three.js CapsuleGeometry; the caps add two radii. */
 export class CapsuleCollider extends Collider {
-    constructor(public radius = 0.5, public length = 1, surface?: Surface) {
+    /** Radius of both caps in metres. */
+    radius: number;
+    /** Straight cylinder length in metres. */
+    length: number;
+    constructor(radius = 0.5, length = 1, surface?: Surface) {
         super(surface);
         positive(radius);
         if (!Number.isFinite(length) || length < 0)
             throw new Error('Capsule length must be finite and nonnegative');
+        this.radius = radius; this.length = length;
     }
     /** Clone the same radius and straight length without constructing a physics body. */
     override copy(source: this, recursive = true): this { super.copy(source, recursive); this.radius = source.radius; this.length = source.length; return this; }
@@ -151,7 +163,9 @@ function positions(geometry: BufferGeometry, scale: Vector3): number[] {
 }
 /** A convex collider uses the authored geometry positions; hull construction belongs to the physics compiler. */
 export class HullCollider extends Collider {
-    constructor(public geometry = new BufferGeometry(), surface?: Surface) { super(surface); }
+    /** The authored geometry, shared like a three.js Mesh geometry. */
+    geometry: BufferGeometry;
+    constructor(geometry = new BufferGeometry(), surface?: Surface) { super(surface); this.geometry = geometry; }
     /** Copy references to authored geometry, exactly as Mesh.copy does. */
     override copy(source: this, recursive = true): this { super.copy(source, recursive); this.geometry = source.geometry; return this; }
     /** Preserve every authored vertex while applying world scale once. */
@@ -164,7 +178,9 @@ export class HullCollider extends Collider {
 }
 /** An exact triangle collider uses the same BufferGeometry a Mesh can draw. */
 export class MeshCollider extends Collider {
-    constructor(public geometry = new BufferGeometry(), surface?: Surface) { super(surface); }
+    /** The authored geometry, shared like a three.js Mesh geometry. */
+    geometry: BufferGeometry;
+    constructor(geometry = new BufferGeometry(), surface?: Surface) { super(surface); this.geometry = geometry; }
     /** Copy references to authored geometry, exactly as Mesh.copy does. */
     override copy(source: this, recursive = true): this { super.copy(source, recursive); this.geometry = source.geometry; return this; }
     /** Indexed and nonindexed triangles retain their original order and winding. */

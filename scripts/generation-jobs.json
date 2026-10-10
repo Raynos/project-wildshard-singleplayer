@@ -3,6 +3,40 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "nine-portal-floors",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-portal-floors.mjs",
+      "command": [
+        "--import",
+        "./scripts/sim-node-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-portal-floors.mjs"
+      ],
+      "inputRoots": [
+        "src/sdk/package.json",
+        "src/sdk/physics.ts",
+        "src/sdk/scene.ts",
+        "src/sdk/sceneTransform.ts",
+        "src/sdk/entries.ts",
+        "src/sdk/spawns.ts",
+        "src/shards/nine-dragon-stack/data/decks.ts",
+        "src/shards/nine-dragon-stack/data/floorPlan.ts",
+        "src/shards/nine-dragon-stack/generators/portalFloors.ts",
+        "src/shards/nine-dragon-stack/generators/bake-portal-floors.mjs",
+        "scripts/sim-node-loader.mjs",
+        "lint/sim-schema-leaves.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/portalFloors.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nine-dragon-stack/data/portalFloors.generated.json": "263927c5802155382328da9e16d2c2813c0bd8f0726130796f77ac1479d33b27"
+      }
+    },
+    {
       "id": "nine-layout",
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs",

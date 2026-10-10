@@ -34,3 +34,24 @@ it('the compiled SDK and its plain Node caller use the same real three.js constr
     expect(result).toEqual({ sameConstructor: true, meshes: 1, colliders: [{ id: 'wall', shape: { kind: 'box', x: 0, y: 0, z: 0, surface: 'stone', hx: 1, hy: 1.5, hz: 2 } }] });
   } finally { rmSync(stage, { recursive: true, force: true }); }
 });
+
+it('loads the authoring classes directly with Node type stripping and preserves constructors and clones', () => {
+  const source = `
+    import { Scene, BoxGeometry, TetrahedronGeometry } from 'three';
+    import { readScene } from './src/sdk/scene.ts';
+    import { BoxCollider, CapsuleCollider, HullCollider, MeshCollider } from './src/sdk/physics.ts';
+    import { Entry } from './src/sdk/entries.ts';
+    import { PlayerStart, Spawn } from './src/sdk/spawns.ts';
+    const scene = new Scene(), spawn = new Spawn('goat'); spawn.name='goat.1';
+    const objects = [new BoxCollider(2,3,4,'stone').clone(), new CapsuleCollider(.5,1,'grass').clone(),
+      new HullCollider(new TetrahedronGeometry(),'rock').clone(), new MeshCollider(new BoxGeometry(),'wood').clone()];
+    for (let i=0;i<objects.length;i++) objects[i].name='collider.'+i;
+    scene.add(...objects, new Entry('east','ground').clone(), new PlayerStart(), spawn.clone());
+    const rows=readScene(scene);
+    console.log(JSON.stringify({kinds:rows.colliders.map(row=>row.shape.kind),box:rows.colliders[0].shape,
+      spawn:rows.spawns[0].kind,entry:rows.entries[0].edge}));
+  `;
+  const actual: unknown = JSON.parse(execFileSync(process.execPath, ['--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e', source], {encoding:'utf8',timeout:5000}));
+  expect(actual).toEqual({ kinds:['box','capsule','hull','trimesh'],
+    box:{kind:'box',x:0,y:0,z:0,surface:'stone',hx:1,hy:1.5,hz:2},spawn:'goat',entry:'east' });
+});

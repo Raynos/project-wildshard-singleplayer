@@ -16,8 +16,13 @@ export interface EntryData {
 const MIDPOINTS = { north: [0, 0, 250], east: [250, 0, 0], south: [0, 0, -250], west: [-250, 0, 0] } as const;
 /** A fixed 8 x 15 metre socket declaration; it does not create a floor or flatten authored ground. */
 export class Entry extends Object3D {
-    constructor(public edge: EntryEdge = 'north', public kind?: EntryData['kind']) {
+    /** The boundary edge this road socket occupies. */
+    edge: EntryEdge;
+    /** Optional floor admission kind; absent retains the host default. */
+    kind: EntryData['kind'];
+    constructor(edge: EntryEdge = 'north', kind?: EntryData['kind']) {
         super();
+        this.edge = edge; this.kind = kind;
         this.name = `entry.${edge}`;
         const at = MIDPOINTS[edge];
         this.position.set(at[0], at[1], at[2]);

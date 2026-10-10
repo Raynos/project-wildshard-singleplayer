@@ -6,7 +6,9 @@ export class PlayerStart extends Object3D {
 }
 /** One authored creature or actor placement. The kind names an independently declared species or actor row. */
 export class Spawn extends Object3D {
-    constructor(public kind = '') { super(); }
+    /** The independently declared species or actor identity. */
+    kind: string;
+    constructor(kind = '') { super(); this.kind = kind; }
     /** Clone the kind together with its standard three.js transform. */
     override copy(source: this, recursive = true): this { super.copy(source, recursive); this.kind = source.kind; return this; }
 }

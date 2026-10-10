@@ -5,15 +5,14 @@ import { ND_AUDIO } from './data/audio';
 import { NINE_ITEMS } from './data/items';
 import { NINE_LEDGER } from './data/ledger';
 import { portalLinks, type ShardEdge } from './world/portalPlan';
-import { portalFloorRows } from './generators/portalFloors';
+import portalFloors from './data/portalFloors.generated.json' with { type: 'json' };
 
 // The trusted runtime preserves today's fragment geometry; audio is selected by its declared section. G285: its two feats
 // are ledger rows (data/ledger.ts) the runtime emits as they are played (world/feats.ts); the platform grants each once.
 // G224 (Jake): Nine Dragon's four road-height decks each carry a portal to Lantern Square, and the square's one portal out
 // sends you back to the deck you came in by. Each entry is a `portalLink` (SF8c, src/game/shardfile/portalLink.ts): the
 // road portal on its deck, the square's arrival, the square's exit bound back to that road, and the walked route between
-// (world/portalPlan.ts `portalLinks`). The floors they bind are this file's `props.colliders` (floorRows.ts
-// `portalFloorRows`: each whole deck, `deck.<edge>`, and the square's slab, `square`), the very boxes the trusted runtime
+// (world/portalPlan.ts `portalLinks`). The floors they bind are this file's `props.colliders` (the generated portal-floor rows: each whole deck, `deck.<edge>`, and the square's slab, `square`), the very boxes the trusted runtime
 // installs under those ids (world/install.ts), so its ride (world/portalRide.ts) is the format's checked transfer.
 const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', author: 'Wildshard', revision: 1, seed: 0x9d2a });
 // parseShardfile admits each link against the format's PortalLink schema (strict nodes, bound links, the walked route)
@@ -23,4 +22,4 @@ const portalOf = (edge: ShardEdge): ReturnType<typeof portalLinks>[number]['port
 export default parseShardfile({ ...base,
   accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['items', 'ledger'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: base.entryways.map((row) => ({ edge: row.edge, at: row.at, width: row.width, kind: 'portalLink' as const, portal: portalOf(row.edge) })),
-  props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [], colliders: portalFloorRows() } });
+  props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [], colliders: portalFloors } });
