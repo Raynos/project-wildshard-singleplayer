@@ -35,6 +35,9 @@ obj.data.materials.clear(); obj.data.materials.append(mat)
 cam_d = bpy.data.cameras.new('cam'); cam = bpy.data.objects.new('cam', cam_d); sc.collection.objects.link(cam); sc.camera = cam
 cam_d.sensor_fit = 'HORIZONTAL'; cam_d.clip_start = 0.01; cam_d.clip_end = meta['zfar'] * 4
 base_fov = math.degrees(meta['fov_x'])
+# MoGe's principal point is rarely the image centre: shift the lens so the painting reprojects onto itself exactly
+cam_d.shift_x = 0.5 - meta.get('cx', 0.5)
+cam_d.shift_y = (meta.get('cy', 0.5) - 0.5) * meta['height'] / meta['width']
 
 sc.render.engine = 'BLENDER_EEVEE_NEXT' if 'BLENDER_EEVEE_NEXT' in bpy.types.RenderSettings.bl_rna.properties['engine'].enum_items.keys() else 'BLENDER_EEVEE'
 sc.eevee.taa_render_samples = int(opt.get('--samples', 16))

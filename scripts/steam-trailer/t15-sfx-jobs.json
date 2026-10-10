@@ -1,0 +1,47 @@
+{
+ "_doc": "E471 TRAILERS T15: the four 15-second variants' sound design. MOSS-SoundEffect v2 and Stable Audio 3 Medium each, the better take by CLAP rank (sfx_pick.py). `desc` is the CLAP ranking text.",
+ "families": {
+  "t15-typing": {
+   "kind": "loop",
+   "duration": 8,
+   "desc": "someone typing on a quiet laptop keyboard",
+   "prompt": "Close, quiet recording of one person typing a sentence on a laptop keyboard in a calm room at night: soft individual key taps with small natural pauses between words, one space bar thump now and then. No music, no voices."
+  },
+  "t15-enter": {
+   "kind": "oneshot",
+   "duration": 2,
+   "desc": "a single firm press of the enter key",
+   "prompt": "A single firm press of the Enter key on a laptop keyboard, close-up, one clean click and release, then silence. No music."
+  },
+  "t15-glyphs": {
+   "kind": "oneshot",
+   "duration": 4,
+   "desc": "a soft shimmering scatter of tiny digital ticks rising",
+   "prompt": "A soft, delicate scatter of thousands of tiny glassy ticks and clicks swirling upward and settling, like letters flying off a page and landing in place, gentle shimmer, ending in a quiet bright chime. Sound design, no music."
+  },
+  "t15-pen": {
+   "kind": "loop",
+   "duration": 8,
+   "desc": "a dip pen nib scratching ink lines on paper",
+   "prompt": "Close-up recording of a dip pen nib drawing quick ink lines and small hatching strokes on thick paper: scratchy nib on paper, short strokes, tiny pauses, a soft brush stroke now and then. Quiet room. No music, no voices."
+  },
+  "t15-card": {
+   "kind": "oneshot",
+   "duration": 2,
+   "desc": "a postcard dropped flat onto a wooden table",
+   "prompt": "A single thick paper postcard tossed onto a wooden table: a short papery flutter, a crisp flat slap on the wood and a tiny skid. Close-up, dry room. No music."
+  },
+  "t15-slide": {
+   "kind": "oneshot",
+   "duration": 2,
+   "desc": "a card slid across a wooden table",
+   "prompt": "A thick paper card slid by a finger across a smooth wooden table for one second, a soft papery hiss that stops gently. Close-up, dry room. No music."
+  },
+  "t15-wind": {
+   "kind": "loop",
+   "duration": 12,
+   "desc": "a gentle wind over open grassland with distant sea waves",
+   "prompt": "A calm open landscape: a gentle steady wind through tall dry grass on one side and soft distant sea waves rolling onto a beach on the other, wide and quiet, no birds, no cars, no music."
+  }
+ }
+}

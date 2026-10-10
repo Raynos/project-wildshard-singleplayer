@@ -1,0 +1,40 @@
+{
+ "_doc": "E471 TRAILERS T15: one ~16 s cue per 15-second variant (12 s of picture + a 3 s end card; the cue's last chord lands at ~12 s and rings under the end card). ~/ml/music/minimax-music3/.venv/bin/python scripts/music/gen/gen_minimax.py --jobs $PWD/scripts/steam-trailer/t15-jobs.json --keys t15/v1,t15/v2,t15/v3,t15/v4 --seeds 501,502 --out <scratch> (under lockf -k ~/projects/localai/.model.lock).",
+ "lyrics": {
+  "short": "[Intro]\n[Instrumental]\n[Outro]"
+ },
+ "jobs": {
+  "t15/v1": {
+   "style": "electronic",
+   "slot": "trailer",
+   "duration": 16,
+   "lyrics": "short",
+   "bpm": 100,
+   "prompt": "Genre: minimal warm electronic, soft analog synth. BPM: 100. Key: C major. Instrumental only, no vocals. A sixteen-second piece for someone typing a wish into a computer and watching it become a little island. Opens almost silent with a soft ticking pulse and a single muted synth note; a gentle plucked analog arpeggio grows under it for six seconds; at about nine seconds everything blooms into a bright warm major chord with soft pads and a glassy bell melody; at twelve seconds one final soft chord rings out and fades over four seconds. Clean, intimate, hopeful, not epic, no drums kit, no big hits."
+  },
+  "t15/v2": {
+   "style": "acoustic",
+   "slot": "trailer",
+   "duration": 16,
+   "lyrics": "short",
+   "bpm": 108,
+   "prompt": "Genre: hand-made acoustic chamber piece, felt piano, pizzicato strings, glockenspiel, a little woodwind. BPM: 108. Key: G major. Instrumental only, no vocals. A sixteen-second piece for a map being drawn by hand in ink, one little place after another, then the map growing beyond the page. Starts with a lone felt-piano motif like a pen starting to draw; pizzicato strings and glockenspiel join one by one as more places appear; a gentle swell of strings as the view pulls back at nine seconds; at twelve seconds a warm resolving chord rings and fades over four seconds. Playful, curious, crafted, no drums kit, no epic orchestra."
+  },
+  "t15/v3": {
+   "style": "jazz",
+   "slot": "trailer",
+   "duration": 16,
+   "lyrics": "short",
+   "bpm": 75,
+   "prompt": "Genre: warm vintage travel tune, brushed snare, upright bass, nylon-string guitar, soft vibraphone. BPM: 75. Key: F major. Instrumental only, no vocals. A sixteen-second piece for postcards from faraway places being dealt onto a table, one every two beats. Light brushed groove from the first beat with a walking upright bass; a gentle vibraphone melody; the groove stops briefly at about seven seconds, a hush, then a soft hopeful vibraphone phrase as someone writes on the last blank card; at twelve seconds a final warm chord and a soft cymbal swell ring out and fade over four seconds. Nostalgic, friendly, unhurried."
+  },
+  "t15/v4": {
+   "style": "cinematic",
+   "slot": "trailer",
+   "duration": 16,
+   "lyrics": "short",
+   "bpm": 70,
+   "prompt": "Genre: sparse cinematic ambient, solo piano and a quiet string ensemble. BPM: 70. Key: D major. Instrumental only, no vocals. A sixteen-second piece for standing on an empty highway between two different painted worlds. Opens with a single held soft string chord and wind-like air; slow solo piano notes, one at a time; at about six seconds the strings open into a wide warm chord, a gentle swell of wonder; at twelve seconds a final soft piano note and the string chord ring out and fade over four seconds. Calm, wide, open, restrained, no drums, no choir, no big hits."
+  }
+ }
+}

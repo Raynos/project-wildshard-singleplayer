@@ -37,8 +37,8 @@ zfar = np.quantile(z[mask], a.far) * 1.6 if mask.any() else 100.0
 ys, xs = np.mgrid[0:H, 0:W]
 ray = np.stack([((xs + 0.5) / W - K[0, 2]) / K[0, 0], ((ys + 0.5) / H - K[1, 2]) / K[1, 1], np.ones(z.shape)], -1)
 bad = ~mask | ~np.isfinite(z) | (z <= 0)
-pts = np.where(bad[..., None], ray * zfar, pts)
-pts[..., 2] = np.minimum(pts[..., 2], zfar)
+# every vertex on its own pixel's ray (MoGe's points sit near, not on, them): the start frame is the painting exactly
+pts = ray * np.where(bad, zfar, np.minimum(z, zfar))[..., None]
 
 s = a.step
 gy, gx = np.mgrid[0:H:s, 0:W:s]
@@ -57,6 +57,6 @@ with open(a.out, 'w') as f:
             f.write('f ' + ' '.join(f'{k}/{k}' for k in q) + '\n')
 with open(a.out[:-4] + '.mtl', 'w') as f:
     f.write(f'newmtl paint\nmap_Kd {os.path.abspath(a.image)}\n')
-json.dump({'fov_x': fov_x, 'width': W, 'height': H, 'zfar': float(zfar), 'z_median': float(np.median(z[mask])) if mask.any() else None},
+json.dump({'fov_x': fov_x, 'cx': float(K[0, 2]), 'cy': float(K[1, 2]), 'width': W, 'height': H, 'zfar': float(zfar), 'z_median': float(np.median(z[mask])) if mask.any() else None},
           open(a.out[:-4] + '.json', 'w'), indent=1)
 print(f'{a.out}: {h * w} verts, fov_x {math.degrees(fov_x):.1f}°, sky at z={zfar:.2f}')

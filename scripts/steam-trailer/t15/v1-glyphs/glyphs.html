@@ -1,0 +1,201 @@
+<!doctype html>
+<!-- TRAILERS T15 V1 (E471): "Prompt to glyphs". A real Claude Code session (the asciinema recording, replayed by
+     cast_frames.py into data/cast.js) is typed and answered; its own characters then fly into a coarse monospace mosaic
+     of the island it described, coloured by the painting; the glyphs resolve cell by cell into the painting.
+     Rendered frame by frame by titles.mjs (window.pose(card, t)); 12 s; see README.md. -->
+<html><head><meta charset="utf-8"><title>T15 V1 glyphs</title>
+<style>
+@font-face { font-family: 'JB'; font-weight: 500; src: url('../../../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'JB'; font-weight: 800; src: url('../../../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-800-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Raj'; font-weight: 700; src: url('../../../../node_modules/@fontsource/rajdhani/files/rajdhani-latin-700-normal.woff2') format('woff2'); }
+html, body { margin: 0; background: #000; overflow: hidden; }
+canvas { display: block; }
+</style>
+<script src="data/cast.js"></script>
+<script src="data/island.js"></script>
+</head><body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+const W = 1920, H = 1080;
+const cv = document.getElementById('c'), g = cv.getContext('2d');
+const C = window.CAST, M = C.marks;
+const BG = C.bg;
+
+// the terminal: the recording's 76 × 22 grid, centred, large enough to read on a phone
+const FS = 27, CH = 38;
+g.font = `500 ${FS}px JB, Menlo, monospace`;
+let CW = 0;
+const TW = () => CW * C.cols, TH = CH * C.rows;
+let TX = 0, TY = 0;
+
+// the mosaic: a coarse grid over the whole frame; each cell takes the painting's colour there
+const MC = 22, MR = 30;               // cell size (px): coarse enough to read as a picture on a phone
+const MX = Math.ceil(W / MC), MY = Math.ceil(H / MR);
+let cellCol = [], cellLum = [];
+const img = new Image();
+
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);   // cubic in-out
+const easeOut = (u) => 1 - Math.pow(1 - u, 3);
+const lerp = (a, b, u) => a + (b - a) * u;
+function rnd(i) { const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); }
+
+// trailer time → recording time (piecewise: idle prompt, the typing at 2.5×, the answer squeezed, the summary held)
+const BEATS = [
+  [0.0, M.type0 - 0.4], [0.5, M.type0 - 0.4],
+  [3.3, M.type1], [3.7, M.type1 + 0.9],
+  [6.1, M.done], [99, M.done],
+];
+function castTime(t) {
+  for (let i = 0; i < BEATS.length - 1; i++) {
+    const [a, ca] = BEATS[i], [b, cb] = BEATS[i + 1];
+    if (t <= b) return lerp(ca, cb, clamp((t - a) / (b - a)));
+  }
+  return BEATS.at(-1)[1];
+}
+function snapAt(ct) {
+  let s = C.snaps[0];
+  for (const x of C.snaps) { if (x.t <= ct) s = x; else break; }
+  return s;
+}
+
+// the source glyphs: every visible character of the final screen, with where it sits
+let src = [];
+function buildSources() {
+  const s = snapAt(M.done);
+  for (let y = 0; y < C.rows; y++) for (let x = 0; x < C.cols; x++) {
+    const ch = s.rows[y][x];
+    if (ch && ch.trim() && ch.charCodeAt(0) < 127) src.push({ ch, x: TX + x * CW, y: TY + y * CH, col: C.palette[s.fg[y].charCodeAt(x) - 48] });
+  }
+}
+// each mosaic cell: which source glyph flies into it, when it leaves, when it resolves into the painting
+let cells = [];
+function buildCells() {
+  const LH = { x: W * 0.53, y: H * 0.30 };       // the lighthouse: the resolve spreads out from it
+  const maxD = Math.hypot(W, H) * 0.62;
+  for (let j = 0; j < MY; j++) for (let i = 0; i < MX; i++) {
+    const k = j * MX + i, s = src[(k * 7919) % src.length];
+    const cx = i * MC + MC / 2, cy = j * MR + MR / 2;
+    const d = Math.hypot(cx - LH.x, cy - LH.y) / maxD;
+    cells.push({ i, j, cx, cy, s, ch: s.ch,
+      leave: 6.55 + rnd(k) * 0.9 + (j / MY) * 0.25,      // flight starts (s)
+      fly: 1.15 + rnd(k + 3) * 0.35,                     // flight length (s)
+      res: 9.0 + d * 1.6 + rnd(k + 7) * 0.25,            // resolve starts (s)
+      col: cellCol[k], lum: cellLum[k] });
+  }
+}
+
+function drawTerminal(t, alpha) {
+  const s = snapAt(castTime(t));
+  g.globalAlpha = alpha;
+  g.fillStyle = BG; g.fillRect(0, 0, W, H);
+  g.font = `500 ${FS}px JB, Menlo, monospace`; g.textBaseline = 'top';
+  for (let y = 0; y < C.rows; y++) {
+    const row = s.rows[y], fg = s.fg[y];
+    for (let x = 0; x < C.cols; x++) {
+      const ch = row[x];
+      if (!ch || ch === ' ') continue;
+      g.fillStyle = C.palette[fg.charCodeAt(x) - 48];
+      g.fillText(ch, TX + x * CW, TY + y * CH + 5);
+    }
+  }
+  // the block cursor at the end of the prompt while typing
+  if (t > 0.5 && t < 3.6 && Math.floor(t * 2.2) % 2 === 0) {
+    const r = s.rows.findIndex((l) => l.startsWith('❯ '));
+    if (r >= 0) { const len = s.rows[r].trimEnd().length; g.fillStyle = '#dad3c1'; g.fillRect(TX + len * CW + 2, TY + r * CH + 6, CW * 0.9, CH - 10); }
+  }
+  g.globalAlpha = 1;
+}
+
+function caption(text, t, t0, t1, y) {
+  const a = clamp((t - t0) / 0.35) * clamp((t1 - t) / 0.3);
+  if (a <= 0) return;
+  g.save();
+  g.globalAlpha = a;
+  g.font = `700 64px Raj, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+  g.letterSpacing = '4px';
+  g.shadowColor = 'rgba(0,0,0,0.55)'; g.shadowBlur = 18;
+  g.fillStyle = '#fff';
+  g.fillText(text.toUpperCase(), W / 2, y + (1 - easeOut(clamp((t - t0) / 0.5))) * 14);
+  g.restore();
+}
+
+window.pose = (card, t) => {
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.globalAlpha = 1;
+  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  const fadeIn = clamp(t / 0.35);
+  if (t < 6.55) {
+    drawTerminal(t, fadeIn);
+    caption('Describe a world.', t, 0.6, 3.9, 1046);
+    return;
+  }
+  // the glyph flight and the resolve: painting underneath, unresolved cells drawn on the terminal's dark
+  const push = 1 + 0.035 * ease(clamp((t - 8.8) / 3.2));
+  g.fillStyle = BG; g.fillRect(0, 0, W, H);
+  // the terminal fades as its characters leave
+  drawTerminal(6.55, clamp(1 - (t - 6.55) / 0.6) * 0.9);
+  g.save();
+  g.translate(W / 2, H / 2); g.scale(push, push); g.translate(-W / 2, -H / 2);
+  // resolved cells: the painting, clipped to the cells that have resolved (drawn as a whole when all have)
+  const allRes = t > 11.2;
+  if (allRes) g.drawImage(img, 0, 0, W, H);
+  g.font = `800 ${MR - 3}px JB, Menlo, monospace`; g.textBaseline = 'middle'; g.textAlign = 'center';
+  for (const c of cells) {
+    const r = allRes ? 1 : clamp((t - c.res) / 0.35);
+    if (r > 0 && !allRes) {
+      g.globalAlpha = r;
+      g.drawImage(img, c.i * MC * img.width / W, c.j * MR * img.height / H, MC * img.width / W, MR * img.height / H, c.i * MC, c.j * MR, MC + 0.6, MR + 0.6);
+    }
+    if (r >= 1) continue;
+    const u = clamp((t - c.leave) / c.fly);
+    if (u <= 0) continue;
+    const e = ease(u);
+    // a gentle arc: each glyph lifts off the text, swings out and lands in its cell
+    const x = lerp(c.s.x + CW / 2, c.cx, e), y = lerp(c.s.y + CH / 2, c.cy, e) - Math.sin(e * Math.PI) * 60 * (rnd(c.i * 31 + c.j) - 0.3);
+    const col = u < 1 ? mix(c.s.col, c.col, clamp(e * 1.4)) : c.col;
+    // a landed glyph lays a soft tile of its colour behind it, so the mosaic reads as the picture, not as noise
+    const land = clamp((u - 0.85) / 0.15);
+    if (land > 0) {
+      g.globalAlpha = (1 - r) * land * 0.42;
+      g.fillStyle = c.col; g.fillRect(c.i * MC + 1, c.j * MR + 1, MC - 2, MR - 2);
+    }
+    g.globalAlpha = (1 - r) * clamp(u * 4) * (0.55 + 0.45 * c.lum);
+    g.fillStyle = col;
+    g.fillText(c.ch, x, y);
+  }
+  g.restore();
+  g.globalAlpha = 1;
+  caption('Claude Code builds it.', t, 9.7, 13, 1040);
+};
+
+function hex(c) { const n = parseInt(c.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function mix(a, b, u) {
+  const A = a.startsWith('#') ? hex(a) : a.match(/\d+/g).map(Number), B = b.startsWith('#') ? hex(b) : b.match(/\d+/g).map(Number);
+  return `rgb(${Math.round(lerp(A[0], B[0], u))},${Math.round(lerp(A[1], B[1], u))},${Math.round(lerp(A[2], B[2], u))})`;
+}
+
+window.setPortrait = () => {};
+window.ready = new Promise((resolve) => {
+  img.onload = async () => {
+    await document.fonts.load(`500 ${FS}px JB`); await document.fonts.load(`800 20px JB`); await document.fonts.load('700 64px Raj');
+    g.font = `500 ${FS}px JB, Menlo, monospace`;
+    CW = g.measureText('M').width;
+    TX = Math.round((W - TW()) / 2); TY = Math.round((H - TH) / 2) - 40;
+    // the painting's colour per mosaic cell (a small copy, read back once)
+    const o = document.createElement('canvas'); o.width = MX; o.height = MY;
+    const og = o.getContext('2d'); og.drawImage(img, 0, 0, MX, MY);
+    const d = og.getImageData(0, 0, MX, MY).data;
+    for (let k = 0; k < MX * MY; k++) {
+      const [r, gg, b] = [d[k * 4], d[k * 4 + 1], d[k * 4 + 2]];
+      // lifted a little so dark cells still read as glyphs on the terminal black
+      cellCol.push(`rgb(${Math.min(255, r * 1.12 + 10)},${Math.min(255, gg * 1.12 + 10)},${Math.min(255, b * 1.12 + 10)})`);
+      cellLum.push((0.2126 * r + 0.7152 * gg + 0.0722 * b) / 255);
+    }
+    buildSources(); buildCells();
+    resolve();
+  };
+  img.src = window.ISLAND;
+});
+</script>
+</body></html>

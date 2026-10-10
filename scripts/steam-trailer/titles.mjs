@@ -29,6 +29,7 @@ const page = await browser.newPage({ viewport: PORTRAIT ? { width: 1080, height:
 await page.goto(HTML);
 await page.evaluate((on) => { window.setPortrait(on); }, PORTRAIT);
 await page.evaluate(() => document.fonts.ready);
+await page.evaluate(() => window.ready); // a page that preloads images or data exposes a promise (T15 glyphs.html)
 for (const c of cards) {
   const dir = preview ? OUT : `${OUT}/${c.id}`;
   mkdirSync(dir, { recursive: true });
