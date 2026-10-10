@@ -26,6 +26,7 @@ import * as products from '../src/game/grid/products';
 import { regionalRuntimeAccountedBytes } from '../src/game/grid/regionalRuntime';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
 import { ShardPlugin } from '../src/game/shard/plugin';
+import { installEnteredRuntimeService } from '../src/game/shard/retainedHooks';
 import { shardContext, type ShardContext } from '../src/game/shard/context';
 import type { ShardPlayHost, ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';
@@ -62,11 +63,14 @@ it('retires each owned runtime before the next foundation and rebuilds its durab
   const runtime: ShardRuntime = { world, play, step: null, hooks: {}, objects: {}, overhead: [], interactables: [], viewer: () => player.position, horizonVeil: null };
   const installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
   const context = shardContext(installation.context, PINE_HOLLOW, { shard: PINE_HOLLOW, runtime, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
-  let worlds = 0, plays = 0, disposed = 0;
+  let worlds = 0, plays = 0, disposed = 0, enteredServices = 0;
   class Runtime extends ShardPlugin {
     override world(ctx: ShardContext): void { worlds++; ctx.piece({ id: 'runtime.deck', name: 'Deck', category: 'props', file: 'runtime/index.ts', colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 2, hy: 0.5, hz: 2 }] }); }
     override kit(ctx: ShardContext): void { const rt = ctx.game.runtime; if (rt === undefined) throw new Error('Missing runtime'); rt.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), rifle: null, secondary: null }); }
-    override play(): void { plays++; }
+    override play(ctx: ShardContext): void {
+      plays++;
+      installEnteredRuntimeService(ctx, entered => { enteredServices++; entered.onDispose(() => { enteredServices--; }); });
+    }
   }
   const trusted = PINE_HOLLOW.trustedRuntime; if (trusted === undefined) throw new Error('Missing trusted entry');
   for (const cell of [home, target]) {
@@ -96,6 +100,8 @@ it('retires each owned runtime before the next foundation and rebuilds its durab
     return Promise.resolve({ region: { host, dispose: () => { disposed++; host.dispose(); } }, ground: { heightAt: () => 0, waterSurfaceAt: () => null },
       world: view => ({ ...world, registry: view.registry, physics: host.physics }),
       enter: entered => { const prior = app.levelScope; app.levelScope = request.scope; entered.onDispose(() => { app.levelScope = prior; }); },
+      // Match the production foundation: preparation borrows reversible construction bindings, never entered services.
+      prepare: preparation => { const prior = app.levelScope; app.levelScope = request.scope; preparation.onDispose(() => { app.levelScope = prior; }); },
       afterKit: () => Promise.resolve({ animals, wearSkin: noop }), checkpoint: () => ports.checkpoint(host, request) });
   });
   const traveller = { position: pageHost.player.position, yaw: 0, motor: pageHost.releasePlayerMotor(), camera: player.camera, hoverSpeedLimit: null,
@@ -116,7 +122,7 @@ it('retires each owned runtime before the next foundation and rebuilds its durab
     traveller.position.set(268, 0.5, 0); // past motor hysteresis, on the neutral road
     await wait(() => session.live.current() === null);
     expect(session.live.state().residents).toEqual([]);
-    expect(gridCells.cell).toBeNull(); expect(app.registryValue).toBe(registry);
+    expect(gridCells.cell).toBeNull(); expect(app.registryValue).toBe(registry); expect(enteredServices).toBe(0);
     expect(regions.every(host => host.scope.disposed)).toBe(true);
     expect(allocator.entries().filter(row => row.category === 'sim' && row.owner !== 'platform').every(row => row.id === 'sim:platform.highway')).toBe(true);
   };
@@ -125,14 +131,14 @@ it('retires each owned runtime before the next foundation and rebuilds its durab
     await wait(() => session.live.current() === cell.instance);
     gridCells.enter({ instance: cell.instance, slug: cell.slug });
     await wait(() => session.gameplayReady());
-    expect(session.live.state().residents).toEqual([cell.instance]);
+    expect(session.live.state().residents).toEqual([cell.instance]); expect(enteredServices).toBe(1);
   };
   try {
     expect(session.live.current()).toBeNull();
     await session.live.prefetch([home.instance, target.instance]);
     expect(regions).toHaveLength(0); expect([worlds, plays]).toEqual([0, 0]);
     await session.enterInitialHome();
-    expect(session.live.current()).toBe(home.instance); expect([worlds, plays]).toEqual([1, 1]);
+    expect(session.live.current()).toBe(home.instance); expect([worlds, plays]).toEqual([1, 1]); expect(enteredServices).toBe(1);
     expect(session.aimAnimals()).toBe(herds[0]?.animals);
     const first = herds[0]?.animals[0]; if (first === undefined) throw new Error('Missing first native herd');
     first.hp = 55; first.position.set(12, 0, 34);
@@ -150,19 +156,21 @@ it('retires each owned runtime before the next foundation and rebuilds its durab
     // hold the crossing in save-failed: the never-entered runtime saves as its stored resident.
     traveller.position.set(target.origin.x - 253, 0.5, target.origin.z);
     await wait(() => session.live.current() === target.instance);
-    expect(gridCells.cell).toBeNull(); expect(plays).toBe(1); expect(herds).toHaveLength(2); // admitted (its herd built), never entered
+    // All construction hooks finish on the road; entered services stay inactive until the interior activates them.
+    expect(gridCells.cell).toBeNull(); expect([worlds, plays]).toEqual([2, 2]); expect(herds).toHaveLength(2);
+    expect(enteredServices).toBe(0); expect(session.aimAnimals()).toEqual([]); expect(app.registryValue).toBe(registry);
     traveller.position.set(-268, 0.5, 0); // 18 m back out, the frame's local metres
     await wait(() => session.live.current() === null);
     expect(session.live.state().residents).toEqual([]); expect(session.state().crossing.phase).toBe('settled');
-    await enter(target); expect([worlds, plays]).toEqual([2, 2]);
+    await enter(target); expect([worlds, plays]).toEqual([3, 3]);
     expect(herds[2]?.animals[0]?.hp).not.toBe(55);
     await leave();
-    await enter(home); expect([worlds, plays]).toEqual([3, 3]);
+    await enter(home); expect([worlds, plays]).toEqual([4, 4]);
     const restored = herds[3]?.animals[0];
     expect(restored?.hp).toBe(55); expect(restored?.position.toArray()).toEqual([12, 0, 34]);
     expect(regions.filter(host => !host.scope.disposed)).toHaveLength(1);
     expect(() => { scope.dispose(); }).not.toThrow();
-    expect(session.live.current()).toBeNull(); expect(disposed).toBe(4);
+    expect(session.live.current()).toBeNull(); expect(disposed).toBe(4); expect(enteredServices).toBe(0);
     expect(regions.every(host => host.scope.disposed)).toBe(true);
     expect(release).toHaveBeenCalledTimes(productReads.mock.results.filter(result => result.type === 'return' && result.value !== null).length); expect(scene.children).toHaveLength(0);
   } finally {
