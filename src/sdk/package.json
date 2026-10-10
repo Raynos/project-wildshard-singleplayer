@@ -95,6 +95,8 @@
     "./looks/gullFlock": "./looks/gullFlock.ts",
     "./viewmodel/toonArms": "./viewmodel/toonArms.ts",
     "./looks/toonLight": "./looks/toonLight.ts",
+    "./looks/bakedIsland": "./looks/bakedIsland.ts",
+    "./looks/instancedTiles": "./looks/instancedTiles.ts",
     "./looks/facetedOcean": "./looks/facetedOcean.ts",
     "./looks/facetedDay": "./looks/facetedDay.ts",
     "./looks/facetedDayBackdrop": "./looks/facetedDayBackdrop.ts",

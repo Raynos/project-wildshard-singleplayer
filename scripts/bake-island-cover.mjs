@@ -41,7 +41,7 @@ if (tierArg === undefined) {
     const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
     const { MeshoptDecoder } = await import('three/examples/jsm/libs/meshopt_decoder.module.js');
     const island = await src('shards/driftwood-isle/world/BlenderIsland.ts');
-    const { coverTrianglesOf } = await src('shards/driftwood-isle/world/islandInstances.ts');
+    const { coverTrianglesOf } = await src('game/systems/looks/instancedTiles.ts');
     const dir = resolve(ROOT, 'public/assets/models/driftwood-blender');
     const glb = readFileSync(resolve(dir, 'island.glb')), bin = readFileSync(resolve(dir, 'placements.bin'));
     const meta = JSON.parse(readFileSync(resolve(dir, 'island.json'), 'utf8'));

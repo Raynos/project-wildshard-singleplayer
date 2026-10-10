@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { IslandInstances, type InstProto } from '../../../src/shards/driftwood-isle/world/islandInstances';
+import { TiledInstances, type InstProto } from '@wildshard/sdk/looks/instancedTiles';
 
 // G144 (E435, the default-off driftwoodIslandInstancing row): the island's placements as one InstancedMesh per prototype
 // and set; a tile changing reach or view repacks the meshes with rows in it, in-view rows first.
@@ -27,7 +27,7 @@ describe('island instancing', () => {
   const rects = [{ x0: 0, x1: 10, z0: 0, z1: 10 }, { x0: 200, x1: 210, z0: 0, z1: 10 }];
   const build = () => {
     const group = new THREE.Group();
-    const ins = new IslandInstances(group, [tri, lo, tri], ['palm', 'palm_lo', 'rock'], f, new Map([[0, 1]]));
+    const ins = new TiledInstances(group, [tri, lo, tri], ['palm', 'palm_lo', 'rock'], f, new Map([[0, 1]]), 'island-');
     ins.add({ tag: 'casters', tiles: [[0, 1], [2, 3]], rects, material: new THREE.MeshBasicMaterial(), cast: true, reach: 0, lod: 110, cover: false });
     return { group, ins };
   };
@@ -89,7 +89,7 @@ describe('island instancing', () => {
   it('hands the cover grid the merged tiles\' triangles: f32 world positions, the truncated tinted colour', () => {
     const group = new THREE.Group();
     const cf = placements([[0, 3, 4, 1.3]]);
-    const ins = new IslandInstances(group, [tri], ['fern'], cf, new Map());
+    const ins = new TiledInstances(group, [tri], ['fern'], cf, new Map(), 'island-');
     ins.add({ tag: 'cover', tiles: [[0]], rects: [rects[0] ?? { x0: 0, x1: 1, z0: 0, z1: 1 }], material: new THREE.MeshBasicMaterial(), cast: false, reach: 41, lod: 110, cover: true });
     const tris: { bx: number; dy: number; r: number; g: number }[] = [];
     for (const t of ins.coverTriangles()) tris.push({ bx: t.bx, dy: t.dy, r: t.r, g: t.g }); // (the generator reuses its record)

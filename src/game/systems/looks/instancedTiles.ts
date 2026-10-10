@@ -1,33 +1,39 @@
 /**
- * G144 (E435): the Blender island's placements drawn instanced (./BlenderIsland.ts), the only path since Jake's G173 pick
- * (E450) retired the merged tile meshes. Those held a world-space copy of every vertex of every placement (103.7 MB of
- * GPU vertex data on the desktop tier); here each prototype is uploaded once and each tile
- * set (the casters, the small cover, the big cover) draws one InstancedMesh per prototype it places, with a row per
- * placement: its matrix, its tint (the merged path's Uint8 rounding, reproduced in the vertex shader) and, for the cover,
- * its edge (`aEdge`), base (`aBase`) and ground colour (`aGround`) — the attributes the cover's fade reads.
+ * Tiled instanced placements (SHARD-PLATFORM M3; ex a shard's island instances, G144 / G173): a baked set of
+ * prototypes and placements (f32 × 10 each: proto, x, y, z, quaternion, scale, tint) drawn instanced, each prototype uploaded
+ * once and each tile set (e.g. the casters, the small cover, the big cover) drawing one InstancedMesh per prototype it
+ * places, with a row per placement: its matrix, its tint (a merged path's Uint8 rounding, reproduced in the vertex shader
+ * by the caller's tint rows) and, for the cover, its edge (`aEdge`), base (`aBase`) and ground colour (`aGround`) — the
+ * attributes a cover fade reads. Nothing here knows a shard: the caller gives the prototypes, names, placements, far
+ * copies, the mesh-name prefix and each set's material.
  *
  * The tiles stay, as the unit the reach and the view are decided in: each mesh's rows are kept sorted by tile, and when a
- * tile changes state (a caster tile crossing LOD_D swaps its near copies for its far ones; a cover tile coming within its
- * reach, or into view) every mesh with rows in that tile repacks its instance buffer: the shown tiles' rows copied to the
- * front, `count` set, the written range uploaded. A cover tile out of the camera's view is not packed (the cover casts no
- * shadow). A caster tile is packed when its box is in the camera's view or its sphere in any cascade's culling frustum
- * (cascadeCull.ts's slice footprint), so no shadow is lost (the boxes are padded for the frame the shadow frusta lag):
- * the in-view tiles' rows first, then the shadow-only ones. Each draw picks its prefix (`count`, set in the mesh's
- * onBeforeRender / onBeforeShadow): the camera draws the in-view rows; a cascade draws them all, or nothing when none of
- * the mesh's packed tiles reaches its slice. No multi-draw, no BatchedMesh (E271 / E272).
+ * tile changes state (a caster tile crossing its `lod` swaps its near copies for its far ones; a cover tile coming within
+ * its reach, or into view) every mesh with rows in that tile repacks its instance buffer: the shown tiles' rows copied to
+ * the front, `count` set, the written range uploaded. A cover tile out of the camera's view is not packed (the cover casts
+ * no shadow). A caster tile is packed when its box is in the camera's view or its sphere in any cascade's culling frustum,
+ * so no shadow is lost (the boxes are padded for the frame the shadow frusta lag): the in-view tiles' rows first, then the
+ * shadow-only ones. Each draw picks its prefix (`count`, set in the mesh's onBeforeRender / onBeforeShadow): the camera
+ * draws the in-view rows; a cascade draws them all, or nothing when none of the mesh's packed tiles reaches its slice. No
+ * multi-draw, no BatchedMesh (E271 / E272).
  *
  * Every mesh is visible from the first frame (count 0 draws nothing), so every buffer uploads at the boot and none on
  * first sight (E186); the repacks upload only the rows they wrote.
+ *
+ *   const tiles = new TiledInstances(group, protos, names, placements, lodOf, 'island-');
+ *   tiles.add({ tag: 'casters', tiles, rects, material, cast: true, reach: 0, lod: 110, cover: false });
+ *   tiles.update(camera, csmLights);   // once a frame, the camera posed
  */
 import * as THREE from 'three';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 
-/** a prototype as BlenderIsland loads it: positions in the prototype's frame, Uint8 RGBA (alpha: the Cycles AO), index */
+/** a prototype as the caller loads it: positions in the prototype's frame, Uint8 RGBA (alpha: its baked AO), index */
 export interface InstProto { readonly pos: Float32Array; readonly col: Uint8Array; readonly index: Uint32Array }
 
+/** a tile's rect in the group's xz */
 export interface TileRect { readonly x0: number; readonly x1: number; readonly z0: number; readonly z1: number }
 
-/** one tile set (the merged path drew a mesh per tile) */
+/** one tile set: its placements per tile, the tiles' rects, its material and how it draws */
 export interface InstanceSetSpec {
   readonly tag: string;
   /** per tile: the placements it holds (indices into placements.bin) */
@@ -75,7 +81,7 @@ interface SetState {
   readonly spheres: THREE.Sphere[];
 }
 
-/** a placement's own edge in the cover's reach (0..1): a hash of where it stands (BlenderIsland's, the same function) */
+/** a placement's own edge in the cover's reach (0..1): a hash of where it stands */
 export const edgeOf = (x: number, z: number): number => { const h = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return h - Math.floor(h); };
 
 /** m: the caster and cover tiles' boxes grow by this before the view test (the shadow frusta are a frame old) */
@@ -90,8 +96,8 @@ export interface CoverTriangle { ax: number; ay: number; az: number; bx: number;
 /**
  * E156: each cover triangle's centre, ground / upright areas and colour, in world space, exactly as the merged tiles
  * held them (f32 positions, the truncated tinted Uint8 colour), in the merged path's order: set by set, tile by tile, each
- * tile's placements in order. SF67 (E461): a free function, so scripts/bake-island-cover.mjs walks the same triangles in
- * Node that `IslandInstances.coverTriangles` walks in the page.
+ * tile's placements in order. SF67 (E461): a free function, so a bake walks the same triangles in Node that
+ * `TiledInstances.coverTriangles` walks in the page.
  */
 export function* coverTrianglesOf(protos: readonly (InstProto | undefined)[], f: Float32Array, sets: readonly (readonly (readonly number[])[])[]): Generator<CoverTriangle> {
   const e = _m.elements;
@@ -119,19 +125,8 @@ export function* coverTrianglesOf(protos: readonly (InstProto | undefined)[], f:
   }
 }
 
-/**
- * The instanced props material's vertex patch: the merged path baked `min(255, colour × tint)` into a Uint8 per vertex
- * (truncated); this does the same per instance, from the same Uint8 colour and the same f32 tint.
- */
-export const TINT_VERTEX = {
-  common: '#include <common>\nattribute float aTint;',
-  color: `#include <color_vertex>
-#ifdef USE_INSTANCING
-	vColor.rgb = min( floor( floor( color.rgb * 255.0 + 0.5 ) * aTint ), vec3( 255.0 ) ) / 255.0;
-#endif`,
-};
-
-export class IslandInstances {
+/** The tiled instanced placements: one InstancedMesh per prototype × set, repacked per tile as the view moves. */
+export class TiledInstances {
   readonly sets: SetState[] = [];
   private readonly frustum = new THREE.Frustum();
   /** the camera and cascade lights of the last update (the draw hooks tell the camera's pass and each cascade's apart) */
@@ -142,7 +137,8 @@ export class IslandInstances {
   stats = { meshes: 0, rows: 0, protoBytes: 0, instanceBytes: 0 };
 
   constructor(private readonly group: THREE.Group, private readonly protos: readonly (InstProto | undefined)[],
-    private readonly names: readonly string[], private readonly f: Float32Array, private readonly lodOf: ReadonlyMap<number, number>) {
+    private readonly names: readonly string[], private readonly f: Float32Array, private readonly lodOf: ReadonlyMap<number, number>,
+    private readonly namePrefix: string) {
     this.frame = new FrameCamera(group);
   }
 
@@ -174,7 +170,7 @@ export class IslandInstances {
       const radius = protoRadius(pr);
       const geo = protoGeometry(pr);
       const mesh = new THREE.InstancedMesh(geo, spec.material, rows);
-      mesh.name = `island-${spec.tag}-${e.role}-${this.names[e.proto] ?? e.proto}`;
+      mesh.name = `${this.namePrefix}${spec.tag}-${e.role}-${this.names[e.proto] ?? e.proto}`;
       mesh.castShadow = spec.cast; mesh.receiveShadow = true;
       mesh.frustumCulled = false; // culled per tile by the repack
       mesh.count = 0;
