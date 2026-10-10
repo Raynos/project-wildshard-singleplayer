@@ -22,9 +22,18 @@ export const KING_COAT = {
 export const KING_DRESS = {
   /** the three lanterns (head-bone local): off the left dagger tine, the right beam, the right fifth tine */
   lanterns: [[-0.6, 1.5, -0.19], [0.7, 1.02, -0.82], [0.84, 1.6, -0.67]],
+  /** on his hull, the lanterns hang off its own rack (@wildshard/sdk/kit/hullSpots): the rack's outermost left and right
+   *  points and the right beam's middle (the highest point about halfway out), over 0.25 above the head bone within
+   *  1.2 of it along z, each lantern 0.2 under its tine */
+  rack: { bone: 'head', above: 0.25, reachZ: 1.2, middle: { frac: 0.5, tol: 0.15 }, drop: 0.2 },
   /** the ribcage basket's radius, and where it rides (chest-bone local: in the barrel chest's front, under the hump; the
    *  hull's chest front is at z 1.37–1.43 between 1.6 and 1.75 m, the chest joint at (0, 2.1, 0.735)) */
   ribR: 0.36, ribAt: [0, -0.45, 0.47],
+  /** the weak point's hit sphere: the basket's radius ×1.15 (at his scale) */
+  ribHit: 1.15,
+  /** the shot window's opening (k 0 shut … 1 open, t the clock): the ribs breathe ×(1 + 0.04 sin 3.1t) and spread by
+   *  (0.45, 0.12, 0.3) × k, the core swells by 0.25 × k; at glow g the core burns g × (3 + 9k), the ribs g × (1.6 + 2.4k) */
+  open: { breathe: [0.04, 3.1], ribs: [0.45, 0.12, 0.3], core: 0.25, coreGlow: [3, 9], ribGlow: [1.6, 2.4] },
   /** the stand-in's skull plate over the face (head-bone local), tipped forward */
   skullAt: [0, 0.03, 0.2], skullTilt: 0.55,
   /** the lantern: a cap, a base, four bars, the hanging ring and its chain, ~0.3 × 0.16 (≈ 0.8 m on the King) */

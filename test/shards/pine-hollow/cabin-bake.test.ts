@@ -35,7 +35,7 @@ describe('Pine Hollow bakes its log buildings offline (G285)', () => {
     const models = { firePit: new THREE.Group(), lantern: new THREE.Group() };
     expect(CABIN_ROWS.buildings.map((b) => b.id)).toEqual(['cabin-1', 'cabin-2', 'cabin-3', 'hunting-lodge', 'trader-stall', 'millers-house', 'watermill', 'hamlet-shed']);
     for (const row of CABIN_ROWS.buildings) {
-      const b = new LogBuilding(NO_OWNER, row, geometries, mats, sky, models, row.hamlet ? 'member' : 'cabin');
+      const b = new LogBuilding(NO_OWNER, row, geometries, mats, sky, models, row.hamlet ? 'member' : 'standalone');
       const parts = b.weldParts();
       expect(parts.length).toBeGreaterThan(8);
       for (const p of parts) for (const g of p.geometries) {

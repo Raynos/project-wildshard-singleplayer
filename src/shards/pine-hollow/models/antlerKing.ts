@@ -5,6 +5,7 @@ import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/en
 import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { hullSpots } from '@wildshard/sdk/kit/hullSpots';
 import { buildPrimitive, mergePrimitives, standardMaterial } from '@wildshard/sdk/kit/mergedPrimitives';
 import { KING_COAT, KING_DRESS, KING_OWN_RIG } from '../data/antlerKingLook';
 import { KING_BONES, animateKing, observeKingPose } from '../combat/kingRig';
@@ -91,37 +92,9 @@ export interface KingLook {
 /** the King is on a generated hull (pineCreatures.ts): one group and no fur-shell `furLen` (the procedural loft has it) */
 const isHull = (a: Animal): boolean => !a.mesh.geometry.hasAttribute('furLen');
 
-/**
- * PH-M3: where the lanterns hang on the Bark Warden's own rack (head-bone local, model units) — three tine ends picked off
- * the hull: the rack's outermost left and right points and the right beam's middle, each lantern hung just under its
- * tine. Null when the King is the procedural stand-in (the offsets above) or the hull has no rack above the head.
- */
-function hullLanterns(a: Animal): [number, number, number][] | null {
-  if (!isHull(a)) return null;
-  // the head bone's rest position, from the skeleton's bind (model units, the rig's own joints)
-  const sk = a.mesh.skeleton, hi = sk.bones.findIndex((b) => b.name === 'head'), inv = sk.boneInverses[hi];
-  if (hi === -1 || !inv) return null;
-  const hp = new THREE.Vector3().setFromMatrixPosition(inv.clone().invert());
-  const head: [number, number, number] = [hp.x, hp.y, hp.z];
-  const P = a.mesh.geometry.getAttribute('position');
-  let left = -1, right = -1, mid = -1, lx = Infinity, rx = -Infinity, best = -Infinity;
-  const above = (i: number): boolean => P.getY(i) > head[1] + 0.25 && Math.abs(P.getZ(i) - head[2]) < 1.2;
-  for (let i = 0; i < P.count; i++) {
-    if (!above(i)) continue;
-    const x = P.getX(i);
-    if (x < lx) { lx = x; left = i; }
-    if (x > rx) { rx = x; right = i; }
-  }
-  if (left < 0 || right < 0) return null;
-  // the right beam's middle: the highest rack point about halfway out to the right
-  for (let i = 0; i < P.count; i++) {
-    if (!above(i)) continue;
-    const x = P.getX(i);
-    if (Math.abs(x - rx * 0.5) < Math.abs(rx) * 0.15 && P.getY(i) > best) { best = P.getY(i); mid = i; }
-  }
-  const at = (i: number): [number, number, number] => [P.getX(i) - head[0], P.getY(i) - head[1] - 0.2, P.getZ(i) - head[2]];
-  return mid >= 0 ? [at(left), at(right), at(mid)] : [at(left), at(right)];
-}
+/** PH-M3: where the lanterns hang on the Bark Warden's own rack (head-bone local, model units: KING_DRESS.rack); null when
+ *  the King is the procedural stand-in (KING_DRESS.lanterns) or the hull has no rack above the head */
+const hullLanterns = (a: Animal): [number, number, number][] | null => (isHull(a) ? hullSpots(a.mesh, KING_DRESS.rack) : null);
 
 /** dress a freshly spawned King: lanterns on the head bone, the ribcage on the chest bone. On his hull (the generated
  *  model: its own skull face and rack) the lanterns hang off its rack and the skull plate is left off */
@@ -173,14 +146,14 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
       if (collision === null) return out;
       collision.publishRibs(); return collision.query.ribs(out);
     },
-    ribcageRadius: RIB_R * scale * 1.15,
+    ribcageRadius: RIB_R * scale * KING_DRESS.ribHit,
     setGlow: (k) => { glow = k; kit.glassMat.emissiveIntensity = KING_DRESS.glow.glass * k; kit.ribMat.emissiveIntensity = KING_DRESS.glow.ribs * k; kit.coreMat.emissiveIntensity = KING_DRESS.glow.core * k; },
     setOpen: (k, t) => {
-      const breathe = 1 + 0.04 * Math.sin(t * 3.1);
-      ribs.scale.set((1 + 0.45 * k) * breathe, 1 + 0.12 * k, (1 + 0.3 * k) * breathe);
-      core.scale.setScalar(1 + 0.25 * k);
-      kit.coreMat.emissiveIntensity = glow * (3 + 9 * k);
-      kit.ribMat.emissiveIntensity = glow * (1.6 + 2.4 * k);
+      const O = KING_DRESS.open, breathe = 1 + O.breathe[0] * Math.sin(t * O.breathe[1]);
+      ribs.scale.set((1 + O.ribs[0] * k) * breathe, 1 + O.ribs[1] * k, (1 + O.ribs[2] * k) * breathe);
+      core.scale.setScalar(1 + O.core * k);
+      kit.coreMat.emissiveIntensity = glow * (O.coreGlow[0] + O.coreGlow[1] * k);
+      kit.ribMat.emissiveIntensity = glow * (O.ribGlow[0] + O.ribGlow[1] * k);
     },
     makeLantern: () => { const l = makeLantern(); l.scale.setScalar(scale); return l; },
     dispose: () => { collision?.dispose(); for (const o of own) o.removeFromParent(); },

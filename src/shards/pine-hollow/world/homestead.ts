@@ -256,7 +256,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
     const models = { firePit: firePitGltf.scene, lantern: lanternGltf.scene };
     for (const row of CABIN_ROWS.buildings.filter((r) => !r.hamlet)) {
       if (this.buildings.length > 0) await macrotask(); // one cabin per task: the whole homestead in one go was a 180 ms long task at 4x CPU
-      const b = new LogBuilding(this, row, geometries, mats, this.sky, models, 'cabin');
+      const b = new LogBuilding(this, row, geometries, mats, this.sky, models, 'standalone');
       this.group.add(b.root);
       if (b.casters !== null) {
         // desktop: the props' depth goes into this cabin's double-sided near proxy (they cast no shadow of their own)
