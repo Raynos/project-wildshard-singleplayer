@@ -11,7 +11,7 @@ import { pathToFileURL } from 'node:url';
 export function checkChunks(manifest, modules, closures) {
   const errors = [];
   // SF16 keeps picker metadata; every authored template gameplay module is data loaded from its shardfile.
-  const templateMetadata = new Set(['manifest.ts', 'budgets.ts', 'budgetCeilings.ts', 'data/spawn.ts', 'explore/art.ts'].map((path) => `src/shards/_template/${path}`));
+  const templateMetadata = new Set(['manifest.ts', 'budgets.ts', 'budgetCeilings.ts', 'data/budgets.ts', 'data/budgetCeilings.ts', 'data/spawn.ts', 'explore/art.ts'].map((path) => `src/shards/_template/${path}`));
   const allowed = new Set(Object.values(closures).flat());
   const cold = new Set();
   function reach(key) {

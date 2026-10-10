@@ -274,14 +274,14 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 | `plugin.ts` | the `ShardPlugin` subclass, default-exported |
 | `README.md` | what the shard declares, its custom code and why, budgets, look, open work (its plan rows) |
 | `roster.ts` | the Model Explorer roster (`live(model)` entries) |
-| `budgets.ts` | the budget inputs (§9) |
+| `budgets.ts` | the budget inputs (§9); or `data/budgets.ts` as pure data (`dataHomes`) |
 
 **Allowed files**
 
 | File | What it holds |
 |---|---|
 | `ktx2.generated.ts` | your KTX2 table, written by `bake-ktx2` once you bake KTX2 art. The one generated file you commit |
-| `budgetCeilings.ts` | recorded F2 ceilings (the four existing shards only) |
+| `budgetCeilings.ts` | recorded F2 ceilings (the four existing shards only); `data/budgetCeilings.ts` beside `data/budgets.ts` |
 | `strings.ts` | every player-facing string (§11) |
 | `layout.ts` | every coordinate: sites, trails, spawn points |
 | `debug.ts` | your Debug rows |

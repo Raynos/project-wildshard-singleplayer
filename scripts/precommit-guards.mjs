@@ -114,7 +114,10 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'))
     const compared = compareCounts(baseline, counts, hard, paths, false, true);
     failures.push(...compared.failures);
     for (const warning of compared.warnings) console.warn(warning);
-    if (slugs.size > 0) failures.push(...checkShardLayout(shardEntries(snapshot.paths, slugs), JSON.parse(readFileSync(join(scratch, 'lint/shard-layout.json'), 'utf8')), snapshot.readSource, JSON.parse(readFileSync(join(scratch, 'lint/shard-platform.json'), 'utf8')).baseline, frozen));
+    if (slugs.size > 0) {
+      const layout = JSON.parse(readFileSync(join(scratch, 'lint/shard-layout.json'), 'utf8'));
+      failures.push(...checkShardLayout(shardEntries(snapshot.paths, slugs, Object.values(layout.dataHomes ?? {})), layout, snapshot.readSource, JSON.parse(readFileSync(join(scratch, 'lint/shard-platform.json'), 'utf8')).baseline, frozen));
+    }
     if (manifest) {
       // Generator checks belong to the staged tree too (its small scripts were exported above, never public assets).
       // Runtime tables are intentionally untracked. Check committed ownership data and existing outputs,

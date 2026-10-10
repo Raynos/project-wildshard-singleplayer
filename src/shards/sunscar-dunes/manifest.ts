@@ -2,7 +2,7 @@ import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { STRINGS } from './data/strings';
 import { SEED, SPAWN, TOWER, TRAIL, PLAY_HALF } from './data/layout';
-import { BUDGETS } from './budgets';
+import { BUDGETS } from './data/budgets';
 import { SIGNAL_DUNES_RUNTIME_COST } from './data/runtimeCost';
 import { DUSK_CARD } from './thumbs/card';
 import { EXPLORE } from './explore/art';

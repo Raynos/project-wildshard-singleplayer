@@ -65,7 +65,11 @@ for (const slug of specs.keys()) {
     if ((tier !== 'phone' && tier !== 'desktop') || !pose || !metric) throw new Error(`Invalid budget key ${key}`);
     (ceilings[tier][pose] ??= {})[metric] = ceiling;
   }
-  writeFileSync(join(root, 'src/shards', slug, 'budgetCeilings.ts'), `import type { LevelSpec } from '@wildshard/engine/level/spec';\n\n/** Measured rollout maxima; count targets rederive after calibration; provenance: budgets/ceiling-sources.json. */\nexport const BUDGET_CEILINGS = ${JSON.stringify(ceilings, null, 2)} satisfies NonNullable<LevelSpec['budgets']['ceilings']>;\n`);
+  // A shard whose budgets are data (lint/shard-layout.json dataHomes) keeps its ceilings there as pure JSON data: no engine
+  // type import, which would pull data/ out of the public share; the manifest's BudgetInputs type checks the shape.
+  const doc = '/** Measured rollout maxima; count targets rederive after calibration; provenance: budgets/ceiling-sources.json. */';
+  if (existsSync(join(root, 'src/shards', slug, 'data/budgetCeilings.ts'))) writeFileSync(join(root, 'src/shards', slug, 'data/budgetCeilings.ts'), `${doc}\nexport const BUDGET_CEILINGS = ${JSON.stringify(ceilings, null, 2)};\n`);
+  else writeFileSync(join(root, 'src/shards', slug, 'budgetCeilings.ts'), `import type { LevelSpec } from '@wildshard/engine/level/spec';\n\n${doc}\nexport const BUDGET_CEILINGS = ${JSON.stringify(ceilings, null, 2)} satisfies NonNullable<LevelSpec['budgets']['ceilings']>;\n`);
 }
 // Manifest data now owns every rollout ceiling; the legacy fallback must not duplicate it.
 ratchet.budgets = {};

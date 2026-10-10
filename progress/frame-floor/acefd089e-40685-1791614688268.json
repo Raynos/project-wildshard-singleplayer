@@ -1,0 +1,412 @@
+{
+  "schema": 2,
+  "sha": "acefd089e3a47090576eb0f09ce7dd74d1e8ac78",
+  "runId": "40685-1791614688268",
+  "device": "frame-floor-iphone-17-pro",
+  "when": "2026-10-10T06:47:37.020Z",
+  "elapsedSeconds": 168.771,
+  "underTenMinutes": true,
+  "frames": 120,
+  "settleMs": 2000,
+  "shards": [
+    "sunscar-dunes"
+  ],
+  "surface": "desktop",
+  "developer": "on",
+  "settings": {
+    "tier": "desktop",
+    "fps": "auto"
+  },
+  "deviceSaves": {},
+  "expectedSystems": [],
+  "gridScenario": "baseline",
+  "glObserver": "off",
+  "travelGlCensus": false,
+  "harnessRevision": "a77cd68620e746f6128c0ebb807e66f70812cca2",
+  "complete": true,
+  "pass": true,
+  "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+  "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+  "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+  "limitations": [
+    "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+    "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+    "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+  ],
+  "results": [
+    {
+      "surface": "desktop",
+      "rows": [
+        {
+          "shard": "sunscar-dunes",
+          "complete": true,
+          "pass": true,
+          "seconds": 20.436,
+          "floorMs": 16.7,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "developer": true,
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "df3fdfa3-c2a7-4b6c-a64f-6833a9a08ded",
+              "telemetry.heartbeat": {
+                "session": "7e3ff30e-385f-4534-bca2-57782efd32c0",
+                "build": "acefd08-mv217i2c",
+                "level": "",
+                "stage": "boot",
+                "at": 1791614836681,
+                "fps": 0,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "gridIntent.once": null,
+              "life.trace": [
+                "01:47:16 k0y3 +0s boot · nav navigate · ?chunk=sunscar-dunes&mute=1&skipintro=1&nolock=1&sw=0 · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible",
+                "01:47:17 k0y3 +1s world ready · first-paint 28ms, first-contentful-paint 52ms · win 1440x900 vv 1440x900@1.00+0,0 canvas 0,0 1440x900 dpr 2 visible"
+              ],
+              "life.traceAt": 1791614836865,
+              "titleArrival.once": null,
+              "boot.times": {
+                "desktop:18": {
+                  "renderer": 15.199999809265137,
+                  "sky": 31.59999990463257,
+                  "terrain": 428.80000019073486,
+                  "cards": 0.8000001907348633,
+                  "forest": 4.799999713897705,
+                  "physics": 5.299999713897705,
+                  "edge": 4.5,
+                  "grass": 0,
+                  "cabins": 0,
+                  "props": 57.5,
+                  "animals": 0.7999997138977051,
+                  "weapon": 0,
+                  "menu": 7,
+                  "shaders": 179.80000019073486,
+                  "firstFrame": 117.19999980926514,
+                  "audio": 0.09999990463256836
+                }
+              }
+            },
+            "clock": "live",
+            "console": [
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              },
+              {
+                "level": "warn",
+                "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input",
+              "physics.bodies.pre",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "player.update",
+              "sunscar.fire",
+              "training-arena",
+              "hud.perf",
+              "engine.world.bounds",
+              "engine.effects",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "game.loot",
+              "sunscar.scout",
+              "game.quest.sunscar.signal",
+              "sunscar.reward",
+              "sunscar.matriarch",
+              "sunscar.creatures",
+              "sunscar.ray",
+              "sunscar.dusk",
+              "engine.input.trace",
+              "engine.input.edges",
+              "engine.hud.pins"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": 0.0004794696078533889,
+              "y": 21.302655186806508,
+              "z": 69.99914428987813,
+              "yaw": 0,
+              "pitch": -0.1
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0,
+                "y": 21.363867328746412,
+                "z": 70,
+                "yaw": 0,
+                "pitch": 0.03490658503988659
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 2.4,
+              "calls": 156,
+              "triangles": 222912
+            },
+            {
+              "pose": {
+                "name": "whip",
+                "x": 0,
+                "y": 20.318243261176367,
+                "z": 66,
+                "yaw": 0.3490658503988659,
+                "pitch": -0.06981317007977318
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 2.3,
+              "calls": 145,
+              "triangles": 255009
+            },
+            {
+              "pose": {
+                "name": "ray",
+                "x": 0,
+                "y": 21.363867328746412,
+                "z": 70,
+                "yaw": 0.05235987755982988,
+                "pitch": 0.15707963267948966
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 2.3,
+              "calls": 148,
+              "triangles": 220303
+            },
+            {
+              "pose": {
+                "name": "quest",
+                "x": 4,
+                "y": 18.95843583893206,
+                "z": -63,
+                "yaw": -0.2617993877991494,
+                "pitch": 0.3839724354387525
+              },
+              "p95Ms": 16.8,
+              "workP95Ms": 2,
+              "calls": 108,
+              "triangles": 198083
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.0004794696078533889,
+                "y": 21.302655186806508,
+                "z": 69.99914428987813,
+                "yaw": 0,
+                "pitch": -0.1
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.1,
+              "callbackP99Ms": 17.2,
+              "callbackMaxMs": 17.2,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 2.1,
+              "calls": 156,
+              "triangles": 222912,
+              "position": {
+                "x": 0.001604921929356351,
+                "y": 21.30255590309432,
+                "z": 69.99713631089617
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "sunscar-dunes",
+                    "samples": 120,
+                    "p95Ms": 0.3000001907348633,
+                    "maxMs": 0.3000001907348633,
+                    "calls": 1920
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "quest",
+                "x": 4,
+                "y": 18.95843583893206,
+                "z": -63,
+                "yaw": -0.2617993877991494,
+                "pitch": 0.3839724354387525
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.1,
+              "callbackP99Ms": 17.3,
+              "callbackMaxMs": 17.4,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 1.8,
+              "calls": 107,
+              "triangles": 189083,
+              "position": {
+                "x": 3.999656122706938,
+                "y": 18.93546242711004,
+                "z": -62.993353530557215
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "sunscar-dunes",
+                    "samples": 120,
+                    "p95Ms": 0.2999997138977051,
+                    "maxMs": 0.3000001907348633,
+                    "calls": 1920
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0,
+                "y": 21.363867328746412,
+                "z": 70,
+                "yaw": 0,
+                "pitch": 0.03490658503988659
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17,
+              "callbackP99Ms": 17.3,
+              "callbackMaxMs": 17.7,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 2.2,
+              "calls": 156,
+              "triangles": 222912,
+              "position": {
+                "x": 0.0011345709745000931,
+                "y": 21.30252673549737,
+                "z": 69.99797533318178
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "sunscar-dunes",
+                    "samples": 120,
+                    "p95Ms": 0.20000028610229492,
+                    "maxMs": 0.3000001907348633,
+                    "calls": 1920
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "cpuLimitMs": 4.166666666666667,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+    "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded"
+  }
+}

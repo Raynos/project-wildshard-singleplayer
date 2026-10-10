@@ -1,5 +1,3 @@
-import type { LevelSpec } from '@wildshard/engine/level/spec';
-
 /** Measured rollout maxima; count targets rederive after calibration; provenance: budgets/ceiling-sources.json. */
 export const BUDGET_CEILINGS = {
   "phone": {
@@ -27,4 +25,4 @@ export const BUDGET_CEILINGS = {
       "gpuMB": 181.8315734863282
     }
   }
-} satisfies NonNullable<LevelSpec['budgets']['ceilings']>;
+};

@@ -9,6 +9,12 @@ it('accepts pure shardfile projects and still requires plugins for legacy projec
   expect(checkShardLayout({ example: ['shard.config.ts', 'README.md', 'assets/', 'behaviour/', 'quests/'] }, layout)).toEqual([]);
   expect(checkShardLayout({ example: ['manifest.ts', 'README.md', 'roster.ts', 'budgets.ts'] }, layout)).toContain('example: missing required plugin.ts');
 });
+it('lets a shard keep its budgets as data instead of the root file, never both', () => {
+  const legacy = ['manifest.ts', 'plugin.ts', 'README.md', 'roster.ts', 'data/'];
+  expect(checkShardLayout({ example: [...legacy, 'data/budgets.ts', 'data/budgetCeilings.ts'] }, layout)).toEqual([]);
+  expect(checkShardLayout({ example: legacy }, layout)).toContain('example: missing required budgets.ts');
+  expect(checkShardLayout({ example: [...legacy, 'budgets.ts', 'data/budgets.ts'] }, layout)).toContain('example: budgets.ts and data/budgets.ts hold the same thing');
+});
 it('gets all ten declared placements exclusively from the platform catalogue', () => {
   const grid = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')) as { placements: { slug: string; cell: number[]; size: number[]; instance: string }[] };
   expect(grid.placements).toHaveLength(10);
