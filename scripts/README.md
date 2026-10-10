@@ -340,6 +340,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [proof-driftwood-boat-cape.mjs](./proof-driftwood-boat-cape.mjs)
 - [proof-driftwood-fixed-models.mjs](./proof-driftwood-fixed-models.mjs)
 - [proof-driftwood-trophy.mjs](./proof-driftwood-trophy.mjs)
+- [proof-nalati-look-parity.mjs](./proof-nalati-look-parity.mjs)
 - [proof-nine-layout-parity.mjs](./proof-nine-layout-parity.mjs)
 - [proof-run.sh](./proof-run.sh)
 - [public-grid.d.mts](./public-grid.d.mts)
