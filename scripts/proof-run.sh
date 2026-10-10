@@ -46,9 +46,24 @@ label="${1:-}"
 shift 2
 id="$(date +%Y%m%dT%H%M%S)-$(printf '%s' "$label" | tr -c 'A-Za-z0-9_-' '-' | cut -c1-40)-$$"
 snap="$(mktemp -t proof-run)" && cp "$0" "$snap" || exit 1
-# Its own session: the proof outlives the agent's shell and its tool timeout.
-python3 -c 'import os, sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
-  bash "$snap" --detached "$id" "$label" "${HERDR_PANE_ID:-}" -- "$@" < /dev/null > /dev/null 2>&1 &
+# Keep the launcher alive until the child has its own session. Returning while Python is still
+# starting lets a tool's parent-shell cleanup kill the child before setsid, leaving no result or ping.
+python3 -c '
+import os, sys
+reader, writer = os.pipe()
+pid = os.fork()
+if pid:
+    os.close(writer)
+    detached = os.read(reader, 1)
+    os.close(reader)
+    sys.exit(0 if detached == b"1" else 1)
+os.close(reader)
+os.setsid()
+os.write(writer, b"1")
+os.close(writer)
+os.execvp(sys.argv[1], sys.argv[1:])
+' bash "$snap" --detached "$id" "$label" "${HERDR_PANE_ID:-}" -- "$@" < /dev/null > /dev/null 2>&1 \
+  || { echo "proof-run: could not detach $id" >&2; exit 1; }
 echo "proof-run: started $id"
 echo "  log:    $dir/$id.log"
 echo "  result: $dir/$id.json (your pane is pinged when it ends; no need to poll)"
