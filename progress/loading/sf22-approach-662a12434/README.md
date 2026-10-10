@@ -212,3 +212,18 @@ construction beside its native scene, so native-scene-only future lighting omitt
 that exact topology and hidden descendants without changing any drawn light. No live saving is credited yet.
 Immutable raw artifact: `attempt-e2b543-closing-owner-full.json` in the scratch directory above; no raw archive
 is committed. The next matched run adds synchronous renderer.compile phase labels and retains the original gate.
+
+### Cadence measurement resolution ruling
+
+The coordinator subsequently approved a same-session resolution rule: crossing p95 within one **observed**
+timestamp quantum of standing p95 counts as equal. `scripts/sf22-cadence.mjs` measures the smallest positive
+spacing between distinct observed frame intervals; an unvarying sample returns unavailable, never an assumed
+0.1 ms. Six decimal places remove floating-point subtraction residue while the original raw numbers stay visible.
+Every standing p95 must match the unchanged 33.3 ms limit within that measured quantum, and the crossing comparison
+uses the smallest standing p95 conservatively. More than one quantum fails; tests include that boundary and an
+independently measured 0.005 ms clock. This is a measurement-resolution rule, not a new frame budget.
+
+For the complete `e2b543` journal the observed step is **0.1 ms**, crossing p95 **33.40000000002328 ms**, and both
+standing p95 values **33.40000000002328 ms**. The cadence verdict therefore **passes under this explicit ruling**.
+The earlier raw 33.3 ms comparison is preserved above as the originally recorded result. Overall SF22 remains
+open on Signal's 314 ms first draw and crossroads compilation attribution; the crossing-install pass is unchanged.
