@@ -56,6 +56,29 @@ it('bounds literal/copy work and refuses invalid reference streams before alloca
   expect(() => decodePhysicsReferences(external, 64, new Uint8Array(64))).toThrow('basis reference');
   expect(() => decodePhysicsReferences(new Uint8Array(), 32_000_001)).toThrow('byte bounds');
 });
+it('keeps the existing reference wire across unaligned word tails, first differing bytes and overlapping copies', () => {
+  // Golden packets from the byte comparator: a fifteen-byte prefix reaches the immutable basis's stride.
+  const basis = Uint8Array.from({ length: 301 }, (_, i) => i % 251);
+  for (const length of [129, 130, 131, 132]) {
+    const raw = basis.subarray(17, 17 + length);
+    expect(encodePhysicsReferences(raw, basis)).toEqual(Uint8Array.from([
+      0, 14, 0, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+      2, 32, 0, 0, 0, length - 15, 0, 0, 0,
+    ]));
+    const overlapping = new Uint8Array(length).fill(11);
+    expect(encodePhysicsReferences(overlapping)).toEqual(Uint8Array.from([0, 0, 0, 11, 1, 1, 0, 0, 0, length - 1, 0, 0, 0]));
+    expect(decodePhysicsReferences(encodePhysicsReferences(overlapping), length)).toEqual(overlapping);
+  }
+  for (const tail of [1, 2, 3, 4]) {
+    const raw = basis.subarray(17, 160).slice(); raw[raw.length - tail] = 255;
+    const packed = encodePhysicsReferences(raw, basis);
+    expect(packed).toEqual(Uint8Array.from([
+      0, 14, 0, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+      2, 32, 0, 0, 0, 128 - tail, 0, 0, 0, 0, tail - 1, 0, ...raw.subarray(raw.length - tail),
+    ]));
+    expect(decodePhysicsReferences(packed, raw.length, basis)).toEqual(raw);
+  }
+});
 it('rejects short/oversized blocks, bad lengths, extra fields and corrupt bytes before publishing a snapshot', () => {
   const host = createSimHost(SIM_LEVEL, { rapier });
   try {

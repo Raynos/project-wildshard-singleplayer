@@ -14,6 +14,14 @@ function hash(bytes: Uint8Array, at: number): number {
   }
   return (value >>> 0) & 0xfffff;
 }
+// Compare unaligned words first, then retain the exact first differing byte.
+function matchedBytes(left: DataView, leftAt: number, right: DataView, rightAt: number): number {
+  const limit = Math.min(left.byteLength - leftAt, right.byteLength - rightAt);
+  let length = 0;
+  while (length + 4 <= limit && left.getUint32(leftAt + length, true) === right.getUint32(rightAt + length, true)) length += 4;
+  while (length < limit && left.getUint8(leftAt + length) === right.getUint8(rightAt + length)) length++;
+  return length;
+}
 // rt3-freeze: a regional autosave once hashed every basis position and every byte inside each match (~1 M 16-byte
 // hashes for a 440 KB template world). The basis is indexed every 16 bytes (a 64-byte match always spans an indexed
 // start, so at most 15 more literal bytes begin it), and bytes copied from the basis are not re-indexed (the basis
@@ -31,6 +39,8 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): 
   if (bytes.length === 0 || bytes.length > MAX_PHYSICS_BYTES) throw new RangeError('Snapshot physics exceeds byte bounds');
   if (basis !== undefined && (basis.length === 0 || basis.length > MAX_PHYSICS_BYTES)) throw new RangeError('Snapshot physics basis exceeds byte bounds');
   const encoded = new Uint8Array(bytes.length + Math.ceil(bytes.length / matchMinimum) * 3 + 16), view = new DataView(encoded.buffer);
+  const rawView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const basisView = basis === undefined ? undefined : new DataView(basis.buffer, basis.byteOffset, basis.byteLength);
   const dictionary = new Int32Array(0x100000).fill(-1);
   const basisDictionary = basis === undefined ? undefined : new Int32Array(0x100000).fill(-1);
   if (basis !== undefined && basisDictionary !== undefined) for (let i = 0; i + matchMinimum <= basis.length; i += basisStride) basisDictionary[hash(basis, i)] = i;
@@ -44,11 +54,9 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): 
   };
   while (at + matchMinimum <= bytes.length) {
     const key = hash(bytes, at), previous = dictionary[key] ?? -1; dictionary[key] = at;
-    let length = 0;
-    if (previous >= 0) while (at + length < bytes.length && bytes[previous + length] === bytes[at + length]) length++;
+    let length = previous < 0 ? 0 : matchedBytes(rawView, previous, rawView, at);
     const basisAt = basisDictionary?.[key] ?? -1;
-    let basisLength = 0;
-    if (basis !== undefined && basisAt >= 0) while (at + basisLength < bytes.length && basisAt + basisLength < basis.length && basis[basisAt + basisLength] === bytes[at + basisLength]) basisLength++;
+    const basisLength = basisView === undefined || basisAt < 0 ? 0 : matchedBytes(basisView, basisAt, rawView, at);
     const external = basisLength >= matchMinimum && basisLength >= length;
     if (external) length = basisLength;
     if (length < matchMinimum) { at++; continue; }
