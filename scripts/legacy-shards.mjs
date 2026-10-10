@@ -107,7 +107,7 @@ export function compareLegacyInventory(before, after, changed, message) {
 /** Commit-message check reads the staged inventory and HEAD, never the shared working tree. */
 export function checkLegacyCommit(root, message) {
   const git = args => {
-    const result = spawnSync('git', args, {cwd:root, encoding:'utf8'});
+    const result = spawnSync('git', args, {cwd:root, encoding:'utf8', maxBuffer:64 * 1024 * 1024}); // ls-files outgrew spawnSync's 1 MB default
     if (result.status !== 0) throw new Error(result.stderr);
     return result.stdout;
   };
