@@ -144,6 +144,7 @@ it.each([nalatiSource, skySource])('resolves $identity.slug runtime inputs durin
       } else {
         installEnteredRuntimeInput(ctx, { id: 'far.fan', actions: ['far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
           touch: { mode: 'melee', relabel: {}, verbs: { 'verb.1': { action: 'far.gust', label: 'Gust', icon: 'G' } } } }, { rows: [] });
+        ctx.app.input.push('far.fan', ctx.scope);
       }
       const items = emptyShardfile({ slug: 'inputs', name: 'Inputs', author: 'Fixture', seed: 1, revision: 1 }).items;
       installDeclaredItems({ ...items, runtimeContexts: contexts }, { scope: ctx.scope, actorId: 'player', input: ctx.app.input,

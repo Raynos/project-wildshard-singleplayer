@@ -53,7 +53,7 @@ async function boot(retained = false): Promise<{ app: App; plugin: SignalDunesPl
   let hooks: RetainedRuntimeHooks | null = null;
   const context = (ctx: Parameters<typeof shardContext>[0]): ShardContext => {
     if (!retained) return shardContext(ctx, manifest, game);
-    hooks ??= new RetainedRuntimeHooks(shardContext(ctx, manifest, game));
+    hooks ??= new RetainedRuntimeHooks(shardContext(ctx, manifest, game), { deferActivation: true });
     return hooks.context;
   };
   await app.loadLevel(toLevelSpec(manifest), { world: (ctx) => plugin.world(context(ctx)), kit: (ctx) => plugin.kit(context(ctx)), play: (ctx) => plugin.play(context(ctx)) });
@@ -73,6 +73,9 @@ describe('Signal Dunes plugin contract', () => {
     if (hooks === null || plugin.places === null || app.levelScope === null) throw new Error('Missing retained Dunes context');
     const quest = plugin.quest, pieces = app.registry.pieces.map(piece => piece.id), scope = app.levelScope;
     try {
+      expect(app.input.has('sunscar.whip')).toBe(true); expect(app.input.active('sunscar.whip')).toBe(false);
+      expect(app.systemsByPhase().update.some(system => system.id.startsWith('sunscar.'))).toBe(false);
+      hooks.activate();
       plugin.places.flags.set(SCOUT_FLAG); app.events.flush('update');
       expect(plugin.quest?.index).toBe(1);
       for (let visit = 0; visit < 2; visit++) {
@@ -80,7 +83,9 @@ describe('Signal Dunes plugin contract', () => {
         expect(app.input.allowed('attack')).toBe(true);
         expect(app.systemsByPhase().update.filter(system => system.id === 'sunscar.dusk')).toHaveLength(1);
         hooks.deactivate();
-        expect(() => app.input.push('sunscar.whip', scope)).toThrow('Unknown input context');
+        expect(app.input.has('sunscar.whip')).toBe(true);
+        app.input.push('sunscar.whip', scope); expect(app.input.active('sunscar.whip')).toBe(false);
+        expect(app.input.touchLayout().contexts).not.toContain('sunscar.whip');
         expect(app.systemsByPhase().update.some(system => system.id.startsWith('sunscar.'))).toBe(false);
         setDusk(0.83, true);
         for (let tick = 0; tick < 600; tick++) fake.advance(1 / 60);

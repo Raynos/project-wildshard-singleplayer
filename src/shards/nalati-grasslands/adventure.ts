@@ -283,7 +283,8 @@ export function installNalatiAdventure<A extends { kind: string; variant?: strin
   else w.ctx.system({ id: 'shard.nalati.quest', phase: 'update', after: ['main.6'], before: ['hud.combat', 'shard.nalati-grasslands.bind', 'first hints', 'main.world', 'main.frame'], run: update });
 
   const adventure: NalatiAdventure = { flags, line, people, kokpar, places, get dialogue() { return currentDialogue(); }, chip, markers };
-  const debug = { ...adventure, get dialogue() { return currentDialogue(); }, kokparGoals: KOKPAR_GOALS, carving, talk: (id: PersonId) => { talks.find((x) => x.id === id)?.talk.talk(); } };
+  // Object spread would evaluate adventure.dialogue while road preparation still has no entered dialogue scope.
+  const debug = { flags, line, people, kokpar, places, chip, markers, get dialogue() { return currentDialogue(); }, kokparGoals: KOKPAR_GOALS, carving, talk: (id: PersonId) => { talks.find((x) => x.id === id)?.talk.talk(); } };
   if (w.ctx === undefined) scope.expose(window, '__nalatiQuest', debug); else w.ctx.debug.expose('nalati.quest', debug);
   return adventure;
 }

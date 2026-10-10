@@ -84,7 +84,7 @@ async function boot(retain = false): Promise<{ app: App; plugin: SkyReachPlugin;
   const context = (level: LevelContext) => {
     const base = shardContext(level, manifest, game);
     if (!retain) return base;
-    retained ??= new RetainedRuntimeHooks(base);
+    retained ??= new RetainedRuntimeHooks(base, { deferActivation: true });
     return retained.context;
   };
   await app.loadLevel(toLevelSpec(manifest), { world: ctx => plugin.world(context(ctx)), kit: ctx => plugin.kit(context(ctx)), play: ctx => plugin.play(context(ctx)) });
@@ -107,6 +107,8 @@ describe('Sky Reach contract', () => {
     if (retained === undefined) throw new Error('Missing retained lifetime');
     const pieces = app.registry.pieces.slice(), boss = plugin.boss;
     const native = [physics.world.bodies.len(), physics.world.colliders.len()];
+    expect(app.input.has('far.fan')).toBe(true); expect(app.input.active('far.fan')).toBe(false);
+    expect(app.debug.scopedSnapshot()['farReach']).toBeUndefined();
     for (let visit = 0; visit < 2; visit++) {
       retained.activate();
       expect(app.registry.pieces).toEqual(pieces); expect(plugin.boss).toBe(boss);
@@ -121,9 +123,12 @@ describe('Sky Reach contract', () => {
       for (let frame = 0; frame < 600; frame++) tick(app, 1 / 60, frame);
       expect(plugin.isletAt('north')).toEqual(pose);
       expect(app.registry.pieces).toEqual(pieces);
-      expect(() => app.input.push('far.fan', app.engineScope)).toThrow('Unknown input context');
+      expect(app.input.has('far.fan')).toBe(true);
+      app.input.push('far.fan', app.engineScope); expect(app.input.active('far.fan')).toBe(false);
+      expect(app.input.touchLayout().contexts).not.toContain('far.fan');
     }
     await app.unloadLevel();
+    expect(app.input.has('far.fan')).toBe(false);
     expect(app.registry.pieces).toEqual([]); expect(app.debug.scopedSnapshot()).toEqual({});
     expect(Object.values(app.systemsByPhase()).flat()).toEqual([]);
     expect(physics.world.bodies).toBeUndefined(); expect(physics.world.colliders).toBeUndefined();

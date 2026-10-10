@@ -96,7 +96,10 @@ describe('one-call quest presentation', () => {
         expect(read()).toBeNull(); expect(view.chip.line.root.isConnected).toBe(false);
         expect(h.pins.every(pin => !pin.root.isConnected)).toBe(true);
         expect(h.marks.size).toBe(0); expect(h.pois.size).toBe(0); expect(h.card()).toBeUndefined();
-        expect(() => app.input.push('entered.test', h.scope)).toThrow('Unknown input context');
+        // Definitions resolve while retained; parked actions and presentation remain inert.
+        expect(app.input.has('entered.test')).toBe(true);
+        app.input.push('entered.test', h.scope); expect(app.input.active('entered.test')).toBe(false);
+        expect(app.input.touchLayout().contexts).not.toContain('entered.test');
         expect(app.systemsByPhase().update.some(system => system.id === 'game.quest.entered')).toBe(false);
         const toasts = h.toast.mock.calls.length;
         for (let tick = 0; tick < 600; tick++) for (const system of app.systemsByPhase().update) system.run(1 / 60, tick);

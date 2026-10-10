@@ -6,6 +6,8 @@ import type { Vector3 } from 'three';
 
 const ownerBelongsTo = (owner: Scope | null, entered: Scope): boolean => owner?.belongsTo(entered) === true;
 const enteredServices = new WeakMap<ShardContext, (install: (scope: Scope) => void) => void>();
+type InputDefinition = Parameters<ShardContext['inputContext']>[0];
+const residentInputs = new WeakMap<ShardContext, (definition: InputDefinition) => void>();
 const playerBindings = new WeakSet<ShardContext>();
 
 /** Whether this trusted context retains its home resources while entered services are independently scoped. */
@@ -39,7 +41,9 @@ export function installEnteredRuntimeService(context: ShardContext, install: (sc
 export function installEnteredRuntimeInput(context: ShardContext, definition: Parameters<ShardContext['inputContext']>[0],
   description: Parameters<ShardContext['app']['input']['bindings']['describe']>[0]): void {
   if (!retainsRuntimeServices(context)) throw new Error('Entered input needs a retained context');
-  context.inputContext(definition);
+  const define = residentInputs.get(context);
+  if (define === undefined) throw new Error('Entered input needs a retained input owner');
+  define(definition);
   installEnteredRuntimeService(context, scope => {
     context.app.input.bindings.describe(description, scope);
   });
@@ -106,24 +110,27 @@ export class RetainedRuntimeHooks {
       // A replayed service owns its nested registrations; replaying them separately would duplicate callbacks.
       if (!nested) this.installers.push(install);
     };
+    const input = (definition: InputDefinition, install: (definition: InputDefinition, scope: Scope) => void): void => {
+      if (this.installing > 0) { register(scope => { install(definition, scope); }); return; }
+      if (base.scope.disposed || (!this.preparing && (this.entered === undefined || (generation !== this.generation
+        && !ownerBelongsTo(currentOwner(), this.entered))))) throw new Error('Trusted callback registration left its cell');
+      // Native construction may push immediately, but prepared and parked definitions have no keys, blocks or touch UI.
+      install({ ...definition, enabled: () => this.entered !== undefined && definition.enabled?.() !== false }, base.scope);
+    };
     this.context = { ...base, get progress() { return base.progress; },
       system: (spec) => { register((scope) => { base.app.addSystem(spec, scope); }); },
       on: (name, fn, options) => { register((scope) => { base.app.events.on(name, fn, scope, options); }); },
       answer: (name, fn, options) => { register((scope) => { base.app.events.answer(name, fn, scope, options); }); },
-      inputContext: (definition) => {
-        if (this.installing > 0) { register((scope) => { base.inputContext(definition, scope); }); return; }
-        if (base.scope.disposed || (!this.preparing && (this.entered === undefined || generation !== this.generation))) {
-          throw new Error('Trusted callback registration left its cell');
-        }
-        // Equipment resolves these definitions during preparation. A native push may also happen immediately;
-        // its context remains inert on the road and while parked, including keys, blocking and touch presentation.
-        base.inputContext({ ...definition, enabled: () => this.entered !== undefined && definition.enabled?.() !== false }, base.scope);
-      },
+      inputContext: definition => { input(definition, (def, scope) => { base.inputContext(def, scope); }); },
       debug: { expose: (name, value) => { register((scope) => { scope.onDispose(base.app.debug.scopedExpose(name, value)); }); } },
     };
     enteredServices.set(this.context, register);
+    // The entered-input helper historically owns its InputService registration directly, without a level adapter.
+    residentInputs.set(this.context, definition => { input(definition, (def, scope) => {
+      base.app.input.register(def, scope.child(`input.${def.id}`));
+    }); });
     if (!this.preparing) this.activate();
-    base.scope.onDispose(() => { enteredServices.delete(this.context); this.deactivate(); this.installers.length = 0; });
+    base.scope.onDispose(() => { enteredServices.delete(this.context); residentInputs.delete(this.context); this.deactivate(); this.installers.length = 0; });
   }
   private install(install: (scope: Scope) => void, scope: Scope): void {
     this.installing++;
