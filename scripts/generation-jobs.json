@@ -5,11 +5,14 @@
     {
       "id": "nine-portal-floors",
       "shard": "nine-dragon-stack",
-      "entry": "src/shards/nine-dragon-stack/generators/bake-portal-floors.mjs",
+      "entry": "src/shards/nine-dragon-stack/generators/portalFloors.ts",
       "command": [
         "--import",
         "./scripts/sim-node-loader.mjs",
-        "src/shards/nine-dragon-stack/generators/bake-portal-floors.mjs"
+        "scripts/generate-json.mjs",
+        "src/shards/nine-dragon-stack/generators/portalFloors.ts",
+        "portalFloorRows",
+        "src/shards/nine-dragon-stack/data/portalFloors.generated.json"
       ],
       "inputRoots": [
         "src/sdk/package.json",
@@ -21,12 +24,12 @@
         "src/shards/nine-dragon-stack/data/decks.ts",
         "src/shards/nine-dragon-stack/data/floorPlan.ts",
         "src/shards/nine-dragon-stack/generators/portalFloors.ts",
-        "src/shards/nine-dragon-stack/generators/bake-portal-floors.mjs",
         "scripts/sim-node-loader.mjs",
         "lint/sim-schema-leaves.json",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "scripts/generate-json.mjs"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/portalFloors.generated.json"
