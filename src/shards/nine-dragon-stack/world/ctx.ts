@@ -2,7 +2,7 @@
 // the grapple's dragon hooks and the minimap's floor plan.
 import { type Box3, Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { Kit } from './kit';
-import type { Emitter } from '../look/emitters';
+import type { Emitter } from '@wildshard/sdk/looks/vertexSpill';
 import { Dressing } from './facade/dressing';
 import { KitX } from './hero/kitx';
 import type { SignSink } from '../look/signs';
@@ -63,7 +63,7 @@ export class Ctx {
     return k;
   }
 
-  /** kits drawn only within a distance (m) of the camera: `far(name, m)` (world/cull.ts `addFar`) */
+  /** kits drawn only within a distance (m) of the camera: `far(name, m)` (@wildshard/sdk/cull/instanceCuller `addFar`) */
   readonly farOf = new Map<string, number>();
 
   /**

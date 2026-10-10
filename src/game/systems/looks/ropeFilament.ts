@@ -1,7 +1,7 @@
-// Ported from lab P9 "grapple" (E169): the mono-filament. A verlet rope pinned at both ends (the muzzle and the claw's eyelet),
-// stepped at a fixed 240 Hz so a capture is deterministic, drawn as ONE screen-space ribbon: a hot white-cyan core of a
-// constant pixel width inside a soft cyan halo (HDR, so the bloom soaks it into the silk), a tension pulse that runs
-// back down the line when the talons bite, and a faint energy crawl along it.
+// The rope filament (SHARD-PLATFORM M3): a mono-filament line between two moving points (a grapple's muzzle and its claw, a
+// tether, a fishing line). A verlet rope pinned at both ends, stepped at a fixed rate so a capture is deterministic, drawn
+// as ONE screen-space ribbon: a hot core of a constant pixel width inside a soft halo (HDR, so a bloom soaks it in), a
+// tension pulse that runs back down the line, and a faint energy crawl along it.
 //   slack > 1 → the line sags and whips (paying out in flight, the reel-back after a miss); slack → 1 → taut.
 import {
   BufferAttribute, BufferGeometry, Color, CustomBlending, DoubleSide, Mesh, OneFactor, ShaderMaterial, Vector2, type Vector3,

@@ -21,7 +21,7 @@ import {
   AddEquation, type BufferGeometry, Color, CustomBlending, DoubleSide, EqualDepth, FrontSide, type IUniform,
   LinearFilter, LinearMipmapLinearFilter, Mesh, OneFactor, ShaderMaterial, type Texture, TextureLoader, Vector4, ZeroFactor,
 } from 'three';
-import { type Emitter, bakeSpill } from '../look/emitters';
+import { type Emitter, bakeSpill } from '@wildshard/sdk/looks/vertexSpill';
 import { FOG_GLSL, NOISE_GLSL, type Shared } from '../look/style';
 import { phoneUrl } from '@wildshard/engine/boot/bytes';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';

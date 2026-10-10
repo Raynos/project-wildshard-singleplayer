@@ -9,7 +9,7 @@
 // SHARD-PLATFORM M3: the card program's GLSL and row, the look, the cut and the stair's gains are data (data/streaks.ts).
 import { Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, Uint16BufferAttribute, Vector3, Vector4 } from 'three';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import type { Emitter } from './emitters';
+import type { Emitter } from '@wildshard/sdk/looks/vertexSpill';
 import { STAIR_DASH, STAIR_GAIN, STAIR_WIDTH, STREAK_CUT, STREAK_LOOK, STREAK_PROGRAMS } from '../data/streaks';
 import { LOOK_FRAGMENTS, type Shared } from './style';
 

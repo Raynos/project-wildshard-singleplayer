@@ -1,34 +1,25 @@
-// Per-instance culling for the fragment's world-wide instanced batches (P0-5c, the phone budget): the facade dressing
-// (one InstancedMesh per kit piece across every tower), the paper lanterns and the instanced dressing each span the whole
-// fragment (bounding spheres of 200–300 m), so three's per-object frustum test never drops them and every frame
-// submitted all ~35 k instances (~1.5 M triangles) whatever the camera saw. The culler keeps a master copy of each
-// batch's instances and, when the camera has moved or turned enough, packs the instances whose bounding sphere meets a
-// widened view frustum (and lies within the batch's `far`, for the clutter the facade shader shrinks to nothing past
-// 85 m) to the front of the batch's buffers and sets its `count`. No draw is added; an empty batch is hidden. (The crowd
-// culls itself, with its distance LOD: crowd.ts `Crowd`, dome B's.)
+// The instance culler (SHARD-PLATFORM M3): per-instance culling for world-wide instanced batches. A batch spread over a
+// whole level (one InstancedMesh per kit piece across every building, the lanterns, the dressing) has a bounding sphere of
+// hundreds of metres, so three's per-object frustum test never drops it and every frame would submit every instance. The
+// culler keeps a master copy of each batch's instances and, when the camera has moved or turned enough, packs the
+// instances whose bounding sphere meets a widened view frustum (and lies within the batch's `far`) to the front of the
+// batch's buffers and sets its `count`. No draw is added; an empty batch is hidden.
 //
-// `addFar` is the per-region draw distance for the domes' kits (ctx.ts `Ctx.far`): a kit drawn only while the camera is
-// within `far` m of its bounding box — the Well's deep bands and the stair's far end are invisible from most views.
+// `addFar` is a per-mesh draw distance: a mesh drawn only while the camera is within `far` m of its bounding box.
 //
 // The widened frustum (MARGIN° more field on every side) and the re-cull thresholds (TURN°, MOVE m) are set so the
-// camera can turn / walk between two culls without an instance at the frame's edge missing. Nothing else renders the
-// world from another camera (the wet-ground reflection is screen-space, there are no shadow maps), so the main camera
-// is the only one to cull for.
+// camera can turn / walk between two culls without an instance at the frame's edge missing. It culls for one camera.
 //
-// (E283, the phone's CPU) a re-cull runs every few frames while the player walks or looks round, over ~35 k instances: the
-// frustum's planes are read into plain numbers once per cull; runs of GROUP consecutive instances are tested as one sphere
-// first (wholly in view or wholly out: no per-instance test, the same answer for each of them); the kept instances are
-// copied in consecutive runs, one block copy each; and only what changed since the batch's last cull is copied and
-// uploaded (the kept instances it shares with the last cull, from the front, are already in place; an unchanged batch
-// costs nothing). The packing is exactly the per-instance one's: pixel-identical.
+// A re-cull runs every few frames while the player walks or looks round: the frustum's planes are read into plain numbers
+// once per cull; runs of GROUP consecutive instances are tested as one sphere first (wholly in view or wholly out: no
+// per-instance test); the kept instances are copied in consecutive runs, one block copy each; and only what changed since
+// the batch's last cull is copied and uploaded (an unchanged batch costs nothing). The packing is exactly the
+// per-instance one's: pixel-identical.
 //
-// (E283, Jake's pick: the distance LODs) a batch can carry coarser copies of its piece, each from a distance
-// (`add(mesh, far, lods)`): an instance in view is packed into the copy for its distance from the eye instead of the
-// batch (one draw more per copy in use). The copies share the batch's material and masters.
-//
-// (E306 M4) the batches are models placed through `place` (src/engine/models/place.ts), which hands each part's levels to the
-// fragment (`PlaceOptions.culler`): the batch with every copy written, and a mesh per distance LOD, which `add` takes
-// over as its coarser copies (their own instance buffers, the batch's bounding sphere, packed from the batch's masters).
+// Distance LODs: a batch can carry coarser copies of its piece, each from a distance (`add(mesh, far, lods)`): an
+// instance in view is packed into the copy for its distance from the eye instead of the batch (one draw more per copy in
+// use). The copies share the batch's material and masters. Batches placed through `place` (engine models/place) arrive as
+// handed levels: the batch with every copy written, and a mesh per distance LOD, which `add` takes as its coarser copies.
 import { Box3, type BufferAttribute, Frustum, InstancedBufferAttribute, type InstancedMesh, Matrix4, type Mesh, PerspectiveCamera, Sphere, Vector3 } from 'three';
 
 /** extra field of view per side (degrees) */
@@ -161,7 +152,7 @@ export class InstanceCuller {
     for (let i = 0; i < outs.length; i++) if ((this.scratch[i]?.length ?? 0) < n) this.scratch[i] = new Int32Array(n);
   }
 
-  /** draw a whole mesh (a dome's kit) only while the camera is within `far` m of its bounding box */
+  /** draw a whole mesh (a region's kit) only while the camera is within `far` m of its bounding box */
   addFar(mesh: Mesh, far: number): void {
     mesh.updateWorldMatrix(true, false);
     const box = new Box3().setFromObject(mesh);
@@ -269,7 +260,7 @@ function triangles(mesh: InstancedMesh, k: number): number {
 /**
  * pack the first k of `keep` (master indices) into the batch's draw `l`: the instances it shares with its last pack, from
  * the front, are already in place; the rest is copied from the masters in runs of consecutive instances (one block copy
- * each: a street's worth of one facade piece) and only that is uploaded; its count set, hidden when empty. Its triangles
+ * each: a street's worth of one piece) and only that is uploaded; its count set, hidden when empty. Its triangles
  */
 function packOut(e: Entry, l: number, keep: Int32Array, k: number): number {
   const out = e.outs[l];

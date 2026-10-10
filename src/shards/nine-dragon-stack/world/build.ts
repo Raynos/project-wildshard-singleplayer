@@ -5,7 +5,7 @@
 // movers. The look (materials, signs, neon, streaks, light) is look/'s; this file only assembles it.
 // (E306 / E315 M4) Every reusable thing in it is a model (../models/: the facade's pieces, the square's lions and sets,
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
-// the instanced ones are handed to the fragment's own cullers (world/cull.ts, crowd.ts `Crowd`, look/lanterns.ts
+// the instanced ones are handed to the fragment's own cullers (the SDK's instance culler and figure crowd, look/lanterns.ts
 // `Lanterns`). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
   BufferGeometry, Color, Float32BufferAttribute, Group, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion,
@@ -25,7 +25,7 @@ import { landingPlanterModel } from '../models/landingPlanter';
 import { wellBalustrade } from '../models/wellBalustrade';
 import { lampPostModel, lotusPostModel } from '../models/bridgePosts';
 import { type InKitPlaced, registerInKit } from './inKit';
-import { type Emitter, bakeSpill } from '../look/emitters';
+import { type Emitter, bakeSpill } from '@wildshard/sdk/looks/vertexSpill';
 import { GlyphField, NeonText } from '@wildshard/sdk/looks/neonText';
 import { Lanterns } from '../look/lanterns';
 import { buildStreaks, stairStreaks } from '../look/streaks';
@@ -38,7 +38,9 @@ import { SCROLL, loadScroll, scrollMaterial } from '../look/scroll';
 import { installLight } from '../look/light/install';
 import { glowUniforms } from '../look/light/glow';
 import { gradeUniforms } from '../look/light/grade';
-import { Crowd, dealCrowd } from './crowd';
+import { dealCrowd } from './crowd';
+import { FigureCrowd } from '@wildshard/sdk/cull/figureCrowd';
+import { CROWD_LEVELS } from '../data/lod';
 import { buildCanopy } from './canopy';
 import { placeSquareProps } from './squareProps';
 import { SignAtlas, SignBuilder } from '@wildshard/sdk/looks/signs';
@@ -67,8 +69,8 @@ import { loadSpecimens } from './specimens';
 import { buildEntryDecks } from './entries';
 import { CABLE, SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
 import { merge } from './hero/kitx';
-import { type InstanceLevel, InstanceCuller } from './cull';
-import { lodReady } from './lod';
+import { type InstanceCullerView, type InstanceLevel, InstanceCuller } from '@wildshard/sdk/cull/instanceCuller';
+import { lodReady } from '@wildshard/sdk/cull/meshLod';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
 const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';
@@ -149,11 +151,11 @@ export interface NineDragonWorld {
   update: (t: number, camera: PerspectiveCamera) => void;
   /**
    * per frame, with the camera as it is drawn (the render hook's `frame`, after the updaters and the late hooks): the
-   * world-wide instanced batches culled per instance (world/cull.ts) and the crowd's figures picked (crowd.ts)
+   * world-wide instanced batches culled per instance (@wildshard/sdk/cull/instanceCuller) and the crowd's figures picked
    */
   cull: (camera: PerspectiveCamera) => void;
   /** the per-instance culling (its `stats` for the budget ruler) */
-  readonly culler: InstanceCuller;
+  readonly culler: InstanceCullerView;
   /** G200: whether the decks' open ends are closed by their standalone balustrades (world/entries.ts; the colliders follow) */
   readonly entryCaps?: boolean;
   /** G224: the portals' ride step (world/portalRide.ts sets it in play), run by `update` with the frame's dt */
@@ -195,7 +197,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // the models' context (world/modelLook.ts): the look fills in as each phase makes its part
   const nd = ndModelContext(renderer);
   nd.look.calligraphy = neonSigns;
-  // the fragment's instanced models are culled per copy here (world/cull.ts), taken as `place` hands them over and set up
+  // the fragment's instanced models are culled per copy here (the SDK instance culler), taken as `place` hands them over and set up
   // at the end, once the world is whole
   const culler = new InstanceCuller();
   const handed: HandedBatch[] = [];
@@ -309,7 +311,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   phaseDone('canopy', phaseStart);
   phaseStart = performance.now();
   // (E283, Jake's pick) the distance LODs are the models' own (models/: meshoptimizer copies of the sculpts, their error
-  // under SCULPT_PX px where each starts, world/lod.ts; the facade dressing's and the balustrade's thin parts dropped where
+  // under SCULPT_PX px where each starts, data/lod.ts; the facade dressing's and the balustrade's thin parts dropped where
   // they are ~half a pixel wide), handed to the culler with their batches
   const canLod = await lodReady();
   nd.look.canLod = canLod;
@@ -461,9 +463,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
       .slice(0, 3);
     if (mounts.length > 0) nameDraws(place(feiZhuaHook, mounts.map(({ ring, out }) => at(feiZhuaAt(ring, out))), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-fei-zhua-hooks' } }), 'glb:dragon-hook');
   }
-  // dome B (crowd.ts `Crowd`): per-figure frustum culling + a distance LOD (the E283 middle copies, a ~320-tri far copy
+  // dome B (the SDK's figure crowd, data/lod.ts CROWD_LEVELS): per-figure frustum culling + a distance LOD (the E283 middle copies, a ~320-tri far copy
   // past 35 m, none past 130 m); its meshes start empty, so the batch culler leaves them alone
-  const crowd = new Crowd();
+  const crowd = new FigureCrowd(CROWD_LEVELS);
   const dealt = dealCrowd(ctx.walkers, ctx.sitters, { walker: (k) => walkerGeometry(nd.ctx, k), sitter: (k) => sitterGeometry(nd.ctx, k) });
   if (dealt.walkers.length > 0) place(umbrellaWalker, dealt.walkers.flatMap(([pick, mats]) => mats.map((m) => ({ ...at(m), variant: pick }))), { ctx: nd.ctx, draw: 'instanced', culler: crowd, parent: root, piece: { id: 'nds-crowd-walkers' } }).object.name = 'crowd';
   if (dealt.sitters.length > 0) place(mahjongSitter, dealt.sitters.flatMap(([pick, mats]) => mats.map((m) => ({ ...at(m), variant: pick }))), { ctx: nd.ctx, draw: 'instanced', culler: crowd, parent: root, piece: { id: 'nds-crowd-sitters' } }).object.name = 'crowd';

@@ -14,7 +14,7 @@ import {
   Quaternion, type ShaderMaterial, Sphere, Uint32BufferAttribute, Vector2, Vector3,
 } from 'three';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import type { Emitter } from './emitters';
+import type { Emitter } from '@wildshard/sdk/looks/vertexSpill';
 import type { Placement } from '@wildshard/engine/models/model';
 import type { HandedBatch, InstancedCuller } from '@wildshard/engine/models/place';
 import { LANTERN_PROGRAMS, LOD_DOT as LANTERN_LOD_DOT, LOD_NEAR as LANTERN_LOD_NEAR } from '../data/lanterns';

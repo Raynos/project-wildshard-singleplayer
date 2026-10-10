@@ -1,12 +1,12 @@
 import { SlashTrail } from '@wildshard/engine/combat/view/slashTrail';
-// The slash trail, 飞白 "flying white" (lab P8 "viewmodel", E169). Driftwood's sword ribbon (src/engine/player/Sword.ts
-// buildTrail / trailSample / trailRebuild) is the base: a ring of blade samples (an inner point on the blade and the tip),
-// each gap subdivided on a Catmull-Rom curve so a fast slash reads as an arc, alpha by age. What is new is the brush:
+// The brush trail (SHARD-PLATFORM M3), 飞白 "flying white": a held blade's slash ribbon on the engine's slash trail (a ring
+// of blade samples, an inner point on the blade and the tip, each gap subdivided on a Catmull-Rom curve so a fast slash
+// reads as an arc, alpha by age), drawn as a brush:
 //   - the ribbon is a dry-brush stroke: parallel hair streaks along the motion (fine noise across the ribbon), gaps that
 //     open as the brush runs dry toward the tail (the threshold rises with age), a ragged inner edge, a loaded tip edge;
 //   - two looks on one program: `ink` (ink-indigo pigment with the paper showing through the streaks, and a thin neon
 //     thread on the leading tip edge) and `light` (pale silk-white streaks, additive, cyan core) — uMode;
-//   - the blending never touches the target's alpha (the clean room keeps inverse depth there): CustomBlending with the
+//   - the blending never touches the target's alpha (a renderer may keep inverse depth there): CustomBlending with the
 //     alpha factors Zero / One.
 import {
   AddEquation, Color, CustomBlending, DoubleSide, Mesh, OneFactor, OneMinusSrcAlphaFactor,
@@ -61,9 +61,9 @@ void main() {
 }
 `;
 
-export type TrailLook = 'ink' | 'light';
+export type BrushTrailLook = 'ink' | 'light';
 
-export class Trail {
+export class BrushTrail {
   readonly mesh: Mesh;
   private readonly mat: ShaderMaterial;
   private readonly ribbon = new SlashTrail({ samples: SAMPLES, subdivisions: SUB, movementSq: 1e-6, channel: 'age' });
@@ -89,7 +89,7 @@ export class Trail {
     this.mesh.visible = false;
   }
 
-  setLook(look: TrailLook): void {
+  setLook(look: BrushTrailLook): void {
     const m = this.mat;
     m.blending = CustomBlending;
     m.blendEquation = AddEquation;

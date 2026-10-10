@@ -21,7 +21,7 @@ export interface NdLook {
   lantern: ShaderMaterial | null;
   /** the neon program over the sign atlas (the drones' lights) and the atlas */
   neon: { readonly mat: ShaderMaterial; readonly atlas: SignAtlasView<SignStyle> } | null;
-  /** meshoptimizer is ready (world/lod.ts `lodReady`): the sculpts' distance LODs are simplified copies; else a sculpt's
+  /** meshoptimizer is ready (@wildshard/sdk/cull/meshLod `lodReady`): the sculpts' distance LODs are simplified copies; else a sculpt's
    *  LOD is its own full geometry, which the fragment's culler leaves out */
   canLod: boolean;
   /** loaded geometry by name: the TRELLIS casts (`lion`, `walker-dark` …, `dragon-hook`) and the square's sets as the

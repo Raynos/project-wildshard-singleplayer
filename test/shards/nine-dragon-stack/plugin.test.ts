@@ -10,7 +10,7 @@ import manifest from '../../../src/shards/nine-dragon-stack/manifest';
 import { NdPlugin } from '../../../src/shards/nine-dragon-stack/plugin';
 import { ndRuntime } from '../../../src/shards/nine-dragon-stack/runtime/state';
 import { Shared } from '../../../src/shards/nine-dragon-stack/look/style';
-import { InstanceCuller } from '../../../src/shards/nine-dragon-stack/world/cull';
+import { InstanceCuller } from '@wildshard/sdk/cull/instanceCuller';
 import { fragmentColliders, fragmentGrappleGuard } from '../../../src/shards/nine-dragon-stack/world/colliders';
 import type { NineDragonWorld } from '../../../src/shards/nine-dragon-stack/world/build';
 import { FakeGame } from '../../fake/FakeGame';

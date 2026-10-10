@@ -4,7 +4,7 @@
  * the wall's frame by the facade lab's builders (../generators/facadePieces.ts, baked: x along the wall, y up, +z out of the wall,
  * origin on the wall face), drawn by the facade's Jiehua program, and placed by the facade grammar
  * (../world/facade/batch.ts) as ONE InstancedMesh per piece over the whole fragment (E271 / E272: instancing, never
- * multi-draw), culled per copy by the fragment's E283 culler (../world/cull.ts). A copy's placement matrix carries the
+ * multi-draw), culled per copy by the fragment's E283 culler (@wildshard/sdk/cull/instanceCuller). A copy's placement matrix carries the
  * grammar's non-uniform scale; its colour the wash. The pieces with parts thinner than a pixel from a distance drop
  * them there (PIECE_LOD_FROM, E283); the small clutter shrinks into the wall between 55 and 85 m (its program) and is not
  * drawn past 85 m. The few-and-small pieces (couplets, shutters, sign boards, window ACs, the wash on street lines,

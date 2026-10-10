@@ -13,7 +13,7 @@ import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facade
 import { BAKED, DRAWN_AS, SMALL, type PieceId } from './pieceIds';
 import { FACADE_BAKED, FACADE_MODELS, type FacadeParams } from '../../models/facade';
 import type { NdLook } from '../modelLook';
-import { triCount } from '../lod';
+import { triCount } from '@wildshard/sdk/cull/meshLod';
 
 export interface FacadeStats { draws: number; tris: number; instances: number; windows: number; shellTris: number; perPiece: Record<string, [number, number]> }
 

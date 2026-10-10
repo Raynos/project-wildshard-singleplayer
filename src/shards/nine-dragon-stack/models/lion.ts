@@ -9,7 +9,8 @@ import type { BufferGeometry } from 'three';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '@wildshard/engine/models/model';
 import { loadGlb } from '../world/hero/glb';
 import { K } from '../world/kit';
-import { PX_PER_M, SCULPT_PX, simplifiedCopy } from '../world/lod';
+import { PX_PER_M, simplifiedCopy } from '@wildshard/sdk/cull/meshLod';
+import { SCULPT_PX } from '../data/lod';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/lion.ts';

@@ -1,7 +1,8 @@
 import { resourceScope } from '@wildshard/engine/app/resources';
-// Everything that glows (signs, lanterns, lit shopfronts): the streak cards read these, and the neon SPILL is baked
-// once at build time into a per-vertex attribute of the merged kits (the neon lab's integration step 6: no per-pixel
-// light loop). Spill = Σ colour × strength / (1 + r² / R²), R = 2.2 · max(w, h) + 1.5, cut at 3R, via a spatial grid.
+import { diagnosticNow } from '@wildshard/engine/core/clock';
+// Vertex light spill (SHARD-PLATFORM M3): everything that glows (signs, lanterns, lit shopfronts) is an emitter, and its
+// SPILL is baked once at build time into a per-vertex attribute (`aSpill`) of merged geometry: no per-pixel light loop.
+// Spill = Σ colour × strength / (1 + r² / R²), R = 2.2 · max(w, h) + 1.5, cut at 3R, via a spatial grid.
 import { BufferAttribute, type BufferGeometry, type Color, Float32BufferAttribute, type Vector3 } from 'three';
 
 export interface Emitter {
@@ -19,7 +20,7 @@ export interface Emitter {
 
 const CELL = 8;
 
-/** Bakes the same per-vertex light as the lab while keeping phone WebKit's page thread responsive. */
+/** Bakes the per-vertex light spill while keeping phone WebKit's page thread responsive. */
 export async function bakeSpill(geos: readonly BufferGeometry[], emitters: readonly Emitter[]): Promise<void> {
   interface Light { x: number; y: number; z: number; r2: number; invR2: number; r: number; g: number; b: number; spill: number }
   const grid = new Map<number, Light[]>();
@@ -40,7 +41,7 @@ export async function bakeSpill(geos: readonly BufferGeometry[], emitters: reado
       list.push(light);
     }
   }
-  let lastYield = performance.now();
+  let lastYield = diagnosticNow();
   for (const g of geos) {
     const pos = g.getAttribute('position');
     const nor = g.getAttribute('normal');
@@ -66,9 +67,9 @@ export async function bakeSpill(geos: readonly BufferGeometry[], emitters: reado
       out[o] = r;
       out[o + 1] = gg;
       out[o + 2] = b;
-      if ((i & 8191) === 8191 && performance.now() - lastYield > 24) {
+      if ((i & 8191) === 8191 && diagnosticNow() - lastYield > 24) {
         await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
-        lastYield = performance.now();
+        lastYield = diagnosticNow();
       }
     }
     g.setAttribute('aSpill', new Float32BufferAttribute(out, 3));

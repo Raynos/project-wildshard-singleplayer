@@ -1,9 +1,9 @@
-// Ported from lab P9 "grapple" (E169): the one-shot effects. All deterministic in (time since the event, seed), so a frame strip
+// Burst effects (SHARD-PLATFORM M3): one-shot effects, all deterministic in (time since the event, seed), so a frame strip
 // and a video capture show the same thing.
 //  - Sparks: a burst of hot streaks (head → tail a few ms back along the ballistic path), screen-space widened quads,
 //    additive HDR white-gold → ember orange. One draw.
-//  - Flash: a camera-facing star (hot core, six sharp rays, a shock ring), additive HDR. The muzzle flash (viewmodel
-//    scene) and the bite flash at the hook (world scene) are two of them.
+//  - Flash: a camera-facing star (hot core, six sharp rays, a shock ring), additive HDR (a muzzle flash in a viewmodel
+//    scene, a bite flash at a hook in the world).
 import { BufferAttribute, BufferGeometry, Color, CustomBlending, DoubleSide, Mesh, OneFactor, ShaderMaterial, Vector2, Vector3, ZeroFactor } from 'three';
 
 const ADD = { side: DoubleSide, transparent: true, depthWrite: false, blending: CustomBlending, blendSrc: OneFactor, blendDst: OneFactor, blendSrcAlpha: ZeroFactor, blendDstAlpha: OneFactor } as const;

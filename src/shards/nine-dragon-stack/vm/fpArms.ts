@@ -34,7 +34,7 @@ import { buildHalo } from './jian';
 import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms } from './materials';
 import { ARM_CLIPS, armClipNames } from '@wildshard/game/systems/viewmodel/armClips';
 import { type JointAngles, LEFT_HAND, RIGHT_HAND, measure } from '@wildshard/game/systems/viewmodel/armRig';
-import { Trail, type TrailLook } from './trail';
+import { BrushTrail, type BrushTrailLook } from '@wildshard/sdk/viewmodel/brushTrail';
 import type { ClipChannel as Channel } from '@wildshard/engine/anim/channel';
 import { AnimMachine } from '@wildshard/engine/anim/machine';
 import { loadRigFile, bindRig, type RigContract, type RigBake } from '@wildshard/engine/anim/rig';
@@ -148,7 +148,7 @@ export class NineDragonArms {
   readonly u: VmUniforms;
   readonly materials: ShaderMaterial[] = [];
   readonly moves: Record<string, MoveInfo> = {};
-  readonly trail = new Trail();
+  readonly trail = new BrushTrail();
   readonly halo: Mesh;
   /** triangles in the rig's meshes (bodies, hulls) */
   tris = { body: 0, hull: 0 };
@@ -307,7 +307,7 @@ export class NineDragonArms {
   /** the claw rides the gauntlet except while the grapple flies (the grapple lab draws the flying one) */
   setClawVisible(on: boolean): void { for (const c of this.claws) c.visible = on; }
 
-  setTrailLook(look: TrailLook): void { this.trail.setLook(look); }
+  setTrailLook(look: BrushTrailLook): void { this.trail.setLook(look); }
 
   /** the current right move and its time; `active` = inside its windup … slashEnd window */
   get move(): string | null { return this.moveName; }
