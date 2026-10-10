@@ -10,7 +10,7 @@ import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { Scope } from '../src/engine/app/scope';
 import { toLevelSpec } from '../src/game/shard/spec';
 import { SUNSCAR_DUNES } from '../src/shards/sunscar-dunes/manifest';
-import { fitSkirtToCube, holdSkirt, skirtReach } from '../src/shards/sunscar-dunes/look/cube';
+import { SKIRT } from '../src/shards/sunscar-dunes/look/render';
 
 // G99: every shard is a 500 m cube; in a grid cell nothing it draws stands past 250 m (SHARD-PLATFORM SF50, E435)
 const restoreTerrain = overrideTerrain({ heightAt: () => 0, waterLevel: () => 0, pondMask: () => 0, streamAt: () => null });
@@ -49,12 +49,12 @@ it('cuts Signal Dunes\' skirt back to the cube once, and frees the standalone ge
   const scope = new Scope('test'), standalone = new PlaneGeometry(1040, 1040, 4, 4), mesh = new Mesh(standalone);
   const disposed = vi.fn<() => void>(); standalone.addEventListener('dispose', disposed);
   const rebuild = vi.fn((half: number) => new PlaneGeometry(half * 2, half * 2, 2, 2));
-  holdSkirt(mesh, rebuild, scope);
-  expect(skirtReach()).toBe(520);
-  fitSkirtToCube(250); fitSkirtToCube(250);
+  SKIRT.hold(mesh, rebuild, scope);
+  expect(SKIRT.reach()).toBe(520);
+  SKIRT.fit(250); SKIRT.fit(250);
   expect(rebuild).toHaveBeenCalledOnce();
-  expect(skirtReach()).toBe(250);
+  expect(SKIRT.reach()).toBe(250);
   expect(disposed).toHaveBeenCalledOnce();
   scope.dispose();
-  expect(skirtReach()).toBeNull();
+  expect(SKIRT.reach()).toBeNull();
 });

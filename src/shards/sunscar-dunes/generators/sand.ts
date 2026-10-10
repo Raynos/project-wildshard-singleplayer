@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { GROUND_HALF } from '../data/layout';
-import { GRAIN_TILE, KEY_DIR, SAND_MAP, SHADOW_HALF } from '../data/sand';
-import { skirtAt } from '../look/skirt';
+import { GRAIN_TILE, KEY_DIR, SAND_MAP, SHADOW_HALF, SKIRT_SWELL } from '../data/sand';
+import { swellSkirtAt } from '@wildshard/sdk/looks/bakedGround';
 import { signalDunesField } from './tiles';
 
 /**
@@ -87,5 +87,5 @@ function grainTile(): { data: Uint8Array; meanR: number; meanGlint: number } {
 /** The sand's three maps as raw bytes, and the grain tile's means. */
 export function bakeSignalSand(): { shadow: Uint8Array; trail: Uint8Array; grain: Uint8Array; meanR: number; meanGlint: number } {
   const ground = signalDunesField(), sampled = sampledGround((x, z) => ground.heightAt(x, z)), grain = grainTile();
-  return { shadow: duneShadow((x, z) => skirtAt(sampled, x, z)), trail: trailMask((x, z) => ground.trailDistance(x, z)), grain: grain.data, meanR: grain.meanR, meanGlint: grain.meanGlint };
+  return { shadow: duneShadow((x, z) => swellSkirtAt(SKIRT_SWELL, sampled, x, z)), trail: trailMask((x, z) => ground.trailDistance(x, z)), grain: grain.data, meanR: grain.meanR, meanGlint: grain.meanGlint };
 }

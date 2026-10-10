@@ -1,22 +1,21 @@
 import { DUSK, fillAt, keyAt } from './dusk';
-import { ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry, type HemisphereLight, type Material, type Texture } from 'three';
+import { Color, Fog, Mesh, SphereGeometry, Vector3, type DataTexture, type HemisphereLight, type Material, type Texture } from 'three';
 import type { LookStrategy, PainterField } from '@wildshard/engine/render/look';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
-import { GROUND_HALF, SEED, TRAIL } from '../data/layout';
+import { SEED, SPAWN, TRAIL } from '../data/layout';
 import { duneHeight } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';
 import { duskDomeMaterial } from '@wildshard/sdk/looks/duskDome';
 import { SKY_STYLE } from '../data/sky';
 import { loadPaintedSky } from './painted';
 import { familySand, familySky, type FamilySand, type FamilySky } from './families';
-import { GRAIN_TILE, KEY_DIR, SAND_FILES, SAND_MAP } from '../data/sand';
+import { KEY_DIR, SAND_MAPS, SKIRT_GRID, SKIRT_SWELL } from '../data/sand';
 import sandMeans from '../data/sand.json' with { type: 'json' };
-import { skirtAt } from './skirt';
 import { Scope } from '@wildshard/engine/app/scope';
-import { holdSkirt } from './cube';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import type { Terrain } from '@wildshard/engine/world/Terrain';
-import { bindSandTiles } from './groundTiles';
+import { CubeSkirt, loadBakedMaps, skirtGrid, TintedTileGround } from '@wildshard/sdk/looks/bakedGround';
+import source from '../shard.config';
 
 /**
  * "Last Light" (docs/design/sunscar-dunes/style-bible.md): the key is a low warm sun ~9° up in front of the spawn view,
@@ -50,39 +49,20 @@ const AERIAL_FOG = 0.0013; // round 22 (the lead: subtle in front of ~300 m): 18
 const SAND = new Color(0.5, 0.23, 0.075),
   HOLLOW = new Color(0.22, 0.14, 0.12), CREST = new Color(0.64, 0.33, 0.1);
 /**
- * The sand's three baked maps (SF72, `generators/sand.ts` → `scripts/bake-signal-sand.mjs`): the dune-shadow map (R1, E407
- * row 3: the key's cast shade marched over the dune field, 1.16 m texels over the shadow's reach), the trail mask (round 2)
- * and the grain tile (loop 2; R albedo, G / B its bump slope). Each file is a zlib stream of the map's raw bytes, uploaded
- * as the DataTexture the page used to compute behind the loading screen. A map that fails to load is a page fault
- * (`console.error`): the sand draws without it (fully lit, no trail, flat grain).
+ * The sand's three baked maps (SF72, `generators/sand.ts` → `scripts/bake-signal-sand.mjs`, uploaded from data/sand.ts
+ * SAND_MAPS): the dune-shadow map (R1, E407 row 3), the trail mask (round 2) and the grain tile (loop 2; R albedo, G / B
+ * its bump slope). A map that fails to load is a page fault: the sand draws without it (fully lit, no trail, flat grain).
  */
-async function sandBytes(url: string, length: number, standIn: number): Promise<Uint8Array> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${url}`);
-    const bytes = new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
-    if (bytes.length !== length) throw new Error(`${url}: ${String(bytes.length)} bytes, ${String(length)} baked`);
-    return bytes;
-  } catch (error: unknown) {
-    console.error('[sunscar-dunes] the baked sand map did not load:', error);
-    return new Uint8Array(length).fill(standIn);
-  }
-}
-export async function loadSandMaps(): Promise<{ shadow: DataTexture; trail: DataTexture; grain: DataTexture }> {
-  const [shadowBytes, trailBytes, grainBytes] = await Promise.all([sandBytes(SAND_FILES.shadow, SAND_MAP * SAND_MAP, 255),
-    sandBytes(SAND_FILES.trail, SAND_MAP * SAND_MAP, 0), sandBytes(SAND_FILES.grain, GRAIN_TILE * GRAIN_TILE * 4, 128)]);
-  const mask = (data: Uint8Array): DataTexture => {
-    const tex = new DataTexture(data, SAND_MAP, SAND_MAP, RedFormat, UnsignedByteType);
-    tex.magFilter = LinearFilter; tex.minFilter = LinearFilter; tex.wrapS = ClampToEdgeWrapping; tex.wrapT = ClampToEdgeWrapping; tex.needsUpdate = true;
-    return tex;
-  };
-  const grain = new DataTexture(grainBytes, GRAIN_TILE, GRAIN_TILE, RGBAFormat, UnsignedByteType);
+export async function loadSandMaps(): Promise<Record<'shadow' | 'trail' | 'grain', DataTexture>> {
+  const maps = await loadBakedMaps(SAND_MAPS, '[sunscar-dunes] the baked sand map did not load:');
   // round 17: the shader subtracts the tile's own means, so every distance-faded grain term is zero-mean
-  grain.userData['meanR'] = sandMeans.meanR; grain.userData['meanGlint'] = sandMeans.meanGlint;
-  grain.wrapS = RepeatWrapping; grain.wrapT = RepeatWrapping; grain.magFilter = LinearFilter; grain.minFilter = LinearMipmapLinearFilter;
-  grain.generateMipmaps = true; grain.anisotropy = 8; grain.needsUpdate = true; // round 5: at the grazing near view the plain mips blurred the grain to grey
-  return { shadow: mask(shadowBytes), trail: mask(trailBytes), grain };
+  maps.grain.userData['meanR'] = sandMeans.meanR; maps.grain.userData['meanGlint'] = sandMeans.meanGlint;
+  return maps;
 }
+/** The sand's tiles (G227 M3; the only ground since Jake's G266), their fine ring following the player past 8 m. */
+export const SAND_TILES = new TintedTileGround({ source, x: SPAWN.x, z: SPAWN.z, follow: 8, name: 'Signal Dunes', tag: 'sunscar-dunes' });
+/** The skirt, held so the plugin can cut it back to a grid cell's cube (G99). */
+export const SKIRT = new CubeSkirt();
 
 /** The sand's hollow / crest tint at one vertex (round 1): its height `h` against the mean of a 14 m ring around it. */
 function sandTint(heightAt: (x: number, z: number) => number, x: number, z: number, h: number, c: Color): Color {
@@ -90,27 +70,6 @@ function sandTint(heightAt: (x: number, z: number) => number, x: number, z: numb
   const rel = Math.max(-1, Math.min(1, (h - mean) / 2.5));
   c.copy(SAND); if (rel < 0) c.lerp(HOLLOW, -rel * 0.75); else c.lerp(CREST, rel * 0.6);
   return c;
-}
-
-/** The skirt round the painted ground: an 800 m grid, `cell` metres a quad, aligned with the ground's edge. */
-const SKIRT = { out: 520, cell: 8 } as const;
-/**
- * Round 2 (R1C-5: the first skirt drew saw-tooth bands from above): one indexed grid with smooth normals. Inside the
- * square it sits 2 m under the ground (hidden); on the edge it meets the ground's own heights; outside it eases into
- * smooth swells along the wind.
- */
-function skirtGeometry(heightAt: (x: number, z: number) => number, reach: number = SKIRT.out): BufferGeometry {
-  // G99: a grid cell's skirt ends at its cube (`reach` 250, look/cube.ts); standalone it runs to SKIRT.out
-  const n = Math.max(1, Math.round((reach * 2) / SKIRT.cell)), g = new PlaneGeometry(reach * 2, reach * 2, n, n); g.rotateX(-Math.PI / 2);
-  const p = g.getAttribute('position'), col = new Float32Array(p.count * 3), c = new Color().copy(SAND).lerp(HOLLOW, 0.25), edge = GROUND_HALF;
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i), z = p.getZ(i), out = Math.max(Math.abs(x), Math.abs(z)) - edge;
-    const y = out < -0.5 ? heightAt(x, z) - 2 : skirtAt(heightAt, x, z);
-    p.setY(i, y); col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
-  }
-  g.setAttribute('color', new Float32BufferAttribute(col, 3));
-  g.computeVertexNormals();
-  return g;
 }
 
 /** The day clock: Signal Dunes holds at dusk (the clock is never advanced). */
@@ -135,7 +94,7 @@ export function signalDunesLook(): LookStrategy {
   // the sand's family material once the terrain painter built it (its adapter is fed in the backdrop's update)
   let sand: FamilySand | null = null;
   /**
-   * The sand over the compiled shardfile terrain tiles (`look/groundTiles.ts`; G227 M3 tiles-swap, the only ground since
+   * The sand over the compiled shardfile terrain tiles (`SAND_TILES`; G227 M3 tiles-swap, the only ground since
    * Jake's G266): the baked dune-shadow and trail maps from a 257-sample grid of the field (the dune shadows and the trail
    * bed at 1.95 m), the tiles as the ground, the skirt round them, and the ground's queries and collider from the tiles'
    * collider.
@@ -147,12 +106,12 @@ export function signalDunesLook(): LookStrategy {
     const material = familyGround.material; terrain.material = material;
     // the skirt and the tint's ring mean read the analytic field (the code-built mesh's), never the collider the ground binds
     const analytic = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] }), c = new Color();
-    const skirt = skirtGeometry(analytic.heightAt); scope.own(skirt);
+    const skirtColour = new Color().copy(SAND).lerp(HOLLOW, 0.25), skirt = skirtGrid(SKIRT_GRID, SKIRT_SWELL, analytic.heightAt, skirtColour); scope.own(skirt);
     const skirtMesh = new Mesh(skirt, material); skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh);
-    await bindSandTiles(terrain, field, material, (x, z, h, out, at) => {
+    await SAND_TILES.bind(terrain, field, material, (x, z, h, out, at) => {
       sandTint(analytic.heightAt, x, z, h, c); out[at] = c.r; out[at + 1] = c.g; out[at + 2] = c.b;
     }, scope);
-    holdSkirt(skirtMesh, (half) => skirtGeometry(analytic.heightAt, half), scope); // G99: cut back to the cube in a grid cell
+    SKIRT.hold(skirtMesh, (half) => skirtGrid(SKIRT_GRID, SKIRT_SWELL, analytic.heightAt, skirtColour, half), scope); // G99: cut back to the cube in a grid cell
   };
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {

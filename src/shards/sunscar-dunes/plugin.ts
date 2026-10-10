@@ -16,7 +16,6 @@ import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { ownPrimitives } from './world/resources';
 import { lastLightAll } from './look/light';
 import { setDusk, stepDusk } from './look/dusk';
-import { fitSkirtToCube } from './look/cube';
 import { preloadDuneMeshes } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
 import { DUNE_RAY } from './data/species/duneRay';
@@ -33,7 +32,7 @@ import { DUNE_STRIDER } from './data/species/strider';
 import { DUNE_STRIDER_LOOK } from './species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from './species/matriarch';
 import { installMatriarch, type DuneMatriarch } from './combat/matriarch';
-import { followSandTiles } from './look/groundTiles';
+import { SAND_TILES, SKIRT } from './look/render';
 
 // the slot merges through @wildshard/engine (deep engine paths do not resolve); a program sees it only when it includes this file
 declare module '@wildshard/engine/combat/Equipment' {
@@ -83,7 +82,7 @@ export class SignalDunesPlugin extends ShardPlugin {
     const [, baked] = await Promise.all([preloadDuneMeshes(), loadBakedWorld()]);
     this.places = buildWorld(ctx, new Flags(ctx.manifest.slug), baked); this.fire = this.places.fire;
     // G99: in a grid cell nothing draws past the cube (the dune skirt stops at its edge; the platform drops the ranges)
-    if (ctx.cube !== null) fitSkirtToCube(ctx.cube.half);
+    if (ctx.cube !== null) SKIRT.fit(ctx.cube.half);
   }
   private brainPolicies: ReturnType<typeof declaredDuneRows> | null = null;
   /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */
@@ -148,7 +147,7 @@ export class SignalDunesPlugin extends ShardPlugin {
         scope.onDispose(() => { setDusk(0, true); });
       });
       else { setDusk(duskOf(places), true); ctx.scope.onDispose(() => { setDusk(0, true); }); }
-      ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); followSandTiles(position.x, position.z); } });
+      ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); SAND_TILES.follow(position.x, position.z); } });
     }
     ctx.debug.expose('sunscar', this);
   }

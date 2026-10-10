@@ -1,8 +1,7 @@
 import { MeshStandardMaterial, type Material, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
-import { familyMaterial } from '@wildshard/engine/render/families/registry';
+import { mappedFamilyMaterial } from '@wildshard/sdk/looks/bakedGround';
 import { setGroundPools, updateGround, type GroundPool } from '@wildshard/engine/render/families/ground';
 import type { GroundLayerParams } from '@wildshard/engine/render/families/params';
 import { GROUND_HALF } from '../data/layout';
@@ -76,13 +75,7 @@ export interface FamilySand {
 /** Signal Dunes' sand as a PBR family material over its baked maps; freed with `scope`. */
 export function familySand(maps: { readonly grain: Texture; readonly trail: Texture; readonly shadow: Texture }, dusk: number, scope: Scope): FamilySand {
   const grain = { mean: Number(maps.grain.userData['meanR']), glintMean: Number(maps.grain.userData['meanGlint']) };
-  const byRef: Record<string, Texture> = { 'sd:grain': maps.grain, 'sd:trail': maps.trail, 'sd:shadow': maps.shadow };
-  const material = familyMaterial(sandEntry(dusk, grain), { toon: new ToonLook(), scope, textures: (ref) => {
-    const t = byRef[ref];
-    if (t === undefined) throw new Error(`Signal Dunes sand: no texture ${ref}`);
-    return t;
-  } });
-  scope.own(material);
+  const material = mappedFamilyMaterial(sandEntry(dusk, grain), { 'sd:grain': maps.grain, 'sd:trail': maps.trail, 'sd:shadow': maps.shadow }, scope, 'Signal Dunes sand');
   if (!(material instanceof MeshStandardMaterial)) throw new Error('Signal Dunes sand: the PBR family compiles to a MeshStandardMaterial');
   let fed = dusk;
   return { material, update: (next, fires) => {
@@ -100,13 +93,7 @@ export interface FamilySky {
 /** The painted dusk dome as an emissive family sky over the two stages; freed with `scope`. */
 export function familySky(stages: readonly [Texture, Texture], dusk: number, scope: Scope): FamilySky {
   const look = new EmissiveLook({ blend: Math.min(1, Math.max(0, dusk)) });
-  const byRef: Record<string, Texture> = { 'sd:early': stages[0], 'sd:late': stages[1] };
-  const material = familyMaterial(SKY_ENTRY, { toon: new ToonLook(), emissive: look, scope, textures: (ref) => {
-    const t = byRef[ref];
-    if (t === undefined) throw new Error(`Signal Dunes sky: no texture ${ref}`);
-    return t;
-  } });
-  scope.own(material);
+  const material = mappedFamilyMaterial(SKY_ENTRY, { 'sd:early': stages[0], 'sd:late': stages[1] }, scope, 'Signal Dunes sky', look);
   let fed = look.params.blend;
   return { material, update: (next) => {
     const blend = Math.min(1, Math.max(0, next));
