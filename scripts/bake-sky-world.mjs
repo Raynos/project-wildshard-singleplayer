@@ -28,7 +28,7 @@ for (const [piece, rows, file, name] of PIECES) {
   console.info(`far-reach ${piece}: ${String(glb.length)} bytes → baked/${piece}.glb (${hash}), ${String(data.kinds.length)} kinds, ${String(data.colliders.length)} colliders`);
 }
 // the data-only bakes: rows a generator computes (no GLB)
-for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'bakeSkySeaTexture']]) {
+for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'bakeSkySeaTexture'], ['skyCards', 'generators/skyCards.ts', 'bakeSkyCards']]) {
   const generator = await import(pathToFileURL(resolve(project, file)).href);
   writeFileSync(resolve(project, `data/${rows}.json`), `${JSON.stringify(generator[name](), null, 2)}\n`);
   console.info(`far-reach ${rows}: data/${rows}.json`);

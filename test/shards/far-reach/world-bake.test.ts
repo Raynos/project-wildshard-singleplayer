@@ -17,6 +17,11 @@ import { bakeSkyGeometries, buildGeometries } from '../../../src/shards/far-reac
 import { bakeSkySeaTexture } from '../../../src/shards/far-reach/generators/seaTexture';
 import { seaTexture } from '../../../src/shards/far-reach/look/cloudSea';
 import seaRows from '../../../src/shards/far-reach/data/seaTexture.json' with { type: 'json' };
+import { bakeSkyCards } from '../../../src/shards/far-reach/generators/skyCards';
+import skyCardRows from '../../../src/shards/far-reach/data/skyCards.json' with { type: 'json' };
+import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../../../src/shards/far-reach/data/skyCardsLook';
+import { cardField, cardFieldRow, cardGroup, cardGroupRow } from '@wildshard/sdk/looks/cardField';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { skyBakedPiece, skyKnollHulls } from '../../../src/shards/far-reach/world/baked';
 import { BAKED_PIECES } from '../../../src/shards/far-reach/boot/files';
 import { ISLES, KNOLLS, STEP, WINCH_HOUSE } from '../../../src/shards/far-reach/data/layout';
@@ -178,5 +183,15 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
     expect(data instanceof Uint8Array ? Array.from(data) : null).toEqual(Array.from(atob(rows.rgba), (c) => c.codePointAt(0)));
     expect([tex.image.width, tex.image.height]).toEqual([rows.size, rows.size]);
     tex.dispose();
+  });
+  it('the sky cards (cumulus field, sun glow) are the generator rows (the stale gate) and build from the SDK card field', () => {
+    const rows = bakeSkyCards();
+    expect(rows).toEqual(skyCardRows);
+    const cards = new ShaderFamily(SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS), sun = { uSun: { value: new Vector3(0, 0.1, -1).normalize() } };
+    const glow = cardGroup(cards, cardGroupRow(cards, skyCardRows.sunGlow), sun);
+    expect([glow.group.name, glow.group.children.length, glow.materials.length]).toEqual(['far.sun-glow', 13, 13]);
+    const puffs = cardField(cards, cardFieldRow(cards, skyCardRows.cumulus), sun);
+    expect([puffs.name, puffs.renderOrder, puffs.geometry.instanceCount]).toEqual(['far.cumulus', -5, puffs.geometry.getAttribute('aAt').count]);
+    glow.geometry.dispose(); for (const m of glow.materials) m.dispose(); puffs.geometry.dispose(); puffs.material.dispose();
   });
 });

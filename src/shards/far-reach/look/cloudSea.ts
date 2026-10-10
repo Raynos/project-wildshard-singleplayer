@@ -72,7 +72,7 @@ export function cloudSea(sun: Vector3, tex: DataTexture): CloudSea {
     return mesh;
   };
   // E392 (the judge: the procedural sheets read as a flat streaky plane): one soft backdrop sheet; the painted cumulus
-  // field (look/puffs.ts) carries the cloud sea
+  // field (the cumulus cards, data/skyCardsLook.ts) carries the cloud sea
   return { meshes: [layer(SEA.low, 0.0018, true, -6)], time };
 }
 

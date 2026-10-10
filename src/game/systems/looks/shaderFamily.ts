@@ -1,5 +1,5 @@
 import {
-  AddEquation, BackSide, Color, CustomBlending, DoubleSide, FrontSide, NoBlending, OneFactor, OneMinusSrcAlphaFactor, ShaderMaterial,
+  AddEquation, AdditiveBlending, BackSide, Color, CustomBlending, DoubleSide, FrontSide, NoBlending, OneFactor, OneMinusSrcAlphaFactor, ShaderMaterial,
   SrcAlphaFactor, Vector2, Vector3, Vector4, ZeroFactor, type IUniform, type ShaderMaterialParameters,
 } from 'three';
 
@@ -101,8 +101,8 @@ export const BLEND_ADD_KEEP_ALPHA = {
 } as const;
 
 /** A program's blending: three's default, none (a pass that writes its target outright), colour over with the target's
- *  alpha kept, or added with the alpha kept. */
-export type BlendRow = 'normal' | 'none' | 'keepAlpha' | 'addKeepAlpha';
+ *  alpha kept, added with the alpha kept, or three's additive (a glow, a light shaft). */
+export type BlendRow = 'normal' | 'none' | 'keepAlpha' | 'addKeepAlpha' | 'add';
 /** A program's faces. */
 export type SideRow = 'front' | 'back' | 'double';
 
@@ -173,6 +173,9 @@ export class ShaderFamily<P extends string = string> {
   /** A program's row. */
   row(name: P): ShaderProgramRow { return this.programs[name]; }
 
+  /** Whether the family has a program of this name (a row read from JSON names one by a plain string). */
+  has(name: string): name is P { return Object.hasOwn(this.programs, name); }
+
   /** A material for a program: the shared uniforms it reads (one object each), its own, then the caller's. */
   material(name: P, shared: UniformMap, opt: ShaderMaterialOptions = {}): ShaderMaterial {
     const row = this.programs[name];
@@ -198,6 +201,7 @@ export class ShaderFamily<P extends string = string> {
     if (row.blend === 'none') params.blending = NoBlending;
     else if (row.blend === 'keepAlpha') Object.assign(params, BLEND_KEEP_ALPHA);
     else if (row.blend === 'addKeepAlpha') Object.assign(params, BLEND_ADD_KEEP_ALPHA);
+    else if (row.blend === 'add') params.blending = AdditiveBlending;
     return new ShaderMaterial(params);
   }
 }

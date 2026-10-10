@@ -83,6 +83,7 @@
     "./looks/signs": "./looks/signs.ts",
     "./looks/neonText": "./looks/neonText.ts",
     "./looks/shaderFamily": "./looks/shaderFamily.ts",
+    "./looks/cardField": "./looks/cardField.ts",
     "./looks/shaderEdits": "./looks/shaderEdits.ts",
     "./looks/cascade": "./looks/cascade.ts",
     "./looks/facetedSky": "./looks/facetedSky.ts",

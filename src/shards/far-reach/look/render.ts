@@ -1,4 +1,4 @@
-import { Color, Fog, Mesh, Vector3, type Object3D, type Texture } from 'three';
+import { Color, Fog, Mesh, type Object3D, type Texture } from 'three';
 import { ToneMappingMode } from 'postprocessing';
 import { loadLUT } from '@wildshard/engine/boot/bakedApi';
 import type { LookStrategy } from '@wildshard/engine/render/look';
@@ -8,11 +8,11 @@ import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
 import { seaTexture, cloudSea, maelstrom, paintedMaelstrom, paintedSea } from './cloudSea';
-import { cumulus } from './puffs';
-import { sunGlow } from './sunGlow';
+import { cardField, cardFieldRow, cardGroup, cardGroupRow } from '@wildshard/sdk/looks/cardField';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import SKY_CARDS from '../data/skyCards.json' with { type: 'json' };
+import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../data/skyCardsLook';
 import { PANO_SUN } from './panoramaData';
-import { ISLES, SPANS } from '../data/layout';
-import { SKY_ISLES } from '../world/skyIsles';
 import { loadPainted } from './image';
 import { TEX_URL } from '../boot/files';
 
@@ -32,80 +32,6 @@ const SUN_HAZE = 0.12;
  * (warm bounce, rim, shade floor: look/light.ts), a layered lit cloud sea (look/cloudSea.ts) and a warm distance fog
  * that melts the far islands into the haze.
  */
-/** Puffs wrapping every island's keel, low on its cone (E392: the mockups' islands rise out of the clouds). */
-function keelPuffs(): [number, number, number, number][] {
-  const out: [number, number, number, number][] = [];
-  let a = 4243;
-  const rnd = (): number => { a = (a * 16807) % 2147483647; return a / 2147483647; };
-  for (const isle of [...ISLES, ...SKY_ISLES]) {
-    const n = 5 + Math.round(isle.r / 4);
-    for (let i = 0; i < n; i++) {
-      const ang = (i / n) * Math.PI * 2 + rnd() * 0.6, r = isle.r * (0.35 + rnd() * 0.45), y = isle.y - isle.keel * (0.75 + rnd() * 0.3);
-      out.push([isle.x + Math.cos(ang) * r, y, isle.z + Math.sin(ang) * r, isle.r * (0.4 + rnd() * 0.35)]);
-    }
-  }
-  // cloud in the gaps the rope bridges cross, just under deck level (E410: mockup A's bridge runs over billowing lit
-  // cumulus; ours crossed open air to a flat sea far below): puffs either side of each span's middle, their tops under it
-  let c = 2203;
-  const rndC = (): number => { c = (c * 16807) % 2147483647; return c / 2147483647; };
-  for (const span of SPANS) {
-    if (span.kind !== 'rope') continue;
-    const len = Math.hypot(span.x1 - span.x0, span.z1 - span.z0), ux = (span.x1 - span.x0) / len, uz = (span.z1 - span.z0) / len;
-    for (let i = 0; i < 6; i++) {
-      const t = 0.15 + 0.7 * rndC(), side = (rndC() < 0.5 ? -1 : 1) * (5 + rndC() * 10), size = 7 + rndC() * 6;
-      const deck = span.y + (span.y1 - span.y) * t;
-      out.push([span.x0 + ux * len * t - uz * side, deck - 3 - size - rndC() * 4, span.z0 + uz * len * t + ux * side, size]);
-    }
-  }
-  // a cumulus bank round the storm crown a little under its deck (E399 round 2, seat B: 'no cloud sea behind the stones';
-  // from the arena the true sea, 52 m down, only shows past ~740 m): it reads as the sea just past the rim
-  // its own random stream (round 9: sharing the keels' let every sky isle added or moved re-roll the whole bank; o4 put
-  // lit puffs behind the stones next to the sun, D's glare 10.0 -> 12.6 % of the middle band)
-  let b = 9137;
-  const rndB = (): number => { b = (b * 16807) % 2147483647; return b / 2147483647; };
-  const crown = ISLES.find((isle) => isle.id === 'crown');
-  const to = new Vector3();
-  if (crown !== undefined) for (let i = 0; i < 34; i++) {
-    const ang = (i / 34) * Math.PI * 2 + rndB() * 0.15, r = crown.r + 14 + rndB() * 60;
-    const x = crown.x + Math.cos(ang) * r, y = crown.y - 9 + rndB() * 5, z = crown.z + Math.sin(ang) * r, size = 14 + rndB() * 16;
-    // only the sun disc stays clear, seen from the arena (E410: mockup D's stone gaps are full of lit cumulus tops; the
-    // round-10 cone of ~32 deg toward the sun emptied D's whole view)
-    to.set(x - crown.x, y - crown.y - 2.4, z - crown.z);
-    if (to.angleTo(SUN_DIR) < Math.atan(size / to.length()) + (4 * Math.PI) / 180) continue;
-    out.push([x, y, z, size]);
-  }
-  return out;
-}
-
-/**
- * The cumulus banks between and beyond the sky isles (E407 top-10 row 5: the mockups stack sunlit cloud at many depths
- * under and between their islands; ours sat in one painted sky): [x, y, z, size] in look/puffs.ts' painted cumulus,
- * seeded. Each clears every isle's rock (a cloud never cuts an island) and the playable islands by `clear` metres (no
- * bank in front of a player's face), and leaves the sun disc open from the spawn and from the crown: no bank within its
- * own angular size plus `sunGap` degrees of the sun from either.
- */
-export const BANKS = { count: 48, centre: [0, -110], ring: [170, 560], y: [-2, 34], size: [22, 44], clear: 90, sunGap: 5 } as const;
-export function cloudBanks(): [number, number, number, number][] {
-  const out: [number, number, number, number][] = [];
-  let a = 7717;
-  const rnd = (): number => { a = (a * 16807) % 2147483647; return a / 2147483647; };
-  const eyes = ISLES.filter((isle) => isle.id === 'sunrest' || isle.id === 'crown').map((isle) => new Vector3(isle.x, isle.y + 1.7, isle.z));
-  const to = new Vector3(), gap = (BANKS.sunGap * Math.PI) / 180;
-  for (let tries = 0; out.length < BANKS.count && tries < BANKS.count * 20; tries++) {
-    const ang = rnd() * Math.PI * 2, r = BANKS.ring[0] + (BANKS.ring[1] - BANKS.ring[0]) * Math.sqrt(rnd());
-    const x = BANKS.centre[0] + Math.cos(ang) * r, z = BANKS.centre[1] + Math.sin(ang) * r;
-    // nearer ones lower (under the decks), the far ones up into the isles' band
-    const y = BANKS.y[0] + (BANKS.y[1] - BANKS.y[0]) * (0.35 * rnd() + 0.65 * (r - BANKS.ring[0]) / (BANKS.ring[1] - BANKS.ring[0]));
-    const size = BANKS.size[0] + (BANKS.size[1] - BANKS.size[0]) * rnd();
-    if (ISLES.some((isle) => Math.hypot(x - isle.x, z - isle.z) < BANKS.clear + size)) continue;
-    // a puff card spans 0.75 size either side and size up and down round its centre: clear of every isle's deck-to-keel column
-    if ([...ISLES, ...SKY_ISLES].some((isle) => Math.hypot(x - isle.x, z - isle.z) < isle.r + size * 0.75 && y - size < isle.y + 4 && y + size > isle.y - isle.keel)) continue;
-    if (eyes.some((eye) => { to.set(x, y, z).sub(eye); const d = to.length(); return to.angleTo(SUN_DIR) < Math.atan(size / d) + gap; })) continue;
-    out.push([x, y, z, size]);
-  }
-  return out;
-}
-
 export async function skyReachLook(): Promise<LookStrategy> {
   const pano: Texture = await loadPanorama();
   const [cloudAtlas, seaPaint, vortex] = await Promise.all([loadPainted(TEX_URL.clouds, 'far.cumulus'), loadPainted(TEX_URL.cloudsea, 'far.cloudsea', true), loadPainted(TEX_URL.maelstrom, 'far.maelstrom')]);
@@ -148,8 +74,9 @@ export async function skyReachLook(): Promise<LookStrategy> {
       for (const mesh of sea.meshes) { if (seaPaint === null) scene.add(mesh); scope.own(mesh.geometry); scope.own(mesh.material); }
       scope.onDispose(() => { for (const mesh of sea.meshes) mesh.removeFromParent(); });
       seaTime = sea.time;
-      // the sun's bloom and light shafts at the painted sun (E392)
-      const glow = sunGlow(SUN_DIR); scene.add(glow.group); glowUpdate = glow.update;
+      // the sun's bloom and light shafts at the painted sun (E392; data/skyCardsLook.ts, baked by generators/skyCards.ts)
+      const cards = new ShaderFamily(SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS), sun = { uSun: { value: SUN_DIR } };
+      const glow = cardGroup(cards, cardGroupRow(cards, SKY_CARDS.sunGlow), sun); scene.add(glow.group); glowUpdate = glow.update;
       scope.own(glow.geometry); for (const m of glow.materials) scope.own(m); scope.onDispose(() => { glow.group.removeFromParent(); });
       // the painted cloud sea (E392), wound into the maelstrom under the crown; without its texture the procedural maelstrom disc
       if (seaPaint !== null) {
@@ -159,9 +86,10 @@ export async function skyReachLook(): Promise<LookStrategy> {
       } else {
         const swirl = maelstrom(SUN_DIR, seaTex, sea.time); scene.add(swirl); scope.own(swirl.geometry); scope.own(swirl.material); scope.onDispose(() => { swirl.removeFromParent(); });
       }
-      // cumulus over the sea (loop 5): the islands rise out of billowing cloud
+      // cumulus over the sea (loop 5): the islands rise out of billowing cloud (the camera-facing puffs baked by
+      // generators/skyCards.ts: the ring field, the keel puffs, the bridge gaps, the crown bank and the banks beyond)
       if (cloudAtlas !== null) {
-        const puffs = cumulus(SUN_DIR, cloudAtlas, keelPuffs(), cloudBanks()); scene.add(puffs); scope.own(cloudAtlas); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
+        const puffs = cardField(cards, cardFieldRow(cards, SKY_CARDS.cumulus), sun, { uAtlas: { value: cloudAtlas } }); scene.add(puffs); scope.own(cloudAtlas); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
       }
       return { chain };
     },
