@@ -13,6 +13,7 @@ import { familyCompileJobs } from './families/registry';
 import { shaderPatchTextures } from './shaderPatches';
 import { uploadCompressedTexture } from './compressedUpload';
 import { linkStandIn } from '../app/sceneOwnership';
+import { offscreenPreparations } from './offscreenPreparation';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -49,6 +50,8 @@ import { linkStandIn } from '../app/sceneOwnership';
 export interface CompileJob {
   label: string;
   root: THREE.Object3D;
+  /** An offscreen pass's actual camera, including its light/caster layer mask. */
+  camera?: THREE.Camera;
   /** the scene whose fog / lights / environment the real draw will see (null: an empty scene) */
   target: THREE.Scene | null;
   /** render target the real draw goes to (null: the canvas) */
@@ -78,14 +81,14 @@ export async function warmComposerFrame(composer: Pick<EffectComposer, 'render'>
 type MeshLike = THREE.Object3D & { isMesh?: boolean; geometry?: THREE.BufferGeometry; material?: THREE.Material | THREE.Material[]; isInstancedMesh?: boolean; instanceColor?: THREE.InstancedBufferAttribute | null; isSkinnedMesh?: boolean; isPoints?: boolean; isLine?: boolean; isSprite?: boolean };
 
 /** The parts of an object that change its material's program (WebGLPrograms.getParameters). */
-function objectKey(o: BatchedLike): string {
+function objectKey(o: BatchedLike, positionOnly = false): string {
   const g = o.geometry;
   const a: THREE.NormalBufferAttributes = g?.attributes ?? {};
   const morph = g?.morphAttributes ? Object.keys(g.morphAttributes).map((k) => `${k}${g.morphAttributes[k as 'position']?.length ?? 0}`).join('') : '';
   // The facade shares one material between its shell and a colored BatchedMesh.
   // Both batching bits are shader defines; omitting them skips the batch until its first draw.
   return `${o.isBatchedMesh ? 'B' : ''}${o.isBatchedMesh && o._colorsTexture ? 'K' : ''}${o.isInstancedMesh ? 'I' : ''}${o.instanceColor ? 'C' : ''}${o.isSkinnedMesh ? 'S' : ''}${o.isPoints ? 'P' : ''}${o.isLine ? 'L' : ''}${o.isSprite ? 'Q' : ''}` +
-    `|${a['uv1'] ? 1 : 0}${a['uv2'] ? 1 : 0}${a['uv3'] ? 1 : 0}${a['tangent'] ? 1 : 0}${a['color'] ? 1 : 0}${a['normal'] ? 1 : 0}|${morph}`;
+    `|${positionOnly ? '' : `${a['uv1'] ? 1 : 0}${a['uv2'] ? 1 : 0}${a['uv3'] ? 1 : 0}${a['tangent'] ? 1 : 0}${a['color'] ? 1 : 0}${a['normal'] ? 1 : 0}`}|${morph}`;
 }
 
 const materialsOf = (o: THREE.Object3D): THREE.Material[] => { const m = (o as MeshLike).material; return Array.isArray(m) ? m : m ? [m] : []; };
@@ -134,6 +137,43 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
     jobs.push({ label: engineString('s_4bdf150dd0ed', [i]), root, target: scene, rt });
   }
   return { jobs, materials: mats.size };
+}
+
+/** Prepare registered override passes with their real caster flags and camera layers. Borrowed materials, geometry,
+ * textures and scene state stay untouched; each pass is compiled into its own real target in the ordinary slices. */
+export function offscreenJobs(scene: THREE.Scene, per = 1): CompileJob[] {
+  const isScene = (object: THREE.Object3D): object is THREE.Scene => object instanceof THREE.Scene;
+  const jobs: CompileJob[] = [];
+  scene.traverse(object => {
+    if (!isScene(object)) return;
+    for (const pass of offscreenPreparations(object)) {
+      const seen = new Set<string>(), clones: THREE.Object3D[] = [];
+      for (const root of pass.roots()) root.traverseVisible(caster => {
+        const mesh = caster as MeshLike;
+        if (!mesh.layers.test(pass.camera.layers)) return;
+        // A real render builds its list from visible materials and, for arrays, authored geometry groups.
+        // compile() does neither, so do not create programs for slots the pass cannot draw.
+        const materials = materialsOf(mesh);
+        const drawable = (material: THREE.Material | undefined): boolean => material?.visible === true && material.allowOverride;
+        const eligible = Array.isArray(mesh.material)
+          ? mesh.geometry?.groups.some(group => drawable(materials[group.materialIndex ?? 0])) === true
+          : materials.some(drawable);
+        if (!eligible) return;
+        const key = objectKey(mesh, pass.positionOnly);
+        if (seen.has(key)) return;
+        seen.add(key);
+        const copy = standIn(mesh);
+        copy.material = pass.material;
+        clones.push(copy);
+      });
+      for (let i = 0; i < clones.length; i += per) {
+        const root = new THREE.Group();
+        for (const clone of clones.slice(i, i + per)) root.add(clone);
+        jobs.push({ label: pass.label, root, target: object, rt: pass.target, camera: pass.camera });
+      }
+    }
+  });
+  return jobs;
 }
 
 /** Compile a parked subtree against the light counts its first visible frame will have. Three gathers visible lights
@@ -347,7 +387,7 @@ export async function runPrecompile(
       if (job.fogOff && job.target) job.target.fog = null;
       if (job.environment !== undefined && job.target) job.target.environment = job.environment;
       renderer.setRenderTarget(job.rt);
-      renderer.compile(job.root, camera, job.target ?? undefined);
+      renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
     } finally {
       renderer.setRenderTarget(prevRt);
       if (job.fogOff && job.target) job.target.fog = fog;
@@ -444,7 +484,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const policy = game.level.boot.shaders;
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 } : sceneJobs(scene, rt);
     // material families (SF10a): live family programs the scene does not hold yet (none live: no jobs)
-    if (policy?.scene !== false) jobs.push(...familyCompileJobs(scene, rt));
+    if (policy?.scene !== false) jobs.push(...familyCompileJobs(scene, rt), ...offscreenJobs(scene));
     if (policy?.shadows !== false) jobs.push(...shadowJobs(scene, rt));
     const bg = backgroundJob(scene, rt);
     if (bg && policy?.background !== false) jobs.push(bg); else bg?.dispose?.();

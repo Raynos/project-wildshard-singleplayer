@@ -1070,6 +1070,18 @@ before invoking a custom painter.
 
 `@wildshard/game` re-exports the old names `ShardRender`, `ShardComposeContext`, `ShardComposition` for manifests not yet moved.
 
+**Offscreen preparation.** `@wildshard/engine/render/offscreenPreparation` defines
+`registerOffscreenPreparation(scene, owner, pass)` and `OffscreenPreparation`:
+`{label, camera, material, target, roots(), positionOnly?}`. The SDK defining facade is
+`@wildshard/sdk/looks/offscreenPreparation`. Register an existing override pass
+with its resource owner; the ordinary sliced precompile gathers the current,
+visible caster variants in the pass camera's layers and borrows the exact material,
+camera and render target. It does not draw the pass, advance a clock, rewrite shader
+sources, or change caster visibility/parents. Disposal unregisters before resources
+retire. `offscreenPreparations(scene)` reads registrations; `offscreenJobs(scene)`
+collects detached compile jobs across the page's nested scenes. `CompileJob.camera?`
+overrides the page camera for those jobs, keeping light-layer program keys exact. Set `positionOnly: true` only when the authored vertex shader reads no normal, colour or UV attributes; preparation then keeps the real draw cache's one representative per object flag set, including instancing, batching and skinning, without adding unused attribute programs.
+
 ### 13.2 Shader patches
 
 Every shader patch goes through `patchShader(material, id, order, fn, { scope, mode?, key? })`. A raw

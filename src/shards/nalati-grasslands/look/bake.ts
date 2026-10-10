@@ -20,6 +20,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { registerOffscreenPreparation } from '@wildshard/sdk/looks/offscreenPreparation';
 import { LOOK_BAKE_GLSL_DATA } from '../data/lookBakeGlsl';
 
 /** the GLSL below is data (data/lookBakeGlsl.ts); `@{name}` splices the fragments this module passes */
@@ -98,6 +99,11 @@ export class StaticBake {
       if (bakeUniforms.tBakeShadow.value === depthTexture) { bakeUniforms.tBakeShadow.value = null; bakeUniforms.uBakeInfo.value.x = 0; }
       if (bakeUniforms.tBakeContact.value === this.contactRT.texture) { bakeUniforms.tBakeContact.value = null; bakeUniforms.uContactXf.value.w = 0; }
     });
+    // These exact override programs draw only on the bake's first update; prepare them while the resident is hidden.
+    registerOffscreenPreparation(scene, scope, { label: 'static shadow', camera: this.shadowCam, material: this.depthMat,
+      target: this.shadowRT, positionOnly: true, roots: () => this.roots });
+    registerOffscreenPreparation(scene, scope, { label: 'static contact', camera: this.contactCam, material: this.contactMat,
+      target: this.contactRT, positionOnly: true, roots: () => this.roots });
     onGpuRestored(() => { this.invalidate(); }, scope); // the maps live only on the GPU: an in-place WebGL restore bakes them again (E54)
   }
 

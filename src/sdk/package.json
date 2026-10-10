@@ -155,7 +155,8 @@
     "./sourceManifest": "./sourceManifest.ts",
     "./modelGeometry": "./modelGeometry.ts",
     "./skinnedModel": "./skinnedModel.ts",
-    "./bake/skinned": "./bake/skinned.ts"
+    "./bake/skinned": "./bake/skinned.ts",
+    "./looks/offscreenPreparation": "./looks/offscreenPreparation.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -471,6 +472,10 @@
       "./modelGeometry": {
         "types": "./dist/types/sdk/modelGeometry.d.ts",
         "default": "./dist/modelGeometry.js"
+      },
+      "./looks/offscreenPreparation": {
+        "types": "./dist/types/sdk/looks/offscreenPreparation.d.ts",
+        "default": "./dist/looks/offscreenPreparation.js"
       }
     }
   }

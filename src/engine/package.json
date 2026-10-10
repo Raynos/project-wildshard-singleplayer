@@ -405,6 +405,7 @@
     "./core/meshCollision": "./core/meshCollision.ts",
     "./physics/meshCollision": "./physics/meshCollision.ts",
     "./player/combatMotion": "./player/combatMotion.ts",
-    "./player/walk": "./player/walk.ts"
+    "./player/walk": "./player/walk.ts",
+    "./render/offscreenPreparation": "./render/offscreenPreparation.ts"
   }
 }
