@@ -27,26 +27,11 @@ after a longer wait the whole context is re-cached at full price.
   sends the request over herdr to the agent that owns the engine; it is never thrown away and restarted from scratch
   to prove a zero-gap run. Continue the same agent while its context allows; else its successor starts from its last report and commits.
 
-## Codex and Opus: who gets the work (Jake, 2026-10-08)
+## No Codex workers (Jake, 2026-10-10)
 
-Jake: the goal is for **Codex to hit 0 % while Claude still has a 10 % reserve**, never the other way round. Claude is the top-level
-agent, so its last 10 % is a reserve tank for discussions with Jake and for coordinating. Codex left unspent at the reset is wasted;
-running out of Claude with Codex to spare is worse.
+Codex lanes are not a general tool. Only a plan Jake granted them in his own words runs them
+(SHARD-PLATFORM §9, GAME-NORMALIZATION), with that plan's rules. Everyone else builds as the main agent, with at most 3 Claude
+subagents.
 
-- **Graphical work is Opus-only:** rendering, shaders / GLSL, three.js, materials, looks, sky, post effects, captures, boards, pixel
-  proofs. Codex lanes do **non-graphical engineering only**: data, loaders, sim, physics, residency, harnesses, CI, tests, memory
-  accounting, tooling.
-- **Read the budgets before dispatching new work:** `openusage` (JSON, 5-minute cache): `providers.claude.resources.weekly.remaining`
-  and `providers.codex.resources.weekly.remaining`, each with its `resetsAt`.
-- **Pace each provider to its target:**
-  - Claude may spend `weekly.remaining − 10` points before its reset.
-  - Codex may spend all of its `weekly.remaining` before its reset.
-  - Divide by the hours to each reset to get a burn rate per hour per provider.
-  - When a provider burns faster than its rate, give it fewer lanes / no new tasks (its lanes finish the commit in flight, report over
-    herdr, go idle).
-  - When it burns slower, give it more of the non-graphical work.
-  - When in doubt, lean on Codex: a slightly early Codex zero is fine; touching Claude's reserve is not.
-- **Re-check at least every few hours and at every new batch of work.** Record the reading and the lane split in the plan's §9 / State
-  line when it changes.
 - **A lane going idle reports over herdr** (done, open, the exact next step, SHAs, owned previews to stop); no handoff file
   (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`). The coordinator folds it into STATE.md; whoever picks the work up starts from that.
