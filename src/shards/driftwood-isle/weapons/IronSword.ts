@@ -2,6 +2,8 @@ import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { WRECK } from '../manifest';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
+import { SEED } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
 import { IRON_SWORD_BLADE_GEOMETRY, IRON_SWORD_FITTINGS_GEOMETRY } from '../boot/fixedGeometry';
 import { ItemPickup, type PickupTier } from '@wildshard/engine/player/WeaponPickup';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -48,6 +50,9 @@ export interface IronSwordPickupOptions {
 }
 
 const WARM = 0xffb257;
+/** the pickup's cosmetic draws (the glow's flicker phase, the orb's bob and motes) come from this seed, not `Math.random`:
+ *  the frame at the wreck stays the same however many three.js objects the boot made before it */
+const COSMETIC_SEED = SEED ^ 0x1205;
 const TAKE_R = 0;                  // m, feet to the orb's floor point for a walk-in take — off (B4): the sword is taken with E, once its guard is down
 const LIFT = 0.22;                 // m the orb's floor point sits over the deck: the big sword (DISPLAY_SCALE × 1.25 m) pokes out of the
                                    // orb top and bottom, so the pommel clears the planks
@@ -139,14 +144,15 @@ export class IronSwordPickup {
   private floor: THREE.Vector3;
   private takeRadius: number;
   private scene: THREE.Scene;
-  private phase = Math.random() * 7;
+  private readonly cosmetic = new Rng(COSMETIC_SEED);
+  private phase = this.cosmetic.next() * 7;
   private gone = false;
 
   constructor(opts: IronSwordPickupOptions) {
     this.scene = opts.scene;
     this.floor = opts.position.clone(); this.floor.y += LIFT;
     this.takeRadius = opts.takeRadius ?? TAKE_R;
-    this.pickup = new ItemPickup({ scene: opts.scene, item: buildIronSwordDisplay(opts.sky), position: this.floor, tier: opts.tier ?? 'common', prompt: opts.prompt ?? 'Take iron sword', radius: opts.radius ?? 2.6, scale: DISPLAY_SCALE, tilt: TILT });
+    this.pickup = new ItemPickup({ scene: opts.scene, item: buildIronSwordDisplay(opts.sky), position: this.floor, tier: opts.tier ?? 'common', prompt: opts.prompt ?? 'Take iron sword', radius: opts.radius ?? 2.6, scale: DISPLAY_SCALE, tilt: TILT, random: () => this.cosmetic.next() });
     const base = this.pickup.interactable, reason = (): string | null => this.guard?.() ?? null;
     this.interactable = {
       position: base.position,

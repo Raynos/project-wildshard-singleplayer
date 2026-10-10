@@ -63,6 +63,11 @@ export interface ItemPickupOptions {
   /** false: the item keeps its own look (no tier-coloured emissive) — an item on a material the world shares (the island's
    *  low-poly one: a trophy drop, E314) must not tint everything drawn with it. Default true */
   glow?: boolean;
+  /** the source of the pickup's cosmetic draws (its bob phase, its motes, the burst), uniform in [0, 1). Default
+   *  `Math.random`. A shard whose frames must not move with how many three.js objects were made before the pickup (each
+   *  object's uuid draws four `Math.random` values, so one more model loaded at boot shifts every later draw) passes its
+   *  own seeded generator. */
+  random?: () => number;
 }
 
 const SPHERE_R = 0.65;
@@ -170,7 +175,11 @@ export class ItemPickup {
   private orb: THREE.Color; private sparkCol = new THREE.Color();
   private uTime: THREE.IUniform<number> = { value: 0 }; private uRim: THREE.IUniform<number> = { value: RIM }; private uHaze: THREE.IUniform<number> = { value: HAZE }; private uScale: THREE.IUniform<number> = { value: 400 };
 
+  private readonly random: () => number;
+
   constructor(opts: ItemPickupOptions) {
+    this.random = opts.random ?? ((): number => Math.random());
+    if (opts.random !== undefined) this.bob = opts.random() * Math.PI * 2;
     this.scene = opts.scene;
     this.tier = opts.tier ?? 'common';
     const colour = this.orb = new THREE.Color(ORB_COLOUR[this.tier]);
@@ -254,13 +263,13 @@ export class ItemPickup {
 
   /** a mote on its helix: angle, radius 0.5–0.75 m (just outside the sphere), rising from the bottom */
   private spawnMote(i: number, anywhere: boolean): void {
-    const ang = Math.random() * Math.PI * 2; this.mAngle[i] = ang;
-    const rad = 0.5 + Math.random() * 0.25; this.mRadius[i] = rad;
-    const y = HOVER + (anywhere ? (Math.random() - 0.5) * 2 : -1) * SPHERE_R * 1.05; this.mY[i] = y;
-    this.mRise[i] = 0.16 + Math.random() * 0.14;
-    this.mSpin[i] = (0.9 + Math.random() * 0.8) * (i % 2 ? 1 : -1);
+    const ang = this.random() * Math.PI * 2; this.mAngle[i] = ang;
+    const rad = 0.5 + this.random() * 0.25; this.mRadius[i] = rad;
+    const y = HOVER + (anywhere ? (this.random() - 0.5) * 2 : -1) * SPHERE_R * 1.05; this.mY[i] = y;
+    this.mRise[i] = 0.16 + this.random() * 0.14;
+    this.mSpin[i] = (0.9 + this.random() * 0.8) * (i % 2 ? 1 : -1);
     const spark = i % SPARK_EVERY === 0 ? 1 : 0; this.mSpark[i] = spark;
-    this.mSize[i] = (spark ? 0.05 : 0.03) + Math.random() * 0.025;
+    this.mSize[i] = (spark ? 0.05 : 0.03) + this.random() * 0.025;
     const x = Math.cos(ang) * rad, z = Math.sin(ang) * rad;
     this.pos[i * 3] = x; this.pos[i * 3 + 1] = y; this.pos[i * 3 + 2] = z;
     for (let k = 0; k < TRAIL; k++) { const h = (i * TRAIL + k) * 3; this.hist[h] = x; this.hist[h + 1] = y; this.hist[h + 2] = z; }
@@ -403,11 +412,11 @@ export class ItemPickup {
       this.shock.visible = true;
       for (let i = 0; i < MOTES * (1 + TRAIL); i++) this.alpha[i] = 0;
       for (let i = 0; i < BURST_MOTES; i++) {
-        const s = MOTES * (1 + TRAIL) + i, a = Math.random() * Math.PI * 2, el = (Math.random() - 0.35) * Math.PI, sp = 2.2 + Math.random() * 3.2;
+        const s = MOTES * (1 + TRAIL) + i, a = this.random() * Math.PI * 2, el = (this.random() - 0.35) * Math.PI, sp = 2.2 + this.random() * 3.2;
         this.pos[s * 3] = 0; this.pos[s * 3 + 1] = HOVER; this.pos[s * 3 + 2] = 0;
         this.bVel[i * 3] = Math.cos(a) * Math.cos(el) * sp; this.bVel[i * 3 + 1] = Math.sin(el) * sp + 1.5; this.bVel[i * 3 + 2] = Math.sin(a) * Math.cos(el) * sp;
-        this.bLife[i] = BURST_LIFE * (0.6 + Math.random() * 0.4);
-        this.size[s] = 0.03 + Math.random() * 0.04; this.alpha[s] = 1;
+        this.bLife[i] = BURST_LIFE * (0.6 + this.random() * 0.4);
+        this.size[s] = 0.03 + this.random() * 0.04; this.alpha[s] = 1;
         const c = i % 5 === 0 ? this.sparkCol : this.orb; this.col[s * 3] = c.r; this.col[s * 3 + 1] = c.g; this.col[s * 3 + 2] = c.b;
       }
       (this.points.geometry.getAttribute('aColor') as THREE.BufferAttribute).needsUpdate = true;
