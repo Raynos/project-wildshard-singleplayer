@@ -108,6 +108,7 @@
     "./looks/bakedGround": "./looks/bakedGround.ts",
     "./looks/mapPalette": "./looks/mapPalette.ts",
     "./looks/fittedHull": "./looks/fittedHull.ts",
+    "./looks/duskFamilies": "./looks/duskFamilies.ts",
     "./looks/paintedStrips": "./looks/paintedStrips.ts",
     "./looks/duskCurves": "./looks/duskCurves.ts",
     "./looks/modelLibrary": "./looks/modelLibrary.ts",
