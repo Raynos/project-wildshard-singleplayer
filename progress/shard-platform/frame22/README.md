@@ -42,3 +42,10 @@ content), Nine's pose = its spawn frame (0.95, 125, 7.5, yaw −12°), 120 frame
 and city hold both floors. The entry travel row misses on both surfaces with the row off as well (the cell's entry
 and portal hitch, not the composite); the Simulator row-off run fell on a loaded machine (load average 17-26, push
 gates running) and is noise. Results: `progress/frame-floor/d82326179-{38392,48647,55237,66043}-*.json`.
+
+**op-frame21's Simulator crossroads / deck-north (p95 39 ms under load), rerun** on main `85bc9fefb`, production build,
+row off (`progress/frame-floor/85bc9fefb-8628-*.json`): crossroads 30.30 fps / p95 36 ms (p99 43; 0.9 ms past the 35 ms
+limit), deck-north scanned at p95 34 ms (24 frames; not among the two heaviest, so no 120-frame row), deck-east 30.30 / 34,
+spawn 30.30 / 34. The machine never went quiet (1-minute load 15-25 during the run, push gates running); on the
+DEVSERVER build with the row on, crossroads read 30.30 / 34 PASS (load similar). The 30 fps median holds everywhere; the
+crossroads p95 sits at the 35 ms line and needs a truly quiet rerun to call.
