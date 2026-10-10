@@ -87,9 +87,15 @@ try {
   const page = await (await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: SCALE })).newPage();
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 300)));
   await page.clock.install();
+  // a shot's `storage` ({ key: value }) is written to localStorage before the page loads: a pause-menu setting a
+  // player can change (§2.3), e.g. tracers off on the builds that keep settings there
+  if (shot.storage) await page.addInitScript((kv) => { for (const [k, v] of Object.entries(kv)) localStorage.setItem(k, v); }, shot.storage);
   await page.goto(receipt.url, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(`Boolean(${WORLD[ERA]}?.game)`, undefined, { timeout: 300000, polling: 1000 });
   await page.waitForTimeout((shot.warmSec ?? 10) * 1000); // stream the world in (real time, the fake clock still flows)
+  // a shot's `prepare(page)` runs from Node before the adapter: player actions in the page's own UI (a pause-menu
+  // setting), recorded in the receipt
+  if (shot.prepare) receipt.prepared = await shot.prepare(page);
   receipt.adapter = await page.evaluate(`window.__dt = ${speedAt(0) / (60 * SUB)}; ${ADAPT[ERA]}`);
   await page.evaluate(`window.__takeOpt = ${arg('opt', '{}')}; window.__takeEvents = []`);
   receipt.opt = JSON.parse(arg('opt', '{}'));

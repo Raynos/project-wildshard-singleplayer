@@ -157,6 +157,12 @@ says so.
   `progress/progress-trailer/pt2-rewind-spot.jpg`: 1 → 8 better (grass, the crossbow's look), 8 → 15 the remaster (the
   forest, deer), 15 → 22 the same world with a herd of antlered stags. By Jake's rule the cuts are day 1 → 8 → 15 and
   the day-22 take carries the impact. (Facing east from (210, −7.5) shows the shard's boundary wall behind the stag.)
+- **The rewind take (PT3 begun)**: `shots/rewind.mjs`, one look-and-fire track from (230, 0) at the fixed aim point
+  (222.39, 1.8, −9.47), the day-22 stag's head; hip-fire at +1.0 s on all four builds; on day 22 the stag drops at
+  +1.2 s. Tracers are turned off the way a player does it: the pause menu's "Tracer bolts" toggle (days 15 and 22 keep
+  settings in the save store), `?tracer=0` on day 8, none on day 1; `take.mjs`'s `prepare(page)` runs such UI steps and
+  records them. The speed ramp starts after the release (a ramp before it shifts every system's random draws and the
+  hip spread with them). `cut-rewind.py` cuts the four takes where the bolt has flown 2 / 4 / 6 m.
 
 ### 3.2 HEAD shots and the shared tools (the trailer agent's pipeline, unedited)
 
