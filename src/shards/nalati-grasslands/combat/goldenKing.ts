@@ -30,6 +30,7 @@ import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { Boss, type BossDef, type BossPersistence } from '@wildshard/game/Boss';
 
 import { GoldenBowPower, goldenBowModel } from '../runtime/weapons/GoldenBow';
+import { KING_DEF_PHASES, KING_ENCOUNTER, KING_LINES, KING_REWARD, KING_TUNING } from '../data/goldenKingFight';
 
 
 /**
@@ -60,18 +61,12 @@ import { GoldenBowPower, goldenBowModel } from '../runtime/weapons/GoldenBow';
  *     at that checkpoint; `window.__boss`).
  */
 
-export const KING_DEF_PHASES = [
-  { at: 1, caption: '', name: "The King's Court" },
-  { at: 0.6, caption: 'PHASE II', name: 'The Kurgan Wakes' },
-  { at: 0.3, caption: 'PHASE III', name: 'The Gold Burns' },
-];
-
 type Mode = 'coffin' | 'rising' | 'fight' | 'toCoffin' | 'shield' | 'stun' | 'kneel' | 'dead';
 interface Ring { r: number; delay: number; active: boolean; hit: boolean; cx: number; cz: number }
 
-const STRIKE_DMG = [14, 14, 22, 22], REACH = 3.0, SUNBURST_DMG = 25, RING_SPEED = 8.5, RING_MAX = 17;
-const BEAM_R = 6.2, BEAM_HIT_R = 1.15, BEAM_DMG = 15, BEAM_TO_KING = 50, HEADDRESS_HP = 200;
-const SHIELD_SPOT = { x: COFFIN.x, z: COFFIN.z + COFFIN.len / 2 + 0.7 };
+const { strikeDamage: STRIKE_DMG, reach: REACH, sunburstDamage: SUNBURST_DMG, ringSpeed: RING_SPEED, ringMax: RING_MAX, beamRadius: BEAM_R,
+  beamHitRadius: BEAM_HIT_R, beamDamage: BEAM_DMG, beamToKing: BEAM_TO_KING, headdressHp: HEADDRESS_HP } = KING_TUNING;
+const SHIELD_SPOT = { x: COFFIN.x, z: COFFIN.z + COFFIN.len / 2 + KING_TUNING.shieldOffset };
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _h = new THREE.Vector3(), _focus = new THREE.Vector3();
 
 /** NALATI-MERGE F9: the chamber floor is level, and it is not the terrain. Animal.sampleTerrain tilts a body to the slope
@@ -209,7 +204,7 @@ export class GoldenKingFight implements BossScript {
     k.cancelAttack(); this.comboLeft = 0; this.dungeon.arc.mesh.visible = false;
     if (phase === 1) {
       k.mem['act'] = 3; k.startAttack(1.3);
-      this.host.feed('The kurgan wakes — the King falls back to his coffin');
+      this.host.feed(KING_LINES.wakes);
       this.mode = 'toCoffin'; this.modeT = -1.3;
       this.streamT = 2.5;
     } else if (phase === 2) {
@@ -219,7 +214,7 @@ export class GoldenKingFight implements BossScript {
       for (const s of this.streams) if (s.st !== 0) { s.st = 0; s.t = 0; }
       this.beamOn = true; this.beamA = -2.2; this.beamDir = 1; this.beamK = 0;
       this.headHp = HEADDRESS_HP;
-      this.host.feed('The King tears off his cloak — the gold burns');
+      this.host.feed(KING_LINES.cloak);
       this.comboCd = 1.6; this.burstCd = 3.5;
     }
   }
@@ -375,7 +370,7 @@ export class GoldenKingFight implements BossScript {
     const melee = Math.hypot(hitPoint.x - pl.x, hitPoint.z - pl.z) < 3.8;
     if (melee) {
       this.plaques++;
-      if (this.plaques === 6 && !this.chestOpen) { this.chestOpen = true; this.host.feed('Gold plaques torn loose — his chest is bare'); }
+      if (this.plaques === 6 && !this.chestOpen) { this.chestOpen = true; this.host.feed(KING_LINES.plaques); }
       return soft;
     }
     return (this.chestOpen ? 1 : 0.5) * soft;
@@ -393,7 +388,7 @@ export class GoldenKingFight implements BossScript {
         const lost = this.lastHp - k.hp;
         if (lost > 0 && k.alive && this.mode !== 'dead' && this.phase >= 2 && (k.mem['crown'] ?? 1) > 0) {
           this.headHp -= lost;
-          if (this.headHp <= 0) { k.mem['crown'] = 0; this.mode = 'kneel'; this.modeT = 0; k.cancelAttack(); k.mem['act'] = 0; k.mem['kneel'] = 1; this.host.feed('The headdress falls — the King kneels'); }
+          if (this.headHp <= 0) { k.mem['crown'] = 0; this.mode = 'kneel'; this.modeT = 0; k.cancelAttack(); k.mem['act'] = 0; k.mem['kneel'] = 1; this.host.feed(KING_LINES.headdress); }
         }
         this.lastHeadHit = false;
       }
@@ -448,7 +443,7 @@ export class GoldenKingFight implements BossScript {
       r.active = true; r.hit = false; r.r = 0.8; r.delay = i * 0.95;
       r.cx = a.position.x; r.cz = a.position.z;
     }
-    this.host.feed(n > 1 ? 'SUNBURST ×2 — jump, land, jump' : 'SUNBURST — jump it');
+    this.host.feed(n > 1 ? KING_LINES.sunburstDouble : KING_LINES.sunburst);
   }
 
   private updateRings(dt: number): void {
@@ -491,7 +486,7 @@ export class GoldenKingFight implements BossScript {
         this.mode = 'stun'; this.modeT = 0;
         k.mem['raise'] = 0; k.mem['kneel'] = 1;
         this.balbals = this.balbals.filter((b) => !b.a.hidden);
-        this.host.feed('The dome breaks — the King is stunned');
+        this.host.feed(KING_LINES.domeBreaks);
       }
     }
   }
@@ -564,12 +559,12 @@ export class GoldenKingFight implements BossScript {
       this.beamKingCd = 3;
       k.headWorld(_h);
       k.applyDamage(BEAM_TO_KING, _h, _w.set(0, -1, 0));
-      this.host.feed('The sun beam sears the King');
+      this.host.feed(KING_LINES.beamSears);
     }
   }
 
   private prefillDrifts(): void {
-    for (const [x, z, r] of [[-5.2, 3.4, 2.6], [4.8, 4.6, 2.4], [-3.6, -5, 2.2], [5.6, -3.2, 2.5], [1.8, 6.6, 2.0]] as const) this.dungeon.addSand(x, z, r, 0.6, 0.8);
+    for (const [x, z, r] of KING_TUNING.drifts) this.dungeon.addSand(x, z, r, 0.6, 0.8);
   }
 
   private hideFx(): void {
@@ -706,10 +701,9 @@ export class KurganBoss {
       feed: play.feed,
     });
     const def: BossDef = {
-      id: 'golden-king', name: 'THE GOLDEN KING', title: 'LORD OF THE GREAT KURGAN', retryTitle: 'THE KING ENDURES',
-      phases: KING_DEF_PHASES, intro: 4.2, introShort: 1.4,
+      ...KING_ENCOUNTER,
       reward: {
-        tier: 'LEGENDARY', name: 'THE GOLDEN BOW', flavour: 'Bow of the Saka King', prompt: 'TAKE THE GOLDEN BOW',
+        ...KING_REWARD,
         model: () => goldenBowModel(sky),
         grant: () => { if (play.bow && this.golden) { play.upgradeBow(this.golden); } },
       },

@@ -40,6 +40,7 @@ import { CAIRN } from '../layout';
 import { LightningStrip, NaizagaiPower, naizagaiModel } from '../runtime/weapons/Naizagai';
 import { patchTitanCloud, GrassFireFx } from './stormTitanLook';
 import { smoothstep } from '@wildshard/engine/core/noise';
+import { TITAN_ENCOUNTER, TITAN_LINES, TITAN_PHASES, TITAN_PLACE, TITAN_REWARD, TITAN_SKIN, TITAN_TUNING } from '../data/stormTitanFight';
 
 
 /**
@@ -90,26 +91,17 @@ import { smoothstep } from '@wildshard/engine/core/noise';
 
 // ─────────────────────────────── the place ───────────────────────────────
 
-const CENTER = { x: CAIRN.x, z: CAIRN.z + 44 };
-const ARENA_R = 68;
-/** his waist, beyond the rim in the cloud sea. Measured: a full-draw arrow in the storm's gale drops ~14 m and drifts ~26 m
- *  by 110 m out (and Projectiles ends a flight past CHUNK_HALF + 80 m), so the heart is kept ~50–90 m from the arena: the
- *  standing heart ~20 m in front of this, the bent one (the spear stuck) 18 m nearer */
-const TITAN = { x: CAIRN.x, z: CAIRN.z - 62 };
-const HEART_HP = 2600;
-/** the body is built at a 60 m design size and drawn ×1.9 — a ~110 m giant, so he fills the storm sky like the mockups */
-const BODY_SCALE = 1.9;
-export const TITAN_PHASES = [
-  { at: 1, caption: '', name: 'The Sky Spear' },
-  { at: 0.6, caption: 'PHASE II · THE THREE WINDS', name: 'The Three Winds' },
-  { at: 0.3, caption: 'PHASE III · THE GRASS FIRE', name: 'The Grass Fire' },
-];
-const SPEAR_DMG = 40, SPEAR_R = 4.5, SPEAR_AIM = 1.5, SPEAR_LOCK = 0.5, SPEAR_STUCK = 3;
-const WHIRL_DMG = 15, WHIRL_R = 3.2;
-const RIDER_HP = 250, RIDER_CHIP = 0.08, CHARGE_DMG = 30, LANE_T = 1.2, FLANK_T = 2, STUN_T = 4;
-const CELL = 4, GRID = Math.ceil((ARENA_R * 2) / CELL), BURN_T = 7, FIRE_DPS = 8, MAX_FLAMES = 420;
-const CHAIN_DMG = 18, CHAIN_R = 3, CHAIN_LAND = 0.6;
-const FULL_DRAW = 43, FULL_DRAW_MUL = 2.5;
+const CENTER = { x: CAIRN.x, z: CAIRN.z + TITAN_PLACE.centreZ };
+const ARENA_R = TITAN_PLACE.arenaRadius;
+/** his waist, beyond the rim in the cloud sea (Projectiles also ends a flight past CHUNK_HALF + 80 m): the standing heart
+ *  ~20 m in front of this, the bent one (the spear stuck) 18 m nearer */
+const TITAN = { x: CAIRN.x, z: CAIRN.z + TITAN_PLACE.titanZ };
+const { heartHp: HEART_HP, bodyScale: BODY_SCALE } = TITAN_PLACE;
+const { spearDamage: SPEAR_DMG, spearRadius: SPEAR_R, spearAim: SPEAR_AIM, spearLock: SPEAR_LOCK, spearStuck: SPEAR_STUCK, whirlDamage: WHIRL_DMG,
+  whirlRadius: WHIRL_R, riderHp: RIDER_HP, riderChip: RIDER_CHIP, chargeDamage: CHARGE_DMG, laneSeconds: LANE_T, flankSeconds: FLANK_T,
+  stunSeconds: STUN_T, cell: CELL, burnSeconds: BURN_T, fireDps: FIRE_DPS, maxFlames: MAX_FLAMES, chainDamage: CHAIN_DMG, chainRadius: CHAIN_R,
+  chainLand: CHAIN_LAND, fullDraw: FULL_DRAW, fullDrawMul: FULL_DRAW_MUL } = TITAN_TUNING;
+const GRID = Math.ceil((ARENA_R * 2) / CELL);
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _s = new THREE.Vector3();
 const _ray = new THREE.Ray(), _sph = new THREE.Sphere(), _hitP = new THREE.Vector3();
@@ -502,14 +494,14 @@ export class StormTitanFight implements BossScript {
     if (phase === 1) {
       this.domeBroken = false; this.stunT = 0;
       this.spawnRiders();
-      this.host.feed('JEL ATA kneels — his heart shuts behind the wind · break the three riders');
+      this.host.feed(TITAN_LINES.kneels);
     } else this.clearRiders();
     if (phase === 2) {
       this.fireOn = true;
       // the lightning has already lit the plateau in three places (upwind of you)
       const p = this.host.player.position;
       for (let i = 0; i < 3; i++) { const a = i * 2.1 + 0.5; this.ignite(p.x + Math.cos(a) * 26, p.z + Math.sin(a) * 26); }
-      this.host.feed('THE GRASS FIRE — ride upwind onto the black');
+      this.host.feed(TITAN_LINES.grassFire);
     }
   }
 
@@ -618,7 +610,7 @@ export class StormTitanFight implements BossScript {
   private hitHeart(amount: number): boolean {
     if (this.dead) return false;
     if (!this.heartOpen) {
-      if (this.immuneT <= 0) { this.immuneT = 2.5; this.host.toast(this.phase === 1 ? 'IMMUNE — the dome holds while a rider stands' : 'IMMUNE — his heart opens when the spear is stuck'); }
+      if (this.immuneT <= 0) { this.immuneT = 2.5; this.host.toast(this.phase === 1 ? TITAN_LINES.immuneDome : TITAN_LINES.immuneSpear); }
       return false;
     }
     const mul = amount >= FULL_DRAW ? FULL_DRAW_MUL : 1;
@@ -659,7 +651,7 @@ export class StormTitanFight implements BossScript {
       case 'strike':
         b.raise += (0 - b.raise) * Math.min(1, dt * 8);
         b.bend += (1 - b.bend) * Math.min(1, dt * 5);
-        if (this.spearT > 0.45) { this.spear = 'stuck'; this.spearT = 0; if (this.phase === 0) this.host.feed('The spear is stuck — HIS HEART IS OPEN'); }
+        if (this.spearT > 0.45) { this.spear = 'stuck'; this.spearT = 0; if (this.phase === 0) this.host.feed(TITAN_LINES.spearStuck); }
         break;
       case 'stuck':
         b.bend += (1 - b.bend) * Math.min(1, dt * 5);
@@ -712,7 +704,7 @@ export class StormTitanFight implements BossScript {
         r.lane.hide();
         this.stormRiders.splice(i, 1);
         if (!this.invuln) this.hp = Math.max(1, this.hp - RIDER_CHIP * HEART_HP);
-        this.host.feed(this.stormRiders.length > 0 ? `A storm rider breaks — JEL ATA −8 % · ${this.stormRiders.length} left` : 'The last rider streams back into him — the dome breaks!');
+        this.host.feed(this.stormRiders.length > 0 ? `${TITAN_LINES.riderBreaks} · ${this.stormRiders.length} left` : TITAN_LINES.lastRider);
         if (this.stormRiders.length === 0) { this.domeBroken = true; this.stunT = STUN_T; this.body.uni.uFlash.value = 1; }
         continue;
       }
@@ -843,7 +835,7 @@ export class StormTitanFight implements BossScript {
     // the player in fire: 8 / s; the horse panics near it
     const p = this.host.player.position;
     this.fireDmgT -= dt;
-    if (this.burningAt(p.x, p.z) && this.fireDmgT <= 0) { this.fireDmgT = 0.5; sampleArena(NALATI_STRIKES.fire, p, p, () => { this.host.hurt(FIRE_DPS * 0.5, 'The grass is burning — ride upwind onto the black'); }, app.physics); }
+    if (this.burningAt(p.x, p.z) && this.fireDmgT <= 0) { this.fireDmgT = 0.5; sampleArena(NALATI_STRIKES.fire, p, p, () => { this.host.hurt(FIRE_DPS * 0.5, TITAN_LINES.burning); }, app.physics); }
     if (this.host.mounted()) {
       let near = false;
       for (let a = 0; a < 6 && !near; a++) near = this.burningAt(p.x + Math.cos(a) * 5, p.z + Math.sin(a) * 5);
@@ -877,7 +869,7 @@ export class StormTitanFight implements BossScript {
         c.on = false; c.tell.hide();
         this.bolt(c.x, c.z);
         this.ignite(c.x, c.z);
-        if (Math.hypot(p.x - c.x, p.z - c.z) < CHAIN_R) sampleArena(NALATI_STRIKES.chain, _v.set(c.x, p.y, c.z), p, () => { this.host.hurt(CHAIN_DMG, 'Chain lightning — keep moving'); }, app.physics);
+        if (Math.hypot(p.x - c.x, p.z - c.z) < CHAIN_R) sampleArena(NALATI_STRIKES.chain, _v.set(c.x, p.y, c.z), p, () => { this.host.hurt(CHAIN_DMG, TITAN_LINES.chain); }, app.physics);
       }
     }
   }
@@ -1002,7 +994,7 @@ export class StormTitan {
     this.spareLight.position.set(TITAN.x, -60, TITAN.z);
     ctx.game.scene.add(this.spareLight);
     const spot = this.fight.cairnSpot();
-    this.prompt = { position: new THREE.Vector3(spot.x, spot.y + 1.2, spot.z), radius: 0, label: 'Tie a cloth strip', onInteract: () => { this.tie(); } };
+    this.prompt = { position: new THREE.Vector3(spot.x, spot.y + 1.2, spot.z), radius: 0, label: TITAN_LINES.tie, onInteract: () => { this.tie(); } };
   }
 
   get engaged(): boolean { return this.boss?.engaged === true; }
@@ -1019,15 +1011,14 @@ export class StormTitan {
     });
     this.ui = new BossBar();
     const def: BossDef = {
-      id: 'storm-titan', name: 'JEL ATA · THE STORM TITAN', title: 'FATHER OF THE WIND', retryTitle: 'THE STORM RETURNS',
-      phases: TITAN_PHASES, intro: 3.6, introShort: 1.3,
+      ...TITAN_ENCOUNTER,
       reward: {
-        tier: 'LEGENDARY', name: 'NAIZAGAI', flavour: 'Storm Sabre of Jel Ata', prompt: 'TAKE NAIZAGAI',
+        ...TITAN_REWARD,
         model: () => naizagaiModel(),
         grant: () => {
           if (this.naizagai) play.upgradeSabre?.(this.naizagai);
-          play.ownSkin?.('sky-marked-saddle');
-          play.toast('Mount skin · SKY-MARKED SADDLE');
+          play.ownSkin?.(TITAN_SKIN.id);
+          play.toast(TITAN_SKIN.toast);
         },
       },
     };
@@ -1072,12 +1063,12 @@ export class StormTitan {
   private tie(): void {
     const play = this.play, boss = this.boss;
     if (!play || !boss || this.engaged || boss.state === 'victory' && boss.reward !== null) return;
-    if (play.ride?.mount.mounted !== true) { play.toast('The wind wants a rider'); return; }
-    if (!this.ctx.weather.weather.stormActive) { play.toast('The wind is quiet — come back in a storm'); return; }
+    if (play.ride?.mount.mounted !== true) { play.toast(TITAN_LINES.wantsRider); return; }
+    if (!this.ctx.weather.weather.stormActive) { play.toast(TITAN_LINES.quiet); return; }
     this.fight.tied = true;
     if (boss.state === 'victory') boss.disarm();
     boss.arm();
-    play.toast('The strip snaps in the wind — JEL ATA wakes');
+    play.toast(TITAN_LINES.wakes);
   }
 
   /** back at the cairn in the saddle: Tulpar / Argymaq if you have him, else a camp horse */
@@ -1104,7 +1095,7 @@ export class StormTitan {
     // the cairn's prompt (label by the situation; hidden while the fight is on)
     const mounted = play.ride?.mount.mounted === true, storm = this.ctx.weather.weather.stormActive;
     this.prompt.radius = this.engaged || (boss.state === 'armed' && this.fight.tied) ? 0 : 4.6;
-    this.prompt.label = !mounted ? 'Tie a cloth strip · the wind wants a rider' : !storm ? 'Tie a cloth strip · the wind is quiet' : 'Tie a cloth strip';
+    this.prompt.label = !mounted ? TITAN_LINES.tieOnFoot : !storm ? TITAN_LINES.tieQuiet : TITAN_LINES.tie;
     // the storm ended before you rode in: the strip is just a strip
     if (boss.state === 'armed' && !storm) { this.fight.tied = false; boss.disarm(); }
     // left the arena while armed (not yet fighting): forget it
@@ -1116,7 +1107,7 @@ export class StormTitan {
     if (this.engaged && this.fight.sealedNow && away > ARENA_R - 2.5 && !mounted) {
       const k = (ARENA_R - 4) / away;
       p.x = CENTER.x + (p.x - CENTER.x) * k; p.z = CENTER.z + (p.z - CENTER.z) * k;
-      if (this.wallT <= 0) { this.wallT = 1.2; sampleArena(NALATI_STRIKES.wall, p, p, () => { play.hurt(10, 'The storm wall throws you back'); }, app.physics); }
+      if (this.wallT <= 0) { this.wallT = 1.2; sampleArena(NALATI_STRIKES.wall, p, p, () => { play.hurt(10, TITAN_LINES.wall); }, app.physics); }
     }
     if (boss.state === 'victory' && this.fight.tied) {
       // the rain curtain: the storm lets go and clears

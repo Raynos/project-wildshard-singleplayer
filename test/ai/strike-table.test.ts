@@ -13,6 +13,8 @@ import { fakeWorld } from '../fake/world';
 import { HorseHerd } from '../fixtures/nalati-group-oracle/herd';
 import { Pack } from '../fixtures/nalati-group-oracle/pack';
 import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../../src/shards/nalati-grasslands/data/brains';
+import { KING_TUNING } from '../../src/shards/nalati-grasslands/data/goldenKingFight';
+import { TITAN_TUNING } from '../../src/shards/nalati-grasslands/data/stormTitanFight';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
 // a flat, dry world through the terrain port, not a module mock (E422)
@@ -30,14 +32,6 @@ const tuning = [
   ['S8/S9 boar/bear charge', 'src/engine/ai/hunt.ts', { BOAR_CHARGE: 7.5, CHARGE_HIT_DIST: 1.4, CHARGE_ARC: THREE.MathUtils.degToRad(50), CHARGE_COMMIT: 4.5, CHARGE_COMMIT_TURN: 1.1 }],
   ['S11 balbal slam', `${species}balbal.ts`, { ATK_T: 2.9, W_END: 0.52, S_END: 0.58, HIT_R: 3.1, HIT_CONE: 0.96, DAMAGE: 30, KURGAN_DAMAGE: 18, COOLDOWN: 1.4 }],
   ['S12 ghost rider arrow', `${nalati}ghostRiders.ts`, { SPACING: 11, CIRCLE_R: 34, ENGAGE: 70, DISENGAGE: 115, SHOOT: 62, ARROW_SPEED: 34, ARROW_G: 5, ARROW_DMG: 10, RESPAWN: 60 }],
-  ['S19 Golden King cuts', `${nalati}goldenKing.ts`, { STRIKE_DMG: [14, 14, 22, 22], REACH: 3 }],
-  ['S20 Golden King sunburst', `${nalati}goldenKing.ts`, { SUNBURST_DMG: 25, RING_SPEED: 8.5, RING_MAX: 17 }],
-  ['S21 Golden King beam', `${nalati}goldenKing.ts`, { BEAM_R: 6.2, BEAM_HIT_R: 1.15, BEAM_DMG: 15 }],
-  ['S23 Titan spear', `${nalati}stormTitan.ts`, { SPEAR_DMG: 40, SPEAR_R: 4.5, SPEAR_AIM: 1.5, SPEAR_LOCK: 0.5, SPEAR_STUCK: 3 }],
-  ['S24 Titan whirl', `${nalati}stormTitan.ts`, { WHIRL_DMG: 15, WHIRL_R: 3.2 }],
-  ['S25 Titan wind charge', `${nalati}stormTitan.ts`, { CHARGE_DMG: 30, LANE_T: 1.2, FLANK_T: 2, STUN_T: 4 }],
-  ['S26 Titan chain', `${nalati}stormTitan.ts`, { CHAIN_DMG: 18, CHAIN_R: 3, CHAIN_LAND: 0.6 }],
-  ['S27 Titan fire', `${nalati}stormTitan.ts`, { CELL: 4, BURN_T: 7, FIRE_DPS: 8 }],
   ['S36 Antler King stomp', 'src/shards/pine-hollow/combat/kingFight.ts', { STOMP_R: 4.4 }],
 ] as const;
 describe('strike tuning from current production declarations', () => {
@@ -56,7 +50,17 @@ describe('strike tuning from current production declarations', () => {
   });
   it.each(tuning)('%s', (_name, file, expected) => {
     expect(legacyConstants(file, Object.keys(expected), { THREE, MathUtils: THREE.MathUtils })).toEqual(expected);
-  });
+  });  // The Golden King's and the Storm Titan's tuning are rows (data/goldenKingFight.ts, data/stormTitanFight.ts).
+  it.each([
+    ['S19 Golden King cuts', [KING_TUNING.strikeDamage, KING_TUNING.reach], [[14, 14, 22, 22], 3]],
+    ['S20 Golden King sunburst', [KING_TUNING.sunburstDamage, KING_TUNING.ringSpeed, KING_TUNING.ringMax], [25, 8.5, 17]],
+    ['S21 Golden King beam', [KING_TUNING.beamRadius, KING_TUNING.beamHitRadius, KING_TUNING.beamDamage], [6.2, 1.15, 15]],
+    ['S23 Titan spear', [TITAN_TUNING.spearDamage, TITAN_TUNING.spearRadius, TITAN_TUNING.spearAim, TITAN_TUNING.spearLock, TITAN_TUNING.spearStuck], [40, 4.5, 1.5, 0.5, 3]],
+    ['S24 Titan whirl', [TITAN_TUNING.whirlDamage, TITAN_TUNING.whirlRadius], [15, 3.2]],
+    ['S25 Titan wind charge', [TITAN_TUNING.chargeDamage, TITAN_TUNING.laneSeconds, TITAN_TUNING.flankSeconds, TITAN_TUNING.stunSeconds], [30, 1.2, 2, 4]],
+    ['S26 Titan chain', [TITAN_TUNING.chainDamage, TITAN_TUNING.chainRadius, TITAN_TUNING.chainLand], [18, 3, 0.6]],
+    ['S27 Titan fire', [TITAN_TUNING.cell, TITAN_TUNING.burnSeconds, TITAN_TUNING.fireDps], [4, 7, 8]],
+  ] as const)('%s', (_name, actual, expected) => { expect(actual).toEqual(expected); });
 });
 
 const laneRows: { name: string; file: string; index: number; tell: number; options: { width: number; speed: number; overshoot: number; dmg: number; skid: number; reach: number } }[] = [
