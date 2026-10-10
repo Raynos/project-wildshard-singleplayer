@@ -10,7 +10,7 @@ export function driftwoodPhysicsInputs(root) {
   const paths = ['shard.config.ts', 'manifest.ts', 'runtime/ziplineLayout.ts', 'plugin.ts', 'runtime/index.ts', 'runtime/hybrid.ts', 'runtime/brains.ts', 'npc/faceHeads.ts']
     .map(path => `src/shards/driftwood-isle/${path}`);
   // the manager and the hunting brain that roll every body's draws, the creature floor, the physics ground and its cuts
-  paths.push('public/assets/models/driftwood-hero/captain/captain.glb', 'public/assets/models/driftwood-hero/faces/sailor-head.glb', 'src/engine/entities/AnimalFactory.ts', 'src/engine/entities/AnimalView.ts', 'src/engine/entities/animalPose.ts', 'src/engine/entities/animalRig.ts', 'src/engine/entities/species/rigs.ts', 'src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/hunt.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
+  paths.push('src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs', 'src/engine/physics/Physics.ts', 'src/engine/physics/surface.ts', 'src/engine/world/interact/prompts.ts', 'public/assets/models/driftwood-hero/captain/captain.glb', 'public/assets/models/driftwood-hero/faces/sailor-head.glb', 'src/engine/entities/AnimalFactory.ts', 'src/engine/entities/AnimalView.ts', 'src/engine/entities/animalPose.ts', 'src/engine/entities/animalRig.ts', 'src/engine/entities/species/rigs.ts', 'src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/hunt.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

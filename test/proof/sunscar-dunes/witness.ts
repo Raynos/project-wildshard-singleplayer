@@ -14,12 +14,15 @@ import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProto
 import { HeadlessSimulation } from '../../../src/sdk/headless';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
 import type { QuestGraphSpot as SignalSpot } from '../../../src/game/quest/questGraph';
-import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
+import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/quests/interactions';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/data/matriarchFight';
 import { lashContact } from '../../../src/game/systems/items/lash';
 import { WHIP_ITEM } from '../../../src/shards/sunscar-dunes/data/items';
 import { SCOUT_AT } from '../../../src/shards/sunscar-dunes/data/flags';
 import { BASIN } from '../../../src/shards/sunscar-dunes/data/layout';
+import baked from '../../../src/shards/sunscar-dunes/runtime/physics.baked.json' with { type: 'json' };
+import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type HeadlessPrompt } from '../../../src/sdk/runtime/prompts';
+import * as v from 'valibot';
 import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
 
 /**
@@ -96,8 +99,23 @@ function encounter(host: SimHost): Encounter {
 /** The player's eyes: is a prompt in reach, is a creature inside the lash (the shared contact rule, @wildshard/game/systems/items/lash)? */
 const eye = new Vector3(), ray = new Vector3(), at = new Vector3();
 const volumes = { head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0 };
+const registrations = parsePromptRegistrations(v.parse(v.object({ promptRegistrations: v.unknown() }), baked).promptRegistrations);
+const prompts = bindHeadlessPrompts(registrations, id => {
+  const row = SIGNAL_INTERACTIONS.rows.find(entry => entry.at === id && entry.crack === undefined), capture = registrations.find(entry => entry.id === id);
+  if (row === undefined || capture === undefined) return undefined;
+  const prompt: HeadlessPrompt = { act: row.act, position: capture.position, radius: capture.radius }; return prompt;
+});
+const promptPickers = new WeakMap<SimHost, ReturnType<typeof createHeadlessPromptPicker>>();
+function selected(host: SimHost): number | null | undefined {
+  let picker = promptPickers.get(host); if (picker === undefined) { picker = createHeadlessPromptPicker(host); promptPickers.set(host, picker); }
+  return picker.pick(prompts)?.act;
+}
 function sees(host: SimHost, spot: SignalSpot, reach = 0): boolean {
-  eye.copy(host.player.position); eye.y += EYE; return at.set(spot.x, spot.y, spot.z).distanceTo(eye) < spot.radius + reach;
+  eye.copy(host.player.position); eye.y += EYE;
+  if (at.set(spot.x, spot.y, spot.z).distanceTo(eye) >= spot.radius + reach) return false;
+  if (reach > 0) return true; // world cracks are selected by the actual lash owner
+  const row = SIGNAL_INTERACTIONS.rows.find(entry => entry.at === spot.id && entry.crack === undefined);
+  return row !== undefined && selected(host) === row.act;
 }
 function lashable(host: SimHost, actor: AnimalSim): boolean {
   if (!actor.alive) return false;
@@ -112,7 +130,7 @@ function lashable(host: SimHost, actor: AnimalSim): boolean {
 interface Leg { to: readonly [number, number]; act?: number; ready?: (host: SimHost) => boolean }
 function legs(): Leg[] {
   const { interact, crack } = signalSpots(), spot = (list: readonly SignalSpot[], id: string): SignalSpot => requireValue(list.find(s => s.id === id), `missing spot ${id}`);
-  const sefa = (host: SimHost): boolean => { eye.copy(host.player.position); eye.y += EYE; return at.set(SCOUT_AT.x, host.groundHeightAt(SCOUT_AT.x, SCOUT_AT.z) + 1.62, SCOUT_AT.z).distanceTo(eye) < 3.5; };
+  const sefa = (host: SimHost): boolean => selected(host) === SIGNAL_ACT.talk;
   const waymark = (i: number, x: number, z: number): Leg[] => [
     { to: [x, z], act: SIGNAL_ACT.pour + i, ready: host => sees(host, spot(interact, `brazier.${String(i)}`)) },
     { to: [x, z], act: SIGNAL_ACT.light + i, ready: host => sees(host, spot(crack, `brazier.${String(i)}`), WHIP_ITEM.light.range) }];
@@ -186,7 +204,7 @@ function play(session: Session, tape: SignalTape, until: (host: SimHost) => bool
     if (victoryTick === null && session.host.flags.has(MATRIARCH_FLAG)) victoryTick = session.host.state.tick;
     if (victoryTick !== null && session.host.state.tick >= Math.max(MIN_TICKS, victoryTick + AFTER)) return { victoryTick };
   }
-  throw new Error(`The tape did not finish within ${String(LIMIT)} ticks: ${JSON.stringify(encounter(session.host))}`);
+  throw new Error(`The tape did not finish within ${String(LIMIT)} ticks: ${JSON.stringify({ encounter: encounter(session.host), flags: session.host.flags.all, player: session.host.player.position.toArray(), quest: session.host.quests.map(q => q.current?.id) })}`);
 }
 
 export async function headlessProof(rapier: Rapier): Promise<object> {

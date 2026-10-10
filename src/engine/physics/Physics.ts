@@ -12,7 +12,7 @@ import type { Rapier } from './rapier';
 import { FIXED_STEP } from '../core/fixedStep';
 import { currentOwner, ownerOr } from '../app/ownership';
 import type { Scope } from '../app/scope';
-import { untagCollider } from './surface';
+import { untagCollider, tagOf, type ColliderTag } from './surface';
 
 /**
  * SF72: Rapier 0.21's `restoreSnapshot` wraps every collider with `bodies.get(raw.coParent(handle))`; for a parentless
@@ -33,6 +33,8 @@ function repairRestoredParents(world: World): World {
 
 /** Owns one fixed-step collision world and its complete same-version continuation. */
 export class Physics {
+  /** Trusted native captures read the same surface/owner metadata as collision queries, without inferring identity. */
+  colliderTag(collider: Collider): Readonly<ColliderTag> | undefined { return tagOf(collider); }
   readonly world: World;
   /** ms the last `step()` took (the perf meter / bench read it) */
   stepMs = 0;

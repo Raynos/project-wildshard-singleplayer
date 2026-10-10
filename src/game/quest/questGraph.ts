@@ -5,6 +5,7 @@ import { installInteractionRows, InteractionRules, parseInteractionRows, type In
 import { autoFlag, type InteractTable } from '@wildshard/engine/world/interact/types';
 import { npcSpot, type NpcRow } from './npcRow';
 import type { QuestData } from '../shardfile/quests';
+import { bindHeadlessPrompts, type HeadlessPrompt, type PromptRegistration } from './headlessPrompts';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
 /**
@@ -37,6 +38,8 @@ export interface QuestGraphPorts {
   /** the item that cracks: its light / heavy reach and the act its lash reached this tick */
   readonly crack?: { readonly reach: { readonly light: number; readonly heavy: number }; readonly cracked: () => number | null };
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
+  /** Optional actual page roster; commands can answer only its selected visible nearest prompt. */
+  readonly promptRegistrations?: readonly PromptRegistration[];
   /** An existing modal/ride owner delivers actions itself. With no marks, no extra step or snapshot is installed. */
   readonly drive?: 'commands' | 'external';
   readonly fact: (name: string, entity: string) => void;
@@ -61,7 +64,14 @@ export function installQuestGraph(host: SimHost, rows: QuestGraphRows, ports: Qu
   const spots = Object.fromEntries([...rows.npcs.map(npc => [npc.spot, npcSpot(npc, groundAt)] as const),
     ...ports.spots.interact.map(s => [s.id, s] as const), ...ports.spots.crack.map(s => [`crack.${s.id}`, s] as const)]);
   const done = (row: string): void => { const action = actions.get(row); if (action !== undefined) summon?.(action.summon); };
+  const prompts = ports.promptRegistrations === undefined ? undefined : bindHeadlessPrompts(ports.promptRegistrations, id => {
+    const entry = rows.interactions.rows.find(row => row.at === id && row.crack === undefined), spot = spots[id];
+    if (entry === undefined || spot === undefined) return undefined;
+    const prompt: HeadlessPrompt = { act: entry.act, position: spot, radius: spot.radius };
+    return prompt;
+  });
   if (ports.drive !== 'external') installInteractionRows(host, rules, { actorId: rows.graph.actor, stepId: rows.graph.step, spots, commands: ports.commands,
+    ...(prompts === undefined ? {} : { prompts }),
     ...(ports.crack === undefined ? {} : { crack: ports.crack }),
     done });
   return { quests, rules, run: (id, changed) => { const result = rules.run(id, changed); if (result.ok) done(id); return result; } };

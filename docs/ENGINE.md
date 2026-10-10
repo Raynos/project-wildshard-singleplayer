@@ -1840,6 +1840,16 @@ including the inside-surface refusal. `ITEM_PICKUP_HOVER` defines its 0.78 m hov
 reach, first-row equal-distance ties and strong-before-weak priority. Visibility queries the actual native world;
 a first hit on the target's exact registered or reconstructed owner also counts as visible. The owner association
 is weakly held by the prompt. A null boot world retains distance-only picking; admitted native hosts supply physics.
+`@wildshard/game/quest/headlessPrompts` and `@wildshard/sdk/runtime/prompts` define
+`parsePromptRegistrations`, `bindHeadlessPrompts` and `createHeadlessPromptPicker`. Signal Dunes and Driftwood
+use this one client prompt law in their native hosts: eye = authoritative feet + 1.68 m, strict reach,
+stable page registration order, strong-before-weak priority and actual-world LOS. Captures retain native sight
+slack and registered owner identity; piece-object and string owners remain distinct. Known prompts bind live
+positions/reach, while unhosted page prompts still compete. Selection never performs an action; only its selected
+act can answer an explicit script command. Cracks, walk-in pickups and pressure plates keep their separate owners.
+`Physics.colliderTag` exposes the same surface/owner association collision queries read for trusted native captures;
+`PromptTarget.sight` reads the actual association installed by `setPromptSight` without inferring an owner.
+
 
 `@wildshard/engine/quest/dialogueClock` defines `DialogueClock`, the panel's exact type-out / advance law;
 `DialogueBox` delegates to it while retaining its UI layer and input guards. Its bounded `snapshot()` /

@@ -93,6 +93,13 @@ try {
       return row;
     });
     const grounds = [], solids = [], kinds = {};
+    const registered = g.app.registry.pieceList();
+    const ownerId = owner => {
+      if (typeof owner === 'string') return `string:${owner}`;
+      const piece = registered.find(p => p === owner);
+      if (piece === undefined) throw new Error('Static collider owner is not an actual registered piece');
+      return `piece:${piece.id}`;
+    };
     const b64 = floats => {
       const bytes = new Uint8Array(floats.buffer.slice(floats.byteOffset, floats.byteOffset + floats.byteLength));
       let bin = ''; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCodePoint(...bytes.subarray(i, i + 0x8000));
@@ -111,6 +118,11 @@ try {
       // movers' bodies (boat: kinematic, bridge planks: dynamic; RigidBodyType Fixed = 1) are the runtime's own
       if (((groups >>> 16) & 1) === 0 || c.isSensor() || (body !== null && body !== 1)) return;
       const row = { shape, groups, friction: c.friction(), at: [t.x, t.y, t.z], rot: [r.x, r.y, r.z, r.w] };
+      const tag = physics.colliderTag(c);
+      if (tag !== undefined) {
+        row.material = tag.material;
+        if (tag.owner !== undefined && tag.owner !== null) row.owner = ownerId(tag.owner);
+      }
       if (shape === 1) { const h = c.halfExtents(); row.half = [h.x, h.y, h.z]; }
       else if (shape === 2) { row.halfHeight = c.halfHeight(); row.radius = c.radius(); }
       else if (shape === 10) { row.halfHeight = c.halfHeight(); row.radius = c.radius(); }

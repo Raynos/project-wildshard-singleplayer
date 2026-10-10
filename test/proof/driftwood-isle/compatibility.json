@@ -3,17 +3,17 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Real Sealed Ring and reef journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility",
-  "inputs": "e3340cca7df92d2d54806f2501ff8c6ebcdc96f6c571532e7af1e7b736d6864a",
+  "inputs": "98a7869d6b9518893d0d77699f38f6686cbfe781c91dd8f9ed36e2d5a8b63096",
   "open": [
     "Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.",
-    "Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.",
+    "Named target attacks and dialogue actions are bounded input ports; camera crosshair, hitstop and clang are not modeled.",
     "Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and native zipline carry/landing are reproduced; travel to the zipline launch, completion-card world freeze/resume and every sea-glass path remain outside this witness.",
     "Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness."
   ],
   "headless": {
     "status": "passed",
     "ticksExecuted": 10000,
-    "hash": "14b6044d8e4f42897b71242a66fa174e0a31d5b9336f88cc65034f9b869d7b9b",
+    "hash": "05e52d259b3c2d89372efa6ba950740b0da4ce4372cc8ad0a70ba1be8a5cfeed",
     "entries": {
       "lanes": 92,
       "steps": 34118
@@ -97,8 +97,8 @@
       "waitForReturn": false
     },
     "suffixTicksExecuted": 945,
-    "hash": "bb0159065bbc72a0cbb223fe8770cf14427cafffecf6c9771878812564d70a5c",
-    "replayHash": "bb0159065bbc72a0cbb223fe8770cf14427cafffecf6c9771878812564d70a5c",
+    "hash": "b1c2f28630f604ab36c6e59a0df46eb8882c99a0a3f9ac2eefa8ddc652db2f54",
+    "replayHash": "b1c2f28630f604ab36c6e59a0df46eb8882c99a0a3f9ac2eefa8ddc652db2f54",
     "effects": [
       {
         "tick": 19681,
@@ -321,6 +321,6 @@
     "surfaced": true,
     "treasureCount": 1,
     "durableReload": true,
-    "hash": "ff637d1343a202345f78f99939d75eca8fb7ee55987873b77e8db4c2d754f67b"
+    "hash": "d7a372f3f489c4d932ef68cdc8595deabfa274ed84df8787d9682a82f29ff946"
   }
 }

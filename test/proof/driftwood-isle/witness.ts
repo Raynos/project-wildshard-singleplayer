@@ -42,7 +42,7 @@ const identity = { instance: 'driftwood-witness', shard: source.identity.slug, r
 /** Every named result is scoped; the remaining page laws below keep whole-shard admission closed. */
 export const OPEN = [
   'Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.',
-  'Named target attacks/prompts are bounded input ports; camera crosshair, prompt occlusion/nearest selection, hitstop and clang are not modeled.',
+  'Named target attacks and dialogue actions are bounded input ports; camera crosshair, hitstop and clang are not modeled.',
   'Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and native zipline carry/landing are reproduced; travel to the zipline launch, completion-card world freeze/resume and every sea-glass path remain outside this witness.',
   'Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness.',
 ];

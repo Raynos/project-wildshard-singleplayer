@@ -330,6 +330,7 @@
     "./shard/list": "./shard/list.ts",
     "./shardfile/sourceManifest": "./shardfile/sourceManifest.ts",
     "./shardfile/presentation": "./shardfile/presentation.ts",
-    "./shardfile/stillImage": "./shardfile/stillImage.ts"
+    "./shardfile/stillImage": "./shardfile/stillImage.ts",
+    "./quest/headlessPrompts": "./quest/headlessPrompts.ts"
   }
 }

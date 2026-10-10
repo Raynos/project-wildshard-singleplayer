@@ -1,20 +1,12 @@
 {
-  "audit": {
-    "sourceRevision": "5088efdbba7a0afe94bc35dc99c84e972f683ae9",
-    "candidate": "SF27 the skitterer's policy is an admitted species script (behaviour/skitterer.as): its continuation in the homes keeper is now {slots, strikes} where the TypeScript brain saved {state, clock, far, strikes}, so the end hash moves 378b7319… -> 4abe0860…. Behaviour is unchanged: the same tape digested every tick's whole sim snapshot with only that encoding normalized is identical on aa14e741e and the candidate over all 12,459 ticks (all four skitterer states visited); ticks, victory 12339, checkpoint 10680, blows 14, shoved ticks 154, suffix 1779, 25 coins, both facts, 92 entry lanes / 46095 steps and one attempt unchanged.",
-    "command": "node --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all",
-    "exitStatus": 0,
-    "scope": "whole-shard witness on the renderer-free trusted entry: tick commands only (walk, interactions, whip), gameplay victory, exact mid-fight restore in process and in the shipping worker, gameplay facts into the durable Ledger",
-    "runs": "two independent native processes, identical output"
-  },
   "slug": "sunscar-dunes",
   "entry": "runtime/headless.ts",
   "compatible": true,
   "headless": {
     "status": "passed",
-    "ticksExecuted": 12459,
-    "hash": "4abe08602eb4d06eb10f1e0ef4829bb3bcee0fef61fb097d3d2f306508a325ee",
-    "victoryTick": 12339,
+    "ticksExecuted": 12503,
+    "hash": "13361eb688fff71052e7f6d2d12f6383cb412936321f318de4b29c9ddfa08a9b",
+    "victoryTick": 12383,
     "attempts": 1,
     "questComplete": true,
     "facts": [
@@ -22,8 +14,8 @@
       "sunscar.matriarch"
     ],
     "coins": 25,
-    "blows": 14,
-    "shovedTicks": 154,
+    "blows": 12,
+    "shovedTicks": 125,
     "entries": {
       "lanes": 92,
       "steps": 46095
@@ -32,17 +24,17 @@
   "replay": {
     "status": "passed",
     "checkpointCaptured": true,
-    "checkpointTick": 10680,
+    "checkpointTick": 10710,
     "checkpoint": {
       "state": "fight",
       "phase": 1,
-      "storm": 0.687,
+      "storm": 0.653,
       "hp": 396
     },
-    "suffixTicksExecuted": 1779,
-    "victoryTick": 12339,
-    "hash": "4abe08602eb4d06eb10f1e0ef4829bb3bcee0fef61fb097d3d2f306508a325ee",
-    "replayHash": "4abe08602eb4d06eb10f1e0ef4829bb3bcee0fef61fb097d3d2f306508a325ee",
+    "suffixTicksExecuted": 1793,
+    "victoryTick": 12383,
+    "hash": "13361eb688fff71052e7f6d2d12f6383cb412936321f318de4b29c9ddfa08a9b",
+    "replayHash": "13361eb688fff71052e7f6d2d12f6383cb412936321f318de4b29c9ddfa08a9b",
     "workerTicks": 60,
     "workerExact": true,
     "suffixFacts": [
@@ -58,13 +50,13 @@
       {
         "name": "sunscar.signal",
         "origin": "engine.quest.complete",
-        "tick": 12339,
+        "tick": 12383,
         "entity": "sunscar.signal"
       },
       {
         "name": "sunscar.matriarch",
         "origin": "engine.encounter.victory",
-        "tick": 12339,
+        "tick": 12383,
         "entity": "sunscar.matriarch"
       }
     ],
@@ -84,5 +76,13 @@
     "duplicateStable": true,
     "restoredReemits": 0,
     "gameplayEmissionProven": true
+  },
+  "audit": {
+    "sourceRevision": "20e13523d9683508c2fcc6a07abd8b51e5afa47a",
+    "candidate": "Native client LOS/nearest prompt selection. The player's witness now waits for actual visible selection before advancing; the former second-waymark pour was refused from its first distance-only approach. Geometry, actor recipes and placements are identical. This deliberately changes the real route timing: 12503 ticks, victory 12383, checkpoint 10710, suffix 1793, 12 blows and 125 shove ticks. One life, complete quest, 25 coins, both facts and native entry outcomes pass. Original/restored and 60 shipping-worker ticks agree; held-heavy creature binding remains open.",
+    "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all",
+    "exitStatus": 0,
+    "scope": "whole-shard witness on the renderer-free trusted entry: tick commands only (walk, interactions, whip), gameplay victory, exact mid-fight restore in process and in the shipping worker, gameplay facts into the durable Ledger",
+    "runs": "actual complete native headless/replay/ledger run; no compatibility flag change"
   }
 }

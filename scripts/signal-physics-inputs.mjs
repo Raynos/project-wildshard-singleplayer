@@ -6,6 +6,7 @@ import { join, relative } from 'node:path';
 export function signalPhysicsInputs(root) {
   const paths = ['shard.config.ts', 'plugin.ts', 'runtime/index.ts', 'combat/creatures.ts', 'combat/matriarch.ts']
     .map(path => `src/shards/sunscar-dunes/${path}`);
+  paths.push('src/shards/sunscar-dunes/generators/bake-signal-physics.mjs', 'src/engine/world/interact/prompts.ts');
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

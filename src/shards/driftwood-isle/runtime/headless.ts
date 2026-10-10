@@ -54,8 +54,9 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
         : solid.shape === 2 && solid.halfHeight !== undefined && solid.radius !== undefined ? R.ColliderDesc.capsule(solid.halfHeight, solid.radius)
           : solid.shape === 9 && solid.points !== undefined ? R.ColliderDesc.convexHull(solid.points) : null;
       if (desc === null) throw new Error(`Unbuildable baked Driftwood collider shape ${String(solid.shape)}`);
-      world.createCollider(desc.setTranslation(solid.at[0], solid.at[1], solid.at[2]).setRotation({ x: solid.rot[0], y: solid.rot[1], z: solid.rot[2], w: solid.rot[3] })
+      const collider = world.createCollider(desc.setTranslation(solid.at[0], solid.at[1], solid.at[2]).setRotation({ x: solid.rot[0], y: solid.rot[1], z: solid.rot[2], w: solid.rot[3] })
         .setCollisionGroups(solid.groups).setFriction(solid.friction));
+      if (solid.material !== undefined) tagCollider(collider, solid.material, solid.owner ?? null);
     });
   });
 }

@@ -5,6 +5,7 @@ import * as v from 'valibot';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
+import { groups } from '../../../src/engine/physics/groups';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
@@ -62,6 +63,25 @@ it('bakes the built world\'s prompt spots and crack targets at the browser radii
   const spots = signalSpots();
   expect(spots.interact.map(s => [s.id, s.radius])).toEqual([['logbook', 2.4], ['well', 2.6], ['brazier.0', 3], ['brazier.1', 3], ['brazier.2', 3], ['fire', 2.6]]);
   expect(spots.crack.map(s => [s.id, s.radius])).toEqual([['well.crank', 0.8], ['brazier.0', 1.2], ['brazier.1', 1.2], ['brazier.2', 1.2]]);
+});
+
+it('refuses a real scout prompt behind native collision, also after restore, and admits the clear approach', () => {
+  const original = boot(); let restored: Run | undefined;
+  try {
+    const y = original.host.groundHeightAt(SCOUT_AT.x + 1, SCOUT_AT.z);
+    original.host.player.position.set(SCOUT_AT.x + 1, y, SCOUT_AT.z);
+    const wall = original.host.physics.world.createCollider(original.host.physics.R.ColliderDesc.cuboid(0.08, 1.5, 1)
+      .setTranslation(SCOUT_AT.x + 0.5, y + 1.68, SCOUT_AT.z).setCollisionGroups(groups('WORLD')));
+    original.host.physics.step();
+    act(original, SIGNAL_ACT.talk, null);
+    expect(original.host.flags.has(SCOUT_FLAG)).toBe(false);
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original.host)));
+    act(restored, SIGNAL_ACT.talk, null);
+    expect(restored.host.flags.has(SCOUT_FLAG)).toBe(false);
+    original.host.physics.world.removeCollider(wall, true); original.host.physics.step();
+    act(original, SIGNAL_ACT.talk, null);
+    expect(original.host.flags.has(SCOUT_FLAG)).toBe(true);
+  } finally { restored?.host.dispose(); original.host.dispose(); }
 });
 
 it('plays the signal quest\'s first five steps through the declared quest rows, refusing out-of-range and out-of-order acts', () => {

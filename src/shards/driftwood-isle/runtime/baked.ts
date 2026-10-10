@@ -17,6 +17,7 @@ const Pose = v.strictObject({ joints: v.pipe(v.array(v.strictObject({ name: v.pi
   gait: v.exactOptional(v.strictObject({ trot: finite, gallop: finite })), pose: v.exactOptional(v.strictObject({ grazeNeck: finite, gallopTail: finite })) });
 const Actor = v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, spec: BakedSpec, pose: Pose, seed: finite, scale: finite, at: v.nullable(xz) });
 const Solid = v.strictObject({ shape: v.picklist([1, 2, 9]), groups: finite, friction: finite, at: v.tuple([finite, finite, finite]), rot: v.tuple([finite, finite, finite, finite]),
+  owner: v.optional(v.string()), material: v.optional(v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'])),
   half: v.optional(v.tuple([finite, finite, finite])), halfHeight: v.optional(finite), radius: v.optional(finite), vertices: v.optional(v.string()) });
 const Bake = v.object({ version: v.literal(1),
   ground: v.strictObject({ rows: v.literal(DRIFTWOOD_GROUND_RES - 1), cols: v.literal(DRIFTWOOD_GROUND_RES - 1), scale: xyz, at: xyz, friction: finite, groups: finite, heights: v.string() }),

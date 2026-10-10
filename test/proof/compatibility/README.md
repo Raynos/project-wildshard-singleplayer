@@ -75,9 +75,9 @@ baked pieces, the 13 declared homes (1 dune ray, 10 sand skitterers, 2 dune stri
 stream and respawn clocks, the whip as its declared item row (contact on the head ball / body capsule, then the lane:
 the browser whip's rule, `weapons/lash.ts`), the signal quest and interactions on `host.flags`, the Matriarch's
 encounter on `BossBrain` with her body in the creature keeper, and the entry proof (92 lanes on the native terrain).
-Its run (`compatibility.json`): the tape completes the quest and her fight in one life (victory at tick 12,339,
-past the 10,000-tick floor), taking 14 creature blows that knock the player back as the browser's do (`feel.blow`,
-the host's shared shove law); her storm-phase checkpoint restores byte-exactly, the 1,779-tick suffix to her fall
+Its run (`compatibility.json`): the tape completes the quest and her fight in one life (victory at tick 12,383,
+past the 10,000-tick floor), taking 12 creature blows that knock the player back as the browser's do (`feel.blow`,
+the host's shared shove law); her storm-phase checkpoint restores byte-exactly, the 1,793-tick suffix to her fall
 hashes identically, and the source-checkout worker started from the same checkpoint commits the same 60th-tick bytes; both
 facts reach the durable `Ledger` once under their declared provenance and a restore re-emits nothing.
 
@@ -87,9 +87,10 @@ World crack commands start that lash and the quest row runs only when it lands; 
 The crank's heavy world crack remains a `script` command. These are implemented mechanics; this whole-shard tape
 alone does not exercise every lash reaction. The player protocol now carries HEAVY, but Signal's `rowsHeadless`
 adapter still maps creature attack commands to light lashes only; held-heavy creature attacks remain a host gap.
-The other host gaps are prompt line of sight and nearest-prompt selection: `installInteractionRows` checks
-eye distance and row conditions, while a command explicitly names its row. Neither gap is hidden by the passing
-whole-shard report.
+Signal and Driftwood now use the same client prompt picker against native collision, with actual page registration
+order, reach, weak priority and sight-owner metadata. Named acts must answer the selected visible prompt, and unhosted
+prompts still compete. Native wall and restored-world assertions pass for both hosts; their real gameplay routes and
+continuations pass. Signal's held-heavy creature binding remains open; the passing whole-shard report does not hide it.
 
 ### Sky Reach (`far-reach`)
 

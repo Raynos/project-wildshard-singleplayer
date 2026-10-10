@@ -1,13 +1,13 @@
 {
  "version": 1,
- "revision": "d6de3c0d63987c029cf652b60aa40649098e257f",
- "build": "d6de3c0-mv2f0nfy",
+ "revision": "e9f879ba0de1c8c76afc475695a0a7ace6643b06",
+ "build": "e9f879b-mv2mzwe5",
  "profile": "iPhone 16 Pro / phone / DPR2",
  "inputs": {
   "src/engine/physics/terrain.ts": "0ad84357568a1054e5658c7c187e2c3abbd48b0f84fdefae6fc78e0289f4ada0",
   "src/engine/world/interact/Interactables.ts": "349c6db3318c4f6c4f8490dd76f0d311f4e575d4586ef64f0449a9cf359bfb2b",
   "src/engine/world/interact/pickup.ts": "af294622afc9d73187b3d18b6a242d40f6b553c1b4f8b7a0f185ba5201eac4c2",
-  "src/engine/world/interact/prompts.ts": "2f9808a795a325f05ff4bb969f4fc13304330a477b5ec27b143f44cc75b5e193",
+  "src/engine/world/interact/prompts.ts": "c0ab4a5e4b8e5be882c4e585ceaf5e999c2b427985c7a5ee5a2a0e2e6e68115b",
   "src/shards/driftwood-isle/data/audio.ts": "2834128cd6a44e958ce6e03208684c1b72a59b5415be13ede0ad970fc59da7b3",
   "src/shards/driftwood-isle/data/boatLook.ts": "71383f7575064374020ea327b6a147c85cce1a5ea0c6434542c3baff4fbce502",
   "src/shards/driftwood-isle/data/brains.ts": "24de1cd953fca1e5c62097d0f86b63219cbcab3b8a7c7bfcb8328b0f5dd443e5",
@@ -53,6 +53,7 @@
   "src/shards/driftwood-isle/data/trophyLayout.ts": "06fad79bbf29b62f3f05f4a3ac089c45ef2aa2065c4e1ee889f5264ceba8aac0",
   "src/shards/driftwood-isle/data/trophySlots.json": "b0a53b6590343723d34c79846a95502d9c9e18ac89b3444249539e564a187841",
   "src/shards/driftwood-isle/data/waterfallGlsl.ts": "d3d57d4a80f4ce330a5cdbb2821877afff6af154869066b18d1189856fc793ad",
+  "src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs": "2042e6c5c0d010a260e0fdec4a7f2af51c59ad2dce29b368668534ac3ef5676f",
   "src/shards/driftwood-isle/manifest.ts": "185075cdc452050d0a277852f32d1add8a06b7a298248346c160fbc5d6a54366",
   "src/shards/driftwood-isle/npc/Castaway.ts": "984f2a99b324e368de6763a3c1b1a92fea0aeeedf061a8af1cffa01a50076305",
   "src/shards/driftwood-isle/npc/Trader.ts": "ae9fd96e192c44027880adae8a39af8e229ef440643c4424403dae4dbe9addf9",
@@ -460,5 +461,208 @@
    "z": 56.81429111446186,
    "radius": 2.4
   }
- }
+ },
+ "promptRegistrations": [
+  {
+   "id": "iron-sword",
+   "position": {
+    "x": 153.1839206293478,
+    "y": 2.2099750031248138,
+    "z": 3.412613252486499
+   },
+   "radius": 1.4,
+   "sight": {
+    "slack": 0.5
+   },
+   "weak": true
+  },
+  {
+   "id": "castaway-chest",
+   "position": {
+    "x": -21.1,
+    "y": 19.49067820892334,
+    "z": -61.85
+   },
+   "radius": 2.5,
+   "sight": {
+    "slack": 0.66,
+    "body": "piece:interact-castaway-chest"
+   }
+  },
+  {
+   "id": "beacon",
+   "position": {
+    "x": 95.87647041921136,
+    "y": 41.10939334716797,
+    "z": 94.35193574104477
+   },
+   "radius": 2.9,
+   "sight": {
+    "slack": 0.7,
+    "body": "piece:interact-beacon"
+   }
+  },
+  {
+   "id": "shard-lookout",
+   "position": {
+    "x": 93.64806425895523,
+    "y": 41.10939334716797,
+    "z": 95.87647041921136
+   },
+   "radius": 0,
+   "sight": {
+    "slack": 0.3
+   }
+  },
+  {
+   "id": "hold-key",
+   "position": {
+    "x": 153.4881996655059,
+    "y": 1.6399082415738144,
+    "z": -0.20264865255444975
+   },
+   "radius": 0,
+   "sight": {
+    "slack": 0.3
+   }
+  },
+  {
+   "id": "hold-pump",
+   "position": {
+    "x": 155.6240503608702,
+    "y": 1.0750729075526257,
+    "z": -0.626073155101524
+   },
+   "radius": 2.5,
+   "sight": {
+    "slack": 0.45,
+    "body": "piece:interact-hold-pump"
+   }
+  },
+  {
+   "id": "hold-winch",
+   "position": {
+    "x": 152.96104020247256,
+    "y": 1.06507707369849,
+    "z": -2.105896448463443
+   },
+   "radius": 2.5,
+   "sight": {
+    "slack": 0.45,
+    "body": "piece:interact-hold-winch"
+   }
+  },
+  {
+   "id": "strongbox",
+   "position": {
+    "x": 154.94214823835352,
+    "y": 1.0225947798184136,
+    "z": -2.1083874070119553
+   },
+   "radius": 0,
+   "sight": {
+    "slack": 0.51,
+    "body": "piece:interact-strongbox"
+   }
+  },
+  {
+   "id": "sluice",
+   "position": {
+    "x": 142,
+    "y": 1.5,
+    "z": 19.95
+   },
+   "radius": 0,
+   "sight": {
+    "slack": 1.35,
+    "body": "piece:interact-sluice"
+   }
+  },
+  {
+   "id": "shard-cave",
+   "position": {
+    "x": 142,
+    "y": 2,
+    "z": 22.4
+   },
+   "radius": 2.5,
+   "sight": {
+    "slack": 0.3
+   }
+  },
+  {
+   "id": "altar",
+   "position": {
+    "x": -98.97421101488796,
+    "y": 10.798139917755124,
+    "z": 109.33169549765364
+   },
+   "radius": 2.8,
+   "sight": {
+    "slack": 0.9,
+    "body": "piece:interact-altar"
+   }
+  },
+  {
+   "id": "reef-treasure",
+   "position": {
+    "x": 232,
+    "y": -2.4182528908729553,
+    "z": 48
+   },
+   "radius": 1.6,
+   "sight": {
+    "slack": 0.6000000000000001,
+    "body": "piece:interact-reef-treasure"
+   }
+  },
+  {
+   "id": "vista-bench",
+   "position": {
+    "x": -46,
+    "y": 17.814965095520026,
+    "z": -100
+   },
+   "radius": 3,
+   "sight": {
+    "slack": 0.8
+   }
+  },
+  {
+   "id": "castaway.talk",
+   "position": {
+    "x": -19.6,
+    "y": 19.509208331390383,
+    "z": -72.2
+   },
+   "radius": 3.2,
+   "sight": {
+    "slack": 0.5
+   }
+  },
+  {
+   "id": null,
+   "position": {
+    "x": -24.389091476652016,
+    "y": 19.54887815791819,
+    "z": -73.4674068675917
+   },
+   "radius": 2.8,
+   "sight": {
+    "slack": 0.5
+   }
+  },
+  {
+   "id": "zipline",
+   "position": {
+    "x": 116.74424917158824,
+    "y": 35.05979897744159,
+    "z": 56.81429111446186
+   },
+   "radius": 2.4,
+   "sight": {
+    "slack": 0.5
+   }
+  }
+ ]
 }

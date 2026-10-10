@@ -225,7 +225,8 @@
     "./modelGeometry": "./modelGeometry.ts",
     "./skinnedModel": "./skinnedModel.ts",
     "./bake/skinned": "./bake/skinned.ts",
-    "./looks/offscreenPreparation": "./looks/offscreenPreparation.ts"
+    "./looks/offscreenPreparation": "./looks/offscreenPreparation.ts",
+    "./runtime/prompts": "./runtime/prompts.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -553,6 +554,10 @@
       "./looks/offscreenPreparation": {
         "types": "./dist/types/sdk/looks/offscreenPreparation.d.ts",
         "default": "./dist/looks/offscreenPreparation.js"
+      },
+      "./runtime/prompts": {
+        "types": "./dist/types/sdk/runtime/prompts.d.ts",
+        "default": "./dist/runtime/prompts.js"
       }
     }
   }

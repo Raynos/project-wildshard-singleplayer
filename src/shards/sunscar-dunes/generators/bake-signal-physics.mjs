@@ -42,6 +42,7 @@ try {
     });
     const pieces = g.app.registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
       const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: copy(piece.colliders), active: piece.active?.() ?? true };
+      row.owner = piece.colliderOwner === undefined ? `piece:${piece.id}` : `string:${piece.colliderOwner}`;
       if (piece.surface !== undefined) row.surface = piece.surface;
       if (piece.colliderOwner !== undefined) row.colliderOwner = piece.colliderOwner;
       if (piece.follows !== undefined) {
@@ -56,7 +57,28 @@ try {
     const spots = { interact: [spot('logbook', places.logbook.position, places.logbook.radius), spot('well', places.well.spot.position, places.well.spot.radius),
       ...places.braziers.map((b, i) => spot(`brazier.${i}`, b.spot.position, b.spot.radius)), spot('fire', places.fire.brazier.position, places.fire.brazier.radius)],
     crack: places.crackables.map((c, i) => spot(i === 0 ? 'well.crank' : `brazier.${i - 1}`, c.at, c.radius)) };
-    return { actors, pieces, spots };
+    const registered = g.app.registry.pieceList();
+    const ownerId = owner => {
+      if (typeof owner === 'string') return `string:${owner}`;
+      const piece = registered.find(p => p === owner);
+      if (piece === undefined) throw new Error('Prompt sight owner is not an actual registered piece');
+      return `piece:${piece.id}`;
+    };
+    const ids = new Map([[places.logbook, 'logbook'], [places.well.spot, 'well'], [places.fire.brazier, 'fire'],
+      ...places.braziers.map((b, i) => [b.spot, `brazier.${i}`])]);
+    const prompts = window.__wildshard.world.interactables;
+    const scouts = prompts.filter(p => p.label === 'Talk to Sefa');
+    if (scouts.length !== 1) throw new Error('Missing unique live scout prompt');
+    ids.set(scouts[0], 'scout');
+    const promptRegistrations = prompts.map(prompt => {
+      const sight = prompt.sight;
+      const row = { id: ids.get(prompt) ?? null, position: { x: prompt.position.x, y: prompt.position.y, z: prompt.position.z }, radius: prompt.radius,
+        sight: { slack: sight?.slack ?? 0.5 } };
+      if (prompt.weak !== undefined) row.weak = prompt.weak;
+      if (sight?.body !== undefined && sight.body !== null) row.sight.body = ownerId(sight.body);
+      return row;
+    });
+    return { actors, pieces, spots, promptRegistrations };
   };
   const first = await page.evaluate(capture), second = await page.evaluate(capture);
   if (JSON.stringify(first) !== JSON.stringify(second)) throw new Error('Native Signal metadata changed between independent captures');

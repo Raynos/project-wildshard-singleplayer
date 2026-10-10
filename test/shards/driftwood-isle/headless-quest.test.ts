@@ -7,6 +7,7 @@ import { Vector3 } from 'three';
 import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
+import { groups } from '../../../src/engine/physics/groups';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
@@ -215,6 +216,30 @@ it('bakes one spot per interactables row and the page\'s day clock spellings', (
   expect(DRIFTWOOD_SKY_DAY.start).toBe(DRIFTWOOD_DAY_START); expect(DRIFTWOOD_DAY_START).toBe(0.2 * (20 / 24)); // the page clock's start (data/skyDay.ts)
 });
 
+it('uses native sight at the real chest and keeps selection exact after restoring a blocked prompt', () => {
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    press(original, DRIFTWOOD_ACT.talk, { x: spots.talk.x, y: spots.talk.y - 1.62, z: spots.talk.z }, 0.8);
+    expect(original.flags.has('talked:castaway')).toBe(true);
+    const chest = spots.rows[rowIndex('castaway-chest')]?.prompt;
+    if (chest === undefined) throw new Error('Missing captured chest prompt');
+    // The feet and eye stand outside the chest; a separate physical wall blocks its own-body exception.
+    put(original, chest.x + 1.4, row('castaway-chest').y, chest.z);
+    const wall = original.physics.world.createCollider(original.physics.R.ColliderDesc.cuboid(0.12, 1.2, 1.2)
+      .setTranslation(chest.x + 0.7, chest.y, chest.z).setCollisionGroups(groups('WORLD')));
+    original.physics.step();
+    tape = [{ kind: 'script', actorId: ACTOR, value: act('castaway-chest') }]; original.step(still); tape = [];
+    expect(original.flags.has('open:castaway-chest')).toBe(false);
+    restored = restore(serializeSimSnapshot(snapshotSimHost(original)));
+    tape = [{ kind: 'script', actorId: ACTOR, value: act('castaway-chest') }]; restored.step(still); tape = [];
+    expect(restored.flags.has('open:castaway-chest')).toBe(false);
+    original.physics.world.removeCollider(wall, true); original.physics.step();
+    tape = [{ kind: 'script', actorId: ACTOR, value: act('castaway-chest') }]; original.step(still); tape = [];
+    expect(original.flags.has('open:castaway-chest')).toBe(true);
+    expect(original.flags.has('has:flint')).toBe(true);
+  } finally { tape = []; restored?.dispose(); original.dispose(); }
+});
+
 it('plays the Sealed Ring\'s interactables at the page\'s points: talk, chest, beacon, the hold\'s key / pump / winch / strongbox, the sword, the barrel pushed onto a plate by play, the sluice and the cave\'s shard, the altar, the reward, with exact restore mid-beat', () => {
   const original = boot(); let restored: SimHost | undefined;
   try {
@@ -236,7 +261,8 @@ it('plays the Sealed Ring\'s interactables at the page\'s points: talk, chest, b
     expect([F.has('lit:beacon'), F.has('shard:lookout')]).toEqual([true, true]); expect(facts()).toContain('driftwood.shards@shards:1');
     // the wreck: the pump is padlocked and the sword guarded while the sailor stands
     const sailor = [...original.entities].find(([, a]) => a.kind === 'sailor')?.[0]; if (sailor === undefined) throw new Error('missing the sailor');
-    press(original, act('hold-pump'), row('hold-pump')); expect(F.has('lever:hold-pump')).toBe(false);
+    // The pump and strongbox are visible from the inside; the opposite approach looks through the wreck's hull.
+    press(original, act('hold-pump'), row('hold-pump'), -0.6); expect(F.has('lever:hold-pump')).toBe(false);
     press(original, DRIFTWOOD_ACT.sword, { x: spots.sword.x, y: spots.sword.y - 1.2, z: spots.sword.z }, 0.3);
     const held = (host: SimHost): number => v.parse(v.object({ held: v.number() }), JSON.parse(v.parse(v.string(), snapshotSimHost(host).adapters.find(a => a.id === SWORDS_STEP)?.state))).held;
     expect(held(original)).toBe(0);
@@ -246,8 +272,8 @@ it('plays the Sealed Ring\'s interactables at the page\'s points: talk, chest, b
     expect([key.x, key.z]).toEqual([fell.x, fell.z]);
     press(original, act('hold-key'), key, 0.4); expect(F.has('key:hold')).toBe(true);
     press(original, act('hold-winch'), row('hold-winch')); expect(F.has('winch:up')).toBe(false); // jammed while flooded
-    press(original, act('hold-pump'), row('hold-pump')); press(original, act('hold-winch'), row('hold-winch'));
-    press(original, act('strongbox'), row('strongbox')); expect([F.has('winch:up'), F.has('shard:wreck')]).toEqual([true, true]);
+    press(original, act('hold-pump'), row('hold-pump'), -0.6); press(original, act('hold-winch'), row('hold-winch'));
+    press(original, act('strongbox'), row('strongbox'), -0.6); expect([F.has('winch:up'), F.has('shard:wreck')]).toEqual([true, true]);
     expect(pack(original).counts['doubloon']).toBe(5);
     press(original, DRIFTWOOD_ACT.sword, { x: spots.sword.x, y: spots.sword.y - 1.2, z: spots.sword.z }, 0.3);
     expect(held(original)).toBe(1);

@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import { test, type Flags } from '@wildshard/engine/world/interact/flags';
+import { createHeadlessPromptPicker, type HeadlessPrompt } from './headlessPrompts';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
 const names = v.pipe(v.array(name), v.maxLength(64));
@@ -99,6 +100,8 @@ export interface InteractionRowPorts {
   /** every row's spot by its `at` name (the built world's placements, baked) */
   readonly spots: Readonly<Record<string, InteractionSpot>>;
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
+  /** Actual page registration order, including live reach/position and native sight identity. */
+  readonly prompts?: readonly HeadlessPrompt[];
   /** the item that cracks: its light / heavy reach, and the act its lash reached this tick (null: none); its step runs before this one */
   readonly crack?: { readonly reach: { readonly light: number; readonly heavy: number }; readonly cracked: () => number | null };
   /** a row ran (the shard's beat on it: a summons, a cue) */
@@ -114,8 +117,9 @@ const MAX_COMMANDS = 1024;
  * The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the prompt row whose
  * `act` they name, when the player's eye stands within the row's spot radius; a crack row runs on the tick the item's
  * lash reaches its act (the command started the crack; the lash lands later, as the browser's does), within the spot's
- * radius plus the crack's reach. Both go through the same `InteractionRules` the browser's interactables use. The marks are the step's exact continuation. Not modelled: the prompts' line of sight and the
- * nearest-prompt pick (a command names its row).
+ * radius plus the crack's reach. Both go through the same `InteractionRules` the browser's interactables use. When
+ * the host supplies its page prompt roster, only the selected visible nearest prompt may answer a command.
+ * The marks are the step's exact continuation; crack selection stays with the item's own lash.
  */
 export function installInteractionRows(host: SimHost, rules: InteractionRules, ports: InteractionRowPorts): void {
   const byAct = new Map(rules.data.rows.map(entry => {
@@ -125,7 +129,9 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
     return [entry.act, { entry, spot }] as const;
   }));
   const eye = new Vector3(), at = new Vector3();
+  const picker = createHeadlessPromptPicker(host);
   const act = (value: number, lashed: boolean): void => {
+    if (!lashed && ports.prompts !== undefined && picker.pick(ports.prompts)?.act !== value) return;
     const found = byAct.get(value); if (found === undefined) return;
     const { entry, spot } = found, crack = ports.crack;
     if ((entry.crack !== undefined) !== lashed) return;

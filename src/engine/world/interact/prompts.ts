@@ -4,7 +4,7 @@ import { castSegment, lineOfSight } from '../../physics/query';
 /** A prompt's world point, independent of its view or input binding. */
 export interface PromptPoint { readonly x: number; readonly y: number; readonly z: number }
 /** Live reach and weak priority can be getters: hidden prompts have zero reach. */
-export interface PromptTarget { readonly position: PromptPoint; readonly radius: number; readonly weak?: boolean }
+export interface PromptTarget { readonly position: PromptPoint; readonly radius: number; readonly weak?: boolean; readonly sight?: PromptSight }
 /** The target's own native owner may be a registered piece or a trusted reconstructed identity. */
 export interface PromptSight { readonly slack: number; readonly body?: unknown }
 /** Unspecified targets may meet their own surface within this many metres of the prompt. */
@@ -12,7 +12,11 @@ export const PROMPT_SIGHT_SLACK = 0.5;
 const sights = new WeakMap<PromptTarget, PromptSight>();
 
 /** Attach actual native owner identity without retaining a retired prompt. */
-export function setPromptSight(target: PromptTarget, sight: PromptSight): void { sights.set(target, sight); }
+export function setPromptSight(target: PromptTarget, sight: PromptSight): void {
+  sights.set(target, sight);
+  // Trusted native captures read the association from the actual prompt, rather than infer an owner from geometry.
+  if (!Object.hasOwn(target, 'sight')) Object.defineProperty(target, 'sight', { get: () => sights.get(target) });
+}
 
 /** A clear native segment, or its first hit is the target itself. A missing boot world retains distance-only picking. */
 export function promptVisible(physics: Physics | null, eye: PromptPoint, target: PromptTarget): boolean {

@@ -19,6 +19,7 @@ import { DriftwoodPack } from './pack';
 import { DriftwoodZipline } from './zipline';
 import { DriftwoodReward } from './reward';
 import type { DriftwoodScriptFinale } from './scriptFinale';
+import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from '@wildshard/sdk/runtime/prompts';
 
 /** The script command actor that carries Driftwood's [E] prompts (`{ kind: 'script', actorId: DRIFTWOOD_INTERACT, value }`). */
 export const DRIFTWOOD_INTERACT = 'driftwood.interact';
@@ -46,11 +47,15 @@ const Row = v.strictObject({ id: v.string(), kind: v.string(), ...xyz, yaw: fini
   collider: v.optional(v.strictObject({ x: finite, z: finite, hw: finite, hd: finite, rot: finite, yTop: finite, yBottom: finite })) });
 const Prompt = v.strictObject({ label: v.string(), ...xyz, radius: finite });
 const Spots = v.object({ version: v.literal(1), rows: v.array(Row), talk: Prompt, sword: Prompt, reward: v.strictObject({ ...xyz, yaw: finite, pitch: finite, phase: finite }),
+  promptRegistrations: v.unknown(),
   zipline: v.strictObject({ top: v.strictObject(xyz), bottom: v.strictObject(xyz), sag: finite, prompt: v.strictObject({ ...xyz, radius: finite }) }) });
 /** The page's placements (src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs), strictly. */
-export type DriftwoodSpots = v.InferOutput<typeof Spots>;
+export type DriftwoodSpots = Omit<v.InferOutput<typeof Spots>, 'promptRegistrations'> & { readonly promptRegistrations: readonly PromptRegistration[] };
 /** Driftwood's baked interactable spots, parsed strictly. */
-export function driftwoodSpots(): DriftwoodSpots { return v.parse(Spots, baked); }
+export function driftwoodSpots(): DriftwoodSpots {
+  const spots = v.parse(Spots, baked);
+  return { ...spots, promptRegistrations: parsePromptRegistrations(spots.promptRegistrations) };
+}
 
 /** One body of the island as the quest reads it: its kind and its live actor (the sailor's guard and his fall). */
 export interface QuestBody { readonly kind: string; readonly actor: { readonly alive: boolean; readonly position: { readonly x: number; readonly z: number }; readonly combatActor: () => unknown } | null }
@@ -126,8 +131,8 @@ const BARREL_OWNER = { kind: 'barrel', id: 'tide-barrel' } as const;
  * and sets `seen:reward` 7 s later. The flag feats (quest/Feats.ts) emit their stable ledger facts from the flags.
  * Chest contents enter the actual authored pack through the page's inventory law, in table order, after the row's
  * automatic and explicit flags. The pack is part of the quest continuation; opening an already open chest adds nothing.
- * Not modelled: the prompts' line of sight; the nearest-prompt pick (a command names its row);
- * the completion card's freeze/resume controls; travel to the zipline launch; the shown strongbox's collider (the
+ * Explicit script acts answer only the nearest visible live page prompt, with actual registration order and sight
+ * metadata. Not modelled: the completion card's freeze/resume controls; travel to the zipline launch; the shown strongbox's collider (the
  * baked world keeps the load-time set). The puzzle barrel is the kit's own body (world/interact/barrel.ts BARREL_BODY) at
  * its baked home in the host's world, which the player's capsule pushes on the page's law (PLAYER_BODY), with the kit's
  * never-jam rule (BarrelWatch, each tick on the walk the player asks for); the open sluice drops its baked collider (on the
@@ -189,7 +194,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const shown = (r: Rule): boolean => !((r.d.kind === 'key' || r.d.kind === 'pickup') && flags.has(r.taken)) && test(flags, r.d.showWhen);
   const locked = (r: Rule): boolean => !test(flags, r.d.requires) || (r.lockKey !== null && !flags.has(r.lockKey) && !flags.has(r.open));
   /** Interactables.promptRadius / baseRadius */
-  const radius = (r: Rule): number => {
+  const promptRadius = (r: Rule): number => {
     const d = r.d;
     if (!shown(r)) return 0;
     const base = d.kind === 'chest' ? (flags.has(r.open) ? 0 : PROMPT_R)
@@ -230,7 +235,18 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     for (let i = 0; i < MAX_BODIES; i++) { const b = list[i]; if (b === undefined) break; if (b.kind === 'sailor' && b.actor?.alive === true) return true; }
     return false;
   };
+  const picker = createHeadlessPromptPicker(host);
+  const prompts = bindHeadlessPrompts(spots.promptRegistrations, id => {
+    if (id === 'castaway.talk') return { act: DRIFTWOOD_ACT.talk, position: spots.talk, radius: TALK_R };
+    if (id === 'iron-sword') return { act: DRIFTWOOD_ACT.sword, position: spots.sword, get radius() { return state.iron ? 0 : guarded() ? 1.4 : SWORD_R; } };
+    if (id === 'zipline') return { act: DRIFTWOOD_ACT.zipline, position: spots.zipline.prompt, get radius() { return zipline.isRiding ? 0 : spots.zipline.prompt.radius; } };
+    const i = rules.findIndex(r => r.d.id === id), r = rules[i];
+    if (r?.spot.prompt === undefined) return undefined;
+    const prompt: HeadlessPrompt = { act: DRIFTWOOD_ACT.row + i, get position() { return promptOf(r) ?? r.spot; }, get radius() { return promptRadius(r); } };
+    return prompt;
+  });
   const act = (value: number): void => {
+    if (picker.pick(prompts)?.act !== value) return;
     if (value === DRIFTWOOD_ACT.talk) { if (near(spots.talk, TALK_R)) graph.run('castaway.talk'); return; }
     if (value === DRIFTWOOD_ACT.sword) {
       // while guarded the prompt shrinks to the rack (1.4 m) and E only says why (weapons/IronSword.ts)
@@ -242,7 +258,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
       return;
     }
     const r = rules[value - DRIFTWOOD_ACT.row], p = r === undefined ? undefined : promptOf(r);
-    if (r !== undefined && p !== undefined && near(p, radius(r))) interact(r);
+    if (r !== undefined && p !== undefined && near(p, promptRadius(r))) interact(r);
   };
 
   // the sailor's fall drops the hold key on the floor there (quest/Spine.ts's kill hook, order 10)

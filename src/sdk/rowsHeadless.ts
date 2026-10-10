@@ -14,6 +14,7 @@ import { installQuestGraph, type QuestGraphPorts, type QuestGraphRows } from '@w
 import { proveTerrainEntries, type TerrainEntryWalk } from '@wildshard/game/shardfile/terrainEntries';
 import { speciesBrains } from './speciesBrains';
 import type { PrepareHeadlessRuntime } from './headlessRuntime';
+import { parsePromptRegistrations } from '@wildshard/game/quest/headlessPrompts';
 
 /**
  * A trusted runtime's renderer-free host declared as rows (SHARD-PLATFORM SF27): the browser-baked metadata (`baked`:
@@ -59,8 +60,9 @@ const SURFACES = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand'] as 
 const Collider = v.strictObject({ kind: v.literal('box'), x: finite, y: finite, z: finite, hx: finite, hy: finite, hz: finite, yaw: v.optional(finite), surface: v.optional(v.picklist(SURFACES)) });
 const Baked = v.object({
   actors: v.array(v.object({ kind: v.string(), spec: v.unknown() })), bosses: v.array(v.object({ kind: v.string(), spec: v.unknown() })),
-  pieces: v.array(v.object({ id: v.string(), name: v.string(), file: v.string(), active: v.boolean(), surface: v.picklist(SURFACES), colliders: v.array(Collider) })),
+  pieces: v.array(v.object({ id: v.string(), name: v.string(), file: v.string(), active: v.boolean(), surface: v.picklist(SURFACES), colliders: v.array(Collider), owner: v.optional(v.string()) })),
   spots: v.strictObject({ interact: v.array(Spot), crack: v.array(Spot) }),
+  promptRegistrations: v.optional(v.unknown()),
 });
 
 /** The baked prompt spots and crack targets (the built world's order), strictly. */
@@ -109,7 +111,7 @@ export function rowsHeadlessRuntime(manifest: RowsHeadlessManifest): PrepareHead
       baked.pieces.forEach(piece => {
         if (!piece.active) return;
         addPiece(host.physics, { id: piece.id, name: piece.name, category: 'props', file: piece.file, surface: piece.surface,
-          colliders: piece.colliders.map(c => ({ kind: 'box' as const, x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, ...(c.yaw === undefined ? {} : { yaw: c.yaw }), ...(c.surface === undefined ? {} : { surface: c.surface }) })), colliderOwner: piece.id });
+          colliders: piece.colliders.map(c => ({ kind: 'box' as const, x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, ...(c.yaw ===undefined ? {} : { yaw: c.yaw }), ...(c.surface === undefined ? {} : { surface: c.surface }) })), colliderOwner: piece.owner ?? piece.id });
       });
     };
     const row = shard.items.rows.find(item => item.id === manifest.lash.id);
@@ -139,6 +141,7 @@ export function rowsHeadlessRuntime(manifest: RowsHeadlessManifest): PrepareHead
           return crack === undefined ? [] : [{ world: crack.act, heavy: crack.crack === 'heavy' }];
         }) });
       installQuestGraph(host, { quests: shard.quests, ...quest }, { spots, crack: { reach, cracked: lash.cracked },
+        ...(baked.promptRegistrations === undefined ? {} : { promptRegistrations: parsePromptRegistrations(baked.promptRegistrations) }),
         commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []), fact, coins, summon: id => { if (id === boss.row.id) encounter.summon(); } });
       keeper.settle();
     } };
