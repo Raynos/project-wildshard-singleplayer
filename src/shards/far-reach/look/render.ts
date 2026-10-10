@@ -42,6 +42,14 @@ export async function skyReachLook(): Promise<LookStrategy> {
   // A regional frame reads this strategy's parts without composing its standalone scene. Until compose adopts these
   // eager sources, the strategy owns them, including a late strategy returned after its resident has already left.
   const pending = new Set([pano, cloudAtlas, seaPaint, vortex].filter((texture): texture is Texture => texture !== null));
+  // the painted dome and its haze strip, made once by whichever asks first (the backdrop, before the compose)
+  let sky: { readonly dome: ReturnType<typeof skyDome>; readonly haze: Texture } | null = null;
+  const makeSky = (): { readonly dome: ReturnType<typeof skyDome>; readonly haze: Texture } => {
+    const haze = fogLut(), dome = skyDome(pano, haze);
+    dome.renderOrder = -10; dome.frustumCulled = false;
+    sky = { dome, haze };
+    return sky;
+  };
   let seaTime: { value: number } | null = null;
   let glowUpdate: ((t: number) => void) | null = null;
   return { mode: 'extend',
@@ -63,8 +71,8 @@ export async function skyReachLook(): Promise<LookStrategy> {
       // 223-228 where the mockups reach 236-241. NEUTRAL with the manifest grade's saturation 0, contrast 0.12 and bloom
       // 0.35 measures 236-241, 2.1-3.6 % of the frame over 230 (the mockups 1.9-3.8 %)
       c.fx.tone.mode = ToneMappingMode.NEUTRAL;
-      const haze = fogLut(), dome = skyDome(pano, haze); scope.own(pano); scope.own(haze);
-      dome.renderOrder = -10; dome.frustumCulled = false; scene.add(dome);
+      // the dome is the backdrop's sky layer (G321: so a grid cell draws it too); standalone the compose owns it
+      const { dome, haze } = sky ?? makeSky(); scope.own(pano); scope.own(haze);
       scope.own(dome.geometry); scope.own(dome.material); scope.onDispose(() => { dome.removeFromParent(); });
       scene.fog = new Fog(new Color(SKY.fog), FOG.near, FOG.far);
       const fogEdits = spliceEdits(ROSE_FOG_EDITS, { HEADING_GLSL, near: FOG.near.toFixed(1), span: (FOG.far - FOG.near).toFixed(1), max: FOG.max.toFixed(2),
@@ -113,11 +121,18 @@ export async function skyReachLook(): Promise<LookStrategy> {
     // the shard grade (top-10 row 10): one learned LUT, global, the engine's last grade step (Debug ▸ Look ▸ Learned LUT
     // Off skips it). The second fit (art/far-reach/round-32-lut/): each mockup's sky its own region, eased to identity in
     // the highlights (the first, round-29-lut, greyed C's sky and overshot the highlights when measured live)
-    backdrop: async ({ sky }) => {
-      const clock = createDay(), key = new Color(SKY.key), lut = await loadLUT('far-reach');
-      return { clock, horizon: new Color(SKY.horizon), lut,
-        bind: () => undefined, update: (dt: number) => { clock.update(dt); sky.setKeyLight(SUN_DIR, key, 2); if (seaTime !== null) { seaTime.value += dt; glowUpdate?.(seaTime.value); } },
-        rebuild: () => undefined, attachPost: () => undefined };
+    // G321: the painted dome is its sky layer (`clouds`, kept on the camera; it shades by the direction from the camera), and
+    // its clock writes its fog colour, so a grid cell draws Sky Reach's own sky, golden sun and air by its owner weight
+    backdrop: async ({ sky: rig }) => {
+      const clock = createDay(), key = new Color(SKY.key), fog = new Color(SKY.fog), lut = await loadLUT('far-reach');
+      const own = sky ?? makeSky();
+      let air: (() => Fog | null) | null = null;
+      return { clock, horizon: new Color(SKY.horizon), lut, clouds: own.dome,
+        bind: (targets) => { air = () => (targets.underwater() ? null : targets.fog); },
+        update: (dt: number) => { clock.update(dt); rig.setKeyLight(SUN_DIR, key, 2); air?.()?.color.copy(fog); if (seaTime !== null) { seaTime.value += dt; glowUpdate?.(seaTime.value); } },
+        rebuild: () => undefined, attachPost: () => undefined,
+        // a grid cell's layer frees what it drew (standalone the compose owns the dome and its haze)
+        dispose: () => { own.dome.removeFromParent(); own.dome.geometry.dispose(); own.dome.material.dispose(); own.haze.dispose(); } };
     },
   };
 }

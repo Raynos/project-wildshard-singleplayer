@@ -256,7 +256,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
               const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident,
                 ...(measured?.residentBaseMB === undefined ? {} : { coveredBy: request.claim.id }), layered: async () => {
                 const make = levelLook?.backdrop;
-                const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null), planet: levelLook?.sky?.planet !== false, clouds: levelLook?.sky?.clouds !== false });
+                const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null), planet: levelLook?.sky?.planet !== false, clouds: levelLook?.sky?.clouds !== false, sun: levelLook?.sky?.sun });
                 if (layered === null) return null;
                 made.backdrop = layered.backdrop;
                 // Attachment binds the clock and creates its PMREM. Read that environment after attach, not before.

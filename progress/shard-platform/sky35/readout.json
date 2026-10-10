@@ -1,0 +1,1053 @@
+{
+ "before": {
+  "version": {
+   "build": "776e2ab-mv2ucb52",
+   "time": "2026-10-10T20:22:42.183Z"
+  },
+  "shards": {
+   "far-reach": {
+    "pose": {
+     "x": -1.3435500600678107e-06,
+     "y": 30.020045514371304,
+     "z": -5.5000225281035515,
+     "heading": -3.141592653589793
+    },
+    "failures": null,
+    "errors": 0,
+    "console": 0,
+    "shots": {
+     "far-reach-select": {
+      "owner": null,
+      "look": {
+       "fog": [
+        0.871,
+        0.584,
+        0.468
+       ],
+       "env": 1,
+       "key": [
+        1,
+        0.644,
+        0.361
+       ],
+       "keyI": 2,
+       "sunDir": [
+        -0.136,
+        0.105,
+        -0.985
+       ],
+       "hemi": [
+        [
+         0.578,
+         0.565,
+         0.716
+        ],
+        [
+         0.342,
+         0.314,
+         0.413
+        ],
+        1.4
+       ],
+       "disc": true,
+       "layerDomes": 0,
+       "regionSky": null
+      },
+      "loadout": null,
+      "crowd": null,
+      "colour": [
+       "GodRaysEffect@0.12",
+       "BloomEffect@1",
+       "VignetteEffect@1",
+       "ToneMappingEffect@1",
+       "HueSaturationEffect@1",
+       "BrightnessContrastEffect@1",
+       "GradeEffect@1",
+       "LUT3DEffect@1"
+      ]
+     },
+     "far-reach-grid-before": {
+      "owner": "far-reach",
+      "look": {
+       "fog": [
+        0.7,
+        0.8,
+        0.95
+       ],
+       "env": 1,
+       "key": [
+        1,
+        0.8,
+        0.66
+       ],
+       "keyI": 2.4,
+       "sunDir": [
+        -0.916,
+        0.225,
+        0.333
+       ],
+       "hemi": [
+        [
+         0.6,
+         0.62,
+         0.86
+        ],
+        [
+         0.42,
+         0.36,
+         0.34
+        ],
+        1.1
+       ],
+       "disc": true,
+       "layerDomes": 0,
+       "regionSky": {
+        "far-reach": {
+         "weight": 1,
+         "drawn": true,
+         "bytes": 0,
+         "reserved": 0
+        }
+       }
+      },
+      "loadout": null,
+      "crowd": null,
+      "colour": [
+       "ChromaticAberrationEffect@1",
+       "VolumetricsEffect@0",
+       "BloomEffect@1",
+       "VignetteEffect@1",
+       "ToneMappingEffect@0",
+       "SkyNeutralToneEffect@1",
+       "HueSaturationEffect@1",
+       "BrightnessContrastEffect@1",
+       "GradeEffect@1",
+       "GradeLookEffect@1",
+       "LUT3DEffect@1",
+       "NoiseEffect@0",
+       "GridFrameGrade@1"
+      ]
+     }
+    }
+   },
+   "sunscar-dunes": {
+    "pose": {
+     "x": 0.002149070818632026,
+     "y": 21.302396877174463,
+     "z": 69.9961657467029,
+     "heading": -3.141592653589793
+    },
+    "failures": null,
+    "errors": 0,
+    "console": 0,
+    "shots": {
+     "sunscar-dunes-select": {
+      "owner": null,
+      "look": {
+       "fog": [
+        0.048,
+        0.034,
+        0.084
+       ],
+       "env": 1,
+       "key": [
+        1,
+        0.68,
+        0.34
+       ],
+       "keyI": 1.85,
+       "sunDir": [
+        -0.34,
+        0.2,
+        -0.919
+       ],
+       "hemi": [
+        [
+         0.156,
+         0.084,
+         0.065
+        ],
+        [
+         0.195,
+         0.058,
+         0.019
+        ],
+        0.8
+       ],
+       "disc": false,
+       "layerDomes": 0,
+       "regionSky": null
+      },
+      "loadout": null,
+      "crowd": null,
+      "colour": [
+       "BloomEffect@1",
+       "VignetteEffect@1",
+       "ToneMappingEffect@1",
+       "HueSaturationEffect@1",
+       "BrightnessContrastEffect@1",
+       "GradeEffect@1"
+      ]
+     },
+     "sunscar-dunes-grid-before": {
+      "owner": "sunscar-dunes",
+      "look": {
+       "fog": [
+        0.048,
+        0.034,
+        0.084
+       ],
+       "env": 1,
+       "key": [
+        1,
+        0.8,
+        0.66
+       ],
+       "keyI": 2.4,
+       "sunDir": [
+        -0.916,
+        0.225,
+        0.333
+       ],
+       "hemi": [
+        [
+         0.6,
+         0.62,
+         0.86
+        ],
+        [
+         0.42,
+         0.36,
+         0.34
+        ],
+        1.1
+       ],
+       "disc": true,
+       "layerDomes": 0,
+       "regionSky": {
+        "sunscar-dunes": {
+         "weight": 1,
+         "drawn": true,
+         "bytes": 0,
+         "reserved": 0
+        }
+       }
+      },
+      "loadout": null,
+      "crowd": null,
+      "colour": [
+       "ChromaticAberrationEffect@1",
+       "VolumetricsEffect@0",
+       "BloomEffect@1",
+       "VignetteEffect@1",
+       "ToneMappingEffect@1",
+       "HueSaturationEffect@1",
+       "BrightnessContrastEffect@1",
+       "GradeEffect@1",
+       "GradeLookEffect@1",
+       "LUT3DEffect@0",
+       "NoiseEffect@0",
+       "GridFrameGrade@1"
+      ]
+     }
+    }
+   },
+   "nine-dragon-stack": {
+    "pose": {
+     "x": 0.9500049900781913,
+     "y": 125.0198799542195,
+     "z": 7.49999659289979,
+     "heading": 2.9321531433504737
+    },
+    "failures": null,
+    "errors": 0,
+    "console": 0,
+    "shots": {
+     "nine-dragon-stack-select": {
+      "owner": null,
+      "look": {
+       "fog": [
+        0.358,
+        0.432,
+        0.592
+       ],
+       "env": 0.5,
+       "key": [
+        0.55,
+        0.62,
+        0.85
+       ],
+       "keyI": 0.6,
+       "sunDir": [
+        0.931,
+        0.139,
+        -0.339
+       ],
+       "hemi": [
+        [
+         0.159,
+         0.238,
+         0.392
+        ],
+        [
+         0.023,
+         0.025,
+         0.034
+        ],
+        0.5
+       ],
+       "disc": true,
+       "layerDomes": 0,
+       "regionSky": null
+      },
+      "loadout": null,
+      "crowd": 303,
+      "colour": [
+       "NdJiehuaEffect@1"
+      ]
+     },
+     "nine-dragon-stack-grid-before": {
+      "owner": "nine-dragon-stack",
+      "look": {
+       "fog": [
+        0.6,
+        0.56,
+        0.64
+       ],
+       "env": 1,
+       "key": [
+        1,
+        0.97,
+        0.9
+       ],
+       "keyI": 2.7,
+       "sunDir": [
+        -0.74,
+        0.616,
+        -0.27
+       ],
+       "hemi": [
+        [
+         0.198,
+         0.279,
+         0.905
+        ],
+        [
+         0.687,
+         0.392,
+         0.188
+        ],
+        0.9
+       ],
+       "disc": true,
+       "layerDomes": 0,
+       "regionSky": {}
+      },
+      "loadout": null,
+      "crowd": 303,
+      "colour": [
+       "ChromaticAberrationEffect@0",
+       "VolumetricsEffect@0",
+       "BloomEffect@0",
+       "VignetteEffect@0",
+       "ToneMappingEffect@0",
+       "NdJiehuaEffect@1",
+       "HueSaturationEffect@0",
+       "BrightnessContrastEffect@0",
+       "GradeEffect@0",
+       "GradeLookEffect@0",
+       "LUT3DEffect@0",
+       "NoiseEffect@0",
+       "GridFrameGrade@0"
+      ]
+     }
+    }
+   }
+  }
+ },
+ "after": {
+  "version": {
+   "build": "df0b8ca-mv2uo6ro",
+   "time": "2026-10-10T20:31:57.085Z"
+  },
+  "shards": {
+   "far-reach": {
+    "pose": {
+     "x": -1.3435500600678107e-06,
+     "y": 30.020045514371304,
+     "z": -5.5000225281035515,
+     "heading": -3.141592653589793
+    },
+    "failures": null,
+    "errors": 0,
+    "console": 0,
+    "shots": {
+     "far-reach-grid-after": {
+      "owner": "far-reach",
+      "look": {
+       "fog": [
+        0.871,
+        0.584,
+        0.468
+       ],
+       "env": 0.7,
+       "key": [
+        1,
+        0.644,
+        0.361
+       ],
+       "keyI": 2,
+       "sunDir": [
+        -0.136,
+        0.105,
+        -0.985
+       ],
+       "hemi": [
+        [
+         0.578,
+         0.565,
+         0.716
+        ],
+        [
+         0.342,
+         0.314,
+         0.413
+        ],
+        1.4
+       ],
+       "disc": false,
+       "layerDomes": 1,
+       "regionSky": {
+        "far-reach": {
+         "weight": 1,
+         "drawn": true,
+         "bytes": 0,
+         "reserved": 0
+        }
+       }
+      },
+      "loadout": {
+       "current": "far-fan",
+       "list": [
+        "far-fan"
+       ],
+       "tools": [
+        "tool.hoverboard"
+       ]
+      },
+      "crowd": null,
+      "colour": [
+       "ChromaticAberrationEffect@1",
+       "VolumetricsEffect@0",
+       "BloomEffect@1",
+       "VignetteEffect@1",
+       "ToneMappingEffect@0",
+       "SkyNeutralToneEffect@1",
+       "HueSaturationEffect@1",
+       "BrightnessContrastEffect@1",
+       "GradeEffect@1",
+       "GradeLookEffect@1",
+       "LUT3DEffect@1",
+       "NoiseEffect@0",
+       "GridFrameGrade@1"
+      ]
+     }
+    }
+   },
+   "sunscar-dunes": {
+    "pose": {
+     "x": 0.002149070818632026,
+     "y": 21.302396877174463,
+     "z": 69.9961657467029,
+     "heading": -3.141592653589793
+    },
+    "failures": null,
+    "errors": 0,
+    "console": 0,
+    "shots": {
+     "sunscar-dunes-grid-after": {
+      "owner": "sunscar-dunes",
+      "look": {
+       "fog": [
+        0.048,
+        0.034,
+        0.084
+       ],
+       "env": 0.4,
+       "key": [
+        1,
+        0.68,
+        0.34
+       ],
+       "keyI": 1.85,
+       "sunDir": [
+        -0.34,
+        0.2,
+        -0.919
+       ],
+       "hemi": [
+        [
+         0.156,
+         0.084,
+         0.065
+        ],
+        [
+         0.195,
+         0.058,
+         0.019
+        ],
+        0.8
+       ],
+       "disc": false,
+       "layerDomes": 1,
+       "regionSky": {
+        "sunscar-dunes": {
+         "weight": 1,
+         "drawn": true,
+         "bytes": 0,
+         "reserved": 0
+        }
+       }
+      },
+      "loadout": {
+       "current": "sunscar-whip",
+       "list": [
+        "sunscar-whip"
+       ],
+       "tools": [
+        "tool.hoverboard"
+       ]
+      },
+      "crowd": null,
+      "colour": [
+       "ChromaticAberrationEffect@1",
+       "VolumetricsEffect@0",
+       "BloomEffect@1",
+       "VignetteEffect@1",
+       "ToneMappingEffect@1",
+       "HueSaturationEffect@1",
+       "BrightnessContrastEffect@1",
+       "GradeEffect@1",
+       "GradeLookEffect@1",
+       "LUT3DEffect@0",
+       "NoiseEffect@0",
+       "GridFrameGrade@1"
+      ]
+     }
+    }
+   }
+  }
+ },
+ "nine-after": {
+  "version": {
+   "build": "df0b8ca-mv2uo6ro",
+   "time": "2026-10-10T20:31:57.085Z"
+  },
+  "shards": {
+   "nine-dragon-stack": {
+    "pose": {
+     "x": 0.9500049900781913,
+     "y": 125.0198799542195,
+     "z": 7.49999659289979,
+     "heading": 2.9321531433504737
+    },
+    "failures": null,
+    "errors": 0,
+    "console": 0,
+    "shots": {
+     "nine-dragon-stack-grid-after": {
+      "owner": "nine-dragon-stack",
+      "look": {
+       "fog": [
+        0.6,
+        0.56,
+        0.64
+       ],
+       "env": 1,
+       "key": [
+        1,
+        0.97,
+        0.9
+       ],
+       "keyI": 2.7,
+       "sunDir": [
+        -0.74,
+        0.616,
+        -0.27
+       ],
+       "hemi": [
+        [
+         0.198,
+         0.279,
+         0.905
+        ],
+        [
+         0.687,
+         0.392,
+         0.188
+        ],
+        0.9
+       ],
+       "disc": true,
+       "layerDomes": 0,
+       "regionSky": {}
+      },
+      "loadout": {
+       "current": "sword",
+       "list": [
+        "sword"
+       ],
+       "tools": [
+        "tool.hoverboard",
+        "tool.fei-zhua"
+       ]
+      },
+      "crowd": 303,
+      "colour": [
+       "ChromaticAberrationEffect@0",
+       "VolumetricsEffect@0",
+       "BloomEffect@0",
+       "VignetteEffect@0",
+       "ToneMappingEffect@0",
+       "NdJiehuaEffect@1",
+       "HueSaturationEffect@0",
+       "BrightnessContrastEffect@0",
+       "GradeEffect@0",
+       "GradeLookEffect@0",
+       "LUT3DEffect@0",
+       "NoiseEffect@0",
+       "GridFrameGrade@0"
+      ]
+     }
+    }
+   }
+  }
+ },
+ "others-after": {
+  "version": {
+   "build": "df0b8ca-mv2uo6ro",
+   "time": "2026-10-10T20:31:57.085Z"
+  },
+  "shards": {
+   "driftwood-isle": {
+    "pose": {
+     "x": -1.604528012788542e-05,
+     "y": 1.214481760426861,
+     "z": -194.00004657470754,
+     "heading": -1.2246467991473532e-16
+    },
+    "failures": null,
+    "errors": 0,
+    "console": 0,
+    "shots": {
+     "driftwood-isle-select": {
+      "owner": null,
+      "look": {
+       "fog": [
+        0.36,
+        0.7,
+        1
+       ],
+       "env": 0.7,
+       "key": [
+        1,
+        0.97,
+        0.9
+       ],
+       "keyI": 2.7,
+       "sunDir": [
+        -0.636,
+        0.606,
+        -0.478
+       ],
+       "hemi": [
+        [
+         0.198,
+         0.279,
+         0.905
+        ],
+        [
+         0.807,
+         0.479,
+         0.279
+        ],
+        1.15
+       ],
+       "disc": true,
+       "layerDomes": 0,
+       "regionSky": null
+      },
+      "loadout": {
+       "current": "sword",
+       "list": [
+        "sword",
+        "sword-iron"
+       ],
+       "tools": [
+        "tool.hoverboard"
+       ]
+      },
+      "crowd": null,
+      "colour": [
+       "BloomEffect@1",
+       "VignetteEffect@1",
+       "ToneMappingEffect@1",
+       "HueSaturationEffect@1",
+       "BrightnessContrastEffect@1",
+       "GradeEffect@1",
+       "LUT3DEffect@1"
+      ]
+     },
+     "driftwood-isle-grid-after": {
+      "owner": "driftwood-isle",
+      "look": {
+       "fog": [
+        0.36,
+        0.7,
+        1
+       ],
+       "env": 0.7,
+       "key": [
+        1,
+        0.97,
+        0.9
+       ],
+       "keyI": 2.7,
+       "sunDir": [
+        -0.637,
+        0.604,
+        -0.478
+       ],
+       "hemi": [
+        [
+         0.198,
+         0.279,
+         0.905
+        ],
+        [
+         0.807,
+         0.479,
+         0.279
+        ],
+        1.15
+       ],
+       "disc": true,
+       "layerDomes": 4,
+       "regionSky": {
+        "driftwood-isle": {
+         "weight": 1,
+         "drawn": true,
+         "bytes": 1720320,
+         "reserved": 2752512
+        }
+       }
+      },
+      "loadout": {
+       "current": "sword",
+       "list": [
+        "sword",
+        "sword-iron"
+       ],
+       "tools": [
+        "tool.hoverboard"
+       ]
+      },
+      "crowd": null,
+      "colour": [
+       "ChromaticAberrationEffect@1",
+       "VolumetricsEffect@0",
+       "BloomEffect@1",
+       "VignetteEffect@1",
+       "ToneMappingEffect@1",
+       "HueSaturationEffect@1",
+       "BrightnessContrastEffect@1",
+       "GradeEffect@1",
+       "GradeLookEffect@1",
+       "LUT3DEffect@1",
+       "NoiseEffect@0",
+       "GridFrameGrade@1"
+      ]
+     }
+    }
+   },
+   "pine-hollow": {
+    "pose": {
+     "x": -3.3540036693188724e-06,
+     "y": 0.020099796834983863,
+     "z": -234.99999049623403,
+     "heading": -1.2246467991473532e-16
+    },
+    "failures": null,
+    "errors": 0,
+    "console": 0,
+    "shots": {
+     "pine-hollow-select": {
+      "owner": null,
+      "look": {
+       "fog": [
+        0.74,
+        0.829,
+        0.892
+       ],
+       "env": 1.399,
+       "key": [
+        1,
+        0.796,
+        0.62
+       ],
+       "keyI": 4.497,
+       "sunDir": [
+        -0.885,
+        0.451,
+        -0.116
+       ],
+       "hemi": [
+        [
+         0.342,
+         0.399,
+         0.574
+        ],
+        [
+         0.09,
+         0.051,
+         0.023
+        ],
+        0.549
+       ],
+       "disc": true,
+       "layerDomes": 0,
+       "regionSky": null
+      },
+      "loadout": {
+       "current": "crossbow",
+       "list": [
+        "crossbow",
+        "rifle",
+        "bow"
+       ],
+       "tools": [
+        "tool.hoverboard"
+       ]
+      },
+      "crowd": null,
+      "colour": [
+       "ChromaticAberrationEffect@1",
+       "VolumetricsEffect@1",
+       "GodRaysEffect@0.9",
+       "BloomEffect@1",
+       "VignetteEffect@1",
+       "ToneMappingEffect@1",
+       "HueSaturationEffect@1",
+       "BrightnessContrastEffect@1",
+       "GradeEffect@1",
+       "LUT3DEffect@1",
+       "NoiseEffect@0.12"
+      ]
+     },
+     "pine-hollow-grid-after": {
+      "owner": "pine-hollow",
+      "look": {
+       "fog": [
+        0.74,
+        0.835,
+        0.908
+       ],
+       "env": 1.402,
+       "key": [
+        1,
+        0.815,
+        0.652
+       ],
+       "keyI": 4.485,
+       "sunDir": [
+        -0.876,
+        0.462,
+        -0.135
+       ],
+       "hemi": [
+        [
+         0.343,
+         0.409,
+         0.594
+        ],
+        [
+         0.088,
+         0.052,
+         0.024
+        ],
+        0.561
+       ],
+       "disc": true,
+       "layerDomes": 2,
+       "regionSky": {
+        "pine-hollow": {
+         "weight": 1,
+         "drawn": true,
+         "bytes": 20971520,
+         "reserved": 29360128
+        }
+       }
+      },
+      "loadout": {
+       "current": "crossbow",
+       "list": [
+        "crossbow",
+        "rifle",
+        "bow"
+       ],
+       "tools": [
+        "tool.hoverboard"
+       ]
+      },
+      "crowd": null,
+      "colour": [
+       "ChromaticAberrationEffect@1",
+       "VolumetricsEffect@1",
+       "BloomEffect@1",
+       "VignetteEffect@1",
+       "ToneMappingEffect@1",
+       "HueSaturationEffect@1",
+       "BrightnessContrastEffect@1",
+       "GradeEffect@1",
+       "GradeLookEffect@1",
+       "LUT3DEffect@1",
+       "NoiseEffect@0.12",
+       "GridFrameGrade@1"
+      ]
+     }
+    }
+   },
+   "nalati-grasslands": {
+    "pose": {
+     "x": 1.9603478933899465e-07,
+     "y": 0.02009963453747332,
+     "z": 231.99999822446543,
+     "heading": -3.141592653589793
+    },
+    "failures": null,
+    "errors": 0,
+    "console": 0,
+    "shots": {
+     "nalati-grasslands-select": {
+      "owner": null,
+      "look": {
+       "fog": [
+        0.589,
+        0.74,
+        0.987
+       ],
+       "env": 0.6,
+       "key": [
+        1,
+        0.85,
+        0.64
+       ],
+       "keyI": 2.8,
+       "sunDir": [
+        0.723,
+        0.619,
+        0.307
+       ],
+       "hemi": [
+        [
+         0.359,
+         0.515,
+         0.848
+        ],
+        [
+         0.237,
+         0.225,
+         0.086
+        ],
+        0.475
+       ],
+       "disc": false,
+       "layerDomes": 0,
+       "regionSky": null
+      },
+      "loadout": {
+       "current": "bow",
+       "list": [
+        "sabre",
+        "rifle",
+        "bow",
+        "spear"
+       ],
+       "tools": [
+        "tool.hoverboard"
+       ]
+      },
+      "crowd": null,
+      "colour": []
+     },
+     "nalati-grasslands-grid-after": {
+      "owner": "nalati-grasslands",
+      "look": {
+       "fog": [
+        0.62,
+        0.78,
+        0.98
+       ],
+       "env": 1,
+       "key": [
+        1,
+        0.85,
+        0.64
+       ],
+       "keyI": 2.8,
+       "sunDir": [
+        0.715,
+        0.643,
+        0.275
+       ],
+       "hemi": [
+        [
+         0.359,
+         0.515,
+         0.848
+        ],
+        [
+         0.237,
+         0.225,
+         0.086
+        ],
+        0.475
+       ],
+       "disc": false,
+       "layerDomes": 0,
+       "regionSky": {}
+      },
+      "loadout": {
+       "current": "bow",
+       "list": [
+        "sabre",
+        "rifle",
+        "bow",
+        "spear"
+       ],
+       "tools": [
+        "tool.hoverboard"
+       ]
+      },
+      "crowd": null,
+      "colour": [
+       "ChromaticAberrationEffect@1",
+       "VolumetricsEffect@0",
+       "BloomEffect@1",
+       "VignetteEffect@1",
+       "ToneMappingEffect@0",
+       "GradeV2Effect@1",
+       "HueSaturationEffect@1",
+       "BrightnessContrastEffect@1",
+       "GradeEffect@1",
+       "GradeLookEffect@1",
+       "LUT3DEffect@0",
+       "NoiseEffect@0",
+       "GridFrameGrade@1"
+      ]
+     }
+    }
+   }
+  }
+ }
+}

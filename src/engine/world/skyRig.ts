@@ -1,6 +1,6 @@
 import { PLANET_DIST, SkyBackdropView, cloudLayer } from './skyBackdrop';
 import { ownSceneResource } from '../app/sceneOwnership';
-import { BackdropLayer, applyLayers } from './backdropLayer';
+import { BackdropLayer, applyLayers, layerKeyedSky, seedLayerTargets } from './backdropLayer';
 import { app } from '../app/runtime';
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
@@ -245,12 +245,18 @@ export class SkyRig {
    * (`layerPlanet`), unless `planet` is false (its look's sky dressing paints its own: `SkyDressing.planet`); and a backdrop
    * with no sky layer of its own (`SkyBackdrop.clouds`) gets the engine's cloud layer on the layer, as standalone `build`
    * gives it one (`layerClouds`), unless `clouds` is false (its look's sky dressing: `SkyDressing.clouds`).
+   * G321: the layer starts from its level's own declared light (`seedLayerTargets`), the factory's `sky` moves the layer's
+   * key light, not the page's (`layerKeyedSky`), and `sun` (its look's dressing, `SkyDressing.sun`) with the disc or halo
+   * off hides the page's inside its cell.
    */
-  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly scope?: Scope; readonly air?: () => THREE.Fog | null; readonly planet?: boolean; readonly clouds?: boolean }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
+  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly scope?: Scope; readonly air?: () => THREE.Fog | null; readonly planet?: boolean; readonly clouds?: boolean; readonly sun?: { readonly disc?: boolean; readonly halo?: boolean } | undefined }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
     const layer = this.layerBackdrop({ ...(options.air === undefined ? {} : { air: options.air }), ...(options.scope === undefined ? {} : { owner: options.scope }) });
     if (layer === null) return null;
     try {
-      const backdrop = await factory({ sky: this, scene: layer.holder, renderer: this.renderer, level: options.level, tier: TIER, look: options.level.lookLayer ?? null });
+      seedLayerTargets(layer, options.level);
+      if (options.sun?.disc === false) layer.targets.disc.visible = false;
+      if (options.sun?.halo === false && layer.targets.halo !== null) layer.targets.halo.visible = false;
+      const backdrop = await factory({ sky: layerKeyedSky(this, layer), scene: layer.holder, renderer: this.renderer, level: options.level, tier: TIER, look: options.level.lookLayer ?? null });
       if (options.planet !== false) this.layerPlanet(layer, options.level); // before the layer binds the clock (its crisp disc)
       if (options.clouds !== false && backdrop.clouds === undefined) this.layerClouds(layer, options.level);
       return { layer, backdrop };

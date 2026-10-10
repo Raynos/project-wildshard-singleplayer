@@ -20,6 +20,18 @@
  *   the backdrop draws them on its own (its opaque dome, then its cloud ring: `layerOrders`), depth-tested (the dome
  *   sits past every world thing), with a constant blend alpha of the weight; at weight 0 it is hidden and its clock is
  *   not run (no cost outside the cell).
+ * - **Its own sky layer** (`SkyBackdrop.clouds`, SHARD-PLATFORM G321): a backdrop that hands its dome over as `clouds` (as
+ *   standalone, where `SkyRig.build` attaches it to the page scene) has it joined to the holder at `attach`, so it is drawn
+ *   like a dome it added itself. Kept on the camera, it is scaled out to at least `LAYER_DOME_REACH` of the camera's far
+ *   plane: drawn depth-tested after the world (not first with no depth test, as a standalone dome may be), a 120 m dome
+ *   would cover every world thing past 120 m. Its shading reads directions only, so the scale changes nothing it paints.
+ * - **Its start** (G321): before the backdrop is built its targets take its level's own declared light (`seedLayerTargets`,
+ *   as a standalone `SkyRig.build` starts from it), so a value its clock never writes (a fixed sky that only sets its key
+ *   light) blends toward its own level's, never toward a copy of the page's light from when the layer was laid.
+ * - **Its key light** (G321): a backdrop's `sky.setKeyLight` calls land on the layer's targets (`layerKeyedSky`), never
+ *   straight on the page's shared light (where the blend then overwrote them with the layer's stale copy).
+ * - **Its sun disc and halo**: hidden on its own targets (its look's `sky.sun` off, or its clock hiding them), the page's
+ *   are hidden from half weight on, like the environment swap.
  * - **Its dispose**: the dome leaves the page scene, the backdrop's own `dispose` frees its textures and targets, and the
  *   last frame's moved values go back at the next update.
  *
@@ -34,7 +46,7 @@
  * like any layer, so inside a cell the page and the region's layer are exactly what they were without it.
  */
 import {
-  BufferGeometry, Color, ConstantAlphaFactor, CustomBlending, DirectionalLight, Fog, HemisphereLight, Material, Mesh,
+  Box3, BufferGeometry, Color, ConstantAlphaFactor, CustomBlending, DirectionalLight, Fog, HemisphereLight, Material, Mesh,
   MeshBasicMaterial, OneMinusConstantAlphaFactor, Scene, Sprite, SpriteMaterial, Vector3, type Object3D, type PerspectiveCamera, type WebGLRenderTarget,
 } from 'three';
 import type { Scope } from '../app/scope';
@@ -44,6 +56,8 @@ import type { AssetService } from '../app/assets';
 import type { SkyBackdrop, SkyBackdropTargets } from '../render/look';
 import type { Renderer } from '../render/renderer';
 import { prepareSceneRoots } from '../render/precompile';
+import type { AtmosphereSpec, SkySpec } from '../level/data';
+import { compassDir } from './dayCycle';
 
 /**
  * the layered dome's render order: after the page's sky pieces (−20 … −10), before the grid road sky (−9); a backdrop
@@ -57,6 +71,12 @@ export const LAYER_SKY_ORDER = -9.5;
 export const BASE_SKY_ORDER = -9.95;
 /** below this weight the layer is off: hidden, its clock not run, nothing moved */
 const OFF = 0.001;
+/**
+ * G321: the least horizontal radius a layered backdrop's camera-kept dome (`SkyBackdrop.clouds`) is drawn at, as a share of
+ * the camera's far plane (1950 m on the grid's 2600 m camera, inside the road dome's 2300 m): past every world thing it
+ * must not cover, since the layer draws it depth-tested after the world
+ */
+export const LAYER_DOME_REACH = 0.75;
 
 /**
  * What a layer runs of a backdrop: a level's whole `SkyBackdrop` fits, and so does a fixed sky that only binds its own light
@@ -87,6 +107,12 @@ function scalar(get: () => number, set: (v: number) => void, own: () => number):
 function vector(real: Vector3, own: Vector3): Slot {
   const held = new Vector3();
   return { save: () => { held.copy(real); }, blend: (w) => { real.lerp(own, w); }, undo: () => { real.copy(held); } };
+}
+
+/** a visibility the layer takes over from half weight on (a hidden sun disc or halo; a mesh cannot be half drawn) */
+function shown(real: { visible: boolean }, own: { readonly visible: boolean }): Slot {
+  let held = true;
+  return { save: () => { held = real.visible; }, blend: (w) => { if (w >= 0.5 && !own.visible) real.visible = false; }, undo: () => { real.visible = held; } };
 }
 
 const basicColour = (mesh: Mesh): Color | null => (mesh.material instanceof MeshBasicMaterial ? mesh.material.color : null);
@@ -153,6 +179,9 @@ export class BackdropLayer {
   private readonly scope: Scope;
   private readonly assets: Pick<AssetService, 'isAcquired'>;
   private backdrop: LayeredSkyBackdrop | null = null;
+  /** G321: its camera-kept dome's horizontal radius and scale as built (0: none), scaled out to `LAYER_DOME_REACH` */
+  private domeReach = 0;
+  private readonly domeScale = new Vector3(1, 1, 1);
   /** G242: a base layer (applied first, drawn under the others, weighted by the share they leave) */
   readonly base: boolean;
   private weight_ = 0;
@@ -200,8 +229,9 @@ export class BackdropLayer {
       scalar(() => real.fogU.fogHeightDensity.value, (v) => { real.fogU.fogHeightDensity.value = v; }, () => fogU.fogHeightDensity.value),
       vector(real.disc.scale, disc.scale),
       ...(basicColour(real.disc) === null ? [] : [colour(() => basicColour(real.disc) ?? discMaterial.color, discMaterial.color)]),
+      shown(real.disc, disc),
       ...(real.halo === null || halo === null ? [] : ((h: Sprite, o: Sprite): Slot[] => [colour(() => h.material.color, o.material.color), vector(h.scale, o.scale),
-        scalar(() => h.material.opacity, (v) => { h.material.opacity = v; }, () => o.material.opacity)])(real.halo, halo)),
+        scalar(() => h.material.opacity, (v) => { h.material.opacity = v; }, () => o.material.opacity), shown(h, o)])(real.halo, halo)),
       direction(real.cloud.uSunDir.value, cloud.uSunDir.value), colour(() => real.cloud.uSunColor.value, cloud.uSunColor.value), colour(() => real.cloud.uCloudLit.value, cloud.uCloudLit.value),
       scalar(() => real.cloud.uCloudAlpha.value, (v) => { real.cloud.uCloudAlpha.value = v; }, () => cloud.uCloudAlpha.value),
       colour(() => real.far.uHazeCol.value, far.uHazeCol.value), colour(() => real.far.uSeaSky.value, far.uSeaSky.value), colour(() => real.far.uSeaSun.value, far.uSeaSun.value),
@@ -224,6 +254,16 @@ export class BackdropLayer {
     this.backdrop = backdrop;
     // The grade pass draws this sampler outside the dome subtree; it still belongs to the resident layer.
     if (backdrop.lut !== null && !this.assets.isAcquired(backdrop.lut)) ownSceneResource(backdrop.lut, this.scope);
+    // G321: its own sky layer, handed over as `clouds` (standalone `SkyRig.build` attaches it), is drawn like its holder's dome
+    const own = backdrop.clouds;
+    if (own !== undefined) {
+      let inHolder = false;
+      for (let node: Object3D | null = own; node !== null; node = node.parent) if (node === this.holder) inHolder = true;
+      if (!inHolder) this.holder.add(own);
+      const box = new Box3().setFromObject(own);
+      this.domeReach = box.isEmpty() ? 0 : (box.max.x - box.min.x) / 2;
+      this.domeScale.copy(own.scale);
+    }
     const children = this.holder.children.slice();
     const order = this.base ? layerOrders(children, BASE_SKY_ORDER, BASE_SKY_BAND) : layerOrders(children, LAYER_SKY_ORDER, LAYER_SKY_BAND);
     for (const child of children) {
@@ -275,6 +315,19 @@ export class BackdropLayer {
     this.followers.push({ piece, dir: dir.clone(), dist, opacity });
   }
 
+  /**
+   * G321: a layered backdrop's key light, as `SkyRig.setKeyLight` moves the page's (`layerKeyedSky` routes its calls here):
+   * the sun direction and colour, every cascade light's colour and intensity, the shadow direction, and the fog's, cloud
+   * layer's and gas giant's sun direction, all on this layer's own targets, blended into the page's by the weight.
+   */
+  setKeyLight(dir: Vector3, color: Color, intensity: number): void {
+    const t = this.targets;
+    t.sunDir.copy(dir).normalize(); t.sunColor.copy(color);
+    for (const l of t.lights) { l.color.copy(color); l.intensity = intensity; }
+    t.lightDirection.copy(t.sunDir).negate();
+    t.fogU.fogSunDir.value.copy(t.sunDir); t.cloud.uSunDir.value.copy(t.sunDir); t.planet.uSunDir.value.copy(t.sunDir);
+  }
+
   /** The owner's weight (0..1), read at the next `apply`. */
   set weight(w: number) { this.weight_ = Number.isFinite(w) ? Math.min(1, Math.max(0, w)) : 0; }
   get weight(): number { return this.weight_; }
@@ -294,6 +347,9 @@ export class BackdropLayer {
     // its own sky layer (a dome and its cloud ring) travels with the camera, as Game.ts keeps the page's `sky.clouds`;
     // left at the page origin, a ring drawn around its own centre sat off-centre and behind the far world (SF63)
     backdrop.clouds?.position.copy(camera.position);
+    // G321: drawn depth-tested after the world, a near dome would cover it: scaled out to the layer's reach (directions only)
+    const reach = LAYER_DOME_REACH * camera.far;
+    if (backdrop.clouds !== undefined && this.domeReach > 0 && this.domeReach < reach) backdrop.clouds.scale.copy(this.domeScale).multiplyScalar(reach / this.domeReach);
     for (const f of this.followers) { f.piece.position.copy(camera.position).addScaledVector(f.dir, f.dist); f.opacity.value = w; }
     for (const m of this.materials) m.blendAlpha = w;
     for (const slot of this.slots) slot.save();
@@ -351,4 +407,50 @@ export function applyLayers(layers: Iterable<BackdropLayer>, dt: number, camera:
     if (done !== null) undo.push(done);
   }
   return undo;
+}
+
+/** The parts of a level's sky and atmosphere a layer starts from (`seedLayerTargets`; structural: any level fits). */
+export interface LayerLevelLight {
+  readonly sky: Pick<SkySpec, 'sunColor' | 'sunIntensity' | 'hemiSky' | 'hemiGround' | 'hemiIntensity' | 'fogSunColor' | 'sun'>;
+  readonly atmosphere: Pick<AtmosphereSpec, 'fogDistDensity' | 'fogHeightDensity'>;
+}
+
+/**
+ * G321: start a layer's own targets from its level's declared light, as a standalone `SkyRig.build` starts the page's: the
+ * key light's colour and intensity (and its direction where the level fixes its sun), the hemisphere fill, the fog's sun
+ * tint and its distance and height densities. The environment intensity stays the holder scene's 1, as a standalone page
+ * with a backdrop keeps it (its level's `envIntensity` is the HDRI path's). Its clock then writes over whatever it drives;
+ * what it never writes stays its level's own.
+ */
+export function seedLayerTargets(layer: BackdropLayer, level: LayerLevelLight): void {
+  const { sky: S, atmosphere: A } = level, t = layer.targets;
+  t.sunColor.setRGB(...S.sunColor);
+  for (const l of t.lights) { l.color.copy(t.sunColor); l.intensity = S.sunIntensity; }
+  if (S.sun !== undefined) {
+    compassDir(S.sun.azimuth, S.sun.elevation, t.sunDir);
+    t.lightDirection.copy(t.sunDir).negate();
+    t.fogU.fogSunDir.value.copy(t.sunDir); t.cloud.uSunDir.value.copy(t.sunDir); t.planet.uSunDir.value.copy(t.sunDir);
+  }
+  t.hemi.color.set(S.hemiSky); t.hemi.groundColor.set(S.hemiGround); t.hemi.intensity = S.hemiIntensity;
+  t.fogU.fogSunColor.value.setRGB(...S.fogSunColor);
+  t.fogU.fogDistDensity.value = A.fogDistDensity; t.fogU.fogHeightDensity.value = A.fogHeightDensity;
+}
+
+/**
+ * G321: the page sky as a layered backdrop's factory is handed it (`SkyBackdropContext.sky`): the same sky, except that its
+ * `setKeyLight` lands on the layer's own targets (`BackdropLayer.setKeyLight`), so a backdrop that moves the key light
+ * through the rig (Sky Reach's fixed sun, Signal Dunes' dimming dusk key, a data look's clock) lights its cell by its
+ * weight like every other value its clock writes. Every other member is the page sky's own.
+ */
+export function layerKeyedSky<S extends object>(sky: S, layer: Pick<BackdropLayer, 'setKeyLight'>): S {
+  const setKeyLight = (dir: Vector3, color: Color, intensity: number): void => { layer.setKeyLight(dir, color, intensity); };
+  return new Proxy<S>(sky, {
+    get: (target, key) => {
+      if (key === 'setKeyLight') return setKeyLight;
+      const value: unknown = Reflect.get(target, key, target);
+      if (typeof value !== 'function') return value;
+      const bound: unknown = value.bind(target);
+      return bound;
+    },
+  });
 }
