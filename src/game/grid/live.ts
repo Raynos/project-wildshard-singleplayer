@@ -367,9 +367,9 @@ export class LiveGridHost {
       if (approach !== undefined && !this.issues.has(approach.instance)) {
         const reach = moving === undefined ? wallReach : Math.max(wallReach, readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance);
         if (this.distance(approach, feet) <= reach) {
-          // A U-turn can replace a speculative world only after its normal durable disposal succeeds. Never overlap
-          // opaque worlds, retry a failed save each tick, or discard a reservation held by an in-flight crossing.
-          for (const [instance, resident] of this.residents) if (instance !== approach.instance && resident.exclusiveRuntime
+          // A turn replaces any speculative world, including a declarative copy, only after durable disposal succeeds.
+          // Never overlap opaque worlds, retry a failed save each tick, or discard an in-flight crossing reservation.
+          for (const [instance] of this.residents) if (instance !== approach.instance
             && !this.roadRetirementRefused.has(instance) && !this.unload(instance)) this.roadRetirementRefused.add(instance);
           if (this.residents.size === 0) void this.ensure(approach.instance).catch(() => undefined);
         }

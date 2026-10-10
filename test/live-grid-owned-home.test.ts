@@ -264,6 +264,34 @@ it('refuses an approach world before allocation when its unchanged whole-runtime
   } finally { f.finish(); }
 });
 
+it.each([false, true])('retires an unentered declarative copy before the approached opaque runtime (quota refusal: %s)', async refused => {
+  const f = await open((instance, fallback) => Promise.resolve({ ...fallback(), exclusiveRuntime: instance !== 'template-2' }), undefined, 10);
+  const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+  try {
+    const copy = f.registry.assembly.cell('template-2');
+    f.player.position.set(copy.origin.x, 0.5, copy.origin.z - 280); f.registry.beforeFixed();
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    expect(f.registry.current()).toBeNull(); expect(f.registry.ready('template-2')).toBe(true);
+    expect(f.creates).toEqual(['template-2']);
+    const before = f.owner.allocator.cost(); f.quota(refused);
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.5 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    if (refused) {
+      expect(f.creates).toEqual(['template-2']); expect(f.disposals).toEqual([]);
+      expect(f.owner.allocator.cost()).toEqual(before);
+      f.quota(false); f.registry.retry('template-2');
+      f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.5 }); f.shell.physics.step();
+      f.registry.beforeFixed(); await settle();
+    }
+    expect(f.disposals).toEqual(['template-2']);
+    expect(f.creates).toEqual(['template-2', 'nalati-grasslands']);
+    expect(f.registry.ready('template-2')).toBe(false); expect(f.registry.ready('nalati-grasslands')).toBe(true);
+    expect(f.owner.allocator.has('sim:template-2')).toBe(false);
+    expect(f.hosts.size).toBe(1); expect(f.registry.current()).toBeNull();
+  } finally { f.finish(); }
+});
+
 it('keeps the road authoritative across presentation batches and publishes readiness only after allocation yields', async () => {
   const pauses: (() => void)[] = [];
   const f = await open(undefined, () => new Promise<void>(resolve => { pauses.push(resolve); }));
