@@ -139,6 +139,7 @@
     "./viewmodel/gloveHands": "./viewmodel/gloveHands.ts",
     "./viewmodel/staveBow": "./viewmodel/staveBow.ts",
     "./tools/grappleAim": "./tools/grappleAim.ts",
+    "./tools/hookCourse": "./tools/hookCourse.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/classKit": "./kit/classKit.ts",
     "./kit/ruledKit": "./kit/ruledKit.ts",

@@ -5,7 +5,8 @@ import { GRAPPLE_PLAYGROUND } from '../src/shards/nine-dragon-stack/playground/r
 // and flies clear of every other box; the horse track's bends are wider than a gallop's turn and inside the field.
 import { afterAll, describe, expect, it } from 'vitest';
 import { registerPlayground, PLAYGROUND_CARDS, asPlaygroundId, playgroundsFor } from '../src/engine/practice/playground/catalog';
-import { COLUMN, HOOKS, PADS, RING_UP, ROOM, coursePad, padLabelAt, type CourseHook, type CoursePad } from '../src/shards/nine-dragon-stack/playground/grappleCourse';
+import { hookCourseHooks, hookCoursePad, hookCoursePadLabelAt, type HookCourseHook as CourseHook, type HookCoursePad as CoursePad } from '@wildshard/sdk/tools/hookCourse';
+import { GRAPPLE_COURSE } from '../src/shards/nine-dragon-stack/data/grappleCourse';
 import { FIELD, HORSE_START, JUMPS, LAP_M, OVAL, POST_OFF, RIDER_START, ovalLine } from '../src/shards/nalati-grasslands/playground/horseCourse';
 import { practiceRoom } from '../src/engine/core/practiceRoom';
 import { placesWithDiscovery } from '../src/engine/quest/view';
@@ -31,6 +32,10 @@ describe('the Explore hub lists each shard its own playgrounds', () => {
 });
 
 // ── the grapple: Traversal.ts's numbers ──
+const { column: COLUMN, pads: PADS, ringUp: RING_UP, room: ROOM } = GRAPPLE_COURSE;
+const HOOKS = hookCourseHooks(GRAPPLE_COURSE);
+const coursePad = (id: string): CoursePad => hookCoursePad(GRAPPLE_COURSE, id);
+const padLabelAt = (p: CoursePad): { x: number; z: number } => hookCoursePadLabelAt(GRAPPLE_COURSE, p);
 const MIN_RANGE = 2.5, MAX_RANGE = 38, EYE = 1.6, FOOT = 0.4, BODY = 1.8, RADIUS = 0.38;
 const PAST = [-1.6, -2.4, -3.2, -4.2], NEAR = [1.2, 2, 2.8, 4, 6], SIDES = [0, -2, 2, -4, 4];
 const RUN = ['start', 'p1', 'p2', 'base', 'l1', 'l2', 'top'];
@@ -71,7 +76,7 @@ const standFor = (p: CoursePad, h: CourseHook): [number, number] => [
   Math.max(p.x - p.w / 2 + 1, Math.min(p.x + p.w / 2 - 1, h.x)), Math.max(p.z - p.d / 2 + 1, Math.min(p.z + p.d / 2 - 1, h.z)),
 ];
 
-describe('the grapple course (grappleCourse.ts) against the Fei Zhua (Traversal.ts)', () => {
+describe('the grapple course (data/grappleCourse.ts) against the Fei Zhua (Traversal.ts)', () => {
   it('the run is START → P1 → P2 → BASE → L1 → L2 → the top, one hook on each next pad', () => {
     for (let i = 0; i + 1 < RUN.length; i++) {
       const from = coursePad(RUN[i] ?? ''), to = RUN[i + 1];

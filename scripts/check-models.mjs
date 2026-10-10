@@ -174,6 +174,7 @@ export const DONE = {
     'src/game/systems/kit/primitiveParts.ts': { why: "the kit system's primitive-parts builder (SHARD-PLATFORM M3, moved from Pine Hollow's models/people.ts, a models file): a stand-in figure's or a ride prop's parts merged into one geometry, no thing of its own", counts: { mergeGeometries: 1 } },
     'src/game/systems/looks/posedInstances.ts': { why: "the posed-instances look (SHARD-PLATFORM M3, moved from Pine Hollow's models/wildlife.ts, a models file): a shard's small posable creatures packed into one geometry and drawn as one instanced mesh, each instance its own kind and pose", counts: { InstancedMesh: 1 } },
     'src/game/systems/kit/classKit.ts': { why: "the kit system's class builder (SHARD-PLATFORM M3, moved from Nine Dragon's vm/geo.ts, whose legacy copy keeps its entry): a close-up geometry library merged per rigid group (held gear's parts); it draws nothing of its own", counts: { mergeGeometries: 1 } },
+    'src/game/systems/tools/hookCourse.ts': { why: "a grapple tool's practice course (SHARD-PLATFORM M3, moved from Nine Dragon's playground/GrapplePlayground.ts, whose entry still covers its frozen legacy copy): a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
   },
 };
 
