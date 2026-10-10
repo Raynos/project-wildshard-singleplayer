@@ -23,6 +23,8 @@ export interface GridCrossingState {
 }
 /** Synchronous checkpoint + frame commit + changed callbacks; excludes asynchronous approach preparation. */
 export interface GridCrossingTiming {
+  /** Crossing demand and completed admission, distinct from prefetch and synchronous commit. */
+  readonly requestedAt: number; readonly readyAt: number;
   readonly from: string | null; readonly to: string | null; readonly start: number; readonly end: number;
 }
 /** Session-local crossing coordinator. No navigation, save copying, respawn or asynchronous work occurs during commit. */
@@ -37,6 +39,8 @@ export class GridCrossing {
   private inside: boolean | undefined;
   private readonly ports: GridCrossingPorts;
   private readonly completed: GridCrossingTiming[] = [];
+  private requestedAt = 0;
+  private readyAt = 0;
   constructor(current: string | null, ports: GridCrossingPorts) { this.current = current; this.target = current; this.ports = ports; }
   /** Start or supersede destination preparation without retiring the current frame. */
   request(target: string | null): void {
@@ -48,13 +52,14 @@ export class GridCrossing {
     const generation = ++this.generation; this.target = target; this.issue = null;
     if (target === this.current) { this.phase = 'settled'; return; }
     this.phase = 'preparing';
+    this.requestedAt = diagnosticNow();
     void this.prepare(generation, this.current, target);
   }
   private async prepare(generation: number, from: string | null, target: string | null): Promise<void> {
     try {
       const prepared = await this.ports.prepare(from, target);
       if (this.disposed || generation !== this.generation) { prepared.cancel(); return; }
-      this.prepared = prepared; this.phase = 'ready';
+      this.prepared = prepared; this.phase = 'ready'; this.readyAt = diagnosticNow();
     } catch (error) {
       if (this.disposed || generation !== this.generation) return;
       this.phase = 'blocked'; this.issue = error instanceof Error ? error.message : String(error);
@@ -88,7 +93,7 @@ export class GridCrossing {
     }
     this.prepared = undefined; this.current = to; this.inside = undefined; this.phase = 'settled'; this.issue = null;
     this.ports.changed(from, to);
-    this.completed.push(Object.freeze({ from, to, start, end: diagnosticNow() }));
+    this.completed.push(Object.freeze({ from, to, requestedAt: this.requestedAt, readyAt: this.readyAt, start, end: diagnosticNow() }));
     if (this.completed.length > 32) this.completed.shift();
     return true;
   }

@@ -25,7 +25,7 @@ function fixture() {
     ready: () => { admitted = true; }, quota: (blocked: boolean) => { durable = !blocked; } };
 }
 
-it('reports only synchronous committed work, including checkpoint and changed callbacks, without charging preparation waits', async () => {
+it('reports the full demanded preparation wait separately from synchronous checkpoint and frame commit', async () => {
   let now = 100;
   const clock = vi.spyOn(performance, 'now').mockImplementation(() => now), f = fixture();
   try {
@@ -35,7 +35,7 @@ it('reports only synchronous committed work, including checkpoint and changed ca
     staged.commit.mockImplementation(() => { now += 3; });
     f.changed.mockImplementation(() => { now += 4; });
     expect(f.crossing.step(false)).toBe(true);
-    expect(f.crossing.timings()).toEqual([{ from: 'driftwood-isle', to: 'pine-hollow', start: 10_100, end: 10_109 }]);
+    expect(f.crossing.timings()).toEqual([{ from: 'driftwood-isle', to: 'pine-hollow', requestedAt: 100, readyAt: 10_100, start: 10_100, end: 10_109 }]);
     const copy = [...f.crossing.timings()]; copy.length = 0;
     expect(f.crossing.timings()).toHaveLength(1);
     expect(f.crossing.step(true)).toBe(false); expect(f.crossing.timings()).toHaveLength(1);
