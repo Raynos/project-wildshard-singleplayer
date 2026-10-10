@@ -448,9 +448,29 @@ function buildModel<P extends object>(def: ModelDef<P>, o: BuildOptions<P>, para
 
 /** the parts of every level for one set of params (each LOD level draws from its own rng stream, never the copies') */
 function levelParts<P extends object>(def: ModelDef<P>, o: BuildOptions<P>, params: P, rng: Rng, placements: readonly Placement<P>[]): (readonly ModelPart[])[] {
+  return runSteps(levelPartsSteps(def, o, params, rng, placements));
+}
+
+/** `levelParts`, pausing (`yield`) after every level built (op-hitch29: a sculpt's level and each of its LODs, a
+ *  meshoptimizer copy, are separate tasks under `placeSliced`) */
+function* levelPartsSteps<P extends object>(def: ModelDef<P>, o: BuildOptions<P>, params: P, rng: Rng, placements: readonly Placement<P>[]): Generator<void, (readonly ModelPart[])[]> {
   const out: (readonly ModelPart[])[] = [partsOf(buildModel(def, o, params, rng, placements), def.id, o.draw)];
-  (def.lods ?? []).forEach((_, l) => { out.push(partsOf(buildModel(def, o, params, new Rng(seedOf(def) ^ Math.imul(l + 1, 0x9e3779b9)), placements, l + 1), def.id, o.draw)); });
+  const lods = def.lods ?? [];
+  for (let l = 0; l < lods.length; l++) {
+    yield;
+    out.push(partsOf(buildModel(def, o, params, new Rng(seedOf(def) ^ Math.imul(l + 1, 0x9e3779b9)), placements, l + 1), def.id, o.draw));
+  }
   return out;
+}
+
+/** every variant's level parts (`levelParts` per variant key, in key order), pausing after each level of each variant */
+function* variantPartsSteps<P extends object>(def: ModelDef<P>, o: BuildOptions<P>, pls: readonly Placement<P>[], keys: readonly (string | undefined)[]): Generator<void, (readonly ModelPart[])[][]> {
+  const built: (readonly ModelPart[])[][] = [];
+  for (const k of keys) {
+    built.push(yield* levelPartsSteps(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def)), o.visitBuild === undefined ? pls : pls.filter((pl) => pl.variant === k)));
+    yield;
+  }
+  return built;
 }
 
 // ── merged: every copy welded into one mesh per material (per cell, per LOD level) ──
@@ -554,6 +574,11 @@ function variantKeys<P extends object>(pls: readonly Placement<P>[]): { keys: (s
 }
 
 function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>): Drawn {
+  return runSteps(drawInstancedSteps(def, pls, poses, params, o));
+}
+
+/** The instanced draw, pausing (`yield`) after every variant level built and every copy's colliders (op-hitch29: `placeSliced`). */
+function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>): Generator<void, Drawn> {
   const { keys, of } = variantKeys(pls);
   const levels = levelsOf(def).length, n = pls.length;
   // 'set': every copy written once per level, the levels shown / hidden whole (SetCull); else per copy when anything culls
@@ -566,21 +591,22 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
   const colors = tinted ? new Float32Array(n * 3) : null;
   const tint = new THREE.Color();
   // every variant's parts, built once (instanced copies share their variant's shape)
-  const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def)), o.visitBuild === undefined ? pls : pls.filter((pl) => pl.variant === k)));
+  const built = yield* variantPartsSteps(def, o, pls, keys);
   const perVariant = keys.map((_, v) => of.reduce((c, x) => c + (x === v ? 1 : 0), 0));
-  pls.forEach((pl, i) => {
+  for (const [i, pl] of pls.entries()) {
     const pose = poses[i], p = params[i], parts = built[of[i] ?? 0]?.[0] ?? [];
-    if (pose === undefined || p === undefined) return;
+    if (pose === undefined || p === undefined) continue;
     pose.matrix.toArray(matrices, i * 16);
     if (colors) { tint.set(pl.color ?? 0xffffff); colors.set([tint.r, tint.g, tint.b], i * 3); }
     writeBox(boxes, i, ownBox(parts, _box).applyMatrix4(pose.matrix));
     collideCopy(def, p, pose, null, parts.map((x) => x.geometry), colliders, o.ctx);
-  });
+    yield;
+  }
   const objects: THREE.Object3D[] = [];
   const byLevel: THREE.Object3D[][] = Array.from({ length: levels }, () => []);
   /** `groups[v * levels + l]`: variant v's level l's instance buffers — its parts share one; a part with an `until` has its own */
   const groups: InstancedSink[][] = [];
-  built.forEach((lvls, v) => {
+  for (const [v, lvls] of built.entries()) {
     const cap = perVariant[v] ?? 0;
     for (let l = 0; l < levels; l++) {
       const parts = lvls[l] ?? [], group: InstancedSink[] = [];
@@ -616,9 +642,10 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
         } else for (const im of meshes) { im.count = 0; im.visible = false; im.frustumCulled = false; }
         objects.push(...meshes);
         group.push({ matrix, color, meshes, ...(until === undefined ? {} : { until }) });
+        yield;
       }
     }
-  });
+  }
   let cull: ((camera: THREE.Camera) => void) | null = null, cullWith: Drawn['cullWith'] = null;
   const bounds = (): Float32Array => (o.cull?.bounds === 'sphere' ? posedSpheres((i) => built[of[i] ?? 0]?.[0] ?? [], poses) : spheresOf(boxes));
   const cells = o.cull?.cells;
@@ -637,27 +664,30 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
 
 // ── instanced, culled by the shard (`PlaceOptions.culler`): per part, level 0 with every copy, each LOD its own mesh ──
 
-function drawHanded<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>, culler: InstancedCuller): Drawn {
+/** The shard-culled instanced draw, pausing (`yield`) after every variant level built, every copy's colliders and every
+ *  part handed to the culler (op-hitch29: `placeSliced`). */
+function* drawHandedSteps<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>, culler: InstancedCuller): Generator<void, Drawn> {
   const { keys, of } = variantKeys(pls);
   const from = levelsOf(def), n = pls.length;
   const colliders: ColliderDesc[] = [];
   const boxes = new Float32Array(n * 6);
   const tinted = pls.some((pl) => pl.color !== undefined);
   const tint = new THREE.Color();
-  const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def)), o.visitBuild === undefined ? pls : pls.filter((pl) => pl.variant === k)));
-  poses.forEach((pose, i) => {
+  const built = yield* variantPartsSteps(def, o, pls, keys);
+  for (const [i, pose] of poses.entries()) {
     const p = params[i], parts = built[of[i] ?? 0]?.[0] ?? [];
-    if (p === undefined) return;
+    if (p === undefined) continue;
     writeBox(boxes, i, ownBox(parts, _box).applyMatrix4(pose.matrix));
     collideCopy(def, p, pose, null, parts.map((x) => x.geometry), colliders, o.ctx);
-  });
+    yield;
+  }
   const objects: THREE.Object3D[] = [];
   const cull = o.cull ?? {};
-  built.forEach((lvls, v) => {
+  for (const [v, lvls] of built.entries()) {
     const mine: number[] = [];
     for (let i = 0; i < n; i++) if (of[i] === v) mine.push(i);
     const at = mine.map((i) => poses[i]?.matrix ?? new THREE.Matrix4());
-    (lvls[0] ?? []).forEach((_, k) => {
+    for (let k = 0; k < (lvls[0] ?? []).length; k++) {
       const levels = lvls.map((parts, l) => {
         const part = parts[k];
         if (part === undefined || mine.length === 0) return { mesh: null, from: from[l] ?? 0 };
@@ -678,8 +708,9 @@ function drawHanded<P extends object>(def: ModelDef<P>, pls: readonly Placement<
         return { mesh: im, from: from[l] ?? 0 };
       });
       culler.take({ levels, poses: at, cull });
-    });
-  });
+      yield;
+    }
+  }
   return { object: wrap(objects, def.id), drawnAs: 'instanced', colliders, boxes, cull: null };
 }
 
@@ -1129,8 +1160,10 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
  * `place`, in slices (SF67, E461: a builder's one `place` call was a 0.1–0.6 s task at load): at every pause point (after each
  * merged copy is built and each merged mesh is welded) it calls `due()` and awaits the promise it returns (the caller's
  * clock decides; `slicer()`'s budget during loading). The result, the draw, the registration and the rng streams are
- * exactly `place`'s: nothing is registered or added to the scene before the last slice. Only `draw: 'merged'` without a
- * weld or `drawnInto` pauses today; every other draw runs in one task, as `place` does.
+ * exactly `place`'s: nothing is registered or added to the scene before the last slice. `draw: 'merged'` and
+ * `draw: 'instanced'` (with or without a shard's `culler`: op-hitch29) pause, without a weld or `drawnInto`: an instanced
+ * draw after each variant's level is built (the sculpt, then each LOD), each copy's colliders, and each part's instanced
+ * mesh made (a `culler` takes each one as it is made, as in `place`). Every other draw runs in one task, as `place` does.
  */
 export async function placeSliced<P extends object>(def: ModelDef<P>, placements: readonly Placement<P>[], o: PlaceOptions, due: () => Promise<void> | null): Promise<Placed> {
   const steps = placeSteps(def, placements, o);
@@ -1159,7 +1192,7 @@ function* placeSteps<P extends object>(def: ModelDef<P>, placements: readonly Pl
   const drawn = o.drawnInto !== undefined ? drawnElsewhere(def, poses, params, o, o.drawnInto)
     : w !== undefined ? (o.draw === 'merged' ? drawWelded(def, placements, poses, params, buildOptions, w) : drawHosted(def, placements, poses, params, buildOptions, w))
     : o.draw === 'merged' ? yield* drawMergedSteps(def, placements, poses, params, buildOptions)
-    : o.draw === 'instanced' ? (o.culler ? drawHanded(def, placements, poses, params, buildOptions, o.culler) : drawInstanced(def, placements, poses, params, buildOptions))
+    : o.draw === 'instanced' ? (o.culler ? yield* drawHandedSteps(def, placements, poses, params, buildOptions, o.culler) : yield* drawInstancedSteps(def, placements, poses, params, buildOptions))
       : o.draw === 'batched' ? drawBatched(def, placements, poses, params, buildOptions)
         : drawSingle(def, placements, poses, params, buildOptions);
   const { boxes } = drawn;

@@ -37,11 +37,15 @@ export async function bakeSpill(geos: readonly BufferGeometry[], emitters: reado
     const light: Light = { x: e.at.x, y: e.at.y, z: e.at.z, r2, invR2: 1 / r2, r: e.color.r, g: e.color.g, b: e.color.b, spill: e.spill };
     const reach = Math.ceil((3 * R) / CELL);
     const cx = Math.floor(e.at.x / CELL), cy = Math.floor(e.at.y / CELL), cz = Math.floor(e.at.z / CELL);
-    for (let dx = -reach; dx <= reach; dx++) for (let dy = -reach; dy <= reach; dy++) for (let dz = -reach; dz <= reach; dz++) {
-      const k = key(cx + dx, cy + dy, cz + dz);
-      let list = grid.get(k);
-      if (list === undefined) { list = []; grid.set(k, list); }
-      list.push(light);
+    // (op-hitch29: a wide emitter's reach is (2·reach + 1)³ cells, ~0.1 s for the largest: the clock is read per slab)
+    for (let dx = -reach; dx <= reach; dx++) {
+      for (let dy = -reach; dy <= reach; dy++) for (let dz = -reach; dz <= reach; dz++) {
+        const k = key(cx + dx, cy + dy, cz + dz);
+        let list = grid.get(k);
+        if (list === undefined) { list = []; grid.set(k, list); }
+        list.push(light);
+      }
+      if (slice.due()) await slice.yield();
     }
   }
   for (const g of geos) {

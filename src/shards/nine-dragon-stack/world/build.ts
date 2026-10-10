@@ -46,14 +46,15 @@ import { SignAtlas, SignBuilder } from '@wildshard/sdk/looks/signs';
 import { KitSigns } from '../look/signs';
 import { KAI_STACK, NEON_LOOK, SIGN_COLOUR, SIGN_STYLES, type SignStyle } from '../data/signs';
 import { ADD_KEEP_ALPHA, EMIT_FOG, FOG_GLSL, NOISE_GLSL, Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
-import { WORDS } from './words';
+import { FONT_CHARS, WORDS } from './words';
 import { chars } from '../util';
 import { glyphLayout, signLayout, type NdTier } from '../tier';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
-import { type HandedBatch, type InstancedCuller, type Placed, place } from '@wildshard/engine/models/place';
+import { type HandedBatch, type InstancedCuller, type Placed, placeSliced } from '@wildshard/engine/models/place';
+import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ndModelContext } from './modelLook';
 import { paperLantern } from '../models/paperLantern';
@@ -102,8 +103,6 @@ const IN_KIT: readonly InKitModel[] = [
 /** a placement from a copy's matrix (its translation is where it stands) */
 const at = (m: Matrix4, color?: Color): Placement<object> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m, ...(color === undefined ? {} : { color }) });
 
-const FONT_CHARS = [...new Set(chars(`${WORDS.join('')}九龍疊城萬家燈火天下一家福德正神九龍城重慶小麵纜車站九龍衙門鎮邪祥`))].join('');
-
 export interface NineDragonWorld {
   /** everything the fragment draws (add it to the engine's scene) */
   readonly root: Group;
@@ -133,6 +132,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   root.name = 'nine-dragon-stack';
   const phaseProfile: { name: string; ms: number }[] = [];
   const phaseDone = (name: string, start: number): void => { phaseProfile.push({ name, ms: Math.round(performance.now() - start) }); };
+  // op-hitch29: the placing below runs in slices (`placeSliced` pauses between a model's levels, copies and parts; `slice()`
+  // between the synchronous phases): a ~30 ms task while loading, an 8 ms work slice when a grid cell builds it in play
+  const slice = slicer(30);
   progress(0, 'paint + fonts');
   const layoutReady = loadLayoutBake();
   // G285: the code-built models' geometry and the canopy's (world/specimens.ts), fetched with the layout
@@ -237,8 +239,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // they are ~half a pixel wide), handed to the culler with their batches
   const canLod = await lodReady();
   nd.look.canLod = canLod;
-  const squareSets = await placeSquareProps({ ctx: nd.ctx, look: nd.look, culler: batches, root });
+  const squareSets = await placeSquareProps({ ctx: nd.ctx, look: nd.look, culler: batches, root, due: slice.due });
   phaseDone('square props', phaseStart);
+  await slice();
   // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below; E264: the kits are ~100 MB of
   // vertex data at the phone's World Explorer peak, GPU-only once built)
   const kits = addKitMeshes(root, { solid: kitGeos, alpha: alphaGeos }, { solid: mat, alpha: matA }, ctx.farOf, STATIC_GEOMETRY);
@@ -248,8 +251,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const meshOfKit = (k: Kit): Mesh | undefined => kits.byName.get(kitName.get(k) ?? '');
   const inKit = ctx.inKit.filter((c) => !IN_KIT.some((m) => m.id === c.model));
   if (inKit.length > 0) throw new Error(`nine-dragon: '${inKit[0]?.model}' is drawn into a kit but is no model here (world/build.ts)`);
-  const inKitPlaced: InKitPlaced[] = IN_KIT.flatMap((model) => model.register(nd.ctx, ctx.inKit, meshOfKit));
-  const lanterns = place(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } });
+  await slice();
+  const inKitPlaced: InKitPlaced[] = [];
+  for (const model of IN_KIT) { inKitPlaced.push(...model.register(nd.ctx, ctx.inKit, meshOfKit)); await slice(); }
+  const lanterns = await placeSliced(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } }, slice.due);
   lanterns.object.name = 'lanterns';
   progress(0.56, 'facade batches');
   phaseStart = performance.now();
@@ -261,8 +266,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const shell = facade.group.getObjectByName('facade-shell');
   if (isMesh(shell)) gpuOnlyAttributes(shell.geometry, STATIC_GEOMETRY);
   root.add(named(facade.group, 'facade'));
+  await slice();
   const neonMeshes = neonSigns.build();
   root.add(named(neonMeshes.boards, 'neon'), named(neonMeshes.tubes, 'neon'));
+  await slice();
   progress(0.6, 'streaks + dressing');
   phaseStart = performance.now();
 
@@ -280,6 +287,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     onSquare.push({ at: wp.clone(), color: w.light.clone().lerp(WHITE, 0.3).multiplyScalar(w.win.y), w: wu.length(), h: wc.length(), power: 0.07, spill: 0 });
   }
   root.add(named(buildStreaks(shared, onSquare, new Vector4(WELL.x0 + 5, WELL.z0 + 5, WELL.x1, WELL.z1 - 5)), 'streaks'));
+  await slice();
   // the stair-street's: its treads and landings under the emitters over it (the render agent's)
   const onStair = emitters.filter((e) => e.at.x > STAIR.x0 - 4 && e.at.x < FAR_X && e.at.z > FACE_N - 6 && e.at.z < FACE_S + 6 && e.at.y > Y0 + 0.3 && e.at.y < TOP_Y + 40);
   for (const m of stairStreaks(shared, onStair, { flights: FLIGHTS, landings: LANDINGS, rise: RISE, run: RUN, z0: STAIR.z0, z1: STAIR.z1 })) root.add(named(m, 'streaks-stair'));
@@ -290,13 +298,14 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     const piece = key.slice(0, key.indexOf('@')) as Piece;
     const model = WALL_KIT[piece];
     if (model === undefined) throw new Error(`nine-dragon: the wall kit's '${piece}' is no model yet (models/wallKit.ts)`);
-    const placed = place(model, list.map((it) => at(it.m, it.c)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: `nds-inst-${key}` } });
+    const placed = await placeSliced(model, list.map((it) => at(it.m, it.c)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: `nds-inst-${key}` } }, slice.due);
     nameDraws(placed, `inst:${key}`);
     if (!key.endsWith('@town')) wellKit.push(placed);
   }
   // the fragment's named places as Sets (../places.ts, world/sets.ts): what each region's kits carry
   placeRegionSets(inKitPlaced, { ...squareSets, well: wellKit });
-  if (ctx.acs.length > 0) nameDraws(place(airConBox, ctx.acs.map((m) => at(m)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-inst-ac' } }), 'inst:ac');
+  if (ctx.acs.length > 0) nameDraws(await placeSliced(airConBox, ctx.acs.map((m) => at(m)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-inst-ac' } }, slice.due), 'inst:ac');
+  await slice();
 
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
   const neon = neonMaterial(shared, atlas.textures);
@@ -307,10 +316,12 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     ...movers(cableGondola, [{ kind: 'cable', ...CABLE, ...MOVERS.gondola }], 'nds-gondola'),
     ...movers(drone, MOVERS.drones.map((d): MoverPath => ({ kind: 'orbit', x: d.x, y: Y0 + d.y, z: d.z, r: d.r, rate: d.rate, phase: d.phase, bob: d.bob, bobRate: d.bobRate })), 'nds-drones'),
   ];
+  await slice();
   const signsMesh = named(new Mesh(signs.build(), neon), 'signs');
   root.add(signsMesh);
   // every sign hung is a copy of the sign model (models/signs.ts), registered where it is drawn
   registerSigns(nd.ctx, signs.placed, { atlas: signsMesh, neon: neonMeshes.boards });
+  await slice();
 
   // the painted sky, the LED sky screens (lab P7's 千里江山图 scroll), the Well's silk sheets, the stall's steam
   const sky = new Mesh(new SphereGeometry(900, 32, 16), skyMaterial(shared));
@@ -344,14 +355,15 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     const mounts = ctx.hookMounts.filter((m) => m.ring.y > Y0 - 23 && m.ring.y < Y0 + 14)
       .sort((a, b) => a.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)) - b.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)))
       .slice(0, 3);
-    if (mounts.length > 0) nameDraws(place(feiZhuaHook, mounts.map(({ ring, out }) => at(feiZhuaAt(ring, out))), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-fei-zhua-hooks' } }), 'glb:dragon-hook');
+    if (mounts.length > 0) nameDraws(await placeSliced(feiZhuaHook, mounts.map(({ ring, out }) => at(feiZhuaAt(ring, out))), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-fei-zhua-hooks' } }, slice.due), 'glb:dragon-hook');
   }
   // dome B (the SDK's figure crowd, data/lod.ts CROWD_LEVELS): per-figure frustum culling + a distance LOD (the E283 middle copies, a ~320-tri far copy
   // past 35 m, none past 130 m); its meshes start empty, so the batch culler leaves them alone
   const crowd = new FigureCrowd(CROWD_LEVELS);
   const dealt = dealCrowd(ctx.walkers, ctx.sitters, { walker: (k) => walkerGeometry(nd.ctx, k), sitter: (k) => sitterGeometry(nd.ctx, k) });
-  if (dealt.walkers.length > 0) place(umbrellaWalker, dealt.walkers.flatMap(([pick, mats]) => mats.map((m) => ({ ...at(m), variant: pick }))), { ctx: nd.ctx, draw: 'instanced', culler: crowd, parent: root, piece: { id: 'nds-crowd-walkers' } }).object.name = 'crowd';
-  if (dealt.sitters.length > 0) place(mahjongSitter, dealt.sitters.flatMap(([pick, mats]) => mats.map((m) => ({ ...at(m), variant: pick }))), { ctx: nd.ctx, draw: 'instanced', culler: crowd, parent: root, piece: { id: 'nds-crowd-sitters' } }).object.name = 'crowd';
+  if (dealt.walkers.length > 0) (await placeSliced(umbrellaWalker, dealt.walkers.flatMap(([pick, mats]) => mats.map((m) => ({ ...at(m), variant: pick }))), { ctx: nd.ctx, draw: 'instanced', culler: crowd, parent: root, piece: { id: 'nds-crowd-walkers' } }, slice.due)).object.name = 'crowd';
+  if (dealt.sitters.length > 0) (await placeSliced(mahjongSitter, dealt.sitters.flatMap(([pick, mats]) => mats.map((m) => ({ ...at(m), variant: pick }))), { ctx: nd.ctx, draw: 'instanced', culler: crowd, parent: root, piece: { id: 'nds-crowd-sitters' } }, slice.due)).object.name = 'crowd';
+  await slice();
   atlas.finish();
   phaseDone('crowd + atlas', phaseStart);
 

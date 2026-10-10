@@ -1,5 +1,5 @@
 import {
-  bakeLightVolume as platformBakeLightVolume, blankLightVolume as platformBlankLightVolume,
+  bakeLightVolume as platformBakeLightVolume, bakeLightVolumeSliced as platformBakeLightVolumeSliced, blankLightVolume as platformBlankLightVolume,
   type BakeStats as PlatformBakeStats, type PoolLight as PlatformPoolLight, type VolumeBox as PlatformVolumeBox,
 } from '@wildshard/game/systems/looks/lightVolume';
 
@@ -13,3 +13,5 @@ export type BakeStats = PlatformBakeStats;
 export const blankLightVolume: typeof platformBlankLightVolume = platformBlankLightVolume;
 /** Bake pool lights into a 3D irradiance texture, filling its min / inv (SHARD-PLATFORM M3). */
 export const bakeLightVolume: typeof platformBakeLightVolume = platformBakeLightVolume;
+/** `bakeLightVolume` in engine work slices: the same texels, the stretch ended whenever a frame is due (op-hitch29). */
+export const bakeLightVolumeSliced: typeof platformBakeLightVolumeSliced = platformBakeLightVolumeSliced;

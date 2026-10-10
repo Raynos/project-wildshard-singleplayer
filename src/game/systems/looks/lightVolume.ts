@@ -9,6 +9,7 @@
 //   const { tex } = bakeLightVolume(lights, { min, max, cell: 1 }, 12, uMin.value, uInv.value);
 import { ClampToEdgeWrapping, type Color, Data3DTexture, LinearFilter, RGBAFormat, UnsignedByteType, type Vector3 } from 'three';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
+import { workSlice } from '@wildshard/engine/core/workSlice';
 
 /** A pool light: where, its linear colour, its strength k, its falloff radius r and its hard reach in units of r. */
 export interface PoolLight {
@@ -38,6 +39,26 @@ export function blankLightVolume(): Data3DTexture {
 
 /** Bake `lights` into one volume (irradiance stored as √(E / scale)); returns the texture and fills min / inv (uvw = (p − min) · inv). */
 export function bakeLightVolume(lights: readonly PoolLight[], box: VolumeBox, scale: number, min: Vector3, inv: Vector3): { tex: Data3DTexture; stats: BakeStats } {
+  const steps = bakeSteps(lights, box, scale, min, inv);
+  for (;;) { const r = steps.next(); if (r.done === true) return r.value; }
+}
+
+/**
+ * `bakeLightVolume` in engine work slices (op-hitch29: Nine Dragon's two volumes were a ~55 ms task when a grid cell builds
+ * them on the road, in play): the same texels in the same order, the stretch ended between lights, a light's z slabs and
+ * the packing's rows whenever the slice is due. `stats.ms` is the wall time, yields included.
+ */
+export async function bakeLightVolumeSliced(lights: readonly PoolLight[], box: VolumeBox, scale: number, min: Vector3, inv: Vector3): Promise<{ tex: Data3DTexture; stats: BakeStats }> {
+  const steps = bakeSteps(lights, box, scale, min, inv), slice = workSlice();
+  for (;;) {
+    const r = steps.next();
+    if (r.done === true) return r.value;
+    if (slice.due()) await slice.yield();
+  }
+}
+
+/** the bake, pausing (`yield`) after every light's z slab and every 4096 packed cells */
+function* bakeSteps(lights: readonly PoolLight[], box: VolumeBox, scale: number, min: Vector3, inv: Vector3): Generator<void, { tex: Data3DTexture; stats: BakeStats }> {
   const t0 = diagnosticNow();
   const nx = Math.ceil((box.max.x - box.min.x) / box.cell) + 1;
   const ny = Math.ceil((box.max.y - box.min.y) / box.cell) + 1;
@@ -77,6 +98,7 @@ export function bakeLightVolume(lights: readonly PoolLight[], box: VolumeBox, sc
           wsum[idx] = (wsum[idx] ?? 0) + w;
         }
       }
+      yield;
     }
   }
   const data = new Uint8Array(N * 4);
@@ -89,6 +111,7 @@ export function bakeLightVolume(lights: readonly PoolLight[], box: VolumeBox, sc
     data[i * 4 + 2] = Math.round(Math.sqrt(Math.min(b / scale, 1)) * 255);
     const ws = wsum[i] ?? 0;
     data[i * 4 + 3] = Math.round((0.5 + 0.5 * (ws > 1e-6 ? (up[i] ?? 0) / ws : 0)) * 255);
+    if ((i & 4095) === 4095) yield;
   }
   const tex = new Data3DTexture(data, nx, ny, nz);
   tex.format = RGBAFormat;

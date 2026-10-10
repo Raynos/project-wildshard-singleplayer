@@ -18,7 +18,7 @@ import { STRINGS } from './strings';
 import { playerRider, type PortalRide } from './world/portalRide';
 import { installPortals } from './world/portalVeil';
 import { entryCapsFor } from './world/entries';
-import { WORDS } from './world/words';
+import { FONT_CHARS } from './world/words';
 import { chars } from './util';
 import { glyphLayout } from './tier';
 import { KAI_STACK } from './data/signs';
@@ -26,9 +26,6 @@ import { FONT_LOAD } from './data/worldDressing';
 import { waitForFonts } from '@wildshard/sdk/looks/fontWait';
 import { GlyphField } from '@wildshard/sdk/looks/neonText';
 
-
-/** the characters the neon's glyph atlas draws (world/build.ts FONT_CHARS: a mismatch only loses the prepared atlas) */
-const FONT_CHARS = [...new Set(chars(`${WORDS.join('')}九龍疊城萬家燈火天下一家福德正神九龍城重慶小麵纜車站九龍衙門鎮邪祥`))].join('');
 
 /** beyond this far from the cell's centre (m) the player is out by the road-height decks (the fragment spans ~±80 m) */
 const DECK_ZONE = 200;

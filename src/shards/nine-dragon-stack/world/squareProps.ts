@@ -1,10 +1,11 @@
 // The square's props placed (dome B, E169; E306 / E315 M4): the guardian lions and the procedural sets the square's
 // builders queued (props3d.ts: the balustrade's carved panels, the market's booths and parasol tables, the dining
 // pavilions), each its model (../models/) drawn as one InstancedMesh and handed to the fragment's culler. The lion's cast
-// is loaded first (`place` is synchronous); a set's geometry is the one its builder made at the first copy.
+// is loaded first (`place` builds from what is loaded); a set's geometry is the one its builder made at the first copy.
+// Each is placed in slices (`placeSliced` on the build's `due`, op-hitch29): the lion's LODs were one ~0.1 s task.
 import type { Group, Matrix4 } from 'three';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
-import { type InstancedCuller, type Placed, copiesAt, place } from '@wildshard/engine/models/place';
+import { type InstancedCuller, type Placed, copiesAt, placeSliced } from '@wildshard/engine/models/place';
 import { placeSet } from '@wildshard/engine/models/sets';
 import { guardianLion, loadLion } from '../models/lion';
 import { diningPavilion, marketBooth, parasolTable } from '../models/market';
@@ -22,15 +23,16 @@ const at = (m: Matrix4): Placement<object> => ({ x: m.elements[12], y: m.element
  *  lions, the stair-street's lions (the street's balustrade), the Well rim's */
 export interface SquareShares { readonly square: Placed[]; readonly stair: Placed[]; readonly rim: Placed[] }
 
-/** place the lions and the queued sets under `root` (their draws named `glb:lion`, `set:<name>` as before); the night
- *  market is its named place's Set; returns what the other places' Sets take (world/sets.ts) */
-export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; culler: InstancedCuller; root: Group }): Promise<SquareShares> {
+/** place the lions and the queued sets under `root` (their draws named `glb:lion`, `set:<name>` as before), pausing on
+ *  `due` (the build's slicer, `placeSliced`); the night market is its named place's Set; returns what the other places'
+ *  Sets take (world/sets.ts) */
+export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; culler: InstancedCuller; root: Group; due: () => Promise<void> | null }): Promise<SquareShares> {
   const lions = takeLions(), share = lionShares();
   const out = { square: [] as Placed[], stair: [] as Placed[], rim: [] as Placed[] };
   if (lions.length > 0) {
     try {
       await loadLion(p.look);
-      const placed = place(guardianLion, lions.map(at), { ctx: p.ctx, draw: 'instanced', culler: p.culler, parent: p.root, piece: { id: 'nds-lions' } });
+      const placed = await placeSliced(guardianLion, lions.map(at), { ctx: p.ctx, draw: 'instanced', culler: p.culler, parent: p.root, piece: { id: 'nds-lions' } }, p.due);
       nameDraws(placed, 'glb:lion');
       for (const [k, idx] of [['square', share.plaza], ['stair', share.street], ['rim', share.rim]] as const) { const s = copiesAt(placed, idx); if (s !== null) out[k].push(s); }
     } catch (e: unknown) { console.warn('nine-dragon: prop lion failed to load', e); }
@@ -42,12 +44,12 @@ export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; cul
     if (name === 'pavilion') {
       // (a pavilion's colliders stay square to the world at its turn: its copies carry the turn, models/market.ts)
       p.look.geo.set(`set:${name}`, s.geo);
-      placed = place(diningPavilion, s.at.map((m) => ({ ...at(m), params: { turn: Math.atan2(m.elements[8], m.elements[0]) } })), opts);
+      placed = await placeSliced(diningPavilion, s.at.map((m) => ({ ...at(m), params: { turn: Math.atan2(m.elements[8], m.elements[0]) } })), opts, p.due);
     } else {
       const model = SETS[name];
       if (model === undefined) throw new Error(`nine-dragon: the set '${name}' is no model (world/squareProps.ts SETS)`);
       p.look.geo.set(`set:${name}`, s.geo);
-      placed = place(model, s.at.map(at), opts);
+      placed = await placeSliced(model, s.at.map(at), opts, p.due);
     }
     nameDraws(placed, `set:${name}`);
     if (name === 'balustrade-panel') out.square.push(placed); else market.push(placed);

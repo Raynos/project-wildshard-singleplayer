@@ -3,7 +3,7 @@
 // HEAD tuning. No global of its own and no URL switches: `__nd.light({...})` sets a variant for A/B captures.
 import type { Color, Data3DTexture, Vector3, Vector4 } from 'three';
 import { SQUARE_BOX, WELL_BOX } from './lightvol';
-import { type BakeStats, bakeLightVolume } from '@wildshard/sdk/looks/lightVolume';
+import { type BakeStats, bakeLightVolumeSliced } from '@wildshard/sdk/looks/lightVolume';
 import { type EmitterLike, type WindowLike, gatherPools, isLamp } from './pools';
 import { loadLut } from './grade';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
@@ -39,13 +39,20 @@ export function installLight(opt: {
   const shops = opt.ctxEmitters.filter((e) => !isLamp(e));
   const lamps = opt.ctxEmitters.filter(isLamp).map((e) => e.at);
   const lights = gatherPools({ lanterns: opt.lanterns, shops, lamps, signs: opt.signs, windows: opt.windows });
-  const a = bakeLightVolume(lights, SQUARE_BOX, LP_MAX, u.uLpMinA.value, u.uLpInvA.value);
-  u.uLpVolA.value = a.tex;
-  const b = bakeLightVolume(lights, WELL_BOX, LP_MAX, u.uLpMinB.value, u.uLpInvB.value);
-  u.uLpVolB.value = b.tex;
-  // (E264) the volumes are baked once: their texels are on the GPU after the first draw (6.3 MB of RGBA8 in JS)
-  gpuOnlyTexture(a.tex, 'Nine Dragon light volumes (GPU only)');
-  gpuOnlyTexture(b.tex, 'Nine Dragon light volumes (GPU only)');
+  // (op-hitch29) the volumes bake in work slices as part of `ready` (a grid cell bakes them on the road, in play: one ~55 ms
+  // task before); the world build awaits `ready` before it hands the world over
+  const unbaked: BakeStats = { lights: 0, cells: 0, ms: 0, maxE: 0 };
+  let square = unbaked, well = unbaked;
+  const bakeVolumes = async (): Promise<void> => {
+    const a = await bakeLightVolumeSliced(lights, SQUARE_BOX, LP_MAX, u.uLpMinA.value, u.uLpInvA.value);
+    u.uLpVolA.value = a.tex;
+    const b = await bakeLightVolumeSliced(lights, WELL_BOX, LP_MAX, u.uLpMinB.value, u.uLpInvB.value);
+    u.uLpVolB.value = b.tex;
+    // (E264) the volumes are baked once: their texels are on the GPU after the first draw (6.3 MB of RGBA8 in JS)
+    gpuOnlyTexture(a.tex, 'Nine Dragon light volumes (GPU only)');
+    gpuOnlyTexture(b.tex, 'Nine Dragon light volumes (GPU only)');
+    square = a.stats; well = b.stats;
+  };
   let cur: LightSettings = { ...LIGHT_DEFAULTS };
   let lutLoaded = false;
   const apply = (): void => {
@@ -57,7 +64,9 @@ export function installLight(opt: {
     opt.pipe.grade.uLutAmt.value = lutLoaded ? cur.grade : 0;
   };
   const ready = (async (): Promise<void> => {
-    const t = await loadLut(LUT_URL);
+    const lut = loadLut(LUT_URL);
+    await bakeVolumes();
+    const t = await lut;
     if (t !== null) { opt.pipe.grade.uLut.value = t; lutLoaded = true; }
     apply();
   })();
@@ -66,6 +75,6 @@ export function installLight(opt: {
     ready,
     set: (s) => { cur = { ...cur, ...s }; apply(); },
     get: () => ({ ...cur }),
-    stats: () => ({ square: a.stats, well: b.stats, lights: lights.length, lut: lutLoaded }),
+    stats: () => ({ square, well, lights: lights.length, lut: lutLoaded }),
   };
 }
