@@ -1,4 +1,6 @@
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader } from '@wildshard/sdk/looks/shaderEdits';
+import { FIR_EDITS } from '../data/paintLook';
 import { onPaintedDispose } from '../look/image';
 import { skyBakedGeometry } from './baked';
 import { DoubleSide, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type Texture } from 'three';
@@ -29,11 +31,7 @@ export function firs(at: readonly (readonly [number, number, number, number])[],
   // a faint emissive canopy: the low sun barely lights the up-facing cards, and from above the firs read as black discs
   const material = new MeshStandardMaterial({ map: sheet, emissiveMap: sheet, emissive: 0x6a7a44, vertexColors: true, alphaTest: 0.45, side: DoubleSide, roughness: 0.9, metalness: 0 });
   patchShader(material, 'far.fir', PATCH_ORDER.decorate, (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#ifdef USE_MAP
-  vec4 farTex = texture2D(map, vMapUv);
-  if (vMapUv.x < 0.0) farTex = vec4(1.0);
-  diffuseColor *= farTex;
-#endif`);
+    editShader(shader, FIR_EDITS);
   }, { key: (prior) => `${prior}|far.fir` });
   const mesh = new InstancedMesh(skyBakedGeometry('fir'), material, at.length), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
   at.forEach(([x, y, z, s], i) => { q.setFromAxisAngle(up, i * 1.7); m.compose(new Vector3(x, y, z), q, new Vector3(s, s, s)); mesh.setMatrixAt(i, m); });

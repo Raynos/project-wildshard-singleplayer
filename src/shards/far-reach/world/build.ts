@@ -1,4 +1,6 @@
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader } from '@wildshard/sdk/looks/shaderEdits';
+import { ISLE_CUT_EDITS } from '../data/paintLook';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -146,8 +148,7 @@ export function buildWorld(ctx: ShardContext): BuiltWorld {
     // round it; the top, the lip and every collider are unchanged (a gate isle has no keel model: its code keel stays whole)
     if (!gate) patchShader(mesh.material, 'far.isle-cut', PATCH_ORDER.decorate, (shader) => {
       shader.uniforms['farCut'] = { value: isle.y - (CUT[isle.id]?.cut ?? ISLE_CUT) };
-      shader.fragmentShader = `uniform float farCut;\n${shader.fragmentShader.replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
-  if ((inverse(viewMatrix) * vec4(-vViewPosition, 1.0)).y < farCut) discard;`)}`;
+      editShader(shader, ISLE_CUT_EDITS);
     }, { key: (prior) => `${prior}|far.isle-cut` });
     ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? (gate ? STRINGS.gateIsle : isle.id), category: 'ground', file: FILE, object: mesh, colliders: islandColliders(isle), surface: 'grass' });
   }

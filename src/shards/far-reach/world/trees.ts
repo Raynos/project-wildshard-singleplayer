@@ -1,5 +1,7 @@
 import { Group, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader } from '@wildshard/sdk/looks/shaderEdits';
+import { TREE_BARK_EDITS } from '../data/paintLook';
 import type { SkyHdName } from '../boot/files';
 import { fit, hdMaterial, skyHd } from './meshes';
 
@@ -35,9 +37,7 @@ export function trees(at: readonly (readonly [number, number, number, number])[]
     const material = hdMaterial(made.map);
     // the paint's bark came out magenta-red: toward a warm grey-brown; the foliage kept
     patchShader(material, 'far.tree-bark', PATCH_ORDER.decorate, (shader) => {
-      shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-  { vec3 c = diffuseColor.rgb; float bark = smoothstep(0.0, 0.06, c.r - c.g) * smoothstep(-0.02, 0.04, c.b - c.g * 0.8);
-    float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); diffuseColor.rgb = mix(c, vec3(l) * vec3(1.35, 1.0, 0.72), bark * 0.85); }`);
+      editShader(shader, TREE_BARK_EDITS);
     }, { key: (prior) => `${prior}|far.tree-bark` });
     const mesh = new InstancedMesh(g, material, list.length); mesh.name = `far.trees.${name}`;
     list.forEach(([x, y, z, s, i], k) => {

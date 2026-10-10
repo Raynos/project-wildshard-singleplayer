@@ -1,5 +1,7 @@
 import { AdditiveBlending, Group, Mesh, MeshBasicMaterial, SphereGeometry, type InstancedMesh, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader } from '@wildshard/sdk/looks/shaderEdits';
+import { LANTERN_GLOW_EDITS } from '../data/paintLook';
 import { LECTERN } from '../data/bookStand';
 import { fit, hdMaterial, skyHd } from './meshes';
 import { skyBakedPiece } from './baked';
@@ -18,9 +20,7 @@ import { skyBakedPiece } from './baked';
 function lanternMaterial(map: Texture): ReturnType<typeof hdMaterial> {
   const material = hdMaterial(map);
   patchShader(material, 'far.lantern-glow', PATCH_ORDER.decorate, (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-  { vec3 c = diffuseColor.rgb; float amber = smoothstep(0.45, 0.75, c.r) * smoothstep(0.3, 0.6, c.r - c.b);
-    totalEmissiveRadiance += c * vec3(1.6, 1.15, 0.7) * amber; }`);
+    editShader(shader, LANTERN_GLOW_EDITS);
   }, { key: (prior) => `${prior}|far.lantern-glow` });
   return material;
 }

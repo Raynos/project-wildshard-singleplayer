@@ -2,6 +2,8 @@ import { AdditiveBlending, BufferGeometry, CapsuleGeometry, ConeGeometry, Cylind
 import { fit, hdMaterial, skyHd, skyMesh, splitTriangles } from '../world/meshes';
 import type { NpcDef } from '@wildshard/engine/quest/core';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader } from '@wildshard/sdk/looks/shaderEdits';
+import { KEEPER_SCARF_EDITS } from '../data/paintLook';
 import { FLAGS } from './flags';
 import { STRINGS } from '../data/strings';
 import { SPAWN } from '../data/layout';
@@ -105,9 +107,7 @@ function textured(): Made | null {
   // his scarf and sash a warm rust-brown, not a loud red (council: 'the keeper's red scarf reads louder than the mockup's
   // brown one'): strongly red texels pulled toward brown, everything else as painted
   patchShader(material, 'far.keeper-scarf', PATCH_ORDER.decorate, (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-  { vec3 c = diffuseColor.rgb; float red = smoothstep(0.08, 0.25, c.r - max(c.g, c.b) * 1.1);
-    diffuseColor.rgb = mix(c, vec3(c.r * 0.72, c.r * 0.42, c.r * 0.24), red * 0.8); }`);
+    editShader(shader, KEEPER_SCARF_EDITS);
   }, { key: (prior) => `${prior}|far.keeper-scarf` });
   group.add(new Mesh(body, material));
   shoulder.position.set(sx, sy, sz); group.add(shoulder);
