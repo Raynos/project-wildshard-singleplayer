@@ -12,15 +12,19 @@ export const SKY_CREATURE_RIGS = {
 
 
 /**
- * The generated models (C6, and the rope-bridge kit): loaded by `world/meshes.ts`, listed here so the boot and the offline
- * cache fetch them. The creatures' sources are read only by their offline bake (`data/creatures.ts`).
+ * The generated models (C6): `wind-vane` and `keeper` are loaded by `world/meshes.ts` and listed in `SKY_MESHES` so the
+ * boot and the offline cache fetch them. `bridge-deck` is read only offline, by the rope-bridge bake
+ * (`generators/bridges.ts`), so the page never fetches it. The creatures' sources are read only by their offline bake
+ * (`data/creatures.ts`).
  */
-export type SkyMeshName = 'wind-vane' | 'bridge-post' | 'bridge-deck' | 'keeper';
-export const SKY_MESHES: readonly SkyMeshName[] = ['wind-vane', 'bridge-post', 'bridge-deck', 'keeper'];
+export type SkyMeshName = 'wind-vane' | 'keeper' | 'bridge-deck';
+/** The generated models the page loads behind its loading screen (`world/meshes.ts` preloadSkyMeshes). */
+export const SKY_MESHES: readonly SkyMeshName[] = ['wind-vane', 'keeper'];
 const URLS: Readonly<Record<SkyMeshName, string>> = {
-  'wind-vane': '/assets/far-reach/models/wind-vane/wind-vane.glb', 'bridge-post': '/assets/far-reach/models/bridge-post/bridge-post.glb',
-  'bridge-deck': '/assets/far-reach/models/bridge-deck/bridge-deck.glb', keeper: '/assets/far-reach/models/keeper/keeper.glb',
+  'wind-vane': '/assets/far-reach/models/wind-vane/wind-vane.glb', keeper: '/assets/far-reach/models/keeper/keeper.glb',
+  'bridge-deck': '/assets/far-reach/models/bridge-deck/bridge-deck.glb',
 };
+/** A generated model's public URL. */
 export const skyMeshUrl = (name: SkyMeshName): string => URLS[name];
 /**
  * The hero models kept TEXTURED (E392/E399, `art/far-reach/round-19-hero-models/`): codex refs → Hunyuan3D-2 turbo shape +
