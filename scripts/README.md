@@ -22,6 +22,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-ktx2.list.json](./bake-ktx2.list.json)
 - [bake-ktx2.mjs](./bake-ktx2.mjs)
 - [bake-loader.mjs](./bake-loader.mjs)
+- [bake-map-glb.mjs](./bake-map-glb.mjs)
 - [bake-maps.mjs](./bake-maps.mjs)
 - [bake-navmesh.mjs](./bake-navmesh.mjs)
 - [bake-output.mjs](./bake-output.mjs)
