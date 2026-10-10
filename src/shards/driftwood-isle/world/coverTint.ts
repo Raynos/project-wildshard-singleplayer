@@ -18,6 +18,8 @@
 import * as THREE from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { COVER_GLSL } from '../data/coverGlsl';
 
 /** metres per grid cell */
 const STEP = 4;
@@ -30,12 +32,9 @@ const N = Math.ceil(CHUNK_SIZE / STEP) + 1;
  * as 1 − e^−τ (0..1, so they fit a byte). Shared by the terrain and GroundCover's plants, so a plant fades into exactly
  * the colour its ground is drawn in from there.
  */
-export const COVER_SEEN_GLSL = /* glsl */`
-float coverSeen( float top, float side, float facing ) {
-  float f = clamp( facing, 0.03, 1.0 );
-  float tau = -log( max( 1.0 - top, 1e-3 ) ) - log( max( 1.0 - side, 1e-3 ) ) * sqrt( 1.0 - f * f ) / f;
-  return 1.0 - exp( -tau );
-}`;
+/** the GLSL is data (data/coverGlsl.ts) */
+const COVER_FAMILY = new ShaderFamily(COVER_GLSL, {});
+export const COVER_SEEN_GLSL = COVER_FAMILY.glsl(COVER_GLSL.coverSeen);
 
 /** what the grid holds at a point: mean colour (linear), and top / side packed as 1 − e^−τ */
 export interface CoverSample { r: number; g: number; b: number; top: number; side: number }
@@ -174,13 +173,12 @@ function patchTerrainMaterial(mat: THREE.Material): void {
   patched.add(mat);
   patchShader(mat, 'driftwood.cover-tint', PATCH_ORDER.decorate, (sh) => {
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec4 aCover;\nattribute float aCoverSide;\nflat varying vec4 vCover;\nflat varying float vCoverSide;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCover = aCover; vCoverSide = aCoverSide;');
+      .replace('#include <common>', COVER_FAMILY.glsl(COVER_GLSL.vertexCommon))
+      .replace('#include <begin_vertex>', COVER_FAMILY.glsl(COVER_GLSL.vertexBegin));
     // after the normal is known (flat: from derivatives) and before the lights read diffuseColor
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\nflat varying vec4 vCover;\nflat varying float vCoverSide;\n${COVER_SEEN_GLSL}`)
-      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-	diffuseColor.rgb = mix( diffuseColor.rgb, vCover.rgb, coverSeen( vCover.a, vCoverSide, abs( dot( normal, normalize( vViewPosition ) ) ) ) );`);
+      .replace('#include <common>', COVER_FAMILY.glsl(COVER_GLSL.fragmentCommon))
+      .replace('#include <normal_fragment_maps>', COVER_FAMILY.glsl(COVER_GLSL.fragmentNormal));
   }, { key: (k) => `${k}|cover-tint` });
   mat.needsUpdate = true;
 }

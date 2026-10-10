@@ -81,7 +81,7 @@ describe('every sound source is observed', () => {
         visit(ast);
         expect(found.sort(), module).toEqual([...methods].sort());
       }
-      for (const file of ['src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts', 'src/shards/driftwood-isle/world/Gulls.ts']) {
+      for (const file of ['src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts', 'src/game/systems/looks/gullFlock.ts']) {
         const source = sources[`../${file}`], ast = project.program.getSourceFile(file);
         if (!source || !ast) throw new Error('Missing ambient countdown source');
         const visit = (node: Node): void => {
