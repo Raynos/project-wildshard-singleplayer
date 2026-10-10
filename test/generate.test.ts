@@ -2,12 +2,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- This fixture exercises isolated on-disk Node generators.
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Each producer runs in an owned temporary directory.
-import { tmpdir } from 'node:os';
+import { platform as hostPlatform, tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Paths are checked against the generator's isolated root.
 import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- A local scalar preview fixture tests the build fence without a game browser.
 import { createServer } from 'node:http';
-import { discoverGeneration, generationInputs, generateShardJob, reportGeneration, type ShardGenerationJob } from '../scripts/generate.mjs';
+import { compareGeneration } from '../scripts/generation-linux.mjs';
+import { discoverGeneration, generationInputs, generateShardJob, reportGeneration, type GenerationComparison, type ShardGenerationJob } from '../scripts/generate.mjs';
 
 const roots:string[]=[];
 afterEach(()=>{for(const root of roots.splice(0))rmSync(root,{recursive:true,force:true});});
@@ -42,7 +43,9 @@ describe('G292 shard generation entry',()=>{
   });
   it('rejects a real output mismatch without rewriting the committed file',async()=>{
     const {root,job}=fixture();writeFileSync(resolve(root,job.outputs[0] ?? ''),'old bytes');
-    await expect(generateShardJob(root,job,{cacheDir:resolve(root,'cache')})).rejects.toThrow('Committed generated output differs');
+    let comparisons:readonly GenerationComparison[]=[];
+    await expect(generateShardJob(root,job,{cacheDir:resolve(root,'cache'),onComparison:rows=>{comparisons=rows;}})).rejects.toThrow('Committed generated output differs');
+    expect(comparisons).toHaveLength(1);expect(comparisons[0]?.rawExact).toBe(false);expect(comparisons[0]?.equivalent).toBe(false);
     expect(readFileSync(resolve(root,job.outputs[0] ?? ''),'utf8')).toBe('old bytes');
   });
   it('discovers and runs explicitly shared producers without inventing a shard or accepting helpers',async()=>{
@@ -91,7 +94,9 @@ describe('G292 shard generation entry',()=>{
     mkdirSync(dirname(resolve(root,output)),{recursive:true});writeFileSync(resolve(root,output),JSON.stringify({inputs:{source:'old'},anchor:[1,2,3]}));
     writeFileSync(resolve(root,job.entry),`import {writeFileSync} from 'node:fs';import {resolve} from 'node:path';writeFileSync(resolve(import.meta.dirname,'../../../..','${output}'),JSON.stringify({inputs:{source:'new'},anchor:[1,2,3]}));`);
     const recorded={...job,outputs:[output],recordedInputs:true};
-    const result=await generateShardJob(root,recorded,{cacheDir:resolve(root,'cache')});expect(result.hit).toBe(false);
+    let rows:readonly GenerationComparison[]=[];
+    const result=await generateShardJob(root,recorded,{cacheDir:resolve(root,'cache'),onComparison:observed=>{rows=observed;}});expect(result.hit).toBe(false);
+    expect(rows[0]?.rawExact).toBe(false);expect(rows[0]?.equivalent).toBe(true);
     const original=readFileSync(resolve(root,output),'utf8');expect(original).toContain('old');
     writeFileSync(resolve(root,job.entry),readFileSync(resolve(root,job.entry),'utf8').replace('anchor:[1,2,3]','anchor:[1,2,3.0000001]'));
     await expect(generateShardJob(root,recorded,{cacheDir:resolve(root,'cache')})).rejects.toThrow('Committed generated output differs');
@@ -100,6 +105,31 @@ describe('G292 shard generation entry',()=>{
   it('refuses provenance exclusions for outputs outside the registered recorded-bake list',async()=>{
     const {root,job}=fixture();
     await expect(generateShardJob(root,{...job,recordedInputs:true},{cacheDir:resolve(root,'cache')})).rejects.toThrow('not registered');
+  });
+  it('reports exact bytes, refused mismatches, unavailable generation and Darwin retention separately',async()=>{
+    const {root,job}=fixture();
+    const make=(id:string,platform:'native'|'darwin',source:string,retained:string):ShardGenerationJob=>{
+      const entry=`src/shards/sample/generators/bake-${id}.mjs`,output=`public/out/${id}.bin`;
+      writeFileSync(resolve(root,entry),source.replaceAll('<output>',output));
+      writeFileSync(resolve(root,output),retained);
+      return {...job,id,entry,command:[entry],outputs:[output],platform};
+    };
+    const jobs=[job,
+      make('different','native',`import {writeFileSync} from 'node:fs';writeFileSync('<output>','new');`,'old'),
+      make('failed','native',`throw new Error('missing actual tool');`,'kept'),
+      make('darwin','darwin',`throw new Error('must not run');`,'retained')];
+    writeFileSync(resolve(root,'scripts/generation-jobs.json'),JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs}));
+    const report=await compareGeneration(root,{pin:'fixture',cacheDir:resolve(root,'cache')});
+    expect(report.platform).toBe(hostPlatform());
+    expect(report.jobs.map(row=>row.status)).toEqual(['matched','different','unavailable','darwin-only']);
+    expect(report.bitExactOutputs).toEqual(job.outputs);
+    expect(report.differentOutputs).toEqual(['public/out/different.bin']);
+    expect(report.unavailableOutputs).toEqual(['public/out/failed.bin']);
+    expect(report.jobs[2]?.outputs[0]?.generatedHash).toBeNull();
+    expect(report.jobs[3]?.outputs[0]?.rawExact).toBeNull();
+    expect(readFileSync(resolve(root,'public/out/different.bin'),'utf8')).toBe('old');
+    expect(readFileSync(resolve(root,'public/out/failed.bin'),'utf8')).toBe('kept');
+    expect(readFileSync(resolve(root,'public/out/darwin.bin'),'utf8')).toBe('retained');
   });
   it('rejects duplicate outputs, ownership escapes and input symlinks',()=>{
     const {root,job}=fixture();

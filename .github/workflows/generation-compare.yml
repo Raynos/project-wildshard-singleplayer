@@ -1,0 +1,55 @@
+name: Generation portability report
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Regenerate even a verified cache hit
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: generation-portability-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm gen
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/wildshard/generate
+          key: generation-linux-${{ runner.arch }}-${{ github.sha }}
+          restore-keys: |
+            generation-linux-${{ runner.arch }}-
+      - name: Cold generation on cache miss and retained-byte comparison
+        env:
+          FORCE_COMPARE: ${{ inputs.force }}
+        run: |
+          args=()
+          if [ "$FORCE_COMPARE" = true ]; then args+=(--force); fi
+          node scripts/generation-linux.mjs --out=generation-linux.json "${args[@]}"
+      - name: Publish portability evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generation-linux-${{ github.sha }}
+          path: generation-linux.json
+          if-no-files-found: error
+          retention-days: 7

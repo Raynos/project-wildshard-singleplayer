@@ -83,7 +83,7 @@ function nodeProducer(cwd,command) {
 
 /** Stage the declared source closure, generate there and publish verified outputs only; never mutate a source bake.
  * @param {string} root @param {import('./generate.mjs').ShardGenerationJob} descriptor
- * @param {{cacheDir?:string,forceCompare?:boolean,restore?:boolean,catalogPath?:string,preview?:{url:string,revision:string}}} [options] */
+ * @param {{cacheDir?:string,forceCompare?:boolean,restore?:boolean,catalogPath?:string,preview?:{url:string,revision:string},onComparison?:(rows:readonly import('./generate.mjs').GenerationComparison[])=>void}} [options] */
 export async function generateShardJob(root,descriptor,options={}) {
   const job=v.parse(Descriptor,descriptor), catalog=options.catalogPath ?? 'scripts/generation-jobs.json';
   validateProducer(job);
@@ -124,6 +124,8 @@ export async function generateShardJob(root,descriptor,options={}) {
   const present=job.outputs.filter(file=>existsSync(resolve(root,file)));
   const expected=generationOutputHashes(root,present);
   const different=present.filter(file=>job.capture ? captureOutcome(readFileSync(resolve(root,file),'utf8'))!==captureOutcome(readFileSync(resolve(result.directory,file),'utf8')) : job.recordedInputs ? bakeOutcome(readFileSync(resolve(root,file),'utf8'))!==bakeOutcome(readFileSync(resolve(result.directory,file),'utf8')) : expected[file]!==result.hashes[file]);
+  // Diagnostic observation cannot grant admission: the refusal list is already fixed before the callback runs.
+  options.onComparison?.(job.outputs.map(file=>({file,expectedHash:present.includes(file)?expected[file]:null,generatedHash:result.hashes[file],rawExact:present.includes(file)?expected[file]===result.hashes[file]:null,equivalent:present.includes(file)?!different.includes(file):null,comparison:job.capture?'capture-provenance':job.recordedInputs?'recorded-inputs':'raw'})));
   if(different.length>0) throw new Error(`Committed generated output differs: ${different.join(', ')}. No source output was overwritten.`);
   if(options.restore===true) for(const file of job.outputs) if(!existsSync(resolve(root,file))) {mkdirSync(dirname(resolve(root,file)),{recursive:true});copyFileSync(resolve(result.directory,file),resolve(root,file));}
   return result;

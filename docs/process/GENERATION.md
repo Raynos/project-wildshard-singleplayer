@@ -71,3 +71,24 @@ A shared browser producer with raw binary/image outputs declares `browser: true,
 it substitutes the URL, binds the preview build and Chromium digest in the key, and checks the build again after baking.
 This grants no provenance exclusion: every output byte must match. Only `capture: true` has the existing, narrowly
 defined physics/spots JSON provenance comparison. All browser producer commands run through `scripts/browser-lane.sh`.
+
+
+## Linux portability evidence
+
+`.github/workflows/generation-compare.yml` runs `scripts/generation-linux.mjs` against a real Linux checkout. It calls
+`generateShardJob` from `scripts/generate.mjs` for every job not marked Darwin-only: a cache miss generates in isolation,
+a warm hit verifies every cached hash, and workflow-dispatch `force` requests fresh regenerate-and-compare. It uses the
+same asset/witness cache, with native keys partitioned by OS/architecture. No committed file is restored or removed.
+
+The report artifact has schema `generation-portability/1`, source pin, actual host/Node identity, and per-output retained
+and generated SHA256s. `bitExactOutputs` includes only raw byte equality. Recorded-input/provenance equivalence is a
+separate field and cannot put a differing file on that list. Producer failures, including unavailable encoder tools or
+external inputs, remain explicit `unavailable` rows; missing evidence is null. Strict refusal still occurs in the runner;
+the observer merely records it. Migration differences are report-only, not deploy gate failures. A workflow/infrastructure
+failure cannot produce a portability claim. Results must be read from the actual Linux artifact before any deletion.
+
+The catalog currently exposes Node producers as `native` comparison candidates, not as portable-byte promises. Nine
+layout, Driftwood fixed models and Nalati places retain their documented Darwin-normative policy. The eight normative
+browser physics/spots captures also remain Darwin-only. This policy does not waive their committed comparisons or
+claim Linux evidence from Darwin runs. In particular, a missing `magick` executable is a tool gap, not output inequality;
+the HDRI producer stays unavailable until that real dependency is supplied.

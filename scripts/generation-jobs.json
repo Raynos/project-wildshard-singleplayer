@@ -128,7 +128,7 @@
         "src/shards/driftwood-isle/runtime/navmesh.baked.json"
       ],
       "seedOutputs": [],
-      "platform": "portable"
+      "platform": "native"
     },
     {
       "id": "driftwood-physics",
@@ -211,7 +211,7 @@
       "outputs": [
         "src/shards/pine-hollow/data/beaverPool.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/beaverPool.json"
       ]
@@ -247,7 +247,7 @@
         "public/assets/pine-hollow/baked/cabins.bin",
         "src/shards/pine-hollow/data/cabins.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/cabins.json"
       ]
@@ -285,7 +285,7 @@
         "public/assets/pine-hollow/baked/crags.desktop.bin",
         "src/shards/pine-hollow/data/crags.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/crags.json"
       ]
@@ -322,7 +322,7 @@
       "outputs": [
         "src/shards/pine-hollow/runtime/kingCollision.baked.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/runtime/kingCollision.baked.json"
       ],
@@ -360,7 +360,7 @@
         "public/assets/pine-hollow/baked/lookout.bin",
         "src/shards/pine-hollow/data/lookout.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/lookout.json"
       ]
@@ -398,7 +398,7 @@
       "outputs": [
         "src/shards/pine-hollow/data/props.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/props.json"
       ]
@@ -435,7 +435,7 @@
         "public/assets/pine-hollow/baked/site-timbers.bin",
         "src/shards/pine-hollow/data/siteTimbers.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/siteTimbers.json"
       ]
@@ -471,7 +471,7 @@
         "public/assets/pine-hollow/baked/streams.bin",
         "src/shards/pine-hollow/data/streams.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/streams.json"
       ]
@@ -506,7 +506,7 @@
       "outputs": [
         "src/shards/pine-hollow/data/undergrowth.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/undergrowth.json"
       ]
@@ -542,7 +542,7 @@
         "public/assets/pine-hollow/baked/wildlife.bin",
         "src/shards/pine-hollow/data/wildlife.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/wildlife.json"
       ]
@@ -641,7 +641,7 @@
         "public/assets/hdri/qwantani_moon_noon_puresky_2k.key.jpg",
         "public/assets/hdri/qwantani_moon_noon_puresky_2k.key.gain.png"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "externalInputs": [
         {
           "path": "public/assets/hdri/qwantani_dawn_puresky_2k.hdr",
@@ -717,7 +717,7 @@
         "public/assets/nalati/baked/bodies.bin",
         "src/shards/nalati-grasslands/data/bodies.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/nalati-grasslands/data/bodies.json"
       ]
@@ -823,7 +823,7 @@
         "public/assets/far-reach/rigs/sky-goat.glb",
         "public/assets/far-reach/rigs/drift-ray.glb"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": []
     },
     {
@@ -880,7 +880,7 @@
         "public/assets/far-reach/baked/bridges.bin",
         "public/assets/far-reach/baked/fan.bin"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/far-reach/data/winchHouse.json",
         "src/shards/far-reach/data/roost.json",
@@ -955,7 +955,7 @@
       "outputs": [
         "public/assets/sunscar-dunes/rigs/skitterer.glb"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": []
     },
     {
@@ -993,7 +993,7 @@
         "public/assets/sunscar-dunes/sand/grain.bin",
         "src/shards/sunscar-dunes/data/sand.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/sunscar-dunes/data/sand.json"
       ]
@@ -1040,7 +1040,7 @@
         "src/shards/sunscar-dunes/data/well.json",
         "src/shards/sunscar-dunes/data/braziers.json"
       ],
-      "platform": "darwin",
+      "platform": "native",
       "seedOutputs": [
         "src/shards/sunscar-dunes/data/rocks.json",
         "src/shards/sunscar-dunes/data/dressing.json",
