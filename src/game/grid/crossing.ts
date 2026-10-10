@@ -26,6 +26,8 @@ export interface GridCrossingTiming {
   /** Crossing demand and completed admission, distinct from prefetch and synchronous commit. */
   readonly requestedAt: number; readonly readyAt: number;
   readonly from: string | null; readonly to: string | null; readonly start: number; readonly end: number;
+  /** Same-clock phase boundaries: save work, frame/motor commit, then entered-leave/disposal callbacks. */
+  readonly checkpointEnd: number; readonly commitEnd: number;
 }
 /** Session-local crossing coordinator. No navigation, save copying, respawn or asynchronous work occurs during commit. */
 export class GridCrossing {
@@ -86,14 +88,16 @@ export class GridCrossing {
       if (saved === 'pending') { this.phase = 'save-pending'; this.issue = null; return false; }
       if (!saved) { this.phase = 'save-failed'; this.issue = 'Local checkpoint is not durable'; return false; }
     }
+    const checkpointEnd = diagnosticNow();
     try { prepared.commit(); }
     catch (error) {
       prepared.cancel(); this.prepared = undefined; this.phase = 'blocked';
       this.issue = error instanceof Error ? error.message : String(error); return false;
     }
+    const commitEnd = diagnosticNow();
     this.prepared = undefined; this.current = to; this.inside = undefined; this.phase = 'settled'; this.issue = null;
     this.ports.changed(from, to);
-    this.completed.push(Object.freeze({ from, to, requestedAt: this.requestedAt, readyAt: this.readyAt, start, end: diagnosticNow() }));
+    this.completed.push(Object.freeze({ from, to, requestedAt: this.requestedAt, readyAt: this.readyAt, start, checkpointEnd, commitEnd, end: diagnosticNow() }));
     if (this.completed.length > 32) this.completed.shift();
     return true;
   }

@@ -35,7 +35,7 @@ it('reports the full demanded preparation wait separately from synchronous check
     staged.commit.mockImplementation(() => { now += 3; });
     f.changed.mockImplementation(() => { now += 4; });
     expect(f.crossing.step(false)).toBe(true);
-    expect(f.crossing.timings()).toEqual([{ from: 'driftwood-isle', to: 'pine-hollow', requestedAt: 100, readyAt: 10_100, start: 10_100, end: 10_109 }]);
+    expect(f.crossing.timings()).toEqual([{ from: 'driftwood-isle', to: 'pine-hollow', requestedAt: 100, readyAt: 10_100, start: 10_100, checkpointEnd: 10_102, commitEnd: 10_105, end: 10_109 }]);
     const copy = [...f.crossing.timings()]; copy.length = 0;
     expect(f.crossing.timings()).toHaveLength(1);
     expect(f.crossing.step(true)).toBe(false); expect(f.crossing.timings()).toHaveLength(1);
