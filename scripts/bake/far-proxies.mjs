@@ -64,7 +64,10 @@ function decimate(positions, index, triangles) {
 }
 try {
   symlinkSync(join(repo, 'node_modules'), join(scratch, 'node_modules'));
-  await build({ configFile: false, logLevel: 'silent', build: { target: 'esnext', outDir: join(scratch, 'generator'), emptyOutDir: true, lib: { entry: join(repo, 'scripts/bake/farProxiesSource.ts'), formats: ['es'], fileName: 'build' }, rolldownOptions: { platform: 'node', external: [/^node:/u, 'vite'] } } });
+  // sharp (the bundle reaches it through the SDK's asset tools) stays outside the bundle as the runner's own copy: pnpm
+  // does not hoist it to the repo root, so an inlined copy cannot find its platform binary, and one libvips per process
+  const sharpUrl = pathToFileURL(req.resolve('sharp')).href;
+  await build({ plugins: [{ name: 'external-sharp', enforce: 'pre', resolveId: (id) => (id === 'sharp' ? { id: sharpUrl, external: true } : null) }], configFile: false, logLevel: 'silent', build: { target: 'esnext', outDir: join(scratch, 'generator'), emptyOutDir: true, lib: { entry: join(repo, 'scripts/bake/farProxiesSource.ts'), formats: ['es'], fileName: 'build' }, rolldownOptions: { platform: 'node', external: [/^node:/u, 'vite'] } } });
   const generator = await import(pathToFileURL(join(scratch, 'generator/build.js')).href);
   const manifests = await generator.writeFarProxies(repo, { model, decimate });
   for (const [slug, { far }] of Object.entries(manifests)) console.log(`${slug.padEnd(18)} resident ${((far.decoded + far.gpu) / 1e6).toFixed(3)} MB  wire ${(far.compressed / 1e3).toFixed(0)} KB  ${far.triangles} tris  ${far.draws} draw`);
