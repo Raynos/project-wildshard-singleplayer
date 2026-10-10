@@ -38,8 +38,8 @@ mkdirSync(CACHE, { recursive: true });
 if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('http://localhost/?tier=desktop') });
 
 const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
-const shardModule = resolve(ROOT, `scripts/blender/${SLUG}/export.mjs`);
-if (!existsSync(shardModule)) throw new Error(`export-scene: no scripts/blender/${SLUG}/export.mjs (the shard's ground colour + layout)`);
+const shardModule = resolve(ROOT, `src/shards/${SLUG}/blender/export.mjs`);
+if (!existsSync(shardModule)) throw new Error(`export-scene: no src/shards/${SLUG}/blender/export.mjs (the shard's ground colour + layout)`);
 const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES, ROAD_LENGTH } = await imp('src/engine/core/config.ts');
 const registry = await imp('src/game/shard/registry.ts');
 if (!registry.findChunk(SLUG)) throw new Error(`export-scene: unknown shard "${SLUG}"`);

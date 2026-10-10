@@ -4,8 +4,8 @@ import { BufferAttribute, BufferGeometry, Material, Mesh } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { expect, it } from 'vitest';
 import { contentHash } from '@wildshard/sdk/project';
-import { bakeNalatiGround, nalatiGroundSource } from '../scripts/bake/nalatiGroundSource';
-import { bakeNalatiWorldRowsLod } from '../scripts/bake/nalatiWorldRows';
+import { bakeNalatiGround, nalatiGroundSource } from '../src/shards/nalati-grasslands/generators/nalatiGroundSource';
+import { bakeNalatiWorldRowsLod } from '../src/shards/nalati-grasslands/generators/nalatiWorldRows';
 
 it('packs an explicit smaller Nalati L1 candidate with truthful error, unchanged L0/native bytes and surviving painterly channels', async () => {
   const native = readFileSync(new URL('../public/assets/baked/nalati-grasslands/terrain.bin', import.meta.url)), nativeHash = contentHash(native);

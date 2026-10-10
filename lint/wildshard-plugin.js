@@ -610,7 +610,8 @@ const noModuleMock = rule('Tests use seams, not module mocks (E422)', (context) 
   if (object?.type === 'Identifier' && object.name === 'vi' && MODULE_MOCKS.has(name)) report(context, node, `vi.${name} replaces or reloads a module: pass the dependency in (a class, a factory, an option) instead (E422)`);
 } }));
 const noRawAnimationMixer = rule('Animation mixers belong in engine/anim (E357 X4)', (context) => {
-  if (pathOf(context).startsWith('src/engine/anim/')) return {};
+  // Offline Blender rig gates sample authored clips on CPU; they never install a runtime mixer.
+  if (pathOf(context).startsWith('src/engine/anim/') || /^src\/shards\/[^/]+\/blender\/.+\.mjs$/u.test(pathOf(context))) return {};
   const names = new Set(['AnimationMixer']);
   const isMixer = (node) => {
     const value = unwrap(node);

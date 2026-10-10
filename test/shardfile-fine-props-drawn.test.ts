@@ -9,7 +9,7 @@ import { clientViews } from '../src/game/shardfile/clientViews';
 import { clientWorld } from '../src/game/shardfile/clientWorld';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import source from '../src/shards/_template/shard.config';
-import { templateProps } from '../scripts/bake/templatePropsSource';
+import { templateProps } from '../src/shards/_template/generators/templatePropsSource';
 
 // SHARD-PLATFORM SF16: the M1 board once read as "near props missing on the shardfile side" (the template stair right of
 // the hut). The bytes were proven present (template-baked-playground.test.ts); this proves the DRAW path: every resident

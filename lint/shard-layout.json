@@ -36,7 +36,8 @@
     "runtime",
     "behaviour",
     "quests",
-    "assets"
+    "assets",
+    "blender"
   ],
   "legacy": {
     "driftwood-isle": {
@@ -129,7 +130,8 @@
     "shard.config.ts": "the SDK project source that builds shard.json (SHARD-PLATFORM SF7b)",
     "behaviour/": "AssemblyScript entity and director scripts",
     "quests/": "serialisable quest graphs and dialogue trees",
-    "assets/": "source assets consumed by the build"
+    "assets/": "source assets consumed by the build",
+    "blender/": "the shard's retained Blender build sources and offline rig checks (build-time only; optional)"
   },
   "dataHomes": {
     "budgets.ts": "data/budgets.ts",

@@ -24,7 +24,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
  *   rifle.onCycle = () => sfx.shot('leverCycle')     // the lever thrown (after every shot, and to chamber after a reload)
  *   rifle.onRoundIn = () => …                        // one cartridge thumbed through the loading gate
  *
- * The model (PH-C11 remaster) is modelled + baked in Blender (scripts/blender/pine-hollow/weapons/lever_rifle.py, built by scripts/blender/build.sh) and loaded
+ * The model (PH-C11 remaster) is modelled + baked in Blender (src/shards/pine-hollow/blender/weapons/lever_rifle.py, built by scripts/blender/build.sh) and loaded
  * from `LEVER_MODEL_URL` (meshopt, WebP atlases; the phone tier's `.phone.glb` through tierUrl — ≈ 8 k tris + 1024²
  * atlases desktop, ≈ 4 k + 512² phone): a colour-case-hardened receiver (the bolt in its top channel, the loading gate on
  * the right), the hammer + spur, a round tapered barrel with a crowned muzzle over the magazine tube, the forend band and

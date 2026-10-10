@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin committed native bytes before any world conversion.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { pineTerrainWitness } from '../scripts/bake/pine-world-inventory.mjs';
+import { pineTerrainWitness } from '../src/shards/pine-hollow/generators/pine-world-inventory.mjs';
 import { PINE_EDGE_HEIGHTS } from '../src/shards/pine-hollow/data/edges';
 
 const bytes = readFileSync(new URL('../public/assets/baked/pine-hollow/terrain.bin', import.meta.url));

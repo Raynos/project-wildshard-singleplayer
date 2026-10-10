@@ -3,7 +3,7 @@ import skins from './skins.json' with { type: 'json' };
 /**
  * The template's creature looks (SHARD-PLATFORM SF16): the SF9c exported grey blob and boar, drawn by the client's
  * `platform.skin` recipe and animated from the creature's state (`platform.clips`; the export sampled the attack over
- * 1 s). `scripts/bake/template-skins.mjs` writes `skins.json` and the content-addressed files.
+ * 1 s). `src/shards/_template/generators/template-skins.mjs` writes `skins.json` and the content-addressed files.
  */
 export const INK_SKIN_LOOKS = skins.map((entry) => ({ id: entry.look, species: entry.species, recipe: 'platform.skin', material: null,
   parameters: { skin: entry.skin }, animation: { recipe: 'platform.clips', parameters: { attackSpan: 1 } } }));

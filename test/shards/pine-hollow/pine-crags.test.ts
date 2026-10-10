@@ -1,5 +1,5 @@
 // PH-B2: the Ridge's granite kit is placed over the heightfield deterministically, clear of every trail and landmark, and
-// the bear cave's data (scripts/blender/pine-hollow/crags/build_cave.py) is self-consistent in its frame.
+// the bear cave's data (src/shards/pine-hollow/blender/crags/build_cave.py) is self-consistent in its frame.
 import { describe, expect, it } from 'vitest';
 import { setActiveChunk } from '../../../src/game/shard/registry';
 import { placeCrags, skinWeight, skinTile } from '../../../src/shards/pine-hollow/generators/crags';

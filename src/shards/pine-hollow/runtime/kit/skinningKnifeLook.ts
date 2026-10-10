@@ -4,7 +4,7 @@ import type { HeldToolRow } from './heldTool';
 
 /**
  * The skinning beat's first-person knife (PINE-HOLLOW-REMASTER §5 Polish): a gloved right hand holding a drop-point
- * skinning knife, the Blender model (scripts/blender/pine-hollow/weapons/skinning_knife.py → skinning-knife[.phone].glb,
+ * skinning knife, the Blender model (src/shards/pine-hollow/blender/weapons/skinning_knife.py → skinning-knife[.phone].glb,
  * its path models/skinningKnife.ts's) fetched 600 ms after the level loads. The hold: the grip's centre at the lower right, the blade turned well in across
  * the view (held straight along −z the fist hides it), tipped down to the hide, the edge rolled toward it; it comes from
  * and goes to below the frame. The strokes: 0.12 s of wind-up (back and up, the tip lifting), 0.14 s of draw (down and

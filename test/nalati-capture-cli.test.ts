@@ -12,7 +12,7 @@ import { execPath } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
 import { expect, it } from 'vitest';
-import { assignNalatiMeshes } from '../scripts/bake/nalatiMeshAssignments';
+import { assignNalatiMeshes } from '../src/shards/nalati-grasslands/generators/nalatiMeshAssignments';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const arraySummary = v.object({ values: v.number(), sha256: v.string() });
@@ -38,7 +38,7 @@ const summarySchema = v.object({
 it('captures the actual settled Nalati world, including unculled copies and async GLBs, then exits with every scope counter zero', () => {
   const scratch = mkdtempSync(join(tmpdir(), 'nalati-capture-fixture-')), output = join(scratch, 'summary.json');
   try {
-    const child = spawnSync(execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', 'scripts/bake/nalati-capture.mjs', `--out=${output}`], {
+    const child = spawnSync(execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', 'src/shards/nalati-grasslands/generators/nalati-capture.mjs', `--out=${output}`], {
       cwd: root, encoding: 'utf8', timeout: 120_000,
     }); // Real geometry/physics capture shares CPU with the parallel gate; time is never a world correctness verdict.
     expect(child.error, child.stderr).toBeUndefined(); expect(child.status, child.stderr).toBe(0);

@@ -11,7 +11,7 @@ import { ClientAssets } from '../../../../src/game/shardfile/clientAssets';
 import { TRAIL } from '../../../../src/shards/_template/layout';
 import { poolMask } from '../../../../src/shards/_template/generators/world';
 import { TEMPLATE_LOOK } from '../../../../src/shards/_template/data/look';
-import { templateProps } from '../../../../scripts/bake/templatePropsSource';
+import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';
 import source from '../../../../src/shards/_template/shard.config';
 
 const scene = new Scene(), renderer = new WebGLRenderer({ antialias: true }); renderer.setPixelRatio(2); renderer.setSize(innerWidth, innerHeight);

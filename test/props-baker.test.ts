@@ -17,7 +17,7 @@ import { installDeclaredPropColliders } from '../src/engine/physics/declaredProp
 import { castRay } from '../src/engine/physics/query';
 import { tagOf } from '../src/engine/physics/surface';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
-import { templateProps } from '../scripts/bake/templatePropsSource';
+import { templateProps } from '../src/shards/_template/generators/templatePropsSource';
 
 const cleanups: (() => void)[] = [];
 afterEach(() => { for (const cleanup of cleanups.splice(0)) cleanup(); });

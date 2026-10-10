@@ -5,7 +5,7 @@ import { pastelTerrain } from './terrain';
 
 /**
  * Build-time only: the pastel plain's terrain (bound to `ground`) and props (bound to `rock`) as their declaration
- * files and content-addressed bytes, keyed by project-relative path; `scripts/bake/pastel-plain.mjs` writes them.
+ * files and content-addressed bytes, keyed by project-relative path; `src/shards/pastel-plain/generators/pastel-plain.mjs` writes them.
  */
 export function bakePastel(): Map<string, string | Uint8Array> {
   const out = new Map<string, string | Uint8Array>(), fixture = pastelProps(20);

@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { BufferAttribute, BufferGeometry, Material, Mesh } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { describe, expect, it } from 'vitest';
-import { nalatiGroundSource, bakeNalatiGround } from '../scripts/bake/nalatiGroundSource';
+import { nalatiGroundSource, bakeNalatiGround } from '../src/shards/nalati-grasslands/generators/nalatiGroundSource';
 
 const native = readFileSync(new URL('../public/assets/baked/nalati-grasslands/terrain.bin', import.meta.url));
 const digest = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');

@@ -4,7 +4,7 @@ import { Scope } from '../../../../src/engine/app/scope';
 import { installDeclaredProps } from '../../../../src/engine/world/declaredProps';
 import { PropsSchema } from '../../../../src/game/shardfile/props';
 import * as v from 'valibot';
-import { templateProps } from '../../../../scripts/bake/templatePropsSource';
+import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';
 
 const scene = new Scene(); scene.background = new Color(0x20252c);
 const renderer = new WebGLRenderer({ antialias: true }); renderer.setPixelRatio(2); renderer.setSize(innerWidth, innerHeight); document.body.append(renderer.domElement);

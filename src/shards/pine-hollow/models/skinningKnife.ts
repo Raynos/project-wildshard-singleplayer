@@ -2,7 +2,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 /**
  * The skinning beat's first-person knife (PINE-HOLLOW-REMASTER §5 Polish, on PH-F2's beat): a gloved right hand holding a
  * drop-point skinning knife at the lower right of the view, in the lever-action's style — a Blender model
- * (scripts/blender/pine-hollow/weapons/skinning_knife.py → `public/assets/pine-hollow/weapons/skinning-knife[.phone].glb`, ONE mesh,
+ * (src/shards/pine-hollow/blender/weapons/skinning_knife.py → `public/assets/pine-hollow/weapons/skinning-knife[.phone].glb`, ONE mesh,
  * one baked atlas: albedo / normal / ARM) on the viewmodels' shared lit program (Crossbow.viewmodelMaterial: no program of
  * its own, lit with the scene: the sun, the CSM shadows, the fog). Debug ▸ Skinning knife = Stand-in — or a failed load — draws a procedural
  * stand-in (a steel blade, a walnut handle, a leather fist) on the same program. The SDK's held tool
@@ -42,7 +42,7 @@ export class SkinKnife extends HeldTool {
 // ───────────────────────────── the model (E306 / E315 M5: Gear) ─────────────────────────────
 
 /**
- * The skinning knife in a gloved hand: the Blender model (scripts/blender/pine-hollow/weapons/skinning_knife.py →
+ * The skinning knife in a gloved hand: the Blender model (src/shards/pine-hollow/blender/weapons/skinning_knife.py →
  * public/assets/pine-hollow/weapons/skinning-knife[.phone].glb, one mesh, one baked atlas), the procedural stand-in when it
  * does not load. One copy: the skinning beat raises it at a kill (`SkinKnife`, src/shards/pine-hollow/life/index.ts). The
  * Model Explorer's specimen loads its own copy (the phone tier's file on a phone; parsed once per shard), opaque.

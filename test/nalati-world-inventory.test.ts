@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Inventory pins committed native bake bytes before conversion.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { nativeTerrainWitness } from '../scripts/bake/nalati-world-inventory.mjs';
+import { nativeTerrainWitness } from '../src/shards/nalati-grasslands/generators/nalati-world-inventory.mjs';
 import { NALATI_EDGES } from '../src/shards/nalati-grasslands/data/edges';
 
 const bytes = readFileSync(new URL('../public/assets/baked/nalati-grasslands/terrain.bin', import.meta.url));

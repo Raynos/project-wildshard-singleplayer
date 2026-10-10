@@ -19,5 +19,5 @@ painterly family and the rock its plain fallback, and the post stack is not buil
 The template binds terrain and props to one `pbr` material, so this shard keeps its own copy of the generators:
 `generators/terrain.ts` bakes the terrain bound to `ground`, `generators/props.ts` (the template's props bake source)
 binds the props section to `rock`, and `generators/bake.ts` returns both. Rebake with
-`node scripts/bake/pastel-plain.mjs` (deterministic; writes `data/terrain.json`, `data/props.json` and `assets/`), then
+`node src/shards/pastel-plain/generators/pastel-plain.mjs` (deterministic; writes `data/terrain.json`, `data/props.json` and `assets/`), then
 rebake the map from a served build (`node scripts/bake-maps.mjs --url=<served> --shards=pastel-plain`).

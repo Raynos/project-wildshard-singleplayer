@@ -15,9 +15,9 @@ import { counterGeometry } from './tradeCounter.ts';
 
 import { ironSwordGeometry } from './ironSword.ts';
 import { coverGeometry } from './groundCover.ts';
-import { originalTrailside } from '../../../../scripts/bake/driftwoodTrailside.mjs';
-import { originalCove } from '../../../../scripts/bake/driftwoodCove.mjs';
-import { originalHut, originalLookout } from '../../../../scripts/bake/driftwoodHut.mjs';
+import { originalTrailside } from './driftwoodTrailside.mjs';
+import { originalCove } from './driftwoodCove.mjs';
+import { originalHut, originalLookout } from './driftwoodHut.mjs';
 
 const assets = new URL('../../../../public/assets/driftwood-isle/baked/fixed-models/', import.meta.url);
 const check = process.argv.includes('--check');

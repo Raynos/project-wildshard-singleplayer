@@ -1,6 +1,6 @@
 import { BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
-import { NalatiCaptureInventory } from '../scripts/bake/nalatiCaptureInventory';
+import { NalatiCaptureInventory } from '../src/shards/nalati-grasslands/generators/nalatiCaptureInventory';
 import { DressLayer } from '../src/shards/nalati-grasslands/world/dressing/layer';
 
 describe('Nalati authored capture inventory', () => {

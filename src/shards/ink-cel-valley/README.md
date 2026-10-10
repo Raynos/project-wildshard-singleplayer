@@ -29,6 +29,6 @@ family and the rock its plain fallback, and the post stack is not built.
 The template binds terrain and props to one `pbr` material, so this shard keeps its own copy of the generators:
 `generators/terrain.ts` bakes the valley field bound to `ground` (`inkField`, shared with the props bake),
 `generators/props.ts` (the template's props bake source) binds the props section to `rock`, and `generators/bake.ts`
-returns both. Rebake from a clean export with `node scripts/bake/ink-cel-valley.mjs` (deterministic; writes
+returns both. Rebake from a clean export with `node src/shards/ink-cel-valley/generators/ink-cel-valley.mjs` (deterministic; writes
 `data/terrain.json`, `data/props.json` and `assets/`, and drops assets no declaration names), then rebake the map from a
 served build (`node scripts/bake-maps.mjs --url=<served> --shards=ink-cel-valley`).

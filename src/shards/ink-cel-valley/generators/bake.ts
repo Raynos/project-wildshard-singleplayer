@@ -5,7 +5,7 @@ import { inkTerrain } from './terrain';
 
 /**
  * Build-time only: the ink valley's terrain (bound to `ground`) and props (bound to `rock`) as their declaration files
- * and content-addressed bytes, keyed by project-relative path; `scripts/bake/ink-cel-valley.mjs` writes them.
+ * and content-addressed bytes, keyed by project-relative path; `src/shards/ink-cel-valley/generators/ink-cel-valley.mjs` writes them.
  */
 export function bakeInk(): Map<string, string | Uint8Array> {
   const out = new Map<string, string | Uint8Array>(), fixture = inkProps(20);

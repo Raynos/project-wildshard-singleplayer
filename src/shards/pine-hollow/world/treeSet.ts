@@ -2,7 +2,7 @@ import type { TreeSetVariant, TreeSpeciesTraits } from '@wildshard/engine/world/
 
 /**
  * Pine Hollow's Blender-built photoreal tree set (PH-B4, Jake's PH-U17; moved from the engine, E405): its species and how
- * each is planted, and the variants of the set (scripts/blender/pine-hollow/trees/treegen.py SPECS, the same order: the
+ * each is planted, and the variants of the set (src/shards/pine-hollow/blender/trees/treegen.py SPECS, the same order: the
  * GLB's meshes are named by `name`; test/tree-species.test.ts holds the two together through the set's trees.json).
  * `collider` scales the trunk capsule over the trunk radius (the giants' buttresses stand out past it; the twin birch's
  * two stems). The order of PINE_TREE_SPECIES is the placement's draw order: keep it.

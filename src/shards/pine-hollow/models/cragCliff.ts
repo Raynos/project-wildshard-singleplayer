@@ -1,5 +1,5 @@
 /**
- * The Ridge crag (E315 M2): PH-B2's jointed granite, built in Blender (scripts/blender/pine-hollow/crags/build_crags.py →
+ * The Ridge crag (E315 M2): PH-B2's jointed granite, built in Blender (src/shards/pine-hollow/blender/crags/build_crags.py →
  * public/assets/models/pine-hollow-crags/crags.glb) — seven big modules as variants: three cliff bands, a buttress, an
  * exfoliation slab and two tors, each a LOD0 and a LOD1 with Cycles vertex AO, in the triplanar granite (Poly Haven CC0
  * `mossy_rock`, ledge grit from the terrain's `rock_ground`). src/shards/pine-hollow/world/crags.ts places them on every steep face of

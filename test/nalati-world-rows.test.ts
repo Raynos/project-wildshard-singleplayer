@@ -8,8 +8,8 @@ import { parseGlb, parseKtx2 } from '@wildshard/sdk/assets';
 import { contentHash } from '@wildshard/sdk/project';
 import { captureStaticMaterial, StaticMaterialCatalogue } from '@wildshard/sdk/bake/staticMaterials';
 import { MaterialsSchema } from '../src/game/shardfile/materials';
-import { bakeNalatiWorldRows } from '../scripts/bake/nalatiWorldRows';
-import { bakeNalatiGround, nalatiGroundSource } from '../scripts/bake/nalatiGroundSource';
+import { bakeNalatiWorldRows } from '../src/shards/nalati-grasslands/generators/nalatiWorldRows';
+import { bakeNalatiGround, nalatiGroundSource } from '../src/shards/nalati-grasslands/generators/nalatiGroundSource';
 
 const native = readFileSync(new URL('../public/assets/baked/nalati-grasslands/terrain.bin', import.meta.url));
 

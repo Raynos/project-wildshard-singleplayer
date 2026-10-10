@@ -7,7 +7,7 @@ import * as v from 'valibot';
 import metadata from '../src/shards/_template/data/props.json' with { type: 'json' };
 import { PropsSchema } from '../src/game/shardfile/props';
 import { contentHash } from '../src/sdk/project';
-import { templateProps } from '../scripts/bake/templatePropsSource';
+import { templateProps } from '../src/shards/_template/generators/templatePropsSource';
 import { bakeProps } from '../src/sdk/bake/props';
 
 const pointKey = (point: Vector3): string => [point.x, point.y, point.z].map((n) => n.toFixed(4)).join(',');

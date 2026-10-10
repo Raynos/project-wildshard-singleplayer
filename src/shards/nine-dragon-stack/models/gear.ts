@@ -10,7 +10,7 @@ import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { NineDragonArms } from '../vm/fpArms';
 
-/** fp-rig.glb's clips (scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs holds them to moves.ts): the right
+/** fp-rig.glb's clips (src/shards/nine-dragon-stack/blender/viewmodel/rig/check-clips.mjs holds them to moves.ts): the right
  *  arm's base loops, cuts, charge and parry, the draw and sheathe; the left arm's loops and the grapple's poses */
 export const FP_ARMS_CLIPS: readonly string[] = [
   'idle', 'walk', 'light', 'light2', 'light3', 'charge', 'heavy', 'parry', 'sheathe', 'draw', 'sheathed',

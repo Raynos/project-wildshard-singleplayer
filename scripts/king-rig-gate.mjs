@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // king-rig-gate.mjs — the rig gate of the Antler King's own rig (E322 F-M1; the img2-character twelve checks, as
-// .claude/skills/mockup-to-model ▸ 4 and scripts/blender/driftwood-isle/fp-arms/gate.mjs run them). Loads a rigged GLB
+// .claude/skills/mockup-to-model ▸ 4 and src/shards/driftwood-isle/blender/fp-arms/gate.mjs run them). Loads a rigged GLB
 // (public/assets/pine-hollow/creatures/antler-king-rig[.phone].rigged.glb), builds the skeleton the way the game does
 // (the joints at their GLB positions, `updateMatrixWorld(true)` then `new THREE.Skeleton` computing the inverses), poses
 // every clip of src/shards/pine-hollow/combat/kingRig.ts at sampled times through the SAME functions the game's animate

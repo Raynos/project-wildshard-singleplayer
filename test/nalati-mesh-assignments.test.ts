@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
-import { assignNalatiMeshes, type NalatiAssignmentInventory } from '../scripts/bake/nalatiMeshAssignments';
+import { assignNalatiMeshes, type NalatiAssignmentInventory } from '../src/shards/nalati-grasslands/generators/nalatiMeshAssignments';
 
 const meshSchema = v.object({ sourceMesh: v.number(), name: v.string(), instances: v.nullable(v.object({ count: v.number(), capacity: v.number() })) });
 const schema = v.object({

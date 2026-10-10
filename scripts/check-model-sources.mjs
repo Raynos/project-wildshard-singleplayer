@@ -79,8 +79,12 @@ for (const d of outDirs) {
   }
 }
 
-// ── 3. no orphan under scripts/blender/ ──
-for (const f of listFiles('scripts/blender')) {
+// ── 3. no orphan under shared or shard-owned Blender sources ──
+const shardRoot = at('src/shards');
+const sourceRoots = ['scripts/blender', ...(existsSync(shardRoot) ? readdirSync(shardRoot, { withFileTypes: true })
+  .filter(entry => entry.isDirectory() && !entry.name.endsWith('-legacy') && existsSync(at(`src/shards/${entry.name}/blender`)))
+  .map(entry => `src/shards/${entry.name}/blender`) : [])];
+for (const f of sourceRoots.flatMap(dir => listFiles(dir))) {
   if (f.startsWith('scripts/blender/lib/') || SHARED.has(f) || /(^|\/)README\.md$/.test(f) || f.includes('/__pycache__/')) continue;
   if (!claimed.has(f)) errors.push(`${f}: an orphan (no target in ${MANIFEST} names it as its script, a source or its post step)`);
 }

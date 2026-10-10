@@ -43,7 +43,7 @@ export const crossbow: ModelDef<GearSkinParams> = defineModel<GearSkinParams>({
 });
 
 /**
- * The lever-action: the Blender model (scripts/blender/pine-hollow/weapons/lever_rifle.py → lever-rifle[.phone].glb) with
+ * The lever-action: the Blender model (src/shards/pine-hollow/blender/weapons/lever_rifle.py → lever-rifle[.phone].glb) with
  * the gold bead, or the procedural build when the file does not load — `LeverRifle.leverSpecimen`: the seven parts as the
  * cabin pickup shows them, hammer down, on their own materials and their own copy of the geometry. Variants: the rifle
  * skins (Ironhide and Scarback Furnace carry the lever-action's finish too).

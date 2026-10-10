@@ -1,6 +1,6 @@
 /**
  * The Blender spawn cove's models (E306 / E315 M1: models on the contract, src/engine/models/model.ts). The cove
- * (DRIFTWOOD-REMASTER X2, E52) is built by scripts/blender/driftwood-isle/build_island.py into one file,
+ * (DRIFTWOOD-REMASTER X2, E52) is built by src/shards/driftwood-isle/blender/build_island.py into one file,
  * public/assets/models/driftwood-blender/island.glb: its terrain tiles (world: the cove's ground) and ~60 prototypes —
  * palms, crag plates, driftwood, shells, grass, ferns, flowers, bushes — each vertex-coloured, its colour's alpha the
  * Cycles-baked AO. Those prototypes are these models, one per family, one variant per prototype (`proto`: its name in

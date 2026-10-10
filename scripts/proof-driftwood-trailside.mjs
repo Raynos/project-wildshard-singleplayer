@@ -4,7 +4,7 @@ import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { installInit } from './parity/init.mjs';
 import { saveFixture } from './debug-settings.mjs';
-import { originalTrailside } from './bake/driftwoodTrailside.mjs';
+import { originalTrailside } from '../src/shards/driftwood-isle/generators/driftwoodTrailside.mjs';
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const url = arg('url'), output = arg('output');

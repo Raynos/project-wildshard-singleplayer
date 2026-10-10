@@ -7,7 +7,7 @@ import { HUT } from '../layout';
 
 /**
  * Build-time only (SHARD-PLATFORM SF16): the template's grey-box shapes as the props baker
- * (scripts/bake/templatePropsSource.ts) samples them: the hut with its wall colliders, the door panel, the ramp with
+ * (src/shards/_template/generators/templatePropsSource.ts) samples them: the hut with its wall colliders, the door panel, the ramp with
  * stair treads, the scattered cubes, the pool disc, the jump-course pads and the lantern's lamp. These are the legacy
  * runtime builders' shapes, kept here so the bake no longer reads the runtime modules (retired with the template
  * chunk); nothing here is imported by the client.

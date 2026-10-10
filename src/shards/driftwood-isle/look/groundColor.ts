@@ -1,7 +1,7 @@
 /**
  * Driftwood's ground palette (E357 S4.3 step 3, moved verbatim from Terrain.ts): the faceted terrain's colour by height
  * above the sea and slope. Node-safe (three only): the terrain painter, the ground cover's placement and the Blender
- * export (scripts/blender/driftwood-isle/export.mjs) read the same function.
+ * export (src/shards/driftwood-isle/blender/export.mjs) read the same function.
  */
 import * as THREE from 'three';
 
