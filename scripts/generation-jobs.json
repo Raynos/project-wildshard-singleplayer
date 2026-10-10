@@ -790,6 +790,138 @@
       ],
       "platform": "darwin",
       "capture": true
+    },
+    {
+      "id": "sky-rigs",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/bake-sky-rigs.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/far-reach/generators/bake-sky-rigs.mjs",
+        "--generation-shard=far-reach"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/far-reach",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "scripts/generation-level.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/far-reach"
+      ],
+      "outputs": [
+        "public/assets/far-reach/rigs/storm-roc.glb",
+        "public/assets/far-reach/rigs/sky-goat.glb",
+        "public/assets/far-reach/rigs/drift-ray.glb"
+      ],
+      "platform": "darwin",
+      "seedOutputs": []
+    },
+    {
+      "id": "sky-world",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/bake-sky-world.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/far-reach/generators/bake-sky-world.mjs",
+        "--generation-shard=far-reach"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/far-reach",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "scripts/generation-level.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/far-reach"
+      ],
+      "outputs": [
+        "public/assets/far-reach/baked/winch-house.glb",
+        "public/assets/far-reach/baked/roost.glb",
+        "public/assets/far-reach/baked/docks.glb",
+        "public/assets/far-reach/baked/crown.glb",
+        "public/assets/far-reach/baked/mill.glb",
+        "public/assets/far-reach/baked/book-stand.glb",
+        "public/assets/far-reach/baked/knolls.glb",
+        "public/assets/far-reach/baked/geometries.glb",
+        "src/shards/far-reach/data/winchHouse.json",
+        "src/shards/far-reach/data/roost.json",
+        "src/shards/far-reach/data/docks.json",
+        "src/shards/far-reach/data/crown.json",
+        "src/shards/far-reach/data/mill.json",
+        "src/shards/far-reach/data/bookStand.json",
+        "src/shards/far-reach/data/knolls.json",
+        "src/shards/far-reach/data/geometries.json",
+        "src/shards/far-reach/data/seaTexture.json",
+        "src/shards/far-reach/data/skyCards.json",
+        "src/shards/far-reach/data/dressing.json",
+        "src/shards/far-reach/data/bridges.json",
+        "src/shards/far-reach/data/fan.json",
+        "src/shards/far-reach/data/skyIsleFrames.json",
+        "public/assets/far-reach/baked/dressing.bin",
+        "public/assets/far-reach/baked/bridges.bin",
+        "public/assets/far-reach/baked/fan.bin"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/far-reach/data/winchHouse.json",
+        "src/shards/far-reach/data/roost.json",
+        "src/shards/far-reach/data/docks.json",
+        "src/shards/far-reach/data/crown.json",
+        "src/shards/far-reach/data/mill.json",
+        "src/shards/far-reach/data/bookStand.json",
+        "src/shards/far-reach/data/knolls.json",
+        "src/shards/far-reach/data/geometries.json",
+        "src/shards/far-reach/data/seaTexture.json",
+        "src/shards/far-reach/data/skyCards.json",
+        "src/shards/far-reach/data/dressing.json",
+        "src/shards/far-reach/data/bridges.json",
+        "src/shards/far-reach/data/fan.json",
+        "src/shards/far-reach/data/skyIsleFrames.json"
+      ]
+    },
+    {
+      "id": "sky-physics",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/bake-sky-physics.mjs",
+      "command": [
+        "src/shards/far-reach/generators/bake-sky-physics.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/far-reach",
+        "scripts",
+        "public",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/far-reach/runtime/physics.baked.json"
+      ],
+      "platform": "darwin",
+      "capture": true
     }
   ]
 }
