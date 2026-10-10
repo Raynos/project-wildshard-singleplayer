@@ -2,11 +2,13 @@ import type { SimHost } from '../../../src/engine/sim';
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 import { driftwoodSpots, QUEST_STEP } from '../../../src/shards/driftwood-isle/runtime/quest';
 import * as v from 'valibot';
+import { Vector3 } from 'three';
+import { ZiplineLayout } from '../../../src/shards/driftwood-isle/runtime/ziplineLayout';
 
 type Point = readonly [number, number];
 const spots = driftwoodSpots();
 /** Author a tape from real observations and bounded player/script inputs. No pose, HP, flag or fact writes. */
-export async function playDriftwood(host: SimHost, tick: (commands: HeadlessCommand[]) => void, mark: (name: string) => Promise<void>): Promise<void> {
+export async function playDriftwood(host: SimHost, tick: (commands: HeadlessCommand[]) => void, mark: (name: string) => Promise<void>, journey: 'sealed-ring' | 'zipline' | 'zipline-from-lookout' = 'sealed-ring'): Promise<void> {
   const wait = (count: number): void => { for (let i = 0; i < count; i++) tick([]); };
   const doubloons = (expected: number): void => {
     const pack = v.parse(v.object({ pack: v.object({ counts: v.record(v.string(), v.number()) }) }), host.adapters.get(QUEST_STEP)?.snapshot()).pack;
@@ -41,13 +43,40 @@ export async function playDriftwood(host: SimHost, tick: (commands: HeadlessComm
     }
     throw new Error(`Driftwood tape did not defeat ${id}`);
   };
-  walk([[0, -186.5], [-8, -172], [-17, -161], [-20, -150], [-30, -142], [-30, -130], [-30, -118], [-30, -106], [-30, -104], [-24, -80], [-22, -74], [-22, -71.5]]);
-  tick([{ kind: 'script', actorId: 'driftwood.interact', value: 0 }]);
-  if (!host.flags.has('talked:castaway')) throw new Error('Wendell did not speak');
-  walk([[-22, -68.9], [-22, -67.6], [-22, -66.7], [-22, -65.2], [-22, -62.9]]); act('castaway-chest', 'has:flint');
-  doubloons(2);
-  walk([[-22, -67.6], [-22, -71.5], [-8, -50], [10.8, -27.8], [15.4, -8.6], [15.6, -7], [13.88, 11.88], [15.29, 13.29], [23.99, 21.99], [31.98, 29.98], [35.8, 33.8], [46, 46], [60, 60], [76, 76], [86.1, 82.45], [86.94, 83.68], [87.68, 84.76], [90.27, 88.55], [92.76, 92.18], [94.17, 94.25]]);
-  act('beacon', 'lit:beacon'); go(93.65, 95.2); act('shard-lookout', 'shard:lookout'); await mark('lookout');
+  if (journey !== 'zipline-from-lookout') {
+    walk([[0, -186.5], [-8, -172], [-17, -161], [-20, -150], [-30, -142], [-30, -130], [-30, -118], [-30, -106], [-30, -104], [-24, -80], [-22, -74], [-22, -71.5]]);
+    tick([{ kind: 'script', actorId: 'driftwood.interact', value: 0 }]);
+    if (!host.flags.has('talked:castaway')) throw new Error('Wendell did not speak');
+    walk([[-22, -68.9], [-22, -67.6], [-22, -66.7], [-22, -65.2], [-22, -62.9]]); act('castaway-chest', 'has:flint');
+    doubloons(2);
+    walk([[-22, -67.6], [-22, -71.5], [-8, -50], [10.8, -27.8], [15.4, -8.6], [15.6, -7], [13.88, 11.88], [15.29, 13.29], [23.99, 21.99], [31.98, 29.98], [35.8, 33.8], [46, 46], [60, 60], [76, 76], [86.1, 82.45], [86.94, 83.68], [87.68, 84.76], [90.27, 88.55], [92.76, 92.18], [94.17, 94.25]]);
+    act('beacon', 'lit:beacon'); go(93.65, 95.2); act('shard-lookout', 'shard:lookout'); await mark('lookout');
+  } else if (!host.flags.has('lit:beacon') || !host.flags.has('shard:lookout')) throw new Error('Missing earned lookout continuation');
+  if (journey !== 'sealed-ring') {
+    // Leave the lookout by foot, cross the native headland and approach the captured deck's single stair side.
+    // The remaining waypoints are player steering targets; neither this route nor the prompt writes a pose or grant.
+    const spec = spots.zipline, layout = new ZiplineLayout({ top: new Vector3(spec.top.x, spec.top.y, spec.top.z),
+      bottom: new Vector3(spec.bottom.x, spec.bottom.y, spec.bottom.z), sag: spec.sag }), deck = layout.deck;
+    const c = Math.cos(deck.yaw), s = Math.sin(deck.yaw);
+    walk([[100, 90], [108, 82], [112, 74], [114, 66],
+      [deck.x + (deck.hw + 0.8) * c, deck.z - (deck.hw + 0.8) * s],
+      [deck.x + (deck.hw + 0.2) * c, deck.z - (deck.hw + 0.2) * s], [deck.x, deck.z]]);
+    wait(30);
+    if (host.flags.has('used:zipline')) throw new Error('Zipline feat was granted before the real prompt');
+    await mark('zipline-launch');
+    tick([{ kind: 'script', actorId: 'driftwood.interact', value: 2 }]);
+    const ride = (): boolean => v.parse(v.object({ zipline: v.object({ riding: v.boolean() }) }), host.adapters.get(QUEST_STEP)?.snapshot()).zipline.riding;
+    if (!ride()) throw new Error('Continuous lookout walk did not reach the live zipline prompt');
+    for (let frame = 0; frame < 900; frame++) {
+      tick([]);
+      if (frame === 96) { if (!ride()) throw new Error('Zipline ended before its mid-ride checkpoint'); await mark('zipline-mid'); }
+      if (!ride()) {
+        if (!host.flags.has('used:zipline')) throw new Error('Real zipline landing did not earn its feat');
+        await mark('zipline-landed'); return;
+      }
+    }
+    throw new Error('Real zipline ride exceeded its bounded continuation');
+  }
   walk([[92.76, 92.18], [90.27, 88.55], [87.68, 84.76], [86.1, 82.45], [76, 76], [60, 60], [46, 46], [35.8, 33.8], [23.99, 21.99], [15.29, 13.29], [13.88, 11.88], [15.6, -7], [62, 0], [80, -1.5], [100, -2], [124, 1.5], [144, 0], [147, 0.8], [149, 1.2], [150.5, 1.8], [152, 2.5]]);
   const sailor = [...host.entities.values()].find(a => a.kind === 'sailor'); if (sailor === undefined) throw new Error('Missing sailor');
   await fight(sailor.entityId, 1.4, 50);

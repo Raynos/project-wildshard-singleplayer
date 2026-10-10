@@ -2,12 +2,12 @@
   "slug": "driftwood-isle",
   "entry": "runtime/headless.ts",
   "compatible": false,
-  "scope": "Real Sealed Ring and reef journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility",
-  "inputs": "98a7869d6b9518893d0d77699f38f6686cbfe781c91dd8f9ed36e2d5a8b63096",
+  "scope": "Real Sealed Ring, reef and spawn-to-zipline journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility",
+  "inputs": "4d6bdcb9dcd638297219410a552ae47f7c313f0a59b50b7353f5e70ec76e9c3b",
   "open": [
     "Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.",
     "Named target attacks and dialogue actions are bounded input ports; camera crosshair, hitstop and clang are not modeled.",
-    "Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and native zipline carry/landing are reproduced; travel to the zipline launch, completion-card world freeze/resume and every sea-glass path remain outside this witness.",
+    "Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and the real spawn-to-lookout/zipline launch, carry and landing are reproduced; completion-card world freeze/resume and every sea-glass path remain outside this witness.",
     "Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness."
   ],
   "headless": {
@@ -322,5 +322,27 @@
     "treasureCount": 1,
     "durableReload": true,
     "hash": "d7a372f3f489c4d932ef68cdc8595deabfa274ed84df8787d9682a82f29ff946"
+  },
+  "zipline": {
+    "status": "passed",
+    "approachedFromSpawn": true,
+    "resumedFrom": "lookout",
+    "prefixTicks": 0,
+    "checkpointCaptured": true,
+    "launchTick": 7120,
+    "launch": [
+      115.99101738130764,
+      34.079747203329,
+      58.26107189228139
+    ],
+    "restoreTick": 7218,
+    "suffixTicks": 182,
+    "workerTicks": 60,
+    "workerExact": true,
+    "landed": true,
+    "durableReload": true,
+    "ziplineCount": 1,
+    "hash": "6b538382bf6c2541491103e16ed39f39fe704da3e3b1fee806f5683cf5e6f075",
+    "replayHash": "6b538382bf6c2541491103e16ed39f39fe704da3e3b1fee806f5683cf5e6f075"
   }
 }

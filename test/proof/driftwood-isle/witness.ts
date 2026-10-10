@@ -43,10 +43,10 @@ const identity = { instance: 'driftwood-witness', shard: source.identity.slug, r
 export const OPEN = [
   'Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.',
   'Named target attacks and dialogue actions are bounded input ports; camera crosshair, hitstop and clang are not modeled.',
-  'Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and native zipline carry/landing are reproduced; travel to the zipline launch, completion-card world freeze/resume and every sea-glass path remain outside this witness.',
+  'Chest contents, pack restore, the reef swim/dive/treasure/surface continuation and the real spawn-to-lookout/zipline launch, carry and landing are reproduced; completion-card world freeze/resume and every sea-glass path remain outside this witness.',
   'Ecology is bounded at 256 lifetime recipes; ship clock/contact and the page cosmetic/audio/rig work are outside this witness.',
 ];
-export const SCOPE = 'Real Sealed Ring and reef journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility';
+export const SCOPE = 'Real Sealed Ring, reef and spawn-to-zipline journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility';
 export function driftwoodRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
 function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
   return createTrustedHeadlessResident({ shard: source, assets, rapier }, { module: MODULE }, snapshot);
@@ -122,7 +122,7 @@ export async function recordGameplay(rapier: Rapier, inputs: string): Promise<ob
   let fork: TrustedHeadlessResident | undefined;
   const forkEffects: Recorded['effects'] = [];
   const mark = async (name: string): Promise<void> => {
-    if (name !== 'spawn' && name !== 'captain' && !name.startsWith('tick-')) return;
+    if (name !== 'spawn' && name !== 'captain' && name !== 'lookout' && !name.startsWith('tick-')) return;
     const bytes = gzipSync(save(session), { level: 9 }); writeFileSync(new URL(`${name}.snap.gz`, DIR), bytes);
     checkpoints.push({ name, tick: session.host.state.tick, sha: hash(bytes), digest: digest(session), profile: [...local.data] });
     if (name === 'captain') fork = await boot(rapier, gunzipSync(bytes).toString('utf8'));
@@ -232,6 +232,55 @@ export async function reefProof(rapier: Rapier): Promise<object> {
     if (earned?.count !== 1) throw new Error('Gameplay treasure fact was not durable');
     return { status: 'passed', journeyTicks, swimTicks, workerTicks, restoreTick, suffixTicks: session.host.state.tick - restoreTick, workerExact: true, pack: pack.counts,
       surfaced: true, treasureCount: earned.count, durableReload: true, hash: canonicalSimDigest(end) };
+  } finally { fork?.dispose(); await worker?.dispose(); session.dispose(); }
+}
+/** Walk from the actual spawn through the lookout to the native launch, then earn the zipline landing and replay its carry. */
+export async function ziplineProof(rapier: Rapier): Promise<object> {
+  const cp = manifest().checkpoints.find(row => row.name === 'lookout');
+  if (cp === undefined) throw new Error('No real spawn-to-lookout checkpoint');
+  const session = await resume(rapier, cp), local = new ProfileStorage();
+  for (const [key, value] of cp.profile) local.data.set(key, value);
+  const ledger = profile(local), ingress = new FactIngress(ledger);
+  const frames: { commands: HeadlessCommand[]; effects: Recorded['effects']; hash: string | null }[] = [];
+  let fork: TrustedHeadlessResident | undefined, worker: HeadlessSimulation | undefined;
+  session.host.events.on('player.died', () => { throw new Error('Zipline journey player died'); }, session.host.scope);
+  let checkpoint: string | undefined, launchTick = 0, restoreTick = 0;
+  let launch: readonly number[] = [];
+  const ride = (resident: TrustedHeadlessResident): unknown => v.parse(v.object({ zipline: v.unknown() }), resident.host.adapters.get(QUEST_STEP)?.snapshot()).zipline;
+  try {
+    await playDriftwood(session.host, commands => {
+      if (session.host.state.tick >= 20000) throw new Error('Zipline journey exceeded its input bound');
+      session.step(commands); ingress.ingest(session.host.state.tick, session.effects);
+      if (!ledger.flush()) throw new Error('Zipline gameplay ledger write was refused');
+      if (fork !== undefined) {
+        const replay = fork; replay.step(commands);
+        if (!replay.host.player.position.equals(session.host.player.position) || JSON.stringify(ride(replay)) !== JSON.stringify(ride(session))) throw new Error('Restored zipline carry diverged');
+        sameEffects(replay.effects.map(effect => ({ tick: replay.host.state.tick, effect })), session.effects.map(effect => ({ tick: session.host.state.tick, effect })));
+        if (frames.length < 60) frames.push({ commands, effects: session.effects.map(effect => ({ tick: session.host.state.tick, effect })),
+          hash: (frames.length + 1) % 30 === 0 ? digest(session) : null });
+      }
+    }, async name => {
+      if (name === 'zipline-launch') {
+        launchTick = session.host.state.tick; launch = session.host.player.position.toArray();
+        const point = driftwoodSpots().zipline.prompt;
+        if (Math.abs(session.host.player.position.y + 1.68 - point.y) > 2.4 || session.host.flags.has('used:zipline')) throw new Error('Real walk did not reach the launch deck');
+      } else if (name === 'zipline-mid') {
+        restoreTick = session.host.state.tick; checkpoint = save(session); fork = await boot(rapier, checkpoint);
+        if (digest(fork) !== digest(session) || session.host.flags.has('used:zipline')) throw new Error('Mid-ride restore or unearned feat diverged');
+      }
+    }, 'zipline-from-lookout');
+    if (checkpoint === undefined || fork === undefined || frames.length !== 60 || !session.host.flags.has('used:zipline') || digest(fork) !== digest(session)) throw new Error('Zipline continuation did not land exactly');
+    const earned = Object.values(profile(local).state().achievements).find(row => row.id === 'zipline');
+    if (earned?.count !== 1) throw new Error('Real landing did not persist its single zipline fact');
+    worker = await HeadlessSimulation.create(source, assets, checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } });
+    if (worker.checkpoint === undefined || canonicalSimDigest(worker.checkpoint.snapshot) !== canonicalSimDigest(checkpoint)) throw new Error('SDK mid-ride restore diverged');
+    for (const frame of frames) {
+      const commit = await worker.step([{ source: 'witness.zipline', commands: frame.commands }]);
+      sameEffects(commit.effects.map(effect => ({ tick: commit.tick, effect })), frame.effects);
+      if (frame.hash !== null && canonicalSimDigest(commit.snapshot) !== frame.hash) throw new Error('SDK zipline continuation diverged');
+    }
+    return { status: 'passed', approachedFromSpawn: true, resumedFrom: 'lookout', prefixTicks: 0, checkpointCaptured: true, launchTick, launch, restoreTick, suffixTicks: session.host.state.tick - restoreTick,
+      workerTicks: frames.length, workerExact: true, landed: true, durableReload: true, ziplineCount: earned.count, hash: digest(session), replayHash: digest(fork) };
   } finally { fork?.dispose(); await worker?.dispose(); session.dispose(); }
 }
 /** Fresh real runtime for exactly 10k ticks, including native navigation, then all 92 flared entry lanes. */

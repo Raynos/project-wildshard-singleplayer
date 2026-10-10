@@ -43,13 +43,14 @@ const freshness = () => { const result = witness.checkpointsFresh(inputs()); if 
 if (checkpointResult !== undefined) console.info(JSON.stringify(checkpointResult));
 else if (mode === 'fresh') { const result = witness.checkpointsFresh(inputs()); console.info(JSON.stringify(result)); process.exitCode = result.status === 'fresh' ? 0 : 1; }
 else {
-  // The reef proof starts at a fresh real spawn and never consumes the Sealed Ring checkpoints.
+  // The reef starts at a real spawn; zipline resumes the recorded real spawn-to-lookout prefix.
   if (mode !== 'reef') freshness();
   const rapier = await witness.driftwoodRapier();
   /** @type {Record<string, unknown>} */
   const result = { slug: 'driftwood-isle', entry: witness.ENTRY, compatible: false, scope: witness.SCOPE, inputs: inputs(), open: witness.OPEN };
   if (mode === 'headless') result.headless = await witness.headlessProof(rapier);
   else if (mode === 'replay') result.replay = await witness.replayProof(rapier);
+  else if (mode === 'zipline') result.zipline = await witness.ziplineProof(rapier);
   else if (mode === 'reef') result.reef = await witness.reefProof(rapier);
   else if (mode.startsWith('slice-')) result[mode] = await witness.walkSlice(rapier, mode.slice(6));
   else if (mode === 'ledger') result.ledger = await witness.ledgerProof(rapier, 'captain');
@@ -58,6 +59,7 @@ else {
     result.headless = await witness.headlessProof(rapier); result.replay = await witness.replayProof(rapier);
     result.ledger = await witness.ledgerProof(rapier, 'captain');
     result.reef = await witness.reefProof(rapier);
+    result.zipline = await witness.ziplineProof(rapier);
     if (mode === 'record') writeFileSync(new URL('compatibility.json', import.meta.url), `${JSON.stringify(result, null, 2)}\n`);
     if (mode === 'all') process.exitCode = 1;
   } else throw new Error('Unknown Driftwood witness mode');

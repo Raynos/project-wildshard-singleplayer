@@ -7,6 +7,7 @@ node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/
 node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/driftwood-isle/run.mjs record
 node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/driftwood-isle/run.mjs fresh
 node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/driftwood-isle/run.mjs reef
+node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/driftwood-isle/run.mjs zipline
 ```
 
 `checkpoints` authors a bounded continuous player-command tape in the actual trusted `runtime/headless.ts`: Wendell,
@@ -62,7 +63,7 @@ continuations. The real tape earns two doubloons from Wendell's chest and three 
 separate from purse coins (the 10k prefix still has two; the strongbox opens at tick 11,101). A focused native prompt test opens the actual reef chest, earns its eight doubloons and
 treasure fact, then restores exactly and refuses a duplicate opening. That test places the player at the prompt and
 does not claim underwater travel by itself; the independent reef journey above now covers that approach. Reward
-carry/camera is hosted below; travel to the zipline launch remains open.
+carry/camera is hosted below; the real zipline approach and landing are now covered by the independent journey below.
 
 The finale now executes the same immutable AssemblyScript director in the page and trusted worker. Its complete
 author continuation replaces the quest adapter's native `reward` timer in the three checkpoints. All other canonical
@@ -93,3 +94,18 @@ manifest and compatibility receipt; retained source gzip files stay untouched. S
 compatibility remains false for the existing open list.
 
 The two native hosts now select prompts with the shipping client picker: actual page registration order, live reach and positions, weak fallback and native line of sight from the player eye. Captured collider owners retain the distinction between a registered piece and an explicit string owner. Hidden or used Driftwood rows stop competing, and the dropped hold key follows its actual fall. Explicit prompt acts answer only the selected prompt; walk-in pickups, plates, the barrel and lash-owned cracks retain their separate laws. A nearer unhosted prompt still competes. Native wall/restore assertions pass in both Driftwood and Signal. The Sealed Ring command tape and every checkpoint field except the newly retained collider sight tags are exact; the changed checkpoint hashes are deliberate. Whole-shard Driftwood compatibility stays false for its remaining open list.
+
+The independent zipline journey walks from the actual spawn through Wendell, the lookout and beacon to the
+launch deck, using bounded stick/jump inputs and the actual nearest/LOS prompt. It approaches the deck from its
+authored stair side, rather than teleporting or granting flags. Launch is tick 7,120; its native feet are
+(115.991, 34.080, 58.261). At tick 7,218 it restores the real mid-ride continuation and compares the uninterrupted
+original through the complete 182-tick landing suffix. The SDK worker independently agrees for 60 committed ticks,
+including canonical state and emitted effects. Landing earns exactly one zipline fact, preserved by a durable
+ledger reload; no fact exists before landing. `zipline` is an executable regression and `record` includes its outcome.
+
+This closes only the walk to the zipline launch and its carry/landing. The Sealed Ring tape and its three existing checkpoint payloads/outcomes remain unchanged.
+Its recorder now also retains the earned lookout continuation in the generation cache, with only its small hash row
+committed. The regression resumes that real prefix, then executes every remaining approach/ride tick; it repeats no
+walking prefix and keeps the existing 90-second deadline. Whole-shard compatibility stays false: rendered ragdoll contacts, camera crosshair /
+hitstop / clang, completion-card freeze/resume and menu choices, every sea-glass route, and the remaining bounded
+ecology / ship laws are still open. No production runtime, collider, view or platform source changes in this slice.
