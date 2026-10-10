@@ -1,7 +1,7 @@
 // SHARD-PLATFORM SF59 steps 3–4: the material graph IR (validation), its compiler (IR → TSL node material) and the family
 // presets. Pixel parity of the presets against the hand-written families is the bench's job (scripts/tsl-spike, the graph
 // variants).
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { ConditionalNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, PhysicalLightingModel, type Node } from 'three/webgpu';
 import { DEFAULT_GRAPH_BUDGET, LOOP_MAX, validateGraph, type GraphIr } from '../src/engine/core/materialGraph';
@@ -413,5 +413,80 @@ describe('SF59 step 6: G169 stress cases (the bench fixtures)', () => {
       expect(() => compileGraph(g)).not.toThrow();
       expect(opsOf(g)).toContain('sunShadow');
     }
+  });
+});
+
+describe('SF59 node programs: each program keeps its own build\'s uniforms (G169 pastel plain, Graph materials on)', () => {
+  /** a classic renderer stand-in with what the node handler and its builder read; `target` is the bound render target */
+  function fakeRenderer(bound: { target: THREE.WebGLRenderTarget | null }, props: WeakMap<object, object>): THREE.WebGLRenderer {
+    const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
+    if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer prototype');
+    const fields: Record<string, unknown> = {
+      extensions: { has: () => false, get: () => null }, getContext: () => ({}), getRenderTarget: () => bound.target,
+      toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
+      coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } }, debug: { checkShaderErrors: true, diagnostics: { keywords: false } },
+      properties: { get: (o: object) => { const p = props.get(o) ?? {}; props.set(o, p); return p; }, has: (o: object) => props.has(o) },
+    };
+    for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+    return renderer;
+  }
+  const isParameters = (v: object): v is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(v);
+  /** what `build` leaves in the parameters: the build's uniforms by name */
+  const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+  const uniformsOf = (p: object): Record<string, unknown> => {
+    const u: unknown = Reflect.get(p, 'uniforms');
+    if (!isRecord(u)) throw new Error('no uniforms');
+    return u;
+  };
+  /** a program as the renderer's WebGLProgram shows it: its active uniforms (here every uniform its build declared) */
+  const programOf = (uniforms: Record<string, unknown>): object => ({ getUniforms: () => ({ seq: Object.keys(uniforms).map((id) => ({ id })) }) });
+  const idsOf = (list: unknown): unknown[] => (Array.isArray(list) ? list.map((u: unknown): unknown => (isRecord(u) ? u['id'] : null)) : []);
+
+  it('pairs a precompiled program with its own build, not the material\'s latest (the precompile builds for the target and the screen first)', async () => {
+    vi.stubGlobal('ImageBitmap', class { readonly width = 0; }); // TextureNode.update reads it
+    try {
+      const { EngineNodesHandler } = await import('../src/engine/render/nodes/engineNodesHandler');
+      const bound: { target: THREE.WebGLRenderTarget | null } = { target: new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType }) };
+      const handler = new EngineNodesHandler();
+      const props = new WeakMap<object, object>();
+      handler.setRenderer(fakeRenderer(bound, props));
+      const map = new THREE.DataTexture(new Uint8Array(4), 1, 1);
+      const g = compileGraph({
+        version: 1, kind: 'material',
+        params: { tint: { type: 'colour', value: [1, 0.5, 0.25] }, map: { type: 'texture', value: 'm.png' }, k: { type: 'float', value: 0.5 } },
+        nodes: { t: { op: 'param', param: 'tint' }, u: { op: 'uv' }, s: { op: 'texture', param: 'map', in: ['u'] }, rgb: { op: 'swizzle', in: ['s'], mask: 'xyz' }, kk: { op: 'param', param: 'k' }, c: { op: 'mul', in: ['rgb', 'kk'] }, f: { op: 'add', in: ['c', 't'] } },
+        stages: { surface: { colour: 'f' } },
+      }, { textures: () => map });
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(), g.material);
+      handler.renderStart(new THREE.Scene(), new THREE.PerspectiveCamera());
+      handler.updateLights([]);
+      // the precompile: one build into the half-float target (no tone mapping), one to the screen (tone mapped), each
+      // followed by the renderer acquiring a program under a new key, and no program switch in between
+      const programs = new Map<string, object>();
+      const properties: { programs: Map<string, object>; uniforms: Record<string, unknown>; uniformsList: unknown } = { programs, uniforms: {}, uniformsList: null };
+      props.set(g.material, properties);
+      const intoTarget: object = {};
+      if (!isParameters(intoTarget)) throw new Error('parameters');
+      handler.build(g.material, mesh, intoTarget);
+      const a = uniformsOf(intoTarget), programA = programOf(a);
+      programs.set('target', programA);
+      bound.target = null;
+      const toScreen: object = {};
+      if (!isParameters(toScreen)) throw new Error('parameters');
+      handler.build(g.material, mesh, toScreen);
+      const b = uniformsOf(toScreen), programB = programOf(b);
+      programs.set('screen', programB);
+      expect(Object.keys(a).sort()).not.toEqual(Object.keys(b).sort()); // the two builds name their uniforms differently
+      properties.uniforms = b; // the renderer keeps the latest build's uniforms
+      // the first draw goes into the target: its program must read the target build's uniforms, every active one found
+      handler.onUpdateProgram(g.material, programA, properties);
+      expect(properties.uniforms).toBe(a);
+      expect(idsOf(properties.uniformsList)).toEqual(Object.keys(a));
+      handler.onUpdateProgram(g.material, programB, properties);
+      expect(properties.uniforms).toBe(b);
+      expect(idsOf(properties.uniformsList)).toEqual(Object.keys(b));
+      handler.onUpdateProgram(g.material, programA, properties);
+      expect(properties.uniforms).toBe(a);
+    } finally { vi.unstubAllGlobals(); }
   });
 });

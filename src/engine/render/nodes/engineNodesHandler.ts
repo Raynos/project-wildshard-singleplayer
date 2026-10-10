@@ -104,13 +104,43 @@ function fogOf(builder: NodeBuilder): THREE.Fog | THREE.FogExp2 | null {
 }
 function isNode(value: object): value is Node<'vec4'> { return Reflect.get(value, 'isNode') === true; }
 
+/** what the stock handler keeps for one (material, program) pair: the uniforms, groups and update nodes of the program's build */
+interface ProgramEntry {
+  readonly uniformsGroups: unknown[];
+  readonly uniforms: Record<string, unknown>;
+  readonly uniformsList: unknown[];
+  readonly updateNodes: unknown;
+}
 /** the parts of three's (untyped) stock handler the engine handler reaches */
 interface StockInternals {
   getOutputCallback: (outputNode: Node<'vec4'>, builder: NodeBuilder) => Node<'vec4'>;
   customProgramCacheKeyCallback: (this: THREE.Material) => string;
   renderStack: { sceneContext: { fogNode: Node | null; scene: THREE.Object3D } }[];
+  programCache: Map<THREE.Material, Map<unknown, ProgramEntry>>;
+  collectUniformsGroups: (builder: unknown) => unknown[];
 }
 const internals = (h: WebGLNodesHandler): StockInternals => h as WebGLNodesHandler & StockInternals;
+
+/**
+ * one node build not yet paired with the program the renderer acquired for it: the renderer files that program in the
+ * material's program map (`programs`, key → program) at `slot`, the map's size when the build ran
+ */
+interface PendingBuild { readonly builder: unknown; readonly uniforms: Record<string, unknown>; readonly programs: unknown; readonly slot: number }
+
+/** the program's active uniforms that the build declares (three's `generateUniformsList`, WebGLUniforms.seqWithValue) */
+function uniformsListOf(program: unknown, uniforms: Record<string, unknown>): unknown[] {
+  const getUniforms: unknown = typeof program === 'object' && program !== null ? Reflect.get(program, 'getUniforms') : null;
+  if (typeof getUniforms !== 'function') return [];
+  const active: unknown = Reflect.apply(getUniforms, program, []);
+  const seq: unknown = typeof active === 'object' && active !== null ? Reflect.get(active, 'seq') : null;
+  if (!Array.isArray(seq)) return [];
+  const list: unknown[] = [];
+  for (const u of seq) {
+    const id: unknown = typeof u === 'object' && u !== null ? Reflect.get(u, 'id') : undefined;
+    if (typeof id === 'string' && id in uniforms) list.push(u);
+  }
+  return list;
+}
 
 const PROGRAM_KEY = 'engine-nodes';
 
@@ -124,6 +154,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   buildMs = 0;
   private real: Renderer | null = null;
   private warnedLevelFog = false;
+  /** builds of each material not yet paired with their programs (see `onUpdateProgram`) */
+  private readonly pendingBuilds = new WeakMap<object, PendingBuild[]>();
 
   constructor() {
     super();
@@ -208,11 +240,52 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     super.updateLights(lights.some(isCascadeGhost) ? lights.filter((l) => !isCascadeGhost(l)) : lights);
   }
 
-  /** build one node material's program (timed: `builds`, `buildMs`) */
+  /** build one node material's program (timed: `builds`, `buildMs`); the build waits to be paired with its program */
   override build(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
     const t0 = diagnosticNow();
     super.build(material, object, parameters);
     this.buildMs += diagnosticNow() - t0;
     this.builds++;
+    // WebGLRenderer.getProgram calls build only for a key its material has no program for, then files the acquired
+    // program under that key: the program lands at the map's current size
+    const builder: unknown = Reflect.get(material, '_latestBuilder');
+    const properties: unknown = this.classicRenderer().properties.get(material);
+    const programs: unknown = typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'programs') : undefined;
+    const pending = this.pendingBuilds.get(material) ?? [];
+    pending.push({ builder, uniforms: parameters.uniforms, programs, slot: programs instanceof Map ? programs.size : -1 });
+    this.pendingBuilds.set(material, pending);
+  }
+
+  /**
+   * The renderer switched `material` to `program` (WebGLRenderer.setProgram). The stock handler pairs a program it has not
+   * seen with the material's LATEST build, which is wrong when the material was built more than once before it drew: the
+   * boot's precompile (`renderer.compileAsync`) builds a material for each program it will need (into the scene target and
+   * to the screen, say, whose output transforms differ) without switching to any, so the first program met at the first
+   * draw got the last build's uniforms. Its uniform names then point at another build's nodes (a shadow sampler at a
+   * float: 'Invalid value used as weak map key' in setTexture2D; G169 pastel plain with Graph materials on). Each build
+   * since the last switch is paired with the program the renderer filed right after it (at the slot of the material's
+   * program map that the build recorded) before the stock switch runs, so every program keeps its own build's uniforms.
+   */
+  onUpdateProgram(material: THREE.Material, program: unknown, materialProperties: object): void {
+    const pending = this.pendingBuilds.get(material);
+    if (pending !== undefined) {
+      this.pendingBuilds.delete(material);
+      const programs: unknown = Reflect.get(materialProperties, 'programs');
+      if (programs instanceof Map) {
+        const acquired: unknown[] = [...programs.values()];
+        const cache = internals(this).programCache;
+        const known = cache.get(material) ?? new Map<unknown, ProgramEntry>();
+        cache.set(material, known);
+        for (const build of pending) {
+          // a build from before the material was disposed filed into a map that is gone: nothing to pair
+          const built: unknown = build.programs === programs ? acquired[build.slot] : undefined;
+          if (built === undefined || known.has(built)) continue;
+          const updateNodes: unknown = typeof build.builder === 'object' && build.builder !== null ? Reflect.get(build.builder, 'updateNodes') : undefined;
+          known.set(built, { uniformsGroups: internals(this).collectUniformsGroups(build.builder), uniforms: build.uniforms, uniformsList: uniformsListOf(built, build.uniforms), updateNodes });
+        }
+      }
+    }
+    const stock: unknown = Reflect.get(WebGLNodesHandler.prototype, 'onUpdateProgram');
+    if (typeof stock === 'function') Reflect.apply(stock, this, [material, program, materialProperties]);
   }
 }
