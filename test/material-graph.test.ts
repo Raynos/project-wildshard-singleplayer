@@ -1,7 +1,7 @@
 // SHARD-PLATFORM SF59 steps 3–4: the material graph IR (validation), its compiler (IR → TSL node material) and the family
 // presets. Pixel parity of the presets against the hand-written families is the bench's job (scripts/tsl-spike, the graph
 // variants).
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { ConditionalNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, PhysicalLightingModel, type Node } from 'three/webgpu';
 import { DEFAULT_GRAPH_BUDGET, LOOP_MAX, validateGraph, type GraphIr } from '../src/engine/core/materialGraph';
@@ -443,7 +443,8 @@ describe('SF59 node programs: each program keeps its own build\'s uniforms (G169
   const idsOf = (list: unknown): unknown[] => (Array.isArray(list) ? list.map((u: unknown): unknown => (isRecord(u) ? u['id'] : null)) : []);
 
   it('pairs a precompiled program with its own build, not the material\'s latest (the precompile builds for the target and the screen first)', async () => {
-    vi.stubGlobal('ImageBitmap', class { readonly width = 0; }); // TextureNode.update reads it
+    const priorBitmap = Object.getOwnPropertyDescriptor(globalThis, 'ImageBitmap');
+    Object.defineProperty(globalThis, 'ImageBitmap', { configurable: true, writable: true, value: class { readonly width = 0; } }); // TextureNode.update reads it
     try {
       const { EngineNodesHandler } = await import('../src/engine/render/nodes/engineNodesHandler');
       const bound: { target: THREE.WebGLRenderTarget | null } = { target: new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType }) };
@@ -487,6 +488,54 @@ describe('SF59 node programs: each program keeps its own build\'s uniforms (G169
       expect(idsOf(properties.uniformsList)).toEqual(Object.keys(b));
       handler.onUpdateProgram(g.material, programA, properties);
       expect(properties.uniforms).toBe(a);
-    } finally { vi.unstubAllGlobals(); }
+    } finally {
+      if (priorBitmap === undefined) Reflect.deleteProperty(globalThis, 'ImageBitmap');
+      else Object.defineProperty(globalThis, 'ImageBitmap', priorBitmap);
+    }
+  });
+});
+
+describe('SF59 node uniform blocks: bound per draw, never out of binding points (G169 ink valley, Graph materials on)', () => {
+  it('lays a block out by std140 and binds any number of programs\' blocks to the same few top points, writing only changes', async () => {
+    const { NodeUniformBuffers, std140Layout } = await import('../src/engine/render/nodes/nodeUniformBuffers');
+    const f = { value: 0.5 }, c = { value: new THREE.Color(1, 0, 0) }, v2 = { value: new THREE.Vector2(1, 2) }, m = { value: new THREE.Matrix4() }, m3 = { value: new THREE.Matrix3() };
+    const layout = std140Layout({ name: 'object', uniforms: [f, c, v2, m3, m] });
+    expect(layout.slots.map((s) => s.offset)).toEqual([0, 16, 32, 48, 96]); // vec3 on 16; vec2 after it on 8; mat3 as 3×vec4; mat4
+    expect(layout.size).toBe(160);
+    const calls: string[] = [];
+    let buffers = 0;
+    const gl = {
+      MAX_UNIFORM_BUFFER_BINDINGS: 0x8a2f as const, UNIFORM_BUFFER: 0x8a11 as const, DYNAMIC_DRAW: 0x88e8 as const, INVALID_INDEX: 0xffffffff as const,
+      getParameter: (p: number): unknown => (p === 0x8a2f ? 24 : null),
+      createBuffer: (): WebGLBuffer => { buffers++; return {}; },
+      deleteBuffer: (): void => { buffers--; },
+      bindBuffer: (): void => undefined,
+      bufferData: (_t: number, _d: unknown, _u: number): void => undefined,
+      bufferSubData: (_t: number, offset: number, _d: unknown): void => { calls.push(`write ${offset}`); },
+      bindBufferBase: (_t: number, point: number): void => { calls.push(`point ${point}`); },
+      getUniformBlockIndex: (_p: WebGLProgram, name: string): number => ['object', 'render', 'frame'].indexOf(name),
+      uniformBlockBinding: (_p: WebGLProgram, index: number, point: number): void => { calls.push(`block ${index}->${point}`); },
+    };
+    const blocks = new NodeUniformBuffers(gl);
+    // forty programs of three groups each: 120 blocks on a context with 24 binding points
+    const programs = Array.from({ length: 40 }, () => ({ program: {}, groups: ['object', 'render', 'frame'].map((name) => ({ name, uniforms: [{ value: 1 }, { value: new THREE.Vector3() }] })) }));
+    for (const p of programs) blocks.bind(p.program, p.groups);
+    const points = new Set(calls.filter((x) => x.startsWith('point')).map((x) => Number(x.split(' ')[1])));
+    expect([...points].sort((x, y) => x - y)).toEqual([21, 22, 23]);
+    expect(buffers).toBe(120);
+    // a second draw of an unchanged program writes nothing and re-points nothing in its program; a change writes one value
+    const first = programs[0];
+    if (first === undefined) throw new Error('programs');
+    calls.length = 0;
+    blocks.bind(first.program, first.groups);
+    expect(calls.filter((x) => !x.startsWith('point'))).toEqual([]);
+    const moved = first.groups[1]?.uniforms[0];
+    if (moved === undefined) throw new Error('uniform');
+    moved.value = 2;
+    calls.length = 0;
+    blocks.bind(first.program, first.groups);
+    expect(calls.filter((x) => x.startsWith('write'))).toEqual(['write 0']);
+    for (const g of first.groups) blocks.release(g);
+    expect(buffers).toBe(117);
   });
 });
