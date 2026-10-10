@@ -17,6 +17,7 @@ import { DRIFTWOOD_ACT, DRIFTWOOD_INTERACT as ACTOR, QUEST_STEP, REWARD_FLAG, dr
 import { SWORDS_STEP } from '../../../src/shards/driftwood-isle/runtime/swords';
 import { ALTAR_FLAG, CAPTAIN_DEAD_FLAG } from '../../../src/shards/driftwood-isle/runtime/captain';
 import { DRIFTWOOD_CYCLE_S, DRIFTWOOD_DAY_START, prepareHeadlessRuntime } from '../../../src/shards/driftwood-isle/runtime/headless';
+import { DRIFTWOOD_SKY_DAY } from '../../../src/shards/driftwood-isle/data/skyDay';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { driftwoodSpotsInputs } from '../../../scripts/driftwood-spots-inputs.mjs';
 import spotsBake from '../../../src/shards/driftwood-isle/runtime/spots.baked.json';
@@ -206,7 +207,7 @@ it('bakes one spot per interactables row and the page\'s day clock spellings', (
   expect(v.parse(v.object({ inputs: v.record(v.string(), v.string()) }), spotsBake).inputs).toEqual(driftwoodSpotsInputs(process.cwd()));
   const backdrop = readFileSync('src/shards/driftwood-isle/look/backdrop.ts', 'utf8');
   expect(backdrop).toContain('const CYCLE_S = 48 * 60;'); expect(DRIFTWOOD_CYCLE_S).toBe(48 * 60);
-  expect(backdrop).toContain(': 0.2 * DAY });'); expect(DRIFTWOOD_DAY_START).toBe(0.2 * (20 / 24));
+  expect(DRIFTWOOD_SKY_DAY.start).toBe(DRIFTWOOD_DAY_START); expect(DRIFTWOOD_DAY_START).toBe(0.2 * (20 / 24)); // the page clock's start (data/skyDay.ts)
 });
 
 it('plays the Sealed Ring\'s interactables at the page\'s points: talk, chest, beacon, the hold\'s key / pump / winch / strongbox, the sword, the barrel pushed onto a plate by play, the sluice and the cave\'s shard, the altar, the reward, with exact restore mid-beat', () => {

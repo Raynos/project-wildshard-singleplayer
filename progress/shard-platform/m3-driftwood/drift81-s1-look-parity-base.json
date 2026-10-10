@@ -1,0 +1,218 @@
+{
+  "build": "d06e555-mv1uawuk",
+  "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, Time of day midday (paused), time and cloud time 10, viewmodel hidden",
+  "tiers": {
+    "phone": {
+      "pieces": 34,
+      "colliderCount": 1929,
+      "colliders": "1a05aca7fcdbe598d79e3970bbc2f93189f7b89c059dfe3dab95cdefa8a4b963",
+      "gpuBytes": 196341473,
+      "programs": 145,
+      "shaderCount": 204,
+      "shaders": "c949968f9e4e8cad0fafa7a78407d08271e119d2b162ea2fd4943fa8bc1e29c9"
+    },
+    "desktop": {
+      "pieces": 34,
+      "colliderCount": 2082,
+      "colliders": "0bc0666f9768bc858e397213d04f4e04c2d4dcf8f18ad7b068a199bdfbbff4a6",
+      "gpuBytes": 394431598,
+      "programs": 158,
+      "shaderCount": 228,
+      "shaders": "6a966d06537e315c09860dee4b52407c5b5b57f937317475d6ee64fb16c34826"
+    }
+  },
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "beach-sea",
+      "player": [
+        100,
+        2.6,
+        1
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 119,
+      "triangles": 740235,
+      "lit": 1095048,
+      "pixels": "c4fd698e2b9d2f30a610216263c8b81fe499f0430002ad51f0539922ad839d76",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/phone-beach-sea.rgba"
+    },
+    {
+      "tier": "phone",
+      "pose": "wreck",
+      "player": [
+        130,
+        1.2,
+        10
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 115,
+      "triangles": 733925,
+      "lit": 1095048,
+      "pixels": "6376d26510c45d852d0e8b17ea713282459a2c20c1056392e20a876c21472978",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/phone-wreck.rgba"
+    },
+    {
+      "tier": "phone",
+      "pose": "lookout",
+      "player": [
+        93.6,
+        33.4,
+        95.9
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 104,
+      "triangles": 693607,
+      "lit": 1095048,
+      "pixels": "87accdf7c76379d5aaf3b08448876555517491f52ceea946381960dbde7c98f1",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/phone-lookout.rgba"
+    },
+    {
+      "tier": "phone",
+      "pose": "cave",
+      "player": [
+        142,
+        0.4,
+        14
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 113,
+      "triangles": 725465,
+      "lit": 1095048,
+      "pixels": "b3aad01d296231b77be001570b5ad771279c0088e47b8871c8cf2424b8c7cba6",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/phone-cave.rgba"
+    },
+    {
+      "tier": "phone",
+      "pose": "vista",
+      "player": [
+        -46,
+        17.2,
+        -100
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 118,
+      "triangles": 772241,
+      "lit": 1095048,
+      "pixels": "eda906e05b4b43aa7552b2a274afc31e08da41e12454074c1aecf28c5dcdb400",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/phone-vista.rgba"
+    },
+    {
+      "tier": "phone",
+      "pose": "altar",
+      "player": [
+        -99,
+        7.1,
+        109
+      ],
+      "width": 804,
+      "height": 1362,
+      "calls": 150,
+      "triangles": 853079,
+      "lit": 1095048,
+      "pixels": "2f2d811f3fa0e856b5711a8b184bfb56c9bc04bbad7a53f83e9f3be6a99a7a51",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/phone-altar.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "beach-sea",
+      "player": [
+        100,
+        2.6,
+        1
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 235,
+      "triangles": 2147443,
+      "lit": 615663,
+      "pixels": "aa8122163673e07d4796113262a5d1aecc272c3f85ef80a4f15bb953fe4e6fec",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/desktop-beach-sea.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "wreck",
+      "player": [
+        130,
+        1.2,
+        10
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 215,
+      "triangles": 2103721,
+      "lit": 615663,
+      "pixels": "0c2e63c13b875b9d11dcae06fdeaef268a9ed8910453a3432560654e5e941ad4",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/desktop-wreck.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "lookout",
+      "player": [
+        93.6,
+        33.4,
+        95.9
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 233,
+      "triangles": 2108912,
+      "lit": 615663,
+      "pixels": "0bddbadf7af2625f0b058993bbf315ee552a2a9795644f3d140330d042b121a8",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/desktop-lookout.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "cave",
+      "player": [
+        142,
+        0.4,
+        14
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 270,
+      "triangles": 2188261,
+      "lit": 615663,
+      "pixels": "06f340c27aba0e7cb893cadb7feb167a1755fa620081fc62187fd5aedbb86f23",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/desktop-cave.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "vista",
+      "player": [
+        -46,
+        17.2,
+        -100
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 309,
+      "triangles": 2506752,
+      "lit": 615663,
+      "pixels": "0aee35d0753d242864d4557571cc553d3e53376a0d9b681775f756d743c85c7d",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/desktop-vista.rgba"
+    },
+    {
+      "tier": "desktop",
+      "pose": "altar",
+      "player": [
+        -99,
+        7.1,
+        109
+      ],
+      "width": 603,
+      "height": 1021,
+      "calls": 450,
+      "triangles": 2746784,
+      "lit": 615663,
+      "pixels": "9b185d52dd366e3feb84fd62273198ea39c31438a8231a8a2dc33aaf800360fe",
+      "raw": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/op-drift81/raw-base/desktop-altar.rgba"
+    }
+  ]
+}

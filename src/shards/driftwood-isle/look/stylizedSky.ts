@@ -4,7 +4,8 @@
  * SHARD-PLATFORM M3: the dome, the cumulus ring and their materials are the SDK faceted sky (@wildshard/sdk/looks/facetedSky);
  * Driftwood's programs are data (data/skyGlsl.ts), its midday palette too (data/skyPalette.ts).
  *
- *   const s = new StylizedSky(sunDir).build();   // s.dome follows the camera (Game.ts moves `sky.clouds`, which is the dome)
+ *   the backdrop (backdrop.ts) builds the SDK FacetedSky from SKY_GLSL, MIDDAY_SKY and CUMULUS_SEED:
+ *   const s = new FacetedSky(sunDir, SKY_GLSL, MIDDAY_SKY, CUMULUS_SEED).build();   // s.dome follows the camera (Game.ts moves `sky.clouds`, which is the dome)
  *   s.envScene                                   // a copy of the dome at the origin for PMREMGenerator.fromScene (IBL specular)
  *   s.update(dt)                                 // cloud drift
  *   s.u.*                                        // colours DayNight blends (zenith, horizon, sun, cloud lit / shade, night)
@@ -15,8 +16,7 @@
  *   planet (Sky.ts renderOrder −12/−11), which therefore sits crisp IN FRONT of the clouds, as in the mockups.
  */
 import * as THREE from 'three';
-import { FacetedSky, type SkyPalette as PlatformSkyPalette } from '@wildshard/sdk/looks/facetedSky';
-import { SKY_GLSL } from '../data/skyGlsl';
+import type { SkyPalette as PlatformSkyPalette } from '@wildshard/sdk/looks/facetedSky';
 import { MIDDAY_SKY_ROWS } from '../data/skyPalette';
 
 /** the sky's day palette (linear, pre-tonemap); DayNight lerps these per preset */
@@ -34,8 +34,4 @@ export const MIDDAY_SKY: SkyPalette = {
 };
 
 /** the cumulus ring's seed */
-const CUMULUS_SEED = 0xc10d;
-
-export class StylizedSky extends FacetedSky {
-  constructor(sunDir: THREE.Vector3) { super(sunDir, SKY_GLSL, MIDDAY_SKY, CUMULUS_SEED); }
-}
+export const CUMULUS_SEED = 0xc10d;
