@@ -113,7 +113,11 @@
     "./bake/skinned": "./bake/skinned.ts",
     "./looks/offscreenPreparation": "./looks/offscreenPreparation.ts",
     "./runtime/prompts": "./runtime/prompts.ts",
-    "./buildBehaviour": "./buildBehaviour.ts"
+    "./buildBehaviour": "./buildBehaviour.ts",
+    "./scene": "./scene.ts",
+    "./physics": "./physics.ts",
+    "./entries": "./entries.ts",
+    "./spawns": "./spawns.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -449,6 +453,22 @@
       "./buildBehaviour": {
         "types": "./dist/types/sdk/buildBehaviour.d.ts",
         "default": "./dist/buildBehaviour.js"
+      },
+      "./scene": {
+        "types": "./dist/types/sdk/scene.d.ts",
+        "default": "./dist/scene.js"
+      },
+      "./physics": {
+        "types": "./dist/types/sdk/physics.d.ts",
+        "default": "./dist/physics.js"
+      },
+      "./entries": {
+        "types": "./dist/types/sdk/entries.d.ts",
+        "default": "./dist/entries.js"
+      },
+      "./spawns": {
+        "types": "./dist/types/sdk/spawns.d.ts",
+        "default": "./dist/spawns.js"
       }
     }
   }

@@ -1262,3 +1262,43 @@ bytes. Unknown timing, warm cache hits, lease waits and Darwin-only provenance
 grant no exception. Eligible text outputs still need a DO-NOT-EDIT header and
 regenerate-and-compare proof. The inventory reports missing evidence rather than
 deleting unproven outputs. Build-time generation uses the content-hash cache.
+
+## Authoring scene input (DS1.3)
+
+`@wildshard/sdk/scene.readScene` synthesizes an inspectable, JSON-only
+`SceneDescription` from real three.js objects in Node. This is compiler input,
+not an additional field in `shard.json`. The compiler owns asset encoding and
+final schema validation. A generator can use the same scene graph operations as
+three.js, adding SDK game concepts to it:
+
+```ts
+import { Scene, Mesh, BoxGeometry, MeshStandardMaterial } from 'three';
+import { BoxCollider } from '@wildshard/sdk/physics';
+import { PlayerStart } from '@wildshard/sdk/spawns';
+import { Entry } from '@wildshard/sdk/entries';
+import { readScene } from '@wildshard/sdk/scene';
+
+const scene = new Scene();
+const floor = new Mesh(new BoxGeometry(8, 1, 12), new MeshStandardMaterial());
+floor.name = 'hall.floor';
+const collision = new BoxCollider(8, 1, 12, 'stone');
+collision.name = 'hall.floor.collider';
+const start = new PlayerStart();
+start.position.set(0, 2, 0);
+scene.add(floor, collision, start, ...Entry.midpoints());
+const description = readScene(scene);
+```
+
+Collider vertices/indices, transforms, contact tags, player starts, actor
+placements and entry declarations remain data. Importing these modules does not
+load game code, install physics, draw, flatten terrain or grant an entry proof.
+Shear/reflection and nonfinite values refuse. Capsules require uniform scale;
+spawns require upright unscaled frames; entries retain their exact 8 x 15 m
+midpoint socket frame. Geometry-based hull/mesh colliders preserve authored
+positions and triangle order, leaving final hull/physics validation to the bake.
+
+The initial static reader supports PBR/toon materials and ordinary lights/fog.
+It explicitly refuses raw shaders/callbacks and features assigned to other
+compilers (textures, physical-material extensions, morphs, skins). Template 1
+and Pastel Plain's retained producers are the byte-identity pilots. This seam
+does not yet replace any page-bound physics producer.

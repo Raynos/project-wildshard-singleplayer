@@ -7,6 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { rapierAlias } from '../vite/rapier.ts';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
+import { SDK_EXTERNALS } from './sdk-externals.mjs';
 
 // This package also compiles the two real app clients; acquire the build lane before generation or type emission.
 assertHeavyLease('build');
@@ -20,7 +21,7 @@ const modules = Object.entries(sdk.exports).map(([specifier, target]) => {
 });
 await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'warn', define: { __SHARDFILE_VALIDATOR__: JSON.stringify(shardfileValidationRevision(root)) }, build: { outDir: resolve(root, 'src/sdk', 'dist') /* build output, git-ignored: check-paths only checks committed paths */, emptyOutDir: true, minify: false, lib: {
   entry: Object.fromEntries([...modules.map(({ name, source }) => [name, source]), ['cli', resolve(root, 'src/sdk/cli.ts')], ['headlessWorker', resolve(root, 'src/sdk/headlessWorker.ts')]]), formats: ['es'], fileName: (_format, name) => `${name}.js`,
-}, rolldownOptions: { platform: 'node', external: [/^node:/u, 'vite', 'sharp', 'binaryen'] } } });
+}, rolldownOptions: { platform: 'node', external: SDK_EXTERNALS } } });
 
 // Ship declarations without requiring the repository's internal workspace packages.
 execFileSync('pnpm', ['exec', 'tsc', '-b', '--force', 'tsconfig.layers.json'], { cwd: root, stdio: 'inherit' });

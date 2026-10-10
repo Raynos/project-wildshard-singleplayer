@@ -2695,3 +2695,41 @@ migrate; internal audio recipes import its types relatively.
 ### Native behaviour author builds (SF79 DS0.4)
 
 `@wildshard/sdk/buildBehaviour` defines `BehaviourBuildSchema`, `compileBehaviourModule(source, maximumPages)` and `buildBehaviourProject(project)`. A project may retain `behaviour/build.json` with source `.as` files, maximum pages, an immutable asset directory, JSON module bindings and optional embedded outputs for its trusted native plugin. `wildshard build <project>` generates these declared outputs before compiling the project; `wildshard build <project> --behaviour-only` regenerates just the modules; append `--check` to regenerate in memory and compare every declared output without writes. `bake-check --node-only --only=directors` checks all three native consumers. Every read and write stays inside the project. All modules compile before writes begin. There is no shard-name dispatch, runtime installation, or implicit source discovery. Driftwood, Nalati and Pine use the same retained compiler declaration; their Wasm and embedded bytes stay identical. Historical embedded notices remain unchanged for byte identity; the build descriptor and CLI are the current regeneration authority.
+
+### Node scene authoring core (DS1.3)
+
+The SDK authors ordinary three.js objects in Node. `@wildshard/sdk/scene` defines
+`readScene(root)` and its JSON-only `SceneDescription`: local graph matrices,
+geometry channels/index/groups/draw ranges, shared material references, instance
+matrices/colors, LOD links, ordinary lights and fog. Unique object names remain
+graph IDs; repeated display names get deterministic traversal IDs. A subtree's
+root includes its actual world transform. No UUID, rendering context or game
+service enters the description. The SDK library keeps `three` external so its
+Object3D subclasses and the caller share the same installed constructors.
+
+`@wildshard/sdk/physics` defines Object3D subclasses `BoxCollider(width, height,
+depth, surface?)`, `CapsuleCollider(radius, length, surface?)`,
+`HullCollider(geometry, surface?)` and `MeshCollider(geometry, surface?)`. Box
+dimensions are full extents; capsule length excludes its caps. Named collider
+objects emit `ColliderData` from their actual world transforms. Boxes accept
+positive nonuniform scale; capsules require uniform scale. Shear, reflection,
+collapsed axes and nonfinite values refuse. Geometry channels retain their order.
+`BoxCollider.fromData(row)` adopts an existing authored box while retaining its
+optional yaw/quaternion encoding for byte-stable migrations. `clone`/`copy` keep
+the subclass's dimensions, surface and shared geometry references.
+
+`@wildshard/sdk/spawns` defines `PlayerStart` and `Spawn(kind)` as Object3D
+subclasses. Starts are unique; actor spawns need unique names and keep traversal
+order. They require upright unscaled placement. `@wildshard/sdk/entries` defines
+`Entry(edge, kind?)`; `Entry.midpoints()` returns north/east/south/west objects.
+Their exact 8 m road-height openings cannot be moved, rotated, scaled or sheared.
+They declare an opening, never supply ground or create platform socket floors.
+
+This initial reader handles the static PBR/toon pilot. Raw shader materials and
+material callbacks refuse. Textures, physical-material extensions, morph targets
+and skinned objects require their dedicated compilers; unsupported features
+never disappear silently. The description is a build intermediate, not a new
+shardfile schema key. Template 1 and Pastel Plain's actual authoring geometry and
+box rows pass through the reader and rebuild to identical compiled rows and GLB
+hashes. Existing authoring stair rows remain stairs, with no ramp approximation.
+The page-bound physics producers still need their G320 authoring-only conversion.
