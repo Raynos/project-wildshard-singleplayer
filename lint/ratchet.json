@@ -105,7 +105,6 @@
     "src/shards/driftwood-isle/creatures/install.ts": 1,
     "src/shards/driftwood-isle/creatures/species.ts": 2,
     "src/shards/driftwood-isle/creatures/tables.ts": 1,
-    "src/shards/driftwood-isle/fpArms.ts": 3,
     "src/shards/driftwood-isle/generators/movers.ts": 1,
     "src/shards/driftwood-isle/loadout/rows.ts": 2,
     "src/shards/driftwood-isle/loot/effects.ts": 1,
