@@ -6,14 +6,14 @@
 // (src/shards/pine-hollow/runtime/physics.baked.json `trees`, the page's forest). It writes every copy's pose to
 // src/shards/pine-hollow/data/props.json, which the page places the scans at (src/shards/pine-hollow/world/props.ts).
 // test/shards/pine-hollow/props-bake.test.ts is the stale gate (it re-runs the generator).
-// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-pine-props.mjs
+// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-props.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { bakePineProps, propKit } from '../src/shards/pine-hollow/generators/props.ts';
+import { bakePineProps, propKit } from './props.ts';
 import { installPineGround } from './bake-pine-crags.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 
 /** a LOD scan's mesh geometries in traverse order, as the page's loadLod + prepModel see them (no textures: only the shape) */
 async function scan(id) {

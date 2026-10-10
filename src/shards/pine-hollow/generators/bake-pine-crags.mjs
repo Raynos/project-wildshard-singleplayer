@@ -7,7 +7,7 @@
 // its 4-byte words' bytes in four lanes and zlib-compressed, to public/assets/pine-hollow/baked/crags.<tier>.bin and the rows (the placements, each tier's binary hash,
 // size and tile table) to src/shards/pine-hollow/data/crags.json, which the page reads (src/shards/pine-hollow/world/cragBake.ts).
 // test/shards/pine-hollow/crag-bake.test.ts is the stale gate (it re-runs the generator).
-// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-pine-crags.mjs
+// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-crags.mjs
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -15,11 +15,11 @@ import { deflateSync } from 'node:zlib';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { setActiveChunk } from '../src/game/shard/registry.ts';
-import { installBakedGrid, parseBakedTerrain } from '../src/engine/world/BakedTerrain.ts';
-import { bakePineCrags, shuffleLanes } from '../src/shards/pine-hollow/generators/crags.ts';
+import { setActiveChunk } from '../../../game/shard/registry.ts';
+import { installBakedGrid, parseBakedTerrain } from '../../../engine/world/BakedTerrain.ts';
+import { bakePineCrags, shuffleLanes } from './crags.ts';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 const read = (path) => { const bytes = readFileSync(resolve(root, path)); return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength); };
 
 /** the page's ground under the crags: the Pine level selected, its baked grid installed as the page installs it at load */

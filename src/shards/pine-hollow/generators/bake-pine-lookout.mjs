@@ -6,16 +6,16 @@
 // rows (the binary's hash and size, the part counts, colliders, deck floors and anchors) to
 // src/shards/pine-hollow/data/lookout.json, which the page finishes the timber from (src/shards/pine-hollow/models/fireLookout.ts).
 // test/shards/pine-hollow/lookout-bake.test.ts is the stale gate (it re-runs the generator).
-// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-pine-lookout.mjs
+// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-lookout.mjs
 import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
-import { setActiveChunk } from '../src/game/shard/registry.ts';
-import { bakeFireLookout } from '../src/shards/pine-hollow/generators/fireLookout.ts';
-import { shuffleLanes } from '../src/shards/pine-hollow/generators/crags.ts';
+import { setActiveChunk } from '../../../game/shard/registry.ts';
+import { bakeFireLookout } from './fireLookout.ts';
+import { shuffleLanes } from './crags.ts';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 
 /** the bake: the rows and the raw binary, the Pine level selected (its seed is the engine SEED, as on the page) */
 export function bakeLookoutRows() {

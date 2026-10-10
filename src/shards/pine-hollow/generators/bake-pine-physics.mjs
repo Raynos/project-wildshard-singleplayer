@@ -5,15 +5,15 @@
 // forest's trunk circles the herds' placement reads,
 // the forest herds' and the Den's model-derived simulation specs, seeds, scales and herd membership at load, and the Antler
 // King's parked prewarm bodies (the King and a thrall of each kind). Two independent same-page captures must match exactly.
-// scripts/browser-lane.sh node scripts/bake-pine-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--census]
+// scripts/browser-lane.sh node src/shards/pine-hollow/generators/bake-pine-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--census]
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { pinePhysicsInputs } from './pine-physics-inputs.mjs';
-import { saveFixture } from './debug-settings.mjs';
+import { pinePhysicsInputs } from '../../../../scripts/pine-physics-inputs.mjs';
+import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 const url = process.argv.find(arg => arg.startsWith('--url='))?.slice(6);
 if (url === undefined) throw new Error('bake-pine-physics requires a clean-candidate --url');
 const census = process.argv.includes('--census');

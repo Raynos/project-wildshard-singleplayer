@@ -5,10 +5,10 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { Bone, Group } from 'three';
-import { kingRest, newPose, clipPose, applyKingPose } from '../src/shards/pine-hollow/combat/kingRig.ts';
-import { KING_ATTACK_TIMING } from '../src/shards/pine-hollow/combat/kingTiming.ts';
-import { readKingCollisionBake } from '../src/shards/pine-hollow/runtime/kingCollisionBake.ts';
-import { withPortableMath } from '../test/fake/portableMath.ts';
+import { kingRest, newPose, clipPose, applyKingPose } from '../combat/kingRig.ts';
+import { KING_ATTACK_TIMING } from '../combat/kingTiming.ts';
+import { readKingCollisionBake } from '../runtime/kingCollisionBake.ts';
+import { withPortableMath } from '../../../../test/fake/portableMath.ts';
 
 const finite = v.pipe(v.number(), v.finite()), triple = v.tuple([finite, finite, finite]);
 const index = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -25,7 +25,7 @@ export const KING_COLLISION_INPUTS = [
   'src/shards/pine-hollow/combat/kingTiming.ts',
   'src/shards/pine-hollow/runtime/physics.baked.json', 'src/shards/pine-hollow/runtime/kingCollision.ts',
   'src/shards/pine-hollow/runtime/kingCollisionBake.ts', 'src/game/combat/collisionPose.ts',
-  'scripts/bake-pine-king-collision.mjs', 'test/fake/portableMath.ts',
+  'src/shards/pine-hollow/generators/bake-pine-king-collision.mjs', 'test/fake/portableMath.ts',
 ];
 
 /** Real rig joints only; no vertex attributes or runtime renderer are loaded. @param {string} root */
@@ -104,7 +104,7 @@ function bakePortableKingCollision(root) {
 }
 
 if (process.argv[1] === import.meta.filename) {
-  const root = resolve(import.meta.dirname, '..');
+  const root = resolve(import.meta.dirname, '../../../..');
   const output = resolve(root, 'src/shards/pine-hollow/runtime/kingCollision.baked.json');
   writeFileSync(output, `${JSON.stringify(bakeKingCollision(root))}\n`);
   console.log(`Wrote ${output}`);

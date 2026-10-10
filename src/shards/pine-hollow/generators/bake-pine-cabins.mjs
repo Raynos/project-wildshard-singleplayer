@@ -5,15 +5,15 @@
 // public/assets/pine-hollow/baked/cabins.bin and its rows (the binary's hash and size, the geometries, the buildings) to
 // src/shards/pine-hollow/data/cabins.json, which the page assembles (src/shards/pine-hollow/world/cabinBake.ts).
 // test/shards/pine-hollow/cabin-bake.test.ts is the stale gate (it re-runs the generator).
-// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-pine-cabins.mjs
+// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-cabins.mjs
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
-import { bakedSamplers, parseBakedTerrain } from '../src/engine/world/BakedTerrain.ts';
-import { bakePineCabins } from '../src/shards/pine-hollow/generators/logCabin.ts';
+import { bakedSamplers, parseBakedTerrain } from '../../../engine/world/BakedTerrain.ts';
+import { bakePineCabins } from './logCabin.ts';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 /** the page's terrain heights: its baked grid, as the page installs it before the homestead builds */
 export function pineCabinHeights() {
   const bytes = readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin'));

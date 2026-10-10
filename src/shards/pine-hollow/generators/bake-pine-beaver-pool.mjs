@@ -4,13 +4,13 @@
 // terrain grid installed (the page's heights: the still surface keeps the ground under each vertex, the trickle rides
 // the bed), and writes both meshes' f32-exact blocks to src/shards/pine-hollow/data/beaverPool.json, which the page builds
 // them from (src/shards/pine-hollow/world/beaverPool.ts). test/shards/pine-hollow/beaver-pool-bake.test.ts is the stale gate.
-// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-pine-beaver-pool.mjs
+// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-beaver-pool.mjs
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { bakeBeaverPool } from '../src/shards/pine-hollow/generators/beaverPool.ts';
+import { bakeBeaverPool } from './beaverPool.ts';
 import { installPineGround } from './bake-pine-crags.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../../..');
 
 /** the bake's rows, over the page's ground */
 export function bakePoolRows() {
