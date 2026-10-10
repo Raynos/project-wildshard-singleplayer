@@ -6,7 +6,7 @@
  */
 import { Mesh, Vector3 } from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { SignBuilder } from '../look/signs';
+import { SignBuilder } from '@wildshard/sdk/looks/signs';
 import { bakedSpecimen, ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/movers.ts';

@@ -17,7 +17,7 @@ import { peekQueued, restoreQueued } from '../world/props3d';
 import { crossingColliders, wellSheets } from '../world/wellBounds';
 import { banyanOut } from '../world/banyanPlan';
 import { type SignPlace, type SignSink, signBoard, signSize } from '../look/signs';
-import { NeonSigns } from '../look/neonsigns';
+import { NeonText } from '@wildshard/sdk/looks/neonText';
 import { geometryWriter } from './bakeWrite';
 import type { Placement } from '@wildshard/engine/models/model';
 import { type BakedPlace, type LayoutRows, LayoutRowsSchema, type SignCallRow } from '../world/layoutBake';
@@ -31,8 +31,8 @@ export class SignRecorder implements SignSink {
   place(p: SignPlace, kit: Kit | null): { w: number; h: number } {
     const row: BakedPlace = { ...p, spec: { ...p.spec }, at: tuple(p.at), normal: tuple(p.normal) };
     this.calls.push({ k: 'place', p: row });
-    // (the page sets the SDF calligraphy before the layout runs, so a tube sign is calligraphy: no board, NeonSigns' size)
-    if (p.spec.style === 'tube') return NeonSigns.size(p.spec.text, p.size, p.spec.vertical);
+    // (the page sets the SDF calligraphy before the layout runs, so a tube sign is calligraphy: no board, NeonText's size)
+    if (p.spec.style === 'tube') return NeonText.size(p.spec.text, p.size, p.spec.vertical);
     const size = signSize(p);
     if (kit !== null) signBoard(kit, p, size.w, size.h);
     return size;

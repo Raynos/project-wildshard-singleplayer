@@ -78,6 +78,8 @@
     "./looks/fireFx": "./looks/fireFx.ts",
     "./looks/surfaceLooks": "./looks/surfaceLooks.ts",
     "./looks/duskDome": "./looks/duskDome.ts",
+    "./looks/signs": "./looks/signs.ts",
+    "./looks/neonText": "./looks/neonText.ts",
     "./species/clips": "./species/clips.ts",
     "./items/lashView": "./items/lashView.ts",
     "./items/lashWeapon": "./items/lashWeapon.ts",

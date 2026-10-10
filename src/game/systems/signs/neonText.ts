@@ -1,20 +1,49 @@
-// Neon calligraphy signs, merged from the neon lab (the dev labs (deleted in E357 F7), round-7-lab-neon): an SDF brush
-// fill with a darker glass rim and a short in-quad halo, on dark plank boards framed by a procedural neon tube.
-// Two draws for every 'tube' sign in the Stack:
-//   boards — opaque: the board (planks, grime, a ruled ink edge, lit by its own tubes), the rounded-rect frame tube,
-//            four rivets; board sides;
-//   tubes  — additive: one quad per character sampling the GlyphAtlas distance fields.
-// The fog is the clean room's banded silk (FOG_GLSL); neon is fogged at half strength. `emitters` feeds the streak
-// cards and the baked spill.
 import {
-  BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, ShaderMaterial, Uint32BufferAttribute, Vector3,
+  BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, type IUniform, ShaderMaterial,
+  type ShaderMaterialParameters, Uint32BufferAttribute, Vector3,
 } from 'three';
-import type { Emitter } from './emitters';
-import type { GlyphAtlas } from './glyphs';
-import { ADD_KEEP_ALPHA, EMIT_FOG, FOG_GLSL, NOISE_GLSL, type Shared } from './style';
-import { chars } from '../util';
+import type { GlyphField } from './glyphField';
+import type { SignCalligraphy, SignLight } from './signAtlas';
 
-export interface NeonDef {
+/**
+ * Neon calligraphy signs (SHARD-PLATFORM M3, the sign system): an SDF brush fill with a darker glass rim and a short
+ * in-quad halo (from a `GlyphField`), on dark plank boards framed by a procedural neon tube. Two draws for every sign:
+ *   boards: opaque: the board (planks, grime, a ruled ink edge, lit by its own tubes), the rounded-rect frame tube,
+ *           four rivets; board sides;
+ *   tubes:  additive: one quad per character sampling the glyph field's distance fields.
+ * The look is a row (`NeonTextLook`); the shard supplies its shared uniforms (`uTime`, `uNear`, and the board edge's
+ * gilding: `uSutra` 0..1 toward `uPaperDeep` with a `uGold` edge), its noise and fog GLSL and its additive blending.
+ * `emitters` feeds a shard's reflection cards and baked spill.
+ */
+
+/** The neon's look, as data. */
+export interface NeonTextLook {
+  /** 0 brush fill ... 1 monoline tube */
+  readonly mono: number;
+  /** tube radius, rim width, fill thicken, seam darkness and width, halo reach (all em) and halo gain */
+  readonly tubeRadius: number; readonly rim: number; readonly thicken: number; readonly seam: number; readonly seamWidth: number;
+  readonly haloReach: number; readonly haloGain: number;
+  /** the board's frame tube: inset, tube radius, corner radius (m); the board's lift by its own light */
+  readonly frameInset: number; readonly frameRadius: number; readonly frameCorner: number; readonly boardLift: number;
+  /** the board's colour (sRGB hex) */
+  readonly board: number;
+  /** the full glow gain */
+  readonly gain: number;
+}
+
+/** The shard's GLSL the programs splice in: `noise` defines `h11` and `vnoise`, `fog` defines `vec4 signFog(vec3 world)`
+ *  (rgb: the fog's colour × its amount, a: what stays of the surface), `emitFog` the emissive fog exponent (a float). */
+export interface NeonTextGlsl { readonly noise: string; readonly fog: string; readonly emitFog: string }
+
+export interface NeonTextOptions {
+  readonly uniforms: Record<string, IUniform>;
+  readonly glsl: NeonTextGlsl;
+  /** the tubes' additive blending */
+  readonly blending: Partial<ShaderMaterialParameters>;
+  readonly look: NeonTextLook;
+}
+
+export interface NeonTextDef {
   text: string;
   /** neon hue, sRGB hex */
   color: string;
@@ -28,8 +57,8 @@ export interface NeonDef {
   twoSided?: boolean;
   gain?: number;
   flicker?: number;
-  /** 0..1: how much of the silk the neon cuts through (0: the tubes fade as √ of the fog, 1: not at all). The hero
-   *  signs across the Well (E281) are the frame's one saturated light and must read at full strength through the mist */
+  /** 0..1: how much of the fog the neon cuts through (0: the tubes fade as √ of the fog, 1: not at all): a hero sign
+   *  that must read at full strength through the mist */
   clear?: number;
 }
 
@@ -122,9 +151,9 @@ void main() {
   gl_Position = projectionMatrix * vp;
 }
 `;
-const FS_BOARD = /* glsl */ `
-${NOISE_GLSL}
-${FOG_GLSL}
+const fsBoard = (g: NeonTextGlsl): string => /* glsl */ `
+${g.noise}
+${g.fog}
 ${FLICKER}
 uniform vec4 uFrame;   // x: inset m, y: tube radius m, z: corner radius m, w: board lift (own-light tint)
 uniform vec3 uBoard;
@@ -176,10 +205,10 @@ void main() {
   }
   D = mix(D, D * 0.4 + uPaperDeep * 0.6, uSutra);
   D = mix(D, mix(uBoard * 0.25, uGold * 1.2, uSutra), inkEdge);
-  vec4 fg = silkFog(vWorld, 1.0);
-  // (a sign that cuts the silk keeps its dark board too, so its neon reads saturated against it, not pastel on mist)
+  vec4 fg = signFog(vWorld);
+  // (a sign that cuts the fog keeps its dark board too, so its neon reads saturated against it, not pastel on mist)
   float cl = vP.w * 0.6;
-  vec3 col = D * mix(fg.a, 1.0, cl) + fg.rgb * (1.0 - cl) + E * pow(max(fg.a, 1e-4), ${EMIT_FOG} * (1.0 - vP.w));
+  vec3 col = D * mix(fg.a, 1.0, cl) + fg.rgb * (1.0 - cl) + E * pow(max(fg.a, 1e-4), ${g.emitFog} * (1.0 - vP.w));
   gl_FragColor = vec4(col, uNear / max(vViewZ, uNear));
 }
 `;
@@ -201,9 +230,9 @@ void main() {
   gl_Position = projectionMatrix * viewMatrix * wp;
 }
 `;
-const FS_TUBE = /* glsl */ `
-${NOISE_GLSL}
-${FOG_GLSL}
+const fsTube = (g: NeonTextGlsl): string => /* glsl */ `
+${g.noise}
+${g.fog}
 ${FLICKER}
 uniform sampler2D uSdf;
 uniform vec4 uAtlas;  // x: font px, y: fill spread px, z: skeleton spread px, w: cell px
@@ -221,7 +250,7 @@ void main() {
   float d = mix(dFill, uTube.y - dSk, uTube.x);
   float w = max(fwidth(d), 1e-4) * 0.75;
   float fill = smoothstep(-w, w, d);
-  float fk = pow(max(silkFog(vWorld, 1.0).a, 1e-4), 0.5 * (1.0 - vP.z));
+  float fk = pow(max(signFog(vWorld).a, 1e-4), 0.5 * (1.0 - vP.z));
   float fl = flick(vP.y);
   float rim = fill * (1.0 - smoothstep(uTube.z - w, uTube.z + w, d));
   vec3 core = mix(vTint, vec3(1.0), 0.5);
@@ -237,28 +266,24 @@ void main() {
 }
 `;
 
-export const NEON_LOOK = {
-  mono: 0, tubeRadius: 0.05, rim: 0.024, thicken: 0.022, seam: 0.0, seamWidth: 0.008, haloReach: 0.12, haloGain: 0.22,
-  frameInset: 0.075, frameRadius: 0.016, boardLift: 0.035, gain: 4.2,
-} as const;
 
-export class NeonSigns {
+export class NeonText implements SignCalligraphy {
   private readonly boards = new Batch();
   private readonly tubes = new Batch();
-  readonly emitters: Emitter[] = [];
+  readonly emitters: SignLight[] = [];
   readonly boardMat: ShaderMaterial;
   readonly tubeMat: ShaderMaterial;
 
-  constructor(shared: Shared, private readonly atlas: GlyphAtlas) {
-    const u = shared.u;
-    const L = NEON_LOOK;
+  constructor(private readonly opts: NeonTextOptions, private readonly atlas: GlyphField) {
+    const u = opts.uniforms;
+    const L = opts.look;
     this.boardMat = new ShaderMaterial({
       uniforms: {
         ...u,
-        uFrame: { value: [L.frameInset, L.frameRadius, 0.04, L.boardLift] },
-        uBoard: { value: new Color(0x34333a) },
+        uFrame: { value: [L.frameInset, L.frameRadius, L.frameCorner, L.boardLift] },
+        uBoard: { value: new Color(L.board) },
       },
-      vertexShader: VS_BOARD, fragmentShader: FS_BOARD,
+      vertexShader: VS_BOARD, fragmentShader: fsBoard(opts.glsl),
     });
     this.tubeMat = new ShaderMaterial({
       uniforms: {
@@ -268,47 +293,49 @@ export class NeonSigns {
         uTube: { value: [L.mono, L.tubeRadius, L.rim, L.thicken] },
         uTube2: { value: [L.seam, L.seamWidth, L.haloReach, L.haloGain] },
       },
-      vertexShader: VS_TUBE, fragmentShader: FS_TUBE,
+      vertexShader: VS_TUBE, fragmentShader: fsTube(opts.glsl),
       transparent: true, depthWrite: false,
-      ...ADD_KEEP_ALPHA,
+      ...opts.blending,
     });
   }
 
   /** the board's outer size for a sign (so callers can hang brackets) */
   static size(text: string, em: number, vertical: boolean): { w: number; h: number } {
-    const n = chars(text).length;
+    const n = Array.from(text).length;
     return { w: vertical ? em * 1.42 : em * (n + 0.62), h: vertical ? em * (n + 0.58) : em * 1.42 };
   }
 
-  add(def: NeonDef): { w: number; h: number } {
+  /** the look's full glow gain */
+  get gain(): number { return this.opts.look.gain; }
+
+  add(def: NeonTextDef): { w: number; h: number } {
     const { w, h, at, f, tint, gain } = this.draw(def, this.boards, this.tubes);
-    // the neon owns the wet ground (the targets' streaks are cyan / jade / magenta, not the shops' amber)
-    const k = (1.4 * gain) / NEON_LOOK.gain;
+    const k = (1.4 * gain) / this.opts.look.gain;
     this.emitters.push({ at: at.clone().addScaledVector(f, 0.09 / 2), color: tint.clone(), w, h, power: k, spill: 0.3 * k });
     return { w, h };
   }
 
   /**
-   * One sign alone, its board and its tubes as two geometries — the sign model's specimen (../models/signs.ts), drawn by
-   * `boardMat` and `tubeMat` over this atlas (its characters must be in it)
+   * One sign alone, its board and its tubes as two geometries (a sign model's specimen), drawn by `boardMat` and
+   * `tubeMat` over this atlas (its characters must be in it)
    */
-  one(def: NeonDef): { boards: BufferGeometry; tubes: BufferGeometry } {
+  one(def: NeonTextDef): { boards: BufferGeometry; tubes: BufferGeometry } {
     const boards = new Batch(), tubes = new Batch();
     this.draw(def, boards, tubes);
     return { boards: boards.geometry(['aUv', 'aSize']), tubes: tubes.geometry(['aAtlas', 'aQ']) };
   }
 
-  private draw(def: NeonDef, boards: Batch, tubes: Batch): { w: number; h: number; at: Vector3; f: Vector3; tint: Color; gain: number } {
-    const cs = chars(def.text);
+  private draw(def: NeonTextDef, boards: Batch, tubes: Batch): { w: number; h: number; at: Vector3; f: Vector3; tint: Color; gain: number } {
+    const cs = Array.from(def.text);
     const em = def.em;
-    const { w, h } = NeonSigns.size(def.text, em, def.vertical);
+    const { w, h } = NeonText.size(def.text, em, def.vertical);
     const up = new Vector3(0, 1, 0);
     const f = def.facing.clone().setY(0).normalize();
     const right = new Vector3().crossVectors(up, f).normalize();
     const depth = 0.09;
     const at = def.at.clone();
     const tint = new Color(def.color);
-    const gain = def.gain ?? NEON_LOOK.gain;
+    const gain = def.gain ?? this.opts.look.gain;
     const seed = def.flicker ?? 0;
     const two = def.twoSided === true;
     const clear = Math.min(1, Math.max(0, def.clear ?? 0));

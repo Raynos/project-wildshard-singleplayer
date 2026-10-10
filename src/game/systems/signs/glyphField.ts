@@ -1,14 +1,16 @@
-// Copied from the neon lab (the dev labs (deleted in E357 F7), round-7-lab-neon), unchanged in behaviour.
-// The neon calligraphy atlas: every character a sign needs is drawn once from canvas (a Kai / brush regular-script
-// CJK font), then turned into two distance fields packed in one RG8 texture:
-//   R — the glyph's signed distance (0.5 = the outline, > 0.5 inside), so the brush-shaped fill stays crisp at any size;
-//   G — the distance to the glyph's SKELETON (Zhang–Suen thinning), so the shader can also draw each stroke as a
-//       constant-width hand-bent tube with round ends (real Hong Kong neon is bent glass along the stroke's centreline).
-// One cell per character, shared by every sign and colour (the colour is a vertex attribute).
 import { ClampToEdgeWrapping, DataTexture, LinearFilter, LinearMipmapLinearFilter, RGFormat, UnsignedByteType } from 'three';
-import { glyphLayout, type NdTier } from '../tier';
 
-export const KAI_STACK = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", "PingFang TC", serif';
+/**
+ * A glyph distance-field atlas for lit lettering (SHARD-PLATFORM M3, the sign system): every character a shard's signs
+ * need is drawn once from canvas in the shard's font, then turned into two distance fields packed in one RG8 texture:
+ *   R: the glyph's signed distance (0.5 = the outline, > 0.5 inside), so a brush-shaped fill stays crisp at any size;
+ *   G: the distance to the glyph's SKELETON (Zhang-Suen thinning), so a shader can also draw each stroke as a
+ *      constant-width bent tube with round ends (neon glass bent along the stroke's centreline).
+ * One cell per character, shared by every sign and colour (the colour is a vertex attribute). `neonText` draws from it.
+ */
+
+/** The atlas's sizes for a tier: px per cell, px of the font's em, the fill and skeleton distance reach in px. */
+export interface GlyphFieldLayout { readonly cell: number; readonly fontPx: number; readonly spread: number; readonly skeletonSpread: number }
 
 export interface GlyphRect { u0: number; v0: number; u1: number; v1: number }
 
@@ -82,18 +84,15 @@ function thin(img: Uint8Array, w: number, x0: number, y0: number, x1: number, y1
   }
 }
 
-export class GlyphAtlas {
+export class GlyphField {
   /** atlas px per cell, px of the font's em, and the distance-field reach in px (fill / skeleton) */
-  readonly layout: ReturnType<typeof glyphLayout>;
+  readonly layout: GlyphFieldLayout;
   readonly texture: DataTexture;
   readonly size: number;
   private readonly rects = new Map<string, GlyphRect>();
-  /** ms spent building (canvas + both distance fields) */
-  readonly buildMs: number;
 
-  constructor(chars: readonly string[], tier: NdTier, font = KAI_STACK, weight = 700) {
-    this.layout = glyphLayout(tier);
-    const t0 = performance.now();
+  constructor(chars: readonly string[], layout: GlyphFieldLayout, font: string, weight = 700) {
+    this.layout = layout;
     const list = [...new Set(chars)];
     const C = this.layout.cell;
     const cols = Math.ceil(Math.sqrt(list.length));
@@ -155,7 +154,6 @@ export class GlyphAtlas {
     this.texture.generateMipmaps = true;
     this.texture.anisotropy = 4;
     this.texture.needsUpdate = true;
-    this.buildMs = performance.now() - t0;
   }
 
   rect(ch: string): GlyphRect {

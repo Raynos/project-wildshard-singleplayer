@@ -26,9 +26,8 @@ import { wellBalustrade } from '../models/wellBalustrade';
 import { lampPostModel, lotusPostModel } from '../models/bridgePosts';
 import { type InKitPlaced, registerInKit } from './inKit';
 import { type Emitter, bakeSpill } from '../look/emitters';
-import { GlyphAtlas } from '../look/glyphs';
+import { GlyphField, NeonText } from '@wildshard/sdk/looks/neonText';
 import { Lanterns } from '../look/lanterns';
-import { NeonSigns } from '../look/neonsigns';
 import { buildStreaks, stairStreaks } from '../look/streaks';
 import { buildFacade, nameDraws } from './facade/batch';
 import { facadeUniforms } from '../look/facadeMaterial';
@@ -42,11 +41,13 @@ import { gradeUniforms } from '../look/light/grade';
 import { Crowd, dealCrowd } from './crowd';
 import { buildCanopy } from './canopy';
 import { placeSquareProps } from './squareProps';
-import { SignAtlas, SignBuilder } from '../look/signs';
-import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
+import { SignAtlas, SignBuilder } from '@wildshard/sdk/looks/signs';
+import { KitSigns } from '../look/signs';
+import { KAI_STACK, NEON_LOOK, SIGN_COLOUR, SIGN_STYLES, type SignStyle } from '../data/signs';
+import { ADD_KEEP_ALPHA, EMIT_FOG, FOG_GLSL, NOISE_GLSL, Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
 import { WORDS } from './words';
 import { chars } from '../util';
-import type { NdTier } from '../tier';
+import { glyphLayout, signLayout, type NdTier } from '../tier';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -180,16 +181,17 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.15, 'layout: square');
 
   // ── the layout: the square, the towers, the Well ──
-  const atlas = new SignAtlas(tier);
+  const atlas = new SignAtlas<SignStyle>(SIGN_STYLES, { ...signLayout(tier), ...SIGN_COLOUR[tier] }, 'Nine Dragon sign atlas (GPU only)');
   const signs = new SignBuilder(atlas);
-  const glyphs = new GlyphAtlas(chars(FONT_CHARS), tier);
-  const neonSigns = new NeonSigns(shared, glyphs);
+  const glyphs = new GlyphField(chars(FONT_CHARS), glyphLayout(tier), KAI_STACK);
+  // the neon is fogged by the clean room's banded silk (FOG_GLSL), emissive at half strength
+  const neonSigns = new NeonText({ uniforms: shared.u, glsl: { noise: NOISE_GLSL, fog: `${FOG_GLSL}\n#define signFog(w) silkFog(w, 1.0)\n`, emitFog: EMIT_FOG }, blending: ADD_KEEP_ALPHA, look: NEON_LOOK }, glyphs);
   signs.calligraphy = neonSigns;
   shared.u.uGroundY.value = Y0;
   // the shaft's silk mist fills dome C's SHAFT box (the main shaft and its run north)
   shared.u.uShaft.value.set(SHAFT.x0, SHAFT.z0, SHAFT.x1, SHAFT.z1);
   shared.u.uShaftK.value.y = Y0;
-  const ctx = new Ctx(signs);
+  const ctx = new Ctx(new KitSigns(signs));
   // the models' context (world/modelLook.ts): the look fills in as each phase makes its part
   const nd = ndModelContext(renderer);
   nd.look.calligraphy = neonSigns;

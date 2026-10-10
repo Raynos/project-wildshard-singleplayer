@@ -1,6 +1,6 @@
 /**
  * The sign (E306 / E315 second pass): every shop sign, plaque, paper strip and banner the fragment hangs — hand-bent
- * neon calligraphy on a dark plank board (look/neonsigns.ts: the SDF glyphs lit over their board), a lightbox (a
+ * neon calligraphy on a dark plank board (@wildshard/sdk/looks/neonText: the SDF glyphs lit over their board), a lightbox (a
  * mono atlas word glowing in its tint), a gold-lettered plaque, a paper strip (the menus, the couplets, 福), a cloth
  * banner (麵). One model, its variants the styles; a copy's params are its words, colours and size. The fragment draws
  * them as it always has — the lightboxes, plaques, strips and banners are quads in the one `signs` mesh over the sign
@@ -11,10 +11,13 @@
 import { Box3, Vector3, type Object3D } from 'three';
 import { defineModel, type ModelContext, type ModelPart, type ModelVariant, type Placement } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
-import { type PlacedSign, SignBuilder, type SignStyle } from '../look/signs';
+import { type PlacedSign as SdkPlacedSign, SignBuilder } from '@wildshard/sdk/looks/signs';
+import type { SignStyle } from '../data/signs';
 import { ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/signs.ts';
+
+type PlacedSign = SdkPlacedSign<SignStyle>;
 
 export interface SignParams {
   readonly style: SignStyle;
