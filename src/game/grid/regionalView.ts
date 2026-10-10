@@ -22,10 +22,11 @@
  * the caller reserves on the page allocator before admission. The view refuses to exist without that live claim and
  * holds it against eviction only during an entered scope. Generic game code: no shard is named here (E405).
  */
-import { Group, type Object3D } from 'three';
+import { Group, Scene, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
+import { registerExteriorLighting } from '@wildshard/engine/render/precompile';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { addPiece } from '@wildshard/engine/physics/pieces';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
@@ -84,6 +85,7 @@ export interface RegionalView {
 }
 
 type Floor = NonNullable<Piece['floor']>;
+const isScene = (object: Object3D): object is Scene => object instanceof Scene;
 
 /** Build a cell's world view on admission; dispose it on leave or eviction. */
 export function createRegionalView(request: RegionalViewRequest): RegionalView {
@@ -109,6 +111,8 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
     movers.clear(); platforms.length = 0;
   });
   request.scene.add(root);
+  // The neutral road has the page sun/fill, no regional point lights or cell PMREM. Prepare those exact keys before leaving.
+  if (isScene(request.scene)) registerExteriorLighting(request.scene, scope, root, null);
   root.updateMatrixWorld(true);
   const sync = (): void => { if (!scope.disposed) for (const move of movers) move(); };
   if (request.fixedPre !== undefined) scope.onDispose(request.fixedPre(sync));

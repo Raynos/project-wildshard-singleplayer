@@ -67,6 +67,39 @@ export interface CompileJob {
 
 export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
 
+const exteriorLighting = new WeakMap<THREE.Scene, { environment: THREE.Texture | null; roots: Set<THREE.Object3D> }>();
+
+/** Declare a content root whose lights disappear outside its frame. Sliced preparation also compiles the exterior
+ * state, excluding all registered roots and borrowing its declared environment, without changing a live scene.
+ * Registrations leave with their content owners; all roots on one page must agree on its exterior environment. */
+export function registerExteriorLighting(scene: THREE.Scene, owner: Scope, root: THREE.Object3D, environment: THREE.Texture | null): void {
+  if (owner.disposed) throw new Error('Exterior lighting requires a live owner');
+  let state = exteriorLighting.get(scene);
+  if (state === undefined) { state = { environment, roots: new Set() }; exteriorLighting.set(scene, state); }
+  if (state.environment !== environment) throw new Error('Exterior lighting declarations disagree');
+  if (state.roots.has(root)) throw new Error('Exterior lighting root is already registered');
+  const held = state;
+  held.roots.add(root);
+  owner.onDispose(() => { held.roots.delete(root); if (held.roots.size === 0) exteriorLighting.delete(scene); });
+}
+
+function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget, shadows: boolean): CompileJob[] {
+  const state = exteriorLighting.get(scene);
+  if (state === undefined) return [];
+  const target = new THREE.Scene();
+  target.fog = scene.fog; target.environment = state.environment;
+  const visit = (object: THREE.Object3D): void => {
+    if (!object.visible || state.roots.has(object)) return;
+    if (object instanceof THREE.Light) target.add(object.clone(false));
+    for (const child of object.children) visit(child);
+  };
+  visit(scene);
+  const jobs = [...sceneJobs(scene, rt).jobs, ...familyCompileJobs(scene, rt), ...(shadows ? shadowJobs(scene, rt) : [])];
+  // Passes with their own scene keep their authored state. Only the page world/depth variants transition outside.
+  for (const job of jobs) if (job.target === scene) job.target = target;
+  return jobs;
+}
+
 /** Resolve an entered world's programs, then warm the actual depth/post pass targets without advancing simulation.
  * The entered owner fences both phases; the renderer target is restored even if a pass fails. */
 export async function warmComposerFrame(composer: Pick<EffectComposer, 'render'>,
@@ -523,6 +556,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
       ? shadowJobs(scene, rt) : [];
     if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting, options.futureEnvironment);
     jobs.push(...previousShadows);
+    if (policy?.scene !== false) jobs.push(...exteriorJobs(scene, rt, policy?.shadows !== false));
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
     const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current);
