@@ -155,7 +155,7 @@ function makeFurTextures(seed: number, opts: FurStyle['tex'], kind: string): { m
   const build = () => (gen ??= makeFurCanvases(seed, opts));
   const map = bakedTexture(`fur-${kind}-map`, () => new THREE.CanvasTexture(build().ca));
   map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 8;
-  const normalMap = bakedTexture(`fur-${kind}-normal`, () => new THREE.CanvasTexture(build().cn), { lossless: true });
+  const normalMap = bakedTexture(`fur-${kind}-normal`, () => new THREE.CanvasTexture(build().cn));
   normalMap.wrapS = normalMap.wrapT = THREE.RepeatWrapping; normalMap.anisotropy = 8;
   return { map, normalMap };
 }

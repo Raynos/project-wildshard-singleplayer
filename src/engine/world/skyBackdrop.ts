@@ -7,11 +7,10 @@ import type { SkyRig as Sky } from './skyRig';
 import type { SkySpec } from '../level/data';
 import { levelBakedId, type LevelSpec } from '../level/spec';
 import type { SkyDressing } from '../render/look';
-import { Noise2D } from '../core/noise';
-import { Rng } from '../core/rng';
 import { loadHDR } from '../core/assets';
 import { bakedBytes, bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
 import { CLOUD_FIELD_N, cloudFieldPixels } from './cloudField';
+import { cloudTexture, ctx2d, giantTexture, planetTexture } from './skyTextures';
 import { CLOUD_FIELD_URL } from '../boot/bakedApi';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
@@ -282,7 +281,7 @@ export class SkyBackdropView {
     const body = new THREE.Mesh(new THREE.SphereGeometry(radius, 64, 64), new THREE.MeshLambertMaterial({
       color: 0x9aa4b4, fog: false, emissive: 0x2c3646, emissiveIntensity: 0.7, transparent: true, opacity: 0.85,
     }));
-    const bandsTex = bakedTexture('planet', makePlanetTexture); bandsTex.colorSpace = THREE.SRGBColorSpace;
+    const bandsTex = bakedTexture('planet', planetTexture); bandsTex.colorSpace = THREE.SRGBColorSpace;
     body.material.map = bandsTex;
     const ringTex = makeRingTexture();
     const ring = new THREE.Mesh(new THREE.RingGeometry(radius * 1.25, radius * 2.35, 128, 1), new THREE.MeshLambertMaterial({
@@ -321,7 +320,7 @@ export class SkyBackdropView {
     this.planetDir.set(-Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize();
     const dist = PLANET_DIST, R = dist * Math.tan(P.size * 0.5 * d2r);
     const haze = new THREE.Color().copy((this.scene.fog as THREE.Fog).color).lerp(new THREE.Color(0.55, 0.7, 0.95), 0.4);
-    const bands = bakedTexture('giant', makeGiantTexture); bands.colorSpace = THREE.SRGBColorSpace;
+    const bands = bakedTexture('giant', giantTexture); bands.colorSpace = THREE.SRGBColorSpace;
     bands.wrapS = THREE.RepeatWrapping; bands.wrapT = THREE.ClampToEdgeWrapping;
     this.giantUniforms.uSunDir.value.copy(this.sunDir);
     this.giantUniforms.uHaze.value.copy(haze);
@@ -470,43 +469,9 @@ function paintSky(P: NonNullable<SkySpec['painted']>, sun: THREE.Vector3): THREE
   return tex;
 }
 
-function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D {
-  const g = c.getContext('2d');
-  if (!g) throw new Error('[sky] no 2d canvas context');
-  return g;
-}
-
-function makeCloudTexture() {
-  // tileable fbm (world/cloudField.ts): the baked bytes when the level declares the file, else marched here (the same bytes)
-  const N = CLOUD_FIELD_N;
-  const grey = bakedBytes(CLOUD_FIELD_URL, N * N) ?? cloudFieldPixels();
-  const c = document.createElement('canvas'); c.width = c.height = N;
-  const g = ctx2d(c);
-  const img = g.createImageData(N, N);
-  for (let p = 0; p < N * N; p++) { const s = grey[p] ?? 0, i = p * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = s; img.data[i + 3] = 255; }
-  g.putImageData(img, 0, 0);
-  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
-}
-
-function makePlanetTexture() {
-  const rng = new Rng(4242); // seeded: the bake (scripts/bake-textures.mjs) must be reproducible
-  const c = document.createElement('canvas'); c.width = 1024; c.height = 512;
-  const g = ctx2d(c);
-  const bands = ['#d9d3c6', '#c4b8a6', '#e6e0d4', '#b8a996', '#d2c9ba', '#a8998a', '#e3dccf', '#c9bcab'];
-  for (let y = 0; y < 512; y++) {
-    const t = y / 512;
-    const k = t * bands.length + Math.sin(t * 37) * 0.6 + Math.sin(t * 91) * 0.25;
-    const b = bands[Math.floor(Math.abs(k)) % bands.length];
-    if (b === undefined) continue;
-    g.fillStyle = b; g.globalAlpha = 0.9 + 0.1 * Math.sin(y * 0.2);
-    g.fillRect(0, y, 1024, 1);
-  }
-  g.globalAlpha = 0.18;
-  for (let i = 0; i < 90; i++) {
-    g.fillStyle = i % 3 ? '#ffffff' : '#8a7a68'; g.beginPath();
-    g.ellipse(rng.next() * 1024, rng.next() * 512, 30 + rng.next() * 140, 3 + rng.next() * 7, 0, 0, Math.PI * 2); g.fill();
-  }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+/** the cloud fbm: the baked bytes when the level declares the file, else marched here (the same bytes) */
+function makeCloudTexture(): THREE.CanvasTexture {
+  return cloudTexture(bakedBytes(CLOUD_FIELD_URL, CLOUD_FIELD_N * CLOUD_FIELD_N) ?? cloudFieldPixels());
 }
 
 function makeRingTexture() {
@@ -523,55 +488,4 @@ function makeRingTexture() {
     g.fillStyle = `rgba(${l},${l - 8},${l - 22},${Math.max(0, Math.min(1, a))})`; g.fillRect(x, 0, 1, 4);
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-}
-
-/**
- * The gas giant's bands (`ChunkSky.planet`): cream / tan / rust latitude bands with turbulent edges and
- * a few storm ovals, wrapping seamlessly in longitude (noise sampled on a circle). Seeded so the bake is
- * reproducible (scripts/bake-textures.mjs, name `giant`).
- */
-function makeGiantTexture() {
-  const W = 512, H = 256;
-  const rng = new Rng(7171), n = new Noise2D(7171);
-  const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = ctx2d(c);
-  const img = g.createImageData(W, H);
-  // colour stops down the latitude (0 = south pole … 1 = north pole)
-  const stops: [number, [number, number, number]][] = [
-    [0.0, [200, 180, 150]], [0.08, [230, 214, 184]], [0.16, [196, 156, 108]], [0.24, [240, 228, 202]], [0.3, [172, 104, 64]],
-    [0.36, [234, 218, 188]], [0.43, [208, 168, 118]], [0.5, [246, 236, 214]], [0.56, [190, 136, 90]], [0.62, [228, 208, 176]],
-    [0.7, [156, 92, 58]], [0.76, [236, 222, 196]], [0.84, [200, 164, 118]], [0.92, [224, 204, 174]], [1.0, [188, 168, 142]],
-  ];
-  const ramp = (vIn: number, out: [number, number, number]) => {
-    const v = Math.min(1, Math.max(0, vIn));
-    let i = 0; for (; i < stops.length - 2; i++) { const next = stops[i + 1]; if (!next || !(next[0] < v)) break; }
-    const s0 = stops[i], s1 = stops[i + 1];
-    if (!s0 || !s1) return;
-    const [v0, c0] = s0, [v1, c1] = s1;
-    const u = Math.min(1, Math.max(0, (v - v0) / (v1 - v0)));
-    const e = u * u * (3 - 2 * u) * 0.6 + u * 0.4; // soft-ish band edges
-    out[0] = c0[0] + (c1[0] - c0[0]) * e; out[1] = c0[1] + (c1[1] - c0[1]) * e; out[2] = c0[2] + (c1[2] - c0[2]) * e;
-  };
-  const col: [number, number, number] = [0, 0, 0];
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const u = (x / W) * Math.PI * 2, v = y / H;
-    const cu = Math.cos(u), su = Math.sin(u);
-    // turbulence: seamless in u (circle), stretched along the bands
-    const t1 = n.fbm(cu * 1.4 + v * 9.0, su * 1.4 + 3.0, 3);
-    const t2 = n.get(cu * 4.0 + v * 22.0, su * 4.0 + 11.0);
-    ramp(v + t1 * 0.035 + t2 * 0.008, col);
-    const shade = 0.96 + 0.04 * n.get(cu * 3 + v * 30, su * 3 + 5);
-    const i = (y * W + x) * 4; img.data[i] = col[0] * shade; img.data[i + 1] = col[1] * shade; img.data[i + 2] = col[2] * shade; img.data[i + 3] = 255;
-  }
-  g.putImageData(img, 0, 0);
-  // storm ovals: a couple of rust spots and pale eddies riding the bands
-  for (let i = 0; i < 14; i++) {
-    const big = i < 2;
-    g.globalAlpha = big ? 0.55 : 0.3;
-    g.fillStyle = big ? '#b0603e' : i % 3 ? '#f4eee0' : '#a97a52';
-    g.beginPath();
-    g.ellipse(rng.next() * W, H * (0.2 + rng.next() * 0.6), big ? 22 + rng.next() * 14 : 8 + rng.next() * 16, big ? 9 + rng.next() * 4 : 2.5 + rng.next() * 3, 0, 0, Math.PI * 2);
-    g.fill();
-  }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; return t;
 }

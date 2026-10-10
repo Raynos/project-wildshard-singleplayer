@@ -1112,6 +1112,36 @@
       ],
       "platform": "darwin",
       "capture": true
+    },
+    {
+      "id": "sky-textures",
+      "shard": null,
+      "entry": "scripts/bake-textures.mjs",
+      "command": [
+        "scripts/bake-textures.mjs",
+        "--all"
+      ],
+      "inputRoots": [
+        "scripts/bake-textures.mjs",
+        "scripts/bake-output.mjs",
+        "scripts/bake/skyTexturesPage.ts",
+        "src/engine/world/skyTextures.ts",
+        "src/engine/world/cloudField.ts",
+        "src/engine/core/noise.ts",
+        "src/engine/core/rng.ts",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "public/assets/baked/driftwood-isle/tex/giant.jpg",
+        "public/assets/baked/driftwood-isle/textures.json",
+        "public/assets/baked/pine-hollow/tex/clouds.jpg",
+        "public/assets/baked/pine-hollow/tex/planet.jpg",
+        "public/assets/baked/pine-hollow/textures.json"
+      ],
+      "platform": "darwin",
+      "browser": true
     }
   ]
 }

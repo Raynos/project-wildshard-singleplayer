@@ -4,8 +4,8 @@
  * for images that never change. `bakedTexture(name, make)` returns the committed image under
  * public/assets/baked/<slug>/tex/<name>.{png,jpg} when the build has it (preloaded by
  * `preloadBakedTextures()` at the head of the terrain step, counted under the `baked` byte source),
- * else runs `make()` — and with `?bakeexport=1` also registers the result so
- * scripts/bake-textures.mjs can read it back through `window.__bakeExport`.
+ * else runs `make()`. The sky's files are baked offline from the engine's pure painters
+ * (scripts/bake-textures.mjs renders `world/skyTextures.ts` on a bake page; SF87, G320); the game exports nothing.
  *
  * Contract for `make()`: the texture's `image` must be a canvas, an ImageData-backed DataTexture or
  * anything drawImage accepts; filters / wrap / colorSpace / anisotropy set on it are copied onto the
@@ -22,14 +22,11 @@ import { levelBakedId } from '../level/spec';
 import { labelAsset, labelClone } from '../render/gpuLabels';
 
 const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-export const BAKE_EXPORT = params.has('bakeexport');
 const NOBAKE = params.has('nobake');
 
 export interface BakeSpec { name: string; url: string; lossless: boolean; srgb: boolean }
-const exported = new Map<string, { texture: THREE.Texture; lossless: boolean }>();
 const loaded = new Map<string, ImageBitmap | HTMLImageElement | THREE.CompressedTexture>();
 const raw = new Map<string, Uint8Array>();
-if (typeof window !== 'undefined') Object.defineProperty(window, '__bakeExport', { get: () => exportAll() });
 
 const dir = (slug: string) => `/assets/baked/${slug}/tex/`;
 /** chunk-independent lossless bakes (raw bytes, never given phone / KTX2 copies): fetched when the level's boot declares them */
@@ -80,9 +77,9 @@ export function bakedBytes(url: string, length: number): Uint8Array | null {
 
 /**
  * The baked image as a texture (settings copied from a throw-away `make()`-free template), or
- * `make()`'s result. `lossless` picks PNG over JPEG at export (normal maps, masks).
+ * `make()`'s result.
  */
-export function bakedTexture(name: string, make: () => THREE.Texture, opts: { lossless?: boolean } = {}): THREE.Texture {
+export function bakedTexture(name: string, make: () => THREE.Texture): THREE.Texture {
   const slug = levelBakedId(activeLevel());
   const url = NOBAKE ? null : urlFor(slug, name);
   const image = url ? loaded.get(url) : undefined;
@@ -100,30 +97,6 @@ export function bakedTexture(name: string, make: () => THREE.Texture, opts: { lo
     return labelAsset(t, 'engine/bakedTexture', url ?? `generated/baked/${slug}/${name}`);
   }
   const t = make();
-  if (BAKE_EXPORT) exported.set(name, { texture: t, lossless: Boolean(opts.lossless) });
   return labelAsset(t, 'engine/bakedTexture', `generated/baked/${slug}/${name}`);
 }
 
-/** What the page baked this run, as data URLs — read by scripts/bake-textures.mjs. */
-function exportAll(): Record<string, { dataUrl: string; lossless: boolean; width: number; height: number }> {
-  const out: Record<string, { dataUrl: string; lossless: boolean; width: number; height: number }> = {};
-  for (const [name, { texture, lossless }] of exported) {
-    const img = texture.image as HTMLCanvasElement | ImageBitmap | { data: Uint8Array | Uint8ClampedArray; width: number; height: number };
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width; canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
-    if (ctx === null) throw new Error('bake export: no 2d canvas context');
-    if ('data' in img && !(img instanceof HTMLCanvasElement)) {
-      const id = ctx.createImageData(img.width, img.height);
-      const src = img.data;
-      // a DataTexture's rows start at the bottom (flipY false); a file's start at the top
-      if (texture.flipY) id.data.set(src);
-      else for (let y = 0; y < img.height; y++) id.data.set((src as Uint8Array).subarray((img.height - 1 - y) * img.width * 4, (img.height - y) * img.width * 4), y * img.width * 4);
-      ctx.putImageData(id, 0, 0);
-    } else {
-      ctx.drawImage(img, 0, 0);
-    }
-    out[name] = { dataUrl: canvas.toDataURL(lossless ? 'image/png' : 'image/jpeg', 0.92), lossless, width: img.width, height: img.height };
-  }
-  return out;
-}
