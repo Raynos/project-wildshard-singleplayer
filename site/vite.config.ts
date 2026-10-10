@@ -4,7 +4,8 @@
 // Every word on every page comes from site/COPY.md (site/tools/copy.ts fills the {{…}} slots; Jake edits that file):
 // a slot with no entry, or an entry no page uses, stops the build. Two blocks are filled from elsewhere:
 //   <!--gen:shardfile-->  the template's real shard.json, fetched from the live game (MS15)
-//   <!--gen:media-->      site/media.json: the trailer and shard loops on Blob (MS11, site/tools/publish-media.ts)
+//   <!--gen:media-->      site/media.json: the trailer and shard loops on Blob (MS11, site/tools/publish-media.ts);
+//                         %TRAILER_PHONE% puts the phone trailer straight into the <video> markup
 // It also emits /version.json, which site/tools/deploy.sh reads back. deploy.sh builds a clean export (no .git), so it
 // passes SITE_BUILD_SHA; a local build asks this checkout.
 import { defineConfig, type Plugin } from 'vite';
@@ -74,6 +75,12 @@ function generated(): Plugin {
       let out = html;
       if (out.includes('<!--gen:media-->')) {
         out = out.replace('<!--gen:media-->', JSON.stringify(JSON.parse(readFileSync(join(root, 'media.json'), 'utf8'))).replaceAll('</', String.raw`<\/`));
+      }
+      if (out.includes('%TRAILER_PHONE%')) {
+        const { trailer } = fields(JSON.parse(readFileSync(join(root, 'media.json'), 'utf8'))) ?? {};
+        const { mp4Phone } = fields(trailer) ?? {};
+        if (typeof mp4Phone !== 'string') throw new Error('site/media.json has no trailer.mp4Phone');
+        out = out.replace('%TRAILER_PHONE%', esc(mp4Phone));
       }
       if (out.includes('<!--gen:shardfile-->')) out = out.replace('<!--gen:shardfile-->', await shardfileHtml());
       if (out.includes('<!--gen:')) throw new Error('site: a <!--gen:…--> block was left unfilled');

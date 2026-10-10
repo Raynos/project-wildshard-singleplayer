@@ -58,7 +58,7 @@
 </header>
 
 <div class="trailer bk">
-  <video id="trailer" muted loop playsinline controls preload="metadata" poster="/media/trailer-alpha-poster.webp" aria-label="{{@Trailer · description}}"></video>
+  <video id="trailer" muted loop playsinline controls preload="metadata" src="%TRAILER_PHONE%" poster="/media/trailer-alpha-poster.webp" aria-label="{{@Trailer · description}}"></video>
   <button class="play-btn" id="trailer-play" type="button" hidden aria-label="{{@Trailer · play button}}">▶</button>
   <span class="tag">{{Trailer · tag}}</span>
 </div>
@@ -358,20 +358,23 @@
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function start(v, src, refused) { if (!v.src) v.src = src; var p = v.play(); if (p && p.catch) p.catch(function () { if (refused) refused(); }); }
   var trailer = document.getElementById("trailer");
-  if (trailer && media.trailer && !still) {
+  if (trailer && media.trailer) {
+    // the markup already holds the phone encode (the build writes it), so a tap on the native controls always plays; a
+    // wide screen swaps in the 1280 px one before anything has loaded
     var tsrc = wide ? media.trailer.mp4 : media.trailer.mp4Phone;
-    // the source is set at once (preload=metadata): the native controls always have a video to play, and its poster and
-    // length show; a src set only at autoplay left a tap on the native play "playing" an empty video at 0:00
-    trailer.src = tsrc;
+    if (trailer.getAttribute("src") !== tsrc) trailer.src = tsrc;
     // iOS in Low Power Mode refuses every autoplay — rejecting it, or leaving it "playing" at 0:00 without a word: either
-    // way a tap starts it, with sound
+    // way the big button starts it, with sound
     var tapBtn = document.getElementById("trailer-play");
     var refused = function () { if (trailer.currentTime === 0) { trailer.pause(); tapBtn.hidden = false; } };
     trailer.addEventListener("playing", function () { tapBtn.hidden = true; });
     tapBtn.addEventListener("click", function () { tapBtn.hidden = true; trailer.muted = false; start(trailer, tsrc, refused); });
-    var autoplay = function () { start(trailer, tsrc, refused); setTimeout(refused, 2500); };
-    if ("IntersectionObserver" in window) new IntersectionObserver(function (es, o) { es.forEach(function (e) { if (e.isIntersecting) { autoplay(); o.disconnect(); } }); }, { rootMargin: "200px" }).observe(trailer);
-    else autoplay();
+    // reduced motion: no autoplay, the poster and the controls wait for a tap
+    if (!still) {
+      var autoplay = function () { start(trailer, tsrc, refused); setTimeout(refused, 2500); };
+      if ("IntersectionObserver" in window) new IntersectionObserver(function (es, o) { es.forEach(function (e) { if (e.isIntersecting) { autoplay(); o.disconnect(); } }); }, { rootMargin: "200px" }).observe(trailer);
+      else autoplay();
+    }
   }
   document.querySelectorAll("[data-loop]").forEach(function (shot) {
     var m = media.loops && media.loops[shot.getAttribute("data-loop")];
