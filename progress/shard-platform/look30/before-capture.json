@@ -1,0 +1,144 @@
+{
+  "version": {
+    "build": "683fc79-mv2szry2",
+    "time": "2026-10-10T19:45:01.238Z"
+  },
+  "started": "2026-10-10T19:45:15.683Z",
+  "shards": {
+    "nine-dragon-stack": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "nine-dragon-stack-select": {
+          "name": "nine-dragon-stack-select",
+          "frame": {
+            "local": [
+              0.95,
+              125.02,
+              7.5
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "NdJiehuaEffect@1"
+            ],
+            "nine": {
+              "frame": [
+                0,
+                0,
+                0
+              ],
+              "cam": [
+                1,
+                126.7,
+                7.5
+              ],
+              "cardSets": 6,
+              "crowd": 303
+            }
+          },
+          "level": null
+        },
+        "nine-dragon-stack-grid-B": {
+          "name": "nine-dragon-stack-grid-B",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0.95,
+              125.02,
+              7.5
+            ],
+            "inside": "nine-dragon-stack",
+            "owner": "nine-dragon-stack",
+            "chain": {
+              "owner": "nine-dragon-stack",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                0,
+                1,
+                0.08,
+                0,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              }
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@0",
+              "NdJiehuaEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": {
+              "frame": [
+                555,
+                0,
+                -555
+              ],
+              "cam": [
+                1,
+                126.7,
+                7.5
+              ],
+              "cardSets": 6,
+              "crowd": 303
+            }
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": 0.9500049910593611,
+        "y": 125.01988032735972,
+        "z": 7.499996555814405,
+        "heading": 2.9321531433504737
+      }
+    }
+  },
+  "finished": "2026-10-10T19:46:06.926Z"
+}

@@ -1,0 +1,1039 @@
+{
+  "version": {
+    "build": "0364c6b-mv2svayi",
+    "time": "2026-10-10T19:41:32.701Z"
+  },
+  "started": "2026-10-10T19:47:06.541Z",
+  "shards": {
+    "sunscar-dunes": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "sunscar-dunes-select": {
+          "name": "sunscar-dunes-select",
+          "frame": {
+            "local": [
+              0,
+              21.3,
+              69.99
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1"
+            ],
+            "nine": null
+          },
+          "level": null
+        },
+        "sunscar-dunes-grid-B": {
+          "name": "sunscar-dunes-grid-B",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              21.3,
+              70
+            ],
+            "inside": "sunscar-dunes",
+            "owner": "sunscar-dunes",
+            "chain": {
+              "owner": "sunscar-dunes",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0.12,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.15,
+                0.9,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              },
+              "bypass": 0
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": [
+            {
+              "k": 0,
+              "uuid": "a7498eed-2f9b-48db-a25c-71227327c9ae",
+              "name": "/Object3D"
+            },
+            {
+              "k": 1,
+              "uuid": "74483381-6c26-4bb3-9b87-7e6d5993bf80",
+              "name": "/Mesh"
+            },
+            {
+              "k": 2,
+              "uuid": "4036cd95-226e-46ea-bbfa-a9779995fd9e",
+              "name": "/Group"
+            },
+            {
+              "k": 3,
+              "uuid": "91a9638b-4e13-412f-ae6d-bc3839ccadb0",
+              "name": "/Group"
+            },
+            {
+              "k": 4,
+              "uuid": "5832044f-f09c-423c-a65c-02ca18bc0985",
+              "name": "/Group"
+            },
+            {
+              "k": 5,
+              "uuid": "b409875d-d207-41cd-b032-1a515f19936c",
+              "name": "/Group"
+            },
+            {
+              "k": 6,
+              "uuid": "f10a4b2d-03d3-44c5-be3a-d710cea9b3c9",
+              "name": "/animals"
+            },
+            {
+              "k": 7,
+              "uuid": "824bd4b1-bc8f-4851-b15a-4860eec96c70",
+              "name": "/grid-boulevard"
+            },
+            {
+              "k": 8,
+              "uuid": "1781fb37-61dc-4afa-9bc1-700ecf5d79c3",
+              "name": "/grid-void"
+            },
+            {
+              "k": 9,
+              "uuid": "03ec064a-8301-4e82-9481-6e3ab5b6b379",
+              "name": "/grid-deck"
+            },
+            {
+              "k": 10,
+              "uuid": "2fb35dfe-0e9a-484c-8efb-7ee69cf47b90",
+              "name": "/grid-seam-curtain"
+            },
+            {
+              "k": 11,
+              "uuid": "34a52f4d-31df-477c-b54f-6d8c76637237",
+              "name": "/grid-soft-walls"
+            },
+            {
+              "k": 12,
+              "uuid": "60faa636-77a8-4d3c-bed0-0d355da72c43",
+              "name": "/grid-cell-screens"
+            },
+            {
+              "k": 13,
+              "uuid": "ff2a60c7-24c8-472e-be3c-47e772c49865",
+              "name": "/grid-border-shimmer"
+            },
+            {
+              "k": 14,
+              "uuid": "89bda570-f844-4363-9f1c-8aa6058051c6",
+              "name": "/grid-cell:pine-hollow"
+            },
+            {
+              "k": 15,
+              "uuid": "7169bdcf-0c4c-4f06-8e53-956d545f1d7d",
+              "name": "/grid-cell:template-2"
+            },
+            {
+              "k": 16,
+              "uuid": "621821e9-01ed-4c94-8b30-0d918a327b79",
+              "name": "/grid-cell:driftwood-isle"
+            },
+            {
+              "k": 17,
+              "uuid": "07e79f8e-899a-4ecf-a4d2-c5bc81fd7930",
+              "name": "/grid-cell:nalati-grasslands"
+            },
+            {
+              "k": 18,
+              "uuid": "aa55f6c0-1898-4e51-95d6-325c17eb6306",
+              "name": "/grid-cell:far-reach"
+            },
+            {
+              "k": 19,
+              "uuid": "d5bbbc85-55bf-450c-be72-ca7156d3dcbd",
+              "name": "/grid-cell:far-reach/far-proxy"
+            },
+            {
+              "k": 20,
+              "uuid": "81e2584f-200b-47bd-9adf-a4af3d5a4a83",
+              "name": "/grid-cell:blender-template-1"
+            },
+            {
+              "k": 21,
+              "uuid": "27a23b4a-1d7c-4a28-bc18-e57a1fbe5e41",
+              "name": "/grid-cell:pastel-plain-1"
+            },
+            {
+              "k": 22,
+              "uuid": "dd9bf967-a22f-4316-91da-cc21a23e8e39",
+              "name": "/grid-cell:nine-dragon-stack"
+            },
+            {
+              "k": 23,
+              "uuid": "7ac4596d-4530-4992-a0ad-6e6b35547174",
+              "name": "/region:sunscar-dunes"
+            },
+            {
+              "k": 24,
+              "uuid": "37b3564f-5743-4f9c-964f-47a92e5f01e2",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes"
+            },
+            {
+              "k": 25,
+              "uuid": "a3bddfd1-83f6-4ab6-b7bc-f8bde995abc1",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group"
+            },
+            {
+              "k": 26,
+              "uuid": "ef9afb3f-13b1-4739-beee-46711ca049d2",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 27,
+              "uuid": "9ea18a65-0cc4-4909-916c-25d474eb069d",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-250,-250"
+            },
+            {
+              "k": 28,
+              "uuid": "1031f68d-9dc5-4ff2-85b4-7cff12c7ad3b",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-125,-250"
+            },
+            {
+              "k": 29,
+              "uuid": "4fcb1e14-5ecf-4de0-bc84-96e4120cf513",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:0,-250"
+            },
+            {
+              "k": 30,
+              "uuid": "b092dbed-d907-4b0d-a42c-8974cf02e881",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:125,-250"
+            },
+            {
+              "k": 31,
+              "uuid": "3241f2f1-9621-404f-8fba-51e4e789d3df",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-250,-125"
+            },
+            {
+              "k": 32,
+              "uuid": "94659532-2c6e-4ef7-9746-4ce726a98206",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:125,-125"
+            },
+            {
+              "k": 33,
+              "uuid": "6108f33b-5495-4e8c-a6d6-87f62cc114b6",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-250,0"
+            },
+            {
+              "k": 34,
+              "uuid": "7016a592-3e99-4fc7-bf5d-86ad4302b605",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:125,0"
+            },
+            {
+              "k": 35,
+              "uuid": "0becdb66-e924-48b1-a61a-5c49e6d9b823",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-250,125"
+            },
+            {
+              "k": 36,
+              "uuid": "33ee9d5e-3ade-42d4-a558-9f53c4739b5c",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:125,125"
+            },
+            {
+              "k": 37,
+              "uuid": "d669543e-64fb-4c63-853d-cf3a4ec76f85",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:62.5,-125"
+            },
+            {
+              "k": 38,
+              "uuid": "b9510cb2-6281-4f07-89e5-e1782c0b0ae2",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:62.5,-62.5"
+            },
+            {
+              "k": 39,
+              "uuid": "f4d9619c-9f5d-4bb7-a487-f233b836ad4c",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:125,-62.5"
+            },
+            {
+              "k": 40,
+              "uuid": "6bcae177-869b-4f45-bf7a-c6fb62b5bcf9",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:62.5,0"
+            },
+            {
+              "k": 41,
+              "uuid": "0a494e36-ff7c-4948-aafd-6f8d9a71ddc5",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:125,0"
+            },
+            {
+              "k": 42,
+              "uuid": "82ada64b-a0b3-494f-bc39-ec6258c7e742",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:62.5,62.5"
+            },
+            {
+              "k": 43,
+              "uuid": "54419d02-41d5-435a-a63e-34fd26736801",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:125,62.5"
+            },
+            {
+              "k": 44,
+              "uuid": "5426c168-8b23-4aab-95ca-02685ded13c6",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:125,125"
+            },
+            {
+              "k": 45,
+              "uuid": "4f7e1381-9fc5-47d6-969f-538d219dc0e6",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-125,-125"
+            },
+            {
+              "k": 46,
+              "uuid": "f951f127-0c7b-4761-b40f-623a0813b461",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-62.5,-125"
+            },
+            {
+              "k": 47,
+              "uuid": "1de87b36-2183-40e5-aca9-7cacb4a75257",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:0,-125"
+            },
+            {
+              "k": 48,
+              "uuid": "671497f2-d337-4c77-ac47-8861a232ab40",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-187.5,-62.5"
+            },
+            {
+              "k": 49,
+              "uuid": "8f081f0f-ea4e-41fe-8c89-dda96cca3e1d",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-125,-62.5"
+            },
+            {
+              "k": 50,
+              "uuid": "dbffebdc-0a65-4e3a-8065-ca47fdc4bd97",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-62.5,-62.5"
+            },
+            {
+              "k": 51,
+              "uuid": "ecf09d00-1691-4305-ac75-40738796ead8",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:0,-62.5"
+            },
+            {
+              "k": 52,
+              "uuid": "e13ab7bf-d013-4c78-8048-dd45c6759eb4",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-187.5,0"
+            },
+            {
+              "k": 53,
+              "uuid": "69c929bb-407b-4388-9db3-faf7002dc5ce",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-125,0"
+            },
+            {
+              "k": 54,
+              "uuid": "41ac90ae-2dea-4bac-88a9-36ddc36ce247",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-62.5,0"
+            },
+            {
+              "k": 55,
+              "uuid": "6e80a7f0-a429-45f1-8b9e-faa668184353",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:0,0"
+            },
+            {
+              "k": 56,
+              "uuid": "4fe86507-1924-4e60-a968-f270e4ae7e25",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-187.5,62.5"
+            },
+            {
+              "k": 57,
+              "uuid": "2a82c12c-b9f5-48d3-aa4a-049c23a20623",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-125,62.5"
+            },
+            {
+              "k": 58,
+              "uuid": "828efeb4-7457-4490-908c-bb98839dcc9b",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-62.5,62.5"
+            },
+            {
+              "k": 59,
+              "uuid": "dd507d57-c505-4814-aaf2-9b2cb8cabb3c",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:0,62.5"
+            },
+            {
+              "k": 60,
+              "uuid": "2aaaa46a-741a-43d7-9864-db75660af957",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-187.5,125"
+            },
+            {
+              "k": 61,
+              "uuid": "27960ba3-1f70-4645-b0fc-eb7e30f3bb27",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-125,125"
+            },
+            {
+              "k": 62,
+              "uuid": "56e612fc-8287-4689-afcc-c45119520c0a",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-62.5,125"
+            },
+            {
+              "k": 63,
+              "uuid": "1bad172e-acf8-4ea4-a150-db449e904bf5",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:0,125"
+            },
+            {
+              "k": 64,
+              "uuid": "fac4bada-2de7-445c-8de9-9afbd466e4f1",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:62.5,125"
+            },
+            {
+              "k": 65,
+              "uuid": "581a2902-8fe0-4ec0-891c-b892c70bec09",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-125,187.5"
+            },
+            {
+              "k": 66,
+              "uuid": "2ea09b74-00f5-4565-8009-c016a40dfc31",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:-62.5,187.5"
+            },
+            {
+              "k": 67,
+              "uuid": "3d8fdd41-0d79-42fe-b015-da1f27c34199",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:0,187.5"
+            },
+            {
+              "k": 68,
+              "uuid": "bf4fea68-33a1-49f7-967a-f1ae804033be",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/Group/terrain:62.5,187.5"
+            },
+            {
+              "k": 69,
+              "uuid": "236cf539-f5e3-44d2-9342-5f8acae927b3",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals"
+            },
+            {
+              "k": 70,
+              "uuid": "300c73ce-f0ad-4108-a633-ab5207243f72",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/Group"
+            },
+            {
+              "k": 71,
+              "uuid": "66bed44e-c104-4ff8-ae2e-f3754b6ced1c",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/far-herd"
+            },
+            {
+              "k": 72,
+              "uuid": "ca43baed-17d2-4b66-8edc-a65e49e62fa4",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/herd-shadow"
+            },
+            {
+              "k": 73,
+              "uuid": "1dfb6f58-0ebb-4481-ac27-ee990be24ca1",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/SkinnedMesh"
+            },
+            {
+              "k": 74,
+              "uuid": "5eb287cf-360f-4588-b954-50ea99a388bb",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/SkinnedMesh"
+            },
+            {
+              "k": 75,
+              "uuid": "afa24952-39be-4ff9-8a66-dc5f17629288",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/SkinnedMesh"
+            },
+            {
+              "k": 76,
+              "uuid": "7729f049-d731-4192-87d0-be8bee703205",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/SkinnedMesh"
+            },
+            {
+              "k": 77,
+              "uuid": "5df30f9d-e45a-42c1-95a4-7ff30b58fba4",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/SkinnedMesh"
+            },
+            {
+              "k": 78,
+              "uuid": "1bfb78ba-caeb-4c4b-8ad4-6a1b13d855a4",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/SkinnedMesh"
+            },
+            {
+              "k": 79,
+              "uuid": "7f10760b-c9b3-4254-9e8e-62891b48ad50",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/SkinnedMesh"
+            },
+            {
+              "k": 80,
+              "uuid": "8ce42054-aa67-4133-ae9f-6db5fc0b87d6",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/SkinnedMesh"
+            },
+            {
+              "k": 81,
+              "uuid": "6d95d474-43c5-49e4-93b0-813a98812a80",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/SkinnedMesh"
+            },
+            {
+              "k": 82,
+              "uuid": "57db996e-f6a8-4391-8754-f24e32ac3d41",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/SkinnedMesh"
+            },
+            {
+              "k": 83,
+              "uuid": "8e71d0e8-43db-4d2e-9b19-3efd8e8e8928",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/animals/SkinnedMesh"
+            },
+            {
+              "k": 84,
+              "uuid": "a1c8a71d-1717-485e-a48a-1dafda364fe4",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/loot-coins"
+            },
+            {
+              "k": 85,
+              "uuid": "a2f7ad9a-9d57-4927-b80f-588685a2dd8f",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/loot-coins"
+            },
+            {
+              "k": 86,
+              "uuid": "5192480c-9fed-4c48-92db-cda2e1813c8a",
+              "name": "/region:sunscar-dunes/region-scene:sunscar-dunes/loot-coins"
+            },
+            {
+              "k": 87,
+              "uuid": "147d2a7a-a229-497a-9c23-398a57d53c3f",
+              "name": "/region:sunscar-dunes/Group"
+            },
+            {
+              "k": 88,
+              "uuid": "55d58f91-9e8b-4692-a174-bb6c28ee6c29",
+              "name": "/region:sunscar-dunes/Group"
+            },
+            {
+              "k": 89,
+              "uuid": "f9addc3d-4d2c-4b5a-bab8-a213fada34f0",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 90,
+              "uuid": "572fabfd-5330-4c3e-995c-3b0dc35f0a7c",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 91,
+              "uuid": "61b2bcfc-4a8d-4adf-94c1-c9b366b93c88",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 92,
+              "uuid": "26883dad-a353-421e-84a3-a296ced63a6b",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 93,
+              "uuid": "410fa0c4-884a-4a57-bce4-9d30016db715",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 94,
+              "uuid": "7d7a9701-6c2b-4775-a69d-c8b1a5129b81",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 95,
+              "uuid": "0c3de744-9772-447e-be1c-d6bda001436b",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 96,
+              "uuid": "c96a1749-86f7-4ebd-b272-2b0b363144a1",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 97,
+              "uuid": "6d743c6f-2336-4771-9585-db465eb12632",
+              "name": "/region:sunscar-dunes/Group/Group"
+            },
+            {
+              "k": 98,
+              "uuid": "a88434b7-6c9f-4e80-b7cc-9e757449551b",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 99,
+              "uuid": "d49a5d01-6d0c-4330-98f9-c885231a664c",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 100,
+              "uuid": "8266fe01-7945-47ef-be5d-7dae71bdb679",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 101,
+              "uuid": "1480bf0b-3abd-42c0-a061-1aabfc80edc8",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 102,
+              "uuid": "82382f88-d20e-4d89-9f55-d6ce4976874f",
+              "name": "/region:sunscar-dunes/Group/Group"
+            },
+            {
+              "k": 103,
+              "uuid": "de45f0a6-4f62-4bb1-bb63-f6fa72e973f1",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 104,
+              "uuid": "30a1055d-70cf-4e44-8aa0-e83f9b82bdc2",
+              "name": "/region:sunscar-dunes/Group"
+            },
+            {
+              "k": 105,
+              "uuid": "d073239c-80be-4bbd-b2af-9639febd67be",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 106,
+              "uuid": "aa8f7b08-4883-4453-8df5-6e0e4947f516",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 107,
+              "uuid": "f3c6c57e-ed6a-4d9e-ac43-c2a1840cc77b",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 108,
+              "uuid": "fbd09e2a-df06-424f-a89d-97b2eb5a31d3",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 109,
+              "uuid": "2a003dc3-2831-402d-9e64-42f685752934",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 110,
+              "uuid": "39c2c32b-5131-45fc-899b-27ab7d0ba997",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 111,
+              "uuid": "352ea75b-8b58-48d7-9c08-8ca0f5a63583",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 112,
+              "uuid": "47a5af04-958b-4346-8da6-b5ace1327c10",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 113,
+              "uuid": "b50a7c9b-d194-48da-b26a-d4e7cca7d7b6",
+              "name": "/region:sunscar-dunes/Group/Group"
+            },
+            {
+              "k": 114,
+              "uuid": "15bdd636-e0f9-4fa6-8890-08ed5072e31b",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 115,
+              "uuid": "f61639c4-0c0c-47e9-8cf9-e9f8fcb2d20a",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 116,
+              "uuid": "af7ed268-6082-4897-ad4d-e6860b00b71f",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 117,
+              "uuid": "0fbe4fec-2005-47d6-b867-44f2dcd0032d",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 118,
+              "uuid": "3850f915-d581-4656-8f0b-c0e406e9da80",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 119,
+              "uuid": "cf9e56e0-751c-4aa7-9750-68add8e8142f",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 120,
+              "uuid": "6a8effd3-f88f-4dd5-83b1-07df9179060b",
+              "name": "/region:sunscar-dunes/Group"
+            },
+            {
+              "k": 121,
+              "uuid": "1ef38f5f-c42a-4462-b9f8-dab2b3a31c37",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 122,
+              "uuid": "0f7fc0e0-2396-4025-bbc7-5cccdc6146ad",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 123,
+              "uuid": "44976740-a24f-4828-b48b-533a49df05bf",
+              "name": "/region:sunscar-dunes/Group/Group"
+            },
+            {
+              "k": 124,
+              "uuid": "c73e03bd-9468-4d8f-a7a8-6076897d8541",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 125,
+              "uuid": "8afdd698-8e13-42d9-afbb-d88a304c86fa",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 126,
+              "uuid": "36ddd482-9ffe-4126-be87-35bf000894c8",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 127,
+              "uuid": "6055e904-f7b2-449b-b571-35278f7621ff",
+              "name": "/region:sunscar-dunes/Group"
+            },
+            {
+              "k": 128,
+              "uuid": "5aaf13ac-dc23-4805-a57b-d6b52f1f2a4f",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 129,
+              "uuid": "0216068c-8f89-4ed5-920d-944bf2744c2e",
+              "name": "/region:sunscar-dunes/Group"
+            },
+            {
+              "k": 130,
+              "uuid": "8d9ac721-7364-4917-a07e-9c401124ed6e",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 131,
+              "uuid": "b2590d1b-979f-4284-aec9-3aa399b88a6a",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 132,
+              "uuid": "2a844f10-ee85-4acf-84d5-5bcc0af296b6",
+              "name": "/region:sunscar-dunes/Group/Mesh"
+            },
+            {
+              "k": 133,
+              "uuid": "90d7c3cc-8743-4619-93e7-1c96a15a3ec8",
+              "name": "/region:sunscar-dunes/Group"
+            },
+            {
+              "k": 134,
+              "uuid": "30ab06b8-d869-4c59-87be-373abe0f91d4",
+              "name": "/region:sunscar-dunes/Group/Group"
+            },
+            {
+              "k": 135,
+              "uuid": "d8168e3a-11ac-442d-a2cf-089fabd9225a",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 136,
+              "uuid": "4f0b0405-2dab-4aea-ac9e-380eee4a9138",
+              "name": "/region:sunscar-dunes/Group/Group"
+            },
+            {
+              "k": 137,
+              "uuid": "421ac2a1-f952-4139-95e0-07b6b4314973",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 138,
+              "uuid": "cccb13e9-ce4c-470d-b5c8-9a42335adfd7",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 139,
+              "uuid": "050e4ac7-780b-4c59-b5cb-798b3e17365c",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 140,
+              "uuid": "6422e0d7-7eb1-4083-ac78-50e0dface09c",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 141,
+              "uuid": "d1d86b8a-a7b7-4cde-a96a-2dab1167f1a0",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 142,
+              "uuid": "d5ee7bbb-29a3-44de-b577-e97fcafa540c",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 143,
+              "uuid": "abcecaa4-1a33-4fc8-926e-5cb978c7cade",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 144,
+              "uuid": "0245a6e1-2cf4-4ba0-9260-083dbe6c2184",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 145,
+              "uuid": "d4d7ba44-91bc-4f98-8828-8b39f8c41eea",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 146,
+              "uuid": "7c1ebd7d-011c-4af4-af80-5838aa958c44",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 147,
+              "uuid": "3ad7ea62-a46f-4e23-b030-ee6bc3dc52f6",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 148,
+              "uuid": "48446716-f18a-4af2-8a37-54b09a12d524",
+              "name": "/region:sunscar-dunes/Group"
+            },
+            {
+              "k": 149,
+              "uuid": "0268a1d2-b176-43e7-ac8c-8a12564ff18b",
+              "name": "/region:sunscar-dunes/Group/Group"
+            },
+            {
+              "k": 150,
+              "uuid": "556706c5-2ea1-4925-867f-200be4ebe26e",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 151,
+              "uuid": "e246deed-698f-4d2e-a4ff-ada93c05592e",
+              "name": "/region:sunscar-dunes/Group/Group"
+            },
+            {
+              "k": 152,
+              "uuid": "9edce266-361a-40e8-9df0-ed51fd3f4286",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 153,
+              "uuid": "67d35059-58ca-4e88-a68c-017c602f6dce",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 154,
+              "uuid": "4b17baab-beaf-4154-b9ea-878a2ef2d756",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 155,
+              "uuid": "f4926020-4fab-4ea7-a425-9f0e0296528e",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 156,
+              "uuid": "50ea2a8b-d9ff-4037-a740-9cf498dfaec9",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 157,
+              "uuid": "695fcc6d-20af-4908-9d7a-d313376a0d9b",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 158,
+              "uuid": "046da5ce-07ab-4fd5-94a2-218c7d05134a",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 159,
+              "uuid": "c104dbf0-3047-41fa-b862-e5a61dff9d43",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 160,
+              "uuid": "b37da390-0612-4d58-979b-c39ddebed146",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 161,
+              "uuid": "375f61e8-fe4f-4e58-b748-a70c32584fb3",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 162,
+              "uuid": "e666851f-20be-4f34-aadd-b499d269a940",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 163,
+              "uuid": "094ae442-39c5-461d-bb4e-0bde657b43db",
+              "name": "/region:sunscar-dunes/Group"
+            },
+            {
+              "k": 164,
+              "uuid": "75bbbd8b-ea02-4ecb-9f40-09fce32efcb1",
+              "name": "/region:sunscar-dunes/Group/Group"
+            },
+            {
+              "k": 165,
+              "uuid": "34771bec-4574-4099-92ff-de075f0bc34b",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 166,
+              "uuid": "75ae2c99-e68d-44d3-94e8-2d85a9d1e6c5",
+              "name": "/region:sunscar-dunes/Group/Group"
+            },
+            {
+              "k": 167,
+              "uuid": "9b543988-bda8-4a6c-b52f-c971106813a2",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 168,
+              "uuid": "d6695181-e605-4e42-ad0e-5fac994b044d",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 169,
+              "uuid": "6f2f91ca-92da-47b8-8cd9-75b6024e663f",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 170,
+              "uuid": "bc814053-e84a-43f0-950c-38ff55e0ca99",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 171,
+              "uuid": "1d750079-a01d-4fa9-b214-6ec358219cc9",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 172,
+              "uuid": "0017f43c-13f2-4b62-99f7-d5a5ba37488d",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 173,
+              "uuid": "309164e6-3337-4471-b007-e21308ac9b04",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 174,
+              "uuid": "3844da59-1342-4721-bfbe-6cb3d6a6a087",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 175,
+              "uuid": "dc996e66-d0ae-4ada-adca-ce7afd57e428",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 176,
+              "uuid": "53165323-2c44-4ed2-8ae1-96055c8b2f51",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 177,
+              "uuid": "2b53a778-1768-41fe-8445-ffeb8d16ff00",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 178,
+              "uuid": "6f367006-855c-4d48-a46c-2d7af8d31dd7",
+              "name": "/region:sunscar-dunes/Group"
+            },
+            {
+              "k": 179,
+              "uuid": "38446982-a16c-4b25-9669-dc4be66f76d5",
+              "name": "/region:sunscar-dunes/Group/Group"
+            },
+            {
+              "k": 180,
+              "uuid": "ba51135b-fb1a-4b1a-843a-1fa59ab9f008",
+              "name": "/region:sunscar-dunes/Group/Group/Mesh"
+            },
+            {
+              "k": 181,
+              "uuid": "c3fb4a9f-31ca-4cd5-a561-f2144ad7d945",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            },
+            {
+              "k": 182,
+              "uuid": "0e71abee-1bac-43fe-b4d3-a387770b5f5b",
+              "name": "/region:sunscar-dunes/Group/Group/Group"
+            }
+          ]
+        }
+      },
+      "pose": {
+        "x": 0.0021537231455113215,
+        "y": 21.30245255466477,
+        "z": 69.99615744925632,
+        "heading": -3.141592653589793
+      }
+    }
+  },
+  "finished": "2026-10-10T19:49:06.005Z"
+}

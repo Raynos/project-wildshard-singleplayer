@@ -1,0 +1,196 @@
+{
+  "version": {
+    "build": "0364c6b-mv2svayi",
+    "time": "2026-10-10T19:41:32.701Z"
+  },
+  "started": "2026-10-10T19:52:59.317Z",
+  "shards": {
+    "_template": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "_template-select": {
+          "name": "_template-select",
+          "frame": {
+            "local": [
+              0,
+              -0.33,
+              0
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1"
+            ],
+            "nine": null
+          },
+          "level": null
+        },
+        "_template-grid-A": {
+          "name": "_template-grid-A",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              -0.33,
+              0
+            ],
+            "inside": "template-2",
+            "owner": "template-2",
+            "chain": {
+              "owner": null,
+              "weight": 0,
+              "lut": false,
+              "values": [
+                0.3,
+                0,
+                0.2,
+                0,
+                0
+              ],
+              "post": [
+                0.4,
+                1,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              },
+              "bypass": 0
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@0",
+              "BrightnessContrastEffect@0",
+              "GradeEffect@0",
+              "GradeLookEffect@0",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        },
+        "_template-grid-B": {
+          "name": "_template-grid-B",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              -0.33,
+              0
+            ],
+            "inside": "template-2",
+            "owner": "template-2",
+            "chain": {
+              "owner": null,
+              "weight": 0,
+              "lut": false,
+              "values": [
+                0.3,
+                0,
+                0.2,
+                0,
+                0
+              ],
+              "post": [
+                0.4,
+                1,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              },
+              "bypass": 0
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@0",
+              "BrightnessContrastEffect@0",
+              "GradeEffect@0",
+              "GradeLookEffect@0",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": null
+          },
+          "probes": []
+        }
+      },
+      "selectEntry": "shardfile",
+      "pose": {
+        "x": 0.0015032327244171029,
+        "y": -0.3295741346591967,
+        "z": 0.0015009228116014128,
+        "heading": -3.141592653589793
+      }
+    }
+  },
+  "finished": "2026-10-10T19:53:59.147Z"
+}

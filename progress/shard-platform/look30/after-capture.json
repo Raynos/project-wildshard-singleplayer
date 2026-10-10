@@ -1,0 +1,444 @@
+{
+  "version": {
+    "build": "0364c6b-mv2svayi",
+    "time": "2026-10-10T19:41:32.701Z"
+  },
+  "started": "2026-10-10T19:41:47.890Z",
+  "shards": {
+    "nine-dragon-stack": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "nine-dragon-stack-select": {
+          "name": "nine-dragon-stack-select",
+          "frame": {
+            "local": [
+              0.95,
+              125.02,
+              7.5
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "NdJiehuaEffect@1"
+            ],
+            "nine": {
+              "frame": [
+                0,
+                0,
+                0
+              ],
+              "cam": [
+                1,
+                126.7,
+                7.5
+              ],
+              "cardSets": 6,
+              "crowd": 303
+            }
+          },
+          "level": null
+        },
+        "nine-dragon-stack-grid-A": {
+          "name": "nine-dragon-stack-grid-A",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0.95,
+              125.02,
+              7.5
+            ],
+            "inside": "nine-dragon-stack",
+            "owner": "nine-dragon-stack",
+            "chain": {
+              "owner": "nine-dragon-stack",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0.1,
+                0,
+                0.1,
+                0,
+                0
+              ],
+              "post": [
+                0.6,
+                0.9,
+                0.3,
+                0.55,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": "nine-dragon-stack",
+                "weight": 1,
+                "vol": [
+                  1,
+                  0.3
+                ],
+                "chroma": 0.0006,
+                "grain": 0.12,
+                "target": [
+                  402,
+                  681
+                ],
+                "depth": "scene",
+                "sceneDepth": true
+              },
+              "bypass": 0
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@1",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@0",
+              "NoiseEffect@0.12",
+              "GridFrameGrade@1"
+            ],
+            "nine": {
+              "frame": [
+                555,
+                0,
+                -555
+              ],
+              "cam": [
+                1,
+                126.7,
+                7.5
+              ],
+              "cardSets": 6,
+              "crowd": 0
+            }
+          },
+          "probes": []
+        },
+        "nine-dragon-stack-grid-B": {
+          "name": "nine-dragon-stack-grid-B",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0.95,
+              125.02,
+              7.5
+            ],
+            "inside": "nine-dragon-stack",
+            "owner": "nine-dragon-stack",
+            "chain": {
+              "owner": "nine-dragon-stack",
+              "weight": 1,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                0,
+                1,
+                0.08,
+                0,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              },
+              "bypass": 1
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@0",
+              "VolumetricsEffect@0",
+              "BloomEffect@0",
+              "VignetteEffect@0",
+              "ToneMappingEffect@0",
+              "NdJiehuaEffect@1",
+              "HueSaturationEffect@0",
+              "BrightnessContrastEffect@0",
+              "GradeEffect@0",
+              "GradeLookEffect@0",
+              "LUT3DEffect@0",
+              "NoiseEffect@0",
+              "GridFrameGrade@0"
+            ],
+            "nine": {
+              "frame": [
+                555,
+                0,
+                -555
+              ],
+              "cam": [
+                1,
+                126.7,
+                7.5
+              ],
+              "cardSets": 6,
+              "crowd": 303
+            }
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": 0.9500049900781913,
+        "y": 125.0198799542195,
+        "z": 7.49999659289979,
+        "heading": 2.9321531433504737
+      }
+    },
+    "_template": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {},
+      "failures": [
+        "select: page.waitForFunction: Timeout 240000ms exceeded.\n    at enterFromSelect (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look30/capture.mjs:128:14)\n    at async standalone (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look30/capture.mjs:141:84)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look30/capture.mjs:281:26",
+        "off: page.evaluate: TypeError: Cannot read properties of undefined (reading 'x')\n    at look (eval at evaluate (:311:30), <anonymous>:4:27)\n    at eval (eval at evaluate (:311:30), <anonymous>:9:20)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at poseAt (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look30/capture.mjs:52:34)\n    at gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look30/capture.mjs:188:11)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look30/capture.mjs:281:26",
+        "on: page.evaluate: TypeError: Cannot read properties of undefined (reading 'x')\n    at look (eval at evaluate (:311:30), <anonymous>:4:27)\n    at eval (eval at evaluate (:311:30), <anonymous>:9:20)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at poseAt (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look30/capture.mjs:52:34)\n    at gridHome (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look30/capture.mjs:188:11)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/look30/capture.mjs:281:26"
+      ]
+    },
+    "far-reach": {
+      "errors": [],
+      "consoleErrors": 0,
+      "consoleSamples": [],
+      "shots": {
+        "far-reach-select": {
+          "name": "far-reach-select",
+          "frame": {
+            "local": [
+              0,
+              30.02,
+              -5.5
+            ],
+            "inside": null,
+            "owner": null,
+            "chain": null,
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "GodRaysEffect@0.12",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "LUT3DEffect@1"
+            ],
+            "nine": {
+              "camNoRoot": 1,
+              "camNoRootNames": [
+                "far.meadow"
+              ]
+            }
+          },
+          "level": null
+        },
+        "far-reach-grid-A": {
+          "name": "far-reach-grid-A",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              30.02,
+              -5.5
+            ],
+            "inside": "far-reach",
+            "owner": "far-reach",
+            "chain": {
+              "owner": "far-reach",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.35,
+                0.7,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              },
+              "bypass": 0
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": {
+              "camNoRoot": 1,
+              "camNoRootNames": [
+                "far.meadow"
+              ]
+            }
+          },
+          "probes": []
+        },
+        "far-reach-grid-B": {
+          "name": "far-reach-grid-B",
+          "home": false,
+          "route": [],
+          "frame": {
+            "local": [
+              0,
+              30.02,
+              -5.5
+            ],
+            "inside": "far-reach",
+            "owner": "far-reach",
+            "chain": {
+              "owner": "far-reach",
+              "weight": 1,
+              "lut": true,
+              "values": [
+                0,
+                0,
+                0.12,
+                0,
+                0
+              ],
+              "post": [
+                0.35,
+                0.7,
+                0.08,
+                0.35,
+                -1,
+                -1
+              ],
+              "fx": {
+                "carrier": null,
+                "weight": 0,
+                "vol": [
+                  0,
+                  0.55
+                ],
+                "chroma": 0,
+                "grain": 0,
+                "target": [
+                  1,
+                  1
+                ],
+                "depth": "scene",
+                "sceneDepth": false
+              },
+              "bypass": 0
+            },
+            "passes": [
+              "RenderPass",
+              "EffectPass",
+              "EffectPass"
+            ],
+            "colour": [
+              "ChromaticAberrationEffect@1",
+              "VolumetricsEffect@0",
+              "BloomEffect@1",
+              "VignetteEffect@1",
+              "ToneMappingEffect@0",
+              "SkyNeutralToneEffect@1",
+              "HueSaturationEffect@1",
+              "BrightnessContrastEffect@1",
+              "GradeEffect@1",
+              "GradeLookEffect@1",
+              "LUT3DEffect@1",
+              "NoiseEffect@0",
+              "GridFrameGrade@1"
+            ],
+            "nine": {
+              "camNoRoot": 1,
+              "camNoRootNames": [
+                "far.meadow"
+              ]
+            }
+          },
+          "probes": []
+        }
+      },
+      "pose": {
+        "x": -0.0000013435500600678107,
+        "y": 30.019945004343754,
+        "z": -5.5000225281035515,
+        "heading": -3.141592653589793
+      }
+    }
+  },
+  "finished": "2026-10-10T19:48:48.746Z"
+}
