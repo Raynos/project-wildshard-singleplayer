@@ -922,6 +922,158 @@
       ],
       "platform": "darwin",
       "capture": true
+    },
+    {
+      "id": "signal-rigs",
+      "shard": "sunscar-dunes",
+      "entry": "src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs",
+        "--generation-shard=sunscar-dunes"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/sunscar-dunes",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "scripts/generation-level.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/sunscar-dunes",
+        "public/assets/baked/sunscar-dunes/terrain.bin",
+        "lint/runtime-performance.mjs"
+      ],
+      "outputs": [
+        "public/assets/sunscar-dunes/rigs/skitterer.glb"
+      ],
+      "platform": "darwin",
+      "seedOutputs": []
+    },
+    {
+      "id": "signal-sand",
+      "shard": "sunscar-dunes",
+      "entry": "src/shards/sunscar-dunes/generators/bake-signal-sand.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/sunscar-dunes/generators/bake-signal-sand.mjs",
+        "--generation-shard=sunscar-dunes"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/sunscar-dunes",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "scripts/generation-level.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/sunscar-dunes",
+        "public/assets/baked/sunscar-dunes/terrain.bin",
+        "lint/runtime-performance.mjs"
+      ],
+      "outputs": [
+        "public/assets/sunscar-dunes/sand/shadow.bin",
+        "public/assets/sunscar-dunes/sand/trail.bin",
+        "public/assets/sunscar-dunes/sand/grain.bin",
+        "src/shards/sunscar-dunes/data/sand.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/sunscar-dunes/data/sand.json"
+      ]
+    },
+    {
+      "id": "signal-world",
+      "shard": "sunscar-dunes",
+      "entry": "src/shards/sunscar-dunes/generators/bake-signal-world.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/sunscar-dunes/generators/bake-signal-world.mjs",
+        "--generation-shard=sunscar-dunes"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/sunscar-dunes",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "scripts/generation-level.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/sunscar-dunes",
+        "public/assets/baked/sunscar-dunes/terrain.bin",
+        "lint/runtime-performance.mjs"
+      ],
+      "outputs": [
+        "public/assets/sunscar-dunes/baked/rocks.glb",
+        "public/assets/sunscar-dunes/baked/dressing.glb",
+        "public/assets/sunscar-dunes/baked/tower.glb",
+        "public/assets/sunscar-dunes/baked/caravan.glb",
+        "public/assets/sunscar-dunes/baked/well.glb",
+        "src/shards/sunscar-dunes/data/rocks.json",
+        "src/shards/sunscar-dunes/data/dressing.json",
+        "src/shards/sunscar-dunes/data/tower.json",
+        "src/shards/sunscar-dunes/data/caravan.json",
+        "src/shards/sunscar-dunes/data/well.json",
+        "src/shards/sunscar-dunes/data/braziers.json"
+      ],
+      "platform": "darwin",
+      "seedOutputs": [
+        "src/shards/sunscar-dunes/data/rocks.json",
+        "src/shards/sunscar-dunes/data/dressing.json",
+        "src/shards/sunscar-dunes/data/tower.json",
+        "src/shards/sunscar-dunes/data/caravan.json",
+        "src/shards/sunscar-dunes/data/well.json",
+        "src/shards/sunscar-dunes/data/braziers.json"
+      ]
+    },
+    {
+      "id": "signal-physics",
+      "shard": "sunscar-dunes",
+      "entry": "src/shards/sunscar-dunes/generators/bake-signal-physics.mjs",
+      "command": [
+        "src/shards/sunscar-dunes/generators/bake-signal-physics.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/sunscar-dunes",
+        "scripts",
+        "public",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/sunscar-dunes/runtime/physics.baked.json"
+      ],
+      "platform": "darwin",
+      "capture": true
     }
   ]
 }
