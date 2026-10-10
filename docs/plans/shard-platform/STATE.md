@@ -1,70 +1,73 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-09 22:55 CT.** Councils done. Part A only.
+**2026-10-10 00:20 CT.** Councils done. Part A only.
 
 **Milestones:**
 - **M1:** done.
-- **M2:** open. SF22: the first full circuit (6 entries + home) has zero errors (`690ac390e`), but Pine departure is 39.3 ms and drawn p95 33.4 ms under load 20–38. The env-map warm-up `1112e45b3` is under test. The memory verdict is Jake's G269 phone runs.
+- **M2:**
+  - **SF22 desktop PASS** (`63636a567`, matched 1c807de6b, 6 entries / 12 crossings, 0 errors): max crossing 32.7 ms, entry ≤ 0.2 ms, activation ≤ 5.9 ms, cadence p95 equal to standing (within one 0.1 ms quantum, a coordinator ruling), 0 on-demand compiles (warm-up tasks ≤ 50 ms, a coordinator ruling).
+  - Pine's margin is only 0.3 ms; sp-x5 is widening it.
+  - The Simulator honestly refuses image Pine; the memory verdict is Jake's G269 phone runs.
 - **M3:** open. 1 of 7 at 80/20.
 
-**Live:** production `7e1f3d40` (02:52 UTC), with SF75, the grid-approach fixes and the legacy copies' bakes `d486d5dde`. Origin `9f2dd6d0e`.
+**Live:** production `0a9f6a98` (04:49 UTC).
 
 **80/20 (share · compatible):**
 
 | Shard | Share | Compatible |
 |---|---|---|
 | Template 1 | 90.4 % | ✓ |
-| Nine | 63.7 % | ✓ |
+| Nine | 65.5 % | ✓ |
 | Signal | 30.5 % | ✓ |
-| Sky | 20.7 % | ✓ |
-| Pine | 18.1 % | ✗ |
-| Nalati | 12.9 % | ✗ |
-| Driftwood | 10.3 % | ✗ |
-
-**Generic SDK / game systems built tonight:**
-- Looks: shaderFamily, renderPass, keyedSky, facetedSky, cascade, gullFlock, strandCloth, signs, canvasAtlas.
-- Kits: kit/*, cull/*.
-- Species: riggedHulls, limbRig.
-- Weapons: magazineFirearm, boltCrossbow, leverFirearm, mountedSword, rewardBow, javelinSpear, weaponHooks (AS).
-- Player modes (SF34, browser + headless + water).
+| Sky | 29.5 % | ✓ |
+| Pine | 19.5 % | ✗ |
+| Nalati | 12.8 % | ✗ |
+| Driftwood | 11.3 % | ✗ |
 
 **Rows:**
-- **SF36:** done. Allowlist empty, every G140 weapon a row, first admitted AS hook (sabre); javelin stick bug fixed `91d748a7d`.
-- **SF34:** engine done. Shard wiring is with the owners; template / headless traversal still left.
-- **SF63:** grid parity: Pine clouds and Nalati daylight fixed `c784f7151`; the point-light-count program variants are the open trade.
+- **SF36:** done.
+- **SF34:** engine + Nalati / Driftwood water wired; the template and headless traversal are left.
+- **SF59:**
+  - Graph files, presets, post stack, post bindings and the grid post-pair refusal are landed.
+  - Pastel Plain fixture registered (c62cee622); the graphs-on boot bug is with op-g169c.
+  - Ink valley: op-g169b.
+- **SF63:** Pine clouds and Nalati daylight fixed; the point-light program variants are an open trade.
 
 **Codex lanes:**
-- **sp-x1:** Nalati witness.
-- **sp-x2:** Pine witness.
-- **sp-x4:** Driftwood headless + water.
-- **sp-x5:** SF22.
-- **sp-x6:** Driftwood static bakes.
+- **sp-x1:** Nalati.
+- **sp-x2:** Pine.
+- **sp-x4:** Driftwood headless.
+- **sp-x5:** SF22 margin.
+- **sp-x6:** Driftwood bakes.
 
 **Opus lanes:**
-- **op-nine12:** Nine.
-- **op-pine84:** Pine.
-- **op-nalati85:** Nalati.
-- **op-drift81:** Driftwood.
-- **op-sf59:** material graphs.
+- **op-pine85:** Pine.
+- **op-sky82:** Sky bakes + map determinism.
+- **op-signal80:** Signal.
+- **op-g169b / op-g169c:** SF59 fixture shards.
 
 **Unowned:**
-- Sky / Signal M3.
+- Driftwood view (next free slot).
 - SF24 / SF27 / SF26.
 - SF28 RideHUD (E332).
-- SF66 map image in the shardfile.
-- Quantized cross-platform bakes.
-- SF67 residuals.
+- SF66 map image.
+- Quantized bakes.
 
-**Decisions (coordinator):**
-- Nalati's dressing-plan bake was refused: 3.2 MB for 2.2 points is a net loss on phone loads.
+**Process notes:**
+- Parity harnesses need the capture clock (`ed70f77d1`).
+- Lanes share one session id, so set `SERVE_OWNER` (`03d4676c2`).
+- A push-main cap exit (75) is not red (`de9e65f63`).
+- Undocumented API is capped, so doc every export.
+
+**Decisions:**
+- Nalati's dressing-plan bake refused (3.2 MB for 2.2 points).
+- Nalati's places bake accepted (2.6 MB for about 4 s of phone CPU).
 - Weapon hooks share the "Shard directors (data)" row.
 
-**Incident:** a bake run in the shared tree overwrote the foreign jian WIP's uncommitted Nine `physics.baked.json`. It's regenerable; the jian work must rebake.
-
 **Jake:**
-- **SF67:** create the AudioContext on the first tap? Pick.
-- **SF63:** Driftwood grid shadows: Debug ▸ Look ▸ "Grid cell shadows" Tight, +25 MB; board `art/sf63/round-1-driftwood-shadows/board-ab.jpg`. Pick.
+- **SF67:** AudioContext on the first tap? Pick.
+- **SF63:** Driftwood grid shadows "Tight", +25 MB; board `art/sf63/round-1-driftwood-shadows/board-ab.jpg`. Pick.
 - **G269:** phone runs.
 - **G260:** Blender board.
-- **Sky:** isles are random per session. Pick.
-- **Public Pine / Nalati:** they still boot the legacy copies. Recommendation: flip each to shardfile once it passes boot / walk / parity.
+- **Sky:** random isles. Pick.
+- **Public Pine / Nalati:** flip them off the legacy copies once each passes boot / walk / parity.
