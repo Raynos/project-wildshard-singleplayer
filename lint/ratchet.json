@@ -252,8 +252,6 @@
     "src/shards/pine-hollow/boot/files.ts": 16,
     "src/shards/pine-hollow/compendium.ts": 1,
     "src/shards/pine-hollow/life/birdModels.ts": 2,
-    "src/shards/pine-hollow/look/skyBackdrop.ts": 4,
-    "src/shards/pine-hollow/look/skyKeys.ts": 2,
     "src/shards/pine-hollow/models/birds.ts": 1,
     "src/shards/pine-hollow/models/people.ts": 1,
     "src/shards/pine-hollow/models/skinningKnife.ts": 2,
