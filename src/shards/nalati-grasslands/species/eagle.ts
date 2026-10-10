@@ -1,7 +1,7 @@
 import { eliteThink, eliteAct, eliteDamageMul } from '@wildshard/engine/entities/eliteBrain';
 import type { SpeciesDef, AnimalSpecies, VariantDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, smooth01, clamp } from '@wildshard/engine/entities/species/rigs';
-import { engineString } from '@wildshard/engine/strings';
+import { EAGLE_DATA } from '../data/species/eagle';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 import type * as THREE from 'three';
@@ -60,20 +60,13 @@ function animateEagle(c: RigAnimCtx): void {
   b.head.rotation.set(0.2 * fold - 0.3 * ground + 0.1 * Math.sin(c.t * 2 + c.seed), 0.3 * Math.sin(c.t * 0.7 + c.seed), 0);
 }
 
+const { id: _id, brain: _brain, ...body } = EAGLE_DATA;
 export const EAGLE_SPECIES: SpeciesDef = {
-  lockable: true,
+  ...body,
   rigContract: { skeleton: 'eagle.v1', clips: [], sockets: ['body', 'head'] },
   kind: EAGLE,
-  label: engineString('s_c0752fe7f23a'),
   fur: NO_FUR,
   rig: 'custom',
-  aggressive: true,
-  walkSpeed: 0.5,
-  chargeDamage: 30,
-  sounds: { call: 'eagle_cry', hurt: 'eagle_cry', callEvery: [8, 18] }, // its own cry, not Driftwood's monkey (NALATI-MERGE F6)
-  variants: [
-    { id: 'qyran', label: engineString('s_d1761c145199'), weight: 1, rarity: 'legendary', scale: [3, 3], hp: 600 },
-  ],
   build: buildEagle,
   animate: animateEagle,
   tick: 'ai',

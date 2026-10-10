@@ -1,4 +1,5 @@
 import { AqbarsKeeper } from '../runtime/aqbarsKeeper';
+import { QyranKeeper } from '../runtime/qyranKeeper';
 import { KokboriKeeper } from '../runtime/kokboriKeeper';
 import { ArgymaqKeeper } from '../runtime/argymaqKeeper';
 import { NALATI_STRIKES, sampleStrike } from './strikes';
@@ -106,7 +107,7 @@ interface Env {
   sound: (name: EliteSound, at: THREE.Vector3) => void;
 }
 
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _h = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
+const _h = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 
 /** out of the world for good: hidden, out of the manager's list (minimap, prompts, aim assist) */
 function retire(animals: AnimalManager, a: Animal): void {
@@ -230,14 +231,9 @@ class Kokbori extends Base {
 
 // ─────────────────────────────── E3 · Qyran the Storm-Wing ───────────────────────────────
 
-type QySt = 'soar' | 'tell' | 'stoop' | 'ground' | 'climb';
 class Qyran extends Base {
-  private st: QySt = 'soar';
-  private stT = 0; private stoopT = 8; private ang = 0;
-  private centre = new THREE.Vector3(); private tgt = new THREE.Vector3();
-  private line: THREE.Mesh; private lineMat: FxMaterial;
-  /** engaged: he circles over YOU, 24 m (phase 2: 36 m) above your head — not over the rock's top, a speck from its foot */
-  private overYou = false;
+  private readonly line: THREE.Mesh; private readonly lineMat: FxMaterial;
+  private readonly keeper: QyranKeeper<Animal>;
   constructor(def: EliteDef, env: Env) {
     super(def, env);
     const g = new THREE.CylinderGeometry(0.05, 0.05, 1, 6, 1, true); g.translate(0, 0.5, 0);
@@ -245,98 +241,22 @@ class Qyran extends Base {
     this.lineMat.depthTest = false;
     this.line = new THREE.Mesh(g, this.lineMat); this.line.visible = false; this.line.frustumCulled = false; this.line.renderOrder = 31;
     env.game.scene.add(this.line);
-  }
-  private cruise(): number {
-    if (!this.overYou) return EAGLE_ROCK.top + (this.p2 ? 52 : 34);
-    // over you — but never inside the rock's flank the orbit swings across: 18 m clear of the ground under him
-    const a = this.animal, over = a ? heightAt(a.position.x, a.position.z) + 18 : -Infinity;
-    return Math.max(this.env.player.position.y + (this.p2 ? 36 : 24), over);
+    this.keeper = new QyranKeeper({ player: env.player, rock: EAGLE_ROCK, phase2: () => this.p2,
+      heightAt, wind: () => wildEnv.wind, random: () => app.rng.stream('ai').next(), isHead,
+      tell: { setTime: time => { this.lineMat.uniforms.uTime.value = time; },
+        aim: (from, to, alpha) => { this.aim(from, to, alpha); }, chevron: point => { env.bar.chevron(point, env.game.camera); },
+        hide: () => { this.line.visible = false; } },
+      hurt: env.hurt, knock: env.knock, feed: env.feed, sound: env.sound, signature: () => { this.sig(); } });
   }
   override spawn(): void {
-    this.centre.set(EAGLE_ROCK.x, 0, EAGLE_ROCK.z);
-    const a = this.spawnAt(EAGLE, 'qyran', EAGLE_ROCK.x + 26, EAGLE_ROCK.z, 0);
-    a.mem['altY'] = this.cruise(); a.mem['flap'] = 0.3;
-    this.st = 'soar'; this.stoopT = 8;
+    const a = this.spawnAt(EAGLE, 'qyran', EAGLE_ROCK.x + 26, EAGLE_ROCK.z, 0); this.keeper.spawned(a);
   }
-  override despawn(): void { this.line.visible = false; this.env.bar.chevron(null, this.env.game.camera); super.despawn(); }
-  override reset(): void { super.reset(); this.st = 'climb'; this.line.visible = false; }
-  protected override damage(a: Animal, p: THREE.Vector3): number {
-    if (this.st === 'ground') return isHead(a, p) ? 1 : 2.5;       // grounded: every hit a headshot
-    return 1;
-  }
-  protected override think(a: Animal, c: ThinkCtx): void { a.lookTarget.copy(c.player); a.lookWeight = 1; a.setMotion(a.yaw, 0, 1); }
+  override despawn(): void { this.keeper.disposeTell(); super.despawn(); }
+  override reset(): void { super.reset(); this.keeper.reset(); }
+  protected override damage(a: Animal, p: THREE.Vector3): number { return this.keeper.damage(a, p); }
+  protected override think(a: Animal, c: ThinkCtx): void { this.keeper.think(a, c); }
   override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
-    this.engagement(engaged);
-    const a = this.animal;
-    if (!a) return;
-    this.lineMat.uniforms.uTime.value = t;
-    this.stT += dt;
-    const p = this.env.player.position, m = a.mem;
-    // the orbit centre: over you while engaged, back over the rock otherwise; always drifting downwind
-    const home = leashing || !engaged;
-    this.overYou = !home;
-    const cx = home ? EAGLE_ROCK.x : p.x, cz = home ? EAGLE_ROCK.z : p.z;
-    this.centre.x += (cx + wildEnv.wind.x * 12 - this.centre.x) * Math.min(1, dt * 0.4);
-    this.centre.z += (cz + wildEnv.wind.z * 12 - this.centre.z) * Math.min(1, dt * 0.4);
-    const R = 22;
-    switch (this.st) {
-      case 'soar': case 'climb': {
-        this.ang += dt * 12 / R;
-        const tx = this.centre.x + Math.cos(this.ang) * R, tz = this.centre.z + Math.sin(this.ang) * R;
-        const k = this.st === 'climb' ? 1.5 : 3;
-        a.position.x += (tx - a.position.x) * Math.min(1, dt * k); a.position.z += (tz - a.position.z) * Math.min(1, dt * k);
-        a.yaw = a.desiredYaw = Math.atan2(-Math.sin(this.ang), Math.cos(this.ang));
-        const cruise = this.cruise();
-        const alt = m['altY'] ?? cruise;
-        m['altY'] = this.st === 'climb' ? Math.min(cruise, alt + 9 * dt) : alt + (cruise + 2 * Math.sin(t * 0.5) - alt) * Math.min(1, dt * 0.6);
-        m['flap'] = this.st === 'climb' ? 0.9 : 0.18 + 0.12 * Math.max(0, Math.sin(t * 0.6)); m['fold'] = 0; m['ground'] = 0; m['bank'] = 0.35;
-        if (this.st === 'climb' && (m['altY'] ?? 0) >= cruise - 0.5) this.st = 'soar';
-        if (engaged && this.st === 'soar') { this.stoopT -= dt; if (this.stoopT <= 0) { this.st = 'tell'; this.stT = 0; this.sig(); this.env.sound('eagle_cry', a.position); } }
-        break;
-      }
-      case 'tell': {
-        // hangs on the wind, wings half folding; a gold line streaks from it to you, the chevron at the screen edge
-        const T = this.p2 ? 0.9 : 1.2;
-        m['flap'] = 0.7; m['fold'] = 0.4 * (this.stT / T); m['bank'] = 0;
-        a.yaw = a.desiredYaw = Math.atan2(p.x - a.position.x, p.z - a.position.z);
-        a.headWorld(_v);
-        _w.set(p.x, p.y + 1.2, p.z);
-        this.aim(_v, _w, 0.4 + 0.6 * (this.stT / T));
-        this.env.bar.chevron(_v, this.env.game.camera);
-        if (this.stT >= T) { this.st = 'stoop'; this.stT = 0; this.tgt.set(p.x, p.y + 0.9, p.z); }
-        break;
-      }
-      case 'stoop': {
-        m['fold'] = 1; m['flap'] = 0;
-        _v.set(a.position.x, m['altY'] ?? 0, a.position.z);
-        _w.copy(this.tgt).sub(_v);
-        const L = _w.length(), step = 40 * dt;
-        this.aim(_v, this.tgt, 0.5);
-        this.env.bar.chevron(_v, this.env.game.camera);
-        if (L <= step + 0.6) {
-          this.line.visible = false; this.env.bar.chevron(null, this.env.game.camera);
-          a.position.x = this.tgt.x; a.position.z = this.tgt.z;
-          if (Math.hypot(p.x - this.tgt.x, p.z - this.tgt.z) < 2.4 && p.y - heightAt(p.x, p.z) < 1.5) {
-            this.env.hurt(a, 30); this.env.knock(p.x - _v.x, p.z - _v.z);
-            this.st = 'climb'; m['altY'] = this.tgt.y + 2;
-          } else { this.st = 'ground'; this.stT = 0; m['altY'] = heightAt(a.position.x, a.position.z) + 0.55 * a.scale; this.env.feed('Qyran is GROUNDED'); }
-          this.stoopT = this.p2 ? 4.5 + app.rng.stream('ai').next() * 1.5 : 7 + app.rng.stream('ai').next() * 2;
-        } else {
-          _w.multiplyScalar(step / L);
-          a.position.x += _w.x; a.position.z += _w.z; m['altY'] = (m['altY'] ?? 0) + _w.y; m['altS'] = m['altY'];
-          a.yaw = a.desiredYaw = Math.atan2(_w.x, _w.z);
-        }
-        break;
-      }
-      case 'ground': {
-        m['ground'] = 1; m['fold'] = 0; m['flap'] = 0;
-        m['altY'] = heightAt(a.position.x, a.position.z) + 0.42 * a.scale;
-        if (this.stT > 2) { this.st = 'climb'; m['ground'] = 0; }
-        break;
-      }
-      default: break;
-    }
-    if (this.st !== 'tell' && this.st !== 'stoop') { this.line.visible = false; this.env.bar.chevron(null, this.env.game.camera); }
+    this.engagement(engaged); this.keeper.tick(this.animal, dt, t, engaged, leashing);
   }
   /** the gold line from `from` to `to` */
   private aim(from: THREE.Vector3, to: THREE.Vector3, alpha: number): void {
