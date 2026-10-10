@@ -63,7 +63,8 @@ scripts/browser-lane.sh node scripts/steam-trailer/capture.mjs $T/frames --shots
   --edl $T/cut/edl.json --base <BASE>
 ~/ml/music/analysis/.venv/bin/python scripts/steam-trailer/mix.py $T/cut/mix.json $T/mix.wav
 node scripts/steam-trailer/edit.mjs $T/frames $T/cut/edl.json $T/titles $T/mix.wav $T/wildshard-alpha-trailer.mp4
-# the site: silent 30 fps loops trailer-1280.mp4 (~1.3 Mb/s) + trailer-720.mp4 (~0.6 Mb/s) in a folder, then
+# the site: 30 fps trailer-1280.mp4 (~1.3 Mb/s, AAC 128k) + trailer-720.mp4 (~0.6 Mb/s, AAC 96k) WITH the mix — the page
+# autoplays it muted, its controls unmute it (Jake, 2026-10-10) — in a folder, then
 node site/tools/publish-media.ts <folder>                          # keeps the shard loops; the poster is the alpha card frame
 ```
 
