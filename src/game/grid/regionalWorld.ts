@@ -67,7 +67,6 @@ import type { RegionalRuntimeFoundation, RegionalRuntimeRequest, RegionalRuntime
 import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wholeChainKnobs, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky } from './regionSky';
-import { focusRegionShadow } from './regionShadow';
 import { imagesFirstPlayingBytes } from './runtimeCost';
 import { provideRuntimeProduct } from '../shardfile/runtimeProduct';
 
@@ -315,8 +314,6 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
         enter: entry => {
           if (resident.disposed || entry.disposed) throw new Error('Regional world requires a live resident and entry');
           light?.(entry); // first, so the page's light goes back last, after everything the entry installed has left
-          // SF63: a level drawn with the phone's split shadow rig focuses the page's one cascade while entered (Debug row)
-          if (sky instanceof SkyRig && levelLook?.shadows?.rig === 'phoneSplits') focusRegionShadow(sky, entry);
           frame.enter(app, entry);
           const leaveScene = game.bindScene(scene, entry); bound++;
           entry.onDispose(() => { leaveScene(); bound--; });
