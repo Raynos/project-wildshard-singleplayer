@@ -254,3 +254,26 @@ but it does not erase this repeat's failure or establish a robust departure pass
 
 All owned resources closed. Memory remains G269's phone verdict and the Simulator's honest fallback refusal.
 Immutable raw artifact: `attempt-dbef-whole-view-full.json` in the scratch directory above; no raw archive committed.
+
+### Crossroads compilation ruling and task maxima
+
+The coordinator clarified that this is a **zero on-demand draw/driver compilation** gate. Explicit
+`renderer.compile` calls in sliced background warm-up are excluded only when each warm-up task stays within
+the 50 ms long-task limit. `scripts/sf22-shaders.mjs` encodes that classification, refuses unknown phases or
+missing Long Task observation, and keeps raw counts. A reported warm-up task above 50 ms fails. When no such
+task is reported, the maximum is **bounded at ≤50 ms**, not measured as zero or as an exact sub-threshold value.
+The next harness also records every synchronous warm-up invocation's wall duration separately from task time.
+
+Regrading the immutable `dbef738da` journal: the complete first crossroads vicinity has **232 explicit calls,
+zero draw/driver calls, zero unknown calls**. None intersects a reported long task, so the warm-up task maximum
+is **≤50 ms** and the crossroads compilation verdict **passes** under this ruling. Across all six in-play routes,
+there are 1,820 explicit calls, also with no overlapping long task: maximum **≤50 ms**. A separate **381 ms**
+task containing two explicit calls occurred at 4585.1–4966.1 ms, before the first route began at 11913.8 ms;
+it remains visible as a boot issue, not an in-play crossroads pass. The unrelated 62 ms crossroads task contains
+no warm-up calls. The original literal-zero verdict remains above as the historical recording.
+
+`23ed90be1` also removes the duplicated final resource capture through retiring sibling world/view scopes.
+Each delegated owner still runs its own final capture; independently retiring outer roots still capture live
+owners that outlast them. Three real-Scope fixtures cover one material visit, late texture discovery and shared
+native disposal exactly once. No live departure saving is credited before the next matched repeat. SF22 remains
+open on the latest Pine departure **38.9 ms** (leave **35.9 ms**) and any repeat failure; memory remains G269.
