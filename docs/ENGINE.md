@@ -2469,13 +2469,6 @@ walk (`@wildshard/game/shardfile/terrainEntries` `proveTerrainEntries`). `@wilds
 `standaloneHybridEntry(Native, { name, source, entry, runtime })` is a first-party primary's standalone hybrid entry.
 Signal Dunes is the first on all of them (`data/headless.ts`, `quests/graph.ts`, `quests/scout.ts`, `data/matriarchFight.ts`).
 
-`@wildshard/game/shardfile/heldBossFight` `heldBossFight(row, body, brain, onVictory)` is the view-free `BossScript` of a
-boss whose one body stays through every checkpoint (a retry resets it in place): a circular `arena` over a `floor`, its
-health share per checkpoint (`hpShares`, so its phase thresholds), the intro's look and the victory at `rewardPoint`, and
-the `respawn` of a player who dies in the fight; it drives the brain's `phase`, `fighting` and `restart()` (a phased
-raptor has them) and keeps `{ hp, invulnerable }`. The headless host runs it on `installBossRow`. Sky Reach's Storm Roc
-is the first (`data/rocFight.ts` ROC_FIGHT and ROC_DEFINITION).
-
 
 ### Exported creature skins and clips
 

@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import type { BossDefinition } from '@wildshard/engine/ai/BossBrain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { heldBossFight, type HeldBossFight } from '@wildshard/game/shardfile/heldBossFight';
+import { heldBossFight, type HeldBossFight } from './heldBossFight';
 import { ROC_DEFINITION, ROC_FIGHT } from '../data/rocFight';
 import type { StormRocBrain } from './stormRocBrain';
 
