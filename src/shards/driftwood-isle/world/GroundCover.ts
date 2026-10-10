@@ -3,52 +3,20 @@
  * hibiscus, white daisies and mossy pebbles on the grass, sparse sun-bleached beach grass on the sand, and a thicker
  * fern understorey in the shrine jungle. So the island interior stops reading as empty planes.
  *
- * One InstancedMesh per plant (one draw each, no shadow casting), refilled from 16 m cells round the viewer whenever it
- * has moved 4 m: each cell's candidates are generated once (deterministic, from the cell's hash) and cached, then the
- * ones that can show from here are copied into the instance buffers — no per-frame allocation. The vertex shader bends
- * the blades away from the player's legs and sways them in the wind (`GroundCover.wind`, 0..1 — the shared gust M5
- * drives), and grows each plant in by its distance to the camera (E117, below).
- *
- * E117 — no ring, no pop. Each kind has a reach [near, far] (m, camera to plant, in 3D so a high Explore camera sees
- * none rather than a disc of it): every plant inside `near` stands, and past it each one has its own edge somewhere in
- * [near, far] (drawn from its yaw, which the shader reads back from the matrix), where it shrinks into the ground over
- * `grow` m. So the cover thins out over ~25 m instead of stopping in a line 25 m out, and what comes in as you fly is
- * one small plant at a time growing, far away. The refill only copies plants that can reach their edge before the
- * next refill (their edge + REFILL_M), so nothing is ever inserted part-grown. The desktop reaches 1.25× further.
- * And past `near` a plant takes on the ground it stands on — the terrain's own facet colour (`aGround`, per instance)
- * and an up-facing normal — so by the time it shrinks away it is already the colour and shade of the grass around it:
- * the thinning band has no edge to see. Debug ▸ Ground cover ▸ Far colour blend turns that off (the plants keep their colours to their edge).
- *
- * E117 follow-up (the user: "more distant cover") — the far tier. Tufts, ferns, hibiscus, bushes and daisies each get a
- * far model of 3–8 triangles (for tufts only 60 % of them, a little bigger) (the same silhouette at 25 m+, its flowers as flat colour chips). Past its near edge a
- * plant cross-fades into its far model (one shrinks as the other grows, same spot), which keeps the plant's colours out
- * to a second per-plant edge in [farNear, farFar] (phone: tufts 26–60 m, bushes 30–76 m), thins out plant by plant there
- * and only then takes on the ground's colour and shrinks. So the island stays dressed from Explore's height and far
- * out, with the same no-ring, no-pop rules. The far set is rebuilt every FAR_REFILL_M of travel by a job that runs a
- * slice of cells per frame (FAR_BUDGET_MS) into staging buffers and swaps them in when done, with FAR_SLACK m of room,
- * so neither the refill nor new cells hitch a frame. Debug ▸ Ground cover ▸ Far stand-ins: Off is the near tier alone (the first
- * E117 fix), Far reaches 1.5× further again.
- *
- * E156 — the ground wears the cover. Past the far tier the terrain was bare facets, so plants still seemed to appear as
- * you neared them. `fillCoverGrid` writes what the cover makes the ground look like into coverTint.ts's grid, the
- * terrains draw it (more of it the flatter they are seen), and a fading plant takes on that colour, not the bare facet's
- * (Debug ▸ Ground cover ▸ Ground tint). Plants on sloping ground keep up to 1.7× their reach (a slope facing you fills the
- * screen; Debug ▸ Ground cover ▸ Slope reach). No URL switches (Jake, 2026-09-25): every one of these is in the debug menu.
- *
- * E186 — no upload stalls (Jake: "very periodic big stutters" on the iPhone). Each tier of each kind is two InstancedMeshes
- * (`Tier`): the front one is drawn, the next set is written into the back one, which uploads only what was written, a
- * slice a frame (UPLOAD_BYTES for the whole cover), and the two swap in one frame when it is all on the GPU. Before, a
- * refill rewrote the shown mesh and uploaded its whole cap at once — 2.4 MB in one frame every 4 m (even in the cove, where
- * none of it is live), and the far swap 2–4 MB every 8 m. The near set now starts NEAR_LAG m early (every 3 m) and must
- * swap within NEAR_LAG m of travel (else the rest uploads that frame), so its rule holds exactly as before: the shown set
- * was built at most REFILL_M m away. Nothing drawn changes: the same plants, the same data, only when they reach the GPU.
+ * Drawn by @wildshard/sdk/looks/streamedCover from the rows in data/groundCoverLook.ts: one InstancedMesh per plant (two,
+ * E186: written and uploaded behind, swapped in one frame), refilled from 16 m cells round the viewer every 4 m, each
+ * plant at its own edge in its kind's reach (E117: no ring, no pop), a far tier of stand-ins past the near set (E117
+ * follow-up: "more distant cover"), plants on sloping ground keeping their reach further (E156 C), and the plants fading
+ * into the colour the ground wears (E156: coverTint.ts's grid, which `fillCoverGrid` writes from the same rules). This file
+ * is where a plant may stand and how dense each kind is there: its sites, densities and tints are the system's hooks.
  *
  *   const cover = new GroundCover(sky, { sea: sea.level }).build();
  *   scene.add(cover.group);
  *   game.onUpdate((dt) => cover.update(dt, player.position));
  *
  * Placement follows the terrain's own paint (look/groundColor.ts lowPolyGroundColor): grass above ~3 m over the sea on slopes
- * under 0.24, sand below; never on the sand paths, on steep rock, in the water, or inside a POI's footprint.
+ * under 0.24, sand below; never on the sand paths, on steep rock, in the water, or inside a POI's footprint. No URL
+ * switches (Jake, 2026-09-25); every decided Debug row is gone (E318).
  */
 import * as THREE from 'three';
 import { addDriftLog, DRIFT } from './driftLogs';
@@ -56,23 +24,22 @@ import { HUT, LOOKOUT, SHRINE, WRECK, ISLAND } from '../manifest';
 import { Cove } from './Cove';
 import { copyCoverGeometry } from '../boot/coverGeometry';
 import COVER_LOOK from '../data/coverLook.json' with { type: 'json' };
+import { GROUND_COVER } from '../data/groundCoverLook';
 import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, COVER_SEEN_GLSL, coverSample, coverJitter } from './coverTint';
 import { driftLog, driftLogBox } from '../models/driftLog';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
-import { TIER } from '@wildshard/engine/core/tier';
+import type { Rng } from '@wildshard/engine/core/rng';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { BlenderArea } from '@wildshard/engine/world/blenderArea';
 import { log } from '@wildshard/engine/world/geometryKit';
 import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
 import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { windUniforms } from '@wildshard/engine/world/wind';
+import { StreamedCover, type CoverGround, type CoverSite, type StreamedCoverHooks, type StreamedCoverSet, type StreamedCoverStats } from '@wildshard/sdk/looks/streamedCover';
 
 export interface GroundCoverOpts {
   sea: number;
@@ -80,155 +47,58 @@ export interface GroundCoverOpts {
   palms?: { x: number; z: number }[];
 }
 
-const CELL = 16, REFILL_M = 4;
-/** E117: the desktop's reach over the phone's (and its instance caps grow with the area) */
-const REACH_K = TIER === 'desktop' ? 1.25 : 1, CAP_K = TIER === 'desktop' ? 3 : 1.8;
-/* E117: far plants blend into the ground's colour and shade; E117 follow-up: a far tier of stand-ins past the near set.
-   Both are on for good (E318: the decided Debug rows "Far colour blend" and "Far stand-ins" are gone) */
-/** the far set is rebuilt every FAR_REFILL_M m, within FAR_BUDGET_MS a frame, with FAR_SLACK m of room either side */
-const FAR_REFILL_M = 8, FAR_SLACK = 16, FAR_BUDGET_MS = TIER === 'desktop' ? 2 : 1.5;
-/** shader modes: a near plant that just shrinks away / hands over to its far model; a far model */
-const MODE_NEAR = 0, MODE_HANDOVER = 1, MODE_FAR = 2;
-/** floats per cached candidate: x y z yaw scale · tint rgb · ground rgb · ground normal xyz · cover side · cover rgb top (E156) */
-const STRIDE = 19;
-/** the viewer is the player's feet in play; the camera is ~1.7 m over them */
-const EYE_SLACK = 2;
-/** E186: the bytes the whole cover may upload in one frame (the near set first: it has a deadline), and how early the near
- *  set starts (m before REFILL_M) = how far the viewer may travel before it must be swapped in */
-const UPLOAD_BYTES = 256 * 1024, NEAR_LAG = 1;
-
-/**
- * E186 — one tier (near or far) of one kind: two InstancedMeshes on twin geometries (the model's attributes shared, the
- * per-instance ones each their own). The front one is drawn; `begin` starts the next set in the back one, which is kept
- * visible at count 0 while it fills — so three uploads what `upload` marked (only the written instances) and draws none of
- * it — and `swap` shows it in one frame.
- */
-class Tier {
-  private front = 0;
-  /** instances written into the back mesh / of those, marked for upload */
-  n = 0;
-  private up = 0;
-  /** each mesh has been drawn once, i.e. three has created its GPU buffers (a whole-cap bufferData): until then a mesh
-   *  that leaves the front stays visible at count 0, so that happens in the boot's first frames, not mid-run */
-  private readonly drawn = [false, false];
-  constructor(readonly meshes: readonly [THREE.InstancedMesh, THREE.InstancedMesh], readonly bytesPer: number) {
-    meshes.forEach((m, i) => { m.onBeforeRender = () => { this.drawn[i] = true; }; });
-  }
-  get shown(): THREE.InstancedMesh { return this.meshes[this.front] ?? this.meshes[0]; }
-  get back(): THREE.InstancedMesh { return this.meshes[1 - this.front] ?? this.meshes[1]; }
-  /** the back mesh's per-instance arrays, to write the next set into */
-  arrays(): { mat: Float32Array; col: Float32Array | null; gnd: Float32Array; cov: Float32Array; nrm: Float32Array } {
-    const b = this.back, g = b.geometry;
-    const f = (a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): Float32Array => (a.array instanceof Float32Array ? a.array : new Float32Array(0));
-    return { mat: b.instanceMatrix.array as Float32Array, col: b.instanceColor ? (b.instanceColor.array as Float32Array) : null, gnd: f(g.getAttribute('aGround')), cov: f(g.getAttribute('aCover')), nrm: f(g.getAttribute('aNrm')) };
-  }
-  begin(): void { this.n = 0; this.up = 0; const b = this.back; b.count = 0; b.visible = true; }
-  get uploaded(): boolean { return this.up >= this.n; }
-  /** mark up to `bytes` more of what was written for upload (Infinity: all of it); returns the bytes marked */
-  upload(bytes: number): number {
-    const k = Math.min(this.n - this.up, Math.floor(bytes / this.bytesPer));
-    if (k <= 0) return 0;
-    const b = this.back, g = b.geometry;
-    for (const a of [b.instanceMatrix, b.instanceColor, g.getAttribute('aGround'), g.getAttribute('aCover'), g.getAttribute('aNrm')]) {
-      if (!(a instanceof THREE.BufferAttribute)) continue;
-      a.addUpdateRange(this.up * a.itemSize, k * a.itemSize); a.needsUpdate = true;
-    }
-    this.up += k;
-    return k * this.bytesPer;
-  }
-  /** show the back set (it must be uploaded) and retire the front one */
-  swap(): void {
-    const b = this.back, f = this.shown;
-    b.count = this.n; f.count = 0; f.visible = !(this.drawn[this.front] ?? false);
-    this.front = 1 - this.front;
-  }
-}
-/** the shared wind the blades sway in (0 calm … 1 gusting); M5's palms.gust drives it */
-export const coverWind = windUniforms.uGust;
-
-interface FarTier {
-  set: Tier;
-  cap: number;
-  /** (farNear, farFar, grow) m: the far model keeps to its own edge in [farNear + grow, farFar] */
-  reach: THREE.Vector3;
-  /** the share of the kind's plants that get a far model (drawn by a hash of the yaw), each scaled up by 1/√keep so the
-   *  far cover keeps its coverage with fewer instances */
-  keep: number;
-}
-
-interface Kind {
-  name: string;
-  set: Tier;
-  cap: number;
-  far: FarTier | null;
-  /** E117: (near, far, grow) m — full density inside near, thinning to none at far, each plant growing in over `grow` */
-  reach: THREE.Vector3;
-  /** instances per m² at (h over the sea, slope, trail distance, shrine distance) */
-  density: (h: number, slope: number, td: number, shrineD: number, palm: number) => number;
-  /** E156: its mean colour (linear) and, per plant at scale 1, the ground it covers from above and its upright
-   *  cross-section (m²), for the cover grid */
-  look: { r: number; g: number; b: number; top: number; side: number };
-  scale: [number, number];
-  /** per-instance tint (multiplies the vertex colours) */
-  tint?: (h: number, rng: Rng, out: THREE.Color) => void;
-}
+/** a candidate point: its height over the sea, slope and normal, its trail and shrine distances and how near a palm it is */
+interface Site extends CoverSite { td: number; sd: number; palm: number }
+type Density = (s: Site) => number;
+type Tint = (h: number, rng: Rng, out: THREE.Color) => void;
 
 const ss = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+const beach = (h: number) => ss(0.5, 1.2, h) * (1 - ss(2.0, 3.2, h));
+const grass = (h: number, slope: number) => ss(2.6, 4.2, h) * (1 - ss(0.18, 0.26, slope));
+const off = (td: number) => ss(2.6, 4.0, td);
+const jungle = (sd: number) => 1 - ss(18, 45, sd);
+/** the sand -> grass edge (the plant fringe) and the dune crest (beach grass) */
+const edge = (h: number, sl: number): number => ss(1.9, 2.7, h) * (1 - ss(4.8, 7, h)) * (1 - ss(0.2, 0.3, sl));
+const dune = (h: number): number => ss(1.2, 1.8, h) * (1 - ss(2.6, 3.4, h));
 
-/**
- * E156 C — reach by screen size. A slope rising in front of you fills far more of the screen than flat ground at the same
- * distance, so the edge of the cover showed there first. Plants on sloping ground keep their reach × up to REACH_UP
- * (SLOPE_LO … SLOPE_HI of `slope` = 1 − the ground normal's y; 0.01 ≈ 8°, 0.08 ≈ 23°); flat ground keeps today's. It is the
- * ground's own tilt, not the angle it is seen at: that changes as you walk, and the refill would have to include every
- * plant the next few metres could bring in — on the phone that was +68 % instances for flat ground. A plant's reach is
- * fixed, so the refill's rule stays exact (nothing inserted part-grown). It fades out as the camera climbs (REACH_HI m
- * over the ground): from Explore's height every slope is in view and the caps can't pay for it. (Always on since E318.)
- */
-const REACH_UP = 1.7, SLOPE_LO = 0.01, SLOPE_HI = 0.08, REACH_HI: [number, number] = [5, 14];
-/**
- * A cached candidate's reach factor (the shader's, from its normal's y) at the strength the camera's height allows, taken
- * at the most it can grow to before the next refill (`travel` m of climb or dive at most: the strength follows the height)
- */
-const reachMax = (v: Float32Array, i: number, strength: number, travel: number): number => {
-  const s = strength >= 1 ? 1 : Math.min(1, strength + travel / (REACH_HI[1] - REACH_HI[0]));
-  return 1 + s * (REACH_UP - 1) * ss(SLOPE_LO, SLOPE_HI, 1 - (v[i + 12] ?? 1));
+/** each kind's instances per candidate × 2 at a site (by the rows' names) */
+const DENSITY: Readonly<Record<string, Density>> = {
+  tuft: (s) => (grass(s.h, s.slope) * 1.6 + beach(s.h) * 0.18 + dune(s.h) * 0.7) * off(s.td),
+  fern: (s) => (grass(s.h, s.slope) * (0.03 + jungle(s.sd) * 0.35) + edge(s.h, s.slope) * 0.45 + s.palm * 0.45) * off(s.td),
+  hibiscus: (s) => (grass(s.h, s.slope) * (0.025 + jungle(s.sd) * 0.08) + edge(s.h, s.slope) * 0.3 + s.palm * 0.28) * off(s.td),
+  daisy: (s) => (grass(s.h, s.slope) * 0.07 + edge(s.h, s.slope) * 0.3) * off(s.td),
+  pebble: (s) => (grass(s.h, s.slope) * 0.03 + beach(s.h) * 0.05) * (0.4 + 0.6 * off(s.td)),
+  // (E43) the beach: a shell / starfish / pebble scatter every 1-2 m on the sand, beach grass on the dune crest, and a
+  // dense fringe of ferns, hibiscus, flowers and bushes along the sand -> grass edge and round every palm's foot
+  shells: (s) => beach(s.h) * 0.8,
+  starfish: (s) => beach(s.h) * 0.09,
+  bush: (s) => (edge(s.h, s.slope) * 0.3 + s.palm * 0.3 + grass(s.h, s.slope) * 0.015) * off(s.td) + jungle(s.sd) * grass(s.h, s.slope) * 0.06,
 };
+/** the tinted kinds' per-instance tint (multiplies the vertex colours) */
+const TINT: Readonly<Record<string, Tint>> = {
+  tuft: (h, r, out) => { const b = beach(h); out.setRGB(1 + b * 0.35 + r.range(-0.08, 0.08), 1 + b * 0.12 + r.range(-0.06, 0.06), 1 - b * 0.35); },
+  shells: (_h, r, out) => { const v = r.next(); out.setRGB(v < 0.3 ? 1.0 : 1.05, v < 0.3 ? 0.85 : 1.0, 0.95); },
+  starfish: (_h, r, out) => { const v = r.next(); if (v < 0.25) out.setRGB(0.55, 0.45, 1.3); else if (v < 0.5) out.setRGB(1.05, 0.95, 0.6); else out.setRGB(1, 1, 1); },
+};
+const KIND_DENSITY = GROUND_COVER.kinds.map((k) => DENSITY[k.name] ?? (() => 0));
+const KIND_TINT = GROUND_COVER.kinds.map((k) => TINT[k.name] ?? null);
 
 export class GroundCover {
-  group = new THREE.Group();
   /** its placements: the dune line's drift logs (the named places' sets read them) */
   readonly placed: Placed[] = [];
-  private kinds: Kind[] = [];
-  private cells = new Map<string, Float32Array[]>();
-  private last = new THREE.Vector3(1e9, 0, 1e9);
-  private uniforms = { uPlayer: { value: new THREE.Vector3() }, uTime: { value: 0 }, uWind: coverWind, uReachUp: { value: 1 } };
+  private readonly cover: StreamedCoverSet<Site>;
   /** E156: the Blender island's area once it has loaded — its own cover dresses it, so no plant of ours is placed there */
   private skip: BlenderArea | null = null;
-  /** the furthest any plant shows + a refill's travel: the cell window's radius */
-  private rMax = 0;
-  private cacheMax = 96;
-  private avoid: { x: number; z: number; r: number }[] = [];
-  private tint = new THREE.Color();
-  private ground = new THREE.Color();
-  private cover = coverSample();
-  /** the far tier's rebuild: a job stepped within FAR_BUDGET_MS a frame; where the shown / the next set were built from */
-  private farJob: Generator<undefined, undefined, undefined> | null = null;
-  private farLast = new THREE.Vector3(1e9, 0, 1e9);
-  private farJobAt = new THREE.Vector3();
-  private rFar = 0;
-  /** 0 → 1 over ~0.8 s when a far set lands somewhere new (boot, a teleport), so it grows in instead of appearing */
-  private farIn = { value: 1 };
-  /** E186: a near set is in the back meshes, uploading; the far job has written its whole set (it uploads until swapped) */
-  private nearPending = false;
-  private farWritten = false;
-  /** E186: per kind, a candidate cell's plants as they are generated (one cell holds at most 520 of a kind) */
-  private scratch: Float32Array[] = [];
-  private cellLens: number[] = [];
-  /** measurements for scripts/popin-fly.mjs / stutter-run.mjs (group.userData.stats); nearRefills / farSwaps count the swaps,
-   *  uploadBytes the per-instance bytes marked for upload (E186) */
-  readonly stats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0, gridMs: 0, nearRefills: 0, farSwaps: 0, uploadBytes: 0 };
+  private readonly avoid: { x: number; z: number; r: number }[] = [];
+  private readonly palmGrid = new Map<string, { x: number; z: number }[]>();
+  private readonly groundColor = new THREE.Color();
+  private readonly coverAt = coverSample();
+  private readonly sky: Sky;
+  private readonly opts: GroundCoverOpts;
 
-  constructor(private sky: Sky, private opts: GroundCoverOpts) {
+  constructor(sky: Sky, opts: GroundCoverOpts) {
+    this.sky = sky;
+    this.opts = opts;
     const cave = Cove.forIsland().cave;
     this.avoid = [
       { x: HUT.x, z: HUT.z, r: 9 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 8 }, { x: SHRINE.x, z: SHRINE.z, r: 9.5 },
@@ -240,9 +110,22 @@ export class GroundCover {
       const list = this.palmGrid.get(k);
       if (list) list.push(p); else this.palmGrid.set(k, [p]);
     }
+    const hooks: StreamedCoverHooks<Site> = {
+      newSite: () => ({ h: 0, slope: 0, nx: 0, ny: 1, nz: 0, td: 0, sd: 0, palm: 0 }),
+      site: (x, z, s) => this.site(x, z, s),
+      density: (ki, s) => (KIND_DENSITY[ki] ?? (() => 0))(s),
+      tinted: (ki) => (KIND_TINT[ki] ?? null) !== null,
+      tint: (ki, s, rng, out) => { KIND_TINT[ki]?.(s.h, rng, out); },
+      ground: (x, z, s, out) => this.ground(x, z, s, out),
+    };
+    this.cover = new StreamedCover({ sky, row: GROUND_COVER, geometry: copyCoverGeometry(), hooks, heightAt, seed: SEED, glsl: { coverSeen: COVER_SEEN_GLSL } });
   }
 
-  private palmGrid = new Map<string, { x: number; z: number }[]>();
+  /** the cover's meshes and the dune logs */
+  get group(): THREE.Group { return this.cover.group; }
+  /** measurements for scripts/popin-fly.mjs / stutter-run.mjs (also group.userData.stats) */
+  get stats(): StreamedCoverStats { return this.cover.stats; }
+
   /** 1 at a palm's foot, fading out by 3.5 m */
   private nearPalm(x: number, z: number): number {
     let best = 0;
@@ -254,78 +137,32 @@ export class GroundCover {
     return best;
   }
 
+  /** a candidate point: none in a POI's footprint, the Blender island's area, the water or on steep rock */
+  private site(x: number, z: number, s: Site): boolean {
+    if (this.avoid.some((a) => (x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r)) return false;
+    const sk = this.skip;
+    if (sk && x > sk.x0 && x < sk.x1 && z > sk.z0 && z < sk.z1) return false;
+    const h = heightAt(x, z) - this.opts.sea;
+    if (h < 0.4) return false;
+    const [nx, ny, nz] = normalAt(x, z, 0.6), slope = 1 - ny;
+    if (slope > 0.3) return false;
+    s.h = h; s.slope = slope; s.nx = nx; s.ny = ny; s.nz = nz;
+    s.td = trailDistance(x, z); s.sd = Math.hypot(x - SHRINE.x, z - SHRINE.z); s.palm = this.nearPalm(x, z);
+    return true;
+  }
+
+  /** a plant's ground: its height, the terrain's facet colour there and the cover grid's look (E156) */
+  private ground(x: number, z: number, s: Site, out: CoverGround): void {
+    const y = heightAt(x, z), c = this.groundColor, cv = this.coverAt, grid = CoverGrid.get();
+    lowPolyGroundColor(c, y - this.opts.sea, s.slope, x, z);
+    if (grid) grid.sample(x, z, cv); else { cv.r = 0; cv.g = 0; cv.b = 0; cv.top = 0; cv.side = 0; }
+    const j = coverJitter(x, z);
+    out.y = y; out.r = c.r; out.g = c.g; out.b = c.b;
+    out.side = cv.side; out.cr = cv.r * j; out.cg = cv.g * j; out.cb = cv.b * j; out.top = cv.top;
+  }
+
   build(): this {
-    // one material per kind (its own reach uniform), one program for all of them
-    const material = (reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep = 1): THREE.MeshStandardMaterial => {
-      const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
-      this.patch(mat, reach, far, mode, keep);
-      this.sky.setupMaterial(mat);
-      return mat;
-    };
-    const { tuft: tuftGeo, fern: fernGeo, hibiscus: hibGeo, daisy: daisyGeo, pebble: pebbleGeo, shells: shellGeo, starfish: starGeo, bush: bushGeo, tuftFar: farTuftGeo, fernFar: farFernGeo, hibiscusFar: farHibGeo, daisyFar: farDaisyGeo, bushFar: farBushGeo } = copyCoverGeometry();
-    const beach = (h: number) => ss(0.5, 1.2, h) * (1 - ss(2.0, 3.2, h));
-    const grass = (h: number, slope: number) => ss(2.6, 4.2, h) * (1 - ss(0.18, 0.26, slope));
-    const off = (td: number) => ss(2.6, 4.0, td);
-    const jungle = (sd: number) => 1 - ss(18, 45, sd);
-    const instanced = (name: string, g: THREE.BufferGeometry, mat: THREE.Material, cap: number, tinted: boolean): Tier => {
-      // E186: two meshes, the second on a twin of the model (its attributes shared: one GPU copy) — see Tier
-      const twin = new THREE.BufferGeometry();
-      for (const [k, a] of Object.entries(g.attributes)) twin.setAttribute(k, a);
-      twin.setIndex(g.getIndex());
-      for (const gr of g.groups) twin.addGroup(gr.start, gr.count, gr.materialIndex);
-      twin.setDrawRange(g.drawRange.start, g.drawRange.count);
-      const make = (mg: THREE.BufferGeometry): THREE.InstancedMesh => {
-        const mesh = new THREE.InstancedMesh(mg, mat, cap);
-        mesh.name = name;
-        mesh.count = 0;
-        mesh.frustumCulled = false;                           // the window moves with the player; one sphere per refill would do too
-        mesh.castShadow = false; mesh.receiveShadow = true;
-        mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-        if (tinted) { mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); mesh.instanceColor.setUsage(THREE.DynamicDrawUsage); }
-        for (const [attr, w] of [['aGround', 3], ['aCover', 4], ['aNrm', 4]] as const) { const a = new THREE.InstancedBufferAttribute(new Float32Array(cap * w), w); a.setUsage(THREE.DynamicDrawUsage); mg.setAttribute(attr, a); }
-        // both start visible (at count 0, drawing nothing) so the boot's first frames create both meshes' GPU buffers; the
-        // back one is hidden again at the first swap
-        this.group.add(mesh);
-        return mesh;
-      };
-      return new Tier([make(g), make(twin)], 4 * (16 + (tinted ? 3 : 0) + 3 + 4 + 4));
-    };
-    /** `farOf`: [far model, [farNear, farFar] m, cap, keep] — the far tier (none when Debug ▸ Far stand-ins is Off) */
-    const kind = (name: keyof typeof COVER_LOOK, g: THREE.BufferGeometry, cap0: number, [near, far]: [number, number], scale: [number, number], density: Kind['density'], tint?: Kind['tint'], farOf?: [THREE.BufferGeometry, [number, number], number, number]): void => {
-      const cap = Math.round(cap0 * CAP_K);
-      const reach = new THREE.Vector3(near * REACH_K, far * REACH_K, (far - near) * REACH_K * 0.25);
-      this.rMax = Math.max(this.rMax, reach.y * REACH_UP + REFILL_M + EYE_SLACK); // sized for the slope reach
-      let farTier: FarTier | null = null;
-      const farReach = new THREE.Vector3(0, 0, 1);
-      if (farOf) {
-        const [fg, [fn, ff], fcap0, keep] = farOf, k = REACH_K, fcap = Math.round(fcap0 * keep * CAP_K);
-        farReach.set(fn * k, ff * k, (ff - fn) * k * 0.25);
-        this.rFar = Math.max(this.rFar, farReach.y * REACH_UP + FAR_SLACK + EYE_SLACK);
-        farTier = { set: instanced(`ground-cover-${name}-far`, fg, material(reach, farReach, MODE_FAR), fcap, tint !== undefined), cap: fcap, reach: farReach, keep };
-      }
-      const look = COVER_LOOK[name];
-      const set = instanced(`ground-cover-${name}`, g, material(reach, farReach, farTier ? MODE_HANDOVER : MODE_NEAR, farTier ? farTier.keep : 1), cap, tint !== undefined);
-      this.kinds.push({ name, set, cap, far: farTier, reach, density, scale, look, ...(tint ? { tint } : {}) });
-    };
-    // the far models: a few triangles each, the near model's silhouette from 25 m on (its flowers as flat chips)
-    kind('tuft', tuftGeo, 5200, [14, 34], [0.9, 1.5],
-      (h, sl, td) => (grass(h, sl) * 1.6 + beach(h) * 0.18 + this.dune(h) * 0.7) * off(td),
-      (h, r, out) => { const b = beach(h); out.setRGB(1 + b * 0.35 + r.range(-0.08, 0.08), 1 + b * 0.12 + r.range(-0.06, 0.06), 1 - b * 0.35); },
-      [farTuftGeo, [26, 60], 16000, 0.6]);
-    kind('fern', fernGeo, 1400, [14, 34], [0.7, 1.4], (h, sl, td, sd, palm) => (grass(h, sl) * (0.03 + jungle(sd) * 0.35) + this.edge(h, sl) * 0.45 + palm * 0.45) * off(td), undefined, [farFernGeo, [26, 60], 4400, 1]);
-    kind('hibiscus', hibGeo, 900, [14, 34], [0.8, 1.3], (h, sl, td, sd, palm) => (grass(h, sl) * (0.025 + jungle(sd) * 0.08) + this.edge(h, sl) * 0.3 + palm * 0.28) * off(td), undefined, [farHibGeo, [26, 64], 3200, 1]);
-    kind('daisy', daisyGeo, 800, [9, 22], [0.8, 1.4], (h, sl, td) => (grass(h, sl) * 0.07 + this.edge(h, sl) * 0.3) * off(td), undefined, [farDaisyGeo, [16, 40], 1600, 1]);
-    kind('pebble', pebbleGeo, 400, [9, 22], [0.7, 1.5], (h, sl, td) => (grass(h, sl) * 0.03 + beach(h) * 0.05) * (0.4 + 0.6 * off(td)));
-    // (E43) the beach: a shell / starfish / pebble scatter every 1-2 m on the sand, beach grass on the dune crest, and a
-    // dense fringe of ferns, hibiscus, flowers and bushes along the sand -> grass edge and round every palm's foot
-    kind('shells', shellGeo, 1600, [10, 26], [1.3, 2.3], (h) => beach(h) * 0.8,
-      (_h, r, out) => { const v = r.next(); out.setRGB(v < 0.3 ? 1.0 : 1.05, v < 0.3 ? 0.85 : 1.0, 0.95); });
-    kind('starfish', starGeo, 300, [8, 20], [1.1, 1.8], (h) => beach(h) * 0.09,
-      (_h, r, out) => { const v = r.next(); if (v < 0.25) out.setRGB(0.55, 0.45, 1.3); else if (v < 0.5) out.setRGB(1.05, 0.95, 0.6); else out.setRGB(1, 1, 1); });
-    kind('bush', bushGeo, 900, [16, 38], [0.8, 1.6], (h, sl, td, sd, palm) => (this.edge(h, sl) * 0.3 + palm * 0.3 + grass(h, sl) * 0.015) * off(td) + jungle(sd) * grass(h, sl) * 0.06, undefined, [farBushGeo, [30, 76], 4000, 1]);
-    const span = Math.ceil((2 * Math.max(this.rMax, this.rFar)) / CELL) + 1;
-    this.cacheMax = Math.max(96, Math.round(span * span * 1.4));
-    this.group.userData['stats'] = this.stats;
+    this.cover.build();
     this.fillCoverGrid();
     this.buildDriftwood();
     this.group.name = 'ground-cover';
@@ -337,39 +174,41 @@ export class GroundCover {
    * (≈ 2.03 candidates per m², each kept with p = density / 2) × the ground one covers × its colour.
    */
   private fillCoverGrid(): void {
-    const sea = this.opts.sea, grid = CoverGrid.create(), per = 520 / (CELL * CELL), col = new THREE.Color();
-    const t0 = performance.now();
+    const sea = this.opts.sea, grid = CoverGrid.create(), per = GROUND_COVER.candidates / (GROUND_COVER.cell * GROUND_COVER.cell), col = new THREE.Color();
+    const site: Site = { h: 0, slope: 0, nx: 0, ny: 1, nz: 0, td: 0, sd: 0, palm: 0 };
+    const t0 = diagnosticNow();
     grid.fill((x, z, out) => {
       if (this.avoid.some((a) => (x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r)) return;
       const h = heightAt(x, z) - sea;
       if (h < 0.4) return;
       const [, ny] = normalAt(x, z, 0.6), slope = 1 - ny;
       if (slope > 0.3) return;
-      const td = trailDistance(x, z), sd = Math.hypot(x - SHRINE.x, z - SHRINE.z), palm = this.nearPalm(x, z);
+      site.h = h; site.slope = slope; site.td = trailDistance(x, z); site.sd = Math.hypot(x - SHRINE.x, z - SHRINE.z); site.palm = this.nearPalm(x, z);
       let top = 0, side = 0;
       col.setRGB(0, 0, 0);
-      for (const k of this.kinds) {
-        const n = per * Math.min(1, Math.max(0, k.density(h, slope, td, sd, palm)) / 2), s = (k.scale[0] + k.scale[1]) / 2, ns = n * s * s;
-        const t = ns * k.look.top, sd2 = ns * k.look.side, wt = t + sd2;
-        top += t; side += sd2; col.r += k.look.r * wt; col.g += k.look.g * wt; col.b += k.look.b * wt;
+      for (const [ki, k] of GROUND_COVER.kinds.entries()) {
+        const look = COVER_LOOK[k.name as keyof typeof COVER_LOOK];
+        const n = per * Math.min(1, Math.max(0, (KIND_DENSITY[ki] ?? (() => 0))(site)) / 2), s = (k.scale[0] + k.scale[1]) / 2, ns = n * s * s;
+        const t = ns * look.top, sd2 = ns * look.side, wt = t + sd2;
+        top += t; side += sd2; col.r += look.r * wt; col.g += look.g * wt; col.b += look.b * wt;
       }
       const w = top + side;
       if (w > 0) { out.r = col.r / w; out.g = col.g / w; out.b = col.b / w; out.top = 1 - Math.exp(-top); out.side = 1 - Math.exp(-side); }
     }, ISLAND.x - ISLAND.r - 40, ISLAND.x + ISLAND.r + 40, ISLAND.z - ISLAND.r - 40, ISLAND.z + ISLAND.r + 40);
-    this.stats.gridMs = performance.now() - t0;
+    this.stats.gridMs = diagnosticNow() - t0;
+  }
+
+  /** the viewer moved: refill, upload and swap the near and far sets */
+  update(dt: number, viewer: THREE.Vector3): void {
+    this.cover.update(dt, viewer);
   }
 
   /** E156: the Blender island loaded — it dresses its own area, so the cells stop placing plants there (they were clipped
    *  in its shader, but each still took an instance and its vertices) */
   excludeArea(a: BlenderArea): void {
     this.skip = a;
-    this.cells.clear();
-    this.last.set(1e9, 0, 1e9); this.farLast.set(1e9, 0, 1e9);
+    this.cover.reset();
   }
-
-  /** the sand -> grass edge (the plant fringe) and the dune crest (beach grass) */
-  private edge = (h: number, sl: number): number => ss(1.9, 2.7, h) * (1 - ss(4.8, 7, h)) * (1 - ss(0.2, 0.3, sl));
-  private dune = (h: number): number => ss(1.2, 1.8, h) * (1 - ss(2.6, 3.4, h));
 
   /** bleached driftwood logs (the E149 painter, driftwood.ts) along the dune line all round the island, one every ~9 m (one static mesh) */
   private buildDriftwood(): void {
@@ -409,296 +248,5 @@ export class GroundCover {
       return { x: (l.a.x + l.b.x) / 2, y: (l.a.y + l.b.y) / 2, z: (l.a.z + l.b.z) / 2, yaw: Math.atan2(-d.z, d.x), params: { len: d.length(), r0: l.r, r1: l.r * 0.7, tone: ((l.tone % 3) + 3) % 3 } };
     });
     if (pls.length > 0) this.placed.push(place(driftLog, pls, { ctx: modelContext(this.sky), draw: 'merged', drawnInto: { object: mesh, boxes: Float32Array.from(boxes) }, piece: { id: 'cover-drift-logs' } }));
-  }
-
-  /** a cell's candidates per kind: [x, y, z, yaw, scale, r, g, b, ground r, g, b] × n — generated once, then cached */
-  private cell(cx: number, cz: number): Float32Array[] {
-    const key = `${cx},${cz}`;
-    const hit = this.cells.get(key);
-    if (hit) return hit;
-    const rng = new Rng(SEED ^ Math.imul(cx + 1013, 73856093) ^ Math.imul(cz + 2027, 19349663));
-    const sea = this.opts.sea;
-    const grid = CoverGrid.get();
-    // one candidate set per cell (≈ 2 per m²), the terrain read once per point, then a density lottery per kind
-    const n = 520;
-    // E186: written into per-kind scratch (a kind takes at most one plant per candidate), then one exact copy per kind — the
-    // growing number[] per kind was ~1 MB of garbage a second while running
-    const kinds = this.kinds, nk = kinds.length, len = this.cellLens;
-    while (this.scratch.length < nk) this.scratch.push(new Float32Array(n * STRIDE));
-    len.length = nk; len.fill(0);
-    for (let i = 0; i < n; i++) {
-      const x = (cx + rng.next()) * CELL, z = (cz + rng.next()) * CELL;
-      if (this.avoid.some((a) => (x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r)) continue;
-      const sk = this.skip;
-      if (sk && x > sk.x0 && x < sk.x1 && z > sk.z0 && z < sk.z1) continue;
-      const y = heightAt(x, z), h = y - sea;
-      if (h < 0.4) continue;
-      const [nx, ny, nz] = normalAt(x, z, 0.6), slope = 1 - ny;
-      if (slope > 0.3) continue;
-      const td = trailDistance(x, z), sd = Math.hypot(x - SHRINE.x, z - SHRINE.z), palm = this.nearPalm(x, z);
-      for (let ki = 0; ki < nk; ki++) {
-        const k = kinds[ki], out = this.scratch[ki];
-        if (k === undefined || out === undefined) continue;
-        const d = k.density(h, slope, td, sd, palm);
-        if (rng.next() * 2 > d) continue;
-        const jx = x + rng.range(-0.3, 0.3), jz = z + rng.range(-0.3, 0.3), sc = rng.range(k.scale[0], k.scale[1]);
-        if (k.tint) k.tint(h, rng, this.tint); else this.tint.setRGB(1, 1, 1);
-        const jy = heightAt(jx, jz), yaw = rng.range(0, Math.PI * 2);
-        lowPolyGroundColor(this.ground, jy - sea, slope, jx, jz);
-        const cv = this.cover;
-        if (grid) grid.sample(jx, jz, cv); else { cv.r = 0; cv.g = 0; cv.b = 0; cv.top = 0; cv.side = 0; }
-        const j = coverJitter(jx, jz), o = len[ki] ?? 0;
-        out[o] = jx; out[o + 1] = jy - 0.02; out[o + 2] = jz; out[o + 3] = yaw; out[o + 4] = sc;
-        out[o + 5] = this.tint.r; out[o + 6] = this.tint.g; out[o + 7] = this.tint.b;
-        out[o + 8] = this.ground.r; out[o + 9] = this.ground.g; out[o + 10] = this.ground.b;
-        out[o + 11] = nx; out[o + 12] = ny; out[o + 13] = nz;
-        out[o + 14] = cv.side; out[o + 15] = cv.r * j; out[o + 16] = cv.g * j; out[o + 17] = cv.b * j; out[o + 18] = cv.top;
-        len[ki] = o + STRIDE;
-      }
-    }
-    const out: Float32Array[] = [];
-    for (let ki = 0; ki < nk; ki++) out.push((this.scratch[ki] ?? new Float32Array(0)).slice(0, len[ki] ?? 0));
-    if (this.cells.size > this.cacheMax) { const first = this.cells.keys().next().value; if (first !== undefined) this.cells.delete(first); }
-    this.cells.set(key, out);
-    return out;
-  }
-
-  /** copy every cached plant that can show before the next refill (its edge + REFILL_M) into its kind's back buffers (E186:
-   *  `update` uploads and swaps them) */
-  private refill(px: number, py: number, pz: number): void {
-    const t0 = performance.now();
-    for (const k of this.kinds) k.set.begin();
-    const arrs = this.kinds.map((k) => k.set.arrays());
-    const R = this.rMax, c0x = Math.floor((px - R) / CELL), c1x = Math.floor((px + R) / CELL), c0z = Math.floor((pz - R) / CELL), c1z = Math.floor((pz + R) / CELL);
-    const counts = this.kinds.map(() => 0);
-    const TAU = Math.PI * 2, up = this.uniforms.uReachUp.value;
-    // nearest cells first (E156): a kind that runs into its cap then drops its furthest (thinnest) plants, not a corner
-    const order: [number, number, number][] = [];
-    for (let cz = c0z; cz <= c1z; cz++) for (let cx = c0x; cx <= c1x; cx++) {
-      const dx = Math.max(0, cx * CELL - px, px - (cx + 1) * CELL), dz = Math.max(0, cz * CELL - pz, pz - (cz + 1) * CELL);
-      if (dx * dx + dz * dz <= R * R) order.push([cx, cz, dx * dx + dz * dz]);
-    }
-    order.sort((a, b) => a[2] - b[2]);
-    for (const [cx, cz] of order) {
-      const data = this.cell(cx, cz);
-      this.kinds.forEach((k, ki) => {
-        const v = data[ki];
-        if (v === undefined) return;
-        const near = k.reach.x, far = k.reach.y, grow = k.reach.z, slack = REFILL_M + EYE_SLACK;
-        const A = arrs[ki];
-        if (A === undefined) return;
-        const { mat, col, gnd, cov, nrm } = A;
-        let n = counts[ki] ?? 0;
-        for (let i = 0; i < v.length && n < k.cap; i += STRIDE) {
-          const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
-          // this plant's edge (the shader's): yaw / 2π; round the wrap (the GPU's atan may land either side) to the far end
-          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, rk = reachMax(v, i, up, REFILL_M + EYE_SLACK);
-          const h = yaw / TAU, edge = (h < 0.005 || h > 0.995 ? far : near + grow + (far - near - grow) * h) * rk, lim = edge + slack;
-          if (d2 > lim * lim) continue;
-          const s = v[i + 4] ?? 1, c = Math.cos(yaw) * s, sn = Math.sin(yaw) * s, o = n * 16;
-          // a turn about +y, scaled: what Matrix4.compose writes, without the quaternion
-          mat[o] = c; mat[o + 1] = 0; mat[o + 2] = -sn; mat[o + 3] = 0;
-          mat[o + 4] = 0; mat[o + 5] = s; mat[o + 6] = 0; mat[o + 7] = 0;
-          mat[o + 8] = sn; mat[o + 9] = 0; mat[o + 10] = c; mat[o + 11] = 0;
-          mat[o + 12] = x; mat[o + 13] = y; mat[o + 14] = z; mat[o + 15] = 1;
-          if (col) { col[n * 3] = v[i + 5] ?? 1; col[n * 3 + 1] = v[i + 6] ?? 1; col[n * 3 + 2] = v[i + 7] ?? 1; }
-          gnd[n * 3] = v[i + 8] ?? 0; gnd[n * 3 + 1] = v[i + 9] ?? 0; gnd[n * 3 + 2] = v[i + 10] ?? 0;
-          nrm.set(v.subarray(i + 11, i + 15), n * 4); cov.set(v.subarray(i + 15, i + 19), n * 4);
-          n++;
-        }
-        counts[ki] = n;
-      });
-    }
-    this.kinds.forEach((k, ki) => { k.set.n = counts[ki] ?? 0; });
-    this.stats.nearRefillMs = performance.now() - t0;
-  }
-
-  /**
-   * The far tier's rebuild, a slice of cells per step (nearest first): every plant whose far model can show before the
-   * next rebuild lands — past its near edge less FAR_SLACK, inside its far edge plus FAR_SLACK — into the back meshes
-   * (E186: `update` uploads what it wrote a slice a frame and swaps them in once the job is done and it is all uploaded).
-   * A cap cuts the furthest (thinnest) first.
-   */
-  private *farRefill(px: number, py: number, pz: number): Generator<undefined, undefined, undefined> {
-    const R = this.rFar, c0x = Math.floor((px - R) / CELL), c1x = Math.floor((px + R) / CELL), c0z = Math.floor((pz - R) / CELL), c1z = Math.floor((pz + R) / CELL);
-    const cellsAt: [number, number, number][] = [];
-    for (let cz = c0z; cz <= c1z; cz++) for (let cx = c0x; cx <= c1x; cx++) {
-      const dx = Math.max(0, cx * CELL - px, px - (cx + 1) * CELL), dz = Math.max(0, cz * CELL - pz, pz - (cz + 1) * CELL);
-      if (dx * dx + dz * dz <= R * R) cellsAt.push([cx, cz, dx * dx + dz * dz]);
-    }
-    cellsAt.sort((a, b) => a[2] - b[2]);
-    for (const k of this.kinds) k.far?.set.begin();
-    const arrs = this.kinds.map((k) => k.far?.set.arrays() ?? null);
-    const TAU = Math.PI * 2, slack = FAR_SLACK + EYE_SLACK, up = this.uniforms.uReachUp.value;
-    for (const [cx, cz] of cellsAt) {
-      if (!this.cells.has(`${cx},${cz}`)) { this.cell(cx, cz); this.stats.cellsBuilt++; yield undefined; } // a new cell is its own slice
-      const data = this.cell(cx, cz);
-      this.kinds.forEach((k, ki) => {
-        const f = k.far, v = data[ki];
-        if (f === null || v === undefined) return;
-        const near = k.reach.x, grow = k.reach.z, far = k.reach.y, fNear = f.reach.x, fFar = f.reach.y, fGrow = f.reach.z;
-        const st = arrs[ki], keep = f.keep;
-        if (!st) return;
-        let n = f.set.n;
-        for (let i = 0; i < v.length && n < f.cap; i += STRIDE) {
-          const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
-          const h = yaw / TAU, wrap = h < 0.005 || h > 0.995;
-          if (keep < 1 && ((h * 97.13) % 1) >= keep) continue;           // not one of the kind's far plants
-          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, rk = reachMax(v, i, up, FAR_SLACK);
-          const edge = (wrap ? near + grow : near + grow + (far - near - grow) * h) * rk, fEdge = (wrap ? fFar : fNear + fGrow + (fFar - fNear - fGrow) * h) * rk;
-          // the lower bound takes the plant's reach at 1× (the camera may climb and the strength fall before the next rebuild)
-          const lo = Math.max(0, (edge / rk) - grow - slack), hi = fEdge + slack;
-          if (d2 > hi * hi || d2 < lo * lo) continue;
-          // E156: the far model is its near one's size (it was scaled up by 1/√keep: a tuft grew as it swapped — bounce)
-          const s = v[i + 4] ?? 1, c = Math.cos(yaw) * s, sn = Math.sin(yaw) * s, o = n * 16, m = st.mat;
-          m[o] = c; m[o + 1] = 0; m[o + 2] = -sn; m[o + 3] = 0;
-          m[o + 4] = 0; m[o + 5] = s; m[o + 6] = 0; m[o + 7] = 0;
-          m[o + 8] = sn; m[o + 9] = 0; m[o + 10] = c; m[o + 11] = 0;
-          m[o + 12] = x; m[o + 13] = y; m[o + 14] = z; m[o + 15] = 1;
-          if (st.col) { st.col[n * 3] = v[i + 5] ?? 1; st.col[n * 3 + 1] = v[i + 6] ?? 1; st.col[n * 3 + 2] = v[i + 7] ?? 1; }
-          st.gnd[n * 3] = v[i + 8] ?? 0; st.gnd[n * 3 + 1] = v[i + 9] ?? 0; st.gnd[n * 3 + 2] = v[i + 10] ?? 0;
-          st.nrm.set(v.subarray(i + 11, i + 15), n * 4); st.cov.set(v.subarray(i + 15, i + 19), n * 4);
-          n++;
-        }
-        f.set.n = n;
-      });
-      yield undefined;
-    }
-    this.stats.farCells = cellsAt.length;
-    return undefined;
-  }
-
-  /** E186: the far set is written and on the GPU — show it */
-  private farSwap(): void {
-    let total = 0;
-    for (const k of this.kinds) if (k.far) { k.far.set.swap(); total += k.far.set.n; }
-    this.stats.farCount = total; this.stats.farSwaps++;
-    // a set that lands somewhere new — the first one, a jump further than the window (Explore's teleports) — grows in over
-    // ~0.8 s instead of appearing; flying, however fast, the sets overlap and simply follow
-    if (this.farLast.distanceToSquared(this.farJobAt) > this.rFar * this.rFar) this.farIn.value = 0;
-    this.farLast.copy(this.farJobAt);
-    this.farWritten = false;
-  }
-
-  update(dt: number, viewer: THREE.Vector3): void {
-    this.uniforms.uTime.value += dt;
-    this.uniforms.uPlayer.value.copy(viewer);
-    // E156 C: full strength on foot (the viewer is the player's feet), none from Explore's height
-    this.uniforms.uReachUp.value = 1 - ss(REACH_HI[0], REACH_HI[1], viewer.y - heightAt(viewer.x, viewer.z));
-    // in 3D: Explore's camera climbs and dives, and the reach is measured from the camera. E186: the next near set is built
-    // NEAR_LAG m early and uploads a slice a frame; it must be shown before the viewer is REFILL_M from where the shown one
-    // was built, so it swaps by NEAR_LAG m of travel whatever is left (`last` = where the newest set was built).
-    let budget = UPLOAD_BYTES, used = 0;
-    const moved = this.last.distanceToSquared(viewer);
-    if (moved > REFILL_M * REFILL_M) {
-      // the first frame, a teleport, a reset (the Blender island landed, Slope reach switched): all of it, this frame
-      this.last.copy(viewer);
-      this.refill(viewer.x, viewer.y, viewer.z);
-      this.nearPending = true;
-      budget = Infinity;
-    } else if (!this.nearPending && moved > (REFILL_M - NEAR_LAG) ** 2) {
-      this.last.copy(viewer);
-      this.refill(viewer.x, viewer.y, viewer.z);
-      this.nearPending = true;
-    }
-    if (this.nearPending) {
-      if (this.last.distanceToSquared(viewer) > NEAR_LAG * NEAR_LAG) budget = Infinity; // its deadline
-      let done = true;
-      for (const k of this.kinds) { const b = k.set.upload(budget - used); used += b; if (!k.set.uploaded) done = false; }
-      if (done) { for (const k of this.kinds) k.set.swap(); this.nearPending = false; this.stats.nearRefills++; }
-    }
-    if (this.rFar === 0) { this.stats.uploadBytes += used; return; }
-    this.farIn.value = Math.min(1, this.farIn.value + dt / 0.8);
-    // the far tier: start a rebuild every FAR_REFILL_M m and step it within the budget (a job always finishes: flying
-    // fast, the next one starts from where the camera is by then); what it wrote uploads within what the near set left of
-    // UPLOAD_BYTES (all of it once the viewer is FAR_SLACK / 2 from where it started), and it swaps in once all is up
-    if (this.farJob === null && !this.farWritten && this.farLast.distanceToSquared(viewer) > FAR_REFILL_M * FAR_REFILL_M) {
-      this.farJobAt.copy(viewer);
-      this.farJob = this.farRefill(viewer.x, viewer.y, viewer.z);
-      this.stats.farJobMs = 0; this.stats.farJobFrames = 0;
-    }
-    if (this.farJob !== null) {
-      const t0 = performance.now();
-      this.stats.farJobFrames++;
-      while (performance.now() - t0 < FAR_BUDGET_MS) if (this.farJob.next().done === true) { this.farJob = null; this.farWritten = true; break; }
-      this.stats.farJobMs += performance.now() - t0;
-    }
-    if (this.farJob !== null || this.farWritten) {
-      // what the near set left of this frame's bytes (a near deadline took them all), or all of it past the far deadline
-      let left = Number.isFinite(budget) ? Math.max(0, budget - used) : Math.max(0, UPLOAD_BYTES - used);
-      if (this.farJobAt.distanceToSquared(viewer) > (FAR_SLACK / 2) ** 2) left = Infinity;
-      let done = this.farWritten;
-      for (const k of this.kinds) if (k.far) { const b = k.far.set.upload(left); left -= b; used += b; if (!k.far.set.uploaded) done = false; }
-      if (done) this.farSwap();
-    }
-    this.stats.uploadBytes += used;
-  }
-
-  /**
-   * Each plant at its own edge by distance (E117), bend away from the player's legs, sway in the wind. `mode`: MODE_NEAR
-   * takes on the ground's colour and is gone at its edge; MODE_HANDOVER swaps to its far model there, same size (a tuft
-   * past `keep` has none and goes like MODE_NEAR); MODE_FAR is that far model: from the near edge to its own far edge,
-   * where it takes on the ground's colour first. Nothing scales (E156: scaling read as the plants bouncing).
-   */
-  private patch(mat: THREE.MeshStandardMaterial, reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep: number): void {
-    const u = this.uniforms, uReach = { value: reach }, uFarReach = { value: far }, uMode = { value: mode }, uFarIn = this.farIn, uKeep = { value: keep };
-    patchShader(mat, 'driftwood.ground-cover', PATCH_ORDER.material, (sh) => {
-      attachFogUniforms(sh);
-      sh.uniforms['uPlayer'] = u.uPlayer; sh.uniforms['uTime'] = windUniforms.uWindTime; sh.uniforms['uWind'] = u.uWind; sh.uniforms['uReach'] = uReach;
-      sh.uniforms['uFarReach'] = uFarReach; sh.uniforms['uMode'] = uMode; sh.uniforms['uFarIn'] = uFarIn;
-      sh.uniforms['uReachUp'] = u.uReachUp; sh.uniforms['uKeep'] = uKeep;
-      sh.vertexShader = sh.vertexShader
-        .replace('#include <common>', `#include <common>\nuniform vec3 uPlayer; uniform float uTime; uniform float uWind; uniform vec3 uReach; uniform vec3 uFarReach; uniform float uMode; uniform float uFarIn; uniform float uReachUp; uniform float uKeep;\nattribute vec3 aGround; attribute vec4 aCover; attribute vec4 aNrm; varying vec3 vGround; varying float vFar;${COVER_SEEN_GLSL}`)
-        .replace('#include <begin_vertex>', `#include <begin_vertex>
-        #ifdef USE_INSTANCING
-        {
-          vec3 io = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-          vec2 away = io.xz - uPlayer.xz;
-          float dl = max(length(away), 1e-3);
-          // this plant's edge in [near + grow, far], from its yaw (the refill's h = yaw / 2π)
-          float h = fract(atan(-instanceMatrix[0].z, instanceMatrix[0].x) / 6.2831853 + 1.0);
-          vec3 toC = cameraPosition - io;
-          float dc = length(toC);
-          // E156 C: plants on sloping ground keep their reach further out (GroundCover.ts reachMax — the same numbers)
-          float facing = abs(dot(aNrm.xyz, toC / max(dc, 1e-3)));
-          float rk = 1.0 + uReachUp * ${(REACH_UP - 1).toFixed(3)} * smoothstep(${SLOPE_LO.toFixed(3)}, ${SLOPE_HI.toFixed(3)}, 1.0 - aNrm.y);
-          vec3 reach = uReach * rk, farReach = uFarReach * rk;
-          float edge = mix(reach.x + reach.z, reach.y, h);
-          // E156 — no plant grows, shrinks or sinks any more (Jake: "bouncing like they're being reanimated"). A near plant
-          // with a far model swaps to it at its edge at full size (the far model is its own leaves, E156 kites); one
-          // without takes on the ground's colour and shade and is gone at its edge, once it is the ground's; a far model
-          // does the same at its far edge. vis 0 collapses the instance (wind included).
-          float vis = 1.0;
-          if (uMode > 1.5) {
-            float fEdge = mix(farReach.x + farReach.z, farReach.y, h);
-            vis = step(edge, dc) * step(dc, fEdge);
-            vFar = max(smoothstep(fEdge - max(2.5 * farReach.z, 6.0), fEdge, dc), 1.0 - uFarIn);
-          } else {
-            vis = step(dc, edge);
-            bool swaps = uMode > 0.5 && (uKeep >= 1.0 || fract(h * 97.13) < uKeep); // the refill's keep test: has a far model
-            vFar = swaps ? 0.0 : smoothstep(reach.x, edge, dc);
-          }
-          // E156 A: the ground it fades into wears the cover, as the terrain draws it from here (coverTint.ts)
-          vGround = mix(aGround, aCover.rgb, coverSeen(aCover.a, aNrm.w, facing));
-          float hgt = max(position.y, 0.0);
-          vec2 push = (away / dl) * (1.0 - smoothstep(0.35, 1.5, dl)) * 1.1;
-          float ph = io.x * 0.31 + io.z * 0.23;
-          vec2 wind = vec2(sin(uTime * 1.7 + ph) + 0.5 * sin(uTime * 3.1 + ph * 1.7), 0.6 * cos(uTime * 1.3 + ph)) * (0.05 + 0.18 * uWind);
-          vec2 off = (push + wind) * hgt;
-          vec3 ax = instanceMatrix[0].xyz, az = instanceMatrix[2].xyz;
-          float s2 = max(dot(ax, ax), 1e-4);
-          transformed.x += dot(vec3(off.x, 0.0, off.y), ax) / s2;
-          transformed.z += dot(vec3(off.x, 0.0, off.y), az) / s2;
-          transformed.y -= length(off) * 0.4 * hgt;
-          transformed *= vis;
-        }
-        #else
-          vFar = 0.0; vGround = vec3(0.0);
-        #endif`);
-      sh.fragmentShader = sh.fragmentShader
-        .replace('#include <common>', '#include <common>\nvarying vec3 vGround; varying float vFar;')
-        .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, vGround, vFar);')
-        .replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\nnormal = normalize(mix(normal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), vFar));');
-    }, { mode: 'replace', key: 'ground-cover' });
   }
 }

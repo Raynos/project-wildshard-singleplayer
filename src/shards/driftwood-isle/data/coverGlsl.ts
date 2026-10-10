@@ -13,3 +13,6 @@ float coverSeen( float top, float side, float facing ) {
   fragmentNormal: /* glsl */`#include <normal_fragment_maps>
 	diffuseColor.rgb = mix( diffuseColor.rgb, vCover.rgb, coverSeen( vCover.a, vCoverSide, abs( dot( normal, normalize( vViewPosition ) ) ) ) );`,
 };
+
+/** The terrain tint's patch: its id and the suffix its program key takes (world/coverTint.ts). */
+export const COVER_TINT = { patchId: 'driftwood.cover-tint', keySuffix: '|cover-tint' };

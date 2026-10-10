@@ -102,6 +102,8 @@
     "./looks/duskCurves": "./looks/duskCurves.ts",
     "./looks/modelLibrary": "./looks/modelLibrary.ts",
     "./looks/instancedTiles": "./looks/instancedTiles.ts",
+    "./looks/streamedCover": "./looks/streamedCover.ts",
+    "./looks/coverGrid": "./looks/coverGrid.ts",
     "./looks/facetedOcean": "./looks/facetedOcean.ts",
     "./looks/facetedDay": "./looks/facetedDay.ts",
     "./looks/facetedDayBackdrop": "./looks/facetedDayBackdrop.ts",

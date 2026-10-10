@@ -60,7 +60,7 @@ const browser = await chromium.launch({ headless: true, args: ['--use-angle=meta
 try {
   for (const tier of ['phone', 'desktop']) {
     const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
-    await installInit(context, { lane: 'driftwood-look-parity', sha: version.build, browser: 'chromium', tier });
+    await installInit(context, { lane: 'driftwood-look-parity', sha: version.build, browser: 'chromium', capture: 30, tier });
     await developerSettings(context, { time: 'midday' });
     // every shader source the page compiles, hashed (a byte that moved in any program shows here)
     await context.addInitScript(() => {
