@@ -5,9 +5,9 @@
  * and slope (./groundColor.ts) and the sand paths over the grass. The sea level is the manifest's `OCEAN.level`.
  */
 import * as THREE from 'three';
-import { facetedGroundPainter } from '@wildshard/sdk/looks/facetedGround';
+import { facetedGroundPainter } from '../runtime/looks/facetedGround';
 import type { TerrainPainter } from '@wildshard/engine/render/look';
-import { GROUND_LOOK, GROUND_PATHS } from '../data/groundLook';
+import { GROUND_LOOK, GROUND_PATHS } from '../runtime/looks/groundLook';
 import { OCEAN } from '../manifest';
 import { LP, hash2, lowPolyGroundColor } from './groundColor';
 

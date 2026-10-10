@@ -19,9 +19,9 @@ import type { Placed } from '@wildshard/engine/models/place';
 import { normalAt, inChunk } from '@wildshard/engine/world/Heightfield';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { ReefBed, scatterReefBed, type ReefBedLayout, type ReefBedSet, type ReefBedSpec, type ReefGround } from '@wildshard/sdk/looks/reefBed';
+import { ReefBed, scatterReefBed, type ReefBedLayout, type ReefBed as ReefBedSet, type ReefBedSpec, type ReefGround } from '../runtime/looks/reefBed';
 import { OCEAN } from '../manifest';
-import { SEABED } from '../data/seabedLook';
+import { SEABED } from '../runtime/looks/seabedLook';
 import { REEF, reefMaterial, type ReefParams } from '../models/reef';
 import { REEF_FISH_COLOURS, reefFish } from '../models/reefFish';
 

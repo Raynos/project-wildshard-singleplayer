@@ -1,7 +1,7 @@
 // SHARD-PLATFORM M3 (look-family rows): Driftwood's faceted ground (look/terrainPainter.ts builds it through
 // @wildshard/sdk/looks/facetedGround): the patch's id and cache key, the roughness, the build's band, the cliff lip, the
 // slab walls and the sand paths. The colours by height and slope are look/groundColor.ts.
-import type { FacetedGroundRow } from '@wildshard/sdk/looks/facetedGround';
+import type { FacetedGroundRow } from './facetedGround';
 
 /**
  * Faceted ground: matte (0.92, the slab 0.95), 64 rows a task (the 256² grid was one ~120 ms task at 4x CPU); a cliff's

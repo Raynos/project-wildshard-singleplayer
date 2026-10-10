@@ -2,7 +2,7 @@
 // @wildshard/game/systems/looks/streamedCover): its cells, reaches, caps, upload budget, slope reach, material, patch and the GLSL
 // edits of its plants' program (`@{reachUp}` / `@{slopeLo}` / `@{slopeHi}` splice the slope reach the SDK formats to three
 // decimals, `@{coverSeen}` the terrain tint's GLSL, runtime/glsl/coverGlsl.ts). The kinds' densities and tints stay code.
-import type { StreamedCoverRow } from '@wildshard/game/systems/looks/streamedCover';
+import type { StreamedCoverRow } from './streamedCover';
 
 /**
  * The cover's numbers. 16 m cells of 520 candidates, refilled every 4 m; the desktop reaches 1.25× further (E117) with

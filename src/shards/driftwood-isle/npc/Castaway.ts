@@ -29,9 +29,9 @@ import { loadFaceHead, type FaceHead } from './faceHeads';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { buildKitMesh } from '@wildshard/sdk/kit/kitParts';
-import { SmokeColumn, type SmokeColumnSet } from '@wildshard/sdk/looks/smokeColumn';
-import { CASTAWAY_ARM, CASTAWAY_BODY, CASTAWAY_CAMP, CASTAWAY_FLAMES, CASTAWAY_HEAD, CASTAWAY_SMOKE } from '../data/castawayLook';
+import { buildKitMesh } from '../runtime/kit/kitParts';
+import { SmokeColumn, type SmokeColumn as SmokeColumnSet } from '../runtime/looks/smokeColumn';
+import { CASTAWAY_ARM, CASTAWAY_BODY, CASTAWAY_CAMP, CASTAWAY_FLAMES, CASTAWAY_HEAD, CASTAWAY_SMOKE } from '../runtime/looks/castawayLook';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 

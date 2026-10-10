@@ -26,8 +26,8 @@
 import * as THREE from 'three';
 import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { buildKitMesh } from '@wildshard/sdk/kit/kitParts';
-import { TRADER_BODY, TRADER_FORE, TRADER_HEAD, TRADER_UPPER } from '../data/traderLook';
+import { buildKitMesh } from '../runtime/kit/kitParts';
+import { TRADER_BODY, TRADER_FORE, TRADER_HEAD, TRADER_UPPER } from '../runtime/looks/traderLook';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 

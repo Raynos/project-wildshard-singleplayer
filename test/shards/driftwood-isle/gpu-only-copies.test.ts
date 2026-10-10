@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { noDriftwoodWorld, type DriftwoodWorld } from '../../../src/shards/driftwood-isle/world/build';
 import { driftwoodRoots, releaseDriftwoodCopies } from '../../../src/shards/driftwood-isle/world/gpuOnlyCopies';
 import { gpuOnlyContent } from '../../../src/engine/core/gpuOnly';
-import { TiledInstances } from '@wildshard/sdk/looks/instancedTiles';
+import { TiledInstances } from '../../../src/shards/driftwood-isle/runtime/looks/instancedTiles';
 
 // G144 / G173 (E435, E450: always on, both rows retired): Driftwood's world meshes give up their JS vertex copies as they upload; position, the index, dynamic
 // attributes and skinned meshes keep theirs, and nothing outside Driftwood's own roots is touched.

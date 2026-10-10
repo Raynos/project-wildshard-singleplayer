@@ -6,8 +6,8 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { windUniforms } from '@wildshard/engine/world/wind';
-import { editShader, type ShaderEditRow } from './shaderEdits';
-import { ShaderFamily } from './shaderFamily';
+import { editShader, type ShaderEditRow } from '@wildshard/game/systems/looks/shaderEdits';
+import { ShaderFamily } from '@wildshard/game/systems/looks/shaderFamily';
 
 /**
  * A ground cover streamed round the viewer as rows (SHARD-PLATFORM M3, look-family rows): instanced low-poly plants, one

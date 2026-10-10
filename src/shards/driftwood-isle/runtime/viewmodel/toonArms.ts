@@ -23,10 +23,10 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { Color, MeshStandardMaterial, type Object3D, type PerspectiveCamera, Quaternion, Vector2, Vector3 } from 'three';
-import type { ShardSword } from '../../shard/manifest';
-import { ShaderFamily } from '../looks/shaderFamily';
-import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
-import { RigArms, swordArmsOf, vmScale } from './rigArms';
+import type { ShardSword } from '@wildshard/game/shard/manifest';
+import { ShaderFamily } from '@wildshard/game/systems/looks/shaderFamily';
+import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from '@wildshard/game/systems/viewmodel/armClips';
+import { RigArms, swordArmsOf, vmScale } from '@wildshard/game/systems/viewmodel/rigArms';
 
 type Vec3 = readonly [number, number, number];
 type Sword = 'wood' | 'iron';

@@ -20,7 +20,7 @@
 import * as THREE from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { ShaderFamily } from './shaderFamily';
+import { ShaderFamily } from '@wildshard/game/systems/looks/shaderFamily';
 
 /** a cascade's programs as GLSL rows: the hash every program splices, and each part's vertex / fragment source */
 export interface CascadeGlsl {

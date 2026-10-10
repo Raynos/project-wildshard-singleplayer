@@ -27,7 +27,7 @@ import { HORIZON_RADIUS } from '@wildshard/engine/world/HorizonMatte';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock, waterExtent } from '@wildshard/engine/world/waves';
-import { ShaderFamily } from './shaderFamily';
+import { ShaderFamily } from '@wildshard/game/systems/looks/shaderFamily';
 
 /** the sea's GLSL rows: each replaces one of three's MeshStandard chunks */
 export interface FacetedOceanGlsl {

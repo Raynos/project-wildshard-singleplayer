@@ -14,7 +14,7 @@
  */
 import * as THREE from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
-import { ShaderFamily } from './shaderFamily';
+import { ShaderFamily } from '@wildshard/game/systems/looks/shaderFamily';
 
 /** the sky's palette (linear, pre-tonemap); a day / night clock lerps these per preset */
 export interface SkyPalette {

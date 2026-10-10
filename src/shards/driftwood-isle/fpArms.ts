@@ -15,8 +15,8 @@
 // (data/fpArmsLook.ts), the GLSL too (data/fpArmsGlsl.ts).
 import type { Object3D } from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { ToonArms } from '@wildshard/sdk/viewmodel/toonArms';
-import { FP_ARMS_GLSL } from './runtime/glsl/fpArmsGlsl';
+import { ToonArms } from './runtime/viewmodel/toonArms';
+import { FP_ARMS_GLSL } from './runtime/looks/fpArmsGlsl';
 import { FP_ARMS_LOOK } from './data/fpArmsLook';
 
 const ARMS = new ToonArms(FP_ARMS_LOOK, FP_ARMS_GLSL);

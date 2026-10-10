@@ -1,6 +1,6 @@
 import type { OptionValue } from '@wildshard/engine/ui/Settings';
 import type { DayCycleSpec } from '@wildshard/engine/world/dayCycle';
-import { facetedDay, type FacetedDayPreset } from '@wildshard/sdk/looks/facetedDay';
+import { facetedDay, type FacetedDayPreset } from '../runtime/looks/facetedDay';
 import { DRIFTWOOD_SKY_DAY } from '../data/skyDay';
 
 /**

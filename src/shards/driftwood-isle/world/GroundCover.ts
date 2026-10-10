@@ -24,7 +24,7 @@ import { HUT, LOOKOUT, SHRINE, WRECK, ISLAND } from '../manifest';
 import { Cove } from './Cove';
 import { copyCoverGeometry } from '../boot/coverGeometry';
 import COVER_LOOK from '../data/coverLook.json' with { type: 'json' };
-import { GROUND_COVER } from '../runtime/glsl/groundCoverLook';
+import { GROUND_COVER } from '../runtime/looks/groundCoverLook';
 import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, COVER_SEEN_GLSL, coverSample, coverJitter } from './coverTint';
 import { driftLog, driftLogBox } from '../models/driftLog';
@@ -39,7 +39,7 @@ import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
 import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { StreamedCover, type CoverGround, type CoverSite, type StreamedCoverHooks, type StreamedCoverSet, type StreamedCoverStats } from '@wildshard/sdk/looks/streamedCover';
+import { StreamedCover, type CoverGround, type CoverSite, type StreamedCoverHooks, type StreamedCover as StreamedCoverSet, type StreamedCoverStats } from '../runtime/looks/streamedCover';
 
 export interface GroundCoverOpts {
   sea: number;

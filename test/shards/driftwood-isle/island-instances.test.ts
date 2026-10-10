@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { TiledInstances, type InstProto } from '@wildshard/sdk/looks/instancedTiles';
+import { TiledInstances, type InstProto } from '../../../src/shards/driftwood-isle/runtime/looks/instancedTiles';
 
 // G144 (E435, the default-off driftwoodIslandInstancing row): the island's placements as one InstancedMesh per prototype
 // and set; a tile changing reach or view repacks the meshes with rows in it, in-view rows first.
