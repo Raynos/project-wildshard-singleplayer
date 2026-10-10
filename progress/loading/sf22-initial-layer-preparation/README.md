@@ -88,3 +88,31 @@ observation is unavailable; it is not credited as zero. This subset proves no
 all-G270 or phone-memory pass; phone memory remains G269. Safari evidence SHA-256:
 `b2ad3b8bea16b128767bdbb8bad19ee8dc5c8deced477982f7beee0991fd307b`.
 Both browsers, Safari/Inspector/proxy, Simulator and preview closed in finally.
+
+
+## Disposed borrowed uploads
+
+The 005c04b44 diagnostic repeated the return refusal. Chromium's native warnings
+preceded the compressed upload fence: `texSubImage2D: no canvas`, then
+`texStorage2D: One or more image dimensions are not positive` and invalid mip
+creation. The captured ASTC uploads have intact 512 → 1 mip chains. The fence
+observes an existing GL error; its texture name alone does not identify its origin.
+Diagnostic evidence SHA-256:
+`ec2bf619514d4eb407604d127fee43e36b46c0295acfdf6a65059c962a2e3d99`.
+The bounded mutation ring adds no GL reads or error drains; these timing samples
+are diagnostic only. All resources closed.
+
+Sliced preparation borrowed a texture inventory across paints without observing
+sibling disposal. Grid loading cards remove their meshes, dispose their textures
+and zero their canvases on slot retirement. Preparation could then upload that
+retired snapshot. It now observes texture disposal under a temporary page child
+scope, skips retired inventory entries, and cancels a retired compressed entry
+inside its queued paint fence. A live neighbour, its material draws, and strict
+faults on live textures remain unchanged. Listeners are removed on all exits.
+
+Two regressions prove a retired 1024 × 640 CanvasTexture is not revived after the
+compile yield, and an in-flight retired compressed texture does not upload or
+cancel the surviving texture. Five focused files / 51 tests, strict committed
+HEAD + own hunks, and touched lint pass. No new public API, import edge, collider,
+input manifest, or visual change. Native error clearance and performance remain
+pending the quiet matched desktop/Safari run; this is not a pass receipt.

@@ -1,8 +1,9 @@
+// @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
-import { CubeUVReflectionMapping, DataTexture, Group, PointLight, PerspectiveCamera, Scene, WebGLRenderTarget, WebGLRenderer } from 'three';
+import { CanvasTexture, CompressedTexture, CubeUVReflectionMapping, DataTexture, Group, Mesh, MeshBasicMaterial, PlaneGeometry, PointLight, PerspectiveCamera, RGBA_ASTC_4x4_Format, Scene, WebGLRenderTarget, WebGLRenderer } from 'three';
 import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
 import type { ProgramLike } from '../src/engine/boot/perflog';
-import { collectTextures, includeFutureLights, runPrecompile, type CompileJob } from '../src/engine/render/precompile';
+import { collectTextures, includeFutureLights, runPrecompile, sceneJobs, type CompileJob } from '../src/engine/render/precompile';
 
 it('cancels a yielded compile before resolving programs or uploading textures, restoring scene and target', async () => {
   const prior = scopeEnvironment();
@@ -58,4 +59,53 @@ it('warms the whole parked view while borrowing the bound native scene environme
   expect(job.environment).toBe(environment); expect(view.visible).toBe(false); expect(page.environment).toBeNull();
   expect(authored.children[0]?.parent).toBe(authored); expect(native.environment).toBe(environment);
   environment.dispose();
+});
+
+
+it('does not revive a retired grid-card canvas from a yielded sibling preparation inventory', async () => {
+  const prior = scopeEnvironment(), canvas = document.createElement('canvas');
+  canvas.width = 1024; canvas.height = 640;
+  const card = new CanvasTexture(canvas), live = new DataTexture(new Uint8Array(4), 1, 1);
+  const cardMaterial = new MeshBasicMaterial({ map: card }), liveMaterial = new MeshBasicMaterial({ map: live });
+  const geometry = new PlaneGeometry(), scene = new Scene(), mesh = new Mesh(geometry, cardMaterial);
+  scene.add(mesh, new Mesh(geometry, liveMaterial));
+  const plan = sceneJobs(scene, null), uploaded: object[] = [], removals = vi.spyOn(card, 'removeEventListener');
+  installScopeEnvironment({ targetKind: () => 'other', frame: render => {
+    queueMicrotask(() => { mesh.removeFromParent(); card.dispose(); cardMaterial.dispose(); canvas.width = 0; canvas.height = 0; render(0); }); return 1;
+  }, cancelFrame: () => undefined });
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Renderer prototype');
+  const commands = { extensions: { has: () => false }, info: { programs: [] }, getRenderTarget: () => null,
+    setRenderTarget: () => undefined, compile: () => undefined, initTexture: (texture: object) => {
+      if (texture === card) throw new Error('Native INVALID_VALUE: zero-sized retired canvas');
+      uploaded.push(texture);
+    } };
+  for (const [key, value] of Object.entries(commands)) Reflect.set(renderer, key, value);
+  try {
+    expect(collectTextures(plan.jobs)).toEqual([card, live]);
+    await runPrecompile(renderer, new PerspectiveCamera(), plan.jobs, plan.materials);
+    expect(canvas.width).toBe(0); expect(mesh.parent).toBeNull();
+    expect(uploaded).toEqual([live]); expect(removals).toHaveBeenCalledOnce();
+  } finally { installScopeEnvironment(prior); removals.mockRestore(); live.dispose(); liveMaterial.dispose(); geometry.dispose(); }
+});
+
+
+it('cancels a borrowed compressed upload that retires during its paint fence without cancelling live work', async () => {
+  const prior = scopeEnvironment(), retired = new CompressedTexture([{ data: new Uint8Array(16), width: 4, height: 4 }], 4, 4, RGBA_ASTC_4x4_Format);
+  retired.needsUpdate = true;
+  const live = new DataTexture(new Uint8Array(4), 1, 1), uploaded: object[] = [];
+  let frames = 0;
+  installScopeEnvironment({ targetKind: () => 'other', frame: render => {
+    queueMicrotask(() => { if (++frames === 2) retired.dispose(); render(frames); }); return 1;
+  }, cancelFrame: () => undefined });
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Renderer prototype');
+  const commands = { extensions: { has: () => false }, info: { programs: [] }, getRenderTarget: () => null,
+    properties: { get: () => ({}) }, getContext: () => ({ isContextLost: () => false }), renderBufferDirect: () => undefined,
+    setRenderTarget: () => undefined, compile: () => undefined, initTexture: (texture: object) => { uploaded.push(texture); } };
+  for (const [key, value] of Object.entries(commands)) Reflect.set(renderer, key, value);
+  try {
+    await runPrecompile(renderer, new PerspectiveCamera(), [{ label: 'sibling', root: new Group(), target: null, rt: null }], 0, undefined, [retired, live]);
+    expect(frames).toBeGreaterThanOrEqual(2); expect(uploaded).toEqual([live]);
+  } finally { installScopeEnvironment(prior); retired.dispose(); live.dispose(); }
 });

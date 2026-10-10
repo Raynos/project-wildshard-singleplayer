@@ -373,11 +373,28 @@ export async function runPrecompile(
   textures: THREE.Texture[] = collectTextures(jobs),
   current: () => boolean = () => true,
 ): Promise<PrecompileReport> {
+  // Page siblings can retire while a neighbour's preparation yields. The inventory is
+  // borrowed: disposal cancels only that resource's upload, not the live neighbour.
+  const retired = new WeakSet<THREE.Texture>(), watched = new Set<THREE.Texture>();
+  const observer = pageScope.child('shader-texture-inventory');
+  const watch = (texture: THREE.Texture): void => {
+    if (watched.has(texture)) return;
+    watched.add(texture); observer.listenOnceEmitter(texture, 'dispose', () => { retired.add(texture); });
+  };
+  for (const texture of textures) watch(texture);
+  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch); }
+  finally { observer.dispose(); }
+}
+
+async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
+  onProgress: ((done: number, total: number, detail: string) => void) | undefined, textures: THREE.Texture[],
+  current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
   const borrowed = new Set<THREE.Material>();
   for (const job of jobs) job.root.traverse(object => { for (const material of materialsOf(object)) borrowed.add(material); });
   await waitMaterialPreparations([...borrowed], current);
+  for (const texture of collectTextures(jobs)) watch(texture);
   const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
   const before = snapshotPrograms(renderer);
   const created: ProgramLike[] = [];
@@ -433,14 +450,19 @@ export async function runPrecompile(
   }
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
   const uploadTextures = [...new Set([...textures, ...collectTextures(jobs)])];
+  for (const texture of uploadTextures) watch(texture);
   // Phase C: each compressed texture owns a fenced painted slice; other uploads use 12 ms slices.
   tSlice = performance.now();
   const base = jobs.length + units;
   for (const [i, tex] of uploadTextures.entries()) {
     checkCurrent();
     const compressed = tex instanceof THREE.CompressedTexture;
-    if (compressed) await uploadCompressedTexture(renderer, tex, current);
-    else renderer.initTexture(tex);
+    if (!retired.has(tex)) {
+      if (compressed) {
+        try { await uploadCompressedTexture(renderer, tex, () => current() && !retired.has(tex)); }
+        catch (error) { if (!retired.has(tex)) throw error; }
+      } else renderer.initTexture(tex);
+    }
     onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
     if (compressed) { checkCurrent(); tSlice = performance.now(); }
     else if (performance.now() - tSlice > 12) { await frame(); checkCurrent(); tSlice = performance.now(); }
