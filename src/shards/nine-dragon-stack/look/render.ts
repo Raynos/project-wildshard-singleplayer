@@ -16,17 +16,17 @@ import { LUT_URL } from '../data/light';
 import { type Halos, buildHalos } from './light/halos';
 import { STREAK_PERF } from './streaks';
 import { clearLanterns, updateLanterns } from './lanterns';
-import { BleedPass } from './render/bleed';
-import { BLEED, JiehuaEffect } from './render/jiehua';
-import { ReflectPass } from './render/reflect';
-import { HazePass } from './render/haze';
+import { JiehuaEffect } from './render/jiehua';
+import { PASS_FAMILY } from './render/family';
+import { BLEED_PASS, HAZE_PASS, REFLECT_PASS } from '../data/passes';
+import { RowRenderPass, type RowRenderPassView } from '@wildshard/sdk/looks/renderPass';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import type { Shared } from './style';
 
 export interface NdRenderHandle {
-  reflect: ReflectPass | null;
-  haze: HazePass | null;
-  bleed: BleedPass | null;
+  reflect: RowRenderPassView | null;
+  haze: RowRenderPassView | null;
+  bleed: RowRenderPassView | null;
   jiehua: JiehuaEffect;
   camera: PerspectiveCamera;
   renderer: Renderer;
@@ -87,9 +87,9 @@ export function shardRender(): LookStrategy {
         // deep strata were speckled with it
         if (c.scene.fog instanceof Fog) { c.scene.fog.near = 25; c.scene.fog.far = 80; }
       }
-      let reflect: ReflectPass | null = null;
-      let haze: HazePass | null = null;
-      let bleed: BleedPass | null = null;
+      let reflect: RowRenderPassView | null = null;
+      let haze: RowRenderPassView | null = null;
+      let bleed: RowRenderPassView | null = null;
       const beforeChain: NonNullable<LookComposition['beforeChain']> = [];
       // Emergency phone profile: avoid the three custom passes while isolating the iPhone load failure.
       // At 402×812, DPR 2, their half-float RGBA targets total an estimated 7,550,992 bytes (7.20 MiB);
@@ -99,9 +99,11 @@ export function shardRender(): LookStrategy {
         const rect = new Vector4(WELL.x0 - 2, STREET.z0, Math.max(PLAZA.x1, STAIR.x0) + 4, PLAZA.z1 + 10);
         // (dome C2) and the stair-street's treads and landings, any height: x 22 … 102, z 2 … 10
         const stairRect = new Vector4(STAIR.x0, STAIR.z0, 102, STAIR.z1);
-        reflect = new ReflectPass(c.camera, Y0, rect, () => world.shared.u.uTime.value, stairRect);
-        haze = new HazePass(c.camera, world.shared, Y0, 0.5);
-        bleed = new BleedPass(c.camera, glow, BLEED.threshold, BLEED.knee);
+        const s = world.shared.u, time = (): number => s.uTime.value;
+        const family = PASS_FAMILY, camera = c.camera;
+        reflect = new RowRenderPass(REFLECT_PASS, { family, camera, params: { time }, links: { uRect: { value: rect }, uRect2: { value: stairRect }, uK: { value: new Vector4(Y0, 1, 0.045, 0.12) } } });
+        haze = new RowRenderPass(HAZE_PASS, { family, camera, params: { time }, links: { ...s, uGroundY: { value: Y0 } } });
+        bleed = new RowRenderPass(BLEED_PASS, { family, camera, links: glow });
         beforeChain.push(reflect, haze, bleed);
       }
       const jiehua = new JiehuaEffect(c.camera, world.shared, glow, grade);

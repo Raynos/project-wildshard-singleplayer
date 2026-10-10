@@ -8,7 +8,8 @@
 //   Talisman: pivot → a short cord (3 points) → a 4 × 10 point sheet, pinned at its top-centre, structural + shear +
 //           bend constraints, a noise breeze that ruffles it; the fu decal on both faces.
 import { BufferAttribute, type BufferGeometry, DynamicDrawUsage, type Quaternion, Vector3 } from 'three';
-import { CLS, Geo, type Look, v3 } from './geo';
+import { Geo, type Look, v3 } from './geo';
+import { CLS } from '../data/vmLook';
 
 interface Pt { p: Vector3; q: Vector3; pin: boolean }
 

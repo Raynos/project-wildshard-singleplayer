@@ -27,9 +27,11 @@ import {
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { type Capsule, Talisman, Tassel, penetration } from './cloth';
-import { CLS, Geo, v3 } from './geo';
+import { Geo, v3 } from './geo';
+import { CLS } from '../data/vmLook';
+import { plainWeaveTexture } from '@wildshard/sdk/looks/weave';
 import { buildHalo } from './jian';
-import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms, weaveTexture } from './materials';
+import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms } from './materials';
 import { ARM_CLIPS, armClipNames } from '@wildshard/game/systems/viewmodel/armClips';
 import { type JointAngles, LEFT_HAND, RIGHT_HAND, measure } from '@wildshard/game/systems/viewmodel/armRig';
 import { Trail, type TrailLook } from './trail';
@@ -279,7 +281,7 @@ export class NineDragonArms {
     const g = new Group();
     g.userData = scene.userData;
     while (scene.children.length > 0) { const c = scene.children[0]; if (c !== undefined) g.add(c); }
-    return new NineDragonArms(g, gltf.animations, textures, weaveTexture(), tier);
+    return new NineDragonArms(g, gltf.animations, textures, plainWeaveTexture(), tier);
   }
 
   /** start a right-arm move (crossfade `fade` s). 'charge' and 'sheathe' hold their last pose until the next play. */

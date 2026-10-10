@@ -1,10 +1,15 @@
 // Nine Dragon's post passes as data for the SDK shader family (@wildshard/sdk/looks/shaderFamily), SHARD-PLATFORM M3:
 // the bleed pyramid (look/render/bleed.ts), the wet-stone reflection trace and its streak (reflect.ts), the lantern haze
-// march and its add (haze.ts) and the Jiehua composite's fragment (jiehua.ts). `@{name}` splices what the shard passes
-// (look/render/family.ts): the window glow's and the grade's GLSL, the light volume's, the flagstones'; a trace's or a
-// march's step count (`steps`, `stepsF`) comes from its pass, one program per count.
+// march and its add (haze.ts) and the Jiehua composite's fragment (jiehua.ts), with the window glow's, the grade's and
+// the flagstones' GLSL folded in. `@{name}` splices what the shard passes (look/render/family.ts): the light volume's
+// GLSL and the LUT's texel mapping; a trace's or a march's step count (`steps`, `stepsF`) comes from its pass row's
+// settings, one program per count. The three passes' targets, draws and per-frame uniforms are render-pass rows
+// (@wildshard/sdk/looks/renderPass): BLEED_PASS, REFLECT_PASS, HAZE_PASS.
 import type { ShaderProgramRow } from '@wildshard/sdk/looks/shaderFamily';
+import type { RenderPassRow } from '@wildshard/sdk/looks/renderPass';
 import { FOG_GLSL, NOISE_GLSL, STONES_GLSL } from './look';
+import { GLOW_COMP_GLSL, GLOW_PRE_GLSL, GRADE_GLSL } from './light';
+import { FLAG_GLSL } from './paint';
 
 /** window depth below this is a viewmodel's near slice (core/worldDepth.ts DEPTH_SLICES), not the world */
 export const VM_SLICE = 0.3;
@@ -34,7 +39,7 @@ uniform vec2 uPre; // x: threshold, y: knee
 uniform float uNearP;
 uniform float uFarP;
 varying vec2 vUv;
-@{glowPre}
+${GLOW_PRE_GLSL}
 ${INV_DEPTH_GLSL}
 vec3 pick(vec3 c) {
   float br = max(c.r, max(c.g, c.b));
@@ -114,7 +119,7 @@ uniform vec2 uMarch;  // x: max distance (m), y: first step (m)
 uniform float uTime;
 varying vec2 vUv;
 ${NOISE_GLSL}
-@{flag}
+${FLAG_GLSL}
 ${STONES_GLSL}
 float linZ(float d) { return (uNF.x * uNF.y) / ((uNF.y - uNF.x) * d - uNF.y); } // view z (negative)
 vec3 viewAt(vec2 uv, float d) {
@@ -322,8 +327,8 @@ uniform vec2 uNF;      // camera near, far
 uniform float uSharp;
 ${NOISE_GLSL}
 ${FOG_GLSL}
-@{glowComp}
-@{grade}
+${GLOW_COMP_GLSL}
+${GRADE_GLSL}
 // inverse depth (1/m) from the depth texture: linear across a plane in screen space, so its Laplacian is 0 on flat faces
 // and only folds toward the eye survive (the ink lab's). The sky / far plane is 0; a viewmodel's near slice a flat 0.5 m
 float wAt(vec2 p) {
@@ -465,3 +470,135 @@ export const PASS_PROGRAMS = {
   hazeMarch: { ...PASS, name: 'NdHazeMarch', fragment: HAZE_MARCH, blend: 'none' },
   hazeAdd: { ...PASS, name: 'NdHazeAdd', fragment: HAZE_ADD, transparent: true, blend: 'addKeepAlpha' },
 } as const satisfies Readonly<Record<string, ShaderProgramRow>>;
+
+/** the neon lab's final bleed look (round-7-lab-neon README §3), as the clean room ran it (post.ts BLEED); round 14: the
+ *  shadow lift toward ink-blue 0.35 → 0.12 (the mockups' darks are warm: style-A's mean is r > g > b, ours was blue) */
+export const BLEED = {
+  threshold: 1.0, knee: 0.08, tight: 0.16, wide: 0.4, stain: 0.5, stainResponse: 2.2, weave: 0.5, warp: 0.004, edge: 0.12,
+  exposure: 1, rain: 0.55, rainAngle: 0.14, rainSpeed: 520, vignette: 0.3, grain: 2.5, shadowBlue: 0.12,
+  /** (render, E281) the toe (see the composite), the vibrance and the lit side's warmth. Pass 1's toe (0.5 to 0.32) sank
+   *  the mockup cameras into a purple night: the mockups are high key, so only the deepest darks take a light toe */
+  toe: 0.8, toeEnd: 0.22, vibrance: 0.15, warm: 0.06,
+};
+
+/** a march's step count as its splices (`@{steps}` an integer, `@{stepsF}` a float) */
+const STEPS = { steps: { setting: 'steps' }, stepsF: { setting: 'steps', fixed: 1 } } as const;
+
+/** The Jiehua bleed pyramid (a `beforeChain` pass; the clean room's 晕染 bloom, post.ts): a Karis prefilter (threshold 1.0,
+ *  tight knee), dual-filter downs, ups summing back (tight = the ¼ mip, wide = the summed pyramid). Round 14 (the phone's
+ *  draw budget, 8 → 5 draws): the prefilter writes the ¼ level directly (four bilinear taps cover its 4×4 full-res texels)
+ *  and the pyramid stops at 1/16. The window glow rides in its alpha (light/glow.ts). The prefilter reads inverse depth
+ *  from the scene's depth texture (the engine's scene target is not MSAA and its alpha is not the clean room's near /
+ *  viewZ). It writes only its own targets: the composite samples `tight` and `wide`. */
+export const BLEED_PASS = {
+  name: 'NdBleedPass',
+  programs: {
+    bleedPre: { uniforms: { uTexel: { v2: [0, 0] }, uPre: { v2: [BLEED.threshold, BLEED.knee] }, uNearP: 0.1, uFarP: 1000 }, links: ['uGlow', 'uGlow2'], depth: 'tDepth', camera: { uNearP: 'near', uFarP: 'far' } },
+    bleedDown: { uniforms: { uTexel: { v2: [0, 0] } } },
+    bleedUp: { uniforms: { uTexel: { v2: [0, 0] } } },
+  },
+  // ¼ (the prefilter: tight), ⅛, 1/16; ups at ⅛ and ¼ (wide)
+  targets: {
+    mip0: { name: 'NdBleed.mip0', of: 'input', scale: 0.25, filter: 'linear' },
+    up0: { name: 'NdBleed.up0', of: 'mip0', scale: 1, filter: 'linear' },
+    mip1: { name: 'NdBleed.mip1', of: 'mip0', scale: 0.5, filter: 'linear' },
+    up1: { name: 'NdBleed.up1', of: 'mip1', scale: 1, filter: 'linear' },
+    mip2: { name: 'NdBleed.mip2', of: 'mip1', scale: 0.5, filter: 'linear' },
+  },
+  draws: [
+    { program: 'bleedPre', to: 'mip0', textures: { tSrc: 'input' }, texel: { uniform: 'uTexel', of: 'input' } },
+    { program: 'bleedDown', to: 'mip1', textures: { tSrc: 'mip0' }, texel: { uniform: 'uTexel', of: 'mip0' } },
+    { program: 'bleedDown', to: 'mip2', textures: { tSrc: 'mip1' }, texel: { uniform: 'uTexel', of: 'mip1' } },
+    { program: 'bleedUp', to: 'up1', textures: { tSrc: 'mip2', tAdd: 'mip1' }, texel: { uniform: 'uTexel', of: 'mip2' } },
+    { program: 'bleedUp', to: 'up0', textures: { tSrc: 'up1', tAdd: 'mip0' }, texel: { uniform: 'uTexel', of: 'up1' } },
+  ],
+  settings: {},
+  outputs: { tight: 'mip0', wide: 'up0' },
+} as const satisfies RenderPassRow;
+
+/** The wet square's reflection (a `beforeChain` pass): a planar screen-space reflection of the frame on every wet floor,
+ *  then streaked and rippled; the composite adds it (`reflection`, null when off).
+ *
+ *  Why screen space and not a mirror camera: the fragment is ~2 M triangles in a few huge merged batches (the facade
+ *  shell alone is 231 k in one draw, r = 276 m), which a mirror camera cannot cull — a mirror render doubles the frame's
+ *  geometry past the phone's 2.5 M budget. What the mockups' wet ground mirrors (the paifang, the lanterns, the people,
+ *  the stalls, the lit windows) is on screen above the reflection point in every eye-level view; what is above the frame
+ *  (the signs over the street) keeps the emitter streak cards, and a ray that misses keeps the ground's own fog sheen.
+ *
+ *  1. trace, ½ res: the floor found from depth (y at the square's datum inside the wet rect, or an up-facing tread in the
+ *     stair rect); its normal tilted by drizzle rings and a slow wobble; the reflected view ray marched in screen space (a
+ *     perspective-correct DDA, steps bunched near the floor point, a binary refine) against the depth buffer; the hit's
+ *     colour × Schlick × the wet film × a confidence fading at the screen edges and with distance. alpha = the floor mask.
+ *  2. streak, ½ res: one 13-tap vertical blur (the drizzle-roughened film smears a reflection along the view), mask-aware.
+ *  (Round 14, the phone's draw budget: 4 → 2 draws.) A capture's debug view: `debugGain` 6, `debugView('reflection', 'trace')`
+ *  for the raw trace. The caller links uRect / uRect2 (the wet rects) and uK (x = the datum). */
+export const REFLECT_PASS = {
+  name: 'NdReflectPass',
+  programs: {
+    reflectTrace: {
+      uniforms: { uNF: { v2: [0.1, 1000] }, uMarch: { v2: [90, 0.25] }, uTime: 0 },
+      links: ['uRect', 'uRect2', 'uK'], depth: 'tDepth',
+      camera: { uProj: 'projection', uInvProj: 'projectionInverse', uView: 'view', uCamWorld: 'world', uNF: 'nearFar' },
+      pack: { uK: [null, 'gain', 'wobble', 'rings'], uMarch: ['maxDist', 0.25], uTime: [{ param: 'time' }] },
+      splices: STEPS,
+    },
+    reflectStreak: {
+      uniforms: { uStep: { v2: [0, 0] } },
+      pack: { uStep: [0, { setting: 'streak', div: 6, per: { target: 'trace', axis: 'height' } }] },
+    },
+  },
+  targets: {
+    trace: { name: 'NdReflect.trace', of: 'input', scale: 0.5, filter: 'nearest' },
+    b: { name: 'NdReflect.b', of: 'input', scale: 0.5, filter: 'linear' },
+  },
+  draws: [
+    { program: 'reflectTrace', to: 'trace', textures: { tColor: 'input' } },
+    // the streak: along the screen's vertical (the view's own direction on a floor seen at eye height), one pass
+    { program: 'reflectStreak', to: 'b', textures: { tSrc: 'trace' } },
+  ],
+  /** gain: overall strength (0 = off); maxDist / steps: the march (m); wobble / rings: the normal tilts; streak: the
+   *  blur's reach (½-res px, each way) */
+  settings: { gain: 2, maxDist: 90, steps: 28, wobble: 0.045, rings: 0.12, streak: 20 },
+  when: 'gain',
+  outputs: { reflection: 'b' },
+  drawnOnly: true,
+} as const satisfies RenderPassRow;
+
+/** Light haze in the drizzle (a `beforeChain` pass, after the reflection, before the bleed pyramid): the baked light
+ *  volumes (every lantern, shop, lamp, sign and lit window) marched along each view ray through the rain's thin medium —
+ *  halos round every light, warm air under the paifang's lanterns, the neon's coloured bloom in the air. One 3D fetch
+ *  per step, no light loop.
+ *
+ *  1. march, ½ res: from the eye to the scene's depth (capped), N steps dithered per pixel and per frame; in-scatter
+ *     E(x) · σ(x) · ds with σ = the rain medium (denser low down, a slow drifting noise), a mild forward lobe.
+ *  2. add: one full-screen additive draw into the frame (bilinear; the haze is smooth), before the bleed so the halos
+ *     bloom and soak the paper like any light.
+ *
+ *  Off by default (round 14: even thresholded, σ 0.035 over 0.9, it washed the stair-street warm and only faintly haloed
+ *  the paifang at phone size): `__wildshard.shard['nd.render'].haze.set({ density: 0.025 })` to look again. Settings:
+ *  density (σ at the datum, 1/m), maxDist / steps (the march), height (the medium's falloff above the datum, m), drift
+ *  (its noise's share), forward (the forward lobe's share), cap (the brightest irradiance a step takes: the paifang's
+ *  lanterns drowned the gate uncapped), thr (the irradiance a step must pass to scatter). The caller links uGroundY and
+ *  the light volume's uniforms. */
+export const HAZE_PASS = {
+  name: 'NdHazePass',
+  programs: {
+    hazeMarch: {
+      uniforms: { uNF: { v2: [0.1, 1000] }, uHz: { v4: [0, 0, 0, 1] }, uHz2: { v4: [0, 0, 0, 1] } },
+      links: ['uGroundY', 'uLpVolA', 'uLpMinA', 'uLpInvA', 'uLpVolB', 'uLpMinB', 'uLpInvB', 'uLpGain', 'uLpSky', 'uLpAmb', 'uLpSpec', 'uLpCut', 'uLpAmber'],
+      depth: 'tDepth',
+      camera: { uInvProj: 'projectionInverse', uCamWorld: 'world', uNF: 'nearFar' },
+      pack: { uHz: ['density', 'maxDist', 'height', 'drift'], uHz2: ['forward', { param: 'time' }, 'cap', 'thr'] },
+      splices: STEPS,
+    },
+    hazeAdd: {},
+  },
+  targets: { haze: { name: 'NdHaze', of: 'input', scale: 0.5, filter: 'linear' } },
+  draws: [
+    { program: 'hazeMarch', to: 'haze' },
+    { program: 'hazeAdd', to: 'input', textures: { tSrc: 'haze' } },
+  ],
+  settings: { density: 0, maxDist: 70, steps: 14, height: 18, drift: 0.5, forward: 0.35, cap: 1.4, thr: 1.0 },
+  when: 'density',
+  outputs: { haze: 'haze' },
+} as const satisfies RenderPassRow;

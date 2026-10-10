@@ -81,6 +81,8 @@
     "./looks/signs": "./looks/signs.ts",
     "./looks/neonText": "./looks/neonText.ts",
     "./looks/shaderFamily": "./looks/shaderFamily.ts",
+    "./looks/renderPass": "./looks/renderPass.ts",
+    "./looks/weave": "./looks/weave.ts",
     "./looks/keyedSkyDay": "./looks/keyedSkyDay.ts",
     "./looks/keyedSky": "./looks/keyedSky.ts",
     "./looks/keyedSkyRows": "./looks/keyedSkyRows.ts",

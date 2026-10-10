@@ -12,12 +12,8 @@
 //           everything else repeats its normal
 import { BufferGeometry, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { CLS } from '../data/vmLook';
 
-/** the material classes (aMat.x); materials.ts paints by class, a GLB names them by its material names */
-export const CLS = {
-  brass: 1, brassDark: 2, steel: 3, lacquer: 4, leather: 5, glove: 6, cloth: 7, sleeve: 8, trim: 9, silk: 10, carbon: 11,
-  glow: 12, gold: 13, paper: 14, bevel: 15, skin: 16,
-} as const;
 export type Cls = (typeof CLS)[keyof typeof CLS];
 
 /** a GLB material name (SPEC.md) → class */

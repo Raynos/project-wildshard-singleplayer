@@ -1,6 +1,6 @@
 import type { LookComposeContext } from '@wildshard/engine/render/look';
 import type { NdRenderHandle } from './render';
-import { BLEED } from './render/jiehua';
+import { BLEED } from '../data/passes';
 
 /** Each composition owns its listeners and restores the studio's temporary air changes on unload. */
 export function installRenderEvents(c: Pick<LookComposeContext, 'app' | 'scope'>, handle: Pick<NdRenderHandle, 'jiehua' | 'shared'>): void {
