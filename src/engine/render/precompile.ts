@@ -413,13 +413,15 @@ const frame = (): Promise<void> => new Promise((resolve) => { pageScope.raf(() =
 
 /**
  * Issue every job, then wait for the driver: reports (done, total, detail) monotonically —
- * `total` = jobs + programs once the programs are known.
+ * `total` = jobs + programs once the programs are known. Live preparation may isolate image
+ * uploads so an unpredictable native upload cannot join another upload in the same painted slice.
  */
 export async function runPrecompile(
   renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress?: (done: number, total: number, detail: string) => void,
   textures: THREE.Texture[] = collectTextures(jobs),
   current: () => boolean = () => true,
+  isolateImageUploads = false,
 ): Promise<PrecompileReport> {
   // Page siblings can retire while a neighbour's preparation yields. The inventory is
   // borrowed: disposal cancels only that resource's upload, not the live neighbour.
@@ -430,13 +432,13 @@ export async function runPrecompile(
     watched.add(texture); observer.listenOnceEmitter(texture, 'dispose', () => { retired.add(texture); });
   };
   for (const texture of textures) watch(texture);
-  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch); }
+  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads); }
   finally { observer.dispose(); }
 }
 
 async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress: ((done: number, total: number, detail: string) => void) | undefined, textures: THREE.Texture[],
-  current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void): Promise<PrecompileReport> {
+  current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void, isolateImageUploads: boolean): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
   const borrowed = new Set<THREE.Material>();
@@ -500,7 +502,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
   const uploadTextures = [...new Set([...textures, ...collectTextures(jobs)])];
   for (const texture of uploadTextures) watch(texture);
-  // Phase C: each compressed texture owns a fenced painted slice; other uploads use 12 ms slices.
+  // Phase C: compressed textures retain their fenced slices. Live WebKit image preparation
+  // isolates native uploads; a post-upload time check alone can overshoot before it yields.
   tSlice = performance.now();
   const base = jobs.length + units;
   for (const [i, tex] of uploadTextures.entries()) {
@@ -514,7 +517,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     }
     onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
     if (compressed) { checkCurrent(); tSlice = performance.now(); }
-    else if (performance.now() - tSlice > 12) { await frame(); checkCurrent(); tSlice = performance.now(); }
+    else if (isolateImageUploads || performance.now() - tSlice > 12) { await frame(); checkCurrent(); tSlice = performance.now(); }
   }
   checkCurrent();
   return { materials, jobs: jobs.length, programs: n, parallel };
@@ -531,7 +534,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
   options: { /** Entered frames reuse their existing caster geometry. */ chunkCasters?: boolean; /** Fence yielded work to its entered owner. */ current?: () => boolean;
     /** A parked content subtree whose lights become visible on entry; no live light/visibility change. */ futureLighting?: THREE.Object3D;
     /** The installing scene's PMREM when futureLighting includes sibling content outside that scene. */ futureEnvironment?: THREE.Texture;
-    /** Temporary program holders survive until this frame leaves; content materials remain borrowed. */ owner?: Pick<Scope, 'onDispose'> } = {}): Promise<number> {
+    /** Temporary program holders survive until this frame leaves; content materials remain borrowed. */ owner?: Pick<Scope, 'onDispose'>;
+    /** Yield after each image upload during live preparation; ordinary boot keeps batched uploads. */ isolateImageUploads?: boolean } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
     const tracedBoot = bootTraceActive();
@@ -575,7 +579,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     if (policy?.scene !== false) jobs.push(...exteriorJobs(scene, rt, policy?.shadows !== false));
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
-    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current);
+    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads);
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
     return report.materials;
   

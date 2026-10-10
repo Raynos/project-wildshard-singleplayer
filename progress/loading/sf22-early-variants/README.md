@@ -275,3 +275,45 @@ Run 16:21:13–16:22:55 UTC, 2026-10-10; no quiet window requested. All owned
 resources closed. Raw scratch `attempt-0b191-safari-callbacks.json`, SHA-256
 `d4e0699f9feea6f3efa9207c8bd7c62aa6a3b35ff977c257f44072346434eee9`.
 Proof `.git/proofs/20261010T112017-sf22-safari-callback-owners-2840.json`.
+
+## Raw rAF / existing-GL-call owner diagnostic and upload slice
+
+Same `0b191cf2a` runtime and shaped Auto subset, 16:27:05–16:28:46 UTC.
+The observer records wall time of existing GL invocations, without
+additional driver queries, and rAF delivery before the drawn-frame filter.
+These are native API wall intervals, **not GPU execution durations**;
+wrapper overhead and load make this diagnostic, not a normative verdict.
+Focused checks preserve receivers, arguments/results and exact call count.
+
+Both routes completed without refusals/errors; 394 explicit warm-ups, zero
+draw/driver compiles. Cadence remains open: diagnostic p95 50 / p99 74 ms
+versus standing 34 ms. Forward load median 15.21 (12.44–17.25), return
+15.89 (14.67–16.99); both include load >15. All 4,713 rAF deliveries and
+37 GL calls at least 5 ms fit their bounds.
+
+The largest measured GL calls are image `texSubImage2D` uploads in sliced
+precompile: 30,342–30,370 ms (28 ms), 30,469–30,488 (19 ms) and
+30,536–30,556 (20 ms). Checking a 12 ms upload budget only after each
+call can combine several unpredictable uploads before yielding. Forward
+raw-rAF p95 is 21 ms (median 17, maximum 137), return p95 17 ms
+(maximum 103); standing p95 17 ms. Drawn frames still miss at 50 ms p95.
+This does not establish a frame-cap defect: admission/native delivery gaps
+and observer ordering relative to the game callback remain explicit.
+The two largest drawn gaps (168 / 166 ms) have no observed GL call at least
+5 ms; those waits are still unexplained by GL timings.
+
+The generic forward isolates each image upload during WebKit entered-world
+warm-up, yielding after every image before proceeding to the next. The
+same texture object, source, version, sampler and upload order remain;
+compressed uploads keep their existing fenced path. Ordinary boot and
+desktop retain batched uploads. This prevents combining upload costs, but
+cannot split an individual native call or claim the complete cadence gate.
+Two new tests prove separate paint opportunities with unchanged resources,
+ordinary batching and cancellation before a later upload; all 19 focused
+precompile checks, strict and touched root lint are green. Matched timing
+verification on the landed slice remains pending.
+
+Raw scratch `attempt-0b191-safari-gl-wall.json`, SHA-256
+`1cf34c1eabb6a7b969f82683aff41cff1e043295e554b84fa893d83a4e351b06`.
+Proof `.git/proofs/20261010T112602-sf22-safari-raf-gl-wall-18482.json`.
+All owned preview / Safari / Inspector / proxy resources closed.

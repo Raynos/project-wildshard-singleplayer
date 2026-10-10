@@ -796,6 +796,12 @@ compile jobs temporarily use that exact PMREM mapping and cube-UV height, then r
 in `finally` before yielding or drawing. This changes compilation inputs only, with no new sky allocation,
 visibility change or disposal ownership. Cancellation and driver errors restore the page too.
 
+During WebKit entered-world preparation, `Game.warmEnteredFrame` requests isolated image uploads.
+`precompileLevel` accepts `isolateImageUploads`; `runPrecompile` also accepts it as its final optional argument.
+Each image keeps its original texture/source/sampler and upload order, with a paint opportunity before the next
+upload. Compressed textures retain their fenced upload path. Ordinary boot and desktop keep batched uploads.
+This bounds combined upload work; it cannot split or guarantee the duration of one native upload.
+
 ## 9. Saves
 
 All persistent state goes through `SaveStore` (`app.saves`, also exported as `saves`). Raw `localStorage` /
