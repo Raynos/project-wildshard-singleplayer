@@ -37,6 +37,25 @@ it('validates every restored identity before mutation and refuses invalid health
   const retry = animal(); regionalRuntimeCheckpoint(new SaveStore({ local, session: null }), { id: 'pine-hollow', shard: 'pine-hollow' }, 1).restore({ animals: [retry] }); expect(retry.hp).toBe(42);
 });
 
+it('checkpoints the native WORLD fall below the chunk without clamping its durable height', () => {
+  const local = new MemoryStorage(), a = animal();
+  a.place(12, 34, 0.7, 0); a.groundHeight = () => -1000;
+  for (let tick = 0; tick < 480; tick++) a.step(1 / 60);
+  expect(a.position.y).toBeLessThan(-250);
+  expect(a.position.y).toBeGreaterThan(-1000);
+  const pose = a.position.toArray();
+  const save = regionalRuntimeCheckpoint(new SaveStore({ local, session: null }), { id: 'sky-copy', shard: 'far-reach' }, 1);
+  expect(save.checkpoint({ animals: [a] })).toBe(true);
+  const rebuilt = animal();
+  regionalRuntimeCheckpoint(new SaveStore({ local, session: null }), { id: 'sky-copy', shard: 'far-reach' }, 1).restore({ animals: [rebuilt] });
+  expect(rebuilt.position.toArray()).toEqual(pose);
+  for (const height of [Number.NaN, Infinity, -Infinity]) {
+    a.position.y = height; expect(() => save.checkpoint({ animals: [a] })).toThrow();
+  }
+  const afterRefusal = animal(); save.restore({ animals: [afterRefusal] });
+  expect(afterRefusal.position.toArray()).toEqual(pose);
+});
+
 it('refuses corrupt or future stored continuations without repairing their bytes', () => {
   for (const future of [false, true]) {
     const local = new MemoryStorage(), store = new SaveStore({ local, session: null });

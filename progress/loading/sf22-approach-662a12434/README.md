@@ -56,3 +56,24 @@ The Simulator fallback refusal remains explicit rather than being counted as a s
 Raw diagnostic artifacts remain outside git:
 `/private/tmp/claude-501/sp-builders/sp-x5/sf22-approach-proof/` (`result.json`, `simulator-result.json`,
 `preview-health.jsonl`, matched harnesses and the invalid first attempt).
+
+## Copy-turn forward: four entries, then a real Sky checkpoint refusal
+
+The desktop repeat on `0be1a5b89ce31bd08fa989650664b411abf06ddf` uses the same shaping, held-input route and limits.
+Pine, Nalati, `template-2` and Sky Reach all admitted and entered with no issue. Their route times were
+117.376 / 74.669 / 80.197 / 111.287 s; one-minute load medians were 43.46 / 45.50 / 46.94 / 34.69.
+The run then refused Sky's departure, so Signal and the return home remain unproved. All owned resources closed.
+
+The native creature fall reached y = −622.6604614257812. Its logical checkpoint incorrectly used the horizontal
+±250 m chunk bound for height as well. The forward matches `AnimalSim.restore`: finite vertical positions,
+unchanged bounded horizontal positions and unchanged identity, health, quota and durable-write checks. A real
+eight-second `AnimalSim` WORLD fall is checkpointed and restored exactly; non-finite heights still refuse without
+replacing the previous save. The world/fall law is unchanged. This is the existing logical HP/pose continuation,
+not a claim of full creature-physics continuation.
+
+Departure commits still measured 45.1 ms for Pine and 123.1 ms for the template. Entry commits measured
+0.2 / 0.1 / 0.0 / 0.1 ms and entered activations 3.7 / 4.8 / n/a / 1.5 ms. The run did not contain the subsequent
+checkpoint/frame/disposal timing boundaries (`7e1f3d40b`), so these departure owners still require attribution.
+The earlier Pine first-entry 439 ms long task contained 26 `compileShader` calls after its activation: approach
+warm-up did not cover all first-drawn program variants. That remains open alongside the long world/afterKit waits.
+No complete SF22 timing or memory pass is claimed.
