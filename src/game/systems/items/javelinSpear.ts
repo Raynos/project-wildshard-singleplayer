@@ -102,7 +102,7 @@ const _commandOrigin = new THREE.Vector3(), _commandRotation = new THREE.Quatern
 
 interface Jav { state: 0 | 1 | 2; pos: THREE.Vector3; vel: THREE.Vector3; q: THREE.Quaternion; age: number }  // 0 none · 1 flying · 2 stuck
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
-const _head = new THREE.Vector3(), _nrm = new THREE.Vector3(), _arcPrev = new THREE.Vector3();
+const _head = new THREE.Vector3(), _nrm = new THREE.Vector3(), _arcPrev = new THREE.Vector3(), _stickDir = new THREE.Vector3();
 /** the top of the world under (x, z) from y down (terrain, a deck, a rock); the terrain when there is no physics */
 function floorUnder(x: number, y: number, z: number): number {
   const ph = app.physics;
@@ -313,8 +313,9 @@ export class JavelinSpear<P extends JavelinSpearProfile = JavelinSpearProfile> e
   private stick(j: Jav, at: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface): void {
     // embed the head ~0.25 m: the balance point sits 0.62 + 0.21 - 0.25 back along the flight
     j.state = 2; j.age = 0; j.vel.set(0, 0, 0);
-    j.q.setFromUnitVectors(Y, _v3.copy(dir).normalize());
-    j.pos.copy(at).addScaledVector(_v3, -0.58);
+    // `at` may be a module temporary (the flight passes `_v3`): the direction gets its own
+    j.q.setFromUnitVectors(Y, _stickDir.copy(dir).normalize());
+    j.pos.copy(at).addScaledVector(_stickDir, -0.58);
     this.onImpact?.(surface, at);
   }
   /** off stone: it lies where it struck, along its flight flattened onto the surface */

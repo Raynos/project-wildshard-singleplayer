@@ -25,6 +25,9 @@ import { digest, isMesh, geometrySum, materialRow, objectRow, mockCanvas, q4, ro
  * an approaching creature, a throw from the saddle, walking over the javelins to pick them up, portrait, sprint, inspect
  * and holster, recording the viewmodel's every part (both rigs, the held javelin, the sleeves), the scene (world
  * javelins, the arc), the hits, impacts, damage and pickups, the camera's FOV, the HUD state and the built geometry.
+ * Re-recorded from frame 210 on (windows 7+) when the stick fix landed: the pre-SF36 spear placed a javelin stuck in wood
+ * or turf 0.42 m from the world origin (its `at` aliased the flight's temporary), so it was picked up at once; now it sits
+ * at its impact point, which every wood / ground impact asserts, and the walk picks two up.
  */
 let R: Awaited<ReturnType<typeof loadRapier>>;
 const previousPhysics = activePhysics();
@@ -34,18 +37,26 @@ afterAll(() => { setActivePhysics(previousPhysics); });
 beforeEach(() => { app.rng.seed(11); setActivePhysics(null); setAimTargets([]); mockCanvas(); });
 afterEach(() => { setActivePhysics(null); ph?.dispose(); ph = null; setAimTargets([]); vi.restoreAllMocks(); });
 
-/** The range: a wood wall left and a stone wall right 12 m out, the ground under everything. */
+/** The range: a wood wall left and a stone wall right 12 m out, the ground under everything (half extents, centre). */
+const BOXES: readonly (readonly [number, number, number, number, number, number, Parameters<typeof tagCollider>[1]])[] = [
+  [3, 5, 0.2, -4, 2, -12, 'wood'], [3, 5, 0.2, 4, 2, -12, 'stone'], [40, 0.5, 40, 0, -0.5, -10, 'ground'],
+];
 function range(): Physics {
   const p = new Physics(R);
-  const box = (hx: number, hy: number, hz: number, x: number, y: number, z: number, material: Parameters<typeof tagCollider>[1]): void => {
+  for (const [hx, hy, hz, x, y, z, material] of BOXES) {
     const c = p.world.createCollider(p.R.ColliderDesc.cuboid(hx, hy, hz).setTranslation(x, y, z).setCollisionGroups(groups('WORLD')));
     tagCollider(c, material, null);
-  };
-  box(3, 5, 0.2, -4, 2, -12, 'wood');
-  box(3, 5, 0.2, 4, 2, -12, 'stone');
-  box(40, 0.5, 40, 0, -0.5, -10, 'ground');
+  }
   p.step();
   return p;
+}
+/** how far a point is from the range's nearest box (0 inside one) */
+function offRange(at: THREE.Vector3): number {
+  let best = Infinity;
+  for (const [hx, hy, hz, x, y, z] of BOXES) {
+    best = Math.min(best, Math.hypot(Math.max(0, Math.abs(at.x - x) - hx), Math.max(0, Math.abs(at.y - y) - hy), Math.max(0, Math.abs(at.z - z) - hz)));
+  }
+  return best;
 }
 
 interface Dummy {
@@ -98,13 +109,15 @@ describe('the spear on the spear family keeps its pre-SF36 trace', () => {
     spear.onFire = () => { events.push(['fire']); };
     spear.onThrow = () => { events.push(['throw', spear.javelins]); };
     spear.onHit = (kind, headshot, killed) => { events.push(['hit', kind, headshot, killed]); };
-    spear.onImpact = (surface, point) => { events.push(['impact', surface, ...v3(point)]); };
+    const landed: THREE.Vector3[] = [];  // this frame's wood / ground impacts: a javelin stuck or lying there
+    spear.onImpact = (surface, point) => { events.push(['impact', surface, ...v3(point)]); if (surface !== 'flesh') landed.push(point.clone()); };
     spear.onDry = () => { events.push(['dry']); };
     spear.onPickup = (n) => { events.push(['pickup', n]); };
     const cam = game.camera;
     const built = { children: spear.model.children.length, meshes: [] as unknown[] };
     spear.model.traverse((o) => { if (isMesh(o)) built.meshes.push({ geo: geometrySum(o.geometry), verts: o.geometry.getAttribute('position').count, order: o.renderOrder, mat: materialRow(o.material) }); });
     const frames: unknown[] = [];
+    let stuckChecks = 0;
     const dt = 1 / 60;
     for (let i = 0; i < 1200; i++) {
       const t = i * dt;
@@ -133,6 +146,17 @@ describe('the spear on the spear family keeps its pre-SF36 trace', () => {
       const world = game.scene.children.find((o): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh);
       const javs: number[][] = [];
       if (world) for (let k = 0; k < world.count; k++) { const m = new THREE.Matrix4(); world.getMatrixAt(k, m); javs.push(m.toArray().map(round)); }
+      for (const point of landed) {
+        // the impact is where it struck the range, out where it was thrown, and the javelin stuck or lying there sits by it
+        // (its balance point 0.58 m back along the flight): the pre-fix spear reported its flight direction and put it
+        // 0.42 m from the world origin
+        expect(offRange(point), `frame ${i}: impact on the range`).toBeLessThan(0.35);
+        expect(point.distanceTo(f.player.position), `frame ${i}: impact out where it was thrown`).toBeGreaterThan(2);
+        const nearest = Math.min(...javs.map((m) => Math.hypot((m[12] ?? 0) - point.x, (m[13] ?? 0) - point.y, (m[14] ?? 0) - point.z)));
+        expect(nearest, `frame ${i}: javelin at its impact ${v3(point).join(',')}`).toBeLessThan(1);
+        stuckChecks++;
+      }
+      landed.length = 0;
       frames.push({
         i, state: { ...spear.state }, javelins: spear.javelins, out: spear.javelinsOut, winding: spear.winding, thrusting: spear.thrusting,
         fov: round(cam.fov), moveScale: round(f.player.moveScale), swinging: f.player.swinging,
@@ -146,7 +170,8 @@ describe('the spear on the spear family keeps its pre-SF36 trace', () => {
     for (let w = 0; w < frames.length; w += 30) windows.push(digest(JSON.stringify(frames.slice(w, w + 30))));
     expect({ built, events: digest(JSON.stringify(events)), eventCount: events.length, segments: spear.segments, magazine: spear.magazine,
       clock: round(spear.clock), last: frames.at(-1), windows }).toMatchSnapshot();
+    expect(stuckChecks).toBeGreaterThanOrEqual(3);
     const kinds = events.map((e) => Array.isArray(e) ? `${String(e[0])}:${e.length > 1 ? String(e[1]) : ''}` : '');
-    for (const want of ['throw:2', 'impact:wood', 'impact:ground', 'impact:flesh', 'hit:wolf', 'hit:boar', 'hit:saiga', 'dry:', 'pickup:1']) expect(kinds, want).toContain(want);
+    for (const want of ['throw:2', 'impact:wood', 'impact:ground', 'impact:flesh', 'hit:wolf', 'hit:boar', 'hit:saiga', 'dry:', 'pickup:2', 'pickup:3']) expect(kinds, want).toContain(want);
   });
 });
