@@ -12,7 +12,7 @@ export function crossbowDisplayModel(crossbow: { readonly model: THREE.Group }, 
   g.traverse((m) => {
     if (!isMesh(m)) return;
     const mat = m.material as THREE.Material;
-    if (!mat.name || !mat.colorWrite || (!m.visible && mat.name !== 'xbow-bolt') || m.userData['viewmodelOnly'] === true) { drop.push(m); return; } // the depth clearer, hidden effects, the hands (hunterHands.ts)
+    if (!mat.name || !mat.colorWrite || (!m.visible && mat.name !== 'xbow-bolt') || m.userData['viewmodelOnly'] === true) { drop.push(m); return; } // the depth clearer, hidden effects, the hands (@wildshard/sdk/viewmodel/gloveHands)
     const copy = mat.clone(); copy.name = mat.name; copy.transparent = false; copy.depthWrite = true; // the viewmodel draws in the transparent queue; the drop must not
     fixIBL(copy, VIEWMODEL_GROUP); sky.setupMaterial(copy);
     m.material = copy; m.visible = true;

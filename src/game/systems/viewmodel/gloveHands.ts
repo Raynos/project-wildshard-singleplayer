@@ -5,33 +5,40 @@ import { lin } from '@wildshard/engine/math/color';
 import { ARM_PAL, gloveFist } from '@wildshard/engine/player/nalatiArms';
 
 /**
- * hunterHands — the Pine Hollow hunter's first-person hands: the Longbow's dark-tan leather gloves (nalatiArms.gloveFist in
- * the hunter's palette), here on the crossbow and the lever-action too (E322 F-M6, Jake's pick B: always on).
+ * Gloved first-person hands on a held weapon (SHARD-PLATFORM M3, the viewmodel system): the engine's gloved fist
+ * (nalatiArms.gloveFist) in a shard's palette, with a forearm, under the weapon's model.
  *
- *   withHunterPalette(() => gloveFist(…))      build nalatiArms geometry in the hunter's colours (the Longbow's hands)
- *   handGeometry(spec)                          a gloved fist + a light forearm (gauntlet → knit cuff → waxed-canvas sleeve),
+ *   withArmPalette(palette, () => gloveFist(…))   build nalatiArms geometry in a palette row's colours (sRGB hex)
+ *   handGeometry(look, spec)                     a gloved fist + a light forearm (gauntlet → knit cuff → canvas sleeve),
  *        in GRIP SPACE (nalatiArms': the grip along +Y through the origin, the back of a right hand toward +X, the forearm
  *        leaving toward +Z); one geometry, vertex-coloured, for the viewmodels' shared lit program
- *   gripQuat(pose, mirror, out)                 grip space → the weapon's model space, from where the fist closes (`at`),
+ *   gripQuat(pose, mirror, out)                  grip space → the weapon's model space, from where the fist closes (`at`),
  *        which way its index / thumb end points along the grip (`axis`) and which way the palm faces (`palm`)
- *   new WeaponHands(parent, material, left, right)   the two hands as two meshes (two draws) under a weapon's model: the left
- *        fixed on the weapon, the right posed every frame (`placeRight`) — the grip, the string, the lever, the gate
+ *   new WeaponHands(look, parent, material, left, right)   the two hands as two meshes (two draws) under a weapon's model:
+ *        the left fixed on the weapon, the right posed every frame (`placeRight`) — the grip, the string, the lever, the gate
  *
- * Always on in Pine Hollow (Jake picked B over no hands). `userData['viewmodelOnly']` keeps them off the
- * world copies of the held weapon (Skins.crossbowDisplayModel) — the Model Explorer's Gear cards are built from
- * `buildCrossbow` / `leverSpecimen`, never from the held viewmodel, so they carry no hands either way.
+ * `userData['viewmodelOnly']` keeps them off the world copies of the held weapon. The shard's look row (GloveHandsLook)
+ * holds the colours; the shapes are the system's.
  */
 
-/** a hunter's dark-tan leather gloves, a grey knit cuff, the sleeve of a waxed-canvas coat with leather patches */
-export const HUNTER_PAL: Partial<Record<keyof typeof ARM_PAL, THREE.Color>> = {
-  leather: lin(0x6a4a30), leatherLight: lin(0x8a6646), leatherDark: lin(0x3a281a), leatherEdge: lin(0x4a3424), thread: lin(0xa89878),
-  fleece: lin(0x6e685e), fleeceShade: lin(0x524c44), fleeceDeep: lin(0x3a352f),
-  wool: lin(0x5e5038), woolShade: lin(0x3e3424), red: lin(0x4a3422), redDeep: lin(0x33251a), redLine: lin(0x2a1e14),
-};
-/** build with the hunter's palette, then put Nalati's back (the module's palette is shared) */
-export function withHunterPalette<T>(build: () => T): T {
-  const saved = new Map<keyof typeof ARM_PAL, THREE.Color>();
-  for (const k of Object.keys(HUNTER_PAL) as (keyof typeof ARM_PAL)[]) { const c = HUNTER_PAL[k]; if (c === undefined) continue; saved.set(k, ARM_PAL[k].clone()); ARM_PAL[k].copy(c); }
+/** A palette key of the engine's arm builder (nalatiArms.ARM_PAL). */
+export type ArmPaletteKey = keyof typeof ARM_PAL;
+/** A palette row over the arm builder's: each key's colour as sRGB hex (linearised when it builds). */
+export type ArmPaletteRow = Readonly<Partial<Record<ArmPaletteKey, number>>>;
+/** A shard's gloved hands as data: the arm palette, the coat cuff's worn lip and its stitches (sRGB hex). */
+export interface GloveHandsLook {
+  /** the gloves, the knit cuff and the sleeve's colours over the arm builder's palette */
+  readonly palette: ArmPaletteRow;
+  /** the coat sleeve's turned-back lip, worn pale */
+  readonly coatLip: number;
+  /** the coat cuff's stitched seams */
+  readonly coatStitch: number;
+}
+
+/** Build with `palette` over the arm builder's palette, then put the old colours back (the module's palette is shared). */
+export function withArmPalette<T>(palette: ArmPaletteRow, build: () => T): T {
+  const saved = new Map<ArmPaletteKey, THREE.Color>();
+  for (const k of Object.keys(palette) as ArmPaletteKey[]) { const hex = palette[k]; if (hex === undefined) continue; saved.set(k, ARM_PAL[k].clone()); ARM_PAL[k].copy(lin(hex)); }
   try { return build(); } finally { for (const [k, c] of saved) ARM_PAL[k].copy(c); }
 }
 
@@ -48,15 +55,13 @@ function vnoise(x: number, y: number): number {
 
 const GAUNT = 0.068, CUFF = 0.118;
 /**
- * The forearm from the wrist along +Y, `len` m: the glove's flared gauntlet with a rolled, stitched edge, a ribbed grey
- * knit cuff, then the waxed-canvas coat sleeve (soft folds, a darker seam). 32 around, ~40 rings: ~2.5 k triangles (the
- * Longbow's `riderArm` is ~36 k — its sleeve ornament is Nalati's; here only a hand's length of it is ever in view).
+ * The forearm from the wrist along +Y, `len` m, in the arm builder's current palette (build it inside `withArmPalette`):
+ * the glove's flared gauntlet with a rolled, stitched edge, a ribbed knit cuff, then the canvas coat sleeve (soft folds, a
+ * darker seam). 32 around, ~40 rings: ~2.5 k triangles.
  */
-export function hunterSleeve(len = 0.55, seed = 1): THREE.BufferGeometry {
-  const P = HUNTER_PAL, leather = P.leather ?? ARM_PAL.leather, leatherLight = P.leatherLight ?? ARM_PAL.leatherLight;
-  const leatherDark = P.leatherDark ?? ARM_PAL.leatherDark, edge = P.leatherEdge ?? ARM_PAL.leatherEdge, thread = P.thread ?? ARM_PAL.thread;
-  const knit = P.fleece ?? ARM_PAL.fleece, knitShade = P.fleeceShade ?? ARM_PAL.fleeceShade, knitDeep = P.fleeceDeep ?? ARM_PAL.fleeceDeep;
-  const canvas = P.wool ?? ARM_PAL.wool, canvasShade = P.woolShade ?? ARM_PAL.woolShade;
+export function gloveSleeve(len = 0.55, seed = 1): THREE.BufferGeometry {
+  const P = ARM_PAL, leather = P.leather, leatherLight = P.leatherLight, leatherDark = P.leatherDark, edge = P.leatherEdge, thread = P.thread;
+  const knit = P.fleece, knitShade = P.fleeceShade, knitDeep = P.fleeceDeep, canvas = P.wool, canvasShade = P.woolShade;
   const RAD = 32;
   const ys: number[] = [];
   for (let y = 0; y < len;) { ys.push(y); y += y < GAUNT ? 0.0085 : y < CUFF + 0.01 ? 0.005 : y < 0.25 ? 0.02 : 0.045; }
@@ -79,7 +84,7 @@ export function hunterSleeve(len = 0.55, seed = 1): THREE.BufferGeometry {
         const t = (y - GAUNT) / (CUFF - GAUNT), rib = Math.cos(ph * 12);
         r = 0.044 + 0.006 * Math.sin(t * Math.PI) ** 0.7 + 0.0011 * rib;
         c.copy(knit).lerp(knitShade, 0.35 * (0.5 - 0.5 * rib) + 0.2 * vnoise(ph * 9 + seed, y * 300)).lerp(knitDeep, 0.45 * (1 - Math.sin(t * Math.PI)) ** 2);
-      } else { // the waxed-canvas sleeve
+      } else { // the canvas sleeve
         const s = y - CUFF;
         const fold = Math.sin(ph * 3 + y * 7 + seed) * 0.6 + Math.sin(ph * 5 - y * 11 + seed * 2) * 0.4;
         r = 0.049 + Math.min(1, s / 0.3) * 0.012 + 0.0028 * fold * Math.min(1, s / 0.04);
@@ -104,7 +109,7 @@ export function hunterSleeve(len = 0.55, seed = 1): THREE.BufferGeometry {
   return g;
 }
 
-// ───────────────────────────── the coat sleeve (the crossbow's: E322 F-M6 polish) ─────────────────────────────
+// ───────────────────────────── the coat sleeve ─────────────────────────────
 
 /** rings × (RAD + 1) vertices → an indexed tube with smooth normals (and a uv if given) */
 function tube(rings: number, RAD: number, pos: number[], col: number[], uv: number[] | null): THREE.BufferGeometry {
@@ -119,9 +124,10 @@ function tube(rings: number, RAD: number, pos: number[], col: number[], uv: numb
   return g;
 }
 
-/** the glove's gauntlet alone, `len` m along +Y from the wrist: flared leather, a rolled edge (it tucks into the coat's cuff) */
-export function hunterGauntlet(len = 0.06): THREE.BufferGeometry {
-  const P = HUNTER_PAL, leather = P.leather ?? ARM_PAL.leather, light = P.leatherLight ?? ARM_PAL.leatherLight, dark = P.leatherDark ?? ARM_PAL.leatherDark, edge = P.leatherEdge ?? ARM_PAL.leatherEdge;
+/** The glove's gauntlet alone, `len` m along +Y from the wrist, in the current palette: flared leather, a rolled edge (it
+ *  tucks into the coat's cuff). */
+export function gloveGauntlet(len = 0.06): THREE.BufferGeometry {
+  const P = ARM_PAL, leather = P.leather, light = P.leatherLight, dark = P.leatherDark, edge = P.leatherEdge;
   const RAD = 24, ys: number[] = [];
   for (let y = 0; y < len; y += 0.008) ys.push(y);
   ys.push(len);
@@ -137,23 +143,23 @@ export function hunterGauntlet(len = 0.06): THREE.BufferGeometry {
   return tube(ys.length, RAD, pos, col, null);
 }
 
-/** where the coat's cuff starts past the glove's wrist (m, along the forearm): the gauntlet runs on inside it */
+/** Where the coat's cuff starts past the glove's wrist (m, along the forearm): the gauntlet runs on inside it. */
 export const COAT_FROM = 0.02;
 const CUFF_LEN = 0.075;
 /**
- * The hunter's coat sleeve, along +Y from its cuff's edge (0) to `len`: a turned-back cuff (a rolled lip, two stitched
- * seams, a step down to the sleeve), then the sleeve — compression folds bunched above the cuff, long soft folds, the
- * seam along the underside, fuller toward the elbow. Vertex colours carry the shading (the fold valleys, the cuff's
- * shadow, the lip's wear); the uv (6 tiles round, a tile per 5 cm along) lays `coatTextures()`' waxed canvas over it.
- * 40 round, ~70 rings: ~5.5 k triangles.
+ * The coat sleeve, along +Y from its cuff's edge (0) to `len`, in the current palette with `look`'s lip and stitches: a
+ * turned-back cuff (a rolled lip, two stitched seams, a step down to the sleeve), then the sleeve — compression folds
+ * bunched above the cuff, long soft folds, the seam along the underside, fuller toward the elbow. Vertex colours carry the
+ * shading (the fold valleys, the cuff's shadow, the lip's wear); the uv (6 tiles round, a tile per 5 cm along) lays
+ * `coatTextures()`' waxed canvas over it. 40 round, ~70 rings: ~5.5 k triangles.
  */
-export function hunterCoatSleeve(len = 1, seed = 1): THREE.BufferGeometry {
-  const P = HUNTER_PAL, cloth = P.wool ?? ARM_PAL.wool, shade = P.woolShade ?? ARM_PAL.woolShade;
+export function coatSleeve(look: GloveHandsLook, len = 1, seed = 1): THREE.BufferGeometry {
+  const cloth = ARM_PAL.wool, shade = ARM_PAL.woolShade;
   const RAD = 40, ys: number[] = [];
   for (let y = 0; y < len;) { ys.push(y); y += y < CUFF_LEN + 0.004 ? 0.004 : y < 0.3 ? 0.008 : 0.03; }
   ys.push(len);
   const pos: number[] = [], col: number[] = [], uv: number[] = [], c = new THREE.Color();
-  const lip = lin(0x8a7650), stitch = lin(0x2e2618);
+  const lip = lin(look.coatLip), stitch = lin(look.coatStitch);
   for (const y of ys) for (let k = 0; k <= RAD; k++) {
     const a = k / RAD, ph = a * Math.PI * 2;
     let r: number;
@@ -190,13 +196,14 @@ function tnoise(x: number, y: number, per: number, seed: number): number {
   const a = h(xi, yi), b = h(xi + 1, yi), c = h(xi, yi + 1), d = h(xi + 1, yi + 1);
   return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
 }
-interface CoatTex { map: THREE.DataTexture; normalMap: THREE.DataTexture; arm: THREE.DataTexture }
+/** The coat's waxed-canvas maps: albedo (sRGB), normal and ARM (linear). */
+export interface CoatTex { map: THREE.DataTexture; normalMap: THREE.DataTexture; arm: THREE.DataTexture }
 let coatTex: CoatTex | null = null;
 /**
  * The coat's waxed canvas, one 128² tile (drawn once, a few ms): a plain weave (16 threads a tile — it melts into the
  * mips at arm's length), slubs, mottled wax (the albedo × 0.8–1.1 over the vertex colour; the roughness 0.5–0.85: the wax
  * shines where the cloth is rubbed) and soft creases in the normal. Albedo sRGB; normal and ARM (ao · roughness · metal 0)
- * linear; repeat-wrapped, mipmapped.
+ * linear; repeat-wrapped, mipmapped. Cached until its textures are disposed.
  */
 export function coatTextures(): CoatTex {
   if (coatTex) return coatTex;
@@ -230,7 +237,7 @@ export function coatTextures(): CoatTex {
   coatTex = cacheUntilDisposed({ map: tex(col, true), normalMap: tex(nrm, false), arm: tex(arm, false) }, () => { coatTex = null; });
   return coatTex;
 }
-/** the coat sleeve's material parameters (the viewmodels' shared program: its five map slots all filled by the canvas) */
+/** The coat sleeve's material parameters (the viewmodels' shared program: its five map slots all filled by the canvas). */
 export function coatMaterialParams(): THREE.MeshPhysicalMaterialParameters {
   const t = coatTextures();
   return { map: t.map, normalMap: t.normalMap, normalScale: new THREE.Vector2(0.8, 0.8), aoMap: t.arm, roughnessMap: t.arm, metalnessMap: t.arm, roughness: 1, metalness: 0, envMapIntensity: 0.5, specularIntensity: 0.5 };
@@ -238,6 +245,9 @@ export function coatMaterialParams(): THREE.MeshPhysicalMaterialParameters {
 
 // ───────────────────────────── a hand ─────────────────────────────
 
+/** A per-channel triple (a tint, a point). */
+export type V3 = [number, number, number];
+/** One hand as data: the fist's grip, curl and wrist, its forearm and its tints. */
 export interface HandSpec {
   /** radius of what the fist closes on (nalatiArms.gloveFist) */
   R: number;
@@ -253,16 +263,15 @@ export interface HandSpec {
   bend?: readonly [number, number];
   /** the forearm's length from the wrist (m) */
   armLen?: number;
-  /** × the palette (the viewmodel sits in the weapon's shade: 1 = the Longbow's gloves as they are) */
+  /** × the palette (the viewmodel sits in the weapon's shade: 1 = the palette as it is) */
   tint?: number;
-  /** the glove's own tint per channel (linear), over `tint` for the fist and gauntlet: a lighter buckskin that reads
-   *  against the walnut */
+  /** the glove's own tint per channel (linear), over `tint` for the fist and gauntlet */
   gloveTint?: V3;
   /** a free sleeve: the forearm is its own mesh, aimed every frame from the wrist at this point in CAMERA space (an elbow
    *  below the frame), so it keeps coming in from the bottom of the screen whatever the weapon's pose does */
   elbow?: V3;
-  /** the coat sleeve (hunterCoatSleeve, its own mesh on the coat's textured material) over a short gauntlet, instead of
-   *  the plain merged forearm */
+  /** the coat sleeve (coatSleeve, its own mesh on the coat's textured material) over a short gauntlet, instead of the
+   *  plain merged forearm */
   coat?: boolean;
 }
 
@@ -287,21 +296,22 @@ const onlyPNC = (g: THREE.BufferGeometry): THREE.BufferGeometry => { for (const 
  *  gauntlet) and `sleeve` = the forearm along +Y from its origin, `wrist` = where that origin sits in grip space and `dir`
  *  = the wrist's bend there (grip space). */
 export interface HandGeometry { geometry: THREE.BufferGeometry; sleeve: THREE.BufferGeometry | null; wrist: THREE.Vector3; dir: THREE.Vector3 }
-export function handGeometry(spec: HandSpec, free = false): HandGeometry {
+/** One hand's geometry in `look`'s colours (see HandGeometry). */
+export function handGeometry(look: GloveHandsLook, spec: HandSpec, free = false): HandGeometry {
   const mirror = spec.mirror === true, sx = mirror ? -1 : 1, k = spec.tint ?? 1, tint: V3 = [k, k, k], glove = spec.gloveTint ?? tint;
-  return withHunterPalette(() => {
+  return withArmPalette(look.palette, () => {
     const fist = gloveFist({ R: spec.R, mirror, span: spec.span ?? 1, curl: spec.curl ?? 1, thumbCurl: spec.thumbCurl ?? spec.curl ?? 1 });
     const bend = spec.bend ?? [0.12, 0];
     const d = new THREE.Vector3(sx * bend[0], bend[1], 1).normalize(), toD = new THREE.Quaternion().setFromUnitVectors(Y_AXIS, d);
     const start = fist.wrist.clone().addScaledVector(d, -0.016); // the gauntlet laps over the back of the hand
     if (spec.coat === true) {
-      const g = onlyPNC(hunterGauntlet(0.06)).applyQuaternion(toD).translate(start.x, start.y, start.z);
+      const g = onlyPNC(gloveGauntlet(0.06)).applyQuaternion(toD).translate(start.x, start.y, start.z);
       const out = mergeGeometries([onlyPNC(fist.geometry), g], false);
       fist.geometry.dispose(); g.dispose();
-      const coat = tintGeo(hunterCoatSleeve(spec.armLen ?? 1, mirror ? 2 : 1), tint);
+      const coat = tintGeo(coatSleeve(look, spec.armLen ?? 1, mirror ? 2 : 1), tint);
       return { geometry: finish(tintGeo(out, glove)), sleeve: coat, wrist: start.clone().addScaledVector(d, COAT_FROM), dir: d };
     }
-    const arm = tintGeo(onlyPNC(hunterSleeve(spec.armLen ?? 0.55, mirror ? 2 : 1)), tint);
+    const arm = tintGeo(onlyPNC(gloveSleeve(spec.armLen ?? 0.55, mirror ? 2 : 1)), tint);
     tintGeo(onlyPNC(fist.geometry), glove);
     if (free) return { geometry: finish(fist.geometry), sleeve: finish(arm), wrist: start, dir: d };
     arm.applyQuaternion(toD);
@@ -315,13 +325,14 @@ export function handGeometry(spec: HandSpec, free = false): HandGeometry {
 /** Where a fist closes on a weapon, in its model space: the grip's centre, the grip's direction toward the index / thumb
  *  end of the finger stack, and the palm's facing (from the back of the hand toward the grip). */
 export interface GripPose { at: THREE.Vector3; axis: THREE.Vector3; palm: THREE.Vector3 }
+/** A grip pose from three triples (the directions normalised). */
 export const gripPose = (at: readonly [number, number, number], axis: readonly [number, number, number], palm: readonly [number, number, number]): GripPose =>
   ({ at: new THREE.Vector3(...at), axis: new THREE.Vector3(...axis).normalize(), palm: new THREE.Vector3(...palm).normalize() });
 
 const _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3(), _m = new THREE.Matrix4();
 const _w = new THREE.Vector3(), _e = new THREE.Vector3(), _inv = new THREE.Matrix4();
-/** grip space → model space: +Y along `axis`, the back of the hand (+X on a right hand, −X on a left) against `palm`, +Z (the
- *  forearm's side) completing the frame */
+/** Grip space → model space: +Y along `axis`, the back of the hand (+X on a right hand, −X on a left) against `palm`, +Z
+ *  (the forearm's side) completing the frame. */
 export function gripQuat(p: GripPose, mirror: boolean, out: THREE.Quaternion): THREE.Quaternion {
   _y.copy(p.axis).normalize();
   _x.copy(p.palm).multiplyScalar(mirror ? 1 : -1);
@@ -330,7 +341,7 @@ export function gripQuat(p: GripPose, mirror: boolean, out: THREE.Quaternion): T
   return out.setFromRotationMatrix(_m.makeBasis(_x, _y, _z));
 }
 
-/** `a` → `b` by t (0..1), into `out` (the directions re-normalised) */
+/** `a` → `b` by t (0..1), into `out` (the directions re-normalised). */
 export function blendGrip(a: GripPose, b: GripPose, t: number, out: GripPose): GripPose {
   out.at.lerpVectors(a.at, b.at, t);
   out.axis.lerpVectors(a.axis, b.axis, t).normalize();
@@ -340,15 +351,12 @@ export function blendGrip(a: GripPose, b: GripPose, t: number, out: GripPose): G
 
 // ───────────────────────────── a weapon's two hands ─────────────────────────────
 
+/** A hand's spec and where it grips. */
 export interface HandDef { spec: HandSpec; pose: GripPose }
-export type V3 = [number, number, number];
-/** the gloves' tint over the hunter palette (linear, per channel): a pale buckskin that reads against the walnut stocks */
-export const BUCKSKIN: V3 = [3.2, 4.2, 6.0];
-/** a hold as a weapon declares it (a dev knob: edit, then the weapon's `rebuildHands()`) */
+/** A hold as a weapon declares it (a dev knob: edit, then the weapon's `rebuildHands()`). */
 export interface HandHold { spec: HandSpec; at: V3; axis: V3; palm: V3 }
+/** A declared hold → a hand definition. */
 export const holdDef = (h: HandHold): HandDef => ({ spec: h.spec, pose: gripPose(h.at, h.axis, h.palm) });
-/** the hands' material parameters (the Longbow's: the viewmodels' shared lit program, vertex colours × the 1×1 fillers) */
-export const HANDS_MATERIAL: THREE.MeshPhysicalMaterialParameters = { roughness: 0.62, metalness: 0, envMapIntensity: 0.55, specularIntensity: 0.5 };
 
 /**
  * A weapon's two gloved hands under its model (they move, scale and hide with it): the left fixed where `left.pose` puts
@@ -365,12 +373,12 @@ export class WeaponHands {
   /** every sleeve mesh (free or riding its fist) */
   private readonly extra: THREE.Mesh[] = [];
 
-  /** `coatMaterial`: the coat sleeves' (HandSpec.coat), else they fall back to `material` */
-  constructor(parent: THREE.Object3D, material: THREE.Material, left: HandDef, right: HandDef, coatMaterial: THREE.Material = material) {
+  /** `look`: the shard's colours; `coatMaterial`: the coat sleeves' (HandSpec.coat), else they fall back to `material` */
+  constructor(look: GloveHandsLook, parent: THREE.Object3D, material: THREE.Material, left: HandDef, right: HandDef, coatMaterial: THREE.Material = material) {
     this.group.name = 'weapon-hands';
     this.group.userData['viewmodelOnly'] = true;
     for (const m of [material, coatMaterial]) { m.transparent = true; m.depthWrite = true; }
-    const lg = handGeometry({ ...left.spec, mirror: true }, left.spec.elbow !== undefined), rg = handGeometry({ ...right.spec, mirror: false }, right.spec.elbow !== undefined);
+    const lg = handGeometry(look, { ...left.spec, mirror: true }, left.spec.elbow !== undefined), rg = handGeometry(look, { ...right.spec, mirror: false }, right.spec.elbow !== undefined);
     this.left = new THREE.Mesh(lg.geometry, material);
     this.right = new THREE.Mesh(rg.geometry, material);
     this.rightSpec = right.spec;
@@ -396,7 +404,9 @@ export class WeaponHands {
     parent.add(this.group);
   }
 
+  /** seat the left fist at `p` */
   placeLeft(p: GripPose): void { this.left.position.copy(p.at); gripQuat(p, true, this.q); this.left.quaternion.copy(this.q); }
+  /** seat the right fist at `p` */
   placeRight(p: GripPose): void { this.right.position.copy(p.at); gripQuat(p, false, this.q); this.right.quaternion.copy(this.q); }
 
   /** aim the free sleeves: each from its fist's wrist at its elbow (camera space). `model` = the weapon's model, a child of
@@ -428,6 +438,7 @@ export class WeaponHands {
     return { draws: meshes.length, tris, verts, bytes };
   }
 
+  /** take the hands off the weapon and free their geometry */
   dispose(): void {
     this.group.removeFromParent();
     this.left.geometry.dispose(); this.right.geometry.dispose();

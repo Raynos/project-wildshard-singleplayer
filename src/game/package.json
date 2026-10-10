@@ -72,6 +72,8 @@
     "./systems/looks/hangingLanterns": "./systems/looks/hangingLanterns.ts",
     "./systems/viewmodel/brushTrail": "./systems/viewmodel/brushTrail.ts",
     "./systems/viewmodel/fpArmsRig": "./systems/viewmodel/fpArmsRig.ts",
+    "./systems/viewmodel/gloveHands": "./systems/viewmodel/gloveHands.ts",
+    "./systems/viewmodel/staveBow": "./systems/viewmodel/staveBow.ts",
     "./systems/kit/bakedGeometry": "./systems/kit/bakedGeometry.ts",
     "./systems/kit/classKit": "./systems/kit/classKit.ts",
     "./systems/kit/ruledKit": "./systems/kit/ruledKit.ts",

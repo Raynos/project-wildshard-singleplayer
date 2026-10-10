@@ -132,6 +132,8 @@
     "./looks/hangingLanterns": "./looks/hangingLanterns.ts",
     "./viewmodel/brushTrail": "./viewmodel/brushTrail.ts",
     "./viewmodel/fpArmsRig": "./viewmodel/fpArmsRig.ts",
+    "./viewmodel/gloveHands": "./viewmodel/gloveHands.ts",
+    "./viewmodel/staveBow": "./viewmodel/staveBow.ts",
     "./tools/grappleAim": "./tools/grappleAim.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/classKit": "./kit/classKit.ts",

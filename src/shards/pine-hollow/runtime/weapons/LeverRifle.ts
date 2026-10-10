@@ -3,7 +3,8 @@ import { viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, box, cyl, st
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, type LeverFirearmView, type LeverFirearmWeapon } from '@wildshard/sdk/items/leverFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
-import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '../../weapons/hunterHands';
+import { WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '@wildshard/sdk/viewmodel/gloveHands';
+import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../../data/handsLook';
 import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME } from '../../weapons/leverAction';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -353,7 +354,7 @@ function borrowWood(from: THREE.Object3D | null): TexSet {
 }
 
 /**
- * E322 F-M6: the hunter's gloved hands (hunterHands.ts; Jake's pick B), in model space: the left hand round the forend, the
+ * E322 F-M6: the hunter's gloved hands (data/handsLook.ts on @wildshard/sdk/viewmodel/gloveHands; Jake's pick B), in model space: the left hand round the forend, the
  * right on the wrist with its fingers through the loop (it rides the lever through a cycle); `gate` = the right hand
  * thumbing a cartridge, relative to the round's base. A dev knob: edit, then the rifle's `rebuildHands()`.
  */
@@ -370,7 +371,7 @@ const LEVER_HANDS: LeverFirearmHandsKit = {
       handsMat ??= viewmodelMaterial(sky, 'hunter-hands', HANDS_MATERIAL);
       const right = holdDef(LEVER_HAND_HOLDS.right), g = LEVER_HAND_HOLDS.gate;
       const gate = gripPose(g.at, g.axis, g.palm);
-      return { rest: right.pose, gate, hands: new WeaponHands(model, handsMat, holdDef(LEVER_HAND_HOLDS.left), right) };
+      return { rest: right.pose, gate, hands: new WeaponHands(HUNTER_HANDS, model, handsMat, holdDef(LEVER_HAND_HOLDS.left), right) };
     };
   },
   grip: () => gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]),

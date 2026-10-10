@@ -2,7 +2,7 @@ import { expect, it, vi } from 'vitest';
 import { BoxGeometry, CompressedTexture, MeshStandardMaterial, RGBA_S3TC_DXT5_Format } from 'three';
 import { cacheUntilDisposed } from '../../src/engine/app/cachedAssets';
 import { Scope } from '../../src/engine/app/scope';
-import { coatTextures } from '../../src/shards/pine-hollow/weapons/hunterHands';
+import { coatTextures } from '../../src/game/systems/viewmodel/gloveHands';
 import { poiMaterial } from '../../src/shards/nalati-grasslands/world/paint';
 import { terrainHeightTexture } from '../../src/shards/nalati-grasslands/look/grass';
 import { fakeWorld } from '../fake/world';

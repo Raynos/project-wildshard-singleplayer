@@ -1,7 +1,8 @@
 import { cyl, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, box, edgeWear, stripExtra } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { crossbowType, type BoltCrossbowParts, type BoltCrossbowView, type BoltCrossbowWeapon } from '@wildshard/sdk/items/boltCrossbow';
-import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '../../../weapons/hunterHands';
+import { WeaponHands, coatMaterialParams, holdDef, type HandHold, type WeaponHandsView } from '@wildshard/sdk/viewmodel/gloveHands';
+import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../../../data/handsLook';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
 import { boltFlightStep } from '../../../weapons/crossbow/flight';
 import * as THREE from 'three';
@@ -295,7 +296,7 @@ export const CROSSBOW_VIEW: BoltCrossbowView = {
 };
 
 /**
- * E322 F-M6: the hunter's gloved hands (hunterHands.ts; Jake's pick B), in model space: the left hand round the back of
+ * E322 F-M6: the hunter's gloved hands (data/handsLook.ts on @wildshard/sdk/viewmodel/gloveHands; Jake's pick B), in model space: the left hand round the back of
  * the fore-end's leather — its thumb up the near side, its fingers up the far side, the coat sleeve free (aimed at an
  * elbow off the frame's lower left, so the reload's tilt never swings the arm away); the right under the grip with the
  * index by the trigger. Both in the coat's sleeves. A dev knob: edit, then the crossbow's `rebuildHands()`.
@@ -305,12 +306,12 @@ export const CROSSBOW_HAND_HOLDS: { left: HandHold; right: HandHold } = {
   right: { spec: { R: 0.03, curl: 0.6, thumbCurl: 0.9, bend: [0.8, -1.2], armLen: 0.6, tint: 2.2, gloveTint: BUCKSKIN, coat: true }, at: [0, -0.09, 0.33], axis: [0, 0.34, -0.94], palm: [0, 1, 0] },
 };
 /** The hands' maker: the glove and coat materials once per crossbow, a fresh pair from the holds on every build. */
-function crossbowHands(sky: Sky): (model: THREE.Group) => WeaponHands {
+function crossbowHands(sky: Sky): (model: THREE.Group) => WeaponHandsView {
   let handsMat: THREE.MeshPhysicalMaterial | null = null, coatMat: THREE.MeshPhysicalMaterial | null = null;
   return (model) => {
     handsMat ??= viewmodelMaterial(sky, 'hunter-hands', HANDS_MATERIAL);
     coatMat ??= viewmodelMaterial(sky, 'hunter-coat', coatMaterialParams());
-    return new WeaponHands(model, handsMat, holdDef(CROSSBOW_HAND_HOLDS.left), holdDef(CROSSBOW_HAND_HOLDS.right), coatMat);
+    return new WeaponHands(HUNTER_HANDS, model, handsMat, holdDef(CROSSBOW_HAND_HOLDS.left), holdDef(CROSSBOW_HAND_HOLDS.right), coatMat);
   };
 }
 

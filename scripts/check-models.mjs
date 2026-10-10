@@ -169,6 +169,8 @@ export const DONE = {
     'src/engine/world/lowpolyKit.ts': { why: "a geometry kit the models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
     'src/engine/world/geometryKit.ts': { why: "the engine geometry kit's shape builders (a rope's segments merged; no thing of its own)", counts: { mergeGeometries: 1 } },
     'src/game/systems/kit/sweptKit.ts': { why: "the kit system's swept builder (SHARD-PLATFORM M3, moved from Nine Dragon's world/hero/kitx.ts, whose legacy copy keeps its entry): merges a region's curved pieces into one geometry (world); it draws nothing of its own", counts: { mergeGeometries: 1 } },
+    'src/game/systems/viewmodel/gloveHands.ts': { why: "Gear: a held weapon's gloved hands (SHARD-PLATFORM M3, moved from Pine Hollow's weapons/hunterHands.ts, whose entry still covers its frozen legacy copy): the fist and its forearm merged per hand, part of the weapon's own first-person build", counts: { mergeGeometries: 2 } },
+    'src/game/systems/viewmodel/staveBow.ts': { why: "Gear: a held stave bow's own first-person build (SHARD-PLATFORM M3, moved from Pine Hollow's weapons/longbowView.ts, whose entry still covers its frozen legacy copy): the arrow's parts and the bow's static parts merged", counts: { mergeGeometries: 2 } },
     'src/game/systems/kit/classKit.ts': { why: "the kit system's class builder (SHARD-PLATFORM M3, moved from Nine Dragon's vm/geo.ts, whose legacy copy keeps its entry): a close-up geometry library merged per rigid group (held gear's parts); it draws nothing of its own", counts: { mergeGeometries: 1 } },
   },
 };
