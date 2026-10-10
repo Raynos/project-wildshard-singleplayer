@@ -4,6 +4,7 @@ import * as v from 'valibot';
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0x7fffffff));
+/** Strict bounded player, script and event inputs admitted at the worker tick boundary. */
 export const TickCommandSchema = v.variant('kind', [
   // `hover: true` is the HOVER press this tick: on or off the hoverboard (SimCommand.hover); `jump: true` / `dodge: true`
   // the JUMP / DODGE press (SimCommand.jump / .dodge). `heavy` is a HELD state, not a press: the HEAVY hold is down this
@@ -34,19 +35,23 @@ export function simPlayerCommand(command: Extract<HeadlessCommand, { kind: 'play
 }
 /** Command provenance is retained for auditing; splitting a batch never grants another allowance. */
 export interface HeadlessCommandSource { source: string; commands: readonly HeadlessCommand[] }
+/** Detached gameplay facts and coin effects published only after a completed tick. */
 export const TickEffectSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('fact'), name: text, actorId: text }),
   v.strictObject({ kind: v.literal('coins'), amount: finite, actorId: text }),
 ]);
 /** Only completed, in-budget ticks can expose these durable quest requests to the parent. */
 export type HeadlessEffect = v.InferOutput<typeof TickEffectSchema>;
+/** Validated tick result carrying its continuation, effects and optional script cost observations. */
 export const TickCommitSchema = v.strictObject({ tick: natural, snapshot: v.pipe(v.string(), v.maxLength(32_000_000)), effects: v.pipe(v.array(TickEffectSchema), v.maxLength(1024)), fuelUsed: v.exactOptional(natural), scriptMicros: v.exactOptional(v.pipe(finite, v.minValue(0))) });
 /** Complete same-engine continuation and effects from one atomically committed worker tick. */
 export type HeadlessTickCommit = v.InferOutput<typeof TickCommitSchema>;
+/** Worker request grammar for a bounded command step or an explicit finish proof. */
 export const WorkerRequestSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('step'), commands: v.pipe(v.array(TickCommandSchema), v.maxLength(1024)) }),
   v.strictObject({ kind: v.literal('finish') }),
 ]);
+/** Validate and copy ordered source batches against one aggregate per-tick command allowance. */
 export function tickCommands(sources: readonly HeadlessCommandSource[], limit: number): HeadlessCommand[] {
   if (!Number.isInteger(limit) || limit < 0 || limit > 1024 || sources.length > 1024) throw new Error('Invalid tick command allowance');
   let count = 0;
