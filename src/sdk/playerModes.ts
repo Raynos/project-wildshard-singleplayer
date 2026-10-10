@@ -53,10 +53,12 @@ export function currentPlayerMode(player: ModePlayer): PlayerModeId { return pla
 export function motorMode(player: Pick<ModePlayer, 'hover' | 'swimming' | 'wading'>): MotorMode { return engineMotorMode(player); }
 
 /** A headless host's modes (SimHost: the same registry, its driver a SimPlayerDriver). */
-export interface HeadlessModeHost { readonly modes: PlayerModes<SimPlayerDriver> }
-/** Declare a driven mode on a headless host for `scope`'s lifetime (its hooks; a headless host runs no traversal or input
- *  context yet, so a def with `traverse` or `context` is refused). */
-export function registerHeadlessMode(host: HeadlessModeHost, def: PlayerModeDef, scope: Scope): PlayerModeHandle<SimPlayerDriver> { return host.modes.register(def, scope); }
+export interface HeadlessModeHost { readonly modes: PlayerModes<SimPlayerDriver>; readonly events?: Events }
+/** Declare a driven mode on a headless host for its scope's lifetime. Traversals use the host's fixed-step events;
+ *  input contexts remain page-only because a headless host consumes recorded commands. */
+export function registerHeadlessMode(host: HeadlessModeHost, def: PlayerModeDef, scope: Scope): PlayerModeHandle<SimPlayerDriver> {
+  return host.modes.register(def, scope, host.events === undefined ? {} : { events: host.events });
+}
 /** Hand the headless player's motion to `driver` in mode `id` until `exitHeadlessMode` (ahead of any usePlayerDriver driver). */
 export function enterHeadlessMode(host: HeadlessModeHost, id: DrivenMode, driver: SimPlayerDriver): void { host.modes.enter(id, driver); }
 /** Hand the headless player's motion back from mode `id` (a no-op when `id` does not hold it). */

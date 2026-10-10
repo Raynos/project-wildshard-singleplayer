@@ -740,8 +740,15 @@ export class SimHost {
     if (!delegated && command?.hover === true) this.setBoard(!this.playerBoard.on);
     if (this.boardHandles.length > 0) this.syncBoardColliders();
     this.physics.step();
+    // An unanswered ask returns its numeric dt input; only an explicit true claims motion.
+    const traversal: unknown = delegated ? false : this.events.ask('player.traversal', FIXED_STEP);
+    const traversed = traversal === true;
     if (delegated) {
       driver.step(FIXED_STEP, this);
+      if (command?.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
+    }
+    else if (traversed) {
+      this.playerImpulse.set(0, 0, 0);
       if (command?.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
     }
     else {
@@ -808,8 +815,8 @@ export class SimHost {
     }
     if (observeMotion !== undefined) {
       let sample: SimPlayerMotionSample | null;
-      if (delegated) {
-        sample = driver.motionSample?.() ?? null;
+      if (delegated || traversed) {
+        sample = delegated ? driver.motionSample?.() ?? null : null;
         if (sample !== null && (![sample.velocityX, sample.velocityZ].every(Number.isFinite)
           || typeof sample.grounded !== 'boolean' || typeof sample.swimming !== 'boolean' || typeof sample.hover !== 'boolean')) throw new RangeError('Invalid delegated player motion sample');
       } else {

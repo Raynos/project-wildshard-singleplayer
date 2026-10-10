@@ -1,4 +1,5 @@
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
+import { MOTOR_MODE_MECHANISMS } from '@wildshard/sdk/playerModeData';
 import { SPAWN } from './data/spawn';
 import { BUDGETS } from './budgets';
 import { GREY_CARD, EXPLORE } from './explore/art';
@@ -30,7 +31,7 @@ export const TEMPLATE: ShardManifest = {
     hemiSky: 0x9ca7b4, hemiGround: 0x606060, hemiIntensity: 0.7, sun: { azimuth: 35, elevation: 45 } },
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 1, 1] },
   grade: { saturation: 0, brightness: 0, contrast: 0, bloomIntensity: 0, bloomThreshold: 1, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
-  uses: ['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'coins', 'loot', 'compendium', 'feats', 'bag.pack'],
+  uses: ['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', ...MOTOR_MODE_MECHANISMS, 'explore', 'practice', 'coins', 'loot', 'compendium', 'feats', 'bag.pack'],
   loadout: { weapons: ['weapon.sword-iron', 'weapon.template-whip'], tools: ['tool.template-lantern', 'tool.hoverboard'], start: ['weapon.sword-iron', 'weapon.template-whip', 'tool.template-lantern', 'tool.hoverboard'], held: 'weapon.template-whip' },
   species: [], spawns: [], fight: { attackers: 2, telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },

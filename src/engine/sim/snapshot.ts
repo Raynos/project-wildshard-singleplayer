@@ -3,6 +3,7 @@ import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, 
 import { byteArray } from './snapshotPhysics';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel, type SimSlots, type SimValue } from '../sim';
 import { SHOVE_TIME } from '../player/shove';
+import type { DrivenMode } from '../player/modes';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { StrikeRunner } from '../ai/strikes';
 import type { PlayerHealth } from '../combat/health';
@@ -50,6 +51,8 @@ export interface SimSnapshot {
   clock: GameClockState; rng: RngStreamsState;
   entities: { id: string; state: ReturnType<AnimalSim['snapshot']>; motor: MotorState | null }[];
   player: { id: string; position: number[]; yaw: number; health: EventValue; motor: MotorState; impulse?: number[] | undefined;
+    /** Active traversal identities only; absent on hosts whose traversal has never claimed a tick. */
+    traversals?: DrivenMode[] | undefined;
     fall?: { vy: number; grounded: boolean } | undefined; shove?: { t: number; vx: number; vz: number } | undefined;
     /** SF72: the riding hoverboard (SimHost.playerBoard + boardVelocity); absent on foot, so a host that never boards keeps its bytes. */
     board?: { velocity: number[]; air: boolean; bob: number; ground: boolean } | undefined;
@@ -210,7 +213,7 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
       ...(host.playerShove.t > 0 ? { shove: { ...host.playerShove } } : {}),
       ...(host.playerBoard.on ? { board: { velocity: host.boardVelocity.toArray(), air: host.playerBoard.hoverAir, bob: host.playerBoard.hoverBob, ground: host.playerBoard.onGround } } : {}),
       ...swimField(host),
-      ...jumpFields(host) },
+      ...jumpFields(host), ...traversalField(host) },
     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
     events: host.events.snapshot((value) => encode(value, host)), physics: physics(host.physics.snapshot()), colliderTags,
     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
@@ -222,6 +225,11 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
 function swimField(host: SimHost): Pick<SimSnapshot['player'], 'swim'> {
   const swim = host.playerSwim;
   return swim.on || swim.stood || swim.climbCooldown > 0 ? { swim: { on: swim.on, velocity: host.swimVelocity.toArray(), diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, stroke: swim.strokeTime, stood: swim.stood } } : {};
+}
+/** Omit inactive traversal state so ordinary hosts retain their existing snapshot bytes. */
+function traversalField(host: SimHost): Pick<SimSnapshot['player'], 'traversals'> {
+  const traversals = host.modes.snapshotTraversals();
+  return traversals.length === 0 ? {} : { traversals };
 }
 /** The jump, dash and dodge state (SF72), each omitted while unused or at rest, so a host that never jumps or dodges keeps its bytes. */
 function jumpFields(host: SimHost): Pick<SimSnapshot['player'], 'jump' | 'dash' | 'dodge'> {
@@ -277,6 +285,8 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
     Object.assign(host.playerDash, saved.player.dash ?? { t: 0, vx: 0, vz: 0 });
     Object.assign(host.playerDodge, saved.player.dodge ?? { cd: 0, t: 0 });
     host.player.health.restore(decode(saved.player.health, host) as ReturnType<PlayerHealth['snapshot']>);
+    if (saved.player.traversals?.length === 0) throw new Error('Invalid empty traversal mode continuation');
+    host.modes.restoreTraversals(saved.player.traversals ?? []);
     for (const entry of saved.strikes) host.strikes.get(entry.id)?.restore(entry.state, host.strikeSpecifications(entry.id));
     host.flags.restore(saved.flags);
     for (const quest of host.quests) { const state = saved.quests.find((entry) => entry.id === quest.def.id); if (state !== undefined) quest.restore(state); }

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./player/modeData": "./player/modeData.ts",
     "./entities/bodyClear": "./entities/bodyClear.ts",
     "./entities/animalPose": "./entities/animalPose.ts",
     "./entities/animalRig": "./entities/animalRig.ts",

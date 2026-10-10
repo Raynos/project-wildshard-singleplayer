@@ -2005,6 +2005,17 @@ defines the heightfield, player, creature identities, strike timings and quests.
 60 Hz tick; `advance(seconds, command)` retains its fixed-step accumulator. Each host owns its physics,
 clock, RNG, events, entities, damage pipeline, flags, quest progress and timers.
 `onStep(id, run, adapter?, phase?)` registers scoped per-instance behaviour with optional continuation state.
+`registerHeadlessMode` from `@wildshard/sdk/playerModes` registers a traversal against the host's events.
+After physics, an undriven player asks `player.traversal`; a true answer owns that tick's capsule movement,
+clears impulse and suppresses ordinary walk, board, swim, dodge and jump motion. Entered drivers take precedence;
+creatures, health and events still advance once. The mode installer owns traversal continuation in its adapter
+and reinstalls it before restore. Headless input contexts are refused; commands supply input explicitly.
+The optional snapshot player `traversals` retains the registry's last claimed identities, validated against
+the freshly installed traversal declarations. Restore publishes their active modes without invoking motion;
+inactive hosts omit the field and keep existing bytes. `PlayerModes.snapshotTraversals` / `restoreTraversals`
+only transfer those identities; the traversal's own clocks and targets remain its adapter's responsibility.
+`@wildshard/sdk/playerModeData` exposes `MOTOR_MODE_MECHANISMS`, the pure manifest declaration for the fixed
+swim/wade and hoverboard modes, defined by `@wildshard/engine/player/modeData`.
 `usePlayerDriver({ input, step })` binds one scoped motion law to an owned host with a player motor.
 `input(command, dt, host)` runs before the one native physics step; true delegates the player to
 `step(dt, host)` after physics, skipping the ordinary walk/board/dodge/jump. False runs the ordinary

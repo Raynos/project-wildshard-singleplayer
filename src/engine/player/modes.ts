@@ -172,6 +172,15 @@ export class PlayerModes<D = PlayerModeDriver> {
 
   /** The declared mode `id`, if any. */
   def(id: DrivenMode): PlayerModeDef | undefined { return this.defs.get(id); }
+
+  /** Last claimed traversal modes, in answer order; guest clocks and targets belong to their own continuation. */
+  snapshotTraversals(): DrivenMode[] { return [...this.traversing]; }
+
+  /** Restore only declared traversal identities, without calling their motion laws or enter hooks. */
+  restoreTraversals(ids: readonly DrivenMode[]): void {
+    if (ids.length > 5 || new Set(ids).size !== ids.length || ids.some(id => this.defs.get(id)?.traverse === undefined)) throw new Error('Invalid traversal mode continuation');
+    this.traversing.clear(); for (const id of ids) this.traversing.add(id);
+  }
 }
 
 const registries = new WeakMap<ModePlayer, PlayerModes>();
