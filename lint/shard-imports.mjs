@@ -15,3 +15,14 @@ export function legacyNpcImport(filename, source) {
   return /(?:^|\/)src\/game\/systems\/npc\/(?:figureRig|figureMotion|faceHeads)(?:\.(?:ts|js))?$/u.test(target)
     || /(?:^|\/)src\/game\/systems\/npc\/?$/u.test(target);
 }
+
+/** G307: a game's exports map is its plugin surface, never a parallel SDK facade allowlist. */
+export function gamePluginImportViolation(filename, source, exports) {
+  const path = filename.replaceAll('\\', '/');
+  const local = /(?:^|\/)src\/shards\/[^/]+\/(.+)$/u.exec(path)?.[1];
+  if (local === undefined || !shardGameImport(filename, source)) return null;
+  if (!local.startsWith('runtime/')) return 'game imports belong only in runtime/';
+  if (!source.startsWith('@wildshard/game/')) return 'use the defining @wildshard/game package export';
+  const key = `.${source.slice('@wildshard/game'.length)}`;
+  return Object.hasOwn(exports, key) ? null : 'game plugin module is not published in package exports';
+}

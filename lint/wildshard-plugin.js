@@ -20,7 +20,7 @@ import { simClosure, simRoot } from './sim-closure.mjs';
 import { authoredHtmlSites } from './authored-html.mjs';
 import { runtimeCommonsClosure } from './commons-closure.mjs';
 import { runtimePerformanceViolations } from './runtime-performance.mjs';
-import { shardGameImport, legacyNpcImport } from './shard-imports.mjs';
+import { shardGameImport, legacyNpcImport, gamePluginImportViolation } from './shard-imports.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
@@ -885,6 +885,25 @@ const shardGameImports = rule('Shard code outside runtime imports the SDK, not t
   };
 });
 
+// G307: report-only during SF76; the standalone report enables this same rule without changing hard guards.
+const shardGamePlugins = rule('Trusted runtime imports only defining game plugin exports (G307)', (context) => {
+  if (legacySourcePath(pathOf(context)) !== null) return {};
+  const check = (node, source) => {
+    // Load the same package surface used by public-index; no second list to drift.
+    exported('@wildshard/game/shard/context');
+    const reason = gamePluginImportViolation(context.filename, source, packageExports.get('game') ?? {});
+    if (reason !== null) report(context, node, `G307: ${reason}: ${source}`);
+  };
+  return {
+    ...importsVisitor(node => { check(node, importPrefix(node.source)); }),
+    TSImportType(node) { check(node, importPrefix(node.source)); },
+    TSExternalModuleReference(node) { check(node, importPrefix(node.expression)); },
+    CallExpression(node) {
+      if (node.callee.type === 'Identifier' && node.callee.name === 'require') check(node, importPrefix(node.arguments[0]));
+    },
+  };
+});
+
 // SF54/SF73: the unchanged historical implementations serve registered frozen copies only.
 const legacyNpcImports = rule('Historical NPC exports serve only registered frozen consumers', (context) => {
   const filename = pathOf(context);
@@ -919,6 +938,7 @@ const plugin = {
   rules: {
     'no-reexport': noReexport,
     'shard-game-imports': shardGameImports,
+    'shard-game-plugins': shardGamePlugins,
     'legacy-npc-imports': legacyNpcImports,
     'runtime-commons': runtimeCommons,
     'runtime-performance': runtimePerformance,

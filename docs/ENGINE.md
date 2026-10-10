@@ -166,7 +166,7 @@ import { Bow } from '@wildshard/game/weapons/Bow';
 |---|---|---|
 | `@wildshard/engine` | `src/engine/package.json` `exports` | The engine: app, scopes, events, saves, input, UI, render, physics, audio, combat, AI |
 | `@wildshard/game` | `src/game/package.json` `exports` | The Wildshard game: the manifest and plugin types, Bag, coins, loot, compendium, feats, travel |
-| `@wildshard/sdk` | `src/sdk/package.json` `exports` | The author SDK shards build against; `runtime/*` holds the trusted runtime facades |
+| `@wildshard/sdk` | `src/sdk/package.json` `exports` | The authoring SDK; existing trusted runtime facades are transitional and being deleted under G307 |
 | `@wildshard/commons` | `src/commons/package.json` `exports` | Build-time packs that emit hash-named content; no commons code runs in the game |
 
 [docs/api/ENGINE.md](api/ENGINE.md), [GAME.md](api/GAME.md), [SDK.md](api/SDK.md) and [COMMONS.md](api/COMMONS.md) (generated) list every export
@@ -1936,7 +1936,7 @@ system `id` and frees it with the level; it returns the live view's getter. Sign
 ## 21. Shared content (the kit's, now the game's)
 
 SF54 dissolved `@wildshard/kit`: content that 2+ shards use (the rule of two) lives in `@wildshard/game`, its trusted
-runtime facades in `@wildshard/sdk/runtime/*`, and content one shard uses stays in that shard. Shard files outside
+existing transitional runtime facades in `@wildshard/sdk/runtime/*` (deleted under G307), and content one shard uses stays in that shard. Trusted `runtime/` callers migrate to the defining game plugin exports, not a replacement wrapper package. Shard files outside
 `runtime/` import the defining game modules; `runtime/` files import the SDK facades. Ids are unchanged (`kit.creature.*`,
 `kit.look.*`, the declared `kit.melee` / `kit.lantern` item families, `shared/*` model ids).
 
@@ -2388,6 +2388,13 @@ regroup and melee law and its complete continuation; restore consumes no RNG and
 and `decision` refuse this archetype without those explicit frame/pack ports. The SDK exposes its retained surface
 as `SpeciesHowler` / `SpeciesHowlerPorts`; spawn identity and deferred timing remain with the runtime.
 
+A declared `wind-stooper` uses strict `WindStooperSpec` (`@wildshard/engine/ai/windStooper`) and
+`brains.stooper(kind, ports)` (SDK `SpeciesStooper` / `SpeciesStooperPorts`). The runtime supplies native terrain,
+wind, home/player/phase, head/contact and tell authority plus its shared random stream. The platform owns the
+moving downwind orbit, altitude law, tell target, hit/miss stoop, grounded weak point and cooldown; every clock,
+orbit centre and fixed target is captured and validated atomically. Restore neither steps nor emits events or draws.
+`bind`, `policy` and `decision` refuse it without those explicit frame/altitude ports; actor/spawn identity stays runtime.
+
 **Species scripts (SF27).** A row's brain may be `{ archetype: 'script', data }`
 (`@wildshard/game/shardfile/speciesScripts`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,
 up to 8 numeric `slots` (its state, with spawn values), up to 4 actor `memory` fields it reads and writes (a pose's
@@ -2621,3 +2628,30 @@ cleanup. `Game.stageViewmodels(owner)` enables this on WebKit with a live
 composer (otherwise returns `null`). Regional preparation keeps the group
 hidden through ordinary whole-world shader warm-up, exposing it only during
 entry and hiding it again on leave.
+
+
+## Trusted game plugin imports (SF78 / G307)
+
+`@wildshard/game` publishes its plugin modules in `src/game/package.json`'s
+`exports` map. That map is the public surface; there is no second runtime SDK,
+wrapper layer or separate module allowlist. Trusted shard `runtime/` files import
+the defining game module directly. Type imports follow the same boundary.
+`data/` and `generators/` use the authoring SDK and build-time commons, never game
+runtime modules. Frozen registered legacy copies retain their compatibility inputs.
+
+The current migration inventory is reproducible with `node scripts/game-plugins.mjs`:
+it follows primary shards' runtime closures to their SDK facade imports and lists
+those facades' defining game targets alongside direct game consumers. Context and
+plugin installation use `shard/context`, `shard/plugin`, `shard/runtime`;
+brain policies use `shardfile/speciesBrains` and `shardfile/brainRuntime`;
+weapon bindings use `shardfile/hybridRows`, `shardfile/items` and
+`shardfile/weaponHooks`; boss phases use `shardfile/bossFight` and
+`shardfile/phasedBoss`. These existing modules are exported directly, not rebound.
+The inventory is evidence of current reachability, not permission to keep one-user
+systems in the game: SF76 deletes their facades and moves their implementations home.
+
+`node scripts/game-plugins.mjs --report` runs `wildshard/shard-game-plugins` in
+report-only mode during SF76. It flags imports outside `runtime/`, unpublished
+modules, relative bypasses, and computed game module names. Existing layer,
+public-index and sandbox checks remain active. Promote this rule to `error` in the
+root config after the move-backs; its tests already exercise enforcement.
