@@ -130,11 +130,9 @@ const errorText = (e) => e instanceof Error ? e.message : String(e);
 // Jake's SF0 clarification (2026-10-04): allow vsync quantization, retain the original strict verdict.
 function assess(result, surfaceName) {
   const floorFps = surfaceName === 'desktop' ? 60 : 30;
-  // "at all moments": a whole-drive row (grid-<plan>-drive, the one window long enough to hold a freeze) grades its
-  // worst frame too, 100 ms desktop / 200 ms Simulator
-  const wholeDrive = result.window === 'whole-drive' || /^grid-.+-drive$/u.test(result.pose?.name ?? '');
-  const maxFrameLimitMs = wholeDrive ?(surfaceName === 'desktop' ? 100 : 200) : null;
-  const maxFramePass = maxFrameLimitMs === null || (Number.isFinite(result.maxMs) && result.maxMs <= maxFrameLimitMs);
+  // The milestone gates every observed frame, including spawn, short travel and interiors.
+  const maxFrameLimitMs = surfaceName === 'desktop' ? 100 : 200;
+  const maxFramePass = Number.isFinite(result.maxMs) && result.maxMs <= maxFrameLimitMs;
   const strictMs = surfaceName === 'desktop' ? 16.7 : 33.3;
   const limitMs = surfaceName === 'desktop' ? 17.5 : 35;
   const medianFpsRounded = Math.round(result.medianFps);
@@ -148,7 +146,7 @@ function assess(result, surfaceName) {
   return { floorFps, medianFpsRounded, strictMs, limitMs, cpuLimitMs, cpuPass, maxFrameLimitMs, maxFramePass, pass, strictP95Pass, strictPass, miss };
 }
 function grade(record) {
-  record.criteria = { medianFps: 'Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained', p95Ms: '<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period', strictP95Ms: '<= 16.7 desktop / <= 33.3 Simulator', cpu: 'Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded', maxFrameMs: 'Whole-drive rows (grid-<plan>-drive) only: every frame <= 100 ms desktop / <= 200 ms Simulator' };
+  record.criteria = { medianFps: 'Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained', p95Ms: '<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period', strictP95Ms: '<= 16.7 desktop / <= 33.3 Simulator', cpu: 'Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded', maxFrameMs: 'Every observed row: max <= 100 ms desktop / <= 200 ms Simulator' };
   for (const result of record.results) for (const shard of result.rows) {
     for (const row of shard.rows ?? []) Object.assign(row, assess(row, result.surface));
     if (shard.complete) shard.pass = !shard.runtimeFailure && (shard.rows ?? []).every((row) => row.pass) && shard.errors.length === 0;
