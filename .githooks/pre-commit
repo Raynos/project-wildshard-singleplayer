@@ -56,6 +56,8 @@ fi
 pids=()
 # SF6b: builders land source only; the serialized pusher owns generated measurements and docs.
 node scripts/precommit-generated.mjs & pids+=($!)
+# G320: newly deleted catalogue outputs require their complete product, never just a component match.
+node scripts/precommit-generation-removals.mjs & pids+=($!)
 # E362 AG7: increases warn for exact coordinator approval; reach and cycle checks stay fatal.
 # shellcheck disable=SC2046 # word-split on purpose: the staged src paths
 node scripts/check-graph.mjs --source-only --paths $(git diff --cached --name-only --diff-filter=ACMR -- src) & pids+=($!)

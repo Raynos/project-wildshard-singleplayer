@@ -133,3 +133,20 @@ This is the pixel-bake branch of [the design system, §3.1](../plans/shard-platf
 pixel producers use the browser lane or an existing CPU path, while native placement and physics run in Node.
 The descriptor refuses browser/capture jobs with admitted build outputs; missing retained files fail instead of
 starting an implicit browser.
+
+## G320: removal requires a complete product
+
+`scripts/precommit-generation-removals.mjs` runs only when the commit deletes a tracked output from the predecessor's
+generation catalogue. It reads the pathspec/private index, requires the exact predecessor SHA256 in that output's
+`buildOutputs`, and requires a retained shard-owned producer plus a registered complete `shard.json` producer.
+It then rehearses the affected shard jobs from the immutable staged tree, with a new empty cache and every runtime,
+legacy directory and registered generated output removed. The complete product and the deleted output must both
+match exactly. A component-only pass, a missing product, a changed pin or a Darwin-only/browser/seeded producer
+refuses removal. A quiet window refuses the new rehearsal. Normal source commits and historical removals do no
+generation work; no working-tree output is restored or overwritten by the guard.
+
+The six Template/Pastel terrain, props and behavior component jobs pass their author-only cold and clean-room gates.
+Their **complete products are BLOCKED ON SKINS (WAITING FOR OPUS)**: the current skin exporter reaches the native
+factory, AnimalView and game species views, then copies generated fixture outputs. These rig and geometry producers
+are graphical O work. Retained component proofs cannot authorize output or legacy deletion while that closure is
+open. Linux byte parity, the build and boot gates also remain required for a subsequent per-output promotion.
