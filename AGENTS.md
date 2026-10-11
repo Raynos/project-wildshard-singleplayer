@@ -1,7 +1,8 @@
 # AGENTS.md
 
 The rules for every agent in this repo, one or two lines each. The why, the incidents and the how-tos live in
-`docs/process/`: read the linked file before you work in its area. Jake's own words outrank anything here.
+`docs/process/`: read the linked file before you work in its area. Jake's own words outrank anything here. What every
+file in `docs/` is: [docs/README.md](docs/README.md).
 
 ## Jake: how he plays, steers and judges → [docs/process/JAKE.md](docs/process/JAKE.md)
 
