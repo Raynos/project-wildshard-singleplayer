@@ -1,9 +1,10 @@
+import { parseWeaponProfile } from '@wildshard/format/weaponProfiles';
+import { applyMeleeCombatProfile, type MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import * as v from 'valibot';
 import { MathUtils, Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { CombatTag, DamageRequest } from '@wildshard/engine/combat/pipeline';
-import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import type { Move } from '@wildshard/engine/combat/view/melee';
 import { SweptMeleeCore, sweptLunge, sweptMoveDamage } from '@wildshard/engine/combat/sweptMeleeCore';
 import { bladeBlocked } from '@wildshard/engine/player/MeleeSweep';
@@ -29,8 +30,12 @@ const Y_AXIS = new Vector3(0, 1, 0);
 export function driftwoodSwordProfiles(rows: readonly ItemSpec[]): readonly [MeleeProfile, MeleeProfile] {
   const wood = rows.find(row => row.id === SWORD_IDS[0]), iron = rows.find(row => row.id === SWORD_IDS[1]);
   if (wood?.kind !== 'weapon' || iron?.kind !== 'weapon') throw new Error('Driftwood declares both swords');
-  return [{ ...SWORD_WOOD, damage: wood.light.damage, reach: wood.light.range, cooldown: wood.light.cooldown, heavyCharge: wood.charge },
-    { ...SWORD_IRON, damage: iron.light.damage, reach: iron.light.range, cooldown: iron.light.cooldown, heavyCharge: iron.charge }];
+  const numeric = (row: ItemSpec) => {
+    const profile = parseWeaponProfile('profile' in row ? row.profile : undefined);
+    if (profile.family !== 'melee') throw new Error('Driftwood swords require admitted melee parameters');
+    return profile;
+  };
+  return [applyMeleeCombatProfile(SWORD_WOOD, numeric(wood)), applyMeleeCombatProfile(SWORD_IRON, numeric(iron))];
 }
 
 /** What the swords ask of the island keeper: AnimalManager's 'weapon.fired' wake and its stagger hook. */

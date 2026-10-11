@@ -1,3 +1,4 @@
+import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
 import source from '../shard.config';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -12,11 +13,12 @@ const drops = new WeakMap<ShardRuntime, IronSwordPickup>();
 /** The adventure still owns the sailor guard; the service owns taking and saving the sword. */
 export function ironSwordDrop(shell: ShardRuntime): IronSwordPickup | null { return drops.get(shell) ?? null; }
 
+/** Compose admitted combat numbers while retaining the guarded iron pickup owner. */
 export function driftwoodLoadoutRows(world: World, shell: ShardRuntime): readonly [MeleeProfile, MeleeProfile] {
   const declaredWood = source.items.rows[0], declaredIron = source.items.rows[1];
-  if (declaredWood?.kind !== 'weapon' || declaredIron?.kind !== 'weapon') throw new Error('Driftwood declares both swords');
-  const wood: MeleeProfile = { ...SWORD_WOOD, damage: declaredWood.light.damage, reach: declaredWood.light.range, cooldown: declaredWood.light.cooldown, heavyCharge: declaredWood.charge };
-  const iron: MeleeProfile = { ...SWORD_IRON, damage: declaredIron.light.damage, reach: declaredIron.light.range, cooldown: declaredIron.light.cooldown, heavyCharge: declaredIron.charge, pickup: {
+  if (declaredWood?.kind !== 'weapon' || declaredIron?.kind !== 'weapon' || declaredWood.profile?.family !== 'melee' || declaredIron.profile?.family !== 'melee') throw new Error('Driftwood declares both swords');
+  const wood = applyMeleeCombatProfile(SWORD_WOOD, declaredWood.profile);
+  const iron: MeleeProfile = { ...applyMeleeCombatProfile(SWORD_IRON, declaredIron.profile), pickup: {
     owned: 'iron-sword', prompt: 'Take iron sword', toast: 'Iron sword acquired · 1/2 to switch, Q to swap',
     create: (at, prompt) => {
       if (at !== 'wreck.deck') throw new Error(`Unknown iron sword pickup site: ${at}`);

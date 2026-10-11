@@ -8,7 +8,8 @@ const duration = v.pipe(seconds, v.minValue(0.000001));
 const count = v.pipe(scalar, v.integer(), v.maxValue(1024));
 const slots = v.pipe(count, v.minValue(1));
 const probability = v.pipe(scalar, v.maxValue(1));
-const swing = v.pipe(v.strictObject({ windup: seconds, slashEnd: duration, total: duration, damage: scalar }),
+const swing = v.pipe(v.strictObject({ windup: seconds, slashEnd: duration, total: duration, damage: scalar,
+  stagger: v.exactOptional(scalar), sweep: v.exactOptional(v.pipe(v.number(), v.finite(), v.minValue(-10000), v.maxValue(10000))), reach: v.exactOptional(positive) }),
   v.check(row => row.windup <= row.slashEnd && row.slashEnd <= row.total, 'Ordered native swing phases'));
 const flight = v.strictObject({ gravity: scalar, drag: scalar, windCoupling: scalar });
 const cone = v.strictObject({ degrees: scalar, radius: v.picklist(['linear', 'sqrt']), axisScale: v.picklist([1, 2]) });

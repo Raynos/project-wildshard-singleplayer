@@ -32,7 +32,7 @@ describe('Nine Dragon runtime-owned fragment (SF51-p)', () => {
   it('declares its two shipping items and two runtime-owned feats, preserving the checked portal floors', () => {
     expect(source.runtime?.binds).toEqual(['items', 'ledger']);
     expect(source.items.rows.map(row => [row.id, row.family])).toEqual([
-      ['weapon.jian', 'nine-dragon-stack.jian'], ['tool.fei-zhua', 'nine-dragon-stack.fei-zhua'],
+      ['weapon.jian', 'melee'], ['tool.fei-zhua', 'nine-dragon-stack.fei-zhua'],
     ]);
     expect(source.items.rows.find(row => row.kind === 'tool')).toMatchObject({ action: null, hook: null, intensity: 0 });
     // G285: the feats are ledger rows the runtime emits (world/feats.ts); the data installer leaves them to it

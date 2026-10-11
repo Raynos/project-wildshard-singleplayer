@@ -1,10 +1,12 @@
+import { JIAN_MELEE_PROFILE } from '../data/meleeProfile';
+import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import type { ShardSword } from '@wildshard/game/shard/manifest';
 
 export interface JianRow extends MeleeProfile { viewmodel: () => Promise<ShardSword>; assets: readonly string[] }
 export const JIAN_ROW: JianRow = {
-  ...SWORD_WOOD, id: 'weapon.jian', parent: SWORD_WOOD.id, damage: 12,
+  ...applyMeleeCombatProfile(SWORD_WOOD, JIAN_MELEE_PROFILE), id: 'weapon.jian', parent: SWORD_WOOD.id,
   ui: { ...SWORD_WOOD.ui, name: 'Neon Jian' }, meta: { ...SWORD_WOOD.meta, name: 'Neon Jian' },
   feel: { ...SWORD_WOOD.feel, portraitFov: 78 },
   assets: ['/assets/nine-dragon/viewmodel/fp-rig.glb', ...['hand-r', 'arm-r', 'fist-l', 'gauntlet'].flatMap((name) =>

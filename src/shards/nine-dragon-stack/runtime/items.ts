@@ -1,3 +1,4 @@
+import { JIAN_MELEE_PROFILE } from '../data/meleeProfile';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily, ItemFamilyPresentation } from '@wildshard/engine/combat/itemFamilies';
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
@@ -16,7 +17,8 @@ function presentation(row: EquipmentRow): ItemFamilyPresentation {
 export function bindNineItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game'>, primary: Weapon, grapple: Tool): void {
   const sword = primary.row, tool = grapple.row;
   const families = new Map<string, ItemFamily>([
-    ['nine-dragon-stack.jian', { kind: 'weapon', presentation: presentation(sword), create: (row) => {
+    ['melee', { kind: 'weapon', profiles: ['melee'], presentation: presentation(sword), create: (row, _spec, ports) => {
+      if (JSON.stringify(ports.profile) !== JSON.stringify(JIAN_MELEE_PROFILE)) throw new Error('Native Jian was built from a different authored profile');
       // G51 compatibility: the native sword controller and current held saves keep the original sword slot.
       primary.row = { ...row, legacySlot: primary.id, meta: sword.meta }; return primary;
     } }],
@@ -24,7 +26,9 @@ export function bindNineItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game'>,
       grapple.row = { ...row, meta: tool.meta }; return grapple;
     } }],
   ]);
-  bindRuntimeItems(ctx, source, { families, icon: (name) => {
+  const melee = families.get('melee'); if (melee === undefined) throw new Error('Missing native Jian family');
+  families.delete('melee');
+  bindRuntimeItems(ctx, source, { families, kit: new Map([['melee', melee]]), icon: (name) => {
     const row = [sword, tool].find((entry) => entry.ui.icon === name);
     if (row === undefined) throw new Error(`Unknown Nine Dragon item icon ${name}`); return row.ui.icon;
   } });

@@ -29,7 +29,7 @@ it('declares bound quest, feat, sword and Captain rows while preserving the data
   expect(source.modes?.traverse.map(row => row.id)).toEqual(['driftwood.zipline']);
   expect(data.audio).toBe(source.audio); expect(data.edge).toBe(source.edge);
   expect(source.items.rows.map(row => [row.id, row.family])).toEqual([
-    ['weapon.driftwood-isle.wood', 'driftwood-isle.wood'], ['weapon.driftwood-isle.iron', 'driftwood-isle.iron'],
+    ['weapon.driftwood-isle.wood', 'melee'], ['weapon.driftwood-isle.iron', 'melee'],
   ]);
   const boss = source.runtime?.spawns?.bosses[0];
   expect(boss?.at).toEqual([SHRINE.x + 11 * Math.sin(SHRINE.rot), SHRINE.z + 11 * Math.cos(SHRINE.rot)]);

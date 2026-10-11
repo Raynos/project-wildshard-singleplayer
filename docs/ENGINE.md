@@ -3194,3 +3194,5 @@ Sky's `data/rocFight.ts` owns its held-body tuning. The old row/preset names
 retain the same interpreted values. Director stages, native bodies, clocks,
 rewards and continuations are unchanged. These trusted bindings do not claim
 whole-shard recipe admission or eliminate each shard's custom brain policy.
+
+SF85 melee rows: `combat/meleeProfile.applyMeleeCombatProfile(view, admitted)` overlays numeric combo/heavy phases, damage, stagger/sweep/reach, charge/combo/cooldown, lunge and sweep limits on an existing native pose recipe. It refuses missing or differently sized combos. Native identity, equipment metadata, keyframes, trails, cues and camera feel remain in the view. Driftwood and Nine use the same composition in their real owners; the shared starter move objects retain identity. No rendering or schema dependency enters the engine.

@@ -1567,3 +1567,5 @@ profile without creating a creature or granting a saddle. The defining `plugin/m
 `MountedBody`, `mountedMotorOptions`, road following and the rhythm spur. Nalati's page and native host pass the same
 authored profile into that one law; its real roster, taming, contacts, mounted weapons and presentation remain owned
 by the existing native installers. Restore retains every reins edge, physical motor and gait clock.
+
+SF85 melee weapon profiles retain the four-family contract. Each combo/heavy timing row may additionally declare bounded `stagger`, signed `sweep`, and positive `reach`; absent fields retain the native recipe values. Driftwood and Nine declare `family: "melee"` with numeric profiles, while keeping their original view recipes and prebuilt/native controller adoption. Nine's placeholder contact damage remains zero; its native Jian owns the swing clock.
