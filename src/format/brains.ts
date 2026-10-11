@@ -59,3 +59,20 @@ export const PerchHunterSchema = v.pipe(v.strictObject({
 export type ShardPerchHunter = v.InferOutput<typeof PerchHunterSchema>;
 /** Validate policy data while retaining the loader's authority over perches, projectiles and tokens. */
 export function parsePerchHunter(data: unknown): ShardPerchHunter { return v.parse(PerchHunterSchema, data); }
+
+/** One home/perch guardian archetype; each branch keeps the exact legacy bounds, defaults and predicate. */
+export const GuardianPatternsSchema = v.variant('pattern', [
+  v.pipe(v.strictObject({ ...GuardianSchema.pipe[0].entries, pattern: v.literal('interior') }),
+    v.check(row => GuardianSchema.pipe[1].requirement(row), 'Ordered guardian radii')),
+  v.pipe(v.strictObject({ ...PerchHunterSchema.pipe[0].entries, kind: v.literal('guardian'), pattern: v.literal('perch') }),
+    v.check(row => PerchHunterSchema.pipe[1].requirement({ ...row, kind: 'perch-hunter' }), 'Ordered perch attack ranges and cooldowns')),
+]);
+/** Admitted guardian pattern data; native floor/perch/body/RNG ports retain gameplay authority. */
+export type ShardGuardianPattern = v.InferOutput<typeof GuardianPatternsSchema>;
+/** Validate a pattern without allocating an actor or executing its native recipes. */
+export function parseGuardianPattern(data: unknown): ShardGuardianPattern { return v.parse(GuardianPatternsSchema, data); }
+/** Canonical old row, including parsed field order, for existing native adapters and saved policy strings. */
+export function guardianPreset(data: ShardGuardianPattern): ShardGuardian | ShardPerchHunter {
+  const { pattern: _pattern, ...row } = data;
+  return data.pattern === 'interior' ? parseGuardian(row) : parsePerchHunter({ ...row, kind: 'perch-hunter' });
+}

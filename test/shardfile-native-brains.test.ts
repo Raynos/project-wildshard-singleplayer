@@ -15,11 +15,13 @@ import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { const bytes = await readFile('public/assets/physics/rapier.wasm'); rapier = await loadRapier(Uint8Array.from(bytes).buffer); });
-function source() {
+function source(parametric = false) {
   const s = emptyShardfile({ slug: 'native-brains', name: 'Native brains', author: 'Test', revision: 1, seed: 435 });
   const pursue = template.creatures.brains[0]; if (pursue?.kind !== 'pursue') throw new Error('Missing pursuit fixture');
   s.rows.species = template.rows.species;
-  s.creatures.brains = [pursue, { ...CRAB_BRAIN }, { ...SAILOR_BRAIN }, { ...MONKEY_BRAIN }];
+  s.creatures.brains = [pursue, { ...CRAB_BRAIN },
+    parametric ? { ...SAILOR_BRAIN, pattern: 'interior' } : { ...SAILOR_BRAIN },
+    parametric ? { ...MONKEY_BRAIN, kind: 'guardian', pattern: 'perch' } : { ...MONKEY_BRAIN }];
   s.creatures.spawns = s.creatures.brains.map((brain, index) => ({ id: `actor.${index}`, species: 'boar', variant: 'greyback', brain: brain.id, strike: null, seed: index, scale: 1, at: [index * 4, 0, 4], yaw: 0 }));
   return parseShardfile(s);
 }
@@ -69,4 +71,33 @@ it('rebinds native policies on restore without replay and keeps the complete fac
     for (let tick = 0; tick < 1000; tick++) { sim.host.step(); restored.step(); }
     expect(suffix).toEqual(original); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim.host));
   } finally { sim.dispose(); restored?.dispose(); }
+});
+
+it('admits both guardian patterns through the full schema and restores the legacy factory continuation exactly', () => {
+  const legacy = source(), patterned = source(true), assets = new Map<string, Uint8Array>();
+  const original: string[] = [], patternTrace: string[] = [], suffix: string[] = [];
+  const a = createShardfileSim(legacy, assets, { rapier, brains: recipes(original) });
+  const b = createShardfileSim(patterned, assets, { rapier, brains: recipes(patternTrace) });
+  let restored: SimHost | undefined;
+  try {
+    expect(original).toEqual([]); expect(patternTrace).toEqual([]);
+    for (let tick = 0; tick < 300; tick++) { a.host.step(); b.host.step(); }
+    expect(patternTrace).toEqual(original); expectSameSimSnapshot(snapshotSimHost(b.host), snapshotSimHost(a.host));
+    restored = restoreSimHost(a.host.level, { rapier }, snapshotSimHost(a.host), host => {
+      bindShardfileSim(host, patterned, assets, { rapier, brains: recipes(suffix), restoring: true });
+    });
+    expect(suffix).toEqual([]); original.length = 0; patternTrace.length = 0;
+    for (let tick = 0; tick < 1000; tick++) { a.host.step(); b.host.step(); restored.step(); }
+    expect(patternTrace).toEqual(original); expect(suffix).toEqual(original);
+    expectSameSimSnapshot(snapshotSimHost(b.host), snapshotSimHost(a.host));
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(a.host));
+  } finally { a.dispose(); b.dispose(); restored?.dispose(); }
+});
+it('refuses invalid guardian-pattern rows at the full-schema boundary', () => {
+  const s = source(true);
+  const row = s.creatures.brains.find(brain => brain.kind === 'guardian' && 'pattern' in brain && brain.pattern === 'perch');
+  if (row === undefined) throw new Error('Missing guardian fixture');
+  for (const patch of [{ runSpeed: 16 }, { pattern: 'invented' }, { swingDuration: 1 }, { thinkDivisor: 7 }]) {
+    expect(() => parseShardfile({ ...s, creatures: { ...s.creatures, brains: [{ ...row, ...patch }] } })).toThrow();
+  }
 });

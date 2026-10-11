@@ -19,14 +19,16 @@ const restore = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [numb
 afterAll(restore);
 const catalogue = admitSpeciesBrains([{ id: 'species.monkey', kind: 'monkey', label: 'monkey', variants: [],
   brain: { archetype: 'perch-hunter', data: MONKEY_BRAIN } }], []);
-function replay(platform: boolean | 'parametric', scenario: 'ground' | 'perch' | 'flee' | 'tokens', restoreAt?: number): object {
+const patterned = admitSpeciesBrains([{ id: 'species.monkey', kind: 'monkey', label: 'monkey', variants: [],
+  brain: { archetype: 'guardian', data: { ...MONKEY_BRAIN, kind: 'guardian', pattern: 'perch' } } }], []);
+function replay(platform: boolean | 'parametric' | 'patterned', scenario: 'ground' | 'perch' | 'flee' | 'tokens', restoreAt?: number): object {
   const beforeRandom = app.rng.snapshot(); app.rng.seed(357);
   let brain: PerchHunterBrain<Animal> | CapturedPerchHunterBrain<Animal> | GuardianPolicy<Animal> | undefined;
   const f = creature('monkey', 'monkey', {}, undefined, (actor, ctx) => {
     if (brain === undefined) {
       if (platform === false) brain = new CapturedPerchHunterBrain(actor, MONKEY_BRAIN);
       else if (platform === 'parametric') brain = new GuardianPolicy(actor, { pattern: 'perch', spec: MONKEY_BRAIN });
-      else { const decision = catalogue.decision('monkey', actor);
+      else { const decision = (platform === 'patterned' ? patterned : catalogue).decision('monkey', actor);
         if (decision.archetype !== 'perch-hunter') throw new Error('Wrong species decision'); brain = decision.policy; }
     }
     const observation: PerchHunterPorts<Animal> = { ...ctx, attackRandom: { range: (min, max) => app.rng.stream('ai').range(min, max) },
@@ -69,7 +71,7 @@ function replay(platform: boolean | 'parametric', scenario: 'ground' | 'perch' |
 describe('data-selected perch hunter', () => {
   it.each(['ground', 'perch', 'flee', 'tokens'] as const)('matches shipping decisions, shared RNG and real drop/climb/projectile recipes for 10,000 frames: %s', scenario => {
     const expected = replay(false, scenario);
-    expect(replay(true, scenario)).toEqual(expected); expect(replay('parametric', scenario)).toEqual(expected);
+    expect(replay(true, scenario)).toEqual(expected); expect(replay('parametric', scenario)).toEqual(expected); expect(replay('patterned', scenario)).toEqual(expected);
   });
   it.each([1700,3400,6100])('accepts a shipping continuation in a fresh parametric policy without effects at tick %i', at => {
     expect(replay(false, 'flee', at)).toEqual(replay(false, 'flee'));

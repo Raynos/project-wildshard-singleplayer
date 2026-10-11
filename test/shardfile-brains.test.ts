@@ -1,5 +1,6 @@
+import { guardianPattern } from '@wildshard/sdk/brains';
 import { describe, expect, it } from 'vitest';
-import { parseSkirmisher, parseScriptBrain, parseGuardian, parsePerchHunter } from '@wildshard/format/brains';
+import { parseGuardianPattern, guardianPreset, parseSkirmisher, parseScriptBrain, parseGuardian, parsePerchHunter } from '@wildshard/format/brains';
 import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../src/shards/driftwood-isle/data/brains';
 
 describe('declared skirmisher admission', () => {
@@ -34,5 +35,21 @@ describe('declared custom brain admission', () => {
   it.each([{ thinkDivisor: 7 }, { maxSpeed: 16 }, { parameters: [Infinity] }, { module: 'runtime.ts' },
     { strikes: [{ event: 101, strike: 'a' }, { event: 101, strike: 'b' }] }])('rejects invalid policy declarations: %j', invalid => {
     expect(() => parseScriptBrain({ ...policy, ...invalid })).toThrow();
+  });
+});
+
+describe('parametric guardian admission', () => {
+  it.each([[SAILOR_BRAIN, 'interior'], [MONKEY_BRAIN, 'perch']] as const)('keeps legacy defaults and canonical save-key order: %s', (preset, pattern) => {
+    const row = parseGuardianPattern({ ...preset, kind: 'guardian', pattern });
+    expect(guardianPattern(row)).toEqual(row);
+    const expected = preset.kind === 'guardian' ? parseGuardian(preset) : parsePerchHunter(preset);
+    expect(JSON.stringify(guardianPreset(row))).toBe(JSON.stringify(expected));
+  });
+  it.each([{ pattern: 'invented' }, { swingDuration: 0 }, { wakeRadius: 10 }, { thinkDivisor: 7 },
+    { throwRadius: 14 }, { author: 'runtime.ts' }])('refuses invalid and cross-pattern home fields: %j', patch => {
+    expect(() => parseGuardianPattern({ ...SAILOR_BRAIN, pattern: 'interior', ...patch })).toThrow();
+  });
+  it.each([{ runSpeed: 16 }, { throwCooldownMin: 5 }, { biteRadius: 15 }, { swingRadius: 1.8 }, { throwDuration: Number.NaN }])('refuses invalid and cross-pattern perch fields: %j', patch => {
+    expect(() => parseGuardianPattern({ ...MONKEY_BRAIN, kind: 'guardian', pattern: 'perch', ...patch })).toThrow();
   });
 });

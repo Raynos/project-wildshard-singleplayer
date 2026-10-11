@@ -892,6 +892,17 @@ accepted from this declaration. The factory derives a trusted `brain:<actorId>`
 alias per spawn and rejects collisions with actor, item and director handles.
 All aliases count toward the one `serverBudget.entities` allowance.
 
+The `guardian` archetype (SF82) also accepts an explicit `pattern`: `interior` or `perch`.
+The flat fields, numeric bounds, cue ids, ordered-range checks and optional six-tick cadence are exactly those of
+the old `guardian` and `perch-hunter` rows. Cross-pattern fields and unknown patterns refuse. A `guardian` row without
+`pattern` keeps the existing interior spelling unchanged; the old `perch-hunter` spelling also keeps loading.
+`@wildshard/format/brains` defines `GuardianPatternsSchema`, `parseGuardianPattern` and `guardianPreset`;
+`@wildshard/sdk/brains` emits validated author data through `guardianPattern(data)`. Canonicalization removes only
+the pattern tag and restores the legacy row kind and parsed key order, preserving existing save-contract bytes.
+Both full-factory and species-catalogue hosts select the same native body ports as the old spelling. Interior floor,
+rise/sink and perch selection, drop/climb, projectiles and shared attack RNG remain trusted ownership; absent ports
+refuse before callback registration. Pattern admission does not run a body or decide, including on restore.
+
 The `grazer` archetype (SF82) selects a strict `pattern`: `wander-ram` or
 `circle-challenge`. Its flat fields, strike references, numeric bounds and optional
 six-tick `thinkDivisor` are exactly those of `ram-grazer` or `challenge-grazer`,

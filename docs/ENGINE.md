@@ -2418,6 +2418,13 @@ admitted `{ archetype, policy }`; it retains native contact, rise/sink, perch an
 `brains.decision(kind, actor)` supplies the same admitted policy to a renderer-free native body adapter. Construction
 and restore perform no decisions or RNG draws. Automatic `bind` / `policy` without that body ownership refuses.
 
+The guardian family also admits explicit `pattern: 'interior' | 'perch'` data through
+`@wildshard/format/brains` `GuardianPatternsSchema` / `parseGuardianPattern` (author helper
+`@wildshard/sdk/brains` `guardianPattern`). The species catalogue and full shardfile factory canonicalize it to the
+legacy native family before all-row preflight. The declared tuning, body adapter and ordered save-contract bytes stay
+exact; no-pattern `guardian` and old `perch-hunter` rows remain unchanged. This adds author data rather than a second
+body, RNG or presentation owner.
+
 **Species scripts (SF27).** A row's brain may be `{ archetype: 'script', data }`
 (`@wildshard/game/plugin/brain`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,
 up to 8 numeric `slots` (its state, with spawn values), up to 4 actor `memory` fields it reads and writes (a pose's

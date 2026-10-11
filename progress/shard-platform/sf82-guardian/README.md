@@ -19,5 +19,22 @@ All four native witness recorders pass; three stale fences actually re-recorded 
 byte-identical. No input-only manifests are committed. No new layer pair; one defining engine export
 `./ai/guardianPolicy`, documented in ENGINE.md. No collider, presentation or encounter changes.
 
-Open: parametric guardian authoring/full-schema rows and their native-body adapter; remaining BR-1 herd,
+Open: remaining BR-1 herd,
 wind-stooper and stalker consolidation; BR-2 through BR-5. This slice does not claim whole BR-1 completion.
+
+## Guardian authoring and native admission
+
+`kind: 'guardian'` with `pattern: 'interior' | 'perch'` is an additive strict data spelling, in format/brains.
+The old no-pattern interior and `perch-hunter` rows remain unchanged. Each branch reuses the old field validators
+and the exact old ordered-range predicate. Canonicalization runs the existing parser to retain legacy key order and
+policy-contract bytes. The full-schema creature host and species catalogue both select the original native recipe
+and family before preflight; no other pattern's fields or arbitrary runtime reference is accepted.
+The SDK's `guardianPattern(data)` is author-only. JSON Schema emits the new root and both branch admission checks.
+
+Proof: 74 focused tests across six files green (7.13 s), SF45 coverage 100% and 91 format JSON roots;
+root/layer strict, touched typed lint, ratchet and hooks green. Seven 10k-tick captured traces now additionally
+match the authored-pattern species catalogue; complete factory snapshots match the legacy spelling, and a legacy
+save restores into patterned rows without any callbacks before an exact 1000-tick continuation. Every invalid
+or cross-pattern declaration refuses at the full-schema boundary. All four native recorders actually re-recorded
+in 15.7 s with payloads and outcomes byte-identical. No manifest committed. Same layer pairs; game→format +2
+bindings and SDK→format +3 bindings under the standing approval. No new package exports.
