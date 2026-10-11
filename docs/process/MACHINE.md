@@ -58,6 +58,18 @@ stop only the wrapper's own process group. The command inherits the lock descrip
 free capacity while its child remains live. A stale queue PID is pruned; a lock is never stolen on age alone. Use the
 recorded PID and command to diagnose a stuck owner, and never kill another lane's processes.
 
+## Measurement quiet windows (SF74 W14)
+
+Before every command, check `test -e .git/quiet`. While another lane owns that file, **read and edit only**:
+no Vitest (focused tests included), tsc / strict typechecks, oxlint, builds, bakes, generators, clean rooms,
+browsers, Simulator, previews or captures. Commits whose hooks start that work also wait.
+After an explicit CPU hold, resume only when the owner announces the **BOTH-surface release**; a deadline or
+the file disappearing does not end that hold (wildshard-new, 2026-10-11, after two contaminated Simulator samples).
+
+The quiet owner must wait for an existing push to finish before sampling: check the authoritative push lock,
+the parent pusher and its snapshot / regeneration descendants. Auto-push checks quiet before starting a push;
+an already-running snapshot may finish several gate rounds. Never kill or bypass another lane's job.
+
 ## Long proofs: start detached, don't poll (SF74 W5)
 
 `scripts/proof-run.sh <label> -- <command…>` starts a soak, frame floor, boot smoke or Simulator run in its own session
