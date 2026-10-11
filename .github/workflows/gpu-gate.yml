@@ -151,6 +151,7 @@ jobs:
       - name: Apply Linux case plant
         if: inputs.plant == 'asset-case'
         run: git apply "test/parity/plants/${{ inputs.plant }}.patch"
+      - run: pnpm gen   # Restore hash-verified generated inputs before Vite's direct native bake imports.
       - run: python3 scripts/heavy-lane.py build -- pnpm exec vite build
       - run: node scripts/check-asset-case.mjs dist --out=asset-case.json
       - name: Status

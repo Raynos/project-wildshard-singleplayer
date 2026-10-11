@@ -13,6 +13,9 @@ export const HEAVY_INTEGRATION_TESTS = [
   'test/live-grid.test.ts',
   'test/sdk-repo-build.test.ts',
   'test/template-copy-scaffold.test.ts',
+  // Whole API inventory and semantic example compilation retain their 10/20 s
+  // deadlines after the parallel pool drains (nightly coverage contention).
+  'test/authoring-docs.test.ts',
   // Real Rapier worlds and production vegetation builds exceed their unchanged 20 s deadlines
   // under CI coverage when competing with the main pool. Keep their proofs serial as well.
   'test/grid-collision-strips.test.ts',
