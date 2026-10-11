@@ -2,8 +2,8 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { Move, SwordRig, SwordWorld } from '@wildshard/engine/combat/view/melee';
-import { Sword } from '../../weapons/Sword';
-import type { WeaponHooks } from './weaponHooks';
+import { Sword } from '@wildshard/game/weapons/Sword';
+import type { WeaponHooks } from '@wildshard/game/systems/items/weaponHooks';
 
 /**
  * The mounted sword family (SHARD-PLATFORM SF36): the starter sword's on-foot combo, heavy, lunge, hit-stop and trail

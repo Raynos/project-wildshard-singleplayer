@@ -1,4 +1,53 @@
 {
   "version": 1,
-  "moves": {}
+  "moves": {
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:a621299cb5bf585d927b48a3f552d4e7c8e1f21c66020e3b27c5e1937c2dd240": {
+      "from": "src/game/systems/items/javelinSpear.ts",
+      "to": "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts",
+      "hash": "a621299cb5bf585d927b48a3f552d4e7c8e1f21c66020e3b27c5e1937c2dd240",
+      "name": "JavelinSpear",
+      "base": "Weapon",
+      "baseFile": "src/engine/combat/Melee.ts"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:e10a873eaba7f8848abca1e49fa35309c97c050eaf59dcfff167bc2e1d888a88": {
+      "from": "src/game/systems/items/javelinSpear.ts",
+      "to": "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts",
+      "hash": "e10a873eaba7f8848abca1e49fa35309c97c050eaf59dcfff167bc2e1d888a88",
+      "name": "<anonymous>",
+      "base": "Weapon",
+      "baseFile": "src/game/systems/items/javelinSpear.ts"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/mountedSword.ts:2839d4bedcbfdc12e7be637c06fb21388cfdd678c982f96c08b665d947dc4d41": {
+      "from": "src/game/systems/items/mountedSword.ts",
+      "to": "src/shards/nalati-grasslands/runtime/weapons/mountedSword.ts",
+      "hash": "2839d4bedcbfdc12e7be637c06fb21388cfdd678c982f96c08b665d947dc4d41",
+      "name": "MountedSword",
+      "base": "Weapon",
+      "baseFile": "src/game/weapons/Sword.ts"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/mountedSword.ts:4d0ad2d6e600506f2d6242113e94132808a04512cb1d92a545b668edf486efa2": {
+      "from": "src/game/systems/items/mountedSword.ts",
+      "to": "src/shards/nalati-grasslands/runtime/weapons/mountedSword.ts",
+      "hash": "4d0ad2d6e600506f2d6242113e94132808a04512cb1d92a545b668edf486efa2",
+      "name": "<anonymous>",
+      "base": "Weapon",
+      "baseFile": "src/game/systems/items/mountedSword.ts"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:05e2d59036bcab1c5ede1e8baad0ee813c19c15a582abf0555c143ad6df59085": {
+      "from": "src/game/systems/items/magazineFirearm.ts",
+      "to": "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts",
+      "hash": "05e2d59036bcab1c5ede1e8baad0ee813c19c15a582abf0555c143ad6df59085",
+      "name": "MagazineFirearm",
+      "base": "Weapon",
+      "baseFile": "src/engine/combat/Firearm.ts"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:bed46ef3b133a19104abad3ff58c38e974a5f62e48bce420c9c7635d05ed3897": {
+      "from": "src/game/systems/items/magazineFirearm.ts",
+      "to": "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts",
+      "hash": "bed46ef3b133a19104abad3ff58c38e974a5f62e48bce420c9c7635d05ed3897",
+      "name": "<anonymous>",
+      "base": "Weapon",
+      "baseFile": "src/game/systems/items/magazineFirearm.ts"
+    }
+  }
 }

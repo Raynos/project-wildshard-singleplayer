@@ -1,7 +1,7 @@
 import { installWeaponHooks, type WeaponHookLane } from '@wildshard/sdk/weaponHooks';
 import declaration from '../behaviour/weapons.json' with { type: 'json' };
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
-import { MountedSword } from '@wildshard/sdk/items/mountedSword';
+import { MountedSword } from '../runtime/weapons/mountedSword';
 
 /**
  * Nalati's admitted weapon hooks (SHARD-PLATFORM SF36): the sabre's mounted pass damage — its speed bonus and its pass

@@ -1,6 +1,6 @@
 import { viewmodelMaterial, viewmodelTexSet, box, cyl, stripExtra, type TexSet } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { magazineFirearmType, type MagazineFirearmRowOptions, type MagazineFirearmView, type MagazineFirearmWeapon } from '@wildshard/sdk/items/magazineFirearm';
+import { magazineFirearmType, type MagazineFirearmRowOptions, type MagazineFirearmView, type MagazineFirearm as MagazineFirearmWeapon } from './magazineFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { AR15 } from '../../data/firearmProfile';
 import * as THREE from 'three';

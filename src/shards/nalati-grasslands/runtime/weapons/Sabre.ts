@@ -1,7 +1,7 @@
 import { SABRE } from '../../weapons/equipment';
 import * as THREE from 'three';
 import type { SwordWorld, SwordRig, SwordMoveSet, Move } from '@wildshard/engine/combat/view/melee';
-import { mountedSwordType, type MountedSwordMount, type MountedSwordRowOptions, type MountedSwordWeapon } from '@wildshard/sdk/items/mountedSword';
+import { mountedSwordType, type MountedSwordMount, type MountedSwordRowOptions, type MountedSword as MountedSwordWeapon } from './mountedSword';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { key } from '@wildshard/sdk/runtime/weapons/starterMoves';
 import { SWORD_WOOD } from '@wildshard/sdk/runtime/weapons/starterMeleeProfile';

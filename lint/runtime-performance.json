@@ -6021,6 +6021,162 @@
     "src/shards/far-reach/runtime/skinnedModel.ts:unbounded-loop:22e1cea37f37738b21536d9a8f1097b68ee77f076c98fabb0637a177cc06ef79": {
       "count": 1,
       "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:raw-render:f9514863f14a38e8041e48fa69862760facace6b84f90a2ed8dd872607a8f283": {
+      "count": 3,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:759f84bb7aaee54fb1ff821c19088ff4c0baeb10020289e761c10b856fece1f0": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:83bb55ce5388efe2b6c9f96bd167128390d9c0692118fb349875b30965b246a3": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:af83362740781c4ee61f0f9a9c6bf6bff6f68e46c747d2884bd6dd81a9a8ac96": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:8f9d7fcc7a18934f001ce3c0705ba542d8f317f243efb7e3cc3af703eee8fc60": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:frame-allocation:82b6d4c1e4ce85711e82f12d5db745439366de0774a1e9fa36703c27d18cbca8": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:raw-render:90ddb022d37337b28ac5598a63ea68102ac77908380329a07f0f7e0c35106d75": {
+      "count": 2,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:c3f3f81cdf6d4fcb2c2cb6f8258572994b74d482d5a9465381ca5e869108d59a": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:frame-allocation:6d181985a53738cc9665ac0362b9b950e59b639d6b529e0ee88680ab72292f85": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:df3c226020ed87fee7d212ff6ff25500817e3d3ad9a56243622a1134a7e4c5ca": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:287948fbb3cbea1d21baf7a2a3e19665230b8c559234a45cfa59566bd50e7f00": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:2e09ea6b2a8b22064a76a1848a171ddf47a64e2c5f31c8f215cec2eb1787de1c": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:b5f523a36a5edf8ce0d4af21947b8507101568884b98e836f1f08f2fabe1ce4d": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:2136d237236eed17e8bf47c27eda2371fc1dfe19e91e53e5c9d1a3ff45016e1d": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:frame-allocation:8560f6a106aa87ee890e93f29756a23645930e9a1dfb67100d2c1ab70a42a3e1": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:4cfa2dab149ec4daa3c120b558ac02cc02af432d593947b9d47986efd2f4ec81": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:8c7dee758296c5c6b7a71e22b457608c7f310ad8ee0ec37be66c058fa886a661": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:8a7d295cb1e3cdb27ee5b23b0edcc0c238ec59b3d7eeb7daa7d8f73c44334c4e": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:frame-allocation:aa54508811f5eee5395a8813a34b744a87374d5fb69f9c2357a7a353cbef24df": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:frame-allocation:99e803920b3d65c7ef72a5b7d22547ff54f36371356f48175a3ef5c00fff4e42": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:frame-allocation:84f0e4ef7e1b2902d2d75da3696c34c90a74c7d6715fe5e7e4c0278b6a8a4daf": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:unbounded-loop:3666f96cf41defabdd7ef3699b7a2c533591eedbdd07e9e9aa6d6b6d6be18be0": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:frame-allocation:75a0a157f19157abe20a005c403590b463f9dd9f319dea896b273f966d50473a": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:frame-allocation:18951961d245324dec873ef4a628def28ff3335c24dae73299e2b5f0bdc3dfcd": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts:frame-allocation:3675ef55829c42d1ed62d63de22ec8bbd62d4e772064598bfa44ec2d1c0da323": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/mountedSword.ts:unbounded-loop:99c106d8c7e6486348f5bf28a5766df7477ce4e34af4c7f6aef9df58595e0a44": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/mountedSword.ts:unbounded-loop:57b895851c5a69d3ecf1a1a95c8ba70654e97bbccfd630e8673a65e822c14f42": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:raw-render:f9514863f14a38e8041e48fa69862760facace6b84f90a2ed8dd872607a8f283": {
+      "count": 4,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:async:a7072a8fe8dc3a21938f14c1e02f3f4cef4e203a784d66eac399f87e61cdf5a5": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:unbounded-loop:dbadda7c0bfa1d1515066b4b78134c51420099b4777315788b37238ad0491e3f": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:unbounded-loop:af413dab936395b8e897f664843361948d899ddcc0ebc96485afe85fb5badfc5": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:unbounded-loop:50bf88fc8d6f0865a257dd8224b9045a3623b8cebd89c314e2f141e165ef4704": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:unbounded-loop:8e13e9108f8e1dae4ed8639306da8b5cd91387425a382f3f23d080d07cc3b604": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:unbounded-loop:df67e65236ac664232e9e88682f5a300358b0af7f5161a5e12e2a3baa244724c": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:unbounded-loop:4fde52e3e9a29fa1b016fc17940d8f431a2d91f1a8b9d8b85555b58f5b923f54": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:unbounded-loop:cef753f8c69559404b397ed3e836450cfb4eadd76812fbbac7a155c827d76c10": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:unbounded-loop:a975b43c3048f0c244feef542dc620c260d01b2bd8d53e0e23d42c07a3af40a8": {
+      "count": 1,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:raw-render:c39bf1fcb0d20122b496c0873be24c82e78d542cb8f70ca747eadcf06262d189": {
+      "count": 2,
+      "row": "SF76"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:unbounded-loop:97f363da657f5fe97f4eb894866087bd5737de591d7ff19f25187dae95e4ea26": {
+      "count": 1,
+      "row": "SF76"
     }
   }
 }

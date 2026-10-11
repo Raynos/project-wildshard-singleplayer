@@ -1,5 +1,5 @@
 import { Sabre, SABRE_PROFILE, type SabreWeapon } from './Sabre';
-import { mountedSwordVariant } from '@wildshard/sdk/items/mountedSword';
+import { mountedSwordVariant } from './mountedSword';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Move } from '@wildshard/engine/combat/view/melee';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';

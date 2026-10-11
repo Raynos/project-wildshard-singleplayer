@@ -1,4 +1,4 @@
-import { javelinSpearType, type JavelinSpearMount, type JavelinSpearParts, type JavelinSpearPose, type JavelinSpearRowOptions, type JavelinSpearView, type JavelinSpearWeapon, type JavelinSpearWorld } from '@wildshard/sdk/items/javelinSpear';
+import { javelinSpearType, type JavelinSpearMount, type JavelinSpearParts, type JavelinSpearPose, type JavelinSpearRowOptions, type JavelinSpearView, type JavelinSpear as JavelinSpearWeapon, type JavelinSpearWorld } from './javelinSpear';
 import { lin } from '@wildshard/engine/math/color';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
