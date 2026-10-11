@@ -7,6 +7,6 @@ import baked from './physics.baked.json' with { type: 'json' };
 export const signalSpots = (): ReturnType<typeof bakedSpots> => bakedSpots(baked);
 /**
  * Signal's renderer-free native owners compose locally: declared species homes, Matriarch, quest and lash rows,
- * with the shipping held-heavy input. Its browser metadata comes from generators/bake-signal-physics.mjs.
+ * with the shipping held-heavy input. Its Node-canonical native metadata comes from generators/bake-signal-physics.mjs.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = prepareSignalRuntime;

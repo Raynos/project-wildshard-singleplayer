@@ -13,6 +13,11 @@ import { MATRIARCH_DATA } from '../../../src/shards/sunscar-dunes/data/species/m
 
 it('refuses stale source or model bytes before the trusted Signal physics bake is used', () => {
   expect(baked.version).toBe(1);
+  expect(baked.profile).toBe('Node / phone / no renderer');
+  expect(baked.build).toMatch(/^node-[a-f0-9]{64}$/u);
+  expect(baked.notice).toContain('DO NOT EDIT');
+  expect(baked.inputs).toHaveProperty('src/engine/entities/AnimalFactory.ts');
+  expect(baked.inputs).toHaveProperty('src/engine/quest/view.ts');
   expect(baked.inputs).toEqual(signalPhysicsInputs(process.cwd()));
   expect(baked.revision).toMatch(/^[a-f0-9]{40}$/u);
   expect(Object.keys(baked.inputs).some(path => path.endsWith('/dune-strider.glb'))).toBe(true);

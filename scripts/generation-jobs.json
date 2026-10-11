@@ -1107,6 +1107,9 @@
       "shard": "sunscar-dunes",
       "entry": "src/shards/sunscar-dunes/generators/bake-signal-physics.mjs",
       "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
         "src/shards/sunscar-dunes/generators/bake-signal-physics.mjs"
       ],
       "inputRoots": [
@@ -1124,8 +1127,7 @@
       "outputs": [
         "src/shards/sunscar-dunes/runtime/physics.baked.json"
       ],
-      "platform": "darwin",
-      "capture": true
+      "platform": "portable"
     },
     {
       "id": "nine-physics",

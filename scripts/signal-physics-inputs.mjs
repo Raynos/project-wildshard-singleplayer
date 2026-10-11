@@ -11,6 +11,14 @@ export function signalPhysicsInputs(root) {
   paths.push('src/shards/sunscar-dunes/runtime/headlessRows.ts', 'src/shards/sunscar-dunes/runtime/looks/stormShell.ts', 'src/shards/sunscar-dunes/runtime/quest/matriarchFight.ts', 'src/shards/sunscar-dunes/runtime/quest/pivotNpc.ts', 'src/shards/sunscar-dunes/runtime/quest/questReward.ts', 'src/shards/sunscar-dunes/runtime/rowsHeadless.ts', 'src/shards/sunscar-dunes/runtime/shard/standaloneEntry.ts', 'src/shards/sunscar-dunes/runtime/shardfile/bossFight.ts', 'src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts', 'src/shards/sunscar-dunes/runtime/shardfile/markedBossPresentation.ts', 'src/shards/sunscar-dunes/runtime/shardfile/markedBossRow.ts');
   paths.push('src/shards/sunscar-dunes/runtime/items/lashHold.ts', 'src/shards/sunscar-dunes/runtime/items/lashHost.ts', 'src/shards/sunscar-dunes/runtime/items/lashView.ts', 'src/shards/sunscar-dunes/runtime/items/lashWeapon.ts', 'src/shards/sunscar-dunes/runtime/items/whipRows.ts');
   paths.push('src/shards/sunscar-dunes/runtime/items/lash.ts', 'src/shards/sunscar-dunes/runtime/looks/surfaces.ts');
+  // DS1.5: the Node host, real creature factory and actual scout/prompt constructors define the producer.
+  for (const file of ['src/shards/sunscar-dunes/manifest.ts', 'scripts/signal-physics-inputs.mjs',
+    'scripts/bake/worldHost.mjs', 'scripts/bake/nativeWorld.mjs', 'scripts/bake/environment.mjs', 'scripts/bake-loader.mjs',
+    'src/engine/entities/AnimalManager.ts', 'src/engine/entities/AnimalFactory.ts', 'src/engine/entities/AnimalView.ts',
+    'src/engine/entities/AnimalSim.ts', 'src/engine/ai/hunt.ts',
+    'src/engine/entities/species/registry.ts', 'src/engine/entities/species/look.ts', 'src/engine/practice/TrainingArena.ts',
+    'src/engine/quest/view.ts', 'src/engine/quest/view/ui.ts', 'src/game/plugin/quests.ts',
+    'src/engine/models/colliders.ts', 'src/engine/models/place.ts', 'src/engine/world/registry.ts', 'pnpm-lock.yaml']) paths.push(file);
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

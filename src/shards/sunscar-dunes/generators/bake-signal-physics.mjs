@@ -1,102 +1,136 @@
 #!/usr/bin/env node
-// Trusted SF72 metadata only (Signal Dunes): the real native browser recipes remain the shipping source. Captures the
-// 13 declared homes' model-derived simulation specs (the strider's height comes from its fitted GLB), seeds and scales,
-// the Matriarch's spec once play summons her (the quest's own actions, then the player walks into her basin), and every
-// native collider piece, and the quest's interaction spots and crack targets. Two independent same-page captures must
-// match exactly.
-// scripts/browser-lane.sh node src/shards/sunscar-dunes/generators/bake-signal-physics.mjs --url=<clean candidate preview> [--revision=<sha>]
-import { chromium, devices } from 'playwright';
-import { writeFileSync } from 'node:fs';
+// DS1.5: build the real authored world and its finite native creature models in Node; never import a recorded physics bake.
+// node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/sunscar-dunes/generators/bake-signal-physics.mjs [--check]
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
+import { byteWriter } from '../../../../scripts/bake-output.mjs';
+import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs';
+import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 import { signalPhysicsInputs } from '../../../../scripts/signal-physics-inputs.mjs';
-import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
-const url = process.argv.find(arg => arg.startsWith('--url='))?.slice(6);
-if (url === undefined) throw new Error('bake-signal-physics requires a clean-candidate --url');
-const revision = process.argv.find(arg => arg.startsWith('--revision='))?.slice(11)
-  ?? execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-const version = await (await fetch(new URL('/version.json', url))).json();
-// the build id leads with the short revision git chose (7 or more hex digits)
-const built = typeof version.build === 'string' ? version.build.split('-')[0] ?? '' : '';
-if (built.length < 7 || !revision.startsWith(built)) throw new Error(`Signal bake revision mismatch: ${JSON.stringify(version)} vs ${revision}`);
-const errors = [];
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
+const at = path => import(pathToFileURL(resolve(root, path)).href);
+const environment = installBakeEnvironment(root);
+const noop = () => undefined;
+const copy = value => JSON.parse(JSON.stringify(value, (_key, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
 try {
-  const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
-  await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
-  const page = await context.newPage(); page.on('pageerror', error => { errors.push(String(error)); });
-  await page.goto(new URL('/?chunk=sunscar-dunes&mute=1&skipintro=1&nolock=1&sw=0&tier=phone', url).href, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => {
-    const homes = window.__wildshard?.world?.game?.app?.debug.snapshot().sunscar?.creatures?.homes;
-    return homes?.length === 13 && homes.every(home => home.animal !== null) && !document.querySelector('.ws-load');
-  }, null, { timeout: 180000 });
-  const capture = () => {
-    const g = window.__wildshard.world.game, signal = g.app.debug.snapshot().sunscar;
-    const copy = value => JSON.parse(JSON.stringify(value, (_key, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
-    const actors = signal.creatures.homes.map(home => {
-      const actor = home.animal;
-      if (!actor?.simSpec) throw new Error(`Missing native simulation spec: ${home.id}`);
-      return { id: home.id, kind: home.kind, spec: copy(actor.simSpec), seed: actor.seed, scale: actor.scale };
-    });
-    const pieces = g.app.registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
-      const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: copy(piece.colliders), active: piece.active?.() ?? true };
-      row.owner = piece.colliderOwner === undefined ? `piece:${piece.id}` : `string:${piece.colliderOwner}`;
-      if (piece.surface !== undefined) row.surface = piece.surface;
-      if (piece.colliderOwner !== undefined) row.colliderOwner = piece.colliderOwner;
-      if (piece.follows !== undefined) {
-        piece.follows.updateWorldMatrix(true, false);
-        row.follows = { matrix: piece.follows.matrixWorld.toArray(), rotation: piece.followRotation !== false };
+  const THREE = await import('three');
+  const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.DirectionalLight()], update: noop },
+    hemi: new THREE.HemisphereLight(), sunDisc: new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshBasicMaterial()),
+    planet: new THREE.Group(), clouds: null, dayNight: null, viewCamera: new THREE.PerspectiveCamera(), sunDir: new THREE.Vector3(0, 1, 0) },
+  { get: (target, key) => key in target ? target[key] : typeof key === 'string' && key.endsWith('Color')
+    ? new THREE.Color(1, 1, 1) : typeof key === 'string' && key.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
+  (await at('src/engine/core/tier.ts')).initializeTier('phone');
+  const { default: manifest } = await at('src/shards/sunscar-dunes/manifest.ts');
+  (await at('src/game/shard/list.ts')).installShards([manifest]);
+  (await at('src/game/shard/registry.ts')).setActiveChunk(manifest.slug);
+  const { SignalDunesPlugin } = await at('src/shards/sunscar-dunes/plugin.ts');
+  const contexts = [];
+  // Borrow the real native world hook once, retaining its owned context and built places only during capture.
+  class CaptureSignal extends SignalDunesPlugin {
+    /** @param {import('@wildshard/game/shard/context').ShardContext} ctx */
+    async world(ctx) { await super.world(ctx); contexts.push({ ctx, places: this.places }); }
+  }
+  const captures = [];
+  await visitAuthoredWorld({ ...manifest, load: () => Promise.resolve({ default: CaptureSignal }) },
+  { root, sky, element: environment.element, tier: 'phone', practiceArena: true,
+    createTerrain: () => ({ mesh: new THREE.Mesh(new THREE.PlaneGeometry(500, 500).rotateX(-Math.PI / 2)), punch: noop }),
+    visit: async ({ scene, forest, registry }) => {
+      const captured = contexts[0];
+      if (captured === undefined || captured.places === null) throw new Error('Signal native world did not install its places');
+      const { ctx, places } = captured;
+      const { app } = await at('src/engine/app/runtime.ts');
+      const scope = app.levelScope;
+      if (scope === null) throw new Error('Signal capture requires the owned level scope');
+      for (const [rowFile, row, lookFile, look] of [['data/species/duneRay', 'DUNE_RAY', 'species/duneRay', 'DUNE_RAY_LOOK'],
+        ['data/species/skitterer', 'SKITTERER_DATA', 'species/skitterer', 'SAND_SKITTERER_LOOK'],
+        ['runtime/species/striderRows', 'DUNE_STRIDER', 'species/strider', 'DUNE_STRIDER_LOOK'],
+        ['species/matriarch', 'DUNE_MATRIARCH', 'species/matriarch', 'DUNE_MATRIARCH_LOOK']]) {
+        const rows = await at(`src/shards/sunscar-dunes/${rowFile}.ts`), looks = await at(`src/shards/sunscar-dunes/${lookFile}.ts`);
+        app.species.registerRow(rows[row], scope); app.species.registerLook(looks[look], scope);
       }
-      return row;
-    });
-    // The quest's interaction spots and crack targets, as the built world placed them (world/build.ts order).
-    const places = window.__wildshard.world.game.app.debug.snapshot().sunscar.places;
-    const spot = (id, p, radius) => ({ id, x: p.x, y: p.y, z: p.z, radius });
-    const spots = { interact: [spot('logbook', places.logbook.position, places.logbook.radius), spot('well', places.well.spot.position, places.well.spot.radius),
-      ...places.braziers.map((b, i) => spot(`brazier.${i}`, b.spot.position, b.spot.radius)), spot('fire', places.fire.brazier.position, places.fire.brazier.radius)],
-    crack: places.crackables.map((c, i) => spot(i === 0 ? 'well.crank' : `brazier.${i - 1}`, c.at, c.radius)) };
-    const registered = g.app.registry.pieceList();
-    const ownerId = owner => {
-      if (typeof owner === 'string') return `string:${owner}`;
-      const piece = registered.find(p => p === owner);
-      if (piece === undefined) throw new Error('Prompt sight owner is not an actual registered piece');
-      return `piece:${piece.id}`;
-    };
-    const ids = new Map([[places.logbook, 'logbook'], [places.well.spot, 'well'], [places.fire.brazier, 'fire'],
-      ...places.braziers.map((b, i) => [b.spot, `brazier.${i}`])]);
-    const prompts = window.__wildshard.world.interactables;
-    const scouts = prompts.filter(p => p.label === 'Talk to Sefa');
-    if (scouts.length !== 1) throw new Error('Missing unique live scout prompt');
-    ids.set(scouts[0], 'scout');
-    const promptRegistrations = prompts.map(prompt => {
-      const sight = prompt.sight;
-      const row = { id: ids.get(prompt) ?? null, position: { x: prompt.position.x, y: prompt.position.y, z: prompt.position.z }, radius: prompt.radius,
-        sight: { slack: sight?.slack ?? 0.5 } };
-      if (prompt.weak !== undefined) row.weak = prompt.weak;
-      if (sight?.body !== undefined && sight.body !== null) row.sight.body = ownerId(sight.body);
-      return row;
-    });
-    return { actors, pieces, spots, promptRegistrations };
-  };
-  const first = await page.evaluate(capture), second = await page.evaluate(capture);
-  if (JSON.stringify(first) !== JSON.stringify(second)) throw new Error('Native Signal metadata changed between independent captures');
-  if (errors.length > 0 || first.actors.length !== 13 || first.pieces.length === 0) throw new Error(`Invalid native Signal bake: ${JSON.stringify(errors)}`);
-  // The Matriarch's body exists only in her fight: play's own steps light the signal, then the player walks into her basin.
-  await page.evaluate(() => {
-    const signal = window.__wildshard.world.game.app.debug.snapshot().sunscar;
-    signal.stage('waymarks-lit'); signal.fire.light();
-    window.__wildshard.world.player.spawn(-14, -150 + 40, Math.PI);
+      const { duneMesh, duneRig } = await at('src/shards/sunscar-dunes/world/meshes.ts');
+      const source = duneMesh('caravan-scout');
+      if (source === null) throw new Error('Signal scout model is missing');
+      scope.own(source);
+      const body = duneRig('skitterer');
+      if (body === null) throw new Error('Signal skitterer rig is missing');
+      scope.own(body);
+      const { SCOUT_NPC } = await at('src/shards/sunscar-dunes/quests/scout.ts');
+      const { installPivotNpc } = await at('src/shards/sunscar-dunes/runtime/quest/pivotNpc.ts');
+      const scout = installPivotNpc(ctx, SCOUT_NPC, { source,
+        groundAt: (x, z) => manifest.ground.terrain?.heightAt(x, z) ?? 0,
+        player: new THREE.Vector3(manifest.spawn.x, manifest.spawn.y, manifest.spawn.z), met: () => false,
+        file: 'src/shards/sunscar-dunes/quests/scout.ts' });
+      // The page's actual prompt constructor, row and live head anchor; no rendered presentation is needed.
+      const { NpcTalk } = await at('src/engine/quest/view.ts');
+      const { DialogueBox } = await at('src/engine/quest/view/ui.ts');
+      const { npcDef } = await at('src/game/plugin/quests.ts');
+      const { STRINGS } = await at('src/shards/sunscar-dunes/data/strings.ts');
+      const talk = new NpcTalk({ npc: npcDef(SCOUT_NPC), at: scout.head, label: STRINGS.talkScout,
+        speaker: scout.speaker, radius: SCOUT_NPC.talkRadius, flags: places.flags, dialogue: new DialogueBox(scope.child('bake.scout')) });
+      const runtime = ctx.game.runtime;
+      if (runtime === null) throw new Error('Signal native world lost its runtime');
+      runtime.interactables.push(talk.prompt);
+      const { AnimalManager } = await at('src/engine/entities/AnimalManager.ts');
+      const animals = new AnimalManager(scene, sky, forest).build();
+      const { SIGNAL_SPAWNS } = await at('src/shards/sunscar-dunes/data/spawns.ts');
+      const actors = SIGNAL_SPAWNS.homes.map(row => {
+        const animal = animals.spawn(row.kind, row.at[0], row.at[1], row.yaw, row.look, { entityId: row.id });
+        return { id: row.id, kind: row.kind, spec: copy(animal.simSpec), seed: animal.seed, scale: animal.scale };
+      });
+      const bosses = SIGNAL_SPAWNS.bosses.map(row => {
+        const animal = animals.spawn(row.kind, row.at[0], row.at[1], row.yaw, row.look, { entityId: row.id });
+        return { id: row.id, kind: row.kind, spec: copy(animal.simSpec) };
+      });
+      const pieces = registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
+        const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file,
+          colliders: copy(piece.colliders), active: piece.active?.() ?? true,
+          owner: piece.colliderOwner === undefined ? `piece:${piece.id}` : `string:${piece.colliderOwner}` };
+        if (piece.surface !== undefined) row.surface = piece.surface;
+        if (piece.colliderOwner !== undefined) row.colliderOwner = piece.colliderOwner;
+        if (piece.follows !== undefined) {
+          piece.follows.updateWorldMatrix(true, false);
+          row.follows = { matrix: piece.follows.matrixWorld.toArray(), rotation: piece.followRotation !== false };
+        }
+        return row;
+      });
+      const spot = (id, p, radius) => ({ id, x: p.x, y: p.y, z: p.z, radius });
+      const spots = { interact: [spot('logbook', places.logbook.position, places.logbook.radius), spot('well', places.well.spot.position, places.well.spot.radius),
+        ...places.braziers.map((b, i) => spot(`brazier.${String(i)}`, b.spot.position, b.spot.radius)), spot('fire', places.fire.brazier.position, places.fire.brazier.radius)],
+        crack: places.crackables.map((c, i) => spot(i === 0 ? 'well.crank' : `brazier.${String(i - 1)}`, c.at, c.radius)) };
+      const registered = registry.pieceList();
+      const ownerId = owner => {
+        if (typeof owner === 'string') return `string:${owner}`;
+        const piece = registered.find(p => p === owner);
+        if (piece === undefined) throw new Error('Prompt sight owner is not an actual registered piece');
+        return `piece:${piece.id}`;
+      };
+      const ids = new Map([[places.logbook, 'logbook'], [places.well.spot, 'well'], [places.fire.brazier, 'fire'], [talk.prompt, 'scout'],
+        ...places.braziers.map((b, i) => [b.spot, `brazier.${String(i)}`])]);
+      const promptRegistrations = runtime.interactables.map(prompt => {
+        const sight = prompt.sight;
+        const row = { id: ids.get(prompt) ?? null, position: { x: prompt.position.x, y: prompt.position.y, z: prompt.position.z },
+          radius: prompt.radius, sight: { slack: sight?.slack ?? 0.5 } };
+        if (prompt.weak !== undefined) row.weak = prompt.weak;
+        if (sight?.body !== undefined && sight.body !== null) row.sight.body = ownerId(sight.body);
+        return row;
+      });
+      if (actors.length !== 13 || pieces.length === 0 || bosses.length !== 1 || promptRegistrations.length !== 7) throw new Error('Invalid native Signal Node capture');
+      captures.push({ actors, pieces, spots, promptRegistrations, bosses });
+    },
   });
-  await page.waitForFunction(() => (window.__wildshard.world.game.app.debug.snapshot().sunscar?.matriarch?.body() ?? null) !== null, null, { timeout: 60000 });
-  const boss = await page.evaluate(() => {
-    const signal = window.__wildshard.world.game.app.debug.snapshot().sunscar, actor = signal.matriarch.body();
-    return { id: 'sunscar.matriarch', kind: actor.kind, spec: structuredClone(actor.simSpec) };
-  });
-  if (errors.length > 0 || boss.kind !== 'duneMatriarch' || !(boss.spec.hp > 0)) throw new Error(`Invalid native Matriarch bake: ${JSON.stringify(errors)}`);
-  const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: signalPhysicsInputs(root), ...first, bosses: [boss] };
-  writeFileSync(resolve(root, 'src/shards/sunscar-dunes/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
-  console.log(`bake-signal-physics: ${first.actors.length} native homes + Matriarch spec, ${first.pieces.length} collider pieces, exact repeated browser equality`);
-  await context.close();
-} finally { await browser.close(); }
+  const captured = captures[0];
+  if (captured === undefined) throw new Error('Signal authored capture did not complete');
+  const inputs = signalPhysicsInputs(root), digest = createHash('sha256').update(JSON.stringify(inputs)).digest('hex');
+  const result = { version: 1, revision: digest.slice(0, 40), build: `node-${digest}`, profile: 'Node / phone / no renderer',
+    notice: 'DO NOT EDIT: regenerate with generators/bake-signal-physics.mjs. revision identifies the recipe inputs.', inputs, ...captured };
+  const writer = byteWriter(process.argv.includes('--check'), 'bake-signal-physics');
+  writer.put(resolve(root, 'src/shards/sunscar-dunes/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
+  writer.finish();
+  console.log(`bake-signal-physics: ${String(captured.actors.length)} native actors, ${String(captured.pieces.length)} collider pieces, Node canonical`);
+} finally {
+  try { (await at('src/engine/app/resources.ts')).pageScope.dispose(); }
+  finally { environment.dispose(); }
+}
