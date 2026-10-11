@@ -2413,7 +2413,7 @@ the circling-pack pattern over its actual ordered roster. `CirclingPackSpec`, `C
 `CirclingPackPorts` and `CirclingPackPrey` define the native ports and parameters. `initialize` performs
 the original role/offset draws after preflight; `tick` shares the group decision clock and `drive`
 preserves native per-body cadence. `snapshotPack` retains the complete token/prey/role continuation.
-`ai/pack#PackBrain` stays the historical constructor preset; group-only calls refuse other patterns.
+`ai/pack#PackBrain` stays the historical constructor preset; group-only calls refuse other patterns. The `hunt` pattern receives one manager-owned `config`, native `ports` and `player` observation. It inherits the original herd placement, per-body memories, awareness/flee/stalk/charge, navigation and attacker tokens from the renderer-free hunt core. Its `think(actor, dt, player, sprinting, speed)` overload preserves the original decision point; `sampleTerrain(actor)` binds the actual body's sampler. `HuntBrain` remains the historical constructor preset. Hunt memory, clock, herd centres and tokens stay in the roster owner's existing continuation; generic policy `snapshot`/`restore` refuse rather than inventing an incomplete save.
 
  `@wildshard/engine/ai/stalker` defines `StalkerBrain(profile)` for
 `skirmish`, `howler` and `pouncer`. The skirmish profile supplies tuning; howl/pounce profiles also supply explicit

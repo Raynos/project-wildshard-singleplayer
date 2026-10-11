@@ -15,7 +15,7 @@ export function signalPhysicsInputs(root) {
   for (const file of ['src/shards/sunscar-dunes/manifest.ts', 'scripts/signal-physics-inputs.mjs',
     'scripts/bake/worldHost.mjs', 'scripts/bake/nativeWorld.mjs', 'scripts/bake/environment.mjs', 'scripts/bake-loader.mjs',
     'src/engine/entities/AnimalManager.ts', 'src/engine/entities/AnimalFactory.ts', 'src/engine/entities/AnimalView.ts',
-    'src/engine/entities/AnimalSim.ts', 'src/engine/ai/hunt.ts',
+    'src/engine/entities/AnimalSim.ts', 'src/engine/ai/hunt.ts', 'src/engine/ai/huntPattern.ts', 'src/engine/ai/stalker.ts',
     'src/engine/entities/species/registry.ts', 'src/engine/entities/species/look.ts', 'src/engine/practice/TrainingArena.ts',
     'src/engine/quest/view.ts', 'src/engine/quest/view/ui.ts', 'src/game/plugin/quests.ts',
     'src/engine/models/colliders.ts', 'src/engine/models/place.ts', 'src/engine/world/registry.ts', 'pnpm-lock.yaml']) paths.push(file);

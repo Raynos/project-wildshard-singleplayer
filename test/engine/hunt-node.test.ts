@@ -8,6 +8,7 @@ import { expect, it } from 'vitest';
 // that refuses renderer modules: a trusted headless host places a shard's herds over native bodies from the level seed.
 it('places herds over native bodies and thinks from a host\'s own species rows in plain Node, no DOM or renderer modules', () => {
   const script = `const { HuntBrain } = await import('./src/engine/ai/hunt.ts');
+const { StalkerBrain } = await import('./src/engine/ai/stalker.ts');
 const { AnimalSim } = await import('./src/engine/entities/AnimalSim.ts');
 const { Rng } = await import('./src/engine/core/rng.ts');
 const { Vector3 } = await import('three');
@@ -33,14 +34,15 @@ if (JSON.stringify(a) !== JSON.stringify(b) || a.herds.length !== 2 || a.out.len
 const { BOAR } = await import('./src/game/systems/species/boar.ts');
 const { DEER } = await import('./src/game/systems/species/deer.ts');
 const rows = { boar: BOAR, deer: DEER };
-const think = (species) => {
-  const player = new Vector3(6, 0, 0), brain = new HuntBrain({ rng: new Rng(7), fight: {}, faunaTuning: () => undefined, ...(species ? { species } : {}) }, ports, player);
+const think = (species, direct = false) => {
+  const player = new Vector3(6, 0, 0), config = { rng: new Rng(7), fight: {}, faunaTuning: () => undefined, ...(species ? { species } : {}) };
+  const brain = direct ? new StalkerBrain({ pattern: 'hunt', config, ports, player, sampleTerrain: a => a.sampleTerrain() }) : new HuntBrain(config, ports, player);
   const boar = Object.assign(new AnimalSim({ kind: 'boar', label: 'Boar', variant: 'boar', rarity: 'common', hp: 100, aggressive: true, dims, mods }, 0.5, 1, 'boar0', { heightAt: () => 0, random: () => 0.5 }), { hidden: false, sampleTerrain() {} });
   boar.place(0, 0, 0, 0); brain.adopt(boar, 0, 0);
   for (let i = 0; i < 600; i++) { player.x = 6 - i * 0.005; brain.think(boar, 0.1, player, false, 4.3); boar.step(0.1); }
-  return boar.state;
+  return JSON.stringify([boar.snapshot(), brain.memory(boar), config.rng.snapshot()]);
 };
-think((kind) => rows[kind]);
+if (think((kind) => rows[kind]) !== think((kind) => rows[kind], true)) throw new Error('Direct hunt profile diverged');
 let refused = false; try { think(undefined); } catch (error) { refused = String(error).includes('unknown animal kind'); }
 if (!refused) throw new Error('the default resolver is the global registry');`;
   const result = spawnSync(execPath, ['--experimental-transform-types', '--disable-warning=ExperimentalWarning', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e', script],

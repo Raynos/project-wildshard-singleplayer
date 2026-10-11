@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { Vector3, MathUtils } from 'three';
 import type { AnimalSim } from '../entities/AnimalSim';
-import { GroupBrain } from './GroupBrain';
+import { HuntingStalkerCore, type HuntConfig, type HuntPorts } from './huntPattern';
 import type { AggressionDirector } from './director';
 import type { Rng } from '../core/rng';
 import type { SimValue } from '../sim';
@@ -169,6 +169,7 @@ function validatePack(spec: CirclingPackSpec): CirclingPackSpec {
 
 /** Circling melee, pack-leader howl or ledge pounce; native encounter and body authority remain explicit ports. */
 export type StalkerProfile<A extends AnimalSim> =
+  | { pattern: 'hunt'; config: HuntConfig; ports: HuntPorts<A>; player: Vector3; sampleTerrain: (actor: A) => void }
   | { pattern: 'pack'; spec: CirclingPackSpec; ports: CirclingPackPorts<A>; members: A[]; home: { x: number; z: number } }
   | { pattern: 'skirmish'; spec: SkirmisherSpec }
   | { pattern: 'howler'; spec: HowlerSpec; ports: HowlerPorts<A> }
@@ -178,6 +179,7 @@ export type StalkerObservation<A extends AnimalSim> =
   | (SkirmisherPorts<A> & { pattern: 'skirmish' })
   | (PouncerContext<A> & { pattern: 'howler' | 'pouncer' });
 function admitProfile<A extends AnimalSim>(profile: StalkerProfile<A>): StalkerProfile<A> {
+  if (profile.pattern === 'hunt') return profile;
   if (profile.pattern === 'pack') return { ...profile, spec: validatePack(profile.spec) };
   if (profile.pattern === 'howler') return { ...profile, spec: readHowlerSpec(profile.spec) };
   if (profile.pattern === 'pouncer') {
@@ -192,7 +194,7 @@ function admitProfile<A extends AnimalSim>(profile: StalkerProfile<A>): StalkerP
   return { pattern: 'skirmish', spec: { ...spec } };
 }
 /** One parametric stalker decision/clock owner, preserving native presets and their exact continuation shapes. */
-export class StalkerBrain<A extends AnimalSim> extends GroupBrain<A> {
+export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
   private readonly profile: StalkerProfile<A>;
   private readonly contract: string;
   private st: v.InferOutput<typeof HowlerSaved>['st'] | v.InferOutput<typeof PouncerSaved>['st'] = 'den';
@@ -203,9 +205,9 @@ export class StalkerBrain<A extends AnimalSim> extends GroupBrain<A> {
   private readonly goalPoint = { x: 0, z: 0, y: 0 };
   private readonly playerDelta = { d: 0, yaw: 0 };
   constructor(profile: StalkerProfile<A>) {
-    super(profile.pattern === 'pack' ? profile.members : []);
+    super(profile.pattern === 'pack' ? profile.members : [], profile.pattern === 'hunt' ? profile : undefined);
     this.profile = admitProfile(profile);
-    this.contract = this.profile.pattern === 'pack' ? JSON.stringify(this.profile.spec) : JSON.stringify({ version: 1, spec: this.profile.spec });
+    this.contract = this.profile.pattern === 'hunt' ? '' : this.profile.pattern === 'pack' ? JSON.stringify(this.profile.spec) : JSON.stringify({ version: 1, spec: this.profile.spec });
     if (this.profile.pattern === 'pack') {
       const members = this.members, homeX = this.profile.home.x, homeZ = this.profile.home.z;
       if (members.length === 0 || members.length > 128 || new Set(members.map(actor => actor.entityId)).size !== members.length
@@ -229,18 +231,25 @@ export class StalkerBrain<A extends AnimalSim> extends GroupBrain<A> {
   private get pouncerPorts(): PouncerPorts<A> { const p = this.profile; if (p.pattern !== 'pouncer') throw new Error('Incompatible stalker pattern'); return p.ports; }
   private get skirmishSpec(): SkirmisherSpec { const p = this.profile; if (p.pattern !== 'skirmish') throw new Error('Incompatible stalker pattern'); return p.spec; }
   /** Native phase, with skirmish phases held separately in the actor memory snapshot. */
-  get state(): string { if (this.profile.pattern === 'pack') return this.phase; if (this.profile.pattern === 'skirmish') throw new Error('Skirmish phase remains actor-owned'); return this.st; }
+  get state(): string { if (this.profile.pattern === 'hunt') throw new Error('Hunt phases remain actor-owned'); if (this.profile.pattern === 'pack') return this.phase; if (this.profile.pattern === 'skirmish') throw new Error('Skirmish phase remains actor-owned'); return this.st; }
   /** Preserve the legacy contract/object shape; no observation, body callback or RNG is read. */
-  snapshot(): SimValue { if (this.profile.pattern === 'pack') return this.snapshotPack(); return this.profile.pattern === 'skirmish' ? this.contract : this.profile.pattern === 'howler' ? this.howlerSnapshot() : this.pouncerSnapshot(); }
+  snapshot(): SimValue { if (this.profile.pattern === 'hunt') throw new Error('Hunt continuation remains roster-owned'); if (this.profile.pattern === 'pack') return this.snapshotPack(); return this.profile.pattern === 'skirmish' ? this.contract : this.profile.pattern === 'howler' ? this.howlerSnapshot() : this.pouncerSnapshot(); }
   /** Validate a full pattern continuation before mutation, never replaying gameplay. */
   restore(saved: unknown): void {
+    if (this.profile.pattern === 'hunt') throw new Error('Hunt continuation remains roster-owned');
     if (this.profile.pattern === 'pack') { if (typeof saved !== 'string') throw new Error('Invalid pack continuation'); this.restorePack(saved); return; }
     if (this.profile.pattern === 'howler') this.howlerRestore(saved);
     else if (this.profile.pattern === 'pouncer') this.pouncerRestore(saved);
     else if (saved !== this.contract) throw new Error('Incompatible skirmisher continuation');
   }
   /** Observe on the original native manager cadence; mismatched ports refuse before effects. */
-  think(a: A, c: StalkerObservation<A>): void {
+  think(a: A, c: StalkerObservation<A>): void;
+  think(a: A, dt: number, player: Vector3, sprinting: boolean, playerSpeed: number): void;
+  think(a: A, c: StalkerObservation<A> | number, player?: Vector3, sprinting?: boolean, playerSpeed?: number): void {
+    if (typeof c === 'number') {
+      if (this.profile.pattern !== 'hunt' || player === undefined || sprinting === undefined || playerSpeed === undefined) throw new Error('Incompatible stalker hunt observation');
+      this.decideHunt(a, c, player, sprinting, playerSpeed); return;
+    }
     if (c.pattern !== this.profile.pattern) throw new Error('Incompatible stalker observation');
     if (c.pattern === 'skirmish') this.skirmishThink(a, c);
     else if (c.pattern === 'howler') this.howlerThink(a, c);
