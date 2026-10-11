@@ -699,5 +699,35 @@
     {
       "reason": "First upload-mode attempt saved on instead of uploads; fixture configuration fence rejected it before a route. No timing credit."
     }
+  ],
+  "coverage": [
+    {
+      "cell": "template-2",
+      "slug": "_template",
+      "pin": "1ed327eec3e217f4eb09593f28eb0d3f9e262e0e",
+      "window": {
+        "start": "2026-10-11T10:45:17.952714Z",
+        "end": "2026-10-11T10:46:39.236479Z"
+      },
+      "complete": true,
+      "errors": [],
+      "arrival": {
+        "blockedFrames": 0,
+        "blockedMs": 0,
+        "visibleBeforeReadyFrames": 0
+      },
+      "elapsedSeconds": 23.391,
+      "drive": {
+        "frames": 750,
+        "p95Ms": 34,
+        "p99Ms": 34,
+        "maxMs": 49
+      },
+      "travel": {
+        "frames": 120,
+        "p95Ms": 34,
+        "maxMs": 44
+      }
+    }
   ]
 }
