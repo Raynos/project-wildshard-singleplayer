@@ -22,7 +22,7 @@ it('keeps the same painted canvas, shares the post-paint upload budget, and canc
   const previous = scopeEnvironment(), scope = new Scope('screen-upload');
   const frames = new Map<number, FrameRequestCallback>(), uploaded: Texture[] = [], canvases: { width: number; height: number }[] = [];
   const drawn: string[] = [];
-  let serial = 0, clock = 100_000, elapsed = 0;
+  let serial = 0, clock = 100_000, elapsed = 0, lost = false;
   vi.useFakeTimers();
   const time = vi.spyOn(performance, 'now').mockImplementation(() => clock);
   installScopeEnvironment({ ...previous, frame: fn => { const id = ++serial; frames.set(id, fn); return id; }, cancelFrame: id => { frames.delete(id); } });
@@ -39,7 +39,7 @@ it('keeps the same painted canvas, shares the post-paint upload budget, and canc
   try {
     setFramePacing(false);
     const screens = installCellScreens({ cells, wall: 256, scene: new Group(), admission, time: () => elapsed, build: 'b', tier: 'phone',
-      renderer: { initTexture: texture => { uploaded.push(texture); clock += 5; } },
+      renderer: { initTexture: texture => { uploaded.push(texture); clock += 5; }, getContext: () => ({ isContextLost: () => lost }) },
       ports: { read: () => snapshot, feet: () => ({ x: 270, z: 10 }) } });
     screens.step(); expect(screens.state().draws).toBe(2); expect(frames.size).toBe(0); // ordinary first appearance / OFF
     setFramePacing(true); noteFrameDrawn(clock, clock, 30);
@@ -47,7 +47,8 @@ it('keeps the same painted canvas, shares the post-paint upload budget, and canc
     elapsed = 2.2; for (let i = 0; i < 6; i++) screens.step();
     expect(screens.state().draws).toBe(6); expect(uploaded).toHaveLength(0); expect(frames.size).toBe(2); // newest canvas, one job per slot
     paint(); expect(uploaded).toHaveLength(1); expect(frames.size).toBe(1); // the first ~5ms upload spends this frame's shared budget
-    paint(); expect(uploaded).toHaveLength(2); expect(frames.size).toBe(0);
+    lost = true; paint(); expect(uploaded).toHaveLength(1); expect(frames.size).toBe(1); // recovery never issues a GPU upload
+    lost = false; paint(); expect(uploaded).toHaveLength(2); expect(frames.size).toBe(0);
     expect(uploaded.map(texture => texture.source.data)).toEqual(canvases); // no bitmap, rescale, conversion or replacement
     expect(canvases.map(canvas => [canvas.width, canvas.height])).toEqual([[1024, 640], [1024, 640]]);
     elapsed = 3.2; for (let i = 0; i < 6; i++) screens.step();

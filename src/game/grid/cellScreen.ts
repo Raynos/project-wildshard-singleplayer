@@ -272,7 +272,7 @@ export function installCellScreens(input: {
   readonly cells: readonly CellScreenCell[]; readonly wall: number; readonly ports: CellScreenPorts; readonly scene: Object3D;
   readonly admission: PlatformRenderAdmission; readonly time: () => number; readonly build: string; readonly tier: string; readonly slots?: number;
   /** Reupload changed canvases after paint under the existing shared build budget; absent, retain the ordinary draw upload. */
-  readonly renderer?: Pick<Renderer, 'initTexture'>;
+  readonly renderer?: Pick<Renderer, 'initTexture'> & { readonly getContext: () => Pick<WebGL2RenderingContext, 'isContextLost'> };
 }): { step: () => void; state: () => CellScreensState } {
   const { cells, ports, wall, time } = input, count = input.slots ?? 3, byInstance = new Map(cells.map((cell) => [cell.instance, cell]));
   // Four plane vertices: position, normal and UV, plus six uint16 indices, retained on both CPU and GPU.
@@ -297,7 +297,7 @@ export function installCellScreens(input: {
         group.add(mesh);
         let firstPaint = true, queued = false;
         const send = (): void => {
-          if (frameBudgetSpent(1000 / 240)) { slotOwner.raf(() => { slotOwner.timeout(0, send); }); return; }
+          if (input.renderer?.getContext().isContextLost() === true || frameBudgetSpent(1000 / 240)) { slotOwner.raf(() => { slotOwner.timeout(0, send); }); return; }
           queued = false; texture.needsUpdate = true; input.renderer?.initTexture(texture);
         };
         const later = (): void => { slotOwner.raf(() => { slotOwner.timeout(0, send); }); };
