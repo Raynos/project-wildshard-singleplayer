@@ -350,3 +350,15 @@ it('observes preparation while driving from the crossroads through the actual mi
   expect(edge?.hoverMaxSpeed).toBeUndefined();
   expect(edge?.finishOnArrival).toBe(false);
 });
+
+it('names the socket-only metric separately and preserves the full interior itinerary', () => {
+  const sky = { instance: 'sky', slug: 'far-reach', cell: [0, -1] as const };
+  const full = gridFloorPlans({ home: 'home', cells: [...cells, sky] }, 'cell', { cell: 'far-reach' })[0];
+  const socket = gridFloorPlans({ home: 'home', cells: [...cells, sky] }, 'cell', { cell: 'far-reach', entrySocket: true })[0];
+  expect(full).toMatchObject({ name: 'far-reach-road-entry', waypoints: [{ x: 0, z: -345 }], finishOnArrival: false });
+  expect(socket).toMatchObject({ name: 'far-reach-socket-entry', waypoints: [{ x: 0, z: -312.5 }],
+    start: { x: 0, z: -277.5 }, requiredResidents: ['sky'], finishOnArrival: false });
+  const corner = { instance: 'corner', slug: 'corner', cell: [1, -1] as const };
+  expect(gridFloorPlans({ home: 'home', cells: [...cells, corner] }, 'cell', { cell: 'corner', entrySocket: true })[0])
+    .toMatchObject({ name: 'corner-socket-entry', waypoints: [{ x: 555, z: -312.5 }] });
+});

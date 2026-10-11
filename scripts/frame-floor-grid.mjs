@@ -1,3 +1,5 @@
+import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
+
 /** Actual-frame floor routes; only the first home pose is seeded, every seam afterwards is driven by held input. */
 export function gridFloorPlans(state, scenario, options = {}) {
   const home = state.cells.find(cell => cell.instance === state.home);
@@ -28,12 +30,15 @@ export function gridFloorPlans(state, scenario, options = {}) {
     if (target.instance === home.instance) throw new Error('Grid floor cell scenario needs a non-home cell');
     const t = origin(target), dx = Math.sign(h.x - t.x), dz = Math.sign(h.z - t.z);
     const road = dz !== 0 ? { x: t.x, z: t.z + dz * 277.5 } : { x: t.x + dx * 277.5, z: t.z };
-    const entry = dz !== 0 ? { x: t.x, z: t.z + dz * 210 } : { x: t.x + dx * 210, z: t.z };
+    // A separately named socket measurement stays on the permanent platform deck,
+    // before content-specific gates or lifts. The full interior route is unchanged.
+    const entryOffset = options.entrySocket === true ? CHUNK_HALF - ENTRY_ASPHALT / 2 : 210;
+    const entry = dz !== 0 ? { x: t.x, z: t.z + dz * entryOffset } : { x: t.x + dx * entryOffset, z: t.z };
     // Drive into the geometric interior: a motor transfer outside the cell must not omit
     // the first visible regional frame from the measured drive.
     const approach = options.roadApproach === true;
     const start = approach ? (dz !== 0 ? { x: road.x + 277.5, z: road.z } : { x: road.x, z: road.z + 277.5 }) : road;
-    plans.push({ name: `${target.slug}-road-entry`, from: null, to: target.instance, movement: 'road-hover', start,
+    plans.push({ name: `${target.slug}-${options.entrySocket === true ? 'socket-entry' : 'road-entry'}`, from: null, to: target.instance, movement: 'road-hover', start,
       waypoints: approach ? [road, entry] : [entry], requiredResidents: [target.instance], finishOnArrival: false,
       ...(approach ? { observePreparation: true, hoverMaxSpeed: 30 } : {}) });
   }
