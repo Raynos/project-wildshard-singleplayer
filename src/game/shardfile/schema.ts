@@ -104,6 +104,11 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...socketLiftRules(socketLiftEntries(s.entryways), s.movers, s));
   errors.push(...portalLinkRules(portalLinkEntries(s.entryways), s));
   try { parseMovers(s.movers); } catch { errors.push('declared mover identities and primitives'); }
+  for (const row of s.movers) if (row.trigger?.kind === 'shared') {
+    const trigger = row.trigger;
+    const field = s.state.shared.find(candidate => candidate.id === trigger.field);
+    if (field === undefined || field.type === 'string' || typeof field.default !== typeof row.trigger.equals) errors.push('mover trigger requires an admitted numeric or boolean shared field');
+  }
   if (s.movers.some(row => row.kind === 'chain')) errors.push('compiled mover chains require native joint restore support');
   if (s.movers.some(row => !s.sim.scripts.includes(row.module) || !s.critical.includes(row.module) || s.files.find(asset => asset.hash === row.module)?.kind !== 'wasm')) errors.push('mover modules are admitted critical sim scripts');
   const liftIds = new Set(socketLiftEntries(s.entryways).flatMap(entry => [entry.lift.mover, entry.lift.gate]));

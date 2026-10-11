@@ -10,7 +10,7 @@ const quaternion = v.pipe(v.strictObject({ x: finite, y: finite, z: finite, w: f
 const box = v.strictObject({ x: coordinate, y: coordinate, z: coordinate, hx: positive, hy: positive, hz: positive, rot: quaternion });
 const chain = v.strictObject({ segments: v.pipe(v.array(v.strictObject({ x: coordinate, y: coordinate, z: coordinate, rot: quaternion, hz: positive })), v.minLength(2), v.maxLength(40)), hx: positive, hy: positive, mass: v.pipe(finite, v.minValue(0.1), v.maxValue(1000)) });
 /** Physics owns the primitive; an admitted script owns its pose/activation. All colliders are numeric, local boxes. */
-export const MoversSchema = v.pipe(v.array(v.strictObject({ id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)), entity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), module: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)), kind: v.picklist(['platform', 'chain', 'static']), at: vector, euler, enabled: v.boolean(), boxes: v.pipe(v.array(box), v.maxLength(128)), chain: v.exactOptional(chain), track: v.exactOptional(MoverTrackSchema), trigger: v.exactOptional(MoverTriggerSchema), driver: v.exactOptional(MoverDriverSchema), input: v.pipe(v.array(v.pipe(finite, v.minValue(-10000), v.maxValue(10000))), v.maxLength(64)) })), v.maxLength(32));
+export const MoversSchema = v.pipe(v.array(v.strictObject({ id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)), entity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), module: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)), kind: v.picklist(['platform', 'chain', 'static']), at: vector, euler, enabled: v.boolean(), boxes: v.pipe(v.array(box), v.maxLength(128)), chain: v.exactOptional(chain), track: v.exactOptional(MoverTrackSchema), trigger: v.exactOptional(MoverTriggerSchema), driver: v.exactOptional(MoverDriverSchema), input: v.pipe(v.array(v.pipe(finite, v.minValue(-10000), v.maxValue(10000))), v.maxLength(96)) })), v.maxLength(32));
 /** Validated mover declarations; no render object, collision callback or authored TypeScript occurs in the format. */
 export type MoverData = v.InferOutput<typeof MoversSchema>;
 /** Admission proves identity, primitive shape and aggregate solver/body limits before allocating anything. */
@@ -25,6 +25,6 @@ export function parseMovers(input: unknown): MoverData {
       const lowered = lowerMoverMotion({ ...(track === undefined ? {} : { track }), trigger, driver }, row);
       if (lowered.module !== row.module || JSON.stringify(lowered.input) !== JSON.stringify(row.input)) throw new Error('Mover motion and executable ABI disagree');
     }
-    return compiled;
+    return driver?.kind === 'track' || driver?.kind === 'pendulum' ? row : compiled;
   });
 }

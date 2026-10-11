@@ -1,3 +1,4 @@
+import { tagOf } from "@wildshard/engine/physics/surface";
 import { CharacterMotor } from "@wildshard/engine/physics/CharacterMotor";
 import type { Physics } from "@wildshard/engine/physics/Physics";
 import { ENTRY_ASPHALT, ENTRY_WIDTH } from "@wildshard/engine/core/config";
@@ -170,9 +171,15 @@ export interface MoverInstallation {
   admitted?: ReadonlyMap<string, Uint8Array>;
   permissions?: () => ReadonlyMap<string, number>;
   onDispose?: () => void;
+  activation?: MoverActivationPorts;
+}
+/** Trusted activation observes real grounded collider ownership and the admitted host shared state. */
+export interface MoverActivationPorts {
+  ground?: () => CharacterMotor['result'] | undefined;
+  shared?: (field: number) => number | boolean | undefined;
 }
 /** The shared script host already owns modules, entity handles and one beginTick per fixed step. */
-export interface MoverPorts { physics: Physics | (() => Physics); host: ScriptHost; scope: Scope; adopt?: (id: string) => MoverView | undefined; restoring?: boolean }
+export interface MoverPorts { physics: Physics | (() => Physics); host: ScriptHost; scope: Scope; adopt?: (id: string) => MoverView | undefined; restoring?: boolean; activation?: MoverActivationPorts }
 /** Native handle identity is restored before reconnecting to the replacement world. */
 export interface MoverBodyState { id: string; handle: number }
 const continuation = v.strictObject({ pending: v.pipe(v.array(v.tuple([v.string(), v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(3))])), v.maxLength(32)),
@@ -189,8 +196,16 @@ export class MoverRuntime {
   private readonly bodies = new Map<string, KinematicMover>();
   private bodyHandles = new Map<string, number>();
   private pending = new Map<string, number>();
+  private readonly activation: MoverActivationPorts;
   constructor(data: MoverData, ports: MoverPorts) {
-    this.data = parseMovers(data); this.host = ports.host;
+    this.data = parseMovers(data); this.host = ports.host; this.activation = ports.activation ?? {};
+    for (const row of this.data) {
+      if (row.trigger?.kind === 'stand' && this.activation.ground === undefined) throw new Error('Stand mover requires the real player ground result');
+      if (row.trigger?.kind === 'shared') {
+        const value = this.activation.shared?.(row.trigger.field);
+        if (typeof value !== typeof row.trigger.equals || typeof value === 'number' && !Number.isFinite(value)) throw new Error('Shared mover requires its admitted typed host field');
+      }
+    }
     const physics = ports.physics; this.physics = typeof physics === 'function' ? physics : () => physics;
     if (ports.restoring && (ports.adopt !== undefined || this.data.some(row => row.kind === 'chain'))) throw new Error('Native mover restore requires declared platform/static bodies');
     for (const m of this.data) if (ports.host.world.entity(m.entity) === undefined) throw new Error('Missing mover script entity');
@@ -216,7 +231,14 @@ export class MoverRuntime {
   scriptInput(id: string, tick: number, permission = 0): readonly number[] {
     const m = this.data.find(row => row.id === id), e = m === undefined ? undefined : this.host.world.entity(m.entity);
     if (m === undefined || e === undefined) throw new Error('Missing mover');
-    return [tick, 1 / 60, this.pending.get(m.id) ?? 0, m.entity, permission, m.input.length, ...Object.values(MOVER_FIELDS).map(field => e.fields[field] ?? 0)];
+    let gate = permission;
+    if (m.trigger?.kind === 'stand') { const ground = this.activation.ground?.(); gate = Number(ground?.grounded === true && ground.groundCollider !== null && tagOf(ground.groundCollider)?.owner === m.id); }
+    else if (m.trigger?.kind === 'shared') {
+      const value = this.activation.shared?.(m.trigger.field);
+      if (typeof value !== typeof m.trigger.equals || typeof value === 'number' && !Number.isFinite(value)) throw new Error('Unavailable shared mover field');
+      gate = Number(value === m.trigger.equals);
+    } else if (m.trigger?.kind === 'interact') gate = Number(permission === m.trigger.permission);
+    return [tick, 1 / 60, this.pending.get(m.id) ?? 0, m.entity, gate, m.input.length, ...Object.values(MOVER_FIELDS).map(field => e.fields[field] ?? 0)];
   }
   /** Apply an admitted call once; a composed scheduler already owns execution and the global host tick. */
   publish(id: string, ok: boolean): void {
@@ -292,7 +314,7 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
     host = await createMoverHost(options.data, assets, scriptPhysicsQueries({ physics: world.physics, navigation: ctx.app.navmesh ?? { closestWalkable: () => null, findPath: () => null }, handle: () => undefined }));
   }
   if (ctx.scope.disposed) throw new Error('Mover scope left during admission');
-  const runtime = new MoverRuntime(options.data, { physics: world.physics, scope: ctx.scope, host, adopt: (id) => options.views.get(id) });
+  const runtime = new MoverRuntime(options.data, { physics: world.physics, scope: ctx.scope, host, adopt: (id) => options.views.get(id), activation: { ground: () => world.player.motor.result, ...options.activation } });
   const installedHost = host;
   ctx.system({ id: options.systemId, phase: 'fixed.pre', before: ['physics.movers'], run: () => {
     const current = options.shared === undefined ? ++tick : options.shared.tick(); if (options.shared === undefined) installedHost.beginTick(current);
@@ -317,7 +339,7 @@ const headlessMoverSaved = v.strictObject({
 /** A headless platform installation exposes published poses and refused script calls. */
 export interface HeadlessMovers { readonly runtime: MoverRuntime; failures: () => number }
 /** Explicit native ownership; the getter follows replacement worlds after a restore. */
-export interface HeadlessMoverPorts { physics: () => SimHost['physics']; scope: SimHost['scope']; restoring: boolean }
+export interface HeadlessMoverPorts { physics: () => SimHost['physics']; scope: SimHost['scope']; restoring: boolean; activation?: MoverActivationPorts }
 /** A caller-driven set owns its script host, entities and trusted permission table. */
 export interface HeadlessMoverSet extends HeadlessMovers { host: ScriptHost; world: ScriptWorld; permissions: Map<string, number> }
 /** Stable continuation identity and trusted permissions for a SimHost installation. */
@@ -325,6 +347,7 @@ export interface HeadlessMoverInstallation {
   systemId: string; restoring: boolean;
   initialPermissions?: ReadonlyMap<string, number>;
   permissions?: () => ReadonlyMap<string, number>;
+  sharedState?: (field: number) => number | boolean | undefined;
 }
 
 /** Copy and SHA-256-check each declared module before constructing a headless host. */
@@ -347,7 +370,7 @@ export function createHeadlessMovers(rows: MoverData, modules: ReadonlyMap<strin
     const bytes = modules.get(hash); if (bytes === undefined) throw new Error('Unverified mover module');
     host.install(hash, bytes);
   }
-  const runtime = new MoverRuntime(data, { host, physics: ports.physics, scope: ports.scope, restoring: ports.restoring });
+  const runtime = new MoverRuntime(data, { host, physics: ports.physics, scope: ports.scope, restoring: ports.restoring, ...(ports.activation === undefined ? {} : { activation: ports.activation }) });
   return { runtime, host, world, permissions: new Map(initialPermissions), failures: () => host.failureCount };
 }
 
@@ -358,7 +381,7 @@ export function stepHeadlessMovers(movers: Pick<HeadlessMoverSet, 'runtime' | 'h
 
 /** Install one fixed-step owner and preserve exact guest/native continuation without an installation tick. */
 export function installHeadlessMovers(host: SimHost, rows: MoverData, modules: ReadonlyMap<string, Uint8Array>, options: HeadlessMoverInstallation): HeadlessMovers {
-  const movers = createHeadlessMovers(rows, modules, { physics: () => host.physics, scope: host.scope, restoring: options.restoring }, options.initialPermissions);
+  const movers = createHeadlessMovers(rows, modules, { physics: () => host.physics, scope: host.scope, restoring: options.restoring, activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined, ...(options.sharedState === undefined ? {} : { shared: options.sharedState }) } }, options.initialPermissions);
   host.onStep(options.systemId, () => { stepHeadlessMovers(movers, host.state.tick, options.permissions?.() ?? movers.permissions); }, {
     snapshot: () => JSON.stringify({ host: movers.host.checkpoint(), world: movers.world.state(), movers: movers.runtime.snapshotState() }),
     restore: value => {

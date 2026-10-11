@@ -148,8 +148,66 @@ export function on_tick(): void {
 }
 `;
 
+const clip = String.raw`// Fixed general transform driver. All keys, activation and periods are admitted numeric rows.
+export function abi_version(): i32 { return 0; }
+export function init(lo: i32, hi: i32): void {}
+export function in_ptr(): i32 { return 16384; }
+export function in_cap(): i32 { return 4096; }
+export function out_ptr(): i32 { return 24576; }
+export function out_cap(): i32 { return 6; }
+let count: i32 = 0;
+export function out_count(): i32 { return count; }
+@external("env", "query") declare function query(kind: i32, request: i32, response: i32): i32;
+@inline function input(i: i32): f64 { return load<f64>(16384 + i * 8); }
+@inline function param(i: i32): f64 { return load<f64>(8192 + i * 8); }
+@inline function field(id: f64, value: f64): void {
+  const o = 24576 + count * 40; store<f64>(o, 1); store<f64>(o+8, id); store<f64>(o+16, value); store<f64>(o+24, 0); store<f64>(o+32, 0); count++;
+}
+@inline function lerp(a: f64, b: f64, t: f64): f64 { return a + (b-a)*t; }
+let qx: f64 = 0, qy: f64 = 0, qz: f64 = 0, qw: f64 = 1;
+function rotation(a: i32, b: i32, t: f64): void {
+  const ax=param(a+4), ay=param(a+5), az=param(a+6), aw=param(a+7);
+  let bx=param(b+4), by=param(b+5), bz=param(b+6), bw=param(b+7);
+  let dot=ax*bx+ay*by+az*bz+aw*bw;
+  if(dot<0){dot=-dot;bx=-bx;by=-by;bz=-bz;bw=-bw;}
+  if(ax===bx && ay===by && az===bz && aw===bw){qx=ax;qy=ay;qz=az;qw=aw;return;}
+  let u: f64=1-t, v: f64=t;
+  if(dot<0.9995){const angle=Math.acos(dot),sin=Math.sin(angle);u=Math.sin((1-t)*angle)/sin;v=Math.sin(t*angle)/sin;}
+  qx=ax*u+bx*v;qy=ay*u+by*v;qz=az*u+bz*v;qw=aw*u+bw*v;
+  if(dot>=0.9995){const n=1/Math.sqrt(qx*qx+qy*qy+qz*qz+qw*qw);qx*=n;qy*=n;qz*=n;qw*=n;}
+
+}
+export function on_tick(): void {
+  count=0;
+  const length=query(410,4096,8192), keys=<i32>param(15);
+  if(length!==16+keys*8 || keys<0 || keys>10) unreachable();
+  const trigger=<i32>param(4), action=input(2), gate=input(4)!==0, dt=input(1);
+  let active=input(11), phase=input(10);
+  if(trigger===0) active=1;
+  else if(trigger===1){if(gate){if(action===1)active=1-active;else if(action===2)active=0;else if(action===3){phase=0;active=1;}}}
+  else if(trigger===2) active=gate ? (param(5)===0 ? 1 : min(1,active+dt/param(5))) : 0;
+  else active=gate ? 1 : 0;
+  if(active===1){const cycle=param(0)===1 ? param(8) : param(1)/param(2)*(param(3)===2 ? 2 : 1);phase+=dt/cycle;phase=param(0)===1 || param(3)!==0 ? phase-Math.floor(phase) : min(1,phase);}
+  let x=param(9),y=param(10),z=param(11),pitch=param(12),yaw=param(13),roll=param(14);
+  if(param(0)===1){const angle=param(7)*Math.sin(phase*6.283185307179586);if(param(6)===0)pitch+=angle;else if(param(6)===1)yaw+=angle;else roll+=angle;}
+  else {
+    if(keys<2) unreachable();
+    const sample=param(3)===2 ? (phase<0.5 ? phase*2 : (1-phase)*2) : phase, time=sample*param(1);
+    let i:i32=0;while(i<keys-2 && time>param(16+(i+1)*8))i++;
+    const a=16+i*8,b=a+8,t=min(1,max(0,(time-param(a))/(param(b)-param(a))));
+    x=lerp(param(a+1),param(b+1),t);y=lerp(param(a+2),param(b+2),t);z=lerp(param(a+3),param(b+3),t);rotation(a,b,t);
+    const m23=2*(qy*qz-qx*qw);pitch=Math.asin(-min<f64>(1,max<f64>(-1,m23)));
+    if(Math.abs(m23)<0.9999999){yaw=Math.atan2(2*(qx*qz+qy*qw),1-2*(qx*qx+qy*qy));roll=Math.atan2(2*(qx*qy+qz*qw),1-2*(qx*qx+qz*qz));}
+    else {yaw=Math.atan2(-2*(qx*qz-qy*qw),1-2*(qy*qy+qz*qz));roll=0;}
+  }
+  store<f64>(24576,4);store<f64>(24584,x);store<f64>(24592,y);store<f64>(24600,z);store<f64>(24608,0);count=1;
+  field(1,pitch);field(2,yaw);field(3,roll);field(5,phase);field(6,active);
+}
+`;
+
 /** Readable fixed guest sources; compiler inputs are independent of any shard or browser. */
-export function moverProgram(kind: 'ride' | 'hinge' | 'waves'): { source: string; sources: Readonly<Record<string, string>> } {
+export function moverProgram(kind: 'ride' | 'hinge' | 'waves' | 'clip'): { source: string; sources: Readonly<Record<string, string>> } {
+  if (kind === 'clip') return { source: clip, sources: {} };
   if (kind === 'hinge') return { source: "export {abi_version,init,in_ptr,in_cap,out_ptr,out_cap,out_count} from './commons/abi';\nexport {on_tick} from './commons/bridge';\n", sources: { 'commons/abi.ts': abi, 'commons/bridge.ts': hinge } };
   return { source: kind === 'ride' ? ride : waves, sources: {} };
 }

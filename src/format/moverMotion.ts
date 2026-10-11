@@ -10,19 +10,24 @@ export const MOVER_DRIVER_MODULES = Object.freeze({
   ride: 'f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22',
   hinge: '1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd',
   waves: '9a5171bc3dd84488aae9de29ebd07fdb12dfbd2500c45cf91cf37e5bbbc712f0',
+  clip: '871aef47d9b0dd009d46ad41e5cb3c793625bc20325bdaca00134a8677b0c6f1',
 });
-/** Actual AnimationClip stop keys for the fixed winch policy. */
-export const MoverTrackSchema = v.strictObject({
+/** Bounded real transform keys; both channels share their strictly increasing time grid. */
+export const MoverTrackSchema = v.pipe(v.strictObject({
   clip: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
-  duration: bounded(0.005, 3600), loop: v.literal('once'), speed: bounded(0.005, 100),
-  times: v.tuple([time, time]),
-  position: v.exactOptional(v.tuple([point, point])),
-  quaternion: v.exactOptional(v.tuple([rotation, rotation])),
-});
-/** Continuous or explicit interaction activation; unsupported trigger authorities are refused. */
+  duration: bounded(0.005, 3600), loop: v.picklist(['once', 'repeat', 'pingpong']), speed: bounded(0.005, 100),
+  times: v.pipe(v.array(time), v.minLength(2), v.maxLength(10)),
+  position: v.exactOptional(v.pipe(v.array(point), v.minLength(2), v.maxLength(10))),
+  quaternion: v.exactOptional(v.pipe(v.array(rotation), v.minLength(2), v.maxLength(10))),
+}), v.check(t => t.times[0] === 0 && t.times.at(-1) === t.duration && t.times.every((value, i) => i === 0 || value > (t.times[i - 1] ?? value))
+  && (t.position !== undefined || t.quaternion !== undefined) && (t.position === undefined || t.position.length === t.times.length)
+  && (t.quaternion === undefined || t.quaternion.length === t.times.length), 'complete increasing mover keys'));
+/** Activation reads an actual grounded owner, explicit command, or admitted shared host field. */
 export const MoverTriggerSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('always') }),
   v.strictObject({ kind: v.literal('interact'), permission: v.picklist([0, 3]) }),
+  v.strictObject({ kind: v.literal('stand'), delay: bounded(0, 60) }),
+  v.strictObject({ kind: v.literal('shared'), field: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), equals: v.union([v.boolean(), finite]) }),
 ]);
 const wave = v.tuple([bounded(-1, 1), bounded(-1, 1), bounded(0, 10), bounded(0.005, 1000), bounded(-100, 100), bounded(0, 10)]);
 /** Numeric fixed policies compiled to the session's existing fenced guest driver. */
@@ -31,6 +36,8 @@ export const MoverDriverSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('winch'), mode: v.literal('ride'), dwell: bounded(0.005, 3600), gate: v.boolean() }),
   v.strictObject({ kind: v.literal('winch'), mode: v.literal('hinge'), speed: bounded(0.005, 100) }),
   v.strictObject({ kind: v.literal('static') }),
+  v.strictObject({ kind: v.literal('track') }),
+  v.strictObject({ kind: v.literal('pendulum'), axis: v.picklist(['x', 'y', 'z']), amplitude: bounded(0, Math.PI), period: bounded(0.005, 3600) }),
 ]);
 /** Stop track, activation and fixed driver before ABI lowering. */
 export const MoverMotionSchema = v.strictObject({
@@ -43,6 +50,26 @@ export type MoverTrack = v.InferOutput<typeof MoverTrackSchema>;
 /** Derive the executable guest and parameters; unsupported clip/driver/trigger combinations fail closed. */
 export function lowerMoverMotion(input: unknown, rest: { at: { x: number; y: number; z: number }; euler: { x: number; y: number; z: number } }): { module: string; input: number[] } {
   const motion = v.parse(MoverMotionSchema, input), { driver, trigger, track } = motion;
+  if (driver.kind === 'track' || driver.kind === 'pendulum') {
+    if (driver.kind === 'track' && track === undefined || driver.kind === 'pendulum' && track !== undefined) throw new Error('Track driver needs keys; pendulum supplies its own period');
+    if (driver.kind === 'pendulum' && Math.abs(rest.euler[driver.axis]) + driver.amplitude > Math.PI) throw new Error('Pendulum exceeds the admitted Euler range');
+    const half = [rest.euler.x / 2, rest.euler.y / 2, rest.euler.z / 2], [x, y, z] = half;
+    if (x === undefined || y === undefined || z === undefined) throw new Error('Missing rest rotation');
+    const a = Math.sin(x), b = Math.sin(y), c = Math.sin(z), d = Math.cos(x), e = Math.cos(y), f = Math.cos(z);
+    const q = [a * e * f + d * b * c, d * b * f - a * e * c, d * e * c - a * b * f, d * e * f + a * b * c];
+    const compiledInput = [Number(driver.kind === 'pendulum'), track?.duration ?? (driver.kind === 'pendulum' ? driver.period : 1), track?.speed ?? 1,
+      track?.loop === 'repeat' ? 1 : track?.loop === 'pingpong' ? 2 : 0,
+      trigger.kind === 'always' ? 0 : trigger.kind === 'interact' ? 1 : trigger.kind === 'stand' ? 2 : 3,
+      trigger.kind === 'stand' ? trigger.delay : 0, driver.kind === 'pendulum' ? ['x', 'y', 'z'].indexOf(driver.axis) : 0,
+      driver.kind === 'pendulum' ? driver.amplitude : 0, driver.kind === 'pendulum' ? driver.period : 1,
+      rest.at.x, rest.at.y, rest.at.z, rest.euler.x, rest.euler.y, rest.euler.z, track?.times.length ?? 0];
+    if (track !== undefined) for (let i = 0; i < track.times.length; i++) {
+      const at = track.position?.[i] ?? [rest.at.x, rest.at.y, rest.at.z], keyRotation = track.quaternion?.[i] ?? q;
+      const t = track.times[i]; if (t === undefined) throw new Error('Missing mover key');
+      compiledInput.push(t, ...at, ...keyRotation);
+    }
+    return { module: MOVER_DRIVER_MODULES.clip, input: compiledInput };
+  }
   if (driver.kind === 'waves') {
     if (trigger.kind !== 'always' || track !== undefined) throw new Error('Waves require an always trigger without a clip');
     return { module: MOVER_DRIVER_MODULES.waves, input: [rest.at.x, rest.at.y, rest.at.z, rest.euler.y, driver.damping, ...driver.waves.flat()] };
@@ -51,15 +78,15 @@ export function lowerMoverMotion(input: unknown, rest: { at: { x: number; y: num
     if (trigger.kind !== 'always' || track !== undefined) throw new Error('Static mover cannot consume a clip or interaction');
     return { module: MOVER_DRIVER_MODULES.hinge, input: [0] };
   }
-  if (trigger.kind !== 'interact' || track?.times[0] !== 0 || track.times[1] !== track.duration) throw new Error('Winch requires a complete two-stop interaction clip');
+  if (trigger.kind !== 'interact' || track?.times.length !== 2 || track.loop !== 'once' || track.times[0] !== 0 || track.times[1] !== track.duration) throw new Error('Winch requires a complete two-stop interaction clip');
   if (driver.mode === 'hinge') {
     if (trigger.permission !== 3 || track.position !== undefined || track.quaternion === undefined || track.speed !== 1) throw new Error('Hinge winch requires the permission-gated rotation clip');
-    const [from, to] = track.quaternion, half = rest.euler.x / 2;
+    const [from, to] = track.quaternion; if (from === undefined || to === undefined) throw new Error('Missing hinge stops'); const half = rest.euler.x / 2;
     if (rest.euler.z !== 0 || Math.abs(from[0] - Math.sin(half)) > 1e-10 || Math.abs(from[1]) > 1e-10 || Math.abs(from[2]) > 1e-10 || Math.abs(from[3] - Math.cos(half)) > 1e-10 || to.some((value, i) => value !== (i === 3 ? 1 : 0)) || track.duration !== -rest.euler.x / driver.speed) throw new Error('Hinge clip must lift the rest pitch to level at the declared speed');
     return { module: MOVER_DRIVER_MODULES.hinge, input: [1, driver.speed] };
   }
   if (trigger.permission !== 0 || track.position === undefined || track.quaternion !== undefined) throw new Error('Ride winch requires an ungated position clip');
-  const [from, to] = track.position;
+  const [from, to] = track.position; if (from === undefined || to === undefined) throw new Error('Missing ride stops');
   if (!driver.gate && (from[0] !== rest.at.x || from[1] !== rest.at.y || from[2] !== rest.at.z)) throw new Error('Ride clip must begin at the declared stop');
   if (driver.gate && from.some((value, i) => value !== to[i])) throw new Error('A road gate must stay stationary');
   return { module: MOVER_DRIVER_MODULES.ride, input: [...from, ...to, track.duration / track.speed, Number(driver.gate), driver.dwell] };

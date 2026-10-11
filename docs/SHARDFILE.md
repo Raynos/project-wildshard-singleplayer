@@ -1444,3 +1444,18 @@ Pine elitePreludeStages.json uses the fixed emit actions for native clock/clear/
 
 
 Nalati ghostVolleyStages.json binds bounded ghost.clock, ghost.shoot and ghost.retry outputs to literal fixed emit actions. Retained behaviour/ghostVolley.as/build.json and the author-only Node producer generate immutable bytes in the portable build cache. No page or runtime is a producer. The native headless night-roster/Qara gap stays open until actual bodies, projectiles and keeper admission are hosted by the whole witness.
+
+The general fixed mover driver reads up to ten increasing keys across position and quaternion channels
+from the body's real `AnimationClip`; it supports `once`, `repeat` and `pingpong` at a bounded speed.
+Both channels share the union of their key times. Linear positions and shortest-arc quaternion
+interpolation use three.js's law. `driver: { kind: "track" }` lowers the keys into one fixed guest;
+`{ kind: "pendulum", axis, amplitude, period }` uses the same clock without an authored clip.
+The existing shipping winch/waves guests and their saved continuation remain unchanged.
+
+`trigger: { kind: "stand", delay }` requires the real player's grounded collider to be owned by that
+mover continuously for the delay; leaving freezes its clock and resets the delay. Shared activation
+uses `{ kind: "shared", field, equals }`, where `field` names an admitted shared boolean or numeric
+host field of the same type. Missing/mistyped authority refuses before native body creation.
+Interaction activation requires the declared permission: action 1 toggles, 2 pauses, 3 restarts.
+Inactive tracks freeze, including pendulums; phase and activation live in the existing mover fields
+and therefore use the same guest, physics and host snapshot/restore fences. No scheduler is added.

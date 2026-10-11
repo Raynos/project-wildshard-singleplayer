@@ -218,7 +218,13 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         lane = createShardfileComposedLane(shard, assets, options, { ...trustedBrains, query: trustedBrains.query ?? options.query, actors: host.entities, bindings: brainBindings }, extra);
       } else lane = extra === undefined ? createShardfileScriptLane(shard, assets, options) : createShardfileComposedLane(shard, assets, options, undefined, extra);
       if (moverDriver !== undefined) {
-        const runtime = new MoverRuntime(shard.movers, { host: lane.host, physics: () => host.physics, scope: host.scope, ...(ports.restoring === undefined ? {} : { restoring: ports.restoring }) });
+        const stateWorld = lane.world;
+        const runtime = new MoverRuntime(shard.movers, { host: lane.host, physics: () => host.physics, scope: host.scope,
+          activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined, shared: id => {
+            const field = shard.state.shared.find(row => row.id === id);
+            const value = field === undefined ? undefined : stateWorld.view(host.player.id).shared[field.name];
+            return typeof value === 'number' || typeof value === 'boolean' ? value : undefined;
+          } }, ...(ports.restoring === undefined ? {} : { restoring: ports.restoring }) });
         movers = runtime; installedMover.current = runtime;
         host.onStep('movers.declared', () => { runtime.capture(); }, { snapshot: () => runtime.snapshotState(resetMovers), restore: value => {
           if (typeof value !== 'string') throw new Error('Invalid mover continuation'); runtime.restoreState(value);

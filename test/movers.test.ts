@@ -18,6 +18,8 @@ import { parseMovers, type MoverData } from '@wildshard/format/movers';
 import { MoverRuntime, moverQueries, createMoverHost } from '../src/sdk/runtime/movers';
 import { MOVERS as DRIFT } from '../src/shards/driftwood-isle/data/movers';
 import { MOVERS as SKY } from '../src/shards/far-reach/data/movers';
+import { MOVERS as FROZEN_DRIFT } from '../src/shards/driftwood-isle-legacy/data/movers';
+import { MOVERS as FROZEN_SKY } from '../src/shards/far-reach-legacy/data/movers';
 import { SPANS } from '../src/shards/far-reach/data/layout';
 import { ropeSag } from '../src/shards/far-reach/layout';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
@@ -40,9 +42,9 @@ function boatReference(row: MoverData[number], tick: number) {
 
 describe('SF30 declared fixed-step movers', () => {
   it('rejects malformed primitives, duplicate handles, nonfinite data and excessive joint bodies before allocation', () => {
-    expect(parseMovers(DRIFT)).toEqual(DRIFT); expect(parseMovers(SKY)).toEqual(SKY);
+    expect(parseMovers(DRIFT)).toEqual(FROZEN_DRIFT); expect(parseMovers(SKY)).toEqual(FROZEN_SKY);
     const row = DRIFT[0]; if (row === undefined) throw new Error('Missing boat');
-    for (const bad of [[row, row], [{ ...row, at: { ...row.at, x: Infinity } }], [{ ...row, boxes: [] }], [{ ...row, euler: { ...row.euler, x: 4 } }], [{ ...row, input: Array.from({ length: 65 }, () => 0) }]]) expect(() => parseMovers(bad)).toThrow();
+    for (const bad of [[row, row], [{ ...row, at: { ...row.at, x: Infinity } }], [{ ...row, boxes: [] }], [{ ...row, euler: { ...row.euler, x: 4 } }], [{ ...row, input: Array.from({ length: 97 }, () => 0) }]]) expect(() => parseMovers(bad)).toThrow();
   });
   it('binds constants to trusted self and delegates all four physics query opcodes', () => {
     const calls: number[] = [], query = moverQueries(SKY, (kind) => { calls.push(kind); return [kind]; }), zero = Array.from({ length: 8 }, () => 0);
