@@ -6,8 +6,9 @@ import { PINE_LEVEL_SEED } from './eliteStreams';
 import { PINE_STRIKES, pineContact } from './strikes';
 import type { Lane, LaneBody, LaneState } from './lane';
 import type { KingGoalEnv } from '../runtime/KingGoals';
-import { phasedBossFight, type RoamingBossFight } from '@wildshard/sdk/phasedBoss';
-import { ANTLER_KING_FIGHT } from '../data/kingFight';
+import { bossFight, type RoamingBossFight } from '@wildshard/game/plugin/bossPhase';
+import { parseBossProfile } from '@wildshard/format/bossProfiles';
+import { ANTLER_KING_BOSS_PROFILE } from '../data/kingFight';
 
 /** the arena's threshold, the soft wall, the fog wall and his own leash round the clearing's centre (m) */
 export const KING_ARENA_IN = 22, KING_WALL_R = 27.5, KING_FOG_R = 31, KING_LEASH_R = 24;
@@ -40,7 +41,7 @@ export interface KingFightState {
   thralls: { a: string; lane: number; mode: 'approach' | 'charge' }[]; thrallLanes: LaneState[]; rngs: RngState[];
 }
 
-/** The page and native adapter bind the same declared phasedBoss policy, retaining the shipped continuation schema. */
+/** The page and native adapter bind the same admitted roaming boss profile, retaining the shipped continuation schema. */
 export abstract class AntlerKingCore<B extends KingBody> implements BossScript {
   protected abstract readonly ctx: KingCoreEnv<B>;
   protected abstract readonly tellRing: {setTime:(t:number)=>void;ring:(x:number,z:number,r:number,alpha:number)=>void;hide:()=>void};
@@ -52,9 +53,10 @@ export abstract class AntlerKingCore<B extends KingBody> implements BossScript {
   protected readonly rng: PineKingStreams;
   private readonly platform: RoamingBossFight<B,LaneState,RngState>;
   protected constructor(seed:number=PINE_LEVEL_SEED) {
+    parseBossProfile(ANTLER_KING_BOSS_PROFILE);
     this.rng=pineKingStreams(seed);
     const player=()=>this.ctx.player;
-    this.platform=phasedBossFight(ANTLER_KING_FIGHT,{
+    this.platform=bossFight(ANTLER_KING_BOSS_PROFILE,{
       player:{get position(){return player().position;},get onGround(){return player().onGround;},shove:(x,z,speed)=>this.ctx.player.shove(x,z,speed)},
       groundAt:(x,z)=>this.groundAt(x,z),
       body:{make:()=>this.makeKing(),retire:a=>this.retireKing(a),park:a=>this.parkKing(a),unpark:a=>this.unparkKing(a)},

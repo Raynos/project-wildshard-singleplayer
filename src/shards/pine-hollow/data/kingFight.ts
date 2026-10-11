@@ -35,3 +35,8 @@ export const ANTLER_KING_FIGHT = {
   hazards:{count:3,angleStart:1,angleStep:2.1,angleOffset:0.35,radius:10,radiusStep:2.5,fallSeconds:0.75,every:0.8,damage:9,strike:'lantern',fromPhase:1},
   sounds:{intro:'king_bells',roar:'king_roar',burst:'king_stomp',add:'thrall_call',charge:'thrall_groan'},
 } as const satisfies RoamingBossRow<'elk'|'boar','roar'|'sweep'|'strike'|'brace','king_bells'|'king_roar'|'king_stomp'|'thrall_call'|'thrall_groan'>;
+
+/** The King's complete boss profile; the interpreted origin is exactly x/z, while the clearing's other fields are layout. */
+export const ANTLER_KING_BOSS_PROFILE = { kind: 'boss', pattern: 'roaming', fight: {
+  ...ANTLER_KING_FIGHT, origin: { x: ANTLER_KING_FIGHT.origin.x, z: ANTLER_KING_FIGHT.origin.z },
+} } as const;

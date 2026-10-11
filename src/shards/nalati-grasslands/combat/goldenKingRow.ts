@@ -76,3 +76,6 @@ export const GOLDEN_KING_ROW: PhasedBossRow = {
   views: ['arena.lid.open', 'arena.shaft', 'arena.fx.hide', 'arena.shield', 'arena.shield.at', 'adds.spot', 'boss.glow', 'strike.arc', 'strike.arc.off',
     'hazard.ring', 'hazard.ring.off', 'hazard.ring.tell', 'hazard.pour.off', 'hazard.pour.tell', 'hazard.pour.fall', 'hazard.sweep', 'hazard.sweep.off', 'victory.heap'],
 };
+
+/** The Golden King's complete admitted arena profile; the chamber and native body remain its original owners. */
+export const GOLDEN_KING_BOSS_PROFILE = { kind: 'boss', pattern: 'arena', fight: GOLDEN_KING_ROW } as const;

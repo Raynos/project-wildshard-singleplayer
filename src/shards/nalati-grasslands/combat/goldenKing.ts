@@ -15,7 +15,8 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { encounterHit } from './damage';
 import * as THREE from 'three';
 import type { Bow } from '@wildshard/game/weapons/Bow';
-import { phasedBossFight, type PhasedBossFight } from '@wildshard/sdk/phasedBoss';
+import { bossFight, type PhasedBossFight } from '@wildshard/game/plugin/bossPhase';
+import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { KurganEntrance } from '../world/KurganField';
 import { GOLDEN_KING, bindGoldenKing } from '../species/goldenKing';
 import { BALBAL as KURGAN_BALBAL } from '../species/balbal';
@@ -24,7 +25,7 @@ import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { Boss, type BossDef, type BossPersistence } from '@wildshard/game/Boss';
 import { GoldenBowPower, goldenBowModel } from '../runtime/weapons/GoldenBow';
 import { KING_ENCOUNTER, KING_REWARD } from '../data/goldenKingFight';
-import { GOLDEN_KING_ROW } from './goldenKingRow';
+import { GOLDEN_KING_BOSS_PROFILE } from './goldenKingRow';
 import { goldenKingViews } from './goldenKingViews';
 
 
@@ -32,7 +33,7 @@ import { goldenKingViews } from './goldenKingViews';
  * The Golden King fight (plan row B13; design docs/design/nalati/elites-and-bosses.md §2 "The Golden King fight, step by
  * step"; mockups art/nalati-grasslands/round-2/5-bosses/). Two pieces:
  *
- *   goldenKingFight — the platform phased boss fight (`@wildshard/sdk/phasedBoss`, SHARD-PLATFORM SF27) on his row
+ *   goldenKingFight — the admitted arena boss profile (`@wildshard/game/plugin/bossPhase`, SF82) on his row
  *     (combat/goldenKingRow.ts) with the chamber's views (combat/goldenKingViews.ts): the King's brain (`bindGoldenKing`,
  *     the species forwards its 10 Hz tick here), his damage rule, the three phases and what each does to the room:
  *       I   "The King's Court" (100 → 60 %): he duels you on the open floor — the akinakes combo (14 / 14 / 22; the blade
@@ -89,6 +90,8 @@ export interface GoldenKingFight {
 
 /** The Golden King's fight in the kurgan chamber: his row on the platform phased boss fight, the chamber as its arena and views. */
 export function goldenKingFight(dungeon: KurganDungeon, host: FightHost): GoldenKingFight {
+  const profile = parseBossProfile(GOLDEN_KING_BOSS_PROFILE);
+  if (profile.pattern !== 'arena') throw new Error('The Golden King requires its declared arena pattern');
   /** out of the fight for good: hidden, out of the animals list (the minimap, the harvest prompt, the aim assist) */
   const retire = (a: Animal): void => {
     a.hidden = true; a.mesh.visible = false;
@@ -97,7 +100,7 @@ export function goldenKingFight(dungeon: KurganDungeon, host: FightHost): Golden
     if (i !== -1) list.splice(i, 1);
     a.mesh.removeFromParent();
   };
-  const phased: PhasedBossFight<Animal> = phasedBossFight<Animal>(GOLDEN_KING_ROW, {
+  const phased: PhasedBossFight<Animal> = bossFight<Animal>(profile, {
     arena: {
       floorAt: dungeon.floorHeightAt,
       pile: (x, z, r, dh, cap) => { dungeon.addSand(x, z, r, dh, cap); },
