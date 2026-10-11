@@ -137,7 +137,9 @@ export async function stageFloorGrid(plan, documentOrigin) {
     && state.borrowedHome?.instance === state.home && state.borrowedHome.level === state.cells.find(row => row.instance === state.home)?.slug
     && Number.isSafeInteger(state.borrowedHome.bytes) && state.borrowedHome.bytes > 0;
   const initial = read(), live = initial.live.live;
-  if (live.current !== plan.from && !(plan.start && live.current === null)) throw new Error(`Grid floor starts in ${live.current}, expected ${plan.from}`);
+  // Standing probes can leave home entered. Only the first road seed may change that source;
+  // its normal checkpoint / leave must still commit before the readiness loop below succeeds.
+  if (live.current !== plan.from && !(plan.start && (live.current === null || plan.from === null))) throw new Error(`Grid floor starts in ${live.current}, expected ${plan.from}`);
   input.clear();
   if (plan.start) {
     const origin = { x: live.worldFeet.x - player.position.x, z: live.worldFeet.z - player.position.z };

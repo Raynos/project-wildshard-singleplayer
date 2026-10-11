@@ -261,3 +261,34 @@ it('enters any named cell from the road at its home-side edge with one road seed
   expect(() => gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'driftwood-isle' })).toThrow('non-home');
   expect(gridFloorPlans({ home: 'home', cells: [...cells, corner] }, 'all')).toEqual(gridFloorPlans({ home: 'home', cells }, 'all'));
 });
+
+
+it('stages the first road seed from an entered home after standing probes and waits for the real leave', async () => {
+  const plan = gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'pine-hollow' })[0];
+  if (!plan) throw new Error('Missing cell route fixture');
+  const current = state('home', 277.5, 0), pose = vi.fn();
+  vi.useFakeTimers();
+  vi.stubGlobal('window', { __wildshard: { world: { player: { position: { x: 277.5, z: 0 } },
+    game: { app: { input: { clear: vi.fn() } } } }, pose,
+    shard: { grid: { state: () => current, residency: () => ({ claims: [] }) } } } });
+  try {
+    let complete = false;
+    const staged = stageFloorGrid(plan, performance.timeOrigin).then(value => { complete = true; return value; });
+    await vi.advanceTimersByTimeAsync(100);
+    expect(pose).toHaveBeenCalledExactlyOnceWith({ x: 0, y: 0.55, z: 277.5, yaw: 0, pitch: -0.08 });
+    expect(complete).toBe(false);
+    current.live.live.current = null;
+    await vi.advanceTimersByTimeAsync(100); expect(complete).toBe(false);
+    current.inside = null; current.live.live.gameplayReady = false;
+    await vi.advanceTimersByTimeAsync(100); expect(complete).toBe(false);
+    current.live.live.gameplayReady = true;
+    await vi.advanceTimersByTimeAsync(100);
+    expect((await staged).inside).toBeNull();
+    current.live.live.current = 'home'; current.inside = 'home';
+    pose.mockClear();
+    await expect(stageFloorGrid({ name: plan.name, from: plan.from, to: plan.to, waypoints: plan.waypoints, requiredResidents: plan.requiredResidents }, performance.timeOrigin)).rejects.toThrow('expected null');
+    expect(pose).not.toHaveBeenCalled();
+    current.live.crossing = { phase: 'save-failed', issue: 'disk full' };
+    await expect(stageFloorGrid(plan, performance.timeOrigin)).rejects.toThrow('source blocked: disk full');
+  } finally { restoreGlobals(); vi.useRealTimers(); }
+});
