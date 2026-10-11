@@ -18,6 +18,7 @@
 // exact commands. Unknown/build/browser failures refuse selection. Every prefix still runs the complete gate.
 //
 //   node scripts/green-prefix.mjs [--witness] <tip> <output-file>    prints a sha, or nothing (reason on stderr)
+// `--retry-current-tip` only identifies a committed descendant test edit; the caller must regenerate and gate it.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -72,6 +73,23 @@ export function newestPassing(candidates, passes) {
 
 const git = (/** @type {string} */ root, /** @type {string[]} */ args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
 const log = (/** @type {string} */ line) => { process.stderr.write(`green-prefix: ${line}\n`); };
+
+/** A committed descendant that edits a named failing test deserves one fresh complete gate, never a green inference.
+ * Only Vitest-only failures qualify; additions/deletions and working edits cannot supply this retry.
+ * @param {string} root @param {string} tip @param {string} out @returns {string | null} */
+export function newerTestFix(root, tip, out) {
+  const steps = failedSteps(out), files = failingTestFiles(out);
+  if (steps.length !== 1 || steps[0] !== 'vitest' || files.length === 0) return null;
+  if (files.some(file => !file.startsWith('test/') || file.split('/').some(part => part === '..' || part === '.' || part === ''))) return null;
+  try {
+    const red = git(root, ['rev-parse', `${tip}^{commit}`]), current = git(root, ['rev-parse', 'main^{commit}']);
+    if (red === current || spawnSync('git', ['merge-base', '--is-ancestor', red, current], { cwd: root }).status !== 0) return null;
+    const changes = git(root, ['diff', '--no-renames', '--name-status', red, current, '--', ...files.map(file => `:(literal)${file}`)]).split('\n').filter(Boolean);
+    if (changes.length === 0 || changes.some(change => !change.startsWith('M\t'))) return null;
+    log(`${current.slice(0, 9)} edits a failing test after ${red.slice(0, 9)}: regenerate and gate once before prefix search`);
+    return current;
+  } catch { return null; } // An unreadable commit or diff cannot authorize a retry.
+}
 
 /** Commits a gate already failed, from the gate's own timing records. @param {string} common */
 function gatedRed(common) {
@@ -195,6 +213,7 @@ function witnessProbe(root, common, sha) {
 export function greenPrefix(root, tip, out, mode = 'vitest') {
   /** @type {string[]} */
   let files = [];
+  /** @type {string[][]} */
   let commands = [];
   if (mode === 'witness') {
     if (!out.includes('witness-manifests: payloads changed')) { log('the regeneration failed for another reason: not bisected'); return null; }
@@ -243,9 +262,11 @@ export function greenPrefix(root, tip, out, mode = 'vitest') {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const witness = process.argv[2] === '--witness';
-  const [tip = '', file = ''] = process.argv.slice(witness ? 3 : 2);
-  if (tip === '' || file === '' || !existsSync(file)) { console.error('usage: green-prefix.mjs [--witness] <tip> <gate-or-regeneration-output-file>'); process.exit(64); }
+  const retry = process.argv[2] === '--retry-current-tip';
+  const [tip = '', file = ''] = process.argv.slice(witness || retry ? 3 : 2);
+  if (tip === '' || file === '' || !existsSync(file)) { console.error('usage: green-prefix.mjs [--witness|--retry-current-tip] <tip> <gate-or-regeneration-output-file>'); process.exit(64); }
   const root = git(process.cwd(), ['rev-parse', '--show-toplevel']);
-  const sha = greenPrefix(root, tip, readFileSync(file, 'utf8'), witness ? 'witness' : 'vitest');
+  const out = readFileSync(file, 'utf8');
+  const sha = retry ? newerTestFix(root, tip, out) : greenPrefix(root, tip, out, witness ? 'witness' : 'vitest');
   if (sha !== null) console.log(sha);
 }

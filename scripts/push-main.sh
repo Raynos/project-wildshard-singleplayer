@@ -60,7 +60,8 @@ try_prefix() {
     red_tip="$prefix"; flag=() # the prefix's own gate went red: bisect its failing files below it
   done
 }
-for _ in 1 2 3 4 5 6; do
+fresh_retry=0
+for push_round in 1 2 3 4 5 6; do
   # SF6b: one clean committed export and private-index regeneration while this pusher holds the lock.
   # Increases require GENERATED_APPROVAL_FILE with the coordinator's exact reviewed receipt.
   t0=$SECONDS
@@ -91,6 +92,19 @@ for _ in 1 2 3 4 5 6; do
     bash scripts/vercel-tree-gate.sh "$tip" 2>&1 | tee "$gout"; rc=${PIPESTATUS[0]}
     if [ "$rc" != 0 ]; then
       record "$tip" "$ahead" "$regen" "$((SECONDS - t0))" "$rc"
+      # One committed test repair may have landed while this old tip was gated.
+      # Regenerate latest main and run the complete gate before spending exports
+      # on historical prefixes. An edit is never proof, and the six-round bound
+      # and ordinary red/prefix path still apply if the fresh gate also fails.
+      if [ "$fresh_retry" = 0 ] && [ "$push_round" != 6 ]; then
+        newer="$(node scripts/green-prefix.mjs --retry-current-tip "$tip" "$gout")"
+        if [ -n "$newer" ]; then
+          fresh_retry=1
+          echo "push-main: committed test repair at ${newer:0:9}; retrying regeneration and complete gate once"
+          rm -f "$gout"
+          continue
+        fi
+      fi
       try_prefix vitest "$tip" "$gout"
       rm -f "$gout"
       exit "$rc"
