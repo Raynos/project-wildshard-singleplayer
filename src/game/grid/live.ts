@@ -471,6 +471,14 @@ export class LiveGridHost {
   async prepare(from: string | null, to: string | null): Promise<PreparedGridCrossing> {
     if (this.disposed || this.active !== from || from === to) throw new Error('Stale live frame preparation');
     if (this.ports.home.mode === 'owned' && from !== null && to !== null) throw new Error('Owned runtime crossing must commit onto the neutral road first');
+    if (this.ports.home.mode === 'owned' && from === null && to !== null) {
+      // A speculative approach can still be building when the traveller turns toward another cell.
+      // Retire it after it becomes resident, before the next foundation acquires a claim or allocates.
+      await this.sequence;
+      this.assertAlive();
+      if (this.current() !== from) throw new Error('Stale live frame preparation');
+      for (const instance of this.residents.keys()) if (instance !== to && !this.unload(instance)) throw new Error('Previous region is not durably retired');
+    }
     if (to !== null) await this.ensure(to);
     if (this.active !== from || !this.ready(to)) throw new Error('Unready live frame preparation');
     const destination = this.region(to)?.host;

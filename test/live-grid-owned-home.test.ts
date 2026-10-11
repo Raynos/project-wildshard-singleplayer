@@ -95,7 +95,7 @@ it('enters its owned home from the neutral shell and disposes it before allocati
     f.gameplay(false); f.failDispose.add('driftwood-isle');
     expect(registry.unload('driftwood-isle')).toBe(false);
     expect(owner.allocator.cost()).toEqual(before); expect(registry.state().residents).toEqual(['driftwood-isle']);
-    await expect(registry.prepare(null, 'pine-hollow')).rejects.toThrow('successful disposal');
+    await expect(registry.prepare(null, 'pine-hollow')).rejects.toThrow('durably retired');
     expect(f.creates).toEqual(['driftwood-isle']);
     f.failDispose.clear(); expect(registry.unload('driftwood-isle')).toBe(true);
     expect(first.scope.disposed).toBe(true); expect(first.physics.world.colliders).toBeUndefined(); expect(first.physics.world.bodies).toBeUndefined();
@@ -258,6 +258,40 @@ it('turns from the corner boulevard into a template mouth without retaining the 
     expect(f.registry.current()).toBe(cell.instance); expect(f.registry.state().residents).toEqual([cell.instance]);
     expect(f.owner.allocator.has('sim:pine-hollow')).toBe(false);
   } finally { f.finish(); }
+});
+
+it.each([false, true])('retires the speculative runtime that finishes after the next crossing was requested (save refused: %s)', async refused => {
+  let release = (): void => { throw new Error('No speculative runtime is waiting'); };
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const f = await open((instance, fallback) => {
+    const admission = fallback();
+    return Promise.resolve({ ...admission, exclusiveRuntime: !instance.startsWith('template-'), create: async (saved, lease) => {
+      const region = await admission.create(saved, lease);
+      if (instance === 'pine-hollow') await gate;
+      return region;
+    } });
+  }, undefined, 10);
+  const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+  try {
+    f.player.position.set(0, 0.5, 275); f.registry.beforeFixed();
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    expect(f.creates).toEqual(['pine-hollow']); expect(f.registry.state().residents).toEqual([]);
+    expect(f.registry.state().pending).toContain('pine-hollow');
+    // Arrival can precede the parallel world's completion; the road stays authoritative throughout.
+    const pending = f.registry.prepare(null, 'template-2');
+    await settle(); f.quota(refused); release();
+    if (refused) {
+      await expect(pending).rejects.toThrow('durably retired');
+      expect(f.creates).toEqual(['pine-hollow']); expect(f.registry.current()).toBeNull();
+      expect(f.owner.allocator.has('sim:pine-hollow')).toBe(true); expect(f.disposals).toEqual([]);
+      f.quota(false); f.registry.retry('pine-hollow');
+    }
+    const prepared = refused ? await f.registry.prepare(null, 'template-2') : await pending;
+    expect(f.disposals).toEqual(['pine-hollow']); expect(f.creates).toEqual(['pine-hollow', 'template-2']);
+    expect(f.owner.allocator.has('sim:pine-hollow')).toBe(false); expect(f.hosts.size).toBe(1);
+    expect(f.registry.current()).toBeNull(); prepared.commit(); expect(f.registry.current()).toBe('template-2');
+  } finally { release(); f.finish(); }
 });
 
 it('keeps a prepared approach across readiness-wall capsule recoil, then honours an actual road U-turn', async () => {
