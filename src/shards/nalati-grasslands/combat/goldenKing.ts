@@ -20,12 +20,13 @@ import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { KurganEntrance } from '../world/KurganField';
 import { GOLDEN_KING, bindGoldenKing } from '../species/goldenKing';
 import { BALBAL as KURGAN_BALBAL } from '../species/balbal';
-import { KurganDungeon, DUNGEON, CH, PEDESTAL, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } from '../world/KurganDungeon';
+import { KurganDungeon } from '../world/KurganDungeon';
+import { DUNGEON, CH, PEDESTAL, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } from '../data/kurganLayout';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { Boss, type BossDef, type BossPersistence } from '@wildshard/game/Boss';
 import { GoldenBowPower, goldenBowModel } from '../runtime/weapons/GoldenBow';
 import { KING_ENCOUNTER, KING_REWARD } from '../data/goldenKingFight';
-import { GOLDEN_KING_BOSS_PROFILE } from './goldenKingRow';
+import { GOLDEN_KING_BOSS_PROFILE } from '../data/goldenKingArena';
 import { goldenKingViews } from './goldenKingViews';
 
 
@@ -34,7 +35,7 @@ import { goldenKingViews } from './goldenKingViews';
  * step"; mockups art/nalati-grasslands/round-2/5-bosses/). Two pieces:
  *
  *   goldenKingFight — the admitted arena boss profile (`@wildshard/game/plugin/bossPhase`, SF82) on his row
- *     (combat/goldenKingRow.ts) with the chamber's views (combat/goldenKingViews.ts): the King's brain (`bindGoldenKing`,
+ *     (data/goldenKingArena.ts) with the chamber's views (combat/goldenKingViews.ts): the King's brain (`bindGoldenKing`,
  *     the species forwards its 10 Hz tick here), his damage rule, the three phases and what each does to the room:
  *       I   "The King's Court" (100 → 60 %): he duels you on the open floor — the akinakes combo (14 / 14 / 22; the blade
  *           glints before each cut, the third's wide arc is painted on the floor) and the SUNBURST (sword up, gold spirals

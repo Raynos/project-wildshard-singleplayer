@@ -1,7 +1,8 @@
 import type { BossViewBinding } from '@wildshard/sdk/phasedBoss';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import * as THREE from 'three';
-import { type KurganDungeon, DUNGEON, COFFIN } from '../world/KurganDungeon';
+import type { KurganDungeon } from '../world/KurganDungeon';
+import { DUNGEON, COFFIN } from '../data/kurganLayout';
 import { KING_TUNING } from '../data/goldenKingFight';
 
 /** The chamber the Golden King's views draw on: its lid, shafts, niches, rings, pours, beam, dome, painted arc and heap. */
@@ -11,7 +12,7 @@ const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _h = new THREE.Vector3
 const n = (value: number | undefined): number => value ?? 0;
 
 /**
- * The Golden King fight's view bindings (SF27): every view the platform fight (combat/goldenKingRow.ts) names, drawn on
+ * The Golden King fight's view bindings (SF27): every view the platform fight (data/goldenKingArena.ts) names, drawn on
  * the kurgan chamber's meshes in its local frame, and the King's gold glow on his body's materials. View only: nothing
  * here moves the fight.
  */

@@ -1,3 +1,4 @@
+import { DUNGEON, CH, DROMOS_END, COFFIN, PEDESTAL, NICHES, STREAMS } from '../data/kurganLayout';
 import { app } from '@wildshard/engine/app/runtime';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -52,9 +53,7 @@ import { pole, blob, lathe } from '@wildshard/engine/world/geometryKit';
 import { balbalGeometry } from '../models/balbal';
 
 /** where the interior lives (world): the chamber floor centre. Flat plateau under it (see the header). */
-export const DUNGEON = { x: -40, y: 140, z: -95 };
 /** chamber half size (m): 20 × 20 */
-export const CH = 10;
 /** the sand-drift grid over the chamber floor (cells per side) */
 const SAND_N = 40;
 // Frozen shipping recipe, seed 0xb0551, after chamber/dromos/gravegoods and before movables.
@@ -64,24 +63,11 @@ const STATIC_TRIANGLES = 111316;
 /** chamber wall / ceiling heights */
 const WALL_H = 5.3, BEAM_Y = 5.45, PLANK_Y = 5.95;
 /** the dromos: from the chamber's north door (z = CH) out to its far end (z = DROMOS_END), half width, height */
-export const DROMOS_END = 22.5;
 const DW = 1.5, DH = 3.0, DOOR_W = 1.35, DOOR_H = 2.9;
 /** where you appear coming in (and respawn after a death: the checkpoint), facing into the chamber (−z) */
-export const DROMOS_SPAWN = { x: 0, z: 20.3, yaw: 0 };
-export const CHECKPOINT = { x: 0, z: 15.5, yaw: 0 };
 /** the coffin (on its plinth, long axis along z) and the pedestal the reward appears on */
-export const COFFIN = { x: 0, z: -0.6, plinthH: 0.45, len: 3.2, wid: 1.3, h: 0.85 };
-export const PEDESTAL = { x: 0, z: -8.3, h: 0.95 };
 /** the wall niches the balbal adds step out of: local centre (in the wall plane) + the yaw they step out along */
-export const NICHES = [
-  { x: -CH + 0.2, z: 4.6, yaw: Math.PI / 2 }, { x: CH - 0.2, z: 4.6, yaw: -Math.PI / 2 },
-  { x: -CH + 0.2, z: -4.2, yaw: Math.PI / 2 }, { x: CH - 0.2, z: -4.2, yaw: -Math.PI / 2 },
-];
 /** the places sand pours through the ceiling in phase II (local x, z) */
-export const STREAMS: { x: number; z: number }[] = [
-  { x: -5.2, z: 3.4 }, { x: 4.8, z: 4.6 }, { x: -3.6, z: -5.0 }, { x: 5.6, z: -3.2 },
-  { x: -7.0, z: -0.6 }, { x: 1.8, z: 6.6 }, { x: 7.2, z: 1.2 }, { x: -1.6, z: -6.8 },
-];
 /** the fallen roof beams (high ground in the sand): local ends a → b, radius */
 const FALLEN = [
   { a: [-7.4, -2.8], b: [-3.8, -0.4], r: 0.32 },

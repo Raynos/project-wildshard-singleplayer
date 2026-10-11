@@ -10,7 +10,8 @@ import type { Player } from '../../../src/engine/player/Player';
 import * as THREE from 'three';
 import { GOLDEN_KING, bindGoldenKing } from '../../../src/shards/nalati-grasslands/species/goldenKing';
 import { BALBAL as KURGAN_BALBAL } from '../../../src/shards/nalati-grasslands/species/balbal';
-import { type KurganDungeon, DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT } from '../../../src/shards/nalati-grasslands/world/KurganDungeon';
+import type { KurganDungeon } from '../../../src/shards/nalati-grasslands/world/KurganDungeon';
+import { DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT } from '../../../src/shards/nalati-grasslands/data/kurganLayout';
 import type { BossScript } from '../../../src/engine/ai/BossBrain';
 import { KING_DEF_PHASES, KING_LINES, KING_TUNING } from '../../../src/shards/nalati-grasslands/data/goldenKingFight';
 

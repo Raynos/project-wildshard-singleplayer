@@ -4,7 +4,7 @@ import { BossProfileSchema, parseBossProfile } from '../../src/format/bossProfil
 import { EliteScriptSchema } from '../../src/format/eliteScripts';
 import type { BossFightProfile } from '../../src/game/plugin/bossPhase';
 import { ANTLER_KING_FIGHT } from '../../src/shards/pine-hollow/data/kingFight';
-import { GOLDEN_KING_ROW } from '../../src/shards/nalati-grasslands/combat/goldenKingRow';
+import { GOLDEN_KING_ROW } from '../../src/shards/nalati-grasslands/data/goldenKingArena';
 import { MATRIARCH_BOSS_PROFILE } from '../../src/shards/sunscar-dunes/data/matriarchBoss';
 import { ROC_FIGHT } from '../../src/shards/far-reach/data/rocFight';
 import { formatJsonSchema } from '../../src/sdk/formatJsonSchema';

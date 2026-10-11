@@ -10,7 +10,8 @@ import { BossBrain, type BossPresentation, type BossScript } from '../../../src/
 import { Rng } from '../../../src/engine/core/rng';
 import type { Player } from '../../../src/engine/player/Player';
 import { GOLDENKING_SPECIES } from '../../../src/shards/nalati-grasslands/species/goldenKing';
-import { KurganDungeon, DUNGEON, STREAMS } from '../../../src/shards/nalati-grasslands/world/KurganDungeon';
+import { KurganDungeon } from '../../../src/shards/nalati-grasslands/world/KurganDungeon';
+import { DUNGEON, STREAMS } from '../../../src/shards/nalati-grasslands/data/kurganLayout';
 import { KING_ENCOUNTER } from '../../../src/shards/nalati-grasslands/data/goldenKingFight';
 import { goldenKingFight } from '../../../src/shards/nalati-grasslands/combat/goldenKing';
 import { GoldenKingFight as OracleFight } from '../../fixtures/species-oracle/goldenKing';

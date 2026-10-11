@@ -1,6 +1,6 @@
 import type { PhasedBossRow } from '@wildshard/sdk/phasedBoss';
-import { DUNGEON, CH, COFFIN, NICHES, STREAMS } from '../world/KurganDungeon';
-import { KING_DEF_PHASES, KING_LINES, KING_TUNING } from '../data/goldenKingFight';
+import { DUNGEON, CH, COFFIN, NICHES, STREAMS } from './kurganLayout';
+import { KING_DEF_PHASES, KING_LINES, KING_TUNING } from './goldenKingFight';
 
 /**
  * The Golden King's fight as a platform phased boss row (SHARD-PLATFORM SF27; design docs/design/nalati/elites-and-bosses.md
