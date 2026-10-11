@@ -484,6 +484,8 @@ export function imageUploadBytes(texture: THREE.Texture): number {
 // Initialization still runs; only its empty upload wait may be omitted. A lost allocation
 // or either changed version requires the normal upload slice, including after recovery.
 function imageResident(renderer: Renderer, texture: THREE.Texture): boolean {
+  // These sources may advance and upload inside initTexture itself.
+  if (Reflect.get(texture, 'isVideoTexture') === true || Reflect.get(texture, 'isHTMLTexture') === true) return false;
   const store: unknown = Reflect.get(renderer, 'properties');
   const get: unknown = typeof store === 'object' && store !== null ? Reflect.get(store, 'get') : undefined;
   if (typeof get !== 'function') return false;

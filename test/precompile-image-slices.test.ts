@@ -50,10 +50,12 @@ it('uses the supplied live presentation barrier after every isolated image uploa
   expect(pause).toHaveBeenCalledTimes(3);
 });
 
-it.each(['resident', 'texture-version', 'source-version', 'lost', 'null'] as const)(
+it.each(['resident', 'texture-version', 'source-version', 'lost', 'null', 'video', 'html'] as const)(
   'keeps image initialization and waits only for a real upload when %s', async state => {
     const texture = new THREE.DataTexture(new Uint8Array([1, 2, 3, 255]), 1, 1);
     texture.needsUpdate = true;
+    if (state === 'video') Reflect.set(texture, 'isVideoTexture', true);
+    if (state === 'html') Reflect.set(texture, 'isHTMLTexture', true);
     const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
     if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Expected renderer prototype');
     const allocation = { __webglTexture: state === 'lost' ? undefined : state === 'null' ? null : {},
