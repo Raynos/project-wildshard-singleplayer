@@ -50,6 +50,30 @@ it('uses the supplied live presentation barrier after every isolated image uploa
   expect(pause).toHaveBeenCalledTimes(3);
 });
 
+it.each(['resident', 'texture-version', 'source-version', 'lost', 'null'] as const)(
+  'keeps image initialization and waits only for a real upload when %s', async state => {
+    const texture = new THREE.DataTexture(new Uint8Array([1, 2, 3, 255]), 1, 1);
+    texture.needsUpdate = true;
+    const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
+    if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Expected renderer prototype');
+    const allocation = { __webglTexture: state === 'lost' ? undefined : state === 'null' ? null : {},
+      __version: texture.version - (state === 'texture-version' ? 1 : 0) };
+    const source = { __version: texture.source.version - (state === 'source-version' ? 1 : 0) };
+    const initTexture = vi.fn(), pause = vi.fn().mockResolvedValue(undefined);
+    const commands = { extensions: { has: () => false }, info: { programs: [] }, initTexture,
+      properties: { get: (object: object) => object === texture ? allocation : object === texture.source ? source : {} } };
+    for (const [key, value] of Object.entries(commands)) Reflect.set(renderer, key, value);
+    try {
+      await runPrecompile(renderer, new THREE.PerspectiveCamera(), [], 0, undefined, [texture], () => true, true, pause);
+      expect(initTexture).toHaveBeenCalledExactlyOnceWith(texture);
+      expect(pause).toHaveBeenCalledTimes(state === 'resident' ? 0 : 1);
+      // A later context reset invalidates the allocation even though both versions still match.
+      initTexture.mockClear(); pause.mockClear(); allocation.__webglTexture = undefined;
+      await runPrecompile(renderer, new THREE.PerspectiveCamera(), [], 0, undefined, [texture], () => true, true, pause);
+      expect(initTexture).toHaveBeenCalledExactlyOnceWith(texture); expect(pause).toHaveBeenCalledTimes(1);
+    } finally { texture.dispose(); }
+  });
+
 function presentation() {
   const prior = scopeEnvironment(), scope = new Scope('draw-barrier-test');
   const frames = new Map<number, FrameRequestCallback>(); let id = 0, drawn = 7, current = true;

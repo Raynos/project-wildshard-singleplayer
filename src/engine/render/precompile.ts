@@ -480,6 +480,23 @@ export function imageUploadBytes(texture: THREE.Texture): number {
   return Math.round(texture.generateMipmaps ? texels * 4 / 3 : texels);
 }
 
+// Three's versioned allocation can already hold a page image borrowed by a new frame.
+// Initialization still runs; only its empty upload wait may be omitted. A lost allocation
+// or either changed version requires the normal upload slice, including after recovery.
+function imageResident(renderer: Renderer, texture: THREE.Texture): boolean {
+  const store: unknown = Reflect.get(renderer, 'properties');
+  const get: unknown = typeof store === 'object' && store !== null ? Reflect.get(store, 'get') : undefined;
+  if (typeof get !== 'function') return false;
+  const allocation: unknown = Reflect.apply(get, store, [texture]);
+  const source: unknown = Reflect.apply(get, store, [texture.source]);
+  return typeof allocation === 'object' && allocation !== null
+    && Reflect.get(allocation, '__webglTexture') !== undefined
+    && Reflect.get(allocation, '__webglTexture') !== null
+    && Reflect.get(allocation, '__version') === texture.version
+    && typeof source === 'object' && source !== null
+    && Reflect.get(source, '__version') === texture.source.version;
+}
+
 /** One drawn frame's batch of image uploads under a budget, predicting each upload's time from the measured rate. */
 interface UploadBatch { full: (bytes: number) => boolean; add: (bytes: number, ms: number) => void; reset: () => void; pending: () => boolean }
 function newUploadBatch(budget: UploadBudget): UploadBatch {
@@ -668,7 +685,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     checkCurrent();
     const compressed = tex instanceof THREE.CompressedTexture;
     const bytes = compressed ? 0 : imageUploadBytes(tex);
-    if (batch !== undefined && !compressed && !retired.has(tex) && batch.full(bytes)) { await pause(); checkCurrent(); batch.reset(); }
+    const imageUpload = !compressed && !retired.has(tex) && !(isolateImageUploads && imageResident(renderer, tex));
+    if (batch !== undefined && imageUpload && batch.full(bytes)) { await pause(); checkCurrent(); batch.reset(); }
     const tUpload = performance.now();
     if (!retired.has(tex)) {
       if (compressed) {
@@ -678,8 +696,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     }
     onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
     if (compressed) { checkCurrent(); tSlice = performance.now(); batch?.reset(); }
-    else if (batch !== undefined) { if (!retired.has(tex)) batch.add(bytes, performance.now() - tUpload); }
-    else if (isolateImageUploads || performance.now() - tSlice > 12) { await pause(); checkCurrent(); tSlice = performance.now(); }
+    else if (batch !== undefined) { if (imageUpload) batch.add(bytes, performance.now() - tUpload); }
+    else if (isolateImageUploads ? imageUpload : performance.now() - tSlice > 12) { await pause(); checkCurrent(); tSlice = performance.now(); }
   }
   // The batch's last uploads keep their own drawn frame before whatever follows warm-up, as isolation did.
   if (batch?.pending() === true) await pause();
