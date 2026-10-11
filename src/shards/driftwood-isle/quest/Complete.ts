@@ -19,7 +19,7 @@ import { ShardComplete, setCompleteEntry, type ShardCompleteData } from '@wildsh
 import { findChunk } from '@wildshard/game/shard/registry';
 import { travel } from '@wildshard/game/travel/travel';
 import { DRIFTWOOD_PLACES } from './Places';
-import { QUEST_DONE } from './questLine';
+import { QUEST_DONE } from '../data/questStory';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
 export const SEEN_COMPLETE = 'seen:complete';

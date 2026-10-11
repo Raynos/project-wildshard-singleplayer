@@ -14,7 +14,7 @@ import source from '../../../src/shards/driftwood-isle/shard.config';
 import { DRIFTWOOD_MARKERS } from '../../../src/shards/driftwood-isle/data/quests';
 import { bindDriftwoodFacts } from '../../../src/shards/driftwood-isle/quest/facts';
 import { DRIFTWOOD_FEATS } from '../../../src/shards/driftwood-isle/data/questInventory';
-import { DRIFTWOOD_QUEST } from '../../../src/shards/driftwood-isle/quest/questLine';
+import { DRIFTWOOD_QUEST } from '../../../src/shards/driftwood-isle/data/questStory';
 
 const ledger = (): Ledger => new Ledger(app.saves, [{ id: manifest.slug, shard: manifest.slug }],
   [{ shard: manifest.slug, revision: source.identity.revision, rules: source.ledger }], []);

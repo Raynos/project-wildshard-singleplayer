@@ -1,5 +1,5 @@
 import { parseQuestData } from '@wildshard/sdk/quests';
-import { DRIFTWOOD_QUEST } from '../quest/questLine';
+import { DRIFTWOOD_QUEST } from './questStory';
 
 // Declared markers carry their stable IDs; the trusted placement port restores the original POI/anchor/dy recipe.
 const markers = [...(DRIFTWOOD_QUEST.intro?.markers ?? []), ...DRIFTWOOD_QUEST.steps.flatMap(step => step.markers ?? [])];

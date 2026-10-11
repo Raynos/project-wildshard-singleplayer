@@ -4,13 +4,22 @@
  * (src/shards/driftwood-isle/quest/interactables.ts) and by Adventure.ts (`talked:castaway` when the dialogue ends, `dead:sailor` /
  * `dead:captain` on the kills, `seen:reward` after the reward view).
  */
-import { SHARD_FLAGS } from './interactables';
-import type { QuestDef } from '@wildshard/engine/quest/core';
+import { SHARD_FLAGS } from '../quest/interactables';
 import { parseNpcDialogueRow } from '@wildshard/sdk/questGraph';
+import type { QuestData } from '@wildshard/sdk/quests';
 
+type DeclaredQuest = QuestData['quests'][number];
+type DeclaredMarker = NonNullable<DeclaredQuest['steps'][number]['markers']>[number];
+type NativeMarker = Omit<DeclaredMarker, 'at'> & { at: { poi: 'world' | 'hut' | 'lookout' | 'wreck' | 'shrine' | 'cave' | 'pier'; x: number; z: number; y?: number; dy?: number; yaw?: number; anchor?: string } };
+type NativeStep = Omit<DeclaredQuest['steps'][number], 'markers'> & { markers?: NativeMarker[] };
+type NativeStory = Omit<DeclaredQuest, 'intro' | 'steps'> & { intro?: Omit<NonNullable<DeclaredQuest['intro']>, 'markers'> & { markers?: NativeMarker[] }; steps: NativeStep[] };
+
+
+/** Existing durable completion flag. */
 export const QUEST_DONE = 'quest:driftwood-done';
 
-export const DRIFTWOOD_QUEST: QuestDef = {
+/** Existing page quest and exact authored POI/anchor markers, compiled to public world markers in data/quests. */
+export const DRIFTWOOD_QUEST: NativeStory = {
   id: 'sealed-ring',
   title: 'The Sealed Ring',
   startWhen: { all: ['talked:castaway'] },

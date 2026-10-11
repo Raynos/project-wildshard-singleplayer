@@ -4,7 +4,7 @@
  * The vista bench keeps its original player pose and toast.
  */
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from './interactables';
-import { QUEST_DONE } from './questLine';
+import { QUEST_DONE } from '../data/questStory';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
 

@@ -8,7 +8,7 @@ import { lineFor } from '../../../src/engine/quest/core';
 import { InteractionRules } from '../../../src/game/quest/interactionRows';
 import { DRIFTWOOD_INTERACT } from '../../../src/shards/driftwood-isle/quest/interactables';
 import { DRIFTWOOD_ACTIONS } from '../../../src/shards/driftwood-isle/data/questGraph';
-import { CASTAWAY } from '../../../src/shards/driftwood-isle/quest/questLine';
+import { CASTAWAY } from '../../../src/shards/driftwood-isle/data/questStory';
 import { SHIPPING_CASTAWAY } from '../../fixtures/quest-oracle/driftwood-castaway';
 import { fakeWorld } from '../../fake/world';
 

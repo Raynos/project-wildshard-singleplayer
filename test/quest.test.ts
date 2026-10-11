@@ -5,7 +5,7 @@ import { Flags } from '../src/engine/world/interact/flags';
 import { flagsRaised } from '../src/engine/world/interact/types';
 import { DRIFTWOOD_INTERACT, SHARD_FLAGS } from '../src/shards/driftwood-isle/quest/interactables';
 import { QuestState, lineFor, validateQuest, type QuestDef, type QuestStep } from '../src/engine/quest/core';
-import { CASTAWAY, DRIFTWOOD_QUEST, QUEST_DONE, QUEST_EXTERNAL } from '../src/shards/driftwood-isle/quest/questLine';
+import { CASTAWAY, DRIFTWOOD_QUEST, QUEST_DONE, QUEST_EXTERNAL } from '../src/shards/driftwood-isle/data/questStory';
 
 const raised = new Set<string>([...DRIFTWOOD_INTERACT.external, ...QUEST_EXTERNAL, ...DRIFTWOOD_INTERACT.rows.flatMap(flagsRaised)]);
 

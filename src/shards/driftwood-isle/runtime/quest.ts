@@ -13,7 +13,7 @@ import { installQuestGraph } from '@wildshard/game/plugin/quests';
 import type { AchievementDef } from '@wildshard/game/achievements';
 import { SEA_GLASS_FLAG, SHARD_FLAGS } from '../quest/interactables';
 import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from '../data/questGraph';
-import { QUEST_DONE } from '../quest/questLine';
+import { QUEST_DONE } from '../data/questStory';
 import baked from './spots.baked.json' with { type: 'json' };
 import { DriftwoodPack } from './pack';
 import { ZiplineDriver } from '@wildshard/game/plugin/mover';

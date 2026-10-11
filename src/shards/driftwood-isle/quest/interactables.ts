@@ -1,6 +1,6 @@
 /**
  * Driftwood Isle's interactables — the data table (A2 kit, A3 puzzles, A4 collectibles). Pure data: validated by
- * `validateTable` (test/interact.test.ts), built by `Interactables`, read by the quest (src/shards/driftwood-isle/quest/questLine.ts)
+ * `validateTable` (test/interact.test.ts), built by `Interactables`, read by the quest (src/shards/driftwood-isle/data/questStory.ts)
  * through flags. Local frames are the POI modules' (types.ts `Place`): hut door at local −z; wreck x = starboard,
  * z = stern; cave mouth at local −z (the interior is +z); shrine front (the pillars' gap) at local −z; lookout stair
  * toward local −z. `anchor` names are the model agent's exported points (Wreck/Cove/Shrine/Lookout/Hut `anchors`);

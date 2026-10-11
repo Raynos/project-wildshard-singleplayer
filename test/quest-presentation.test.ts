@@ -18,7 +18,7 @@ import { RetainedRuntimeHooks, installEnteredRuntimeInput } from "../src/game/pl
 import { emptyShardfileSource } from '../src/game/plugin/loader';
 import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from './fake/FakeGame';
-import { DRIFTWOOD_QUEST } from '../src/shards/driftwood-isle/quest/questLine';
+import { DRIFTWOOD_QUEST } from '../src/shards/driftwood-isle/data/questStory';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); practiceRoom.open = false; document.body.replaceChildren(); });

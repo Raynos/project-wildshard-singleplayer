@@ -5,7 +5,7 @@ import { Progress } from '../../../src/game/Progress';
 import { GridAssembly } from '../../../src/game/grid/assembly';
 import { firstPartyInstance } from '../../../src/game/grid/instances';
 import { progressSave } from '../../../src/game/saves';
-import { DRIFTWOOD_QUEST, QUEST_DONE } from '../../../src/shards/driftwood-isle/quest/questLine';
+import { DRIFTWOOD_QUEST, QUEST_DONE } from '../../../src/shards/driftwood-isle/data/questStory';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import { DRIFTWOOD_RUNTIME_COST } from '../../../src/shards/driftwood-isle/data/runtimeCost';
 import { DRIFTWOOD_ISLE } from '../../../src/shards/driftwood-isle/manifest';

@@ -19,7 +19,7 @@ import { bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/h
 import source from '../shard.config';
 import { DRIFTWOOD_MARKERS } from '../data/quests';
 import { presentQuest } from '@wildshard/game/quest/presentation';
-import { CASTAWAY, DRIFTWOOD_QUEST } from './questLine';
+import { CASTAWAY, DRIFTWOOD_QUEST } from '../data/questStory';
 import type { Castaway } from '../npc/Castaway';
 import { castawayRig } from './people';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
