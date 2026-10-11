@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DiverBrain, type WindDiverPorts } from '@wildshard/engine/ai/diver';
-import { QYRAN_PROFILE, QYRAN_GROUNDED } from './qyranData';
+import { QYRAN_PROFILE, QYRAN_GROUNDED } from '../data/qyranProfile';
 
 /** Existing native body, wind/altitude/contact and entered cue ports. */
 export interface QyranPorts<A extends AnimalSim> extends Omit<WindDiverPorts<A>, 'grounded' | 'cry'> {

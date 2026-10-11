@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { AQBARS_PROFILE, KOKBORI_PROFILE, AQBARS_BRAIN, KOKBORI_BRAIN } from '../../../src/shards/nalati-grasslands/runtime/eliteBrains';
-import { QYRAN_PROFILE, QYRAN_BRAIN } from '../../../src/shards/nalati-grasslands/runtime/qyranData';
+import { QYRAN_PROFILE, QYRAN_BRAIN } from '../../../src/shards/nalati-grasslands/data/qyranProfile';
 import { EAGLE_DATA } from '../../../src/shards/nalati-grasslands/data/species/eagle';
 import { EAGLE_SPECIES } from '../../../src/shards/nalati-grasslands/species/eagle';
 import { LEOPARD_DATA } from '../../../src/shards/nalati-grasslands/data/species/leopard';

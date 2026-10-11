@@ -1,7 +1,5 @@
-import type { WindStooperSpec } from './windStooper';
-
 /** Qyran's shipping downwind orbit, altitude, tell, stoop and grounded-window law. */
-export const QYRAN_BRAIN: { readonly archetype: 'wind-stooper'; readonly data: WindStooperSpec } = { archetype: 'wind-stooper', data: {
+export const QYRAN_BRAIN = { archetype: 'wind-stooper', data: {
   initialCooldown: 8, lookTurn: 1,
   fields: { altitude: 'altY', smoothed: 'altS', flap: 'flap', fold: 'fold', ground: 'ground', bank: 'bank' },
   cruise: { home: 34, homePhase2: 52, player: 24, playerPhase2: 36, clearance: 18, wave: 2, waveFrequency: 0.5, ease: 0.6 },
@@ -11,7 +9,7 @@ export const QYRAN_BRAIN: { readonly archetype: 'wind-stooper'; readonly data: W
   stoop: { targetHeight: 0.9, speed: 40, arrival: 0.6, alpha: 0.5, range: 2.4, playerHeight: 1.5, damage: 30, climbHeight: 2,
     cooldown: 7, randomCooldown: 2, phaseCooldown: 4.5, phaseRandom: 1.5 },
   ground: { onScale: 0.55, idleScale: 0.42, seconds: 2, damage: 2.5 },
-} };
+} } as const;
 /** Existing entered cue, preserved verbatim. */
 export const QYRAN_GROUNDED = 'Qyran is GROUNDED';
 

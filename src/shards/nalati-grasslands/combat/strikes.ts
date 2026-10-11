@@ -1,6 +1,9 @@
 import { canReach } from '@wildshard/engine/ai/reach';
 import { StrikeRunner, type StrikeActor, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { Vector3 } from 'three';
+import { strike } from '@wildshard/sdk/species';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
+import { NALATI_STRIKE_ROWS } from '../data/strikeProfiles';
 
 const point = (radius: number): StrikeSpec['shape'] => ({ kind: 'point', radius, exclusive: true });
 const row = (id: string, shape: StrikeSpec['shape'], damage: number, windup = 0, recover = 0, cooldown = 0, exempt = false): StrikeSpec => ({
@@ -9,23 +12,24 @@ const row = (id: string, shape: StrikeSpec['shape'], damage: number, windup = 0,
 });
 /** Authored goal/body clocks sample these rows; contact() adds no clock or random draw. */
 export const NALATI_STRIKES = {
-  wolf: row('wolf.lunge', point(1.65), 12, 0.4, 1.1),
-  balbal: row('balbal.slam', { kind: 'wedge', length: 3.5, halfAngle: 0.96 }, 30, 2.9 * 0.55, 2.9 * 0.45, 1.4),
-  arrow: { ...row('ghost-rider.arrow', point(0.5), 10), motion: { speed: 34 } },
-  swipe: row('aqbars.swipe', point(2.9), 14, 0.45, 0.2, 1.4),
-  pounce: row('aqbars.pounce', point(1.9), 35, 1, 1.5),
-  bite: row('kokbori.bite', point(3.2), 22, 0.9 * 0.7, 0.9 * 0.3, 1.8),
-  stoop: row('qyran.stoop', point(2.4), 30, 1.2),
-  captain: row('qara-batyr.charge', point(1.9), 38, 1.3),
-  stallion: { ...row('horse.stallion', point(1.9), 25, 0, 0, 5), motion: { speed: 12 } },
-  cuts: [14, 14, 22, 22].map((damage, i) => row(`golden-king.cut${i}`, { kind: 'arc', radius: i < 2 ? 3 : 3.3, halfAngle: i < 2 ? 0.95 : 1.35 }, damage, 0.95 * 0.62)),
-  sunburst: { ...row('golden-king.sunburst', { kind: 'ring', inner: -0.5, outer: 0.5 }, 25, 0, 0, 0, true), motion: { speed: 8.5 } },
-  beam: row('golden-king.beam', point(1.15), 15, 0, 0, 1, true),
-  sand: row('golden-king.sand', point(0.55), 4, 1, 6, 0, true),
-  spear: row('titan.spear', point(4.5), 40, 1.5, 3),
-  whirl: row('titan.whirl', point(3.2), 15),
-  wind: row('titan.wind-charge', point(3.4), 30, 1.2, 4),
-  chain: row('titan.chain', point(3), 18, 0.6, 0, 0, true),
+  wolf: strikeFromData(strike(NALATI_STRIKE_ROWS.wolf)),
+  balbal: strikeFromData(strike(NALATI_STRIKE_ROWS.balbal)),
+  arrow: strikeFromData(strike(NALATI_STRIKE_ROWS.arrow)),
+  swipe: strikeFromData(strike(NALATI_STRIKE_ROWS.swipe)),
+  pounce: strikeFromData(strike(NALATI_STRIKE_ROWS.pounce)),
+  bite: strikeFromData(strike(NALATI_STRIKE_ROWS.bite)),
+  stoop: strikeFromData(strike(NALATI_STRIKE_ROWS.stoop)),
+  captain: strikeFromData(strike(NALATI_STRIKE_ROWS.captain)),
+  stallion: strikeFromData(strike(NALATI_STRIKE_ROWS.stallion)),
+  cuts: NALATI_STRIKE_ROWS.cuts.map(r => strikeFromData(strike(r))),
+  sunburst: strikeFromData(strike(NALATI_STRIKE_ROWS.sunburst)),
+  beam: strikeFromData(strike(NALATI_STRIKE_ROWS.beam)),
+  sand: strikeFromData(strike(NALATI_STRIKE_ROWS.sand)),
+  spear: strikeFromData(strike(NALATI_STRIKE_ROWS.spear)),
+  whirl: strikeFromData(strike(NALATI_STRIKE_ROWS.whirl)),
+  wind: strikeFromData(strike(NALATI_STRIKE_ROWS.wind)),
+  chain: strikeFromData(strike(NALATI_STRIKE_ROWS.chain)),
+  // Arena-wide contacts have intentionally unbounded shapes; the finite authored schema cannot express them.
   fire: row('titan.fire', point(Infinity), 4, 0, 7, 0.5, true),
   wall: row('titan.storm-wall', point(Infinity), 10, 0, 0, 1.2, true),
 } satisfies Record<string, StrikeSpec | StrikeSpec[]>;
