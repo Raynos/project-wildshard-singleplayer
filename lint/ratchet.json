@@ -189,6 +189,7 @@
     "src/shards/sunscar-dunes/generators/bake-skitterer-behaviour.mjs": 3,
     "src/shards/sunscar-dunes/generators/dressing.ts": 3,
     "src/shards/sunscar-dunes/generators/kinds.ts": 1,
+    "src/shards/sunscar-dunes/generators/landscape.ts": 1,
     "src/shards/sunscar-dunes/generators/places.ts": 1,
     "src/shards/sunscar-dunes/generators/rocks.ts": 3,
     "src/shards/sunscar-dunes/generators/tiles.ts": 1,
