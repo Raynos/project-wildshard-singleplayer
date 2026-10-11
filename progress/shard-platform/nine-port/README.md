@@ -6,7 +6,7 @@ G291/G294 before: **15,209 / 21,111 = 72.0430% custom**.
 After the native Jian row slice: **15,208 / 21,111 = 72.0383% custom**.
 After explicit grapple-mode admission: **15,212 / 21,111 = 72.0572% custom**.
 After explicit native portal/director admission: **15,218 / 21,111 = 72.0856% custom**; 20% gate FAIL. The ten additional host admission lines are charged, not presented as a size reduction.
-After the shared Nine/Sky standalone lifecycle: **15,201 / 21,111 = 72.0051% custom**; −17 genuinely duplicated shard lines. The 20% gate still FAILS.
+After the shared Nine/Sky standalone lifecycle and page mode binding: **15,202 / 21,111 = 72.0099% custom**. The lifecycle retired 17 genuinely duplicated shard lines; the page mode binding adds one explicit mode read. The 20% gate still FAILS.
 The frozen denominator is `nine-dragon-stack-legacy` at `8e297137b940f50da7f1949106d5576f80f238ca`. Current numerator: 14,292 authored shard TS lines, 1 additional GLSL line and 908 one-user platform lines. Embedded GLSL (3,205 lines) is already inside the TS numerator, not added twice. AS: 0. Generated data never counts. The template is not a second user.
 
 Nine remains **transitional**: its gameplay witness/replay/ledger pass, but trusted TS still runs its simulation. The source-only export has no emitted shardfile product, so the content gate is unavailable; no tiles/collider/file completeness or finished 80/20 conversion is claimed.
@@ -44,12 +44,33 @@ The identical Nine and Sky standalone lifecycle now has one implementation in th
 
 Proof: 34 focused tests across six files, strict typecheck and touched-file typed lint pass in the clean export. The actual Nine/Sky wrappers preserve two fresh legacy and data-backed admissions, pending and failed admission fences, and exact world/kit/play order. All four native witness payloads remain byte-identical. No collider or map input changed.
 
+## Fifth slice: one numeric grapple row for page and native selection
+
+The page Tool now gives its existing selector and fire/reel presentation the installed course’s admitted numeric mode. Previously those ports read separate global defaults while the native law read `course.mode`. Nine’s shipped row equals those old numeric defaults exactly. The existing selector, controls, law and course geometry are retained. The Tool and native host now consume the same range, screen window and phase timing declaration. A real page Tool/Rapier fixture verifies a deliberately shorter declared range and compares 120 authored-vs-legacy-default capsule/input ticks exactly. Dynamic playground course changes still retain their existing installation-time presentation ports; no extra closure is claimed.
+
+Proof: 27 focused tests across five files, strict typecheck, touched-file typed lint and hooks. The page Tool uses real Rapier, and the native row oracle/Well sight/physics provenance fixtures pass. All four witness payloads are byte-identical. No physics or map input was changed.
+
 ## Remaining work
 
 - **OPEN, non-visual:** native item/portal/grapple host adapters and continuation. Portal links and DIR stages already drive the native ride; grapple numeric modes already drive the shared law. The Well’s line-of-sight exception, cap owner and lift geometry require explicit course ports. Deleting those adapters without an equivalent row host would change gameplay.
 - **OPEN, authoring:** an emitted structural world product and readable SDK generators must replace the remaining code-built world. Moving a runtime builder into `data/` or counting generated files as authored work is not a conversion.
 - **WAITING FOR OPUS:** raw GLSL/materials, signs/font atlas, viewmodels/aim/HUD presentation, visual culling, portal veil, cloth/canopy, and final world/material pixel parity. These remain custom until genuinely replaced.
 - **OPEN, shared ownership:** the one-user platform modules below count fully under G294. A second real shard must actually use them; no wrapper or template user removes that charge.
+
+## Non-graphical stop inventory
+
+The remaining authored TS inventory below is complete at this slice; the 178-file inventory reproduces the defining metric. There are real non-graphical blockers, so the port is not declared finished.
+
+| Remaining owner | Exact state / blocker |
+|---|---|
+| `runtime/jian.ts`, `runtime/items.ts`, `runtime/facts.ts` | Admitted melee/item/ledger rows already drive the shared laws. Native input, continuation, prebuilt equipment lifecycle and gameplay fact emission remain explicit host adapters. There is no unhosted quest or creature policy to convert. |
+| `runtime/grapple.ts`, `grapple/sim.ts` | Numeric grapple mode is admitted in both page and native. `format/modes.ts` has no declared course for the Well owner-id LOS exception, guard activation, crossing lift predicate or lift-to geometry; those actual physics ports remain custom. Replacing them with defaults changes outcomes. |
+| `runtime/portals/walkInRide.ts`, `hostRide.ts`, `ringPortals.ts` | Declared nodes, floor checks and DIR stages already drive the ride. The per-road exit choice, hold/transfer/settle side effects and version-2 continuation remain the native/page host; no general autonomous portal-ride row replaces them today. |
+| `runtime/headless.ts`, `runtime/props/bakedColliders.ts`, `edgeDecks.ts` | Strict restoration of captured world pieces, exact standalone cap subtraction and real collision owner registration remain. These retire when the complete emitted world owns those same colliders, including dynamic guard ownership. |
+| `world/colliders.ts`, `floorRows.ts`, `stairPlan.ts`, `wellBounds.ts`, remaining structural builders | The Node portal-floor generator emits the decks and square. The rest of the world is still native. The authoring collider API currently exposes box/capsule/hull/trimesh but no treads scene declaration; the old stair flights must retain their exact treads descriptors. Full static product assembly also needs the shard’s graphical material/atlas conversion. No partial floor product replaces the complete native world. |
+| `runtime/audio/*`, boot/manifest/plugin/configuration files | Declared audio selection and runtime lifecycle are hosted already; their file mapping, zone blend and caller lifetimes remain charged custom. A one-user platform relocation would leave the G294 numerator unchanged. |
+
+**Blocker:** deleting the remaining native adapters requires equivalent declared course/portal hosts and a complete authored world product. Neither exists on this tree. No second actual user has been identified for a new shared Well-course host, and G294 forbids hiding that one-user law in game/SDK/engine. The custom source stays present and charged. Graphical material/atlas/view/HUD/culling owners remain **WAITING FOR OPUS**. AssemblyScript is **0 lines**, report-only; trusted simulation remains **transitional**. No compatible:true or 80/20 closure is inferred from the exact replay gates.
 
 ## One-user platform attribution
 
@@ -139,7 +160,7 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `world/portals.ts` | 53 | O |
 | `world/specimens.ts` | 52 | O |
 | `world/floorRows.ts` | 51 | X |
-| `grapple/FeiZhua.ts` | 49 | O |
+| `grapple/FeiZhua.ts` | 50 | O |
 | `runtime/portals/hostRide.ts` | 49 | X |
 | `runtime/looks/weave.ts` | 48 | O |
 | `look/light/pools.ts` | 47 | O |

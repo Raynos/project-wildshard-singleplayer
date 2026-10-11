@@ -13,6 +13,8 @@ import type { HudVerbs } from '../../../src/engine/level/context';
 import type { DiscSpot, TouchRelabel } from '../../../src/engine/ui/hudSlots';
 import type { ShardContext } from "../../../src/game/plugin/context";
 import { FeiZhua } from '../../../src/shards/nine-dragon-stack/grapple/FeiZhua';
+import type { GrappleMode } from '../../../src/format/modes';
+import { NINE_GRAPPLE } from '../../../src/shards/nine-dragon-stack/data/modes';
 import { FEI_ZHUA_ROW } from '../../../src/shards/nine-dragon-stack/grapple/row';
 import { toolEntries } from '../../../src/game/bag/equipment';
 import { Physics } from '../../../src/engine/physics/Physics';
@@ -31,7 +33,7 @@ beforeAll(async () => {
   R = await loadRapier(new Uint8Array(readFileSync(path)).buffer);
 });
 afterEach(() => { for (const fn of cleanup.splice(0)) fn(); document.body.replaceChildren(); });
-function setup(hooks = [new Vector3(0, 1.6, -10)], enemy = false) {
+function setup(hooks = [new Vector3(0, 1.6, -10)], enemy = false, mode?: GrappleMode) {
   const app = new App(), scope = new Scope('fei-zhua'), physics = new Physics(R), fake = new FakeGame();
   app.levelScope = scope; app.physics = physics; app.setState('play');
   physics.world.createCollider(R.ColliderDesc.cuboid(4, 0.5, 4).setTranslation(0, -0.5, -10).setCollisionGroups(groups('WORLD')));
@@ -47,7 +49,7 @@ function setup(hooks = [new Vector3(0, 1.6, -10)], enemy = false) {
   app.input.touchSink((next) => { labels = next; }, scope);
   const pins: HTMLElement[] = [];
   const ctx = legacyDouble<ShardContext>({ app, scope, debug: { expose: () => undefined }, hud: legacyDouble<HudVerbs>({ relabel: () => () => undefined, pin: (_at, el) => { pins.push(el); document.body.append(el); scope.onDispose(() => el.remove()); } }) });
-  const tool = new FeiZhua(ctx, { name: 'test', hooks }); tool.install({ scope, events: app.events });
+  const tool = new FeiZhua(ctx, { name: 'test', hooks, ...(mode === undefined ? {} : { mode }) }); tool.install({ scope, events: app.events });
   physics.step();
   const phase = (name: 'input' | 'update' | 'fixed.post'): void => {
     for (const system of app.systemsByPhase()[name]) if (system.when?.(app) !== false) system.run(1 / 60, 0);
@@ -85,6 +87,27 @@ describe('Fei Zhua Tool on the shared input and traversal contracts', () => {
     f.tool.setGrappleCourse({ name: 'playground', hooks: [new Vector3(0, 1.6, -10)] });
     f.update(); f.press('lock'); expect(f.app.input.pressed('lock')).toBe(false);
     f.tool.setGrappleCourse(null); f.update(); f.press('lock'); expect(f.app.input.consume('lock')).toBe(true);
+  });
+  it('uses the course range in the actual page selector instead of a second global limit', () => {
+    const short = setup(undefined, false, { ...NINE_GRAPPLE, maxRange: 5 });
+    short.update(); expect(short.app.input.top).toBe('');
+    short.press('lock'); short.update(); expect(short.labels().lock?.label).toBe('Armed');
+    const authored = setup(undefined, false, NINE_GRAPPLE);
+    authored.update(); expect(authored.app.input.top).toBe('grapple');
+    authored.press('lock'); authored.update(); expect(authored.labels().lock?.label).toBe('Locked');
+  });
+  it('preserves every authored page selection, input and actual capsule step against the legacy numeric defaults', () => {
+    const trace = (mode?: GrappleMode): unknown[] => {
+      const f = setup(undefined, false, mode); const rows: unknown[] = [];
+      f.update(); f.press('lock'); f.update(); f.press('jump');
+      for (let tick = 0; tick < 120; tick++) {
+        const held = f.app.events.ask('player.traversal', 1 / 60);
+        f.update();
+        rows.push([held, f.position.toArray(), f.velocity.toArray(), f.app.input.top, f.labels().lock?.label, f.labels().jump?.label]);
+      }
+      rows.push(f.playLeft.mock.calls); f.scope.dispose(); return rows;
+    };
+    expect(trace(NINE_GRAPPLE)).toEqual(trace());
   });
   it('builds the existing GEAR card from the authored Tool metadata', () => {
     const f = setup(); expect(f.tool.row).toBe(FEI_ZHUA_ROW);

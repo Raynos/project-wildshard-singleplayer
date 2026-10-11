@@ -1,4 +1,4 @@
-import { type GrappleCourse, type GrapplePorts, FIRE_TIME, GrappleSim, type GrappleTarget, hookVisible, landingFor, MAX_RANGE, MIN_RANGE, NONE, REEL_TIME, type Side, targetFor, WIN_X, WIN_Y } from '@wildshard/game/plugin/mover';
+import { type GrappleCourse, type GrapplePorts, DEFAULT_GRAPPLE_MODE, GrappleSim, type GrappleTarget, hookVisible, landingFor, NONE, type Side, targetFor } from '@wildshard/game/plugin/mover';
 /**
  * Fei Zhua in the partial shard: LOCK a visible brass dragon ring, JUMP to fire, then zip through Rapier's player capsule.
  *
@@ -46,6 +46,7 @@ export class FeiZhua extends Tool {
     // the law's ports: the page's physics and Player (read live, as the Tool always did)
     const ports: GrapplePorts = { get physics() { return host.physics; }, get body() { return host.player; } };
     const fact = this.fact;
+    const mode = fragment.mode ?? DEFAULT_GRAPPLE_MODE;
     this.courseSetter = installGrappleAim<GrappleCourse, GrappleTarget, Side, GrappleSim>(host, this.shard, equip.scope, FEI_ZHUA_AIM, {
       fragment,
       law: (course, events) => new GrappleSim(ports, course, events),
@@ -56,8 +57,8 @@ export class FeiZhua extends Tool {
       traverse: (sim, dt) => traverseFeats(sim, dt, fact),
       cue: (cue) => { grappleCue(`grapple.${cue}`); },
       context: GRAPPLE_CONTEXT,
-      reach: { min: MIN_RANGE, max: MAX_RANGE, winX: WIN_X, winY: WIN_Y },
-      timing: { fire: FIRE_TIME, reel: REEL_TIME },
+      reach: { min: mode.minRange, max: mode.maxRange, winX: mode.windowX, winY: mode.windowY },
+      timing: { fire: mode.fireTime, reel: mode.reelTime },
       enabled: () => this.enabled,
     });
   }
