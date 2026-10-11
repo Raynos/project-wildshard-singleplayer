@@ -1731,3 +1731,7 @@ G320: the pure AAC index, WMC1 collision and terrain-tile byte readers are defin
 G320: `@wildshard/format/{scriptAbi,scriptAdmission,scriptLimits}` owns the numeric ABI, metered Wasm byte admission and immutable host caps. `contentCost`, `bakedTerrainBytes` and `waterWaves` define the original pure cost law, WSTR parser and swell rows. Native hosts, terrain sampling and rendered water remain engine code; retained runtime bindings are identical objects/functions. Author validation has no native host or terrain service dependency.
 
 G320: the complete pure shardfile/asset admission closure is defined by format: props/material/post contracts, GLB/image/cost readers and entry geometry checks share `@wildshard/format/shardSchema` and `assetAdmission`. Native installation and collider descriptor conversion remain game/engine code. Frozen portal/lift entry imports retain identical format function bindings; presentation URL construction remains game code. No look, pixel, clearance or transform rule changes. The SDK author compiler imports these format definitions directly.
+
+## Config and generator boundary (OS-G2)
+
+Compile and write in retained Node `generate.ts` before bundled config evaluation; configs import generated metadata. The reference project compiles an actual typed idle module and writes its immutable asset before loading config. See [the generation guide](authoring/config-generation.md). Bundled filesystem/compiler imports refuse before evaluation with that actionable diagnosis.

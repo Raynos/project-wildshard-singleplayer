@@ -1,3 +1,4 @@
+import { assertConfigBoundary } from './configBoundary';
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI verifies and writes local build products.
 import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve source assets inside the author project.
@@ -47,6 +48,7 @@ async function projectModule(project: string): Promise<{ shard: Shardfile; commo
   const chunks = built.output.filter((out) => out.type === 'chunk');
   if (chunks.length !== 1) throw new Error('config must bundle as one module');
   const chunk = chunks[0]; if (chunk === undefined) throw new Error('config chunk missing');
+  assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
   const loaded: unknown = await import(`data:text/javascript;base64,${Buffer.from(chunk.code).toString('base64')}`);
   if (typeof loaded !== 'object' || loaded === null || !('default' in loaded)) throw new Error('config has no default export');
   let declaration: unknown = loaded.default;

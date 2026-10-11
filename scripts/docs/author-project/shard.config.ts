@@ -1,3 +1,4 @@
+import script from './data/generated-script.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { readScene } from '@wildshard/sdk/scene';
 import { commonsRequirements } from '@wildshard/sdk/commons';
@@ -20,9 +21,14 @@ if (start === null) throw new Error('Declare a PlayerStart in the retained gener
 const resident = Object.values(required.commonsCosts).reduce((sum, cost) => sum + cost.decoded + cost.gpu, 0);
 const compressed = Object.values(required.commonsWire).reduce((sum, bytes) => sum + bytes, 0);
 
+const moduleResident = script.bytes + 3 * 65536;
+const moduleFile = { hash: script.hash, kind: 'wasm', compressed: script.bytes, decoded: script.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };
+
 const project = {
   ...base, requires: { ...base.requires, ...required },
-  budgets: { ...base.budgets, library: { resident, compressed } },
+  budgets: { ...base.budgets, library: { resident, compressed }, sim: { resident: moduleResident, compressed: script.bytes } },
+  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + moduleResident },
+  files: [moduleFile], critical: [script.hash], sim: { ...base.sim, scripts: [script.hash] },
   library: required.commons.map(hash => `commons:${hash}`),
   spawn: start,
   entryways: graph.entries,

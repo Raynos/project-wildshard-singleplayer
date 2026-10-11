@@ -1,3 +1,4 @@
+import { assertConfigBoundary } from './configBoundary';
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI publishes its inspectable intermediate inside the author project.
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Author inputs and cache destinations must remain within the project.
@@ -84,6 +85,7 @@ export default { scene: readScene(input.scene), slug: input.identity.slug };`;
   if (built === undefined || !('output' in built) || Array.isArray(result) && result.length !== 1) throw new Error('Scene config produced unexpected output');
   const chunks = built.output.filter(output => output.type === 'chunk'), chunk = chunks[0];
   if (chunks.length !== 1 || chunk === undefined) throw new Error('Scene config must compile as one module');
+  assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
   const loaded: unknown = await import(`data:text/javascript;base64,${Buffer.from(chunk.code).toString('base64')}`);
   if (typeof loaded !== 'object' || loaded === null || !('default' in loaded)) throw new Error('Scene config produced no reader result');
   const data = loaded.default;
