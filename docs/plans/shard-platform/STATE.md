@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-11 15:45 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
+**2026-10-11 16:45 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
 
 **Milestones**
 - **M1:** done.
@@ -8,7 +8,7 @@
   - **SF22 desktop:** PASS (`d393dc95b`).
   - **SF22 Safari:** install PASS; **0 draw compiles** (was 46); cadence FAIL (p95 49): the gaps are main-thread waits (165 ms with 5 ms frame work), not rendering (`9c3b969c2`); Nine cell entry 191 ms on the Simulator (sp-x5).
   - **Memory:** G269.
-- **Frame floor:** desktop all routes pass (return 100 ms on the line); Simulator travel/spawn/drive pass at ≤35 p95; open: outbound 277 ms, Nalati 19.7 s cold wait.
+- **Frame floor (`c66b5b324`, clean):** every max gate passes. Desktop: only Pine short travel p95 33.3 (gate 17.5). Simulator p95 over 35: Driftwood 59, Pine 58, Signal 52, Sky 37, Nalati 36. Cell arrival waits remain for Driftwood, Pine and Nine.
 - **M3:** **0 of 6 at 80/20** under Jake's measure.
 
 **Live:** production `1d378b7ba-mv49rdxs`; queue drained. **sp-x7 = gate/CI/deploy lane (G330).**
