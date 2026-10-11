@@ -1,3 +1,4 @@
+import bossStages from './data/bossStages.json' with { type: 'json' };
 import { SIGNAL_DUNES_RUNTIME_COST } from './data/runtimeCost';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
@@ -22,8 +23,9 @@ import { SIGNAL_QUESTS } from './quests/signal';
 // The sim budget is exactly the critical collider's cost (the tiles are render residency, charged per tile).
 const collider = tiles.files.filter((file) => tiles.critical.includes(file.hash));
 const sim = { resident: collider.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: collider.reduce((sum, file) => sum + file.compressed, 0) };
+
 const base = emptyShardfile({ slug: 'sunscar-dunes', name: 'Signal Dunes', author: 'Wildshard', revision: 1, seed: 5363 });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, budgets: { ...base.budgets, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'terrain'], spawns: SIGNAL_SPAWNS }, audio: AUDIO,
+export default parseShardfile({ ...base, budgets: { ...base.budgets, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'terrain'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages],
   quests: SIGNAL_QUESTS, ledger: SIGNAL_LEDGER, items: WHIP_ITEMS,
   terrain: tiles.terrain, tiles: tiles.tiles, files: tiles.files, critical: tiles.critical, edge: tiles.edge });

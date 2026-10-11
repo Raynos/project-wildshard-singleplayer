@@ -1,4 +1,6 @@
 import * as v from 'valibot';
+import type { Vector3 } from 'three';
+import { DirectorBossBrain } from '../plugin/director';
 import { BossBrain, type BossContinuation, type BossDefinition, type BossSaved, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { silentBossPresentation } from '@wildshard/engine/ai/phases';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
@@ -21,6 +23,8 @@ export interface BossRowSpec {
   /** The encounter's fixed-step id; its continuation is `{ version: 1, boss: BossBrain's, fight: the script's }`. */
   readonly step: string;
   readonly definition: BossDefinition;
+  /** Explicit encounter author; absent retains the original native continuation. */
+  readonly stages?: unknown;
   readonly script: BossScript;
   /** The boss's live body (null between resets): a hit on it is refused while `shielded`. */
   readonly body: () => AnimalSim | null;
@@ -41,8 +45,9 @@ export interface BossRowSpec {
 
 const finite = v.pipe(v.number(), v.finite());
 const Boss = v.strictObject({ state: v.picklist(['dormant', 'armed', 'intro', 'fight', 'beat', 'victory']), phase: finite, checkpoint: finite, attempts: finite, t: finite, skipT: finite, short: v.boolean(),
+  director: v.exactOptional(v.string()),
   saved: v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: finite }) });
-const Saved = v.strictObject({ version: v.literal(1), boss: Boss, fight: v.unknown() });
+const Saved = v.strictObject({ version: v.picklist([1, 2]), boss: Boss, fight: v.unknown() });
 
 /**
  * A declared boss row's encounter in a renderer-free host (SHARD-PLATFORM SF72): the engine's `BossBrain` (arm, intro,
@@ -56,19 +61,23 @@ const Saved = v.strictObject({ version: v.literal(1), boss: Boss, fight: v.unkno
  */
 export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBrain; summon: () => void; locked: () => boolean } {
   const player = host.player;
-  const boss = new BossBrain(spec.definition, spec.script, { events: host.events, player: { position: player.position },
+  const ports = { events: host.events, player: { position: player.position },
     lockInput: () => undefined, skipHeld: () => false,
-    respawn: (pos, yaw) => { player.position.copy(pos); player.yaw = yaw; },
-    faceToward: (target) => { player.yaw = Math.atan2(player.position.x - target.x, player.position.z - target.z); },
-    spawnReward: () => { spec.spawnReward?.(); }, persist: spec.persist }, silentBossPresentation(), spec.saved);
+    respawn: (pos: Vector3, yaw: number) => { player.position.copy(pos); player.yaw = yaw; },
+    faceToward: (target: Vector3) => { player.yaw = Math.atan2(player.position.x - target.x, player.position.z - target.z); },
+    spawnReward: () => { spec.spawnReward?.(); }, persist: spec.persist };
+  const boss = spec.stages === undefined
+    ? new BossBrain(spec.definition, spec.script, ports, silentBossPresentation(), spec.saved)
+    : new DirectorBossBrain(spec.definition, spec.script, ports, silentBossPresentation(), spec.saved, spec.stages);
   host.events.answer('damage.modify', (request) => { const body = spec.body(); return request !== null && body !== null && request.target === body.combatActor() && spec.shielded() ? null : request; }, host.scope);
   host.events.answer('death.checkpoint', (value) => boss.onPlayerDeath() || value === true, host.scope);
   if (spec.armed === true) boss.arm();
   host.onStep(spec.step, dt => { boss.update(dt, host.clock.now); }, {
-    snapshot: () => JSON.stringify({ version: 1, boss: boss.snapshot(), fight: spec.fight.snapshot() }),
+    snapshot: () => JSON.stringify({ version: spec.stages === undefined ? 1 : 2, boss: boss.snapshot(), fight: spec.fight.snapshot() }),
     restore: value => {
       if (typeof value !== 'string') throw new Error(`Invalid ${spec.step} continuation`);
       const state = v.parse(Saved, JSON.parse(value));
+      if (state.version !== (spec.stages === undefined ? 1 : 2) || (state.boss.director === undefined) !== (spec.stages === undefined)) throw new Error('Incompatible boss stage continuation');
       boss.restore(state.boss); spec.fight.restore(state.fight); spec.restored?.(state.boss);
     },
   });

@@ -1,3 +1,4 @@
+import bossStages from './data/bossStages.json' with { type: 'json' };
 import { SKY_REACH_RUNTIME_COST } from './budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
@@ -20,11 +21,12 @@ import { ISLET_LIFTS } from './data/isletLift';
 // chains to the gate isle, whose walk strips are the onward route's playable ground. The islets and their stationary road
 // gates are this shardfile's compiled `movers` (one admitted module, fixed ride driver); the trusted runtime installs
 // exactly these rows (runtime/movers.ts). world/islets.ts is the one source of the geometry.
+
 const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wildshard', revision: 1, seed: 6417 });
 const lifts = new Map(ISLET_LIFTS.map((entry) => [entry.edge, entry.lift]));
 const wasm = (module: { hash: string; bytes: number }) => ({ hash: module.hash, kind: 'wasm', compressed: module.bytes, decoded: module.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns'], spawns: SKY_SPAWNS }, audio: AUDIO,
+export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: [bossStages],
   quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
   entryways: base.entryways.map(({ edge, at, width }) => {
     const lift = lifts.get(edge); if (lift === undefined) throw new Error(`Sky Reach entry ${edge} has no Rising Islet`);

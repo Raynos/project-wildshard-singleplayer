@@ -15,3 +15,6 @@ All 13 actor specs, seeds and scales are exact. Of the 43 collider pieces, 858 n
 The official 21,134-tick gameplay journey, gale-wall restore/worker suffix and durable ledger pass with the original canonical hashes, both earned facts and 35 coins. All cached checkpoint payload hashes stay byte-identical; their input-only refresh remains the pusher's. `compatibility.json` is from that real run. Twenty focused native contracts, strict and touched typed lint pass.
 
 Fresh native page comparison confirms these exact last-bit differences. The actual map rebake preserves every image byte. Official `physics-baseline.mjs --no-build --mode=walk --shard=far-reach`: **10 legs, 0 stuck, no page errors**.
+
+
+SF81 DIR5 Roc stages are authored for page and native hosts, with the shared DirectorBossBrain over the original held body/fight ports. Deliberately re-recorded step, gale and storm hash manifests: decoded command tape and every canonical native field are identical except the encounter wrapper version1->2 and its complete authored stage cursor. The full native spawn-to-Roc tape, gameplay/contacts, retries, quest/encounter facts and Ledger outcomes remain exact; physical payloads and map pixels are unchanged. No gzip payload committed.

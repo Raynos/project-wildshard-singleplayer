@@ -1,11 +1,11 @@
 {
   "audit": {
-    "sourceRevision": "38758c73f119e7042c3a797b92a655326d9bc492",
-    "candidate": "DS1.5 Node-canonical native physics: 858 collider fields differ only in the last bits (max position 1.4210854715202004e-14 m, quaternion component 1.1102230246251565e-16); native actor specs, seeds, scales and order exact, no quantization.",
+    "sourceRevision": "fd084eb1d962af0d7c37b632086f274191db8961",
+    "candidate": "SF81 DIR5: live and native encounter stage rows, complete authored boss cursor. Body, clock, ballistic, reward and presentation owners unchanged.",
     "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/far-reach/run.mjs all",
     "exitStatus": 0,
-    "scope": "Real 21,134-tick spawn-to-Roc command tape, quest/encounter facts and durable ledger, complete restore and worker replay. All recorded checkpoint payload hashes and outcome hashes remain exact.",
-    "runs": "Independent Node write/check plus cold portable generation compare; 20 focused contracts, strict and touched typed lint pass."
+    "scope": "All tape/effects, victories, retry, creature contacts, quest facts and ledger outcomes exactly match the committed predecessor. Only the encounter v2 wrapper and full stage cursor change canonical snapshot hashes.",
+    "runs": "Independent committed baseline/current whole native tapes, complete codec/native suffix, mixed-rate 3x10k actual callback/eligibility oracle, root strict and touched lint."
   },
   "slug": "far-reach",
   "entry": "runtime/headless.ts",
@@ -13,7 +13,7 @@
   "headless": {
     "status": "passed",
     "ticksExecuted": 21134,
-    "hash": "bd45f8226ae9e007ee9bdd1fb84695b305cd0895e3dcbcf847a50d0bd0c7c78a",
+    "hash": "1ff101c4e2e7a7fc555eb4b6022f7e16063bf5c23288f1c4ec7c040c6b0a6822",
     "victoryTick": 21014,
     "attempts": 1,
     "questComplete": true,
@@ -315,8 +315,8 @@
     },
     "suffixTicksExecuted": 10994,
     "victoryTick": 21014,
-    "hash": "bd45f8226ae9e007ee9bdd1fb84695b305cd0895e3dcbcf847a50d0bd0c7c78a",
-    "replayHash": "bd45f8226ae9e007ee9bdd1fb84695b305cd0895e3dcbcf847a50d0bd0c7c78a",
+    "hash": "1ff101c4e2e7a7fc555eb4b6022f7e16063bf5c23288f1c4ec7c040c6b0a6822",
+    "replayHash": "1ff101c4e2e7a7fc555eb4b6022f7e16063bf5c23288f1c4ec7c040c6b0a6822",
     "workerTicks": 60,
     "workerExact": true,
     "suffixFacts": [

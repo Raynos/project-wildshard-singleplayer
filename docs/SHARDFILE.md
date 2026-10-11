@@ -1486,3 +1486,6 @@ live in `@wildshard/game/plugin/playerMode` (`CableLayout`, `ZiplineDriver`,
 phase; importing author objects or rows installs no services or second scheduler.
 Ride, grapple, water and hover-deck rows follow only when their live consumers are
 installed; these declarations cannot pretend to host an unimplemented mode.
+
+
+SF81 encounter stages: Sky and Signal declare their bossStages.json under directors. The row interpreter selects native intro, fight, resume, phase and victory transitions through the fixed emit action set; existing numeric eligibility and callback ordering remain the native boss port observations. These boolean stage machines need no AS escape handler. Their page and headless boss share the exact contract/cursor; body ownership, clocks, presentation, damage/shields and reward filing remain their original owners.

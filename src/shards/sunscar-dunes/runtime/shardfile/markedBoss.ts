@@ -1,5 +1,7 @@
 import { Color, Mesh, Scene, SphereGeometry, Vector3 } from 'three';
-import { BossBrain, type BossDefinition, type BossSaved } from '@wildshard/engine/ai/BossBrain';
+import type { BossDefinition, BossSaved } from '@wildshard/engine/ai/BossBrain';
+import { DirectorBossBrain } from '@wildshard/game/plugin/director';
+import stages from '../../data/bossStages.json' with { type: 'json' };
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { weatherFog, type WeatherFog } from '@wildshard/engine/world/Atmosphere';
@@ -37,7 +39,7 @@ export interface MarkedBossRows {
  * invulnerability); this adds the presentation row's views — the storm's weather fog and sand shells, the boss bar and
  * the reward's coin burst — and its toasts, and refuses hits while the fight is invulnerable.
  */
-export class MarkedBoss extends BossBrain {
+export class MarkedBoss extends DirectorBossBrain {
   /** The arena's reward point (the declared body's spot on the floor). */
   readonly at: Vector3;
   /** The storm's strength 0..1 (captures and tests read it). */
@@ -85,7 +87,7 @@ export class MarkedBoss extends BossBrain {
         faceToward: (target) => { const motor = ctx.game.runtime?.world?.player; if (motor) motor.yaw = Math.atan2(motor.position.x - target.x, motor.position.z - target.z); },
         spawnReward: () => { saved.rewardTaken = true; record.persist(saved); burst.spawn(player, rows.reward, coins, () => undefined); },
         toast: (message) => { ctx.game.runtime?.play?.hud.toast(message); },
-        persist: record.persist }, presentation, saved);
+        persist: record.persist }, presentation, saved, stages);
     this.at = at; this.weather = fight.weather; this.body = fight.body;
     if (saved.defeated) onDown?.();
     ctx.scope.onDispose(() => {

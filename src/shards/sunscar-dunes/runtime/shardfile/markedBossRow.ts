@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import stages from '../../data/bossStages.json' with { type: 'json' };
 import { Vector3 } from 'three';
 import type { BossBrain, BossDefinition } from '@wildshard/engine/ai/BossBrain';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -45,7 +46,7 @@ export function installMarkedBossRow(host: SimHost, spec: MarkedBossRowSpec, por
     respawnPoint: () => ({ pos: new Vector3(back.x, host.groundHeightAt(back.x, back.z), back.z), yaw: back.yaw }),
     victory: () => { host.flags.set(spec.victory.flag); ports.fact(spec.victory.fact, id); } });
   fight.adopt(ports.body.actor());
-  return installBossRow(host, { step: id, definition: spec.definition, script: fight.script, body: fight.body, shielded: fight.invulnerable,
+  return installBossRow(host, { step: id, stages, definition: spec.definition, script: fight.script, body: fight.body, shielded: fight.invulnerable,
     fight: { snapshot: fight.snapshot, restore: value => { fight.restore(v.parse(Fight, value)); } }, saved, persist: record.persist,
     spawnReward: () => { saved.rewardTaken = true; record.persist(saved); ports.coins(spec.reward, id); },
     restored: () => { fight.adopt(ports.body.actor()); } });

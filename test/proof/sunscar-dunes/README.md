@@ -15,3 +15,6 @@ All gameplay fields match the page exactly: 13 home specs/seeds/scales, Matriarc
 The official 12,503-tick gameplay journey retains the canonical hash `95a6050c27629ed4eb94e79af6a502495f3e5aa7b4c9fd56fb03c8cfdaef54ae`, both earned facts and 25 coins. The 1,793-tick mid-fight restore suffix and shipping-worker continuation agree exactly, with durable reload and duplicate-stable Ledger outcomes. No checkpoint payload or gameplay outcome changes. Fifteen focused native contracts, strict and touched root-config type-aware lint pass.
 
 Fresh native page comparison confirms every gameplay field is exact. The actual map rebake preserves every image byte. Official `physics-baseline.mjs --no-build --mode=walk --shard=sunscar-dunes`: **7 legs, 0 stuck, no page errors**.
+
+
+SF81 DIR5 Matriarch stages are authored for page and native hosts, with the same DirectorBossBrain as Sky. Deliberately updated canonical boot/final/replay hashes for the encounter version2 wrapper and complete stage cursor; the real native tape, fire and quest effects, body contacts, retries, victory and Ledger outcomes remain exact. Existing marked-body checkpoint spawn/retirement and storm presentation stay native. This lands the boss-stage slice; the brazier-signal director is separate.

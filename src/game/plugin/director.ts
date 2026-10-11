@@ -1,4 +1,5 @@
 import * as v from "valibot";
+import { BossBrain, type BossContinuation, type BossDefinition, type BossPorts, type BossPresentation, type BossSaved, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptQuery } from "@wildshard/engine/script/host";
 import { ScriptWorld, type EffectTransaction, type ScriptEffect } from "@wildshard/engine/script/effects";
 import { parseDirector, type DirectorData, type DirectorEvent } from "@wildshard/format/director";
@@ -230,4 +231,41 @@ export class DirectorScriptStageLane {
     for (const event of events) this.publish(this.stages.step(this.stages.tick + 1, this.observation(event)), event);
   }
   private publish(actions: readonly DirectorAction[], source?: Readonly<DirectorEvent>): void { for (const action of actions) this.ports.publish(action, source); }
+}
+
+/** Encounter rows select transitions for native bosses; clocks, body callbacks, rewards and views stay BossBrain's.
+ * Sky's held Roc and Signal's respawning Matriarch use the same owner in their page and renderer-free hosts. */
+export class DirectorBossBrain extends BossBrain {
+  private readonly stages: DirectorStageLane;
+  private readonly observations = { arena: false, intro: false, beat: false, dead: false, phase: false };
+  constructor(def: BossDefinition, script: BossScript, ports: BossPorts, presentation: BossPresentation, saved: BossSaved, rows: unknown) {
+    super(def, script, ports, presentation, saved);
+    this.stages = new DirectorStageLane(rows);
+    const keys = new Set(['boss.intro', 'boss.fight', 'boss.resume', 'boss.won', 'boss.phase']);
+    if (this.stages.data.stages.some(stage => stage.do.length > 1 || stage.do.some(action => !('emit' in action) || action.value !== 0 || !keys.has(action.emit)))) throw new Error('Invalid authored boss action');
+    this.stages.step(0, this.observations);
+  }
+  private select(input: keyof DirectorBossBrain['observations'], eligible: boolean, event: string): boolean {
+    this.observations[input] = eligible;
+    try {
+      const action = this.stages.step(this.stages.tick + 1, this.observations)[0];
+      return action !== undefined && 'emit' in action && action.emit === event;
+    } finally { this.observations[input] = false; }
+  }
+  protected override introReady(inside: boolean): boolean { return this.select('arena', inside, 'boss.intro'); }
+  protected override fightReady(elapsed: number, skip: number, length: number): boolean {
+    return this.select('intro', elapsed >= length || skip >= 0.6, 'boss.fight');
+  }
+  protected override beatReady(elapsed: number): boolean { return this.select('beat', elapsed >= 1.5, 'boss.resume'); }
+  protected override winReady(dead: boolean): boolean { return this.select('dead', dead, 'boss.won'); }
+  protected override phaseReady(at: number): boolean { return this.select('phase', this.script.hpFrac <= at, 'boss.phase'); }
+  /** Preserve native continuation fields and add the exact author contract/cursor, without emitting effects. */
+  override snapshot(): BossContinuation { return { ...super.snapshot(), director: this.stages.snapshot() }; }
+  /** A pre-row or foreign snapshot refuses; restore both owners quietly and atomically. */
+  override restore(value: BossContinuation): void {
+    if (value.director === undefined) throw new Error('Authored boss requires its director continuation');
+    const before = this.stages.snapshot();
+    this.stages.restore(value.director);
+    try { super.restore(value); } catch (error) { this.stages.restore(before); throw error; }
+  }
 }

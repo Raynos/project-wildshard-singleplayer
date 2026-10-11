@@ -1,11 +1,19 @@
 {
+  "audit": {
+    "sourceRevision": "fd084eb1d962af0d7c37b632086f274191db8961",
+    "candidate": "SF81 DIR5: live and native encounter stage rows, complete authored boss cursor. Body, clock, ballistic, reward and presentation owners unchanged.",
+    "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all",
+    "exitStatus": 0,
+    "scope": "All tape/effects, victories, retry, creature contacts, quest facts and ledger outcomes exactly match the committed predecessor. Only the encounter v2 wrapper and full stage cursor change canonical snapshot hashes.",
+    "runs": "Independent committed baseline/current whole native tapes, complete codec/native suffix, mixed-rate 3x10k actual callback/eligibility oracle, root strict and touched lint."
+  },
   "slug": "sunscar-dunes",
   "entry": "runtime/headless.ts",
   "compatible": true,
   "headless": {
     "status": "passed",
     "ticksExecuted": 12503,
-    "hash": "95a6050c27629ed4eb94e79af6a502495f3e5aa7b4c9fd56fb03c8cfdaef54ae",
+    "hash": "f89a9ce43bdb57f2d16d1fc979339614651aadec978f1cab3c69e5166920dfce",
     "victoryTick": 12383,
     "attempts": 1,
     "questComplete": true,
@@ -33,8 +41,8 @@
     },
     "suffixTicksExecuted": 1793,
     "victoryTick": 12383,
-    "hash": "95a6050c27629ed4eb94e79af6a502495f3e5aa7b4c9fd56fb03c8cfdaef54ae",
-    "replayHash": "95a6050c27629ed4eb94e79af6a502495f3e5aa7b4c9fd56fb03c8cfdaef54ae",
+    "hash": "f89a9ce43bdb57f2d16d1fc979339614651aadec978f1cab3c69e5166920dfce",
+    "replayHash": "f89a9ce43bdb57f2d16d1fc979339614651aadec978f1cab3c69e5166920dfce",
     "workerTicks": 60,
     "workerExact": true,
     "suffixFacts": [
@@ -76,13 +84,5 @@
     "duplicateStable": true,
     "restoredReemits": 0,
     "gameplayEmissionProven": true
-  },
-  "audit": {
-    "sourceRevision": "ad6414b08ede857b25e0f86af761e749d54d2486",
-    "candidate": "Signal locally owns the shipping Bullwhip hold/release law and composes its existing species, Matriarch, lash and quest systems. The same real quest/fight tape retains every outcome; its hash changes only with the added held-input continuation. An actual strider fixture holds during a light crack, quietly restores, then releases over cooldown with a simultaneous light input; both native contacts and all 60 shipping-worker ticks agree. Named aim remains a bounded input, not simulated camera targeting.",
-    "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all",
-    "exitStatus": 0,
-    "scope": "whole-shard witness on the renderer-free trusted entry: tick commands only (walk, interactions, whip), gameplay victory, exact mid-fight restore in process and in the shipping worker, gameplay facts into the durable Ledger",
-    "runs": "two independent whole native tapes plus actual held-heavy shipping-worker fixture"
   }
 }

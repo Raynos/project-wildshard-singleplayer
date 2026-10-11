@@ -57,14 +57,6 @@
       "base": "Weapon",
       "baseFile": "src/engine/combat/Weapon.ts"
     },
-    "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts:e6e052719efbff27f1bc13397d03c1661902e86e259eb1d332f26b0c83b2a3dd": {
-      "from": "src/game/shardfile/markedBoss.ts",
-      "to": "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts",
-      "hash": "e6e052719efbff27f1bc13397d03c1661902e86e259eb1d332f26b0c83b2a3dd",
-      "name": "MarkedBoss",
-      "base": "BossBrain",
-      "baseFile": "src/engine/ai/BossBrain.ts"
-    },
     "src/shards/far-reach/runtime/weapons/coneFan.ts:8f783e21de7f601baf400a4713ea59f5efe2eab597e6c7cafc2a989a4ab5b085": {
       "from": "src/game/systems/items/coneFan.ts",
       "to": "src/shards/far-reach/runtime/weapons/coneFan.ts",

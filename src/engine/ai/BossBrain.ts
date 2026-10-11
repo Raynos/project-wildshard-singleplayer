@@ -7,7 +7,7 @@ import { Hfsm } from './hfsm';
 export type BossState = 'dormant' | 'armed' | 'intro' | 'fight' | 'beat' | 'victory';
 export interface BossSaved { defeated: boolean; rewardTaken: boolean; kills: number }
 /** Complete encounter continuation for same-engine fixed-step restoration. */
-export interface BossContinuation { state: BossState; phase: number; checkpoint: number; attempts: number; t: number; skipT: number; short: boolean; saved: BossSaved }
+export interface BossContinuation { state: BossState; phase: number; checkpoint: number; attempts: number; t: number; skipT: number; short: boolean; saved: BossSaved; /** Complete authored cursor, present only for an explicitly installed stage owner. */ director?: string }
 export interface BossPhaseDef { at: number; caption: string; name: string }
 export interface BossDefinition {
   id: string; name: string; title: string; retryTitle: string;
@@ -103,6 +103,17 @@ export class BossBrain {
 
   protected save(): void { this.host.persist(this.saved); }
 
+  /** Native eligibility hooks preserve observation order; an authored subclass may select the transition. */
+  protected introReady(inside: boolean): boolean { return inside; }
+  /** Called after the intro pose, camera, skip clock and skip presentation. */
+  protected fightReady(elapsed: number, skip: number, length: number): boolean { return elapsed >= length || skip >= SKIP_HOLD; }
+  /** Called before the beat's bar update. */
+  protected beatReady(elapsed: number): boolean { return elapsed >= BEAT; }
+  /** Death is observed before the next phase's health threshold. */
+  protected winReady(dead: boolean): boolean { return dead; }
+  /** Health is read only when a next phase exists and death did not win. */
+  protected phaseReady(at: number): boolean { return this.script.hpFrac <= at; }
+
   /** ready at the threshold: the room at the checkpoint phase, the seal open */
   arm(): void {
     if (this.state === 'victory' || this.state === 'armed') return;
@@ -149,7 +160,7 @@ export class BossBrain {
     switch (this.state) {
       case 'dormant': break;
       case 'armed':
-        if (this.script.inArena(p)) this.startIntro();
+        if (this.introReady(this.script.inArena(p))) this.startIntro();
         break;
       case 'intro': {
         this.t += dt;
@@ -158,19 +169,19 @@ export class BossBrain {
         this.host.faceToward(focus, dt);
         this.skipT = this.host.skipHeld() ? this.skipT + dt : 0;
         this.ui.setSkip(this.skipT / SKIP_HOLD);
-        if (this.t >= len || this.skipT >= SKIP_HOLD) this.beginFight();
+        if (this.fightReady(this.t, this.skipT, len)) this.beginFight();
         break;
       }
       case 'beat':
         this.t += dt;
-        if (this.t >= BEAT) { this.script.setInvulnerable(false); this.state = 'fight'; }
+        if (this.beatReady(this.t)) { this.script.setInvulnerable(false); this.state = 'fight'; }
         this.syncBar();
         break;
       case 'fight': {
         this.syncBar();
-        if (this.script.dead) { this.win(); break; }
+        if (this.winReady(this.script.dead)) { this.win(); break; }
         const next = this.def.phases[this.phase + 1];
-        if (next !== undefined && this.script.hpFrac <= next.at) {
+        if (next !== undefined && this.phaseReady(next.at)) {
           this.phase++;
           this.checkpoint = this.phase;
           this.script.clampHp(next.at);

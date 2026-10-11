@@ -1,0 +1,199 @@
+{
+  "version": 2,
+  "id": "far.roc.encounter",
+  "inputs": {
+    "arena": "zone:boss.arena",
+    "intro": "event:boss.intro-ready",
+    "beat": "event:boss.beat-ready",
+    "dead": "actor:boss.dead",
+    "phase": "event:boss.phase-ready"
+  },
+  "stages": [
+    {
+      "id": "ready",
+      "do": [],
+      "next": [
+        {
+          "target": "arena",
+          "when": "arena"
+        },
+        {
+          "target": "intro",
+          "when": "intro"
+        },
+        {
+          "target": "beat",
+          "when": "beat"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "phase",
+          "when": "phase"
+        }
+      ]
+    },
+    {
+      "id": "arena",
+      "when": "arena",
+      "do": [
+        {
+          "emit": "boss.intro",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "arena",
+          "when": "arena"
+        },
+        {
+          "target": "intro",
+          "when": "intro"
+        },
+        {
+          "target": "beat",
+          "when": "beat"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "phase",
+          "when": "phase"
+        }
+      ]
+    },
+    {
+      "id": "intro",
+      "when": "intro",
+      "do": [
+        {
+          "emit": "boss.fight",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "arena",
+          "when": "arena"
+        },
+        {
+          "target": "intro",
+          "when": "intro"
+        },
+        {
+          "target": "beat",
+          "when": "beat"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "phase",
+          "when": "phase"
+        }
+      ]
+    },
+    {
+      "id": "beat",
+      "when": "beat",
+      "do": [
+        {
+          "emit": "boss.resume",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "arena",
+          "when": "arena"
+        },
+        {
+          "target": "intro",
+          "when": "intro"
+        },
+        {
+          "target": "beat",
+          "when": "beat"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "phase",
+          "when": "phase"
+        }
+      ]
+    },
+    {
+      "id": "dead",
+      "when": "dead",
+      "do": [
+        {
+          "emit": "boss.won",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "arena",
+          "when": "arena"
+        },
+        {
+          "target": "intro",
+          "when": "intro"
+        },
+        {
+          "target": "beat",
+          "when": "beat"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "phase",
+          "when": "phase"
+        }
+      ]
+    },
+    {
+      "id": "phase",
+      "when": "phase",
+      "do": [
+        {
+          "emit": "boss.phase",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "arena",
+          "when": "arena"
+        },
+        {
+          "target": "intro",
+          "when": "intro"
+        },
+        {
+          "target": "beat",
+          "when": "beat"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "phase",
+          "when": "phase"
+        }
+      ]
+    }
+  ]
+}
