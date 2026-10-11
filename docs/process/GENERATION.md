@@ -170,3 +170,5 @@ Nine’s `nine-portal-floors` job builds its ordered portalFloors colliders from
 Nine’s `nine-deck-caps` job builds its ordered deckCaps colliders from the retained three.js-shaped author scene. The exact scene reader, JSON writer and confined loader closure is keyed without runtime, legacy or seeds. Cold, forced and official clean-room output comparison proves the complete component; it does not admit whole-product removal.
 
 Nalati’s `nalati-ghost-volley-director` job compiles its retained typed AssemblyScript and declared ABI through the shared confined authoring loader. Its two pinned products (the one-page module and DO-NOT-EDIT transport JSON) regenerate without runtime, legacy, seeds or a warm cache. This component proof does not admit a whole-product removal.
+
+Sky’s `sky-rising-islets` job builds its four rising socket islets from the retained three.js-shaped author scene. The exact scene reader, JSON writer and confined loader closure is keyed without runtime, legacy or seeds. Cold, forced and official clean-room output comparison proves the complete component; it does not admit whole-product removal.

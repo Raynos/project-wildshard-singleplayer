@@ -1734,18 +1734,20 @@
         "src/shards/far-reach/data/islets.generated.json"
       ],
       "inputRoots": [
-        "src/sdk/package.json",
-        "src/sdk/entries.ts",
-        "src/sdk/sceneTransform.ts",
-        "src/shards/far-reach/data/layout.ts",
-        "src/shards/far-reach/data/isletDesign.ts",
-        "src/shards/far-reach/generators/risingIslets.ts",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk/bake/source-loader.mjs",
+        "src/format/json.ts",
+        "src/format/package.json",
+        "src/format/portalLink.ts",
+        "src/format/socketLift.ts",
         "src/sdk/bake/json.mjs",
-        "src/format"
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/entries.ts",
+        "src/sdk/package.json",
+        "src/sdk/sceneTransform.ts",
+        "src/shards/far-reach/data/isletDesign.ts",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/generators/risingIslets.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/islets.generated.json"
