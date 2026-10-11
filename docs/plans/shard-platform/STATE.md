@@ -12,7 +12,7 @@
 
 **Live:** origin/main = HEAD (`c528d9b63`, 19:44); the ~145-commit backlog landed in `acb850d96`'s green push.
 
-**G298 done:** all six shards' bakers in their own `generators/` (only the shared `bake-sky.mjs` HDRI baker stays in scripts/). **G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact (Nalati physics after `8b144a8d0`), witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`), report-only Linux CI comparison (`ee963ec56`). Nothing deleted until gate + Linux CI evidence.
+**G298 done:** all six shards' bakers in their own `generators/` (only the shared `bake-sky.mjs` HDRI baker stays in scripts/). **G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact (Nalati physics after `8b144a8d0`), witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`).
 
 **80/20 (G291 + G294, `2218a5937`, report-only):** custom = shard runtime TS + one-user game/SDK TS, over the frozen legacy TS.
 
@@ -31,12 +31,12 @@
 |---|---|
 | op-hitch45 | finishing: buildPacing A/B, then stops |
 | op-hitch48 | finishing: Game.ts cap, then stops |
-| op-hitch49 | finishing: Signal activate install, then stops |
+| op-hitch49 | done: Pine leg rigs sliced (`050505dcc`); Signal activate handed to sp-x2 |
 | sp-x1 | DS0.1 Nalati + Sky move-back · Nalati witness |
-| sp-x2 | DS0.1 Pine move-back |
-| sp-x4 | DS0.1 Driftwood + Signal move-back |
+| sp-x2 | DS0.1 Pine leftovers · Signal 117 ms activate frame (install out of runFixed) |
+| sp-x4 | DS0.1 Driftwood + Signal move-back (legacy imports: copy, never move) |
 | sp-x5 | DS0.2 game plugin/* · DS0.3 guards · SF77 metric |
-| sp-x6 | Nalati replay red · DS0.1 Nine (`d4d5fdbdf`) · DS0.4 scripts → shards |
+| sp-x6 | DS0.4 scripts → shards · then SF80 non-visual rows |
 
 **Jake picks landed:** G321/G322/G324/G325/G326 (all six public cards shardfile)/G327/G328.
 
