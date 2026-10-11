@@ -5,7 +5,7 @@ import { hdMaterial, skyHd } from './meshes';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { CROWN_DAIS_EDITS } from '../runtime/looks/paintLook';
-import { crownStones, type Stone } from '../runtime/crownLayout';
+import { CROWN_STONES, type Stone } from '../data/crownLayout';
 import { skyBakedPiece } from './baked';
 
 /** The code set the modelled one replaces: the stones, their glyphs and the dais (the ropes and flags always draw). */
@@ -20,7 +20,7 @@ export function crownArena(): { group: Group; colliders: ReturnType<typeof skyBa
   const baked = skyBakedPiece('crown'), group = baked.root; group.name = 'far.crown.arena';
   // the modelled set (top-10 row 7, art/far-reach/round-28-crown/) where it loaded: sculpted stones with cut spiral runes
   // and the carved compass dais, in place of the code ones; the colliders are the code set's, unchanged
-  const carved = carvedSet(crownStones());
+  const carved = carvedSet(CROWN_STONES);
   if (carved !== null) { for (const [name, mesh] of baked.kinds) if (CODE_SET.has(name)) mesh.visible = false; group.add(...carved); }
   return { group, colliders: baked.colliders };
 }

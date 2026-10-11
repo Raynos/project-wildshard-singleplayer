@@ -8,7 +8,7 @@ import { apothem, spireAt } from '../layout';
 import { MILL_DRUM } from './mill';
 import { KEEPER_STAND } from '../quest/keeper';
 import { KEEPER_AT } from '../data/quests';
-import { crownStones } from '../runtime/crownLayout';
+import { CROWN_STONES } from '../data/crownLayout';
 import { FOG, SKY } from '../look/sun';
 import { SWARD_ATLAS, swardAtlas } from './swardAtlas';
 
@@ -23,7 +23,7 @@ import { SWARD_ATLAS, swardAtlas } from './swardAtlas';
 export function meadowHoles(): Vector4[] {
   const holes: [number, number, number][] = [[MILL.x, MILL.z, MILL_DRUM.r + 0.1], [WINCH.x, WINCH.z, 1.3], [NOTES.x, NOTES.z, 0.8], [KEEPER_AT.x, KEEPER_AT.z, 0.7], [KEEPER_STAND.x, KEEPER_STAND.z, 0.45], [DAIS.x, DAIS.z, DAIS.r + 0.4]];
   for (const v of VANES) holes.push([v.x, v.z, 1]);
-  for (const st of crownStones()) holes.push([st.x, st.z, 0.85]);
+  for (const st of CROWN_STONES) holes.push([st.x, st.z, 0.85]);
   holes.push([NEST.x, NEST.z, NEST.r + 0.2], [WINCH_HOUSE.x, WINCH_HOUSE.z, WINCH_HOUSE.w * 0.75]);
   for (const sp of SPIRES) { const at = spireAt(sp); holes.push([at.x, at.z, sp.r + 0.2]); }
   const out = holes.map(([x, z, r]) => new Vector4(x, z, r, 0));

@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { bakeKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
 import { CROWN, DAIS } from '../data/layout';
-import { CROWN_RING, crownStones, type Stone } from '../runtime/crownLayout';
+import { CROWN_RING, CROWN_STONES, type Stone } from '../data/crownLayout';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by `scripts/bake-sky-world.mjs` into `baked/crown.glb` + `data/crown.json`;
@@ -139,7 +139,7 @@ export interface CrownSet { readonly kinds: (readonly [string, InstancedMesh])[]
 
 /** The code arena in world space: the stones, the glyphs, the dais (at DAIS), the pennant ropes and flags, and its colliders. */
 export function buildCrownSet(): CrownSet {
-  const stones = crownStones(), stoneParts: BufferGeometry[] = [], glyphParts: BufferGeometry[] = [];
+  const stones = CROWN_STONES, stoneParts: BufferGeometry[] = [], glyphParts: BufferGeometry[] = [];
   stones.forEach((s, i) => {
     const g = stoneGeometry(s.h, i * 13 + 5); g.rotateY(s.yaw); g.translate(s.x, CROWN.y - 0.15, s.z); stoneParts.push(g);
     // the glyph sits proud of the face that turns to the dais

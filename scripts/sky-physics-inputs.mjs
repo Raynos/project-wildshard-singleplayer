@@ -5,7 +5,7 @@ import { join, relative } from 'node:path';
 /** Exact native collision/model inputs; a changed recipe refuses the trusted headless bake. */
 export function skyPhysicsInputs(root) {
   const paths = ['layout.ts', 'data/layout.ts', 'data/files.ts', 'data/spawns.ts', 'data/species.ts', 'data/variants.ts', 'data/strikes.ts', 'data/movers.ts', 'data/isletLift.ts', 'data/storm.ts', 'data/modes.ts',
-    'runtime/index.ts', 'runtime/crownLayout.ts'].map(path => `src/shards/far-reach/${path}`);
+    'runtime/index.ts', 'data/crownLayout.ts', 'data/brains.ts'].map(path => `src/shards/far-reach/${path}`);
   // DS1.5: the native Node world, finite spawn factory and loaded rigs are the producer's defining closure.
   for (const file of ['src/shards/far-reach/manifest.ts', 'src/shards/far-reach/shard.config.ts',
     'src/shards/far-reach/generators/bake-sky-physics.mjs', 'scripts/sky-physics-inputs.mjs',

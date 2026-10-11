@@ -1,3 +1,5 @@
+import { CROWN_STONES } from './crownLayout';
+import { STORM } from './storm';
 import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
 import { CROWN, DAIS, ROC, RAY_HOMES, DECK, KEEPER } from './layout';
 import { SKY_GOAT_DATA, DRIFT_RAY_DATA, GALE_WISP_DATA } from './species';
@@ -58,3 +60,9 @@ export const SKY_SPECIES_BRAINS: readonly BrainedSpecies[] = [
   { ...GALE_WISP_DATA, brain: { archetype: 'diver' as const, data: { ...WISP_BRAIN, kind: 'diver' as const, pattern: 'burst' as const,
     home: { x: KEEPER.x, z: KEEPER.z, r: 7, y: KEEPER.y + 3 } } } },
 ];
+
+const tallest = CROWN_STONES.reduce((best, stone) => stone.h > best.h ? stone : best);
+const perch = { x: tallest.x, y: CROWN.y + tallest.h + 0.6, z: tallest.z };
+const spin = Math.sign(STORM.layers[0].spin), dx = perch.x - CROWN.x, dz = perch.z - (CROWN.z - STORM.ahead);
+/** The Roc perches on the actual tallest stone, facing into the authored storm wind; no live calculation or owner grants. */
+export const ROC_PROFILE = { ...ROC_BRAIN, perch: { ...perch, yaw: Math.atan2(-spin * dz, spin * dx) } };
