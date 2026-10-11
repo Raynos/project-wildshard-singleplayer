@@ -271,3 +271,9 @@ explicit owners. Trusted injected recipes retain precedence. Pack, burst and oth
 refuse when no native owner is supplied. This example declares no rendered rig; creature view proof is separate.
 
 <!-- example: creatures -->
+
+## Install outside the workspace
+
+Use the [standalone author setup](standalone-author.md) for matched SDK/format/commons release archives,
+local CLI scripts, catalogue selection and the retained readable TypeScript world generator. Bootstrap
+preserves installed dependencies and refuses existing authored files; no checkout link is an installation proof.

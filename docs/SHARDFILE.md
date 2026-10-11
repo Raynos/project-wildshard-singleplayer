@@ -1641,6 +1641,12 @@ Use `wildshard schema list`, then `wildshard schema <root> [JSON-pointer]`. The 
 
 Use `generateScriptModule` from `@wildshard/sdk/directorAbi` instead of inventing buffer capacities, event offsets or effect opcodes. The [ABI guide](authoring/script-abi.md) documents the generated typed module: in_cap is bytes, out_cap is records, state is stable-ID ordered, and player writes require real native actor binding. The retained numericScriptExample runs in the actual host and restores exactly.
 
+## Standalone author bootstrap (OS-F10)
+
+The SDK ships `dist/author-template/` as retained TypeScript, with the same graph feeding synth and the official
+GLB world bake. Install matched SDK/format/commons archives, then bootstrap an otherwise empty author project;
+installed dependencies are retained and authored files are never replaced. See the [exact install/catalogue/CLI workflow](../scripts/docs/standalone-author.md). Generated world and product files are build outputs, not substitutes for their sources.
+
 ## Declared director time ranges (OS-F5)
 
 Use day:0.75..0.84 for a dusk boolean. Endpoints stay within 0..1 and increase; the upper endpoint is excluded. The look day/start/override supplies the native and page clock, and its continuation is saved with the director. Authors write boolean when expressions without tick arithmetic. See [the native day guide](authoring/director-day.md) and scripts/docs/authoring/directors.ts.

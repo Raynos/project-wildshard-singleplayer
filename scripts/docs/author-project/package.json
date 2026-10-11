@@ -1,0 +1,13 @@
+{
+  "name": "author-outpost",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node --experimental-strip-types generate.ts",
+    "synth": "wildshard synth .",
+    "build": "npm run generate && wildshard build . dist",
+    "validate": "wildshard validate dist/shard.json",
+    "dev": "npm run generate && wildshard dev .",
+    "typecheck": "tsc --noEmit"
+  }
+}

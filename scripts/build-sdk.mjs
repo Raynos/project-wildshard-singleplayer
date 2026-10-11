@@ -76,3 +76,6 @@ for (const [mode, folder] of [['production', 'client'], ['devserver', 'client-de
   } });
   for (const entry of ['fonts', 'favicon.png', 'apple-touch-icon.png', 'manifest.webmanifest', 'basis/r186', 'assets/physics', 'assets/sfx/best', 'assets/music/piano', 'assets/music/orchestral', 'assets/music/folk']) cpSync(resolve(root, 'public', entry), resolve(root, `src/sdk/dist/${folder}`, entry), { recursive: true });
 }
+
+// Ship retained readable author inputs, not one-time baked outputs or workspace symlinks.
+cpSync(resolve(root, 'scripts/docs/author-project'), resolve(root, 'src/sdk/dist/author-template'), { recursive: true });
