@@ -51,6 +51,21 @@ it('refuses type-only runtime imports, unresolved private exports, computed impo
     expect(issues.map(issue=>issue.reason).sort()).toEqual(['computed-import','glob-import','outside-authoring','unresolved-import']);
   } finally {f.close();}
 });
+
+it('resolves literal string expressions and still refuses concealed runtime or computed imports', () => {
+  const f = fixture();
+  try {
+    const entry = 'src/shards/fixture/generators/build.ts';
+    f.put('src/shards/fixture/data/rows.ts', 'export const rows = [];');
+    f.put(entry, "import('../data/' + 'rows.ts'); import('assemblyscript/dist/' + 'asc.js');");
+    const allowed = auditAuthoringInputs(f.root, 'fixture', entry);
+    expect(allowed.issues).toEqual([]);
+    expect(allowed.files).toContain('src/shards/fixture/data/rows.ts');
+    f.put(entry, `import('../run' + 'time/hidden.ts'); import('../data/' + variable); import(\`../data/\${variable}\`); import(resolve('literal'));`);
+    expect(auditAuthoringInputs(f.root, 'fixture', entry).issues.map(issue => issue.reason).sort())
+      .toEqual(['computed-import', 'computed-import', 'computed-import', 'outside-authoring']);
+  } finally { f.close(); }
+});
 it('reports the runtime edges of a legacy page producer even when its entry already lies outside authoring', () => {
   const f = fixture();
   try {

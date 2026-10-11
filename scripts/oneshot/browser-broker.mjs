@@ -104,7 +104,7 @@ try {
   let pending = '';
   receiver.setEncoding('utf8');
   receiver.on('data', chunk => {
-    pending += chunk;
+    pending += String(chunk);
     while (pending.includes('\n')) {
       const end = pending.indexOf('\n'), line = pending.slice(0, end); pending = pending.slice(end + 1);
       if (Buffer.byteLength(line) > 4096) { stop(); return; }

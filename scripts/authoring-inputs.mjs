@@ -6,6 +6,18 @@ import ts from '@typescript/typescript6';
 const folders = new Set(['generators', 'data', 'quests', 'blender', 'assets', 'behaviour']);
 const layers = new Set(['format', 'sdk', 'commons']);
 
+/** Resolve only static string syntax. No identifiers, calls or interpolated values qualify.
+ * @param {import('@typescript/typescript6').Node | undefined} node @returns {string | null} */
+function literalName(node) {
+  if (node === undefined) return null;
+  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text;
+  if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    const left = literalName(node.left), right = literalName(node.right);
+    if (left !== null && right !== null) return left + right;
+  }
+  return null;
+}
+
 /** Authoring sources belong to this shard or the two authoring packages; runtime and legacy never qualify.
  * @param {string} file @param {string} shard */
 export function isAuthoringInput(file, shard) {
@@ -73,8 +85,8 @@ export function auditAuthoringInputs(root, shard, entry) {
     const visit = (node) => {
       if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier !== undefined && ts.isStringLiteral(node.moduleSpecifier)) imports.push(node.moduleSpecifier.text);
       if (ts.isCallExpression(node) && (node.expression.kind === ts.SyntaxKind.ImportKeyword || ts.isIdentifier(node.expression) && node.expression.text === 'require')) {
-        const name = node.arguments.at(0);
-        if (name !== undefined && (ts.isStringLiteral(name) || ts.isNoSubstitutionTemplateLiteral(name))) imports.push(name.text);
+        const name = literalName(node.arguments.at(0));
+        if (name !== null) imports.push(name);
         else issues.push({file: rowFile, from: rowFile, reason: 'computed-import'});
       }
       if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && node.expression.name.text === 'glob') issues.push({file: rowFile, from: rowFile, reason: 'glob-import'});
