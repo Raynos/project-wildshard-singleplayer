@@ -156,3 +156,5 @@ contains the entry scene, its data rows and the SDK/format closure; it no longer
 panel renderer. The unchanged veil literal is checked where the native page consumes it. The entry JSON retains its
 original pinned hash, and a fresh runtime/legacy/cache/all-output-deleted clean room rebuilds it exactly. Nine's
 complete shard product remains a separate gate; this component does not authorize any deletion.
+
+Pine’s `pine-night-director` job compiles its retained typed AssemblyScript and declared ABI through the shared confined authoring loader. Its two pinned products (the one-page module and DO-NOT-EDIT transport JSON) regenerate without runtime, legacy, seeds or a warm cache. This component proof does not admit a whole-product removal.
