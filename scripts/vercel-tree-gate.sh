@@ -12,7 +12,7 @@
 # read last time (traced by scripts/gate-trace.mjs) is byte-identical, and vitest runs only `vitest related` to the
 # files changed since the last gate whose vitest passed. Every FULL_EVERY-th gate, any gate FULL_HOURS after the last
 # full one, a change to package / test setup / config files, and GATE_FULL=1 run everything. CI always runs everything.
-# E454 (Jake: "max 2 minutes the pre push"): the independent steps run in parallel and each prints its own wall time;
+# E454: every step prints its own wall time. SF74 caps independent jobs at three; Vitest has an exclusive phase;
 # the generated-outputs check runs beside the export instead of before it.
 #
 #   scripts/vercel-tree-gate.sh [<commit>]     (default HEAD; .githooks/pre-push runs it on the pushed tip)
@@ -49,6 +49,7 @@ trap 'kill $(jobs -p) 2>/dev/null; rm -rf "$work" "$GATE_SNAPSHOT"' EXIT
 fail() { echo "vercel-gate: FAILED at $short — $1" >&2; echo "            (Vercel would have built this tree and gone red; fix it and commit, then push again)" >&2; exit 1; }
 gate_t0=$SECONDS
 steps=()
+source "$ROOT/scripts/gate-jobs.sh"
 # run <name> <cmd…>: one step, its log, exit code and wall seconds in $work. Jobs below call it in the background.
 run() { local name="$1"; shift; local t0=$SECONDS; "$@" > "$work/$name.log" 2>&1; local rc=$?; echo "$((SECONDS - t0))" > "$work/$name.sec"; echo "$rc" > "$work/$name.rc"; return "$rc"; }
 
@@ -62,7 +63,7 @@ if [ "$generated_workflow" = 1 ] && [ -f "$verified" ]; then
   echo "verified by the regeneration commit at push" > "$work/generated.cached"
 elif [ "$generated_workflow" = 1 ]; then
   steps+=(generated)
-  run generated node "$ROOT/scripts/regenerate-committed.mjs" --check "$sha" &
+  gate_launch run generated node "$ROOT/scripts/regenerate-committed.mjs" --check "$sha"
 fi
 
 # ── 1. what Vercel uploads: the commit's files minus its .vercelignore (gitignore syntax, checked in an empty repo) ──
@@ -95,17 +96,18 @@ if git cat-file -e "$sha^:lint/runtime-performance.json" 2>/dev/null; then prede
 if ! git diff --quiet "$sha^" "$sha" -- lint/runtime-performance.json lint/class-moves.json; then predecessor_lists+=(src/game src/sdk src/engine); fi
 git archive "$sha^" -- "${predecessor_lists[@]}" | tar -xf - -C "$work/predecessor" || fail "predecessor lists"
 
-# ── 3. the CI gates, in the Vercel tree: gen first, then every independent step at once (E454) ──
+# ── 3. the CI gates: prepare inputs, exclusive Vitest, then at most three independent jobs ──
 cd "$work/tree" || exit 1
 full=1; cache="$ROOT/scripts/gate-cache.mjs"
 if [ -f "$cache" ] && ! node "$cache" full?; then full=0; fi
-echo "vercel-gate: $short — $(wc -l < "$work/keep" | tr -d ' ') files as Vercel sees them; check-css · typecheck · oxlint · bake-check · vitest · vite build (parallel, $([ "$full" = 1 ] && echo full || echo cached))"
-job() { steps+=("$1"); run "$@" & }
+echo "vercel-gate: $short — $(wc -l < "$work/keep" | tr -d ' ') files as Vercel sees them; check-css · typecheck · oxlint · bake-check · vitest · vite build (vitest exclusive, max 3 jobs, $([ "$full" = 1 ] && echo full || echo cached))"
+job() { steps+=("$1"); gate_launch run "$@"; }
 # cached <name> <cmd…>: a node step skipped when its traced inputs are unchanged since it last passed (gate-cache.mjs)
 cached() {
   local name="$1"; shift
   if [ ! -f "$cache" ]; then job "$name" "$@"; return; fi
   steps+=("$name")
+  gate_slot
   ( export GATE_CACHE_COMMAND="$*"
     if [ "$full" = 0 ] && node "$cache" check "$name" "$work/tree" > "$work/$name.cached" 2>/dev/null; then
       echo 0 > "$work/$name.sec"; echo 0 > "$work/$name.rc"; exit 0
@@ -114,6 +116,7 @@ cached() {
     GATE_TRACE_ROOT="$work/tree" GATE_TRACE_DIR="$work/trace-$name" \
       NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--import=file://$ROOT/scripts/gate-trace.mjs" run "$name" "$@" || exit 1
     node "$cache" record "$name" "$work/tree" "$work/trace-$name" "$sha" >> "$work/$name.log" 2>&1 || true ) &
+  gate_pids+=("$!")
 }
 # vitest: the whole suite on a full gate, else only the tests related to the files changed since vitest last passed
 vitest_mode=full; vitest_files=()
@@ -122,9 +125,12 @@ if [ "$full" = 0 ]; then
   case "$plan" in full) ;; none) vitest_mode=none;; *) vitest_mode=related; while IFS= read -r f; do vitest_files+=("$f"); done <<< "$plan";; esac
 fi
 vitest_step() {
+  export WS_VITEST_MAX_WORKERS="${WS_VITEST_MAX_WORKERS:-6}"
+  local results="$ROOT/.git/gate-vitest-results/$sha.json"
+  mkdir -p "$(dirname "$results")"
   case "$vitest_mode" in
-    full) pnpm exec vitest run || return 1;;
-    related) echo "vitest related: ${#vitest_files[@]} changed file(s)"; pnpm exec vitest related --run --passWithNoTests "${vitest_files[@]}" || return 1;;
+    full) pnpm exec vitest run --reporter=default --reporter=json --outputFile="$results" || return 1;;
+    related) echo "vitest related: ${#vitest_files[@]} changed file(s)"; pnpm exec vitest related --run --passWithNoTests --reporter=default --reporter=json --outputFile="$results" "${vitest_files[@]}" || return 1;;
     none) echo "vitest: no changed file is in the Vercel tree";;
   esac
   [ ! -f "$cache" ] || node "$cache" vitest-pass "$sha" "$vitest_mode"
@@ -135,9 +141,11 @@ chain() {
   for word in "${all[@]}"; do
     if [ "$word" = -- ]; then steps+=("${cmd[0]}"); cmd=(); else cmd+=("$word"); fi
   done
+  gate_slot
   ( local -a c=(); for word in "${all[@]}"; do
       if [ "$word" = -- ]; then run "${c[@]}" || exit 1; c=(); else c+=("$word"); fi
     done ) &
+  gate_pids+=("$!")
 }
 # These write the tree's generated inputs, then prepare its native checkpoints outside the timed test pool.
 # The regeneration export can have different generated bytes; only this final Vercel tree defines the test cache key.
@@ -152,6 +160,8 @@ if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ] && [ -f scripts/witness
   fi
 fi
 if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ]; then
+  steps+=(vitest)
+  gate_exclusive run vitest vitest_step
   job check-css node scripts/check-css.mjs
   job gen-check node scripts/gen-shards.mjs --check
   job game-plugin-exports node scripts/game-plugins.mjs --check
@@ -181,12 +191,11 @@ if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ]; then
   if grep -q -- '--list-node' scripts/bake-check.mjs; then
     for baker in $(node scripts/bake-check.mjs --list-node); do cached "bake-$baker" node scripts/bake-check.mjs --node-only --only="$baker"; done
   else cached bake-check node scripts/bake-check.mjs --node-only; fi
-  job vitest vitest_step
   # SF74 W28 (speed audit #9a): the digest tests again under x64 Node (Rosetta), so a Linux-x64-only float red fails
   # here, not in push CI (~45 s beside vitest; skips, green, on a Mac without scripts/x64-vitest.sh --setup).
   [ -f scripts/x64-vitest.sh ] && job x64-digests bash scripts/x64-vitest.sh --digests
   job script-conformance env BROWSER_LANE_PRIORITY=1 bash scripts/browser-lane.sh --max 5 node scripts/script-conformance.mjs
-  # vite build writes nothing in the tree after gen (checked 2026-10-07), so it runs beside the readers
+  # vite build writes nothing in the tree after gen; it shares the bounded reader phase after Vitest drains
   chain shardfiles node scripts/build-shardfiles.mjs \
     -- vite-build pnpm exec vite build --outDir "$work/dist" --emptyOutDir \
     -- assert-devserver node scripts/check-devserver.mjs "$work/dist" \
@@ -196,7 +205,7 @@ if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ]; then
   # shard-platform: SHARD-PLATFORM SP5, each shard's custom share. webkit-smoke (E460, ~5 s): the built template in
   # Playwright WebKit as the phone; fails when a held item or the world view renders near black.
 fi
-wait
+gate_drain
 failed=()
 for name in "${steps[@]}"; do
   rc="$(cat "$work/$name.rc" 2>/dev/null || echo skipped)"

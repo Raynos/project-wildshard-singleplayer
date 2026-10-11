@@ -160,6 +160,32 @@ it('lowers owned heavy jobs and nested descendants to interactive-friendly prior
   expect(JSON.parse(readFileSync(output, 'utf8'))).toBeGreaterThanOrEqual(10);
 });
 
+it('caps gate jobs at three, drains before an exclusive phase and continues after a failed job', () => {
+  const { root, env } = fixture();
+  const code = `const fs=require('node:fs'),p=require('node:path');
+const root=process.argv[1],id=process.argv[2],active=p.join(root,'active-'+id);
+fs.writeFileSync(active,'');
+fs.appendFileSync(p.join(root,'events'),JSON.stringify({id,active:fs.readdirSync(root).filter(x=>x.startsWith('active-')).length})+'\\n');
+setTimeout(()=>{fs.unlinkSync(active);fs.writeFileSync(p.join(root,'done-'+id),'');process.exit(id==='2'?7:0);},80);`;
+  const exclusive = `const fs=require('node:fs');if(fs.readdirSync(process.argv[1]).some(x=>x.startsWith('active-')))process.exit(9);fs.writeFileSync(process.argv[1]+'/exclusive','');`;
+  const script = `set -u
+source "$1"
+for n in 1 2 3 4 5 6 7; do gate_launch "$5" -e "$3" "$2" "$n"; done
+gate_exclusive "$5" -e "$4" "$2" || exit 9
+for n in 8 9 10; do gate_launch "$5" -e "$3" "$2" "$n"; done
+gate_drain`;
+  const result = spawnSync('bash', ['-c', script, 'gate-jobs-test', resolvePath('scripts/gate-jobs.sh'), root, code, exclusive, process.execPath], { env, encoding: 'utf8' });
+  expect(result.status).toBe(0);
+  expect(existsSync(join(root, 'exclusive'))).toBe(true);
+  const events: unknown[] = readFileSync(join(root, 'events'), 'utf8').trim().split('\n').map(line => { const row: unknown = JSON.parse(line); return row; });
+  expect(events).toHaveLength(10);
+  for (const event of events) {
+    if (event === null || typeof event !== 'object' || !('active' in event) || typeof event.active !== 'number') throw new Error('invalid concurrency receipt');
+    expect(event.active).toBeLessThanOrEqual(3);
+  }
+  for (let n = 1; n <= 10; n++) expect(existsSync(join(root, `done-${n}`))).toBe(true);
+});
+
 it('keeps the lock with the owned child after its wrapper is killed', async () => {
   const { root, env } = fixture();
   const holder = start(env, 'build', marker(root, 'orphan', 'release-orphan'));
