@@ -25,9 +25,12 @@ it('consumes the admitted lash profile through its real family, retaining the le
 });
 
 it('derives damage and reach from the actual admitted item, and contacts from its profile rather than a native constant', () => {
-  const profile = { ...WHIP_PROFILE, timing: { ...WHIP_PROFILE.timing, unroll: 0.08, second: 0.24 } };
+  const profile = { ...WHIP_PROFILE, contact: { chestHeight: 1.1, bodyAllowance: 0.2 }, timing: { ...WHIP_PROFILE.timing, unroll: 0.08, second: 0.24 } };
   const row = { ...WHIP_ITEM, light: { ...WHIP_ITEM.light, damage: 7, range: 3 } };
   const spec = lashSpec(row, profile);
   expect([spec.light, spec.reach, spec.unroll, spec.second]).toEqual([7, 3, 0.08, 0.24]);
+  expect(spec.contact).toEqual(profile.contact);
+  const { contact: _contact, ...missing } = profile;
+  expect(() => lashSpec(row, missing)).toThrow('native lash profile');
   expect(() => lashSpec(row, { ...profile, timing: { ...profile.timing, second: 0.08 } })).toThrow();
 });

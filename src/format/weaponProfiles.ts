@@ -60,6 +60,7 @@ export const ThrownWeaponProfileSchema = v.pipe(v.strictObject({
  * The profile supplies values only; the trusted family retains its contact ordering and continuation. */
 export const LashWeaponProfileSchema = v.pipe(v.strictObject({
   family: v.literal('lash'),
+  contact: v.exactOptional(v.strictObject({ chestHeight: scalar, bodyAllowance: scalar })),
   timing: v.strictObject({ unroll: duration, second: duration, show: duration, stagger: scalar, pull: positive, pullMaxHp: positive }),
   moves: v.strictObject({ light: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
     first: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), second: v.pipe(v.string(), v.minLength(1), v.maxLength(128)) }),

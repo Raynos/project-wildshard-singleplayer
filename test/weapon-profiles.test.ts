@@ -54,6 +54,8 @@ it('refuses non-JSON author code, nonfinite/negative tuning, wrong families and 
     { ...WHIP_PROFILE, timing: { ...WHIP_PROFILE.timing, second: WHIP_PROFILE.timing.unroll } },
     { ...WHIP_PROFILE, timing: { ...WHIP_PROFILE.timing, show: WHIP_PROFILE.timing.unroll } },
     { ...WHIP_PROFILE, timing: { ...WHIP_PROFILE.timing, pull: Infinity } },
+    { ...WHIP_PROFILE, contact: { ...WHIP_PROFILE.contact, chestHeight: Infinity } },
+    { ...WHIP_PROFILE, contact: { ...WHIP_PROFILE.contact, bodyAllowance: -1 } },
     { ...WHIP_PROFILE, moves: { ...WHIP_PROFILE.moves, first: '' } }, { ...bow, draw: { ...bow.draw, holdTire: HOLD_STEADY } },
     { ...bow, substeps: 65 }, { ...melee, sweep: { ...melee.sweep, extensions: [] } },
     { ...melee, lunge: { ...melee.lunge, minTime: 2 } },
@@ -104,4 +106,9 @@ it('refuses an unhosted profile before constructing or installing anything; an a
     const installed = installDeclaredItems(items, ports);
     expect(received).toEqual([parseWeaponProfile(melee)]); expect(installed.primary?.row.id).toBe(row.id);
   } finally { scope.dispose(); }
+});
+
+it('preserves existing lash profile admission without inventing newly authored contact values', () => {
+  const { contact: _contact, ...legacy } = WHIP_PROFILE;
+  expect(parseWeaponProfile(legacy)).toEqual(legacy);
 });

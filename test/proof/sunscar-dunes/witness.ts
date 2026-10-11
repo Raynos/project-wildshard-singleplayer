@@ -17,7 +17,7 @@ import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/ques
 import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/data/signalInteractions';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/data/matriarchEncounter';
 import { lashContact } from '../../../src/shards/sunscar-dunes/runtime/items/lash';
-import { WHIP_ITEM } from '../../../src/shards/sunscar-dunes/data/items';
+import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/data/items';
 import { SCOUT_AT } from '../../../src/shards/sunscar-dunes/data/flags';
 import { BASIN } from '../../../src/shards/sunscar-dunes/data/layout';
 import baked from '../../../src/shards/sunscar-dunes/runtime/physics.baked.json' with { type: 'json' };
@@ -123,7 +123,7 @@ function lashable(host: SimHost, actor: AnimalSim): boolean {
   ray.subVectors(at, eye); const length = ray.length(); if (length < 1e-6) return true; ray.multiplyScalar(1 / length);
   actor.headWorld(volumes.head); actor.bodyCapsule(volumes.a, volumes.b);
   volumes.headRadius = actor.dims.headRadius * actor.scale; volumes.bodyRadius = actor.dims.bodyRadius * actor.scale;
-  return lashContact(eye, ray, WHIP_ITEM.light.range, WHIP_ITEM.light.width, volumes, actor.position) !== null;
+  return lashContact(eye, ray, WHIP_ITEM.light.range, WHIP_ITEM.light.width, volumes, actor.position, WHIP_PROFILE.contact) !== null;
 }
 
 /** The quest's walk: where to go, and the interaction the player presses once its prompt is in reach. */

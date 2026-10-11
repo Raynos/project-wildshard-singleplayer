@@ -20,7 +20,7 @@ export function signalPhysicsInputs(root) {
     'src/engine/quest/view.ts', 'src/engine/quest/view/ui.ts', 'src/game/plugin/quests.ts',
     'src/engine/models/colliders.ts', 'src/engine/models/place.ts', 'src/engine/world/registry.ts', 'pnpm-lock.yaml']) paths.push(file);
   // SF82: the canonical native boss patterns are part of the actual producer's defining closure.
-  paths.push('src/game/plugin/bossPhase.ts', 'src/game/shardfile/phasedBossRoaming.ts');
+  paths.push('src/format/weaponProfiles.ts', 'src/game/plugin/bossPhase.ts', 'src/game/shardfile/phasedBossRoaming.ts');
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

@@ -5,6 +5,7 @@ const TAGS = ['actor.player', 'weapon.sunscar-whip', 'dmg.melee'] as const;
 
 /** The timed contacts and native reactions admitted by the existing trusted lash family. */
 export const WHIP_PROFILE = { family: 'lash',
+  contact: { chestHeight: 0.9, bodyAllowance: 0.7 },
   timing: { unroll: 0.12, second: 0.32, show: 0.42, stagger: 0.8, pull: 16, pullMaxHp: 40 },
   moves: { light: 'sunscar.whip.crack', first: 'sunscar.whip.double.1', second: 'sunscar.whip.double.2' },
 } as const;

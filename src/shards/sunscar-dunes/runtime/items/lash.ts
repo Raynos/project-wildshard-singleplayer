@@ -3,8 +3,8 @@ import { parseWeaponProfile, type WeaponProfile } from '@wildshard/format/weapon
 import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { Actor, CombatTag, CombatTarget, DamageDealt, DamageRequest } from '@wildshard/engine/combat/pipeline';
 
-/** A combat target's chest above its port position (its feet), and the lane's body allowance (metres). */
-export const LASH_CHEST = 0.9, LASH_BODY = 0.7;
+/** The admitted family's chest height and lane body allowance in metres. */
+export type LashContact = NonNullable<Extract<WeaponProfile, { family: 'lash' }>['contact']>;
 
 /** A creature's hit volumes in world space: the head ball and the body capsule (the shapes `CreatureBodies` poses). */
 export interface LashVolumes {
@@ -46,24 +46,24 @@ export function lashVolumeHit(from: Vector3, dir: Vector3, reach: number, body: 
 }
 
 /**
- * The lash's lane: how far along `dir` a target's chest (`LASH_CHEST` over its feet) sits when it is inside the narrow
- * lane (`reach` + `LASH_BODY` long, `width` + `LASH_BODY` wide), or null. The lash lands at `min(forward, reach)`.
+ * The lash's lane: how far along `dir` a target's chest (`contact.chestHeight` over its feet) sits when it is inside the narrow
+ * lane (`reach` + `contact.bodyAllowance` long, `width` + `contact.bodyAllowance` wide), or null. The lash lands at `min(forward, reach)`.
  */
-export function lashLane(from: Vector3, dir: Vector3, reach: number, width: number, feet: Vector3): number | null {
-  laneDelta.copy(feet).sub(from); laneDelta.y += LASH_CHEST;
+export function lashLane(from: Vector3, dir: Vector3, reach: number, width: number, feet: Vector3, contact: LashContact): number | null {
+  laneDelta.copy(feet).sub(from); laneDelta.y += contact.chestHeight;
   const forward = laneDelta.dot(dir);
-  if (forward < 0 || forward > reach + LASH_BODY) return null;
-  return laneDelta.addScaledVector(dir, -forward).length() > width + LASH_BODY ? null : forward;
+  if (forward < 0 || forward > reach + contact.bodyAllowance) return null;
+  return laneDelta.addScaledVector(dir, -forward).length() > width + contact.bodyAllowance ? null : forward;
 }
 
 /**
  * One lash's contact rule on one creature: the first hit on its head ball or body capsule inside the reach, else its
  * chest in the lane; the distance along the ray where it lands.
  */
-export function lashContact(from: Vector3, dir: Vector3, reach: number, width: number, body: LashVolumes, feet: Vector3): number | null {
+export function lashContact(from: Vector3, dir: Vector3, reach: number, width: number, body: LashVolumes, feet: Vector3, contact: LashContact): number | null {
   const hit = lashVolumeHit(from, dir, reach, body);
   if (hit !== null) return hit;
-  const lane = lashLane(from, dir, reach, width, feet);
+  const lane = lashLane(from, dir, reach, width, feet, contact);
   return lane === null ? null : Math.min(lane, reach);
 }
 
@@ -75,14 +75,14 @@ export type LashMoves = Extract<WeaponProfile, { family: 'lash' }>['moves'];
 export interface LashSpec extends LashTiming {
   readonly id: string; readonly reach: number; readonly heavyReach: number; readonly width: number;
   readonly light: number; readonly heavy: number; readonly cooldown: number; readonly heavyCooldown: number; readonly charge: number;
-  readonly tags: readonly CombatTag[]; readonly moves: LashMoves;
+  readonly tags: readonly CombatTag[]; readonly moves: LashMoves; readonly contact: LashContact;
 }
 /** A declared weapon row's lash: its light / heavy reach, width, damage and cooldowns and its charge, with the lash's timing. */
 export function lashSpec(row: ItemSpec, input: unknown): LashSpec {
   const profile = parseWeaponProfile(input);
-  if (row.kind !== 'weapon' || profile.family !== 'lash') throw new Error(`Item ${row.id} requires its native lash profile`);
+  if (row.kind !== 'weapon' || profile.family !== 'lash' || profile.contact === undefined) throw new Error(`Item ${row.id} requires its native lash profile`);
   return { id: row.id, reach: row.light.range, heavyReach: row.heavy.range, width: row.light.width, light: row.light.damage, heavy: row.heavy.damage,
-    cooldown: row.light.cooldown, heavyCooldown: row.heavy.cooldown, charge: row.charge, tags: [...row.light.tags], moves: { ...profile.moves }, ...profile.timing };
+    cooldown: row.light.cooldown, heavyCooldown: row.heavy.cooldown, charge: row.charge, tags: [...row.light.tags], moves: { ...profile.moves }, contact: { ...profile.contact }, ...profile.timing };
 }
 
 /** What a lash lands on: the combat actor, and the body's yank and stagger when it has them. */
@@ -130,6 +130,7 @@ export interface LashState { readonly cooldown: number; readonly crackT: number;
 export class LashRuntime {
   readonly spec: LashSpec;
   private readonly ports: LashPorts;
+  private readonly laneOverflow = new RangeError('Lash targets exceed the admitted contact scan');
   /** Seconds left before the next swing. */
   cooldown = 0;
   /** Time since the current crack started, or −1 when idle. */
@@ -174,12 +175,16 @@ export class LashRuntime {
   /** The nearest hittable combat target whose chest sits inside the lash's lane. */
   private inLane(from: Vector3, dir: Vector3, reach: number): { port: CombatTarget; point: Vector3 } | null {
     let best: { port: CombatTarget; point: Vector3 } | null = null, bestT = Infinity;
-    for (const port of this.ports.targets()) {
+    const targets = this.ports.targets()[Symbol.iterator]();
+    for (let i = 0; i < 1024; i++) {
+      const next = targets.next(); if (next.done) return best;
+      const port = next.value;
       if (!port.hittable) continue;
-      const forward = lashLane(from, dir, reach, this.spec.width, port.position);
+      const forward = lashLane(from, dir, reach, this.spec.width, port.position, this.spec.contact);
       if (forward === null || forward >= bestT) continue;
       best = { port, point: from.clone().addScaledVector(dir, Math.min(forward, reach)) }; bestT = forward;
     }
+    if (!targets.next().done) throw this.laneOverflow;
     return best;
   }
   /** The lash reaches a world target inside its lane: the nearest one along the aim reacts (null: none, or it did not). */
