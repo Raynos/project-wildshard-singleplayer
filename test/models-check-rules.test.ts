@@ -44,6 +44,13 @@ describe('check-models: a registry add with an object (E323)', () => {
 });
 
 describe('check-models after M6: every area is held (E315)', () => {
+  it('limits the Node scene reconstruction to its single authored-instancing site', () => {
+    const file = 'src/sdk/sceneGraph.ts';
+    expect(checkModels({ [file]: 'new InstancedMesh(geometry, material, count);' }).violations).toEqual([]);
+    expect(checkModels({ [file]: 'new InstancedMesh(g, m, n); new InstancedMesh(g, m, n);' }).violations.some(v => v.startsWith(`${file}:`) && v.includes('2 × InstancedMesh'))).toBe(true);
+    expect(checkModels({ 'src/sdk/newSceneBuilder.ts': 'new InstancedMesh(g, m, n);' }).violations.some(v => v.startsWith('src/sdk/newSceneBuilder.ts:'))).toBe(true);
+  });
+
   it('a registry add with a model entry is place / listModel\'s alone: counted as a top-level key, anywhere else it fails', () => {
     expect(addsWithKey("registry.add({ id: 'x', name: 'X', model: entry });", 'model')).toBe(1);
     expect(addsWithKey("registry.add({ id, model });", 'model')).toBe(1);
