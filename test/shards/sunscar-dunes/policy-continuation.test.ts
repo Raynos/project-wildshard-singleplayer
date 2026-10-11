@@ -91,8 +91,8 @@ it.each(['skitterer', 'matriarch'] as const)('refuses malformed %s policy state 
     }
   } finally { host.dispose(); }
 });
-it('imports the three runtime species modules without DOM or renderer modules', () => {
+it('imports all four shipping species data rows without DOM or renderer modules', () => {
   const result = spawnSync(execPath, ['--experimental-transform-types', '--disable-warning=ExperimentalWarning', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e',
-    "for (const name of ['duneRay','strider','skitterer']) await import('./src/shards/sunscar-dunes/runtime/species/'+name+'.ts'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
+    "for (const name of ['duneRay','strider','skitterer','matriarch']) await import('./src/shards/sunscar-dunes/data/species/'+name+'.ts'); await import('./src/shards/sunscar-dunes/data/brains.ts'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
 });
