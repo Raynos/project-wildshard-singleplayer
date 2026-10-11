@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-10 18:25 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
+**2026-10-10 19:50 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
 
 **Milestones**
 - **M1:** done.
@@ -10,7 +10,7 @@
   - **Memory:** G269.
 - **M3:** **0 of 6 at 80/20** under Jake's measure.
 
-**Live:** production `7f51e883a`; **origin/main green** (`91a3d7cba`; push gate + Linux CI green on `ae913bcc2`, run 38061317459).
+**Live:** origin/main = HEAD (`c528d9b63`, 19:44); the ~145-commit backlog landed in `acb850d96`'s green push.
 
 **G298 done:** all six shards' bakers in their own `generators/` (only the shared `bake-sky.mjs` HDRI baker stays in scripts/). **G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact (Nalati physics after `8b144a8d0`), witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`), report-only Linux CI comparison (`ee963ec56`). Nothing deleted until gate + Linux CI evidence.
 
@@ -29,7 +29,9 @@
 
 | Lane | Work |
 |---|---|
-| op-hitch45 | WebKit frame-paced world-build yields (Nine 233 ms Sim) |
+| op-hitch45 | WebKit frame-paced build yields (`a333faa02`) · clean buildPacing A/B |
+| op-hitch48 | frame-floor census fix (`9fca2b6ce`: earlier drive p95s were inflated) · Game.ts cap |
+| op-hitch49 | Pine NPC leg rigs sliced (`050505dcc`) · Signal activate install |
 | sp-x1 | DS0.1 Nalati + Sky move-back · Nalati witness |
 | sp-x2 | DS0.1 Pine move-back |
 | sp-x4 | DS0.1 Driftwood + Signal move-back |
