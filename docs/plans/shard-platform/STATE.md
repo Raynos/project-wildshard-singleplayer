@@ -25,18 +25,15 @@
 | Driftwood | 97.7 % |
 | Pine | 100.1 % |
 
-**Lanes (Jake G329: 0 Opus, Codex only; the 3 running Opus lanes finish their current item, then stop; graphical rows wait for Opus)**
+**Lanes (Jake G329: 0 Opus, Codex only; all Opus lanes stopped; graphical rows wait for Opus)**
 
 | Lane | Work |
 |---|---|
-| op-hitch45 | finishing: buildPacing A/B, then stops |
-| op-hitch48 | done: Sim census fix (`9fca2b6ce`); frame-cap patch handed to sp-x2 |
-| op-hitch49 | done: Pine leg rigs sliced (`050505dcc`); Signal activate handed to sp-x2 |
-| sp-x1 | DS0.1 Nalati + Sky move-back · Nalati witness |
+| sp-x1 | DS0.1 Sky move-back · then buildPacing default (Nine Sim 446→145 on; Sky desktop to measure) |
 | sp-x2 | DS0.1 Pine leftovers · Signal 117 ms activate frame · then the frame-cap patch |
 | sp-x4 | DS0.1 Driftwood + Signal move-back (legacy imports: copy, never move) |
 | sp-x5 | DS0.2 game plugin/* · DS0.3 guards · SF77 metric |
-| sp-x6 | DS0.4 scripts → shards · then SF80 non-visual rows |
+| sp-x6 | DS0.4 done · DS1.1 @wildshard/format (`28e178749`) · DS1.2 synth (`1508ecffa`) · Pine hulls |
 
 **Jake picks landed:** G321/G322/G324/G325/G326 (all six public cards shardfile)/G327/G328.
 
