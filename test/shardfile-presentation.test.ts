@@ -3,10 +3,11 @@ import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { assetCost } from '../src/sdk/assets';
-import { parseShardfile, ShardfileSchema } from '../src/game/shardfile/schema';
+import { parseShardfile, ShardfileSchema } from '@wildshard/format/shardSchema';
 import { schemaInventory } from '../scripts/docs/schema-reference.mjs';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
-import { parseStillImage, STILL_IMAGE_LIMITS, stillImageUrl } from '../src/game/shardfile/stillImage';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { parseStillImage, STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
+import { stillImageUrl } from '../src/game/shardfile/stillImage';
 import { sourceManifest } from '../src/game/plugin/shardPlugin';
 import { emptyShardfileSource, installManifestShardfile, shardfileSource } from '../src/game/plugin/loader';
 

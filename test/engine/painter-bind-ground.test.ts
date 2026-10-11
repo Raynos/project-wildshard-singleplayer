@@ -12,7 +12,7 @@ import { toLevelSpec } from '../../src/game/shard/spec';
 import { TEMPLATE } from '../../src/shards/_template/manifest';
 import { provideRuntimeProduct, runtimeProduct } from '../../src/game/shardfile/runtimeProduct';
 import { emptyShardfile } from '../../src/sdk/author';
-import { parseShardfile } from '../../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 
 const flat = (h: number): TerrainField => ({ heightAt: () => h, normalAt: () => [0, 1, 0], splatAt: () => [1, 0, 0, 0], trailDistance: () => 9, cabinMask: () => 0, pondMask: () => 0, waterLevel: () => h - 1, trails: [], cabinSites: [], pond: null });
 const level = (id: string, h: number, seed: number) => ({ ...toLevelSpec(TEMPLATE), id, seed, ground: { terrain: flat(h) } });

@@ -11,7 +11,7 @@ import type { DeclaredHud } from '../src/engine/ui/declared';
 import type { HudBand, DiscSpot } from '../src/engine/ui/hudSlots';
 import type { TabFragment, TabSpec } from '../src/engine/ui/tabs';
 import { mountDeclaredUi } from '../src/game/shard/declaredUi';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { UiSchema, uiRules, type ShardUiDeclaration } from '@wildshard/format/ui';
 import { STRINGS } from './fixtures/templateLegacyText';
 

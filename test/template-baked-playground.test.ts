@@ -5,7 +5,7 @@ import { Box3, Group, InstancedMesh, Matrix4, Mesh, Vector3, type Object3D } fro
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as v from 'valibot';
 import metadata from '../src/shards/_template/data/props.json' with { type: 'json' };
-import { PropsSchema } from '../src/game/shardfile/props';
+import { PropsSchema } from '@wildshard/format/props';
 import { contentHash } from '../src/sdk/project';
 import { templateProps } from '../src/shards/_template/generators/templatePropsSource';
 import { bakeProps } from '../src/sdk/bake/props';

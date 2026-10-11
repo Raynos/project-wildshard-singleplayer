@@ -7,7 +7,7 @@ import * as v from 'valibot';
 import { parseGlb, parseKtx2 } from '@wildshard/sdk/assets';
 import { contentHash } from '@wildshard/sdk/project';
 import { captureStaticMaterial, StaticMaterialCatalogue } from '@wildshard/sdk/bake/staticMaterials';
-import { MaterialsSchema } from '../src/game/shardfile/materials';
+import { MaterialsSchema } from '@wildshard/format/materials';
 import { bakeNalatiWorldRows } from '../src/shards/nalati-grasslands/generators/nalatiWorldRows';
 import { bakeNalatiGround, nalatiGroundSource } from '../src/shards/nalati-grasslands/generators/nalatiGroundSource';
 

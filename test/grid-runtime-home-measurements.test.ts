@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/game/plugin/product';
+import { MemoryAdmission } from '@wildshard/format/product';
 import { regionalRuntimeAccountedBytes } from '../src/game/grid/regionalRuntime';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';

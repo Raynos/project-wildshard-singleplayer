@@ -3,7 +3,7 @@ import { ClientAssets } from './clientAssets';
 import { browserShardfileOptions } from '../plugin/loader';
 import type { AdmittedProduct } from './product';
 import { bindRuntimeTerrain, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,

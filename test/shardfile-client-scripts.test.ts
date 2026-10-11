@@ -1,9 +1,9 @@
 import { beforeAll, expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { createShardfileClientScripts } from '../src/game/shardfile/clientScripts';
 import { clientScriptViewCost } from '@wildshard/format/clientScripts';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { contentHash } from '@wildshard/sdk/project';
 import { compileScript } from '../scripts/compile-script.mjs';
 import { scriptSource } from './script/fixture';

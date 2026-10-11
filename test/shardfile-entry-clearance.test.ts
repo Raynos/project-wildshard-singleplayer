@@ -3,11 +3,11 @@ import { BoxGeometry, Matrix4, MeshStandardMaterial } from 'three';
 import { emptyShardfile } from '../src/sdk/author';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { contentHash } from '../src/sdk/project';
-import { validateEntrywayClearance } from '../src/game/shardfile/entryClearance';
-import { visitGlbTriangles, parseGlb } from '../src/game/plugin/product';
-import { parseShardfile } from '../src/game/shardfile/schema';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
-import type { ShardProps } from '../src/game/shardfile/props';
+import { validateEntrywayClearance } from '@wildshard/format/entryClearance';
+import { visitGlbTriangles, parseGlb } from '@wildshard/format/product';
+import { parseShardfile } from '@wildshard/format/shardSchema';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import type { ShardProps } from '@wildshard/format/props';
 import type { ShardWater } from '@wildshard/format/water';
 
 const empty = () => emptyShardfile({ slug: 'clearance-test', name: 'Clearance', author: 'Test', seed: 1, revision: 1 });

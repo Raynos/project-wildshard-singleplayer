@@ -14,7 +14,7 @@ import { createShardfileComposedLane } from '../src/game/shardfile/scriptComposi
 import { compileScript } from '../src/sdk/compileScript';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 import empty from './fixtures/shardfile/empty.json';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 

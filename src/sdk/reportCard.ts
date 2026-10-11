@@ -1,4 +1,4 @@
-import { performanceReport as report, performanceReportLines as lines, performanceTargetIssues as targets, type PerformanceReport as GameReport, type PerformanceObservations as GameObservations } from '@wildshard/game/plugin/product';
+import { performanceReport as report, performanceReportLines as lines, performanceTargetIssues as targets, type PerformanceReport as GameReport, type PerformanceObservations as GameObservations } from '@wildshard/format/product';
 import type { Shardfile } from './shardfile';
 
 /** Author-facing report: declared bounds, measured scripts and explicit cold-network assumptions. */

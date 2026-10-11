@@ -14,7 +14,7 @@ import { coarseTileMask } from '@wildshard/engine/world/coarseTileMask';
 import { installDeclaredProps, type PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import type { ClientWorldViews, ResidentTile } from './clientWorld';
 import type { GraphOutlineHook } from './clientGraphs';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
 /** a fine tile has nothing under it to hide */

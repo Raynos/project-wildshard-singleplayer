@@ -13,10 +13,10 @@
 import * as v from 'valibot';
 import { parseSkinBindings, parseSkinRows, type SkinBinding, type SkinRow } from '@wildshard/format/skinData';
 import type { ShardRows } from '@wildshard/format/rows';
-import type { Shardfile } from './schema';
-import { parseGlb } from '../plugin/product';
+import type { Shardfile } from '@wildshard/format/shardSchema';
+import { parseGlb } from '@wildshard/format/product';
 import { skinLayerDecoded } from '@wildshard/format/skinLayers';
-import { MaterialsSchema } from './materials';
+import { MaterialsSchema } from '@wildshard/format/materials';
 
 import { SKIN_LOOK_RECIPE, SKIN_CLIPS_RECIPE, SkinLookParametersSchema, SkinClipParametersSchema, ShardSkinFileSchema, type SkinLookParameters } from '@wildshard/format/skins';
 

@@ -79,9 +79,9 @@ import { ShadowFade, installShadowFadeChunk, sunFadeUniform } from '@wildshard/e
 import { registerCascades } from '@wildshard/engine/world/cascadeLights';
 import { Scope } from '@wildshard/engine/app/scope';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
-import { materialGraphRules } from '../../src/game/shardfile/materials';
+import { materialGraphRules } from '@wildshard/format/materials';
 
 const VARIANT = location.hash.slice(1) || 'family';
 // the Simulator's Safari can run the module before it lays the page out (innerWidth 0, so a 0 × 0 target): wait for it

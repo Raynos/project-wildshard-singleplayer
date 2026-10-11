@@ -7,7 +7,7 @@ import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { bakedColliderDesc, bakedColliderSchemas } from './props/bakedColliders';
-import { portalLinkEntries } from '@wildshard/game/shardfile/portalLink';
+import { portalLinkEntries } from '@wildshard/format/portalLinkAssets';
 import { provePortalLinks } from '@wildshard/game/shardfile/portalLinkProof';
 import { entryCapColliders } from '../world/floorRows';
 import { installNineJian, JIAN_ID } from './jian';

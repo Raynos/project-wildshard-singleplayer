@@ -1,7 +1,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { isDev, onDev } from '@wildshard/engine/core/devMode';
 import { mountUi } from '@wildshard/engine/ui/ownership';
-import type { MemoryAdmission, MemoryAdmissionWarning } from '../plugin/product';
+import type { MemoryAdmission, MemoryAdmissionWarning } from '@wildshard/format/product';
 import './memoryWarning.css';
 
 const mb = (bytes: number): string => `${(bytes / 1_000_000).toFixed(3)} MB`;

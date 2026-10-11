@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { syncTargetColliders } from '../src/game/shardfile/targets';
 
 function source() {

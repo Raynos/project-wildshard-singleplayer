@@ -16,7 +16,7 @@ import type { Scene, PerspectiveCamera } from 'three';
 import type { LoadStage } from '../shard/load';
 import type { GridRecoveryRecord } from '../grid/recovery';
 import type { PageResidency } from '../grid/pageResidency';
-import type { MemoryAdmission } from '../plugin/product';
+import type { MemoryAdmission } from '@wildshard/format/product';
 
 export interface KitPorts {
   items: readonly ItemRow[];

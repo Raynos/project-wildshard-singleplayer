@@ -5,7 +5,7 @@
  * product's static stack cost (`GridPostCosts`); a cell's admission checks its four neighbours against it. Static: the
  * costs come from the admitted bytes, never runtime sensing. Pure: no three.js, no DOM.
  */
-import { postPairRefusal, type PostStackCost } from '../shardfile/postStack';
+import { postPairRefusal, type PostStackCost } from '@wildshard/format/postStack';
 import type { GridAssembly, GridCell, GridSide } from './assembly';
 
 const SIDES: readonly GridSide[] = ['north', 'east', 'south', 'west'];

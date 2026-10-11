@@ -32,11 +32,11 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
       for (const file of ['scripts/docs/authoring-guide.md', 'scripts/docs/authoring-reference.mjs']) cpSync(file, resolve(root, file));
       for (const file of ['.oxlintrc.json', '.oxlintrc.ratchet.json']) cpSync(file, resolve(root, file));
       put('package.json', '{"type":"module"}'); put('tsconfig.json', '{"compilerOptions":{"strict":true,"types":[],"moduleResolution":"bundler","module":"esnext"}}');
-      for (const layer of ['engine', 'game', 'format', 'sdk', 'commons']) put(`src/${layer}/package.json`, JSON.stringify({ name: `@wildshard/${layer}`, exports: layer === 'engine' ? { './clock': './clock.ts' } : layer === 'format' ? { './scriptAbi': './scriptAbi.ts' } : {} }));
+      for (const layer of ['engine', 'game', 'format', 'sdk', 'commons']) put(`src/${layer}/package.json`, JSON.stringify({ name: `@wildshard/${layer}`, exports: layer === 'engine' ? { './clock': './clock.ts' } : layer === 'format' ? { './scriptAbi': './scriptAbi.ts', './shardSchema': './shardSchema.ts' } : {} }));
       put('src/engine/clock.ts', '/** Authoritative time. */\nexport const tick = 1;\n');
       put('src/engine/level/context.ts', '/** Generic context. */\nexport interface LevelContext {}\n');
       put('src/game/plugin/context.ts', '/** Content context. */\nexport interface ShardContext {}\n');
-      put('src/game/shardfile/schema.ts', "import * as v from 'valibot';\nexport const ShardfileSchema = v.strictObject({ version: v.literal('0.1') });\n");
+      put('src/format/shardSchema.ts', "import * as v from 'valibot';\n/** Exact fixture root contract. */\nexport const ShardfileSchema = v.strictObject({ version: v.literal('0.1') });\n");
       put('src/format/scriptAbi.ts', '/** Import signatures. */\nexport const SCRIPT_IMPORTS = { fuel: [127, 0] };\n/** Export signatures. */\nexport const SCRIPT_EXPORTS = { on_tick: [] };\n/** Versioned ABI. */\nexport const SCRIPT_ABI = { version: 0 };\n');
       put('lint/api-undocumented.json', '{"max":0}'); put('lint/layer-edges.json', '{"edges":{}}');
       put('lint/ratchet.json', '{"allow":{},"budgets":{"gpu":12},"debugRows":{"max":5,"raisedBy":["E435"]}}');
@@ -56,8 +56,8 @@ describe('SF6b clean committed regeneration', () => {
     await fixture(async (root, put, git) => {
       writeApiDocs(root);
       checkShardfileReference(root);
-      put('src/game/shardfile/schema.ts', "import * as v from 'valibot';\nexport const ShardfileSchema = v.strictObject({ version: v.literal('0.1'), reward: v.optional(v.pipe(v.number(), v.minValue(0)), 7) });\n");
-      git(['commit', '-qm', 'schema source change', '--', 'src/game/shardfile/schema.ts']);
+      put('src/format/shardSchema.ts', "import * as v from 'valibot';\n/** Exact fixture root contract. */\nexport const ShardfileSchema = v.strictObject({ version: v.literal('0.1'), reward: v.optional(v.pipe(v.number(), v.minValue(0)), 7) });\n");
+      git(['commit', '-qm', 'schema source change', '--', 'src/format/shardSchema.ts']);
       expect(() => checkShardfileReference(root)).toThrow('Stale generated shardfile reference');
       writeApiDocs(root);
       expect(readFileSync(resolve(root, 'docs/api/SHARDFILE.md'), 'utf8')).toContain('| $.reward | number | optional; default 7 | min_value 0 |');
@@ -98,7 +98,7 @@ describe('SF6b clean committed regeneration', () => {
       writeApiDocs(root); // the build output of the commit before the schema change
       put('src/sdk/package.json', JSON.stringify({ name: '@wildshard/sdk', exports: { './worldSource': './worldSource.ts' } }));
       put('src/sdk/worldSource.ts', "import * as v from 'valibot';\n/** Build-only authored world input. */\nexport const WorldSourceSchema = v.strictObject({ glb: v.string(), scale: v.optional(v.number(), 1) });\n");
-      put('src/format/package.json', JSON.stringify({ name: '@wildshard/format', exports: { './state': './state.ts', './scriptAbi': './scriptAbi.ts' } }));
+      put('src/format/package.json', JSON.stringify({ name: '@wildshard/format', exports: { './state': './state.ts', './scriptAbi': './scriptAbi.ts', './shardSchema': './shardSchema.ts' } }));
       put('src/format/state.ts', "import * as v from 'valibot';\n/** Shared wire state. */\nexport const StateSchema = v.strictObject({ health: v.number() });\n");
       put('src/format/scriptAbi.ts', '/** Import signatures. */\nexport const SCRIPT_IMPORTS = { fuel: [127, 0], query: [127, 127, 127, 127] };\n/** Export signatures. */\nexport const SCRIPT_EXPORTS = { on_tick: [] };\n/** Versioned ABI. */\nexport const SCRIPT_ABI = { version: 0 };\n');
       git(['add', '--', 'src/sdk/worldSource.ts', 'src/format/state.ts']);

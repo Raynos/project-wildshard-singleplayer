@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 

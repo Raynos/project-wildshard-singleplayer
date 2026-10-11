@@ -5,7 +5,7 @@ import { staticGlb } from '../src/sdk/bake/glb';
 import { contentHash } from '../src/sdk/project';
 import { parseItems } from '@wildshard/format/items';
 import { emptyShardfile } from '../src/sdk/author';
-import { shardfileRules } from '../src/game/shardfile/schema';
+import { shardfileRules } from '@wildshard/format/shardSchema';
 import { parseShardfile } from '../src/sdk/shardfile';
 import { assetCost } from '../src/sdk/assets';
 import { loadItemModels } from '../src/game/shardfile/itemModels';

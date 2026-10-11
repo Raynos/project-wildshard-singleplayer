@@ -3,9 +3,9 @@ import { expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { emptyShardfile } from '../src/sdk/author';
 import { decodeTerrainTile, encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
-import { validateEntrywayTerrain } from '../src/game/shardfile/entryways';
+import { validateEntrywayTerrain } from '@wildshard/format/entrywayAssets';
 import { contentHash } from '../src/sdk/project';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import template from '../src/shards/_template/shard.config';
 
 const empty = () => emptyShardfile({ slug: 'footprint-test', name: 'Footprint', author: 'Test', seed: 1, revision: 1 });

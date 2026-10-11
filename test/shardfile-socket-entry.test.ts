@@ -1,10 +1,10 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseShardfile, type Shardfile } from '../src/game/shardfile/schema';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
-import { validateEntrywayTerrain } from '../src/game/shardfile/entryways';
-import { validateEntrywayClearance } from '../src/game/shardfile/entryClearance';
-import { validateSocketLandings } from '../src/game/shardfile/entryLanding';
+import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { validateEntrywayTerrain } from '@wildshard/format/entrywayAssets';
+import { validateEntrywayClearance } from '@wildshard/format/entryClearance';
+import { validateSocketLandings } from '@wildshard/format/entryLanding';
 import { shardfileWater } from '../src/game/shardfile/water';
 import { encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { contentHash } from '../src/sdk/project';

@@ -9,7 +9,7 @@ import { browserShardfileOptions } from '../plugin/loader';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { ProductLeases } from './productLeases';
 import { GridPostCosts } from './postPairs';
-import { postStackCost } from '../shardfile/postStack';
+import { postStackCost } from '@wildshard/format/postStack';
 import type { ResidencyAllocator } from './allocator';
 
 /** One admitted product and the options its assets resolve against (ClientAssets reads further tiles through them). */

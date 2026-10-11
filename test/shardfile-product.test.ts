@@ -3,7 +3,7 @@ import binaryen from 'binaryen';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { contentHash } from '@wildshard/sdk/project';
 import { admitProduct, boundedResponse, type CachedProduct, type ProductCache, type ProductOptions, type ProductProgress } from '../src/game/shardfile/product';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 
 const empty = () => emptyShardfile({ slug: 'product-test', name: 'Product', author: 'Local', seed: 1, revision: 1 });
 const base = 'https://example.test/products/product-test/';

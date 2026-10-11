@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
-import { preflightAssetGraph } from '../src/game/plugin/product';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
+import { preflightAssetGraph } from '@wildshard/format/product';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 
 it('admits a maximum-length dependency chain without recursive walking and refuses its cycle', () => {

@@ -13,7 +13,7 @@ import { layerArrayMips } from '@wildshard/engine/core/ktx2';
 import { splatTerrainMaterial, type SplatLayers } from '@wildshard/engine/world/Terrain';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { SPLAT_CHANNELS, SPLAT_ROLES, type SplatRole, type SplatTerrain } from './splatTerrain';
+import { SPLAT_CHANNELS, SPLAT_ROLES, type SplatRole, type SplatTerrain } from '@wildshard/format/splatTerrain';
 
 /** The largest array edge the client builds (the live terrain's `loadPBRArray(…, 1024)`). */
 export const SPLAT_LAYER_SIZE = 1024;

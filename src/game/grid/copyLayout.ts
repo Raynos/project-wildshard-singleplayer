@@ -12,7 +12,7 @@
  */
 import { BoxGeometry, BufferAttribute, BufferGeometry, Color, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import { ACCENTS } from '@wildshard/format/accent';
-import type { Shardfile } from '../shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { CopyIdentity } from './catalogue';
 
 /** a copy's declared layout (catalogue.ts) */

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 import { withoutRuntimeRows } from '../src/game/plugin/headless';
 import source from '../src/shards/far-reach/shard.config';
 import { SKY_MODES, SKY_UPDRAFT } from '../src/shards/far-reach/data/modes';

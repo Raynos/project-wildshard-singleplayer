@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { CommonsCostSchema, CommonsCostsSchema, assertCommonsCosts } from '@wildshard/sdk/commonsCosts';
-import { parseShardfile } from '@wildshard/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 
 const hash = 'a'.repeat(64), extra = 'b'.repeat(64);
 const cost = { decoded: 64, gpu: 32, triangles: 2, draws: 1 };

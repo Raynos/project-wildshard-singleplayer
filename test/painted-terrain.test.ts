@@ -7,7 +7,7 @@ import { bindPaintedTerrainBake, fillPaintedTerrainAttributes, paintedTerrainBak
 import { compilePainterly, PAINTERLY_PROGRAM_KEY, PainterlyLook } from '../src/engine/render/families/painterly';
 import { familyMaterial } from '../src/engine/render/families/registry';
 import { ToonLook } from '../src/engine/render/families/toon';
-import { materialTextureRefs } from '../src/game/shardfile/materials';
+import { materialTextureRefs } from '@wildshard/format/materials';
 import { painterlyMaterial } from '../src/engine/world/painterly';
 import { applyTerrainSurface } from '../src/shards/nalati-grasslands/terrainSurface';
 import { NALATI_TERRAIN_SURFACE } from '../src/shards/nalati-grasslands/look/terrainLayer';

@@ -1,9 +1,9 @@
 import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
-import { socketLiftRules, type SocketLiftEntry } from '../src/game/shardfile/socketLift';
+import { socketLiftRules, type SocketLiftEntry } from '@wildshard/format/socketLiftAssets';
 import { parseSocketLift } from '@wildshard/format/socketLift';
-import { PropsSchema } from '../src/game/shardfile/props';
-import type { LiftApproachSource } from '../src/game/plugin/mover';
+import { PropsSchema } from '@wildshard/format/props';
+import type { LiftApproachSource } from '@wildshard/format/liftApproach';
 import type { MoverData } from '@wildshard/format/movers';
 
 const rot = { x: 0, y: 0, z: 0, w: 1 };

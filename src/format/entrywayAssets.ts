@@ -1,5 +1,5 @@
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
-import { clipEntryPolygon, entryFootprints } from './entryGeometry';
+import { clipEntryPolygon, entryFootprints } from '@wildshard/format/entryGeometry';
 import type { ShardEntryways } from '@wildshard/format/entryways';
 
 /** Verify every native collision triangle across the full 8×15 m approach before platform floors exist. */

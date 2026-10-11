@@ -7,7 +7,7 @@ import { shardEntries } from "../shard/entryMode";
 import { game } from "../shard/registry";
 import { installShards, shards } from "../shard/list";
 import { toLevelSpec } from "../shard/spec";
-import { parseShardfile, type Shardfile } from "../shardfile/schema";
+import { parseShardfile, type Shardfile } from "@wildshard/format/shardSchema";
 import { sourceManifest } from "./shardPlugin";
 import { SHARDFILE_VERSION } from "@wildshard/format/version";
 import { emptyLook } from "../shardfile/emptyLook";

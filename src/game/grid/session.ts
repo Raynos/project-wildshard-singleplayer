@@ -81,7 +81,7 @@ import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, type FarViewStatus, type ShardRefusal } from './refusal';
 import { cellScreenStatus, installCellScreens, type CellScreenInput, type CellScreensState } from './cellScreen';
 import { installOpenPlots, openPlotColliders, type OpenPlotState } from './openPlot';
-import type { MemoryAdmissionWarning } from '../plugin/product';
+import type { MemoryAdmissionWarning } from '@wildshard/format/product';
 import { TIER } from '@wildshard/engine/core/tier';
 import { horizonFade } from './horizonFade';
 

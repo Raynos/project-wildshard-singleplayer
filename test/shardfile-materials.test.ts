@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 
 const source = () => emptyShardfile({ slug: 'material-test', name: 'Materials', author: 'Local', seed: 1, revision: 1 });
 it('fills platform material/look defaults while preserving authored parameters', () => {

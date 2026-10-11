@@ -18,7 +18,7 @@ import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/game/plugin/product';
+import { MemoryAdmission } from '@wildshard/format/product';
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type RegionalRuntimeRequest, type RegionalRuntimeFactoryPorts } from '../src/game/grid/regionalRuntime';
 import { HybridRuntimeSession } from '../src/game/shardfile/hybrid';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';

@@ -12,7 +12,7 @@ import { GrappleSim, type GrappleCourse, type GrappleBody, type GrappleView } fr
 import { Grapple } from '../src/sdk/modes';
 import { parseModes } from '../src/format/modes';
 import source from '../src/shards/nine-dragon-stack/shard.config';
-import { shardfileRules } from '../src/game/shardfile/schema';
+import { shardfileRules } from '@wildshard/format/shardSchema';
 import { withoutRuntimeRows } from '../src/game/plugin/headless';
 import { NINE_GRAPPLE } from '../src/shards/nine-dragon-stack/data/modes';
 import { NativeGrappleSim } from './fixtures/modes/nativeGrapple';

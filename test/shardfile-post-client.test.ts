@@ -5,7 +5,7 @@ import { expect, it } from 'vitest';
 import * as THREE from 'three';
 import { Pass } from 'postprocessing';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { Scope } from '@wildshard/engine/app/scope';
 import { attachOutline, compileGraph, GraphNormalPrepass, GraphPostPass } from '../src/engine/render/graph/compile';
 import type { GraphCompiler } from '../src/engine/render/graphBackend';

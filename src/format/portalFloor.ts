@@ -1,10 +1,10 @@
-import type { PortalLinkEntry } from './portalLink';
-import type { ShardProps } from './props';
+import type { PortalLinkEntry } from '@wildshard/format/portalLinkAssets';
+import type { ShardProps } from '@wildshard/format/props';
 import type { ShardMeshCollision } from '@wildshard/format/meshCollision';
-import { glbPoint, glbTransform } from './glbTriangles';
-import { visitMeshTriangles } from './meshEntryways';
-import { entryFootprints, type EntryVertex } from './entryGeometry';
-import { convexEntryHull, entryCoverage } from './entryCoverage';
+import { glbPoint, glbTransform } from '@wildshard/format/glbTriangles';
+import { visitMeshTriangles } from '@wildshard/format/meshEntryways';
+import { entryFootprints, type EntryVertex } from '@wildshard/format/entryGeometry';
+import { convexEntryHull, entryCoverage } from '@wildshard/format/entryCoverage';
 
 type Box = Extract<ShardProps['colliders'][number]['shapes'][number], { kind: 'box' }>;
 function boxTop(box: Box): EntryVertex[][] {

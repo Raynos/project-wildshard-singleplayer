@@ -1,7 +1,7 @@
 import { Box3, BufferGeometry, Float32BufferAttribute, Matrix3, Matrix4, Mesh, MeshStandardMaterial, SkinnedMesh, Vector3, type Object3D } from 'three';
 import { CONTENT_CAPS, CELL_ABOVE, CELL_BELOW } from '@wildshard/format/contentBounds';
-import { PropsSchema, type ShardProps } from '@wildshard/game/shardfile/props';
-import type { Shardfile } from '@wildshard/game/shardfile/schema';
+import { PropsSchema, type ShardProps } from '@wildshard/format/props';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import * as v from 'valibot';
 import { parseGlb, parseKtx2 } from '../assets';
 import { contentHash } from '../project';

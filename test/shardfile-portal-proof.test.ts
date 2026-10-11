@@ -7,11 +7,11 @@ import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
 import { emptyShardfile } from '../src/sdk/author';
 import { HeadlessSimulation } from '../src/sdk/headless';
-import { parseShardfile } from '../src/game/shardfile/schema';
-import { PropsSchema } from '../src/game/shardfile/props';
-import { portalLinkEntries } from '../src/game/shardfile/portalLink';
+import { parseShardfile } from '@wildshard/format/shardSchema';
+import { PropsSchema } from '@wildshard/format/props';
+import { portalLinkEntries } from '@wildshard/format/portalLinkAssets';
 import { parsePortalLink } from '@wildshard/format/portalLink';
-import { validatePortalFloors } from '../src/game/shardfile/portalFloor';
+import { validatePortalFloors } from '@wildshard/format/portalFloor';
 import { createPortalTraversal, portalTransitioning } from '../src/game/shardfile/portalTraversal';
 import { createShardfileSim, proveShardfileEntries } from '../src/game/plugin/simulation';
 

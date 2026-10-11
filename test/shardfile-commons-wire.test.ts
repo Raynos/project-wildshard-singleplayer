@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 
 const hash = 'a'.repeat(64), other = 'b'.repeat(64);
 const source = () => emptyShardfile({ slug: 'commons-wire', name: 'Commons wire', author: 'Fixture', seed: 1, revision: 1 });

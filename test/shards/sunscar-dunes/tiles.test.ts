@@ -10,7 +10,7 @@ import { ClientAssets } from '../../../src/game/shardfile/clientAssets';
 import { clientViews } from '../../../src/game/shardfile/clientViews';
 import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import { bindRuntimeTerrain } from '../../../src/game/shardfile/runtimeWorld';
-import { parseShardfile } from '../../../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { signalDunesTiles } from '../../../src/shards/sunscar-dunes/generators/tiles';
 import { SEED, SPAWN, TOWER, TRAIL } from '../../../src/shards/sunscar-dunes/data/layout';
 import { duneHeight } from '../../../src/shards/sunscar-dunes/world/dunes';

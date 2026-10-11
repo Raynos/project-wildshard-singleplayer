@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Fuzz committed parser seeds and the shipped, shared physics binary.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { assetCost, parseGlb, visitGlbTriangles } from '../src/game/plugin/product';
+import { assetCost, parseGlb, visitGlbTriangles } from '@wildshard/format/product';
 import { encodeTerrainTile, decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { Physics } from '../src/engine/physics/Physics';

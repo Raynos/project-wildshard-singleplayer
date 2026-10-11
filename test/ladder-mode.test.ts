@@ -7,7 +7,7 @@ import { readScene } from '../src/sdk/scene';
 import { restoreSceneGraph } from '../src/sdk/sceneGraph';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 import { HeadlessSimulation } from '../src/sdk/headless';
 import { createSimHost, type SimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';

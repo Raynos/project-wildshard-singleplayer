@@ -4,9 +4,9 @@ import { bakeWorldCollision } from '../src/sdk/bake/worldCollision';
 import type { WorldPrimitive } from '../src/sdk/bake/world';
 import { encodeMeshCollision } from '@wildshard/format/meshCollisionBytes';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { validateMeshEntryways } from '../src/game/shardfile/meshEntryways';
-import { validateSocketLandings } from '../src/game/shardfile/entryLanding';
-import { validateEntrywayClearance } from '../src/game/shardfile/entryClearance';
+import { validateMeshEntryways } from '@wildshard/format/meshEntryways';
+import { validateSocketLandings } from '@wildshard/format/entryLanding';
+import { validateEntrywayClearance } from '@wildshard/format/entryClearance';
 import type { ShardMeshCollision } from '@wildshard/format/meshCollision';
 
 function rectangle(x0: number, x1: number, z0: number, z1: number, y = 0): WorldPrimitive {

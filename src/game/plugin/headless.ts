@@ -13,7 +13,7 @@ import { Purse } from "../loot/Purse";
 import { installDeclaredItems, type DeclaredItems } from "../shardfile/items";
 import type { RuntimeBoundSection } from "@wildshard/format/runtimeBinds";
 import type { RuntimeActorRow, RuntimeBossRow, RuntimeHomeRow } from "@wildshard/format/runtimeSpawns";
-import type { Shardfile } from "../shardfile/schema";
+import type { Shardfile } from "@wildshard/format/shardSchema";
 import { installRuntimeState, type RuntimeState, type RuntimeStateValue } from "../shardfile/runtimeState";
 
 /**

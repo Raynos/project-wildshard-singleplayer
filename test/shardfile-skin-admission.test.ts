@@ -5,11 +5,11 @@ import { cwd } from 'node:process';
 import { expect, it } from 'vitest';
 import { simClosure } from '../lint/sim-closure.mjs';
 import template from '../src/shards/_template/shard.config';
-import { parseShardfile } from '../src/game/shardfile/schema';
-import { validateSkinAssets, skinLookParameters, parseSkinFile } from '../src/game/shardfile/skins';
+import { parseShardfile } from '@wildshard/format/shardSchema';
+import { validateSkinAssets, skinLookParameters, parseSkinFile } from '@wildshard/format/skinAssets';
 
 it('keeps the complete format and skin admission closure renderer-free', () => {
-  expect(simClosure(cwd(), ['src/game/shardfile/schema.ts', 'src/game/shardfile/validate.ts'])).toEqual([]);
+  expect(simClosure(cwd(), ['src/format/shardSchema.ts', 'src/format/assetAdmission.ts'])).toEqual([]);
 });
 it('rejects skin references before allocation and charges numeric pose buffers', () => {
   const source = structuredClone(template), assets = new Map(source.files.map((row) => [row.hash, Uint8Array.from(readFileSync(`src/shards/_template/assets/${row.hash}`))]));

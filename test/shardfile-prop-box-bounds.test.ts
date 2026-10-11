@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { expect, it } from 'vitest';
-import { PropsSchema } from '../src/game/shardfile/props';
+import { PropsSchema } from '@wildshard/format/props';
 
 const box = { kind: 'box', x: 0, y: -0.25, z: 242.5, hx: 4, hy: 0.25, hz: 7.5 };
 const parse = (shape: object) => v.parse(PropsSchema, { version: 1, family: 'pbr', tiles: [], panels: [], models: [], far: null, textures: [],

@@ -20,10 +20,10 @@ import { loadSkin } from '../src/game/shardfile/skinPlayback';
 import { parseSkinBindings, parseSkinRows } from '@wildshard/format/skinData';
 import { loadClientSkins, SkinDriver, type SkinDriveState } from '../src/game/shardfile/clientSkins';
 import { clientSpeciesLooks } from '../src/game/shardfile/clientRecipes';
-import { skinLookRules } from '../src/game/shardfile/skins';
+import { skinLookRules } from '@wildshard/format/skinAssets';
 import { SKIN_CLIPS_RECIPE, SKIN_LOOK_RECIPE } from '@wildshard/format/skins';
 import { parseRows } from '@wildshard/format/rows';
-import type { Shardfile } from '../src/game/shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { TEMPLATE_ROWS } from '../src/shards/_template/data/rows';
 
 const dir = join(cwd(), 'public/assets/baked/skin-fixture');

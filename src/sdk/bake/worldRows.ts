@@ -1,11 +1,11 @@
-import type { Shardfile } from '@wildshard/game/shardfile/schema';
-import { PropsSchema, type ShardProps } from '@wildshard/game/shardfile/props';
+import type { Shardfile } from '@wildshard/format/shardSchema';
+import { PropsSchema, type ShardProps } from '@wildshard/format/props';
 import * as v from 'valibot';
 import { assetCost } from '../assets';
 import { hashImmutableBytes } from '../immutable';
 import type { NativeLatticeTile } from './nativeLattice';
 import { checkStaticMaterialDependencies, staticMaterialNames } from './staticMaterials';
-import { checkTileMaterialNames, splatTextureRefs } from '@wildshard/game/shardfile/splatTerrain';
+import { checkTileMaterialNames, splatTextureRefs } from '@wildshard/format/splatTerrain';
 
 type FileRow = Shardfile['files'][number];
 type TileRow = Shardfile['tiles'][number];

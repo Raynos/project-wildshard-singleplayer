@@ -14,7 +14,7 @@ import type { TerrainField } from '../src/engine/level/data';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { Terrain } from '../src/engine/world/Terrain';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/game/plugin/product';
+import { MemoryAdmission } from '@wildshard/format/product';
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type RegionalRuntimeRequest } from '../src/game/grid/regionalRuntime';
 import { createRegionalWorldFoundation } from '../src/game/grid/regionalWorld';
 import { shardContext, type ShardContext } from "../src/game/plugin/context";

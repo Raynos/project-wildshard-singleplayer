@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile, type Shardfile } from '@wildshard/game/shardfile/schema';
+import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 
 function source(): Shardfile {
   const shard = emptyShardfile({ slug: 'hook-test', name: 'Hook test', author: 'Local', revision: 1, seed: 1 });

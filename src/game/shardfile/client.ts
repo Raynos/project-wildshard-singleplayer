@@ -30,7 +30,7 @@ import { EmptyEquipment } from './emptyEquipment';
 import type { ResidencyAllocator } from '../grid/allocator';
 import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';
 import { leaseClientLibrary } from './clientLibrary';
-import { compendiumSketches } from './sketch';
+import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 import { clientMaterials } from './clientMaterials';
 import type { GraphSources } from './clientGraphs';
 import { clientPostStack, type ClientPost } from './clientPost';
@@ -56,7 +56,7 @@ import { withoutRuntimeRows } from "../plugin/headless";
 import { createShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../plugin/simulation';
 import { scriptDisabledNotice } from './scriptNotice';
 import type { DeclaredGroupPorts } from './groupRuntime';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { DeclaredBrainPorts } from './brainRuntime';
 
 function isProofMesh(value: Object3D): value is Mesh { return value instanceof Mesh; }

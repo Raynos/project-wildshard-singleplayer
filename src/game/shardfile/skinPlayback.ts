@@ -14,7 +14,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { bindRig, type ClipName, type RigInstance } from '@wildshard/engine/anim/rig';
 import { AnimMachine } from '@wildshard/engine/anim/machine';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { parseGlb, type AssetCost } from '../plugin/product';
+import { parseGlb, type AssetCost } from '@wildshard/format/product';
 import { skinLayerDecoded } from '@wildshard/format/skinLayers';
 import { parseSkinBindings, type SkinRow, type SkinBinding } from '@wildshard/format/skinData';
 import { skinPoseLayers } from './skinLayerPlayback';

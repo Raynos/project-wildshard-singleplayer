@@ -7,7 +7,7 @@ import { app } from '../../../src/engine/app/runtime';
 import { bossesSave, elitesSave, progressSave } from '../../../src/game/saves';
 import { Progress } from '../../../src/game/Progress';
 import { withOwner } from '../../../src/engine/app/ownership';
-import { parseShardfile } from '../../../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { horseNamesSave, tulparSave } from '../../../src/shards/nalati-grasslands/ride/saves';
 import { nalatiSkinsSave } from '../../../src/shards/nalati-grasslands/weapons/saves';
 import { NALATI_STATE } from '../../../src/shards/nalati-grasslands/data/state';

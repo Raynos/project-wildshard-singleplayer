@@ -1,7 +1,7 @@
 import { BufferGeometry, Float32BufferAttribute, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 import * as v from 'valibot';
-import { PropsSchema, validatePropsReferences } from '../src/game/shardfile/props';
+import { PropsSchema, validatePropsReferences } from '@wildshard/format/props';
 import { WorldBakeRows, type WorldGroundEntry } from '../src/sdk/bake/worldRows';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { parseGlb } from '../src/sdk/assets';

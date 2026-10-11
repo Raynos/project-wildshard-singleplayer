@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseMigrations } from '@wildshard/sdk/migrations';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 
 it('defaults migrations to empty and admits composed stable-id rename and value mapping', () => {
   const s = emptyShardfile({ slug: 'migration', name: 'Migration', author: 'Test', revision: 2, seed: 1 });

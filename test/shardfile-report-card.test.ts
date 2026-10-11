@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { performanceReport, performanceReportLines, type PerformanceObservations } from '../src/game/plugin/product';
+import { performanceReport, performanceReportLines, type PerformanceObservations } from '@wildshard/format/product';
 import { inkGraph } from '../scripts/tsl-spike/stress.js';
 
 const observations: PerformanceObservations = { scripts: { p95Micros: 20, maxMicros: 40, samples: 60 }, fuel: { p95: 50, max: 100, samples: 60 } };

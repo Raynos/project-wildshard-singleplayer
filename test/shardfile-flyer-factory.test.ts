@@ -7,7 +7,7 @@ import type { PlatformBrainSpec } from '../src/engine/ai/platform';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile, shardfileRules, type Shardfile } from '../src/game/shardfile/schema';
+import { parseShardfile, shardfileRules, type Shardfile } from '@wildshard/format/shardSchema';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimPorts } from '../src/game/plugin/simulation';
 import { parseDiver, parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/format/flyers';
 import { scoredStrikes, speciesResolver } from '../src/game/plugin/brain';

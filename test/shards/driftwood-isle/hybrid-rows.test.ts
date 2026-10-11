@@ -7,7 +7,7 @@ import { QuestState } from '../../../src/engine/quest/core';
 import { Progress } from '../../../src/game/Progress';
 import { Ledger } from '../../../src/game/ledger';
 import { bindRuntimeLedger, bindRuntimeQuest, withoutRuntimeRows } from "../../../src/game/plugin/headless";
-import { parseShardfile } from '../../../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { inventorySave, ownedSave, progressSave, purseSave } from '../../../src/game/saves';
 import manifest, { SHRINE } from '../../../src/shards/driftwood-isle/manifest';
 import source from '../../../src/shards/driftwood-isle/shard.config';

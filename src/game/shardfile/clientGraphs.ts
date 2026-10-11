@@ -25,10 +25,10 @@ import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphBudge
 import { DATA_LOOK_DAY, dataLookClock, lookSample, sampleLook, type LookSample } from '@wildshard/engine/render/dataLook';
 import type { GraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { graphBindingSources, graphFileJson, presetLooks } from './materials';
+import { graphBindingSources, graphFileJson, presetLooks } from '@wildshard/format/materials';
 import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { familyPresetGraph, PRESET_CLOCK_PARAMS, PRESET_GRAPH_BUDGET } from '@wildshard/engine/render/graph/presets';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /**
  * A graph material entry as the catalogue and a skin binding carry it: inline IR (`graph`), a graph file of the library

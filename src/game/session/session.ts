@@ -39,7 +39,7 @@ import { installWorldRegistry } from '@wildshard/engine/world/registry';
 import { installGridDebug } from '../grid/debug';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';
-import type { MemoryAdmission } from '../plugin/product';
+import type { MemoryAdmission } from '@wildshard/format/product';
 import { gridPageShell, gridPageShellLevel, GridPageShellPlugin, useOwnedGridHome } from '../grid/pageShell';
 
 declare const __BUILD_ID__: string;

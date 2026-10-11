@@ -1,10 +1,10 @@
 import type { ShardContext } from "../plugin/context";
 import type { ResidencyAllocator, ResidencyClaim } from '../grid/allocator';
-import { assetCost } from '../plugin/product';
+import { assetCost } from '@wildshard/format/product';
 import { admitScript } from '@wildshard/format/scriptAdmission';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { clientScriptViewCost } from '@wildshard/format/clientScripts';
-import { compendiumSketches } from './sketch';
+import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 
 /** Reserve only library and commons bytes in the session's one allocator; render rings and the sim registry own their claims. */
 export function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: { allocator: ResidencyAllocator; scope: Pick<ShardContext['scope'], 'onDispose'>; owner: string }): void {

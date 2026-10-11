@@ -1,11 +1,11 @@
 import * as v from 'valibot';
 import type { ShardfileSimulation } from '../plugin/simulation';
 import type { DeclaredItems } from './items';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { migrateLogicalState } from '@wildshard/format/migrations';
 import { logicalStateFromLane, restoreLogicalLane } from './logicalState';
 import { test as flagsMatch } from '@wildshard/engine/world/interact/flags';
-import { socketLiftEntries } from './socketLift';
+import { socketLiftEntries } from '@wildshard/format/socketLiftAssets';
 import { captureLiftRider, restoreLiftRider } from './liftRider';
 import { portalTransitioning } from './portalTraversal';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';

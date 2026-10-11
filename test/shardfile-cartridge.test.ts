@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { buildProject, contentHash } from '@wildshard/sdk/project';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 
 const empty = () => emptyShardfile({ slug: 'cartridge', name: 'Cartridge', author: 'Fixture', seed: 1, revision: 1 });
 it('refuses non-data throughout the author export before invoking an accessor or serializer', () => {

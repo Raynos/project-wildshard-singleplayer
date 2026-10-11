@@ -5,7 +5,7 @@ import { withOwner } from '../../../src/engine/app/ownership';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { Progress } from '../../../src/game/Progress';
 import { bindRuntimeQuest, withoutRuntimeRows } from "../../../src/game/plugin/headless";
-import { parseShardfile } from '../../../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { bossesSave, inventorySave, ownedSave, progressSave, purseSave } from '../../../src/game/saves';
 import source from '../../../src/shards/far-reach/shard.config';
 import { bindSkyPersistence, LEGACY_REWARDED } from '../../../src/shards/far-reach/runtime/persistence';

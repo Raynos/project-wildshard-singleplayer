@@ -8,7 +8,7 @@ import { InputService } from '../src/engine/input/InputService';
 import { emptyShardfile } from '../src/sdk/author';
 import { installDeclaredItems } from '../src/game/shardfile/items';
 import { parseItems } from '@wildshard/format/items';
-import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 import { ITEMS } from '../src/shards/_template/data/items';
 import { LONGBOW } from '../src/shards/pine-hollow/weapons/equipment';
 

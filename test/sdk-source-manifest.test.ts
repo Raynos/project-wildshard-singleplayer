@@ -7,7 +7,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { parseShardfile } from '../src/sdk/shardfile';
 import { sourceManifest } from '../src/sdk/sourceManifest';
 import { assetBytes } from '../src/sdk/assets';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { shardEntries } from '../src/game/shard/entryMode';
 import { SOURCE } from '../src/shards/blender-template/data/source';
 import { CARD_BASE64, CARD_HASH } from '../src/shards/blender-template/data/card';

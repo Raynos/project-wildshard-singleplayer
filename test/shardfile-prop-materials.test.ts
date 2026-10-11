@@ -10,12 +10,12 @@ import { PainterlyLook } from '../src/engine/render/families/painterly';
 import { EmissiveLook } from '../src/engine/render/families/emissive';
 import { attachOutline, compileGraph } from '../src/engine/render/graph/compile';
 import { installDeclaredProps } from '../src/engine/world/declaredProps';
-import { MaterialsSchema } from '../src/game/shardfile/materials';
+import { MaterialsSchema } from '@wildshard/format/materials';
 import { clientGraphs, graphOutlineHook, isGraphEntry } from '../src/game/shardfile/clientGraphs';
 import { clientTileViews } from '../src/game/shardfile/clientViews';
 import { propSurfaces } from '../src/game/shardfile/clientPropMaterials';
-import { PropMaterialsSchema, checkPropMaterialNames, glbMaterialNames, propMaterialTextureRefs, propMaterialsOf, validatePropMaterials, type PropMaterials } from '../src/game/shardfile/propMaterials';
-import { parseGlb } from '../src/game/plugin/product';
+import { PropMaterialsSchema, checkPropMaterialNames, glbMaterialNames, propMaterialTextureRefs, propMaterialsOf, validatePropMaterials, type PropMaterials } from '@wildshard/format/propMaterials';
+import { parseGlb } from '@wildshard/format/product';
 import { NAMES, namedMaterialsGlb, slotGraph } from './fixtures/prop-materials/fixture';
 import { emptyShardfile } from '@wildshard/sdk/author';
 

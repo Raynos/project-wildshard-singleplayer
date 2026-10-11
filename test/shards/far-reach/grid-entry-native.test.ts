@@ -5,7 +5,7 @@ import { loadRapier } from '../../../src/engine/physics/rapier';
 import { createShardfileSim, proveShardfileEntries } from '../../../src/game/plugin/simulation';
 import { withoutRuntimeRows } from "../../../src/game/plugin/headless";
 
-import { validateShardfileAssets } from '../../../src/game/shardfile/validate';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { contentHash } from '../../../src/sdk/project';
 import source from '../../../src/shards/far-reach/shard.config';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';

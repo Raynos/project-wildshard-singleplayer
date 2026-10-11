@@ -1,4 +1,4 @@
-import { assetCost as cost, assetOverdraw as raster, parseAudio as audio, parseGlb as glb, parseKtx2 as ktx2, type AssetCost as Cost } from '@wildshard/game/plugin/product';
+import { assetCost as cost, assetOverdraw as raster, parseAudio as audio, parseGlb as glb, parseKtx2 as ktx2, type AssetCost as Cost } from '@wildshard/format/product';
 
 /** Actual parsed residency and draw costs, independent of author declarations. */
 export type AssetCost = Cost;

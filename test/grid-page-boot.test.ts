@@ -4,7 +4,7 @@ import { preparePageResidency, bootPageMode, clearGridRecovery, gridCells } from
 import { jsonSlot } from '../src/engine/saves/slots';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 import { Scope } from '../src/engine/app/scope';
-import { MemoryAdmission } from '../src/game/plugin/product';
+import { MemoryAdmission } from '@wildshard/format/product';
 
 import { pageGridIntents } from '../src/game/grid/intent';
 

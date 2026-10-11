@@ -14,7 +14,7 @@ import { syncTargetColliders } from '../src/game/shardfile/targets';
 import { parseMigrations } from '@wildshard/format/migrations';
 import { GridRegionDurability } from '../src/game/grid/durability';
 import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/sim/snapshot';
-import type { Shardfile } from '../src/game/shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import source from '../src/shards/_template/shard.config';
 import { MemoryStorage } from './setup';
 

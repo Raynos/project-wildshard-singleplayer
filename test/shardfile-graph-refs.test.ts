@@ -4,14 +4,14 @@ import { expect, it } from 'vitest';
 import * as THREE from 'three';
 import { MeshStandardNodeMaterial } from 'three/webgpu';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile, shardfileRules } from '@wildshard/game/shardfile/schema';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphIr, type GraphNode } from '../src/format/materialGraph';
 import { attachOutline, compileGraph, type CompileGraphOptions } from '../src/engine/render/graph/compile';
 import type { GraphCompiler } from '../src/engine/render/graphBackend';
 import { parseFamilyMaterial, parseToonLook, presetRefusal } from '@wildshard/format/materialFamilies';
 import { familyPresetGraph, PRESET_GRAPH_BUDGET, toonGraph } from '../src/engine/render/graph/presets';
 import { clientGraphs, isGraphEntry } from '../src/game/shardfile/clientGraphs';
-import { graphFileRules, graphFileTextureRefs, materialGraphRules, presetLooks } from '../src/game/shardfile/materials';
+import { graphFileRules, graphFileTextureRefs, materialGraphRules, presetLooks } from '@wildshard/format/materials';
 
 const FILE = 'a'.repeat(64), TEX = 'b'.repeat(64), OTHER = 'c'.repeat(64);
 const surface = (extra: Partial<GraphIr> = {}): GraphIr => ({

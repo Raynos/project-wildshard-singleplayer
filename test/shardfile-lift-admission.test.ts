@@ -8,8 +8,8 @@ import { liftShard } from './fixtures/socket-lift/shard';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createShardfileSim, numericScriptEntityId, proveShardfileEntries } from '../src/game/plugin/simulation';
 
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { HeadlessSimulation } from '../src/sdk/headless';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 

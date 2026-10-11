@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { assetOverdraw, parseGlb } from '../src/sdk/assets';
-import { projectedLayerCoverage } from '../src/game/shardfile/overdraw';
+import { projectedLayerCoverage } from '@wildshard/format/overdraw';
 
 function fixture(layers: number, alpha = 'BLEND', nodes = 1, scale = 1): Uint8Array {
   const positions = [0, 0, 0, scale, 0, 0, scale, scale, 0, 0, 0, 0, scale, scale, 0, 0, scale, 0];

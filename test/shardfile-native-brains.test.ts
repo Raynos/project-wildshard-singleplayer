@@ -7,7 +7,7 @@ import type { SimHost } from '../src/engine/sim';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import { createShardfileSim, bindShardfileSim } from '../src/game/plugin/simulation';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import type { DeclaredBrainPorts } from '../src/game/shardfile/brainRuntime';
 import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../src/shards/driftwood-isle/data/brains';
 import template from '../src/shards/_template/shard.config';

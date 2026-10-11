@@ -9,7 +9,7 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { validateProject } from '@wildshard/sdk/project';
 import { projectPerformancePolicy } from '../src/sdk/performancePolicy';
 import { CONTENT_CAPS } from '../src/engine/core/config';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 
 it('warns only for canonical old-six checkout projects, never a borrowed slug or outside copy', () => {
   const shard = emptyShardfile({ slug: 'pine-hollow', name: 'Borrowed', author: 'Fixture', revision: 1, seed: 1 });

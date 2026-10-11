@@ -11,9 +11,9 @@
  */
 import * as v from 'valibot';
 import { validateGraph, type GraphIr, type PostInputs } from '@wildshard/format/materialGraph';
-import { graphBindingSources, graphFileJson } from './materials';
+import { graphBindingSources, graphFileJson } from '@wildshard/format/materials';
 import { isJsonData } from '@wildshard/format/json';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** budget v1: at most 4 authored post passes and 1,000 post instructions per pixel at 2× (a pair at a blend included) */
 export const POST_STACK_BUDGET = Object.freeze({ passes: 4, instructions: 1000 });

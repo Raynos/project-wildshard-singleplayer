@@ -1,7 +1,7 @@
 import type { ItemRuntime } from '@wildshard/engine/combat/items';
 import { SCRIPT_STATE_OP } from '@wildshard/engine/script/state';
 import type { ScriptLane } from '@wildshard/engine/script/lane';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** A tool's direct input callback already queues its toggle; plumbing supplies its keys/touch and only the other scenes. */
 export function handledItemInputs(source: Shardfile): ReadonlySet<string> {

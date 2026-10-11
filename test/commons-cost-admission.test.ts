@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { contentHash, projectAssets } from '../src/sdk/project';
 import { preflightShardfile } from '@wildshard/format/preflight';
-import { preflightDeclaredCosts, validateShardfileAssets } from '../src/game/shardfile/validate';
+import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { admitProduct, type ProductOptions } from '../src/game/shardfile/product';
 
 const empty = () => emptyShardfile({ slug: 'commons-cost-test', name: 'Commons', author: 'Fixture', seed: 1, revision: 1 });

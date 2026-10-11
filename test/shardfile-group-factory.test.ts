@@ -7,7 +7,7 @@ import { Rng, type RngState } from '../src/engine/core/rng';
 import type { SimHost } from '../src/engine/sim';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import { createShardfileSim, bindShardfileSim } from '../src/game/plugin/simulation';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { parseGroupBrain } from '@wildshard/format/groupBrains';
 import type { DeclaredGroupPorts } from '../src/game/shardfile/groupRuntime';
 import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../src/shards/nalati-grasslands/data/brains';

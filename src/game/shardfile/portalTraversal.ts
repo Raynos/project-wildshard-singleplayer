@@ -1,7 +1,7 @@
 import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { canStandAt } from '@wildshard/engine/physics/query';
-import { portalLinkRules, type PortalLinkEntry } from './portalLink';
+import { portalLinkRules, type PortalLinkEntry } from '@wildshard/format/portalLinkAssets';
 import { parsePortalLink, type PortalLink } from '@wildshard/format/portalLink';
 
 const transitioning = new WeakSet<Physics>();

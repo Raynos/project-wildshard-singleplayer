@@ -3,7 +3,7 @@ import { RuntimeSchema, type RuntimeDeclaration } from "@wildshard/format/runtim
 import type { ShardManifest } from "../shard/manifest";
 import type { ShardContext } from "./context";
 import { parseShardSlug } from "../shard/slug";
-import type { Shardfile } from "../shardfile/schema";
+import type { Shardfile } from "@wildshard/format/shardSchema";
 import { presentationCard } from "../shardfile/presentation";
 import { buildYield } from "@wildshard/engine/core/workSlice";
 

@@ -1,6 +1,6 @@
 import { ResidencyAllocator } from '../grid/allocator';
 import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Resolve the shared page budget before the ordinary level bootstrap; runtime homes must already be accounted. */
 export function clientResidency(source: Pick<Shardfile, 'budgets' | 'runtime'>, bindings: {

@@ -2,10 +2,10 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { canonicalJson, contentHash } from '@wildshard/sdk/project';
 import { admitProduct, type CachedProduct, type ProductCache } from '../src/game/shardfile/product';
-import { builtValidationReceipt, readValidationReceipt, validationSourceBytes, MemoryAdmission } from "../src/game/plugin/product";
-import { worstContentCost } from '../src/game/shardfile/budget';
+import { builtValidationReceipt, readValidationReceipt, validationSourceBytes, MemoryAdmission } from "@wildshard/format/product";
+import { worstContentCost } from '@wildshard/format/budget';
 
-const validation = await import('../src/game/shardfile/validate');
+const validation = await import('@wildshard/format/assetAdmission');
 
 const base = 'https://example.test/product/';
 afterEach(() => { vi.restoreAllMocks(); Reflect.deleteProperty(globalThis, '__SHARDFILE_VALIDATOR__'); Reflect.deleteProperty(globalThis, '__SHARDFILE_VERDICTS__'); });

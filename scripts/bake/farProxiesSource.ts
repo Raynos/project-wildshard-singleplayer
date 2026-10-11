@@ -9,7 +9,7 @@ import { parseBakedTerrain } from '../../src/engine/world/BakedTerrain';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { buildFarProxy, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart } from '../../src/game/grid/farProxy';
 import { farProxyGeometry } from '../../src/game/grid/farView';
-import type { Shardfile } from '../../src/game/shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { parseGlb } from '../../src/sdk/assets';
 import { staticGlb } from '../../src/sdk/bake/glb';
 import { canonicalJson, contentHash } from '../../src/sdk/project';

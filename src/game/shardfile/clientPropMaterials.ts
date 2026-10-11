@@ -19,8 +19,8 @@ import {
 } from 'three';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import { FAMILY_IDS } from '@wildshard/format/materialFamilies';
-import { propMaterialSlots, propSlotUse, type PropMaterials, type PropTextureSlot } from './propMaterials';
-import type { Shardfile } from './schema';
+import { propMaterialSlots, propSlotUse, type PropMaterials, type PropTextureSlot } from '@wildshard/format/propMaterials';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 const WRAPS: Readonly<Record<number, Wrapping>> = { 33071: ClampToEdgeWrapping, 33648: MirroredRepeatWrapping, 10497: RepeatWrapping };
 const MAG: Readonly<Record<number, MagnificationTextureFilter>> = { 9728: NearestFilter, 9729: LinearFilter };

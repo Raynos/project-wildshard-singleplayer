@@ -6,7 +6,7 @@ import {
 
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { isJsonData } from '@wildshard/format/json';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 const graph = v.pipe(v.unknown(), v.rawTransform(({ dataset, addIssue, NEVER }): GraphIr => {
   if (!isJsonData(dataset.value)) { addIssue({ message: 'material graph is plain JSON data' }); return NEVER; }

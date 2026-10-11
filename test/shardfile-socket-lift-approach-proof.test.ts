@@ -13,14 +13,15 @@ import { tagCollider } from '../src/engine/physics/surface';
 import { installDeclaredPropColliders } from '../src/engine/physics/declaredProps';
 import { MoverRuntime, createMoverHost } from "../src/game/plugin/mover";
 import { parseMovers } from '@wildshard/format/movers';
-import { PropsSchema, propColliderDescriptors } from '../src/game/shardfile/props';
-import type { SocketLiftEntry } from '../src/game/shardfile/socketLift';
+import { propColliderDescriptors } from '../src/game/shardfile/props';
+import { PropsSchema } from '@wildshard/format/props';
+import type { SocketLiftEntry } from '@wildshard/format/socketLiftAssets';
 import { parseSocketLift } from '@wildshard/format/socketLift';
 import { proveSocketLift, proveShardfileEntries, createShardfileSim } from '../src/game/plugin/simulation';
 import { liftShard } from './fixtures/socket-lift/shard';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { HeadlessSimulation } from '../src/sdk/headless';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 

@@ -5,10 +5,10 @@ import { expect, it } from 'vitest';
 import * as THREE from 'three';
 import { MeshBasicNodeMaterial } from 'three/webgpu';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile, shardfileRules } from '@wildshard/game/shardfile/schema';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 import { validateGraph, type GraphIr, type GraphNode } from '../src/format/materialGraph';
 import { compileGraph } from '../src/engine/render/graph/compile';
-import { NO_POST, POST_NORMAL_PREPASS_COST, POST_STACK_BUDGET, postPairRefusal, postStackCost } from '../src/game/shardfile/postStack';
+import { NO_POST, POST_NORMAL_PREPASS_COST, POST_STACK_BUDGET, postPairRefusal, postStackCost } from '@wildshard/format/postStack';
 
 /** a 3 × 3 colour edge (Laplacian) over sceneColourAt taps, optionally a depth fade and a normal crease */
 function edge(opts: { depth?: boolean; normal?: boolean; taps?: number; grain?: number } = {}): GraphIr {

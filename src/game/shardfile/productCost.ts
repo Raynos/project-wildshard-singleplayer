@@ -1,4 +1,4 @@
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';
 

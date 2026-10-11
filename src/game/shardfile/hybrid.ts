@@ -12,7 +12,7 @@ import { RetainedRuntimeHooks } from "../plugin/lifecycle";
 import { browserShardfileOptions, shardfileSource } from '../plugin/loader';
 import type { ProductOptions } from './product';
 import type { ShardfileClientBindings } from './client';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 import type { RuntimeDeclaration } from '@wildshard/format/runtime';
 

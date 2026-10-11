@@ -1,6 +1,6 @@
 import { Mesh, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import type { Shardfile } from '../shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { FarPrepared } from './farView';
 
 function isMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }

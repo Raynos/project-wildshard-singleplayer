@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest';
-import type { Shardfile } from '@wildshard/game/shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import * as v from 'valibot';
-import { MaterialsSchema, FamilyLooksSchema, materialGraphRules, graphFileRules } from '../src/game/shardfile/materials';
-import { PostStackSchema, postStackCost, postStackRules } from '../src/game/shardfile/postStack';
+import { MaterialsSchema, FamilyLooksSchema, materialGraphRules, graphFileRules } from '@wildshard/format/materials';
+import { PostStackSchema, postStackCost, postStackRules } from '@wildshard/format/postStack';
 
 const declarations = import.meta.glob<Shardfile>('../src/shards/*/shard.config.ts', { eager: true, import: 'default' });
 it('preserves every shipped material and post declaration through persisted JSON admission', () => {

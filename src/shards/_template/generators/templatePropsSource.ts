@@ -6,7 +6,7 @@ import { RngService } from '@wildshard/engine/core/rng';
 import { WorldRegistry } from '@wildshard/engine/world/registry';
 import { buildCellFill, cellCoarse, cellFar, cellGround, CELL_PIECES } from './cell';
 import { buildTemplateWorld, jumpCoursePads, lanternModel, measureBox, poolMask } from './world';
-import type { ShardProps } from '@wildshard/game/shardfile/props';
+import type { ShardProps } from '@wildshard/format/props';
 import type { PropsBakeSource } from '@wildshard/sdk/bake/props';
 
 /** Actual template generators, captured before merging. Water remains owned by the water declaration. */

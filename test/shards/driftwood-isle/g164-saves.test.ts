@@ -10,7 +10,7 @@ import { SaveStore } from '../../../src/engine/saves/store';
 import { instanceSave } from '../../../src/game/instanceSaves';
 import { createShardfileSim } from '../../../src/game/plugin/simulation';
 import { captureClientState, clientStateSave, restoreClientState } from '../../../src/game/shardfile/clientState';
-import type { Shardfile } from '../../../src/game/shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import { LOWERED_SEA } from '../../../src/shards/driftwood-isle/world/sea';
 import { MemoryStorage } from '../../setup';

@@ -9,10 +9,10 @@ import { emptyShardfile } from '../src/sdk/author';
 import { WorldBakeRows } from '../src/sdk/bake/worldRows';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { contentHash } from '../src/sdk/project';
-import { PropsSchema, validatePropsReferences } from '../src/game/shardfile/props';
-import { SplatTerrainSchema } from '../src/game/shardfile/splatTerrain';
-import { PropMaterialsSchema } from '../src/game/shardfile/propMaterials';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
+import { PropsSchema, validatePropsReferences } from '@wildshard/format/props';
+import { SplatTerrainSchema } from '@wildshard/format/splatTerrain';
+import { PropMaterialsSchema } from '@wildshard/format/propMaterials';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 
 const colour = Uint8Array.from(readFileSync(new URL('../public/assets/gpu/tex/forrest_ground_03/diffuse_1k.phone-90ff16b6.ktx2', import.meta.url)));
 const numeric = Uint8Array.from(readFileSync(new URL('../public/assets/gpu/tex/forrest_ground_03/arm_1k.phone-87e2215f.ktx2', import.meta.url)));

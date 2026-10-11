@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { App } from '../src/engine/app/app';
 import { bindRuntimeLedger } from "../src/game/plugin/headless";
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { emptyShardfile } from '../src/sdk/author';
 
 it('exposes the runtime ledger pending-write result and retries the same fact without another grant', () => {

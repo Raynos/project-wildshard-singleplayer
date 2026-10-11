@@ -15,7 +15,7 @@ import type { TileDecoder } from '../grid/tileDecoder';
 import type { ClientAssets } from './clientAssets';
 import type { ResidentTile } from './clientWorld';
 import type { ClientTileViews } from './clientViews';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** One placed instance: its admitted shardfile, its asset reader, its render root (already at its render origin), its views. */
 export interface ClientRingInstance { readonly source: Shardfile; readonly assets: ClientAssets; readonly root: Object3D; readonly views: ClientTileViews }

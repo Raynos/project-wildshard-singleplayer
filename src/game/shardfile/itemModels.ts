@@ -2,7 +2,7 @@ import { type Group, Mesh, SkinnedMesh, BufferGeometry, Material, type Object3D 
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardItems } from '@wildshard/format/items';
-import { parseGlb } from '../plugin/product';
+import { parseGlb } from '@wildshard/format/product';
 
 interface ModelLease { users: number; ready: Promise<Group> }
 const liveModels = new Map<string, ModelLease>();

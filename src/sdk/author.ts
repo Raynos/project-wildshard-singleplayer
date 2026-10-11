@@ -1,6 +1,6 @@
 import { parseShardfile, type Shardfile } from './shardfile';
 import { ENTRY_WIDTH } from '@wildshard/format/contentBounds';
-import { LOOK_LUT_BYTES } from '@wildshard/game/shardfile/schema';
+import { LOOK_LUT_BYTES } from '@wildshard/format/shardSchema';
 import { SHARDFILE_VERSION } from './version';
 
 /** Attach an already declared 33³ LUT to the charged library, accounting for both its CPU and GPU bytes once. */

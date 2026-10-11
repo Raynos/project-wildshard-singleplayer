@@ -2,7 +2,7 @@ import { AmbientLight, BoxGeometry, Color, DirectionalLight, Group, Mesh, MeshSt
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { Scope } from '../../../../src/engine/app/scope';
 import { installDeclaredProps } from '../../../../src/engine/world/declaredProps';
-import { PropsSchema } from '../../../../src/game/shardfile/props';
+import { PropsSchema } from '@wildshard/format/props';
 import * as v from 'valibot';
 import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';
 

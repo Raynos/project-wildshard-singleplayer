@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { SHARDFILE_ADMISSION_LIMITS as limits, preflightShardfile } from '../src/sdk/admission';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { StateSchema } from '@wildshard/format/state';
 import * as v from 'valibot';
 

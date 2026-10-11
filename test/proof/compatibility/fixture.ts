@@ -4,7 +4,7 @@ import { installAppIdentity } from '../../../src/engine/app/identity';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { WILDSHARD_IDENTITY } from '../../../src/game/identity';
 import { Ledger } from '../../../src/game/ledger';
-import { parseShardfile, type Shardfile } from '../../../src/game/shardfile/schema';
+import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 
 /** Test storage is an actual SaveStore backend; refusal never replaces gameplay or fabricates a grant. */
 class ProfileStorage implements SaveStorage {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as v from 'valibot';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { copyLayoutBoxes, copyLayoutMesh, withCopyLayout } from '../src/game/grid/copyLayout';
-import { PropsSchema } from '../src/game/shardfile/props';
+import { PropsSchema } from '@wildshard/format/props';
 
 const copies = (mode: { developer: boolean; devserver: boolean }) => new GridAssembly(mode).cells.filter((cell) => cell.slug === '_template');
 const MODES = [{ developer: false, devserver: false }, { developer: true, devserver: false }, { developer: true, devserver: true }];

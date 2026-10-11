@@ -10,8 +10,8 @@ import { bakeWorldTexture } from '../src/sdk/bake/textureWasm';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { WorldBakeRows } from '../src/sdk/bake/worldRows';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { MaterialsSchema } from '../src/game/shardfile/materials';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
+import { MaterialsSchema } from '@wildshard/format/materials';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { emptyShardfile } from '../src/sdk/author';
 
 let colour: Uint8Array, linear: Uint8Array;

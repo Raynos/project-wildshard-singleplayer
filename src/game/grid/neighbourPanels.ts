@@ -11,7 +11,7 @@
 import type { Group, Object3D } from 'three';
 import type { ClientTileViews } from '../shardfile/clientViews';
 import type { ShardfileSimulation } from '../plugin/simulation';
-import type { Shardfile } from '../shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { GridCell } from './assembly';
 
 /** What the panels read from the session: a cell's admitted region (absent until the live host admits it). */

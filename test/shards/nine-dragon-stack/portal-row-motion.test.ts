@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import stages from '../../../src/shards/nine-dragon-stack/data/portalStages.json' with { type: 'json' };
 import { readScene } from '@wildshard/sdk/scene';
 import { Portal } from '@wildshard/sdk/entries';
-import { portalLinkEntries, portalLinkRules } from '../../../src/game/shardfile/portalLink';
+import { portalLinkEntries, portalLinkRules } from '@wildshard/format/portalLinkAssets';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { portalEntryScene, portalEntryRows } from '../../../src/shards/nine-dragon-stack/generators/portalEntries';
 import { DECK_PORTALS, SQUARE_PORTAL, portalLinks } from '../../../src/shards/nine-dragon-stack/world/portalPlan';

@@ -4,9 +4,9 @@
 // the two summed where their frames blend. Not yet the playable fixture shards the row asks for.
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile, shardfileRules } from '@wildshard/game/shardfile/schema';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 import type { GraphIr } from '../src/format/materialGraph';
-import { POST_NORMAL_PREPASS_COST, POST_STACK_BUDGET, postPairRefusal, postStackCost } from '../src/game/shardfile/postStack';
+import { POST_NORMAL_PREPASS_COST, POST_STACK_BUDGET, postPairRefusal, postStackCost } from '@wildshard/format/postStack';
 import { inkGraph, inkPostGraph, pastelGraph } from '../scripts/tsl-spike/stress.js';
 
 /** the pastel plain's grade: a lifted, desaturated-toward-lilac screen with a soft vignette */

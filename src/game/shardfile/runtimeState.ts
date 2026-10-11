@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { LogicalStateSchema, migrateLogicalState } from '@wildshard/format/migrations';
 
 const schema = v.strictObject({ state: LogicalStateSchema, initialized: v.array(v.pipe(v.number(), v.integer(), v.minValue(1))) });

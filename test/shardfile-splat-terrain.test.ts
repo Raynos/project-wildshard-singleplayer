@@ -14,7 +14,7 @@ import { decodeTreeRecords, encodeTreeRecords, treeGridOf, type TreeInstance } f
 import { sliceNativeLattice } from '../src/sdk/bake/nativeLattice';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { splatArray, splatSurface, withSplatSurface } from '../src/game/shardfile/clientSplatTerrain';
-import { SplatTerrainSchema, checkTileMaterialNames, splatTerrainOf, splatTextureRefs, validateSplatTerrain, type SplatTerrain } from '../src/game/shardfile/splatTerrain';
+import { SplatTerrainSchema, checkTileMaterialNames, splatTerrainOf, splatTextureRefs, validateSplatTerrain, type SplatTerrain } from '@wildshard/format/splatTerrain';
 import { clientForestTrees, validateForestRecords } from '../src/game/shardfile/forestRecords';
 import * as v from 'valibot';
 
@@ -165,7 +165,7 @@ describe('forest instance records (G227)', () => {
 describe('hero prop slots keep their anisotropy (G227)', () => {
   it('a slot carries its anisotropy onto the texture, default off, and takes part in the one-sampler-per-file rule', async () => {
     const { applyPropSampler } = await import('../src/game/shardfile/clientPropMaterials');
-    const { PropMaterialsSchema } = await import('../src/game/shardfile/propMaterials');
+    const { PropMaterialsSchema } = await import('@wildshard/format/propMaterials');
     const rows = v.parse(PropMaterialsSchema, { hero: { id: 'pbr', colour: { file: h(1), anisotropy: 4 }, normal: { file: h(2) } } });
     const colour = rows['hero']?.colour, normal = rows['hero']?.normal;
     if (colour === undefined || colour === null || normal === undefined || normal === null) throw new Error('slots missing');

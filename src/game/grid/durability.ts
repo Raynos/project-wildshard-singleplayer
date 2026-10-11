@@ -6,7 +6,7 @@ import { serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshot, SnapshotB
 import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
 import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
 import type { QuestDataPorts } from '../quest/declared';
-import type { Shardfile } from '../shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { GridWallet } from './wallet';
 import { clientStateFromRegion, restoreClientState } from '../shardfile/clientState';
 import { ClientCheckpointSchema, type ClientCheckpoint } from '@wildshard/format/clientState';

@@ -1,6 +1,6 @@
 import { DATA_LOOK_DAY, dataLook } from '@wildshard/engine/render/dataLook';
 import type { LookStrategy } from '@wildshard/engine/render/look';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /**
  * A shardfile's file reference → its URL: products sit beside the page that embeds `shard.json` (the SDK build writes

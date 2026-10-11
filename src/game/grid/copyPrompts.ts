@@ -14,7 +14,7 @@
 import { Vector3 } from 'three';
 import type { ShardRuntime } from '../shard/runtime';
 import { createQuestScriptPorts } from '../quest/declared';
-import type { Shardfile } from '../shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { ShardfileSimulation } from '../plugin/simulation';
 
 type Interactable = ShardRuntime['interactables'][number];

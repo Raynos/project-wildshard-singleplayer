@@ -5,7 +5,7 @@ import { staticGlb } from '../src/sdk/bake/glb';
 import { assetCost } from '../src/sdk/assets';
 import { loadShardfileFar } from '../src/game/grid/shardfileFar';
 import { farProxyMaterial } from '../src/game/grid/farView';
-import type { Shardfile } from '../src/game/shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 it('loads the declared authored far GLB without a baked-folder asset or UV channel, charging its actual row', async () => {
   const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([-200, 0, -200, 200, 0, -200, 0, 20, 200], 3))

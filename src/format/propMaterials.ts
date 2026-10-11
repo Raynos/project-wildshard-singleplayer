@@ -20,7 +20,7 @@
  */
 import * as v from 'valibot';
 import { FAMILY_IDS } from '@wildshard/format/materialFamilies';
-import { materialTextureRefs, type MaterialsSchema } from './materials';
+import { materialTextureRefs, type MaterialsSchema } from '@wildshard/format/materials';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));

@@ -6,7 +6,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import type { SimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimPorts } from '../src/game/plugin/simulation';
-import { parseShardfile, shardfileRules, type Shardfile } from '../src/game/shardfile/schema';
+import { parseShardfile, shardfileRules, type Shardfile } from '@wildshard/format/shardSchema';
 import { parseRamGrazer, parseChallengeGrazer, parseGrazer } from '@wildshard/format/grazers';
 import { scoredStrikes } from '../src/game/plugin/brain';
 import template from '../src/shards/_template/shard.config';

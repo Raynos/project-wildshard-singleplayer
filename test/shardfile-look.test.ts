@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { emptyShardfileSource } from '../src/game/plugin/loader';
 import { shardfileLook } from '../src/game/shardfile/look';
 import { sampleLook } from '../src/engine/render/dataLook';

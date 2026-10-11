@@ -1,6 +1,6 @@
 import type { InstalledProps } from '@wildshard/engine/world/declaredProps';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { ClientAssets } from './clientAssets';
 import { terrainResidency } from './residency';
 import { slicer } from '@wildshard/engine/boot/plan';

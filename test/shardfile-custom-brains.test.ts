@@ -7,7 +7,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import type { SimHost } from '../src/engine/sim';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import { createShardfileSim, bindShardfileSim, numericScriptEntityId, type ShardfileSimPorts } from '../src/game/plugin/simulation';
-import { parseShardfile, type Shardfile } from '../src/game/shardfile/schema';
+import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { logicalStateFromLane } from '../src/game/shardfile/logicalState';
 import template from '../src/shards/_template/shard.config';
 import { compileScript } from '../scripts/compile-script.mjs';

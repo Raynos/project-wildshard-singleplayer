@@ -13,7 +13,7 @@ import * as v from 'valibot';
 import { DirectorStageLane } from '@wildshard/game/plugin/director';
 import portalStages from '../../data/portalStages.json' with { type: 'json' };
 import { createPortalTraversal, type PortalTransfer, type PortalTraversalPorts } from '@wildshard/game/shardfile/portalTraversal';
-import type { PortalLinkEntry, portalLinkRules } from '@wildshard/game/shardfile/portalLink';
+import type { PortalLinkEntry, portalLinkRules } from '@wildshard/format/portalLinkAssets';
 import { type RingPortal, type RingTrigger, type ShardEdge, inRingPortal } from './ringPortals';
 
 /** s: the fade to dark, the hold in the dark (the move happens as it starts), the fade back */

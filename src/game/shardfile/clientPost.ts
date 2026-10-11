@@ -17,9 +17,9 @@ import type { EffectComposer, Pass } from 'postprocessing';
 import { validateGraph } from '@wildshard/format/materialGraph';
 import type { GraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { graphBindingSources, graphFileJson } from './materials';
+import { graphBindingSources, graphFileJson } from '@wildshard/format/materials';
 import { graphParamFeeds, type GraphSources } from './clientGraphs';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** What the client made of a shard's post stack. */
 export interface ClientPost {

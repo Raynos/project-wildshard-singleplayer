@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { CONTENT_CAPS as C } from '../src/engine/core/config';
-import { memoryTargetWarnings, worstContentCost } from '../src/game/shardfile/budget';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { memoryTargetWarnings, worstContentCost } from '@wildshard/format/budget';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { validateProject } from '@wildshard/sdk/project';
 

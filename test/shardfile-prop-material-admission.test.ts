@@ -4,11 +4,11 @@ import { beforeAll, expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { bakeWorldTexture } from '../src/sdk/bake/textureWasm';
 import { hashImmutableBytes as hash } from '../src/sdk/immutable';
-import { PropsSchema, validatePropsReferences } from '../src/game/shardfile/props';
-import { PropMaterialsSchema } from '../src/game/shardfile/propMaterials';
-import { parseShardfile, type Shardfile } from '../src/game/shardfile/schema';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
-import { assetCost } from '../src/game/plugin/product';
+import { PropsSchema, validatePropsReferences } from '@wildshard/format/props';
+import { PropMaterialsSchema } from '@wildshard/format/propMaterials';
+import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { assetCost } from '@wildshard/format/product';
 
 let texture: Uint8Array;
 beforeAll(async () => {

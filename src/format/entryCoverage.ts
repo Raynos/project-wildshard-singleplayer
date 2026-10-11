@@ -1,4 +1,4 @@
-import type { EntryVertex } from './entryGeometry';
+import type { EntryVertex } from '@wildshard/format/entryGeometry';
 
 const cross = (a: EntryVertex, b: EntryVertex, p: EntryVertex): number => (b.x - a.x) * (p.z - a.z) - (b.z - a.z) * (p.x - a.x);
 function area(vertices: readonly EntryVertex[]): number {

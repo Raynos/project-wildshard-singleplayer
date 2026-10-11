@@ -6,13 +6,13 @@ import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { clientWorld, type ClientWorldViews } from '../src/game/shardfile/clientWorld';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
-import { assetCost } from '../src/game/plugin/product';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { assetCost } from '@wildshard/format/product';
 import { emptyShardfile } from '../src/sdk/author';
 import { bakeTerrain } from '../src/sdk/bake/terrain';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { contentHash } from '../src/sdk/project';
-import type { Shardfile } from '../src/game/shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 let source: Shardfile;
 let bytes: ReadonlyMap<string, Uint8Array>;

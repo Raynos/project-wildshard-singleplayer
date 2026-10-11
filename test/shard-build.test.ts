@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 import { expect, it } from 'vitest';
 import binaryen from 'binaryen';
 import { CONTENT_CAPS as C } from '../src/engine/core/config';
-import { memoryTargetWarnings, worstContentCost } from '../src/game/shardfile/budget';
+import { memoryTargetWarnings, worstContentCost } from '@wildshard/format/budget';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { assetCost } from '@wildshard/sdk/assets';
 import { buildProject, contentHash, newProject, validateProject } from '@wildshard/sdk/project';

@@ -7,7 +7,7 @@ import { installShards, shards, shardContentIdentity } from '../src/game/shard/l
 import { parseShardSlug } from '../src/game/shard/slug';
 import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState } from "../src/game/plugin/headless";
 import { shardItemFamilies } from '../src/game/shardfile/items';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import manifest from '../src/shards/driftwood-isle/manifest';
 import source from '../src/shards/driftwood-isle/shard.config';
 

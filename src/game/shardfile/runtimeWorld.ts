@@ -5,7 +5,7 @@ import type { ResidencyAllocator } from '../grid/allocator';
 import type { ClientAssets } from './clientAssets';
 import { clientGround } from './clientGround';
 import { runtimeBinds } from "../plugin/headless";
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { clientWorld, type ClientWorldViews } from './clientWorld';
 
 /**

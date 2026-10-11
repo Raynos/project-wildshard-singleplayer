@@ -1,5 +1,5 @@
 import type { ResidencyAllocator, ResidencyLease } from './allocator';
-import type { Shardfile } from '../shardfile/schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { productResidentBytes } from '../shardfile/productCost';
 
 /** A caller holds the product while any admitted source or immutable transport bytes are still in use. */

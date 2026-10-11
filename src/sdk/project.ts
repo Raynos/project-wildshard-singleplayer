@@ -6,8 +6,8 @@ import { resolve, sep } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { build } from 'vite';
 import { parseShardfile, type Shardfile } from './shardfile';
-import { validationRevision, validationSourceBytes, preflightAssetGraph, MemoryAdmission } from "@wildshard/game/plugin/product";
-import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/game/shardfile/validate';
+import { validationRevision, validationSourceBytes, preflightAssetGraph, MemoryAdmission } from "@wildshard/format/product";
+import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { preflightShardfile } from '@wildshard/format/preflight';
 
 import { readBoundedFile } from './sourceReader';

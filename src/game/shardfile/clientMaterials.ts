@@ -13,18 +13,18 @@ import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { familyMaterial } from '@wildshard/engine/render/families/registry';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { setting } from '@wildshard/engine/ui/Settings';
 import { loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
-import { graphFileTextureRefs, materialTextureRefs } from './materials';
+import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import { clientGraphs, graphOutlineHook, isGraphEntry, type GraphOutlineHook, type GraphReadout, type GraphSources } from './clientGraphs';
-import { parseSkinFile, skinLookParameters } from './skins';
+import { parseSkinFile, skinLookParameters } from '@wildshard/format/skinAssets';
 import { SKIN_LOOK_RECIPE } from '@wildshard/format/skins';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
-import { propMaterialTextureRefs, propMaterialsOf } from './propMaterials';
+import { propMaterialTextureRefs, propMaterialsOf } from '@wildshard/format/propMaterials';
 import { propSurfaces } from './clientPropMaterials';
 import { splatSurface, withSplatSurface } from './clientSplatTerrain';
-import { splatTerrainOf, splatTextureRefs } from './splatTerrain';
+import { splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
 
 /** Does the shard carry a graph material, in its catalogue or in an admitted skin binding? */
 function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): boolean {

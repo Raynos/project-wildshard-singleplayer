@@ -4,7 +4,7 @@
 import { expect, it } from 'vitest';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { GridPostCosts, gridPostPairRefusal } from '../src/game/grid/postPairs';
-import { NO_POST, POST_NORMAL_PREPASS_COST, type PostStackCost } from '../src/game/shardfile/postStack';
+import { NO_POST, POST_NORMAL_PREPASS_COST, type PostStackCost } from '@wildshard/format/postStack';
 import { classifyRefusal } from '../src/game/grid/refusal';
 
 const stack = (instructions: number, normal = false): PostStackCost => ({ passes: 1, instructions, inputs: { colour: true, depth: normal, normal } });

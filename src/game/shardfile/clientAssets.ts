@@ -1,5 +1,5 @@
 import { boundedResponse, type ProductOptions } from './product';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Release admitted transport copies after decoding; revisiting a tile rechecks immutable bytes from cache or the product. */
 export class ClientAssets {

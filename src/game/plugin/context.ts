@@ -13,7 +13,7 @@ import type { SaveStore } from "@wildshard/engine/saves/store";
 import type { ShardManifest } from "../shard/manifest";
 import { runtimeAccountedBytes } from "@wildshard/format/runtimeCost";
 import { ResidencyAllocator } from "../grid/allocator";
-import { MemoryAdmission } from "./product";
+import { MemoryAdmission } from "@wildshard/format/product";
 import { isDev } from "@wildshard/engine/core/devMode";
 import { contentCost } from "@wildshard/format/contentCost";
 import { CONTENT_CAPS, CHUNK_HALF } from "@wildshard/engine/core/config";

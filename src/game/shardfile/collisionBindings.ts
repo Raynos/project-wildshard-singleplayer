@@ -2,9 +2,9 @@ import { installBakedMeshColliders, type BakedMeshColliderRow } from '@wildshard
 import { installDeclaredPropColliders, type PropColliderPort } from '@wildshard/engine/physics/declaredProps';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { propColliderDescriptors } from './props';
-import { validateMeshCollisionAssets } from './meshCollision';
+import { validateMeshCollisionAssets } from '@wildshard/format/meshCollisionAssets';
 
 /** Stable namespace shared by published targets and the existing whole-world continuation adapter. */
 export function shardfileColliderIds(source: Pick<Shardfile, 'props' | 'meshCollision'>): string[] {

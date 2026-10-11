@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Select the SDK's fixed bundled worker entry without Vite asset rewriting.
 import { pathToFileURL } from 'node:url';
-import { validateShardfileAssets } from '@wildshard/game/shardfile/validate';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import type { Shardfile } from './shardfile';
 import { TickWorkerHost } from './tickWorkerHost';
 import { AuthorProofPlanSchema, TickCommandSchema, type HeadlessCommand, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommandSource, type HeadlessTickCommit } from './tickProtocol';

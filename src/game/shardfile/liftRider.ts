@@ -1,8 +1,8 @@
 import { canStandAt } from '@wildshard/engine/physics/query';
 import { tagOf } from '@wildshard/engine/physics/surface';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { ShardfileSimulation } from '../plugin/simulation';
-import { socketLiftEntries } from './socketLift';
+import { socketLiftEntries } from '@wildshard/format/socketLiftAssets';
 
 import type { LiftRider } from '@wildshard/format/liftRider';
 

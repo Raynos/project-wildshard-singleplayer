@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '@wildshard/format/items';
-import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 import { ITEMS } from '../src/shards/_template/data/items';
 
 function fixture() {

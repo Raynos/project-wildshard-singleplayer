@@ -1,4 +1,4 @@
-import type { GlbVertex } from './glbTriangles';
+import type { GlbVertex } from '@wildshard/format/glbTriangles';
 
 /** Advisory colour-pass raster work; primitive bounds and instance copies are conservatively stacked. */
 export interface OverdrawEstimate {

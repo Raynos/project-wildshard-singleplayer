@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { MemoryAdmission, parseKtx2 } from "../src/game/plugin/product";
+import { MemoryAdmission, parseKtx2 } from "@wildshard/format/product";
 import { admitProduct, type ProductOptions } from '../src/game/shardfile/product';
 
 import { contentHash } from '../src/sdk/project';

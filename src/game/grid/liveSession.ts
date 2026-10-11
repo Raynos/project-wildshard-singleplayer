@@ -51,7 +51,7 @@ import { gridHomeSim, gridCells, type GridHomeSimulation } from '../plugin/conte
 import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct } from './products';
 import { gridPostPairRefusal } from './postPairs';
-import { postStackCost } from '../shardfile/postStack';
+import { postStackCost } from '@wildshard/format/postStack';
 import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from './recovery';
 import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from './roadRecovery';
 import { GridCellWaitingError } from './refusal';

@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { validateGraph, type GraphIr, type GraphNode } from '@wildshard/format/materialGraph';
-import { materialGraphRules, materialTextureRefs } from '../src/game/shardfile/materials';
+import { materialGraphRules, materialTextureRefs } from '@wildshard/format/materials';
 
 const source = () => emptyShardfile({ slug: 'graph-test', name: 'Graph', author: 'Local', seed: 1, revision: 1 });
 const graph = (): GraphIr => ({ version: 1, kind: 'material', nodes: { tint: { op: 'const', value: [0.2, 0.4, 0.6] } }, stages: { surface: { colour: 'tint', roughness: 0.8 } } });

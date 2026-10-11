@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { compendiumSketches } from '../src/game/shardfile/sketch';
+import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 import { parseSketchSvg, sketchReference } from '@wildshard/format/sketch';
 import { TEMPLATE_ROWS } from '../src/shards/_template/data/rows';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseRows } from '@wildshard/format/rows';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
-import { preflightAssetGraph } from '../src/game/plugin/product';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { preflightAssetGraph } from '@wildshard/format/product';
 import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { Scope } from '../src/engine/app/scope';

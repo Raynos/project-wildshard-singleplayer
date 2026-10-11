@@ -5,13 +5,13 @@ import { loadRapier } from '../../../src/engine/physics/rapier';
 import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import { addPiece } from '../../../src/engine/physics/pieces';
 import type { ColliderDesc } from '../../../src/engine/world/registry';
-import { portalLinkEntries, portalLinkRules } from '../../../src/game/shardfile/portalLink';
+import { portalLinkEntries, portalLinkRules } from '@wildshard/format/portalLinkAssets';
 import { parsePortalLink } from '@wildshard/format/portalLink';
 import { createPortalTraversal, portalTransitioning } from '../../../src/game/shardfile/portalTraversal';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { fragmentColliders } from '../../../src/shards/nine-dragon-stack/world/colliders';
 import { entryDeckColliders, portalFloorRows } from '../../../src/shards/nine-dragon-stack/world/floorRows';
-import { PropsSchema } from '../../../src/game/shardfile/props';
+import { PropsSchema } from '@wildshard/format/props';
 import * as v from 'valibot';
 import { withDecks } from '../../../src/shards/nine-dragon-stack/world/install';
 import {

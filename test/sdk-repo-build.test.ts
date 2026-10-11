@@ -5,11 +5,11 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture output and subprocess paths.
 import { join } from 'node:path';
 import { afterAll, beforeAll, expect, it, vi } from 'vitest';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { runWildshard } from '../scripts/wildshard.mjs';
 import { canonicalJson, contentHash } from '../src/sdk/project';
 import { emptyShardfile } from '../src/sdk/author';
-import { worstContentCost } from '../src/game/shardfile/budget';
+import { worstContentCost } from '@wildshard/format/budget';
 
 const output = mkdtempSync(join(tmpdir(), 'sdk-repo-build-'));
 beforeAll(async () => {

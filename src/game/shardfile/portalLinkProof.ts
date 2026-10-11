@@ -1,7 +1,7 @@
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { tagOf } from '@wildshard/engine/physics/surface';
-import { portalLinkRules, type PortalLinkEntry } from './portalLink';
-import { validatePortalFloors } from './portalFloor';
+import { portalLinkRules, type PortalLinkEntry } from '@wildshard/format/portalLinkAssets';
+import { validatePortalFloors } from '@wildshard/format/portalFloor';
 import { createPortalTraversal, type PortalTraversalPorts } from './portalTraversal';
 
 /** Native road-lane and round-trip counts; only two declared links teleport, every other distance is walked. */

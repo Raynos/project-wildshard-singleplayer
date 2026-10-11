@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { socketLiftRules, type SocketLiftEntry } from '../src/game/shardfile/socketLift';
+import { socketLiftRules, type SocketLiftEntry } from '@wildshard/format/socketLiftAssets';
 import { parseSocketLift } from '@wildshard/format/socketLift';
 import type { MoverData } from '@wildshard/format/movers';
 

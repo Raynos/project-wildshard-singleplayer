@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 import { admitProduct, type ProductOptions } from '../src/game/shardfile/product';
 import { emptyShardfileSource, installShardfileProduct, shardfileSource } from '../src/game/plugin/loader';
 import type { ShardfileClientBindings } from '../src/game/shardfile/client';

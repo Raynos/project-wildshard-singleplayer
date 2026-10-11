@@ -3,12 +3,12 @@ import { expect, it } from 'vitest';
 import * as THREE from 'three';
 import { MeshStandardNodeMaterial } from 'three/webgpu';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import type { GraphIr, GraphLiteral, GraphNode, GraphValidationOptions } from '../src/format/materialGraph';
 import { attachOutline, compileGraph, type CompileGraphOptions } from '../src/engine/render/graph/compile';
 import type { GraphCompiler } from '../src/engine/render/graphBackend';
 import { clientGraphs, graphFallbackEntry, isGraphEntry } from '../src/game/shardfile/clientGraphs';
-import { graphBindingSources, materialGraphRules } from '../src/game/shardfile/materials';
+import { graphBindingSources, materialGraphRules } from '@wildshard/format/materials';
 
 const key = (time: number, sun: readonly [number, number, number]) => ({ time, sky: { zenith: [0.1, 0.2, 0.4], horizon: [0.6, 0.7, 0.8] }, fog: { colour: [0.5, 0.5, 0.5], density: 0.01 }, sun: { colour: sun, intensity: 2 }, ambient: { sky: [1, 1, 1], ground: [0, 0, 0], intensity: 0.5 } });
 const graph = (params: NonNullable<GraphIr['params']>, extra: Record<string, GraphNode> = {}): GraphIr => ({

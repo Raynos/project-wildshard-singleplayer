@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphIr, type GraphNode } from '@wildshard/format/materialGraph';
-import { materialGraphRules } from '../src/game/shardfile/materials';
+import { materialGraphRules } from '@wildshard/format/materials';
 
 function outlined(): GraphIr {
   return { version: 1, kind: 'material', model: 'standard', nodes: {

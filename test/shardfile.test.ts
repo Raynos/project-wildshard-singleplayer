@@ -3,8 +3,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { SHARDFILE_VERSION } from '@wildshard/sdk/version';
-import { performanceTargetIssues } from '../src/game/plugin/product';
-import { memoryTargetWarnings } from '../src/game/shardfile/budget';
+import { performanceTargetIssues } from '@wildshard/format/product';
+import { memoryTargetWarnings } from '@wildshard/format/budget';
 
 const dir = 'test/fixtures/shardfile/';
 it('parses an empty renderer-neutral world', () => {

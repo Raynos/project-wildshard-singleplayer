@@ -2,11 +2,11 @@ import { hashImmutableBytes as hash } from '../src/sdk/immutable';
 import { describe, expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { meshCollision } from '../src/sdk/meshCollision';
-import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
-import { validateMeshCollisionAssets } from '../src/game/shardfile/meshCollision';
+import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
+import { validateMeshCollisionAssets } from '@wildshard/format/meshCollisionAssets';
 import { meshCollisionRules } from '@wildshard/format/meshCollision';
-import { assetCost } from '../src/game/plugin/product';
-import { validateShardfileAssets } from '../src/game/shardfile/validate';
+import { assetCost } from '@wildshard/format/product';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { encodeMeshCollision, meshCollisionCost } from '@wildshard/format/meshCollisionBytes';
 
 const mesh = { vertices: Float32Array.of(0, 0, 0, 10, 0, 0, 0, 0, 10), indices: Uint32Array.of(0, 2, 1) };

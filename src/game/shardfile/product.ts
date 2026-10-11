@@ -1,8 +1,8 @@
-import { parseShardfile, type Shardfile } from './schema';
-import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt, assertStateCompatibility, parseStateLineage, preflightAssetGraph, type MemoryAdmission } from "../plugin/product";
+import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
+import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt, assertStateCompatibility, parseStateLineage, preflightAssetGraph, type MemoryAdmission } from "@wildshard/format/product";
 import { SHARDFILE_VERSION, SHARDFILE_PREVIOUS_VERSION, shardfileRevision } from '@wildshard/format/version';
 
-import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets } from './validate';
+import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
 import { preflightShardfile } from '@wildshard/format/preflight';
 

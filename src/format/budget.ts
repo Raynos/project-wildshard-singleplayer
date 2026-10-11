@@ -1,6 +1,6 @@
 import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
 import { contentCost } from '@wildshard/format/contentCost';
-import type { Shardfile } from './schema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Category resident targets are tradeable warnings; only the complete playing/loading totals refuse memory. */
 export function memoryTargetWarnings(shard: Shardfile): { category: string; bytes: number; target: number }[] {

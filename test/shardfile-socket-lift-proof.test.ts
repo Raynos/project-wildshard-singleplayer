@@ -10,7 +10,7 @@ import { Scope } from '../src/engine/app/scope';
 import { groups } from '../src/engine/physics/groups';
 import { MoverRuntime, createMoverHost } from "../src/game/plugin/mover";
 import { parseMovers } from '@wildshard/format/movers';
-import type { SocketLiftEntry } from '../src/game/shardfile/socketLift';
+import type { SocketLiftEntry } from '@wildshard/format/socketLiftAssets';
 import { parseSocketLift } from '@wildshard/format/socketLift';
 import { proveSocketLift } from '../src/game/plugin/simulation';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';

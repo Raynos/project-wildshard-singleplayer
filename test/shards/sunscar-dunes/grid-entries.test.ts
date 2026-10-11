@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- The proof reads the committed terrain bake the game installs.
 import { readFileSync } from 'node:fs';
 import { encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
-import { validateEntrywayTerrain } from '../../../src/game/shardfile/entryways';
+import { validateEntrywayTerrain } from '@wildshard/format/entrywayAssets';
 import { entrywayRules } from '@wildshard/format/entryways';
 import { contentHash } from '../../../src/sdk/project';
 import source from '../../../src/shards/sunscar-dunes/shard.config';

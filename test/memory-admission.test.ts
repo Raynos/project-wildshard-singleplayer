@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { MemoryAdmission, type MemoryAdmissionRequest } from '../src/game/plugin/product';
+import { MemoryAdmission, type MemoryAdmissionRequest } from '@wildshard/format/product';
 
 const request: MemoryAdmissionRequest = { stage: 'resident', owner: 'cell', id: 'sim:cell', claimedBytes: 900_000_000,
   accountedBytes: 900_000_000, playingBytes: 1_379_000_000, loadingBytes: 1_459_000_000 };

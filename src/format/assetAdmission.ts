@@ -1,27 +1,27 @@
 import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
 import { admitScript, type ScriptAdmission } from '@wildshard/format/scriptAdmission';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
-import { worstContentCost } from './budget';
-import { parseShardfile, type Shardfile } from './schema';
-import { assetCost, validateTerrainAssets, preflightAssetGraph, type MemoryAdmission } from "../plugin/product";
+import { worstContentCost } from '@wildshard/format/budget';
+import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
+import { assetCost, validateTerrainAssets, preflightAssetGraph, type MemoryAdmission } from "@wildshard/format/product";
 
-import { validateMeshCollisionAssets } from './meshCollision';
-import { validateNativeGround } from './nativeGround';
-import { validateMeshEntryways } from './meshEntryways';
-import { glbMaterialNames, validatePropMaterials, type PropMaterials } from './propMaterials';
-import { checkTileMaterialNames, splatTextureRefs } from './splatTerrain';
-import { validateSkinAssets } from './skins';
-import { graphFileRules } from './materials';
-import { postStackCost } from './postStack';
-import { validateEntrywayTerrain } from './entryways';
-import { validateEntrywayClearance } from './entryClearance';
-import { validateSocketLandings } from './entryLanding';
-import { portalLinkEntries } from './portalLink';
-import { validatePortalFloors } from './portalFloor';
+import { validateMeshCollisionAssets } from '@wildshard/format/meshCollisionAssets';
+import { validateNativeGround } from '@wildshard/format/nativeGroundAssets';
+import { validateMeshEntryways } from '@wildshard/format/meshEntryways';
+import { glbMaterialNames, validatePropMaterials, type PropMaterials } from '@wildshard/format/propMaterials';
+import { checkTileMaterialNames, splatTextureRefs } from '@wildshard/format/splatTerrain';
+import { validateSkinAssets } from '@wildshard/format/skinAssets';
+import { graphFileRules } from '@wildshard/format/materials';
+import { postStackCost } from '@wildshard/format/postStack';
+import { validateEntrywayTerrain } from '@wildshard/format/entrywayAssets';
+import { validateEntrywayClearance } from '@wildshard/format/entryClearance';
+import { validateSocketLandings } from '@wildshard/format/entryLanding';
+import { portalLinkEntries } from '@wildshard/format/portalLinkAssets';
+import { validatePortalFloors } from '@wildshard/format/portalFloor';
 import { clientScriptViewCost } from '@wildshard/format/clientScripts';
 import { preflightShardfile } from '@wildshard/format/preflight';
 
-import { compendiumSketches } from './sketch';
+import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 import { assertCommonsCosts, type CommonsCosts } from '@wildshard/format/commonsCosts';
 
 

@@ -1,5 +1,5 @@
 // Runs only in the existing plain-Node schema loader, with no app/session/world allocation.
-import { ShardfileSchema } from '../../src/game/shardfile/schema.ts';
+import { ShardfileSchema } from '@wildshard/format/shardSchema';
 import { SCRIPT_ABI, SCRIPT_IMPORTS, SCRIPT_EXPORTS } from '@wildshard/format/scriptAbi';
 import { schemaInventory, abiInventory } from './schema-reference.mjs';
 import { sdkSchemaInventory, formatSchemaInventory } from './sdk-schemas.mjs';

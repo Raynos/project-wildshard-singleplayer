@@ -8,7 +8,7 @@ import { Ledger } from '../../../src/game/ledger';
 import { bindRuntimeCoins, runtimeSpawnRows, bindRuntimeItems, bindRuntimeLedger, bindRuntimeQuest, withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import { purseSave, shardSave } from '../../../src/game/saves';
 import { RESPAWN } from '../../../src/shards/sunscar-dunes/data/spawns';
-import { parseShardfile } from '../../../src/game/shardfile/schema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';

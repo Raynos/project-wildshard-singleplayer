@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { Mount } from '../src/sdk/modes';
 import { parseModes } from '../src/format/modes';
-import { shardfileRules } from '../src/game/shardfile/schema';
+import { shardfileRules } from '@wildshard/format/shardSchema';
 import { withoutRuntimeRows } from '../src/game/plugin/headless';
 import source from '../src/shards/nalati-grasslands/shard.config';
 import { NALATI_RIDE } from '../src/shards/nalati-grasslands/data/modes';
