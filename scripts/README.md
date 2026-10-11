@@ -151,11 +151,13 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 
 ## Capture, boards and mockups
 
+- [capture-main-menu-hero.mjs](./capture-main-menu-hero.mjs)
 - [creature-lineup.mjs](./creature-lineup.mjs)
 - [generation-capture.d.mts](./generation-capture.d.mts)
 - [generation-capture.mjs](./generation-capture.mjs)
 - [hero-shots.mjs](./hero-shots.mjs)
 - [ktx2-ab-board.py](./ktx2-ab-board.py)
+- [main-menu-hero-board.py](./main-menu-hero-board.py)
 - [mockup-local.sh](./mockup-local.sh)
 - [nalati-bow-capture.mjs](./nalati-bow-capture.mjs)
 - [nalati-creature-lineup.mjs](./nalati-creature-lineup.mjs)
