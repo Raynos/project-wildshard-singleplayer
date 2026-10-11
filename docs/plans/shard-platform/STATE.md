@@ -11,7 +11,7 @@
 - **Frame floor (`c66b5b324`, clean):** every max gate passes. Desktop: only Pine short travel p95 33.3 (gate 17.5). Simulator p95 over 35: Driftwood 59, Pine 58, Signal 52, Sky 37, Nalati 36. Arrival waits: Driftwood, Pine, Nine.
 - **M3:** **0 of 6 at 80/20** under Jake's measure.
 
-**Live:** queue green, 99 commits reached origin at `8b9ff3e58`; production `1d378b7ba-mv49rdxs`. **sp-x7 = gate/CI/deploy lane (G330).**
+**Live:** queue green, 99 commits to origin, `8b9ff3e58`; production `1d378b7ba-mv49rdxs`.
 
 **Queue:** `open-x-queue.md` (open engineering, 10-11 sweep). **Red → green (G330):** `red-green.md` (5 reds fixed 10-11).
 
