@@ -1,8 +1,9 @@
 {
  "version": 1,
- "revision": "242744ee2b5dd18596d6a5ecb68a4e0dcf579fde",
- "build": "242744e-mv3cfs41",
- "profile": "iPhone 16 Pro / phone / DPR2",
+ "revision": "3fb42e274224f7848c90f79c2d8f08130cbe3ad8",
+ "build": "node-3fb42e274224f7848c90f79c2d8f08130cbe3ad82dba68d419bf0afb204c22bb",
+ "profile": "Node / phone / no renderer",
+ "notice": "DO NOT EDIT: regenerate with generators/bake-pine-spots.mjs.",
  "rows": [
   {
    "id": "dam-log-a",

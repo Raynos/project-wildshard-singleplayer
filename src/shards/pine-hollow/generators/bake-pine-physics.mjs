@@ -150,7 +150,7 @@ try {
     async world(ctx) { sky.sceneRoot = ctx.game.runtime.world.game.scene; await super.world(ctx); contexts.push({ ctx, cabins: this.cabins, landmarks: this.landmarks }); }
   }
   const { Terrain, terrainChunkGeometry } = await moduleAt('src/engine/world/Terrain.ts');
-  const captures = [];
+  const captures = [], spots = [];
   await visitAuthoredWorld({ ...manifest, load: () => Promise.resolve({ default: CapturePine }) },
     { root, sky, element: environment.element, tier: 'phone', practiceArena: true,
       installKit: async () => {
@@ -222,6 +222,21 @@ try {
           interactables: runtime.interactables, registry, cabins: native.cabins, landmarks: native.landmarks, trees: forest.trees,
           fullMap: { setQuest: noop, setPois: noop, setZones: noop, setFeatures: noop }, compendium: null,
           chunkId: manifest.slug, params: new URLSearchParams(), touchUi: () => true, nolock: true });
+        if (process.argv.includes('--spots')) {
+          const { pineRifleFloor } = await moduleAt('src/shards/pine-hollow/quest/rifleFloor.ts');
+          const { WeaponPickup } = await moduleAt('src/engine/player/WeaponPickup.ts');
+          const position = pineRifleFloor(native.cabins);
+          if (position === null) throw new Error('Pine rifle cabin is absent');
+          // Only the nondrawing presentation mesh is empty; the native pickup owns the floor/eye point and radius.
+          const drop = new WeaponPickup({ scene, item: new THREE.Group(), position, tier: 'common', prompt: 'Take the lever-action', scale: 1.3 });
+          runtime.interactables.push(drop.interactable);
+          const { readPineSpots } = await import('./pineSpots.mjs');
+          const first = readPineSpots(window.__pineQuest, runtime.interactables);
+          const second = readPineSpots(window.__pineQuest, runtime.interactables);
+          if (JSON.stringify(first) !== JSON.stringify(second)) throw new Error('Pine native spots changed between reads');
+          spots.push(first);
+          drop.dispose();
+        }
         (await moduleAt('src/shards/pine-hollow/world/places.ts')).placePineHollowSets(registry);
         for (const piece of additions) piece.sync();
         const { RainFx } = await moduleAt('src/shards/pine-hollow/runtime/looks/rainFx.ts');
@@ -238,9 +253,19 @@ try {
   const { grounds, ...metadata } = captured;
   const result = { version: 1, revision: digest.slice(0, 40), build: `node-${digest}`, profile: 'Node / phone / no renderer',
     notice: 'DO NOT EDIT: regenerate with generators/bake-pine-physics.mjs. revision identifies recipe inputs.', inputs, ground: grounds[0], ...metadata };
-  const writer = byteWriter(process.argv.includes('--check'), 'bake-pine-physics');
-  writer.put(resolvePath(root, 'src/shards/pine-hollow/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`); writer.finish();
-  console.log(`bake-pine-physics: ${result.actors.length} native actors, ${result.parked.length} King prewarm bodies, ${result.solids.length} world solids, Node canonical`);
+  if (process.argv.includes('--spots')) {
+    const rows = spots[0];
+    if (rows === undefined) throw new Error('Native Pine spots were not captured');
+    const writer = byteWriter(process.argv.includes('--check'), 'bake-pine-spots');
+    writer.put(resolvePath(root, 'src/shards/pine-hollow/runtime/spots.baked.json'), `${JSON.stringify({ version: 1, revision: digest.slice(0, 40), build: `node-${digest}`, profile: 'Node / phone / no renderer', notice: 'DO NOT EDIT: regenerate with generators/bake-pine-spots.mjs.', ...rows }, null, 1)}\n`);
+    writer.finish();
+    console.log(`bake-pine-spots: ${rows.rows.length} native rows, speakers, board, lanterns, zipline and rifle, Node canonical`);
+  } else {
+    const writer = byteWriter(process.argv.includes('--check'), 'bake-pine-physics');
+    writer.put(resolvePath(root, 'src/shards/pine-hollow/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`); writer.finish();
+    console.log(`bake-pine-physics: ${result.actors.length} native actors, ${result.parked.length} King prewarm bodies, ${result.solids.length} world solids, Node canonical`);
+  }
+
 } finally {
   try { (await moduleAt('src/engine/app/resources.ts')).pageScope.dispose(); } finally {
     for (const name of uiNames) { const previous = uiBefore.get(name); if (previous === undefined) Reflect.deleteProperty(globalThis, name); else Object.defineProperty(globalThis, name, previous); }

@@ -760,6 +760,9 @@
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-pine-spots.mjs",
       "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
         "src/shards/pine-hollow/generators/bake-pine-spots.mjs"
       ],
       "inputRoots": [
@@ -777,8 +780,7 @@
       "outputs": [
         "src/shards/pine-hollow/runtime/spots.baked.json"
       ],
-      "platform": "darwin",
-      "capture": true
+      "platform": "portable"
     },
     {
       "id": "pine-hdri-keys",

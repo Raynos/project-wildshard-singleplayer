@@ -18,7 +18,7 @@ import { installAiDebug } from '@wildshard/engine/ai/view/DebugOverlay';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
-import { CABIN_SITES } from '../layout';
+import { pineRifleFloor } from '../quest/rifleFloor';
 import { STARTER_EFFECTS, installStarterEffects } from '@wildshard/sdk/runtime/effects';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
@@ -188,11 +188,9 @@ export class PineHollow extends ShardPlugin {
     });
     const loadout = installPineLoadout({ scene: game.scene, sky, weapons, crossbow, rifle, longbow, inventory, owned, hud, audio, params, scope: ctx.scope, cues: h.cues, context: ctx });
     const rifleDrop = (() => {
-      const site = CABIN_SITES[0];
-      if (site === undefined || cabins === null) return null;
-      const lx = 1.5, lz = -1.6, c = Math.cos(site.rot), sn = Math.sin(site.rot);
-      const x = site.x + lx * c + lz * sn, z = site.z - lx * sn + lz * c;
-      const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new THREE.Vector3(x, cabins.floorHeightAt(x, z) ?? heightAt(x, z), z), tier: 'common', prompt: 'Take the lever-action', scale: 1.3 });
+      const position = pineRifleFloor(cabins);
+      if (position === null) return null;
+      const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position, tier: 'common', prompt: 'Take the lever-action', scale: 1.3 });
       rt.interactables.push(drop.interactable);
       drop.onNear = (inside) => audio.pickupHum(inside);
       drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); music.sting('pickup'); hud.toast('Lever-action rifle acquired · 1/2 to switch, Q to swap, R feeds the tube'); };
