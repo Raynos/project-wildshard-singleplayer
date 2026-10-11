@@ -333,7 +333,7 @@ export class GridSession {
     // (a page whose envelope can't fit the screens' one claim keeps its closed walls without them, rather than no grid)
     try {
       this.screens = installCellScreens({ scene: host.scene, admission, time: () => app.clock.real, wall: CHUNK_HALF + 6,
-        build: typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : '', tier: TIER,
+        build: typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : '', tier: TIER, ...(host.renderer === undefined ? {} : { renderer: host.renderer }),
         cells: this.neighbours.map((cell) => ({ instance: cell.instance, x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z, art: findShard(cell.slug)?.card.thumb ?? null })),
         ports: { read: () => this.screenInputs(), ready: id => this.screenReady(id),
           feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } } });

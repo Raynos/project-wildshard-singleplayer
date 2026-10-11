@@ -13,6 +13,8 @@
  * the existing nearest-cell/distance selection; hidden canvases never remain as an unbounded cache.
  */
 import { CanvasTexture, Group, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, type Object3D } from 'three';
+import { frameBudgetSpent, presenting } from '@wildshard/engine/core/framePacing';
+import type { Renderer } from '@wildshard/engine/render/renderer';
 import { PlatformRenderAdmissionError, type PlatformRenderAdmission } from './renderResidency';
 import { refusalReason, type FarViewStatus, type ShardRefusal } from './refusal';
 import { GAME_STRINGS } from '../strings';
@@ -253,7 +255,7 @@ export interface CellScreensState { readonly shown: readonly { readonly instance
 
 interface Slot {
   readonly mesh: Mesh; readonly material: MeshBasicMaterial; readonly canvas: HTMLCanvasElement; readonly context: CanvasRenderingContext2D | null; readonly texture: CanvasTexture;
-  readonly ordinal: number; readonly dispose: () => void; instance: string | null; key: string; along: number; sliding: boolean; status: CellScreenStatus | null; since: number;
+  readonly ordinal: number; readonly dispose: () => void; readonly upload: () => void; instance: string | null; key: string; along: number; sliding: boolean; status: CellScreenStatus | null; since: number;
 }
 const RANGE = 320, REFRESH = 6, DEAD_ZONE = 6;
 // Screens stay inside the closed cell, beyond a 20 m glide, leaving the entire road and soft wall clear.
@@ -269,6 +271,8 @@ export function cellScreenBytes(slots: number): { jsBytes: number; gpuBytes: num
 export function installCellScreens(input: {
   readonly cells: readonly CellScreenCell[]; readonly wall: number; readonly ports: CellScreenPorts; readonly scene: Object3D;
   readonly admission: PlatformRenderAdmission; readonly time: () => number; readonly build: string; readonly tier: string; readonly slots?: number;
+  /** Reupload changed canvases after paint under the existing shared build budget; absent, retain the ordinary draw upload. */
+  readonly renderer?: Pick<Renderer, 'initTexture'>;
 }): { step: () => void; state: () => CellScreensState } {
   const { cells, ports, wall, time } = input, count = input.slots ?? 3, byInstance = new Map(cells.map((cell) => [cell.instance, cell]));
   // Four plane vertices: position, normal and UV, plus six uint16 indices, retained on both CPU and GPU.
@@ -291,7 +295,20 @@ export function installCellScreens(input: {
         const mesh = new Mesh(geometry, material); mesh.name = 'grid-cell-screen'; mesh.visible = false; mesh.matrixAutoUpdate = false;
         slotOwner.onDispose(() => { mesh.removeFromParent(); texture.dispose(); material.dispose(); canvas.width = 0; canvas.height = 0; });
         group.add(mesh);
-        return { ordinal, dispose: () => { slotOwner.dispose(); }, mesh, material, canvas, context: canvas.getContext('2d'), texture,
+        let firstPaint = true, queued = false;
+        const send = (): void => {
+          if (frameBudgetSpent(1000 / 240)) { slotOwner.raf(() => { slotOwner.timeout(0, send); }); return; }
+          queued = false; texture.needsUpdate = true; input.renderer?.initTexture(texture);
+        };
+        const later = (): void => { slotOwner.raf(() => { slotOwner.timeout(0, send); }); };
+        const upload = (): void => {
+          // First appearance is unchanged. Subsequent HTMLCanvasElement uploads cost ~4ms on Safari;
+          // keep them out of the depth/render pass, coalesce to the current canvas, and share the
+          // existing quarter-frame budget across slots. Slot disposal cancels both scheduling stages.
+          if (firstPaint || input.renderer === undefined || !presenting()) { firstPaint = false; texture.needsUpdate = true; return; }
+          if (!queued) { queued = true; later(); }
+        };
+        return { ordinal, dispose: () => { slotOwner.dispose(); }, upload, mesh, material, canvas, context: canvas.getContext('2d'), texture,
           instance: null, key: '', along: 0, sliding: false, status: null, since: 0 };
       });
     };
@@ -359,7 +376,7 @@ export function installCellScreens(input: {
         place(s, cell, feet);
         const near = Math.hypot(feet.x - s.mesh.position.x, feet.z - s.mesh.position.z) < NEAR;
         const screen = cellScreenContent(state, frame), key = `${near ? 1 : 0}${picture === null ? 0 : 1}${JSON.stringify(screen)}`;
-        if (key !== s.key && s.context !== null) { s.key = key; drawCellScreen(s.context, screen, picture, near); s.texture.needsUpdate = true; draws++; }
+        if (key !== s.key && s.context !== null) { s.key = key; drawCellScreen(s.context, screen, picture, near); s.upload(); draws++; }
         s.mesh.visible = true;
       }
       const liveArt = new Set(slots.flatMap(s => {

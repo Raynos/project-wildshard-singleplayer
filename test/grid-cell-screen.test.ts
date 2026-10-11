@@ -2,8 +2,10 @@
 // mapping (loading with real stages, waiting for its shardfile, refused with the reason), and the panels: the nearest cells
 // only, redrawn only when the text changes, standing at the soft wall facing the traveller, charged as one platform claim.
 import { describe, expect, it, vi } from 'vitest';
-import { Group, Vector3, type Mesh } from 'three';
+import { Group, Vector3, type Mesh, type Texture } from 'three';
 import { Scope } from '../src/engine/app/scope';
+import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
+import { noteFrameDrawn, setFramePacing } from '../src/engine/core/framePacing';
 import { cellScreenBytes, cellScreenContent, cellScreenStatus, drawCellScreen, installCellScreens, SCREEN_M, type CellScreenInput, type ScreenContext } from '../src/game/grid/cellScreen';
 import { PlatformRenderResidency, type PlatformRenderAdmission, type PlatformRenderBytePlan } from '../src/game/grid/renderResidency';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
@@ -15,6 +17,44 @@ const MB = 1e6;
 const base: CellScreenInput = { instance: 'template-1', slug: 'template', name: 'Template', status: 'loading', refusal: null, wait: null, issue: null, far: 'resident',
   requested: true, product: true, runtime: false, colliders: false, sim: false, claimedBytes: 12 * MB, claims: 3, declaredBytes: 10 * MB, pageBytes: 400 * MB, capBytes: 1000 * MB, overBytes: 0 };
 const frame = { build: 'abc1234def567', tier: 'phone', elapsedS: 7 };
+
+it('keeps the same painted canvas, shares the post-paint upload budget, and cancels retired slot uploads', () => {
+  const previous = scopeEnvironment(), scope = new Scope('screen-upload');
+  const frames = new Map<number, FrameRequestCallback>(), uploaded: Texture[] = [], canvases: { width: number; height: number }[] = [];
+  const drawn: string[] = [];
+  let serial = 0, clock = 100_000, elapsed = 0;
+  vi.useFakeTimers();
+  const time = vi.spyOn(performance, 'now').mockImplementation(() => clock);
+  installScopeEnvironment({ ...previous, frame: fn => { const id = ++serial; frames.set(id, fn); return id; }, cancelFrame: id => { frames.delete(id); } });
+  vi.stubGlobal('document', { createElement: () => { const canvas = { width: 0, height: 0, getContext: () => recorder(drawn) }; canvases.push(canvas); return canvas; } });
+  const admission: PlatformRenderAdmission = { allocate: (plan, build) => build(scope.child(plan.id)) };
+  const cells = [{ instance: 'east', x: 560, z: 0, art: null }, { instance: 'north', x: 0, z: 560, art: null }];
+  const snapshot = new Map(cells.map(cell => [cell.instance, { ...base, instance: cell.instance }]));
+  const paint = (): void => {
+    clock += 1000 / 30; noteFrameDrawn(clock, clock, 30);
+    const callbacks = [...frames.values()]; frames.clear();
+    for (const fn of callbacks) fn(clock);
+    vi.runOnlyPendingTimers();
+  };
+  try {
+    setFramePacing(false);
+    const screens = installCellScreens({ cells, wall: 256, scene: new Group(), admission, time: () => elapsed, build: 'b', tier: 'phone',
+      renderer: { initTexture: texture => { uploaded.push(texture); clock += 5; } },
+      ports: { read: () => snapshot, feet: () => ({ x: 270, z: 10 }) } });
+    screens.step(); expect(screens.state().draws).toBe(2); expect(frames.size).toBe(0); // ordinary first appearance / OFF
+    setFramePacing(true); noteFrameDrawn(clock, clock, 30);
+    elapsed = 1.2; for (let i = 0; i < 6; i++) screens.step();
+    elapsed = 2.2; for (let i = 0; i < 6; i++) screens.step();
+    expect(screens.state().draws).toBe(6); expect(uploaded).toHaveLength(0); expect(frames.size).toBe(2); // newest canvas, one job per slot
+    paint(); expect(uploaded).toHaveLength(1); expect(frames.size).toBe(1); // the first ~5ms upload spends this frame's shared budget
+    paint(); expect(uploaded).toHaveLength(2); expect(frames.size).toBe(0);
+    expect(uploaded.map(texture => texture.source.data)).toEqual(canvases); // no bitmap, rescale, conversion or replacement
+    expect(canvases.map(canvas => [canvas.width, canvas.height])).toEqual([[1024, 640], [1024, 640]]);
+    elapsed = 3.2; for (let i = 0; i < 6; i++) screens.step();
+    expect(frames.size).toBe(2); scope.dispose(); expect(frames.size).toBe(0);
+    paint(); expect(uploaded).toHaveLength(2); expect(scope.census).toMatchObject({ rafs: 0, timers: 0 });
+  } finally { scope.dispose(); setFramePacing(false); installScopeEnvironment(previous); time.mockRestore(); vi.useRealTimers(); restoreGlobals(); }
+});
 
 describe('G217: the cell state maps to the loading screen', () => {
   it('uses live readiness and declared product capability before stale render metadata', () => {
