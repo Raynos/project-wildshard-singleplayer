@@ -15,3 +15,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-11 | local gate: typed oxlint, Driftwood brain switches non-exhaustive | `33511c931` | `ea1c22453` | sp-x6 |
 | 2026-10-11 | local gate: Sky TS2883 SKY_SPECIES_BRAINS inferred type | `f1a096bf1` | `d10d4a1b3` | sp-x6 |
 | 2026-10-11 | deploy: release selected before an in-flight exact-SHA smoke (12:47 no-op) | `3b509cff0` | `7ed48b955` | sp-x7 |
+| 2026-10-11 | local gate: Driftwood physics bake stale after a source edit | `ea1c22453` | `edd01ddce` (rebake) | sp-x5 |
