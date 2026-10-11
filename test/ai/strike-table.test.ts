@@ -1,4 +1,4 @@
-import { CRAB_BRAIN } from '../../src/shards/driftwood-isle/data/brains';
+import { CRAB_BRAIN, SAILOR_BRAIN } from '../../src/shards/driftwood-isle/data/brains';
 import { PINE_LANES, PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';
 import { BOAR } from '../../src/game/systems/species/boar';
 import { BEAR } from '../../src/game/systems/species/bear';
@@ -28,7 +28,7 @@ const tuning = [
   ['S1 crab snap', `${island}crab.ts`, { SNAP_R: 1.6, SNAP_DAMAGE: 10, WINDUP: 0.5, SNAP_DUR: 0.78 }],
   ['S2 monkey bite', `${island}monkeyPolicy.ts`, { BITE_R: 1.3, BITE_DAMAGE: 6, BITE_DUR: 0.9 }],
   ['S3 monkey coconut release', `${island}monkeyPolicy.ts`, { THROW_R: 14, THROW_DUR: 1, THROW_RELEASE: 0.62 }],
-  ['S4 sailor swing', `${island}sailor.ts`, { SWING_R: 1.8, HIT_R: 1.9, SWING_DAMAGE: 14, WINDUP: 0.6, SWING_DUR: 0.9 }],
+  ['S4 sailor swing', `${island}sailor.ts`, { HIT_R: 1.9, SWING_DAMAGE: 14, WINDUP: 0.6, SWING_DUR: 0.9 }],
   ['S5/S6 captain cuts', `${island}captainPolicy.ts`, { SWING_R: 2.3, HIT_R: 2.5, SWING_DMG: 24, WINDUP: [0, 0.7, 0.62, 0.5], COOLDOWN: [0, 1.4, 1.2, 0.8] }],
   ['S7 captain burst', `${island}captainPolicy.ts`, { BURST_R: 3, BURST_DMG: 16, UNDER_T: 1.1, SINK_EVERY: [0, 0, 7, 5] }],
   // BR-1 moved the unchanged tuning into the defining hunt pattern; hunt.ts now selects that preset.
@@ -37,6 +37,9 @@ const tuning = [
   ['S12 ghost rider arrow', `${nalati}ghostRiders.ts`, { SPACING: 11, CIRCLE_R: 34, ENGAGE: 70, DISENGAGE: 115, ARROW_SPEED: 34, ARROW_G: 5, ARROW_DMG: 10, RESPAWN: 60 }],
 ] as const;
 describe('strike tuning from current production declarations', () => {
+  it('S4 sailor swing starts within the authored 1.8m radius', () => {
+    expect(SAILOR_BRAIN.swingRadius).toBe(1.8);
+  });
   it('S12 the authored ghost volley fires strictly between 6 and 62 metres', async () => {
     const create = await prepareGhostVolleyDirector();
     for (const distance of [6, 6.001, 61.999, 62]) {
