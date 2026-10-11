@@ -496,5 +496,191 @@
       ],
       "note": "Native Timeline record timestamps are also zero: unusable for task durations. Stopped before Pine. No gate credit; no repeat. All resources closed."
     }
+  },
+  "telemetryFollowup": {
+    "source": "9c92fa9799da0ada9cd9b452fe3e13730f0e6d7b",
+    "diagnosticOnly": true,
+    "complete": true,
+    "errors": [],
+    "quietUtc": [
+      "2026-10-11T17:40:09.953422Z",
+      "2026-10-11T17:42:26.508286Z"
+    ],
+    "binding": "Both function markers required before measurement; receiver, return, throw and reset validated in Node.",
+    "rows": [
+      {
+        "name": "spawn",
+        "p95Ms": 34,
+        "maxMs": 36
+      },
+      {
+        "name": "grid-deck-east",
+        "p95Ms": 34,
+        "maxMs": 35
+      },
+      {
+        "name": "grid-crossroads",
+        "p95Ms": 34,
+        "maxMs": 34
+      },
+      {
+        "name": "grid-pine-hollow-road-entry-travel",
+        "p95Ms": 54,
+        "maxMs": 116
+      },
+      {
+        "name": "grid-pine-hollow-road-entry-drive",
+        "p95Ms": 35,
+        "maxMs": 116
+      },
+      {
+        "name": "grid-pine-hollow-road-entry",
+        "p95Ms": 34,
+        "maxMs": 35
+      }
+    ],
+    "longFrames": 12,
+    "stateMaxInLongFramesMs": 1,
+    "residencyMaxInLongFramesMs": 1,
+    "shaderLinkMs": 51,
+    "rawSha256": "658002a7390a7f62c062fe7e03dd9f054f06a642dc146d7759135ff27f34fc28",
+    "result": "Grid reads take 0-1 ms in long frames; lightweight-read hypothesis rejected and private prototype deleted. No performance credit; travel remains FAIL.",
+    "resources": "Owned preview, browser and Simulator closed before quiet release.",
+    "incompleteInstrumentation": {
+      "quietUtc": [
+        "2026-10-11T17:28:24.866159Z",
+        "2026-10-11T17:30:40.821721Z"
+      ],
+      "completeRoute": true,
+      "errors": [],
+      "reason": "Generated helper still embedded the constructor-only shim. No grid read timings; cannot test telemetry hypothesis.",
+      "travelP95Ms": 55,
+      "driveP95Ms": 35,
+      "maxMs": 114,
+      "rawSha256": "993fed45eeac8b000d0e213f4f4349b85f0c8ffbcd3d83511a8973955bf61503",
+      "credit": false,
+      "resources": "All owned helpers closed."
+    }
+  },
+  "creatureFollowup": {
+    "source": "9c92fa9799da0ada9cd9b452fe3e13730f0e6d7b",
+    "diagnosticOnly": true,
+    "complete": true,
+    "errors": [],
+    "quietUtc": [
+      "2026-10-11T18:00:36.189201Z",
+      "2026-10-11T18:03:02.183441Z"
+    ],
+    "binding": "Existing published page manager/factory/group prototypes, shared by rebuilt regions; required marker before measurement. No calls/arguments/RNG/return values changed. Deferred until both page host and grid probe exist.",
+    "rows": [
+      {
+        "name": "spawn",
+        "p95Ms": 34,
+        "maxMs": 34
+      },
+      {
+        "name": "grid-crossroads",
+        "p95Ms": 34,
+        "maxMs": 34
+      },
+      {
+        "name": "grid-deck-east",
+        "p95Ms": 34,
+        "maxMs": 34
+      },
+      {
+        "name": "grid-pine-hollow-road-entry-travel",
+        "p95Ms": 58,
+        "maxMs": 102
+      },
+      {
+        "name": "grid-pine-hollow-road-entry-drive",
+        "p95Ms": 37,
+        "maxMs": 102
+      },
+      {
+        "name": "grid-pine-hollow-road-entry",
+        "p95Ms": 34,
+        "maxMs": 34
+      }
+    ],
+    "inclusiveCpuByHook": {
+      "between hooks": {
+        "CPU AnimalGroup.updateMatrixWorld": [
+          154,
+          738
+        ]
+      },
+      "pine-hollow:world": {
+        "CPU AnimalGroup.updateMatrixWorld": [
+          1,
+          32
+        ]
+      },
+      "pine-hollow:afterKit": {
+        "CPU AnimalGroup.updateMatrixWorld": [
+          2,
+          32
+        ],
+        "CPU AnimalFactory.model": [
+          45,
+          160
+        ],
+        "CPU AnimalFactory.instantiate": [
+          13,
+          160
+        ],
+        "CPU AnimalManager.spawnAnimal": [
+          67,
+          160
+        ]
+      },
+      "pine-hollow:play": {
+        "CPU AnimalGroup.updateMatrixWorld": [
+          11,
+          56
+        ],
+        "CPU AnimalFactory.model": [
+          19,
+          8
+        ],
+        "CPU AnimalFactory.instantiate": [
+          1,
+          8
+        ],
+        "CPU AnimalManager.spawnAnimal": [
+          20,
+          8
+        ]
+      },
+      "pine-hollow:afterPlay": {
+        "CPU AnimalGroup.updateMatrixWorld": [
+          142,
+          758
+        ]
+      }
+    },
+    "playLongFrame": {
+      "frameMs": 53,
+      "spawnMs": 20,
+      "modelMs": 19,
+      "instantiateMs": 1,
+      "calls": 8
+    },
+    "afterKitLongFrames": {
+      "frames": 3,
+      "maxFrameMs": 71,
+      "spawnMs": 3,
+      "modelMs": 3,
+      "instantiateMs": 0
+    },
+    "worldLongFrameShaderQueriesMs": {
+      "getProgramParameter": 47,
+      "getProgramInfoLog": 32
+    },
+    "rawSha256": "5e5b23b94844fa9e63a736aae3c65d862781b2fae6341802045d0eee77d1da8d",
+    "result": "The 8-spawn play burst includes 19 ms of model construction. Prewarming needs the factory/resident owner and exact requested variants, without extra models or native actor allocation. Other world/afterKit stalls remain unassigned outside shader-query evidence; no speculative herd-loop change landed.",
+    "limitations": "Rounded page-clock wall time. Spawn includes model and instantiate: these inclusive spans must not be added. This isolated source diagnoses the existing patch, not a current-HEAD floor proof. No gate or saving credit.",
+    "resources": "Owned preview, browser and Simulator closed before quiet release."
   }
 }
