@@ -9,7 +9,7 @@ export function nalatiPhysicsInputs(root) {
     'runtime/ghostVolleyDirector.ts', 'runtime/ghostRosterKeeper.ts', 'runtime/headlessGhost.ts', 'runtime/raidDirector.ts', 'runtime/rideReins.ts', 'runtime/rideBody.ts', 'runtime/tamingLaw.ts', 'look/grassFieldLayout.ts']
     .map(path => `src/shards/nalati-grasslands/${path}`);
   // the manager, the hunting brain and the group policies that roll and drive the bodies, the shared floor recipe
-  paths.push('src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/stalker.ts', 'src/engine/ai/hunt.ts', 'src/engine/ai/pack.ts', 'src/engine/ai/herd.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
+  paths.push('src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/diver.ts', 'src/engine/ai/stalker.ts', 'src/engine/ai/hunt.ts', 'src/engine/ai/pack.ts', 'src/engine/ai/herd.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
   // the grass field the bake samples (its `grass` rows)
   paths.push('src/game/systems/looks/grassField.ts');
   const walk = (dir, accept) => {

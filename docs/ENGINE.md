@@ -3097,6 +3097,16 @@ mapping, so existing body ports and save bytes survive the spelling change.
 
 ### Parametric divers (SF82 BR-1)
 
+The `wind` pattern keeps the encounter's actual deferred-spawn body: construct
+`DiverBrain(null, {pattern: 'wind', spec, ports})`, then pass the real body to
+`spawnWind` and `advanceWind`. `WindDiverPorts` supplies terrain, wind, shared RNG,
+weak-point and tell authority; manager `think` uses the tagged wind observation.
+`resetWind`, `disposeWindTell` and `windDamage` preserve native encounter ordering.
+`windSnapshot` and `restore` keep the original typed clocks/target object exactly;
+null-body frames do no work. Nalati's `WindStooperBrain` is this pattern's preset.
+The host still owns flight-frame cadence, weather and encounter stage.
+
+
 `@wildshard/engine/ai/diver` defines `DiverBrain`. Its immutable `DiverProfile`
 selects `orbit`, `patrol` or `burst`, each with admitted tuning, home and a sphere
 strike. `DiverObservation` tags the matching trusted flight/contact ports. The

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import { Vector3 } from 'three';
+import { DiverBrain } from '../../../src/engine/ai/diver';
 import { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { variantMods } from '../../../src/engine/entities/species/registry';
 import { Rng } from '../../../src/engine/core/rng';
@@ -27,6 +28,14 @@ const spec = readWindStooperSpec({
 });
 function policy(ports: QyranPorts<AnimalSim>): WindStooperBrain<AnimalSim> {
   return new WindStooperBrain(spec, { ...ports, grounded: () => { ports.feed('Qyran is GROUNDED'); }, cry: at => { ports.sound('eagle_cry', at); } });
+}
+type WindPolicy = Pick<WindStooperBrain<AnimalSim>, 'spawned' | 'tick' | 'think' | 'damage' | 'snapshot' | 'restore' | 'reset' | 'disposeTell'>;
+function directPolicy(ports: QyranPorts<AnimalSim>): WindPolicy {
+  const diver = new DiverBrain<AnimalSim>(null, { pattern: 'wind', spec,
+    ports: { ...ports, grounded: () => { ports.feed('Qyran is GROUNDED'); }, cry: at => { ports.sound('eagle_cry', at); } } });
+  return { spawned: a => { diver.spawnWind(a); }, tick: (a, dt, time, engaged, leashing) => { diver.advanceWind(a, dt, time, engaged, leashing); },
+    think: (actor, c) => { diver.think({ pattern: 'wind', actor, player: c.player }); }, damage: (a, point) => diver.windDamage(a, point),
+    snapshot: () => diver.windSnapshot(), restore: value => { diver.restore(value); }, reset: () => { diver.resetWind(); }, disposeTell: () => { diver.disposeWindTell(); } };
 }
 function fixture() {
   const variant = EAGLE_SPECIES.variants.find(row => row.id === 'qyran');
@@ -58,17 +67,19 @@ it('matches the shipping orbit, tells, hit/miss stoops and phase-two cooldown wi
   const frozen = readFileSync('test/fixtures/nalati-qyran-oracle/shipping.ts', 'utf8');
   for (const [name, body] of Object.entries(bodies)) expect(frozen.split(`// BEGIN SHIPPING ${name}\n`)[1]?.split(`\n// END SHIPPING ${name}`)[0]).toBe(body);
   expect(createHash('sha256').update(readFileSync('test/fixtures/nalati-qyran-oracle/shipping.json')).digest('hex')).toBe(source.sha256);
-  const a = fixture(), b = fixture(), keeper = policy(a.ports), old = new QyranOracle(b.ports, b.actor);
-  a.actor.place(26, 0, 0); keeper.spawned(a.actor); old.spawn();
+  const a = fixture(), b = fixture(), c = fixture(), keeper = policy(a.ports), old = new QyranOracle(b.ports, b.actor), direct = directPolicy(c.ports);
+  const hashes = [createHash('sha256'), createHash('sha256'), createHash('sha256')];
+  direct.tick(null, 1 / 60, 0, true, false); expect(c.events).toEqual([]); expect(c.rng.snapshot()).toEqual(a.rng.snapshot());
+  a.actor.place(26, 0, 0); keeper.spawned(a.actor); old.spawn(); c.actor.place(26, 0, 0); direct.spawned(c.actor);
   const states = new Set<string>(), outputs = new Set<string>(), damage = new Set<number>();
   let time = 0, dives = 0, previous = 'soar';
   for (let tick = 0; tick < 2400; tick++) {
     const dt = tick % 7 === 0 ? 1 / 30 : 1 / 60; time += dt;
-    if (tick === 1100) { a.phase(true); b.phase(true); }
+    if (tick === 1100) { a.phase(true); b.phase(true); c.phase(true); }
     const state = keeper.snapshot().st;
     if (state === 'stoop' && previous !== 'stoop') dives++;
     previous = state;
-    for (const f of [a, b]) {
+    for (const f of [a, b, c]) {
       // Dodge every second stoop after its target is fixed; other stoops reach the real hurt/knock path.
       const dodge = dives > 0 && dives % 2 === 0 && state === 'stoop';
       f.player.position.set(dodge ? -30 : 0, 0, dodge ? 30 : 0);
@@ -76,23 +87,33 @@ it('matches the shipping orbit, tells, hit/miss stoops and phase-two cooldown wi
     }
     keeper.tick(a.actor, dt, time, tick < 2100, tick >= 2100); old.tick(dt, time, tick < 2100, tick >= 2100);
     keeper.think(a.actor, { player: a.player.position }); old.think(b.actor, { player: b.player.position });
-    a.actor.step(dt); b.actor.step(dt);
+    direct.tick(c.actor, dt, time, tick < 2100, tick >= 2100); direct.think(c.actor, { player: c.player.position });
+    a.actor.step(dt); b.actor.step(dt); c.actor.step(dt);
+    const frames = [[keeper.snapshot(), a.actor.snapshot(), a.rng.snapshot(), a.events],
+      [old.snapshot(), b.actor.snapshot(), b.rng.snapshot(), b.events], [direct.snapshot(), c.actor.snapshot(), c.rng.snapshot(), c.events]];
+    for (const [index, frame] of frames.entries()) { const hash = hashes[index]; if (hash === undefined) throw new Error('Missing trace hash'); hash.update(JSON.stringify(frame)); }
+    expect(frames[2]).toEqual(frames[0]);
     states.add(keeper.snapshot().st);
     for (const event of a.events) { if (typeof event[0] === 'string') outputs.add(`${event[0]}:${String(event[1])}`); }
-    expect(a.events).toEqual(b.events); a.events.length = 0; b.events.length = 0;
+    expect(a.events).toEqual(b.events); a.events.length = 0; b.events.length = 0; c.events.length = 0;
     if (tick % 20 === 0) {
       expect(keeper.snapshot()).toEqual(old.snapshot()); expect(a.actor.snapshot()).toEqual(b.actor.snapshot()); expect(a.rng.snapshot()).toEqual(b.rng.snapshot());
       const head = a.actor.headWorld(new Vector3()), flank = new Vector3(a.actor.position.x + 5, a.actor.position.y, a.actor.position.z);
-      for (const point of [head, flank]) { damage.add(keeper.damage(a.actor, point)); expect(keeper.damage(a.actor, point)).toBe(old.damage(b.actor, point)); }
+      for (const point of [head, flank]) {
+        damage.add(keeper.damage(a.actor, point));
+        expect(keeper.damage(a.actor, point)).toBe(old.damage(b.actor, point));
+        expect(direct.damage(c.actor, point)).toBe(old.damage(b.actor, point));
+      }
     }
   }
   expect(states).toEqual(new Set(['soar', 'tell', 'stoop', 'climb', 'ground']));
   expect(outputs.has('hurt:30')).toBe(true); expect(outputs.has('feed:Qyran is GROUNDED')).toBe(true);
   expect(damage).toEqual(new Set([1, 2.5]));
+  const digests = hashes.map(hash => hash.digest('hex')); expect(new Set(digests).size).toBe(1);
 });
 
-it('restores the fixed stoop target, orbit and cooldown without draws and refuses malformed state before mutation', () => {
-  const a = fixture(), b = fixture(), keeper = policy(a.ports), restored = policy(b.ports);
+it.each([policy, directPolicy])('restores the fixed stoop target, orbit and cooldown without draws and refuses malformed state before mutation (%#)', build => {
+  const a = fixture(), b = fixture(), keeper = build(a.ports), restored = build(b.ports);
   a.actor.place(26, 0, 0); keeper.spawned(a.actor);
   let tick = 0;
   while (keeper.snapshot().st !== 'stoop' && tick < 700) { keeper.tick(a.actor, 1 / 60, tick / 60, true, false); a.actor.step(1 / 60); tick++; }
