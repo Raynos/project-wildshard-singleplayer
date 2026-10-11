@@ -43,6 +43,16 @@ it('still detects missed vsyncs in the drawn-frame timestamps', async () => {
   expect(Math.round(result.medianFps)).toBe(30);
 });
 
+it('accepts Simulator cap jitter through 35 ms without forgiving missed vsyncs', async () => {
+  const end = source.indexOf('function grade(record)');
+  const start = source.indexOf('function assess(result, surfaceName)');
+  const assess = runInNewContext(`(${source.slice(start, end).trim()})`) as (sample: object, surface: string) => { pass: boolean; limitMs: number };
+  const result = await measure(1000 / 30);
+  expect(assess({ ...result, p95Ms: 35 }, 'sim')).toMatchObject({ pass: true, limitMs: 35 });
+  expect(assess({ ...result, p95Ms: 35.001 }, 'sim').pass).toBe(false);
+  expect(assess(result, 'desktop').pass).toBe(false);
+});
+
 it('gates per-owner CPU even when the frame cadence passes, and refuses missing measurements', async () => {
   const end = source.indexOf('function grade(record)');
   const start = source.indexOf('function assess(result, surfaceName)');
