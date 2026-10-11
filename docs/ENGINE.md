@@ -716,7 +716,7 @@ returns a yield callback accepting `(done?, total?, detail?)`, so builders repor
 completed authored work units before the budget check without changing yield timing.
 
 In play (a grid cell built on the road while the engine loop draws frames) the same builders can pace themselves to the
-frame floor (op-hitch26), behind the default-off Developer tool `buildPacing` (Settings ▸ Developer ▸ Performance):
+frame floor (op-hitch26), with `buildPacing` defaulting on after its quiet frame-floor proof. The existing Developer tool (Settings ▸ Developer ▸ Performance) can switch it off:
 `@wildshard/engine/core/framePacing` learns each drawn frame from `Game`'s loop, `presenting()` is true while it keeps
 drawing (and the tool is on), and `slicer()` then caps its stretches at `WORK_SLICE_MS`. `macrotask()`, `slicer()` and a
 `workSlice()` yield all go through `paceYield`: when a frame is due they wait until the loop has drawn it (rAF, then a
@@ -822,8 +822,8 @@ under `ms`, the next one's cost predicted before it starts from its decoded size
 byte-weighted rate measured so far, so a large image still uploads alone and one native upload can overshoot by itself
 only. Without isolation (desktop) the same budget replaces the 12 ms check made after each upload, so a slice never
 starts an upload it cannot fit. Compressed textures keep their fenced path. `Game` passes `LIVE_UPLOAD_BUDGET` (8 ms, 8 MiB; isolated) or `SLICED_UPLOAD_BUDGET`
-(10 ms, 64 MiB) only when the Developer tool `buildPacing` is `uploads` (pacing on as well); default off until a quiet
-floor backs it.
+(10 ms, 64 MiB) only when the Developer tool `buildPacing` is `uploads` (pacing on as well). Upload budgeting remains
+opt-in; the default `on` mode enables frame pacing alone.
 
 cannot release the next preparation batch. Scope retirement or an obsolete owner rejects and clears its scheduling
 handles. It never advances simulation or forces a draw. Initial boot (no completed draw yet) and desktop keep the

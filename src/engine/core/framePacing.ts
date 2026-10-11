@@ -8,9 +8,10 @@
  * tasks back to back before its rendering update (measured on Nine Dragon's cell entry, op-hitch23 / op-hitch26).
  *
  * Not presenting (the loading screen, a frozen title, Node bakers and tests): nothing changes, every yield is the caller's
- * own macrotask and `presenting()` is false, so a loader keeps its own budgets. The whole pacing sits behind the default-off
- * Developer tool `buildPacing` (pause ▸ Settings ▸ Developer ▸ Performance): off, `presenting()` is always false and every
- * caller runs exactly as it did before (SF63: it ships on only once a quiet frame floor backs it).
+ * own macrotask and `presenting()` is false, so a loader keeps its own budgets. Quiet frame floors back pacing on by default.
+ * The Developer tool `buildPacing` (pause ▸ Settings ▸ Developer ▸ Performance) can switch it off: `presenting()` is then
+ * always false and every caller runs exactly as it did before. `Game` wires the page's setting; importing this module alone
+ * does not enable pacing.
  */
 import type { Scope } from '../app/scope';
 import { resourceScope } from '../app/resources';

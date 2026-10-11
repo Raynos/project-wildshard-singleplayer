@@ -17,7 +17,7 @@ describe('framePacing', () => {
     expect(presenting(last + 300)).toBe(false);
     expect(frameDue(last + 300)).toBe(false);
   });
-  it('is never presenting with the buildPacing tool off (the shipped default): every yield is the caller\'s own', () => {
+  it('is never presenting with the buildPacing tool off: every yield is the caller\'s own', () => {
     setFramePacing(false);
     const t = 2_000_000;
     for (let i = 0; i <= 10; i++) noteFrameDrawn(t + i * 1000 / 60);

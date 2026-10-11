@@ -11,6 +11,28 @@ const STORE = 'settings';
 function fresh(): Promise<Settings> { return Promise.resolve(createSettings(saveStorage('global'))); }
 
 describe('Settings', () => {
+  it.each([false, true])('defaults build pacing ON in Developer mode %s', enabled => {
+    const s = createSettings(saveStorage('global'), () => '', { enabled: () => enabled });
+    expect(s.setting('buildPacing')).toBe('on');
+    expect(s.savedSetting('buildPacing')).toBe('on');
+  });
+  it('keeps the Developer pacing off switch without disabling public pacing or rewriting the pick', () => {
+    fixtures.setItem(STORE, JSON.stringify({ buildPacing: 'off' }));
+    let enabled = true;
+    const changed = new Set<() => void>();
+    const s = createSettings(saveStorage('global'), () => '', { enabled: () => enabled,
+      on: fn => { changed.add(fn); return () => { changed.delete(fn); }; } });
+    const seen: string[] = [], off = s.onSettingChange('buildPacing', value => { seen.push(value); });
+    expect(s.setting('buildPacing')).toBe('off');
+    enabled = false; for (const fn of changed) fn();
+    expect(s.setting('buildPacing')).toBe('on');
+    expect(s.savedSetting('buildPacing')).toBe('off');
+    enabled = true; for (const fn of changed) fn();
+    expect(s.setting('buildPacing')).toBe('off');
+    expect(seen).toEqual(['on', 'off']);
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ buildPacing: 'off' });
+    off(); expect(changed.size).toBe(0);
+  });
   it.each([false, true])('defaults Memory saver OFF whatever the Developer mode (%s) (G271)', (enabled) => {
     const mode = { enabled: () => enabled };
     const s = createSettings(saveStorage('global'), () => '', mode);
