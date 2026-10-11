@@ -59,6 +59,7 @@ import { scriptDisabledNotice, type ScriptNoticePorts } from '../shardfile/scrip
 import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../plugin/simulation';
 import { withCopyLayout } from './copyLayout';
 import type { CollisionStrip } from './collisionStrips';
+import type { LocalSaveInstance } from '../instanceSaves';
 import { loadNavmesh } from '@wildshard/engine/physics/navmeshLoad';
 import { enteredRuntime, pickInFrame } from './enteredInteract';
 import { copyPrompts, enteredCopy } from './copyPrompts';
@@ -443,16 +444,17 @@ export class LiveGridSession {
   }
 
   /** Capture before reset; run only after success, without flushing old state into the reset save. */
-  prepareNewGameRecovery(): () => void {
+  prepareNewGameRecovery(target?: LocalSaveInstance): () => void {
     if (!this.checkpoint()) throw new Error('New game requires a durable current checkpoint');
     const road = this.recoveryRoad();
     const current = this.live.current();
     const home = current === null ? this.ports.home : this.ports.assembly.cell(current);
+    const recovery = gridRecovery(this.page.saves);
+    if (!recovery.prepareReset(this.ports.assembly, home, road, target ?? { id: home.instance, shard: home.slug })) throw new Error('New game recovery road is not durable');
     return () => {
       this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
       this.homeSim?.suppressCheckpoint?.();
-      const recovery = gridRecovery(this.page.saves);
-      if (recovery.save(this.ports.assembly, home, road, { kind: 'road' })) recovery.write(this.ports.assembly, home, road, 'new-game');
+      recovery.completeReset(this.ports.assembly);
     };
   }
 

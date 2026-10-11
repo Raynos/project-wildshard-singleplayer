@@ -90,7 +90,7 @@ export interface SavesSettingsOptions {
   /** true when other instances may be live on this page (the grid's residents): every applied reset reloads */
   grid: boolean;
   /** Capture location before resetting; returned callback runs only after success, before reload. */
-  beforeReset?: () => (() => void);
+  beforeReset?: (instance: LocalSaveInstance) => (() => void);
   scope: Scope;
 }
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text = ''): HTMLElementTagNameMap[K] => {
@@ -128,7 +128,7 @@ function openSheet(card: SaveCardSpec, live: boolean, opts: SavesSettingsOptions
     confirm.disabled = true;
     // a refusal leaves the disk and every live binding as they were: keep playing
     let afterReset: (() => void) | undefined;
-    try { afterReset = opts.beforeReset?.(); }
+    try { afterReset = opts.beforeReset?.(card.instance); }
     catch { status.textContent = SAVES_STRINGS.refused; status.hidden = false; confirm.disabled = false; return; }
     if (!reset(card.instance)) { status.textContent = SAVES_STRINGS.refused; status.hidden = false; confirm.disabled = false; return; }
     if (live || opts.grid) { afterReset?.(); markReload('new game', 'new-game'); location.reload(); return; } // the live bindings rebind from the reset save

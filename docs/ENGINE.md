@@ -899,6 +899,11 @@ interface SaveSlot<T> { peek(ns?): T | null; read(ns?): T; write(value: T, ns?):
 - `SaveStore.persist()` / `persistHomeScreen()` ask the browser to keep the data. `exportAll`, `importAll`
   (`ImportReport`) and `CorruptSave` back Settings ▸ Save.
 
+`SaveStore.inspectShardGeneration(identity)` reads the validated reset generation without importing legacy keys.
+Grid New-game recovery records that generation before resetting; a replaced process completes the captured road
+receipt only after the target namespace proves exactly one durable generation advance. Failed, declined, expired
+or superseded resets cannot initiate that recovery.
+
 The template's one shard key:
 
 ```ts

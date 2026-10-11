@@ -57,7 +57,7 @@ it.each(['gpu', 'background', 'new-game'] as const)('recovers %s at the durable 
   gridHomeSim.offer({ residency, checkpoint: saver.checkpoint, suppressCheckpoint: suppress,
     setActive: () => undefined, disposed: () => scope.disposed });
   try {
-    durable = false; expect(session.prepareRecovery('gpu')).toBe(false); expect(record.consume(assembly)).toEqual({ kind: 'none' });
+    durable = false; expect(session.prepareRecovery('gpu')).toBe(false); expect(record.completeReset(assembly)).toBe(false);
     expect(() => session.prepareNewGameRecovery()).toThrow('durable current checkpoint');
     durable = true;
     traveller.position.set(21, 3, -17);
@@ -78,10 +78,10 @@ it.each(['gpu', 'background', 'new-game'] as const)('recovers %s at the durable 
     if (reason !== 'new-game') {
       expect(session.prepareRecovery(reason)).toBe(true);
       expect(record.consume(assembly)).toMatchObject({ kind: 'resume', record: { road, reason } });
-      expect(record.consume(assembly)).toEqual({ kind: 'none' });
+      expect(record.completeReset(assembly)).toBe(false);
     } else {
       const afterReset = session.prepareNewGameRecovery();
-      expect(record.consume(assembly)).toEqual({ kind: 'none' });
+      expect(record.completeReset(assembly)).toBe(false);
       expect(resetNewGame(store, identity).applied).toBe(true);
       afterReset();
       expect(record.consume(assembly)).toMatchObject({ kind: 'resume', record: { road, reason: 'new-game' } });

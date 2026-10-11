@@ -74,3 +74,39 @@ it('requires durable location and loop-marker writes and refuses cross-instance 
   local.reject = '';
   expect(gridRecovery(new SaveStore({ local, session: null }), () => 110).consume(assembly)).toEqual({ kind: 'none' });
 });
+
+it.each([home, copy])('a kill immediately after resetting $instance completes only the proven generation on the captured road', target => {
+  const local = new MemoryStorage(), store = new SaveStore({ local, session: null });
+  const record = gridRecovery(store, () => 100);
+  expect(record.save(assembly, copy, road, location)).toBe(true);
+  expect(record.prepareReset(assembly, copy, road, { id: target.instance, shard: target.slug })).toBe(true);
+  expect(store.inspectShardGeneration({ id: target.instance })).toBe(0);
+  expect(record.completeReset(assembly)).toBe(false); // No success, no intent, no premature recovery.
+  expect(resetNewGame(store, { id: target.instance, shard: target.slug }).applied).toBe(true);
+  expect(store.inspectShardGeneration({ id: target.instance })).toBe(1);
+  // No afterReset callback or sessionStorage survives the atomic reset.
+  const nextStore = new SaveStore({ local, session: null }), next = gridRecovery(nextStore, () => 110);
+  expect(next.consume(assembly)).toMatchObject({ kind: 'resume', record: { instance: copy.instance, reason: 'new-game', road, saved: { location: { kind: 'road' } } } });
+  expect(next.consume(assembly)).toEqual({ kind: 'none' });
+  expect(nextStore.inspectShardGeneration({ id: target.instance })).toBe(1);
+});
+
+it('declined, failed, expired and later-generation resets never activate the pending road receipt', () => {
+  for (const mode of ['declined', 'quota', 'expired', 'second-generation'] as const) {
+    class Quota extends MemoryStorage {
+      refused = false;
+      override setItem(key: string, value: string): void { if (this.refused) throw new Error('Quota'); super.setItem(key, value); }
+    }
+    const local = new Quota(), store = new SaveStore({ local, session: null }), record = gridRecovery(store, () => 100);
+    record.save(assembly, copy, road, location);
+    record.prepareReset(assembly, copy, road, { id: copy.instance, shard: copy.slug });
+    if (mode !== 'declined') {
+      local.refused = mode === 'quota';
+      expect(resetNewGame(store, { id: copy.instance, shard: copy.slug }).applied).toBe(mode !== 'quota');
+      local.refused = false;
+      if (mode === 'second-generation') resetNewGame(store, { id: copy.instance, shard: copy.slug });
+    }
+    const next = gridRecovery(new SaveStore({ local, session: null }), () => mode === 'expired' ? 60_101 : 110);
+    expect(next.consume(assembly)).toEqual({ kind: 'none' });
+  }
+});

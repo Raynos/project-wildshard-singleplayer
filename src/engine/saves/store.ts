@@ -275,6 +275,16 @@ export class SaveStore {
     const legacy = identity.legacy === undefined || identity.legacy === identity.id || current.reset !== undefined ? {} : inspect(identity.legacy).keys;
     return clone({ ...legacy, ...current.keys });
   }
+  /** Read only the namespace's validated reset generation; no state is repaired, migrated or exposed. */
+  inspectShardGeneration(identity: SaveInstance): number {
+    const name = this.name('shard', identity.id);
+    this.initialize();
+    const raw = this.get('shard', name);
+    if (raw === null) return 0;
+    const parsed: unknown = JSON.parse(raw);
+    if (!doc(parsed)) throw new Error('Invalid shard save document');
+    return parsed.reset ?? 0;
+  }
   /** Atomically reset one namespace, retaining explicit entries and preventing stale bindings or legacy imports from reviving it. False leaves the prior save intact. */
   resetShard(identity: SaveInstance, keptKeys: readonly string[] = []): boolean {
     const entries = this.inspectShard(identity), name = this.name('shard', identity.id);

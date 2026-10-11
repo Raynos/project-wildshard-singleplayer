@@ -198,8 +198,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // pause ▸ Settings ▸ SAVES (SF33b, G83): a card per shard save, NEW GAME's before → after sheet; HERE is the grid cell you stand in, else this shard's copy
   const homeInstance = ((): string => { try { return firstPartyInstance(manifest.slug); } catch { return manifest.slug; } })();
   installSavesSettings(menu, { scope: game.levelScope, grid: grid !== null,
-    ...(gridLive === null ? {} : { beforeReset: () => {
-      const commit = gridLive.prepareNewGameRecovery();
+    ...(gridLive === null ? {} : { beforeReset: (instance) => {
+      const commit = gridLive.prepareNewGameRecovery(instance);
       return () => { commit(); game.hold = true; };
     } }),
     here: () => { const cell = gridCells.cell; return grid === null ? { id: homeInstance, shard: manifest.slug } : cell === null ? null : { id: cell.instance, shard: cell.slug }; } });

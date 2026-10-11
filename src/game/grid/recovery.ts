@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import type { SaveKeyDef, SaveStore } from '@wildshard/engine/saves/store';
 import type { GridAssembly } from './assembly';
 import { onRoad, type RoadPoint } from './roadRecovery';
-import { instanceSave } from '../instanceSaves';
+import { instanceSave, instanceSaveIdentity, type LocalSaveInstance } from '../instanceSaves';
 
 const finite = v.pipe(v.number(), v.finite());
 const identity = v.pipe(v.string(), v.regex(/^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u));
@@ -19,6 +19,10 @@ const lastDefinition = { key: 'grid.last-played', scope: 'device' as const, vers
 const localDefinition = { ...lastDefinition, key: 'platform.grid-position', scope: 'shard' as const };
 const guardDefinition = { key: 'grid.recovery.guard', scope: 'device' as const, version: 1,
   schema: v.nullable(v.strictObject({ at: finite })), initial: () => null };
+const resetDefinition = { key: 'grid.reset.pending', scope: 'device' as const, version: 1,
+  schema: v.nullable(v.strictObject({ instance: identity, slug: identity, catalogue: v.pipe(v.string(), v.maxLength(4096)),
+    at: finite, road: roadSchema, target: v.strictObject({ id: identity, shard: identity }),
+    generation: v.pipe(v.number(), v.safeInteger(), v.minValue(0)) })), initial: () => null };
 const schema = v.nullable(v.strictObject({ instance: identity, slug: identity,
   catalogue: v.pipe(v.string(), v.maxLength(4096)), at: finite,
   reason: v.picklist(['gpu', 'background', 'new-game', 'reload']),
@@ -40,16 +44,22 @@ export function recoveryCatalogue(assembly: GridAssembly): string {
 /** Renderer-free consumption result; malformed, expired or unsafe recovery chooses a fresh safe road start. */
 export type GridRecoveryRead = { readonly kind: 'none' | 'fallback' | 'refused' | 'loop' } | { readonly kind: 'resume'; readonly record: NonNullable<GridRecoveryRecord> };
 
-/** Recovery-only metadata is mirrored for a replaced WebContent process and consumed before any boot allocation. */
-export function gridRecovery(store: SaveStore, now: () => number = Date.now): {
+/** Renderer-free persistence ports; locations and pending resets are never crossing reloads. */
+export interface GridRecoveryService {
   write: (assembly: GridAssembly, home: { instance: string; slug: string }, road: RoadPoint, reason: GridRecoveryReason) => boolean;
   /** Call only after every continuation/ledger writer succeeds. The instance slot fences New-game generations. */
   save: (assembly: GridAssembly, home: { instance: string; slug: string }, road: RoadPoint, location: GridSavedLocation) => boolean;
   clearLoop: () => boolean;
+  /** A pending reset never boots until the target namespace proves its atomic generation advance. */
+  prepareReset: (assembly: GridAssembly, current: { instance: string; slug: string }, road: RoadPoint, target: LocalSaveInstance) => boolean;
+  completeReset: (assembly: GridAssembly) => boolean;
   consume: (assembly: GridAssembly, unexpected?: boolean) => GridRecoveryRead;
-} {
+}
+/** Recovery-only metadata is mirrored for a replaced WebContent process and consumed before any boot allocation. */
+export function gridRecovery(store: SaveStore, now: () => number = Date.now): GridRecoveryService {
   const session = store.define(definition), device = store.define(backup);
   const last = store.define(lastDefinition), guard = store.define(guardDefinition);
+  const pendingReset = store.define(resetDefinition);
   const valid = (record: GridRecoveryRecord, assembly: GridAssembly): record is NonNullable<GridRecoveryRecord> => record !== null
     && now() - record.at >= 0 && now() - record.at <= MAX_AGE_MS
     && record.catalogue === recoveryCatalogue(assembly)
@@ -65,7 +75,7 @@ export function gridRecovery(store: SaveStore, now: () => number = Date.now): {
     const local = instanceSave(store, localDefinition, { id: saved.instance, shard: saved.slug });
     return JSON.stringify(local.peek()) === JSON.stringify(saved);
   };
-  return {
+  const service: GridRecoveryService = {
     save: (assembly, home, road, location) => {
       const saved = v.parse(savedSchema, { instance: home.instance, slug: home.slug, road: { ...road }, location, catalogue: recoveryCatalogue(assembly), at: now() });
       const cell = assembly.cells.find(row => row.instance === home.instance && [home.slug].includes(row.slug));
@@ -78,6 +88,21 @@ export function gridRecovery(store: SaveStore, now: () => number = Date.now): {
       return local.write(saved) && last.write(saved);
     },
     clearLoop: () => guard.write(null),
+    prepareReset: (assembly: GridAssembly, current: { instance: string; slug: string }, road: RoadPoint, target: LocalSaveInstance) => {
+      if (!assembly.cells.some(cell => cell.instance === current.instance && [current.slug].includes(cell.slug)) || !onRoad(assembly, road.x, road.z)
+        || !assembly.cells.some(cell => cell.instance === target.id && [target.shard].includes(cell.slug))) throw new Error('Reset recovery requires catalogue instances and a safe road');
+      return pendingReset.write({ instance: current.instance, slug: current.slug, road: { ...road }, target: { ...target },
+        catalogue: recoveryCatalogue(assembly), at: now(), generation: store.inspectShardGeneration(instanceSaveIdentity(target)) });
+    },
+    completeReset: (assembly) => {
+    const pending = pendingReset.peek();
+    if (pending === null || now() - pending.at < 0 || now() - pending.at > MAX_AGE_MS || pending.catalogue !== recoveryCatalogue(assembly)) return false;
+    if (store.inspectShardGeneration(instanceSaveIdentity(pending.target)) !== pending.generation + 1) return false;
+    const selected = assembly.cells.find(cell => cell.instance === pending.instance && [pending.slug].includes(cell.slug));
+    if (selected === undefined || !onRoad(assembly, pending.road.x, pending.road.z)) return false;
+    if (!service.save(assembly, selected, pending.road, { kind: 'road' }) || !service.write(assembly, selected, pending.road, 'new-game')) return false;
+    return pendingReset.write(null);
+    },
     write: (assembly, home, road, reason) => {
       const saved = last.peek();
       const selected = saved !== null && validSaved(saved, assembly) ? saved : undefined;
@@ -90,6 +115,11 @@ export function gridRecovery(store: SaveStore, now: () => number = Date.now): {
       return inSession || onDevice;
     },
     consume: (assembly, unexpected = false) => {
+      if (pendingReset.status?.() === 'future') return { kind: 'refused' as const };
+      // The process can die between resetShard's atomic write and its success callback. Only an exact durable
+      // generation advance completes that road receipt; a declined/failed reset remains an ordinary title boot.
+      const pending = pendingReset.peek();
+      if (pending !== null && !service.completeReset(assembly) && !pendingReset.write(null)) return { kind: 'refused' as const };
       const statuses = [session.status?.(), device.status?.()];
       const records = [session.peek(), device.peek()];
       // Unknown future records remain untouched and cannot initiate a boot in an older client.
@@ -106,4 +136,5 @@ export function gridRecovery(store: SaveStore, now: () => number = Date.now): {
       return { kind: records.some(value => value !== null) || statuses.some(status => status === 'invalid') ? 'fallback' : 'none' };
     },
   };
+  return service;
 }
