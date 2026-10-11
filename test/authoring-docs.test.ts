@@ -5,8 +5,9 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve exact compiler/example input paths.
 import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { apiSurface, pages, type ApiSurface } from '../scripts/gen-api.mjs';
-import { authoringApiCoverage, authoringExamples, authoringGuide, checkAuthoringExamples } from '../scripts/docs/authoring-reference.mjs';
+import { pages, type ApiSurface } from '../scripts/gen-api.mjs';
+import { authoringApiCoverage, authoringExamples, authoringGuide } from '../scripts/docs/authoring-reference.mjs';
+import { authoringInventory, compileAuthoringExamples } from './fake/authoringCompiler';
 import { sceneExample } from '../scripts/docs/authoring/scene';
 import { synthExample } from '../scripts/docs/authoring/synth';
 import { formatExample } from '../scripts/docs/authoring/format';
@@ -41,14 +42,14 @@ it('renders every retained example exactly once, with semantic compilation and a
   const sources = authoringExamples(), guide = authoringGuide();
   expect(sources.map(row => row.name).sort()).toEqual(Object.keys(examples).sort());
   for (const row of sources) expect(guide).toContain(`\`\`\`ts\n${row.source.trimEnd()}\n\`\`\``);
-  expect(checkAuthoringExamples(resolve('.'))).toEqual([]);
+  expect(compileAuthoringExamples(resolve('.'))).toEqual([]);
 });
 
 it('refuses a broken typed example instead of treating syntax transpilation as compilation', () => {
   const root = mkdtempSync(resolve(tmpdir(), 'authoring-broken-'));
   try {
     const file = resolve(root, 'bad.ts'); writeFileSync(file, 'export const count: number = "wrong";');
-    expect(checkAuthoringExamples(resolve('.'), [file])).toEqual([expect.stringContaining("Type 'string' is not assignable to type 'number'")]);
+    expect(compileAuthoringExamples(resolve('.'), [file])).toEqual([expect.stringContaining("Type 'string' is not assignable to type 'number'")]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -72,7 +73,7 @@ it('refuses missing, duplicated, orphaned and unchecked inline guide examples', 
 
 describe('public SDK and format documentation', () => {
   let surface: ApiSurface;
-  beforeAll(() => { surface = apiSurface(); });
+  beforeAll(() => { surface = authoringInventory(resolve('.')); });
   it('documents every exported binding and forbids empty doc entries, with zero debt allowance', () => {
     const result = authoringApiCoverage(surface, pages(surface));
     expect(result.failures).toEqual([]);

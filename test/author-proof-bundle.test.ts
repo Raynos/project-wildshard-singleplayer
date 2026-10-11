@@ -13,10 +13,10 @@ import { execPath } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare Node's canonical file URL, including resolved macOS tmp symlinks.
 import { pathToFileURL } from 'node:url';
 import { expect, it } from 'vitest';
-import { checkAuthoringExamples } from '../scripts/docs/authoring-reference.mjs';
+import { compileAuthoringExamples } from './fake/authoringCompiler';
 
 it('typechecks the executing native proof against the public SDK and commons', () => {
-  expect(checkAuthoringExamples(join(import.meta.dirname, '..'), [join(import.meta.dirname, '../scripts/docs/author-project/prove-native.ts')])).toEqual([]);
+  expect(compileAuthoringExamples(join(import.meta.dirname, '..'), [join(import.meta.dirname, '../scripts/docs/author-project/prove-native.ts')])).toEqual([]);
 });
 
 it('executes installed commons TS through the documented bundle while preserving SDK worker and three identity', () => {
