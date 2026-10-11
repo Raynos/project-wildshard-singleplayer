@@ -1577,3 +1577,5 @@ checked floor/capsule ownership, camera aim, viewmodel and earned crossing fact.
 continuation remains unchanged. Template 1 anchors and horse presentation are separate graphical examples.
 
 SF85 melee rows: optional `moves.passes.{left,right}` use the same ordered swing bounds. Optional `mounted` declares reach, cooldown, sense, chainWindow, chainStep, chainMax (at least one), positive speedDivisor and signed behind distance. Existing rows omit both unchanged.
+
+Trusted custom weapon families use `registerWeaponFamily` from `@wildshard/game/plugin/weaponFamily` with a session-local registry supplied to the existing runtime item binder. Signal lash and Sky fan keep their original declared family ids, trusted constructors and native owners. Registration validates the id, refuses reserved or duplicate names, and performs no construction; namespace admission still precedes allocation. This defining plugin also owns the optional AssemblyScript weapon hook installer; there is no SDK runtime facade.

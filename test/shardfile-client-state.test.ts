@@ -9,7 +9,7 @@ import type { DebugRowSpec } from '../src/engine/level/context';
 import { instanceSave } from '../src/game/instanceSaves';
 import { installDeclaredPlumbing } from '../src/game/shard/declaredPlumbing';
 import { installDeclaredItems } from '../src/game/shardfile/items';
-import { declaredKitItemFamilies } from '../src/game/plugin/weaponHooks';
+import { declaredKitItemFamilies } from '../src/game/plugin/weaponFamily';
 import { createShardfileSim } from '../src/game/plugin/simulation';
 import { syncTargetColliders } from '../src/game/shardfile/targets';
 import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientStateFromRegion } from '../src/game/shardfile/clientState';

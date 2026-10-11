@@ -14,7 +14,7 @@ import { GridSimulation } from '../src/game/grid/simulation';
 import { installGridCrossing } from '../src/game/grid/crossing';
 import { GridWallet, installGridLoadout, type GridLoadout } from '../src/game/grid/wallet';
 import { installDeclaredItems } from '../src/game/shardfile/items';
-import { declaredKitItemFamilies } from '../src/game/plugin/weaponHooks';
+import { declaredKitItemFamilies } from '../src/game/plugin/weaponFamily';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { MemoryStorage } from './setup';
 import itemSource from './fixtures/shardfile/items/template.json';

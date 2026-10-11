@@ -1,4 +1,4 @@
-import { installWeaponHooks, type WeaponHookLane } from '@wildshard/sdk/weaponHooks';
+import { installWeaponHooks, type WeaponHookLane } from '@wildshard/game/plugin/weaponFamily';
 import declaration from '../behaviour/weapons.json' with { type: 'json' };
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
 import { MountedSword } from '../runtime/weapons/mountedSword';

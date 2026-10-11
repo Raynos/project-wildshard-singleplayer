@@ -33,7 +33,6 @@
     "./traversal": "./traversal.ts",
     "./movers": "./movers.ts",
     "./director": "./director.ts",
-    "./weaponHooks": "./weaponHooks.ts",
     "./clientScripts": "./clientScripts.ts",
     "./migrations": "./migrations.ts",
     "./brains": "./brains.ts",

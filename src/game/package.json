@@ -93,7 +93,7 @@
     "./plugin/geometry": "./plugin/geometry.ts",
     "./plugin/quests": "./plugin/quests.ts",
     "./plugin/prompts": "./plugin/prompts.ts",
-    "./plugin/weaponHooks": "./plugin/weaponHooks.ts",
+    "./plugin/weaponFamily": "./plugin/weaponFamily.ts",
     "./plugin/animation": "./plugin/animation.ts",
     "./plugin/effects": "./plugin/effects.ts",
     "./plugin/product": "./plugin/product.ts",

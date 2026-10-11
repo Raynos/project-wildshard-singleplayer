@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+import { ItemFamilyNameSchema } from '@wildshard/format/items';
 import { Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector3, MathUtils } from "three";
 import { Weapon, type WeaponState, type AimInfo } from "@wildshard/engine/combat/Weapon";
 import { Tool } from "@wildshard/engine/combat/Tool";
@@ -113,6 +115,15 @@ class DeclaredLantern extends Tool {
     keepInFrame(this.model, this.ports.view.position);
   }
 }
+/** Register one trusted weapon family in the caller's session-local registry, without allocating a weapon or installing inputs.
+ * The loader checks the shard namespace and every item before construction. Duplicate and reserved kit names refuse here. */
+export function registerWeaponFamily(registry: Map<string, ItemFamily>, id: string, family: ItemFamily): void {
+  if (!v.is(ItemFamilyNameSchema, id) || !id.includes('.') || id.startsWith('kit.')) throw new Error('A trusted weapon family needs a bounded shard-local id');
+  if (family.kind !== 'weapon') throw new Error('Weapon family registration requires a weapon constructor');
+  if (registry.has(id)) throw new Error(`Duplicate weapon family ${id}`);
+  registry.set(id, family);
+}
+
 /** Explicit built-in item family registry, injected into the full loader; importing does not install content. */
 export function declaredKitItemFamilies(): ReadonlyMap<string, ItemFamily> {
   return new Map<string, ItemFamily>([

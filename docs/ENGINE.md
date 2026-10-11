@@ -42,7 +42,7 @@ for exact SF73-registered frozen callers only. Primaries own Nalati `models/npc/
 kept, and each definition/export is deleted with its last registered legacy consumer. No aliases or frozen edits.
 
 `@wildshard/game/plugin/effects` (`installStarterEffects` and its status-icon row; trusted runtimes use
-`@wildshard/sdk/runtime/effects`), `@wildshard/game/plugin/weaponHooks` (`declaredKitItemFamilies`),
+`@wildshard/sdk/runtime/effects`), `@wildshard/game/plugin/weaponFamily` (`declaredKitItemFamilies`),
 `@wildshard/game/systems/tools/hoverboard` and `@wildshard/game/icons` (with `src/game/icons.merge.d.ts`) moved unchanged
 from the kit, and its weapon compatibility names gave way to the defining `@wildshard/game/weapons/*` and engine
 modules (SF54). That emptied the kit: `@wildshard/kit`, its workspace entry and its guard layer are deleted.
@@ -1997,7 +1997,7 @@ existing transitional runtime facades in `@wildshard/sdk/runtime/*` (deleted und
 | interactables, pickups | `@wildshard/game/models/{interact,pickups}` (`installKitProps`, `installKitPickups`) |
 | effects | `@wildshard/game/systems/effects/{starter,install}` (`STARTER_EFFECTS`, `installStarterEffects`; `@wildshard/sdk/runtime/effects`) |
 | NPCs | `@wildshard/game/systems/npc/{npcRig,figureRig,figureMotion,faceHeads}` |
-| declared items | `@wildshard/game/plugin/weaponHooks` (`declaredKitItemFamilies`: `kit.melee`, `kit.lantern`) |
+| declared items | `@wildshard/game/plugin/weaponFamily` (`declaredKitItemFamilies`: `kit.melee`, `kit.lantern`) |
 | tools | `@wildshard/game/systems/tools/hoverboard` (`Hoverboard`, `HOVERBOARD_TOOL`; all shards; its `board` movement mode stays engine) |
 | viewmodel, looks, audio | `@wildshard/game/systems/{viewmodel,looks,audio}/*` (`@wildshard/sdk/runtime/{viewmodel,audio}/*`) |
 
@@ -2373,14 +2373,14 @@ and ranged-feel metadata. The declaration retains identity, slot, input context,
 name, icon and swap glyph. The override is not author JSON and creates no new
 projectile or script lane. Existing families without it keep their previous row.
 
-`@wildshard/engine/combat/items` owns fixed-step cooldown, held charge, queued command aim and lantern fuel/light state. An admitted hook on the existing shared `ScriptHost` may select only its requested action for its host-bound item handle; configured contacts, damage and effects remain trusted. `@wildshard/game/shardfile/items` validates JSON rows, input contexts, loadout and module references, constructs trusted ownership aliases and resolves injected `ItemFamily` constructors. `installDeclaredItems` returns the normal primary/secondary/extras/order/install handoff plus the authoritative runtime map and fixed-step callback. `@wildshard/game/plugin/weaponHooks` supplies melee and lantern factories with scoped primitive views; the fixture uses the template whip and lantern numbers and a content-addressed 740-byte AssemblyScript module. Toggle/refill use action3/action4; UI reads `remainingFuel` and `lightOn` from the same runtime. The existing template switches at SF16. Bound creature views expose `simulationBound`: the legacy manager skips their decisions, damage, separation and movement-body allocation, while retaining pose/query hitboxes.
+`@wildshard/engine/combat/items` owns fixed-step cooldown, held charge, queued command aim and lantern fuel/light state. An admitted hook on the existing shared `ScriptHost` may select only its requested action for its host-bound item handle; configured contacts, damage and effects remain trusted. `@wildshard/game/shardfile/items` validates JSON rows, input contexts, loadout and module references, constructs trusted ownership aliases and resolves injected `ItemFamily` constructors. `installDeclaredItems` returns the normal primary/secondary/extras/order/install handoff plus the authoritative runtime map and fixed-step callback. `@wildshard/game/plugin/weaponFamily` supplies melee and lantern factories with scoped primitive views; the fixture uses the template whip and lantern numbers and a content-addressed 740-byte AssemblyScript module. Toggle/refill use action3/action4; UI reads `remainingFuel` and `lightOn` from the same runtime. The existing template switches at SF16. Bound creature views expose `simulationBound`: the legacy manager skips their decisions, damage, separation and movement-body allocation, while retaining pose/query hitboxes.
 
 `@wildshard/game/systems/items/lash` provides renderer-free `LashRuntime` for a declared weapon row. `lashSpec` combines its contact, damage and cooldown data with lash timing and move ids. The owner supplies aim, combat targets, world crack targets and the damage pipeline; `cool` and `advance` run on its existing clock. `snapshot` / `restore` retain the unroll and second-lash continuation. The browser keeps its cord and charge view while the headless owner supplies physical contact volumes. `lashVolumeHit`, `lashLane` and `lashContact` share the contact geometry. `@wildshard/game/systems/items/lashHost` `installLashHost(host, { step, row, timing, moves, eye, commands, targets })` is a declared lash weapon in the renderer-free host (SF27): locked on, each lash leaves the player's eye toward the commanded creature's body or a world command's target spot (a target gone keeps the last aim); it takes the first body it meets (head balls and body capsules), else a chest in its lane, else a target row's spot (`LashTargetRow`: an interaction row's act, its spot and radius, and `crack: 'light'` — a crack's first lash — or `'heavy'` — the double crack's second, its first wraps); `cracked()` names the act it reached this tick, which the interaction step's crack rows read. Its continuation is `{ version: 2, …lash, target, world, dir }`. Signal's whip is the first (`data/headless.ts` SIGNAL_HEADLESS.lash, the well's crank and the waymark bowls as its targets).
 
-`@wildshard/game/plugin/weaponHooks` is the weapon families' hook surface (SF36). A family holds
+`@wildshard/game/plugin/weaponFamily` is the weapon families' hook surface (SF36). A family holds
 `hooks: WeaponHooks | null` (null, the default, is its row rule) and asks `hooks.damage({ phase, base, facts })` where it
 computes a number a shard may own; a null answer keeps the row rule, so a hook can never stop a weapon working. The
-mounted sword asks at its pass slash (phase `pass`, facts `speed` and `links`). `@wildshard/game/plugin/weaponHooks`
+mounted sword asks at its pass slash (phase `pass`, facts `speed` and `links`). `@wildshard/game/plugin/weaponFamily`
 validates a shard's declaration (`{ id, entity, module, parameters, weapons: [{ weapon, damage: { event, phases, facts,
 min, max } }] }`), checks the module's SHA-256 and admits it on its own `ScriptHost` under the unchanged ABI-v0 fuel,
 memory, event, query and failure ceilings; `WeaponHookLane.hooks(weaponId)` refuses an undeclared weapon. Each call is its
@@ -2388,7 +2388,7 @@ own script tick with the inputs `[tick, 0, 1 (damage), entity, phase, weapon, ba
 declared event whose integer value lies in `[min, max]`; a trap, a fuel overrun, a stray effect or an out-of-bounds fact
 declines. `parameters` reach the module through the parameter query (410). The module's memory and globals return to their
 admitted snapshot after every call, so a hook is pure and carries no continuation. `installWeaponHooks`
-(`@wildshard/game/plugin/weaponHooksClient`) fetches and admits behind the default-off Developer "Shard directors
+(`@wildshard/game/plugin/weaponFamily`) fetches and admits behind the default-off Developer "Shard directors
 (data)" row and clears the hooks with the level scope. Nalati's sabre is the first: `behaviour/weapons.as`,
 `behaviour/weapons.json` (rebuilt by `node scripts/bake/weapon-hooks.mjs` in a clean export), and
 `test/combat/mounted-sword-parity.test.ts` plays its twenty-second trace identically on the hook.
@@ -2687,7 +2687,7 @@ it follows primary shards' runtime closures to their SDK facade imports and list
 those facades' defining game targets alongside direct game consumers. Context and
 plugin installation use `plugin/context` and `plugin/shardPlugin`; brain policies
 use `plugin/brain`; weapon bindings use `plugin/headless` and
-`plugin/weaponHooks`; boss phases use `plugin/bossPhase`. These existing modules are exported directly, not rebound.
+`plugin/weaponFamily`; boss phases use `plugin/bossPhase`. These existing modules are exported directly, not rebound.
 The inventory is evidence of current reachability, not permission to keep one-user
 systems in the game: SF76 deletes their facades and moves their implementations home.
 
@@ -2697,7 +2697,7 @@ modules, relative bypasses, and computed game module names. Existing layer,
 public-index and sandbox checks remain active. Promote this rule to `error` in the
 root config after the move-backs; its tests already exercise enforcement.
 
-The defining plugin modules also own shared geometry packing (`plugin/geometry`), model and atlas registries (`plugin/geometry`), quest rows (`plugin/quests`), native prompt selection (`plugin/prompts`), weapon hook admission (`plugin/weaponHooks`), collision pose and clip metadata (`plugin/animation`), and starter effect installation (`plugin/effects`). Their implementations live in these modules; consumers do not pass through forwarding facades. Frozen compatibility keys remain until their registered consumers retire.
+The defining plugin modules also own shared geometry packing (`plugin/geometry`), model and atlas registries (`plugin/geometry`), quest rows (`plugin/quests`), native prompt selection (`plugin/prompts`), weapon hook admission (`plugin/weaponFamily`), collision pose and clip metadata (`plugin/animation`), and starter effect installation (`plugin/effects`). Their implementations live in these modules; consumers do not pass through forwarding facades. Frozen compatibility keys remain until their registered consumers retire.
 
 The admitted product API is defined by `plugin/product`: bounded byte parsers, dependency preflight, terrain validation, saved-state lineage, build verdicts, report cards and memory admission. Existing defining hosts own their associated laws: `plugin/brain` resolves numeric species/strike rows; `plugin/director` owns the isolated director lane; `plugin/mover` proves terrain entries and lift approaches; `plugin/shardPlugin` resolves trusted runtime constructors and maps admitted catalogue data. These imports install no service.
 
@@ -2944,7 +2944,7 @@ DS1.1: `@wildshard/format/shardSections` defines root identity, requirements, bu
 
 Starter equipment rows (`SWORD`, `WOODEN_SWORD`, `IRON_SWORD`) and melee profiles
 share the defining `game/weapons/starterMeleeProfile` module. Native simulations
-import those rows without loading the view-bearing `plugin/weaponHooks` module.
+import those rows without loading the view-bearing `plugin/weaponFamily` module.
 The native director lane is defined by `plugin/director`; the retained
 `shardfile/directorClient` module owns Debug selection and page installation.
 Its page entry-choice service is not part of the native lane closure.
@@ -3221,3 +3221,5 @@ existing strict admission resolves each to its legacy preset before selecting
 the original native body adapter. Every tuning field, cadence, perch/floor
 recipe, shared attack stream and contact clock stays unchanged. The unique
 Captain remains its custom recipe; this slice does not claim to port that boss.
+
+SF85 WP-5: `@wildshard/game/plugin/weaponFamily` defines both the built-in held-item families and weapon hooks. `registerWeaponFamily(registry, id, family)` inserts a trusted weapon constructor into a caller-owned session-local `Map`; it never allocates the weapon or installs inputs. Names must be bounded dotted ids outside `kit.*`; duplicates and non-weapon families refuse. The existing item binder checks the shard namespace and all item declarations before construction. Signal and Sky register their own native lash and fan factories; their local controllers, collision laws, cues and continuation owners remain in the shard.

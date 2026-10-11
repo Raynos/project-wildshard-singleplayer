@@ -7,7 +7,7 @@ import type { AimCommand } from '../../src/engine/input/commands';
 import type { ItemRuntime, ItemTarget } from '../../src/engine/combat/items';
 import { installDeclaredItems, type DeclaredItems } from '../../src/game/shardfile/items';
 import { parseItems } from '@wildshard/format/items';
-import { declaredKitItemFamilies } from '../../src/game/plugin/weaponHooks';
+import { declaredKitItemFamilies } from '../../src/game/plugin/weaponFamily';
 import { ITEMS } from '../../src/shards/_template/data/items';
 
 interface TemplateItemFixture {

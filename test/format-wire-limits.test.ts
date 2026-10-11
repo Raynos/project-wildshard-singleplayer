@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { WIRE_CELL, WIRE_TILE_SIZES, CLIENT_SCRIPT_LIMITS as wire, RUNTIME_RESIDENT_FACTOR, WEAPON_HOOK_PHASES as phases } from '@wildshard/format/wireLimits';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF, ENTRY_WIDTH, CONTENT_CAPS } from '@wildshard/engine/core/config';
-import { WEAPON_HOOK_PHASES as nativePhases } from '@wildshard/game/plugin/weaponHooks';
+import { WEAPON_HOOK_PHASES as nativePhases } from '@wildshard/game/plugin/weaponFamily';
 import { CLIENT_SCRIPT_LIMITS as native } from '@wildshard/engine/script/client';
 
 it('keeps the format wire bounds equal to independent engine cell and presentation capacities', () => {

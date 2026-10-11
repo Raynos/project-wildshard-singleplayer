@@ -1,3 +1,4 @@
+import { bindSignalItems } from './runtime/items';
 import { SignalDirector } from './runtime/signalDirector';
 import { standaloneHybridEntry } from './runtime/shard/standaloneEntry';
 import { speciesBrains, type SpeciesBrains } from '@wildshard/sdk/speciesBrains';
@@ -9,7 +10,7 @@ import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { bindRuntimeCoins, bindRuntimeItemContexts, bindRuntimeItems } from '@wildshard/game/shardfile/hybridRows';
+import { bindRuntimeCoins, bindRuntimeItemContexts } from '@wildshard/game/shardfile/hybridRows';
 import { installSilentScore } from '@wildshard/game/systems/audio/silentScore';
 import source from './shard.config';
 import { Vector3 } from 'three';
@@ -24,8 +25,8 @@ import { setDusk, stepDusk } from './look/dusk';
 import { preloadDuneMeshes } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
 import { DUNE_RAY_LOOK } from './species/duneRay';
-import { Bullwhip } from './weapons/Bullwhip';
-import { WHIP_ROW, whipIcon } from './weapons/rows';
+import type { Bullwhip } from './weapons/Bullwhip';
+import { WHIP_ROW } from './weapons/rows';
 import { installQuest } from './quest/install';
 import { FACT, MATRIARCH_FLAG } from './quests/signal';
 import { FLAG, SCOUT_FLAG } from './data/flags';
@@ -102,12 +103,10 @@ export class SignalDunesPlugin extends ShardPlugin {
     const rt = ctx.game.runtime;
     // SF50-p / M3: the whip is its shardfile's declared item row; the platform installs it, resolving this runtime's own family.
     if (rt) rt.buildEquipment = (targets) => {
-      const items = bindRuntimeItems(ctx, source, { icon: whipIcon, families: new Map([['sunscar-dunes.whip', { kind: 'weapon', create: () => {
-        const whip = new Bullwhip(ctx.app, targets); this.whip = whip;
+      const primary = bindSignalItems(ctx, targets, (whip) => {
+        this.whip = whip;
         whip.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(WHIP_ROW, 'heavy'); else rt.play?.cues.fire(WHIP_ROW); };
-        return whip;
-      } }]]) });
-      const primary = items.primary; if (primary === null) throw new Error('Signal Dunes declares its whip as the primary');
+      });
       return Promise.resolve({ primary, secondary: null, rifle: null, install: () => undefined });
     };
   }

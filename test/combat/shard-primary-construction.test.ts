@@ -13,7 +13,7 @@ import { ordinaryShardManifests, primaryShardManifest } from '../../src/game/sha
 import { shards } from '../../src/game/shard/list';
 import { toLevelSpec } from '../../src/game/shard/spec';
 import { installDeclaredItems } from '../../src/game/shardfile/items';
-import { declaredKitItemFamilies } from '../../src/game/plugin/weaponHooks';
+import { declaredKitItemFamilies } from '../../src/game/plugin/weaponFamily';
 import { Sword } from '../../src/game/weapons/Sword';
 import { EmptyEquipment } from '../../src/game/shardfile/emptyEquipment';
 import { SWORD_WOOD, SWORD_IRON } from '../../src/game/weapons/starterMeleeProfile';

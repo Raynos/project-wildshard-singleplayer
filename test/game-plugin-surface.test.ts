@@ -74,7 +74,7 @@ it('keeps every sealed consumer resolved after defining plugin consolidation', (
   expect(frozen.length).toBeGreaterThan(0);
   for (const row of frozen) expect(row.published, row.key).toBe(true);
   for (const key of ["./combat/collisionPose","./systems/species/clips","./systems/looks/shaderFamily","./systems/looks/shaderEdits","./systems/kit/geometryPack","./systems/looks/modelLibrary","./systems/looks/canvasAtlas","./systems/kit/bakedGeometry","./systems/kit/mergedPrimitives","./shardfile/weaponHooks","./shardfile/weaponHooksClient","./shardfile/speciesBrains","./shardfile/speciesScripts","./shardfile/eliteScripts","./systems/effects/starter","./systems/effects/install","./systems/items/weaponHooks","./quest/npcRow","./quest/questGraph","./quest/headlessPrompts"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
-  for (const key of ['geometry', 'simulation', 'quests', 'prompts', 'weaponHooks', 'animation', 'effects']) {
+  for (const key of ['geometry', 'simulation', 'quests', 'prompts', 'weaponFamily', 'animation', 'effects']) {
     expect(report.entries.find(row => row.key === `./plugin/${key}`)).toMatchObject({ published: true, target: `./plugin/${key}.ts` });
   }
 });
@@ -96,7 +96,7 @@ it('keeps starter recipes on their defining equipment plugin', () => {
   for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
   for (const key of ["./weapons/starterEquipment"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
   expect(report.pluginExports).toBeLessThanOrEqual(20);
-  expect(report.entries.find(row => row.key === './plugin/weaponHooks')).toMatchObject({ published: true, target: './plugin/weaponHooks.ts' });
+  expect(report.entries.find(row => row.key === './plugin/weaponFamily')).toMatchObject({ published: true, target: './plugin/weaponFamily.ts' });
 });
 
 
@@ -116,7 +116,7 @@ it('keeps declared item families on their defining weapon plugin', () => {
   for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
   for (const key of ["./systems/items/declared"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
   expect(report.pluginExports).toBeLessThanOrEqual(20);
-  expect(report.entries.find(row => row.key === './plugin/weaponHooks')).toMatchObject({ published: true, target: './plugin/weaponHooks.ts' });
+  expect(report.entries.find(row => row.key === './plugin/weaponFamily')).toMatchObject({ published: true, target: './plugin/weaponFamily.ts' });
 });
 
 
