@@ -83,11 +83,15 @@ function legacyRuntimeCopies(after, trees) {
       const frozen = readFileSync(join(trees.baselineRoot, from), 'utf8');
       if (createHash('sha256').update(frozen).digest('hex') !== row.files[file]) continue;
       for (const edge of importsOf(from, frozen, exists)) {
-        const original = edge.to;
-        if (!/^src\/(?:engine|game|sdk)\/.+\.ts$/u.test(original) || !exists(original)) continue;
-        const next = join(trees.candidateRoot, original), source = readFileSync(join(trees.baselineRoot, original), 'utf8');
-        if (!existsSync(next) || readFileSync(next, 'utf8') !== source) continue;
-        originals.set(`${row.primary}:${original}`, { primary: row.primary, original, source, body: body(source, original), counts: siteCounts(source, original) });
+        const collect = original => {
+          const key = `${row.primary}:${original}`;
+          if (originals.has(key) || !/^src\/(?:engine|game|sdk)\/.+\.ts$/u.test(original) || !exists(original)) return;
+          const next = join(trees.candidateRoot, original), source = readFileSync(join(trees.baselineRoot, original), 'utf8');
+          if (!existsSync(next) || readFileSync(next, 'utf8') !== source) return;
+          originals.set(key, { primary: row.primary, original, source, body: body(source, original), counts: siteCounts(source, original) });
+          for (const dependency of importsOf(original, source, exists)) collect(dependency.to);
+        };
+        collect(edge.to);
       }
     }
   }

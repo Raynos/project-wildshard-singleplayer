@@ -182,5 +182,16 @@ it('admits one verbatim primary copy of a retained platform module only for an e
     const foreign = 'src/shards/other/runtime/system.ts'; write(candidateRoot, foreign, original);
     write(candidateRoot, list, JSON.stringify({ ...before, sites: { [`${foreign}:${site.kind}:${site.site}`]: { count: 1, row: 'SF76' } } }));
     expect(compare().join(',')).toContain('new runtime site');
+    // A frozen caller also retains its immutable transitive dependencies. The same exact-copy checks apply.
+    const child = 'src/engine/child.ts', copy = 'src/shards/fixture/runtime/child.ts';
+    const parent = "import '../engine/child'; export const parent = 1;\n";
+    write(baselineRoot, old, parent); write(candidateRoot, old, parent);
+    write(baselineRoot, child, original); write(candidateRoot, child, original); write(candidateRoot, copy, original);
+    write(candidateRoot, list, JSON.stringify({ ...before, sites: { [`${copy}:${site.kind}:${site.site}`]: { count: 1, row: 'SF76' } } }));
+    expect(compare()).toEqual([]);
+    write(candidateRoot, old, `${parent}// changed parent\n`);
+    expect(compare().join(',')).toContain('new runtime site');
+    write(candidateRoot, old, parent); write(candidateRoot, child, `${original}// changed dependency\n`);
+    expect(compare().join(',')).toContain('new runtime site');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
