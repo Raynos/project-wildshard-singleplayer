@@ -3254,3 +3254,11 @@ No extra creature, manager, random stream or policy implementation is installed.
 Qyran similarly binds its authored wind-diver profile directly to `DiverBrain`
 with the same deferred body, wind, altitude, weak-point and continuation ports.
 Its old wind-stooper constructor remains a preset; no second weather owner.
+
+SF82 the live creature manager and Driftwood/Pine/Nalati native fauna hosts
+bind the defining `ai/stalker` hunt profile directly. `config`, `ports`, player
+vector identity and real-body `sampleTerrain` remain the original authorities;
+actor memory, ordered herd state and continuation are still roster-owned.
+`ai/hunt.HuntBrain` remains the old-name preset constructor for existing and
+frozen callers, with exactly the same configuration and shared hunt law.
+This changes no tuning, family selection, placement, callback or RNG order.

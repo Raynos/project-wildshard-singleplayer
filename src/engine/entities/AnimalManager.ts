@@ -12,7 +12,8 @@ import { castRay, floorBelow } from '../physics/query';
 import { CreatureBodies } from '../physics/creatures';
 import type { CharacterMotor } from '../physics/CharacterMotor';
 import { SEED, CHUNK_HALF } from '../core/config';
-import { HuntBrain, spawnRolls, fallbackSound, ATTACK_TURN, HURT_ARC, type HuntGround, type HuntHerd } from '../ai/hunt';
+import { spawnRolls, fallbackSound, ATTACK_TURN, HURT_ARC, type HuntGround, type HuntHerd } from '../ai/hunt';
+import { StalkerBrain } from '../ai/stalker';
 import { Rng } from '../core/rng';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel, hasPond, POND, streamAt } from '../world/Heightfield';
 import type { Forest } from '../world/forest/Forest';
@@ -305,14 +306,14 @@ export class AnimalManager {
   private playerPrev = new THREE.Vector3(); private playerSpeed = 0; private playerInit = false;
   private shellDist = new Float64Array(SHELL_MAX);
   private shellIdx = new Int32Array(SHELL_MAX);
-  /** the hunting brain (src/engine/ai/hunt.ts, SF72): every herd animal's decisions, its memory, the herds and the tokens */
-  private readonly hunt: HuntBrain<Animal>;
+  /** the stalker hunt pattern (src/engine/ai/stalker.ts, SF72/82): every herd animal's decisions, its memory, the herds and the tokens */
+  private readonly hunt: StalkerBrain<Animal>;
   /** a melee shard (the sword): telegraphed charges, attacks on an arc (see the header) — Driftwood's swords, Nalati's sabre / spear */
   private get melee(): boolean { return this.hunt.melee; }
   /** E297: the shard's fight rules (Driftwood), null = the old fights (see the header) */
   private get rules(): ReturnType<typeof activeLevel>['fight'] | null { return this.hunt.rules; }
   /** E297: the attack tokens — at most `rules.maxAttackers` attacking at once */
-  get tokens(): HuntBrain<Animal>['tokens'] { return this.hunt.tokens; }
+  get tokens(): StalkerBrain<Animal>['tokens'] { return this.hunt.tokens; }
   /** a token holder still attacking: a charger while it charges, a self-thinking species while its strike runs */
   private readonly stillAttacking = (a: Animal): boolean =>
     a.alive && !a.hidden && (speciesDef(a.kind).think !== undefined ? a.attackPhase >= 0 : a.state === 'charge');
@@ -351,12 +352,12 @@ export class AnimalManager {
       treeless: () => this.forest.trees.length === 0, // Driftwood Isle: palms are not Forest trees
       terrain: () => activeLevel().ground.terrain !== undefined, chunkHalf: CHUNK_HALF,
     };
-    this.hunt = new HuntBrain<Animal>({ rng: this.rng, fight: activeLevel().fight, faunaTuning: () => activeLevel().faunaTuning }, {
+    this.hunt = new StalkerBrain<Animal>({ pattern: 'hunt', config: { rng: this.rng, fight: activeLevel().fight, faunaTuning: () => activeLevel().faunaTuning }, ports: {
       ground, nav: () => app.navmesh, reach: (a, player) => this.canReach(a, player),
       wanderGoal: (a) => app.events.ask('creature.wander-goal', { herd: a.herd, goal: this.wanderGoal?.(a) ?? null }).goal,
       unaware: () => this.unaware, now: () => performance.now(),
       sound: (name, a) => { this.onSound?.(name, a.position); }, charge: (a, damage) => { this.onCharge?.(a, damage); },
-    }, this.playerPos);
+    }, player: this.playerPos, sampleTerrain: actor => { actor.sampleTerrain(); } });
     const style = opts.style ?? activeLevel().creatureStyle ?? 'pbr';
     this.factory = new AnimalFactory(sky, { style, render: opts.render ?? activeLevel().creatures });
     this.pbr = this.factory.render.furRim;
@@ -436,7 +437,7 @@ export class AnimalManager {
   }
 
   /** the species' hunting-loop numbers (the hunting brain's: its own `tuning`, else the baseline, with the shard's overrides) */
-  private tuningFor(a: Animal): ReturnType<HuntBrain<Animal>['tuningFor']> { return this.hunt.tuningFor(a); }
+  private tuningFor(a: Animal): ReturnType<StalkerBrain<Animal>['tuningFor']> { return this.hunt.tuningFor(a); }
 
   /** true if a living legendary of this kind is already in the chunk (the cap is one per kind) */
   private hasLegendary(kind: AnimalKind): boolean {

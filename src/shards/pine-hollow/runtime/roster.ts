@@ -2,7 +2,8 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { HuntBrain, spawnRolls, type HuntBody, type HuntMemory, type HuntNav } from '@wildshard/engine/ai/hunt';
+import { spawnRolls, type HuntBody, type HuntMemory, type HuntNav } from '@wildshard/engine/ai/hunt';
+import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { castRay } from '@wildshard/engine/physics/query';
 import type { BakedGrid } from '@wildshard/engine/world/BakedTerrain';
@@ -112,7 +113,7 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
  * single native weather/shelter owner before this roster's tick.
  */
 export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
-  bodies: () => readonly PineBody[]; parked: () => readonly PineParked[]; hunt: HuntBrain<HuntBody>;
+  bodies: () => readonly PineBody[]; parked: () => readonly PineParked[]; hunt: StalkerBrain<HuntBody>;
   /** AnimalManager.spawn in play: a live creature (the stream's draws, the next entity id), at the end of the list */
   spawn: (kind: string, x: number, z: number, yaw: number, variant: string) => PineHuntBody;
   /** the same live spawn kept out of the list (a fight's own body that thinks nothing: a fallen Antler King's next night) */
@@ -143,10 +144,10 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     host.combat.hit({ source: 'env', sourceTags: [`creature.${a.kind}`, 'feel.blow', 'cover.checked'], target: host.player.health, amount: damage,
       point: a.position.clone(), dir: new Vector3(), cause: { kind: a.kind, label: a.label } });
   };
-  const hunt = new HuntBrain<HuntBody>({ rng, fight: { telegraphed: false }, faunaTuning: () => undefined, species }, {
+  const hunt = new StalkerBrain<HuntBody>({ pattern: 'hunt', config: { rng, fight: { telegraphed: false }, faunaTuning: () => undefined, species }, ports: {
     ground, nav: () => ports.nav, reach: (a, p) => canReach(a, p, host.physics), wanderGoal: a => ports.wanderGoal?.(a.herd) ?? null, unaware: () => false,
     now: () => host.clock.now * 1000, sound: () => undefined, charge,
-  }, new Vector3());
+  }, player: new Vector3(), sampleTerrain: actor => { actor.sampleTerrain(); } });
   const list: PineBody[] = [], parked: PineParked[] = [];
   const baked = new Map(bake.actors.map(a => [a.id, a] as const)), bakedParked = new Map(bake.parked.map(a => [a.id, a] as const));
   let next = 0, booted = false;

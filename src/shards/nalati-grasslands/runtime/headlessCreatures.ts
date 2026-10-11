@@ -5,7 +5,8 @@ import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { HuntBrain, HURT_ARC, ATTACK_TURN, spawnRolls, type HuntBody, type HuntGround, type HuntMemory, type HuntNav, type HuntSpecies, type HuntTree } from '@wildshard/engine/ai/hunt';
+import { HURT_ARC, ATTACK_TURN, spawnRolls, type HuntBody, type HuntGround, type HuntMemory, type HuntNav, type HuntSpecies, type HuntTree } from '@wildshard/engine/ai/hunt';
+import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
@@ -113,7 +114,7 @@ function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
 /** The host's creatures, for its tests: the hunting brain over the manager's stream and the bodies it decides for, the
  *  flocks, and Wildlife's `scare` (a lightning strike's: the packs break, the herds stampede, the flocks bolt). */
 export interface NalatiHostCreatures {
-  readonly hunt: HuntBrain<NalatiHuntBody>; readonly rng: Rng; readonly bodies: readonly NalatiHuntBody[]; readonly flocks: readonly FlockBrain[];
+  readonly hunt: StalkerBrain<NalatiHuntBody>; readonly rng: Rng; readonly bodies: readonly NalatiHuntBody[]; readonly flocks: readonly FlockBrain[];
   readonly scare: (x: number, z: number, r?: number) => void;
   readonly raid: HeadlessSheepRaid; readonly marmots: MarmotBrain;
   readonly spawnElite: (kind: 'leopard' | 'kokbori', x: number, z: number, yaw: number, variant: string) => NalatiHuntBody;
@@ -171,11 +172,12 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
     hitPoint.copy(a.position); hitDir.set(0, 0, 0);
     host.combat.hit({ source: 'env', sourceTags: tagsOf(a.kind), target: host.player.health, amount: damage, point: hitPoint, dir: hitDir, cause: { kind: a.kind, label: a.label } });
   };
-  const hunt = new HuntBrain<NalatiHuntBody>({ rng, fight: { telegraphed: true }, faunaTuning: () => undefined, species: nalatiHuntSpecies() }, {
+  const sampleHuntSlope = (actor: NalatiHuntBody): void => { actor.sampleTerrain(); };
+  const hunt = new StalkerBrain<NalatiHuntBody>({ pattern: 'hunt', config: { rng, fight: { telegraphed: true }, faunaTuning: () => undefined, species: nalatiHuntSpecies() }, ports: {
     ground: nalatiHuntGround(ports.grid, ports.trees), nav: () => ports.nav, reach: (a, p) => canReach(a, p, host.physics),
     wanderGoal: () => { throw new Error('Nalati headless wander goal is not modelled (every hosted body thinks for itself)'); },
     unaware: () => false, now: () => host.clock.now * 1000, sound: () => undefined, charge,
-  }, new Vector3());
+  }, player: new Vector3(), sampleTerrain: sampleHuntSlope });
   // the page's index.ts: the packs, the herds and the dog steer round what the navmesh walls off
   hunt.navSteer = true;
   if (ports.bodies.length > BODY_MAX) throw new Error(`Nalati headless hosts at most ${String(BODY_MAX)} manager bodies`);

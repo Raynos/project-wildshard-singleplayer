@@ -10,7 +10,8 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { WeightedTable } from '@wildshard/engine/ai/weighted';
-import { ATTACK_TURN, HuntBrain, type HuntBody, type HuntGround, type HuntMemory, type HuntNav } from '@wildshard/engine/ai/hunt';
+import { ATTACK_TURN, type HuntBody, type HuntGround, type HuntMemory, type HuntNav } from '@wildshard/engine/ai/hunt';
+import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { castRay } from '@wildshard/engine/physics/query';
 import { EntityIds } from '@wildshard/engine/entities/ids';
@@ -142,7 +143,7 @@ function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
  */
 export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonly<SimSnapshot>): {
   bodies: () => readonly IslandBody[];
-  hunt: HuntBrain<HuntBody>;
+  hunt: StalkerBrain<HuntBody>;
   /** The finale's captain (null until spawned). */
   captain: () => HuntBody | null;
   /** AnimalManager.spawn of the captain at his pool (the finale's spawn): the manager's next entity id and spawn draws, the
@@ -190,10 +191,10 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   };
   // the manager's ports (AnimalManager's constructor): no wander goal or calm on Driftwood, the voices are presentation and
   // the idle glances' millisecond clock is cosmetic (look weight only)
-  const hunt = new HuntBrain<HuntBody>({ rng, fight: DRIFTWOOD_FIGHT, faunaTuning: () => DRIFTWOOD_FAUNA_TUNING, species: faunaSpecies }, {
+  const hunt = new StalkerBrain<HuntBody>({ pattern: 'hunt', config: { rng, fight: DRIFTWOOD_FIGHT, faunaTuning: () => DRIFTWOOD_FAUNA_TUNING, species: faunaSpecies }, ports: {
     ground, nav: () => ports.nav, reach, wanderGoal: () => null, unaware: () => false,
     now: () => host.clock.now * 1000, sound: () => undefined, charge,
-  }, player);
+  }, player, sampleTerrain: actor => { actor.sampleTerrain(); } });
   const habitat = bake.habitat;
   const placed = placeEnemies({ seed: ports.seed, crabSites: habitat.crabSites, palms: habitat.perchBases, heightAt, waterLevel: ports.waterLevel });
   // the coconuts (combat/coconuts.ts, as Enemies.ts throws them): bodies in the host's world, spun from the placement

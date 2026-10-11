@@ -1,5 +1,6 @@
 import { Vector3 } from 'three';
-import { HURT_ARC, type HuntBody, type HuntBrain } from '@wildshard/engine/ai/hunt';
+import { HURT_ARC, type HuntBody } from '@wildshard/engine/ai/hunt';
+import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
@@ -26,7 +27,7 @@ export interface EnemyWorld {
  *  the creature stream, the island and its floor. */
 export interface EnemyBrainPorts {
   readonly host: SimHost;
-  readonly hunt: HuntBrain<HuntBody>;
+  readonly hunt: StalkerBrain<HuntBody>;
   readonly rng: Rng;
   readonly world: EnemyWorld;
   readonly heightAt: (x: number, z: number) => number;
