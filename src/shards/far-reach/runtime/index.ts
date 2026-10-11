@@ -244,7 +244,7 @@ export class SkyReachPlugin extends ShardPlugin {
       // the eye in the level's own frame (G321; the meadow stands at its root): inside a grid cell the root is at the cell's
       // render offset and the page camera in the page's frame; standalone the root is the origin and this is the camera's own
       const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(this.meadow.mesh.worldToLocal(cam.getWorldPosition(eye)), t);
-      // SF49-g (G183): the Rising Islets ride their movers (behaviour/islet.as, in the fixed step); draw them and their chains
+      // SF49-g (G183): the Rising Islets ride their movers (fixed ride driver, in the fixed step); draw them and their chains
       const movers = this.movers; if (movers !== null) { built.islets.update(moverPose); this.isletCalls?.update(moverPose); }
       built.millHub.rotation.z += dt * 0.35; FALL_TIME.value = t; built.storm.update(dt, t); built.wind.update(t);
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {

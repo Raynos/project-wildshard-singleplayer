@@ -5,7 +5,7 @@ import { apothem, rimAlong } from '../layout';
 /**
  * SHARD-PLATFORM SF49-g (G183, Jake 2026-10-07: "4, the Rising Islet"): Sky Reach's four legal entryways. At each edge
  * midpoint a stone lip at road height (top y = 0) meets the far end of the platform's 8 × 15 m entry socket; beside it a
- * small grass islet rests level with the road and rises on chains (one SF30 kinematic mover, behaviour/islet.as) to a
+ * small grass islet rests level with the road and rises on chains (one SF30 kinematic mover, fixed ride driver) to a
  * gate isle about 50 m in and 25 m up; a rope bridge ties the gate isle to the nearest island that no quest gates (the
  * south one goes to the ruin isle, never into the storm-crown arena). Pure data: the shardfile declares the four lips from
  * it (shard.config.ts, the socket-landing proof: a moving deck can't prove a permanent walk surface), world/risingIslet.ts

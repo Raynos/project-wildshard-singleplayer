@@ -1412,3 +1412,8 @@ build/admission inputs and are absent from the executable continuation contract.
 
 
 SF81 Pine night: `data/nightStages.json` selects the fixed lifecycle events from the typed author `behaviour/night.as`, bound by `data/nightDirector.json`. The retained author-only producer `generators/bake-pine-night-director.mjs` emits the immutable module and DO-NOT-EDIT embedded representation through the shared content-hash build cache. No generated module is committed. The native population stores the complete AS/stage continuation with its exact actor identities; pre-row population continuations refuse explicitly.
+
+`@wildshard/sdk/compileMovers` compiles the readable fixed ride, hinge and wave kernels with the
+portable metered compiler. Their hashes are part of the continuation ABI; accidental changes refuse.
+Sky's generator authors its exact f64 stops in real three.js clips, including the stationary gate
+clip and the local-pitch winch clip. Its former per-shard lift and bridge guests are unnecessary.

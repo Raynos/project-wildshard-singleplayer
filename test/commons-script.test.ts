@@ -4,6 +4,7 @@ import { expect, it } from 'vitest';
 import { bridgeScriptSources } from '../src/commons/scripts';
 import { compileScript } from '../scripts/compile-script.mjs';
 import { contentHash } from '../src/sdk/project';
+import { compileMoverDriver } from '../src/sdk/compileMovers';
 import { ScriptHost } from '../src/engine/script/host';
 import { ScriptWorld } from '../src/engine/script/effects';
 import { MOVER_FIELD_RANGES, moverScriptEntities } from '../src/game/shardfile/movers';
@@ -20,7 +21,7 @@ it('compiles the pinned shared setup and bridge deterministically and retains bo
   for (const [slug, row] of [['driftwood-isle', DRIFT.find(r => r.kind === 'chain')], ['far-reach', SKY.find(r => r.id === 'far.winch.bridge')]] as const) {
     if (row === undefined) throw new Error('Missing shared bridge');
     const file = slug === 'driftwood-isle' ? 'bridge.as' : 'bridges.as';
-    const source = readFileSync(new URL(`../src/shards/${slug}/behaviour/${file}`, import.meta.url), 'utf8');
+    const source = readFileSync(new URL(`../src/shards/${slug === 'far-reach' ? 'far-reach-legacy' : slug}/behaviour/${file}`, import.meta.url), 'utf8');
     expect(await compileScript(source, { maximumPages: 1, sources: shared.sources })).toEqual(bytes);
     expect(contentHash(bytes)).toBe(row.module);
     // Keep the original admitted bytes as the behavioral oracle after author wrappers move to the commons.
@@ -47,3 +48,9 @@ it('keeps virtual module reads inside the explicit source map', async () => {
   await expect(compileScript(wrapper)).rejects.toThrow('AssemblyScript compile failed');
   for (const name of ['../escape.ts', '/absolute.ts', 'main.ts']) await expect(compileScript(wrapper, { sources: { [name]: '' } })).rejects.toThrow('Invalid virtual');
 });
+
+it('compiles every fixed row kernel to its existing admitted executable bytes', async () => {
+  for (const [kind, slug, hash] of [['ride', 'far-reach', 'f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22'], ['hinge', 'far-reach', '1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd'], ['waves', 'driftwood-isle', '9a5171bc3dd84488aae9de29ebd07fdb12dfbd2500c45cf91cf37e5bbbc712f0']] as const) {
+    expect(await compileMoverDriver(kind)).toEqual(Uint8Array.from(readFileSync(new URL(`../src/shards/${slug}/assets/${hash}`, import.meta.url))));
+  }
+}, 30_000);

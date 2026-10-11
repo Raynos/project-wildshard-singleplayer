@@ -13,7 +13,7 @@ import { PALETTE, flat } from './shapes';
  * SF49-g (G183): the shared Rising Islet builder. Every entry in world/islets.ts gets the same parts:
  * - the static stone lip at road height (the shardfile's declared landing, installed exactly);
  * - the gate isle, an ordinary island of the shard's own builder (islandMesh + the island strip colliders);
- * - the moving islet: one SF30 kinematic mover row (behaviour/islet.as moves it in the fixed step; the engine's
+ * - the moving islet: one SF30 kinematic mover row (the fixed ride driver moves it in the fixed step; the engine's
  *   KinematicMover carries the rider), drawn as a small island of the same builder that follows the published pose;
  * - four chains from the islet up to two lantern posts on the gate isle's rim: one InstancedMesh of links for all four
  *   entries (no facade multi-draw), relaid only while an islet moves.
@@ -36,20 +36,6 @@ export function isletBoxes(): MoverBox[] {
     const a = (i * Math.PI) / 6, q = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -a);
     return { x: 0, y: -1, z: 0, hx: half, hy: 1, hz: width, rot: { x: q.x, y: q.y, z: q.z, w: q.w } };
   });
-}
-interface LiftRow { id: string; entity: number; module: string; kind: 'platform' | 'static'; at: P3; euler: P3; enabled: boolean; boxes: MoverBox[]; input: number[] }
-/** The four islet mover rows and their four stationary road gates (generators/movers.ts bakes them; shard.config.ts
- *  declares them as the shardfile's compiled `movers`): parameters rest, dock, travel, part (0 islet, 1 gate), dwell. */
-export function isletMoverRows(module: string): LiftRow[] {
-  const zero = { x: 0, y: 0, z: 0 };
-  const islets = RISING_ISLETS.map((entry, i): LiftRow => ({ id: isletId(entry), entity: 8020 + i, module, kind: 'platform', at: { ...entry.rest }, euler: zero, enabled: true,
-    boxes: isletBoxes(), input: [entry.rest.x, entry.rest.y, entry.rest.z, entry.dock.x, entry.dock.y, entry.dock.z, entry.travel, 0, ISLET.dwell] }));
-  const gates = RISING_ISLETS.map((entry, i): LiftRow => {
-    const g = entry.gateBar;
-    return { id: gateId(entry), entity: 8030 + i, module, kind: 'static', at: { x: g.x, y: g.y, z: g.z }, euler: zero, enabled: false,
-      boxes: [{ x: 0, y: 0, z: 0, hx: g.hx, hy: g.hy, hz: g.hz, rot: { x: 0, y: 0, z: 0, w: 1 } }], input: [g.x, g.y, g.z, g.x, g.y, g.z, entry.travel, 1, ISLET.dwell] };
-  });
-  return [...islets, ...gates];
 }
 /** The lip's collider exactly as the shardfile declares it. */
 export function lipCollider(entry: RisingIslet): ColliderDesc {

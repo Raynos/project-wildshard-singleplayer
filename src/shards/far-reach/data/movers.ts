@@ -5,7 +5,6 @@ export const MOVERS: MoverData = [
   {
     "id": "far.rope.windmill",
     "entity": 8001,
-    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "kind": "static",
     "at": {
       "x": 0,
@@ -734,14 +733,20 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "input": [
       0
-    ]
+    ],
+    "trigger": {
+      "kind": "always"
+    },
+    "driver": {
+      "kind": "static"
+    }
   },
   {
     "id": "far.rope.grove",
     "entity": 8002,
-    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "kind": "static",
     "at": {
       "x": 0,
@@ -1344,14 +1349,20 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "input": [
       0
-    ]
+    ],
+    "trigger": {
+      "kind": "always"
+    },
+    "driver": {
+      "kind": "static"
+    }
   },
   {
     "id": "far.rope.ruin",
     "entity": 8003,
-    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "kind": "static",
     "at": {
       "x": 0,
@@ -2164,14 +2175,20 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "input": [
       0
-    ]
+    ],
+    "trigger": {
+      "kind": "always"
+    },
+    "driver": {
+      "kind": "static"
+    }
   },
   {
     "id": "far.winch.bridge",
     "entity": 8010,
-    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "kind": "platform",
     "at": {
       "x": -55.8279416565877,
@@ -2228,15 +2245,48 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "input": [
       1,
       0.55
-    ]
+    ],
+    "track": {
+      "clip": "raise",
+      "duration": 2.2727272727272725,
+      "loop": "once",
+      "speed": 1,
+      "times": [
+        0,
+        2.2727272727272725
+      ],
+      "quaternion": [
+        [
+          -0.5850972729404622,
+          0,
+          0,
+          0.8109631195052179
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    "trigger": {
+      "kind": "interact",
+      "permission": 3
+    },
+    "driver": {
+      "kind": "winch",
+      "mode": "hinge",
+      "speed": 0.55
+    }
   },
   {
     "id": "far.islet.north",
     "entity": 8020,
-    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "platform",
     "at": {
       "x": 0,
@@ -2335,6 +2385,7 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "input": [
       0,
       0,
@@ -2345,12 +2396,43 @@ export const MOVERS: MoverData = [
       13.4,
       0,
       6
-    ]
+    ],
+    "track": {
+      "clip": "ride",
+      "duration": 13.4,
+      "loop": "once",
+      "speed": 1,
+      "times": [
+        0,
+        13.4
+      ],
+      "position": [
+        [
+          0,
+          0,
+          228.05081537278122
+        ],
+        [
+          0,
+          25,
+          212.62547997696493
+        ]
+      ]
+    },
+    "trigger": {
+      "kind": "interact",
+      "permission": 0
+    },
+    "driver": {
+      "kind": "winch",
+      "mode": "ride",
+      "dwell": 6,
+      "gate": false
+    }
   },
   {
     "id": "far.islet.east",
     "entity": 8021,
-    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "platform",
     "at": {
       "x": 228.05081537278122,
@@ -2449,6 +2531,7 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "input": [
       228.05081537278122,
       0,
@@ -2459,12 +2542,43 @@ export const MOVERS: MoverData = [
       25.7,
       0,
       6
-    ]
+    ],
+    "track": {
+      "clip": "ride",
+      "duration": 25.7,
+      "loop": "once",
+      "speed": 1,
+      "times": [
+        0,
+        25.7
+      ],
+      "position": [
+        [
+          228.05081537278122,
+          0,
+          0
+        ],
+        [
+          204.728255040112,
+          25,
+          45.01403647503161
+        ]
+      ]
+    },
+    "trigger": {
+      "kind": "interact",
+      "permission": 0
+    },
+    "driver": {
+      "kind": "winch",
+      "mode": "ride",
+      "dwell": 6,
+      "gate": false
+    }
   },
   {
     "id": "far.islet.south",
     "entity": 8022,
-    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "platform",
     "at": {
       "x": 0,
@@ -2563,6 +2677,7 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "input": [
       0,
       0,
@@ -2573,12 +2688,43 @@ export const MOVERS: MoverData = [
       19.7,
       0,
       6
-    ]
+    ],
+    "track": {
+      "clip": "ride",
+      "duration": 19.7,
+      "loop": "once",
+      "speed": 1,
+      "times": [
+        0,
+        19.7
+      ],
+      "position": [
+        [
+          0,
+          0,
+          -228.05081537278122
+        ],
+        [
+          28.306750243091944,
+          25,
+          -206.78479223881658
+        ]
+      ]
+    },
+    "trigger": {
+      "kind": "interact",
+      "permission": 0
+    },
+    "driver": {
+      "kind": "winch",
+      "mode": "ride",
+      "dwell": 6,
+      "gate": false
+    }
   },
   {
     "id": "far.islet.west",
     "entity": 8023,
-    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "platform",
     "at": {
       "x": -228.05081537278122,
@@ -2677,6 +2823,7 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "input": [
       -228.05081537278122,
       0,
@@ -2687,12 +2834,43 @@ export const MOVERS: MoverData = [
       13.4,
       0,
       6
-    ]
+    ],
+    "track": {
+      "clip": "ride",
+      "duration": 13.4,
+      "loop": "once",
+      "speed": 1,
+      "times": [
+        0,
+        13.4
+      ],
+      "position": [
+        [
+          -228.05081537278122,
+          0,
+          0
+        ],
+        [
+          -212.62547997696493,
+          25,
+          0
+        ]
+      ]
+    },
+    "trigger": {
+      "kind": "interact",
+      "permission": 0
+    },
+    "driver": {
+      "kind": "winch",
+      "mode": "ride",
+      "dwell": 6,
+      "gate": false
+    }
   },
   {
     "id": "far.islet.north.gate",
     "entity": 8030,
-    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "static",
     "at": {
       "x": 0,
@@ -2721,6 +2899,7 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "input": [
       0,
       1.1,
@@ -2731,12 +2910,43 @@ export const MOVERS: MoverData = [
       13.4,
       1,
       6
-    ]
+    ],
+    "track": {
+      "clip": "ride",
+      "duration": 13.4,
+      "loop": "once",
+      "speed": 1,
+      "times": [
+        0,
+        13.4
+      ],
+      "position": [
+        [
+          0,
+          1.1,
+          234.9
+        ],
+        [
+          0,
+          1.1,
+          234.9
+        ]
+      ]
+    },
+    "trigger": {
+      "kind": "interact",
+      "permission": 0
+    },
+    "driver": {
+      "kind": "winch",
+      "mode": "ride",
+      "dwell": 6,
+      "gate": true
+    }
   },
   {
     "id": "far.islet.east.gate",
     "entity": 8031,
-    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "static",
     "at": {
       "x": 234.9,
@@ -2765,6 +2975,7 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "input": [
       234.9,
       1.1,
@@ -2775,12 +2986,43 @@ export const MOVERS: MoverData = [
       25.7,
       1,
       6
-    ]
+    ],
+    "track": {
+      "clip": "ride",
+      "duration": 25.7,
+      "loop": "once",
+      "speed": 1,
+      "times": [
+        0,
+        25.7
+      ],
+      "position": [
+        [
+          234.9,
+          1.1,
+          0
+        ],
+        [
+          234.9,
+          1.1,
+          0
+        ]
+      ]
+    },
+    "trigger": {
+      "kind": "interact",
+      "permission": 0
+    },
+    "driver": {
+      "kind": "winch",
+      "mode": "ride",
+      "dwell": 6,
+      "gate": true
+    }
   },
   {
     "id": "far.islet.south.gate",
     "entity": 8032,
-    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "static",
     "at": {
       "x": 0,
@@ -2809,6 +3051,7 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "input": [
       0,
       1.1,
@@ -2819,12 +3062,43 @@ export const MOVERS: MoverData = [
       19.7,
       1,
       6
-    ]
+    ],
+    "track": {
+      "clip": "ride",
+      "duration": 19.7,
+      "loop": "once",
+      "speed": 1,
+      "times": [
+        0,
+        19.7
+      ],
+      "position": [
+        [
+          0,
+          1.1,
+          -234.9
+        ],
+        [
+          0,
+          1.1,
+          -234.9
+        ]
+      ]
+    },
+    "trigger": {
+      "kind": "interact",
+      "permission": 0
+    },
+    "driver": {
+      "kind": "winch",
+      "mode": "ride",
+      "dwell": 6,
+      "gate": true
+    }
   },
   {
     "id": "far.islet.west.gate",
     "entity": 8033,
-    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "static",
     "at": {
       "x": -234.9,
@@ -2853,6 +3127,7 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "input": [
       -234.9,
       1.1,
@@ -2863,6 +3138,38 @@ export const MOVERS: MoverData = [
       13.4,
       1,
       6
-    ]
+    ],
+    "track": {
+      "clip": "ride",
+      "duration": 13.4,
+      "loop": "once",
+      "speed": 1,
+      "times": [
+        0,
+        13.4
+      ],
+      "position": [
+        [
+          -234.9,
+          1.1,
+          0
+        ],
+        [
+          -234.9,
+          1.1,
+          0
+        ]
+      ]
+    },
+    "trigger": {
+      "kind": "interact",
+      "permission": 0
+    },
+    "driver": {
+      "kind": "winch",
+      "mode": "ride",
+      "dwell": 6,
+      "gate": true
+    }
   }
 ];

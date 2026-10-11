@@ -18,7 +18,7 @@ import { ISLET_LIFTS } from './data/isletLift';
 // anywhere at an edge), so each is a `socketLift`: the platform's socket deck, then a static approach over a stone lip
 // (top y = 0, across the socket's full 8 m inner line) to the Rising Islet resting at its road stop; the islet rides its
 // chains to the gate isle, whose walk strips are the onward route's playable ground. The islets and their stationary road
-// gates are this shardfile's compiled `movers` (one admitted module, behaviour/islet.as); the trusted runtime installs
+// gates are this shardfile's compiled `movers` (one admitted module, fixed ride driver); the trusted runtime installs
 // exactly these rows (runtime/movers.ts). world/islets.ts is the one source of the geometry.
 const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wildshard', revision: 1, seed: 6417 });
 const lifts = new Map(ISLET_LIFTS.map((entry) => [entry.edge, entry.lift]));
@@ -31,7 +31,7 @@ export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runt
     return { edge, at, width, kind: 'socketLift' as const, lift };
   }),
   movers: MOVERS.filter((row) => row.id.startsWith('far.islet.')),
-  // SF72: the winch and rope bridges' module (behaviour/bridges.as) is admitted beside the islets' so the grid admission and
+  // SF72: the winch and rope bridges' module (fixed hinge driver) is admitted beside the islets' so the grid admission and
   // the trusted headless runtime read the same verified bytes; the bridge rows stay the trusted runtime's (runtime/movers.ts)
   files: [wasm(BRIDGE_MODULE), wasm(LIFT_MODULE)], critical: [BRIDGE_MODULE.hash, LIFT_MODULE.hash],
   budgets: { ...base.budgets, sim: { resident: 1_000_000, compressed: LIFT_MODULE.bytes + BRIDGE_MODULE.bytes } },
