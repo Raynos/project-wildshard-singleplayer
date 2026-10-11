@@ -150,25 +150,29 @@
         "types": "./dist/types/sdk/runtime/movers.d.ts",
         "default": "./dist/runtime/movers.js"
       },
+      "./runtime/audio/combatCues": {
+        "types": "./dist/types/sdk/runtime/audio/combatCues.d.ts",
+        "default": "./dist/runtime/audio/combatCues.js"
+      },
       "./runtime/viewmodel/armClips": {
         "types": "./dist/types/sdk/runtime/viewmodel/armClips.d.ts",
         "default": "./dist/runtime/viewmodel/armClips.js"
-      },
-      "./runtime/viewmodel/armRig": {
-        "types": "./dist/types/sdk/runtime/viewmodel/armRig.d.ts",
-        "default": "./dist/runtime/viewmodel/armRig.js"
       },
       "./runtime/viewmodel/rigArms": {
         "types": "./dist/types/sdk/runtime/viewmodel/rigArms.d.ts",
         "default": "./dist/runtime/viewmodel/rigArms.js"
       },
-      "./runtime/audio/combatCues": {
-        "types": "./dist/types/sdk/runtime/audio/combatCues.d.ts",
-        "default": "./dist/runtime/audio/combatCues.js"
+      "./reportCard": {
+        "types": "./dist/types/sdk/reportCard.d.ts",
+        "default": "./dist/reportCard.js"
       },
       "./crowds": {
         "types": "./dist/types/sdk/crowds.d.ts",
         "default": "./dist/crowds.js"
+      },
+      "./species": {
+        "types": "./dist/types/sdk/species.d.ts",
+        "default": "./dist/species.js"
       },
       "./flyers": {
         "types": "./dist/types/sdk/flyers.d.ts",
@@ -230,6 +234,10 @@
         "types": "./dist/types/sdk/bake/glb.d.ts",
         "default": "./dist/bake/glb.js"
       },
+      "./bake/kinds": {
+        "types": "./dist/types/sdk/bake/kinds.d.ts",
+        "default": "./dist/bake/kinds.js"
+      },
       "./bake/texture": {
         "types": "./dist/types/sdk/bake/texture.d.ts",
         "default": "./dist/bake/texture.js"
@@ -262,9 +270,21 @@
         "types": "./dist/types/sdk/brains.d.ts",
         "default": "./dist/brains.js"
       },
+      "./speciesBrains": {
+        "types": "./dist/types/sdk/speciesBrains.d.ts",
+        "default": "./dist/speciesBrains.js"
+      },
+      "./phasedBoss": {
+        "types": "./dist/types/sdk/phasedBoss.d.ts",
+        "default": "./dist/phasedBoss.js"
+      },
       "./accent": {
         "types": "./dist/types/sdk/accent.d.ts",
         "default": "./dist/accent.js"
+      },
+      "./panels": {
+        "types": "./dist/types/sdk/panels.d.ts",
+        "default": "./dist/panels.js"
       },
       "./groupBrains": {
         "types": "./dist/types/sdk/groupBrains.d.ts",
@@ -274,13 +294,13 @@
         "types": "./dist/types/sdk/admission.d.ts",
         "default": "./dist/admission.js"
       },
-      "./headlessRuntime": {
-        "types": "./dist/types/sdk/headlessRuntime.d.ts",
-        "default": "./dist/headlessRuntime.js"
-      },
       "./headless": {
         "types": "./dist/types/sdk/headless.d.ts",
         "default": "./dist/headless.js"
+      },
+      "./headlessRuntime": {
+        "types": "./dist/types/sdk/headlessRuntime.d.ts",
+        "default": "./dist/headlessRuntime.js"
       },
       "./commons": {
         "types": "./dist/types/sdk/commons.d.ts",
@@ -398,10 +418,6 @@
         "types": "./dist/types/sdk/bake/worldRows.d.ts",
         "default": "./dist/bake/worldRows.js"
       },
-      "./reportCard": {
-        "types": "./dist/types/sdk/reportCard.d.ts",
-        "default": "./dist/reportCard.js"
-      },
       "./bake/staticMaterials": {
         "types": "./dist/types/sdk/bake/staticMaterials.d.ts",
         "default": "./dist/bake/staticMaterials.js"
@@ -422,6 +438,46 @@
         "types": "./dist/types/sdk/runtime/audio/silentScore.d.ts",
         "default": "./dist/runtime/audio/silentScore.js"
       },
+      "./interactions": {
+        "types": "./dist/types/sdk/interactions.d.ts",
+        "default": "./dist/interactions.js"
+      },
+      "./questGraph": {
+        "types": "./dist/types/sdk/questGraph.d.ts",
+        "default": "./dist/questGraph.js"
+      },
+      "./looks/shaderFamily": {
+        "types": "./dist/types/sdk/looks/shaderFamily.d.ts",
+        "default": "./dist/looks/shaderFamily.js"
+      },
+      "./looks/shaderEdits": {
+        "types": "./dist/types/sdk/looks/shaderEdits.d.ts",
+        "default": "./dist/looks/shaderEdits.js"
+      },
+      "./kit/geometryPack": {
+        "types": "./dist/types/sdk/kit/geometryPack.d.ts",
+        "default": "./dist/kit/geometryPack.js"
+      },
+      "./looks/modelLibrary": {
+        "types": "./dist/types/sdk/looks/modelLibrary.d.ts",
+        "default": "./dist/looks/modelLibrary.js"
+      },
+      "./looks/canvasAtlas": {
+        "types": "./dist/types/sdk/looks/canvasAtlas.d.ts",
+        "default": "./dist/looks/canvasAtlas.js"
+      },
+      "./kit/bakedGeometry": {
+        "types": "./dist/types/sdk/kit/bakedGeometry.d.ts",
+        "default": "./dist/kit/bakedGeometry.js"
+      },
+      "./kit/mergedPrimitives": {
+        "types": "./dist/types/sdk/kit/mergedPrimitives.d.ts",
+        "default": "./dist/kit/mergedPrimitives.js"
+      },
+      "./species/clips": {
+        "types": "./dist/types/sdk/species/clips.d.ts",
+        "default": "./dist/species/clips.js"
+      },
       "./compileScript": {
         "types": "./dist/types/sdk/compileScript.d.ts",
         "default": "./dist/compileScript.js"
@@ -429,10 +485,6 @@
       "./sourceManifest": {
         "types": "./dist/types/sdk/sourceManifest.d.ts",
         "default": "./dist/sourceManifest.js"
-      },
-      "./modelGeometry": {
-        "types": "./dist/types/sdk/modelGeometry.d.ts",
-        "default": "./dist/modelGeometry.js"
       },
       "./runtime/prompts": {
         "types": "./dist/types/sdk/runtime/prompts.d.ts",
@@ -501,6 +553,10 @@
       "./compileMovers": {
         "types": "./dist/types/sdk/compileMovers.d.ts",
         "default": "./dist/compileMovers.js"
+      },
+      "./modes": {
+        "types": "./dist/types/sdk/modes.d.ts",
+        "default": "./dist/modes.js"
       }
     }
   }
