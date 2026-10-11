@@ -6,7 +6,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
 import type { SignalWorld } from '../world/build';
-import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from '../data/layout';
+import { DISCOVERY_PLACES } from '../data/questPresentation';
 import { STRINGS } from '../data/strings';
 import { lastLightAll } from '../look/light';
 import { ownPrimitives } from '../world/resources';
@@ -25,14 +25,6 @@ import { bindSignalFacts } from '../runtime/persistence';
 export const LEGACY_SIGNAL = { key: 'sunscar.signal', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: (): boolean => false };
 export const LIT_FLAG = FLAG.lit;
 
-/** The named places: walking into one toasts "Discovered · …" once and names it on the full map (review R4, R11). */
-const PLACES = [
-  { id: 'sunscar.crest', label: STRINGS.placeCrest, x: SPAWN.x, z: SPAWN.z, r: 14 },
-  { id: 'sunscar.caravan', label: STRINGS.caravan, x: CARAVAN.x, z: CARAVAN.z, r: 18 },
-  { id: 'sunscar.well', label: STRINGS.well, x: WELL.x, z: WELL.z, r: 16 },
-  { id: 'sunscar.tower', label: STRINGS.tower, x: TOWER.x, z: TOWER.z, r: 18 },
-  { id: 'sunscar.basin', label: STRINGS.placeBasin, x: BASIN.x, z: BASIN.z, r: BASIN.r - 4 },
-] as const;
 
 const at = (p: Vector3, dy = 0): QuestMarker['at'] => ({ poi: 'world', x: p.x, y: p.y + dy, z: p.z });
 
@@ -73,7 +65,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   // The one-call presentation (ENGINE §20): the chip with distance and bearing, minimap and map diamonds, world pins, the
   // MAP card, saved discovery of the places, step toasts, the held reward beat and, on the first frame, the quest's toast.
   const view = presentRewardedQuest(ctx, quest, reward, { id: 'sunscar.reward', player, paidAtLoad, newQuest: `${STRINGS.newQuest} · ${STRINGS.quest}`,
-    presentation: { places: [...PLACES], introTitle: STRINGS.quest,
+    presentation: { places: [...DISCOVERY_PLACES], introTitle: STRINGS.quest,
       ...(sefa === null ? {} : { npc: { npc: npcDef(SCOUT_NPC), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: SCOUT_NPC.talkRadius } }) },
     beat: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle } });
   return { quest, burst: reward.burst, facts, get view() { return view(); } };
