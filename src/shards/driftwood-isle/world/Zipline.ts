@@ -25,14 +25,11 @@ import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { zipline, ziplineGeometry } from '../models/zipline';
+import { ZiplineDriver } from '@wildshard/game/plugin/mover';
 import { ZiplineLayout, type ZiplineSpec } from '../runtime/ziplineLayout';
 
 
-const HANG = 2.9;   // the eye rides ~1.2 m under the wire, below the T-bar: the trolley stays out of the view
-const G = 9.8, DRAG = 0.012, VMAX = 16;
-
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
-const _p = new THREE.Vector3();
 
 export class Zipline {
   readonly group = new THREE.Group();
@@ -42,17 +39,17 @@ export class Zipline {
   readonly a: THREE.Vector3;
   readonly b: THREE.Vector3;
   private trolley!: THREE.Mesh;
-  private riding = false;
-  private s = 0; private v = 0;
+  private readonly driver: ZiplineDriver;
   private readonly lay: ZiplineLayout;
   /** its placements (the named places' sets read them, src/shards/driftwood-isle/world/places.ts) */
   placed: Placed | null = null;
 
-  constructor(private sky: Sky, private spec: ZiplineSpec) {
+  constructor(private sky: Sky, private spec: ZiplineSpec, row: ConstructorParameters<typeof ZiplineDriver>[0]) {
     const lay = this.lay = new ZiplineLayout(spec);
     this.a = lay.a; this.b = lay.b;
+    this.driver = new ZiplineDriver(row, on => { if (!on) this.parkTrolley(); this.onRide?.(on); });
     const flat = lay.flat;
-    const promptAt = V(this.a.x - flat.x * 0.6, lay.deck.y + 1.0, this.a.z - flat.z * 0.6), riding = () => this.riding;
+    const promptAt = V(this.a.x - flat.x * 0.6, lay.deck.y + 1.0, this.a.z - flat.z * 0.6), riding = () => this.driver.isRiding;
     this.prompt = {
       position: promptAt,
       get radius() { return riding() ? 0 : 2.4; },
@@ -109,13 +106,9 @@ export class Zipline {
     ];
   }
 
-  get isRiding(): boolean { return this.riding; }
+  get isRiding(): boolean { return this.driver.isRiding; }
 
-  start(): void {
-    if (this.riding) return;
-    this.riding = true; this.s = 0.4; this.v = 2.5;
-    this.onRide?.(true);
-  }
+  start(): void { this.driver.start(); }
 
   private parkTrolley(): void {
     this.trolley.rotation.set(0, this.lay.park(this.trolley.position), 0);
@@ -123,21 +116,15 @@ export class Zipline {
 
   /** after player.update: while riding, the cable owns the player's position */
   update(dt: number, player: { position: THREE.Vector3; velocity: THREE.Vector3 }): void {
-    if (!this.riding) return;
-    const slope = -(this.at(this.s + 0.5, _p).y - this.at(this.s, this.trolley.position).y) / 0.5;   // + = downhill
-    this.v = Math.min(VMAX, Math.max(1.5, this.v + (G * slope * 0.9 - DRAG * this.v * this.v) * dt));
-    this.s += this.v * dt;
-    this.at(this.s, this.trolley.position);
-    this.trolley.rotation.z = Math.sin(this.s * 0.7) * 0.05;
-    player.position.copy(this.trolley.position); player.position.y -= HANG;
-    player.velocity.set(0, 0, 0);
-    if (this.s >= this.lay.len - 1.6) {
-      // let go: the last of the speed carries you into the straw
-      this.riding = false;
-      const dir = this.lay.dir;
-      player.velocity.set(dir.x * Math.min(6, this.v * 0.4), 1.5, dir.z * Math.min(6, this.v * 0.4));
-      this.parkTrolley();
-      this.onRide?.(false);
+    if (!this.driver.isRiding) return;
+    this.driver.update(dt, player);
+    this.showTrolley();
+  }
+
+  private showTrolley(): void {
+    if (this.driver.isRiding) {
+      this.at(this.driver.distance, this.trolley.position);
+      this.trolley.rotation.z = Math.sin(this.driver.distance * 0.7) * 0.05;
     }
   }
 }

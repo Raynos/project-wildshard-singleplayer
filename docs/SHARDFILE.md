@@ -1524,3 +1524,10 @@ updraft geometry/force this way in both browser and trusted headless hosts. `@wi
 
 
 SF85 WP2 bow slice: Pine and Nalati use family bow with a numeric profile and their unchanged local view recipe. Spread includes the aiming multiplier and motion width; draw clocks and projectile subdivision/lifetime are data. Both page and Pine native clocks consume the row. Nalati’s native weapon coverage remains open: declaring its page bow does not fabricate a renderer-free weapon owner or close the gap. The existing mounted and Golden Bow modifiers stay native.
+
+SF84 Driftwood declares its real Node-authored quest launch/landing floors and shipping physical constants as an
+admitted SDK mode row. The existing retained Node spots producer remains the endpoint authority; there is no new
+generated output or unresolved build-cache dependency in the simulation closure. Native page and headless quest
+owners consume the row through `plugin/mover` without a second player owner. The page retains its original mesh,
+trolley sway/park, prompts, sounds and update position. `ZiplineDriver.distance` is a read-only scalar for that
+presentation; restore retains the same native continuation and never draws or publishes.

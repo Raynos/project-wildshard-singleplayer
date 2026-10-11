@@ -466,6 +466,9 @@ export class ZiplineDriver {
 
   get isRiding(): boolean { return this.riding; }
 
+  /** Current distance along the cable; presentation reads it without copying or mutating continuation. */
+  get distance(): number { return this.s; }
+
   /** The page's prompt starts once, before its next update. Carry ownership belongs to the callback's player owner. */
   start(): void {
     if (this.riding) return;

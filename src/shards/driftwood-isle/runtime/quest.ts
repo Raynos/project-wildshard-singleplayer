@@ -16,7 +16,7 @@ import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from '../data/questGraph';
 import { QUEST_DONE } from '../quest/questLine';
 import baked from './spots.baked.json' with { type: 'json' };
 import { DriftwoodPack } from './pack';
-import { DriftwoodZipline } from './zipline';
+import { ZiplineDriver } from '@wildshard/game/plugin/mover';
 import { DriftwoodReward } from './reward';
 import type { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from '@wildshard/sdk/runtime/prompts';
@@ -64,6 +64,8 @@ export interface DriftwoodQuestPorts {
   readonly quests: QuestData;
   readonly table: InteractTable;
   readonly spots: DriftwoodSpots;
+  /** The admitted cable row; the native quest remains the sole carry owner. */
+  readonly zipline: ConstructorParameters<typeof ZiplineDriver>[0];
   /** the flag feats (quest/Feats.ts; the kill feats are runtime/kills.ts's) */
   readonly feats: readonly AchievementDef[];
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
@@ -159,8 +161,8 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   // This one player owner will also host the reward carry; an inactive ride retains the ordinary host motion law.
   const rider = { position: host.player.position, velocity: new Vector3(), pitch: 0, carried: false,
     get yaw(): number { return host.player.yaw; }, set yaw(value: number) { host.player.yaw = value; } };
-  const zipline = new DriftwoodZipline({ top: new Vector3(spots.zipline.top.x, spots.zipline.top.y, spots.zipline.top.z),
-    bottom: new Vector3(spots.zipline.bottom.x, spots.zipline.bottom.y, spots.zipline.bottom.z), sag: spots.zipline.sag }, on => {
+  if (JSON.stringify(ports.zipline.top) !== JSON.stringify(spots.zipline.top) || JSON.stringify(ports.zipline.bottom) !== JSON.stringify(spots.zipline.bottom) || ports.zipline.sag !== spots.zipline.sag) throw new Error('Driftwood cable row does not match the real native spots');
+  const zipline = new ZiplineDriver(ports.zipline, on => {
     rider.carried = on;
     if (!on) flags.set('used:zipline');
   });
