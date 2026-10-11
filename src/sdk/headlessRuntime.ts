@@ -84,7 +84,9 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
     });
     if (effects.length > 0) throw new Error('Trusted runtime emitted gameplay effects during installation');
   } catch (error) { installing?.dispose(); throw error; }
-  const lend = (input: readonly HeadlessCommand[]): void => { commands = input; effects = []; };
+  const lend = (input: readonly HeadlessCommand[]): void => {
+    if (input.some(command => command.kind === 'interact')) throw new Error('Authored interaction commands require the data-only owner');
+    commands = input; effects = []; };
   return {
     host, lend,
     get effects() { return effects; },

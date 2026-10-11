@@ -100,3 +100,28 @@ export async function proveAuthorSimulation(shard: Shardfile, assets: ReadonlyMa
   const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory' });
   try { return await sim.prove(plan); } finally { await sim.dispose(); }
 }
+
+/** Minimal browser port: Playwright Page satisfies this without author game or engine imports. */
+export interface AuthorProofPage { evaluate: <T>(read: () => T) => Promise<T> }
+const sceneEvidenceSchema = v.strictObject({ tick: v.pipe(v.number(), v.integer(), v.minValue(1)), frames: v.pipe(v.number(), v.integer(), v.minValue(1)),
+  creatures: v.array(v.strictObject({ id: v.string(), bound: v.boolean(), attached: v.boolean(), visible: v.boolean(), vertices: v.number(), bones: v.number(), finitePose: v.boolean(), matchesNative: v.boolean() })),
+  selectedInteraction: v.nullable(v.string()) });
+/** Inspect actual client meshes and page prompt selection; declarations and caller-supplied evidence never count. */
+export async function proveSceneClient(page: AuthorProofPage, expected: { creatures: readonly string[]; selectedInteraction: string | null }): Promise<v.InferOutput<typeof sceneEvidenceSchema>> {
+  const raw = await page.evaluate(() => {
+    const probe: unknown = Reflect.get(window, '__wildshard');
+    if (typeof probe !== 'object' || probe === null || !('shard' in probe) || typeof probe.shard !== 'object' || probe.shard === null) throw new Error('Missing built author client');
+    const data: unknown = Reflect.get(probe.shard, 'shardfile');
+    if (typeof data !== 'object' || data === null || !('sceneEvidence' in data) || typeof data.sceneEvidence !== 'function') throw new Error('Enter the built author client before proving its scene');
+    const provider = data as { sceneEvidence: () => unknown };
+    return provider.sceneEvidence();
+  });
+  const evidence = v.parse(sceneEvidenceSchema, raw);
+  if (new Set(expected.creatures).size !== expected.creatures.length || new Set(evidence.creatures.map(row => row.id)).size !== evidence.creatures.length) throw new Error('Duplicate creature proof identity');
+  for (const id of expected.creatures) {
+    const view = evidence.creatures.find(row => row.id === id);
+    if (view === undefined || !view.bound || !view.attached || !view.visible || !view.finitePose || !view.matchesNative || view.vertices < 3 || view.bones < 1) throw new Error(`Missing real bound creature view: ${id}`);
+  }
+  if (evidence.selectedInteraction !== expected.selectedInteraction) throw new Error('Actual page prompt selection differs');
+  return evidence;
+}

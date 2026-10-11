@@ -1711,3 +1711,7 @@ required. The retained generator emits the complete untextured GLB and recipe, w
 See the executing [spear author example](../scripts/docs/authoring/spear.ts) and its two-product single-download
 proof in `test/commons-spear.test.ts`. Commons generators may use the SDK and pure format contracts;
 game and engine runtime imports remain refused. This starter has no javelin throwing or animated arms.
+
+## Authored scene interaction proof (OS-F7)
+
+Use a finite interact command naming a declared target to prove its reachable scene, rather than directly enqueueing a numeric event. Use SDK headless.proveSceneClient for actual bound views and page prompt selection. The retained scripts/test-author-scene.mjs builds and enters a real public-author product; negative view/prompt checks and native distance/LOS refusals are required.

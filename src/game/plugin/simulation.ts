@@ -1,3 +1,4 @@
+import { createHeadlessPromptPicker } from './prompts';
 import { GridAssembly } from '../grid/assembly';
 import { GridSimulation } from '../grid/simulation';
 import { ResidencyAllocator } from '../grid/allocator';
@@ -91,6 +92,10 @@ export interface ShardfileSimPorts extends SimHostPorts {
 }
 /** Authoritative handles for UI, quests and the existing client fixed-step driver. */
 export interface ShardfileSimulation {
+  /** Actual page-order prompt selected from native eye position, distance and world LOS. */
+  selectedInteraction: () => string | null;
+  /** Queue the selected authored scene only; absent, farther and occluded prompts refuse. */
+  interact: (id: string) => boolean;
   host: SimHost; lane: ScriptLanePort | undefined; actors: ReadonlyMap<string, number>; quest: DeclaredQuests;
   encounters: ReturnType<typeof installDeclaredEncounters>; water: WaterBodies; colliders: ReadonlyMap<string, PropColliderPort>; dispose: () => void;
   groups: ReadonlyMap<string, DeclaredGroupPolicy>;
@@ -327,7 +332,17 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     if (!host.embedded && !ports.restoring) host.physics.step();
     // Crowd setup is last: all scripts, actor/group controllers, quests, encounters and physics have admitted.
     const crowds = preparedCrowds.install(host, ports.restoring ?? false);
-    return { host, lane, actors, quest, encounters, water, colliders, groups, crowds, movers, dispose: () => { host.dispose(); } };
+    const picker = createHeadlessPromptPicker(host);
+    const prompts = shard.targets.interactions.map((row, act) => ({ act, id: row.id, position: { x: row.at[0], y: row.at[1], z: row.at[2] }, radius: row.radius }));
+    const selectedInteraction = (): string | null => picker.pick(prompts)?.id ?? null;
+    const interact = (id: string): boolean => {
+      const row = shard.targets.interactions.find(target => target.id === id);
+      if (row === undefined) throw new Error('Unknown authored interaction');
+      if (selectedInteraction() !== id) return false;
+      if (lane === undefined) throw new Error('Interaction requires an admitted scene lane');
+      createQuestScriptPorts(lane, hooks, actors).scene(row.scene, host.player.id); return true;
+    };
+    return { selectedInteraction, interact, host, lane, actors, quest, encounters, water, colliders, groups, crowds, movers, dispose: () => { host.dispose(); } };
   } catch (error) { host.dispose(); throw error; }
 }
 

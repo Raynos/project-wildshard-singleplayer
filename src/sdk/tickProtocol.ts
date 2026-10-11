@@ -17,6 +17,7 @@ export const TickCommandSchema = v.variant('kind', [
     commandVersion: v.exactOptional(v.literal(1)), steer: v.exactOptional(v.strictObject({ keyX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), keyY: v.pipe(finite, v.minValue(-1), v.maxValue(1)),
       stickX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), stickY: v.pipe(finite, v.minValue(-1), v.maxValue(1)) })), sprint: v.exactOptional(v.boolean()), crouch: v.exactOptional(v.boolean()) }),
     v.check(command => command.commandVersion === 1 || (command.steer === undefined && command.sprint === undefined && command.crouch === undefined), 'Raw movement requires commandVersion 1')),
+  v.strictObject({ kind: v.literal('interact'), id: text }),
   v.strictObject({ kind: v.literal('script'), actorId: text, value: finite }),
   v.strictObject({ kind: v.literal('event'), type: natural, target: natural, value: finite }),
 ]);

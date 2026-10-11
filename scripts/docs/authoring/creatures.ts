@@ -1,3 +1,4 @@
+import { compileBehaviourModule } from '@wildshard/sdk/buildBehaviour';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 
@@ -31,4 +32,31 @@ export function creaturesExample() {
   shard.creatures.spawns.push({ id: 'hawk.0', species: 'hawk', variant: 'plain', brain: 'hawk',
     strike: null, seed: 9, scale: 1, at: [0, 8, 4], yaw: 0 });
   return parseShardfile(shard);
+}
+
+/** Give the data-only roster real existing platform primitive views; declaration-only creatures fail view proofs. */
+export function visibleCreaturesExample() {
+  const shard = creaturesExample();
+  shard.rows.looks = shard.rows.species.map(row => ({ id: `look.${row.id}`, species: row.id, recipe: 'engine.sphere',
+    parameters: { radius: 0.5, colour: [0.5, 0.5, 0.5] }, material: null,
+    animation: { recipe: 'engine.scale-wave', parameters: { axis: 'y', frequency: 4, amplitude: 0.08, rest: 1, dead: 0.4 } } }));
+  return parseShardfile(shard);
+}
+
+/** Compile an event-controlled beacon beside the live primitive views, using only public author modules. */
+export async function sceneInteractionExample(source: string) {
+  const shard = visibleCreaturesExample();
+  shard.state.shared = [{ id: 101, name: 'door.open', type: 'bool', privacy: 'public', default: false }];
+  shard.sim.scriptTickDivisor = 1;
+  const { bytes, module } = await compileBehaviourModule(source, 2);
+  const resident = bytes.length + 2 * 65536 * 3;
+  shard.files = [{ hash: module, kind: 'wasm', compressed: bytes.length, decoded: bytes.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true }];
+  shard.critical = [module];
+  shard.budgets.sim = { resident, compressed: bytes.length };
+  shard.serverBudget.memory += resident;
+  shard.sim.scripts = [module];
+  shard.sim.bindings = [{ module, entity: 1106943697, actorId: 'actor.player', kind: 'server' }];
+  shard.hooks.scenes = [{ id: 'beacon.light', type: 201, value: 1 }];
+  shard.targets.interactions = [{ id: 'beacon', at: [0, 1.68, 1], radius: 3, label: 'LIGHT BEACON', scene: 'beacon.light' }];
+  return { shard: parseShardfile(shard), assets: new Map([[module, bytes]]) };
 }

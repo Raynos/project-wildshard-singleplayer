@@ -1,3 +1,5 @@
+import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
+import { renderCount } from '@wildshard/engine/render/frameCounter';
 import * as v from 'valibot';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
@@ -383,7 +385,27 @@ export class ShardfileClient {
     }
     runtime.hooks.questFlags = () => sim.host.flags.all; runtime.hooks.adventureFlags = () => sim.host.flags.all;
     if (this.bindings.audioOwner !== 'runtime') installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play) });
-    ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather });
+    ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather,
+      // Read actual live views; an authored spawn or a detached model alone cannot satisfy the author view proof.
+      sceneEvidence: () => {
+        const selected = pickPrompt(runtime.interactables, world.game.camera.position, sim.host.physics);
+        const interaction = selected === undefined ? undefined : source.targets.interactions.find(row => row.label === selected.label && row.at.every((coordinate, axis) => coordinate === selected.position.getComponent(axis)));
+        const creatures = source.creatures.spawns.map(spawn => {
+          const view = this.animals.get(spawn.id), core = sim.host.entities.get(spawn.id);
+          if (view === undefined || core === undefined) throw new Error('Declared creature lacks its live native/view pair');
+          view.mesh.updateMatrixWorld(true); view.mesh.skeleton.update();
+          let visible = true;
+          for (let parent: Object3D | null = view.mesh; parent !== null; parent = parent.parent) visible &&= parent.visible;
+          const materials = Array.isArray(view.mesh.material) ? view.mesh.material : [view.mesh.material];
+          const vertices = view.mesh.geometry.getAttribute('position').count;
+          return { id: spawn.id, bound: view.simulationBound, attached: world.game.scene.getObjectById(view.mesh.id) === view.mesh,
+            visible: visible && materials.some(material => material.visible && material.opacity > 0), vertices,
+            bones: view.mesh.skeleton.bones.length, finitePose: view.mesh.skeleton.boneMatrices !== null && [...view.mesh.skeleton.boneMatrices].every(Number.isFinite),
+            matchesNative: view.position === core.position && [view.mesh.position.x, view.mesh.position.y, view.mesh.position.z].every(Number.isFinite) && Math.abs(view.mesh.scale.y - core.scale) < 0.001 };
+        });
+        return { tick: sim.host.state.tick, frames: renderCount(world.game.renderer), creatures, selectedInteraction: interaction?.id ?? null };
+      },
+    });
     this.bindings.onSimulation?.({ source, simulation: sim, items: items.runtimes, scope: ctx.scope,
       ...(this.bindings.residency === undefined ? {} : { residency: this.bindings.residency.home() }),
       checkpoint: () => !ctx.scope.disposed && checkpoint(), suppressCheckpoint: saver.suppress, setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },

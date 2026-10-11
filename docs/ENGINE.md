@@ -3311,3 +3311,7 @@ describes the authored collider corridor and retained continuation.
 only inside `Player.step`; outside it returns null, including after a refusal.
 Data traversal reads this command rather than sampling input/aim a second time.
 The record sink, command shape, motion math and use/consume order stay unchanged.
+
+## Author scene proof (OS-F7)
+
+Data-only interaction commands use the shipping prompt law (distance, nearest priority and native LOS). SDK headless.proveSceneClient reads the built client's actual native-bound visible skins and selected prompt; it accepts no caller evidence. See [scene proof](authoring/scene-proof.md).

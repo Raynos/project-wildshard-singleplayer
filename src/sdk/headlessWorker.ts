@@ -45,6 +45,7 @@ await runTickWorker(async raw => {
       scriptMicros = 0; effects = []; const numeric = new Map<string, number>(); let player: SimCommand | undefined;
       for (const command of input) {
         if (command.kind === 'player') player = simPlayerCommand(command);
+        else if (command.kind === 'interact') sim.interact(command.id);
         else if (command.kind === 'script') {
           if (!sim.actors.has(command.actorId)) throw new Error('Unknown command actor'); numeric.set(command.actorId, command.value);
         } else { if (sim.lane === undefined) throw new Error('Event requires a script lane'); sim.lane.enqueue({ type: command.type, target: command.target, value: command.value }); }
@@ -66,6 +67,7 @@ await runTickWorker(async raw => {
         const numeric = new Map<string, number>(); let player: SimCommand | undefined;
         for (const command of input) {
           if (command.kind === 'player') { if (player !== undefined) throw new Error('Multiple player commands'); player = simPlayerCommand(command); }
+          else if (command.kind === 'interact') resident.interact(command.id);
           else if (command.kind === 'script') { if (!resident.actors.has(command.actorId)) throw new Error('Unknown command actor'); numeric.set(command.actorId, command.value); }
           else { if (resident.lane === undefined) throw new Error('Event requires a script lane'); resident.lane.enqueue({ type: command.type, target: command.target, value: command.value }); }
         }
