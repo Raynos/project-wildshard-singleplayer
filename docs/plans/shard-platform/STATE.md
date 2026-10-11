@@ -30,17 +30,17 @@
 | Lane | Work |
 |---|---|
 | op-hitch45 | finishing: buildPacing A/B, then stops |
-| op-hitch48 | finishing: Game.ts cap, then stops |
+| op-hitch48 | done: Sim census fix (`9fca2b6ce`); frame-cap patch handed to sp-x2 |
 | op-hitch49 | done: Pine leg rigs sliced (`050505dcc`); Signal activate handed to sp-x2 |
 | sp-x1 | DS0.1 Nalati + Sky move-back · Nalati witness |
-| sp-x2 | DS0.1 Pine leftovers · Signal 117 ms activate frame (install out of runFixed) |
+| sp-x2 | DS0.1 Pine leftovers · Signal 117 ms activate frame · then the frame-cap patch |
 | sp-x4 | DS0.1 Driftwood + Signal move-back (legacy imports: copy, never move) |
 | sp-x5 | DS0.2 game plugin/* · DS0.3 guards · SF77 metric |
 | sp-x6 | DS0.4 scripts → shards · then SF80 non-visual rows |
 
 **Jake picks landed:** G321/G322/G324/G325/G326 (all six public cards shardfile)/G327/G328.
 
-**Follow-up:** fresh SDK install fails until npm has `@loaders.gl/worker-utils@4.5.4`; pin core 4.5.3 if it lingers.
+**Follow-up:** fresh SDK install needs npm `@loaders.gl/worker-utils@4.5.4` (else pin core 4.5.3).
 
 **Decisions:** G290–G328 in the plan; `design-system.md` is the route.
 
