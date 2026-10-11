@@ -135,6 +135,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 
 ## Test harness
 
+- [test-author-brief.mjs](./test-author-brief.mjs)
 - [test-author-scene.mjs](./test-author-scene.mjs)
 - [test-facade-instancing.mjs](./test-facade-instancing.mjs)
 - [test-ios-compressed-upload.mjs](./test-ios-compressed-upload.mjs)
