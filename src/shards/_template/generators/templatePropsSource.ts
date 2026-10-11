@@ -1,22 +1,20 @@
-import { cellGround } from './ground';
 import { Group, type Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
-import { buildTerrain } from '@wildshard/engine/world/terrainField';
-import { TRAIL } from '../data/layout';
-import { Scope } from '@wildshard/engine/app/scope';
-import { RngService } from '@wildshard/engine/core/rng';
-import { WorldRegistry } from '@wildshard/engine/world/registry';
+import { templateHeightAt } from './landscape';
+import { templateScatterRandom } from './landscapeNoise';
 import { buildCellFill, cellCoarse, cellFar, CELL_PIECES } from './cell';
-import { buildTemplateWorld, jumpCoursePads, lanternModel, measureBox, poolMask } from './world';
+import { buildTemplateWorld, jumpCoursePads, lanternModel, measureBox, type TemplatePart } from './world';
 import type { ShardProps } from '@wildshard/format/props';
 import type { PropsBakeSource } from '@wildshard/sdk/bake/props';
 
 /** Actual template generators, captured before merging. Water remains owned by the water declaration. */
 export function templateProps(count = 20): { source: PropsBakeSource; original: Group; dispose: () => void } {
-  const original = new Group(), registry = new WorldRegistry(), scope = new Scope('props.generator');
-  const terrain = buildTerrain(357, { landscape: (x, z, { n }) => poolMask(x, z) ? -3 : n.get(x * 0.015, z * 0.015) * 0.5, trails: TRAIL, cabinSites: [], finish: cellGround }), rng = new RngService(357);
-  buildTemplateWorld({ root: original, scope, piece: (p) => { registry.add(p); }, rng: { stream: (name) => rng.stream(name) }, heightAt: terrain.heightAt }, count);
-  const cell = buildCellFill({ root: original, scope, piece: (p) => { registry.add(p); } });
-  const shape = (id: string): Object3D => { const object = registry.get(id)?.object; if (object === undefined) throw new Error(`Missing template shape ${id}`); return object; };
+  const original = new Group(), pieces: TemplatePart[] = [], resources = new Set<{ dispose: () => void }>(), cleanups: (() => void)[] = [];
+  const scope = { own: (resource: { dispose: () => void }): void => { resources.add(resource); }, onDispose: (cleanup: () => void): void => { cleanups.push(cleanup); } };
+  const piece = (part: TemplatePart): void => { pieces.push(part); };
+  const random = templateScatterRandom();
+  buildTemplateWorld({ root: original, scope, piece, rng: { stream: () => random }, heightAt: templateHeightAt() }, count);
+  const cell = buildCellFill({ root: original, scope, piece });
+  const shape = (id: string): Object3D => { const object = pieces.find(part => part.id === id)?.object; if (object === undefined) throw new Error(`Missing template shape ${id}`); return object; };
   const staticRoot = new Group(); staticRoot.add(shape('template.hut').clone(), shape('template.ramp').clone());
   // G220's cell fill: drawn whole near; the coarse tiles and the far proxy keep its big shapes (no stripes, posts or cubes)
   const cellIds = CELL_PIECES, coarse = new Group(), far = new Group();
@@ -29,9 +27,9 @@ export function templateProps(count = 20): { source: PropsBakeSource; original: 
   // SF16 relocates the course into the cell; this fixture records its same three pads at a bounded practice location.
   const course = jumpCoursePads(30, 90);
   original.add(course.clone());
-  const pool = original.children.find((o) => !registry.pieces.some((p) => p.object === o)); pool?.removeFromParent();
+  const pool = original.children.find((o) => !pieces.some((p) => p.object === o)); pool?.removeFromParent();
   const lamp = lanternModel(); const lampShapes = new Group(); lampShapes.position.copy(lamp.position); for (const o of lamp.children) if (o instanceof Mesh) lampShapes.add(o.clone());
-  const colliders: ShardProps['colliders'] = registry.pieces.filter((p) => (p.colliders?.length ?? 0) > 0).map((p) => ({ id: p.id, panel: p.id === 'template.door' ? p.id : null, initialActive: true, shapes: p.colliders?.map((c) => { if (c.kind !== 'box' && c.kind !== 'treads') throw new Error('Unsupported template collider'); if (c.surface !== undefined && c.surface !== 'wood' && c.surface !== 'stone' && c.surface !== 'metal') throw new Error('Unsupported template surface'); const { surface, ...descriptor } = c; return { ...descriptor, ...(c.kind === 'box' && c.yaw !== undefined ? { yaw: c.yaw === 0 ? 0 : c.yaw } : {}), ...(surface === undefined ? {} : { surface }) }; }) ?? [] }));
+  const colliders: ShardProps['colliders'] = pieces.filter((p) => (p.colliders?.length ?? 0) > 0).map((p) => ({ id: p.id, panel: p.id === 'template.door' ? p.id : null, initialActive: true, shapes: p.colliders?.map((c) => { if (c.surface !== undefined && c.surface !== 'wood' && c.surface !== 'stone' && c.surface !== 'metal') throw new Error('Unsupported template surface'); const { surface, ...descriptor } = c; return { ...descriptor, ...(c.kind === 'box' && c.yaw !== undefined ? { yaw: c.yaw === 0 ? 0 : c.yaw } : {}), ...(surface === undefined ? {} : { surface }) }; }) ?? [] }));
   colliders.push({ id: 'template.jump', panel: 'template.jump', initialActive: false, shapes: course.children.map((pad) => ({ kind: 'box', x: pad.position.x, y: pad.position.y, z: pad.position.z === 0 ? 0 : pad.position.z, hx: 1.5, hy: 0.15, hz: 1.5 })) });
-  return { source: { static: staticRoot, scatter: [{ model, transforms }, cell.posts], panels: [{ id: 'template.door', model: door }, { id: 'template.jump', model: course, visible: false }], colliders, models: [{ id: 'template.lantern', model: lampShapes }], coarse, far }, original, dispose: () => { scope.dispose(); model.geometry.dispose(); model.material.dispose(); } };
+  return { source: { static: staticRoot, scatter: [{ model, transforms }, cell.posts], panels: [{ id: 'template.door', model: door }, { id: 'template.jump', model: course, visible: false }], colliders, models: [{ id: 'template.lantern', model: lampShapes }], coarse, far }, original, dispose: () => { for (const resource of resources) resource.dispose(); for (const cleanup of cleanups) cleanup(); model.geometry.dispose(); model.material.dispose(); } };
 }
