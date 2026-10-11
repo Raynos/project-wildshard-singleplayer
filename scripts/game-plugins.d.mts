@@ -16,7 +16,7 @@ export function gamePluginSurface(root?: string): {
 };
 
 /** Hard export audit: twenty defining plugins, actual registered legacy imports, four named migration tails. */
-export function checkGamePluginExports(root?: string): {
+export function checkGamePluginExports(root?: string, surface?: ReturnType<typeof gamePluginSurface>): {
   failures: string[]; pluginExports: number; legacyExports: number;
   temporary: { key: string; target: string; owner: string; reason: string }[];
 };

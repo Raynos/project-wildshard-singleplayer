@@ -112,9 +112,9 @@ const TEMPORARY_EXPORTS = {
   './systems/looks/surfaceLooks': { target: './systems/looks/surfaceLooks.ts', owner: 'DS1.4', reason: 'Signal material look migration' },
 };
 
-/** Enforce defining plugins and derive compatibility solely from actual registered legacy importers. */
-export function checkGamePluginExports(root = ROOT) {
-  const surface = gamePluginSurface(root), failures = [], temporary = [];
+/** Enforce defining plugins from a fresh scan, or reuse the caller's unchanged surface report. */
+export function checkGamePluginExports(root = ROOT, surface = gamePluginSurface(root)) {
+  const failures = [], temporary = [];
   if (!surface.withinPluginLimit) failures.push(`game plugin exports ${surface.pluginExports} exceed ${surface.limit}`);
   for (const row of surface.entries) {
     if (!row.published) failures.push(`${row.key}: export definition missing`);

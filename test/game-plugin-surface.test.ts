@@ -7,6 +7,10 @@ import { dirname, join } from 'node:path';
 import { expect, it } from 'vitest';
 import { checkGamePluginExports, gamePluginSurface } from '../scripts/game-plugins.mjs';
 
+// The real checkout is immutable within this file; fixture roots below still get a fresh scan after each edit.
+const realSurface = gamePluginSurface();
+const realExportCheck = checkGamePluginExports(undefined, realSurface);
+
 it('keeps frozen compatibility exports visible and detects removed keys or definitions', () => {
   const root = mkdtempSync(join(tmpdir(), 'game-plugin-surface-'));
   const put = (path: string, text: string): void => { const file = join(root, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, text); };
@@ -55,7 +59,7 @@ it('derives compatibility from a registered actual importer and refuses its aban
 });
 
 it('enforces the real export surface and names only the four temporary migration exceptions', () => {
-  const report = checkGamePluginExports();
+  const report = realExportCheck;
   expect(report.failures).toEqual([]);
   expect(report.pluginExports).toBeLessThanOrEqual(20);
   expect(report.temporary.map(row => row.key)).toEqual(['./shardfile/schema', './shardfile/splatTerrain', './shardfile/validate', './systems/looks/surfaceLooks']);
@@ -64,7 +68,7 @@ it('enforces the real export surface and names only the four temporary migration
 
 
 it('keeps every sealed consumer resolved after defining plugin consolidation', () => {
-  const report = gamePluginSurface();
+  const report = realSurface;
   expect(report.unresolved).toEqual([]);
   const frozen = report.entries.filter(row => row.frozenConsumers.length > 0);
   expect(frozen.length).toBeGreaterThan(0);
@@ -77,7 +81,7 @@ it('keeps every sealed consumer resolved after defining plugin consolidation', (
 
 
 it('keeps frozen consumers resolved while retiring live-only product and host exports', () => {
-  const report = gamePluginSurface();
+  const report = realSurface;
   expect(report.unresolved).toEqual([]);
   for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
   for (const key of ["./shardfile/reportCard","./grid/memoryAdmission","./shardfile/revision","./shardfile/terrain","./shardfile/rows","./shardfile/assets","./shardfile/runtime","./shardfile/directorRuntime","./shardfile/assetGraph","./shardfile/validationReceipt","./shardfile/terrainEntries","./shardfile/sourceManifest","./shardfile/socketLiftApproach","./shardfile/clientScripts","./shardfile/nativeGround"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
@@ -87,7 +91,7 @@ it('keeps frozen consumers resolved while retiring live-only product and host ex
 
 
 it('keeps starter recipes on their defining equipment plugin', () => {
-  const report = gamePluginSurface();
+  const report = realSurface;
   expect(report.unresolved).toEqual([]);
   for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
   for (const key of ["./weapons/starterEquipment"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
@@ -97,7 +101,7 @@ it('keeps starter recipes on their defining equipment plugin', () => {
 
 
 it('keeps reward motion on its defining quest plugin', () => {
-  const report = gamePluginSurface();
+  const report = realSurface;
   expect(report.unresolved).toEqual([]);
   for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
   for (const key of ["./quest/rewardMotion"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
@@ -107,7 +111,7 @@ it('keeps reward motion on its defining quest plugin', () => {
 
 
 it('keeps declared item families on their defining weapon plugin', () => {
-  const report = gamePluginSurface();
+  const report = realSurface;
   expect(report.unresolved).toEqual([]);
   for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
   for (const key of ["./systems/items/declared"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
@@ -117,7 +121,7 @@ it('keeps declared item families on their defining weapon plugin', () => {
 
 
 it('defines boot admission and prompt selection without compatibility wrappers', () => {
-  const report = gamePluginSurface();
+  const report = realSurface;
   expect(report.unresolved).toEqual([]);
   for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
   for (const key of ["./grid/recoveryBoot","./grid/pageBoot","./plugin/clientScript"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
@@ -127,7 +131,7 @@ it('defines boot admission and prompt selection without compatibility wrappers',
 
 
 it('defines boot admission and prompt selection without compatibility wrappers', () => {
-  const report = gamePluginSurface();
+  const report = realSurface;
   expect(report.unresolved).toEqual([]);
   for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
   for (const key of ["./shardfile/loader","./plugin/boot"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
@@ -137,7 +141,7 @@ it('defines boot admission and prompt selection without compatibility wrappers',
 
 
 it('defines boot admission and prompt selection without compatibility wrappers', () => {
-  const report = gamePluginSurface();
+  const report = realSurface;
   expect(report.unresolved).toEqual([]);
   for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
   for (const key of ["./shardfile/simulation","./plugin/models"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
@@ -146,8 +150,8 @@ it('defines boot admission and prompt selection without compatibility wrappers',
 });
 
 it('defines traversal laws in the mover plugin without a twenty-first public plugin', () => {
-  const report = gamePluginSurface();
-  expect(checkGamePluginExports().failures).toEqual([]);
+  const report = realSurface;
+  expect(realExportCheck.failures).toEqual([]);
   expect(report.pluginExports).toBeLessThanOrEqual(20);
   expect(report.entries.some(row => row.key === './plugin/playerMode')).toBe(false);
   expect(report.entries.find(row => row.key === './plugin/mover')).toMatchObject({ published: true, target: './plugin/mover.ts' });
