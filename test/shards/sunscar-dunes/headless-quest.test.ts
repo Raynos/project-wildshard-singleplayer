@@ -11,13 +11,14 @@ import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
-import { brazierFlag } from '../../../src/shards/sunscar-dunes/data/brazierFlag';
 import { COMPLETE_FLAG } from '../../../src/shards/sunscar-dunes/data/signalQuest';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
 import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/headlessRows';
 import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/quests';
 import { SIGNAL_GRAPH } from '../../../src/shards/sunscar-dunes/data/signalGraph';
 import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/data/signalInteractions';
+
+const brazierFlag = (i: number): string => `${FLAG.brazierPrefix}${String(i)}`;
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(`src/shards/sunscar-dunes/assets/${file.hash}`))]));

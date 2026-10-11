@@ -8,7 +8,8 @@ import { InteractionRules, type InteractionResult } from '../../../src/game/ques
 import { SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/data/signalInteractions';
 import { FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
 import { BRAZIERS } from '../../../src/shards/sunscar-dunes/data/layout';
-import { brazierFlag } from '../../../src/shards/sunscar-dunes/data/brazierFlag';
+
+const brazierFlag = (i: number): string => `${FLAG.brazierPrefix}${String(i)}`;
 
 const fresh = (): { flags: Flags; rules: InteractionRules; order: string[] } => {
   const flags = new Flags('test:sunscar-interactions', false), order: string[] = [];

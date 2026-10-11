@@ -1,7 +1,6 @@
 import { parseInteractionRows } from '@wildshard/sdk/interactions';
 import { BRAZIERS } from './layout';
 import { FLAG, SCOUT_FLAG } from './flags';
-import { brazierFlag } from './brazierFlag';
 
 /** The script command actor that carries Signal's interactions (`{ kind: 'script', actorId, value: SIGNAL_ACT.* }`). */
 export const SIGNAL_INTERACT = 'sunscar.interact';
@@ -35,6 +34,6 @@ export const SIGNAL_INTERACTIONS = parseInteractionRows({
     // the double crack's first lash wraps the crank and its second pulls (world/build.ts); a light crack only rattles it
     { id: 'crank', act: SIGNAL_ACT.crank, at: 'crack.well.crank', crack: 'heavy', needs: [{ none: ['raised'], else: 'already' }], sets: ['raised'] },
     ...each(i => ({ id: `light.${String(i)}`, act: SIGNAL_ACT.light + i, at: `crack.brazier.${String(i)}`, crack: 'light',
-      needs: [{ none: [lit(i)], else: 'already' }, { all: [oiled(i)], else: 'unoiled' }], sets: [lit(i), brazierFlag(i)] })),
+      needs: [{ none: [lit(i)], else: 'already' }, { all: [oiled(i)], else: 'unoiled' }], sets: [lit(i), `${FLAG.brazierPrefix}${String(i)}`] })),
   ],
 });
