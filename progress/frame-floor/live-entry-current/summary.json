@@ -362,8 +362,48 @@
   ],
   "missing": [
     "Sky drive timed out; no timing verdict",
-    "Desktop matched control",
-    "Normal-road readiness on latest image-wait source"
+    "Nalati short-entry p95 still 36 > 35",
+    "Ready before normal-speed road arrival fails; no pop-in observed"
   ],
-  "rootStrict": "d87f1f511 committed-source export passed"
+  "rootStrict": "d87f1f511 committed-source export passed",
+  "desktopControl": {
+    "before": "88b76f10c",
+    "after": "fe363a5d0",
+    "beforeP95Ms": 16.8,
+    "afterP95Ms": 16.8,
+    "beforeMaxMs": 66.7,
+    "afterMaxMs": 50.1,
+    "framesEach": 930
+  },
+  "nalatiNormalRoad": {
+    "pin": "20f2b2cb2",
+    "p95Ms": 35,
+    "maxMs": 88,
+    "frames": 1260,
+    "elapsedSeconds": 40.663,
+    "pendingFirstSeconds": 12.027,
+    "wallFirstSeconds": 13.626,
+    "wallLastSeconds": 30.642,
+    "firstVisible": {
+      "seconds": 31.734,
+      "x": 305.34945569055344,
+      "ready": true
+    },
+    "worldMs": 4084,
+    "afterKitMs": 545,
+    "playMs": 267,
+    "afterPlayMs": 11379,
+    "readyBeforeArrival": false
+  },
+  "controlWindow": {
+    "start": "2026-10-11T07:30:12Z",
+    "end": "2026-10-11T07:34:14Z"
+  },
+  "desktopProfile": {
+    "timingCredit": false,
+    "longTasks": 1,
+    "longTaskMs": 50,
+    "topSelf": "getProgramParameter: 15 ms",
+    "note": "Diagnostic desktop sampling; not a decomposition of Simulator frames."
+  }
 }
