@@ -26,7 +26,7 @@ const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
  *  subpath is public (in the package's `exports`) is the `public-index` check's job; a deep one maps to its file so it
  *  is reported (it does not resolve at build time either). */
-const LAYER_PACKAGE = /^@wildshard\/(engine|game|sdk|commons)(?:\/([^?]+))?/u;
+const LAYER_PACKAGE = /^@wildshard\/(engine|format|game|sdk|commons)(?:\/([^?]+))?/u;
 const packageTarget = (source) => {
   const m = LAYER_PACKAGE.exec(source);
   if (!m) return null;
@@ -285,9 +285,9 @@ const modulePath = (filename, source) => {
   return relative(REPO, resolve(dirname(filename), source)).replaceAll('\\', '/').replace(/^.*\/src\//u, 'src/');
 };
 const layerOf = (path) => {
-  const match = /^src\/(engine|game|sdk|commons|shards)(?:\/([^/]+)?)?$/u.exec(path) ?? /^src\/(engine|game|sdk|commons|shards)\/([^/]+)?/u.exec(path);
+  const match = /^src\/(engine|format|game|sdk|commons|shards)(?:\/([^/]+)?)?$/u.exec(path) ?? /^src\/(engine|format|game|sdk|commons|shards)\/([^/]+)?/u.exec(path);
   if (!match) return /^src\/[^/]+$/u.test(path) ? { name: 'app', rank: 6, slug: null } : null;
-  return { name: match[1], rank: ['engine', 'game', 'sdk', 'commons', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
+  return { name: match[1], rank: ['engine', 'format', 'game', 'sdk', 'commons', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
 };
 const engineWords = JSON.parse(readFileSync(new URL('engine-words.json', import.meta.url), 'utf8'));
 const generatedWordsFile = new URL('shard-words.generated.json', import.meta.url);
@@ -336,7 +336,7 @@ function contractField(node) {
 const layerWalk = (kind) => (context) => {
   const own = layerOf(pathOf(context));
   // E405 AG23: every src file sits in a layer; a new top-level src/<dir>/ would escape all of them.
-  if (!own) return kind === 'layer' && pathOf(context).startsWith('src/') ? { Program(node) { report(context, node, `File outside the engine / game / sdk / commons / shards layers: ${pathOf(context)}`); } } : {};
+  if (!own) return kind === 'layer' && pathOf(context).startsWith('src/') ? { Program(node) { report(context, node, `File outside the engine / format / game / sdk / commons / shards layers: ${pathOf(context)}`); } } : {};
   if (kind === 'words') {
     if (own.name !== 'engine') return {};
     const words = (node, text) => {
@@ -362,6 +362,10 @@ const layerWalk = (kind) => (context) => {
     if (typeof source !== 'string' || source === '') return;
     const targetPath = modulePath(context.filename, source);
     const target = layerOf(targetPath);
+    if (kind === 'layer' && own.name === 'format' && target?.name !== 'format' && source !== 'valibot') {
+      report(context, node, `Format imports only valibot or its own defining modules: ${source}`);
+      return;
+    }
     // SF54: @wildshard/kit is dissolved; a workspace specifier names one of the layer packages or nothing
     if (kind === 'layer' && source.startsWith('@wildshard/') && packageTarget(source) === null) report(context, node, `No such layer package: ${source}`);
     if (kind === 'layer' && own.name === 'commons' && target && !['commons', 'sdk'].includes(target.name)) report(context, node, `Commons author tools import only the SDK: ${source}`);
@@ -386,7 +390,7 @@ const layerWalk = (kind) => (context) => {
     const publicPath = !dynamic && (exported(source) || new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath));
     if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
       if (kind === 'layer') report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
-    } else if (kind === 'public' && own.name !== target.name && ['engine', 'game', 'sdk', 'commons'].includes(target.name) && !publicPath) {
+    } else if (kind === 'public' && own.name !== target.name && ['engine', 'format', 'game', 'sdk', 'commons'].includes(target.name) && !publicPath) {
       report(context, node, `Cross-layer imports use the public index: ${source}`);
     }
   };

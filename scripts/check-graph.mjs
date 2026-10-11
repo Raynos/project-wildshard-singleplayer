@@ -29,9 +29,9 @@ export function headModuleExists(path, tracked, diskExists) {
   return tracked.has(path) || (/\.generated\.[cm]?[jt]sx?$/u.test(path) && diskExists(path));
 }
 
-/** the layer a src path belongs to: engine, game, sdk, commons, shards/<slug>, root */
+/** the layer a src path belongs to: engine, format, game, sdk, commons, shards/<slug>, root */
 export function layerOf(path) {
-  const m = /^src\/(engine|game|sdk|commons)\//u.exec(path);
+  const m = /^src\/(engine|format|game|sdk|commons)\//u.exec(path);
   if (m) return m[1];
   const s = /^src\/shards\/([^/]+)\//u.exec(path);
   if (s) return `shards/${s[1]}`;
@@ -41,7 +41,7 @@ export function layerOf(path) {
 /** a specifier → a repo path under src (or null for a package, an asset, or anything outside src) */
 export function resolveSpecifier(from, spec, exists) {
   let base;
-  const pkg = /^@wildshard\/(engine|game|sdk|commons)(?:\/(.+))?$/u.exec(spec); // E432: the layers' workspace packages
+  const pkg = /^@wildshard\/(engine|format|game|sdk|commons)(?:\/(.+))?$/u.exec(spec); // E432: the layers' workspace packages
   // the #aliases are how commits before E432 spelled the same edges (the rise check reads the parent commit's graph)
   const legacy = /^#(engine|game|kit|shards)(?:\/(.+))?$/u.exec(spec);
   if (pkg) { const [, layer, sub = 'index'] = pkg; base = `src/${layer}/${sub}`; }
@@ -104,7 +104,7 @@ function sourceFiles() {
  * and `shard-sandbox` lint rules refuse upward imports, the reach check below refuses one shard reaching into another,
  * and the two-way (cycle) check still sees every edge. Every other pair (game → engine, sdk → game, root → …) is counted.
  */
-export const APPROVED_DOWNWARD = /^shards\/[^ ]+ → (engine|game|sdk|commons)$/u;
+export const APPROVED_DOWNWARD = /^shards\/[^ ]+ → (engine|format|game|sdk|commons)$/u;
 /** the counts of cross-layer edges: { 'game → engine': 887, … } (minus APPROVED_DOWNWARD) and the reach violations */
 const EMPTY_FROZEN = { shards: {} };
 /** Frozen sources remain in every reach/cycle check; only reviewed file identities leave the measured counts. */

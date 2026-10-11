@@ -2731,3 +2731,11 @@ The page-bound physics producers still need their G320 authoring-only conversion
 used by multiple shards. It resolves directly to `systems/looks/shaderFamily.ts`;
 the historical export and defining file remain intact for frozen consumers.
 Trusted `runtime/` consumers use the plugin key; no facade or duplicate implementation is installed.
+
+### Format boundary (G313)
+
+`@wildshard/format` is the dependency-free shardfile contract layer. Its explicit
+package exports name defining schema modules; there is no barrel. The layer and
+public-index guards recognise it between engine and game. Format imports only
+`valibot` and its own modules; game and the authoring SDK may import its published
+modules. Engine cannot import it, and private schema paths remain refused.
