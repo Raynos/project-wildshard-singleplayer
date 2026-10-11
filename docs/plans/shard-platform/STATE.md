@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-11 10:55 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
+**2026-10-11 15:45 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
 
 **Milestones**
 - **M1:** done.
@@ -11,7 +11,7 @@
 - **Frame floor:** desktop all routes pass (return 100 ms on the line); Simulator travel/spawn/drive pass at ≤35 p95; open: outbound 277 ms, Nalati 19.7 s cold wait.
 - **M3:** **0 of 6 at 80/20** under Jake's measure.
 
-**Live:** production `f3c1f5f-mv3wnszj`; queue drained. **sp-x7 = gate/CI/deploy lane (G330).**
+**Live:** production `1d378b7ba-mv49rdxs`; queue drained. **sp-x7 = gate/CI/deploy lane (G330).**
 
 **Queue:** `open-x-queue.md` (open engineering, 10-11 sweep). **Red → green (G330):** `red-green.md` (5 reds fixed 10-11).
 
@@ -33,7 +33,8 @@
 | Lane | Work |
 |---|---|
 | sp-x1 | frame floor: milestone rerun on HEAD (gate job handed to sp-x7) |
-| sp-x7 | gate/CI/deploy first responder · SF74 tails, SF60 |
+| sp-x7 | gate/CI/deploy (G330) · E476 pusher messages · SF74 tails |
+| sp-tidy | git tidy (G331): commit the backlog in small commits; .gitignore junk |
 | sp-x2 | Nalati cold arrival 0 s (`8d8ae2711`) · every cell's arrival readiness |
 | sp-x4 | ports at non-graphical floor (Driftwood, Nalati) · OS-F8 · SF22 Safari cadence |
 | sp-x5 | OS-F1/F2/F10 done · one-shot run 2 · then SF82 BR-1/2/4/5 |
