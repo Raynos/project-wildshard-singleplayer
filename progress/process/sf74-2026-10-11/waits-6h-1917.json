@@ -1,0 +1,30 @@
+{
+  "at": "2026-10-11T19:16:57.221056+00:00",
+  "hours": 6.0,
+  "counts": {
+    "codex_calls": 4572,
+    "codex_outputs": 4569,
+    "codex_sleep_calls": 318,
+    "codex_repository_transcripts": 6,
+    "codex_foreign_sessions_excluded": 32,
+    "codex_index_lock_error_outputs": 1,
+    "claude_calls": 141,
+    "claude_outputs": 141,
+    "claude_poll_candidate_calls": 5,
+    "claude_repository_transcripts": 1
+  },
+  "seconds": {
+    "codex_sleep_elapsed": 15187.597,
+    "codex_sleep_requested": 15318.0,
+    "claude_poll_candidate_elapsed": 8.343,
+    "codex_transcript_span": 129357.517,
+    "claude_transcript_span": 21598.585
+  },
+  "limitations": [
+    "Transcript spans can overlap or include copied history.",
+    "Sleep and poll command time includes authorized standing watches; no waste classification.",
+    "Bash poll candidates match a regex that can include mentions inside commands; no shell execution inference.",
+    "Index-lock errors count tool-result records, not measured lock hold time.",
+    "No raw transcript content is emitted."
+  ]
+}

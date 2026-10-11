@@ -33,6 +33,11 @@ lines. It excludes quoted source code that merely names the error. This covers t
 not every terminal or automatic pusher output, and does not measure lock hold times; no machine-wide zero-contention
 claim follows. Reproduce with `python3 progress/process/sf74-2026-10-11/measure-waits.py --hours 4` (or `--hours 6`).
 Only aggregates are retained in [waits-4h.json](waits-4h.json) and [waits-6h.json](waits-6h.json).
+A second six-hour sample at **19:17 UTC** finds **one actual index-lock error** across 4,569 Codex and 141 Claude
+tool-result records. The affected source-loader commit succeeded on the next attempt after the foreign lock was
+released; no lock was deleted. Its 318 paired sleeps total 15,187.6 s across concurrent lanes and include the standing
+watch. This is an observed collision, not a lock-hold-time measurement or a waste verdict. The aggregate is retained
+in [waits-6h-1917.json](waits-6h-1917.json).
 
 W23's duration refresh `64f25a011` retains all 1,168 previously measured files and adds 266. The actual duration cache
 now uses each file's current project. Using these measurements to score both packings, the unit spread falls from
