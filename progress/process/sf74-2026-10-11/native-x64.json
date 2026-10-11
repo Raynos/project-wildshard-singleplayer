@@ -1,0 +1,83 @@
+{
+  "sha": "dbcef52f5cacfa87d63987dbafd9d49e6ae795b5",
+  "node": "v24.18.1",
+  "reports": [
+    {
+      "slug": "nalati-grasslands",
+      "mode": "slice-replay",
+      "status": 1,
+      "armSeconds": 1.81,
+      "x64Seconds": 4.744,
+      "bytes": 658,
+      "sha256": "c1f2b987e0eecfb114034a4aa61cf0b64a1b43d56dceb47913b19e46fd245186",
+      "diagnosticsBytes": 0,
+      "diagnosticsSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "slug": "driftwood-isle",
+      "mode": "headless",
+      "status": 0,
+      "armSeconds": 4.234,
+      "x64Seconds": 19.656,
+      "bytes": 1660,
+      "sha256": "64b88a9ef648c65c5eb02dfc65396d914d142450f125d9ac91e1055b4120b0ec",
+      "diagnosticsBytes": 0,
+      "diagnosticsSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "slug": "pine-hollow",
+      "mode": "replay",
+      "status": 0,
+      "armSeconds": 9.035,
+      "x64Seconds": 16.195,
+      "bytes": 436,
+      "sha256": "d85d2629728cf57bacb7be118ab16973761a39bd75c90dd75563bc724838806e",
+      "diagnosticsBytes": 0,
+      "diagnosticsSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "slug": "sunscar-dunes",
+      "mode": "all",
+      "status": 0,
+      "armSeconds": 9.124,
+      "x64Seconds": 80.714,
+      "bytes": 1290,
+      "sha256": "6b107266ded6534858c68a59e6556f0b26b6505a3e715896fca7362d163f9bb7",
+      "diagnosticsBytes": 0,
+      "diagnosticsSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "slug": "nine-dragon-stack",
+      "mode": "replay-ride",
+      "status": 0,
+      "armSeconds": 6.221,
+      "x64Seconds": 56.457,
+      "bytes": 2642,
+      "sha256": "5d624ef5796bb1d8c9e10b2bf81a4d8195a62c0fff8cad80c8912b08e87b6ac9",
+      "diagnosticsBytes": 0,
+      "diagnosticsSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "slug": "nine-dragon-stack",
+      "mode": "replay-crossing",
+      "status": 0,
+      "armSeconds": 12.914,
+      "x64Seconds": 19.403,
+      "bytes": 2630,
+      "sha256": "f95ad2c84405af7620bd616982379fc8813d8a78bbb824f12967d07d9f1de21f",
+      "diagnosticsBytes": 0,
+      "diagnosticsSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "slug": "far-reach",
+      "mode": "slice-replay",
+      "status": 0,
+      "armSeconds": 8.525,
+      "x64Seconds": 20.152,
+      "bytes": 496,
+      "sha256": "af8f16c61fa11397922a2c2bd9e6b9a3850fbddb03d91f77e279aef12ba6cff3",
+      "diagnosticsBytes": 0,
+      "diagnosticsSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

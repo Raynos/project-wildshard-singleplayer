@@ -23,10 +23,16 @@ layer edges 25, King collision input hashes 14 and script inventory seven. These
 rows are already excluded; the remaining churn is largely witness provenance and other retained gates. This census
 requires no new allowance or removal of a proof.
 
-The original transcript census records 5.2 hours of explicit Codex sleep. It does not distinguish the coordinator's
-required standing first-responder watch from wasteful proof polling, so it cannot close W21. W14 likewise remains
-open: the tool-output lock census found no matching index-lock errors, but has not independently qualified transcript
-coverage or measured lock hold times. No zero-contention claim follows from that count.
+The repository-scoped W21 remeasurement at 18:10 UTC covers six Codex transcripts and one Claude transcript,
+deduplicating tool IDs and excluding 27 foreign Codex sessions. It finds **202 paired Codex sleeps, 9,650 elapsed
+seconds (2.68 h)**, versus 9,770 requested seconds. The two Claude Bash regex candidates total 5.85 s; this includes
+commands mentioning polling and is not a shell execution measurement. The coordinator's required standing watch
+is included, so this cannot classify all sleep as waste or close W21.
+The W14 six-hour census covers 4,580 Codex and 166 Claude tool-result records and finds zero actual fatal index-lock
+lines. It excludes quoted source code that merely names the error. This covers the available repository transcripts,
+not every terminal or automatic pusher output, and does not measure lock hold times; no machine-wide zero-contention
+claim follows. Reproduce with `python3 progress/process/sf74-2026-10-11/measure-waits.py --hours 4` (or `--hours 6`).
+Only aggregates are retained in [waits-4h.json](waits-4h.json) and [waits-6h.json](waits-6h.json).
 
 W23's duration refresh `64f25a011` retains all 1,168 previously measured files and adds 266. The actual duration cache
 now uses each file's current project. Using these measurements to score both packings, the unit spread falls from
@@ -36,8 +42,22 @@ once. These are estimates; the next Linux push CI must supply the wall-clock res
 W25 `59fb456cd` adds exact clean-export typecheck, lint, CSS, shard/plugin contract and Node-baker probes, combined
 with failed test files. The live mixed lint/test red at `bd3e549ff` identifies `784665f49`, checks regeneration and
 all four witness fences, and selects `c318474ff` for the complete gate. Unsupported build/browser failures and stale
-historical outputs still refuse a prefix. No regeneration is inserted under shared main. W25's stale-prefix tail
-therefore remains open.
+historical outputs still refuse a prefix. No regeneration is inserted under shared main. Follow-up `37f609d29`
+adds the existing map and six native physics freshness tests before the complete candidate gate. Actual historical
+`13547292d` refuses in 37.96 s (11 s of checks), while exact-green `c318474ff` accepts in 21.02 s (4 s of checks).
+This prevents newest-red-only probes from admitting an earlier stale bake and wasting another roughly 320-second
+complete gate. Regeneration-stale historical prefixes still refuse; that remaining W25 tail stays open.
+
+W28's heavy native sweep at exact `dbcef52f5` passes on matching Node **24.18.1 arm64 and Darwin x64**, in 281 s
+including the clean committed export. All seven reports are byte-identical: Nalati's declared partial replay refusal,
+Driftwood headless, Pine replay, Signal whole tape, both Nine worker replays and Sky worker replay. The aggregate
+hashes/timings are in [native-x64.json](native-x64.json); reproduce with
+`node progress/process/sf74-2026-10-11/prove-native-x64.mjs dbcef52f5`.
+Sky initially refused on x64 because its recorder and actual worker entry did not install the established portable
+math. `dbcef52f5` deliberately records portable checkpoints: the actual arm64/x64 manifest, exact 60-tick worker
+replay and whole spawn-to-Roc report match byte-for-byte. Four focused proof tests and typed lint pass. No gameplay,
+collider, deadline or assertion changed. This qualifies these native reports on Darwin x64; Linux CI remains a
+separate qualification, and Nalati remains partial.
 
 Nightly coverage's authoring inventory/compiler timeouts are addressed by `5077bb26e`, retaining the existing
 10/20-second deadlines in the serial integration pool; exact inventory follow-up `40401f178`. Clean focused coverage
@@ -48,12 +68,13 @@ Nine's concrete disposal regression has the focused before/after proof and fix `
 
 ## SF60 daily receipt
 
-Production independently serves **8a29173-mv421b2l**, built at **16:46:02.240 UTC**, from exact commit
-`8a29173dd15159bccd36e606b525a743c6d6f97f`. Push CI `38154910894`, exact-SHA boot/HOVER smoke `38155362519`, and release
-`38156525798` passed. The live commit's What's New card is dated **8 OCT 2026**. A current daily card, every-entry
+Production independently serves **c318474-mv44h2ta**, built at **17:54:20.490 UTC**, from exact commit
+`c318474fffde4044a8562d81acf681783d9b9537`. Push CI `38158959585`, exact-SHA boot/HOVER smoke `38159367449`, and release
+`38161318176` passed. The live commit's What's New card is dated **8 OCT 2026**. A current daily card, every-entry
 Simulator playtest/top-ten receipt and one-day hourly release proof are still absent from this receipt.
 
 Backstop `c318474ff` fixes the observed 16:47 dispatch only five minutes after the 16:41 recovery: it checks the same
 hourly slot as boot smoke before every attempt, refuses unreadable/API failures, and installs Node on launchd's PATH.
 Twenty shell/selector tests pass; real installed dry-run refuses the occupied slot. The shared hourly limit, exact-SHA
-proofs and fail-closed selector remain intact. No extra release was dispatched for this measurement.
+proofs and fail-closed selector remain intact. The official backstop dispatched at **17:50:30 UTC**, after the shared
+slot explicitly returned free, and shipped the new id above. No subsequent release is allowed before 18:50:30 UTC.
