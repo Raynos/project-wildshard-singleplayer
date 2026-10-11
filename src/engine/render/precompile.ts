@@ -12,7 +12,7 @@ import { chunkShadowCastersSliced } from '../world/shadowChunks';
 import { recordGpuCheckpoint } from '../boot/gpuTrace';
 import { familyCompileJobs } from './families/registry';
 import { shaderPatchTextures } from './shaderPatches';
-import { breakCompressedUploadPaintSharing, uploadCompressedTexture } from './compressedUpload';
+import { uploadCompressedTexture } from './compressedUpload';
 import { linkStandIn } from '../app/sceneOwnership';
 import { offscreenPreparations } from './offscreenPreparation';
 import { waitMaterialPreparations } from './materialPreparation';
@@ -644,7 +644,6 @@ export async function runPrecompile(
   pause: () => Promise<void> = frame,
   uploadBudget?: UploadBudget,
   onStage?: PrecompileStage,
-  shareUploadPaints = false,
 ): Promise<PrecompileReport> {
   // Page siblings can retire while a neighbour's preparation yields. The inventory is
   // borrowed: disposal cancels only that resource's upload, not the live neighbour.
@@ -655,14 +654,14 @@ export async function runPrecompile(
     watched.add(texture); observer.listenOnceEmitter(texture, 'dispose', () => { retired.add(texture); });
   };
   for (const texture of textures) watch(texture);
-  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget, onStage, shareUploadPaints); }
+  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget, onStage); }
   finally { observer.dispose(); }
 }
 
 async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress: ((done: number, total: number, detail: string) => void) | undefined, textures: THREE.Texture[],
   current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void, isolateImageUploads: boolean, pause: () => Promise<void>,
-  uploadBudget: UploadBudget | undefined, onStage: PrecompileStage | undefined, shareUploadPaints: boolean): Promise<PrecompileReport> {
+  uploadBudget: UploadBudget | undefined, onStage: PrecompileStage | undefined): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
   const borrowed = new Set<THREE.Material>();
@@ -777,7 +776,6 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // op-hitch32: with an upload budget, live preparation batches image uploads per frame under it: several instead of one
   // when isolated, and a predicted overshoot waits for the next frame instead of the 12 ms check after the fact.
   const batch = uploadBudget !== undefined ? newUploadBatch(uploadBudget) : undefined;
-  let compressedPaints: boolean | symbol = shareUploadPaints ? Symbol('compressed-upload-group') : false;
   for (const [i, tex] of uploadTextures.entries()) {
     checkCurrent();
     const compressed = tex instanceof THREE.CompressedTexture;
@@ -787,12 +785,9 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const tUpload = performance.now();
     if (!retired.has(tex)) {
       if (compressed) {
-        try { await uploadCompressedTexture(renderer, tex, () => current() && !retired.has(tex), true, compressedPaints); }
+        try { await uploadCompressedTexture(renderer, tex, () => current() && !retired.has(tex), true); }
         catch (error) { if (!retired.has(tex)) throw error; }
       } else {
-        // An image upload breaks the consecutive compressed group: require a fresh leading paint.
-        if (shareUploadPaints) compressedPaints = Symbol('compressed-upload-group');
-        breakCompressedUploadPaintSharing(renderer);
         renderer.initTexture(tex);
       }
     }
@@ -836,7 +831,6 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** Yield after each image upload during live preparation; ordinary boot keeps batched uploads. */ isolateImageUploads?: boolean;
     /** A live presentation barrier; initial boot keeps the ordinary browser paint opportunity. */ pause?: () => Promise<void>;
     /** Batch image uploads per frame under this budget (op-hitch32): several when isolated, none started past it. */ uploadBudget?: UploadBudget;
-    /** Opt-in shared boundary paints between compressed uploads; keeps distinct upload frames and every error fence. */ shareUploadPaints?: boolean;
     /** Optional scalar stage timings, including painted waits. Does not retain materials or native handles. */ onStage?: PrecompileStage } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
@@ -886,7 +880,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     if (policy?.scene !== false) jobs.push(...exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per));
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
-    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage, options.shareUploadPaints);
+    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage);
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
     return report.materials;
   

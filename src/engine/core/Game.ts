@@ -8,7 +8,6 @@ import type { Phase } from '../app/systems';
 import { currentOwner, enterOwner } from '../app/ownership';
 import * as THREE from 'three';
 import { createRenderer, type Renderer } from '../render/renderer';
-import { setCompressedUploadPaintSharing } from '../render/compressedUpload';
 import { CAMERA_FOV } from './config';
 import {
   EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
@@ -384,7 +383,6 @@ export class Game {
       if (tracedBoot) recordBootCheckpoint('renderer:failed', { message: error instanceof Error ? error.message.slice(0, 250) : String(error).slice(0, 250) });
       throw error;
     }
-    if (setting('buildPacing') === 'shared-paints') setCompressedUploadPaintSharing(this.renderer, true);
     if (tracedBoot) recordGpuCheckpoint(this.renderer, 'renderer:created');
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, TIER_CONFIG.dpr));
     this.renderer.setSize(window.innerWidth, viewportHeight());
@@ -757,7 +755,6 @@ export class Game {
       : setting('buildPacing') === 'uploads' ? SLICED_UPLOAD_BUDGET : undefined;
     const shaderStart = diagnosticNow();
     await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage,
-      shareUploadPaints: setting('buildPacing') === 'shared-paints',
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
     const { warmParkedDraws, warmOffscreenPasses } = await import('../render/parkedDraws');
@@ -962,7 +959,7 @@ export class Game {
     // op-hitch26: sliced builds in play pace themselves to these frames only with the default-off Developer tool on
     setFramePacing(setting('buildPacing') !== 'off');
     this.engineScope.onDispose(onSettingChange('buildPacing', (v) => {
-      setFramePacing(v !== 'off'); setCompressedUploadPaintSharing(this.renderer, v === 'shared-paints');
+      setFramePacing(v !== 'off');
     }));
     setLoopState('running');
     loop();

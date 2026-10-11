@@ -7,7 +7,6 @@ import { initKtx2, ktx2Layers, ktx2Texture, linearKtx2Texture, prepareCompressed
 import { TIER_CONFIG } from './tier';
 import { workSlice } from './workSlice';
 import type { Renderer } from '../render/renderer';
-import { breakCompressedUploadPaintSharing } from '../render/compressedUpload';
 import { labelAsset, labelObjectTree } from '../render/gpuLabels';
 import { memorySaverOn, releaseOnUpload } from '../render/memorySaver';
 
@@ -174,7 +173,6 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
     const n = Math.min(size, Math.max(1, ...layers.map((l) => Math.max(l.width, l.height))));
     const t = finish(new THREE.DataArrayTexture(null, n, n, ids.length), srgb, kind);
     t.source.dataReady = false;          // allocate the storage (texStorage3D, all mip levels), upload nothing
-    breakCompressedUploadPaintSharing(renderer);
     renderer.initTexture(t);
     let ctx: CanvasRenderingContext2D | null = null;
     // SF63: a layer's copy is a native upload (Pine's twelve were one 26 ms stretch of a 133 ms task on the desktop, entering
@@ -192,7 +190,6 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
       const src = new THREE.Texture(im as HTMLImageElement); // never uploaded itself: copyTextureToTexture reads its image
       src.flipY = false;
       t.generateMipmaps = i === ids.length - 1; // one generateMipmap, after the last layer
-      breakCompressedUploadPaintSharing(renderer);
       renderer.copyTextureToTexture(src, t, null, new THREE.Vector3(0, 0, i));
     }
     t.generateMipmaps = true;

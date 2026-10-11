@@ -163,11 +163,267 @@
         "Rejected before timing: missing saved measurement settings; owned preview had no pre-navigation Safari fixture."
       ],
       "measurements": null
+    },
+    {
+      "setting": "on",
+      "surface": "sim",
+      "complete": true,
+      "waitMs": 4967,
+      "blockedFrames": 135,
+      "visibleBeforeReadyFrames": 0,
+      "p95Ms": 44,
+      "maxMs": 210,
+      "frames": 870,
+      "longFrameHooks": {
+        "phases": null,
+        "kits": null
+      },
+      "errors": [],
+      "contextLost": false,
+      "preparationStages": [
+        {
+          "phase": "compile",
+          "elapsedMs": 5648,
+          "units": 656
+        },
+        {
+          "phase": "link",
+          "elapsedMs": 799,
+          "units": 24
+        },
+        {
+          "phase": "upload",
+          "elapsedMs": 3951,
+          "units": 205
+        },
+        {
+          "phase": "shaders-and-composer",
+          "elapsedMs": 10494,
+          "units": 1
+        },
+        {
+          "phase": "parked-draws",
+          "elapsedMs": 2404,
+          "units": 251
+        },
+        {
+          "phase": "offscreen-draws",
+          "elapsedMs": 4,
+          "units": 0
+        }
+      ],
+      "measurementSettings": {
+        "buildPacing": "on",
+        "graphMaterials": "on",
+        "memorySaver": "off",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "consoleErrors": [
+        {
+          "material": "graph:material",
+          "type": "MeshStandardNodeMaterial",
+          "diagnostic": "GLSL3 varying wsCoarseXZ illegal reserved word; vertex and fragment compilation fails",
+          "count": 1
+        }
+      ],
+      "texturePolicy": "Auto capability probe -> Images",
+      "texturePolicyProbe": "[ktx2] KTX2 probe: SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0 \u2014 no compressed target left for UASTC, ETC1S \u2192 images",
+      "pass": false,
+      "cleanRenderProof": false
+    },
+    {
+      "setting": "shared-paints",
+      "surface": "sim",
+      "complete": true,
+      "waitMs": 6351,
+      "blockedFrames": 186,
+      "visibleBeforeReadyFrames": 0,
+      "p95Ms": 53,
+      "maxMs": 196,
+      "frames": 930,
+      "longFrameHooks": {
+        "phases": null,
+        "kits": null
+      },
+      "errors": [],
+      "contextLost": false,
+      "preparationStages": [
+        {
+          "phase": "compile",
+          "elapsedMs": 5927,
+          "units": 656
+        },
+        {
+          "phase": "link",
+          "elapsedMs": 585,
+          "units": 17
+        },
+        {
+          "phase": "upload",
+          "elapsedMs": 3792.0000000000073,
+          "units": 206
+        },
+        {
+          "phase": "shaders-and-composer",
+          "elapsedMs": 10590.000000000007,
+          "units": 1
+        },
+        {
+          "phase": "parked-draws",
+          "elapsedMs": 2051.9999999999927,
+          "units": 251
+        },
+        {
+          "phase": "offscreen-draws",
+          "elapsedMs": 2,
+          "units": 0
+        }
+      ],
+      "measurementSettings": {
+        "buildPacing": "shared-paints",
+        "graphMaterials": "on",
+        "memorySaver": "off",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "consoleErrors": [
+        {
+          "material": "graph:material",
+          "type": "MeshStandardNodeMaterial",
+          "diagnostic": "GLSL3 varying wsCoarseXZ illegal reserved word; vertex and fragment compilation fails",
+          "count": 1
+        }
+      ],
+      "texturePolicy": "Auto capability probe -> Images",
+      "texturePolicyProbe": "[ktx2] KTX2 probe: SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0 \u2014 no compressed target left for UASTC, ETC1S \u2192 images",
+      "pass": false,
+      "cleanRenderProof": false
     }
   ],
   "conclusion": "No desktop arrival/frame-floor improvement established; both arms violate the desktop maximum. Simulator comparison is unavailable, not zero.",
   "open": [
     "Simulator on/shared-paints pair after sp-x1 diagnostic and held commits.",
     "Physical-device stability/memory reading required before any default flip."
-  ]
+  ],
+  "simulatorWindow": {
+    "pin": "3ab73b7e2e653cc468427082c06465e19a1dc965",
+    "cell": "pine-hollow",
+    "started": "2026-10-11T23:34:35.021171+00:00",
+    "load": "18:34  up 51 days, 11:07, 2 users, load averages: 10.95 8.10 8.41",
+    "released": "2026-10-11T23:38:05.419922+00:00"
+  },
+  "decision": {
+    "status": "retired",
+    "reason": "No measured shipping Auto benefit on desktop or Simulator; remove the shared-paints value and implementation per E451.",
+    "compressedPathBenefit": "not established: Simulator probe selects Images",
+    "renderFaultOwner": "sp-x1",
+    "remainingPineArrivalFailure": true
+  },
+  "retirementProof": {
+    "basePin": "574417281f38cb8b345ad6812c3aa93602647de5",
+    "officialNodeJobs": [
+      {
+        "id": "driftwood-physics",
+        "seconds": 3.928,
+        "outputs": [
+          {
+            "file": "src/shards/driftwood-isle/runtime/physics.baked.json",
+            "payloadExact": true,
+            "beforePayloadSha256": "bca4d96312a5e757717574a0e62fddcfedbaa76bf7056a5caf513e8b13d1a4b1",
+            "afterPayloadSha256": "bca4d96312a5e757717574a0e62fddcfedbaa76bf7056a5caf513e8b13d1a4b1"
+          }
+        ]
+      },
+      {
+        "id": "pine-physics",
+        "seconds": 2.803,
+        "outputs": [
+          {
+            "file": "src/shards/pine-hollow/runtime/physics.baked.json",
+            "payloadExact": true,
+            "beforePayloadSha256": "34015362321c01fa59fa2be8104fb631f1e599b2b5d43efaa7d17ce00498bf98",
+            "afterPayloadSha256": "34015362321c01fa59fa2be8104fb631f1e599b2b5d43efaa7d17ce00498bf98"
+          }
+        ]
+      },
+      {
+        "id": "nalati-physics",
+        "seconds": 3.714,
+        "outputs": [
+          {
+            "file": "src/shards/nalati-grasslands/runtime/physics.baked.json",
+            "payloadExact": true,
+            "beforePayloadSha256": "d7018e5952513c050a0f29a7345ecf8cb5534f0e56a605e20b5e9f4d288f84e9",
+            "afterPayloadSha256": "d7018e5952513c050a0f29a7345ecf8cb5534f0e56a605e20b5e9f4d288f84e9"
+          }
+        ]
+      },
+      {
+        "id": "sky-physics",
+        "seconds": 1.978,
+        "outputs": [
+          {
+            "file": "src/shards/far-reach/runtime/physics.baked.json",
+            "payloadExact": true,
+            "beforePayloadSha256": "9797fd188cdf780d5ee729deaf61a8c7a0aa52484a06b0ba58f8749dc3453c48",
+            "afterPayloadSha256": "9797fd188cdf780d5ee729deaf61a8c7a0aa52484a06b0ba58f8749dc3453c48"
+          }
+        ]
+      },
+      {
+        "id": "signal-physics",
+        "seconds": 1.431,
+        "outputs": [
+          {
+            "file": "src/shards/sunscar-dunes/runtime/physics.baked.json",
+            "payloadExact": true,
+            "beforePayloadSha256": "80eff32d16e94e504c8a302df26fbf866663931c1c2097da8a24e7ac6ce8a065",
+            "afterPayloadSha256": "80eff32d16e94e504c8a302df26fbf866663931c1c2097da8a24e7ac6ce8a065"
+          }
+        ]
+      },
+      {
+        "id": "nine-physics",
+        "seconds": 3.48,
+        "outputs": [
+          {
+            "file": "src/shards/nine-dragon-stack/runtime/physics.baked.json",
+            "payloadExact": true,
+            "beforePayloadSha256": "62ef51bcfd3e82ddc32d1dad9e99c71e0d040a1ecc97b251f65da3f13256147f",
+            "afterPayloadSha256": "62ef51bcfd3e82ddc32d1dad9e99c71e0d040a1ecc97b251f65da3f13256147f"
+          }
+        ]
+      },
+      {
+        "id": "driftwood-spots",
+        "seconds": 2.204,
+        "outputs": [
+          {
+            "file": "src/shards/driftwood-isle/runtime/spots.baked.json",
+            "payloadExact": true,
+            "beforePayloadSha256": "36c324968df3f2fe589020accacd69072c61e0bc362b25083d1a37f47325b381",
+            "afterPayloadSha256": "36c324968df3f2fe589020accacd69072c61e0bc362b25083d1a37f47325b381"
+          }
+        ]
+      },
+      {
+        "id": "pine-spots",
+        "seconds": 2.231,
+        "outputs": [
+          {
+            "file": "src/shards/pine-hollow/runtime/spots.baked.json",
+            "payloadExact": true,
+            "beforePayloadSha256": "342ae95c28dcd06b438f5e275fc89f96ca8f87705683cc0a88454f324ad85d4b",
+            "afterPayloadSha256": "342ae95c28dcd06b438f5e275fc89f96ca8f87705683cc0a88454f324ad85d4b"
+          }
+        ]
+      }
+    ],
+    "focusedFiles": 16,
+    "focusedChecks": 138,
+    "rootStrict": "pass",
+    "touchedTypedLint": "pass",
+    "defaultPath": "two boundary paints per upload, distinct frames and all fences retained"
+  }
 }

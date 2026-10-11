@@ -830,21 +830,6 @@ in `finally` before yielding or drawing. This changes compilation inputs only, w
 visibility change or disposal ownership. Cancellation and driver errors restore the page too.
 
 During WebKit entered-world preparation, `Game.warmEnteredFrame` requests isolated image uploads.
-The default-off Developer build-pacing value `shared-paints` passes
-`shareUploadPaints` to `precompileLevel` (the last argument of `runPrecompile`).
-`uploadCompressedTexture` accepts the same opt-in as its fifth argument.
-A symbol limits sharing to one consecutive group; preparation starts a new
-group after an image upload and for each new inventory.
-Only a successful upload's trailing paint can become the next upload's leading
-paint. Uploads still occupy distinct frames and retain every GL error, owner,
-version, context and mip fence. Ordinary callers keep two paints per upload.
-`setCompressedUploadPaintSharing(renderer, enabled)` selects the same opt-in
-for asynchronous loaders without creating an upload queue. A setting change
-turns it off for subsequent loader requests.
-`breakCompressedUploadPaintSharing(renderer)` invalidates a shared boundary
-when a native image upload intervenes; it keeps the uploaded texture, its
-sampler and every mip fence unchanged.
-
 `precompileLevel` accepts `isolateImageUploads`; `runPrecompile` accepts it before its optional `pause` callback.
 Each image keeps its original texture/source/sampler and upload order, with a paint opportunity before the next
 upload. Compressed textures retain their fenced upload path. Ordinary boot and desktop keep batched uploads.

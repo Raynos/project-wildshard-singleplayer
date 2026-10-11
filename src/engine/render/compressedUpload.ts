@@ -8,24 +8,11 @@ import { retainCompressedMipmaps, finalizeCompressedMipmaps, assertCompressedMip
 type UploadTarget = Pick<Renderer, 'initTexture' | 'getContext' | 'properties' | 'renderBufferDirect'>;
 interface UploadState {
   tail: Promise<void>;
-  sharedPaint: boolean | symbol;
-  paintEpoch: number;
   pending: WeakMap<THREE.Texture, { version: number; signature: string; promise: Promise<void> }>;
   final: WeakSet<THREE.Texture>;
   failed: WeakMap<THREE.Texture, { allocation: unknown; error: Error }>;
 }
 const states = new WeakMap<UploadTarget, UploadState>();
-const sharing = new WeakMap<UploadTarget, symbol>();
-/** Select opt-in paint sharing for this renderer's asynchronous loaders; disabled keeps the ordinary path. */
-export function setCompressedUploadPaintSharing(renderer: UploadTarget, enabled: boolean): void {
-  if (enabled) { if (!sharing.has(renderer)) sharing.set(renderer, Symbol('compressed-loader-group')); }
-  else { sharing.delete(renderer); breakCompressedUploadPaintSharing(renderer); }
-}
-/** Require a fresh leading compressed paint after an intervening native image upload. */
-export function breakCompressedUploadPaintSharing(renderer: UploadTarget): void {
-  const state = states.get(renderer); if (state !== undefined) { state.sharedPaint = false; state.paintEpoch++; }
-  if (sharing.has(renderer)) sharing.set(renderer, Symbol('compressed-loader-group'));
-}
 // A painted frame between uploads belongs to no shard: the page's (SF57: never an ambient owner read mid-build).
 const frame = (): Promise<void> => new Promise(resolve => {
   pageScope.raf(() => { pageScope.timeout(0, resolve); });
@@ -75,21 +62,18 @@ export function compressedUploadsActive(renderer: UploadTarget): boolean { retur
 /** Upload one compressed 2D/array texture outside a draw, with a real paint and error round trip on each side.
  * Concurrent warm-up and late-load callers share one queue. A consumer may bind the texture only after this resolves.
  * Already resident versions reuse the result; cancellation and graphics faults never publish readiness.
- * Opt-in shared paints reuse a successful upload's trailing paint before the next upload, never its upload frame.
- * A symbol restricts sharing to one consecutive upload group; ordinary requests end that group.
  * Loader fences retain mips through final sampler configuration and the first successful real draw. */
 export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.Texture,
-  current: () => boolean = () => true, final = true, sharePaints?: boolean | symbol): Promise<void> {
+  current: () => boolean = () => true, final = true): Promise<void> {
   if (!(texture instanceof THREE.CompressedTexture)) return Promise.resolve();
   try { assertCompressedMipmapsUnchanged(texture); } catch (error) { return Promise.reject(error instanceof Error ? error : new Error(String(error))); }
   let state = states.get(renderer);
   if (state === undefined) {
-    state = { tail: Promise.resolve(), sharedPaint: false, paintEpoch: 0, pending: new WeakMap(), failed: new WeakMap(), final: new WeakSet() };
+    state = { tail: Promise.resolve(), pending: new WeakMap(), failed: new WeakMap(), final: new WeakSet() };
     states.set(renderer, state);
     installDrawRetirement(renderer, state);
   }
   const queue = state, version = texture.version, signature = compressedTextureKey(texture);
-  const paintGroup = sharePaints ?? sharing.get(renderer) ?? false;
   const allocation = (): unknown => {
     const properties: unknown = renderer.properties.get(texture);
     return typeof properties === 'object' && properties !== null ? Reflect.get(properties, '__webglTexture') : undefined;
@@ -116,10 +100,7 @@ export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.T
   try { if (resident()) { publish(); return Promise.resolve(); } }
   catch (error) { return Promise.reject(error instanceof Error ? error : new Error(String(error))); }
   const promise = queue.tail.then(async () => {
-    const epoch = queue.paintEpoch;
-    const reusePaint = paintGroup !== false && queue.sharedPaint === paintGroup;
-    queue.sharedPaint = false;
-    check(); if (!reusePaint) await frame(); check();
+    check(); await frame(); check();
     // Another caller or a draw may have uploaded this version while it waited in the queue.
     if (resident()) return undefined;
     if (texture.mipmaps.length === 0) throw new Error(`Compressed texture ${texture.name || texture.id} has no mipmaps and is not resident on this renderer`);
@@ -135,7 +116,6 @@ export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.T
     }
     queue.failed.delete(texture);
     await frame(); check();
-    queue.sharedPaint = epoch === queue.paintEpoch ? paintGroup : false;
     return undefined;
   });
   queue.pending.set(texture, { version, signature, promise });

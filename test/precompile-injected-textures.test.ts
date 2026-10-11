@@ -69,7 +69,7 @@ it('copies and removes borrowed texture declarations with active patches without
   expect(shaderPatchTextures(copy)).toEqual([]); expect(dispose).not.toHaveBeenCalled();
 });
 
-async function warmArrays(error: number, cancelAfterFirst = false, twoDimensional = false, sharePaints = false, mixed = false): Promise<{ events: string[]; failure: unknown }> {
+async function warmArrays(error: number, cancelAfterFirst = false, twoDimensional = false): Promise<{ events: string[]; failure: unknown }> {
   const previous = scopeEnvironment(), events: string[] = [];
   let frame = 0, current = true, uploads = 0;
   installScopeEnvironment({ targetKind: () => 'other', frame: render => {
@@ -88,7 +88,7 @@ async function warmArrays(error: number, cancelAfterFirst = false, twoDimensiona
       () => runPrecompile(renderer, new THREE.PerspectiveCamera(), [], 0, undefined,
         Array.from({ length: 6 }, () => twoDimensional
           ? new THREE.CompressedTexture([{ data: new Uint8Array(16), width: 4, height: 4 }], 4, 4, THREE.RGBA_ASTC_4x4_Format)
-          : arrayTexture(4, 4)).flatMap((value, index) => mixed && index === 2 ? [value, new THREE.DataTexture(new Uint8Array(4), 1, 1)] : [value]), () => current, false, undefined, undefined, undefined, sharePaints), () => current);
+          : arrayTexture(4, 4)), () => current, false), () => current);
   } catch (caught) { failure = caught; }
   finally { installScopeEnvironment(previous); }
   expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(uploads);
@@ -158,19 +158,3 @@ it('discovers undeclared patch sampler arrays during compilation and uploads bef
 });
 
 
-it('passes opt-in shared paints through real preparation without advancing the composer fence', async () => {
-  const { events, failure } = await warmArrays(0, false, false, true);
-  expect(failure).toBeUndefined();
-  expect(events.filter(event => event.startsWith('upload:'))).toEqual(['upload:1', 'upload:2', 'upload:3', 'upload:4', 'upload:5', 'upload:6']);
-  expect(events.filter(event => event.startsWith('fence:'))).toEqual(['fence:1', 'fence:2', 'fence:3', 'fence:4', 'fence:5', 'fence:6']);
-  expect(events.slice(-2)).toEqual(['paint:7', 'composer:7']);
-});
-
-
-it('breaks the compressed sharing group when an image upload intervenes', async () => {
-  const { events, failure } = await warmArrays(0, false, false, true, true);
-  expect(failure).toBeUndefined();
-  expect(events.filter(event => event.startsWith('upload:'))).toEqual(['upload:1', 'upload:2', 'upload:3', 'upload:4', 'upload:5', 'upload:6', 'upload:7']);
-  expect(events.filter(event => event.startsWith('fence:'))).toEqual(['fence:1', 'fence:2', 'fence:3', 'fence:5', 'fence:6', 'fence:7']);
-  expect(events.slice(-2)).toEqual(['paint:8', 'composer:8']);
-});
