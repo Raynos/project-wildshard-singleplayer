@@ -15,7 +15,8 @@ import type { FinaleHost } from '../../../src/shards/driftwood-isle/quest/Finale
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
 import type { Adventure, AdventureWorld, AdvAnimal } from '../../../src/shards/driftwood-isle/quest/adventure';
-import { DrownedCaptain, CAPTAIN_DEF } from '../../../src/shards/driftwood-isle/combat/captain';
+import { DrownedCaptain } from '../../../src/shards/driftwood-isle/combat/captain';
+import { CAPTAIN_DEF } from '../../../src/shards/driftwood-isle/data/captainEncounter';
 
 const GOLDEN = 0.745;          // DayNight phase of the golden-hour key (its KEYS table: GOLDEN at 0.74)
 const ARENA = 22;

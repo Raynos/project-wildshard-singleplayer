@@ -14,7 +14,8 @@ import type { FinaleHost } from '../quest/Finale';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
 import type { Adventure, AdventureWorld, AdvAnimal } from '../quest/adventure';
-import { DrownedCaptain, CAPTAIN_DEF } from '../combat/captain';
+import { DrownedCaptain } from '../combat/captain';
+import { CAPTAIN_DEF, CAPTAIN_PRESENTATION } from '../data/captainEncounter';
 import { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { prepareDriftwoodDirector } from './director';
@@ -83,7 +84,7 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
   const encounter = new DrownedCaptain({ player: w.player, pool, events: app.events, flags, animal: () => captain, ui: bar });
   const scope = app.levelScope;
   if (scope !== null) {
-    app.encounters.register({ id: CAPTAIN_DEF.id, displayName: 'The Drowned Captain' }, scope);
+    app.encounters.register({ id: CAPTAIN_DEF.id, displayName: CAPTAIN_PRESENTATION.name }, scope);
     app.encounters.boss(CAPTAIN_DEF.id, encounter, scope);
     app.events.on('player.died', () => { encounter.onPlayerDeath(); }, scope);
     scope.onDispose(() => { bar.root.remove(); });

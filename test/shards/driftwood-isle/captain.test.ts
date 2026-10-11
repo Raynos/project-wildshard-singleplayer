@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CAPTAIN_DEF } from '../../../src/shards/driftwood-isle/combat/captain';
+import { CAPTAIN_DEF } from '../../../src/shards/driftwood-isle/data/captainEncounter';
 import { captainPhase } from '../../../src/shards/driftwood-isle/species/captainPolicy';
 import { captainFixture } from '../../fake/captain';
 

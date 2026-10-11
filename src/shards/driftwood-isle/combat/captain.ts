@@ -1,19 +1,8 @@
 import { BossBrain, type BossContinuation, type BossPorts, type BossPresentation, type BossScript } from '@wildshard/engine/ai/BossBrain';
-import type { BossDef } from '../runtime/combat/bossDefinition';
+import { CAPTAIN_DEF, CAPTAIN_PRESENTATION } from '../data/captainEncounter';
 import type { Events } from '@wildshard/engine/events/events';
 import { Vector3 } from 'three';
 
-export const CAPTAIN_DEF: BossDef = {
-  id: 'boss.captain', name: 'boss.captain.name',
-  arena: { at: 'shrine.pool', r: 22 }, wake: { flag: 'used:altar' },
-  intro: null, seal: false, checkpoint: false, bar: 'boss',
-  phases: [
-    { at: 1, strikes: ['strike.captain.swing'] },
-    { at: 0.66, strikes: ['strike.captain.swing', 'strike.captain.burst'] },
-    { at: 0.33, strikes: ['strike.captain.swing', 'strike.captain.second-cut', 'strike.captain.burst'] },
-  ],
-  reward: null, persist: { deadFlag: 'dead:captain' }, capExempt: true,
-};
 export interface CaptainActor {
   position: Vector3; mem: Record<string, number>; alive: boolean; hp: number; maxHp: number;
 }
@@ -22,7 +11,6 @@ export interface CaptainPorts {
   flags: { has: (flag: string) => boolean }; animal: () => CaptainActor | null;
   ui: BossPresentation;
 }
-const NAME = 'The Drowned Captain';
 /** The encounter's continuation (SF72): BossBrain's beside this attempt's marks. */
 export interface CaptainEncounterState { boss: BossContinuation; attempt: boolean; waitForReturn: boolean }
 
@@ -45,7 +33,7 @@ export class DrownedCaptain extends BossBrain {
       player: ports.player, lockInput: noop, respawn: noop, skipHeld: () => false,
       faceToward: noop, spawnReward: noop, persist: noop,
     };
-    super({ id: CAPTAIN_DEF.id, name: NAME, title: '', retryTitle: '', intro: 0, introShort: 0,
+    super({ id: CAPTAIN_DEF.id, name: CAPTAIN_PRESENTATION.name, title: '', retryTitle: '', intro: 0, introShort: 0,
       phases: CAPTAIN_DEF.phases.map((phase) => ({ at: phase.at, caption: '', name: '' })), reward: {} },
     script, host, ports.ui, { defeated: false, rewardTaken: false, kills: 0 });
     this.ports = ports;
@@ -80,8 +68,8 @@ export class DrownedCaptain extends BossBrain {
     }
     if (!near) { this.finish('left'); this.waitForReturn = false; this.state = 'dormant'; }
     if (near && this.ports.flags.has(CAPTAIN_DEF.wake.flag)) this.wake();
-    const visible = near && (a.mem['rise'] ?? 0) > 0.5;
-    if (visible && !this.ui.barShown) this.ui.showBar(NAME, [0.66, 0.33]);
+    const visible = near && (a.mem['rise'] ?? 0) > CAPTAIN_PRESENTATION.riseAbove;
+    if (visible && !this.ui.barShown) this.ui.showBar(CAPTAIN_PRESENTATION.name, CAPTAIN_PRESENTATION.cuts);
     else if (!visible) this.ui.hideBar();
     this.phase = (a.mem['phase'] ?? 1) - 1;
     this.ui.setHp(a.hp / Math.max(1, a.maxHp));
