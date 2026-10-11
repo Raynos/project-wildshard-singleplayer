@@ -28,19 +28,22 @@ export function gridFloorPlans(state, scenario, options = {}) {
     const target = state.cells.find(cell => cell.instance === options.cell) ?? state.cells.find(cell => cell.slug === options.cell);
     if (!target) throw new Error(`Grid floor has no ${String(options.cell)} cell (a DEVSERVER-only cell needs --devserver)`);
     if (target.instance === home.instance) throw new Error('Grid floor cell scenario needs a non-home cell');
-    const t = origin(target), dx = Math.sign(h.x - t.x), dz = Math.sign(h.z - t.z);
+    const t = origin(target), dx = options.risingIslet === 'west' ? -1 : options.risingIslet === 'east' ? 1 : options.risingIslet ? 0 : Math.sign(h.x - t.x),
+      dz = options.risingIslet === 'north' ? 1 : options.risingIslet === 'south' ? -1 : options.risingIslet ? 0 : Math.sign(h.z - t.z);
     const road = dz !== 0 ? { x: t.x, z: t.z + dz * 277.5 } : { x: t.x + dx * 277.5, z: t.z };
     // A separately named socket measurement stays on the permanent platform deck,
     // before content-specific gates or lifts. The full interior route is unchanged.
-    const entryOffset = options.entrySocket === true ? CHUNK_HALF - ENTRY_ASPHALT / 2 : 210;
+    const entryOffset = options.entrySocket === true || options.risingIslet ? CHUNK_HALF - ENTRY_ASPHALT / 2 : 210;
     const entry = dz !== 0 ? { x: t.x, z: t.z + dz * entryOffset } : { x: t.x + dx * entryOffset, z: t.z };
     // Drive into the geometric interior: a motor transfer outside the cell must not omit
     // the first visible regional frame from the measured drive.
     const approach = options.roadApproach === true;
     const start = approach ? (dz !== 0 ? { x: road.x + 277.5, z: road.z } : { x: road.x, z: road.z + 277.5 }) : road;
-    plans.push({ name: `${target.slug}-${options.entrySocket === true ? 'socket-entry' : 'road-entry'}`, from: null, to: target.instance, movement: 'road-hover', start,
+    plans.push({ name: `${target.slug}-${options.entrySocket === true || options.risingIslet ? 'socket-entry' : 'road-entry'}`, from: null, to: target.instance, movement: 'road-hover', start,
       waypoints: approach ? [road, entry] : [entry], requiredResidents: [target.instance], finishOnArrival: false,
       ...(approach ? { observePreparation: true, hoverMaxSpeed: 30 } : {}) });
+    if (options.risingIslet) plans.push({ name: `${target.slug}-${options.risingIslet}-lift`, from: target.instance, to: target.instance, movement: 'road-hover',
+      waypoints: [], requiredResidents: [target.instance], authoredLift: { probe: 'farReach', edge: options.risingIslet } });
   }
   if (scenario === 'sun-entry') {
     const sun = state.cells.find(cell => cell.slug === 'sunscar-dunes');
@@ -237,6 +240,22 @@ export async function driveFloorGrid(plan, documentOrigin) {
     && Number.isSafeInteger(state.borrowedHome.bytes) && state.borrowedHome.bytes > 0;
   const source = read(), live = source.live.live;
   if (live.current !== plan.from || source.inside !== plan.from || !live.gameplayReady || (plan.from !== null && !live.residents.includes(plan.from) && !borrowed(source))) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
+  // The entered runtime exposes the same authored board/ride/bridge row the shipping world uses.
+  // Only normal USE and held walking input run it; the harness never commands or places the mover.
+  let waypoints = plan.waypoints, lift = null, liftRuntime = null, liftEntry = null, liftOrigin = null;
+  if (plan.authoredLift !== undefined) {
+    liftRuntime = api.shard[plan.authoredLift.probe];
+    liftEntry = liftRuntime?.islets?.find(row => row.edge === plan.authoredLift.edge);
+    const cell = source.cells.find(row => row.instance === plan.to);
+    const point = value => value !== null && typeof value === 'object' && [value.x, value.y, value.z].every(Number.isFinite);
+    if (!cell || typeof liftRuntime?.isletAt !== 'function' || !liftEntry || !Array.isArray(liftEntry.board) || liftEntry.board.length < 2
+      || !Array.isArray(liftEntry.climb) || liftEntry.climb.length < 2 || !liftEntry.board.every(point) || !liftEntry.climb.every(point)
+      || !point(liftEntry.rest) || !point(liftEntry.dock) || !point(liftEntry.isle)) throw new Error('Missing authored rising-islet route');
+    liftOrigin = { x: cell.cell[0] * 555, z: cell.cell[1] * 555 };
+    waypoints = [...liftEntry.board, ...liftEntry.climb].map(p => ({ x: liftOrigin.x + p.x, z: liftOrigin.z + p.z }));
+    lift = { edge: plan.authoredLift.edge, isle: liftEntry.isle.id, usePresses: 0, docked: false, onIsland: false,
+      rideSamples: 0, maximumDeckGap: 0, board: liftEntry.board, climb: liftEntry.climb };
+  }
   const oldHover = player.hover, oldLimit = player.hoverSpeedLimit;
   const hoverMaxSpeed = plan.hoverMaxSpeed ?? 15;
   if (!Number.isFinite(hoverMaxSpeed) || hoverMaxSpeed <= 0 || hoverMaxSpeed > 30) throw new Error('Invalid grid harness hover speed');
@@ -267,7 +286,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
             if (!ready && world.game.rootScene.getObjectByName(`region:${plan.to}`)?.visible === true) arrival.visibleBeforeReadyFrames++;
           }
           previousFrameAt = now;
-          window.__frameFloorGridStop = { leg: plan.name, phase: 'travel', waypoint, target: plan.waypoints[waypoint] ?? null };
+          window.__frameFloorGridStop = { leg: plan.name, phase: 'travel', waypoint, target: waypoints[waypoint] ?? null };
           if (plan.movement === 'road-hover') player.setHover(active.current === null);
           if (seconds - lastSample >= 0.25) {
             const preparation = plan.observePreparation === true ? {
@@ -279,24 +298,46 @@ export async function driveFloorGrid(plan, documentOrigin) {
               ...(preparation === undefined ? {} : { preparation }) }); lastSample = seconds;
           }
           if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor crossing blocked: ${state.live.crossing.issue}`);
-          const target = plan.waypoints[waypoint];
+          if (lift !== null && waypoint === liftEntry.board.length && !lift.docked) {
+            input.setHeld('move.forward', false);
+            const deck = liftRuntime.isletAt(lift.edge);
+            if (deck === null || ![deck.x, deck.y, deck.z].every(Number.isFinite)) throw new Error('Rising-islet pose disappeared during ride');
+            lift.rideSamples++;
+            lift.maximumDeckGap = Math.max(lift.maximumDeckGap, Math.hypot(feet.x - liftOrigin.x - deck.x, feet.z - liftOrigin.z - deck.z));
+            if (Math.hypot(deck.x - liftEntry.dock.x, deck.y - liftEntry.dock.y, deck.z - liftEntry.dock.z) > 0.02
+              || feet.y < liftEntry.dock.y - 0.3 || !player.onGround) return;
+            lift.docked = true;
+          }
+          const target = waypoints[waypoint];
           if (plan.finishOnArrival === true && active.current === plan.to && state.inside === plan.to && active.gameplayReady) { finish(); return; }
           if (!target) {
             input.clear();
-            if (active.current === plan.to && state.inside === plan.to && active.gameplayReady) finish();
+            if (active.current === plan.to && state.inside === plan.to && active.gameplayReady) {
+              if (lift !== null) {
+                lift.onIsland = player.onGround === true && Math.abs(feet.y - liftEntry.isle.y) < 0.5;
+                if (!lift.onIsland) throw new Error('Rising-islet route ended off the authored island ground');
+              }
+              finish();
+            }
             return;
           }
           const dx = target.x - feet.x, dz = target.z - feet.z;
           distance = Math.hypot(dx, dz);
-          if (distance < 1.5) { waypoint++; input.clear(); return; }
+          if (distance < 1.5) {
+            if (lift !== null && waypoint === liftEntry.board.length - 1) {
+              if (!player.onGround) { input.setHeld('move.forward', false); return; }
+              input.clear(); input.press('use'); lift.usePresses++; waypoint++; return;
+            }
+            waypoint++; input.clear(); return;
+          }
           if (!active.gameplayReady) { input.clear(); return; }
           player.yaw = Math.atan2(-dx, -dz); input.setHeld('move.forward', true);
         } catch (error) { finish(error); }
       });
     });
-    window.__frameFloorGridStop = { leg: plan.name, phase: 'destination-standing', waypoint: plan.waypoints.length, target: null };
+    window.__frameFloorGridStop = { leg: plan.name, phase: 'destination-standing', waypoint: waypoints.length, target: null };
     return { plan, before, after: read(), trace, elapsedSeconds: (performance.now() - started) / 1000,
-      ...(arrival === undefined ? {} : { arrival }) };
+      ...(arrival === undefined ? {} : { arrival }), ...(lift === null ? {} : { lift }) };
   } finally { input.clear(); player.hoverSpeedLimit = oldLimit; player.setHover(oldHover); }
 }
 
@@ -321,6 +362,8 @@ export function gridFloorWitnessFailures(result) {
     if (after.claims === undefined) return true;
     return after.claims.some(claim => claim.owner === id && claim.category === 'sim');
   })) failures.push('Source runtime or its sim/basis claim was not retired');
+  if (plan.authoredLift !== undefined && (result.lift?.usePresses !== 1 || !result.lift.docked || !result.lift.onIsland
+    || result.lift.rideSamples === 0 || result.lift.maximumDeckGap > 5)) failures.push('Authored lift was not boarded, ridden and walked onto the island');
   const cell = after.cells.find(row => row.instance === plan.to);
   if (plan.to !== null && (!cell || Math.abs(active.worldFeet.x - cell.cell[0] * 555) >= 250 || Math.abs(active.worldFeet.z - cell.cell[1] * 555) >= 250)) failures.push('Destination feet are outside its interior');
   if (plan.to === null && after.cells.some(row => Math.abs(active.worldFeet.x - row.cell[0] * 555) < 250 && Math.abs(active.worldFeet.z - row.cell[1] * 555) < 250)) failures.push('Road destination lies inside a shard');

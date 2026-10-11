@@ -401,3 +401,60 @@ it('selects an exact template instance without silently measuring the first copy
     waypoints: [{ x: 555, z: -277.5 }, { x: 555, z: -345 }], requiredResidents: ['template-2'] });
   expect(gridFloorPlans({ home: 'home', cells: copies }, 'cell', { cell: '_template' })[0]?.to).toBe('template-1');
 });
+
+
+it('measures the declared lift after an independently witnessed socket entry without seeding the rider', () => {
+  const sky = { instance: 'sky', slug: 'far-reach', cell: [1, 1] as const };
+  const plans = gridFloorPlans({ home: 'home', cells: [...cells, sky] }, 'cell', { cell: 'sky', risingIslet: 'north', roadApproach: true });
+  expect(plans).toEqual([
+    { name: 'far-reach-socket-entry', from: null, to: 'sky', movement: 'road-hover', start: { x: 832.5, z: 832.5 },
+      waypoints: [{ x: 555, z: 832.5 }, { x: 555, z: 797.5 }], requiredResidents: ['sky'], finishOnArrival: false,
+      observePreparation: true, hoverMaxSpeed: 30 },
+    { name: 'far-reach-north-lift', from: 'sky', to: 'sky', movement: 'road-hover', waypoints: [], requiredResidents: ['sky'],
+      authoredLift: { probe: 'farReach', edge: 'north' } },
+  ]);
+  expect(plans[1]?.start).toBeUndefined();
+});
+
+it('presses the real USE once, waits for the moving deck and grounded rider, then walks the authored bridge', async () => {
+  const current = state('sky', 0, -545);
+  current.cells = [...cells, { instance: 'sky', slug: 'far-reach', cell: [0, -1] }];
+  const input = { clear: vi.fn(), setHeld: vi.fn(), press: vi.fn() }, oldLimit = () => 30;
+  const player = { hover: false, onGround: true, hoverSpeedLimit: oldLimit, yaw: 0,
+    setHover: (on: boolean) => { player.hover = on; } };
+  const deck = { x: 0, y: 0, z: 5 };
+  const authored = { edge: 'north', board: [{ x: 0, y: 0, z: 10 }, { x: 0, y: 0, z: 5 }],
+    rest: { x: 0, y: 0, z: 5 }, dock: { x: 0, y: 25, z: 5 }, isle: { id: 'actual-island', x: 0, y: 30, z: -30 },
+    climb: [{ x: 0, y: 25, z: 5 }, { x: 0, y: 25, z: -10 }, { x: 0, y: 30, z: -30 }] };
+  let frame: (() => void) | undefined;
+  const stop = vi.fn(), isletAt = vi.fn(() => deck);
+  vi.stubGlobal('window', { __wildshard: { world: { player, game: { app: { input }, watchFrames: (run: () => void) => { frame = run; return stop; } } },
+    shard: { grid: { state: () => current, residency: () => ({ claims: [] }) }, farReach: { islets: [authored], isletAt } } } });
+  const plan = { name: 'authored-lift', from: 'sky', to: 'sky', movement: 'road-hover' as const,
+    waypoints: [], requiredResidents: ['sky'], authoredLift: { probe: 'farReach', edge: 'north' as const } };
+  try {
+    const driven = driveFloorGrid(plan, performance.timeOrigin);
+    if (!frame) throw new Error('Driver did not subscribe');
+    frame(); current.live.live.worldFeet.z = -550; frame();
+    expect(input.press).toHaveBeenCalledExactlyOnceWith('use');
+    frame(); expect(input.setHeld).toHaveBeenLastCalledWith('move.forward', false);
+    deck.y = 25; deck.z = 5;
+    // A docked mover alone is insufficient: the actual rider must have reached it, standing on it.
+    frame(); expect(input.press).toHaveBeenCalledOnce();
+    current.live.live.worldFeet.y = 25.3; current.live.live.worldFeet.z = -550; player.onGround = false;
+    frame(); expect(input.setHeld).toHaveBeenLastCalledWith('move.forward', false);
+    player.onGround = true; frame(); frame();
+    expect(input.setHeld).toHaveBeenLastCalledWith('move.forward', true);
+    current.live.live.worldFeet.z = -565; frame(); frame();
+    current.live.live.worldFeet.z = -585; current.live.live.worldFeet.y = 30.3; frame(); frame();
+    const result = await driven;
+    expect(result.lift).toMatchObject({ usePresses: 1, docked: true, onIsland: true, isle: 'actual-island' });
+    expect(isletAt).toHaveBeenCalledWith('north');
+    expect(stop).toHaveBeenCalledOnce(); expect(player.hoverSpeedLimit).toBe(oldLimit); expect(player.hover).toBe(false);
+    expect(gridFloorWitnessFailures(result)).toEqual([]);
+    const socketOnly = { ...result }; delete socketOnly.lift;
+    expect(gridFloorWitnessFailures(socketOnly)).toContain('Authored lift was not boarded, ridden and walked onto the island');
+    expect(gridFloorWitnessFailures({ ...result, lift: { edge: 'north', isle: 'actual-island', usePresses: 1, docked: false,
+      onIsland: true, rideSamples: 1, maximumDeckGap: 0 } })).toContain('Authored lift was not boarded, ridden and walked onto the island');
+  } finally { restoreGlobals(); }
+});

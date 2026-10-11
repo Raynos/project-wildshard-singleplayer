@@ -12,8 +12,13 @@ export interface FloorGridPlan { name: string; from: string | null; to: string |
   /** the leg ends as soon as `to` is entered and ready, whatever waypoints remain (an entry that carries the player on) */
   finishOnArrival?: boolean;
   /** Record destination readiness and visibility while following the normal road approach. */
-  observePreparation?: boolean }
-export interface FloorGridWitness { plan: FloorGridPlan; before: FloorGridState; after: FloorGridState;
+  observePreparation?: boolean;
+  /** Use this entered probe's authored islet row, normal USE, ride and bridge walking. */
+  authoredLift?: { probe: string; edge: 'north' | 'east' | 'south' | 'west' } }
+export interface FloorGridWitness {
+  /** Actual input and mover observations; a socket-only arrival never satisfies these. */
+  lift?: { edge: string; isle: string; usePresses: number; docked: boolean; onIsland: boolean; rideSamples: number; maximumDeckGap: number };
+  plan: FloorGridPlan; before: FloorGridState; after: FloorGridState;
   /** Every drawn frame: real motor blockage at an unready destination edge, and early visibility. */
   arrival?: { blockedFrames: number; blockedMs: number; visibleBeforeReadyFrames: number };
   trace: { seconds: number; x: number; y: number; z: number; current: string | null; gameplayReady: boolean; hover?: boolean; preparation?: { pending: string[]; resident: boolean; visible: boolean | null; hook: string | null } }[]; elapsedSeconds: number }
@@ -28,7 +33,7 @@ export interface FloorGridFailure { kind: string; stop: FloorGridProgress['stop'
 export function installFloorGridProgress(): void;
 export function gridFloorRuntimeFailure(last: FloorGridProgress | null, diagnostic: { documentOrigin: number; lastEnd?: { reason: string; at: number }; lastUnload?: { reason: string; t: number } } | null): FloorGridFailure | null;
 /** 'cell' enters the cell whose instance or slug is `options.cell` from the road at its home-side edge (op-frame22). */
-export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'sun-entry' | 'cell' | 'all' | 'milestone', options?: { cell?: string; roadApproach?: boolean; entrySocket?: boolean }): FloorGridPlan[];
+export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'sun-entry' | 'cell' | 'all' | 'milestone', options?: { cell?: string; roadApproach?: boolean; entrySocket?: boolean; risingIslet?: 'north' | 'east' | 'south' | 'west' }): FloorGridPlan[];
 export interface FloorGridDocumentIdentity { readonly timeOrigin: number; readonly token: string }
 export function gridFloorDocumentIdentity(): FloorGridDocumentIdentity;
 export function driveFloorGrid(plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridWitness>;
