@@ -8,11 +8,11 @@
 // ENTRY_WIDTH (8 m) wide and DECK_DEPTH (16 m) deep, its top exactly at y = 0, so the platform's 8 × 15 m asphalt socket
 // lies on it flat, clear and dry. Low parapets stand just outside the 8 m opening (the canonical side walls the
 // footprint admits), and an end wall closes each deck.
+import { deckCapBoxes, portalFloorBoxes } from './boxRows';
 import { ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { type EdgeFrame, type FrameBox as DeckBox, deckParts as sdkDeckParts, edgeFrame, frameCollider, inFrame as sdkInFrame, spanCollider } from '../runtime/props/edgeDecks';
+import { type EdgeFrame, type FrameBox as DeckBox, deckParts as sdkDeckParts, edgeFrame, inFrame as sdkInFrame, spanCollider } from '../runtime/props/edgeDecks';
 import { DECK, DECK_CAP } from '../data/decks';
-import { PLAZA, Y0 } from '../layout';
 import { DECK_PORTALS, SQUARE_FLOOR, deckFloorId, type ShardEdge } from './portalPlan';
 
 /** half the deck's opening: the canonical ENTRY_WIDTH (8 m) entry, centred on the edge's midpoint */
@@ -27,7 +27,11 @@ const SIZES = { half: OPENING_HALF, ...DECK };
 /** a box from its extents (min / max corners) */
 export const span: typeof spanCollider = spanCollider;
 /** SF8c (G224): the square's slab, the floor the portal nodes in Lantern Square stand on (shard.config.ts declares it) */
-export function squareFloor(): ColliderDesc { return span(PLAZA.x0, Y0 - SLAB, PLAZA.z0, PLAZA.x1 + 0.6, Y0, PLAZA.z1 + 0.6); }
+export function squareFloor(): ColliderDesc {
+  const square = portalFloorBoxes(SQUARE_FLOOR)[0];
+  if (square === undefined) throw new Error('Missing declared square slab');
+  return square;
+}
 
 /** one deck's frame: its edge, its edge-midpoint, the inward unit axis */
 export type Frame = EdgeFrame;
@@ -53,8 +57,6 @@ export function capParts(f: Frame): { plinth: FrameBox; rail: FrameBox; pedestal
   };
 }
 
-const box = frameCollider;
-
 /** the four decks' collision: the slabs (tops at y = 0), the parapets and the end walls; with `caps` (standalone, G200)
  *  the balustrade, its brazier's pedestal and the two lantern pillars across each deck's open end */
 export function entryDeckColliders(caps = false): ColliderDesc[] {
@@ -63,7 +65,7 @@ export function entryDeckColliders(caps = false): ColliderDesc[] {
 /** the decks' standalone balustrades (G200), each deck's in the same order; none in a grid cell (the socket continues) */
 export function entryCapColliders(caps: boolean): ColliderDesc[] {
   if (!caps) return [];
-  return FRAMES.flatMap((f) => { const c = capParts(f); return [box(c.rail), box(c.pedestal), ...c.pillars.map(box)]; });
+  return FRAMES.flatMap((f) => deckCapBoxes(f.edge));
 }
 
 /**
@@ -73,9 +75,7 @@ export function entryCapColliders(caps: boolean): ColliderDesc[] {
  * (world/install.ts registers each deck as its own piece answering to this id), never a second copy.
  */
 export function portalDeckColliders(edge: ShardEdge): ColliderDesc[] {
-  const f = FRAMES.find((row) => row.edge === edge); if (f === undefined) throw new Error(`No landing deck on the ${edge} edge`);
-  const p = deckParts(f);
-  return [box(p.slab), ...p.rails.map(box), ...p.walls.map(box)];
+  return portalFloorBoxes(deckFloorId(edge));
 }
 /** SF8c (G224): the floors the portal nodes stand on as shardfile collider rows: the four decks' and the square's */
 export function portalFloorRows(): { id: string; panel: null; initialActive: true; shapes: ColliderDesc[] }[] {

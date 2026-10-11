@@ -1,11 +1,11 @@
 import { Group } from 'three';
 import { BoxCollider, type BoxColliderData } from '@wildshard/sdk/physics';
 import { readScene } from '@wildshard/sdk/scene';
-import { DECK } from '../data/decks';
+import { DECK, DECK_CAP } from '../data/decks';
 import { NINE_FLOOR_PLAN } from '../data/floorPlan';
 
 // First Node physics slice: the floors declared in shard.config.ts. The remaining models,
-// crossings, fronts and guard are still an open G320 migration.
+// crossings and the three tread flights remain open G320 migrations.
 const EDGES = ['north', 'east', 'south', 'west'] as const;
 type Edge = typeof EDGES[number];
 const INWARD = {
@@ -59,4 +59,30 @@ export function portalFloorRows(): { id: string; panel: null; initialActive: tru
     if (shape?.kind !== 'box') throw new Error(`Missing authored floor box ${object.name}`);
     return shape;
   }) }));
+}
+
+/** The standalone-only rail, beacon pedestal and two pillars at each road deck's open end. */
+export function deckCapScene(): Group {
+  const scene = new Group(); scene.name = 'nine.deck-caps';
+  const h = NINE_FLOOR_PLAN.openingHalf, c = h + DECK.railT / 2, p = DECK_CAP.pillar / 2;
+  for (const edge of EDGES) {
+    const deck = new Group(); deck.name = edge;
+    deck.add(
+      deckBox(edge, `${edge}.rail`, 0, DECK_CAP.depth, -h, h, 0, DECK_CAP.rail),
+      deckBox(edge, `${edge}.pedestal`, 0, DECK_CAP.depth + 0.1, -DECK_CAP.pedestal, DECK_CAP.pedestal, 0, DECK_CAP.pedestalH),
+    );
+    for (const side of [-1, 1]) deck.add(deckBox(edge, `${edge}.pillar.${side}`, 0, DECK_CAP.pillar + 0.1, side * c - p, side * c + p, 0, DECK_CAP.pillarH));
+    scene.add(deck);
+  }
+  return scene;
+}
+
+/** Compile one cap group per edge; runtime callers retain their original frame order and cap switch. */
+export function deckCapRows(): Record<Edge, BoxColliderData[]> {
+  const compiled = readScene(deckCapScene());
+  const shapes = (edge: Edge): BoxColliderData[] => compiled.colliders.filter(row => row.id.startsWith(`${edge}.`)).map(row => {
+    if (row.shape.kind !== 'box') throw new Error(`Missing deck cap ${row.id}`);
+    return row.shape;
+  });
+  return { north: shapes('north'), east: shapes('east'), south: shapes('south'), west: shapes('west') };
 }

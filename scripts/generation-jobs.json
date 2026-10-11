@@ -1577,6 +1577,46 @@
       "buildOutputs": {
         "src/shards/nine-dragon-stack/data/floorBoxes.generated.json": "9ff69ebfcc6d83a941dee58bf603b089339a04ba9e9b6315134cc69cbbe536e6"
       }
+    },
+    {
+      "id": "nine-deck-caps",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/portalFloors.ts",
+      "command": [
+        "--import",
+        "./scripts/sim-node-loader.mjs",
+        "scripts/generate-json.mjs",
+        "src/shards/nine-dragon-stack/generators/portalFloors.ts",
+        "deckCapRows",
+        "src/shards/nine-dragon-stack/data/deckCaps.generated.json"
+      ],
+      "inputRoots": [
+        "src/sdk/package.json",
+        "src/sdk/physics.ts",
+        "src/sdk/scene.ts",
+        "src/sdk/sceneTransform.ts",
+        "src/sdk/sceneAnimation.ts",
+        "src/sdk/sceneAudio.ts",
+        "src/sdk/audio.ts",
+        "src/sdk/entries.ts",
+        "src/sdk/spawns.ts",
+        "src/shards/nine-dragon-stack/data/decks.ts",
+        "src/shards/nine-dragon-stack/data/floorPlan.ts",
+        "src/shards/nine-dragon-stack/generators/portalFloors.ts",
+        "scripts/sim-node-loader.mjs",
+        "lint/sim-schema-leaves.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/generate-json.mjs"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/deckCaps.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nine-dragon-stack/data/deckCaps.generated.json": "7dead8c6743abfd3aeee545818b5a74b53a1c2d67accb10fc0952f92172ec1c9"
+      }
     }
   ]
 }

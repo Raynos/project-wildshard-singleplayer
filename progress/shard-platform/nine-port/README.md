@@ -7,7 +7,7 @@ After the native Jian row slice: **15,208 / 21,111 = 72.0383% custom**.
 After explicit grapple-mode admission: **15,212 / 21,111 = 72.0572% custom**.
 After explicit native portal/director admission: **15,218 / 21,111 = 72.0856% custom**; 20% gate FAIL. The ten additional host admission lines are charged, not presented as a size reduction.
 After the shared entry, page mode and ledger binding slices: **15,201 / 21,111 = 72.0051% custom**. The lifecycle retired 17 genuinely duplicated shard lines; the page mode read adds one and the ledger binding removes one. The 20% gate still FAILS.
-The frozen denominator is `nine-dragon-stack-legacy` at `8e297137b940f50da7f1949106d5576f80f238ca`. Current numerator: 14,292 authored shard TS lines, 1 additional GLSL line and 908 one-user platform lines. Embedded GLSL (3,205 lines) is already inside the TS numerator, not added twice. AS: 0. Generated data never counts. The template is not a second user.
+The frozen denominator is `nine-dragon-stack-legacy` at `8e297137b940f50da7f1949106d5576f80f238ca`. Current numerator: 14,296 authored shard TS lines, 1 additional GLSL line and 908 one-user platform lines. Embedded GLSL (3,205 lines) is already inside the TS numerator, not added twice. AS: 0. Generated data never counts. The template is not a second user.
 
 Nine remains **transitional**: its gameplay witness/replay/ledger pass, but trusted TS still runs its simulation. The source-only export has no emitted shardfile product, so the content gate is unavailable; no tiles/collider/file completeness or finished 80/20 conversion is claimed.
 
@@ -72,6 +72,14 @@ Proof: 38 focused checks in eight files, strict and typed lint pass. The Node cl
 
 Current custom metric: **15,194 / 21,111 = 71.9720%**, including 14,285 authored shard TS lines, one additional GLSL line and 908 one-user platform lines. The 179-file inventory reproduces this measure. The strict JSON ownership adapter is charged in full; only a measured two-line net reduction is credited. No geometry, look, continuation or compatible verdict changed.
 
+## Ninth slice: retained deck caps and authored-floor consumption
+
+Sixteen standalone deck-cap boxes now compile from readable SDK Groups and BoxColliders. Their rail, pedestal and pillar dimensions still come from the original deck data. The page consumes those generated boxes and the already-authored portal/square floors. The original north/south/east/west runtime order, standalone cap switch, separately owned portal pieces and fresh descriptor identities remain unchanged. The generated output is ignored, hash-pinned and cold-generated/restored/force-compared through the shared cache.
+
+Proof: 36 focused checks in nine files, strict and typed lint pass, plus the physics/map freshness checks. The source-only Node authoring tree reaches no engine/game/runtime/legacy source. Two actual Node physics captures agree; all 23 pieces and 31 hooks are byte-identical to the preceding payload, including standalone caps under the original fragment-floor owner. The official browser map bake reproduces the exact 13,432-byte WebP (SHA-256 bb1c0ba3c05771e8d94b69031053159a53b9af12235287557c7882e92b21d467). All four actual witness payloads/outcomes are unchanged; real capsule/entry/portal proofs have no blocked lane.
+
+Current custom metric: **15,205 / 21,111 = 72.0241%**, comprising 14,296 authored shard TS lines, one additional GLSL line and 908 one-user platform lines. The complete 179-file inventory below reproduces that numerator. The strict ownership/lookup adapter adds eleven net counted lines; this is an authoring conversion, with no runtime-size saving claimed. AssemblyScript remains zero; trusted simulation is transitional, the 20% gate fails and the full-world content gate remains OPEN.
+
 ## Remaining work
 
 - **OPEN, non-visual:** native item/portal/grapple host adapters and continuation. Portal links and DIR stages already drive the native ride; grapple numeric modes already drive the shared law. The Well’s line-of-sight exception, cap owner and lift geometry require explicit course ports. Deleting those adapters without an equivalent row host would change gameplay.
@@ -81,7 +89,7 @@ Current custom metric: **15,194 / 21,111 = 71.9720%**, including 14,285 authored
 
 ## Non-graphical inventory
 
-The remaining authored TS inventory below is complete at this slice; the 179-file inventory reproduces the defining metric. The port remains open. The front boxes now have a retained SDK generator. The rim/landing/guard boxes are authored too. Standalone deck caps and direct consumption of the already-authored portal floors follow; stair treads still need an equivalent admitted authoring primitive.
+The remaining authored TS inventory below is complete at this slice; the 179-file inventory reproduces the defining metric. The port remains open. The front boxes now have a retained SDK generator. The rim/landing/guard boxes are authored too. Standalone deck caps and portal/square floor consumption are now authored. The remaining three stair flights require an equivalent admitted treads primitive; expanding them to boxes would change the collision descriptor contract.
 
 | Remaining owner | Exact state / blocker |
 |---|---|
@@ -89,7 +97,7 @@ The remaining authored TS inventory below is complete at this slice; the 179-fil
 | `runtime/grapple.ts`, `grapple/sim.ts` | Numeric grapple mode is admitted in both page and native. `format/modes.ts` has no declared course for the Well owner-id LOS exception, guard activation, crossing lift predicate or lift-to geometry; those actual physics ports remain custom. Replacing them with defaults changes outcomes. |
 | `runtime/portals/walkInRide.ts`, `hostRide.ts`, `ringPortals.ts` | Declared nodes, floor checks and DIR stages already drive the ride. The per-road exit choice, hold/transfer/settle side effects and version-2 continuation remain the native/page host; no general autonomous portal-ride row replaces them today. |
 | `runtime/headless.ts`, `runtime/props/bakedColliders.ts`, `edgeDecks.ts` | Strict restoration of captured world pieces, exact standalone cap subtraction and real collision owner registration remain. These retire when the complete emitted world owns those same colliders, including dynamic guard ownership. |
-| `world/colliders.ts`, `floorRows.ts`, `stairPlan.ts`, `wellBounds.ts`, remaining structural builders | The Node portal-floor generator emits the decks and square. The rest of the world is still native. The authoring collider API currently exposes box/capsule/hull/trimesh but no treads scene declaration; the old stair flights must retain their exact treads descriptors. Full static product assembly also needs the shard’s graphical material/atlas conversion. No partial floor product replaces the complete native world. |
+| `world/colliders.ts`, `floorRows.ts`, `stairPlan.ts`, `wellBounds.ts`, remaining structural builders | The Node portal-floor generator emits the decks and square. Front, rim, landing, guard and standalone-cap boxes are also generated and consumed. The remaining structural world is still native. The authoring collider API currently exposes box/capsule/hull/trimesh but no treads scene declaration; the old stair flights must retain their exact treads descriptors. Full static product assembly also needs the shard’s graphical material/atlas conversion. No partial floor product replaces the complete native world. |
 | `runtime/audio/*`, boot/manifest/plugin/configuration files | Declared audio selection and runtime lifecycle are hosted already; their file mapping, zone blend and caller lifetimes remain charged custom. A one-user platform relocation would leave the G294 numerator unchanged. |
 
 **Blocker:** deleting the remaining native adapters requires equivalent declared course/portal hosts and a complete authored world product. Neither exists on this tree. No second actual user has been identified for a new shared Well-course host, and G294 forbids hiding that one-user law in game/SDK/engine. The custom source stays present and charged. Graphical material/atlas/view/HUD/culling owners remain **WAITING FOR OPUS**. AssemblyScript is **0 lines**, report-only; trusted simulation remains **transitional**. No compatible:true or 80/20 closure is inferred from the exact replay gates.
@@ -181,7 +189,7 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `runtime/signs/signModel.ts` | 54 | O |
 | `world/portals.ts` | 53 | O |
 | `world/specimens.ts` | 52 | O |
-| `world/floorRows.ts` | 51 | X |
+| `world/floorRows.ts` | 52 | X |
 | `grapple/FeiZhua.ts` | 50 | O |
 | `runtime/portals/hostRide.ts` | 49 | X |
 | `runtime/looks/weave.ts` | 48 | O |
@@ -291,4 +299,4 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `grapple/context.ts` | 2 | X |
 | `runtime/index.ts` | 2 | X |
 | `strings.ts` | 1 | X |
-| `world/boxRows.ts` | 16 | X |
+| `world/boxRows.ts` | 26 | X |
