@@ -1417,3 +1417,6 @@ SF81 Pine night: `data/nightStages.json` selects the fixed lifecycle events from
 portable metered compiler. Their hashes are part of the continuation ABI; accidental changes refuse.
 Sky's generator authors its exact f64 stops in real three.js clips, including the stationary gate
 clip and the local-pitch winch clip. Its former per-shard lift and bridge guests are unnecessary.
+
+
+Pine elitePreludeStages.json uses the fixed emit actions for native clock/clear/home/fight/idle owners. The when expressions put absence first, then leashing, then engagement. No AS escape handler is needed for these boolean guards. Each actor keeps a separate complete stage contract and cursor; existing admitted AS fights and their verbs are unchanged.

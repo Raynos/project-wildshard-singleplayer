@@ -1,0 +1,157 @@
+{
+  "version": 2,
+  "id": "pine.elite.prelude",
+  "inputs": {
+    "alive": "actor:pine.elite.present",
+    "engaged": "flag:pine.elite.engaged",
+    "leashing": "flag:pine.elite.leashing"
+  },
+  "stages": [
+    {
+      "id": "ready",
+      "do": [],
+      "next": [
+        {
+          "target": "absent",
+          "when": "!alive"
+        },
+        {
+          "target": "home",
+          "when": "alive && leashing"
+        },
+        {
+          "target": "fight",
+          "when": "alive && !leashing && engaged"
+        },
+        {
+          "target": "idle",
+          "when": "alive && !leashing && !engaged"
+        }
+      ]
+    },
+    {
+      "id": "absent",
+      "do": [
+        {
+          "emit": "pine.elite.clear",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "absent",
+          "when": "!alive"
+        },
+        {
+          "target": "home",
+          "when": "alive && leashing"
+        },
+        {
+          "target": "fight",
+          "when": "alive && !leashing && engaged"
+        },
+        {
+          "target": "idle",
+          "when": "alive && !leashing && !engaged"
+        }
+      ]
+    },
+    {
+      "id": "home",
+      "do": [
+        {
+          "emit": "pine.elite.clock",
+          "value": 0
+        },
+        {
+          "emit": "pine.elite.clear",
+          "value": 0
+        },
+        {
+          "emit": "pine.elite.home",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "absent",
+          "when": "!alive"
+        },
+        {
+          "target": "home",
+          "when": "alive && leashing"
+        },
+        {
+          "target": "fight",
+          "when": "alive && !leashing && engaged"
+        },
+        {
+          "target": "idle",
+          "when": "alive && !leashing && !engaged"
+        }
+      ]
+    },
+    {
+      "id": "fight",
+      "do": [
+        {
+          "emit": "pine.elite.clock",
+          "value": 0
+        },
+        {
+          "emit": "pine.elite.fight",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "absent",
+          "when": "!alive"
+        },
+        {
+          "target": "home",
+          "when": "alive && leashing"
+        },
+        {
+          "target": "fight",
+          "when": "alive && !leashing && engaged"
+        },
+        {
+          "target": "idle",
+          "when": "alive && !leashing && !engaged"
+        }
+      ]
+    },
+    {
+      "id": "idle",
+      "do": [
+        {
+          "emit": "pine.elite.clock",
+          "value": 0
+        },
+        {
+          "emit": "pine.elite.idle",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "absent",
+          "when": "!alive"
+        },
+        {
+          "target": "home",
+          "when": "alive && leashing"
+        },
+        {
+          "target": "fight",
+          "when": "alive && !leashing && engaged"
+        },
+        {
+          "target": "idle",
+          "when": "alive && !leashing && !engaged"
+        }
+      ]
+    }
+  ]
+}

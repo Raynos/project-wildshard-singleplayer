@@ -1,3 +1,4 @@
+import { PineElitePrelude } from '../runtime/elitePrelude';
 import type { Vector3 } from 'three';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
@@ -87,6 +88,10 @@ export abstract class PineEliteScript<B extends PineEliteBody> extends EliteBrai
   readonly env: PineEliteWorld<B>;
   /** the elite's admitted fight script (its slots are the fight's state) */
   readonly script: EliteScript;
+  /** Authored outer encounter selection, distinct from the existing admitted fight script. */
+  readonly prelude: PineElitePrelude;
+  private frameDt = 0;
+  private frameTime = 0;
   constructor(id: string, env: PineEliteWorld<B>, row: EliteScriptRow, seed?: number) {
     const def = PINE_ELITE_DEFS[id];
     if (def === undefined) throw new Error(`no elite '${id}'`);
@@ -94,6 +99,14 @@ export abstract class PineEliteScript<B extends PineEliteBody> extends EliteBrai
     const streams = pineEliteStreams(def.id, seed);
     super(def, { player: env.player, random: () => streams.fight.next() }); this.def = def; this.env = env;
     this.streams = streams;
+    this.prelude = new PineElitePrelude({
+      alive: () => this.animal?.alive === true,
+      clock: () => { this.modeT += this.frameDt; },
+      clear: () => { this.clearTells(); },
+      home: () => { this.goHome(this.preludeBody()); },
+      fight: () => { this.fight(this.preludeBody(), this.frameDt, this.frameTime); },
+      idle: () => { this.idle(this.preludeBody(), this.frameDt); },
+    });
     const bytes = PINE_ELITE_MODULES[row.module];
     if (bytes === undefined) throw new Error(`pine elite '${id}' has no module`);
     this.script = eliteScript(row, bytes, () => streams.fight.next());
@@ -118,6 +131,16 @@ export abstract class PineEliteScript<B extends PineEliteBody> extends EliteBrai
   /** dev / captures: run its signature move now */
   abstract force(move: string): void;
   /** the brain's and the script's own state (its lanes ride `lanes()`) */
+  /** Advance at the original owner phase; rows select the same ordered native actions. */
+  override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
+    this.frameDt = dt; this.frameTime = t;
+    this.prelude.advance(engaged, leashing);
+  }
+  private preludeBody(): B {
+    const animal = this.animal;
+    if (animal === null || !animal.alive) throw new Error('Pine elite prelude requires its live native body');
+    return animal;
+  }
   fields(): PineEliteFields { return { modeT: this.modeT, p2: this.p2, wx: this.wx, wz: this.wz, wanderT: this.wanderT, ...this.extra() }; }
   restoreFields(mode: string, f: PineEliteFields): void {
     const num = (k: string): number => { const v = f[k]; if (typeof v !== 'number') throw new Error(`Incompatible Pine elite field ${k}`); return v; };

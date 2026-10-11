@@ -3010,3 +3010,6 @@ SF81 DIR-4 Pine watch/dawn clock consumes authored `data/watchStages.json` throu
 
 
 SF81 typed stage publication: `DirectorScriptStageLane` supplies the original admitted `Readonly<DirectorEvent>` as the optional second native publication argument. Row actions keep their literal values; a native parameter port can validate the matching event identity and consume its bounded numeric payload. Initialization has no source event, and restore still emits no actions. Pine night uses this for its AS-owned flee and population clocks while native ports retain actor identities, placement RNG and motor effects.
+
+
+SF81 Pine elite prelude: authored elitePreludeStages.json selects absent, home, fight and idle in the native priority order. Each live stage advances the original owner clock before its motor or admitted fight actions; the absent stage clears tells without advancing time. Pine retains the real actor, lair math, RNG and existing SF27 fight ABI. Four independent versioned cursors restore quietly; the native elite continuation is version 3 and refuses older snapshots.

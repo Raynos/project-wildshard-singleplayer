@@ -3,7 +3,7 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Warden Hollow gameplay tape, not every Pine system",
-  "inputs": "d5e291a8ce2dc8a6953f89aab4166c3795de91362a50754444c1c8eaca89994e",
+  "inputs": "ba3475b83c2bf107f1ceebf8c5f0af1154919c105496575205d10ded026834f5",
   "headless": {
     "status": "passed",
     "resumedFrom": "spawn",
@@ -12,7 +12,7 @@
     "alive": true,
     "kingDefeated": true,
     "dawn": true,
-    "hash": "3584548c340a799ca631697baadd67d7497c9dcc555fc113ad4428ba9284b107",
+    "hash": "e8729d5877ad2d8c93e3fb42b95d1f4e6977db3e689d9673c0c69954869b376b",
     "pack": {
       "counts": {
         "amber-resin": 5
@@ -550,8 +550,8 @@
     "checkpointCaptured": true,
     "checkpointTick": 27851,
     "suffixTicksExecuted": 1200,
-    "hash": "be0c04acb3546338e14550ae85e5765b005d5a864d28c1f426d127449e52977a",
-    "replayHash": "be0c04acb3546338e14550ae85e5765b005d5a864d28c1f426d127449e52977a",
+    "hash": "91df83d552e8e76ca6c65dab1096ae2ef9b43bcb8c77ae60daa9a2923c3e6236",
+    "replayHash": "91df83d552e8e76ca6c65dab1096ae2ef9b43bcb8c77ae60daa9a2923c3e6236",
     "checkpoint": {
       "state": "fight",
       "phase": 1
