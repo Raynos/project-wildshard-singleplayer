@@ -321,6 +321,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [nine-dragon-grapple-touch.mjs](./nine-dragon-grapple-touch.mjs)
 - [nine-physics-inputs.d.mts](./nine-physics-inputs.d.mts)
 - [nine-physics-inputs.mjs](./nine-physics-inputs.mjs)
+- [number-path-probe.d.mts](./number-path-probe.d.mts)
+- [number-path-probe.mjs](./number-path-probe.mjs)
 - [palette-delta.py](./palette-delta.py)
 - [parity.mjs](./parity.mjs)
 - [pine-hollow-audio-wiring.mjs](./pine-hollow-audio-wiring.mjs)
