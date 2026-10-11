@@ -27,7 +27,7 @@ export interface FloorGridProgress { documentOrigin: number; sampledAt: number; 
 export interface FloorGridFailure { kind: string; stop: FloorGridProgress['stop']; lastSample: FloorGridProgress; recoveryReason: string; nextDocumentOrigin: number }
 export function installFloorGridProgress(): void;
 export function gridFloorRuntimeFailure(last: FloorGridProgress | null, diagnostic: { documentOrigin: number; lastEnd?: { reason: string; at: number }; lastUnload?: { reason: string; t: number } } | null): FloorGridFailure | null;
-/** 'cell' enters the cell whose slug is `options.cell` from the road at its home-side edge (op-frame22). */
+/** 'cell' enters the cell whose instance or slug is `options.cell` from the road at its home-side edge (op-frame22). */
 export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'sun-entry' | 'cell' | 'all' | 'milestone', options?: { cell?: string; roadApproach?: boolean; entrySocket?: boolean }): FloorGridPlan[];
 export interface FloorGridDocumentIdentity { readonly timeOrigin: number; readonly token: string }
 export function gridFloorDocumentIdentity(): FloorGridDocumentIdentity;

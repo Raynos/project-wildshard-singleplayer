@@ -392,3 +392,12 @@ it('counts actual unready-edge motor blockage on every drawn frame, independentl
     expect(result.trace).toHaveLength(1); // The quarter-second trace alone would have missed both blocked frames.
   } finally { timing.mockRestore(); restoreGlobals(); }
 });
+
+
+it('selects an exact template instance without silently measuring the first copy', () => {
+  const copies = [...cells, { instance: 'template-2', slug: '_template', cell: [1, -1] as const }];
+  const [copy] = gridFloorPlans({ home: 'home', cells: copies }, 'cell', { cell: 'template-2', roadApproach: true });
+  expect(copy).toMatchObject({ to: 'template-2', start: { x: 832.5, z: -277.5 },
+    waypoints: [{ x: 555, z: -277.5 }, { x: 555, z: -345 }], requiredResidents: ['template-2'] });
+  expect(gridFloorPlans({ home: 'home', cells: copies }, 'cell', { cell: '_template' })[0]?.to).toBe('template-1');
+});

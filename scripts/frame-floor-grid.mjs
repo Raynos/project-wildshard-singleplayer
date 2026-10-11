@@ -25,7 +25,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
   if (scenario === 'cell') {
     // op-frame22 (SF63 / G158): any assembled cell by its slug, entered from the road at the edge that faces home (a corner
     // cell from its home-side midpoint), one road seed, then held input into its interior
-    const target = state.cells.find(cell => cell.slug === options.cell);
+    const target = state.cells.find(cell => cell.instance === options.cell) ?? state.cells.find(cell => cell.slug === options.cell);
     if (!target) throw new Error(`Grid floor has no ${String(options.cell)} cell (a DEVSERVER-only cell needs --devserver)`);
     if (target.instance === home.instance) throw new Error('Grid floor cell scenario needs a non-home cell');
     const t = origin(target), dx = Math.sign(h.x - t.x), dz = Math.sign(h.z - t.z);

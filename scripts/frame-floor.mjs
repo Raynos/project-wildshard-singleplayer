@@ -3,7 +3,7 @@
 // node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value]
 // --shards=grid: INFINITE WILDSHARD, entered the way a player does (the title's grid entry tapped, Developer on; no URL
 // switch), measured at the home cell's spawn and the heaviest of its parity cameras plus three highway-deck views.
-// --grid-scenario=cell --grid-cell=<slug> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--devserver]: also enter that cell from
+// --grid-scenario=cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--devserver]: also enter that cell from
 // the road at its home-side edge and measure travel, its interior and (optionally) a pose in its local frame; --devserver
 // builds the pinned preview in DEVSERVER mode, whose grid holds the DEVSERVER-only cells (op-frame22).
 // Owns a clean, pinned HEAD preview, browser/simulator lanes and their cleanup. Exit 2 = floor misses;
@@ -47,7 +47,7 @@ const entrySocket = args.includes('--entry-socket');
 if (entrySocket && gridScenario !== 'cell') throw new Error('--entry-socket requires the cell scenario');
 if (roadApproach && gridScenario !== 'cell') throw new Error('--road-approach requires the cell scenario');
 const gridCellPoseArg = flag('grid-cell-pose', '');
-if ((gridScenario === 'cell') !== (gridCell !== '') || (gridCellPoseArg !== '' && gridScenario !== 'cell')) throw new Error('--grid-scenario=cell takes --grid-cell=<slug> (and optionally --grid-cell-pose); neither goes with another scenario');
+if ((gridScenario === 'cell') !== (gridCell !== '') || (gridCellPoseArg !== '' && gridScenario !== 'cell')) throw new Error('--grid-scenario=cell takes --grid-cell=<slug|instance> (and optionally --grid-cell-pose); neither goes with another scenario');
 if (publicGrid && gridScenario === 'cell') throw new Error('The cell scenario needs Developer mode');
 /** a pose in the entered cell's local frame (metres, degrees), measured standing after the entry */
 const gridCellPose = gridCellPoseArg === '' ? null : (() => {
@@ -86,7 +86,7 @@ if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'mil
 if (publicGrid && gridScenario === 'milestone') throw new Error('Milestone floor requires Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--gl-time]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--gl-time]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
