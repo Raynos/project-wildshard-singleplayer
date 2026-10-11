@@ -25,13 +25,13 @@
 | Driftwood | 97.7 % |
 | Pine | 100.1 % |
 
-**Lanes (Jake G323: 3 Opus + 5 Codex)**
+**Lanes (Jake G329: 0 Opus, Codex only; the 3 running Opus lanes finish their current item, then stop; graphical rows wait for Opus)**
 
 | Lane | Work |
 |---|---|
-| op-hitch45 | WebKit frame-paced build yields (`a333faa02`) · clean buildPacing A/B |
-| op-hitch48 | frame-floor census fix (`9fca2b6ce`: earlier drive p95s were inflated) · Game.ts cap |
-| op-hitch49 | Pine NPC leg rigs sliced (`050505dcc`) · Signal activate install |
+| op-hitch45 | finishing: buildPacing A/B, then stops |
+| op-hitch48 | finishing: Game.ts cap, then stops |
+| op-hitch49 | finishing: Signal activate install, then stops |
 | sp-x1 | DS0.1 Nalati + Sky move-back · Nalati witness |
 | sp-x2 | DS0.1 Pine move-back |
 | sp-x4 | DS0.1 Driftwood + Signal move-back |
