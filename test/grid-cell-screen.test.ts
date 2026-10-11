@@ -275,3 +275,32 @@ it('never stands a panel behind or around the traveller, from the road through t
     expect(shownOnRoad).toBeGreaterThan(0); expect(shownInside).toBe(0);
   } finally { scope.dispose(); restoreGlobals(); }
 });
+
+
+it('keeps identical near pixels cached while hidden clocks and claims change, but refreshes visible facts and the full view', () => {
+  const scope = new Scope('screen-visible-facts'), scene = new Group(), drawn: string[] = [];
+  vi.stubGlobal('document', { createElement: () => ({ width: 0, height: 0, getContext: () => recorder(drawn) }) });
+  const admission: PlatformRenderAdmission = { allocate: (plan, build) => build(scope.child(plan.id)) };
+  const snapshot = new Map([['east', { ...base, instance: 'east' }]]);
+  let now = 0, feet = { x: 300, z: 0 };
+  try {
+    const screens = installCellScreens({ cells: [{ instance: 'east', x: 560, z: 0, art: null }], wall: 256,
+      scene, admission, time: () => now, build: 'b', tier: 'phone', ports: { read: () => snapshot, feet: () => feet } });
+    screens.step(); expect(screens.state().draws).toBe(1);
+    const pixels = [...drawn]; drawn.length = 0;
+    now = 2;
+    snapshot.set('east', { ...base, instance: 'east', claimedBytes: 20 * MB, pageBytes: 500 * MB, claims: 7 });
+    for (let k = 0; k < 6; k++) screens.step();
+    expect(screens.state().draws).toBe(1); expect(drawn).toEqual([]);
+    const changed = cellScreenContent(snapshot.get('east') ?? base, { build: 'b', tier: 'phone', elapsedS: 2 });
+    drawCellScreen(recorder(drawn), changed, null, true);
+    expect(drawn).toEqual(pixels); drawn.length = 0; // The invalidated old key would only upload identical text.
+    snapshot.set('east', { ...base, instance: 'east', runtime: true });
+    for (let k = 0; k < 6; k++) screens.step();
+    expect(screens.state().draws).toBe(2); expect(drawn).not.toEqual(pixels);
+    feet = { x: 270, z: 0 }; screens.step();
+    expect(screens.state().draws).toBe(3); expect(drawn).toContain('00:02');
+    now = 3; screens.step(); expect(screens.state().draws).toBe(4); expect(drawn).toContain('00:03');
+    scope.dispose(); expect(scene.getObjectByName('grid-cell-screens')).toBeUndefined();
+  } finally { scope.dispose(); restoreGlobals(); }
+});

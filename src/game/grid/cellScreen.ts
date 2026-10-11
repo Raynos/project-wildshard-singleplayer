@@ -144,6 +144,13 @@ export type ScreenContext = Pick<CanvasRenderingContext2D, 'fillRect' | 'strokeR
   & { fillStyle: CanvasRenderingContext2D['fillStyle']; strokeStyle: CanvasRenderingContext2D['strokeStyle']; lineWidth: number; font: string; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline; globalAlpha: number;
     createLinearGradient?: CanvasRenderingContext2D['createLinearGradient']; createRadialGradient?: CanvasRenderingContext2D['createRadialGradient'] };
 
+/** Exactly the facts painted by the close-up layout; hidden diagnostics must not invalidate its canvas. */
+function nearScreenFacts(screen: CellScreen) {
+  const headline = screen.headline === null ? screen.tracks[1].fact : screen.headline.slice(screen.headline.indexOf(' · ') + 3);
+  return { amber: screen.status === 'refused', chip: screen.chip, title: screen.title.toUpperCase(),
+    headline: wrap(headline, 30, 2), line: screen.sub ?? screen.line, bar: screen.bar, build: screen.build };
+}
+
 /** Paint the live loading facts; `near` uses large essential text at the soft wall, otherwise full diagnostics. */
 export function drawCellScreen(g: ScreenContext, screen: CellScreen, art: CanvasImageSource | null, near = false): void {
   const { w, h } = SCREEN_PX, accent = screen.status === 'refused' ? AMBER : CYAN;
@@ -168,14 +175,14 @@ export function drawCellScreen(g: ScreenContext, screen: CellScreen, art: Canvas
   // At the soft wall use the same live facts in large type; the full diagnostics stay on the distant screen.
   if (near) {
     const left = 54, width = w - 108;
-    text(screen.chip, left, 96, `700 48px ${MONO}`, accent, width);
-    text(screen.title.toUpperCase(), left, 194, `700 82px ${DISPLAY}`, TEXT, width);
-    const headline = screen.headline === null ? screen.tracks[1].fact : screen.headline.slice(screen.headline.indexOf(' · ') + 3);
-    for (const [i, line] of wrap(headline, 30, 2).entries()) text(line, left, 284 + i * 62, `600 52px ${DISPLAY}`, accent, width);
-    text(screen.sub ?? screen.line, left, 420, `600 38px ${MONO}`, DIM, width);
+    const facts = nearScreenFacts(screen);
+    text(facts.chip, left, 96, `700 48px ${MONO}`, accent, width);
+    text(facts.title, left, 194, `700 82px ${DISPLAY}`, TEXT, width);
+    for (const [i, line] of facts.headline.entries()) text(line, left, 284 + i * 62, `600 52px ${DISPLAY}`, accent, width);
+    text(facts.line, left, 420, `600 38px ${MONO}`, DIM, width);
     g.fillStyle = LINE; g.fillRect(left, 466, width, 10);
-    g.fillStyle = accent; g.fillRect(left, 466, width * screen.bar, 10);
-    text(screen.build, left, 544, `500 28px ${MONO}`, CYAN_DIM, width);
+    g.fillStyle = accent; g.fillRect(left, 466, width * facts.bar, 10);
+    text(facts.build, left, 544, `500 28px ${MONO}`, CYAN_DIM, width);
     return;
   }
   // head: the wordmark (Project, then Wildshard in cyan) and the build chip
@@ -375,7 +382,7 @@ export function installCellScreens(input: {
         const picture = image(cell);
         place(s, cell, feet);
         const near = Math.hypot(feet.x - s.mesh.position.x, feet.z - s.mesh.position.z) < NEAR;
-        const screen = cellScreenContent(state, frame), key = `${near ? 1 : 0}${picture === null ? 0 : 1}${JSON.stringify(screen)}`;
+        const screen = cellScreenContent(state, frame), key = `${near ? 1 : 0}${picture === null ? 0 : 1}${JSON.stringify(near ? nearScreenFacts(screen) : screen)}`;
         if (key !== s.key && s.context !== null) { s.key = key; drawCellScreen(s.context, screen, picture, near); s.upload(); draws++; }
         s.mesh.visible = true;
       }
