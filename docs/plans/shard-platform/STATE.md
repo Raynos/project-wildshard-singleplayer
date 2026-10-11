@@ -28,7 +28,7 @@
 | Driftwood | 97.7 % |
 | Pine | 100.1 % |
 
-**Lanes (Jake G329: 0 Opus, Codex only; all Opus lanes stopped; graphical rows wait for Opus)**
+**Lanes (0 Opus, G329; graphical rows wait for Opus)**
 
 | Lane | Work |
 |---|---|
@@ -43,7 +43,7 @@
 
 **Follow-up:** fresh SDK install needs npm `@loaders.gl/worker-utils@4.5.4` (else pin core 4.5.3).
 
-**Decisions:** G290–G328 in the plan; `design-system.md` is the route.
+**Decisions:** G290–G330 in the plan.
 
 **Jake (open picks; details `docs/reviews/shard-platform-open-picks.md`):**
 - SF63 Driftwood shadows Tight: `art/sf63/round-1-driftwood-shadows/board-ab.jpg`
