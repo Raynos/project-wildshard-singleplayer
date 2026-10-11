@@ -2,6 +2,7 @@
 import json
 import os
 from pathlib import Path
+import select
 import signal
 import subprocess
 import sys
@@ -32,15 +33,15 @@ for scenario in ('overlap', 'timeout', 'abort'):
         hook.chmod(0o755)
         message_hook = root / '.git/hooks/commit-msg'
         message_hook.write_text('#!/bin/sh\ntouch "ready-$WS_COMMIT_LANE"\n'
-                                'sleep "$FIXTURE_MESSAGE_SLEEP"\n')
+                                'if [ "$WS_COMMIT_LANE" = a ]; then read token < release-a; fi\n')
         message_hook.chmod(0o755)
+        os.mkfifo(root / 'release-a')
         jobs = []
         try:
             for name in ('a', 'b'):
                 env = {**os.environ, 'GIT_INDEX_FILE': str(root / f'{name}.index'),
                        'WS_COMMIT_LANE': name,
-                       'WS_COMMIT_LOCK_TIMEOUT': '.05' if scenario == 'timeout' and name == 'b' else '5',
-                       'FIXTURE_MESSAGE_SLEEP': '10' if scenario == 'abort' and name == 'a' else '.3'}
+                       'WS_COMMIT_LOCK_TIMEOUT': '.05' if scenario == 'timeout' and name == 'b' else '5'}
                 git('read-tree', 'HEAD', env=env)
                 blob = git('hash-object', '-w', '--stdin', input=name)
                 git('update-index', '--cacheinfo', f'100644,{blob},{name}', env=env)
@@ -55,12 +56,32 @@ for scenario in ('overlap', 'timeout', 'abort'):
                         if time.monotonic() > deadline:
                             raise AssertionError('first commit never reached message hook')
                         time.sleep(.01)
+            # Hold A until B actually reaches the lock, rather than assuming
+            # Python startup fits within a fixed sleep under the full gate.
+            if not select.select([jobs[1].stderr], [], [], 5)[0]:
+                raise AssertionError('second commit never reported lock contention')
+            waiting = jobs[1].stderr.readline()
+            assert 'commit-message-lock: waiting up to ' in waiting, waiting
+            finished = {}
+            if scenario == 'timeout':
+                out, err = jobs[1].communicate(timeout=7)
+                finished[jobs[1].pid] = (out, waiting + err)
             if scenario == 'abort':
-                time.sleep(.05)
                 os.killpg(jobs[0].pid, signal.SIGTERM)
+            else:
+                descriptor = os.open(root / 'release-a', os.O_WRONLY | os.O_NONBLOCK)
+                try:
+                    os.write(descriptor, b'continue\n')
+                finally:
+                    os.close(descriptor)
             outputs = []
             for job in jobs:
-                out, err = job.communicate(timeout=7)
+                if job.pid in finished:
+                    out, err = finished[job.pid]
+                else:
+                    out, err = job.communicate(timeout=7)
+                    if job is jobs[1]:
+                        err = waiting + err
                 outputs.append({'status': job.returncode, 'stderr': err, 'stdout': out})
             if scenario == 'timeout':
                 assert outputs[1]['status'] != 0
