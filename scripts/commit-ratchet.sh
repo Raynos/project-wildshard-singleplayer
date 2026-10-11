@@ -30,7 +30,10 @@ t0=$SECONDS
 # shellcheck disable=SC2086 # word-split on purpose: a list of literal paths
 git -C "$repo" archive "$sha" -- $paths | tar -x -C "$tmp" 2>/dev/null
 node "$repo/scripts/link-node-modules.mjs" "$repo" "$tmp" # E432: @wildshard/* resolve to this export, not the working tree
-if out="$(cd "$tmp" && node lint/ratchet.mjs 2>&1)"; then
+# A detached older commit may still be running when this launcher changes in the shared checkout.
+ratchet_args=()
+if grep -q -- '--defer-reductions' "$tmp/lint/ratchet.mjs"; then ratchet_args=(--defer-reductions); fi
+if out="$(cd "$tmp" && node lint/ratchet.mjs "${ratchet_args[@]}" 2>&1)"; then
   printf '%s ok\n%s\n' "$sha" "$out" > "$common/ratchet-last.txt"
   note "ok in $((SECONDS - t0)) s"
   exit 0

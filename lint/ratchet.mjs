@@ -63,7 +63,7 @@ function debugCount(root) {
 }
 
 function main() {
-  let root = REPO, baselineFile = resolve(REPO, 'lint/ratchet.json'), mode = 'check', addRule = null;
+  let root = REPO, baselineFile = resolve(REPO, 'lint/ratchet.json'), mode = 'check', addRule = null, deferReductions = false;
   const args = process.argv.slice(2);
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
@@ -73,11 +73,15 @@ function main() {
       if (arg === '--root') root = resolve(value);
       else if (arg === '--baseline') baselineFile = resolve(value);
       else { if (mode !== 'check') throw new Error('Only one write mode is allowed'); mode = arg === '--add-rule' ? 'add' : 'rebaseline'; addRule = value; }
+    } else if (arg === '--defer-reductions') {
+      deferReductions = true;
     } else if (arg === '--init' || arg === '--update' || arg === '--measure') {
       if (mode !== 'check') throw new Error('Only one write mode is allowed');
       mode = arg.slice(2);
     } else throw new Error(`Unknown option: ${arg}`);
   }
+  // Source-commit advisories leave debt reductions to the serialized pusher; rises and hard policies still fail.
+  if (deferReductions && mode !== 'check') throw new Error('--defer-reductions is read-only and cannot be combined with a write or measure mode');
   if (mode === 'init' && existsSync(baselineFile)) throw new Error(`Refusing --init: ${baselineFile} already exists`);
   if (mode !== 'init' && !existsSync(baselineFile)) throw new Error(`Missing ratchet: ${baselineFile}; use --init once`);
   // X8 initializes debugRows. --init records rules and seeds the measurement allowlist only.
@@ -97,9 +101,10 @@ function main() {
     console.log(`Ratchet recorded ${addRule}`); return;
   }
   const hard = hardRules(resolve(REPO, '.oxlintrc.json'));
-  const { failures, warnings } = compareCounts(baseline, current, hard, undefined, mode === 'update', mode === 'measure');
+  const { failures, warnings } = compareCounts(baseline, current, hard, undefined, mode === 'update' || deferReductions, mode === 'measure');
   if (mode === 'measure') for (const [rule, files] of Object.entries(current)) if (hard.has(rule) && Object.keys(files).length > 0) failures.push(`${rule}: hard rule cannot be measured as legacy debt`);
-  if (mode !== 'measure') for (const warning of warnings) console.warn(warning);
+  if (mode !== 'measure') for (const warning of warnings) console.warn(deferReductions
+    ? warning.replace('partial slack; lower the ratchet', 'central regeneration will lower the debt') : warning);
   const rows = baseline.debugRows ? debugCount(root) : null;
   if (rows !== null && rows > baseline.debugRows.max) failures.push(`debugRows: was ${baseline.debugRows.max}, now ${rows}`);
   if (failures.length > 0) throw new Error(`Ratchet rose:\n${failures.join('\n')}`);

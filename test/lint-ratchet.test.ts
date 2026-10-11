@@ -68,6 +68,31 @@ describe('ratchet CLI', () => {
     expect(result.stderr).toContain('src/engine/ui/example.ts: wildshard/no-raw-save was 1, now 2');
     expect(readFileSync(f.file, 'utf8')).toBe(before);
   });
+  it('defers source-commit reductions without writing debt or accepting rises, hard violations or zero-rule promotion', () => {
+    const f = fixture('Math.random(); Math.random();');
+    put(f.root, 'src/engine/ui/retained.ts', 'Math.random();');
+    expect(f.run('--init').status).toBe(0);
+    const before = readFileSync(f.file, 'utf8');
+    put(f.root, 'src/engine/ui/example.ts', 'export const x = 1;');
+    expect(f.run().stderr).toContain('is clean');
+    const reduction = f.run('--defer-reductions');
+    expect(reduction.status, String(reduction.stderr)).toBe(0);
+    expect(reduction.stderr).toContain('central regeneration will lower the debt');
+    expect(readFileSync(f.file, 'utf8')).toBe(before);
+    put(f.root, 'src/engine/ui/example.ts', 'Math.random(); Math.random(); Math.random();');
+    expect(f.run('--defer-reductions').stderr).toContain('was 2, now 3');
+    put(f.root, 'src/engine/ui/example.ts', 'export const x = 1;');
+    put(f.root, 'src/engine/ui/new.ts', 'Math.random();');
+    expect(f.run('--defer-reductions').stderr).toContain('was 0, now 1');
+    rmSync(join(f.root, 'src/engine/ui/new.ts'));
+    put(f.root, 'src/engine/ui/example.ts', "localStorage.getItem('x');");
+    expect(f.run('--defer-reductions').status).toBe(1);
+    put(f.root, 'src/engine/ui/example.ts', 'export const x = 1;');
+    put(f.root, 'src/engine/ui/retained.ts', 'export const x = 1;');
+    expect(f.run('--defer-reductions').stderr).toContain('move it to .oxlintrc.json');
+    expect(f.run('--defer-reductions', '--update').stderr).toContain('read-only');
+    expect(readFileSync(f.file, 'utf8')).toBe(before);
+  });
   it('rejects a new file with a violation even if an old file was deleted', () => {
     const f = fixture(); expect(f.run('--init').status).toBe(0);
     rmSync(join(f.root, 'src/engine/ui/example.ts')); put(f.root, 'src/engine/ui/new.ts', "localStorage.getItem('x');");
