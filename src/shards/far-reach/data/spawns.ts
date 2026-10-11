@@ -15,3 +15,11 @@ export const SKY_FLOCK_ROWS = [
 /** The admitted spawn closure uses the same authored rows, retaining its original actor and boss list order. */
 export const SKY_SPAWNS = { homes: [], bosses: SKY_FLOCK_ROWS.filter(row => row.kind === 'stormRoc').map(({ home: _home, ...row }) => row),
   actors: SKY_FLOCK_ROWS.filter(row => row.kind !== 'stormRoc').map(({ home: _home, ...row }) => row) };
+
+/** Named browser batches retain the same native allocation order and exact homes as the headless roster. */
+export const SKY_FLOCK_GROUPS = {
+  rays: SKY_FLOCK_ROWS.filter(row => row.id.startsWith('far.ray.')),
+  roost: SKY_FLOCK_ROWS.filter(row => row.id.startsWith('far.roost.')),
+  wisps: SKY_FLOCK_ROWS.filter(row => row.kind === 'galeWisp'),
+  goats: SKY_FLOCK_ROWS.filter(row => row.kind === 'skyGoat'),
+};

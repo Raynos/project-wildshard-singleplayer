@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { SKY_FLOCK_ROWS, SKY_SPAWNS } from '../../../src/shards/far-reach/data/spawns';
+import { SKY_FLOCK_GROUPS, SKY_FLOCK_ROWS, SKY_SPAWNS } from '../../../src/shards/far-reach/data/spawns';
 import { RAY_HOMES, ROOST_RAYS, WISP_HOMES, ROC, GOATS } from '../../../src/shards/far-reach/data/layout';
 import { apothem } from '../../../src/shards/far-reach/layout';
 import frozen from '../../fixtures/species-oracle/skySpawns.json' with { type: 'json' };
@@ -14,4 +14,10 @@ it('keeps the published finite spawn closure byte-identical to the shipping auth
 it('retains every actual body home including the native rim-aware goat floor and Roc home', () => {
   expect(SKY_FLOCK_ROWS.map(row => row.home)).toEqual([...RAY_HOMES, ...ROOST_RAYS, ...WISP_HOMES, ROC,
     ...GOATS.map(goat => ({ x: goat.isle.x, z: goat.isle.z, r: apothem(goat.isle), y: goat.isle.y }))]);
+});
+
+it('keeps every browser batch in its actual native order, sharing the same body homes', () => {
+  const groups = SKY_FLOCK_GROUPS;
+  expect([...groups.rays, ...groups.roost, ...groups.wisps, ...SKY_FLOCK_ROWS.filter(row => row.kind === 'stormRoc'), ...groups.goats]).toEqual(SKY_FLOCK_ROWS);
+  expect(groups.goats).toHaveLength(5);
 });

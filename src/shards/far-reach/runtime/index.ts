@@ -12,8 +12,8 @@ import { ROC_SLATE_EDITS } from './looks/paintLook';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from '../data/strings';
-import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, VANES, WISP_HOMES } from '../data/layout';
-import { apothem } from '../layout';
+import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
+import { SKY_FLOCK_GROUPS } from '../data/spawns';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { skyMoverViews } from './movers';
 import { installDeclaredMovers, type MoverRuntimeInstance as MoverRuntime } from '@wildshard/sdk/runtime/movers';
@@ -268,8 +268,8 @@ export class SkyReachPlugin extends ShardPlugin {
 
     // Creatures: each one knows its home (an island or a flying circle).
     const animals = rt.play?.animals;
-    const rayHomes = boundedRows(RAY_HOMES);
-    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = rayHomes[i]; if (home === undefined) break; const a = bindSkyActor(ctx, `far.ray.${String(i)}`, home).spawn(); if (a) this.rays.push(a); }
+    const rayHomes = boundedRows(SKY_FLOCK_GROUPS.rays);
+    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = rayHomes[i]; if (row === undefined) break; const a = bindSkyActor(ctx, row.id, row.home).spawn(); if (a) this.rays.push(a); }
     // each free ray trails its luminous wake (data/rayWakeLook.ts on @wildshard/sdk/looks/wakeRibbon; proposal B's ray beside the mill)
     const wakes = this.rays.map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
     boundedRows(wakes);
@@ -278,14 +278,13 @@ export class SkyReachPlugin extends ShardPlugin {
       // each wake in the level's own frame (it stands at the root), as the meadow's eye
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = wakes[i]; if (row === undefined) break; row.w.update(row.ray.position, row.ray.alive, row.w.mesh.worldToLocal(cam.getWorldPosition(eye)), dt); }
     } });
-    const roostHomes = boundedRows(ROOST_RAYS);
-    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = roostHomes[i]; if (home === undefined) break; const a = bindSkyActor(ctx, `far.roost.${String(i)}`, home).spawn(); if (a) this.roostRays.push(a); }
+    const roostHomes = boundedRows(SKY_FLOCK_GROUPS.roost);
+    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = roostHomes[i]; if (row === undefined) break; const a = bindSkyActor(ctx, row.id, row.home).spawn(); if (a) this.roostRays.push(a); }
     // The goats walk their island's deck (G26): the spawn lands them on the first WORLD floor under `fromY`. That ray
     // finds the islands only once physics has stepped (in `play` it hits nothing and the goat lands on the −1000 m
     // analytic floor), so they spawn on the first fixed step.
-    const goatSpawns = boundedRows(GOATS).map((g, index) => ({
-      body: bindSkyActor(ctx, `far.goat.${String(index)}`, { x: g.isle.x, z: g.isle.z, r: apothem(g.isle), y: g.isle.y }),
-      placement: { fromY: g.isle.y + GOAT_SPAWN_ABOVE } }));
+    const goatSpawns = boundedRows(SKY_FLOCK_GROUPS.goats).map(row => ({
+      body: bindSkyActor(ctx, row.id, row.home), placement: { fromY: row.home.y + GOAT_SPAWN_ABOVE } }));
     let goatsDue = !retainsRuntimeServices(ctx);
     ctx.system({ id: 'far.goats', phase: 'fixed.post', run: () => {
       if (!goatsDue) return; goatsDue = false;
@@ -295,8 +294,8 @@ export class SkyReachPlugin extends ShardPlugin {
         if (a) this.goats.push(a);
       }
     } });
-    const wispHomes = boundedRows(WISP_HOMES);
-    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = wispHomes[i]; if (home === undefined) break; const a = bindSkyActor(ctx, `far.wisp.${String(i)}`, home).spawn(); if (a) this.wisps.push(a); }
+    const wispHomes = boundedRows(SKY_FLOCK_GROUPS.wisps);
+    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = wispHomes[i]; if (row === undefined) break; const a = bindSkyActor(ctx, row.id, row.home).spawn(); if (a) this.wisps.push(a); }
     this.roc = bindRuntimeBoss(ctx, source, ROC_ID, undefined, { identity: 'runtime' }).spawn();
     if (this.roc !== null) setHome(this.roc, ROC);
     // Preserve the shipping identity order: deferred goats follow the Roc. Retained restore runs before any tick;
