@@ -15,7 +15,7 @@ import { HeadlessSimulation } from '../../../src/sdk/headless';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
 import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/quests';
 import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/data/signalInteractions';
-import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/runtime/quest/matriarchFight';
+import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/data/matriarchEncounter';
 import { lashContact } from '../../../src/shards/sunscar-dunes/runtime/items/lash';
 import { WHIP_ITEM } from '../../../src/shards/sunscar-dunes/data/items';
 import { SCOUT_AT } from '../../../src/shards/sunscar-dunes/data/flags';

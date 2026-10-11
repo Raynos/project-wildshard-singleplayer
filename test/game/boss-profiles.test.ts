@@ -5,7 +5,7 @@ import { EliteScriptSchema } from '../../src/format/eliteScripts';
 import type { BossFightProfile } from '../../src/game/plugin/bossPhase';
 import { ANTLER_KING_FIGHT } from '../../src/shards/pine-hollow/data/kingFight';
 import { GOLDEN_KING_ROW } from '../../src/shards/nalati-grasslands/combat/goldenKingRow';
-import { MATRIARCH_FIGHT } from '../../src/shards/sunscar-dunes/runtime/quest/matriarchFight';
+import { MATRIARCH_BOSS_PROFILE } from '../../src/shards/sunscar-dunes/data/matriarchBoss';
 import { ROC_FIGHT } from '../../src/shards/far-reach/data/rocFight';
 import { formatJsonSchema } from '../../src/sdk/formatJsonSchema';
 import { schemaInventory } from '../../scripts/docs/schema-reference.mjs';
@@ -14,7 +14,7 @@ import { schemaInventory } from '../../scripts/docs/schema-reference.mjs';
 const pine = { kind: 'boss', pattern: 'roaming', fight: { ...ANTLER_KING_FIGHT, origin: { x: ANTLER_KING_FIGHT.origin.x, z: ANTLER_KING_FIGHT.origin.z } } } as const;
 const nalati = { kind: 'boss', pattern: 'arena', fight: GOLDEN_KING_ROW } as const;
 const sky = { kind: 'boss', pattern: 'held', fight: ROC_FIGHT } as const;
-const signal = { kind: 'boss', pattern: 'spawned', fight: MATRIARCH_FIGHT } as const;
+const signal = MATRIARCH_BOSS_PROFILE;
 const script = { kind: 'boss', pattern: 'script', fight: { id: 'boss.fixture', kind: 'elite-script', module: 'a'.repeat(64),
   parameters: [1,-1], slots: [{field:'phase',initial:0}], modes: ['idle','strike'], voices: ['growl'], lanes: [], contacts: [],
   actions: ['roar'], maxSpeed: 4, maxTurnRate: 3 } } as const;

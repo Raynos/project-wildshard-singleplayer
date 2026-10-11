@@ -5,7 +5,7 @@ import type { BossContinuation, BossDefinition, BossPorts, BossPresentation, Bos
 import { DirectorBossBrain } from '../src/game/plugin/director';
 import { BossBrain as ShippingBoss } from './fixtures/director-boss/BossBrain';
 import { ROC_DEFINITION } from '../src/shards/far-reach/data/rocFight';
-import { MATRIARCH_DEFINITION } from '../src/shards/sunscar-dunes/runtime/quest/matriarchFight';
+import { MATRIARCH_DEFINITION } from '../src/shards/sunscar-dunes/data/matriarchEncounter';
 import skyRows from '../src/shards/far-reach/data/bossStages.json';
 import signalRows from '../src/shards/sunscar-dunes/data/bossStages.json';
 

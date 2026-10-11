@@ -5,7 +5,8 @@ import { bindRuntimeBoss, bindRuntimeCoins, type RuntimeCoins } from '@wildshard
 import { carriedBossRecord, installMarkedBoss, type MarkedBoss, type MarkedBossRows } from '../runtime/shardfile/markedBoss';
 import { lastLightAll } from '../look/light';
 import source from '../shard.config';
-import { MATRIARCH_DEFINITION, MATRIARCH_ID, MATRIARCH_PRESENTATION, MATRIARCH_RECORD, MATRIARCH_REWARD } from '../runtime/quest/matriarchFight';
+import { MATRIARCH_DEFINITION, MATRIARCH_ID, MATRIARCH_RECORD, MATRIARCH_REWARD } from '../data/matriarchEncounter';
+import { MATRIARCH_PRESENTATION } from '../runtime/quest/matriarchFight';
 import type { SignalWorld } from '../world/build';
 
 /** Her rows (data/matriarchFight.ts): the encounter, the marked fight, its presentation and her 20 coins. */
