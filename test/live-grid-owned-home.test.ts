@@ -176,7 +176,7 @@ it('materializes only the approached road destination before its capsule reaches
   } finally { f.finish(); }
 });
 
-it('uses the network approach bound after source disposal, without rebuilding the closer source behind the traveller', async () => {
+it('keeps network prefetch early but builds the destination only after crossing the road midpoint', async () => {
   const f = await open(undefined, undefined, 10);
   const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
   try {
@@ -184,8 +184,11 @@ it('uses the network approach bound after source disposal, without rebuilding th
     const road = await f.registry.prepare('driftwood-isle', null); road.commit();
     expect(f.registry.unload('driftwood-isle')).toBe(true);
     f.player.position.set(0, 0.5, 275); f.registry.beforeFixed(); await settle();
-    expect(f.creates).toEqual(['driftwood-isle']); // No speculative world while stationary, 30 m before Pine.
+    expect(f.creates).toEqual(['driftwood-isle']); // The source is closer, but the traveller is leaving it.
     f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    expect(f.creates).toEqual(['driftwood-isle']); expect(f.modules).toContain('pine-hollow');
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 2.5 }); f.shell.physics.step();
     f.registry.beforeFixed(); await settle();
     expect(f.creates).toEqual(['driftwood-isle', 'pine-hollow']);
     expect(f.registry.current()).toBeNull(); expect(f.registry.target(f.registry.worldFeet())).toBeNull();
@@ -273,7 +276,7 @@ it.each([false, true])('retires the speculative runtime that finishes after the 
   }, undefined, 10);
   const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
   try {
-    f.player.position.set(0, 0.5, 275); f.registry.beforeFixed();
+    f.player.position.set(0, 0.5, 277.5); f.registry.beforeFixed();
     f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
     f.registry.beforeFixed(); await settle();
     expect(f.creates).toEqual(['pine-hollow']); expect(f.registry.state().residents).toEqual([]);
@@ -301,7 +304,7 @@ it('keeps a prepared approach across readiness-wall capsule recoil, then honours
     const entered = await f.registry.prepare(null, 'driftwood-isle'); entered.commit();
     const road = await f.registry.prepare('driftwood-isle', null); road.commit();
     expect(f.registry.unload('driftwood-isle')).toBe(true);
-    f.player.position.set(0, 0.5, 275); f.registry.beforeFixed();
+    f.player.position.set(0, 0.5, 277.5); f.registry.beforeFixed();
     f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
     f.registry.beforeFixed(); await settle();
     expect(f.registry.ready('pine-hollow')).toBe(true);
@@ -314,8 +317,11 @@ it('keeps a prepared approach across readiness-wall capsule recoil, then honours
     expect(f.creates).toEqual(['driftwood-isle', 'pine-hollow']);
     expect(f.disposals).toEqual(['driftwood-isle']);
     expect(f.owner.allocator.has('sim:pine-hollow')).toBe(true);
-    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.5 }); f.shell.physics.step();
-    f.registry.beforeFixed(); await settle();
+    for (let tick = 0; tick < 45; tick++) {
+      f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.5 }); f.shell.physics.step();
+      f.registry.beforeFixed(); await settle();
+      if (f.registry.worldFeet().z > 277.5) expect(f.disposals).toEqual(['driftwood-isle']);
+    }
     expect(f.disposals).toEqual(['driftwood-isle', 'pine-hollow']);
     expect(f.creates).toEqual(['driftwood-isle', 'pine-hollow', 'driftwood-isle']);
     expect(f.hosts.size).toBe(1);
@@ -326,7 +332,7 @@ it('holds a refused speculative retirement and its full claim across a road U-tu
   const f = await open(undefined, undefined, 10);
   const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
   try {
-    f.player.position.set(0, 0.5, 275); f.registry.beforeFixed();
+    f.player.position.set(0, 0.5, 277.5); f.registry.beforeFixed();
     f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
     f.registry.beforeFixed(); await settle(); expect(f.creates).toEqual(['pine-hollow']);
     const before = f.owner.allocator.cost(); f.quota(true);
@@ -347,7 +353,7 @@ it('holds a refused speculative retirement and its full claim across a road U-tu
 it('refuses an approach world before allocation when its unchanged whole-runtime claim exceeds the page cap', async () => {
   const f = await open((_id, fallback) => Promise.resolve({ ...fallback(), bytes: 2_000_000_000 }), undefined, 10);
   try {
-    f.player.position.set(0, 0.5, 275); f.registry.beforeFixed();
+    f.player.position.set(0, 0.5, 277.5); f.registry.beforeFixed();
     f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
     f.registry.beforeFixed();
     for (let i = 0; i < 40; i++) await Promise.resolve();
@@ -362,7 +368,7 @@ it.each([false, true])('retires an unentered declarative copy before the approac
   const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
   try {
     const copy = f.registry.assembly.cell('template-2');
-    f.player.position.set(copy.origin.x, 0.5, copy.origin.z - 280); f.registry.beforeFixed();
+    f.player.position.set(copy.origin.x, 0.5, copy.origin.z - 277.5); f.registry.beforeFixed();
     f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
     f.registry.beforeFixed(); await settle();
     expect(f.registry.current()).toBeNull(); expect(f.registry.ready('template-2')).toBe(true);
@@ -443,5 +449,35 @@ it('releases the unused home preclaim before road recovery allocates a different
     expect(f.registry.current()).toBe('pine-hollow'); expect(f.creates).toEqual(['pine-hollow']);
     expect(() => f.owner.home().retain()).toThrow('preclaim has been released');
     f.registry.dispose(); expect(f.owner.allocator.entries()).toEqual([]);
+  } finally { f.finish(); }
+});
+
+
+it('keeps boulevard departure and a corner turn metadata-only, then builds the actual destination beyond its road midpoint', async () => {
+  const f = await open(undefined, undefined, 10);
+  const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+  try {
+    const home = await f.registry.prepare(null, 'driftwood-isle'); home.commit();
+    const road = await f.registry.prepare('driftwood-isle', null); road.commit();
+    expect(f.registry.unload('driftwood-isle')).toBe(true);
+    await f.registry.prefetch(['pine-hollow', 'template-2']);
+    f.player.position.set(0, 0.5, 261); f.registry.beforeFixed();
+    for (let tick = 0; tick < 29; tick++) {
+      f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.5 }); f.shell.physics.step();
+      f.registry.beforeFixed(); await settle();
+    }
+    for (let tick = 0; tick < 60; tick++) {
+      f.player.motor.move(f.player.position, { x: 0.5, y: -0.05, z: 0 }); f.shell.physics.step();
+      f.registry.beforeFixed(); await settle();
+    }
+    expect(f.modules).toContain('pine-hollow'); expect(f.creates).toEqual(['driftwood-isle']);
+    expect(f.owner.allocator.has('sim:pine-hollow')).toBe(false); expect(f.hosts.size).toBe(0);
+    const target = f.registry.assembly.cell('template-2');
+    f.player.position.set(target.origin.x - 277.5, 0.5, target.origin.z); f.registry.beforeFixed(); await settle();
+    f.player.motor.move(f.player.position, { x: 0.25, y: -0.05, z: 0 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    expect(f.creates).toEqual(['driftwood-isle', 'template-2']);
+    expect(f.registry.ready('template-2')).toBe(true); expect(f.registry.current()).toBeNull();
+    expect(f.registry.state().issues).toEqual({}); expect(f.owner.allocator.has('sim:pine-hollow')).toBe(false);
   } finally { f.finish(); }
 });

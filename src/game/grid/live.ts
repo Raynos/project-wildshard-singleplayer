@@ -388,7 +388,12 @@ export class LiveGridHost {
         && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
       const approach = moving ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
       if (approach !== undefined && !this.issues.has(approach.instance)) {
-        const reach = moving === undefined ? wallReach : Math.max(wallReach, readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance);
+        // Product/module prefetch keeps the full network bound. A native world waits until the traveller
+        // crosses the road midpoint toward its entry: on the departing half, a boulevard turn still looks
+        // like entry into the opposite cell and otherwise builds an entire unrelated runtime twice.
+        const committedReach = (this.assembly.pitch - 2 * CHUNK_HALF) / 2;
+        const reach = moving === undefined ? wallReach : Math.max(wallReach,
+          Math.min(committedReach, readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance));
         if (this.distance(approach, feet) <= reach) {
           // A turn replaces any speculative world, including a declarative copy, only after durable disposal succeeds.
           // Never overlap opaque worlds, retry a failed save each tick, or discard an in-flight crossing reservation.
