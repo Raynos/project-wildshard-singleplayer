@@ -1,6 +1,6 @@
 # Plan: IN-GAME-CUTSCENES — real cutscenes in the shards, in engine and generated (E475)
 
-**State:** `draft` 2026-10-10 — written; waits on Jake's go and the three picks in §7. Nothing is built from a draft.
+**State:** `dropped` 2026-10-10 — Jake: *"We are not doing the cutscenes plan."* Kept as research (§7 holds his picks); nothing is built.
 Live status moves to [in-game-cutscenes/STATE.md](in-game-cutscenes/STATE.md) once the plan starts.
 
 ## 0. Why

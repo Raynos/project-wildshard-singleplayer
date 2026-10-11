@@ -25,6 +25,11 @@ CUTS = {  # (shot, in s, dur s, speed); the content ends where the end card star
         ('l1', 0.0, 1.4, 1.0), ('l2-r1', 0.0, 3.5, 1.0), ('l3', 0.0, 2.75, 1.0), ('l4', 0.0, 4.75, 0.85)],
         'sfx': [('p15-wind', 1.3, -9, 3.6, 0.4), ('p15-whoosh', 4.75, -8, None, 0), ('p15-rain', 4.9, -15, 7.5, 0.5),
                 ('p15-dragon', 8.6, -5, None, 0), ('p15-hit', 12.4, -5, None, 0)]},
+    # E474 Part E, the engine-true trailer: real alpha-trailer frames + our in-game rider, the indie cue (run with the e15 dir)
+    'ride': {'score': 'e15-ride/minimax3-702.wav', 'end': 12.5, 'clips': [
+        ('e1', 0.0, 4.0, 1.0), ('e2', 0.2, 3.2, 1.0), ('e3', 0.0, 2.5, 1.0), ('e4', 0.3, 2.8, 1.0)],
+        'sfx': [('p15-gallop', 0.0, -13, 4.2, 0.4), ('p15-whoosh', 3.85, -12, None, 0), ('p15-gallop', 7.2, -14, 2.6, 0.4),
+                ('p15-gallop', 9.7, -18, 2.8, 0.8)]},
 }
 C = CUTS[NAME]
 work = os.path.join(D, 'work', NAME); os.makedirs(work, exist_ok=True)

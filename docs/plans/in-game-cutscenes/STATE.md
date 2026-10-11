@@ -1,6 +1,8 @@
 # IN-GAME-CUTSCENES — State (coordinator: none yet; ≤ 3 KB; overwritten)
 
-**2026-10-10.** `draft`. The plan is written ([../IN-GAME-CUTSCENES.md](../IN-GAME-CUTSCENES.md), ask E475). Nothing is
+**2026-10-10.** `dropped` — Jake: *"We are not doing the cutscenes plan. We are just finishing the last cinematic trailer
+then wrapping up."* Kept as research only (the inventory of today's boss-intro camera moments, the hybrid design, his
+three picks); nothing is built. Earlier: the plan is written ([../IN-GAME-CUTSCENES.md](../IN-GAME-CUTSCENES.md), ask E475). Nothing is
 built from a draft.
 
 **Recommendation:** hybrid, in engine first (D1). An engine camera timeline (`src/engine/cinematic/`, exposed as

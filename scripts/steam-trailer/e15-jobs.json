@@ -1,0 +1,16 @@
+{
+ "_doc": "E474 TRAILERS E15: the engine-true trailer's cue — small and honest, an indie adventure, not an epic orchestra. ~/ml/music/minimax-music3/.venv/bin/python scripts/music/gen/gen_minimax.py --jobs $PWD/scripts/steam-trailer/e15-jobs.json --keys e15/ride --seeds 701,702 --out <scratch> (under the model lock).",
+ "lyrics": {
+  "short": "[Intro]\n[Instrumental]\n[Outro]"
+ },
+ "jobs": {
+  "e15/ride": {
+   "style": "folk",
+   "slot": "trailer",
+   "duration": 16,
+   "lyrics": "short",
+   "bpm": 112,
+   "prompt": "Genre: warm indie adventure folk, acoustic guitar strumming, fiddle melody, hand drums and tambourine, a small string section. BPM: 112. Key: G major. Instrumental only, no vocals. Sixteen seconds for a rider galloping across different little worlds in a cosy indie browser game. Starts right away with a galloping strummed guitar rhythm and hand drums; the fiddle takes a bright, adventurous melody at four seconds; a lift at about eight seconds as the strings join; at twelve seconds one last warm strummed chord rings out and fades over four seconds. Cheerful, handmade, small-scale, not epic, no orchestra hits, no choir."
+  }
+ }
+}

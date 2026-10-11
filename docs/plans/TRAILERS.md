@@ -1,11 +1,10 @@
 # Plan: TRAILERS — an alpha in-engine trailer and a cinematic vision trailer (E466)
 
-**State:** `in progress` 2026-10-10 — **Part A done** (the alpha trailer, live on wildshard.io). **Part B: CT1 done**
-(ten experiments, Jake's verdicts: LTX Layout-To-Render on a Blender grey (#9) and LTX from a Qwen keyframe (#10b) win);
-**CT2** script draft 4 after council rounds 1–2; **draft 1 of the cinematic trailer is cut** (67 s, every shot LTX-2.5,
-sent to Jake 2026-10-10; `art/trailers/round-3-draft1/`) — **Jake: "looks insanely AI"**, so Part B pauses for **Part C**:
-four 15-second trailers, one idea each (E471, §3b; V1 / V2 kept for the builder trailer); then **Part D**, a
-15-second cinematic for players in the WoW-2004 spirit (E472, §3c). Open: TR9, CT2–CT6, T15-6, P15-0–P15-1.
+**State:** `in progress` 2026-10-10 — **Part A done** (the alpha trailer, live on wildshard.io). Concept trailers, all
+sent to Jake: CT2's 67 s draft (*"insanely AI"*), Part C's four 15 s builder variants (V1 / V2 kept, T15-6 parked),
+Part D's three AAA-style player cinematics (*"great"* but *"imply a product that would cost millions"*), and **Part E's
+engine-true trailer** (real frames + our in-game rider, E474). The lessons: `docs/process/CINEMATICS.md`. Open: TR9,
+CT2–CT6 (superseded in practice by Parts C–E), T15-6, Jake's verdict on E15 and where it goes on the site.
 
 ## 0. Why
 
@@ -151,7 +150,7 @@ not restyle the player); the worlds change around him. `docs/process/CINEMATICS.
 
 | Row | What | Done when | Owner |
 |---|---|---|---|
-| E15-1 | Four keyframes from alpha-trailer frames (Nalati grass, the grid's highway, Driftwood's wreck beach, Pine Hollow's road) + the in-game rider; LTX shots; the cut on a cue | Jake has the 15 s cut | trailer agent |
+| E15-1 | ✅ Four keyframes from alpha-trailer frames (Nalati grass, the grid's highway, Driftwood's wreck beach, Pine Hollow's road) + the in-game kokpar rider (`art/trailers/round-6-e15/`); LTX shots; MiniMax folk cue 702; cut by `p15/assemble.py ride`; sent to Jake 2026-10-10 | Jake has the 15 s cut | trailer agent |
 
 ## 4. Not in this plan
 
