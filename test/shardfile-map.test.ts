@@ -95,7 +95,7 @@ it('shares a charged map lease across owners and releases late/disposed requests
   expect(allocator.entries()).toEqual([]);
 });
 
-it('retains the full-size home raster, shares neighbour copies and clears their scoped canvases', async () => {
+it('retains the full-size home bitmap without a canvas copy and shares neighbour rasters', async () => {
   const { Scope } = await import('../src/engine/app/scope');
   const { CellMinimaps } = await import('../src/game/grid/minimapBlend');
   const close = vi.fn(), draw = vi.fn<(image: unknown, x: number, y: number, width: number, height: number) => void>(), provider = vi.fn(() => Promise.resolve('data:image/webp;base64,AA=='));
@@ -105,11 +105,11 @@ it('retains the full-size home raster, shares neighbour copies and clears their 
   try {
     expect(maps.image('home')).toBeNull(); expect(maps.image('neighbour')).toBeNull(); expect(maps.image('neighbour')).toBeNull();
     await vi.waitFor(() => { expect(maps.image('home')?.width).toBe(1000); expect(maps.image('neighbour')?.width).toBe(400); });
-    expect(provider).toHaveBeenCalledTimes(2); expect(close).toHaveBeenCalledTimes(2);
-    expect(draw.mock.calls.map(call => call.slice(1))).toEqual([[0, 0, 1000, 1000], [0, 0, 400, 400]]);
-    const home = maps.image('home'), neighbour = maps.image('neighbour');
+    expect(provider).toHaveBeenCalledTimes(2); expect(close).toHaveBeenCalledTimes(1);
+    expect(draw.mock.calls.map(call => call.slice(1))).toEqual([[0, 0, 400, 400]]);
+    const neighbour = maps.image('neighbour');
     expect(maps.bytes).toBe(4_640_000);
-    scope.dispose(); expect(home?.width).toBe(0); expect(neighbour?.width).toBe(0); expect(maps.bytes).toBe(0);
+    scope.dispose(); expect(close).toHaveBeenCalledTimes(2); expect(neighbour?.width).toBe(0); expect(maps.bytes).toBe(0);
   } finally { scope.dispose(); restore(); }
 });
 

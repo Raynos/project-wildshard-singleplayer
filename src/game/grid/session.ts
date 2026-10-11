@@ -544,7 +544,7 @@ export class GridSession {
 
   private rebased(mesh: CollisionMesh): CollisionMesh { return { ...mesh, origin: { x: mesh.origin.x - this.home.origin.x, z: mesh.origin.z - this.home.origin.z } }; }
   /** G107 / SF66: a cell's admitted baked map once loaded, retaining the home's full raster size. */
-  mapImage(instance: string): HTMLCanvasElement | null { return this.mapImages.image(this.assembly.cell(instance).slug); }
+  mapImage(instance: string): HTMLCanvasElement | ImageBitmap | null { return this.mapImages.image(this.assembly.cell(instance).slug); }
   /** the neighbours' baked maps held now (bytes), for the memory readouts */
   get mapImageBytes(): number { return this.mapImages.bytes; }
   /** The traveller's feet in grid metres, whatever frame it is in. */

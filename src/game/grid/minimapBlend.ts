@@ -33,16 +33,18 @@ const STRIP = '#3b4038', ROAD = '#2a2e35', LINE = '#c9a640', VOID = '#0b1016', N
 
 /** Each shard's baked map, loaded the first time a cell of it is drawn, downscaled once and shared by its copies. */
 export class CellMinimaps {
-  private readonly maps = new Map<string, { image: HTMLCanvasElement | null }>();
+  private readonly maps = new Map<string, { image: HTMLCanvasElement | ImageBitmap | null }>();
   private disposed = false;
   constructor(scope: Scope, private readonly url: (slug: string) => Promise<string | undefined>, private readonly fullSize: (slug: string) => boolean = () => false) {
-    scope.onDispose(() => { this.disposed = true; for (const m of this.maps.values()) if (m.image !== null) m.image.width = m.image.height = 0; this.maps.clear(); });
+    scope.onDispose(() => { this.disposed = true; for (const m of this.maps.values()) if (m.image !== null) {
+      if ('close' in m.image) m.image.close(); else m.image.width = m.image.height = 0;
+    } this.maps.clear(); });
   }
   /** the shard's map, or null while it loads (or when it names none) */
-  image(slug: string): HTMLCanvasElement | null {
+  image(slug: string): HTMLCanvasElement | ImageBitmap | null {
     const hit = this.maps.get(slug);
     if (hit !== undefined) return hit.image;
-    const entry: { image: HTMLCanvasElement | null } = { image: null };
+    const entry: { image: HTMLCanvasElement | ImageBitmap | null } = { image: null };
     this.maps.set(slug, entry);
     if (typeof document !== 'undefined') void this.load(slug, entry);
     return null;
@@ -50,7 +52,7 @@ export class CellMinimaps {
   /** bytes held now (RGBA), for the memory readouts */
   get bytes(): number { let n = 0; for (const m of this.maps.values()) if (m.image !== null) n += m.image.width * m.image.height * 4; return n; }
   private isDisposed(): boolean { return this.disposed; }
-  private async load(slug: string, entry: { image: HTMLCanvasElement | null }): Promise<void> {
+  private async load(slug: string, entry: { image: HTMLCanvasElement | ImageBitmap | null }): Promise<void> {
     try {
       const url = await this.url(slug);
       if (url === undefined || this.isDisposed()) return;
@@ -59,14 +61,14 @@ export class CellMinimaps {
       const full = await createImageBitmap(await res.blob());
       try {
         if (this.disposed) return;
-        const canvas = document.createElement('canvas'), fullSize = this.fullSize(slug);
-        canvas.width = fullSize ? full.width : CELL_PX; canvas.height = fullSize ? full.height : CELL_PX;
+        if (this.fullSize(slug)) { entry.image = full; return; }
+        const canvas = document.createElement('canvas'); canvas.width = canvas.height = CELL_PX;
         const ctx = canvas.getContext('2d');
         if (ctx === null) return;
         ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(full, 0, 0, canvas.width, canvas.height);
         entry.image = canvas;
-      } finally { full.close(); }
+      } finally { if (entry.image !== full) full.close(); }
     } catch (error) { if (!this.disposed) console.warn(`[grid] the baked map ${slug} did not load:`, error); }
   }
 }
