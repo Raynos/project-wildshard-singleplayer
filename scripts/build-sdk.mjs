@@ -78,4 +78,4 @@ for (const [mode, folder] of [['production', 'client'], ['devserver', 'client-de
 }
 
 // Ship retained readable author inputs, not one-time baked outputs or workspace symlinks.
-cpSync(resolve(root, 'scripts/docs/author-project'), resolve(root, 'src/sdk/dist/author-template'), { recursive: true });
+cpSync(resolve(root, 'scripts/docs/author-project'), resolve(root, 'src/sdk', 'dist', 'author-template'), { recursive: true });
