@@ -35,9 +35,11 @@ let interval = 1000 / 60;
 
 /** Report completion and, when available, its rAF timestamp and active fps cap (0 = uncapped).
  * Build deadlines start at the vsync, not after the frame's work; missed vsyncs never relax an uncapped deadline.
+ * `cadenceAt` is the capped loop recovery anchor: builders share its next deadline after a late frame.
+ * Actual rAF stamps still determine uncapped display cadence; omitted anchors preserve the original deadline.
  * A completion-only caller retains the original smoothed interval. */
-export function noteFrameDrawn(at: number = diagnosticNow(), frameAt?: number, capFps?: number): void {
-  const start = frameAt ?? at;
+export function noteFrameDrawn(at: number = diagnosticNow(), frameAt?: number, capFps?: number, cadenceAt?: number): void {
+  const start = cadenceAt ?? frameAt ?? at;
   // The synchronous first draw can land midway between vsyncs. Only two actual rAF stamps establish cadence.
   const gap = capFps === 0 ? (frameAt === undefined ? Number.POSITIVE_INFINITY : frameAt - lastVsyncAt) : start - lastFrameAt;
   if (capFps !== undefined && capFps > 0) interval = 1000 / capFps;

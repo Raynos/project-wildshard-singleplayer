@@ -64,6 +64,22 @@ describe('framePacing', () => {
     setFramePacing(false);
     expect(frameDue(t + 100 + 1000 / 30 + 15)).toBe(false);
   });
+  it('shares the capped loop recovery anchor instead of giving builders a second late deadline', () => {
+    setFramePacing(true);
+    const t = 5_500_000, anchor = t + 1000 / 30;
+    noteFrameDrawn(t + 8, t, 30);
+    // The cap keeps the original cadence after this 40ms frame; its next deadline is 66.7ms, not 73.3ms.
+    noteFrameDrawn(t + 48, t + 40, 30, anchor);
+    expect(frameInterval()).toBeCloseTo(1000 / 30);
+    expect(frameDue(t + 64)).toBe(false);
+    expect(frameDue(t + 65)).toBe(true);
+    expect(frameBudgetSpent(8, t + 49)).toBe(false);
+    expect(frameBudgetSpent(8, t + 65)).toBe(true);
+    // Legacy callers keep the actual-rAF deadline when they do not supply a cap anchor.
+    noteFrameDrawn(t + 48, t + 40, 30);
+    expect(frameDue(t + 65)).toBe(false);
+    setFramePacing(false);
+  });
   it('yields through the caller\'s own hop when no frame is due, and never waits without a frame loop', async () => {
     let plain = 0;
     await paceYield(() => { plain++; return Promise.resolve(); });

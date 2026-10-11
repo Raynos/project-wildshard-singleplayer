@@ -723,6 +723,9 @@ drawing (and the tool is on), and `slicer()` then caps its stretches at `WORK_SL
 scoped MessageChannel task after paint, without a nested timer clamp). With the tool off, or off the road (the loading screen, Node bakers and tests), nothing changes.
 
 Build pacing uses the actual drawn frame's rAF timestamp and active fps cap to set the next deadline.
+`noteFrameDrawn(done, rafAt, cap, cadenceAt)` optionally receives the capped loop's recovery anchor.
+After a late draw, builds then owe the same recovered deadline as the cap instead of delaying it again;
+omitting the anchor preserves the original deadline, and uncapped cadence still comes from actual rAF pairs.
 The CPU/render work already spent by that frame is not spare construction time; `workSlice` yields
 when that deadline is due even if its own nominal budget is not exhausted. Uncapped deadlines use the
 fastest observed cadence from actual rAF pairs, so neither the synchronous first draw nor a missed vsync changes the target.

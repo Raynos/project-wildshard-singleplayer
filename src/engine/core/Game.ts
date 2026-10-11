@@ -921,7 +921,7 @@ export class Game {
       this.flushEvents('render');
       if (this.captures.length > 0) this.flushCaptures();
       const done = performance.now(), work = done - lastRun;
-      noteFrameDrawn(done, now, cap); // background builds share the actual vsync deadline; the synchronous first draw is not a vsync
+      noteFrameDrawn(done, now, cap, cap > 0 && Number.isFinite(lastDrawn) ? lastDrawn : undefined); // Builds share the cap recovery deadline; actual rAF still measures display cadence.
       this.app.cpu.end();
       this.workMs[this.frameI] = work;
       this.frameRafTime = now ?? null;
