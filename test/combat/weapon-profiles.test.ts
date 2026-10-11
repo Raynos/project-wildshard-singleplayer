@@ -63,7 +63,8 @@ describe('weapon tuning parity (09 §1.4)', () => {
       aimZoom: 1.6, arcColour: 0xffc070, arcMode: 'aim', zoomLook: false, inspectZ: -1.4,
       inspectHidesArms: true, transparentParts: true, poses: LONGBOW.poses, arrowX: -0.017, arrowY: 0.052, arrowLength: 0.76, build: LONGBOW.build, arrow: LONGBOW.arrow, wind: LONGBOW.wind });
     expect(CROSSBOW_PROFILE).toEqual({ family: 'crossbow', quiver: 30, speed: 62, gravity: 9.8, drag: 0.012, radius: 0.03, bury: 0.08,
-      reload: 1.35, autoReload: 1.4, cooldown: 0.3, kick: rad(0.8), adsBlend: 0.18, adsMotion: 0.3, maxFlying: 8, maxStuck: 200 });
+      reload: 1.35, autoReload: 1.4, cooldown: 0.3, kick: rad(0.8), adsBlend: 0.18, adsMotion: 0.3, maxFlying: 8, maxStuck: 200,
+      muzzle: 0.35, damageScale: 1, spreadAds: 0.15, spreadHip: 0.75, spreadRadius: 'linear', spreadAxisScale: 2, substeps: 4, lifetime: 12 });
     expect(PINE_AR15).toEqual(AR15);
     expect(AR15).toMatchObject({ family: 'firearm', action: 'semi', magazine: 30, reserve: 90, interval: 0.09, reload: 1.6, autoReload: 0.35,
       damageScale: 0.55, range: 300, kick: rad(0.35), spreadAds: 0.12, spreadHip: 1.1, spreadRadius: 'linear', bloomShot: 0.35, bloomMax: 1.6,
