@@ -5,6 +5,7 @@ import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
 import { pineHeroUrls } from '../world/heroFiles';
+import coatPages from '../data/coatPages.generated.json' with { type: 'json' };
 import { PINE_SKY } from '../runtime/looks/sky';
 
 const uniq = (urls: readonly string[]): string[] => [...new Set(urls)];
@@ -19,14 +20,19 @@ const treeSet = '/assets/models/pine-hollow-trees';
 const bakedDir = '/assets/baked/pine-hollow/';
 const hdri = '/assets/hdri/qwantani_sunset_puresky_2k';
 export const BAKED_UNREAD = /\/fur-[^/]*$/;
-/**
- * G187 cut 2: the creature coats baked to KTX2 (scripts/bake-coats.mjs; species/rigs.ts pineCoatUrl names them
- * `<hull>[.phone].<kind>.<variant>.coat.png`): read only on the KTX2 path (species/hulls.ts adopts them at preload), so
- * only a KTX2 list carries their stand-ins.
- */
+/** Lossless authored coat pages are charged on the image path; KTX2 keeps its existing stand-ins. */
 function coatReads(tier: Tier, tex: TexMode): string[] {
-  if (tex !== 'ktx2') return [];
-  return Object.keys(table[tier]).filter((url) => url.endsWith('.coat.png') && url.includes('.phone.') === (tier === 'phone')).sort().flatMap((url) => table[tier][url] ?? []);
+  const pages: Readonly<Record<string, { image: string }>> = coatPages.tiers[tier];
+  return Object.keys(pages).sort().flatMap(key => {
+    if (tex === 'ktx2') {
+      const files = table[tier][key];
+      if (files === undefined) throw new Error(`Missing Pine coat stand-in ${key}`);
+      return files;
+    }
+    const page = pages[key];
+    if (page === undefined) throw new Error(`Missing Pine coat page ${key}`);
+    return [page.image];
+  });
 }
 /**
  * G187 cut 3: the weapon viewmodel sets baked to KTX2 (scripts/bake-viewmodel-sets.mjs; engine viewmodelBakeUrl names them

@@ -1,33 +1,18 @@
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
-/**
- * coatAtlas — one rigged creature hull, every coat (SHARD-PLATFORM M3: the generic coat-variant painter, `riggedHulls`'
- * coats): the hull's photoreal atlas recoloured per variant, plus the marks a recolour cannot make, painted onto the atlas
- * by where each texel sits on the animal.
- *
- *   const map = coatAtlas(key, spec, rig, variantDef, bones)   // a CanvasTexture (cached by key), or the rig's map
- *                                                              // itself when the coat is the hull's own
- *   adoptCoat(key, ktx2)                                       // the KTX2 path: the baked coat stands in
- *
- * 1. Recolour: the species' palette names three coat keys — dark, body and light. The atlas's own levels for them are
- *    measured (texel luminance sampled over the mesh at the 12th / 55th / 92nd percentiles); every texel sits between two
- *    keys by its log luminance and is multiplied, in linear RGB, by the matching blend of target ÷ source (target = the
- *    variant's palette, source = the variant the hull was generated as). Multiplying keeps every hair of the photo
- *    texture; only the tones move (a white deer, a black boar, a pale elk, an iron-grey boar, a grizzled bear, …).
- * 2. Marks (VariantDef.traits): `piebald` (white patches), `blaze` (a cream chest crescent), `scar` (pale healed stripes
- *    over the withers) and `thrall` (the coat dark and dead, moss on the back and the upper flanks, lichen spots, bark
- *    scabs). Each texel's rest-pose position and normal come from rasterising the hull's triangles into the atlas
- *    (`surfaceOf`, cached per rig), so a mark is solid 3D noise over the body, seamless across the atlas's charts (the
- *    charts' gutters are dilated so mip levels don't bleed).
- */
+/** Pine's build-time coat rasterizer: explicit author recipes, rest geometry and RGBA pixels in; RGBA pixels out.
+ * The retained kernel preserves the shipped operation order, Float32 channels, noise and atlas gutters.
+ * It reads no app, species registry, runtime module or DOM, and installs no service. */
 import * as THREE from 'three';
-import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
-import { smoothstep } from '@wildshard/engine/core/noise';
-import { pageScope } from '@wildshard/engine/app/resources';
-import { workSlice } from '@wildshard/engine/core/workSlice';
+
+/** Only the authored variant fields that affect coat pixels. */
+export interface CoatVariant { readonly id: string; readonly tint?: Readonly<Record<string, RGB>>; readonly traits?: Readonly<Record<string, number>> }
+/** Absolute rest-pose joints used to place chest and withers markings. */
+export interface CoatBone { readonly name: string; readonly pos: readonly [number, number, number] }
+const smoothstep = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /** sRGB 0..1 (read only: a coat recipe may be data). */
-type RGB = readonly [number, number, number];
+export type RGB = readonly [number, number, number];
 
+/** The palette and measured target tones authored for one hull atlas. */
 export interface CoatSpec {
   /** the species default palette (the variant's `tint` overrides keys of it) */
   palette: Readonly<Record<string, RGB>>;
@@ -57,7 +42,6 @@ const toSrgb = new Uint8ClampedArray(LUT_N + 1).map((_, i) => { const c = i / LU
 const linOf = (c: RGB): [number, number, number] => { const k = new THREE.Color().setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace); return [k.r, k.g, k.b]; };
 const enc = (v: number): number => toSrgb[Math.min(LUT_N, Math.max(0, Math.round(v * LUT_N)))] ?? 0;
 
-const cache = new Map<string, THREE.Texture>();
 const _ab = new THREE.Vector3(), _ap = new THREE.Vector3();
 
 /**
@@ -75,11 +59,6 @@ const TEXEL_CHUNK = 1024;
 /** atlas texels a rasteriser covers between two yields, besides its every 256 triangles (a big chart's triangles are many
  *  texels each: 256 of them made a 26 ms step) */
 const RASTER_CHUNK = 16384;
-/** a coat being painted in slices: `finish` paints the rest now (a synchronous caller needs the bytes) */
-const painting = new WeakMap<THREE.Texture, { finish: () => void }>();
-/** every sliced paint still running, by its texture */
-const pending = new WeakMap<THREE.Texture, Promise<void>>();
-
 // ── 3D value noise (seeded hash lattice), for marks that are solid over the body ──
 function hash3(x: number, y: number, z: number): number {
   let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(z, 1274126177);
@@ -171,27 +150,24 @@ function* surfaceOf(geo: THREE.BufferGeometry, w: number, h: number, flipY: bool
   return out;
 }
 
-/** the coat's source tint (the variant the hull was generated as) */
-const srcTint = (spec: CoatSpec): Readonly<Record<string, RGB>> | undefined => variantDef(spec.source[0], spec.source[1]).tint;
-
-/** true when `tint` changes none of the coat keys from the hull's own coat */
-function isOwnCoat(spec: CoatSpec, tint: Readonly<Record<string, RGB>> | undefined): boolean {
+/** Whether the explicit source and target tints keep every coat key unchanged. */
+function isOwnCoat(spec: CoatSpec, tint: Readonly<Record<string, RGB>> | undefined, source: Readonly<Record<string, RGB>> | undefined): boolean {
   return spec.keys.every((k) => {
-    const a = tint?.[k] ?? spec.palette[k], b = srcTint(spec)?.[k] ?? spec.palette[k];
+    const a = tint?.[k] ?? spec.palette[k], b = source?.[k] ?? spec.palette[k];
     return a !== undefined && b !== undefined && a.every((v, i) => Math.abs(v - (b[i] ?? 0)) < 1e-3);
   });
 }
 
-/** the variant's marks (VariantDef.traits) that the atlas carries */
-function marksOf(v: VariantDef): { piebald: boolean; blaze: boolean; scar: boolean; thrall: boolean } {
+/** the variant's marks (CoatVariant.traits) that the atlas carries */
+function marksOf(v: CoatVariant): { piebald: boolean; blaze: boolean; scar: boolean; thrall: boolean } {
   const t = v.traits ?? {};
   return { piebald: Boolean(t['piebald']), blaze: Boolean(t['blaze']), scar: Boolean(t['scar']), thrall: Boolean(t['thrall']) };
 }
 
 /** true when (spec, variant) would repaint the atlas at all */
-export function coatDiffers(spec: CoatSpec, v: VariantDef): boolean {
+export function coatDiffers(spec: CoatSpec, v: CoatVariant, source: Readonly<Record<string, RGB>> | undefined): boolean {
   const m = marksOf(v);
-  return spec.measured?.[v.id] !== undefined || !isOwnCoat(spec, v.tint) || m.piebald || m.blaze || m.scar || m.thrall;
+  return spec.measured?.[v.id] !== undefined || !isOwnCoat(spec, v.tint, source) || m.piebald || m.blaze || m.scar || m.thrall;
 }
 
 /**
@@ -415,120 +391,22 @@ function blurLine(cur: Float32Array, wts: Float32Array, mask: Float32Array, out:
 }
 
 /** a bone's rest position (the rig's joints) */
-function boneAt(bones: readonly BoneDef[], name: string): THREE.Vector3 | null {
+function boneAt(bones: readonly CoatBone[], name: string): THREE.Vector3 | null {
   const b = bones.find((x) => x.name === name);
   return b ? new THREE.Vector3(b.pos[0], b.pos[1], b.pos[2]) : null;
 }
 
-/**
- * A coat baked offline (scripts/bake-coats.mjs renders every coat with coatAtlas itself, then encodes it as KTX2) stands
- * in for the canvas under the same key; the KTX2 path adopts them at preload (riggedHulls), so coatAtlas returns the
- * compressed texture and never reads the hull's pixels.
- */
-export function adoptCoat(key: string, tex: THREE.Texture): void { cache.set(key, tex);
-  cacheUntilDisposed(tex, () => { if (cache.get(key) === tex) cache.delete(key); }); }
-
-/**
- * The hull's atlas in variant `v`'s coat (cached by `key`). `bones` are the rest joints the rig is bound to (they place
- * the blaze and the scars). Returns `rig.map` itself when nothing changes, or when the atlas can't be read.
- */
-export function coatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantDef, bones: readonly BoneDef[]): THREE.Texture {
-  const start = coatStart(key, spec, rig, v, bones);
-  if (start instanceof THREE.Texture) { painting.get(start)?.finish(); return start; }
-  drain(start.steps);
-  return remember(key, new THREE.CanvasTexture(start.paint()), rig.map);
-}
-
-/**
- * `coatAtlas` painted in slices (`workSlice`, on the page scope: the coat is a page-lifetime memo). It returns at once a
- * texture that shows the hull's own atlas until the paint is done, then the coat (the same bytes `coatAtlas` makes); the
- * texture is cached under `key` from the start, so every copy of the variant shares it. `coatPainting(texture)` resolves
- * once its paint has finished: a herd waits for it before it is shown, so no animal is ever seen in the stand-in.
- * A synchronous `coatAtlas` of the same key finishes the paint on the spot. Each first coat of a hull used to be one
- * 0.2-9 s main-thread task in Pine Hollow's herd spawn (E435 SF63).
- */
-export function coatAtlasSliced(key: string, spec: CoatSpec, rig: CoatRig, v: VariantDef, bones: readonly BoneDef[]): THREE.Texture {
-  const start = coatStart(key, spec, rig, v, bones);
-  if (start instanceof THREE.Texture) return start;
-  const map = rig.map;
-  const state = { stopped: false, done: false };
-  const tex = remember(key, new THREE.Texture(map.image), map, () => { state.stopped = true; });
-  tex.needsUpdate = true;
-  const complete = (): void => {
-    if (state.done) return;
-    state.done = true;
-    painting.delete(tex);
-    tex.image = start.paint();
-    tex.needsUpdate = true;
-  };
-  painting.set(tex, { finish: () => { if (state.done) return; drain(start.steps); complete(); } });
-  const run = (async (): Promise<void> => {
-    const slice = workSlice(undefined, pageScope);
-    for (;;) {
-      if (state.done || state.stopped) return;
-      if (start.steps.next().done === true) break;
-      if (slice.due()) await slice.yield();
-    }
-    complete();
-  })();
-  pending.set(tex, run);
-  void run.finally(() => { pending.delete(tex); });
-  return tex;
-}
-
-/** the paint `coatAtlasSliced` is still running on `tex` (resolves once it is painted or disposed), else undefined */
-export function coatPainting(tex: THREE.Texture): Promise<void> | undefined {
-  return pending.get(tex);
-}
-
-/** a coat to paint: its steps (the pixels, in place) and `paint()`, the finished canvas */
-interface CoatJob { steps: Steps; paint: () => HTMLCanvasElement }
-
-/**
- * The texture when the coat needs no paint (the hull's own coat, a cached coat, a KTX2 hull, no DOM), else the paint as
- * steps. Everything that reads the species registry (the source tint) is read here, synchronously, under the caller's
- * level: a slice runs later, under whatever level is active then.
- */
-function coatStart(key: string, spec: CoatSpec, rig: CoatRig, v: VariantDef, bones: readonly BoneDef[]): THREE.Texture | CoatJob {
-  const map = rig.map;
-  const flap = rig.flap ?? null;
-  if (!coatDiffers(spec, v) && flap === null) return map;
-  const hit = cache.get(key);
-  if (hit) return hit;
-  // a KTX2 hull has no pixels to paint: its coats are baked (scripts/bake-coats.mjs) and adopted at preload; a coat
-  // the bake doesn't hold keeps the hull's own
-  if (map instanceof THREE.CompressedTexture) return map;
-  const img = map.image as (CanvasImageSource & { width: number; height: number }) | null;
-  if (!img || typeof document === 'undefined') return map;
-  const W = img.width, H = img.height;
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) return map;
-  ctx.drawImage(img, 0, 0);
-  const data = ctx.getImageData(0, 0, W, H);
-  const source = srcTint(spec), own = isOwnCoat(spec, v.tint);
-  return {
-    steps: paintCoat(spec, rig, v, bones, data.data, W, H, source, own),
-    paint: () => { ctx.putImageData(data, 0, 0); return canvas; },
-  };
-}
-
-/** cache a coat's texture under `key` with the hull map's sampling; `retired` runs when it is disposed */
-function remember(key: string, tex: THREE.Texture, map: THREE.Texture, retired?: () => void): THREE.Texture {
-  tex.flipY = map.flipY; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = map.anisotropy;
-  tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
-  tex.name = `${map.name}:${key}`;
-  cache.set(key, tex);
-  cacheUntilDisposed(tex, () => { if (cache.get(key) === tex) cache.delete(key); retired?.(); });
-  return tex;
+/** Paint an owned RGBA buffer in place, using the explicit source variant's tint; no decoder or canvas is implied. */
+export function paintCoatPixels(spec: CoatSpec, rig: CoatRig, variant: CoatVariant, bones: readonly CoatBone[], pixels: Uint8ClampedArray, width: number, height: number, source: Readonly<Record<string, RGB>> | undefined): void {
+  if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 1 || height < 1 || width > 4096 || height > 4096 || pixels.length !== width * height * 4) throw new Error('Invalid bounded coat raster');
+  drain(paintCoat(spec, rig, variant, bones, pixels, width, height, source, isOwnCoat(spec, variant.tint, source)));
 }
 
 /**
  * The coat's pixels, in place on `px` (the atlas, RGBA bytes, W × H), as steps: the flap transplant, the recolour, the
- * marks and the grizzle. `source` / `own`: the source tint and whether the variant keeps the hull's own tones (coatStart).
+ * marks and the grizzle. `source` / `own`: the source tint and whether the variant keeps the hull's own tones (explicit author inputs).
  */
-function* paintCoat(spec: CoatSpec, rig: CoatRig, v: VariantDef, bones: readonly BoneDef[], px: Uint8ClampedArray, W: number, H: number,
+function* paintCoat(spec: CoatSpec, rig: CoatRig, v: CoatVariant, bones: readonly CoatBone[], px: Uint8ClampedArray, W: number, H: number,
   source: Readonly<Record<string, RGB>> | undefined, own: boolean): Steps {
   const map = rig.map;
   const flap = rig.flap ?? null;

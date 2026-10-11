@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { expect, it } from 'vitest';
-import { flapTransplant } from '../../src/shards/pine-hollow/runtime/looks/coatAtlas';
+import { flapTransplant } from '../../src/shards/pine-hollow/generators/coatPixels';
 import { pressFlap } from '../../src/shards/pine-hollow/runtime/looks/riggedHulls';
 import { PINE_HULLS } from '../../src/shards/pine-hollow/data/creatureHulls';
 

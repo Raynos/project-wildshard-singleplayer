@@ -77,3 +77,23 @@ src/**/*.generated.*
 
 # DS1.2: inspectable content-hash scene intermediates never ship or enter git.
 **/.wildshard/
+
+# Pine lossless coat pages are retained authoring jobs, generated behind verified build hashes (G318).
+/public/assets/pine-hollow/creatures/*.coat.png
+/src/shards/pine-hollow/data/coatPages.generated.json
+
+# Retained Pine rig sources live in authoring assets; public copies are cache products.
+/public/assets/pine-hollow/creatures/deer-hind.rigged.glb
+/public/assets/pine-hollow/creatures/deer-hind.phone.rigged.glb
+/public/assets/pine-hollow/creatures/deer-stag.rigged.glb
+/public/assets/pine-hollow/creatures/deer-stag.phone.rigged.glb
+/public/assets/pine-hollow/creatures/boar.rigged.glb
+/public/assets/pine-hollow/creatures/boar.phone.rigged.glb
+/public/assets/pine-hollow/creatures/elk-cow.rigged.glb
+/public/assets/pine-hollow/creatures/elk-cow.phone.rigged.glb
+/public/assets/pine-hollow/creatures/elk-bull.rigged.glb
+/public/assets/pine-hollow/creatures/elk-bull.phone.rigged.glb
+/public/assets/pine-hollow/creatures/bear-black.rigged.glb
+/public/assets/pine-hollow/creatures/bear-black.phone.rigged.glb
+/public/assets/pine-hollow/creatures/bear-brown.rigged.glb
+/public/assets/pine-hollow/creatures/bear-brown.phone.rigged.glb

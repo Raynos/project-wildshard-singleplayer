@@ -15,22 +15,17 @@ import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/ent
  * Each rig (`<hull>[.phone].rigged.glb`, baked offline by `scripts/creature-rig-bake.mjs`) is a glTF skin whose joints are
  * the species' bones by name and order, with the hull's PBR base colour + normal map. A rig is only used when its joint
  * names match the variant's bones (in order); the model then takes the rig's joint positions. Every variant of a hull
- * wears it, in its own coat (`coatAtlas`). A hull's generator flap (the row's `flaps`) is pressed onto its body at load
+ * wears it, in its authored lossless coat (baked before boot). A hull's generator flap (the row's `flaps`) is pressed onto its body at load
  * (positions + normals only; its texels take the rump's colour). A thrall (VariantDef.traits.thrall) also gets glowing
  * glass eyes and a few rigid fern clumps on the spine: geometry in the same single draw, flagged per vertex by
  * `aOvergrown` (x = own vertex colour instead of the atlas, y = glow).
  */
 import * as THREE from 'three';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
-import { app } from '@wildshard/engine/app/runtime';
-import { adoptCoat, coatAtlas, coatAtlasSliced, coatPainting, type CoatSpec } from './coatAtlas';
-import type { HullFlapRow, HullPalette, RiggedHullsRow } from '../../data/creatureHulls';
-import { DEER_PALETTE } from '@wildshard/game/systems/species/deer';
-import { ELK_PALETTE } from '@wildshard/game/systems/species/elk';
-import { BEAR_PALETTE } from '@wildshard/game/systems/species/view/bear';
-import { BOAR_PALETTE } from '@wildshard/game/systems/species/view/boar';
+import coatPages from '../../data/coatPages.generated.json' with { type: 'json' };
+import type { HullFlapRow, RiggedHullsRow } from '../../data/creatureHulls';
 
-const PALETTES: Readonly<Record<HullPalette, Readonly<Record<string, RGB>>>> = { deer: DEER_PALETTE, elk: ELK_PALETTE, bear: BEAR_PALETTE, boar: BOAR_PALETTE };
+const COAT_PAGES: Readonly<Record<string, { image: string }>> = { ...coatPages.tiers.phone, ...coatPages.tiers.desktop };
 
 /** Where a family's files are: a hull's rig for this tier, and a baked coat's KTX2 table key. */
 export interface RiggedHullUrls {
@@ -46,8 +41,7 @@ export interface RiggedHulls {
   preload: () => Promise<void>;
   /** the rigged hull for (kind, variant) bound to `bones`, or null (no hull, not loaded, or baked against other bones) */
   skin: (kind: string, variant: string, bones: readonly BoneDef[], eyes: readonly EyeSpot[], definition?: VariantDef) => CreatureHull | null;
-  /** the coat bake's source: every coat that repaints its hull, as a lossless PNG data URL keyed by its KTX2 table name */
-  coatSources: () => { url: string; png: string }[];
+
 }
 
 interface Rig {
@@ -71,15 +65,9 @@ export function riggedHulls(row: RiggedHullsRow, urls: RiggedHullUrls): RiggedHu
   const loading = new Map<string, Promise<Rig>>();
   const ready = new Map<string, Rig>();
   const thrallGeo = new Map<string, THREE.BufferGeometry>();
+  const coats = new Map<string, THREE.Texture>();
 
   const hullOf = (kind: string, variant: string): string | null => row.hulls[`${kind}:${variant}`] ?? null;
-
-  /** the coat spec of hull `name` */
-  const coatSpec = (name: string): CoatSpec => {
-    const c = row.coats[name];
-    if (c === undefined) throw new Error(`rigged hull ${name}: no coat`);
-    return { palette: PALETTES[c.palette], source: c.source, keys: c.keys, ...(c.measured === undefined ? {} : { measured: c.measured }) };
-  };
 
   /** load one rig (cached): its geometry in the skeleton's rest space, its textures, the joints' rest positions */
   const loadRig = (name: string): Promise<Rig> => {
@@ -134,22 +122,22 @@ export function riggedHulls(row: RiggedHullsRow, urls: RiggedHullUrls): RiggedHu
     return p;
   };
 
-  /**
-   * On the KTX2 path the hull's atlas is a compressed texture (no pixels to recolour), so each coat comes baked
-   * (scripts/bake-coats.mjs: coatAtlas's own canvas, per tier, as UASTC KTX2) and is adopted under coatAtlas's key. A coat
-   * with no stand-in keeps the hull's own.
-   */
+  /** Every repaint is an authored, hash-checked image; the compressed path retains its original KTX2 identity. */
   const adoptBakedCoats = async (name: string, rig: Rig): Promise<void> => {
     const map = rig.map;
     if (map === null) return;
     await Promise.all(Object.entries(row.hulls).filter(([, hull]) => hull === name).map(async ([kv]) => {
       const [kind = '', variant = ''] = kv.split(':');
-      const tex = await ktx2Texture(urls.coat(name, kind, variant));
-      if (tex === null) return;
+      const key = urls.coat(name, kind, variant);
+      const page = COAT_PAGES[key];
+      if (page === undefined) return; // this hull's unchanged own atlas needs no repaint
+      const tex = await ktx2Texture(key) ?? await new THREE.TextureLoader().loadAsync(page.image);
       tex.flipY = map.flipY; tex.anisotropy = map.anisotropy; tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
+      tex.colorSpace = THREE.SRGBColorSpace;
       tex.name = `${map.name}:${name}:${kv}`;
-      cacheUntilDisposed(tex, () => { adopting.delete(rig); });
-      adoptCoat(`${name}:${kv}`, retainCachedResources(tex));
+      const identity = `${name}:${kv}`;
+      coats.set(identity, retainCachedResources(tex));
+      cacheUntilDisposed(tex, () => { if (coats.get(identity) === tex) coats.delete(identity); adopting.delete(rig); });
     }));
   };
 
@@ -161,21 +149,8 @@ export function riggedHulls(row: RiggedHullsRow, urls: RiggedHullUrls): RiggedHu
   };
 
   const preload = async (): Promise<void> => {
-    await Promise.all(row.rigs.map((n) => loadRig(n).then((rig) => (rig.map instanceof THREE.CompressedTexture ? adoptOnce(n, rig) : undefined))
+    await Promise.all(row.rigs.map((n) => loadRig(n).then((rig) => adoptOnce(n, rig))
       .catch((e: unknown) => { console.warn(`[${row.label}] creature rig ${n} failed`, e); })));
-  };
-
-  const coatSources = (): { url: string; png: string }[] => {
-    const out: { url: string; png: string }[] = [];
-    for (const [kv, name] of Object.entries(row.hulls)) {
-      const rig = ready.get(name), map = rig?.map ?? null;
-      if (!rig || map === null) continue;
-      const [kind = '', variant = ''] = kv.split(':');
-      const bones: BoneDef[] = rig.joints.map((j) => ({ name: j.name, parent: null, pos: [j.pos.x, j.pos.y, j.pos.z] }));
-      const tex = coatAtlas(`${name}:${kv}`, coatSpec(name), { geometry: rig.geometry, map, flap: rig.flap }, variantDef(kind, variant), bones);
-      if (tex !== map && tex.image instanceof HTMLCanvasElement) out.push({ url: urls.coat(name, kind, variant), png: tex.image.toDataURL('image/png') });
-    }
-    return out;
   };
 
   const skin = (kind: string, variant: string, bones: readonly BoneDef[], eyes: readonly EyeSpot[], definition?: VariantDef): CreatureHull | null => {
@@ -187,7 +162,7 @@ export function riggedHulls(row: RiggedHullsRow, urls: RiggedHullUrls): RiggedHu
     const out: BoneDef[] = bones.map((b, i) => { const p = rig.joints[i]?.pos; return { name: b.name, parent: b.parent, pos: p ? [p.x, p.y, p.z] : b.pos }; });
     const v = definition ?? variantDef(kind, variant);
     const thrall = Boolean(v.traits?.['thrall']);
-    const map = rig.map ? coatAtlasSliced(`${name}:${kind}:${variant}`, coatSpec(name), { geometry: rig.geometry, map: rig.map, flap: rig.flap }, v, out) : null;
+    const map = coats.get(`${name}:${kind}:${variant}`) ?? rig.map;
     let geometry = rig.geometry;
     if (thrall) {
       const key = `${name}:${kind}:${variant}`;
@@ -197,12 +172,10 @@ export function riggedHulls(row: RiggedHullsRow, urls: RiggedHullUrls): RiggedHu
     }
     const f = row.fur?.[name]?.[variant];
     const fur = f === undefined ? undefined : { rim: [f.rim[0], f.rim[1], f.rim[2]] satisfies RGB, sheenColor: [f.sheenColor[0], f.sheenColor[1], f.sheenColor[2]] satisfies RGB };
-    const painting = map === null ? undefined : coatPainting(map);
-    if (painting !== undefined) app.species.track(painting);   // a coat still painting: the herd waits for it (AnimalFactory.settled)
     return { geometry, map, normalMap: rig.normalMap, bones: out, overgrown: thrall, ...(fur !== undefined ? { fur } : {}) };
   };
 
-  return { hullOf, preload, skin, coatSources };
+  return { hullOf, preload, skin };
 }
 
 /** true when the rig's skin joints are `bones` by name, in order (their rest positions are the rig's) */
