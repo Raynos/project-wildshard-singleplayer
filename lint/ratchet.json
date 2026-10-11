@@ -50,7 +50,7 @@
     "src/shards/_template/generators/world.ts": 4,
     "src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs": 1,
     "src/shards/driftwood-isle/generators/bake-driftwood-navmesh.mjs": 3,
-    "src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs": 6,
+    "src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs": 8,
     "src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs": 6,
     "src/shards/driftwood-isle/generators/boat.ts": 2,
     "src/shards/driftwood-isle/generators/captainHat.ts": 2,
