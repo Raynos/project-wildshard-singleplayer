@@ -91,7 +91,6 @@
     "./systems/npc/figureRig": "./systems/npc/figureRig.ts",
     "./systems/npc/figureMotion": "./systems/npc/figureMotion.ts",
     "./systems/npc/faceHeads": "./systems/npc/faceHeads.ts",
-    "./systems/items/declared": "./systems/items/declared.ts",
     "./systems/items/lash": "./systems/items/lash.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts",
     "./shard/list": "./shard/list.ts",
