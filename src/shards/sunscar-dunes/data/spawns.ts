@@ -3,7 +3,8 @@ import { BASIN, PACKS, RAY_HOME, STRIDERS } from './layout';
 /** Seconds after a creature falls before its home spawns it again. */
 export const RESPAWN = { duneRay: 25, sandSkitterer: 50, duneStrider: 70 } as const;
 
-interface Home { id: string; kind: keyof typeof RESPAWN; look: string; at: [number, number]; yaw: number; respawn: number }
+/** One authored Signal home row, including its stable actor identity and native respawn recipe. */
+export interface Home { id: string; kind: keyof typeof RESPAWN; look: string; at: [number, number]; yaw: number; respawn: number }
 const home = (index: number, kind: keyof typeof RESPAWN, x: number, z: number, yaw: number): Home => ({ id: `sunscar.home:${String(index)}`, kind, look: 'dusk', at: [x, z], yaw, respawn: RESPAWN[kind] });
 const skitterers = PACKS.flatMap((p) => Array.from({ length: p.n }, (_, i) => {
   const a = (i / p.n) * Math.PI * 2 + p.x * 0.1;
