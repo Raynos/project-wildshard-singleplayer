@@ -1,10 +1,11 @@
+import { cellGround } from './ground';
 import { Group, type Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
-import { TRAIL } from '../layout';
+import { TRAIL } from '../data/layout';
 import { Scope } from '@wildshard/engine/app/scope';
 import { RngService } from '@wildshard/engine/core/rng';
 import { WorldRegistry } from '@wildshard/engine/world/registry';
-import { buildCellFill, cellCoarse, cellFar, cellGround, CELL_PIECES } from './cell';
+import { buildCellFill, cellCoarse, cellFar, CELL_PIECES } from './cell';
 import { buildPastelWorld, jumpCoursePads, lanternModel, measureBox, poolMask } from './world';
 import type { PropsBakeSource } from '@wildshard/sdk/bake/props';
 

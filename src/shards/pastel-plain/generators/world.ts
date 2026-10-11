@@ -3,7 +3,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { measureUv, type MeasureRole } from '@wildshard/format/materialFamilies';
 import { BoxGeometry, CircleGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, PointLight, type Object3D } from 'three';
-import { HUT } from '../layout';
+import { HUT } from '../data/layout';
 
 /**
  * Build-time only (SHARD-PLATFORM SF16): the template's grey-box shapes as the props baker

@@ -10,7 +10,7 @@ import { dirname, resolve } from 'node:path';
 import process from 'node:process';
 import { expect, it } from 'vitest';
 
-function fixture(): { put: (path: string, source: string) => void; run: () => string; close: () => void } {
+function fixture(): { put: (path: string, source: string) => void; run: () => string; direct: (entry: string, extra?: readonly string[]) => string; close: () => void } {
   const root = realpathSync(mkdtempSync(resolve(tmpdir(), 'authoring-loader-')));
   const put = (path: string, source: string): void => { const file = resolve(root, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, source); };
   for (const file of ['src/sdk/bake/source-loader.mjs', 'src/sdk/bake/json.mjs']) {
@@ -19,8 +19,23 @@ function fixture(): { put: (path: string, source: string) => void; run: () => st
   return { put, run: () => {
     execFileSync(process.execPath, ['--import', './src/sdk/bake/source-loader.mjs', 'src/sdk/bake/json.mjs', 'src/shards/sample/generators/rows.ts', 'rows', 'src/shards/sample/data/output.json'], { cwd: root, stdio: 'pipe' });
     return readFileSync(resolve(root, 'src/shards/sample/data/output.json'), 'utf8');
-  }, close: () => { rmSync(root, { recursive: true, force: true }); } };
+  }, direct: (entry, extra = []) => execFileSync(process.execPath, ['--import', './src/sdk/bake/source-loader.mjs', entry, ...extra], { cwd: root, encoding: 'utf8', stdio: 'pipe' }), close: () => { rmSync(root, { recursive: true, force: true }); } };
 }
+it('runs direct producer entries after Node makes their path absolute', () => {
+  const f = fixture();
+  try {
+    f.put('src/shards/sample/generators/direct.mjs', "import { value } from '../data/input'; console.log(value);");
+    f.put('src/shards/sample/data/input.ts', 'export const value: number = 7;');
+    expect(f.direct('src/shards/sample/generators/direct.mjs')).toBe('7\n');
+  } finally { f.close(); }
+});
+it('does not grant an unrelated script authority through a forged authoring argument', () => {
+  const f = fixture();
+  try {
+    f.put('src/sdk/bake/unrelated.mjs', "throw new Error('unrelated script executed');");
+    expect(() => f.direct('src/sdk/bake/unrelated.mjs', ['src/shards/sample/generators/direct.mjs'])).toThrow('explicit shard-owned generator');
+  } finally { f.close(); }
+});
 it('runs an extensionless typed authoring recipe without installing any game or simulation services', () => {
   const f = fixture();
   try {

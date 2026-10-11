@@ -11,7 +11,13 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 
 const root = resolve(import.meta.dirname, '../../..');
-const entry = process.argv.find(argument => /^src\/shards\/[^/]+\/generators\//u.test(argument));
+// Node normalises the script argument to an absolute path before preloads run.
+const script = process.argv[1];
+const driver = script === undefined ? '' : relative(root, resolve(script)).split(sep).join('/');
+// The confined JSON driver names its source explicitly; direct producers own their script path.
+const source = driver === 'src/sdk/bake/json.mjs' ? process.argv[2] : script;
+const candidate = source === undefined ? '' : relative(root, resolve(source)).split(sep).join('/');
+const entry = /^src\/shards\/[^/]+\/generators\//u.test(candidate) ? candidate : undefined;
 const shard = entry?.split('/')[2];
 if (shard === undefined) throw new Error('Authoring loader requires an explicit shard-owned generator');
 const folders = new Set(['generators', 'data', 'quests', 'blender', 'assets', 'behaviour']);

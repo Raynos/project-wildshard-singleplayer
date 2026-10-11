@@ -4,7 +4,7 @@ import { validateTerrainAssets } from '@wildshard/format/product';
 import { TerrainSchema, type ShardTerrain } from '@wildshard/format/terrain';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import * as v from 'valibot';
-import { contentHash } from '../project';
+import { hashImmutableBytes as contentHash } from '../immutable';
 
 /** An ordered build-time patch, blended across a circular footprint; it changes rendering and collision together. */
 export interface TerrainOverride { x: number; z: number; radius: number; height: number; mode: 'replace' | 'lower' | 'raise' }
