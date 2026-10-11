@@ -30,7 +30,7 @@ it('covers every milestone road entry and home re-entry without counting a missi
   expect(plans.slice(0, 2)).toEqual(gridFloorPlans({ home: 'home', cells: full }, 'template'));
   expect(plans.slice(2).map(plan => plan.to)).toEqual(['nine', 'sky', 'nalati', 'pine', 'sun', 'home']);
   for (const plan of plans.slice(2)) {
-    expect(plan).toMatchObject({ from: null, finishOnArrival: true, requiredResidents: [plan.to] });
+    expect(plan).toMatchObject({ from: null, finishOnArrival: false, requiredResidents: [plan.to] });
     expect(plan.start).toBeDefined();
     expect(plan.waypoints).toHaveLength(1);
   }
@@ -292,7 +292,7 @@ it('enters any named cell from the road at its home-side edge with one road seed
   const corner = { instance: 'corner', slug: 'corner-shard', cell: [1, -1] as const };
   expect(gridFloorPlans({ home: 'home', cells: [...cells, corner] }, 'cell', { cell: 'corner-shard' })).toEqual([
     { name: 'corner-shard-road-entry', from: null, to: 'corner', movement: 'road-hover', start: { x: 555, z: -277.5 },
-      waypoints: [{ x: 555, z: -345 }], requiredResidents: ['corner'], finishOnArrival: true },
+      waypoints: [{ x: 555, z: -345 }], requiredResidents: ['corner'], finishOnArrival: false },
   ]);
   expect(gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'nalati-grasslands' })[0]).toMatchObject({ start: { x: 277.5, z: 0 }, waypoints: [{ x: 345, z: 0 }] });
   expect(() => gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'corner-shard' })).toThrow('--devserver');
@@ -348,5 +348,5 @@ it('observes preparation while driving from the crossroads through the actual mi
   expect(edge?.start).toEqual({ x: 277.5, z: 0 });
   expect(edge?.observePreparation).toBeUndefined();
   expect(edge?.hoverMaxSpeed).toBeUndefined();
-  expect(edge?.finishOnArrival).toBe(true);
+  expect(edge?.finishOnArrival).toBe(false);
 });

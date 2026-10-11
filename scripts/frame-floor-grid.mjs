@@ -16,7 +16,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
       const road = vertical ? { x: t.x, z: t.z + direction * 277.5 } : { x: t.x + direction * 277.5, z: t.z };
       const entry = vertical ? { x: t.x, z: t.z + direction * 210 } : { x: t.x + direction * 210, z: t.z };
       plans.push({ name: `${slug}-road-entry`, from: null, to: target.instance, movement: 'road-hover', start: road,
-        waypoints: [entry], requiredResidents: [target.instance], finishOnArrival: true });
+        waypoints: [entry], requiredResidents: [target.instance], finishOnArrival: false });
     }
     return plans;
   }
@@ -29,12 +29,12 @@ export function gridFloorPlans(state, scenario, options = {}) {
     const t = origin(target), dx = Math.sign(h.x - t.x), dz = Math.sign(h.z - t.z);
     const road = dz !== 0 ? { x: t.x, z: t.z + dz * 277.5 } : { x: t.x + dx * 277.5, z: t.z };
     const entry = dz !== 0 ? { x: t.x, z: t.z + dz * 210 } : { x: t.x + dx * 210, z: t.z };
-    // Ordinary entry probes may finish after a portal transfer. The readiness route drives all the way
-    // into the geometric interior; a motor transfer several metres outside the cell cannot prove visibility.
+    // Drive into the geometric interior: a motor transfer outside the cell must not omit
+    // the first visible regional frame from the measured drive.
     const approach = options.roadApproach === true;
     const start = approach ? (dz !== 0 ? { x: road.x + 277.5, z: road.z } : { x: road.x, z: road.z + 277.5 }) : road;
     plans.push({ name: `${target.slug}-road-entry`, from: null, to: target.instance, movement: 'road-hover', start,
-      waypoints: approach ? [road, entry] : [entry], requiredResidents: [target.instance], finishOnArrival: !approach,
+      waypoints: approach ? [road, entry] : [entry], requiredResidents: [target.instance], finishOnArrival: false,
       ...(approach ? { observePreparation: true, hoverMaxSpeed: 30 } : {}) });
   }
   if (scenario === 'sun-entry') {
