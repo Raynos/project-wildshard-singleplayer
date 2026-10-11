@@ -321,104 +321,116 @@ export class AnimalFactory {
     // the procedural eyes, where an overgrown hull's glowing eyes go
     const eyes: EyeSpot[] = [];
     for (const g of sp.eyeParts) { g.computeBoundingSphere(); const bs = g.boundingSphere; if (bs !== null) eyes.push({ centre: bs.center.clone(), radius: bs.radius }); }
-    let geometry = mergeAnimalGeometry(sp.furParts, sp.hardParts, sp.eyeParts);
-    geometry.computeBoundingSphere();
-    if (geometry.boundingSphere !== null) geometry.boundingSphere.radius += 0.6; // animated legs / neck / corpse roll never leave this
-    geometry.computeBoundingBox();
-
-    const look = app.species.look(kind);
-    if (look?.material !== undefined) {
-      // Nalati: the smooth loft, vertex colours only, no fur texture / shells — and fur, hooves and eyes in ONE group so a
-      // wolf / horse is a single draw call; the view supplies the material and its soft light
-      const count = geometry.index !== null ? geometry.index.count : (geometry.getAttribute('position') as THREE.BufferAttribute).count;
-      geometry.clearGroups(); geometry.addGroup(0, count, 0);
-      const mat = look.material(this.sky, species.eyeGlow, species.eyeGlowIntensity);
-      // a generated hull skinned to this skeleton (Debug ▸ Creatures = Models, glbCreatures.ts). While it is still loading the
-      // procedural mesh stands in, and every rig made from it is upgraded in place when the hull arrives (upgradeHull)
-      const hull = look.skin?.(v, sp.bones, eyes) ?? null;
-      if (hull) { geometry.dispose(); geometry = hull.geometry; }
-      m = { kind, variant: v.id, style: this.style, render: this.render, species, variantDef: v, geometry, bones: hull?.bones ?? sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null, doubleSided: hull?.doubleSided ?? false };
-      this.models.set(key, m);
-      if (look.hasSkin?.(v) === true && !hull) {
-        this.pendingRigs.set(key, []);
-        look.loadSkin?.(v).then(() => { this.upgradeHull(key); return null; }).catch(() => { this.pendingRigs.delete(key); });
+    const remaining = [sp.furParts, sp.hardParts, sp.eyeParts];
+    const procedural = (): THREE.BufferGeometry => {
+      remaining.length = 0; // mergeAnimalGeometry consumes the parts even when validation throws.
+      const geometry = mergeAnimalGeometry(sp.furParts, sp.hardParts, sp.eyeParts);
+      geometry.computeBoundingSphere();
+      if (geometry.boundingSphere !== null) geometry.boundingSphere.radius += 0.6;
+      geometry.computeBoundingBox();
+      return geometry;
+    };
+    // A loaded replacement hull already owns the geometry that is drawn. Avoid merging/bounding a procedural
+    // stand-in that would immediately be discarded; still release every source part on success or failure.
+    try {
+      const look = app.species.look(kind);
+      if (look?.material !== undefined) {
+        // Nalati: the smooth loft, vertex colours only, no fur texture / shells — and fur, hooves and eyes in ONE group so a
+        // wolf / horse is a single draw call; the view supplies the material and its soft light
+        const mat = look.material(this.sky, species.eyeGlow, species.eyeGlowIntensity);
+        // a generated hull skinned to this skeleton (Debug ▸ Creatures = Models, glbCreatures.ts). While it is still loading the
+        // procedural mesh stands in, and every rig made from it is upgraded in place when the hull arrives (upgradeHull)
+        const hull = look.skin?.(v, sp.bones, eyes) ?? null;
+        const geometry = hull?.geometry ?? procedural();
+        if (hull === null) {
+          const count = geometry.index !== null ? geometry.index.count : (geometry.getAttribute('position') as THREE.BufferAttribute).count;
+          geometry.clearGroups(); geometry.addGroup(0, count, 0);
+        }
+        m = { kind, variant: v.id, style: this.style, render: this.render, species, variantDef: v, geometry, bones: hull?.bones ?? sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null, doubleSided: hull?.doubleSided ?? false };
+        this.models.set(key, m);
+        if (look.hasSkin?.(v) === true && !hull) {
+          this.pendingRigs.set(key, []);
+          look.loadSkin?.(v).then(() => { this.upgradeHull(key); return null; }).catch(() => { this.pendingRigs.delete(key); });
+        }
+        return m;
       }
-      return m;
-    }
-    if (lowPoly) {
-      // faceted: flat per-face normals, flat-shaded untextured materials, no fur shells
-      geometry = facetGeometry(geometry, sp.facetJitter);
-      const lp = lowPolyMaterials();
-      // one material, one draw per rig (M3): the hard parts + eyes fold into the body group; glowing eyes ride aGlow
-      const glow = oneMaterial(geometry, species.eyeGlow !== undefined ? 2 : null);
-      if (species.eyeGlow !== undefined) { lp.eye.emissive = col3(species.eyeGlow); lp.eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }   // the sailor's cyan eyes
-      if (glow) patchEyeGlow(lp.fur, lp.eye.emissive, lp.eye.emissiveIntensity);
-      if (sp.map) { // a generated model's own paint (the Drowned Captain), set before the program compiles
-        lp.fur.map = sp.map;
-        if (sp.selfLight !== undefined && sp.selfLight > 0) { lp.fur.emissiveMap = sp.map; lp.fur.emissive.setRGB(1, 1, 1); lp.fur.emissiveIntensity = sp.selfLight; }
+      if (lowPoly) {
+        // faceted: flat per-face normals, flat-shaded untextured materials, no fur shells
+        const geometry = facetGeometry(procedural(), sp.facetJitter);
+        const lp = lowPolyMaterials();
+        // one material, one draw per rig (M3): the hard parts + eyes fold into the body group; glowing eyes ride aGlow
+        const glow = oneMaterial(geometry, species.eyeGlow !== undefined ? 2 : null);
+        if (species.eyeGlow !== undefined) { lp.eye.emissive = col3(species.eyeGlow); lp.eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }   // the sailor's cyan eyes
+        if (glow) patchEyeGlow(lp.fur, lp.eye.emissive, lp.eye.emissiveIntensity);
+        if (sp.map) { // a generated model's own paint (the Drowned Captain), set before the program compiles
+          lp.fur.map = sp.map;
+          if (sp.selfLight !== undefined && sp.selfLight > 0) { lp.fur.emissiveMap = sp.map; lp.fur.emissive.setRGB(1, 1, 1); lp.fur.emissiveIntensity = sp.selfLight; }
+        }
+        this.sky.setupMaterial(lp.fur); this.sky.setupMaterial(lp.hard); this.sky.setupMaterial(lp.eye);
+        m = { kind, variant: v.id, style: 'toon', render: this.render, species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: lp.fur, hard: lp.hard, eye: lp.eye, shells: [] };
+        this.models.set(key, m);
+        return m;
       }
-      this.sky.setupMaterial(lp.fur); this.sky.setupMaterial(lp.hard); this.sky.setupMaterial(lp.eye);
-      m = { kind, variant: v.id, style: 'toon', render: this.render, species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: lp.fur, hard: lp.hard, eye: lp.eye, shells: [] };
-      this.models.set(key, m);
-      return m;
-    }
 
-    let style: FurStyle = { ...species.fur, ...v.fur };
-    // a generated hull skinned to this skeleton (Pine Hollow PH-M1, pineCreatures.ts; Debug ▸ Creatures = Procedural = the procedural
-    // animal): one group drawn with the same fur material over the hull's photoreal atlas (the variant's coat) + normal
-    // map, so the program is the procedural fur's own; no fur shells
-    const hull = app.species.look(kind)?.skin?.(v, sp.bones, eyes) ?? null;
-    if (hull !== null && hull.map !== null) {
-      geometry.dispose();
-      if (hull.fur !== undefined) style = { ...style, ...hull.fur };   // the coat's own sheen / rim (E322 F-M2's fixed bears)
+      let style: FurStyle = { ...species.fur, ...v.fur };
+      // a generated hull skinned to this skeleton (Pine Hollow PH-M1, pineCreatures.ts; Debug ▸ Creatures = Procedural = the procedural
+      // animal): one group drawn with the same fur material over the hull's photoreal atlas (the variant's coat) + normal
+      // map, so the program is the procedural fur's own; no fur shells
+      const hull = app.species.look(kind)?.skin?.(v, sp.bones, eyes) ?? null;
+      if (hull !== null && hull.map !== null) {
+        if (hull.fur !== undefined) style = { ...style, ...hull.fur };   // the coat's own sheen / rim (E322 F-M2's fixed bears)
+        const fur = new THREE.MeshPhysicalMaterial({
+          map: hull.map, normalMap: hull.normalMap, normalScale: new THREE.Vector2(1.0, -1.0),   // glTF's normal map, derivative tangents (as GLTFLoader); every rig ships one
+          roughness: style.roughness, metalness: 0, vertexColors: true, color: new THREE.Color(1.0, 1.0, 1.0),
+          sheen: Math.max(0.01, style.sheen), sheenRoughness: 0.7, sheenColor: col3(style.sheenColor), envMapIntensity: style.envMapIntensity,
+        });
+        if (style.emissive !== undefined) { fur.emissive = col3(style.emissive); fur.emissiveIntensity = style.emissiveIntensity ?? 1; }
+        // traits.selfLight: the coat fed back as emissive (the Antler King reads in his night fight, as the Drowned Captain's
+        // selfLight) — its own program, only on that variant
+        const selfLight = Number(v.traits?.['selfLight'] ?? 0);
+        if (selfLight > 0) { fur.emissiveMap = hull.map; fur.emissive.setRGB(1, 1, 1); fur.emissiveIntensity = selfLight; }
+        const rim = col3(style.rim);
+        this.patchFur(fur, rim, undefined, -1, hull.overgrown);
+        this.sky.setupMaterial(fur);
+        m = { kind, variant: v.id, style: 'pbr', render: DEFAULT_CREATURE_RENDER, species, variantDef: v, geometry: hull.geometry, bones: hull.bones, dims: sp.dims, fur, hard: fur, eye: new THREE.MeshPhysicalMaterial(), shells: [], rim, hull: { overgrown: hull.overgrown } };
+        this.models.set(key, m);
+        return m;
+      }
+      const geometry = procedural();
+      let tex = this.tex.get(kind);
+      if (tex === undefined) { tex = makeFurTextures(species.fur.texSeed, species.fur.tex, kind); this.tex.set(kind, tex); }
+      // MeshPhysicalMaterial for the sheen term (soft velvet), plus a backlit Fresnel rim patched in below.
+      // Everything species-specific here is a uniform: the compiled program is shared by every kind.
       const fur = new THREE.MeshPhysicalMaterial({
-        map: hull.map, normalMap: hull.normalMap, normalScale: new THREE.Vector2(1.0, -1.0),   // glTF's normal map, derivative tangents (as GLTFLoader); every rig ships one
+        map: tex.map, normalMap: tex.normalMap, normalScale: new THREE.Vector2(1.0, 1.0),
         roughness: style.roughness, metalness: 0, vertexColors: true, color: new THREE.Color(1.0, 1.0, 1.0),
-        sheen: Math.max(0.01, style.sheen), sheenRoughness: 0.7, sheenColor: col3(style.sheenColor), envMapIntensity: style.envMapIntensity,
+        sheen: Math.max(0.01, style.sheen), sheenRoughness: 0.7, sheenColor: col3(style.sheenColor),
+        envMapIntensity: style.envMapIntensity, // less IBL fill so the sun side / shadow side contrast survives (fur self-shadows)
       });
       if (style.emissive !== undefined) { fur.emissive = col3(style.emissive); fur.emissiveIntensity = style.emissiveIntensity ?? 1; }
-      // traits.selfLight: the coat fed back as emissive (the Antler King reads in his night fight, as the Drowned Captain's
-      // selfLight) — its own program, only on that variant
-      const selfLight = Number(v.traits?.['selfLight'] ?? 0);
-      if (selfLight > 0) { fur.emissiveMap = hull.map; fur.emissive.setRGB(1, 1, 1); fur.emissiveIntensity = selfLight; }
       const rim = col3(style.rim);
-      this.patchFur(fur, rim, undefined, -1, hull.overgrown);
-      this.sky.setupMaterial(fur);
-      m = { kind, variant: v.id, style: 'pbr', render: DEFAULT_CREATURE_RENDER, species, variantDef: v, geometry: hull.geometry, bones: hull.bones, dims: sp.dims, fur, hard: fur, eye: new THREE.MeshPhysicalMaterial(), shells: [], rim, hull: { overgrown: hull.overgrown } };
+      this.patchFur(fur, rim);
+      const hard = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), normalMap: tex.normalMap, normalScale: new THREE.Vector2(0.35, 0.35) });
+      const eye = new THREE.MeshPhysicalMaterial({ roughness: 0.1, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.5 });
+      if (species.eyeGlow !== undefined) { eye.emissive = col3(species.eyeGlow); eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }
+      this.sky.setupMaterial(fur); this.sky.setupMaterial(hard); this.sky.setupMaterial(eye);
+      // fur shells: the same material with the vertex offset + strand alpha test, one per layer
+      const shells: THREE.MeshPhysicalMaterial[] = [];
+      const strand = (this.strandTex ??= makeStrandTexture(303));
+      const baseLen = style.shellLen;   // metres at the outermost layer for furLen = 1
+      for (let i = 0; i < SHELL_LAYERS; i++) {
+        const sm = fur.clone();
+        const k = (i + 1) / SHELL_LAYERS;
+        this.patchFur(sm, rim, { layer: k, len: baseLen * k, threshold: 0.1 + 0.82 * k * k, dark: 0.8 + 0.3 * k, strand }, i);
+        this.sky.setupMaterial(sm);
+        shells.push(sm);
+      }
+      m = { kind, variant: v.id, style: 'pbr', render: DEFAULT_CREATURE_RENDER, species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur, hard, eye, shells, rim };
       this.models.set(key, m);
       return m;
+    } finally {
+      for (const parts of remaining) for (const geometry of parts) geometry.dispose();
     }
-    let tex = this.tex.get(kind);
-    if (tex === undefined) { tex = makeFurTextures(species.fur.texSeed, species.fur.tex, kind); this.tex.set(kind, tex); }
-    // MeshPhysicalMaterial for the sheen term (soft velvet), plus a backlit Fresnel rim patched in below.
-    // Everything species-specific here is a uniform: the compiled program is shared by every kind.
-    const fur = new THREE.MeshPhysicalMaterial({
-      map: tex.map, normalMap: tex.normalMap, normalScale: new THREE.Vector2(1.0, 1.0),
-      roughness: style.roughness, metalness: 0, vertexColors: true, color: new THREE.Color(1.0, 1.0, 1.0),
-      sheen: Math.max(0.01, style.sheen), sheenRoughness: 0.7, sheenColor: col3(style.sheenColor),
-      envMapIntensity: style.envMapIntensity, // less IBL fill so the sun side / shadow side contrast survives (fur self-shadows)
-    });
-    if (style.emissive !== undefined) { fur.emissive = col3(style.emissive); fur.emissiveIntensity = style.emissiveIntensity ?? 1; }
-    const rim = col3(style.rim);
-    this.patchFur(fur, rim);
-    const hard = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), normalMap: tex.normalMap, normalScale: new THREE.Vector2(0.35, 0.35) });
-    const eye = new THREE.MeshPhysicalMaterial({ roughness: 0.1, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.5 });
-    if (species.eyeGlow !== undefined) { eye.emissive = col3(species.eyeGlow); eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }
-    this.sky.setupMaterial(fur); this.sky.setupMaterial(hard); this.sky.setupMaterial(eye);
-    // fur shells: the same material with the vertex offset + strand alpha test, one per layer
-    const shells: THREE.MeshPhysicalMaterial[] = [];
-    const strand = (this.strandTex ??= makeStrandTexture(303));
-    const baseLen = style.shellLen;   // metres at the outermost layer for furLen = 1
-    for (let i = 0; i < SHELL_LAYERS; i++) {
-      const sm = fur.clone();
-      const k = (i + 1) / SHELL_LAYERS;
-      this.patchFur(sm, rim, { layer: k, len: baseLen * k, threshold: 0.1 + 0.82 * k * k, dark: 0.8 + 0.3 * k, strand }, i);
-      this.sky.setupMaterial(sm);
-      shells.push(sm);
-    }
-    m = { kind, variant: v.id, style: 'pbr', render: DEFAULT_CREATURE_RENDER, species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur, hard, eye, shells, rim };
-    this.models.set(key, m);
-    return m;
   }
 
   /**
