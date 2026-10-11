@@ -921,7 +921,8 @@
         "--import",
         "./scripts/generation-level.mjs",
         "src/shards/nalati-grasslands/generators/bake-nalati-places.mjs",
-        "--generation-shard=nalati-grasslands"
+        "--generation-shard=nalati-grasslands",
+        "--force-write"
       ],
       "inputRoots": [
         "src/engine",
@@ -936,7 +937,8 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "public/assets/baked/nalati-grasslands/terrain.bin",
-        "budgets"
+        "budgets",
+        "scripts/bake-output.mjs"
       ],
       "outputs": [
         "public/assets/nalati/baked/places.bin",
@@ -946,13 +948,12 @@
         "src/shards/nalati-grasslands/data/placeSpecimens.json",
         "src/shards/nalati-grasslands/data/dressingGeos.json"
       ],
-      "platform": "darwin",
+      "platform": "portable",
       "seedOutputs": [
         "src/shards/nalati-grasslands/data/places.json",
         "src/shards/nalati-grasslands/data/placeSpecimens.json",
         "src/shards/nalati-grasslands/data/dressingGeos.json"
-      ],
-      "browser": true
+      ]
     },
     {
       "id": "nalati-physics",

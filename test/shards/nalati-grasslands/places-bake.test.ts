@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate rebakes over the committed terrain grid the page samples.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- The stale gate runs on the platform the bake was recorded on.
-import { platform } from 'node:process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Native Buffer equality compares every canonical geometry byte without per-byte assertions.
+import { Buffer } from 'node:buffer';
 import { bakeNalatiPlacesOnTerrain } from '../../../src/shards/nalati-grasslands/generators/places';
 import type { PlaceRow } from '../../../src/shards/nalati-grasslands/world/placeBake';
 import { bakeDifference, committedPlaces } from '../../../src/shards/nalati-grasslands/generators/bake-nalati-places.mjs';
@@ -27,17 +27,21 @@ const wordsOf = (row: PlaceRow): number => row.meshes.reduce((n, { geometry: g }
 describe('Nalati bakes its painted places offline (SHARD-PLATFORM M3)', () => {
   // The full stale gate is `src/shards/nalati-grasslands/generators/bake-nalati-places.mjs --check` (bake-check's node baker `nalati-places`: the three places
   // and every specimen). Here: the committed binary is its rows', and one place, the Kunes bridge, rebaked in Node against it
-  // (Chromium made the bake: rows within 1e-9, stored floats within 2^-20, as the gate allows).
-  // Linux's libm differs in the last ulp (Pine's crags, CI 38008817381): the gate runs where the bakes are made.
-  it.runIf(platform === 'darwin')('the committed bridge re-encodes from its generator (the stale gate: rerun src/shards/nalati-grasslands/generators/bake-nalati-places.mjs)', () => {
+  // Every raw byte and row is canonical Node output; the old page tolerance is only an explicit migration oracle.
+  // Node is canonical: these contracts run on Linux CI as well as the authoring Mac.
+  it('the committed bridge re-encodes from its generator (the stale gate: rerun src/shards/nalati-grasslands/generators/bake-nalati-places.mjs)', () => {
     const committed = committedPlaces(), made = bakeNalatiPlacesOnTerrain(terrain()).places;
     const shipped = placeSlice(committed.places.rows.rows, committed.places.raw, 'bridge', wordsOf), rebaked = placeSlice(made.rows, made.bin, 'bridge', wordsOf);
     const mine = { rows: { ...committed.places.rows, rows: shipped.rows }, raw: shipped.bin };
+    expect(Buffer.from(rebaked.bin).equals(Buffer.from(mine.raw))).toBe(true);
+    expect(JSON.stringify(rebaked.rows)).toBe(JSON.stringify(mine.rows.rows));
     expect(bakeDifference('places', mine, rebaked, (r) => r.meshes)).toBeNull();
     expect(made.rows.map((r) => r.name)).toEqual(committed.places.rows.rows.map((r) => r.name));
   }, 30_000);
-  it.runIf(platform === 'darwin')('the committed dressing shapes re-encode from their generator (generators/dressingGeos.ts)', () => {
+  it('the committed dressing shapes re-encode from their generator (generators/dressingGeos.ts)', () => {
     const committed = committedPlaces(), made = bakeNalatiPlacesOnTerrain(terrain()).dressing;
+    expect(Buffer.from(made.bin).equals(Buffer.from(committed.dressing.raw))).toBe(true);
+    expect(JSON.stringify(made.rows)).toBe(JSON.stringify(committed.dressing.rows.rows));
     expect(bakeDifference('dressing', committed.dressing, made, (r) => [r])).toBeNull();
     expect(made.rows.map((r) => r.key)).toEqual(committed.dressing.rows.rows.map((r) => r.key));
   }, 30_000);
