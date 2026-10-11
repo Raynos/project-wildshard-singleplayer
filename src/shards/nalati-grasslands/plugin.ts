@@ -1,5 +1,5 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { ShardPlugin } from '@wildshard/game/shard/plugin';
+import { standaloneHybridEntry, type ShardPlugin } from '@wildshard/game/plugin/shardPlugin';
 import { shardfileEntry } from '@wildshard/game/shard/runtimeVariant';
 import RuntimePlugin from './runtime/index';
 
@@ -24,33 +24,8 @@ async function prepareNalatiHybrid(ctx: ShardContext): Promise<ShardPlugin> {
   }, [{ slug: source.identity.slug, entry: 'runtime/index.ts', load: () => import('./runtime/index') }]);
 }
 
-/** SF65 (G237–G239): SHARD SELECT's SHARDFILE admits the declared data (SF48 hybrid); LEGACY (the public entry) runs the
- *  original context and staged runtime. */
-class NalatiHybrid extends ShardPlugin {
-  private composite: ShardPlugin | undefined;
-  private readonly Legacy: new () => ShardPlugin;
-  private readonly admit: (ctx: ShardContext) => Promise<ShardPlugin>;
-  private readonly shardfile: (ctx: ShardContext) => boolean;
-  constructor(Legacy: new () => ShardPlugin = RuntimePlugin, admit: (ctx: ShardContext) => Promise<ShardPlugin> = prepareNalatiHybrid,
-    shardfile: (ctx: ShardContext) => boolean = shardfileEntry) {
-    super(); this.Legacy = Legacy; this.admit = admit; this.shardfile = shardfile;
-  }
-  override async world(ctx: ShardContext): Promise<void> {
-    if (!this.shardfile(ctx)) {
-      this.composite = new this.Legacy();
-      await this.composite.world?.(ctx);
-      return;
-    }
-    this.composite = await this.admit(ctx);
-    await this.composite.world?.(ctx);
-  }
-  override async kit(ctx: ShardContext): Promise<void> {
-    if (this.composite === undefined) throw new Error('Nalati hybrid world is not admitted'); await this.composite.kit?.(ctx);
-  }
-  override async play(ctx: ShardContext): Promise<void> {
-    if (this.composite === undefined) throw new Error('Nalati hybrid kit is not admitted'); await this.composite.play?.(ctx);
-  }
-}
+/** Preserve native/admitted selection and its constructor injection through the defining standalone owner. */
+const NalatiHybrid = standaloneHybridEntry(RuntimePlugin, prepareNalatiHybrid, shardfileEntry, 'Nalati');
 
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin loaders share a default constructor contract.
 export default NalatiHybrid;
