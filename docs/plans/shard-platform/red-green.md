@@ -31,3 +31,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-11 | local gate: typecheck (SDK flesh surface vs shape schema) and Nine physics stale source | `0cdf42300` | `9266e206c` | sp-x6 |
 | 2026-10-11 | Linux push CI: pusher fixtures use BSD-only mktemp templates (GNU refuses) | `e38a138a1` | `36f64a51e` (Linux verified, CI 38182470819) | sp-x7 |
 | 2026-10-11 | Linux push CI: Driftwood native-cache continuous vs mid-fight restore diverges on Node 24.21 | intermittent; artifact `dd61a915c` armed | pending | sp-x7 (diagnosis) |
+| 2026-10-11 | local gate: oxlint, redundant process.versions.v8 fallback in number-path-probe.mjs | `dd61a915c` | pending | sp-x7 |
