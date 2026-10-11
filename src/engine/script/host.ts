@@ -3,7 +3,7 @@ import { admitScript, type ScriptAdmission } from './admission';
 import { SCRIPT_OP, type ScriptEffect, type ScriptEvent, type ScriptWorld } from './effects';
 import { scriptFailure } from './strings';
 import { observeWasmMemory } from '../core/memoryResources';
-import { currentOwner } from '../app/ownership';
+import { constructionOwner, currentOwner, ownerOr } from '../app/ownership';
 import type { Scope } from '../app/scope';
 
 /** Per-level tick allowances shared by every module and entity, not reset by individual calls. */
@@ -39,6 +39,10 @@ const preparingOwners = new WeakSet<Scope>();
 function requirePreparationOwner(owner: Scope): void {
   if (owner.disposed) throw new Error('Script memory preparation owner disposed');
 }
+function scriptOwner(): Scope | null {
+  const construction = constructionOwner();
+  return construction === null ? currentOwner() : ownerOr(construction);
+}
 async function preparationWait<T>(owner: Scope, work: () => T | Promise<T>): Promise<T> {
   requirePreparationOwner(owner);
   let cancel = (): void => { /* The promise installs its rejection synchronously. */ };
@@ -49,7 +53,7 @@ async function preparationWait<T>(owner: Scope, work: () => T | Promise<T>): Pro
   } finally { forget(); }
 }
 function takePreparedMemory(initial: number, maximum: number): WebAssembly.Memory | undefined {
-  const owner = currentOwner();
+  const owner = scriptOwner();
   if (owner === null || owner.disposed) return undefined;
   for (const [scope, memories] of preparedMemories) {
     if (!owner.belongsTo(scope)) continue;
@@ -142,7 +146,7 @@ export class ScriptHost {
     const initial = saved ? saved.memory.length / 65536 : state.admission.initialPages;
     const memory = (saved === undefined ? takePreparedMemory(initial, state.maximumPages) : undefined)
       ?? new WebAssembly.Memory({ initial, maximum: state.maximumPages });
-    observeWasmMemory(memory, { owner: currentOwner()?.name ?? 'engine/script', asset: `script/entity:${state.entity}` });
+    observeWasmMemory(memory, { owner: scriptOwner()?.name ?? 'engine/script', asset: `script/entity:${state.entity}` });
     const instance = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array(state.bytes)), { env: {
       memory,
       enter: () => { this.charge(state, 1); if (++state.depth > SCRIPT_ABI.callDepth) throw new Error('Script call-depth exhausted'); },

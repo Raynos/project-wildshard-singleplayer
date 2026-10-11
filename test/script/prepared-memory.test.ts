@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { compileScript } from '../../scripts/compile-script.mjs';
 import { Scope } from '../../src/engine/app/scope';
+import { bindConstructionEnvironment, withOwner } from '../../src/engine/app/ownership';
 import { ScriptHost, withPreparedScriptMemories } from '../../src/engine/script/host';
 import { admitScript } from '../../src/engine/script/admission';
 import { ScriptWorld } from '../../src/engine/script/effects';
@@ -64,6 +65,20 @@ describe('fresh script memories prepared between frames', () => {
       const h = installed();
       await pause(); scope.dispose(); return h;
     })).rejects.toThrow('disposed');
+  });
+  it('uses the admitted construction owner after await without lending to explicit foreign or unowned callbacks', async () => {
+    const scope = new Scope('construction-installer'), foreign = new Scope('foreign-callback');
+    const leave = bindConstructionEnvironment(scope, () => () => undefined), memory = vi.spyOn(WebAssembly, 'Memory');
+    try {
+      await withPreparedScriptMemories([bytes], scope, pause, async () => {
+        await pause();
+        foreign.run(() => installed());
+        withOwner(null, () => installed());
+        expect(memory).toHaveBeenCalledTimes(3);
+        installed();
+        expect(memory).toHaveBeenCalledTimes(3);
+      });
+    } finally { memory.mockRestore(); leave(); foreign.dispose(); scope.dispose(); }
   });
   it('rejects on retirement even when the caller frame wait can never complete', async () => {
     const scope = new Scope('cancelled-frame-wait');
