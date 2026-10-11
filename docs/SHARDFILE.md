@@ -1050,7 +1050,9 @@ source declaration. A routing alias allocates no sampled bank or sound bytes.
 Driftwood likewise binds its emitted native cue routes and music profile to its
 existing score owner: selection, lead, fade and boot slots come from the admitted
 rows; style-bank decoding, stings, playback clocks and scoped disposal stay with
-the original owner. Legacy-only entries retain the source profile.
+the original owner. Its native bed mixer also consumes emitted zone geometry,
+levels, wet sends, smoothing and cadence without starting an audio device during
+construction. Legacy-only entries retain the source profile.
 Nalati binds its emitted music source, ordered scene selection, fade, synth lead
 and native weapon routing to its existing entered sound owner. On-demand decoding,
 bar-grid scheduling, thrust microtasks and two-entry callback restoration remain

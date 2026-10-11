@@ -35,6 +35,30 @@ describe("Driftwood's island audio on the engine mixer", () => {
     expect(stop).toHaveBeenCalledTimes(1);
   });
 
+  it('uses emitted shore and cave rows with identical cold geometry and no clock or RNG work', () => {
+    const wire = JSON.stringify(source.audio), rows = parseAudioData(JSON.parse(wire));
+    const profile = requireAudioProfile(rows.zones, 'ambience.driftwood');
+    const audio = new Audio(), random = vi.spyOn(Math, 'random');
+    const heightAt = vi.fn((x: number, z: number) => 5 - Math.hypot(x, z) / 20);
+    const legacy = new IslandAmbience(audio, { sea: 0, heightAt });
+    const calls = heightAt.mock.calls.map(call => [...call]); heightAt.mockClear();
+    const emitted = new IslandAmbience(audio, { sea: 0, heightAt }, profile);
+    try {
+      expect(heightAt.mock.calls).toEqual(calls); expect(emitted.diag).toEqual(legacy.diag);
+      expect(random).not.toHaveBeenCalled(); expect(audio.ready).toBe(false);
+      const shore = profile.zones.find(zone => zone.id === 'shore');
+      if (shore === undefined) throw new Error('Missing admitted shore');
+      shore.x += 1; heightAt.mockClear();
+      const changed = new IslandAmbience(audio, { sea: 0, heightAt }, profile);
+      try { expect(heightAt.mock.calls).not.toEqual(calls); expect(audio.ready).toBe(false); }
+      finally { changed.dispose(); }
+      for (const missing of ['cave', 'shore']) {
+        const incomplete = { ...profile, zones: profile.zones.filter(zone => zone.id !== missing) };
+        expect(() => new IslandAmbience(audio, { sea: 0, heightAt }, incomplete)).toThrow(`Missing declared audio profile: ${missing}`);
+      }
+    } finally { legacy.dispose(); emitted.dispose(); audio.dispose(); }
+  });
+
   it('a zoned island bed never starts its synth (the zoned graph owns the island)', () => {
     const ids: string[] = [];
     tap.sound = (id) => { ids.push(id); };

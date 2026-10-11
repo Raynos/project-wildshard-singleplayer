@@ -29,7 +29,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const sea = LOWERED_SEA; // SF46 (G164): the lowered sea at road height
   const surfaces = new SurfaceMap({ sea, heightAt, trailDistance,
     decks: [built.pier, ...built.jetties, built.boat, built.hut, built.lookout, built.bridge, built.wreck], stone: [built.shrine] });
-  const ambience = new IslandAmbience(audio, { sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: Cove.forIsland() });
+  const ambience = new IslandAmbience(audio, { sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: Cove.forIsland() }, requireAudioProfile(audioRows.zones, 'ambience.driftwood'));
   const cues = driftwoodCueMap(islandSfx, player, audioRows.routing);
   audio.installCues(cues, ctx.scope);
   ctx.answer('player.stepSurface', (request) => ({ ...request, surface: surfaces.surfaceAt(request.x, request.z, request.y) }));

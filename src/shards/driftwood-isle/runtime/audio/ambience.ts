@@ -39,7 +39,7 @@ import { IslandBed, ISLAND_BED } from './sfx';
  */
 import type { Camera } from 'three';
 import source from '../../shard.config';
-import { requireAudioProfile, requireAudioZone } from '@wildshard/engine/audio/audioProfiles';
+import { requireAudioProfile, requireAudioZone, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
 
 /** The island's dominant zones. */
 export type Zone = IslandZone;
@@ -59,19 +59,20 @@ export interface IslandAmbienceOpts {
 }
 
 const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.driftwood');
-const CAVE = requireAudioZone(PROFILE, 'cave');
 
 /** Driftwood's ambience profile: the island synth bed until the zoned mix is built, then the mix of runtime/audio/islandMix.ts. */
 export class IslandAmbience {
   private readonly mix: AmbienceMix<Zone>;
 
-  constructor(audio: Audio, o: IslandAmbienceOpts) {
+  constructor(audio: Audio, o: IslandAmbienceOpts, profile: AudioZoneProfile = PROFILE) {
+    const CAVE = requireAudioZone(profile, 'cave');
+    requireAudioZone(profile, 'shore');
     const f = o.cove?.fall.foot, c = o.cove?.cave, fall = { x: f?.[0] ?? 127.5, z: f?.[1] ?? 18 };
     // the cave's interior: `depth / 2` in from the mouth along its facing
     const cave = c ? { x: c.x - Math.sin(c.yaw) * c.depth * 0.5, z: c.z - Math.cos(c.yaw) * c.depth * 0.5 } : { x: CAVE.x, z: CAVE.z };
     // the synth island bed (breeze, surf hiss, swells) until the zoned graph is built (the mix's first build: `islandBed.zone()`)
     const islandBed = new IslandBed(audio);
-    this.mix = new AmbienceMix(audio, PROFILE, ISLAND_MIX, {
+    this.mix = new AmbienceMix(audio, profile, ISLAND_MIX, {
       random: Math.random, scope: 'audio.island.ambience', heightAt: o.heightAt, sea: o.sea,
       objects: { wreck: o.wreck, cove: o.cove }, near: { palms: o.palms },
       points: { fall: { x: fall.x, y: o.heightAt(fall.x, fall.z) + 1, z: fall.z }, cave },
