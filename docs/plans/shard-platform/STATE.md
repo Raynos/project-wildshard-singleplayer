@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-11 06:55 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
+**2026-10-11 08:10 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
 
 **Milestones**
 - **M1:** done.
@@ -11,7 +11,7 @@
 - **Frame floor:** desktop all routes pass (return 100 ms on the line); Simulator travel/spawn/drive pass at ≤35 p95; open: outbound 277 ms, Nalati 19.7 s cold wait.
 - **M3:** **0 of 6 at 80/20** under Jake's measure.
 
-**Live:** origin moving again (07:07 CT); push CI and deploy pending (prod c24dd65af). **sp-x7 = gate/CI/deploy lane (G330).**
+**Live:** production `02b4a2dfa-mv3u812f` (13:07Z; push CI, exact smoke green); queue drained. **sp-x7 = gate/CI/deploy lane (G330).**
 
 **Red → green (G330):** `red-green.md` (5 reds fixed 10-11).
 
