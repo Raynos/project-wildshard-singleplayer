@@ -3283,3 +3283,7 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 ## Author schema discovery (OS-F3)
 
 The author CLI `wildshard schema list` lists every format JSON Schema and the complete shardfile declaration. `wildshard schema shardfile /properties` discovers all sections without Valibot internals. `schemaDeclaration` and `schemaAt` are defined in `@wildshard/sdk/formatJsonSchema`; discovery preserves native semantic checks and grants no admission. See [schema discovery](authoring/schema-discovery.md) for pointers, tuple arity, identifier grammars and installed declaration locations.
+
+## Typed numeric author scripts (OS-F4)
+
+`@wildshard/sdk/directorAbi.generateScriptModule` produces the complete ABI-v0 AS module from admitted state rows and an on_tick body. It allocates memory, emits typed stable-ID state accessors, and documents byte versus record capacities and native actor provenance. The [typed ABI guide](authoring/script-abi.md) and executed numericScriptExample are checked against ScriptLane, including rollback and exact restore. Existing director accessor bytes remain unchanged.

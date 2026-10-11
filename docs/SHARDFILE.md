@@ -1636,3 +1636,7 @@ The executable SDK author guide's `creatures` example declares a fleeing goat he
 ## Inspect author declarations (OS-F3)
 
 Use `wildshard schema list`, then `wildshard schema <root> [JSON-pointer]`. The `shardfile` root describes every defining section; format roots emit structural JSON Schema with mandatory native checks. The [schema discovery guide](authoring/schema-discovery.md) covers exact identifier grammars, four-channel hearing, player/creature coordinate forms and packaged declaration discovery. The retained `formatExample` executes the public inspection API.
+
+## Typed numeric script modules (OS-F4)
+
+Use `generateScriptModule` from `@wildshard/sdk/directorAbi` instead of inventing buffer capacities, event offsets or effect opcodes. The [ABI guide](authoring/script-abi.md) documents the generated typed module: in_cap is bytes, out_cap is records, state is stable-ID ordered, and player writes require real native actor binding. The retained numericScriptExample runs in the actual host and restores exactly.
