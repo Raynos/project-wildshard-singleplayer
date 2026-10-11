@@ -1,3 +1,4 @@
+import { HORSE_GAMEPLAY } from '../data/species/faunaGameplay';
 import { NALATI_RIDE } from '../data/modes';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -200,16 +201,11 @@ export function horseEye(a: Animal, out: THREE.Vector3): THREE.Vector3 {
 }
 
 export const HORSE_SPECIES: SpeciesDef = {
+  ...HORSE_GAMEPLAY,
   rigContract: { skeleton: 'horse.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'horse',
-  trampleRadius: 0.8,
   label: 'Wild horse',
   fur: NO_FUR,
-  aggressive: false,
-  walkSpeed: HORSE_SPEED.walk,
-  chargeSpeed: 12,
-  chargeDamage: 25,
-  sounds: { call: 'horse_neigh', hurt: 'horse_squeal', callEvery: [40, 120] },
   pose: { grazeNeck: 0, gallopTail: 0.55 },
   gait: { trot: 3.0, gallop: 6.4 },
   variants: [
@@ -230,16 +226,8 @@ export const HORSE_SPECIES: SpeciesDef = {
       traits: { mane: 1.7, stallion: 1 }, mods: { chargeDamage: 25 },
     },
   ],
-  tuning: {
-    hp: 150, sightRange: 45, sightRangeGraze: 20, sightCone: THREE.MathUtils.degToRad(70),
-    hearStill: 4, hearCrouch: 8, hearWalk: 15, hearSprint: 30,
-    noticeRate: 0.4, forgetRate: 0.2, alertAt: 0.45, boltAt: 1, freezeMin: 2, freezeMax: 4, relaxAfter: 4, panicDist: 10,
-    runSpeed: 12.5, trotSpeed: 4.5, fleeMinTime: 3, fleeUntil: 80, fleeUntilMax: 120, fleeMaxTime: 14, lookBack: 3,
-    waryTime: 20, waryBoost: 1.3, herdAlertRadius: 20, herdBoltDelayMin: 0.2, herdBoltDelayMax: 0.8, impactSpook: 15, impactAlert: 40,
-  },
   build: buildHorse,
   postPose: c => { poseNalatiHorse(c, wildEnv.wind); },
-  tick: 'ai',
   act: actHorse,
   think: thinkHorse,
   damageMul: horseDamageMul,

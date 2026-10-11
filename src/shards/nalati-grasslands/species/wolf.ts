@@ -1,3 +1,4 @@
+import { WOLF_GAMEPLAY } from '../data/species/faunaGameplay';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesDef, AnimalSpecies, VariantDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, smooth01, bump, clamp } from '@wildshard/engine/entities/species/rigs';
@@ -102,26 +103,14 @@ export function canidPostPose(c: RigAnimCtx): void {
 }
 
 export const WOLF_SPECIES: SpeciesDef = {
+  ...WOLF_GAMEPLAY,
   lockable: true,
   rigContract: { skeleton: 'wolf.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'wolf',
-  trampleRadius: 0.45,
   label: 'Steppe wolf',
   fur: NO_FUR,
-  aggressive: true,
-  walkSpeed: 1.6,
-  chargeSpeed: 9.5,
-  chargeDamage: 12,
-  sounds: { call: 'wolf_howl', hurt: 'wolf_yelp', callEvery: [60, 160] },
   pose: { grazeNeck: 0.5, gallopTail: 0.3 },
   gait: { trot: 1.8, gallop: 5.6 },
-  tuning: {
-    hp: 70, sightRange: 35, sightRangeGraze: 35, sightCone: THREE.MathUtils.degToRad(70),
-    hearStill: 4, hearCrouch: 8, hearWalk: 16, hearSprint: 30,
-    noticeRate: 0.45, forgetRate: 0.12, alertAt: 0.35, boltAt: 1, freezeMin: 0.5, freezeMax: 1, relaxAfter: 8, panicDist: 0,
-    runSpeed: 9.5, trotSpeed: 4.0, fleeMinTime: 2, fleeUntil: 60, fleeUntilMax: 80, fleeMaxTime: 12, lookBack: 1,
-    waryTime: 30, waryBoost: 1.3, herdAlertRadius: 40, herdBoltDelayMin: 0.2, herdBoltDelayMax: 0.6, impactSpook: 0, impactAlert: 25,
-  },
   variants: [
     { id: 'grey', label: 'Steppe wolf', weight: 50, rarity: 'common', scale: [0.95, 1.05] },
     { id: 'tawny', label: 'Steppe wolf', weight: 30, rarity: 'common', scale: [0.92, 1.02], tint: TAWNY_TINT },
@@ -134,7 +123,6 @@ export const WOLF_SPECIES: SpeciesDef = {
   ],
   build: buildCanid,
   postPose: canidPostPose,
-  tick: 'ai',
   act: actWolf,
   think: thinkWolf,
 };
