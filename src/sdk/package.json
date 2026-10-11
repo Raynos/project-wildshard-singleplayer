@@ -105,7 +105,9 @@
     "./bake/image": "./bake/image.ts",
     "./sceneGraph": "./sceneGraph.ts",
     "./sceneAudio": "./sceneAudio.ts",
-    "./directorAbi": "./directorAbi.ts"
+    "./directorAbi": "./directorAbi.ts",
+    "./sceneAnimation": "./sceneAnimation.ts",
+    "./immutable": "./immutable.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -488,6 +490,14 @@
       "./directorAbi": {
         "types": "./dist/types/sdk/directorAbi.d.ts",
         "default": "./dist/directorAbi.js"
+      },
+      "./sceneAnimation": {
+        "types": "./dist/types/sdk/sceneAnimation.d.ts",
+        "default": "./dist/sceneAnimation.js"
+      },
+      "./immutable": {
+        "types": "./dist/types/sdk/immutable.d.ts",
+        "default": "./dist/immutable.js"
       }
     }
   }

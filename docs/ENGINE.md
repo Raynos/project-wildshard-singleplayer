@@ -2956,3 +2956,23 @@ SF81 DIR-3: `DirectorStageLane` accepts ordered `next: [{ target, when }]` edges
 Scripted row continuations are version 3: original row contract, stage cursor and the unchanged complete native AS checkpoint. Restore validates both owners atomically, never steps or publishes, and explicitly refuses pre-row continuations. Driftwood's cinematic body/camera/carry/golden-hour work remains trusted presentation; authored event rows route the unchanged AS pacing. Its four cached witnesses are re-recorded deliberately, with exact decoded native state after removing the new wrapper.
 
 The optional shardfile `directors` root contains at most sixteen uniquely named stage machines. Its generic native binding presently admits only declared quest-flag observations and flag actions; other observations/actions and AS handlers require an explicit trusted installation and refuse here. Template 1 observes its actual door script condition through the existing quest owner, then the shipped creature's death flag. Its director cursor survives a real native checkpoint and the existing weapon/quest/ledger suffix.
+
+`@wildshard/sdk/bake/rig` also defines `readRigMotion(glb)`: Meshopt-decoded Float32
+transform keys become standard Three `AnimationClip`, `VectorKeyframeTrack` and
+`QuaternionKeyframeTrack` objects, with owned local node transforms. STEP and LINEAR
+interpolation stay exact. Duplicate/unnamed targets, morphs, cubic splines, non-finite,
+normalized or integer keys refuse. This is a Node authoring reader, not a playback service.
+
+`@wildshard/commons/packs/arms` defines `starterArmMotionPack(glb, provenance)` v1.0.0.
+It emits canonical data for the sixteen original clips shared by Driftwood and Nine,
+plus `vm_root` and fourteen base arm transforms. Meshes, finger joints, weapon offsets
+and Driftwood's two swim clips stay in their shards. The retained GLB is the source;
+this readable TypeScript generator runs at build time, without resampling or optimization.
+The SF26 test admits both real consumers through one hash cache and independent leases.
+Runtime playback adoption is separate: binary pack residency describes retained data bytes,
+not an unmeasured decoded animation allocation or a claimed production network saving.
+
+`@wildshard/sdk/sceneAnimation` defines `readSceneAnimations` and
+`restoreSceneAnimations` for exact standard Three track data;
+`@wildshard/sdk/immutable` defines canonical JSON encoding and exact byte hashing.
+Commons generators import these defining author-only modules directly.
