@@ -10,6 +10,7 @@ import { compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
 import { checkShardLayout, shardEntries } from './check-shards.mjs';
 import { checkPlatformRatchets, PLATFORM_LISTS } from './check-platform-ratchets.mjs';
 import { guardSnapshot } from './guard-snapshot.mjs';
+import { materializeGuardData } from './precommit-generated-data.mjs';
 import { checkLegacyInventory, legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
 
 const run = (cwd, command, args, options = {}) => {
@@ -73,7 +74,8 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'))
     const snapshot = guardSnapshot(root, tree, scratch, paths);
     // SF2 observes every shard, including inherited context/class types outside changed files. A manifest change also
     // needs the generator scripts; one extraction, so no child reads a file while another tar rewrites it.
-    extractGuardArchive(root, tree, ['src', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json', ...(manifest ? ['scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'] : [])], scratch);
+    extractGuardArchive(root, tree, ['src', 'scripts/generation-jobs.json', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json', ...(manifest ? ['scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'] : [])], scratch);
+    materializeGuardData(root, scratch); // Only staged hash-pinned JSON bytes may supplement the immutable source tree.
     linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
     const baseline = JSON.parse(readFileSync(join(scratch, 'lint/ratchet.json'), 'utf8'));
     const configFile = join(scratch, '.oxlintrc.json'), hard = hardRules(configFile);
