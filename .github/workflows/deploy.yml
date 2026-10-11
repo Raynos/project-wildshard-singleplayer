@@ -149,7 +149,7 @@ jobs:
       # runner); typecheck and lint run in their own job beside this one, and vitest in its shards.
       - name: Checks and build (parallel)
         if: env.DEPLOY != 'true'
-        run: node scripts/ci-checks.mjs 'python3 scripts/heavy-lane.py build -- pnpm exec vite build && node scripts/check-chunks.mjs dist'
+        run: node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs 'python3 scripts/heavy-lane.py build -- pnpm exec vite build && node scripts/check-chunks.mjs dist'
 
       - name: CSS check
         if: steps.live.outputs.skip != 'true'

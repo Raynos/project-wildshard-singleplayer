@@ -37,7 +37,7 @@ comparison preserves an existing valid cache if new output differs. Cache files 
 
 The backend elapsedMs includes waiting, isolated copying, generation, post-run input verification and publication.
 Warm elapsedMs includes output-hash verification. Initial input-map collection and key verification precede that timer. Neither is a fabricated per-producer estimate. Record cold time and portability evidence before allowing
-the small-and-expensive committed exception (<200 KB **and** >60 s). Blender GLBs remain committed under G293. Browser
+the small-and-expensive committed exception (<2 MB **and** >30 s). Blender GLBs remain committed under G293. Browser
 captures and other undeclared producers remain retained until their build path is explicitly proven; the inventory's
 missing producer/timing evidence is a blocker to deletion.
 
@@ -98,3 +98,27 @@ layout, Driftwood fixed models and Nalati places retain their documented Darwin-
 browser physics/spots captures also remain Darwin-only. This policy does not waive their committed comparisons or
 claim Linux evidence from Darwin runs. In particular, a missing `magick` executable is a tool gap, not output inequality;
 the HDRI producer stays unavailable until that real dependency is supplied.
+
+
+## DS1.5: builds without a browser
+
+`node scripts/build-without-browser.mjs -- pnpm build` runs the real build with a fail-closed Playwright preloader.
+All Chromium, Firefox and WebKit launches, persistent launches, browser servers and connections refuse; the preloader
+is inherited by Node children. Push/PR CI wraps its checks/build step the same way. Runtime browser proofs and GPU
+asset captures use their separate browser lane; they are not part of a cold application build.
+
+The initial DS1.5 sidecar audit at `08eb8cbd2` found these four browser/capture producers:
+
+| Job | Flag | Work | Route |
+| --- | --- | --- | --- |
+| `pine-spots` | `capture` | Native quest placement and prompt metadata | Node native construction, `d80f47f31` |
+| `driftwood-spots` | `capture` | Native quest placement, reward pose and prompt metadata | Node conversion follows the reserved DIR-3 landing |
+| `nalati-places` | `browser` | Native geometry, collider rows and specimens | Node canonical producer; deliberate last-bit re-record |
+| `sky-textures` | `browser` | Canvas2D painting and image encoding | Retained browser image producer pending the graphics/codec ruling |
+
+No temporary `compare-*-physics-page` scripts remain tracked. All six physics producers execute in Node. The broader
+source audit also found `bake-maps` (actual WebGL map rendering), `bake-viewmodel-sets` (Canvas2D painting) and Nalati's
+`bake-coats` mode (CPU coat painting and image encoding). Those image outputs remain committed; they are not admitted
+`buildOutputs`, and a CI build never captures them. Canvas2D is recorded explicitly rather than called a WebGL bake.
+The descriptor refuses browser/capture jobs with admitted build outputs; missing retained files fail instead of
+starting an implicit browser.
