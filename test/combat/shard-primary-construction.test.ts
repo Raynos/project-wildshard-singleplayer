@@ -25,6 +25,8 @@ import { swordSupport, buildSword as buildSupportSword, swordMaterial } from '..
 import { Crossbow } from '../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 import { CROSSBOW } from '../../src/shards/pine-hollow/weapons/equipment';
 import { Bullwhip } from '../../src/shards/sunscar-dunes/weapons/Bullwhip';
+import { lashSpec } from '../../src/shards/sunscar-dunes/runtime/items/lash';
+import { WHIP_ITEM } from '../../src/shards/sunscar-dunes/data/items';
 import { ITEMS } from '../../src/shards/_template/data/items';
 import { ITEMS as PASTEL_ITEMS } from '../../src/shards/pastel-plain/data/items';
 import { ITEMS as INK_ITEMS } from '../../src/shards/ink-cel-valley/data/items';
@@ -72,8 +74,8 @@ const constructors: Record<string, (fixture: Fixture) => readonly Weapon[]> = {
   'pine-hollow': ({ world: f }) => callerWeapons('src/shards/pine-hollow/runtime/index.ts', 'Crossbow', {
     Crossbow, world: { ...f, game: f.game.asGame() }, targets: emptyTargets, CROSSBOW, nolock: true,
   }),
-  'sunscar-dunes': ({ services }) => callerWeapons('src/shards/sunscar-dunes/plugin.ts', 'Bullwhip', {
-    Bullwhip, ctx: { app: services }, targets: emptyTargets,
+  'sunscar-dunes': ({ services }) => callerWeapons('src/shards/sunscar-dunes/runtime/items.ts', 'Bullwhip', {
+    Bullwhip, ctx: { app: services }, targets: emptyTargets, lashSpec, spec: WHIP_ITEM, ports: { profile: WHIP_ITEM.profile },
   }),
   '_template': (fixture) => declaredPrimary(ITEMS, fixture),
   // SF59's pastel fixture is a template copy: the same declared whip and lantern rows under its own ids
