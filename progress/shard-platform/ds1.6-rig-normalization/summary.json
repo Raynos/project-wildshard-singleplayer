@@ -1,0 +1,56 @@
+{
+  "sourceTree": "8d9072fd2fbc72ae99adac36cbee8a853327d87e",
+  "profile": "iPhone 16 Pro / DPR2 / Chromium Metal / muted",
+  "method": "native TrainingDummyAssets + DummyStudio; original Meshopt embedded-WebP against plain accessors and unchanged external WebP; both real ordinary-arena users",
+  "rows": [
+    {
+      "shard": "driftwood-isle",
+      "variant": "wood",
+      "file": "wood-wood",
+      "before": {
+        "digest": "6b5c280212613be149a3a560321ba309b4866c99b0b8e10b537acc66c563ecb7",
+        "calls": 1,
+        "triangles": 39448,
+        "programs": 1,
+        "width": 804,
+        "height": 1520,
+        "error": 0
+      },
+      "after": {
+        "digest": "6b5c280212613be149a3a560321ba309b4866c99b0b8e10b537acc66c563ecb7",
+        "calls": 1,
+        "triangles": 39448,
+        "programs": 1,
+        "width": 804,
+        "height": 1520,
+        "error": 0
+      },
+      "exact": true
+    },
+    {
+      "shard": "pine-hollow",
+      "variant": "wood-steel",
+      "file": "wood-steel",
+      "before": {
+        "digest": "2aedec2c6063b13f99e775711d5d163413e627dc45539909121997523974f067",
+        "calls": 1,
+        "triangles": 41544,
+        "programs": 1,
+        "width": 804,
+        "height": 1520,
+        "error": 0
+      },
+      "after": {
+        "digest": "2aedec2c6063b13f99e775711d5d163413e627dc45539909121997523974f067",
+        "calls": 1,
+        "triangles": 41544,
+        "programs": 1,
+        "width": 804,
+        "height": 1520,
+        "error": 0
+      },
+      "exact": true
+    }
+  ],
+  "errors": []
+}

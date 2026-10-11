@@ -2989,6 +2989,22 @@ commons remains open. The three image-bearing Meshopt model GLBs still need loss
 build-time normalization into the admitted mesh/texture contract; they are not priced
 as binary and no production saving or model-admission pass is claimed.
 
+`@wildshard/sdk/bake/normalizeRig` defines `normalizeRigSource(glb)`, an author-only
+compiler for embedded Meshopt/quantized glTF rigs. It decodes to ordinary accessor
+buffers and externalizes the original WebP/PNG/JPEG files under exact SHA-256 names,
+without re-encoding. Joint indices and skin-weight encoding are retained because
+GLTFLoader normalizes weights after loading. Hierarchy, inverse binds, topology,
+materials and samplers survive; unknown extensions refuse instead of disappearing.
+The returned glTF JSON/resource map is source for authoring, not an admission verdict.
+Current product/material-slot admission requires KTX2 textures; external WebP model
+textures still need an explicit contract before these figures can enter a commons pack.
+The source marks Float32 skin weights normalized; clearing that no-op flag yields
+admitted geometry without changing a weight byte or relaxing the admission tolerance.
+`test/rig-normalization.test.ts` compares every decoded position, normal, UV, skin and
+index channel against the original retained figures, including deterministic output.
+`scripts/proof-rig-normalization.mjs` compares native TrainingDummyAssets/DummyStudio
+pixels on the two real ordinary-arena users and emits labelled portrait O-check stills.
+
 
 SF81 DIR-4 Pine watch/dawn clock consumes authored `data/watchStages.json` through `DirectorScriptStageLane`, using the original admitted AssemblyScript module and native quest-owned observation/publication ports. `initialDt` is an optional bounded initialization ABI value (0 through 1 seconds, default 0); Pine supplies the original 1/60-second input without advancing its tick-zero handler. Requests dispatch at zero dt in the original caller; variable frame/fixed-step deltas advance only at the existing quest phase. Page installation admits one clock authority and retains scope cancellation. The version-3 stage contract/cursor wraps the complete unchanged AS continuation; unversioned AS-only and legacy scalar saves are explicitly refused. No native sky, lantern, flag, caption, population or body owner moves into the stage interpreter.
 
