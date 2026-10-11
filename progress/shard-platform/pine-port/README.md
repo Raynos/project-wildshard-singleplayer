@@ -16,6 +16,12 @@ The seven-step chapter, external flag lists and Hale/Brandt/Mott dialogue trees 
 
 Current metric: **21,769 / 21,155 = 102.90%** (19,926 shard + 1,843 one-user platform; 258 primary files). Transitional, compatibility and the content gate are unchanged.
 
+## Lodge and trader rows
+
+The eleven authored lodge offers and seven trader swaps now live in data, including readable TypeScript offer construction, costs, reward ordering, identity and copy policy. The seeded serial draw, overlap counting, claim/reroll/save law, capacity and presentation stay in Pine. The old runtime offer construction is removed, not duplicated. This removes 61 runtime lines. Frozen rows/swaps, 500 seeded draws and 60 real board updates compare exactly, with author rows unmodified. The 58 focused board/trader/save checks, strict and typed touched lint passed; actual physics/44 spots and all four witness payloads remain exact. The map inputs and shipped image are unchanged. There is no new platform module/import rise.
+
+Current metric: **21,708 / 21,155 = 102.61%** (19,865 shard + 1,843 one-user platform; 258 primary files). Transitional, compatibility and the content gate are unchanged.
+
 ## Ownership and remaining work
 
 - **WAITING FOR OPUS:** figures, materials/shaders, viewmodels, cards/sky/weather rendering, terrain/forest/building geometry and HUD presentation. Mixed files keep their gameplay portion until a data row can express it; this label never exempts custom lines.
@@ -31,7 +37,7 @@ This complete table reproduces the 19,926-line shard numerator; data/generators,
 | --- | ---: | --- |
 | `life/index.ts` | 730 | WAITING FOR OPUS; mixed gameplay kept |
 | `runtime/items/boltCrossbow.ts` | 562 | KEPT TRUSTED TAIL / row-host review |
-| `quest/index.ts` | 558 | KEPT TRUSTED TAIL / row-host review |
+| `quest/index.ts` | 559 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/items/leverFirearm.ts` | 479 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/looks/keyedSky.ts` | 451 | WAITING FOR OPUS; mixed gameplay kept |
 | `runtime/looks/rainFx.ts` | 328 | WAITING FOR OPUS; mixed gameplay kept |
@@ -66,7 +72,6 @@ This complete table reproduces the 19,926-line shard numerator; data/generators,
 | `layout.ts` | 156 | KEPT TRUSTED TAIL / row-host review |
 | `combat/install.ts` | 155 | KEPT TRUSTED TAIL / row-host review |
 | `life/birdModels.ts` | 150 | WAITING FOR OPUS; mixed gameplay kept |
-| `quest/contracts.ts` | 150 | ROW REVIEW; native law stays |
 | `runtime/audio/score.ts` | 146 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/species/kingClips.ts` | 146 | WAITING FOR OPUS; mixed gameplay kept |
 | `life/birdFix.ts` | 142 | WAITING FOR OPUS; mixed gameplay kept |
@@ -89,6 +94,7 @@ This complete table reproduces the 19,926-line shard numerator; data/generators,
 | `runtime/weapons/headlessCrossbow.ts` | 116 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/kit/peopleLook.ts` | 107 | WAITING FOR OPUS; mixed gameplay kept |
 | `runtime/weapons/stuckArrows.ts` | 107 | KEPT TRUSTED TAIL / row-host review |
+| `quest/contracts.ts` | 105 | KEPT TRUSTED TAIL; data offers admitted |
 | `runtime/looks/keyedSkyDay.ts` | 104 | WAITING FOR OPUS; mixed gameplay kept |
 | `runtime/rainShelter.ts` | 104 | KEPT TRUSTED TAIL / row-host review |
 | `weapons/leverAction.ts` | 102 | KEPT TRUSTED TAIL / row-host review |
@@ -108,7 +114,7 @@ This complete table reproduces the 19,926-line shard numerator; data/generators,
 | `world/cabins.ts` | 82 | KEPT TRUSTED TAIL / row-host review |
 | `world/cragBake.ts` | 80 | KEPT TRUSTED TAIL / row-host review |
 | `world/treeFactory.ts` | 80 | KEPT TRUSTED TAIL / row-host review |
-| `runtime/lodge.ts` | 78 | KEPT TRUSTED TAIL / row-host review |
+| `runtime/lodge.ts` | 79 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/looks/forestLook.ts` | 78 | WAITING FOR OPUS; mixed gameplay kept |
 | `models/people.ts` | 75 | WAITING FOR OPUS; mixed gameplay kept |
 | `runtime/weapons/headlessLever.ts` | 75 | KEPT TRUSTED TAIL / row-host review |
@@ -124,7 +130,6 @@ This complete table reproduces the 19,926-line shard numerator; data/generators,
 | `models/gear.ts` | 65 | WAITING FOR OPUS; mixed gameplay kept |
 | `runtime/looks/wildlifeLook.ts` | 65 | WAITING FOR OPUS; mixed gameplay kept |
 | `life/trunks.ts` | 62 | WAITING FOR OPUS; mixed gameplay kept |
-| `quest/trades.ts` | 61 | ROW REVIEW; native law stays |
 | `combat/eliteRoster.ts` | 60 | KEPT TRUSTED TAIL / row-host review |
 | `models/caveArch.ts` | 58 | WAITING FOR OPUS; mixed gameplay kept |
 | `runtime/kit/primitiveParts.ts` | 58 | WAITING FOR OPUS; mixed gameplay kept |
@@ -156,11 +161,12 @@ This complete table reproduces the 19,926-line shard numerator; data/generators,
 | `runtime/entries.ts` | 44 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/kingQueryView.ts` | 44 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/quest/npcDialogue.ts` | 44 | KEPT TRUSTED TAIL / row-host review |
+| `runtime/trader.ts` | 44 | KEPT TRUSTED TAIL / row-host review |
 | `world/cabinBake.ts` | 44 | KEPT TRUSTED TAIL / row-host review |
 | `combat/chargeTells.ts` | 43 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/looks/streamLook.ts` | 43 | WAITING FOR OPUS; mixed gameplay kept |
-| `runtime/trader.ts` | 43 | KEPT TRUSTED TAIL / row-host review |
 | `models/fallenLog.ts` | 42 | WAITING FOR OPUS; mixed gameplay kept |
+| `quest/trades.ts` | 42 | KEPT TRUSTED TAIL; data offers admitted |
 | `runtime/elitePrelude.ts` | 42 | RESERVED sp-x6 |
 | `runtime/kingCollision.ts` | 41 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/dialogue.ts` | 40 | KEPT TRUSTED TAIL / row-host review |

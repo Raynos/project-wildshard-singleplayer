@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import { PineLodge, PINE_LODGE_ACT } from '../../../src/shards/pine-hollow/runtime/lodge';
-import { claim, newBoard, recordKill, reroll, ELITE_TARGETS, type Contract, type KillInfo } from '../../../src/shards/pine-hollow/quest/contracts';
+import { claim, newBoard, recordKill, reroll, type Contract, type KillInfo } from '../../../src/shards/pine-hollow/quest/contracts';
+import { ELITE_TARGETS } from '../../../src/shards/pine-hollow/data/contractRows';
 
 const prompt = { x: -169, y: 5, z: -114 };
 function setup() {

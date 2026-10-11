@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BOLT_LABEL, BROADHEAD_DEER, POUCH_MAX, Quiver, boltDamage, boltFlight } from '../../../src/shards/pine-hollow/loadout/ammo';
-import { TRADES } from '../../../src/shards/pine-hollow/quest/trades';
+import { TRADES } from '../../../src/shards/pine-hollow/data/trades';
 import { ITEMS } from '../../../src/game/bag/itemCatalog';
 import { leverOpen } from '../../../src/shards/pine-hollow/runtime/items/leverFirearm';
 import { TUBE_MAX, cycleAction, feedRound } from '../../../src/shards/pine-hollow/weapons/leverAction';

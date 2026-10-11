@@ -1,5 +1,5 @@
-import { CONTRACT_ROWS } from './contracts';
-import { TRADES } from './trades';
+import { CONTRACT_ROWS } from '../data/contractRows';
+import { TRADES } from '../data/trades';
 import { RANGER, MILLER, TRADER } from './wardensHollow';
 import { WARDENS_HOLLOW } from '../data/wardensHollow';
 

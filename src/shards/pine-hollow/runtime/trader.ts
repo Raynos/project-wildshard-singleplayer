@@ -1,5 +1,6 @@
 import * as v from 'valibot';
-import { TRADES, tradeState, type Room, type TradeItem } from '../quest/trades';
+import { tradeState, type Room } from '../quest/trades';
+import { TRADES, type TradeItem } from '../data/trades';
 import type { AmmoKind } from '../loadout/ammo';
 
 const Saved = v.strictObject({ version: v.literal(1), open: v.boolean() });

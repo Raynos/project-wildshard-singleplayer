@@ -1,5 +1,6 @@
 import * as v from 'valibot';
-import { claim, contractFor, newBoard, recordKill, reroll, CONTRACT_ROWS, type Board, type KillInfo, type Reward } from '../quest/contracts';
+import { claim, contractFor, newBoard, recordKill, reroll, type Board, type KillInfo } from '../quest/contracts';
+import { CONTRACT_ROWS, type Reward } from '../data/contractRows';
 
 const integer = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const BoardState = v.strictObject({ next: integer,

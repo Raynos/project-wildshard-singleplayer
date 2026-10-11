@@ -1,7 +1,8 @@
 import { expect, it } from 'vitest';
 import { createPinePack } from '../../../src/shards/pine-hollow/runtime/pack';
 import { PineTrader, PINE_TRADE_CLOSE } from '../../../src/shards/pine-hollow/runtime/trader';
-import { TRADES, tradeState } from '../../../src/shards/pine-hollow/quest/trades';
+import { tradeState } from '../../../src/shards/pine-hollow/quest/trades';
+import { TRADES } from '../../../src/shards/pine-hollow/data/trades';
 import type { AmmoKind } from '../../../src/shards/pine-hollow/loadout/ammo';
 
 function setup() {

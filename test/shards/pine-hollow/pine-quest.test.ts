@@ -14,7 +14,8 @@ import { BEATS, beatFlags, isBeat, type Beat } from '../../../src/shards/pine-ho
 import {
   newBoard, draw, recordKill, claim, reroll, isFilled, counts, loadBoard, saveBoard, eliteOf, BOARD_STORE, type Board, type KillInfo,
 } from '../../../src/shards/pine-hollow/quest/contracts';
-import { TRADES, tradeState, type TradeItem } from '../../../src/shards/pine-hollow/quest/trades';
+import { tradeState } from '../../../src/shards/pine-hollow/quest/trades';
+import { TRADES, type TradeItem } from '../../../src/shards/pine-hollow/data/trades';
 
 const SITES: TableSites = {
   resin: RESIN_SPOTS.map(([x, z]) => ({ x, z })),
