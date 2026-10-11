@@ -4,7 +4,8 @@ import { Collider, type ColliderData } from './physics';
 import { Entry, type EntryData } from './entries';
 import { PlayerStart, Spawn, spawnPlacement, type SpawnPlacement } from './spawns';
 import { readSceneAnimations, readSceneSkin, type SceneAnimation, type SceneSkin } from './sceneAnimation';
-import { AmbienceZone, Cue, Score, type AudioData } from './audio';
+import { AmbienceZone, Cue, Score } from './sceneAudio';
+import type { AudioData } from './audio';
 /** One geometry channel, including normalized attributes and its original typed-array representation. */
 export interface SceneAttribute {
     itemSize: number;

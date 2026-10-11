@@ -103,7 +103,8 @@
     "./formatJsonSchema": "./formatJsonSchema.ts",
     "./bake/rig": "./bake/rig.ts",
     "./bake/image": "./bake/image.ts",
-    "./sceneGraph": "./sceneGraph.ts"
+    "./sceneGraph": "./sceneGraph.ts",
+    "./sceneAudio": "./sceneAudio.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -478,6 +479,10 @@
       "./sceneGraph": {
         "types": "./dist/types/sdk/sceneGraph.d.ts",
         "default": "./dist/sceneGraph.js"
+      },
+      "./sceneAudio": {
+        "types": "./dist/types/sdk/sceneAudio.d.ts",
+        "default": "./dist/sceneAudio.js"
       }
     }
   }

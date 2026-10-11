@@ -1,6 +1,6 @@
 import { Group, Scene } from 'three';
 import { expect, it } from 'vitest';
-import { AmbienceZone, Cue, Score } from '../src/sdk/audio';
+import { AmbienceZone, Cue, Score } from '../src/sdk/sceneAudio';
 import { readScene, type SceneDescription } from '../src/sdk/scene';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { TEMPLATE_AUDIO } from '../src/shards/_template/data/audio';
