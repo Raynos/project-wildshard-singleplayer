@@ -1,0 +1,2895 @@
+{
+  "schema": 1,
+  "pass": false,
+  "gate": {
+    "desktop": {
+      "maxMs": 100,
+      "p95Ms": 17.5
+    },
+    "sim": {
+      "maxMs": 200,
+      "p95Ms": 35
+    }
+  },
+  "captures": [
+    {
+      "source": "c66b5b324e5de37195db4c7921e742243bc06580",
+      "harness": "e5e7fb09cb79df041efeb482f69e07bc125bb2d5",
+      "surface": "desktop",
+      "when": "2026-10-11T20:51:18.318Z",
+      "seconds": 362.042,
+      "underTenMinutes": true,
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "renderScale": 2,
+      "viewport": [
+        1440,
+        900
+      ],
+      "build": "devserver",
+      "glObserver": "off",
+      "glTime": false,
+      "rawSha256": "f657faf1ccab2b788df909e9bf1380e93778adfa7438b5fa8344273e848b96a4",
+      "rows": [
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.7,
+          "workP95Ms": 6.7,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "spawn",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.6999998092651367,
+                "maxMs": 1.0999999046325684,
+                "calls": 1920
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 0.5,
+                "maxMs": 0.5000009536743164,
+                "calls": 840
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.9,
+          "workP95Ms": 2.8,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-deck-north",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.7999997138977051,
+                "maxMs": 1.0999999046325684,
+                "calls": 1920
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.7,
+          "workP95Ms": 2.9,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-deck-east",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.7000007629394531,
+                "maxMs": 1,
+                "calls": 1920
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.7,
+          "workP95Ms": 5.5,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-interior-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.7000007629394531,
+                "maxMs": 10.499999523162842,
+                "calls": 1920
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 102,
+                "p95Ms": 0.3000006675720215,
+                "maxMs": 1.9000000953674316,
+                "calls": 505
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 2940,
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "maxMs": 66.7,
+          "callbackP95Ms": 17.6,
+          "workP95Ms": 4.1,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-interior-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 2940,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 2940,
+                "p95Ms": 0.7999997138977051,
+                "maxMs": 12.599999904632568,
+                "calls": 47094
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 162,
+                "p95Ms": 0.39999961853027344,
+                "maxMs": 1.9000000953674316,
+                "calls": 925
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 471,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 2,
+          "over100Ms": 0,
+          "longFrameHooks": [
+            {
+              "hook": "nalati-grasslands:afterPlay",
+              "frames": 2,
+              "maxMs": 67,
+              "totalMs": 117,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.4,
+          "workP95Ms": 3.3,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-interior",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.8000001907348633,
+                "maxMs": 1,
+                "calls": 1920
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.9,
+          "workP95Ms": 4.2,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-return-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 1.299999713897705,
+                "maxMs": 21.499999523162842,
+                "calls": 1920
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 3030,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 50,
+          "callbackP95Ms": 17.9,
+          "workP95Ms": 5.8,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-return-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 3030,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 3030,
+                "p95Ms": 0.7999997138977051,
+                "maxMs": 21.499999523162842,
+                "calls": 48492
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 356,
+                "p95Ms": 2.1999998092651367,
+                "maxMs": 9.400000095367432,
+                "calls": 1414
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.8,
+          "workP95Ms": 6.4,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-return",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.6999998092651367,
+                "maxMs": 1,
+                "calls": 1920
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 0.3000006675720215,
+                "maxMs": 0.40000057220458984,
+                "calls": 840
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 50,
+          "maxMs": 83.3,
+          "callbackP95Ms": 17.8,
+          "workP95Ms": 2.2,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-nine-dragon-stack-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.5999999046325684,
+                "maxMs": 1.3000001907348633,
+                "calls": 1926
+              },
+              {
+                "id": "nine-dragon-stack",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 630,
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 33.3,
+          "maxMs": 83.3,
+          "callbackP95Ms": 17.9,
+          "workP95Ms": 3.9,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-nine-dragon-stack-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 630,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 630,
+                "p95Ms": 0.6999998092651367,
+                "maxMs": 2.799999713897705,
+                "calls": 10116
+              },
+              {
+                "id": "nine-dragon-stack",
+                "samples": 617,
+                "p95Ms": 0.40000009536743164,
+                "maxMs": 3.0999999046325684,
+                "calls": 747
+              }
+            ]
+          },
+          "over50Ms": 2,
+          "over100Ms": 0,
+          "longFrameHooks": [
+            {
+              "hook": "nine-dragon-stack:world",
+              "frames": 1,
+              "maxMs": 83,
+              "totalMs": 83,
+              "gl": {}
+            },
+            {
+              "hook": "nine-dragon-stack:afterPlay",
+              "frames": 1,
+              "maxMs": 50,
+              "totalMs": 50,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.7,
+          "workP95Ms": 4.1,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-nine-dragon-stack-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.5999994277954102,
+                "maxMs": 0.7999997138977051,
+                "calls": 1920
+              },
+              {
+                "id": "nine-dragon-stack",
+                "samples": 120,
+                "p95Ms": 0.40000009536743164,
+                "maxMs": 0.5,
+                "calls": 360
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 33.4,
+          "maxMs": 66.7,
+          "callbackP95Ms": 17.7,
+          "workP95Ms": 3.2,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-far-reach-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.8000001907348633,
+                "maxMs": 1.299999713897705,
+                "calls": 1926
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 4140,
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "maxMs": 66.7,
+          "callbackP95Ms": 17.6,
+          "workP95Ms": 4.8,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-far-reach-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 4140,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 4140,
+                "p95Ms": 0.6000003814697266,
+                "maxMs": 3.6999998092651367,
+                "calls": 66252
+              },
+              {
+                "id": "far-reach",
+                "samples": 4124,
+                "p95Ms": 0.3000001907348633,
+                "maxMs": 1.799999713897705,
+                "calls": 11828
+              }
+            ]
+          },
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "longFrameHooks": [
+            {
+              "hook": "far-reach:afterPlay",
+              "frames": 1,
+              "maxMs": 67,
+              "totalMs": 67,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.4,
+          "workP95Ms": 4.4,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-far-reach-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.5999999046325684,
+                "maxMs": 0.8000001907348633,
+                "calls": 1920
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 0.3000001907348633,
+                "maxMs": 0.40000009536743164,
+                "calls": 360
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 21,
+          "workP95Ms": 2.7,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-nalati-grasslands-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.8000001907348633,
+                "maxMs": 1.3000001907348633,
+                "calls": 1920
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 930,
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "maxMs": 50.1,
+          "callbackP95Ms": 17.7,
+          "workP95Ms": 6.2,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-nalati-grasslands-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 930,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 930,
+                "p95Ms": 0.7999997138977051,
+                "maxMs": 3.000000476837158,
+                "calls": 14898
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 883,
+                "p95Ms": 0.5,
+                "maxMs": 2.6999998092651367,
+                "calls": 1754
+              }
+            ]
+          },
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "longFrameHooks": [
+            {
+              "hook": "nalati-grasslands:afterPlay",
+              "frames": 1,
+              "maxMs": 50,
+              "totalMs": 50,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.3,
+          "workP95Ms": 5.5,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-nalati-grasslands-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.6999998092651367,
+                "maxMs": 1.200000286102295,
+                "calls": 1920
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 120,
+                "p95Ms": 0.40000009536743164,
+                "maxMs": 0.5,
+                "calls": 360
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 33.3,
+          "p99Ms": 33.4,
+          "maxMs": 50,
+          "callbackP95Ms": 35,
+          "workP95Ms": 6.4,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": false,
+          "miss": "frame cost / scheduling",
+          "name": "grid-pine-hollow-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.7999997138977051,
+                "maxMs": 1.3000001907348633,
+                "calls": 1950
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 960,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 33.3,
+          "maxMs": 50,
+          "callbackP95Ms": 18.7,
+          "workP95Ms": 8.3,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-pine-hollow-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 960,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 960,
+                "p95Ms": 0.8000001907348633,
+                "maxMs": 17,
+                "calls": 15408
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 907,
+                "p95Ms": 0.7999997138977051,
+                "maxMs": 12.799999713897705,
+                "calls": 1772
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.9,
+          "workP95Ms": 8.6,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-pine-hollow-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.6999998092651367,
+                "maxMs": 1.5999999046325684,
+                "calls": 1920
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 120,
+                "p95Ms": 0.7000002861022949,
+                "maxMs": 0.8000001907348633,
+                "calls": 360
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 33.3,
+          "maxMs": 49.9,
+          "callbackP95Ms": 24.4,
+          "workP95Ms": 3.7,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-sunscar-dunes-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.9000000953674316,
+                "maxMs": 1.4000000953674316,
+                "calls": 1932
+              },
+              {
+                "id": "sunscar-dunes",
+                "samples": 107,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 780,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 49.9,
+          "callbackP95Ms": 17.7,
+          "workP95Ms": 4.4,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-sunscar-dunes-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 780,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 780,
+                "p95Ms": 0.8999996185302734,
+                "maxMs": 2.3999996185302734,
+                "calls": 12492
+              },
+              {
+                "id": "sunscar-dunes",
+                "samples": 707,
+                "p95Ms": 0.5999999046325684,
+                "maxMs": 1.8000001907348633,
+                "calls": 1751
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.8,
+          "workP95Ms": 3.9,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": true,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-sunscar-dunes-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.7000002861022949,
+                "maxMs": 1.0999999046325684,
+                "calls": 1920
+              },
+              {
+                "id": "sunscar-dunes",
+                "samples": 120,
+                "p95Ms": 0.5999999046325684,
+                "maxMs": 0.7000002861022949,
+                "calls": 360
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 50,
+          "maxMs": 66.7,
+          "callbackP95Ms": 34.7,
+          "workP95Ms": 4.1,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-driftwood-isle-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.8000001907348633,
+                "maxMs": 1.4000005722045898,
+                "calls": 1932
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 0.19999980926513672,
+                "maxMs": 0.2999997138977051,
+                "calls": 118
+              }
+            ]
+          },
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 870,
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "maxMs": 66.7,
+          "callbackP95Ms": 17.9,
+          "workP95Ms": 7.3,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-driftwood-isle-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 870,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 870,
+                "p95Ms": 0.7000002861022949,
+                "maxMs": 1.6999993324279785,
+                "calls": 13941
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 837,
+                "p95Ms": 0.5,
+                "maxMs": 9.200000286102295,
+                "calls": 4492
+              }
+            ]
+          },
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "longFrameHooks": [
+            {
+              "hook": "driftwood-isle:world",
+              "frames": 1,
+              "maxMs": 67,
+              "totalMs": 67,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "callbackP95Ms": 17.9,
+          "workP95Ms": 7.3,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 60,
+          "medianFpsRounded": 60,
+          "pass": true,
+          "miss": null,
+          "name": "grid-driftwood-isle-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 0.5999999046325684,
+                "maxMs": 0.6999993324279785,
+                "calls": 1920
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 0.40000009536743164,
+                "maxMs": 0.5000004768371582,
+                "calls": 840
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        }
+      ],
+      "missing": [],
+      "endpoints": [
+        {
+          "route": "template-interior",
+          "inside": "template-2",
+          "current": "template-2",
+          "owner": "template-2",
+          "ready": true,
+          "residents": [
+            "template-2"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 323.6,
+            "z": 554.98
+          }
+        },
+        {
+          "route": "template-return",
+          "inside": "driftwood-isle",
+          "current": "driftwood-isle",
+          "owner": "driftwood-isle",
+          "ready": true,
+          "residents": [
+            "driftwood-isle"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 0.01,
+            "z": 231.4
+          }
+        },
+        {
+          "route": "nine-dragon-stack-road-entry",
+          "inside": "nine-dragon-stack",
+          "current": "nine-dragon-stack",
+          "owner": "nine-dragon-stack",
+          "ready": true,
+          "residents": [
+            "nine-dragon-stack"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 555.95,
+            "z": -547.51
+          }
+        },
+        {
+          "route": "far-reach-road-entry",
+          "inside": "far-reach",
+          "current": "far-reach",
+          "owner": "far-reach",
+          "ready": true,
+          "residents": [
+            "far-reach"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 0,
+            "z": -541.57
+          }
+        },
+        {
+          "route": "nalati-grasslands-road-entry",
+          "inside": "nalati-grasslands",
+          "current": "nalati-grasslands",
+          "owner": "nalati-grasslands",
+          "ready": true,
+          "residents": [
+            "nalati-grasslands"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 343.62,
+            "z": 0
+          }
+        },
+        {
+          "route": "pine-hollow-road-entry",
+          "inside": "pine-hollow",
+          "current": "pine-hollow",
+          "owner": "pine-hollow",
+          "ready": true,
+          "residents": [
+            "pine-hollow"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 0,
+            "z": 343.62
+          }
+        },
+        {
+          "route": "sunscar-dunes-road-entry",
+          "inside": "sunscar-dunes",
+          "current": "sunscar-dunes",
+          "owner": "sunscar-dunes",
+          "ready": true,
+          "residents": [
+            "sunscar-dunes"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": -343.61,
+            "z": 0
+          }
+        },
+        {
+          "route": "driftwood-isle-road-entry",
+          "inside": "driftwood-isle",
+          "current": "driftwood-isle",
+          "owner": "driftwood-isle",
+          "ready": true,
+          "residents": [
+            "driftwood-isle"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 0,
+            "z": 211.44
+          }
+        }
+      ],
+      "error": null,
+      "runtimeFailure": null,
+      "errors": []
+    },
+    {
+      "source": "c66b5b324e5de37195db4c7921e742243bc06580",
+      "harness": "786595307d2eb0f63ae05e3b60799c6de17fd462",
+      "surface": "sim",
+      "when": "2026-10-11T21:43:04.860Z",
+      "seconds": 479.708,
+      "underTenMinutes": true,
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "renderScale": 2,
+      "viewport": [
+        402,
+        714
+      ],
+      "build": "devserver",
+      "glObserver": "off",
+      "glTime": false,
+      "rawSha256": "9acbbcc95a42c364e2d5a1fcd7e2257244a2ebcaac2585e877fda9753e2c99f5",
+      "rows": [
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "callbackP95Ms": 35,
+          "workP95Ms": 9,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "spawn",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 6,
+                "calls": 2280
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 1.000000000001819,
+                "maxMs": 2,
+                "calls": 1080
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "callbackP95Ms": 35,
+          "workP95Ms": 5,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-crossroads",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.000000000003638,
+                "maxMs": 4,
+                "calls": 2280
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "callbackP95Ms": 34,
+          "workP95Ms": 4,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-deck-east",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 3.999999999996362,
+                "calls": 2280
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 37,
+          "maxMs": 40,
+          "callbackP95Ms": 37,
+          "workP95Ms": 8,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-interior-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 15,
+                "calls": 2280
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 52,
+                "p95Ms": 1,
+                "maxMs": 2,
+                "calls": 343
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 1500,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 46,
+          "maxMs": 174,
+          "callbackP95Ms": 37,
+          "workP95Ms": 6,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-interior-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 1500,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 1500,
+                "p95Ms": 3,
+                "maxMs": 74,
+                "calls": 28545
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 82,
+                "p95Ms": 1,
+                "maxMs": 2.000000000007276,
+                "calls": 613
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 312,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 9,
+          "over100Ms": 1,
+          "longFrameHooks": [
+            {
+              "hook": "nalati-grasslands:world",
+              "frames": 4,
+              "maxMs": 77,
+              "totalMs": 259,
+              "gl": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 2,
+              "maxMs": 174,
+              "totalMs": 237,
+              "gl": {}
+            },
+            {
+              "hook": "nalati-grasslands:afterKit",
+              "frames": 2,
+              "maxMs": 52,
+              "totalMs": 104,
+              "gl": {}
+            },
+            {
+              "hook": "nalati-grasslands:play",
+              "frames": 1,
+              "maxMs": 54,
+              "totalMs": 54,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 66,
+          "maxMs": 66,
+          "callbackP95Ms": 35,
+          "workP95Ms": 6,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-interior",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 60,
+                "calls": 2283
+              }
+            ]
+          },
+          "over50Ms": 2,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 43,
+          "maxMs": 142,
+          "callbackP95Ms": 36,
+          "workP95Ms": 6,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-return-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 135.99999999998545,
+                "calls": 2283
+              }
+            ]
+          },
+          "over50Ms": 1,
+          "over100Ms": 1,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 1620,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 35,
+          "maxMs": 142,
+          "callbackP95Ms": 35,
+          "workP95Ms": 7,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-return-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 1620,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 1620,
+                "p95Ms": 3,
+                "maxMs": 135.99999999998545,
+                "calls": 30789
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 278,
+                "p95Ms": 2,
+                "maxMs": 12,
+                "calls": 1342
+              }
+            ]
+          },
+          "over50Ms": 5,
+          "over100Ms": 1,
+          "longFrameHooks": [
+            {
+              "hook": "driftwood-isle:world",
+              "frames": 2,
+              "maxMs": 98,
+              "totalMs": 170,
+              "gl": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 1,
+              "maxMs": 142,
+              "totalMs": 142,
+              "gl": {}
+            },
+            {
+              "hook": "driftwood-isle:afterKit",
+              "frames": 1,
+              "maxMs": 67,
+              "totalMs": 67,
+              "gl": {}
+            },
+            {
+              "hook": "driftwood-isle:activate",
+              "frames": 1,
+              "maxMs": 66,
+              "totalMs": 66,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "callbackP95Ms": 35,
+          "workP95Ms": 8,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-template-return",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3.000000000029104,
+                "maxMs": 6.999999999970896,
+                "calls": 2280
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 3,
+                "calls": 1080
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 134,
+          "maxMs": 184,
+          "callbackP95Ms": 35,
+          "workP95Ms": 4,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-nine-dragon-stack-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 3,
+                "calls": 2286
+              },
+              {
+                "id": "nine-dragon-stack",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 2,
+          "over100Ms": 2,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 1590,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 35,
+          "maxMs": 184,
+          "callbackP95Ms": 35,
+          "workP95Ms": 5,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-nine-dragon-stack-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 1590,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 1590,
+                "p95Ms": 2,
+                "maxMs": 5.000000000029104,
+                "calls": 30222
+              },
+              {
+                "id": "nine-dragon-stack",
+                "samples": 1582,
+                "p95Ms": 0,
+                "maxMs": 4,
+                "calls": 604
+              }
+            ]
+          },
+          "over50Ms": 4,
+          "over100Ms": 2,
+          "longFrameHooks": [
+            {
+              "hook": "nine-dragon-stack:world",
+              "frames": 2,
+              "maxMs": 184,
+              "totalMs": 318,
+              "gl": {}
+            },
+            {
+              "hook": "nine-dragon-stack:activate",
+              "frames": 1,
+              "maxMs": 92,
+              "totalMs": 92,
+              "gl": {}
+            },
+            {
+              "hook": "nine-dragon-stack:beforeWorld",
+              "frames": 1,
+              "maxMs": 73,
+              "totalMs": 73,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "callbackP95Ms": 35,
+          "workP95Ms": 6,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-nine-dragon-stack-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "nine-dragon-stack",
+                "samples": 120,
+                "p95Ms": 1,
+                "maxMs": 1.0000000000291038,
+                "calls": 480
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 37,
+          "p99Ms": 53,
+          "maxMs": 82,
+          "callbackP95Ms": 37,
+          "workP95Ms": 5,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": false,
+          "miss": "frame cost / scheduling",
+          "name": "grid-far-reach-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 3,
+                "calls": 2286
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 3,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 2190,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 38,
+          "maxMs": 82,
+          "callbackP95Ms": 36,
+          "workP95Ms": 7,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-far-reach-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 2190,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 2190,
+                "p95Ms": 2.000000000029104,
+                "maxMs": 7,
+                "calls": 41634
+              },
+              {
+                "id": "far-reach",
+                "samples": 2181,
+                "p95Ms": 1.0000000000291038,
+                "maxMs": 2,
+                "calls": 8043
+              }
+            ]
+          },
+          "over50Ms": 9,
+          "over100Ms": 0,
+          "longFrameHooks": [
+            {
+              "hook": "far-reach:world",
+              "frames": 6,
+              "maxMs": 75,
+              "totalMs": 351,
+              "gl": {}
+            },
+            {
+              "hook": "far-reach:play",
+              "frames": 1,
+              "maxMs": 82,
+              "totalMs": 82,
+              "gl": {}
+            },
+            {
+              "hook": "far-reach:activate",
+              "frames": 1,
+              "maxMs": 67,
+              "totalMs": 67,
+              "gl": {}
+            },
+            {
+              "hook": "far-reach:constructor",
+              "frames": 1,
+              "maxMs": 61,
+              "totalMs": 61,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "callbackP95Ms": 36,
+          "workP95Ms": 7,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-far-reach-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.0000000000582077,
+                "maxMs": 3.0000000000582077,
+                "calls": 2280
+              },
+              {
+                "id": "far-reach",
+                "samples": 120,
+                "p95Ms": 1,
+                "maxMs": 1.0000000000582077,
+                "calls": 480
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 36,
+          "p99Ms": 46,
+          "maxMs": 54,
+          "callbackP95Ms": 37,
+          "workP95Ms": 4,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": false,
+          "miss": "frame cost / scheduling",
+          "name": "grid-nalati-grasslands-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2.0000000000582077,
+                "maxMs": 4,
+                "calls": 2277
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 108,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 660,
+          "medianFps": 30.303,
+          "p95Ms": 36,
+          "p99Ms": 57,
+          "maxMs": 103,
+          "callbackP95Ms": 38,
+          "workP95Ms": 8,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": false,
+          "miss": "frame cost / scheduling",
+          "name": "grid-nalati-grasslands-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 660,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 660,
+                "p95Ms": 2.9999999999417923,
+                "maxMs": 9.000000000058208,
+                "calls": 12582
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 618,
+                "p95Ms": 1.0000000000582077,
+                "maxMs": 5.000000000058208,
+                "calls": 1247
+              }
+            ]
+          },
+          "over50Ms": 8,
+          "over100Ms": 1,
+          "longFrameHooks": [
+            {
+              "hook": "nalati-grasslands:world",
+              "frames": 3,
+              "maxMs": 60,
+              "totalMs": 173,
+              "gl": {}
+            },
+            {
+              "hook": "nalati-grasslands:afterKit",
+              "frames": 2,
+              "maxMs": 59,
+              "totalMs": 116,
+              "gl": {}
+            },
+            {
+              "hook": "nalati-grasslands:activate",
+              "frames": 1,
+              "maxMs": 103,
+              "totalMs": 103,
+              "gl": {}
+            },
+            {
+              "hook": "nalati-grasslands:afterWorld",
+              "frames": 1,
+              "maxMs": 71,
+              "totalMs": 71,
+              "gl": {}
+            },
+            {
+              "hook": "nalati-grasslands:play",
+              "frames": 1,
+              "maxMs": 71,
+              "totalMs": 71,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "callbackP95Ms": 35,
+          "workP95Ms": 7,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-nalati-grasslands-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 3.9999999999417923,
+                "calls": 2280
+              },
+              {
+                "id": "nalati-grasslands",
+                "samples": 120,
+                "p95Ms": 1.0000000000582077,
+                "maxMs": 2,
+                "calls": 480
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 58,
+          "p99Ms": 71,
+          "maxMs": 91,
+          "callbackP95Ms": 58,
+          "workP95Ms": 9,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": false,
+          "miss": "frame cost / scheduling",
+          "name": "grid-pine-hollow-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 8.000000000058208,
+                "calls": 2316
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 99,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 10,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 750,
+          "medianFps": 30.303,
+          "p95Ms": 39,
+          "p99Ms": 61,
+          "maxMs": 113,
+          "callbackP95Ms": 41,
+          "workP95Ms": 10,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": false,
+          "miss": "frame cost / scheduling",
+          "name": "grid-pine-hollow-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 750,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 750,
+                "p95Ms": 3,
+                "maxMs": 21,
+                "calls": 14292
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 699,
+                "p95Ms": 1.0000000000582077,
+                "maxMs": 4.000000000058208,
+                "calls": 1235
+              }
+            ]
+          },
+          "over50Ms": 14,
+          "over100Ms": 1,
+          "longFrameHooks": [
+            {
+              "hook": "pine-hollow:world",
+              "frames": 7,
+              "maxMs": 91,
+              "totalMs": 470,
+              "gl": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 3,
+              "maxMs": 66,
+              "totalMs": 175,
+              "gl": {}
+            },
+            {
+              "hook": "pine-hollow:afterKit",
+              "frames": 2,
+              "maxMs": 61,
+              "totalMs": 118,
+              "gl": {}
+            },
+            {
+              "hook": "pine-hollow:activate",
+              "frames": 1,
+              "maxMs": 113,
+              "totalMs": 113,
+              "gl": {}
+            },
+            {
+              "hook": "pine-hollow:play",
+              "frames": 1,
+              "maxMs": 53,
+              "totalMs": 53,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 48,
+          "maxMs": 48,
+          "callbackP95Ms": 40,
+          "workP95Ms": 9,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-pine-hollow-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 4,
+                "calls": 2280
+              },
+              {
+                "id": "pine-hollow",
+                "samples": 120,
+                "p95Ms": 1.0000000000582077,
+                "maxMs": 3,
+                "calls": 480
+              }
+            ]
+          },
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 52,
+          "p99Ms": 75,
+          "maxMs": 117,
+          "callbackP95Ms": 55,
+          "workP95Ms": 11,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": false,
+          "miss": "frame cost / scheduling",
+          "name": "grid-sunscar-dunes-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 6.000000000058208,
+                "maxMs": 28,
+                "calls": 2298
+              },
+              {
+                "id": "sunscar-dunes",
+                "samples": 96,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "calls": 0
+              }
+            ]
+          },
+          "over50Ms": 8,
+          "over100Ms": 1,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 450,
+          "medianFps": 30.303,
+          "p95Ms": 51,
+          "p99Ms": 59,
+          "maxMs": 117,
+          "callbackP95Ms": 50,
+          "workP95Ms": 10,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": false,
+          "miss": "frame cost / scheduling",
+          "name": "grid-sunscar-dunes-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 450,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 450,
+                "p95Ms": 4,
+                "maxMs": 28,
+                "calls": 8631
+              },
+              {
+                "id": "sunscar-dunes",
+                "samples": 397,
+                "p95Ms": 1.0000000000582077,
+                "maxMs": 3,
+                "calls": 1203
+              }
+            ]
+          },
+          "over50Ms": 26,
+          "over100Ms": 1,
+          "longFrameHooks": [
+            {
+              "hook": "between hooks",
+              "frames": 18,
+              "maxMs": 56,
+              "totalMs": 942,
+              "gl": {}
+            },
+            {
+              "hook": "sunscar-dunes:world",
+              "frames": 3,
+              "maxMs": 75,
+              "totalMs": 201,
+              "gl": {}
+            },
+            {
+              "hook": "sunscar-dunes:play",
+              "frames": 1,
+              "maxMs": 117,
+              "totalMs": 117,
+              "gl": {}
+            },
+            {
+              "hook": "sunscar-dunes:afterPlay",
+              "frames": 1,
+              "maxMs": 65,
+              "totalMs": 65,
+              "gl": {}
+            },
+            {
+              "hook": "sunscar-dunes:afterKit",
+              "frames": 1,
+              "maxMs": 59,
+              "totalMs": 59,
+              "gl": {}
+            },
+            {
+              "hook": "sunscar-dunes:activate",
+              "frames": 1,
+              "maxMs": 56,
+              "totalMs": 56,
+              "gl": {}
+            },
+            {
+              "hook": "sunscar-dunes:kit",
+              "frames": 1,
+              "maxMs": 52,
+              "totalMs": 52,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 46,
+          "p99Ms": 50,
+          "maxMs": 53,
+          "callbackP95Ms": 41,
+          "workP95Ms": 9,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": false,
+          "miss": "frame cost / scheduling",
+          "name": "grid-sunscar-dunes-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 4,
+                "calls": 2283
+              },
+              {
+                "id": "sunscar-dunes",
+                "samples": 120,
+                "p95Ms": 1.0000000000582077,
+                "maxMs": 2,
+                "calls": 481
+              }
+            ]
+          },
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 59,
+          "p99Ms": 125,
+          "maxMs": 133,
+          "callbackP95Ms": 60,
+          "workP95Ms": 8,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": false,
+          "miss": "frame cost / scheduling",
+          "name": "grid-driftwood-isle-road-entry-travel",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 3,
+                "maxMs": 22,
+                "calls": 2307
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 0,
+                "maxMs": 1,
+                "calls": 183
+              }
+            ]
+          },
+          "over50Ms": 9,
+          "over100Ms": 3,
+          "longFrameHooks": []
+        },
+        {
+          "frames": 600,
+          "medianFps": 30.303,
+          "p95Ms": 45,
+          "p99Ms": 78,
+          "maxMs": 133,
+          "callbackP95Ms": 46,
+          "workP95Ms": 11,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": false,
+          "miss": "frame cost / scheduling",
+          "name": "grid-driftwood-isle-road-entry-drive",
+          "cpu": {
+            "enabled": true,
+            "frames": 600,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 600,
+                "p95Ms": 3,
+                "maxMs": 24,
+                "calls": 11445
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 578,
+                "p95Ms": 2,
+                "maxMs": 11,
+                "calls": 3530
+              }
+            ]
+          },
+          "over50Ms": 18,
+          "over100Ms": 3,
+          "longFrameHooks": [
+            {
+              "hook": "driftwood-isle:world",
+              "frames": 7,
+              "maxMs": 133,
+              "totalMs": 613,
+              "gl": {}
+            },
+            {
+              "hook": "between hooks",
+              "frames": 7,
+              "maxMs": 66,
+              "totalMs": 379,
+              "gl": {}
+            },
+            {
+              "hook": "driftwood-isle:afterKit",
+              "frames": 1,
+              "maxMs": 125,
+              "totalMs": 125,
+              "gl": {}
+            },
+            {
+              "hook": "driftwood-isle:afterPlay",
+              "frames": 2,
+              "maxMs": 53,
+              "totalMs": 105,
+              "gl": {}
+            },
+            {
+              "hook": "driftwood-isle:activate",
+              "frames": 1,
+              "maxMs": 79,
+              "totalMs": 79,
+              "gl": {}
+            }
+          ]
+        },
+        {
+          "frames": 120,
+          "medianFps": 30.303,
+          "p95Ms": 34,
+          "p99Ms": 50,
+          "maxMs": 52,
+          "callbackP95Ms": 40,
+          "workP95Ms": 9,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "maxFramePass": true,
+          "strictP95Pass": false,
+          "floorFps": 30,
+          "medianFpsRounded": 30,
+          "pass": true,
+          "miss": null,
+          "name": "grid-driftwood-isle-road-entry",
+          "cpu": {
+            "enabled": true,
+            "frames": 120,
+            "owners": [
+              {
+                "id": "platform.grid",
+                "samples": 120,
+                "p95Ms": 2,
+                "maxMs": 7,
+                "calls": 2286
+              },
+              {
+                "id": "driftwood-isle",
+                "samples": 120,
+                "p95Ms": 1.0000000000582077,
+                "maxMs": 2,
+                "calls": 1084
+              }
+            ]
+          },
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "longFrameHooks": []
+        }
+      ],
+      "missing": [],
+      "endpoints": [
+        {
+          "route": "template-interior",
+          "inside": "template-2",
+          "current": "template-2",
+          "owner": "template-2",
+          "ready": true,
+          "residents": [
+            "template-2"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 323.69,
+            "z": 554.98
+          }
+        },
+        {
+          "route": "template-return",
+          "inside": "driftwood-isle",
+          "current": "driftwood-isle",
+          "owner": "driftwood-isle",
+          "ready": true,
+          "residents": [
+            "driftwood-isle"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 0,
+            "z": 231.31
+          }
+        },
+        {
+          "route": "nine-dragon-stack-road-entry",
+          "inside": "nine-dragon-stack",
+          "current": "nine-dragon-stack",
+          "owner": "nine-dragon-stack",
+          "ready": true,
+          "residents": [
+            "nine-dragon-stack"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 555.96,
+            "z": -547.55
+          }
+        },
+        {
+          "route": "far-reach-road-entry",
+          "inside": "far-reach",
+          "current": "far-reach",
+          "owner": "far-reach",
+          "ready": true,
+          "residents": [
+            "far-reach"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 0,
+            "z": -541.68
+          }
+        },
+        {
+          "route": "nalati-grasslands-road-entry",
+          "inside": "nalati-grasslands",
+          "current": "nalati-grasslands",
+          "owner": "nalati-grasslands",
+          "ready": true,
+          "residents": [
+            "nalati-grasslands"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 343.62,
+            "z": 0
+          }
+        },
+        {
+          "route": "pine-hollow-road-entry",
+          "inside": "pine-hollow",
+          "current": "pine-hollow",
+          "owner": "pine-hollow",
+          "ready": true,
+          "residents": [
+            "pine-hollow"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 0,
+            "z": 343.62
+          }
+        },
+        {
+          "route": "sunscar-dunes-road-entry",
+          "inside": "sunscar-dunes",
+          "current": "sunscar-dunes",
+          "owner": "sunscar-dunes",
+          "ready": true,
+          "residents": [
+            "sunscar-dunes"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": -343.63,
+            "z": 0
+          }
+        },
+        {
+          "route": "driftwood-isle-road-entry",
+          "inside": "driftwood-isle",
+          "current": "driftwood-isle",
+          "owner": "driftwood-isle",
+          "ready": true,
+          "residents": [
+            "driftwood-isle"
+          ],
+          "pending": [],
+          "issues": {},
+          "feet": {
+            "x": 0,
+            "z": 211.29
+          }
+        }
+      ],
+      "error": null,
+      "runtimeFailure": null,
+      "errors": []
+    }
+  ],
+  "limitations": "Independent road approaches and entry-interior samples; not every authored interior. Mac-backed Simulator, not physical iPhone. Raw frame arrays stay in scratch.",
+  "discarded": [
+    {
+      "source": "c66b5b324e5de37195db4c7921e742243bc06580",
+      "surface": "sim",
+      "when": "2026-10-11T21:14:26.229Z",
+      "timingCredit": false,
+      "rawSha256": "b1fd984a59f3132853dc8e3b9697265dca4cfe3abbf8f3531aeaa1413eea31aa",
+      "reason": "sp-x7 CPU proof overlap 21:07:13\u201321:08:32 UTC and focused fixture 21:10:04\u201321:10:12 UTC inside the first Simulator quiet window."
+    },
+    {
+      "source": "c66b5b324e5de37195db4c7921e742243bc06580",
+      "surface": "sim",
+      "timingCredit": false,
+      "aborted": true,
+      "proof": "20261011T161518-x1-clean-sim-retry-56359",
+      "reason": "Focused Vitest, concurrent tsc/lint and hooks overlapped live sampling at 21:29:27\u201332 UTC and 21:30:34\u201337 UTC; no timing credit. Global CPU hold confirmed before next retry."
+    }
+  ]
+}
