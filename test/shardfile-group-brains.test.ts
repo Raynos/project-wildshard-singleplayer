@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseGroupBrain, groupBrainRules } from '@wildshard/format/groupBrains';
+import { parseGroupBrain, nativeGroupBrain, groupBrainRules } from '@wildshard/format/groupBrains';
 import { groupBrain } from '../src/sdk/groupBrains';
 import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../src/shards/nalati-grasslands/data/brains';
 
@@ -10,6 +10,14 @@ describe('group brain declarations', () => {
   it('admits the shipping policy and stable ordered rosters through the SDK', () => {
     expect(groupBrain(pack)).toEqual(pack); expect(parseGroupBrain(herd)).toEqual(herd);
     expect(groupBrainRules([pack, herd], spawns, ['brain.other'])).toEqual([]);
+  });
+  it('admits parametric group presets and preserves native tuning/continuation field order exactly', () => {
+    const stalker = { ...pack, kind: 'stalker', pattern: 'pack' }, grazer = { ...herd, kind: 'grazer', pattern: 'herd' };
+    expect(groupBrain(stalker)).toEqual(stalker); expect(groupBrain(grazer)).toEqual(grazer);
+    expect(JSON.stringify(nativeGroupBrain(stalker))).toBe(JSON.stringify(parseGroupBrain(pack)));
+    expect(JSON.stringify(nativeGroupBrain(grazer))).toBe(JSON.stringify(parseGroupBrain(herd)));
+    for (const invalid of [{ ...stalker, pattern: 'herd' }, { ...grazer, pattern: 'pack' }, { ...stalker, pattern: undefined },
+      { ...grazer, gallopSpeed: Infinity }, { ...stalker, members: [] }]) expect(() => groupBrain(invalid)).toThrow();
   });
   it.each([
     { ...pack, members: [] }, { ...pack, members: ['actor.alpha', 'actor.alpha'] },

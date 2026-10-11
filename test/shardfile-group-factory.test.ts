@@ -62,6 +62,15 @@ it('admits only exact ordered group rosters with exclusive controller identities
   if (encounter === undefined) throw new Error('Missing encounter fixture');
   expect(() => parseShardfile({ ...s, encounters: [{ ...encounter, entity: 'pack.0' }] })).toThrow('shardfile semantic rules');
 });
+it('full-schema parametric groups retain the exact native roster and refuse a mismatched preset', () => {
+  const s = source(), groups = s.creatures.groups.map(row => row.kind === 'pack'
+    ? { ...row, kind: 'stalker', pattern: 'pack' } : { ...row, kind: 'grazer', pattern: 'herd' });
+  const admitted = parseShardfile({ ...s, creatures: { ...s.creatures, groups } });
+  expect(admitted.creatures.groups).toEqual(groups);
+  const first = groups[0]; if (first === undefined) throw new Error('Missing group');
+  expect(() => parseShardfile({ ...s, creatures: { ...s.creatures, groups: [{ ...first, pattern: 'wrong' }, ...groups.slice(1)] } })).toThrow();
+  expect(() => createShardfileSim(admitted, new Map(), { rapier })).toThrow('Missing declared group port');
+});
 it('installs two group controllers and one individual, drawing cold setup exactly once before fixed callbacks', () => {
   const s = source(), trace: string[] = [];
   let initial: RngState | undefined;

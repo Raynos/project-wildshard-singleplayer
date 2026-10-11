@@ -12,35 +12,52 @@ const members = v.pipe(v.array(id), v.minLength(1), v.maxLength(128), v.check(ro
 const orderedHearing = (values: readonly number[]): boolean => values.every((value, i) => i === 0 || value >= (values[i - 1] ?? 0));
 
 /** One circling pack controller and its ordered stable actor roster; setup and shared state belong to the group. */
-export const PackGroupSchema = v.pipe(v.strictObject({
+const packEntries = {
   id, kind: v.literal('pack'), thinkDivisor: v.literal(6), members, home: v.tuple([coord, coord]),
   trotSpeed: speed, runSpeed: speed, shadowMinRadius: radius, shadowMaxRadius: radius,
   ringMinRadius: radius, ringMaxRadius: radius, biteRadius: radius, sightRadius: radius,
   coneAngle: v.pipe(finite, v.minValue(0), v.maxValue(Math.PI)), smellRadius: radius, hearing,
   telegraphSeconds: duration, dashSeconds: duration, breakoffSeconds: duration, attackSeconds: duration,
   leaderVariant: id, yipCue: cue, howlCue: cue, snarlCue: cue, biteCue: cue,
-}), v.check(row => row.trotSpeed <= row.runSpeed && row.shadowMinRadius <= row.shadowMaxRadius
-  && row.ringMinRadius <= row.ringMaxRadius && orderedHearing(row.hearing), 'Ordered pack tuning'));
+};
+const packRules = (row: { trotSpeed: number; runSpeed: number; shadowMinRadius: number; shadowMaxRadius: number; ringMinRadius: number; ringMaxRadius: number; hearing: readonly number[] }): boolean => row.trotSpeed <= row.runSpeed && row.shadowMinRadius <= row.shadowMaxRadius
+  && row.ringMinRadius <= row.ringMaxRadius && orderedHearing(row.hearing);
+/** Historical circling-pack declaration, preserving parsed field order and continuation contracts. */
+export const PackGroupSchema = v.pipe(v.strictObject(packEntries), v.check(row => packRules(row), 'Ordered pack tuning'));
+/** Parametric stalker pack with exactly the same real roster, native recipes and finite tuning. */
+export const StalkerGroupSchema = v.pipe(v.strictObject({ ...packEntries, kind: v.literal('stalker'), pattern: v.literal('pack') }), v.check(row => packRules(row), 'Ordered pack tuning'));
 /** One guarded-herd controller with an ordered roster; native riding/taming and contact recipes are injected. */
-export const HerdGroupSchema = v.pipe(v.strictObject({
+const herdEntries = {
   id, kind: v.literal('herd'), thinkDivisor: v.literal(6), members,
   walkSpeed: speed, trotSpeed: speed, gallopSpeed: speed, chargeSpeed: speed,
   sightRadius: radius, grazingSightRadius: radius, coneAngle: v.pipe(finite, v.minValue(0), v.maxValue(Math.PI)), hearing,
   alertThreshold: v.pipe(finite, v.minValue(Number.MIN_VALUE), v.maxValue(1)), flightMinDistance: radius, flightMaxDistance: radius,
   stallionVariant: id, foalPrefix: id, snortCue: cue, neighCue: cue, squealCue: cue,
-}), v.check(row => row.walkSpeed <= row.trotSpeed && row.trotSpeed <= row.gallopSpeed
+};
+const herdRules = (row: { walkSpeed: number; trotSpeed: number; gallopSpeed: number; grazingSightRadius: number; sightRadius: number; flightMinDistance: number; flightMaxDistance: number; hearing: readonly number[] }): boolean => row.walkSpeed <= row.trotSpeed && row.trotSpeed <= row.gallopSpeed
   && row.grazingSightRadius <= row.sightRadius && row.flightMinDistance <= row.flightMaxDistance
-  && orderedHearing(row.hearing), 'Ordered herd tuning'));
+  && orderedHearing(row.hearing);
+/** Historical guarded-herd declaration, preserving parsed field order and continuation contracts. */
+export const HerdGroupSchema = v.pipe(v.strictObject(herdEntries), v.check(row => herdRules(row), 'Ordered herd tuning'));
+/** Parametric grazer herd with exactly the same real roster, native recipes and finite tuning. */
+export const GrazerGroupSchema = v.pipe(v.strictObject({ ...herdEntries, kind: v.literal('grazer'), pattern: v.literal('herd') }), v.check(row => herdRules(row), 'Ordered herd tuning'));
 /** Admitted circling-pack data and explicit roster, independent from native recipes. */
 export type ShardPackGroup = v.InferOutput<typeof PackGroupSchema>;
 /** Admitted guarded-herd data and explicit roster, independent from native recipes. */
 export type ShardHerdGroup = v.InferOutput<typeof HerdGroupSchema>;
 /** Group controller declaration; the full creature loader checks identity and controller conflicts. */
-export const GroupBrainSchema = v.variant('kind', [PackGroupSchema, HerdGroupSchema]);
+export const GroupBrainSchema = v.variant('kind', [PackGroupSchema, HerdGroupSchema, StalkerGroupSchema, GrazerGroupSchema]);
 /** A pack or herd group controller; an actor may belong to exactly one controller. */
 export type ShardGroupBrain = v.InferOutput<typeof GroupBrainSchema>;
 /** Validate finite tuning, six-tick cadence and the complete ordered roster before touching an actor or RNG. */
 export function parseGroupBrain(data: unknown): ShardGroupBrain { return v.parse(GroupBrainSchema, data); }
+/** Canonical native preset row: author tags never alter parsed tuning order or existing saved contracts. */
+export function nativeGroupBrain(data: unknown): ShardPackGroup | ShardHerdGroup {
+  const row = parseGroupBrain(data);
+  if (row.kind === 'stalker') { const { pattern, ...native } = row; void pattern; return v.parse(PackGroupSchema, { ...native, kind: 'pack' }); }
+  if (row.kind === 'grazer') { const { pattern, ...native } = row; void pattern; return v.parse(HerdGroupSchema, { ...native, kind: 'herd' }); }
+  return row;
+}
 /** Controller references must match the exact ordered roster, with no overlap with individual or encounter controllers. */
 export function groupBrainRules(groups: readonly { id: string; members: readonly string[] }[], spawns: readonly { id: string; brain: string | null }[],
   individualIds: readonly string[] = [], encounterIds: readonly string[] = []): string[] {

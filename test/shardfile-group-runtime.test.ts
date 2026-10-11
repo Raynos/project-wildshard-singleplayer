@@ -61,6 +61,19 @@ describe('declared group installation', () => {
       host.dispose(); expect(host.hasStep(`group.${NALATI_PACK_BRAIN.id}`)).toBe(false);
     } finally { host.dispose(); }
   });
+  it('runs parametric group rows with identical snapshots, event order, RNG and native restore', () => {
+    const left = createSimHost(level, { rapier }), right = createSimHost(level, { rapier });
+    const a: string[] = [], b: string[] = [];
+    try {
+      const presets = groups.map(row => parseGroupBrain(row.kind === 'pack' ? { ...row, kind: 'stalker', pattern: 'pack' } : { ...row, kind: 'grazer', pattern: 'herd' }));
+      prepareDeclaredGroupBrains(left, groups, rows, recipes(left, a)).install();
+      prepareDeclaredGroupBrains(right, presets, rows, recipes(right, b)).install();
+      for (let tick = 0; tick < 10000; tick++) { left.step(); right.step(); }
+      expect(b).toEqual(a); expectSameSimSnapshot(snapshotSimHost(right), snapshotSimHost(left));
+      const before = snapshotSimHost(right);
+      expect(() => prepareDeclaredGroupBrains(right, presets, rows, {})).toThrow(); expect(snapshotSimHost(right)).toEqual(before);
+    } finally { left.dispose(); right.dispose(); }
+  });
   it('refuses missing recipes, roster conflicts and existing callbacks before actor/RNG mutation', () => {
     const host = createSimHost(level, { rapier }), trace: string[] = [];
     try {

@@ -998,7 +998,11 @@ quest/item plumbing and snapshots both roles and the one host together.
 Restoration executes no observation or decision; logical migration extracts
 only the explicit numeric role, preserving historical standalone saves.
 
-`creatures.groups` defaults to `[]` and admits at most 64 pack or herd controllers.
+`creatures.groups` defaults to `[]` and admits at most 64 controllers. New author rows
+use `kind: "stalker", pattern: "pack"` or `kind: "grazer", pattern: "herd"`; the
+historical `kind: "pack"` and `kind: "herd"` rows remain exact presets. The flat tuning
+fields and native recipe requirements are identical. Pattern mismatch refuses.
+Canonical native tuning preserves field order and existing continuation bytes.
 Each declares a unique controller ID, strict finite tuning, six-tick decisions
 and an ordered roster of at most 128 stable actor IDs. That roster must exactly
 match the spawn order whose `brain` names the group. Individual, group and

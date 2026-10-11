@@ -3,7 +3,7 @@ import { HerdBrain, type HerdPorts, type HerdContext } from '@wildshard/engine/a
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { Rng, RngState } from '@wildshard/engine/core/rng';
-import { parseGroupBrain, groupBrainRules, type ShardGroupBrain, type ShardPackGroup, type ShardHerdGroup } from '@wildshard/format/groupBrains';
+import { nativeGroupBrain, groupBrainRules, type ShardGroupBrain, type ShardPackGroup, type ShardHerdGroup } from '@wildshard/format/groupBrains';
 
 /** One group continuation; actor memory, motors and random streams remain with the simulation owner. */
 export type DeclaredGroupPolicy = PackBrain<AnimalSim> | HerdBrain<AnimalSim>;
@@ -42,7 +42,7 @@ function available(host: SimHost, registrations: readonly Registration[]): void 
       || host.hasStep(`brain.${actor.entityId}`) || host.adapters.has(`brain.${actor.entityId}`))) throw new Error('Installed or changed group controller');
   }
 }
-function prepareRegistration(host: SimHost, group: ShardGroupBrain, members: AnimalSim[], ports: DeclaredGroupPorts): Registration {
+function prepareRegistration(host: SimHost, group: ShardPackGroup | ShardHerdGroup, members: AnimalSim[], ports: DeclaredGroupPorts): Registration {
     const id = `group.${group.id}`;
     if (group.kind === 'pack') {
       if (ports.pack === undefined) throw new Error('Missing declared group port');
@@ -79,7 +79,7 @@ function prepareRegistration(host: SimHost, group: ShardGroupBrain, members: Ani
 export function prepareDeclaredGroupBrains(host: SimHost, declarations: readonly ShardGroupBrain[],
   spawns: readonly { id: string; brain: string | null }[], ports: DeclaredGroupPorts,
   individualIds: readonly string[] = [], encounterIds: readonly string[] = []): PreparedGroupBrains {
-  const groups = declarations.map(parseGroupBrain);
+  const groups = declarations.map(nativeGroupBrain);
   if (new Set(spawns.map(row => row.id)).size !== spawns.length || groupBrainRules(groups, spawns, individualIds, encounterIds).length > 0) throw new Error('Invalid group controller roster');
   for (const group of groups) {
     if (host.hasStep(`group.${group.id}`) || host.adapters.has(`group.${group.id}`) || group.members.some(id => id === host.player.id || host.entities.get(id)?.entityId !== id
