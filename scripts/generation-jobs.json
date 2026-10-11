@@ -2630,6 +2630,42 @@
         "src/shards/driftwood-isle/behaviour/director.json"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "pine-clock-director",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-clock-director.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-clock-director.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/admissionLimits.ts",
+        "src/format/director.ts",
+        "src/format/directorStages.ts",
+        "src/format/directorWhen.ts",
+        "src/format/package.json",
+        "src/format/state.ts",
+        "src/sdk/assemblyscriptCompiler.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/buildBehaviour.ts",
+        "src/sdk/compileScript.ts",
+        "src/sdk/directorAbi.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/package.json",
+        "src/sdk/sourceReader.ts",
+        "src/shards/pine-hollow/behaviour/director.as",
+        "src/shards/pine-hollow/data/director.json",
+        "src/shards/pine-hollow/generators/bake-pine-clock-director.mjs"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/assets/4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251",
+        "src/shards/pine-hollow/behaviour/director.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

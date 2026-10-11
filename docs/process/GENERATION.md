@@ -176,3 +176,5 @@ Sky’s `sky-rising-islets` job builds its four rising socket islets from the re
 Driftwood’s `driftwood-director` job compiles its retained typed AssemblyScript and declared ABI through the shared confined authoring loader. Its two pinned products (the one-page module and DO-NOT-EDIT transport JSON) regenerate without runtime, legacy, seeds or a warm cache. This component proof does not admit a whole-product removal.
 
 The Driftwood director component remains report-only: its retained outputs are not admitted as buildOutputs, and no removal is authorized before its complete shard product passes.
+
+Pine’s `pine-clock-director` job compiles its retained typed AssemblyScript and declared ABI through the shared confined authoring loader. Its two pinned products (the one-page module and historical transport JSON) regenerate without runtime, legacy, seeds or a warm cache. The job remains report-only. This component proof does not admit activation or whole-product removal.
