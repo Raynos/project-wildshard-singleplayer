@@ -195,7 +195,7 @@ function sample(n) {
       return idleChecks >= 2;
     };
     let cpuFrames = 0, cpuFrame = -1;
-    let count = g.frameCount, last = 0, lastCallback = 0, skipped = 0, first = true;
+    let count = g.frameCount, last = 0, lastCallback = 0, skipped = 0, first = true, firstTimestamp = 0;
     let raf = 0;
     const timeout = setTimeout(() => { cancelAnimationFrame(raf); reject(new Error(`Drawn-frame sampler stalled (${interval.length}/${n})`)); }, whole ? 240000 : 30000);
     const tick = (timestamp) => {
@@ -217,13 +217,14 @@ function sample(n) {
             }
           }
         }
+        if (first) firstTimestamp = timestamp;
         first = false; count = g.frameCount; last = timestamp; lastCallback = now;
       }
       if (!finished()) { raf = requestAnimationFrame(tick); return; }
       clearTimeout(timeout);
       const pct = (v, p) => { const sorted = [...v].sort((a, b) => a - b); return sorted[Math.max(0, Math.ceil(sorted.length * p) - 1)]; };
       const round = (v) => Math.round(v * 1000) / 1000;
-      resolve({ frames: interval.length, skipped, medianFps: round(1000 / pct(interval, 0.5)), p50Ms: round(pct(interval, 0.5)),
+      resolve({ sampleRange: { startMs: round(firstTimestamp), endMs: round(last) }, frames: interval.length, skipped, medianFps: round(1000 / pct(interval, 0.5)), p50Ms: round(pct(interval, 0.5)),
         p95Ms: round(pct(interval, 0.95)), p99Ms: round(pct(interval, 0.99)), maxMs: round(pct(interval, 1)),
         callbackP95Ms: round(pct(callbackInterval, 0.95)), callbackP99Ms: round(pct(callbackInterval, 0.99)), callbackMaxMs: round(pct(callbackInterval, 1)),
         // a freeze is one frame of thousands: p95 / p99 never see it, so a long window also counts its long frames

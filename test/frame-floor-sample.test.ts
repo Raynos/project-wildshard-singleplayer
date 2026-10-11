@@ -6,7 +6,7 @@ import { expect, it } from 'vitest';
 
 const source = readFileSync('scripts/frame-floor.mjs', 'utf8');
 const sampler = source.slice(source.indexOf('function sample(n)'), source.indexOf('// Runtime.evaluate'));
-interface Sample { p95Ms: number; callbackP95Ms: number; workP95Ms: number; medianFps: number; frames: number; cpu: { enabled: boolean; frames: number; owners: { id: string; p95Ms: number }[] } }
+interface Sample { sampleRange: { startMs: number; endMs: number }; p95Ms: number; callbackP95Ms: number; workP95Ms: number; medianFps: number; frames: number; cpu: { enabled: boolean; frames: number; owners: { id: string; p95Ms: number }[] } }
 function measure(period: number): Promise<Sample> {
   const cpu = { enabled: false, frame: 0, snapshot: () => ({ enabled: cpu.enabled, frame: cpu.frame, owners: [{ id: 'fixture', ms: 2, calls: 2 }] }) };
   const game = { app: { cpu }, frameCount: 0, frameI: 1, frameMs: [16.667], workMs: [3], lastFrame: { calls: 5, triangles: 10 }, renderer: { getContext: () => ({ isContextLost: () => false }) } };
@@ -30,6 +30,7 @@ it('grades vsync cadence while retaining preceding-work callback jitter as a dia
   const result = await measure(1000 / 60);
   expect(Math.round(result.medianFps)).toBe(60);
   expect(result.p95Ms).toBe(16.667);
+  expect(result.sampleRange).toEqual({ startMs: 16.667, endMs: 516.667 });
   expect(result.callbackP95Ms).toBe(24.667);
   expect(result.workP95Ms).toBe(3);
   expect(result.cpu).toMatchObject({ enabled: true, frames: 30, owners: [{ id: 'fixture', p95Ms: 2 }] });
@@ -37,6 +38,7 @@ it('grades vsync cadence while retaining preceding-work callback jitter as a dia
 it('still detects missed vsyncs in the drawn-frame timestamps', async () => {
   const result = await measure(1000 / 30);
   expect(result.p95Ms).toBe(33.333);
+  expect(result.sampleRange).toEqual({ startMs: 33.333, endMs: 1033.333 });
   expect(result.p95Ms).toBeGreaterThan(17.5);
   expect(Math.round(result.medianFps)).toBe(30);
 });
