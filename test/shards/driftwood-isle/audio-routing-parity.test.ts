@@ -5,16 +5,19 @@ import { Vector3 } from 'three';
 import type { CombatCueOpts } from '../../../src/engine/combat/cues';
 import { driftwoodCueMap } from '../../../src/shards/driftwood-isle/runtime/audio/cues';
 import { driftwoodCombatCues } from '../../../src/shards/driftwood-isle/runtime/audio/combatCues';
+import { parseAudioData } from '@wildshard/format/audio';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 
 // Captured from the pre-conversion routers at 4b50e4c40, using the same engine option objects.
 // The digest records both dispatch acceptance and the complete ordered recipe argument stream.
-it('keeps every old mixer/combat boundary and recipe argument across 81,648 same-engine dispatches', () => {
+it.each(['legacy', 'emitted'] as const)('keeps 81,648 frozen mixer/combat dispatches through %s rows', (arm) => {
   const digest = createHash('sha256'); let dispatches = 0;
   const record = (name: string) => (...args: unknown[]): void => { digest.update(JSON.stringify([name, args])); };
   const sfx = { whoosh: record('whoosh'), impact: record('impact'), vocal: record('vocal'), windup: record('windup'),
     footstep: record('footstep'), plunge: record('plunge'), interact: record('interact'), gullCallAt: record('gullCallAt') };
-  const maps = [driftwoodCueMap(sfx, { position: new Vector3(1, 2, 3), yaw: 0.4 }), driftwoodCombatCues(sfx)];
+  const wire = JSON.stringify(source.audio);
+  const routing = arm === 'emitted' ? parseAudioData(JSON.parse(wire)).routing : source.audio.routing;
+  const maps = [driftwoodCueMap(sfx, { position: new Vector3(1, 2, 3), yaw: 0.4 }, routing), driftwoodCombatCues(sfx)];
   const ids = [...new Set(source.audio.routing.map((route) => route.id)), 'cue.unknown', 'cue.step.litter'].filter((id): id is `cue.${string}` => id.startsWith('cue.'));
   for (const kind of [undefined, 'crab', 'sailor', 'boar', 'monkey', 'bear', 'unknown'])
     for (const point of [undefined, new Vector3(3, 4, 5)])
@@ -31,4 +34,12 @@ it('keeps every old mixer/combat boundary and recipe argument across 81,648 same
             }
   expect(dispatches).toBe(81648);
   expect(digest.digest('hex')).toBe('4d024a0dc280fc9a2cc9bca7010238502cdea29313bbb376938c0cd4b7b1ba74');
+});
+
+it('uses an emitted alias without dispatching the imported cue', () => {
+  const calls: unknown[] = [], record = (...args: unknown[]): void => { calls.push(args); };
+  const routing = parseAudioData({ ...source.audio, routing: [{ bus: 'audio', id: 'cue.emitted', actions: [{ voice: 'island.whoosh', defaults: { speed: 0.6, heavy: true } }] }] }).routing;
+  const cues = driftwoodCueMap({ whoosh: record, impact: record, vocal: record, windup: record, footstep: record, plunge: record, interact: record, gullCallAt: record }, { position: new Vector3(), yaw: 0 }, routing);
+  expect(cues('cue.weapon.fire', { dir: -1 })).toBe(false); expect(calls).toEqual([]);
+  expect(cues('cue.emitted', { dir: -1 })).toBe(true); expect(calls).toEqual([[0.6, { heavy: true, dir: -1 }]]);
 });

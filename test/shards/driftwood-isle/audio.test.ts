@@ -6,12 +6,16 @@ import { IslandAmbience } from '../../../src/shards/driftwood-isle/runtime/audio
 import { IslandBed, IslandSfx, ISLAND_BED } from '../../../src/shards/driftwood-isle/runtime/audio/sfx';
 import { driftwoodCueMap } from '../../../src/shards/driftwood-isle/runtime/audio/cues';
 import { SurfaceMap } from '../../../src/shards/driftwood-isle/runtime/audio/surface';
-import { DriftwoodScore } from '../../../src/shards/driftwood-isle/runtime/audio/score';
+import { DriftwoodScore, installDriftwoodScore } from '../../../src/shards/driftwood-isle/runtime/audio/score';
 import { Scope } from '../../../src/engine/app/scope';
 import { Events } from '../../../src/engine/events/events';
 import { sortSystems, type SystemSpec } from '../../../src/engine/app/systems';
 import { driftwoodAudioSystems } from '../../../src/shards/driftwood-isle/runtime/audio/systems';
 import { Music } from '../../../src/engine/audio/Music';
+import { parseAudioData } from '@wildshard/format/audio';
+import { runtimeAudio } from '../../../src/game/plugin/audio';
+import source from '../../../src/shards/driftwood-isle/shard.config';
+import { requireAudioProfile } from '../../../src/engine/audio/audioProfiles';
 import { createDriftwoodAudio } from '../../../src/shards/driftwood-isle/runtime/audio/files';
 
 // E357 S4.3 (08 §6.3 C): the island's bed, gulls and voices left the engine mixer for Driftwood's audio folder.
@@ -105,6 +109,23 @@ describe("Driftwood's island audio on the engine mixer", () => {
     expect(score.pending).toBe(false);
     scope.dispose(); score.dispose();
     expect(score.want(undefined)).toBeUndefined();
+  });
+
+  it('binds emitted score metadata and selection to the same scoped music owner', () => {
+    const wire = JSON.stringify(source.audio), rows = parseAudioData(JSON.parse(wire));
+    const profile = requireAudioProfile(rows.music, 'score.driftwood');
+    const audio = new Audio(), music = new Music(audio), scope = new Scope('emitted score');
+    const attach = vi.spyOn(music, 'setScore');
+    const score = installDriftwoodScore(audio, music, scope, requireAudioProfile(runtimeAudio({ game: { declaredAudio: rows } }, source.audio).music, 'score.driftwood'));
+    expect(attach).toHaveBeenCalledExactlyOnceWith(profile.id, score);
+    expect([score.base, score.synthLead, score.slots, score.minFade]).toEqual([profile.base, profile.synthLead, profile.slots, profile.minFade]);
+    expect(score.target({ mode: 'calm', intensity: 0, underwater: false })).toBe('island');
+    expect(music.state.lead).toBe('marimba'); expect(audio.ready).toBe(false);
+    const changed = { ...profile, base: 'title', slots: ['title'], selection: [{ slots: ['title'], when: [] }], synthLead: 'pluck' as const, minFade: 3 };
+    const second = new DriftwoodScore(music, scope, changed);
+    expect([second.base, second.synthLead, second.slots, second.minFade, second.target(music.state)]).toEqual(['title', 'pluck', ['title'], 3, 'title']);
+    scope.dispose(); expect(score.stings.size).toBe(0); expect(score.want(undefined)).toBeUndefined();
+    second.dispose(); audio.dispose();
   });
 
   it('keeps the island synth lead as marimba and restores the default pluck when another score attaches', () => {

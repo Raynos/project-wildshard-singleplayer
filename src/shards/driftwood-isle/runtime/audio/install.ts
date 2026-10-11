@@ -1,3 +1,6 @@
+import { runtimeAudio } from '@wildshard/game/plugin/audio';
+import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
+import source from '../../shard.config';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { swordEvents } from '@wildshard/game/weapons/Sword';
@@ -18,7 +21,8 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const shell = ctx.game.runtime;
   if (shell?.world === undefined || shell.world === null || shell.play === null) throw new Error('Driftwood audio requires its play host');
   const { game, sky, player } = shell.world, { audio, music } = shell.play;
-  installDriftwoodScore(audio, music, ctx.scope);
+  const audioRows = runtimeAudio(ctx, source.audio);
+  installDriftwoodScore(audio, music, ctx.scope, requireAudioProfile(audioRows.music, 'score.driftwood'));
   const built = driftwoodWorld(shell), { trailDistance } = await import('@wildshard/engine/world/Heightfield');
   const shrineHum = built.shrine === null ? null : new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z });
   const islandSfx = new IslandSfx(audio, ctx.scope);
@@ -26,7 +30,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const surfaces = new SurfaceMap({ sea, heightAt, trailDistance,
     decks: [built.pier, ...built.jetties, built.boat, built.hut, built.lookout, built.bridge, built.wreck], stone: [built.shrine] });
   const ambience = new IslandAmbience(audio, { sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: Cove.forIsland() });
-  const cues = driftwoodCueMap(islandSfx, player);
+  const cues = driftwoodCueMap(islandSfx, player, audioRows.routing);
   audio.installCues(cues, ctx.scope);
   ctx.answer('player.stepSurface', (request) => ({ ...request, surface: surfaces.surfaceAt(request.x, request.z, request.y) }));
   const old = { onSwing: swordEvents.onSwing, onStrike: swordEvents.onStrike, onClang: swordEvents.onClang, onCall: built.gulls?.onCall };

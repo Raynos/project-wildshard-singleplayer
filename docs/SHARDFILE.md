@@ -1047,6 +1047,10 @@ admitted hybrid entry. Routing comes from the
 emitted shardfile; voices, optional arguments, clocks and scoped randomness
 stay with the original native owner. Legacy-only entries use the unchanged
 source declaration. A routing alias allocates no sampled bank or sound bytes.
+Driftwood likewise binds its emitted native cue routes and music profile to its
+existing score owner: selection, lead, fade and boot slots come from the admitted
+rows; style-bank decoding, stings, playback clocks and scoped disposal stay with
+the original owner. Legacy-only entries retain the source profile.
 
 Optional `audio.recordings` maps at most 1024 existing catalogue paths such as
 `/assets/music/folk/pickup.m4a` to local SHA-256 or `commons:<SHA-256>`

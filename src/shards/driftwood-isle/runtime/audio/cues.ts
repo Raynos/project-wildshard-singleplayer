@@ -7,7 +7,7 @@ import type { IslandSfx } from './sfx';
 
 /** Routing adds no sound taps or random draws: each admitted voice calls the original island recipe once. */
 export function driftwoodCueMap(sfx: Pick<IslandSfx, 'footstep' | 'whoosh' | 'impact' | 'vocal' | 'windup' | 'plunge' | 'interact' | 'gullCallAt'>,
-  listener: { readonly position: Vector3; readonly yaw: number }): CueMap {
+  listener: { readonly position: Vector3; readonly yaw: number }, routing = source.audio.routing): CueMap {
   const voices = new Map<string, (opts: CombatCueOpts) => boolean | undefined>();
   voices.set('island.whoosh', (opts) => { if (typeof opts.dir !== 'number') return false; sfx.whoosh(opts.speed ?? 1, { heavy: opts.heavy ?? false, dir: opts.dir }); return true; });
   for (const material of ['flesh', 'shell', 'wood', 'stone'] as const) voices.set(`island.impact.${material}`, (opts) => { sfx.impact(material, opts.strength ?? 1, opts.point); });
@@ -17,5 +17,5 @@ export function driftwoodCueMap(sfx: Pick<IslandSfx, 'footstep' | 'whoosh' | 'im
   voices.set('island.dive', () => { sfx.plunge(false); }); voices.set('island.surface', () => { sfx.plunge(true); });
   voices.set('island.chime', () => { sfx.interact('chime'); });
   voices.set('island.gull', (opts) => { if (opts.point === undefined) return false; sfx.gullCallAt(opts.point, listener.position, listener.yaw); return true; });
-  return createCueRouter(source.audio.routing.filter((route) => route.bus === 'audio'), { voices });
+  return createCueRouter(routing.filter((route) => route.bus === 'audio'), { voices });
 }
