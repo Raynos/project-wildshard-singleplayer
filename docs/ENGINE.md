@@ -2402,6 +2402,19 @@ the host's combat pipeline inside the 70° strike arc with a clear line (`creatu
 the move `contactMove(kind)`). Both sides build the same engine brain from the same admitted data, so a row behaves the
 same in the client and the headless host. Signal Dunes' ray and strider are the first (`data/brains.ts` SIGNAL_SPECIES).
 
+**Parametric stalker (SF82 BR-1).** `@wildshard/engine/ai/stalker` defines `StalkerBrain(profile)` for
+`skirmish`, `howler` and `pouncer`. The skirmish profile supplies tuning; howl/pounce profiles also supply explicit
+native encounter/query/event ports. `think(actor, taggedObservation)` keeps manager perception separate from
+`act(actor)` contacts and `advance(actor|null, dt, time, engaged, leashing)` encounter frames.
+`decideSkirmisher(actor, observation)`, `decideHowler(actor, observation)` / `decidePouncer(actor, observation)` let native presets reuse their untagged
+observations without a per-frame allocation. No deferred actor is invented
+at construction. The real pack, ledges, bodies, shared RNG, stage/engagement clock and callback ordering remain owned by
+the host. `spawned`, `reset`, `disposeTell`, `damage` and the howl-only `enterPhase2` preserve each preset's existing
+lifecycle. `snapshot()` / atomic `restore(value)` retain the original contract/object shapes; `howlerSnapshot()` and
+`pouncerSnapshot()` retain typed preset access and refuse the other pattern. `readHowlerSpec` / `readPouncerSpec` retain
+strict bounds. `ai/skirmisher` and Nalati's old runtime constructor paths are parameter presets of this shared policy,
+not independent decision implementations. Group `pack`/`hunt` and row adoption remain separate follow-up slices.
+
 **Parametric guardian (SF82 BR-1).** `@wildshard/engine/ai/guardianPolicy` defines `GuardianPolicy(actor, profile)`:
 `{ pattern: 'interior', spec: GuardianSpec }` or `{ pattern: 'perch', spec: PerchHunterSpec }`. `think(observation)`
 requires the same `pattern` tag, preserving each pattern's native floor, reach, attack-token and perch ports. Interior

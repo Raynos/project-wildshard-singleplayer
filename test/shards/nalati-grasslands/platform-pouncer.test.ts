@@ -1,3 +1,4 @@
+import { StalkerBrain } from '../../../src/engine/ai/stalker';
 // oxlint-disable-next-line import/no-nodejs-modules -- Authenticate the frozen shipping decisions.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Authenticate the recorded shipping source.
@@ -113,3 +114,31 @@ it('admits copied finite tuning and refuses unknown, conflicting or out-of-order
   })).toThrow('ledge bound');
 });
 
+
+function pounceTrace(parametric: boolean): string {
+  const a = actor(), input = inputs(), legacy = new AqbarsOracle(input.ports, a);
+  const ports: PouncerPorts<AnimalSim> = { ...input.ports, opened: () => { input.ports.feed('Aqbars skids — OPEN'); }, growl: at => { input.ports.sound('leopard_growl', at); } };
+  const policy = new StalkerBrain({ pattern: 'pouncer', spec: tuning, ports }), trace = createHash('sha256');
+  let time = 0;
+  for (let tick = 0; tick < 6000; tick++) {
+    const cycle = tick % 600, dt = tick % 7 === 0 ? 1 / 30 : 1 / 60; time += dt;
+    input.phase(tick >= 2400);
+    if (cycle === 0) { a.place(0, 0, 0); if (parametric) policy.spawned(); else legacy.spawned(); }
+    const x = cycle < 120 ? 10 : cycle < 240 ? 2 : cycle < 420 ? -25 : 120;
+    input.player.position.set(x, floor(x, 0), 0);
+    const c = { dt: 0.1, player: input.player.position, pathYaw: (body: AnimalSim, px: number, pz: number): number => Math.atan2(px - body.position.x, pz - body.position.z) };
+    if (parametric) policy.advance(a, dt, time, cycle < 420, cycle >= 500); else legacy.tick(dt, time, cycle < 420, cycle >= 500);
+    if (tick % 6 === 0) { if (parametric) policy.think(a, { ...c, pattern: 'pouncer' }); else legacy.think(a, c); }
+    if (parametric) policy.act(a); else legacy.act(a);
+    a.step(dt);
+    const saved = parametric ? policy.pouncerSnapshot() : legacy.snapshot();
+    // The captured page object predates the admitted Saved schema's key order. Hash every value explicitly.
+    const state = [saved.st, saved.stT, saved.cd, saved.hitDone, saved.from, saved.to, saved.goal];
+    const damage = parametric ? policy.damage(a, input.player.position) : legacy.damage(a, input.player.position);
+    trace.update(JSON.stringify({ state, actor: a.snapshot(), events: input.events, damage })); input.events.length = 0;
+  }
+  return trace.digest('hex');
+}
+it('matches every native pounce/swipe/perch frame by SHA-256 in the direct parametric pattern', () => {
+  expect(pounceTrace(true)).toBe(pounceTrace(false));
+});

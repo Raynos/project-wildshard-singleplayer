@@ -1,3 +1,7 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Hash the native decision trace against the captured shipping policy.
+import { createHash } from 'node:crypto';
+import { StalkerBrain } from '../../src/engine/ai/stalker';
+import { CapturedSkirmisherBrain } from '../fixtures/stalker-oracle/skirmisher';
 import { admitSpeciesBrains } from "../../src/game/plugin/brain";
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the committed physics binary without a Vite wasm closure dependency.
@@ -31,22 +35,29 @@ function installHeadless(host: SimHost): void {
 }
 const catalogue = admitSpeciesBrains([{ id: 'species.crab', kind: 'crab', label: 'crab', variants: [],
   brain: { archetype: 'skirmisher', data: CRAB_BRAIN } }], []);
-function replay(platform: boolean, scenario: 'approach' | 'tokens' | 'scatter'): object {
-  let brain: SkirmisherBrain<Animal> | undefined;
-  const f = creature('crab', 'small', {}, undefined, platform ? (a, ctx) => { if (brain === undefined) { const decision = catalogue.decision('crab', a);
-      if (decision.archetype !== 'skirmisher') throw new Error('Wrong species decision'); brain = decision.policy; } brain.think(ctx); } : undefined);
+function replay(platform: boolean | 'parametric', scenario: 'approach' | 'tokens' | 'scatter'): object {
+  let brain: SkirmisherBrain<Animal> | CapturedSkirmisherBrain<Animal> | StalkerBrain<Animal> | undefined;
+  const f = creature('crab', 'small', {}, undefined, (a, ctx) => {
+    if (brain === undefined) {
+      if (platform === false) brain = new CapturedSkirmisherBrain(a, CRAB_BRAIN);
+      else if (platform === 'parametric') brain = new StalkerBrain({ pattern: 'skirmish', spec: CRAB_BRAIN });
+      else { const decision = catalogue.decision('crab', a);
+        if (decision.archetype !== 'skirmisher') throw new Error('Wrong species decision'); brain = decision.policy; }
+    }
+    if (brain instanceof StalkerBrain) brain.think(a, { ...ctx, pattern: 'skirmish' }); else brain.think(ctx);
+  });
   f.ctx.rng = new Rng(357);
   const leader = scenario === 'scatter' ? creature('crab', 'big').animal : undefined;
   if (leader) f.ctx.herd = [f.animal, leader];
-  const frames: ReturnType<Animal['snapshot']>[] = [];
+  const trace = createHash('sha256');
   for (let frame = 0; frame < 10000; frame++) {
     f.ctx.player.set(0, 0, frame < 1000 ? 50 : frame < 6000 ? 1.7 : 50);
     if (scenario === 'tokens') { f.ctx.mayAttack = () => f.frame < 2500 || f.frame >= 5000; f.ctx.claim = f.ctx.mayAttack; }
     if (leader && frame === 2700) leader.alive = false;
     if (frame === 1700) f.animal.lastHitT = frame / 60;
-    f.advance(1); frames.push(f.animal.snapshot());
+    f.advance(1); trace.update(JSON.stringify(f.animal.snapshot()));
   }
-  return { frames, hits: f.hits, sounds: f.sounds, starts: f.starts, rng: f.ctx.rng.snapshot() };
+  return { framesHash: trace.digest('hex'), hits: f.hits, sounds: f.sounds, starts: f.starts, rng: f.ctx.rng.snapshot() };
 }
 describe('data-selected circling melee archetype', () => {
   it('selects the declared crab policy in the hybrid catalogue, retaining shipping body/rig recipes', () => {
@@ -57,7 +68,8 @@ describe('data-selected circling melee archetype', () => {
     expect(f.hits).toEqual([{ frame: 43, damage: 10 }]);
   });
   it.each(['approach', 'tokens', 'scatter'] as const)('matches the real shipping crab for 10,000 fixed body frames: %s', scenario => {
-    expect(replay(true, scenario)).toEqual(replay(false, scenario));
+    const expected = replay(false, scenario);
+    expect(replay(true, scenario)).toEqual(expected); expect(replay('parametric', scenario)).toEqual(expected);
   });
   it('restores actor, motor and RNG state into a fresh renderer-free host for an exact 10,000-tick suffix', () => {
     const sim = createSimHost(SIM_LEVEL, { rapier }); installHeadless(sim);

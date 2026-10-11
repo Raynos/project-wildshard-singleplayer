@@ -1,3 +1,4 @@
+import { StalkerBrain } from '../../../src/engine/ai/stalker';
 // oxlint-disable-next-line import/no-nodejs-modules -- Authenticate the frozen shipping decisions.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Authenticate the source-body inventory.
@@ -121,3 +122,34 @@ it('strictly admits declared tuning and refuses invalid ranges and aliases befor
   }
 });
 
+
+function howlTrace(parametric: boolean): string {
+  const f = fixture(), legacy = new KokboriOracle(f.oraclePorts, f.actor);
+  const stalker = new StalkerBrain({ pattern: 'howler', spec, ports: f.ports }), trace = createHash('sha256');
+  let time = 0;
+  for (let tick = 0; tick < 2400; tick++) {
+    const dt = tick % 7 === 0 ? 1 / 30 : 1 / 60; time += dt;
+    const cycle = tick % 800;
+    if (cycle === 0) {
+      f.actor.place(0, 0, 0); f.phase(false);
+      if (parametric) { stalker.reset(f.actor); stalker.spawned(f.actor); } else { legacy.reset(); legacy.spawned(); }
+    }
+    if (cycle === 450) { f.phase(true); if (parametric) stalker.enterPhase2(f.actor); else legacy.enterPhase2(); }
+    f.player.position.set(cycle < 450 ? 0 : 2, 0, cycle < 450 ? 30 : 1);
+    f.environment.playerCrouched = tick % 3 === 0; f.environment.playerFwdZ = tick % 31 < 15 ? -1 : 1;
+    if (tick === 180) f.actor.lastHitT = time;
+    const context = { dt: 0.1, player: f.player.position, pathYaw: (a: AnimalSim, x: number, z: number): number => Math.atan2(x - a.position.x, z - a.position.z) };
+    if (parametric) stalker.advance(f.actor, dt, time, cycle < 650, cycle >= 650); else legacy.tick(dt, time, cycle < 650, cycle >= 650);
+    if (tick % 6 === 0) { if (parametric) stalker.think(f.actor, { ...context, pattern: 'howler' }); else legacy.think(f.actor, context); }
+    if (parametric) stalker.act(f.actor); else legacy.act(f.actor, context);
+    f.actor.step(dt);
+    const state = parametric ? stalker.howlerSnapshot() : legacy.snapshot();
+    const damage = parametric ? stalker.damage(f.actor, f.player.position) : legacy.damage(f.actor, f.player.position);
+    trace.update(JSON.stringify({ state, actor: f.actor.snapshot(), pack: f.pack.snapshot(), rng: f.rng.snapshot(), events: f.events, damage }));
+    f.events.length = 0;
+  }
+  return trace.digest('hex');
+}
+it('matches every native canid/pack frame by SHA-256 in the direct parametric howl pattern', () => {
+  expect(howlTrace(true)).toBe(howlTrace(false));
+});

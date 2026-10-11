@@ -389,6 +389,7 @@
     "./physics/Physics": "./physics/Physics.ts",
     "./physics/pieces": "./physics/pieces.ts",
     "./script/client": "./script/client.ts",
+    "./ai/stalker": "./ai/stalker.ts",
     "./ai/skirmisher": "./ai/skirmisher.ts",
     "./ai/scriptBrain": "./ai/scriptBrain.ts",
     "./sim/edgeProfiles": "./sim/edgeProfiles.ts",
