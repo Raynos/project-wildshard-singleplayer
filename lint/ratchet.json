@@ -983,7 +983,7 @@
     "src/shards/pine-hollow/runtime/fauna.ts": 3,
     "src/shards/pine-hollow/runtime/headless.ts": 7,
     "src/shards/pine-hollow/runtime/herds.ts": 5,
-    "src/shards/pine-hollow/runtime/index.ts": 10,
+    "src/shards/pine-hollow/runtime/index.ts": 11,
     "src/shards/pine-hollow/runtime/items.ts": 3,
     "src/shards/pine-hollow/runtime/items/boltCrossbow.ts": 16,
     "src/shards/pine-hollow/runtime/items/leverFirearm.ts": 17,
