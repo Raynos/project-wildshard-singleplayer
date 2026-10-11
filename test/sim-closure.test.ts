@@ -33,6 +33,21 @@ describe('SF3a headless import closure', () => {
     const root = fixture({ 'src/shards/example/behaviour/brain.ts': "import { v } from '@wildshard/engine/ai/helper'; export const brain = v;", 'src/engine/ai/helper.ts': "export { v } from '../entities/value'; import type { Render } from '../entities/render';", 'src/engine/entities/value.ts': "import '../ai/helper'; import { Vector3 } from 'three'; export const v = new Vector3();", 'src/engine/entities/render.ts': "import { Mesh } from 'three'; export type Render = Mesh;" });
     expect(simClosure(root)).toEqual([]);
   });
+  it('follows pure format contracts and still rejects their transitive rendering dependencies', () => {
+    const source = {
+      'src/shards/example/data/plumbing.ts': "import { schema } from '@wildshard/sdk/plumbing'; export const row = schema;",
+      'src/sdk/plumbing.ts': "import { schema } from '@wildshard/format/plumbing'; export const authorSchema = schema;",
+      'src/format/plumbing.ts': "import * as v from 'valibot'; export const schema = v.number();",
+    };
+    expect(simClosure(fixture(source))).toEqual([]);
+    const root = fixture({ ...source, 'src/format/plumbing.ts': "import './helper';",
+      'src/format/helper.ts': "import { Mesh } from 'three'; export const mesh = new Mesh();" });
+    const violations = simClosure(root);
+    expect(violations.map(site => site.id)).toEqual(['src/format/helper.ts:import:three']);
+    expect(violations[0]?.trace).toEqual(['src/shards/example/data/plumbing.ts', 'src/sdk/plumbing.ts', 'src/format/plumbing.ts', 'src/format/helper.ts']);
+    const missing = fixture({ 'src/shards/example/data/plumbing.ts': "import '@wildshard/format/missing';" });
+    expect(simClosure(missing).map(site => site.id)).toEqual(['src/shards/example/data/plumbing.ts:unresolved:@wildshard/format/missing']);
+  });
   it('rejects DOM, runtime, tier, cost, view and dynamic dependencies outside sim folders', () => {
     const root = fixture({ 'src/engine/ai/brain.ts': "import '../entities/helper';", 'src/engine/entities/helper.ts': "import '../app/runtime'; import '../core/tier'; import '../core/frameCost'; import '../ai/view/debug'; document.createElement('div'); void import('./' + 'other');", 'src/engine/app/runtime.ts': 'export {};', 'src/engine/core/tier.ts': 'export {};', 'src/engine/core/frameCost.ts': 'export {};', 'src/engine/ai/view/debug.ts': 'export {};' });
     expect(simClosure(root).map((v) => v.id)).toEqual(expect.arrayContaining(['src/engine/entities/helper.ts:import:src/engine/app/runtime.ts', 'src/engine/entities/helper.ts:import:src/engine/core/tier.ts', 'src/engine/entities/helper.ts:import:src/engine/core/frameCost.ts', 'src/engine/entities/helper.ts:global:document', 'src/engine/entities/helper.ts:import:dynamic', 'src/engine/entities/helper.ts:import:src/engine/ai/view/debug.ts']));
