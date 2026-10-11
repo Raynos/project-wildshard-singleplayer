@@ -111,3 +111,10 @@ src/**/*.generated.*
 
 # Retained Rising Islet authoring; regenerated through the verified content-hash cache.
 /src/shards/far-reach/data/islets.generated.json
+
+# G331: local tool state, logs and temporary merge files are not source.
+*.tsbuildinfo
+/*.log
+/.merge_file_*
+/boot-smoke-results/
+/scratchpad/
