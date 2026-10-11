@@ -5,20 +5,26 @@ import { CRATES, HORSE, WELL_RIG } from '../data/places';
 import { STRINGS } from '../data/strings';
 import { signalHeightAt } from './landscape';
 
+// A static native horse contact is outside the narrower serialized prop contact set.
+/** Signal native box transport, retaining the existing caravan horse's flesh contact. */
+export interface SignalBoxColliderData extends Omit<BoxColliderData, 'surface'> {
+  surface?: NonNullable<BoxColliderData['surface']> | 'flesh';
+}
+
 /** Native placement transport; live fires, crank, bodies and prompts remain their existing owners. */
 export interface SignalPhysicsPlacement {
   id: string; name: string; category: 'props' | 'buildings'; file: string;
-  colliders: BoxColliderData[]; active: true; owner: string; surface: 'wood' | 'stone';
+  colliders: SignalBoxColliderData[]; active: true; owner: string; surface: 'wood' | 'stone';
 }
 
-type Surface = NonNullable<BoxColliderData['surface']>;
+type Surface = NonNullable<SignalBoxColliderData['surface']>;
 interface FootBox { x: number; z: number; hw: number; hd: number; rot: number; yBottom: number; yTop: number }
-function box(c: FootBox, surface: Surface): BoxColliderData {
+function box(c: FootBox, surface: Surface): SignalBoxColliderData {
   return { kind: 'box', x: c.x, y: (c.yTop + c.yBottom) / 2, z: c.z,
     hx: c.hw, hy: Math.max(0.005, (c.yTop - c.yBottom) / 2), hz: c.hd, yaw: -c.rot, surface };
 }
 const TENT = { x: -8.2, z: 2.6, yaw: 0.35, w: 2.6, h: 1.9, d: 3.0 } as const;
-function piece(id: string, name: string, category: SignalPhysicsPlacement['category'], colliders: BoxColliderData[], surface: SignalPhysicsPlacement['surface']): SignalPhysicsPlacement {
+function piece(id: string, name: string, category: SignalPhysicsPlacement['category'], colliders: SignalBoxColliderData[], surface: SignalPhysicsPlacement['surface']): SignalPhysicsPlacement {
   return { id, name, category, file: 'src/shards/sunscar-dunes/generators/places.ts', colliders, active: true, owner: `piece:${id}`, surface };
 }
 

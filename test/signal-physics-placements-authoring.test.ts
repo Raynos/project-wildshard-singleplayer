@@ -7,13 +7,12 @@ import { signalHeightAt } from '../src/shards/sunscar-dunes/generators/landscape
 import { expect, it } from 'vitest';
 import { auditAuthoringInputs, isAuthoringInput } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
-import { BoxCollider } from '@wildshard/sdk/physics';
 import { signalPhysicsPlacements } from '../src/shards/sunscar-dunes/generators/physicsPlacements';
 import native from '../src/shards/sunscar-dunes/runtime/physics.baked.json' with { type: 'json' };
 
 it('compiles the exact five native camp placements without running a world, model or registry constructor', () => {
   const rows = signalPhysicsPlacements(), ids = new Set(rows.map(row => row.id));
-  expect(new BoxCollider(1, 2, 3, 'flesh').toColliderData().surface).toBe('flesh');
+  expect(rows[0]?.colliders[1]?.surface).toBe('flesh');
   expect(rows).toHaveLength(5);
   // The persisted transport normalizes native negative zero and preserves property order.
   expect(JSON.stringify(rows)).toBe(JSON.stringify(native.pieces.filter(piece => ids.has(piece.id))));

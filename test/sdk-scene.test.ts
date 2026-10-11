@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { BoxGeometry, BufferGeometry, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PointLight, Quaternion, Scene, ShaderMaterial, Vector3 } from 'three';
 import { BoxCollider, CapsuleCollider, HullCollider, MeshCollider } from '../src/sdk/physics';
+import * as v from 'valibot';
+import { PropsSchema } from '@wildshard/format/props';
 import { Entry } from '../src/sdk/entries';
 import { PlayerStart, Spawn } from '../src/sdk/spawns';
 import { readScene } from '../src/sdk/scene';
@@ -29,6 +31,15 @@ describe('Node authoring scene reader', () => {
     box.name = 'box'; mesh.name = 'mesh'; spawn.name = 'goat'; scene.add(box, mesh, spawn, ...Entry.midpoints());
     expect(readScene(scene.clone())).toStrictEqual(readScene(scene));
     const cloned = box.clone(); cloned.width = 7; expect(box.width).toBe(2); expect(cloned.toColliderData().hx).toBe(3.5);
+  });
+  it('keeps every public box contact within the serialized prop contract', () => {
+    for (const surface of ['wood', 'stone', 'grass', 'sand', 'rock', 'metal', 'earth', 'felt'] as const) {
+      const shape = new BoxCollider(1, 1, 1, surface).toColliderData();
+      const props = { version: 1, family: 'pbr', tiles: [], panels: [], models: [], far: null, textures: [],
+        colliders: [{ id: 'box', panel: null, initialActive: true, shapes: [shape] }] };
+      expect(v.safeParse(PropsSchema, props).success, surface).toBe(true);
+      expect(v.safeParse(PropsSchema, { ...props, colliders: [{ ...props.colliders[0], shapes: [{ ...shape, surface: 'flesh' }] }] }).success).toBe(false);
+    }
   });
   it('refuses nonfinite materials and lights rather than turning their numbers into JSON null', () => {
     const scene = new Scene(); scene.add(new PointLight(0xffffff, Number.NaN)); expect(() => readScene(scene)).toThrow(/finite JSON/u);
