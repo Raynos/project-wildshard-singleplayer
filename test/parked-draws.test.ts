@@ -42,11 +42,12 @@ it('warms shared static geometry once but preserves material, shadow, callback a
   geometry.dispose(); material.dispose();
 });
 
-it('draws only the parked root\'s visible drawables, with every light, into a 1x1 scissor, and restores all state', async () => {
+it('draws only the parked root\'s visible drawables and camera-visible lights into a 1x1 scissor, and restores all state', async () => {
   const scene = new Scene(), road = mesh(), root = new Group(), inner = new Group();
-  const a = mesh(), b = mesh(), hidden = mesh(), offLayer = mesh(), cellLight = new PointLight(), sun = new PointLight();
+  const a = mesh(), b = mesh(), hidden = mesh(), offLayer = mesh(), cellLight = new PointLight(), sun = new PointLight(), privateLight = new PointLight();
+  privateLight.layers.set(7); privateLight.castShadow = true;
   hidden.visible = false; offLayer.layers.set(9); offLayer.frustumCulled = true; a.frustumCulled = true;
-  inner.add(b, hidden); root.add(a, inner, offLayer, cellLight); root.visible = false;
+  inner.add(b, hidden); root.add(a, inner, offLayer, cellLight, privateLight); root.visible = false;
   scene.add(road, root, sun);
   const camera = new PerspectiveCamera(), target = new WebGLRenderTarget(64, 64), env: Texture | null = null;
   const seen: { drawn: Object3D[]; lights: Object3D[]; rootVisible: boolean; scissor: Vector4; scissorTest: boolean; shadowAuto: boolean; target: ReturnType<ParkedDrawRenderer['getRenderTarget']> }[] = [];
@@ -80,6 +81,7 @@ it('draws only the parked root\'s visible drawables, with every light, into a 1x
   expect(target.scissor.toArray()).toEqual([0, 0, 64, 64]); expect(target.scissorTest).toBe(false);
   expect([shadowMap.autoUpdate, shadowMap.needsUpdate]).toEqual([true, true]);
   expect(a.frustumCulled).toBe(true); expect(a.layers.mask).toBe(1); expect(cellLight.layers.mask).toBe(1); expect(offLayer.layers.mask).toBe(1 << 9);
+  expect(privateLight.layers.mask).toBe(1 << 7); expect(privateLight.shadow.map).toBeNull();
   await expect(warmParkedDraws(renderer, scene, camera, target, root, () => false, () => Promise.resolve())).rejects.toThrow('Parked draw owner left');
 });
 

@@ -21,7 +21,7 @@ import { programObjectKey } from './precompile';
  * - the slice's shadow casters draw into a stand-in of each light's shadow map (`ShadowStandIns`: the real map's formats,
  *   one texel per cascade), so the depth pipelines are built too and no real map is touched (op-hitch33: Nalati's entry
  *   frame drew its casters' depth variants for the first time);
- * - the subtree is shown, its batch put on a private camera layer and unculled, and every light put on that layer,
+ * - the subtree is shown, its batch put on a private camera layer and unculled, and each light the entry camera sees put on that layer,
  *   only for the synchronous call; every flag is restored before the slice yields.
  *
  * Output is unchanged: nothing is drawn to the screen and no simulation advances. The only resources made are the shadow
@@ -217,7 +217,7 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
   // shadow-only casters (SHADOW_LAYER: the shadow pass sees them through the view camera) outside the slice sit it out
   const benched: { object: THREE.Object3D; mask: number }[] = [];
   scene.traverse(object => {
-    if (object instanceof THREE.Light) lights.push({ light: object, mask: object.layers.mask });
+    if (object instanceof THREE.Light) { if (object.layers.test(camera.layers)) lights.push({ light: object, mask: object.layers.mask }); }
     else if (!inSlice.has(object) && object.layers.isEnabled(SHADOW_LAYER)) benched.push({ object, mask: object.layers.mask });
   });
   const objects = slice.map(object => ({ object, mask: object.layers.mask, culled: object.frustumCulled, colour: object.layers.test(camera.layers) }));
