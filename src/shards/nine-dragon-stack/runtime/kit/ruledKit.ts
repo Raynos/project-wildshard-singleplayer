@@ -3,7 +3,7 @@
 // analytically (antialiased with fwidth, never a texture). Geometry is merged per region into one BufferGeometry: one
 // program, few draw calls. The pattern kinds (aPat.x) are the caller's material's own table.
 import { type Box3, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
-import { appendGeometry } from '@wildshard/game/systems/kit/bakedGeometry';
+import { appendGeometry } from '@wildshard/game/plugin/geometry';
 
 /** edge mask bits: which face borders get a ruled ink line */
 export const EDGE = { u0: 1, u1: 2, v0: 4, v1: 8, all: 15, rims: 12, sides: 3, none: 0 } as const;

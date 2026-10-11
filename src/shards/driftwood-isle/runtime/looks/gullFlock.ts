@@ -31,7 +31,7 @@ import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { ShaderFamily } from '@wildshard/game/systems/looks/shaderFamily';
+import { ShaderFamily } from '@wildshard/game/plugin/shaderFamily';
 
 /** a gull's colours as CSS colour strings */
 export interface GullPalette {

@@ -1,5 +1,5 @@
 import { createHeadlessPromptPicker as createPicker, bindHeadlessPrompts as bindPrompts, parsePromptRegistrations as parseRegistrations,
-  type HeadlessPrompt as Prompt, type HeadlessPromptPicker as Picker, type PromptRegistration as Registration } from '@wildshard/game/quest/headlessPrompts';
+  type HeadlessPrompt as Prompt, type HeadlessPromptPicker as Picker, type PromptRegistration as Registration } from '@wildshard/game/plugin/prompts';
 
 /** A live native prompt with its command act, position, reach, weak priority and exact sight association. */
 export type HeadlessPrompt = Prompt;

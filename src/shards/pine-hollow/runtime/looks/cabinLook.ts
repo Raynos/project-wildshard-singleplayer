@@ -2,7 +2,7 @@
 // standard material (world/homestead.ts applies them through @wildshard/sdk/looks/shaderEdits inside its patches) and the
 // hearth particles' program and kinds, and how the homestead moves and lights (CABIN_LIFE: @wildshard/sdk/props/buildingLife).
 import type { BuildingLifeLook } from '../props/buildingLife';
-import type { ShaderEditRow } from '@wildshard/game/systems/looks/shaderEdits';
+import type { ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
 import type { RiseParticleRow } from './riseParticles';
 
 /** the rough_pine_door scan is a saturated orange-red: pulled toward a weathered grey-brown */

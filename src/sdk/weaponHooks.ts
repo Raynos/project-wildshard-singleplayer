@@ -1,6 +1,6 @@
-import { installWeaponHooks as platformInstallWeaponHooks, type HookedWeapon as PlatformHookedWeapon, type WeaponHooksInstallation as PlatformWeaponHooksInstallation } from '@wildshard/game/shardfile/weaponHooksClient';
-import { parseWeaponHooks, type WeaponHookLane as PlatformWeaponHookLane, type WeaponHooksData as PlatformWeaponHooksData } from '@wildshard/game/shardfile/weaponHooks';
-import type { WeaponDamageInput as PlatformWeaponDamageInput, WeaponHooks as PlatformWeaponHooks } from '@wildshard/game/systems/items/weaponHooks';
+import { installWeaponHooks as platformInstallWeaponHooks, type HookedWeapon as PlatformHookedWeapon, type WeaponHooksInstallation as PlatformWeaponHooksInstallation, parseWeaponHooks, type WeaponHookLane as PlatformWeaponHookLane, type WeaponHooksData as PlatformWeaponHooksData, type WeaponDamageInput as PlatformWeaponDamageInput, type WeaponHooks as PlatformWeaponHooks } from "@wildshard/game/plugin/weaponHooks";
+
+
 
 /** A shard's validated weapon-hook declaration: one admitted module, the weapons it answers for, its parameters. */
 export type WeaponHooksData = PlatformWeaponHooksData;

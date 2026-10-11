@@ -1,8 +1,8 @@
 import { Group, Mesh, MeshStandardMaterial, Vector3, type BufferGeometry } from 'three';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { boxDesc } from '@wildshard/engine/world/registry';
-import { fitGeometry, withoutTriangles } from '@wildshard/game/systems/looks/modelLibrary';
-import type { NpcRow } from '@wildshard/game/quest/npcRow';
+import { fitGeometry, withoutTriangles } from '@wildshard/game/plugin/models';
+import type { NpcRow } from '@wildshard/game/plugin/quests';
 
 /**
  * A pivot NPC's figure (SF27): the row's model (`source`) fitted to its height, split into three meshes on pivots — the

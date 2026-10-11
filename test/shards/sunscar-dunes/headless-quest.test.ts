@@ -15,7 +15,7 @@ import { brazierFlag } from '../../../src/shards/sunscar-dunes/quests/brazierFla
 import { COMPLETE_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
 import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/headlessRows';
-import type { QuestGraphSpot as SignalSpot } from '../../../src/game/quest/questGraph';
+import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/quests';
 import { SIGNAL_GRAPH } from '../../../src/shards/sunscar-dunes/quests/graph';
 import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
 

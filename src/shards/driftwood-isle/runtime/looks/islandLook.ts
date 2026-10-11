@@ -2,7 +2,7 @@
 // @wildshard/sdk/looks/bakedIsland and @wildshard/sdk/looks/instancedTiles): its files, tile counts, reaches, material
 // settings, the placement name patterns and the GLSL edits of its terrain, props and cover (`@{name}` splices what the
 // SDK formats from the numbers here: the cover's reach to one decimal, the AO share to two, the clipped rect to three).
-import type { ShaderEditRow } from '@wildshard/game/systems/looks/shaderEdits';
+import type { ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
 
 /**
  * The tiers' numbers. Tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover.

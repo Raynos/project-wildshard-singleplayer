@@ -5,7 +5,7 @@
 // GLSL and the LUT's texel mapping; a trace's or a march's step count (`steps`, `stepsF`) comes from its pass row's
 // settings, one program per count. The three passes' targets, draws and per-frame uniforms are render-pass rows
 // (@wildshard/sdk/looks/renderPass): BLEED_PASS, REFLECT_PASS, HAZE_PASS.
-import type { ShaderProgramRow } from '@wildshard/game/systems/looks/shaderFamily';
+import type { ShaderProgramRow } from '@wildshard/game/plugin/shaderFamily';
 import type { RenderPassRow } from './renderPass';
 import { FOG_GLSL, NOISE_GLSL, STONES_GLSL } from './look';
 import { GLOW_COMP_GLSL, GLOW_PRE_GLSL, GRADE_GLSL } from './light';

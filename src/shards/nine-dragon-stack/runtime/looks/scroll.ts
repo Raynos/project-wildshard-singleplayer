@@ -2,7 +2,7 @@
 // rows): the program's GLSL and row and the screens' default settings, for the SDK shader family
 // (@wildshard/game/systems/looks/shaderFamily); `@{name}` splices what look/style.ts passes the family. look/scroll.ts loads the
 // painting and makes each screen's material; the organic lab's notes are there.
-import type { ShaderProgramRow } from '@wildshard/game/systems/looks/shaderFamily';
+import type { ShaderProgramRow } from '@wildshard/game/plugin/shaderFamily';
 import { FOG_GLSL, NOISE_GLSL } from './look';
 
 export const VS_SCROLL = /* glsl */ `

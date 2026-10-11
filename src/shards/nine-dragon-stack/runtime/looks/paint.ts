@@ -2,7 +2,7 @@
 // explicit surfaces, the flagstone layout, the paint's uniforms as rows and its GLSL, spliced into the world programs by
 // look/style.ts (`@{paint}`) for the SDK shader family (@wildshard/game/systems/looks/shaderFamily). look/paint.ts loads the
 // array; the lab's notes are there.
-import type { UniformRows } from '@wildshard/game/systems/looks/shaderFamily';
+import type { UniformRows } from '@wildshard/game/plugin/shaderFamily';
 
 /** the array layers, in order; `scale` = the ratio's storage scale (texprep.py spec.json `scale`) */
 export const LAYERS = [

@@ -1,7 +1,7 @@
 // Nine Dragon's viewmodel look as data (SHARD-PLATFORM M3): the material classes, the class palette, the toon program's
 // and the ink hull's GLSL and the program's tuning as uniform rows. vm/materials.ts draws the decal atlas and makes the
 // materials; the comment at its head describes the look.
-import type { UniformRows } from '@wildshard/game/systems/looks/shaderFamily';
+import type { UniformRows } from '@wildshard/game/plugin/shaderFamily';
 
 /** the material classes (aMat.x); materials.ts paints by class, a GLB names them by its material names */
 export const CLS = {

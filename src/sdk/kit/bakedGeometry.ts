@@ -1,4 +1,4 @@
-import { BAKED_BYTES as platformBakedBytes, appendGeometry as platformAppendGeometry, bakedGeometryBytes as platformBakedGeometryBytes, pad4 as platformPad4, readBakedGeometry as platformReadBakedGeometry, type BakedGeometryRow as PlatformBakedGeometryRow, type BakedType as PlatformBakedType } from '@wildshard/game/systems/kit/bakedGeometry';
+import { BAKED_BYTES as platformBakedBytes, appendGeometry as platformAppendGeometry, bakedGeometryBytes as platformBakedGeometryBytes, pad4 as platformPad4, readBakedGeometry as platformReadBakedGeometry, type BakedGeometryRow as PlatformBakedGeometryRow, type BakedType as PlatformBakedType } from '@wildshard/game/plugin/geometry';
 
 /** An attribute's element type in a geometry bake ('f16' is a half float held in a Uint16Array). */
 export type BakedType = PlatformBakedType;

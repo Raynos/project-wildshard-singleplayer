@@ -1,6 +1,5 @@
-import { admitSpeciesBrains, type BrainedSpecies as PlatformBrainedSpecies, type SpeciesBrain as PlatformSpeciesBrain,
-  type SpeciesBrains as PlatformSpeciesBrains } from '@wildshard/game/shardfile/speciesBrains';
-import { moduleBytes } from '@wildshard/game/shardfile/speciesScripts';
+import { admitSpeciesBrains, type BrainedSpecies as PlatformBrainedSpecies, type SpeciesBrain as PlatformSpeciesBrain, type SpeciesBrains as PlatformSpeciesBrains, moduleBytes } from "@wildshard/game/plugin/brain";
+
 import { strike, type StrikeData } from './species';
 
 /** A species row's declared brain (SHARD-PLATFORM SF27): `{ archetype, data }`, one platform archetype and its data. */

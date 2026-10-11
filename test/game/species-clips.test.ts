@@ -16,7 +16,7 @@ import { DUNE_MATRIARCH_LOOK } from '../../src/shards/sunscar-dunes/species/matr
 import { DRIFT_RAY_LOOK } from '../../src/shards/far-reach/species/driftRay';
 import { SKY_GOAT_LOOK } from '../../src/shards/far-reach/species/skyGoat';
 import { GALE_WISP_LOOK } from '../../src/shards/far-reach/species/galeWisp';
-import { playClips, type ClipCtx, type SpeciesClips } from '../../src/game/systems/species/clips';
+import { playClips, type ClipCtx, type SpeciesClips } from '../../src/game/plugin/animation';
 import pinned from './species-clips.json' with { type: 'json' };
 
 /** A small deterministic generator (mulberry32), so a trace is the same on every machine. */

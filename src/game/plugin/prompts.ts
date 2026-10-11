@@ -1,11 +1,11 @@
-import type { SimHost } from '@wildshard/engine/sim';
-import { pickPrompt, setPromptSight, type PromptTarget } from '@wildshard/engine/world/interact/prompts';
-import * as v from 'valibot';
+import type { SimHost } from "@wildshard/engine/sim";
+import { pickPrompt, setPromptSight, type PromptTarget } from "@wildshard/engine/world/interact/prompts";
+import * as v from "valibot";
 
-const finite = v.pipe(v.number(), v.finite());
-const point = v.strictObject({ x: finite, y: finite, z: finite });
-const nonnegative = v.pipe(finite, v.minValue(0));
-const registration = v.strictObject({ id: v.nullable(v.pipe(v.string(), v.minLength(1), v.maxLength(128))), position: point,
+const headlessPromptsFinite = v.pipe(v.number(), v.finite());
+const headlessPromptsPoint = v.strictObject({ x: headlessPromptsFinite, y: headlessPromptsFinite, z: headlessPromptsFinite });
+const nonnegative = v.pipe(headlessPromptsFinite, v.minValue(0));
+const registration = v.strictObject({ id: v.nullable(v.pipe(v.string(), v.minLength(1), v.maxLength(128))), position: headlessPromptsPoint,
   radius: nonnegative, weak: v.exactOptional(v.boolean()), sight: v.strictObject({ slack: nonnegative, body: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(256))) }) });
 /** Ordered native page captures; owner strings come from actual registered sight identities. */
 export type PromptRegistration = v.InferOutput<typeof registration>;

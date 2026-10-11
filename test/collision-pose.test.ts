@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Bone, Group, Matrix4, Vector3 } from 'three';
-import { CollisionPose } from '../src/game/combat/collisionPose';
+import { CollisionPose } from '../src/game/plugin/animation';
 
 describe('collision-only joint FK', () => {
   it('equals live joint anchors across scale, tilt and all rotations', () => {

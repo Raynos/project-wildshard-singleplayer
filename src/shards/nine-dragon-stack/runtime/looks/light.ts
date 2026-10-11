@@ -3,7 +3,7 @@
 // uniforms and GLSL (the bleed pyramid's prefilter and the composite), the grade's GLSL, the pools' and halos' tuning,
 // the phone's halo program and the lab's settings. look/light/* bakes the volume, gathers the pools, builds the halos and
 // installs the light; the lab's notes are there.
-import type { ShaderProgramRow, UniformRows } from '@wildshard/game/systems/looks/shaderFamily';
+import type { ShaderProgramRow, UniformRows } from '@wildshard/game/plugin/shaderFamily';
 import { EMIT_FOG, FOG_GLSL } from './look';
 
 // ── the light volume (look/light/lightvol.ts) ──

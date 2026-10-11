@@ -1,4 +1,4 @@
-import { clipAnimate as platformClipAnimate, playClips as platformPlayClips, type ClipCase as PlatformClipCase, type ClipChannel as PlatformClipChannel, type ClipClock as PlatformClipClock, type ClipCtx as PlatformClipCtx, type ClipFactor as PlatformClipFactor, type ClipRow as PlatformClipRow, type ClipTerm as PlatformClipTerm, type ClipWhen as PlatformClipWhen, type SpeciesClips as PlatformSpeciesClips } from '@wildshard/game/systems/species/clips';
+import { clipAnimate as platformClipAnimate, playClips as platformPlayClips, type ClipCase as PlatformClipCase, type ClipChannel as PlatformClipChannel, type ClipClock as PlatformClipClock, type ClipCtx as PlatformClipCtx, type ClipFactor as PlatformClipFactor, type ClipRow as PlatformClipRow, type ClipTerm as PlatformClipTerm, type ClipWhen as PlatformClipWhen, type SpeciesClips as PlatformSpeciesClips } from '@wildshard/game/plugin/animation';
 
 /** The clocks a clip factor reads: the animal's time or its gait phase. */
 export type ClipClock = PlatformClipClock;

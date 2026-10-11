@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import { test, type Flags } from '@wildshard/engine/world/interact/flags';
-import { createHeadlessPromptPicker, type HeadlessPrompt } from './headlessPrompts';
+import { createHeadlessPromptPicker, type HeadlessPrompt } from '../plugin/prompts';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
 const names = v.pipe(v.array(name), v.maxLength(64));

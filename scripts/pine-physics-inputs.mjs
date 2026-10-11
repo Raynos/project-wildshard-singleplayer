@@ -20,6 +20,7 @@ export function pinePhysicsInputs(root) {
     }
   };
   for (const dir of ['data', 'world', 'models', 'species', 'combat', 'runtime/looks', 'runtime/kit', 'runtime/props', 'runtime/npc', 'runtime/species', 'runtime/cull', 'runtime/viewmodel', 'runtime/items', 'runtime/brains']) walk(`src/shards/pine-hollow/${dir}`, path => /\.(?:ts|json)$/u.test(path));
+  paths.push('src/game/plugin/animation.ts');
   walk('src/game/systems/species', path => path.endsWith('.ts'));
   walk('public/assets/pine-hollow/creatures', path => path.endsWith('.glb'));
   return Object.fromEntries(paths.sort().map(path => [path, createHash('sha256').update(readFileSync(join(root, path))).digest('hex')]));

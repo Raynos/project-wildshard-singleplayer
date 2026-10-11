@@ -14,8 +14,8 @@ import { legacyDouble } from '../fake/FakeGame';
 import { digest, isMesh, geometrySum, materialRow, objectRow, mockCanvas, q4, round, v3 } from '../fake/weaponParity';
 // oxlint-disable-next-line import/no-nodejs-modules -- The hooked trace admits the shard's actual immutable module bytes.
 import { readFileSync } from 'node:fs';
-import type { WeaponHooks } from '../../src/game/systems/items/weaponHooks';
-import { createWeaponHookLane, parseWeaponHooks } from '../../src/game/shardfile/weaponHooks';
+import { type WeaponHooks, createWeaponHookLane, parseWeaponHooks } from "../../src/game/plugin/weaponHooks";
+
 import hookDeclaration from '../../src/shards/nalati-grasslands/behaviour/weapons.json';
 
 /**

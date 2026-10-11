@@ -5,7 +5,7 @@ import { Flags } from '../../src/engine/world/interact/flags';
 import { createSimHost } from '../../src/engine/sim';
 import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
 import { DeclaredQuests } from '../../src/game/quest/declared';
-import { compileQuestTable, installQuestGraph, parseQuestGraph } from '../../src/game/quest/questGraph';
+import { compileQuestTable, installQuestGraph, parseQuestGraph } from '../../src/game/plugin/quests';
 import { InteractionRules, parseInteractionRows } from '../../src/game/quest/interactionRows';
 import { parseNpcDialogueRow } from '../../src/sdk/questGraph';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';

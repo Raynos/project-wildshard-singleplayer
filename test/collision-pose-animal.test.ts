@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { it, expect } from 'vitest';
 import { Bone, Group, Vector3, type EulerOrder } from 'three';
-import { CollisionPose } from '../src/game/combat/collisionPose';
+import { CollisionPose } from '../src/game/plugin/animation';
 import { CollisionPose as ShippingCollisionPose } from './fixtures/animal-pose/collisionShipping';
 
 const joints = [{parent:-1,position:[0,1.5,-.1]},{parent:0,position:[0,.5,.6]},{parent:1,position:[0,.3,.3]}] as const;

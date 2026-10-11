@@ -6,15 +6,15 @@ import { addBakedTerrainCollider } from '@wildshard/engine/physics/terrainTiles'
 import { addPiece } from '@wildshard/engine/physics/pieces';
 import type { Material } from '@wildshard/engine/physics/surface';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
-import { installSpeciesHomes, type BrainedSpecies } from '@wildshard/game/shardfile/speciesBrains';
+import { installSpeciesHomes, type BrainedSpecies } from '@wildshard/game/plugin/brain';
 import type { KeptHomeRow, KeptBossRow } from '@wildshard/game/shardfile/homeKeeper';
 import { installMarkedBossRow, type MarkedBossRowSpec } from './shardfile/markedBossRow';
 import { installLashHost, type LashCommand, type LashHostSpec, type LashTargetRow } from './items/lashHost';
-import { installQuestGraph, type QuestGraphPorts, type QuestGraphRows } from '@wildshard/game/quest/questGraph';
+import { installQuestGraph, type QuestGraphPorts, type QuestGraphRows } from '@wildshard/game/plugin/quests';
 import { proveTerrainEntries, type TerrainEntryWalk } from '@wildshard/game/shardfile/terrainEntries';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
-import { parsePromptRegistrations } from '@wildshard/game/quest/headlessPrompts';
+import { parsePromptRegistrations } from '@wildshard/game/plugin/prompts';
 
 /**
  * A trusted runtime's renderer-free host declared as rows (SHARD-PLATFORM SF27): the browser-baked metadata (`baked`:

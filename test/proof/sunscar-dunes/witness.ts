@@ -13,7 +13,7 @@ import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan } from '../../../
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { HeadlessSimulation } from '../../../src/sdk/headless';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
-import type { QuestGraphSpot as SignalSpot } from '../../../src/game/quest/questGraph';
+import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/quests';
 import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/quests/interactions';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/runtime/quest/matriarchFight';
 import { lashContact } from '../../../src/shards/sunscar-dunes/runtime/items/lash';

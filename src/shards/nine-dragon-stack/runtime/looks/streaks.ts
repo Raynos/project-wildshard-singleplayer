@@ -2,7 +2,7 @@
 // program's GLSL and row, the look and the cut, the stair's gains, for the SDK shader family
 // (@wildshard/game/systems/looks/shaderFamily). The flag layout's GLSL is data/paint.ts'; `@{name}` splices what look/style.ts
 // passes the family (the datum, the flagstones' course height).
-import type { ShaderProgramRow } from '@wildshard/game/systems/looks/shaderFamily';
+import type { ShaderProgramRow } from '@wildshard/game/plugin/shaderFamily';
 import type { ReflectCardRow, StairCardRow } from './reflectionCards';
 import { FOG_GLSL, NOISE_GLSL, STONES_GLSL } from './look';
 import { NOISE_VS } from './light';

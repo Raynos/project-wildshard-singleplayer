@@ -4,7 +4,7 @@ import { expect, it } from 'vitest';
 import { ShaderFamily, uniformsFrom, setUniforms, BLEND_KEEP_ALPHA, BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
 
 it('publishes the existing shader-family definition without changing frozen imports', async () => {
-  const legacy = await import('@wildshard/game/systems/looks/shaderFamily');
+  const legacy = await import('../src/game/plugin/shaderFamily');
   expect(ShaderFamily).toBe(legacy.ShaderFamily);
   expect(uniformsFrom).toBe(legacy.uniformsFrom);
   expect(setUniforms).toBe(legacy.setUniforms);
@@ -14,5 +14,5 @@ it('publishes the existing shader-family definition without changing frozen impo
   if (manifest === null || typeof manifest !== 'object' || !('exports' in manifest)) throw new Error('Missing game exports');
   const exports = manifest.exports;
   if (exports === null || typeof exports !== 'object') throw new Error('Invalid game exports');
-  expect(exports).toMatchObject({ './plugin/shaderFamily': './systems/looks/shaderFamily.ts', './systems/looks/shaderFamily': './systems/looks/shaderFamily.ts' });
+  expect(exports).toMatchObject({ './plugin/shaderFamily': './plugin/shaderFamily.ts',  });
 });

@@ -11,7 +11,7 @@ import {
   AddEquation, type BufferGeometry, CustomBlending, EqualDepth, LinearFilter, LinearMipmapLinearFilter, Mesh, OneFactor,
   type ShaderMaterial, type Texture, TextureLoader, ZeroFactor,
 } from 'three';
-import { type ShaderFamily, type UniformMap, type UniformRows, uniformsFrom } from '@wildshard/game/systems/looks/shaderFamily';
+import { type ShaderFamily, type UniformMap, type UniformRows, uniformsFrom } from '@wildshard/game/plugin/shaderFamily';
 import { type Emitter, bakeSpill } from './vertexSpill';
 import { phoneUrl } from '@wildshard/engine/boot/bytes';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';

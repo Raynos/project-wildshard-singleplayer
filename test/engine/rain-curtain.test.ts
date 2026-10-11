@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { expect, it } from 'vitest';
 import { rainCurtain } from '../../src/game/systems/looks/rainCurtain';
 import { fogGLSL } from '../../src/game/systems/looks/fogProgram';
-import { ShaderFamily } from '../../src/game/systems/looks/shaderFamily';
+import { ShaderFamily } from '../../src/game/plugin/shaderFamily';
 import { PINE_RAIN_PROGRAMS } from '../../src/shards/pine-hollow/runtime/looks/weatherLook';
 import { RAIN_PROGRAM as STEPPE_RAIN } from '../../src/shards/nalati-grasslands/world/rainProgram';
 import frozen from './fixtures/rain-curtain-e357.json';

@@ -5,7 +5,7 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { CELL } from '../world/blenderArea';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { editShader, spliceEdits, type ShaderEditRow } from '@wildshard/game/systems/looks/shaderEdits';
+import { editShader, spliceEdits, type ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
 
 /**
  * A baked island's generic parts (SHARD-PLATFORM M3; ex a shard's Blender-island install): an area of the world rebuilt

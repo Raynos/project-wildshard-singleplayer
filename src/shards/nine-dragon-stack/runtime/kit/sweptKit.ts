@@ -4,7 +4,7 @@
 // color, aFace, aPat, aMisc, aOff), so both merge into one geometry, one program, one draw call (`mergeKits`).
 import { type Box3, BufferGeometry, Color, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { appendGeometry } from '@wildshard/game/systems/kit/bakedGeometry';
+import { appendGeometry } from '@wildshard/game/plugin/geometry';
 
 /** the same look the ruled kit takes (wash colour, pattern kind + params, emit, line weight, edge bits) */
 export interface SweptLook {

@@ -41,13 +41,13 @@ for exact SF73-registered frozen callers only. Primaries own Nalati `models/npc/
 `npc/faceHeads`; `wildshard/legacy-npc-imports` rejects every other caller. The historical internal type dependency is
 kept, and each definition/export is deleted with its last registered legacy consumer. No aliases or frozen edits.
 
-`@wildshard/game/systems/effects/install` (`installStarterEffects` and its status-icon row; trusted runtimes use
+`@wildshard/game/plugin/effects` (`installStarterEffects` and its status-icon row; trusted runtimes use
 `@wildshard/sdk/runtime/effects`), `@wildshard/game/systems/items/declared` (`declaredKitItemFamilies`),
 `@wildshard/game/systems/tools/hoverboard` and `@wildshard/game/icons` (with `src/game/icons.merge.d.ts`) moved unchanged
 from the kit, and its weapon compatibility names gave way to the defining `@wildshard/game/weapons/*` and engine
 modules (SF54). That emptied the kit: `@wildshard/kit`, its workspace entry and its guard layer are deleted.
 
-`@wildshard/game/systems/effects/starter.STARTER_EFFECTS` owns the typed runtime
+`@wildshard/game/plugin/effects.STARTER_EFFECTS` owns the typed runtime
 view of the build-only commons effects pack. The SDK exposes the same rows through
 `runtime/effects`; `pnpm gen` and direct Vite/native builds generate their literal
 table before compilation. Runtime imports hold no commons code and apply nothing.
@@ -1524,7 +1524,7 @@ The practice predicate isolates the room when true, even when it has no targets.
 | `EffectDef` | `{ id: 'effect.*', tags, kind: 'instant' · 'timed' · 'permanent', duration?, period?, modifiers, stacking, cue?, icon?, blockedBy?, grants? … }` |
 | `EffectService`, `EffectTarget`, `EffectId`, `ActiveEffect`, `AttributeSet`, `matchesTag` | `apply(target, id, source?)`, `remove(target, id)`, `has(target, tag)` |
 
-The starter set (`@wildshard/game/systems/effects/starter`) is `effect.poison`, `effect.burn`, `effect.bleed`, `effect.slow`, `effect.stun`
+The starter set (`@wildshard/game/plugin/effects`) is `effect.poison`, `effect.burn`, `effect.bleed`, `effect.slow`, `effect.stun`
 (`STARTER_EFFECTS`, `installStarterEffects`). Register rows with `ctx.rows.effect(STARTER_EFFECTS)` in `kit`.
 
 **Ranged ports** (the game's families use them; a custom ranged weapon may too): `Projectiles`, `projectileFlightStep`,
@@ -1566,7 +1566,7 @@ Import `AnimalSim` from `@wildshard/engine/entities/AnimalSim` for creature stat
 
 `@wildshard/engine/entities/animalRig` defines numeric transform ports (`AnimalRigJoint`, `AnimalRigContext`) and the shipping `QuadrupedRigPose` channel-to-joint law. Construct it once with the existing named joints, then `apply(pose, dt, clock)` at the owner's nearby-pose phase. It writes local position, Euler rotation and scale only; it never creates a bone, scene, mesh, scheduler or collision publication. `snapshot()` / `restore(number)` own the breathing phase only; restore joint transforms through their existing owner and preserve last-published collision history separately. `applyAnimalRoot` copies the final actor position and applies the same terrain/flinch YXZ root tilt. These defining functions do not activate a page or native controller by import.
 
-`@wildshard/game/combat/collisionPose` resolves ordered plain collision joints under an owner-supplied frame. Optional `CollisionJoint.order` and `scale` retain YXZ/unit defaults. `set(index, offset, angles, scale?)` poses relative to rest; `setLocal(index, CollisionTransform)` takes a numeric absolute local transform and its current Euler order without subtracting and re-adding rest offsets. Both write locals only. `solve(frame)` explicitly publishes world joints; point/capsule queries keep the previous publication until then. Upright y capsules follow the scaled y axis directly, while x/z capsule pitch keeps the existing formula.
+`@wildshard/game/plugin/animation` resolves ordered plain collision joints under an owner-supplied frame. Optional `CollisionJoint.order` and `scale` retain YXZ/unit defaults. `set(index, offset, angles, scale?)` poses relative to rest; `setLocal(index, CollisionTransform)` takes a numeric absolute local transform and its current Euler order without subtracting and re-adding rest offsets. Both write locals only. `solve(frame)` explicitly publishes world joints; point/capsule queries keep the previous publication until then. Upright y capsules follow the scaled y axis directly, while x/z capsule pitch keeps the existing formula.
 
 `AnimalSim.advancePose(law, dt, t, near, advanceAttack = false, debugGait?)` samples the actor's scalar pose clocks after body motion, advances the supplied numeric law, and returns updated flinch/brace/death history to the same actor. It never moves, decides, draws or publishes joints. The default leaves the attack clock with `step`; a legacy view that called `stepMotion` passes `true`. `samplePoseTerrain(law)` updates targets at the existing owner's sampling cadence without stepping anything.
 
@@ -1859,7 +1859,7 @@ including the inside-surface refusal. `ITEM_PICKUP_HOVER` defines its 0.78 m hov
 reach, first-row equal-distance ties and strong-before-weak priority. Visibility queries the actual native world;
 a first hit on the target's exact registered or reconstructed owner also counts as visible. The owner association
 is weakly held by the prompt. A null boot world retains distance-only picking; admitted native hosts supply physics.
-`@wildshard/game/quest/headlessPrompts` and `@wildshard/sdk/runtime/prompts` define
+`@wildshard/game/plugin/prompts` and `@wildshard/sdk/runtime/prompts` define
 `parsePromptRegistrations`, `bindHeadlessPrompts` and `createHeadlessPromptPicker`. Signal Dunes and Driftwood
 use this one client prompt law in their native hosts: eye = authoritative feet + 1.68 m, strict reach,
 stable page registration order, strong-before-weak priority and actual-world LOS. Captures retain native sight
@@ -2341,10 +2341,10 @@ projectile or script lane. Existing families without it keep their previous row.
 
 `@wildshard/game/systems/items/lash` provides renderer-free `LashRuntime` for a declared weapon row. `lashSpec` combines its contact, damage and cooldown data with lash timing and move ids. The owner supplies aim, combat targets, world crack targets and the damage pipeline; `cool` and `advance` run on its existing clock. `snapshot` / `restore` retain the unroll and second-lash continuation. The browser keeps its cord and charge view while the headless owner supplies physical contact volumes. `lashVolumeHit`, `lashLane` and `lashContact` share the contact geometry. `@wildshard/game/systems/items/lashHost` `installLashHost(host, { step, row, timing, moves, eye, commands, targets })` is a declared lash weapon in the renderer-free host (SF27): locked on, each lash leaves the player's eye toward the commanded creature's body or a world command's target spot (a target gone keeps the last aim); it takes the first body it meets (head balls and body capsules), else a chest in its lane, else a target row's spot (`LashTargetRow`: an interaction row's act, its spot and radius, and `crack: 'light'` — a crack's first lash — or `'heavy'` — the double crack's second, its first wraps); `cracked()` names the act it reached this tick, which the interaction step's crack rows read. Its continuation is `{ version: 2, …lash, target, world, dir }`. Signal's whip is the first (`data/headless.ts` SIGNAL_HEADLESS.lash, the well's crank and the waymark bowls as its targets).
 
-`@wildshard/game/systems/items/weaponHooks` is the weapon families' hook surface (SF36). A family holds
+`@wildshard/game/plugin/weaponHooks` is the weapon families' hook surface (SF36). A family holds
 `hooks: WeaponHooks | null` (null, the default, is its row rule) and asks `hooks.damage({ phase, base, facts })` where it
 computes a number a shard may own; a null answer keeps the row rule, so a hook can never stop a weapon working. The
-mounted sword asks at its pass slash (phase `pass`, facts `speed` and `links`). `@wildshard/game/shardfile/weaponHooks`
+mounted sword asks at its pass slash (phase `pass`, facts `speed` and `links`). `@wildshard/game/plugin/weaponHooks`
 validates a shard's declaration (`{ id, entity, module, parameters, weapons: [{ weapon, damage: { event, phases, facts,
 min, max } }] }`), checks the module's SHA-256 and admits it on its own `ScriptHost` under the unchanged ABI-v0 fuel,
 memory, event, query and failure ceilings; `WeaponHookLane.hooks(weaponId)` refuses an undeclared weapon. Each call is its
@@ -2352,14 +2352,14 @@ own script tick with the inputs `[tick, 0, 1 (damage), entity, phase, weapon, ba
 declared event whose integer value lies in `[min, max]`; a trap, a fuel overrun, a stray effect or an out-of-bounds fact
 declines. `parameters` reach the module through the parameter query (410). The module's memory and globals return to their
 admitted snapshot after every call, so a hook is pure and carries no continuation. `installWeaponHooks`
-(`@wildshard/game/shardfile/weaponHooksClient`) fetches and admits behind the default-off Developer "Shard directors
+(`@wildshard/game/plugin/weaponHooksClient`) fetches and admits behind the default-off Developer "Shard directors
 (data)" row and clears the hooks with the level scope. Nalati's sabre is the first: `behaviour/weapons.as`,
 `behaviour/weapons.json` (rebuilt by `node scripts/bake/weapon-hooks.mjs` in a clean export), and
 `test/combat/mounted-sword-parity.test.ts` plays its twenty-second trace identically on the hook.
 
 `@wildshard/engine/ai/strikeRows` binds admitted `StrikeData` to the existing `StrikeRunner`. Scores are data (`constant` or `horizontal-distance` with a strict `above` boundary), evaluated without RNG, rendering or actor memory; `range: null` explicitly preserves an unlimited native contact range. `@wildshard/sdk/species` validates these rows and gameplay-only species data before native registration. Brain callbacks and view recipes stay with the trusted runtime.
 
-**Species brains (SF27).** `@wildshard/game/shardfile/speciesBrains` (SDK `@wildshard/sdk/speciesBrains`) puts a
+**Species brains (SF27).** `@wildshard/game/plugin/brain` (SDK `@wildshard/sdk/speciesBrains`) puts a
 platform brain on a species row: `brain: { archetype, data }`, today `challenge-grazer` (with `phaseSlots`: the actor
 seed's slot in `[0, phaseSlots)` is its circling phase, `seedSlot`) or `patrol-diver`, its data the archetype's strict
 schema (`shardfile/grazers`, `shardfile/flyers`). `speciesBrains(species, strikes)` admits a catalogue: each strike row
@@ -2379,7 +2379,7 @@ admitted `{ archetype, policy }`; it retains native contact, rise/sink, perch an
 and restore perform no decisions or RNG draws. Automatic `bind` / `policy` without that body ownership refuses.
 
 **Species scripts (SF27).** A row's brain may be `{ archetype: 'script', data }`
-(`@wildshard/game/shardfile/speciesScripts`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,
+(`@wildshard/game/plugin/brain`): an AssemblyScript module (`module`, its SHA-256) with up to 64 parameters,
 up to 8 numeric `slots` (its state, with spawn values), up to 4 actor `memory` fields it reads and writes (a pose's
 `mem`, with spawn values), `maxSpeed` / `maxTurnRate` and a catalogue of 1–8 `{ event, strike }`. `speciesBrains(species,
 strikes, modules)` takes the module as the base64 its bake wrote (`scripts/bake/species-scripts.mjs`), checks its hash
@@ -2453,11 +2453,11 @@ Signal’s `runtime/looks/stormShell.ts` `stormShellMaterial`) and its toasts; t
 Headless, Signal’s `runtime/shardfile/markedBossRow.ts` `installMarkedBossRow(host, spec, { body, fact, coins })` runs the same
 rows on `installBossRow`, its victory raising `spec.victory.flag` and emitting its fact.
 
-`@wildshard/game/quest/questGraph` `installQuestGraph(host, { quests, interactions, npcs, graph }, ports)` runs a shard's
+`@wildshard/game/plugin/quests` `installQuestGraph(host, { quests, interactions, npcs, graph }, ports)` runs a shard's
 declared quest graph headless (SF27): `DeclaredQuests` plus the interaction step at the baked spots and each quest-giver's
 talk spot, its runtime row (`parseQuestGraph`: `actor`, `step`, `actions`: `{ row, summon }` arms a boss when the row
 runs). `drive: "external"` lets an existing modal/ride owner deliver `run(id)` without a second step or snapshot; transient marks refuse without their own continuation. `compileQuestTable(table, bindings)` compiles only supported latched-lever, pickup and bench flag effects, preserving ordered sets and leaving geometry, inventory and sitting with their existing owners.
-A skinned NPC can use `parseNpcDialogueRow` (SDK `questGraph`) to validate its unchanged dialogue without inventing pivot-body data. A quest-giver is an NPC row (`@wildshard/game/quest/npcRow` `parseNpcRow`, `npcDef`, `npcSpot`): id, name, talk spot,
+A skinned NPC can use `parseNpcDialogueRow` (SDK `questGraph`) to validate its unchanged dialogue without inventing pivot-body data. A quest-giver is an NPC row (`@wildshard/game/plugin/quests` `parseNpcRow`, `npcDef`, `npcSpot`): id, name, talk spot,
 place, home facing, met flag, talk height and reach, face and wave ranges, its solid column, its pivot figure (model,
 height, neck, shoulder, arm cut, material) and its dialogue. Signal’s private `runtime/quest/pivotNpc.ts`
 `installPivotNpc(ctx, row, { source, groundAt, player, met, file, dress })` stands it in a level; `pivotNpcParts` is its
@@ -2606,11 +2606,9 @@ runtime modules. Frozen registered legacy copies retain their compatibility inpu
 The current migration inventory is reproducible with `node scripts/game-plugins.mjs`:
 it follows primary shards' runtime closures to their SDK facade imports and lists
 those facades' defining game targets alongside direct game consumers. Context and
-plugin installation use `shard/context`, `shard/plugin`, `shard/runtime`;
-brain policies use `shardfile/speciesBrains` and `shardfile/brainRuntime`;
-weapon bindings use `shardfile/hybridRows`, `shardfile/items` and
-`shardfile/weaponHooks`; boss phases use `shardfile/bossFight` and
-`shardfile/phasedBoss`. These existing modules are exported directly, not rebound.
+plugin installation use `plugin/context` and `plugin/shardPlugin`; brain policies
+use `plugin/brain`; weapon bindings use `plugin/headless` and
+`plugin/weaponHooks`; boss phases use `plugin/bossPhase`. These existing modules are exported directly, not rebound.
 The inventory is evidence of current reachability, not permission to keep one-user
 systems in the game: SF76 deletes their facades and moves their implementations home.
 
@@ -2619,6 +2617,8 @@ report-only mode during SF76. It flags imports outside `runtime/`, unpublished
 modules, relative bypasses, and computed game module names. Existing layer,
 public-index and sandbox checks remain active. Promote this rule to `error` in the
 root config after the move-backs; its tests already exercise enforcement.
+
+The defining plugin modules also own shared geometry packing (`plugin/geometry`), model and atlas registries (`plugin/models`), quest rows (`plugin/quests`), native prompt selection (`plugin/prompts`), weapon hook admission (`plugin/weaponHooks`), collision pose and clip metadata (`plugin/animation`), and starter effect installation (`plugin/effects`). Their implementations live in these modules; consumers do not pass through forwarding facades. Frozen compatibility keys remain until their registered consumers retire.
 
 ## Trusted plugin definitions (SF79 DS0.2)
 

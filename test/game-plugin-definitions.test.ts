@@ -5,7 +5,7 @@ import { expect, it } from 'vitest';
 const definitions=[
   {key:'./plugin/lifecycle',target:'./plugin/lifecycle.ts',old:'./shard/retainedHooks',load:async()=>[await import('@wildshard/game/plugin/lifecycle'),await import('@wildshard/game/shard/retainedHooks')]},
   {key:'./plugin/headless',target:'./plugin/headless.ts',old:'./shardfile/hybridRows',load:async()=>[await import('@wildshard/game/plugin/headless'),await import('@wildshard/game/shardfile/hybridRows')]},
-  {key:'./plugin/brain',target:'./plugin/brain.ts',old:'./shardfile/speciesBrains',load:async()=>[await import('@wildshard/game/plugin/brain'),await import('@wildshard/game/shardfile/speciesBrains')]},
+  {key:'./plugin/brain',target:'./plugin/brain.ts',old:null,load:async()=>[await import('@wildshard/game/plugin/brain'),await import('@wildshard/game/plugin/brain')]},
   {key:'./plugin/bossPhase',target:'./plugin/bossPhase.ts',old:null,load:async()=>[await import('@wildshard/game/plugin/bossPhase'),await import('../src/game/plugin/bossPhase')]},
   {key:'./plugin/mover',target:'./plugin/mover.ts',old:'./shardfile/moverRuntime',load:async()=>[await import('@wildshard/game/plugin/mover'),await import('@wildshard/game/shardfile/moverRuntime')]},
   {key:'./plugin/director',target:'./plugin/director.ts',old:'./shardfile/directorClient',load:async()=>[await import('@wildshard/game/plugin/director'),await import('@wildshard/game/shardfile/directorClient')]},

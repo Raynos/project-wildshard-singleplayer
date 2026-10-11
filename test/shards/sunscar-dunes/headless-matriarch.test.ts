@@ -17,7 +17,7 @@ import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/runtime/quest/matriarchFight';
 import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/headlessRows';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
-import type { QuestGraphSpot as SignalSpot } from '../../../src/game/quest/questGraph';
+import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/quests';
 import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;

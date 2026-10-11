@@ -175,7 +175,7 @@ export const DONE = {
     'src/engine/world/interact/Interactables.ts': { why: "draws the interactables' copies (models in src/engine/models/interact.ts, placed drawnInto its batches)", counts: { BatchedMesh: 2 } },
     'src/engine/world/lowpolyKit.ts': { why: "a geometry kit the models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
     'src/engine/world/geometryKit.ts': { why: "the engine geometry kit's shape builders (a rope's segments merged; no thing of its own)", counts: { mergeGeometries: 1 } },
-    'src/game/systems/kit/mergedPrimitives.ts': { why: "the kit system's merged primitives (SHARD-PLATFORM M3, from Pine Hollow's models/antlerKing.ts, a models file): a worn prop's primitive parts (a lantern frame, a ribcage) merged into one geometry, no thing of its own", counts: { mergeGeometries: 1 } },
+    'src/game/plugin/geometry.ts': { why: "the kit system's merged primitives (SHARD-PLATFORM M3, from Pine Hollow's models/antlerKing.ts, a models file): a worn prop's primitive parts (a lantern frame, a ribcage) merged into one geometry, no thing of its own", counts: { mergeGeometries: 1 } },
   },
 };
 

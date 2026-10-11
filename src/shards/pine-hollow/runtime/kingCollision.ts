@@ -1,5 +1,5 @@
 import type { Matrix4, Vector3 } from 'three';
-import { CollisionPose, type CollisionJoint } from '@wildshard/game/combat/collisionPose';
+import { CollisionPose, type CollisionJoint } from '@wildshard/game/plugin/animation';
 import type { KingPose } from '../combat/kingRig';
 
 /** The four authored collision joints, parent-first; measured from the actual GLB by the trusted bake. */

@@ -15,7 +15,7 @@
 // (@wildshard/game/systems/looks/shaderFamily): the shared uniforms as rows, the looks' presets, every program's GLSL and its row.
 // `@{name}` splices what the shard passes the family (look/style.ts): the datum height (y0), the flagstones' course
 // height (flagRh), the painted surfaces' GLSL (paint) and the baked light volume's (lightvol).
-import type { ShaderProgramRow, UniformRows } from '@wildshard/game/systems/looks/shaderFamily';
+import type { ShaderProgramRow, UniformRows } from '@wildshard/game/plugin/shaderFamily';
 
 export type LookName = 'jiehua' | 'silk' | 'sutra';
 

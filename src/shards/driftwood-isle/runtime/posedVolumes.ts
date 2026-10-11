@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { AnimalPoseLaw, type AnimalPoseRecipe } from '@wildshard/engine/entities/animalPose';
 import { applyAnimalRoot, QuadrupedRigPose, type AnimalRigContext, type AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
-import { CollisionPose } from '@wildshard/game/combat/collisionPose';
+import { CollisionPose } from '@wildshard/game/plugin/animation';
 
 /** Actual local rest chain and modifiers read from the browser's instantiated model, not invented collision bones. */
 export interface DriftwoodPoseRecipe {

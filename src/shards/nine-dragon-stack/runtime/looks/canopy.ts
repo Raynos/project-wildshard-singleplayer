@@ -3,7 +3,7 @@
 // lab's leaf ramp and dome B's night crown as uniform rows, and the leaf atlas, for the SDK card canopy
 // (@wildshard/sdk/looks/cardCanopy) over the SDK shader family. world/canopy.ts dresses the crown; the organic lab's notes
 // (the four ways to build the leaf mass, the winner) are there.
-import type { ShaderProgramRow, UniformRows } from '@wildshard/game/systems/looks/shaderFamily';
+import type { ShaderProgramRow, UniformRows } from '@wildshard/game/plugin/shaderFamily';
 import { FOG_GLSL, NOISE_GLSL } from './look';
 
 /** the vertex-stage subset of NOISE_GLSL that silkFog needs (the rest uses derivatives, fragment-only) */

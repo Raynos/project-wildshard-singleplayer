@@ -1,10 +1,10 @@
 import * as v from 'valibot';
 import { addBakedTerrainCollider } from '@wildshard/engine/physics/terrainTiles';
 import { addPiece } from '@wildshard/engine/physics/pieces';
-import { installSpeciesHomes } from '@wildshard/game/shardfile/speciesBrains';
+import { installSpeciesHomes } from '@wildshard/game/plugin/brain';
 import { installMarkedBossRow } from './shardfile/markedBossRow';
 import { installLashHost, type LashCommand, type LashTargetRow, type LashHost } from './items/lashHost';
-import { installQuestGraph } from '@wildshard/game/quest/questGraph';
+import { installQuestGraph } from '@wildshard/game/plugin/quests';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import { rowsHeadlessRuntime, bakedSpecs, bakedSpots } from './rowsHeadless';
 import { parsePromptRegistrations } from '@wildshard/sdk/runtime/prompts';

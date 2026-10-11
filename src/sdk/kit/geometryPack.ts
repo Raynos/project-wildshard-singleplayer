@@ -1,4 +1,4 @@
-import { GeometryPack as PlatformGeometryPack, GeometryPackWriter as PlatformGeometryPackWriter, packedRows as platformPackedRows, type PackedGeometryJson as PlatformPackedGeometryJson, type PackedGroup as PlatformPackedGroup, fetchDeflated as platformFetchDeflated, type PackedGeometryRow as PlatformPackedGeometryRow, type PackedGeometryRows as PlatformPackedGeometryRows } from '@wildshard/game/systems/kit/geometryPack';
+import { GeometryPack as PlatformGeometryPack, GeometryPackWriter as PlatformGeometryPackWriter, packedRows as platformPackedRows, type PackedGeometryJson as PlatformPackedGeometryJson, type PackedGroup as PlatformPackedGroup, fetchDeflated as platformFetchDeflated, type PackedGeometryRow as PlatformPackedGeometryRow, type PackedGeometryRows as PlatformPackedGeometryRows } from '@wildshard/game/plugin/geometry';
 
 /** One draw group of a packed geometry. */
 export type PackedGroup = PlatformPackedGroup;

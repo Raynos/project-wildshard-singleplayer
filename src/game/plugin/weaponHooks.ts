@@ -1,7 +1,41 @@
-import * as v from 'valibot';
-import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptSnapshot } from '@wildshard/engine/script/host';
-import { ScriptWorld, SCRIPT_OP, type EffectTransaction, type ScriptEffect } from '@wildshard/engine/script/effects';
-import { WEAPON_HOOK_PHASES, type WeaponDamageInput, type WeaponHooks } from '../systems/items/weaponHooks';
+import * as v from "valibot";
+import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptSnapshot } from "@wildshard/engine/script/host";
+import { ScriptWorld, SCRIPT_OP, type EffectTransaction, type ScriptEffect } from "@wildshard/engine/script/effects";
+import type { LevelContext } from "@wildshard/engine/level/context";
+import { directorVariant } from "./director";
+
+/**
+ * Weapon hooks (SHARD-PLATFORM SF36): the points where a weapon family asks a shard's admitted AssemblyScript for a number
+ * instead of using its own row rule. A family holds `hooks: WeaponHooks | null` (null = the row rule, always the default)
+ * and calls a hook where it computes the number; a hook that declines, fails or answers out of its declared bounds returns
+ * null and the family's own rule applies, so a hook can never stop a weapon working.
+ *
+ * The hooks come from `@wildshard/game/shardfile/weaponHooks` (`WeaponHookLane.hooks(weaponId)`), which admits the module
+ * through the same ScriptHost as the shard's director (fuel, memory, event and failure ceilings) and keeps every call a
+ * pure function of its inputs.
+ *
+ *   // in the family, where the mounted pass computes its damage:
+ *   this.damage = this.hooks?.damage({ phase: 'pass', base, facts: { speed, links } }) ?? rowRule;
+ */
+
+/** The family's moment: `pass` = a mounted pass slash's damage, set at the swing's input edge (the mounted sword). */
+export type WeaponHookPhase = 'pass';
+/** The phases in their wire order (the script reads phase `index + 1`). */
+export const WEAPON_HOOK_PHASES: readonly WeaponHookPhase[] = ['pass'];
+
+/** What the family tells a damage hook: its phase, the row's base damage and the numeric facts the declaration names. */
+export interface WeaponDamageInput {
+  readonly phase: WeaponHookPhase;
+  readonly base: number;
+  /** keyed by the declaration's fact keys; a missing or out-of-bounds fact declines the call */
+  readonly facts: Readonly<Record<string, number>>;
+}
+
+/** One weapon's admitted hooks. */
+export interface WeaponHooks {
+  /** a bounded integer damage, or null for the family's own rule */
+  readonly damage: (input: WeaponDamageInput) => number | null;
+}
 
 /**
  * Admitted weapon hooks (SHARD-PLATFORM SF36): a shard declares which weapons ask its AssemblyScript module for a number,
@@ -102,4 +136,30 @@ export async function createWeaponHookLane(data: WeaponHooksData, bytes: Uint8Ar
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', copy));
   if ([...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('') !== checked.module) throw new Error('Weapon hook module hash mismatch');
   return new WeaponHookLane(checked, copy);
+}
+
+/** A weapon that takes hooks: the family's `hooks` slot (null = its row rule). */
+export interface HookedWeapon { readonly row: { readonly id: string }; hooks: WeaponHooks | null }
+/** The shard's declaration, its module bytes and the built weapons to hook. */
+export interface WeaponHooksInstallation {
+  data: unknown;
+  bytes: () => Promise<Uint8Array>;
+  /** each must be declared; its hooks are cleared when the level's scope ends */
+  weapons: () => readonly HookedWeapon[];
+}
+
+/**
+ * Admit a shard's weapon hooks and hand each built weapon its own (SHARD-PLATFORM SF36). Gated by the same default-off
+ * Developer row as the shard directors ("Shard directors (data)": Legacy / Script): off, nothing is fetched and every
+ * weapon keeps its row rule. Async admission never hooks a weapon after its level has gone.
+ */
+export async function installWeaponHooks(context: Pick<LevelContext, 'scope' | 'debugRow'>, options: WeaponHooksInstallation): Promise<WeaponHookLane | null> {
+  if (!directorVariant(context)) return null;
+  const data = parseWeaponHooks(options.data);
+  const lane = await createWeaponHookLane(data, await options.bytes());
+  if (context.scope.disposed) return null;
+  const hooked = options.weapons().map((weapon) => ({ weapon, hooks: lane.hooks(weapon.row.id) }));
+  for (const { weapon, hooks } of hooked) weapon.hooks = hooks;
+  context.scope.onDispose(() => { for (const { weapon, hooks } of hooked) if (weapon.hooks === hooks) weapon.hooks = null; });
+  return lane;
 }

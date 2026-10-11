@@ -16,7 +16,7 @@
  */
 import * as THREE from 'three';
 import { addFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { ShaderFamily } from '@wildshard/game/systems/looks/shaderFamily';
+import { ShaderFamily } from '@wildshard/game/plugin/shaderFamily';
 
 type Rgb = readonly [number, number, number];
 

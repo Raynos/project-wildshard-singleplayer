@@ -5,7 +5,7 @@
 // geometry alike. The pattern kinds (aPat.x) are the caller's material's own table (0 = plain; 32 + a kind is a face an
 // appended instance's tint leaves alone).
 import { type Box3, BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, type Matrix4, Matrix3, Uint16BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
-import { appendGeometry } from '@wildshard/game/systems/kit/bakedGeometry';
+import { appendGeometry } from '@wildshard/game/plugin/geometry';
 import { EDGE } from './ruledKit';
 
 export interface TangentLook {

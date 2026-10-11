@@ -1,7 +1,7 @@
 import type * as THREE from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { editShader, type ShaderEditRow } from '@wildshard/game/systems/looks/shaderEdits';
+import { editShader, type ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
 
 /**
  * A moss / lichen overlay on a standard material (SHARD-PLATFORM M3, the looks system): the shard's GLSL edits (value-noise

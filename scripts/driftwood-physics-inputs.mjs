@@ -21,6 +21,7 @@ export function driftwoodPhysicsInputs(root) {
     }
   };
   for (const dir of ['creatures', 'data', 'world', 'models', 'species', 'combat']) walk(`src/shards/driftwood-isle/${dir}`, path => /\.(?:ts|json)$/u.test(path) && !MOVERS.has(path));
+  paths.push('src/game/plugin/animation.ts');
   walk('src/game/systems/species', path => path.endsWith('.ts'));
   return Object.fromEntries(paths.sort().map(path => [path, createHash('sha256').update(readFileSync(join(root, path))).digest('hex')]));
 }

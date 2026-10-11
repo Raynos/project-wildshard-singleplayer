@@ -11,7 +11,7 @@ import { STRINGS } from '../data/strings';
 import { lastLightAll } from '../look/light';
 import { ownPrimitives } from '../world/resources';
 import { installPivotNpc } from '../runtime/quest/pivotNpc';
-import { npcDef } from '@wildshard/game/quest/npcRow';
+import { npcDef } from '@wildshard/game/plugin/quests';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
 import { duneMesh } from '../world/meshes';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';

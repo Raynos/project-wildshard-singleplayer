@@ -11,7 +11,7 @@
 // SHARD-PLATFORM M3 (look-family rows): the facade programs as data for the SDK shader family
 // (@wildshard/game/systems/looks/shaderFamily), on the clean room's shared GLSL (data/look.ts); look/facadeMaterial.ts makes the
 // materials. `@{paint}` / `@{lightvol}` splice the painted surfaces' and the light volume's GLSL.
-import type { ShaderProgramRow, UniformRows } from '@wildshard/game/systems/looks/shaderFamily';
+import type { ShaderProgramRow, UniformRows } from '@wildshard/game/plugin/shaderFamily';
 import { EMIT_FOG, FOG_GLSL, NOISE_GLSL, PAPER_GLSL } from './look';
 
 /** the facade programs' own uniforms, over the clean room's shared ones */

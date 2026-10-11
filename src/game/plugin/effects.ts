@@ -1,10 +1,15 @@
-import type { Vector3 } from 'three';
-import type { Scope } from '@wildshard/engine/app/scope';
-import { hudSlots } from '@wildshard/engine/ui/hudSlots';
-import { bindPlayerEffects, type EffectService } from '@wildshard/engine/combat/effects/EffectService';
-import type { Actor } from '@wildshard/engine/combat/pipeline';
-import type { LevelContext } from '@wildshard/engine/level/context';
-import { StatusIcons } from './view';
+import type { EffectDef } from "@wildshard/engine/combat/effects/types";
+import { STARTER_EFFECT_ROWS } from "../systems/effects/starter.generated";
+import type { Vector3 } from "three";
+import type { Scope } from "@wildshard/engine/app/scope";
+import { hudSlots } from "@wildshard/engine/ui/hudSlots";
+import { bindPlayerEffects, type EffectService } from "@wildshard/engine/combat/effects/EffectService";
+import type { Actor } from "@wildshard/engine/combat/pipeline";
+import type { LevelContext } from "@wildshard/engine/level/context";
+import { StatusIcons } from "../systems/effects/view";
+
+/** Existing starter tuning; only the authored stun is applied by normal play, and importing installs no effects. */
+export const STARTER_EFFECTS: readonly EffectDef[] = STARTER_EFFECT_ROWS;
 
 type StatusMovement = Parameters<typeof bindPlayerEffects>[0]['movement'];
 type StarterContext = Pick<LevelContext, 'app' | 'scope' | 'system' | 'on'> & { hud: Pick<LevelContext['hud'], 'widget'> };

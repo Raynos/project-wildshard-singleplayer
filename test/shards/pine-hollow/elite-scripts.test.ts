@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { Lane } from '../../../src/shards/pine-hollow/combat/lane';
 import { pineEliteScripts, type PineEliteBody, type PineEliteWorld } from '../../../src/shards/pine-hollow/combat/eliteScripts';
 import { pineEliteScripts as oracleScripts } from '../../fixtures/species-oracle/pineElites';
-import { sha256, moduleBytes } from '../../../src/game/shardfile/speciesScripts';
+import { sha256, moduleBytes } from '../../../src/game/plugin/brain';
 import { eliteScript } from '../../../src/sdk/eliteScripts';
 import { IRONHIDE_BRAIN, PINE_ELITE_MODULES } from '../../../src/shards/pine-hollow/runtime/brains/eliteBrains';
 

@@ -3,7 +3,7 @@
 // patch), the cave shaft's program and the cave's look near its mouth (CAVE_LOOK: @wildshard/sdk/kit/caveInterior). The vertex `cdata` = (AO, sun reach, wet, rock): AO multiplies the indirect light,
 // sun reach the directional lights only; `ctint` = (tint shade, tint path / face skin).
 import type { CaveLookRow } from '../kit/caveInterior';
-import type { ShaderEditRow } from '@wildshard/game/systems/looks/shaderEdits';
+import type { ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
 
 /** the granite's albedo lift (E322 F-L1) */
 const CRAG_LIFT = 1.3;

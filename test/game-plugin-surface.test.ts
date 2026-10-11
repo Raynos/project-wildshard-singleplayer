@@ -31,3 +31,16 @@ it('keeps frozen compatibility exports visible and detects removed keys or defin
     expect(gamePluginSurface(root)).toMatchObject({ totalExports: 21, pluginExports: 21, withinPluginLimit: false, pluginOnly: true });
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+
+it('keeps every sealed consumer resolved after defining plugin consolidation', () => {
+  const report = gamePluginSurface();
+  expect(report.unresolved).toEqual([]);
+  const frozen = report.entries.filter(row => row.frozenConsumers.length > 0);
+  expect(frozen.length).toBeGreaterThan(0);
+  for (const row of frozen) expect(row.published, row.key).toBe(true);
+  for (const key of ["./combat/collisionPose","./systems/species/clips","./systems/looks/shaderFamily","./systems/looks/shaderEdits","./systems/kit/geometryPack","./systems/looks/modelLibrary","./systems/looks/canvasAtlas","./systems/kit/bakedGeometry","./systems/kit/mergedPrimitives","./shardfile/weaponHooks","./shardfile/weaponHooksClient","./shardfile/speciesBrains","./shardfile/speciesScripts","./shardfile/eliteScripts","./systems/effects/starter","./systems/effects/install","./systems/items/weaponHooks","./quest/npcRow","./quest/questGraph","./quest/headlessPrompts"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
+  for (const key of ['geometry', 'models', 'quests', 'prompts', 'weaponHooks', 'animation', 'effects']) {
+    expect(report.entries.find(row => row.key === `./plugin/${key}`)).toMatchObject({ published: true, target: `./plugin/${key}.ts` });
+  }
+});

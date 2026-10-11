@@ -9,7 +9,7 @@ import { autoFlag, type InteractDef, type InteractTable } from '@wildshard/engin
 import { test } from '@wildshard/engine/world/interact/flags';
 import type { QuestData } from '@wildshard/format/quests';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { installQuestGraph } from '@wildshard/game/quest/questGraph';
+import { installQuestGraph } from '@wildshard/game/plugin/quests';
 import type { AchievementDef } from '@wildshard/game/achievements';
 import { SEA_GLASS_FLAG, SHARD_FLAGS } from '../quest/interactables';
 import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from '../data/questGraph';

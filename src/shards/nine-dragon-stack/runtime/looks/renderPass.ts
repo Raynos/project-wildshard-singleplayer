@@ -4,7 +4,7 @@ import {
 } from 'three';
 import { Pass } from 'postprocessing';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { type ShaderFamily, type UniformMap, type UniformRows, uniformsFrom } from '@wildshard/game/systems/looks/shaderFamily';
+import { type ShaderFamily, type UniformMap, type UniformRows, uniformsFrom } from '@wildshard/game/plugin/shaderFamily';
 
 /**
  * A full-screen render pass as declared rows (SHARD-PLATFORM M3, render-pass rows): a shard's own post work — a bloom

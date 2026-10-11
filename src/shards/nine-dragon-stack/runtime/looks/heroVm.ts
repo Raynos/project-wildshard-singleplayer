@@ -1,7 +1,7 @@
 // Nine Dragon's hero viewmodel look as data (SHARD-PLATFORM M3): the material classes, the toon program's GLSL and its
 // tuning as uniform rows. world/hero/vm-material.ts draws the decal atlas and makes the material; the comment at its
 // head describes the look.
-import type { UniformRows } from '@wildshard/game/systems/looks/shaderFamily';
+import type { UniformRows } from '@wildshard/game/plugin/shaderFamily';
 
 /** material classes (the Kit's `kind` slot, aPat.x); values clear of the architecture kinds 0–8 */
 export const HERO_VM = { brass: 20, steel: 21, lacquer: 22, matte: 23, silk: 24, paper: 25, glow: 26, darkBrass: 27 } as const;

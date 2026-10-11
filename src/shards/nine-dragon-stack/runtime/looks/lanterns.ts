@@ -1,7 +1,7 @@
 // Nine Dragon's red paper lanterns (look/lanterns.ts) as data (SHARD-PLATFORM M3, look-family rows): the near / far / dot
 // switches and the lantern program's GLSL and row (its colours and gain as uniform rows), for the SDK shader family
 // (@wildshard/game/systems/looks/shaderFamily); `@{name}` splices what look/style.ts passes the family.
-import type { ShaderProgramRow } from '@wildshard/game/systems/looks/shaderFamily';
+import type { ShaderProgramRow } from '@wildshard/game/plugin/shaderFamily';
 import type { HangingLanternRow } from './hangingLanterns';
 import { EMIT_FOG, FOG_GLSL, NOISE_GLSL } from './look';
 

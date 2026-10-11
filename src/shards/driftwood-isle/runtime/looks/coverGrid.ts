@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { ShaderFamily } from '@wildshard/game/systems/looks/shaderFamily';
+import { ShaderFamily } from '@wildshard/game/plugin/shaderFamily';
 
 /**
  * The ground wears the cover (SHARD-PLATFORM M3, look-family rows): a shard whose ground cover is drawn only round the

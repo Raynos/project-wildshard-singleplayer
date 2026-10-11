@@ -5,7 +5,7 @@ import { test } from '@wildshard/engine/world/interact/flags';
 import { autoFlag, type InteractDef } from '@wildshard/engine/world/interact/types';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
-import { installQuestGraph } from '@wildshard/game/quest/questGraph';
+import { installQuestGraph } from '@wildshard/game/plugin/quests';
 import { PINE_GRAPH, PINE_LANTERN_IDS, pineQuestRows } from '../quest/graph';
 import { LANTERN_FLAGS } from '../quest/wardensHollow';
 import { pineTable, RESIN_COUNT, TOKEN_NAMES } from '../quest/table';

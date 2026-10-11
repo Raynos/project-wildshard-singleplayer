@@ -1,6 +1,5 @@
-import { EliteScriptLane, parseEliteScript, stepEliteScript, type EliteScriptBody as PlatformBody, type EliteScriptData,
-  type EliteScriptPorts as PlatformPorts, type EliteScriptStep as PlatformStep } from '@wildshard/game/shardfile/eliteScripts';
-import { moduleBytes } from '@wildshard/game/shardfile/speciesScripts';
+import { EliteScriptLane, parseEliteScript, stepEliteScript, type EliteScriptBody as PlatformBody, type EliteScriptData, type EliteScriptPorts as PlatformPorts, type EliteScriptStep as PlatformStep, moduleBytes } from "@wildshard/game/plugin/brain";
+
 
 /** An elite fight script's row (SHARD-PLATFORM SF27): its module's SHA-256, parameters, slots, modes, voices, lanes, contacts and actions. */
 export type EliteScriptRow = EliteScriptData;

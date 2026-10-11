@@ -1,13 +1,69 @@
-import * as v from 'valibot';
-import type { SimHost } from '@wildshard/engine/sim';
-import { DeclaredQuests } from './declared';
-import { installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from './interactionRows';
-import { autoFlag, type InteractTable } from '@wildshard/engine/world/interact/types';
-import { npcSpot, type NpcRow } from './npcRow';
-import type { QuestData } from '@wildshard/format/quests';
-import { bindHeadlessPrompts, type HeadlessPrompt, type PromptRegistration } from './headlessPrompts';
+import * as v from "valibot";
+import type { NpcDef } from "@wildshard/engine/quest/core";
+import type { SimHost } from "@wildshard/engine/sim";
+import { DeclaredQuests } from "../quest/declared";
+import { installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from "../quest/interactionRows";
+import { autoFlag, type InteractTable } from "@wildshard/engine/world/interact/types";
+import type { QuestData } from "@wildshard/format/quests";
+import { bindHeadlessPrompts, type HeadlessPrompt, type PromptRegistration } from "./prompts";
 
-const name = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
+const npcRowName = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
+const text = v.pipe(v.string(), v.minLength(1), v.maxLength(400));
+const names = v.pipe(v.array(npcRowName), v.maxLength(64));
+const npcRowFinite = v.pipe(v.number(), v.finite());
+const positive = v.pipe(npcRowFinite, v.minValue(0));
+const npcRowPoint = v.strictObject({ x: npcRowFinite, z: npcRowFinite });
+const vec3 = v.tuple([npcRowFinite, npcRowFinite, npcRowFinite]);
+const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names) });
+
+
+/** Dialogue data independent of its rendered body. Skinned stand-in NPCs keep their own figure installer. */
+export const NpcDialogueRowSchema = v.strictObject({ id: npcRowName, name: text,
+  dialogue: v.pipe(v.array(v.strictObject({ when: v.exactOptional(condition), lines: v.pipe(v.array(text), v.minLength(1), v.maxLength(16)), sets: v.exactOptional(names) })), v.minLength(1), v.maxLength(16)),
+});
+/** Validated dialogue row; directly consumed by both the page and native NpcDialogue. */
+export type NpcDialogueRow = v.InferOutput<typeof NpcDialogueRowSchema>;
+/** Validate the dialogue without inventing pivot-figure fields for a skinned NPC. */
+export function parseNpcDialogueRow(input: unknown): NpcDialogueRow { return v.parse(NpcDialogueRowSchema, input); }
+
+/**
+ * A quest-giver NPC as a declared row (SHARD-PLATFORM SF27, the pivot-NPC row): who it is, where it stands and what it
+ * says, and how its figure moves. The figure is one generated model split onto pivots (not skinned): the head turns at
+ * the neck, one arm swings at the shoulder; it faces `faceHome` until the player comes within `faceRange`, waves within
+ * `waveRange` until its `metFlag` is raised, and gestures while it talks. Its talk prompt (`spot`, the interaction rows'
+ * named spot) stands `talkHeight` over its feet and reaches `talkRadius` from the player's eye. Its first matching
+ * dialogue entry is what it says (the engine's NpcDef order).
+ */
+export const NpcRowSchema = v.strictObject({
+  id: npcRowName, name: text, spot: npcRowName, at: npcRowPoint, faceHome: npcRowPoint, metFlag: npcRowName,
+  talkHeight: positive, talkRadius: positive, faceRange: positive, waveRange: positive,
+  /** the solid column round it (`half` m square, from `below` under its feet to `above` over them) */
+  collider: v.strictObject({ half: positive, below: positive, above: positive, surface: v.picklist(['flesh', 'wood', 'metal', 'felt', 'shell', 'earth']) }),
+  /**
+   * The figure: the model id, fitted to `height` m with its feet on y 0 facing +Z; the head is every triangle at or
+   * over the neck; the arm, the triangles with x under `armBelowX` and y over `armAboveY` up to the neck; the material's
+   * roughness and flat shading.
+   */
+  figure: v.strictObject({ model: npcRowName, height: positive, neck: vec3, shoulder: vec3, armBelowX: npcRowFinite, armAboveY: npcRowFinite,
+    roughness: v.pipe(npcRowFinite, v.minValue(0), v.maxValue(1)), flat: v.boolean() }),
+  dialogue: NpcDialogueRowSchema.entries.dialogue,
+});
+/** A validated quest-giver NPC row (`NpcRowSchema`). */
+export type NpcRow = v.InferOutput<typeof NpcRowSchema>;
+/** Compile an authored NPC row; an unknown field or an empty dialogue refuses. */
+export function parseNpcRow(input: unknown): NpcRow { return v.parse(NpcRowSchema, input); }
+
+/** The engine's NpcDef for the row's talk: its dialogue entries in order (the first whose condition holds is said). */
+export function npcDef(row: NpcRow): NpcDef {
+  return { id: row.id, name: row.name, dialogue: row.dialogue.map(entry => ({
+    ...(entry.when === undefined ? {} : { when: { ...entry.when } }), lines: [...entry.lines], ...(entry.sets === undefined ? {} : { sets: [...entry.sets] }) })) };
+}
+/** The row's talk spot over the ground: its head's height and its prompt's reach (the interaction rows' spot). */
+export function npcSpot(row: NpcRow, groundAt: (x: number, z: number) => number): { x: number; y: number; z: number; radius: number } {
+  return { x: row.at.x, y: groundAt(row.at.x, row.at.z) + row.talkHeight, z: row.at.z, radius: row.talkRadius };
+}
+
+const questGraphName = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
 /**
  * A quest graph's runtime row (SHARD-PLATFORM SF27): the `script` command actor that carries its interaction rows, the
  * fixed-step id of their marks' continuation, and its `actions`, the beats a row's run starts beyond its flags (today
@@ -15,8 +71,8 @@ const name = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
  * are the interaction rows' own crack rows (`crack: 'light' | 'heavy'`).
  */
 export const QuestGraphSchema = v.strictObject({
-  actor: name, step: name,
-  actions: v.pipe(v.array(v.strictObject({ row: name, summon: name })), v.maxLength(64)),
+  actor: questGraphName, step: questGraphName,
+  actions: v.pipe(v.array(v.strictObject({ row: questGraphName, summon: questGraphName })), v.maxLength(64)),
 });
 /** A validated quest graph runtime row (`QuestGraphSchema`). */
 export type QuestGraphRow = v.InferOutput<typeof QuestGraphSchema>;

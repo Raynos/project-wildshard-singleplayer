@@ -1,4 +1,4 @@
-import { bindRigid as platformBindRigid, createModelLibrary as platformCreateModelLibrary, facetMaterial as platformFacetMaterial, fitGeometry as platformFitGeometry, smoothColors as platformSmoothColors, undrawnRig as platformUndrawnRig, withoutTriangles as platformWithoutTriangles, type HdLookRow as PlatformHdLookRow, type ModelFit as PlatformModelFit, type ModelLibrary as PlatformModelLibrary, type ModelLibraryRows as PlatformModelLibraryRows } from '@wildshard/game/systems/looks/modelLibrary';
+import { bindRigid as platformBindRigid, createModelLibrary as platformCreateModelLibrary, facetMaterial as platformFacetMaterial, fitGeometry as platformFitGeometry, smoothColors as platformSmoothColors, undrawnRig as platformUndrawnRig, withoutTriangles as platformWithoutTriangles, type HdLookRow as PlatformHdLookRow, type ModelFit as PlatformModelFit, type ModelLibrary as PlatformModelLibrary, type ModelLibraryRows as PlatformModelLibraryRows } from '@wildshard/game/plugin/models';
 
 /** How a hero model's materials are dressed after the matte base (tint, roughness, fog, user flags, surface rows). */
 export type HdLookRow = PlatformHdLookRow;
