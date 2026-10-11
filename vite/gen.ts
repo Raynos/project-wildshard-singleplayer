@@ -1,5 +1,6 @@
 import { manifestClosure } from '../scripts/gen-shards.mjs';
 import { genStarterBag } from '../scripts/gen-starter-bag.mjs';
+import { genStarterArmClips } from '../scripts/gen-starter-arm-clips.mjs';
 import { genStarterEffects } from '../scripts/gen-starter-effects.mjs';
 import { execFileSync } from 'node:child_process';
 import { readdirSync, statSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
@@ -91,6 +92,7 @@ function writeArtModule() {
 
 
 export function generateBootTables(): void {
+  genStarterArmClips();
   genStarterBag();
   genStarterEffects();
   mkdirSync('src/game/boot', { recursive: true }); // the tables' folder holds only generated (untracked) files

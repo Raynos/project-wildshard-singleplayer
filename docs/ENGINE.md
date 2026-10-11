@@ -2643,6 +2643,19 @@ The admitted product API is defined by `plugin/product`: bounded byte parsers, d
 
 ## Trusted plugin definitions (SF79 DS0.2)
 
+### Shared arm clip content (DS1.6)
+
+`@wildshard/commons/packs/arms` defines `starterArmClipsPack(provenance)` v1.0.0.
+It emits the 16 unchanged arm aliases and two swim aliases as one immutable JSON asset;
+Driftwood and Nine are its existing runtime users. The source is authored JSON in the pack,
+not a generated output. `scripts/gen-starter-arm-clips.mjs` expands the same bytes into an
+ignored literal table before rig producers run and during ordinary boot-table generation.
+The existing game `armClips` path remains for frozen consumers, with the same names, key order
+and `armClipNames` behavior. Runtime imports only the emitted data, never commons code.
+SF26's two-shard cache/lease proof uses this real pack asset: one download, one charged resident,
+two owners and zero residents after both owners dispose. Models, rig geometry, clip keyframes
+and playback timing are unchanged; those asset packs remain separate DS1.6 work.
+
 `@wildshard/game/plugin/context` defines `ShardContext` and `shardContext`;
 `@wildshard/game/plugin/shardPlugin` defines the staged `ShardPlugin` base class.
 Internal game consumers import these defining modules relatively. The frozen

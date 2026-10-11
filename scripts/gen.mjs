@@ -4,7 +4,10 @@ import { genBudgetDerivations } from './gen-budget-derivations.mjs';
 import { genAskIds } from './gen-ask-ids.mjs';
 import { prepareGeneration } from './generate.mjs';
 import { genPortShares } from './gen-port-shares.mjs';
+import { genStarterArmClips } from './gen-starter-arm-clips.mjs';
 
+// Rig-generating producers read the shared aliases too, so emit their pure table before the cache walk.
+genStarterArmClips();
 // G292 admitted outputs are ready before asset sizes, versions and shard packing read them.
 await prepareGeneration(`${import.meta.dirname}/..`);
 await import('./bake-loader.mjs');
