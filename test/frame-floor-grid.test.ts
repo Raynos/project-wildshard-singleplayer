@@ -10,9 +10,9 @@ const cells = [{ instance: 'home', slug: 'driftwood-isle', cell: [0, 0] as const
   { instance: 'template-1', slug: '_template', cell: [-1, -1] as const },
   { instance: 'pine', slug: 'pine-hollow', cell: [0, 1] as const },
   { instance: 'nalati', slug: 'nalati-grasslands', cell: [1, 0] as const }];
-const state = (current: string, x: number, z: number): FloorGridState => ({ home: 'home', cells, inside: current, claims: [],
+const state = (current: string | null, x: number, z: number): FloorGridState => ({ home: 'home', cells, inside: current, claims: [],
   live: { crossing: { phase: 'idle', issue: null }, live: { current, worldFeet: { x, y: 0.55, z }, crossings: 0,
-    transitions: [], residents: [current], gameplayReady: true } } });
+    transitions: [], residents: current === null ? [] : [current], gameplayReady: true } } });
 
 it('routes a corner template through midpoint entrances and returns over the same road without another pose seed', () => {
   const [out, back] = gridFloorPlans({ home: 'home', cells }, 'template');
@@ -416,8 +416,8 @@ it('measures the declared lift after an independently witnessed socket entry wit
   expect(plans[1]?.start).toBeUndefined();
 });
 
-it('presses the real USE once, waits for the moving deck and grounded rider, then walks the authored bridge', async () => {
-  const current = state('sky', 0, -545);
+it.each([false, true])('presses USE, rides and walks the bridge with a deferred road approach=%s', async (fromRoad) => {
+  const current = state(fromRoad ? null : 'sky', 0, fromRoad ? -541 : -545);
   current.cells = [...cells, { instance: 'sky', slug: 'far-reach', cell: [0, -1] }];
   const input = { clear: vi.fn(), setHeld: vi.fn(), press: vi.fn() }, oldLimit = () => 30;
   const player = { hover: false, onGround: true, hoverSpeedLimit: oldLimit, yaw: 0,
@@ -429,12 +429,19 @@ it('presses the real USE once, waits for the moving deck and grounded rider, the
   let frame: (() => void) | undefined;
   const stop = vi.fn(), isletAt = vi.fn(() => deck);
   vi.stubGlobal('window', { __wildshard: { world: { player, game: { app: { input }, watchFrames: (run: () => void) => { frame = run; return stop; } } },
-    shard: { grid: { state: () => current, residency: () => ({ claims: [] }) }, farReach: { islets: [authored], isletAt } } } });
-  const plan = { name: 'authored-lift', from: 'sky', to: 'sky', movement: 'road-hover' as const,
-    waypoints: [], requiredResidents: ['sky'], authoredLift: { probe: 'farReach', edge: 'north' as const } };
+    shard: { grid: { state: () => structuredClone(current), residency: () => ({ claims: [] }) }, farReach: { islets: [authored], isletAt } } } });
+  const plan = { name: 'authored-lift', from: fromRoad ? null : 'sky', to: 'sky', movement: 'road-hover' as const,
+    waypoints: fromRoad ? [{ x: 0, z: -542 }] : [], requiredResidents: ['sky'],
+    authoredLift: fromRoad ? { edge: 'north' as const } : { probe: 'farReach', edge: 'north' as const } };
   try {
     const driven = driveFloorGrid(plan, performance.timeOrigin);
     if (!frame) throw new Error('Driver did not subscribe');
+    if (fromRoad) {
+      frame(); expect(input.press).not.toHaveBeenCalled();
+      current.live.live.current = 'sky'; current.inside = 'sky'; current.live.live.residents = ['sky'];
+      current.live.live.transitions = [{ from: null, to: 'sky' }]; current.live.live.crossings = 1;
+      current.live.live.worldFeet.z = -545;
+    }
     frame(); current.live.live.worldFeet.z = -550; frame();
     expect(input.press).toHaveBeenCalledExactlyOnceWith('use');
     frame(); expect(input.setHeld).toHaveBeenLastCalledWith('move.forward', false);

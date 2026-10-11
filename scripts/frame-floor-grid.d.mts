@@ -15,8 +15,8 @@ export interface FloorGridPlan { name: string; from: string | null; to: string |
   finishOnArrival?: boolean;
   /** Record destination readiness and visibility while following the normal road approach. */
   observePreparation?: boolean;
-  /** Use this entered probe's authored islet row, normal USE, ride and bridge walking. */
-  authoredLift?: { probe: string; edge: 'north' | 'east' | 'south' | 'west' } }
+  /** Resolve the authored row after entry when the probe is omitted; use normal USE, ride and bridge walking. */
+  authoredLift?: { probe?: string; edge: 'north' | 'east' | 'south' | 'west' } }
 export interface FloorGridWitness {
   /** The road node was observed before an on-ground landing at the declared destination. */
   portal?: { roadSeen: boolean; landed: boolean };
@@ -38,7 +38,7 @@ export function installFloorGridProgress(): void;
 export function gridFloorRuntimeFailure(last: FloorGridProgress | null, diagnostic: { documentOrigin: number; lastEnd?: { reason: string; at: number }; lastUnload?: { reason: string; t: number } } | null): FloorGridFailure | null;
 /** 'cell' enters the cell whose instance or slug is `options.cell` from the road at its home-side edge (op-frame22). */
 export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'sun-entry' | 'cell' | 'all' | 'milestone', options?: { cell?: string; roadApproach?: boolean; entrySocket?: boolean; risingIslet?: 'north' | 'east' | 'south' | 'west' }): FloorGridPlan[];
-/** Resolve an authored entry's declared portal nodes from its pinned shardfile. */
+/** Resolve declared portal nodes or the socket-lift approach from the pinned shardfile. */
 export function floorGridPortalPlan(plan: FloorGridPlan, cell: FloorGridState['cells'][number], entryways: unknown): FloorGridPlan;
 export interface FloorGridDocumentIdentity { readonly timeOrigin: number; readonly token: string }
 export function gridFloorDocumentIdentity(): FloorGridDocumentIdentity;

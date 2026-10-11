@@ -1,13 +1,18 @@
 import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 
-/** Follow a declared portal's actual landing instead of steering back towards the old flat entry waypoint. */
+/** Follow the declared portal landing or socket-lift approach instead of guessing a flat entry waypoint. */
 export function floorGridPortalPlan(plan, cell, entryways) {
   if (plan.from !== null || plan.start === undefined || !Array.isArray(entryways)) return plan;
   const origin = { x: cell.cell[0] * 555, z: cell.cell[1] * 555 };
   const dx = plan.start.x - origin.x, dz = plan.start.z - origin.z;
   const edge = Math.abs(dz) >= Math.abs(dx) ? (dz >= 0 ? 'north' : 'south') : (dx >= 0 ? 'east' : 'west');
-  const row = entryways.find(value => value?.kind === 'portalLink' && value.edge === edge);
+  const row = entryways.find(value => value?.edge === edge && (value.kind === 'portalLink' || value.kind === 'socketLift'));
   if (row === undefined) return plan;
+  if (row.kind === 'socketLift') {
+    const approach = row.lift?.approach;
+    if (!Array.isArray(approach) || approach.length < 2 || !approach.every(point => point !== null && typeof point === 'object' && [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Invalid declared floor lift approach');
+    return { ...plan, waypoints: approach.map(point => ({ x: origin.x + point.x, z: origin.z + point.z })), authoredLift: { edge } };
+  }
   const node = value => {
     if (typeof value?.id !== 'string' || value.id.length === 0 || !Array.isArray(value.at) || value.at.length !== 3
       || !value.at.every(Number.isFinite)) throw new Error('Invalid declared floor portal node');
@@ -262,19 +267,25 @@ export async function driveFloorGrid(plan, documentOrigin) {
   // Only normal USE and held walking input run it; the harness never commands or places the mover.
   let waypoints = plan.waypoints, lift = null, liftRuntime = null, liftEntry = null, liftOrigin = null;
   const portal = plan.portal === undefined ? null : { roadSeen: false, landed: false };
-  if (plan.authoredLift !== undefined) {
-    liftRuntime = api.shard[plan.authoredLift.probe];
-    liftEntry = liftRuntime?.islets?.find(row => row.edge === plan.authoredLift.edge);
+  const installLift = () => {
+    const declaration = plan.authoredLift;
+    if (declaration === undefined) throw new Error('Missing authored lift declaration');
+    const candidates = declaration.probe === undefined ? Object.values(api.shard).filter(value => typeof value?.isletAt === 'function' && Array.isArray(value.islets) && value.islets.some(row => row.edge === declaration.edge)) : [api.shard[declaration.probe]];
+    if (candidates.length !== 1) throw new Error('Authored rising-islet probe is missing or ambiguous');
+    const [runtime] = candidates;
+    const entry = runtime?.islets?.find(row => row.edge === declaration.edge);
     const cell = source.cells.find(row => row.instance === plan.to);
     const point = value => value !== null && typeof value === 'object' && [value.x, value.y, value.z].every(Number.isFinite);
-    if (!cell || typeof liftRuntime?.isletAt !== 'function' || !liftEntry || !Array.isArray(liftEntry.board) || liftEntry.board.length < 2
-      || !Array.isArray(liftEntry.climb) || liftEntry.climb.length < 2 || !liftEntry.board.every(point) || !liftEntry.climb.every(point)
-      || !point(liftEntry.rest) || !point(liftEntry.dock) || !point(liftEntry.isle)) throw new Error('Missing authored rising-islet route');
-    liftOrigin = { x: cell.cell[0] * 555, z: cell.cell[1] * 555 };
-    waypoints = [...liftEntry.board, ...liftEntry.climb].map(p => ({ x: liftOrigin.x + p.x, z: liftOrigin.z + p.z }));
-    lift = { edge: plan.authoredLift.edge, isle: liftEntry.isle.id, usePresses: 0, docked: false, onIsland: false,
-      rideSamples: 0, maximumDeckGap: 0, board: liftEntry.board, climb: liftEntry.climb };
-  }
+    if (!cell || typeof runtime?.isletAt !== 'function' || !entry || !Array.isArray(entry.board) || entry.board.length < 2
+      || !Array.isArray(entry.climb) || entry.climb.length < 2 || !entry.board.every(point) || !entry.climb.every(point)
+      || !point(entry.rest) || !point(entry.dock) || !point(entry.isle)) throw new Error('Missing authored rising-islet route');
+    const origin = { x: cell.cell[0] * 555, z: cell.cell[1] * 555 };
+    return { liftRuntime: runtime, liftEntry: entry, liftOrigin: origin,
+      waypoints: [...entry.board, ...entry.climb].map(p => ({ x: origin.x + p.x, z: origin.z + p.z })),
+      lift: { edge: declaration.edge, isle: entry.isle.id, usePresses: 0, docked: false, onIsland: false,
+        rideSamples: 0, maximumDeckGap: 0, board: entry.board, climb: entry.climb } };
+  };
+  if (plan.authoredLift !== undefined && plan.from !== null) ({ liftRuntime, liftEntry, liftOrigin, waypoints, lift } = installLift());
   const oldHover = player.hover, oldLimit = player.hoverSpeedLimit;
   const hoverMaxSpeed = plan.hoverMaxSpeed ?? 15;
   if (!Number.isFinite(hoverMaxSpeed) || hoverMaxSpeed <= 0 || hoverMaxSpeed > 30) throw new Error('Invalid grid harness hover speed');
@@ -322,6 +333,9 @@ export async function driveFloorGrid(plan, documentOrigin) {
               ...(preparation === undefined ? {} : { preparation }) }); lastSample = seconds;
           }
           if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor crossing blocked: ${state.live.crossing.issue}`);
+          if (plan.authoredLift !== undefined && lift === null && waypoint === waypoints.length && active.current === plan.to && active.gameplayReady) {
+            ({ liftRuntime, liftEntry, liftOrigin, waypoints, lift } = installLift()); waypoint = 0;
+          }
           if (lift !== null && waypoint === liftEntry.board.length && !lift.docked) {
             input.setHeld('move.forward', false);
             const deck = liftRuntime.isletAt(lift.edge);

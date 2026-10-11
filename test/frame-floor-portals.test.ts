@@ -36,3 +36,12 @@ it('requires a visited road node and grounded destination in addition to entered
   expect(omitted).toBeDefined();
   expect(gridFloorWitnessFailures(missing)).toContain('Declared portal road and landing were not traversed');
 });
+
+
+it('walks the declared lift approach before resolving an entered runtime, without a shard-name guess', () => {
+  const approach = [{ x: 235, y: 0, z: 0 }, { x: 234, y: 0, z: 0 }];
+  const resolved = floorGridPortalPlan(plan, cell, [{ edge: 'east', kind: 'socketLift', lift: { approach } }]);
+  expect(resolved).toEqual({ ...plan, waypoints: [{ x: 1345, z: 1665 }, { x: 1344, z: 1665 }], authoredLift: { edge: 'east' } });
+  expect(() => floorGridPortalPlan(plan, cell, [{ edge: 'east', kind: 'socketLift', lift: { approach: [{ x: 235, y: 0, z: 0 }] } }])).toThrow('Invalid declared');
+  expect(() => floorGridPortalPlan(plan, cell, [{ edge: 'east', kind: 'socketLift', lift: { approach: [approach[0], { x: 234, y: Infinity, z: 0 }] } }])).toThrow('Invalid declared');
+});
