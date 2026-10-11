@@ -71,6 +71,9 @@ export interface CompileJob {
 
 export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
 
+/** Scalar preparation stage observation. Elapsed time includes painted waits; units count completed jobs/resources. */
+export type PrecompileStage = (phase: 'compile' | 'link' | 'upload', elapsedMs: number, units: number) => void;
+
 const exteriorLighting = new WeakMap<THREE.Scene, { environment: THREE.Texture | null; roots: Set<THREE.Object3D> }>();
 
 /** Declare a content root whose lights disappear outside its frame. Sliced preparation also compiles the exterior
@@ -556,6 +559,7 @@ export async function runPrecompile(
   isolateImageUploads = false,
   pause: () => Promise<void> = frame,
   uploadBudget?: UploadBudget,
+  onStage?: PrecompileStage,
 ): Promise<PrecompileReport> {
   // Page siblings can retire while a neighbour's preparation yields. The inventory is
   // borrowed: disposal cancels only that resource's upload, not the live neighbour.
@@ -566,14 +570,14 @@ export async function runPrecompile(
     watched.add(texture); observer.listenOnceEmitter(texture, 'dispose', () => { retired.add(texture); });
   };
   for (const texture of textures) watch(texture);
-  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget); }
+  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget, onStage); }
   finally { observer.dispose(); }
 }
 
 async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress: ((done: number, total: number, detail: string) => void) | undefined, textures: THREE.Texture[],
   current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void, isolateImageUploads: boolean, pause: () => Promise<void>,
-  uploadBudget: UploadBudget | undefined): Promise<PrecompileReport> {
+  uploadBudget: UploadBudget | undefined, onStage: PrecompileStage | undefined): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
   const borrowed = new Set<THREE.Material>();
@@ -602,6 +606,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now(), programsAtFrame = programCount(renderer);
+  let stageStart = tFrame;
   for (const [i, job] of jobs.entries()) {
     checkCurrent();
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
@@ -632,6 +637,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   }
   created.push(...newProgramsSince(renderer, before));
   for (const program of before) if (jobPrograms.has(program)) created.push(program);
+  if (onStage !== undefined) { onStage('compile', performance.now() - stageStart, jobs.length); stageStart = performance.now(); }
   const pending = created.filter(program => !resolvedPrograms.has(program));
   const n = pending.length;
   // Ordinary parallel preparation waits for the batch before resolving it. Live preparation
@@ -674,6 +680,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     if (performance.now() - tSlice > 12 || (isolateImageUploads && resolvedInSlice >= LIVE_PROGRAMS_PER_FRAME)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
   }
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
+  if (onStage !== undefined) { onStage('link', performance.now() - stageStart, pending.length); stageStart = performance.now(); }
   const uploadTextures = [...new Set([...textures, ...collectTextures(jobs)])];
   for (const texture of uploadTextures) watch(texture);
   // Phase C: compressed textures retain their fenced slices. Live WebKit image preparation
@@ -704,6 +711,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // The batch's last uploads keep their own drawn frame before whatever follows warm-up, as isolation did.
   if (batch?.pending() === true) await pause();
   checkCurrent();
+  onStage?.('upload', performance.now() - stageStart, uploadTextures.length);
   return { materials, jobs: jobs.length, programs: created.length, parallel };
 }
 
@@ -734,7 +742,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** Temporary program holders survive until this frame leaves; content materials remain borrowed. */ owner?: Pick<Scope, 'onDispose'>;
     /** Yield after each image upload during live preparation; ordinary boot keeps batched uploads. */ isolateImageUploads?: boolean;
     /** A live presentation barrier; initial boot keeps the ordinary browser paint opportunity. */ pause?: () => Promise<void>;
-    /** Batch image uploads per frame under this budget (op-hitch32): several when isolated, none started past it. */ uploadBudget?: UploadBudget } = {}): Promise<number> {
+    /** Batch image uploads per frame under this budget (op-hitch32): several when isolated, none started past it. */ uploadBudget?: UploadBudget;
+    /** Optional scalar stage timings, including painted waits. Does not retain materials or native handles. */ onStage?: PrecompileStage } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
     if (options.futureLighting !== undefined) {
@@ -782,7 +791,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     if (policy?.scene !== false) jobs.push(...exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per));
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
-    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget);
+    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage);
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
     return report.materials;
   

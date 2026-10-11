@@ -167,7 +167,7 @@ export async function stageFloorGrid(plan, documentOrigin, drive) {
     if (readApi() !== api) throw new Error('Grid floor API was replaced during source admission');
     const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
     const residency = api.shard.grid.residency();
-    return { ...state, claims: residency.claims, ...(plan.borrowedHome === undefined ? {} : {
+    return { ...state, claims: residency.claims, entryPreparation: world.game.entryPreparation ?? null, ...(plan.borrowedHome === undefined ? {} : {
       borrowedHome: { instance: residency.home?.instance, bytes: residency.home?.bytes, level: world.game.level?.id } }) };
   };
   const borrowed = state => plan.borrowedHome === state.home && plan.from === state.home
@@ -229,7 +229,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
     if (!sameDocument() || window.__wildshard !== api) throw new Error('Grid floor document or API changed during travel (navigation or graphics recovery)');
     const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
     const residency = api.shard.grid.residency();
-    return { ...state, claims: residency.claims, ...(plan.borrowedHome === undefined ? {} : {
+    return { ...state, claims: residency.claims, entryPreparation: world.game.entryPreparation ?? null, ...(plan.borrowedHome === undefined ? {} : {
       borrowedHome: { instance: residency.home?.instance, bytes: residency.home?.bytes, level: world.game.level?.id } }) };
   };
   const borrowed = state => plan.borrowedHome === state.home && plan.from === state.home

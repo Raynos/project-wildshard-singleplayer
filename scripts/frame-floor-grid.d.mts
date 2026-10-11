@@ -4,6 +4,8 @@ export interface FloorGridState { home: string; inside: string | null;
   cells: { instance: string; slug: string; cell: readonly [number, number] }[];
   borrowedHome?: { instance: string; level: string; bytes: number };
   claims?: readonly { id: string; owner: string; category: string; bytes?: number }[];
+  /** Scalar preparation timings including painted waits; absent on older builds. */
+  entryPreparation?: { root: string; completed: boolean; stages: { phase: string; elapsedMs: number; units: number }[] } | null;
   live: { live: FloorGridLive; crossing: { phase: string; issue: string | null } } }
 export interface FloorGridPlan { name: string; from: string | null; to: string | null; movement?: 'road-hover'; hoverMaxSpeed?: number; borrowedHome?: string; start?: { x: number; z: number };
   waypoints: { x: number; z: number }[]; requiredResidents: string[]; retiredResidents?: string[];

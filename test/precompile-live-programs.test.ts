@@ -7,12 +7,13 @@ afterEach(() => { vi.restoreAllMocks(); });
 
 /** Run `jobs` jobs that each issue `perJob` programs, on a frozen clock (the 12 ms box never closes). Returns the pause
  * index at which each job compiled and each program resolved. */
-async function slices(jobs: number, perJob: number, live: boolean, linkDelay = 0): Promise<{ compiled: number[]; resolved: number[] }> {
+async function slices(jobs: number, perJob: number, live: boolean, linkDelay = 0): Promise<{ compiled: number[]; resolved: number[]; stages: { phase: string; elapsedMs: number; units: number }[] }> {
   const prior = scopeEnvironment();
   installScopeEnvironment({ targetKind: () => 'other', frame: paint => { queueMicrotask(() => { paint(0); }); return 0; }, cancelFrame: () => undefined });
   vi.spyOn(performance, 'now').mockReturnValue(0);
   let pauses = 0;
   const compiled: number[] = [], resolved: number[] = [], programs: unknown[] = [];
+  const stages: { phase: string; elapsedMs: number; units: number }[] = [];
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Expected renderer prototype');
   let target: THREE.WebGLRenderTarget | null = null;
@@ -25,10 +26,20 @@ async function slices(jobs: number, perJob: number, live: boolean, linkDelay = 0
     } };
   for (const [key, value] of Object.entries(commands)) Reflect.set(renderer, key, value);
   const list: CompileJob[] = Array.from({ length: jobs }, (_, i) => ({ label: `job ${String(i)}`, root: new THREE.Group(), target: null, rt: null }));
-  try { await runPrecompile(renderer, new THREE.PerspectiveCamera(), list, 0, undefined, [], () => true, live, () => { pauses++; return Promise.resolve(); }); }
+  try { await runPrecompile(renderer, new THREE.PerspectiveCamera(), list, 0, undefined, [], () => true, live,
+    () => { pauses++; return Promise.resolve(); }, undefined,
+    (phase, elapsedMs, units) => { stages.push({ phase, elapsedMs, units }); }); }
   finally { installScopeEnvironment(prior); }
-  return { compiled, resolved };
+  return { compiled, resolved, stages };
 }
+
+it('reports scalar stage units without changing the live compile/link schedule', async () => {
+  const result = await slices(5, 2, true);
+  expect(result.stages).toEqual([{ phase: 'compile', elapsedMs: 0, units: 5 }, { phase: 'link', elapsedMs: 0, units: 5 },
+    { phase: 'upload', elapsedMs: 0, units: 0 }]);
+  expect(result.compiled).toEqual([0, 1, 2, 3, 4]);
+  expect(result.resolved).toEqual(Array.from({ length: 10 }, (_, i) => i));
+});
 
 it('a live WebKit warm-up separates jobs and resolves at most one ready link per painted slice', async () => {
   expect(LIVE_PROGRAMS_PER_FRAME).toBe(1);

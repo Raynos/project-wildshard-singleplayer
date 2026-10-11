@@ -729,6 +729,10 @@ export class Game {
       setting('buildPacing') === 'uploads' ? LIVE_UPLOAD_BUDGET : undefined);
   }
 
+  private _entryPreparation: { root: string; completed: boolean; stages: { phase: string; elapsedMs: number; units: number }[] } | null = null;
+  /** Last entered-frame preparation's scalar timings. Painted waits are included; no content resources are retained. */
+  get entryPreparation(): Readonly<NonNullable<Game['_entryPreparation']>> | null { return this._entryPreparation; }
+
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
    * Initial boot has no composer yet and uses the ordinary shaders/firstFrame stages instead. No simulation tick,
    * camera turn or caster rechunking runs here; the final zero-delta composer draw warms its real pass targets.
@@ -738,24 +742,34 @@ export class Game {
     if (composer === null) return;
     const futureScene = this.scene, futureLighting = futureRoot ?? futureScene;
     const futureEnvironment = futureScene.environment;
+    const trace = { root: futureLighting.uuid, completed: false, stages: [] as { phase: string; elapsedMs: number; units: number }[] };
+    this._entryPreparation = trace;
+    const onStage = (phase: string, elapsedMs: number, units: number): void => { trace.stages.push({ phase, elapsedMs, units }); };
     const current = (): boolean => !owner.disposed;
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
     const { precompileLevel, warmComposerFrame, waitForDrawnFrame, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET } = await import('../render/precompile');
     const pause = isolateImageUploads && this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
     // op-hitch32: the Developer tool `buildPacing` = `uploads` batches the image uploads under a per-frame budget.
     const uploadBudget = setting('buildPacing') !== 'uploads' ? undefined : isolateImageUploads ? LIVE_UPLOAD_BUDGET : SLICED_UPLOAD_BUDGET;
-    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads,
+    const shaderStart = diagnosticNow();
+    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage,
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
+    onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
     const { warmParkedDraws, warmOffscreenPasses } = await import('../render/parkedDraws');
     const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
     // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
     // desktop, up to 1011 ms Simulator, in `activate`); draw it a few objects a frame into a 1×1 scissor first.
     if (futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible) {
-      await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current, drawnPause, { environment: futureEnvironment });
+      const start = diagnosticNow();
+      const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current, drawnPause, { environment: futureEnvironment });
+      onStage('parked-draws', diagnosticNow() - start, drawn);
     }
     // op-hitch37: a registered offscreen pass (Nalati's look bake) built its casters' pipelines on its first real
     // update, after entry; draw each once into a 1×1 stand-in of its target first.
-    await warmOffscreenPasses(this.renderer, this.rootScene, current, drawnPause);
+    const offscreenStart = diagnosticNow();
+    const passes = await warmOffscreenPasses(this.renderer, this.rootScene, current, drawnPause);
+    onStage('offscreen-draws', diagnosticNow() - offscreenStart, passes);
+    trace.completed = true;
   }
 
   /**

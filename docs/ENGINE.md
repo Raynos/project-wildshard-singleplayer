@@ -838,6 +838,12 @@ initial boot retain their ordinary job grouping and time budget.
 
 For a running WebKit game, `Game.warmEnteredFrame` and `Game.warmSceneRoots` supply `waitForDrawnFrame` as the
 `pause` callback. It waits for a fresh completed game draw and a paint opportunity; a capped/skipped browser rAF
+Entered-frame diagnostics are scalar: `Game.entryPreparation` records compile/link/upload, composer,
+parked-draw and offscreen-draw elapsed times and completed units, including their painted waits. It holds
+no materials, textures, scenes or native handles. `PrecompileStage` is the optional `onStage` callback
+of `precompileLevel` (and the argument after `uploadBudget` in `runPrecompile`); observers do not change
+work ordering or readiness. Older frame-floor captures omit this field.
+
 Isolation costs a drawn frame per image: Pine's entered warm-up took 7.8 s on the Simulator at 30 fps (op-hitch27).
 An optional `UploadBudget` (`{ ms, bytes }`, `precompileLevel`'s `uploadBudget`, `prepareSceneRoots`' and
 `runPrecompile`'s last argument) batches the image uploads instead: several per frame while their measured time stays
