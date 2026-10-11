@@ -27,6 +27,7 @@ import { currentOwner, enteredOwner, withOwner } from '../app/ownership';
 import type { Scope } from '../app/scope';
 import type { ColliderDesc, DrawnAs, ModelEntry, WorldRegistry } from '../world/registry';
 import { FrameCamera } from '../world/frameCamera';
+import { geometryBoundsSteps } from '../world/geometryBounds';
 import { withTier } from '../explore/tiers';
 import { paramsOf, seedOf, type ModelBuild, type ModelBuildVisit, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
 import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
@@ -534,7 +535,7 @@ function* drawMergedSteps<P extends object>(def: ModelDef<P>, pls: readonly Plac
       const meshes: THREE.Mesh[] = [];
       for (const { part, geos } of byMat.values()) {
         const geo = mergeGeometries(geos, false);
-        geo.computeBoundingSphere();
+        yield* geometryBoundsSteps(geo, 'sphere');
         const mesh = meshOf(part, geo);
         mesh.name = def.id;
         meshes.push(mesh);

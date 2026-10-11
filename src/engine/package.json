@@ -310,6 +310,7 @@
     "./world/forest/treeSpecies": "./world/forest/treeSpecies.ts",
     "./world/frameCamera": "./world/frameCamera.ts",
     "./world/geometryKit": "./world/geometryKit.ts",
+    "./world/geometryBounds": "./world/geometryBounds.ts",
     "./world/groundField": "./world/groundField.ts",
     "./world/interact/Interactables": "./world/interact/Interactables.ts",
     "./world/interact/pickup": "./world/interact/pickup.ts",

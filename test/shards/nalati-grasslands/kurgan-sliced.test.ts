@@ -21,7 +21,7 @@ it('builds the same static interior a task apart per part as the eager build (SF
   const sliced = new KurganDungeon().build(true);
   let yields = 0;
   await sliced.buildStaticSliced(() => { yields++; return Promise.resolve(); });
-  expect(yields).toBe(7); // the chamber (two parts), the dromos, the grave goods, the finish, the bake in thirds
+  expect(yields).toBeGreaterThan(7); // finishing now also pauses within the vertex shading and bounds scans
   expect(shape(sliced)).toEqual(shape(eager));
   expect(sliced.tris).toBe(eager.tris);
   expect(sliced.colliders).toEqual(eager.colliders);

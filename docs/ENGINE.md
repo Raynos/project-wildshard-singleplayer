@@ -733,6 +733,12 @@ Piece-to-piece macrotasks share the same budget as sliced loops, capped at a qua
 `noteFrameDrawn(at)` callers keep their original smoothed cadence. This changes scheduling only: no
 frame-cap, geometry, simulation, render-scale or quality change.
 
+`geometryBoundsSteps(geometry, "box" | "sphere" | "both")` in `@wildshard/engine/world/geometryBounds`
+scans ordinary CPU positions in 8,192-vertex steps using three.js arithmetic. Sliced model builders
+and painted-mesh finishers may pause between steps; synchronous callers exhaust them. Bounds publish
+only when complete and preserve existing object identity. Morph/GPU-only/invalid inputs use the original
+three.js path. Vertex data, culling results and geometry quality stay unchanged.
+
 `frameCapAnchor(lastDrawn, timestamp, positiveFps)` in `@wildshard/engine/core/Game` returns null when a capped
 draw is not due, otherwise its cadence anchor. A late 30 fps draw keeps its slot within a bounded phase window,
 so the following draw does not lose another vsync; normal jitter tolerance and the uncapped path are unchanged.

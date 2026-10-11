@@ -323,7 +323,7 @@ export class KurganDungeon {
     yield;
     this.buildGraveGoods(kit, rng);
     yield;
-    const geo = kit.finish();
+    const geo = yield* kit.finishSteps();
     yield;
     // the bake is per vertex: a third of them a task (SF67: the finish and the bake were one ~190 ms task at 4x CPU)
     const count = geo.getAttribute('position').count, third = Math.ceil(count / 3);

@@ -22,6 +22,7 @@ import { loadNalatiTexture, type NalatiTexName } from '../look/nalatiTextures';
 import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
 import { pole } from '@wildshard/engine/world/geometryKit';
+import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { voxelAO, aoTint, hemisphere } from '@wildshard/engine/world/voxelAO';
@@ -153,7 +154,13 @@ export class PaintKit {
    *   - a sky gradient: faces that look up are a touch lighter, faces that look down a touch darker.
    */
   finish(o: FinishOpts = {}): THREE.BufferGeometry {
-    const geo = PaintKit.shade(this.parts, o);
+    const steps = this.finishSteps(o);
+    for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+  }
+
+  /** Finish the same painted mesh, allowing its merge, shading and bounds scans to yield independently. */
+  *finishSteps(o: FinishOpts = {}): Generator<void, THREE.BufferGeometry> {
+    const geo = yield* PaintKit.shadeSteps(this.parts, o);
     this.parts = [];
     return geo;
   }
@@ -201,8 +208,7 @@ export class PaintKit {
       else col.setXYZ(i, r * k + r * tint.r * (1 - k), g * k + g * tint.g * (1 - k), bl * k + bl * tint.b * (1 - k));
     }
     col.needsUpdate = true;
-    geo.computeBoundingSphere();
-    geo.computeBoundingBox();
+    yield* geometryBoundsSteps(geo);
     return geo;
   }
 
