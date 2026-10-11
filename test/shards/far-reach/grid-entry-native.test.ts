@@ -11,7 +11,10 @@ import source from '../../../src/shards/far-reach/shard.config';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 it('walks and rides all four authored Rising Islets, calls both stops and closes every road gate lane', async () => {
-  const assets = new Map(source.files.map((file) => [file.hash, Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${file.hash}`))])), shard = validateShardfileAssets(withoutRuntimeRows(source), assets, contentHash);
+  // This host owns entries and their movers, not Roc arena observations/actions. The actual trusted Sky host
+  // proves its boss stages separately; retain every collider, module and lift assertion in this entry proof.
+  expect(source.directors).toHaveLength(1);
+  const assets = new Map(source.files.map((file) => [file.hash, Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${file.hash}`))])), shard = validateShardfileAssets({ ...withoutRuntimeRows(source), directors: [] }, assets, contentHash);
   const rapier = await loadRapier(await (await fetch(wasmInline)).arrayBuffer());
   const sim = createShardfileSim(shard, assets, { rapier, ground: false });
   try {

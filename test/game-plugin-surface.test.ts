@@ -144,3 +144,11 @@ it('defines boot admission and prompt selection without compatibility wrappers',
   expect(report.pluginExports).toBeLessThanOrEqual(20);
   expect(report.entries.find(row => row.key === './plugin/simulation')).toMatchObject({ published: true, target: './plugin/simulation.ts' });
 });
+
+it('defines traversal laws in the mover plugin without a twenty-first public plugin', () => {
+  const report = gamePluginSurface();
+  expect(checkGamePluginExports().failures).toEqual([]);
+  expect(report.pluginExports).toBeLessThanOrEqual(20);
+  expect(report.entries.some(row => row.key === './plugin/playerMode')).toBe(false);
+  expect(report.entries.find(row => row.key === './plugin/mover')).toMatchObject({ published: true, target: './plugin/mover.ts' });
+});

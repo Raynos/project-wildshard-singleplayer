@@ -3,7 +3,7 @@ import { Group, Vector3 } from 'three';
 import { parseModes, ZiplineModeSchema, UpdraftModeSchema } from '../src/format/modes';
 import * as v from 'valibot';
 import { Zipline, Updraft } from '../src/sdk/modes';
-import { ZiplineDriver, UpdraftDriver, inUpdraft } from '../src/game/plugin/playerMode';
+import { ZiplineDriver, UpdraftDriver, inUpdraft } from '../src/game/plugin/mover';
 import { DriftwoodZipline } from './fixtures/modes/nativeZipline';
 import { inUpdraft as nativeInUpdraft } from '../src/shards/far-reach/runtime/updraft';
 import { UPDRAFT } from '../src/shards/far-reach/data/layout';

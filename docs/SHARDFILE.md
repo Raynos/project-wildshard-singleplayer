@@ -1491,7 +1491,7 @@ root still refuses unhosted mode rows and every existing host/snapshot is unchan
 `@wildshard/sdk/modes` authors ordinary three.js `Zipline` and `Updraft` objects;
 `toModeData()` emits world-space rows from their actual hierarchy. Width and
 physical tuning remain explicit world-metre parameters. The defining native laws
-live in `@wildshard/game/plugin/playerMode` (`CableLayout`, `ZiplineDriver`,
+live in `@wildshard/game/plugin/mover` (`CableLayout`, `ZiplineDriver`,
 `UpdraftDriver`, `inUpdraft`). A trusted host invokes them at its existing player
 phase; importing author objects or rows installs no services or second scheduler.
 Ride, grapple, water and hover-deck rows follow only when their live consumers are

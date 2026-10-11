@@ -109,8 +109,7 @@
     "./plugin/director": "./plugin/director.ts",
     "./plugin/ui": "./plugin/ui.ts",
     "./plugin/audio": "./plugin/audio.ts",
-    "./plugin/shaderFamily": "./plugin/shaderFamily.ts",
-    "./plugin/playerMode": "./plugin/playerMode.ts"
+    "./plugin/shaderFamily": "./plugin/shaderFamily.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"
