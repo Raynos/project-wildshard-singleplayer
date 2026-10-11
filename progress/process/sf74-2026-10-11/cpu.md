@@ -15,7 +15,8 @@ The same 20 existing skips remain; none was added. Vitest takes 6.5% longer, whi
 controlled causal claim. The live process sample and 15-second gate samples show at most six Vitest workers;
 all gate descendants have priority at least 10. Observed active-gate load averages 15.7 and peaks at 25.3, versus
 the pre-change point reading 57.8. `27d583885` reached origin and started push CI `38169189318`; no CI-green
-claim is inferred from the local result.
+claim is inferred from the local result. The next real cached gate, `2fa93fa60`, also passes: 34 s of related
+Vitest and 129 s total. This is one measured cached attempt, still above the two-minute whole-push target.
 
 ## JSON reporter's ten slowest files
 
