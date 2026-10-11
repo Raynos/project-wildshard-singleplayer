@@ -1822,3 +1822,17 @@ contact. Both charge and close strikes file their actual selected id and tags.
 The optional engine `strikeHit` port preserves this identity; old trusted ports
 without it retain their exact damage-only callback. Restoring with a changed
 authored phase refuses before ticking.
+
+### Automatic player-target packs (SF82 BR-1)
+
+Declared `stalker` groups with `pattern: 'pack'` (or legacy `pack`) now bind
+their ordered live roster, authored group home and actual host player automatically.
+The existing pack policy owns phases, roles and the attack-token director. The
+stock recipe registers that director for the exact live member and requires both
+its token and the host's real attack claim. A bite uses real reach, distance and
+CombatSystem filing with that body's declared charge damage.
+
+This stock owner has no declared animal-prey, grass or scent field. It grants no
+prey/smell observation and refuses a continuation containing undeclared prey.
+Trusted group recipes still provide those worlds explicitly. The actual body
+motor owns all movement; sound cues remain presentation-only.

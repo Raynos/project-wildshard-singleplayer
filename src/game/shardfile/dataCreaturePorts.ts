@@ -9,7 +9,7 @@ import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { ShardCreatures } from '@wildshard/format/creatures';
 import type { ShardRows } from '@wildshard/format/rows';
 import type { DeclaredBrainPorts } from './brainRuntime';
-import type { DeclaredGroupPorts } from './groupRuntime';
+import type { DeclaredGroupPorts, DeclaredPackRecipe } from './groupRuntime';
 
 const finite = v.pipe(v.number(), v.finite());
 const motionSchema = v.strictObject({ x: finite, z: finite, speed: v.pipe(finite, v.minValue(0)) });
@@ -19,6 +19,7 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
 } {
   let used = false;
   const homes = new Map(spawns.map(row => [row.id, row.home === undefined ? undefined : { ...row.home }]));
+  const directors = new Map<AnimalSim, Parameters<DeclaredPackRecipe['ports']['register']>[1]>();
   const phases = new Map(spawns.map(row => [row.id, row.phaseOffset]));
   const impulse = borrowedImpulse ?? (host.embedded ? undefined : (velocity: Vector3) => { host.impulsePlayer(velocity); });
   const push = new Vector3();
@@ -86,7 +87,44 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
         shove: (yaw: number, speed: number, lift: number) => { impulse(push.set(Math.sin(yaw) * speed, lift, Math.cos(yaw) * speed)); },
       }) };
     }, orbitDiver: (actor, row) => diver(actor, row.strike), patrolDiver: (actor, row) => diver(actor, row.strike) },
-    groups: { herd: (group, _members) => {
+    groups: { pack: (group, members) => {
+      used = true;
+      const memberSet = new Set(members);
+      return { ports: {
+        sharedRng: () => host.rng.stream('ai'),
+        environment: () => ({ playerFwdX: Math.sin(host.player.yaw), playerFwdZ: Math.cos(host.player.yaw),
+          playerMounted: host.playerMode === 'ride',
+          playerHealth01: host.player.health.attributes.health / host.player.health.attributes.maxHealth,
+          // Data-only rows declare no grass/scent field or animal-prey binding.
+          grassHeightAt: () => 0 }),
+        visibility: (x, z, player) => {
+          from.set(x, host.groundHeightAt(x, z) + 1.2, z); to.copy(player); to.y += 1.2;
+          return lineOfSight(host.physics, from, to) ? 1 : 0;
+        },
+        hearing: (radii, _player, speed) => radii[speed < 0.4 ? 0 : speed <= 2.6 ? 1 : speed < 5.2 ? 2 : 3],
+        downwind: () => false, inBounds, normalY,
+        register: (actor, director) => {
+          if (!memberSet.has(actor) || host.entities.get(actor.entityId) !== actor) throw new Error('Unresolved data-host pack actor');
+          directors.set(actor, director);
+        },
+        bite: (actor, _context, radius) => {
+          if (Math.hypot(actor.position.x - host.player.position.x, actor.position.z - host.player.position.z) < radius && reach(actor))
+            hurt(actor, actor.mods.chargeDamage, ['animal.pack', 'feel.blow'], group.id);
+        },
+        // The stock group has only its actual player target; injected recipes own animal prey.
+        preyIdentity: () => { throw new Error('Undeclared data-host pack prey'); }, resolvePrey: () => null,
+      }, observe: (_actor, dt) => ({ dt, t: host.clock.now, player: host.player.position,
+        playerSpeed: motion.speed, calm: !host.player.health.alive, rng: host.rng.stream('ai'),
+        sound: () => undefined,
+        claim: actor => host.events.ask('ai.claim', actor) && (directors.get(actor)?.take(actor) ?? false),
+        steer: (actor, yaw, speed, turn) => { actor.setMotion(yaw, speed, turn); },
+        pathYaw: (actor, x, z) => {
+          from.copy(actor.position); from.y += actor.dims.bodyY * actor.scale;
+          to.set(x, host.groundHeightAt(x, z) + actor.dims.bodyY * actor.scale, z);
+          return lineOfSight(host.physics, from, to) ? Math.atan2(x - actor.position.x, z - actor.position.z) : actor.yaw + Math.PI / 2;
+        },
+      }), confine };
+    }, herd: (group, _members) => {
       used = true;
       return { ports: {
         sharedRng: () => host.rng.stream('ai'),

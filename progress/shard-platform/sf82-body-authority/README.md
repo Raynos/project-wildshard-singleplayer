@@ -46,3 +46,15 @@ Proof: 40 focused tests in six files, root strict and touched typed lint green.
 Charge/close contacts preserve selected ids/tags; real physics restores a
 600-tick suffix exactly, changed phases refuse, and denied claims file no damage.
 No browser/build/full suite or geometry changes.
+
+## Player-target pack authority
+
+The stock pack binds the actual ordered bodies, target, RNG, native terrain/reach
+and policy-owned director. Claims require the real host answer plus that director's
+token. Body movement and CombatSystem contact stay authoritative. Undeclared animal
+prey remains refused; this is not a substitute for a shard's prey/scent ecosystem.
+
+Proof: 28 focused tests/four files, root strict and touched typed lint green.
+Real pack bites, single-token admission, cover/claim denial and an exact
+600-tick restored native suffix pass. Point contact retains the shared horizontal
+distance law. No geometry, collider, shipped tuning or trusted recipe changes.
