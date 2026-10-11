@@ -38,6 +38,11 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   a missing approval receipt) and waits for the next commit. Log `.git/auto-push.log`, each run's output in
   `.git/auto-push/`; off switch `touch .git/auto-push.off`. Commits that never ran post-commit (a private-index
   `update-ref` landing) go up with the next commit, or run `scripts/push-main.sh` yourself.
+- **A red gate can identify and release a green prefix** (SF74 W25). The pusher bisects failed test files, typechecks,
+  lint, CSS, generated shard/plugin contracts and Node bakers on clean committed exports using their exact gate
+  commands; mixed failures must all pass. Unsupported build/browser steps refuse selection. A candidate still needs
+  current regeneration and witness fences and the complete green push gate. Stale historical outputs are refused;
+  the pusher never inserts a regeneration commit underneath shared main or rewrites the lanes' history.
 - **Push with `scripts/push-main.sh`, never `git push`** (enforced by `.claude/hooks/guard-bash-safety.sh`). It takes
   `.git/push.lock`. If another push holds the lock, your commits stay local and it exits 0: that push re-checks
   `origin/main..main` before it lets go, so it carries yours. Rare escape: `SKIP_PUSHLOCK=1`. `push-main.sh` and

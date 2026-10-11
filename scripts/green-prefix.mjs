@@ -3,7 +3,7 @@
 // with 141 commits behind a red push gate whose failures came from four different lanes in turn, and production missed
 // a release fix (c145a1df9) that was green all along.
 //
-// When the push gate on <tip> fails only in vitest, this picks the newest unpushed commit worth gating instead:
+// When the push gate on <tip> fails in supported focused checks, this picks an unpushed commit worth gating instead:
 //   1. the failing test files come from the gate's output (one ' FAIL ' line per failed test);
 //   2. a binary search over the unpushed commits probes those files (only those) on a clean export of each, to find
 //      the first bad commit (the newest commit where they still pass sits just before it);
@@ -13,7 +13,8 @@
 //      witness checkpoints are current, skipping any commit a gate already failed (.git/gate-timings.jsonl).
 // push-main.sh then runs the full gate on that commit and pushes it when green; the rest waits for the fix as before.
 // `--witness`: the regeneration refused a witness payload change (a behaviour change landed without its rebake); the
-// probe is then the witness re-record itself. Other reds (typecheck, oxlint, a bake, the build) print nothing.
+// probe is then the witness re-record itself. Typecheck, lint, CSS, generated contracts and Node bakes use the gate's
+// exact commands. Unknown/build/browser failures refuse selection. Every prefix still runs the complete gate.
 //
 //   node scripts/green-prefix.mjs [--witness] <tip> <output-file>    prints a sha, or nothing (reason on stderr)
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -33,6 +34,25 @@ export function failingTestFiles(out) {
   const files = new Set();
   for (const m of out.matchAll(/^ *FAIL +(?:\|[^|\n]+\| +)?(\S+\.(?:test|spec)\.[cm]?[jt]sx?)\b/gmu)) if (m[1]) files.add(m[1]);
   return [...files].sort((a, b) => a.localeCompare(b));
+}
+/** Exact focused gate commands; null refuses any unsupported non-vitest step. No shell text comes from the log.
+ * @param {readonly string[]} steps @returns {string[][] | null} */
+export function failureCommands(steps) {
+  const commands = [];
+  for (const step of steps) {
+    if (step === 'vitest') continue;
+    if (step === 'typecheck') commands.push(['pnpm', 'exec', 'tsc', '--noEmit']);
+    else if (step === 'typecheck-layers') commands.push(['pnpm', 'exec', 'tsc', '-b', 'tsconfig.layers.json']);
+    else if (['typecheck-api', 'typecheck-scripts'].includes(step)) commands.push(['pnpm', 'exec', 'tsc', '--noEmit', '-p', step.slice(10)]);
+    else if (step === 'oxlint') commands.push(['pnpm', 'exec', 'oxlint']);
+    else if (step === 'check-css') commands.push([process.execPath, 'scripts/check-css.mjs']);
+    else if (step === 'gen-check') commands.push([process.execPath, 'scripts/gen-shards.mjs', '--check']);
+    else if (step === 'game-plugin-exports') commands.push([process.execPath, 'scripts/game-plugins.mjs', '--check']);
+    else if (step === 'bake-check') commands.push([process.execPath, 'scripts/bake-check.mjs', '--node-only']);
+    else if (/^bake-[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(step)) commands.push([process.execPath, 'scripts/bake-check.mjs', '--node-only', `--only=${step.slice(5)}`]);
+    else return null;
+  }
+  return commands;
 }
 /**
  * The newest index in `candidates` (oldest first) whose probe passes, assuming one break point (pass … pass fail … fail);
@@ -61,8 +81,9 @@ function gatedRed(common) {
   return red;
 }
 
-/** Run the given test files that exist at <sha> on a clean export of it. @param {string} root @param {string} sha @param {readonly string[]} files */
-function probe(root, sha, files) {
+/** Run focused failed checks and present tests on a clean export; missing scripts refuse rather than passing.
+ * @param {string} root @param {string} sha @param {readonly string[]} files @param {readonly string[][]} [commands] */
+export function probeFailure(root, sha, files, commands = []) {
   const work = realpathSync(mkdtempSync(join(tmpdir(), 'green-prefix-')));
   try {
     const archive = join(work, 'source.tar');
@@ -71,12 +92,13 @@ function probe(root, sha, files) {
     rmSync(archive);
     linkNodeModules(root, work);
     const present = files.filter((file) => existsSync(join(work, file)));
-    if (present.length === 0) { log(`${sha.slice(0, 9)}: none of the files exist yet: pass`); return true; }
+    if (present.length === 0 && commands.length === 0) { log(`${sha.slice(0, 9)}: none of the files exist yet: pass`); return true; }
     if (existsSync(join(work, 'scripts/gen.mjs'))) execFileSync(process.execPath, ['scripts/gen.mjs'], { cwd: work, stdio: 'ignore' });
     const t0 = Date.now();
-    const run = spawnSync('pnpm', ['exec', 'vitest', 'run', ...present], { cwd: work, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-    const ok = run.status === 0;
-    log(`${sha.slice(0, 9)}: ${present.length} file(s) ${ok ? 'pass' : 'fail'} in ${Math.round((Date.now() - t0) / 1000)} s`);
+    const checks = [...commands, ...(present.length === 0 ? [] : [['pnpm', 'exec', 'vitest', 'run', ...present]])];
+    const ok = checks.every(([command, ...args]) => spawnSync(command, args,
+      { cwd: work, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).status === 0);
+    log(`${sha.slice(0, 9)}: ${commands.length} check(s), ${present.length} file(s) ${ok ? 'pass' : 'fail'} in ${Math.round((Date.now() - t0) / 1000)} s`);
     return ok;
   } catch (error) {
     log(`${sha.slice(0, 9)}: probe failed (${error instanceof Error ? error.message.split('\n')[0] : String(error)}): counted as red`);
@@ -125,22 +147,27 @@ function witnessProbe(root, common, sha) {
 export function greenPrefix(root, tip, out, mode = 'vitest') {
   /** @type {string[]} */
   let files = [];
+  let commands = [];
   if (mode === 'witness') {
     if (!out.includes('witness-manifests: payloads changed')) { log('the regeneration failed for another reason: not bisected'); return null; }
   } else {
     const steps = failedSteps(out);
     if (steps.length === 0) { log('no failed gate step in the output'); return null; }
-    if (steps.some((step) => step !== 'vitest')) { log(`red outside vitest (${steps.join(', ')}): not bisected`); return null; }
-    files = failingTestFiles(out);
-    if (files.length === 0) { log('vitest failed with no FAIL line'); return null; }
+    const focused = failureCommands(steps);
+    if (focused === null) { log(`unsupported failed step (${steps.join(', ')}): not bisected`); return null; }
+    commands = focused;
+    if (steps.includes('vitest')) {
+      files = failingTestFiles(out);
+      if (files.length === 0) { log('vitest failed with no FAIL line'); return null; }
+    }
   }
   const common = git(root, ['rev-parse', '--path-format=absolute', '--git-common-dir']);
   const tipSha = git(root, ['rev-parse', tip]), red = gatedRed(common);
   const commits = git(root, ['rev-list', '--reverse', `origin/main..${tipSha}`]).split('\n').filter(Boolean).filter((sha) => sha !== tipSha);
   if (commits.length === 0) { log('nothing unpushed before the red tip'); return null; }
-  log(mode === 'witness' ? `witness payloads changed: bisecting ${commits.length} unpushed commit(s)` : `${files.length} failing file(s) over ${commits.length} unpushed commit(s): ${files.join(' ')}`);
-  const index = newestPassing(commits, (sha) => mode === 'witness' ? witnessProbe(root, common, sha) : probe(root, sha, files));
-  if (index < 0) { log('the failing files fail on every unpushed commit'); return null; }
+  log(mode === 'witness' ? `witness payloads changed: bisecting ${commits.length} unpushed commit(s)` : `${commands.length} failing check(s), ${files.length} file(s) over ${commits.length} unpushed commit(s): ${files.join(' ')}`);
+  const index = newestPassing(commits, (sha) => mode === 'witness' ? witnessProbe(root, common, sha) : probeFailure(root, sha, files, commands));
+  if (index < 0) { log('the failed checks fail on every unpushed commit'); return null; }
   log(`first bad commit (guess): ${git(root, ['log', '-1', '--format=%h %s', commits[index + 1] ?? tipSha]).slice(0, 120)}`);
   let checks = 0;
   for (let i = index; i >= 0; i--) {
@@ -151,7 +178,7 @@ export function greenPrefix(root, tip, out, mode = 'vitest') {
       checks++;
       if (!generatedCurrent(root, sha)) continue;
     }
-    if (!probe(root, sha, CHECKPOINTS.filter((file) => !files.includes(file)))) continue;
+    if (!probeFailure(root, sha, CHECKPOINTS.filter((file) => !files.includes(file)))) continue;
     log(`pushable prefix: ${sha.slice(0, 9)} (${git(root, ['rev-list', '--count', `origin/main..${sha}`])} of ${commits.length + 1} unpushed commits)`);
     return sha;
   }

@@ -1,4 +1,6 @@
 export function failedSteps(out: string): string[];
 export function failingTestFiles(out: string): string[];
+export function failureCommands(steps: readonly string[]): string[][] | null;
+export function probeFailure(root: string, sha: string, files: readonly string[], commands?: readonly string[][]): boolean;
 export function newestPassing(candidates: readonly string[], passes: (sha: string) => boolean): number;
 export function greenPrefix(root: string, tip: string, out: string, mode?: 'vitest' | 'witness'): string | null;
