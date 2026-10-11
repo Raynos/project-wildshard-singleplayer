@@ -8,6 +8,7 @@ import { tap } from '../core/harnessTap';
 /** Shared HUD + Weapon Explorer: a 100 × 100 m enclosed grid room and three hit-reactive humanoid dummies. */
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
+import { breakCompressedUploadPaintSharing } from '../render/compressedUpload';
 import { practiceFps } from '../core/tier';
 import type { Physics } from '../physics/Physics';
 import { addTrainingTarget, trainingTargetRaycast, type TrainingTargetBodies } from '../physics/trainingTargets';
@@ -360,6 +361,7 @@ export class TrainingArena {
   /** textures to the GPU and the studio program compiled now, off screen, not on the room's first frame */
   private async upload(root: THREE.Object3D): Promise<void> {
     const renderer = this.game.renderer;
+    breakCompressedUploadPaintSharing(renderer);
     root.traverse((part) => {
       if (!(part instanceof THREE.Mesh) || !(part.material instanceof THREE.MeshStandardMaterial)) return;
       for (const t of [part.material.map, part.material.metalnessMap, part.material.roughnessMap, part.material.normalMap]) if (t !== null) renderer.initTexture(t);

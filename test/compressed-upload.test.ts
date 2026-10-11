@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { expect, it, vi } from 'vitest';
 import * as ktx2 from '../src/engine/core/ktx2';
 import { loadTexture } from '../src/engine/core/assets';
-import { compressedUploadsActive, uploadCompressedTexture } from '../src/engine/render/compressedUpload';
+import { breakCompressedUploadPaintSharing, compressedUploadsActive, setCompressedUploadPaintSharing, uploadCompressedTexture } from '../src/engine/render/compressedUpload';
 import { compressedTextureKey } from '../src/engine/render/compressedMipmaps';
 import { startViewmodelTextures, viewmodelTexturesReady, makeBoltAtlas } from '../src/engine/combat/view/ranged';
 import manifest from '../src/shards/pine-hollow/manifest';
@@ -323,5 +323,45 @@ it('refuses a lost context at the shared boundary before the next upload', async
     await expect(uploadCompressedTexture(renderer, texture(), () => true, true, true)).rejects.toThrow('Graphics context lost');
     expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(1);
     expect(events.filter(event => event.startsWith('paint:'))).toHaveLength(2);
+  });
+});
+
+it('applies the opt-in to real loader calls without creating an active queue', async () => {
+  await fixture(async (renderer, events) => {
+    setCompressedUploadPaintSharing(renderer, true);
+    expect(compressedUploadsActive(renderer)).toBe(false);
+    const provisional = ktx2.releaseAfterUpload(texture()); provisional.needsUpdate = true;
+    await ktx2.prepareCompressedTexture(provisional, renderer, () => true, false);
+    expect(provisional.mipmaps).toHaveLength(1);
+    await ktx2.prepareCompressedTexture(texture(true), renderer);
+    expect(events.filter(event => event.startsWith('upload:')).map(event => event.split(':')[1])).toEqual(['1', '2']);
+    setCompressedUploadPaintSharing(renderer, false);
+    await ktx2.prepareCompressedTexture(texture(), renderer);
+    expect(events.filter(event => event.startsWith('upload:')).map(event => event.split(':')[1])).toEqual(['1', '2', '4']);
+  });
+});
+
+it('requires a fresh loader paint after an intervening image upload', async () => {
+  await fixture(async (renderer, events) => {
+    setCompressedUploadPaintSharing(renderer, true);
+    await ktx2.prepareCompressedTexture(texture(), renderer);
+    events.push('image-upload'); breakCompressedUploadPaintSharing(renderer);
+    await ktx2.prepareCompressedTexture(texture(true), renderer);
+    expect(events.filter(event => event.startsWith('upload:')).map(event => event.split(':')[1])).toEqual(['1', '3']);
+    expect(events.at(-1)).toBe('paint:4');
+  });
+});
+
+it('does not revive a shared boundary invalidated while loader requests were already queued', async () => {
+  await fixture(async (renderer, events) => {
+    setCompressedUploadPaintSharing(renderer, true);
+    const first = texture(), init = renderer.initTexture.bind(renderer);
+    Reflect.set(renderer, 'initTexture', (value: THREE.Texture) => {
+      init(value);
+      if (value === first) { events.push('image-upload'); breakCompressedUploadPaintSharing(renderer); }
+    });
+    await Promise.all([ktx2.prepareCompressedTexture(first, renderer), ktx2.prepareCompressedTexture(texture(true), renderer)]);
+    expect(events.filter(event => event.startsWith('upload:')).map(event => event.split(':')[1])).toEqual(['1', '3']);
+    expect(events.at(-1)).toBe('paint:4');
   });
 });

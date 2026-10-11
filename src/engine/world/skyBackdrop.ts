@@ -2,6 +2,7 @@ import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
 import { prepareOffscreenBuild } from '../render/offscreenBuild';
 import type { Renderer } from '../render/renderer';
+import { breakCompressedUploadPaintSharing } from '../render/compressedUpload';
 import type { Scope } from '../app/scope';
 import type { SkyRig as Sky } from './skyRig';
 import type { SkySpec } from '../level/data';
@@ -430,6 +431,7 @@ async function pmremOf(renderer: Renderer, hdr: THREE.Texture, live: () => boole
   const pmrem = new THREE.PMREMGenerator(renderer);
   pmrem.compileEquirectangularShader();
   await macrotask();
+  breakCompressedUploadPaintSharing(renderer);
   renderer.initTexture(hdr);
   await macrotask();
   const prepared: { generator: THREE.PMREMGenerator | null } = { generator: null };

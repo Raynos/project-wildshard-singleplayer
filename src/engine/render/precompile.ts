@@ -12,7 +12,7 @@ import { chunkShadowCastersSliced } from '../world/shadowChunks';
 import { recordGpuCheckpoint } from '../boot/gpuTrace';
 import { familyCompileJobs } from './families/registry';
 import { shaderPatchTextures } from './shaderPatches';
-import { uploadCompressedTexture } from './compressedUpload';
+import { breakCompressedUploadPaintSharing, uploadCompressedTexture } from './compressedUpload';
 import { linkStandIn } from '../app/sceneOwnership';
 import { offscreenPreparations } from './offscreenPreparation';
 import { waitMaterialPreparations } from './materialPreparation';
@@ -792,6 +792,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       } else {
         // An image upload breaks the consecutive compressed group: require a fresh leading paint.
         if (shareUploadPaints) compressedPaints = Symbol('compressed-upload-group');
+        breakCompressedUploadPaintSharing(renderer);
         renderer.initTexture(tex);
       }
     }

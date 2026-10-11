@@ -8,6 +8,7 @@ import type { Phase } from '../app/systems';
 import { currentOwner, enterOwner } from '../app/ownership';
 import * as THREE from 'three';
 import { createRenderer, type Renderer } from '../render/renderer';
+import { setCompressedUploadPaintSharing } from '../render/compressedUpload';
 import { CAMERA_FOV } from './config';
 import {
   EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
@@ -383,6 +384,7 @@ export class Game {
       if (tracedBoot) recordBootCheckpoint('renderer:failed', { message: error instanceof Error ? error.message.slice(0, 250) : String(error).slice(0, 250) });
       throw error;
     }
+    if (setting('buildPacing') === 'shared-paints') setCompressedUploadPaintSharing(this.renderer, true);
     if (tracedBoot) recordGpuCheckpoint(this.renderer, 'renderer:created');
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, TIER_CONFIG.dpr));
     this.renderer.setSize(window.innerWidth, viewportHeight());
@@ -959,7 +961,9 @@ export class Game {
     this.primeFrame = () => { if (!this.dead) forceFrame = true; };
     // op-hitch26: sliced builds in play pace themselves to these frames only with the default-off Developer tool on
     setFramePacing(setting('buildPacing') !== 'off');
-    this.engineScope.onDispose(onSettingChange('buildPacing', (v) => { setFramePacing(v !== 'off'); }));
+    this.engineScope.onDispose(onSettingChange('buildPacing', (v) => {
+      setFramePacing(v !== 'off'); setCompressedUploadPaintSharing(this.renderer, v === 'shared-paints');
+    }));
     setLoopState('running');
     loop();
   }
