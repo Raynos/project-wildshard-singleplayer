@@ -1372,3 +1372,6 @@ Pine retains each non-King rig under `assets/creatures/`; the coat job copies th
 
 
 DS1.3 scene intermediates retain skin joint order, inverse binds and mesh bind frames plus standard named animation tracks. `restoreSceneGraph` reconstructs the ordinary three.js graph after JSON transport; game-concept sections remain compiler data. Template 1 and Pastel Plain still rebuild to identical prop/GLB/tile/far bytes. The additional animated-rig fixtures prove exact skin GLB and clip bytes without changing the shipped pilots. No texture, physical-material or TSL path is silently accepted.
+
+
+DS1.3: audio Object3D declarations (`Cue`, `AmbienceZone`, `Score`) serialize the existing cue/mixer/score wire contract without audio services. The two pilot profiles remain byte-identical after scene JSON transport. `Portal` and `SocketLift` subclass `Entry` and emit the existing midpoint entry rows with their explicit cell-local floor/route/mover bindings. Their added fixtures on Template 1 and Pastel Plain pass the independently defining format schemas with identical bytes; no shipped entry behaviour is changed. Native clearance, portal transfer and lift ride proofs remain admission/host duties. Textures and physical/TSL material authoring remain DS1.4.

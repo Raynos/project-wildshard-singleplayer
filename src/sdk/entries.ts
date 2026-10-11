@@ -1,5 +1,7 @@
 import { Matrix4, Object3D, Vector3 } from 'three';
 import { updateAuthoringMatrix } from './sceneTransform';
+import { parsePortalLink, type PortalLink as PortalLinkData } from '@wildshard/format/portalLink';
+import { parseSocketLift, type SocketLift as SocketLiftData } from '@wildshard/format/socketLift';
 /** A road socket's boundary edge, with +Z north. */
 export type EntryEdge = 'north' | 'east' | 'south' | 'west';
 /** Authored entry row for the four road-height midpoint openings. */
@@ -11,7 +13,9 @@ export interface EntryData {
         number
     ];
     width: 8;
-    kind?: 'ground' | 'socketOverWater';
+    kind?: 'ground' | 'socketOverWater' | 'portalLink' | 'socketLift';
+    portal?: PortalLinkData;
+    lift?: SocketLiftData;
 }
 const MIDPOINTS = { north: [0, 0, 250], east: [250, 0, 0], south: [0, 0, -250], west: [-250, 0, 0] } as const;
 /** A fixed 8 x 15 metre socket declaration; it does not create a floor or flatten authored ground. */
@@ -31,6 +35,11 @@ export class Entry extends Object3D {
     override copy(source: this, recursive = true): this { super.copy(source, recursive); this.edge = source.edge; this.kind = source.kind; return this; }
     /** The four independent midpoint objects, in north/east/south/west order. */
     static midpoints(): Entry[] { return (['north', 'east', 'south', 'west'] as const).map(edge => new Entry(edge)); }
+    /** Special entry subclasses supply their admitted link; a plain socket cannot guess one. */
+    protected entryBindings(): Pick<EntryData, 'portal' | 'lift'> {
+        if (this.kind === 'portalLink' || this.kind === 'socketLift') throw new Error('Entry requires its matching portal or lift author object');
+        return {};
+    }
     /** Entries must retain their exact road-height world midpoint; geometry proof happens during validation. */
     toEntryData(): EntryData {
         updateAuthoringMatrix(this);
@@ -40,6 +49,35 @@ export class Entry extends Object3D {
         const expected = new Matrix4().makeTranslation(at.x, at.y, at.z);
         if (this.matrixWorld.elements.some((value, index) => !Number.isFinite(value) || Math.abs(value - (expected.elements[index] ?? Infinity)) > 1e-8))
             throw new Error('Entry socket frame cannot rotate, scale or shear');
-        return { edge: this.edge, at: [at.x, at.y, at.z], width: 8, ...(this.kind === undefined ? {} : { kind: this.kind }) };
+        return { edge: this.edge, at: [at.x, at.y, at.z], width: 8, ...(this.kind === undefined ? {} : { kind: this.kind }), ...this.entryBindings() };
+    }
+}
+
+/** A midpoint entry with the existing road/arrival/exit portal link and walked route. Cell-local link data
+ * binds named authored floors; this declaration never teleports or constructs an arrival floor. */
+export class Portal extends Entry {
+    /** The bounded cell-local portal nodes, directed links and static walking route. */
+    portal: PortalLinkData | undefined;
+    constructor(edge: EntryEdge = 'north', portal?: PortalLinkData) { super(edge, 'portalLink'); this.portal = portal === undefined ? undefined : structuredClone(parsePortalLink(portal)); }
+    /** Copy independent data together with the fixed socket's normal graph state. */
+    override copy(source: this, recursive = true): this { super.copy(source, recursive); this.portal = source.portal === undefined ? undefined : structuredClone(source.portal); return this; }
+    /** Emit exactly the admitted existing entry wire shape, refusing a missing or malformed route. */
+    protected override entryBindings(): Pick<EntryData, 'portal'> {
+        if (this.portal === undefined || this.kind !== 'portalLink') throw new Error('Portal entry requires its portal link');
+        return { portal: parsePortalLink(this.portal) };
+    }
+}
+
+/** A midpoint entry whose named mover/gate takes real feet from the road to its authored top stop. */
+export class SocketLift extends Entry {
+    /** The bounded cell-local lift, approach and onward route; native mover ownership stays with the host. */
+    lift: SocketLiftData | undefined;
+    constructor(edge: EntryEdge = 'north', lift?: SocketLiftData) { super(edge, 'socketLift'); this.lift = lift === undefined ? undefined : structuredClone(parseSocketLift(lift)); }
+    /** Clone the lift declaration without sharing mutable author route rows. */
+    override copy(source: this, recursive = true): this { super.copy(source, recursive); this.lift = source.lift === undefined ? undefined : structuredClone(source.lift); return this; }
+    /** Emit exactly the existing entry wire shape, without guessing missing stops or floors. */
+    protected override entryBindings(): Pick<EntryData, 'lift'> {
+        if (this.lift === undefined || this.kind !== 'socketLift') throw new Error('SocketLift entry requires its lift link');
+        return { lift: parseSocketLift(this.lift) };
     }
 }

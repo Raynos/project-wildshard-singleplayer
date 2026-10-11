@@ -4,6 +4,7 @@ import { Collider, type ColliderData } from './physics';
 import { Entry, type EntryData } from './entries';
 import { PlayerStart, Spawn, spawnPlacement, type SpawnPlacement } from './spawns';
 import { readSceneAnimations, readSceneSkin, type SceneAnimation, type SceneSkin } from './sceneAnimation';
+import { AmbienceZone, Cue, Score, type AudioData } from './audio';
 /** One geometry channel, including normalized attributes and its original typed-array representation. */
 export interface SceneAttribute {
     itemSize: number;
@@ -80,6 +81,7 @@ export interface SceneDescription {
     } & SpawnPlacement)[];
     playerStart: SpawnPlacement | null;
     entries: EntryData[];
+    audio?: AudioData;
     fog: {
         kind: 'linear';
         color: number[];
@@ -151,6 +153,8 @@ export function readScene(scene: Object3D): SceneDescription {
     const boneIds = new Map<Bone, string>();
     for (const object of objects) if (isBone(object)) { const id = ids.get(object); if (id === undefined) throw new Error('Unindexed bone'); boneIds.set(object, id); }
     const geometries = new Map<BufferGeometry, number>(), materials = new Map<Material, number>();
+    const cues: AudioData['cues'] = [], zones: NonNullable<AudioData['zones']>['zones'] = [];
+    let score: Score | undefined;
     for (const object of objects) {
         const id = ids.get(object);
         if (id === undefined)
@@ -243,10 +247,14 @@ export function readScene(scene: Object3D): SceneDescription {
         }
         if (object instanceof Entry)
             out.entries.push(object.toEntryData());
+        if (object instanceof Cue) cues.push(object.toCueData());
+        if (object instanceof AmbienceZone) zones.push(object.toZoneData());
+        if (object instanceof Score) { if (score !== undefined) throw new Error('Scene permits one audio profile'); score = object; }
         out.nodes.push(node);
     }
     if (new Set(out.entries.map(entry => entry.edge)).size !== out.entries.length)
         throw new Error('Duplicate entry edge');
+    if (score !== undefined || cues.length > 0 || zones.length > 0) out.audio = (score ?? new Score()).toAudioData(cues, zones);
     if (scene instanceof Scene) {
         if (scene.fog instanceof Fog)
             out.fog = { kind: 'linear', color: [...scene.fog.color], near: scene.fog.near, far: scene.fog.far };
