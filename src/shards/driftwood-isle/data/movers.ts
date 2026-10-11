@@ -5,7 +5,6 @@ export const MOVERS: MoverData = [
   {
     "id": "driftwood.boat",
     "entity": 7001,
-    "module": "9a5171bc3dd84488aae9de29ebd07fdb12dfbd2500c45cf91cf37e5bbbc712f0",
     "kind": "platform",
     "at": {
       "x": -4.2,
@@ -90,6 +89,7 @@ export const MOVERS: MoverData = [
         }
       }
     ],
+    "module": "9a5171bc3dd84488aae9de29ebd07fdb12dfbd2500c45cf91cf37e5bbbc712f0",
     "input": [
       -4.2,
       0,
@@ -120,12 +120,52 @@ export const MOVERS: MoverData = [
       14,
       2.3,
       0.4
-    ]
+    ],
+    "trigger": {
+      "kind": "always"
+    },
+    "driver": {
+      "kind": "waves",
+      "damping": 0.7099089439875738,
+      "waves": [
+        [
+          0.86,
+          0.51,
+          0.17,
+          27,
+          3.4,
+          0.55
+        ],
+        [
+          -0.34,
+          0.94,
+          0.12,
+          17,
+          2.6,
+          0.5
+        ],
+        [
+          0.62,
+          -0.78,
+          0.07,
+          11.5,
+          2.1,
+          0.45
+        ],
+        [
+          -0.9,
+          -0.43,
+          0.06,
+          14,
+          2.3,
+          0.4
+        ]
+      ]
+    }
   },
   {
     "id": "driftwood.bridge",
     "entity": 7002,
-    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "kind": "chain",
     "at": {
       "x": 0,
@@ -446,8 +486,15 @@ export const MOVERS: MoverData = [
       "hy": 0.05,
       "mass": 14
     },
+    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "input": [
       0
-    ]
+    ],
+    "trigger": {
+      "kind": "always"
+    },
+    "driver": {
+      "kind": "static"
+    }
   }
 ];

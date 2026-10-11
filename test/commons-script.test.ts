@@ -21,7 +21,7 @@ it('compiles the pinned shared setup and bridge deterministically and retains bo
   for (const [slug, row] of [['driftwood-isle', DRIFT.find(r => r.kind === 'chain')], ['far-reach', SKY.find(r => r.id === 'far.winch.bridge')]] as const) {
     if (row === undefined) throw new Error('Missing shared bridge');
     const file = slug === 'driftwood-isle' ? 'bridge.as' : 'bridges.as';
-    const source = readFileSync(new URL(`../src/shards/${slug === 'far-reach' ? 'far-reach-legacy' : slug}/behaviour/${file}`, import.meta.url), 'utf8');
+    const source = readFileSync(new URL(`../src/shards/${slug}-legacy/behaviour/${file}`, import.meta.url), 'utf8');
     expect(await compileScript(source, { maximumPages: 1, sources: shared.sources })).toEqual(bytes);
     expect(contentHash(bytes)).toBe(row.module);
     // Keep the original admitted bytes as the behavioral oracle after author wrappers move to the commons.

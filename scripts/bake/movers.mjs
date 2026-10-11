@@ -1,24 +1,20 @@
 #!/usr/bin/env node
 // Trusted SF30 compiler: immutable admitted modules, never dynamic git operations.
-import { compileScript } from '../compile-script.mjs';
 import { compileMoverDriver } from '../../src/sdk/compileMovers.ts';
-import { readFileSync, mkdirSync, writeFileSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
+import { mkdirSync, writeFileSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { build } from 'vite';
-import { bridgeScriptSources } from '@wildshard/commons/scripts';
 
 const repo = resolve(import.meta.dirname, '../..');
 const selected = process.argv.find(arg => arg.startsWith('--shards='))?.slice('--shards='.length).split(',') ?? ['driftwood-isle', 'far-reach'];
 if (selected.some(slug => !['driftwood-isle', 'far-reach'].includes(slug))) throw new Error('Unknown mover shard');
 const modules = new Map();
-const shared = bridgeScriptSources();
 for (const [slug, file] of [['driftwood-isle', 'boat.as'], ['driftwood-isle', 'bridge.as'], ['far-reach', 'bridges.as'], ['far-reach', 'islet.as']]) {
   if (!selected.includes(slug)) continue;
-  const bytes = slug === 'far-reach' ? await compileMoverDriver(file === 'islet.as' ? 'ride' : 'hinge')
-    : await compileScript(readFileSync(join(repo, 'src/shards', slug, 'behaviour', file), 'utf8'), { maximumPages: 1, sources: shared.sources });
+  const bytes = await compileMoverDriver(file === 'islet.as' ? 'ride' : file === 'boat.as' ? 'waves' : 'hinge');
   const hash = createHash('sha256').update(bytes).digest('hex'), directory = join(repo, 'src/shards', slug, 'assets');
   mkdirSync(directory, { recursive: true }); writeFileSync(join(directory, hash), bytes);
   modules.set(`${slug}/${file}`, hash);
