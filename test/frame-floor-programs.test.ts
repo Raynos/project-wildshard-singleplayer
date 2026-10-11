@@ -45,3 +45,39 @@ it('names submitted shader variants without GL queries or changing driver argume
   gl.attachShader(depth, unnamed);
   expect(Reflect.apply(reader, window, [depth])).toMatch(/^MeshDepthMaterial\/[0-9a-f]+$/u);
 });
+
+
+it('times synchronous GL queries and readbacks without adding a query or changing results', () => {
+  const source = readFileSync('scripts/frame-floor.mjs', 'utf8');
+  const start = source.indexOf('const GL_TIMED ='), end = source.indexOf('// op-hitch47:', start);
+  if (start === -1 || end < start) throw new Error('GL timing initializer missing');
+  const initializer: unknown = runInNewContext(`const glTime=true, PROGRAM_NAMES_SCRIPT='';${source.slice(start, end)}\nGL_TIME_SCRIPT`);
+  if (typeof initializer !== 'string') throw new Error('GL timing initializer is not a string');
+  const calls: (readonly unknown[])[] = [], failure = new Error('readback refused');
+  let now = 0;
+  class Context {
+    getError(): number { calls.push([this, 'getError']); now += 7; return 0; }
+    getParameter(key: number): number { calls.push([this, 'getParameter', key]); now += 8; return 42; }
+    checkFramebufferStatus(key: number): number { calls.push([this, 'checkFramebufferStatus', key]); now += 9; return 36053; }
+    finish(): void { calls.push([this, 'finish']); now += 10; }
+    getBufferSubData(target: number, offset: number, out: Uint8Array): void {
+      calls.push([this, 'getBufferSubData', target, offset, out]); now += 11;
+      if (offset < 0) throw failure;
+      out.set([1, 2]);
+    }
+  }
+  const window: { WebGLRenderingContext: typeof Context; WebGL2RenderingContext: typeof Context; __frameFloorGlTake?: unknown } = { WebGLRenderingContext: Context, WebGL2RenderingContext: Context };
+  const globals = { window, performance: { now: () => now } };
+  runInNewContext(initializer, globals); runInNewContext(initializer, globals);
+  const gl = new Context(), out = new Uint8Array(2);
+  expect(gl.getError()).toBe(0); expect(gl.getParameter(1)).toBe(42);
+  expect(gl.checkFramebufferStatus(2)).toBe(36053); gl.finish();
+  gl.getBufferSubData(3, 0, out); expect([...out]).toEqual([1, 2]);
+  expect(() => gl.getBufferSubData(3, -1, out)).toThrow(failure);
+  expect(calls).toEqual([[gl, 'getError'], [gl, 'getParameter', 1], [gl, 'checkFramebufferStatus', 2], [gl, 'finish'],
+    [gl, 'getBufferSubData', 3, 0, out], [gl, 'getBufferSubData', 3, -1, out]]);
+  const take = window.__frameFloorGlTake;
+  if (typeof take !== 'function') throw new Error('GL timing take missing');
+  expect(Reflect.apply(take, window, [])).toEqual({ getError: [7, 1], getParameter: [8, 1], checkFramebufferStatus: [9, 1], finish: [10, 1], getBufferSubData: [22, 2] });
+  expect(Reflect.apply(take, window, [])).toBeNull();
+});
