@@ -81,7 +81,8 @@ export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: r
       case 'skirmisher': return wrap(new CrabBrain<HuntBody, Ports>(actor, (_a, c) => { decision.policy.think(c); }), policy);
       case 'guardian': return wrap(new SailorBrain<HuntBody, Ports>(actor, (_a, c) => { decision.policy.think(c); }), policy);
       case 'perch-hunter': return wrap(new MonkeyBrain<HuntBody, Ports>(actor, (_a, c) => { decision.policy.think(c); }), policy);
-      default: throw new Error('Unknown admitted Driftwood enemy decision');
+      case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': throw new Error('Unknown admitted Driftwood enemy decision');
+        default: throw new Error('Unknown admitted Driftwood enemy decision');
     }
   }
   if (kind === 'captain') { const brain = new CaptainBrain<HuntBody>(actor); return wrap(brain, { snapshot: () => brain.snapshot(), restore: value => { brain.restore(value); } }); }

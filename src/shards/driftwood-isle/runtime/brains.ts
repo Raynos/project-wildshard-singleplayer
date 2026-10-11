@@ -26,6 +26,7 @@ export function declaredCreatureRows(): typeof DRIFTWOOD_SPECIES {
           pickPerch: (a, min, max, away) => pickPerch(a, context, min, max, away),
           setPerch: (a, index) => { setPerch(a, context, index); },
         }); });
+        case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': throw new Error('Unknown admitted Driftwood enemy decision');
         default: throw new Error('Unknown admitted Driftwood enemy decision');
       }
     });
