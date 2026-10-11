@@ -64,6 +64,14 @@ Proof: 25 focused checks across six files, strict and typed lint pass. The clean
 
 Current custom metric: **15,196 / 21,111 = 71.9814%**, including 14,287 shard TS lines, one additional GLSL line and 908 one-user platform lines. Generated outputs do not count. The small five-line reduction is reported as measured; this is partial collider authoring, not a complete emitted world or a finished 20% port.
 
+## Eighth slice: retained rim, landing and safety-cap authoring
+
+Eleven more boxes now compile through actual SDK objects: the street slab, stair-top slab, two stair landings, five Well rim boxes and two safety-cap boxes. Their retained dimensions are shared with the original layout and balustrade. The runtime validates the generated groups and supplies fresh descriptors; the guard remains the same separately owned kinematic piece, controlled by the original grapple law. The three native tread flights are unchanged. The generated JSON is ignored, hash-pinned and reproducible through the shared cold/restore/force-compare cache.
+
+Proof: 38 focused checks in eight files, strict and typed lint pass. The Node clean-room build has no runtime/game/engine/legacy dependency. All original floor/front/guard descriptors and the original square-object identity match the frozen oracle. Two actual native physics captures agree; all 23 pieces and 31 hooks match the preceding payload byte-identically, including guard attachment and activity. The official browser map bake reproduces the same WebP bytes. All four native witness payloads/outcomes are exact, with actual entry/portal walk and capsule checks passing and no blocked lane.
+
+Current custom metric: **15,194 / 21,111 = 71.9720%**, including 14,285 authored shard TS lines, one additional GLSL line and 908 one-user platform lines. The 179-file inventory reproduces this measure. The strict JSON ownership adapter is charged in full; only a measured two-line net reduction is credited. No geometry, look, continuation or compatible verdict changed.
+
 ## Remaining work
 
 - **OPEN, non-visual:** native item/portal/grapple host adapters and continuation. Portal links and DIR stages already drive the native ride; grapple numeric modes already drive the shared law. The Well’s line-of-sight exception, cap owner and lift geometry require explicit course ports. Deleting those adapters without an equivalent row host would change gameplay.
@@ -73,7 +81,7 @@ Current custom metric: **15,196 / 21,111 = 71.9814%**, including 14,287 shard TS
 
 ## Non-graphical inventory
 
-The remaining authored TS inventory below is complete at this slice; the 178-file inventory reproduces the defining metric. The port remains open. The front boxes now have a retained SDK generator. Remaining rim/landing boxes can follow; stair treads still need an equivalent admitted authoring primitive.
+The remaining authored TS inventory below is complete at this slice; the 179-file inventory reproduces the defining metric. The port remains open. The front boxes now have a retained SDK generator. The rim/landing/guard boxes are authored too. Standalone deck caps and direct consumption of the already-authored portal floors follow; stair treads still need an equivalent admitted authoring primitive.
 
 | Remaining owner | Exact state / blocker |
 |---|---|
@@ -165,7 +173,7 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `runtime/looks/portalLook.ts` | 61 | O |
 | `world/modelLook.ts` | 61 | O |
 | `models/crowd.ts` | 58 | O |
-| `world/colliders.ts` | 52 | X |
+| `world/colliders.ts` | 39 | X |
 | `world/ctx.ts` | 57 | O |
 | `models/feiZhuaHook.ts` | 55 | O |
 | `runtime/portals/ringPortals.ts` | 55 | X |
@@ -190,7 +198,7 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `vm/arms.ts` | 41 | O |
 | `runtime/viewmodel/inkedRig.ts` | 40 | O |
 | `vm/materials.ts` | 40 | O |
-| `world/stairPlan.ts` | 40 | O |
+| `world/stairPlan.ts` | 41 | O |
 | `models/inKit.ts` | 39 | O |
 | `models/gear.ts` | 38 | O |
 | `world/facade/pieceIds.ts` | 38 | O |
@@ -211,7 +219,7 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `runtime/looks/aoTuning.ts` | 31 | O |
 | `runtime/looks/lutTexture.ts` | 31 | O |
 | `runtime/props/edgeDecks.ts` | 31 | X |
-| `world/wellBounds.ts` | 31 | X |
+| `world/wellBounds.ts` | 24 | X |
 | `look/specimenLight.ts` | 30 | O |
 | `runtime/props/pathMovers.ts` | 29 | O |
 | `runtime/kit/clothTopology.ts` | 28 | O |
@@ -226,7 +234,7 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `vm/jianRow.ts` | 25 | O |
 | `world/sets.ts` | 25 | O |
 | `world/specimenDims.ts` | 25 | O |
-| `models/wellBalustrade.ts` | 24 | O |
+| `models/wellBalustrade.ts` | 25 | O |
 | `models/lion.ts` | 23 | O |
 | `models/signs.ts` | 22 | O |
 | `runtime/looks/emitterCards.ts` | 19 | O |
@@ -283,3 +291,4 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `grapple/context.ts` | 2 | X |
 | `runtime/index.ts` | 2 | X |
 | `strings.ts` | 1 | X |
+| `world/boxRows.ts` | 16 | X |

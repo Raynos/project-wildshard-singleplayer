@@ -2,6 +2,7 @@
 // stairstreet-upper.ts build its look at layout time, baked: ./layoutBake.ts): three flights of 20 steps, two 4 m landings,
 // the top landing, the paifang's place, the tower faces either side; `stairColliders()` (rise 0.35 ≤ 0.35, tread
 // 0.667 ≥ 0.36, PHYSICS.md) and `stairFloor(x)`, which ./colliders.ts takes, and the constants build.ts's stair streaks read.
+import { floorBoxes } from './boxRows';
 import { PLAZA, STAIR, Y0 } from '../layout';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
@@ -57,6 +58,6 @@ export function stairColliders(): ColliderDesc[] {
   const out: ColliderDesc[] = FLIGHTS.map((f) => ({
     kind: 'treads', from: { x: f.x0, y: f.y0, z: zc }, to: { x: f.x1, y: f.y0 + f.steps * RISE, z: zc }, width: w, count: f.steps, surface: 'stone',
   }));
-  for (const l of LANDINGS) out.push({ kind: 'box', x: (l.x0 + l.x1) / 2, y: l.y - 0.6, z: zc, hx: (l.x1 - l.x0) / 2, hy: 0.6, hz: w / 2, surface: 'stone' });
+  out.push(...floorBoxes('stairLandings'));
   return out;
 }

@@ -1537,6 +1537,46 @@
       "buildOutputs": {
         "src/shards/nine-dragon-stack/data/fronts.generated.json": "1d3a18fd4a5d72a1db603183051edb18b4e59c8a83156ef283271f8a322eaa9d"
       }
+    },
+    {
+      "id": "nine-floor-boxes",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/floorBoxes.ts",
+      "command": [
+        "--import",
+        "./scripts/sim-node-loader.mjs",
+        "scripts/generate-json.mjs",
+        "src/shards/nine-dragon-stack/generators/floorBoxes.ts",
+        "floorBoxRows",
+        "src/shards/nine-dragon-stack/data/floorBoxes.generated.json"
+      ],
+      "inputRoots": [
+        "src/sdk/package.json",
+        "src/sdk/physics.ts",
+        "src/sdk/scene.ts",
+        "src/sdk/sceneTransform.ts",
+        "src/sdk/sceneAnimation.ts",
+        "src/sdk/sceneAudio.ts",
+        "src/sdk/audio.ts",
+        "src/sdk/entries.ts",
+        "src/sdk/spawns.ts",
+        "src/shards/nine-dragon-stack/data/floorPlan.ts",
+        "src/shards/nine-dragon-stack/generators/floorBoxes.ts",
+        "scripts/sim-node-loader.mjs",
+        "lint/sim-schema-leaves.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/generate-json.mjs",
+        "src/shards/nine-dragon-stack/data/decks.ts"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/floorBoxes.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nine-dragon-stack/data/floorBoxes.generated.json": "9ff69ebfcc6d83a941dee58bf603b089339a04ba9e9b6315134cc69cbbe536e6"
+      }
     }
   ]
 }

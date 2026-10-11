@@ -15,6 +15,7 @@
  */
 import { defineModel } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { NINE_FLOOR_PLAN } from '../data/floorPlan';
 import { PLAZA, WELL, Y0 } from '../layout';
 import { WELL_BALUSTRADE_AT } from '../world/specimenDims';
 import { RIM } from '../world/wellBounds';
@@ -23,10 +24,10 @@ import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 const FILE = 'src/shards/nine-dragon-stack/models/wellBalustrade.ts';
 
 /** the invisible parapets over the Well reach this high above the floor (out of reach of every jump, on foot or board) */
-export const PARAPET = 12;
+export const PARAPET = NINE_FLOOR_PLAN.balustrade.parapet;
 /** where the square's invisible parapet over the Well joins the grapple guard (E286: the rim → square crossing to the
  *  (−3.2, −13) mast's hook comes in over the balustrade at z ≈ −12) */
-export const GUARD_Z0 = -18;
+export const GUARD_Z0 = NINE_FLOOR_PLAN.balustrade.guardZ0;
 
 const O = WELL_BALUSTRADE_AT;
 /** a box from world extents (min / max corners), in the balustrade's own space */

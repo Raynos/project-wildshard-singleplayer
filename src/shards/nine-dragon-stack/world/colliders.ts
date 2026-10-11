@@ -6,15 +6,13 @@
 // (its stone and the invisible parapet 12 m up so nobody vaults into the shaft) and the props you would walk into — the
 // gates' posts, the banyan's planter, the stalls, the market — are their models' own colliders, which come with their
 // copies (../models/, src/engine/models/place.ts; the balustrade's since E346, models/wellBalustrade.ts).
-import * as v from 'valibot';
-import generatedFronts from '../data/fronts.generated.json' with { type: 'json' };
+import { floorBoxes, frontBoxes } from './boxRows';
 import { NINE_FLOOR_PLAN } from '../data/floorPlan';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
-import { GUARD_Z0, PARAPET } from '../models/wellBalustrade';
+import { PLAZA, STAIR, STREET, Y0 } from '../layout';
 import { stairColliders, stairFloor } from './stairPlan';
-import { RIM, wellColliders, wellFloor } from './wellBounds';
-import { SLAB, span, squareFloor } from './floorRows';
+import { wellColliders, wellFloor } from './wellBounds';
+import { squareFloor } from './floorRows';
 
 /** how far north the street is walkable (its far part is scenery in the fragment) */
 export const STREET_END = NINE_FLOOR_PLAN.fronts.streetEnd;
@@ -29,27 +27,18 @@ export interface FragmentColliders {
   readonly square: ColliderDesc;
 }
 
-const finite = v.pipe(v.number(), v.finite());
-const extent = v.pipe(finite, v.minValue(Number.MIN_VALUE));
-const FrontSchema = v.strictObject({
-  kind: v.literal('box'), x: finite, y: finite, z: finite,
-  hx: extent, hy: extent, hz: extent, surface: v.literal('stone'),
-});
-const FRONT_ROWS = v.parse(v.pipe(v.array(FrontSchema), v.length(10)), generatedFronts);
-
 export function fragmentColliders(): FragmentColliders {
-  const floors: ColliderDesc[] = [], fronts: ColliderDesc[] = FRONT_ROWS.map(({ kind, x, y, z, hx, hy, hz, surface }) => ({ kind, x, y, z, hx, hy, hz, surface }));
+  const floors: ColliderDesc[] = [], fronts: ColliderDesc[] = frontBoxes();
   const out = floors;
   // ── floors ──
   const square = squareFloor();
   out.push(square);                                                                                     // the square
-  const streetEnd = STREET_END - 1;
-  out.push(span(STREET.x0, Y0 - SLAB, streetEnd, STREET.x1, Y0, PLAZA.z0));                             // the street north
+  out.push(...floorBoxes('street'));                             // the street north
   // the stair starts at the square's east edge (STAIR.x0 = PLAZA.x1): its first tread sits on the square's slab
   // dome D's stair-street (stairstreet.ts): 3 flights × 20 treads, two landings (the paifang's post bases on landing 2
   // are the paifang model's, E346)
   out.push(...stairColliders());
-  out.push(span(STAIR.x1, STAIR_TOP.y - SLAB, STAIR.z0, STAIR_TOP.x1, STAIR_TOP.y, STAIR.z1));         // its top landing
+  out.push(...floorBoxes('stairTop'));         // its top landing
   // the Well's south rim at the square's level (dome C's well.ts: its ledge, balustrade + parapet, the wall ends)
   out.push(...wellColliders());
   // ── the building fronts round the square (the shopfronts sit on these lines; each collides from SHOP proud of its line,
@@ -71,10 +60,7 @@ export function fragmentColliders(): FragmentColliders {
 /** Invisible upper cap of the south Well rail, and the square's parapet south of GUARD_Z0; a kinematic piece can disable
  *  them for a committed grapple from the rim only (Traversal.ts `crossesWell`). */
 export function fragmentGrappleGuard(): ColliderDesc[] {
-  return [
-    span(WELL.x0, Y0 + 3.2, RIM.z0 - 0.1, WELL.x1, Y0 + PARAPET, RIM.z0 + 0.1),
-    span(PLAZA.x0 - 0.1, Y0 + 1.12, GUARD_Z0, PLAZA.x0 + 0.1, Y0 + PARAPET, RIM.z0),
-  ];
+  return floorBoxes('guard');
 }
 
 /** the floor under (x, z) where the player can stand (placement, footsteps), or undefined off the fragment */
