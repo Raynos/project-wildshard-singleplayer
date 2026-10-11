@@ -213,7 +213,7 @@ export class LiveGridSession {
     const traveller = page.traveller;
     // Register the resident parent before the live host disposer: the traveller returns before native children free.
     this.runtimeScope = scope.child('grid.runtime.residents');
-    this.hybrid = new HybridRuntimeSession(this.runtimeResidents, this.runtimeEntries, scope, { pause: yieldGridAdmission });
+    this.hybrid = new HybridRuntimeSession(this.runtimeResidents, this.runtimeEntries, scope, { pause: yieldGridConstruction });
     scope.onDispose(gridCells.onLeave(() => { this.hybrid.leave(); }));
     scope.onDispose(gridCells.onEnter(cell => {
       if (!this.runtimeResidents.has(cell.instance)) return;
