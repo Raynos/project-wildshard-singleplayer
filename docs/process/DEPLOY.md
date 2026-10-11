@@ -8,7 +8,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   with `vercel deploy --prebuilt`, so Vercel does not repeat the build.
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
-  CLI account lookup. No credentials belong in Git.
+  CLI account lookup; `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` name the project. No credentials belong in Git.
 - **Push / PR CI runs vitest once, in 8 parallel shard jobs** (E429; 8 since SF74 W16): `typecheck-lint` runs
   typecheck and lint; `build-and-deploy` runs `pnpm run test:checks`' commands (the node checks of `pnpm test`) and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build; `vitest`

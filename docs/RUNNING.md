@@ -3,7 +3,7 @@
 ```
 pnpm install
 pnpm assets        # one-time: downloads the CC0 Poly Haven textures/models/HDRIs into public/assets
-pnpm dev           # http://localhost:5173
+pnpm dev           # scripts/serve-build.sh: builds, serves on a free port (4400–4999), prints the URL
 pnpm build         # tsc + vite build → dist/
 ```
 

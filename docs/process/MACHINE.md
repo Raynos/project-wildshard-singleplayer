@@ -110,6 +110,20 @@ renamed `trash/` instead of deleted). Nothing else cleans a scratchpad.
 - **Logs and captures go in the scratchpad**, never loose in the repo root.
 - `du -sh <scratchpad>` over ~10 GB means something should already be gone.
 
+## Claude usage log (E352)
+
+Every hour at :17, cron runs `~/.claude/usage-log.sh` (source: `~/projects/dotfiles/claude/usage-log.sh`). It reads
+`openusage claude` (OpenUsage.app's 5-minute cache) and appends one JSON line to `~/.claude/usage-log/<ISO week>.jsonl`,
+never rewriting the file. Each line records the account Claude Code is logged in as (`active_email`, so `/login` swaps
+show up) and, for every Claude account OpenUsage tracks, the weekly, 5-hour and Fable % used and when each resets.
+History starts 2026-09-30; before that there are only the session logs (`docs/tasks/asks/E352.md`). This week's
+burn-down:
+
+    jq -r '[.at, .active_email, (.accounts[] | "\(.name): wk \(.weekly_used)% 5h \(.session_used)%")] | join("  ")' \
+      ~/.claude/usage-log/$(date -u +%G-W%V).jsonl
+
+The subagent caps that keep usage down are in [SUBAGENTS.md](SUBAGENTS.md).
+
 ## Other agents (herdr)
 
 - `herdr agent list` shows only this server's agents. Jake runs several herdr servers (`herdr session list`);

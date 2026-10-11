@@ -18,6 +18,7 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
   a `gpuMB` ceiling is a ratchet, not the limit, and nothing trips below 500 MB.
 - **North and South America only: never raise a territory licence caveat.** Hunyuan3D is as allowed as TRELLIS.2.
   Only non-commercial / research-only terms matter, and only for shipped assets (fine for mockups).
+- Where the project started: [docs/ORIGINAL-BRIEF.md](docs/ORIGINAL-BRIEF.md) (history, not the current direction).
 
 ## Asks, plans, leftovers, handoffs → [docs/process/ASKS.md](docs/process/ASKS.md)
 
