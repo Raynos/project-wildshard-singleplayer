@@ -1,0 +1,60 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Generated schema fixtures own their temporary output folder.
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Fixtures use the system temporary folder.
+import { tmpdir } from 'node:os';
+// oxlint-disable-next-line import/no-nodejs-modules -- Inspect only the fixture's generated documents.
+import { join } from 'node:path';
+import { expect, it } from 'vitest';
+import * as v from 'valibot';
+import { EdgeProfileSchema } from '@wildshard/format/edgeProfiles';
+import { PlumbingSchema, plumbingRules, type PlumbingData } from '@wildshard/format/plumbing';
+import { formatJsonSchema, formatJsonSchemas } from '../src/sdk/formatJsonSchema';
+import { writeFormatJsonSchemas } from '../scripts/gen-format-schema.mjs';
+
+it('generates exact native sample-count branches and finite channel bounds from the defining edge schema', () => {
+  const schema = formatJsonSchema(EdgeProfileSchema);
+  expect(schema.$schema).toBe('https://json-schema.org/draft/2020-12/schema');
+  expect(schema.additionalProperties).toBe(false);
+  expect(schema.anyOf).toEqual([256, 257].map(count => ({ properties: {
+    heights: { minItems: count, maxItems: count }, colours: { minItems: count, maxItems: count },
+  } })));
+  expect(schema.properties?.['heights']).toEqual({ type: 'array', items: { type: 'number', minimum: -250, maximum: 250 } });
+  expect(schema.properties?.['roadHeight']).toEqual({ const: 0 });
+  const row = { heights: Array.from({ length: 256 }, () => 0), colours: Array.from({ length: 256 }, () => [0, 0.5, 1]), roadHeight: 0 };
+  expect(v.safeParse(EdgeProfileSchema, row).success).toBe(true);
+  expect(v.safeParse(EdgeProfileSchema, { ...row, colours: row.colours.slice(1) }).success).toBe(false);
+});
+
+it('keeps namespace, references and Debug defaults as explicitly mandatory semantic checks', () => {
+  const schema = formatJsonSchema(PlumbingSchema);
+  expect(schema['x-wildshard-checks']).toEqual(['@wildshard/format/plumbing#plumbingRules']);
+  const text = JSON.stringify(schema);
+  expect(text).toContain('utf16-code-units');
+  expect(text).toContain('^E[1-9][0-9]*$');
+  expect(text).toContain('maxLength');
+  const row: PlumbingData = { namespace: 'fixture', input: [], knobs: [{ id: 'foreign.knob', phone: 1, desktop: 2 }], debug: [] };
+  expect(v.safeParse(PlumbingSchema, row).success).toBe(false);
+  expect(plumbingRules(row)).toEqual(['owned knob namespace']);
+});
+
+it('refuses a new custom validator, transform or even a check with a familiar message', () => {
+  expect(() => formatJsonSchema(v.custom(() => true, 'namespaced id'))).toThrow();
+  expect(() => formatJsonSchema(v.pipe(v.string(), v.check(() => true, 'valid scoped plumbing declarations')))).toThrow();
+  expect(() => formatJsonSchema(v.pipe(v.string(), v.transform(value => value.trim())))).toThrow();
+  expect(() => formatJsonSchema(v.pipe(PlumbingSchema, v.check(() => true, 'another semantic rule')))).toThrow();
+});
+
+it('rebuilds all migrated documents byte-identically without committing generated JSON', () => {
+  const root = mkdtempSync(join(tmpdir(), 'format-json-schema-'));
+  try {
+    writeFormatJsonSchemas(root);
+    const directory = join(root, '.wildshard/format');
+    const files = readdirSync(directory).sort();
+    expect(files).toEqual(['edge-profiles.schema.json', 'plumbing.schema.json']);
+    const before = files.map(name => readFileSync(join(directory, name), 'utf8'));
+    writeFormatJsonSchemas(root);
+    expect(files.map(name => readFileSync(join(directory, name), 'utf8'))).toEqual(before);
+    expect(before.every(text => text.includes('DO-NOT-EDIT'))).toBe(true);
+    expect(Object.keys(formatJsonSchemas())).toEqual(['edge-profiles', 'plumbing']);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});

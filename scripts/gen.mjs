@@ -8,6 +8,9 @@ import { genPortShares } from './gen-port-shares.mjs';
 // G292 admitted outputs are ready before asset sizes, versions and shard packing read them.
 await prepareGeneration(`${import.meta.dirname}/..`);
 await import('./bake-loader.mjs');
+// DS1.1: structural wire schemas are small deterministic authoring outputs, never committed.
+const { writeFormatJsonSchemas } = await import('./gen-format-schema.mjs');
+writeFormatJsonSchemas(`${import.meta.dirname}/..`);
 const shard = process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8);
 genShards(undefined, false, false, shard);
 genAskIds();

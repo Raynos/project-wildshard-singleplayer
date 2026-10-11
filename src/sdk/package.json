@@ -99,7 +99,8 @@
     "./physics": "./physics.ts",
     "./entries": "./entries.ts",
     "./spawns": "./spawns.ts",
-    "./synth": "./synth.ts"
+    "./synth": "./synth.ts",
+    "./formatJsonSchema": "./formatJsonSchema.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -129,7 +130,8 @@
     "meshoptimizer": "1.2.0",
     "assemblyscript": "0.28.20",
     "binaryen": "132.0.0",
-    "@wildshard/format": "workspace:*"
+    "@wildshard/format": "workspace:*",
+    "@valibot/to-json-schema": "1.8.0"
   },
   "publishConfig": {
     "exports": {
@@ -456,6 +458,10 @@
       "./synth": {
         "types": "./dist/types/sdk/synth.d.ts",
         "default": "./dist/synth.js"
+      },
+      "./formatJsonSchema": {
+        "types": "./dist/types/sdk/formatJsonSchema.d.ts",
+        "default": "./dist/formatJsonSchema.js"
       }
     }
   }
