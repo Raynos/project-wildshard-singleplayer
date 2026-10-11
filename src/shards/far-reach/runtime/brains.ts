@@ -1,52 +1,37 @@
-import { RamGrazerBrain } from '@wildshard/engine/ai/ramGrazer';
-import { OrbitDiverBrain } from '@wildshard/engine/ai/orbitDiver';
-import { BurstFlyerBrain } from '@wildshard/engine/ai/burstFlyer';
-import { parseRamGrazer as ramGrazer } from '@wildshard/format/grazers';
-import { parseOrbitDiver as orbitDiver, parseBurstFlyer as burstFlyer } from '@wildshard/format/flyers';
-import { GOAT_BRAIN, RAY_BRAIN, WISP_BRAIN } from '../data/brains';
 import { SKY_GOAT } from '../species/skyGoat';
 import { DRIFT_RAY } from '../species/driftRay';
-import { DIVE, RAM, BURST } from './strikes';
 import { GALE_WISP } from '../species/galeWisp';
 import { STORM_ROC } from '../species/stormRoc';
 import { homeOf, pushPlayer } from '../species/rig';
 import { WINDMILL, RAY_HOMES, DECK, KEEPER } from '../data/layout';
 import { apothem } from '../layout';
+import { skyBrainCatalogue } from './brainCatalogue';
 
 type Actor = Parameters<NonNullable<typeof SKY_GOAT.think>>[0];
 type Context = Parameters<NonNullable<typeof SKY_GOAT.think>>[1];
 interface Selection { rows: (typeof SKY_GOAT)[]; witness: (actor: Actor) => string | null }
 
-/** SF27: one set of data-selected policies; native floors, flight, tokens, contact and rigs remain unchanged. */
+/** Canonical rows select decisions; each body retains its real floors, home, RNG, flight and contact authority. */
 export function declaredSkyRows(): Selection {
-  const goatData = ramGrazer(GOAT_BRAIN);
-  const goats = new WeakMap<Actor, RamGrazerBrain<Actor>>();
-  const rays = new WeakMap<Actor, OrbitDiverBrain<Actor>>();
-  const wisps = new WeakMap<Actor, BurstFlyerBrain<Actor>>();
+  const brains = skyBrainCatalogue();
   const goatHome = (actor: Actor) => homeOf(actor, { x: WINDMILL.x, z: WINDMILL.z, r: apothem(WINDMILL), y: WINDMILL.y });
-  const goat = (actor: Actor): RamGrazerBrain<Actor> => {
-    let value = goats.get(actor); if (value === undefined) { value = new RamGrazerBrain(actor, goatData, RAM); goats.set(actor, value); } return value;
-  };
-  const ray = (actor: Actor): OrbitDiverBrain<Actor> => {
-    let value = rays.get(actor);
-    if (value === undefined) {
-      const home = homeOf(actor, RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 });
-      value = new OrbitDiverBrain(actor, orbitDiver({ ...RAY_BRAIN, home }), home, DIVE); rays.set(actor, value);
-    }
-    return value;
-  };
-  const wisp = (actor: Actor): BurstFlyerBrain<Actor> => {
-    let value = wisps.get(actor);
-    if (value === undefined) {
-      const home = homeOf(actor, { x: KEEPER.x, z: KEEPER.z, r: 7, y: KEEPER.y + 3 });
-      value = new BurstFlyerBrain(actor, burstFlyer({ ...WISP_BRAIN, home }), home, BURST); wisps.set(actor, value);
-    }
-    return value;
-  };
-  return { rows: [
-    { ...DRIFT_RAY, think: (a: Actor, c: Context): void => { ray(a).think(c); }, act: (a: Actor, c: Context): void => { ray(a).act(c); } },
-    { ...SKY_GOAT, think: (a: Actor, c: Context): void => { goat(a).think({ ...c, home: goatHome(a) }); }, act: (a: Actor, c: Context): void => { goat(a).act({ ...c, home: goatHome(a) }); } },
-    { ...GALE_WISP, think: (a: Actor, c: Context): void => { wisp(a).think({ ...c, shove: pushPlayer }); }, act: (a: Actor, c: Context): void => { wisp(a).act({ ...c, shove: pushPlayer }); } },
-    STORM_ROC,
-  ], witness: (actor: Actor): string | null => goats.has(actor) ? 'ram-grazer' : rays.has(actor) ? 'orbit-diver' : wisps.has(actor) ? 'burst-flyer' : null };
+  const goat = brains.bind('skyGoat', (a, decision) => {
+    if (decision.archetype !== 'ram-grazer') throw new Error('Sky goat requires its admitted ram policy');
+    const decideGoat = (c: Context): void => { decision.policy.think({ ...c, home: goatHome(a) }); };
+    const moveGoat = (c: Context): void => { decision.policy.act({ ...c, home: goatHome(a) }); };
+    return { think: decideGoat, act: moveGoat };
+  });
+  const ray = brains.bind('driftRay', (_actor, decision) => {
+    if (decision.archetype !== 'orbit-diver') throw new Error('Sky ray requires its admitted orbit policy');
+    const decideRay = (c: Context): void => { decision.policy.think(c); };
+    const moveRay = (c: Context): void => { decision.policy.act(c); };
+    return { think: decideRay, act: moveRay };
+  }, actor => homeOf(actor, RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 }));
+  const wisp = brains.bind('galeWisp', (_actor, decision) => {
+    if (decision.archetype !== 'burst-flyer') throw new Error('Sky wisp requires its admitted burst policy');
+    const decideWisp = (c: Context): void => { decision.policy.think({ ...c, shove: pushPlayer }); };
+    const moveWisp = (c: Context): void => { decision.policy.act({ ...c, shove: pushPlayer }); };
+    return { think: decideWisp, act: moveWisp };
+  }, actor => homeOf(actor, { x: KEEPER.x, z: KEEPER.z, r: 7, y: KEEPER.y + 3 }));
+  return { rows: [{ ...DRIFT_RAY, ...ray }, { ...SKY_GOAT, ...goat }, { ...GALE_WISP, ...wisp }, STORM_ROC], witness: brains.witness };
 }

@@ -1,4 +1,5 @@
-import { CROWN, DAIS, ROC } from './layout';
+import { CROWN, DAIS, ROC, RAY_HOMES, DECK, KEEPER } from './layout';
+import { SKY_GOAT_DATA, DRIFT_RAY_DATA, GALE_WISP_DATA } from './species';
 
 /** Shipping rim-aware goat policy; the native spawn binds the island home and floor. */
 export const GOAT_BRAIN = { id: 'far.brain.goat', kind: 'ram-grazer', strike: 'far.goat.ram',
@@ -47,3 +48,12 @@ export const ROC_BRAIN = { id: 'far.brain.roc', kind: 'phased-raptor',
     { strike: 'far.roc.sweep', altitude: CROWN.y + DAIS.h + 0.05, aimHeight: 0, orbit: { x: DAIS.x, z: DAIS.z, r: DAIS.r * 0.4, speed: 2.4 },
       stalk: { standOff: 3, retreat: false, speed: 2.4, above: null, ready: { kind: 'range' } }, dive: false, shove: null, rest: 1.2 },
   ] };
+
+/** Canonical gameplay profiles; each native body binds its actual island home and existing authority. */
+export const SKY_SPECIES_BRAINS = [
+  { ...SKY_GOAT_DATA, brain: { archetype: 'grazer' as const, data: { ...GOAT_BRAIN, kind: 'grazer' as const, pattern: 'wander-ram' as const } } },
+  { ...DRIFT_RAY_DATA, brain: { archetype: 'diver' as const, data: { ...RAY_BRAIN, kind: 'diver' as const, pattern: 'orbit' as const,
+    home: RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 } } } },
+  { ...GALE_WISP_DATA, brain: { archetype: 'diver' as const, data: { ...WISP_BRAIN, kind: 'diver' as const, pattern: 'burst' as const,
+    home: { x: KEEPER.x, z: KEEPER.z, r: 7, y: KEEPER.y + 3 } } } },
+];

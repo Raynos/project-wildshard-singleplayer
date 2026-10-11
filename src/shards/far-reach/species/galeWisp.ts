@@ -4,14 +4,11 @@ import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { IcosahedronGeometry, OctahedronGeometry, TorusGeometry } from 'three';
-import { STRINGS } from '../data/strings';
-import { GALE_WISP_VARIANTS } from '../data/variants';
+import { GALE_WISP_DATA } from '../data/species';
 import { hull } from './rig';
 
 export const WISP = { circle: 5, dart: 13, notice: 14, shove: 7, lift: 2.5 } as const;
-export const GALE_WISP: SpeciesRow = { id: 'far.creature.galeWisp', kind: 'galeWisp', label: STRINGS.wisp, aggressive: true, blood: false,
-  flight: { altitude: 33, above: 'world', climbRate: 8, diveRate: 10, lockRange: 20 },
-  variants: GALE_WISP_VARIANTS };
+export const GALE_WISP: SpeciesRow = GALE_WISP_DATA;
 
 export const GALE_WISP_LOOK: SpeciesLook = { id: 'far.look.galeWisp', species: GALE_WISP.id, kind: 'galeWisp', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'far.galeWisp', sockets: ['body', 'head', 'swirl'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },

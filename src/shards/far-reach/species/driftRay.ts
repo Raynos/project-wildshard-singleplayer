@@ -5,16 +5,12 @@ import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3 } from 'three';
-import { DECK } from '../data/layout';
-import { STRINGS } from '../data/strings';
-import { DRIFT_RAY_VARIANTS } from '../data/variants';
+import { DRIFT_RAY_DATA } from '../data/species';
 import { skyBody } from './bodies';
 
 /** How the ray flies: its circle speed, how high it hangs over the player before the dive, its dive speed, its rest after one. */
 export const RAY = { circleSpeed: 8, hang: 9, stalkSpeed: 10, diveSpeed: 16, rest: 6, notice: 40, giveUp: 60 } as const;
-export const DRIFT_RAY: SpeciesRow = { id: 'far.creature.driftRay', kind: 'driftRay', label: STRINGS.ray, aggressive: true, blood: false,
-  flight: { altitude: DECK + 14, above: 'world', climbRate: 6, diveRate: 20, lockRange: 32 },
-  variants: DRIFT_RAY_VARIANTS };
+export const DRIFT_RAY: SpeciesRow = DRIFT_RAY_DATA;
 
 /** Bone indices in build().bones order. */
 const BODY = 0, HEAD = 1, WING_L = 2, WING_R = 3, TAIL = 4;

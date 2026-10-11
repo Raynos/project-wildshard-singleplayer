@@ -1,15 +1,9 @@
+import { skyBrainCatalogue } from './brainCatalogue';
 import { Vector3 } from 'three';
 import type { Rng } from '@wildshard/engine/core/rng';
-import { OrbitDiverBrain } from '@wildshard/engine/ai/orbitDiver';
-import { BurstFlyerBrain } from '@wildshard/engine/ai/burstFlyer';
-import { RamGrazerBrain } from '@wildshard/engine/ai/ramGrazer';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
-import { parseRamGrazer as ramGrazer } from '@wildshard/format/grazers';
-import { parseOrbitDiver as orbitDiver, parseBurstFlyer as burstFlyer } from '@wildshard/format/flyers';
-import { GOAT_BRAIN, RAY_BRAIN, WISP_BRAIN } from '../data/brains';
-import { DIVE, RAM, BURST } from './strikes';
 import { stormRocBrain, type StormRocBrain } from './stormRocBrain';
 import type { Home } from '../data/layout';
 
@@ -55,9 +49,9 @@ export function flockBrain(kind: string, label: string, actor: AnimalSim, home: 
     restore: value => { brain.restore(value); },
     roc,
   });
-  if (kind === 'driftRay') return wrap(new OrbitDiverBrain(actor, orbitDiver({ ...RAY_BRAIN, home }), home, DIVE), null);
-  if (kind === 'galeWisp') return wrap(new BurstFlyerBrain(actor, burstFlyer({ ...WISP_BRAIN, home }), home, BURST), null);
-  if (kind === 'skyGoat') return wrap(new RamGrazerBrain(actor, ramGrazer(GOAT_BRAIN), RAM), null);
   if (kind === 'stormRoc') { const roc = stormRocBrain<AnimalSim>(actor, shove); return wrap(roc, roc); }
-  throw new Error(`Sky has no shipping policy for ${kind}`);
+  if (kind !== 'driftRay' && kind !== 'galeWisp' && kind !== 'skyGoat') throw new Error(`Sky has no shipping policy for ${kind}`);
+  const decision = skyBrainCatalogue().decision(kind, actor, home);
+  if (decision.archetype !== 'ram-grazer' && decision.archetype !== 'orbit-diver' && decision.archetype !== 'burst-flyer') throw new Error(`Sky has no native home policy for ${kind}`);
+  return wrap(decision.policy, null);
 }

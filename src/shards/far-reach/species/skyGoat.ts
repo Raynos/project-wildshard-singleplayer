@@ -5,15 +5,13 @@ import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { BoxGeometry, ConeGeometry } from 'three';
-import { STRINGS } from '../data/strings';
-import { SKY_GOAT_VARIANTS } from '../data/variants';
+import { SKY_GOAT_DATA } from '../data/species';
 import { hull } from './rig';
 import { skyBody } from './bodies';
 
 /** `drop`: how far below its deck a goat counts as falling (metres). */
 export const GOAT = { graze: 1.2, ram: 7.5, notice: 9, rimMargin: 2.5, drop: 1.5 } as const;
-export const SKY_GOAT: SpeciesRow = { id: 'far.creature.skyGoat', kind: 'skyGoat', label: STRINGS.goat, aggressive: true, blood: false, lockable: true,
-  variants: SKY_GOAT_VARIANTS };
+export const SKY_GOAT: SpeciesRow = SKY_GOAT_DATA;
 
 const BODY = 0, LEG_FL = 2, LEG_FR = 3, LEG_BL = 4, LEG_BR = 5;
 /** The code goat: primitive parts (the stand-in while the generated model is missing). */
