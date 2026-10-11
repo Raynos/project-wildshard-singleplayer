@@ -178,3 +178,5 @@ Driftwood’s `driftwood-director` job compiles its retained typed AssemblyScrip
 The Driftwood director component remains report-only: its retained outputs are not admitted as buildOutputs, and no removal is authorized before its complete shard product passes.
 
 Pine’s `pine-clock-director` job compiles its retained typed AssemblyScript and declared ABI through the shared confined authoring loader. Its two pinned products (the one-page module and historical transport JSON) regenerate without runtime, legacy, seeds or a warm cache. The job remains report-only. This component proof does not admit activation or whole-product removal.
+
+Signal’s `signal-skitterer-behaviour` report-only job compiles its retained native AssemblyScript policy through the confined SDK author loader. Its exact historical transport shape and hash regenerate without runtime, legacy, seeds or a warm cache. No activation or removal is admitted until the whole shard product passes.

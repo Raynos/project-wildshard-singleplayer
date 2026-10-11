@@ -2666,6 +2666,40 @@
         "src/shards/pine-hollow/behaviour/director.json"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "signal-skitterer-behaviour",
+      "shard": "sunscar-dunes",
+      "entry": "src/shards/sunscar-dunes/generators/bake-skitterer-behaviour.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/sunscar-dunes/generators/bake-skitterer-behaviour.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/admissionLimits.ts",
+        "src/format/director.ts",
+        "src/format/directorStages.ts",
+        "src/format/directorWhen.ts",
+        "src/format/package.json",
+        "src/format/state.ts",
+        "src/sdk/assemblyscriptCompiler.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/buildBehaviour.ts",
+        "src/sdk/compileScript.ts",
+        "src/sdk/directorAbi.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/package.json",
+        "src/sdk/sourceReader.ts",
+        "src/shards/sunscar-dunes/behaviour/skitterer.as",
+        "src/shards/sunscar-dunes/generators/bake-skitterer-behaviour.mjs"
+      ],
+      "outputs": [
+        "src/shards/sunscar-dunes/behaviour/skitterer.json"
+      ],
+      "platform": "portable"
     }
   ]
 }
