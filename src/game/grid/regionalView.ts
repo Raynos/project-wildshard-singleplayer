@@ -103,7 +103,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   registry.scope = scope; // SF57: an ambient registration belongs to this view, never to the page
   const movers = new Set<() => void>(), platforms: Floor[] = [];
   const objects = new Map<Object3D, { scope: Scope; refs: number }>();
-  let bindings = 0, held = false;
+  let bindings = 0, visibleBindings = 0, held = false;
   // Unwinds last (LIFO): the scene node, then the claim hold, after every piece scope below has released its handles.
   scope.onDispose(() => {
     registry.retire(); // SF57: what `place` recorded and the cullers it started for this region go with it
@@ -159,14 +159,16 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
     const unhold = claim.hold(); held = true;
     const prior = slot.registryValue;
     if (prior === registry) { unhold(); throw new Error('Regional registry is already entered'); }
-    slot.registryValue = registry; bindings++; root.visible = present;
+    slot.registryValue = registry; bindings++; if (present) visibleBindings++;
+    root.visible = visibleBindings > 0;
     // G223: the cell's coarse cover (far proxy, ring tiles) hands over to this root while the entry lives
     const uncover = present ? cellCoverOf(request.scene)?.cover(cell.instance) ?? ((): void => undefined) : (): void => undefined;
     let restored = false;
     let forgetEntry = (): void => undefined, forgetView = (): void => undefined;
     const restore = (): void => {
       if (restored) return; restored = true; forgetEntry(); forgetView(); bindings--; unhold(); uncover(); held = bindings > 0;
-      if (bindings === 0) root.visible = false;
+      if (present) visibleBindings--;
+      root.visible = visibleBindings > 0;
       if (slot.registryValue === registry) slot.registryValue = prior;
     };
     forgetEntry = owner.capture('disposers', restore);

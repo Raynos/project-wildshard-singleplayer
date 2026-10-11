@@ -172,3 +172,23 @@ it('shares a placement object across pieces without freeing it until its last pi
   last.dispose(); expect(dispose).toHaveBeenCalledOnce(); expect(batch.parent).toBeNull();
   f.view.dispose(); f.resident.dispose(); f.claim.release(); f.home.dispose(); f.region.dispose();
 });
+
+
+it('keeps an entered view visible across temporary scoped construction bindings', () => {
+  const f = fixture();
+  try {
+    const entered = f.resident.child('entered'); f.view.enter(entered);
+    // Scoped slot restoration can return the page registry while an entered view remains alive.
+    f.app.registryValue = f.homeRegistry;
+    const preparation = f.resident.child('preparation'); f.view.prepare(preparation);
+    expect(f.view.census()).toMatchObject({ visible: true, held: true, bound: true });
+    preparation.dispose();
+    expect(f.view.root.visible).toBe(true);
+    f.app.registryValue = f.homeRegistry;
+    const road = f.resident.child('road.preparation'); f.view.prepare(road);
+    entered.dispose();
+    expect(f.view.census()).toMatchObject({ visible: false, held: true, bound: true });
+    road.dispose();
+    expect(f.view.census()).toMatchObject({ visible: false, held: false, bound: false });
+  } finally { f.resident.dispose(); f.claim.release(); f.region.dispose(); f.home.dispose(); f.shared.dispose(); }
+});
