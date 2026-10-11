@@ -28,7 +28,8 @@ export function linkNodeModules(repo, tree) {
   if (!existsSync(from)) return; // nothing installed (a test's throwaway repo): the tree resolves no packages, as before
   if (existsSync(to)) {
     if (lstatSync(to).isSymbolicLink()) throw new Error(`link-node-modules: ${to} is a whole-folder link; remove it first`);
-    return; // already linked by an earlier run
+    linkPackageNodeModules(repo, tree);
+    return; // existing links stay untouched; new manifest dependencies can still be repaired
   }
   mkdirSync(to, { recursive: true });
   for (const name of readdirSync(from)) {
@@ -70,7 +71,8 @@ function linkPackageNodeModules(repo, tree) {
   if (!existsSync(src)) return;
   for (const pkg of readdirSync(src)) {
     const from = join(src, pkg, 'node_modules'), to = resolve(tree, 'src', pkg, 'node_modules');
-    if (!existsSync(from) || !existsSync(resolve(tree, 'src', pkg)) || existsSync(to)) continue;
+    if (!existsSync(from) || !existsSync(resolve(tree, 'src', pkg))) continue;
+    if (existsSync(to)) { linkMissingDependencies(repo, resolve(tree, 'src', pkg), to); continue; }
     mkdirSync(to);
     const mirror = (fromDir, toDir) => {
       for (const name of readdirSync(fromDir)) {
@@ -100,7 +102,18 @@ function linkMissingDependencies(repo, pkgDir, to) {
   const deps = { ...json.dependencies, ...json.devDependencies, ...json.optionalDependencies };
   const entries = readdirSync(store);
   for (const [name, range] of Object.entries(deps)) {
-    if (typeof range !== 'string' || range.startsWith('workspace:') || existsSync(join(to, name))) continue;
+    if (typeof range !== 'string' || existsSync(join(to, name))) continue;
+    if (range.startsWith('workspace:')) {
+      const sources = resolve(pkgDir, '..');
+      const local = readdirSync(sources).find(entry => {
+        const file = join(sources, entry, 'package.json');
+        return existsSync(file) && JSON.parse(readFileSync(file, 'utf8')).name === name;
+      });
+      if (local === undefined) throw new Error(`link-node-modules: missing workspace dependency ${name}`);
+      const link = join(to, name); mkdirSync(dirname(link), { recursive: true });
+      symlinkSync(relative(dirname(link), join(sources, local)), link);
+      continue;
+    }
     const prefix = `${name.replace('/', '+')}@${range.replace(/^[\^~=]/u, '')}`;
     const hit = entries.find((entry) => entry === prefix || entry.startsWith(`${prefix}_`));
     const target = hit === undefined ? undefined : join(store, hit, 'node_modules', name);
