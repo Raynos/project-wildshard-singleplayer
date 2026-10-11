@@ -1394,3 +1394,18 @@ All existing sampler, target, key-count, duration and finite-value admission che
 
 
 Pine watch/dawn rows demonstrate an AS-backed stage lane with identical native observation/payload order. Each admitted output has an authored ordered stage target and fixed emit action; the renderer/headless adapter supplies the native owners. The AS module bytes and seed are unchanged. Snapshot v3 adds the immutable stage contract and cursor around the original AS save, and refuses older unversioned continuations. Pine night population, elite preludes and Nalati raid/volley are separate DIR-4 slices; this watch/dawn migration does not close those requirements.
+
+### Clip-authored fixed mover rows
+
+`@wildshard/sdk/movers` exposes `Mover`, an ordinary three.js `Object3D` wrapping a named body.
+Its `toMoverData(rest)` reads a real `AnimationClip` into numeric `track`, `trigger` and `driver` rows.
+The first fixed policies accept two linear position stops for a ride winch, or two local pitch quaternion
+stops for a hinge winch. An `always` trigger drives the waves policy or a static chain; an `interact`
+trigger retains the existing ride/call or permission-gated winch command. Unsupported key layouts,
+interpolation and trigger authorities refuse instead of silently approximating a clip.
+
+`@wildshard/format/moverMotion` defines these bounded authoring rows and their deterministic lowering.
+Admission verifies that the admitted module hash and numeric inputs equal the row's lowering before
+physics allocates. Runtime consumes the lowered row through the existing single mover host: script
+fuel, guest memory, native body ownership and saved continuation stay unchanged. The descriptors are
+build/admission inputs and are absent from the executable continuation contract.
