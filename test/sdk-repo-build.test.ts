@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Disposable CLI output.
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Disposable CLI output.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture output and subprocess paths.
@@ -26,6 +26,25 @@ it('builds a canonical template product through the real workspace author CLI', 
   if (typeof receipt !== 'object' || receipt === null || !('revision' in receipt) || typeof receipt.revision !== 'string') throw new Error('Missing build validation revision');
   expect(receipt.revision).toMatch(/^[a-f0-9]{64}$/u);
   expect(receipt).toEqual({ revision: receipt.revision, sourceHash: contentHash(new TextEncoder().encode(first)), worst: worstContentCost(shard) });
+});
+
+it('resolves the pinned external compiler from the actual bundled workspace CLI', async () => {
+  const project = mkdtempSync(join(tmpdir(), 'sdk-cli-compiler-'));
+  const module = 'ecc886d8bbebcf190298ff9162b6bb364f2125606f5bdc8cc220ea28044f96ea';
+  try {
+    mkdirSync(join(project, 'behaviour'));
+    writeFileSync(join(project, 'behaviour/door.as'), readFileSync('src/shards/pastel-plain/behaviour/door.as'));
+    writeFileSync(join(project, 'behaviour/build.json'), JSON.stringify({ version: 1, modules: [{
+      source: 'behaviour/door.as', maximumPages: 2, assets: 'assets', bindings: [],
+      embedded: [{ file: 'behaviour/door.json' }],
+    }] }));
+    await runWildshard(['build', project, '--behaviour-only']);
+    await runWildshard(['build', project, '--behaviour-only', '--check']);
+    const retained = readFileSync(`src/shards/pastel-plain/assets/${module}`);
+    expect(readFileSync(join(project, 'assets', module))).toEqual(retained);
+    const embedded: unknown = JSON.parse(readFileSync(join(project, 'behaviour/door.json'), 'utf8'));
+    expect(embedded).toEqual({ module, bytes: retained.toString('base64') });
+  } finally { rmSync(project, { recursive: true, force: true }); }
 });
 
 it('validates the built template simulation and all 92 native entry lanes through the CLI', async () => {

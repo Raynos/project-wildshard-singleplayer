@@ -15,7 +15,7 @@ export async function runWildshard(args) {
   runner ??= (async () => {
     const result = await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'silent', define: { __SHARDFILE_VALIDATOR__: JSON.stringify(shardfileValidationRevision()), 'import.meta.dirname': JSON.stringify(resolve(import.meta.dirname, '../src/sdk')) }, plugins: [{ name: 'author-node-vite', enforce: 'pre', resolveId(id) {
       if (id === 'vite') return { id: import.meta.resolve('vite'), external: true };
-      if (id === 'sharp' || id === 'binaryen') return { id: pathToFileURL(authorRequire.resolve(id)).href, external: true };
+      if (id === 'sharp' || id === 'binaryen' || /^assemblyscript(?:\/|$)/u.test(id)) return { id: pathToFileURL(authorRequire.resolve(id)).href, external: true };
       return null;
     } }], build: { write: false, minify: false, lib: { entry: resolve(import.meta.dirname, '../src/sdk/cli.ts'), formats: ['es'], fileName: 'cli' }, rolldownOptions: { platform: 'node', external: [/^node:/u] } } });
     const output = Array.isArray(result) ? result.at(0) : result;
