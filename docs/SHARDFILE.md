@@ -1702,3 +1702,12 @@ law. Static equipment GLBs are self-contained, untextured and unanimated. Their 
 are preserved; the compatibility `colour` field does not repaint the asset. Sharing a hash shares the
 immutable geometry and materials, while each held item keeps independent transforms. The last live
 owner disposes the model; a later entry loads a fresh model. No page-code installer is needed.
+
+`@wildshard/commons/packs/spear` provides `starterSpearPack(provenance)` and `spearLoadout(catalogue)`.
+Build the catalogue, select `starter-spear/model` and `starter-spear/contacts`, then include both immutable
+references in `commonsRequirements` and `library`. Assign the checked loadout to `items`. The normal
+data-only client equips the model and its fixed-step thrust/heavy-thrust contacts; no runtime import is
+required. The retained generator emits the complete untextured GLB and recipe, with byte-derived costs.
+See the executing [spear author example](../scripts/docs/authoring/spear.ts) and its two-product single-download
+proof in `test/commons-spear.test.ts`. Commons generators may use the SDK and pure format contracts;
+game and engine runtime imports remain refused. This starter has no javelin throwing or animated arms.

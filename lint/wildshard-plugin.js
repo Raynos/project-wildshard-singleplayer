@@ -368,7 +368,7 @@ const layerWalk = (kind) => (context) => {
     }
     // SF54: @wildshard/kit is dissolved; a workspace specifier names one of the layer packages or nothing
     if (kind === 'layer' && source.startsWith('@wildshard/') && packageTarget(source) === null) report(context, node, `No such layer package: ${source}`);
-    if (kind === 'layer' && own.name === 'commons' && target && !['commons', 'sdk'].includes(target.name)) report(context, node, `Commons author tools import only the SDK: ${source}`);
+    if (kind === 'layer' && own.name === 'commons' && target && !['commons', 'sdk', 'format'].includes(target.name)) report(context, node, `Commons author tools import only the SDK and pure format contracts: ${source}`);
     if (kind === 'layer' && own.name === 'commons' && targetPath.startsWith('src/sdk/runtime/')) report(context, node, `Commons author tools cannot import trusted runtime code: ${source}`);
     const shardLocal = /^src\/shards\/[^/]+\/(.+)$/u.exec(pathOf(context))?.[1];
     if (kind === 'layer' && shardLocal !== undefined) {

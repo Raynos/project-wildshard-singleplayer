@@ -277,3 +277,20 @@ refuse when no native owner is supplied. This example declares no rendered rig; 
 Use the [standalone author setup](standalone-author.md) for matched SDK/format/commons release archives,
 local CLI scripts, catalogue selection and the retained readable TypeScript world generator. Bootstrap
 preserves installed dependencies and refuses existing authored files; no checkout link is an installation proof.
+
+## Equip the commons starter spear
+
+`starterSpearPack` retains a readable TypeScript model generator and a versioned contact/loadout recipe.
+Select both `starter-spear/model` and `starter-spear/contacts`; publish their hash-addressed bytes and add
+both references to `library`. `spearLoadout` checks the catalogue identity and exact closure before returning
+detached item rows. The normal client equips the GLB through `kit.melee`; attacks use the existing fixed-step
+contact pipeline and its cooldowns. This starter thrusts and performs a charged heavy thrust. It does not
+throw javelins or claim Nalati's mounted lance, painterly view, or arm animation. No game import is needed.
+
+The static model has no textures, rig or clips: its complete asset closure is the model and contact recipe.
+Materials come from the model; `view.colour` does not repaint it. The last owner releases shared resources,
+and every owner has independent held transforms. Two products reuse each hash through the normal cache.
+The template is an approved second user for the spear (design Q1); that exception does not generalize to
+other commons content.
+
+<!-- example: spear -->

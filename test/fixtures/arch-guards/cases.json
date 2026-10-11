@@ -1,5 +1,26 @@
 [
   {
+    "id": "commons-format-contract",
+    "file": "src/commons/format-contract.ts",
+    "rule": "layer",
+    "code": "import { parseItems } from '@wildshard/format/items';",
+    "count": 0
+  },
+  {
+    "id": "commons-game-refusal",
+    "file": "src/commons/game-refusal.ts",
+    "rule": "layer",
+    "code": "import { declaredKitItemFamilies } from '@wildshard/game/plugin/weaponFamily';",
+    "count": 1
+  },
+  {
+    "id": "commons-engine-refusal",
+    "file": "src/commons/engine-refusal.ts",
+    "rule": "layer",
+    "code": "import { Scope } from '@wildshard/engine/app/scope';",
+    "count": 1
+  },
+  {
     "id": "relative-deep",
     "file": "src/game/relative-deep.ts",
     "rule": "public-index",

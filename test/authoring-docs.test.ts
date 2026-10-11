@@ -18,6 +18,7 @@ import { weaponsExample } from '../scripts/docs/authoring/weapons';
 import { brainsExample } from '../scripts/docs/authoring/brains';
 import { creaturesExample } from '../scripts/docs/authoring/creatures';
 import { commonsExample } from '../scripts/docs/authoring/commons';
+import { spearExample } from '../scripts/docs/authoring/spear';
 import { readersExample } from '../scripts/docs/authoring/readers';
 import { weaponFamilyExample } from '../scripts/docs/authoring/weapon-family';
 import { declaredKitItemFamilies } from '@wildshard/game/plugin/weaponFamily';
@@ -27,7 +28,7 @@ const examples = {
   scene: sceneExample, synth: synthExample, format: formatExample, directors: directorsExample,
   'director-script': directorScriptExample, movers: moversExample, modes: modesExample,
   weapons: weaponsExample, brains: brainsExample, creatures: creaturesExample, commons: commonsExample, readers: readersExample,
-  'weapon-family': weaponFamilyExample,
+  'weapon-family': weaponFamilyExample, spear: spearExample,
 };
 
 it('renders every retained example exactly once, with semantic compilation and an executable test binding', () => {

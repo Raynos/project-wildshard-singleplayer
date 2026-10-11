@@ -12,9 +12,12 @@
     "./packs/weapons": "./packs/weapons/pack.ts",
     "./packs/sounds": "./packs/sounds/pack.ts",
     "./packs/practice": "./packs/practice/pack.ts",
-    "./packs/species": "./packs/species/pack.ts"
+    "./packs/species": "./packs/species/pack.ts",
+    "./packs/spear": "./packs/spear/pack.ts"
   },
   "dependencies": {
-    "@wildshard/sdk": "workspace:*"
+    "@wildshard/sdk": "workspace:*",
+    "@wildshard/format": "workspace:*",
+    "three": "0.186.0"
   }
 }
