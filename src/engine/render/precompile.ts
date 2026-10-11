@@ -682,6 +682,9 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** Batch image uploads per frame under this budget (op-hitch32): several when isolated, none started past it. */ uploadBudget?: UploadBudget } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
+    if (options.futureLighting !== undefined) {
+      await prepareSceneResources([options.futureLighting], game.camera, options.current ?? (() => true));
+    }
     const tracedBoot = bootTraceActive();
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:before');
     // r186 removed PCFSoftShadowMap: the first shadow pass silently flips the type to PCF, and

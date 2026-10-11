@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { withOwner, currentOwner } from '../src/engine/app/ownership';
 import { registerScenePreparation, prepareSceneResources } from '../src/engine/render/scenePreparation';
+import { precompileLevel } from '../src/engine/render/precompile';
+import type { Game } from '../src/engine/core/Game';
 import { Grass } from '../src/engine/world/Grass';
 import { configureLevel } from '../src/engine/level/selection';
 import { toLevelSpec } from '../src/game/shard/spec';
@@ -33,6 +35,22 @@ describe('resident render-only CPU preparation', () => {
     await prepareSceneResources([root, child], camera, () => true);
     expect(prepare).toHaveBeenCalledOnce(); expect(root.children).toEqual([child]); expect(root.visible).toBe(true);
     owner.dispose(); await prepareSceneResources([root], camera, () => true); expect(prepare).toHaveBeenCalledOnce();
+  });
+
+  it('prepares the actual entered precompile path before any renderer compilation', async () => {
+    const owner = new Scope('cpu.entered'), root = new THREE.Group(); root.position.x = 555;
+    const camera = new THREE.PerspectiveCamera(); camera.position.set(580, 2, -210);
+    const prepare = vi.fn((eye: THREE.Vector3) => {
+      expect(eye.toArray()).toEqual([25, 2, -210]); expect(currentOwner()).toBe(owner);
+      return Promise.reject(new Error('CPU preparation reached before renderer access'));
+    });
+    registerScenePreparation(root, owner, prepare);
+    try {
+      const game = legacyDouble<Game>({ camera });
+      await expect(precompileLevel(game, undefined, { futureLighting: root, current: () => !owner.disposed, chunkCasters: false }))
+        .rejects.toThrow('CPU preparation reached before renderer access');
+      expect(prepare).toHaveBeenCalledOnce();
+    } finally { owner.dispose(); }
   });
 
   it('rejects retirement during an async preparation', async () => {
