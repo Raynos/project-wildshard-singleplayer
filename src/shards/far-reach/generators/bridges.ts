@@ -6,7 +6,7 @@ import { FALLEN_BRIDGE, SPANS, type Span } from '../data/layout';
 import { ropeSag } from '../layout';
 import { RISING_ISLETS } from '../world/islets';
 import { SKY_AO_FLOOR } from '../world/meshes';
-import { skyMeshUrl } from '../boot/files';
+import { MODEL_URLS } from '../data/files';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): Sky Reach's rope bridges, baked by `scripts/bake-sky-world.mjs` into
@@ -106,7 +106,7 @@ export function ropeSpans(): { id: string; length: number; width: number; hangs:
  * deflates it) and its rows.
  */
 export async function bakeSkyBridges(read: (url: string) => Uint8Array): Promise<{ bin: Uint8Array; rows: BridgeRows }> {
-  const deckModel = facetedGeometry((await readSourceModel(read(skyMeshUrl('bridge-deck')))).gltf.scene, SKY_AO_FLOOR);
+  const deckModel = facetedGeometry((await readSourceModel(read(MODEL_URLS['bridge-deck']))).gltf.scene, SKY_AO_FLOOR);
   if (deckModel === null) throw new Error('far-reach bridges: the deck model has no mesh');
   const pack = new GeometryPackWriter('far-reach bridges'), segment = deckSegment(deckModel), deck = pack.add(segment.geometry);
   const spans = ropeSpans().map(({ id, length, width, hangs }): BakedBridge => {

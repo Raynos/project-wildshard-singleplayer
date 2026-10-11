@@ -4,6 +4,7 @@
     "shard.config.ts",
     "layout.ts",
     "data/layout.ts",
+    "data/files.ts",
     "world",
     "generators",
     "models"

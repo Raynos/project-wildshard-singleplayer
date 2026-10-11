@@ -6,7 +6,7 @@ import { DECK_WOOD_EDITS, HOVER_FRAME_EDITS, POST_WEATHER_EDITS } from '../runti
 import { fitModel, splitAbove } from '../runtime/looks/modelIntake';
 import { GeometryPack, fetchDeflated, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import bridgeRows from '../data/bridges.json' with { type: 'json' };
-import { BRIDGES_URL } from '../boot/files';
+import { BRIDGES_URL } from '../data/files';
 import { hdMaterial, skyHd, skyMesh } from './meshes';
 import { towerMill } from './mill';
 import { skyBakedGeometry } from './baked';

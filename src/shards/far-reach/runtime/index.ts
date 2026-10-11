@@ -41,7 +41,7 @@ import { loadSkyBridges } from '../world/shapes';
 import { setIsleTextures } from '../world/isle';
 import { setFirSheet } from '../world/fir';
 import { setMillTextures } from '../world/mill';
-import { FAN_LEAF_URL, TEX_URL } from '../boot/files';
+import { FAN_LEAF_URL, TEX_URL } from '../data/files';
 import { loadPainted } from '../look/image';
 import { setStormPaint } from '../world/storm';
 import { wakeRibbon } from './looks/wakeRibbon';

@@ -2,7 +2,7 @@ import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { releaseDecodedOnUpload } from '../look/image';
 import { preloadSkyBodies } from '../species/bodies';
-import { SKY_HD, SKY_MESHES, skyHdUrl, skyMeshUrl, type SkyHdName, type SkyMeshName } from '../boot/files';
+import { SKY_HD, SKY_MESHES, HD_URLS, MODEL_URLS, type SkyHdName, type SkyMeshName } from '../data/files';
 import { facetedGeometry, hdGeometry } from '../runtime/looks/modelIntake';
 import { MeshStandardMaterial, type BufferGeometry, type Texture } from 'three';
 
@@ -22,7 +22,7 @@ let loading: Promise<void> | null = null;
 
 async function load(name: SkyMeshName): Promise<void> {
   try {
-    const gltf = await loadRigFile(skyMeshUrl(name)), g = facetedGeometry(gltf.scene, SKY_AO_FLOOR);
+    const gltf = await loadRigFile(MODEL_URLS[name]), g = facetedGeometry(gltf.scene, SKY_AO_FLOOR);
     if (g === null) throw new Error(`${name}: no mesh`);
     retainCachedResources(g); ready.set(name, g);
     cacheUntilDisposed(g, () => { if (ready.get(name) === g) { ready.delete(name); loading = null; } });
@@ -34,7 +34,7 @@ export interface SkyHd { readonly geometry: BufferGeometry; readonly map: Textur
 const hd = new Map<SkyHdName, SkyHd>();
 async function loadHd(name: SkyHdName): Promise<void> {
   try {
-    const gltf = await loadRigFile(skyHdUrl(name)), model = hdGeometry(gltf.scene, (m) => m.map !== null), map = model?.material.map ?? null;
+    const gltf = await loadRigFile(HD_URLS[name]), model = hdGeometry(gltf.scene, (m) => m.map !== null), map = model?.material.map ?? null;
     const one: SkyHd | undefined = model === null || map === null ? undefined : { geometry: model.geometry, map };
     if (one === undefined) throw new Error(`${name}: no textured mesh`);
     // Memory saver: the GLB's decoded atlas goes at its upload. Sky Reach never reads these maps on the CPU, every user

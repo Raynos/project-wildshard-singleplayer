@@ -29,7 +29,7 @@ import { bakeSkyDressing, buildDressing } from '../../../src/shards/far-reach/ge
 import dressingRows from '../../../src/shards/far-reach/data/dressing.json' with { type: 'json' };
 import { dressIslands, heroStoneDiscs } from '../../../src/shards/far-reach/world/dressing';
 import { decodeInstanceSets, unshuffleLanes } from '../../../src/shards/far-reach/runtime/looks/bakedInstances';
-import { BAKED_PIECES } from '../../../src/shards/far-reach/boot/files';
+import { BAKED_PIECES } from '../../../src/shards/far-reach/data/files';
 import { ISLES, KNOLLS, STEP, WINCH_HOUSE } from '../../../src/shards/far-reach/data/layout';
 import winchHouse from '../../../src/shards/far-reach/data/winchHouse.json' with { type: 'json' };
 import roostRows from '../../../src/shards/far-reach/data/roost.json' with { type: 'json' };

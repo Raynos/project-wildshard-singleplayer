@@ -5,7 +5,7 @@ import { bindRigid } from '@wildshard/sdk/looks/modelLibrary';
 import { facetedGeometry, fitModel, hdGeometry } from '../runtime/looks/modelIntake';
 import { SKY_AO_FLOOR } from '../world/meshes';
 import { SKY_CREATURE_SOURCES, type SkyCreatureExtras } from '../data/creatures';
-import type { SkyCreature } from '../boot/files';
+import type { SkyCreature } from '../data/files';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, the offline skinned-model bake): Sky Reach's three generated creature bodies, baked by

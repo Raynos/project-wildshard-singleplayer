@@ -19,7 +19,7 @@ import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../runtime/looks/skyCards
 import { PANO_SUN } from './panoramaData';
 import { loadPainted } from './image';
 import { SkyNeutralToneEffect } from './neutralTone';
-import { TEX_URL } from '../boot/files';
+import { TEX_URL } from '../data/files';
 
 /** A fixed golden-hour clock: Sky Reach does not run a day cycle (no `dayCycle` in `uses`). */
 export function createDay(): DayCycle {

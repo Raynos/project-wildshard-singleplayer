@@ -133,3 +133,10 @@ Custom runtime: 5507 / 6745 = 81.6%; the ≤20% target remains open.
 Sky's four cue aliases now name the existing shared kit catalogue voices. The native dispatcher no longer constructs its own duplicate voice map. The frozen 270-dispatch oracle and actual kit-recipe comparison preserve surfaces, optional pan/gain, taps, fallback results and scope removal. The full native witness/replay/worker/Ledger and physics/map bytes remain exact.
 
 Custom runtime: 5500 / 6745 = 81.5%; the ≤20% target remains open. No one-user platform code is added.
+
+
+## Authored file inventory
+
+The model, rig, generated-piece and texture URL declarations now live as JSON data. Native boot policy still owns texture selection and loading order; consumers index the authored records directly. The frozen ordered desktop/phone image/KTX2 boot hash is exact. The actual Node physics payload, whole native witness/replay/shipping-worker/Ledger and official map image bytes are exact; native gameplay boots successfully. Physics provenance and the map input stamp include the defining data file. No collider, owner or platform implementation changed.
+
+Custom runtime: 5451 / 6745 = 80.8%; the ≤20% target remains open.

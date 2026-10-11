@@ -5,7 +5,7 @@ import { app } from '../../../src/engine/app/runtime';
 import { Scope } from '../../../src/engine/app/scope';
 import { ownSceneTree, SceneOwnership } from '../../../src/engine/app/sceneOwnership';
 import { preloadSkyMeshes, skyHd, skyMesh } from '../../../src/shards/far-reach/world/meshes';
-import { SKY_HD, SKY_MESHES } from '../../../src/shards/far-reach/boot/files';
+import { SKY_HD, SKY_MESHES } from '../../../src/shards/far-reach/data/files';
 import { legacyDouble } from '../../fake/FakeGame';
 
 it('charges Sky model sources once, preserves live map users, and reconstructs evicted module caches on three cold admissions', async () => {

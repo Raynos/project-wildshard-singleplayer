@@ -6,7 +6,7 @@ import { paintIsleMaterial } from './isle';
 import { skyBakedGeometry } from './baked';
 import dressing from '../data/dressing.json' with { type: 'json' };
 import { BOULDER_EDITS, CLUMP_EDITS, FLOWER_EDITS } from '../runtime/looks/dressingLook';
-import { DRESSING_URL } from '../boot/files';
+import { DRESSING_URL } from '../data/files';
 
 /**
  * The island dressing (Gilded Air, review items 6 / 7, loop 2): grass clumps, the rims' lip clumps, flowers, boulders and

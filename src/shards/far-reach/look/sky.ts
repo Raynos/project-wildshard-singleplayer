@@ -1,7 +1,7 @@
 import { ClampToEdgeWrapping, Color, DataTexture, LinearFilter, Mesh, RepeatWrapping, RGBAFormat, type ShaderMaterial, SphereGeometry, SRGBColorSpace, UnsignedByteType, type Texture } from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { PANO_URL } from '../boot/files';
+import { PANO_URL } from '../data/files';
 import { SKY_DOME_PROGRAMS } from '../runtime/looks/skyDomeLook';
 import { loadPainted } from './image';
 import { PANO_FOG_SRGB, PANO_PAD_PX } from './panoramaData';

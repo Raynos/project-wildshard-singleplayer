@@ -1,7 +1,7 @@
 import { BufferGeometry } from 'three';
 import { GeometryPack, fetchDeflated, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import fanRows from '../data/fan.json' with { type: 'json' };
-import { FAN_URL } from '../boot/files';
+import { FAN_URL } from '../data/files';
 
 /**
  * The war fan's and the code hand's built shapes, baked offline (SHARD-PLATFORM M3: generators/fan.ts,

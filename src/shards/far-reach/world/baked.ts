@@ -9,7 +9,7 @@ import mill from '../data/mill.json' with { type: 'json' };
 import bookStand from '../data/bookStand.json' with { type: 'json' };
 import knolls from '../data/knolls.json' with { type: 'json' };
 import geometries from '../data/geometries.json' with { type: 'json' };
-import { BAKED_PIECES, bakedUrl, type BakedPiece } from '../boot/files';
+import { BAKED_PIECES, BAKED_URLS, type BakedPiece } from '../data/files';
 import { shackMaterial, type ShackKind } from './shack';
 import { paintIsleMaterial } from './isle';
 
@@ -31,7 +31,7 @@ const shackKind = (kind: object): ShackKind | undefined => {
 let loaded: ReadonlyMap<BakedPiece, ReadonlyMap<string, InstancedMesh>> = new Map();
 /** Load every baked piece (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */
 export async function loadSkyBaked(): Promise<void> {
-  const meshes = await Promise.all(BAKED_PIECES.map((piece) => loadBakedKinds(bakedUrl(piece), PIECES[piece].kinds, `far-reach ${piece}`)));
+  const meshes = await Promise.all(BAKED_PIECES.map((piece) => loadBakedKinds(BAKED_URLS[piece], PIECES[piece].kinds, `far-reach ${piece}`)));
   loaded = new Map(BAKED_PIECES.map((piece, i) => [piece, meshes[i] ?? new Map<string, InstancedMesh>()]));
 }
 

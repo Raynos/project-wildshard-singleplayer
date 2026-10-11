@@ -3,7 +3,7 @@ import { readSourceModel } from './skinned';
 import { hdGeometry } from '../runtime/looks/modelIntake';
 import { SKY_ISLE_HD, SKY_ISLE_MODELS } from '../data/skyIsles';
 import { skyIsleHitDown, type SkyIsleFrame } from '../world/skyIsleHd';
-import { skyHdUrl } from '../boot/files';
+import { HD_URLS } from '../data/files';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): each textured sky-isle model's unit frame (world/skyIsleHd.ts), found
@@ -47,7 +47,7 @@ export function skyIsleFrame(geometry: BufferGeometry): Omit<SkyIsleFrame, 'mode
 export async function bakeSkyIsleFrames(read: (url: string) => Uint8Array): Promise<SkyIsleFrame[]> {
   const frames: SkyIsleFrame[] = [];
   for (const model of SKY_ISLE_MODELS) {
-    const source = await readSourceModel(read(skyHdUrl(model))), hd = hdGeometry(source.gltf.scene, (material) => source.texture(material) !== null);
+    const source = await readSourceModel(read(HD_URLS[model])), hd = hdGeometry(source.gltf.scene, (material) => source.texture(material) !== null);
     if (hd === null) throw new Error(`far-reach sky isle frames: ${model} has no textured mesh`);
     frames.push({ model, ...skyIsleFrame(hd.geometry) });
   }
