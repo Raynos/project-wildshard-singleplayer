@@ -2742,6 +2742,48 @@
         "src/shards/pine-hollow/behaviour/imperialBull.json"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "nalati-weapon-hooks",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-weapon-hooks.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-weapon-hooks.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/admissionLimits.ts",
+        "src/format/director.ts",
+        "src/format/directorStages.ts",
+        "src/format/directorWhen.ts",
+        "src/format/json.ts",
+        "src/format/package.json",
+        "src/format/state.ts",
+        "src/format/weaponHooks.ts",
+        "src/format/weaponProfiles.ts",
+        "src/format/wireLimits.ts",
+        "src/sdk/assemblyscriptCompiler.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/buildBehaviour.ts",
+        "src/sdk/compileScript.ts",
+        "src/sdk/directorAbi.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/package.json",
+        "src/sdk/sourceReader.ts",
+        "src/shards/nalati-grasslands/behaviour/weapons.as",
+        "src/shards/nalati-grasslands/data/sabreHook.ts",
+        "src/shards/nalati-grasslands/data/sabreProfile.ts",
+        "src/shards/nalati-grasslands/generators/bake-weapon-hooks.mjs",
+        "src/shards/nalati-grasslands/generators/weaponHooks.ts"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/assets/141ad375895d4f14fc900f0954c566ff077d1621741aed238edffa672f41a9ac",
+        "src/shards/nalati-grasslands/behaviour/weapons.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

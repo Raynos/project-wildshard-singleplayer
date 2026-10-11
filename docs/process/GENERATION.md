@@ -184,3 +184,5 @@ Signal’s `signal-skitterer-behaviour` report-only job compiles its retained na
 Nalati’s existing `nalati-qara` component now runs through the confined SDK author loader with its exact compiler/retained AS closure. Cold, forced and official clean-room regeneration preserve the original transport hash. Existing activation is unchanged, and this component evidence cannot authorize whole-product removal.
 
 Pine’s `pine-elite-behaviours` report-only component compiles the four retained native elite policies after their exact shared AS prelude, through the confined SDK author loader. All four original transport hashes regenerate without runtime, legacy, seeds or a warm cache. No activation or removal is admitted until the whole shard product passes.
+
+Nalati’s `nalati-weapon-hooks` report-only component compiles retained `behaviour/weapons.as` with the typed sabre hook declaration, whose parameters come from the existing authored weapon profile. The original module and declaration hashes regenerate without runtime, legacy, generated seeds or a warm cache. No activation or removal is admitted until the whole shard product passes.
