@@ -7,12 +7,13 @@ import { commonsRequirements } from '../src/sdk/commons';
 import { parseAudio } from '../src/sdk/assets';
 import { contentHash } from '../src/sdk/project';
 import { emptyShardfile } from '../src/sdk/author';
+import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { ContentCache } from '../src/engine/boot/contentCache';
 import { Scope } from '../src/engine/app/scope';
 import { indexAac } from '@wildshard/format/aacIndex';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
-import { admitProduct, type CachedProduct, type ProductCache } from '../src/game/shardfile/product';
+import { admitProduct, type CachedProduct, type ProductCache, type ProductOptions } from '../src/game/shardfile/product';
 import folk from '../public/assets/music/folk/music.json' with { type: 'json' };
 import piano from '../public/assets/music/piano/music.json' with { type: 'json' };
 import orchestral from '../public/assets/music/orchestral/music.json' with { type: 'json' };
@@ -49,12 +50,20 @@ it.each(styles)('packs the shipped $style stings byte-exactly and downloads each
       const shard = emptyShardfile({ slug, name: slug, author: 'Wildshard', seed: 1, revision: 1 });
       shard.audio.recordings = Object.fromEntries(built.catalogue.entries.map(row => [`/assets/music/${style}/${source.stings[row.id.split('/').at(-1) as keyof typeof source.stings]}`, `commons:${row.hash}`]));
       shard.requires = { ...shard.requires, ...requirements }; shard.library = requirements.commons.map(hash => `commons:${hash}`);
-      const product = await admitProduct(shard, { base: `https://platform.test/${slug}/`, offline: false, firstParty: true, cache,
+      const options: ProductOptions = { base: `https://platform.test/${slug}/`, offline: false, firstParty: true, cache,
         hash: bytes => Promise.resolve(contentHash(bytes)), fetch: url => {
           const hash = new URL(url).pathname.split('/').at(-1), bytes = hash === undefined ? undefined : built.assets.get(hash);
           if (hash === undefined || bytes === undefined) throw new Error('Unexpected recording request');
           downloads.set(hash, (downloads.get(hash) ?? 0) + 1); return Promise.resolve(new Response(Uint8Array.from(bytes)));
-        } });
+        } };
+      const product = await admitProduct(shard, options);
+      const read = new ClientAssets(product.source, product.assets, options).audioRead();
+      if (read === undefined) throw new Error('Missing emitted recording reader');
+      for (const [path, ref] of Object.entries(product.source.audio.recordings ?? {})) {
+        const original = built.assets.get(ref.slice(8));
+        if (original === undefined) throw new Error('Missing encoded sting');
+        expect(new Uint8Array(await read(path))).toEqual(original);
+      }
       const scope = new Scope(slug); scopes.push(scope); leaseClientLibrary(product.source, product.assets, { allocator, scope, owner: slug });
     }
     expect([...downloads.values()]).toEqual([1, 1, 1]); expect(allocator.entries()).toHaveLength(3);

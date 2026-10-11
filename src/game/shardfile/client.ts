@@ -86,8 +86,9 @@ export interface ShardfileClientBindings {
   /** Declared water rows and collider-only props are installed by the data client by default. A trusted first-party transition may
    *  let its runtime consume them exactly once (G164: Driftwood's sea row with its dry sockets and its socket landings). */
   worldOwner?: 'declared' | 'runtime';
-  /** Platform catalogue installers bind extended audio data to the existing play host. */
-  audioProfiles?: (play: ShardPlayHost) => DeclaredAudioPorts['profiles'];
+  /** Platform installers receive the emitted audio declaration and its admitted recording reader.
+   * An absent reader preserves existing trusted catalogue resolution; a declared reader refuses unknown paths. */
+  audioProfiles?: (play: ShardPlayHost, product: { source: Shardfile['audio']; read: ((path: string) => Promise<ArrayBuffer>) | undefined }) => DeclaredAudioPorts['profiles'];
   /** Announced during construction only when this data client will create a simulation; empty trusted transitions never announce a handoff. */
   onSimulationExpected?: () => void;
   /** Production handoff after restoration; checkpoint confirms ledger, coins, encounters and continuation writes. The existing Game driver remains the home tick owner. */
@@ -387,7 +388,7 @@ export class ShardfileClient {
       installQuestPresentation(ctx, quest, declaration?.track === false ? { chip: () => ({ label: '', count: '' }) } : {});
     }
     runtime.hooks.questFlags = () => sim.host.flags.all; runtime.hooks.adventureFlags = () => sim.host.flags.all;
-    if (this.bindings.audioOwner !== 'runtime') installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play) });
+    if (this.bindings.audioOwner !== 'runtime') installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play, { source: source.audio, read: this.assets.audioRead() }) });
     ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather,
       // Read actual live views; an authored spawn or a detached model alone cannot satisfy the author view proof.
       equipmentEvidence: () => {

@@ -3369,3 +3369,18 @@ G320 Template terrain: `template-author-terrain` rebuilds `data/terrain.json` an
 G320 Template props: `template-author-props` compiles the original readable geometry, collider authoring and named cosmetic scatter law without a native field, registry or session service. It owns the full props declaration and every immutable geometry output. The retained Template and Pastel persisted scene tests compare their declarations and every asset byte; no look or material rewrite is part of this boundary.
 
 G320 Template behavior: `template-author-behaviour` compiles its own retained door, item-hook and idle sources with the unchanged 2/64/2-page limits. All three Wasm files and door metadata are outputs, never source seeds. No caller reads trusted runtime or another shard in this complete authoring compiler job.
+
+### Emitted recording readers (SF29)
+
+`ClientAssets.audioRead()` binds `audio.recordings` catalogue identities to
+verified local or commons library bytes. It returns `undefined` when the
+section is omitted. A declared reader refuses unknown identities before I/O;
+it never fetches a catalogue URL. Each read gives the existing decoder an
+owned, exact-length `ArrayBuffer`, preserving all encoded bytes and preventing
+buffer padding or a decoder mutation from altering the admitted transport.
+
+`ShardfileClientBindings.audioProfiles(play, { source, read })` receives the
+actual emitted audio section and that reader. Installers keep the existing
+sample/score decoder, selection order, WebAudio clock and scoped RNG. Existing
+one-argument installers remain valid. Native runtime ownership and catalogue
+adoption are separate; this port does not create another audio owner.

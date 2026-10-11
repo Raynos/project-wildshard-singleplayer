@@ -122,3 +122,24 @@ it('standalone admission and movement keep coarse coverage with bounded fine til
   }
   scope.dispose(); expect(live.size).toBe(0);
 });
+
+it('hands decoders exact admitted recording bytes, without resolving catalogue URLs on the network', async () => {
+  const fixture = residentFixture();
+  expect(fixture.assets.audioRead()).toBeUndefined();
+  const path = '/assets/sfx/test/loop.wav';
+  fixture.source.audio.recordings = { [path]: fixture.libraryHash };
+  // A transport view's unrelated bytes never enter the decoder.
+  const padded = new Uint8Array([99, 4, 5, 6, 99]), original = padded.subarray(1, 4);
+  const assets = new ClientAssets(fixture.source, new Map([[fixture.libraryHash, original]]), fixture.options);
+  const read = assets.audioRead(); if (read === undefined) throw new Error('Missing recording reader');
+  const bytes = new Uint8Array(await read(path));
+  expect(bytes).toEqual(new Uint8Array([4, 5, 6])); expect(bytes.buffer.byteLength).toBe(3);
+  bytes[0] = 100; expect(original).toEqual(new Uint8Array([4, 5, 6]));
+  await expect(read('/assets/sfx/test/undeclared.wav')).rejects.toThrow('Undeclared audio');
+  // Evicted recording transport still receives normal exact hash/length validation.
+  const cachedOnly = new ClientAssets(fixture.source, new Map(), fixture.options).audioRead();
+  if (cachedOnly === undefined) throw new Error('Missing cached reader');
+  expect(new Uint8Array(await cachedOnly(path))).toEqual(fixture.cached.get(fixture.libraryHash));
+  fixture.cached.set(fixture.libraryHash, new Uint8Array(3));
+  await expect(cachedOnly(path)).rejects.toThrow('hash or size');
+});

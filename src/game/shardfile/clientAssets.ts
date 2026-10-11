@@ -28,6 +28,17 @@ export class ClientAssets {
     if (downloaded) await this.options.cache?.putAsset(base, hash, bytes);
     return bytes;
   }
+  /** Bind legacy catalogue identities to the admitted library, never to their old network URLs.
+   * Each decoder receives an owned exact-length ArrayBuffer; absent bindings retain the caller's existing reader. */
+  audioRead(): ((path: string) => Promise<ArrayBuffer>) | undefined {
+    if (this.source.audio.recordings === undefined) return undefined;
+    const recordings = new Map(Object.entries(this.source.audio.recordings));
+    return async path => {
+      const ref = recordings.get(path);
+      if (ref === undefined) throw new Error(`Undeclared audio recording: ${path}`);
+      return Uint8Array.from(await this.read(ref)).buffer;
+    };
+  }
   private roots(): string[] { return [...this.source.critical, ...this.source.library, ...(this.source.look.grade.lut === null ? [] : [this.source.look.grade.lut])]; }
   private closure(refs: Iterable<string>): Set<string> {
     const keep = new Set<string>(), files = new Map(this.source.files.map((file) => [file.hash, file])), pending = [...refs];
