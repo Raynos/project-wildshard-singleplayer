@@ -61,7 +61,7 @@ Node jobs that read active-level terrain explicitly preload `scripts/generation-
 with `--generation-shard=<slug>`. It installs that one real manifest, without discovering or loading other shards. The
 preload and the manifest belong to the declared input closure; a missing composition root never falls back to a fake level.
 
-A standalone browser-backed generator declares `browser: true` even when it needs no running preview (Nalati places).
+A standalone pixel generator declares `browser: true` even when it needs no running preview (`sky-textures`).
 Its Chromium executable digest participates in the key; it uses exact bytes for both cache and committed comparisons.
 Run these jobs through `scripts/browser-lane.sh` too. This differs from `capture`, which fences a page build and has the
 explicit top-level capture-provenance comparison described above.
@@ -93,10 +93,10 @@ external inputs, remain explicit `unavailable` rows; missing evidence is null. S
 the observer merely records it. Migration differences are report-only, not deploy gate failures. A workflow/infrastructure
 failure cannot produce a portability claim. Results must be read from the actual Linux artifact before any deletion.
 
-The catalog currently exposes Node producers as `native` comparison candidates, not as portable-byte promises. Nine
-layout, Driftwood fixed models and Nalati places retain their documented Darwin-normative policy. The eight normative
-browser physics/spots captures also remain Darwin-only. This policy does not waive their committed comparisons or
-claim Linux evidence from Darwin runs. In particular, a missing `magick` executable is a tool gap, not output inequality;
+All six physics producers, Pine and Driftwood quest spots, and Nalati placements now run in Node with exact committed
+comparisons. These producers are Linux comparison candidates; their Darwin proofs do not establish Linux byte equality.
+Nine layout and Driftwood fixed models retain their documented Darwin-normative policy. This policy does not waive
+committed comparisons or claim Linux evidence from Darwin runs. In particular, a missing `magick` executable is a tool gap, not output inequality;
 the HDRI producer stays unavailable until that real dependency is supplied.
 
 
@@ -112,13 +112,16 @@ The initial DS1.5 sidecar audit at `08eb8cbd2` found these four browser/capture 
 | Job | Flag | Work | Route |
 | --- | --- | --- | --- |
 | `pine-spots` | `capture` | Native quest placement and prompt metadata | Node native construction, `d80f47f31` |
-| `driftwood-spots` | `capture` | Native quest placement, reward pose and prompt metadata | Node conversion follows the reserved DIR-3 landing |
-| `nalati-places` | `browser` | Native geometry, collider rows and specimens | Node canonical producer; deliberate last-bit re-record |
-| `sky-textures` | `browser` | Canvas2D painting and image encoding | Retained browser image producer pending the graphics/codec ruling |
+| `driftwood-spots` | `capture` | Native quest placement, reward pose and prompt metadata | Node native construction, `6e34cb556` |
+| `nalati-places` | `browser` | Native geometry, collider rows and specimens | Node canonical producer, `27b0d8da1`; deliberate last-bit re-record |
+| `sky-textures` | `browser` | Canvas2D painting and image encoding | Retained pixel producer: Canvas2D paint and JPEG codec, no WebGL |
 
+`sky-textures` is the only remaining sidecar job with `browser: true`; none retain `capture: true`.
 No temporary `compare-*-physics-page` scripts remain tracked. All six physics producers execute in Node. The broader
 source audit also found `bake-maps` (actual WebGL map rendering), `bake-viewmodel-sets` (Canvas2D painting) and Nalati's
 `bake-coats` mode (CPU coat painting and image encoding). Those image outputs remain committed; they are not admitted
 `buildOutputs`, and a CI build never captures them. Canvas2D is recorded explicitly rather than called a WebGL bake.
+This is the pixel-bake branch of [the design system, §3.1](../plans/shard-platform/design-system.md#31-the-basis-real-threejs-in-node-g311-decided):
+pixel producers use the browser lane or an existing CPU path, while native placement and physics run in Node.
 The descriptor refuses browser/capture jobs with admitted build outputs; missing retained files fail instead of
 starting an implicit browser.
