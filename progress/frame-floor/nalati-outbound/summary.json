@@ -1,0 +1,75 @@
+{
+  "schema": "nalati-outbound/1",
+  "ask": "E435",
+  "pin": "1ed327eec3e217f4eb09593f28eb0d3f9e262e0e",
+  "harnessCrossroadsFix": "63231ccbe",
+  "surface": "iOS Simulator Safari",
+  "settings": {
+    "developer": true,
+    "tier": "phone",
+    "renderScale": 2,
+    "seed": 357,
+    "buildPacing": "on",
+    "fps": "auto",
+    "graphMaterials": "on",
+    "memorySaver": "off"
+  },
+  "gate": {
+    "driveP95Ms": 35,
+    "driveMaxMs": 200
+  },
+  "status": "diagnostic complete; matched plain floor pending",
+  "rows": [
+    {
+      "mode": "synchronous phase clocks + GL timing; no floor credit",
+      "window": {
+        "start": "2026-10-11T11:55:18.045718Z",
+        "end": "2026-10-11T11:57:17.332433Z",
+        "oneMinuteLoad": 5.49
+      },
+      "complete": true,
+      "errors": [],
+      "drive": {
+        "frames": 1500,
+        "p95Ms": 34,
+        "p99Ms": 50,
+        "maxMs": 90
+      },
+      "retirement": {
+        "scope": "grid.runtime:nalati-grasslands",
+        "elapsedMs": 18
+      },
+      "largestFrame": {
+        "maxMs": 90,
+        "overlaps": [
+          {
+            "owner": "WebAssembly.Memory",
+            "elapsedMs": 35
+          },
+          {
+            "owner": "WebAssembly.Memory",
+            "elapsedMs": 31
+          }
+        ]
+      },
+      "otherLongWork": [
+        {
+          "owner": "game.grid.origin (includes staged autosave)",
+          "maxMs": 73.99999999998545
+        }
+      ],
+      "enteredDestination": "template-2"
+    }
+  ],
+  "limits": [
+    "Historical 277 ms frame was not reproduced; no attribution or isolated saving is established.",
+    "Phase clocks and GL timing add diagnostic overhead; a plain run is required for floor credit.",
+    "The earlier graph-default plain run (max69ms) does not match the reported graphMaterials-on settings.",
+    "The first graph-on attempt failed its configuration fence before driving and earns no timing credit.",
+    "No quality, render-scale, ownership or charged-memory changes. No builder full suite."
+  ],
+  "checks": {
+    "focusedTests": 42,
+    "focusedFiles": 4
+  }
+}
