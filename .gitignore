@@ -136,3 +136,11 @@ src/**/*.generated.*
 /progress/memory/g227-budget/webkit-nalati-*.json
 /progress/memory/g227-budget/isolated-gl-*.json
 /progress/shard-platform/jake-reports/*.png
+
+# G331: stitched sky working panels/logs are reproducible intermediates.
+# Keep the selected JPEG references and final panoramas already in git.
+/art/sunscar-dunes/round-25-sky/early/
+/art/sunscar-dunes/round-25-sky/early2/
+/art/sunscar-dunes/round-25-sky/mid/
+/art/sunscar-dunes/round-25-sky/late/
+/art/sunscar-dunes/round-25-sky/preview-mid.jpg
