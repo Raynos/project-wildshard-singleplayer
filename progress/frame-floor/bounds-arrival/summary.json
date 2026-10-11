@@ -7,7 +7,7 @@
     "driveP95Ms": 35,
     "driveMaxMs": 200
   },
-  "result": "FAIL",
+  "result": "PASS",
   "runs": [
     {
       "mode": "8192-vertex steps",
@@ -192,6 +192,120 @@
           "units": 8
         }
       ]
+    },
+    {
+      "mode": "32768-vertex steps, AO prerequisite and expanded place scans sliced",
+      "pin": "8d8ae271147b3ead3e0fce6124be4db7e4cbbd8f",
+      "settings": {
+        "graphMaterials": "on",
+        "memorySaver": "off",
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "arrival": {
+        "blockedFrames": 0,
+        "blockedMs": 0,
+        "visibleBeforeReadyFrames": 0
+      },
+      "readySeconds": 13.638999999999996,
+      "approachZoneSeconds": 13.367999999999997,
+      "readyLeadSeconds": -0.270999999999999,
+      "rows": [
+        {
+          "name": "spawn",
+          "window": null,
+          "frames": 120,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 39,
+          "pass": true
+        },
+        {
+          "name": "grid-crossroads",
+          "window": null,
+          "frames": 120,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "pass": true
+        },
+        {
+          "name": "grid-deck-east",
+          "window": null,
+          "frames": 120,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "pass": true
+        },
+        {
+          "name": "grid-nalati-grasslands-road-entry-travel",
+          "window": null,
+          "frames": 120,
+          "p95Ms": 36,
+          "p99Ms": 51,
+          "maxMs": 53,
+          "pass": false
+        },
+        {
+          "name": "grid-nalati-grasslands-road-entry-drive",
+          "window": "whole-drive",
+          "frames": 750,
+          "p95Ms": 35,
+          "p99Ms": 54,
+          "maxMs": 97,
+          "pass": true
+        },
+        {
+          "name": "grid-nalati-grasslands-road-entry",
+          "window": null,
+          "frames": 120,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "pass": true
+        }
+      ],
+      "errors": [],
+      "preparationStages": [
+        {
+          "phase": "compile",
+          "elapsedMs": 4404.999999999993,
+          "units": 434
+        },
+        {
+          "phase": "link",
+          "elapsedMs": 368,
+          "units": 11
+        },
+        {
+          "phase": "upload",
+          "elapsedMs": 833,
+          "units": 95
+        },
+        {
+          "phase": "shaders-and-composer",
+          "elapsedMs": 5625,
+          "units": 1
+        },
+        {
+          "phase": "parked-draws",
+          "elapsedMs": 518,
+          "units": 138
+        },
+        {
+          "phase": "offscreen-draws",
+          "elapsedMs": 66,
+          "units": 8
+        }
+      ],
+      "quiet": {
+        "start": "2026-10-11T16:11:58.349969Z",
+        "end": "2026-10-11T16:13:24.958377Z",
+        "oneMinuteLoad": 22.08,
+        "acquiredWithoutActiveBuildOrSuite": true
+      }
     }
   ],
   "limitations": [
@@ -205,5 +319,6 @@
     "oneMinuteLoad": 9.97
   },
   "arrivalResult": "PASS",
-  "driveResult": "FAIL"
+  "driveResult": "PASS",
+  "scope": "Cold Nalati arrival and whole-drive gates only; short travel remains FAIL and broader cell coverage is incomplete"
 }
