@@ -30,7 +30,7 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
       }
       for (const file of ['.oxlintrc.json', '.oxlintrc.ratchet.json']) cpSync(file, resolve(root, file));
       put('package.json', '{"type":"module"}'); put('tsconfig.json', '{"compilerOptions":{"strict":true,"types":[],"moduleResolution":"bundler","module":"esnext"}}');
-      for (const layer of ['engine', 'game', 'sdk', 'commons']) put(`src/${layer}/package.json`, JSON.stringify({ name: `@wildshard/${layer}`, exports: layer === 'engine' ? { './clock': './clock.ts' } : {} }));
+      for (const layer of ['engine', 'game', 'format', 'sdk', 'commons']) put(`src/${layer}/package.json`, JSON.stringify({ name: `@wildshard/${layer}`, exports: layer === 'engine' ? { './clock': './clock.ts' } : {} }));
       put('src/engine/clock.ts', '/** Authoritative time. */\nexport const tick = 1;\n');
       put('src/engine/level/context.ts', '/** Generic context. */\nexport interface LevelContext {}\n');
       put('src/game/plugin/context.ts', '/** Content context. */\nexport interface ShardContext {}\n');
@@ -91,23 +91,28 @@ describe('SF6b clean committed regeneration', () => {
       expect(reach.status).toBe(1); expect(reach.stderr).toContain('reaches into');
     });
   });
-  it('discovers a newly exported SDK schema and refuses missing fields or ABI calls in the committed reference', async () => {
+  it('discovers newly exported SDK and format schemas and refuses missing fields or ABI calls in the committed reference', async () => {
     await fixture(async (root, put, git) => {
       writeApiDocs(root); // the build output of the commit before the schema change
       put('src/sdk/package.json', JSON.stringify({ name: '@wildshard/sdk', exports: { './worldSource': './worldSource.ts' } }));
       put('src/sdk/worldSource.ts', "import * as v from 'valibot';\n/** Build-only authored world input. */\nexport const WorldSourceSchema = v.strictObject({ glb: v.string(), scale: v.optional(v.number(), 1) });\n");
+      put('src/format/package.json', JSON.stringify({ name: '@wildshard/format', exports: { './state': './state.ts' } }));
+      put('src/format/state.ts', "import * as v from 'valibot';\n/** Shared wire state. */\nexport const StateSchema = v.strictObject({ health: v.number() });\n");
       put('src/engine/script/abi.ts', 'export const SCRIPT_IMPORTS = { fuel: [127, 0], query: [127, 127, 127, 127] };\nexport const SCRIPT_EXPORTS = { on_tick: [] };\nexport const SCRIPT_ABI = { version: 0 };\n');
-      git(['add', '--', 'src/sdk/worldSource.ts']);
-      git(['commit', '-qm', 'SDK schema and ABI source', '--', 'src/sdk/package.json', 'src/sdk/worldSource.ts', 'src/engine/script/abi.ts']);
+      git(['add', '--', 'src/sdk/worldSource.ts', 'src/format/state.ts']);
+      git(['commit', '-qm', 'SDK and format schema and ABI source', '--', 'src/sdk/package.json', 'src/sdk/worldSource.ts', 'src/format/package.json', 'src/format/state.ts', 'src/engine/script/abi.ts']);
       expect(() => checkShardfileReference(root)).toThrow('Schema documentation coverage');
       writeApiDocs(root);
       const path = resolve(root, 'docs/api/SHARDFILE.md');
       const document = readFileSync(path, 'utf8');
       expect(document).toContain('$sdk["./worldSource"].WorldSourceSchema.scale');
+      expect(document).toContain('$format["./state"].StateSchema.health');
       expect(document).toContain('| import | query | i32, i32, i32 | i32 |');
       checkShardfileReference(root);
       put('docs/api/SHARDFILE.md', document.split('\n').filter(line => !line.startsWith('| $sdk["./worldSource"].WorldSourceSchema.glb |')).join('\n'));
       expect(() => checkShardfileReference(root)).toThrow('fields missing: $sdk["./worldSource"].WorldSourceSchema.glb');
+      put('docs/api/SHARDFILE.md', document.split('\n').filter(line => !line.startsWith('| $format["./state"].StateSchema.health |')).join('\n'));
+      expect(() => checkShardfileReference(root)).toThrow('fields missing: $format["./state"].StateSchema.health');
       put('docs/api/SHARDFILE.md', document.split('\n').filter(line => !line.startsWith('| import | query |')).join('\n'));
       expect(() => checkShardfileReference(root)).toThrow('abi missing: import.query');
       put('docs/api/SHARDFILE.md', document);
