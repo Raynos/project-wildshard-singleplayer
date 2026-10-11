@@ -14,6 +14,29 @@ function geometry(): BufferGeometry {
     .setAttribute('canopy', new Float32BufferAttribute([0, 0.5, 1], 1)).setIndex([0, 2, 1]);
 }
 describe('native terrain GLB application channels', () => {
+  it('preserves explicit named nodes through the actual loader and keeps unnamed bytes unchanged', async () => {
+    const g = geometry(), material = new MeshStandardMaterial();
+    const original = staticGlb([{ geometry: g, material }, { geometry: g, material }], 'beacon');
+    const named = staticGlb([{ name: 'tower', geometry: g, material }, { name: 'flame', geometry: g, material }], 'beacon');
+    const parsed = await new GLTFLoader().parseAsync(Uint8Array.from(named).buffer, '');
+    expect(parsed.scene.children.map(child => child.name)).toEqual(['tower', 'flame']);
+    for (const child of parsed.scene.children) {
+      if (!(child instanceof Mesh)) throw new Error('Expected separate loaded mesh');
+      const loaded: unknown = child.geometry;
+      if (!(loaded instanceof BufferGeometry)) throw new Error('Expected actual loaded geometry');
+      const position: unknown = loaded.getAttribute('position');
+      if (!(position instanceof BufferAttribute) && !(position instanceof InterleavedBufferAttribute)) throw new Error('Expected loaded vertex positions');
+      expect(Array.from(position.array)).toEqual(Array.from(g.getAttribute('position').array));
+      expect(Array.from(loaded.getIndex()?.array ?? [])).toEqual(Array.from(g.getIndex()?.array ?? []));
+    }
+    const namedCost = parseGlb(named), oldCost = parseGlb(original);
+    expect({ ...namedCost, decoded: oldCost.decoded }).toEqual(oldCost);
+    expect(namedCost.decoded - oldCost.decoded).toBe(named.length - original.length);
+    expect(staticGlb([{ geometry: g, material }, { geometry: g, material }], 'beacon')).toEqual(original);
+    for (const name of ['', 'with.space', 'with space', 'a'.repeat(129), 'beacon'])
+      expect(() => staticGlb([{ name, geometry: g, material }, { geometry: g, material }], 'beacon')).toThrow('unique loader-safe');
+    expect(() => staticGlb([{ name: 'flame', geometry: g, material }, { name: 'flame', geometry: g, material }])).toThrow('unique loader-safe');
+  });
   it('round-trips Pine/Nalati channels through the actual loader and charges their emitted bytes', async () => {
     const g = geometry(), material = new MeshStandardMaterial(); material.name = 'pine.native-ground';
     const customAttributes = { _SPLAT: 'splat', _SURF: 'surf', _RDIR: 'rdir', _ZONE: 'zone', _CANOPY: 'canopy' };

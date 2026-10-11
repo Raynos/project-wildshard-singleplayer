@@ -21,15 +21,21 @@ import { commonsExample } from '../scripts/docs/authoring/commons';
 import { spearExample } from '../scripts/docs/authoring/spear';
 import { readersExample } from '../scripts/docs/authoring/readers';
 import { weaponFamilyExample } from '../scripts/docs/authoring/weapon-family';
+import { namedNodesExample } from '../scripts/docs/authoring/named-nodes';
 import { declaredKitItemFamilies } from '@wildshard/game/plugin/weaponFamily';
 import { parseDirectorStages } from '@wildshard/format/directorStages';
+import { parseGlb } from '@wildshard/sdk/assets';
 
 const examples = {
   scene: sceneExample, synth: synthExample, format: formatExample, directors: directorsExample,
   'director-script': directorScriptExample, movers: moversExample, modes: modesExample,
   weapons: weaponsExample, brains: brainsExample, creatures: creaturesExample, commons: commonsExample, readers: readersExample,
-  'weapon-family': weaponFamilyExample, spear: spearExample,
+  'weapon-family': weaponFamilyExample, spear: spearExample, 'named-nodes': namedNodesExample,
 };
+
+it('executes the named-node export recipe and admits both real box primitives', () => {
+  expect(parseGlb(namedNodesExample())).toMatchObject({ draws: 4, triangles: 24 });
+});
 
 it('renders every retained example exactly once, with semantic compilation and an executable test binding', () => {
   const sources = authoringExamples(), guide = authoringGuide();

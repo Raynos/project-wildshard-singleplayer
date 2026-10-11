@@ -294,3 +294,13 @@ The template is an approved second user for the spear (design Q1); that exceptio
 other commons content.
 
 <!-- example: spear -->
+
+## Export named model parts (OS-G6)
+
+`staticGlb` emits one glTF node per primitive. Its optional per-primitive `name`
+is the stable name for interactions and presentation bindings; the overall name
+is only the fallback. Explicit names must be unique and loader-safe (letters,
+digits, underscore or hyphen; at most 128 characters). Duplicate or sanitized
+names refuse export. Unnamed existing exports retain their exact bytes.
+
+<!-- example: named-nodes -->

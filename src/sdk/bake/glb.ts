@@ -5,11 +5,18 @@ type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 /** A primitive's geometry, material and optional instanced local transforms; textures are separate declared assets. */
 export interface GlbPrimitive {
   geometry: BufferGeometry; material: MeshStandardMaterial; instances?: readonly Matrix4[]; castShadow?: boolean;
+  /** Optional unique glTF node/mesh name (letters, digits, underscore or hyphen); absent preserves the old byte path. */
+  name?: string;
   /** Explicit glTF application semantic → geometry channel, e.g. `_SPLAT: 'splat'`; absent preserves old bytes. */
   customAttributes?: Readonly<Record<string, string>>;
 }
 /** A deterministic self-contained static GLB; names and vertex colours survive the ordinary engine GLTFLoader. */
 export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): Uint8Array {
+  const names = primitives.map(primitive => primitive.name ?? name);
+  for (const primitive of primitives) {
+    if (primitive.name !== undefined && (!/^[A-Za-z_][A-Za-z0-9_-]{0,127}$/u.test(primitive.name)
+      || names.filter(actual => actual === primitive.name).length !== 1)) throw new Error('GLB node names must be unique loader-safe identifiers');
+  }
   const chunks: Uint8Array[] = [], views: Json[] = [], accessors: Json[] = [], meshes: Json[] = [], nodes: Json[] = [], materials: Json[] = [];
   let offset = 0;
   const accessor = (values: readonly number[], width: number, type: string, integer = false, bounds = false): number => {
@@ -21,7 +28,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     if (bounds) { a['min'] = Array.from({ length: width }, (_, c) => values.reduce((n, sample, i) => i % width === c ? Math.min(n, sample) : n, Infinity)); a['max'] = Array.from({ length: width }, (_, c) => values.reduce((n, sample, i) => i % width === c ? Math.max(n, sample) : n, -Infinity)); }
     accessors.push(a); return accessors.length - 1;
   };
-  for (const { geometry, material, instances, castShadow = true, customAttributes = {} } of primitives) {
+  for (const { geometry, material, instances, castShadow = true, customAttributes = {}, name: nodeName = name } of primitives) {
     if (material.map !== null || material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null || material.alphaMap !== null) throw new Error('GLB textures must be external KTX2 declarations');
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
@@ -47,8 +54,8 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       ...(material.alphaTest > 0 ? { alphaCutoff: material.alphaTest } : {}),
       ...(material.emissive.r !== 0 || material.emissive.g !== 0 || material.emissive.b !== 0 ? { emissiveFactor: [...material.emissive].map(value => value * material.emissiveIntensity) } : {}),
     });
-    meshes.push({ name, primitives: [{ attributes, indices: accessor(indices, 1, 'SCALAR', true), material: materialIndex }] });
-    const node: Record<string, Json> = { name, mesh: meshes.length - 1, extras: { castShadow } };
+    meshes.push({ name: nodeName, primitives: [{ attributes, indices: accessor(indices, 1, 'SCALAR', true), material: materialIndex }] });
+    const node: Record<string, Json> = { name: nodeName, mesh: meshes.length - 1, extras: { castShadow } };
     if (instances !== undefined) {
       if (instances.length === 0 || instances.length > 10_000) throw new Error('Invalid instance count');
       const t: number[] = [], r: number[] = [], s: number[] = [];
