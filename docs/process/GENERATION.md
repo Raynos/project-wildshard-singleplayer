@@ -186,3 +186,14 @@ Nalati’s existing `nalati-qara` component now runs through the confined SDK au
 Pine’s `pine-elite-behaviours` report-only component compiles the four retained native elite policies after their exact shared AS prelude, through the confined SDK author loader. All four original transport hashes regenerate without runtime, legacy, seeds or a warm cache. No activation or removal is admitted until the whole shard product passes.
 
 Nalati’s `nalati-weapon-hooks` report-only component compiles retained `behaviour/weapons.as` with the typed sabre hook declaration, whose parameters come from the existing authored weapon profile. The original module and declaration hashes regenerate without runtime, legacy, generated seeds or a warm cache. No activation or removal is admitted until the whole shard product passes.
+
+### Nine static physics placements (G320)
+
+The complete `nine-physics-placements` component compiles eight ordered
+floor/front/deck/guard rest pieces from retained collider scenes and the
+floor plan. Its 7.4 KB JSON is generated on a cache miss and pinned to
+SHA-256 `044b4d71b4a17d42afbcce23672ac51fb97e2e9ece0c205d31a0fd855fd9606d`; it is never a copied physics snapshot. The native
+physics baker adopts these placements directly, keeping the remaining
+mesh-derived pieces and hooks as an explicitly transitional capture.
+Live guard state, grid cap selection and body ownership stay unchanged.
+This component cannot authorise removal of the complete physics product.

@@ -10,6 +10,7 @@ import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs
 import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 import { ninePhysicsInputs } from '../../../../scripts/nine-physics-inputs.mjs';
 import { installPortableMath } from '../../../../test/fake/portableMath.ts';
+import authoredPlacements from '../data/physicsPlacements.generated.json' with { type: 'json' };
 
 const root = resolve(import.meta.dirname, '../../../..');
 const restoreMath = installPortableMath();
@@ -34,7 +35,12 @@ try {
   await visitAuthoredWorld(manifest, { root, sky, element: environment.element, tier: 'phone', practiceArena: true,
     createTerrain: () => ({ mesh: new THREE.Mesh(new THREE.PlaneGeometry(500, 500).rotateX(-Math.PI / 2)), punch: noop }),
     visit: ({ registry }) => {
+      // G320: these rest placements are compiled from authoring source, not read back from world constructors.
+      const authored = new Map(authoredPlacements.map(row => [row.id, row]));
+      const missing = new Set(authored.keys());
       const pieces = registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
+        const planned = authored.get(piece.id);
+        if (planned !== undefined) { missing.delete(piece.id); return structuredClone(planned); }
         const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file,
           colliders: copy(piece.colliders), active: piece.active?.() ?? true };
         if (piece.surface !== undefined) row.surface = piece.surface;
@@ -45,6 +51,7 @@ try {
         }
         return row;
       });
+      if (missing.size > 0) throw new Error(`Authored Nine placement has no native identity: ${[...missing].join(', ')}`);
       const hooks = copy(ndRuntime().world.ctx.hooks);
       if (pieces.length === 0 || hooks.length === 0 || new Set(pieces.map(piece => piece.id)).size !== pieces.length) {
         throw new Error('Invalid native Nine Node capture');
