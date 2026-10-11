@@ -13,7 +13,7 @@ import { prepareDriftwoodDirector } from './director';
 import finaleStages from '../data/finaleStages.json' with { type: 'json' };
 import { driftwoodSwordProfiles, installDriftwoodSwords } from './swords';
 import { installDriftwoodKills } from './kills';
-import { DRIFTWOOD_FEATS } from '../quest/rows';
+import { DRIFTWOOD_FEATS } from '../data/questInventory';
 import { DRIFTWOOD_INTERACT } from '../quest/interactables';
 import { driftwoodSpots, installDriftwoodQuest } from './quest';
 import { proveDriftwoodEntries } from './entries';

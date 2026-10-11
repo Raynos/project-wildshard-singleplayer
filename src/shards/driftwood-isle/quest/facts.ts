@@ -1,7 +1,7 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { Progress } from '@wildshard/game/Progress';
 import { bindRuntimeLedger, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
-import { DRIFTWOOD_FEATS } from './rows';
+import { DRIFTWOOD_FEATS } from '../data/questInventory';
 import source from '../shard.config';
 
 export interface DriftwoodFacts {

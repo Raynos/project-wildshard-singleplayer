@@ -31,7 +31,7 @@ await import('../src/identity');
 await import('../src/shardList');
 const { registerAchievements } = await import('../src/game/achievements');
 const { PINE_FEATS } = await import('../src/shards/pine-hollow/feats');
-const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('../src/shards/driftwood-isle/quest/rows');
+const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('../src/shards/driftwood-isle/data/questInventory');
 registerAchievements('pine-hollow', PINE_FEATS);
 registerAchievements('driftwood-isle', DRIFTWOOD_FEATS);
 

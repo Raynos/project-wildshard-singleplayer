@@ -1,5 +1,5 @@
 import { parseLedgerRules } from '@wildshard/sdk/ledger';
-import { DRIFTWOOD_FEATS } from '../quest/rows';
+import { DRIFTWOOD_FEATS } from '../data/questInventory';
 
 /** Existing feat identities/titles/counts remain the UI projection; these rows own the profile grants. */
 export const DRIFTWOOD_LEDGER = parseLedgerRules(DRIFTWOOD_FEATS.map(feat => ({

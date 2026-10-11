@@ -7,7 +7,7 @@ import { islandSystems } from '../world/systems';
 import { installDriftwoodAudio } from './audio/install';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import type { Vector3 } from 'three';
-import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../quest/rows';
+import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../data/questInventory';
 import { DRIFTWOOD_EFFECTS } from '../loot/effects';
 import { GOODS } from '../loot/shop';
 import { installDriftwoodAdventure } from '../quest/install';

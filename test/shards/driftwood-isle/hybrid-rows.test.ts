@@ -13,7 +13,7 @@ import manifest, { SHRINE } from '../../../src/shards/driftwood-isle/manifest';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import { DRIFTWOOD_MARKERS } from '../../../src/shards/driftwood-isle/data/quests';
 import { bindDriftwoodFacts } from '../../../src/shards/driftwood-isle/quest/facts';
-import { DRIFTWOOD_FEATS } from '../../../src/shards/driftwood-isle/quest/rows';
+import { DRIFTWOOD_FEATS } from '../../../src/shards/driftwood-isle/data/questInventory';
 import { DRIFTWOOD_QUEST } from '../../../src/shards/driftwood-isle/quest/questLine';
 
 const ledger = (): Ledger => new Ledger(app.saves, [{ id: manifest.slug, shard: manifest.slug }],
@@ -86,7 +86,7 @@ it('continues partial kill counts from the ledger and keeps every original quest
     withOwner(scope, () => {
       progressSave.write({ counts: { crab10: 7, monkey6: 2 }, earned: [], title: null, playS: 0 }, manifest.slug);
       const progress = new Progress(manifest.slug), ctx = { app, scope, manifest };
-      const earned = vi.fn<(def: (typeof DRIFTWOOD_FEATS)[number]) => void>(); progress.onEarned = earned;
+      const earned = vi.fn<NonNullable<Progress['onEarned']>>(); progress.onEarned = earned;
       const first = bindDriftwoodFacts(ctx, progress.rows, progress);
       for (let n = 0; n < 3; n++) first.kill('crab');
       expect(achievement('crab10')).toMatchObject({ count: 10, earned: true });

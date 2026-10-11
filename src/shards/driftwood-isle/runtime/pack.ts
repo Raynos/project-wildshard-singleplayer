@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { DEFAULT_PACK_SLOTS, addInventory, type InventoryState } from '@wildshard/game/inventoryLaw';
-import { DRIFTWOOD_ITEMS } from '../quest/rows';
+import { DRIFTWOOD_ITEMS } from '../data/questInventory';
 
 const positive = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(1), v.maxValue(Number.MAX_SAFE_INTEGER));
 const Saved = v.strictObject({ counts: v.record(v.string(), positive), order: v.pipe(v.array(v.string()), v.maxLength(DEFAULT_PACK_SLOTS)) });
