@@ -3,12 +3,12 @@
   "edges": {
     "commons → sdk": 3,
     "game → engine": 955,
-    "game → format": 30,
+    "game → format": 75,
     "root → engine": 21,
     "root → game": 25,
     "root → sdk": 2,
     "sdk → engine": 42,
-    "sdk → format": 17,
-    "sdk → game": 69
+    "sdk → format": 50,
+    "sdk → game": 60
   }
 }
