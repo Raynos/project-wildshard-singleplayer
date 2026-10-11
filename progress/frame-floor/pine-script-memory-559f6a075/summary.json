@@ -373,5 +373,128 @@
     "2026-10-11T15:53:36.535079Z",
     "2026-10-11T16:00:02.743411Z"
   ],
-  "resources": "Owned previews, browser and Simulator helpers closed before quiet release."
+  "resources": "Owned previews, browser and Simulator helpers closed before quiet release.",
+  "constructorFollowup": {
+    "source": "9c92fa9799da0ada9cd9b452fe3e13730f0e6d7b",
+    "rawSha256": "d279bf2170557f7d14fd6f94c494ee898e1a9ce2b9641feccfb819f87bb4130f",
+    "quietUtc": [
+      "2026-10-11T16:30:47.473351Z",
+      "2026-10-11T16:33:04.640659Z"
+    ],
+    "diagnosticOnly": true,
+    "complete": true,
+    "errors": [],
+    "preparedMemory": [
+      130,
+      6
+    ],
+    "preparedMemoryInLongFrames": 0,
+    "longFrameHooks": [
+      {
+        "hook": "pine-hollow:world",
+        "frames": 4,
+        "maxMs": 94,
+        "totalMs": 285
+      },
+      {
+        "hook": "between hooks",
+        "frames": 3,
+        "maxMs": 75,
+        "totalMs": 205
+      },
+      {
+        "hook": "pine-hollow:afterKit",
+        "frames": 2,
+        "maxMs": 63,
+        "totalMs": 123
+      },
+      {
+        "hook": "pine-hollow:activate",
+        "frames": 1,
+        "maxMs": 95,
+        "totalMs": 95
+      },
+      {
+        "hook": "pine-hollow:play",
+        "frames": 1,
+        "maxMs": 58,
+        "totalMs": 58
+      }
+    ],
+    "shaderLinkInWorldLongFrames": [
+      48,
+      1
+    ],
+    "profileSamples": 4455,
+    "nativeSampleCounts": {
+      "texSubImage2D <= ../../src/src/engine/render/precompile.ts:723 he": 278,
+      "texSubImage2D <= ../../src/src/game/grid/cellScreen.ts:308 p": 188,
+      "Memory <= ../../src/src/engine/script/host.ts:91 ": 86,
+      "texSubImage3D <= ../../src/src/engine/core/assets.ts:193 ": 67
+    },
+    "limitations": "Native constructor and GL call durations are rounded diagnostic wall times. Safari sample timestamps are zero; sample counts are not task milliseconds. No gate credit. Six fresh memories cost 130 ms in total but appear in no >50 ms frame. Residual travel failure remains open.",
+    "unstartedCommandFailure": "Timeline launcher 20261011T114000 failed before resource acquisition: file-URL substitution. No measurements.",
+    "resources": "Owned preview, browser and Simulator closed before quiet release.",
+    "failedTimelineCapture": {
+      "quietUtc": [
+        "2026-10-11T16:52:11.219834Z",
+        "2026-10-11T16:53:57.593105Z"
+      ],
+      "complete": false,
+      "reason": "Missing --devserver Developer catalogue: route selection stopped before Pine; profiler flag was also misspelled. No attribution or gate credit; all helpers closed."
+    },
+    "earlyTravelLongFrames": {
+      "sampleStartMs": 34052,
+      "sampleEndMs": 38268,
+      "frames": [
+        {
+          "offsetMs": 226,
+          "ms": 61
+        },
+        {
+          "offsetMs": 650,
+          "ms": 94
+        },
+        {
+          "offsetMs": 1016,
+          "ms": 62
+        },
+        {
+          "offsetMs": 1233,
+          "ms": 56
+        },
+        {
+          "offsetMs": 1735,
+          "ms": 73
+        },
+        {
+          "offsetMs": 1902,
+          "ms": 63
+        },
+        {
+          "offsetMs": 2916,
+          "ms": 60
+        },
+        {
+          "offsetMs": 3196,
+          "ms": 58
+        }
+      ]
+    },
+    "timelineLimitation": {
+      "quietUtc": [
+        "2026-10-11T17:16:35.482956Z",
+        "2026-10-11T17:18:14.168318Z"
+      ],
+      "complete": false,
+      "error": "Timeline domain already enabled on second pose",
+      "roots": 275,
+      "recordStarts": 2834,
+      "recordEnds": 1981,
+      "uniqueTimestamps": [
+        0
+      ],
+      "note": "Native Timeline record timestamps are also zero: unusable for task durations. Stopped before Pine. No gate credit; no repeat. All resources closed."
+    }
+  }
 }
