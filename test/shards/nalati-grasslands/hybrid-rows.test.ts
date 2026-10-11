@@ -21,7 +21,7 @@ class NativeWeapon extends Weapon {
 }
 
 it('declares the unchanged chapters, feats, native equipment and fixed coffin body while retaining runtime ownership', () => {
-  expect(source.runtime?.binds).toEqual(['quests', 'ledger', 'state', 'items', 'spawns', 'modes']);
+  expect(source.runtime?.binds).toEqual(['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels']);
   expect(source.quests.quests.map(({ onComplete: _reward, ...quest }) => quest)).toEqual(NALATI_QUESTS);
   expect(source.ledger.flatMap((row) => row.rewards.flatMap((reward) => reward.kind === 'achievement' ? [reward.id] : []))).toEqual(NALATI_FEATS.map((feat) => feat.id));
   expect(source.items.rows.map((row) => [row.id, row.family])).toEqual([

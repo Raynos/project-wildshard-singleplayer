@@ -42,6 +42,8 @@ import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/pa
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { BOWL_GLSL } from '../runtime/looks/bowlGlsl';
+import { createClientChannels } from '@wildshard/game/plugin/ui';
+import { NALATI_FAR_HERD_CHANNELS } from '../data/clientMotion';
 
 /** the GLSL below is trusted custom code (runtime/looks/bowlGlsl.ts); `@{name}` splices the fragments this module passes */
 const BOWL_GLSL_FAMILY = new ShaderFamily(BOWL_GLSL, {});
@@ -192,6 +194,9 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
   const group = new THREE.Group();
   group.name = 'nalati-far-herds';
   const rng = new Rng(0x4e4d);
+  const drift = createClientChannels(NALATI_FAR_HERD_CHANNELS[0]), commit = createClientChannels(NALATI_FAR_HERD_CHANNELS[1]);
+  const proposal = { time: 0, delta: 0, values: Array.from({ length: 9 }, () => 0) }, acceptance = { time: 0, delta: 0, values: Array.from({ length: 7 }, () => 0) };
+  const missingPose = new Error('Missing declared decorative horse pose');
   const blocked = (x: number, z: number): boolean =>
     inPoiClearing(x, z, 4) || KURGANS.some((k) => Math.hypot(x - k.x, z - k.z) < k.r + 3) || Math.hypot(x - SUMMER_YURTS.x, z - SUMMER_YURTS.z) < 20;
   interface Horse { x: number; z: number; yaw: number; s: number; speed: number; turn: number; c: number }
@@ -245,13 +250,19 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
       let n = 0;
       for (const h of herd.horses) {
         // drift: amble along the heading, turn a little, turn back toward the herd's centre when straying
-        h.turn += (rng.next() - 0.5) * 0.08 * step;
-        h.turn = Math.max(-0.2, Math.min(0.2, h.turn));
-        const toC = Math.atan2(herd.x - h.x, herd.z - h.z), off = Math.hypot(h.x - herd.x, h.z - herd.z);
-        const dy = off > herd.r * 0.9 ? Math.atan2(Math.sin(toC - h.yaw), Math.cos(toC - h.yaw)) * 0.3 : 0;
-        h.yaw += (h.turn + dy) * step;
-        const nx = h.x + Math.sin(h.yaw) * h.speed * step, nz = h.z + Math.cos(h.yaw) * h.speed * step;
-        if (!blocked(nx, nz)) { h.x = nx; h.z = nz; } else h.yaw += 1.5;
+        proposal.delta = step;
+        proposal.values[0] = h.x; proposal.values[1] = h.z; proposal.values[2] = h.yaw; proposal.values[3] = h.turn; proposal.values[4] = h.speed;
+        proposal.values[5] = herd.x; proposal.values[6] = herd.z; proposal.values[7] = herd.r; proposal.values[8] = rng.next();
+        drift.evaluate(proposal);
+        const proposed = drift.frame;
+        if (proposed.x === undefined || proposed.z === undefined || proposed.yaw === undefined || proposed.turn === undefined) throw missingPose;
+        acceptance.delta = step;
+        acceptance.values[0] = h.x; acceptance.values[1] = h.z; acceptance.values[2] = proposed.yaw; acceptance.values[3] = proposed.x; acceptance.values[4] = proposed.z;
+        acceptance.values[5] = proposed.turn; acceptance.values[6] = Number(blocked(proposed.x, proposed.z));
+        commit.evaluate(acceptance);
+        const frame = commit.frame;
+        if (frame.x === undefined || frame.z === undefined || frame.yaw === undefined || frame.turn === undefined) throw missingPose;
+        h.x = frame.x; h.z = frame.z; h.yaw = frame.yaw; h.turn = frame.turn;
         if (viewer && Math.hypot(h.x - viewer.x, h.z - viewer.z) < HIDE) continue;
         place.x = h.x; place.z = h.z; place.y = ground(h.x, h.z) - 0.04; place.rot = h.yaw; place.scale = h.s;
         m.setMatrixAt(n, placementMatrix(place, mat));

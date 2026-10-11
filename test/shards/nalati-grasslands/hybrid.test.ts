@@ -38,7 +38,7 @@ it.each(['legacy', 'shardfile'])('enters Nalati as %s from SHARD SELECT (SF65), 
       expect(prepare).toHaveBeenCalledTimes(1);
       expect(prepare).toHaveBeenCalledWith(context);
     }
-    expect(source.runtime).toEqual({ entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes'], spawns: NALATI_RUNTIME_SPAWNS });
+    expect(source.runtime).toEqual({ entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels'], spawns: NALATI_RUNTIME_SPAWNS });
   } finally { app.engineScope.dispose(); }
   expect(scope.census.disposers).toBe(0);
 });

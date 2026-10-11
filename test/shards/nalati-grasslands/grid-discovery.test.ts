@@ -23,7 +23,7 @@ it('discovers Nalati grid data without changing its standalone descriptor or tru
     if (product === null) throw new Error('Nalati grid declaration missing');
     expect(fetchSource.mock.calls).toEqual([['http://localhost:5173/shardfiles/nalati-grasslands/shard.json']]);
     expect(product.options.firstParty).toBe(true);
-    expect(product.admitted.source.runtime).toEqual({ entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes'], spawns: NALATI_RUNTIME_SPAWNS });
+    expect(product.admitted.source.runtime).toEqual({ entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels'], spawns: NALATI_RUNTIME_SPAWNS });
     expect(product.admitted.source.edge).toEqual(source.edge);
     expect(regionalRuntimeAccountedBytes(product.admitted, NALATI_GRASSLANDS)).toBe(197_073_318);
     product.release();
