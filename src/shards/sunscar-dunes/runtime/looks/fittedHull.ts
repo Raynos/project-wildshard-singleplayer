@@ -18,7 +18,7 @@ import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 't
 import type { ClipName, SocketName } from '@wildshard/engine/anim/rig';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { bindRigid, fitGeometry, undrawnRig, type ModelFit } from '@wildshard/game/plugin/models';
+import { bindRigid, fitGeometry, undrawnRig, type ModelFit } from '@wildshard/game/plugin/geometry';
 import { clipAnimate, type SpeciesClips } from '@wildshard/game/plugin/animation';
 
 /** One bone of a hull's skeleton (absolute bind space). */

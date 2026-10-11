@@ -6,7 +6,7 @@ import type { MoverRuntime, LiftApproachSource } from "../plugin/mover";
 import { socketLiftEntries, socketLiftRules, type SocketLiftEntry } from './socketLift';
 import { parseSocketLift, type SocketLift } from '@wildshard/format/socketLift';
 import { walkEdgeEntries } from '@wildshard/engine/physics/edgeEntries';
-import { createShardfileSim, type ShardfileSimPorts, type ShardfileSimulation } from './simulation';
+import { createShardfileSim, type ShardfileSimPorts, type ShardfileSimulation } from '../plugin/simulation';
 import type { Shardfile } from './schema';
 
 import { portalLinkEntries } from './portalLink';

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { readProjectAssets } from '../../../src/sdk/project.ts';
 import catalogue from '../../../src/game/grid/singleplayer.json' with { type: 'json' };
-import { createShardfileSim, bindShardfileSim } from '../../../src/game/shardfile/simulation.ts';
+import { createShardfileSim, bindShardfileSim } from '../../../src/game/plugin/simulation.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { restoreSimHost } from '../../../src/engine/sim/snapshot.ts';
 import { GridAssembly } from '../../../src/game/grid/assembly.ts';

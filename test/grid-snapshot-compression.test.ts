@@ -6,7 +6,7 @@ import { installStripCollider } from '../src/engine/physics/stripColliders';
 import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost, SIM_REGION_SNAPSHOT_CHAR_BUDGET } from '../src/engine/sim/snapshot';
 import { generatePlatform } from '../src/engine/sim/strips';
 import { GridAssembly } from '../src/game/grid/assembly';
-import { createShardfileSim, bindShardfileSim } from '../src/game/shardfile/simulation';
+import { createShardfileSim, bindShardfileSim } from '../src/game/plugin/simulation';
 import source from '../src/shards/_template/shard.config';
 import { expectSameSimSnapshot } from './fake/simSnapshot';
 

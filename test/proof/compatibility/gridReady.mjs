@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import template from '../../../src/shards/_template/shard.config.ts';
 import catalogue from '../../../src/game/grid/singleplayer.json' with { type: 'json' };
-import { createShardfileSim } from '../../../src/game/shardfile/simulation.ts';
+import { createShardfileSim } from '../../../src/game/plugin/simulation.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { snapshotSimHost } from '../../../src/engine/sim/snapshot.ts';
 import { installAppIdentity } from '../../../src/engine/app/identity.ts';

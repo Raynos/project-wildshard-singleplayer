@@ -5,7 +5,7 @@ import { compileScript } from '../scripts/compile-script.mjs';
 import { scriptSource } from './script/fixture';
 import { emptyShardfile } from '../src/sdk/author';
 import { contentHash } from '../src/sdk/project';
-import { createShardfileSim, numericScriptEntityId } from '../src/game/shardfile/simulation';
+import { createShardfileSim, numericScriptEntityId } from '../src/game/plugin/simulation';
 import { loadRapier } from '../src/engine/physics/rapier';
 
 it('samples one tick-admitted command map in the existing authoritative factory lane, with zero commands when omitted', async () => {

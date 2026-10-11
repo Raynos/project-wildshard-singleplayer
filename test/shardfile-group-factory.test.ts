@@ -6,7 +6,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { Rng, type RngState } from '../src/engine/core/rng';
 import type { SimHost } from '../src/engine/sim';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
-import { createShardfileSim, bindShardfileSim } from '../src/game/shardfile/simulation';
+import { createShardfileSim, bindShardfileSim } from '../src/game/plugin/simulation';
 import { parseShardfile } from '../src/game/shardfile/schema';
 import { parseGroupBrain } from '@wildshard/format/groupBrains';
 import type { DeclaredGroupPorts } from '../src/game/shardfile/groupRuntime';

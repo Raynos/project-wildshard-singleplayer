@@ -10,7 +10,7 @@ import type { Shardfile } from '../shardfile/schema';
 import { GridWallet } from './wallet';
 import { clientStateFromRegion, restoreClientState } from '../shardfile/clientState';
 import { ClientCheckpointSchema, type ClientCheckpoint } from '@wildshard/format/clientState';
-import type { ShardfileSimulation } from '../shardfile/simulation';
+import type { ShardfileSimulation } from '../plugin/simulation';
 
 const schema = v.nullable(v.strictObject({ revision: v.pipe(v.number(), v.integer(), v.minValue(1)),
   snapshot: v.nullable(v.pipe(v.string(), v.minLength(1), v.maxLength(128 * 1024 * 1024))), logical: v.optional(v.nullable(ClientCheckpointSchema), null),

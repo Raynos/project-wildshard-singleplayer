@@ -7,7 +7,7 @@ import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import { parseFlock } from '@wildshard/format/crowds';
 import { parseShardfile } from '../src/game/shardfile/schema';
 import { emptyShardfileSource } from '../src/game/plugin/loader';
-import { createShardfileSim, bindShardfileSim, type ShardfileSimPorts } from '../src/game/shardfile/simulation';
+import { createShardfileSim, bindShardfileSim, type ShardfileSimPorts } from '../src/game/plugin/simulation';
 import { expectSameSimSnapshot } from './fake/simSnapshot';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;

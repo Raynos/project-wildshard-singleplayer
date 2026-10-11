@@ -6,7 +6,7 @@ import { Vector3 } from 'three';
 import source from '../../../src/shards/_template/shard.config.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { SaveStore } from '../../../src/engine/saves/store.ts';
-import { createShardfileSim, bindShardfileSim } from '../../../src/game/shardfile/simulation.ts';
+import { createShardfileSim, bindShardfileSim } from '../../../src/game/plugin/simulation.ts';
 import { snapshotSimHost, restoreSimHost } from '../../../src/engine/sim/snapshot.ts';
 import { GridRegionDurability } from '../../../src/game/grid/durability.ts';
 import { generatePlatform } from '../../../src/engine/sim/strips.ts';

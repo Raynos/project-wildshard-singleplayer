@@ -1,7 +1,7 @@
 import { Group, Mesh, MeshStandardMaterial, Vector3, type BufferGeometry } from 'three';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { boxDesc } from '@wildshard/engine/world/registry';
-import { fitGeometry, withoutTriangles } from '@wildshard/game/plugin/models';
+import { fitGeometry, withoutTriangles } from '@wildshard/game/plugin/geometry';
 import type { NpcRow } from '@wildshard/game/plugin/quests';
 
 /**

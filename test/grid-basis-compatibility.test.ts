@@ -13,7 +13,7 @@ import { snapshotSimHost, SnapshotBasisMismatchError } from '../src/engine/sim/s
 import { generatePlatform } from '../src/engine/sim/strips';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { GridRegionDurability } from '../src/game/grid/durability';
-import { createShardfileSim } from '../src/game/shardfile/simulation';
+import { createShardfileSim } from '../src/game/plugin/simulation';
 import { ClientCheckpointSchema } from '@wildshard/format/clientState';
 import source from '../src/shards/_template/shard.config';
 import { MemoryStorage } from './setup';

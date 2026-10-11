@@ -8,7 +8,7 @@ import { liftShard } from './fixtures/socket-lift/shard';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { groups } from '../src/engine/physics/groups';
 import { tagOf } from '../src/engine/physics/surface';
-import { createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '../src/game/shardfile/simulation';
+import { createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '../src/game/plugin/simulation';
 import { captureClientState, restoreClientState } from '../src/game/shardfile/clientState';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { captureLiftRider } from '../src/game/shardfile/liftRider';

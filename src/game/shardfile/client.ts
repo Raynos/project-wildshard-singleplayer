@@ -48,7 +48,7 @@ import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
 import { withoutRuntimeRows } from "../plugin/headless";
-import { createShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from './simulation';
+import { createShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../plugin/simulation';
 import { scriptDisabledNotice } from './scriptNotice';
 import type { DeclaredGroupPorts } from './groupRuntime';
 import type { Shardfile } from './schema';

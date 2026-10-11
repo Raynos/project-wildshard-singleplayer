@@ -56,7 +56,7 @@ import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from '
 import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from './roadRecovery';
 import { GridCellWaitingError } from './refusal';
 import { scriptDisabledNotice, type ScriptNoticePorts } from '../shardfile/scriptNotice';
-import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../shardfile/simulation';
+import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../plugin/simulation';
 import { withCopyLayout } from './copyLayout';
 import type { CollisionStrip } from './collisionStrips';
 import { loadNavmesh } from '@wildshard/engine/physics/navmeshLoad';

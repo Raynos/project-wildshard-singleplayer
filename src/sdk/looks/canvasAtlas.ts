@@ -1,4 +1,4 @@
-import { paintCanvas as platformPaintCanvas, paintCanvasAtlas as platformPaintCanvasAtlas, paintSteps as platformPaintSteps, type CanvasAtlasRow as PlatformCanvasAtlasRow, type CanvasCall as PlatformCanvasCall, type CanvasExpr as PlatformCanvasExpr, type CanvasSegment as PlatformCanvasSegment, type CanvasStep as PlatformCanvasStep } from '@wildshard/game/plugin/models';
+import { paintCanvas as platformPaintCanvas, paintCanvasAtlas as platformPaintCanvasAtlas, paintSteps as platformPaintSteps, type CanvasAtlasRow as PlatformCanvasAtlasRow, type CanvasCall as PlatformCanvasCall, type CanvasExpr as PlatformCanvasExpr, type CanvasSegment as PlatformCanvasSegment, type CanvasStep as PlatformCanvasStep } from '@wildshard/game/plugin/geometry';
 
 /** One path segment: move, line or arc (angles in half turns). */
 export type CanvasSegment = PlatformCanvasSegment;

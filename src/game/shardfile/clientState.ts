@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type { ShardfileSimulation } from './simulation';
+import type { ShardfileSimulation } from '../plugin/simulation';
 import type { DeclaredItems } from './items';
 import type { Shardfile } from './schema';
 import { migrateLogicalState } from '@wildshard/format/migrations';

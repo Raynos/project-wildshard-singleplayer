@@ -10,7 +10,7 @@
  */
 import type { Group, Object3D } from 'three';
 import type { ClientTileViews } from '../shardfile/clientViews';
-import type { ShardfileSimulation } from '../shardfile/simulation';
+import type { ShardfileSimulation } from '../plugin/simulation';
 import type { Shardfile } from '../shardfile/schema';
 import type { GridCell } from './assembly';
 

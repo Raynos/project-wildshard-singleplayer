@@ -19,7 +19,7 @@ import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, serializeSimSnapshot } from '../src/engine/sim/snapshot';
 import { EquipmentService } from '../src/engine/combat/EquipmentService';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
-import * as simulation from '../src/game/shardfile/simulation';
+import * as simulation from '../src/game/plugin/simulation';
 import * as products from '../src/game/grid/products';
 import { LiveGridSession } from '../src/game/grid/liveSession';
 import { GridRegionDurability } from '../src/game/grid/durability';

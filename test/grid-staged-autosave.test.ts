@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import { SaveStore } from '../src/engine/saves/store';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, snapshotSimHostBytes, serializeSimSnapshot, serializeSimSnapshotSteps, finishSimSteps } from '../src/engine/sim/snapshot';
-import * as simulation from '../src/game/shardfile/simulation';
+import * as simulation from '../src/game/plugin/simulation';
 import { GridRegionDurability } from '../src/game/grid/durability';
 import source from '../src/shards/_template/shard.config';
 import { MemoryStorage } from './setup';

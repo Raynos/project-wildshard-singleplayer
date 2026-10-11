@@ -6,7 +6,7 @@ import { bakeWorldCollision } from '../src/sdk/bake/worldCollision';
 import type { WorldPrimitive } from '../src/sdk/bake/world';
 import { hashImmutableBytes as hash } from '../src/sdk/immutable';
 import { assetCost } from '../src/game/plugin/product';
-import { createShardfileSim, bindShardfileSim, numericScriptEntityId, type ShardfileSimulation } from '../src/game/shardfile/simulation';
+import { createShardfileSim, bindShardfileSim, numericScriptEntityId, type ShardfileSimulation } from '../src/game/plugin/simulation';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { createSimHost } from '../src/engine/sim';
 import { floorBelow } from '../src/engine/physics/query';

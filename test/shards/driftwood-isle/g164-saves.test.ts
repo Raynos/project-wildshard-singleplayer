@@ -8,7 +8,7 @@ import { beforeAll, expect, it } from 'vitest';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { SaveStore } from '../../../src/engine/saves/store';
 import { instanceSave } from '../../../src/game/instanceSaves';
-import { createShardfileSim } from '../../../src/game/shardfile/simulation';
+import { createShardfileSim } from '../../../src/game/plugin/simulation';
 import { captureClientState, clientStateSave, restoreClientState } from '../../../src/game/shardfile/clientState';
 import type { Shardfile } from '../../../src/game/shardfile/schema';
 import source from '../../../src/shards/driftwood-isle/shard.config';

@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash the canonical local state, not global placement.
 import { createHash } from 'node:crypto';
 import source from '../../../src/shards/_template/shard.config.ts';
-import { createShardfileSim, bindShardfileSim } from '../../../src/game/shardfile/simulation.ts';
+import { createShardfileSim, bindShardfileSim } from '../../../src/game/plugin/simulation.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { createSimHost } from '../../../src/engine/sim.ts';
 import { restoreSimHost } from '../../../src/engine/sim/snapshot.ts';

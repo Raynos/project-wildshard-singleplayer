@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { readProjectAssets } from '../../../src/sdk/project.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
-import { createShardfileSim } from '../../../src/game/shardfile/simulation.ts';
+import { createShardfileSim } from '../../../src/game/plugin/simulation.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));

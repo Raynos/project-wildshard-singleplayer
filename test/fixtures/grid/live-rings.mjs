@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import source from '../../../src/shards/_template/shard.config.ts';
-import { createShardfileSim, bindShardfileSim } from '../../../src/game/shardfile/simulation.ts';
+import { createShardfileSim, bindShardfileSim } from '../../../src/game/plugin/simulation.ts';
 import { createSimHost } from '../../../src/engine/sim.ts';
 import { restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../../../src/engine/sim/snapshot.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';

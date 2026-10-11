@@ -7,7 +7,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { ItemRuntime, scriptItemHook } from '../src/engine/combat/items';
 import { SaveStore } from '../src/engine/saves/store';
 import { instanceSave } from '../src/game/instanceSaves';
-import { createShardfileSim } from '../src/game/shardfile/simulation';
+import { createShardfileSim } from '../src/game/plugin/simulation';
 import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientStateFromRegion } from '../src/game/shardfile/clientState';
 import { projectItemFields } from '../src/game/shardfile/clientItems';
 import { syncTargetColliders } from '../src/game/shardfile/targets';

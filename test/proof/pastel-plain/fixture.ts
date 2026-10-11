@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import source from '../../../src/shards/pastel-plain/shard.config';
-import { createShardfileSim, bindShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../../../src/game/shardfile/simulation';
+import { createShardfileSim, bindShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../../../src/game/plugin/simulation';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';

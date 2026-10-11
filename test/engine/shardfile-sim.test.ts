@@ -4,7 +4,7 @@ import { beforeAll, expect, it } from 'vitest';
 import { loadRapier } from '../../src/engine/physics/rapier';
 import { walkEdgeEntries } from '../../src/engine/physics/edgeEntries';
 import { createSimHost } from '../../src/engine/sim';
-import { createShardfileSim, numericScriptEntityId, bindShardfileSim } from '../../src/game/shardfile/simulation';
+import { createShardfileSim, numericScriptEntityId, bindShardfileSim } from '../../src/game/plugin/simulation';
 import { emptyShardfile } from '../../src/sdk/author';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
 import { groups } from '../../src/engine/physics/groups';

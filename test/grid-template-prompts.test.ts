@@ -11,7 +11,7 @@ import { GridRegionDurability } from '../src/game/grid/durability';
 import { copyPrompts, enteredCopy } from '../src/game/grid/copyPrompts';
 import { enteredRuntime, pickInFrame } from '../src/game/grid/enteredInteract';
 import { minimapOverlay, roadRects } from '../src/game/grid/minimapBlend';
-import { createShardfileSim } from '../src/game/shardfile/simulation';
+import { createShardfileSim } from '../src/game/plugin/simulation';
 import source from '../src/shards/_template/shard.config';
 import { MemoryStorage } from './setup';
 
