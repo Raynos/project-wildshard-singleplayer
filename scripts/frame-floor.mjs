@@ -8,16 +8,16 @@
 // builds the pinned preview in DEVSERVER mode, whose grid holds the DEVSERVER-only cells (op-frame22).
 // Owns a clean, pinned HEAD preview, browser/simulator lanes and their cleanup. Exit 2 = floor misses;
 // exit 3 = incomplete measurement. --regrade=<baseline> reapplies current floor policy without rerendering.
-// Long-frame gate (Jake: 60-120 fps desktop / 30-60 fps Simulator "at all moments"): a whole-drive row
-// (grid-<plan>-drive: the drive plus every build still running after it) also FAILS when any one frame is over
-// 100 ms on desktop or 200 ms on the Simulator, so a freeze that p95 never sees cannot pass.
+// Long-frame gate (Jake: 60-120 fps desktop / 30-60 fps Simulator "at all moments"): every row FAILS
+// when a frame exceeds 100 ms desktop / 200 ms Simulator. Whole drives include every build still running
+// after arrival, so a freeze that p95 never sees cannot pass.
 // Results: progress/frame-floor/<measured-short-sha>.json.
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
-import { selectFloorGridPlans, gridFloorPlans, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
+import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 import { GL_INIT } from './parity/glbytes.mjs';
 import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
 import { startScriptProfile } from './frame-floor-script-profile.mjs';
@@ -393,8 +393,15 @@ async function measureShard(driver, shard, deadline) {
     if (shard === 'grid' && gridScenario !== 'baseline') {
       // Standing camera probes did not cross: reset only the initial source pose, then use real input at every seam.
       const state = await driver.evaluate('window.__wildshard.shard.grid.state()');
-      for (const plan of selectFloorGridPlans(publicGrid ? publicGridPlans(state) : gridFloorPlans(state, gridScenario, { cell: gridCell, roadApproach, entrySocket, ...(risingIslet === '' ? {} : { risingIslet }) }), gridRoutes)) {
+      for (let plan of selectFloorGridPlans(publicGrid ? publicGridPlans(state) : gridFloorPlans(state, gridScenario, { cell: gridCell, roadApproach, entrySocket, ...(risingIslet === '' ? {} : { risingIslet }) }), gridRoutes)) {
         if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
+        if (gridScenario === 'milestone' && plan.from === null) {
+          const cell = state.cells.find(row => row.instance === plan.to);
+          if (!cell) throw new Error('Floor entry cell missing');
+          const path = `/shardfiles/${encodeURIComponent(cell.slug)}/shard.json`;
+          const entries = await driver.evaluate(`(async () => { const response = await fetch(${JSON.stringify(path)}); if (!response.ok) throw new Error('Floor entry declaration unavailable'); return (await response.json()).entryways; })()`);
+          plan = floorGridPortalPlan(plan, cell, entries);
+        }
         // Camera probes can leave the owned shell on the road. Finish source admission before measuring motion.
         await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)},(${driveFloorGrid.toString()}))`, 130000);
         const profileStart = driver.profile ? await driver.profile.start() : null;

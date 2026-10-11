@@ -1,5 +1,23 @@
 import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 
+/** Follow a declared portal's actual landing instead of steering back towards the old flat entry waypoint. */
+export function floorGridPortalPlan(plan, cell, entryways) {
+  if (plan.from !== null || plan.start === undefined || !Array.isArray(entryways)) return plan;
+  const origin = { x: cell.cell[0] * 555, z: cell.cell[1] * 555 };
+  const dx = plan.start.x - origin.x, dz = plan.start.z - origin.z;
+  const edge = Math.abs(dz) >= Math.abs(dx) ? (dz >= 0 ? 'north' : 'south') : (dx >= 0 ? 'east' : 'west');
+  const row = entryways.find(value => value?.kind === 'portalLink' && value.edge === edge);
+  if (row === undefined) return plan;
+  const node = value => {
+    if (typeof value?.id !== 'string' || value.id.length === 0 || !Array.isArray(value.at) || value.at.length !== 3
+      || !value.at.every(Number.isFinite)) throw new Error('Invalid declared floor portal node');
+    return { id: value.id, x: origin.x + value.at[0], y: value.at[1], z: origin.z + value.at[2] };
+  };
+  const road = node(row.portal?.road), destination = node(row.portal?.destination);
+  if (!Array.isArray(row.portal?.links) || !row.portal.links.some(link => link.from === road.id && link.to === destination.id)) throw new Error('Missing declared floor portal link');
+  return { ...plan, waypoints: [road, destination], portal: { road, destination } };
+}
+
 /** Actual-frame floor routes; only the first home pose is seeded, every seam afterwards is driven by held input. */
 export function gridFloorPlans(state, scenario, options = {}) {
   const home = state.cells.find(cell => cell.instance === state.home);
@@ -243,6 +261,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
   // The entered runtime exposes the same authored board/ride/bridge row the shipping world uses.
   // Only normal USE and held walking input run it; the harness never commands or places the mover.
   let waypoints = plan.waypoints, lift = null, liftRuntime = null, liftEntry = null, liftOrigin = null;
+  const portal = plan.portal === undefined ? null : { roadSeen: false, landed: false };
   if (plan.authoredLift !== undefined) {
     liftRuntime = api.shard[plan.authoredLift.probe];
     liftEntry = liftRuntime?.islets?.find(row => row.edge === plan.authoredLift.edge);
@@ -276,6 +295,11 @@ export async function driveFloorGrid(plan, documentOrigin) {
       stop = world.game.watchFrames(() => {
         try {
           const state = read(), active = state.live.live, feet = active.worldFeet, now = performance.now(), seconds = (now - started) / 1000;
+          if (portal !== null) {
+            const near = node => Math.hypot(feet.x - node.x, feet.z - node.z) < 1.5 && Math.abs(feet.y - node.y) < 0.5;
+            if (near(plan.portal.road)) portal.roadSeen = true;
+            if (portal.roadSeen && near(plan.portal.destination) && player.onGround && active.current === plan.to && active.gameplayReady) portal.landed = true;
+          }
           if (arrival !== undefined && destination !== undefined) {
             const ready = active.residents.includes(plan.to) && !(active.pending ?? []).includes(plan.to);
             const edgeDistance = Math.hypot(Math.max(0, Math.abs(feet.x - destination.cell[0] * 555) - 250),
@@ -313,6 +337,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
           if (!target) {
             input.clear();
             if (active.current === plan.to && state.inside === plan.to && active.gameplayReady) {
+              if (portal !== null && !portal.landed) return;
               if (lift !== null) {
                 lift.onIsland = player.onGround === true && Math.abs(feet.y - liftEntry.isle.y) < 0.5;
                 if (!lift.onIsland) throw new Error('Rising-islet route ended off the authored island ground');
@@ -337,7 +362,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
     });
     window.__frameFloorGridStop = { leg: plan.name, phase: 'destination-standing', waypoint: waypoints.length, target: null };
     return { plan, before, after: read(), trace, elapsedSeconds: (performance.now() - started) / 1000,
-      ...(arrival === undefined ? {} : { arrival }), ...(lift === null ? {} : { lift }) };
+      ...(arrival === undefined ? {} : { arrival }), ...(lift === null ? {} : { lift }), ...(portal === null ? {} : { portal }) };
   } finally { input.clear(); player.hoverSpeedLimit = oldLimit; player.setHover(oldHover); }
 }
 
@@ -357,6 +382,7 @@ export function gridFloorWitnessFailures(result) {
   if (count !== expected.length || JSON.stringify(transitions) !== JSON.stringify(expected)) failures.push('Expected source/road/destination frame commits');
   if (active.current !== plan.to || after.inside !== plan.to || !active.gameplayReady) failures.push('Destination interior gameplay is not ready');
   if (plan.requiredResidents.some(id => !active.residents.includes(id))) failures.push('Required runtime residents are missing');
+  if (plan.portal !== undefined && (result.portal?.roadSeen !== true || result.portal.landed !== true)) failures.push('Declared portal road and landing were not traversed');
   if ((plan.retiredResidents ?? []).some(id => {
     if (active.residents.includes(id)) return true;
     if (after.claims === undefined) return true;
