@@ -296,7 +296,7 @@ it('enters any named cell from the road at its home-side edge with one road seed
   ]);
   expect(gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'nalati-grasslands' })[0]).toMatchObject({ start: { x: 277.5, z: 0 }, waypoints: [{ x: 345, z: 0 }] });
   expect(() => gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'corner-shard' })).toThrow('--devserver');
-  expect(() => gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'driftwood-isle' })).toThrow('non-home');
+  expect(() => gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'driftwood-isle' })).toThrow('cold road return');
   expect(gridFloorPlans({ home: 'home', cells: [...cells, corner] }, 'all')).toEqual(gridFloorPlans({ home: 'home', cells }, 'all'));
 });
 
@@ -464,4 +464,14 @@ it.each([false, true])('presses USE, rides and walks the bridge with a deferred 
     expect(gridFloorWitnessFailures({ ...result, lift: { edge: 'north', isle: 'actual-island', usePresses: 1, docked: false,
       onIsland: true, rideSamples: 1, maximumDeckGap: 0 } })).toContain('Authored lift was not boarded, ridden and walked onto the island');
   } finally { restoreGlobals(); }
+});
+
+
+it('measures the home cold return only after real template travel retires its runtime', () => {
+  const [out, back] = gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'driftwood-isle', roadApproach: true });
+  expect(out).toMatchObject({ from: 'home', to: 'template-1', movement: 'road-hover', hoverMaxSpeed: 30, retiredResidents: ['home'] });
+  expect(back).toMatchObject({ name: 'driftwood-isle-road-entry', from: 'template-1', to: 'home', movement: 'road-hover',
+    hoverMaxSpeed: 30, observePreparation: true, finishOnArrival: false });
+  expect(back?.start).toBeUndefined();
+  expect(() => gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'home' })).toThrow('cold road return');
 });

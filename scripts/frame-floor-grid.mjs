@@ -50,7 +50,16 @@ export function gridFloorPlans(state, scenario, options = {}) {
     // cell from its home-side midpoint), one road seed, then held input into its interior
     const target = state.cells.find(cell => cell.instance === options.cell) ?? state.cells.find(cell => cell.slug === options.cell);
     if (!target) throw new Error(`Grid floor has no ${String(options.cell)} cell (a DEVSERVER-only cell needs --devserver)`);
-    if (target.instance === home.instance) throw new Error('Grid floor cell scenario needs a non-home cell');
+    if (target.instance === home.instance) {
+      if (options.roadApproach !== true) throw new Error('Grid floor home cell needs a cold road return');
+      const [out, back] = gridFloorPlans(state, 'template');
+      if (out === undefined || back === undefined) throw new Error('Grid floor home return requires a template');
+      // Retire the owned home through actual travel before measuring its return. Reusing the boot
+      // resident would hide preparation; this leg has no second pose seed or warm home allocation.
+      return [{ ...out, movement: 'road-hover', hoverMaxSpeed: 30, retiredResidents: [home.instance] },
+        { ...back, name: `${home.slug}-road-entry`, movement: 'road-hover', hoverMaxSpeed: 30,
+          observePreparation: true, finishOnArrival: false }];
+    }
     const t = origin(target), dx = options.risingIslet === 'west' ? -1 : options.risingIslet === 'east' ? 1 : options.risingIslet ? 0 : Math.sign(h.x - t.x),
       dz = options.risingIslet === 'north' ? 1 : options.risingIslet === 'south' ? -1 : options.risingIslet ? 0 : Math.sign(h.z - t.z);
     const road = dz !== 0 ? { x: t.x, z: t.z + dz * 277.5 } : { x: t.x + dx * 277.5, z: t.z };
