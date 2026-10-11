@@ -164,3 +164,5 @@ Nalati’s `nalati-raid-director` job compiles its retained typed AssemblyScript
 Nine’s `nine-fronts` job builds its ten solid fronts from the retained three.js-shaped author scene. The exact scene reader, JSON writer and confined loader closure is keyed without runtime, legacy or seeds. Cold, forced and official clean-room output comparison proves the complete component; it does not admit whole-product removal.
 
 Nine’s `nine-floor-boxes` job builds its ordered floorBoxes colliders from the retained three.js-shaped author scene. The exact scene reader, JSON writer and confined loader closure is keyed without runtime, legacy or seeds. Cold, forced and official clean-room output comparison proves the complete component; it does not admit whole-product removal.
+
+Nine’s `nine-portal-floors` job builds its ordered portalFloors colliders from the retained three.js-shaped author scene. The exact scene reader, JSON writer and confined loader closure is keyed without runtime, legacy or seeds. Cold, forced and official clean-room output comparison proves the complete component; it does not admit whole-product removal.
