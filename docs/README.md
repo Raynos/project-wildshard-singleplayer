@@ -15,8 +15,9 @@ What each file and folder here is. The rules for agents are in [AGENTS.md](../AG
 - [CONTENT-CACHE.md](CONTENT-CACHE.md): immutable, hash-addressed content on disk
 - [STATIC-WORLD-MATERIALS.md](STATIC-WORLD-MATERIALS.md): static world materials and atlas packing for baked tiles
 
-## Running and measuring
+## Working here
 
+- [SUBAGENT-BRIEF.md](SUBAGENT-BRIEF.md): the short version of AGENTS.md for a subagent
 - [RUNNING.md](RUNNING.md): run it locally: setup, tests, debug URL parameters, capture scripts, the production URL
 - [BENCH.md](BENCH.md): the load bench (`pnpm bench`)
 - [ios-memory-watchdog.md](ios-memory-watchdog.md): the iOS Simulator native-memory watchdog (E261)
@@ -28,7 +29,6 @@ What each file and folder here is. The rules for agents are in [AGENTS.md](../AG
 - Session stories as PDFs: [Driftwood Isle](Driftwood-Isle-blow-by-blow.pdf),
   [Nalati Grasslands](Nalati-Grasslands-blow-by-blow.pdf), [Nine Dragon Stack](Nine-Dragon-Stack-blow-by-blow.pdf),
   [Pine Hollow Remaster](Pine-Hollow-Remaster-blow-by-blow.pdf)
-- [SUBAGENT-BRIEF.md](SUBAGENT-BRIEF.md): the engineering brief for feature subagents
 - [MOVED.md](MOVED.md): E357's moved-paths record; later moves (SF54, E434) aren't in it
 
 ## Folders
