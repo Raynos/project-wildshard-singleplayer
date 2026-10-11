@@ -1,4 +1,6 @@
 // @vitest-environment happy-dom
+import { parseAudioData } from '@wildshard/format/audio';
+import source from '../../../src/shards/pine-hollow/shard.config';
 import { expect, it, vi } from 'vitest';
 import { PerspectiveCamera } from 'three';
 import type { Game } from '../../../src/engine/core/Game';
@@ -66,16 +68,21 @@ function graph() {
   return { audio, gains, sources, sample, disconnected, stops };
 }
 
-it('drops actual beds, reverb sends and timers on both exits and refuses a late bed decode from the departed entry', async () => {
+it.each([false, true])('retires native beds and timers through emitted zones and refuses late decode (emitted=%s)', async (emitted) => {
   vi.useFakeTimers();
   const app = new App(), scope = app.engineScope.child('pine.ambience');
   const manifest = emptyShardfileSource(emptyShardfile({ slug: 'fixture', name: 'Fixture', author: 'Fixture', seed: 1, revision: 1 }));
   const installation = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
   const hooks = new RetainedRuntimeHooks(shardContext(installation.context, manifest, { shard: manifest, rows: new Map(),
     bag: { tab: () => () => undefined, fragment: () => () => undefined } }));
+  const wire = JSON.stringify(source.audio), rows = parseAudioData(JSON.parse(wire));
+  const zone = rows.zones?.zones[0];
+  if (zone === undefined) throw new Error('Missing emitted Pine zone');
+  if (emitted) { zone.x += 1; Object.defineProperty(hooks.context.game, 'declaredAudio', { value: rows }); }
   const g = graph(), musicAudio = withOwner(scope, () => new Audio()), music = withOwner(scope, () => new Music(musicAudio));
   const camera = new PerspectiveCamera(); camera.position.set(0, 2, 0); camera.updateMatrixWorld();
   const amb = new ForestAmbience(g.audio, { heightAt: () => 0, scope });
+  const addSpot = vi.spyOn(amb, 'addSpot');
   const doors = new Set<Parameters<NonNullable<PineAudioHost['cabins']>['onDoor']>[0]>();
   const previous = Object.getOwnPropertyDescriptor(window, '__pineAudio');
   const diagnostic = { borrowed: true }; Object.defineProperty(window, '__pineAudio', { configurable: true, value: diagnostic, writable: true });
@@ -89,6 +96,8 @@ it('drops actual beds, reverb sends and timers on both exits and refuses a late 
       animals: legacyDouble<AnimalManager>({ animals: [] }), music, ambience: amb, params: new URLSearchParams(),
       eliteEngaged: () => false, cabins: { interactables: [], wheelSpeed: 0, onDoor: (fn) => { doors.add(fn); return () => { doors.delete(fn); }; } },
     });
+    expect(addSpot.mock.calls[0]?.[0].x).toBe(zone.x);
+    expect(addSpot).toHaveBeenCalledTimes(54);
     amb.update(0.2, camera); expect(decode).toHaveBeenCalled(); expect(scope.census.timers).toBe(1);
     expect(g.gains.some((node) => node.gain.value > 0)).toBe(true);
     hooks.deactivate(); expect(doors.size).toBe(0); expect(app.systemIds(scope)).toEqual([]);

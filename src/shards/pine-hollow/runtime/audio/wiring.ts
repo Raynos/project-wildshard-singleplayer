@@ -1,3 +1,5 @@
+import { runtimeAudio } from '@wildshard/game/plugin/audio';
+import type { AudioZones } from '@wildshard/format/audioProfiles';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { pineScore, pineScorePick } from './score';
@@ -48,8 +50,8 @@ const NIGHT_ON = 0.55, NIGHT_OFF = 0.35;
 const SNORT_R = 70, SNORT_GAP = 3;
 
 /** The shardfile's exact baked zone rows; only a live mill-wheel query remains a trusted runtime port. */
-export function pineZoneSpots(wheel: () => number): ZoneSpot[] {
-  return requireAudioProfile(source.audio.zones, 'ambience.pine').zones.map((row) => {
+export function pineZoneSpots(wheel: () => number, profile: AudioZones = requireAudioProfile(source.audio.zones, 'ambience.pine')): ZoneSpot[] {
+  return profile.zones.map((row) => {
     const zone = row.source === 'mill.wheel' ? 'mill' : row.source;
     if (zone !== 'creek' && zone !== 'waterfall' && zone !== 'mill' && zone !== 'ridge' && zone !== 'oldgrowth' && zone !== 'cave') throw new Error(`Unknown forest audio zone: ${row.id}`);
     const spot: ZoneSpot = { zone, x: row.x, z: row.z, r: row.inner, fade: row.fade ?? row.outer - row.inner };
@@ -61,7 +63,8 @@ export function pineZoneSpots(wheel: () => number): ZoneSpot[] {
 
 export function installPineAudio(h: PineAudioHost): void {
   const { game, sky, music, ambience: amb, animals } = h;
-  const spots = pineZoneSpots(() => h.cabins?.wheelSpeed ?? 0);
+  const rows = h.context === undefined ? source.audio : runtimeAudio(h.context, source.audio);
+  const spots = pineZoneSpots(() => h.cabins?.wheelSpeed ?? 0, requireAudioProfile(rows.zones, 'ambience.pine'));
   for (const s of spots) amb.addSpot(s);
 
   // ── doors: every cabin / hamlet door (their prompts flip "Open door" ↔ "Close door") ──

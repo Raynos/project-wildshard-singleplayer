@@ -19,7 +19,7 @@ import * as valibot from 'valibot';
 import * as THREE from 'three';
 
 
-import { sharedWeaponVoices } from '@wildshard/game/systems/audio/weaponVoices';
+import { runtimeAudio, sharedWeaponVoices } from '@wildshard/game/plugin/audio';
 import type { Bow } from '@wildshard/game/weapons/Bow';
 import { PLAIN_BOLT, type BoltMod } from '../runtime/items/boltCrossbow';
 import { MAX_BOLTS, type CrossbowWeapon } from '../runtime/weapons/crossbow/Crossbow';
@@ -86,8 +86,6 @@ export interface PineLoadout {
   update: (dt: number) => void;
 }
 
-const echo = requireAudioProfile(source.audio.routing.flatMap((route) => route.actions).find((action) => action.voice === 'pine.leverEcho'), 'pine.leverEcho');
-const ECHO_DELAY = echo.delay ?? 0, ECHO_GAIN = requireAudioProfile(echo.overrides?.gain, 'pine.leverEcho.gain');
 /** the bolt dress per kind: a uniform-only tint of the iron bolt's material (no program) */
 const TINT: Readonly<Record<Exclude<BoltKind, 'iron'>, { color: number; roughness: number }>> = {
   pitch: { color: 0x9a6a36, roughness: 0.55 },     // resin-dark, a warm sheen
@@ -113,6 +111,9 @@ export function restoreKept(inventory: Pick<Inventory, 'had'>, owned: Pick<Owned
 
 export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const { weapons, crossbow, rifle, longbow, hud, audio, inventory, owned, params } = h;
+  const rows = h.context === undefined ? source.audio : runtimeAudio(h.context, source.audio);
+  const echo = requireAudioProfile(rows.routing.flatMap((route) => route.actions).find((action) => action.voice === 'pine.leverEcho'), 'pine.leverEcho');
+  const echoDelay = echo.delay ?? 0, echoGain = requireAudioProfile(echo.overrides?.gain, 'pine.leverEcho.gain');
   const state = bindRuntimeState(h.context ?? { app, scope: h.scope }, source, 'pine.loadout', () => JSON.stringify(savedSlot.read('pine-hollow')));
   let saved: valibot.InferOutput<typeof savedSchema> = {};
   try { saved = valibot.parse(savedSchema, JSON.parse(String(state.read())) as unknown); } catch { /* defaults */ }
@@ -196,8 +197,8 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
     const cues = h.cues;
     cues.use(pineCombatCues({
       shot: (name, opts) => sfx?.shot(name, opts) ?? false, stony,
-      later: (fn, seconds) => { scope.timeout(seconds * 1000, fn); }, echoDelay: ECHO_DELAY, echoGain: ECHO_GAIN,
-    }), scope);
+      later: (fn, seconds) => { scope.timeout(seconds * 1000, fn); }, echoDelay, echoGain,
+    }, rows.routing), scope);
     const events = weapons.events;
     events?.on('weapon.action', ({ id, phase }) => {
       if (id === rifle.row.id && phase === 'cycle') cues.cue('cue.lever.cycle');

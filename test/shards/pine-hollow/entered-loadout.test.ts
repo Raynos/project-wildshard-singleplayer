@@ -1,5 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
+import { parseAudioData } from '@wildshard/format/audio';
+import source from '../../../src/shards/pine-hollow/shard.config';
 import { Scene } from 'three';
 import { app } from '../../../src/engine/app/runtime';
 import type { Audio } from '../../../src/engine/audio/Audio';
@@ -22,15 +24,25 @@ import { LEVER, LONGBOW } from '../../../src/shards/pine-hollow/weapons/equipmen
 import type { LeverRifleWeapon } from '../../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { legacyDouble } from '../../fake/FakeGame';
 
-it('reinstalls real bolt input and weapon cues exactly once per entry and cancels the pending echo on leave', () => {
+it.each([false, true])('reinstalls bolt input and emitted cues and cancels the echo on leave (emitted=%s)', (emitted) => {
   vi.useFakeTimers();
   const scope = app.engineScope.child('pine.loadout'), before = app.events.census();
   const manifest = emptyShardfileSource(emptyShardfile({ slug: 'fixture', name: 'Fixture', author: 'Fixture', seed: 1, revision: 1 }));
   const installation = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
   const hooks = new RetainedRuntimeHooks(shardContext(installation.context, manifest, { shard: manifest, rows: new Map(),
     bag: { tab: () => () => undefined, fragment: () => () => undefined } }));
+  if (emitted) {
+    const wire = JSON.stringify(source.audio), rows = parseAudioData(JSON.parse(wire));
+    const fire = rows.routing.find(row => row.id === 'cue.lever.fire')?.actions[0];
+    if (fire === undefined) throw new Error('Missing emitted lever fire');
+    fire.voice = 'pine.leverDry';
+    const echo = rows.routing.flatMap(row => row.actions).find(action => action.voice === 'pine.leverEcho');
+    if (echo === undefined) throw new Error('Missing emitted lever echo');
+    echo.delay = 0.12; echo.overrides = { gain: 0.37 };
+    Object.defineProperty(hooks.context.game, 'declaredAudio', { value: rows });
+  }
   let cycles = 0, recovered = 0;
-  const shots: string[] = [];
+  const shots: string[] = [], echoes: number[] = [];
   const current = legacyDouble<Weapon>({ enabled: true, ammoSelect: () => { cycles++; } });
   const weapons = legacyDouble<EquipmentService>({ enabled: true, current, events: app.events });
   const rifle = legacyDouble<LeverRifleWeapon>({ row: LEVER, state: legacyDouble<LeverRifleWeapon['state']>({ reserve: 3 }) });
@@ -42,7 +54,7 @@ it('reinstalls real bolt input and weapon cues exactly once per entry and cancel
       inventory: legacyDouble<Inventory>({ had: () => false }), owned: legacyDouble<Owned>({ has: () => false }),
       hud: legacyDouble<HUD>({ toast: () => { recovered++; } }),
     });
-    loadout.useSfx(legacyDouble<PineHollowSfx>({ shot: (name) => { shots.push(name); return true; }, prewarm: () => undefined }));
+    loadout.useSfx(legacyDouble<PineHollowSfx>({ shot: (name, opts) => { shots.push(name); if (name === 'leverEcho') echoes.push(opts?.gain ?? 1); return true; }, prewarm: () => undefined }));
     const press = () => { app.input.executeCommand({ kind: 'press', action: 'bolt.cycle', at: 1 }); };
     const cycle = () => { app.events.emit('weapon.action', { id: LEVER.id, phase: 'cycle' }); app.events.flush('update'); };
     const recover = () => { app.events.emit('weapon.charge', { id: LONGBOW.id, phase: 'recover', value: 1 }); app.events.flush('update'); };
@@ -53,6 +65,12 @@ it('reinstalls real bolt input and weapon cues exactly once per entry and cancel
       expect(cycles).toBe(entry + 1); expect(recovered).toBe(entry + 1);
       expect(shots.filter((name) => name === 'leverCycle')).toHaveLength(entry + 1);
       expect(cues.cue('cue.lever.fire')).toBe(true);
+      expect(shots.at(-1)).toBe(emitted ? 'leverDry' : 'leverShot');
+      if (emitted) {
+        vi.advanceTimersByTime(119); expect(echoes).toHaveLength(entry);
+        vi.advanceTimersByTime(1); expect(echoes).toEqual(Array.from({ length: entry + 1 }, () => 0.37));
+        expect(cues.cue('cue.lever.fire')).toBe(true);
+      }
       hooks.deactivate();
       expect(app.input.snapshot().contexts).not.toContain('crossbow.bolts');
       expect(app.events.census()).toEqual(before);
@@ -60,7 +78,7 @@ it('reinstalls real bolt input and weapon cues exactly once per entry and cancel
       vi.advanceTimersByTime(5000); press(); cycle(); recover();
       expect(cues.cue('cue.lever.fire')).toBe(false);
       expect(cycles).toBe(entry + 1); expect(recovered).toBe(entry + 1); expect(shots).toHaveLength(frozen);
-      expect(shots).not.toContain('leverEcho');
+      if (emitted) expect(echoes).toHaveLength(entry + 1); else expect(shots).not.toContain('leverEcho');
     }
   } finally { scope.dispose(); vi.useRealTimers(); }
   expect(scope.census).toMatchObject({ listeners: 0, timers: 0, disposers: 0 });

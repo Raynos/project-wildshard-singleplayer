@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Native oracle hashes the old router's actual sound/scheduler argument stream.
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
+import { parseAudioData } from '@wildshard/format/audio';
 import { Vector3 } from 'three';
 import type { CombatCueOpts } from '../../../src/engine/combat/cues';
 import { pineCombatCues } from '../../../src/shards/pine-hollow/runtime/audio/combatCues';
@@ -8,7 +9,8 @@ import source from '../../../src/shards/pine-hollow/shard.config';
 import { pineZoneSpots } from '../../../src/shards/pine-hollow/runtime/audio/wiring';
 
 // Captured from the pre-conversion router at 093bb2f47; no rebaseline when the implementation changes.
-it('preserves recipe options, false primary fallback, silent reload and echo scheduling across 1,728 dispatches', () => {
+it.each([false, true])('preserves recipe options, false primary fallback, silent reload and echo scheduling across 1,728 dispatches (emitted=%s)', (emitted) => {
+  const wire = JSON.stringify(source.audio), rows = parseAudioData(JSON.parse(wire));
   const digest = createHash('sha256'); let dispatches = 0;
   const ids = [...source.audio.routing.map((row) => row.id), 'cue.unknown'].filter((id): id is `cue.${string}` => id.startsWith('cue.'));
   for (const loaded of [false, true]) for (const stony of [false, true]) for (const surface of [undefined, 'ground', 'wood', 'flesh'])
@@ -16,7 +18,7 @@ it('preserves recipe options, false primary fallback, silent reload and echo sch
       const ports = { shot: (name: string, opts?: { gain?: number; at?: Vector3 }): boolean => { digest.update(JSON.stringify(['shot', name, opts])); return loaded; },
         stony: (at: Vector3): boolean => { digest.update(JSON.stringify(['stony', at])); return stony; },
         later: (run: () => void, seconds: number): void => { digest.update(JSON.stringify(['later', seconds])); run(); }, echoDelay, echoGain: 0.55 };
-      const cue = pineCombatCues(ports), opts: CombatCueOpts = {};
+      const cue = pineCombatCues(ports, emitted ? rows.routing : undefined), opts: CombatCueOpts = {};
       if (surface !== undefined) opts.surface = surface; if (point !== undefined) opts.point = point; if (gain !== undefined) opts.gain = gain;
       for (const id of ids) { digest.update(JSON.stringify([id, opts, cue(id, opts)])); dispatches++; }
     }
@@ -25,8 +27,9 @@ it('preserves recipe options, false primary fallback, silent reload and echo sch
 });
 
 // Captured from the same pre-conversion layout bake; this covers positions and exact fade widths.
-it('preserves every baked ambience zone and the moving wheel gain', () => {
-  const rows = pineZoneSpots(() => 1).map((spot) => {
+it.each([false, true])('preserves every baked ambience zone and the moving wheel gain (emitted=%s)', (emitted) => {
+  const wire = JSON.stringify(source.audio), profile = parseAudioData(JSON.parse(wire));
+  const rows = pineZoneSpots(() => 1, emitted ? profile.zones : undefined).map((spot) => {
     const row: { zone: string; x: number; z: number; r: number; fade: number | undefined; open?: boolean; gain?: number } = { zone: spot.zone, x: spot.x, z: spot.z, r: spot.r, fade: spot.fade };
     if (spot.open !== undefined) row.open = spot.open;
     if (spot.gain !== undefined) row.gain = spot.gain();
