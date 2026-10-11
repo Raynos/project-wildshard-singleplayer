@@ -1,3 +1,4 @@
+import { standaloneEntry as driftwoodEntry } from '../src/shards/driftwood-isle/runtime/standalone';
 import { standaloneEntry as signalEntry } from '../src/shards/sunscar-dunes/runtime/standalone';
 import { describe, expect, it, vi } from 'vitest';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -8,7 +9,7 @@ import { legacyDouble } from './fake/FakeGame';
 
 const ctx = legacyDouble<ShardContext>({});
 
-describe.each([['Nine Dragon', nineEntry], ['Sky Reach', skyEntry], ['Signal Dunes', signalEntry]] as const)('%s shared standalone entry', (name, factory) => {
+describe.each([['Nine Dragon', nineEntry], ['Sky Reach', skyEntry], ['Signal Dunes', signalEntry], ['Driftwood', driftwoodEntry]] as const)('%s shared standalone entry', (name, factory) => {
   it.each([false, true])('keeps one owner through world/kit/play and two fresh entries (SHARDFILE=%s)', async (shardfile) => {
     const events: string[] = [];
     let built = 0;
