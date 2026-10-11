@@ -1,5 +1,5 @@
 import { parseQuestData } from '@wildshard/sdk/quests';
-import { NALATI_QUESTS, NALATI_QUEST_EXTERNAL } from '../quest';
+import { NALATI_QUESTS, NALATI_QUEST_EXTERNAL } from './questStory';
 
 function declaredQuest(quest: (typeof NALATI_QUESTS)[number]) {
   return { ...quest, onComplete: { fact: `nalati.quest.${quest.id}` } };

@@ -14,7 +14,7 @@ import { NALATI_FEATS } from './data/feats';
 import type { FindsView } from '@wildshard/game/bag/bag';
 import type { IconId } from '@wildshard/engine/ui/icons';
 import type { SkinRow } from '@wildshard/engine/ui/Menu';
-import { NALATI_PLACES } from './quest';
+import { NALATI_PLACES } from './data/questStory';
 import { NALATI_SKINS, type NalatiSkinEntry } from './weapons/nalatiSkins';
 import { NALATI_ELITE_DEFS as ELITE_DEFS } from './combat/eliteRoster';
 

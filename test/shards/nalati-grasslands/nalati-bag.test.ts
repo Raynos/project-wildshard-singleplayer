@@ -8,7 +8,7 @@ import { ITEMS } from '../../../src/game/bag/itemCatalog';
 import { NALATI_SKINS, NalatiSkinLocker } from '../../../src/shards/nalati-grasslands/weapons/nalatiSkins';
 import { NALATI_ELITE_DEFS as ELITE_DEFS } from '../../../src/shards/nalati-grasslands/combat/eliteRoster';
 import { FINDS_ELITES, elitePrize, nalatiFinds, skinRows, skinSource } from '../../../src/shards/nalati-grasslands/bag';
-import { NALATI_PLACES } from '../../../src/shards/nalati-grasslands/quest';
+import { NALATI_PLACES } from '../../../src/shards/nalati-grasslands/data/questStory';
 
 const NALATI = 'chunk://local/nalati-grasslands';
 const PINE = 'chunk://local/pine-hollow';

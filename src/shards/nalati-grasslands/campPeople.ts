@@ -34,7 +34,7 @@ import type { WorldRegistry, ColliderDesc } from '@wildshard/engine/world/regist
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { PaintKit, v3, poiMaterial } from './world/paint';
 import { pole, lathe } from '@wildshard/engine/world/geometryKit';
-import { CAMP_PEOPLE } from './quest';
+import { CAMP_PEOPLE } from './data/questStory';
 import { loadPeopleRig } from './campPeopleModels';
 import type { NpcFigureFrame as PersonFrame, NpcFigureRig as PeopleRig } from './models/npc/figureRig';
 import { stepNpcFigure, npcFigurePose } from './models/npc/figureMotion';

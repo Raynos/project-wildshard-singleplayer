@@ -47,7 +47,7 @@ import { installEnteredAdventure } from './runtime/enteredAdventure';
  * on load; `window.__nalatiQuest` = { flags, line, people, kokpar, places, talk(id), carving() }.
  */
 import type * as THREE from 'three';
-import { CAMP_NPCS, CARVINGS, CLUE_FLAGS, FEATHER_ELITES, FEATHER_FLAGS, NALATI_PLACES, NALATI_QUESTS } from './quest';
+import { CAMP_NPCS, CARVINGS, CLUE_FLAGS, FEATHER_ELITES, FEATHER_FLAGS, NALATI_PLACES, NALATI_QUESTS } from './data/questStory';
 import { buildCampPeople, type CampPeople, type PersonId } from './campPeople';
 import { buildKokparRound, KOKPAR_GOALS, type KokparMount, type KokparRound } from './kokpar';
 

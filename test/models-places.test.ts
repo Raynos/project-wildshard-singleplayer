@@ -7,7 +7,7 @@ import { SHARDS } from '../src/shards.generated';
 import { existsSync } from 'node:fs';
 import { checkModels, NAMED_PLACES, PLACES_ENFORCED } from '../scripts/check-models.mjs';
 import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/data/discovery';
-import { NALATI_PLACES } from '../src/shards/nalati-grasslands/quest';
+import { NALATI_PLACES } from '../src/shards/nalati-grasslands/data/questStory';
 import { PINE_HOLLOW_POIS } from '../src/shards/pine-hollow/layout';
 
 describe('every named place is a set (E315 M12)', () => {

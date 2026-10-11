@@ -32,7 +32,7 @@ import { Rng } from '../../../src/engine/core/rng';
 import { graniteOutcrop, roundedBoulder } from '../../../src/shards/nalati-grasslands/models/outcrop';
 import { cragRock, finGeometry } from '../../../src/shards/nalati-grasslands/models/cragRock';
 import { registerNalatiPlaces, PLACE_SETS } from '../../../src/shards/nalati-grasslands/world/places';
-import { NALATI_PLACES } from '../../../src/shards/nalati-grasslands/quest';
+import { NALATI_PLACES } from '../../../src/shards/nalati-grasslands/data/questStory';
 
 // a stand-in sky: the painterly material asks it for its sun and to prepare the material (no renderer in a test)
 const lights: THREE.DirectionalLight[] = [];

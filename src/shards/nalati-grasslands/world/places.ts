@@ -15,7 +15,7 @@ import * as THREE from 'three';
 import type { Placed } from '@wildshard/engine/models/place';
 import { placeSet } from '@wildshard/engine/models/sets';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import { NALATI_PLACES } from '../quest';
+import { NALATI_PLACES } from '../data/questStory';
 
 interface PlaceRow {
   /** the named place (`nalati-grasslands/<NALATI_PLACES id>`) */

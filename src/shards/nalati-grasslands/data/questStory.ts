@@ -27,12 +27,19 @@
  *   told:wind             home to the elder
  * The bosses stay open any time: a boss beaten before its chapter skips the steps that lead to it.
  */
-import type { NpcDef, QuestDef } from '@wildshard/engine/quest/core';
-import type { PlacePoint } from '@wildshard/engine/quest/view';
-import { NALATI_MAP, CAMP, HORSE_PLAINS, KOKPAR, ARGYMAQ_PASTURE, KURGANS, CAIRN, KOKBORI_DEN, QARA_CAIRN, LEOPARD_CAVE, EAGLE_ROCK } from './layout';
+import type { QuestData } from '@wildshard/sdk/quests';
+import type { parseNpcDialogueRow } from '@wildshard/sdk/questGraph';
+import { NALATI_MAP, CAMP, HORSE_PLAINS, KOKPAR, ARGYMAQ_PASTURE, KURGANS, CAIRN, KOKBORI_DEN, QARA_CAIRN, LEOPARD_CAVE, EAGLE_ROCK } from '../layout';
 
+type QuestDef = QuestData['quests'][number];
+type NpcDef = ReturnType<typeof parseNpcDialogueRow>;
+interface PlacePoint { id: string; label: string; x: number; z: number; r: number }
+
+/** Persisted completion flag for the first shipping chapter. */
 export const TULPAR_DONE = 'quest:tulpar';
+/** Persisted completion flag for the Golden King chapter. */
 export const KING_DONE = 'quest:golden-king';
+/** Persisted completion flag for the Father of the Wind chapter. */
 export const WIND_DONE = 'quest:father-wind';
 
 /** where the camp's people stand (world x / z, the facing they idle toward; y from the floor) — src/shards/nalati-grasslands/campPeople.ts */
@@ -104,7 +111,9 @@ export const TULPAR_QUEST: QuestDef = {
   completeFlag: TULPAR_DONE,
 };
 
+/** The three shipping carving facts in their counted order. */
 export const CLUE_FLAGS = ['clue:1', 'clue:2', 'clue:3'];
+/** The three shipping storm-feather facts in their counted order. */
 export const FEATHER_FLAGS = ['feather:1', 'feather:2', 'feather:3'];
 
 export const KING_QUEST: QuestDef = {
@@ -315,6 +324,7 @@ export const COOK: NpcDef = {
   ],
 };
 
+/** The five shipping camp dialogues in their registration order. */
 export const CAMP_NPCS = { elder: ELDER, herderGate: HERDER_GATE, herderRail: HERDER_RAIL, child: CHILD, cook: COOK } as const;
 
 // ── places (the full map's names, discovered by walking near; saved as `seen:<id>`) ──────────────────────────────────

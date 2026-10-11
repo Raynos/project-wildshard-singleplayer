@@ -1,5 +1,5 @@
 import type { NpcFigureMotionProfile } from './models/npc/figureMotion';
-import { CAMP_PEOPLE } from './quest';
+import { CAMP_PEOPLE } from './data/questStory';
 import { peopleModelUrl } from './campPeopleModels';
 import type { NpcFigureFrame as PersonFrame } from './models/npc/figureRig';
 

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { lineFor, validateQuest, QuestLine } from '../../../src/engine/quest/core';
 import { placesWithDiscovery } from '../../../src/engine/quest/view';
-import { CAMP_NPCS, CLUE_FLAGS, ELDER, FEATHER_FLAGS, KING_DONE, NALATI_PLACES, NALATI_QUESTS, NALATI_QUEST_EXTERNAL, TULPAR_DONE, TULPAR_QUEST, WIND_DONE } from '../../../src/shards/nalati-grasslands/quest';
+import { CAMP_NPCS, CLUE_FLAGS, ELDER, FEATHER_FLAGS, KING_DONE, NALATI_PLACES, NALATI_QUESTS, NALATI_QUEST_EXTERNAL, TULPAR_DONE, TULPAR_QUEST, WIND_DONE } from '../../../src/shards/nalati-grasslands/data/questStory';
 import { NALATI_MAP } from '../../../src/shards/nalati-grasslands/layout';
 
 const fresh = (): Flags => new Flags('chunk://test/nalati-quest', false);
