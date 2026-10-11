@@ -3,7 +3,7 @@ import { SCOUT_ROW, DISCOVERY_PLACES } from '../../../src/shards/sunscar-dunes/d
 import { SCOUT_NPC, SCOUT_MODEL } from '../../../src/shards/sunscar-dunes/quests/scout';
 import { SCOUT_AT, SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
 import { STRINGS } from '../../../src/shards/sunscar-dunes/data/strings';
-import { COMPLETE_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
+import { COMPLETE_FLAG } from '../../../src/shards/sunscar-dunes/data/signalQuest';
 
 describe('Signal authored quest presentation rows', () => {
   it('keeps the scout column, pivots and ordered dialogue on its real validated binding', () => {

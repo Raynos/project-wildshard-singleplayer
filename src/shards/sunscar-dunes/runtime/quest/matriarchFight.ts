@@ -4,7 +4,7 @@ import { MATRIARCH_BOSS_PROFILE } from '../../data/matriarchBoss';
 import { DUNE_FIELD } from '../looks/duneFieldRows';
 import { BASIN } from '../../data/layout';
 import { STRINGS } from '../../data/strings';
-import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from '../../quests/signal';
+import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from '../../data/signalQuest';
 
 /** Her declared boss row's id (data/spawns.ts `bosses`), her encounter's id and her saved actor's identity. */
 export const MATRIARCH_ID = 'sunscar.matriarch';

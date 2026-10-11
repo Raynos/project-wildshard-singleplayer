@@ -8,7 +8,7 @@ import tiles from './data/tiles.json' with { type: 'json' };
 import { SIGNAL_LEDGER } from './data/ledger';
 import { WHIP_ITEMS } from './data/items';
 import { SIGNAL_SPAWNS } from './data/spawns';
-import { SIGNAL_QUESTS } from './quests/signal';
+import { SIGNAL_QUESTS } from './data/signalQuest';
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
 // SF50-p / M3 (the runtime-owner binding): "The signal" quest, its ledger facts, the bullwhip and the creatures' homes and

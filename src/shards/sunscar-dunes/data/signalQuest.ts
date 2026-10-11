@@ -1,7 +1,7 @@
 import { parseQuestData } from '@wildshard/sdk/quests';
-import { BASIN, BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';
-import { STRINGS } from '../data/strings';
-import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
+import { BASIN, BRAZIERS, CARAVAN, TOWER, WELL } from './layout';
+import { STRINGS } from './strings';
+import { FLAG, SCOUT_AT, SCOUT_FLAG } from './flags';
 import { brazierFlag } from './brazierFlag';
 
 /** Raised when the Dune Matriarch falls (combat/matriarch.ts): the quest's last step. */

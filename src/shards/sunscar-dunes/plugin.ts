@@ -28,7 +28,7 @@ import { DUNE_RAY_LOOK } from './species/duneRay';
 import type { Bullwhip } from './weapons/Bullwhip';
 import { WHIP_ROW } from './weapons/rows';
 import { installQuest } from './quest/install';
-import { FACT, MATRIARCH_FLAG } from './quests/signal';
+import { FACT, MATRIARCH_FLAG } from './data/signalQuest';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { installSunscarCues } from './runtime/audio/cues';
 import { installCreatures } from './combat/creatures';

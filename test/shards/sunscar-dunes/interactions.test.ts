@@ -5,10 +5,10 @@ import { execPath } from 'node:process';
 import { expect, it } from 'vitest';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { InteractionRules, type InteractionResult } from '../../../src/game/quest/interactionRows';
-import { SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/quests/interactions';
+import { SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/data/signalInteractions';
 import { FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
 import { BRAZIERS } from '../../../src/shards/sunscar-dunes/data/layout';
-import { brazierFlag } from '../../../src/shards/sunscar-dunes/quests/brazierFlag';
+import { brazierFlag } from '../../../src/shards/sunscar-dunes/data/brazierFlag';
 
 const fresh = (): { flags: Flags; rules: InteractionRules; order: string[] } => {
   const flags = new Flags('test:sunscar-interactions', false), order: string[] = [];
@@ -77,6 +77,6 @@ it('round-trips the transient oil, well and fire marks exactly and refuses a cor
 
 it('imports the interaction rules without DOM or renderer modules', () => {
   const result = spawnSync(execPath, ['--experimental-transform-types', '--disable-warning=ExperimentalWarning', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e',
-    "await import('./src/game/quest/interactionRows.ts'); await import('./src/shards/sunscar-dunes/quests/interactions.ts'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
+    "await import('./src/game/quest/interactionRows.ts'); await import('./src/shards/sunscar-dunes/data/signalInteractions.ts'); if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');"], { encoding: 'utf8', timeout: 20000 });
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
 });

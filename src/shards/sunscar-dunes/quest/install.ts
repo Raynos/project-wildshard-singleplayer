@@ -15,7 +15,7 @@ import { npcDef } from '@wildshard/game/plugin/quests';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
 import { duneMesh } from '../world/meshes';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
-import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG } from '../quests/signal';
+import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG } from '../data/signalQuest';
 import { bindRuntimeCoins, bindRuntimeQuest, type RuntimeCoins, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import source from '../shard.config';
 import { bindSignalFacts } from '../runtime/persistence';
@@ -46,7 +46,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   // A save from before Sefa (loop 2) or a player who walked past her to the caravan: any later step done means the
   // scout's step is too, so a mid-quest save is never sent back to the crest; on load her flag is set for it (no wave).
   if (!flags.has(SCOUT_FLAG) && [...LATER_FLAGS, COMPLETE_FLAG].some((f) => flags.has(f))) flags.set(SCOUT_FLAG);
-  // The declared quest (quests/signal.ts), each world-piece marker placed on its built piece.
+  // The declared quest (data/signalQuest.ts), each world-piece marker placed on its built piece.
   const placed: Record<string, QuestMarker['at']> = {
     scout: { poi: 'world', x: SCOUT_AT.x, y: groundAt(SCOUT_AT.x, SCOUT_AT.z), z: SCOUT_AT.z }, // her feet: the pin adds its own 2.2 m (round 1, R1C-7)
     logbook: at(world.logbook.position, 0.4), well: at(world.well.spot.position, 0.6), tower: at(world.fire.brazier.position, 1),

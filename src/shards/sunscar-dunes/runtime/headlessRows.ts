@@ -5,10 +5,10 @@ import { SIGNAL_SPAWNS } from '../data/spawns';
 import { WHIP_PROFILE } from '../data/items';
 import { SCOUT_FLAG } from '../data/flags';
 import { MATRIARCH_DEFINITION, MATRIARCH_PRESENTATION, MATRIARCH_RECORD, MATRIARCH_REWARD } from './quest/matriarchFight';
-import { FACT, MATRIARCH_FLAG } from '../quests/signal';
-import { SIGNAL_INTERACTIONS } from '../quests/interactions';
+import { FACT, MATRIARCH_FLAG } from '../data/signalQuest';
+import { SIGNAL_INTERACTIONS } from '../data/signalInteractions';
 import { SCOUT_NPC } from '../quests/scout';
-import { SIGNAL_GRAPH } from '../quests/graph';
+import { SIGNAL_GRAPH } from '../data/signalGraph';
 
 /** The declared whip row's id (data/items.ts). */
 export const WHIP_ID = 'weapon.sunscar-whip';

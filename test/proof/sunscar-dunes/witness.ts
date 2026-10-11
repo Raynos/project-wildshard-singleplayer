@@ -14,7 +14,7 @@ import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProto
 import { HeadlessSimulation } from '../../../src/sdk/headless';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
 import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/quests';
-import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/quests/interactions';
+import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/data/signalInteractions';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/runtime/quest/matriarchFight';
 import { lashContact } from '../../../src/shards/sunscar-dunes/runtime/items/lash';
 import { WHIP_ITEM } from '../../../src/shards/sunscar-dunes/data/items';
@@ -23,7 +23,7 @@ import { BASIN } from '../../../src/shards/sunscar-dunes/data/layout';
 import baked from '../../../src/shards/sunscar-dunes/runtime/physics.baked.json' with { type: 'json' };
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type HeadlessPrompt } from '../../../src/sdk/runtime/prompts';
 import * as v from 'valibot';
-import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
+import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/data/signalQuest';
 
 /**
  * Signal Dunes' whole-shard witness (E435 §C / SF72) on its trusted renderer-free entry, `runtime/headless.ts`, composed

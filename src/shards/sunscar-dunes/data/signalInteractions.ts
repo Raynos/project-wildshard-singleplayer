@@ -1,6 +1,6 @@
 import { parseInteractionRows } from '@wildshard/sdk/interactions';
-import { BRAZIERS } from '../data/layout';
-import { FLAG, SCOUT_FLAG } from '../data/flags';
+import { BRAZIERS } from './layout';
+import { FLAG, SCOUT_FLAG } from './flags';
 import { brazierFlag } from './brazierFlag';
 
 /** The script command actor that carries Signal's interactions (`{ kind: 'script', actorId, value: SIGNAL_ACT.* }`). */

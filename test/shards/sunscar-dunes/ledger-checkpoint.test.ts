@@ -5,7 +5,7 @@ import { withOwner } from '../../../src/engine/app/ownership';
 import { Progress } from '../../../src/game/Progress';
 import { progressSave, purseSave } from '../../../src/game/saves';
 import { bindSignalFacts } from '../../../src/shards/sunscar-dunes/runtime/persistence';
-import { FACT } from '../../../src/shards/sunscar-dunes/quests/signal';
+import { FACT } from '../../../src/shards/sunscar-dunes/data/signalQuest';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 
 it('refuses the real Progress checkpoint until its emitting ledger is durable, then rebinds without a second grant', () => {

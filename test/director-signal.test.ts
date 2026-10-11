@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
 import { InteractionRules } from '../src/game/quest/interactionRows';
-import { SIGNAL_INTERACTIONS } from '../src/shards/sunscar-dunes/quests/interactions';
+import { SIGNAL_INTERACTIONS } from '../src/shards/sunscar-dunes/data/signalInteractions';
 import { FLAG } from '../src/shards/sunscar-dunes/data/flags';
 import { SignalDirector } from '../src/shards/sunscar-dunes/runtime/signalDirector';
 

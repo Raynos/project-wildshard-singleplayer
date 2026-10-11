@@ -13,7 +13,7 @@ import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
 import { WHIP_ROW, whipIcon } from '../../../src/shards/sunscar-dunes/weapons/rows';
-import { COMPLETE_FLAG, FACT, LATER_FLAGS } from '../../../src/shards/sunscar-dunes/quests/signal';
+import { COMPLETE_FLAG, FACT, LATER_FLAGS } from '../../../src/shards/sunscar-dunes/data/signalQuest';
 
 const services = (): { app: App; game: GameServices } => ({ app: new App(), game: { shard: manifest, rows: new Map(), bag: new TabRegistry() } });
 const whipFamily = (app: App): ReadonlyMap<string, ItemFamily> => new Map([['sunscar-dunes.whip', { kind: 'weapon', profiles: ['lash'], create: () => new Bullwhip(app) }]]);

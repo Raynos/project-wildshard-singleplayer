@@ -15,7 +15,7 @@ import { Vector3 } from 'three';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import { SignalDunesPlugin } from '../../../src/shards/sunscar-dunes/plugin';
 import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
-import { COMPLETE_FLAG, LATER_FLAGS, MATRIARCH_DEFEATED_FLAG, MATRIARCH_FLAG, MATRIARCH_PAID_FLAG, PAID_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
+import { COMPLETE_FLAG, LATER_FLAGS, MATRIARCH_DEFEATED_FLAG, MATRIARCH_FLAG, MATRIARCH_PAID_FLAG, PAID_FLAG } from '../../../src/shards/sunscar-dunes/data/signalQuest';
 import { LEGACY_SIGNAL } from '../../../src/shards/sunscar-dunes/quest/install';
 import { SIGNAL_LEDGER } from '../../../src/shards/sunscar-dunes/data/ledger';
 import source from '../../../src/shards/sunscar-dunes/shard.config';

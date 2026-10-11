@@ -1,7 +1,7 @@
 import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from './layout';
 import { SCOUT_AT, SCOUT_FLAG } from './flags';
 import { STRINGS } from './strings';
-import { COMPLETE_FLAG } from '../quests/signal';
+import { COMPLETE_FLAG } from '../data/signalQuest';
 
 /** Sefa's authored quest-giver, figure pivots, native column and ordered dialogue. */
 export const SCOUT_ROW = {

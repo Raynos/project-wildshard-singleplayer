@@ -13,12 +13,12 @@ import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProto
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 import { SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
 import { BASIN } from '../../../src/shards/sunscar-dunes/data/layout';
-import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
+import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/data/signalQuest';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/runtime/quest/matriarchFight';
 import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/headlessRows';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
 import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/quests';
-import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';
+import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/data/signalInteractions';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(`src/shards/sunscar-dunes/assets/${file.hash}`))]));

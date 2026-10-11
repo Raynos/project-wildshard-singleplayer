@@ -12,8 +12,8 @@ import { bakedPiece, type BakedWorld } from './baked';
 import { FIRE_RESOURCES, fireGeometries, fireLight, loadFireBook, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
-import { brazierFlag } from '../quests/brazierFlag';
-import { SIGNAL_INTERACTIONS } from '../quests/interactions';
+import { brazierFlag } from '../data/brazierFlag';
+import { SIGNAL_INTERACTIONS } from '../data/signalInteractions';
 
 /** Something the whip's lash can crack: a lever to pull or a brazier to light. `crack` says whether it reacted. */
 export interface Crackable { at: Vector3; radius: number; crack: (heavy: boolean, second: boolean) => boolean }
