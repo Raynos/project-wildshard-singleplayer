@@ -1089,7 +1089,6 @@
     "src/shards/sunscar-dunes/runtime/looks/fireFx.ts": 1,
     "src/shards/sunscar-dunes/runtime/looks/fittedHull.ts": 3,
     "src/shards/sunscar-dunes/runtime/looks/mapPalette.ts": 1,
-    "src/shards/sunscar-dunes/runtime/quest/matriarchFight.ts": 1,
     "src/shards/sunscar-dunes/runtime/quest/pivotNpc.ts": 2,
     "src/shards/sunscar-dunes/runtime/quest/questReward.ts": 1,
     "src/shards/sunscar-dunes/runtime/rowsHeadless.ts": 4,
