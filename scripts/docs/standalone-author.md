@@ -21,7 +21,7 @@ npm pkg set type=module
 npm pkg set 'overrides.@wildshard/sdk=$@wildshard/sdk'
 npm pkg set 'overrides.@wildshard/format=$@wildshard/format'
 npm install ../release/wildshard-sdk-0.0.0.tgz ../release/wildshard-format-0.0.0.tgz ../release/wildshard-commons-0.0.0.tgz three@0.186.0
-npm install --save-dev typescript@7.0.2 @types/node@24.13.6 @types/three@0.186.0
+npm install --save-dev typescript@7.0.2 @types/node@24.13.6 @types/three@0.186.0 rolldown@1.2.13
 node node_modules/@wildshard/sdk/dist/author-template/bootstrap.mjs .
 ```
 
@@ -81,6 +81,33 @@ Use the same source revision for every archive and retain its identity with the 
 The standalone proof checks installed files, runs generation/synth/build/validation and
 requires no symlink back to the repository. No generated GLB or project output replaces
 its retained TypeScript generator.
+
+## Run retained proof programs with installed commons
+
+Node 24 does not strip TypeScript inside `node_modules`. Commons packs and format
+contracts intentionally ship readable TypeScript; running a proof that imports them
+directly with `node proof.ts` will fail. Bundle that proof into ordinary ESM first:
+
+```sh
+npm run build
+npm run proof:native
+# For your own proof entry:
+npm run proof:bundle -- --input audit-product.ts
+node proof-tools/audit-product.mjs dist
+```
+
+Bootstrap copies `proof.config.mjs` and an executing `prove-native.ts`. The runner
+reads the exact built product and immutable files, checks its starter-bag catalogue
+closure, and invokes the SDK's native validation. When changing packs, update that
+explicit pack list to match `shard.config.ts`. The bundle includes commons/format
+source but keeps `@wildshard/sdk/*`, `three`, and Node built-ins external: the SDK
+retains its real installed worker URL and the client/proof share one three.js identity.
+The config never rewrites installed packages or enables Node's unsupported type stripping.
+
+`prove-mesa.ts` exports `proveMesaOutpost`; importing it is not an executing proof.
+Your entry must call it with the actual product bytes, real entered client and authored
+route. Its native, replay, scene and equipped-item checks remain mandatory. A native
+validation summary alone gives no credit for those rendered-client gates.
 
 After producing the matched archives, the retained milestone proof runs the consumer path above:
 

@@ -18,6 +18,8 @@ it('bootstraps retained TS generators without replacing installed dependencies o
     expect(readFileSync(join(root, 'generators/world.ts'), 'utf8')).toContain('new Mesh(new BoxGeometry');
     expect(readFileSync(join(root, 'shard.config.ts'), 'utf8')).toContain('createCatalogue');
     expect(readFileSync(join(root, 'prove-mesa.ts'), 'utf8')).toContain('proveMesaOutpost');
+    expect(readFileSync(join(root, 'prove-native.ts'), 'utf8')).toContain('validateSimulation(shard, assets)');
+    expect(readFileSync(join(root, 'proof.config.mjs'), 'utf8')).toContain("entryFileNames: '[name].mjs'");
     const before = readFileSync(join(root, 'shard.config.ts'));
     expect(() => bootstrapAuthor(root)).toThrow('Refusing to replace');
     expect(readFileSync(join(root, 'shard.config.ts'))).toEqual(before);

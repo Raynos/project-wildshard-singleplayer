@@ -3,7 +3,7 @@
 import { cpSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const files = ['data', 'generators', 'generate.ts', 'prove-mesa.ts', 'shard.config.ts', 'tsconfig.json'];
+const files = ['data', 'generators', 'generate.ts', 'prove-mesa.ts', 'prove-native.ts', 'proof.config.mjs', 'shard.config.ts', 'tsconfig.json'];
 /** @param {unknown} value @returns {Record<string, unknown>} */
 function record(value) {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('Invalid author package metadata');
