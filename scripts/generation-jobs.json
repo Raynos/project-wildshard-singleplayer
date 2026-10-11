@@ -2594,6 +2594,42 @@
         "src/shards/_template/assets/875e798b8b1be62129b477e6b85e7c45cf11ae67cba006596d869133b469726b"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "driftwood-director",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-driftwood-director.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-driftwood-director.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/admissionLimits.ts",
+        "src/format/director.ts",
+        "src/format/directorStages.ts",
+        "src/format/directorWhen.ts",
+        "src/format/package.json",
+        "src/format/state.ts",
+        "src/sdk/assemblyscriptCompiler.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/buildBehaviour.ts",
+        "src/sdk/compileScript.ts",
+        "src/sdk/directorAbi.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/package.json",
+        "src/sdk/sourceReader.ts",
+        "src/shards/driftwood-isle/behaviour/director.as",
+        "src/shards/driftwood-isle/data/director.json",
+        "src/shards/driftwood-isle/generators/bake-driftwood-director.mjs"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/assets/25121a8616589da2265bc6d0537c86eabec4d64d26d0bd757268d80dac2cba1b",
+        "src/shards/driftwood-isle/behaviour/director.json"
+      ],
+      "platform": "portable"
     }
   ]
 }
