@@ -93,6 +93,18 @@ describe('the PBR family', () => {
 });
 
 describe('the family registry and the shader step', () => {
+  it('excludes only declared regional materials while retaining unplaced families for later spawns', () => {
+    const scope = new Scope('exterior-families-test');
+    const ctx = { toon: new ToonLook(), textures: () => new THREE.Texture(), scope };
+    try {
+      const owned = familyMaterial({ family: 'toon', doubleSided: false }, ctx);
+      const shared = familyMaterial({ family: 'toon' }, ctx), later = familyMaterial({ family: 'pbr' }, ctx);
+      const materials = familyCompileJobs(null, null, 6, new Set([owned])).flatMap(job => job.root.children)
+        .filter((object): object is THREE.Mesh => object instanceof THREE.Mesh).map(object => object.material);
+      expect(materials).toEqual([shared, later]);
+      expect(familyCompileJobs(null, null, 6)).toHaveLength(1);
+    } finally { scope.dispose(); }
+  });
   it('compiles one stand-in per live program variant and forgets a disposed scope', () => {
     const scope = new Scope('families-test');
     const ctx = { toon: new ToonLook(), textures: () => new THREE.Texture(), scope };

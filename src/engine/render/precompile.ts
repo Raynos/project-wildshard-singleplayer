@@ -104,8 +104,10 @@ function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, sh
   const exterior = sceneJobs(scene, rt, roots === undefined ? per : 1, roots ?? [scene], state.roots).jobs;
   const materials = new Set<THREE.Material>();
   for (const job of exterior) job.root.traverse(object => { for (const material of materialsOf(object)) materials.add(material); });
+  const excludedMaterials = new Set<THREE.Material>();
+  for (const root of state.roots) root.traverse(object => { for (const material of materialsOf(object)) if (!materials.has(material)) excludedMaterials.add(material); });
   const jobs = roots === undefined
-    ? [...exterior, ...familyCompileJobs(scene, rt, per, materials), ...(shadows ? shadowJobs(scene, rt, per, state.roots) : [])]
+    ? [...exterior, ...familyCompileJobs(scene, rt, per, excludedMaterials), ...(shadows ? shadowJobs(scene, rt, per, state.roots) : [])]
     : exterior;
   // Passes with their own scene keep their authored state. Only the page world/depth variants transition outside.
   for (const job of jobs) if (job.target === scene) job.target = target;
