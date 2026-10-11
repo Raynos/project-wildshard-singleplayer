@@ -46,10 +46,29 @@ export type HeadlessEffect = v.InferOutput<typeof TickEffectSchema>;
 export const TickCommitSchema = v.strictObject({ tick: natural, snapshot: v.pipe(v.string(), v.maxLength(32_000_000)), effects: v.pipe(v.array(TickEffectSchema), v.maxLength(1024)), fuelUsed: v.exactOptional(natural), scriptMicros: v.exactOptional(v.pipe(finite, v.minValue(0))) });
 /** Complete same-engine continuation and effects from one atomically committed worker tick. */
 export type HeadlessTickCommit = v.InferOutput<typeof TickCommitSchema>;
+/** A finite author tape: no host modules, synthetic facts or configurable physics ports. */
+export const AuthorProofPlanSchema = v.pipe(v.strictObject({ version: v.literal(1),
+  tape: v.pipe(v.array(v.pipe(v.array(TickCommandSchema), v.maxLength(1024))), v.minLength(1), v.maxLength(4096)),
+  checkpointTick: v.pipe(natural, v.minValue(1)),
+  requiredFacts: v.pipe(v.array(text), v.minLength(1), v.maxLength(128)),
+}), v.check(plan => plan.checkpointTick <= plan.tape.length && new Set(plan.requiredFacts).size === plan.requiredFacts.length, 'Checkpoint inside tape and distinct required facts'));
+/** Author-owned input; the host derives every filed fact from real quest completion. */
+export type AuthorProofPlan = v.InferOutput<typeof AuthorProofPlanSchema>;
+/** Strict host evidence for actual grid admission, save refusal, unload, restore and atomic ledger filing. */
+export const AuthorProofReportSchema = v.strictObject({
+  version: v.literal(1), ticks: natural, checkpointTick: natural,
+  grid: v.strictObject({ reserveBeforePhysics: v.literal(true), runtimeFence: v.literal(true), refusedSave: v.literal(true),
+    restored: v.literal(true), frozenTicks: v.literal(5), loads: v.literal(2), leasesAfterDispose: v.literal(0) }),
+  ledger: v.strictObject({ facts: v.pipe(v.array(v.strictObject({ name: text, actorId: text, tick: natural })), v.maxLength(1024)),
+    granted: natural, durableReload: v.literal(true), duplicateStable: v.literal(true) }),
+});
+/** Detached evidence: booleans are published only after the native assertions succeed. */
+export type AuthorProofReport = v.InferOutput<typeof AuthorProofReportSchema>;
 /** Worker request grammar for a bounded command step or an explicit finish proof. */
 export const WorkerRequestSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('step'), commands: v.pipe(v.array(TickCommandSchema), v.maxLength(1024)) }),
   v.strictObject({ kind: v.literal('finish') }),
+  v.strictObject({ kind: v.literal('authorProof'), plan: AuthorProofPlanSchema }),
 ]);
 /** Validate and copy ordered source batches against one aggregate per-tick command allowance. */
 export function tickCommands(sources: readonly HeadlessCommandSource[], limit: number): HeadlessCommand[] {

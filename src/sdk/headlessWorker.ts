@@ -4,7 +4,7 @@ import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
-import { proveShardfileEntries, createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '@wildshard/game/plugin/simulation';
+import { proveAuthoredGrid, proveShardfileEntries, createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '@wildshard/game/plugin/simulation';
 import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost } from '@wildshard/engine/sim/snapshot';
 
 import type { SimCommand } from '@wildshard/engine/sim';
@@ -59,6 +59,20 @@ await runTickWorker(async raw => {
       const fuelUsed = script?.tick === sim.host.state.tick ? script.used.fuel : 0;
       return { tick: sim.host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHost(sim.host)), effects, fuelUsed, scriptMicros };
     },
+    authorProof: plan => proveAuthoredGrid(shard, payload.assets, ports,
+      { ticks: plan.tape.length, checkpointTick: plan.checkpointTick, requiredFacts: plan.requiredFacts },
+      (tick, resident) => {
+        const input = plan.tape[tick]; if (input === undefined) throw new Error('Missing author tape tick');
+        const numeric = new Map<string, number>(); let player: SimCommand | undefined;
+        for (const command of input) {
+          if (command.kind === 'player') { if (player !== undefined) throw new Error('Multiple player commands'); player = simPlayerCommand(command); }
+          else if (command.kind === 'script') { if (!resident.actors.has(command.actorId)) throw new Error('Unknown command actor'); numeric.set(command.actorId, command.value); }
+          else { if (resident.lane === undefined) throw new Error('Event requires a script lane'); resident.lane.enqueue({ type: command.type, target: command.target, value: command.value }); }
+        }
+        const script = resident.lane?.host.checkpoint();
+        if (script?.modules.some(module => module.failures > 0 || module.disabled)) throw new Error('Author script failed');
+        commands = numeric; return player;
+      }),
     finish: () => ({ ticks: sim.host.state.tick, ...proveShardfileEntries(shard, sim, payload.assets, ports) }),
     dispose: () => { sim.dispose(); },
   };

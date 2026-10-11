@@ -1650,3 +1650,7 @@ installed dependencies are retained and authored files are never replaced. See t
 ## Declared director time ranges (OS-F5)
 
 Use day:0.75..0.84 for a dusk boolean. Endpoints stay within 0..1 and increase; the upper endpoint is excluded. The look day/start/override supplies the native and page clock, and its continuation is saved with the director. Authors write boolean when expressions without tick arithmetic. See [the native day guide](authoring/director-day.md) and scripts/docs/authoring/directors.ts.
+
+## Author proof tapes (OS-F6)
+
+Use wildshard prove with a version-1 finite command tape, checkpointTick and requiredFacts. Missing native facts refuse; the report proves grid residency/restore and quest-owned achievement filing with profile reload/deduplication. It does not claim browser storage availability or opaque Rapier-byte identity. See [the executed author workflow](authoring/author-proof.md).

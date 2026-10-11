@@ -9,7 +9,8 @@ import { pathToFileURL } from 'node:url';
 import { validateShardfileAssets } from '@wildshard/game/shardfile/validate';
 import type { Shardfile } from './shardfile';
 import { TickWorkerHost } from './tickWorkerHost';
-import type { HeadlessCommandSource, HeadlessTickCommit } from './tickProtocol';
+import { AuthorProofPlanSchema, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommandSource, type HeadlessTickCommit } from './tickProtocol';
+import * as v from 'valibot';
 import { trustedHeadlessModule, type TrustedHeadlessRuntime } from './headlessRuntime';
 import { SCRIPT_LIMITS } from '@wildshard/engine/script/host';
 
@@ -47,6 +48,8 @@ export class HeadlessSimulation {
   step(sources: readonly HeadlessCommandSource[] = []): Promise<HeadlessTickCommit> { return this.runner.step(sources); }
   /** Final validation walks every entry under a separate request deadline. Further ticks refuse; resume from the last committed checkpoint in a fresh worker. */
   finish(): Promise<{ ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number }> { return this.runner.finish(); }
+  /** Terminal author proof; the worker hosts the real grid and ledger from this finite command tape. */
+  prove(plan: AuthorProofPlan): Promise<AuthorProofReport> { return this.runner.authorProof(plan); }
   /** Terminate the owned worker and release its complete native world. */
   dispose(): Promise<void> { return this.runner.dispose(); }
 }
@@ -88,4 +91,12 @@ export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<s
   const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory' });
   try { const observed = await observe(sim); return { ...await sim.finish(), ...observed }; }
   finally { await sim.dispose(); }
+}
+
+/** Prove author data in an isolated native worker; trusted runtime bindings and injected facts are refused. */
+export async function proveAuthorSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, input: AuthorProofPlan): Promise<AuthorProofReport> {
+  const plan = v.parse(AuthorProofPlanSchema, input);
+  if (shard.runtime !== null) throw new Error('Author proof requires data-only gameplay');
+  const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory' });
+  try { return await sim.prove(plan); } finally { await sim.dispose(); }
 }

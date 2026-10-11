@@ -1,9 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI accepts filesystem project/output paths.
 import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The author proof tape is an explicit local input file.
+import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
+import { AuthorProofPlanSchema } from './tickProtocol';
 import { buildProject, newProject, projectAssets, readProjectAssets, validateProject } from './project';
 import { parseShardfile, ShardfileSchema, type Shardfile } from './shardfile';
 import { devProject } from './dev';
-import { measureSimulation, validateSimulation } from './headless';
+import { proveAuthorSimulation, measureSimulation, validateSimulation } from './headless';
 import { performanceReport, performanceReportLines, type PerformanceObservations } from './reportCard';
 import { projectPerformancePolicy } from './performancePolicy';
 import { readShardfileSource } from './sourceReader';
@@ -60,6 +64,14 @@ export async function runCli(args: readonly string[]): Promise<void> {
     }
     if (buildFlag !== undefined && buildFlag !== '--product-only') throw new Error('unknown build flag');
     const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { ...(buildFlag === '--product-only' ? { client: null } : {}), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
+  }
+  if (command === 'prove') {
+    if (output === undefined || buildFlag !== undefined) throw new Error('usage: wildshard prove <project|shard.json> <proof.json>');
+    const authored = input.endsWith('.json') ? undefined : await readProjectAssets(resolve(input));
+    const shard = authored?.shard ?? parseShardfile(readShardfileSource(input));
+    const assets = authored?.assets ?? projectAssets(resolve(input, '..'), shard, 'product');
+    const plan = v.parse(AuthorProofPlanSchema, JSON.parse(readFileSync(resolve(output), 'utf8')));
+    console.info(JSON.stringify(await proveAuthorSimulation(shard, assets, plan), null, 2)); return;
   }
   if (command === 'validate') {
     const built = input.endsWith('.json');

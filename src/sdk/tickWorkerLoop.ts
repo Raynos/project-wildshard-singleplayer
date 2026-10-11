@@ -3,12 +3,14 @@ import { parentPort, workerData } from 'node:worker_threads';
 // oxlint-disable-next-line import/no-nodejs-modules -- Parent and worker use the same monotonic clock for a preemptible wall deadline.
 import { hrtime } from 'node:process';
 import * as v from 'valibot';
-import { WorkerRequestSchema, TickCommitSchema, type HeadlessCommand, type HeadlessTickCommit } from './tickProtocol';
+import { WorkerRequestSchema, TickCommitSchema, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommand, type HeadlessTickCommit } from './tickProtocol';
 
 export interface TickWorkerAdapter {
   step: (commands: readonly HeadlessCommand[]) => void;
   commit: () => HeadlessTickCommit;
   finish: () => { ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number };
+  /** Optional fixed platform proof; trusted shard adapters without it refuse. */
+  authorProof?: (plan: AuthorProofPlan) => Promise<AuthorProofReport>;
   dispose: () => void;
 }
 export const WorkerEnvelopeSchema = v.object({ clock: v.instance(SharedArrayBuffer), tickMicros: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16_666)), commandsPerTick: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1024)), enforceTickDeadline: v.optional(v.boolean(), true), payload: v.unknown() });
@@ -22,9 +24,13 @@ export async function runTickWorker(create: (payload: unknown) => Promise<TickWo
   catch (error) { sendError(error); return; }
   port.on('close', () => { adapter.dispose(); });
   let cold = true;
-  port.on('message', (raw: unknown) => {
+  const handle = async (raw: unknown): Promise<void> => {
     try {
       const request = v.parse(WorkerRequestSchema, raw);
+      if (request.kind === 'authorProof') {
+        if (adapter.authorProof === undefined) throw new Error('Author proof requires the data-only native owner');
+        port.postMessage({ authorProof: await adapter.authorProof(request.plan) }); return;
+      }
       if (request.kind === 'finish') { port.postMessage({ proof: adapter.finish() }); return; }
       if (request.commands.length > envelope.commandsPerTick) throw new Error('Aggregate commandsPerTick exceeded');
       // One first-touch/JIT tick has the platform's bounded 16.666 ms ceiling, never an unarmed watchdog.
@@ -36,5 +42,6 @@ export async function runTickWorker(create: (payload: unknown) => Promise<TickWo
       // Checkpoint construction cannot publish a partial tick and has the parent's independent request deadline.
       Atomics.store(clock, 0, 2n); port.postMessage({ commit: v.parse(TickCommitSchema, adapter.commit()) });
     } catch (error) { sendError(error); }
-  });
+  };
+  port.on('message', (raw: unknown) => { void handle(raw); });
 }

@@ -4,12 +4,12 @@ import { Worker } from 'node:worker_threads';
 import { hrtime } from 'node:process';
 import * as v from 'valibot';
 import { Scope } from '@wildshard/engine/app/scope';
-import { tickCommands, TickCommitSchema, type HeadlessCommandSource, type HeadlessTickCommit } from './tickProtocol';
+import { tickCommands, TickCommitSchema, AuthorProofPlanSchema, AuthorProofReportSchema, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommandSource, type HeadlessTickCommit } from './tickProtocol';
 
 const proofSchema = v.strictObject({ ticks: v.pipe(v.number(), v.integer(), v.minValue(0)), lanes: v.pipe(v.number(), v.integer(), v.minValue(0)), steps: v.pipe(v.number(), v.integer(), v.minValue(0)),
   liftRides: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8))), liftCalls: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8))),
   portalTransfers: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8))) });
-const replySchema = v.variant('kind', [v.strictObject({ kind: v.literal('commit'), value: TickCommitSchema }), v.strictObject({ kind: v.literal('proof'), value: proofSchema })]);
+const replySchema = v.variant('kind', [v.strictObject({ kind: v.literal('commit'), value: TickCommitSchema }), v.strictObject({ kind: v.literal('proof'), value: proofSchema }), v.strictObject({ kind: v.literal('authorProof'), value: AuthorProofReportSchema })]);
 type Reply = v.InferOutput<typeof replySchema>;
 /** A deadline failure quarantines the worker while retaining the last fully committed continuation. */
 export class HeadlessDeadlineError extends Error {
@@ -39,9 +39,9 @@ export class TickWorkerHost {
     this.worker = new Worker(url, { workerData: { payload, ...budget, clock: this.clock.buffer, enforceTickDeadline: deadline === 'runtime' }, execArgv });
     this.worker.on('message', (raw: unknown) => {
       try {
-        const message = v.parse(v.union([v.strictObject({ commit: TickCommitSchema }), v.strictObject({ proof: proofSchema }), v.strictObject({ error: v.string() })]), raw);
+        const message = v.parse(v.union([v.strictObject({ commit: TickCommitSchema }), v.strictObject({ proof: proofSchema }), v.strictObject({ authorProof: AuthorProofReportSchema }), v.strictObject({ error: v.string() })]), raw);
         if ('error' in message) { this.fail(message.error.includes('tick deadline') ? new HeadlessDeadlineError(this.last, Number(Atomics.load(this.clock, 2)) / 1000) : new Error(message.error)); return; }
-        const reply: Reply = 'commit' in message ? { kind: 'commit', value: message.commit } : { kind: 'proof', value: message.proof };
+        const reply: Reply = 'commit' in message ? { kind: 'commit', value: message.commit } : 'proof' in message ? { kind: 'proof', value: message.proof } : { kind: 'authorProof', value: message.authorProof };
         if (reply.kind === 'commit') this.last = structuredClone(reply.value);
         const pending = this.pending; this.pending = undefined; pending?.resolve(reply);
       } catch (error) { this.fail(error instanceof Error ? error : new Error(String(error))); }
@@ -85,6 +85,17 @@ export class TickWorkerHost {
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
     this.worker.postMessage({ kind: 'finish' });
     const reply = await result; if (reply.kind !== 'proof') throw new Error('Missing headless validation proof'); return reply.value;
+  }
+  /** Terminal offline proof, under the same independent request watchdog. */
+  async authorProof(input: AuthorProofPlan): Promise<AuthorProofReport> {
+    const plan = v.parse(AuthorProofPlanSchema, input);
+    for (const commands of plan.tape) tickCommands([{ source: 'author-proof', commands }], this.budget.commandsPerTick);
+    if (this.finished) throw new Error('Headless validation already finished');
+    await this.initialized(); if (this.closed || this.pending !== undefined) throw new Error('Headless worker unavailable or busy');
+    this.finished = true; const result = this.wait();
+    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
+    this.worker.postMessage({ kind: 'authorProof', plan });
+    const reply = await result; if (reply.kind !== 'authorProof') throw new Error('Missing author proof'); return reply.value;
   }
   async dispose(): Promise<void> { this.closed = true; this.scope.dispose(); this.pending?.reject(new Error('Headless worker disposed')); this.pending = undefined; await this.worker.terminate(); }
   private finished = false;

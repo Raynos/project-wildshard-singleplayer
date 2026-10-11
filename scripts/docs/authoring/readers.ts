@@ -12,3 +12,8 @@ export async function readersExample(glb: Uint8Array, animationGlb = glb) {
     return { bones: rest.bones, clips: motion.clips.map(clip => clip.name), image, decoded };
   } finally { rest.geometry.dispose(); }
 }
+
+/** A public author proof plan; run it against a data-only product whose beacon quest files beacon.lit. */
+export function authorProofExample() {
+  return { version: 1 as const, tape: Array.from({ length: 120 }, () => []), checkpointTick: 60, requiredFacts: ['beacon.lit'] };
+}

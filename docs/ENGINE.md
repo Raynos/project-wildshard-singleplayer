@@ -3293,3 +3293,7 @@ The author CLI `wildshard schema list` lists every format JSON Schema and the co
 ## Director day observations (OS-F5)
 
 Stage inputs admit day:FROM..TO as a bounded boolean over the declared look clock, with half-open normalized endpoints. The renderer and native host share world/dayCycle.normalizedDayClock; the client lends its actual page clock and never steps it twice. Complete clock continuation restores silently, and flag-only directors retain their prior state shape. See [the day observation guide](authoring/director-day.md) and the executed dayDirectorExample/native continuation checks.
+
+## Author grid and ledger proof (OS-F6)
+
+The public SDK headless.proveAuthorSimulation and CLI prove run a fixed native worker: the real GridSimulation admission/save/unload/restore contract, uninterrupted regional suffix comparison, and quest-derived facts filed by Ledger through serialized SaveStore storage. No author host modules or synthetic facts are accepted. See [the author proof workflow](authoring/author-proof.md); validate still owns the full entry walk.

@@ -1,3 +1,10 @@
+import { GridAssembly } from '../grid/assembly';
+import { GridSimulation } from '../grid/simulation';
+import { ResidencyAllocator } from '../grid/allocator';
+import { CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { restoreSimHost, snapshotSimHost, regionalContinuation, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { SaveStore } from '@wildshard/engine/saves/store';
+import { Ledger } from '../ledger';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { tagOf } from '@wildshard/engine/physics/surface';
@@ -7,7 +14,7 @@ import { provePortalLinks } from '../shardfile/portalLinkProof';
 import { DirectorStageLane } from './director';
 import { directorDayRange } from '@wildshard/format/directorStages';
 import { DEFAULT_NORMALIZED_DAY, normalizedDayClock, inNormalizedDayRange, type DayCycle } from '@wildshard/engine/world/dayCycle';
-import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimStrike, type SimValue } from "@wildshard/engine/sim";
+import { createSimHost, SIM_API_VERSION, type SimHost, type SimCommand, type SimHostPorts, type SimStrike, type SimValue } from "@wildshard/engine/sim";
 import { buildPlatformSpawns } from "@wildshard/engine/ai/platform";
 import { addBakedTerrainCollider } from "@wildshard/engine/physics/terrainTiles";
 import { decodeTerrainTile, terrainTileHeight } from "@wildshard/engine/world/terrainTileData";
@@ -479,4 +486,104 @@ export function proveSocketLift(entry: SocketLiftEntry, ports: SocketLiftProofPo
 /** The normal interaction queues these commands on both the deck and its road gate. No author callback is invoked. */
 export function commandSocketLift(runtime: MoverRuntime, lift: SocketLift, action: 1 | 2 | 3): void {
   runtime.command(lift.mover, action); runtime.command(lift.gate, action);
+}
+
+/** Native host evidence for the author-only grid and ledger workflow. */
+export interface AuthoredGridProof {
+  version: 1; ticks: number; checkpointTick: number;
+  grid: { reserveBeforePhysics: true; runtimeFence: true; refusedSave: true; restored: true; frozenTicks: 5; loads: 2; leasesAfterDispose: 0 };
+  ledger: { facts: { name: string; actorId: string; tick: number }[]; granted: number; durableReload: true; duplicateStable: true };
+}
+/** Fixed native author workflow: real grid residency, checkpoint refusal/restore and quest-owned Ledger filing.
+ * The SDK supplies admitted commands, never facts, owner identities, reward catalogue entries or host modules.
+ * Profile storage is a serialized SaveStore test port; this proves the atomic contract, not browser quota availability.
+ */
+export async function proveAuthoredGrid(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts,
+  plan: { ticks: number; checkpointTick: number; requiredFacts: readonly string[] },
+  inputAt: (tick: number, sim: ShardfileSimulation) => SimCommand | undefined): Promise<AuthoredGridProof> {
+  if (source.runtime !== null || !Number.isInteger(plan.ticks) || plan.ticks < 1 || plan.ticks > 4096
+    || !Number.isInteger(plan.checkpointTick) || plan.checkpointTick < 1 || plan.checkpointTick > plan.ticks) throw new Error('Invalid author proof');
+  const insist = (ok: boolean, message: string): void => { if (!ok) throw new Error(`Author proof: ${message}`); };
+  const instance = 'author-4', allocator = new ResidencyAllocator();
+  const assembly = new GridAssembly({ developer: false, devserver: false }, {
+    version: 0, pitch: CONTENT_CAPS.pitch, cells: Array.from({ length: 9 }, (_, index) => ({ instance: `author-${index}`, slug: source.identity.slug, cell: [index % 3 - 1, Math.floor(index / 3) - 1] })),
+    plots: [], developer: [], devserver: [], emptyNeighbour: { kind: 'sea', level: 0, edgeColour: [0.5, 0.5, 0.5], fog: { colour: [0.5, 0.5, 0.5], near: 10, far: 1000 } },
+  });
+  interface Fact { name: string; actorId: string; tick: number }
+  const facts: Fact[] = [], baselineFacts: Fact[] = [];
+  const make = (record: Fact[], saved?: SimSnapshot): ShardfileSimulation => {
+    let current: ShardfileSimulation | undefined;
+    const native = { ...ports, quest: { fact: (name: string, actorId: string) => {
+      if (current === undefined) throw new Error('Fact emitted outside an installed native tick');
+      record.push({ name, actorId, tick: current.host.state.tick });
+    }, coins: () => undefined } };
+    current = createShardfileSim(source, assets, native);
+    if (saved !== undefined) {
+      const level = current.host.level; current.dispose(); current = undefined;
+      const installed: { value?: ShardfileSimulation } = {};
+      const host = restoreSimHost(level, { rapier: ports.rapier }, saved, fresh => { installed.value = bindShardfileSim(fresh, source, assets, { ...native, restoring: true }); });
+      current = installed.value;
+      if (current === undefined) { host.dispose(); throw new Error('Missing restored author owner'); }
+    }
+    return current;
+  };
+  const highway = make([]), baseline = make(baselineFacts);
+  let resident: ShardfileSimulation | undefined, admitted = false, durable = false, loads = 0;
+  const saved = new Map<string, SimSnapshot>();
+  const grid = new GridSimulation(assembly, { highway, allocator, residentBytes: () => source.budgets.sim.resident,
+    admitted: () => admitted, read: id => saved.get(id), save: (id, value) => { if (!durable) return false; saved.set(id, structuredClone(value)); return true; },
+    load: (_cell, snapshot) => { insist(allocator.has(`sim:${instance}`), 'physics allocated before reservation'); loads++; resident = make(facts, snapshot); return Promise.resolve(resident); },
+  });
+  try {
+    insist(!grid.ready(instance), 'unloaded cell is ready'); await grid.prefetch([instance]);
+    insist(!grid.ready(instance), 'physics bypassed runtime admission'); admitted = true;
+    insist(grid.ready(instance), 'admitted cell is unavailable'); (await grid.prepare(null, instance)).commit();
+    if (resident === undefined) throw new Error('Missing author residency');
+    const healthy = (value: ShardfileSimulation): void => {
+      insist(!value.lane?.host.checkpoint().modules.some(module => module.failures > 0 || module.disabled), 'script failed');
+      insist([value.host.player.position, ...[...value.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite)), 'nonfinite native pose');
+    };
+    for (let tick = 0; tick < plan.checkpointTick; tick++) { grid.step(inputAt(tick, resident)); healthy(resident); }
+    insist(!grid.checkpoint(instance), 'failed durable save admitted'); durable = true;
+    insist(grid.checkpoint(instance), 'durable checkpoint refused');
+    insist(loads === 1, 'first residency loaded more than once');
+    const continuation = regionalContinuation(resident.host), player = snapshotSimHost(resident.host).player;
+    const tick = resident.host.state.tick;
+    (await grid.prepare(instance, null)).commit(); for (let i = 0; i < 5; i++) grid.step();
+    insist(resident.host.state.tick === tick, 'inactive region advanced');
+    insist(grid.unload(instance) && !allocator.has(`sim:${instance}`), 'unload retained physics lease');
+    (await grid.prepare(null, instance)).commit();
+    insist(regionalContinuation(resident.host) === continuation, 'regional continuation changed on restore');
+    insist(loads === 2, 'restore did not create a fresh residency');
+    const restoredPlayer = snapshotSimHost(resident.host).player;
+    insist(JSON.stringify(restoredPlayer.position) === JSON.stringify(player.position) && restoredPlayer.yaw === player.yaw, 'traveler pose changed on restore');
+    for (let next = plan.checkpointTick; next < plan.ticks; next++) { grid.step(inputAt(next, resident)); healthy(resident); }
+    for (let next = 0; next < plan.ticks; next++) { baseline.host.step(inputAt(next, baseline)); healthy(baseline); }
+    insist(regionalContinuation(resident.host) === regionalContinuation(baseline.host), 'restored regional suffix diverged');
+    insist(JSON.stringify(facts) === JSON.stringify(baselineFacts), 'restored facts diverged or repeated');
+    const values = new Map<string, string>();
+    const storage = { get length() { return values.size; }, key: (index: number) => [...values.keys()][index] ?? null,
+      getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); }, removeItem: (key: string) => { values.delete(key); } };
+    const ledger = () => new Ledger(new SaveStore({ local: storage, session: null }), [{ id: instance, shard: source.identity.slug }],
+      [{ shard: source.identity.slug, revision: source.identity.revision, rules: source.ledger }], []);
+    const owner = ledger(); let granted = 0;
+    const filed = facts.map((fact, ordinal) => {
+      const quest = source.quests.quests.find(row => row.id === fact.actorId && row.onComplete?.fact === fact.name);
+      if (quest === undefined) throw new Error('Missing native quest fact provenance');
+      return { instance, shard: source.identity.slug, revision: source.identity.revision, entity: fact.actorId, tick: fact.tick, ordinal,
+        name: fact.name, origin: { kind: 'engine' as const, source: `quest:${quest.id}` } };
+    });
+    for (const fact of filed) { const receipt = owner.record(fact); insist(receipt.status !== 'pending', 'ledger write pending'); if (receipt.status === 'granted') granted++; }
+    for (const name of plan.requiredFacts) insist(filed.some(fact => fact.name === name), `native fact missing: ${name}`);
+    const state = JSON.stringify(owner.state()), reloaded = ledger();
+    insist(JSON.stringify(reloaded.state()) === state, 'serialized profile reload diverged');
+    for (const fact of filed) insist(reloaded.record(fact).status === 'duplicate', 'ledger replay duplicated reward');
+    insist(JSON.stringify(reloaded.state()) === state, 'duplicate filing changed profile');
+    return { version: 1 as const, ticks: plan.ticks, checkpointTick: plan.checkpointTick,
+      grid: { reserveBeforePhysics: true as const, runtimeFence: true as const, refusedSave: true as const, restored: true as const, frozenTicks: 5 as const, loads: 2 as const, leasesAfterDispose: 0 as const },
+      ledger: { facts, granted, durableReload: true as const, duplicateStable: true as const } };
+  } finally {
+    baseline.dispose(); grid.dispose();
+    insist(allocator.entries().length === 0, 'residency leak after disposal');
+  }
 }
