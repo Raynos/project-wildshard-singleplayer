@@ -9,11 +9,20 @@ import { join, resolve as resolvePath } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Launch the same Node runtime and explicitly fence inherited leases.
 import process from 'node:process';
 import { afterEach, expect, it } from 'vitest';
-import { isFullVitest } from '../scripts/vitest-lane';
+import { isFullVitest, vitestMaxWorkers } from '../scripts/vitest-lane';
 
 const lane = resolvePath('scripts/heavy-lane.py');
 const guard = new URL('../scripts/heavy-lane-lease.mjs', import.meta.url).href;
 const roots: string[] = [];
+it('bounds local workers, retains CI defaults and refuses malformed overrides', () => {
+  expect(vitestMaxWorkers({})).toBe(6);
+  expect(vitestMaxWorkers({ CI: 'true' })).toBeUndefined();
+  expect(vitestMaxWorkers({ GITHUB_ACTIONS: 'true' })).toBeUndefined();
+  expect(vitestMaxWorkers({ CI: 'true', WS_VITEST_MAX_WORKERS: '3' })).toBe(3);
+  for (const value of ['', '0', '-1', '1.5', '6x', '9007199254740992']) {
+    expect(() => vitestMaxWorkers({ WS_VITEST_MAX_WORKERS: value })).toThrow('positive integer');
+  }
+});
 const children: { child: ChildProcess; done: Promise<number | null> }[] = [];
 function fixture(): { root: string; env: NodeJS.ProcessEnv } {
   const root = mkdtempSync(join(tmpdir(), 'heavy-lane-test-')); roots.push(root);

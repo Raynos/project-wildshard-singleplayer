@@ -4,7 +4,7 @@
 // in plain node: the few browser globals the pure modules touch (localStorage, location) are stubbed in test/setup.ts.
 import { defineConfig } from 'vitest/config';
 import { rapierAlias } from './vite/rapier';
-import { assertVitestLane } from './scripts/vitest-lane';
+import { assertVitestLane, vitestMaxWorkers } from './scripts/vitest-lane';
 import { DurationSequencer } from './scripts/vitest-shard';
 
 assertVitestLane();
@@ -45,6 +45,7 @@ export default defineConfig({
   resolve: { alias: rapierAlias },
   assetsInclude: ['**/*.bin', '**/*.wasm'], // `?inline` of a baked terrain.bin and Rapier's binary (test/physics-terrain.test.ts)
   test: {
+    maxWorkers: vitestMaxWorkers(),
     // 2026-10-03: under coverage on the CI runner, tests that parse every shard (gen-shards AG10, gen-budget-derivations)
     // ran past vitest's 5 s default and failed main's runs one after another (each passes in ~2 s locally); 20 s is the floor
     testTimeout: 20_000,

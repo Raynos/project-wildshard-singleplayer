@@ -1,6 +1,16 @@
 import { parseCLI } from 'vitest/node';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
 
+/** Local tests leave cores for interactive work; CI retains Vitest's runner default. */
+export function vitestMaxWorkers(env: NodeJS.ProcessEnv = process.env): number | undefined {
+  const requested = env.WS_VITEST_MAX_WORKERS;
+  if (requested === undefined) return env.CI || env.GITHUB_ACTIONS ? undefined : 6;
+  if (!/^[1-9]\d*$/u.test(requested) || !Number.isSafeInteger(Number(requested))) {
+    throw new Error('WS_VITEST_MAX_WORKERS must be a positive integer');
+  }
+  return Number(requested);
+}
+
 /** Use Vitest's parser so flag values cannot masquerade as focused file filters. */
 export function isFullVitest(argv: readonly string[]): boolean {
   if (argv[0] === 'list' || argv[0] === 'init' || argv[0] === 'complete' || argv.some(arg => /^(?:--help|-h|--version|-v|--mergeReports|--merge-reports|--listTags|--list-tags|--clearCache|--clear-cache)(?:=|$)/u.test(arg))) return false;
