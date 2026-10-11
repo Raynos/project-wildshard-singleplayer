@@ -26,7 +26,7 @@ renderer-bound system decides a gameplay outcome. Decorative crowd, light and vi
 runtime presentation.
 
 **Runs headless (proven):**
-- the browser-baked native colliders of the grid cell (`runtime/physics.baked.json`, `src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs`):
+- the Node-baked native colliders of the grid cell (`runtime/physics.baked.json`, `src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs`):
   the fragment at +125 m, the four landing decks open to the road (the standalone end caps removed), the square's slab,
   the Well's crossings and safety cap, every placed model's colliders;
 - the player capsule walking them from the declared spawn, by tick commands;
@@ -125,3 +125,25 @@ pure data used by both the render builders and the bake. Copying the 31 baked co
 bake, and importing the builders would load the renderer. This follow-up therefore retains `nd.grapple`, the real
 browser bake, and Nine's `context.debug` cap of 2. The placement extraction remains explicitly open; it changes world
 map inputs and needs a browser-equivalence proof and map rebake.
+
+## DS1.5: Node canonical physics
+
+The retained native recipes now run in Node, with the real engine practice-room constructor and no drawing. Build/CI use
+`node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs --check`.
+The generation job is portable and needs no preview or browser. Its header is content-addressed from its recipe inputs.
+`compare-nine-physics-page.mjs --url=<DEVSERVER preview> --revision=<pin>` retains the independent page oracle.
+
+The deliberate re-record changes five pavilion collider yaws from `2.7755575615628914e-17` to
+`5.551115123125783e-17` radians: maximum absolute difference **2.7755575615628914e-17 rad**.
+All other fields in the 23 pieces / 489 colliders / 31 hooks are exact. Shipping recipe arithmetic is unchanged; no
+quantization was introduced. Two independent Node runs write byte-identical outputs. The fresh browser comparison
+confirms exactly these five differences, and the officially rebaked map image is byte-identical.
+
+The tick-400 and tick-940 checkpoint re-record changes only native physics chunk bytes/checksums; every decoded
+non-physics field and every route, attack and earned-ledger outcome is unchanged. Restore and the actual SDK worker
+match the complete 60/144-tick suffixes. Checkpoint payloads remain in the generation cache; only their small manifest
+is recorded. `compatible: true` remains backed by the real gameplay run.
+
+The official `physics-baseline.mjs --no-build --mode=walk --shard=nine-dragon-stack` run on the DEVSERVER candidate
+passed **19 legs, 0 stuck, 0 page errors**, including walking, stairs, Well crossings and containment/hover legs.
+The boolean Developer fixture is now stored and compared as a boolean in that harness, rather than as a string.

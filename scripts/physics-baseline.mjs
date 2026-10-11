@@ -121,7 +121,7 @@ const SETTINGS = Object.fromEntries(flag('settings', '').split(',').filter(Boole
 const DEVICE_SAVES = Object.fromEntries(argv.filter((arg) => arg.startsWith('--device-save=')).map((arg) => {
   const match = /^--device-save=([a-zA-Z][a-zA-Z0-9._-]*)=(.+)$/u.exec(arg);
   if (!match) throw new Error('Invalid device save; expected key=value');
-  return [match[1], match[2]];
+  return [match[1], match[2] === 'true' ? true : match[2] === 'false' ? false : match[2]];
 }));
 const EXPECTED_SYSTEMS = argv.filter((arg) => arg.startsWith('--expect-system=')).map((arg) => {
   const match = /^--expect-system=([a-zA-Z0-9_-]+):([a-zA-Z0-9._-]+)=(on|off)$/u.exec(arg);

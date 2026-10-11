@@ -45,6 +45,29 @@ describe('shared authored world capture guard', () => {
     expect(app.levelScope).toBeNull(); expect(app.physics).toBeNull();
   });
 
+  it('includes the actual practice room after the authored world, with explicit phone tier and scoped teardown', async () => {
+    const { sky } = fakeWorld();
+    let captures = 0;
+    const manifest = { ...source(), load: () => Promise.resolve({ default: class {
+      world(ctx: ShardContext): void {
+        expect(app.render?.tier).toBe('phone');
+        ctx.piece({ id: 'fixture-floor', name: 'Floor', category: 'ground', file: 'test/bake-world-host.test.ts',
+          colliders: [{ kind: 'box', x: 0, y: -1, z: 0, hx: 2, hy: 1, hz: 2 }] });
+      }
+    } }) };
+    await visitAuthoredWorld(manifest, { root, sky, element: () => document.createElement('canvas'), tier: 'phone', practiceArena: true,
+      createTerrain: () => ({ mesh: new Mesh(new PlaneGeometry(500, 500).rotateX(-Math.PI / 2)), punch: () => 0 }),
+      visit: ({ registry }) => {
+        const pieces = registry.pieceList();
+        expect(pieces.map(piece => piece.id)).toEqual(['fixture-floor', 'practice-arena']);
+        expect(pieces.find(piece => piece.id === 'practice-arena')?.colliders).toHaveLength(5);
+        captures++;
+      },
+    });
+    expect(captures).toBe(1);
+    expect(app.levelScope).toBeNull(); expect(app.registry.pieces).toHaveLength(0); expect(app.physics).toBeNull();
+  });
+
   it('refuses mismatched native identity and unbounded placement data before changing the selected samplers', async () => {
     const bytes = readFileSync('public/assets/baked/pine-hollow/terrain.bin');
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), seed = view.getUint32(16, true);

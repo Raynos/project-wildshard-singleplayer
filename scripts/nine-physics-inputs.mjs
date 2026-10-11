@@ -12,7 +12,12 @@ const UNCOLLIDED = new Set(['jian.ts', 'portalRide.ts', 'portalVeil.ts'].map(nam
  * and its fade veil, portalVeil.ts, once split out), so a viewmodel or ride change never forces a physics rebake.
  */
 export function ninePhysicsInputs(root) {
-  const paths = ['shard.config.ts', 'layout.ts', 'terrain.ts', 'places.ts', 'runtime/state.ts'].map(path => `src/shards/nine-dragon-stack/${path}`);
+  const paths = ['manifest.ts', 'shard.config.ts', 'layout.ts', 'terrain.ts', 'places.ts', 'runtime/state.ts'].map(path => `src/shards/nine-dragon-stack/${path}`);
+  // DS1.5: fence the actual Node capture, host, placement math, practice room and their platform versions.
+  for (const file of ['src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs',
+    'scripts/bake/worldHost.mjs', 'scripts/bake/nativeWorld.mjs', 'scripts/bake/environment.mjs', 'scripts/bake-loader.mjs',
+    'scripts/nine-physics-inputs.mjs', 'src/engine/models/colliders.ts', 'src/engine/models/place.ts',
+    'src/engine/practice/TrainingArena.ts', 'src/engine/world/registry.ts', 'pnpm-lock.yaml']) paths.push(file);
   // DS1.3: the declared portal floors now compile through the retained authoring reader.
   for (const file of ['scene', 'physics', 'sceneTransform', 'entries', 'spawns']) paths.push(`src/sdk/${file}.ts`);
   const walk = (dir, accept) => {

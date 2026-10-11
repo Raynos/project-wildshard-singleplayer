@@ -1,18 +1,18 @@
 {
   "audit": {
-    "sourceRevision": "0b191cf2a00033e4df82a63d8d8a7c001f56e5f3",
-    "candidate": "this commit: witness-only shipping-worker continuations for the existing Jian/portal and lifting-crossing checkpoints; production source, collider/map inputs and checkpoint payloads unchanged",
-    "command": "node --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs all",
+    "sourceRevision": "3aa69e4bd6f485e2dc1e6bc663de287e8caf81aa",
+    "candidate": "DS1.5: Node canonical native physics; five pavilion yaw values deliberately re-recorded, max absolute difference 2.7755575615628914e-17 rad; unchanged authored arithmetic, no quantization.",
+    "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs all",
     "exitStatus": 0,
-    "scope": "the uninterrupted 1084-tick route, Jian combo/heavy, two portal rides, Well lifting crossing, 92 entry lanes / 8 transfers; exact canonical restore at ticks 400 and 940, every state and committed effect matches the shipping worker through the complete 60/144-tick suffixes; both declared Ledger facts granted once from gameplay, durable, no re-emission after restore; no creatures",
-    "runs": "two independent native processes, identical output; focused replay and determinism checks, strict and touched lint passed at unchanged deadlines"
+    "scope": "Real 1084-tick Jian/portal/Well journey, 92 entry lanes and 8 transfers, ledger from gameplay; complete 60/144-tick worker and restore suffixes exact. Only native physics chunks/checksums change in the recorded snapshots.",
+    "runs": "Two independent Node producer processes write identical physics bytes; browser comparison differs only at five yaw values; focused contracts and clean strict/touched lint pass."
   },
   "slug": "nine-dragon-stack",
   "entry": "runtime/headless.ts",
   "compatible": true,
   "transitional": false,
   "covers": [
-    "the browser-baked native colliders of the grid cell (fragment at +125 m, four landing decks open to the road, square slab, Well crossings and safety cap, placed models)",
+    "the Node-baked native colliders of the grid cell (fragment at +125 m, four landing decks open to the road, square slab, Well crossings and safety cap, placed models)",
     "the player capsule walking those colliders from the declared spawn, by tick commands",
     "the Jian as its declared row on the shipping swept melee clock (combo, one-deep queue, combo gap, cooldown, active windows), exact continuation",
     "the portal-link entry proof: 23 lanes per deck and the format's checked transfer to the square and back (provePortalLinks)",
@@ -78,8 +78,8 @@
       },
       "suffixTicksExecuted": 60,
       "ticksExecuted": 120,
-      "hash": "e46f0f30ac255845923becacd32014e6efb6e69d628b65084f0efb51949dc553",
-      "replayHash": "e46f0f30ac255845923becacd32014e6efb6e69d628b65084f0efb51949dc553",
+      "hash": "dc5c43030a498c1a6c703492391c797d43969322b3a0d44222e0506b78568dd0",
+      "replayHash": "dc5c43030a498c1a6c703492391c797d43969322b3a0d44222e0506b78568dd0",
       "workerTicks": 60,
       "workerExact": true
     },
@@ -93,8 +93,8 @@
       },
       "suffixTicksExecuted": 144,
       "ticksExecuted": 288,
-      "hash": "b093ab31ff38be051cd2090b747beffeb72d50517035fa233aa99e40ba24b88b",
-      "replayHash": "b093ab31ff38be051cd2090b747beffeb72d50517035fa233aa99e40ba24b88b",
+      "hash": "a108d810931b9e8932e5e89215337f24b22cd832fe732fe78a6dfa2ef3327ae2",
+      "replayHash": "a108d810931b9e8932e5e89215337f24b22cd832fe732fe78a6dfa2ef3327ae2",
       "workerTicks": 144,
       "workerExact": true
     }

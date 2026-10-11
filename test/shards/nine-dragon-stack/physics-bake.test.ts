@@ -10,6 +10,10 @@ import { portalFloorRows } from '../../../src/shards/nine-dragon-stack/world/flo
 
 it('refuses stale source or model bytes before the trusted Nine physics bake is used', () => {
   expect(baked.version).toBe(1);
+  expect(baked.profile).toBe('Node / phone / no renderer');
+  expect(baked.build).toMatch(/^node-[a-f0-9]{64}$/u);
+  expect(baked.notice).toContain('DO NOT EDIT');
+  expect(Object.keys(baked.inputs)).toContain('src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs');
   expect(baked.inputs).toEqual(ninePhysicsInputs(process.cwd()));
   expect(baked.revision).toMatch(/^[a-f0-9]{40}$/u);
   expect(Object.keys(baked.inputs)).toContain('src/shards/nine-dragon-stack/world/install.ts');

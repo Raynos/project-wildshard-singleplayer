@@ -53,7 +53,7 @@ export async function visitAuthoredWorld(manifest, options) {
     ? { mesh: new THREE.Mesh(new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, TERRAIN_RES - 1, TERRAIN_RES - 1).rotateX(-Math.PI / 2)), punch: noop }
     : await options.createTerrain({ ground, forest, native });
   const player = { position: new THREE.Vector3(def.spawn.x, def.spawn.y ?? HF.heightAt(def.spawn.x, def.spawn.z), def.spawn.z), platforms: [] };
-  const game = { app, scene, camera, renderer, level: spec, tier: 'desktop', onUpdate: noop, onFixed: noop, onLate: noop, onInput: noop,
+  const game = { app, scene, camera, renderer, level: spec, tier: options.tier ?? 'desktop', onUpdate: noop, onFixed: noop, onLate: noop, onInput: noop,
     onRender: noop, onDispose: noop, hold: false, look: null };
   const world = { game, sky, forest, terrain, player, physics, registry: app.registry, chunk: def, params: new URLSearchParams(), freeCamera: false };
   const runtime = { world, step: (_name, fn) => Promise.resolve(fn({ detail: noop, set: noop })), play: null,
@@ -73,6 +73,10 @@ export async function visitAuthoredWorld(manifest, options) {
   const plugin = new Plugin();
     levelStarted = true;
     await app.loadLevel(spec, { world: (ctx) => plugin.world?.(shardContext(ctx, def, services)) });
+    if (options.practiceArena === true) {
+      const { TrainingArena } = await src('engine/practice/TrainingArena.ts');
+      new TrainingArena(game, app.registry, physics, { x: def.spawn.x, z: def.spawn.z });
+    }
     await options.visit?.({ scene, sky, forest, terrain, physics, registry: app.registry });
     const colliders = [], counts = {};
     for (const piece of app.registry.pieces) {

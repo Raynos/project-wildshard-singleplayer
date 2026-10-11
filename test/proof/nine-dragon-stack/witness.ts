@@ -41,7 +41,7 @@ export const ENTRY = 'runtime/headless.ts';
 export const SCOPE = {
   transitional: false,
   covers: [
-    'the browser-baked native colliders of the grid cell (fragment at +125 m, four landing decks open to the road, square slab, Well crossings and safety cap, placed models)',
+    'the Node-baked native colliders of the grid cell (fragment at +125 m, four landing decks open to the road, square slab, Well crossings and safety cap, placed models)',
     'the player capsule walking those colliders from the declared spawn, by tick commands',
     'the Jian as its declared row on the shipping swept melee clock (combo, one-deep queue, combo gap, cooldown, active windows), exact continuation',
     'the portal-link entry proof: 23 lanes per deck and the format\'s checked transfer to the square and back (provePortalLinks)',
