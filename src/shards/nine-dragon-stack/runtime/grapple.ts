@@ -1,3 +1,4 @@
+import type { GrappleMode } from '@wildshard/format/modes';
 import type { SimHost } from '@wildshard/engine/sim';
 import { type GrappleBody, type GrapplePorts, GrappleSim, type GrappleView } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
@@ -33,7 +34,7 @@ const Saved = v.strictObject({
 
 /**
  * Nine Dragon's Fei Zhua in the renderer-free host (SF72): the page's own law (grapple/sim.ts `GrappleSim` over
- * `wellCourse`: the reach / sight / landing test, the lift over the Well's parapet, the pull, vault and settle) on the
+ * `wellCourse` over the admitted grapple mode: the reach / sight / landing test, the lift over the Well's parapet, the pull, vault and settle) on the
  * host's physics and player capsule. The input is the tick's: a LOCK script press, the player command's JUMP (the zip),
  * and the aim's pitch; the aim is the player's eye at the command's heading and that pitch, projected as the phone's
  * portrait camera, so the hook nearest the screen's centre is the one the claw takes, as on the page.
@@ -46,7 +47,7 @@ const Saved = v.strictObject({
  * the aim, the tick's start and the cap's handles are exact continuation. A lifting crossing that settles reports the
  * Well's fact (world/feats.ts) to `fact`.
  */
-export function installNineGrapple(host: SimHost, hooks: readonly Vector3[], guardHandles: readonly number[], input: (into: GrappleInput) => void,
+export function installNineGrapple(host: SimHost, mode: GrappleMode, hooks: readonly Vector3[], guardHandles: readonly number[], input: (into: GrappleInput) => void,
   fact: NineFacts = () => { /* no ledger */ }): NineGrapple {
   const state = { pitch: 0, last: host.player.position.clone(), fall: { vy: host.playerFall.vy, grounded: host.playerFall.grounded }, guard: [...guardHandles] };
   const velocity = new Vector3();
@@ -74,7 +75,7 @@ export function installNineGrapple(host: SimHost, hooks: readonly Vector3[], gua
   const setGuard = (open: boolean): void => {
     state.guard.forEach(handle => { host.physics.world.getCollider(handle).setEnabled(!open); });
   };
-  const sim = new GrappleSim(ports, wellCourse(hooks, RIM_Z, setGuard));
+  const sim = new GrappleSim(ports, wellCourse(hooks, RIM_Z, setGuard, mode));
   const moved = new Vector3(), walked = { vy: 0, grounded: true }, tick: GrappleInput = { lock: false, jump: false, pitch: undefined };
   const none = (): null => null, unlocked = (): boolean => false;
   host.onStep(GRAPPLE_STEP, (dt) => {

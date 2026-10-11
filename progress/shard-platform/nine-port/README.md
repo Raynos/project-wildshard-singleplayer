@@ -3,8 +3,9 @@
 Status: OPEN, 2026-10-11. Baseline clean HEAD `f24a1a30c0f34344900f9f68f78d51c5b8bc3e86`; defining measure: `node scripts/shard-platform.mjs --json`.
 
 G291/G294 before: **15,209 / 21,111 = 72.0430% custom**.
-After the native Jian row slice: **15,208 / 21,111 = 72.0383% custom**; 20% gate FAIL.
-The frozen denominator is `nine-dragon-stack-legacy` at `8e297137b940f50da7f1949106d5576f80f238ca`. Current numerator: 14,299 authored shard TS lines, 1 additional GLSL line and 908 one-user platform lines. Embedded GLSL (3,205 lines) is already inside the TS numerator, not added twice. AS: 0. Generated data never counts. The template is not a second user.
+After the native Jian row slice: **15,208 / 21,111 = 72.0383% custom**.
+After explicit grapple-mode admission: **15,212 / 21,111 = 72.0572% custom**; 20% gate FAIL. The four additional host lines are charged, not presented as a size reduction.
+The frozen denominator is `nine-dragon-stack-legacy` at `8e297137b940f50da7f1949106d5576f80f238ca`. Current numerator: 14,303 authored shard TS lines, 1 additional GLSL line and 908 one-user platform lines. Embedded GLSL (3,205 lines) is already inside the TS numerator, not added twice. AS: 0. Generated data never counts. The template is not a second user.
 
 Nine remains **transitional**: its gameplay witness/replay/ledger pass, but trusted TS still runs its simulation. The source-only export has no emitted shardfile product, so the content gate is unavailable; no tiles/collider/file completeness or finished 80/20 conversion is claimed.
 
@@ -20,6 +21,12 @@ A 2,000-tick real-Rapier oracle compares every adapter continuation field agains
 - All **four** native witness recordings reproduce checkpoint payloads and outcomes byte-identically in the clean export.
 - The official generator was run in both exports. All **148** Nine physics inputs are identical; the shipped **23 pieces / 31 hooks** are unchanged. The map input hash remains `5a02e32c2e7a8de42be17385aa31990b84df0c9fb12300590e10f1551ea0892f`. No collider or map rebake is needed for these runtime-only edits.
 - Native entry coverage retains **92 capsule lanes / 8 portal transfers**, with no blocked lane. No new browser or full-suite claim is made per slice.
+
+## Second slice: admitted grapple mode
+
+The native plan requires the declared `modes.grapple` row and supplies it to the same `wellCourse`/`GrappleSim` used by the page. The page keeps its original authored default; native course hooks, Well visibility, guard, lift geometry, aim, callbacks and restored fields are unchanged. There is no second grapple algorithm or inferred course owner.
+
+An 800-tick real-Rapier oracle matches every frozen native continuation field and restores an actual flight suffix exactly. A changed admitted range changes actual hook selection; an omitted mode refuses before plan construction. All 25 focused tests/5 files pass, plus the native witness, replay, ledger and checkpoint proofs. Strict and touched typed lint pass. The four witnesses are checked; the changed recording reproduces every payload and outcome exactly. The 148 physics inputs and map hash above remain identical, so no collider/map recapture is needed. Remaining native course adapters still count as custom.
 
 ## Remaining work
 
@@ -95,9 +102,9 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `runtime/looks/paintArray.ts` | 79 | O |
 | `runtime/looks/reflectionCards.ts` | 78 | O |
 | `look/render/jiehua.ts` | 77 | O |
-| `runtime/grapple.ts` | 77 | X |
+| `runtime/grapple.ts` | 78 | X |
 | `runtime/audio/ambience.ts` | 76 | X |
-| `runtime/headless.ts` | 76 | X |
+| `runtime/headless.ts` | 78 | X |
 | `runtime/looks/cardCanopy.ts` | 70 | O |
 | `look/light/install.ts` | 68 | O |
 | `runtime/kit/kitConvert.ts` | 65 | O |
@@ -145,7 +152,7 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `mockupCameras.ts` | 34 | O |
 | `models/market.ts` | 34 | O |
 | `runtime/jian.ts` | 34 | X |
-| `grapple/sim.ts` | 32 | X |
+| `grapple/sim.ts` | 33 | X |
 | `runtime/kit/kitSet.ts` | 32 | O |
 | `vm/cloth.ts` | 32 | O |
 | `budgetCeilings.ts` | 31 | X |

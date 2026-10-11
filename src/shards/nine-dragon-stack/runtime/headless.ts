@@ -81,6 +81,8 @@ export function addNinePieces(physics: Physics): { added: number; guard: number[
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const jian = shard.items.rows.find(row => row.id === JIAN_ID);
   if (jian?.kind !== 'weapon') throw new Error('Nine Dragon declares its Jian row');
+  const grapple = shard.modes?.grapple?.find(mode => mode.id === 'grapple');
+  if (grapple === undefined) throw new Error('Nine Dragon declares its grapple mode');
   const entries = portalLinkEntries(shard.entryways);
   if (entries.length !== 4) throw new Error('Nine Dragon declares four portal-link entryways');
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: 500, height: 0 },
@@ -96,7 +98,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
       () => context.commands().some(command => command.kind === 'player' && command.heavy !== undefined));
     const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
     installNinePortals(host, fact);
-    installNineGrapple(host, NINE_HOOKS, guard, (tick) => {
+    installNineGrapple(host, grapple, NINE_HOOKS, guard, (tick) => {
       const commands = context.commands();
       tick.lock = commands.some(command => command.kind === 'script' && command.actorId === GRAPPLE_LOCK);
       tick.jump = commands.some(command => command.kind === 'player' && command.jump === true);

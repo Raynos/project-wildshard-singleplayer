@@ -2,6 +2,7 @@ import { Vector3 } from 'three';
 import { castSegment, lineOfSight } from '@wildshard/engine/physics/query';
 import type { GrappleCourse, GrapplePorts } from '@wildshard/game/plugin/mover';
 import { WELL, Y0 } from '../layout';
+import type { GrappleMode } from '@wildshard/format/modes';
 import { NINE_GRAPPLE } from '../data/modes';
 
 const RIM_WALL = Y0 + 3.2;
@@ -26,9 +27,9 @@ function seePastWellRail(ports: GrapplePorts, rimZ: number, eye: Vector3, hook: 
  * Well from the south rim — it lifts over the rim's stone parapet first, with the safety cap open (`guard`). `rimZ` is
  * the south rim's line (world/well-plan.ts `RIM.z0`, which the world's renderer-bound plan module owns).
  */
-export function wellCourse(hooks: readonly Vector3[], rimZ: number, guard: (open: boolean) => void): GrappleCourse {
+export function wellCourse(hooks: readonly Vector3[], rimZ: number, guard: (open: boolean) => void, mode: GrappleMode = NINE_GRAPPLE): GrappleCourse {
   return {
-    name: 'Nine Dragon Stack', mode: NINE_GRAPPLE,
+    name: 'Nine Dragon Stack', mode,
     hooks,
     seePast: (ports, eye, hook) => seePastWellRail(ports, rimZ, eye, hook),
     lifts: (p, landing) => p.z > rimZ && landing.z < rimZ && p.x >= WELL.x0 && p.x <= WELL.x1 && p.y >= Y0 - 1,
