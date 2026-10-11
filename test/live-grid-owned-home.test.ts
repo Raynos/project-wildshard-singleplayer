@@ -205,7 +205,7 @@ it('keeps network prefetch early but builds the destination only after crossing 
   } finally { f.finish(); }
 });
 
-it('downloads nearby products without building worlds along parallel roads, then prepares the midpoint turn-in', async () => {
+it('prepares a unique upcoming boulevard mouth early, then durably retires it for a real return turn', async () => {
   const f = await open(undefined, undefined, 10);
   const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
   try {
@@ -226,13 +226,40 @@ it('downloads nearby products without building worlds along parallel roads, then
       f.player.motor.move(f.player.position, { x: 0.5, y: -0.05, z: 0 }); f.shell.physics.step();
       f.registry.beforeFixed(); await settle();
     }
-    expect(f.creates).toEqual(['driftwood-isle']);
+    expect(f.creates).toEqual(['driftwood-isle', 'pine-hollow']);
+    expect(f.registry.ready('pine-hollow')).toBe(true); // The upcoming mouth uses the road lead time.
     f.player.position.set(0, 0.5, 277.5); f.registry.beforeFixed(); await settle();
     f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.5 }); f.shell.physics.step();
     f.registry.beforeFixed(); await settle();
-    expect(f.creates).toEqual(['driftwood-isle', 'driftwood-isle']);
+    expect(f.creates).toEqual(['driftwood-isle', 'pine-hollow', 'driftwood-isle']);
+    expect(f.disposals).toEqual(['driftwood-isle', 'pine-hollow']);
     expect(f.registry.ready('driftwood-isle')).toBe(true); expect(f.registry.current()).toBeNull();
     expect(f.owner.allocator.has('sim:pine-hollow')).toBe(false);
+  } finally { f.finish(); }
+});
+
+it('spends the full readiness horizon before a unique boulevard turn without changing the road frame', async () => {
+  const f = await open(undefined, undefined, 40), cell = f.registry.assembly.cell('nalati-grasslands');
+  const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+  try {
+    const entered = await f.registry.prepare(null, 'driftwood-isle'); entered.commit();
+    const road = await f.registry.prepare('driftwood-isle', null); road.commit();
+    expect(f.registry.unload('driftwood-isle')).toBe(true);
+    f.player.position.set(cell.origin.x - 277.5, 0.5, cell.origin.z + 200); f.registry.beforeFixed(); await settle();
+    expect(f.creates).toEqual(['driftwood-isle']); // A first, stationary sample never invents intent.
+    f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.5 }); f.shell.physics.step();
+    f.registry.beforeFixed(); await settle();
+    expect(f.creates).toEqual(['driftwood-isle', cell.instance]);
+    expect(f.registry.ready(cell.instance)).toBe(true);
+    expect(f.registry.current()).toBeNull(); expect(f.frames.at(-1)).toBeNull();
+    expect(f.registry.worldFeet().z).toBeGreaterThan(cell.origin.z + 190);
+    expect(f.owner.allocator.entries().find(row => row.id === `sim:${cell.instance}`)).toMatchObject({ bytes: 20_000_000, refs: 1 });
+    // Continuing toward the same mouth never rebuilds it on successive preparation thresholds.
+    for (let tick = 0; tick < 120; tick++) {
+      f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: -0.5 }); f.shell.physics.step();
+      f.registry.beforeFixed(); await settle();
+    }
+    expect(f.creates).toEqual(['driftwood-isle', cell.instance]); expect(f.hosts.size).toBe(1);
   } finally { f.finish(); }
 });
 

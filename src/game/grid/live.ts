@@ -98,6 +98,19 @@ function headsToEntry(cell: GridCell, feet: GridPoint, previous: GridPoint): boo
   return offset <= ENTRY_WIDTH / 2;
 }
 
+// A boulevard predicts its next midpoint turn, before the player aims at the perpendicular mouth.
+// Keep ambiguity honest: two possible cells never become two overlapping opaque worlds.
+function boulevardApproachDistance(cell: GridCell, feet: GridPoint, previous: GridPoint, pitch: number): number | undefined {
+  const delta = { x: feet.x - previous.x, z: feet.z - previous.z };
+  for (const [axis, other] of entryAxes) for (const side of [-1, 1]) {
+    const road = cell.origin[axis] + side * pitch / 2, lateral = cell.origin[other] - feet[other];
+    if (Math.abs(feet[axis] - road) > ENTRY_WIDTH / 2 || Math.abs(delta[axis]) > Math.abs(delta[other]) / 4
+      || delta[other] * lateral <= 0) continue;
+    return Math.abs(lateral) + pitch / 2 - CHUNK_HALF;
+  }
+  return undefined;
+}
+
 /** A background admission (prefetch, road approach) that fails is recorded as the cell's issue and, until an explicit
  *  retry, not attempted again: say so once, or a failed build (op-hitch33: a throwing warm-up) leaves only a route timeout. */
 async function background(instance: string, admission: Promise<unknown>, alive: () => boolean): Promise<void> {
@@ -386,13 +399,18 @@ export class LiveGridHost {
       const wallReach = 6 + this.ports.player.motor.opts.radius + 0.5 + this.ports.readiness.link.speed / 60;
       const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
         && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
-      const approach = moving ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
+      const departed = this.transitions.at(-1)?.from;
+      const boulevard = !travelled || moving !== undefined ? [] : candidates.filter(cell => cell.instance !== departed
+        && (boulevardApproachDistance(cell, feet, previous, this.assembly.pitch) ?? Infinity)
+          <= readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link).distance);
+      const early = boulevard.length === 1 ? boulevard[0] : undefined;
+      const approach = moving ?? early ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
       if (approach !== undefined && !this.issues.has(approach.instance)) {
-        // Product/module prefetch keeps the full network bound. A native world waits until the traveller
-        // crosses the road midpoint toward its entry: on the departing half, a boulevard turn still looks
-        // like entry into the opposite cell and otherwise builds an entire unrelated runtime twice.
+        // Direct cross-road approaches commit after the midpoint. A unique upcoming boulevard mouth uses
+        // the full readiness horizon; the last departed source is excluded until a real ray turns back into it.
+        // An ambiguous junction stays product/module-only until the turn identifies one destination.
         const committedReach = (this.assembly.pitch - 2 * CHUNK_HALF) / 2;
-        const reach = moving === undefined ? wallReach : Math.max(wallReach,
+        const reach = early === approach ? Infinity : moving === undefined ? wallReach : Math.max(wallReach,
           Math.min(committedReach, readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance));
         if (this.distance(approach, feet) <= reach) {
           // A turn replaces any speculative world, including a declarative copy, only after durable disposal succeeds.
