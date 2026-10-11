@@ -104,12 +104,14 @@ function variantKey(m: THREE.Material): string {
  * Shader-step jobs for every live family program not yet compiled: one plain stand-in mesh per distinct program variant
  * (instanced and skinned variants already in the scene are the scene jobs' clones), drawn with `target`'s fog and lights into `rt`. Programs the scene
  * already holds are cache hits. Empty when no family material is live.
+ * An optional material inventory restricts exterior variants to content that survives outside owned roots.
  */
-export function familyCompileJobs(target: THREE.Scene | null, rt: THREE.WebGLRenderTarget | null, per = 6): CompileJob[] {
+export function familyCompileJobs(target: THREE.Scene | null, rt: THREE.WebGLRenderTarget | null, per = 6, materials?: ReadonlySet<THREE.Material>): CompileJob[] {
   const seen = new Set<string>();
   const meshes: THREE.Mesh[] = [];
   const geometry = standIn();
   for (const m of live.keys()) {
+    if (materials !== undefined && !materials.has(m)) continue;
     const key = variantKey(m);
     if (seen.has(key)) continue;
     seen.add(key);

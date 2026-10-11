@@ -101,9 +101,12 @@ function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, sh
     for (const child of object.children) visit(child);
   };
   visit(scene);
+  const exterior = sceneJobs(scene, rt, roots === undefined ? per : 1, roots ?? [scene], state.roots).jobs;
+  const materials = new Set<THREE.Material>();
+  for (const job of exterior) job.root.traverse(object => { for (const material of materialsOf(object)) materials.add(material); });
   const jobs = roots === undefined
-    ? [...sceneJobs(scene, rt, per).jobs, ...familyCompileJobs(scene, rt, per), ...(shadows ? shadowJobs(scene, rt, per) : [])]
-    : sceneJobs(scene, rt, 1, roots).jobs;
+    ? [...exterior, ...familyCompileJobs(scene, rt, per, materials), ...(shadows ? shadowJobs(scene, rt, per, state.roots) : [])]
+    : exterior;
   // Passes with their own scene keep their authored state. Only the page world/depth variants transition outside.
   for (const job of jobs) if (job.target === scene) job.target = target;
   return jobs;
@@ -151,9 +154,20 @@ function programCount(renderer: Renderer): number {
   return Array.isArray(programs) ? programs.length : 0;
 }
 
-const materialsOf = (o: THREE.Object3D): THREE.Material[] => { const m = (o as MeshLike).material; return Array.isArray(m) ? m : m ? [m] : []; };
+function materialsOf(o: THREE.Object3D): THREE.Material[] { const m = (o as MeshLike).material; return Array.isArray(m) ? m : m ? [m] : []; }
 
 type BatchedLike = MeshLike & { isBatchedMesh?: boolean; _colorsTexture?: THREE.DataTexture | null };
+
+/** An exterior frame excludes the same owned subtrees as its light inventory, including nested roots. */
+function compileObjects(root: THREE.Object3D, visit: (object: THREE.Object3D) => void, excludedRoots?: ReadonlySet<THREE.Object3D>): void {
+  if (excludedRoots === undefined) { root.traverse(visit); return; }
+  const walk = (object: THREE.Object3D): void => {
+    if (excludedRoots.has(object)) return;
+    visit(object);
+    for (const child of object.children) walk(child);
+  };
+  walk(root);
+}
 /**
  * A detached stand-in for `mesh` that computes the same program: `clone(false)` keeps the
  * instancing / skinning / morph flags, geometry and skeleton. BatchedMesh.copy in r186 never
@@ -174,12 +188,14 @@ function standIn(mesh: MeshLike): MeshLike {
  * `clone(false)` keeps the instancing / skinning / morph flags and the geometry that pick the
  * variant, without touching live visibility or parents (gauntlet's compileMaterials).
  * `roots` restricts the borrowed inventory while retaining the target scene's lights, fog and environment.
+ * `excludedRoots` omits content that leaves with an exterior frame's lighting, without changing live visibility.
  */
-export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per = 6, roots: readonly THREE.Object3D[] = [scene]): { jobs: CompileJob[]; materials: number } {
+export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per = 6, roots: readonly THREE.Object3D[] = [scene],
+  excludedRoots?: ReadonlySet<THREE.Object3D>): { jobs: CompileJob[]; materials: number } {
   const seen = new Set<string>();
   const mats = new Set<THREE.Material>();
   const clones: THREE.Object3D[] = [];
-  for (const root of roots) root.traverse((o) => {
+  for (const root of roots) compileObjects(root, (o) => {
     const mesh = o as MeshLike;
     const list = materialsOf(mesh);
     if (list.length === 0) return;
@@ -190,7 +206,7 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
     const copy = standIn(mesh);
     copy.material = Array.isArray(mesh.material) ? wanted : first;
     clones.push(copy);
-  });
+  }, excludedRoots);
   const jobs: CompileJob[] = [];
   for (let i = 0; i < clones.length; i += per) {
     const root = new THREE.Group();
@@ -291,13 +307,14 @@ function disposerOf(resources: Iterable<{ dispose: () => void }>): () => void {
  * customDepthMaterial, else the shared MeshDepthMaterial (BasicDepthPacking — r186 shadow maps are depth textures) with the caster
  * material's map / alphaMap / alphaTest / displacement copied on and the side flipped — and it
  * draws with no fog (renderBufferDirect's empty scene) and the main scene's lights.
+ * `excludedRoots` omits casters whose owned subtree cannot draw in the requested exterior frame.
  */
-export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per = 6): CompileJob[] {
+export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per = 6, excludedRoots?: ReadonlySet<THREE.Object3D>): CompileJob[] {
   const flip: Record<number, THREE.Side> = { [THREE.FrontSide]: THREE.BackSide, [THREE.BackSide]: THREE.FrontSide, [THREE.DoubleSide]: THREE.DoubleSide };
   const seen = new Set<string>();
   const clones: THREE.Object3D[] = [];
   const temporary = new Set<THREE.Material>();
-  scene.traverse((o) => {
+  compileObjects(scene, (o) => {
     const mesh = o as MeshLike;
     if (!mesh.castShadow || !mesh.isMesh && !mesh.isPoints && !mesh.isLine) return;
     const ok = programObjectKey(mesh);
@@ -321,7 +338,7 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
       copy.material = depth;
       clones.push(copy);
     }
-  });
+  }, excludedRoots);
   // Generic variants for casters that appear after this step (a fired bolt, a fade clone, a detail LOD
   // that pops in): plain and mapped, front and double sided — cache hits when the scene already had them.
   const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); white.needsUpdate = true;

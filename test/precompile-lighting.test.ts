@@ -103,19 +103,20 @@ it('prepares shadow depths for both the previous road state and the subsequent e
 });
 
 
-it('prepares the actual exterior light and null-environment keys without changing the entered scene', async () => {
+it('prepares exterior keys only for surviving content without changing the entered scene or its first shadow variants', async () => {
   const prior = scopeEnvironment();
   installScopeEnvironment({ targetKind: () => 'other', frame: render => { queueMicrotask(() => { render(0); }); return 1; }, cancelFrame: () => undefined });
-  const page = new Scene(), inside = new Group(), parked = new Group(), camera = new PerspectiveCamera();
+  const page = new Scene(), inside = new Group(), parked = new Group(), wrapper = new Group(), camera = new PerspectiveCamera();
   const sun = new DirectionalLight(), fill = new PointLight(), local = new PointLight(), environment = new DataTexture();
   sun.castShadow = true; fill.layers.set(2); camera.layers.enable(2);
   page.environment = environment; page.fog = new Fog(0x112233, 1, 100);
-  page.add(sun, fill, inside, parked); inside.add(local); parked.add(new PointLight()); parked.visible = false;
-  const geometry = new BoxGeometry(), material = new MeshStandardMaterial(), mesh = new Mesh(geometry, material);
-  mesh.castShadow = true; inside.add(mesh);
+  page.add(sun, fill, wrapper, parked); wrapper.add(inside); inside.add(local); parked.add(new PointLight()); parked.visible = false;
+  const geometry = new BoxGeometry(), material = new MeshStandardMaterial(), outsideMaterial = new MeshStandardMaterial();
+  const mesh = new Mesh(geometry, material), outside = new Mesh(geometry, outsideMaterial);
+  mesh.castShadow = true; outside.castShadow = true; inside.add(mesh); wrapper.add(outside);
   const insideOwner = new Scope('inside'), parkedOwner = new Scope('parked'), programsOwner = new Scope('programs');
   registerExteriorLighting(page, insideOwner, inside, null); registerExteriorLighting(page, parkedOwner, parked, null);
-  const seen: { lights: string[]; environment: object | null; depth: boolean }[] = [];
+  const seen: { lights: string[]; environment: object | null; depth: boolean; owned: boolean }[] = [];
   const renderer: unknown = Object.create(WebGLRenderer.prototype), game: unknown = Object.create(Game.prototype);
   if (!(renderer instanceof WebGLRenderer) || !(game instanceof Game)) throw new Error('Fixture prototypes');
   const commands = { shadowMap: { type: 1 }, extensions: { has: () => false }, info: { programs: [] },
@@ -123,8 +124,8 @@ it('prepares the actual exterior light and null-environment keys without changin
     compile: (root: Object3D, view: PerspectiveCamera, target: Scene): void => {
       expect(page.environment).toBe(environment); expect(inside.visible).toBe(true); expect(parked.visible).toBe(false);
       expect(local.parent).toBe(inside); expect(sun.parent).toBe(page);
-      root.traverse(object => { if (object instanceof Mesh && (object.material === material || object.material instanceof MeshDepthMaterial)) {
-        seen.push({ lights: lightInputs(target, root, view), environment: target.environment, depth: object.material instanceof MeshDepthMaterial });
+      root.traverse(object => { if (object instanceof Mesh && (object.material === material || object.material === outsideMaterial || object.material instanceof MeshDepthMaterial)) {
+        seen.push({ lights: lightInputs(target, root, view), environment: target.environment, depth: object.material instanceof MeshDepthMaterial, owned: object.material === material });
         if (!(object.material instanceof MeshDepthMaterial)) expect(target.fog).toBe(page.fog);
       } });
     } };
@@ -136,6 +137,8 @@ it('prepares the actual exterior light and null-environment keys without changin
     await precompileLevel(game, undefined, { chunkCasters: false, owner: programsOwner });
     const exterior = seen.filter(row => row.environment === null);
     expect(new Set(exterior.map(row => row.depth))).toEqual(new Set([false, true]));
+    expect(exterior.some(row => row.owned)).toBe(false);
+    expect(seen.some(row => row.owned && row.environment === environment)).toBe(true);
     const interiorCount = seen.filter(row => row.environment === environment).length;
     expect(exterior.every(row => row.lights.join(',') === 'DirectionalLight:true,PointLight:false')).toBe(true);
     expect(seen.filter(row => row.environment === environment).every(row => row.lights.length === 3)).toBe(true);
@@ -145,7 +148,7 @@ it('prepares the actual exterior light and null-environment keys without changin
     inside.visible = true; insideOwner.dispose(); parkedOwner.dispose(); seen.length = 0;
     await precompileLevel(game, undefined, { chunkCasters: false, owner: programsOwner });
     expect(seen).toHaveLength(interiorCount); expect(seen.every(row => row.environment === environment)).toBe(true);
-  } finally { insideOwner.dispose(); parkedOwner.dispose(); programsOwner.dispose(); composer.dispose(); material.dispose(); geometry.dispose(); environment.dispose(); installScopeEnvironment(prior); }
+  } finally { insideOwner.dispose(); parkedOwner.dispose(); programsOwner.dispose(); composer.dispose(); material.dispose(); outsideMaterial.dispose(); geometry.dispose(); environment.dispose(); installScopeEnvironment(prior); }
 });
 
 it('prepares newly streamed hidden roots for both page and exterior lighting before exposure', async () => {
