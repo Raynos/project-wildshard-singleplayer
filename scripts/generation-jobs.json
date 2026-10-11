@@ -1644,8 +1644,8 @@
       "entry": "src/shards/far-reach/generators/risingIslets.ts",
       "command": [
         "--import",
-        "./scripts/sim-node-loader.mjs",
-        "scripts/generate-json.mjs",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
         "src/shards/far-reach/generators/risingIslets.ts",
         "risingIsletRows",
         "src/shards/far-reach/data/islets.generated.json"
@@ -1657,12 +1657,12 @@
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/isletDesign.ts",
         "src/shards/far-reach/generators/risingIslets.ts",
-        "scripts/sim-node-loader.mjs",
-        "lint/sim-schema-leaves.json",
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "scripts/generate-json.mjs"
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/format"
       ],
       "outputs": [
         "src/shards/far-reach/data/islets.generated.json"
