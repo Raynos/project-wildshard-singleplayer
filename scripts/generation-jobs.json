@@ -950,6 +950,9 @@
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/bake-sky-physics.mjs",
       "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
         "src/shards/far-reach/generators/bake-sky-physics.mjs"
       ],
       "inputRoots": [
@@ -967,8 +970,7 @@
       "outputs": [
         "src/shards/far-reach/runtime/physics.baked.json"
       ],
-      "platform": "darwin",
-      "capture": true
+      "platform": "portable"
     },
     {
       "id": "signal-rigs",

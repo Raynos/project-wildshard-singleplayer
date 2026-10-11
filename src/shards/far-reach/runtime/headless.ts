@@ -69,7 +69,7 @@ export const UPDRAFT_STEP = 'far.updraft';
 /**
  * Sky Reach's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). A structures-only world: no terrain
  * collider (`ground: false`), the analytic placement floor at -1000 m, and every island, rope bridge, dock, lip and prop
- * the browser registers, from the browser-baked native colliders (the hover decks and the updraft ramp collide only on the
+ * the browser registers, from the Node-baked native colliders (the hover decks and the updraft ramp collide only on the
  * board, through the host's board mode; the fallen crown bridge stays out), with the host's layered WORLD floor queries
  * for flight and falls. Owns the 13 declared bodies and their shipping policies (runtime/flock.ts) and the Storm Roc's encounter (runtime/roc.ts: BossBrain, its
  * fact and purse) and the War Fan (runtime/fan.ts: the browser fan's own move recipe; a `player.attack` is its light

@@ -1,63 +1,90 @@
 #!/usr/bin/env node
-// Trusted SF72 metadata only: real native browser recipes remain the shipping source.
-// scripts/browser-lane.sh node src/shards/far-reach/generators/bake-sky-physics.mjs --url=<clean candidate preview>
-import { chromium, devices } from 'playwright';
-import { writeFileSync } from 'node:fs';
+// DS1.5: build the real authored world and its finite native creature models in Node; never import a recorded physics bake.
+// node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/far-reach/generators/bake-sky-physics.mjs [--check]
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
+import { byteWriter } from '../../../../scripts/bake-output.mjs';
+import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs';
+import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 import { skyPhysicsInputs } from '../../../../scripts/sky-physics-inputs.mjs';
-import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
-const url = process.argv.find(arg => arg.startsWith('--url='))?.slice(6);
-if (url === undefined) throw new Error('bake-sky-physics requires a clean-candidate --url');
-const revision = process.argv.find(arg => arg.startsWith('--revision='))?.slice(11)
-  ?? execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-const version = await (await fetch(new URL('/version.json', url))).json();
-if (typeof version.build !== 'string' || !version.build.startsWith(`${revision.slice(0, 7)}-`)) throw new Error(`Sky bake revision mismatch: ${JSON.stringify(version)} vs ${revision}`);
-const errors = [];
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
+const at = path => import(pathToFileURL(resolve(root, path)).href);
+const environment = installBakeEnvironment(root);
+const noop = () => undefined;
+const copy = value => JSON.parse(JSON.stringify(value, (_key, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
 try {
-  const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
-  await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
-  const page = await context.newPage(); page.on('pageerror', error => { errors.push(String(error)); });
-  await page.goto(new URL('/?chunk=far-reach&mute=1&skipintro=1&nolock=1&sw=0&tier=phone', url).href, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.__wildshard?.world?.game?.app?.debug.snapshot().farReach?.goats.length === 5 && !document.querySelector('.ws-load'), null, { timeout: 180000 });
-  const capture = () => {
-    const g = window.__wildshard.world.game, sky = g.app.debug.snapshot().farReach;
-    for (const [name, value] of Object.entries(g.app.debug.snapshot())) if (name.startsWith('movers.') && typeof value?.showRest === 'function') value.showRest();
-    const copy = value => JSON.parse(JSON.stringify(value, (_key, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
-    const actors = [], add = (id, actor) => {
-      if (!actor?.simSpec) throw new Error(`Missing native simulation spec: ${id}`);
-      actors.push({ id, spec: copy(actor.simSpec), seed: actor.seed, scale: actor.scale });
-    };
-    sky.rays.forEach((actor, i) => add(`far.ray.${i}`, actor));
-    sky.roostRays.forEach((actor, i) => add(`far.roost.${i}`, actor));
-    sky.wisps.forEach((actor, i) => add(`far.wisp.${i}`, actor)); add('far.roc', sky.roc);
-    sky.goats.forEach((actor, i) => add(`far.goat.${i}`, actor));
-    // a piece whose `active` follows the rider's mode (the hover decks and the updraft collide only on the board) is
-    // sampled both ways: `active` stays the on-foot state, `mode` names the one mode it collides in (SimHost.boardColliders)
-    const player = window.__wildshard.world.player, riding = player.hover;
-    const activeIn = (piece, hover) => { player.hover = hover; try { return piece.active?.() ?? true; } finally { player.hover = riding; } };
-    const pieces = g.app.registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
-      const foot = activeIn(piece, false), board = activeIn(piece, true);
-      const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: copy(piece.colliders), active: foot };
-      if (foot !== board) row.mode = board ? 'board' : 'foot';
-      if (piece.surface !== undefined) row.surface = piece.surface;
-      if (piece.colliderOwner !== undefined) row.colliderOwner = piece.colliderOwner;
-      if (piece.follows !== undefined) {
-        piece.follows.updateWorldMatrix(true, false);
-        row.follows = { matrix: piece.follows.matrixWorld.toArray(), rotation: piece.followRotation !== false };
+  const THREE = await import('three');
+  const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.DirectionalLight()], update: noop },
+    hemi: new THREE.HemisphereLight(), sunDisc: new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshBasicMaterial()),
+    planet: new THREE.Group(), clouds: null, dayNight: null, viewCamera: new THREE.PerspectiveCamera(), sunDir: new THREE.Vector3(0, 1, 0) },
+  { get: (target, key) => key in target ? target[key] : typeof key === 'string' && key.endsWith('Color')
+    ? new THREE.Color(1, 1, 1) : typeof key === 'string' && key.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
+  (await at('src/engine/core/tier.ts')).initializeTier('phone');
+  const { default: manifest } = await at('src/shards/far-reach/manifest.ts');
+  (await at('src/game/shard/list.ts')).installShards([manifest]);
+  (await at('src/game/shard/registry.ts')).setActiveChunk(manifest.slug);
+  const captures = [];
+  await visitAuthoredWorld(manifest, { root, sky, element: environment.element, tier: 'phone', practiceArena: true,
+    createTerrain: () => ({ mesh: new THREE.Mesh(new THREE.PlaneGeometry(500, 500).rotateX(-Math.PI / 2)), punch: noop }),
+    visit: async ({ scene, forest, registry }) => {
+      const { app } = await at('src/engine/app/runtime.ts');
+      const scope = app.levelScope;
+      if (scope === null) throw new Error('Sky capture requires the owned level scope');
+      // Exactly the native kit's four species/look registrations. Only presentation callbacks remain inert: no AI tick runs.
+      for (const [file, row, look] of [['driftRay', 'DRIFT_RAY', 'DRIFT_RAY_LOOK'], ['skyGoat', 'SKY_GOAT', 'SKY_GOAT_LOOK'],
+        ['galeWisp', 'GALE_WISP', 'GALE_WISP_LOOK'], ['stormRoc', 'STORM_ROC', 'STORM_ROC_LOOK']]) {
+        const module = await at(`src/shards/far-reach/species/${file}.ts`);
+        app.species.registerRow(module[row], scope); app.species.registerLook(module[look], scope);
       }
-      return row;
-    });
-    return { actors, pieces };
-  };
-  const first = await page.evaluate(capture), second = await page.evaluate(capture);
-  if (JSON.stringify(first) !== JSON.stringify(second)) throw new Error('Native collision metadata changed between independent captures');
-  if (errors.length > 0 || first.actors.length !== 13 || first.pieces.length === 0) throw new Error(`Invalid native Sky bake: ${JSON.stringify(errors)}`);
-  const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: skyPhysicsInputs(root), ...first };
-  writeFileSync(resolve(root, 'src/shards/far-reach/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
-  console.log(`bake-sky-physics: ${first.actors.length} native actors, ${first.pieces.length} collider pieces, exact repeated browser equality`);
-  await context.close();
-} finally { await browser.close(); }
+      const { skyBody } = await at('src/shards/far-reach/species/bodies.ts');
+      // Refuse the browser's visual fallback: these admitted GLB rigs are the physical dimensions' source.
+      for (const name of ['drift-ray', 'sky-goat', 'storm-roc']) {
+        const body = skyBody(name);
+        if (body === null) throw new Error(`Missing native Sky rig ${name}`);
+        for (const geometry of [...body.furParts, ...body.hardParts, ...body.eyeParts]) geometry.dispose();
+      }
+      const { AnimalManager } = await at('src/engine/entities/AnimalManager.ts');
+      const animals = new AnimalManager(scene, sky, forest).build();
+      const { SKY_SPAWNS } = await at('src/shards/far-reach/data/spawns.ts');
+      // The native play phase spawns rays, roost rays, wisps, then the Roc. The first fixed-post phase adds five goats.
+      // Use the actual manager's spawn rolls/adoption, retaining all six draws per body in the shipping order.
+      const roster = [...SKY_SPAWNS.actors.filter(row => row.kind !== 'skyGoat'), ...SKY_SPAWNS.bosses,
+        ...SKY_SPAWNS.actors.filter(row => row.kind === 'skyGoat')];
+      const actors = roster.map(row => {
+        const animal = animals.spawn(row.kind, row.at[0], row.at[1], row.yaw, row.look, { entityId: row.id });
+        return { id: row.id, spec: copy(animal.simSpec), seed: animal.seed, scale: animal.scale };
+      });
+      const pieces = registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
+        // Piece.mode is the actual registry's board law, independent of a renderer/player instance.
+        const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file,
+          colliders: copy(piece.colliders), active: piece.mode === 'board' ? false : piece.active?.() ?? true };
+        if (piece.mode !== undefined) row.mode = piece.mode;
+        if (piece.surface !== undefined) row.surface = piece.surface;
+        if (piece.colliderOwner !== undefined) row.colliderOwner = piece.colliderOwner;
+        if (piece.follows !== undefined) {
+          piece.follows.updateWorldMatrix(true, false);
+          row.follows = { matrix: piece.follows.matrixWorld.toArray(), rotation: piece.followRotation !== false };
+        }
+        return row;
+      });
+      if (actors.length !== 13 || pieces.length === 0 || new Set(pieces.map(piece => piece.id)).size !== pieces.length) {
+        throw new Error('Invalid native Sky Node capture');
+      }
+      captures.push({ actors, pieces });
+    },
+  });
+  const captured = captures[0];
+  if (captured === undefined) throw new Error('Sky authored capture did not complete');
+  const inputs = skyPhysicsInputs(root), digest = createHash('sha256').update(JSON.stringify(inputs)).digest('hex');
+  const result = { version: 1, revision: digest.slice(0, 40), build: `node-${digest}`, profile: 'Node / phone / no renderer',
+    notice: 'DO NOT EDIT: regenerate with generators/bake-sky-physics.mjs. revision identifies the recipe inputs.', inputs, ...captured };
+  const writer = byteWriter(process.argv.includes('--check'), 'bake-sky-physics');
+  writer.put(resolve(root, 'src/shards/far-reach/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
+  writer.finish();
+  console.log(`bake-sky-physics: ${String(captured.actors.length)} native actors, ${String(captured.pieces.length)} collider pieces, Node canonical`);
+} finally {
+  try { (await at('src/engine/app/resources.ts')).pageScope.dispose(); }
+  finally { environment.dispose(); }
+}
