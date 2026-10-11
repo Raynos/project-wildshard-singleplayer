@@ -1,0 +1,242 @@
+{
+  "schema": "frame-floor-summary/1",
+  "source": "9bd93c090",
+  "settings": {
+    "developer": true,
+    "buildPacing": "on",
+    "fps": "auto",
+    "tier": "phone",
+    "renderScale": 2,
+    "seed": 357,
+    "glTiming": false,
+    "cpuProfile": false
+  },
+  "limits": {
+    "simP95Ms": 35,
+    "simMaximumMs": 200
+  },
+  "rows": [
+    {
+      "capture": "nalati-road-before",
+      "pin": "88b76f10c682fae6796d276a5cfd83d94bc504de",
+      "surface": "sim",
+      "route": {
+        "name": "nalati-grasslands-road-entry",
+        "from": null,
+        "to": "nalati-grasslands",
+        "movement": "road-hover",
+        "start": {
+          "x": 277.5,
+          "z": 277.5
+        },
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": 0
+          },
+          {
+            "x": 345,
+            "z": 0
+          }
+        ],
+        "requiredResidents": [
+          "nalati-grasslands"
+        ],
+        "finishOnArrival": true,
+        "observePreparation": true,
+        "hoverMaxSpeed": 30
+      },
+      "elapsedSeconds": 38.398,
+      "drive": {
+        "frames": 1200,
+        "p95Ms": 34,
+        "maxMs": 92,
+        "workP95Ms": 7
+      },
+      "framesOver50Ms": 8,
+      "errors": []
+    },
+    {
+      "capture": "nalati-road-after",
+      "pin": "fe363a5d02239895b7e19f63189e5ed3cd40d1fb",
+      "surface": "sim",
+      "route": {
+        "name": "nalati-grasslands-road-entry",
+        "from": null,
+        "to": "nalati-grasslands",
+        "movement": "road-hover",
+        "start": {
+          "x": 277.5,
+          "z": 277.5
+        },
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": 0
+          },
+          {
+            "x": 345,
+            "z": 0
+          }
+        ],
+        "requiredResidents": [
+          "nalati-grasslands"
+        ],
+        "finishOnArrival": true,
+        "observePreparation": true,
+        "hoverMaxSpeed": 30
+      },
+      "elapsedSeconds": 32.444,
+      "drive": {
+        "frames": 1020,
+        "p95Ms": 35,
+        "maxMs": 89,
+        "workP95Ms": 7
+      },
+      "framesOver50Ms": 13,
+      "errors": []
+    },
+    {
+      "capture": "sky-before",
+      "pin": "88b76f10c682fae6796d276a5cfd83d94bc504de",
+      "surface": "sim",
+      "route": {
+        "name": "far-reach-road-entry",
+        "from": null,
+        "to": "far-reach",
+        "movement": "road-hover",
+        "start": {
+          "x": 0,
+          "z": -277.5
+        },
+        "waypoints": [
+          {
+            "x": 0,
+            "z": -345
+          }
+        ],
+        "requiredResidents": [
+          "far-reach"
+        ],
+        "finishOnArrival": true
+      },
+      "elapsedSeconds": 11.271,
+      "drive": {
+        "frames": 390,
+        "p95Ms": 41,
+        "maxMs": 72,
+        "workP95Ms": 7
+      },
+      "framesOver50Ms": 6,
+      "errors": []
+    },
+    {
+      "capture": "sky-after",
+      "pin": "fe363a5d02239895b7e19f63189e5ed3cd40d1fb",
+      "surface": "sim",
+      "route": {
+        "name": "far-reach-road-entry",
+        "from": null,
+        "to": "far-reach",
+        "movement": "road-hover",
+        "start": {
+          "x": 0,
+          "z": -277.5
+        },
+        "waypoints": [
+          {
+            "x": 0,
+            "z": -345
+          }
+        ],
+        "requiredResidents": [
+          "far-reach"
+        ],
+        "finishOnArrival": true
+      },
+      "elapsedSeconds": 9.827,
+      "drive": {
+        "frames": 330,
+        "p95Ms": 39,
+        "maxMs": 100,
+        "workP95Ms": 8
+      },
+      "framesOver50Ms": 9,
+      "errors": []
+    },
+    {
+      "capture": "nalati-interior-after",
+      "pin": "fe363a5d02239895b7e19f63189e5ed3cd40d1fb",
+      "surface": "sim",
+      "route": {
+        "name": "nalati-grasslands-road-entry",
+        "from": null,
+        "to": "nalati-grasslands",
+        "movement": "road-hover",
+        "start": {
+          "x": 277.5,
+          "z": 277.5
+        },
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": 0
+          },
+          {
+            "x": 345,
+            "z": 0
+          }
+        ],
+        "requiredResidents": [
+          "nalati-grasslands"
+        ],
+        "finishOnArrival": false,
+        "observePreparation": true,
+        "hoverMaxSpeed": 30
+      },
+      "elapsedSeconds": 41.173,
+      "drive": {
+        "frames": 1260,
+        "p95Ms": 34,
+        "maxMs": 91,
+        "workP95Ms": 8
+      },
+      "framesOver50Ms": 14,
+      "errors": []
+    }
+  ],
+  "readiness": {
+    "shard": "nalati-grasslands",
+    "before": {
+      "afterPlayMs": 18045,
+      "approachLeadSeconds": 1.601,
+      "observedWallSeconds": 23.683
+    },
+    "after": {
+      "afterPlayMs": 11883,
+      "approachLeadSeconds": 1.586,
+      "observedWallSeconds": 17.632
+    },
+    "geometricEntryAfter": {
+      "firstVisibleSeconds": 32.27,
+      "firstVisibleX": 305.565,
+      "borderX": 305,
+      "residentReadyAtVisibility": true
+    }
+  },
+  "loadAverage1m": [
+    7.46,
+    11.68,
+    9.6,
+    12.16,
+    12.84
+  ],
+  "limitations": [
+    "Single runs, not a variance estimate.",
+    "Matched pins predate the later horizon and residency fixes.",
+    "Road drive includes boulevard and wall-wait frames; its p95 is not comparable to a short edge-entry drive.",
+    "Matched Nalati pair ends at motor transfer; the additional after run reaches geometric interior.",
+    "No edge-wait elimination or Sky p95 pass is claimed.",
+    "Current-HEAD Signal/template maximum checks and desktop control are pending."
+  ]
+}
