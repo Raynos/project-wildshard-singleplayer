@@ -3029,3 +3029,20 @@ The SF26 fixture admits both fragments for two primary shards, reads the origina
 hash-addressed bytes through `ClientAssets`, charges each once, and releases the two
 leases independently. Native body/playback routing to these files is still open;
 qualification and product admission are not evidence of production adoption.
+
+
+### Parametric grazers (SF82 BR-1)
+
+`@wildshard/engine/ai/grazer` defines `GrazerBrain`, with `GrazerProfile` selecting
+`wander-ram` or `circle-challenge` tuning and strike data. `GrazerObservation` supplies
+only the selected pattern's trusted target, random stream, home and body/contact ports.
+One owner handles the strike runner, observation fence and atomic continuation. Neither
+pattern installs a body, chooses a random stream or executes contacts on restore.
+
+`ai/ramGrazer` and `ai/challengeGrazer` remain the defining legacy constructor paths:
+they are parameter presets, preserving their row names, public observations, inspect
+phases and byte-identical saved JSON. Wandering rams retain their three-dimensional
+notice distance and duration-before-yaw random draws; circular challengers retain their
+horizontal notice distance, timed face phase and ordered charge/close utility selection.
+The herd pattern and the other SF82 archetypes remain open; this slice adds no new wire
+row, species registration, collider or gameplay migration.

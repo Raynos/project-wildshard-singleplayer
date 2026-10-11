@@ -20,8 +20,8 @@ once, charges each once with two independent leases, then disposes both leases t
 This is a product/cache qualification, not a claim that the native body factories now
 read these emitted files. No native factory, collider, animation or view changes here.
 
-The native model adoption remains blocked on the original WebP texture contract:
-current material admission permits KTX2 only. The lossless Meshopt compiler and the
+Native figure-model adoption remains **open for an Opus KTX2 look/quality pass**.
+Admission stays KTX2-only: original WebP is not admitted as a material texture. The lossless Meshopt compiler and the
 exact native figure pixel O-check landed in `ac9fd85f7`; no WebP re-encoding, binary-cost
 bypass or presentation-image bypass has been used.
 

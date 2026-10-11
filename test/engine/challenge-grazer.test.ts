@@ -1,5 +1,8 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Hash the renderer-free trace against the captured shipping policy.
+import { createHash } from 'node:crypto';
 import { afterAll, describe, expect, it } from 'vitest';
 import { ChallengeGrazerBrain, type ChallengeGrazerSpec } from '../../src/engine/ai/challengeGrazer';
+import { GrazerBrain } from '../../src/engine/ai/grazer';
 import type { Animal } from '../../src/engine/entities/AnimalView';
 import { registerSpecies } from '../../src/engine/entities/species/registry';
 import { speciesWithLook } from '../../src/engine/entities/species/look';
@@ -42,11 +45,15 @@ function drive(f: ReturnType<typeof fixture>, tick: number, scenario: Scenario):
   if (scenario === 'damaged' && tick === 200) f.animal.hp = f.animal.maxHp - 1;
   f.advance(1);
 }
-function replay(platform: boolean, scenario: Scenario): object {
-  const f = fixture(platform), frames: ReturnType<Animal['snapshot']>[] = [], phases: string[] = [];
-  for (let tick = 0; tick < 10000; tick++) { drive(f, tick, scenario); frames.push(f.animal.snapshot()); phases.push(f.policy().state); }
-  return { frames, phases, hits: f.hits, sounds: f.sounds, starts: f.starts, rng: f.ctx.rng.snapshot() };
+function replay(platform: boolean, scenario: Scenario): string {
+  const f = fixture(platform), trace = createHash('sha256');
+  for (let tick = 0; tick < 10000; tick++) {
+    drive(f, tick, scenario); trace.update(JSON.stringify({ actor: f.animal.snapshot(), phase: f.policy().state }));
+  }
+  trace.update(JSON.stringify({ hits: f.hits, sounds: f.sounds, starts: f.starts, rng: f.ctx.rng.snapshot() }));
+  return trace.digest('hex');
 }
+
 describe('declared challenge grazer', () => {
   it.each(['contact', 'cover', 'tokens', 'calm', 'damaged', 'far'] as const)('matches the captured shipping policy for 10,000 ticks: %s', scenario => {
     expect(replay(true, scenario)).toEqual(replay(false, scenario));
@@ -88,5 +95,21 @@ describe('declared challenge grazer', () => {
     const zero = { ...f.ctx, dt: 0, phaseOffset: slot(f.animal, 6) };
     expect(() => { policy.think(zero); policy.think(zero); policy.act(zero); }).not.toThrow();
     for (let tick = 1500; tick < 1800; tick++) drive(f, tick, 'contact');
+  });
+  it('restores the existing preset save into the parametric owner and refuses a different observation before effects', () => {
+    const f = fixture(true);
+    for (let tick = 0; tick < 1400; tick++) drive(f, tick, 'contact');
+    const legacy = f.policy();
+    if (!(legacy instanceof ChallengeGrazerBrain)) throw new Error('Missing preset');
+    const saved = legacy.snapshot(), actor = f.animal.snapshot(), rng = f.ctx.rng.snapshot();
+    const starts = f.starts.length, hits = f.hits.length;
+    const brain = new GrazerBrain(f.animal, { pattern: 'circle-challenge', spec: SPEC, charge: CHARGE, close: HORNS });
+    brain.restore(saved);
+    expect(brain.snapshot()).toBe(saved); expect(brain.state).toBe(legacy.state);
+    const wrong = { ...f.ctx, pattern: 'wander-ram' as const, home: { x: 0, z: 0, y: 0, r: 20 } };
+    expect(() => brain.think(wrong)).toThrow('Incompatible grazer observation');
+    expect(() => brain.act(wrong)).toThrow('Incompatible grazer observation');
+    expect(brain.snapshot()).toBe(saved); expect(f.animal.snapshot()).toEqual(actor);
+    expect(f.ctx.rng.snapshot()).toEqual(rng); expect(f.starts.length).toBe(starts); expect(f.hits.length).toBe(hits);
   });
 });
