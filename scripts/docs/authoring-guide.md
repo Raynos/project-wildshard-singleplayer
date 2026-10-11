@@ -162,9 +162,10 @@ All four are ordinary `Object3D` declarations. `Zipline` and `Updraft` have loca
 endpoint vectors, lowered through their world transforms. `Mount` emits ordered
 walk/trot/canter/gallop speeds; `Grapple` emits bounded range and timing controls.
 `toModeData()` yields rows for `modes.traverse`,
-`modes.ride` and `modes.grapple`. Compose these rows explicitly: current scene
-inspection retains the objects' graph nodes but does not automatically collect
-a `modes` section. The example is a Template-sized demonstration.
+`modes.ride` and `modes.grapple`. `readScene(scene)` collects these objects into
+its admitted `modes` section in traversal order, including parent-transformed
+endpoints. No mode objects means no `modes` key. The example is a Template-sized
+demonstration.
 
 <!-- example: modes -->
 

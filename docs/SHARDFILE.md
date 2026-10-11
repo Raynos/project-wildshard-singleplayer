@@ -1519,8 +1519,11 @@ The root `modes` section requires `runtime.binds: ['modes']`: actual native
 player/body/input owners consume it at their existing phase; an unbound data-only
 section refuses. No declaration grants a mount, invents anchors or installs a
 second scheduler. The checked SDK guide contains a working example of all four.
-Current scene inspection does not automatically collect `modes`; compose its rows
-explicitly. Water/hover-deck mode declarations remain separate open work.
+`readScene(scene)` automatically collects mode objects into validated `modes`
+rows in traversal order, applying parent endpoint transforms once. Empty ride/grapple
+categories and an entirely absent modes section stay omitted. Duplicate identities,
+invalid ranges and row caps refuse through the defining format parser.
+Water/hover-deck mode declarations remain separate open work.
 
 
 SF81 encounter stages: Sky and Signal declare their bossStages.json under directors. The row interpreter selects native intro, fight, resume, phase and victory transitions through the fixed emit action set; existing numeric eligibility and callback ordering remain the native boss port observations. These boolean stage machines need no AS escape handler. Their page and headless boss share the exact contract/cursor; body ownership, clocks, presentation, damage/shields and reward filing remain their original owners.

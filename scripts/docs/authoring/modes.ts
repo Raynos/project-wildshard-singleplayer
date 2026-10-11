@@ -11,6 +11,7 @@ export function modesExample() {
   const mount = new Mount({ walk: 2, trot: 4, canter: 7, gallop: 10 }); mount.name = 'template.ride';
   const grapple = new Grapple(); grapple.name = 'template.grapple';
   scene.add(cable, wind, mount, grapple);
-  const rows = parseModes({ traverse: [cable.toModeData(), wind.toModeData()], ride: [mount.toModeData()], grapple: [grapple.toModeData()] });
-  return { rows, scene: readScene(scene) };
+  const data = readScene(scene);
+  if (data.modes === undefined) throw new Error('Missing authored mode rows');
+  return { rows: parseModes(data.modes), scene: data };
 }
