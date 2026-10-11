@@ -992,7 +992,7 @@
         "ctx.app": 11,
         "ctx.game": 1,
         "ctx.game.runtime": 1,
-        "engineSubclasses": 8,
+        "engineSubclasses": 9,
         "subclass.EliteBrain": 5,
         "context.debugRow": 3,
         "context.scope": 25,
@@ -1005,7 +1005,7 @@
         "context.app": 11,
         "context.rows": 11,
         "context.answer": 1,
-        "subclass.Weapon": 1,
+        "subclass.Weapon": 2,
         "subclass.TreeFactory": 1,
         "subclass.Weather": 1
       },

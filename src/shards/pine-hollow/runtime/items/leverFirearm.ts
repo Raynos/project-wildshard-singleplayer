@@ -106,7 +106,7 @@ export interface LeverFirearmView {
   /** the ejection port, where the case leaves */
   readonly port: readonly [number, number, number];
   /** the action's clock: the dry pull's auto-reload delay, the loading roll in / out, one round through the gate */
-  readonly timing: { readonly autoReloadDelay: number; readonly reloadIn: number; readonly reloadOut: number; readonly roundTime: number };
+  readonly timing: { readonly autoReloadDelay: number; autoReloadClose?: number; readonly reloadIn: number; readonly reloadOut: number; readonly roundTime: number };
   /** the hip pose (lower right) and the model's scale */
   readonly hip: { readonly px: number; readonly py: number; readonly pz: number; readonly rx: number; readonly ry: number; readonly rz: number; readonly scale: number };
   /** the lever thrown, added to the hip pose at full throw */
@@ -593,7 +593,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
   }
   protected override autoReloadDue(): boolean {
-    return this.act.wantsAutoReload && this.sinceEmpty > this.view.timing.autoReloadDelay && this.sinceEmpty < 5 && this.active && this.enabled;
+    return this.act.wantsAutoReload && this.sinceEmpty > this.view.timing.autoReloadDelay && this.sinceEmpty < (this.view.timing.autoReloadClose ?? 5) && this.active && this.enabled;
   }
 
   private poseRound(): void {

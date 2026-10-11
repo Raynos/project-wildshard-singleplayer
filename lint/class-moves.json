@@ -89,14 +89,6 @@
       "to": "src/shards/pine-hollow/runtime/items/boltCrossbow.ts",
       "base": "Weapon"
     },
-    "src/shards/pine-hollow/runtime/items/leverFirearm.ts:67ee2005ae28a57590a58cd6b6dd9708643cf91ebba731508fe054c5bc15e6fd": {
-      "hash": "67ee2005ae28a57590a58cd6b6dd9708643cf91ebba731508fe054c5bc15e6fd",
-      "name": "LeverFirearm",
-      "baseFile": "src/engine/combat/Firearm.ts",
-      "from": "src/game/systems/items/leverFirearm.ts",
-      "to": "src/shards/pine-hollow/runtime/items/leverFirearm.ts",
-      "base": "Weapon"
-    },
     "src/shards/pine-hollow/runtime/items/leverFirearm.ts:1139d474e5e8869d4ba20cdac26487cc933972daed651b5da76b2848193f5f76": {
       "hash": "1139d474e5e8869d4ba20cdac26487cc933972daed651b5da76b2848193f5f76",
       "name": "<anonymous>",

@@ -15,6 +15,7 @@ import { installPineElites } from './elites';
 import { installPineKing } from './king';
 import { installPineCrossbow } from './weapons/headlessCrossbow';
 import { installPineLever } from './weapons/headlessLever';
+import { parseLeverProfile } from '../weapons/leverAction';
 import { installPineLongbow } from './weapons/headlessLongbow';
 import { AIM_COMMAND, AIM_MIDDLE, aimShare } from './weapons/headlessRanged';
 import { installPineLoadout, PINE_WEAPON, WEAPON_COMMAND } from './weapons/headlessLoadout';
@@ -114,6 +115,9 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const row = shard.items.rows.find(item => item.id === 'weapon.longbow');
   if (row?.kind !== 'weapon' || row.family !== 'bow') throw new Error('Missing admitted Pine bow profile');
   const bowProfile = v.parse(BowWeaponProfileSchema, row.profile);
+  const leverRow = shard.items.rows.find(item => item.id === 'weapon.lever');
+  if (leverRow?.kind !== 'weapon' || leverRow.family !== 'firearm') throw new Error('Missing admitted Pine lever profile');
+  const leverProfile = parseLeverProfile(leverRow.profile);
   const director = await preparePineDirector(), nightDirector = await preparePineNightDirector();
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
   const nav = navBytes === undefined ? null : parseNavmesh(buffer(navBytes));
@@ -130,7 +134,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     const fresh = createSimHost(level, { ground: false, heightAt, rapier });
     try { addPineWorld(fresh, bake, isPineEdgeWall); fresh.step(); return provePineEntries(fresh.physics, shard.entryways, heightAt); } finally { fresh.dispose(); }
   }, install: (host, context) => {
-    installPine(host, { bake, grid, nav, heightAt, director, nightDirector, bowProfile, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
+    installPine(host, { bake, grid, nav, heightAt, director, nightDirector, bowProfile, leverProfile, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
       // a player command's attack pulls the held weapon's trigger at that body; its HEAVY hold draws the longbow; a
       // `pine.weapon` script command picks a weapon (the tick's last)
       shots: () => context.commands().flatMap(command => command.kind === 'player' && command.attack !== undefined ? [command.attack.targetId] : []),
@@ -144,6 +148,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
 };
 
 export interface PineInstall {
+  /** Admitted numeric lever row; isolated fixtures retain the exact authored default. */
+  readonly leverProfile?: ReturnType<typeof parseLeverProfile>;
   /** Admitted numeric bow row; isolated native fixtures use the same authored default. */
   readonly bowProfile?: v.InferOutput<typeof BowWeaponProfileSchema>;
   /** Already admitted module factory; each installed quest consumes its own fresh author state. */
@@ -223,7 +229,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   let ammunition: PineAmmunition | null = null;
   const crossbow = installPineCrossbow(host, { shots, enabled: () => loadout.live(PINE_WEAPON.crossbow), bodies, aim,
     ammunition: () => ammunition?.selected ?? 'iron', flight: kind => boltFlight(kind, atmosphere().weather.rain) });
-  const lever = installPineLever(host, { shots, enabled: () => loadout.live(PINE_WEAPON.lever), bodies, aim, speedFactor });
+  const lever = installPineLever(host, { ...(parts.leverProfile === undefined ? {} : { profile: parts.leverProfile }), shots, enabled: () => loadout.live(PINE_WEAPON.lever), bodies, aim, speedFactor });
   const longbow = installPineLongbow(host, { ...(parts.bowProfile === undefined ? {} : { profile: parts.bowProfile }), heavy, enabled: () => loadout.live(PINE_WEAPON.longbow), bodies, aim, speedFactor,
     wind: { vecAt: (x, z, out) => atmosphere().wind.vecAt(x, z, out) } });
   const ammunitionOwner = new PineAmmunition({ crossbow, lever, longbow }); ammunition = ammunitionOwner;

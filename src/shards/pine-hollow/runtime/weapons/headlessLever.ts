@@ -1,3 +1,4 @@
+import { LEVER_WEAPON_PROFILE } from '../../data/leverProfile';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -5,26 +6,24 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { instantSpreadDegrees } from '@wildshard/engine/combat/shotSpread';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, TUBE_MAX, RESERVE_START, type LeverHooks } from '../../weapons/leverAction';
+import { LeverAction, parseLeverProfile, type LeverHooks } from '../../weapons/leverAction';
 import { aimAt, bodyHit, spreadInto, worldHit } from './headlessRanged';
 
 /** The lever-action's fixed-step id; its continuation is the action, the reserve and the dry pull's clock. */
 export const LEVER_STEP = 'pine.lever';
 /** The most shots a tick reads (the tick's command allowance). */
 const MAX_SHOTS = 1024, NO_SHOTS: readonly string[] = [];
-/** The auto reload's window closes this long after the dry pull (LeverRifle.autoReloadDue). */
-const AUTO_RELOAD_CLOSE = 5;
 /** A headless rifle tells no one how its action runs (the page's view and sounds hang off these). */
 const QUIET: LeverHooks = { cycle: () => undefined, eject: () => undefined, chambered: () => undefined, reloadStart: () => undefined, round: () => undefined, reloadEnd: () => undefined };
 
 const finite = v.pipe(v.number(), v.finite()), count = v.pipe(v.number(), v.integer(), v.minValue(0));
-const Saved = v.strictObject({ tube: v.pipe(count, v.maxValue(TUBE_MAX)), chambered: v.boolean(), caseInChamber: v.boolean(), hammerCocked: v.boolean(),
-  phase: v.picklist(['idle', 'beat', 'cycle', 'reload']), phaseT: finite, fed: count, planned: count, stopAfter: v.boolean(), dryAtStart: v.boolean(),
-  reloadProgress: finite, reserve: count, sinceEmpty: finite });
+
 
 /** What the rifle is lent: the tick's shots (the body each is aimed at), whether it is live (held, not mid-swap, not locked
  *  by a boss intro: its trigger and its auto reload) and the bodies a round can hit. */
 export interface PineLeverPorts {
+  /** Exact admitted firearm row. Isolated native callers default to the same authored Pine contract. */
+  readonly profile?: unknown;
   readonly shots: () => readonly string[];
   readonly enabled: () => boolean;
   readonly bodies: () => readonly AnimalSim[];
@@ -48,21 +47,25 @@ export interface PineLeverPorts {
  * keep standing input. Aim blending still requires the sampled sight input; visual kick remains on the page.
  */
 export function installPineLever(host: SimHost, ports: PineLeverPorts): { readonly act: LeverAction; readonly store: { reserve: number } } {
+  const profile = parseLeverProfile(ports.profile ?? LEVER_WEAPON_PROFILE);
+  const Saved = v.strictObject({ tube: v.pipe(count, v.maxValue(profile.magazine - 1)), chambered: v.boolean(), caseInChamber: v.boolean(), hammerCocked: v.boolean(),
+  phase: v.picklist(['idle', 'beat', 'cycle', 'reload']), phaseT: finite, fed: count, planned: count, stopAfter: v.boolean(), dryAtStart: v.boolean(),
+  reloadProgress: finite, reserve: count, sinceEmpty: finite });
   const random = (): number => host.rng.stream('gameplay').next(), player = host.player;
-  const store = { reserve: RESERVE_START }, act = new LeverAction(store);
+  const store = { reserve: profile.reserve }, act = new LeverAction(store, profile);
   let sinceEmpty = 99;
   const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), end = new Vector3();
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.lever', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir, headshot: false };
   const hitscan = (target: AnimalSim): void => {
     aimAt(host, target, eye, dir, ports.aim?.());
     const a = smoothstep(0, 1, ports.adsBlend?.() ?? 0);
-    const spread = instantSpreadDegrees(LEVER_PROFILE.spreadAds, LEVER_PROFILE.spreadHip, a, 0,
-      ports.speedFactor?.() ?? 0, LEVER_PROFILE.movingSpread, LEVER_PROFILE.movingAimReduction) * (Math.PI / 180);
-    spreadInto(dir, spread, random, LEVER_PROFILE.spreadRadius === 'sqrt', across);
-    const wall = worldHit(host, eye, end.copy(eye).addScaledVector(dir, LEVER_PROFILE.range), 0);
-    const hit = bodyHit(ports.bodies(), eye, dir, wall ? wall.distance : LEVER_PROFILE.range), body = hit?.body ?? null;
+    const spread = instantSpreadDegrees(profile.spreadAds, profile.spreadHip, a, 0,
+      ports.speedFactor?.() ?? 0, profile.movingSpread, profile.movingAimReduction) * (Math.PI / 180);
+    spreadInto(dir, spread, random, profile.spreadRadius === 'sqrt', across);
+    const wall = worldHit(host, eye, end.copy(eye).addScaledVector(dir, profile.range), 0);
+    const hit = bodyHit(ports.bodies(), eye, dir, wall ? wall.distance : profile.range), body = hit?.body ?? null;
     if (hit === null || body === null) return;
-    req.target = body.combatActor(); req.amount = body.damageFor(hit.head, hit.distance) * LEVER_PROFILE.damageScale;
+    req.target = body.combatActor(); req.amount = body.damageFor(hit.head, hit.distance) * profile.damageScale;
     req.point.copy(hit.point); req.headshot = hit.head;
     host.combat.hit(req);
   };
@@ -82,7 +85,7 @@ export function installPineLever(host: SimHost, ports: PineLeverPorts): { readon
       if (target !== undefined) pull(target);
     }
     sinceEmpty += dt;
-    act.step(dt, act.wantsAutoReload && sinceEmpty > AUTO_RELOAD_DELAY && sinceEmpty < AUTO_RELOAD_CLOSE && ports.enabled(), QUIET);
+    act.step(dt, act.wantsAutoReload && sinceEmpty > profile.autoReload && sinceEmpty < profile.lever.autoReloadClose && ports.enabled(), QUIET);
   }, {
     snapshot: () => ({ tube: act.tube, chambered: act.chambered, caseInChamber: act.caseInChamber, hammerCocked: act.hammerCocked, phase: act.phase, phaseT: act.phaseT,
       fed: act.fed, planned: act.planned, stopAfter: act.stopAfter, dryAtStart: act.dryAtStart, reloadProgress: act.reloadProgress, reserve: store.reserve, sinceEmpty }),

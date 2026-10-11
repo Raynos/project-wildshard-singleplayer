@@ -1,3 +1,4 @@
+import { LEVER_WEAPON_PROFILE } from './leverProfile';
 import { BOW_PROFILE } from './bowProfile';
 import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
 
@@ -6,14 +7,14 @@ const contact = (id: string) => ({ id, damage: 0, cooldown: 1, range: 0.01, widt
 /** Existing saved equipment ids and the exact authored glyphs; shard-owned families resolve the G51 native recipes. */
 export const PINE_ITEMS = { version: 1, rows: [
   { row: CROSSBOW, family: 'pine-hollow.crossbow', context: 'weapon.ranged' },
-  { row: LEVER, family: 'pine-hollow.lever', context: 'weapon.ranged' },
+  { row: LEVER, family: 'firearm', context: 'weapon.ranged' },
   { row: LONGBOW, family: 'bow', context: 'weapon.bow' },
 ].map(({ row, family, context }) => {
   if (typeof row.ui.icon !== 'string') throw new Error('Pine items need their authored icon and swap glyph');
   const declared = { id: row.id, kind: 'weapon', family, slot: `declared.${row.id}`, context,
     ui: { name: row.ui.name, icon: row.ui.icon, swapIcon: row.ui.swapIcon, blurb: row.meta.blurb },
-    view: { recipe: row.id === LONGBOW.id ? 'pine-hollow.longbow' : family, colour: '#ffffff', position: [0, 0, 0], rotation: [0, 0, 0] }, hook: null,
+    view: { recipe: row.id === LONGBOW.id ? 'pine-hollow.longbow' : row.id === LEVER.id ? 'pine-hollow.lever' : family, colour: '#ffffff', position: [0, 0, 0], rotation: [0, 0, 0] }, hook: null,
     light: contact(`${row.id}.light`), heavy: contact(`${row.id}.heavy`), charge: 0.001 };
-  return row.id === LONGBOW.id ? Object.assign(declared, { profile: BOW_PROFILE }) : declared;
+  return row.id === LONGBOW.id ? Object.assign(declared, { profile: BOW_PROFILE }) : row.id === LEVER.id ? Object.assign(declared, { profile: LEVER_WEAPON_PROFILE }) : declared;
 }), contexts: [], runtimeContexts: ['weapon.ranged', 'weapon.bow'],
 loadout: { primary: CROSSBOW.id, secondary: LONGBOW.id, tools: [] } };

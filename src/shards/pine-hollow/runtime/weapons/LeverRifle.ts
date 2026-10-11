@@ -5,6 +5,7 @@ import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, ty
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '../viewmodel/gloveHands';
 import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../viewmodel/handsLook';
+import { LEVER_WEAPON_PROFILE } from '../../data/leverProfile';
 import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME } from '../../weapons/leverAction';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -391,7 +392,7 @@ export const LEVER_VIEW: LeverFirearmView = {
   sight: { y: SIGHT_Y, eyeZ: EYE_Z, rearZ: REAR_Z, frontZ: FRONT_Z, muzzleZ: MUZZLE_Z },
   hammerPivot: [HAMMER_PIVOT.x, HAMMER_PIVOT.y, HAMMER_PIVOT.z],
   port: [PORT.x, PORT.y, PORT.z],
-  timing: { autoReloadDelay: AUTO_RELOAD_DELAY, reloadIn: RELOAD_IN, reloadOut: RELOAD_OUT, roundTime: ROUND_TIME },
+  timing: { autoReloadDelay: AUTO_RELOAD_DELAY, autoReloadClose: LEVER_WEAPON_PROFILE.lever.autoReloadClose, reloadIn: RELOAD_IN, reloadOut: RELOAD_OUT, roundTime: ROUND_TIME },
   hip: { px: 0.07, py: -0.085, pz: -0.26, rx: 0.05, ry: 0.14, rz: -0.15, scale: 1.0 },
   cyclePose: { px: -0.03, py: 0.03, pz: 0, rx: 0.1, ry: 0.1, rz: -0.45 },
 };

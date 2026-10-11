@@ -1531,3 +1531,5 @@ generated output or unresolved build-cache dependency in the simulation closure.
 owners consume the row through `plugin/mover` without a second player owner. The page retains its original mesh,
 trolley sway/park, prompts, sounds and update position. `ZiplineDriver.distance` is a read-only scalar for that
 presentation; restore retains the same native continuation and never draws or publishes.
+
+A lever `FirearmWeaponProfile` may provide `lever` (cycle delay/time, reload pose in/out, eject/cock fractions, auto-reload close). Pine's supported per-round hitscan owner requires these clocks and refuses a contract it does not host; its actual item row uses family `firearm` and keeps its local view recipe. Crossbows, Nalati weapons and WP-3/WP-5 remain separate unfinished work.

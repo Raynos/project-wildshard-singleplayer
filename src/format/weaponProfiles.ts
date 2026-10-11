@@ -37,6 +37,8 @@ export const FirearmWeaponProfileSchema = v.strictObject({
   interval: seconds, reload: duration, reloadMode: v.picklist(['magazine', 'perRound', 'single']), autoReload: seconds,
   damageScale: scalar, range: positive, spreadAds: scalar, spreadHip: scalar, spreadRadius: v.picklist(['linear', 'sqrt']),
   bloomShot: scalar, bloomMax: scalar, movingSpread: scalar, movingAimReduction: probability,
+  lever: v.exactOptional(v.strictObject({ cycleDelay: seconds, cycleTime: duration, reloadIn: seconds, reloadOut: seconds,
+    ejectAt: probability, cockAt: probability, autoReloadClose: duration })),
   projectile: v.strictObject({ kind: v.picklist(['bullet', 'bolt']), delivery: v.picklist(['hitscan', 'flight']),
     speed: scalar, radius: scalar, flight, pool: slots, substeps: v.pipe(slots, v.maxValue(64)), lifetime: duration }),
 });
