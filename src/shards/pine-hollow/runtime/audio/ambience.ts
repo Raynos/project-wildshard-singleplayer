@@ -42,7 +42,7 @@ import { CABIN_SITES, POND, hasPond } from '@wildshard/engine/world/Heightfield'
  */
 import type { Camera } from 'three';
 import { PineHollowSfx, type PhBed } from './sfx';
-import { requireAudioProfile, requireAudioLevel } from '@wildshard/engine/audio/audioProfiles';
+import { requireAudioProfile, requireAudioLevel, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
 import source from '../../shard.config';
 
 export type ForestZone = 'hollow' | 'pond' | 'cabin' | 'creek' | 'waterfall' | 'mill' | 'ridge' | 'oldgrowth' | 'cave';
@@ -62,26 +62,21 @@ export interface ForestAmbienceOpts {
 }
 
 const ss = (a: number, b: number, x: number): number => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.pine');
-const TAU = PROFILE.smoothSeconds;
-const ZONE_HZ = PROFILE.tickHz;
-/** the ambient bus's level (Audio's `ambient` gain is 0.55) — these beds sit beside it on `world` */
-const OUT = requireAudioLevel(PROFILE.levels, 'out');
-/** each bed's level at full weight, before sfx.json's gain (the files are at -24 LUFS) */
-
+const DEFAULT_PROFILE = requireAudioProfile(source.audio.zones, 'ambience.pine');
 /** the beds that are positional (panned toward their zone's centre); the rest surround you */
 const PANNED = new Set<PhBed>(['pond', 'creek', 'waterfall', 'mill']);
-/** wet level per room at full weight (the IRs are unit-energy) */
-const WET: Record<Room, number> = { cabin: requireAudioLevel(PROFILE.wet, 'cabin'), den: requireAudioLevel(PROFILE.wet, 'den'), oldgrowth: requireAudioLevel(PROFILE.wet, 'oldgrowth'), bowl: requireAudioLevel(PROFILE.wet, 'bowl') };
 /** a cabin's inside: its floor, and within the smallest cabin's half-width of the site along the door axis (the porch is past it) */
 const CABIN_HALF_W = 2.45;
 const ROCK_SLOPE = 0.32;
-const DROP_S = PROFILE.silentSeconds;
 
 interface Bed extends ZoneVoice { name: PhBed; pending: boolean; idle: number; heard: boolean }
 
 export class ForestAmbience {
   private readonly scope: Scope;
+  /** The ambient bus sits beside Audio's ambient gain on world. */
+  private readonly outLevel: number;
+  /** Wet levels at full weight; the original room impulse responses stay native. */
+  private readonly wet: Readonly<Record<Room, number>>;
   private active = true;
   night = 0; dawn = 0; rain = 0;
   /** the thralls' far calls (0 … 1); defaults to following the night when never set */
@@ -107,7 +102,9 @@ export class ForestAmbience {
   private underwater = false;
   private timers: (ReturnType<typeof setTimeout> | 0)[] = [];
 
-  constructor(private readonly audio: Audio, private readonly o: ForestAmbienceOpts) {
+  constructor(private readonly audio: Audio, private readonly o: ForestAmbienceOpts, private readonly profile: AudioZoneProfile = DEFAULT_PROFILE) {
+    this.outLevel = requireAudioLevel(profile.levels, 'out');
+    this.wet = { cabin: requireAudioLevel(profile.wet, 'cabin'), den: requireAudioLevel(profile.wet, 'den'), oldgrowth: requireAudioLevel(profile.wet, 'oldgrowth'), bowl: requireAudioLevel(profile.wet, 'bowl') };
     this.scope = (o.scope ?? resourceScope()).child('ForestAmbience');
     this.zones = new AmbienceZones(audio, audioRandom, o.scope === undefined ? undefined : this.scope);
     this.sfx = new PineHollowSfx(audio);
@@ -120,7 +117,7 @@ export class ForestAmbience {
   private build(): void {
     this.built = true;
     const a = this.audio, c = a.ctx;
-    const out = c.createGain(); out.gain.value = OUT; out.connect(a.world); this.out = out;
+    const out = c.createGain(); out.gain.value = this.outLevel; out.connect(a.world); this.out = out;
     const occl = c.createBiquadFilter(); occl.type = 'lowpass'; occl.frequency.value = 20000; occl.Q.value = 0.5; occl.connect(out); this.occl = occl;
     const sendIn = c.createGain(); sendIn.gain.value = 1; a.sfx.connect(sendIn); this.sendIn = sendIn;
     a.voices.prewarm(['ir-cabin', 'ir-bowl']);
@@ -130,7 +127,8 @@ export class ForestAmbience {
   }
 
   /** a bed's graph, made on first need; its buffer decodes in the background and fades in when it lands */
-  private bed(name: PhBed): Bed | undefined {
+  private openBed(name: PhBed): Bed | undefined {
+    const PROFILE = this.profile;
     const have = this.beds.get(name);
     if (have) return have;
     if (!this.out || !this.occl) return undefined;
@@ -190,7 +188,7 @@ export class ForestAmbience {
     this.px = x; this.py = y; this.pz = z;
     this.sfx.setListener(x, y, z, Math.atan2(m[8], m[10]));
     this.tick += dt;
-    if (this.tick >= 1 / ZONE_HZ) { this.mix(this.tick); this.tick = 0; }
+    if (this.tick >= 1 / this.profile.tickHz) { this.mix(this.tick); this.tick = 0; }
   }
 
   /** inside a cabin: on a floor, within the house's half-width of a site along its door axis (the porch is further out) */
@@ -206,6 +204,7 @@ export class ForestAmbience {
 
   /** the zone weights → every bed's target level, the ambient shade and every reverb send (10 Hz, 300 ms crossfades) */
   private mix(dt: number): void {
+    const TAU = this.profile.smoothSeconds, DROP_S = this.profile.silentSeconds, WET = this.wet;
     const a = this.audio, t = a.ctx.currentTime, x = this.px, y = this.py, z = this.pz, D = this.diag;
     if (!Number.isFinite(x + y + z + this.night + this.dawn + this.rain)) return; // hold the last mix rather than feed NaN to the AudioParams (E278)
     const uw = this.underwater ? 1 : 0, dry = 1 - uw;
@@ -236,10 +235,12 @@ export class ForestAmbience {
     ];
     const listed = this.sfx.available;
     D.beds = [];
-    for (const [name, w0] of want) {
+    for (let index = 0; index < 14; index++) {
+      const row = want[index]; if (row === undefined) continue;
+      const [name, w0] = row;
       const w = Number.isFinite(w0) ? w0 * dry : 0; // a NaN weight throws in setTargetAtTime and the loop switches this system off (E278)
       let b = this.beds.get(name);
-      if (!b && w > 0.01 && listed) b = this.bed(name);
+      if (!b && w > 0.01 && listed) b = this.openBed(name);
       if (!b) continue;
       b.level = w; b.gain.gain.setTargetAtTime(w, t, TAU);
       // the trigger log: a bed coming up (audible, > 0.05) or going down (< 0.02) — `ok` = its loop is decoded and playing
@@ -309,7 +310,7 @@ export class ForestAmbience {
     const set = (node: GainNode | undefined, value: number): void => {
       node?.gain.cancelScheduledValues(time); node?.gain.setValueAtTime(value, time);
     };
-    set(this.out, on ? OUT : 0); set(this.sendIn, on ? 1 : 0);
+    set(this.out, on ? this.outLevel : 0); set(this.sendIn, on ? 1 : 0);
     for (const [room, send] of this.sends) { set(send, 0); this.diag.sends[room] = 0; }
     if (on) this.scheduleThrall();
   }

@@ -1061,7 +1061,9 @@ installation; footfall cycling, chime RNG, sample playback and scoped retirement
 remain native. Catalogue-byte adoption is a separate charged closure.
 Pine binds emitted cue routes, lever echo delay/gain and baked ambience positions
 to its original entered owners. Live mill-wheel gain and echo timer cancellation
-remain native; its score, bed mixer and recording closure stay separate.
+remain native. Its bed mixer also reads emitted levels, room sends, smoothing,
+tick rate and silent retirement from the existing profile; score and recording
+closure stay separate.
 
 Optional `audio.recordings` maps at most 1024 existing catalogue paths such as
 `/assets/music/folk/pickup.m4a` to local SHA-256 or `commons:<SHA-256>`

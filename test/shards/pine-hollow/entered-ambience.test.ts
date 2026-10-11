@@ -21,16 +21,17 @@ import { PineHollowSfx, type PhLoop } from '../../../src/shards/pine-hollow/runt
 import { installPineAudio, type PineAudioHost } from '../../../src/shards/pine-hollow/runtime/audio/wiring';
 import { legacyDouble } from '../../fake/FakeGame';
 
-function param(value = 0): AudioParam {
+function param(value = 0, smoothing?: number[]): AudioParam {
   const result: AudioParam = legacyDouble<AudioParam>({ value,
     cancelScheduledValues: () => result,
     setValueAtTime: (next) => { result.value = next; return result; },
-    setTargetAtTime: (next) => { result.value = next; return result; },
+    setTargetAtTime: (next, _time, seconds) => { smoothing?.push(seconds); result.value = next; return result; },
   });
   return result;
 }
 
 function graph() {
+  const smoothing: number[] = [];
   const gains: GainNode[] = [], sources: AudioBufferSourceNode[] = [];
   const disconnected = new Set<GainNode>();
   const stops: (() => void)[] = [];
@@ -41,7 +42,7 @@ function graph() {
   }
   const wiring = { connect, disconnect: () => undefined };
   const gain = (): GainNode => {
-    const node: GainNode = legacyDouble<GainNode>({ ...wiring, gain: param(), disconnect: () => { disconnected.add(node); } }); gains.push(node); return node;
+    const node: GainNode = legacyDouble<GainNode>({ ...wiring, gain: param(0, smoothing), disconnect: () => { disconnected.add(node); } }); gains.push(node); return node;
   };
   const sample = legacyDouble<AudioBuffer>({ duration: 1 });
   const ctx = legacyDouble<AudioContext>({ currentTime: 10,
@@ -65,7 +66,7 @@ function graph() {
     voices: legacyDouble<Voices>({ prewarm: () => undefined, buffer: () => sample, setListener: () => undefined }),
     get ambientShade() { return shade; }, shadeAmbient: (level, cutoff: number | undefined) => { shade = { level, cutoff: cutoff ?? 20000 }; },
   });
-  return { audio, gains, sources, sample, disconnected, stops };
+  return { audio, gains, sources, sample, disconnected, stops, smoothing };
 }
 
 it.each([false, true])('retires native beds and timers through emitted zones and refuses late decode (emitted=%s)', async (emitted) => {
@@ -76,12 +77,17 @@ it.each([false, true])('retires native beds and timers through emitted zones and
   const hooks = new RetainedRuntimeHooks(shardContext(installation.context, manifest, { shard: manifest, rows: new Map(),
     bag: { tab: () => () => undefined, fragment: () => () => undefined } }));
   const wire = JSON.stringify(source.audio), rows = parseAudioData(JSON.parse(wire));
+  const legacyProfile = source.audio.zones;
+  if (legacyProfile === undefined) throw new Error('Missing legacy Pine zone profile');
   const zone = rows.zones?.zones[0];
   if (zone === undefined) throw new Error('Missing emitted Pine zone');
-  if (emitted) { zone.x += 1; Object.defineProperty(hooks.context.game, 'declaredAudio', { value: rows }); }
+  if (emitted) {
+    if (rows.zones === undefined) throw new Error('Missing emitted ambience profile');
+    rows.zones.levels['out'] = 0.42; rows.zones.smoothSeconds = 0.19;
+    zone.x += 1; Object.defineProperty(hooks.context.game, 'declaredAudio', { value: rows }); }
   const g = graph(), musicAudio = withOwner(scope, () => new Audio()), music = withOwner(scope, () => new Music(musicAudio));
   const camera = new PerspectiveCamera(); camera.position.set(0, 2, 0); camera.updateMatrixWorld();
-  const amb = new ForestAmbience(g.audio, { heightAt: () => 0, scope });
+  const amb = new ForestAmbience(g.audio, { heightAt: () => 0, scope }, emitted ? rows.zones : undefined);
   const addSpot = vi.spyOn(amb, 'addSpot');
   const doors = new Set<Parameters<NonNullable<PineAudioHost['cabins']>['onDoor']>[0]>();
   const previous = Object.getOwnPropertyDescriptor(window, '__pineAudio');
@@ -99,7 +105,8 @@ it.each([false, true])('retires native beds and timers through emitted zones and
     expect(addSpot.mock.calls[0]?.[0].x).toBe(zone.x);
     expect(addSpot).toHaveBeenCalledTimes(54);
     amb.update(0.2, camera); expect(decode).toHaveBeenCalled(); expect(scope.census.timers).toBe(1);
-    expect(g.gains.some((node) => node.gain.value > 0)).toBe(true);
+    expect(g.gains[2]?.gain.value).toBe(emitted ? 0.42 : legacyProfile.levels['out']);
+    expect(g.smoothing).toContain(emitted ? 0.19 : legacyProfile.smoothSeconds);
     hooks.deactivate(); expect(doors.size).toBe(0); expect(app.systemIds(scope)).toEqual([]);
     expect(scope.census.timers).toBe(0); expect(g.audio.ambientShade).toEqual({ level: 0.7, cutoff: 9000 });
     expect(Object.getOwnPropertyDescriptor(window, '__pineAudio')?.value).toBe(diagnostic);
