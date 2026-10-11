@@ -36,6 +36,7 @@ import { loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
 import { frameLookOf } from '../grid/frameLook';
 import { setting } from '@wildshard/engine/ui/Settings';
 import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
+import { loadItemModels } from './itemModels';
 import { loadClientSkins, type ClientSkin } from './clientSkins';
 import { clientViews } from './clientViews';
 import { createShardfileClientScripts } from './clientScripts';
@@ -113,6 +114,7 @@ export class ShardfileClient {
   private worldTiles: Awaited<ReturnType<typeof clientWorld>> | undefined;
   private sim: ShardfileSimulation | undefined;
   private items: DeclaredItems | undefined;
+  private itemModels: Awaited<ReturnType<typeof loadItemModels>> = new Map();
   private readonly animals = new Map<string, Animal>();
   private readonly emptyTrustedData: boolean;
   constructor(source: Shardfile, assets: ClientAssets, bindings: ShardfileClientBindings) {
@@ -137,6 +139,7 @@ export class ShardfileClient {
     if (this.bindings.residency === undefined || this.source.runtime === null) leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance });
     const presentation = await clientMaterials(this.source, this.assets.retained, world.game.renderer, ctx.scope);
     this.presentation = presentation;
+    this.itemModels = await loadItemModels(this.source.items, this.assets.retained, ctx.scope);
     this.skins = await loadClientSkins(this.source, this.assets.retained, presentation.compile, ctx.scope);
     installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials, outline: presentation.outline });
     this.worldTiles = await clientWorld(this.source, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z,
@@ -191,7 +194,7 @@ export class ShardfileClient {
       return { ...target, aimPoint: target.position.clone().add(new Vector3(0, body === undefined ? 0.9 : body.dims.bodyY * body.scale, 0)) };
     };
     runtime.buildEquipment = () => {
-      const items = installDeclaredItems(source.items, { scope: ctx.scope, actorId: actor.id, input: ctx.app.input, families: this.bindings.items, icon: this.bindings.icon,
+      const items = installDeclaredItems(source.items, { scope: ctx.scope, actorId: actor.id, input: ctx.app.input, families: this.bindings.items, models: this.itemModels, icon: this.bindings.icon,
         aim: () => ({ origin: world.game.camera.getWorldPosition(new Vector3()), direction: world.game.camera.getWorldDirection(new Vector3()) }),
         runtime: (row) => ({ actor, combat: ctx.app.combat, active: () => ctx.app.state === 'play' && !world.freeCamera,
           targets: () => ctx.app.combat.targets().map(aimTarget),

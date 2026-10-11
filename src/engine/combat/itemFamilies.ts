@@ -7,11 +7,13 @@ import type { Weapon } from './Weapon';
 import type { Tool } from './Tool';
 
 /** Renderer-neutral parameters selecting a registered kit view recipe. */
-export interface ItemViewRecipe { recipe: string; colour: string; position: readonly [number, number, number]; rotation: readonly [number, number, number] }
+export interface ItemViewRecipe { asset?: string; recipe: string; colour: string; position: readonly [number, number, number]; rotation: readonly [number, number, number] }
 /** A trusted session binds standard input and one authoritative runtime to each kit family. */
 export interface ItemFamilyPorts { scope: Scope; runtime: ItemRuntime; input: Pick<InputService, 'bind' | 'held'>; aim: () => AimCommand; view: ItemViewRecipe;
   /** Validated numeric author data, supplied only to a family that explicitly admits its profile kind. */
   profile?: unknown;
+  /** An admitted static equipment model; the asset lease owns its shared geometry and materials. */
+  model?: unknown;
 }
 /** Trusted family presentation; declared identity, slot, input context, name, icon and swap glyph remain authoritative. */
 export type ItemFamilyPresentation = Pick<EquipmentRow, 'cues' | 'hitStop' | 'rangedFeel'> & {

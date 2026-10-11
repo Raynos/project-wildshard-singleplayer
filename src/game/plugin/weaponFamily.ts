@@ -43,7 +43,15 @@ function keepInFrame(model: Group, at: readonly [number, number, number]): void 
   if (model.position.x !== x) model.position.x = x;
 }
 
+function isGroup(value: unknown): value is Group { return value instanceof Group; }
 function itemMesh(ports: ItemFamilyPorts): Group {
+  if (ports.view.asset !== undefined) {
+    if (!isGroup(ports.model)) throw new Error('Admitted equipment asset needs its loaded model');
+    const model = ports.model.clone(true);
+    model.position.set(...ports.view.position); model.rotation.set(...ports.view.rotation);
+    ports.scope.onDispose(() => { model.removeFromParent(); });
+    return model;
+  }
   const recipe = ports.view.recipe;
   if (!['kit.whip', 'kit.sword', 'kit.lantern'].includes(recipe)) throw new Error(`Unresolved item view ${recipe}`);
   const model = new Group();

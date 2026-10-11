@@ -26,6 +26,8 @@ export function declaredItemScriptEntities(input: unknown, actorId: string): { e
 /** Trusted loader dependencies; factories and icons are resolved below the game layer. */
 export interface DeclaredItemPorts {
   scope: Scope; actorId: string; input: Pick<InputService, 'bind' | 'held' | 'register' | 'has'>; aim: () => AimCommand;
+  /** Resolve charged static models before creating any equipment. */
+  models?: ReadonlyMap<string, unknown>;
   families: ReadonlyMap<string, ItemFamily>; icon: (name: string) => EquipmentIcon;
   runtime: (row: ShardItems['rows'][number]) => ItemPorts;
   /** A trusted shard's own families (M3): each named `<slug>.<name>`, never shadowing a kit family; resolved like the kit's. */
@@ -69,6 +71,12 @@ export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): 
     if (row.kind === 'weapon' && row.profile !== undefined && !family.profiles?.includes(row.profile.family)) throw new Error(`Unhosted weapon profile ${row.profile.family}`);
     return family;
   });
+  const models = data.rows.map(row => {
+    if (row.view.asset === undefined) return undefined;
+    const model = ports.models?.get(row.view.asset);
+    if (model === undefined) throw new Error(`Unresolved item model ${row.view.asset}`);
+    return model;
+  });
   const icons = data.rows.map((row) => ports.icon(row.ui.icon));
   const runtimePorts = data.rows.map((row) => {
     const deps = ports.runtime(row);
@@ -91,6 +99,7 @@ export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): 
         ...(declaration.kind === 'weapon' ? { inputContext: declaration.context } : {}) }, meta: { name: declaration.ui.name, icon, blurb: declaration.ui.blurb, category: declaration.kind },
         ...(declaration.kind === 'weapon' ? { legacySlot: declaration.slot } : {}) };
       const args = { scope: itemScope, runtime, input: ports.input, aim: ports.aim, view: declaration.view,
+        ...(models[index] === undefined ? {} : { model: models[index] }),
         ...(declaration.kind === 'weapon' && declaration.profile !== undefined ? { profile: declaration.profile } : {}) };
       if (declaration.kind === 'weapon' && family.kind === 'weapon') weapons.set(declaration.id, family.create(row, declaration, args));
       else if (declaration.kind === 'tool' && family.kind === 'tool') {

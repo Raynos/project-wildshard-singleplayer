@@ -148,6 +148,8 @@ export function shardfileRules(s: Shardfile): string[] {
     libraryClosure.add(id); libraryPending.push(...files.get(id)?.dependencies ?? []);
   }
   if (materialRefs.some((id) => !/^(?:commons:)?[a-f0-9]{64}$/u.test(id) || !libraryClosure.has(id) || (id.startsWith('commons:') ? !s.requires.commons.includes(id.slice(8)) : files.get(id)?.kind !== 'ktx2'))) errors.push('admitted material texture library references');
+  if (s.items.rows.some(row => row.view.asset !== undefined && (!libraryClosure.has(row.view.asset) ||
+    (row.view.asset.startsWith('commons:') ? !commons.has(row.view.asset.slice(8)) : files.get(row.view.asset)?.kind !== 'glb')))) errors.push('admitted item model library references');
   const lut = s.look.grade.lut === null || s.look.grade.lut.startsWith('commons:') ? null : files.get(s.look.grade.lut);
   if (lut !== undefined && lut !== null && (lut.kind !== 'binary' || lut.compressed !== LOOK_LUT_BYTES)) errors.push('look LUT is a 33³ RGBA8 binary file');
   if (s.look.keys.some((k, i) => i > 0 && k.time <= (s.look.keys[i - 1]?.time ?? Infinity))) errors.push('ordered day keys');
@@ -171,8 +173,7 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...itemRules(s.items, s.sim.scripts));
   if ((s.items.runtimeContexts?.length ?? 0) > 0 && s.runtime?.binds?.includes('items') !== true) errors.push('runtime input context references require runtime.binds items');
   if (s.items.rows.some((row) => row.kind === 'tool' && row.action === null) && s.runtime?.binds?.includes('items') !== true) errors.push('native tools require runtime.binds items');
-  if (s.modes !== undefined && (s.modes.traverse.some(row => row.kind !== 'ladder') || (s.modes.ride?.length ?? 0) > 0 || (s.modes.grapple?.length ?? 0) > 0) && s.runtime?.binds?.includes('modes') !== true) errors.push('traverse modes require runtime.binds modes until the data client owns their player phase');
-  if (s.runtime !== null && s.modes?.traverse.some(row => row.kind === 'ladder')) errors.push('ladder traversal requires the data-only player owner');
+  if (s.modes !== undefined && (s.modes.traverse.length > 0 || (s.modes.ride?.length ?? 0) > 0 || (s.modes.grapple?.length ?? 0) > 0) && s.runtime?.binds?.includes('modes') !== true) errors.push('traverse modes require runtime.binds modes until the data client owns their player phase');
   errors.push(...skinLookRules(s));
   errors.push(...clientScriptRules(s));
   if (s.props !== null) {

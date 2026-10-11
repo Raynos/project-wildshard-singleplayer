@@ -1692,3 +1692,13 @@ owner or continuation, preserving existing witness bytes. The one-shot's old
 inclined treads remain an ordinary walk proof; they do not retroactively become
 vertical-ladder evidence. See `test/ladder-mode.test.ts` for real Rapier ascent,
 descent, blocked ceiling, mid-climb native/worker restore and no-row equality.
+
+### Charged static equipment assets
+
+An item view may name `asset: "commons:<hash>"` (or a declared local GLB hash) alongside its recipe,
+position and rotation. The reference must be in the charged library closure. The ordinary `kit.melee`
+family equips that asset instead of its built-in view; its light/heavy rows retain the fixed-step contact
+law. Static equipment GLBs are self-contained, untextured and unanimated. Their authored materials
+are preserved; the compatibility `colour` field does not repaint the asset. Sharing a hash shares the
+immutable geometry and materials, while each held item keeps independent transforms. The last live
+owner disposes the model; a later entry loads a fresh model. No page-code installer is needed.
