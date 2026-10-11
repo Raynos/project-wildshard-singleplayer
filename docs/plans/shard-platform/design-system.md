@@ -726,7 +726,7 @@ The base rows:
 | Row | What | Lane | Size | Proof |
 |---|---|---|---|---|
 | DS0.1 | (= SF76 + SF78) move-back and facade deletion | X | L | per-shard parity, as SF76 says |
-| DS0.2 | `src/game/plugin/` with the ~12 modules; game exports shrink to `./plugin/*`; internal callers go relative | X | M | `public-index` green; exports count ≤ 20 |
+| DS0.2 | `src/game/plugin/` with the ~12 modules; game exports shrink to `./plugin/*`; internal callers go relative | X | M | `public-index` green; exports count ≤ 20 beyond the frozen-legacy set: an export a registered legacy file imports stays (checked from `lint/legacy-shards.json`) and leaves with its folder (SF73) (coordinator, 2026-10-10: 83 of 107 are legacy-imported) |
 | DS0.3 | Guards: `generator-imports`, `shard-engine-imports`, `sdk-no-facade`, the `plugin/*`-only sandbox | X | M | lint fixtures, ratchets seeded |
 | DS0.4 | The 16 shard-named `scripts/bake/*` and 6 `scripts/blender/<shard>/` move into shard folders; `directors.mjs` into `wildshard build` | X | M | `bake-check` regenerates byte-identical |
 | DS0.5 | Raw GLSL rows move from `data/` to `runtime/looks` (G306) | X | M | look parity captures (O checks) |
