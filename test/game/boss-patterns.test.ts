@@ -10,7 +10,6 @@ import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
 import { bossFight, type BossFightProfile, type SpawnedBossFight, type HeldBossFight, type HeldBossBrain, type SpawnedBossPorts, type HeldBossPorts } from '../../src/game/plugin/bossPhase';
 import { markedBossFight as shippingSpawned } from '../fixtures/species-oracle/markedBossFight';
 import { heldBossFight as shippingHeld } from '../fixtures/species-oracle/heldBossFight';
-import { markedBossFight } from '../../src/shards/sunscar-dunes/runtime/shardfile/bossFight';
 import { ROC_BOSS_PROFILE } from '../../src/shards/far-reach/data/rocFight';
 import { MATRIARCH_BOSS_PROFILE } from '../../src/shards/sunscar-dunes/data/matriarchBoss';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
@@ -38,7 +37,7 @@ function make(pattern: 'spawned'|'held', version: 'frozen'|'preset'|'profile', s
     let next = 0;
     const ports: SpawnedBossPorts<AnimalSim> = { body: { spawn: previous => { events.push(['spawn',previous === undefined ? null : idOf(previous)]); return spawn(host,next++); }, retire: a => { events.push(['retire',idOf(a)]); host.retire(idOf(a)); } },
       rewardPoint: new Vector3(1,4,2), respawnPoint: () => { events.push(['respawn']); return { pos: new Vector3(3, 4, 7), yaw: 0.6 }; }, victory: () => { events.push(['victory']); }, update: (dt,storm) => { events.push(['weather',dt,storm]); } };
-    const fight = version === 'frozen' ? shippingSpawned(profile.fight,ports) : version === 'preset' ? markedBossFight(profile.fight,ports) : bossFight(profile,ports);
+    const fight = version === 'frozen' ? shippingSpawned(profile.fight,ports) : version === 'preset' ? bossFight({kind:'boss',pattern:'spawned',fight:profile.fight},ports) : bossFight(profile,ports);
     return { host, fight, body: fight.body, events, brain: null };
   }
   const profile = selected ?? heldProfile;

@@ -2478,7 +2478,7 @@ round and rises `dormant.from` → `dormant.to` with `rise`; in the fight it cir
 under `skim`, `diveSlope` m of altitude per metre to the chest), climbs away for `climbSeconds` and rests
 `restSeconds[phase]` before the next dive; from `groundedPhase` it lies at `lieAltitude`, crawls to `standOff` and
 strikes with its `grounded` strikes. Its continuation is `{ version: 1, actor, state, clock, wait, struck, strikes }`.
-Signal Dunes’ private `runtime/shardfile/bossFight.ts` `markedBossFight(row, ports)` is the matching
+`@wildshard/game/plugin/bossPhase` `bossFight({kind: 'boss', pattern: 'spawned', fight}, ports)` is the matching
 view-free `BossScript`: a fresh body per checkpoint at `hpShares[checkpoint]`, the intro's rise over `riseSeconds`, the
 phase marks, a storm (0..1, goal 1 in `stormPhases`, eased over `stormFade` s) the views read through `update(dt, storm)`,
 invulnerability through the beats and the victory, inside a circular `arena`; its continuation is `{ stormGoal, storm,
@@ -2487,7 +2487,7 @@ Matriarch is the first (`data/brains.ts` MATRIARCH_BRAIN, `runtime/quest/matriar
 brain by `test/shards/sunscar-dunes/matriarch-brain.test.ts`.
 
 **Phased boss fights (SF27).** `@wildshard/game/shardfile/phasedBoss` (SDK `@wildshard/sdk/phasedBoss`)
-`bossFight({kind: 'boss', pattern, fight}, ports)` is the defining parametric fight entry. `arena` and `roaming` retain the existing phase/strike/add/hazard policies; `spawned` binds a real fresh body per checkpoint with phase memory and eased weather; `held` binds one retained body and its native brain restart. Pattern/host mismatches refuse before allocation, RNG or actor/view effects. `phasedBossFight`, the Signal marked-boss and Sky held-boss names remain presets. Their native clocks, callback order, body ownership and serialized continuations stay unchanged. This entry does not replace the outer `BossBrain`/director encounter clock or an admitted AS body policy.
+`bossFight({kind: 'boss', pattern, fight}, ports)` is the defining parametric fight entry. `arena` and `roaming` retain the existing phase/strike/add/hazard policies; `spawned` binds a real fresh body per checkpoint with phase memory and eased weather; `held` binds one retained body and its native brain restart. Pattern/host mismatches refuse before allocation, RNG or actor/view effects. The spawned and held patterns replace the unused shard preset wrappers; `phasedBossFight` retains the phase presets. Their native clocks, callback order, body ownership and serialized continuations stay unchanged. This entry does not replace the outer `BossBrain`/director encounter clock or an admitted AS body policy.
 
 `phasedBossFight(row, ports)` is the richer sibling of `markedBossFight`: one body fought through a declared state machine.
 A `PhasedBossRow` holds the arena frame (`origin`, `bounds`), the body's `rest` and `shieldSpot`, the `phases` (hp share

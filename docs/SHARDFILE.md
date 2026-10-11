@@ -972,7 +972,7 @@ comes to `speciesBrains` as the bake's base64 (a plain `{ sha256: base64 }` row)
 checked against the hash. A `phased-flyer` brain is a boss flyer (circle, chest dive and
 climb with its `dive` strikes; grounded from `groundedPhase` with its `grounded` strikes)
 that its encounter steers through `fight` / `rise` / `phase` memory fields;
-`markedBossFight(row, ports)` (`@wildshard/sdk/bossFight`) is the view-free fight that
+`bossFight({kind: 'boss', pattern: 'spawned', fight}, ports)` (`@wildshard/game/plugin/bossPhase`) is the view-free fight that
 writes them: arena, health share per checkpoint, rise seconds, storm phases and fade. Its browser presentation is a row too (`parseMarkedBossPresentation`): the arena floor, the respawn
 point, the storm's fog and blown-sand shells, and the toasts. A quest's runtime is declared as well
 (`@wildshard/sdk/questGraph`): `parseQuestGraph` names the interaction rows' command actor, their marks' step and the
