@@ -5,7 +5,7 @@ import { tagCollider, tagOf } from '@wildshard/engine/physics/surface';
 import { parseNavmesh } from '@wildshard/engine/physics/navmesh';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { PINE_GROUND_RES, pineBake, type PineBake, type PineSolid } from './baked';
-import { preparePineDirector } from './scriptClock';
+import { preparePineDirector } from './directorClock';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { installPineRoster, type PineRosterPorts } from './roster';
 import { installPineElites } from './elites';
@@ -139,7 +139,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
 
 export interface PineInstall {
   /** Already admitted module factory; each installed quest consumes its own fresh author state. */
-  readonly director?: () => DirectorLane;
+  readonly director: () => DirectorLane;
   readonly bake: PineBake; readonly grid: BakedGrid; readonly nav: NonNullable<PineRosterPorts['nav']>; readonly heightAt: (x: number, z: number) => number;
   /** the level's authored spawn height (the manager's spawn ray) */
   readonly spawnY: number;
@@ -221,7 +221,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   host.events.on('player.died', () => { ammunitionOwner.loadKind('iron'); }, host.scope);
   // the Warden's Hollow: its declared rows, the page's prompts at their baked points, Hale's clock on the host's day clock;
   // before the roster too (its steps keep their place ahead of any live spawn's, restoring as booting)
-  quest = installHollowQuest(host, { ...(parts.director === undefined ? {} : { director: parts.director() }), quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
+  quest = installHollowQuest(host, { director: parts.director(), quests: parts.quests ?? PINE_QUESTS, spots: pineSpots(), commands: parts.interact ?? ((): readonly never[] => []),
     fact: parts.fact ?? ((): void => undefined), coins: (): void => undefined, addBolts: crossbow.addBolts, day: () => day, night,
     takeKingReward: eye => king.takeReward(eye), ammunition: ammunitionOwner, canSelectAmmo: () => loadout.live(PINE_WEAPON.crossbow) });
   // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster

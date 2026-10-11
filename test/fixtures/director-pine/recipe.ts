@@ -1,9 +1,4 @@
-import { directorVariant, installDeclaredDirector } from '@wildshard/game/shardfile/directorClient';
-import { director } from '@wildshard/sdk/director';
-import declaration from '../data/director.json' with { type: 'json' };
-import { PineScriptClock } from './scriptClock';
-import { LegacyPineClock, type PineClockEvent, type PineClockPorts } from './questClock';
-
+import type { PineClockPorts, PineClockEvent } from './clock';
 /** All state published by the admitted script crosses this typed recipe port. */
 function clockEvent(key: string): PineClockEvent {
   if (key === 'night.consume' || key === 'night.start' || key === 'dawn.start' || key === 'dawn.sunrise' || key === 'dawn.lanterns' || key === 'dawn.caption' || key === 'dawn.finish') return key;
@@ -39,20 +34,3 @@ export function pineDirectorRecipe(ports: PineClockPorts, dawnAtBoot = false): P
   };
 }
 
-/** One shared default-off setting; the existing quest frame owns time on either path. */
-export async function installPineClock(context: Parameters<typeof installDeclaredDirector>[0] & Parameters<typeof directorVariant>[0],
-  ports: PineClockPorts, dawnAtBoot: boolean): Promise<Pick<LegacyPineClock, 'night' | 'dawn' | 'tick'>> {
-  if (!directorVariant(context)) return new LegacyPineClock(ports);
-  const recipe = pineDirectorRecipe(ports);
-  const lane = await installDeclaredDirector(context, { data: director(declaration), seed: 357, systemId: 'shard.pine.director', clock: 'external',
-    bytes: async () => {
-      const response = await fetch(new URL('../assets/4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251', import.meta.url));
-      if (!response.ok) throw new Error('Missing Pine director module');
-      return new Uint8Array(await response.arrayBuffer());
-    },
-    observe: recipe.observe, publish: (event) => { recipe.publish(event.key, event.value); },
-  });
-  const clock = new PineScriptClock(lane, ports, () => !context.scope.disposed);
-  if (dawnAtBoot) clock.dawn();
-  return clock;
-}

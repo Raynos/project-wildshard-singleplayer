@@ -1,3 +1,4 @@
+import { preparePineDirector } from '../../../src/shards/pine-hollow/runtime/directorClock';
 // oxlint-disable-next-line import/no-nodejs-modules -- The headless runtime reads the native physics module and Pine's native bakes.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Import the trusted runtime in plain Node with the renderer-denying loader.
@@ -31,6 +32,7 @@ import { BEAR_CAVE, KINGS_CLEARING } from '../../../src/shards/pine-hollow/layou
 import { PINE_PHASES } from '../../../src/shards/pine-hollow/look/dayKeys';
 import { PINE_ACT, PINE_INTERACT } from '../../../src/shards/pine-hollow/runtime/quest';
 
+let director: Awaited<ReturnType<typeof preparePineDirector>>;
 let rapier: Rapier, plan: HeadlessRuntimePlan, basis: Uint8Array;
 const assets = new Map([PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
 const effects = { commands: () => [], emit: (effect: HeadlessEffect): void => {
@@ -38,6 +40,7 @@ const effects = { commands: () => [], emit: (effect: HeadlessEffect): void => {
 } };
 const boot = (): SimHost => { const host = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(host, { restoring: false, ...effects }); return host; };
 beforeAll(async () => {
+  director = await preparePineDirector();
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
   // the fresh world's native bytes, the checked basis a checkpoint's wire references (as the grid's durable autosave does):
@@ -272,7 +275,7 @@ function pineParts(dusk?: number, night = 0): PineInstall {
   const bytes = readFileSync(PINE_NAVMESH_ASSET), nav = parseNavmesh(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
   if (nav === null) throw new Error('navmesh');
   nav.datum = () => 0;
-  return { bake, grid: pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), nav, heightAt, spawnY: source.spawn.y,
+  return { director, bake, grid: pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), nav, heightAt, spawnY: source.spawn.y,
     ...(dusk === undefined && night === 0 ? {} : { dusk: () => dusk ?? 0, night: () => night }) };
 }
 function bootWith(parts: PineInstall, level: SimLevel = plan.level): { host: SimHost } & ReturnType<typeof installPine> {

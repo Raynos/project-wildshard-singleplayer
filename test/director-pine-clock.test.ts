@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LegacyPineClock, type PineClockEvent } from '../src/shards/pine-hollow/runtime/questClock';
+import { LegacyPineClock, type PineClockEvent } from './fixtures/director-pine/clock';
 
 function fixture() {
   const events: { tick: number; key: PineClockEvent; value: number }[] = [];

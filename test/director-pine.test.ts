@@ -1,14 +1,13 @@
+import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- The same-engine oracle executes the immutable authored module.
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { isDev, setDev } from '../src/engine/core/devMode';
 import { Scope } from '../src/engine/app/scope';
-import type { DebugRowSpec } from '../src/engine/level/context';
-import type { SystemSpec } from '../src/engine/app/systems';
 import { parseDirector } from '@wildshard/format/director';
 import { createDirectorLane, prepareDirectorModule } from '../src/game/plugin/director';
-import { LegacyPineClock, type PineClockPorts, type PineClockEvent } from '../src/shards/pine-hollow/runtime/questClock';
-import { pineDirectorRecipe, installPineClock } from '../src/shards/pine-hollow/runtime/questDirector';
+import { LegacyPineClock, type PineClockPorts, type PineClockEvent } from './fixtures/director-pine/clock';
+import { pineDirectorRecipe } from './fixtures/director-pine/recipe';
+import { installPineClock } from '../src/shards/pine-hollow/runtime/directorClock';
 import declaration from '../src/shards/pine-hollow/data/director.json';
 
 const data = parseDirector(declaration), bytes = readFileSync(`src/shards/pine-hollow/assets/${data.module}`);
@@ -78,25 +77,16 @@ describe('SF24 Pine script against the actual shipping night/dawn clock', () => 
     expect(restored.step(1, recipe.observe())).toEqual(lane.step(1, recipe.observe())); expect(restored.snapshot()).toBe(lane.snapshot());
     expect(() => lane.enqueue('arbitrary.call')).toThrow('subscribed');
   });
-  it('installs the saved shared setting, with no legacy fetch or duplicate clock, and immediate Script requests', async () => {
-    const previous = isDev(); setDev(false);
-    const native = fixture(true), systems: SystemSpec[] = [], scope = new Scope('pine.clock.fixture');
-    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(new Response(Uint8Array.from(bytes))));
+  it('installs the real row clock without a Debug fork, duplicate update or publication after disposal', async () => {
+    const native = fixture(true), scope = new Scope('pine.clock.fixture');
     try {
-      const base = { scope, system: (value: SystemSpec) => { systems.push(value); }, debugRow: () => { /* Default-off shared row. */ } };
-      const legacy = await installPineClock(base, native.ports, false); legacy.night();
-      expect(fetch).not.toHaveBeenCalled(); expect(systems).toEqual([]);
-      native.events.length = 0;
-      const selected = { ...base, debugRow: (row: DebugRowSpec) => { row.change('on'); } };
-      await installPineClock(selected, native.ports, false);
-      expect(fetch).not.toHaveBeenCalled(); expect(systems).toEqual([]);
-      setDev(true);
-      const scripted = await installPineClock(selected, native.ports, false);
-      expect(fetch).toHaveBeenCalledTimes(1); expect(systems).toEqual([]);
-      scripted.night(); scripted.dawn();
-      expect(native.events.map((event) => event.key)).toEqual(['night.consume', 'night.start', 'dawn.start']);
-      scope.dispose(); native.events.length = 0; scripted.night(); scripted.dawn(); scripted.tick(1 / 60); expect(native.events).toEqual([]);
-    } finally { scope.dispose(); setDev(previous); }
+      const clock = await installPineClock({ scope }, native.ports, false);
+      clock.night(); clock.dawn();
+      expect(native.events.map(event => event.key)).toEqual(['night.consume', 'night.start', 'dawn.start']);
+      const saved = clock.save(); expect(v.parse(v.looseObject({ version: v.literal(3) }), JSON.parse(saved)).version).toBe(3);
+      scope.dispose(); native.events.length = 0;
+      clock.night(); clock.dawn(); clock.tick(1 / 60); expect(native.events).toEqual([]);
+    } finally { scope.dispose(); }
   });
   it('restores full author state in the middle of dawn and exactly repeats a 10,000-tick suffix', async () => {
     const native = fixture(true), recipe = pineDirectorRecipe(native.ports, true), lane = await createDirectorLane(data, bytes, 357);

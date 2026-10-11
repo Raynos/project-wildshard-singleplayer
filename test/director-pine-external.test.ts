@@ -1,8 +1,9 @@
+import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the admitted native module with its exact committed browser bytes.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { preparePineDirector, PineScriptClock } from '../src/shards/pine-hollow/runtime/scriptClock';
-import { LegacyPineClock, type PineClockEvent } from '../src/shards/pine-hollow/runtime/questClock';
+import { preparePineDirector, pineDirectorClock } from '../src/shards/pine-hollow/runtime/directorClock';
+import { LegacyPineClock, type PineClockEvent } from './fixtures/director-pine/clock';
 import declaration from '../src/shards/pine-hollow/data/director.json';
 import module from '../src/shards/pine-hollow/behaviour/director.json';
 
@@ -18,9 +19,16 @@ describe('Pine director on the actual quest-owned clock', () => {
     expect(module.module).toBe(declaration.module);
     expect(Uint8Array.from(atob(module.bytes), byte => byte.codePointAt(0) ?? 0)).toEqual(new Uint8Array(readFileSync(`src/shards/pine-hollow/assets/${declaration.module}`)));
   });
+  it('retains the complete shipping AS initialization inside the versioned row continuation', async () => {
+    const create = await preparePineDirector(), ports = fixture(true).ports, original = create();
+    original.step(0, { 'night-request': 0, 'dawn-request': 0, seen: 0, 'has-clock': 1, night: 0 });
+    const clock = pineDirectorClock(create(), ports);
+    const saved = v.parse(v.looseObject({ version: v.literal(3), script: v.string() }), JSON.parse(clock.save()));
+    expect(saved.script).toBe(original.snapshot());
+  });
   it.each([true, false])('keeps same-call event order at variable frame deltas, sky=%s', async hasClock => {
     const create = await preparePineDirector(), old = fixture(hasClock), next = fixture(hasClock);
-    const legacy = new LegacyPineClock(old.ports), script = new PineScriptClock(create(), next.ports);
+    const legacy = new LegacyPineClock(old.ports), script = pineDirectorClock(create(), next.ports);
     const deltas = [1 / 60, 1 / 30, 0, 1 / 120, 0.1, 1 / 48];
     for (let frame = 0; frame < 10000; frame++) {
       old.phase(`request:${String(frame)}`); next.phase(`request:${String(frame)}`);
@@ -38,7 +46,7 @@ describe('Pine director on the actual quest-owned clock', () => {
   });
   it('restores full script state silently and repeats the exact mid-dawn suffix', async () => {
     const create = await preparePineDirector(), old = fixture(true), next = fixture(true);
-    const left = new PineScriptClock(create(), old.ports), right = new PineScriptClock(create(), next.ports);
+    const left = pineDirectorClock(create(), old.ports), right = pineDirectorClock(create(), next.ports);
     left.dawn(); for (let frame = 0; frame < 210; frame++) left.tick(1 / 60);
     const saved = left.save(); right.load(saved); expect(next.events).toEqual([]); old.events.length = 0;
     for (let frame = 210; frame < 10000; frame++) {
@@ -48,6 +56,7 @@ describe('Pine director on the actual quest-owned clock', () => {
       expect(next.events).toEqual(old.events);
     }
     expect(right.save()).toBe(left.save());
-    expect(() => right.load('{}')).toThrow('snapshot'); expect(right.save()).toBe(left.save());
+    expect(() => right.load('{}')).toThrow();
+    expect(() => right.load(v.parse(v.looseObject({ script: v.string() }), JSON.parse(saved)).script)).toThrow('version'); expect(right.save()).toBe(left.save());
   });
 });

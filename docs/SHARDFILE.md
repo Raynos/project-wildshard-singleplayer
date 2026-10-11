@@ -1391,3 +1391,6 @@ GLB clip labels are bounded to 128 lowercase ASCII letters, digits, dots, hyphen
 colons, starting with a letter. Colons preserve native variant labels such as
 `wood:idle`; slashes, controls, whitespace and external-path labels still refuse.
 All existing sampler, target, key-count, duration and finite-value admission checks apply.
+
+
+Pine watch/dawn rows demonstrate an AS-backed stage lane with identical native observation/payload order. Each admitted output has an authored ordered stage target and fixed emit action; the renderer/headless adapter supplies the native owners. The AS module bytes and seed are unchanged. Snapshot v3 adds the immutable stage contract and cursor around the original AS save, and refuses older unversioned continuations. Pine night population, elite preludes and Nalati raid/volley are separate DIR-4 slices; this watch/dawn migration does not close those requirements.

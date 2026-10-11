@@ -2988,3 +2988,6 @@ once across independent admissions. Native optional-practice routing into emitte
 commons remains open. The three image-bearing Meshopt model GLBs still need lossless
 build-time normalization into the admitted mesh/texture contract; they are not priced
 as binary and no production saving or model-admission pass is claimed.
+
+
+SF81 DIR-4 Pine watch/dawn clock consumes authored `data/watchStages.json` through `DirectorScriptStageLane`, using the original admitted AssemblyScript module and native quest-owned observation/publication ports. `initialDt` is an optional bounded initialization ABI value (0 through 1 seconds, default 0); Pine supplies the original 1/60-second input without advancing its tick-zero handler. Requests dispatch at zero dt in the original caller; variable frame/fixed-step deltas advance only at the existing quest phase. Page installation admits one clock authority and retains scope cancellation. The version-3 stage contract/cursor wraps the complete unchanged AS continuation; unversioned AS-only and legacy scalar saves are explicitly refused. No native sky, lantern, flag, caption, population or body owner moves into the stage interpreter.

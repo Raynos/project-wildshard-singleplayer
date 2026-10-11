@@ -178,7 +178,8 @@ export class DirectorStageLane {
 }
 
 /** External-clock stage installation with an admitted AS escape handler. The native lane owns elapsed time,
- * quotas and typed observations; ordered output events select authored stage actions without a second scheduler. */
+ * quotas and typed observations; ordered output events select authored stage actions without a second scheduler.
+ * initialDt preserves the admitted handler's native initialization ABI; its default is a zero-time observation. */
 export class DirectorScriptStageLane {
   private readonly definition: DirectorStagesData;
   private readonly stages: DirectorStageLane;
@@ -190,7 +191,8 @@ export class DirectorScriptStageLane {
   constructor(data: unknown, script: DirectorLane, ports: {
     readonly observe: () => Readonly<Record<string, number>>;
     readonly publish: (action: DirectorAction) => void;
-  }, restoring = false) {
+  }, restoring = false, initialDt = 0) {
+    if (!Number.isFinite(initialDt) || initialDt < 0 || initialDt > 1) throw new Error('Invalid director initial delta');
     this.definition = structuredClone(parseDirectorStages(data));
     if (this.definition.script !== script.data.module) throw new Error('Stage escape handler hash mismatch');
     const outputs = script.data.events.filter(event => event.direction === 'output');
@@ -203,7 +205,7 @@ export class DirectorScriptStageLane {
     if (!restoring) {
       if (script.tick !== -1) throw new Error('Stage escape handler already initialized');
       this.publish(this.stages.step(0, this.observation()));
-      this.deliver(script.step(0, ports.observe(), 0));
+      this.deliver(script.step(0, ports.observe(), initialDt));
     }
   }
   /** Deliver real flag/request edges at zero dt within the existing native tick's remaining allowance. */

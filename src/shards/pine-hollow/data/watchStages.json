@@ -1,0 +1,329 @@
+{
+  "version": 2,
+  "id": "pine.watch.stages",
+  "inputs": {
+    "consumed": "event:night.consume",
+    "watch": "event:night.start",
+    "dawn": "event:dawn.start",
+    "sunrise": "event:dawn.sunrise",
+    "lanterns": "event:dawn.lanterns",
+    "caption": "event:dawn.caption",
+    "finished": "event:dawn.finish"
+  },
+  "stages": [
+    {
+      "id": "ready",
+      "next": [
+        {
+          "target": "night-consumed",
+          "when": "consumed"
+        },
+        {
+          "target": "watching",
+          "when": "watch"
+        },
+        {
+          "target": "dawn",
+          "when": "dawn"
+        },
+        {
+          "target": "sunrise",
+          "when": "sunrise"
+        },
+        {
+          "target": "lanterns",
+          "when": "lanterns"
+        },
+        {
+          "target": "caption",
+          "when": "caption"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "night-consumed",
+      "when": "consumed",
+      "do": [
+        {
+          "emit": "night.consume",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "night-consumed",
+          "when": "consumed"
+        },
+        {
+          "target": "watching",
+          "when": "watch"
+        },
+        {
+          "target": "dawn",
+          "when": "dawn"
+        },
+        {
+          "target": "sunrise",
+          "when": "sunrise"
+        },
+        {
+          "target": "lanterns",
+          "when": "lanterns"
+        },
+        {
+          "target": "caption",
+          "when": "caption"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "watching",
+      "when": "watch",
+      "do": [
+        {
+          "emit": "night.start",
+          "value": 6
+        }
+      ],
+      "next": [
+        {
+          "target": "night-consumed",
+          "when": "consumed"
+        },
+        {
+          "target": "watching",
+          "when": "watch"
+        },
+        {
+          "target": "dawn",
+          "when": "dawn"
+        },
+        {
+          "target": "sunrise",
+          "when": "sunrise"
+        },
+        {
+          "target": "lanterns",
+          "when": "lanterns"
+        },
+        {
+          "target": "caption",
+          "when": "caption"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "dawn",
+      "when": "dawn",
+      "do": [
+        {
+          "emit": "dawn.start",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "night-consumed",
+          "when": "consumed"
+        },
+        {
+          "target": "watching",
+          "when": "watch"
+        },
+        {
+          "target": "dawn",
+          "when": "dawn"
+        },
+        {
+          "target": "sunrise",
+          "when": "sunrise"
+        },
+        {
+          "target": "lanterns",
+          "when": "lanterns"
+        },
+        {
+          "target": "caption",
+          "when": "caption"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "sunrise",
+      "when": "sunrise",
+      "do": [
+        {
+          "emit": "dawn.sunrise",
+          "value": 7
+        }
+      ],
+      "next": [
+        {
+          "target": "night-consumed",
+          "when": "consumed"
+        },
+        {
+          "target": "watching",
+          "when": "watch"
+        },
+        {
+          "target": "dawn",
+          "when": "dawn"
+        },
+        {
+          "target": "sunrise",
+          "when": "sunrise"
+        },
+        {
+          "target": "lanterns",
+          "when": "lanterns"
+        },
+        {
+          "target": "caption",
+          "when": "caption"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "lanterns",
+      "when": "lanterns",
+      "do": [
+        {
+          "emit": "dawn.lanterns",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "night-consumed",
+          "when": "consumed"
+        },
+        {
+          "target": "watching",
+          "when": "watch"
+        },
+        {
+          "target": "dawn",
+          "when": "dawn"
+        },
+        {
+          "target": "sunrise",
+          "when": "sunrise"
+        },
+        {
+          "target": "lanterns",
+          "when": "lanterns"
+        },
+        {
+          "target": "caption",
+          "when": "caption"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "caption",
+      "when": "caption",
+      "do": [
+        {
+          "emit": "dawn.caption",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "night-consumed",
+          "when": "consumed"
+        },
+        {
+          "target": "watching",
+          "when": "watch"
+        },
+        {
+          "target": "dawn",
+          "when": "dawn"
+        },
+        {
+          "target": "sunrise",
+          "when": "sunrise"
+        },
+        {
+          "target": "lanterns",
+          "when": "lanterns"
+        },
+        {
+          "target": "caption",
+          "when": "caption"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "finished",
+      "when": "finished",
+      "do": [
+        {
+          "emit": "dawn.finish",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "night-consumed",
+          "when": "consumed"
+        },
+        {
+          "target": "watching",
+          "when": "watch"
+        },
+        {
+          "target": "dawn",
+          "when": "dawn"
+        },
+        {
+          "target": "sunrise",
+          "when": "sunrise"
+        },
+        {
+          "target": "lanterns",
+          "when": "lanterns"
+        },
+        {
+          "target": "caption",
+          "when": "caption"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    }
+  ],
+  "script": "4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251"
+}

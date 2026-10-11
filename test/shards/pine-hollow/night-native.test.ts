@@ -1,3 +1,4 @@
+import { preparePineDirector } from '../../../src/shards/pine-hollow/runtime/directorClock';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the actual native physics and terrain/navmesh fixtures.
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
@@ -22,15 +23,17 @@ const grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), heightAt = bakedSa
 const navBytes = readFileSync(PINE_NAVMESH_ASSET);
 const nativeNav = (() => { const parsed = parseNavmesh(Uint8Array.from(navBytes).buffer); if (parsed === null) throw new Error('Missing Pine navmesh'); return parsed; })();
 nativeNav.datum = () => 0;
+let director: Awaited<ReturnType<typeof preparePineDirector>>;
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 beforeAll(async () => {
+  director = await preparePineDirector();
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const { default: source } = await import('../../../src/shards/pine-hollow/shard.config');
   plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
 });
 const night = { value: 1 };
 function install(host: SimHost, saved?: SimSnapshot) {
-  const parts = installPine(host, { bake: pineBake(), grid, nav: nativeNav, heightAt, spawnY: 0,
+  const parts = installPine(host, { director, bake: pineBake(), grid, nav: nativeNav, heightAt, spawnY: 0,
     night: () => night.value, dusk: () => 0, ...(saved === undefined ? {} : { saved }) });
   return { ...parts, brain: parts.thralls };
 }

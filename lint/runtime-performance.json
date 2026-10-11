@@ -1482,14 +1482,6 @@
       "count": 6,
       "row": "SF47"
     },
-    "src/shards/pine-hollow/runtime/questClock.ts:frame-allocation:382fa834fdc93cb3cdfbee11d351b5e8691314af15ed0be52729152fbdb3a726": {
-      "count": 1,
-      "row": "SF47"
-    },
-    "src/shards/pine-hollow/runtime/questDirector.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
-      "count": 1,
-      "row": "SF47"
-    },
     "src/shards/pine-hollow/runtime/questLifetime.ts:async:abbd54c982a159f18f3502bdd31b425c6d36b6958f0205b7860af773929e2bb5": {
       "count": 1,
       "row": "SF47"
@@ -6645,6 +6637,14 @@
     "src/shards/driftwood-isle-legacy/runtime/finale.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
       "count": 1,
       "row": "SF46"
+    },
+    "src/shards/pine-hollow-legacy/runtime/questClock.ts:frame-allocation:382fa834fdc93cb3cdfbee11d351b5e8691314af15ed0be52729152fbdb3a726": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow-legacy/runtime/questDirector.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
+      "count": 1,
+      "row": "SF47"
     }
   }
 }
