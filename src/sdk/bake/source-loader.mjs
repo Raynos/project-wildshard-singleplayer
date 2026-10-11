@@ -24,7 +24,7 @@ function authoringOnly(url) {
   if (!file.startsWith('src/')) return; // Node and installed third-party dependencies are build infrastructure.
   const parts = file.split('/'), layer = parts[1];
   if (parts.includes('runtime') || parts.some(part => part.endsWith('-legacy')) ||
-      (layer === 'shards' ? parts[2] !== shard || !folders.has(parts[3] ?? '') : !['sdk', 'commons', 'format'].includes(layer ?? ''))) {
+      (layer === 'shards' ? parts[2] !== shard || !folders.has(parts[3]) : !['sdk', 'commons', 'format'].includes(layer))) {
     throw new Error(`Non-authoring dependency refused: ${file}`);
   }
 }

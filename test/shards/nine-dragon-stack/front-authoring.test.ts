@@ -50,7 +50,7 @@ it('regenerates the front boxes in a Node tree with no runtime, game, engine or 
   const cache = resolve('node_modules/.cache'); mkdirSync(cache, { recursive: true });
   const stage = realpathSync(mkdtempSync(join(cache, 'nine-authoring-')));
   try {
-    for (const file of [...audit.files, 'src/sdk/package.json']) {
+    for (const file of [...audit.files, ...Object.keys(generationInputs(root, ['src/format'])), 'src/sdk/package.json']) {
       const target = resolve(stage, file); mkdirSync(dirname(target), { recursive: true });
       copyFileSync(resolve(root, file), target);
     }
@@ -73,7 +73,7 @@ it('cold-generates, restores and force-compares the ignored rows through the sha
   const cache = resolve('node_modules/.cache'); mkdirSync(cache, { recursive: true });
   const stage = realpathSync(mkdtempSync(join(cache, 'nine-floors-cache-'))), cacheDir = join(stage, 'cache');
   try {
-    for (const file of [...job.inputRoots, ...Object.keys(generationInputs(root, ['src/format'])), 'scripts/generation-jobs.json']) {
+    for (const file of [...Object.keys(generationInputs(root, job.inputRoots)), ...Object.keys(generationInputs(root, ['src/format'])), 'scripts/generation-jobs.json']) {
       const target = resolve(stage, file); mkdirSync(dirname(target), { recursive: true });
       copyFileSync(resolve(root, file), target);
     }
