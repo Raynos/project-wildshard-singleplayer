@@ -42,7 +42,12 @@ export class FeiZhua extends Tool {
     const host = this.shard.app.equipmentHost;
     if (host === null) throw new Error('Fei Zhua needs the equipment scene ports');
     // the fragment's own course (grapple/sim.ts wellCourse): its dragon hooks, read once at install, and the Well's safety cap
-    const fragment = this.course ?? wellCourse(ndRuntime().world.ctx.hooks, RIM.z0, (open) => { ndRuntime().guardOpen = open; });
+    let fragment = this.course;
+    if (fragment === undefined) {
+      // The equipment's final release can follow world retirement; keep its installed owner.
+      const runtime = ndRuntime();
+      fragment = wellCourse(runtime.world.ctx.hooks, RIM.z0, (open) => { runtime.guardOpen = open; });
+    }
     // the law's ports: the page's physics and Player (read live, as the Tool always did)
     const ports: GrapplePorts = { get physics() { return host.physics; }, get body() { return host.player; } };
     const fact = this.fact;
