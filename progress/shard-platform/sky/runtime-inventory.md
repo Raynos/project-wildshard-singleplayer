@@ -140,3 +140,10 @@ Custom runtime: 5500 / 6745 = 81.5%; the ≤20% target remains open. No one-user
 The model, rig, generated-piece and texture URL declarations now live as JSON data. Native boot policy still owns texture selection and loading order; consumers index the authored records directly. The frozen ordered desktop/phone image/KTX2 boot hash is exact. The actual Node physics payload, whole native witness/replay/shipping-worker/Ledger and official map image bytes are exact; native gameplay boots successfully. Physics provenance and the map input stamp include the defining data file. No collider, owner or platform implementation changed.
 
 Custom runtime: 5451 / 6745 = 80.8%; the ≤20% target remains open.
+
+
+## Retired unused mover construction helpers
+
+The actual native host already installs the shared mover owner. Its unused caller-driven create/step helpers and unused port type are removed; source searches found no caller outside the frozen legacy copy, which stays untouched. The complete native witness/replay/shipping-worker/effects/Ledger is exact, and focused installed-owner tests, root strict and touched typed lint pass. No collider, map input or physics recipe changes.
+
+Custom runtime: 5442 / 6745 = 80.7%; the ≤20% target remains open.
