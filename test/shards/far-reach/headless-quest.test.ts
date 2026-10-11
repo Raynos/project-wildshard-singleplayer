@@ -12,7 +12,7 @@ import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
 import { FAN_GUST, FAN_ID } from '../../../src/shards/far-reach/data/items';
 import { FAN_ACT, FAN_ACTOR } from '../../../src/shards/far-reach/runtime/fan';
 import { WINCH_BRIDGE } from '../../../src/shards/far-reach/runtime/moverRows';
-import { ROOST_IDS, SKY_ACT, SKY_INTERACT } from '../../../src/shards/far-reach/runtime/quest';
+import { ROOST_IDS, SKY_ACT, SKY_INTERACT } from '../../../src/shards/far-reach/data/questPrompts';
 import { prepareSkyRuntime, type SkyRuntime } from '../../../src/shards/far-reach/runtime/headless';
 import type { SkyMovers } from '../../../src/shards/far-reach/runtime/headlessMovers';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';

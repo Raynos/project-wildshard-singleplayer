@@ -4,33 +4,19 @@ import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { QuestData } from '@wildshard/format/quests';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { DECK, NOTES, ROOST_RAYS, WINCH } from '../data/layout';
-import { KEEPER_AT } from '../data/quests';
+import { QUEST_STEP, ROOST_IDS, SKY_ACT, SKY_INTERACT, SKY_PROMPTS } from '../data/questPrompts';
 import { FLAGS } from '../quest/flags';
 
-/** The script command actor that carries Sky's [E] prompts (`{ kind: 'script', actorId: SKY_INTERACT, value: SKY_ACT.* }`). */
-export const SKY_INTERACT = 'far.interact';
-/** The prompts a command's value names: the keeper's talk, the lectern's notes and the winch. */
-export const SKY_ACT = { talk: 0, notes: 1, winch: 2 } as const;
-/** The quest keeper's fixed-step id (its whole state is flags, so it carries no continuation of its own). */
-export const QUEST_STEP = 'far.quest';
-/** The browser player's eye above the feet (engine Player EYE): prompts pick by eye distance (Interactables.pickInteractable). */
+/** The browser eye offset remains the native distance-query convention. */
 const EYE = 1.68;
-/**
- * The prompts where the built world places them: the keeper's head 1.8 m over Sunrest's deck with the quest presentation's
- * 3.5 m talk radius (quest/keeper.ts, quest/install.ts), the lectern 1.3 m over its stand at 2.6 m and the winch drum
- * 1.2 m over its deck at 3 m (world/build.ts `notesAt`, `winchAt`).
- */
 const PROMPTS = {
-  [SKY_ACT.talk]: { at: new Vector3(KEEPER_AT.x, DECK + 1.8, KEEPER_AT.z), radius: 3.5 },
-  [SKY_ACT.notes]: { at: new Vector3(NOTES.x, NOTES.y + 1.3, NOTES.z), radius: 2.6 },
-  [SKY_ACT.winch]: { at: new Vector3(WINCH.x, WINCH.y + 1.2, WINCH.z), radius: 3 },
-} as const;
+  [SKY_ACT.talk]: { at: new Vector3(...SKY_PROMPTS[SKY_ACT.talk].at), radius: SKY_PROMPTS[SKY_ACT.talk].radius },
+  [SKY_ACT.notes]: { at: new Vector3(...SKY_PROMPTS[SKY_ACT.notes].at), radius: SKY_PROMPTS[SKY_ACT.notes].radius },
+  [SKY_ACT.winch]: { at: new Vector3(...SKY_PROMPTS[SKY_ACT.winch].at), radius: SKY_PROMPTS[SKY_ACT.winch].radius },
+};
 const MAX_COMMANDS = 1024;
 /** The roost's rays and the vanes are finite authored rows; refuse overflow rather than read past the bound. */
 const MAX_ROWS = 64;
-/** The roost's three rays (runtime/flock.ts ids, layout ROOST_RAYS order). */
-export const ROOST_IDS: readonly string[] = ROOST_RAYS.map((_, i) => `far.roost.${String(i)}`);
 
 /** The winch bridge as the quest drives it: queue the winch's raise, and read whether its pose is up. */
 export interface SkyWinch { readonly command: () => void; readonly raised: () => boolean }
