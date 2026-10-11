@@ -4,7 +4,7 @@ import type { EquipContext, EquipmentRow } from '@wildshard/engine/combat/Equipm
 import type { Targets } from '@wildshard/engine/combat/types';
 import { Weapon, type WeaponState } from '@wildshard/engine/combat/Weapon';
 import { CatmullRomCurve3, Mesh, TubeGeometry, Vector2, Vector3, type Group, type Material, type Object3D } from 'three';
-import { LashRuntime, type LashSpec, type LashTarget, type LashWorldTarget } from '@wildshard/game/systems/items/lash';
+import { LashRuntime, type LashSpec, type LashTarget, type LashWorldTarget } from './lash';
 import type { LashCord } from './lashView';
 
 /**

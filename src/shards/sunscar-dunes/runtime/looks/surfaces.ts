@@ -1,6 +1,6 @@
 import type { HdLookRow } from '@wildshard/sdk/looks/modelLibrary';
-import type { FirelightLook, SurfaceLook, ViewerLightLook } from '@wildshard/sdk/looks/surfaceLooks';
-import type { DuneHdName } from './files';
+import type { FirelightLook, SurfaceLook, ViewerLightLook } from '@wildshard/game/systems/looks/surfaceLooks';
+import type { DuneHdName } from '../../data/files';
 
 /**
  * Signal Dunes' surface looks as rows (SHARD-PLATFORM SF72, look-family rows) on the platform's surface families

@@ -4,7 +4,7 @@ import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
-import { Sword } from '@wildshard/sdk/runtime/weapons/Sword';
+import { Sword } from '@wildshard/game/weapons/Sword';
 import type { ShardSword } from '@wildshard/game/shard/manifest';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import source from '../shard.config';

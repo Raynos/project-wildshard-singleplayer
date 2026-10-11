@@ -10,7 +10,7 @@ import { sailclothCapeGeometry } from '../src/shards/driftwood-isle/generators/s
 import { chimeGeometry } from '../src/shards/driftwood-isle/generators/seaGlassChime';
 import { plaquesGeometry } from '../src/shards/driftwood-isle/generators/trophyPlaques';
 import { PLAQUE_GAP } from '../src/shards/driftwood-isle/models/trophyPlaques';
-import { SlotGeometry } from '../src/engine/models/slots';
+import { SlotGeometry } from '../src/shards/driftwood-isle/runtime/models/slots';
 
 import { counterGeometry } from '../src/shards/driftwood-isle/generators/tradeCounter';
 

@@ -1,6 +1,6 @@
 /** Original shield boards, prints and swept trophies; offline geometry only. */
 import * as THREE from 'three';
-import { SlotRecorder, type SlotRange } from '@wildshard/engine/models/slots';
+import { SlotRecorder, type SlotRange } from '../runtime/models/slots';
 import { log, rock, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { TROPHIES, type TrophyId } from '../models/trophyPlaques';

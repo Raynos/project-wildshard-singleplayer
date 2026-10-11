@@ -1,5 +1,5 @@
 import { BossBrain, type BossContinuation, type BossPorts, type BossPresentation, type BossScript } from '@wildshard/engine/ai/BossBrain';
-import type { BossDef } from '@wildshard/engine/ai/bossDefinition';
+import type { BossDef } from '../runtime/combat/bossDefinition';
 import type { Events } from '@wildshard/engine/events/events';
 import { Vector3 } from 'three';
 

@@ -1,7 +1,7 @@
 import type { App } from '@wildshard/engine/app/app';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { LashWeapon } from '../runtime/items/lashWeapon';
-import { lashSpec } from '@wildshard/game/systems/items/lash';
+import { lashSpec } from '../runtime/items/lash';
 import { WHIP_ROW } from './rows';
 import { WHIP_ITEM, WHIP_MOVES, WHIP_TIMING } from '../data/items';
 import { WHIP_VIEW } from '../runtime/items/whipRows';

@@ -3,7 +3,7 @@ import { MeshStandardMaterial, Vector3, Vector4, type ShaderMaterial, type WebGL
 import { legacyDouble } from '../../fake/FakeGame';
 import { applySurfaceLooks, type SurfaceLook } from '../../../src/game/systems/looks/surfaceLooks';
 import { duskDomeFragment, duskDomeMaterial, DUSK_DOME_VERTEX, type DuskDomeStyle } from '../../../src/shards/sunscar-dunes/runtime/looks/duskDome';
-import { BRAZIER_SURFACE, CAMP_SURFACE, COIL_SURFACE, GLOVE_SURFACE } from '../../../src/shards/sunscar-dunes/data/surfaces';
+import { BRAZIER_SURFACE, CAMP_SURFACE, COIL_SURFACE, GLOVE_SURFACE } from '../../../src/shards/sunscar-dunes/runtime/looks/surfaces';
 import { SKY_STYLE } from '../../../src/shards/sunscar-dunes/runtime/looks/sky';
 // The hero models' shader patches and the procedural dome as Signal Dunes' own code built them before they became rows
 // (HEAD ba62c96f2, world/meshes.ts warmByFire / viewerLit / leatherDetail / fieldstoneBase / greyed, look/sky.ts), each

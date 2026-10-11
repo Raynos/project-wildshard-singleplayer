@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
 import { MeshBasicMaterial, Vector3, type Material } from 'three';
-import { SlotGeometry } from '../../../src/engine/models/slots';
+import { SlotGeometry } from '../../../src/shards/driftwood-isle/runtime/models/slots';
 import { modelContext } from '../../../src/engine/models/model';
 import type { SkyRig } from '../../../src/engine/world/skyRig';
 import { loadFixedGeometry } from '../../../src/shards/driftwood-isle/boot/fixedGeometry';

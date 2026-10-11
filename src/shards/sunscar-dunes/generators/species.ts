@@ -1,6 +1,6 @@
 import { BoxGeometry, ConeGeometry, IcosahedronGeometry, MeshStandardMaterial, type BufferGeometry } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { placed, skinParts } from '@wildshard/sdk/species/rigidSkin';
+import { placed, skinParts } from './rigidSkin';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72, SF67 fix 3 "bake the code-built worlds"): the sand skitterer's code-built body,

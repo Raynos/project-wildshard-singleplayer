@@ -6309,6 +6309,86 @@
     "src/shards/sunscar-dunes/runtime/items/lashWeapon.ts:frame-allocation:47099b518405f265afe4e72abb2bd469a320f0505e50f21828aa7c62fee5ddef": {
       "count": 1,
       "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:unbounded-loop:69dc63e1d06a04dfb5d65fe9cbe6d27c100b12ffe6ae46ca467585f70196891d": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:frame-allocation:1878369db4cd19fe8c7976a13d542951ee8016513af2fee6c0b05029c43ae49d": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:frame-allocation:46ee05caeebdf70595fe0474c21c6258c89ecd26f6aa40a02376080142d77ad6": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:frame-allocation:032c20da34fd7ab98314b3dba25657b246d354883927eb8ac4276aa650b744ea": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:frame-allocation:ddc812d13a73eaf49c3ece312948ef3511bab13efd18f5bbe7ee71d7830f0a9b": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:unbounded-loop:1b94ef1e9b7029bfa269ef540c7b8118a3fa47a7a7540c389fdc828d65076dd5": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:frame-allocation:bb8152d0e3329cfa8ad099c35e77f3dffc9ff066c335dad2dc7928449a126710": {
+      "count": 2,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:unbounded-loop:cc161c05e4160f341f769b2e958ffc41e0e5a4b763c256963bb669931a01c3be": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:frame-allocation:027375aff77bc2e2eeea8d6914889041ad64b41a1804595b1297397608c6adc1": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:frame-allocation:3a0cf1f313abb9e7e040f8c1acd549df95c81ef083d116596041082a217147dc": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:unbounded-loop:7858901268fb7d85877d267e6d76d9a6243af7b4289d20874c7239a9bdca5b1d": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:frame-allocation:a14ef441eecd2ab59a1e7b536b5f134144efc1c599747b70578d175fc62b8170": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:frame-allocation:49bd4307c90d1d3f8407f2eb53f42db03aa8f21df3fa67e6162012bab85c16c0": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:frame-allocation:4e60d13ec9cedd5715b17c7278c79c185784e1749d278bae4fae562301c7bb56": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lash.ts:frame-allocation:e9f44d3e055a61f9f0bf026f8fdb00704b2074f0fcf9d72dd15d1a95549a05d3": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/driftwood-isle/runtime/models/slots.ts:unbounded-loop:6f62a42a2ccf909fcf3b476e0b985b37ecdab911ba5dea248900ccf0e4577f20": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/driftwood-isle/runtime/models/slots.ts:unbounded-loop:c2e4355e9d59fd0a160eec54d28d74f7db0084dfc041a22bf1fb322d0c9de77d": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/driftwood-isle/runtime/models/slots.ts:unbounded-loop:5524af79aefb1cc40ee259b35dae485974b41a6aa86df58b1e78735f4727830b": {
+      "count": 1,
+      "row": "SF76 verbatim frozen-compatible native copy"
+    },
+    "src/shards/sunscar-dunes/generators/rigidSkin.ts:unbounded-loop:2eed3bb292cd6e393343535a67e980d26deb9ff06651a7dafdca8b47145abf20": {
+      "count": 1,
+      "row": "SF76 verbatim move"
+    },
+    "src/shards/sunscar-dunes/generators/rigidSkin.ts:unbounded-loop:49a3ed7ab1fcb30bc2d65e3d7da2d78f2c8e0f95dcad3260f637a9b63a2b3db4": {
+      "count": 1,
+      "row": "SF76 verbatim move"
     }
   }
 }

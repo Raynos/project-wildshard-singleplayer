@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { SlotGeometry } from '@wildshard/engine/models/slots';
+import { SlotGeometry } from '../runtime/models/slots';
 import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 

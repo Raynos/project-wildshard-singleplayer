@@ -11,7 +11,6 @@
     "./systems/looks/particles": "./systems/looks/particles.ts",
     "./systems/looks/surfaceLooks": "./systems/looks/surfaceLooks.ts",
     "./systems/species/clips": "./systems/species/clips.ts",
-    "./systems/species/rigidSkin": "./systems/species/rigidSkin.ts",
     "./systems/looks/rainCurtain": "./systems/looks/rainCurtain.ts",
     "./systems/looks/trample": "./systems/looks/trample.ts",
     "./systems/looks/shaderFamily": "./systems/looks/shaderFamily.ts",

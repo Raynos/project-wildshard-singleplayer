@@ -1,6 +1,6 @@
 /** Original full chime, including wind weights and collectible vertex ranges; offline only. */
 import * as THREE from 'three';
-import { SlotRecorder, type SlotRange } from '@wildshard/engine/models/slots';
+import { SlotRecorder, type SlotRange } from '../runtime/models/slots';
 import { log, rock, rope } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 

@@ -1,7 +1,7 @@
 import type { MeshStandardMaterial } from 'three';
 import { buildLashHold, lashWrapMaterial, type LashHoldParts } from '../runtime/items/lashHold';
 import { HD_GLOVE_SIZE, WHIP_HOLD } from '../runtime/items/whipRows';
-import { COIL_SURFACE } from '../data/surfaces';
+import { COIL_SURFACE } from '../runtime/looks/surfaces';
 import { duneHd, duneMesh, heldSurface } from '../world/meshes';
 
 /** The whip's built parts (the lash item's held view). */
