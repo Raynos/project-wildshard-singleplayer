@@ -71,3 +71,36 @@ export abstract class ShardPlugin {
  * Rejects once the shard's scope has closed (an unloaded cell stops building).
  */
 export function worldBuildYield(ctx: Pick<ShardContext, 'scope'>): Promise<void> { return buildYield(ctx.scope); }
+
+/** Standalone admission factory; caller-owned data and native constructors retain their original staged hook order.
+ * The instance chooses its entry once in world(), then kit/play reuse that same composite. No service runs on import.
+ * Optional constructor ports preserve existing LEGACY and SHARDFILE test/host injection without a second boot. */
+export function standaloneHybridEntry(Native: new () => ShardPlugin, admitDefault: (ctx: ShardContext) => Promise<ShardPlugin>,
+  shardfileDefault: (ctx: ShardContext) => boolean, name: string): new (
+    Legacy?: new () => ShardPlugin, admit?: (ctx: ShardContext) => Promise<ShardPlugin>,
+    shardfile?: (ctx: ShardContext) => boolean,
+  ) => Required<ShardPlugin> {
+  return class extends ShardPlugin {
+    private composite: ShardPlugin | undefined;
+    private readonly Legacy: new () => ShardPlugin;
+    private readonly admit: (ctx: ShardContext) => Promise<ShardPlugin>;
+    private readonly shardfile: (ctx: ShardContext) => boolean;
+    constructor(Legacy: new () => ShardPlugin = Native,
+      admit: (ctx: ShardContext) => Promise<ShardPlugin> = admitDefault,
+      shardfile: (ctx: ShardContext) => boolean = shardfileDefault) {
+      super(); this.Legacy = Legacy; this.admit = admit; this.shardfile = shardfile;
+    }
+    override async world(ctx: ShardContext): Promise<void> {
+      this.composite = this.shardfile(ctx) ? await this.admit(ctx) : new this.Legacy();
+      await this.composite.world?.(ctx);
+    }
+    override async kit(ctx: ShardContext): Promise<void> {
+      if (this.composite === undefined) throw new Error(`${name} hybrid world is not admitted`);
+      await this.composite.kit?.(ctx);
+    }
+    override async play(ctx: ShardContext): Promise<void> {
+      if (this.composite === undefined) throw new Error(`${name} hybrid world is not admitted`);
+      await this.composite.play?.(ctx);
+    }
+  };
+}

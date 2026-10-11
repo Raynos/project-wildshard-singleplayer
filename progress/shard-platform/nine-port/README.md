@@ -6,7 +6,8 @@ G291/G294 before: **15,209 / 21,111 = 72.0430% custom**.
 After the native Jian row slice: **15,208 / 21,111 = 72.0383% custom**.
 After explicit grapple-mode admission: **15,212 / 21,111 = 72.0572% custom**.
 After explicit native portal/director admission: **15,218 / 21,111 = 72.0856% custom**; 20% gate FAIL. The ten additional host admission lines are charged, not presented as a size reduction.
-The frozen denominator is `nine-dragon-stack-legacy` at `8e297137b940f50da7f1949106d5576f80f238ca`. Current numerator: 14,309 authored shard TS lines, 1 additional GLSL line and 908 one-user platform lines. Embedded GLSL (3,205 lines) is already inside the TS numerator, not added twice. AS: 0. Generated data never counts. The template is not a second user.
+After the shared Nine/Sky standalone lifecycle: **15,201 / 21,111 = 72.0051% custom**; −17 genuinely duplicated shard lines. The 20% gate still FAILS.
+The frozen denominator is `nine-dragon-stack-legacy` at `8e297137b940f50da7f1949106d5576f80f238ca`. Current numerator: 14,292 authored shard TS lines, 1 additional GLSL line and 908 one-user platform lines. Embedded GLSL (3,205 lines) is already inside the TS numerator, not added twice. AS: 0. Generated data never counts. The template is not a second user.
 
 Nine remains **transitional**: its gameplay witness/replay/ledger pass, but trusted TS still runs its simulation. The source-only export has no emitted shardfile product, so the content gate is unavailable; no tiles/collider/file completeness or finished 80/20 conversion is claimed.
 
@@ -36,6 +37,12 @@ Native entry admission already proved the supplied root, but native play constru
 All 20 focused tests/4 files pass, including the real entry capsules, 10k-step row motion oracle, native factory comparison and held-phase restore. Mutating an admitted node changes actual native trigger selection; a declared false transition prevents transfer. The old factory and the new host emit the same gameplay ledger fact. Strict and touched typed lint pass. All four witness recordings are checked with identical payloads/outcomes; all 148 physics inputs and the map hash remain identical. No new platform algorithm, graphical change or compatible/20% claim is made.
 
 After the landing freeze, rebased on `c673ec015` and repeated the 20 focused tests, strict and touched typed lint: all green. All four witness recordings remain byte-identical. The current 149 physics inputs (147 tracked files and two generated portal declarations) are unchanged by this slice; the current map hash is `cb806256f74e67ec7983bbb63ee09aa1c33305c656372de0f51ff6a4009b2a36`, also unchanged by this slice (the generator path migration landed separately during the freeze).
+
+## Fourth slice: shared standalone lifecycle
+
+The identical Nine and Sky standalone lifecycle now has one implementation in the existing game plugin module. Both real shards keep their own data admission and native constructor. The entry choice, awaited world hook, kit/play forwarding, dependency injection and refusal messages are unchanged. This is genuine two-shard reuse, not a relocated one-user facade. Native simulation, colliders and rendering are untouched.
+
+Proof: 34 focused tests across six files, strict typecheck and touched-file typed lint pass in the clean export. The actual Nine/Sky wrappers preserve two fresh legacy and data-backed admissions, pending and failed admission fences, and exact world/kit/play order. All four native witness payloads remain byte-identical. No collider or map input changed.
 
 ## Remaining work
 
@@ -153,7 +160,7 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `models/gear.ts` | 38 | O |
 | `world/facade/pieceIds.ts` | 38 | O |
 | `look/far.ts` | 36 | O |
-| `runtime/standalone.ts` | 36 | X |
+| `runtime/standalone.ts` | 19 | X |
 | `world/hero/vm-material.ts` | 36 | O |
 | `world/hipRoof.ts` | 36 | O |
 | `runtime/audio/cues.ts` | 35 | X |

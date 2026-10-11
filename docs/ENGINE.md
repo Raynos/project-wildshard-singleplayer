@@ -2725,7 +2725,7 @@ aim, framing or appearance. The SF26 proof admits that exact asset for both owni
 and verifies one download and one resident claim until the last lease is released.
 
 `@wildshard/game/plugin/context` defines `ShardContext` and `shardContext`;
-`@wildshard/game/plugin/shardPlugin` defines the staged `ShardPlugin` base class.
+`@wildshard/game/plugin/shardPlugin` defines the staged `ShardPlugin` base class. Its `standaloneHybridEntry(Native, admit, shardfile, name)` defines the shared standalone lifecycle used by Nine and Sky: choose one composite in the world stage, await admission, then forward kit/play to that same owner. Shards retain their own admitted source, bindings, native constructor and entry choice; optional constructor ports keep existing test/host injection. Calling the factory or importing it installs no service.
 Internal game consumers import these defining modules relatively. The frozen
 `./shard/context` and `./shard/plugin` export keys point to those distinct modules,
 preserving the exact constructor identity without collapsing distinct frozen imports. They retire with the old consumers; no duplicate class or service
