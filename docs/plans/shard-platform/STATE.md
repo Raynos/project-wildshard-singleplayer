@@ -13,7 +13,7 @@
 
 **Live: P0 RED.** Push CI red since 10-10 19:54Z (prod c24dd65af); origin 245dbd3f8, ~95 waiting; landing freeze. **sp-x7 = Jake's dedicated gate/CI/deploy lane (10-11).**
 
-**Red → green (G330):** row-data JSON export; culprit `255dd529c`; fix `b4a36e751` (sp-x4).
+**Red → green (G330):** row-data export `255dd529c` → `b4a36e751`; Linux Nine physics `669511341` and Nalati places `27b0d8da1` → `baa8a3165` (sp-x4).
 
 **G298 done.** **G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact, witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`).
 
