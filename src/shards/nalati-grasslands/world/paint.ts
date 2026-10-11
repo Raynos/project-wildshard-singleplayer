@@ -192,7 +192,9 @@ export class PaintKit {
   private static *shadeSteps(parts: THREE.BufferGeometry[], o: FinishOpts): Generator<void, THREE.BufferGeometry> {
     const geo = mergeGeometries(parts, false);
     for (const p of parts) p.dispose();
-    if (o.ao !== false) bakeSmoothAO(geo, { ...o.ao, ...(o.ground ? { ground: o.ground } : {}) });
+    // AO and contact shading only change colours: compute the exact bounds once, in slices, before either reads them.
+    yield* geometryBoundsSteps(geo);
+    if (o.ao !== false && geo.boundingBox !== null) bakeSmoothAOBounded(geo, { ...o.ao, ...(o.ground ? { ground: o.ground } : {}) }, geo.boundingBox);
     const pos = geo.getAttribute('position'), nrm = geo.getAttribute('normal'), col = geo.getAttribute('color');
     const tint = SHADE_TINT, aoH = o.aoH ?? 0.9, aoMin = o.aoMin ?? 0.55;
     for (let i = 0; i < pos.count; i++) {
@@ -208,7 +210,6 @@ export class PaintKit {
       else col.setXYZ(i, r * k + r * tint.r * (1 - k), g * k + g * tint.g * (1 - k), bl * k + bl * tint.b * (1 - k));
     }
     col.needsUpdate = true;
-    yield* geometryBoundsSteps(geo);
     return geo;
   }
 
@@ -294,6 +295,10 @@ export function bakeSmoothAO(geo: THREE.BufferGeometry, o: AOOpts = {}): void {
   geo.computeBoundingBox();
   const bb = geo.boundingBox;
   if (bb === null) return;
+  bakeSmoothAOBounded(geo, o, bb);
+}
+
+function bakeSmoothAOBounded(geo: THREE.BufferGeometry, o: AOOpts, bb: THREE.Box3): void {
   const ext = new THREE.Vector3().subVectors(bb.max, bb.min);
   let cell = o.cell ?? Math.min(0.8, Math.max(0.15, Math.max(ext.x, ext.y, ext.z) / 140));
   const cellsFor = (c: number) => (Math.ceil(ext.x / c) + 5) * (Math.ceil(ext.y / c) + 5) * (Math.ceil(ext.z / c) + 5);

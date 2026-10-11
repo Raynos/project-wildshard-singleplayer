@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry, Mesh } from 'three';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { KurganDungeon } from '../../../src/shards/nalati-grasslands/world/KurganDungeon';
 
 /** every attribute's bytes of the interior mesh, and the group's child order (SF67) */
@@ -44,4 +44,27 @@ it('builds the same lazy boot a task apart per movable piece as the one-task laz
   expect(sliced.tris).toBe(eager.tris);
   await sliced.buildStaticSliced(() => Promise.resolve());
   expect(shape(sliced)).toEqual(shape(new KurganDungeon().build()));
+});
+
+it('does not rescan the large static mesh synchronously before AO reads its sliced bounds', async () => {
+  const dungeon = new KurganDungeon().build(true);
+  const boxes = vi.spyOn(BufferGeometry.prototype, 'computeBoundingBox');
+  const spheres = vi.spyOn(BufferGeometry.prototype, 'computeBoundingSphere');
+  try {
+    await dungeon.buildStaticSliced(() => Promise.resolve());
+    const large = (geometry: unknown): boolean => {
+      const position: unknown = geometry instanceof BufferGeometry ? geometry.getAttribute('position') : null;
+      return position instanceof BufferAttribute && position.count >= 32768;
+    };
+    expect(boxes.mock.contexts.filter(large)).toEqual([]);
+    expect(spheres.mock.contexts.filter(large)).toEqual([]);
+    const interior = dungeon.group.getObjectByName('kurgan-interior');
+    if (!(interior instanceof Mesh) || !(interior.geometry instanceof BufferGeometry)) throw new Error('Missing static interior');
+    const shipping = interior.geometry.clone();
+    boxes.mockRestore(); spheres.mockRestore();
+    shipping.computeBoundingBox(); shipping.computeBoundingSphere();
+    expect(interior.geometry.boundingBox).toEqual(shipping.boundingBox);
+    expect(interior.geometry.boundingSphere).toEqual(shipping.boundingSphere);
+    shipping.dispose();
+  } finally { boxes.mockRestore(); spheres.mockRestore(); }
 });

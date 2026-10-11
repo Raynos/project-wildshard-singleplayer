@@ -24,6 +24,11 @@ function fingerprint(objects: readonly THREE.Object3D[], extra: unknown): string
     const geometry: unknown = child instanceof THREE.Mesh ? child.geometry : null;
     if (!(geometry instanceof THREE.BufferGeometry)) return;
     hash.update(child.name);
+    const shippingBounds = geometry.clone();
+    shippingBounds.computeBoundingBox(); shippingBounds.computeBoundingSphere();
+    if (geometry.boundingBox !== null) expect(geometry.boundingBox).toEqual(shippingBounds.boundingBox);
+    if (geometry.boundingSphere !== null) expect(geometry.boundingSphere).toEqual(shippingBounds.boundingSphere);
+    shippingBounds.dispose();
     for (const name of ['position', 'normal', 'color', 'uv']) {
       const attribute: unknown = geometry.getAttribute(name);
       if (attribute instanceof THREE.BufferAttribute) hash.update(new Uint8Array(new Float32Array(Array.from(attribute.array, Number)).buffer));
@@ -39,7 +44,7 @@ it('builds the camp a part a task with the one-task camp', () => {
   const steps = nomadCampSteps({ sky, ground, flutter: new Flutter(), smoke: new Smoke() });
   let parts = 0, step = steps.next();
   while (step.done !== true) { parts++; step = steps.next(); }
-  expect(parts).toBe(4); // the places bake: a baked mesh a task (the yard, the felt, the painted mesh, the timber)
+  expect(parts).toBe(12); // four meshes plus eight expanded-geometry bounds slices
   const camp = step.value;
   expect(fingerprint([camp.object], [camp.colliders, camp.tris])).toBe(fingerprint([eager.object], [eager.colliders, eager.tris]));
 });
@@ -48,7 +53,7 @@ it('builds the summer camp and the kurgan field a part a task with their one-tas
   const ctx = () => ({ sky, ground, flutter: new Flutter(), smoke: new Smoke() });
   const drain = <T>(steps: Generator<void, T>): [T, number] => { let parts = 0; for (;;) { const step = steps.next(); if (step.done === true) return [step.value, parts]; parts++; } };
   const summer = buildSummerCamp(ctx()), [summerSliced, summerParts] = drain(summerCampSteps(ctx()));
-  expect(summerParts).toBe(4); // a baked mesh a task
+  expect(summerParts).toBe(8); // four meshes plus four expanded-geometry bounds slices
   expect(fingerprint([summerSliced.object], [summerSliced.colliders, summerSliced.tris])).toBe(fingerprint([summer.object], [summer.colliders, summer.tris]));
   const field = buildKurganField(ctx()), [fieldSliced, fieldParts] = drain(kurganFieldSteps(ctx()));
   expect(fieldParts).toBeGreaterThan(4);

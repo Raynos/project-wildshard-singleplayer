@@ -10,6 +10,7 @@
  * page fault (`bakedPlaceSteps` throws, naming it).
  */
 import * as THREE from 'three';
+import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import type { ModelDef, ModelPart, Placement } from '@wildshard/engine/models/model';
 import type { Placed } from '@wildshard/engine/models/place';
 import type { Material } from '@wildshard/engine/physics/surface';
@@ -89,12 +90,16 @@ const bytesOfRow = (g: PlaceGeometryRow): number => {
 
 /** a bake's geometry from `at` (expanded when welded), its bounds as the page's builders computed them */
 function geometryAt(bytes: Uint8Array, at: number, row: PlaceGeometryRow): THREE.BufferGeometry {
+  const steps = geometryAtSteps(bytes, at, row);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+
+function* geometryAtSteps(bytes: Uint8Array, at: number, row: PlaceGeometryRow): Generator<void, THREE.BufferGeometry> {
   const g = readBakedGeometry(bytes, at, row);
   if (!row.expand) return g;
   const flat = g.toNonIndexed();
   g.dispose();
-  flat.computeBoundingSphere();
-  flat.computeBoundingBox();
+  yield* geometryBoundsSteps(flat);
   return flat;
 }
 
@@ -219,7 +224,8 @@ export function* bakedPlaceSteps(name: string, ctx: PoiCtx, placers: ReadonlyMap
   if (top !== null && row.group !== null) top.name = row.group;
   const meshes: THREE.Mesh[] = [];
   for (const [k, m] of row.meshes.entries()) {
-    const mesh = new THREE.Mesh(geometryAt(bake.bytes, bake.at[first + k] ?? 0, m.geometry), materialOf(ctx, m.material));
+    const geometry = yield* geometryAtSteps(bake.bytes, bake.at[first + k] ?? 0, m.geometry);
+    const mesh = new THREE.Mesh(geometry, materialOf(ctx, m.material));
     mesh.name = m.name;
     if (m.material === 'yard') { mesh.receiveShadow = true; mesh.renderOrder = 1; } else { mesh.castShadow = true; mesh.receiveShadow = true; }
     meshes[m.slot] = mesh;
