@@ -53,7 +53,20 @@ function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera): Drawable[]
     for (const child of object.children) visit(child);
   };
   visit(root);
-  return out;
+  // Plain static meshes share uploaded geometry and driver binding/pipeline state. Replaying every tree or
+  // fence transform pays another painted slice without warming anything new. Object-owned buffers (instances,
+  // skinning, morphs), draw callbacks and different material/shadow states keep their own first draw.
+  const seen = new Set<string>();
+  return out.filter(object => {
+    if (!(object instanceof THREE.Mesh) || Object.getPrototypeOf(object) !== THREE.Mesh.prototype || object.morphTargetInfluences !== undefined
+      || object.onBeforeRender !== THREE.Object3D.prototype.onBeforeRender || object.onAfterRender !== THREE.Object3D.prototype.onAfterRender
+      || object.onBeforeShadow !== THREE.Object3D.prototype.onBeforeShadow || object.onAfterShadow !== THREE.Object3D.prototype.onAfterShadow) return true;
+    const geometry: unknown = object.geometry;
+    if (!(geometry instanceof THREE.BufferGeometry)) return true;
+    const key = `${geometry.uuid}|${drawableMaterials(object).map(material => material.uuid).join(',')}|${object.castShadow}|${object.layers.test(camera.layers)}`;
+    if (seen.has(key)) return false;
+    seen.add(key); return true;
+  });
 }
 
 /** Slice size: at most this many drawables, and at most this many materials not drawn by an earlier slice. */

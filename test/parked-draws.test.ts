@@ -16,6 +16,27 @@ it('slices drawables by count and by materials no earlier slice drew', () => {
   expect(parkedDrawSlices([], { drawables: 8, newMaterials: 2 })).toEqual([]);
 });
 
+it('warms shared static geometry once but preserves material, shadow, callback and per-object buffer draws', async () => {
+  const scene = new Scene(), root = new Group(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
+  const shared = new Mesh(geometry, material), transformed = new Mesh(geometry, material), shadow = new Mesh(geometry, material);
+  const otherMaterial = new Mesh(geometry, new MeshStandardMaterial()), callback = new Mesh(geometry, material);
+  const instances = [new InstancedMesh(geometry, material, 2), new InstancedMesh(geometry, material, 2)];
+  transformed.position.x = 20; shadow.castShadow = true; callback.onBeforeRender = () => undefined;
+  root.add(shared, transformed, shadow, otherMaterial, callback, ...instances); root.visible = false; scene.add(root);
+  const drawn: Object3D[] = [];
+  const renderer: ParkedDrawRenderer = {
+    shadowMap: { autoUpdate: false, needsUpdate: false, type: PCFShadowMap },
+    render: (tree, camera) => { tree.traverseVisible(object => { if (object instanceof Mesh && object.layers.test(camera.layers)) drawn.push(object); }); },
+    getRenderTarget: () => null, setRenderTarget: () => undefined, getActiveCubeFace: () => 0, getActiveMipmapLevel: () => 0,
+    getScissor: out => out.set(0, 0, 0, 0), setScissor: () => undefined, getScissorTest: () => false, setScissorTest: () => undefined,
+  };
+  const count = await warmParkedDraws(renderer, scene, new PerspectiveCamera(), null, root, () => true, () => Promise.resolve(),
+    { budget: { drawables: 1, newMaterials: 1 } });
+  expect(count).toBe(6); expect(drawn).toEqual([shared, shadow, otherMaterial, callback, ...instances]);
+  expect(transformed.visible).toBe(true); expect(transformed.layers.mask).toBe(1); expect(root.visible).toBe(false);
+  geometry.dispose(); material.dispose();
+});
+
 it('draws only the parked root\'s visible drawables, with every light, into a 1x1 scissor, and restores all state', async () => {
   const scene = new Scene(), road = mesh(), root = new Group(), inner = new Group();
   const a = mesh(), b = mesh(), hidden = mesh(), offLayer = mesh(), cellLight = new PointLight(), sun = new PointLight();
