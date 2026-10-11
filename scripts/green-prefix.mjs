@@ -19,7 +19,8 @@
 //
 //   node scripts/green-prefix.mjs [--witness] <tip> <output-file>    prints a sha, or nothing (reason on stderr)
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import { existsSync, lstatSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -83,9 +84,11 @@ function gatedRed(common) {
 }
 
 /** Run focused failed checks and present tests on a clean export; missing scripts refuse rather than passing.
- * @param {string} root @param {string} sha @param {readonly string[]} files @param {readonly string[][]} [commands] */
-export function probeFailure(root, sha, files, commands = []) {
+ * @param {string} root @param {string} sha @param {readonly string[]} files @param {readonly string[][]} [commands]
+ * @param {(work: string, snapshot: string) => void} [keepPassing] */
+export function probeFailure(root, sha, files, commands, keepPassing) {
   const work = realpathSync(mkdtempSync(join(tmpdir(), 'green-prefix-')));
+  let kept = false;
   try {
     const archive = join(work, 'source.tar');
     execFileSync('git', ['archive', '--format=tar', `--output=${archive}`, sha, '--', '.', ':!art', ':!progress', ':!sources', ':!drafts', ':!ios', ':!android', ':!.claude', ':!docs'], { cwd: root });
@@ -93,18 +96,47 @@ export function probeFailure(root, sha, files, commands = []) {
     rmSync(archive);
     linkNodeModules(root, work);
     const present = files.filter((file) => existsSync(join(work, file)));
-    if (present.length === 0 && commands.length === 0) { log(`${sha.slice(0, 9)}: none of the files exist yet: pass`); return true; }
+    if (present.length === 0 && (commands?.length ?? 0) === 0) { log(`${sha.slice(0, 9)}: none of the files exist yet: pass`); return true; }
     if (existsSync(join(work, 'scripts/gen.mjs'))) execFileSync(process.execPath, ['scripts/gen.mjs'], { cwd: work, stdio: 'ignore' });
-    const t0 = Date.now();
-    const checks = [...commands, ...(present.length === 0 ? [] : [['pnpm', 'exec', 'vitest', 'run', ...present]])];
-    const ok = checks.every(([command, ...args]) => spawnSync(command, args,
-      { cwd: work, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).status === 0);
-    log(`${sha.slice(0, 9)}: ${commands.length} check(s), ${present.length} file(s) ${ok ? 'pass' : 'fail'} in ${Math.round((Date.now() - t0) / 1000)} s`);
+    const snapshot = keepPassing === undefined ? '' : probeSnapshot(work);
+    const ok = failureInWork(work, sha, present, commands ?? []);
+    if (ok && keepPassing !== undefined) { keepPassing(work, snapshot); kept = true; }
     return ok;
   } catch (error) {
     log(`${sha.slice(0, 9)}: probe failed (${error instanceof Error ? error.message.split('\n')[0] : String(error)}): counted as red`);
     return false;
-  } finally { rmSync(work, { recursive: true, force: true }); }
+  } finally { if (!kept) rmSync(work, { recursive: true, force: true }); }
+}
+
+/** Fingerprint prepared export files; dependency links remain supplied by the pinned install.
+ * Added, deleted, renamed or changed files (including generated files) refuse reuse. @param {string} work */
+export function probeSnapshot(work) {
+  const hash = createHash('sha256');
+  /** @param {string} directory */
+  function visit(directory) {
+    for (const name of readdirSync(join(work, directory)).sort()) {
+      const path = directory === '' ? name : `${directory}/${name}`;
+      if (path === 'node_modules') continue;
+      const absolute = join(work, path), stat = lstatSync(absolute);
+      if (stat.isDirectory()) visit(path);
+      else {
+        hash.update(path).update('\0').update(String(stat.mode)).update('\0');
+        hash.update(stat.isSymbolicLink() ? readlinkSync(absolute) : readFileSync(absolute)).update('\0');
+      }
+    }
+  }
+  visit('');
+  return hash.digest('hex');
+}
+
+/** @param {string} work @param {string} sha @param {readonly string[]} files @param {readonly string[][]} commands */
+function failureInWork(work, sha, files, commands) {
+  const t0 = Date.now(), present = files.filter((file) => existsSync(join(work, file)));
+  const checks = [...commands, ...(present.length === 0 ? [] : [['pnpm', 'exec', 'vitest', 'run', ...present]])];
+  const ok = checks.every(([command, ...args]) => spawnSync(command, args,
+    { cwd: work, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).status === 0);
+  log(`${sha.slice(0, 9)}: ${commands.length} check(s), ${present.length} file(s) ${ok ? 'pass' : 'fail'} in ${Math.round((Date.now() - t0) / 1000)} s`);
+  return ok;
 }
 
 /** Whether <sha>'s committed generated outputs are current (the gate's `generated` step). @param {string} root @param {string} sha */
@@ -123,9 +155,15 @@ const CHECKPOINTS = ['driftwood-isle', 'far-reach', 'nine-dragon-stack', 'pine-h
 const BAKE_FENCES = ['test/baked-maps.test.ts', ...['driftwood-isle', 'far-reach', 'nine-dragon-stack',
   'pine-hollow', 'nalati-grasslands', 'sunscar-dunes'].map((slug) => `test/shards/${slug}/physics-bake.test.ts`)];
 /** Check the existing witness and bake gates before spending a complete gate on a historical prefix.
- * @param {string} root @param {string} sha @param {readonly string[]} [alreadyProbed] */
-export function prefixFresh(root, sha, alreadyProbed = []) {
-  return probeFailure(root, sha, [...CHECKPOINTS, ...BAKE_FENCES].filter((file) => !alreadyProbed.includes(file)));
+ * @param {string} root @param {string} sha @param {readonly string[]} [alreadyProbed]
+ * @param {{sha: string, work: string, snapshot: string}} [prepared] */
+export function prefixFresh(root, sha, alreadyProbed, prepared) {
+  const files = [...CHECKPOINTS, ...BAKE_FENCES].filter((file) => !(alreadyProbed ?? []).includes(file));
+  if (prepared?.sha === sha && probeSnapshot(prepared.work) === prepared.snapshot) {
+    log(`${sha.slice(0, 9)}: reusing byte-verified exact-SHA probe export`);
+    return failureInWork(prepared.work, sha, files, []);
+  }
+  return probeFailure(root, sha, files);
 }
 
 /** Whether the witnesses re-record at <sha> with byte-identical payloads (the regeneration's refusal, probed alone). @param {string} root @param {string} common @param {string} sha */
@@ -176,24 +214,31 @@ export function greenPrefix(root, tip, out, mode = 'vitest') {
   const commits = git(root, ['rev-list', '--reverse', `origin/main..${tipSha}`]).split('\n').filter(Boolean).filter((sha) => sha !== tipSha);
   if (commits.length === 0) { log('nothing unpushed before the red tip'); return null; }
   log(mode === 'witness' ? `witness payloads changed: bisecting ${commits.length} unpushed commit(s)` : `${commands.length} failing check(s), ${files.length} file(s) over ${commits.length} unpushed commit(s): ${files.join(' ')}`);
-  const index = newestPassing(commits, (sha) => mode === 'witness' ? witnessProbe(root, common, sha) : probeFailure(root, sha, files, commands));
-  if (index < 0) { log('the failed checks fail on every unpushed commit'); return null; }
-  log(`first bad commit (guess): ${git(root, ['log', '-1', '--format=%h %s', commits[index + 1] ?? tipSha]).slice(0, 120)}`);
-  let checks = 0;
-  for (let i = index; i >= 0; i--) {
-    const sha = commits[i];
-    if (red.has(sha)) continue;
-    if (!existsSync(join(common, 'generated-verified', sha))) {
-      if (checks >= MAX_GENERATED_CHECKS) break;
-      checks++;
-      if (!generatedCurrent(root, sha)) continue;
+  /** @type {{sha: string, work: string, snapshot: string} | undefined} */
+  let prepared;
+  try {
+    const index = newestPassing(commits, (sha) => mode === 'witness' ? witnessProbe(root, common, sha) : probeFailure(root, sha, files, commands, (work, snapshot) => {
+      if (prepared !== undefined) rmSync(prepared.work, { recursive: true, force: true });
+      prepared = { sha, work, snapshot };
+    }));
+    if (index < 0) { log('the failed checks fail on every unpushed commit'); return null; }
+    log(`first bad commit (guess): ${git(root, ['log', '-1', '--format=%h %s', commits[index + 1] ?? tipSha]).slice(0, 120)}`);
+    let checks = 0;
+    for (let i = index; i >= 0; i--) {
+      const sha = commits[i];
+      if (red.has(sha)) continue;
+      if (!existsSync(join(common, 'generated-verified', sha))) {
+        if (checks >= MAX_GENERATED_CHECKS) break;
+        checks++;
+        if (!generatedCurrent(root, sha)) continue;
+      }
+      if (!prefixFresh(root, sha, files, prepared?.sha === sha ? prepared : undefined)) continue;
+      log(`pushable prefix: ${sha.slice(0, 9)} (${git(root, ['rev-list', '--count', `origin/main..${sha}`])} of ${commits.length + 1} unpushed commits)`);
+      return sha;
     }
-    if (!prefixFresh(root, sha, files)) continue;
-    log(`pushable prefix: ${sha.slice(0, 9)} (${git(root, ['rev-list', '--count', `origin/main..${sha}`])} of ${commits.length + 1} unpushed commits)`);
-    return sha;
-  }
-  log('no pushable commit before the break');
-  return null;
+    log('no pushable commit before the break');
+    return null;
+  } finally { if (prepared !== undefined) rmSync(prepared.work, { recursive: true, force: true }); }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

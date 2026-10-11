@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { failedSteps, failingTestFiles, failureCommands, newestPassing, probeFailure } from '../scripts/green-prefix.mjs';
+import { failedSteps, failingTestFiles, failureCommands, newestPassing, probeFailure, probeSnapshot } from '../scripts/green-prefix.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Probe real archived fixture commits without touching shared Git state.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The focused-check fixture owns and deletes its temporary files.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync, renameSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Place the owned Git fixture outside the shared checkout.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture paths for real archived probes.
@@ -48,6 +48,29 @@ describe('green prefix', () => {
       if (commands === null) throw new Error('Missing focused CSS command');
       expect(newestPassing([good, bad], sha => probeFailure(root, sha, ['test/not-yet.test.ts'], commands))).toBe(0);
       expect(probeFailure(root, good, [], [[commands[0]?.[0] ?? '', 'scripts/missing.mjs']])).toBe(false);
+      let kept: {work: string; snapshot: string} | undefined;
+      try {
+        expect(probeFailure(root, good, [], commands, (work, snapshot) => { kept = {work, snapshot}; })).toBe(true);
+        if (kept === undefined) throw new Error('Passing exact-SHA export was not retained');
+        expect(readFileSync(join(kept.work, 'scripts/check-css.mjs'), 'utf8')).toBe('process.exit(0);');
+        expect(probeSnapshot(kept.work)).toBe(kept.snapshot);
+        writeFileSync(join(kept.work, 'scripts/check-css.mjs'), 'process.exit(1);');
+        expect(probeSnapshot(kept.work)).not.toBe(kept.snapshot);
+      } finally { if (kept !== undefined) rmSync(kept.work, { recursive: true, force: true }); }
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+  it('refuses added, deleted, renamed or changed export inputs before reuse', () => {
+    const root = mkdtempSync(join(tmpdir(), 'green-prefix-fingerprint-'));
+    try {
+      const input = join(root, 'input'); writeFileSync(input, 'pinned');
+      const pinned = probeSnapshot(root);
+      expect(probeSnapshot(root)).toBe(pinned);
+      writeFileSync(join(root, 'added'), 'new'); expect(probeSnapshot(root)).not.toBe(pinned);
+      rmSync(join(root, 'added')); expect(probeSnapshot(root)).toBe(pinned);
+      renameSync(input, join(root, 'moved')); expect(probeSnapshot(root)).not.toBe(pinned);
+      renameSync(join(root, 'moved'), input); expect(probeSnapshot(root)).toBe(pinned);
+      writeFileSync(input, 'changed'); expect(probeSnapshot(root)).not.toBe(pinned);
+      rmSync(input); expect(probeSnapshot(root)).not.toBe(pinned);
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
   it('reads the failed steps and the failing test files from the gate output', () => {

@@ -1,7 +1,8 @@
 export function failedSteps(out: string): string[];
 export function failingTestFiles(out: string): string[];
 export function failureCommands(steps: readonly string[]): string[][] | null;
-export function probeFailure(root: string, sha: string, files: readonly string[], commands?: readonly string[][]): boolean;
-export function prefixFresh(root: string, sha: string, alreadyProbed?: readonly string[]): boolean;
+export function probeFailure(root: string, sha: string, files: readonly string[], commands?: readonly string[][], keepPassing?: (work: string, snapshot: string) => void): boolean;
+export function probeSnapshot(work: string): string;
+export function prefixFresh(root: string, sha: string, alreadyProbed?: readonly string[], prepared?: {sha: string; work: string; snapshot: string}): boolean;
 export function newestPassing(candidates: readonly string[], passes: (sha: string) => boolean): number;
 export function greenPrefix(root: string, tip: string, out: string, mode?: 'vitest' | 'witness'): string | null;
