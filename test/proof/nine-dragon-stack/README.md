@@ -147,3 +147,6 @@ is recorded. `compatible: true` remains backed by the real gameplay run.
 The official `physics-baseline.mjs --no-build --mode=walk --shard=nine-dragon-stack` run on the DEVSERVER candidate
 passed **19 legs, 0 stuck, 0 page errors**, including walking, stairs, Well crossings and containment/hover legs.
 The boolean Developer fixture is now stored and compared as a boolean in that harness, rather than as a string.
+
+
+SF81 DIR5 portal order: deliberately re-recorded both ride (tick400) and crossing (tick940) checkpoint hash manifests for PortalRideState version2 and the complete stage cursor. A decoded full-wire comparison proves ONLY those two added fields change; every command byte and other native field is exact. The complete shipping-worker suffixes, real two-portal journey, Jian heavy, grapple/cap continuation, all entry lanes and durable Ledger outcomes match the predecessor. Official map pixels and actual Node physics payload are exact. Older/foreign ride snapshots refuse quietly. No source gzip payload is committed.

@@ -3130,3 +3130,6 @@ SF81 authored boss stages: DirectorBossBrain in game/plugin/director is the shar
 
 
 SF81 Signal signal-fire stages: the in-shard SignalDirector uses DirectorStageLane at the accepted fire callback, after the native interaction flags and dressing. Its fixed spawn action admits the original Matriarch summon port. Page load keeps the existing already-lit boss arm without a summons toast; a loaded stage is seeded quietly. Native sunscar.signal-fire stores the complete contract/cursor and performs no effects or extra update work; the actual quest interaction edge advances it. Restore never evaluates guards or summons.
+
+
+SF81 Nine portal stages: walkInRide uses the admitted nine.portal-ride DirectorStageLane at the original hold, dark-transfer and clear guards. Native ring registration order, cardinal axes, feet volume, capped fade clock, checked floor transfer, player reset/release and step-out rearm remain their original owners. Fixed emit actions select portal.hold/transfer/clear. PortalRideState version2 includes the complete author contract/cursor; strict host restore validates the director before mutating its held body state, and never holds, transfers or paints during restore. Older/foreign continuation refuses explicitly.

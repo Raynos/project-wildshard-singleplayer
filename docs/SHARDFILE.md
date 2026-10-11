@@ -1502,3 +1502,6 @@ SF81 encounter stages: Sky and Signal declare their bossStages.json under direct
 
 
 SF81 Signal declares signalStages.json beside its Matriarch boss stages. The original bowl oil/light requirements, manual fire act, prompt LOS/order, flags and dressing stay with the real interaction/quest owners. The accepted light edge enters the authored summoned stage through the fixed spawn action. No AssemblyScript escape is needed for this boolean condition, and no Signal-only platform system is added.
+
+
+SF81 Nine declares data/portalStages.json in directors. The page and native host read that admitted declaration; no extra unlock law exists or is invented. Boolean touch/dark/clear observations preserve native phase slots, and fixed emit actions select the original body/checked transfer/veil actions. No AssemblyScript escape is needed. The native numeric clock and collider/entry declarations are unchanged.
