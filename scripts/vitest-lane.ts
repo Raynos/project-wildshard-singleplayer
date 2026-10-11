@@ -3,8 +3,8 @@ import { assertHeavyLease } from './heavy-lane-lease.mjs';
 
 /** Local tests leave cores for interactive work; CI retains Vitest's runner default. */
 export function vitestMaxWorkers(env: NodeJS.ProcessEnv = process.env): number | undefined {
-  const requested = env.WS_VITEST_MAX_WORKERS;
-  if (requested === undefined) return env.CI || env.GITHUB_ACTIONS ? undefined : 6;
+  const { WS_VITEST_MAX_WORKERS: requested, CI: ci, GITHUB_ACTIONS: actions } = env;
+  if (requested === undefined) return ci || actions ? undefined : 6;
   if (!/^[1-9]\d*$/u.test(requested) || !Number.isSafeInteger(Number(requested))) {
     throw new Error('WS_VITEST_MAX_WORKERS must be a positive integer');
   }
