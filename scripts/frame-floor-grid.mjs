@@ -34,7 +34,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
     const start = approach ? (dz !== 0 ? { x: road.x + 277.5, z: road.z } : { x: road.x, z: road.z + 277.5 }) : road;
     plans.push({ name: `${target.slug}-road-entry`, from: null, to: target.instance, movement: 'road-hover', start,
       waypoints: approach ? [road, entry] : [entry], requiredResidents: [target.instance], finishOnArrival: true,
-      ...(approach ? { observePreparation: true } : {}) });
+      ...(approach ? { observePreparation: true, hoverMaxSpeed: 30 } : {}) });
   }
   if (scenario === 'sun-entry') {
     const sun = state.cells.find(cell => cell.slug === 'sunscar-dunes');
