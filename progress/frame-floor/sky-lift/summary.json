@@ -1,0 +1,124 @@
+{
+  "schema": "sky-lift-floor/1",
+  "pin": "f9d9f089cdac6f57503eee22a48593efeb84dada",
+  "build": "f9d9f08-mv3vsd41",
+  "settings": {
+    "graphMaterials": "on",
+    "memorySaver": "off",
+    "buildPacing": "on",
+    "tier": "phone",
+    "fps": "auto"
+  },
+  "window": {
+    "start": "2026-10-11T14:17:41Z",
+    "end": "2026-10-11T14:20:05Z"
+  },
+  "rows": [
+    {
+      "frames": 120,
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "p99Ms": 42,
+      "maxMs": 44,
+      "pass": true,
+      "name": "spawn",
+      "window": null
+    },
+    {
+      "frames": 120,
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "p99Ms": 34,
+      "maxMs": 34,
+      "pass": true,
+      "name": "grid-deck-east",
+      "window": null
+    },
+    {
+      "frames": 120,
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "p99Ms": 34,
+      "maxMs": 34,
+      "pass": true,
+      "name": "grid-crossroads",
+      "window": null
+    },
+    {
+      "frames": 120,
+      "medianFps": 30.303,
+      "p95Ms": 41,
+      "p99Ms": 50,
+      "maxMs": 77,
+      "pass": false,
+      "name": "grid-far-reach-socket-entry-travel",
+      "window": null
+    },
+    {
+      "frames": 510,
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "p99Ms": 50,
+      "maxMs": 77,
+      "pass": true,
+      "name": "grid-far-reach-socket-entry-drive",
+      "window": "whole-drive"
+    },
+    {
+      "frames": 120,
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "p99Ms": 35,
+      "maxMs": 35,
+      "pass": true,
+      "name": "grid-far-reach-socket-entry",
+      "window": null
+    },
+    {
+      "frames": 120,
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "p99Ms": 35,
+      "maxMs": 35,
+      "pass": true,
+      "name": "grid-far-reach-north-lift-travel",
+      "window": null
+    },
+    {
+      "frames": 1950,
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "p99Ms": 35,
+      "maxMs": 46,
+      "pass": true,
+      "name": "grid-far-reach-north-lift-drive",
+      "window": "whole-drive"
+    },
+    {
+      "frames": 120,
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "p99Ms": 34,
+      "maxMs": 34,
+      "pass": true,
+      "name": "grid-far-reach-north-lift",
+      "window": null
+    }
+  ],
+  "arrival": {
+    "blockedFrames": 0,
+    "blockedMs": 0,
+    "visibleBeforeReadyFrames": 0
+  },
+  "lift": {
+    "edge": "north",
+    "isle": "sunrest",
+    "usePresses": 1,
+    "docked": true,
+    "onIsland": true,
+    "rideSamples": 398,
+    "maximumDeckGap": 1.3007966281024979
+  },
+  "errors": [],
+  "missing": []
+}
