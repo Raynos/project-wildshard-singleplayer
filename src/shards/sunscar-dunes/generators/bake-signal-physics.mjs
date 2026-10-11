@@ -9,6 +9,7 @@ import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs
 import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 import { signalPhysicsInputs } from '../../../../scripts/signal-physics-inputs.mjs';
 import authoredPlacements from '../data/physicsPlacements.generated.json' with { type: 'json' };
+import authoredTower from '../data/towerPhysics.generated.json' with { type: 'json' };
 
 const root = resolve(import.meta.dirname, '../../../..');
 const at = path => import(pathToFileURL(resolve(root, path)).href);
@@ -86,7 +87,7 @@ try {
         return { id: row.id, kind: row.kind, spec: copy(animal.simSpec) };
       });
       // G320: these rest placements are compiled from authoring source, not read back from world constructors.
-      const authored = new Map(authoredPlacements.map(row => [row.id, row]));
+      const authored = new Map([...authoredPlacements, ...authoredTower].map(row => [row.id, row]));
       const missing = new Set(authored.keys());
       const pieces = registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
         const planned = authored.get(piece.id);

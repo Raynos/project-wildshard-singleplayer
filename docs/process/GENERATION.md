@@ -220,3 +220,13 @@ against it across seeds, terrain samples and all native placement fields.
 Its 4.5 KB JSON is generated on a cache miss and pinned to SHA-256
 `dc53caf1683fea1aa8e0117b93485ef09e6956fbd55b29846f0783e5ee8bd92f`. Remaining creature rigs, tower/model placements and prompt
 readbacks are transitional; this component permits no whole-product removal.
+
+### Signal tower colliders (G320)
+
+The complete `signal-tower-colliders` component emits forty tower boxes
+from retained leg/deck/rail/open-stair/bowl recipes and the authored dune
+height law. No retained tower JSON, world constructor, material or geometry
+producer is an input. The native producer adopts these generated rows in
+its original registration order. The cheap JSON is generated on a cache
+miss, pinned to SHA-256 `fd9796b48b293c9408a637fc0bc863da71a0009f3a95c55c1c0db6573af9439c`. Geometry/rig/body and prompt owners
+remain transitional; no whole-product output removal is authorised.

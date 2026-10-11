@@ -2923,6 +2923,47 @@
         "src/shards/sunscar-dunes/data/physicsPlacements.generated.json": "dc53caf1683fea1aa8e0117b93485ef09e6956fbd55b29846f0783e5ee8bd92f"
       },
       "seedOutputs": []
+    },
+    {
+      "id": "signal-tower-colliders",
+      "shard": "sunscar-dunes",
+      "entry": "src/shards/sunscar-dunes/generators/towerColliders.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/sunscar-dunes/generators/towerColliders.ts",
+        "signalTowerPhysicsPlacements",
+        "src/shards/sunscar-dunes/data/towerPhysics.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/contentBounds.ts",
+        "src/format/package.json",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/sdk/physics.ts",
+        "src/sdk/sceneTransform.ts",
+        "src/shards/sunscar-dunes/data/layout.ts",
+        "src/shards/sunscar-dunes/data/places.ts",
+        "src/shards/sunscar-dunes/data/strings.ts",
+        "src/shards/sunscar-dunes/generators/duneField.ts",
+        "src/shards/sunscar-dunes/generators/duneFieldRows.ts",
+        "src/shards/sunscar-dunes/generators/landscape.ts",
+        "src/shards/sunscar-dunes/generators/landscapeNoise.ts",
+        "src/shards/sunscar-dunes/generators/physicsPlacements.ts",
+        "src/shards/sunscar-dunes/generators/towerColliders.ts"
+      ],
+      "outputs": [
+        "src/shards/sunscar-dunes/data/towerPhysics.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/sunscar-dunes/data/towerPhysics.generated.json": "fd9796b48b293c9408a637fc0bc863da71a0009f3a95c55c1c0db6573af9439c"
+      },
+      "seedOutputs": []
     }
   ]
 }
