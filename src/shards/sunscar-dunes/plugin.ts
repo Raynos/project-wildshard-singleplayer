@@ -1,6 +1,6 @@
 import { bindSignalItems } from './runtime/items';
 import { SignalDirector } from './runtime/signalDirector';
-import { standaloneHybridEntry } from './runtime/shard/standaloneEntry';
+import { standaloneEntry } from './runtime/standalone';
 import { speciesBrains, type SpeciesBrains } from '@wildshard/sdk/speciesBrains';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from './data/brains';
 import { SKITTERER_DATA } from './data/species/skitterer';
@@ -157,7 +157,7 @@ export class SignalDunesPlugin extends ShardPlugin {
   }
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
-export default standaloneHybridEntry(SignalDunesPlugin, { name: 'Signal Dunes', source: () => import('./shard.config'), entry: 'runtime/index.ts', runtime: () => import('./runtime/index') });
+export default standaloneEntry(SignalDunesPlugin);
 
 /** Resolve only the declared first-party entry, preserving the standalone constructor. */
 export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
