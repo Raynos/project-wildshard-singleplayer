@@ -15,6 +15,7 @@ on:
       # the plan page's Progress card: the effort recounts and the share script (with its ceilings)
       - 'progress/shard-platform/effort-recount-*/**'
       - 'scripts/shard-platform.mjs'
+      - 'scripts/shard-platform-content.mjs'
       - 'lint/shard-platform.json'
       - '.github/workflows/admin-deploy.yml'
   workflow_dispatch:

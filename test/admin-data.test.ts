@@ -268,12 +268,14 @@ Confidence is medium for the hours spent and low to medium for the hours left. T
 });
 
 it('carries G291 numbers into the typed bundle and refuses invented unavailable denominators',()=>{
-  const conversion={metric:'runtime-vs-legacy',customRuntimeLines:20,shardRuntimeLines:20,legacyLines:100,legacyFolder:'far-reach-legacy',legacyRevision:pin,
-    runtimeShare:0.2,passed:true,gameSystemAttribution:{status:'import-graph',review:'pending-opus-audit',lines:0,modules:[]}};
+  const conversion={metric:'runtime-vs-legacy',customRuntimeLines:20,shardRuntimeLines:12,rawGlslLines:5,additionalGlslLines:3,legacyLines:100,legacyFolder:'far-reach-legacy',legacyRevision:pin,
+    runtimeShare:0.2,passed:true,gameSystemAttribution:{status:'import-graph',review:'G294-primary-reach',lines:5,modules:[{path:'src/engine/example.ts',lines:5}]}};
   const report={...share,'far-reach':{...share['far-reach'],legacyShare:0.4,conversion}};
   const collected=collectAdminData({...tree(),platform:()=>report}).bundle;
   expect(readAdminBundle(collected).progress.share.shards.find(row=>row.slug==='far-reach')?.conversion).toEqual(conversion);
   expect(()=>readSharePlatform({...report,'far-reach':{...report['far-reach'],conversion:{...conversion,runtimeShare:0.3}}})).toThrow('inconsistent G291');
+  expect(()=>readSharePlatform({...report,'far-reach':{...report['far-reach'],conversion:{...conversion,additionalGlslLines:6}}})).toThrow('inconsistent GLSL');
+  expect(()=>readSharePlatform({...report,'far-reach':{...report['far-reach'],conversion:{...conversion,additionalGlslLines:2}}})).toThrow('inconsistent attributed lines');
   const missing={...conversion,metric:'legacy-share',legacyLines:null,legacyFolder:null,legacyRevision:null,runtimeShare:null,passed:null};
   expect(readSharePlatform({...report,'far-reach':{...report['far-reach'],conversion:missing}}).shards.find(row=>row.slug==='far-reach')?.conversion?.legacyLines).toBeNull();
   expect(()=>readSharePlatform({...report,'far-reach':{...report['far-reach'],conversion:{...missing,legacyLines:0}}})).toThrow('explicitly unavailable');

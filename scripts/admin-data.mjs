@@ -13,7 +13,7 @@ const REPORTS=['progress/memory','progress/loading/sf67','art/playtest','docs/pl
 const SHARE_SCRIPT='scripts/shard-platform.mjs';
 /** What `node scripts/shard-platform.mjs --json` reads: the shard sources and packages, its ceilings, the frozen legacy
  * inventory, the proof witnesses and its own imports. admin/tools/deploy.sh exports the same list. */
-export const SHARE_INPUTS=['package.json','src','lint/shard-platform.json','lint/legacy-shards.json','test/proof',SHARE_SCRIPT,'scripts/check-graph.mjs','scripts/legacy-shards.mjs'];
+export const SHARE_INPUTS=['package.json','src','lint/shard-platform.json','lint/legacy-shards.json','test/proof',SHARE_SCRIPT,'scripts/shard-platform-content.mjs','scripts/check-graph.mjs','scripts/legacy-shards.mjs'];
 
 /** Runs the share script of a clean tree (it measures the tree it lives in) and parses its JSON; it fails if the script
  * is missing or exits nonzero, never falling back to the shared checkout.
