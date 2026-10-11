@@ -16,7 +16,7 @@ import { WHIP_ROW, whipIcon } from '../../../src/shards/sunscar-dunes/weapons/ro
 import { COMPLETE_FLAG, FACT, LATER_FLAGS } from '../../../src/shards/sunscar-dunes/quests/signal';
 
 const services = (): { app: App; game: GameServices } => ({ app: new App(), game: { shard: manifest, rows: new Map(), bag: new TabRegistry() } });
-const whipFamily = (app: App): ReadonlyMap<string, ItemFamily> => new Map([['sunscar-dunes.whip', { kind: 'weapon', create: () => new Bullwhip(app) }]]);
+const whipFamily = (app: App): ReadonlyMap<string, ItemFamily> => new Map([['sunscar-dunes.whip', { kind: 'weapon', profiles: ['lash'], create: () => new Bullwhip(app) }]]);
 
 describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runtime-owner binding)', () => {
   it('declares its quest, ledger and whip in shard.config.ts as sections its trusted runtime binds', () => {
@@ -43,7 +43,7 @@ describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runti
       expect([...items.runtimes.keys()]).toEqual(['weapon.sunscar-whip']);
       // the context is the runtime's to register (entered-only for a retained home), never the installer's
       expect(() => { app.input.push('sunscar.whip', app.engineScope); }).toThrow('Unknown input context');
-      expect(() => bindRuntimeItems(ctx, source, { icon: whipIcon, families: new Map([['other.whip', { kind: 'weapon', create: () => new Bullwhip(app) }]]) })).toThrow('must be named sunscar-dunes.<name>');
+      expect(() => bindRuntimeItems(ctx, source, { icon: whipIcon, families: new Map([['other.whip', { kind: 'weapon', profiles: ['lash'], create: () => new Bullwhip(app) }]]) })).toThrow('must be named sunscar-dunes.<name>');
       expect(() => bindRuntimeItems(ctx, source, { icon: whipIcon, families: new Map() })).toThrow('Unresolved item family sunscar-dunes.whip');
       expect(() => bindRuntimeItems(ctx, source, { icon: whipIcon, kit: whipFamily(app), families: whipFamily(app) })).toThrow('shadows a registered family');
     } finally { app.engineScope.dispose(); }

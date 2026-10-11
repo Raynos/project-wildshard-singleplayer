@@ -1591,3 +1591,5 @@ the original `phased-flyer` preset before `plugin/brain` binds page or headless
 policies. Existing preset names and save contracts remain accepted. The SDK
 emits its standalone JSON Schema; it is a trusted catalogue declaration, not
 an additional branch of `creatures.brains` or an automatically installed boss.
+
+SF85 native lash profile: `items.rows[].profile` may declare `family: "lash"`, its bounded `timing` (unroll, second contact, show, stagger, pull and maximum pulled health), and its three named `moves`. Second contact and show must follow unroll. Signal’s existing trusted family explicitly admits the profile and consumes it in its page and headless owners. Damage, width, reach, cooldown and charge remain the item’s light/heavy rows; the native double-crack, contact order, yank, stagger, held input and saved continuation stay unchanged. No view is inferred or added.

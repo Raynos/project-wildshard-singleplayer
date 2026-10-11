@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { CombatTarget } from '@wildshard/engine/combat/pipeline';
 import type { SimHost } from '@wildshard/engine/sim';
-import { LashRuntime, lashSpec, lashVolumeHit, type LashMoves, type LashTiming, type LashWorldTarget } from './lash';
+import { LashRuntime, lashSpec, lashVolumeHit, type LashWorldTarget } from './lash';
 
 /** One player attack this tick: a light crack at the named target (the protocol's `player.attack`), or a heavy one. */
 export interface LashCreatureCommand { readonly targetId: string; readonly heavy?: boolean }
@@ -22,8 +22,7 @@ export interface LashHostSpec {
   readonly step: string;
   /** The declared weapon row (its contact, damage, reach and cooldowns). */
   readonly row: ItemSpec;
-  readonly timing: LashTiming;
-  readonly moves: LashMoves;
+  readonly profile: unknown;
   /** The player's eye above the feet: the lash leaves from it toward the target. */
   readonly eye: number;
   /** This tick's commands, in tape order. */
@@ -60,7 +59,7 @@ export function installLashHost(host: SimHost, spec: LashHostSpec): LashHost {
       if (heavy && second) cracked = entry.act;
       return true;
     } }));
-  const lash = new LashRuntime(lashSpec(spec.row, spec.timing, spec.moves), { source: host.player.health, hit: req => host.combat.hit(req), world: () => world,
+  const lash = new LashRuntime(lashSpec(spec.row, spec.profile), { source: host.player.health, hit: req => host.combat.hit(req), world: () => world,
     targets: () => [...host.entities.keys()].flatMap(id => { const p = port(id); return p === null ? [] : [p]; }),
     aim: (from, dir) => {
       from.copy(host.player.position); from.y += spec.eye;

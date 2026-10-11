@@ -1,5 +1,5 @@
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
-import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
 import type { GenericSchema } from 'valibot';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
@@ -114,6 +114,7 @@ const wireRoots = {
   'weaponProfiles.BowWeaponProfile': BowWeaponProfileSchema,
   'weaponProfiles.FirearmWeaponProfile': FirearmWeaponProfileSchema,
   'weaponProfiles.ThrownWeaponProfile': ThrownWeaponProfileSchema,
+  'weaponProfiles.LashWeaponProfile': LashWeaponProfileSchema,
   'brains.Skirmisher': SkirmisherSchema,
   'brains.Stalker': StalkerSchema,
   'brains.ScriptBrain': ScriptBrainSchema,

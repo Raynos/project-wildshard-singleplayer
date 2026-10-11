@@ -1,4 +1,5 @@
 import { Vector3 } from 'three';
+import { parseWeaponProfile, type WeaponProfile } from '@wildshard/format/weaponProfiles';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { Actor, CombatTag, CombatTarget, DamageDealt, DamageRequest } from '@wildshard/engine/combat/pipeline';
 
@@ -67,9 +68,9 @@ export function lashContact(from: Vector3, dir: Vector3, reach: number, width: n
 }
 
 /** The lash's own timing (seconds) and reactions: the unroll, the heavy's second lash, how long it shows, the stagger, the yank (m/s on ≤ `pullMaxHp`). */
-export interface LashTiming { readonly unroll: number; readonly second: number; readonly show: number; readonly stagger: number; readonly pull: number; readonly pullMaxHp: number }
+export type LashTiming = Extract<WeaponProfile, { family: 'lash' }>['timing'];
 /** The move ids a lash's hits carry: the light crack, and the heavy double crack's first and second lash. */
-export interface LashMoves { readonly light: string; readonly first: string; readonly second: string }
+export type LashMoves = Extract<WeaponProfile, { family: 'lash' }>['moves'];
 /** A lash's numbers: reach, width, damage and cooldowns from its declared weapon row, its timing, tags and moves. */
 export interface LashSpec extends LashTiming {
   readonly id: string; readonly reach: number; readonly heavyReach: number; readonly width: number;
@@ -77,12 +78,11 @@ export interface LashSpec extends LashTiming {
   readonly tags: readonly CombatTag[]; readonly moves: LashMoves;
 }
 /** A declared weapon row's lash: its light / heavy reach, width, damage and cooldowns and its charge, with the lash's timing. */
-export function lashSpec(row: ItemSpec, timing: LashTiming, moves: LashMoves): LashSpec {
-  if (row.kind !== 'weapon') throw new Error(`Item ${row.id} is not a weapon row`);
-  const positive = (n: number): boolean => Number.isFinite(n) && n > 0;
-  if (![timing.unroll, timing.second, timing.show, timing.pull, timing.pullMaxHp].every(positive) || !(timing.second > timing.unroll) || !(timing.stagger >= 0)) throw new RangeError(`Invalid lash timing for ${row.id}`);
+export function lashSpec(row: ItemSpec, input: unknown): LashSpec {
+  const profile = parseWeaponProfile(input);
+  if (row.kind !== 'weapon' || profile.family !== 'lash') throw new Error(`Item ${row.id} requires its native lash profile`);
   return { id: row.id, reach: row.light.range, heavyReach: row.heavy.range, width: row.light.width, light: row.light.damage, heavy: row.heavy.damage,
-    cooldown: row.light.cooldown, heavyCooldown: row.heavy.cooldown, charge: row.charge, tags: [...row.light.tags], moves: { ...moves }, ...timing };
+    cooldown: row.light.cooldown, heavyCooldown: row.heavy.cooldown, charge: row.charge, tags: [...row.light.tags], moves: { ...profile.moves }, ...profile.timing };
 }
 
 /** What a lash lands on: the combat actor, and the body's yank and stagger when it has them. */

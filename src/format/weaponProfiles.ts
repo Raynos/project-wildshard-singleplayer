@@ -56,9 +56,18 @@ export const ThrownWeaponProfileSchema = v.pipe(v.strictObject({
   arcPoints: v.pipe(slots, v.minValue(2)), arcAfter: seconds, stagger: scalar,
 }), v.check(row => row.carried <= row.pool, 'Carried thrown weapons fit the native pool'));
 
-/** Four shared numeric weapon families. Optional item attachment is additive; trusted lash/cone remain local families. */
+/** Native timed lash contacts: bounded unroll/double-crack clocks, pull/stagger reactions and named pipeline moves.
+ * The profile supplies values only; the trusted family retains its contact ordering and continuation. */
+export const LashWeaponProfileSchema = v.pipe(v.strictObject({
+  family: v.literal('lash'),
+  timing: v.strictObject({ unroll: duration, second: duration, show: duration, stagger: scalar, pull: positive, pullMaxHp: positive }),
+  moves: v.strictObject({ light: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
+    first: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), second: v.pipe(v.string(), v.minLength(1), v.maxLength(128)) }),
+}), v.check(row => row.timing.second > row.timing.unroll && row.timing.show > row.timing.unroll, 'Ordered native lash contacts'));
+
+/** Bounded numeric weapon profiles. Optional item attachment is additive; native family controllers stay with their owners. */
 export const WeaponProfileSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only weapon profile'),
-  v.variant('family', [MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema]));
+  v.variant('family', [MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema]));
 /** Authored numeric profile, independent of engine, game, renderer and injected view callbacks. */
 export type WeaponProfile = v.InferOutput<typeof WeaponProfileSchema>;
 /** Validate all bounds and relationships before allocation or passing data to a native family. */

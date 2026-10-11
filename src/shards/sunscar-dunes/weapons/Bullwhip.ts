@@ -1,14 +1,14 @@
 import type { App } from '@wildshard/engine/app/app';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { LashWeapon } from '../runtime/items/lashWeapon';
-import { lashSpec } from '../runtime/items/lash';
+import { lashSpec, type LashSpec } from '../runtime/items/lash';
 import { WHIP_ROW } from './rows';
-import { WHIP_ITEM, WHIP_MOVES, WHIP_TIMING } from '../data/items';
+import { WHIP_ITEM } from '../data/items';
 import { WHIP_VIEW } from '../runtime/items/whipRows';
 import { braidedMaterial, buildWhipModel } from './whipModel';
 
 /** The crack's numbers: reach, width, damage, cooldowns and charge are the declared item row's (data/items.ts); the lash's timing is the whip's own (`pull` is the yank's speed, m/s, on a creature of `pullMaxHp` or less). */
-export const CRACK = lashSpec(WHIP_ITEM, WHIP_TIMING, WHIP_MOVES);
+export const CRACK = lashSpec(WHIP_ITEM, WHIP_ITEM.profile);
 
 /**
  * The bullwhip (rung 3): the platform's lash weapon on the declared crack, its view the whip's rows (data/whip.ts
@@ -18,8 +18,8 @@ export const CRACK = lashSpec(WHIP_ITEM, WHIP_TIMING, WHIP_MOVES);
  * double crack. Levers and braziers (C3) take the crack through `aimAt`.
  */
 export class Bullwhip extends LashWeapon {
-  constructor(app: App, targets: Targets | null = null) {
+  constructor(app: App, targets: Targets | null = null, spec: LashSpec = CRACK) {
     const model = buildWhipModel();
-    super(app, targets, { row: WHIP_ROW, spec: CRACK, view: WHIP_VIEW, parts: { ...model, hero: model.glove !== null, restCoil: model.hd === null, wrapMaterial: braidedMaterial } });
+    super(app, targets, { row: WHIP_ROW, spec, view: WHIP_VIEW, parts: { ...model, hero: model.glove !== null, restCoil: model.hd === null, wrapMaterial: braidedMaterial } });
   }
 }

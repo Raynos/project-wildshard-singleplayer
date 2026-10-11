@@ -40,7 +40,7 @@ export interface RowsHeadlessManifest {
   /** The marked boss: its body row and fight rows; its body is the keeper's. */
   readonly boss: MarkedBossRowSpec & { readonly row: KeptBossRow };
   /** The lash item: its declared row's id and its host rows (a player attack is its light crack; a crack row's act its world crack). */
-  readonly lash: { readonly id: string } & Pick<LashHostSpec, 'step' | 'timing' | 'moves' | 'eye'>;
+  readonly lash: { readonly id: string } & Pick<LashHostSpec, 'step' | 'profile' | 'eye'>;
   /** The quest graph (the admitted quests come from the shardfile). */
   readonly quest: Omit<QuestGraphRows, 'quests'>;
   readonly entries: TerrainEntryWalk;

@@ -1,3 +1,4 @@
+import { WHIP_PROFILE } from '../src/shards/sunscar-dunes/data/items';
 import { expect, it } from 'vitest';
 import { parseWeaponProfile } from '@wildshard/format/weaponProfiles';
 import { parseItems } from '@wildshard/format/items';
@@ -34,14 +35,14 @@ const thrown = {
   arcPoints: 20, arcAfter: 0.1, stagger: 1,
 };
 
-it('round-trips all four complete numeric families exactly and emits a JSON Schema for each defining root', () => {
-  for (const row of [melee, bow, firearm, thrown]) {
+it('round-trips all five complete numeric families exactly and emits a JSON Schema for each defining root', () => {
+  for (const row of [melee, bow, firearm, thrown, WHIP_PROFILE]) {
     expect(parseWeaponProfile(row)).toEqual(row);
     // oxlint-disable-next-line unicorn/prefer-structured-clone -- Prove the persisted JSON boundary, not a structured in-memory copy.
     expect(parseWeaponProfile(JSON.parse(JSON.stringify(row)) as unknown)).toEqual(row);
   }
   const schemas = formatJsonSchemas();
-  for (const name of ['WeaponProfile', 'MeleeWeaponProfile', 'BowWeaponProfile', 'FirearmWeaponProfile', 'ThrownWeaponProfile']) {
+  for (const name of ['WeaponProfile', 'MeleeWeaponProfile', 'BowWeaponProfile', 'FirearmWeaponProfile', 'ThrownWeaponProfile', 'LashWeaponProfile']) {
     expect(schemas[`weaponProfiles.${name}`]?.title).toBe(`weaponProfiles.${name}`);
   }
 });
@@ -49,7 +50,11 @@ it('round-trips all four complete numeric families exactly and emits a JSON Sche
 it('refuses non-JSON author code, nonfinite/negative tuning, wrong families and unsafe or inconsistent bounded clocks/pools', () => {
   for (const invalid of [
     { ...bow, callback: () => undefined }, { ...bow, speedDraw: Infinity }, { ...bow, quiver: 0.5 },
-    { ...bow, family: 'lash' }, { ...bow, draw: { ...bow.draw, holdTire: HOLD_STEADY } },
+    { ...bow, family: 'invented' },
+    { ...WHIP_PROFILE, timing: { ...WHIP_PROFILE.timing, second: WHIP_PROFILE.timing.unroll } },
+    { ...WHIP_PROFILE, timing: { ...WHIP_PROFILE.timing, show: WHIP_PROFILE.timing.unroll } },
+    { ...WHIP_PROFILE, timing: { ...WHIP_PROFILE.timing, pull: Infinity } },
+    { ...WHIP_PROFILE, moves: { ...WHIP_PROFILE.moves, first: '' } }, { ...bow, draw: { ...bow.draw, holdTire: HOLD_STEADY } },
     { ...bow, substeps: 65 }, { ...melee, sweep: { ...melee.sweep, extensions: [] } },
     { ...melee, lunge: { ...melee.lunge, minTime: 2 } },
     { ...melee, moves: { ...melee.moves, heavy: { ...melee.moves.heavy, slashEnd: 2 } } },
@@ -65,6 +70,8 @@ it('leaves absent-profile item rows byte-identical and requires a matching share
   const base = { version: 1, rows: [], contexts: [], loadout: { primary: row.id, secondary: null, tools: [] } };
   const items = { ...base, rows: [{ ...row, family: 'melee', profile: melee }] };
   expect(parseItems(items).rows[0]).toEqual(items.rows[0]);
+  const native = { ...items, rows: [{ ...row, family: 'example.whip', hook: null, profile: WHIP_PROFILE }] };
+  expect(parseItems(native).rows[0]).toEqual(native.rows[0]);
   expect(() => parseItems({ ...items, rows: [{ ...row, family: 'bow', profile: melee }] })).toThrow();
 });
 

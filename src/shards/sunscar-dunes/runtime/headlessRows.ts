@@ -2,7 +2,7 @@ import { MATRIARCH_BOSS_PROFILE } from '../data/matriarchBoss';
 import type { RowsHeadlessManifest } from './rowsHeadless';
 import { SEED } from '../data/layout';
 import { SIGNAL_SPAWNS } from '../data/spawns';
-import { WHIP_MOVES, WHIP_TIMING } from '../data/items';
+import { WHIP_PROFILE } from '../data/items';
 import { SCOUT_FLAG } from '../data/flags';
 import { MATRIARCH_DEFINITION, MATRIARCH_PRESENTATION, MATRIARCH_RECORD, MATRIARCH_REWARD } from './quest/matriarchFight';
 import { FACT, MATRIARCH_FLAG } from '../quests/signal';
@@ -34,7 +34,7 @@ export const SIGNAL_HEADLESS: Omit<RowsHeadlessManifest, 'baked' | 'homes'> & { 
     contact: { prefix: 'sunscar.', suffix: '.contact' }, holds: [{ home: 0, field: 'held', until: SCOUT_FLAG }] },
   boss: { row: matriarch, definition: MATRIARCH_DEFINITION, profile: MATRIARCH_BOSS_PROFILE, record: MATRIARCH_RECORD, reward: MATRIARCH_REWARD,
     floor: MATRIARCH_PRESENTATION.floor, respawn: MATRIARCH_PRESENTATION.respawn, victory: { flag: MATRIARCH_FLAG, fact: FACT.matriarch } },
-  lash: { id: WHIP_ID, step: WHIP_STEP, timing: WHIP_TIMING, moves: WHIP_MOVES, eye: 1.68 },
+  lash: { id: WHIP_ID, step: WHIP_STEP, profile: WHIP_PROFILE, eye: 1.68 },
   quest: { interactions: SIGNAL_INTERACTIONS, npcs: [SCOUT_NPC], graph: SIGNAL_GRAPH },
   entries: { lanes: 23, walk: 50, start: 249.55, maxTicks: 600 },
 };

@@ -77,7 +77,7 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = args => {
     const worldCommands = new Map(cracks.map(target => [target.act, { world: target.act, heavy: target.crack === 'heavy' }]));
     type ScriptInput = Extract<ReturnType<HeadlessRuntimeInstallation['commands']>[number], { kind: 'script' }>;
     const scripts: ScriptInput[] = [];
-    const lash: LashHost = installLashHost(host, { step: manifest.lash.step, row, timing: manifest.lash.timing, moves: manifest.lash.moves, eye: manifest.lash.eye, targets: cracks,
+    const lash: LashHost = installLashHost(host, { step: manifest.lash.step, row, profile: manifest.lash.profile, eye: manifest.lash.eye, targets: cracks,
       commands: () => {
         attacks.length = 0;
         if (encounter.locked()) return attacks;
