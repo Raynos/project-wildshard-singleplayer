@@ -69,7 +69,8 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
      unset GIT_INDEX_FILE
      ```
      `commit-tree` skips `.githooks`, so check any `progress/` image you add is ≤ 500 KB yourself.
-   - The subject states the finding; end every message with the Co-Authored-By / Claude-Session lines. Say plainly
+   - A Conventional Commits subject (≤ 50 characters) that states the finding, and the `Assisted-by:` trailer per
+     AGENTS.md "Version control" (no `Co-Authored-By:`; the commit-msg hook refuses it). Say plainly
      what is red and whose it is — another agent's uncommitted WIP is not your red, but a red *HEAD* is everyone's.
 2. **The four gates on a clean export of HEAD — before the push.**
    ```
