@@ -230,3 +230,14 @@ producer is an input. The native producer adopts these generated rows in
 its original registration order. The cheap JSON is generated on a cache
 miss, pinned to SHA-256 `fd9796b48b293c9408a637fc0bc863da71a0009f3a95c55c1c0db6573af9439c`. Geometry/rig/body and prompt owners
 remain transitional; no whole-product output removal is authorised.
+
+### Sky bridge colliders (G320)
+
+The complete `sky-bridge-colliders` component emits eleven rope/hover/
+updraft/winch rest placements (975 boxes) from retained layout, chord,
+quaternion and sag expressions, plus authored rising-islet rows. No world,
+geometry, material, runtime helper or captured collider is an input. Live
+mode gates and winch/islet motion stay with their existing owners. The
+cheap JSON is generated on a cache miss, pinned to SHA-256 `d5545bc47278abcf37fbefea7a2fdbad75a8998b684e309a1585da081ce425f7`.
+Remaining mesh/rig/body owners are transitional; no whole-product output
+removal is authorised.

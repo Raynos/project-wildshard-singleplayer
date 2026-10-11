@@ -9,6 +9,7 @@ import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs
 import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 import { skyPhysicsInputs } from '../../../../scripts/sky-physics-inputs.mjs';
 import authoredPlacements from '../data/physicsPlacements.generated.json' with { type: 'json' };
+import authoredBridges from '../data/bridgePhysics.generated.json' with { type: 'json' };
 
 const root = resolve(import.meta.dirname, '../../../..');
 const at = path => import(pathToFileURL(resolve(root, path)).href);
@@ -58,7 +59,7 @@ try {
         return { id: row.id, spec: copy(animal.simSpec), seed: animal.seed, scale: animal.scale };
       });
       // G320: these rest placements are compiled from authoring source, not read back from world constructors.
-      const authored = new Map(authoredPlacements.map(row => [row.id, row]));
+      const authored = new Map([...authoredPlacements, ...authoredBridges].map(row => [row.id, row]));
       const missing = new Set(authored.keys());
       const pieces = registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
         // Piece.mode is the actual registry's board law, independent of a renderer/player instance.

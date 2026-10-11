@@ -2964,6 +2964,46 @@
         "src/shards/sunscar-dunes/data/towerPhysics.generated.json": "fd9796b48b293c9408a637fc0bc863da71a0009f3a95c55c1c0db6573af9439c"
       },
       "seedOutputs": []
+    },
+    {
+      "id": "sky-bridge-colliders",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/bridgeColliders.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/bridgeColliders.ts",
+        "skyBridgePhysicsPlacements",
+        "src/shards/far-reach/data/bridgePhysics.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/json.ts",
+        "src/format/package.json",
+        "src/format/portalLink.ts",
+        "src/format/socketLift.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/entries.ts",
+        "src/sdk/package.json",
+        "src/sdk/physics.ts",
+        "src/sdk/sceneTransform.ts",
+        "src/shards/far-reach/data/isletDesign.ts",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/generators/bridgeColliders.ts",
+        "src/shards/far-reach/generators/risingIslets.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/bridgePhysics.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/far-reach/data/bridgePhysics.generated.json": "d5545bc47278abcf37fbefea7a2fdbad75a8998b684e309a1585da081ce425f7"
+      },
+      "seedOutputs": []
     }
   ]
 }
