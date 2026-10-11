@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { gridFloorDocumentIdentity, gridFloorPlans, stageFloorGrid, gridFloorWitnessFailures, driveFloorGrid, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
+import { gridFloorDocumentIdentity, gridFloorPlans, selectFloorGridPlans, stageFloorGrid, gridFloorWitnessFailures, driveFloorGrid, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
 
 const originalStorage = localStorage, originalLocation = location;
 function restoreGlobals(): void {
