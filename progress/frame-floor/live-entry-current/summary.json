@@ -361,9 +361,8 @@
     }
   ],
   "missing": [
-    "Sky drive timed out; no timing verdict",
-    "Nalati short-entry p95 still 36 > 35",
-    "Ready before normal-speed road arrival fails; no pop-in observed"
+    "Sky full authored lift itinerary incomplete; socket-entry measured separately",
+    "Ready before normal-speed cold road arrival fails; no early visibility observed"
   ],
   "rootStrict": "d87f1f511 committed-source export passed",
   "desktopControl": {
@@ -405,5 +404,210 @@
     "longTaskMs": 50,
     "topSelf": "getProgramParameter: 15 ms",
     "note": "Diagnostic desktop sampling; not a decomposition of Simulator frames."
+  },
+  "sharedBudgetFollowup": {
+    "pin": "bbffcd30e9c4e6d5b777f71951ae8b77c82bebdd",
+    "source": "3d73d5857",
+    "harness": "bbffcd30e",
+    "window": {
+      "start": "2026-10-11T08:02:17.422405Z",
+      "end": "2026-10-11T08:06:36.160989Z"
+    },
+    "load1min": [
+      10.98,
+      11.86,
+      12.46
+    ],
+    "rows": [
+      {
+        "arm": "nalati",
+        "route": "nalati-grasslands-road-entry",
+        "complete": true,
+        "frames": 990,
+        "p95Ms": 35,
+        "p99Ms": 50,
+        "maxMs": 92,
+        "over50": 8,
+        "driveP95Pass": true,
+        "max200Pass": true,
+        "travelP95Ms": 38,
+        "hooks": [
+          {
+            "hook": "nalati-grasslands:world",
+            "frames": 4,
+            "maxMs": 65,
+            "totalMs": 236,
+            "gl": {}
+          },
+          {
+            "hook": "nalati-grasslands:afterKit",
+            "frames": 3,
+            "maxMs": 61,
+            "totalMs": 165,
+            "gl": {}
+          },
+          {
+            "hook": "nalati-grasslands:activate",
+            "frames": 1,
+            "maxMs": 92,
+            "totalMs": 92,
+            "gl": {}
+          }
+        ],
+        "preparationMs": {
+          "beforeWorld": 0,
+          "constructor": 0,
+          "world": 7060,
+          "afterWorld": 0,
+          "kit": 1,
+          "afterKit": 422,
+          "play": 310.0,
+          "afterPlay": 11361,
+          "activate": 3
+        },
+        "endpoint": {
+          "x": 345,
+          "z": 0
+        }
+      },
+      {
+        "arm": "sky-socket",
+        "route": "far-reach-socket-entry",
+        "complete": true,
+        "frames": 360,
+        "p95Ms": 35,
+        "p99Ms": 64,
+        "maxMs": 93,
+        "over50": 6,
+        "driveP95Pass": true,
+        "max200Pass": true,
+        "travelP95Ms": 34,
+        "hooks": [
+          {
+            "hook": "far-reach:world",
+            "frames": 4,
+            "maxMs": 93,
+            "totalMs": 290,
+            "gl": {}
+          },
+          {
+            "hook": "far-reach:play",
+            "frames": 1,
+            "maxMs": 78,
+            "totalMs": 78,
+            "gl": {}
+          },
+          {
+            "hook": "far-reach:activate",
+            "frames": 1,
+            "maxMs": 64,
+            "totalMs": 64,
+            "gl": {}
+          }
+        ],
+        "preparationMs": {
+          "beforeWorld": 0,
+          "constructor": 0,
+          "world": 1598.0,
+          "afterWorld": 0,
+          "kit": 8,
+          "afterKit": 1.0,
+          "play": 99,
+          "afterPlay": 5704,
+          "activate": 2
+        },
+        "endpoint": {
+          "x": 0,
+          "z": -312.5
+        }
+      },
+      {
+        "arm": "nalati-road",
+        "route": "nalati-grasslands-road-entry",
+        "complete": true,
+        "frames": 1350,
+        "p95Ms": 34,
+        "p99Ms": 47,
+        "maxMs": 83,
+        "over50": 7,
+        "driveP95Pass": true,
+        "max200Pass": true,
+        "travelP95Ms": 34,
+        "hooks": [
+          {
+            "hook": "nalati-grasslands:world",
+            "frames": 4,
+            "maxMs": 61,
+            "totalMs": 236,
+            "gl": {}
+          },
+          {
+            "hook": "nalati-grasslands:activate",
+            "frames": 1,
+            "maxMs": 83,
+            "totalMs": 83,
+            "gl": {}
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 53,
+            "totalMs": 53,
+            "gl": {}
+          },
+          {
+            "hook": "nalati-grasslands:afterKit",
+            "frames": 1,
+            "maxMs": 51,
+            "totalMs": 51,
+            "gl": {}
+          }
+        ],
+        "preparationMs": {
+          "beforeWorld": 0,
+          "constructor": 0.0,
+          "world": 6786,
+          "afterWorld": 0.0,
+          "kit": 0.0,
+          "afterKit": 429,
+          "play": 296,
+          "afterPlay": 11378,
+          "activate": 3
+        },
+        "endpoint": {
+          "x": 345,
+          "z": 0
+        },
+        "readiness": {
+          "elapsedSeconds": 43.423,
+          "pendingFirstSeconds": 12.041000000000007,
+          "wallFirstSeconds": 13.636,
+          "wallLastSeconds": 33.319,
+          "observedWallWaitSeconds": 19.683,
+          "firstVisible": {
+            "seconds": 34.39,
+            "x": 305.0574962834991,
+            "ready": true
+          },
+          "readyBeforeArrival": false,
+          "earlyVisibilityObserved": false
+        }
+      }
+    ],
+    "controlCaveat": "Not an isolated A/B: other committed source changed, and Nalati drive has 990 rather than 900 frames. No causal timing credit from that p95 comparison. Sky socket-entry is a separate metric; it does not replace the full route failure.",
+    "desktop": {
+      "pin": "bbffcd30e",
+      "frames": 960,
+      "p95Ms": 16.8,
+      "p99Ms": 33.3,
+      "maxMs": 83.4,
+      "over50": 1,
+      "window": {
+        "start": "2026-10-11T08:13:47.538975Z",
+        "end": "2026-10-11T08:14:34.386219Z"
+      },
+      "load1min": "3:13  up 50 days, 19:46, 2 users, load averages: 8.57 21.43 20.80",
+      "timingCredit": "Current-pin row; p95 remains 16.8 ms. Not an isolated A/B for maximum-frame causality."
+    }
   }
 }
