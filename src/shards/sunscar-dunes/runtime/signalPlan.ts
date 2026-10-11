@@ -8,7 +8,7 @@ import { installMarkedBossRow } from './shardfile/markedBossRow';
 import { installLashHost, type LashCommand, type LashTargetRow, type LashHost } from './items/lashHost';
 import { installQuestGraph } from '@wildshard/game/plugin/quests';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
-import { rowsHeadlessRuntime, bakedSpecs, bakedSpots } from './rowsHeadless';
+import { prepareRowLevel, bakedSpecs, bakedSpots } from './rowsHeadless';
 import { parsePromptRegistrations } from '@wildshard/sdk/runtime/prompts';
 import type { HeadlessRuntimeInstallation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../data/brains';
@@ -24,11 +24,10 @@ const Pieces = v.pipe(v.array(v.object({ id: v.string(), name: v.string(), file:
 /** The held whip input's quiet continuation; the existing lash adapter owns unroll, cooldown and both contacts. */
 export const SIGNAL_LASH_INPUT = 'sunscar.whip-input';
 const manifest = { ...SIGNAL_HEADLESS, baked, homes: { ...SIGNAL_HEADLESS.homes, species: SIGNAL_SPECIES, strikes: SIGNAL_STRIKES, modules: SIGNAL_MODULES } };
-const prepareBase = rowsHeadlessRuntime(manifest);
 
 /** Compose Signal's existing native owners in-shard, preserving their install order and adding the shipping hold/release input. */
-export const prepareSignalRuntime: PrepareHeadlessRuntime = async args => {
-  const prepared = await prepareBase(args), specs = bakedSpecs(baked), spots = bakedSpots(baked), pieces = v.parse(Pieces, baked.pieces);
+export const prepareSignalRuntime: PrepareHeadlessRuntime = args => {
+  const prepared = prepareRowLevel(manifest, args), specs = bakedSpecs(baked), spots = bakedSpots(baked), pieces = v.parse(Pieces, baked.pieces);
   const { homes, boss, quest } = manifest;
   const brains = speciesBrains(homes.species, homes.strikes, homes.modules), holds = homes.holds;
   const terrain = args.shard.terrain === null ? undefined : args.assets.get(args.shard.terrain.collider);
