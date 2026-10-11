@@ -1055,6 +1055,10 @@ Nalati binds its emitted music source, ordered scene selection, fade, synth lead
 and native weapon routing to its existing entered sound owner. On-demand decoding,
 bar-grid scheduling, thrust microtasks and two-entry callback restoration remain
 unchanged.
+Nine Dragon binds its emitted cue aliases, score source/selection and enclosed
+bed profile to the existing native owner. Zone bounds are prepared once per
+installation; footfall cycling, chime RNG, sample playback and scoped retirement
+remain native. Catalogue-byte adoption is a separate charged closure.
 
 Optional `audio.recordings` maps at most 1024 existing catalogue paths such as
 `/assets/music/folk/pickup.m4a` to local SHA-256 or `commons:<SHA-256>`

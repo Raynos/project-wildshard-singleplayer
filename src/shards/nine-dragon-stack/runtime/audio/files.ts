@@ -2,7 +2,7 @@ import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 import type { MusicState } from '@wildshard/engine/audio/Music';
 import type { SetScore, ScoreSource } from '@wildshard/engine/audio/SetScore';
 
-import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
+import { requireAudioProfile, type AudioMusicProfile } from '@wildshard/engine/audio/audioProfiles';
 import { selectScoreSlots } from '@wildshard/engine/audio/scoreSelection';
 import source from '../../shard.config';
 
@@ -34,10 +34,12 @@ export async function BOOT_AUDIO(): Promise<readonly string[]> {
   return [...files.music, ...files.sfx];
 }
 export interface NdScene { well: number }
-export function ndPick(scene: NdScene, state: MusicState | undefined): readonly string[] {
-  return selectScoreSlots(PROFILE.selection, PROFILE.selectMode, { mode: state?.mode ?? null, well: scene.well });
+export function ndPick(scene: NdScene, state: MusicState | undefined, profile: AudioMusicProfile = PROFILE): readonly string[] {
+  return selectScoreSlots(profile.selection, profile.selectMode, { mode: state?.mode ?? null, well: scene.well });
 }
-export async function ndScore(onReady: () => void): Promise<SetScore<NdScene> & ScoreSource> {
+/** Keep the native bank and decoder while selecting from admitted score rows. */
+export async function ndScore(onReady: () => void, profile: AudioMusicProfile = PROFILE): Promise<SetScore<NdScene> & ScoreSource> {
+  const set = requireAudioProfile(profile.source ?? undefined, 'nd.music.source');
   const [{ SetScore }, { cachedBytes, decodeBytes }] = await Promise.all([import('@wildshard/engine/audio/SetScore'), import('@wildshard/engine/audio/preload')]);
-  return new SetScore<NdScene>({ ...SCORE_SET, minFade: PROFILE.minFade, synthLead: PROFILE.synthLead, scene: { well: 0 }, pick: ndPick, read: cachedBytes, decode: decodeBytes, onReady, waitForBank: true });
+  return new SetScore<NdScene>({ ...set, minFade: profile.minFade, synthLead: profile.synthLead, scene: { well: 0 }, pick: (observation, state) => ndPick(observation, state, profile), read: cachedBytes, decode: decodeBytes, onReady, waitForBank: true });
 }

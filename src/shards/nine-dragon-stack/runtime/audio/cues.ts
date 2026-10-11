@@ -6,7 +6,7 @@ import type { CombatCueOpts } from '@wildshard/engine/combat/cues';
 import source from '../../shard.config';
 
 /** The shardfile owns the cue aliases; trusted recipes retain taps, footfall sequence and chime randomness. */
-export function ndCueMap(player: Pick<CuePlayer, 'play'>, random: () => number): CueMap {
+export function ndCueMap(player: Pick<CuePlayer, 'play'>, random: () => number, routing = source.audio.routing): CueMap {
   let step = 0;
   const voices = new Map<string, (opts: CombatCueOpts) => boolean | undefined>();
   voices.set('nd.step', (opts) => {
@@ -28,7 +28,7 @@ export function ndCueMap(player: Pick<CuePlayer, 'play'>, random: () => number):
   voices.set('nd.feizhua.zip', (opts) => { tap.sound?.('nd.feizhua.zip'); return player.play('feizhua.zip', opts); });
   voices.set('nd.chime.gust', (opts) => { tap.sound?.('nd.chime.gust'); return player.play('chime.gust', { ...opts, pan: opts.pan ?? (random() - 0.5) * 0.6 }); });
   voices.set('nd.unhandled', () => false);
-  return createCueRouter(source.audio.routing, { voices });
+  return createCueRouter(routing, { voices });
 }
 /** Traversal owns its event boundaries; this callback keeps that path independent of the shell. */
 let traversalCue: CueMap | undefined;
