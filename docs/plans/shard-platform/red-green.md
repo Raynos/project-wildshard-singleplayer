@@ -18,4 +18,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-11 | local gate: Driftwood physics bake stale after a source edit | `ea1c22453` | `edd01ddce` (rebake) | sp-x5 |
 | 2026-10-11 | detached commit-ratchet: false sim-no-render red on Sky isletLift | `5985020fe` | `c4b6aca04` | sp-x6 |
 | 2026-10-11 | push: unapproved Signal skitterer generator-imports 0 → 3 | `79422f721` | `f3c23cb49` (receipt) | sp-x6 (row filed by sp-x7) |
-| 2026-10-11 | push: E476 commit-msg hook refuses the pusher's legacy regeneration messages | `95cd3e37a` | pending (sp-x7) | wildshard-new / sp-x7 |
+| 2026-10-11 | push: E476 commit-msg hook refuses the pusher's legacy regeneration messages | `95cd3e37a` | `47b53311b` | wildshard-new / sp-x7 |
