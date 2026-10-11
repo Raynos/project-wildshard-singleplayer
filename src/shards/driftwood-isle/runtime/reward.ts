@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import { applyQuestRewardPose, type QuestRewardOrigin, type QuestRewardPosePlayer, type QuestRewardPoseTarget } from '@wildshard/game/quest/rewardMotion';
+import { applyQuestRewardPose, type QuestRewardOrigin, type QuestRewardPosePlayer, type QuestRewardPoseTarget } from '@wildshard/game/plugin/quests';
 
 /** The trusted player owner persists position, velocity and yaw; the reward owns pitch and its carry fence. */
 export interface DriftwoodRewardPlayer extends QuestRewardPosePlayer { carried: boolean }

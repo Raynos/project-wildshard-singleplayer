@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { applyQuestRewardPose } from '../src/game/quest/rewardMotion';
+import { applyQuestRewardPose } from '../src/game/plugin/quests';
 
 it('reproduces the held midpoint and forward wrapped clock without changing its captured origin', () => {
   const from = { position: new Vector3(), yaw: 3, pitch: 0, phase: 0.9 }, before = JSON.stringify(from);

@@ -64,3 +64,13 @@ it('keeps starter recipes on their defining equipment plugin', () => {
   expect(report.pluginExports).toBeLessThanOrEqual(20);
   expect(report.entries.find(row => row.key === './plugin/weaponHooks')).toMatchObject({ published: true, target: './plugin/weaponHooks.ts' });
 });
+
+
+it('keeps reward motion on its defining quest plugin', () => {
+  const report = gamePluginSurface();
+  expect(report.unresolved).toEqual([]);
+  for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
+  for (const key of ["./quest/rewardMotion"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
+  expect(report.pluginExports).toBeLessThanOrEqual(20);
+  expect(report.entries.find(row => row.key === './plugin/quests')).toMatchObject({ published: true, target: './plugin/quests.ts' });
+});

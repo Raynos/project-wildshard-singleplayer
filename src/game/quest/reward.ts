@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { RewardCaption } from '@wildshard/engine/quest/view/ui';
-import { applyQuestRewardPose, type QuestRewardOrigin, type QuestRewardPosePlayer, type QuestRewardPoseTarget } from './rewardMotion';
+import { applyQuestRewardPose, type QuestRewardOrigin, type QuestRewardPosePlayer, type QuestRewardPoseTarget } from '../plugin/quests';
 
 export interface QuestRewardPlayer extends QuestRewardPosePlayer { carried: boolean }
 export interface QuestRewardSpec extends QuestRewardPoseTarget {
