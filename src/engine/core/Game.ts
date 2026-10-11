@@ -48,6 +48,21 @@ import { cullPlaced } from '../models/place';
 const HIT_STOP_SCALE = 0.04;
 /** the frame cap's tolerance for vsync timestamp jitter (see Game.start) */
 const FRAME_CAP_SLACK_MS = 4;
+/**
+ * The frame cap's decision for one animation frame (Game.start's loop): `null` while the next capped frame is not yet
+ * due, else the cadence anchor to keep once this frame draws. A frame on time anchors at its own timestamp, as before. A
+ * frame drawn late (op-hitch48: a task held the main thread past its vsync) is drawn in its own slot: the anchor stays at
+ * `lastDrawn + 1/cap`, so the next frame is due on the old cadence instead of a whole vsync later too: one late frame,
+ * never a late frame and a slow one. The anchor stays within 1/cap - slack - one 60 Hz vsync (- 0.5 ms) of `t`, 12 ms
+ * at the phone's 30 fps cap and nothing at 60, so the next frame can never land on the very next 60 Hz vsync (no
+ * 30 <-> 60 judder), and a long stall simply resyncs.
+ */
+export function frameCapAnchor(lastDrawn: number, t: number, cap: number): number | null {
+  const step = 1000 / cap, since = t - lastDrawn;
+  if (since < step - FRAME_CAP_SLACK_MS) return null;
+  if (since <= step + FRAME_CAP_SLACK_MS || !Number.isFinite(lastDrawn)) return t;
+  return Math.max(lastDrawn + step, t - Math.max(0, step - FRAME_CAP_SLACK_MS - 1000 / 60 - 0.5));
+}
 const MAX_FIXED_STEPS = 3; // per frame; past it the backlog is dropped (a stall never replays as a burst)
 /** E153: the boot's warm-up draws of the world, one per quarter-turn (Game.warmTurn) */
 const WARM_TURNS = 4;
@@ -854,9 +869,9 @@ export class Game {
       lastRun = performance.now();
       const cap = frameCapFps();
       if (cap > 0 && !forceFrame) {
-        const t = now ?? lastRun;
-        if (t - lastDrawn < 1000 / cap - FRAME_CAP_SLACK_MS) return;
-        lastDrawn = t;
+        const anchor = frameCapAnchor(lastDrawn, now ?? lastRun, cap);
+        if (anchor === null) return;
+        lastDrawn = anchor;
       }
       if (this.hold) { this.clock.getDelta(); return; } // the context is lost / being rebuilt (GpuRecovery.ts): a draw now would re-link every program in one stall
       if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane

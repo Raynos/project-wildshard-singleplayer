@@ -722,6 +722,10 @@ drawing (and the tool is on), and `slicer()` then caps its stretches at `WORK_SL
 `workSlice()` yield all go through `paceYield`: when a frame is due they wait until the loop has drawn it (rAF, then a
 timer task after the paint). With the tool off, or off the road (the loading screen, Node bakers and tests), nothing changes.
 
+`frameCapAnchor(lastDrawn, timestamp, positiveFps)` in `@wildshard/engine/core/Game` returns null when a capped
+draw is not due, otherwise its cadence anchor. A late 30 fps draw keeps its slot within a bounded phase window,
+so the following draw does not lose another vsync; normal jitter tolerance and the uncapped path are unchanged.
+
 `Game.frameRafTime` is the browser rAF timestamp attached to the last completed draw; it is null for the
 initial synchronous draw. Read it with `frameCount` for delivered-frame cadence, retaining missing counter
 increments as incomplete coverage. `clock.oldTime` measures callback-start timing, and an observer's own
