@@ -56,25 +56,31 @@ export function frameDue(now: number = diagnosticNow()): boolean {
 }
 
 /**
- * Whether a presenting page's build work since its last drawn frame has used `budgetMs` (op-hitch44): the budget is the
+ * Whether a presenting page's build work since its last drawn frame has used `budgetMs`, at most a quarter frame: the budget is the
  * frame's, shared by every sliced build running at once. Each slice's own clock alone let several builds (a herd's coats,
  * the ground's arrays, the terrain) each run their stretch back to back, so no frame was drawn for 100-130 ms.
  */
 export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
-  return presenting(now) && (now - lastDrawn >= budgetMs || frameDue(now));
+  return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4) || frameDue(now));
 }
 
 /** The reported or inferred interval between drawn frames (ms); completion-only callers retain smoothing. */
 export function frameInterval(): number { return interval; }
 
-/** Resolve after the loop has drawn a frame later than now (rAF, then a timer task after its paint), or after `WAIT_CAP_MS`. */
+/** Resolve after the loop has drawn a frame later than now (rAF, then a scoped task after paint), or after `WAIT_CAP_MS`. */
 export function nextDrawnFrame(owner?: Scope): Promise<void> {
   const scope = owner ?? resourceScope(), since = lastDrawn, start = diagnosticNow();
   return new Promise<void>((resolve) => {
     const check = (): void => {
       if (lastDrawn > since || diagnosticNow() - start >= WAIT_CAP_MS || typeof globalThis.requestAnimationFrame !== 'function') { resolve(); return; }
-      // rAF alone resumes before the paint: a timer task after it runs once the frame has gone out
-      scope.raf(() => { scope.timeout(0, check); });
+      // A task after rAF leaves paint first. A nested timer costs 4 ms of the next build's frame before any work starts.
+      scope.raf(() => {
+        if (typeof globalThis.MessageChannel !== 'function') { scope.timeout(0, check); return; }
+        const channel = new MessageChannel(), turn = scope.child('frame-turn');
+        turn.onDispose(() => { channel.port1.close(); channel.port2.close(); });
+        turn.listen(channel.port1, 'message', () => { turn.dispose(); scope.run(check); }, { once: true });
+        channel.port1.start(); channel.port2.postMessage(0);
+      });
     };
     check();
   });

@@ -99,7 +99,7 @@ const messageHop = (): Promise<void> => new Promise((resolve) => {
  * engine loop drawing, `presenting()`, op-hitch26) with a frame due, it waits until the loop has drawn that frame instead:
  * Blink can run queued port messages back to back with no frame between them.
  */
-export const macrotask = (): Promise<void> => paceYield(messageHop);
+export const macrotask = (): Promise<void> => paceYield(messageHop, undefined, WORK_SLICE_MS);
 
 /**
  * A yield point that ends the task only once it has run `budgetMs` (wall): sprinkle `await slice()` between

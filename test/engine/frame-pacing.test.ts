@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { frameBudgetSpent, frameDue, frameInterval, nextDrawnFrame, noteFrameDrawn, paceYield, presenting, setFramePacing } from '@wildshard/engine/core/framePacing';
+import { Scope } from '@wildshard/engine/app/scope';
+import { installScopeEnvironment, scopeEnvironment } from '../../src/engine/app/scopeEnvironment';
 
 // op-hitch26 (E435 frame floor): sliced builds in play leave a drawn frame between stretches when one is due.
 describe('framePacing', () => {
@@ -29,7 +31,8 @@ describe('framePacing', () => {
     const t = 3_000_000;
     for (let i = 0; i <= 10; i++) noteFrameDrawn(t + i * 1000 / 60);
     const last = t + 10 * 1000 / 60;
-    expect(frameBudgetSpent(8, last + 5)).toBe(false);
+    expect(frameBudgetSpent(8, last + 3)).toBe(false);
+    expect(frameBudgetSpent(8, last + 5)).toBe(true);
     expect(frameBudgetSpent(8, last + 9)).toBe(true);
     expect(frameBudgetSpent(8, last + 300)).toBe(false); // not presenting: the caller's own budget only
     setFramePacing(false);
@@ -78,5 +81,33 @@ describe('framePacing', () => {
     noteFrameDrawn(t + 18 + 1000 / 60 + 1000 / 120, t + 16 + 1000 / 60 + 1000 / 120, 0);
     expect(frameInterval()).toBeCloseTo(1000 / 120);
     setFramePacing(false);
+  });
+  it('resumes builds on a scoped post-paint task only after an actual draw, without nested timer latency', async () => {
+    const previous = scopeEnvironment(), owner = new Scope('frame-build');
+    const frames: FrameRequestCallback[] = [], tasks: (() => void)[] = [];
+    let now = 7_000_000, closed = 0, resolved = false;
+    class Port extends EventTarget { start(): void { /* Delivery is explicitly driven below. */ } close(): void { closed++; } }
+    class Channel {
+      readonly port1 = new Port();
+      readonly port2 = { postMessage: () => tasks.push(() => { this.port1.dispatchEvent(new Event('message')); }), close: () => { closed++; } };
+    }
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+    vi.stubGlobal('MessageChannel', Channel);
+    vi.stubGlobal('requestAnimationFrame', () => 1);
+    installScopeEnvironment({ ...previous, frame: fn => frames.push(fn), cancelFrame: () => undefined });
+    try {
+      noteFrameDrawn(now, now, 60);
+      const wait = nextDrawnFrame(owner).then(() => { resolved = true; return true; });
+      const frame = frames.shift(); if (!frame) throw new Error('Missing scheduled frame');
+      now += 1000 / 60; frame(now);
+      await Promise.resolve();
+      expect(resolved).toBe(false); // rAF delivery alone never resumes the builder before paint
+      noteFrameDrawn(now + 3, now, 60); now += 3;
+      const task = tasks.shift(); if (!task) throw new Error('Missing post-paint task');
+      task(); await wait;
+      expect(resolved).toBe(true);
+      expect(closed).toBe(2);
+      expect(owner.census).toMatchObject({ listeners: 0, timers: 0, rafs: 0, disposers: 0 });
+    } finally { owner.dispose(); installScopeEnvironment(previous); clock.mockRestore(); vi.unstubAllGlobals(); }
   });
 });
