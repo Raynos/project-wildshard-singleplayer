@@ -115,7 +115,8 @@
     "./scene": "./scene.ts",
     "./physics": "./physics.ts",
     "./entries": "./entries.ts",
-    "./spawns": "./spawns.ts"
+    "./spawns": "./spawns.ts",
+    "./synth": "./synth.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -467,6 +468,10 @@
       "./spawns": {
         "types": "./dist/types/sdk/spawns.d.ts",
         "default": "./dist/spawns.js"
+      },
+      "./synth": {
+        "types": "./dist/types/sdk/synth.d.ts",
+        "default": "./dist/synth.js"
       }
     }
   }

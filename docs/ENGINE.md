@@ -2754,3 +2754,25 @@ simulation/native-ground owner or private binary payloads. Missing or malformed
 products are `unavailable`; missing structural evidence is `incomplete`, with reasons.
 This is structural evidence, not parity or asset admission, and adds no hard failure.
 Templates do not make a one-user system public; AssemblyScript remains its own uncapped column.
+
+### Inspectable scene synth (DS1.2)
+
+`wildshard synth <project>` compiles `shard.config.ts` in Node and reads its named
+`scene` (a real three.js Object3D) and `identity.slug` exports. These author-only
+exports are transitional alongside the existing default shardfile declaration;
+missing scenes refuse. The command writes canonical JSON to
+`.wildshard/cache/<slug>/scene.json` and retains an immutable copy under its
+SHA256 directory. `@wildshard/sdk/synth` defines `synthProject(project)` and
+`synthScene(scene, project, slug)`; each returns the description, digest and path.
+The latter also accepts an already generated graph, including Template 1's
+retained generator. Geometry, material and node traversal use the DS1.3 reader;
+its explicit unsupported-feature refusals still apply. Synth supplies compiler
+input, not a finished shardfile or an entry proof. It adds no schema field.
+
+Graph generation executes during synth; expensive bake jobs remain owned by the
+shared generation-job cache. Immutable scene copies are verified before reuse;
+corrupt bytes refuse. Sources and cache paths cannot escape through symlinks;
+project imports must live in authoring folders. Game/engine and SDK runtime
+imports refuse. Scene JSON never ships or enters git. Two independently generated
+Template 1 graphs produce identical bytes; the CLI also works with a pure Node
+three.js author project without drawing a frame.

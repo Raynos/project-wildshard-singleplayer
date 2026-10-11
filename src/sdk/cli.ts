@@ -11,6 +11,7 @@ import { assetOverdraw } from './assets';
 // oxlint-disable-next-line import/no-nodejs-modules -- The CLI releases its author server on termination.
 import process from 'node:process';
 import { buildBehaviourProject } from './buildBehaviour';
+import { synthProject } from './synth';
 
 const unmeasured: PerformanceObservations = { scripts: { p95Micros: 0, maxMicros: 0, samples: 0 }, fuel: { p95: 0, max: 0, samples: 0 } };
 function printReport(shard: Shardfile, observed: PerformanceObservations, policy: 'warn' | 'refuse'): void {
@@ -27,7 +28,12 @@ async function admitBuild(shard: Shardfile, assets: ReadonlyMap<string, Uint8Arr
 /** Run the author CLI; returns only after validation/build completes. */
 export async function runCli(args: readonly string[]): Promise<void> {
   const [command, input, output, buildFlag] = args;
-  if (input === undefined) throw new Error('usage: wildshard new <project> | build <project> [output] [--product-only] | build <project> --behaviour-only | validate <project|shard.json> | dev <project> [port]');
+  if (input === undefined) throw new Error('usage: wildshard new <project> | synth <project> | build <project> [output] [--product-only] | build <project> --behaviour-only | validate <project|shard.json> | dev <project> [port]');
+  if (command === 'synth') {
+    if (output !== undefined) throw new Error('usage: wildshard synth <project>');
+    const result = await synthProject(resolve(input));
+    console.info(`synthesized ${result.path} (${result.hash})`); return;
+  }
   if (command === 'new') { newProject(resolve(input), input.split('/').reverse().find((part) => part !== '') ?? ''); return; }
   if (command === 'dev') {
     const port = output === undefined ? 0 : Number(output);
