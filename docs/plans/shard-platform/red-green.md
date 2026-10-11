@@ -23,3 +23,5 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-11 | commit message swapped between concurrent commits (shared COMMIT_EDITMSG; `fc3d42c39` kept its wrong label) | — | `b87365957` (commit lock) | sp-x7 |
 | 2026-10-11 | local gate: group-factory missing-port assertions | `a52097c07` | `d2754ee70` | sp-x5 |
 | 2026-10-11 | local gate: map-coverage expects old map URLs | `e2bc770ab` | `dd6a2b918` | sp-x4 |
+| 2026-10-11 | push: unapproved Driftwood audio/install engine imports 2 → 3 | `992fd31b1` | `84193208e` (receipt) | sp-x5 |
+| 2026-10-11 | push: unapproved Signal plugin game imports / plugins 6 → 7 | `630fcca7f` | `84193208e` (receipt) | sp-x5 |
