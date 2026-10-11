@@ -3,7 +3,7 @@ import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard
 import { Vector3 } from 'three';
 import { Flock, type FlockOpts, dogWolves } from '../creatures/flock';
 import type { WildlifeOpts } from '../creatures/wildlife';
-import { NALATI_WILDLIFE } from '../creatures/wildPlacement';
+import { NALATI_WILDLIFE } from '../data/fauna';
 import { wildEnv } from '../creatures/env';
 import { nalatiFlockRows } from '../creatures/flockRows';
 

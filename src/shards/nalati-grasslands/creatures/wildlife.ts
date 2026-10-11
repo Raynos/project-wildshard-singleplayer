@@ -16,7 +16,8 @@ import { Flock, SheepPrey, dogWolves, type FlockOpts } from './flock';
 import { wildEnv } from './env';
 import { pushWildMovers } from '../look/trampleMovers';
 import { Marmots } from './marmots';
-import { NALATI_WILDLIFE, placeDog, placeHerd, placePack, type WildlifeLayout, type WildPlacer } from './wildPlacement';
+import { placeDog, placeHerd, placePack, type WildPlacer } from './wildPlacement';
+import { NALATI_WILDLIFE, type WildlifeLayout } from '../data/fauna';
 import { HITCH_HORSE_SPOTS } from '../world/layout';
 
 /**

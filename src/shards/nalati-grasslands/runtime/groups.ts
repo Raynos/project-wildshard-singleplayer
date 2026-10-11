@@ -4,7 +4,7 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import { NALATI_PACK_PROFILE, NALATI_HERD_PROFILE } from '../data/brains';
-import { NALATI_WILDLIFE } from '../creatures/wildPlacement';
+import { NALATI_WILDLIFE } from '../data/fauna';
 import { wildEnv, type WildEnv } from '../creatures/env';
 import { ARGYMAQ } from '../combat/eliteRoster';
 import { nativeHerdPorts, nativePackPorts, passThroughPlayer, type NativeGroupHost, type NativeGroupWorld } from './groupPorts';

@@ -6,7 +6,7 @@
  */
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { swimHands } from '@wildshard/engine/models/swimHands';
-import { NALATI_WILDLIFE } from './creatures/wildPlacement';
+import { NALATI_WILDLIFE } from './data/fauna';
 import { CAMP_PEOPLE } from './data/questStory';
 import { aqbars, argymaq, balbalWarrior, ghostRider, goldenKing, horse, kokbori, marmot, qyran, sheep, sheepdog, stormTitan, wolf } from './models/creatures';
 import { campPeople, shepherd } from './models/people';
