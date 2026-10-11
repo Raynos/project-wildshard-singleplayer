@@ -1569,3 +1569,9 @@ authored profile into that one law; its real roster, taming, contacts, mounted w
 by the existing native installers. Restore retains every reins edge, physical motor and gait clock.
 
 SF85 melee weapon profiles retain the four-family contract. Each combo/heavy timing row may additionally declare bounded `stagger`, signed `sweep`, and positive `reach`; absent fields retain the native recipe values. Driftwood and Nine declare `family: "melee"` with numeric profiles, while keeping their original view recipes and prebuilt/native controller adoption. Nine's placeholder contact damage remains zero; its native Jian owns the swing clock.
+
+SF84 grapple profiles bound reach, selection windows and claw/reel/pull timings. SDK `Grapple` emits data; the
+defining `plugin/mover` owns the existing `GrappleSim`, landing probes and strict nearest-hook selection. Native
+course ports still supply actual anchors and their sight/guard rules. Nine retains its Well rail exception,
+checked floor/capsule ownership, camera aim, viewmodel and earned crossing fact. Serialized phase/target/clock
+continuation remains unchanged. Template 1 anchors and horse presentation are separate graphical examples.

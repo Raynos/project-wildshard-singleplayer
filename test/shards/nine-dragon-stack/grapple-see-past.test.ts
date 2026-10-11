@@ -1,3 +1,4 @@
+import { type GrapplePorts, hookVisible } from '@wildshard/game/plugin/mover';
 // oxlint-disable-next-line import/no-nodejs-modules -- The Well rail test builds a native physics world.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
@@ -7,8 +8,7 @@ import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { groups } from '../../../src/engine/physics/groups';
 import { tagCollider } from '../../../src/engine/physics/surface';
-import type { GrapplePorts } from '../../../src/shards/nine-dragon-stack/grapple/course';
-import { hookVisible, wellCourse } from '../../../src/shards/nine-dragon-stack/grapple/sim';
+import { wellCourse } from '../../../src/shards/nine-dragon-stack/grapple/sim';
 import { RIM_Z } from '../../../src/shards/nine-dragon-stack/runtime/grapple';
 
 let R: Rapier;

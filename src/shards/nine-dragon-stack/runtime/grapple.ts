@@ -1,9 +1,9 @@
+import type { SimHost } from '@wildshard/engine/sim';
+import { type GrappleBody, type GrapplePorts, GrappleSim, type GrappleView } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
 import { PerspectiveCamera, Vector3 } from 'three';
-import type { SimHost } from '@wildshard/engine/sim';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
-import type { GrappleBody, GrapplePorts } from '../grapple/course';
-import { GrappleSim, type GrappleView, wellCourse } from '../grapple/sim';
+import { wellCourse } from '../grapple/sim';
 import { traverseFeats, type NineFacts } from '../world/feats';
 
 /** The Fei Zhua's fixed-step adapter id. */

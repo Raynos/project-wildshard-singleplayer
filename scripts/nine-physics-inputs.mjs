@@ -16,7 +16,7 @@ export function ninePhysicsInputs(root) {
   // DS1.5: fence the actual Node capture, host, placement math, practice room and their platform versions.
   for (const file of ['src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs',
     'scripts/bake/worldHost.mjs', 'scripts/bake/nativeWorld.mjs', 'scripts/bake/environment.mjs', 'scripts/bake-loader.mjs',
-    'scripts/nine-physics-inputs.mjs', 'src/engine/models/colliders.ts', 'src/engine/models/place.ts',
+    'scripts/nine-physics-inputs.mjs', 'src/game/plugin/mover.ts', 'src/format/modes.ts', 'src/engine/models/colliders.ts', 'src/engine/models/place.ts',
     'src/engine/practice/TrainingArena.ts', 'src/engine/world/registry.ts', 'pnpm-lock.yaml']) paths.push(file);
   // DS1.3: the declared portal floors now compile through the retained authoring reader.
   for (const file of ['scene', 'physics', 'sceneTransform', 'entries', 'spawns']) paths.push(`src/sdk/${file}.ts`);

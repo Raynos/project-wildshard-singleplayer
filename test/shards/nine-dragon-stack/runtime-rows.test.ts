@@ -30,7 +30,7 @@ function fixture() {
 }
 describe('Nine Dragon runtime-owned fragment (SF51-p)', () => {
   it('declares its two shipping items and two runtime-owned feats, preserving the checked portal floors', () => {
-    expect(source.runtime?.binds).toEqual(['items', 'ledger']);
+    expect(source.runtime?.binds).toEqual(['items', 'ledger', 'modes']);
     expect(source.items.rows.map(row => [row.id, row.family])).toEqual([
       ['weapon.jian', 'melee'], ['tool.fei-zhua', 'nine-dragon-stack.fei-zhua'],
     ]);

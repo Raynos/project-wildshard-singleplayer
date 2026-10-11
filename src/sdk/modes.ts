@@ -1,10 +1,10 @@
 import { Object3D, Vector3 } from 'three';
-import { ZiplineModeSchema, UpdraftModeSchema, type ZiplineMode, type UpdraftMode, RideModeSchema, type RideMode } from '@wildshard/format/modes';
+import { ZiplineModeSchema, UpdraftModeSchema, type ZiplineMode, type UpdraftMode, RideModeSchema, type RideMode, GrappleModeSchema, type GrappleMode } from '@wildshard/format/modes';
 import * as v from 'valibot';
 import { updateAuthoringMatrix } from './sceneTransform';
 
 /** A complete set of admitted platform traversal declarations. */
-export interface ModeRows { ride?: RideMode[]; traverse: (ZiplineMode | UpdraftMode)[] }
+export interface ModeRows { grapple?: GrappleMode[]; ride?: RideMode[]; traverse: (ZiplineMode | UpdraftMode)[] }
 /** A cable's admitted data, independent of any native view. */
 export type ZiplineRow = ZiplineMode;
 /** A board-only directional wind column's admitted data. */
@@ -68,4 +68,15 @@ export class Mount extends Object3D {
   override copy(source: this, recursive = true): this { super.copy(source, recursive); this.gaits = { ...source.gaits }; return this; }
   /** Emit validated control data; native mount/taming ownership stays with the host. */
   toModeData(): RideMode { return v.parse(RideModeSchema, { id: this.name, gaits: this.gaits }); }
+}
+
+/** A native grapple control profile; the real world and its owner still provide anchors, floors and guards. */
+export class Grapple extends Object3D {
+  /** Bounded selection and timing parameters; omitted fields retain native defaults. */
+  options: Partial<Omit<GrappleMode, 'id'>>;
+  constructor(options: Partial<Omit<GrappleMode, 'id'>> = {}) { super(); this.name = 'grapple'; this.options = { ...options }; }
+  /** Copy independent parameters together with normal three.js graph semantics. */
+  override copy(source: this, recursive = true): this { super.copy(source, recursive); this.options = { ...source.options }; return this; }
+  /** Emit data only; no synthetic anchors, targets, floors or gameplay grants. */
+  toModeData(): GrappleMode { return v.parse(GrappleModeSchema, { id: this.name, ...this.options }); }
 }

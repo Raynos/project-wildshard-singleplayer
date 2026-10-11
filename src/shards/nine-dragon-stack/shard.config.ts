@@ -1,3 +1,4 @@
+import { NINE_MODES } from './data/modes';
 import { NINE_DRAGON_RUNTIME_COST } from './data/runtimeCost';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
@@ -19,6 +20,6 @@ const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stac
 // parseShardfile admits each link against the format's PortalLink schema (strict nodes, bound links, the walked route)
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base,
-  accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['items', 'ledger'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
+  accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['items', 'ledger', 'modes'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: portalEntries, directors: [portalStages],
   props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [], colliders: portalFloors } });

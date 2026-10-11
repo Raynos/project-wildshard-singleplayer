@@ -23,13 +23,23 @@ export const RideGaitsSchema = v.pipe(v.strictObject({ walk: range(0.1, 30), tro
 export const RideModeSchema = v.strictObject({ id, gaits: RideGaitsSchema });
 /** One admitted mounted law profile. */
 export type RideMode = v.InferOutput<typeof RideModeSchema>;
+/** Bounded native grapple selection and traversal timings; anchors and safe floors remain real world queries. */
+export const GrappleModeSchema = v.pipe(v.strictObject({ id,
+  minRange: v.optional(range(0.1, 64), 2.5), maxRange: v.optional(range(0.1, 64), 38),
+  zipSpeed: v.optional(range(0.1, 40), 22), fireTime: v.optional(range(0.01, 2), 0.27),
+  biteTime: v.optional(range(0.01, 2), 0.10), reelTime: v.optional(range(0.01, 2), 0.48),
+  windowX: v.optional(range(0.01, 1), 0.52), windowY: v.optional(range(0.01, 1), 0.68),
+}), v.check(row => row.minRange < row.maxRange, 'increasing grapple range'));
+/** One admitted native grapple control profile. */
+export type GrappleMode = v.InferOutput<typeof GrappleModeSchema>;
 /** Only implemented platform traverse laws cross admission; executable callbacks never do. */
 export const TraverseModeSchema = v.variant('kind', [ZiplineModeSchema, UpdraftModeSchema]);
 /** Actual mode parameters admitted from authoring objects; absence retains the ordinary player law. */
 export const ModesSchema = v.pipe(v.strictObject({
   ride: v.exactOptional(v.pipe(v.array(RideModeSchema), v.maxLength(64))),
+  grapple: v.exactOptional(v.pipe(v.array(GrappleModeSchema), v.maxLength(64))),
   traverse: v.optional(v.pipe(v.array(TraverseModeSchema), v.maxLength(64)), []),
-}), v.check(rows => new Set(rows.traverse.map(row => row.id)).size === rows.traverse.length, 'unique traverse identities'), v.check(rows => new Set(rows.ride?.map(row => row.id)).size === (rows.ride?.length ?? 0), 'unique mounted identities'));
+}), v.check(rows => new Set(rows.traverse.map(row => row.id)).size === rows.traverse.length, 'unique traverse identities'), v.check(rows => new Set(rows.grapple?.map(row => row.id)).size === (rows.grapple?.length ?? 0), 'unique grapple identities'), v.check(rows => new Set(rows.ride?.map(row => row.id)).size === (rows.ride?.length ?? 0), 'unique mounted identities'));
 /** Admitted platform traversal rows. */
 export type ModeRows = v.InferOutput<typeof ModesSchema>;
 /** One cable law's admitted parameters. */

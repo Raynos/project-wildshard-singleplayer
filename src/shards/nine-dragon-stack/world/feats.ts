@@ -1,8 +1,8 @@
+import type { GrapplePhase } from '@wildshard/game/plugin/mover';
 // G285: Nine Dragon's gameplay facts (data/ledger.ts), read off the same renderer-free laws the page and the headless host
 // both run: the portal ride (world/portalRide.ts) and the Fei Zhua (grapple/sim.ts). Nothing here grants anything: each
 // helper reports an outcome the step just played, and the platform ledger grants the declared achievement once.
 import { NINE_FACT } from '../data/ledger';
-import type { GrapplePhase } from '../grapple/sim';
 
 /** Where a fact goes: the page's bound ledger, or the headless host's effect buffer. */
 export type NineFacts = (name: string, entity: string) => void;

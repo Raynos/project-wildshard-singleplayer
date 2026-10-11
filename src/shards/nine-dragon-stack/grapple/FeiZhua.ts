@@ -1,3 +1,4 @@
+import { type GrappleCourse, type GrapplePorts, FIRE_TIME, GrappleSim, type GrappleTarget, hookVisible, landingFor, MAX_RANGE, MIN_RANGE, NONE, REEL_TIME, type Side, targetFor, WIN_X, WIN_Y } from '@wildshard/game/plugin/mover';
 /**
  * Fei Zhua in the partial shard: LOCK a visible brass dragon ring, JUMP to fire, then zip through Rapier's player capsule.
  *
@@ -19,8 +20,7 @@ import { FEI_ZHUA_ROW } from './row';
 import { GRAPPLE_CONTEXT } from './context';
 import { ndRuntime } from '../runtime/state';
 import { RIM } from '../world/wellBounds';
-import type { GrappleCourse, GrapplePorts } from './course';
-import { FIRE_TIME, GrappleSim, type GrappleTarget, hookVisible, landingFor, MAX_RANGE, MIN_RANGE, NONE, REEL_TIME, type Side, targetFor, WIN_X, WIN_Y, wellCourse } from './sim';
+import { wellCourse } from './sim';
 import { grappleCue } from '../runtime/audio/cues';
 import { traverseFeats, type NineFacts } from '../world/feats';
 import { FEI_ZHUA_AIM } from '../data/grapple';
