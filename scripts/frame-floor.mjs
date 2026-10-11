@@ -17,7 +17,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
-import { gridFloorPlans, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
+import { selectFloorGridPlans, gridFloorPlans, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 import { GL_INIT } from './parity/glbytes.mjs';
 import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
 import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGridWitnessFailures } from './public-grid.mjs';
@@ -37,6 +37,8 @@ if (!['on', 'off'].includes(developer)) throw new Error('Developer must be on or
 const publicGrid = developer === 'off' && shards.includes('grid');
 if (publicGrid && shards.length !== 1) throw new Error('Public grid requires its own floor run');
 const gridScenario = flag('grid-scenario', 'baseline');
+const gridRoutes = flag('grid-routes', '').split(',').filter(Boolean);
+if (gridRoutes.length > 0 && (publicGrid || gridScenario === 'baseline')) throw new Error('--grid-routes selects Developer drive routes only');
 const devserverBuild = args.includes('--devserver');
 const gridCell = flag('grid-cell', '');
 const gridCellPoseArg = flag('grid-cell-pose', '');
@@ -77,7 +79,7 @@ if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'mil
 if (publicGrid && gridScenario === 'milestone') throw new Error('Milestone floor requires Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]]] [--devserver] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--gl-time]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--gl-time]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -346,7 +348,7 @@ async function measureShard(driver, shard, deadline) {
     if (shard === 'grid' && gridScenario !== 'baseline') {
       // Standing camera probes did not cross: reset only the initial source pose, then use real input at every seam.
       const state = await driver.evaluate('window.__wildshard.shard.grid.state()');
-      for (const plan of publicGrid ? publicGridPlans(state) : gridFloorPlans(state, gridScenario, { cell: gridCell })) {
+      for (const plan of selectFloorGridPlans(publicGrid ? publicGridPlans(state) : gridFloorPlans(state, gridScenario, { cell: gridCell }), gridRoutes)) {
         if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
         // Camera probes can leave the owned shell on the road. Finish source admission before measuring motion.
         await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`, 130000);
@@ -638,7 +640,7 @@ async function main() {
     writeFileSync(helper, html.replace('<head>', `<head><script>${fixture('phone')};window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${travelGl}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
-      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--developer=${developer}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(glTime ? ['--gl-time'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
+      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--developer=${developer}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(glTime ? ['--gl-time'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));
@@ -647,7 +649,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, shards, surface, developer, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, shards, surface, developer, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });

@@ -113,6 +113,15 @@ export function installFloorGridProgress() {
   };
 }
 
+/** Select an explicit diagnostic cohort without changing any route or allowing a missing requested route. */
+export function selectFloorGridPlans(plans, names = []) {
+  if (names.length === 0) return plans;
+  const requested = new Set(names);
+  if (requested.size !== names.length) throw new Error('Duplicate requested grid route');
+  for (const name of requested) if (!plans.some(plan => plan.name === name)) throw new Error(`Missing requested grid route: ${name}`);
+  return plans.filter(plan => requested.has(plan.name));
+}
+
 /** A lost travel document is a measured runtime failure, even when its earlier cadence rows passed. */
 export function gridFloorRuntimeFailure(last, diagnostic) {
   if (!last || !diagnostic || diagnostic.documentOrigin === last.documentOrigin || !Number.isFinite(diagnostic.documentOrigin)) return null;

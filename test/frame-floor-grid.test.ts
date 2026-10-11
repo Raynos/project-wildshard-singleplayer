@@ -308,3 +308,12 @@ it('stages the first road seed from an entered home after standing probes and wa
     await expect(stageFloorGrid(plan, performance.timeOrigin)).rejects.toThrow('source blocked: disk full');
   } finally { restoreGlobals(); vi.useRealTimers(); }
 });
+
+it('selects a diagnostic cohort without weakening its exact plans or silently omitting requests', () => {
+  const plans = gridFloorPlans({ home: 'home', cells }, 'template');
+  expect(selectFloorGridPlans(plans)).toBe(plans);
+  expect(selectFloorGridPlans(plans, ['template-return', 'template-interior'])).toEqual(plans);
+  expect(selectFloorGridPlans(plans, ['template-return'])).toEqual([plans[1]]);
+  expect(() => selectFloorGridPlans(plans, ['missing'])).toThrow('Missing requested');
+  expect(() => selectFloorGridPlans(plans, ['template-return', 'template-return'])).toThrow('Duplicate requested');
+});

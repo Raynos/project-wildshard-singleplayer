@@ -26,3 +26,6 @@ export function driveFloorGrid(plan: FloorGridPlan, documentOrigin: number | Flo
 export function stageFloorGrid(plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridState>;
 export function runFloorGridRoute(page: { evaluate: (expression: string) => Promise<unknown> }, plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridWitness>;
 export function gridFloorWitnessFailures(result: FloorGridWitness): string[];
+
+/** Select an explicit diagnostic cohort while preserving route order and all witnesses. */
+export function selectFloorGridPlans(plans: FloorGridPlan[], names?: readonly string[]): FloorGridPlan[];
