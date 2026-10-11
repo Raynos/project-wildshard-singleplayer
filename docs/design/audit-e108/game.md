@@ -75,7 +75,7 @@ Right now Wildshard is three tech demos behind a good title screen. It is not ye
 - The hit markers are big red "lollipops".
 - The map labels are just "CABIN 1/2/3".
 - The title-screen art is a painted lake-and-cabin scene that doesn't look like the game.
-- AAA-PLAN.md claims "60 FPS verified".
+- AAA-PLAN.md (now `project/archive/2026-10-11-aaa-plan.md`) claims "60 FPS verified".
 
 ## (c) Cross-shard findings
 

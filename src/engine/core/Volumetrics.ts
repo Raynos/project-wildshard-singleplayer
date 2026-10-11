@@ -68,7 +68,7 @@ const MARCH = (steps: number) => /* glsl */`
  * through the same height-fog field the materials use, accumulating sun in-scatter that is
  * shadowed by a cheap screen-space occlusion test against the depth buffer projected toward
  * the sun. Produces warm light shafts through the canopy and thicker haze in the hollows,
- * with real depth occlusion — the "volumetrics" line in docs/AAA-PLAN.md.
+ * with real depth occlusion — the "volumetrics" line in project/archive/2026-10-11-aaa-plan.md.
  */
 export class VolumetricsEffect extends Effect {
   private readonly scale: number;

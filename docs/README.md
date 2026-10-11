@@ -28,9 +28,8 @@ What each file and folder here is. The rules for agents are in [AGENTS.md](../AG
 - Session stories as PDFs: [Driftwood Isle](Driftwood-Isle-blow-by-blow.pdf),
   [Nalati Grasslands](Nalati-Grasslands-blow-by-blow.pdf), [Nine Dragon Stack](Nine-Dragon-Stack-blow-by-blow.pdf),
   [Pine Hollow Remaster](Pine-Hollow-Remaster-blow-by-blow.pdf)
-- [AAA-PLAN.md](AAA-PLAN.md): the pine-era plan for closing the gap to the `art/` mockups
 - [SUBAGENT-BRIEF.md](SUBAGENT-BRIEF.md): the engineering brief for feature subagents
-- [MOVED.md](MOVED.md): where every file moved in the E357 normalization
+- [MOVED.md](MOVED.md): E357's moved-paths record; later moves (SF54, E434) aren't in it
 
 ## Folders
 
