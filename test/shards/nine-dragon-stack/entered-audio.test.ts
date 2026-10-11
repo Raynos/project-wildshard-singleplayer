@@ -28,8 +28,10 @@ async function enteredTrace(rows?: AudioData): Promise<unknown[]> {
   const ready = vi.spyOn(audio, 'ready', 'get').mockReturnValue(true);
   const refresh = vi.spyOn(music, 'refreshScore').mockImplementation(() => { trace.push(['refresh']); });
   const before = tap.sound; tap.sound = (...args) => { trace.push(['tap', ...args]); };
+  const game = fixturePort<ShardContext['game']>({});
+  Object.defineProperty(game, 'declaredAudio', { value: rows });
   const context = fixturePort<ShardContext>({ app, scope,
-    game: fixturePort<ShardContext['game']>(rows === undefined ? {} : { declaredAudio: rows }),
+    game,
     system: (spec) => { systems.push(spec); }, debug: fixturePort<ShardContext['debug']>({ expose: () => undefined }) });
   try {
     await installAudio(context);
