@@ -1,3 +1,4 @@
+import { LOOP, ROAD_HALF as HALF } from './ground';
 import { Box3, Group, Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
 import { measureBox, type TemplateWorldPorts } from './world';
 import { Kit, framed, type ColliderDesc, type MeasureRole } from './kit';
@@ -16,27 +17,14 @@ type Piece = Parameters<TemplateWorldPorts['piece']>[0];
  * roads: four corner districts, four side-strip districts, a second set piece at each entry and four copy plots.
  */
 
-/** the loop road's centreline half-size (m): a square around the yard, clear of the hut, the cubes and the pool */
-export const LOOP = 60;
 /** asphalt width and edge-stripe width (m); the asphalt matches the 8 m entry */
-const ASPHALT = 8, STRIPE = 0.5, HALF = ASPHALT / 2 + STRIPE;
+const ASPHALT = 8, STRIPE = 0.5;
 /** a road's visual top above the flattened ground (m), and how deep its slab reaches */
 const TOP = 0.05, SLAB = 0.3;
 /** where a spoke road ends: just short of the 15 m socket */
 const SPOKE_END = 234.5;
 /** the hub clusters' centres */
 const QUADRANTS: readonly (readonly [number, number])[] = [[-88, -88], [88, -88], [88, 88], [-88, 88]];
-
-const smooth = (edge0: number, edge1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0))); return t * t * (3 - 2 * t); };
-
-/**
- * The terrain finish (generators/terrain.ts and the props bake share it): everything outside the yard (the loop, the
- * roads, the entry plazas, the hub corners and pass 2's districts) is levelled to y = 0, blending back to the authored
- * noise over a few metres just inside the loop. The yard inside the loop is untouched.
- */
-export function cellGround(x: number, z: number, h: number): number {
-  return h * (1 - smooth(LOOP - HALF - 9, LOOP - HALF - 2, Math.max(Math.abs(x), Math.abs(z))));
-}
 
 /** The roads: four spokes from the sockets to the loop and the square loop around the yard (visual slabs, no colliders). */
 function roads(): Kit {

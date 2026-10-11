@@ -8,7 +8,7 @@ import { clientMaterials } from '../../../../src/game/shardfile/clientMaterials'
 import { clientViews } from '../../../../src/game/shardfile/clientViews';
 import { clientWorld } from '../../../../src/game/shardfile/clientWorld';
 import { ClientAssets } from '../../../../src/game/shardfile/clientAssets';
-import { TRAIL } from '../../../../src/shards/_template/layout';
+import { TRAIL } from '../../../../src/shards/_template/data/layout';
 import { poolMask } from '../../../../src/shards/_template/generators/world';
 import { TEMPLATE_LOOK } from '../../../../src/shards/_template/data/look';
 import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';

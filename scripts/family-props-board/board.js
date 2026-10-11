@@ -22,7 +22,7 @@ import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { familyCompileJobs, familyMaterial } from '@wildshard/engine/render/families/registry';
 import { staticGlb } from '../../src/sdk/bake/glb';
 import { boat } from '../../src/shards/driftwood-isle/models/boat';
-import { TRAIL } from '../../src/shards/_template/layout';
+import { TRAIL } from '../../src/shards/_template/data/layout';
 import { poolMask } from '../../src/shards/_template/generators/world';
 import source from '../../src/shards/_template/shard.config';
 
