@@ -328,6 +328,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [playground-horse.mjs](./playground-horse.mjs)
 - [playground-hubs.mjs](./playground-hubs.mjs)
 - [popin-fly.mjs](./popin-fly.mjs)
+- [precommit-generated-data.d.mts](./precommit-generated-data.d.mts)
+- [precommit-generated-data.mjs](./precommit-generated-data.mjs)
 - [precommit-generated.d.mts](./precommit-generated.d.mts)
 - [precommit-generated.mjs](./precommit-generated.mjs)
 - [precommit-guards.d.mts](./precommit-guards.d.mts)
