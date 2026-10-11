@@ -11,7 +11,7 @@
  * `attackSpan` is the attack duration the export sampled the attack clip with (seconds).
  */
 import * as v from 'valibot';
-import { parseSkinBindings, parseSkinRows, type SkinBinding, type SkinRow } from '@wildshard/format/skinData';
+import { parseSkinBindings, parseSkinRows, validateCreatureBones, type SkinBinding, type SkinRow } from '@wildshard/format/skinData';
 import type { ShardRows } from '@wildshard/format/rows';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { parseGlb } from '@wildshard/format/product';
@@ -47,6 +47,36 @@ export function skinLookRules(source: Pick<Shardfile, 'rows' | 'files' | 'librar
   return errors;
 }
 
+const glbRigSchema = v.object({
+  nodes: v.array(v.object({ name: v.optional(v.string()), mesh: v.optional(v.number()), skin: v.optional(v.number()) })),
+  meshes: v.array(v.object({ primitives: v.array(v.unknown()) })),
+  skins: v.array(v.object({ joints: v.array(v.number()) })),
+  animations: v.optional(v.array(v.object({ name: v.optional(v.string()) })), []),
+});
+
+/** Check admitted GLB joint order, sockets and clips before a renderer allocates the creature view. */
+function validateRigBytes(glb: Uint8Array, row: SkinRow): void {
+  // parseGlb already bounds and validates the header, JSON chunk and every node/accessor reference.
+  const length = new DataView(glb.buffer, glb.byteOffset, glb.byteLength).getUint32(12, true);
+  const rig = v.parse(glbRigSchema, JSON.parse(new TextDecoder().decode(glb.subarray(20, 20 + length))));
+  function fail(reason: string): never { throw new Error(`skin ${row.id}: ${reason}`); }
+  const named = rig.nodes.flatMap(node => node.name === undefined ? [] : [node.name]);
+  const meshes = rig.nodes.filter(node => node.skin !== undefined && node.mesh !== undefined);
+  const mesh = meshes[0];
+  if (meshes.length !== 1 || mesh?.mesh === undefined || mesh.skin === undefined
+    || rig.meshes[mesh.mesh]?.primitives.length !== 1) fail('expected one skinned mesh');
+  const joints = rig.skins[mesh.skin]?.joints.map(index => rig.nodes[index]?.name);
+  const expected = row.rig.joints[0];
+  if (joints === undefined || expected === undefined || joints.length !== expected.length
+    || joints.some((name, index) => name !== expected[index])) fail('skin joint order differs from bake');
+  for (const name of row.rig.sockets) {
+    if (named.filter(actual => actual === name).length !== 1) fail(`missing or ambiguous socket ${name}`);
+  }
+  for (const name of row.rig.clips) {
+    if (rig.animations.filter(clip => clip.name === name).length !== 1) fail(`missing or ambiguous clip ${name}`);
+  }
+}
+
 /** Admit each rig binding and its exact GLB dependency before allocating a client view. */
 export function validateSkinAssets(source: Pick<Shardfile, 'rows' | 'files'>, assets: ReadonlyMap<string, Uint8Array>): void {
   const files = new Map(source.files.map((file) => [file.hash, file]));
@@ -56,10 +86,13 @@ export function validateSkinAssets(source: Pick<Shardfile, 'rows' | 'files'>, as
     if (bytes === undefined) throw new Error('skin file missing');
     const { row, binding } = parseSkinFile(bytes);
     if (files.get(skinHash)?.dependencies[0] !== row.file) throw new Error('skin rig dependency mismatch');
+    validateCreatureBones(look.species, row.rig.sockets);
+    validateCreatureBones(look.species, row.rig.joints[0] ?? []);
     v.parse(MaterialsSchema, { skin: binding.material });
     const glb = assets.get(row.file), declared = files.get(row.file);
     if (glb === undefined || declared === undefined) throw new Error('skin GLB missing');
     const cost = parseGlb(glb);
+    validateRigBytes(glb, row);
     cost.decoded += skinLayerDecoded(binding.poseLayers ?? {}, row.rig.joints[0]?.length ?? 0);
     for (const key of ['decoded', 'gpu', 'triangles', 'draws'] as const) {
       if (cost[key] > row.cost[key] || cost[key] > declared[key]) throw new Error('skin cost understated');

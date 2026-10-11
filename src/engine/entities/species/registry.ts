@@ -1,4 +1,5 @@
 import type { RigContract } from '../../anim/rig';
+import { validateCreatureBones as validateDeclaredBones } from '@wildshard/format/skinData';
 import { WeightedTable } from '../../ai/weighted';
 import type * as THREE from 'three';
 import type { Rng } from '../../core/rng';
@@ -309,9 +310,7 @@ export function setSpeciesResolver(resolve: (kind: string) => SpeciesDef | undef
 
 /** All creature collision adapters need these bones, including custom and flying rigs. */
 export function validateCreatureBones(species: string, names: readonly string[]): void {
-  for (const bone of ['body', 'head']) {
-    if (!names.includes(bone)) throw new Error(`species '${species}': rig missing required bone '${bone}'`);
-  }
+  validateDeclaredBones(species, names);
 }
 
 /** Register a species (call once at module top level of `species/<kind>.ts`). Re-registering replaces it. */

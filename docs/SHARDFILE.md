@@ -1743,3 +1743,29 @@ Director.dataHostIssues() describes stock data-only support: declared quest flag
 ### Root section and packaged type discovery (OS-G4)
 
 `wildshard schema shardfile /ui` reads the whole defining UI section; `wildshard schema ui.Ui` reads its JSON Schema. Deeper pointers retain the declaration wrappers. Real GLB, skin and commons spear bindings and their installed type lookup are documented in [schema discovery](authoring/schema-discovery.md).
+
+### Custom creature rigs: required names before build
+
+Every species kind, including goats, hawks and other flying/custom rigs, requires
+**`body` and `head`** (lowercase, case-sensitive). There is no different mandatory
+pair for a bird. These are actual named joints for the collision/view adapter,
+not display labels: the body capsule and head sphere follow those transforms.
+Put both names in the GLB skin, `row.rig.joints[0]`, and `row.rig.sockets`.
+Name additional legs/wings freely; retain their exact GLB joint order in the row.
+For example, a goat may use `['body', 'head', 'legLeft', 'legRight']`, a hawk
+`['body', 'head', 'wingLeft', 'wingRight']`. Declare the actual animation names in
+`row.rig.clips`; `binding.loops` is a subset, not a source of additional clips.
+
+Use ordinary three.js `Bone`, `Skeleton`, `SkinnedMesh` and named clips, then
+`sampleSkinClip` / `skinnedGlb` from `@wildshard/sdk/bake/export`. Derive costs and
+hashes from the emitted bytes. A `Root` joint does not satisfy `body`; an empty
+socket list does not satisfy either required joint. Both `wildshard build` and
+`wildshard validate` check the same defining contract before any view allocation:
+required names, exact joint order, one skinned primitive, named sockets and clips.
+The client registration guard uses the same `validateCreatureBones` law in
+`@wildshard/format/skinData`. Existing engine callers retain their public binding.
+
+Admission is still not a rendered-view proof. Run the complete built product's
+`proveMesaOutpost` / `proveSceneClient` and `proveEquippedItemClient` against its
+actual entered client. The run-2 missing-body product is a negative case, never a
+passing fixture just because its native gameplay works.

@@ -23,6 +23,13 @@ export const SkinBindingSchema = v.strictObject({ skin: id, material: v.record(v
 /** A validated skin binding. */
 export type SkinBinding = v.InferOutput<typeof SkinBindingSchema>;
 
+/** Every creature kind, including flying/custom rigs, exposes body and head for collision and view binding. */
+export function validateCreatureBones(species: string, names: readonly string[]): void {
+  for (const bone of ['body', 'head']) {
+    if (!names.includes(bone)) throw new Error(`species '${species}': rig missing required bone '${bone}'`);
+  }
+}
+
 /** Validate the export half's rows; unknown fields (its notes and motion receipt) are ignored. */
 export function parseSkinRows(input: unknown): SkinRow[] {
   const r = v.safeParse(v.pipe(v.array(SkinRowSchema), v.maxLength(256)), input);
