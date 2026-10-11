@@ -63,7 +63,12 @@ export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): 
   if (runtimeContexts.length > 0 && ports.contexts !== 'runtime') throw new Error('Existing runtime input contexts require a runtime-owned items installer');
   for (const id of runtimeContexts) if (!ports.input.has(id)) throw new Error(`Unresolved runtime input context ${id}`);
   const resolved = ports.shardFamilies === undefined ? ports.families : shardItemFamilies(ports.families, ports.shardFamilies);
-  const families = data.rows.map((row) => { const family = resolved.get(row.family); if (family?.kind !== row.kind) throw new Error(`Unresolved item family ${row.family}`); return family; });
+  const families = data.rows.map((row) => {
+    const family = resolved.get(row.family);
+    if (family?.kind !== row.kind) throw new Error(`Unresolved item family ${row.family}`);
+    if (row.kind === 'weapon' && row.profile !== undefined && !family.profiles?.includes(row.profile.family)) throw new Error(`Unhosted weapon profile ${row.profile.family}`);
+    return family;
+  });
   const icons = data.rows.map((row) => ports.icon(row.ui.icon));
   const runtimePorts = data.rows.map((row) => {
     const deps = ports.runtime(row);
@@ -85,7 +90,8 @@ export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): 
         ...presentationUi, name: declaration.ui.name, icon, swapIcon: declaration.ui.swapIcon,
         ...(declaration.kind === 'weapon' ? { inputContext: declaration.context } : {}) }, meta: { name: declaration.ui.name, icon, blurb: declaration.ui.blurb, category: declaration.kind },
         ...(declaration.kind === 'weapon' ? { legacySlot: declaration.slot } : {}) };
-      const args = { scope: itemScope, runtime, input: ports.input, aim: ports.aim, view: declaration.view };
+      const args = { scope: itemScope, runtime, input: ports.input, aim: ports.aim, view: declaration.view,
+        ...(declaration.kind === 'weapon' && declaration.profile !== undefined ? { profile: declaration.profile } : {}) };
       if (declaration.kind === 'weapon' && family.kind === 'weapon') weapons.set(declaration.id, family.create(row, declaration, args));
       else if (declaration.kind === 'tool' && family.kind === 'tool') {
         const instance = family.create(row, declaration, args); tools.set(declaration.id, instance);

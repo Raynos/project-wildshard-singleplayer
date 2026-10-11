@@ -1505,3 +1505,6 @@ SF81 Signal declares signalStages.json beside its Matriarch boss stages. The ori
 
 
 SF81 Nine declares data/portalStages.json in directors. The page and native host read that admitted declaration; no extra unlock law exists or is invented. Boolean touch/dark/clear observations preserve native phase slots, and fixed emit actions select the original body/checked transfer/veil actions. No AssemblyScript escape is needed. The native numeric clock and collider/entry declarations are unchanged.
+
+
+SF85 weapon profiles: the optional `items.rows[].profile` is one of four defining format contracts. Melee describes ordered swing phases, contact sampling and lunge limits; bow describes draw/fatigue clocks, spread and flight; firearm describes magazine/reload/action, spread and projectile flight; thrown describes launch, recovery, pool and pickup parameters. Each root has generated JSON Schema. Non-JSON callbacks, nonfinite or negative tuning, oversized/fractional pools, inconsistent phases and family mismatches refuse admission. Omitting the field keeps old item bytes unchanged. Only a trusted native family that explicitly lists the profile kind can consume it; no view or controller is inferred from data.

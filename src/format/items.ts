@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { WeaponProfileSchema } from './weaponProfiles';
 import { isJsonData } from './json';
 
 /** The bounded authored family/context name, also checked by the trusted family installer. */
@@ -19,7 +20,7 @@ const ui = v.strictObject({ name: text, icon: name, swapIcon: v.pipe(text, v.max
 const attack = v.strictObject({ id: name, damage: v.pipe(finite, v.minValue(0), v.maxValue(10000)), cooldown: duration,
   range: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), width: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), tags: v.pipe(v.array(tag), v.maxLength(32)), effect: v.nullable(effect) });
 const weapon = v.strictObject({ id: weaponId, kind: v.literal('weapon'), family: name, slot, context: name, ui, view, hook,
-  light: attack, heavy: attack, charge: v.pipe(duration, v.maxValue(5)) });
+  profile: v.exactOptional(WeaponProfileSchema), light: attack, heavy: attack, charge: v.pipe(duration, v.maxValue(5)) });
 const tool = v.strictObject({ id: toolId, kind: v.literal('tool'), family: name, ui, view, hook, action: v.nullable(v.custom<`${string}.${string}`>((value) => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value))),
   fuelSeconds: duration, intensity: v.pipe(finite, v.minValue(0), v.maxValue(10)) });
 const context = v.variant('keysFrom', [
@@ -39,6 +40,7 @@ export type ShardItems = v.InferOutput<typeof raw>;
 export function itemRules(items: ShardItems, modules?: readonly string[]): string[] {
   const errors: string[] = [], ids = items.rows.map((r) => r.id), weapons = items.rows.filter((r) => r.kind === 'weapon');
   const runtimeContexts = items.runtimeContexts ?? [];
+  if (weapons.some(row => row.profile !== undefined && row.family !== row.profile.family && !(row.family === 'swept' && row.profile.family === 'melee'))) errors.push('weapon profile matches declared family');
   if (items.rows.some((row) => row.kind === 'tool' && row.action === null && row.hook !== null)) errors.push('native tools have no script hook');
   if (items.contexts.some((ctx) => baselineContexts.has(ctx.id))) errors.push('baseline context is referenced rather than redeclared');
   if (new Set(runtimeContexts).size !== runtimeContexts.length || runtimeContexts.some((id) => items.contexts.some((ctx) => ctx.id === id))) errors.push('unique runtime context references separate from declared contexts');

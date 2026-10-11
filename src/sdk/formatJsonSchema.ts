@@ -1,3 +1,4 @@
+import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
 import type { GenericSchema } from 'valibot';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
@@ -101,6 +102,11 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots = {
+  'weaponProfiles.WeaponProfile': WeaponProfileSchema,
+  'weaponProfiles.MeleeWeaponProfile': MeleeWeaponProfileSchema,
+  'weaponProfiles.BowWeaponProfile': BowWeaponProfileSchema,
+  'weaponProfiles.FirearmWeaponProfile': FirearmWeaponProfileSchema,
+  'weaponProfiles.ThrownWeaponProfile': ThrownWeaponProfileSchema,
   'brains.Skirmisher': SkirmisherSchema,
   'brains.Stalker': StalkerSchema,
   'brains.ScriptBrain': ScriptBrainSchema,

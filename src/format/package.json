@@ -63,7 +63,8 @@
     "./directorStages": "./directorStages.ts",
     "./directorWhen": "./directorWhen.ts",
     "./moverMotion": "./moverMotion.ts",
-    "./modes": "./modes.ts"
+    "./modes": "./modes.ts",
+    "./weaponProfiles": "./weaponProfiles.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"
