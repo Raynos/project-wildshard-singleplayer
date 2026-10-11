@@ -8,7 +8,7 @@ import { GAME_STRINGS } from '../strings';
 import { titleCards } from '../titleDeck';
 import { buildTitleMenu } from '../mainMenu';
 import { shardEntry } from '../shard/entryMode';
-import { enterGrid, pageMode } from '../grid/boot';
+import { enterGrid, pageMode } from '../plugin/boot';
 import { travel } from '../travel/travel';
 import { shards } from '../shard/list';
 import { primaryShardManifest } from '../shard/legacy';

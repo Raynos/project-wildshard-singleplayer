@@ -13,7 +13,7 @@ import { PlayerHealth } from '../src/engine/combat/health';
 import { createSimHost, type SimHost } from '../src/engine/sim';
 import { emptyShardfile } from '../src/sdk/author';
 import { GridAssembly } from '../src/game/grid/assembly';
-import { GridCellEvents } from '../src/game/grid/boot';
+import { GridCellEvents } from '../src/game/plugin/boot';
 import { LiveGridHost } from '../src/game/grid/live';
 import { GridCrossing } from '../src/game/grid/crossing';
 import { ResidencyAllocator } from '../src/game/grid/allocator';

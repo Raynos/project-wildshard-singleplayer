@@ -7,7 +7,7 @@ import { shardContext, type ShardContext } from '../src/game/plugin/context';
 import { ShardPlugin } from '../src/game/plugin/shardPlugin';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { toLevelSpec } from '../src/game/shard/spec';
-import { GridCellEvents } from '../src/game/grid/boot';
+import { GridCellEvents } from '../src/game/plugin/boot';
 import { HybridShardPlugin } from '../src/game/shardfile/hybrid';
 import manifest from '../src/shards/_template/manifest';
 

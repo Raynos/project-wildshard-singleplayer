@@ -5,7 +5,7 @@ import type { ShardManifest } from '../shard/manifest';
 import { toLevelSpec } from '../shard/spec';
 import { EmptyEquipment } from '../shardfile/emptyEquipment';
 import { emptyLook } from '../shardfile/emptyLook';
-import type { PageMode } from './boot';
+import type { PageMode } from '../plugin/boot';
 
 /** G226/G258: every admitted grid runtime owns its region so leaving it releases the whole world before the next loads. */
 export function useOwnedGridHome(mode: PageMode, _developer: boolean, manifest: Pick<ShardManifest, 'trustedRuntime' | 'gridShardfile'>): boolean {

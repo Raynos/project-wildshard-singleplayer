@@ -23,7 +23,7 @@ import { loadShardPlugin } from '../src/game/shard/pluginLoad';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { ITEMS } from '../src/game/bag/itemCatalog';
 import { achievementsFor } from '../src/game/achievements';
-import { GridCellEvents } from '../src/game/grid/boot';
+import { GridCellEvents } from '../src/game/plugin/boot';
 import template from '../src/shards/_template/manifest';
 
 const noop = (): void => undefined;

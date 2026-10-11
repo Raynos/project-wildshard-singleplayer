@@ -1,20 +1,26 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
-import * as boot from '../src/game/grid/boot';
-import { preparePageResidency } from '../src/game/grid/pageBoot';
+import { preparePageResidency, bootPageMode, clearGridRecovery, gridCells } from '../src/game/plugin/boot';
 import { jsonSlot } from '../src/engine/saves/slots';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 import { Scope } from '../src/engine/app/scope';
 import { MemoryAdmission } from '../src/game/plugin/product';
 
-afterEach(() => { vi.restoreAllMocks(); });
+import { pageGridIntents } from '../src/game/grid/intent';
+
+function select(mode: 'grid' | 'shard', slug = 'driftwood-isle', instance = slug): void {
+  clearGridRecovery(); gridCells.leave(); bootPageMode('');
+  if (mode === 'grid') expect(pageGridIntents().set({ slug, instance })).toBe(true);
+}
+
+afterEach(() => { vi.restoreAllMocks(); clearGridRecovery(); bootPageMode(''); gridCells.leave(); });
 const manifest = { slug: 'driftwood-isle' as const, runtimeCost: DRIFTWOOD_RUNTIME_COST };
 
 it.each(['shard', 'grid'] as const)('uses truthful early runtime admission for %s and only Developer can exceed the cap', mode => {
-  vi.spyOn(boot, 'bootPageMode').mockReturnValue(mode);
-  vi.spyOn(boot, 'pageGridInstance').mockReturnValue(manifest.slug);
+  select(mode);
   const costly = { ...manifest, runtimeCost: { ...DRIFTWOOD_RUNTIME_COST, webContentMB: 1000, glMB: 300 } };
   expect(() => preparePageResidency(costly, undefined, new MemoryAdmission())).toThrow('Home residency admission deferred');
+  select(mode);
   const page = preparePageResidency(costly, undefined, new MemoryAdmission(() => true));
   expect(page.residency?.home().bytes).toBe(901_801_802);
   expect(page.memory.reports().find(row => row.stage === 'runtime')).toMatchObject({ claimedBytes: 901_801_802,
@@ -23,17 +29,16 @@ it.each(['shard', 'grid'] as const)('uses truthful early runtime admission for %
 });
 
 it('charges a measured Select a shard home before bootstrap without creating a grid', () => {
-  const consume = vi.spyOn(boot, 'bootPageMode').mockReturnValue('shard');
+  select('shard');
   const selected = preparePageResidency(manifest);
   expect(selected.mode).toBe('shard'); expect(selected.instance).toBe(manifest.slug);
   expect(selected.residency?.home().bytes).toBe(334_435_201);
   selected.residency?.dispose();
-  expect(consume).toHaveBeenCalledExactlyOnceWith(manifest.slug);
+  expect(bootPageMode(manifest.slug)).toBe('shard');
 });
 
 it('reserves the opaque measured home before hydration and exposes the same owner to the later registry', () => {
-  vi.spyOn(boot, 'bootPageMode').mockReturnValue('grid');
-  vi.spyOn(boot, 'pageGridInstance').mockReturnValue(manifest.slug);
+  select('grid');
   const selected = preparePageResidency(manifest), owner = selected.residency;
   if (owner === undefined) throw new Error('Missing early grid owner');
   const claim = owner.home(), registry = claim.retain();
@@ -43,15 +48,14 @@ it('reserves the opaque measured home before hydration and exposes the same owne
 });
 
 it('refuses a legacy home with missing metadata before the shell or hybrid world can allocate', () => {
-  vi.spyOn(boot, 'bootPageMode').mockReturnValue('grid');
-  vi.spyOn(boot, 'pageGridInstance').mockReturnValue(manifest.slug);
+  select('grid');
   expect(() => preparePageResidency({ slug: manifest.slug })).toThrow('before bootstrap');
+  select('grid');
   expect(() => preparePageResidency({ ...manifest, runtimeCost: { ...DRIFTWOOD_RUNTIME_COST, webContentMB: Number.NaN } })).toThrow();
 });
 
 it('lets admitted data reserve its sim before bootstrap and refuses any late completion after hydration abort', () => {
-  vi.spyOn(boot, 'bootPageMode').mockReturnValue('grid');
-  vi.spyOn(boot, 'pageGridInstance').mockReturnValue('template-1');
+  select('grid', '_template', 'template-1');
   const selected = preparePageResidency({ slug: '_template', shardfile: 'shardfiles/template/shardfile.json' }), owner = selected.residency;
   if (owner === undefined) throw new Error('Missing early data owner');
   expect(owner.allocator.entries()).toEqual([]);
@@ -64,8 +68,7 @@ it('lets admitted data reserve its sim before bootstrap and refuses any late com
 it('ignores the retired opt-out and always admits a grid home before hydration', () => {
   const retired = jsonSlot('debug.global.gridMemoryAdmission', 'device');
   retired.write('off');
-  vi.spyOn(boot, 'bootPageMode').mockReturnValue('grid');
-  vi.spyOn(boot, 'pageGridInstance').mockReturnValue(manifest.slug);
+  select('grid');
   const page = preparePageResidency(manifest);
   try {
     expect(page.mode).toBe('grid');
@@ -75,8 +78,7 @@ it('ignores the retired opt-out and always admits a grid home before hydration',
 });
 
 it('keeps the persistent composer independent when the home claim subtracts a matched resident baseline', () => {
-  vi.spyOn(boot, 'bootPageMode').mockReturnValue('grid');
-  vi.spyOn(boot, 'pageGridInstance').mockReturnValue(manifest.slug);
+  select('grid');
   const row = { ...DRIFTWOOD_RUNTIME_COST, webContentMB: 800, glMB: 200, residentBaseMB: 700 };
   const page = preparePageResidency({ ...manifest, runtimeCost: row }, undefined, new MemoryAdmission());
   const owner = page.residency, renderer = new Scope('renderer');

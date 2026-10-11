@@ -10,7 +10,7 @@ const definitions=[
   {key:'./plugin/mover',target:'./plugin/mover.ts',old:'./shardfile/moverRuntime',load:async()=>[await import('@wildshard/game/plugin/mover'),await import('@wildshard/game/shardfile/moverRuntime')]},
   {key:'./plugin/director',target:'./plugin/director.ts',old:null,load:async()=>[await import('@wildshard/game/plugin/director'),await import('../src/game/plugin/director')]},
   {key:'./plugin/ui',target:'./plugin/ui.ts',old:'./quest/presentation',load:async()=>[await import('@wildshard/game/plugin/ui'),await import('@wildshard/game/quest/presentation')]},
-  {key:'./plugin/clientScript',target:'./plugin/clientScript.ts',old:null,load:async()=>[await import('@wildshard/game/plugin/clientScript'),await import('../src/game/plugin/clientScript')]},
+  {key:'./plugin/boot',target:'./plugin/boot.ts',old:null,load:async()=>[await import('@wildshard/game/plugin/boot'),await import('../src/game/plugin/boot')]},
 ];
 it('publishes real plugin definitions and keeps exact binding identity for transitional consumers',async()=>{
   const manifest:unknown=JSON.parse(readFileSync('src/game/package.json','utf8'));

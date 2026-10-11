@@ -16,7 +16,7 @@ import { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { EquipmentService } from '../src/engine/combat/EquipmentService';
 import { GridAssembly } from '../src/game/grid/assembly';
-import { gridCells } from '../src/game/grid/boot';
+import { gridCells } from '../src/game/plugin/boot';
 import { LiveGridSession } from '../src/game/grid/liveSession';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { MemoryAdmission } from '../src/game/plugin/product';

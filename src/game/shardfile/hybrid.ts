@@ -8,7 +8,7 @@ import type { ShardRuntime } from '../shard/runtime';
 import type { ShardManifest } from '../shard/manifest';
 import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';
 import { RetainedRuntimeHooks } from "../plugin/lifecycle";
-import { gridCells, gridHomeSim, pageGridInstance, type GridCellEvents, type GridCellRef } from '../grid/boot';
+import { gridCells, gridHomeSim, pageGridInstance, type GridCellEvents, type GridCellRef } from '../plugin/boot';
 import { browserShardfileOptions, shardfileSource } from './loader';
 import type { ProductOptions } from './product';
 import type { ShardfileClientBindings } from './client';

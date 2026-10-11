@@ -19,7 +19,7 @@ import { installLoot } from '../loot/runtime';
 import { installDeclaredTargets } from '../shard/declaredTargets';
 import { mountDeclaredUi } from '../shard/declaredUi';
 import { createQuestScriptPorts } from '../quest/declared';
-import { installQuestPresentation } from "../plugin/ui";
+import { installQuestPresentation, ClientScriptViews, driveClientScriptViews, type ClientScriptViewTarget } from "../plugin/ui";
 import { instanceSave } from '../instanceSaves';
 import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
 import { EmptyEquipment } from './emptyEquipment';
@@ -37,7 +37,7 @@ import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
 import { loadClientSkins, type ClientSkin } from './clientSkins';
 import { clientViews } from './clientViews';
 import { createShardfileClientScripts } from './clientScripts';
-import { ClientScriptViews, driveClientScriptViews, type ClientScriptViewTarget } from "../plugin/clientScript";
+
 import { installClientWater } from './clientWater';
 import { clientWorld } from './clientWorld';
 import { clientSimStep } from './clientStep';

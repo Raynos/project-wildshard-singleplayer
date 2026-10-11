@@ -35,7 +35,7 @@ inspectPreviousBoot();
 // Safari may reload the same document after WebContent dies. Keep that automatic retry on the
 // renderer-free title until the player chooses a shard again.
 async function enterPage(): Promise<unknown> {
-  const { consumeGridRecovery, gridRecoveryRefused } = await retried(() => import('@wildshard/game/grid/recoveryBoot'));
+  const { consumeGridRecovery, gridRecoveryRefused } = await retried(() => import('@wildshard/game/plugin/boot'));
   const end = lastEnd();
   const recovery = consumeGridRecovery({ unexpected: end.kind === 'unexpected' });
   if (recovery !== null) {
@@ -88,7 +88,7 @@ guardBoot(entered);
 export async function start(): Promise<void> {
   try { await startSelected(); }
   catch (error) {
-    const { pageGridRecovery, clearGridRecovery } = await import('@wildshard/game/grid/recoveryBoot');
+    const { pageGridRecovery, clearGridRecovery } = await import('@wildshard/game/plugin/boot');
     if (pageGridRecovery() === null) {
       // Admission can refuse before startSession installs its fatal-load boundary. main starts asynchronously;
       // paint the same fatal card here instead of leaving a rejected boot behind the first-paint loader.
@@ -119,9 +119,9 @@ async function startSelected(): Promise<void> {
     retried(() => import('@wildshard/game/systems/species/view/boar')), retried(() => import('@wildshard/game/plugin/weaponHooks')),
   ]);
   const { configuredShardfile, installShardfileProduct, installManifestShardfile, browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/loader'));
-  const { pageGridRecovery } = await retried(() => import('@wildshard/game/grid/recoveryBoot'));
+  const { pageGridRecovery } = await retried(() => import('@wildshard/game/plugin/boot'));
   const source = pageGridRecovery() === null ? configuredShardfile(document) : null;
-  const { preparePageResidency } = await retried(() => import('@wildshard/game/grid/pageBoot'));
+  const { preparePageResidency } = await retried(() => import('@wildshard/game/plugin/boot'));
   let page: ReturnType<typeof preparePageResidency> | undefined;
   try {
     page = preparePageResidency(game.shard, source?.identity.slug);

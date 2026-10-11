@@ -41,7 +41,7 @@ import { GridAssembly, type GridCell } from './assembly';
 import { yieldGridAdmission } from './admissionYield';
 import { gridMode } from './menu';
 import { devserverCellOn } from './debug';
-import { gridCells, pageGridInstance, pageMode } from './boot';
+import { gridCells, pageGridInstance, pageMode } from '../plugin/boot';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderAdmissionError, PlatformRenderResidency } from './renderResidency';

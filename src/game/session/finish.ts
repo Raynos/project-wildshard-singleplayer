@@ -1,5 +1,5 @@
 import type { BuiltWorld } from './context';
-import { gridCells } from '../grid/boot';
+import { gridCells } from '../plugin/boot';
 import type { playStage } from './play';
 import { asShell } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';

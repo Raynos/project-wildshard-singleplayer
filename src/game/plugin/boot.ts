@@ -1,15 +1,23 @@
-import { GridAssembly, type GridCell } from './assembly';
-import { pageGridIntents } from './intent';
-import { gridMode, type MenuMode } from './menu';
-import { devserverCellOn } from './debug';
-import { findShard } from '../shard/registry';
-import { chooseShardEntry } from '../shard/entryMode';
-import { travel } from '../travel/travel';
-import type { HomeResidencyClaim } from './pageResidency';
-import { clearGridRecovery, pageGridRecovery } from './recoveryBoot';
-import { gridRecovery } from './recovery';
-import { app } from '@wildshard/engine/app/runtime';
-import { currentPageMode, setPageMode } from './pageMode';
+import { GridAssembly, type GridCell } from "../grid/assembly";
+import { pageGridIntents } from "../grid/intent";
+import { gridMode, type MenuMode } from "../grid/menu";
+import { devserverCellOn } from "../grid/debug";
+import { findShard } from "../shard/registry";
+import { chooseShardEntry } from "../shard/entryMode";
+import { travel } from "../travel/travel";
+import { type HomeResidencyClaim, PageResidency } from "../grid/pageResidency";
+import { gridRecovery, recoveryCatalogue, type GridRecoveryRecord } from "../grid/recovery";
+import { app } from "@wildshard/engine/app/runtime";
+import { currentPageMode, setPageMode } from "../grid/pageMode";
+import type { SaveStore } from "@wildshard/engine/saves/store";
+import type { ShardManifest } from "../shard/manifest";
+import { runtimeAccountedBytes } from "@wildshard/format/runtimeCost";
+import { ResidencyAllocator } from "../grid/allocator";
+import { MemoryAdmission } from "./product";
+import { isDev } from "@wildshard/engine/core/devMode";
+import { contentCost } from "@wildshard/engine/core/contentCost";
+import { CONTENT_CAPS } from "@wildshard/engine/core/config";
+
 /**
  * Infinite Wildshard's way in (SF21a). The catalogue's home cell boots through the normal shard flow as page mode
  * `'grid'`; its live grid session borrows that world and transfers the traveller between admitted frames. A title tap
@@ -133,4 +141,79 @@ export function pageGridInstance(): string | null { return currentPageMode() ===
 /** The title page's boot: a stale intent is consumed and dropped, never kept for a later page. */
 export function dropGridIntent(): void {
   try { pageGridIntents().consume(''); } catch { /* nothing to drop */ }
+}
+
+/** Page-local selection is installed explicitly by the composition root, never by importing this module. */
+let selected: NonNullable<GridRecoveryRecord> | null = null;
+let refused = false;
+let loop = false;
+
+/** A validated current catalogue's default home and road lane, used when recovery metadata is unsafe. */
+export function safeGridRecovery(assembly: GridAssembly, now: number): NonNullable<GridRecoveryRecord> {
+  const home = assembly.at(0, 0);
+  if (home === undefined) throw new Error('Recovery catalogue requires a home cell');
+  return { instance: home.instance, slug: home.slug, catalogue: recoveryCatalogue(assembly), at: now, reason: 'gpu',
+    road: { x: home.origin.x + assembly.pitch / 2 + 3.6, z: home.origin.z, yaw: 0 } };
+}
+
+/** Consume recovery metadata before routing/hydration; ordinary boot and unsupported future records select nothing. */
+export function consumeGridRecovery(options: { assembly?: GridAssembly; saves?: SaveStore; now?: () => number; unexpected?: boolean } = {}): NonNullable<GridRecoveryRecord> | null {
+  const assembly = options.assembly ?? new GridAssembly(gridMode(devserverCellOn()));
+  const now = options.now ?? Date.now;
+  const result = gridRecovery(options.saves ?? app.saves, now).consume(assembly, options.unexpected);
+  loop = result.kind === 'loop';
+  refused = result.kind === 'refused' || loop;
+  selected = result.kind === 'resume' ? result.record : result.kind === 'fallback' ? safeGridRecovery(assembly, now()) : null;
+  return selected;
+}
+
+/** Same-document handoff to ordinary admission and the live road placement; progress is read from real saves. */
+export function pageGridRecovery(): NonNullable<GridRecoveryRecord> | null { return selected; }
+/** A failed recovery boot returns to the title and must not supply a selection to another boot. */
+export function clearGridRecovery(): void { selected = null; refused = false; loop = false; }
+/** Future or unconsumed metadata cannot enter a renderer on this boot. */
+export function gridRecoveryRefused(): boolean { return refused; }
+/** A repeated failing recovery opens the existing shard picker, never another automatic boot. */
+export function gridRecoveryLoop(): boolean { return loop; }
+
+/** The composition root passes this selection to hydration and startSession; its grid intent has already been consumed. */
+export interface PageResidencyBoot {
+  readonly mode: PageMode;
+  readonly instance: string | null;
+  readonly residency?: PageResidency;
+  /** G216: one trusted page policy also reaches data-only SHARD SELECT validation and its warning surface. */
+  readonly memory: MemoryAdmission;
+  /** Validated recovery uses the ordinary owner, then returns to the road. */
+  readonly recovery?: NonNullable<GridRecoveryRecord>;
+}
+
+/**
+ * G144's single grid boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply
+ * reviewed measurements here, since their hybrid data hook runs after bootstrap. Data homes are admitted by the loader
+ * against their declared sim cost, then their actual library and tile claims. The root disposes failed hydration; the
+ * successful session installs the owner's level lifetime.
+ */
+export function preparePageResidency(manifest: Pick<ShardManifest, 'slug' | 'shardfile' | 'runtimeCost'>, configuredSlug?: string, memory = new MemoryAdmission(isDev)): PageResidencyBoot {
+  const mode = bootPageMode(configuredSlug ?? manifest.slug);
+  const measuredHome = configuredSlug === undefined && manifest.shardfile === undefined;
+  if (mode !== 'grid' && (!measuredHome || manifest.runtimeCost === undefined)) return { mode, instance: null, memory };
+  const instance = mode === 'grid' ? pageGridInstance() : manifest.slug;
+  if (instance === null) throw new Error('Grid residency requires the consumed home instance');
+  const residency = new PageResidency(new ResidencyAllocator({ memory }));
+  try {
+    if (measuredHome) {
+      if (manifest.runtimeCost === undefined) throw new Error('Grid runtime home requires reviewed memory measurements before bootstrap');
+      const bytes = runtimeAccountedBytes(manifest.runtimeCost), row = manifest.runtimeCost;
+      const cost = contentCost({ l0: 0, l1: 0, far: 0, libraries: 0, sims: bytes, commons: 0, overlap: CONTENT_CAPS.overlap });
+      if (!memory.accept({ stage: 'runtime', owner: instance, id: `sim:${instance}`, claimedBytes: bytes,
+        accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading,
+        measured: { webContentBytes: Math.ceil(row.webContentMB * 1_000_000), glBytes: Math.ceil(row.glMB * 1_000_000), engineBaseBytes: Math.ceil(row.engineBaseMB * 1_000_000),
+          ...(row.residentBaseMB === undefined ? {} : { residentBaseBytes: Math.ceil(row.residentBaseMB * 1_000_000) }),
+          rev: row.rev, device: row.device, evidence: row.evidence } })) throw new Error('Home residency admission deferred by the shared budget');
+      // A matched increment subtracts the persistent composer; it cannot cover that page component again.
+      residency.admitHome(instance, bytes, row.residentBaseMB === undefined);
+    }
+    const recovery = mode === 'grid' ? pageGridRecovery() : null;
+    return { mode, instance, residency, memory, ...(recovery === null ? {} : { recovery }) };
+  } catch (error) { residency.dispose(); throw error; }
 }

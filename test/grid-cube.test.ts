@@ -1,6 +1,6 @@
 import { afterAll, afterEach, expect, it, vi } from 'vitest';
 import { Mesh, PlaneGeometry, Vector3, type Material } from 'three';
-import * as boot from '../src/game/grid/boot';
+import * as boot from '../src/game/plugin/boot';
 import { gridLevel } from '../src/game/grid/session';
 import { shardContext, type GameServices } from "../src/game/plugin/context";
 import type { LevelContext } from '../src/engine/level/context';

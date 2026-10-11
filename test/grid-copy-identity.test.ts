@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { PerspectiveCamera, Vector3, type Mesh } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { GridAssembly } from '../src/game/grid/assembly';
-import { GridCellEvents } from '../src/game/grid/boot';
+import { GridCellEvents } from '../src/game/plugin/boot';
 import { copyAccent, copyMarks, copyNumber, numberQuads } from '../src/game/grid/copyIdentity';
 import { installGridHud } from '../src/game/grid/gridHud';
 import { ACCENTS } from '@wildshard/format/accent';

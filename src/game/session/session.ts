@@ -35,7 +35,7 @@ import { installErrorModal, showError } from '@wildshard/engine/ui/ErrorModal';
 import { registerLevelDebugRow } from '@wildshard/engine/ui/debugOptions';
 import { showLoadFailure } from '@wildshard/engine/ui/errorScreen';
 import { installWorldRegistry } from '@wildshard/engine/world/registry';
-import { bootPageMode, type PageMode } from '../grid/boot';
+import { bootPageMode, type PageMode } from '../plugin/boot';
 import { installGridDebug } from '../grid/debug';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';

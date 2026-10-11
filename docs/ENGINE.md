@@ -2861,3 +2861,7 @@ import those rows without loading the view-bearing `plugin/weaponHooks` module.
 The native director lane is defined by `plugin/director`; the retained
 `shardfile/directorClient` module owns Debug selection and page installation.
 Its page entry-choice service is not part of the native lane closure.
+
+`plugin/boot` defines page routing, recovery and early residency admission.
+`plugin/ui` defines client-script pose/particle presentation alongside quest UI;
+these modules retain their existing singleton and lifecycle identities.

@@ -10,7 +10,7 @@ import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { ShardManifest } from "../shard/manifest";
 import type { PageResidency } from "../grid/pageResidency";
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { pageMode } from "../grid/boot";
+import { pageMode } from "./boot";
 
 /** Scoped bag registration verbs supplied to trusted plugins. */
 export interface BagVerbs { tab: (spec: BagTabSpec) => void; fragment: (tab: BagTabId, fragment: BagFragment) => void }

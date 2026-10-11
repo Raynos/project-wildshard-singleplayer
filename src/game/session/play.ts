@@ -65,7 +65,7 @@ import { installPlayerDeath } from '@wildshard/engine/ui/playerDeath';
 import { PlayerHurt } from '@wildshard/engine/ui/playerHurt';
 import { onReview, queuedCount, quickNote } from '@wildshard/engine/ui/review';
 import { installBounds } from '@wildshard/engine/world/bounds';
-import { gridCells, gridHomeSim, pageMode } from '../grid/boot';
+import { gridCells, gridHomeSim, pageMode } from '../plugin/boot';
 import { installGridReveal } from '../grid/reveal';
 import { installGridHud } from '../grid/gridHud';
 import { installBudgetOverlay } from '../grid/budgetOverlay';

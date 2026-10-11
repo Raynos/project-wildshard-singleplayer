@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import * as boot from '../src/game/grid/boot';
+import * as boot from '../src/game/plugin/boot';
 import { PageResidency } from '../src/game/grid/pageResidency';
 import type { ShardContext } from '../src/game/plugin/context';
 import { ShardPlugin } from '../src/game/plugin/shardPlugin';

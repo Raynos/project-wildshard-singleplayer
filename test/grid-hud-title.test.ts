@@ -2,7 +2,7 @@
 import { expect, it } from 'vitest';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
-import { GridCellEvents } from '../src/game/grid/boot';
+import { GridCellEvents } from '../src/game/plugin/boot';
 import { installGridHud } from '../src/game/grid/gridHud';
 
 it('names each copy on entry while preserving its biome, ordinary shard title and scoped lifetime', () => {
