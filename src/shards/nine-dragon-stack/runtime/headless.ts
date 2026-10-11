@@ -97,7 +97,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     installNineJian(host, jian, () => context.commands().some(command => command.kind === 'player' && command.attack !== undefined),
       () => context.commands().some(command => command.kind === 'player' && command.heavy !== undefined));
     const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
-    installNinePortals(host, fact);
+    installNinePortals(host, shard, fact);
     installNineGrapple(host, grapple, NINE_HOOKS, guard, (tick) => {
       const commands = context.commands();
       tick.lock = commands.some(command => command.kind === 'script' && command.actorId === GRAPPLE_LOCK);

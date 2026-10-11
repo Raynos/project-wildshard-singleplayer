@@ -4,8 +4,9 @@ Status: OPEN, 2026-10-11. Baseline clean HEAD `f24a1a30c0f34344900f9f68f78d51c5b
 
 G291/G294 before: **15,209 / 21,111 = 72.0430% custom**.
 After the native Jian row slice: **15,208 / 21,111 = 72.0383% custom**.
-After explicit grapple-mode admission: **15,212 / 21,111 = 72.0572% custom**; 20% gate FAIL. The four additional host lines are charged, not presented as a size reduction.
-The frozen denominator is `nine-dragon-stack-legacy` at `8e297137b940f50da7f1949106d5576f80f238ca`. Current numerator: 14,303 authored shard TS lines, 1 additional GLSL line and 908 one-user platform lines. Embedded GLSL (3,205 lines) is already inside the TS numerator, not added twice. AS: 0. Generated data never counts. The template is not a second user.
+After explicit grapple-mode admission: **15,212 / 21,111 = 72.0572% custom**.
+After explicit native portal/director admission: **15,218 / 21,111 = 72.0856% custom**; 20% gate FAIL. The ten additional host admission lines are charged, not presented as a size reduction.
+The frozen denominator is `nine-dragon-stack-legacy` at `8e297137b940f50da7f1949106d5576f80f238ca`. Current numerator: 14,309 authored shard TS lines, 1 additional GLSL line and 908 one-user platform lines. Embedded GLSL (3,205 lines) is already inside the TS numerator, not added twice. AS: 0. Generated data never counts. The template is not a second user.
 
 Nine remains **transitional**: its gameplay witness/replay/ledger pass, but trusted TS still runs its simulation. The source-only export has no emitted shardfile product, so the content gate is unavailable; no tiles/collider/file completeness or finished 80/20 conversion is claimed.
 
@@ -27,6 +28,14 @@ A 2,000-tick real-Rapier oracle compares every adapter continuation field agains
 The native plan requires the declared `modes.grapple` row and supplies it to the same `wellCourse`/`GrappleSim` used by the page. The page keeps its original authored default; native course hooks, Well visibility, guard, lift geometry, aim, callbacks and restored fields are unchanged. There is no second grapple algorithm or inferred course owner.
 
 An 800-tick real-Rapier oracle matches every frozen native continuation field and restores an actual flight suffix exactly. A changed admitted range changes actual hook selection; an omitted mode refuses before plan construction. All 25 focused tests/5 files pass, plus the native witness, replay, ledger and checkpoint proofs. Strict and touched typed lint pass. The four witnesses are checked; the changed recording reproduces every payload and outcome exactly. The 148 physics inputs and map hash above remain identical, so no collider/map recapture is needed. Remaining native course adapters still count as custom.
+
+## Third slice: admitted native portal/director root
+
+Native entry admission already proved the supplied root, but native play constructed its ride from module-global shard.config. It now supplies the admitted entries, collision declarations and director directly to the existing page ride/playerRider law. The global world factory is no longer a native dependency; missing directors refuse before a step is registered. Portal fade/trigger values, callback order and native physics ownership are unchanged.
+
+All 20 focused tests/4 files pass, including the real entry capsules, 10k-step row motion oracle, native factory comparison and held-phase restore. Mutating an admitted node changes actual native trigger selection; a declared false transition prevents transfer. The old factory and the new host emit the same gameplay ledger fact. Strict and touched typed lint pass. All four witness recordings are checked with identical payloads/outcomes; all 148 physics inputs and the map hash remain identical. No new platform algorithm, graphical change or compatible/20% claim is made.
+
+After the landing freeze, rebased on `c673ec015` and repeated the 20 focused tests, strict and touched typed lint: all green. All four witness recordings remain byte-identical. The current 148 physics inputs are unchanged by this slice; the current map hash is `cb806256f74e67ec7983bbb63ee09aa1c33305c656372de0f51ff6a4009b2a36`, also unchanged by this slice (the generator path migration landed separately during the freeze).
 
 ## Remaining work
 
@@ -213,7 +222,7 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `look/light/lightvol.ts` | 10 | O |
 | `runtime/facts.ts` | 10 | X |
 | `models/landingPlanter.ts` | 9 | O |
-| `runtime/portals.ts` | 9 | X |
+| `runtime/portals.ts` | 15 | X |
 | `vm/geo.ts` | 9 | O |
 | `world/inKit.ts` | 9 | O |
 | `places.ts` | 8 | X |
