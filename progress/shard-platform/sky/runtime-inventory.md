@@ -127,3 +127,9 @@ The retained-boss port had already replaced its trusted preset wrapper. Removing
 The goat ram, ray dive and wisp burst now use admitted strike rows on the existing native runner; their empty goat motion, world-space sphere contacts, constant weights and every timing/range/damage/tag value remain unchanged. All four variant rows now live in data/, so the headless scale ranges no longer import the wisp's view module. The existing frozen tuning and 10,000-tick runner/restore fixtures, whole native witness/replay/worker/Ledger, actual physics payload and map bytes are exact. No collider or owner changed.
 
 Custom runtime: 5507 / 6745 = 81.6%; the ≤20% target remains open.
+
+## Shared native audio catalogue
+
+Sky's four cue aliases now name the existing shared kit catalogue voices. The native dispatcher no longer constructs its own duplicate voice map. The frozen 270-dispatch oracle and actual kit-recipe comparison preserve surfaces, optional pan/gain, taps, fallback results and scope removal. The full native witness/replay/worker/Ledger and physics/map bytes remain exact.
+
+Custom runtime: 5500 / 6745 = 81.5%; the ≤20% target remains open. No one-user platform code is added.
