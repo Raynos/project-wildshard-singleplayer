@@ -403,12 +403,21 @@ export class LiveGridHost {
       const boulevard = !travelled || moving !== undefined ? [] : candidates.filter(cell => cell.instance !== departed
         && (boulevardApproachDistance(cell, feet, previous, this.assembly.pitch) ?? Infinity)
           <= readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link).distance);
-      const early = boulevard.length === 1 ? boulevard[0] : undefined;
+      // Product metadata identifies bounded native alternatives even when the nearer opaque product filled
+      // the radial prefetch count. This admits immutable products/modules, never their foundations.
+      for (const cell of boulevard) if (!this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
+      // A bodyless declarative cell is a bounded, charged preparation on an ambiguous boulevard;
+      // opaque alternatives still stay module-only. Never choose among multiple native alternatives either.
+      const bounded = boulevard.length === 1 ? boulevard : boulevard.filter(cell => {
+        const product = this.products.get(cell.instance);
+        return product !== undefined && product.exclusiveRuntime !== true;
+      });
+      const early = bounded.length === 1 ? bounded[0] : undefined;
       const approach = moving ?? early ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
       if (approach !== undefined && !this.issues.has(approach.instance)) {
         // Direct cross-road approaches commit after the midpoint. A unique upcoming boulevard mouth uses
         // the full readiness horizon; the last departed source is excluded until a real ray turns back into it.
-        // An ambiguous junction stays product/module-only until the turn identifies one destination.
+        // Opaque alternatives at an ambiguous junction stay product/module-only until the turn identifies one destination.
         const committedReach = (this.assembly.pitch - 2 * CHUNK_HALF) / 2;
         const reach = early === approach ? Infinity : moving === undefined ? wallReach : Math.max(wallReach,
           Math.min(committedReach, readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance));

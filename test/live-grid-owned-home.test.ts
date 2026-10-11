@@ -263,7 +263,7 @@ it('spends the full readiness horizon before a unique boulevard turn without cha
   } finally { f.finish(); }
 });
 
-it('turns from the corner boulevard into a template mouth without retaining the parallel Pine runtime', async () => {
+it('prepares the bounded template before an ambiguous boulevard turn without allocating the parallel opaque runtime', async () => {
   const f = await open((instance, fallback) => Promise.resolve({ ...fallback(), exclusiveRuntime: !instance.startsWith('template-') }), undefined, 10);
   const cell = f.registry.assembly.cells.find(row => row.slug === '_template' && row.cell[0] === 1 && row.cell[1] === 1);
   if (cell === undefined) throw new Error('Missing northeast template copy');
@@ -276,7 +276,8 @@ it('turns from the corner boulevard into a template mouth without retaining the 
       f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.5 }); f.shell.physics.step();
       f.registry.beforeFixed(); await settle();
     }
-    expect(f.creates).toEqual([]); // Both neighbouring mouths are perpendicular to this road.
+    expect(f.creates).toEqual([cell.instance]); // The declared native cell prepares before the perpendicular turn.
+    expect(f.registry.ready(cell.instance)).toBe(true);
     expect(f.registry.current()).toBeNull();
     for (let tick = 0; tick < 100 && f.registry.worldFeet().x < cell.origin.x - 250; tick++) {
       f.registry.beforeFixed(); walls.sync(f.registry.readiness);
