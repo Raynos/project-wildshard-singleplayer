@@ -18,7 +18,7 @@
     "driveP95Ms": 35,
     "driveMaxMs": 200
   },
-  "status": "diagnostic complete; matched plain floor pending",
+  "status": "matched plain outbound PASS; historical 277ms frame absent in this run",
   "rows": [
     {
       "mode": "synchronous phase clocks + GL timing; no floor credit",
@@ -59,11 +59,68 @@
         }
       ],
       "enteredDestination": "template-2"
+    },
+    {
+      "mode": "plain; no GL timing or synchronous phase clocks",
+      "window": {
+        "start": "2026-10-11T12:23:25.773513Z",
+        "end": "2026-10-11T12:25:27.722610Z",
+        "oneMinuteLoad": 21.28
+      },
+      "complete": true,
+      "errors": [],
+      "drive": {
+        "frames": 1500,
+        "p95Ms": 34,
+        "p99Ms": 54,
+        "maxMs": 93,
+        "pass": true
+      },
+      "framesOver200Ms": 0,
+      "longFrameHooks": [
+        {
+          "hook": "nalati-grasslands:world",
+          "frames": 9,
+          "maxMs": 87,
+          "totalMs": 584,
+          "gl": {}
+        },
+        {
+          "hook": "between hooks",
+          "frames": 5,
+          "maxMs": 93,
+          "totalMs": 343,
+          "gl": {}
+        },
+        {
+          "hook": "nalati-grasslands:afterKit",
+          "frames": 3,
+          "maxMs": 69,
+          "totalMs": 195,
+          "gl": {}
+        },
+        {
+          "hook": "nalati-grasslands:kit",
+          "frames": 1,
+          "maxMs": 67,
+          "totalMs": 67,
+          "gl": {}
+        },
+        {
+          "hook": "nalati-grasslands:play",
+          "frames": 1,
+          "maxMs": 62,
+          "totalMs": 62,
+          "gl": {}
+        }
+      ],
+      "enteredDestination": "template-2",
+      "retiredPreparedRegion": "nalati-grasslands"
     }
   ],
   "limits": [
     "Historical 277 ms frame was not reproduced; no attribution or isolated saving is established.",
-    "Phase clocks and GL timing add diagnostic overhead; a plain run is required for floor credit.",
+    "Diagnostic phase clocks add overhead; only the separately labelled plain row earns floor credit.",
     "The earlier graph-default plain run (max69ms) does not match the reported graphMaterials-on settings.",
     "The first graph-on attempt failed its configuration fence before driving and earns no timing credit.",
     "No quality, render-scale, ownership or charged-memory changes. No builder full suite."
