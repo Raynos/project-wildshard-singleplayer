@@ -9,6 +9,25 @@ import { CROWN, DAIS, ROC } from '../../../src/shards/far-reach/data/layout';
 import { STORM } from '../../../src/shards/far-reach/data/storm';
 import { pushPlayer, yawTo } from '../../../src/shards/far-reach/species/rig';
 
+// Frozen crown placement law from the pre-row native oracle dependency.
+const CROWN_RING = { radius: 8, stones: 5, width: 1.4, depth: 0.8 } as const;
+const HEIGHTS = [3.6, 4.3, 5.0, 4.4, 3.7] as const;
+interface Stone { readonly x: number; readonly z: number; readonly h: number; readonly yaw: number }
+/** The stones in world space (the colliders and the meadow's holes read the same list). */
+function crownStones(): Stone[] {
+  const n = CROWN_RING.stones;
+  // E392 (mockup D): an arc behind the dais, from the left round to the right, open toward the bridge (+z) so the
+  // arena's entrance looks across the dais to the stones, the cloud sea and the sun between them
+  // E399 (mockup D, the portrait frame from the entrance): five stones on an 8 m arc behind the dais, 1.15 pi to 1.85 pi,
+  // all in the frame and spaced so the cloud sea and the far isles show between them
+  const from = Math.PI * 1.15, to = Math.PI * 1.85;
+  return Array.from({ length: n }, (_, i) => {
+    const a = from + (to - from) * (i / (n - 1)), x = DAIS.x + Math.cos(a) * CROWN_RING.radius, z = DAIS.z + Math.sin(a) * CROWN_RING.radius;
+    // each stone's carved face turns to the dais
+    return { x, z, h: HEIGHTS[i] ?? 4, yaw: Math.atan2(DAIS.x - x, DAIS.z - z) };
+  });
+}
+
 /** Phase 1: the stoop, a 3-D sphere dive from the storm onto the player's chest. */
 export const STOOP: StrikeSpec = { id: 'far.roc.stoop', shape: { kind: 'sphere', radius: 2.6 }, windup: 1.2, active: 1.2, recover: 0.8, cooldown: 4,
   range: 22, damage: 14, tags: ['creature.stormRoc'], units: 'world', weight: () => 1 };
@@ -170,23 +189,3 @@ export class StormRocBrain extends CreatureBrain<RocState, Animal> {
     if (!this.strikes.busy) { this.current = null; this.rest = this.phase === 2 ? 1.2 : 2.4; this.transition('rest'); }
   }
 }
-
-// Frozen crown placement law from the pre-row native oracle dependency.
-const CROWN_RING = { radius: 8, stones: 5, width: 1.4, depth: 0.8 } as const;
-const HEIGHTS = [3.6, 4.3, 5.0, 4.4, 3.7] as const;
-interface Stone { readonly x: number; readonly z: number; readonly h: number; readonly yaw: number }
-/** The stones in world space (the colliders and the meadow's holes read the same list). */
-function crownStones(): Stone[] {
-  const n = CROWN_RING.stones;
-  // E392 (mockup D): an arc behind the dais, from the left round to the right, open toward the bridge (+z) so the
-  // arena's entrance looks across the dais to the stones, the cloud sea and the sun between them
-  // E399 (mockup D, the portrait frame from the entrance): five stones on an 8 m arc behind the dais, 1.15 pi to 1.85 pi,
-  // all in the frame and spaced so the cloud sea and the far isles show between them
-  const from = Math.PI * 1.15, to = Math.PI * 1.85;
-  return Array.from({ length: n }, (_, i) => {
-    const a = from + (to - from) * (i / (n - 1)), x = DAIS.x + Math.cos(a) * CROWN_RING.radius, z = DAIS.z + Math.sin(a) * CROWN_RING.radius;
-    // each stone's carved face turns to the dais
-    return { x, z, h: HEIGHTS[i] ?? 4, yaw: Math.atan2(DAIS.x - x, DAIS.z - z) };
-  });
-}
-
