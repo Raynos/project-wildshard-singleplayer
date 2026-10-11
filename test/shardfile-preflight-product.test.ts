@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { admitProduct, boundedResponse, type ProductOptions } from '../src/game/shardfile/product';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '../src/game/shardfile/admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 
 const hash = 'a'.repeat(64);
 const empty = () => emptyShardfile({ slug: 'preflight-test', name: 'Preflight', author: 'Local', seed: 1, revision: 1 });

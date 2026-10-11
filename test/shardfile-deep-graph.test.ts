@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
 import { preflightAssetGraph } from '../src/game/shardfile/assetGraph';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '../src/game/shardfile/admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 
 it('admits a maximum-length dependency chain without recursive walking and refuses its cycle', () => {
   const source = emptyShardfile({ slug: 'deep-graph', name: 'Graph', author: 'Local', seed: 1, revision: 1 });

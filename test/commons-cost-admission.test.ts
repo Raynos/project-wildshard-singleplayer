@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { contentHash, projectAssets } from '../src/sdk/project';
-import { preflightShardfile } from '../src/game/shardfile/preflight';
+import { preflightShardfile } from '@wildshard/format/preflight';
 import { preflightDeclaredCosts, validateShardfileAssets } from '../src/game/shardfile/validate';
 import { admitProduct, type ProductOptions } from '../src/game/shardfile/product';
 

@@ -1,5 +1,5 @@
 import { RowsSchema as GameRowsSchema, parseRows as gameParseRows, speciesResolver as gameSpeciesResolver, simStrikes as gameSimStrikes, type ShardRows as GameShardRows } from '@wildshard/game/shardfile/rows';
-import { isJsonData as gameIsJsonData } from '@wildshard/game/shardfile/json';
+import { isJsonData as gameIsJsonData } from '@wildshard/format/json';
 
 /** Numeric row declarations and registered view/presentation recipes. */
 export type ShardRows = GameShardRows;

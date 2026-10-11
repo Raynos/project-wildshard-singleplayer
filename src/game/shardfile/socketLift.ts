@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
-import { isJsonData } from './json';
+import { isJsonData } from '@wildshard/format/json';
 import { parseMovers, type MoverData } from './movers';
 import { glbPoint, glbTransform } from './glbTriangles';
 import { clipEntryPolygon, type EntryVertex } from './entryGeometry';

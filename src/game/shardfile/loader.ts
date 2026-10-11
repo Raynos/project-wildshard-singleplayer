@@ -9,7 +9,7 @@ import { installShards, shards } from '../shard/list';
 import { toLevelSpec } from '../shard/spec';
 import { parseShardfile, type Shardfile } from './schema';
 import { sourceManifest } from './sourceManifest';
-import { SHARDFILE_VERSION } from './version';
+import { SHARDFILE_VERSION } from '@wildshard/format/version';
 import { emptyLook } from './emptyLook';
 import { shardfileLook } from './look';
 import { admitProduct, boundedResponse, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
@@ -19,8 +19,8 @@ import { clientGround } from './clientGround';
 import { shardfileWater } from './water';
 import { clientResidency } from './clientResidency';
 import { firstPartyInstance } from '../grid/instances';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
-import { preflightShardfile } from './preflight';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
+import { preflightShardfile } from '@wildshard/format/preflight';
 import { ResidencyAllocator } from '../grid/allocator';
 
 /** Validate before allocating a level. Content bindings belong to the full loader. */

@@ -1,5 +1,5 @@
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { isJsonData } from '@wildshard/game/shardfile/json';
+import { isJsonData } from '@wildshard/format/json';
 
 interface Intake { matrices: Matrix4[]; parents: (number | undefined)[]; roots: number[] }
 const object = (input: unknown): Record<string, unknown> => {

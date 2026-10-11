@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { preflightShardfile } from '../src/game/shardfile/preflight';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '../src/game/shardfile/admissionLimits';
+import { preflightShardfile } from '@wildshard/format/preflight';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 
 const hash = 'a'.repeat(64), other = 'b'.repeat(64);
 const cost = { decoded: 0, gpu: 0, triangles: 0, draws: 0 };

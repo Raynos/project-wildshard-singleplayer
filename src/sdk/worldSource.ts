@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from '@wildshard/game/shardfile/json';
+import { isJsonData } from '@wildshard/format/json';
 
 const id = v.pipe(v.string(), v.maxLength(128), v.regex(/^[a-z][a-z0-9.-]*$/u));
 const reserved = new Set(['__proto__', 'prototype', 'constructor']);

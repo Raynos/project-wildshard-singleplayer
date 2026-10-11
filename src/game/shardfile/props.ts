@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { isJsonData } from './json';
+import { isJsonData } from '@wildshard/format/json';
 import { PropMaterialsSchema, propMaterialTextureRefs, validatePropMaterials } from './propMaterials';
 import { SplatTerrainSchema, validateSplatTerrain } from './splatTerrain';
 import { glbPoint, glbTransform } from './glbTriangles';

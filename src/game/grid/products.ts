@@ -6,7 +6,7 @@
 import { findShard } from '../shard/registry';
 import { admitProduct, boundedResponse, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
 import { browserShardfileOptions } from '../shardfile/loader';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '../shardfile/admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { ProductLeases } from './productLeases';
 import { GridPostCosts } from './postPairs';
 import { postStackCost } from '../shardfile/postStack';

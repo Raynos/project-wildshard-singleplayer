@@ -4,7 +4,7 @@ import { App } from '../src/engine/app/app';
 import { Scene } from 'three';
 import { configuredShardfile, loadShardfile, shardfileLevelSpec } from '../src/game/shardfile/loader';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '../src/game/shardfile/admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 
 const empty = () => emptyShardfile({ slug: 'outside-example', name: 'Outside', author: 'Local', seed: 1, revision: 1 });
 it('loads an empty shardfile through the existing driver and unloads without scope leaks over 20 cycles', async () => {

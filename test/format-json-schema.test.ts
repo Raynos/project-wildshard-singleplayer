@@ -7,6 +7,8 @@ import { join } from 'node:path';
 import { expect, it } from 'vitest';
 import * as v from 'valibot';
 import { EdgeProfileSchema } from '@wildshard/format/edgeProfiles';
+import { StateSchema } from '@wildshard/format/state';
+import { CommonsCostsSchema } from '@wildshard/format/commonsCosts';
 import { PlumbingSchema, plumbingRules, type PlumbingData } from '@wildshard/format/plumbing';
 import { formatJsonSchema, formatJsonSchemas } from '../src/sdk/formatJsonSchema';
 import { writeFormatJsonSchemas } from '../scripts/gen-format-schema.mjs';
@@ -50,11 +52,26 @@ it('rebuilds all migrated documents byte-identically without committing generate
     writeFormatJsonSchemas(root);
     const directory = join(root, '.wildshard/format');
     const files = readdirSync(directory).sort();
-    expect(files).toEqual(['edge-profiles.schema.json', 'plumbing.schema.json']);
+    expect(files).toEqual(['commons-costs.schema.json', 'edge-profiles.schema.json', 'plumbing.schema.json', 'state.schema.json']);
     const before = files.map(name => readFileSync(join(directory, name), 'utf8'));
     writeFormatJsonSchemas(root);
     expect(files.map(name => readFileSync(join(directory, name), 'utf8'))).toEqual(before);
     expect(before.every(text => text.includes('DO-NOT-EDIT'))).toBe(true);
-    expect(Object.keys(formatJsonSchemas())).toEqual(['edge-profiles', 'plumbing']);
+    expect(Object.keys(formatJsonSchemas())).toEqual(['edge-profiles', 'plumbing', 'state', 'commons-costs']);
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+it('retains typed state defaults and global capacity as defining semantic checks and exact commons bounds', () => {
+  const state = formatJsonSchema(StateSchema);
+  expect(state['x-wildshard-checks']).toEqual(['@wildshard/format/state#stateRules']);
+  const value = { version: 1, sharedOwner: 'host', playerKey: 'actorId', shared: [], player: [
+    { id: 1, name: 'health', type: 'i32', privacy: 'owner', default: 10, min: 0, max: 20 },
+  ] };
+  expect(v.safeParse(StateSchema, value).success).toBe(true);
+  expect(v.safeParse(StateSchema, { ...value, player: [{ ...value.player[0], default: 21 }] }).success).toBe(false);
+  expect(v.safeParse(StateSchema, { ...value, shared: value.player }).success).toBe(false);
+  const costs = formatJsonSchema(CommonsCostsSchema);
+  expect(costs.maxProperties).toBe(1024);
+  expect(v.safeParse(CommonsCostsSchema, { ['a'.repeat(64)]: { decoded: 0, gpu: 0, triangles: 0, draws: 0 } }).success).toBe(true);
+  expect(() => formatJsonSchema(v.pipe(StateSchema, v.check(() => true, 'state declaration semantic rules')))).toThrow();
 });

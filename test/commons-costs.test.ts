@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { assertCommonsCosts } from '../src/game/shardfile/commonsCosts';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '../src/game/shardfile/admissionLimits';
+import { assertCommonsCosts } from '@wildshard/format/commonsCosts';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 
 const hash = 'a'.repeat(64), extra = 'b'.repeat(64), cost = { decoded: 1, gpu: 2, triangles: 3, draws: 4 };
 it('accepts an empty legacy table and exact pinned metadata without unknown fields', () => {

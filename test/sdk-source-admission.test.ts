@@ -8,7 +8,7 @@ import { expect, it } from 'vitest';
 import { readBoundedFile, readShardfileSource } from '../src/sdk/sourceReader';
 import { projectAssets } from '../src/sdk/project';
 import { emptyShardfile } from '../src/sdk/author';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '../src/game/shardfile/admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 
 it('CLI source intake accepts exactly two million bytes and refuses one over before JSON parsing', () => {
   const directory = mkdtempSync(join(tmpdir(), 'sdk-source-admission-')), path = join(directory, 'source.json');

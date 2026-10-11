@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { SHARDFILE_ADMISSION_LIMITS as limits, preflightShardfile } from '../src/sdk/admission';
 import { parseShardfile } from '../src/game/shardfile/schema';
-import { StateSchema } from '../src/game/shardfile/state';
+import { StateSchema } from '@wildshard/format/state';
 import * as v from 'valibot';
 
 const empty = () => emptyShardfile({ slug: 'admission', name: 'Admission', author: 'Test', revision: 1, seed: 435 });

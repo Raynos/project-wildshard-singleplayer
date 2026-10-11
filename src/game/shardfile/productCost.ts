@@ -1,6 +1,6 @@
 import type { Shardfile } from './schema';
-import { preflightShardfile } from './preflight';
-import { isJsonData } from './json';
+import { preflightShardfile } from '@wildshard/format/preflight';
+import { isJsonData } from '@wildshard/format/json';
 
 /** Conservative heap estimate for a bounded plain-JSON source or its owned projection, including strings and container overhead. */
 export function jsonResidentBytes(input: unknown): number {

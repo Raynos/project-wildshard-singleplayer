@@ -8,7 +8,7 @@ import { build } from 'vite';
 import { parseShardfile, type Shardfile } from './shardfile';
 import { validationRevision, validationSourceBytes } from '@wildshard/game/shardfile/validationReceipt';
 import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/game/shardfile/validate';
-import { preflightShardfile } from '@wildshard/game/shardfile/preflight';
+import { preflightShardfile } from '@wildshard/format/preflight';
 import { preflightAssetGraph } from '@wildshard/game/shardfile/assetGraph';
 import { readBoundedFile } from './sourceReader';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';

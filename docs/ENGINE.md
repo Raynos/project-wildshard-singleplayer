@@ -2812,3 +2812,5 @@ imports. Removing an unused public key keeps its implementation and internal
 callers intact. Exact registered frozen legacy imports keep their existing keys;
 they are listed separately by `node scripts/game-plugins.mjs`. Compatibility keys
 remain visible in the total until the coordinator resolves the final surface.
+
+DS1.1: `@wildshard/format/{admissionLimits,version,state,preflight,json,commonsCosts}` now defines the renderer-neutral admission contracts. The author and loader use the same bounded plain-JSON, typed defaults, numeric state capacity and exact commons-cost checks. These modules import only Valibot and one another; parsing does not read assets or install a service.

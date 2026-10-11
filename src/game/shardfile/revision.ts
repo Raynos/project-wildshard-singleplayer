@@ -1,6 +1,6 @@
 import type { Shardfile } from './schema';
 import { assertMigrationCompatibility } from './migrations';
-import { StateSchema } from './state';
+import { StateSchema } from '@wildshard/format/state';
 import * as v from 'valibot';
 
 const lineage = v.object({ identity: v.object({ slug: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u)),

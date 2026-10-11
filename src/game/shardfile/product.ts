@@ -1,12 +1,12 @@
 import { parseShardfile, type Shardfile } from './schema';
 import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt } from './validationReceipt';
-import { SHARDFILE_VERSION, SHARDFILE_PREVIOUS_VERSION, shardfileRevision } from './version';
+import { SHARDFILE_VERSION, SHARDFILE_PREVIOUS_VERSION, shardfileRevision } from '@wildshard/format/version';
 import { assertStateCompatibility, parseStateLineage } from './revision';
 import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets } from './validate';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
-import { preflightShardfile } from './preflight';
+import { preflightShardfile } from '@wildshard/format/preflight';
 import { preflightAssetGraph } from './assetGraph';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import type { MemoryAdmission } from '../grid/memoryAdmission';
 

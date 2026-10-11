@@ -1,4 +1,4 @@
-import { SHARDFILE_ADMISSION_LIMITS as L } from './admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS as L } from '@wildshard/format/admissionLimits';
 import type { ShardRows } from './rows';
 
 const prefix = 'data:image/svg+xml,';

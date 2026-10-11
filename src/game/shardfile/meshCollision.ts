@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { decodeMeshCollision } from '@wildshard/engine/core/meshCollision';
-import { isJsonData } from './json';
+import { isJsonData } from '@wildshard/format/json';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));

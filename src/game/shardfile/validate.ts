@@ -19,10 +19,10 @@ import { validateSocketLandings } from './entryLanding';
 import { portalLinkEntries } from './portalLink';
 import { validatePortalFloors } from './portalFloor';
 import { clientScriptViewCost } from './clientScripts';
-import { preflightShardfile } from './preflight';
+import { preflightShardfile } from '@wildshard/format/preflight';
 import { preflightAssetGraph } from './assetGraph';
 import { compendiumSketches } from './sketch';
-import { assertCommonsCosts, type CommonsCosts } from './commonsCosts';
+import { assertCommonsCosts, type CommonsCosts } from '@wildshard/format/commonsCosts';
 import type { MemoryAdmission } from '../grid/memoryAdmission';
 
 function acceptsTotal(memory: MemoryAdmission | undefined, source: Shardfile, stage: 'declared' | 'actual', cost: ReturnType<typeof worstContentCost>): boolean {

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from '@wildshard/game/shardfile/json';
+import { isJsonData } from '@wildshard/format/json';
 import { compileScript } from './compileScript';
 import { hashImmutableBytes } from './immutable';
 

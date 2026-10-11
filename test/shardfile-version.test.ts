@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { SHARDFILE_VERSION as SDK_VERSION } from '@wildshard/sdk/version';
-import { SHARDFILE_VERSION, shardfileRevision } from '../src/game/shardfile/version';
+import { SHARDFILE_VERSION, shardfileRevision } from '@wildshard/format/version';
 import { admitProduct, type CachedProduct, type ProductCache } from '../src/game/shardfile/product';
 import { contentHash } from '@wildshard/sdk/project';
 

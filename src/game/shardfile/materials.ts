@@ -5,7 +5,7 @@ import {
 } from '@wildshard/engine/render/families/params';
 
 import { validateGraph, type GraphIr } from '@wildshard/engine/core/materialGraph';
-import { isJsonData } from './json';
+import { isJsonData } from '@wildshard/format/json';
 import type { Shardfile } from './schema';
 
 const graph = v.pipe(v.unknown(), v.rawTransform(({ dataset, addIssue, NEVER }): GraphIr => {

@@ -111,6 +111,8 @@ describe('schema-derived shardfile reference', () => {
     const first = shardfileReference(resolve('.')), second = shardfileReference(resolve('.'));
     expect(first).toBe(second); expect(first).toContain('$.identity.seed'); expect(first).toContain('| export | on_tick | — | void |');
     expect(first).toContain('$sdk["./worldSource"].WorldSourceSchema.glb');
+    expect(first).toContain('$format["./state"].StateSchema.shared[].default');
+    expect(first).toContain('$format["./commonsCosts"].CommonsCostsSchema{value}.decoded');
     expect(first).toContain('$sdk["./ledger"].LedgerFactSchema.origin.kind');
     expect(first).toContain('$sdk["./shardfile"].ShardfileSchema.runtime.spawns.actors[].id');
     const dir = mkdtempSync(resolve(tmpdir(), 'sf45-reference-'));

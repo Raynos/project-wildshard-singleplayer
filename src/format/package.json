@@ -5,7 +5,13 @@
   "type": "module",
   "exports": {
     "./edgeProfiles": "./edgeProfiles.ts",
-    "./plumbing": "./plumbing.ts"
+    "./plumbing": "./plumbing.ts",
+    "./admissionLimits": "./admissionLimits.ts",
+    "./version": "./version.ts",
+    "./state": "./state.ts",
+    "./preflight": "./preflight.ts",
+    "./json": "./json.ts",
+    "./commonsCosts": "./commonsCosts.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

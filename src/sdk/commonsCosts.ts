@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { CommonsCostSchema as costSchema, CommonsCostsSchema as costsSchema, assertCommonsCosts as assertCosts, type CommonsCosts as Costs } from '@wildshard/game/shardfile/commonsCosts';
+import { CommonsCostSchema as costSchema, CommonsCostsSchema as costsSchema, assertCommonsCosts as assertCosts, type CommonsCosts as Costs } from '@wildshard/format/commonsCosts';
 
 /** Pinned commons bytes declare exact decoded/GPU bytes and triangle/draw counts as nonnegative safe integers. */
 export const CommonsCostSchema = v.pipe(costSchema);

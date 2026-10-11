@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from '@wildshard/format/json';
 import { sketchReference } from './sketch';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { SimStrike } from '@wildshard/engine/sim';

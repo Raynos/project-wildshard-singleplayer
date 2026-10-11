@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The CLI reads author files through a bounded open descriptor.
 import { openSync, closeSync, fstatSync, readSync } from 'node:fs';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/game/shardfile/admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 
 /** Read a file within its declared wire bound, detecting growth without an unbounded readFile allocation. */
 export function readBoundedFile(path: string, maximum: number): Uint8Array {

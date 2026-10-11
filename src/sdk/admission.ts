@@ -1,5 +1,5 @@
-import { SHARDFILE_ADMISSION_LIMITS as gameLimits } from '@wildshard/game/shardfile/admissionLimits';
-import { preflightShardfile as preflight } from '@wildshard/game/shardfile/preflight';
+import { SHARDFILE_ADMISSION_LIMITS as gameLimits } from '@wildshard/format/admissionLimits';
+import { preflightShardfile as preflight } from '@wildshard/format/preflight';
 
 /** Shared source, collection, identifier, text and distinct wire ceilings for author output and client intake. */
 export const SHARDFILE_ADMISSION_LIMITS = Object.freeze({ ...gameLimits });

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from '@wildshard/format/json';
 import type { ShardProps } from './props';
 import type { ShardMeshCollision } from './meshCollision';
 
