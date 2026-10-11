@@ -362,3 +362,33 @@ it('names the socket-only metric separately and preserves the full interior itin
   expect(gridFloorPlans({ home: 'home', cells: [...cells, corner] }, 'cell', { cell: 'corner', entrySocket: true })[0])
     .toMatchObject({ name: 'corner-socket-entry', waypoints: [{ x: 555, z: -312.5 }] });
 });
+
+it('counts actual unready-edge motor blockage on every drawn frame, independently of sparse trace samples', async () => {
+  const current = state('home', 277.5, 0);
+  current.live.live.current = null; current.inside = null; current.live.live.residents = []; current.live.live.pending = ['nalati'];
+  let now = 100, frame: (() => void) | undefined;
+  const timing = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  const input = { clear: vi.fn(), setHeld: vi.fn() };
+  const player = { hover: false, hoverSpeedLimit: () => 30, setHover(on: boolean) { this.hover = on; },
+    motor: { result: { horizontalFreedom: 0 } } };
+  const plan = { name: 'cold-arrival', from: null, to: 'nalati', movement: 'road-hover' as const,
+    waypoints: [{ x: 345, z: 0 }], requiredResidents: ['nalati'], observePreparation: true };
+  vi.stubGlobal('window', { __wildshard: { world: { player, game: { app: { input }, rootScene: { getObjectByName: () => ({ visible: false }) },
+    watchFrames: (observer: () => void) => { frame = observer; return vi.fn(); } } },
+    shard: { grid: { state: () => current, residency: () => ({ claims: [] }) } } } });
+  try {
+    const driven = driveFloorGrid(plan, performance.timeOrigin);
+    if (frame === undefined) throw new Error('Missing drawn-frame observer');
+    now = 133; frame(); // Still on the boulevard: no arrival blockage.
+    current.live.live.worldFeet.x = 298.3;
+    now = 166; frame(); now = 200; frame();
+    current.live.live.residents = ['nalati']; current.live.live.pending = [];
+    player.motor.result.horizontalFreedom = 1; current.live.live.worldFeet.x = 310;
+    now = 233; frame();
+    current.live.live.current = 'nalati'; current.inside = 'nalati'; current.live.live.worldFeet.x = 345;
+    now = 266; frame(); now = 300; frame();
+    const result = await driven;
+    expect(result.arrival).toEqual({ blockedFrames: 2, blockedMs: 67, visibleBeforeReadyFrames: 0 });
+    expect(result.trace).toHaveLength(1); // The quarter-second trace alone would have missed both blocked frames.
+  } finally { timing.mockRestore(); restoreGlobals(); }
+});

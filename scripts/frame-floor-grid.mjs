@@ -246,6 +246,9 @@ export async function driveFloorGrid(plan, documentOrigin) {
   let distance = 100;
   player.hoverSpeedLimit = () => Math.min(hoverMaxSpeed, oldLimit(), Math.max(3, distance * 1.5));
   const before = read(), trace = [], started = performance.now();
+  const destination = before.cells.find(cell => cell.instance === plan.to);
+  const arrival = plan.observePreparation !== true ? undefined : { blockedFrames: 0, blockedMs: 0, visibleBeforeReadyFrames: 0 };
+  let previousFrameAt = started;
   try {
     await new Promise((resolve, reject) => {
       let stop = () => undefined, waypoint = 0, lastSample = -1;
@@ -253,7 +256,17 @@ export async function driveFloorGrid(plan, documentOrigin) {
       const finish = error => { stop(); clearTimeout(timer); input.clear(); if (error) reject(error instanceof Error ? error : new Error(String(error))); else resolve(undefined); };
       stop = world.game.watchFrames(() => {
         try {
-          const state = read(), active = state.live.live, feet = active.worldFeet, seconds = (performance.now() - started) / 1000;
+          const state = read(), active = state.live.live, feet = active.worldFeet, now = performance.now(), seconds = (now - started) / 1000;
+          if (arrival !== undefined && destination !== undefined) {
+            const ready = active.residents.includes(plan.to) && !(active.pending ?? []).includes(plan.to);
+            const edgeDistance = Math.hypot(Math.max(0, Math.abs(feet.x - destination.cell[0] * 555) - 250),
+              Math.max(0, Math.abs(feet.z - destination.cell[1] * 555) - 250));
+            if (!ready && active.current === null && edgeDistance <= 10 && distance > 1.5 && player.motor.result.horizontalFreedom < 0.1) {
+              arrival.blockedFrames++; arrival.blockedMs += now - previousFrameAt;
+            }
+            if (!ready && world.game.rootScene.getObjectByName(`region:${plan.to}`)?.visible === true) arrival.visibleBeforeReadyFrames++;
+          }
+          previousFrameAt = now;
           window.__frameFloorGridStop = { leg: plan.name, phase: 'travel', waypoint, target: plan.waypoints[waypoint] ?? null };
           if (plan.movement === 'road-hover') player.setHover(active.current === null);
           if (seconds - lastSample >= 0.25) {
@@ -282,7 +295,8 @@ export async function driveFloorGrid(plan, documentOrigin) {
       });
     });
     window.__frameFloorGridStop = { leg: plan.name, phase: 'destination-standing', waypoint: plan.waypoints.length, target: null };
-    return { plan, before, after: read(), trace, elapsedSeconds: (performance.now() - started) / 1000 };
+    return { plan, before, after: read(), trace, elapsedSeconds: (performance.now() - started) / 1000,
+      ...(arrival === undefined ? {} : { arrival }) };
   } finally { input.clear(); player.hoverSpeedLimit = oldLimit; player.setHover(oldHover); }
 }
 
