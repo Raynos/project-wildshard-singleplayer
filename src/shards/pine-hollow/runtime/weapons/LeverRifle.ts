@@ -1,7 +1,7 @@
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, box, cyl, stripExtra, isMesh, type TexSet } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, type LeverFirearmView, type LeverFirearmWeapon } from '@wildshard/sdk/items/leverFirearm';
+import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, type LeverFirearmView, type LeverFirearm as LeverFirearmWeapon } from '../items/leverFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '../viewmodel/gloveHands';
 import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../viewmodel/handsLook';

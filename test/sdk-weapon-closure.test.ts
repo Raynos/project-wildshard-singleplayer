@@ -19,11 +19,11 @@ it('keeps the three migrated weapon defining closures free of kit and build-time
   expect(closure.filter(file => file.startsWith(`${root}/src/kit/`) || file.startsWith(`${root}/src/commons/`))).toEqual([]);
   for (const file of files) expect(closure).toContain(resolve(root, file));
   // SF36: the lever-action is a row over the SDK's lever firearm family (the family extends the platform Firearm)
-  expect(closure).toContain(resolve(root, 'src/sdk/items/leverFirearm.ts'));
-  expect(closure).toContain(resolve(root, 'src/game/systems/items/leverFirearm.ts'));
+  expect(closure).not.toContain(resolve(root, 'src/sdk/items/leverFirearm.ts'));
+  expect(closure).toContain(resolve(root, 'src/shards/pine-hollow/runtime/items/leverFirearm.ts'));
   // SF36: the crossbow is a row over the SDK's bolt crossbow family (the family, not a shard subclass, extends the platform Weapon)
-  expect(closure).toContain(resolve(root, 'src/sdk/items/boltCrossbow.ts'));
-  expect(closure).toContain(resolve(root, 'src/game/systems/items/boltCrossbow.ts'));
+  expect(closure).not.toContain(resolve(root, 'src/sdk/items/boltCrossbow.ts'));
+  expect(closure).toContain(resolve(root, 'src/shards/pine-hollow/runtime/items/boltCrossbow.ts'));
   expect(closure).toContain(resolve(root, 'src/engine/combat/Firearm.ts'));
   expect(closure).toContain(resolve(root, 'src/engine/combat/Weapon.ts'));
 });

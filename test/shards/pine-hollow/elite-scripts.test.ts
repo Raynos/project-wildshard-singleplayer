@@ -5,7 +5,7 @@ import { pineEliteScripts, type PineEliteBody, type PineEliteWorld } from '../..
 import { pineEliteScripts as oracleScripts } from '../../fixtures/species-oracle/pineElites';
 import { sha256, moduleBytes } from '../../../src/game/shardfile/speciesScripts';
 import { eliteScript } from '../../../src/sdk/eliteScripts';
-import { IRONHIDE_BRAIN, PINE_ELITE_MODULES } from '../../../src/shards/pine-hollow/data/eliteBrains';
+import { IRONHIDE_BRAIN, PINE_ELITE_MODULES } from '../../../src/shards/pine-hollow/runtime/brains/eliteBrains';
 
 // SF27: Pine Hollow's four named elites fight through admitted elite scripts (behaviour/*.as, data/eliteBrains.ts). Each is
 // held to the TypeScript script and goal it replaced (test/fixtures/species-oracle/pineElites.ts) on identical bodies and

@@ -183,8 +183,6 @@
     "./systems/effects/install": "./systems/effects/install.ts",
     "./systems/items/declared": "./systems/items/declared.ts",
     "./systems/items/lash": "./systems/items/lash.ts",
-    "./systems/items/boltCrossbow": "./systems/items/boltCrossbow.ts",
-    "./systems/items/leverFirearm": "./systems/items/leverFirearm.ts",
     "./systems/items/weaponHooks": "./systems/items/weaponHooks.ts",
     "./systems/tools/hoverboard": "./systems/tools/hoverboard.ts",
     "./icons": "./icons.ts",

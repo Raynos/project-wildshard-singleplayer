@@ -67,11 +67,28 @@ platform lines (custom/frozen remains a report, not a passed claim):
 
 | Remaining bucket | Code lines | State |
 | --- | ---: | --- |
-| Crossbow / lever firearm implementations + SDK facades | 1,075 | Verbatim candidate blocked by SF2 subclass ceilings |
-| Elite script host + SDK facade | 178 | 13 exact script checks pass; blocked by SF2 ScriptWorld ceiling |
+| Crossbow / lever firearm implementations + SDK facades | 1,075 | Returned verbatim; facades deleted |
+| Elite script host + SDK facade | 178 | Shared: Pine elites and Nalati Qara are real users |
 | Composition-root species content and views | 982 | Existing global/legacy registration users need classification |
 | Composition-root effects + facade | 78 | Existing page/global installation user needs classification |
 | Pickup content | 86 | Historical frozen consumer retained |
 | Engine helpers | 615 | Typed query/render helpers; listed honestly by graph metric |
 
 No coupling ceiling is raised and no class is rewritten to evade it.
+
+The final weapon group returns the crossbow and lever firearm verbatim to
+`runtime/items/`; their two SDK facades are deleted. Four predecessor
+class-span records keep raw inheritance counts visible without raising
+the ceilings; 46 existing performance sites transfer by source hash.
+Pine’s trusted elite-script row moves from `data/` to `runtime/brains/`.
+The admitted elite host stays shared: Nalati’s Qara gained a real second
+use while this candidate was held. No cross-shard import is introduced.
+
+Capture pin: `c5151d8e36d60a7876777ea41869e2895e99359d`. Two real page physics captures
+and the map pixels remain byte-identical to committed gameplay. The King
+table changes only its input fence. Twenty-seven focused weapon/loadout,
+elite-oracle, closure and class-transfer checks, root strict and touched
+type-aware lint pass. The prior forced native comparison of the same
+unchanged weapon implementations preserved all checkpoint payloads and
+outcomes. No input-only manifest is committed. The remaining
+composition-root, frozen-consumer and engine-helper rows stay open.

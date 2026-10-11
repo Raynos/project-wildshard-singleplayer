@@ -21,7 +21,7 @@ import * as THREE from 'three';
 
 import { sharedWeaponVoices } from '@wildshard/game/systems/audio/weaponVoices';
 import type { Bow } from '@wildshard/game/weapons/Bow';
-import { PLAIN_BOLT, type BoltMod } from '@wildshard/sdk/items/boltCrossbow';
+import { PLAIN_BOLT, type BoltMod } from '../runtime/items/boltCrossbow';
 import { MAX_BOLTS, type CrossbowWeapon } from '../runtime/weapons/crossbow/Crossbow';
 import { bindLongbowCharge } from './events';
 import type { LeverRifleWeapon } from '../runtime/weapons/LeverRifle';

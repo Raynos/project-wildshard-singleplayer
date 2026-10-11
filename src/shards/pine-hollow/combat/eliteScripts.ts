@@ -3,7 +3,7 @@ import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { BEAR_CAVE } from '../layout';
 import { eliteScript, stepElite, type EliteScript, type EliteScriptPorts, type EliteScriptRow } from '@wildshard/sdk/eliteScripts';
-import { BLACKPAW_BRAIN, GHOST_STAG_BRAIN, IMPERIAL_BULL_BRAIN, IRONHIDE_BRAIN, PINE_ELITE_MODULES } from '../data/eliteBrains';
+import { BLACKPAW_BRAIN, GHOST_STAG_BRAIN, IMPERIAL_BULL_BRAIN, IRONHIDE_BRAIN, PINE_ELITE_MODULES } from '../runtime/brains/eliteBrains';
 import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from './eliteRoster';
 import { pineEliteStreams, type PineEliteStreams } from './eliteStreams';
 import { behindPlayer, bugleHour, fadeCooldown, headingTo } from './combatMath';

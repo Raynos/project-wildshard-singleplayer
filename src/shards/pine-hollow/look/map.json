@@ -87,6 +87,8 @@
     "runtime/npc",
     "runtime/species",
     "runtime/cull",
-    "data/creatureHulls.ts"
+    "data/creatureHulls.ts",
+    "runtime/items",
+    "runtime/brains"
   ]
 }

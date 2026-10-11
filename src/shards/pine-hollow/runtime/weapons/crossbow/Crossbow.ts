@@ -1,6 +1,6 @@
 import { cyl, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, box, edgeWear, stripExtra } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { crossbowType, type BoltCrossbowParts, type BoltCrossbowView, type BoltCrossbowWeapon } from '@wildshard/sdk/items/boltCrossbow';
+import { crossbowType, type BoltCrossbowParts, type BoltCrossbowView, type BoltCrossbow as BoltCrossbowWeapon } from '../../items/boltCrossbow';
 import { WeaponHands, coatMaterialParams, holdDef, type HandHold, type WeaponHands as WeaponHandsView } from '../../viewmodel/gloveHands';
 import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../../viewmodel/handsLook';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
@@ -20,7 +20,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
  *
  * Input (only while `player.locked`, or always when `allowUnlocked`): LMB / `F` fire, RMB (click to toggle) ADS,
  * `R` reload. `crossbow.enabled = false` mutes input (intro / pause). `crossbow.adsHeld` can be forced.
- * Events, state and side effects: the family's (src/game/systems/items/boltCrossbow.ts).
+ * Events, state and side effects: the family's (src/shards/pine-hollow/runtime/items/boltCrossbow.ts).
  */
 
 export const MAX_BOLTS = 30;

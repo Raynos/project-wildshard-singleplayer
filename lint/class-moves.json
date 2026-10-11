@@ -80,6 +80,38 @@
       "name": "<anonymous>",
       "base": "Weapon",
       "baseFile": "src/game/systems/items/coneFan.ts"
+    },
+    "src/shards/pine-hollow/runtime/items/boltCrossbow.ts:e207a3fc9038a6a0a35a2537945e624a12f5510517a2235934931b6fc0020e68": {
+      "hash": "e207a3fc9038a6a0a35a2537945e624a12f5510517a2235934931b6fc0020e68",
+      "name": "BoltCrossbow",
+      "baseFile": "src/engine/combat/Weapon.ts",
+      "from": "src/game/systems/items/boltCrossbow.ts",
+      "to": "src/shards/pine-hollow/runtime/items/boltCrossbow.ts",
+      "base": "Weapon"
+    },
+    "src/shards/pine-hollow/runtime/items/boltCrossbow.ts:89d04fd34d7054e27630f4cfd660bc91a75a755dbbeb9111b9a9d61bfcc3be06": {
+      "hash": "89d04fd34d7054e27630f4cfd660bc91a75a755dbbeb9111b9a9d61bfcc3be06",
+      "name": "<anonymous>",
+      "baseFile": "src/game/systems/items/boltCrossbow.ts",
+      "from": "src/game/systems/items/boltCrossbow.ts",
+      "to": "src/shards/pine-hollow/runtime/items/boltCrossbow.ts",
+      "base": "Weapon"
+    },
+    "src/shards/pine-hollow/runtime/items/leverFirearm.ts:67ee2005ae28a57590a58cd6b6dd9708643cf91ebba731508fe054c5bc15e6fd": {
+      "hash": "67ee2005ae28a57590a58cd6b6dd9708643cf91ebba731508fe054c5bc15e6fd",
+      "name": "LeverFirearm",
+      "baseFile": "src/engine/combat/Firearm.ts",
+      "from": "src/game/systems/items/leverFirearm.ts",
+      "to": "src/shards/pine-hollow/runtime/items/leverFirearm.ts",
+      "base": "Weapon"
+    },
+    "src/shards/pine-hollow/runtime/items/leverFirearm.ts:1139d474e5e8869d4ba20cdac26487cc933972daed651b5da76b2848193f5f76": {
+      "hash": "1139d474e5e8869d4ba20cdac26487cc933972daed651b5da76b2848193f5f76",
+      "name": "<anonymous>",
+      "baseFile": "src/game/systems/items/leverFirearm.ts",
+      "from": "src/game/systems/items/leverFirearm.ts",
+      "to": "src/shards/pine-hollow/runtime/items/leverFirearm.ts",
+      "base": "Weapon"
     }
   }
 }
