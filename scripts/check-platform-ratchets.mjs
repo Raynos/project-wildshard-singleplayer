@@ -133,6 +133,53 @@ function legacyRuntimeCopies(after, trees) {
   return admitted;
 }
 
+// Retiring an exact relocation stops discounting that existing class. It cannot fund any
+// new/changed inheritance: compare the whole shard's resolved class roster in immutable trees.
+function retiredClassCeilings(trees) {
+  const credit = {};
+  if (trees === undefined) return credit;
+  const readMoves = root => {
+    const file = join(root, CLASS_MOVE_LIST);
+    return existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')).moves : {};
+  };
+  const before = readMoves(trees.baselineRoot), after = readMoves(trees.candidateRoot);
+  const normalized = (site, moves) => ({ name: site.name, heritage: site.heritage,
+    baseFile: Object.values(moves).find(move => move.to === site.baseFile)?.from ?? site.baseFile });
+  const roster = (root, slug, moves) => {
+    const rows = {};
+    const walk = directory => {
+      if (!existsSync(join(root, directory))) return;
+      for (const item of readdirSync(join(root, directory), { withFileTypes: true })) {
+        const file = `${directory}/${item.name}`;
+        if (item.isDirectory()) walk(file);
+        else if (item.isFile() && /\.tsx?$/u.test(file) && !file.endsWith('.d.ts')) {
+          const sites = classMoveSites(readFileSync(join(root, file), 'utf8'), file, root).filter(site => site.heritage.length > 0);
+          if (sites.length > 0) rows[file] = sites.map(site => normalized(site, moves));
+        }
+      }
+    };
+    walk(`src/shards/${slug}`);
+    return JSON.stringify(Object.fromEntries(Object.entries(rows).sort(([a], [b]) => a.localeCompare(b))));
+  };
+  const unchanged = new Map();
+  for (const [key, move] of Object.entries(before)) {
+    if (Object.hasOwn(after, key) || move.name === '<anonymous>' || move.base !== 'Weapon' || key !== `${move.to}:${move.hash}`) continue;
+    const match = /^src\/shards\/([^/]+)\/runtime\/[^:]+\.ts$/u.exec(move.to);
+    if (match === null || move.to.split('/').includes('..')) continue;
+    const slug = match[1], originalFile = join(trees.baselineRoot, move.to), nextFile = join(trees.candidateRoot, move.to);
+    if (!existsSync(originalFile) || !existsSync(nextFile)) continue;
+    const original = classMoveSites(readFileSync(originalFile, 'utf8'), move.to, trees.baselineRoot).filter(site => site.hash === move.hash && site.name === move.name);
+    const next = classMoveSites(readFileSync(nextFile, 'utf8'), move.to, trees.candidateRoot).filter(site => site.name === move.name);
+    if (original.length !== 1 || next.length !== 1 || next[0].hash === move.hash || normalized(original[0], before).baseFile !== move.baseFile ||
+      JSON.stringify(normalized(original[0], before)) !== JSON.stringify(normalized(next[0], after))) continue;
+    if (!unchanged.has(slug)) unchanged.set(slug, roster(trees.baselineRoot, slug, before) === roster(trees.candidateRoot, slug, after));
+    if (!unchanged.get(slug)) continue;
+    const row = credit[slug] ??= { engineSubclasses: 0, 'subclass.Weapon': 0 };
+    row.engineSubclasses++; row['subclass.Weapon']++;
+  }
+  return credit;
+}
+
 /** Explicit immutable trees permit proven verbatim moves; every other policy allowance remains shrink-only. */
 export function comparePlatformList(list, baselineFile, candidateFile, trees) {
   if (list === CLASS_MOVE_LIST) {
@@ -223,7 +270,11 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees) {
       if (!Number.isSafeInteger(ceiling) || ceiling < 0 || ceiling > Math.floor(after.baseline[slug] * 0.2)) failures.push(`${list}: ${slug} ceiling exceeds 20 % of its baseline`);
     }
   } else if (list === 'lint/shard-coupling.json') {
-    failures.push(...compareCoupling(before.shards, after.shards).map((failure) => `${list}: ${failure}`));
+    const retired = retiredClassCeilings(trees), baseline = structuredClone(before.shards);
+    for (const [slug, counts] of Object.entries(retired)) for (const [metric, count] of Object.entries(counts)) {
+      if (baseline[slug] !== undefined) baseline[slug].counts[metric] = (baseline[slug].counts[metric] ?? 0) + count;
+    }
+    failures.push(...compareCoupling(baseline, after.shards).map((failure) => `${list}: ${failure}`));
   } else if (list === 'lint/sim-schema-leaves.json') {
     for (const [path, item] of Object.entries(after)) {
       const previous = before[path];

@@ -37,7 +37,8 @@ export function classMoveSites(text, filename, root = ROOT) {
       const heritage = node.heritageClauses?.find(clause => clause.token === ts.SyntaxKind.ExtendsKeyword)?.types[0]?.expression;
       const binding = heritage && ts.isIdentifier(heritage) ? heritage.text : null;
       sites.push({ hash: createHash('sha256').update(node.getText(source)).digest('hex'), name: node.name?.text ?? '<anonymous>',
-        baseFile: binding === null ? null : locals.has(binding) ? filename : bindings.get(binding) ?? null });
+        baseFile: binding === null ? null : locals.has(binding) ? filename : bindings.get(binding) ?? null,
+        heritage: (node.heritageClauses ?? []).map(clause => clause.getText(source)).join(' ') });
     }
     ts.forEachChild(node, visit);
   };
