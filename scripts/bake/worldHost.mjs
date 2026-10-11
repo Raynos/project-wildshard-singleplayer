@@ -45,7 +45,8 @@ export async function visitAuthoredWorld(manifest, options) {
   let levelStarted = false;
   try {
   const native = options.nativeTerrain === undefined ? null : await prepareNativeTerrain(def, { root: ROOT, bytes: options.nativeTerrain });
-  const ground = native === null ? terrainGrid() : native.heights.slice();
+  // Heightfield.install applies the authored datum; the raw WSTR samples are intentionally unshifted.
+  const ground = terrainGrid();
   if (needsTerrainCollider(spec)) registerTerrain(physics, ground);
   const factory = typeof def.trees.factory === 'function' ? await (await def.trees.factory())(renderer, sky) : new TreeFactory(renderer).buildEmpty();
   const forest = new Forest(factory, sky).build({ drawnBy: def.trees.drawnBy ?? 'self' });
@@ -72,7 +73,8 @@ export async function visitAuthoredWorld(manifest, options) {
   const { default: Plugin } = await def.load();
   const plugin = new Plugin();
     levelStarted = true;
-    await app.loadLevel(spec, { world: (ctx) => plugin.world?.(shardContext(ctx, def, services)) });
+    await app.loadLevel(spec, { world: (ctx) => plugin.world?.(shardContext(ctx, def, services)),
+      kit: () => options.installKit?.() });
     if (options.practiceArena === true) {
       const { TrainingArena } = await src('engine/practice/TrainingArena.ts');
       new TrainingArena(game, app.registry, physics, { x: def.spawn.x, z: def.spawn.z });

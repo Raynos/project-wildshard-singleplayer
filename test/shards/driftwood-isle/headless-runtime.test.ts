@@ -97,10 +97,9 @@ it('spawns the 34 load-time bodies in the manager\'s order, reproducing every ba
       expect(live.position.x).toBeCloseTo(at.x, 9); expect(live.position.z).toBeCloseTo(at.z, 9);
       if (stream.spawns.has(actor.id)) expect(live.yaw).toBeCloseTo(stream.spawns.get(actor.id)?.yaw ?? Number.NaN, 9);
     }
-    // the bake's `at` is each body's memory goal when the page was captured: every fauna body that had not yet thought stood
-    // on its drawn spawn exactly; the first boar had already picked its first wander goal
+    // Node captures the actual construction epoch before AI ticks: every fauna goal is its drawn spawn.
     const moved = fauna.filter(a => { const s = stream.spawns.get(a.id); return s === undefined || a.at === null || Math.hypot(s.x - a.at.x, s.z - a.at.z) > 1e-9; });
-    expect(moved.map(a => a.id)).toEqual(['creature:0']);
+    expect(moved.map(a => a.id)).toEqual([]);
     expect(stream.draws).toBe(FAUNA_DRAWS);
     // the herd centres are the anchors' draws: the first members' spawns sit round them (the brain's placement ring, 1.5–9 m)
     stream.centres.forEach(([cx, cz], herd) => { for (const a of fauna.filter(f => f.herd === herd)) { const s = stream.spawns.get(a.id); expect(s === undefined ? -1 : Math.hypot(s.x - cx, s.z - cz)).toBeGreaterThanOrEqual(1.5); } });

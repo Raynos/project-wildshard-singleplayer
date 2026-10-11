@@ -21,6 +21,8 @@ export interface AuthoredWorldOptions {
   tier?: Tier;
   /** Register the real engine practice room after the authored world, as the page does. */
   practiceArena?: boolean;
+  /** Register native content rows during the real level.kit admission window. */
+  installKit?: () => void | Promise<void>;
   /** Original WSTR payload; selected and installed before any terrain/forest/model reads. */
   nativeTerrain?: Uint8Array;
   createTerrain?: (input: { ground: Float32Array; forest: Forest; native: BakedGrid | null }) => Pick<Terrain, 'mesh' | 'punch'> | Promise<Pick<Terrain, 'mesh' | 'punch'>>;

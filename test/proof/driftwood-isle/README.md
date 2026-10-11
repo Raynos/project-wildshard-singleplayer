@@ -109,3 +109,8 @@ committed. The regression resumes that real prefix, then executes every remainin
 walking prefix and keeps the existing 90-second deadline. Whole-shard compatibility stays false: rendered ragdoll contacts, camera crosshair /
 hitstop / clang, completion-card freeze/resume and menu choices, every sea-glass route, and the remaining bounded
 ecology / ship laws are still open. No production runtime, collider, view or platform source changes in this slice.
+
+
+DS1.5 Node-canonical physics runs the real world, creature constructors and Adventure registration without a renderer. It records construction-epoch AI goals rather than the first rendered-frame retarget. The first boar goal differs by at most 4.351295768597197 m; habitat floors differ by at most 1.199040866595169e-14 m. Settled static collider rows are byte-identical. All 34 actors, 11 herds, 34 pieces and 2,067 solids retain their native recipes. The shared host reads the installed terrain datum and admits species in the actual kit window. Independent Node regeneration compares bytes; CI needs no browser.
+
+Fresh page equality oracle, actual spots and map recapture pass. The map image remains byte-identical. Official collision walk: **8 legs, 0 stuck, no page errors**. Official whole native recorder, Captain restore/worker, reef, zipline and durable Ledger contracts pass; compatibility stays false for the existing honest open list. The command tape and all checkpoint payloads remain byte-identical; input-only manifests remain the pusher’s responsibility.

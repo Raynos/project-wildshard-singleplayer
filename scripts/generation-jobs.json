@@ -311,6 +311,9 @@
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs",
       "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
         "src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs"
       ],
       "inputRoots": [
@@ -328,8 +331,7 @@
       "outputs": [
         "src/shards/driftwood-isle/runtime/physics.baked.json"
       ],
-      "platform": "darwin",
-      "capture": true
+      "platform": "portable"
     },
     {
       "id": "driftwood-spots",

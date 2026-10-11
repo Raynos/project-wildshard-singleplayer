@@ -20,8 +20,8 @@ export function driftwoodPhysicsInputs(root) {
       else if (accept(path)) paths.push(relative(root, join(root, path)));
     }
   };
-  for (const dir of ['creatures', 'data', 'world', 'models', 'species', 'combat']) walk(`src/shards/driftwood-isle/${dir}`, path => /\.(?:ts|json)$/u.test(path) && !MOVERS.has(path));
-  paths.push('src/game/plugin/animation.ts');
+  for (const dir of ['creatures', 'data', 'world', 'models', 'species', 'combat', 'quest', 'npc']) walk(`src/shards/driftwood-isle/${dir}`, path => /\.(?:ts|json)$/u.test(path) && !MOVERS.has(path));
+  paths.push('src/game/plugin/animation.ts', 'scripts/bake/worldHost.mjs', 'scripts/bake/worldHost.d.mts', 'scripts/bake/environment.mjs', 'scripts/bake/nativeWorld.mjs', 'scripts/bake-loader.mjs', 'scripts/driftwood-physics-inputs.mjs', 'src/engine/world/Heightfield.ts', 'src/engine/physics/pieces.ts', 'src/engine/physics/entrySockets.ts', 'src/engine/physics/bodies.ts', 'src/engine/physics/active.ts', 'src/engine/practice/TrainingArena.ts', 'src/game/models/interact.ts', 'src/game/systems/props/interact.ts', 'src/engine/world/interact/Interactables.ts', 'public/assets/baked/driftwood-isle/terrain.bin');
   walk('src/game/systems/species', path => path.endsWith('.ts'));
   return Object.fromEntries(paths.sort().map(path => [path, createHash('sha256').update(readFileSync(join(root, path))).digest('hex')]));
 }

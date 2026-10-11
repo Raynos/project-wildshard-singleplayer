@@ -1,52 +1,24 @@
 #!/usr/bin/env node
-// Trusted SF72 metadata only (Driftwood Isle): the real native browser recipes remain the shipping source. Captures the
-// hybrid boot's native floor (Rapier's terrain heightfield exactly as the page built it, the sea cave's cuts included),
-// every solid fixed world collider (pier, jetties, entry landings and decks, hut, lookout, wreck, shrine, cove, trail,
-// boulders, palms, edge walls), the registry pieces' metadata, and the creature roster at load in the manager's order
-// (model-derived simulation specs, seeds, scales, herds, spawn points) with the habitat the enemy policies read (palm
-// perches and bases in palm order, the troops' placement input; the wreck hold and its floor; the crab sites). The declared
-// movers (the moored boat, the rope bridge's chain) are bodies, not baked world. Two independent same-page captures must
-// match exactly. Then the altar is used (`used:altar`): the Drowned Captain's native spec and his pool (where the finale
-// spawns him, at his spawn yaw) are read off the body the finale spawned; his draws and id are the stream's at play time.
-// scripts/browser-lane.sh node src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--inputs=<clean tree>] [--census]
-import { chromium, devices } from 'playwright';
-import { writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { execFileSync } from 'node:child_process';
+// DS1.5: build the real authored world and its finite native creature models in Node; never import a recorded physics bake.
+// node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs [--check]
+import { createHash } from 'node:crypto';
+import { resolve as resolvePath } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { byteWriter } from '../../../../scripts/bake-output.mjs';
+import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs';
+import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 import { driftwoodPhysicsInputs } from '../../../../scripts/driftwood-physics-inputs.mjs';
-import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
-const root = resolve(import.meta.dirname, '../../../..');
-const arg = name => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
-const url = arg('url');
-if (url === undefined) throw new Error('bake-driftwood-physics requires a clean-candidate --url');
-const census = process.argv.includes('--census');
-const revision = arg('revision') ?? execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-const inputsRoot = resolve(arg('inputs') ?? root);
-const version = await (await fetch(new URL('/version.json', url))).json();
-if (typeof version.build !== 'string' || !version.build.startsWith(`${revision.slice(0, 7)}-`)) throw new Error(`Driftwood bake revision mismatch: ${JSON.stringify(version)} vs ${revision}`);
-const errors = [];
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
-try {
-  const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
-  await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
-  const page = await context.newPage(); page.on('pageerror', error => { errors.push(String(error)); });
-  await page.goto(new URL('/?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0&tier=phone', url).href, { waitUntil: 'domcontentloaded' });
-  // the sailor is placed last, after his head's preload (creatures/Enemies.ts)
-  await page.waitForFunction(() => {
-    const w = window.__wildshard?.world;
-    return (w?.animals?.animals ?? []).some(a => a.kind === 'sailor') && w?.game?.app?.physics !== undefined && !document.querySelector('.ws-load');
-  }, null, { timeout: 240000 });
-  await page.waitForTimeout(1500);
-  const capture = (wantCensus) => {
-    const read = () => {
-    const w = window.__wildshard.world, g = w.game, physics = g.app.physics, animals = w.animals;
-    const copy = value => JSON.parse(JSON.stringify(value, (_key, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
-    // the hunting brain's memories (src/engine/ai/hunt.ts, the manager's private `hunt`)
-    const hunt = animals.hunt;
-    // the manager's list at load, in its own order; `at` is where the manager placed it (its legacy brain's first goal,
-    // which a self-thinking species never moves), not where it has walked since
-    const poseOf = a => {
+const root = resolvePath(import.meta.dirname, '../../../..');
+const at = path => import(pathToFileURL(resolvePath(root, path)).href);
+const environment = installBakeEnvironment(root);
+// Nondrawing UI lifetime adapters; the actual quest constructors still place their native colliders.
+const element = () => Object.assign(environment.element(), { prepend: () => undefined });
+Object.defineProperty(document, 'createElement', { value: element, configurable: true });
+Object.defineProperty(document, 'createElementNS', { value: element, configurable: true });
+const noop = () => undefined;
+const copy = value => JSON.parse(JSON.stringify(value, (_key, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
+const poseOf = a => {
       const model = a.model;
       if (!model?.bones || !a.bones) throw new Error(`Missing actual Driftwood rig: ${a.entityId}`);
       const defs = model.bones;
@@ -66,6 +38,9 @@ try {
       });
       return { joints, custom: model.species.rig === 'custom', ...(model.species.gait === undefined ? {} : { gait: copy(model.species.gait) }), ...(model.species.pose === undefined ? {} : { pose: copy(model.species.pose) }) };
     };
+
+const readMetadata = (animals, physics, registry, runtime) => {
+ const hunt = animals.hunt;
     const actors = animals.animals.map(a => {
       if (!a.simSpec) throw new Error(`Missing native simulation spec: ${a.entityId}`);
       const b = hunt.memory(a);
@@ -75,7 +50,7 @@ try {
     // herd centres are not placement facts (the manager recentres them as members move): only kind and membership
     const herds = animals.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.entityId) }));
     const v3 = p => ({ x: p.x, y: p.y, z: p.z });
-    const hab = animals.habitat, hold = hab.hold, shell = g.app.debug.snapshot().driftwood;
+    const hab = animals.habitat, hold = hab.hold, shell = runtime;
     // the hold's floor (the wreck's deck and hull floor, Wreck.floorHeightAt) on a 0.5 m lattice over its guard disc
     const floor = [];
     if (hold) for (let dz = -hold.guardR; dz <= hold.guardR; dz += 0.5) for (let dx = -hold.guardR; dx <= hold.guardR; dx += 0.5) {
@@ -85,15 +60,15 @@ try {
       hold: hold ? { x: hold.x, z: hold.z, r: hold.r, guardR: hold.guardR, step: 0.5, floor } : null,
       crabSites: copy(shell.objects.cove?.crabSites ?? []),
       placed: copy(shell.objects.enemies?.placed ?? null), practice: shell.objects.enemies?.practiceCrab?.entityId ?? null };
-    const pieces = g.app.registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
+    const pieces = registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
       const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: piece.colliders.length, active: piece.active?.() ?? true };
       if (piece.surface !== undefined) row.surface = piece.surface;
       if (piece.colliderOwner !== undefined) row.colliderOwner = piece.colliderOwner;
       if (piece.follows !== undefined) row.follows = true;
       return row;
     });
-    const grounds = [], solids = [], kinds = {};
-    const registered = g.app.registry.pieceList();
+    const grounds = [], solids = [];
+    const registered = registry.pieceList();
     const ownerId = owner => {
       if (typeof owner === 'string') return `string:${owner}`;
       const piece = registered.find(p => p === owner);
@@ -106,8 +81,7 @@ try {
       return btoa(bin);
     };
     physics.world.forEachCollider(c => {
-      const shape = c.shapeType(), groups = c.collisionGroups() >>> 0, body = c.parent()?.bodyType() ?? null, key = `${shape}:${body ?? 'none'}:${(groups >>> 16).toString(2)}`;
-      kinds[key] = (kinds[key] ?? 0) + 1;
+      const shape = c.shapeType(), groups = c.collisionGroups() >>> 0, body = c.parent()?.bodyType() ?? null;
       const t = c.translation(), r = c.rotation();
       if (shape === 7 /* HeightField */) {
         const s = c.heightfieldScale();
@@ -131,51 +105,97 @@ try {
       else throw new Error(`Unbaked native collider shape ${shape}`);
       solids.push(row);
     });
-    return wantCensus ? { kinds, actors: actors.map(a => `${a.kind}.${a.variant}.${a.herd}`), herds: herds.length, habitat: { ...habitat, hold: habitat.hold && { ...habitat.hold, floor: habitat.hold.floor.filter(y => y !== null).length }, perches: habitat.perches.length, perchBases: habitat.perchBases.length }, pieces: pieces.length, solids: solids.length, solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ ...gr, heights: gr.heights.length })) }
-      : { actors, herds, habitat, pieces, grounds, solids };
-    };
-    // Independent native reads in one protocol task: no live AI frame can change a wander goal between them.
-    return wantCensus ? read() : [read(), read()];
-  };
-  if (census) { console.log(JSON.stringify(await page.evaluate(capture, true), null, 1)); console.log(JSON.stringify(errors)); }
-  else {
-    const [first, second] = await page.evaluate(capture, false);
-    // the finale's captain: set the altar's flag, read his body before any frame moves him, then his spec once more
-    const captain = await page.evaluate(() => {
-      const w = window.__wildshard.world, snap = w.game.app.debug.snapshot(), adv = window.__adventure ?? snap['driftwood.adventure'] ?? snap.adventure;
-      adv.flags.set('used:altar');
-      const a = adv.finale.captain(); if (!a?.simSpec) throw new Error('Missing the captain after the altar');
-      const defs = a.model.bones;
-      const pose = { joints: defs.map((def, index) => {
-        const parent = def.parent === null ? -1 : defs.findIndex(row => row.name === def.parent), p = parent < 0 ? [0, 0, 0] : defs[parent].pos;
-        if (parent >= index || (def.parent !== null && parent < 0) || !a.bones[def.name]) throw new Error(`Invalid actual captain rig: ${def.name}`);
-        const position = [def.pos[0] - p[0], def.pos[1] - p[1], def.pos[2] - p[2]];
-        const skeleton = a.mesh.skeleton, bone = a.bones[def.name], actual = skeleton.bones.indexOf(bone), inverse = skeleton.boneInverses[actual];
-        if (!inverse) throw new Error(`Missing actual inverse bind: ${a.entityId}:${def.name}`);
-        const local = inverse.clone().invert();
-        if (parent >= 0) { const ancestor = a.bones[defs[parent].name], parentInverse = skeleton.boneInverses[skeleton.bones.indexOf(ancestor)]; if (!parentInverse) throw new Error('Missing actual parent inverse bind'); local.premultiply(parentInverse); }
-        const e = local.elements, expected = [1,0,0,0,0,1,0,0,0,0,1,0,...position,1];
-        if (e.some((value, k) => Math.abs(value - expected[k]) > 1e-12)) throw new Error(`Actual rig rest differs from its model: ${a.entityId}:${def.name}`);
-        return { name: def.name, parent, position, order: 'XYZ', scale: [1, 1, 1] };
-      }), custom: a.model.species.rig === 'custom' };
-      return { spec: structuredClone(a.simSpec), pose, pool: { x: a.mem.poolX, z: a.mem.poolZ, yaw: a.yaw }, arena: a.mem.arena };
-    });
-    const again = await page.evaluate(() => {
-      const w = window.__wildshard.world, snap = w.game.app.debug.snapshot(), adv = window.__adventure ?? snap['driftwood.adventure'] ?? snap.adventure;
-      return structuredClone(adv.finale.captain()?.simSpec ?? null);
-    });
-    if (JSON.stringify(again) !== JSON.stringify(captain.spec)) throw new Error('Native Driftwood captain spec changed between captures');
-    if (JSON.stringify(first) !== JSON.stringify(second)) {
-      const moved = Object.keys(first).filter(key => JSON.stringify(first[key]) !== JSON.stringify(second[key]));
-      const rows = moved.flatMap(key => Array.isArray(first[key]) ? first[key].flatMap((row, i) => JSON.stringify(row) === JSON.stringify(second[key][i]) ? [] : [{ key, i, a: JSON.stringify(row).slice(0, 300), b: JSON.stringify(second[key][i]).slice(0, 300) }]).slice(0, 4) : [{ key }]);
-      throw new Error(`Native Driftwood metadata changed between independent captures: ${JSON.stringify(rows)}`);
-    }
-    if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Driftwood bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
-    const [ground] = first.grounds;
-    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: driftwoodPhysicsInputs(inputsRoot), ground, solids: first.solids,
-      actors: first.actors, herds: first.herds, habitat: first.habitat, pieces: first.pieces, captain };
-    writeFileSync(resolve(root, 'src/shards/driftwood-isle/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
-    console.log(`bake-driftwood-physics: ${first.actors.length} native bodies + the captain, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
+
+ if (grounds.length !== 1) throw new Error("Missing the actual native ground");
+ return { ground: grounds[0], solids, actors, herds, habitat, pieces };
+};
+
+try {
+  const captures=[];
+  const THREE = await import('three');
+  const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.DirectionalLight()], update: noop },
+    hemi: new THREE.HemisphereLight(), sunDisc: new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshBasicMaterial()),
+    planet: new THREE.Group(), clouds: null, dayNight: null, viewCamera: new THREE.PerspectiveCamera(), sunDir: new THREE.Vector3(0, 1, 0) },
+  { get: (target, key) => key in target ? target[key] : typeof key === 'string' && key.endsWith('Color')
+    ? new THREE.Color(1, 1, 1) : typeof key === 'string' && key.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
+  (await at('src/engine/core/tier.ts')).initializeTier('phone');
+  const { default: manifest } = await at('src/shards/driftwood-isle/manifest.ts');
+  (await at('src/game/shard/list.ts')).installShards([manifest]);
+  (await at('src/game/shard/registry.ts')).setActiveChunk(manifest.slug);
+  const { default: NativePlugin } = await at('src/shards/driftwood-isle/runtime/index.ts');
+  const contexts = [];
+  class CaptureDriftwood extends NativePlugin {
+    async world(ctx) { await super.world(ctx); contexts.push(ctx); }
   }
-  await context.close();
-} finally { await browser.close(); }
+  const { Terrain, terrainChunkGeometry } = await at('src/engine/world/Terrain.ts');
+  const { readFileSync } = await import('node:fs');
+  await visitAuthoredWorld({ ...manifest, load: () => Promise.resolve({ default: CaptureDriftwood }) },
+  { root, sky, element: environment.element, tier: 'phone', practiceArena: true,
+    installKit: async () => {
+      const ctx=contexts[0];if (ctx===undefined)throw new Error('Native world missing before kit');
+      (await at('src/shards/driftwood-isle/creatures/install.ts')).installDriftwoodCreatures(ctx);
+    },
+    nativeTerrain: readFileSync(resolvePath(root, 'public/assets/baked/driftwood-isle/terrain.bin')),
+    createTerrain: async () => {
+      const field = await at('src/engine/world/Heightfield.ts');
+      const terrain = new Terrain();terrain.mesh = new THREE.Mesh(terrainChunkGeometry(field), new THREE.MeshBasicMaterial());
+      return terrain;
+    },
+    visit: async ({ scene, forest, registry, physics }) => {
+      const ctx = contexts[0];if (ctx === undefined) throw new Error('No actual Driftwood world');
+      const runtime = ctx.game.runtime;
+      const world = runtime.world;
+      (await at('src/engine/physics/terrain.ts')).addEdgeWalls(physics);
+      (await at('src/engine/physics/entrySockets.ts')).installEntrySockets(physics,ctx.scope,[{x:0,z:0}]);
+      const { Bodies, BODY_CAP } = await at('src/engine/physics/bodies.ts');
+      const { setActiveBodies } = await at('src/engine/physics/active.ts');
+      setActiveBodies(new Bodies(physics,world.player.position,BODY_CAP.phone).attach(world.game));
+      ctx.scope.onDispose(() => { setActiveBodies(null); });
+      const { addPiece } = await at('src/engine/physics/pieces.ts');
+      const addedPieces = [];
+      registry.onAdd(piece => {
+        if (piece.object !== undefined) scene.add(piece.object);
+        addedPieces.push(addPiece(physics,piece));
+        if (piece.floor !== undefined && piece.solidFloor !== true) world.player.platforms.push(piece.floor);
+      });
+      (await at('src/game/systems/species/install.ts')).installKitSpecies();
+      const { preloadCaptainMesh } = await at('src/shards/driftwood-isle/species/captainMesh.ts');
+      const { preloadSailorHead } = await at('src/shards/driftwood-isle/species/sailor.ts');
+      await Promise.all([preloadCaptainMesh(),preloadSailorHead()]);
+      const { AnimalManager } = await at('src/engine/entities/AnimalManager.ts');
+      const animals = await new AnimalManager(scene,sky,forest).buildAsync(() => Promise.resolve());
+      runtime.hooks.animalsReady(animals);
+      await new Promise(resolve => { setImmediate(resolve); });
+      if (!animals.animals.some(actor => actor.kind==='sailor')) throw new Error('Native sailor did not complete preload');
+      const { driftwoodWorld } = await at('src/shards/driftwood-isle/world/build.ts');
+      const built=driftwoodWorld(runtime);
+      const { Inventory } = await at('src/game/Inventory.ts');
+      const { Audio } = await at('src/engine/audio/Audio.ts');
+      (await at('src/game/models/interact.ts')).installKitProps();
+      const { installAdventure } = await at('src/shards/driftwood-isle/quest/adventure.ts');
+      Object.assign(world.player,{velocity:new THREE.Vector3(),yaw:0,pitch:0,carried:false});
+      runtime.play={animals};
+      const adventure = await installAdventure(ctx,{game:world.game,sky,player:world.player,registry,chunk:manifest,
+        prompts:runtime.interactables,hud:{toast:noop},audio:new Audio(),music:{sting:noop},inventory:new Inventory(manifest.slug),animals,
+        pois:{hut:built.hut,lookout:built.lookout,wreck:built.wreck,shrine:built.shrine,cave:built.cove}});
+      // The real interaction constructor refreshes closed boxes after registering them. Apply the page's
+      // piece sync once before reading settled static geometry, without advancing AI or simulation clocks.
+      for (const piece of addedPieces) piece.sync();
+      const captured=readMetadata(animals,physics,registry,runtime);
+      adventure.flags.set('used:altar');
+      const captain=adventure.finale.captain();if(captain===null)throw new Error('Actual Captain failed to spawn');
+      captured.captain={spec:copy(captain.simSpec),pose:poseOf(captain),pool:{x:captain.mem.poolX,z:captain.mem.poolZ,yaw:captain.yaw},arena:captain.mem.arena};
+      if(captured.actors.length!==34 || captured.solids.length===0)throw new Error('Invalid native Driftwood roster');
+      captures.push(captured);
+    },
+  });
+  const captured = captures[0];
+  if(captured===undefined)throw new Error('Actual Driftwood capture did not complete');
+  const inputs = driftwoodPhysicsInputs(root), digest = createHash('sha256').update(JSON.stringify(inputs)).digest('hex');
+  const result={version:1,revision:digest.slice(0,40),build:`node-${digest}`,profile:'Node / phone / no renderer',notice:'DO NOT EDIT: regenerate with generators/bake-driftwood-physics.mjs. revision identifies the recipe inputs.',inputs,...captured};
+  const writer=byteWriter(process.argv.includes('--check'),'bake-driftwood-physics');
+  writer.put(resolvePath(root,'src/shards/driftwood-isle/runtime/physics.baked.json'),`${JSON.stringify(result)}\n`);writer.finish();
+  console.log(`bake-driftwood-physics: ${captured.actors.length} actual native actors, ${captured.solids.length} fixed solids and Captain, Node canonical`);
+} finally {
+  try {(await at('src/engine/app/resources.ts')).pageScope.dispose();}finally{environment.dispose();}
+}

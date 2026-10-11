@@ -19,6 +19,8 @@ import { bakedSamplers, bakedUndergrowth } from '../src/engine/world/BakedTerrai
 import { heightAt } from '../src/engine/world/Heightfield';
 import { prepareNativeTerrain } from '../scripts/bake/nativeWorld.mjs';
 import { shardEntry } from '../src/game/shard/entryMode';
+import { BOAR } from '../src/game/systems/species/boar';
+import { buildTerrain } from '../src/engine/world/terrainField';
 
 const source = () => emptyShardfileSource(emptyShardfile({ slug: 'bake-host-fixture', name: 'Bake host fixture', author: 'Fixture', revision: 1, seed: 73 }));
 const root = cwd();
@@ -68,6 +70,26 @@ describe('shared authored world capture guard', () => {
     expect(app.levelScope).toBeNull(); expect(app.registry.pieces).toHaveLength(0); expect(app.physics).toBeNull();
   });
 
+  it('admits actual species rows only during kit and releases them with the owned level', async () => {
+    const { sky } = fakeWorld();
+    let context: ShardContext | undefined;
+    const manifest = { ...source(), load: () => Promise.resolve({ default: class {
+      world(ctx: ShardContext): void {
+        context = ctx;
+        expect(() => ctx.rows.species(BOAR)).toThrow();
+      }
+    } }) };
+    await visitAuthoredWorld(manifest, { root, sky, element: () => document.createElement('canvas'),
+      installKit: () => {
+        if (context === undefined) throw new Error('Missing real world context');
+        context.rows.species(BOAR);
+        expect(() => context?.rows.species(BOAR)).toThrow('Duplicate species row');
+      },
+    });
+    expect(app.levelScope).toBeNull();
+    expect(context?.scope.disposed).toBe(true);
+  });
+
   it('refuses mismatched native identity and unbounded placement data before changing the selected samplers', async () => {
     const bytes = readFileSync('public/assets/baked/pine-hollow/terrain.bin');
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), seed = view.getUint32(16, true);
@@ -84,7 +106,9 @@ describe('shared authored world capture guard', () => {
   it('selects original native samplers and placement decisions before the real terrain and authored world', async () => {
     const bytes = readFileSync('public/assets/baked/pine-hollow/terrain.bin');
     const seed = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(16, true);
-    const manifest = { ...source(), seed }, { sky } = fakeWorld();
+    const original = source();
+    const terrainField = { ...buildTerrain(seed, { landscape: () => 0, trails: [], cabinSites: [] }), datum: -0.8 };
+    const manifest = { ...original, seed, ground: { ...original.ground, terrain: terrainField } }, { sky } = fakeWorld();
     const material = new MeshStandardMaterial();
     let terrain: Terrain | undefined, sampled = 0;
     const result = await visitAuthoredWorld({ ...manifest, load: () => Promise.resolve({ default: class {
@@ -92,9 +116,9 @@ describe('shared authored world capture guard', () => {
     } }) }, { root, sky, element: () => document.createElement('canvas'), nativeTerrain: bytes,
       createTerrain: ({ ground, native, forest }) => {
         if (native === null) throw new Error('Missing original native payload');
-        expect(ground).toEqual(native.heights);
+        expect(ground).toEqual(Float32Array.from(native.heights, value => value - 0.8));
         expect(bakedUndergrowth()).toEqual(native.undergrowth);
-        expect(heightAt(37.5, -17.5)).toBe(bakedSamplers(native).heightAt(37.5, -17.5));
+        expect(heightAt(37.5, -17.5)).toBe(bakedSamplers(native).heightAt(37.5, -17.5) - 0.8);
         terrain = new Terrain(); terrain.mesh = new Mesh(terrainChunkGeometry(bakedSamplers(native)), material);
         terrain.applyCanopy(forest.canopyMap);
         const positions: unknown = terrain.mesh.geometry.getAttribute('position');

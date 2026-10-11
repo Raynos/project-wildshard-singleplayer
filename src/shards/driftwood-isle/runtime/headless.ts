@@ -42,7 +42,7 @@ export function driftwoodNavmesh(): Navmesh {
   return nav;
 }
 
-/** Install the browser-baked native world into the host's physics, owned by its scope: Rapier's own 256² heightfield (the
+/** Install the Node-canonical native world into the host's physics, owned by its scope: Rapier's own 256² heightfield (the
  *  sea cave's cut included) and the 2067 fixed WORLD colliders (cuboids, capsules and convex hulls) the page built. */
 export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
   const { R, world } = host.physics, g = bake.ground;
@@ -62,7 +62,7 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
 }
 
 /**
- * Driftwood Isle's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the browser-baked native
+ * Driftwood Isle's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). Owns: the Node-canonical native
  * world (the island's heightfield as Rapier built it and every fixed WORLD collider; `ground: false`, the baked floor as
  * the height query) and the island's 34 load-time creatures with their stream, floors, herds, decisions (the fauna by the
  * browser's baked navmesh), the monkeys' coconuts, the practice crab's return, ecological night respawns and exact restore (runtime/keeper.ts), and the

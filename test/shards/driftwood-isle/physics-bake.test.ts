@@ -16,7 +16,7 @@ const bytesOf = (text: string): Uint8Array => Uint8Array.from(atob(text), c => c
 const decode = (text: string): Float32Array => new Float32Array(bytesOf(text).buffer);
 const finite = v.pipe(v.number(), v.finite()), xyz = v.strictObject({ x: finite, y: finite, z: finite });
 /** The bake's own shape, strictly (TypeScript does not infer a JSON module this large). */
-const Bake = v.object({ version: v.literal(1), revision: v.string(), inputs: v.record(v.string(), v.string()),
+const Bake = v.object({ version: v.literal(1), revision: v.string(), build: v.string(), profile: v.string(), notice: v.string(), inputs: v.record(v.string(), v.string()),
   ground: v.object({ rows: finite, cols: finite, scale: xyz, at: xyz, heights: v.string() }),
   solids: v.array(v.object({ shape: finite, groups: finite, at: v.array(finite), rot: v.array(finite), half: v.optional(v.array(finite)),
     halfHeight: v.optional(finite), radius: v.optional(finite), vertices: v.optional(v.string()), indices: v.optional(v.string()) })),
@@ -41,7 +41,10 @@ function floorAt(x: number, z: number): number {
 it('refuses stale source bytes before the trusted Driftwood physics bake is used', () => {
   expect(baked.version).toBe(1);
   expect(baked.inputs).toEqual(driftwoodPhysicsInputs(process.cwd()));
-  expect(baked.revision).toMatch(/^[a-f0-9]{7,40}$/u);
+  expect(baked.revision).toMatch(/^[a-f0-9]{40}$/u);
+  expect(baked.build).toMatch(/^node-[a-f0-9]{64}$/u);
+  expect(baked.profile).toBe('Node / phone / no renderer');
+  expect(baked.notice).toContain('DO NOT EDIT');
 });
 
 it('captures the native floor: the island\'s own field at every lattice vertex, lowered only by the sea cave\'s cuts', () => {
