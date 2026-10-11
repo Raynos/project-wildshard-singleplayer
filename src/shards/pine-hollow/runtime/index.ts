@@ -16,6 +16,12 @@ import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { installAiDebug } from '@wildshard/engine/ai/view/DebugOverlay';
 import { macrotask } from '@wildshard/engine/boot/plan';
+import { nextDrawnFrame, presenting } from '@wildshard/engine/core/framePacing';
+import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
+import { moduleBytes } from '@wildshard/game/plugin/brain';
+import { PINE_ELITE_MODULES } from '../data/eliteBrainRows';
+import nightModule from '../behaviour/night.generated.json' with { type: 'json' };
+import watchModule from '../behaviour/director.json' with { type: 'json' };
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import { pineRifleFloor } from '../quest/rifleFloor';
@@ -154,6 +160,12 @@ export class PineHollow extends ShardPlugin {
   }
 
   override async play(ctx: ShardContext): Promise<void> {
+    if (!retainsRuntimeServices(ctx)) return this.installPlay(ctx);
+    const modules = [...Object.values(PINE_ELITE_MODULES), nightModule.bytes, watchModule.bytes].map(moduleBytes);
+    await withPreparedScriptMemories(modules, ctx.scope, () => presenting() ? nextDrawnFrame(ctx.scope) : macrotask(), () => this.installPlay(ctx));
+  }
+
+  private async installPlay(ctx: ShardContext): Promise<void> {
     const [{ WeaponPickup }, { applySkin, clearSkin }] = await Promise.all([import('@wildshard/engine/player/WeaponPickup'), import('@wildshard/engine/player/Skins')]);
     const rt = runtime(ctx), world = rt.world, h = rt.play;
     if (world === null || h === null) throw new Error('Pine gameplay needs its player host');

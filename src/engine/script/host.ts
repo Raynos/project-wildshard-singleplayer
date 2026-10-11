@@ -39,6 +39,15 @@ const preparingOwners = new WeakSet<Scope>();
 function requirePreparationOwner(owner: Scope): void {
   if (owner.disposed) throw new Error('Script memory preparation owner disposed');
 }
+async function preparationWait<T>(owner: Scope, work: () => T | Promise<T>): Promise<T> {
+  requirePreparationOwner(owner);
+  let cancel = (): void => { /* The promise installs its rejection synchronously. */ };
+  const retired = new Promise<never>((_resolve, reject) => { cancel = () => { reject(new Error('Script memory preparation owner disposed')); }; });
+  const forget = owner.capture('disposers', cancel);
+  try {
+    return await Promise.race([Promise.resolve().then(() => { requirePreparationOwner(owner); return work(); }), retired]);
+  } finally { forget(); }
+}
 function takePreparedMemory(initial: number, maximum: number): WebAssembly.Memory | undefined {
   const owner = currentOwner();
   if (owner === null || owner.disposed) return undefined;
@@ -51,11 +60,11 @@ function takePreparedMemory(initial: number, maximum: number): WebAssembly.Memor
 }
 /**
  * Allocate fresh, never-used script memories between caller-supplied frame yields, then consume them only during
- * the synchronous owned installer. Each module describes one default-limit host; custom limits use a fresh allocation
+ * the owned installer. Async installers carry their owner across awaits as usual. Each module describes one default-limit host; custom limits use a fresh allocation
  * when their descriptor differs. No seed, initialization, call or snapshot runs before the installer. Unused references
  * are dropped on return, failure or owner disposal; allocation attribution includes every prepared memory.
  */
-export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array[], owner: Scope, pause: () => Promise<void>, install: () => T): Promise<T> {
+export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array[], owner: Scope, pause: () => Promise<void>, install: () => T | Promise<T>): Promise<T> {
   requirePreparationOwner(owner);
   if (modules.length > SCRIPT_LIMITS.instances) throw new Error('Invalid script memory preparation');
   if (preparingOwners.has(owner)) throw new Error('Script memory preparation already active');
@@ -72,7 +81,7 @@ export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array
   const forget = owner.capture('disposers', clear);
   try {
     for (const plan of plans) {
-      await pause();
+      await preparationWait(owner, pause);
       requirePreparationOwner(owner);
       const memory = owner.run(() => {
         const allocated = new WebAssembly.Memory(plan);
@@ -81,11 +90,13 @@ export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array
       });
       memories.push({ ...plan, memory });
     }
-    await pause();
+    await preparationWait(owner, pause);
     requirePreparationOwner(owner);
     if (preparedMemories.has(owner)) throw new Error('Script memory preparation owner unavailable');
     preparedMemories.set(owner, memories);
-    return owner.run(install);
+    const value = await preparationWait(owner, () => owner.run(install));
+    requirePreparationOwner(owner);
+    return value;
   } finally { clear(); forget(); }
 }
 function bounds(ptr: number, bytes: number, memory: WebAssembly.Memory): void {

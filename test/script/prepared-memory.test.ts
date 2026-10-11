@@ -45,6 +45,38 @@ describe('fresh script memories prepared between frames', () => {
       scope.run(() => installed()); expect(memory).toHaveBeenCalledTimes(3);
     } finally { memory.mockRestore(); foreign.dispose(); scope.dispose(); }
   });
+  it('keeps fresh memories available across an owned asynchronous installer without replaying initialization', async () => {
+    const scope = new Scope('async-installer'), memory = vi.spyOn(WebAssembly, 'Memory');
+    try {
+      const hosts = await withPreparedScriptMemories([bytes, bytes], scope, pause, async () => {
+        const first = installed();
+        await pause();
+        const second = scope.run(() => installed());
+        return [first, second];
+      });
+      expect(hosts[0]?.checkpoint()).toEqual(hosts[1]?.checkpoint());
+      expect(memory).toHaveBeenCalledTimes(2);
+    } finally { memory.mockRestore(); scope.dispose(); }
+  });
+  it('refuses an asynchronous installer result if its owner retired while it awaited', async () => {
+    const scope = new Scope('retired-async-installer');
+    await expect(withPreparedScriptMemories([bytes], scope, pause, async () => {
+      const h = installed();
+      await pause(); scope.dispose(); return h;
+    })).rejects.toThrow('disposed');
+  });
+  it('rejects on retirement even when the caller frame wait can never complete', async () => {
+    const scope = new Scope('cancelled-frame-wait');
+    await expect(withPreparedScriptMemories([bytes], scope, () => {
+      scope.dispose(); return new Promise<void>(() => { /* A cancelled rAF never completes. */ });
+    }, () => installed())).rejects.toThrow('disposed');
+  });
+  it('rejects a pending installer on retirement without keeping its prepared pool available', async () => {
+    const scope = new Scope('cancelled-pending-install');
+    await expect(withPreparedScriptMemories([bytes], scope, pause, () => {
+      scope.dispose(); return new Promise<void>(() => { /* The retired installer never completes. */ });
+    })).rejects.toThrow('disposed');
+  });
   it('keeps a lower host memory ceiling instead of consuming a broader prepared descriptor', async () => {
     const scope = new Scope('lower-ceiling'), admission = admitScript(bytes), memory = vi.spyOn(WebAssembly, 'Memory');
     try {
