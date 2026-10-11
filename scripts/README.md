@@ -216,6 +216,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [explore-view-taps.mjs](./explore-view-taps.mjs)
 - [fetch-assets.mjs](./fetch-assets.mjs)
 - [fit-lut.py](./fit-lut.py)
+- [frame-floor-args.d.mts](./frame-floor-args.d.mts)
+- [frame-floor-args.mjs](./frame-floor-args.mjs)
 - [frame-floor-grid.d.mts](./frame-floor-grid.d.mts)
 - [frame-floor-grid.mjs](./frame-floor-grid.mjs)
 - [frame-floor-programs.mjs](./frame-floor-programs.mjs)
