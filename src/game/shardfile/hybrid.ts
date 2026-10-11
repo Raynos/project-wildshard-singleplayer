@@ -18,6 +18,7 @@ import type { ShardfileClientBindings } from './client';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 
 import type { RuntimeDeclaration } from '@wildshard/format/runtime';
+import type { AudioData } from '@wildshard/format/audio';
 
 /** A resident's data world stays alive when its independently scoped trusted play hooks leave. */
 export interface HybridResident {
@@ -140,10 +141,13 @@ export class HybridShardPlugin extends ShardPlugin {
   private custom: CustomRuntime | undefined;
   private readonly binding: HybridCellBinding | undefined;
   private generation = 0;
-  constructor(data: ShardPlugin, Runtime: new () => ShardPlugin, binding?: HybridCellBinding) {
+  constructor(data: ShardPlugin, Runtime: new () => ShardPlugin, binding?: HybridCellBinding,
+    private readonly declaredAudio?: AudioData) {
     super(); this.data = data; this.Runtime = Runtime; this.binding = binding;
   }
-  override async world(ctx: ShardContext): Promise<void> {
+  override async world(provided: ShardContext): Promise<void> {
+    const ctx = this.declaredAudio === undefined ? provided : { ...provided, get progress() { return provided.progress; },
+      game: { ...provided.game, declaredAudio: this.declaredAudio } };
     await this.data.world?.(ctx);
     if (ctx.scope.disposed) throw new Error('Hybrid world was unloaded during admission');
     if (this.binding !== undefined) {
@@ -310,7 +314,7 @@ export async function prepareHybridShard(declaredSource: Shardfile, options: Pro
     },
     kit: ctx => installed.kit?.(ctx), play: ctx => installed.play?.(ctx),
   };
-  return new HybridShardPlugin(mapped, Runtime, gridInstance === null ? undefined : { instance, cells: gridCells, ...(retainHomeRuntime === undefined ? {} : { retainHomeRuntime }) });
+  return new HybridShardPlugin(mapped, Runtime, gridInstance === null ? undefined : { instance, cells: gridCells, ...(retainHomeRuntime === undefined ? {} : { retainHomeRuntime }) }, source.audio);
 }
 
 /** Keep a transitional shard's existing standalone presentation while admitting data and resolving its declared code separately. */

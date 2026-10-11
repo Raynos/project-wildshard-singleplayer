@@ -3402,3 +3402,11 @@ agreement remain strict. `parseAudio` charges either accepted layout's actual
 full float32 frames, including priming/padding; it never decodes or changes
 recording bytes. This does not lower the library cap or promise a new playback
 backend for mono clips.
+
+Trusted hybrid contexts expose `ctx.game.declaredAudio`, the exact admitted
+audio rows of that resident's emitted shardfile. Home and neighbour runtimes
+receive their own rows during world, kit and play, including road preparation.
+The parent page's services remain unchanged. Legacy-only entries omit this
+port and retain their existing declarations; it installs no second mixer,
+score, bank or RNG owner. Native installers can consume those rows without
+importing a build-time config or fetching a different recording.

@@ -10,6 +10,7 @@ import type { LevelDriver } from '../src/engine/level/load';
 import { emptyShardfile } from '../src/sdk/author';
 import { prepareTrustedRuntime, type TrustedRuntimeEntry, ShardPlugin } from "../src/game/plugin/shardPlugin";
 import { RuntimeSchema } from '@wildshard/format/runtime';
+import { parseAudioData } from '@wildshard/format/audio';
 import { HybridResidentWorld, HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident, type HybridRuntimeOptions } from '../src/game/shardfile/hybrid';
 import { emptyShardfileSource } from '../src/game/plugin/loader';
 import { installEnteredRuntimeInput, installEnteredRuntimeService } from "../src/game/plugin/lifecycle";
@@ -394,6 +395,26 @@ it('releases trusted creature dependants before shell resources created between 
   } finally { app.engineScope.dispose(); }
 });
 
+it('lends emitted audio rows to all trusted stages without changing the parent or installing another mixer', async () => {
+  const app = new App(), parent = runtime(), seen: unknown[] = [];
+  const scope = app.engineScope.child('audio.data'), installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
+  const game: GameServices = { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } };
+  const ctx = shardContext(installation.context, template, game);
+  const wire = JSON.stringify(nalatiSource.audio), emitted = parseAudioData(JSON.parse(wire));
+  class Runtime extends ShardPlugin {
+    override world(context: ShardContext): void { seen.push(context.game.declaredAudio); }
+    override kit(context: ShardContext): void { seen.push(context.game.declaredAudio); }
+    override play(context: ShardContext): void { seen.push(context.game.declaredAudio); }
+  }
+  const plugin = new HybridShardPlugin(new class extends ShardPlugin {}, Runtime, undefined, emitted);
+  try {
+    await plugin.world(ctx); await plugin.kit(ctx); await plugin.play(ctx);
+    expect(seen).toHaveLength(3); for (const audio of seen) expect(audio).toBe(emitted);
+    expect(game.declaredAudio).toBeUndefined(); expect(ctx.game).toBe(game);
+    expect(app.systemIds(app.engineScope)).toEqual([]);
+  } finally { app.engineScope.dispose(); }
+});
+
 it('restores non-enumerable and symbol descriptors even when another disposer throws', () => {
   const parent = runtime(), scope = new Scope('runtime.fixture'), key = Symbol('fixture'), token = () => Promise.reject(new Error('Fixture'));
   Object.defineProperty(parent, 'buildEquipment', { configurable: true, enumerable: false, writable: false, value: token });
@@ -414,9 +435,9 @@ it('the admitted runtime-owned audio hybrid preserves the legacy service census 
   source.audio.routing.push({ id: 'cue.fixture', when: [], actions: [{ voice: 'runtime.fixture', when: [], defaults: {}, delay: null }] });
   source.audio.score = 'default';
   class Runtime extends ShardPlugin {
-    override world(): void { calls.push('world'); }
-    override kit(ctx: ShardContext): void { calls.push('kit'); const rt = ctx.game.runtime; if (rt !== undefined) rt.hooks.meleeSilent = true; }
-    override play(): void { calls.push('play'); }
+    override world(ctx: ShardContext): void { expect(ctx.game.declaredAudio).toEqual(source.audio); calls.push('world'); }
+    override kit(ctx: ShardContext): void { expect(ctx.game.declaredAudio).toEqual(source.audio); calls.push('kit'); const rt = ctx.game.runtime; if (rt !== undefined) rt.hooks.meleeSilent = true; }
+    override play(ctx: ShardContext): void { expect(ctx.game.declaredAudio).toEqual(source.audio); calls.push('play'); }
   }
   const plugin = await prepareHybridShard(source, { base: 'https://fixture.test/', firstParty: true, offline: false,
     fetch: () => Promise.reject(new Error('Empty data cannot fetch')), hash: () => Promise.reject(new Error('Empty data cannot hash')) },

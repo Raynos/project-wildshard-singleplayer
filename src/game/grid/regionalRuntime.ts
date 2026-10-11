@@ -223,7 +223,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           const installation = createLevelInstallation(app, owner, app.levelAdapters, () => request.page.context.progress);
           view.root.add(installation.context.root);
           const base = shardContext(installation.context, request.manifest, { ...request.page.context.game,
-            runtime, shard: request.manifest, rows: new Map() });
+            runtime, shard: request.manifest, rows: new Map(), declaredAudio: request.admitted.source.audio });
           const context: ShardContext = { ...base, rows: { ...base.rows, skin: values => {
             base.rows.skin(values);
             const list: readonly SkinDef[] = Array.isArray(values) ? values : [values as SkinDef];

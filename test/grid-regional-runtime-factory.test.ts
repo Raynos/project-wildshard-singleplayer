@@ -112,6 +112,7 @@ it('prepares the complete claimed world on the road with inactive equipment and 
   let built: ShardPlayHost | null = null, ticks = 0;
   class Runtime extends ShardPlugin {
     override async world(ctx: ShardContext): Promise<void> {
+      expect(ctx.game.declaredAudio).toBe(f.request.admitted.source.audio);
       ctx.root.add(authoredLight);
       ctx.piece({ id: 'prepared.deck', name: 'Deck', category: 'props', file: 'runtime/index.ts', colliders: [{ kind: 'box', x: 0, y: 1, z: 0, hx: 1, hy: 0.5, hz: 1 }] });
       await Promise.resolve();
@@ -122,10 +123,12 @@ it('prepares the complete claimed world on the road with inactive equipment and 
       expect(ctx.app.registry).not.toBe(f.homeRegistry);
     }
     override kit(ctx: ShardContext): void {
+      expect(ctx.game.declaredAudio).toBe(f.request.admitted.source.audio);
       const rt = ctx.game.runtime; if (rt === undefined) throw new Error('Missing prepared runtime');
       rt.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), rifle: null, secondary: null });
     }
     override play(ctx: ShardContext): void {
+      expect(ctx.game.declaredAudio).toBe(f.request.admitted.source.audio);
       built = ctx.game.runtime?.play ?? null;
       if (built === null) throw new Error('Missing prepared play host');
       expect(built.weapons.enabled).toBe(false); expect(built.weapons.visible).toBe(false);

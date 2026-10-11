@@ -26,6 +26,7 @@ import type { ShardRuntime } from "../shard/runtime";
 import { normalizeItemRow, type ItemRow } from "../bag/items";
 import type { ContentRow, EngineRows, LevelContext } from "@wildshard/engine/level/context";
 import type { SkinDef } from "@wildshard/engine/player/Skins";
+import type { AudioData } from '@wildshard/format/audio';
 
 /**
  * Infinite Wildshard's way in (SF21a). The catalogue's home cell boots through the normal shard flow as page mode
@@ -238,6 +239,8 @@ export interface GameServices {
   /** The composition root's pre-bootstrap residency owner, shared with trusted hybrid data and the grid. */
   readonly residency?: PageResidency;
   readonly runtime?: ShardRuntime;
+  /** The admitted emitted audio rows for this runtime's own resident; absent for legacy-only entries. */
+  readonly declaredAudio?: AudioData;
   readonly shard: ShardManifest;
   readonly rows: Map<keyof GameRowMap, Map<string, ContentRow>>;
   readonly bag: {
