@@ -875,7 +875,7 @@ equipment viewmodel host, including off-hand tools, and leave with the level sco
 Edge rows retain every native boundary vertex; 129-point decimation is refused. A modern terrain collider is 257² and carries 257 samples per side, without resampling. When a 256-point neighbour meets a 257-point neighbour, the platform strip uses the sorted union of their native positions (511 points), so both exact boundaries survive.
 
 `creatures.brains` accepts `pursue`, `skirmisher`, `guardian`, `perch-hunter`,
-`ram-grazer`, `challenge-grazer`, `orbit-diver`, `patrol-diver`, `burst-flyer` and `script`
+`grazer`, `ram-grazer`, `challenge-grazer`, `orbit-diver`, `patrol-diver`, `burst-flyer` and `script`
 policies. The three native families use the strict schemas in `shardfile/brains`;
 their optional `thinkDivisor` defaults to six and must divide 60. Decisions run at
 that cadence, and the owning body recipe runs once per fixed step. The loader
@@ -891,6 +891,17 @@ an admitted module in `sim.scripts`, a `thinkDivisor` dividing 60, bounded
 accepted from this declaration. The factory derives a trusted `brain:<actorId>`
 alias per spawn and rejects collisions with actor, item and director handles.
 All aliases count toward the one `serverBudget.entities` allowance.
+
+The `grazer` archetype (SF82) selects a strict `pattern`: `wander-ram` or
+`circle-challenge`. Its flat fields, strike references, numeric bounds and optional
+six-tick `thinkDivisor` are exactly those of `ram-grazer` or `challenge-grazer`,
+respectively. No field from the other pattern is admitted. `@wildshard/format/grazers`
+defines `GrazerSchema`, `parseGrazer` and the pure `grazerPreset` canonicalization;
+`@wildshard/sdk/grazers` emits the validated row through `grazer(data)`.
+The existing legacy row names remain admitted presets of this one policy host.
+The full-schema lane/arc strike checks and existing trusted body recipes apply to
+both spellings before registration. Stable row ids, actor ids, decision cadence,
+RNG and continuation bytes remain identical when only the spelling is changed.
 
 The two grazer families use `shardfile/grazers` and the author adapter
 `@wildshard/sdk/grazers`. A ram grazer names a `rows.strikes` lane profile with

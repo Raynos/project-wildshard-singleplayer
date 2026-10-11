@@ -7,7 +7,7 @@ import type { SimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimPorts } from '../src/game/plugin/simulation';
 import { parseShardfile, shardfileRules, type Shardfile } from '../src/game/shardfile/schema';
-import { parseRamGrazer, parseChallengeGrazer } from '@wildshard/format/grazers';
+import { parseRamGrazer, parseChallengeGrazer, parseGrazer } from '@wildshard/format/grazers';
 import { scoredStrikes } from '../src/game/plugin/brain';
 import template from '../src/shards/_template/shard.config';
 import { expectSameSimSnapshot } from './fake/simSnapshot';
@@ -119,4 +119,41 @@ it('restores mutable strike and policy clocks without observations and replays t
     for (let tick = 0; tick < 10000; tick++) { sim.host.step(); restored.step(); }
     expect(suffix).toEqual(original); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim.host));
   } finally { sim.dispose(); restored?.dispose(); }
+});
+
+function parametricSource(): Shardfile {
+  const s = source();
+  s.creatures.brains = s.creatures.brains.map(row => row.kind === 'ram-grazer'
+    ? parseGrazer({ ...row, kind: 'grazer', pattern: 'wander-ram' })
+    : row.kind === 'challenge-grazer' ? parseGrazer({ ...row, kind: 'grazer', pattern: 'circle-challenge' }) : row);
+  return parseShardfile(s);
+}
+it('applies full-schema named-strike admission to both parametric grazer patterns', () => {
+  const s = parametricSource();
+  expect(s.creatures.brains.map(brain => brain.kind)).toEqual(['grazer', 'pursue', 'grazer']);
+  for (const id of [ram.strike, challenge.charge, challenge.close]) {
+    expect(() => parseShardfile({ ...s, rows: { ...s.rows, strikes: s.rows.strikes.filter(strike => strike.id !== id) } })).toThrow();
+  }
+  const invalid = structuredClone(s), ramStrike = invalid.rows.strikes.find(strike => strike.id === ram.strike);
+  if (ramStrike === undefined) throw new Error('Missing fixture strike');
+  ramStrike.windup = 0; expect(() => parseShardfile(invalid)).toThrow();
+});
+it('runs parametric rows byte-identically to old presets and accepts their full-host save without effects', () => {
+  const legacySource = source(), declared = parametricSource(), assets = new Map<string, Uint8Array>();
+  const legacyTrace: string[] = [], declaredTrace: string[] = [], suffix: string[] = [];
+  const legacy = createShardfileSim(legacySource, assets, options(legacySource, legacyTrace));
+  const parametric = createShardfileSim(declared, assets, options(declared, declaredTrace));
+  let restored: SimHost | undefined;
+  try {
+    for (let tick = 0; tick < 80; tick++) { legacy.host.step(); parametric.host.step(); }
+    expect(declaredTrace).toEqual(legacyTrace);
+    expectSameSimSnapshot(snapshotSimHost(parametric.host), snapshotSimHost(legacy.host));
+    restored = restoreSimHost(parametric.host.level, { rapier }, snapshotSimHost(legacy.host), host => {
+      bindShardfileSim(host, declared, assets, { ...options(declared, suffix), restoring: true });
+    });
+    expect(suffix).toEqual([]); declaredTrace.length = 0;
+    for (let tick = 0; tick < 1000; tick++) { parametric.host.step(); restored.step(); }
+    expect(suffix).toEqual(declaredTrace);
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(parametric.host));
+  } finally { legacy.dispose(); parametric.dispose(); restored?.dispose(); }
 });

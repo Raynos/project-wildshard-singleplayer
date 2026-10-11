@@ -8,7 +8,7 @@ import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 
 import { SkirmisherSchema, ScriptBrainSchema, GuardianSchema, PerchHunterSchema } from '@wildshard/format/brains';
 import { OrbitDiverSchema, PatrolDiverSchema, BurstFlyerSchema } from '@wildshard/format/flyers';
-import { RamGrazerSchema, ChallengeGrazerSchema } from '@wildshard/format/grazers';
+import { RamGrazerSchema, ChallengeGrazerSchema, GrazerSchema } from '@wildshard/format/grazers';
 import { GroupBrainSchema } from '@wildshard/format/groupBrains';
 import { CreaturesSchema } from '@wildshard/format/creatures';
 import { FlockSchema } from '@wildshard/format/crowds';
@@ -108,6 +108,7 @@ const wireRoots = {
   'flyers.OrbitDiver': OrbitDiverSchema,
   'flyers.PatrolDiver': PatrolDiverSchema,
   'flyers.BurstFlyer': BurstFlyerSchema,
+  'grazers.Grazer': GrazerSchema,
   'grazers.RamGrazer': RamGrazerSchema,
   'grazers.ChallengeGrazer': ChallengeGrazerSchema,
   'groupBrains.GroupBrain': GroupBrainSchema,

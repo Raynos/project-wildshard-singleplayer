@@ -30,3 +30,28 @@ committed; the pusher owns that refresh. No full suite or browser was started.
 No layer-pair rise: the shared law and the legacy presets live in the engine, already
 used by both Sky and Signal through the existing game row hosts. One public defining
 engine export is added. Existing frozen consumer paths remain unchanged.
+
+## Parametric row spelling
+
+`creatures.brains` now also accepts `kind: 'grazer'`, selecting `wander-ram` or
+`circle-challenge` with the existing flat parameters. Legacy names remain valid.
+The defining format canonicalizer is shared by full-shard strike admission and
+the native body installer. SDK author validation and JSON Schema use the same
+definition; no separate bounds or parser is introduced.
+
+The fixture checks both missing named strike references and zero ram windup at
+full-schema admission. Real Rapier bodies running the new spelling reproduce
+both old rows' complete host snapshots and callback order. A full host saved
+with old rows restores into parametric rows without observing, drawing RNG or
+executing body work, then reproduces a 1,000-tick suffix exactly.
+
+Row checks: 53 focused tests/4files GREEN3.58s; strict/layers/root touched typedlint
+and ratchet green. SF45 covers the full schema including the two new pattern
+branches;89 defining JSON documents regenerate deterministically. All four native
+witnesses re-recorded18.3s with payloads/outcomes byte-identical. No manifest-only
+change, full suite, physics walk or browser proof is committed/claimed here.
+
+New defining imports: game→format +1 (schema canonicalizer), SDK→format +3
+(parse/type/root references); existing game format-leaf consumers gain only symbols.
+These are author data and admission imports, with no render dependency or new runtime
+SDK facade. Frozen constructor paths and game/plugin elite/director hosts are untouched.

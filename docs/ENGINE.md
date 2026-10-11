@@ -3044,5 +3044,12 @@ they are parameter presets, preserving their row names, public observations, ins
 phases and byte-identical saved JSON. Wandering rams retain their three-dimensional
 notice distance and duration-before-yaw random draws; circular challengers retain their
 horizontal notice distance, timed face phase and ordered charge/close utility selection.
-The herd pattern and the other SF82 archetypes remain open; this slice adds no new wire
-row, species registration, collider or gameplay migration.
+The herd pattern and the other SF82 archetypes remain open. The additive row
+spelling below changes no species registration, collider or gameplay law.
+
+The matching author declaration is `@wildshard/format/grazers#GrazerSchema`:
+`kind: 'grazer'`, `pattern: 'wander-ram' | 'circle-challenge'`, with that preset's
+existing bounded flat tuning and strike ids. SDK `grazers.grazer(data)` validates
+without installing code. `grazerPreset` converts admitted data to the historical
+contract; the native installer and full-shard strike checks use this same pure
+mapping, so existing body ports and save bytes survive the spelling change.

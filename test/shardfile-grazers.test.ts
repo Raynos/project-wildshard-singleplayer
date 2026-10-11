@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseRamGrazer, parseChallengeGrazer } from '@wildshard/format/grazers';
+import { parseRamGrazer, parseChallengeGrazer, parseGrazer, grazerPreset } from '@wildshard/format/grazers';
 
 const ram = { id: 'fixture.ram', kind: 'ram-grazer', strike: 'fixture.ram.strike',
   grazeSpeed: 1.2, ramSpeed: 7.5, noticeRadius: 9, rimMargin: 2.5, fallDrop: 1.5,
@@ -23,5 +23,16 @@ describe('declared challenge grazer data', () => {
   it.each([{ walkSpeed: Infinity }, { noticeRadius: 41 }, { faceSeconds: 0 }, { close: challenge.charge },
     { recoveryField: challenge.windupField }, { thinkDivisor: 7 }, { field: 1 }])('refuses invalid or conflicting declarations: %j', patch => {
     expect(() => parseChallengeGrazer({ ...challenge, ...patch })).toThrow();
+  });
+});
+
+describe('parametric grazer declaration', () => {
+  it.each([[ram, 'wander-ram'], [challenge, 'circle-challenge']] as const)('canonicalizes each pattern to its exact legacy row', (preset, pattern) => {
+    const row = parseGrazer({ ...preset, kind: 'grazer', pattern });
+    expect(row.thinkDivisor).toBe(6);
+    expect(grazerPreset(row)).toEqual({ ...preset, thinkDivisor: 6 });
+  });
+  it.each([{ pattern: 'herd' }, { ramSpeed: 16 }, { wanderMinSeconds: 6 }, { thinkDivisor: 7 }, { charge: 'wrong.pattern' }])('refuses unsupported patterns, excessive tuning and cross-pattern fields: %j', patch => {
+    expect(() => parseGrazer({ ...ram, kind: 'grazer', pattern: 'wander-ram', ...patch })).toThrow();
   });
 });
