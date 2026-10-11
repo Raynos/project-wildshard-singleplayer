@@ -150,3 +150,9 @@ Their **complete products are BLOCKED ON SKINS (WAITING FOR OPUS)**: the current
 factory, AnimalView and game species views, then copies generated fixture outputs. These rig and geometry producers
 are graphical O work. Retained component proofs cannot authorize output or legacy deletion while that closure is
 open. Linux byte parity, the build and boot gates also remain required for a subsequent per-output promotion.
+
+Nine's complete portal-entry JSON job uses the SDK's authoring-only source resolver and JSON driver. Its input list
+contains the entry scene, its data rows and the SDK/format closure; it no longer loads the simulation resolver or
+panel renderer. The unchanged veil literal is checked where the native page consumes it. The entry JSON retains its
+original pinned hash, and a fresh runtime/legacy/cache/all-output-deleted clean room rebuilds it exactly. Nine's
+complete shard product remains a separate gate; this component does not authorize any deletion.

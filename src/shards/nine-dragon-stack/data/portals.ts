@@ -3,7 +3,6 @@
 // ring portals (@wildshard/sdk/portals/ringPortals, portals/walkInRide, portals/rideVeil). Heights are over the square's
 // datum (layout.ts Y0).
 import { NINE_FLOOR_PLAN } from './floorPlan';
-import type { PanelNode } from '@wildshard/sdk/panels';
 
 /** the ring's radius to its tube's centre, the tube's radius, and how high its centre floats over the floor */
 export const RING = { r: 2.1, tube: 0.16, lift: 2.75 } as const;
@@ -46,4 +45,4 @@ export const PORTAL_FLOORS = NINE_FLOOR_PLAN.ids;
 export const PORTAL_VEIL = { cls: 'nd-portal-veil', style: {
   position: 'absolute', inset: '0', pointerEvents: 'none', opacity: '0', display: 'none', zIndex: '60',
   background: 'radial-gradient(circle at 50% 50%,#2a1648 0%,#0a0612 70%)',
-} } satisfies PanelNode;
+} } as const;
