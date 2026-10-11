@@ -719,11 +719,11 @@ export class Game {
     return this.viewmodel.stage(owner);
   }
 
-  /** Prepare newly streamed roots before exposure on WebKit, using the allocated composer target.
-   * Early boot retains ordinary whole-world preparation; other browsers retain their existing path. */
+  /** Prepare newly streamed roots before exposure, using the allocated composer target.
+   * Early boot retains ordinary whole-world preparation. */
   async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean): Promise<void> {
     const composer = this._composer;
-    if (composer === null || !navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent)) return;
+    if (composer === null) return;
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
     const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.engineScope, () => this.frameCount, current) : undefined;
     await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, current, pause,

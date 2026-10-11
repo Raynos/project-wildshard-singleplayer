@@ -116,6 +116,8 @@ export interface GridSessionHost {
   readonly renderer?: Renderer;
   /** Prepare an admitted far view while hidden, before its budgeted visible upload. */
   readonly prepareFar?: (view: FarProxyView) => Promise<void>;
+  /** Prepare an admitted, detached ring tile before its budgeted visible upload. */
+  readonly prepareTile?: (tile: PreparedRingTile) => Promise<void>;
 }
 /** What each cell shows today, for the readout and the report. */
 export type GridCellShows = 'playing' | 'frozen' | 'far proxy' | 'loading';
@@ -150,10 +152,10 @@ export interface GridSessionState {
 }
 
 /** The shardfile neighbours' L1 / L0 tiles (sources load late: until then the catalogue has no tile and the far proxy draws). */
-function neighbourTiles(scope: Scope): { instances: Map<string, ClientRingInstance>; ports: RingPorts<PreparedRingTile> } {
+function neighbourTiles(scope: Scope, prepare: (tile: PreparedRingTile) => Promise<void>): { instances: Map<string, ClientRingInstance>; ports: RingPorts<PreparedRingTile> } {
   const instances = new Map<string, ClientRingInstance>(), decoder = new TileDecoder();
   scope.onDispose(() => { decoder.dispose(); });
-  return { instances, ports: clientRingPorts(instances, { scope, decoder }) };
+  return { instances, ports: clientRingPorts(instances, { scope, decoder, prepare }) };
 }
 
 /** The far proxy and its row, fetched from the shard's baked folder (`public/assets/baked/<slug>/far.*`). */
@@ -414,12 +416,13 @@ export class GridSession {
     // one late system for the grid (the page's onLate takes one label): the alive neighbours, then the one frame's weights
     this.panels = new NeighbourPanels({ scope: host.scope, simulation: (id) => this.live?.simulation(id) });
     host.frame?.onLate((dt) => { this.life.late(dt); this.panels.late(); frame?.frame(); });
-    const tiles = neighbourTiles(host.scope), tileCost = clientRingCatalogue(tiles.instances);
+    const tiles = neighbourTiles(host.scope, async (tile) => {
+      // Patch the final shader identity before preparation; no live parent or visibility changes while it yields.
+      horizon.patch(tile.group, 'outside');
+      await host.prepareTile?.(tile);
+    }), tileCost = clientRingCatalogue(tiles.instances);
     this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000 : tileCost(id, level, x, z)),
-      levelPorts<FarPrepared, PreparedRingTile>(farPorts, { ...tiles.ports,
-        // G321 part 4: a ring tile's materials may be its shard's family materials, shared with that shard's live cell, so
-        // they fade only where a fragment stands outside the owning cell; patched as the tile arrives, before it draws
-        fetch: (tile, report) => { tiles.ports.fetch(tile, (result) => { if (!(result instanceof Error)) horizon.patch(result.group, 'outside'); report(result); }); } }));
+      levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports));
     if (host.renderer !== undefined) void this.admitTiles(host.renderer, roots, tiles.instances);
     host.scope.onDispose(() => {
       this.rings.dispose();

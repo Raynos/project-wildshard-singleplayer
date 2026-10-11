@@ -140,13 +140,55 @@ export function programObjectKey(o: BatchedLike, positionOnly = false): string {
     `|${positionOnly ? '' : `${a['uv1'] ? 1 : 0}${a['uv2'] ? 1 : 0}${a['uv3'] ? 1 : 0}${a['tangent'] ? 1 : 0}${a['color'] ? 1 : 0}${a['normal'] ? 1 : 0}`}|${morph}`;
 }
 
-/** The program a material last compiled to (three's material properties), or undefined; identity only. */
-function currentProgram(renderer: Renderer, material: THREE.Material): unknown {
+function materialProperties(renderer: Renderer, material: THREE.Material): object | undefined {
   // Test doubles of the renderer carry no property store.
   const store: unknown = Reflect.get(renderer, 'properties');
   const get: unknown = typeof store === 'object' && store !== null ? Reflect.get(store, 'get') : undefined;
   const properties: unknown = typeof get === 'function' ? Reflect.apply(get, store, [material]) : undefined;
-  return typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'currentProgram') : undefined;
+  return typeof properties === 'object' && properties !== null ? properties : undefined;
+}
+
+/** The program a material last compiled to (three's material properties), or undefined; identity only. */
+function currentProgram(renderer: Renderer, material: THREE.Material): unknown {
+  const properties = materialProperties(renderer, material);
+  return properties === undefined ? undefined : Reflect.get(properties, 'currentProgram');
+}
+
+/** compile() selects its new program on the borrowed material. Keep the last real draw's selection while
+ * that variant links across painted waits; retain the expanded program cache for its later real use. */
+function holdDrawnPrograms(renderer: Renderer, root: THREE.Object3D): () => void {
+  const held: { material: THREE.Material; properties: object; fields: Map<PropertyKey, unknown>;
+    uniforms: { uniform: object; value: unknown }[] }[] = [];
+  const seen = new Set<THREE.Material>();
+  root.traverse(object => {
+    for (const material of materialsOf(object)) {
+      if (seen.has(material)) continue;
+      seen.add(material);
+      const properties = materialProperties(renderer, material);
+      // __version is set by setProgram on a real draw, not by compile. Never restore an unrendered variant.
+      if (properties === undefined || Reflect.get(properties, '__version') !== material.version ||
+        Reflect.get(properties, 'currentProgram') === undefined) continue;
+      const fields = new Map<PropertyKey, unknown>();
+      for (const key of Reflect.ownKeys(properties)) if (key !== 'programs') fields.set(key, Reflect.get(properties, key));
+      const uniforms: { uniform: object; value: unknown }[] = [];
+      const values: unknown = Reflect.get(properties, 'uniforms');
+      if (typeof values === 'object' && values !== null) for (const key of Reflect.ownKeys(values)) {
+        const uniform: unknown = Reflect.get(values, key);
+        if (typeof uniform === 'object' && uniform !== null && Object.hasOwn(uniform, 'value')) {
+          uniforms.push({ uniform, value: Reflect.get(uniform, 'value') });
+        }
+      }
+      held.push({ material, properties, fields, uniforms });
+    }
+  });
+  return () => {
+    for (const { material, properties, fields, uniforms } of held) {
+      if (materialProperties(renderer, material) !== properties) continue;
+      for (const key of Reflect.ownKeys(properties)) if (key !== 'programs' && !fields.has(key)) Reflect.deleteProperty(properties, key);
+      for (const [key, value] of fields) Reflect.set(properties, key, value);
+      for (const { uniform, value } of uniforms) Reflect.set(uniform, 'value', value);
+    }
+  };
 }
 
 /** How many programs the renderer holds (0 for a test double without `info.programs`). */
@@ -631,6 +673,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
     const environment = job.target?.environment ?? null;
+    const restoreDrawn = isolateImageUploads ? holdDrawnPrograms(renderer, job.root) : undefined;
     try {
       if (job.fogOff && job.target) job.target.fog = null;
       if (job.environment !== undefined && job.target) job.target.environment = job.environment;
@@ -639,6 +682,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
       job.root.traverse(object => { for (const material of materialsOf(object)) jobPrograms.add(currentProgram(renderer, material)); });
     } finally {
+      restoreDrawn?.();
       renderer.setRenderTarget(prevRt); renderer.toneMapping = prevTone;
       if (job.fogOff && job.target) job.target.fog = fog;
       if (job.environment !== undefined && job.target) job.target.environment = environment;

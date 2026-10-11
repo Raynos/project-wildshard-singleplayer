@@ -6,7 +6,7 @@ import { expect, it } from 'vitest';
 import { Box3, Group, Mesh, MeshStandardMaterial, Vector3, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { RenderRings } from '../src/game/grid/rings';
+import { RenderRings, type RingTile } from '../src/game/grid/rings';
 import { TileDecoder } from '../src/game/grid/tileDecoder';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { clientRingCatalogue, clientRingPorts, type PreparedRingTile } from '../src/game/shardfile/clientRings';
@@ -21,6 +21,53 @@ const assets = new Map(source.files.map((file) => [file.hash, new Uint8Array(rea
 const options = { base: 'https://shards.test/template/shard.json', offline: false, firstParty: true,
   fetch: (url: string): Promise<Response> => { const bytes = assets.get(url.split('/').at(-1) ?? ''); return Promise.resolve(bytes === undefined ? new Response(null, { status: 404 }) : new Response(bytes.slice())); },
   hash: (bytes: Uint8Array): Promise<string> => Promise.resolve(createHash('sha256').update(bytes).digest('hex')) };
+
+const coarseTile: RingTile = { key: 'template-solo:l1/0/0', instance: 'template-solo', level: 'l1', x: 0, z: 0 };
+
+it.each(['publish', 'reject', 'retire'] as const)('fences a real decoded tile before publication: %s', async (outcome) => {
+  const scope = new Scope('prepared-template-rings'), root = new Group(), decoder = new TileDecoder();
+  const family = scope.own(new MeshStandardMaterial({ vertexColors: true }));
+  const views = clientTileViews({ terrain: source.terrain?.family ?? null, materials: new Map([['pbr', family]]), textures: new Map() });
+  const instances = new Map([['template-solo', { source, assets: new ClientAssets(source, assets, options), root, views }]]);
+  let release = (): void => undefined, staged: PreparedRingTile | undefined, reports = 0;
+  const barrier = new Promise<void>((resolve) => { release = resolve; });
+  const ports = clientRingPorts(instances, { scope, decoder, prepare: async (tile) => {
+    staged = tile;
+    await barrier;
+    if (outcome === 'reject') throw new Error('Rejected shader preparation');
+  } });
+  try {
+    const reported = new Promise<PreparedRingTile | Error>((resolve) => {
+      ports.fetch(coarseTile, (result) => { reports++; resolve(result); });
+    });
+    await expect.poll(() => staged).toBeDefined();
+    if (staged === undefined) throw new Error('Real terrain tile did not reach preparation');
+    const built = meshes(staged.group);
+    expect(built.length).toBeGreaterThan(0);
+    expect(built[0]?.material).toBe(family);
+    expect(staged.group.parent).toBeNull();
+    expect(root.children).toHaveLength(0);
+    expect(reports).toBe(0);
+    if (outcome === 'retire') staged.scope.dispose();
+    release();
+    const result = await reported;
+    expect(reports).toBe(1);
+    if (outcome === 'publish') {
+      if (result instanceof Error) throw result;
+      expect(result).toBe(staged);
+      expect(meshes(result.group)).toEqual(built);
+      const view = ports.upload(coarseTile, result);
+      expect(root.children).toEqual([staged.group]);
+      view.dispose();
+    } else {
+      if (!(result instanceof Error)) throw new Error('Retired or rejected tile was published');
+      expect(result.message).toContain(outcome === 'reject' ? 'Rejected shader preparation' : 'tile dropped during preparation');
+      expect(staged.scope.disposed).toBe(true);
+    }
+    expect(root.children).toHaveLength(0);
+    expect(scope.census.geometries).toBe(0);
+  } finally { release(); decoder.dispose(); scope.dispose(); }
+});
 
 it('streams the template shardfile through prepared ring tiles: not ready before full coarse coverage, no overlap, unloads to nothing', async () => {
   const scope = new Scope('template-rings'), root = new Group(), family = scope.own(new MeshStandardMaterial({ vertexColors: true }));

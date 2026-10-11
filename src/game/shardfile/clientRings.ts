@@ -34,7 +34,9 @@ export function clientRingCatalogue(instances: ReadonlyMap<string, { readonly so
 }
 
 /** The rings' ports for these instances; every prepared tile's scope is a child of `scope`. */
-export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstance>, ports: { scope: Scope; decoder: TileDecoder }): RingPorts<PreparedRingTile> {
+export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstance>, ports: { scope: Scope; decoder: TileDecoder;
+  /** Prepare the detached, fully built tile before publication; rejection retires only this tile's scope. */
+  prepare?: (tile: PreparedRingTile) => Promise<void> }): RingPorts<PreparedRingTile> {
   const prepare = async (tile: RingTile, instance: ClientRingInstance, scope: Scope, group: Group): Promise<PreparedRingTile> => {
     const key = lodKey(tile); if (key === null) throw new Error('shardfile rings: far proxies are the far view\'s (SF23)');
     const tiles: ResidentTile[] = [], { source, assets, views } = instance;
@@ -60,7 +62,11 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
     const scope = ports.scope.child(`ring:${tile.key}`), group = new Group(); group.name = `ring:${tile.key}`;
     scope.onDispose(() => { group.removeFromParent(); });
     let result: PreparedRingTile | Error;
-    try { result = await prepare(tile, instance, scope, group); }
+    try {
+      result = await prepare(tile, instance, scope, group);
+      await ports.prepare?.(result);
+      if (scope.disposed) throw new Error('shardfile rings: tile dropped during preparation');
+    }
     catch (error) { scope.dispose(); result = error instanceof Error ? error : new Error(String(error)); }
     report(result);
   };

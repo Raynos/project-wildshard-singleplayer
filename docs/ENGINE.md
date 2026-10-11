@@ -842,7 +842,7 @@ KHR completion is checked before uniforms are resolved, and shader-error diagnos
 A two-sided material can still issue two variants; one native query can still overshoot. Desktop and
 initial boot retain their ordinary job grouping and time budget.
 
-For a running WebKit game, `Game.warmEnteredFrame` and `Game.warmSceneRoots` supply `waitForDrawnFrame` as the
+For a running WebKit game, `Game.warmEnteredFrame` supplies `waitForDrawnFrame` as the
 `pause` callback. It waits for a fresh completed game draw and a paint opportunity; a capped/skipped browser rAF
 Entered-frame diagnostics are scalar: `Game.entryPreparation` records compile/link/upload, composer,
 parked-draw and offscreen-draw elapsed times and completed units, including their painted waits. It holds
@@ -862,7 +862,8 @@ Live WebKit parked draws can share the same bounded construction slice through `
 
 cannot release the next preparation batch. Scope retirement or an obsolete owner rejects and clears its scheduling
 handles. It never advances simulation or forces a draw. Initial boot (no completed draw yet) and desktop keep the
-ordinary paint barrier. `prepareSceneRoots` and `precompileLevel` accept the same optional callback.
+ordinary paint barrier. Newly streamed roots use the completed-draw barrier on every browser through
+`Game.warmSceneRoots`. `prepareSceneRoots` and `precompileLevel` accept the same optional callback.
 
 **Resident CPU preparation.** `prepareSceneRoots` runs owner-scoped render-data preparations before
 compiling/uploading a newly resident root. The camera is converted to each registered root's local frame.
@@ -2664,10 +2665,24 @@ ordinary sliced compile/link/upload path for newly resident roots against both
 the current page and its declared exterior lighting. It borrows the real
 materials, leaves the live scene untouched, and fences work to the resident
 owner. `Game.warmSceneRoots(roots, current)` supplies the real composer target
-on WebKit; early boot and Chromium retain ordinary whole-world preparation.
+on every browser; early boot retains ordinary whole-world preparation.
 The grid's optional `prepareFar(view)` port prepares a hidden, already-admitted
 proxy during fetch. Its upload exposes the same mesh and material; cancellation
 or failure disposes the staged view with its existing ring lease.
+
+The grid's `prepareTile(tile)` port prepares newly decoded neighbour terrain and
+props before the ring publishes them. Horizon shader patches run first. The
+detached tile keeps its original mesh/material identities and residency lease;
+preparation failure or retirement disposes only its own scope. Current and
+declared exterior lighting variants use the same sliced compile/link/upload
+path, so a streamed neighbour does not first compile during its visible upload.
+
+During live preparation, the borrowed material's renderer property selection and
+uniform bindings return to its last actual draw before yielding. The expanded
+program cache remains, and the issued variant resolves through the existing
+parallel-link queue. A future lighting job cannot leave an unfinished program
+selected for an already-visible mesh; new, unrendered materials keep normal
+preparation. Scope retirement and compile failures retain the same fence.
 
 
 `ViewmodelRoot.stage(owner)` routes only that owner's newly added models into
