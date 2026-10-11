@@ -1,10 +1,17 @@
-import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, WISP_HOMES, type Home } from './layout';
+import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, WISP_HOMES, APOTHEM, type Home } from './layout';
 
 const flying = (id: string, kind: string, look: string, home: Home) => ({ id, kind, look, at: [home.x + home.r, home.z] as const, yaw: 0 });
-/** Finite bodies only: runtime keeps flight homes, wake views, deferred WORLD floors and spawn order. */
-export const SKY_SPAWNS = { homes: [], bosses: [flying('far.roc', 'stormRoc', 'storm', ROC)], actors: [
-  ...RAY_HOMES.map((home, index) => flying(`far.ray.${String(index)}`, 'driftRay', 'dusk', home)),
-  ...ROOST_RAYS.map((home, index) => flying(`far.roost.${String(index)}`, 'driftRay', 'dusk', home)),
-  ...WISP_HOMES.map((home, index) => flying(`far.wisp.${String(index)}`, 'galeWisp', 'gale', home)),
-  ...GOATS.map((goat, index) => ({ id: `far.goat.${String(index)}`, kind: 'skyGoat', look: 'cloud', at: [goat.isle.x + goat.dx, goat.isle.z + goat.dz] as const, yaw: 0 })),
-] };
+/** Actual installation order and home of each finite native body; goats land after install-time registrations. */
+export const SKY_FLOCK_ROWS = [
+  ...RAY_HOMES.map((home, index) => Object.assign(flying(`far.ray.${String(index)}`, 'driftRay', 'dusk', home), { home })),
+  ...ROOST_RAYS.map((home, index) => Object.assign(flying(`far.roost.${String(index)}`, 'driftRay', 'dusk', home), { home })),
+  ...WISP_HOMES.map((home, index) => Object.assign(flying(`far.wisp.${String(index)}`, 'galeWisp', 'gale', home), { home })),
+  { ...flying('far.roc', 'stormRoc', 'storm', ROC), home: ROC },
+  ...GOATS.map((goat, index) => ({ id: `far.goat.${String(index)}`, kind: 'skyGoat', look: 'cloud',
+    at: [goat.isle.x + goat.dx, goat.isle.z + goat.dz] as const, yaw: 0,
+    home: { x: goat.isle.x, z: goat.isle.z, r: goat.isle.r * APOTHEM, y: goat.isle.y } })),
+];
+
+/** The admitted spawn closure uses the same authored rows, retaining its original actor and boss list order. */
+export const SKY_SPAWNS = { homes: [], bosses: SKY_FLOCK_ROWS.filter(row => row.kind === 'stormRoc').map(({ home: _home, ...row }) => row),
+  actors: SKY_FLOCK_ROWS.filter(row => row.kind !== 'stormRoc').map(({ home: _home, ...row }) => row) };

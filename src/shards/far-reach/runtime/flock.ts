@@ -5,9 +5,8 @@ import { killBelowWorld } from '@wildshard/engine/entities/killHeight';
 import { castRay } from '@wildshard/engine/physics/query';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
-import { SKY_SPAWNS } from '../data/spawns';
-import { DECK, GOATS, RAY_HOMES, ROC, ROOST_RAYS, WISP_HOMES, type Home } from '../data/layout';
-import { apothem } from '../layout';
+import { SKY_FLOCK_ROWS } from '../data/spawns';
+import { DECK, type Home } from '../data/layout';
 import { flockBrain, type FlockBrain } from './flockBrains';
 
 /** The death plane under the islands: manifest `world.killY` (DECK - 24). The headless test holds the two equal (the
@@ -57,18 +56,10 @@ export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Rea
   land: () => void;
 } {
   host.useBodyBands({ rate: () => SKY_TICK_RATE });
-  const rng = new Rng(ports.seed + 31), rows = [...SKY_SPAWNS.actors, ...SKY_SPAWNS.bosses];
-  const homes = new Map<string, Home>([
-    ...RAY_HOMES.map((home, i) => [`far.ray.${String(i)}`, home] as const), ...ROOST_RAYS.map((home, i) => [`far.roost.${String(i)}`, home] as const),
-    ...WISP_HOMES.map((home, i) => [`far.wisp.${String(i)}`, home] as const), ['far.roc', ROC] as const,
-    ...GOATS.map((goat, i) => [`far.goat.${String(i)}`, { x: goat.isle.x, z: goat.isle.z, r: apothem(goat.isle), y: goat.isle.y }] as const)]);
-  // shipping spawn order: the free ray, the roost rays, the wisps, the Roc, then the deferred goats
-  const order = [...RAY_HOMES.map((_, i) => `far.ray.${String(i)}`), ...ROOST_RAYS.map((_, i) => `far.roost.${String(i)}`),
-    ...WISP_HOMES.map((_, i) => `far.wisp.${String(i)}`), 'far.roc', ...GOATS.map((_, i) => `far.goat.${String(i)}`)];
-  if (order.length !== BODY_COUNT || rows.length !== BODY_COUNT) throw new Error('Sky declares 13 finite bodies');
-  const bodies: Body[] = order.map(id => {
-    const row = rows.find(r => r.id === id), home = homes.get(id);
-    if (row === undefined || home === undefined) throw new Error(`Missing declared Sky body ${id}`);
+  const rng = new Rng(ports.seed + 31), rows = SKY_FLOCK_ROWS;
+  if (rows.length !== BODY_COUNT || new Set(rows.map(row => row.id)).size !== BODY_COUNT) throw new Error('Sky declares 13 finite bodies');
+  const bodies: Body[] = rows.map(row => {
+    const { id, home } = row;
     const spec = ports.specs.get(row.kind), range = ports.ranges.get(row.kind);
     if (spec === undefined || range === undefined) throw new Error(`Missing native Sky recipe ${row.kind}`);
     // the height is set at the spawn: a goat's floor, a flyer's altitude over the world (or over its floor)
