@@ -8,7 +8,7 @@ import { retainCompressedMipmaps, finalizeCompressedMipmaps, assertCompressedMip
 type UploadTarget = Pick<Renderer, 'initTexture' | 'getContext' | 'properties' | 'renderBufferDirect'>;
 interface UploadState {
   tail: Promise<void>;
-  sharedPaint: boolean;
+  sharedPaint: boolean | symbol;
   pending: WeakMap<THREE.Texture, { version: number; signature: string; promise: Promise<void> }>;
   final: WeakSet<THREE.Texture>;
   failed: WeakMap<THREE.Texture, { allocation: unknown; error: Error }>;
@@ -64,9 +64,10 @@ export function compressedUploadsActive(renderer: UploadTarget): boolean { retur
  * Concurrent warm-up and late-load callers share one queue. A consumer may bind the texture only after this resolves.
  * Already resident versions reuse the result; cancellation and graphics faults never publish readiness.
  * Opt-in shared paints reuse a successful upload's trailing paint before the next upload, never its upload frame.
+ * A symbol restricts sharing to one consecutive upload group; ordinary requests end that group.
  * Loader fences retain mips through final sampler configuration and the first successful real draw. */
 export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.Texture,
-  current: () => boolean = () => true, final = true, sharePaints = false): Promise<void> {
+  current: () => boolean = () => true, final = true, sharePaints: boolean | symbol = false): Promise<void> {
   if (!(texture instanceof THREE.CompressedTexture)) return Promise.resolve();
   try { assertCompressedMipmapsUnchanged(texture); } catch (error) { return Promise.reject(error instanceof Error ? error : new Error(String(error))); }
   let state = states.get(renderer);
@@ -102,7 +103,7 @@ export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.T
   try { if (resident()) { publish(); return Promise.resolve(); } }
   catch (error) { return Promise.reject(error instanceof Error ? error : new Error(String(error))); }
   const promise = queue.tail.then(async () => {
-    const reusePaint = sharePaints && queue.sharedPaint;
+    const reusePaint = sharePaints !== false && queue.sharedPaint === sharePaints;
     queue.sharedPaint = false;
     check(); if (!reusePaint) await frame(); check();
     // Another caller or a draw may have uploaded this version while it waited in the queue.

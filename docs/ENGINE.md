@@ -833,6 +833,8 @@ During WebKit entered-world preparation, `Game.warmEnteredFrame` requests isolat
 The default-off Developer build-pacing value `shared-paints` passes
 `shareUploadPaints` to `precompileLevel` (the last argument of `runPrecompile`).
 `uploadCompressedTexture` accepts the same opt-in as its fifth argument.
+A symbol limits sharing to one consecutive group; preparation starts a new
+group after an image upload and for each new inventory.
 Only a successful upload's trailing paint can become the next upload's leading
 paint. Uploads still occupy distinct frames and retain every GL error, owner,
 version, context and mip fence. Ordinary callers keep two paints per upload.

@@ -8,10 +8,11 @@ The renderer-wide queue may share a successful compressed upload's trailing
 paint as the next opted-in upload's leading paint. Each upload still occupies
 a distinct frame, performs its own GL error round trip, fences owner/context/
 version/sampler changes, and retains mips until the first successful real draw.
-Ordinary requests keep the original two-paint path. Failure or cancellation
+Ordinary requests keep the original two-paint path. Each preparation uses
+a distinct scalar group; an intervening image upload starts a fresh group. Failure or cancellation
 cannot supply a shared boundary to the next queued request.
 
-Focused evidence: 105 checks across compressed uploads, real precompile
+Focused evidence: 105 initial checks plus a mixed-upload regression across compressed uploads, real precompile
 forwarding, borrowed-resource cancellation, live shader slices, image upload
 budgets, settings and Debug hygiene. Root strict and touched typed lint pass.
 A six-array preparation uses seven boundary paints instead of twelve, with

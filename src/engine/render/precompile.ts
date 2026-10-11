@@ -777,6 +777,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // op-hitch32: with an upload budget, live preparation batches image uploads per frame under it: several instead of one
   // when isolated, and a predicted overshoot waits for the next frame instead of the 12 ms check after the fact.
   const batch = uploadBudget !== undefined ? newUploadBatch(uploadBudget) : undefined;
+  let compressedPaints: boolean | symbol = shareUploadPaints ? Symbol('compressed-upload-group') : false;
   for (const [i, tex] of uploadTextures.entries()) {
     checkCurrent();
     const compressed = tex instanceof THREE.CompressedTexture;
@@ -786,9 +787,13 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const tUpload = performance.now();
     if (!retired.has(tex)) {
       if (compressed) {
-        try { await uploadCompressedTexture(renderer, tex, () => current() && !retired.has(tex), true, shareUploadPaints); }
+        try { await uploadCompressedTexture(renderer, tex, () => current() && !retired.has(tex), true, compressedPaints); }
         catch (error) { if (!retired.has(tex)) throw error; }
-      } else renderer.initTexture(tex);
+      } else {
+        // An image upload breaks the consecutive compressed group: require a fresh leading paint.
+        if (shareUploadPaints) compressedPaints = Symbol('compressed-upload-group');
+        renderer.initTexture(tex);
+      }
     }
     onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
     if (compressed) { checkCurrent(); tSlice = performance.now(); batch?.reset(); }
