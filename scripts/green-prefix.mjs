@@ -18,7 +18,7 @@
 // exact commands. Unknown/build/browser failures refuse selection. Every prefix still runs the complete gate.
 //
 //   node scripts/green-prefix.mjs [--witness] <tip> <output-file>    prints a sha, or nothing (reason on stderr)
-// `--retry-current-tip` only identifies a committed descendant test edit; the caller must regenerate and gate it.
+// `--retry-current-tip` only identifies a committed descendant repair edit; the caller must regenerate and gate it.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -74,19 +74,42 @@ export function newestPassing(candidates, passes) {
 const git = (/** @type {string} */ root, /** @type {string[]} */ args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
 const log = (/** @type {string} */ line) => { process.stderr.write(`green-prefix: ${line}\n`); };
 
-/** A committed descendant that edits a named failing test deserves one fresh complete gate, never a green inference.
- * Only Vitest-only failures qualify; additions/deletions and working edits cannot supply this retry.
+/** The exact plain formatter diagnostics in the failed lint section. Unknown output refuses retry.
+ * @param {string} out @returns {string[]} */
+export function failingLintFiles(out) {
+  const sections = out.split('── oxlint ──\n');
+  const section = sections.at(1);
+  if (sections.length !== 2 || section === undefined) return [];
+  const boundary = section.search(/^vercel-gate:/mu);
+  const body = boundary < 0 ? section : section.slice(0, boundary);
+  const lines = body.split('\n').map(line => line.trim()).filter(Boolean);
+  /** @type {Set<string>} */
+  const files = new Set();
+  for (const line of lines) {
+    const match = /^([a-zA-Z0-9_./-]+\.[cm]?[jt]sx?):[1-9][0-9]*:[1-9][0-9]*: error \S/u.exec(line);
+    const file = match?.[1];
+    if (file === undefined) return [];
+    files.add(file);
+  }
+  return [...files].sort((a, b) => a.localeCompare(b));
+}
+
+/** A committed descendant editing a named failure earns one fresh complete gate, never a green inference.
+ * Only Vitest-only or lint-only failures with known diagnostics qualify; working edits and additions/deletions refuse.
  * @param {string} root @param {string} tip @param {string} out @returns {string | null} */
-export function newerTestFix(root, tip, out) {
-  const steps = failedSteps(out), files = failingTestFiles(out);
-  if (steps.length !== 1 || steps[0] !== 'vitest' || files.length === 0) return null;
-  if (files.some(file => !file.startsWith('test/') || file.split('/').some(part => part === '..' || part === '.' || part === ''))) return null;
+export function newerGateFix(root, tip, out) {
+  const steps = failedSteps(out);
+  if (steps.length !== 1) return null;
+  const step = steps[0];
+  const files = step === 'vitest' ? failingTestFiles(out) : step === 'oxlint' ? failingLintFiles(out) : [];
+  if (files.length === 0) return null;
+  if (files.some(file => file.startsWith('/') || (step === 'vitest' && !file.startsWith('test/')) || file.split('/').some(part => part === '..' || part === '.' || part === ''))) return null;
   try {
     const red = git(root, ['rev-parse', `${tip}^{commit}`]), current = git(root, ['rev-parse', 'main^{commit}']);
     if (red === current || spawnSync('git', ['merge-base', '--is-ancestor', red, current], { cwd: root }).status !== 0) return null;
     const changes = git(root, ['diff', '--no-renames', '--name-status', red, current, '--', ...files.map(file => `:(literal)${file}`)]).split('\n').filter(Boolean);
     if (changes.length === 0 || changes.some(change => !change.startsWith('M\t'))) return null;
-    log(`${current.slice(0, 9)} edits a failing test after ${red.slice(0, 9)}: regenerate and gate once before prefix search`);
+    log(`${current.slice(0, 9)} edits a named ${step} failure after ${red.slice(0, 9)}: regenerate and gate once before prefix search`);
     return current;
   } catch { return null; } // An unreadable commit or diff cannot authorize a retry.
 }
@@ -267,6 +290,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   if (tip === '' || file === '' || !existsSync(file)) { console.error('usage: green-prefix.mjs [--witness|--retry-current-tip] <tip> <gate-or-regeneration-output-file>'); process.exit(64); }
   const root = git(process.cwd(), ['rev-parse', '--show-toplevel']);
   const out = readFileSync(file, 'utf8');
-  const sha = retry ? newerTestFix(root, tip, out) : greenPrefix(root, tip, out, witness ? 'witness' : 'vitest');
+  const sha = retry ? newerGateFix(root, tip, out) : greenPrefix(root, tip, out, witness ? 'witness' : 'vitest');
   if (sha !== null) console.log(sha);
 }

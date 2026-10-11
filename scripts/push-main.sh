@@ -39,13 +39,26 @@ record() { printf '{"at":%s,"tip":"%s","ahead":%s,"regen":%s,"push":%s,"rc":%s}\
 # a gate, or a refused witness payload of the regeneration) over the unpushed commits and names the newest pushable
 # commit before the break; gate it and push it when green (twice at most: a prefix's own gate can name other files).
 # GREEN_PREFIX=0 turns it off. The caller still exits red, so auto-push pings the lane of the first bad commit.
+fresh_retry=0
+# A committed named repair earns one complete regeneration/gate retry per push, including after prefix probing.
+retry_latest() {
+  local newer
+  [ "$fresh_retry" = 0 ] && [ "$push_round" != 6 ] || return 1
+  newer="$(node scripts/green-prefix.mjs --retry-current-tip "$1" "$2")"
+  [ -n "$newer" ] || return 1
+  fresh_retry=1
+  echo "push-main: committed repair at ${newer:0:9}; retrying regeneration and complete gate once"
+}
 try_prefix() {
-  local mode="$1" red_tip="$2" out="$3" prefix prc pahead t1 flag=()
+  local mode="$1" red_tip="$2" initial_red="$2" out="$3" prefix prc pahead t1 flag=()
   [ "$mode" = witness ] && flag=(--witness)
   for _p in 1 2; do
     [ "${GREEN_PREFIX:-1}" != 0 ] && [ -f scripts/green-prefix.mjs ] || return 0
     prefix="$(node scripts/green-prefix.mjs ${flag[@]+"${flag[@]}"} "$red_tip" "$out")"
     [ -n "$prefix" ] || return 0
+    # A repair can land during the probes too. Compare with the original gated
+    # red, so an already-tested descendant of an older prefix is not a repair.
+    if [ "$mode" != witness ] && retry_latest "$initial_red" "$out"; then return 75; fi
     t1=$SECONDS
     bash scripts/vercel-tree-gate.sh "$prefix" > "$out" 2>&1; prc=$?
     sed 's/^/  prefix: /' "$out"
@@ -60,7 +73,6 @@ try_prefix() {
     red_tip="$prefix"; flag=() # the prefix's own gate went red: bisect its failing files below it
   done
 }
-fresh_retry=0
 for push_round in 1 2 3 4 5 6; do
   # SF6b: one clean committed export and private-index regeneration while this pusher holds the lock.
   # Increases require GENERATED_APPROVAL_FILE with the coordinator's exact reviewed receipt.
@@ -92,20 +104,19 @@ for push_round in 1 2 3 4 5 6; do
     bash scripts/vercel-tree-gate.sh "$tip" 2>&1 | tee "$gout"; rc=${PIPESTATUS[0]}
     if [ "$rc" != 0 ]; then
       record "$tip" "$ahead" "$regen" "$((SECONDS - t0))" "$rc"
-      # One committed test repair may have landed while this old tip was gated.
+      # One committed named repair may have landed while this old tip was gated.
       # Regenerate latest main and run the complete gate before spending exports
       # on historical prefixes. An edit is never proof, and the six-round bound
       # and ordinary red/prefix path still apply if the fresh gate also fails.
-      if [ "$fresh_retry" = 0 ] && [ "$push_round" != 6 ]; then
-        newer="$(node scripts/green-prefix.mjs --retry-current-tip "$tip" "$gout")"
-        if [ -n "$newer" ]; then
-          fresh_retry=1
-          echo "push-main: committed test repair at ${newer:0:9}; retrying regeneration and complete gate once"
-          rm -f "$gout"
-          continue
-        fi
+      if retry_latest "$tip" "$gout"; then
+        rm -f "$gout"
+        continue
       fi
-      try_prefix vitest "$tip" "$gout"
+      try_prefix vitest "$tip" "$gout"; prefix_rc=$?
+      if [ "$prefix_rc" = 75 ]; then
+        rm -f "$gout"
+        continue
+      fi
       rm -f "$gout"
       exit "$rc"
     fi

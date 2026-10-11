@@ -53,9 +53,11 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   current regeneration, witness and baked-map/native-physics fences and the complete green push gate. Those bake
   checks also refuse an older red that the newest gate no longer reports. Stale historical outputs are refused;
   the pusher never inserts a regeneration commit underneath shared main or rewrites the lanes' history.
-  Before searching historical prefixes, a Vitest-only red may retry latest main once when a committed descendant
-  modifies a named failing test. Working edits, added/deleted tests, unrelated commits and mixed failures cannot
-  supply that retry. It regenerates and runs the complete gate again; an edit never supplies a passing proof.
+  Before searching historical prefixes, a Vitest-only or lint-only red may retry latest main once when a committed
+  descendant modifies a named failing file. Lint diagnostics must use the exact plain file/line/column error format;
+  unknown output refuses retry. Working edits, added/deleted files, unrelated commits and mixed failures cannot
+  supply that retry. The reader checks again after prefix probes, before a historical gate, because a repair may land
+  during the search. Both points share the one-retry budget and compare against the original failed tip. It regenerates and runs the complete gate again; an edit never supplies a passing proof.
   If the fresh gate fails, the usual red/prefix path resumes. The existing six-round push limit remains.
 - **Push with `scripts/push-main.sh`, never `git push`** (enforced by `.claude/hooks/guard-bash-safety.sh`). It takes
   `.git/push.lock`. If another push holds the lock, your commits stay local and it exits 0: that push re-checks

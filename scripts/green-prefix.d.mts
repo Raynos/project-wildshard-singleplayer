@@ -5,5 +5,6 @@ export function probeFailure(root: string, sha: string, files: readonly string[]
 export function probeSnapshot(work: string): string;
 export function prefixFresh(root: string, sha: string, alreadyProbed?: readonly string[], prepared?: {sha: string; work: string; snapshot: string}): boolean;
 export function newestPassing(candidates: readonly string[], passes: (sha: string) => boolean): number;
-export function newerTestFix(root: string, tip: string, out: string): string | null;
+export function newerGateFix(root: string, tip: string, out: string): string | null;
 export function greenPrefix(root: string, tip: string, out: string, mode?: 'vitest' | 'witness'): string | null;
+export function failingLintFiles(out: string): string[];

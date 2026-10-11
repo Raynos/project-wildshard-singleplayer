@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { failedSteps, failingTestFiles, failureCommands, newestPassing, newerTestFix, probeFailure, probeSnapshot } from '../scripts/green-prefix.mjs';
+import { failedSteps, failingTestFiles, failingLintFiles, failureCommands, newestPassing, newerGateFix, probeFailure, probeSnapshot } from '../scripts/green-prefix.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Probe real archived fixture commits without touching shared Git state.
 import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The focused-check fixture owns and deletes its temporary files.
@@ -24,15 +24,16 @@ const GATE = [
 ].join('\n');
 
 describe('green prefix', () => {
-  it.each([false, true])('regenerates and gates one repair, then stops retrying a second red (%s)', secondRed => {
+  it.each([['vitest', false, false], ['vitest', true, false], ['oxlint', false, false], ['oxlint', true, false], ['oxlint', false, true], ['oxlint', true, true]] as const)('regenerates and gates one %s repair, then stops retrying a second red (%s), repair during prefix (%s)', (step, secondRed, duringPrefix) => {
     const root = mkdtempSync(join(tmpdir(), 'push-main-newer-'));
     const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
     try {
       git('init', '-q', '-b', 'main'); git('config', 'core.hooksPath', '/dev/null');
       mkdirSync(join(root, 'test')); mkdirSync(join(root, 'scripts'));
-      const file = join(root, 'test/repair.test.ts');
+      const relative = step === 'vitest' ? 'test/repair.test.ts' : 'scripts/repair.mjs';
+      const file = join(root, relative);
       const commit = (text: string) => {
-        writeFileSync(file, text); git('add', 'test/repair.test.ts');
+        writeFileSync(file, text); git('add', relative);
         git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com', 'commit', '-qm', 'fixture');
         return git('rev-parse', 'HEAD');
       };
@@ -43,6 +44,22 @@ describe('green prefix', () => {
       git('update-ref', 'refs/heads/main', red);
       for (const name of ['push-main.sh', 'green-prefix.mjs', 'link-node-modules.mjs']) {
         writeFileSync(join(root, 'scripts', name), readFileSync(join('scripts', name)));
+      }
+      if (duringPrefix) {
+        // Control only the probe timing; use the real committed-repair reader.
+        writeFileSync(join(root, 'scripts/real-green-prefix.mjs'), readFileSync('scripts/green-prefix.mjs'));
+        writeFileSync(join(root, 'scripts/green-prefix.mjs'), `
+import { newerGateFix } from './real-green-prefix.mjs';
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+if (process.argv[2] === '--retry-current-tip') {
+  const sha = newerGateFix(process.cwd(), process.argv[3], readFileSync(process.argv[4], 'utf8'));
+  if (sha !== null) console.log(sha);
+} else if (execFileSync('git', ['rev-parse', 'main'], { encoding: 'utf8' }).trim() === '${red}') {
+  execFileSync('git', ['update-ref', 'refs/heads/main', '${first}']);
+  console.log('${base}');
+}
+`);
       }
       writeFileSync(join(root, 'scripts/regenerate-committed.mjs'), `
 import { appendFileSync, writeFileSync } from 'node:fs';
@@ -55,17 +72,17 @@ count=0
 [ ! -f .git/gates ] || count=$(wc -l < .git/gates)
 printf '%s\\n' "$1" >> .git/gates
 if [ "$count" -eq 0 ]; then
-  git update-ref refs/heads/main ${first}
+  if [ "${duringPrefix}" = false ]; then git update-ref refs/heads/main ${first}; fi
 elif [ "$count" -eq 1 ] && [ "${secondRed}" = true ]; then
   git update-ref refs/heads/main ${second}
 else
   exit 0
 fi
-printf '  ✗ vitest (1 s)\\n FAIL test/repair.test.ts > exact assertion\\n'
+printf '%s\\n' '  ✗ ${step} (1 s)' '${step === 'vitest' ? ' FAIL test/repair.test.ts > exact assertion' : '── oxlint ──'}' '${step === 'vitest' ? '' : 'scripts/repair.mjs:1:1: error test-rule: exact lint failure'}'
 exit 1
 `);
       const run = spawnSync('bash', ['scripts/push-main.sh', '--locked'], {
-        cwd: root, encoding: 'utf8', env: { ...process.env, GREEN_PREFIX: '0', SKIP_VERCEL_GATE: '0' }, timeout: 10_000,
+        cwd: root, encoding: 'utf8', env: { ...process.env, GREEN_PREFIX: duringPrefix ? '1' : '0', SKIP_VERCEL_GATE: '0' }, timeout: 10_000,
       });
       expect(run.error).toBeUndefined(); expect(run.status, run.stdout + run.stderr).toBe(secondRed ? 1 : 0);
       expect(readFileSync(join(root, '.git/gates'), 'utf8').trim().split('\n')).toEqual([red, first]);
@@ -74,7 +91,7 @@ exit 1
       expect(git('rev-parse', 'origin/main')).toBe(secondRed ? base : first);
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
-  it('retries only a committed descendant test edit, refusing unrelated, working, deleted or mixed failures', () => {
+  it('retries only a committed descendant named edit, refusing unsafe, working, deleted or mixed failures', () => {
     const root = mkdtempSync(join(tmpdir(), 'green-prefix-newer-'));
     const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
     const redOutput = '  ✗ vitest (10 s)\n FAIL test/repair.test.ts > real failing assertion';
@@ -85,21 +102,32 @@ exit 1
     };
     try {
       git('init', '-q', '-b', 'main'); mkdirSync(join(root, 'test'));
-      const file = join(root, 'test/repair.test.ts'); writeFileSync(file, 'red'); const red = commit();
-      expect(newerTestFix(root, red, redOutput)).toBeNull();
+      const file = join(root, 'test/repair.test.ts'); writeFileSync(file, 'red');
+      mkdirSync(join(root, 'scripts'));
+      const lintFile = join(root, 'scripts/repair.mjs');
+      writeFileSync(lintFile, 'red lint'); const red = commit();
+      const lintOutput = '  ✗ oxlint (10 s)\n── oxlint ──\nscripts/repair.mjs:1:1: error test-rule: exact lint failure\nvercel-gate: FAILED at fixture — oxlint';
+      expect(newerGateFix(root, red, redOutput)).toBeNull();
       writeFileSync(join(root, 'unrelated'), 'new'); commit();
       writeFileSync(file, 'working repair');
-      expect(newerTestFix(root, red, redOutput)).toBeNull();
+      writeFileSync(lintFile, 'working lint repair');
+      expect(newerGateFix(root, red, lintOutput)).toBeNull();
+      expect(newerGateFix(root, red, redOutput)).toBeNull();
       const fixed = commit();
-      expect(newerTestFix(root, red, redOutput)).toBe(fixed);
-      for (const out of [`${redOutput}\n  ✗ typecheck (1 s)`, '  ✗ vitest (1 s)', redOutput.replace('test/repair', '../test/repair')]) {
-        expect(newerTestFix(root, red, out)).toBeNull();
+      expect(newerGateFix(root, red, redOutput)).toBe(fixed);
+      expect(newerGateFix(root, red, lintOutput)).toBe(fixed);
+      for (const out of [`${lintOutput}\n  ✗ vitest (1 s)`, lintOutput.replace('scripts/repair', '../scripts/repair'), lintOutput.replace('scripts/repair', '/scripts/repair'), lintOutput.replace('scripts/repair', 'scripts//repair'), lintOutput.replace('error test-rule', 'warning test-rule'), lintOutput.replace('scripts/repair.mjs:1:1:', 'unparsed lint refusal:')]) {
+        expect(newerGateFix(root, red, out)).toBeNull();
       }
-      expect(newerTestFix(root, 'missing-ref', redOutput)).toBeNull();
-      rmSync(file); commit();
-      expect(newerTestFix(root, red, redOutput)).toBeNull();
+      for (const out of [`${redOutput}\n  ✗ typecheck (1 s)`, '  ✗ vitest (1 s)', redOutput.replace('test/repair', '../test/repair')]) {
+        expect(newerGateFix(root, red, out)).toBeNull();
+      }
+      expect(newerGateFix(root, 'missing-ref', redOutput)).toBeNull();
+      rmSync(file); rmSync(lintFile); commit();
+      expect(newerGateFix(root, red, lintOutput)).toBeNull();
+      expect(newerGateFix(root, red, redOutput)).toBeNull();
       git('checkout', '-q', '--orphan', 'separate'); writeFileSync(file, 'unrelated history'); const separate = commit();
-      expect(newerTestFix(root, separate, redOutput)).toBeNull();
+      expect(newerGateFix(root, separate, redOutput)).toBeNull();
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
   it('probes mixed native-bake and typed failures with exact focused commands and refuses unsupported steps', () => {
@@ -155,6 +183,8 @@ exit 1
   });
   it('reads the failed steps and the failing test files from the gate output', () => {
     expect(failedSteps(GATE)).toEqual(['vitest']);
+    expect(failingLintFiles('── oxlint ──\nscripts/probe.mjs:46:58: error typescript(no-unnecessary-condition): message\nvercel-gate: FAILED at sha — oxlint')).toEqual(['scripts/probe.mjs']);
+    expect(failingLintFiles('── oxlint ──\nunparsed refusal')).toEqual([]);
     expect(failingTestFiles(GATE)).toEqual(['test/baked-maps.test.ts', 'test/plain.test.ts', 'test/proof/pine-hollow/headless.test.ts']);
     expect(failedSteps('  ✗ typecheck (12 s)\n  ✗ vitest (1 s)')).toEqual(['typecheck', 'vitest']);
   });
