@@ -13,7 +13,7 @@ export function skyPhysicsInputs(root) {
     'src/game/plugin/mover.ts', 'src/format/modes.ts', 'src/engine/entities/AnimalManager.ts', 'src/engine/entities/AnimalFactory.ts', 'src/engine/entities/AnimalView.ts',
     'src/engine/entities/AnimalSim.ts', 'src/shards/far-reach/runtime/skinnedModel.ts', 'src/engine/ai/hunt.ts', 'src/engine/ai/huntPattern.ts', 'src/engine/ai/stalker.ts',
     'src/engine/entities/species/registry.ts', 'src/engine/entities/species/look.ts', 'src/engine/practice/TrainingArena.ts',
-    'src/engine/models/colliders.ts', 'src/engine/models/place.ts', 'src/engine/world/registry.ts', 'pnpm-lock.yaml']) paths.push(file);
+    'src/engine/models/colliders.ts', 'src/engine/models/place.ts', 'src/engine/world/geometryBounds.ts', 'src/engine/world/registry.ts', 'pnpm-lock.yaml']) paths.push(file);
   // SF82: the canonical native boss patterns are part of the actual producer's defining closure.
   paths.push('src/sdk/species.ts', 'src/engine/ai/strikeRows.ts', 'src/game/plugin/bossPhase.ts', 'src/game/shardfile/phasedBossRoaming.ts');
   const walk = (dir, accept) => {
