@@ -3262,3 +3262,6 @@ actor memory, ordered herd state and continuation are still roster-owned.
 `ai/hunt.HuntBrain` remains the old-name preset constructor for existing and
 frozen callers, with exactly the same configuration and shared hunt law.
 This changes no tuning, family selection, placement, callback or RNG order.
+
+The native entry proof owners are `@wildshard/game/plugin/simulation` (`proveShardfileEntries`, `proveSocketLift`, `commandSocketLift`). The proof advances the existing host and mover through real capsule walks, both lift stop calls, the closed road gate and portal arrival/exit floors; it neither teleports a rider nor installs a second simulation. These are the existing shared admission laws. Sky's trusted runtime consumes the same definitions rather than retaining a copy.
+The old `./shardfile/socketLiftProof` package path resolves directly to this defining plugin for frozen legacy consumers; no forwarding file is retained. The alias leaves with those frozen folders.

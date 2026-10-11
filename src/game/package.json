@@ -71,7 +71,7 @@
     "./shardfile/directorClient": "./shardfile/directorClient.ts",
     "./shardfile/crowdRuntime": "./shardfile/crowdRuntime.ts",
     "./shardfile/socketLift": "./shardfile/socketLift.ts",
-    "./shardfile/socketLiftProof": "./shardfile/socketLiftProof.ts",
+    "./shardfile/socketLiftProof": "./plugin/simulation.ts",
     "./weapons/starterGlyphs": "./weapons/starterGlyphs.ts",
     "./weapons/starterMoves": "./weapons/starterMoves.ts",
     "./weapons/starterMeleeProfile": "./weapons/starterMeleeProfile.ts",

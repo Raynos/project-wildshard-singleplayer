@@ -117,3 +117,5 @@ This is the baseline file inventory; later slice commits report the measured tot
 | world/skyIsles.ts | 5 |
 | thumbs/card.ts | 4 |
 | quest/flags.ts | 2 |
+
+The entry-proof slice removes the two runtime copies (`socketLiftProof.ts`, 159 lines, and `edgeEntries.ts`, 37 lines). Sky now consumes the defining simulation plugin's existing admission proof and engine capsule law. Custom runtime is 5,524 / 6,745 = 81.9%; the 20% target remains open. No one-user platform lines are added.

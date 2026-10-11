@@ -10,7 +10,7 @@ import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { installDeclaredPropColliders } from '@wildshard/engine/physics/declaredProps';
 import { propColliderDescriptors } from '@wildshard/game/shardfile/props';
 import { socketLiftEntries } from '@wildshard/game/shardfile/socketLift';
-import { proveSocketLift } from './socketLiftProof';
+import { proveSocketLift } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN } from '../data/layout';
 import { DRIFT_RAY_VARIANTS, SKY_GOAT_VARIANTS, STORM_ROC_VARIANTS } from './variants';
 import { GALE_WISP } from '../species/galeWisp';

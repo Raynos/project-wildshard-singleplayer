@@ -12,7 +12,7 @@ import { MoverRuntime, createMoverHost } from "../src/game/plugin/mover";
 import { parseMovers } from '@wildshard/format/movers';
 import type { SocketLiftEntry } from '../src/game/shardfile/socketLift';
 import { parseSocketLift } from '@wildshard/format/socketLift';
-import { proveSocketLift } from '../src/game/shardfile/socketLiftProof';
+import { proveSocketLift } from '../src/game/plugin/simulation';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const source = readFileSync(new URL('fixtures/socket-lift/ride.as', import.meta.url), 'utf8');

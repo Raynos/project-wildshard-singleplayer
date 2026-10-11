@@ -4,9 +4,9 @@ import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
-import { proveShardfileEntries } from '@wildshard/game/shardfile/socketLiftProof';
+import { proveShardfileEntries, createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '@wildshard/game/plugin/simulation';
 import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost } from '@wildshard/engine/sim/snapshot';
-import { createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '@wildshard/game/plugin/simulation';
+
 import type { SimCommand } from '@wildshard/engine/sim';
 import { parseShardfile } from './shardfile';
 import { runTickWorker } from './tickWorkerLoop';

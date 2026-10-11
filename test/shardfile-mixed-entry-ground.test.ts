@@ -7,8 +7,8 @@ import { compileScript } from '../scripts/compile-script.mjs';
 import { liftShard } from './fixtures/socket-lift/shard';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { floorBelow } from '../src/engine/physics/query';
-import { createShardfileSim } from '../src/game/plugin/simulation';
-import { proveShardfileEntries } from '../src/game/shardfile/socketLiftProof';
+import { createShardfileSim, proveShardfileEntries } from '../src/game/plugin/simulation';
+
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 let bytes = new Uint8Array(), rapier: Awaited<ReturnType<typeof loadRapier>>;

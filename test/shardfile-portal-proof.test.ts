@@ -13,8 +13,8 @@ import { portalLinkEntries } from '../src/game/shardfile/portalLink';
 import { parsePortalLink } from '@wildshard/format/portalLink';
 import { validatePortalFloors } from '../src/game/shardfile/portalFloor';
 import { createPortalTraversal, portalTransitioning } from '../src/game/shardfile/portalTraversal';
-import { createShardfileSim } from '../src/game/plugin/simulation';
-import { proveShardfileEntries } from '../src/game/shardfile/socketLiftProof';
+import { createShardfileSim, proveShardfileEntries } from '../src/game/plugin/simulation';
+
 import { captureClientState, checkpointClientState } from '../src/game/shardfile/clientState';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;

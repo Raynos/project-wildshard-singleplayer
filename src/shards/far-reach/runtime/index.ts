@@ -17,7 +17,7 @@ import { apothem } from '../layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { skyMoverViews } from './movers';
 import { installDeclaredMovers, type MoverRuntimeInstance as MoverRuntime } from '@wildshard/sdk/runtime/movers';
-import { commandSocketLift } from './socketLiftProof';
+import { commandSocketLift } from '@wildshard/game/plugin/simulation';
 import { isletCalls, type IsletCalls } from '../world/risingIslet';
 import { gustFx } from './looks/windFx';
 import { GUST_FX } from '../data/windLook';

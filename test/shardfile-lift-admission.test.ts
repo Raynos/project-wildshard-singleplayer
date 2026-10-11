@@ -6,8 +6,8 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { compileScript } from '../scripts/compile-script.mjs';
 import { liftShard } from './fixtures/socket-lift/shard';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { createShardfileSim, numericScriptEntityId } from '../src/game/plugin/simulation';
-import { proveShardfileEntries } from '../src/game/shardfile/socketLiftProof';
+import { createShardfileSim, numericScriptEntityId, proveShardfileEntries } from '../src/game/plugin/simulation';
+
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
 import { parseShardfile } from '../src/game/shardfile/schema';
 import { HeadlessSimulation } from '../src/sdk/headless';
