@@ -9,7 +9,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { ROC } from '../data/layout';
 import { STRINGS } from '../data/strings';
-import { STORM_ROC_VARIANTS } from '../runtime/variants';
+import { STORM_ROC_VARIANTS } from '../data/variants';
 
 
 const brains = new WeakMap<Animal, StormRocBrain>();

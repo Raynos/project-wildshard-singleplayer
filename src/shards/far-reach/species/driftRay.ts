@@ -7,7 +7,7 @@ import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3 } from 'three';
 import { DECK } from '../data/layout';
 import { STRINGS } from '../data/strings';
-import { DRIFT_RAY_VARIANTS } from '../runtime/variants';
+import { DRIFT_RAY_VARIANTS } from '../data/variants';
 import { skyBody } from './bodies';
 
 /** How the ray flies: its circle speed, how high it hangs over the player before the dive, its dive speed, its rest after one. */

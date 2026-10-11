@@ -6,7 +6,7 @@ import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry'
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { BoxGeometry, ConeGeometry } from 'three';
 import { STRINGS } from '../data/strings';
-import { SKY_GOAT_VARIANTS } from '../runtime/variants';
+import { SKY_GOAT_VARIANTS } from '../data/variants';
 import { hull } from './rig';
 import { skyBody } from './bodies';
 

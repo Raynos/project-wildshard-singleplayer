@@ -1,20 +1,17 @@
 import { clipAnimate } from '@wildshard/sdk/species/clips';
 import { GALE_WISP_CLIPS } from '../data/creatureClips';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { IcosahedronGeometry, OctahedronGeometry, TorusGeometry } from 'three';
 import { STRINGS } from '../data/strings';
+import { GALE_WISP_VARIANTS } from '../data/variants';
 import { hull } from './rig';
 
-/** The burst: the wisp darts at the chest and bursts in a small sphere that shoves you back (G24 `WISP.shove`). */
-export const BURST: StrikeSpec = { id: 'far.wisp.burst', shape: { kind: 'sphere', radius: 1.4 }, windup: 0.7, active: 0.7, recover: 1.2, cooldown: 3.5,
-  range: 9, damage: 6, tags: ['creature.galeWisp'], units: 'world', weight: () => 1 };
 export const WISP = { circle: 5, dart: 13, notice: 14, shove: 7, lift: 2.5 } as const;
 export const GALE_WISP: SpeciesRow = { id: 'far.creature.galeWisp', kind: 'galeWisp', label: STRINGS.wisp, aggressive: true, blood: false,
   flight: { altitude: 33, above: 'world', climbRate: 8, diveRate: 10, lockRange: 20 },
-  variants: [{ id: 'gale', label: STRINGS.wisp, weight: 1, rarity: 'common', scale: [1, 1], hp: 18 }] };
+  variants: GALE_WISP_VARIANTS };
 
 export const GALE_WISP_LOOK: SpeciesLook = { id: 'far.look.galeWisp', species: GALE_WISP.id, kind: 'galeWisp', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'far.galeWisp', sockets: ['body', 'head', 'swirl'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },

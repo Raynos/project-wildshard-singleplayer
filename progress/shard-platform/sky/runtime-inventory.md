@@ -121,3 +121,9 @@ This is the baseline file inventory; later slice commits report the measured tot
 The entry-proof slice removes the two runtime copies (`socketLiftProof.ts`, 159 lines, and `edgeEntries.ts`, 37 lines). Sky now consumes the defining simulation plugin's existing admission proof and engine capsule law. Custom runtime is 5,524 / 6,745 = 81.9%; the 20% target remains open. No one-user platform lines are added.
 
 The retained-boss port had already replaced its trusted preset wrapper. Removing that unreferenced production wrapper removes another nine custom lines: 5,515 / 6,745 = 81.8%. The frozen 10,000-frame retained-body oracle still compares the profile and explicit held-pattern construction directly, including null-body refusal and restore.
+
+## Native creature strike and variant rows
+
+The goat ram, ray dive and wisp burst now use admitted strike rows on the existing native runner; their empty goat motion, world-space sphere contacts, constant weights and every timing/range/damage/tag value remain unchanged. All four variant rows now live in data/, so the headless scale ranges no longer import the wisp's view module. The existing frozen tuning and 10,000-tick runner/restore fixtures, whole native witness/replay/worker/Ledger, actual physics payload and map bytes are exact. No collider or owner changed.
+
+Custom runtime: 5507 / 6745 = 81.6%; the ≤20% target remains open.

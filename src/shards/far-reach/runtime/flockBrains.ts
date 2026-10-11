@@ -9,8 +9,7 @@ import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import { parseRamGrazer as ramGrazer } from '@wildshard/format/grazers';
 import { parseOrbitDiver as orbitDiver, parseBurstFlyer as burstFlyer } from '@wildshard/format/flyers';
 import { GOAT_BRAIN, RAY_BRAIN, WISP_BRAIN } from '../data/brains';
-import { DIVE, RAM } from './strikes';
-import { BURST } from '../species/galeWisp';
+import { DIVE, RAM, BURST } from './strikes';
 import { stormRocBrain, type StormRocBrain } from './stormRocBrain';
 import type { Home } from '../data/layout';
 

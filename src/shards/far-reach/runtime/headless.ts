@@ -12,8 +12,7 @@ import { propColliderDescriptors } from '@wildshard/game/shardfile/props';
 import { socketLiftEntries } from '@wildshard/game/shardfile/socketLift';
 import { proveSocketLift } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN } from '../data/layout';
-import { DRIFT_RAY_VARIANTS, SKY_GOAT_VARIANTS, STORM_ROC_VARIANTS } from './variants';
-import { GALE_WISP } from '../species/galeWisp';
+import { DRIFT_RAY_VARIANTS, SKY_GOAT_VARIANTS, STORM_ROC_VARIANTS, GALE_WISP_VARIANTS } from '../data/variants';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
 import { installSkyRoc } from './roc';
 import { ROC_ID } from '../data/rocFight';
@@ -56,7 +55,7 @@ export function skySpecs(): ReadonlyMap<string, AnimalSimSpec> {
 }
 /** Each kind's variant scale range (the species rows' one variant each): the manager's first draw. */
 export function skyScaleRanges(): ReadonlyMap<string, readonly [number, number]> {
-  const rows = [['driftRay', DRIFT_RAY_VARIANTS], ['skyGoat', SKY_GOAT_VARIANTS], ['galeWisp', GALE_WISP.variants], ['stormRoc', STORM_ROC_VARIANTS]] as const;
+  const rows = [['driftRay', DRIFT_RAY_VARIANTS], ['skyGoat', SKY_GOAT_VARIANTS], ['galeWisp', GALE_WISP_VARIANTS], ['stormRoc', STORM_ROC_VARIANTS]] as const;
   return new Map(rows.map(([kind, variants]) => {
     const variant = variants[0]; if (variant === undefined || variants.length !== 1) throw new Error(`Sky species ${kind} has one variant`);
     return [kind, variant.scale] as const;

@@ -6,8 +6,8 @@ import { parseOrbitDiver as orbitDiver, parseBurstFlyer as burstFlyer } from '@w
 import { GOAT_BRAIN, RAY_BRAIN, WISP_BRAIN } from '../data/brains';
 import { SKY_GOAT } from '../species/skyGoat';
 import { DRIFT_RAY } from '../species/driftRay';
-import { DIVE, RAM } from './strikes';
-import { GALE_WISP, BURST } from '../species/galeWisp';
+import { DIVE, RAM, BURST } from './strikes';
+import { GALE_WISP } from '../species/galeWisp';
 import { STORM_ROC } from '../species/stormRoc';
 import { homeOf, pushPlayer } from '../species/rig';
 import { WINDMILL, RAY_HOMES, DECK, KEEPER } from '../data/layout';
