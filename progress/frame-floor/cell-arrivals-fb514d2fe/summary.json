@@ -1,0 +1,1587 @@
+{
+  "schema": "cell-arrival/1",
+  "speedMetresPerSecond": 30,
+  "settings": {
+    "developer": true,
+    "buildPacing": "on",
+    "graphMaterials": "on",
+    "memorySaver": "off",
+    "renderScale": 2
+  },
+  "gates": {
+    "waitMs": 0,
+    "simP95Ms": 35,
+    "simMaxMs": 200,
+    "desktopMaxMs": 100
+  },
+  "scope": "Whole road drive including construction; short travel belongs to sp-x1. One cold run per surface. No reseed after initial route pose.",
+  "isolation": "Combined-tree pins, stated per sample. No isolated saving assigned to a single source change. Sky/Signal retained from the previous receipt.",
+  "windows": [
+    {
+      "cell": "driftwood-isle,template-2",
+      "pin": "fb514d2fe742e521c4d5204d4c27258861c4fd15",
+      "started": "2026-10-11T20:21:34.817094+00:00",
+      "rows": [
+        {
+          "cell": "driftwood-isle",
+          "surface": "desktop",
+          "rc": 0
+        },
+        {
+          "cell": "driftwood-isle",
+          "surface": "sim",
+          "rc": 0
+        },
+        {
+          "cell": "template-2",
+          "surface": "desktop",
+          "rc": 0
+        },
+        {
+          "cell": "template-2",
+          "surface": "sim",
+          "rc": 0
+        }
+      ],
+      "load": "15:21  up 51 days,  7:54, 2 users, load averages: 5.98 7.43 8.66",
+      "released": "2026-10-11T20:28:30.315106+00:00"
+    },
+    {
+      "cell": "pine-hollow,nine-dragon-stack",
+      "pin": "fb514d2fe742e521c4d5204d4c27258861c4fd15",
+      "started": "2026-10-11T20:31:10.719164+00:00",
+      "rows": [
+        {
+          "cell": "pine-hollow",
+          "surface": "desktop",
+          "rc": 0
+        },
+        {
+          "cell": "pine-hollow",
+          "surface": "sim",
+          "rc": 0
+        },
+        {
+          "cell": "nine-dragon-stack",
+          "surface": "desktop",
+          "rc": 0
+        },
+        {
+          "cell": "nine-dragon-stack",
+          "surface": "sim",
+          "rc": 0
+        }
+      ],
+      "load": "15:31  up 51 days,  8:03, 2 users, load averages: 6.94 8.98 9.16",
+      "released": "2026-10-11T20:36:18.763220+00:00"
+    }
+  ],
+  "cells": [
+    {
+      "cell": "driftwood-isle",
+      "surfaces": {
+        "desktop": {
+          "pin": "fb514d2fe742e521c4d5204d4c27258861c4fd15",
+          "complete": true,
+          "pass": false,
+          "cold": true,
+          "waitMs": 1661.7000007629395,
+          "blockedFrames": 93,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 2490,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 100,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "driftwood-isle-road-entry",
+            "from": "template-2",
+            "to": "driftwood-isle",
+            "waypoints": [
+              {
+                "x": 277.5,
+                "z": 555
+              },
+              {
+                "x": 277.5,
+                "z": 277.5
+              },
+              {
+                "x": 0,
+                "z": 277.5
+              },
+              {
+                "x": 0,
+                "z": 230
+              }
+            ],
+            "requiredResidents": [
+              "driftwood-isle"
+            ],
+            "movement": "road-hover",
+            "hoverMaxSpeed": 30,
+            "observePreparation": true,
+            "finishOnArrival": false
+          },
+          "elapsedSeconds": 40.8555,
+          "portal": null,
+          "lift": null,
+          "preparation": {
+            "root": "dbc5633e-ca87-4d32-9856-80c967d8dcb2",
+            "completed": true,
+            "stages": [
+              {
+                "phase": "compile",
+                "elapsedMs": 215.80000019073486,
+                "units": 66
+              },
+              {
+                "phase": "link",
+                "elapsedMs": 9.799999713897705,
+                "units": 76
+              },
+              {
+                "phase": "upload",
+                "elapsedMs": 38.5,
+                "units": 34
+              },
+              {
+                "phase": "shaders-and-composer",
+                "elapsedMs": 270.7000002861023,
+                "units": 1
+              },
+              {
+                "phase": "parked-draws",
+                "elapsedMs": 881.6999998092651,
+                "units": 194
+              },
+              {
+                "phase": "offscreen-draws",
+                "elapsedMs": 0.3000001907348633,
+                "units": 0
+              }
+            ]
+          },
+          "builderPhases": {
+            "phases": null,
+            "kits": null
+          }
+        },
+        "sim": {
+          "pin": "fb514d2fe742e521c4d5204d4c27258861c4fd15",
+          "complete": true,
+          "pass": false,
+          "cold": true,
+          "waitMs": 4648,
+          "blockedFrames": 131,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 1350,
+          "p95Ms": 40,
+          "p99Ms": 64,
+          "maxMs": 188,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "driftwood-isle-road-entry",
+            "from": "template-2",
+            "to": "driftwood-isle",
+            "waypoints": [
+              {
+                "x": 277.5,
+                "z": 555
+              },
+              {
+                "x": 277.5,
+                "z": 277.5
+              },
+              {
+                "x": 0,
+                "z": 277.5
+              },
+              {
+                "x": 0,
+                "z": 230
+              }
+            ],
+            "requiredResidents": [
+              "driftwood-isle"
+            ],
+            "movement": "road-hover",
+            "hoverMaxSpeed": 30,
+            "observePreparation": true,
+            "finishOnArrival": false
+          },
+          "elapsedSeconds": 44.388,
+          "portal": null,
+          "lift": null,
+          "preparation": {
+            "root": "c39d1338-7acc-4e4f-a32e-127257f2d6de",
+            "completed": true,
+            "stages": [
+              {
+                "phase": "compile",
+                "elapsedMs": 2243.0000000000146,
+                "units": 365
+              },
+              {
+                "phase": "link",
+                "elapsedMs": 0,
+                "units": 0
+              },
+              {
+                "phase": "upload",
+                "elapsedMs": 63,
+                "units": 29
+              },
+              {
+                "phase": "shaders-and-composer",
+                "elapsedMs": 2318.000000000029,
+                "units": 1
+              },
+              {
+                "phase": "parked-draws",
+                "elapsedMs": 462.9999999999709,
+                "units": 194
+              },
+              {
+                "phase": "offscreen-draws",
+                "elapsedMs": 0,
+                "units": 0
+              }
+            ]
+          },
+          "builderPhases": {
+            "phases": null,
+            "kits": null
+          }
+        }
+      },
+      "pass": false
+    },
+    {
+      "cell": "template-2",
+      "surfaces": {
+        "desktop": {
+          "pin": "fb514d2fe742e521c4d5204d4c27258861c4fd15",
+          "complete": true,
+          "pass": true,
+          "cold": false,
+          "waitMs": 0,
+          "blockedFrames": 0,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 1440,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 16.8,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "_template-road-entry",
+            "from": null,
+            "to": "template-2",
+            "movement": "road-hover",
+            "start": {
+              "x": 832.5,
+              "z": 277.5
+            },
+            "waypoints": [
+              {
+                "x": 555,
+                "z": 277.5
+              },
+              {
+                "x": 555,
+                "z": 345
+              }
+            ],
+            "requiredResidents": [
+              "template-2"
+            ],
+            "finishOnArrival": false,
+            "observePreparation": true,
+            "hoverMaxSpeed": 30
+          },
+          "elapsedSeconds": 23.372900000095367,
+          "portal": null,
+          "lift": null,
+          "preparation": null,
+          "builderPhases": {
+            "phases": null,
+            "kits": null
+          }
+        },
+        "sim": {
+          "pin": "fb514d2fe742e521c4d5204d4c27258861c4fd15",
+          "complete": true,
+          "pass": true,
+          "cold": false,
+          "waitMs": 0,
+          "blockedFrames": 0,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 750,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 50,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "_template-road-entry",
+            "from": null,
+            "to": "template-2",
+            "movement": "road-hover",
+            "start": {
+              "x": 832.5,
+              "z": 277.5
+            },
+            "waypoints": [
+              {
+                "x": 555,
+                "z": 277.5
+              },
+              {
+                "x": 555,
+                "z": 345
+              }
+            ],
+            "requiredResidents": [
+              "template-2"
+            ],
+            "finishOnArrival": false,
+            "observePreparation": true,
+            "hoverMaxSpeed": 30
+          },
+          "elapsedSeconds": 23.398,
+          "portal": null,
+          "lift": null,
+          "preparation": null,
+          "builderPhases": {
+            "phases": null,
+            "kits": null
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "cell": "pine-hollow",
+      "surfaces": {
+        "desktop": {
+          "pin": "fb514d2fe742e521c4d5204d4c27258861c4fd15",
+          "complete": true,
+          "pass": true,
+          "cold": true,
+          "waitMs": 0,
+          "blockedFrames": 0,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 1410,
+          "p95Ms": 16.8,
+          "p99Ms": 33.3,
+          "maxMs": 66.6,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "pine-hollow-road-entry",
+            "from": null,
+            "to": "pine-hollow",
+            "movement": "road-hover",
+            "start": {
+              "x": 277.5,
+              "z": 277.5
+            },
+            "waypoints": [
+              {
+                "x": 0,
+                "z": 277.5
+              },
+              {
+                "x": 0,
+                "z": 345
+              }
+            ],
+            "requiredResidents": [
+              "pine-hollow"
+            ],
+            "finishOnArrival": false,
+            "observePreparation": true,
+            "hoverMaxSpeed": 30
+          },
+          "elapsedSeconds": 23.3865,
+          "portal": null,
+          "lift": null,
+          "preparation": {
+            "root": "9e4d83b3-b2af-4c4c-afa4-2dea23a11fb9",
+            "completed": true,
+            "stages": [
+              {
+                "phase": "compile",
+                "elapsedMs": 258.09999990463257,
+                "units": 114
+              },
+              {
+                "phase": "link",
+                "elapsedMs": 49.5,
+                "units": 138
+              },
+              {
+                "phase": "upload",
+                "elapsedMs": 660.9000000953674,
+                "units": 208
+              },
+              {
+                "phase": "shaders-and-composer",
+                "elapsedMs": 1078.5999999046326,
+                "units": 1
+              },
+              {
+                "phase": "parked-draws",
+                "elapsedMs": 1847.4000000953674,
+                "units": 254
+              },
+              {
+                "phase": "offscreen-draws",
+                "elapsedMs": 0.8999996185302734,
+                "units": 0
+              }
+            ]
+          },
+          "builderPhases": {
+            "phases": null,
+            "kits": null
+          }
+        },
+        "sim": {
+          "pin": "fb514d2fe742e521c4d5204d4c27258861c4fd15",
+          "complete": true,
+          "pass": false,
+          "cold": true,
+          "waitMs": 1833,
+          "blockedFrames": 55,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 780,
+          "p95Ms": 39,
+          "p99Ms": 68,
+          "maxMs": 133,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "pine-hollow-road-entry",
+            "from": null,
+            "to": "pine-hollow",
+            "movement": "road-hover",
+            "start": {
+              "x": 277.5,
+              "z": 277.5
+            },
+            "waypoints": [
+              {
+                "x": 0,
+                "z": 277.5
+              },
+              {
+                "x": 0,
+                "z": 345
+              }
+            ],
+            "requiredResidents": [
+              "pine-hollow"
+            ],
+            "finishOnArrival": false,
+            "observePreparation": true,
+            "hoverMaxSpeed": 30
+          },
+          "elapsedSeconds": 25.597,
+          "portal": null,
+          "lift": null,
+          "preparation": {
+            "root": "7fb1284f-5cdd-477f-99f7-9472fb023a63",
+            "completed": true,
+            "stages": [
+              {
+                "phase": "compile",
+                "elapsedMs": 5432,
+                "units": 646
+              },
+              {
+                "phase": "link",
+                "elapsedMs": 598,
+                "units": 18
+              },
+              {
+                "phase": "upload",
+                "elapsedMs": 2665,
+                "units": 205
+              },
+              {
+                "phase": "shaders-and-composer",
+                "elapsedMs": 8825,
+                "units": 1
+              },
+              {
+                "phase": "parked-draws",
+                "elapsedMs": 1029.0000000000073,
+                "units": 251
+              },
+              {
+                "phase": "offscreen-draws",
+                "elapsedMs": 1.999999999992724,
+                "units": 0
+              }
+            ]
+          },
+          "builderPhases": {
+            "phases": null,
+            "kits": null
+          }
+        }
+      },
+      "pass": false
+    },
+    {
+      "cell": "nine-dragon-stack",
+      "surfaces": {
+        "desktop": {
+          "pin": "fb514d2fe742e521c4d5204d4c27258861c4fd15",
+          "complete": true,
+          "pass": false,
+          "cold": true,
+          "waitMs": 4285.200000286102,
+          "blockedFrames": 241,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 1380,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "maxMs": 83.3,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "nine-dragon-stack-road-entry",
+            "from": null,
+            "to": "nine-dragon-stack",
+            "movement": "road-hover",
+            "start": {
+              "x": 832.5,
+              "z": -277.5
+            },
+            "waypoints": [
+              {
+                "x": 555,
+                "z": -277.5
+              },
+              {
+                "id": "portal.north",
+                "x": 555,
+                "y": 0,
+                "z": -319
+              },
+              {
+                "id": "portal.square.arrival",
+                "x": 555.95,
+                "y": 125,
+                "z": -547.5
+              }
+            ],
+            "requiredResidents": [
+              "nine-dragon-stack"
+            ],
+            "finishOnArrival": false,
+            "observePreparation": true,
+            "hoverMaxSpeed": 30,
+            "portal": {
+              "road": {
+                "id": "portal.north",
+                "x": 555,
+                "y": 0,
+                "z": -319
+              },
+              "destination": {
+                "id": "portal.square.arrival",
+                "x": 555.95,
+                "y": 125,
+                "z": -547.5
+              }
+            }
+          },
+          "elapsedSeconds": 22.238599999904633,
+          "portal": {
+            "roadSeen": true,
+            "landed": true
+          },
+          "lift": null,
+          "preparation": {
+            "root": "7386998a-8736-4b2e-acb5-fce8fb8ecc7c",
+            "completed": true,
+            "stages": [
+              {
+                "phase": "compile",
+                "elapsedMs": 74.19999980926514,
+                "units": 52
+              },
+              {
+                "phase": "link",
+                "elapsedMs": 28.5,
+                "units": 55
+              },
+              {
+                "phase": "upload",
+                "elapsedMs": 241.5,
+                "units": 46
+              },
+              {
+                "phase": "shaders-and-composer",
+                "elapsedMs": 349.69999980926514,
+                "units": 1
+              },
+              {
+                "phase": "parked-draws",
+                "elapsedMs": 318.69999980926514,
+                "units": 87
+              },
+              {
+                "phase": "offscreen-draws",
+                "elapsedMs": 0.20000028610229492,
+                "units": 0
+              }
+            ]
+          },
+          "builderPhases": {
+            "phases": [
+              {
+                "name": "fonts",
+                "ms": 0
+              },
+              {
+                "name": "paint",
+                "ms": 312
+              },
+              {
+                "name": "neon spill",
+                "ms": 2151
+              },
+              {
+                "name": "canopy",
+                "ms": 267
+              },
+              {
+                "name": "square props",
+                "ms": 51
+              },
+              {
+                "name": "facade",
+                "ms": 17
+              },
+              {
+                "name": "streaks + dressing",
+                "ms": 21
+              },
+              {
+                "name": "crowd + atlas",
+                "ms": 218
+              }
+            ],
+            "kits": [
+              {
+                "name": "paifang",
+                "ms": 10,
+                "vertices": 133603
+              },
+              {
+                "name": "east-shops",
+                "ms": 0,
+                "vertices": 320
+              },
+              {
+                "name": "north-shops",
+                "ms": 0,
+                "vertices": 180
+              },
+              {
+                "name": "south-shops",
+                "ms": 0,
+                "vertices": 2704
+              },
+              {
+                "name": "street-shops",
+                "ms": 0,
+                "vertices": 4172
+              },
+              {
+                "name": "blades",
+                "ms": 0,
+                "vertices": 6840
+              },
+              {
+                "name": "bridges",
+                "ms": 0,
+                "vertices": 11460
+              },
+              {
+                "name": "monorail",
+                "ms": 0,
+                "vertices": 672
+              },
+              {
+                "name": "deck",
+                "ms": 0,
+                "vertices": 6276
+              },
+              {
+                "name": "crown",
+                "ms": 0,
+                "vertices": 4992
+              },
+              {
+                "name": "stair-foot",
+                "ms": 2,
+                "vertices": 22294
+              },
+              {
+                "name": "stair-terraces",
+                "ms": 8,
+                "vertices": 163215
+              },
+              {
+                "name": "well-rim",
+                "ms": 1,
+                "vertices": 15780
+              },
+              {
+                "name": "well-r",
+                "ms": 0,
+                "vertices": 85476
+              },
+              {
+                "name": "well-l-up",
+                "ms": 0,
+                "vertices": 97984
+              },
+              {
+                "name": "well-l-deep",
+                "ms": 0,
+                "vertices": 113492
+              },
+              {
+                "name": "well-x-hi",
+                "ms": 0,
+                "vertices": 144514
+              },
+              {
+                "name": "well-x-lo",
+                "ms": 0,
+                "vertices": 29492
+              },
+              {
+                "name": "well-c-main",
+                "ms": 0,
+                "vertices": 52840
+              },
+              {
+                "name": "well-c-ext",
+                "ms": 0,
+                "vertices": 60596
+              },
+              {
+                "name": "well-c-gates",
+                "ms": 5,
+                "vertices": 73887
+              },
+              {
+                "name": "entries",
+                "ms": 0,
+                "vertices": 480
+              },
+              {
+                "name": "facade-signs",
+                "ms": 0,
+                "vertices": 312
+              },
+              {
+                "name": "bridges-a",
+                "ms": 0,
+                "vertices": 56
+              },
+              {
+                "name": "deck-a",
+                "ms": 0,
+                "vertices": 4
+              },
+              {
+                "name": "well-r-a",
+                "ms": 0,
+                "vertices": 544
+              },
+              {
+                "name": "well-l-a",
+                "ms": 0,
+                "vertices": 1740
+              },
+              {
+                "name": "well-c-a",
+                "ms": 0,
+                "vertices": 3964
+              }
+            ]
+          }
+        },
+        "sim": {
+          "pin": "fb514d2fe742e521c4d5204d4c27258861c4fd15",
+          "complete": true,
+          "pass": false,
+          "cold": true,
+          "waitMs": 45651.000000000044,
+          "blockedFrames": 1364,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 2010,
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 165,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "nine-dragon-stack-road-entry",
+            "from": null,
+            "to": "nine-dragon-stack",
+            "movement": "road-hover",
+            "start": {
+              "x": 832.5,
+              "z": -277.5
+            },
+            "waypoints": [
+              {
+                "x": 555,
+                "z": -277.5
+              },
+              {
+                "id": "portal.north",
+                "x": 555,
+                "y": 0,
+                "z": -319
+              },
+              {
+                "id": "portal.square.arrival",
+                "x": 555.95,
+                "y": 125,
+                "z": -547.5
+              }
+            ],
+            "requiredResidents": [
+              "nine-dragon-stack"
+            ],
+            "finishOnArrival": false,
+            "observePreparation": true,
+            "hoverMaxSpeed": 30,
+            "portal": {
+              "road": {
+                "id": "portal.north",
+                "x": 555,
+                "y": 0,
+                "z": -319
+              },
+              "destination": {
+                "id": "portal.square.arrival",
+                "x": 555.95,
+                "y": 125,
+                "z": -547.5
+              }
+            }
+          },
+          "elapsedSeconds": 65.347,
+          "portal": {
+            "roadSeen": true,
+            "landed": true
+          },
+          "lift": null,
+          "preparation": {
+            "root": "2aa2930d-18c2-48fd-9218-b1e0cc75c2d5",
+            "completed": true,
+            "stages": [
+              {
+                "phase": "compile",
+                "elapsedMs": 1468,
+                "units": 275
+              },
+              {
+                "phase": "link",
+                "elapsedMs": 100.00000000001455,
+                "units": 3
+              },
+              {
+                "phase": "upload",
+                "elapsedMs": 432.99999999998545,
+                "units": 43
+              },
+              {
+                "phase": "shaders-and-composer",
+                "elapsedMs": 2009,
+                "units": 1
+              },
+              {
+                "phase": "parked-draws",
+                "elapsedMs": 157,
+                "units": 88
+              },
+              {
+                "phase": "offscreen-draws",
+                "elapsedMs": 1,
+                "units": 0
+              }
+            ]
+          },
+          "builderPhases": {
+            "phases": [
+              {
+                "name": "fonts",
+                "ms": 0
+              },
+              {
+                "name": "paint",
+                "ms": 476
+              },
+              {
+                "name": "neon spill",
+                "ms": 38809
+              },
+              {
+                "name": "canopy",
+                "ms": 4340
+              },
+              {
+                "name": "square props",
+                "ms": 108
+              },
+              {
+                "name": "facade",
+                "ms": 30
+              },
+              {
+                "name": "streaks + dressing",
+                "ms": 38
+              },
+              {
+                "name": "crowd + atlas",
+                "ms": 277
+              }
+            ],
+            "kits": [
+              {
+                "name": "paifang",
+                "ms": 17,
+                "vertices": 133603
+              },
+              {
+                "name": "east-shops",
+                "ms": 0,
+                "vertices": 320
+              },
+              {
+                "name": "north-shops",
+                "ms": 0,
+                "vertices": 180
+              },
+              {
+                "name": "south-shops",
+                "ms": 0,
+                "vertices": 2704
+              },
+              {
+                "name": "street-shops",
+                "ms": 0,
+                "vertices": 4172
+              },
+              {
+                "name": "blades",
+                "ms": 0,
+                "vertices": 6840
+              },
+              {
+                "name": "bridges",
+                "ms": 0,
+                "vertices": 11460
+              },
+              {
+                "name": "monorail",
+                "ms": 0,
+                "vertices": 672
+              },
+              {
+                "name": "deck",
+                "ms": 0,
+                "vertices": 6276
+              },
+              {
+                "name": "crown",
+                "ms": 0,
+                "vertices": 4992
+              },
+              {
+                "name": "stair-foot",
+                "ms": 2,
+                "vertices": 22294
+              },
+              {
+                "name": "stair-terraces",
+                "ms": 16,
+                "vertices": 163215
+              },
+              {
+                "name": "well-rim",
+                "ms": 2,
+                "vertices": 15780
+              },
+              {
+                "name": "well-r",
+                "ms": 0,
+                "vertices": 85476
+              },
+              {
+                "name": "well-l-up",
+                "ms": 0,
+                "vertices": 97984
+              },
+              {
+                "name": "well-l-deep",
+                "ms": 0,
+                "vertices": 113492
+              },
+              {
+                "name": "well-x-hi",
+                "ms": 0,
+                "vertices": 144514
+              },
+              {
+                "name": "well-x-lo",
+                "ms": 0,
+                "vertices": 29492
+              },
+              {
+                "name": "well-c-main",
+                "ms": 0,
+                "vertices": 52840
+              },
+              {
+                "name": "well-c-ext",
+                "ms": 0,
+                "vertices": 60596
+              },
+              {
+                "name": "well-c-gates",
+                "ms": 7,
+                "vertices": 73887
+              },
+              {
+                "name": "entries",
+                "ms": 0,
+                "vertices": 480
+              },
+              {
+                "name": "facade-signs",
+                "ms": 0,
+                "vertices": 312
+              },
+              {
+                "name": "bridges-a",
+                "ms": 0,
+                "vertices": 56
+              },
+              {
+                "name": "deck-a",
+                "ms": 0,
+                "vertices": 4
+              },
+              {
+                "name": "well-r-a",
+                "ms": 0,
+                "vertices": 544
+              },
+              {
+                "name": "well-l-a",
+                "ms": 0,
+                "vertices": 1740
+              },
+              {
+                "name": "well-c-a",
+                "ms": 0,
+                "vertices": 3964
+              }
+            ]
+          }
+        }
+      },
+      "pass": false
+    },
+    {
+      "cell": "far-reach",
+      "surfaces": {
+        "desktop": {
+          "pin": "473f40fc99677da32000276efc95df1cd79bc963",
+          "complete": true,
+          "pass": true,
+          "cold": true,
+          "waitMs": 0,
+          "blockedFrames": 0,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 4800,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "maxMs": 66.6,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "far-reach-socket-entry",
+            "from": null,
+            "to": "far-reach",
+            "movement": "road-hover",
+            "start": {
+              "x": 277.5,
+              "z": -277.5
+            },
+            "waypoints": [
+              {
+                "x": 0,
+                "z": -277.5
+              },
+              {
+                "x": 0,
+                "z": -320
+              },
+              {
+                "x": 0,
+                "z": -321
+              }
+            ],
+            "requiredResidents": [
+              "far-reach"
+            ],
+            "finishOnArrival": false,
+            "observePreparation": true,
+            "hoverMaxSpeed": 30,
+            "authoredLift": {
+              "edge": "north"
+            }
+          },
+          "elapsedSeconds": 79.4335,
+          "portal": null,
+          "lift": {
+            "edge": "north",
+            "isle": "sunrest",
+            "usePresses": 1,
+            "docked": true,
+            "onIsland": true,
+            "rideSamples": 796,
+            "maximumDeckGap": 1.3766580821570855,
+            "board": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 234.5
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 232.5
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 228.05081537278122
+              }
+            ],
+            "climb": [
+              {
+                "x": 0,
+                "y": 25,
+                "z": 212.62547997696493
+              },
+              {
+                "x": 0,
+                "y": 25,
+                "z": 205.21629534974613
+              },
+              {
+                "x": 0,
+                "y": 25,
+                "z": 198
+              },
+              {
+                "x": 0,
+                "y": 25,
+                "z": 191.5
+              },
+              {
+                "x": 0,
+                "y": 25,
+                "z": 189.5
+              },
+              {
+                "x": 0,
+                "y": 30,
+                "z": 16
+              },
+              {
+                "x": 0,
+                "y": 30,
+                "z": 12
+              }
+            ]
+          },
+          "preparation": {
+            "root": "cd930cda-336e-4336-b4c8-a584b0647a34",
+            "completed": true,
+            "stages": [
+              {
+                "phase": "compile",
+                "elapsedMs": 104,
+                "units": 71
+              },
+              {
+                "phase": "link",
+                "elapsedMs": 23.09999990463257,
+                "units": 79
+              },
+              {
+                "phase": "upload",
+                "elapsedMs": 254.90000009536743,
+                "units": 60
+              },
+              {
+                "phase": "shaders-and-composer",
+                "elapsedMs": 388.2999997138977,
+                "units": 1
+              },
+              {
+                "phase": "parked-draws",
+                "elapsedMs": 1133.4000000953674,
+                "units": 219
+              },
+              {
+                "phase": "offscreen-draws",
+                "elapsedMs": 0.2999997138977051,
+                "units": 0
+              }
+            ]
+          },
+          "builderPhases": null
+        },
+        "sim": {
+          "pin": "473f40fc99677da32000276efc95df1cd79bc963",
+          "complete": true,
+          "pass": true,
+          "cold": true,
+          "waitMs": 0,
+          "blockedFrames": 0,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 2430,
+          "p95Ms": 34,
+          "p99Ms": 38,
+          "maxMs": 124,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "far-reach-socket-entry",
+            "from": null,
+            "to": "far-reach",
+            "movement": "road-hover",
+            "start": {
+              "x": 277.5,
+              "z": -277.5
+            },
+            "waypoints": [
+              {
+                "x": 0,
+                "z": -277.5
+              },
+              {
+                "x": 0,
+                "z": -320
+              },
+              {
+                "x": 0,
+                "z": -321
+              }
+            ],
+            "requiredResidents": [
+              "far-reach"
+            ],
+            "finishOnArrival": false,
+            "observePreparation": true,
+            "hoverMaxSpeed": 30,
+            "authoredLift": {
+              "edge": "north"
+            }
+          },
+          "elapsedSeconds": 79.802,
+          "portal": null,
+          "lift": {
+            "edge": "north",
+            "isle": "sunrest",
+            "usePresses": 1,
+            "docked": true,
+            "onIsland": true,
+            "rideSamples": 398,
+            "maximumDeckGap": 1.3730746903062094,
+            "board": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 234.5
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 232.5
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 228.05081537278122
+              }
+            ],
+            "climb": [
+              {
+                "x": 0,
+                "y": 25,
+                "z": 212.62547997696493
+              },
+              {
+                "x": 0,
+                "y": 25,
+                "z": 205.21629534974613
+              },
+              {
+                "x": 0,
+                "y": 25,
+                "z": 198
+              },
+              {
+                "x": 0,
+                "y": 25,
+                "z": 191.5
+              },
+              {
+                "x": 0,
+                "y": 25,
+                "z": 189.5
+              },
+              {
+                "x": 0,
+                "y": 30,
+                "z": 16
+              },
+              {
+                "x": 0,
+                "y": 30,
+                "z": 12
+              }
+            ]
+          },
+          "preparation": {
+            "root": "31663761-bac7-4ea1-9914-7a9a75627cd6",
+            "completed": true,
+            "stages": [
+              {
+                "phase": "compile",
+                "elapsedMs": 1946,
+                "units": 388
+              },
+              {
+                "phase": "link",
+                "elapsedMs": 300.0000000000073,
+                "units": 9
+              },
+              {
+                "phase": "upload",
+                "elapsedMs": 1070.9999999999927,
+                "units": 57
+              },
+              {
+                "phase": "shaders-and-composer",
+                "elapsedMs": 3330.0000000000073,
+                "units": 1
+              },
+              {
+                "phase": "parked-draws",
+                "elapsedMs": 459,
+                "units": 219
+              },
+              {
+                "phase": "offscreen-draws",
+                "elapsedMs": 1,
+                "units": 0
+              }
+            ]
+          },
+          "builderPhases": null
+        }
+      },
+      "pass": true
+    },
+    {
+      "cell": "sunscar-dunes",
+      "surfaces": {
+        "desktop": {
+          "pin": "473f40fc99677da32000276efc95df1cd79bc963",
+          "complete": true,
+          "pass": true,
+          "cold": true,
+          "waitMs": 0,
+          "blockedFrames": 0,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 1440,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "maxMs": 66.6,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "sunscar-dunes-road-entry",
+            "from": null,
+            "to": "sunscar-dunes",
+            "movement": "road-hover",
+            "start": {
+              "x": -277.5,
+              "z": 277.5
+            },
+            "waypoints": [
+              {
+                "x": -277.5,
+                "z": 0
+              },
+              {
+                "x": -345,
+                "z": 0
+              }
+            ],
+            "requiredResidents": [
+              "sunscar-dunes"
+            ],
+            "finishOnArrival": false,
+            "observePreparation": true,
+            "hoverMaxSpeed": 30
+          },
+          "elapsedSeconds": 23.394300000190736,
+          "portal": null,
+          "lift": null,
+          "preparation": {
+            "root": "32076267-51cd-478d-bede-d63ea6cf457a",
+            "completed": true,
+            "stages": [
+              {
+                "phase": "compile",
+                "elapsedMs": 238.5,
+                "units": 56
+              },
+              {
+                "phase": "link",
+                "elapsedMs": 25.699999809265137,
+                "units": 71
+              },
+              {
+                "phase": "upload",
+                "elapsedMs": 92.5,
+                "units": 42
+              },
+              {
+                "phase": "shaders-and-composer",
+                "elapsedMs": 361.80000019073486,
+                "units": 1
+              },
+              {
+                "phase": "parked-draws",
+                "elapsedMs": 642.0999999046326,
+                "units": 140
+              },
+              {
+                "phase": "offscreen-draws",
+                "elapsedMs": 0.3000001907348633,
+                "units": 0
+              }
+            ]
+          },
+          "builderPhases": null
+        },
+        "sim": {
+          "pin": "473f40fc99677da32000276efc95df1cd79bc963",
+          "complete": true,
+          "pass": true,
+          "cold": true,
+          "waitMs": 0,
+          "blockedFrames": 0,
+          "visibleBeforeReadyFrames": 0,
+          "frameCount": 750,
+          "p95Ms": 34,
+          "p99Ms": 46,
+          "maxMs": 78,
+          "errors": [],
+          "contextLost": false,
+          "route": {
+            "name": "sunscar-dunes-road-entry",
+            "from": null,
+            "to": "sunscar-dunes",
+            "movement": "road-hover",
+            "start": {
+              "x": -277.5,
+              "z": 277.5
+            },
+            "waypoints": [
+              {
+                "x": -277.5,
+                "z": 0
+              },
+              {
+                "x": -345,
+                "z": 0
+              }
+            ],
+            "requiredResidents": [
+              "sunscar-dunes"
+            ],
+            "finishOnArrival": false,
+            "observePreparation": true,
+            "hoverMaxSpeed": 30
+          },
+          "elapsedSeconds": 23.526,
+          "portal": null,
+          "lift": null,
+          "preparation": {
+            "root": "7d8f5472-6dc5-44ff-a402-94cecd1c4c97",
+            "completed": true,
+            "stages": [
+              {
+                "phase": "compile",
+                "elapsedMs": 2531,
+                "units": 299
+              },
+              {
+                "phase": "link",
+                "elapsedMs": 0,
+                "units": 0
+              },
+              {
+                "phase": "upload",
+                "elapsedMs": 284,
+                "units": 37
+              },
+              {
+                "phase": "shaders-and-composer",
+                "elapsedMs": 2825,
+                "units": 1
+              },
+              {
+                "phase": "parked-draws",
+                "elapsedMs": 193,
+                "units": 140
+              },
+              {
+                "phase": "offscreen-draws",
+                "elapsedMs": 0,
+                "units": 0
+              }
+            ]
+          },
+          "builderPhases": null
+        }
+      },
+      "pass": true
+    }
+  ]
+}
