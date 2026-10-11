@@ -53,6 +53,8 @@ describe('framePacing', () => {
     const t = 5_000_000;
     noteFrameDrawn(t + 8, t, 30);
     expect(frameInterval()).toBeCloseTo(1000 / 30);
+    expect(frameBudgetSpent(8, t + 11)).toBe(false);
+    expect(frameBudgetSpent(8, t + 13)).toBe(true); // The 30 fps game cap never doubles a background build's CPU stretch.
     expect(frameDue(t + 20)).toBe(false);
     expect(frameDue(t + 32)).toBe(true);
     noteFrameDrawn(t + 100 + 4, t + 100, 60);

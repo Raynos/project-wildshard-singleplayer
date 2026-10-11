@@ -726,7 +726,7 @@ Build pacing uses the actual drawn frame's rAF timestamp and active fps cap to s
 The CPU/render work already spent by that frame is not spare construction time; `workSlice` yields
 when that deadline is due even if its own nominal budget is not exhausted. Uncapped deadlines use the
 fastest observed cadence from actual rAF pairs, so neither the synchronous first draw nor a missed vsync changes the target.
-Piece-to-piece macrotasks share the same budget as sliced loops, capped at a quarter frame while presenting. Completion-only
+Piece-to-piece macrotasks share the same budget as sliced loops, capped at a quarter of a 60 Hz or faster frame while presenting; a lower game fps cap never grants longer build stretches. Completion-only
 `noteFrameDrawn(at)` callers keep their original smoothed cadence. This changes scheduling only: no
 frame-cap, geometry, simulation, render-scale or quality change.
 
