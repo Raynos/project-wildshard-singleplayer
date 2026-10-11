@@ -13,10 +13,13 @@ import { loadRapier } from '../../../src/engine/physics/rapier';
 import { GROUP } from '../../../src/engine/physics/groups';
 
 /** The bake's provenance fields (the strict body is runtime/baked.ts's). */
-const baked = v.parse(v.object({ version: v.literal(1), revision: v.string(), inputs: v.record(v.string(), v.string()) }), bakedJson);
+const baked = v.parse(v.object({ version: v.literal(1), revision: v.string(), inputs: v.record(v.string(), v.string()), profile: v.string(), build: v.string(), notice: v.string() }), bakedJson);
 
 it('refuses stale source or model bytes before the trusted Nalati physics bake is used', () => {
   expect(baked.inputs).toEqual(nalatiPhysicsInputs(process.cwd()));
+  expect(baked.profile).toBe('Node / phone / no renderer');
+  expect(baked.build).toMatch(/^node-[a-f0-9]{64}$/u);
+  expect(baked.notice).toContain('DO NOT EDIT');
   expect(baked.revision).toMatch(/^[a-f0-9]{7,40}$/u);
   expect(Object.keys(baked.inputs).some(path => path.endsWith('/wolf.phone.rigged.glb'))).toBe(true);
 });

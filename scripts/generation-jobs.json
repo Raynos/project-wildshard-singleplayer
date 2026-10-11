@@ -957,6 +957,9 @@
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-nalati-physics.mjs",
       "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
         "src/shards/nalati-grasslands/generators/bake-nalati-physics.mjs"
       ],
       "inputRoots": [
@@ -974,8 +977,7 @@
       "outputs": [
         "src/shards/nalati-grasslands/runtime/physics.baked.json"
       ],
-      "platform": "darwin",
-      "capture": true
+      "platform": "portable"
     },
     {
       "id": "sky-rigs",
