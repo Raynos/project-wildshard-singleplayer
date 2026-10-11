@@ -1,6 +1,7 @@
 import { CONTRACT_ROWS } from './contracts';
 import { TRADES } from './trades';
-import { WARDENS_HOLLOW, RANGER, MILLER, TRADER } from './wardensHollow';
+import { RANGER, MILLER, TRADER } from './wardensHollow';
+import { WARDENS_HOLLOW } from '../data/wardensHollow';
 
 /** Every offer, conversation and chapter is authored here; runtime state is level-owned. */
 export const PINE_QUEST_CONTENT = {

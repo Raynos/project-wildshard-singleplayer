@@ -7,7 +7,7 @@ import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
 import { installQuestGraph } from '@wildshard/game/plugin/quests';
 import { PINE_GRAPH, PINE_LANTERN_IDS, pineQuestRows } from '../quest/graph';
-import { LANTERN_FLAGS } from '../quest/wardensHollow';
+import { LANTERN_FLAGS } from '../data/wardensHollow';
 import { pineTable, RESIN_COUNT, TOKEN_NAMES } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';

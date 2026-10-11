@@ -17,7 +17,7 @@ import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '
 import { PinePackSchema } from '../../../src/shards/pine-hollow/runtime/pack';
 import { KINGS_CLEARING, LOOKOUT_TRAIL } from '../../../src/shards/pine-hollow/layout';
 import { STAG_PATH } from '../../../src/shards/pine-hollow/quest/stagWalk';
-import { QUEST_DONE } from '../../../src/shards/pine-hollow/quest/wardensHollow';
+import { QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
 import { KING_RECORD, KING_STEP } from '../../../src/shards/pine-hollow/runtime/king';
 import { LEVER_FLAG, LOADOUT_STEP, PINE_WEAPON, WEAPON_COMMAND } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLoadout';
 import { LEVER_STEP } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLever';

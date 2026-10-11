@@ -3,7 +3,7 @@ import { Scope } from '../../src/engine/app/scope';
 import { Events } from '../../src/engine/events/events';
 import { QuestLine } from '../../src/engine/quest/core';
 import { Flags } from '../../src/engine/world/interact/flags';
-import { WARDENS_HOLLOW } from '../../src/shards/pine-hollow/quest/wardensHollow';
+import { WARDENS_HOLLOW } from '../../src/shards/pine-hollow/data/wardensHollow';
 import { BEATS, beatFlags, type Beat } from '../../src/shards/pine-hollow/quest/beats';
 
 const STEPS: Readonly<Record<Beat, string | null>> = { ranger: null, pond: 'pond', ridge: 'ridge', zip: 'zip', den: 'den', stag: 'stag', king: 'king', dawn: 'dawn', done: null, hamlet: null };

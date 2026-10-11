@@ -10,7 +10,7 @@ import { SaveStore } from '../../../src/engine/saves/store';
 import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState, withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import source from '../../../src/shards/pine-hollow/shard.config';
 import { PINE_FEATS } from '../../../src/shards/pine-hollow/data/questInventory';
-import { WARDENS_HOLLOW, QUEST_EXTERNAL, QUEST_DONE } from '../../../src/shards/pine-hollow/quest/wardensHollow';
+import { WARDENS_HOLLOW, QUEST_EXTERNAL, QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
 import { loadBoard, saveBoard, reroll } from '../../../src/shards/pine-hollow/quest/contracts';
 import { bindPineCombatState } from '../../../src/shards/pine-hollow/runtime/persistence';
 import { bindPineFacts } from '../../../src/shards/pine-hollow/runtime/facts';

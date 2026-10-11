@@ -1,5 +1,5 @@
 import { parseQuestData } from '@wildshard/sdk/quests';
-import { WARDENS_HOLLOW, QUEST_EXTERNAL, QUEST_DONE } from '../quest/wardensHollow';
+import { WARDENS_HOLLOW, QUEST_EXTERNAL, QUEST_DONE } from '../data/wardensHollow';
 
 /** The shipping seven-step chapter; native NPC presentation and the dawn camera remain runtime recipes. */
 export const PINE_QUESTS = parseQuestData({

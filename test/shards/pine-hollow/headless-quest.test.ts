@@ -22,7 +22,7 @@ import { pineBenchPose } from '../../../src/shards/pine-hollow/quest/benchPose';
 import { LEVER_FLAG, PINE_WEAPON } from '../../../src/shards/pine-hollow/runtime/weapons/headlessLoadout';
 import { KING_RECORD } from '../../../src/shards/pine-hollow/runtime/king';
 import { STAG_PATH } from '../../../src/shards/pine-hollow/quest/stagWalk';
-import { QUEST_DONE } from '../../../src/shards/pine-hollow/quest/wardensHollow';
+import { QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
 import { PINE_PHASES } from '../../../src/shards/pine-hollow/look/dayKeys';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 

@@ -7,7 +7,8 @@ import { validateTable } from '../../../src/engine/world/interact/validate';
 import { QuestState, lineFor, validateQuest } from '../../../src/engine/quest/core';
 import { ITEMS } from '../../../src/game/bag/itemCatalog';
 import { achievementsFor } from '../../../src/game/achievements';
-import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, QUEST_EXTERNAL, ERRAND_EXTERNAL, LANTERN_FLAGS } from '../../../src/shards/pine-hollow/quest/wardensHollow';
+import { RANGER, MILLER, TRADER } from '../../../src/shards/pine-hollow/quest/wardensHollow';
+import { WARDENS_HOLLOW, QUEST_DONE, QUEST_EXTERNAL, ERRAND_EXTERNAL, LANTERN_FLAGS } from '../../../src/shards/pine-hollow/data/wardensHollow';
 import { pineTable, RESIN_COUNT, RESIN_SPOTS, TOKEN_NAMES, type TableSites } from '../../../src/shards/pine-hollow/quest/table';
 import { BEATS, beatFlags, isBeat, type Beat } from '../../../src/shards/pine-hollow/quest/beats';
 import {

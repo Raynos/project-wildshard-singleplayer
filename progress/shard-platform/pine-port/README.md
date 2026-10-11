@@ -10,6 +10,12 @@ The existing declared ledger and bag now read the same authored feat/reward/slot
 
 Proof: 69 focused data/save/ledger/pack tests, 14 native witness/replay/ledger/physics/spots tests, strict and typed touched lint passed. Four actual witness recorders produced byte-identical payloads. Two actual physics captures matched all payload fields (164 actors, 3 King prewarm states, 2,078 world solids); the actual 44-row spots capture and independent check matched. No collider changed, so this slice does not create a new physics-walk milestone. The map is recaptured by the official producer because the generator import changed; its WebP is byte-identical: 95,600 bytes, SHA-256 `e7cc19e10f905c377c9b0a61e64aec5d95dff3eff504198b877b3f058b3dea09`.
 
+## Quest and dialogue rows
+
+The seven-step chapter, external flag lists and Hale/Brandt/Mott dialogue trees now live in `data/wardensHollow.ts`. The native module keeps the same admission parser for each tree. Flag timing, dialogue ordering, night wait, King/dawn rewards and all scene side effects stay with their existing owners. The obsolete URL-jump comment now names the real Settings Debug row. This removes 129 runtime metadata lines. Frozen row/tree equality and authoring closure checks plus 48 quest/dialogue tests, strict and typed touched lint passed; actual physics/44 spots and all four witness payloads remain exact. The map inputs and shipped image are unchanged.
+
+Current metric: **21,769 / 21,155 = 102.90%** (19,926 shard + 1,843 one-user platform; 258 primary files). Transitional, compatibility and the content gate are unchanged.
+
 ## Ownership and remaining work
 
 - **WAITING FOR OPUS:** figures, materials/shaders, viewmodels, cards/sky/weather rendering, terrain/forest/building geometry and HUD presentation. Mixed files keep their gameplay portion until a data row can express it; this label never exempts custom lines.
@@ -19,13 +25,13 @@ Proof: 69 focused data/save/ledger/pack tests, 14 native witness/replay/ledger/p
 
 ## Counted primary files
 
-This complete table reproduces the 20,055-line shard numerator; data/generators, tests, generated output and the frozen folder are excluded. A mixed renderer/runtime owner is labelled with both responsibilities.
+This complete table reproduces the 19,926-line shard numerator; data/generators, tests, generated output and the frozen folder are excluded. A mixed renderer/runtime owner is labelled with both responsibilities.
 
 | File | Counted lines | Owner disposition |
 | --- | ---: | --- |
 | `life/index.ts` | 730 | WAITING FOR OPUS; mixed gameplay kept |
 | `runtime/items/boltCrossbow.ts` | 562 | KEPT TRUSTED TAIL / row-host review |
-| `quest/index.ts` | 557 | KEPT TRUSTED TAIL / row-host review |
+| `quest/index.ts` | 558 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/items/leverFirearm.ts` | 479 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/looks/keyedSky.ts` | 451 | WAITING FOR OPUS; mixed gameplay kept |
 | `runtime/looks/rainFx.ts` | 328 | WAITING FOR OPUS; mixed gameplay kept |
@@ -70,7 +76,6 @@ This complete table reproduces the 20,055-line shard numerator; data/generators,
 | `models/wildlife.ts` | 139 | WAITING FOR OPUS; mixed gameplay kept |
 | `manifest.ts` | 138 | KEPT TRUSTED TAIL / row-host review |
 | `combat/kingFight.ts` | 136 | KEPT TRUSTED TAIL / row-host review |
-| `quest/wardensHollow.ts` | 136 | ROW REVIEW; native law stays |
 | `runtime/npc/standInPerson.ts` | 135 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/looks/weatherLook.ts` | 134 | WAITING FOR OPUS; mixed gameplay kept |
 | `quest/ui.ts` | 128 | WAITING FOR OPUS; mixed gameplay kept |
@@ -237,6 +242,7 @@ This complete table reproduces the 20,055-line shard numerator; data/generators,
 | `models/canoe.ts` | 10 | WAITING FOR OPUS; mixed gameplay kept |
 | `models/contractBoard.ts` | 10 | WAITING FOR OPUS; mixed gameplay kept |
 | `models/waystone.ts` | 10 | WAITING FOR OPUS; mixed gameplay kept |
+| `quest/content.ts` | 10 | ROW REVIEW; native law stays |
 | `quest/rifleFloor.ts` | 10 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/rangedVolumes.ts` | 10 | KEPT TRUSTED TAIL / row-host review |
 | `weapons/crossbow/flight.ts` | 10 | KEPT TRUSTED TAIL / row-host review |
@@ -257,7 +263,6 @@ This complete table reproduces the 20,055-line shard numerator; data/generators,
 | `models/wineBarrel.ts` | 9 | WAITING FOR OPUS; mixed gameplay kept |
 | `models/woodenBucket.ts` | 9 | WAITING FOR OPUS; mixed gameplay kept |
 | `models/woodenCrate.ts` | 9 | WAITING FOR OPUS; mixed gameplay kept |
-| `quest/content.ts` | 9 | ROW REVIEW; native law stays |
 | `models/hatchet.ts` | 8 | WAITING FOR OPUS; mixed gameplay kept |
 | `models/porchLantern.ts` | 8 | WAITING FOR OPUS; mixed gameplay kept |
 | `models/stoneFirePit.ts` | 8 | WAITING FOR OPUS; mixed gameplay kept |
@@ -273,6 +278,7 @@ This complete table reproduces the 20,055-line shard numerator; data/generators,
 | `look/render.ts` | 5 | WAITING FOR OPUS; mixed gameplay kept |
 | `look/skyBackdrop.ts` | 5 | WAITING FOR OPUS; mixed gameplay kept |
 | `quest/benchPose.ts` | 5 | ROW REVIEW; native law stays |
+| `quest/wardensHollow.ts` | 5 | Existing native parser; authored rows admitted |
 | `items.ts` | 4 | KEPT TRUSTED TAIL / row-host review |
 | `runtime/audio/profile.ts` | 4 | ROW REVIEW; native law stays |
 | `weapons/longbowFlight.ts` | 4 | KEPT TRUSTED TAIL / row-host review |
