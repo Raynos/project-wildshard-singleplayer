@@ -2402,6 +2402,16 @@ the host's combat pipeline inside the 70° strike arc with a clear line (`creatu
 the move `contactMove(kind)`). Both sides build the same engine brain from the same admitted data, so a row behaves the
 same in the client and the headless host. Signal Dunes' ray and strider are the first (`data/brains.ts` SIGNAL_SPECIES).
 
+**Parametric guardian (SF82 BR-1).** `@wildshard/engine/ai/guardianPolicy` defines `GuardianPolicy(actor, profile)`:
+`{ pattern: 'interior', spec: GuardianSpec }` or `{ pattern: 'perch', spec: PerchHunterSpec }`. `think(observation)`
+requires the same `pattern` tag, preserving each pattern's native floor, reach, attack-token and perch ports. Interior
+rise/sink and perch drop/climb/projectile recipes remain host-owned; the perch cooldown still draws the host's shared
+attack RNG. `snapshot()` / `restore(value)` preserve the old tuning-contract string exactly; mutable decisions stay in
+the actor snapshot, and construction/restore draw no RNG or body effects. A wrong pattern or invalid step refuses before
+mutation; zero-step interrupts remain admitted. `ai/guardian` `GuardianBrain` and `ai/perchHunter` `PerchHunterBrain`
+retain their defining paths, constructors and type names as presets of this one policy. This is a policy consolidation,
+with no species row adoption, native body or collision change.
+
 Species decision families `skirmisher`, `guardian` and `perch-hunter` use the strict `shardfile/brains` schemas.
 `brains.bind(kind, native)` requires a trusted body factory for these families, called once per animal with the
 admitted `{ archetype, policy }`; it retains native contact, rise/sink, perch and shared RNG recipes.
