@@ -546,7 +546,7 @@
     "src/shards/nalati-grasslands/combat/spawns.ts": 5,
     "src/shards/nalati-grasslands/combat/stormTitan.ts": 18,
     "src/shards/nalati-grasslands/combat/stormTitanLook.ts": 2,
-    "src/shards/nalati-grasslands/combat/strikes.ts": 2,
+    "src/shards/nalati-grasslands/combat/strikes.ts": 3,
     "src/shards/nalati-grasslands/cragRock.ts": 9,
     "src/shards/nalati-grasslands/creatures/flock.ts": 10,
     "src/shards/nalati-grasslands/creatures/marmotBrain.ts": 2,
