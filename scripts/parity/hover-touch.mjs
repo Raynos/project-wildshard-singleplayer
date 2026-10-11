@@ -7,7 +7,7 @@ import { devices, webkit } from 'playwright';
 import { browserPool } from './pool.mjs';
 import { serve } from './serve.mjs';
 import { saveFixture } from '../debug-settings.mjs';
-import { stageFloorGrid } from '../frame-floor-grid.mjs';
+import { gridFloorDocumentIdentity, stageFloorGrid } from '../frame-floor-grid.mjs';
 import { installLegacyProbeAdapter } from './probe.mjs';
 
 function observe() {
@@ -16,6 +16,7 @@ function observe() {
   const exposed = api.shard.grid;
   const grid = /** @type {import('../frame-floor-grid.mjs').FloorGridState | undefined} */ (typeof exposed === 'object' && exposed !== null && 'state' in exposed && typeof exposed.state === 'function' ? exposed.state() : undefined);
   return { shard: api.shard.slug, state: world.game.app.state, hover: world.player.hover, blend: world.player.hoverBlend,
+    document: { timeOrigin: performance.timeOrigin, token: window.__frameFloorGridDocumentToken, drift: window.__frameFloorGridOriginDrift },
     tools: world.weapons.tools.map(tool => ({ id: tool.id, enabled: tool.enabled, visible: 'model' in tool && tool.model instanceof Object && 'visible' in tool.model && tool.model.visible === true })),
     allowed: world.game.app.input.allowed('hover'), feet: { x: world.player.position.x, y: world.player.position.y, z: world.player.position.z },
     current: grid?.live.live.current, ready: grid?.live.live.gameplayReady };
@@ -37,6 +38,7 @@ async function run(browser, base, mode, out) {
     for (const [key, value] of Object.entries({ tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0' })) url.searchParams.set(key, value);
     if (mode === 'template') url.searchParams.set('chunk', '_template');
     await page.goto(url.href, { waitUntil: 'domcontentloaded' });
+    const documentOrigin = await page.evaluate(gridFloorDocumentIdentity);
     await page.locator('.ws-main-select').waitFor({ state: 'visible', timeout: 150000 });
     if (mode === 'template') {
       await page.locator('.ws-main-select').tap();
@@ -56,7 +58,7 @@ async function run(browser, base, mode, out) {
         return grid?.live.live.current === null && grid.live.live.gameplayReady;
       }, undefined, { timeout: 120000 });
       const plan = { name: 'hover-touch-road', from: null, to: null, start: { x: 277.5, z: 277.5 }, waypoints: [] };
-      await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},performance.timeOrigin)`);
+      await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
     } else if (await page.evaluate(() => window.__wildshard.shard.slug) !== '_template') throw new Error('Template test booted another shard');
     const hover = page.locator('.ws-touch-hover');
     await hover.waitFor({ state: 'visible' });

@@ -21,4 +21,9 @@ export type {
 } from '../../src/engine/debug/probe';
 
 /** Capture scripts access these handles only after ws:ready. */
-declare global { interface Window { __wildshard: ScriptProbe; __wildshardHarness?: ScriptPins } }
+declare global { interface Window {
+  __wildshard: ScriptProbe;
+  __wildshardHarness?: ScriptPins;
+  __frameFloorGridDocumentToken?: string;
+  __frameFloorGridOriginDrift?: { deltaMs: number; maximumAbsoluteMs: number };
+} }
