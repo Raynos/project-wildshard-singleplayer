@@ -3,7 +3,7 @@ import type { ShardEntryways } from './entryways';
 import type { ShardProps } from './props';
 import { entryFootprints, clipEntryPolygon, type EntryFootprint, type EntryVertex } from './entryGeometry';
 import { glbPoint, glbTransform } from './glbTriangles';
-import type { ShardMeshCollision } from './meshCollision';
+import type { ShardMeshCollision } from '@wildshard/format/meshCollision';
 import { visitMeshTriangles } from './meshEntryways';
 
 type Box = Extract<ShardProps['colliders'][number]['shapes'][number], { kind: 'box' }>;

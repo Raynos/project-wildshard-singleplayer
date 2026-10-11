@@ -1,6 +1,6 @@
 import type { PortalLinkEntry } from './portalLink';
 import type { ShardProps } from './props';
-import type { ShardMeshCollision } from './meshCollision';
+import type { ShardMeshCollision } from '@wildshard/format/meshCollision';
 import { glbPoint, glbTransform } from './glbTriangles';
 import { visitMeshTriangles } from './meshEntryways';
 import { entryFootprints, type EntryVertex } from './entryGeometry';

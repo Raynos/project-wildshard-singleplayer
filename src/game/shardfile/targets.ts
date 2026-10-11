@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { hookRules } from './hooks';
+import { hookRules } from '@wildshard/format/hooks';
 import type { Shardfile } from './schema';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));

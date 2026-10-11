@@ -7,7 +7,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { validateMeshEntryways } from '../src/game/shardfile/meshEntryways';
 import { validateSocketLandings } from '../src/game/shardfile/entryLanding';
 import { validateEntrywayClearance } from '../src/game/shardfile/entryClearance';
-import type { ShardMeshCollision } from '../src/game/shardfile/meshCollision';
+import type { ShardMeshCollision } from '@wildshard/format/meshCollision';
 
 function rectangle(x0: number, x1: number, z0: number, z1: number, y = 0): WorldPrimitive {
   return { node: 'ground', objectId: null, material: 0, terrain: false,

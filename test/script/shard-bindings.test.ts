@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { expect, it } from 'vitest';
-import { ScriptBindingsSchema, scriptBindingRules, numericScriptState, createShardfileScriptLane } from '../../src/game/shardfile/scripts';
+import { numericScriptState, createShardfileScriptLane } from '../../src/game/shardfile/scripts';
+import { ScriptBindingsSchema, scriptBindingRules } from '@wildshard/format/scripts';
 import { compileScript } from '../../scripts/compile-script.mjs';
 import { scriptSource } from './fixture';
 

@@ -1,5 +1,5 @@
 import { decodeMeshCollision } from '@wildshard/engine/core/meshCollision';
-import type { ShardMeshCollision } from './meshCollision';
+import type { ShardMeshCollision } from '@wildshard/format/meshCollision';
 import type { ShardEntryways } from './entryways';
 import { clipEntryPolygon, entryFootprints, obstructsEntry, type EntryVertex } from './entryGeometry';
 import { convexEntryHull, entryCoverage } from './entryCoverage';

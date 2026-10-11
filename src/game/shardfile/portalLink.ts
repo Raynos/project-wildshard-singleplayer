@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import type { ShardProps } from './props';
-import type { ShardMeshCollision } from './meshCollision';
+import type { ShardMeshCollision } from '@wildshard/format/meshCollision';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
 const coordinate = v.pipe(v.number(), v.finite(), v.minValue(-250), v.maxValue(250));

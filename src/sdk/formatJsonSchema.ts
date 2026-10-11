@@ -24,6 +24,10 @@ import { RuntimeBindsSchema } from '@wildshard/format/runtimeBinds';
 import { RuntimeSpawnsSchema } from '@wildshard/format/runtimeSpawns';
 import { SkinPoseLayerSchema } from '@wildshard/format/skinLayers';
 import { PhasedFlyerSchema } from '@wildshard/format/phasedFlyers';
+import { PresentationSchema } from '@wildshard/format/presentation';
+import { MeshCollisionSchema } from '@wildshard/format/meshCollision';
+import { ScriptBindingsSchema } from '@wildshard/format/scripts';
+import { HooksSchema } from '@wildshard/format/hooks';
 
 /** JSON Schema plus explicit admission checks that JSON Schema cannot express. */
 export interface FormatJsonSchema extends JsonSchema {
@@ -84,6 +88,10 @@ const wireRoots = {
   'runtimeSpawns.RuntimeSpawns': RuntimeSpawnsSchema,
   'skinLayers.SkinPoseLayer': SkinPoseLayerSchema,
   'phasedFlyers.PhasedFlyer': PhasedFlyerSchema,
+  'presentation.Presentation': PresentationSchema,
+  'meshCollision.MeshCollision': MeshCollisionSchema,
+  'scripts.ScriptBindings': ScriptBindingsSchema,
+  'hooks.Hooks': HooksSchema,
  } satisfies Readonly<Record<string, GenericSchema>>;
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

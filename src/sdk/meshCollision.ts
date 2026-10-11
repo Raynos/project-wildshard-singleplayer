@@ -1,4 +1,4 @@
-import { parseMeshCollision as parseData } from '@wildshard/game/shardfile/meshCollision';
+import { parseMeshCollision as parseData } from '@wildshard/format/meshCollision';
 
 /** Compiled exact triangle tiles and independent interactive collider references. */
 export type MeshCollisionData = ReturnType<typeof parseData>;

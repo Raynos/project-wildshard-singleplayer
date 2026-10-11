@@ -29,7 +29,11 @@
     "./runtimeBinds": "./runtimeBinds.ts",
     "./runtimeSpawns": "./runtimeSpawns.ts",
     "./skinLayers": "./skinLayers.ts",
-    "./phasedFlyers": "./phasedFlyers.ts"
+    "./phasedFlyers": "./phasedFlyers.ts",
+    "./presentation": "./presentation.ts",
+    "./scripts": "./scripts.ts",
+    "./hooks": "./hooks.ts",
+    "./meshCollision": "./meshCollision.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

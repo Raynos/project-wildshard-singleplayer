@@ -53,7 +53,7 @@ it('rebuilds all migrated documents byte-identically without committing generate
     const directory = join(root, '.wildshard/format');
     const files = readdirSync(directory).sort();
     expect(files).toEqual(Object.keys(formatJsonSchemas()).map(name => `${name}.schema.json`).sort());
-    expect(files.length).toBe(32);
+    expect(files.length).toBe(36);
     const before = files.map(name => readFileSync(join(directory, name), 'utf8'));
     writeFormatJsonSchemas(root);
     expect(files.map(name => readFileSync(join(directory, name), 'utf8'))).toEqual(before);
@@ -85,4 +85,13 @@ it('documents defining creature, audio, director and migration checks without gr
   expect(roots['runtimeBinds.RuntimeBinds']?.type).toBe('array');
   expect(roots['runtimeSpawns.RuntimeSpawns']?.additionalProperties).toBe(false);
   expect(() => formatJsonSchema(v.pipe(v.string(), v.check(() => true, 'Ordered guardian radii')))).toThrow();
+});
+
+it('retains presentation hashes, independent mesh chunk checks and strict hook/script declarations', () => {
+  const roots = formatJsonSchemas();
+  expect(roots['presentation.Presentation']?.additionalProperties).toBe(false);
+  expect(JSON.stringify(roots['presentation.Presentation'])).toContain('^[a-f0-9]{64}$');
+  expect(roots['meshCollision.MeshCollision']?.['x-wildshard-checks']).toEqual([1, 2, 3].map(index => `@wildshard/format/meshCollision#MeshCollisionSchema.pipe.${index}`));
+  expect(roots['scripts.ScriptBindings']?.maxItems).toBe(10000);
+  expect(roots['hooks.Hooks']?.additionalProperties).toBe(false);
 });

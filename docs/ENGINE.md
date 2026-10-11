@@ -2816,3 +2816,5 @@ remain visible in the total until the coordinator resolves the final surface.
 DS1.1: `@wildshard/format/{admissionLimits,version,state,preflight,json,commonsCosts}` now defines the renderer-neutral admission contracts. The author and loader use the same bounded plain-JSON, typed defaults, numeric state capacity and exact commons-cost checks. These modules import only Valibot and one another; parsing does not read assets or install a service.
 
 DS1.1: the pure creature/brain, audio, ledger, director, migration, traversal, runtime declaration and sampled skin contracts now live in defining `@wildshard/format` modules. Their Valibot bounds, semantic checks and pure continuation transformations move verbatim; native hosts and renderer adapters remain in game. Public format schemas join the SF45 generated reference inventory automatically.
+
+DS1.1: presentation metadata, exact mesh-collision declarations, script bindings/fields and named hooks are defined in `@wildshard/format`. Image URL resolution, native mesh-byte validation and script-host installation remain in game; all bounds and reference verdicts are unchanged.
