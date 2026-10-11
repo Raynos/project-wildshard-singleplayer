@@ -4,8 +4,9 @@ import { lstatSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const [entry, binding, output, ...extra] = process.argv.slice(2);
-if (entry === undefined || binding === undefined || output === undefined || extra.length > 0) throw new Error('generate-json: entry, function and output required');
+const args = process.argv.slice(2);
+const entry = args.at(0), binding = args.at(1), output = args.at(2);
+if (args.length !== 3 || entry === undefined || binding === undefined || output === undefined) throw new Error('generate-json: entry, function and output required');
 const root = process.cwd();
 /** Restrict source and destination to explicit regular paths in the isolated generation tree. @param {string} path */
 function confined(path) {
