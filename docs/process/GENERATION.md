@@ -241,3 +241,14 @@ mode gates and winch/islet motion stay with their existing owners. The
 cheap JSON is generated on a cache miss, pinned to SHA-256 `d5545bc47278abcf37fbefea7a2fdbad75a8998b684e309a1585da081ce425f7`.
 Remaining mesh/rig/body owners are transitional; no whole-product output
 removal is authorised.
+
+### Driftwood native ground (G320)
+
+The complete `driftwood-ground` component recompiles the original 256²
+WSTR lattice from retained island, seeded noise, grading, trail and road
+source. The native physics producer uses that source directly, with the
+exact G164 drop/unshift arithmetic. No runtime, manifest, retained grid or
+captured collider is an input. The pinned output SHA-256 is `7ee9dec5bd542063dce4c19d70d3e2fe9c3f61b54eff23387c0aec5629346c43`.
+The committed terrain stays until the whole-product clean room is green.
+Navmesh completion still requires all collider/floor dependencies; a ground
+component pass grants no output removal.

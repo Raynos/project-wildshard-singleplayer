@@ -9,6 +9,7 @@ import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs
 import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 import { driftwoodSpotsInputs } from '../../../../scripts/driftwood-spots-inputs.mjs';
 import { readDriftwoodSpots } from './driftwoodSpots.mjs';
+import { driftwoodGroundBytes } from './groundRows.ts';
 import { driftwoodPhysicsInputs } from '../../../../scripts/driftwood-physics-inputs.mjs';
 
 const spotsOnly = process.argv.includes('--spots');
@@ -131,14 +132,13 @@ try {
     async world(ctx) { await super.world(ctx); contexts.push(ctx); }
   }
   const { Terrain, terrainChunkGeometry } = await at('src/engine/world/Terrain.ts');
-  const { readFileSync } = await import('node:fs');
   await visitAuthoredWorld({ ...manifest, load: () => Promise.resolve({ default: CaptureDriftwood }) },
   { root, sky, element: environment.element, tier: 'phone', practiceArena: true,
     installKit: async () => {
       const ctx=contexts[0];if (ctx===undefined)throw new Error('Native world missing before kit');
       (await at('src/shards/driftwood-isle/creatures/install.ts')).installDriftwoodCreatures(ctx);
     },
-    nativeTerrain: readFileSync(resolvePath(root, 'public/assets/baked/driftwood-isle/terrain.bin')),
+    nativeTerrain: driftwoodGroundBytes(),
     createTerrain: async () => {
       const field = await at('src/engine/world/Heightfield.ts');
       const terrain = new Terrain();terrain.mesh = new THREE.Mesh(terrainChunkGeometry(field), new THREE.MeshBasicMaterial());
