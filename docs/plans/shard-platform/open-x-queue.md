@@ -29,6 +29,21 @@ Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an own
 | SF50-p, SF49-p, SF51-p | Signal, Sky and Nine port X tails toward ≤ 20 % | L–XL | after BR rows |
 | SF73 | Per-shard legacy deletion and save migration after ≤ 20 % and the gates | S–M each | blocked by ports |
 
+## SF87 / G320 status (2026-10-11, sp-x6)
+
+Author-only, cold clean-room exact: Template and Pastel (terrain, props, behaviour); Nine entries, fronts, floor boxes,
+portal floors and deck caps; Sky islets; Driftwood director; Pine night, clock and elites; Nalati raid, ghost, Qara and
+weapon hooks; Signal skitterer. Whole-product deletion stays guarded (`e6df68b43`).
+
+Still trusted / blocked:
+- **CPU, X:** the physics bakes (Driftwood, Pine, Nalati, Nine, Sky, Signal) and the Driftwood and Pine spots still run
+  trusted world, quest and species constructors; their placements are coupled to collider and rig recipes. Driftwood's
+  navmesh seeds from the public `navmesh.bin`, not a cold author source.
+- **Graphical, O (waits for Opus):** Nine's layout builds Square/Towers/Well meshes and neon/sign geometry; the static jobs
+  (Driftwood fixed models; Pine pond, cabins, crags, lookout, props, timbers, streams, undergrowth, wildlife, King
+  collision; Nalati bodies and places; Sky rigs and world; Signal rigs, sand and world) and every skin need geometry,
+  rig or pixel authoring owners.
+
 ## Part B: deferred (not started without Jake's word)
 
 S1 population / LOD-AI · S2 interior / vertical streaming · S3 physics toys and vehicles · S4 climb / drive / author-AS modes ·
