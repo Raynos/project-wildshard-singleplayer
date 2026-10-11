@@ -49,6 +49,7 @@
     "./nativeGround": "./nativeGround.ts",
     "./ui": "./ui.ts",
     "./clientScripts": "./clientScripts.ts",
+    "./clientChannels": "./clientChannels.ts",
     "./wireLimits": "./wireLimits.ts",
     "./runtimeCost": "./runtimeCost.ts",
     "./runtime": "./runtime.ts",

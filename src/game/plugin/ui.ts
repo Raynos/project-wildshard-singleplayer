@@ -1,3 +1,4 @@
+import { parseClientChannels, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import "../quest/presentation.css";
 import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, ShaderMaterial, Vector3, type Object3D } from "three";
 import type { Scope } from "@wildshard/engine/app/scope";
@@ -410,4 +411,56 @@ export function installEnteredQuestPresentation(context: ShardContext, quest: Qu
     scope.onDispose(() => { presentation.dispose(); if (current === presentation) current = null; });
   });
   return () => current;
+}
+
+
+/** A detached visual observation; only these numeric values and the clock cross the presentation boundary. */
+export interface ClientChannelObservation { readonly time: number; readonly delta: number; readonly values: readonly number[] }
+/** Read-only visual output; property getters expose no writable storage or authoritative object. */
+export type ClientChannelFrame = Readonly<Partial<Record<ClientChannelProperty, number>>>;
+/** A capability-limited numeric lane; it has no state setter, physics port, event writer or player reference. */
+export function createClientChannels(input: unknown): {
+  readonly reads: readonly string[]; readonly frame: ClientChannelFrame; evaluate: (observation: ClientChannelObservation) => void;
+} {
+  const program = parseClientChannels([input])[0]; if (program === undefined) throw new Error('Missing client channel program');
+  const nodes = structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
+  const frame: Partial<Record<ClientChannelProperty, number>> = {};
+  for (const channel of program.channels) Object.defineProperty(frame, channel.property, { enumerable: true, get: () => published[channel.value] });
+  Object.freeze(frame);
+  const evaluate = (observation: ClientChannelObservation): void => {
+    const { time, delta, values } = observation;
+    if (!Number.isFinite(time) || !Number.isFinite(delta) || delta < 0 || Math.abs(time) > 1e12 || delta > 1e12 || values.length !== reads.length) throw new Error('Invalid copied client observation');
+    for (let i = 0; i < reads.length; i++) { const value = values[i]; if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error('Invalid copied client state'); reads[i] = value; }
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i]; if (node === undefined) throw new Error('Missing client expression');
+      const a = 'a' in node ? scratch[node.a] ?? Number.NaN : 0, b = 'b' in node ? scratch[node.b] ?? Number.NaN : 0;
+      let value: number;
+      switch (node.op) {
+        case 'constant': value = node.value; break;
+        case 'clock': value = node.value === 'time' ? time : delta; break;
+        case 'read': value = reads[node.index] ?? Number.NaN; break;
+        case 'neg': value = -a; break;
+        case 'sin': value = Math.sin(a); break;
+        case 'cos': value = Math.cos(a); break;
+        case 'sqrt': value = Math.sqrt(a); break;
+        case 'abs': value = Math.abs(a); break;
+        case 'add': value = a + b; break;
+        case 'sub': value = a - b; break;
+        case 'mul': value = a * b; break;
+        case 'div': value = a / b; break;
+        case 'mod': value = a % b; break;
+        case 'min': value = Math.min(a, b); break;
+        case 'max': value = Math.max(a, b); break;
+        case 'atan2': value = Math.atan2(a, b); break;
+        case 'hypot': value = Math.hypot(a, b); break;
+        case 'gt': value = Number(a > b); break;
+        case 'select': value = (scratch[node.test] ?? Number.NaN) !== 0 ? scratch[node.yes] ?? Number.NaN : scratch[node.no] ?? Number.NaN; break;
+        default: throw new Error('Unknown client operation');
+      }
+      if (!Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error('Non-finite or excessive client expression');
+      scratch[i] = value;
+    }
+    published.set(scratch);
+  };
+  return Object.freeze({ reads: Object.freeze([...program.reads]), frame, evaluate });
 }

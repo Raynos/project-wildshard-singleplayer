@@ -19,13 +19,15 @@ import * as v from 'valibot';
  *   persisted by the platform under the stable instance id; player/public fields remain simulation-owned.
  * - `modes`: validated traversal parameters consumed by the native player owner at its existing update phase.
  *   The data client never installs a second traversal owner.
+ * - `clientChannels`: copied clock/state observations and bounded straight-line numeric expressions; the runtime
+ *   binds private visual targets, never authoritative state or player objects.
  * - `terrain` (G227, "the shardfile is the bake"): the compiled 62.5 m terrain tiles and their critical collider. The data
  *   client draws and collides none of them; the runtime binds them (`bindRuntimeTerrain`, ./runtimeWorld.ts), streaming the
  *   admitted tiles through the shardfile's residency in place of its code-built ground. The edge rows stay platform data.
  * - `props` (G227): the compiled props section (tiles, library models, panels, far proxy), bound the same way; the
  *   runtime keeps the behaviour of the pieces it dresses.
  */
-export const RUNTIME_BOUND_SECTIONS = ['quests', 'ledger', 'items', 'spawns', 'state', 'terrain', 'props', 'modes'] as const;
+export const RUNTIME_BOUND_SECTIONS = ['quests', 'ledger', 'items', 'spawns', 'state', 'terrain', 'props', 'modes', 'clientChannels'] as const;
 /** One section a trusted runtime binds rather than the data client. */
 export type RuntimeBoundSection = (typeof RUNTIME_BOUND_SECTIONS)[number];
 /** `runtime.binds`: the declared capability that replaces the implicit "empty apart from audio, edges and colliders" rule. */

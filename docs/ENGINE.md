@@ -2987,6 +2987,12 @@ Its page entry-choice service is not part of the native lane closure.
 `plugin/ui` defines client-script pose/particle presentation alongside quest UI;
 these modules retain their existing singleton and lifecycle identities.
 
+SF25: `plugin/ui.createClientChannels(program)` evaluates the bounded
+`format/clientChannels` numeric grammar over copied `{time, delta, values}`
+observations. Its frozen visual frame publishes atomically and provides no
+shared-state, player, physics or event write port. `sdk/clientChannels` defines
+the author builder; SHARDFILE.md documents the executed example and limits.
+
 
 DS1.3: the scene reader now includes `SkinnedMesh` bind mode/matrices, ordered joint references and inverse binds, typed skin channels, and standard `AnimationClip` / `KeyframeTrack` interpolation, times and values. Raw integer channels stay raw even when normalized or interleaved. Named targets and all rest joints must belong to the author graph; UUID-bound tracks, duplicate joints, malformed influences and custom interpolants refuse. Local TRS is retained alongside matrices so clips remain executable without a decomposition changing the rest pose.
 

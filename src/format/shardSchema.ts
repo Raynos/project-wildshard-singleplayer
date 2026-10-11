@@ -31,6 +31,7 @@ import { ItemsSchema, itemRules } from '@wildshard/format/items';
 import { TraversalSchema } from '@wildshard/format/traversal';
 import { RuntimeSchema } from '@wildshard/format/runtime';
 import { ClientScriptsSchema, clientScriptRules } from '@wildshard/format/clientScripts';
+import { ClientChannelsSchema } from '@wildshard/format/clientChannels';
 import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema, entrywayRules } from '@wildshard/format/entryways';
 import { ModesSchema } from '@wildshard/format/modes';
@@ -93,6 +94,7 @@ const rawSchema = v.strictObject({
   targets: v.optional(TargetsSchema, { panels: [], interactions: [] }),
   traversal: v.optional(TraversalSchema, { hoverCap: 14 }),
   clientScripts: v.optional(ClientScriptsSchema, { divisor: 2, bindings: [] }),
+  clientChannels: v.exactOptional(ClientChannelsSchema),
   // RuntimeSchema owns strict binds/spawns and their exact pairing; bound state also passes ownership and ordinary field admission.
   runtime: v.optional(v.nullable(RuntimeSchema), null),
   spawn: v.optional(SpawnSchema, { x: 0, y: 2, z: 0, yaw: 0 }),
@@ -140,6 +142,7 @@ export function shardfileRules(s: Shardfile): string[] {
     }
   }
   errors.push(...stateRules(s.state));
+  if ((s.clientChannels?.length ?? 0) > 0 && s.runtime?.binds?.includes('clientChannels') !== true) errors.push('native visual channels require runtime.binds clientChannels');
   if (s.runtime?.binds?.includes('state') === true && (s.state.player.length > 0 || s.state.shared.some((field) => field.privacy !== 'host'))) errors.push('runtime-bound state supports only host-owned shared fields');
   errors.push(...materialGraphRules(s), ...postStackRules(s));
   const materialRefs = materialTextureRefs(s.look.materials), libraryClosure = new Set<string>();

@@ -121,6 +121,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | `look` | Fixed platform family names; grade exposure/saturation/contrast and optional LUT reference; engine clock with an optional `day`; optional normalised day override; ordered day keys carrying sky gradient, fog, sun and ambient values (below). |
 | `sim` | 60 Hz fixed step; positive script tick divisor dividing 60; command and snapshot schema version 0; script references. |
 | `clientScripts` | Optional/default-empty presentation lane: cadence dividing 60, named creature/panel/prop/particle targets, selected public/owner numeric fields, bounded pose and emitters. |
+| `clientChannels` | Optional trusted-runtime presentation programs: bounded straight-line numeric expressions over copied clock/state observations, publishing only private visual transforms/scalars. Requires `runtime.binds: ["clientChannels"]`. |
 | `rows` | Optional/default-empty numeric strikes, weather output tables, day schedules, species/variants, registered look recipes, compendium and loot presentation data. |
 | `terrain`, `water` | Optional/null bounded baked terrain binding; optional/default-empty declared pools, sea and streams. |
 | `meshCollision` | Optional/null exact WMC1 critical triangle tiles and interactive panel colliders; mutually exclusive with terrain. Runtime integration is pending (SF55a). |
@@ -397,6 +398,35 @@ The pooled particle view adds 56 CPU and 32 GPU bytes per live slot, capped at
 the library budget; each instance owns its own view claim.
 Same-engine visual continuation restores memory, globals, lifetimes, quotas and
 failure history without running an authoritative tick.
+
+`clientChannels` complements the fixed-tick Wasm lane when a retained view must
+preserve its continuous page-clock mathematics. It is data, not callable code:
+each program has at most 128 scalar nodes, 32 named numeric reads and 12 unique
+visual channels. A shard admits at most 512 programs, 16,384 nodes and 4,096
+channels in total. Every node reference points backward; loops, recursion,
+function calls, events and shared/player writes are absent from the grammar.
+JSON Schema carries the same bounds and names the defining checks for backward
+references, unique IDs and aggregate limits.
+
+The trusted view owner supplies detached numeric observations and binds outputs
+only to its private draw transforms. It passes no player, physics, state writer
+or event authority. `createClientChannels` in `@wildshard/game/plugin/ui` copies
+the reads and exposes a frozen frame; a failed calculation leaves the previous
+frame intact. The native-runtime binding prevents a second data installation.
+Authoring uses `@wildshard/sdk/clientChannels`; for example:
+
+```ts
+const orbit = new ClientChannels('orbit');
+const angle = orbit.binary('mul', orbit.clock('time'), orbit.constant(0.045));
+orbit.output('x', orbit.binary('add', orbit.constant(8),
+  orbit.binary('mul', orbit.unary('cos', angle), orbit.constant(22))));
+orbit.output('yaw', orbit.unary('neg', angle));
+const rows = [orbit.build()];
+```
+
+`test/client-channels.test.ts` executes this example at continuous time
+1000.1234567 and requires bit-identical `8 + Math.cos(time * 0.045) * 22` and
+`-(time * 0.045)`. Neither clock quantization nor yaw wrapping is applied.
 
 Named hook conditions resolve a stable numeric field ID and a typed equality value.
 Shared conditions read public fields; player conditions may read the owning actor's

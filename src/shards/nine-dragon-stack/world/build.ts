@@ -67,16 +67,17 @@ import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometr
 import { loadLayoutBake, restoreLayout } from './layoutBake';
 import { loadSpecimens } from './specimens';
 import { buildEntryDecks } from './entries';
-import { CABLE, SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
+import { SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
 import { merge } from './hero/kitx';
 import { type InstanceCuller as InstanceCullerView, InstanceCuller } from '../runtime/cull/instanceCuller';
 import { cullHandedBatches } from '../runtime/cull/handedBatches';
 import { convertKits } from '../runtime/kit/kitConvert';
 import { waitForFonts } from '../runtime/signs/fontWait';
 import { mistSheetsGeometry, steamPuffsGeometry } from '../runtime/looks/mistGeometry';
-import { type MoverPath, moveAlong } from '../runtime/props/pathMovers';
+import { NINE_CLIENT_CHANNELS } from '../data/clientMotion';
+import type { ClientChannelProgram } from '@wildshard/format/clientChannels';
 import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
-import { FONT_LOAD, KIT_YIELD_MS, MOVERS, SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
+import { FONT_LOAD, KIT_YIELD_MS, SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
 import { lodReady } from '../runtime/cull/meshLod';
 import { addKitMeshes } from '../runtime/kit/kitMeshes';
 
@@ -311,11 +312,11 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
   const neon = neonMaterial(shared, atlas.textures);
   nd.look.neon = { mat: neon, atlas };
-  const movers = (model: ModelDef<object>, paths: readonly MoverPath[], id: string): RunningMover[] => placeMovers(model, paths, { ctx: nd.ctx, parent: root, id, name: 'movers' });
+  const movers = (model: ModelDef<object>, programs: readonly ClientChannelProgram[], id: string): RunningMover[] => placeMovers(model, programs, { ctx: nd.ctx, parent: root, id, name: 'movers' });
   const running = [
-    ...movers(monorailTrain, [{ kind: 'loop', ...MOVERS.train, y: Y0 + MOVERS.train.y }], 'nds-train'),
-    ...movers(cableGondola, [{ kind: 'cable', ...CABLE, ...MOVERS.gondola }], 'nds-gondola'),
-    ...movers(drone, MOVERS.drones.map((d): MoverPath => ({ kind: 'orbit', x: d.x, y: Y0 + d.y, z: d.z, r: d.r, rate: d.rate, phase: d.phase, bob: d.bob, bobRate: d.bobRate })), 'nds-drones'),
+    ...movers(monorailTrain, NINE_CLIENT_CHANNELS.slice(0, 1), 'nds-train'),
+    ...movers(cableGondola, NINE_CLIENT_CHANNELS.slice(1, 2), 'nds-gondola'),
+    ...movers(drone, NINE_CLIENT_CHANNELS.slice(2), 'nds-drones'),
   ];
   await slice();
   const signsMesh = named(new Mesh(signs.build(), neon), 'signs');
@@ -398,7 +399,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     shared.u.uNear.value = camera.near;
     shared.u.uCam.value.setFromMatrixPosition(camera.matrixWorld);
     shared.bandWindow();
-    for (const m of running) moveAlong(m.body, m.path, t);
+    for (const m of running) m.advance(t);
   };
   const cull = (camera: PerspectiveCamera): void => {
     culler.update(camera);

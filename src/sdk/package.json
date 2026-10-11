@@ -33,6 +33,7 @@
     "./movers": "./movers.ts",
     "./director": "./director.ts",
     "./clientScripts": "./clientScripts.ts",
+    "./clientChannels": "./clientChannels.ts",
     "./migrations": "./migrations.ts",
     "./brains": "./brains.ts",
     "./speciesBrains": "./speciesBrains.ts",
@@ -262,6 +263,10 @@
       "./clientScripts": {
         "types": "./dist/types/sdk/clientScripts.d.ts",
         "default": "./dist/clientScripts.js"
+      },
+      "./clientChannels": {
+        "types": "./dist/types/sdk/clientChannels.d.ts",
+        "default": "./dist/clientChannels.js"
       },
       "./migrations": {
         "types": "./dist/types/sdk/migrations.d.ts",

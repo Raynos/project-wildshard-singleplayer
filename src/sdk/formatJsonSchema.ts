@@ -48,6 +48,7 @@ import { EntrywaysSchema } from '@wildshard/format/entryways';
 import { NativeGroundSchema } from '@wildshard/format/nativeGround';
 import { UiSchema } from '@wildshard/format/ui';
 import { ClientScriptsSchema } from '@wildshard/format/clientScripts';
+import { ClientChannelsSchema, ClientChannelProgramSchema } from '@wildshard/format/clientChannels';
 
 import { MemoryMeasurementSchema, RuntimeCostSchema, RegionalSimCostSchema } from '@wildshard/format/runtimeCost';
 import { RuntimeSchema } from '@wildshard/format/runtime';
@@ -182,6 +183,8 @@ const wireRoots = {
   'nativeGround.NativeGround': NativeGroundSchema,
   'ui.Ui': UiSchema,
   'clientScripts.ClientScripts': ClientScriptsSchema,
+  'clientChannels.ClientChannels': ClientChannelsSchema,
+  'clientChannels.ClientChannelProgram': ClientChannelProgramSchema,
   'runtimeCost.MemoryMeasurement': MemoryMeasurementSchema,
   'runtimeCost.RuntimeCost': RuntimeCostSchema,
   'runtimeCost.RegionalSimCost': RegionalSimCostSchema,

@@ -74,6 +74,7 @@ export function withoutRuntimeRows(source: Shardfile): Shardfile {
     ...(world.size === 0 ? {} : { files: source.files.filter((file) => keep(file.hash)), critical: source.critical.filter(keep), library: source.library.filter(keep), far,
       tiles: source.tiles.flatMap((tile) => { const files = tile.files.filter(keep); return files.length === 0 ? [] : [files.length === tile.files.length ? tile : { ...tile, files }]; }) }),
     ...(binds.has('modes') ? { modes: { traverse: [] } } : {}),
+    ...(binds.has('clientChannels') ? { clientChannels: [] } : {}),
     ...(binds.has('quests') ? { quests: { flags: [], quests: [], triggers: [], dialogue: [] } } : {}),
     ...(binds.has('ledger') ? { ledger: [] } : {}),
     ...(binds.has('items') ? { items: { version: 1, rows: [], contexts: [], loadout: { primary: null, secondary: null, tools: [] } } } : {}),
