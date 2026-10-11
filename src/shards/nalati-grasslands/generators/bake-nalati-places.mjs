@@ -7,6 +7,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync, inflateSync } from 'node:zlib';
 import { byteWriter } from '../../../../scripts/bake-output.mjs';
+import { withPortableMath } from '../../../../test/fake/portableMath.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const OUT = resolve(root, 'public/assets/nalati/baked');
@@ -76,7 +77,7 @@ export function bakeDifference(file, committed, made, geos) {
 
 if (import.meta.main) {
   const { bakeNalatiPlacesOnTerrain } = await import('./places.ts');
-  const baked = bakeNalatiPlacesOnTerrain(terrainBuffer());
+  const baked = bakeNalatiPlacesOnTerrain(terrainBuffer(), withPortableMath);
   const check = process.argv.includes('--check');
   const forceWrite = !check && process.argv.includes('--force-write');
   const writer = byteWriter(check, 'bake-nalati-places');

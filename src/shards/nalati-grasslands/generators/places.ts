@@ -9,7 +9,6 @@
  * generated (GLB) instances and per model the copies `place` registers. `world/placeBake.ts` draws them back bit-exact.
  */
 import type * as THREE from 'three';
-import { withPortableMath } from '../../../../test/fake/portableMath';
 import { paramsOf, type ModelDef } from '@wildshard/engine/models/model';
 import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { bakedSamplers, parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
@@ -333,13 +332,16 @@ function specimenJobs(): ((blocks: Uint8Array[]) => SpecimenRow[])[] {
 
 /** a bake: its rows and raw binary (not yet lane-shuffled or compressed) */
 export interface PlacesBake<R> { readonly rows: readonly R[]; readonly bin: Uint8Array }
+/** The Node producer supplies platform-stable arithmetic only while building Explorer specimens. */
+type SpecimenScope = (build: () => SpecimenRow[]) => SpecimenRow[];
+const nativeSpecimenScope: SpecimenScope = (build) => build();
 
 /**
  * The bake over the page's ground (its baked terrain sampler): the three places in the page's order (the camp, the
  * bridge, the summer camp), then the specimens (the bridge's fitted to its first placement, so after the places), then
  * the dressing's scatter shapes (their own binary, `dressing.bin`).
  */
-export function bakeNalatiPlaces(ground: Ground): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
+export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = nativeSpecimenScope): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
   setTerrainHeight(ground);
   const blocks: Uint8Array[] = [];
   const rows = [nomadCamp, bridge, summerCamp].map((build): PlaceRow => {
@@ -357,7 +359,7 @@ export function bakeNalatiPlaces(ground: Ground): { places: PlacesBake<PlaceRow>
   const places = { rows, bin: join(blocks) };
   const specimenBlocks: Uint8Array[] = [];
   // Native V8 trig differs on arm64/x64; even a final float32 UV can cross its rounding midpoint.
-  const specimens = withPortableMath(() => specimenJobs().flatMap((run) => run(specimenBlocks)));
+  const specimens = specimenScope(() => specimenJobs().flatMap((run) => run(specimenBlocks)));
   // the dressing's scatter shapes (generators/dressingGeos.ts): ground-free, indexed, kept as built
   const dressingBlocks: Uint8Array[] = [];
   const dressing = DRESSING_GEOS.map(([key, build]): DressingGeoRow => ({ key, geometry: writeGeometry(build(), dressingBlocks, `dressing ${key}`) }));
@@ -365,8 +367,8 @@ export function bakeNalatiPlaces(ground: Ground): { places: PlacesBake<PlaceRow>
 }
 
 /** the bake over the page's baked terrain grid (public/assets/baked/nalati-grasslands/terrain.bin), as the page samples it */
-export function bakeNalatiPlacesOnTerrain(terrain: ArrayBuffer): ReturnType<typeof bakeNalatiPlaces> {
+export function bakeNalatiPlacesOnTerrain(terrain: ArrayBuffer, specimenScope: SpecimenScope = nativeSpecimenScope): ReturnType<typeof bakeNalatiPlaces> {
   const grid = parseBakedTerrain(terrain);
   if (grid === null) throw new Error('[nalati places] no Nalati terrain grid');
-  return bakeNalatiPlaces(bakedSamplers(grid).heightAt);
+  return bakeNalatiPlaces(bakedSamplers(grid).heightAt, specimenScope);
 }
