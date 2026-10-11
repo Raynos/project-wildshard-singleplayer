@@ -83,3 +83,7 @@ hourly slot as boot smoke before every attempt, refuses unreadable/API failures,
 Twenty shell/selector tests pass; real installed dry-run refuses the occupied slot. The shared hourly limit, exact-SHA
 proofs and fail-closed selector remain intact. The official backstop dispatched at **17:50:30 UTC**, after the shared
 slot explicitly returned free, and shipped the new id above. No subsequent release is allowed before 18:50:30 UTC.
+
+The later [local CPU pressure receipt](cpu.md) records the six-worker cap, nice priority, bounded gate phases,
+full before/after timings, JSON top ten and byte-verified export reuse. The local full gate recovered and
+`27d583885` reached origin; its 589-second total still fails the push-speed target.

@@ -46,8 +46,11 @@ unrestricted; `--project`, `--shard` and reporter flags alone are still full run
 An SDK package build that includes its app clients also runs through the build wrapper.
 
 The push gate has its **own `push-gate` lease** (process audit 2026-10-09: a lane's suite held pushes a median 115 s):
-one gate at a time, running beside lanes' suites and builds, and its lease covers both guards for its descendants. Otherwise each lane is FIFO; independent test and build jobs may overlap. The gate retains its existing
-internal parallel steps. Waiting is logged separately from the E454 gate time. Do not start a nested build inside a
+one gate at a time, running beside lanes' suites and builds, and its lease covers both guards for its descendants.
+Otherwise each lane is FIFO; independent test and build jobs may overlap. The gate runs Vitest in an exclusive phase
+and bounds the remaining background jobs at three. Local Vitest defaults to six workers (`WS_VITEST_MAX_WORKERS`
+accepts a positive integer); CI keeps its runner default. Owned heavy commands run under `nice -n 10`, inherited by
+nested wrappers. Waiting is logged separately from the E454 gate time. Do not start a nested build inside a
 full-test lease; request `check` up front when one ordinary command needs both resources (`gate` is push priority).
 
 The default owned-command deadline is 30 minutes (`--max <minutes>`); queue time is separate. Signals and deadlines

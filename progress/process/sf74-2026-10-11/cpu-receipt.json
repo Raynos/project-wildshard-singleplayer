@@ -1,0 +1,266 @@
+{
+  "before": {
+    "at": 1791746546,
+    "sha": "465000da25b03f71ca141c6da32b45a507ccefb7",
+    "wall": 427,
+    "mode": "full",
+    "vitest": "full",
+    "ok": false,
+    "steps": {
+      "generated": 0,
+      "platform-ratchets": 0,
+      "gen": 6,
+      "witness-cache": 1,
+      "check-css": 2,
+      "gen-check": 5,
+      "game-plugin-exports": 17,
+      "shard-coupling": 23,
+      "typecheck": 17,
+      "typecheck-layers": 19,
+      "typecheck-api": 1,
+      "typecheck-scripts": 5,
+      "oxlint": 134,
+      "ratchet": 0,
+      "liveness": 0,
+      "audit-assets": 21,
+      "check-model-sources": 1,
+      "webgpu-inventory": 1,
+      "bake-directors": 12,
+      "bake-chunk": 11,
+      "bake-sky": 5,
+      "bake-navmesh": 85,
+      "bake-island-cover": 6,
+      "bake-voxel-ao": 56,
+      "bake-geometry": 60,
+      "bake-cloud-field": 2,
+      "bake-driftwood-fixed-models": 5,
+      "bake-nalati-bodies": 4,
+      "bake-nalati-places": 8,
+      "bake-nine-physics": 13,
+      "bake-sky-physics": 7,
+      "bake-signal-physics": 7,
+      "bake-pine-coat-pages": 31,
+      "bake-driftwood-physics": 11,
+      "bake-pine-physics": 11,
+      "bake-pine-spots": 12,
+      "bake-driftwood-spots": 11,
+      "bake-nalati-physics": 13,
+      "vitest": 417,
+      "x64-digests": 52,
+      "script-conformance": 8,
+      "shardfiles": 145,
+      "vite-build": 28,
+      "assert-devserver": 1,
+      "check-chunks": 0,
+      "shard-platform": 11,
+      "webkit-smoke": 16
+    }
+  },
+  "after": {
+    "at": 1791747768,
+    "sha": "27d583885123ee7b08b4c7e8411ef0378cae94b0",
+    "wall": 589,
+    "mode": "full",
+    "vitest": "full",
+    "ok": true,
+    "steps": {
+      "generated": 0,
+      "platform-ratchets": 0,
+      "gen": 8,
+      "witness-cache": 1,
+      "vitest": 444,
+      "check-css": 1,
+      "gen-check": 1,
+      "game-plugin-exports": 5,
+      "shard-coupling": 8,
+      "typecheck": 7,
+      "typecheck-layers": 8,
+      "typecheck-api": 0,
+      "typecheck-scripts": 1,
+      "oxlint": 25,
+      "ratchet": 0,
+      "liveness": 0,
+      "audit-assets": 6,
+      "check-model-sources": 1,
+      "webgpu-inventory": 1,
+      "bake-directors": 3,
+      "bake-chunk": 1,
+      "bake-sky": 1,
+      "bake-navmesh": 18,
+      "bake-island-cover": 1,
+      "bake-voxel-ao": 10,
+      "bake-geometry": 10,
+      "bake-cloud-field": 0,
+      "bake-driftwood-fixed-models": 0,
+      "bake-nalati-bodies": 1,
+      "bake-nalati-places": 2,
+      "bake-nine-physics": 3,
+      "bake-sky-physics": 1,
+      "bake-signal-physics": 1,
+      "bake-pine-coat-pages": 7,
+      "bake-driftwood-physics": 2,
+      "bake-pine-physics": 2,
+      "bake-pine-spots": 1,
+      "bake-driftwood-spots": 1,
+      "bake-nalati-physics": 2,
+      "x64-digests": 12,
+      "script-conformance": 4,
+      "shardfiles": 32,
+      "vite-build": 7,
+      "assert-devserver": 0,
+      "check-chunks": 0,
+      "shard-platform": 3,
+      "webkit-smoke": 8
+    }
+  },
+  "workerCommit": "bd976e899",
+  "priorityCommit": "33a0457e0",
+  "boundedGateCommit": "fae4d85fa",
+  "strictAccessFix": "55fc839e9",
+  "reuseCommit": "b37ead49e",
+  "observedBeforeLoad1": 57.75,
+  "activeGateLoad1Mean": 15.728,
+  "activeGateLoad1Peak": 25.28662109375,
+  "peakVitestWorkers": 6,
+  "childPriorityValues": [
+    10,
+    20
+  ],
+  "testDurations": {
+    "sha": "27d583885123ee7b08b4c7e8411ef0378cae94b0",
+    "success": true,
+    "tests": 7490,
+    "passed": 7470,
+    "failed": 0,
+    "topFiles": [
+      {
+        "file": "test/proof/compatibility/determinism.test.ts",
+        "seconds": 53.701,
+        "status": "passed"
+      },
+      {
+        "file": "test/shards/driftwood-isle/headless-runtime.test.ts",
+        "seconds": 34.85,
+        "status": "passed"
+      },
+      {
+        "file": "test/shards/nalati-grasslands/headless-taming.test.ts",
+        "seconds": 29.219,
+        "status": "passed"
+      },
+      {
+        "file": "test/generated-workflow.test.ts",
+        "seconds": 26.94,
+        "status": "passed"
+      },
+      {
+        "file": "test/shards/pine-hollow/headless-runtime.test.ts",
+        "seconds": 26.581,
+        "status": "passed"
+      },
+      {
+        "file": "test/shards/far-reach/headless-runtime.test.ts",
+        "seconds": 26.129,
+        "status": "passed"
+      },
+      {
+        "file": "test/proof/pine-hollow/headless.test.ts",
+        "seconds": 20.36,
+        "status": "passed"
+      },
+      {
+        "file": "test/grid-render-rings.test.ts",
+        "seconds": 18.128,
+        "status": "passed"
+      },
+      {
+        "file": "test/lint-ratchet.test.ts",
+        "seconds": 16.47,
+        "status": "passed"
+      },
+      {
+        "file": "test/arch-guards.test.ts",
+        "seconds": 15.729,
+        "status": "passed"
+      }
+    ],
+    "topTests": [
+      {
+        "file": "test/proof/compatibility/determinism.test.ts",
+        "test": "sunscar-dunes reports identical passing whole-shard results in independent native processes",
+        "seconds": 18.993,
+        "status": "passed"
+      },
+      {
+        "file": "test/proof/driftwood-isle/reef.test.ts",
+        "test": "swims from the real spawn, dives to the reef treasure through held worker input, restores mid-dive and surfaces with a durable gameplay fact",
+        "seconds": 15.181,
+        "status": "passed"
+      },
+      {
+        "file": "test/proof/driftwood-isle/zipline.test.ts",
+        "test": "walks from the real spawn to the zipline and restores its native and worker carry through an earned durable landing",
+        "seconds": 13.077,
+        "status": "passed"
+      },
+      {
+        "file": "test/shards/nalati-grasslands/headless-taming.test.ts",
+        "test": "resumes the real mid-buck checkpoint in the shipping worker across all native body cadences",
+        "seconds": 12.935,
+        "status": "passed"
+      },
+      {
+        "file": "test/proof/driftwood-isle/replay.test.ts",
+        "test": "captures the real living Captain and continues exact canonical physics, gameplay and SDK worker effects",
+        "seconds": 12.372,
+        "status": "passed"
+      },
+      {
+        "file": "test/proof/far-reach/headless.test.ts",
+        "test": "walks 10,000 ticks from the spawn by tick commands alone: the keeper, three vanes GUSTed, the roost felled, both hover bridges and the updraft on the board to the step, the winch",
+        "seconds": 10.821,
+        "status": "passed"
+      },
+      {
+        "file": "test/proof/blender-template/headless.test.ts",
+        "test": "walks the authored hall and emits the two-step reward once without a renderer",
+        "seconds": 10.379,
+        "status": "passed"
+      },
+      {
+        "file": "test/proof/nine-dragon-stack/ledger.test.ts",
+        "test": "grants both declared achievements once from gameplay facts, durably, with no re-emission after a restore",
+        "seconds": 9.928,
+        "status": "passed"
+      },
+      {
+        "file": "test/shards/nalati-grasslands/headless-taming.test.ts",
+        "test": "approaches a real living stallion, earns the live prompt, rides all five bucking rounds and retains the original hidden living identity",
+        "seconds": 9.359,
+        "status": "passed"
+      },
+      {
+        "file": "test/debug-flag-hygiene.test.ts",
+        "test": "Debug flag ownership and review dates inventories all static/plugin rows, checks the ceiling, and lists overdue flags without failing",
+        "seconds": 9.358,
+        "status": "passed"
+      }
+    ]
+  },
+  "exportReuse": {
+    "sha": "c318474fffde4044a8562d81acf681783d9b9537",
+    "baselineSeconds": 30.985738291999997,
+    "reusedSeconds": 20.567314958000004,
+    "baselineExports": 2,
+    "reusedExports": 1,
+    "byteVerified": true,
+    "allFocusedChecksPassed": true,
+    "note": "Identical SHA and focused failed CSS/Nine freshness plus all witness/map/native fence commands; full gate remains fresh."
+  },
+  "limits": [
+    "Different before/after commit snapshots and concurrent machine work; load comparison is observational.",
+    "CI worker defaults unchanged; local full gate remains above two-minute target.",
+    "Existing 20 skipped tests retained; zero new skips.",
+    "Reuse is scoped to one exact-SHA selector attempt and requires unchanged whole-export bytes; full gate stays fresh."
+  ]
+}

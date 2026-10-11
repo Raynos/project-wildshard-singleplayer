@@ -88,8 +88,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   `.blend`. `.gitattributes` marks binaries `-delta`.
 - **The pre-push gate builds what Vercel builds.** `.githooks/pre-push` runs `scripts/vercel-tree-gate.sh` on the tip
   you push (stamped per commit, so a passed SHA never reruns); `push-main.sh` runs it before it opens the `git push`, so the hook only finds the stamp (SF74 W20: GitHub dropped the idle SSH session after a 385 s gate): only the files `.vercelignore` lets through, then
-  check-css, typecheck, oxlint, the ratchet, the audits, bake-check, vitest, liveness and vite build, **in parallel**,
-  each printing its own wall time. Jake's budget is **≤ 2 min for the whole push** (E454: ~65 s for the gate plus
+  check-css, typecheck, oxlint, the ratchet, the audits, bake-check, vitest, liveness and vite build. Vitest has an
+  exclusive phase; the remaining jobs run at most three at a time, each printing its own wall time. The gate passes
+  `WS_VITEST_MAX_WORKERS` explicitly (six by default), and its heavy lease runs commands under `nice -n 10`.
+  Jake's budget is **≤ 2 min for the whole push** (E454: ~65 s for the gate plus
   ~17 s for the regeneration on 2026-10-07); a step that pushes it over moves to CI, never silently away. It refuses
   the push when `.vercelignore` would drop anything under `src/`, `public/`, `api/` or `scripts/`; anchor every
   `.vercelignore` line with `/` (E41). A red gate is yours to fix before the push. Rare escape: `SKIP_VERCEL_GATE=1`.
