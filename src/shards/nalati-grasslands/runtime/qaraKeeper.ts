@@ -1,6 +1,9 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { eliteScript, type EliteScript } from '@wildshard/sdk/eliteScripts';
+import { QARA_RULES, QARA_MODES, QARA_OPEN_CUE } from '../data/qaraBrain';
+import { qaraBrain, QARA_MODULE } from './qaraBrain';
 
 /** The actual night roster owns these actors, its kill counter and its line/arrow policy. */
 export interface QaraCrew<A extends AnimalSim> {
@@ -21,14 +24,17 @@ const finite = v.pipe(v.number(), v.finite()), triple = v.tuple([finite, finite,
 const Saved = v.strictObject({ st: v.picklist(['wait', 'circle', 'wheel', 'charge', 'open', 'home']), stT: finite, chargeT: finite,
   pairs: v.picklist([0, 1]), struck: v.boolean(), c0: triple, c1: triple, line: v.pipe(v.array(v.string()), v.maxLength(3)) });
 const invalidLine = new Error('Invalid Qara companion line');
+const invalidCommand = new Error('Invalid Qara script command');
 /** Shipping night-captain policy. The real ghost roster supplies line/arrow ownership; this is not a replacement for it. */
 export class QaraKeeper<A extends AnimalSim> {
   private st: v.InferOutput<typeof Saved>['st'] = 'wait';
-  private stT = 0; private chargeT = 6; private pairs: 0 | 1 = 0; private struck = false;
+  private readonly script: EliteScript;
+  private readonly observations: number[] = Array.from({ length: 21 }, () => 0);
   private line: readonly A[] = [];
   private readonly c0 = new Vector3(); private readonly c1 = new Vector3();
-  constructor(private readonly ports: QaraPorts<A>) {}
-  private get p2(): boolean { return this.ports.phase2(); }
+  constructor(private readonly ports: QaraPorts<A>) {
+    this.script = eliteScript(qaraBrain(ports.lair), QARA_MODULE.bytes, () => { throw new Error('Qara has no random decisions'); });
+  }
   spawned(): void { this.st = 'wait'; }
   reset(): void { this.st = 'home'; this.ports.lane.hide(); }
   disposeLine(): void {
@@ -36,23 +42,22 @@ export class QaraKeeper<A extends AnimalSim> {
     for (let i = 0; i < 3; i++) { const a = this.line[i]; if (a === undefined) break; if (a.alive) this.ports.crew?.dissolve(a); }
     this.line = [];
   }
-  private melee(p: Vector3): boolean { const pl = this.ports.player.position; return Math.hypot(p.x - pl.x, p.z - pl.z) < 3.8; }
+  private melee(p: Vector3): boolean { const pl = this.ports.player.position; return Math.hypot(p.x - pl.x, p.z - pl.z) < QARA_RULES.open.range; }
   canSpawn(): boolean { return this.ports.crew === null || this.ports.crew.killsTonight >= 5;   }
-  damage(_a: A, p: Vector3): number { return this.st === 'open' && this.melee(p) ? 3 : 1;   }
+  damage(_a: A, p: Vector3): number { return this.st === 'open' && this.melee(p) ? QARA_RULES.open.damage : 1;   }
   think(a: A, c: { readonly player: Vector3 }): void {
     const m = a.mem, tx = m['tx'], tz = m['tz'];
     a.lookTarget.copy(c.player); a.lookWeight = 0.5;
     if (tx === undefined || tz === undefined) { a.setMotion(a.yaw, 0, 1); return; }
     const dx = tx - a.position.x, dz = tz - a.position.z;
     a.setMotion(Math.atan2(dx, dz), Math.hypot(dx, dz) < 0.8 ? 0 : m['v'] ?? 9, m['turn'] ?? 2.4);
-    }
+  }
   private drawLane(p: Vector3, alpha: number): void {
     const dx = p.x - this.c0.x, dz = p.z - this.c0.z, d = Math.hypot(dx, dz);
-    if (d < 4) { this.ports.lane.hide(); return; }
-    const k = (d - 3) / d;
-    this.ports.lane.lane(this.c0.x, this.c0.z, this.c0.x + dx * k, this.c0.z + dz * k, 2.6, alpha);
-    }
-  private steer(a: A, x: number, z: number, speed: number, turn: number): void { a.mem['tx'] = x; a.mem['tz'] = z; a.mem['v'] = speed; a.mem['turn'] = turn;   }
+    if (d < QARA_RULES.lane.minimumLength) { this.ports.lane.hide(); return; }
+    const k = (d - QARA_RULES.lane.shortOfPlayer) / d;
+    this.ports.lane.lane(this.c0.x, this.c0.z, this.c0.x + dx * k, this.c0.z + dz * k, QARA_RULES.lane.width, alpha);
+  }
   private lineDead(): boolean {
     for (let i = 0; i < 3; i++) if (this.line[i]?.alive === true) return false;
     return true;
@@ -72,69 +77,59 @@ export class QaraKeeper<A extends AnimalSim> {
     this.ports.lane.setTime(t);
     if (leashing && this.st !== 'home') this.st = 'home';
     if ((this.st === 'wait' || (this.st === 'home' && !leashing)) && (engaged || a.position.distanceTo(this.ports.player.position) < this.ports.awareRadius * 0.8)) {
-      this.st = 'circle'; this.chargeT = 3;
+      this.st = 'circle'; this.script.setSlot('cooldown', QARA_RULES.engagedCooldown);
       // his riders ride with him and loose their volleys (B11's line AI)
       if (this.ports.crew !== null && this.lineDead()) this.bindLine(this.ports.crew.spawnLine(3));
     }
-    this.stT += dt;
     const p = this.ports.player.position;
-    switch (this.st) {
-      case 'wait': this.steer(a, a.position.x, a.position.z, 0, 1.5); break;
-      case 'home':
-        this.steer(a, this.ports.lair.x, this.ports.lair.z, 9, 2.4);
-        if (Math.hypot(a.position.x - this.ports.lair.x, a.position.z - this.ports.lair.z) < 5) this.st = 'wait';
-        break;
-      case 'circle': {
-        // gallop a ring round you, 22 m out
-        const ang = Math.atan2(a.position.x - p.x, a.position.z - p.z) + 0.55;
-        this.steer(a, p.x + Math.sin(ang) * 22, p.z + Math.cos(ang) * 22, 10, 2.2);
-        this.chargeT -= dt;
-        if (this.chargeT <= 0) { this.st = 'wheel'; this.stT = 0; this.ports.signature(); }
-        break;
+    // Native geometry observation: includes c0.y exactly as the shipping Vector3 denominator did.
+    const along = ((a.position.x - this.c0.x) * (this.c1.x - this.c0.x) + (a.position.z - this.c0.z) * (this.c1.z - this.c0.z)) / Math.max(1, this.c0.distanceToSquared(this.c1));
+    const input = this.observations;
+    input[1] = dt; input[2] = t; input[3] = 1; input[4] = QARA_MODES.indexOf(this.st); input[5] = this.script.slot('clock');
+    input[6] = this.ports.phase2() ? 1 : 0; input[7] = Math.hypot(p.x - a.position.x, p.z - a.position.z);
+    input[8] = Math.atan2(p.x - a.position.x, p.z - a.position.z); input[9] = p.x; input[10] = p.z;
+    input[11] = a.position.x; input[12] = a.position.z; input[13] = a.seed; input[14] = Math.max(-1e9, a.lastHitT);
+    input[19] = along; input[20] = this.st === 'charge' ? p.y - this.ports.heightAt(p.x, p.z) : 0;
+    const answer = this.script.decide(input);
+    if (answer === null) { a.setMotion(a.yaw, 0, 0); return; }
+    for (let i = 0; i < 64; i++) {
+      if (i >= answer.length) break;
+      const command = answer[i]; if (command === undefined) throw invalidCommand;
+      switch (command.verb) {
+        case 1: { const mode = QARA_MODES[command.value]; if (mode === undefined) throw invalidCommand; this.st = mode; break; }
+        // Keep native think cadence: the puppet reads these fields, rather than steering directly on every script frame.
+        case 2: a.mem['v'] = Math.min(this.script.data.maxSpeed, Math.max(0, command.args[0])); a.mem['turn'] = Math.min(this.script.data.maxTurnRate, Math.max(0, command.args[1])); break;
+        case 4:
+          if (command.value === 0) this.ports.sound('horse_squeal', a.position);
+          else if (command.value === 1) this.ports.feed(QARA_OPEN_CUE);
+          else throw invalidCommand;
+          break;
+        case 5: this.ports.signature(); break;
+        case 11: this.ports.lane.hide(); break;
+        case 12: { const action = this.script.data.actions[command.value]; if (action === undefined) throw invalidCommand; this.action(a, action, command.args); break; }
+        default: throw invalidCommand;
       }
-      case 'wheel': {
-        // the lane of ghost-fire: from him, through you, 12 m on — then he comes down it
-        this.steer(a, p.x, p.z, 0.01, 5);
-        this.c0.copy(a.position);
-        const dx = p.x - a.position.x, dz = p.z - a.position.z, d = Math.hypot(dx, dz) || 1;
-        this.c1.set(p.x + dx / d * 12, 0, p.z + dz / d * 12);
-        this.drawLane(p, 0.22 + 0.2 * Math.min(1, this.stT / 0.4));
-        if (this.stT > 1.3) { this.st = 'charge'; this.stT = 0; this.struck = false; this.ports.sound('horse_squeal', a.position); }
-        break;
-      }
-      case 'charge': {
-        this.steer(a, this.c1.x, this.c1.z, 18, 0.6);
-        this.drawLane(p, 0.36);
-        if (!this.struck && Math.hypot(p.x - a.position.x, p.z - a.position.z) < 1.9 && p.y - this.ports.heightAt(p.x, p.z) < 1.6) {
-          this.struck = true; this.ports.hurt(a, 38); this.ports.knock(this.c1.x - this.c0.x, this.c1.z - this.c0.z);
-        }
-        const along = ((a.position.x - this.c0.x) * (this.c1.x - this.c0.x) + (a.position.z - this.c0.z) * (this.c1.z - this.c0.z)) / Math.max(1, this.c0.distanceToSquared(this.c1));
-        if (along >= 0.97 || this.stT > 4) {
-          this.ports.lane.hide();
-          if (!this.struck) { this.st = 'open'; this.stT = 0; this.ports.feed('He passes — his back is OPEN'); }
-          else this.nextCharge();
-        }
-        break;
-      }
-      case 'open':
-        this.steer(a, a.position.x + Math.sin(a.yaw) * 6, a.position.z + Math.cos(a.yaw) * 6, 3, 1);
-        if (this.stT > 2) this.nextCharge();
-        break;
-      default: break;
     }
+  }
+  private action(a: A, action: string, args: readonly [number, number]): void {
+    switch (action) {
+      case 'target': a.mem['tx'] = args[0]; a.mem['tz'] = args[1]; break;
+      case 'wheelEndpoint': this.c0.copy(a.position); this.c1.set(args[0], 0, args[1]); break;
+      case 'chargeTarget': a.mem['tx'] = this.c1.x; a.mem['tz'] = this.c1.z; break;
+      case 'openTarget':
+        a.mem['tx'] = a.position.x + Math.sin(a.yaw) * args[0]; a.mem['tz'] = a.position.z + Math.cos(a.yaw) * args[0]; break;
+      case 'drawLane': this.drawLane(this.ports.player.position, args[0]); break;
+      case 'hit': this.ports.hurt(a, args[0]); this.ports.knock(this.c1.x - this.c0.x, this.c1.z - this.c0.z); break;
+      default: throw invalidCommand;
     }
-  private nextCharge(): void {
-    // phase 2: the charges come in pairs
-    if (this.p2 && this.pairs === 0) { this.pairs = 1; this.st = 'wheel'; this.stT = 0; return; }
-    this.pairs = 0; this.st = 'circle'; this.chargeT = this.p2 ? 4.5 : 6.5;
-    }
-  snapshot(): v.InferOutput<typeof Saved> { return { st: this.st, stT: this.stT, chargeT: this.chargeT, pairs: this.pairs, struck: this.struck,
-    c0: [this.c0.x, this.c0.y, this.c0.z], c1: [this.c1.x, this.c1.y, this.c1.z], line: this.line.map(a => a.entityId) }; }
+  }
+  snapshot(): v.InferOutput<typeof Saved> { return v.parse(Saved, { st: this.st, stT: this.script.slot('clock'), chargeT: this.script.slot('cooldown'), pairs: this.script.slot('pairs'), struck: this.script.slot('struck') !== 0,
+    c0: [this.c0.x, this.c0.y, this.c0.z], c1: [this.c1.x, this.c1.y, this.c1.z], line: this.line.map(a => a.entityId) }); }
   restore(input: unknown): void {
     const s = v.parse(Saved, input);
     if (new Set(s.line).size !== s.line.length) throw new Error('Duplicate Qara companion identity');
     const line = s.line.map(id => { const a = this.ports.resolve(id); if (a === null || a.entityId !== id) throw new Error('Missing Qara companion identity'); return a; });
-    this.st = s.st; this.stT = s.stT; this.chargeT = s.chargeT; this.pairs = s.pairs; this.struck = s.struck;
+    this.st = s.st; this.script.setSlot('clock', s.stT); this.script.setSlot('cooldown', s.chargeT); this.script.setSlot('pairs', s.pairs); this.script.setSlot('struck', s.struck ? 1 : 0);
     this.c0.fromArray(s.c0); this.c1.fromArray(s.c1); this.line = line;
   }
 }

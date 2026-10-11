@@ -1179,6 +1179,32 @@
       ],
       "platform": "darwin",
       "browser": true
+    },
+    {
+      "id": "nalati-qara",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-qara.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "src/shards/nalati-grasslands/generators/bake-qara.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-qara.mjs",
+        "src/shards/nalati-grasslands/generators/qara.ts",
+        "src/shards/nalati-grasslands/behaviour/qara.as",
+        "src/sdk/compileScript.ts",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/package.json"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/behaviour/qara.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/behaviour/qara.generated.json": "1f83e2bd97ccaf81fdb95c073a5d980d07ebe2b824be6b63e8b0037be3a39f47"
+      }
     }
   ]
 }
