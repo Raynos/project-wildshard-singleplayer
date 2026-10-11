@@ -18,7 +18,7 @@ import { build } from 'vite';
 import { auditAuthoringInputs } from '../../../scripts/authoring-inputs.mjs';
 import { linkNodeModules } from '../../../scripts/link-node-modules.mjs';
 import { SDK_EXTERNALS } from '../../../scripts/sdk-externals.mjs';
-import { discoverGeneration, generateShardJob } from '../../../scripts/generate.mjs';
+import { discoverGeneration, generateShardJob, generationInputs } from '../../../scripts/generate.mjs';
 
 it('authors the five declared portal floors with the exact native shapes and registration order', () => {
   const rows = portalFloorRows();
@@ -82,7 +82,7 @@ it('cold-generates, restores and force-compares the ignored rows through the sha
   const cache = resolve('node_modules/.cache'); mkdirSync(cache, { recursive: true });
   const stage = realpathSync(mkdtempSync(join(cache, 'nine-floors-cache-'))), cacheDir = join(stage, 'cache');
   try {
-    for (const file of [...job.inputRoots, 'scripts/generation-jobs.json']) {
+    for (const file of [...job.inputRoots, ...Object.keys(generationInputs(root, ['src/format'])), 'scripts/generation-jobs.json']) {
       const target = resolve(stage, file); mkdirSync(dirname(target), { recursive: true });
       copyFileSync(resolve(root, file), target);
     }
