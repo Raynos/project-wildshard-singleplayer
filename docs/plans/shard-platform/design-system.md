@@ -730,7 +730,7 @@ The base rows:
 | DS0.3 | Guards: `generator-imports`, `shard-engine-imports`, `sdk-no-facade`, the `plugin/*`-only sandbox | X | M | lint fixtures, ratchets seeded |
 | DS0.4 | The 16 shard-named `scripts/bake/*` and 6 `scripts/blender/<shard>/` move into shard folders; `directors.mjs` into `wildshard build` | X | M | `bake-check` regenerates byte-identical |
 | DS0.5 | Raw GLSL rows move from `data/` to `runtime/looks` (G306) | X | M | look parity captures (O checks) |
-| DS1.1 | `@wildshard/format` + JSON Schema generation (Q2) | X | M | SF45 coverage test still 100 % |
+| DS1.1 | `@wildshard/format` + JSON Schema generation (Q2); format is the bottom layer: dependency-free, and the engine may import its pure contracts (coordinator, 2026-10-11, for G320's clean-room validators) | X | M | SF45 coverage test still 100 % |
 | DS1.2 | `wildshard synth` + `scene.json` + `SceneNode` rows | X | M | Template 1 synth is stable across two runs |
 | DS1.3 | The three.js bake reader (the table in §3.2), SDK physics / spawns / entries classes | X | L | Template 1 and pastel-plain rebuilt, identical bytes |
 | DS1.4 | Materials and lights: `ToonMaterial`, TSL → graph, light rows | O | M | ink-cel-valley and pastel-plain looks at parity |
