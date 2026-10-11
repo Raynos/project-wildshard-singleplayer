@@ -73,6 +73,7 @@ it('keeps all authoring generators and the scene reader out of the client config
   const outputs = (Array.isArray(result) ? result : [result]).flatMap(item => 'output' in item ? item.output : []);
   const modules = outputs.flatMap(item => item.type === 'chunk' ? Object.keys(item.modules) : []);
   expect(modules.some(id => id.endsWith('/data/portalFloors.generated.json'))).toBe(true);
+  expect(modules.some(id => id.endsWith('/data/portalEntries.generated.json'))).toBe(true);
   expect(modules.filter(id => /\/generators\/|\/src\/sdk\/(?:scene|physics|spawns|entries)\.ts$/u.test(id))).toEqual([]);
 });
 
@@ -100,3 +101,15 @@ it('cold-generates, restores and force-compares the ignored rows through the sha
     expect(compared.hashes).toEqual(cold.hashes);
   } finally { rmSync(stage, { recursive: true, force: true }); }
 });
+
+it('force-compares the ignored portal rows and restores a verified build cache without a browser', async () => {
+    const root = process.cwd(), job = discoverGeneration(root).jobs.find(row => row.id === 'nine-portal-entries');
+    if (job === undefined) throw new Error('Missing portal-entry authoring job');
+    const compared = await generateShardJob(root, job, { forceCompare: true });
+    expect(compared.hashes).toEqual(job.buildOutputs);
+    const file = job.outputs[0]; if (file === undefined) throw new Error('Missing portal-row output');
+    const actual: unknown = JSON.parse(readFileSync(resolve(compared.directory, file), 'utf8'));
+    expect(actual).toEqual(shard.entryways);
+    const warm = await generateShardJob(root, job);
+    expect(warm.hit).toBe(true); expect(warm.key).toBe(compared.key);
+  });

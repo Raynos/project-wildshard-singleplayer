@@ -8,18 +8,17 @@
 // have stepped out of every portal, so arriving in one never bounces you back. Renderer-free: the same in a page (whose
 // veil draws the fade) and in a headless host.
 //
-//   const ride = walkInRide(playerRider(player, () => physics, source), veil, { roads, out, trigger, fade });
+//   const ride = walkInRide(playerRider(player, () => physics, source), veil, { entries, trigger, fade });
 import { createPortalTraversal, type PortalTransfer, type PortalTraversalPorts } from '@wildshard/game/shardfile/portalTraversal';
 import type { PortalLinkEntry, portalLinkRules } from '@wildshard/game/shardfile/portalLink';
-import { type EdgePortal, type RingPortal, type RingTrigger, type ShardEdge, exitNodeId, exitRoad, inRingPortal } from './ringPortals';
+import { type RingPortal, type RingTrigger, type ShardEdge, inRingPortal } from './ringPortals';
 
 /** s: the fade to dark, the hold in the dark (the move happens as it starts), the fade back */
 export interface RideFade { readonly out: number; readonly hold: number; readonly in: number }
 
 /** the rings a ride watches: the roads', the way out's, their walk-in volume and the fade */
 export interface RideRings {
-  readonly roads: readonly EdgePortal[];
-  readonly out: RingPortal;
+  readonly entries: readonly PortalLinkEntry[];
   readonly trigger: RingTrigger;
   readonly fade: RideFade;
 }
@@ -63,14 +62,33 @@ export interface PortalRideState {
 /** the pure ride: which ring the feet are in, the hold and the fade, the checked transfer under the dark; `veil(k)` is the
  *  fade, 0 clear to 1 dark */
 export function walkInRide(rider: PortalRider, veil: (k: number) => void, rings: RideRings): PortalRide {
-  const { roads, out, trigger, fade } = rings;
+  const { entries, trigger, fade } = rings;
+  // Canonical quarter-turn node yaw reads exact axes; never introduce sine round-off into trigger boundaries.
+  const heading = (yaw: number): { nx: number; nz: number } => {
+    if (yaw === 0) return { nx: 0, nz: -1 };
+    if (yaw === Math.PI || yaw === -Math.PI) return { nx: 0, nz: 1 };
+    if (yaw === Math.PI / 2) return { nx: -1, nz: 0 };
+    if (yaw === -Math.PI / 2) return { nx: 1, nz: 0 };
+    throw new Error('Nine portal trigger requires a cardinal declared node yaw');
+  };
+  const ring = (node: PortalLinkEntry['portal']['road'], inward = false): RingPortal => {
+    const direction = heading(node.yaw), [x, y, z] = node.at, sign = inward ? -1 : 1;
+    return { id: node.id, x, y, z, nx: direction.nx * sign + 0, nz: direction.nz * sign + 0 };
+  };
+  const roads = entries.map(row => ({ ...ring(row.portal.road, true), edge: row.edge }));
+  const exits = entries.map(row => ({ edge: row.edge, ring: ring(row.portal.exit) }));
+  if (roads.length === 0 || new Set(roads.map(row => row.edge)).size !== roads.length) throw new Error('Nine portal ride requires distinct declared entries');
   let entered: ShardEdge | null = null, armed = true, t = -1, from = '', moved = false;
   const done: PortalTransfer[] = [], refused: string[] = [];
+  const missingExit = new Error('Nine portal continuation has no declared exit');
+  const exitFor = (row: typeof exits[number]): boolean => row.edge === (entered ?? roads[0]?.edge);
   /** the declared node the ring you stand in is: a road's portal, or the way out's exit bound to your road */
   const touching = (): string | null => {
     const { x, y, z } = rider.position;
     for (const p of roads) if (inRingPortal(p, trigger, x, y, z)) return p.id;
-    if (inRingPortal(out, trigger, x, y, z)) return exitNodeId(out, exitRoad(roads, entered).edge);
+    const out = exits.find(exitFor)?.ring;
+    if (out === undefined) throw missingExit;
+    if (inRingPortal(out, trigger, x, y, z)) return out.id;
     return null;
   };
   const transfer = (): void => {
@@ -120,10 +138,15 @@ export interface PortalPlayer {
 /** a shardfile's portal entries and the rules' inputs (its props and collision) */
 export type PortalSource = Parameters<typeof portalLinkRules>[1] & { readonly entryways: readonly { readonly edge: PortalLinkEntry['edge']; readonly portal?: PortalLinkEntry['portal'] }[] };
 
+/** Read the actual admitted nodes for both trigger selection and checked transfer; missing links never become portals. */
+export function declaredPortals(source: PortalSource): PortalLinkEntry[] {
+  return source.entryways.flatMap(row => row.portal === undefined ? [] : [{ edge: row.edge, portal: row.portal }]);
+}
+
 /** the player's side of the ride: the hold, the checked transfer in the player's current physics frame, the resets */
 export function playerRider(player: PortalPlayer, physics: () => PortalTraversalPorts['physics'], source: PortalSource): PortalRider {
   // the shardfile's portalLink entries, exactly as `wildshard validate` proves them
-  const entries = source.entryways.flatMap((row) => (row.portal === undefined ? [] : [{ edge: row.edge, portal: row.portal }]));
+  const entries = declaredPortals(source);
   return {
     position: player.position,
     hold: (on) => { if (on && player.hover) player.setHover(false); player.carried = on; },

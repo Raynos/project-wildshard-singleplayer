@@ -4,11 +4,10 @@
 // (SF8c) between the declared nodes of shard.config.ts. Renderer-free (SF72): the ride runs the same in the page
 // (world/portalVeil.ts draws its fade in the HUD) and in the headless host (runtime/portals.ts).
 import type { PortalTraversalPorts } from '@wildshard/game/shardfile/portalTraversal';
-import { type PortalPlayer as Player, type PortalRide as Ride, type PortalRideState as RideState, type PortalRider as Rider, playerRider as sdkPlayerRider, walkInRide } from '../runtime/portals/walkInRide';
+import { type PortalPlayer as Player, type PortalRide as Ride, type PortalRideState as RideState, type PortalRider as Rider, playerRider as sdkPlayerRider, declaredPortals, walkInRide } from '../runtime/portals/walkInRide';
 import type { RideSlot } from '../runtime/portals/rideVeil';
 import source from '../shard.config';
 import { PORTAL_FADE as FADE, PORTAL_TRIGGER } from '../data/portals';
-import { DECK_PORTALS, SQUARE_PORTAL } from './portalPlan';
 
 /** s: the fade to dark, the hold in the dark (the move happens as it starts), the fade back (data/portals.ts) */
 export const PORTAL_FADE: typeof FADE = FADE;
@@ -26,7 +25,7 @@ export type PortalSlot = RideSlot;
 
 /** the ride over the four decks' rings and the square's ring out */
 export function portalRide(rider: PortalRider, veil: (k: number) => void): PortalRide {
-  return walkInRide(rider, veil, { roads: DECK_PORTALS, out: SQUARE_PORTAL, trigger: PORTAL_TRIGGER, fade: PORTAL_FADE });
+  return walkInRide(rider, veil, { entries: declaredPortals(source), trigger: PORTAL_TRIGGER, fade: PORTAL_FADE });
 }
 
 /** the player's side of the ride, transferring between shard.config.ts's four declared portal links */

@@ -1393,6 +1393,47 @@
         "src/shards/pine-hollow/behaviour/night.generated.json": "19d875cd69bc4ca409dead67186b7a449cdd563868b75202695c06e780ff2ba0",
         "src/shards/pine-hollow/assets/a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda": "a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda"
       }
+    },
+    {
+      "id": "nine-portal-entries",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/portalEntries.ts",
+      "command": [
+        "--import",
+        "./scripts/sim-node-loader.mjs",
+        "scripts/generate-json.mjs",
+        "src/shards/nine-dragon-stack/generators/portalEntries.ts",
+        "portalEntryRows",
+        "src/shards/nine-dragon-stack/data/portalEntries.generated.json"
+      ],
+      "inputRoots": [
+        "src/sdk/package.json",
+        "src/sdk/physics.ts",
+        "src/sdk/scene.ts",
+        "src/sdk/sceneTransform.ts",
+        "src/sdk/sceneAnimation.ts",
+        "src/sdk/sceneAudio.ts",
+        "src/sdk/audio.ts",
+        "src/sdk/entries.ts",
+        "src/sdk/spawns.ts",
+        "src/shards/nine-dragon-stack/data/decks.ts",
+        "src/shards/nine-dragon-stack/data/floorPlan.ts",
+        "scripts/sim-node-loader.mjs",
+        "lint/sim-schema-leaves.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/generate-json.mjs",
+        "src/shards/nine-dragon-stack/generators/portalEntries.ts",
+        "src/shards/nine-dragon-stack/data/portals.ts"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/portalEntries.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nine-dragon-stack/data/portalEntries.generated.json": "a0b4e8b10812011cca13d344075bba1685696a368f6d8ba03284c9e35866e5d9"
+      }
     }
   ]
 }
