@@ -13,6 +13,7 @@
     "tsBuildInfoFile": ".tsc-layers/format.tsbuildinfo"
   },
   "include": [
-    "src/format/**/*.ts"
+    "src/format/**/*.ts",
+    "types/format-standards.d.ts"
   ]
 }
