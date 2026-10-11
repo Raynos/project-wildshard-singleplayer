@@ -8,7 +8,8 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { rigLegs } from '../../../src/shards/pine-hollow/quest/npcRig';
-import { footPlan, legBones, legPose, LEG_BONE_NAMES, WALK, type LegBuilt } from '../../../src/game/systems/npc/npcRig';
+import { NPC_RIGS } from '../../../src/shards/pine-hollow/quest/npcProfiles';
+import { footPlan, legBones, legPose, LEG_BONE_NAMES, rigLegsSliced, WALK, type LegBuilt } from '../../../src/game/systems/npc/npcRig';
 import type { NpcKind } from '../../../src/shards/pine-hollow/models/people';
 
 const DIR = new URL('../../../public/assets/pine-hollow/npcs/', import.meta.url);
@@ -45,8 +46,36 @@ function skinned(b: LegBuilt): { mesh: THREE.SkinnedMesh; bones: THREE.Bone[]; p
   return { mesh, bones, pose: legPose(bones, b) };
 }
 
+/** every byte a rig carries: each attribute's bytes (FNV-1a), the index, the bones' rest points and the scalars */
+function rigBytes(b: LegBuilt): string[] {
+  const g = b.geometry, out: string[] = [];
+  for (const name of Object.keys(g.attributes).sort()) {
+    const a = g.getAttribute(name);
+    const bytes = new Uint8Array(a.array.buffer, a.array.byteOffset, a.array.byteLength);
+    let h = 0x811c9dc5;
+    for (const x of bytes) h = Math.imul(h ^ x, 0x01000193) >>> 0;
+    out.push(`${name}/${a.itemSize}/${bytes.length}/${h.toString(16)}`);
+  }
+  out.push(`index/${JSON.stringify(Array.from(g.getIndex()?.array ?? []))}`);
+  out.push(JSON.stringify({ rest: b.rest, height: b.height, y0: b.y0, lantern: b.lantern, ball: b.ball, walkSpeed: b.walkSpeed, walkCycle: b.walkCycle, webs: b.webs, sphere: g.boundingSphere }));
+  return out;
+}
+
 describe('Pine Hollow NPC rig B (E322 F-M3)', () => {
   it('rigs every person file (3 people × 2 tiers, one face each since E343)', () => { expect(FILES.length).toBe(6); });
+
+  // op-hitch49 (E435 frame floor): a person loaded in play rigs in slices; every file's six builds run interleaved, a
+  // pause at every step, and each is the synchronous rig to the byte
+  it('the sliced build is the synchronous rig, byte for byte, with every build interleaved', async () => {
+    const always = { due: () => true, yield: () => Promise.resolve(), check: () => Promise.resolve() };
+    const geometries = await Promise.all(FILES.map(geometryOf));
+    const sliced = await Promise.all(FILES.map((file, k) => rigLegsSliced(NPC_RIGS[kindOf(file)], geometries[k] ?? new THREE.BufferGeometry(), always)));
+    FILES.forEach((file, k) => {
+      const sync = rigLegs(kindOf(file), geometries[k] ?? new THREE.BufferGeometry()), got = sliced[k];
+      if (got === undefined) throw new Error(`${file}: no sliced rig`);
+      expect(rigBytes(got)).toEqual(rigBytes(sync));
+    });
+  });
 
   for (const file of FILES) {
     describe(file, () => {

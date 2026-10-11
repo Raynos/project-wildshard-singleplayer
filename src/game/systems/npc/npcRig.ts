@@ -36,6 +36,8 @@ import { bindRig, type RigContract } from '@wildshard/engine/anim/rig';
  */
 import * as THREE from 'three';
 import { smoothstep } from '@wildshard/engine/core/noise';
+import { pageScope } from '@wildshard/engine/app/resources';
+import { workSlice, type WorkSlice } from '@wildshard/engine/core/workSlice';
 /** Authored hull traits; the seed rig contains no shard names or model paths. */
 export interface NpcRigProfile { id: string; lantern: boolean }
 
@@ -132,6 +134,13 @@ const HANG = [
   { sh: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -0.42 * 0.9)), el: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.12, 0, 0)) },
 ] as const;
 
+/** a build in steps: each `yield` is a point where a sliced runner may let a frame through (`rigLegsSliced`) */
+type Steps<T> = Generator<undefined, T, undefined>;
+/** run every step at once (the synchronous build: Node bakers, tests, `legRigOf`) */
+function runSteps<T>(steps: Steps<T>): T {
+  for (;;) { const r = steps.next(); if (r.done === true) return r.value; }
+}
+
 const median = (a: number[], d: number): number => { if (a.length === 0) return d; const s = [...a].sort((p, q) => p - q); return s[Math.floor(s.length / 2)] ?? d; };
 
 /**
@@ -140,16 +149,17 @@ const median = (a: number[], d: number): number => { if (a.length === 0) return 
  * not: the armpit's crease, where the column test put one vertex on the arm and its neighbour on the chest, becomes a ramp
  * across the connected skin while the arm and the coat below it (apart in the A-pose) stay apart.
  */
-function diffuse(g: THREE.BufferGeometry, dense: Float32Array, zone: (i: number) => number, weld: number, channels: readonly number[], steps = 40): void {
+function* diffuse(g: THREE.BufferGeometry, dense: Float32Array, zone: (i: number) => number, weld: number, channels: readonly number[], steps = 40): Steps<void> {
   const P = g.getAttribute('position'), n = P.count, idx = g.getIndex();
   if (!idx) return;
   const zi = new Float32Array(n);
-  for (let i = 0; i < n; i++) zi[i] = zone(i);
+  for (let i = 0; i < n; i++) { zi[i] = zone(i); if ((i & 1023) === 1023) yield; }
   // the active vertices: every corner of a triangle that touches the zone (the zone's own and the ring it reads)
   const active = new Uint8Array(n);
   for (let f = 0; f + 2 < idx.count; f += 3) {
     const a = idx.getX(f), b = idx.getX(f + 1), c = idx.getX(f + 2);
     if ((zi[a] ?? 0) > 0 || (zi[b] ?? 0) > 0 || (zi[c] ?? 0) > 0) { active[a] = 1; active[b] = 1; active[c] = 1; }
+    if (f % 6144 === 0) yield;
   }
   // weld the active ones by position (the generated meshes split vertices at UV seams)
   const key = new Map<string, number>(), rep = new Int32Array(n).fill(-1), members: number[][] = [];
@@ -160,6 +170,7 @@ function diffuse(g: THREE.BufferGeometry, dense: Float32Array, zone: (i: number)
     if (r === undefined) { r = members.length; key.set(k, r); members.push([]); }
     rep[i] = r;
     members[r]?.push(i);
+    if ((i & 511) === 511) yield;
   }
   const m = members.length, C = channels.length;
   // the welded vertices' blurred channels (the mean of their copies), their zone, their neighbours
@@ -172,6 +183,7 @@ function diffuse(g: THREE.BufferGeometry, dense: Float32Array, zone: (i: number)
   for (let f = 0; f + 2 < idx.count; f += 3) {
     const a = rep[idx.getX(f)] ?? -1, b = rep[idx.getX(f + 1)] ?? -1, c = rep[idx.getX(f + 2)] ?? -1;
     link(a, b); link(b, c); link(a, c);
+    if (f % 3072 === 0) yield;
   }
   // the moving vertices' neighbour lists, flattened (CSR)
   const moving: number[] = [];
@@ -193,6 +205,7 @@ function diffuse(g: THREE.BufferGeometry, dense: Float32Array, zone: (i: number)
     }
     const t = cur; cur = next; next = t;
     for (const r of moving) for (let c = 0; c < C; c++) next[r * C + c] = cur[r * C + c] ?? 0;
+    yield;
   }
   // every other bone keeps its share, the blurred ones fill the rest in their blurred proportions
   const inSet = new Uint8Array(NB);
@@ -207,6 +220,7 @@ function diffuse(g: THREE.BufferGeometry, dense: Float32Array, zone: (i: number)
     if (blurred <= 1e-6) continue;
     const k = Math.max(0, 1 - fixed) / blurred;
     channels.forEach((ch, c) => { dense[o + ch] = (cur[r * C + c] ?? 0) * k; });
+    if ((i & 1023) === 1023) yield;
   }
 }
 
@@ -230,7 +244,7 @@ const BODY = [J.hips, J.spine, J.chest, J.thR, J.knR, J.ftR, J.thL, J.knL, J.ftL
  * 0.3 m and 2.5× (worst edge 1.4 m); now none, on both tiers.
  */
 const WEB_SPLIT = 0.2;
-function splitWebs(g: THREE.BufferGeometry, si: Uint16Array, sw: Float32Array, shoulders: readonly THREE.Vector3[], H: number): { split: number; coatOnly: number } {
+function* splitWebs(g: THREE.BufferGeometry, si: Uint16Array, sw: Float32Array, shoulders: readonly THREE.Vector3[], H: number): Steps<{ split: number; coatOnly: number }> {
   const idx = g.getIndex();
   if (!idx) return { split: 0, coatOnly: 0 };
   const P = g.getAttribute('position'), n = P.count;
@@ -241,6 +255,7 @@ function splitWebs(g: THREE.BufferGeometry, si: Uint16Array, sw: Float32Array, s
     const r = share(i, FORE_R), l = share(i, FORE_L);
     fs[i] = Math.max(r, l); bs[i] = share(i, BODY);
     cls[i] = r >= 0.5 ? 1 : l >= 0.5 ? 2 : (bs[i] ?? 0) >= 0.5 && r < 0.05 && l < 0.05 ? 3 : 0;
+    if ((i & 1023) === 1023) yield;
   }
   const at = (i: number): THREE.Vector3 => new THREE.Vector3(P.getX(i), P.getY(i), P.getZ(i));
   const near = (i: number): boolean => shoulders.some((s) => at(i).distanceTo(s) < 0.14 * H);
@@ -266,6 +281,8 @@ function splitWebs(g: THREE.BufferGeometry, si: Uint16Array, sw: Float32Array, s
   };
   let split = 0, coatOnly = 0;
   for (let f = 0; f + 2 < idx.count; f += 3) {
+    // a step every 16 triangles: a web's corners each scan every vertex for their nearest (`nearestOf`)
+    if (f % 48 === 0) yield;
     const t = [idx.getX(f), idx.getX(f + 1), idx.getX(f + 2)];
     const fore = t.some((i) => cls[i] === 1 || cls[i] === 2), body = t.some((i) => cls[i] === 3);
     if (!fore || !body || t.every(near)) { out.push(...t); continue; }
@@ -290,6 +307,7 @@ function splitWebs(g: THREE.BufferGeometry, si: Uint16Array, sw: Float32Array, s
       for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) arr[i * k + j] = a.getComponent(i, j);
       from.forEach((v, q) => { const s = skin ? weightsOf[q] ?? v : v; for (let j = 0; j < k; j++) arr[(n + q) * k + j] = a.getComponent(s, j); });
       g.setAttribute(name, new THREE.BufferAttribute(arr, k));
+      yield;
     }
   }
   g.setIndex(out);
@@ -297,7 +315,24 @@ function splitWebs(g: THREE.BufferGeometry, si: Uint16Array, sw: Float32Array, s
 }
 
 /** place the bones by the A-pose's proportions and weight every vertex (see the header); pure — the test runs it in Node */
-export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): LegBuilt {
+export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): LegBuilt { return runSteps(rigSteps(profile, source)); }
+
+/**
+ * `rigLegs` in slices (op-hitch49, E435 frame floor: a person's rig was ~85 ms of one desktop frame in Pine's play): the same
+ * steps, so the same rig to the byte (test/shards/pine-hollow/pine-npc-rig.test.ts), with `slice` letting frames through
+ * between them. The default slice holds its yields on the page scope: the rig is a page-lifetime memo (`legRigReady`).
+ */
+export async function rigLegsSliced(profile: NpcRigProfile, source: THREE.BufferGeometry, slice: WorkSlice = workSlice(undefined, pageScope)): Promise<LegBuilt> {
+  const steps = rigSteps(profile, source);
+  for (;;) {
+    const r = steps.next();
+    if (r.done === true) return r.value;
+    if (slice.due()) await slice.yield();
+  }
+}
+
+/** rigLegs' body: every `yield` is a point where a sliced run may let a frame through; nothing else differs */
+function* rigSteps(profile: NpcRigProfile, source: THREE.BufferGeometry): Steps<LegBuilt> {
   const g = source.clone();
   g.computeBoundingBox();
   const bb = g.boundingBox ?? new THREE.Box3();
@@ -327,6 +362,7 @@ export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): L
     return { hip, knee, ankle, ball };
   };
   const legR = leg(-1), legL = leg(1);
+  yield;
 
   // ── the torso and the arms (A's measure, about the torso's own midline) ──
   const chestBand = band(0.66, 0.8);
@@ -353,7 +389,9 @@ export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): L
     const v = best.clone().sub(sh);
     return v.length() > 0.4 * H ? sh.clone().addScaledVector(v.normalize(), 0.36 * H) : best;
   };
+  yield;
   const fR = far(-1), fL = far(1), sR = shoulder(-1), sL = shoulder(1);
+  yield;
   // a lantern vertex (the ranger's): under the right hand and outside the coat — the lantern spans ~0.18–0.27 H left
   // of his right leg's line and the coat's edge ends at ~0.07 H, so the cut sits in the gap between them
   const lanternOf = (i: number): boolean => profile.lantern && Y(i) > 0.12 * H && P.getY(i) < fR.y && Math.abs(X(i) - fR.x) < 0.08 * H && X(i) < legR.hip.x - 0.085 * H;
@@ -435,6 +473,7 @@ export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): L
       }
     }
     dense.set(w, i * NB);
+    if ((i & 511) === 511) yield;
   }
   // ── into the hang: A's weights (the arm's hard cut, as today) carry the A-pose to A's idle; B binds there ──
   const aboutPoint = (q: THREE.Quaternion, o: THREE.Vector3): THREE.Matrix4 => new THREE.Matrix4().makeTranslation(o.x, o.y, o.z).multiply(new THREE.Matrix4().makeRotationFromQuaternion(q)).multiply(new THREE.Matrix4().makeTranslation(-o.x, -o.y, -o.z));
@@ -463,11 +502,12 @@ export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): L
       }
       P.setXYZ(i, acc.x, acc.y, acc.z);
       if (N) { nAcc.normalize(); N.setXYZ(i, nAcc.x, nAcc.y, nAcc.z); }
+      if ((i & 511) === 511) yield;
     }
     P.needsUpdate = true;
     if (N) N.needsUpdate = true;
   }
-  diffuse(g, dense, (i) => {
+  yield* diffuse(g, dense, (i) => {
     // the arm keeps its own chain, and so does the armpit: the generated meshes web the arm to the coat below the real
     // armpit, and a blend there turns the web into a grey membrane when the arms hang (A's hard cut hides it)
     if (isLantern[i]) return 0;
@@ -484,10 +524,11 @@ export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): L
     for (let k = 0; k < 4 && k < order.length; k++) sum += dense[o + (order[k] ?? 0)] ?? 0;
     if (sum <= 0) { si[i * 4] = J.hips; sw[i * 4] = 1; continue; }
     for (let k = 0; k < 4 && k < order.length; k++) { const j = order[k] ?? 0; si[i * 4 + k] = j; sw[i * 4 + k] = (dense[o + j] ?? 0) / sum; }
+    if ((i & 511) === 511) yield;
   }
   g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
-  const webs = splitWebs(g, si, sw, [sR, sL], H);
+  const webs = yield* splitWebs(g, si, sw, [sR, sL], H);
   g.computeBoundingSphere();
   if (g.boundingSphere) g.boundingSphere.radius += 0.5;
   const walkSpeed = (WALK.stride * H) / (WALK.stance * WALK.cycle);
@@ -495,11 +536,33 @@ export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): L
 }
 
 const built = new Map<string, LegBuilt>();
+const building = new Map<string, Promise<LegBuilt>>();
 /** rigLegs, once per person per shard visit */
 export function legRigOf(profile: NpcRigProfile, source: THREE.BufferGeometry): LegBuilt {
   let b = built.get(profile.id);
   if (!b) { b = rigLegs(profile, source); built.set(profile.id, b); }
   return b;
+}
+
+/**
+ * `legRigOf`'s rig built in slices (`rigLegsSliced`), so a person loaded in play costs no long frame: resolves with the
+ * memo `legRigOf` then returns at once. Callers asking while it builds share the one build.
+ */
+export function legRigReady(profile: NpcRigProfile, source: THREE.BufferGeometry, slice?: WorkSlice): Promise<LegBuilt> {
+  const done = built.get(profile.id);
+  if (done) return Promise.resolve(done);
+  let p = building.get(profile.id);
+  if (!p) {
+    const id = profile.id;
+    p = rigLegsSliced(profile, source, slice).then((b) => {
+      building.delete(id);
+      const have = built.get(id) ?? b;
+      built.set(id, have);
+      return have;
+    }).catch((e: unknown) => { building.delete(id); throw e; });
+    building.set(id, p);
+  }
+  return p;
 }
 
 /** the rig's bones at rest (LEG_BONE_NAMES order), parented, the root first */

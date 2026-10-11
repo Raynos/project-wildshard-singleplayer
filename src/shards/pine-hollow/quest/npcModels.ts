@@ -25,7 +25,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { NpcKind } from '../models/people';
-import { legRigOf } from './npcRig';
+import { legRigOf, legRigReady } from './npcRig';
 import { legBones, legPose } from '@wildshard/game/systems/npc/npcRig';
 
 export const NPC_KINDS: readonly NpcKind[] = ['ranger', 'trader', 'miller'];
@@ -87,7 +87,7 @@ export class NpcModels {
   load(kind: NpcKind): Promise<Source | null> {
     let p = this.loading.get(kind);
     if (!p) {
-      p = this.loadFile(npcModelUrl(kind)).then((gltf) => {
+      p = this.loadFile(npcModelUrl(kind)).then(async (gltf) => {
         gltf.scene.updateMatrixWorld(true);
         const found: Source[] = [];
         gltf.scene.traverse((o) => {
@@ -99,8 +99,10 @@ export class NpcModels {
         });
         const hit = found[0] ?? null;
         if (hit !== null) {
+          // the rig in slices (op-hitch49: ~85 ms a person in one frame of Pine's play); the source is offered only once it
+          // is built, so `rig()` never builds it synchronously
+          const rig = await legRigReady(kind, hit.geometry);
           this.sources.set(kind, hit);
-          const rig = legRigOf(kind, hit.geometry);
           cacheUntilDisposed({ ...hit, rigGeometry: rig.geometry }, () => {
             if (this.sources.get(kind) !== hit) return;
             this.sources.delete(kind); this.loading.delete(kind); this.sharedMats.delete(kind);
