@@ -22,6 +22,12 @@ A six-array preparation uses seven boundary paints instead of twelve, with
 six separate upload frames and six GL fences before composer publication.
 This is a scheduling fixture, not measured arrival or frame-floor credit.
 
+Official Node recapture on `812c2164918` regenerated all six physics
+bakes plus Driftwood and Pine quest spots. All eight canonical payloads
+were byte-identical after excluding only `inputs`, `revision` and `build`;
+the engine upload inputs and admitted audio rows changed those fences.
+No collider, placement, actor or quest payload changed.
+
 Open:
 
 - Desktop and Simulator same-pin `on` / `shared-paints` arrival floors after

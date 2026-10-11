@@ -1,7 +1,7 @@
 {
  "version": 1,
- "revision": "0505605e34b81c9114c5fb443ff9addd0c5597ae",
- "build": "node-0505605e34b81c9114c5fb443ff9addd0c5597ae2b588879432df83d368ed79d",
+ "revision": "0be9e6cda9b44318766c759689fd3b3cd7bec0db",
+ "build": "node-0be9e6cda9b44318766c759689fd3b3cd7bec0dbcd42acd26798b0ab319cbf4c",
  "profile": "Node / phone / no renderer",
  "notice": "DO NOT EDIT: regenerate with generators/bake-pine-spots.mjs.",
  "rows": [
