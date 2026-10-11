@@ -32,13 +32,14 @@ async function run(browser, base, mode, out) {
   const page = await context.newPage();
   /** @type {string[]} */ const faults = [];
   page.on('pageerror', error => { faults.push(error.message); });
+  /** @type {{ url: string; at: number }[]} */ const navigations = [];
+  page.on('framenavigated', frame => { if (frame === page.mainFrame()) navigations.push({ url: frame.url(), at: Date.now() }); });
   let before = null, mounted = null, unmounted = null;
   try {
     const url = new URL(base);
     for (const [key, value] of Object.entries({ tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0' })) url.searchParams.set(key, value);
     if (mode === 'template') url.searchParams.set('chunk', '_template');
     await page.goto(url.href, { waitUntil: 'domcontentloaded' });
-    const documentOrigin = await page.evaluate(gridFloorDocumentIdentity);
     await page.locator('.ws-main-select').waitFor({ state: 'visible', timeout: 150000 });
     if (mode === 'template') {
       await page.locator('.ws-main-select').tap();
@@ -58,6 +59,7 @@ async function run(browser, base, mode, out) {
         return grid?.live.live.current === null && grid.live.live.gameplayReady;
       }, undefined, { timeout: 120000 });
       const plan = { name: 'hover-touch-road', from: null, to: null, start: { x: 277.5, z: 277.5 }, waypoints: [] };
+      const documentOrigin = await page.evaluate(gridFloorDocumentIdentity);
       await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
     } else if (await page.evaluate(() => window.__wildshard.shard.slug) !== '_template') throw new Error('Template test booted another shard');
     const hover = page.locator('.ws-touch-hover');
@@ -77,10 +79,10 @@ async function run(browser, base, mode, out) {
     }, undefined, { timeout: 5000 });
     unmounted = await page.evaluate(observe);
     if (faults.length > 0) throw new Error(faults.join('\n'));
-    return { mode, pass: true, before, mounted, unmounted, faults };
+    return { mode, pass: true, before, mounted, unmounted, faults, navigations };
   } catch (error) {
     await page.screenshot({ path: join(out, `${mode}-failure.jpg`), type: 'jpeg', quality: 65 }).catch(() => undefined);
-    return { mode, pass: false, before, mounted, unmounted, after: await page.evaluate(observe).catch(() => null), error: String(error), faults };
+    return { mode, pass: false, before, mounted, unmounted, after: await page.evaluate(observe).catch(() => null), error: String(error), faults, navigations };
   } finally { await context.close(); }
 }
 
