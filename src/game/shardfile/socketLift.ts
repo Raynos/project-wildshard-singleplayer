@@ -2,7 +2,7 @@ import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { parseMovers, type MoverData } from '@wildshard/format/movers';
 import { glbPoint, glbTransform } from './glbTriangles';
 import { clipEntryPolygon, type EntryVertex } from './entryGeometry';
-import { validateLiftApproach, type LiftApproachSource } from './socketLiftApproach';
+import { validateLiftApproach, type LiftApproachSource } from '../plugin/mover';
 
 import { parseSocketLift, type SocketLift } from '@wildshard/format/socketLift';
 

@@ -19,7 +19,7 @@ import { scriptPhysicsQueries } from '@wildshard/engine/script/queries';
 import { createQuestScriptPorts, DeclaredQuests, type QuestDataPorts, type QuestScriptBindings } from '../quest/declared';
 import { installDeclaredEncounters } from '../shard/declaredEncounters';
 import type { Shardfile } from './schema';
-import { speciesResolver, simStrikes } from './rows';
+import { speciesResolver, simStrikes } from '../plugin/brain';
 import { createShardfileScriptLane, type ShardScriptPorts } from './scripts';
 import { installDeclaredBrains, type DeclaredBrainPorts } from './brainRuntime';
 import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from './scriptComposition';

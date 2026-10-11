@@ -8,7 +8,7 @@ import { game } from '../shard/registry';
 import { installShards, shards } from '../shard/list';
 import { toLevelSpec } from '../shard/spec';
 import { parseShardfile, type Shardfile } from './schema';
-import { sourceManifest } from './sourceManifest';
+import { sourceManifest } from '../plugin/shardPlugin';
 import { SHARDFILE_VERSION } from '@wildshard/format/version';
 import { emptyLook } from './emptyLook';
 import { shardfileLook } from './look';

@@ -6,13 +6,13 @@ import { resolve, sep } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { build } from 'vite';
 import { parseShardfile, type Shardfile } from './shardfile';
-import { validationRevision, validationSourceBytes } from '@wildshard/game/shardfile/validationReceipt';
+import { validationRevision, validationSourceBytes, preflightAssetGraph, MemoryAdmission } from "@wildshard/game/plugin/product";
 import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/game/shardfile/validate';
 import { preflightShardfile } from '@wildshard/format/preflight';
-import { preflightAssetGraph } from '@wildshard/game/shardfile/assetGraph';
+
 import { readBoundedFile } from './sourceReader';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
-import { MemoryAdmission } from '@wildshard/game/grid/memoryAdmission';
+
 import { projectPerformancePolicy } from './performancePolicy';
 import { checkProjectRuntime } from './runtimePerformance';
 import { performanceReport, performanceReportLines, performanceTargetIssues } from './reportCard';

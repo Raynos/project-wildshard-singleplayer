@@ -7,7 +7,7 @@ import { PageResidency } from '../src/game/grid/pageResidency';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { clientWorld, type ClientWorldViews } from '../src/game/shardfile/clientWorld';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
-import { assetCost } from '../src/game/shardfile/assets';
+import { assetCost } from '../src/game/plugin/product';
 import { emptyShardfile } from '../src/sdk/author';
 import { bakeTerrain } from '../src/sdk/bake/terrain';
 import { staticGlb } from '../src/sdk/bake/glb';

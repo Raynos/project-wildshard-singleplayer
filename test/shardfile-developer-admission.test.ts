@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
-import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
+import { MemoryAdmission, parseKtx2 } from "../src/game/plugin/product";
 import { admitProduct, type ProductOptions } from '../src/game/shardfile/product';
-import { parseKtx2 } from '../src/game/shardfile/assets';
+
 import { contentHash } from '../src/sdk/project';
 import { emptyShardfile } from '../src/sdk/author';
 

@@ -44,3 +44,13 @@ it('keeps every sealed consumer resolved after defining plugin consolidation', (
     expect(report.entries.find(row => row.key === `./plugin/${key}`)).toMatchObject({ published: true, target: `./plugin/${key}.ts` });
   }
 });
+
+
+it('keeps frozen consumers resolved while retiring live-only product and host exports', () => {
+  const report = gamePluginSurface();
+  expect(report.unresolved).toEqual([]);
+  for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
+  for (const key of ["./shardfile/reportCard","./grid/memoryAdmission","./shardfile/revision","./shardfile/terrain","./shardfile/rows","./shardfile/assets","./shardfile/runtime","./shardfile/directorRuntime","./shardfile/assetGraph","./shardfile/validationReceipt","./shardfile/terrainEntries","./shardfile/sourceManifest","./shardfile/socketLiftApproach","./shardfile/clientScripts","./shardfile/nativeGround"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
+  expect(report.pluginExports).toBeLessThanOrEqual(20);
+  expect(report.entries.find(row => row.key === './plugin/product')).toMatchObject({ published: true, target: './plugin/product.ts' });
+});

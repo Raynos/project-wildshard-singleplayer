@@ -64,7 +64,7 @@ import { enteredRuntime, pickInFrame } from './enteredInteract';
 import { copyPrompts, enteredCopy } from './copyPrompts';
 import { yieldGridAdmission } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
-import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../shardfile/runtime';
+import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/shardPlugin';
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage } from './regionalRuntime';
 import { createRegionalWorldFoundation, resolveRegionalRuntimeTextures } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';

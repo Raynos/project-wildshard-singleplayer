@@ -7,7 +7,7 @@ import { app } from '../../../src/engine/app/runtime';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { DriftwoodScriptFinale, prepareDriftwoodDirector, driftwoodDirectorBytes } from '../../../src/shards/driftwood-isle/runtime/scriptFinale';
 import { installLegacyFinale, type FinaleWorld } from '../../fixtures/quest-oracle/driftwood-finale';
-import { prepareDirectorModule } from '../../../src/game/shardfile/directorRuntime';
+import { prepareDirectorModule } from '../../../src/game/plugin/director';
 import { director } from '../../../src/sdk/director';
 import declaration from '../../../src/shards/driftwood-isle/data/director.json' with { type: 'json' };
 import type { AdvAnimal } from '../../../src/shards/driftwood-isle/quest/adventure';

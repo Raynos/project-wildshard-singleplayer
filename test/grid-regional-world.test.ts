@@ -24,7 +24,7 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import { Terrain } from '../src/engine/world/Terrain';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
+import { MemoryAdmission } from '../src/game/plugin/product';
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type RegionalRuntimeRequest } from '../src/game/grid/regionalRuntime';
 import { createRegionalView } from '../src/game/grid/regionalView';
 import { createRegionalWorldFoundation, regionalWorldCensus } from '../src/game/grid/regionalWorld';

@@ -1,16 +1,138 @@
-import * as v from 'valibot';
-import { SCRIPT_PARAMETER_QUERY, ScriptHost, type ScriptQuery } from '@wildshard/engine/script/host';
-import { ScriptWorld } from '@wildshard/engine/script/effects';
-import { scriptPhysicsQueries } from '@wildshard/engine/script/queries';
-import type { World } from '@wildshard/engine/core/bootstrap';
-import type { SimHost } from '@wildshard/engine/sim';
-import type { LevelContext } from '@wildshard/engine/level/context';
-import type { Scope } from '@wildshard/engine/app/scope';
-import type { Physics } from '@wildshard/engine/physics/Physics';
-import { KinematicMover, type MoverPose } from '@wildshard/engine/physics/mover';
-import { RopeChain } from '@wildshard/engine/physics/ropeChain';
+import { CharacterMotor } from "@wildshard/engine/physics/CharacterMotor";
+import type { Physics } from "@wildshard/engine/physics/Physics";
+import { ENTRY_ASPHALT, ENTRY_WIDTH } from "@wildshard/engine/core/config";
+import type { ShardProps } from "../shardfile/props";
+import type { SocketLiftEntry } from "../shardfile/socketLift";
+import type { EntryVertex } from "../shardfile/entryGeometry";
+import { convexEntryHull as hull, entryCoverage as coverage } from "../shardfile/entryCoverage";
+import { glbPoint, glbTransform } from "../shardfile/glbTriangles";
+import * as v from "valibot";
+import { SCRIPT_PARAMETER_QUERY, ScriptHost, type ScriptQuery } from "@wildshard/engine/script/host";
+import { ScriptWorld } from "@wildshard/engine/script/effects";
+import { scriptPhysicsQueries } from "@wildshard/engine/script/queries";
+import type { World } from "@wildshard/engine/core/bootstrap";
+import type { SimHost } from "@wildshard/engine/sim";
+import type { LevelContext } from "@wildshard/engine/level/context";
+import type { Scope } from "@wildshard/engine/app/scope";
+import { KinematicMover, type MoverPose } from "@wildshard/engine/physics/mover";
+import { RopeChain } from "@wildshard/engine/physics/ropeChain";
 import { MOVER_FIELDS, MOVER_FIELD_RANGES, moverScriptEntities } from "../shardfile/movers";
 import { parseMovers, type MoverData } from "@wildshard/format/movers";
+
+/** One declared entryway as the shardfile states it (a midpoint opening on an edge). */
+export interface TerrainEntryway { readonly edge: 'north' | 'east' | 'south' | 'west'; readonly kind?: string | undefined }
+/** The walk: lanes per opening, metres walked in, where on the axis the feet start, and the step budget per lane. */
+export interface TerrainEntryWalk { readonly lanes: number; readonly walk: number; readonly start: number; readonly maxTicks: number }
+/** The player's capsule (the engine's edge walk's). */
+const CAPSULE = { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'PLAYER', blockedBy: ['WORLD'] } as const;
+
+/**
+ * An entry proof on a shard's native terrain (SF27): a real player capsule walks `walk` m in from each of the four
+ * declared ground entryways, `lanes` lanes across the opening, through the host's own collision world. The engine's edge
+ * walk holds every step at y = 0, which only a flat shard meets; here the first `ENTRY_ASPHALT` m (the socket) must be
+ * flat at y = 0, and past it the feet follow the admitted heights within 0.15 m on ground no steeper than the capsule
+ * climbs. A stall, a fall, a drift out of the lane or an unwalkable slope refuses the proof.
+ */
+export function proveTerrainEntries(physics: Physics, entryways: readonly TerrainEntryway[], heightAt: (x: number, z: number) => number, spec: TerrainEntryWalk): { lanes: number; steps: number } {
+  if (entryways.length !== 4 || entryways.some(entry => (entry.kind ?? 'ground') !== 'ground')) throw new Error('The terrain entry proof needs four ground entryways');
+  const motor = new CharacterMotor(physics, CAPSULE), half = ENTRY_WIDTH / 2 - CAPSULE.radius, slope = Math.cos(Math.PI / 4);
+  let lanes = 0, steps = 0;
+  try {
+    for (const edge of ['north', 'east', 'south', 'west'] as const) for (let lane = 0; lane < spec.lanes; lane++) {
+      if (!entryways.some(entry => entry.edge === edge)) throw new Error(`Missing the ${edge} entryway`);
+      const offset = -half + lane * (2 * half) / (spec.lanes - 1), along = edge === 'north' || edge === 'east' ? spec.start : -spec.start, sign = edge === 'north' || edge === 'east' ? -1 : 1;
+      const ns = edge === 'north' || edge === 'south';
+      const feet = { x: ns ? offset : along, y: 0.03, z: ns ? along : offset };
+      const delta = { x: ns ? 0 : sign * 0.1, y: -9.81 / 3600, z: ns ? sign * 0.1 : 0 };
+      let travelled = 0, stalled = 0;
+      for (let tick = 0; tick < spec.maxTicks; tick++) {
+        if (travelled >= spec.walk) break;
+        const before = ns ? feet.z : feet.x;
+        const result = motor.move(feet, delta); steps++;
+        const advance = sign * ((ns ? feet.z : feet.x) - before);
+        travelled += advance; stalled = advance < 0.05 ? stalled + 1 : 0;
+        const ground = heightAt(feet.x, feet.z), socket = travelled < ENTRY_ASPHALT - (250 - spec.start);
+        if (stalled >= 5 || !result.grounded || Math.abs((ns ? feet.x : feet.z) - offset) > CAPSULE.radius
+          || Math.abs(feet.y - ground) > 0.15 || result.groundNormalY < slope || (socket && (ground !== 0 || result.groundNormalY < 0.99))) {
+          throw new Error(`Blocked entry ${edge} lane ${String(lane)} at ${travelled.toFixed(2)} m`);
+        }
+      }
+      if (travelled < spec.walk) throw new Error(`Blocked entry ${edge} lane ${String(lane)}: ${String(spec.maxTicks)} steps reached ${travelled.toFixed(2)} m`);
+      lanes++;
+    }
+    return { lanes, steps };
+  } finally { motor.dispose(); }
+}
+
+/** Only admitted, permanently active collision rows may prove the static road-to-lift approach. */
+export interface LiftApproachSource {
+  props: ShardProps | null;
+  targets: { panels: readonly { colliders: readonly string[] }[] };
+}
+type Point = readonly [number, number, number];
+type Box = Extract<ShardProps['colliders'][number]['shapes'][number], { kind: 'box' }>;
+const radius = 0.35, epsilon = 1e-9;
+function boxTop(box: Box): EntryVertex[][] {
+  const q = box.rot ?? { x: 0, y: Math.sin((box.yaw ?? 0) / 2), z: 0, w: Math.cos((box.yaw ?? 0) / 2) };
+  const matrix = glbTransform({ translation: [box.x, box.y, box.z], rotation: [q.x, q.y, q.z, q.w] });
+  const at = (x: number, z: number) => glbPoint(matrix, { x, y: box.hy, z });
+  const a = at(-box.hx, -box.hz), b = at(box.hx, -box.hz), c = at(-box.hx, box.hz), d = at(box.hx, box.hz);
+  return [[a, b, c], [d, c, b]];
+}
+function staticTops(rows: readonly ShardProps['colliders'][number][]): EntryVertex[][] {
+  return rows.flatMap(row => row.shapes.flatMap(shape => {
+    if (shape.kind === 'box') return boxTop(shape);
+    const dx = shape.to.x - shape.from.x, dz = shape.to.z - shape.from.z, run = Math.hypot(dx, dz) / shape.count, rise = (shape.to.y - shape.from.y) / shape.count;
+    return Array.from({ length: shape.count }, (_unused, i) => {
+      const f = (i + 0.5) / shape.count, hy = Math.max(0.01, rise * (i + 1) / 2);
+      return boxTop({ kind: 'box', x: shape.from.x + dx * f, y: shape.from.y + hy, z: shape.from.z + dz * f, hx: shape.width / 2, hy, hz: run / 2, yaw: Math.atan2(dx, dz) });
+    }).flat();
+  })).filter(triangle => triangle.every(vertex => Math.abs(vertex.y) <= epsilon)).map(hull);
+}
+function ribbon(a: Point, b: Point, half: number): EntryVertex[] {
+  const dx = b[0] - a[0], dz = b[2] - a[2], distance = Math.hypot(dx, dz);
+  if (distance <= epsilon) return hull([-1, 1].flatMap(x => [-1, 1].map(z => ({ x: a[0] + x * half, y: 0, z: a[2] + z * half }))));
+  const x = -dz / distance * half, z = dx / distance * half;
+  return hull([{ x: a[0] + x, y: 0, z: a[2] + z }, { x: a[0] - x, y: 0, z: a[2] - z },
+    { x: b[0] + x, y: 0, z: b[2] + z }, { x: b[0] - x, y: 0, z: b[2] - z }]);
+}
+/** Prove a full-width static mouth, continuous capsule corridor and the actual deck seam before allocating physics. */
+export function validateLiftApproach(entry: SocketLiftEntry, deck: readonly EntryVertex[][], source: LiftApproachSource): void {
+  const approach = entry.lift.approach; if (approach === undefined) return;
+  const rows = approach.colliders.map(id => {
+    if (id === entry.lift.mover || id === entry.lift.gate) throw new Error('Static approach collider cannot alias its moving deck or road gate');
+    const row = source.props?.colliders.find(candidate => candidate.id === id);
+    if (row === undefined || !row.initialActive || row.panel !== null || source.targets.panels.some(target => target.colliders.includes(id))) throw new Error('Static approach requires permanent active declared colliders');
+    return row;
+  });
+  const first = approach.route[0], last = approach.route[approach.route.length - 1];
+  if (first === undefined || last === undefined) throw new Error('Missing static approach route');
+  const mouth: Point = [entry.edge === 'east' ? 235 : entry.edge === 'west' ? -235 : 0, 0, entry.edge === 'north' ? 235 : entry.edge === 'south' ? -235 : 0];
+  if (!first.every((value, axis) => value === mouth[axis])) throw new Error('Static approach must start at the socket inner midpoint');
+  let length = Math.hypot(last[0] - entry.lift.roadStop[0], last[2] - entry.lift.roadStop[2]);
+  for (let i = 1; i < approach.route.length; i++) {
+    const a = approach.route[i - 1], b = approach.route[i]; if (a !== undefined && b !== undefined) length += Math.hypot(b[0] - a[0], b[2] - a[2]);
+  }
+  if (length > 32) throw new Error('Static approach route exceeds thirty-two metres');
+  const surfaces = staticTops(rows), cover = coverage(surfaces);
+  // The mouth strip extends inward only; the platform socket cannot prove any part of this landing.
+  const inward: Point = [mouth[0] + (entry.edge === 'east' ? -radius : entry.edge === 'west' ? radius : 0), 0,
+    mouth[2] + (entry.edge === 'north' ? -radius : entry.edge === 'south' ? radius : 0)];
+  cover(ribbon(mouth, inward, 4), 'Static approach must cover the eight metre road-height mouth');
+  for (let i = 0; i < approach.route.length; i++) {
+    const point = approach.route[i]; if (point === undefined) continue;
+    // At the mouth the socket supplies the outside half of the capsule; all subsequent joins are static ground.
+    if (i > 0) cover(ribbon(point, point, radius), 'Static approach corridor lacks declared road-height ground');
+    const next = approach.route[i + 1]; if (next !== undefined) cover(ribbon(point, next, radius), 'Static approach corridor lacks declared road-height ground');
+  }
+  const flatDeck = deck.filter(triangle => triangle.every(vertex => Math.abs(vertex.y) <= epsilon)).map(hull);
+  coverage(flatDeck)(ribbon(entry.lift.roadStop, entry.lift.roadStop, radius), 'Socket lift deck must support the real capsule at its road stop');
+  const dx = last[0] - entry.lift.roadStop[0], dz = last[2] - entry.lift.roadStop[2], distance = Math.hypot(dx, dz);
+  // Only the boarding seam may have a gap: extrude the real deck by at most five centimetres toward the static endpoint.
+  const seam = flatDeck.map(surface => hull([...surface, ...surface.map(vertex => ({ ...vertex,
+    x: vertex.x + (distance <= epsilon ? 0 : dx / distance * 0.05), z: vertex.z + (distance <= epsilon ? 0 : dz / distance * 0.05) }))]));
+  coverage([...surfaces, ...seam])(ribbon(last, entry.lift.roadStop, radius), 'Static approach boarding seam exceeds five centimetres');
+}
 
 /** Transitional standalone composition; a full session injects its existing host and merges entities/rules/queries instead. */
 export async function createMoverHost(data: MoverData, assets: ReadonlyMap<string, Uint8Array>, physicsQueries: ScriptQuery): Promise<ScriptHost> {

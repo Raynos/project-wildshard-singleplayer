@@ -11,7 +11,7 @@ import type { KeptHomeRow, KeptBossRow } from '@wildshard/game/shardfile/homeKee
 import { installMarkedBossRow, type MarkedBossRowSpec } from './shardfile/markedBossRow';
 import { installLashHost, type LashCommand, type LashHostSpec, type LashTargetRow } from './items/lashHost';
 import { installQuestGraph, type QuestGraphPorts, type QuestGraphRows } from '@wildshard/game/plugin/quests';
-import { proveTerrainEntries, type TerrainEntryWalk } from '@wildshard/game/shardfile/terrainEntries';
+import { proveTerrainEntries, type TerrainEntryWalk } from '@wildshard/game/plugin/mover';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { parsePromptRegistrations } from '@wildshard/game/plugin/prompts';

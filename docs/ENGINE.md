@@ -102,7 +102,7 @@ contains numeric data, with no procedural pose callback.
 
 `@wildshard/engine/level/installation` constructs the ordinary level registration context for a supplied scope;
 `LevelLoader` and child installations share that implementation and the same kit registration window.
-`@wildshard/game/shardfile/runtime` resolves a declared `runtime/*.ts` entry only through a trusted first-party
+`@wildshard/game/plugin/shardPlugin` resolves a declared `runtime/*.ts` entry only through a trusted first-party
 registry. `prepareHybridShard` admits the shardfile and its trusted entry, chooses the catalogue instance inside
 the game layer, and composes their world, kit and play stages. Empty transitional data adds no gameplay services.
 `HybridRuntimeSession.prepare` prefetches module code without running hooks. `installAhead(instance)` requires an
@@ -2275,7 +2275,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### Baked terrain (SHARD-PLATFORM SF9a)
 
-`@wildshard/engine/world/terrainTileData` owns the bounded little-endian terrain codec and the triangle-diagonal height sampler. `@wildshard/engine/physics/terrainTiles` installs a critical collider heightfield in one local world and removes it with its scope. The SDK terrain baker emits 64 L0 and 16 L1 tiles from one shared 257² lattice, with ordered hand overrides applied before both rendering and collision. Linear RGB, geometric errors and the four 129-sample edges are baked data. Actual asset costs include decoded arrays, GPU geometry and L0 shadow draws. `@wildshard/game/shardfile/terrain` checks grid completeness, collider/render seams, edge agreement and conservative errors; the full SF15a loader consumes its optional terrain section.
+`@wildshard/engine/world/terrainTileData` owns the bounded little-endian terrain codec and the triangle-diagonal height sampler. `@wildshard/engine/physics/terrainTiles` installs a critical collider heightfield in one local world and removes it with its scope. The SDK terrain baker emits 64 L0 and 16 L1 tiles from one shared 257² lattice, with ordered hand overrides applied before both rendering and collision. Linear RGB, geometric errors and the four 129-sample edges are baked data. Actual asset costs include decoded arrays, GPU geometry and L0 shadow draws. `@wildshard/game/plugin/product` checks grid completeness, collider/render seams, edge agreement and conservative errors; the full SF15a loader consumes its optional terrain section.
 
 **Terrain tile views (SF15a).** `installTerrainTile(bytes, { root, scope, material, shadow })` from `@wildshard/engine/world/terrainTileView` draws one admitted render tile (its wire bytes, or its `TerrainTileData` already decoded off the main thread, SF18b) as a mesh whose triangles split along the Rapier heightfield's diagonal (the drawn ground is the collider's ground), with grid normals that two neighbouring tiles light alike. The scope owns the geometry and removes the mesh; normals and colours are GPU-only after upload. Every tile but a coarse one hangs a size/16 skirt under its edges so a fine edge never cracks against a coarse neighbour. A tile casts whole: it opts out of E153's shadow splitter (`chunkShadowCasters`), because it is already one cascade-culling piece and its `castShadow` is the 80 m shadow disc's switch (split, a 62.5 m tile drew up to 64 always-casting pieces: SF16 measured 85 % of the M1 template's calls there). `maskTerrainTile(mesh, quadrants)` hides a coarse (L1, 17², 125 m) tile's quadrants in its one index buffer while fine tiles cover them (no allocation, no extra draw, no overlap). `coarseTileMask(root, x, z, scope)` from `@wildshard/engine/world/coarseTileMask` does the same for a coarse tile's props in the fragment shader, keeping instanced meshes instanced; its updater takes the hidden quadrants. The game's `clientViews` (`@wildshard/game/shardfile/clientViews`) wires these and `installDeclaredProps` into the loader's `ClientWorldViews`; `clientMaterials` compiles `look.materials` and the family looks, and `shardfileLook(look, assets)` hands an admitted LUT's bytes to `dataLook`.
 
@@ -2284,7 +2284,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 `prepareHybridShard` accepts an explicit first-party `stagesOwner: "runtime"` transition when the native runtime installs all admitted world, kit and play declarations (including its movers). Product validation, immutable-byte admission and residency run before native hooks. The data plugin is not constructed, so it registers no duplicate simulation, equipment or handoff. The default remains declared stages; outside products cannot select runtime stage ownership. This is a trusted composition port, not a shardfile-authored escape from admission.
 
 
-**Data-only catalogue cards.** `@wildshard/game/shardfile/sourceManifest` defines `sourceManifest(source, admittedAssets?)`: pure identity/accent/presentation mapping with no fetch, decode or install. `@wildshard/game/shardfile/presentation` defines the exact `PresentationSchema` and `presentationCard`; `@wildshard/game/shardfile/stillImage` defines `parseStillImage`, `stillImageUrl` and `STILL_IMAGE_LIMITS`. Local charged image hashes resolve only from admitted bounded PNG/JPEG/WebP bytes to inert MIME-sniffed data URLs. The full loader uses these fields when present and preserves existing cards otherwise. SDK `assetCost("image", bytes)` uses the same parser and residency law.
+**Data-only catalogue cards.** `@wildshard/game/plugin/shardPlugin` defines `sourceManifest(source, admittedAssets?)`: pure identity/accent/presentation mapping with no fetch, decode or install. `@wildshard/game/shardfile/presentation` defines the exact `PresentationSchema` and `presentationCard`; `@wildshard/game/shardfile/stillImage` defines `parseStillImage`, `stillImageUrl` and `STILL_IMAGE_LIMITS`. Local charged image hashes resolve only from admitted bounded PNG/JPEG/WebP bytes to inert MIME-sniffed data URLs. The full loader uses these fields when present and preserves existing cards otherwise. SDK `assetCost("image", bytes)` uses the same parser and residency law.
 
 ### Declared water (SHARD-PLATFORM SF9d)
 
@@ -2464,7 +2464,7 @@ height, neck, shoulder, arm cut, material) and its dialogue. Signal’s private 
 Model Explorer figure. Signal’s private `runtime/rowsHeadless.ts` `rowsHeadlessRuntime(manifest)` is a whole trusted
 `prepareHeadlessRuntime` from rows: the baked metadata (`bakedSpecs`, `bakedSpots`), the homes and their brains (with
 `holds`: a home's memory field held until a flag), the marked boss, the lash item, the quest graph and the terrain entry
-walk (`@wildshard/game/shardfile/terrainEntries` `proveTerrainEntries`). Signal’s private `runtime/shard/standaloneEntry.ts`
+walk (`@wildshard/game/plugin/productEntries` `proveTerrainEntries`). Signal’s private `runtime/shard/standaloneEntry.ts`
 `standaloneHybridEntry(Native, { name, source, entry, runtime })` is a first-party primary's standalone hybrid entry.
 These one-user implementations and their SDK facades returned to Signal under DS0.1; its bindings live in
 `runtime/headlessRows.ts`, `quests/graph.ts`, `quests/scout.ts` and `runtime/quest/matriarchFight.ts`.
@@ -2619,6 +2619,8 @@ public-index and sandbox checks remain active. Promote this rule to `error` in t
 root config after the move-backs; its tests already exercise enforcement.
 
 The defining plugin modules also own shared geometry packing (`plugin/geometry`), model and atlas registries (`plugin/models`), quest rows (`plugin/quests`), native prompt selection (`plugin/prompts`), weapon hook admission (`plugin/weaponHooks`), collision pose and clip metadata (`plugin/animation`), and starter effect installation (`plugin/effects`). Their implementations live in these modules; consumers do not pass through forwarding facades. Frozen compatibility keys remain until their registered consumers retire.
+
+The admitted product API is defined by `plugin/product`: bounded byte parsers, dependency preflight, terrain validation, saved-state lineage, build verdicts, report cards and memory admission. Existing defining hosts own their associated laws: `plugin/brain` resolves numeric species/strike rows; `plugin/director` owns the isolated director lane; `plugin/mover` proves terrain entries and lift approaches; `plugin/shardPlugin` resolves trusted runtime constructors and maps admitted catalogue data. These imports install no service.
 
 ## Trusted plugin definitions (SF79 DS0.2)
 
@@ -2783,7 +2785,7 @@ three.js author project without drawing a frame.
 
 The scoped input/knob/Debug wire contract is now defined by `@wildshard/format/plumbing`: both loader admission and SDK author validation consume it. Namespace ownership, duplicate IDs, touch-action references and Debug defaults retain their existing checks. `@wildshard/sdk/plumbing` is author-time Valibot parsing; it no longer calls a game module.
 
-Game `./shardfile/socketLiftApproach` defines the admitted static approach data used by native lift proofs; it does not install a service.
+Game `./plugin/mover` defines the admitted static approach data used by native lift proofs; it does not install a service.
 
 ### Generated format JSON Schema (DS1.1)
 

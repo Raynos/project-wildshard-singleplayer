@@ -11,7 +11,7 @@ import { validateProject, contentHash } from '../src/sdk/project';
 import { assetCost } from '../src/sdk/assets';
 import { emptyShardfile } from '../src/sdk/author';
 import { runCli } from '../src/sdk/cli';
-import { validateTerrainAssets } from '../src/game/shardfile/terrain';
+import { validateTerrainAssets } from '../src/game/plugin/product';
 import { TerrainSchema } from '@wildshard/format/terrain';
 import { decodeTerrainTile, encodeTerrainTile, terrainTileHeight } from '../src/engine/world/terrainTileData';
 import { addBakedTerrainCollider } from '../src/engine/physics/terrainTiles';

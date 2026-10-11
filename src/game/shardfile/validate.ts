@@ -3,8 +3,8 @@ import { admitScript, type ScriptAdmission } from '@wildshard/engine/script/admi
 import { SCRIPT_LIMITS } from '@wildshard/engine/script/host';
 import { worstContentCost } from './budget';
 import { parseShardfile, type Shardfile } from './schema';
-import { assetCost } from './assets';
-import { validateTerrainAssets } from './terrain';
+import { assetCost, validateTerrainAssets, preflightAssetGraph, type MemoryAdmission } from "../plugin/product";
+
 import { validateMeshCollisionAssets } from './meshCollision';
 import { validateNativeGround } from './nativeGround';
 import { validateMeshEntryways } from './meshEntryways';
@@ -20,10 +20,10 @@ import { portalLinkEntries } from './portalLink';
 import { validatePortalFloors } from './portalFloor';
 import { clientScriptViewCost } from '@wildshard/format/clientScripts';
 import { preflightShardfile } from '@wildshard/format/preflight';
-import { preflightAssetGraph } from './assetGraph';
+
 import { compendiumSketches } from './sketch';
 import { assertCommonsCosts, type CommonsCosts } from '@wildshard/format/commonsCosts';
-import type { MemoryAdmission } from '../grid/memoryAdmission';
+
 
 function acceptsTotal(memory: MemoryAdmission | undefined, source: Shardfile, stage: 'declared' | 'actual', cost: ReturnType<typeof worstContentCost>): boolean {
   if (cost.playing <= C.playing && cost.loading <= C.loading) return true;

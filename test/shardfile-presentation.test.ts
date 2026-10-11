@@ -7,7 +7,7 @@ import { parseShardfile, ShardfileSchema } from '../src/game/shardfile/schema';
 import { schemaInventory } from '../scripts/docs/schema-reference.mjs';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
 import { parseStillImage, STILL_IMAGE_LIMITS, stillImageUrl } from '../src/game/shardfile/stillImage';
-import { sourceManifest } from '../src/game/shardfile/sourceManifest';
+import { sourceManifest } from '../src/game/plugin/shardPlugin';
 import { emptyShardfileSource, installManifestShardfile, shardfileSource } from '../src/game/shardfile/loader';
 
 // Actual lossless PNG and encoded JPEG/WebP of the same 2x3 fixture, emitted once by the SDK's pinned sharp.

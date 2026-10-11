@@ -1,4 +1,4 @@
-import type { TrustedRuntimeEntry } from '../shardfile/runtime';
+import type { TrustedRuntimeEntry, ShardPlugin } from "../plugin/shardPlugin";
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '@wildshard/engine/combat/view/melee';
 import type { Noise2D } from '@wildshard/engine/core/noise';
@@ -18,7 +18,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import type { WaterBody } from '@wildshard/engine/world/water/body';
 import { terrainFieldFor } from '@wildshard/engine/world/groundField';
-import type { ShardPlugin } from "../plugin/shardPlugin";
+
 import type { AccentId } from '@wildshard/format/accent';
 import type { RegionalSimCost, RuntimeCost } from '@wildshard/format/runtimeCost';
 import type { ShardSlug } from './slugs.generated';

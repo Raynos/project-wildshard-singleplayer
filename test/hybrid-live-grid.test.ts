@@ -18,11 +18,11 @@ import { LiveGridHost } from '../src/game/grid/live';
 import { GridCrossing } from '../src/game/grid/crossing';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { shardContext } from '../src/game/plugin/context';
-import { ShardPlugin } from '../src/game/plugin/shardPlugin';
+import { ShardPlugin, prepareTrustedRuntime } from "../src/game/plugin/shardPlugin";
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
 import { HybridShardPlugin } from '../src/game/shardfile/hybrid';
-import { prepareTrustedRuntime } from '../src/game/shardfile/runtime';
+
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const noop = (): void => undefined;

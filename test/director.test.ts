@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { compileScript } from '../scripts/compile-script.mjs';
 import { parseDirector, type DirectorData } from '@wildshard/format/director';
-import { DirectorLane, createDirectorLane } from '../src/game/shardfile/directorRuntime';
+import { DirectorLane, createDirectorLane } from '../src/game/plugin/director';
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 
 const hash = 'a'.repeat(64);

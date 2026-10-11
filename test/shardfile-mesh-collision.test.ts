@@ -5,7 +5,7 @@ import { meshCollision } from '../src/sdk/meshCollision';
 import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
 import { validateMeshCollisionAssets } from '../src/game/shardfile/meshCollision';
 import { meshCollisionRules } from '@wildshard/format/meshCollision';
-import { assetCost } from '../src/game/shardfile/assets';
+import { assetCost } from '../src/game/plugin/product';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
 import { encodeMeshCollision, meshCollisionCost } from '../src/engine/core/meshCollision';
 

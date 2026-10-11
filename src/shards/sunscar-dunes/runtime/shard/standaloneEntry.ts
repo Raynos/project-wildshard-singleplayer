@@ -1,8 +1,8 @@
 import type { ShardContext } from '@wildshard/game/plugin/context';
-import { ShardPlugin } from '@wildshard/game/plugin/shardPlugin';
+import { ShardPlugin, type TrustedRuntimeEntry } from "@wildshard/game/plugin/shardPlugin";
 import { shardfileEntry } from '@wildshard/game/shard/runtimeVariant';
 import type { Shardfile } from '@wildshard/game/shardfile/schema';
-import type { TrustedRuntimeEntry } from '@wildshard/game/shardfile/runtime';
+
 
 /** Where a first-party primary's shardfile and trusted runtime load from, lazily (each its own chunk). */
 export interface StandaloneSources {

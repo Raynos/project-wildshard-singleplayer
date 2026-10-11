@@ -14,7 +14,7 @@ import { DataTexture, MeshStandardMaterial, Vector3, type Texture } from 'three'
 import { Scope } from '../src/engine/app/scope';
 import { ToonLook } from '../src/engine/render/families/toon';
 import { familyMaterial } from '../src/engine/render/families/registry';
-import { parseKtx2 } from '../src/game/shardfile/assets';
+import { parseKtx2 } from '../src/game/plugin/product';
 import { loadSkin } from '../src/game/shardfile/skinPlayback';
 import { parseSkinBindings, parseSkinRows } from '@wildshard/format/skinData';
 import { skinFixtureSource } from './fixtures/sim-level/skins/build';

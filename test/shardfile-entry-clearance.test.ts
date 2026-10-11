@@ -4,7 +4,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { contentHash } from '../src/sdk/project';
 import { validateEntrywayClearance } from '../src/game/shardfile/entryClearance';
-import { visitGlbTriangles, parseGlb } from '../src/game/shardfile/assets';
+import { visitGlbTriangles, parseGlb } from '../src/game/plugin/product';
 import { parseShardfile } from '../src/game/shardfile/schema';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
 import type { ShardProps } from '../src/game/shardfile/props';

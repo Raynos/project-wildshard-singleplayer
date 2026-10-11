@@ -13,7 +13,7 @@
  */
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { contentCost, type ContentCostInput } from '@wildshard/engine/core/contentCost';
-import { MemoryAdmission } from './memoryAdmission';
+import { MemoryAdmission } from '../plugin/product';
 
 /** The cost model's categories; `library` and `sim` map onto its plural fields. */
 export type ResidencyCategory = 'l0' | 'l1' | 'far' | 'library' | 'sim' | 'commons' | 'product' | 'page';

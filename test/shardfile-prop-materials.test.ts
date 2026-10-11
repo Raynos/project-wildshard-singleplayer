@@ -15,7 +15,7 @@ import { clientGraphs, graphOutlineHook, isGraphEntry } from '../src/game/shardf
 import { clientTileViews } from '../src/game/shardfile/clientViews';
 import { propSurfaces } from '../src/game/shardfile/clientPropMaterials';
 import { PropMaterialsSchema, checkPropMaterialNames, glbMaterialNames, propMaterialTextureRefs, propMaterialsOf, validatePropMaterials, type PropMaterials } from '../src/game/shardfile/propMaterials';
-import { parseGlb } from '../src/game/shardfile/assets';
+import { parseGlb } from '../src/game/plugin/product';
 import { NAMES, namedMaterialsGlb, slotGraph } from './fixtures/prop-materials/fixture';
 import { emptyShardfile } from '@wildshard/sdk/author';
 

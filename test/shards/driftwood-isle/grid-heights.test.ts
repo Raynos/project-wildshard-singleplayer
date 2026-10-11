@@ -28,7 +28,7 @@ import { WaterBodies } from '../../../src/engine/world/water/body';
 import { WATER_UNBOUNDED, waterExtent } from '../../../src/engine/world/waves';
 import { WorldRegistry } from '../../../src/engine/world/registry';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator';
-import { MemoryAdmission } from '../../../src/game/grid/memoryAdmission';
+import { MemoryAdmission } from '../../../src/game/plugin/product';
 import { regionalRuntimeAccountedBytes, type RegionalRuntimeRequest } from '../../../src/game/grid/regionalRuntime';
 import { createRegionalWorldFoundation } from '../../../src/game/grid/regionalWorld';
 import { Inventory } from '../../../src/game/Inventory';

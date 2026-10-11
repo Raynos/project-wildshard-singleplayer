@@ -1,6 +1,6 @@
 import type { ShardContext } from "../plugin/context";
 import type { ResidencyAllocator, ResidencyClaim } from '../grid/allocator';
-import { assetCost } from './assets';
+import { assetCost } from '../plugin/product';
 import { admitScript } from '@wildshard/engine/script/admission';
 import type { Shardfile } from './schema';
 import { clientScriptViewCost } from '@wildshard/format/clientScripts';

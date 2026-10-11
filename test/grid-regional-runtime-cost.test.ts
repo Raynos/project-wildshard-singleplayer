@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { regionalRuntimeAccountedBytes } from '../src/game/grid/regionalRuntime';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
+import { MemoryAdmission } from '../src/game/plugin/product';
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 
 const imagesFirst = { webContentMB: 570, glMB: 623, engineBaseMB: 299, rev: '6c0aaea4f', device: 'Measured fixture', evidence: 'progress/memory/fixture.json' };

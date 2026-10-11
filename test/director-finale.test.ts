@@ -7,7 +7,7 @@ import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
 import { Flags } from '../src/engine/world/interact/flags';
 import { parseDirector } from '@wildshard/format/director';
-import { createDirectorLane } from '../src/game/shardfile/directorRuntime';
+import { createDirectorLane } from '../src/game/plugin/director';
 import type { FinaleWorld } from '../src/shards/driftwood-isle/quest/Finale';
 import { app } from '../src/engine/app/runtime';
 import { installLegacyFinale } from './fixtures/quest-oracle/driftwood-finale';

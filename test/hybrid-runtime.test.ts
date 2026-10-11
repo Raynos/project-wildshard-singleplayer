@@ -8,7 +8,7 @@ import { bindConstructionEnvironment, withOwner } from '../src/engine/app/owners
 import { createLevelInstallation } from '../src/engine/level/installation';
 import type { LevelDriver } from '../src/engine/level/load';
 import { emptyShardfile } from '../src/sdk/author';
-import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../src/game/shardfile/runtime';
+import { prepareTrustedRuntime, type TrustedRuntimeEntry, ShardPlugin } from "../src/game/plugin/shardPlugin";
 import { RuntimeSchema } from '@wildshard/format/runtime';
 import { HybridResidentWorld, HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident, type HybridRuntimeOptions } from '../src/game/shardfile/hybrid';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
@@ -18,7 +18,7 @@ import nalatiSource from '../src/shards/nalati-grasslands/shard.config';
 import skySource from '../src/shards/far-reach/shard.config';
 import { bindScopedRuntime, createScopedRuntimeBinding } from '../src/game/shard/scopedRuntime';
 import { shardContext, type GameServices, type ShardContext } from '../src/game/plugin/context';
-import { ShardPlugin } from '../src/game/plugin/shardPlugin';
+
 import { loadShardPlugin } from '../src/game/shard/pluginLoad';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { ITEMS } from '../src/game/bag/itemCatalog';

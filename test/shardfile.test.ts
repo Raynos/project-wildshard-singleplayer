@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { SHARDFILE_VERSION } from '@wildshard/sdk/version';
-import { performanceTargetIssues } from '../src/game/shardfile/reportCard';
+import { performanceTargetIssues } from '../src/game/plugin/product';
 import { memoryTargetWarnings } from '../src/game/shardfile/budget';
 
 const dir = 'test/fixtures/shardfile/';

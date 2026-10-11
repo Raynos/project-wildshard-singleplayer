@@ -19,7 +19,7 @@ import { GridAssembly } from '../src/game/grid/assembly';
 import { gridCells } from '../src/game/grid/boot';
 import { LiveGridSession } from '../src/game/grid/liveSession';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
+import { MemoryAdmission } from '../src/game/plugin/product';
 import { PageResidency } from '../src/game/grid/pageResidency';
 import * as foundation from '../src/game/grid/regionalWorld';
 import * as products from '../src/game/grid/products';

@@ -6,7 +6,7 @@ import { parseNavmesh } from '@wildshard/engine/physics/navmesh';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { PINE_GROUND_RES, pineBake, type PineBake, type PineSolid } from './baked';
 import { preparePineDirector } from './scriptClock';
-import type { DirectorLane } from '@wildshard/game/shardfile/directorRuntime';
+import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { installPineRoster, type PineRosterPorts } from './roster';
 import { installPineElites } from './elites';
 import { installPineKing } from './king';

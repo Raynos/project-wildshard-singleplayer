@@ -1,4 +1,4 @@
-import { prepareDirectorModule, type DirectorLane } from '@wildshard/game/shardfile/directorRuntime';
+import { prepareDirectorModule, type DirectorLane } from '@wildshard/game/plugin/director';
 import { director } from '@wildshard/sdk/director';
 import declaration from '../data/director.json' with { type: 'json' };
 import module from '../behaviour/director.json' with { type: 'json' };

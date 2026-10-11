@@ -5,7 +5,7 @@ import { pageGridRecovery } from './recoveryBoot';
 import type { GridRecoveryRecord } from './recovery';
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { ResidencyAllocator } from './allocator';
-import { MemoryAdmission } from './memoryAdmission';
+import { MemoryAdmission } from '../plugin/product';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { contentCost } from '@wildshard/engine/core/contentCost';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';

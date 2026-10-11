@@ -8,7 +8,7 @@ import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimPorts } from '../src/game/shardfile/simulation';
 import { parseShardfile, shardfileRules, type Shardfile } from '../src/game/shardfile/schema';
 import { parseRamGrazer, parseChallengeGrazer } from '@wildshard/format/grazers';
-import { scoredStrikes } from '../src/game/shardfile/rows';
+import { scoredStrikes } from '../src/game/plugin/brain';
 import template from '../src/shards/_template/shard.config';
 import { expectSameSimSnapshot } from './fake/simSnapshot';
 

@@ -8,7 +8,7 @@ import { PropsSchema, validatePropsReferences } from '../src/game/shardfile/prop
 import { PropMaterialsSchema } from '../src/game/shardfile/propMaterials';
 import { parseShardfile, type Shardfile } from '../src/game/shardfile/schema';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
-import { assetCost } from '../src/game/shardfile/assets';
+import { assetCost } from '../src/game/plugin/product';
 
 let texture: Uint8Array;
 beforeAll(async () => {

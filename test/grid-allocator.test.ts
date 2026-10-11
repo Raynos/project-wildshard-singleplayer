@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { CONTENT_CAPS as C, CONTENT_MB as MB } from '../src/engine/core/config';
 import { ResidencyAllocator, type ResidencyLease } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
+import { MemoryAdmission } from '../src/game/plugin/product';
 
 it('charges every category through the SF22a cost model and refuses what cannot fit', () => {
   const allocator = new ResidencyAllocator();

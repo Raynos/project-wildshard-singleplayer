@@ -13,7 +13,7 @@ import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, recordPineFeatKill, syncPineFlagFeats, isPineThrall } from '../quest/featLaw';
 import { PineScriptClock } from './scriptClock';
-import type { DirectorLane } from '@wildshard/game/shardfile/directorRuntime';
+import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { LegacyPineClock, type PineClockEvent } from './questClock';
 import { LEVER_FLAG } from './weapons/headlessLoadout';
 import { ZIP_LAUNCH_V, ZIP_START, ZipWire } from '../quest/zipWire';

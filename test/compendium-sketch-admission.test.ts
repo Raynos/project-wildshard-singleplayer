@@ -5,7 +5,7 @@ import { TEMPLATE_ROWS } from '../src/shards/_template/data/rows';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseRows } from '@wildshard/format/rows';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
-import { preflightAssetGraph } from '../src/game/shardfile/assetGraph';
+import { preflightAssetGraph } from '../src/game/plugin/product';
 import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { Scope } from '../src/engine/app/scope';

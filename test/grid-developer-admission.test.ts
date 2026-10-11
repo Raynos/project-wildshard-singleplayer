@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
+import { MemoryAdmission } from '../src/game/plugin/product';
 import { PageResidency } from '../src/game/grid/pageResidency';
 
 it('admits an over-budget Developer home with its exact cost and releases every charged byte', () => {

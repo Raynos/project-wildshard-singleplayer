@@ -5,7 +5,7 @@ import { isJsonData, parseRows, speciesResolver, simStrikes } from '@wildshard/s
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { declaredDay, declaredWeather, declaredCompendium, declaredLootPresentation } from '../src/game/shard/declaredRows';
-import { scoredStrikes } from '../src/game/shardfile/rows';
+import { scoredStrikes } from '../src/game/plugin/brain';
 import { RngService } from '@wildshard/engine/core/rng';
 import { Weather } from '@wildshard/engine/world/weather';
 import { TEMPLATE_ROWS } from '../src/shards/_template/data/rows';

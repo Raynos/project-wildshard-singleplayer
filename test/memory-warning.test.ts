@@ -2,7 +2,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { app } from '../src/engine/app/runtime';
 import { setDev } from '../src/engine/core/devMode';
-import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
+import { MemoryAdmission } from '../src/game/plugin/product';
 import { installMemoryWarning } from '../src/game/grid/memoryWarning';
 
 afterEach(() => { setDev(false); document.body.replaceChildren(); });

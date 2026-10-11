@@ -3,7 +3,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { createLevelInstallation, type LevelInstallation } from '@wildshard/engine/level/installation';
 import { shardContext, type ShardContext } from '../plugin/context';
-import { ShardPlugin } from '../plugin/shardPlugin';
+import { ShardPlugin, prepareTrustedRuntime, type TrustedRuntimeEntry } from "../plugin/shardPlugin";
 import type { ShardRuntime } from '../shard/runtime';
 import type { ShardManifest } from '../shard/manifest';
 import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';
@@ -13,7 +13,7 @@ import { browserShardfileOptions, shardfileSource } from './loader';
 import type { ProductOptions } from './product';
 import type { ShardfileClientBindings } from './client';
 import type { Shardfile } from './schema';
-import { prepareTrustedRuntime, type TrustedRuntimeEntry } from './runtime';
+
 import type { RuntimeDeclaration } from '@wildshard/format/runtime';
 
 /** A resident's data world stays alive when its independently scoped trusted play hooks leave. */

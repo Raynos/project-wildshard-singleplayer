@@ -2,13 +2,13 @@ import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { canStandAt } from '@wildshard/engine/physics/query';
 import { tagOf } from '@wildshard/engine/physics/surface';
-import type { MoverRuntime } from "../plugin/mover";
+import type { MoverRuntime, LiftApproachSource } from "../plugin/mover";
 import { socketLiftEntries, socketLiftRules, type SocketLiftEntry } from './socketLift';
 import { parseSocketLift, type SocketLift } from '@wildshard/format/socketLift';
 import { walkEdgeEntries } from '@wildshard/engine/physics/edgeEntries';
 import { createShardfileSim, type ShardfileSimPorts, type ShardfileSimulation } from './simulation';
 import type { Shardfile } from './schema';
-import type { LiftApproachSource } from './socketLiftApproach';
+
 import { portalLinkEntries } from './portalLink';
 import { provePortalLinks } from './portalLinkProof';
 

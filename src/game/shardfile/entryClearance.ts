@@ -2,7 +2,7 @@ import type { ShardEntryways } from '@wildshard/format/entryways';
 import type { ShardProps } from './props';
 import type { ShardWater } from '@wildshard/format/water';
 import { entryFootprints, clipEntryPolygon, obstructsEntry, type EntryVertex, type EntryFootprint } from './entryGeometry';
-import { visitGlbTriangles } from './assets';
+import { visitGlbTriangles } from '../plugin/product';
 import { glbPoint, glbTransform } from './glbTriangles';
 import { WAVES } from '@wildshard/engine/world/waves';
 

@@ -4,7 +4,7 @@ import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF, CONTENT_CAPS } from '@wildshard/eng
 import { isJsonData } from '@wildshard/format/json';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { preflightShardfile } from '@wildshard/format/preflight';
-import { preflightAssetGraph } from './assetGraph';
+import { preflightAssetGraph } from '../plugin/product';
 import { SHARDFILE_VERSION } from '@wildshard/format/version';
 import { UiSchema, uiRules } from '@wildshard/format/ui';
 import { scriptBindingRules } from '@wildshard/format/scripts';

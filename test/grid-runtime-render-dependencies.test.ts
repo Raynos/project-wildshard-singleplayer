@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { RuntimeRenderDependencies } from '../src/game/grid/runtimeRenderDependencies';
-import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
+import { MemoryAdmission } from '../src/game/plugin/product';
 
 const dependency = { id: 'materials.verified', jsBytes: 20_000_000, gpuBytes: 20_000_000 };
 it('charges one shared resource, holds it and disposes it only after its last consumer', () => {

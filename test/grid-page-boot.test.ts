@@ -5,7 +5,7 @@ import { preparePageResidency } from '../src/game/grid/pageBoot';
 import { jsonSlot } from '../src/engine/saves/slots';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 import { Scope } from '../src/engine/app/scope';
-import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
+import { MemoryAdmission } from '../src/game/plugin/product';
 
 afterEach(() => { vi.restoreAllMocks(); });
 const manifest = { slug: 'driftwood-isle' as const, runtimeCost: DRIFTWOOD_RUNTIME_COST };

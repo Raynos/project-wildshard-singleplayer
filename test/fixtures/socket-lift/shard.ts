@@ -1,6 +1,6 @@
 import { emptyShardfile } from '../../../src/sdk/author';
 import { parseShardfile } from '../../../src/game/shardfile/schema';
-import { assetCost } from '../../../src/game/shardfile/assets';
+import { assetCost } from '../../../src/game/plugin/product';
 import { parseMovers } from '@wildshard/format/movers';
 import { parseSocketLift } from '@wildshard/format/socketLift';
 

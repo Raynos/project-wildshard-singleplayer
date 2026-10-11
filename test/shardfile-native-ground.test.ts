@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes as hash } from '../src/sdk/immutable';
-import { assetCost } from '../src/game/shardfile/assets';
+import { assetCost } from '../src/game/plugin/product';
 import { validateNativeGround } from '../src/game/shardfile/nativeGround';
 import { nativeGroundRules } from '@wildshard/format/nativeGround';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
