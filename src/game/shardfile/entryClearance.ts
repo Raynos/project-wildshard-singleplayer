@@ -4,7 +4,7 @@ import type { ShardWater } from '@wildshard/format/water';
 import { entryFootprints, clipEntryPolygon, obstructsEntry, type EntryVertex, type EntryFootprint } from './entryGeometry';
 import { visitGlbTriangles } from '../plugin/product';
 import { glbPoint, glbTransform } from './glbTriangles';
-import { WAVES } from '@wildshard/engine/world/waves';
+import { WAVES } from '@wildshard/format/waterWaves';
 
 type Box = Extract<ShardProps['colliders'][number]['shapes'][number], { kind: 'box' }>;
 function boxTriangles(box: Box, visit: (triangle: readonly EntryVertex[]) => void): void {

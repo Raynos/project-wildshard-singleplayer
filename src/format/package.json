@@ -71,7 +71,13 @@
     "./contentBounds": "./contentBounds.ts",
     "./aacIndex": "./aacIndex.ts",
     "./meshCollisionBytes": "./meshCollisionBytes.ts",
-    "./terrainTileBytes": "./terrainTileBytes.ts"
+    "./terrainTileBytes": "./terrainTileBytes.ts",
+    "./contentCost": "./contentCost.ts",
+    "./scriptAbi": "./scriptAbi.ts",
+    "./scriptAdmission": "./scriptAdmission.ts",
+    "./scriptLimits": "./scriptLimits.ts",
+    "./bakedTerrainBytes": "./bakedTerrainBytes.ts",
+    "./waterWaves": "./waterWaves.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

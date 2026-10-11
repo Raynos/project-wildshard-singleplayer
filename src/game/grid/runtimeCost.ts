@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
-import { contentCost, type ContentCostInput } from '@wildshard/engine/core/contentCost';
+import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
 
 import { RuntimeCostSchema, RegionalSimCostSchema, runtimeAccountedBytes, type RuntimeCost, type RegionalSimCost } from '@wildshard/format/runtimeCost';
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import binaryen from 'binaryen';
 import { compileScript, instrumentScript } from '../../scripts/compile-script.mjs';
-import { admitScript } from '../../src/engine/script/admission';
+import { admitScript } from '@wildshard/format/scriptAdmission';
 import { scriptSource } from './fixture';
 
 function wasm(wat: string, features?: binaryen.Features): Uint8Array { const m = binaryen.parseText(wat); try { if (features !== undefined) m.setFeatures(features); return m.emitBinary(); } finally { m.dispose(); } }

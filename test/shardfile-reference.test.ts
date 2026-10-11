@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
 import { ShardfileSchema } from '../src/game/shardfile/schema';
-import { SCRIPT_ABI, SCRIPT_EXPORTS, SCRIPT_IMPORTS } from '../src/engine/script/abi';
+import { SCRIPT_ABI, SCRIPT_EXPORTS, SCRIPT_IMPORTS } from '@wildshard/format/scriptAbi';
 import { schemaInventory, abiInventory, renderReference, referenceCoverage, assertReferenceCoverage } from '../scripts/docs/schema-reference.mjs';
 import { shardfileReference } from '../scripts/docs/gen-shardfile-reference.mjs';
 

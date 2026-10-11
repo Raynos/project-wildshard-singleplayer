@@ -1,6 +1,6 @@
 import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
-import { admitScript, type ScriptAdmission } from '@wildshard/engine/script/admission';
-import { SCRIPT_LIMITS } from '@wildshard/engine/script/host';
+import { admitScript, type ScriptAdmission } from '@wildshard/format/scriptAdmission';
+import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { worstContentCost } from './budget';
 import { parseShardfile, type Shardfile } from './schema';
 import { assetCost, validateTerrainAssets, preflightAssetGraph, type MemoryAdmission } from "../plugin/product";

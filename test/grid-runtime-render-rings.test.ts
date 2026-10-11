@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { currentOwner } from '../src/engine/app/ownership';
 import { CONTENT_CAPS } from '../src/engine/core/config';
-import { contentCost } from '../src/engine/core/contentCost';
+import { contentCost } from '@wildshard/format/contentCost';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { RenderRings, type RingTile, type RingView } from '../src/game/grid/rings';
 import { compileRuntimeRenderPlan, type RuntimeRenderPorts } from '../src/game/grid/runtimeRenderPlan';

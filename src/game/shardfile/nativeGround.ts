@@ -1,5 +1,5 @@
 import { CELL_ABOVE, CELL_BELOW } from '@wildshard/format/contentBounds';
-import { parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
+import { parseBakedTerrain, type BakedGrid } from '@wildshard/format/bakedTerrainBytes';
 import { validateEntrywayGrid } from './entryways';
 
 import { nativeGroundRules, type NativeGroundSource } from '@wildshard/format/nativeGround';

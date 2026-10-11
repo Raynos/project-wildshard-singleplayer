@@ -1,5 +1,5 @@
 import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
-import { contentCost } from '@wildshard/engine/core/contentCost';
+import { contentCost } from '@wildshard/format/contentCost';
 import type { Shardfile } from './schema';
 
 /** Category resident targets are tradeable warnings; only the complete playing/loading totals refuse memory. */

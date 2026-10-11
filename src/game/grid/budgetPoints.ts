@@ -13,7 +13,7 @@
  * Node-safe and pure: no DOM, no timers; the overlay (`budgetOverlay.ts`) and its tests read the same numbers.
  */
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
-import type { ContentCostInput } from '@wildshard/engine/core/contentCost';
+import type { ContentCostInput } from '@wildshard/format/contentCost';
 import type { ResidencyAllocator, ResidencyEntry } from './allocator';
 
 /** At or above this many points a score turns amber. */

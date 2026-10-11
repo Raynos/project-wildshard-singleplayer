@@ -1,15 +1,16 @@
-import { SCRIPT_ABI } from './abi';
-import { admitScript, type ScriptAdmission } from './admission';
+import * as scriptLimits from '@wildshard/format/scriptLimits';
+import { SCRIPT_ABI } from '@wildshard/format/scriptAbi';
+import { admitScript, type ScriptAdmission } from '@wildshard/format/scriptAdmission';
 import { SCRIPT_OP, type ScriptEffect, type ScriptEvent, type ScriptWorld } from './effects';
 import { scriptFailure } from './strings';
 import { observeWasmMemory } from '../core/memoryResources';
 import { constructionOwner, currentOwner, ownerOr } from '../app/ownership';
 import type { Scope } from '../app/scope';
 
-/** Per-level tick allowances shared by every module and entity, not reset by individual calls. */
-export interface ScriptLimits { instances: number; memoryBytes: number; effects: number; spawns: number; events: number; queries: number; fuelPerCall: number; fuelPerTick: number; failures: number }
-/** Conservative defaults; all are hard platform ceilings and may only be lowered by a host. */
-export const SCRIPT_LIMITS: Readonly<ScriptLimits> = Object.freeze({ instances: 8, memoryBytes: 24000000, effects: 128, spawns: 8, events: 32, queries: 64, fuelPerCall: 2000000, fuelPerTick: 8000000, failures: 3 });
+/** Existing host limit type is defined by pure format admission. */
+export type ScriptLimits = scriptLimits.ScriptLimits;
+/** Existing host defaults retain the identical defining format object. */
+export const SCRIPT_LIMITS = scriptLimits.SCRIPT_LIMITS;
 /** Deterministic, read-only query input/output; replies may be recorded for replay/conformance. */
 export type ScriptQuery = (kind: number, input: readonly number[], entity: number) => readonly number[];
 /** Read-only declared numeric parameters; the host supplies the trusted calling entity to the query adapter. */

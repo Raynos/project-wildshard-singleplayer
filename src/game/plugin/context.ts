@@ -15,7 +15,7 @@ import { runtimeAccountedBytes } from "@wildshard/format/runtimeCost";
 import { ResidencyAllocator } from "../grid/allocator";
 import { MemoryAdmission } from "./product";
 import { isDev } from "@wildshard/engine/core/devMode";
-import { contentCost } from "@wildshard/engine/core/contentCost";
+import { contentCost } from "@wildshard/format/contentCost";
 import { CONTENT_CAPS, CHUNK_HALF } from "@wildshard/engine/core/config";
 import type { TabId as BagTabId, TabSpec as BagTabSpec, TabFragment as BagFragment } from "@wildshard/engine/ui/tabs";
 import { registerItemRow } from "../bag/itemCatalog";

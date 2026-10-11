@@ -12,9 +12,9 @@ import * as v from "valibot";
 import { worstContentCost, memoryTargetWarnings, nearbyContentCost } from "../shardfile/budget";
 import { CONTENT_CAPS as C, CONTENT_CAPS } from '@wildshard/format/contentBounds';
 import { DEFAULT_GRAPH_BUDGET, validateGraph } from "@wildshard/format/materialGraph";
-import { SCRIPT_LIMITS } from "@wildshard/engine/script/host";
+import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { runtimeAccountedBytes } from "@wildshard/format/runtimeCost";
-import type { ContentCostInput } from "@wildshard/engine/core/contentCost";
+import type { ContentCostInput } from "@wildshard/format/contentCost";
 
 /** Actual costs derived from a bounded parser, never trusted from the author declaration. */
 export interface AssetCost { decoded: number; gpu: number; triangles: number; draws: number }

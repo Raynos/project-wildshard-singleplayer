@@ -3,7 +3,7 @@ import { compileScript } from '../../scripts/compile-script.mjs';
 import { Scope } from '../../src/engine/app/scope';
 import { bindConstructionEnvironment, withOwner } from '../../src/engine/app/ownership';
 import { ScriptHost, withPreparedScriptMemories } from '../../src/engine/script/host';
-import { admitScript } from '../../src/engine/script/admission';
+import { admitScript } from '@wildshard/format/scriptAdmission';
 import { ScriptWorld } from '../../src/engine/script/effects';
 import { scriptSource } from './fixture';
 

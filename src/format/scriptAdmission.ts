@@ -1,4 +1,4 @@
-import { SCRIPT_ABI, SCRIPT_EXPORTS, SCRIPT_IMPORTS } from './abi';
+import { SCRIPT_ABI, SCRIPT_EXPORTS, SCRIPT_IMPORTS } from './scriptAbi';
 
 class Reader {
   pos = 0;

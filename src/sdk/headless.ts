@@ -13,7 +13,7 @@ import { AuthorProofPlanSchema, TickCommandSchema, type HeadlessCommand, type Au
 import * as v from 'valibot';
 import { decodeSimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { trustedHeadlessModule, type TrustedHeadlessRuntime } from './headlessRuntime';
-import { SCRIPT_LIMITS } from '@wildshard/engine/script/host';
+import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 
 /** A plain-Node authoritative session. Failed ticks quarantine the isolate and retain the previous exact checkpoint. */
 export class HeadlessSimulation {

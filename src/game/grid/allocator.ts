@@ -12,7 +12,7 @@
  * shared (refcount), so a dependency used by several shards is charged once. Node-safe: no rendering, no timers.
  */
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
-import { contentCost, type ContentCostInput } from '@wildshard/engine/core/contentCost';
+import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
 import { MemoryAdmission } from '../plugin/product';
 
 /** The cost model's categories; `library` and `sim` map onto its plural fields. */
