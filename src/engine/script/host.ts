@@ -148,12 +148,12 @@ export class ScriptHost {
       name, memory: Array.from(state.good.memory), globals: [...state.good.globals].map(([key, value]) => ({ name: key, type: typeof value === 'bigint' ? 'bigint' as const : 'number' as const, value: String(value) })), failures: state.failures, disabled: state.disabled,
     })) };
   }
-  /** Restore all instances before publishing; no initialization, query or author function is run. */
+  /** Validate every module before publishing; reuse equal-sized memories without running initialization, queries or author functions. */
   restoreState(saved: ScriptHostState): void {
     if (this.active || !integer(saved.tick, -1, Number.MAX_SAFE_INTEGER) || saved.modules.length !== this.modules.size
       || new Set(saved.modules.map((m) => m.name)).size !== saved.modules.length || Object.values(saved.used).some((n) => !integer(n, 0, Number.MAX_SAFE_INTEGER))
       || saved.pending.length > this.limits.events || saved.pending.some((e) => !integer(e.type, 1, 0x7fffffff) || !integer(e.target, 1, 0x7fffffff) || !Number.isFinite(e.value))) throw new Error('Invalid host checkpoint');
-    const staged: { state: ModuleState; good: ScriptSnapshot; running: Running; failures: number; disabled: boolean }[] = [];
+    const staged: { state: ModuleState; good: ScriptSnapshot; running: Running; writes: { memory: Uint8Array; globals: readonly { global: WebAssembly.Global; value: number | bigint }[] } | undefined; failures: number; disabled: boolean }[] = [];
     for (const entry of saved.modules) {
       const state = this.modules.get(entry.name);
       if (!state || !integer(entry.failures, 0, Number.MAX_SAFE_INTEGER) || entry.disabled !== (entry.failures >= this.limits.failures)
@@ -162,11 +162,31 @@ export class ScriptHost {
       const globals = new Map<string, number | bigint>();
       for (const global of entry.globals) {
         const value = global.type === 'bigint' ? BigInt(global.value) : Number(global.value);
-        if (!state.admission.globals.includes(global.name) || (typeof value === 'number' && !Number.isFinite(value))) throw new Error('Invalid saved global');
+        const live = currentInstance(state).instance.exports[global.name];
+        if (!state.admission.globals.includes(global.name) || !(live instanceof WebAssembly.Global) || typeof live.value !== typeof value
+          || (typeof value === 'number' && !Number.isFinite(value))) throw new Error('Invalid saved global');
         globals.set(global.name, value);
       }
       const good = { memory: Uint8Array.from(entry.memory), globals };
-      staged.push({ state, good, running: this.instantiate(state, good), failures: entry.failures, disabled: entry.disabled });
+      const current = currentInstance(state);
+      let writes: { memory: Uint8Array; globals: { global: WebAssembly.Global; value: number | bigint }[] } | undefined;
+      let running = current;
+      if (current.memory.buffer.byteLength === good.memory.length) {
+        const globalWrites: { global: WebAssembly.Global; value: number | bigint }[] = [];
+        for (const [name, value] of good.globals) {
+          const global = current.instance.exports[name];
+          if (!(global instanceof WebAssembly.Global)) throw new Error('Missing saved global');
+          globalWrites.push({ global, value });
+        }
+        writes = { memory: new Uint8Array(current.memory.buffer), globals: globalWrites };
+      } else running = this.instantiate(state, good);
+      staged.push({ state, good, running, writes, failures: entry.failures, disabled: entry.disabled });
+    }
+    // Admission forbids tables/start/passive data and exposes every mutable global. After staging, these
+    // complete memory copies and type-checked mutable-global writes cannot invoke guest code or allocate.
+    for (const entry of staged) if (entry.writes) {
+      entry.writes.memory.set(entry.good.memory);
+      for (const { global, value } of entry.writes.globals) global.value = value;
     }
     for (const entry of staged) { entry.state.good = entry.good; entry.state.running = entry.running; entry.state.failures = entry.failures; entry.state.disabled = entry.disabled; entry.state.depth = 0; entry.state.busy = false; }
     this.tick = saved.tick; this.used = { ...saved.used }; this.pending = saved.pending.map((e) => ({ ...e }));

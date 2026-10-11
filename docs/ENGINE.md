@@ -2560,6 +2560,8 @@ The list itself is generated at build time: [docs/api/EXPORTS.md](api/EXPORTS.md
 
 ### Declared script state and the local lane (SF11c)
 
+`@wildshard/engine/script/host` restores a complete host checkpoint only after validating every module. Equal-sized linear memories and all admitted mutable globals restore in place; changed-sized memories use fresh instances. Both paths run no initialization, query or author function and preserve quota history, pending events and quarantine state. Admission forbids tables, start functions and passive data, so memory and exported mutable globals cover the complete guest state.
+
 `@wildshard/engine/script/state` validates atomic shared/player effects over explicit stable field ids, with actor identity supplied by the host. `@wildshard/engine/script/lane` installs local authoritative server/entity work through the scoped sim step and captures complete continuations, including pending events and quarantine history. `@wildshard/game/shardfile/scripts` validates binding references and translates typed numeric state into the engine lane. See [SCRIPT-ABI.md](SCRIPT-ABI.md) for inputs, restore and the Node/WebKit conformance gate.
 
 ### Declared creature brain and spawns (SF13)

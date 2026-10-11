@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { compileScript } from '../../scripts/compile-script.mjs';
 import { ScriptHost, type ScriptHostOptions } from '../../src/engine/script/host';
 import { ScriptWorld } from '../../src/engine/script/effects';
@@ -12,6 +12,45 @@ const emit = (op: number, a: string, b: string, c = '0', d = '0', index = 0): st
 async function install(host: ScriptHost, body: string, extra = '', count = '0', name = 'policy'): Promise<void> { host.install(name, await compileScript(scriptSource(body, extra, count))); host.beginTick(0); }
 
 describe('bounded atomic script host', () => {
+  it('restores complete same-sized memories and globals without allocating another Wasm memory or instance', async () => {
+    const host = make();
+    await install(host, 'counter++; store<i32>(8192,load<i32>(8192)+1);', 'let counter:i32=0;');
+    const saved = host.checkpoint();
+    expect(host.call('policy', 1, [0]).ok).toBe(true);
+    const suffix = host.checkpoint();
+    const memory = vi.spyOn(WebAssembly, 'Memory'), instance = vi.spyOn(WebAssembly, 'Instance');
+    try {
+      host.restoreState(saved);
+      expect(host.checkpoint()).toEqual(saved);
+      expect(host.call('policy', 1, [0]).ok).toBe(true);
+      expect(host.checkpoint()).toEqual(suffix);
+      expect(memory).not.toHaveBeenCalled(); expect(instance).not.toHaveBeenCalled();
+    } finally { memory.mockRestore(); instance.mockRestore(); }
+  });
+  it('validates all modules before changing any reused memory, global, counter or queued event', async () => {
+    const host = make(), bytes = await compileScript(scriptSource('counter++; store<i32>(8192,7);', 'let counter:i32=0;'));
+    host.install('a', bytes); host.install('b', bytes); host.beginTick(0);
+    const saved = host.checkpoint();
+    expect(host.call('a', 1, [0]).ok).toBe(true); host.enqueue({ type: 1, target: 2, value: 3 });
+    const before = host.checkpoint();
+    const badBytes = { ...saved, modules: saved.modules.map(entry => entry.name === 'b' ? { ...entry, memory: entry.memory.map((byte, i) => i === 8192 ? 256 : byte) } : entry) };
+    expect(() => host.restoreState(badBytes)).toThrow('Invalid module checkpoint'); expect(host.checkpoint()).toEqual(before);
+    const badGlobal = structuredClone(saved);
+    for (const entry of badGlobal.modules) if (entry.name === 'b') for (const global of entry.globals) global.type = 'bigint';
+    expect(() => host.restoreState(badGlobal)).toThrow('Invalid saved global'); expect(host.checkpoint()).toEqual(before);
+  });
+  it('allocates a fresh instance when restored memory grows or shrinks and preserves the exact suffix', async () => {
+    const host = make(); await install(host, 'memory.grow(1); counter++; store<i32>(8192,load<i32>(8192)+1);', 'let counter:i32=0;');
+    const small = host.checkpoint(); expect(host.call('policy', 1, [0]).ok).toBe(true); const large = host.checkpoint();
+    host.beginTick(1); expect(host.call('policy', 1, [1]).ok).toBe(true); const suffix = host.checkpoint();
+    const memory = vi.spyOn(WebAssembly, 'Memory'), instance = vi.spyOn(WebAssembly, 'Instance');
+    try {
+      host.restoreState(small); expect(host.checkpoint()).toEqual(small);
+      host.restoreState(large); expect(host.checkpoint()).toEqual(large);
+      expect(memory).toHaveBeenCalledTimes(2); expect(instance).toHaveBeenCalledTimes(2);
+      host.beginTick(1); expect(host.call('policy', 1, [1]).ok).toBe(true); expect(host.checkpoint()).toEqual(suffix);
+    } finally { memory.mockRestore(); instance.mockRestore(); }
+  });
   it('admits exactly declared-parameter opcode 410 with trusted self and unchanged query quotas', async () => {
     const seen: number[] = [], host = make({ query: (kind, _input, entity) => { expect(kind).toBe(410); seen.push(entity); return [entity]; }, limits: { queries: 1 } });
     const extra = '@external("env", "query") declare function query(kind:i32,request:i32,response:i32):i32;';
