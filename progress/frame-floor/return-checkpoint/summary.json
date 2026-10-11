@@ -1,0 +1,609 @@
+{
+  "schema": 1,
+  "columns": [
+    "name",
+    "frames",
+    "p95Ms",
+    "maxMs",
+    "over50Ms",
+    "over100Ms",
+    "skipped",
+    "medianFps",
+    "cpuPass",
+    "contextLost",
+    "pass"
+  ],
+  "gates": {
+    "desktopP95Ms": 17.5,
+    "desktopDriveMaxMs": 100,
+    "simulatorP95Ms": 35,
+    "simulatorDriveMaxMs": 200
+  },
+  "changes": {
+    "glQueryTiming": "350d6cc47",
+    "byteExactWordCodec": "0e4a46b2e"
+  },
+  "trace": {
+    "frameStartMs": 104989,
+    "frameMs": 100,
+    "mainTaskMs": 111.385,
+    "mainTaskCpuMs": 111.02,
+    "checkpointCpuSamplesMs": 97.5,
+    "selfMs": {
+      "deflate": 36.2,
+      "matchedBytes": 22.2,
+      "hash": 13.9,
+      "referenceEncoder": 13.1
+    },
+    "glMs": 0.1,
+    "stack": "GridCrossing.step -> LiveGridHost.checkpoint -> finishSimSteps -> serializeSnapshotDataSteps -> packedPhysics",
+    "separateCpuProfile": "Misaligned with this trace; not used for attribution"
+  },
+  "runs": [
+    {
+      "source": "d4d6acc081742d6e88dc00d20ebf52527ccb0437",
+      "harness": "28c9ff780c1f7ddef41123191849385801aafe01",
+      "when": "2026-10-11T10:32:57.619Z",
+      "seconds": 195.334,
+      "diagnostic": true,
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "build": "devserver",
+      "surface": "desktop",
+      "rows": [
+        [
+          "spawn",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-crossroads",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-deck-east",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-interior-travel",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-interior-drive",
+          2940,
+          16.8,
+          50.1,
+          1,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-interior",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-return-travel",
+          120,
+          16.8,
+          116.6,
+          1,
+          1,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-return-drive",
+          3030,
+          16.7,
+          116.6,
+          1,
+          1,
+          0,
+          59.88,
+          true,
+          false,
+          false
+        ],
+        [
+          "grid-template-return",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ]
+      ],
+      "endpoints": [
+        {
+          "route": "template-interior",
+          "inside": "template-2",
+          "current": "template-2",
+          "frameOwner": "template-2",
+          "ready": true,
+          "residents": [
+            "template-2"
+          ],
+          "pending": [],
+          "issues": {},
+          "crossing": {
+            "current": "template-2",
+            "target": "template-2",
+            "phase": "settled",
+            "issue": null
+          },
+          "feet": {
+            "x": 323.6,
+            "z": 554.98
+          }
+        },
+        {
+          "route": "template-return",
+          "inside": "driftwood-isle",
+          "current": "driftwood-isle",
+          "frameOwner": "driftwood-isle",
+          "ready": true,
+          "residents": [
+            "driftwood-isle"
+          ],
+          "pending": [],
+          "issues": {},
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "feet": {
+            "x": 0.01,
+            "z": 231.4
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "source": "d4d6acc081742d6e88dc00d20ebf52527ccb0437",
+      "harness": "c971dcf6f63d014edf3f11871ced67e821b0e8e1",
+      "when": "2026-10-11T10:42:41.757Z",
+      "seconds": 232.961,
+      "diagnostic": true,
+      "complete": true,
+      "pass": true,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "build": "devserver",
+      "surface": "desktop",
+      "rows": [
+        [
+          "spawn",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-crossroads",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-deck-east",
+          120,
+          16.8,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-interior-travel",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-interior-drive",
+          2910,
+          16.8,
+          50,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-interior",
+          120,
+          16.8,
+          66.6,
+          1,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-return-travel",
+          120,
+          16.8,
+          100,
+          1,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-return-drive",
+          3030,
+          16.8,
+          100,
+          2,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-return",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ]
+      ],
+      "endpoints": [
+        {
+          "route": "template-interior",
+          "inside": "template-2",
+          "current": "template-2",
+          "frameOwner": "template-2",
+          "ready": true,
+          "residents": [
+            "template-2"
+          ],
+          "pending": [],
+          "issues": {},
+          "crossing": {
+            "current": "template-2",
+            "target": "template-2",
+            "phase": "settled",
+            "issue": null
+          },
+          "feet": {
+            "x": 323.6,
+            "z": 554.98
+          }
+        },
+        {
+          "route": "template-return",
+          "inside": "driftwood-isle",
+          "current": "driftwood-isle",
+          "frameOwner": "driftwood-isle",
+          "ready": true,
+          "residents": [
+            "driftwood-isle"
+          ],
+          "pending": [],
+          "issues": {},
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "feet": {
+            "x": 0.01,
+            "z": 231.4
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "source": "0e4a46b2e3215219928712223a6f65b06dc6d6d7",
+      "harness": "029b7763a00d3121dca2d0ff876b8cdc7e712574",
+      "when": "2026-10-11T10:55:36.437Z",
+      "seconds": 199.64,
+      "diagnostic": false,
+      "complete": true,
+      "pass": true,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "build": "devserver",
+      "surface": "desktop",
+      "rows": [
+        [
+          "spawn",
+          120,
+          16.8,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-deck-east",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-deck-north",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-interior-travel",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-interior-drive",
+          2940,
+          16.7,
+          49.9,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-interior",
+          120,
+          16.8,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-return-travel",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-return-drive",
+          3030,
+          16.7,
+          50,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ],
+        [
+          "grid-template-return",
+          120,
+          16.7,
+          16.8,
+          0,
+          0,
+          0,
+          59.88,
+          true,
+          false,
+          true
+        ]
+      ],
+      "endpoints": [
+        {
+          "route": "template-interior",
+          "inside": "template-2",
+          "current": "template-2",
+          "frameOwner": "template-2",
+          "ready": true,
+          "residents": [
+            "template-2"
+          ],
+          "pending": [],
+          "issues": {},
+          "crossing": {
+            "current": "template-2",
+            "target": "template-2",
+            "phase": "settled",
+            "issue": null
+          },
+          "feet": {
+            "x": 323.6,
+            "z": 554.98
+          }
+        },
+        {
+          "route": "template-return",
+          "inside": "driftwood-isle",
+          "current": "driftwood-isle",
+          "frameOwner": "driftwood-isle",
+          "ready": true,
+          "residents": [
+            "driftwood-isle"
+          ],
+          "pending": [],
+          "issues": {},
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "feet": {
+            "x": 0.01,
+            "z": 231.4
+          }
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "checks": {
+    "codecNativeTests": 7,
+    "glTimingTests": 13,
+    "scopedStrict": true,
+    "touchedLint": true
+  },
+  "limitations": [
+    "Diagnostics receive no timing credit.",
+    "No isolated A/B speedup claim: later pin also includes bounded preparation changes; trace establishes the checkpoint work.",
+    "Simulator outbound277ms is not regraded here; sp-x2 preparation ownership pending.",
+    "Auto fps, Developer ON/devserver catalogue, pacing ON, unchanged 2x scale."
+  ],
+  "quiet": {
+    "start": "2026-10-11T10:52:16.757145Z",
+    "released": "2026-10-11T10:55:40.807885Z",
+    "minimumGapSeconds": 120,
+    "pusherPriority": true,
+    "ownedResourcesClosed": true
+  }
+}
