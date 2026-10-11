@@ -20,6 +20,7 @@ export interface BakedKind {
 /** A piece's bake: the GLB bytes and its rows (`data/<piece>.json`, with the GLB's content hash). */
 export interface PieceBake { glb: Uint8Array; kinds: BakedKind[]; colliders: ColliderDesc[] }
 
+/** Optional immutable row metadata and custom vertex channels retained by the kind baker. */
 export interface KindBakeOptions {
   /** The extra row fields a kind's material carries (a shard's own flags); equal extras are part of a kind's look. */
   extra?: (material: MeshStandardMaterial) => KindExtra;

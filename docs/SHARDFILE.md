@@ -160,7 +160,7 @@ safe zone keep HUD cyan `#8fe3ff`; `cyan`, `road`, `hud-cyan` and that hex are
 explicitly refused. New author projects and the template declare `sand`.
 Admitted shardfile metadata carries the accent into the existing manifest.
 
-Declared UI (`@wildshard/game/shardfile/ui`, SF7f) is plain data the platform draws in
+Declared UI (`@wildshard/format/ui`, SF7f) is plain data the platform draws in
 the shared HUD's own style and slots; a shard ships no DOM. Labels are 1–128 characters
 and render as text only; icons are engine icon ids (`lock`, `check`, `poi`, `you`,
 `map`, `pack`, `star`, `book`, `heart`, `pin`, `laurel`), never markup.
@@ -173,7 +173,7 @@ in the status column; `field` names a declared `i32`/`f64` state field, read eve
 retry card for one encounter (one panel per encounter); the encounter's phase table
 (SF13b) drives it. `relabel {id, spot, label, icon | null}` relabels one shared touch
 disc (one per disc). The engine renderers are `@wildshard/engine/ui/declared`; the
-game's `@wildshard/game/shard/declaredUi` binds a section to a shard's HUD and Bag.
+game's `@wildshard/game/plugin/ui` binds a section to a shard's HUD and Bag.
 
 Look v0 (SF10b) is data the engine renders (`@wildshard/engine/render/dataLook`; the game's loader
 binds the section through `src/game/shardfile/look.ts`); a shard ships no sky shader, fog patch or clock. Colours are
@@ -493,7 +493,7 @@ encoder priming and final padding; the compressed file is never charged as PCM w
 external GLB URLs, embedded images and unsupported audio layouts fail explicitly. Subsequent
 asset rows extend supported encodings; they do not bypass these caps. The shared
 model is `@wildshard/engine/core/contentCost`, consumed by the game's
-`@wildshard/game/shardfile/budget`. The validator expands its 5 m search grid's
+internal product budget validator. The validator expands its 5 m search grid's
 radius by the sample spacing's half diagonal, so gaps cannot hide a heavier disc.
 
 ## Authored world source (SF55a, build input)
@@ -744,7 +744,7 @@ unbound state keeps its existing public/player ownership rules.
 `runtime.binds: ["terrain"]` binds the ordinary compiled `terrain` section: its
 render tiles and critical collider remain admitted product assets. The data client
 installs neither the terrain view nor its collision. The trusted runtime calls
-`bindRuntimeTerrain` from `@wildshard/game/shardfile/runtimeWorld`, supplying the
+the native terrain binder supplied by its installation, supplying the
 admitted asset reader, its own terrain view, initial shard-local position and,
 when charged per tile, the page residency allocator. The result exposes ground
 queries over the admitted collider, resident fine-tile keys and `refresh(x, z)`.
@@ -771,7 +771,7 @@ existing runtime supplies gameplay and presentation. External products still ref
 a runtime declaration, and external empty products keep the ordinary Game path.
 
 The trusted runtime explicitly calls the game-owned installers in
-`@wildshard/game/shardfile/hybridRows` inside its play scope:
+`@wildshard/game/plugin/headless` inside its play scope:
 
 - `quests`: bind validated quest state to runtime flags and world-piece marker
   positions; completion facts use the declared ledger. The chip stays declared data
@@ -852,7 +852,7 @@ runtime ownership by declaring this shape.
 **Admitted weapon hooks (SF36).** A trusted runtime's weapon family may ask an admitted AssemblyScript module for a
 number (today the mounted sword's pass damage) through a declaration beside the shard's director, not a Shardfile field:
 `{ id, entity, module, parameters, weapons: [{ weapon, damage: { event, phases, facts, min, max } }] }`
-(`@wildshard/game/shardfile/weaponHooks`). The module is hash-checked and runs under the same ABI-v0 ceilings; each call
+(`@wildshard/game/plugin/weaponFamily`). The module is hash-checked and runs under the same ABI-v0 ceilings; each call
 answers one declared event with an integer in bounds or declines to the family's row rule, and returns to its admitted
 memory afterwards. Inputs and the install path are in ENGINE.md § 18 (Declared items).
 
@@ -959,10 +959,12 @@ sphere strike; the burst contact shove is an authorized host operation. Decision
 default to six ticks, policy action and body work run once per fixed step, and
 mutable flight/policy/strike state restores without observations or RNG draws.
 
-A trusted runtime's species rows may carry `brain: { archetype, data }` (SF27,
-`@wildshard/sdk/speciesBrains`): `challenge-grazer` (plus integer `phaseSlots` 1–64)
-or `patrol-diver`, its data the same strict schema as the `creatures.brains` family.
-`speciesBrains(species, strikes)` admits the catalogue before any row or policy is built
+A trusted runtime's species rows may carry `brain: { archetype, data }`.
+`admitSpeciesBrains` in `@wildshard/game/plugin/brain` admits the canonical
+stalker/guardian/grazer/diver patterns, boss-script policies and retained presets.
+Data passes the same defining format schemas as the creature families; per-body
+homes, RNG, perception, contacts and flight are actual native ports.
+It admits the catalogue before any row or policy is built
 (unknown archetype, failed schema or unresolved strike refuses); the client spreads
 `bind(kind)` onto the row and the headless host calls `installSpeciesHomes`, so one
 declaration drives both. Rows without a brain keep their runtime policy. A `script`
@@ -975,14 +977,15 @@ that its encounter steers through `fight` / `rise` / `phase` memory fields;
 `bossFight({kind: 'boss', pattern: 'spawned', fight}, ports)` (`@wildshard/game/plugin/bossPhase`) is the view-free fight that
 writes them: arena, health share per checkpoint, rise seconds, storm phases and fade. Its browser presentation is a row too (`parseMarkedBossPresentation`): the arena floor, the respawn
 point, the storm's fog and blown-sand shells, and the toasts. A quest's runtime is declared as well
-(`@wildshard/sdk/questGraph`): `parseQuestGraph` names the interaction rows' command actor, their marks' step and the
+(`@wildshard/game/plugin/quests`, for trusted runtime): `parseQuestGraph` names the interaction rows' command actor, their marks' step and the
 actions a row starts (`{ row, summon }` arms a boss); `parseNpcRow` declares a quest-giver (where it stands, its talk,
-its pivot figure and its dialogue), and the trusted runtime stands it in the world with `@wildshard/sdk/pivotNpc`. A
-`phased-raptor` (`phasedRaptor(data)`, `@wildshard/sdk/flyers`) is a perched boss bird its
-encounter holds directly: take-off, lap, and per phase its own approach and strike.
+its figure metadata and dialogue). Native figure placement stays with the trusted
+owner; there is no public SDK pivot-NPC installer. Sky's phased-raptor remains a
+kept one-shard law: perch/return/takeoff, altitude and phase-specific ready laws are
+not expressed by the current generic diver/phased-flyer rows.
 
-A boss with stances, adds and arena tricks is a phased boss fight (`phasedBossFight(row, ports)`,
-`@wildshard/sdk/phasedBoss`): its modes (damage rule, hp lock, motion, timed beats), phases (checkpoint hp, roar, what
+A boss with stances, adds and arena tricks is an `arena` or `roaming` boss profile
+(`bossFight(profile, ports)`, `@wildshard/game/plugin/bossPhase`, trusted runtime only): its modes (damage rule, hp lock, motion, timed beats), phases (checkpoint hp, roar, what
 entering each does), attack rows (a charged burst, a cut combo), weak points, adds in waves and hazards (expanding rings,
 timed pours, a sweeping beam) are one data row; every dressing change is a named view call (`arena.lid.open`,
 `hazard.sweep`, …) the shard binds to its own meshes, so the fight's logic is the platform's and only the view stays in
@@ -1258,7 +1261,7 @@ with zero geometry/draws. These costs are derived by `assetCost("image", bytes)`
 the SDK and checked by ordinary asset admission, charged once per distinct library hash.
 
 `sourceManifest(source, admittedAssets?)` in
-`@wildshard/game/shardfile/sourceManifest` is the pure defining identity/accent/card
+`@wildshard/game/plugin/shardPlugin` is the pure defining identity/accent/card
 mapping for shardfile-only catalogue rows. It performs no fetch, image decode, world
 allocation or service installation. A presentation requires its already admitted byte
 map. `presentationCard` resolves each distinct hash once to a MIME-sniffed inert
@@ -1311,6 +1314,25 @@ grant no exception. Eligible text outputs still need a DO-NOT-EDIT header and
 regenerate-and-compare proof. The inventory reports missing evidence rather than
 deleting unproven outputs. Build-time generation uses the content-hash cache.
 
+## Checked authoring guide (SF86)
+
+Run `pnpm gen`, then read [the SDK authoring guide](api/SDK.md#authoring-guide-from-a-graph-to-admitted-rows)
+with its [complete format API](api/FORMAT.md) and [field/ABI reference](api/SHARDFILE.md).
+The guide's retained TypeScript examples are typechecked and executed in
+`test/authoring-docs.test.ts`; generated pages are never edited by hand.
+`test/shardfile-reference.test.ts` separately checks every schema field and ABI call.
+Every public SDK and format binding must have a nonempty source doc line and an
+exact module/name entry in the generated reference. There is no undocumented allowance.
+
+The guide covers format/JSON Schema admission, real three.js scene graphs and
+`synth`, renderer-free rig/clip/image readers, directors and their eight actions,
+AS input codegen, clip/pendulum movers, all four player modes, weapon profiles and
+trusted family registration, brain patterns/presets/boss rows, and immutable
+commons packs. Its hall, door/wave and pursuit examples reduce Template 1;
+mode/weapon/boss demonstrations are labelled illustrative rather than shipped tuning.
+Authoring emits data; a native family or body still needs its actual host.
+Material and look authoring waits for DS1.4.
+
 ## Authoring scene input (DS1.3)
 
 `@wildshard/sdk/scene.readScene` synthesizes an inspectable, JSON-only
@@ -1347,7 +1369,8 @@ positions and triangle order, leaving final hull/physics validation to the bake.
 
 The initial static reader supports PBR/toon materials and ordinary lights/fog.
 It explicitly refuses raw shaders/callbacks and features assigned to other
-compilers (textures, physical-material extensions, morphs, skins). Template 1
+compilers (textures, physical-material extensions and morphs). Ordered skins and
+standard named animation tracks are now retained by the scene reader. Template 1
 and Pastel Plain's retained producers are the byte-identity pilots. This seam
 does not yet replace any page-bound physics producer.
 
@@ -1375,14 +1398,15 @@ three.js author project without drawing a frame.
 
 ### Format contracts (DS1.1 foundation)
 
-`@wildshard/format/edgeProfiles` defines the unchanged Valibot boundary contract: 256 or 257 finite height/colour samples and zero road height. The format workspace imports only Valibot; the loader imports its defining schema directly. The SDK package declaration copier and author-input audit include this layer. This first extraction does not complete the full shardfile contract migration or JSON Schema generation.
+`@wildshard/format/edgeProfiles` defines the unchanged Valibot boundary contract: 256 or 257 finite height/colour samples and zero road height. The format workspace imports only Valibot; the loader imports its defining schema directly. The SDK package declaration copier and author-input audit include this layer. The migrated pure roots are all listed in the generated format API and JSON Schema inventory; material-dependent root composition remains pending DS1.4.
 
 The scoped input/knob/Debug wire contract is now defined by `@wildshard/format/plumbing`: both loader admission and SDK author validation consume it. Namespace ownership, duplicate IDs, touch-action references and Debug defaults retain their existing checks. `@wildshard/sdk/plumbing` is author-time Valibot parsing; it no longer calls a game module.
 
 ### Generated format JSON Schema (DS1.1)
 
-`pnpm gen` writes `.wildshard/format/edge-profiles.schema.json` and
-`plumbing.schema.json` through `@wildshard/sdk/formatJsonSchema` and the pinned
+`pnpm gen` writes `.wildshard/format/*.schema.json` for every migrated root
+(including edge profiles, plumbing, directors, movers, weapon and brain
+profiles) through `@wildshard/sdk/formatJsonSchema` and the pinned
 `@valibot/to-json-schema` converter. These ignored build outputs carry DO-NOT-EDIT
 provenance. Only the migrated `@wildshard/format` roots are included; the mixed
 whole-shard contract still awaits extraction. No game or renderer is imported.
@@ -1445,7 +1469,7 @@ Pine watch/dawn rows demonstrate an AS-backed stage lane with identical native o
 
 `@wildshard/sdk/movers` exposes `Mover`, an ordinary three.js `Object3D` wrapping a named body.
 Its `toMoverData(rest)` reads a real `AnimationClip` into numeric `track`, `trigger` and `driver` rows.
-The first fixed policies accept two linear position stops for a ride winch, or two local pitch quaternion
+Track/pendulum policies supplement the original fixed policies. The winch policies accept two linear position stops for a ride winch, or two local pitch quaternion
 stops for a hinge winch. An `always` trigger drives the waves policy or a static chain; an `interact`
 trigger retains the existing ride/call or permission-gated winch command. Unsupported key layouts,
 interpolation and trigger authorities refuse instead of silently approximating a clip.
@@ -1486,20 +1510,17 @@ Inactive tracks freeze, including pendulums; phase and activation live in the ex
 and therefore use the same guest, physics and host snapshot/restore fences. No scheduler is added.
 
 
-SF84's `@wildshard/format/modes` parser admits bounded platform traversal rows:
-`zipline` floor endpoints, sag, hanging height, gravity, drag and a bounded speed;
-`updraft` directional endpoints, width, margin and bounded board lift. Duplicate
-identities, zero horizontal runs, unknown callbacks and nonfinite tuning refuse
-before installation. The root shardfile will acquire this section with its live installers; the current
-root still refuses unhosted mode rows and every existing host/snapshot is unchanged.
-`@wildshard/sdk/modes` authors ordinary three.js `Zipline` and `Updraft` objects;
-`toModeData()` emits world-space rows from their actual hierarchy. Width and
-physical tuning remain explicit world-metre parameters. The defining native laws
-live in `@wildshard/game/plugin/mover` (`CableLayout`, `ZiplineDriver`,
-`UpdraftDriver`, `inUpdraft`). A trusted host invokes them at its existing player
-phase; importing author objects or rows installs no services or second scheduler.
-Ride, grapple, water and hover-deck rows follow only when their live consumers are
-installed; these declarations cannot pretend to host an unimplemented mode.
+SF84's `@wildshard/format/modes` admits all four current declarations:
+zipline floor endpoints/sag/hang/flight; board-only updraft endpoints/width/lift;
+ride gait speeds; grapple selection/range/timing. `@wildshard/sdk/modes` provides
+ordinary three.js `Zipline`, `Updraft`, `Mount` and `Grapple` objects.
+`toModeData()` validates their rows, including world-space endpoint transforms.
+The root `modes` section requires `runtime.binds: ['modes']`: actual native
+player/body/input owners consume it at their existing phase; an unbound data-only
+section refuses. No declaration grants a mount, invents anchors or installs a
+second scheduler. The checked SDK guide contains a working example of all four.
+Current scene inspection does not automatically collect `modes`; compose its rows
+explicitly. Water/hover-deck mode declarations remain separate open work.
 
 
 SF81 encounter stages: Sky and Signal declare their bossStages.json under directors. The row interpreter selects native intro, fight, resume, phase and victory transitions through the fixed emit action set; existing numeric eligibility and callback ordering remain the native boss port observations. These boolean stage machines need no AS escape handler. Their page and headless boss share the exact contract/cursor; body ownership, clocks, presentation, damage/shields and reward filing remain their original owners.
@@ -1511,10 +1532,14 @@ SF81 Signal declares signalStages.json beside its Matriarch boss stages. The ori
 SF81 Nine declares data/portalStages.json in directors. The page and native host read that admitted declaration; no extra unlock law exists or is invented. Boolean touch/dark/clear observations preserve native phase slots, and fixed emit actions select the original body/checked transfer/veil actions. No AssemblyScript escape is needed. The native numeric clock and collider/entry declarations are unchanged.
 
 
-SF85 weapon profiles: the optional `items.rows[].profile` is one of four defining format contracts. Melee describes ordered swing phases, contact sampling and lunge limits; bow describes draw/fatigue clocks, spread and flight; firearm describes magazine/reload/action, spread and projectile flight; thrown describes launch, recovery, pool and pickup parameters. Each root has generated JSON Schema. Non-JSON callbacks, nonfinite or negative tuning, oversized/fractional pools, inconsistent phases and family mismatches refuse admission. Omitting the field keeps old item bytes unchanged. Only a trusted native family that explicitly lists the profile kind can consume it; no view or controller is inferred from data.
-
-
-SF85 weapon profiles: the optional `items.rows[].profile` is one of four defining format contracts. Melee describes ordered swing phases, contact sampling and lunge limits; bow describes draw/fatigue clocks, spread and flight; firearm describes magazine/reload/action, spread and projectile flight; thrown describes launch, recovery, pool and pickup parameters. Each root has generated JSON Schema. Non-JSON callbacks, nonfinite or negative tuning, oversized/fractional pools, inconsistent phases and family mismatches refuse admission. Omitting the field keeps old item bytes unchanged. Only a trusted native family that explicitly lists the profile kind can consume it; no view or controller is inferred from data.
+SF85 weapon profiles: optional `items.rows[].profile` admits melee, bow, firearm,
+thrown or lash numeric data. Melee describes ordered swings, contacts and lunges;
+bow describes draw/fatigue, spread and flight; firearm describes reload/action,
+spread and projectiles; thrown describes launch/recovery/pool/pickup; lash describes
+ordered crack clocks, pull/stagger and named moves. Each profile root has generated
+JSON Schema. Invalid bounds, phases or family mismatches refuse. Omitting a
+profile preserves existing item data. Only a native family explicitly accepting
+that profile kind consumes it; no view/controller is inferred from a parse.
 
 SF84 traversal rows are declared as optional `modes.traverse` data. During native player-owner transitions they require
 `runtime.binds: ['modes']`; pure-data or unbound traversal rows refuse admission. The native owner reads the admitted

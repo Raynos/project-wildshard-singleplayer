@@ -12,6 +12,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from '@typescript/typescript6';
+import { authoringGuide } from './docs/authoring-reference.mjs';
 import { SHARDFILE_REFERENCE, shardfileReference } from './docs/gen-shardfile-reference.mjs';
 import { APPENDIX_END, APPENDIX_START, engineAppendix } from './generated-policy.mjs';
 
@@ -87,7 +88,7 @@ export function pages(surface) {
     ...(surface.indexes.format === undefined ? {} : {'docs/api/FORMAT.md': renderPage('@wildshard/format', 'The pure Valibot wire contracts shared by authoring and admission.', surface.indexes.format, true)}),
     'docs/api/ENGINE.md': renderPage('@wildshard/engine', 'The engine\'s public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.', surface.indexes.engine, true),
     'docs/api/GAME.md': renderPage('@wildshard/game', 'The game layer\'s public modules (src/game/package.json `exports`).', surface.indexes.game, true),
-    'docs/api/SDK.md': renderPage('@wildshard/sdk', 'The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.', surface.indexes.sdk, true),
+    'docs/api/SDK.md': `${renderPage('@wildshard/sdk', 'The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.', surface.indexes.sdk, true)}\n${authoringGuide()}`,
     'docs/api/COMMONS.md': renderPage('@wildshard/commons', 'Build-time packs and catalogue (src/commons/package.json `exports`); no commons code executes in the game.', surface.indexes.commons, true),
     'docs/api/SHARD-CONTEXT.md': renderPage('ShardContext', 'What a shard\'s plugin receives (src/game/plugin/context.ts, over the engine\'s LevelContext).', surface.contexts.ShardContext, true),
   };

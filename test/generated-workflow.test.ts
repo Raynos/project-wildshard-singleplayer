@@ -28,6 +28,8 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
       for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/regenerate-committed.mjs', 'scripts/witness-manifests.mjs', 'scripts/witness-checkpoints.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/legacy-shards.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs', 'scripts/sim-node-loader.mjs', 'scripts/docs/schema-reference.mjs', 'scripts/docs/gen-shardfile-reference.mjs', 'scripts/docs/read-shardfile-reference.mjs', 'scripts/docs/sdk-schemas.mjs']) {
         mkdirSync(dirname(resolve(root, file)), { recursive: true }); cpSync(file, resolve(root, file));
       }
+      cpSync('scripts/docs/authoring', resolve(root, 'scripts/docs/authoring'), { recursive: true });
+      for (const file of ['scripts/docs/authoring-guide.md', 'scripts/docs/authoring-reference.mjs']) cpSync(file, resolve(root, file));
       for (const file of ['.oxlintrc.json', '.oxlintrc.ratchet.json']) cpSync(file, resolve(root, file));
       put('package.json', '{"type":"module"}'); put('tsconfig.json', '{"compilerOptions":{"strict":true,"types":[],"moduleResolution":"bundler","module":"esnext"}}');
       for (const layer of ['engine', 'game', 'format', 'sdk', 'commons']) put(`src/${layer}/package.json`, JSON.stringify({ name: `@wildshard/${layer}`, exports: layer === 'engine' ? { './clock': './clock.ts' } : {} }));
