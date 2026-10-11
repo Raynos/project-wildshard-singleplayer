@@ -13,7 +13,7 @@
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 import { diagnosticNow } from './clock';
-import { frameBudgetSpent, paceYield } from './framePacing';
+import { frameBudgetSpent, paceYield, presenting } from './framePacing';
 
 /** The longest synchronous stretch a sliced builder runs before it lets a frame through (ms). */
 export const WORK_SLICE_MS = 8;
@@ -35,17 +35,32 @@ export function yieldTask(owner?: Scope): Promise<void> {
   return new Promise<void>((resolve) => { (owner ?? resourceScope()).timeout(0, resolve); });
 }
 
+// Live construction checks the shared budget at every hop. A message turn therefore cannot
+// batch unchecked work, unlike an unpaced message loop; it avoids spending that budget on
+// the browser's nested-timer clamp. The drawn-frame barrier still ends every spent slice.
+function buildTurn(owner: Scope): Promise<void> {
+  if (!presenting() || typeof globalThis.MessageChannel !== 'function') return yieldTask(owner);
+  return new Promise<void>(resolve => {
+    const channel = new MessageChannel(), turn = owner.child('build-turn');
+    let delivered = false;
+    turn.onDispose(() => { channel.port1.close(); channel.port2.close(); if (!delivered) resolve(); });
+    turn.listen(channel.port1, 'message', () => { delivered = true; turn.dispose(); owner.run(resolve); }, { once: true });
+    channel.port1.start(); channel.port2.postMessage(0);
+  });
+}
+
 /**
- * A world build's pause between its pieces (op-hitch45, E435 frame floor): a fresh timer task of `owner`, or, in play with a
+ * A world build's pause between its pieces (op-hitch45, E435 frame floor): a fresh task of `owner`, or, in play with a
  * frame due (`framePacing.ts`, the `buildPacing` Developer tool), a wait until the engine loop has drawn it. A plain timer
  * hop is not enough there: WebKit drew no frame across Nine Dragon's ~15 back-to-back `timeout(0)` build tasks (a 233 ms
  * frame on the iOS Simulator). Pacing off, it is exactly the timer task. Rejects when `owner` has closed (before or after
- * the pause): an unloaded cell stops building.
+ * the pause): an unloaded cell stops building. Live cheap pieces use message tasks within the existing shared budget;
+ * the loading screen, unpaced mode and Node retain timer tasks.
  */
 export async function buildYield(owner: Scope): Promise<void> {
   const live = (): void => { if (owner.disposed) throw new Error('build stopped: its scope has closed'); };
   live();
-  await paceYield(() => yieldTask(owner), owner, WORK_SLICE_MS);
+  await paceYield(() => buildTurn(owner), owner, WORK_SLICE_MS);
   live();
 }
 
