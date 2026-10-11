@@ -43,7 +43,8 @@ function graph(rows: SceneDescription): Object3D {
   if (object === undefined) throw new Error('Missing graph root'); return object;
 }
 function rebuilt(source: PropsBakeSource): PropsBakeSource {
-  const copy = (object: Object3D): Object3D => graph(readScene(object));
+  // oxlint-disable-next-line unicorn/prefer-structured-clone -- The gate crosses JSON wire transport; structuredClone bypasses it.
+  const copy = (object: Object3D): Object3D => graph(JSON.parse(JSON.stringify(readScene(object))) as SceneDescription);
   const colliders = source.colliders?.map(row => ({ ...row, shapes: row.shapes.map((shape, index) => {
     if (shape.kind === 'treads') return { ...shape }; // Retained authored stair law; not a box approximation.
     const { yaw, rot, surface, ...box } = shape;
@@ -60,14 +61,14 @@ function rebuilt(source: PropsBakeSource): PropsBakeSource {
   };
 }
 for (const [name, fixture] of [['Template 1', templateProps], ['Pastel Plain', pastelProps]] as const) {
-  it(`${name}: the scene reader preserves every compiled prop row and GLB byte`, () => {
+  it(`${name}: the scene reader preserves every compiled prop row and GLB byte through persisted scene JSON`, () => {
     const authored = fixture(20);
     try {
       const before = bakeProps(authored.source), after = bakeProps(rebuilt(authored.source));
       expect(after.props).toStrictEqual(before.props); expect(after.files).toStrictEqual(before.files);
       expect(after.tiles).toStrictEqual(before.tiles); expect(after.far).toStrictEqual(before.far);
       expect([...after.assets.keys()]).toEqual([...before.assets.keys()]);
-      for (const [hash, bytes] of before.assets) { const actual = after.assets.get(hash); if (actual === undefined) throw new Error(`Missing compiled asset ${hash}`); expect(contentHash(actual), hash).toBe(contentHash(bytes)); }
+      for (const [hash, bytes] of before.assets) { const actual = after.assets.get(hash); if (actual === undefined) throw new Error(`Missing compiled asset ${hash}`); expect(contentHash(actual), hash).toBe(contentHash(bytes)); expect(actual.length, hash).toBe(bytes.length); expect(actual.every((byte, index) => byte === bytes[index]), hash).toBe(true); }
     } finally { authored.dispose(); }
   });
 }
