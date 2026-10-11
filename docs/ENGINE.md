@@ -3267,3 +3267,9 @@ This changes no tuning, family selection, placement, callback or RNG order.
 
 The native entry proof owners are `@wildshard/game/plugin/simulation` (`proveShardfileEntries`, `proveSocketLift`, `commandSocketLift`). The proof advances the existing host and mover through real capsule walks, both lift stop calls, the closed road gate and portal arrival/exit floors; it neither teleports a rider nor installs a second simulation. These are the existing shared admission laws. Sky's trusted runtime consumes the same definitions rather than retaining a copy.
 The old `./shardfile/socketLiftProof` package path resolves directly to this defining plugin for frozen legacy consumers; no forwarding file is retained. The alias leaves with those frozen folders.
+
+### Per-body ram, orbit and burst policies (SF82)
+
+`@wildshard/game/plugin/brain` admits `grazer` / `wander-ram` and `diver` / `orbit` or `burst` rows against their strike catalogue. `brains.decision(kind, actor, home)` constructs their historical native policy. Orbit and burst require the actual owning body's `{x,z,r,y}` home before the initial angle and continuation contract are created; the authored home is not a fallback grant. The browser uses `brains.bind(kind, nativeAdapter, homeOfBody)`, allocating one policy and adapter at the body's first callback.
+
+The adapter supplies the existing pattern ports: the ram's live home and shared manager RNG; orbit's native `mayAttack` and flight steering; burst's native flight steering and authorized player shove. Each supplies the live player, reach, claim and hurt. `bind` without the native adapter and `policy` without body authority refuse. No RNG draws, movement, strikes or player impulses occur during admission, construction or restoration. Existing challenge, patrol, phased and script presets and all historical witness/save names are unchanged.

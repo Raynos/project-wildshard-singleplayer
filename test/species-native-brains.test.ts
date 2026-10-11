@@ -24,9 +24,9 @@ describe('species rows with trusted native body recipes', () => {
     expect(catalogue.kinds.has('duneStrider')).toBe(true); expect(catalogue.kinds.has('duneRay')).toBe(true);
     const row = SIGNAL_SPECIES.find(value => value.kind === 'duneStrider');
     const profile = STRIDER_BRAIN;
-    if (row === undefined || profile.archetype !== 'grazer') throw new Error('Missing authored strider profile');
+    if (row === undefined || profile.archetype !== 'grazer' || profile.data.pattern !== 'circle-challenge' || !('phaseSlots' in profile)) throw new Error('Missing authored strider profile');
     expect(() => admitSpeciesBrains([{ ...row, brain: { ...profile, phaseSlots: 0 } }], [])).toThrow('phase slots');
-    expect(() => admitSpeciesBrains([{ ...row, brain: { ...profile,
+    expect(() => admitSpeciesBrains([{ ...row, brain: { archetype: 'grazer', phaseSlots: profile.phaseSlots,
       data: { ...profile.data, faceSeconds: 0 } } }], [])).toThrow();
     expect(() => admitSpeciesBrains([{ ...row, brain: profile }], [])).toThrow('undeclared strike');
   });
