@@ -1,0 +1,226 @@
+{
+  "schema": "cold-arrival/1",
+  "ask": "E435",
+  "window": {
+    "start": "2026-10-11T08:58:12.818817Z",
+    "end": "2026-10-11T09:01:26.194098Z",
+    "oneMinuteLoad": [
+      9.77,
+      12.91
+    ]
+  },
+  "settings": {
+    "developer": true,
+    "tier": "phone",
+    "renderScale": 2,
+    "buildPacing": "on",
+    "roadHoverMaxSpeed": 30,
+    "seed": 357
+  },
+  "route": {
+    "start": [
+      277.5,
+      277.5
+    ],
+    "turn": [
+      277.5,
+      0
+    ],
+    "end": [
+      345,
+      0
+    ]
+  },
+  "gate": {
+    "blockedFrames": 0,
+    "visibleBeforeReadyFrames": 0,
+    "driveP95Ms": 35,
+    "driveMaxMs": 200
+  },
+  "result": "FAIL: 8.396 s of edge waiting remain",
+  "rows": [
+    {
+      "arm": "preparation",
+      "pin": "245dbd3f87bd6a2fd88ad9f80e574c13558c87b9",
+      "complete": true,
+      "errors": [],
+      "arrival": {
+        "blockedFrames": 581,
+        "blockedMs": 19579,
+        "visibleBeforeReadyFrames": 0
+      },
+      "elapsedSeconds": 43.64,
+      "drive": {
+        "frames": 1350,
+        "medianFps": 30.303,
+        "p95Ms": 34,
+        "p99Ms": 48,
+        "maxMs": 86
+      },
+      "stages": [
+        {
+          "phase": "compile",
+          "elapsedMs": 6232.999999999993,
+          "units": 619
+        },
+        {
+          "phase": "link",
+          "elapsedMs": 367.0000000000073,
+          "units": 11
+        },
+        {
+          "phase": "upload",
+          "elapsedMs": 2632.9999999999927,
+          "units": 95
+        },
+        {
+          "phase": "shaders-and-composer",
+          "elapsedMs": 9251.999999999993,
+          "units": 1
+        },
+        {
+          "phase": "parked-draws",
+          "elapsedMs": 2099,
+          "units": 138
+        },
+        {
+          "phase": "offscreen-draws",
+          "elapsedMs": 67.00000000001455,
+          "units": 8
+        }
+      ],
+      "hooks": [
+        {
+          "name": "beforeWorld",
+          "elapsedMs": 0
+        },
+        {
+          "name": "constructor",
+          "elapsedMs": 1.0
+        },
+        {
+          "name": "world",
+          "elapsedMs": 7151
+        },
+        {
+          "name": "afterWorld",
+          "elapsedMs": 0.0
+        },
+        {
+          "name": "kit",
+          "elapsedMs": 1.0
+        },
+        {
+          "name": "afterKit",
+          "elapsedMs": 422
+        },
+        {
+          "name": "play",
+          "elapsedMs": 292.0
+        },
+        {
+          "name": "afterPlay",
+          "elapsedMs": 11419.0
+        },
+        {
+          "name": "activate",
+          "elapsedMs": 2
+        }
+      ]
+    },
+    {
+      "arm": "horizon",
+      "pin": "afb331518678687d5fe36c2ee7af1761473e0676",
+      "complete": true,
+      "errors": [],
+      "arrival": {
+        "blockedFrames": 252,
+        "blockedMs": 8396,
+        "visibleBeforeReadyFrames": 0
+      },
+      "elapsedSeconds": 32.266,
+      "drive": {
+        "frames": 1020,
+        "medianFps": 30.303,
+        "p95Ms": 34,
+        "p99Ms": 54,
+        "maxMs": 76
+      },
+      "stages": [
+        {
+          "phase": "compile",
+          "elapsedMs": 6204,
+          "units": 619
+        },
+        {
+          "phase": "link",
+          "elapsedMs": 366,
+          "units": 11
+        },
+        {
+          "phase": "upload",
+          "elapsedMs": 2635,
+          "units": 95
+        },
+        {
+          "phase": "shaders-and-composer",
+          "elapsedMs": 9228.999999999993,
+          "units": 1
+        },
+        {
+          "phase": "parked-draws",
+          "elapsedMs": 2097.0000000000073,
+          "units": 138
+        },
+        {
+          "phase": "offscreen-draws",
+          "elapsedMs": 64.99999999999272,
+          "units": 8
+        }
+      ],
+      "hooks": [
+        {
+          "name": "beforeWorld",
+          "elapsedMs": 0.0
+        },
+        {
+          "name": "constructor",
+          "elapsedMs": 1.0
+        },
+        {
+          "name": "world",
+          "elapsedMs": 7430
+        },
+        {
+          "name": "afterWorld",
+          "elapsedMs": 0.0
+        },
+        {
+          "name": "kit",
+          "elapsedMs": 0
+        },
+        {
+          "name": "afterKit",
+          "elapsedMs": 515
+        },
+        {
+          "name": "play",
+          "elapsedMs": 312
+        },
+        {
+          "name": "afterPlay",
+          "elapsedMs": 11392
+        },
+        {
+          "name": "activate",
+          "elapsedMs": 3
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "One cold run per source; timing diagnostic, no repeated-cohort causal claim.",
+    "Static draw deduplication has no measured benefit on this Nalati route.",
+    "Other template-drive cells and full Sky lift traversal are not measured in this receipt."
+  ]
+}
