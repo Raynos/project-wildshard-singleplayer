@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { QuestDataSchema as schema, parseQuestData as parseData, type QuestData as Data } from '@wildshard/game/shardfile/quests';
+import { QuestDataSchema as schema, parseQuestData as parseData, type QuestData as Data } from '@wildshard/format/quests';
 
 /** Compile declared quest graphs and dialogue trees with bounded, serialisable script hook names. */
 export const QuestDataSchema = v.pipe(schema);

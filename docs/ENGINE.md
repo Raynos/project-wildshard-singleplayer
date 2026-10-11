@@ -2820,3 +2820,5 @@ DS1.1: the pure creature/brain, audio, ledger, director, migration, traversal, r
 DS1.1: presentation metadata, exact mesh-collision declarations, script bindings/fields and named hooks are defined in `@wildshard/format`. Image URL resolution, native mesh-byte validation and script-host installation remain in game; all bounds and reference verdicts are unchanged.
 
 DS1.1: terrain tile addressing, bounded water declarations and the immutable accent palette are defined in `@wildshard/format`. Game retains byte validation, fresh water motor bodies and HUD CSS mapping unchanged. Authors and loader consume the same defining Valibot contracts.
+
+DS1.1: item/loadout declarations, target binding references and quest/dialogue graphs are defined in `@wildshard/format`. Game keeps item construction and collider activation unchanged. The frozen legacy quest type path infers its type from the single defining format schema.

@@ -7,7 +7,7 @@ import { BARREL_BODY, BARREL_HALF, BarrelWatch, barrelAtPlate, type BarrelEnv } 
 import type { GroupName } from '@wildshard/engine/physics/groups';
 import { autoFlag, type InteractDef, type InteractTable } from '@wildshard/engine/world/interact/types';
 import { test } from '@wildshard/engine/world/interact/flags';
-import type { QuestData } from '@wildshard/game/shardfile/quests';
+import type { QuestData } from '@wildshard/format/quests';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { installQuestGraph } from '@wildshard/game/quest/questGraph';
 import type { AchievementDef } from '@wildshard/game/achievements';

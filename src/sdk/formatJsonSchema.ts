@@ -31,6 +31,9 @@ import { HooksSchema } from '@wildshard/format/hooks';
 import { TerrainSchema } from '@wildshard/format/terrain';
 import { WaterSchema } from '@wildshard/format/water';
 import { AccentSchema, ACCENT_IDS } from '@wildshard/format/accent';
+import { ItemsSchema, ItemFamilyNameSchema } from '@wildshard/format/items';
+import { TargetsSchema } from '@wildshard/format/targets';
+import { QuestDataSchema } from '@wildshard/format/quests';
 
 /** JSON Schema plus explicit admission checks that JSON Schema cannot express. */
 export interface FormatJsonSchema extends JsonSchema {
@@ -48,6 +51,15 @@ const customSchemas = new Map<object, JsonSchema>([
 ]);
 // Exact fixed-palette validator; a caller's new custom schema receives no bridge.
 customSchemas.set(AccentSchema.pipe[2], { type: 'string', enum: [...ACCENT_IDS] });
+// Template-literal item identities keep their exact native predicates; only these defining schema objects bridge.
+const itemRows = ItemsSchema.pipe[2].entries.rows.pipe[0].item;
+const weaponRow = itemRows.options[0], toolRow = itemRows.options[1];
+customSchemas.set(weaponRow.entries.id, { type: 'string', maxLength: 128, pattern: '^weapon\\.[a-z][a-zA-Z0-9.-]*$' });
+customSchemas.set(toolRow.entries.id, { type: 'string', maxLength: 128, pattern: '^tool\\.[a-z][a-zA-Z0-9.-]*$' });
+customSchemas.set(weaponRow.entries.slot, { type: 'string', maxLength: 128, pattern: '^declared\\.weapon\\.[a-z][a-zA-Z0-9.-]*$' });
+customSchemas.set(weaponRow.entries.light.entries.tags.pipe[0].item, { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9.-]*\\.[a-zA-Z0-9.-]+$' });
+customSchemas.set(weaponRow.entries.light.entries.effect.wrapped, { type: 'string', pattern: '^effect\\.[a-z][a-zA-Z0-9.-]*$' });
+customSchemas.set(toolRow.entries.action.wrapped, { type: 'string', pattern: '^[a-z][a-zA-Z0-9.-]*\\.[a-zA-Z0-9.-]+$' });
 const unicodeRegexes = new Set<object>([
   plumbing.entries.namespace.pipe[1],
   input.entries.actions.pipe[0].item.entries.keys.pipe[0].item.pipe[1],
@@ -100,6 +112,10 @@ const wireRoots = {
   'terrain.Terrain': TerrainSchema,
   'water.Water': WaterSchema,
   'accent.Accent': AccentSchema,
+  'items.ItemFamilyName': ItemFamilyNameSchema,
+  'items.Items': ItemsSchema,
+  'targets.Targets': TargetsSchema,
+  'quests.QuestData': QuestDataSchema,
  } satisfies Readonly<Record<string, GenericSchema>>;
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

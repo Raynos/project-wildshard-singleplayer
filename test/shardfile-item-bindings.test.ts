@@ -5,9 +5,9 @@ import { PlayerHealth } from '../src/engine/combat/health';
 import { Events } from '../src/engine/events/events';
 import { DeclaredScriptWorld } from '../src/engine/script/state';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseItems } from '../src/game/shardfile/items';
+import { parseItems } from '@wildshard/format/items';
 import { ITEMS } from '../src/shards/_template/data/items';
-import { targetRules } from '../src/game/shardfile/targets';
+import { targetRules } from '@wildshard/format/targets';
 import { numericScriptState } from '../src/game/shardfile/scripts';
 import { clientScene, projectItemFields } from '../src/game/shardfile/clientItems';
 

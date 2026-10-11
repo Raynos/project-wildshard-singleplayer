@@ -11,7 +11,7 @@ import { groups } from '../../src/engine/physics/groups';
 import { compileScript } from '../../scripts/compile-script.mjs';
 import { scriptSource } from '../script/fixture';
 import { snapshotSimHost, restoreSimHost } from '../../src/engine/sim/snapshot';
-import { parseItems } from '../../src/game/shardfile/items';
+import { parseItems } from '@wildshard/format/items';
 import { ITEMS } from '../../src/shards/_template/data/items';
 import { expectSameSimSnapshot } from '../fake/simSnapshot';
 

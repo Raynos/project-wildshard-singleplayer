@@ -2,7 +2,7 @@ import { QuestState, type NpcDef } from '@wildshard/engine/quest/core';
 import { test } from '@wildshard/engine/world/interact/flags';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { ScriptLane } from '@wildshard/engine/script/lane';
-import { parseQuestData, type QuestData } from '../shardfile/quests';
+import { parseQuestData, type QuestData } from '@wildshard/format/quests';
 
 /** Hooks read atomically published script fields or queue declared events for the next script tick. */
 export interface QuestScriptPorts {

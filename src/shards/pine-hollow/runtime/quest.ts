@@ -4,7 +4,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { test } from '@wildshard/engine/world/interact/flags';
 import { autoFlag, type InteractDef } from '@wildshard/engine/world/interact/types';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
-import type { QuestData } from '@wildshard/game/shardfile/quests';
+import type { QuestData } from '@wildshard/format/quests';
 import { installQuestGraph } from '@wildshard/game/quest/questGraph';
 import { PINE_GRAPH, PINE_LANTERN_IDS, pineQuestRows } from '../quest/graph';
 import { LANTERN_FLAGS } from '../quest/wardensHollow';

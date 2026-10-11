@@ -4,7 +4,7 @@ import { DeclaredQuests } from './declared';
 import { installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from './interactionRows';
 import { autoFlag, type InteractTable } from '@wildshard/engine/world/interact/types';
 import { npcSpot, type NpcRow } from './npcRow';
-import type { QuestData } from '../shardfile/quests';
+import type { QuestData } from '@wildshard/format/quests';
 import { bindHeadlessPrompts, type HeadlessPrompt, type PromptRegistration } from './headlessPrompts';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(96));

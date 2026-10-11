@@ -36,7 +36,10 @@
     "./meshCollision": "./meshCollision.ts",
     "./terrain": "./terrain.ts",
     "./water": "./water.ts",
-    "./accent": "./accent.ts"
+    "./accent": "./accent.ts",
+    "./items": "./items.ts",
+    "./targets": "./targets.ts",
+    "./quests": "./quests.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

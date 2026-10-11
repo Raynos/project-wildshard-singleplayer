@@ -5,7 +5,8 @@ import type { Scope } from '../../src/engine/app/scope';
 import type { Weapon } from '../../src/engine/combat/Weapon';
 import type { AimCommand } from '../../src/engine/input/commands';
 import type { ItemRuntime, ItemTarget } from '../../src/engine/combat/items';
-import { installDeclaredItems, parseItems, type DeclaredItems } from '../../src/game/shardfile/items';
+import { installDeclaredItems, type DeclaredItems } from '../../src/game/shardfile/items';
+import { parseItems } from '@wildshard/format/items';
 import { declaredKitItemFamilies } from '../../src/game/systems/items/declared';
 import { ITEMS } from '../../src/shards/_template/data/items';
 

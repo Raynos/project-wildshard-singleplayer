@@ -2,7 +2,7 @@ import { Vector3, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SystemSpec } from '@wildshard/engine/app/systems';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import type { ShardTargets } from '../shardfile/targets';
+import type { ShardTargets } from '@wildshard/format/targets';
 
 /** Bind admitted targets to existing panels, physics active-state ports and the session's interaction list. */
 export function installDeclaredTargets(data: ShardTargets, ports: {

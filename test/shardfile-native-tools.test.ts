@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseItems } from '../src/game/shardfile/items';
+import { parseItems } from '@wildshard/format/items';
 import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
 import { ITEMS } from '../src/shards/_template/data/items';
 

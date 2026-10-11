@@ -7,7 +7,7 @@ import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
 import { DeclaredScriptWorld } from '../../src/engine/script/state';
 import type { ScriptEvent } from '../../src/engine/script/effects';
 import { createQuestScriptPorts, DeclaredQuests } from '../../src/game/quest/declared';
-import { parseQuestData } from '../../src/game/shardfile/quests';
+import { parseQuestData } from '@wildshard/format/quests';
 import { TEMPLATE_QUESTS } from '../../src/shards/_template/data/quests';
 import { SIM_LEVEL, fightCommand } from '../fixtures/sim-level/level';
 import { expectSameSimSnapshot } from '../fake/simSnapshot';

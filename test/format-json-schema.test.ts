@@ -53,7 +53,7 @@ it('rebuilds all migrated documents byte-identically without committing generate
     const directory = join(root, '.wildshard/format');
     const files = readdirSync(directory).sort();
     expect(files).toEqual(Object.keys(formatJsonSchemas()).map(name => `${name}.schema.json`).sort());
-    expect(files.length).toBe(39);
+    expect(files.length).toBe(43);
     const before = files.map(name => readFileSync(join(directory, name), 'utf8'));
     writeFormatJsonSchemas(root);
     expect(files.map(name => readFileSync(join(directory, name), 'utf8'))).toEqual(before);
@@ -102,4 +102,15 @@ it('documents exact terrain grids, bounded water and the closed twenty-accent pa
   expect(roots['water.Water']?.maxItems).toBe(64);
   expect(roots['accent.Accent']?.enum).toHaveLength(20);
   expect(roots['accent.Accent']?.enum).not.toContain('cyan');
+});
+
+it('documents item template identities and native item, target and quest reference checks', () => {
+  const roots = formatJsonSchemas();
+  const items = JSON.stringify(roots['items.Items']);
+  expect(items).toContain('declared');
+  expect(items).toContain('@wildshard/format/items#ItemsSchema.pipe.3');
+  expect(roots['items.ItemFamilyName']?.maxLength).toBe(128);
+  expect(roots['targets.Targets']?.additionalProperties).toBe(false);
+  expect(roots['quests.QuestData']?.['x-wildshard-checks']).toEqual(['@wildshard/format/quests#QuestDataSchema.pipe.1']);
+  expect(() => formatJsonSchema(v.custom<`weapon.${string}`>(() => true))).toThrow();
 });
