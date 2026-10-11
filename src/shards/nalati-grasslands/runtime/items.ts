@@ -1,3 +1,4 @@
+import { SABRE_WEAPON_PROFILE } from '../data/sabreProfile';
 import { JAVELIN_WEAPON_PROFILE } from '../data/javelinProfile';
 import { RIFLE_WEAPON_PROFILE } from '../data/rifleProfile';
 import { BOW_PROFILE } from '../data/bowProfile';
@@ -24,7 +25,8 @@ export function bindNalatiItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game'
   const families = new Map<string, ItemFamily>();
   const adopt = (name: string, weapon: Weapon): void => {
     const native = weapon.row;
-    families.set(name, { kind: 'weapon', ...(name === 'bow' || name === 'firearm' || name === 'thrown' ? { profiles: [name] } : {}), presentation: presentation(native), create: (row, _spec, ports) => {
+    families.set(name, { kind: 'weapon', ...(name === 'bow' || name === 'firearm' || name === 'thrown' || name === 'melee' ? { profiles: [name] } : {}), presentation: presentation(native), create: (row, _spec, ports) => {
+      if (name === 'melee' && JSON.stringify(ports.profile) !== JSON.stringify(SABRE_WEAPON_PROFILE)) throw new Error('Native sabre was built from a different authored profile');
       if (name === 'bow' && JSON.stringify(ports.profile) !== JSON.stringify(BOW_PROFILE)) throw new Error('Native bow was built from a different authored profile');
       if (name === 'firearm' && JSON.stringify(ports.profile) !== JSON.stringify(RIFLE_WEAPON_PROFILE)) throw new Error('Native rifle was built from a different authored profile');
       if (name === 'thrown' && JSON.stringify(ports.profile) !== JSON.stringify(JAVELIN_WEAPON_PROFILE)) throw new Error('Native javelins were built from a different authored profile');
@@ -32,14 +34,15 @@ export function bindNalatiItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game'
       weapon.row = { ...row, legacySlot: weapon.id, meta: native.meta }; return weapon;
     } });
   };
-  adopt('bow', weapons.bow); adopt('nalati-grasslands.sabre', weapons.sabre);
+  adopt('bow', weapons.bow); adopt('melee', weapons.sabre);
   adopt('thrown', weapons.spear); adopt('firearm', weapons.rifle);
   const native = Object.values(weapons).map((weapon) => weapon.row);
+  const melee = families.get('melee'); if (melee === undefined) throw new Error('Missing Nalati melee family');
   const bow = families.get('bow'); if (bow === undefined) throw new Error('Missing Nalati bow family');
   const firearm = families.get('firearm'); if (firearm === undefined) throw new Error('Missing Nalati rifle family');
   const thrown = families.get('thrown'); if (thrown === undefined) throw new Error('Missing Nalati thrown family');
-  families.delete('bow'); families.delete('firearm'); families.delete('thrown');
-  bindRuntimeItems(ctx, data, { families, kit: new Map([['bow', bow], ['firearm', firearm], ['thrown', thrown]]), icon: (name) => {
+  families.delete('melee'); families.delete('bow'); families.delete('firearm'); families.delete('thrown');
+  bindRuntimeItems(ctx, data, { families, kit: new Map([['melee', melee], ['bow', bow], ['firearm', firearm], ['thrown', thrown]]), icon: (name) => {
     const row = native.find((entry) => entry.ui.icon === name);
     if (row === undefined) throw new Error(`Unknown Nalati item icon ${name}`);
     return row.ui.icon;

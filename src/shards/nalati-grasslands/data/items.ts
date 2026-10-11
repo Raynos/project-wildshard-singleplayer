@@ -1,3 +1,4 @@
+import { SABRE_WEAPON_PROFILE } from './sabreProfile';
 import { JAVELIN_WEAPON_PROFILE } from './javelinProfile';
 import { RIFLE_WEAPON_PROFILE } from './rifleProfile';
 import { BOW_PROFILE } from './bowProfile';
@@ -9,17 +10,17 @@ const placeholder = (id: string) => ({ id, damage: 0, cooldown: 1, range: 0.01, 
 /** The authored loadout keeps its native slots through the G51 family shim, with declared identity, UI and contexts. */
 export const NALATI_ITEMS = { version: 1, rows: [
   { row: BOW, family: 'bow', context: 'weapon.bow' },
-  { row: SABRE, family: 'nalati-grasslands.sabre', context: 'weapon.melee' },
+  { row: SABRE, family: 'melee', context: 'weapon.melee' },
   { row: SPEAR, family: 'thrown', context: 'weapon.spear' },
   { row: AR15, family: 'firearm', context: 'weapon.ranged' },
 ].map(({ row, family, context }) => {
   if (typeof row.ui.icon !== 'string') throw new Error('Nalati declares its original item icons');
   const declared = { id: row.id, kind: 'weapon', family, slot: `declared.${row.id}`, context,
     ui: { name: row.ui.name, icon: row.ui.icon, swapIcon: row.ui.swapIcon, blurb: row.meta.blurb },
-    view: { recipe: row.id === BOW.id ? 'nalati-grasslands.bow' : row.id === AR15.id ? 'nalati-grasslands.rifle' : row.id === SPEAR.id ? 'nalati-grasslands.spear' : family, colour: '#ffffff', position: [0, 0, 0], rotation: [0, 0, 0] }, hook: null,
+    view: { recipe: row.id === BOW.id ? 'nalati-grasslands.bow' : row.id === AR15.id ? 'nalati-grasslands.rifle' : row.id === SPEAR.id ? 'nalati-grasslands.spear' : 'nalati-grasslands.sabre', colour: '#ffffff', position: [0, 0, 0], rotation: [0, 0, 0] }, hook: null,
     light: row.id === SABRE.id ? { id: 'sabre.light', damage: 24, cooldown: 0.08, range: 2.2, width: 0.9, tags: [], effect: null } : placeholder(`${row.id}.light`),
     heavy: row.id === SABRE.id ? { id: 'sabre.heavy', damage: 48, cooldown: 0.08, range: 2.2, width: 0.9, tags: [], effect: null } : placeholder(`${row.id}.heavy`),
     charge: row.id === SABRE.id ? 0.45 : 0.001 };
-  return row.id === SPEAR.id ? Object.assign(declared, { profile: JAVELIN_WEAPON_PROFILE }) : row.id === AR15.id ? Object.assign(declared, { profile: RIFLE_WEAPON_PROFILE }) : row.id === BOW.id ? Object.assign(declared, { profile: BOW_PROFILE }) : declared;
+  return row.id === SABRE.id ? Object.assign(declared, { profile: SABRE_WEAPON_PROFILE }) : row.id === SPEAR.id ? Object.assign(declared, { profile: JAVELIN_WEAPON_PROFILE }) : row.id === AR15.id ? Object.assign(declared, { profile: RIFLE_WEAPON_PROFILE }) : row.id === BOW.id ? Object.assign(declared, { profile: BOW_PROFILE }) : declared;
 }), contexts: [], runtimeContexts: ['weapon.melee', 'weapon.bow', 'weapon.spear', 'weapon.ranged'],
 loadout: { primary: BOW.id, secondary: SABRE.id, tools: [] } };

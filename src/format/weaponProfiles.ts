@@ -18,7 +18,11 @@ const cone = v.strictObject({ degrees: scalar, radius: v.picklist(['linear', 'sq
 export const MeleeWeaponProfileSchema = v.strictObject({
   family: v.literal('melee'), damage: scalar, reach: positive, swingScale: positive,
   cooldown: seconds, comboGap: seconds, chainLag: seconds, heavyCharge: duration,
-  moves: v.strictObject({ combo: v.pipe(v.array(swing), v.minLength(1), v.maxLength(16)), heavy: swing }),
+  moves: v.strictObject({ combo: v.pipe(v.array(swing), v.minLength(1), v.maxLength(16)), heavy: swing,
+    passes: v.exactOptional(v.strictObject({ left: swing, right: swing })) }),
+  mounted: v.exactOptional(v.strictObject({ reach: positive, cooldown: seconds, sense: scalar, chainWindow: seconds,
+    chainStep: scalar, chainMax: v.pipe(scalar, v.minValue(1)), speedDivisor: positive,
+    behind: v.pipe(v.number(), v.finite(), v.minValue(-10000), v.maxValue(10000)) })),
   lunge: v.pipe(v.strictObject({ range: scalar, heavyRange: scalar, cone: scalar, stop: scalar,
     speed: positive, minTime: seconds, maxTime: seconds }), v.check(row => row.minTime <= row.maxTime, 'Ordered lunge duration')),
   sweep: v.strictObject({ rays: slots, extensions: v.pipe(v.array(scalar), v.minLength(1), v.maxLength(32)), step: positive, maxSamples: slots, maxHits: slots }),

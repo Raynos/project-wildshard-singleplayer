@@ -1575,3 +1575,5 @@ defining `plugin/mover` owns the existing `GrappleSim`, landing probes and stric
 course ports still supply actual anchors and their sight/guard rules. Nine retains its Well rail exception,
 checked floor/capsule ownership, camera aim, viewmodel and earned crossing fact. Serialized phase/target/clock
 continuation remains unchanged. Template 1 anchors and horse presentation are separate graphical examples.
+
+SF85 melee rows: optional `moves.passes.{left,right}` use the same ordered swing bounds. Optional `mounted` declares reach, cooldown, sense, chainWindow, chainStep, chainMax (at least one), positive speedDivisor and signed behind distance. Existing rows omit both unchanged.

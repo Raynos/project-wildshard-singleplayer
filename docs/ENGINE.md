@@ -3204,3 +3204,5 @@ with its original phase row. Profile validation occurs before body or RNG
 allocation. Health, bodies, chamber views, rewards, strike clocks and continuation
 fields keep their native owners. This data adoption does not close either
 shard's remaining gameplay compatibility gaps.
+
+SF85 WP-3: melee numeric rows may declare paired `moves.passes` and a bounded `mounted` contact/chain profile. Nalati consumes these in its existing mounted sword, preserving side selection, horse speed authority, pose recipes and reward effects.
