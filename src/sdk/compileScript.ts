@@ -1,11 +1,6 @@
 /** Portable ABI-v0 AssemblyScript compiler and structural Binaryen metering, pinned by SDK dependencies. */
 import binaryen from 'binaryen';
-// oxlint-disable-next-line import/no-nodejs-modules -- Resolve the SDK’s pinned portable compiler, including the workspace CLI bundle.
-import { createRequire } from 'node:module';
-// oxlint-disable-next-line import/no-nodejs-modules -- Import only the resolved pinned SDK dependency.
-import { pathToFileURL } from 'node:url';
-// oxlint-disable-next-line import/no-nodejs-modules -- The packed and workspace compiler resolve from their own module directory.
-import { join } from 'node:path';
+import { loadAssemblyScriptCompiler } from './assemblyscriptCompiler.mjs';
 
 interface Compiler { main: (args: string[], options: { readFile: (name: string) => string | null; writeFile: (name: string, contents: string | Uint8Array) => void }) => Promise<{ error: Error | null }> }
 function isCompiler(value: unknown): value is Compiler { return typeof value === 'object' && value !== null && 'main' in value && typeof value.main === 'function'; }
@@ -104,8 +99,7 @@ export async function compileScript(source: string, options: { maximumPages?: nu
   if (sources.size > 64 || [...sources].some(([name, text]) => name === 'main.ts' || !/^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u.test(name) || typeof text !== 'string')) throw new Error('Invalid virtual AssemblyScript sources');
   // asc's declaration bundle globally changes Array.at to return T, unsound in host JS.
   // Keep its portable ambient declarations inside the author compiler, not the host type program.
-  const require = createRequire(join(import.meta.dirname, 'compiler.cjs'));
-  const compiler: unknown = await import(pathToFileURL(require.resolve('assemblyscript/dist/asc.js')).href);
+  const compiler = await loadAssemblyScriptCompiler();
   if (!isCompiler(compiler)) throw new Error('Invalid pinned AssemblyScript compiler');
   let bytes: Uint8Array = new Uint8Array();
   const result = await compiler.main(['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', '1', '--maximumMemory', String(maximumPages), '--exportStart', '__start', '--disable', 'bulk-memory', '-O3'], {

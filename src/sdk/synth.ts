@@ -79,7 +79,7 @@ export default { scene: readScene(input.scene), slug: input.identity.slug };`;
       return null;
     } }],
     build: { write: false, minify: false, target: 'esnext', lib: { entry: virtual, formats: ['es'], fileName: 'scene' },
-      rolldownOptions: { platform: 'node', external: [/^node:/u] } },
+      rolldownOptions: { platform: 'node', external: [/^node:/u, 'assemblyscript/dist/asc.js'] } },
   });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built) || Array.isArray(result) && result.length !== 1) throw new Error('Scene config produced unexpected output');

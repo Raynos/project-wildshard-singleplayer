@@ -42,7 +42,7 @@ function enforceTargets(source: Shardfile, policy: 'warn' | 'refuse'): void {
 }
 
 async function projectModule(project: string): Promise<{ shard: Shardfile; commons: unknown; baked?: ReadonlyMap<string, Uint8Array> }> {
-  const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false, lib: { entry: resolve(project, 'shard.config.ts'), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u] } } });
+  const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false, lib: { entry: resolve(project, 'shard.config.ts'), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'] } } });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built) || (Array.isArray(result) && result.length !== 1)) throw new Error('config build produced unexpected output');
   const chunks = built.output.filter((out) => out.type === 'chunk');

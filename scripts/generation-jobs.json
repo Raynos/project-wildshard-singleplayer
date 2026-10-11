@@ -1352,14 +1352,16 @@
         "src/shards/nalati-grasslands/generators/bake-qara.mjs"
       ],
       "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-qara.mjs",
-        "src/shards/nalati-grasslands/generators/qara.ts",
-        "src/shards/nalati-grasslands/behaviour/qara.as",
-        "src/sdk/compileScript.ts",
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "src/sdk/package.json"
+        "src/sdk/assemblyscriptCompiler.d.mts",
+        "src/sdk/assemblyscriptCompiler.mjs",
+        "src/sdk/compileScript.ts",
+        "src/sdk/package.json",
+        "src/shards/nalati-grasslands/behaviour/qara.as",
+        "src/shards/nalati-grasslands/generators/bake-qara.mjs",
+        "src/shards/nalati-grasslands/generators/qara.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/behaviour/qara.generated.json"
@@ -1377,18 +1379,20 @@
         "src/shards/pine-hollow/generators/bake-pine-night-director.mjs"
       ],
       "inputRoots": [
-        "src/sdk/package.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/assemblyscriptCompiler.d.mts",
+        "src/sdk/assemblyscriptCompiler.mjs",
         "src/sdk/buildBehaviour.ts",
         "src/sdk/compileScript.ts",
         "src/sdk/directorAbi.ts",
         "src/sdk/immutable.ts",
+        "src/sdk/package.json",
         "src/sdk/sourceReader.ts",
-        "src/shards/pine-hollow/generators/bake-pine-night-director.mjs",
         "src/shards/pine-hollow/behaviour/night.as",
         "src/shards/pine-hollow/data/nightDirector.json",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "src/shards/pine-hollow/generators/bake-pine-night-director.mjs"
       ],
       "outputs": [
         "src/shards/pine-hollow/behaviour/night.generated.json",
@@ -1453,18 +1457,20 @@
         "src/shards/nalati-grasslands/generators/bake-nalati-raid-director.mjs"
       ],
       "inputRoots": [
-        "src/sdk/package.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/assemblyscriptCompiler.d.mts",
+        "src/sdk/assemblyscriptCompiler.mjs",
         "src/sdk/buildBehaviour.ts",
         "src/sdk/compileScript.ts",
         "src/sdk/directorAbi.ts",
         "src/sdk/immutable.ts",
+        "src/sdk/package.json",
         "src/sdk/sourceReader.ts",
-        "src/shards/nalati-grasslands/generators/bake-nalati-raid-director.mjs",
         "src/shards/nalati-grasslands/behaviour/director.as",
         "src/shards/nalati-grasslands/data/director.json",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "src/shards/nalati-grasslands/generators/bake-nalati-raid-director.mjs"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/behaviour/director.generated.json",
@@ -1484,18 +1490,20 @@
         "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs"
       ],
       "inputRoots": [
-        "src/sdk/package.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/assemblyscriptCompiler.d.mts",
+        "src/sdk/assemblyscriptCompiler.mjs",
         "src/sdk/buildBehaviour.ts",
         "src/sdk/compileScript.ts",
         "src/sdk/directorAbi.ts",
         "src/sdk/immutable.ts",
+        "src/sdk/package.json",
         "src/sdk/sourceReader.ts",
-        "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs",
         "src/shards/nalati-grasslands/behaviour/ghostVolley.as",
         "src/shards/nalati-grasslands/data/ghostVolleyDirector.json",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/assets/3e6bce711c85df2ed170797d6d5ac606e89436e21d7865b07bc91f13d7912de1",
@@ -2055,6 +2063,39 @@
         "src/shards/pastel-plain/assets/f52b74ea04b5b3296d21be04b7d5ddc37280b00ceb2a169cb1c5686c0d4a3ef0",
         "src/shards/pastel-plain/assets/fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31",
         "src/shards/pastel-plain/data/props.json"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "pastel-author-behaviour",
+      "shard": "pastel-plain",
+      "entry": "src/shards/pastel-plain/generators/bake-pastel-behaviour.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pastel-plain/generators/bake-pastel-behaviour.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format/package.json",
+        "src/sdk/assemblyscriptCompiler.d.mts",
+        "src/sdk/assemblyscriptCompiler.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/compileScript.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/package.json",
+        "src/shards/pastel-plain/behaviour/door.as",
+        "src/shards/pastel-plain/behaviour/idle.as",
+        "src/shards/pastel-plain/behaviour/items.as",
+        "src/shards/pastel-plain/generators/bake-pastel-behaviour.mjs"
+      ],
+      "outputs": [
+        "src/shards/pastel-plain/behaviour/door.json",
+        "src/shards/pastel-plain/assets/ecc886d8bbebcf190298ff9162b6bb364f2125606f5bdc8cc220ea28044f96ea",
+        "src/shards/pastel-plain/assets/7035c479edde46ee0baf713fce437fe21e7b61967154f36b5f1126708b2bfaa7",
+        "src/shards/pastel-plain/assets/875e798b8b1be62129b477e6b85e7c45cf11ae67cba006596d869133b469726b"
       ],
       "platform": "portable"
     }
