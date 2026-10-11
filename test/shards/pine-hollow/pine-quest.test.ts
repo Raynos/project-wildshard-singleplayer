@@ -9,7 +9,8 @@ import { ITEMS } from '../../../src/game/bag/itemCatalog';
 import { achievementsFor } from '../../../src/game/achievements';
 import { RANGER, MILLER, TRADER } from '../../../src/shards/pine-hollow/quest/wardensHollow';
 import { WARDENS_HOLLOW, QUEST_DONE, QUEST_EXTERNAL, ERRAND_EXTERNAL, LANTERN_FLAGS } from '../../../src/shards/pine-hollow/data/wardensHollow';
-import { pineTable, RESIN_COUNT, RESIN_SPOTS, TOKEN_NAMES, type TableSites } from '../../../src/shards/pine-hollow/quest/table';
+import { pineTable, type TableSites } from '../../../src/shards/pine-hollow/quest/table';
+import { RESIN_COUNT, RESIN_SPOTS, TOKEN_NAMES } from '../../../src/shards/pine-hollow/data/interactions';
 import { BEATS, beatFlags, isBeat, type Beat } from '../../../src/shards/pine-hollow/quest/beats';
 import {
   newBoard, draw, recordKill, claim, reroll, isFilled, counts, loadBoard, saveBoard, eliteOf, BOARD_STORE, type Board, type KillInfo,

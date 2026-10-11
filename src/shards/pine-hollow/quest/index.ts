@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { interactionRules } from '@wildshard/sdk/interactions';
-import { PINE_LANTERN_IDS, pineQuestRows } from './graph';
+import { pineQuestRows } from './graph';
+import { PINE_LANTERN_IDS, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES } from '../data/interactions';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import type { Music } from '@wildshard/engine/audio/Music';
@@ -66,7 +67,7 @@ import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLL
 import { KING_KIND } from '../runtime/antlerKing';
 import { RANGER, MILLER, TRADER } from './wardensHollow';
 import { WARDENS_HOLLOW, QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
-import { pineTable, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES, type Spot } from './table';
+import { pineTable, type Spot } from './table';
 import { makeNpcFigure, type NpcFigure, type NpcKind } from '../models/people';
 import { preloadNpcModels } from './npcModels';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';

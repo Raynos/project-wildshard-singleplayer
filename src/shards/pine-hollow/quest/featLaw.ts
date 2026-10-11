@@ -1,6 +1,6 @@
 import { PINE_FEATS } from '../data/questInventory';
 import { LANTERN_FLAGS, QUEST_DONE } from '../data/wardensHollow';
-import { RESIN_FLAG, TOKEN_FLAG, SECRET_FLAGS } from './table';
+import { RESIN_FLAG, TOKEN_FLAG, SECRET_FLAGS } from '../data/interactions';
 
 /** Gameplay submits the same bounded outcomes in the page and renderer-free host. */
 export interface PineFacts {

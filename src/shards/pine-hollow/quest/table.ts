@@ -16,17 +16,7 @@
  */
 import type { InteractTable, PickupDef } from '@wildshard/engine/world/interact/types';
 
-export const RESIN_FLAG = 'resin:';
-export const TOKEN_FLAG = 'token:';
-export const SECRET_FLAGS = ['secret:vista', 'secret:log', 'secret:islet'] as const;
-
-/** 30 resin drops by the trails, one per stretch (each snaps to the nearest trunk within 9 m) */
-export const RESIN_SPOTS: readonly [number, number][] = [
-  [8, -205], [-14, -165], [-22, -120], [-38, -70], [-32, -26], [12, -20], [40, 8], [70, 24], [100, 4], [136, 20],
-  [176, -12], [128, -62], [172, -84], [118, -124], [186, 40], [-12, 50], [14, 100], [-8, 140], [-40, 78], [-76, 142],
-  [56, 104], [96, 136], [138, 118], [122, 170], [88, 190], [-82, -8], [-128, -32], [-142, -96], [-80, -142], [-182, 22],
-];
-export const RESIN_COUNT = RESIN_SPOTS.length;
+import { RESIN_FLAG, TOKEN_FLAG } from '../data/interactions';
 
 /** a resin drop's placement (the runtime resolves it: the trunk's side facing the trail, ~1.1 m up) */
 export interface Spot { x: number; z: number; y?: number; dy?: number }
@@ -40,8 +30,6 @@ export interface TableSites {
   finder: { x: number; y: number; z: number };
   bench: { x: number; y: number; z: number; yaw: number };
 }
-
-export const TOKEN_NAMES = ['the fire lookout', 'the hollow log', 'the islet', "the King's stones", 'the waterfall', 'the ridge cabin', 'the mill hamlet', 'under the creek bridge'] as const;
 
 export function pineTable(s: TableSites): InteractTable {
   const d = s.dam, yaw = Math.atan2(d.fx, d.fz);
