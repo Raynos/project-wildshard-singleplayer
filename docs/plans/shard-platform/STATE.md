@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-10 20:50 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
+**2026-10-10 21:40 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
 
 **Milestones**
 - **M1:** done.
@@ -32,8 +32,8 @@
 | sp-x1 | Sky move-back done (`1ee489137`) · Sky desktop 116.7 ms frame with pacing on, then buildPacing default |
 | sp-x2 | Pine move-back done (`51d548ec1`) · Signal 117 ms activate frame · then the frame-cap recheck |
 | sp-x4 | Driftwood + Signal move-back done (80/20: Driftwood 103.7 %, Signal 84.9 %) · DS1.5 bakes to Node |
-| sp-x5 | DS0.2 game plugin/* · DS0.3 guards · SF77 gate (`54ed83e52`) · then DS1.6 commons (non-visual) |
-| sp-x6 | DS0.4 done · DS1.1 format (`28e178749`, `fbfb897de`, `d2afe8532`) · DS1.2 synth · DS1.3 gate · Pine G320 coats |
+| sp-x5 | DS0.2 game exports 207 → ≤ 20 (40 retired, `c4112661a`) · DS0.3 guards · then DS1.6 commons (non-visual) |
+| sp-x6 | DS1.1 format (6 more contracts) · DS1.3 gate PASS (`212c3df62`) · Pine G320 coats |
 
 **Jake picks landed:** G321/G322/G324/G325/G326 (all six public cards shardfile)/G327/G328.
 
