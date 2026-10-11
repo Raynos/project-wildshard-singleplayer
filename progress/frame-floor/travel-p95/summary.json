@@ -490,10 +490,43 @@
         "2026-10-11T06:06:01.992Z"
       ],
       "timingCredit": false
+    },
+    {
+      "surface": "sim",
+      "sha": "f8050360e8211fc668b478ab6221d82a45a7ade0",
+      "complete": false,
+      "seconds": 300.5,
+      "routesCompleted": 0,
+      "standingP95Ms": [
+        34,
+        34,
+        34
+      ],
+      "failure": "Grid floor route template-interior timed out",
+      "timingCredit": false,
+      "quietUTC": [
+        "2026-10-11T07:00:19.544Z",
+        "2026-10-11T07:05:24.125Z"
+      ],
+      "lastRoute": {
+        "current": null,
+        "inside": null,
+        "feet": {
+          "x": 298.3506556055345,
+          "y": 0.36994407935979556,
+          "z": 555.0675140266908
+        },
+        "residents": [],
+        "pending": [],
+        "issues": {
+          "template-2": "Snapshot instance registrations do not match"
+        },
+        "screenStatus": "refused"
+      }
     }
   ],
   "simulatorAfter": "dbb89458de46c621b0705d3111bb0ef4577ce5b8",
-  "verdict": "RED: desktop travel passes; Simulator travel cadence remains above 35ms.",
+  "verdict": "RED: desktop and Simulator Nalati/return travel pass; Simulator template outbound37ms and loading maxima remain open.",
   "quietUTC": {
     "desktop": [
       "2026-10-11T04:55:47.488Z",
@@ -584,5 +617,394 @@
     "touchedLint": true,
     "traversalCausality": "Not established by the timeout diagnostics.",
     "browserCorroboration": "No diagnostic console errors on ec6e98463, but the template readiness approach still timed out; no traversal/timing pass."
+  },
+  "templateReadiness": {
+    "nativeFix": "462698465dc25a3e887ac6b4de7e6b904f0628b0",
+    "nativeCause": "A speculative Pine world can finish after the next road crossing checks residents; destination creation then refuses the late exclusive runtime.",
+    "nativeProof": "Real Rapier delayed materialization, durable retirement before destination creation, refused checkpoint retaining full charge; northeast template corner enters through its readiness wall.",
+    "nativeChecks": {
+      "focused": 29,
+      "strict": true,
+      "touchedLint": true
+    },
+    "coldSourceHarnessFix": "f8050360e8211fc668b478ab6221d82a45a7ade0",
+    "harnessCause": "Seeding a cold interior on the bodyless road world leaves no floor during preparation; road recovery relocates the player before the source becomes resident.",
+    "harnessProof": "Cold source is seeded on its solid midpoint road and entered using the existing driver. No forced admission or readiness; a driver that returns without real entered residency refuses.",
+    "harnessChecks": {
+      "focused": 27,
+      "strict": true,
+      "touchedLint": true
+    },
+    "originalSafariStopCausality": "Corroborated on f8050360e: the destination is refused by an exact revision-1 checkpoint missing DIR-3 native registrations; no pending or resident world remains.",
+    "savedCompatibility": {
+      "introducedBy": "256a71405",
+      "savedRevision": 1,
+      "currentRevisionBeforeFix": 1,
+      "missingAdapter": "director.template.door-wave",
+      "failure": "Snapshot instance registrations do not match",
+      "fix": "Advance content revision to 2; use existing validated logical migration, preserving the exact restore guard and old save until a successful checkpoint.",
+      "nativeProof": "Real native host and durable save: exact restore reproduces refusal; logical migration retains door state, complete quest, tick, local coins and pack, keeps new director installed, and repeats no rewards.",
+      "sha": "63560cdb989c0024a82dcaebfc054273dc750fff",
+      "focusedTests": 5,
+      "strict": true,
+      "touchedLint": true,
+      "officialMapBake": {
+        "source": "3fef2997bdb104049291cec0fd460a54189343c6",
+        "size": 1000,
+        "bytes": 26954
+      },
+      "browserCorroboration": true
+    }
+  },
+  "cappedPacing": {
+    "sha": "f4b7bd941bf9ff238cefbda894fc4f35ddc291cf",
+    "cause": "Builds anchored at the late rAF callback while the cap recovered its original deadline, granting construction extra late time.",
+    "fix": "Forward the cap recovery anchor to noteFrameDrawn; absent anchors and uncapped observed cadence keep existing behavior.",
+    "focusedTests": 16,
+    "strict": true,
+    "touchedLint": true,
+    "timingCredit": false
+  },
+  "latestSimulator": {
+    "source": "63560cdb989c0024a82dcaebfc054273dc750fff",
+    "complete": true,
+    "pass": false,
+    "seconds": 285.196,
+    "errors": [],
+    "quietUTC": [
+      "2026-10-11T07:48:28.565Z",
+      "2026-10-11T07:53:17.982Z"
+    ],
+    "rows": [
+      {
+        "route": "template-interior",
+        "travel": {
+          "p95Ms": 46,
+          "p99Ms": 76,
+          "maxMs": 83,
+          "gameP95Ms": 46,
+          "workP95Ms": 8,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": false,
+          "over50Ms": 3,
+          "over100Ms": 0
+        },
+        "drive": {
+          "p95Ms": 34,
+          "p99Ms": 48,
+          "maxMs": 154,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "frames": 1500,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "over50Ms": 14,
+          "over100Ms": 2
+        },
+        "interior": {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "gameP95Ms": 34,
+          "workP95Ms": 7,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "entry": {
+          "current": "template-2",
+          "inside": "template-2",
+          "residents": [
+            "template-2"
+          ],
+          "issues": {}
+        }
+      },
+      {
+        "route": "template-return",
+        "travel": {
+          "p95Ms": 44,
+          "p99Ms": 76,
+          "maxMs": 96,
+          "gameP95Ms": 44,
+          "workP95Ms": 9,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": false,
+          "over50Ms": 3,
+          "over100Ms": 0
+        },
+        "drive": {
+          "p95Ms": 34,
+          "p99Ms": 47,
+          "maxMs": 170,
+          "gameP95Ms": 34,
+          "workP95Ms": 9,
+          "frames": 1890,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "over50Ms": 13,
+          "over100Ms": 2
+        },
+        "interior": {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "entry": {
+          "current": "driftwood-isle",
+          "inside": "driftwood-isle",
+          "residents": [
+            "driftwood-isle"
+          ],
+          "issues": {}
+        }
+      },
+      {
+        "route": "nalati-grasslands-road-entry",
+        "travel": {
+          "p95Ms": 35,
+          "p99Ms": 43,
+          "maxMs": 52,
+          "gameP95Ms": 35,
+          "workP95Ms": 7,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "over50Ms": 1,
+          "over100Ms": 0
+        },
+        "drive": {
+          "p95Ms": 35,
+          "p99Ms": 49,
+          "maxMs": 207,
+          "gameP95Ms": 35,
+          "workP95Ms": 8,
+          "frames": 960,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": false,
+          "over50Ms": 7,
+          "over100Ms": 1
+        },
+        "interior": {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 35,
+          "gameP95Ms": 34,
+          "workP95Ms": 6,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "entry": {
+          "current": "nalati-grasslands",
+          "inside": "nalati-grasslands",
+          "residents": [
+            "nalati-grasslands"
+          ],
+          "issues": {}
+        }
+      }
+    ],
+    "standingP95Ms": [
+      37,
+      34,
+      34
+    ],
+    "note": "Plain pinned run; same saved template checkpoint retained. Nalati travel passes, maximum 207ms remains independently red. Template travel still red; async hooks show unrelated Pine construction."
+  },
+  "nativeApproach": {
+    "sha": "b7b921a65d5342a127a3f591fad1cdae794d4b6e",
+    "fixtureCorrection": "1f41fd31a",
+    "cause": "Departing the boulevard predicted the opposite cell before a crossroads turn, building and retiring unrelated Pine runtimes twice.",
+    "fix": "Native world materialization starts on the destination half of the road; product/module prefetch keeps the full network bound.",
+    "focusedTests": 27,
+    "strict": true,
+    "touchedLint": true,
+    "preserved": [
+      "whole-runtime claims",
+      "exclusive retirement ordering",
+      "save and quota refusal",
+      "readiness walls",
+      "capsule recoil",
+      "U-turn protection",
+      "borrowed mode",
+      "render scale and quality"
+    ],
+    "browserCorroboration": true,
+    "constructedPineWorlds": 0
+  },
+  "latestTemplateSimulator": {
+    "source": "1f41fd31a1bd29c5a25a68b7ce9a63850d9dffbd",
+    "complete": true,
+    "pass": false,
+    "seconds": 233.938,
+    "errors": [],
+    "quietUTC": [
+      "2026-10-11T08:21:15.048Z",
+      "2026-10-11T08:25:13.398Z"
+    ],
+    "rows": [
+      {
+        "route": "template-interior",
+        "travel": {
+          "p95Ms": 37,
+          "p99Ms": 46,
+          "maxMs": 60,
+          "gameP95Ms": 37,
+          "workP95Ms": 10,
+          "callbackP95Ms": 40,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": false,
+          "medianFps": 30.303,
+          "over50Ms": 1,
+          "over100Ms": 0
+        },
+        "drive": {
+          "p95Ms": 34,
+          "p99Ms": 39,
+          "maxMs": 80,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "callbackP95Ms": 37,
+          "frames": 1500,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 2,
+          "over100Ms": 0
+        },
+        "interior": {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 35,
+          "gameP95Ms": 34,
+          "workP95Ms": 9,
+          "callbackP95Ms": 37,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "entry": {
+          "current": "template-2",
+          "residents": [
+            "template-2"
+          ],
+          "issues": {},
+          "inside": "template-2"
+        },
+        "constructedRuntimeInstances": [
+          "driftwood-isle"
+        ]
+      },
+      {
+        "route": "template-return",
+        "travel": {
+          "p95Ms": 35,
+          "p99Ms": 46,
+          "maxMs": 57,
+          "gameP95Ms": 35,
+          "workP95Ms": 8,
+          "callbackP95Ms": 39,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 1,
+          "over100Ms": 0
+        },
+        "drive": {
+          "p95Ms": 34,
+          "p99Ms": 38,
+          "maxMs": 228,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "callbackP95Ms": 37,
+          "frames": 1770,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": false,
+          "medianFps": 30.303,
+          "over50Ms": 6,
+          "over100Ms": 1
+        },
+        "interior": {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "gameP95Ms": 34,
+          "workP95Ms": 7,
+          "callbackP95Ms": 35,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "entry": {
+          "current": "driftwood-isle",
+          "residents": [
+            "driftwood-isle"
+          ],
+          "issues": {},
+          "inside": "driftwood-isle"
+        },
+        "constructedRuntimeInstances": [
+          "driftwood-isle"
+        ]
+      }
+    ],
+    "standingP95Ms": [
+      35,
+      34,
+      34
+    ],
+    "note": "Pine is never constructed. Outbound travel remains 37ms; return travel passes at35ms, between-hook drive max228ms is independently red."
   }
 }
