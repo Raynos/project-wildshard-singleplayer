@@ -4,8 +4,10 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { parseSync } from 'vite';
+import { importsOf } from './check-graph.mjs';
 import { runtimePerformanceSites } from '../lint/runtime-performance.mjs';
-import { compareLegacyInventory, LEGACY_INVENTORY } from './legacy-shards.mjs';
+import { compareLegacyInventory, legacyInventory, registeredLegacyFile, LEGACY_INVENTORY } from './legacy-shards.mjs';
 
 export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY];
 
@@ -61,6 +63,52 @@ function verbatimRuntimeMoves(before, after, trees) {
   return admitted;
 }
 
+// Frozen callers keep their original module until SF73 retirement. Only their primary may own
+// one verbatim native copy; arbitrary retained platform modules still grant no new allowance.
+function legacyRuntimeCopies(after, trees) {
+  const admitted = new Set();
+  if (trees === undefined) return admitted;
+  const inventory = legacyInventory(trees.baselineRoot), exists = file => existsSync(join(trees.baselineRoot, file));
+  const originals = new Map(), consumed = new Set();
+  const body = (source, filename) => {
+    const imports = parseSync(filename, source).program.body.filter(node => node.type === 'ImportDeclaration');
+    let end = 0, value = '';
+    for (const node of imports) { value += source.slice(end, node.start); end = node.end; }
+    return (value + source.slice(end)).trim();
+  };
+  for (const [folder, row] of Object.entries(inventory.shards)) {
+    for (const file of Object.keys(row.files)) {
+      const from = `src/shards/${folder}/${file}`;
+      if (!file.endsWith('.ts') || !registeredLegacyFile(inventory, from) || !exists(from)) continue;
+      const frozen = readFileSync(join(trees.baselineRoot, from), 'utf8');
+      if (createHash('sha256').update(frozen).digest('hex') !== row.files[file]) continue;
+      for (const edge of importsOf(from, frozen, exists)) {
+        const original = edge.to;
+        if (!/^src\/(?:engine|game|sdk)\/.+\.ts$/u.test(original) || !exists(original)) continue;
+        const next = join(trees.candidateRoot, original), source = readFileSync(join(trees.baselineRoot, original), 'utf8');
+        if (!existsSync(next) || readFileSync(next, 'utf8') !== source) continue;
+        originals.set(`${row.primary}:${original}`, { primary: row.primary, original, source, body: body(source, original), counts: siteCounts(source, original) });
+      }
+    }
+  }
+  const files = new Map();
+  for (const [site, item] of Object.entries(after.sites)) {
+    const match = /^(src\/shards\/([^/]+)\/(?:runtime|generators)\/[^:]+\.ts):([^:]+):([a-f0-9]{64})$/u.exec(site);
+    if (match === null || !Number.isSafeInteger(item.count) || item.count <= 0) continue;
+    const [, file, primary, rule, hash] = match;
+    if (file.split('/').includes('..') || existsSync(join(trees.baselineRoot, file)) || !existsSync(join(trees.candidateRoot, file))) continue;
+    if (!files.has(file)) {
+      const source = readFileSync(join(trees.candidateRoot, file), 'utf8'), normalized = body(source, file);
+      const original = [...originals.values()].find(value => value.primary === primary && value.body === normalized && !consumed.has(value.original));
+      if (original !== undefined) { consumed.add(original.original); files.set(file, { counts: siteCounts(source, file), original }); }
+      else files.set(file, null);
+    }
+    const target = files.get(file), key = `${rule}:${hash}`;
+    if (target !== null && target !== undefined && (target.counts.get(key) ?? 0) >= item.count && (target.original.counts.get(key) ?? 0) >= item.count) admitted.add(site);
+  }
+  return admitted;
+}
+
 /** Explicit immutable trees permit proven verbatim moves; every other policy allowance remains shrink-only. */
 export function comparePlatformList(list, baselineFile, candidateFile, trees) {
   if (list === CLASS_MOVE_LIST) {
@@ -110,6 +158,7 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees) {
     }
     const before = JSON.parse(readFileSync(baselineFile, 'utf8')), failures = [];
     const migrated = verbatimRuntimeMoves(before, after, trees);
+    for (const site of legacyRuntimeCopies(after, trees)) migrated.add(site);
     if (after.baselineAt !== before.baselineAt || after.about !== before.about || Object.keys(after).sort().join(',') !== Object.keys(before).sort().join(',')) failures.push(`${list}: review metadata changed`);
     for (const [site, item] of Object.entries(after.sites)) {
       const previous = before.sites[site];

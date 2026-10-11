@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Immutable frozen-source identities in the guard fixture.
+import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real lint binary and immutable predecessor files.
 import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixtures own and remove their temporary files.
@@ -5,7 +7,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Temporary fixture root.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Real binary and policy fixture paths.
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { checkProjectRuntime } from '../src/sdk/runtimePerformance';
 import { comparePlatformList } from '../scripts/check-platform-ratchets.mjs';
 import { expect, it } from 'vitest';
@@ -138,5 +140,47 @@ it.each(['game', 'sdk', 'engine'])('admits a verbatim %s site only when its pred
     expect(compare()).toHaveLength(1); // One removed site cannot fund two destinations.
     rmSync(join(baselineRoot, old)); write(candidateRoot, list, JSON.stringify(after));
     expect(compare().join(',')).toContain('new runtime site'); // No predecessor, no migration.
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+it('admits one verbatim primary copy of a retained platform module only for an exact registered frozen caller', () => {
+  const root = mkdtempSync(join(tmpdir(), 'legacy-runtime-copy-'));
+  const baselineRoot = join(root, 'before'), candidateRoot = join(root, 'after');
+  const original = 'export function update(){return new Float32Array(3)}';
+  const old = 'src/game/system.ts', filename = 'src/shards/fixture/runtime/system.ts';
+  const frozen = "import '@wildshard/game/system';\n";
+  const list = 'lint/runtime-performance.json';
+  const write = (tree: string, name: string, source: string): void => {
+    const path = join(tree, name); mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, source);
+  };
+  try {
+    write(baselineRoot, old, original); write(candidateRoot, old, original); write(candidateRoot, filename, original);
+    const site = runtimePerformanceSites(original, filename)[0]; if (site === undefined) throw new Error('Missing copy site');
+    const key = `${filename}:${site.kind}:${site.site}`;
+    const before = { about: 'fixture', baselineAt: 'fixture', sites: {} };
+    const after = { ...before, sites: { [key]: { count: 1, row: 'SF76 verbatim legacy copy' } } };
+    write(baselineRoot, list, JSON.stringify(before)); write(candidateRoot, list, JSON.stringify(after));
+    const compare = (): string[] => comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), { baselineRoot, candidateRoot });
+    expect(compare().join(',')).toContain('new runtime site');
+    write(baselineRoot, 'src/shards/fixture-legacy/manifest.ts', frozen);
+    write(baselineRoot, 'src/shards/fixture-legacy/plugin.ts', 'export const plugin = 1;\n');
+    const hash = (value: string): string => createHash('sha256').update(value).digest('hex');
+    write(baselineRoot, 'lint/legacy-shards.json', JSON.stringify({ version: 1, sealed: true, shards: { 'fixture-legacy': {
+      primary: 'fixture', source: 'a'.repeat(40), files: { 'manifest.ts': hash(frozen), 'plugin.ts': hash('export const plugin = 1;\n') },
+    } } }));
+    expect(compare()).toEqual([]);
+    write(candidateRoot, filename, `${original}export const added = 1;\n`);
+    expect(compare().join(',')).toContain('new runtime site');
+    write(candidateRoot, filename, original); write(candidateRoot, old, `${original}\n// altered original\n`);
+    expect(compare().join(',')).toContain('new runtime site');
+    write(candidateRoot, old, original); write(baselineRoot, 'src/shards/fixture-legacy/manifest.ts', `${frozen}// changed\n`);
+    expect(compare().join(',')).toContain('new runtime site');
+    write(baselineRoot, 'src/shards/fixture-legacy/manifest.ts', frozen);
+    const second = 'src/shards/fixture/runtime/second.ts'; write(candidateRoot, second, original);
+    write(candidateRoot, list, JSON.stringify({ ...after, sites: { ...after.sites, [`${second}:${site.kind}:${site.site}`]: { count: 1, row: 'SF76' } } }));
+    expect(compare()).toHaveLength(1);
+    const foreign = 'src/shards/other/runtime/system.ts'; write(candidateRoot, foreign, original);
+    write(candidateRoot, list, JSON.stringify({ ...before, sites: { [`${foreign}:${site.kind}:${site.site}`]: { count: 1, row: 'SF76' } } }));
+    expect(compare().join(',')).toContain('new runtime site');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
