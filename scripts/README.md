@@ -214,6 +214,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [fit-lut.py](./fit-lut.py)
 - [frame-floor-grid.d.mts](./frame-floor-grid.d.mts)
 - [frame-floor-grid.mjs](./frame-floor-grid.mjs)
+- [frame-floor-programs.mjs](./frame-floor-programs.mjs)
 - [frame-floor.mjs](./frame-floor.mjs) — live cadence from drawn-frame rAF timestamps, with callback-time and CPU-work p95 diagnostics; owns isolated previews and browser/Simulator lanes. `--device=<name>` selects the Simulator (default `frame-floor-iphone-17-pro`); each run writes a separate `progress/frame-floor/<sha>-<run-id>.json`.
 - [game-plugins.d.mts](./game-plugins.d.mts)
 - [game-plugins.mjs](./game-plugins.mjs)
