@@ -23,7 +23,7 @@ const PRESENTING_MS = 250;
 const DUE_SLACK_MS = 2;
 /** A paced wait never outlasts this, whatever the loop does (a hidden page, a lost context, a gated frame). */
 const WAIT_CAP_MS = 100;
-/** A lower game fps cap does not make the display's intervening presentation slots safe for longer build tasks. */
+/** Construction remains below half a 60 Hz display slot, even when the game draws less often. */
 const BUILD_FRAME_MS = 1000 / 60;
 
 let lastDrawn = Number.NEGATIVE_INFINITY;
@@ -60,12 +60,12 @@ export function frameDue(now: number = diagnosticNow()): boolean {
 }
 
 /**
- * Whether a presenting page's build work since its last drawn frame has used `budgetMs`, at most a quarter of a 60 Hz or faster frame: the budget is the
+ * Whether a presenting page's build work since its last drawn frame has used `budgetMs`, at most a quarter of the game frame and half a 60 Hz display slot: the budget is the
  * frame's, shared by every sliced build running at once. Each slice's own clock alone let several builds (a herd's coats,
  * the ground's arrays, the terrain) each run their stretch back to back, so no frame was drawn for 100-130 ms.
  */
 export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
-  return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, Math.min(interval, BUILD_FRAME_MS) / 4) || frameDue(now));
+  return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2) || frameDue(now));
 }
 
 /** The reported or inferred interval between drawn frames (ms); completion-only callers retain smoothing. */

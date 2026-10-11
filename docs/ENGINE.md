@@ -729,7 +729,7 @@ omitting the anchor preserves the original deadline, and uncapped cadence still 
 The CPU/render work already spent by that frame is not spare construction time; `workSlice` yields
 when that deadline is due even if its own nominal budget is not exhausted. Uncapped deadlines use the
 fastest observed cadence from actual rAF pairs, so neither the synchronous first draw nor a missed vsync changes the target.
-Piece-to-piece macrotasks share the same budget as sliced loops, capped at a quarter of a 60 Hz or faster frame while presenting; a lower game fps cap never grants longer build stretches. Completion-only
+Piece-to-piece macrotasks share the same budget as sliced loops, capped at a quarter of the game cadence and half a 60 Hz display slot (at most 8.33 ms). Caller budgets remain authoritative: the default 8 ms phone slice cannot grow with a slower cap; 60 Hz and faster retain their previous quarter-frame bound. Completion-only
 `noteFrameDrawn(at)` callers keep their original smoothed cadence. This changes scheduling only: no
 frame-cap, geometry, simulation, render-scale or quality change.
 

@@ -57,7 +57,7 @@ describe('workSlice', () => {
       expect(order).toEqual(['microtask', 'piece']);
       expect(owner.census).toMatchObject({ listeners: 0, timers: 0, rafs: 0, disposers: 0 });
       // A concurrent builder sees the same spent budget, even though its own piece was cheap.
-      now += 5;
+      now += 9;
       let resumed = false;
       const spent = buildYield(owner).then(() => { resumed = true; return true; });
       expect(tasks).toHaveLength(0); expect(frames).toHaveLength(1);

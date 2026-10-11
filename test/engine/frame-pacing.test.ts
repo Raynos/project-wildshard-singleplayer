@@ -48,13 +48,15 @@ describe('framePacing', () => {
     expect(frameDue(t + 15)).toBe(true);
     expect(frameBudgetSpent(8, t + 15)).toBe(true);
   });
-  it('keeps the declared phone cadence and never treats a missed desktop vsync as spare build time', () => {
+  it('uses a bounded phone construction slice and never treats a missed desktop vsync as spare build time', () => {
     setFramePacing(true);
     const t = 5_000_000;
     noteFrameDrawn(t + 8, t, 30);
     expect(frameInterval()).toBeCloseTo(1000 / 30);
     expect(frameBudgetSpent(8, t + 11)).toBe(false);
-    expect(frameBudgetSpent(8, t + 13)).toBe(true); // The 30 fps game cap never doubles a background build's CPU stretch.
+    expect(frameBudgetSpent(8, t + 15)).toBe(false);
+    expect(frameBudgetSpent(8, t + 17)).toBe(true); // Still an 8 ms slice, not the whole idle 30 fps interval.
+    expect(frameBudgetSpent(4, t + 13)).toBe(true); // A smaller caller budget remains authoritative.
     expect(frameDue(t + 20)).toBe(false);
     expect(frameDue(t + 32)).toBe(true);
     noteFrameDrawn(t + 100 + 4, t + 100, 60);
@@ -63,6 +65,17 @@ describe('framePacing', () => {
     expect(frameDue(t + 100 + 1000 / 30 + 15)).toBe(true);
     setFramePacing(false);
     expect(frameDue(t + 100 + 1000 / 30 + 15)).toBe(false);
+  });
+  it('caps slow presentation at half a display slot and honors faster display cadence', () => {
+    setFramePacing(true);
+    const t = 5_250_000;
+    noteFrameDrawn(t, t, 10);
+    expect(frameBudgetSpent(30, t + 8)).toBe(false);
+    expect(frameBudgetSpent(30, t + 9)).toBe(true);
+    noteFrameDrawn(t + 100, t + 100, 120);
+    expect(frameBudgetSpent(8, t + 102)).toBe(false);
+    expect(frameBudgetSpent(8, t + 103)).toBe(true);
+    setFramePacing(false);
   });
   it('shares the capped loop recovery anchor instead of giving builders a second late deadline', () => {
     setFramePacing(true);
