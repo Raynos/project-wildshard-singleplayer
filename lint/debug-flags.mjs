@@ -43,7 +43,8 @@ export function debugFlags(root) {
   function scan(dir) {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const file = resolve(dir, entry.name);
-      if (entry.isDirectory()) { scan(file); continue; }
+      // The SDK ships copied clients and author templates here; their defining sources are inventoried instead.
+      if (entry.isDirectory()) { if (file !== resolve(root, 'src/sdk/dist')) scan(file); continue; }
       if (!/\.[cm]?[jt]sx?$/u.test(file)) continue;
       const parsed = parseSync(file, readFileSync(file, 'utf8'));
       if (parsed.errors.length > 0) throw new Error(`Cannot inventory Debug rows in ${file}`);
