@@ -1,4 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
+import { parseAudioData } from '../../../src/sdk/audio';
+import { requireAudioProfile } from '../../../src/engine/audio/audioProfiles';
+import pineSource from '../../../src/shards/pine-hollow/shard.config';
 import { Scope } from '../../../src/engine/app/scope';
 import type { MusicState } from '../../../src/engine/audio/Music';
 import type { SlotAudio } from '../../../src/engine/audio/Stems';
@@ -25,6 +28,25 @@ describe('Pine score policy', () => {
     score.setPineScene('day'); score.setPineScene('boss'); expect(score.phase).toBe(1);
     expect(music.refreshScore).toHaveBeenCalledTimes(5);
     score.playSting('chunk'); expect(music.sting).toHaveBeenCalledWith('chunk');
+  });
+  it('takes emitted decode sets and refuses replacing a live owner before touching its state', async () => {
+    const wire = JSON.stringify(pineSource.audio), rows = parseAudioData(JSON.parse(wire));
+    const profile = requireAudioProfile(rows.music, 'score.pine');
+    profile.sets['pine'] = 'pine-hollow';
+    const music = host(), score = new PineScore(music, profile), scope = new Scope('pine.profile');
+    const decode = vi.spyOn(stems, 'decodeStyle').mockResolvedValue({ genre: 'piano', set: 'pine-hollow', log: [], slots: new Map([['pine', theme]]), stings: new Map() });
+    score.attach(scope); score.setPineScene('boss'); score.setBossPhase(3);
+    try {
+      const changed = { ...profile, minFade: 0.5 };
+      expect(() => score.bindProfile(changed)).toThrow('Cannot replace an entered Pine score profile');
+      expect(score.phase).toBe(3); expect(score.minFade).toBe(profile.minFade);
+      score.setPineScene('day'); score.want(undefined);
+      await vi.waitFor(() => { expect(decode).toHaveBeenCalledOnce(); expect(score.pending).toBe(false); });
+      expect(decode.mock.calls[0]?.[5]).toBe('pine-hollow'); expect(score.want(undefined)).toBe(theme);
+      scope.dispose(); score.setPineScene('boss'); score.setBossPhase(3); score.bindProfile(changed);
+      expect(score.phase).toBe(3); expect(score.sceneName).toBe('boss'); expect(score.minFade).toBe(0.5);
+      expect(score.stings.size).toBe(0);
+    } finally { scope.dispose(); decode.mockRestore(); }
   });
   it('releases resident score buffers and suppresses further loading when its level scope ends', () => {
     const music = host(), score = new PineScore(music), scope = new Scope('pine.score.test');
