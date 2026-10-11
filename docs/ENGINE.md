@@ -2776,6 +2776,8 @@ same files while runtime consumers and sealed legacy copies migrate.
 | `plugin/shardPlugin` | staged `ShardPlugin` constructor |
 | `plugin/lifecycle` | retained context and entered-service/input lifetime hooks |
 | `plugin/headless` | runtime row bindings for quests, items, ledger, state and spawns |
+
+`projectRuntimeFacts(emit, progress)` in `@wildshard/game/plugin/headless` projects an already bound runtime ledger into its caller-owned Progress view. The original ledger owns grants, writes and pending retries; its exact achievement/flush ports are retained. Emission refreshes the view once after the receipt, including duplicates; an undeclared fact throws before refresh. An absent view adds no presentation. Nine and Signal use this same binding.
 | `plugin/brain` | `SpeciesBrains` and the shared home/brain installers |
 | `plugin/bossPhase` | declared boss phase runtime and trusted observations |
 | `plugin/mover` | `MoverRuntime` and declared mover host installation |

@@ -1,5 +1,5 @@
 import type { Progress } from '@wildshard/game/Progress';
-import { bindRuntimeLedger } from '@wildshard/game/shardfile/hybridRows';
+import { bindRuntimeLedger, projectRuntimeFacts } from '@wildshard/game/plugin/headless';
 import source from '../shard.config';
 import type { NineFacts } from '../world/feats';
 
@@ -7,7 +7,6 @@ import type { NineFacts } from '../world/feats';
  *  profile (the platform grants each achievement once) and projected into Progress; nothing is granted here. */
 export function bindNineFacts(ctx: Parameters<typeof bindRuntimeLedger>[0], progress: Pick<Progress, 'bindLedger' | 'refreshLedger'> | undefined,
   instance = source.identity.slug): NineFacts {
-  const emit = bindRuntimeLedger(ctx, source, instance);
-  progress?.bindLedger({ count: (id) => emit.achievement(id)?.count ?? 0, earned: (id) => emit.achievement(id)?.earned ?? false, checkpoint: emit.flush });
-  return (name, entity) => { emit(name, entity); progress?.refreshLedger(); };
+  const facts = projectRuntimeFacts(bindRuntimeLedger(ctx, source, instance), progress);
+  return (name, entity) => { facts(name, entity); };
 }

@@ -1,3 +1,4 @@
+import type { Progress } from "../Progress";
 import { Vector3 } from 'three';
 import { shardContentIdentity, legacyContentIdentity } from "../shard/list";
 import type { Actor } from '@wildshard/engine/combat/pipeline';
@@ -117,6 +118,18 @@ export function bindRuntimeLedger(ctx: Pick<ShardContext, 'app'>, source: Shardf
     const row = ledger.state().achievements[JSON.stringify([identity.shard, id])];
     return row === undefined ? undefined : { count: row.count, earned: row.earned };
   } });
+}
+
+/** Project an existing runtime ledger into its caller-owned Progress view. The emitter remains the sole grant/write
+ * owner. Each successful or duplicate emission refreshes once; a thrown emission does not refresh. Pending-write
+ * retries and achievement reads are the exact original ports, and an absent view installs no presentation. */
+export function projectRuntimeFacts(emit: RuntimeFacts, progress: Pick<Progress, 'bindLedger' | 'refreshLedger'> | undefined): RuntimeFacts {
+  const facts = Object.assign((name: string, entity: string) => {
+    const receipt = emit(name, entity); progress?.refreshLedger(); return receipt;
+  }, { flush: emit.flush, achievement: emit.achievement });
+  progress?.bindLedger({ count: (id) => facts.achievement(id)?.count ?? 0,
+    earned: (id) => facts.achievement(id)?.earned ?? false, checkpoint: facts.flush });
+  return facts;
 }
 
 /** What a runtime lends a declared quest: its flags, built marker positions and an optional trusted presentation override. */

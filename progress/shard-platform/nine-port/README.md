@@ -6,7 +6,7 @@ G291/G294 before: **15,209 / 21,111 = 72.0430% custom**.
 After the native Jian row slice: **15,208 / 21,111 = 72.0383% custom**.
 After explicit grapple-mode admission: **15,212 / 21,111 = 72.0572% custom**.
 After explicit native portal/director admission: **15,218 / 21,111 = 72.0856% custom**; 20% gate FAIL. The ten additional host admission lines are charged, not presented as a size reduction.
-After the shared Nine/Sky standalone lifecycle and page mode binding: **15,202 / 21,111 = 72.0099% custom**. The lifecycle retired 17 genuinely duplicated shard lines; the page mode binding adds one explicit mode read. The 20% gate still FAILS.
+After the shared entry, page mode and ledger binding slices: **15,201 / 21,111 = 72.0051% custom**. The lifecycle retired 17 genuinely duplicated shard lines; the page mode read adds one and the ledger binding removes one. The 20% gate still FAILS.
 The frozen denominator is `nine-dragon-stack-legacy` at `8e297137b940f50da7f1949106d5576f80f238ca`. Current numerator: 14,292 authored shard TS lines, 1 additional GLSL line and 908 one-user platform lines. Embedded GLSL (3,205 lines) is already inside the TS numerator, not added twice. AS: 0. Generated data never counts. The template is not a second user.
 
 Nine remains **transitional**: its gameplay witness/replay/ledger pass, but trusted TS still runs its simulation. The source-only export has no emitted shardfile product, so the content gate is unavailable; no tiles/collider/file completeness or finished 80/20 conversion is claimed.
@@ -50,6 +50,12 @@ The page Tool now gives its existing selector and fire/reel presentation the ins
 
 Proof: 27 focused tests across five files, strict typecheck, touched-file typed lint and hooks. The page Tool uses real Rapier, and the native row oracle/Well sight/physics provenance fixtures pass. All four witness payloads are byte-identical. No physics or map input was changed.
 
+## Sixth slice: authoritative Progress projection shared with Signal
+
+Nine and Signal now use one ledger-to-Progress projection in the existing defining game plugin. Their admitted ledger still owns each grant and durable write; achievement reads and pending retry are the original ports. The existing page callback order, duplicate refresh, undeclared-fact refusal and Nine’s void-returning sink remain exact. This retires duplicated binding code from two actual shards, with no new plugin export or SDK facade.
+
+Proof: 28 focused tests across seven files, strict and touched typed lint pass. Both actual shard bindings reproduce the old callback order, receipts and saved profile bytes under the same clock, including duplicates and undeclared-fact refusal. Exact pending-write ports retry the same ledger; the real Signal Progress checkpoint test passes. All four native witness payloads are byte-identical; both physics provenance fixtures pass.
+
 ## Remaining work
 
 - **OPEN, non-visual:** native item/portal/grapple host adapters and continuation. Portal links and DIR stages already drive the native ride; grapple numeric modes already drive the shared law. The Well’s line-of-sight exception, cap owner and lift geometry require explicit course ports. Deleting those adapters without an equivalent row host would change gameplay.
@@ -57,9 +63,9 @@ Proof: 27 focused tests across five files, strict typecheck, touched-file typed 
 - **WAITING FOR OPUS:** raw GLSL/materials, signs/font atlas, viewmodels/aim/HUD presentation, visual culling, portal veil, cloth/canopy, and final world/material pixel parity. These remain custom until genuinely replaced.
 - **OPEN, shared ownership:** the one-user platform modules below count fully under G294. A second real shard must actually use them; no wrapper or template user removes that charge.
 
-## Non-graphical stop inventory
+## Non-graphical inventory
 
-The remaining authored TS inventory below is complete at this slice; the 178-file inventory reproduces the defining metric. There are real non-graphical blockers, so the port is not declared finished.
+The remaining authored TS inventory below is complete at this slice; the 178-file inventory reproduces the defining metric. The port remains open. The next authored-world slice can emit the front boxes without waiting for a new treads primitive.
 
 | Remaining owner | Exact state / blocker |
 |---|---|
@@ -248,7 +254,7 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `runtime/looks/uniformScan.ts` | 11 | O |
 | `world/canopy.ts` | 11 | O |
 | `look/light/lightvol.ts` | 10 | O |
-| `runtime/facts.ts` | 10 | X |
+| `runtime/facts.ts` | 9 | X |
 | `models/landingPlanter.ts` | 9 | O |
 | `runtime/portals.ts` | 15 | X |
 | `vm/geo.ts` | 9 | O |
