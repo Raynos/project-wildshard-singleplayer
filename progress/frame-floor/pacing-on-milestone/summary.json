@@ -1072,5 +1072,179 @@
       "failure": null,
       "harnessRevision": "165ec50ab527097d704bd0780bfa4b2db68d59c9"
     }
-  ]
+  ],
+  "pinePreparation": {
+    "source": "5dcd0008a280562a69df4bb4d4aec0c051e61065",
+    "changes": [
+      "a6c81a933",
+      "5dcd0008a"
+    ],
+    "focusedTests": 17,
+    "strict": true,
+    "touchedLint": true,
+    "profile": {
+      "source": "1046bba3d4f3e1f78cdcedd28c9f9621e5f63664",
+      "surface": "desktop",
+      "timingCredit": false,
+      "afterPlay": {
+        "maxMs": 67,
+        "textureSubimageMs": 60.4,
+        "commandBufferWaitMs": 55.5
+      },
+      "activate": {
+        "maxMs": 67,
+        "updateSystemsInclusiveMs": 47.5,
+        "layoutMs": 9.6,
+        "owners": [
+          "Grass initial fill and per-cell seeds/noise/RNG",
+          "FarHerd growth",
+          "grid HUD class change/layout"
+        ],
+        "audioContextConstructed": false
+      }
+    },
+    "comparisonCaveat": "Candidate includes sp-x2 frame-cap changes; cadence changes are not credited to grass preparation. Targeted check does not replace the complete milestone baseline.",
+    "targeted": [
+      {
+        "source": "5dcd0008a280562a69df4bb4d4aec0c051e61065",
+        "when": "2026-10-11T03:47:37.366Z",
+        "complete": true,
+        "seconds": 143.085,
+        "build": "production",
+        "glObserver": "off",
+        "harnessRevision": "ebba1e877ce511abd5b6bbbeb6d6a65164dbf77d",
+        "errors": [],
+        "rows": [
+          {
+            "surface": "sim",
+            "pose": "grid-pine-hollow-road-entry-travel",
+            "frames": 120,
+            "medianFps": 30.303,
+            "maxMs": 102,
+            "p95Ms": 52,
+            "framesOver": 1,
+            "pass": false,
+            "reason": "p95",
+            "hooks": []
+          },
+          {
+            "surface": "sim",
+            "pose": "grid-pine-hollow-road-entry-drive",
+            "frames": 840,
+            "medianFps": 30.303,
+            "maxMs": 154,
+            "p95Ms": 36,
+            "framesOver": 3,
+            "pass": false,
+            "reason": "p95",
+            "hooks": [
+              {
+                "hook": "pine-hollow:world",
+                "frames": 6,
+                "maxMs": 102,
+                "totalMs": 381,
+                "gl": {}
+              },
+              {
+                "hook": "between hooks",
+                "frames": 3,
+                "maxMs": 76,
+                "totalMs": 190,
+                "gl": {}
+              },
+              {
+                "hook": "pine-hollow:play",
+                "frames": 1,
+                "maxMs": 154,
+                "totalMs": 154,
+                "gl": {}
+              },
+              {
+                "hook": "pine-hollow:afterKit",
+                "frames": 2,
+                "maxMs": 70,
+                "totalMs": 128,
+                "gl": {}
+              },
+              {
+                "hook": "pine-hollow:activate",
+                "frames": 1,
+                "maxMs": 104,
+                "totalMs": 104,
+                "gl": {}
+              }
+            ]
+          },
+          {
+            "surface": "sim",
+            "pose": "grid-pine-hollow-road-entry",
+            "frames": 120,
+            "medianFps": 30.303,
+            "maxMs": 45,
+            "p95Ms": 34,
+            "framesOver": 0,
+            "pass": false,
+            "reason": "p95",
+            "hooks": []
+          }
+        ]
+      },
+      {
+        "source": "5dcd0008a280562a69df4bb4d4aec0c051e61065",
+        "when": "2026-10-11T03:50:50.767Z",
+        "complete": true,
+        "seconds": 99.114,
+        "build": "production",
+        "glObserver": "off",
+        "harnessRevision": "7215f0e0edb94ba23767262bff1fac69f24ea386",
+        "errors": [],
+        "rows": [
+          {
+            "surface": "desktop",
+            "pose": "grid-pine-hollow-road-entry-travel",
+            "frames": 120,
+            "medianFps": 59.88,
+            "maxMs": 33.3,
+            "p95Ms": 16.7,
+            "framesOver": 0,
+            "pass": true,
+            "reason": null,
+            "hooks": []
+          },
+          {
+            "surface": "desktop",
+            "pose": "grid-pine-hollow-road-entry-drive",
+            "frames": 750,
+            "medianFps": 59.88,
+            "maxMs": 50.1,
+            "p95Ms": 16.8,
+            "framesOver": 1,
+            "pass": true,
+            "reason": null,
+            "hooks": [
+              {
+                "hook": "pine-hollow:afterPlay",
+                "frames": 1,
+                "maxMs": 50,
+                "totalMs": 50,
+                "gl": {}
+              }
+            ]
+          },
+          {
+            "surface": "desktop",
+            "pose": "grid-pine-hollow-road-entry",
+            "frames": 120,
+            "medianFps": 59.88,
+            "maxMs": 16.8,
+            "p95Ms": 16.7,
+            "framesOver": 0,
+            "pass": true,
+            "reason": null,
+            "hooks": []
+          }
+        ]
+      }
+    ]
+  }
 }

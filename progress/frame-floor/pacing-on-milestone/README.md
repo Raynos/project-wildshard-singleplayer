@@ -43,3 +43,22 @@ Raw arrays stay in scratch. The scalar summary retains all phase metrics, validi
 
 
 Worst route: Pine activation, 414 ms on the Simulator. Nalati activation is 230 ms; the template outbound drive has a 228 ms between-hook frame. Signal has a 277 ms afterPlay frame. This is a RED milestone, not a passing default-pacing claim. Pine activation is the next profiling target; Signal activation and the Simulator frame-cap fix remain with sp-x2.
+
+## Pine attribution and first-frame preparation
+
+A separate desktop CPU/GPU profile on `1046bba3d` found two different frames. `afterPlay` waited on texture upload (60.4 ms in `texSubImage2D`, 55.5 ms command-buffer waits). `activate` ran the update systems: grass's initial `flush(Infinity)` / cell seeding / noise and RNG, far-herd growth, and the HUD class change with layout. It did **not** construct an AudioContext. The profile itself is diagnostic, not baseline timing credit.
+
+`a6c81a933` adds owner-scoped render-data preparation; `5dcd0008a` connects it to the actual entered `precompileLevel` path as well as streamed-root warm-up. Grass fills the same initial cell window in cooperative slices before compilation / first draw, rather than all in the activation update. Every grass and flower matrix / colour element matches the old first fill; the next update does not refill. Standalone updates keep their original path. Seventeen focused tests, strict checking and touched lint passed. No simulation, collider, shader or appearance change.
+
+The first queued check was cancelled before measurement after noticing the missed entered warm-up call. It is not a failed timing sample. The targeted Simulator check uses `5dcd0008a`; that pin also contains sp-x2's frame-cap fix, so cadence improvement is not credited to grass preparation.
+
+The plain targeted Simulator pass completed in 143.1 s with zero errors, no profiler or GL observer, and released its browser / preview / Simulator before ending the quiet window. Pine activation was **104 ms** (baseline 414 ms); the whole drive peaked at **154 ms**, with three frames over 100 ms. Travel p95 was 52 ms, whole-drive p95 36 ms, and the 120-frame entry interior p95 34 ms. Median was 30.303 fps in each phase. The spike gate now passes for Pine, but the strict p95 gate still fails. This targeted check does not replace or regrade the other milestone rows.
+
+The same-pin plain desktop check completed in 99.1 s, zero errors: whole-drive max **50.1 ms**, p95 **16.8 ms**, one frame over 50 ms (`afterPlay`), median 59.88 fps. Travel p95 16.7 ms and entry-interior p95 16.7 ms both pass; activation produced no frame over 50 ms. All desktop phases pass. Its browser and preview were closed before quiet release.
+
+| Targeted Pine drive | Max ms | p95 ms | Frames over threshold | Verdict |
+| --- | ---: | ---: | ---: | --- |
+| Desktop, prepared | 50.1 | 16.8 | 1 (>50 ms) | PASS |
+| Simulator, prepared | 154 | 36 | 3 (>100 ms) | FAIL (p95) |
+
+Milestone stays **RED**. The worst activation spike is reduced and Pine now fits the Simulator spike limit, but cadence still needs sp-x2's frame-cap work; the other baseline failures remain open. This does not claim a fresh full-route milestone pass.
