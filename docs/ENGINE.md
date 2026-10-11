@@ -3177,3 +3177,10 @@ SF85 WP-2 single-bolt rows: Pine declares crossbow and lever on `firearm`, dispa
 SF85 WP-2 Nalati rifle declaration: its existing magazine owner reads `data/rifleProfile.ts` through the native AR15 profile. The numeric firearm declaration owns magazine/reserve, reload/interval, hitscan range/damage/spread and bloom; the native class body, rendered rig and saved slot remain unchanged. Declaration adoption does not host a headless rifle: Nalati's native weapon requirement stays open.
 
 SF85 WP-2 Nalati javelins: the numeric `thrown` declaration in `data/javelinProfile.ts` feeds the existing native spear-slot `Thrown` profile (weapon.javelin), its gravity helper, ammunition, launch/recovery, pickup and pool. Thrust and mounted lance remain independent native laws; the rendered rig, class body and saved spear slot do not change. This declaration does not close Nalati's unhosted headless spear/weapon requirement.
+
+SF82 `plugin/bossPhase.bossFight` also accepts the strict `script` boss profile
+with `{bytes, random}` ports. It validates the full existing elite declaration
+and module hash before constructing the original `EliteScriptLane`. The same
+`plugin/brain.stepEliteScript` steps lanes first, reads host values, then applies
+the returned ordered verbs. This changes neither the native engagement prelude
+nor the fixed encounter clock. No module bytes or random stream are inferred.

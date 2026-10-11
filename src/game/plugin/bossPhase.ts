@@ -1,3 +1,5 @@
+import { ScriptBossProfileSchema, type BossProfile } from '@wildshard/format/bossProfiles';
+import { EliteScriptLane } from './brain';
 import { createRoamingBossFight } from "../shardfile/phasedBossRoaming";
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { MathUtils, Vector3 } from 'three';
@@ -843,6 +845,11 @@ export interface HeldBossFight {
   readonly script: BossScript; readonly shielded: () => boolean;
   readonly snapshot: () => { hp: number; invulnerable: boolean }; readonly restore: (value: unknown) => void;
 }
+/** An existing AS policy row, preserving the complete ordered slot/contact/action declaration. */
+export type ScriptBossProfile = Extract<BossProfile, { pattern: 'script' }>;
+/** The AS host's immutable admitted module bytes and its actual owned random stream. */
+export interface ScriptBossPorts { readonly bytes: Uint8Array; readonly random: () => number }
+
 /** One boss declaration selects its native arena, roaming, spawned or held pattern; ports cannot select a different pattern. */
 export type BossFightProfile<K extends string = string, A extends string = string, Q extends string = string> =
   | { readonly kind: 'boss'; readonly pattern: 'arena'; readonly fight: PhasedBossRow }
@@ -923,11 +930,17 @@ export function bossFight<B extends RoamingBossBody,L,R,K extends string,A exten
 export function bossFight<B extends BodyBossActor>(profile: Extract<BossFightProfile,{pattern:'spawned'}>, ports: SpawnedBossPorts<B>): SpawnedBossFight<B>;
 /** Run a retained-body checkpoint pattern with its native brain restart and absent-body semantics. */
 export function bossFight<B extends BodyBossActor>(profile: Extract<BossFightProfile,{pattern:'held'}>, ports: HeldBossPorts<B>): HeldBossFight;
+/** Run an admitted existing AS fight policy with its original lane clock, rewind law and command order. */
+export function bossFight(profile: ScriptBossProfile, ports: ScriptBossPorts): EliteScriptLane;
 /** Strict pattern-to-host resolution happens before allocation, RNG, actor changes or view calls. */
-export function bossFight<B extends PhasedBossBody,C extends RoamingBossBody,D extends BodyBossActor,L,R,K extends string,A extends string,Q extends string>(profile: BossFightProfile<K,A,Q>,ports: PhasedBossPorts<B>|RoamingBossPorts<C,L,R,K,A,Q>|SpawnedBossPorts<D>|HeldBossPorts<D>): PhasedBossFight<B>|RoamingBossFight<C,L,R>|SpawnedBossFight<D>|HeldBossFight {
+export function bossFight<B extends PhasedBossBody,C extends RoamingBossBody,D extends BodyBossActor,L,R,K extends string,A extends string,Q extends string>(profile: BossFightProfile<K,A,Q>|ScriptBossProfile,ports: PhasedBossPorts<B>|RoamingBossPorts<C,L,R,K,A,Q>|SpawnedBossPorts<D>|HeldBossPorts<D>|ScriptBossPorts): PhasedBossFight<B>|RoamingBossFight<C,L,R>|SpawnedBossFight<D>|HeldBossFight|EliteScriptLane {
   if (!bossKind(profile.kind)) throw new Error('Unknown boss row kind');
+  if (profile.pattern === 'script' && 'bytes' in ports && ports.bytes instanceof Uint8Array && 'random' in ports && typeof ports.random === 'function') {
+    const admitted = v.parse(ScriptBossProfileSchema, profile);
+    return new EliteScriptLane(admitted.fight, ports.bytes, ports.random);
+  }
   if (profile.pattern === 'arena' && 'arena' in ports) return fixedPhasedBossFight(profile.fight,ports);
-  if (profile.pattern === 'roaming' && 'random' in ports) return createRoamingBossFight(profile.fight,ports);
+  if (profile.pattern === 'roaming' && 'random' in ports && 'body' in ports) return createRoamingBossFight(profile.fight,ports);
   if (profile.pattern === 'spawned' && 'rewardPoint' in ports && 'victory' in ports) return bodyBossFight(profile,ports);
   if (profile.pattern === 'held' && 'brain' in ports) return bodyBossFight(profile,ports);
   throw new Error('Boss row/host policy mismatch');
