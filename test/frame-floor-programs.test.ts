@@ -36,4 +36,8 @@ it('names submitted shader variants without GL queries or changing driver argume
   expect(gl.shaderSource(null, source)).toBe('source-result');
   expect(gl.attachShader(null, null)).toBe('attach-result');
   expect(calls.at(-1)?.args).toEqual([null, null]);
+  const unnamed = {}, unnamedProgram = {};
+  gl.shaderSource(unnamed, '#define SHADER_NAME \n#define HAS_NORMAL\nvoid main(){}');
+  gl.attachShader(unnamedProgram, unnamed);
+  expect(Reflect.apply(reader, window, [unnamedProgram])).toMatch(/^unnamed\/[0-9a-f]+$/u);
 });
