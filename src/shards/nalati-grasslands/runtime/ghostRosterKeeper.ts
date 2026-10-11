@@ -1,3 +1,5 @@
+import type { DirectorLane } from '@wildshard/game/plugin/director';
+import { GhostVolleyDirector } from './ghostVolleyDirector';
 import * as v from 'valibot';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { Vector3 } from 'three';
@@ -25,7 +27,7 @@ export interface GhostRosterPorts<A extends AnimalSim> {
 }
 const MAX = 64, finite = v.pipe(v.number(), v.finite());
 const Row = v.strictObject({ id: v.string(), quiet: v.boolean(), fade: finite, fadeTarget: finite, dying: finite, fireT: finite, dead: v.boolean() });
-const Saved = v.strictObject({ version: v.literal(1), hold: v.boolean(), freeze: v.boolean(),
+const Saved = v.strictObject({ version: v.literal(2), volley: v.pipe(v.string(), v.maxLength(1_000_000)), hold: v.boolean(), freeze: v.boolean(),
   killsTonight: v.pipe(finite, v.integer(), v.minValue(0)), respawnT: finite,
   riders: v.pipe(v.array(Row), v.maxLength(MAX)), lines: v.pipe(v.array(v.pipe(v.array(v.strictObject({ id: v.string(), dead: v.boolean() })), v.maxLength(MAX))), v.maxLength(MAX)) });
 const invalid = new Error('Incompatible ghost roster identities');
@@ -36,7 +38,10 @@ const invalid = new Error('Incompatible ghost roster identities');
 export class GhostRosterKeeper<A extends AnimalSim> {
   hold = false; freeze = false; killsTonight = 0;
   private respawnT = -1;
-  constructor(private readonly ports: GhostRosterPorts<A>) {}
+  private readonly volley: GhostVolleyDirector<GhostRosterMember<A>>;
+  constructor(private readonly ports: GhostRosterPorts<A>, lane: DirectorLane) {
+    this.volley = new GhostVolleyDirector(lane, () => ports.random(), r => { ports.shoot(r); });
+  }
   living(): number {
     let n = 0;
     for (let i = 0; i < MAX; i++) { const r = this.ports.riders[i]; if (r === undefined) break; if (!r.dead) n++; }
@@ -80,11 +85,8 @@ export class GhostRosterKeeper<A extends AnimalSim> {
         if (r.dying >= 1.3) { this.ports.retire(r); riders.splice(i, 1); continue; }
       }
       if (r.dead || this.ports.hidden(a)) continue;
-      r.fireT -= dt;
       const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
-      if (!r.quiet && r.fireT <= 0 && d < 62 && d > 6 && (r.line === null || r.line.mode === 'engage')) {
-        this.ports.shoot(r); r.fireT = 3 + this.ports.random() * 1.8;
-      }
+      this.volley.advance(r, dt, d, r.line === null || r.line.mode === 'engage');
     }
     for (let i = 63; i >= 0; i--) {
       const line = lines[i]; if (line === undefined) continue;
@@ -102,7 +104,7 @@ export class GhostRosterKeeper<A extends AnimalSim> {
     this.ports.arrows(dt);
   }
   snapshot(): v.InferOutput<typeof Saved> {
-    return { version: 1, hold: this.hold, freeze: this.freeze, killsTonight: this.killsTonight, respawnT: this.respawnT,
+    return { version: 2, volley: this.volley.snapshot(), hold: this.hold, freeze: this.freeze, killsTonight: this.killsTonight, respawnT: this.respawnT,
       riders: this.ports.riders.map(r => ({ id: r.a.entityId, quiet: r.quiet, fade: r.fade, fadeTarget: r.fadeTarget, dying: r.dying, fireT: r.fireT, dead: r.dead })),
       lines: this.ports.lines.map(line => line.riders.map(r => ({ id: r.a.entityId, dead: r.dead }))) };
   }
@@ -123,6 +125,7 @@ export class GhostRosterKeeper<A extends AnimalSim> {
         if (active !== undefined && active.dead !== row.dead) throw invalid;
       }
     }
+    this.volley.restore(s.volley);
     this.hold = s.hold; this.freeze = s.freeze; this.killsTonight = s.killsTonight; this.respawnT = s.respawnT;
     for (let i = 0; i < MAX; i++) {
       const row = s.riders[i]; if (row === undefined) break; const r = riders[i]; if (r === undefined) throw invalid;

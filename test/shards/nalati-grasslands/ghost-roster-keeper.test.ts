@@ -1,3 +1,4 @@
+import { createNalatiGhostRoster } from '../../../src/shards/nalati-grasslands/runtime/headlessGhost';
 // oxlint-disable-next-line import/no-nodejs-modules -- Authenticate the frozen shipping roster law.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep its provenance fail-closed.
@@ -8,12 +9,12 @@ import { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { Rng } from '../../../src/engine/core/rng';
 import { variantMods } from '../../../src/engine/entities/species/registry';
 import { GHOSTRIDER_SPECIES } from '../../../src/shards/nalati-grasslands/species/ghostRider';
-import { GhostRosterKeeper, type GhostRosterPorts } from '../../../src/shards/nalati-grasslands/runtime/ghostRosterKeeper';
+import type { GhostRosterPorts } from '../../../src/shards/nalati-grasslands/runtime/ghostRosterKeeper';
 import { GhostRosterOracle, type Rider, type Line } from '../../fixtures/nalati-ghost-roster-oracle/shipping';
 import bodies from '../../fixtures/nalati-ghost-roster-oracle/shipping.json' with { type: 'json' };
 import source from '../../fixtures/nalati-ghost-roster-oracle/source.json' with { type: 'json' };
 
-function fixture() {
+async function fixture() {
   const species = GHOSTRIDER_SPECIES, variant = species.variants.find(row => row.id === 'rider');
   if (variant === undefined) throw new Error('Missing actual ghost rider row');
   const rig = species.build(variant, new Rng(9101)), spec = { kind: species.kind, label: variant.label, variant: variant.id,
@@ -40,16 +41,16 @@ function fixture() {
     shoot: r => { events.push(['shoot', r.a.entityId, rng.next(), rng.next()]); },
     retire: r => { r.a.hidden = true; events.push(['retire', r.a.entityId]); },
     killed: (a, count) => { events.push(['kill', a.entityId, count]); }, arrows: dt => { events.push(['arrows', dt]); } };
-  return { player, rng, riders, lines, all, modes, events, spawnLine, ports, keeper: new GhostRosterKeeper(ports), oracle: new GhostRosterOracle(ports, riders, lines),
+  return { player, rng, riders, lines, all, modes, events, spawnLine, ports, keeper: await createNalatiGhostRoster(ports, 19001), oracle: new GhostRosterOracle(ports, riders, lines),
     phase: (value: string): void => { phase = value; }, spawnCount: () => spawnCount };
 }
-function oldState(f: ReturnType<typeof fixture>) {
+function oldState(f: Awaited<ReturnType<typeof fixture>>) {
   const o = f.oracle;
   return { version: 1, hold: o.hold, freeze: o.freeze, killsTonight: o.killsTonight, respawnT: o.respawnT,
     riders: f.riders.map(r => ({ id: r.a.entityId, quiet: r.quiet, fade: r.fade, fadeTarget: r.fadeTarget, dying: r.dying, fireT: r.fireT, dead: r.dead })),
     lines: f.lines.map(line => line.riders.map(r => ({ id: r.a.entityId, dead: r.dead }))) };
 }
-function scenario(f: ReturnType<typeof fixture>, tick: number, old: boolean): void {
+function scenario(f: Awaited<ReturnType<typeof fixture>>, tick: number, old: boolean): void {
   const control = old ? f.oracle : f.keeper;
   control.hold = tick >= 10 && tick < 70; control.freeze = tick >= 90 && tick < 110;
   f.player.position.set(tick % 250 < 100 ? 15 : tick % 250 < 150 ? 1000 : 40, 27, -20);
@@ -61,26 +62,26 @@ function scenario(f: ReturnType<typeof fixture>, tick: number, old: boolean): vo
   if (tick === 4700) { const a = f.riders[0]?.a; if (a !== undefined) control.dissolve(a); }
 }
 
-it('matches attach/nightfall, hold/freeze, reverse deaths, fades, quiet volleys and the real 60-second replacement clock', () => {
+it('matches attach/nightfall, hold/freeze, reverse deaths, fades, quiet volleys and the real 60-second replacement clock', async () => {
   const frozen = readFileSync('test/fixtures/nalati-ghost-roster-oracle/shipping.ts', 'utf8');
   for (const [name, body] of Object.entries(bodies)) expect(frozen.split(`// BEGIN SHIPPING ${name}\n`)[1]?.split(`\n// END SHIPPING ${name}`)[0]).toBe(body);
   expect(createHash('sha256').update(readFileSync('test/fixtures/nalati-ghost-roster-oracle/shipping.json')).digest('hex')).toBe(source.sha256);
-  const a = fixture(), b = fixture(); a.keeper.attach(); b.oracle.attach();
+  const a = await fixture(), b = await fixture(); a.keeper.attach(); b.oracle.attach();
   for (let tick = 0; tick < 4800; tick++) {
     scenario(a, tick, false); scenario(b, tick, true);
     const dt = tick % 11 === 0 ? 1 / 30 : 1 / 60;
     a.keeper.update(dt); b.oracle.update(dt, tick / 60);
     expect(a.events).toEqual(b.events); a.events.length = 0; b.events.length = 0;
     if (tick % 20 === 0) {
-      expect(a.keeper.snapshot()).toEqual(oldState(b)); expect(a.rng.snapshot()).toEqual(b.rng.snapshot());
+      expect(nativeState(a.keeper.snapshot())).toEqual(oldState(b)); expect(a.rng.snapshot()).toEqual(b.rng.snapshot());
       expect(a.all.map(r => r.a.snapshot())).toEqual(b.all.map(r => r.a.snapshot()));
     }
   }
   expect(a.spawnCount()).toBe(3); expect(a.keeper.living()).toBe(2);
 });
 
-it('restores a partially retired line without callbacks, then continues the identical death/respawn suffix', () => {
-  const a = fixture(), b = fixture();
+it('restores a partially retired line without callbacks, then continues the identical death/respawn suffix', async () => {
+  const a = await fixture(), b = await fixture();
   a.spawnLine(); b.spawnLine();
   const firstA = a.riders[0], firstB = b.riders[0]; if (firstA === undefined || firstB === undefined) throw new Error('Missing first rider');
   firstA.a.applyDamage(100_000, new Vector3(), new Vector3()); firstB.a.applyDamage(100_000, new Vector3(), new Vector3());
@@ -103,9 +104,9 @@ it('restores a partially retired line without callbacks, then continues the iden
   expect(a.spawnCount()).toBe(2); expect(b.spawnCount()).toBe(2);
 });
 
-it('rejects malformed identities and contradictory active/line death flags before mutation', () => {
-  const f = fixture(); f.spawnLine(); const saved = f.keeper.snapshot();
-  for (const bad of [{ ...saved, extra: true }, { ...saved, version: 2 }, { ...saved, killsTonight: -1 }, { ...saved, respawnT: Infinity },
+it('rejects malformed identities and contradictory active/line death flags before mutation', async () => {
+  const f = await fixture(); f.spawnLine(); const saved = f.keeper.snapshot();
+  for (const bad of [{ ...saved, extra: true }, { ...saved, version: 1 }, { ...saved, killsTonight: -1 }, { ...saved, respawnT: Infinity },
     { ...saved, riders: saved.riders.map(r => ({ ...r, id: 'duplicate' })) }, { ...saved, riders: saved.riders.slice(1) },
     { ...saved, riders: saved.riders.map(r => ({ ...r, quiet: !r.quiet })) }, { ...saved, lines: [] },
     { ...saved, lines: saved.lines.map(line => line.map(r => ({ ...r, dead: true }))) }]) {
@@ -113,3 +114,9 @@ it('rejects malformed identities and contradictory active/line death flags befor
   }
   expect(f.events).toEqual([['spawn']]);
 });
+
+function nativeState(saved: ReturnType<Awaited<ReturnType<typeof fixture>>['keeper']['snapshot']>) {
+  const { volley, version, ...native } = saved;
+  void volley; void version;
+  return { version: 1, ...native };
+}

@@ -104,3 +104,7 @@ src/**/*.generated.*
 # SF81: retained Nalati raid author, portable content-hash build outputs.
 /src/shards/nalati-grasslands/behaviour/director.generated.json
 /src/shards/nalati-grasslands/assets/077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646
+
+# SF81: retained ghost volley author; portable cached outputs.
+/src/shards/nalati-grasslands/assets/3e6bce711c85df2ed170797d6d5ac606e89436e21d7865b07bc91f13d7912de1
+/src/shards/nalati-grasslands/behaviour/ghostVolley.generated.json

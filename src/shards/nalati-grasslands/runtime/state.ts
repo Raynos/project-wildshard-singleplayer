@@ -308,7 +308,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
-  const night = wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
+  const night = await wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
   let devMode: string | null = null, devT = 0, devNext: (() => void) | null | undefined;
   let painter: NalatiSkinPainter | null = null, syncT = 0;
   const prepareWildlife = (animals: AnimalManager): Wildlife => {

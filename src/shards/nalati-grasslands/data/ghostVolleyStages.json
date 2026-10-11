@@ -1,0 +1,102 @@
+{
+  "version": 2,
+  "id": "nalati.ghost-volley",
+  "inputs": {
+    "ghost_clock": "event:ghost.clock",
+    "ghost_shoot": "event:ghost.shoot",
+    "ghost_retry": "event:ghost.retry"
+  },
+  "stages": [
+    {
+      "id": "ready",
+      "do": [],
+      "next": [
+        {
+          "target": "clock",
+          "when": "ghost_clock"
+        },
+        {
+          "target": "shoot",
+          "when": "ghost_shoot"
+        },
+        {
+          "target": "retry",
+          "when": "ghost_retry"
+        }
+      ]
+    },
+    {
+      "id": "clock",
+      "when": "ghost_clock",
+      "do": [
+        {
+          "emit": "ghost.clock",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "clock",
+          "when": "ghost_clock"
+        },
+        {
+          "target": "shoot",
+          "when": "ghost_shoot"
+        },
+        {
+          "target": "retry",
+          "when": "ghost_retry"
+        }
+      ]
+    },
+    {
+      "id": "shoot",
+      "when": "ghost_shoot",
+      "do": [
+        {
+          "emit": "ghost.shoot",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "clock",
+          "when": "ghost_clock"
+        },
+        {
+          "target": "shoot",
+          "when": "ghost_shoot"
+        },
+        {
+          "target": "retry",
+          "when": "ghost_retry"
+        }
+      ]
+    },
+    {
+      "id": "retry",
+      "when": "ghost_retry",
+      "do": [
+        {
+          "emit": "ghost.retry",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "clock",
+          "when": "ghost_clock"
+        },
+        {
+          "target": "shoot",
+          "when": "ghost_shoot"
+        },
+        {
+          "target": "retry",
+          "when": "ghost_retry"
+        }
+      ]
+    }
+  ],
+  "script": "3e6bce711c85df2ed170797d6d5ac606e89436e21d7865b07bc91f13d7912de1"
+}

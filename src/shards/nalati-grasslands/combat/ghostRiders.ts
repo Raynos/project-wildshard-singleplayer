@@ -1,3 +1,5 @@
+import type { DirectorLane } from '@wildshard/game/plugin/director';
+import { GhostVolleyDirector } from '../runtime/ghostVolleyDirector';
 import { nightSpawner } from './spawns';
 import type { Spawner } from '@wildshard/engine/ai/encounters';
 import { GroupBrain } from '@wildshard/engine/ai/GroupBrain';
@@ -79,7 +81,7 @@ const RIDGE: readonly (readonly [number, number])[] = Array.from({ length: 16 },
   const t = (i / 16) * Math.PI * 2, c = Math.cos(t), sn = Math.sin(t);
   return [BOWL.x + BOWL.ax * 0.85 * Math.sign(c) * Math.abs(c) ** (2 / 3), BOWL.z + BOWL.az * 0.85 * Math.sign(sn) * Math.abs(sn) ** (2 / 3)];
 });
-const SPACING = 11, CIRCLE_R = 34, ENGAGE = 70, DISENGAGE = 115, SHOOT = 62;
+const SPACING = 11, CIRCLE_R = 34, ENGAGE = 70, DISENGAGE = 115;
 const ARROW_SPEED = 34, ARROW_G = 5, ARROW_DMG = 10, RESPAWN = 60;
 const GALLOP = 11.5;
 const GHOST_TIME: THREE.IUniform<number> = { value: 0 };
@@ -197,8 +199,10 @@ export class GhostRiders extends GroupBrain<Animal> {
   private readonly hitResult: TargetHit;
   private shooter: Animal | null = null;
 
-  constructor(private readonly ctx: GhostRidersCtx) {
+  private readonly fireDirector: GhostVolleyDirector<Rider>;
+  constructor(private readonly ctx: GhostRidersCtx, lane: DirectorLane) {
     super([]);
+    this.fireDirector = new GhostVolleyDirector(lane, () => app.rng.stream('ai').next(), r => { this.shoot(r); });
     this.arrows = new Projectiles({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest }, undefined, ghostArrowKind());
     this.arrows.mesh.renderOrder = 13; this.arrows.mesh.receiveShadow = false;
     this.arrows.onPlayerHit = (p, d) => { this.hurt?.(ARROW_DMG, this.shooter); this.mist.burst(p, 10, 1.5, 0.6, 0.8, 0.25, MIST, 0.2, FLAG_GROW, 0.2); void d; };
@@ -367,9 +371,8 @@ export class GhostRiders extends GroupBrain<Animal> {
           back.x * 2.2, 0.25, back.z * 2.2, 0.9 + app.rng.stream('cosmetic').next() * 0.5, 0.12 + app.rng.stream('cosmetic').next() * 0.14, MIST[0] * 0.6, MIST[1] * 0.6, MIST[2] * 0.6, FLAG_GROW | FLAG_RISE);
       }
       // shooting: inside SHOOT m, engaged (or a loose rider), on a timer
-      r.fireT -= dt;
       const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
-      if (!r.quiet && r.fireT <= 0 && d < SHOOT && d > 6 && (r.line === null || r.line.mode === 'engage')) { this.shoot(r); r.fireT = 3 + app.rng.stream('ai').next() * 1.8; }
+      this.fireDirector.advance(r, dt, d, r.line === null || r.line.mode === 'engage');
     }
     // lines with nobody left: drop them; start the next one's clock
     for (let i = this.lines.length - 1; i >= 0; i--) {

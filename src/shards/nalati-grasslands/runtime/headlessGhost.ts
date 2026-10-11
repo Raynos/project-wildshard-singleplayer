@@ -1,4 +1,6 @@
-import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
+import { GhostRosterKeeper, type GhostRosterPorts } from './ghostRosterKeeper';
+import { prepareGhostVolleyDirector } from './ghostVolleyDirector';
+import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { variantMods } from '@wildshard/engine/entities/species/registry';
 import { GHOST_RIDER, GHOSTRIDER_SPECIES } from '../species/ghostRider';
 import type { NalatiBake } from './baked';
@@ -15,4 +17,11 @@ export function nalatiGhostSpec(bake: NalatiBake, variant: 'rider' | 'captain'):
     hp: row.hp ?? species.tuning?.hp ?? (species.aggressive === true ? 100 : 60), aggressive: species.aggressive ?? false,
     dims: structuredClone(horse.spec.dims), mods: variantMods(species, row),
     ...(species.lockable === undefined ? {} : { lockable: species.lockable }) };
+}
+
+/** Admit the authored firing clock for a native roster with real bodies/projectiles already owned by its ports.
+ * Preparing this keeper allocates no rider, advances no clock, and never closes the unhosted night-roster gap. */
+export async function createNalatiGhostRoster<A extends AnimalSim>(ports: GhostRosterPorts<A>, seed: number): Promise<GhostRosterKeeper<A>> {
+  const create = await prepareGhostVolleyDirector();
+  return new GhostRosterKeeper(ports, create(seed));
 }

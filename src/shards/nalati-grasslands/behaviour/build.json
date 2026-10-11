@@ -15,6 +15,21 @@
         }
       ],
       "director": "data/director.json"
+    },
+    {
+      "source": "behaviour/ghostVolley.as",
+      "maximumPages": 1,
+      "assets": "assets",
+      "bindings": [
+        "data/ghostVolleyDirector.json"
+      ],
+      "embedded": [
+        {
+          "file": "behaviour/ghostVolley.generated.json",
+          "generated": "DO-NOT-EDIT: generated from retained behaviour/ghostVolley.as with the pinned SDK compiler; regenerate and compare hashes."
+        }
+      ],
+      "director": "data/ghostVolleyDirector.json"
     }
   ]
 }

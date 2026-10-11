@@ -1465,6 +1465,37 @@
         "src/shards/nalati-grasslands/behaviour/director.generated.json": "fa7b67a7ed284b103f38de59730335dac1e8a837ef76e1aeef98def4de97b1bd",
         "src/shards/nalati-grasslands/assets/077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646": "077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646"
       }
+    },
+    {
+      "id": "nalati-ghost-volley-director",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs",
+      "command": [
+        "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs"
+      ],
+      "inputRoots": [
+        "src/sdk/package.json",
+        "src/sdk/buildBehaviour.ts",
+        "src/sdk/compileScript.ts",
+        "src/sdk/directorAbi.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/sourceReader.ts",
+        "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs",
+        "src/shards/nalati-grasslands/behaviour/ghostVolley.as",
+        "src/shards/nalati-grasslands/data/ghostVolleyDirector.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/assets/3e6bce711c85df2ed170797d6d5ac606e89436e21d7865b07bc91f13d7912de1",
+        "src/shards/nalati-grasslands/behaviour/ghostVolley.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/assets/3e6bce711c85df2ed170797d6d5ac606e89436e21d7865b07bc91f13d7912de1": "3e6bce711c85df2ed170797d6d5ac606e89436e21d7865b07bc91f13d7912de1",
+        "src/shards/nalati-grasslands/behaviour/ghostVolley.generated.json": "239d2d3d994be82ee5958a10612cfa1f7907c59df8ad3dd3d6937d34b3e333ba"
+      }
     }
   ]
 }

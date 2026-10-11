@@ -3079,3 +3079,6 @@ remain open; this seam changes no body or collider.
 SDK `flyers.diver(data)` validates author data only. `diverPreset` canonicalizes
 to the original contract before full-shard reference checks and native recipe
 installation; missing sphere strikes, flight motors or cell-bounded homes refuse.
+
+
+SF81 ghost volley: Nalati page and renderer-free roster advance the same typed firing author after their unchanged death/fade/hidden guards, in reverse rider order. The AS publishes the elapsed clock delta, native shot and retry timer; native ports retain real ballistic sockets, two spread draws followed by the retry draw, body allocation and retirement. Signed eligibility projections bound author inputs without clamping negative native timers. GhostRosterKeeper v2 carries the complete v3 AS/stage cursor and refuses v1 quietly. Native roster admission does not allocate riders or register a second owner.
