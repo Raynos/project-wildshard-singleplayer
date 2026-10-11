@@ -1739,3 +1739,7 @@ Compile and write in retained Node `generate.ts` before bundled config evaluatio
 ## Director host capabilities (OS-G3)
 
 Director.dataHostIssues() describes stock data-only support: declared quest flags and bounded day observations, flag actions only. Other syntax needs an explicit native owner; emit never invents AS delivery. See [the host/action matrix](authoring/director-hosts.md) and the executed beacon flag-to-quest example.
+
+### Root section and packaged type discovery (OS-G4)
+
+`wildshard schema shardfile /ui` reads the whole defining UI section; `wildshard schema ui.Ui` reads its JSON Schema. Deeper pointers retain the declaration wrappers. Real GLB, skin and commons spear bindings and their installed type lookup are documented in [schema discovery](authoring/schema-discovery.md).

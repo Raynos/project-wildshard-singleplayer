@@ -41,7 +41,10 @@ export async function runCli(args: readonly string[]): Promise<void> {
     }
     const document = input === 'shardfile' ? schemaDeclaration(ShardfileSchema) : formatJsonSchemas()[input];
     if (document === undefined) throw new Error(`Unknown schema root: ${input}`);
-    console.info(JSON.stringify(schemaAt(document, output), null, 2)); return;
+    // Whole root sections accept their authored spelling; deeper paths retain RFC 6901 semantics.
+    const pointer = input === 'shardfile' && output !== undefined && /^\/[a-z][A-Za-z0-9]*$/u.test(output)
+      ? `/properties${output}` : output;
+    console.info(JSON.stringify(schemaAt(document, pointer), null, 2)); return;
   }
   if (input === undefined) throw new Error('usage: wildshard new <project> | synth <project> | build <project> [output] [--product-only] | build <project> --behaviour-only | validate <project|shard.json> | dev <project> [port]');
   if (command === 'synth') {

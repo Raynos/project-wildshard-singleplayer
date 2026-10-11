@@ -8,5 +8,6 @@ export function formatExample() {
   const row = new Director({ id: 'template.door-wave', inputs: {}, stages: [{ id: 'door' }] }).toJSON();
   const declaration = schemaDeclaration(ShardfileSchema);
   const spawn = schemaAt(declaration, '/properties/spawn/wrapped/properties');
-  return { schema: formatJsonSchema(DirectorStagesSchema), declaration, spawn, row: parseDirectorStages(row) };
+  const ui = schemaAt(declaration, '/properties/ui');
+  return { schema: formatJsonSchema(DirectorStagesSchema), declaration, spawn, ui, row: parseDirectorStages(row) };
 }

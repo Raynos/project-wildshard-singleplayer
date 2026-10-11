@@ -25,8 +25,13 @@ it('prints public roots and exact selected fields, refusing missing roots, paths
     expect(JSON.parse(String(print.mock.calls.at(-1)?.[0]))).toEqual(['shardfile', ...Object.keys(formatJsonSchemas())]);
     await runCli(['schema', 'shardSections.Spawn', '/properties/x']);
     expect(JSON.parse(String(print.mock.calls.at(-1)?.[0]))).toEqual(formatJsonSchemas()['shardSections.Spawn']?.properties?.['x']);
+    await runCli(['schema', 'shardfile', '/ui']);
+    expect(JSON.parse(String(print.mock.calls.at(-1)?.[0]))).toEqual(schemaAt(schemaDeclaration(ShardfileSchema), '/properties/ui'));
+    await runCli(['schema', 'ui.Ui']);
+    expect(JSON.parse(String(print.mock.calls.at(-1)?.[0]))).toEqual(formatJsonSchemas()['ui.Ui']);
     await expect(runCli(['schema', 'missing'])).rejects.toThrow('Unknown schema root');
     await expect(runCli(['schema', 'shardfile', '/properties/missing'])).rejects.toThrow('Unknown schema pointer');
+    await expect(runCli(['schema', 'shardfile', '/missing'])).rejects.toThrow('Unknown schema pointer');
     expect(() => schemaAt({}, '/~2')).toThrow('Invalid schema pointer');
     expect(() => schemaAt({}, 'properties')).toThrow('start with /');
     expect(() => schemaAt({}, '/toString')).toThrow('Unknown schema pointer');
