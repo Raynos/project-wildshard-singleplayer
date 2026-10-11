@@ -1,6 +1,6 @@
 # Plan: OCTOBER-BACKLOG — the October backlog (E469)
 
-**State:** `draft` 2026-10-10 — Jake's three sagas and six backlog items in his words, and the live plans grouped by saga (E469); unowned, nothing built.
+**State:** `draft` 2026-10-10 — Jake's three sagas and seven backlog items in his words, and the live plans grouped by saga (E469); unowned, nothing built.
 
 Only Jake writes this backlog (2026-10-10: *"the backlog should only contain things I write"*). Agents record his words
 verbatim; any added context only with his yes (*"You can add a bit more context if you want but always ask me"*).
@@ -33,3 +33,4 @@ Saga 3: no live plan yet for multiplayer or the API server.
 | OB4 | *"We need to implement landscape controls for this game"* |
 | OB5 | *"We need to do a full manual review of other games that are sandbox or survival games iOS first person to understand the controls and HUD and gameplay and see how we can make our game feel better"* |
 | OB6 | *"We need to do a full QA of desktop gameplay and desktop HUD"* |
+| OB7 | *"The developer toggle. Let's move the developer toggle somewhere easily hittable on the main screen. When you're not in developer mode, let's make it easy to toggle it on without having to go to settings."* |
