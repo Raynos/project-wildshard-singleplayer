@@ -2312,6 +2312,8 @@ The numeric script mechanism is documented in [SCRIPT-ABI.md](SCRIPT-ABI.md).
 without executing bytes; `@wildshard/engine/script/abi` defines the versioned contract.
 `@wildshard/engine/script/host` owns bounded module instances and complete snapshots;
 `@wildshard/engine/script/effects` publishes validated numeric batches atomically.
+
+`withPreparedScriptMemories(modules, scope, pause, install)` allocates fresh AS memories across caller-supplied frame yields before a synchronous owned installer consumes them. Every module is admitted before any allocation, and each request describes a separate default-limit host. Matching descriptors are consumed once by that owner or its child; foreign owners, lower custom ceilings and restores allocate normally. Seeds, initialization, quota accounting and snapshots remain in `ScriptHost.install`. Cancellation, failure and return clear unused references; every prepared allocation remains in the CPU inventory. The caller keeps input/readiness fenced until installation finishes. This schedules allocation work; it is no memory discount or proven frame-rate saving.
 `@wildshard/engine/script/queries` adapts read-only collision/navigation queries with stable numeric handles.
 
 

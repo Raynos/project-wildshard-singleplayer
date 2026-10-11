@@ -4,6 +4,7 @@ import { SCRIPT_OP, type ScriptEffect, type ScriptEvent, type ScriptWorld } from
 import { scriptFailure } from './strings';
 import { observeWasmMemory } from '../core/memoryResources';
 import { currentOwner } from '../app/ownership';
+import type { Scope } from '../app/scope';
 
 /** Per-level tick allowances shared by every module and entity, not reset by individual calls. */
 export interface ScriptLimits { instances: number; memoryBytes: number; effects: number; spawns: number; events: number; queries: number; fuelPerCall: number; fuelPerTick: number; failures: number }
@@ -32,6 +33,61 @@ interface Layout { input: number; inputBytes: number; output: number; outputReco
 interface Running { memory: WebAssembly.Memory; instance: WebAssembly.Instance }
 interface ModuleState { bytes: Uint8Array; admission: ScriptAdmission; maximumPages: number; running: Running | undefined; layout: Layout; good: ScriptSnapshot; failures: number; disabled: boolean; remaining: number; depth: number; entity: number; busy: boolean }
 function integer(n: number, min: number, max: number): boolean { return Number.isSafeInteger(n) && n >= min && n <= max; }
+interface PreparedMemory { initial: number; maximum: number; memory: WebAssembly.Memory }
+const preparedMemories = new Map<Scope, PreparedMemory[]>();
+const preparingOwners = new WeakSet<Scope>();
+function requirePreparationOwner(owner: Scope): void {
+  if (owner.disposed) throw new Error('Script memory preparation owner disposed');
+}
+function takePreparedMemory(initial: number, maximum: number): WebAssembly.Memory | undefined {
+  const owner = currentOwner();
+  if (owner === null || owner.disposed) return undefined;
+  for (const [scope, memories] of preparedMemories) {
+    if (!owner.belongsTo(scope)) continue;
+    const index = memories.findIndex(entry => entry.initial === initial && entry.maximum === maximum);
+    if (index !== -1) return memories.splice(index, 1)[0]?.memory;
+  }
+  return undefined;
+}
+/**
+ * Allocate fresh, never-used script memories between caller-supplied frame yields, then consume them only during
+ * the synchronous owned installer. Each module describes one default-limit host; custom limits use a fresh allocation
+ * when their descriptor differs. No seed, initialization, call or snapshot runs before the installer. Unused references
+ * are dropped on return, failure or owner disposal; allocation attribution includes every prepared memory.
+ */
+export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array[], owner: Scope, pause: () => Promise<void>, install: () => T): Promise<T> {
+  requirePreparationOwner(owner);
+  if (modules.length > SCRIPT_LIMITS.instances) throw new Error('Invalid script memory preparation');
+  if (preparingOwners.has(owner)) throw new Error('Script memory preparation already active');
+  const plans = modules.map(bytes => {
+    const admission = admitScript(bytes);
+    const maximum = Math.min(admission.maximumPages, Math.floor(SCRIPT_LIMITS.memoryBytes / (3 * 65536)));
+    if (maximum < admission.initialPages) throw new Error('Aggregate script memory allowance');
+    return { initial: admission.initialPages, maximum };
+  });
+  if (plans.reduce((sum, plan) => sum + plan.initial * 65536, 0) > SCRIPT_LIMITS.memoryBytes) throw new Error('Prepared script memory allowance');
+  preparingOwners.add(owner);
+  const memories: PreparedMemory[] = [];
+  const clear = (): void => { preparedMemories.delete(owner); preparingOwners.delete(owner); memories.length = 0; };
+  const forget = owner.capture('disposers', clear);
+  try {
+    for (const plan of plans) {
+      await pause();
+      requirePreparationOwner(owner);
+      const memory = owner.run(() => {
+        const allocated = new WebAssembly.Memory(plan);
+        observeWasmMemory(allocated, { owner: owner.name, asset: 'script/prepared' });
+        return allocated;
+      });
+      memories.push({ ...plan, memory });
+    }
+    await pause();
+    requirePreparationOwner(owner);
+    if (preparedMemories.has(owner)) throw new Error('Script memory preparation owner unavailable');
+    preparedMemories.set(owner, memories);
+    return owner.run(install);
+  } finally { clear(); forget(); }
+}
 function bounds(ptr: number, bytes: number, memory: WebAssembly.Memory): void {
   if (!integer(ptr, 0, memory.buffer.byteLength) || ptr % 8 !== 0 || !integer(bytes, 0, memory.buffer.byteLength) || ptr + bytes > memory.buffer.byteLength) throw new Error('ABI buffer outside memory');
 }
@@ -72,7 +128,9 @@ export class ScriptHost {
     if (state.busy) { this.used.fuel += cost; if (this.used.fuel > this.limits.fuelPerTick) throw new Error('Script tick fuel exhausted'); }
   }
   private instantiate(state: ModuleState, saved?: ScriptSnapshot): Running {
-    const memory = new WebAssembly.Memory({ initial: saved ? saved.memory.length / 65536 : state.admission.initialPages, maximum: state.maximumPages });
+    const initial = saved ? saved.memory.length / 65536 : state.admission.initialPages;
+    const memory = (saved === undefined ? takePreparedMemory(initial, state.maximumPages) : undefined)
+      ?? new WebAssembly.Memory({ initial, maximum: state.maximumPages });
     observeWasmMemory(memory, { owner: currentOwner()?.name ?? 'engine/script', asset: `script/entity:${state.entity}` });
     const instance = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array(state.bytes)), { env: {
       memory,
