@@ -34,7 +34,7 @@
 | sp-x2 | frame cap landed (`fef091031`), Signal entry 33.4 ms · shader-link stalls (Sim maxima) |
 | sp-x4 | DS1.5 physics bakes to Node (Nine, Sky, Signal under way) |
 | sp-x5 | DS0.2 game exports 207 → 130 (gate ≤ 20) · DS0.3 guards · then DS1.6 commons (non-visual) |
-| sp-x6 | DS1.1 non-graphical done: 87 JSON roots, SF45 100 % (`abe97e1af`; material/look/post wait for DS1.4) · Pine G320 coats |
+| sp-x6 | DS1.1 non-graphical, DS1.2, DS1.3 pilot closed; Pine G320 coats at build time (`f8c68e55d`) · DS1.3 §3.2 rest (skins, clips, audio, portals) |
 
 **Jake picks landed:** G321/G322/G324/G325/G326 (all six public cards shardfile)/G327/G328.
 
