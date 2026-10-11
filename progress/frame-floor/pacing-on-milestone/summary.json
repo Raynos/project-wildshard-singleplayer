@@ -1,0 +1,1076 @@
+{
+  "source": "1046bba3d4f3e1f78cdcedd28c9f9621e5f63664",
+  "protocol": {
+    "desktop": {
+      "maxMs": 100,
+      "p95Ms": 17.5,
+      "framesOverMs": 50,
+      "roundedMedianFps": 60
+    },
+    "sim": {
+      "maxMs": 200,
+      "p95Ms": 33,
+      "framesOverMs": 100,
+      "roundedMedianFps": 30
+    },
+    "note": "Simulator p95 <=33ms is the requested milestone gate, stricter than the harness legacy 35ms. No tolerance added."
+  },
+  "rows": [
+    {
+      "surface": "desktop",
+      "route": "template-interior",
+      "phase": "drive",
+      "pass": true,
+      "reason": null,
+      "frames": 2940,
+      "medianFps": 59.88,
+      "maxMs": 83.3,
+      "p95Ms": 16.8,
+      "framesOver": 1,
+      "hooks": [
+        {
+          "hook": "pine-hollow:afterPlay",
+          "frames": 1,
+          "maxMs": 83,
+          "totalMs": 83,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "desktop",
+      "route": "template-interior",
+      "phase": "travel window",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "template-interior",
+      "phase": "entry interior",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "template-return",
+      "phase": "drive",
+      "pass": true,
+      "reason": null,
+      "frames": 2970,
+      "medianFps": 59.88,
+      "maxMs": 66.7,
+      "p95Ms": 16.7,
+      "framesOver": 2,
+      "hooks": [
+        {
+          "hook": "pine-hollow:afterPlay",
+          "frames": 2,
+          "maxMs": 67,
+          "totalMs": 134,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "desktop",
+      "route": "template-return",
+      "phase": "travel window",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.7,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "template-return",
+      "phase": "entry interior",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.7,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "nine-dragon-stack-road-entry",
+      "phase": "drive",
+      "pass": true,
+      "reason": null,
+      "frames": 300,
+      "medianFps": 59.88,
+      "maxMs": 83.4,
+      "p95Ms": 16.8,
+      "framesOver": 2,
+      "hooks": [
+        {
+          "hook": "nine-dragon-stack:world",
+          "frames": 2,
+          "maxMs": 83,
+          "totalMs": 150,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "desktop",
+      "route": "nine-dragon-stack-road-entry",
+      "phase": "travel window",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 83.4,
+      "p95Ms": 33.4,
+      "framesOver": 2,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "nine-dragon-stack-road-entry",
+      "phase": "entry interior",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.7,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "far-reach-road-entry",
+      "phase": "drive",
+      "pass": true,
+      "reason": null,
+      "frames": 240,
+      "medianFps": 59.88,
+      "maxMs": 50,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "far-reach-road-entry",
+      "phase": "travel window",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 50,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "far-reach-road-entry",
+      "phase": "entry interior",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.7,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "nalati-grasslands-road-entry",
+      "phase": "drive",
+      "pass": true,
+      "reason": null,
+      "frames": 330,
+      "medianFps": 59.88,
+      "maxMs": 50,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "nalati-grasslands-road-entry",
+      "phase": "travel window",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 50,
+      "p95Ms": 33.4,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "nalati-grasslands-road-entry",
+      "phase": "entry interior",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.7,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "pine-hollow-road-entry",
+      "phase": "drive",
+      "pass": true,
+      "reason": null,
+      "frames": 630,
+      "medianFps": 59.88,
+      "maxMs": 66.7,
+      "p95Ms": 16.8,
+      "framesOver": 2,
+      "hooks": [
+        {
+          "hook": "pine-hollow:afterPlay",
+          "frames": 2,
+          "maxMs": 67,
+          "totalMs": 134,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "desktop",
+      "route": "pine-hollow-road-entry",
+      "phase": "travel window",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "pine-hollow-road-entry",
+      "phase": "entry interior",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "sunscar-dunes-road-entry",
+      "phase": "drive",
+      "pass": true,
+      "reason": null,
+      "frames": 240,
+      "medianFps": 59.88,
+      "maxMs": 33.3,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "sunscar-dunes-road-entry",
+      "phase": "travel window",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.7,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "sunscar-dunes-road-entry",
+      "phase": "entry interior",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.7,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "driftwood-isle-road-entry",
+      "phase": "drive",
+      "pass": true,
+      "reason": null,
+      "frames": 240,
+      "medianFps": 59.88,
+      "maxMs": 66.6,
+      "p95Ms": 16.8,
+      "framesOver": 1,
+      "hooks": [
+        {
+          "hook": "driftwood-isle:world",
+          "frames": 1,
+          "maxMs": 67,
+          "totalMs": 67,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "desktop",
+      "route": "driftwood-isle-road-entry",
+      "phase": "travel window",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 33.4,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "desktop",
+      "route": "driftwood-isle-road-entry",
+      "phase": "entry interior",
+      "pass": true,
+      "reason": null,
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "template-interior",
+      "phase": "drive",
+      "pass": false,
+      "reason": "max, p95",
+      "frames": 1470,
+      "medianFps": 30.303,
+      "maxMs": 228,
+      "p95Ms": 35,
+      "framesOver": 3,
+      "hooks": [
+        {
+          "hook": "pine-hollow:world",
+          "frames": 6,
+          "maxMs": 108,
+          "totalMs": 411,
+          "gl": {}
+        },
+        {
+          "hook": "between hooks",
+          "frames": 4,
+          "maxMs": 228,
+          "totalMs": 405,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:play",
+          "frames": 2,
+          "maxMs": 174,
+          "totalMs": 235,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:afterKit",
+          "frames": 2,
+          "maxMs": 72,
+          "totalMs": 144,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "sim",
+      "route": "template-interior",
+      "phase": "travel window",
+      "pass": false,
+      "reason": "p95, median fps",
+      "frames": 120,
+      "medianFps": 29.412,
+      "maxMs": 108,
+      "p95Ms": 58,
+      "framesOver": 1,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "template-interior",
+      "phase": "entry interior",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 35,
+      "p95Ms": 34,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "template-return",
+      "phase": "drive",
+      "pass": false,
+      "reason": "p95",
+      "frames": 1650,
+      "medianFps": 30.303,
+      "maxMs": 175,
+      "p95Ms": 36,
+      "framesOver": 2,
+      "hooks": [
+        {
+          "hook": "driftwood-isle:world",
+          "frames": 5,
+          "maxMs": 114,
+          "totalMs": 404,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:world",
+          "frames": 6,
+          "maxMs": 74,
+          "totalMs": 364,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:play",
+          "frames": 3,
+          "maxMs": 175,
+          "totalMs": 297,
+          "gl": {}
+        },
+        {
+          "hook": "between hooks",
+          "frames": 3,
+          "maxMs": 63,
+          "totalMs": 170,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:afterKit",
+          "frames": 2,
+          "maxMs": 69,
+          "totalMs": 120,
+          "gl": {}
+        },
+        {
+          "hook": "driftwood-isle:activate",
+          "frames": 1,
+          "maxMs": 84,
+          "totalMs": 84,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "sim",
+      "route": "template-return",
+      "phase": "travel window",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 74,
+      "p95Ms": 55,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "template-return",
+      "phase": "entry interior",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 34,
+      "p95Ms": 34,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "nine-dragon-stack-road-entry",
+      "phase": "drive",
+      "pass": false,
+      "reason": "p95",
+      "frames": 1350,
+      "medianFps": 30.303,
+      "maxMs": 154,
+      "p95Ms": 34,
+      "framesOver": 3,
+      "hooks": [
+        {
+          "hook": "nine-dragon-stack:world",
+          "frames": 5,
+          "maxMs": 154,
+          "totalMs": 504,
+          "gl": {}
+        },
+        {
+          "hook": "nine-dragon-stack:activate",
+          "frames": 1,
+          "maxMs": 108,
+          "totalMs": 108,
+          "gl": {}
+        },
+        {
+          "hook": "nine-dragon-stack:constructor",
+          "frames": 1,
+          "maxMs": 72,
+          "totalMs": 72,
+          "gl": {}
+        },
+        {
+          "hook": "nine-dragon-stack:afterPlay",
+          "frames": 1,
+          "maxMs": 55,
+          "totalMs": 55,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "sim",
+      "route": "nine-dragon-stack-road-entry",
+      "phase": "travel window",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 154,
+      "p95Ms": 36,
+      "framesOver": 2,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "nine-dragon-stack-road-entry",
+      "phase": "entry interior",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 35,
+      "p95Ms": 34,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "far-reach-road-entry",
+      "phase": "drive",
+      "pass": false,
+      "reason": "p95",
+      "frames": 360,
+      "medianFps": 30.303,
+      "maxMs": 111,
+      "p95Ms": 45,
+      "framesOver": 1,
+      "hooks": [
+        {
+          "hook": "far-reach:world",
+          "frames": 7,
+          "maxMs": 84,
+          "totalMs": 490,
+          "gl": {}
+        },
+        {
+          "hook": "far-reach:afterPlay",
+          "frames": 2,
+          "maxMs": 77,
+          "totalMs": 139,
+          "gl": {}
+        },
+        {
+          "hook": "far-reach:play",
+          "frames": 1,
+          "maxMs": 111,
+          "totalMs": 111,
+          "gl": {}
+        },
+        {
+          "hook": "far-reach:activate",
+          "frames": 1,
+          "maxMs": 93,
+          "totalMs": 93,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "sim",
+      "route": "far-reach-road-entry",
+      "phase": "travel window",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 111,
+      "p95Ms": 39,
+      "framesOver": 1,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "far-reach-road-entry",
+      "phase": "entry interior",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 34,
+      "p95Ms": 34,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "nalati-grasslands-road-entry",
+      "phase": "drive",
+      "pass": false,
+      "reason": "max, p95",
+      "frames": 480,
+      "medianFps": 30.303,
+      "maxMs": 230,
+      "p95Ms": 49,
+      "framesOver": 1,
+      "hooks": [
+        {
+          "hook": "nalati-grasslands:world",
+          "frames": 11,
+          "maxMs": 97,
+          "totalMs": 735,
+          "gl": {}
+        },
+        {
+          "hook": "nalati-grasslands:afterKit",
+          "frames": 4,
+          "maxMs": 73,
+          "totalMs": 247,
+          "gl": {}
+        },
+        {
+          "hook": "nalati-grasslands:activate",
+          "frames": 1,
+          "maxMs": 230,
+          "totalMs": 230,
+          "gl": {}
+        },
+        {
+          "hook": "between hooks",
+          "frames": 2,
+          "maxMs": 58,
+          "totalMs": 111,
+          "gl": {}
+        },
+        {
+          "hook": "nalati-grasslands:play",
+          "frames": 1,
+          "maxMs": 85,
+          "totalMs": 85,
+          "gl": {}
+        },
+        {
+          "hook": "nalati-grasslands:kit",
+          "frames": 1,
+          "maxMs": 65,
+          "totalMs": 65,
+          "gl": {}
+        },
+        {
+          "hook": "nalati-grasslands:afterPlay",
+          "frames": 1,
+          "maxMs": 56,
+          "totalMs": 56,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "sim",
+      "route": "nalati-grasslands-road-entry",
+      "phase": "travel window",
+      "pass": false,
+      "reason": "p95, median fps",
+      "frames": 120,
+      "medianFps": 29.412,
+      "maxMs": 97,
+      "p95Ms": 66,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "nalati-grasslands-road-entry",
+      "phase": "entry interior",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 35,
+      "p95Ms": 34,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "pine-hollow-road-entry",
+      "phase": "drive",
+      "pass": false,
+      "reason": "max, p95",
+      "frames": 690,
+      "medianFps": 30.303,
+      "maxMs": 414,
+      "p95Ms": 37,
+      "framesOver": 3,
+      "hooks": [
+        {
+          "hook": "pine-hollow:activate",
+          "frames": 1,
+          "maxMs": 414,
+          "totalMs": 414,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:world",
+          "frames": 5,
+          "maxMs": 112,
+          "totalMs": 361,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:play",
+          "frames": 3,
+          "maxMs": 199,
+          "totalMs": 322,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:afterKit",
+          "frames": 3,
+          "maxMs": 83,
+          "totalMs": 208,
+          "gl": {}
+        },
+        {
+          "hook": "between hooks",
+          "frames": 3,
+          "maxMs": 76,
+          "totalMs": 181,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "sim",
+      "route": "pine-hollow-road-entry",
+      "phase": "travel window",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 112,
+      "p95Ms": 53,
+      "framesOver": 1,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "pine-hollow-road-entry",
+      "phase": "entry interior",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 35,
+      "p95Ms": 35,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "sunscar-dunes-road-entry",
+      "phase": "drive",
+      "pass": false,
+      "reason": "max, p95",
+      "frames": 300,
+      "medianFps": 30.303,
+      "maxMs": 277,
+      "p95Ms": 45,
+      "framesOver": 1,
+      "hooks": [
+        {
+          "hook": "sunscar-dunes:afterPlay",
+          "frames": 2,
+          "maxMs": 277,
+          "totalMs": 359,
+          "gl": {}
+        },
+        {
+          "hook": "sunscar-dunes:world",
+          "frames": 2,
+          "maxMs": 78,
+          "totalMs": 136,
+          "gl": {}
+        },
+        {
+          "hook": "between hooks",
+          "frames": 2,
+          "maxMs": 72,
+          "totalMs": 126,
+          "gl": {}
+        },
+        {
+          "hook": "sunscar-dunes:play",
+          "frames": 1,
+          "maxMs": 86,
+          "totalMs": 86,
+          "gl": {}
+        },
+        {
+          "hook": "sunscar-dunes:activate",
+          "frames": 1,
+          "maxMs": 82,
+          "totalMs": 82,
+          "gl": {}
+        },
+        {
+          "hook": "sunscar-dunes:kit",
+          "frames": 1,
+          "maxMs": 71,
+          "totalMs": 71,
+          "gl": {}
+        },
+        {
+          "hook": "sunscar-dunes:afterKit",
+          "frames": 1,
+          "maxMs": 57,
+          "totalMs": 57,
+          "gl": {}
+        },
+        {
+          "hook": "sunscar-dunes:beforeWorld",
+          "frames": 1,
+          "maxMs": 52,
+          "totalMs": 52,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "sim",
+      "route": "sunscar-dunes-road-entry",
+      "phase": "travel window",
+      "pass": false,
+      "reason": "max, p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 277,
+      "p95Ms": 54,
+      "framesOver": 1,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "sunscar-dunes-road-entry",
+      "phase": "entry interior",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 34,
+      "p95Ms": 34,
+      "framesOver": 0,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "driftwood-isle-road-entry",
+      "phase": "drive",
+      "pass": false,
+      "reason": "p95",
+      "frames": 270,
+      "medianFps": 30.303,
+      "maxMs": 124,
+      "p95Ms": 43,
+      "framesOver": 1,
+      "hooks": [
+        {
+          "hook": "driftwood-isle:world",
+          "frames": 7,
+          "maxMs": 124,
+          "totalMs": 539,
+          "gl": {}
+        },
+        {
+          "hook": "driftwood-isle:activate",
+          "frames": 1,
+          "maxMs": 79,
+          "totalMs": 79,
+          "gl": {}
+        },
+        {
+          "hook": "between hooks",
+          "frames": 1,
+          "maxMs": 56,
+          "totalMs": 56,
+          "gl": {}
+        },
+        {
+          "hook": "driftwood-isle:play",
+          "frames": 1,
+          "maxMs": 54,
+          "totalMs": 54,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "surface": "sim",
+      "route": "driftwood-isle-road-entry",
+      "phase": "travel window",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 124,
+      "p95Ms": 47,
+      "framesOver": 1,
+      "hooks": []
+    },
+    {
+      "surface": "sim",
+      "route": "driftwood-isle-road-entry",
+      "phase": "entry interior",
+      "pass": false,
+      "reason": "p95",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 34,
+      "p95Ms": 34,
+      "framesOver": 0,
+      "hooks": []
+    }
+  ],
+  "standing": [
+    {
+      "surface": "desktop",
+      "pose": "spawn",
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.7,
+      "framesOver": 0,
+      "pass": true
+    },
+    {
+      "surface": "desktop",
+      "pose": "grid-crossroads",
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "pass": true
+    },
+    {
+      "surface": "desktop",
+      "pose": "grid-deck-north",
+      "frames": 120,
+      "medianFps": 59.88,
+      "maxMs": 16.8,
+      "p95Ms": 16.8,
+      "framesOver": 0,
+      "pass": true
+    },
+    {
+      "surface": "sim",
+      "pose": "spawn",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 237,
+      "p95Ms": 36,
+      "framesOver": 1,
+      "pass": false
+    },
+    {
+      "surface": "sim",
+      "pose": "grid-crossroads",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 39,
+      "p95Ms": 34,
+      "framesOver": 0,
+      "pass": false
+    },
+    {
+      "surface": "sim",
+      "pose": "grid-deck-north",
+      "frames": 120,
+      "medianFps": 30.303,
+      "maxMs": 36,
+      "p95Ms": 34,
+      "framesOver": 0,
+      "pass": false
+    }
+  ],
+  "passes": [
+    {
+      "surface": "desktop",
+      "when": "2026-10-11T03:06:43.033Z",
+      "complete": true,
+      "seconds": 255.13,
+      "build": "devserver",
+      "glObserver": "off",
+      "cpuProfile": false,
+      "gpuTrace": false,
+      "errors": [],
+      "failure": null,
+      "harnessRevision": "c6b8c9ce4d7be39ae9137167a251bf57987a35b5"
+    },
+    {
+      "surface": "sim",
+      "when": "2026-10-11T03:22:28.771Z",
+      "complete": true,
+      "seconds": 393.604,
+      "build": "devserver",
+      "glObserver": "off",
+      "cpuProfile": false,
+      "gpuTrace": false,
+      "errors": [],
+      "failure": null,
+      "harnessRevision": "165ec50ab527097d704bd0780bfa4b2db68d59c9"
+    }
+  ]
+}
