@@ -56,6 +56,14 @@ Nine and Signal now use one ledger-to-Progress projection in the existing defini
 
 Proof: 28 focused tests across seven files, strict and touched typed lint pass. Both actual shard bindings reproduce the old callback order, receipts and saved profile bytes under the same clock, including duplicates and undeclared-fact refusal. Exact pending-write ports retry the same ledger; the real Signal Progress checkpoint test passes. All four native witness payloads are byte-identical; both physics provenance fixtures pass.
 
+## Seventh slice: retained Node authoring for the ten front boxes
+
+The building fronts now compile from `generators/fronts.ts`, an ordinary SDK scene of ten named BoxCollider objects. Shared dimensions live in the retained floor plan; the page's layout reads those same values. The runtime reads the build-time cache product, validates finite stone boxes and allocates its own descriptors. The actual `nds-fronts` piece, order, material, east street offset and all floor/guard owners remain unchanged. Generated rows stay ignored and are rebuilt/restored by `pnpm gen`, with pinned bytes and a cold/restore/force-compare check. No serialized native capture is the authoring source.
+
+Proof: 25 focused checks across six files, strict and typed lint pass. The clean-room Node compiler admits no runtime/game/engine/legacy source; its real SDK objects reproduce the frozen recipe exactly. Two actual Node physics captures agree, and all 23 pieces/31 hooks are identical to the prior payload. The official browser map bake reproduces the committed WebP bytes exactly. All four native witness payloads and outcomes remain identical, including native entry lanes/portal transfers with no blocked lane. Source provenance is rebaked; checkpoint input-only refreshes are left to the pusher.
+
+Current custom metric: **15,196 / 21,111 = 71.9814%**, including 14,287 shard TS lines, one additional GLSL line and 908 one-user platform lines. Generated outputs do not count. The small five-line reduction is reported as measured; this is partial collider authoring, not a complete emitted world or a finished 20% port.
+
 ## Remaining work
 
 - **OPEN, non-visual:** native item/portal/grapple host adapters and continuation. Portal links and DIR stages already drive the native ride; grapple numeric modes already drive the shared law. The Well’s line-of-sight exception, cap owner and lift geometry require explicit course ports. Deleting those adapters without an equivalent row host would change gameplay.
@@ -65,7 +73,7 @@ Proof: 28 focused tests across seven files, strict and touched typed lint pass. 
 
 ## Non-graphical inventory
 
-The remaining authored TS inventory below is complete at this slice; the 178-file inventory reproduces the defining metric. The port remains open. The next authored-world slice can emit the front boxes without waiting for a new treads primitive.
+The remaining authored TS inventory below is complete at this slice; the 178-file inventory reproduces the defining metric. The port remains open. The front boxes now have a retained SDK generator. Remaining rim/landing boxes can follow; stair treads still need an equivalent admitted authoring primitive.
 
 | Remaining owner | Exact state / blocker |
 |---|---|
@@ -157,7 +165,7 @@ Paths are relative to `src/shards/nine-dragon-stack/`. This lists **all** numera
 | `runtime/looks/portalLook.ts` | 61 | O |
 | `world/modelLook.ts` | 61 | O |
 | `models/crowd.ts` | 58 | O |
-| `world/colliders.ts` | 57 | X |
+| `world/colliders.ts` | 52 | X |
 | `world/ctx.ts` | 57 | O |
 | `models/feiZhuaHook.ts` | 55 | O |
 | `runtime/portals/ringPortals.ts` | 55 | X |

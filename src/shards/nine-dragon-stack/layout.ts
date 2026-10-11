@@ -8,7 +8,7 @@ import { NINE_FLOOR_PLAN } from './data/floorPlan';
 export const Y0 = NINE_FLOOR_PLAN.datum;
 
 /** the Yamen Well's shaft */
-export const WELL = { x0: -28, x1: 0, z0: -44, z1: 16, water: -245 } as const;
+export const WELL = NINE_FLOOR_PLAN.well;
 
 /** the open plaza (the Well's balustrade is its west edge) */
 export const PLAZA = NINE_FLOOR_PLAN.square;
@@ -17,10 +17,10 @@ export const PLAZA = NINE_FLOOR_PLAN.square;
 export const GATE = { x: 6.05, z: -24.5, posts: [0.6, 3.9, 8.2, 11.5] as const, s: 1.85 } as const;
 
 /** the street north through the gate */
-export const STREET = { x0: 0.5, x1: 12.5, z1: -26, z0: -230 } as const;
+export const STREET = NINE_FLOOR_PLAN.street;
 
 /** the stair-street climbing east out of the square */
-export const STAIR = { z0: 2, z1: 10, x0: 22, x1: 70, rise: 21 } as const;
+export const STAIR = NINE_FLOOR_PLAN.stair;
 
 export const BANYAN = { x: 18.4, z: -22.6, r: 3.2 } as const;
 

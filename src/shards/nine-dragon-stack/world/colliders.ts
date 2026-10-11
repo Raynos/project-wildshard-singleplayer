@@ -6,6 +6,9 @@
 // (its stone and the invisible parapet 12 m up so nobody vaults into the shaft) and the props you would walk into — the
 // gates' posts, the banyan's planter, the stalls, the market — are their models' own colliders, which come with their
 // copies (../models/, src/engine/models/place.ts; the balustrade's since E346, models/wellBalustrade.ts).
+import * as v from 'valibot';
+import generatedFronts from '../data/fronts.generated.json' with { type: 'json' };
+import { NINE_FLOOR_PLAN } from '../data/floorPlan';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import { GUARD_Z0, PARAPET } from '../models/wellBalustrade';
@@ -14,12 +17,9 @@ import { RIM, wellColliders, wellFloor } from './wellBounds';
 import { SLAB, span, squareFloor } from './floorRows';
 
 /** how far north the street is walkable (its far part is scenery in the fragment) */
-export const STREET_END = -120;
+export const STREET_END = NINE_FLOOR_PLAN.fronts.streetEnd;
 /** the stair-street's top landing: past the last tread, then its end wall */
 export const STAIR_TOP = { x1: STAIR.x1 + 8, y: Y0 + STAIR.rise } as const;
-
-/** a wall along x (at z) or along z (at x), 1 m thick, from the square's datum up `h` metres, on the far side of the line */
-const WALL_H = 40;
 
 /** the fragment's own collision in two pieces (their looks on the maps: floors stone, fronts rock); the balustrade over
  *  the Well and the props collide as their models (their looks on the maps: the balustrade rock, the props timber, def.ts) */
@@ -29,14 +29,17 @@ export interface FragmentColliders {
   readonly square: ColliderDesc;
 }
 
-/** a building front's depth behind its line (it is a solid block to the map; the player never reaches its back) */
-const DEEP = 6;
-/** how far the shopfronts' pillars and counters stand proud of their front's line (generators/facades.ts `shopfronts`) */
-const SHOP = 0.6;
+const finite = v.pipe(v.number(), v.finite());
+const extent = v.pipe(finite, v.minValue(Number.MIN_VALUE));
+const FrontSchema = v.strictObject({
+  kind: v.literal('box'), x: finite, y: finite, z: finite,
+  hx: extent, hy: extent, hz: extent, surface: v.literal('stone'),
+});
+const FRONT_ROWS = v.parse(v.pipe(v.array(FrontSchema), v.length(10)), generatedFronts);
 
 export function fragmentColliders(): FragmentColliders {
-  const floors: ColliderDesc[] = [], fronts: ColliderDesc[] = [];
-  let out = floors;
+  const floors: ColliderDesc[] = [], fronts: ColliderDesc[] = FRONT_ROWS.map(({ kind, x, y, z, hx, hy, hz, surface }) => ({ kind, x, y, z, hx, hy, hz, surface }));
+  const out = floors;
   // ── floors ──
   const square = squareFloor();
   out.push(square);                                                                                     // the square
@@ -51,20 +54,7 @@ export function fragmentColliders(): FragmentColliders {
   out.push(...wellColliders());
   // ── the building fronts round the square (the shopfronts sit on these lines; each collides from SHOP proud of its line,
   // where the shopfronts' pillars and counters stand, generators/facades.ts, so nobody, and no camera, walks into them) ──
-  out = fronts;
-  const top = Y0 + WALL_H;
-  out.push(span(PLAZA.x1 + 0.6 - SHOP, Y0, PLAZA.z0 - 0.6, PLAZA.x1 + DEEP, top, STAIR.z0));            // east, north of the stair
-  out.push(span(PLAZA.x1 + 0.6 - SHOP, Y0, STAIR.z1, PLAZA.x1 + DEEP, top, PLAZA.z1 + DEEP));            // east, south of the stair
-  out.push(span(STREET.x1, Y0, PLAZA.z0 - DEEP, PLAZA.x1 + DEEP, top, PLAZA.z0 - 0.6 + SHOP));           // north, right of the gate
-  out.push(span(PLAZA.x0 - 0.6, Y0, PLAZA.z1 + 0.6 - SHOP, PLAZA.x1 + DEEP, top, PLAZA.z1 + DEEP));      // south, behind the spawn
-  // ── the street's walls (shopfronts both sides) and its end ──
-  out.push(span(STREET.x0 - DEEP, Y0, streetEnd, STREET.x0 + SHOP, top, WELL.z0));                      // west, past the Well
-  out.push(span(STREET.x1 - SHOP, Y0, streetEnd, STREET.x1 + DEEP, top, PLAZA.z0 - 0.6));                // east
-  out.push(span(STREET.x0, Y0, STREET_END - 2, STREET.x1, top, STREET_END - 1));                       // the fragment's end
-  // ── the stair-street's walls and its top ──
-  out.push(span(PLAZA.x1 + 0.6, Y0 - 1, STAIR.z0 - DEEP, STAIR_TOP.x1, STAIR_TOP.y + WALL_H, STAIR.z0));
-  out.push(span(PLAZA.x1 + 0.6, Y0 - 1, STAIR.z1, STAIR_TOP.x1, STAIR_TOP.y + WALL_H, STAIR.z1 + DEEP));
-  out.push(span(STAIR_TOP.x1, Y0 - 1, STAIR.z0 - DEEP, STAIR_TOP.x1 + DEEP, STAIR_TOP.y + WALL_H, STAIR.z1 + DEEP));
+  // Front shapes are compiled from generators/fronts.ts; this runtime owns fresh descriptor objects.
   // ── the balustrade over the Well — the stone (1.12 m) and an invisible parapet PARAPET m over the floor, above any jump
   // (a jump + double jump lifts the feet ~2.9 m; from the balustrade's top, a prop's or the board's, ~5 m), except where
   // the Well's south rim ledge meets the square (a hop over the stone onto the rim, where mockup B stands) — is the
