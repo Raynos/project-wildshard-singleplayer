@@ -10,7 +10,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { expect, it } from 'vitest';
 import { flapTransplant } from '../../src/shards/pine-hollow/runtime/looks/coatAtlas';
 import { pressFlap } from '../../src/shards/pine-hollow/runtime/looks/riggedHulls';
-import { PINE_HULLS } from '../../src/shards/pine-hollow/runtime/looks/hulls';
+import { PINE_HULLS } from '../../src/shards/pine-hollow/data/creatureHulls';
 
 /**
  * E435 SF63: flapTransplant's nearest-texel search moved from string-keyed cells (4.9 s / 8.7 s per bear hull on the main

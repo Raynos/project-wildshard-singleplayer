@@ -5,10 +5,9 @@
 import { app } from '../../../engine/app/runtime';
 import { Scope } from '../../../engine/app/scope';
 import { hasSpecies } from '../../../engine/entities/species/registry';
-import type { RiggedHullsRow } from '../runtime/looks/riggedHullRows';
 import { installKitSpecies } from '../../../game/systems/species/install';
 import { riggedHulls } from '../runtime/looks/riggedHulls';
-import { PINE_HULLS } from '../runtime/looks/hulls';
+import { PINE_HULLS, type RiggedHullsRow } from '../data/creatureHulls';
 import { pineCoatUrl, pineCreatureRigUrl } from '../species/rigs';
 import { PINE_BEAR_LOOK, PINE_BOAR_LOOK, pineElkLook } from '../species/looks';
 import { PINE_SPECIES, pineElk } from '../species/rows';

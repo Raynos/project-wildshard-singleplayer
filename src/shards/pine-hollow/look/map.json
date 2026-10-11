@@ -86,6 +86,7 @@
     "runtime/props",
     "runtime/npc",
     "runtime/species",
-    "runtime/cull"
+    "runtime/cull",
+    "data/creatureHulls.ts"
   ]
 }

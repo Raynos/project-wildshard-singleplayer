@@ -24,7 +24,7 @@ import * as THREE from 'three';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { app } from '@wildshard/engine/app/runtime';
 import { adoptCoat, coatAtlas, coatAtlasSliced, coatPainting, type CoatSpec } from './coatAtlas';
-import type { HullFlapRow, HullPalette, RiggedHullsRow } from './riggedHullRows';
+import type { HullFlapRow, HullPalette, RiggedHullsRow } from '../../data/creatureHulls';
 import { DEER_PALETTE } from '@wildshard/game/systems/species/deer';
 import { ELK_PALETTE } from '@wildshard/game/systems/species/elk';
 import { BEAR_PALETTE } from '@wildshard/game/systems/species/view/bear';
