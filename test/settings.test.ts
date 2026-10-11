@@ -16,6 +16,14 @@ describe('Settings', () => {
     expect(s.setting('buildPacing')).toBe('on');
     expect(s.savedSetting('buildPacing')).toBe('on');
   });
+  it('keeps shared upload paints opt-in and ignores the pick outside Developer', () => {
+    fixtures.setItem(STORE, JSON.stringify({ buildPacing: 'shared-paints' }));
+    const developer = createSettings(saveStorage('global'), () => '', { enabled: () => true });
+    const publicSettings = createSettings(saveStorage('global'), () => '', { enabled: () => false });
+    expect(developer.setting('buildPacing')).toBe('shared-paints');
+    expect(publicSettings.setting('buildPacing')).toBe('on');
+    expect(publicSettings.savedSetting('buildPacing')).toBe('shared-paints');
+  });
   it('keeps the Developer pacing off switch without disabling public pacing or rewriting the pick', () => {
     fixtures.setItem(STORE, JSON.stringify({ buildPacing: 'off' }));
     let enabled = true;

@@ -755,6 +755,7 @@ export class Game {
       : setting('buildPacing') === 'uploads' ? SLICED_UPLOAD_BUDGET : undefined;
     const shaderStart = diagnosticNow();
     await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage,
+      shareUploadPaints: setting('buildPacing') === 'shared-paints',
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
     const { warmParkedDraws, warmOffscreenPasses } = await import('../render/parkedDraws');

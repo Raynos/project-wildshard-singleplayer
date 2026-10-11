@@ -252,3 +252,76 @@ it.each([
     expect(() => renderer.properties.get(map)).toThrow('changed after mip retirement');
   });
 });
+
+it('shares only boundary paints while keeping every upload on a distinct frame', async () => {
+  await fixture(async (renderer, events) => {
+    const values = [texture(), texture(true), texture()];
+    await Promise.all(values.map(value => uploadCompressedTexture(renderer, value, () => true, true, true)));
+    expect(events.filter(event => event.startsWith('paint:'))).toEqual(['paint:1', 'paint:2', 'paint:3', 'paint:4']);
+    expect(events.filter(event => event.startsWith('upload:')).map(event => event.split(':')[1])).toEqual(['1', '2', '3']);
+    for (const value of values) expect(events).toContain(`upload:${values.indexOf(value) + 1}:${value.id}`);
+    expect(events.filter(event => event.startsWith('fence:'))).toEqual(['fence:1', 'fence:2', 'fence:3']);
+    expect(events.at(-1)).toBe('paint:4');
+  });
+});
+
+it('keeps the ordinary two-paint path and breaks sharing across ordinary requests', async () => {
+  await fixture(async (renderer, events) => {
+    await uploadCompressedTexture(renderer, texture(), () => true, true, true);
+    await uploadCompressedTexture(renderer, texture());
+    await uploadCompressedTexture(renderer, texture(), () => true, true, true);
+    expect(events.filter(event => event.startsWith('upload:')).map(event => event.split(':')[1])).toEqual(['1', '3', '5']);
+    expect(events.filter(event => event.startsWith('paint:'))).toHaveLength(6);
+  });
+});
+
+it('does not share a cancelled upload paint or publish its readiness', async () => {
+  await fixture(async (renderer, events) => {
+    let current = true;
+    const value = texture(), init = renderer.initTexture.bind(renderer);
+    Reflect.set(renderer, 'initTexture', (input: THREE.Texture) => { init(input); if (input === value) current = false; });
+    await expect(uploadCompressedTexture(renderer, value, () => current, true, true)).rejects.toThrow('owner left');
+    await uploadCompressedTexture(renderer, texture(), () => true, true, true);
+    expect(events.filter(event => event.startsWith('upload:')).map(event => event.split(':')[1])).toEqual(['1', '3']);
+    expect(events.at(-1)).toBe('paint:4');
+    expect(value.mipmaps).toHaveLength(1);
+  });
+});
+
+it('keeps each graphics error round trip and starts a fresh paint after a failed upload', async () => {
+  await fixture(async (renderer, events, setError) => {
+    setError(1282);
+    const bad = texture();
+    await expect(uploadCompressedTexture(renderer, bad, () => true, true, true)).rejects.toThrow('Graphics error 1282');
+    setError(0);
+    await expect(uploadCompressedTexture(renderer, bad, () => true, true, true)).rejects.toThrow('Graphics error 1282');
+    await uploadCompressedTexture(renderer, texture(), () => true, true, true);
+    expect(events.filter(event => event.startsWith('fence:'))).toEqual(['fence:1', 'fence:2']);
+    expect(events.at(-1)).toBe('paint:3');
+    expect(bad.mipmaps).toHaveLength(1);
+  });
+});
+
+it('preserves the sampler fence and first-real-draw mip retirement with shared paints', async () => {
+  await fixture(async (renderer, events) => {
+    const bad = texture(), init = renderer.initTexture.bind(renderer);
+    Reflect.set(renderer, 'initTexture', (input: THREE.Texture) => { init(input); if (input === bad) input.anisotropy = 8; });
+    await expect(uploadCompressedTexture(renderer, bad, () => true, true, true)).rejects.toThrow('changed before upload completed');
+    const value = ktx2.releaseAfterUpload(texture()); value.needsUpdate = true;
+    await uploadCompressedTexture(renderer, value, () => true, true, true);
+    expect(events.filter(event => event.startsWith('upload:')).map(event => event.split(':')[1])).toEqual(['1', '3']);
+    expect(value.mipmaps).toHaveLength(1);
+    draw(renderer, value); expect(value.mipmaps).toEqual([]);
+  });
+});
+
+
+it('refuses a lost context at the shared boundary before the next upload', async () => {
+  await fixture(async (renderer, events) => {
+    await uploadCompressedTexture(renderer, texture(), () => true, true, true);
+    Reflect.set(renderer, 'getContext', () => ({ NO_ERROR: 0, isContextLost: () => true, getError: () => 0 }));
+    await expect(uploadCompressedTexture(renderer, texture(), () => true, true, true)).rejects.toThrow('Graphics context lost');
+    expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(1);
+    expect(events.filter(event => event.startsWith('paint:'))).toHaveLength(2);
+  });
+});

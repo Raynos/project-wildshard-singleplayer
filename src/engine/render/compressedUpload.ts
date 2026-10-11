@@ -8,6 +8,7 @@ import { retainCompressedMipmaps, finalizeCompressedMipmaps, assertCompressedMip
 type UploadTarget = Pick<Renderer, 'initTexture' | 'getContext' | 'properties' | 'renderBufferDirect'>;
 interface UploadState {
   tail: Promise<void>;
+  sharedPaint: boolean;
   pending: WeakMap<THREE.Texture, { version: number; signature: string; promise: Promise<void> }>;
   final: WeakSet<THREE.Texture>;
   failed: WeakMap<THREE.Texture, { allocation: unknown; error: Error }>;
@@ -62,14 +63,15 @@ export function compressedUploadsActive(renderer: UploadTarget): boolean { retur
 /** Upload one compressed 2D/array texture outside a draw, with a real paint and error round trip on each side.
  * Concurrent warm-up and late-load callers share one queue. A consumer may bind the texture only after this resolves.
  * Already resident versions reuse the result; cancellation and graphics faults never publish readiness.
+ * Opt-in shared paints reuse a successful upload's trailing paint before the next upload, never its upload frame.
  * Loader fences retain mips through final sampler configuration and the first successful real draw. */
 export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.Texture,
-  current: () => boolean = () => true, final = true): Promise<void> {
+  current: () => boolean = () => true, final = true, sharePaints = false): Promise<void> {
   if (!(texture instanceof THREE.CompressedTexture)) return Promise.resolve();
   try { assertCompressedMipmapsUnchanged(texture); } catch (error) { return Promise.reject(error instanceof Error ? error : new Error(String(error))); }
   let state = states.get(renderer);
   if (state === undefined) {
-    state = { tail: Promise.resolve(), pending: new WeakMap(), failed: new WeakMap(), final: new WeakSet() };
+    state = { tail: Promise.resolve(), sharedPaint: false, pending: new WeakMap(), failed: new WeakMap(), final: new WeakSet() };
     states.set(renderer, state);
     installDrawRetirement(renderer, state);
   }
@@ -100,7 +102,9 @@ export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.T
   try { if (resident()) { publish(); return Promise.resolve(); } }
   catch (error) { return Promise.reject(error instanceof Error ? error : new Error(String(error))); }
   const promise = queue.tail.then(async () => {
-    check(); await frame(); check();
+    const reusePaint = sharePaints && queue.sharedPaint;
+    queue.sharedPaint = false;
+    check(); if (!reusePaint) await frame(); check();
     // Another caller or a draw may have uploaded this version while it waited in the queue.
     if (resident()) return undefined;
     if (texture.mipmaps.length === 0) throw new Error(`Compressed texture ${texture.name || texture.id} has no mipmaps and is not resident on this renderer`);
@@ -116,6 +120,7 @@ export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.T
     }
     queue.failed.delete(texture);
     await frame(); check();
+    queue.sharedPaint = sharePaints;
     return undefined;
   });
   queue.pending.set(texture, { version, signature, promise });

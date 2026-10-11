@@ -181,7 +181,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Performance ──
   opt('fps', 'perf', engineString('s_5f5c99339841'), [['auto', engineString('s_0286249762f7')], ['30', engineString('s_624b60c58c9d')], ['60', engineString('s_c1fe790a9f07')]], { purpose: 'developer', when: () => !MOBILE_DEVICE, ask: 'E193', reviewBy: '2026-12-30', note: engineString('s_d56f59162f05') }),
-  opt('buildPacing', 'perf', engineString('s_build_pacing'), [['off', engineString('s_build_pacing_off')], ['on', engineString('s_build_pacing_on')], ['uploads', engineString('s_build_pacing_uploads')]], { purpose: 'developer', ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_build_pacing_note') }),
+  opt('buildPacing', 'perf', engineString('s_build_pacing'), [['off', engineString('s_build_pacing_off')], ['on', engineString('s_build_pacing_on')], ['uploads', engineString('s_build_pacing_uploads')], ['shared-paints', engineString('s_build_pacing_shared_paints')]], { purpose: 'developer', ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_build_pacing_note') }),
 
   // ── Loading & memory ──
   {
