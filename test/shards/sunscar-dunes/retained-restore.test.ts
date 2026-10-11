@@ -28,7 +28,7 @@ import { DUNE_RAY } from '../../../src/shards/sunscar-dunes/data/species/duneRay
 import { DUNE_RAY_LOOK } from '../../../src/shards/sunscar-dunes/species/duneRay';
 import { SAND_SKITTERER_LOOK } from '../../../src/shards/sunscar-dunes/species/skitterer';
 import { SKITTERER_DATA } from '../../../src/shards/sunscar-dunes/data/species/skitterer';
-import { DUNE_STRIDER } from '../../../src/shards/sunscar-dunes/runtime/species/striderRows';
+import { DUNE_STRIDER } from '../../../src/shards/sunscar-dunes/data/species/strider';
 import { DUNE_STRIDER_LOOK } from '../../../src/shards/sunscar-dunes/species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from '../../../src/shards/sunscar-dunes/species/matriarch';
 import { MemoryStorage } from '../../setup';

@@ -25,13 +25,15 @@ import { bindSignalFacts } from '../../../src/shards/sunscar-dunes/runtime/persi
 import { saves } from '../../../src/engine/saves/runtime';
 import { Flags } from '../../../src/engine/world/interact/flags';
 import { SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
-import { SWOOP } from '../../../src/shards/sunscar-dunes/runtime/species/duneRay';
-import { DUNE_RAY } from '../../../src/shards/sunscar-dunes/data/species/duneRay';
+import { strikeFromData } from '../../../src/engine/ai/strikeRows';
+import { strike } from '../../../src/sdk/species';
+import { DUNE_RAY, SWOOP_DATA } from '../../../src/shards/sunscar-dunes/data/species/duneRay';
 import { DUNE_RAY_LOOK } from '../../../src/shards/sunscar-dunes/species/duneRay';
 import { FakeGame } from '../../fake/FakeGame';
 import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 import { DUSK, setDusk } from '../../../src/shards/sunscar-dunes/look/dusk';
 
+const SWOOP = strikeFromData(strike(SWOOP_DATA));
 const noop = (): void => undefined;
 const ledger = (app: App): Ledger => new Ledger(app.saves, [{ id: manifest.slug, shard: source.identity.slug }], [{ shard: source.identity.slug, revision: source.identity.revision, rules: SIGNAL_LEDGER }], []);
 const achievements = (app: App): Record<string, boolean> => Object.fromEntries(Object.values(ledger(app).state().achievements).filter((a) => a.shard === manifest.slug).map((a) => [a.id, a.earned]));

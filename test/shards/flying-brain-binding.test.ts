@@ -8,7 +8,7 @@ import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../../src/shards
 import { SKY_GOAT, SKY_GOAT_LOOK } from '../../src/shards/far-reach/species/skyGoat';
 import { DRIFT_RAY, DRIFT_RAY_LOOK } from '../../src/shards/far-reach/species/driftRay';
 import { GALE_WISP, GALE_WISP_LOOK } from '../../src/shards/far-reach/species/galeWisp';
-import { DUNE_STRIDER } from '../../src/shards/sunscar-dunes/runtime/species/striderRows';
+import { DUNE_STRIDER } from '../../src/shards/sunscar-dunes/data/species/strider';
 import { DUNE_STRIDER_LOOK } from '../../src/shards/sunscar-dunes/species/strider';
 import { DUNE_RAY } from '../../src/shards/sunscar-dunes/data/species/duneRay';
 import { DUNE_RAY_LOOK } from '../../src/shards/sunscar-dunes/species/duneRay';

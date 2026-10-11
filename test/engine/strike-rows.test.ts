@@ -18,18 +18,18 @@ import * as sky from '../fixtures/species/sky';
 import * as roc from '../fixtures/species/sky-roc';
 import * as wisp from '../fixtures/species/sky-wisp';
 import provenance from '../fixtures/species/provenance.json' with { type: 'json' };
-import { SWOOP } from '../../src/shards/sunscar-dunes/runtime/species/duneRay';
-import { CHARGE, HORNS } from '../../src/shards/sunscar-dunes/runtime/species/strider';
-import { BITE } from '../../src/shards/sunscar-dunes/runtime/species/skitterer';
 import { MAW, TAIL_SWEEP, BUFFET } from '../fixtures/species-oracle/matriarch';
-import { DUNE_RAY, RAY } from '../../src/shards/sunscar-dunes/data/species/duneRay';
-import { DUNE_STRIDER, STRIDE } from '../../src/shards/sunscar-dunes/runtime/species/striderRows';
-import { SKITTERER_DATA, SKITTER } from '../../src/shards/sunscar-dunes/data/species/skitterer';
+import { DUNE_RAY, RAY, SWOOP_DATA } from '../../src/shards/sunscar-dunes/data/species/duneRay';
+import { DUNE_STRIDER, STRIDE, CHARGE_DATA, HORNS_DATA } from '../../src/shards/sunscar-dunes/data/species/strider';
+import { SKITTERER_DATA, SKITTER, BITE_DATA } from '../../src/shards/sunscar-dunes/data/species/skitterer';
 import { MATRIARCH_DATA, MATRIARCH, MATRIARCH_HP } from '../../src/shards/sunscar-dunes/data/species/matriarch';
 import { PINE_LANES, PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';
 import { RAM, DIVE } from '../../src/shards/far-reach/runtime/strikes';
 import { STOOP, GALE_WALL, SWEEP } from '../../src/shards/far-reach/runtime/stormRocBrain';
 import { BURST } from '../../src/shards/far-reach/species/galeWisp';
+
+const SWOOP = strikeFromData(strike(SWOOP_DATA)), BITE = strikeFromData(strike(BITE_DATA));
+const CHARGE = strikeFromData(strike(CHARGE_DATA)), HORNS = strikeFromData(strike(HORNS_DATA));
 
 const tables = [
   { name: 'Signal', old: [ray.SWOOP, strider.CHARGE, strider.HORNS, skitter.BITE, matriarch.MAW, matriarch.TAIL_SWEEP, matriarch.BUFFET],

@@ -5,7 +5,7 @@ import { speciesBrains, type SpeciesBrains } from '@wildshard/sdk/speciesBrains'
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from './data/brains';
 import { SKITTERER_DATA } from './data/species/skitterer';
 import { DUNE_RAY } from './data/species/duneRay';
-import { DUNE_STRIDER } from './runtime/species/striderRows';
+import { DUNE_STRIDER } from './data/species/strider';
 import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';

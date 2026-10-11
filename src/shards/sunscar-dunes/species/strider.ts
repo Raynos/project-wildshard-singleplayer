@@ -1,4 +1,4 @@
-import { STRIDER_CLIPS, STRIDER_LOOK } from '../runtime/species/striderRows';
+import { STRIDER_CLIPS, STRIDER_LOOK } from '../data/species/strider';
 import type { BufferGeometry } from 'three';
 import { quadrupedHull, quadrupedLook, type FittedHull } from '../runtime/looks/fittedHull';
 import { STRIDER_HULL } from '../runtime/species/hullsRows';

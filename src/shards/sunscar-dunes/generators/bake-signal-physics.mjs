@@ -45,7 +45,7 @@ try {
       if (scope === null) throw new Error('Signal capture requires the owned level scope');
       for (const [rowFile, row, lookFile, look] of [['data/species/duneRay', 'DUNE_RAY', 'species/duneRay', 'DUNE_RAY_LOOK'],
         ['data/species/skitterer', 'SKITTERER_DATA', 'species/skitterer', 'SAND_SKITTERER_LOOK'],
-        ['runtime/species/striderRows', 'DUNE_STRIDER', 'species/strider', 'DUNE_STRIDER_LOOK'],
+        ['data/species/strider', 'DUNE_STRIDER', 'species/strider', 'DUNE_STRIDER_LOOK'],
         ['species/matriarch', 'DUNE_MATRIARCH', 'species/matriarch', 'DUNE_MATRIARCH_LOOK']]) {
         const rows = await at(`src/shards/sunscar-dunes/${rowFile}.ts`), looks = await at(`src/shards/sunscar-dunes/${lookFile}.ts`);
         app.species.registerRow(rows[row], scope); app.species.registerLook(looks[look], scope);
