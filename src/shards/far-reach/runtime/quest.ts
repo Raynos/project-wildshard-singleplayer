@@ -1,10 +1,12 @@
+import { installQuestGraph } from '@wildshard/game/plugin/quests';
+import { SKY_ACTIONS, SKY_GRAPH } from '../data/questGraph';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { QuestData } from '@wildshard/format/quests';
-import { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { DECK, NOTES, ROOST_RAYS, VANES, WINCH } from '../data/layout';
+import type { DeclaredQuests } from '@wildshard/game/quest/declared';
+import { DECK, NOTES, ROOST_RAYS, WINCH } from '../data/layout';
 import { KEEPER_AT } from '../data/quests';
-import { FLAGS, vaneFlag } from '../quest/flags';
+import { FLAGS } from '../quest/flags';
 
 /** The script command actor that carries Sky's [E] prompts (`{ kind: 'script', actorId: SKY_INTERACT, value: SKY_ACT.* }`). */
 export const SKY_INTERACT = 'far.interact';
@@ -58,27 +60,23 @@ export function skyWinchPermission(flags: Pick<SimHost['flags'], 'has'>): number
  */
 export function installSkyQuest(host: SimHost, ports: SkyQuestPorts): DeclaredQuests {
   if (ROOST_IDS.some(id => host.entities.get(id) === undefined)) throw new Error('Sky Reach installs its quest after the roost rays');
-  const quests = new DeclaredQuests(host, ports.quests, { fact: ports.fact, coins: ports.coins });
+  const graph = installQuestGraph(host, { quests: ports.quests, interactions: SKY_ACTIONS, npcs: [], graph: SKY_GRAPH },
+    { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
   const flags = host.flags, eye = new Vector3();
   const near = (prompt: { at: Vector3; radius: number }): boolean => {
     eye.copy(host.player.position); eye.y += EYE;
     return prompt.at.distanceTo(eye) < prompt.radius;
   };
   const act = (value: number): void => {
-    if (value === SKY_ACT.talk) { if (near(PROMPTS[SKY_ACT.talk]) && !flags.has(FLAGS.notes)) flags.set(FLAGS.notes); return; }
-    if (value === SKY_ACT.notes) { if (near(PROMPTS[SKY_ACT.notes])) flags.set(FLAGS.notes); return; }
+    if (value === SKY_ACT.talk) { if (near(PROMPTS[SKY_ACT.talk])) graph.run('talk'); return; }
+    if (value === SKY_ACT.notes) { if (near(PROMPTS[SKY_ACT.notes])) graph.run('notes'); return; }
     if (value !== SKY_ACT.winch || !near(PROMPTS[SKY_ACT.winch]) || ports.winch.raised()) return;
     // the browser toasts "locked" otherwise; nothing moves
     if (flags.has(FLAGS.roost) && flags.has(FLAGS.vanes)) ports.winch.command();
   };
-  const vaneFlags = VANES.map(vane => vaneFlag(vane.id));
-  if (vaneFlags.length > MAX_ROWS || ROOST_IDS.length > MAX_ROWS) throw new RangeError('Sky quest rows exceed their finite bound');
+  if (ROOST_IDS.length > MAX_ROWS) throw new RangeError('Sky quest rows exceed their finite bound');
   const roostDown = (): boolean => {
     for (let i = 0; i < MAX_ROWS; i++) { const id = ROOST_IDS[i]; if (id === undefined) break; if (host.entities.get(id)?.alive !== false) return false; }
-    return true;
-  };
-  const vanesTurned = (): boolean => {
-    for (let i = 0; i < MAX_ROWS; i++) { const flag = vaneFlags[i]; if (flag === undefined) break; if (!flags.has(flag)) return false; }
     return true;
   };
   host.onStep(QUEST_STEP, () => {
@@ -87,9 +85,9 @@ export function installSkyQuest(host: SimHost, ports: SkyQuestPorts): DeclaredQu
       const command = list[i]; if (command === undefined) break;
       if (command.actorId === SKY_INTERACT) act(command.value);
     }
-    if (flags.has(FLAGS.notes) && !flags.has(FLAGS.roost) && roostDown()) flags.set(FLAGS.roost);
-    if (!flags.has(FLAGS.vanes) && vanesTurned()) flags.set(FLAGS.vanes);
-    if (!flags.has(FLAGS.raised) && ports.winch.raised()) flags.set(FLAGS.raised);
+    if (graph.rules.check('roost').ok && roostDown()) graph.run('roost');
+    graph.run('vanes');
+    if (!flags.has(FLAGS.raised) && ports.winch.raised()) graph.run('raised');
   });
-  return quests;
+  return graph.quests;
 }

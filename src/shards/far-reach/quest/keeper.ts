@@ -2,12 +2,9 @@ import { AdditiveBlending, BufferGeometry, Float32BufferAttribute, Group, Mesh, 
 import { buildPrimitive } from '@wildshard/sdk/kit/mergedPrimitives';
 import { fitModel, splitTriangles } from '../runtime/looks/modelIntake';
 import { hdMaterial, skyHd, skyMesh } from '../world/meshes';
-import type { NpcDef } from '@wildshard/engine/quest/core';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { KEEPER_SCARF_EDITS } from '../runtime/looks/paintLook';
-import { FLAGS } from './flags';
-import { STRINGS } from '../data/strings';
 import { SPAWN } from '../data/layout';
 import { KEEPER_AT } from '../data/quests';
 import { FACETED_POSE, KEEPER_CODE, KEEPER_HALO, KEEPER_HD, KEEPER_LANTERN, KEEPER_MODEL, KEEPER_PAINTS, WAVE_RANGE } from '../data/keeperLook';
@@ -22,14 +19,7 @@ import { FACETED_POSE, KEEPER_CODE, KEEPER_HALO, KEEPER_HD, KEEPER_LANTERN, KEEP
  */
 const STAND_X = KEEPER_AT.x + 0.5, STAND_Z = KEEPER_AT.z - 1.2;
 export const KEEPER_STAND = { x: STAND_X, z: STAND_Z, yaw: Math.atan2(SPAWN.x - STAND_X, SPAWN.z - STAND_Z) } as const;
-export const KEEPER_NPC: NpcDef = {
-  id: 'far.keeper', name: STRINGS.keeperName,
-  dialogue: [
-    { when: { all: [FLAGS.raised] }, lines: [STRINGS.keeperDone] },
-    { when: { all: [FLAGS.notes] }, lines: [STRINGS.keeperLater] },
-    { lines: [STRINGS.keeperHello, STRINGS.keeperAsk, STRINGS.keeperHow], sets: [FLAGS.notes] },
-  ],
-};
+
 
 export interface Keeper { readonly group: Group; readonly head: Vector3; readonly speaker: { talking: boolean }; update: (t: number, player: Vector3) => void }
 
