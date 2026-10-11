@@ -1,7 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Admit the original native terrain and committed fixed geometry.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare complete geometry byte ranges without per-element matcher traversal.
+import { Buffer } from 'node:buffer';
 import { beforeAll, expect, it } from 'vitest';
-import { MeshStandardMaterial } from 'three';
+import { MeshStandardMaterial, type BufferAttribute } from 'three';
 import { bakedSamplers, parseBakedTerrain } from '../../../src/engine/world/BakedTerrain';
 import { HeightfieldBinding } from '../../../src/engine/world/Heightfield';
 import { addVoxelAOBake } from '../../../src/engine/world/voxelAO';
@@ -13,6 +15,11 @@ import { loadCoveGeometry, copyCoveGeometry } from '../../../src/shards/driftwoo
 import { FIXED_MODEL_FILES } from '../../../src/shards/driftwood-isle/data/modelFiles';
 import { coveFloorAt, coveSpecKey, islandCoveSpec } from '../../../src/shards/driftwood-isle/world/coveLayout';
 import bake from '../../../src/shards/driftwood-isle/data/coveBake.json' with { type: 'json' };
+
+function expectGeometryBytes(actual: BufferAttribute['array'], expected: BufferAttribute['array'], label: string): void {
+  expect(actual.constructor, label).toBe(expected.constructor);
+  expect(Buffer.from(actual.buffer, actual.byteOffset, actual.byteLength).equals(Buffer.from(expected.buffer, expected.byteOffset, expected.byteLength)), label).toBe(true);
+}
 
 beforeAll(async () => {
   const files = Object.values(FIXED_MODEL_FILES).filter(file => file.includes('/cove-'));
@@ -33,9 +40,9 @@ it('retains original native terrain placement, every geometry channel, indexed p
     expect(source.geometry.pools.getIndex()?.count).toBe(243);
     for (const part of ['structure', 'rocks', 'glow', 'pools'] as const) {
       const original = source.geometry[part], copy = admitted.geometry[part];
-      expect(new Uint8Array(readFileSync(`public/assets/driftwood-isle/baked/fixed-models/cove-${part}.glb`))).toEqual(staticGlb([{ geometry: original, material }], `cove-${part}`));
+      expect(readFileSync(`public/assets/driftwood-isle/baked/fixed-models/cove-${part}.glb`).equals(staticGlb([{ geometry: original, material }], `cove-${part}`)), `cove-${part}.glb`).toBe(true);
       expect(Object.keys(copy.attributes).sort()).toEqual(Object.keys(original.attributes).sort());
-      for (const [channel, attribute] of Object.entries(original.attributes)) expect(copy.getAttribute(channel).array, `${part}:${channel}`).toEqual(attribute.array);
+      for (const [channel, attribute] of Object.entries(original.attributes)) expectGeometryBytes(copy.getAttribute(channel).array, attribute.array, `${part}:${channel}`);
       const copiedIndex = copy.getIndex(), originalIndex = original.getIndex();
       // The GLB writer stores indices as uint32; topology values and order stay exact.
       expect(copiedIndex === null ? null : Array.from(copiedIndex.array)).toEqual(originalIndex === null ? null : Array.from(originalIndex.array));
@@ -49,7 +56,7 @@ it('keeps geometry, placement matrices and boxes independent for disposal and mu
   const a = copyCoveGeometry(islandCoveSpec()), b = copyCoveGeometry(islandCoveSpec()), c = copyCoveGeometry(islandCoveSpec());
   for (const part of ['structure', 'rocks', 'glow', 'pools'] as const) {
     a.geometry[part].scale(2, 3, 4); a.geometry[part].dispose();
-    expect(b.geometry[part].getAttribute('position').array).toEqual(c.geometry[part].getAttribute('position').array);
+    expectGeometryBytes(b.geometry[part].getAttribute('position').array, c.geometry[part].getAttribute('position').array, `${part}:independent positions`);
     expect(b.geometry[part]).not.toBe(c.geometry[part]);
     b.geometry[part].dispose(); c.geometry[part].dispose();
   }

@@ -16,8 +16,8 @@ it('Template 1 produces identical inspectable scene bytes in two independent gen
   try {
     const a = synthScene(first.source.static, root, 'template-1'), before = readFileSync(a.path);
     const b = synthScene(second.source.static, root, 'template-1');
-    expect(b.hash).toBe(a.hash); expect(readFileSync(b.path)).toEqual(before);
-    expect(readFileSync(join(root, '.wildshard/cache/template-1', a.hash, 'scene.json'))).toEqual(before);
+    expect(b.hash).toBe(a.hash); expect(readFileSync(b.path).equals(before), 'independent scene bytes').toBe(true);
+    expect(readFileSync(join(root, '.wildshard/cache/template-1', a.hash, 'scene.json')).equals(before), 'immutable scene bytes').toBe(true);
     expect(a.scene.nodes.length).toBeGreaterThan(20);
     expect(before.toString()).not.toContain('uuid');
   } finally { first.dispose(); second.dispose(); rmSync(root, { recursive: true, force: true }); }

@@ -25,7 +25,7 @@ it('regenerates every prop, collider, panel and immutable geometry byte exactly'
     const props = bakeProps(fixture.source);
     const rows = { props: props.props, tiles: props.tiles, files: props.files, library: props.library, far: props.far, report: props.report };
     expect(encodeCanonicalJson(rows)).toBe(readFileSync('src/shards/pastel-plain/data/props.json', 'utf8'));
-    for (const [hash, bytes] of props.assets) expect(Buffer.from(bytes), hash).toEqual(readFileSync(`src/shards/pastel-plain/assets/${hash}`));
+    for (const [hash, bytes] of props.assets) expect(Buffer.from(bytes).equals(readFileSync(`src/shards/pastel-plain/assets/${hash}`)), hash).toBe(true);
   } finally { fixture.dispose(); }
 });
 
