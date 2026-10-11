@@ -2,10 +2,12 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { compileScript } from '../scripts/compile-script.mjs';
+import { generateDirectorAbi } from '@wildshard/sdk/directorAbi';
 import { parseDirector, type DirectorData } from '@wildshard/format/director';
 import { DirectorLane, createDirectorLane } from '../src/game/plugin/director';
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 
+const sources = { 'wildshard-director.ts': generateDirectorAbi(declaration) };
 const hash = 'a'.repeat(64);
 const finale: DirectorData = {
   id: 'driftwood.finale', entity: 9000, module: hash, parameters: [7, 7],
@@ -14,7 +16,7 @@ const finale: DirectorData = {
   subscriptions: [{ event: 'world.dawn', scope: 'grid' }],
 };
 let bytes: Uint8Array;
-beforeAll(async () => { bytes = await compileScript(readFileSync('src/shards/driftwood-isle/behaviour/director.as', 'utf8'), { maximumPages: 1 }); });
+beforeAll(async () => { bytes = await compileScript(readFileSync('src/shards/driftwood-isle/behaviour/director.as', 'utf8'), { maximumPages: 1, sources }); });
 function observation(tick: number) { return { altar: Number(tick >= 10), dead: Number(tick >= 200), seen: 0, 'player-x': tick >= 220 ? 0 : 20, 'player-z': 0, 'reward-x': 0, 'reward-z': 0 }; }
 describe('SF24 typed, bounded shard director', () => {
   it('admits the shipped module by hash, copies bytes and rejects replacement bytes before publication', async () => {
@@ -67,7 +69,7 @@ describe('SF24 typed, bounded shard director', () => {
   });
   it('rejects a wrongly typed output batch before publication and rolls author state back', async () => {
     const source = readFileSync('src/shards/driftwood-isle/behaviour/director.as', 'utf8').replace('store<f64>(o+24,0)', 'store<f64>(o+24,1)');
-    const bad = await compileScript(source, { maximumPages: 1 }), lane = new DirectorLane(finale, bad, 357), before = lane.host.snapshot(hash);
+    const bad = await compileScript(source, { maximumPages: 1, sources }), lane = new DirectorLane(finale, bad, 357), before = lane.host.snapshot(hash);
     expect(lane.step(1, { ...observation(100), altar: 1 })).toEqual([]);
     expect(lane.host.checkpoint().pending).toEqual([]); expect(lane.host.world.entity(9000)?.frozen).toBe(true);
     expect(lane.host.snapshot(hash)).toEqual(before);

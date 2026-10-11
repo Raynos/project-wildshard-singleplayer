@@ -12,7 +12,8 @@
         {
           "file": "behaviour/director.json"
         }
-      ]
+      ],
+      "director": "data/director.json"
     }
   ]
 }

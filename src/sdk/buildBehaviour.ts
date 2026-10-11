@@ -6,6 +6,7 @@ import { dirname, resolve, sep } from 'node:path';
 import { Buffer } from 'node:buffer';
 import * as v from 'valibot';
 import { compileScript } from './compileScript';
+import { generateDirectorAbi } from './directorAbi';
 import { hashImmutableBytes } from './immutable';
 import { readBoundedFile } from './sourceReader';
 
@@ -16,6 +17,7 @@ export const BehaviourBuildSchema = v.strictObject({
   version: v.literal(1),
   modules: v.pipe(v.array(v.strictObject({
     source: v.pipe(relativePath, v.check(path => path.startsWith('behaviour/') && path.endsWith('.as'), 'authored behaviour .as source')),
+    director: v.optional(jsonPath),
     maximumPages: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(64)),
     assets: relativePath,
     bindings: v.array(jsonPath),
@@ -24,8 +26,8 @@ export const BehaviourBuildSchema = v.strictObject({
 });
 
 /** Compile retained AssemblyScript author source with the pinned SDK compiler and name its immutable bytes by SHA256. */
-export async function compileBehaviourModule(source: string, maximumPages = 1): Promise<{ bytes: Uint8Array; module: string }> {
-  const bytes = await compileScript(source, { maximumPages });
+export async function compileBehaviourModule(source: string, maximumPages = 1, sources: Readonly<Record<string, string>> = {}): Promise<{ bytes: Uint8Array; module: string }> {
+  const bytes = await compileScript(source, { maximumPages, sources });
   return { bytes, module: hashImmutableBytes(bytes) };
 }
 
@@ -54,7 +56,10 @@ export async function buildBehaviourProject(project: string, options: { check?: 
   const json = (data: unknown): Uint8Array => new TextEncoder().encode(`${JSON.stringify(data, null, 2)}\n`);
   for (const row of rows.modules) {
     const source = new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(confined(row.source), 1_000_000));
-    const compiled = await compileBehaviourModule(source, row.maximumPages);
+    const sources: Readonly<Record<string, string>> = row.director === undefined ? {} : {
+      'wildshard-director.ts': generateDirectorAbi(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(confined(row.director), 1_000_000)))),
+    };
+    const compiled = await compileBehaviourModule(source, row.maximumPages, sources);
     put(`${row.assets}/${compiled.module}`, compiled.bytes);
     for (const path of row.bindings) {
       const data = v.parse(v.record(v.string(), v.unknown()), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(confined(path), 1_000_000))));

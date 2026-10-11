@@ -104,7 +104,8 @@
     "./bake/rig": "./bake/rig.ts",
     "./bake/image": "./bake/image.ts",
     "./sceneGraph": "./sceneGraph.ts",
-    "./sceneAudio": "./sceneAudio.ts"
+    "./sceneAudio": "./sceneAudio.ts",
+    "./directorAbi": "./directorAbi.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -483,6 +484,10 @@
       "./sceneAudio": {
         "types": "./dist/types/sdk/sceneAudio.d.ts",
         "default": "./dist/sceneAudio.js"
+      },
+      "./directorAbi": {
+        "types": "./dist/types/sdk/directorAbi.d.ts",
+        "default": "./dist/directorAbi.js"
       }
     }
   }

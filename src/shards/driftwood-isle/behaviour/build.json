@@ -13,7 +13,8 @@
           "file": "behaviour/director.json",
           "generated": "DO NOT EDIT: behaviour/director.as -> scripts/bake/directorSource.ts (@wildshard/sdk/compileScript); regenerate with node scripts/bake/directors.mjs"
         }
-      ]
+      ],
+      "director": "data/director.json"
     }
   ]
 }

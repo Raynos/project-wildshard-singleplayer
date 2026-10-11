@@ -35,15 +35,16 @@ it('refuses escaped source symlinks and duplicate outputs before changing existi
     // The source target is outside the declared project, even though its symlink is inside behaviour/.
     const project = join(root, 'project'); mkdirSync(join(project, 'behaviour'), { recursive: true }); mkdirSync(join(project, 'data'));
     symlinkSync(join(root, 'outside.as'), join(project, 'behaviour/director.as'));
-    const row = { source: 'behaviour/director.as', maximumPages: 1, assets: 'assets', bindings: ['data/director.json'], embedded: [] };
+    const row = { director: 'data/director.json', source: 'behaviour/director.as', maximumPages: 1, assets: 'assets', bindings: ['data/director.json'], embedded: [] };
     writeFileSync(join(project, 'data/director.json'), '{"module":"unchanged"}');
     writeFileSync(join(project, 'behaviour/build.json'), JSON.stringify({ version: 1, modules: [row] }));
     await expect(buildBehaviourProject(project)).rejects.toThrow('outside project');
     expect(readFileSync(join(project, 'data/director.json'), 'utf8')).toBe('{"module":"unchanged"}');
     writeFileSync(join(root, 'behaviour/director.as'), source);
-    writeFileSync(join(root, 'data/director.json'), '{"module":"unchanged"}');
+    const binding = readFileSync('src/shards/pine-hollow/data/director.json', 'utf8');
+    writeFileSync(join(root, 'data/director.json'), binding);
     writeFileSync(join(root, 'behaviour/build.json'), JSON.stringify({ version: 1, modules: [{ ...row, bindings: ['data/director.json', 'data/director.json'] }] }));
     await expect(buildBehaviourProject(root)).rejects.toThrow('duplicate output');
-    expect(readFileSync(join(root, 'data/director.json'), 'utf8')).toBe('{"module":"unchanged"}');
+    expect(readFileSync(join(root, 'data/director.json'), 'utf8')).toBe(binding);
   } finally { rmSync(root, { recursive: true, force: true }); }
 }, 20_000);

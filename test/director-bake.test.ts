@@ -4,10 +4,13 @@ import { readFileSync } from 'node:fs';
 import { Buffer } from 'node:buffer';
 import { expect, it } from 'vitest';
 import { compileBehaviourModule } from '@wildshard/sdk/buildBehaviour';
+import { generateDirectorAbi } from '@wildshard/sdk/directorAbi';
 
 it.each(['driftwood-isle', 'nalati-grasslands', 'pine-hollow'])('reproduces %s director outputs through the retained SDK TypeScript bake', async slug => {
   const root = `src/shards/${slug}`;
-  const baked = await compileBehaviourModule(readFileSync(`${root}/behaviour/director.as`, 'utf8'));
+  const baked = await compileBehaviourModule(readFileSync(`${root}/behaviour/director.as`, 'utf8'), 1, {
+    'wildshard-director.ts': generateDirectorAbi(JSON.parse(readFileSync(`${root}/data/director.json`, 'utf8'))),
+  });
   expect(Buffer.from(baked.bytes).equals(readFileSync(`${root}/assets/${baked.module}`))).toBe(true);
   if (slug !== 'nalati-grasslands') {
     const embedded: unknown = JSON.parse(readFileSync(`${root}/behaviour/director.json`, 'utf8'));
