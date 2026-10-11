@@ -6,7 +6,8 @@ import { runFloorGridRoute, type FloorGridPlan } from '../scripts/frame-floor-gr
 it('stages the first source before driving, and fences later probe legs to the same document without reseeding', async () => {
   const positions: { x: number; z: number }[] = [], hovers: boolean[] = [];
   const position = { x: 0, y: 0.55, z: 0 };
-  const state = { inside: 'home', live: { crossing: { phase: 'idle' }, live: { current: 'home', worldFeet: position, residents: ['home'], gameplayReady: true } } };
+  const state = { inside: 'home', cells: [{ instance: 'home', slug: '_template', cell: [0, 0] }],
+    live: { crossing: { phase: 'idle' }, live: { current: 'home', worldFeet: position, residents: ['home'], gameplayReady: true } } };
   const context = createContext({ performance: { timeOrigin: 100, now: () => 10 }, setTimeout, clearTimeout,
     window: { __wildshard: { pose: (pose: { x: number; z: number }) => { Object.assign(position, pose); positions.push({ x: pose.x, z: pose.z }); },
       world: { player: { position, hover: false, hoverSpeedLimit: () => 15, setHover: (value: boolean) => { hovers.push(value); } },
