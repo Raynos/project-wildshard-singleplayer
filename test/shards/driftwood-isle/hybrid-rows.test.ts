@@ -22,9 +22,11 @@ const achievement = (id: string) => ledger().state().achievements[JSON.stringify
 
 it('declares bound quest, feat, sword and Captain rows while preserving the data-only client and authored placement', () => {
   expect(parseShardfile(source)).toEqual(source);
-  expect(source.runtime?.binds).toEqual(['quests', 'ledger', 'items', 'spawns']);
+  expect(source.runtime?.binds).toEqual(['quests', 'ledger', 'items', 'spawns', 'modes']);
   const data = withoutRuntimeRows(source);
   expect([data.quests.quests, data.ledger, data.items.rows, data.creatures.spawns]).toEqual([[], [], [], []]);
+  expect(data.modes).toEqual({ traverse: [] });
+  expect(source.modes?.traverse.map(row => row.id)).toEqual(['driftwood.zipline']);
   expect(data.audio).toBe(source.audio); expect(data.edge).toBe(source.edge);
   expect(source.items.rows.map(row => [row.id, row.family])).toEqual([
     ['weapon.driftwood-isle.wood', 'driftwood-isle.wood'], ['weapon.driftwood-isle.iron', 'driftwood-isle.iron'],

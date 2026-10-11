@@ -23,7 +23,7 @@ it('discovers the home through the same exact trusted entry as a fresh owned reg
 });
 
 it('declares the trusted entry and uses one completed quest and achievement save in standalone and the placed grid cell', () => {
-  expect(source.runtime).toMatchObject({ entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns'] });
+  expect(source.runtime).toMatchObject({ entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes'] });
   expect(source.runtime?.spawns?.bosses.map(row => row.id)).toEqual(['driftwood.captain']);
   const slug = source.identity.slug, assembly = new GridAssembly({ developer: false, devserver: false });
   const cell = assembly.cell(firstPartyInstance(slug));
