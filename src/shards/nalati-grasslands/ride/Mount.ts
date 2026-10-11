@@ -7,7 +7,7 @@ import type { InputService } from '@wildshard/engine/input/InputService';
 import type { RideCommandSample } from '@wildshard/engine/input/commands';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { lockOn } from '@wildshard/engine/player/AimTargets';
-import { enterPlayerMode, exitPlayerMode } from '@wildshard/sdk/playerModes';
+import { enterPlayerMode, exitPlayerMode } from '../runtime/playerModes';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import { inChunk, waterLevel } from '@wildshard/engine/world/Heightfield';

@@ -4,7 +4,7 @@ import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { Rng } from '@wildshard/engine/core/rng';
 import { fxMaterial, annulus, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { HeightPatch } from '@wildshard/engine/physics/heightPatch';
+import { HeightPatch } from '../runtime/heightPatch';
 import type { Material } from '@wildshard/engine/physics/surface';
 import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 /**

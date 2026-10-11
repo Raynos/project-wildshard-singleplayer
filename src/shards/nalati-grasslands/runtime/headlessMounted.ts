@@ -2,7 +2,7 @@ import { MountedBody, mountedMotorOptions, type MountedRider, type MountedWorld,
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost, SimPlayerDriver, SimPlayerMotionSample, SimValue } from '@wildshard/engine/sim';
-import { enterHeadlessMode, exitHeadlessMode, registerHeadlessMode } from '@wildshard/sdk/playerModes';
+import { enterHeadlessMode, exitHeadlessMode, registerHeadlessMode } from './playerModes';
 import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { AnimalPoseLaw } from '@wildshard/engine/entities/animalPose';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';

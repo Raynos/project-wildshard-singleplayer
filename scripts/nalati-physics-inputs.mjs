@@ -10,6 +10,7 @@ export function nalatiPhysicsInputs(root) {
     .map(path => `src/shards/nalati-grasslands/${path}`);
   // the manager, the hunting brain and the group policies that roll and drive the bodies, the shared floor recipe
   paths.push('src/engine/world/geometryBounds.ts');
+  paths.push('src/shards/nalati-grasslands/runtime/eliteBrain.ts', 'src/shards/nalati-grasslands/runtime/heightPatch.ts', 'src/shards/nalati-grasslands/runtime/flockSchema.ts', 'src/shards/nalati-grasslands/runtime/playerModes.ts', 'src/shards/nalati-grasslands/runtime/weapons/Thrown.ts', 'src/shards/nalati-grasslands/runtime/weapons/thrownProfile.ts');
   paths.push('src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/diver.ts', 'src/engine/ai/stalker.ts', 'src/engine/ai/hunt.ts', 'src/engine/ai/huntPattern.ts', 'src/engine/ai/pack.ts', 'src/engine/ai/herd.ts', 'src/engine/ai/grazer.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
   // the grass field the bake samples (its `grass` rows)
   paths.push('src/game/systems/looks/grassField.ts');

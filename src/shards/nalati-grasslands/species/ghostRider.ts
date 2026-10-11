@@ -1,5 +1,5 @@
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { eliteDamageMul } from '@wildshard/engine/entities/eliteBrain';
+import { eliteDamageMul } from '../runtime/eliteBrain';
 import type { SpeciesDef, ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { engineString } from '@wildshard/engine/strings';

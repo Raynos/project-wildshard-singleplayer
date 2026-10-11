@@ -1,4 +1,4 @@
-import { eliteThink, eliteAct, eliteDamageMul } from '@wildshard/engine/entities/eliteBrain';
+import { eliteThink, eliteAct, eliteDamageMul } from '../runtime/eliteBrain';
 import type { SpeciesDef, AnimalSpecies, VariantDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, smooth01, clamp } from '@wildshard/engine/entities/species/rigs';
 import { EAGLE_DATA } from '../data/species/eagle';

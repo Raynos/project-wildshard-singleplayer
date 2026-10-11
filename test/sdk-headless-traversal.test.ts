@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { createSimHost, type SimHost } from '../src/engine/sim';
 import { restoreSimHost, snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { registerHeadlessMode, currentHeadlessMode } from '../src/sdk/playerModes';
+import { registerHeadlessMode, currentHeadlessMode } from '../src/shards/nalati-grasslands/runtime/playerModes';
 import { MOTOR_MODE_MECHANISMS } from '../src/sdk/playerModeData';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';

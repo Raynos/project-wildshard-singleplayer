@@ -1166,7 +1166,7 @@ parents, lights and environment stay unchanged; retiring the owner removes the d
 **Offscreen preparation.** `@wildshard/engine/render/offscreenPreparation` defines
 `registerOffscreenPreparation(scene, owner, pass)` and `OffscreenPreparation`:
 `{label, camera, material, target, roots(), positionOnly?}`. The SDK defining facade is
-`@wildshard/sdk/looks/offscreenPreparation`. Register an existing override pass
+`@wildshard/engine/render/offscreenPreparation`. Register an existing override pass
 with its resource owner; the ordinary sliced precompile gathers the current,
 visible caster variants in the pass camera's layers and borrows the exact material,
 camera and render target. It does not advance a clock, rewrite shader sources, or change
@@ -2097,7 +2097,7 @@ defines the heightfield, player, creature identities, strike timings and quests.
 60 Hz tick; `advance(seconds, command)` retains its fixed-step accumulator. Each host owns its physics,
 clock, RNG, events, entities, damage pipeline, flags, quest progress and timers.
 `onStep(id, run, adapter?, phase?)` registers scoped per-instance behaviour with optional continuation state.
-`registerHeadlessMode` from `@wildshard/sdk/playerModes` registers a traversal against the host's events.
+Nalati’s local `runtime/playerModes.ts` adapter registers its traversal against the host’s events.
 After physics, an undriven player asks `player.traversal`; a true answer owns that tick's capsule movement,
 clears impulse and suppresses ordinary walk, board, swim, dodge and jump motion. Entered drivers take precedence;
 creatures, health and events still advance once. The mode installer owns traversal continuation in its adapter
@@ -2179,7 +2179,7 @@ ignored and `impulsePlayer` with upward speed lifts the board off, as on the cli
 (`player.board`) and the handles (`boardColliders`) only when present, so a host that never boards keeps its bytes.
 
 **Player modes and water (SF34).** The player's modes are one registry for both hosts (`@wildshard/engine/player/modes`,
-SDK `@wildshard/sdk/playerModes`): the page Player's is `playerModes(player)`, a host's is `host.modes` over its own
+Nalati’s local `runtime/playerModes.ts` adapter): the page Player's is `playerModes(player)`, a host's is `host.modes` over its own
 player. The motor modes (`foot`, `board`, `swim`, `wade`) read the player's own state; a driven mode (`ride`, `grapple`;
 `glide` / `climb` / `drive` approved) is declared `PlayerModeDef { id, hud, context?, traverse?, enter?, exit? }` and
 entered with a driver: on the page a `PlayerModeDriver` takes the Player's `ride` slot; headless a `SimPlayerDriver`

@@ -11,7 +11,8 @@
       "ledger",
       "state",
       "items",
-      "spawns"
+      "spawns",
+      "modes"
     ],
     "runtimeSpawns": {
       "homes": [],
@@ -423,14 +424,14 @@
     "actors": 35,
     "colliders": 2696,
     "ticksExecuted": 180,
-    "checkpointHash": "809a453ab57935dd967b0df8b11f79d85727954c7d991dc46b539a3c6148284c"
+    "checkpointHash": "83b3be3200a83dffc026970f9a4c930eb57a83c00b18c96ff655598df86e0ccd"
   },
   "replay": {
     "status": "partial",
     "checkpointCaptured": true,
     "codecByteExact": true,
     "suffixTicksExecuted": 60,
-    "suffixHash": "a4a23f80421b01590f1b8f00d7bd1ab1725e471b2a20a300c7ce63ba3390f523",
+    "suffixHash": "73458795a0e4f54d1e9cb2e9fb5d977ff659b514fc57cc8bc00e5a69fe6c7c0b",
     "wholeShard": false
   },
   "audit": {

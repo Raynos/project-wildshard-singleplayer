@@ -12,7 +12,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul } from '@wildshard/engine/entities/eliteBrain';
+import { setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul } from '../runtime/eliteBrain';
 import { hasSpecies as hasLegacySpecies, speciesDef, type ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import type { Player } from '@wildshard/engine/player/Player';
 import { EliteBar } from '@wildshard/engine/ui/EliteBar';

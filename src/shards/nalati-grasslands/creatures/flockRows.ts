@@ -1,4 +1,4 @@
-import { flock, type FlockData } from '@wildshard/sdk/crowds';
+import { flock, type FlockData } from '../runtime/flockSchema';
 import { NALATI_FLOCK } from '../data/crowds';
 import { NALATI_WILDLIFE } from '../data/fauna';
 

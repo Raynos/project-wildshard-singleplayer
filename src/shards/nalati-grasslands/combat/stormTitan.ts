@@ -5,7 +5,7 @@ import type { Game } from '@wildshard/engine/core/Game';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
+import { setEliteDamage } from '../runtime/eliteBrain';
 import { listenPage } from '@wildshard/engine/input/dom';
 import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import type { Player } from '@wildshard/engine/player/Player';

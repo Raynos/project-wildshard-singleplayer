@@ -2,7 +2,7 @@ import { CROSSBOW_PROFILE } from '../../src/shards/pine-hollow/weapons/crossbow/
 import { AR15 } from '../../src/shards/nalati-grasslands/data/firearmProfile';
 import { LeverRifle } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { LEVER_PROFILE } from '../../src/shards/pine-hollow/weapons/leverAction';
-import { Thrown } from '../../src/engine/combat/Thrown';
+import { Thrown } from '../../src/shards/nalati-grasslands/runtime/weapons/Thrown';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { damageFor } from '../../src/engine/entities/AnimalView';

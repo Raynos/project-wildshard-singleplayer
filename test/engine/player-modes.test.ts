@@ -13,7 +13,7 @@ import { Player } from '../../src/engine/player/Player';
 import { playerModes, type ModePlayer, type PlayerModeDriver } from '../../src/engine/player/modes';
 import { WorldRegistry, type Piece } from '../../src/engine/world/registry';
 import { basinBody } from '../../src/engine/world/water/body';
-import { currentHeadlessMode, currentPlayerMode, enterHeadlessMode, enterPlayerMode, exitHeadlessMode, exitPlayerMode, registerHeadlessMode, registerPlayerMode } from '../../src/sdk/playerModes';
+import { currentHeadlessMode, currentPlayerMode, enterHeadlessMode, enterPlayerMode, exitHeadlessMode, exitPlayerMode, registerHeadlessMode, registerPlayerMode } from '../../src/shards/nalati-grasslands/runtime/playerModes';
 import { createSimHost, SIM_API_VERSION, type SimCommand, type SimLevel } from '../../src/engine/sim';
 import { restoreSimHost, snapshotSimHost } from '../../src/engine/sim/snapshot';
 import { DRIFTWOOD_SEA } from '../../src/shards/driftwood-isle/world/sea';

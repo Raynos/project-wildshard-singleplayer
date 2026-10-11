@@ -3,7 +3,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager, AnimalSound } from '@wildshard/engine/entities/AnimalManager';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { Player } from '@wildshard/engine/player/Player';
-import { registerPlayerMode } from '@wildshard/sdk/playerModes';
+import { registerPlayerMode } from '../runtime/playerModes';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';

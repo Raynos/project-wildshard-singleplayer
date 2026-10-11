@@ -3,8 +3,8 @@ import { javelinSpearType, type JavelinSpearMount, type JavelinSpearParts, type 
 import { lin } from '@wildshard/engine/math/color';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
-import { SWORD_WOOD } from '@wildshard/sdk/runtime/weapons/starterMeleeProfile';
-import type { ThrownProfile } from '@wildshard/sdk/weapons/thrownProfile';
+import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
+import type { ThrownProfile } from './thrownProfile';
 import { SPEAR } from '../../weapons/equipment';
 import * as THREE from 'three';
 import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from '../../weapons/meleeGeo';

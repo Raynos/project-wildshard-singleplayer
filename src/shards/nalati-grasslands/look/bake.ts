@@ -20,7 +20,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { registerOffscreenPreparation } from '@wildshard/sdk/looks/offscreenPreparation';
+import { registerOffscreenPreparation } from '@wildshard/engine/render/offscreenPreparation';
 import { LOOK_BAKE_GLSL_DATA } from '../runtime/looks/lookBakeGlsl';
 
 /** the GLSL below is trusted custom code (runtime/looks/lookBakeGlsl.ts); `@{name}` splices the fragments this module passes */

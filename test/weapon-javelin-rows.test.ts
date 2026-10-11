@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { parseItems } from '@wildshard/format/items';
 import { parseWeaponProfile } from '@wildshard/format/weaponProfiles';
-import { Thrown } from '../src/engine/combat/Thrown';
+import { Thrown } from '../src/shards/nalati-grasslands/runtime/weapons/Thrown';
 import { JAVELIN, javelinFlightStep } from '../src/shards/nalati-grasslands/runtime/weapons/Spear';
 import { NALATI_ITEMS } from '../src/shards/nalati-grasslands/data/items';
 import { JAVELIN_WEAPON_PROFILE as profile } from '../src/shards/nalati-grasslands/data/javelinProfile';
