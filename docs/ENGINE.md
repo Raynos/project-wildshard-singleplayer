@@ -3230,3 +3230,10 @@ read `stalker/pack` and `grazer/herd` authored profiles. The defining format
 pack/herd preset before the existing native controller is constructed. Prey,
 threat, tame/mount, aggression, RNG, initialization and restore remain the
 original owners. No alternative creature manager or group registry is added.
+
+SF82 `plugin/brain` admits species `grazer/circle-challenge` and `diver/patrol`
+profiles through their defining format schemas, resolves their original presets,
+and constructs the unchanged native policy. Other flight/ram recipes still need
+an explicit native adapter and refuse automatic hosting. Signal's strider and
+ray use these canonical profiles; saved contracts, live witness names, six
+circling slots, body, contact, strike and RNG owners remain the original ones.

@@ -22,8 +22,8 @@ import { PatrolDiverBrain } from "@wildshard/engine/ai/patrolDiver";
 import { PhasedFlyerBrain } from "@wildshard/engine/ai/phasedFlyer";
 import { canReach } from "@wildshard/engine/ai/reach";
 import type { SimSnapshot } from "@wildshard/engine/sim/snapshot";
-import { parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGrazer } from "@wildshard/format/grazers";
-import { parsePatrolDiver, type PatrolDiverSchema, type ShardPatrolDiver } from "@wildshard/format/flyers";
+import { parseGrazer, grazerPreset, type GrazerSchema, parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGrazer } from "@wildshard/format/grazers";
+import { parseDiver, diverPreset, type DiverSchema, parsePatrolDiver, type PatrolDiverSchema, type ShardPatrolDiver } from "@wildshard/format/flyers";
 import { parsePhasedFlyer, type PhasedFlyerSchema, type ShardPhasedFlyer } from "@wildshard/format/phasedFlyers";
 import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, type KeptHomeRow } from "../shardfile/homeKeeper";
 import { type StalkerSchema, parseStalker, stalkerPreset, type GuardianPatternsSchema, guardianPreset, parseGuardianPattern, parseSkirmisher, parseGuardian, parsePerchHunter, type SkirmisherSchema, type GuardianSchema, type PerchHunterSchema, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from "@wildshard/format/brains";
@@ -449,6 +449,8 @@ export function stepEliteScript<B extends EliteScriptBody>(lane: EliteScriptLane
  * a boss flyer its encounter drives through memory fields (circle, dive, climb; grounded from a phase).
  */
 export type SpeciesBrain =
+  | { readonly archetype: 'grazer'; readonly data: Extract<v.InferInput<typeof GrazerSchema>, { pattern: 'circle-challenge' }>; readonly phaseSlots: number }
+  | { readonly archetype: 'diver'; readonly data: Extract<v.InferInput<typeof DiverSchema>, { pattern: 'patrol' }> }
   | { readonly archetype: 'challenge-grazer'; readonly data: v.InferInput<typeof ChallengeGrazerSchema>; readonly phaseSlots: number }
   | { readonly archetype: 'patrol-diver'; readonly data: v.InferInput<typeof PatrolDiverSchema> }
   | { readonly archetype: 'phased-flyer'; readonly data: v.InferInput<typeof PhasedFlyerSchema> }
@@ -520,6 +522,16 @@ function strikeOf(strikes: ReadonlyMap<string, StrikeSpec>, id: string, kind: st
 }
 function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, StrikeSpec>, modules: ReadonlyMap<string, Uint8Array>): Admitted {
   switch (brain.archetype) {
+    case 'grazer': {
+      const data = grazerPreset(parseGrazer(brain.data));
+      if (data.kind !== 'challenge-grazer') throw new Error(`Species ${kind} requires a native ram body adapter`);
+      return admit({ archetype: 'challenge-grazer', data, phaseSlots: brain.phaseSlots }, kind, strikes, modules);
+    }
+    case 'diver': {
+      const data = diverPreset(parseDiver(brain.data));
+      if (data.kind !== 'patrol-diver') throw new Error(`Species ${kind} requires a native flight body adapter`);
+      return admit({ archetype: 'patrol-diver', data }, kind, strikes, modules);
+    }
     case 'stalker': return { archetype: 'skirmisher', data: stalkerPreset(parseStalker(brain.data)) };
     case 'skirmisher': return { archetype: brain.archetype, data: parseSkirmisher(brain.data) };
     case 'guardian': {

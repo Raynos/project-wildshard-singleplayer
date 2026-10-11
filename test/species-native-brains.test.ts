@@ -3,6 +3,8 @@ import { admitSpeciesBrains } from "../src/game/plugin/brain";
 import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../src/shards/driftwood-isle/data/brains';
 import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { creature } from './fake/creature';
+import { STRIDER_BRAIN, RAY_BRAIN, SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/data/brains';
+import { speciesBrains } from '../src/sdk/speciesBrains';
 
 const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: (): [number, number, number] => [0, 1, 0],
   waterLevel: () => -100, streamAt: () => null });
@@ -16,6 +18,18 @@ const rows = [
 const catalogueRows = rows.map(row => ({ id: row.id, kind: row.kind, label: row.label, variants: [], brain: row.brain }));
 
 describe('species rows with trusted native body recipes', () => {
+  it('admits Signal archetype profiles before construction and retains the original native policy spellings', () => {
+    expect(STRIDER_BRAIN.archetype).toBe('grazer'); expect(RAY_BRAIN.archetype).toBe('diver');
+    const catalogue = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES);
+    expect(catalogue.kinds.has('duneStrider')).toBe(true); expect(catalogue.kinds.has('duneRay')).toBe(true);
+    const row = SIGNAL_SPECIES.find(value => value.kind === 'duneStrider');
+    const profile = STRIDER_BRAIN;
+    if (row === undefined || profile.archetype !== 'grazer') throw new Error('Missing authored strider profile');
+    expect(() => admitSpeciesBrains([{ ...row, brain: { ...profile, phaseSlots: 0 } }], [])).toThrow('phase slots');
+    expect(() => admitSpeciesBrains([{ ...row, brain: { ...profile,
+      data: { ...profile.data, faceSeconds: 0 } } }], [])).toThrow();
+    expect(() => admitSpeciesBrains([{ ...row, brain: profile }], [])).toThrow('undeclared strike');
+  });
   it.each(['crab', 'sailor', 'monkey'])('refuses automatic body installation for %s before any actor is constructed', kind => {
     const catalogue = admitSpeciesBrains(catalogueRows, []);
     expect(() => catalogue.bind(kind)).toThrow('trusted native body adapter');
