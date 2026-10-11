@@ -56,6 +56,8 @@ export interface RigMotion {
 }
 async function readDocument(glb: Uint8Array): Promise<Document> {
   if (glb.length < 20 || glb.length > 64_000_000) throw new Error('Rig requires bounded GLB bytes');
+  const header = new DataView(glb.buffer, glb.byteOffset, glb.byteLength);
+  if (header.getUint32(0, true) !== 0x46546c67 || header.getUint32(4, true) !== 2 || header.getUint32(8, true) !== glb.byteLength) throw new Error('Rig requires complete GLB 2 bytes');
   await MeshoptDecoder.ready;
   return new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder }).readBinary(glb);
 }

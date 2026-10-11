@@ -198,7 +198,7 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
   const animations = list(doc['animations'] ?? []); if (animations.length > 32) throw new Error('GLB clips cap');
   for (const value of animations) {
     const animation = object(value), samplers = list(animation['samplers']).map(object), channels = list(animation['channels']), bindings = new Set<string>();
-    if (typeof animation['name'] !== 'string' || !/^[a-z][a-z0-9.-]{0,127}$/u.test(animation['name'])) throw new Error('GLB clip name');
+    if (typeof animation['name'] !== 'string' || !/^[a-z][a-z0-9.:-]{0,127}$/u.test(animation['name'])) throw new Error('GLB clip name');
     if (samplers.length === 0 || samplers.length > 512 || channels.length === 0 || channels.length > 512) throw new Error('GLB clip channels cap');
     for (const entry of channels) {
       const channel = object(entry), target = object(channel['target']), targetId = nodeIndex(target['node']), path = target['path'], sampler = samplers[count(channel['sampler'], 512)];

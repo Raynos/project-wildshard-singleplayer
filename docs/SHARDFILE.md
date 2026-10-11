@@ -1386,3 +1386,8 @@ SF81 DIR-2: the author-only behaviour descriptor's optional `director` path sele
 
 
 SF81 DIR-3: optional `directors` is the defining `@wildshard/format/directorStages` root array. Omission remains omission, preserving other shards' existing wire bytes. Ordered guarded successor arrays supplement the original string `next`; every target and condition is admitted before installation. Flag rows must name flags already declared by the quest owner. Unsupported native bindings refuse instead of fabricating authority. A script hash identifies an immutable admitted AS handler; its native output events select authored actions without duplicating the script's scheduler. Scripted snapshots carry an explicit version-3 row cursor and refuse older continuations.
+
+GLB clip labels are bounded to 128 lowercase ASCII letters, digits, dots, hyphens and
+colons, starting with a letter. Colons preserve native variant labels such as
+`wood:idle`; slashes, controls, whitespace and external-path labels still refuse.
+All existing sampler, target, key-count, duration and finite-value admission checks apply.

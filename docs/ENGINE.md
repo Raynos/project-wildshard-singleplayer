@@ -2976,3 +2976,15 @@ not an unmeasured decoded animation allocation or a claimed production network s
 `restoreSceneAnimations` for exact standard Three track data;
 `@wildshard/sdk/immutable` defines canonical JSON encoding and exact byte hashing.
 Commons generators import these defining author-only modules directly.
+
+`@wildshard/commons/packs/practice` defines `practiceMotionPack(glb, provenance)`
+v1.0.0: the original eighteen-clip UniMate GLB becomes one immutable `glb` entry.
+All three figures' idle and five named reactions must be present exactly once.
+The retained authored motion GLB stays byte-identical; input Buffers are copied.
+The SDK parser charges its actual binary/JSON/rig buffer residency, not a placeholder.
+Ordinary Driftwood and Pine sessions both construct TrainingArena and use this same
+motion library; template and frozen copies do not count. SF26 fetches and charges it
+once across independent admissions. Native optional-practice routing into emitted
+commons remains open. The three image-bearing Meshopt model GLBs still need lossless
+build-time normalization into the admitted mesh/texture contract; they are not priced
+as binary and no production saving or model-admission pass is claimed.
