@@ -1,9 +1,8 @@
 import type { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
-import { PackHowlerBrain, type HowlerPorts } from './packHowler';
-import type { PouncerContext } from './ledgePouncer';
-import { KOKBORI_CUES, KOKBORI_BRAIN } from './eliteBrains';
+import { StalkerBrain, type HowlerPorts, type PouncerContext } from '@wildshard/engine/ai/stalker';
+import { KOKBORI_CUES, KOKBORI_PROFILE } from './eliteBrains';
 
 /** The actual pack remains owned and snapshotted by its group host. */
 export type KokboriPack<A extends AnimalSim> = Pick<PackBrain<A>, 'homeX' | 'homeZ' | 'phase' | 'awareness' | 'scare'>;
@@ -13,16 +12,16 @@ export interface KokboriPorts<A extends AnimalSim> extends Omit<HowlerPorts<A>, 
 }
 /** Thin trusted binding of Kokbori's declared pack-howler row, used by both the page and the native host. */
 export class KokboriKeeper<A extends AnimalSim> {
-  private readonly policy: PackHowlerBrain<A>;
+  private readonly policy: StalkerBrain<A>;
   /** Manager decision cadence bound once, with no per-frame allocation. */
   readonly think: (actor: A, context: PouncerContext<A>) => void;
   /** Exact encounter frame order over the real pack. */
-  readonly tick: PackHowlerBrain<A>['tick'];
+  readonly tick: StalkerBrain<A>['advance'];
   constructor(ports: KokboriPorts<A>) {
-    this.policy = new PackHowlerBrain(KOKBORI_BRAIN.data, { ...ports,
+    this.policy = new StalkerBrain({ ...KOKBORI_PROFILE, ports: { ...ports,
       regrouped: () => { ports.feed(KOKBORI_CUES.regrouped); }, interrupted: () => { ports.feed(KOKBORI_CUES.interrupted); },
-      closed: () => { ports.feed(KOKBORI_CUES.closed); }, howl: at => { ports.sound('wolf_howl', at); } });
-    this.think = this.policy.think.bind(this.policy); this.tick = this.policy.tick.bind(this.policy);
+      closed: () => { ports.feed(KOKBORI_CUES.closed); }, howl: at => { ports.sound('wolf_howl', at); } } });
+    this.think = this.policy.decideHowler.bind(this.policy); this.tick = this.policy.advance.bind(this.policy);
   }
   /** Preserve deferred spawn order and the original initial howl clock. */
   spawned(actor: A): void { this.policy.spawned(actor); }
@@ -37,7 +36,7 @@ export class KokboriKeeper<A extends AnimalSim> {
   /** Deliver the committed body bite once at its actual attack phase. */
   act(actor: A): void { this.policy.act(actor); }
   /** Keep the original keeper continuation wire. */
-  snapshot(): ReturnType<PackHowlerBrain<A>['snapshot']> { return this.policy.snapshot(); }
+  snapshot(): ReturnType<StalkerBrain<A>['howlerSnapshot']> { return this.policy.howlerSnapshot(); }
   /** Strict complete validation before mutation. */
   restore(input: unknown): void { this.policy.restore(input); }
 }

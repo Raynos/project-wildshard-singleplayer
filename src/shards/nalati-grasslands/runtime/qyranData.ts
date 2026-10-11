@@ -14,3 +14,6 @@ export const QYRAN_BRAIN: { readonly archetype: 'wind-stooper'; readonly data: W
 } };
 /** Existing entered cue, preserved verbatim. */
 export const QYRAN_GROUNDED = 'Qyran is GROUNDED';
+
+/** Qyran's authored wind-diver pattern, with the exact original altitude and contact tuning row. */
+export const QYRAN_PROFILE = { kind: 'diver', pattern: 'wind', spec: QYRAN_BRAIN.data } as const;

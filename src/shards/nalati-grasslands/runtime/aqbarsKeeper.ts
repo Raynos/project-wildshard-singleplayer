@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { LedgePouncerBrain, type PouncerPorts, type PouncerContext, type PouncerLedge } from './ledgePouncer';
-import { AQBARS_OPEN, AQBARS_BRAIN } from './eliteBrains';
+import { StalkerBrain, type PouncerPorts, type PouncerContext, type PouncerLedge } from '@wildshard/engine/ai/stalker';
+import { AQBARS_OPEN, AQBARS_PROFILE } from './eliteBrains';
 
 /** Solid Crags ledges observed by the native world. */
 export type AqbarsLedge = PouncerLedge;
@@ -14,16 +14,16 @@ export interface AqbarsPorts<A> extends Omit<PouncerPorts<A>, 'opened' | 'growl'
 }
 /** Thin trusted adapter of the declared Aqbars species brain; spawn identity and entered presentation remain runtime-owned. */
 export class AqbarsKeeper<A extends AnimalSim> {
-  private readonly policy: LedgePouncerBrain<A>;
+  private readonly policy: StalkerBrain<A>;
   /** Native manager decision cadence, bound once rather than allocating in a frame. */
-  readonly think: LedgePouncerBrain<A>['think'];
+  readonly think: StalkerBrain<A>['decidePouncer'];
   /** Exact encounter/frame order, including the real ballistic body motion. */
-  readonly tick: LedgePouncerBrain<A>['tick'];
+  readonly tick: StalkerBrain<A>['advance'];
   constructor(ports: AqbarsPorts<A>) {
-    this.policy = new LedgePouncerBrain(AQBARS_BRAIN.data, { ...ports,
-      opened: () => { ports.feed(AQBARS_OPEN); }, growl: at => { ports.sound('leopard_growl', at); } });
-    this.think = this.policy.think.bind(this.policy);
-    this.tick = this.policy.tick.bind(this.policy);
+    this.policy = new StalkerBrain({ ...AQBARS_PROFILE, ports: { ...ports,
+      opened: () => { ports.feed(AQBARS_OPEN); }, growl: at => { ports.sound('leopard_growl', at); } } });
+    this.think = this.policy.decidePouncer.bind(this.policy);
+    this.tick = this.policy.advance.bind(this.policy);
   }
   /** Current declared decision phase. */
   get state(): string { return this.policy.state; }
@@ -38,7 +38,7 @@ export class AqbarsKeeper<A extends AnimalSim> {
   /** Native body attack-phase contacts. */
   act(a: A): void { this.policy.act(a); }
   /** Preserve the existing keeper continuation wire. */
-  snapshot(): ReturnType<LedgePouncerBrain<A>['snapshot']> { return this.policy.snapshot(); }
+  snapshot(): ReturnType<StalkerBrain<A>['pouncerSnapshot']> { return this.policy.pouncerSnapshot(); }
   /** Complete validation precedes mutation. */
   restore(input: unknown): void { this.policy.restore(input); }
 }

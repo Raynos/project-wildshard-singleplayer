@@ -35,3 +35,8 @@ export const KOKBORI_BRAIN: { readonly archetype: 'pack-howler'; readonly data: 
 export const KOKBORI_CUES = { regrouped: 'Kokbori calls the pack back — and comes for you',
   interrupted: 'The howl breaks — the pack scatters', closed: 'PACK HOWL — the pack closes in' };
 /** The retained elite policies, using the same body data as the actual page species. */
+
+/** Aqbars' authored stalker pattern; the original pounce/swipe tuning remains one shared immutable row. */
+export const AQBARS_PROFILE = { kind: 'stalker', pattern: 'pouncer', spec: AQBARS_BRAIN.data } as const;
+/** Kokbori's authored stalker pattern; its real pack remains an injected authoritative group. */
+export const KOKBORI_PROFILE = { kind: 'stalker', pattern: 'howler', spec: KOKBORI_BRAIN.data } as const;

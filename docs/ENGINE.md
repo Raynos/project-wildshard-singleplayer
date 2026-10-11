@@ -3244,3 +3244,13 @@ historical contract before `plugin/brain` constructs the original flight law.
 Signal's Matriarch consumes it in page and native hosts. The encounter still
 owns phase/rise/fight fields, body and strikes; old `phased-flyer` data and
 continuations stay admitted. This does not add automatic creature-root hosting.
+
+SF82 Nalati's Aqbars/Kokbori trusted keepers construct the defining engine
+`StalkerBrain` from their authored `pouncer`/`howler` profiles. Original tuning
+rows and preset constructors remain; the constructor copies/validates finite
+specs before bodies/callbacks mutate. Existing keeper methods retain their exact
+cadence, contact/tell order, real pack/body/path ports and continuation wire.
+No extra creature, manager, random stream or policy implementation is installed.
+Qyran similarly binds its authored wind-diver profile directly to `DiverBrain`
+with the same deferred body, wind, altitude, weak-point and continuation ports.
+Its old wind-stooper constructor remains a preset; no second weather owner.
