@@ -1,4 +1,4 @@
-import { CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { CONTENT_CAPS } from '@wildshard/format/contentBounds';
 
 /** Minimal admitted file graph used by the traversal scheduler; render tiles never enter this closure. */
 export interface CriticalWireSource {

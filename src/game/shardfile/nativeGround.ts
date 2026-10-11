@@ -1,4 +1,4 @@
-import { CELL_ABOVE, CELL_BELOW } from '@wildshard/engine/core/config';
+import { CELL_ABOVE, CELL_BELOW } from '@wildshard/format/contentBounds';
 import { parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { validateEntrywayGrid } from './entryways';
 

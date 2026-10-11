@@ -1,5 +1,5 @@
 import { parseShardfile, type Shardfile } from './shardfile';
-import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
+import { ENTRY_WIDTH } from '@wildshard/format/contentBounds';
 import { LOOK_LUT_BYTES } from '@wildshard/game/shardfile/schema';
 import { SHARDFILE_VERSION } from './version';
 

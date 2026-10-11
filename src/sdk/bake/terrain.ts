@@ -1,4 +1,4 @@
-import { CELL_ABOVE, CELL_BELOW, CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { CELL_ABOVE, CELL_BELOW, CONTENT_CAPS } from '@wildshard/format/contentBounds';
 import { encodeTerrainTile, terrainTileCost, terrainTileHeight, type TerrainTileData } from '@wildshard/engine/world/terrainTileData';
 import { validateTerrainAssets } from '@wildshard/game/plugin/product';
 import { TerrainSchema, type ShardTerrain } from '@wildshard/format/terrain';

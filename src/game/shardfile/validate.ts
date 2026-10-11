@@ -1,4 +1,4 @@
-import { CONTENT_CAPS as C } from '@wildshard/engine/core/config';
+import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
 import { admitScript, type ScriptAdmission } from '@wildshard/engine/script/admission';
 import { SCRIPT_LIMITS } from '@wildshard/engine/script/host';
 import { worstContentCost } from './budget';

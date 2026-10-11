@@ -1,6 +1,6 @@
 import { NodeIO, type Accessor, type Material, type Primitive, type Texture, type TextureInfo } from '@gltf-transform/core';
 import { Matrix3, Matrix4, Vector3 } from 'three';
-import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from '@wildshard/engine/core/config';
+import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from '@wildshard/format/contentBounds';
 import { parseWorldSource } from '../worldSource';
 import { hashImmutableBytes } from '../immutable';
 import { preflightWorldGlb } from './worldGlb';

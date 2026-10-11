@@ -1,4 +1,4 @@
-import { CONTENT_CAPS as C } from '@wildshard/engine/core/config';
+import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
 import { contentCost } from '@wildshard/engine/core/contentCost';
 import type { Shardfile } from './schema';
 

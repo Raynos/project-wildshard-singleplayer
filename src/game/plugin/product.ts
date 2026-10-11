@@ -10,7 +10,7 @@ import { assertMigrationCompatibility } from "@wildshard/format/migrations";
 import { StateSchema } from "@wildshard/format/state";
 import * as v from "valibot";
 import { worstContentCost, memoryTargetWarnings, nearbyContentCost } from "../shardfile/budget";
-import { CONTENT_CAPS as C, CONTENT_CAPS } from "@wildshard/engine/core/config";
+import { CONTENT_CAPS as C, CONTENT_CAPS } from '@wildshard/format/contentBounds';
 import { DEFAULT_GRAPH_BUDGET, validateGraph } from "@wildshard/format/materialGraph";
 import { SCRIPT_LIMITS } from "@wildshard/engine/script/host";
 import { runtimeAccountedBytes } from "@wildshard/format/runtimeCost";

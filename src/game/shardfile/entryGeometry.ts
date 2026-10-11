@@ -1,4 +1,4 @@
-import { ENTRY_ASPHALT } from '@wildshard/engine/core/config';
+import { ENTRY_ASPHALT } from '@wildshard/format/contentBounds';
 import type { ShardEntryways } from '@wildshard/format/entryways';
 
 /** Shard-local, closed road approach rectangle; its depth comes from the platform contract. */

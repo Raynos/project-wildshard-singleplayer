@@ -67,7 +67,8 @@
     "./weaponProfiles": "./weaponProfiles.ts",
     "./bossProfiles": "./bossProfiles.ts",
     "./materialGraph": "./materialGraph.ts",
-    "./materialFamilies": "./materialFamilies.ts"
+    "./materialFamilies": "./materialFamilies.ts",
+    "./contentBounds": "./contentBounds.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

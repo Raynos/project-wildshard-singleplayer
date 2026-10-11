@@ -1,4 +1,4 @@
-import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
+import { ENTRY_WIDTH } from '@wildshard/format/contentBounds';
 import { parseMovers, type MoverData } from '@wildshard/format/movers';
 import { glbPoint, glbTransform } from './glbTriangles';
 import { clipEntryPolygon, type EntryVertex } from './entryGeometry';
