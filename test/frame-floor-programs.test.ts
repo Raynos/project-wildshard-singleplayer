@@ -40,4 +40,8 @@ it('names submitted shader variants without GL queries or changing driver argume
   gl.shaderSource(unnamed, '#define SHADER_NAME \n#define HAS_NORMAL\nvoid main(){}');
   gl.attachShader(unnamedProgram, unnamed);
   expect(Reflect.apply(reader, window, [unnamedProgram])).toMatch(/^unnamed\/[0-9a-f]+$/u);
+  gl.shaderSource(unnamed, '#define SHADER_TYPE MeshDepthMaterial\n#define SHADER_NAME \n#define HAS_NORMAL\nvoid main(){}');
+  const depth = {};
+  gl.attachShader(depth, unnamed);
+  expect(Reflect.apply(reader, window, [depth])).toMatch(/^MeshDepthMaterial\/[0-9a-f]+$/u);
 });

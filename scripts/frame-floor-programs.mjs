@@ -7,7 +7,8 @@ function installProgramNames() {
     let hash = 2166136261;
     for (let i = 0; i < source.length; i++) hash = Math.imul(hash ^ (source.codePointAt(i) ?? 0), 16777619);
     const title = /^[\t ]*#define SHADER_NAME[\t ]+([^\r\n]+)/mu.exec(source)?.[1]?.trim() ?? '';
-    return `${title.length > 0 ? title : 'unnamed'}/${(hash >>> 0).toString(16)}`;
+    const type = /^[\t ]*#define SHADER_TYPE[\t ]+([^\r\n]+)/mu.exec(source)?.[1]?.trim() ?? 'unnamed';
+    return `${title.length > 0 ? title : type}/${(hash >>> 0).toString(16)}`;
   };
   window.__frameFloorProgramName = program => programs.get(program)?.join('+') ?? 'unobserved';
   for (const Context of [Reflect.get(window, 'WebGLRenderingContext'), Reflect.get(window, 'WebGL2RenderingContext')]) {
