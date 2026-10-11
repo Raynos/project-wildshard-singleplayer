@@ -24,13 +24,12 @@ import { pathToFileURL } from 'node:url';
 import { brotliCompressSync, gzipSync } from 'node:zlib';
 import { visitAuthoredWorld } from './bake/worldHost.mjs';
 import { installBakeEnvironment } from './bake/environment.mjs';
+import { bakeNavigation } from '@wildshard/sdk/bake/navigation';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const check = process.argv.includes('--check');
 const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const VERSION = 1;
-const Q = 100; // vertex quantisation: 1 cm
-const NEI_EXT = 248; // a one-byte neighbour ≥ this is a portal: 0x8000 | (byte − NEI_EXT)
 
 /**
  * The agent classes per shard: a creature paths on the smallest layer whose radius covers its own (src/engine/physics/navmesh.ts;
@@ -65,7 +64,6 @@ const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
 
 const THREE = await import('three');
 const { ConvexHull } = await import('three/examples/jsm/math/ConvexHull.js');
-const { generateTiledNavMesh } = await import('navcat/blocks');
 const registry = await src('game/shard/registry.ts');
 const { SHARDS } = await src('shards.generated.ts');
 const HF = await src('engine/world/Heightfield.ts');
@@ -194,79 +192,6 @@ function addTerrain(soup, grid, wet) {
   return dropped;
 }
 
-// ── generation (navcat/blocks' tiled preset) ─────────────────────────────────────────────────────────────────────────
-function generate(soup, layer) {
-  const { cellSize, cellHeight, tileSizeVoxels } = GEN;
-  const walkableRadiusVoxels = Math.max(1, Math.round(layer.radius / cellSize));
-  const opts = {
-    cellSize, cellHeight, tileSizeVoxels, tileSizeWorld: tileSizeVoxels * cellSize,
-    walkableRadiusVoxels, walkableRadiusWorld: layer.radius,
-    walkableClimbVoxels: Math.floor(layer.climb / cellHeight + 1e-6), walkableClimbWorld: layer.climb,
-    walkableHeightVoxels: Math.ceil(layer.height / cellHeight - 1e-6), walkableHeightWorld: layer.height,
-    walkableSlopeAngleDegrees: layer.slope, borderSize: walkableRadiusVoxels + 3,
-    minRegionArea: GEN.minRegionArea, mergeRegionArea: GEN.mergeRegionArea, maxSimplificationError: GEN.maxSimplificationError,
-    maxEdgeLength: Math.round(GEN.maxEdgeLength / cellSize), maxVerticesPerPoly: GEN.maxVerticesPerPoly,
-    detailSampleDistance: GEN.detailSampleDistance, detailSampleMaxError: GEN.detailSampleMaxError,
-  };
-  return generateTiledNavMesh({ positions: soup.positions, indices: soup.indices }, opts).navMesh;
-}
-
-// ── the file ─────────────────────────────────────────────────────────────────────────────────────────────────────────
-class Writer {
-  buf = new DataView(new ArrayBuffer(1 << 20)); at = 0;
-  room(n) { if (this.at + n <= this.buf.byteLength) return; const next = new DataView(new ArrayBuffer(Math.max(this.buf.byteLength * 2, this.at + n))); new Uint8Array(next.buffer).set(new Uint8Array(this.buf.buffer, 0, this.at)); this.buf = next; }
-  u8(...vs) { this.room(vs.length); for (const v of vs) { if (!(v >= 0 && v <= 0xff)) throw new Error(`bake-navmesh: ${v} is not a u8`); this.buf.setUint8(this.at++, v); } }
-  u16(...vs) { this.room(vs.length * 2); for (const v of vs) { if (!(v >= 0 && v <= 0xffff)) throw new Error(`bake-navmesh: ${v} is not a u16`); this.buf.setUint16(this.at, v, true); this.at += 2; } }
-  u32(...vs) { this.room(vs.length * 4); for (const v of vs) { this.buf.setUint32(this.at, v, true); this.at += 4; } }
-  i32(...vs) { this.room(vs.length * 4); for (const v of vs) { this.buf.setInt32(this.at, v, true); this.at += 4; } }
-  f32(...vs) { this.room(vs.length * 4); for (const v of vs) { this.buf.setFloat32(this.at, v, true); this.at += 4; } }
-  bytes() { return new Uint8Array(this.buf.buffer, 0, this.at); }
-}
-
-/** `v` in `step`s above `min`, which must land on the grid (recast's vertices are voxel corners). */
-function onGrid(v, min, step) {
-  const q = Math.round((v - min) / step);
-  if (Math.abs(min + q * step - v) > 1e-3) throw new Error(`bake-navmesh: vertex ${v} is off the ${step} m grid from ${min}`);
-  return q;
-}
-
-function writeLayer(w, layer, nav) {
-  const tiles = Object.values(nav.tiles);
-  const { cellSize: cs, cellHeight: ch } = GEN;
-  w.f32(layer.radius, layer.height, layer.climb, cs, ch, ...nav.origin, nav.tileWidth);
-  w.u32(tiles.length);
-  const stats = { tiles: tiles.length, polys: 0, verts: 0, detailVerts: 0, detailTris: 0 };
-  for (const t of tiles) {
-    const b = t.bounds, nv = t.vertices.length / 3, nd = t.detailVertices.length / 3;
-    w.i32(t.tileX, t.tileY); w.f32(...b); w.u16(nv, t.polys.length, nd);
-    const V = t.vertices;
-    for (let i = 0; i < nv; i++) w.u8(onGrid(V[i * 3], b[0], cs));
-    for (let i = 0; i < nv; i++) w.u8(onGrid(V[i * 3 + 2], b[2], cs));
-    for (let i = 0; i < nv; i++) w.u16(onGrid(V[i * 3 + 1], b[1], ch));
-    w.u8(...t.polys.map((p) => p.vertices.length)); w.u8(...t.polys.map((p) => p.area)); w.u8(...t.polys.map((p) => p.flags));
-    const idx = t.polys.flatMap((p) => p.vertices);
-    if (nv <= 256) w.u8(...idx); else w.u16(...idx);
-    // neighbours: 0 none, i + 1 poly i of this tile, 0x8000 | side a portal to the next tile — one byte when the tile allows
-    const neis = t.polys.flatMap((p) => p.neis);
-    if (t.polys.length < NEI_EXT) w.u8(...neis.map((n) => (n & 0x8000 ? NEI_EXT + (n & 0xff) : n))); else w.u16(...neis);
-    // the detail mesh only where recast added height samples; a poly without is fanned from its own vertices at load
-    const keep = [];
-    let vb = 0, tb = 0;
-    for (const m of t.detailMeshes) {
-      if (m.verticesBase !== vb || m.trianglesBase !== tb) throw new Error('bake-navmesh: detail meshes are not in poly order');
-      vb += m.verticesCount; tb += m.trianglesCount;
-      keep.push(m.verticesCount > 0);
-    }
-    w.u8(...t.detailMeshes.map((m) => m.verticesCount)); w.u8(...t.detailMeshes.map((m, i) => (keep[i] ? m.trianglesCount : 0)));
-    const D = t.detailVertices;
-    for (let i = 0; i < D.length; i++) w.u16(Math.round((D[i] - b[i % 3]) * Q));
-    let kept = 0;
-    t.detailMeshes.forEach((m, i) => { if (keep[i]) { w.u8(...t.detailTriangles.slice(m.trianglesBase * 4, (m.trianglesBase + m.trianglesCount) * 4)); kept += m.trianglesCount; } });
-    stats.polys += t.polys.length; stats.verts += nv; stats.detailVerts += nd; stats.detailTris += kept;
-  }
-  return stats;
-}
-
 // ── main ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
 const output = byteWriter(check, 'bake-navmesh');
 for (const def of SHARDS.filter(registry.playable)) {
@@ -297,17 +222,11 @@ for (const def of SHARDS.filter(registry.playable)) {
   const dir = resolve(ROOT, 'public/assets/baked', def.slug), jsonFile = resolve(dir, 'navmesh.json'), binFile = resolve(dir, 'navmesh.bin');
   const tIn = performance.now() - t0;
   console.log(`[navmesh] ${def.slug}: ${colliders.length} colliders (${Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(', ')}), ${soup.indices.length / 3} triangles (${dropped} wet terrain triangles left out) in ${tIn.toFixed(0)} ms`);
-  const w = new Writer();
-  w.u8(0x57, 0x53, 0x4e, 0x4d); w.u32(VERSION, LAYERS.length); // 'WSNM'
-  const layers = [];
-  for (const layer of LAYERS) {
-    const t1 = performance.now();
-    const nav = generate(soup, layer);
-    const stats = writeLayer(w, layer, nav);
-    layers.push({ ...layer, ...stats });
-    console.log(`[navmesh] ${def.slug} ${layer.name} r=${layer.radius}: ${stats.tiles} tiles, ${stats.polys} polys, ${stats.detailTris} detail tris in ${((performance.now() - t1) / 1000).toFixed(1)} s`);
-  }
-  const bytes = w.bytes(), gz = gzipSync(bytes, { level: 9 }).byteLength, br = brotliCompressSync(bytes).byteLength;
+  const t1 = performance.now();
+  const { bytes, layers } = bakeNavigation(soup, LAYERS, GEN);
+  for (const layer of layers) console.log(`[navmesh] ${def.slug} ${layer.name} r=${layer.radius}: ${layer.tiles} tiles, ${layer.polys} polys, ${layer.detailTris} detail tris`);
+  console.log(`[navmesh] ${def.slug}: all layers in ${((performance.now() - t1) / 1000).toFixed(1)} s`);
+  const gz = gzipSync(bytes, { level: 9 }).byteLength, br = brotliCompressSync(bytes).byteLength;
   output.put(binFile, bytes);
   output.put(jsonFile, jsonBytes({ version: VERSION, hash: outputHash(bytes), bytes: bytes.byteLength, layers }, 1));
   console.log(`[navmesh] ${def.slug}: baked navmesh.bin ${(bytes.byteLength / 1024).toFixed(1)} KB (${(gz / 1024).toFixed(1)} KB gzip, ${(br / 1024).toFixed(1)} KB brotli)`);

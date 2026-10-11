@@ -3421,3 +3421,21 @@ importing a build-time config or fetching a different recording.
 the resident's emitted declaration with a legacy-only fallback. It returns
 the existing declaration without creating an audio owner or drawing RNG.
 Sky and Signal use it for native cue aliases and silent-score selection.
+
+### CPU navigation authoring (G320)
+
+`@wildshard/sdk/bake/navigation` defines
+`bakeNavigation({positions, indices}, layers, settings)`. It runs the
+retained navcat tiled compiler and emits WSNM v1 bytes plus ordered layer
+counts. Positions are world-space authored triangles; walkable faces
+point up. Settings are explicit, including metre-based edge length and
+voxel sizes. Layer clearance, erosion rounding, tile insertion order,
+centimetre detail quantisation and neighbour packing match the original
+native baker. The runtime uses its existing WSNM reader and path queries.
+
+The caller must supply retained authored collider/floor triangles, dry
+ground selection and any datum conversion. This CPU compiler imports no
+game or engine code and installs no renderer. The transitional shared
+navmesh CLI still collects trusted world colliders; extracting its CPU
+compiler does not qualify that CLI as a complete author-only product or
+permit any output deletion.
