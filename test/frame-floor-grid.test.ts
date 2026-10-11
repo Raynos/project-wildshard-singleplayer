@@ -101,20 +101,24 @@ it('requires frame commits, interior gameplay, residency and a finite above-grou
   expect(gridFloorWitnessFailures(prefetched)).toEqual([]);
 });
 
-it('stages the owned home from the neutral shell and waits for resident, interior and entered hooks before motion', async () => {
+it('stages a cold owned home on solid road and uses the real driver before accepting entered hooks', async () => {
   const plan = gridFloorPlans({ home: 'home', cells }, 'runtime-travel')[0];
   if (plan === undefined) throw new Error('Missing route fixture');
   const current = state('home', 0, 277.5);
   current.live.live.current = null; current.inside = null; current.live.live.residents = [];
   const pose = vi.fn(), clear = vi.fn();
+  let finishApproach: (value: FloorGridWitness) => void = () => undefined;
+  const drive = vi.fn(() => new Promise<FloorGridWitness>(resolve => { finishApproach = resolve; }));
   vi.useFakeTimers();
   vi.stubGlobal('window', { __wildshard: { world: { player: { position: { x: 0, z: 277.5 } }, game: { app: { input: { clear } } } },
     pose, shard: { grid: { state: () => current, residency: () => ({ claims: [] }) } } } });
   try {
     let complete = false;
-    const staged = stageFloorGrid(plan, performance.timeOrigin).then(value => { complete = true; return value; });
+    const staged = stageFloorGrid(plan, performance.timeOrigin, drive).then(value => { complete = true; return value; });
     await vi.advanceTimersByTimeAsync(100);
-    expect(pose).toHaveBeenCalledExactlyOnceWith({ x: 0, y: 0.55, z: 230, yaw: 0, pitch: -0.08 });
+    expect(pose).toHaveBeenCalledExactlyOnceWith({ x: 0, y: 0.55, z: 277.5, yaw: 0, pitch: -0.08 });
+    expect(drive).toHaveBeenCalledExactlyOnceWith({ name: `${plan.name}-source`, from: null, to: 'home', movement: 'road-hover',
+      waypoints: [{ x: 0, z: 230 }], requiredResidents: ['home'] }, performance.timeOrigin);
     expect(complete).toBe(false);
     current.live.live.current = 'home'; current.live.live.residents = ['home'];
     await vi.advanceTimersByTimeAsync(100);
@@ -123,10 +127,28 @@ it('stages the owned home from the neutral shell and waits for resident, interio
     await vi.advanceTimersByTimeAsync(100);
     expect(complete).toBe(false);
     current.live.live.gameplayReady = true;
+    finishApproach(witness());
     await vi.advanceTimersByTimeAsync(100);
     expect((await staged).live.live.residents).toEqual(['home']);
     expect(clear).toHaveBeenCalledOnce();
   } finally { restoreGlobals(); vi.useRealTimers(); }
+});
+
+it('refuses a cold-source shortcut and a driver that returns without actual entered residency', async () => {
+  const plan = { name: 'cold-nalati', from: 'nalati', to: null, start: { x: 325, z: 0 }, waypoints: [], requiredResidents: [] };
+  const current = state('home', 277.5, 0); current.live.live.current = null; current.inside = null; current.live.live.residents = [];
+  const pose = vi.fn();
+  vi.stubGlobal('window', { __wildshard: { world: { player: { position: { x: 77.5, z: 0 } }, game: { app: { input: { clear: vi.fn() } } } },
+    pose, shard: { grid: { state: () => current, residency: () => ({ claims: [] }) } } } });
+  try {
+    await expect(stageFloorGrid(plan, performance.timeOrigin)).rejects.toThrow('cold source needs the real road driver');
+    expect(pose).not.toHaveBeenCalled();
+    const drive = vi.fn(() => Promise.resolve(witness()));
+    await expect(stageFloorGrid(plan, performance.timeOrigin, drive)).rejects.toThrow('source nalati is not an entered ready resident');
+    expect(pose).toHaveBeenCalledExactlyOnceWith({ x: 77.5, y: 0.55, z: 0, yaw: 0, pitch: -0.08 });
+    expect(drive).toHaveBeenCalledExactlyOnceWith({ name: 'cold-nalati-source', from: null, to: 'nalati', movement: 'road-hover',
+      waypoints: [{ x: 325, z: 0 }], requiredResidents: ['nalati'] }, performance.timeOrigin);
+  } finally { restoreGlobals(); }
 });
 
 it('never seeds a later leg to hide a missing source or bypasses failed durability during initial admission', async () => {

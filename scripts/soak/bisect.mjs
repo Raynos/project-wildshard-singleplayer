@@ -9,7 +9,7 @@ import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { installSoakGl, installSoakWasm, installLoadingGlJournal, installSoakDiagnostics } from './gl.mjs';
 import { ownedSoakPlans } from './owned.mjs';
-import { gridFloorDocumentIdentity, stageFloorGrid, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
+import { gridFloorDocumentIdentity, driveFloorGrid, stageFloorGrid, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 const [base, out] = process.argv.slice(2);
 if (!base || !out) throw new Error('Supply the historical cdad preview and a fresh output JSON');
@@ -62,7 +62,7 @@ for (const config of cases) {
     row.origin = await page.evaluate(gridFloorDocumentIdentity);
     const state = await page.evaluate(() => window.__wildshard.shard.grid.state());
     const route = ownedSoakPlans(state, 'cells', 'prepared'), first = route.plans[0];
-    await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify({ ...first, start: route.reference })},${JSON.stringify(row.origin)})`);
+    await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify({ ...first, start: route.reference })},${JSON.stringify(row.origin)},(${driveFloorGrid.toString()}))`);
     await page.waitForTimeout(20000);
     row.bootDocuments = row.documents.length;
     row.route = await runFloorGridRoute(page, first, row.origin);

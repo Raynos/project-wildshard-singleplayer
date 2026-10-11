@@ -356,7 +356,7 @@ async function measureShard(driver, shard, deadline) {
       for (const plan of selectFloorGridPlans(publicGrid ? publicGridPlans(state) : gridFloorPlans(state, gridScenario, { cell: gridCell, roadApproach }), gridRoutes)) {
         if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
         // Camera probes can leave the owned shell on the road. Finish source admission before measuring motion.
-        await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`, 130000);
+        await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)},(${driveFloorGrid.toString()}))`, 130000);
         const profileStart = driver.profile ? await driver.profile.start() : null;
         const traceAnchor = driver.trace ? await driver.trace.start(plan.name) : null;
         await driver.evaluate('(window.__frameFloorDriveDone = false, true)');

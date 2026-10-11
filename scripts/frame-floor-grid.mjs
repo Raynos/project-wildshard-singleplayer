@@ -87,7 +87,7 @@ export function gridFloorDocumentIdentity() {
 
 /** Host adapter for ledger/smoke probes: seed only a declared first approach and fence every leg to one document. */
 export async function runFloorGridRoute(page, plan, documentOrigin) {
-  await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
+  await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)},(${driveFloorGrid.toString()}))`);
   return page.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
 }
 
@@ -138,8 +138,8 @@ export function gridFloorRuntimeFailure(last, diagnostic) {
     stop: last.stop, lastSample: last, recoveryReason: reason, nextDocumentOrigin: diagnostic.documentOrigin };
 }
 
-/** Restore only the first source pose after standing probes; let the owned shell enter its region through real fixed steps. */
-export async function stageFloorGrid(plan, documentOrigin) {
+/** Seed a cold source on solid road, then use the normal driver and admission; later legs never reseed. */
+export async function stageFloorGrid(plan, documentOrigin, drive) {
   window.__frameFloorGridStop = { leg: plan.name, phase: 'source-admission', waypoint: null, target: plan.start ?? null };
   const deadline = performance.now() + 120000;
   const sameDocument = () => {
@@ -168,18 +168,39 @@ export async function stageFloorGrid(plan, documentOrigin) {
   const borrowed = state => plan.borrowedHome === state.home && plan.from === state.home
     && state.borrowedHome?.instance === state.home && state.borrowedHome.level === state.cells.find(row => row.instance === state.home)?.slug
     && Number.isSafeInteger(state.borrowedHome.bytes) && state.borrowedHome.bytes > 0;
+  const ready = (state, instance) => state.live.live.current === instance && state.inside === instance
+    && state.live.live.gameplayReady && (instance === null || state.live.live.residents.includes(instance) === true || borrowed(state));
   const initial = read(), live = initial.live.live;
+  if (initial.live.crossing.phase === 'blocked' || initial.live.crossing.phase === 'save-failed') throw new Error(`Grid floor source blocked: ${initial.live.crossing.issue}`);
+  const approach = plan.start && plan.from !== null && !ready(initial, plan.from);
+  let seed = plan.start;
+  if (approach) {
+    if (typeof drive !== 'function') throw new Error('Grid floor cold source needs the real road driver');
+    const cell = initial.cells.find(row => row.instance === plan.from);
+    if (!cell) throw new Error('Grid floor source cell missing');
+    const x = cell.cell[0] * 555, z = cell.cell[1] * 555;
+    const dx = plan.start.x - x, dz = plan.start.z - z;
+    seed = Math.abs(dz) >= Math.abs(dx) ? { x, z: z + (dz < 0 ? -277.5 : 277.5) }
+      : { x: x + (dx < 0 ? -277.5 : 277.5), z };
+  }
   // Standing probes can leave home entered. Only the first road seed may change that source;
   // its normal checkpoint / leave must still commit before the readiness loop below succeeds.
   if (live.current !== plan.from && !(plan.start && (live.current === null || plan.from === null))) throw new Error(`Grid floor starts in ${live.current}, expected ${plan.from}`);
   input.clear();
-  if (plan.start) {
+  if (seed) {
     const origin = { x: live.worldFeet.x - player.position.x, z: live.worldFeet.z - player.position.z };
-    await api.pose({ x: plan.start.x - origin.x, y: 0.55, z: plan.start.z - origin.z, yaw: 0, pitch: -0.08 });
+    await api.pose({ x: seed.x - origin.x, y: 0.55, z: seed.z - origin.z, yaw: 0, pitch: -0.08 });
   }
   while (performance.now() < deadline) {
-    const state = read(), active = state.live.live;
-    if (active.current === plan.from && state.inside === plan.from && active.gameplayReady && (plan.from === null || active.residents.includes(plan.from) || borrowed(state))) return state;
+    const state = read();
+    if (approach && ready(state, null)) {
+      await drive({ name: `${plan.name}-source`, from: null, to: plan.from, movement: 'road-hover',
+        waypoints: [plan.start], requiredResidents: [plan.from] }, documentOrigin);
+      const entered = read();
+      if (!ready(entered, plan.from)) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
+      return entered;
+    }
+    if (!approach && ready(state, plan.from)) return state;
     if (!plan.start) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
     if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor source blocked: ${state.live.crossing.issue}`);
     await new Promise(resolve => { setTimeout(resolve, 100); });

@@ -25,7 +25,7 @@ import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut, soakDriveBounds, soakPhaseByTime } from './route.ts';
 import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, soakBootPoll, soakGridEntry, soakWitnessFailures } from './owned.mjs';
-import { gridFloorDocumentIdentity, stageFloorGrid, runFloorGridRoute } from '../frame-floor-grid.mjs';
+import { gridFloorDocumentIdentity, driveFloorGrid, stageFloorGrid, runFloorGridRoute } from '../frame-floor-grid.mjs';
 
 const root = resolvePath(import.meta.dirname, '../..');
 const flag = (name, fallback = '') => process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
@@ -162,7 +162,7 @@ async function worker() {
     result.documentId = await driver.evaluate('window.__sf57DocumentId');
     const page = { evaluate: soakAsyncEvaluator(expression => driver.evaluate(expression), collectGl) };
     const first = circuitPlans(result.route, 0, diagnosticCircuits)[0];
-    await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify({ ...first, start: result.route.reference })},${JSON.stringify(result.documentOrigin)})`);
+    await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify({ ...first, start: result.route.reference })},${JSON.stringify(result.documentOrigin)},(${driveFloorGrid.toString()}))`);
     await collectGl();
     result.listenerBaseline = await driver.evaluate('window.__parityResources().listenerDetails');
     await driver.evaluate('window.__sf57MarkGLCycle(0);true');

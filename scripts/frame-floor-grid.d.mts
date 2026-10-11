@@ -28,7 +28,7 @@ export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, sc
 export interface FloorGridDocumentIdentity { readonly timeOrigin: number; readonly token: string }
 export function gridFloorDocumentIdentity(): FloorGridDocumentIdentity;
 export function driveFloorGrid(plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridWitness>;
-export function stageFloorGrid(plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridState>;
+export function stageFloorGrid(plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity, drive?: typeof driveFloorGrid): Promise<FloorGridState>;
 export function runFloorGridRoute(page: { evaluate: (expression: string) => Promise<unknown> }, plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridWitness>;
 export function gridFloorWitnessFailures(result: FloorGridWitness): string[];
 
