@@ -3125,3 +3125,6 @@ SF81 ghost volley: Nalati page and renderer-free roster advance the same typed f
 
 
 SF81 authored boss stages: DirectorBossBrain in game/plugin/director is the shared page/native encounter adapter for Sky Reach and Signal. BossBrain exposes protected introReady, fightReady, beatReady, winReady and phaseReady hooks at the original eligibility/read phase; its clocks, camera/skip/bar order, body/retry/reward callbacks and post-transition script tick stay native. Each shard supplies bounded DirectorStageLane rows through fixed emit actions. The complete cursor is added only to explicitly authored BossContinuation instances; installBossRow accepts stages and uses continuation version2 for them, while absent stages preserve version1 bytes. Pre-row/foreign continuations refuse quietly. No SDK facade or new plugin export module.
+
+
+SF81 Signal signal-fire stages: the in-shard SignalDirector uses DirectorStageLane at the accepted fire callback, after the native interaction flags and dressing. Its fixed spawn action admits the original Matriarch summon port. Page load keeps the existing already-lit boss arm without a summons toast; a loaded stage is seeded quietly. Native sunscar.signal-fire stores the complete contract/cursor and performs no effects or extra update work; the actual quest interaction edge advances it. Restore never evaluates guards or summons.

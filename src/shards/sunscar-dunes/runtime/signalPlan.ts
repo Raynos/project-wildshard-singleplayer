@@ -1,3 +1,5 @@
+import { SignalDirector } from './signalDirector';
+import { FLAG } from '../data/flags';
 import * as v from 'valibot';
 import { addBakedTerrainCollider } from '@wildshard/engine/physics/terrainTiles';
 import { addPiece } from '@wildshard/engine/physics/pieces';
@@ -100,6 +102,11 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = async args => {
         }
         return attacks;
       } });
+    const signal = new SignalDirector({ lit: () => host.flags.has(FLAG.lit), summon: encounter.summon });
+    host.onStep('sunscar.signal-fire', () => undefined, {
+      snapshot: () => signal.snapshot(),
+      restore: saved => { if (typeof saved !== 'string') throw new Error('Invalid Signal fire continuation'); signal.restore(saved); },
+    });
     installQuestGraph(host, { quests: args.shard.quests, ...quest }, { spots, crack: { reach: { light: row.light.range, heavy: row.heavy.range }, cracked: lash.cracked },
       promptRegistrations: parsePromptRegistrations(v.parse(v.object({ promptRegistrations: v.unknown() }), baked).promptRegistrations),
       commands: () => {
@@ -111,7 +118,7 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = async args => {
           if (command.kind === 'script') scripts.push(command);
         }
         return scripts;
-      }, fact, coins, summon: id => { if (id === boss.row.id) encounter.summon(); } });
+      }, fact, coins, summon: id => { if (id === boss.row.id) signal.light(); } });
     keeper.settle();
   } };
 };

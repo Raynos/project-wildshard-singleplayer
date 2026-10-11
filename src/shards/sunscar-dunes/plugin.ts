@@ -1,3 +1,4 @@
+import { SignalDirector } from './runtime/signalDirector';
 import { standaloneHybridEntry } from './runtime/shard/standaloneEntry';
 import { speciesBrains, type SpeciesBrains } from '@wildshard/sdk/speciesBrains';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from './data/brains';
@@ -137,7 +138,8 @@ export class SignalDunesPlugin extends ShardPlugin {
       this.quest = installed.quest; this.whip?.aimAt(places.crackables);
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
       const matriarch = installMatriarch(ctx, position, places.flags, () => places.fire.lit, coins, () => { places.flags.set(MATRIARCH_FLAG); facts(FACT.matriarch, 'sunscar.matriarch'); }); this.matriarch = matriarch.boss;
-      places.fire.onLight = matriarch.summon;
+      const signal = new SignalDirector({ lit: () => places.fire.lit, summon: matriarch.summon });
+      places.fire.onLight = () => { signal.light(); };
     }
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['sunscar.complete'] : [];
     // The first frame looks a little down the spawn's slip face, over the dune rows to the tower (review H1).

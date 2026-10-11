@@ -1489,3 +1489,6 @@ installed; these declarations cannot pretend to host an unimplemented mode.
 
 
 SF81 encounter stages: Sky and Signal declare their bossStages.json under directors. The row interpreter selects native intro, fight, resume, phase and victory transitions through the fixed emit action set; existing numeric eligibility and callback ordering remain the native boss port observations. These boolean stage machines need no AS escape handler. Their page and headless boss share the exact contract/cursor; body ownership, clocks, presentation, damage/shields and reward filing remain their original owners.
+
+
+SF81 Signal declares signalStages.json beside its Matriarch boss stages. The original bowl oil/light requirements, manual fire act, prompt LOS/order, flags and dressing stay with the real interaction/quest owners. The accepted light edge enters the authored summoned stage through the fixed spawn action. No AssemblyScript escape is needed for this boolean condition, and no Signal-only platform system is added.

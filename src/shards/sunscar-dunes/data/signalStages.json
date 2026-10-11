@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "id": "sunscar.signal-fire",
+  "inputs": { "lit": "flag:sunscar.lit" },
+  "stages": [
+    { "id": "unlit", "do": [], "next": "summoned" },
+    { "id": "summoned", "when": "lit", "do": [{ "spawn": "sunscar.matriarch" }] }
+  ]
+}

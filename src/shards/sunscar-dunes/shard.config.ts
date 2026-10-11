@@ -1,3 +1,4 @@
+import signalStages from './data/signalStages.json' with { type: 'json' };
 import bossStages from './data/bossStages.json' with { type: 'json' };
 import { SIGNAL_DUNES_RUNTIME_COST } from './data/runtimeCost';
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -26,6 +27,6 @@ const sim = { resident: collider.reduce((sum, file) => sum + file.decoded + file
 
 const base = emptyShardfile({ slug: 'sunscar-dunes', name: 'Signal Dunes', author: 'Wildshard', revision: 1, seed: 5363 });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, budgets: { ...base.budgets, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'terrain'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages],
+export default parseShardfile({ ...base, budgets: { ...base.budgets, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'terrain'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages, signalStages],
   quests: SIGNAL_QUESTS, ledger: SIGNAL_LEDGER, items: WHIP_ITEMS,
   terrain: tiles.terrain, tiles: tiles.tiles, files: tiles.files, critical: tiles.critical, edge: tiles.edge });

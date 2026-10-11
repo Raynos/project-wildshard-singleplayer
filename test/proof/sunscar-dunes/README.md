@@ -18,3 +18,6 @@ Fresh native page comparison confirms every gameplay field is exact. The actual 
 
 
 SF81 DIR5 Matriarch stages are authored for page and native hosts, with the same DirectorBossBrain as Sky. Deliberately updated canonical boot/final/replay hashes for the encounter version2 wrapper and complete stage cursor; the real native tape, fire and quest effects, body contacts, retries, victory and Ledger outcomes remain exact. Existing marked-body checkpoint spawn/retirement and storm presentation stay native. This lands the boss-stage slice; the brazier-signal director is separate.
+
+
+SF81 DIR5 signal fire: the accepted real fire edge enters signalStages.json through the same local SignalDirector on the page and native host. Quiet loaded-light admission and full cursor restore never summon or file effects. Deliberately re-recorded canonical continuation hashes for the additional sunscar.signal-fire adapter; all checked prior native fields, complete command tape, real bowl/fire/quest/victory effects, contacts, retries and Ledger outcomes match the predecessor. Actual physics payload and official map pixels are unchanged; no snapshot payload is committed.
