@@ -24,10 +24,9 @@ fields, invalid bounds and cross-field references refuse. The SDK's
 known defining schema. `formatJsonSchemas()` returns the migrated root documents;
 `pnpm gen` writes them under `.wildshard/format/`. Named
 `x-wildshard-checks` and UTF-16 string bounds still require the defining parser.
-JSON Schema validation alone is not the admission verdict. The current JSON
-Schema registry includes the executable movers root, but not the newer authoring
-`moverMotion` or `modes` roots; use their defining parsers rather than claiming
-editor-schema coverage for them. Material-dependent
+JSON Schema validation alone is not the admission verdict. The registry includes
+player `modes`, authored `moverMotion` and executable `movers`, including their
+component profiles and named mandatory semantic checks. Material-dependent
 whole-shard declarations remain outside format until DS1.4.
 
 <!-- example: format -->

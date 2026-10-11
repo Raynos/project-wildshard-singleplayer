@@ -9,6 +9,8 @@ import * as v from 'valibot';
 import { EdgeProfileSchema } from '@wildshard/format/edgeProfiles';
 import { StateSchema } from '@wildshard/format/state';
 import { CommonsCostsSchema } from '@wildshard/format/commonsCosts';
+import { ModesSchema } from '@wildshard/format/modes';
+import { MoverMotionSchema } from '@wildshard/format/moverMotion';
 import { PlumbingSchema, plumbingRules, type PlumbingData } from '@wildshard/format/plumbing';
 import { formatJsonSchema, formatJsonSchemas } from '../src/sdk/formatJsonSchema';
 import { writeFormatJsonSchemas } from '../scripts/gen-format-schema.mjs';
@@ -53,7 +55,7 @@ it('rebuilds all migrated documents byte-identically without committing generate
     const directory = join(root, '.wildshard/format');
     const files = readdirSync(directory).sort();
     expect(files).toEqual(Object.keys(formatJsonSchemas()).map(name => `${name}.schema.json`).sort());
-    expect(files.length).toBe(105);
+    expect(files.length).toBe(116);
     expect(files).toContain('weaponProfiles.LashWeaponProfile.schema.json');
     const before = files.map(name => readFileSync(join(directory, name), 'utf8'));
     writeFormatJsonSchemas(root);
@@ -61,6 +63,17 @@ it('rebuilds all migrated documents byte-identically without committing generate
     expect(before.every(text => text.includes('DO-NOT-EDIT'))).toBe(true);
     expect(Object.keys(formatJsonSchemas()).slice(0, 4)).toEqual(['edge-profiles', 'plumbing', 'state', 'commons-costs']);
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+it('publishes player modes and authored mover motion with their exact defining semantic checks', () => {
+  const roots = formatJsonSchemas();
+  expect(roots['modes.Modes']).toMatchObject(formatJsonSchema(ModesSchema));
+  expect(roots['moverMotion.MoverMotion']).toMatchObject(formatJsonSchema(MoverMotionSchema));
+  expect(roots['modes.Modes']?.['x-wildshard-checks']).toEqual([1, 2, 3].map(index => `@wildshard/format/modes#ModesSchema.pipe.${index}`));
+  expect(JSON.stringify(roots['modes.TraverseMode'])).toContain('zipline');
+  expect(JSON.stringify(roots['modes.TraverseMode'])).toContain('updraft');
+  expect(roots['moverMotion.MoverTrack']?.['x-wildshard-checks']).toEqual(['@wildshard/format/movers#MoversSchema.item.entries.track.wrapped.pipe.1']);
+  expect(() => formatJsonSchema(v.pipe(ModesSchema, v.check(() => true)))).toThrow();
 });
 
 it('retains typed state defaults and global capacity as defining semantic checks and exact commons bounds', () => {

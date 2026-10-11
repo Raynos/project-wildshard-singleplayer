@@ -40,6 +40,8 @@ import { QuestDataSchema } from '@wildshard/format/quests';
 
 import { RowsSchema } from '@wildshard/format/rows';
 import { MoversSchema } from '@wildshard/format/movers';
+import { ModesSchema, ZiplineModeSchema, UpdraftModeSchema, RideGaitsSchema, RideModeSchema, GrappleModeSchema, TraverseModeSchema } from '@wildshard/format/modes';
+import { MoverMotionSchema, MoverTrackSchema, MoverTriggerSchema, MoverDriverSchema } from '@wildshard/format/moverMotion';
 import { SocketLiftSchema } from '@wildshard/format/socketLift';
 import { PortalLinkSchema } from '@wildshard/format/portalLink';
 import { EntrywaysSchema } from '@wildshard/format/entryways';
@@ -162,6 +164,17 @@ const wireRoots = {
   'quests.QuestData': QuestDataSchema,
   'rows.Rows': RowsSchema,
   'movers.Movers': MoversSchema,
+  'modes.Modes': ModesSchema,
+  'modes.ZiplineMode': ZiplineModeSchema,
+  'modes.UpdraftMode': UpdraftModeSchema,
+  'modes.RideGaits': RideGaitsSchema,
+  'modes.RideMode': RideModeSchema,
+  'modes.GrappleMode': GrappleModeSchema,
+  'modes.TraverseMode': TraverseModeSchema,
+  'moverMotion.MoverMotion': MoverMotionSchema,
+  'moverMotion.MoverTrack': MoverTrackSchema,
+  'moverMotion.MoverTrigger': MoverTriggerSchema,
+  'moverMotion.MoverDriver': MoverDriverSchema,
   'socketLift.SocketLift': SocketLiftSchema,
   'portalLink.PortalLink': PortalLinkSchema,
   'entryways.Entryways': EntrywaysSchema,
