@@ -1,0 +1,312 @@
+{
+  "source": "581ac20ee97789257c18a34815838be4c6a9884b",
+  "fix": "511be233025a84fd026f168b0476715a761dbeb4",
+  "minimapBlob": "6dccaf0800434ad589d3c5f5c33310048a5fc804",
+  "fixValidationPass": true,
+  "floorPass": false,
+  "proof": "20261011T181258-x1-pine-minimap-validation-14715",
+  "complete": true,
+  "seconds": 95.351,
+  "quietRelease": "2026-10-11T23:20:12.472428+00:00",
+  "settings": {
+    "buildPacing": "on",
+    "tier": "desktop",
+    "fps": "auto"
+  },
+  "build": "devserver",
+  "glObserver": "off",
+  "rawSha256": "9ecd4737ffc2ad3ec38e88a3a03ab4e9594ed73ab8e5d94a8a725a86bbc12e79",
+  "rows": [
+    {
+      "name": "spawn",
+      "sampleRange": {
+        "startMs": 7224.4,
+        "endMs": 9224.2
+      },
+      "frames": 120,
+      "skipped": 0,
+      "medianFps": 59.88,
+      "p95Ms": 16.8,
+      "p99Ms": 16.8,
+      "maxMs": 16.8,
+      "workP95Ms": 6.7,
+      "callbackP95Ms": 18.2,
+      "contextLost": false,
+      "cpu": {
+        "enabled": true,
+        "frames": 120,
+        "owners": [
+          {
+            "id": "platform.grid",
+            "samples": 120,
+            "p95Ms": 0.5999999046325684,
+            "maxMs": 0.9000000953674316,
+            "calls": 1920
+          },
+          {
+            "id": "driftwood-isle",
+            "samples": 120,
+            "p95Ms": 0.5,
+            "maxMs": 0.6000003814697266,
+            "calls": 840
+          }
+        ]
+      },
+      "pass": true,
+      "maxFramePass": true,
+      "strictP95Pass": false,
+      "longFrameHooks": null
+    },
+    {
+      "name": "grid-crossroads",
+      "sampleRange": {
+        "startMs": 14490.7,
+        "endMs": 16490.6
+      },
+      "frames": 120,
+      "skipped": 0,
+      "medianFps": 59.88,
+      "p95Ms": 16.7,
+      "p99Ms": 16.8,
+      "maxMs": 16.8,
+      "workP95Ms": 2.8,
+      "callbackP95Ms": 18.3,
+      "contextLost": false,
+      "cpu": {
+        "enabled": true,
+        "frames": 120,
+        "owners": [
+          {
+            "id": "platform.grid",
+            "samples": 120,
+            "p95Ms": 0.8000001907348633,
+            "maxMs": 1,
+            "calls": 1920
+          }
+        ]
+      },
+      "pass": true,
+      "maxFramePass": true,
+      "strictP95Pass": true,
+      "longFrameHooks": null
+    },
+    {
+      "name": "grid-deck-east",
+      "sampleRange": {
+        "startMs": 18657.3,
+        "endMs": 20657.1
+      },
+      "frames": 120,
+      "skipped": 0,
+      "medianFps": 59.88,
+      "p95Ms": 16.8,
+      "p99Ms": 16.8,
+      "maxMs": 16.8,
+      "workP95Ms": 2.6,
+      "callbackP95Ms": 17.9,
+      "contextLost": false,
+      "cpu": {
+        "enabled": true,
+        "frames": 120,
+        "owners": [
+          {
+            "id": "platform.grid",
+            "samples": 120,
+            "p95Ms": 0.6000003814697266,
+            "maxMs": 0.8000006675720215,
+            "calls": 1920
+          }
+        ]
+      },
+      "pass": true,
+      "maxFramePass": true,
+      "strictP95Pass": false,
+      "longFrameHooks": null
+    },
+    {
+      "name": "grid-pine-hollow-road-entry-travel",
+      "sampleRange": {
+        "startMs": 21923.7,
+        "endMs": 24190.3
+      },
+      "frames": 120,
+      "skipped": 0,
+      "medianFps": 59.88,
+      "p95Ms": 33.4,
+      "p99Ms": 49.9,
+      "maxMs": 49.9,
+      "workP95Ms": 4.4,
+      "callbackP95Ms": 39.3,
+      "contextLost": false,
+      "cpu": {
+        "enabled": true,
+        "frames": 120,
+        "owners": [
+          {
+            "id": "platform.grid",
+            "samples": 120,
+            "p95Ms": 0.8000001907348633,
+            "maxMs": 1.200000286102295,
+            "calls": 1971
+          },
+          {
+            "id": "pine-hollow",
+            "samples": 120,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "calls": 0
+          }
+        ]
+      },
+      "pass": false,
+      "maxFramePass": true,
+      "strictP95Pass": false,
+      "longFrameHooks": null
+    },
+    {
+      "name": "grid-pine-hollow-road-entry-drive",
+      "sampleRange": {
+        "startMs": 20923.8,
+        "endMs": 37373.2
+      },
+      "frames": 960,
+      "skipped": 0,
+      "medianFps": 59.88,
+      "p95Ms": 16.8,
+      "p99Ms": 33.4,
+      "maxMs": 83.4,
+      "workP95Ms": 8.1,
+      "callbackP95Ms": 19.3,
+      "contextLost": false,
+      "cpu": {
+        "enabled": true,
+        "frames": 960,
+        "owners": [
+          {
+            "id": "platform.grid",
+            "samples": 960,
+            "p95Ms": 0.8000006675720215,
+            "maxMs": 9.700000286102295,
+            "calls": 15432
+          },
+          {
+            "id": "pine-hollow",
+            "samples": 908,
+            "p95Ms": 0.7000002861022949,
+            "maxMs": 11.699999809265137,
+            "calls": 1754
+          }
+        ]
+      },
+      "pass": true,
+      "maxFramePass": true,
+      "strictP95Pass": false,
+      "longFrameHooks": [
+        {
+          "hook": "pine-hollow:afterPlay",
+          "frames": 1,
+          "maxMs": 83,
+          "totalMs": 83,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "name": "grid-pine-hollow-road-entry",
+      "sampleRange": {
+        "startMs": 39489.7,
+        "endMs": 41489.6
+      },
+      "frames": 120,
+      "skipped": 0,
+      "medianFps": 59.88,
+      "p95Ms": 16.7,
+      "p99Ms": 16.8,
+      "maxMs": 16.8,
+      "workP95Ms": 7.9,
+      "callbackP95Ms": 17.6,
+      "contextLost": false,
+      "cpu": {
+        "enabled": true,
+        "frames": 120,
+        "owners": [
+          {
+            "id": "platform.grid",
+            "samples": 120,
+            "p95Ms": 0.5999999046325684,
+            "maxMs": 1.700000286102295,
+            "calls": 1920
+          },
+          {
+            "id": "pine-hollow",
+            "samples": 120,
+            "p95Ms": 0.6000003814697266,
+            "maxMs": 0.7000007629394531,
+            "calls": 360
+          }
+        ]
+      },
+      "pass": true,
+      "maxFramePass": true,
+      "strictP95Pass": true,
+      "longFrameHooks": null
+    }
+  ],
+  "pixels": {
+    "cases": [
+      {
+        "ground": "painted",
+        "alpha": 0.25,
+        "bytes": 746496,
+        "changed": 0,
+        "equal": true
+      },
+      {
+        "ground": "painted",
+        "alpha": 1,
+        "bytes": 746496,
+        "changed": 0,
+        "equal": true
+      },
+      {
+        "ground": "painted",
+        "alpha": "default",
+        "bytes": 746496,
+        "changed": 0,
+        "equal": true
+      },
+      {
+        "ground": "baked",
+        "alpha": 0.25,
+        "bytes": 746496,
+        "changed": 0,
+        "equal": true
+      },
+      {
+        "ground": "baked",
+        "alpha": 1,
+        "bytes": 746496,
+        "changed": 0,
+        "equal": true
+      },
+      {
+        "ground": "baked",
+        "alpha": "default",
+        "bytes": 746496,
+        "changed": 0,
+        "equal": true
+      }
+    ],
+    "pass": true,
+    "errors": [],
+    "fixtureSource": "511be233025a84fd026f168b0476715a761dbeb4",
+    "baseline": "511be2330^",
+    "device": "iPhone 16 Pro"
+  },
+  "errors": [],
+  "limitations": [
+    "One Pine entry; this does not rerun the full milestone grid.",
+    "Minimap pixel oracle renders real baseline and fixed widget classes on deterministic painted/baked fixtures; all RGBA bytes compared.",
+    "Desktop timing only; earlier Simulator red rows remain open."
+  ]
+}
