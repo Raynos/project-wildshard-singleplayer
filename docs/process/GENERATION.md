@@ -208,3 +208,15 @@ physics baker adopts these placements directly, keeping the remaining
 mesh-derived hulls and creature rigs as an explicitly transitional capture.
 Live islet mover poses and body ownership stay unchanged.
 This component cannot authorise removal of the complete physics product.
+
+### Signal camp physics placements (G320)
+
+The complete `signal-physics-placements` component compiles the caravan,
+well and three waymarks from retained source recipes on an authored dune
+field, simplex seed, trail bed and entry grading. It never reads captured
+heights, world constructors or recorded collider JSON. The shipping height
+law remains unchanged; the retained author version is compared exactly
+against it across seeds, terrain samples and all native placement fields.
+Its 4.5 KB JSON is generated on a cache miss and pinned to SHA-256
+`dc53caf1683fea1aa8e0117b93485ef09e6956fbd55b29846f0783e5ee8bd92f`. Remaining creature rigs, tower/model placements and prompt
+readbacks are transitional; this component permits no whole-product removal.

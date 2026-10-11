@@ -1,7 +1,7 @@
 import { BufferGeometry, Matrix4, Object3D, Quaternion, Vector3 } from 'three';
 import { updateAuthoringMatrix } from './sceneTransform';
 /** Authored contact material; the compiler writes this tag without installing a physics service. */
-export type Surface = 'wood' | 'stone' | 'grass' | 'sand' | 'rock' | 'metal' | 'earth' | 'felt';
+export type Surface = 'wood' | 'stone' | 'grass' | 'sand' | 'rock' | 'metal' | 'earth' | 'felt' | 'flesh';
 /** JSON-only position in metres. */
 export interface ColliderPoint {
     x: number;
