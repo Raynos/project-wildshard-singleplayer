@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Admission must inspect the immutable template collider, without allocating platform floors.
 import { readFileSync } from 'node:fs';
 import { emptyShardfile } from '../src/sdk/author';
-import { decodeTerrainTile, encodeTerrainTile } from '../src/engine/world/terrainTileData';
+import { decodeTerrainTile, encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { validateEntrywayTerrain } from '../src/game/shardfile/entryways';
 import { contentHash } from '../src/sdk/project';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';

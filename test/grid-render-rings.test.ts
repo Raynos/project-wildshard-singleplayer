@@ -6,7 +6,7 @@ import { afterAll, expect, it } from 'vitest';
 import { CONTENT_CAPS as C } from '../src/engine/core/config';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { TileDecoder } from '../src/game/grid/tileDecoder';
-import { decodeTerrainTile, encodeTerrainTile } from '../src/engine/world/terrainTileData';
+import { decodeTerrainTile, encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { RenderRings, type RingCell, type RingLevel, type RingTile, type RingView } from '../src/game/grid/rings';
 
 /**

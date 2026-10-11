@@ -6,7 +6,7 @@ import { validateEntrywayTerrain } from '../src/game/shardfile/entryways';
 import { validateEntrywayClearance } from '../src/game/shardfile/entryClearance';
 import { validateSocketLandings } from '../src/game/shardfile/entryLanding';
 import { shardfileWater } from '../src/game/shardfile/water';
-import { encodeTerrainTile } from '../src/engine/world/terrainTileData';
+import { encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { contentHash } from '../src/sdk/project';
 
 function source(): Shardfile {

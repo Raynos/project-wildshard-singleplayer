@@ -3325,3 +3325,5 @@ G320 pure contract boundary: `@wildshard/format` is the bottom layer and imports
 G320: `@wildshard/format/materialFamilies` owns the verbatim pure family parameter schemas and their parsers, defaults, texture references and preset refusal checks. Renderers read those contracts directly. The old engine renderer-schema simulation exception is retired; format closures remain free of Three.js and DOM.
 
 G320: `@wildshard/format/contentBounds` defines the immutable cell dimensions, entry widths and content caps. Engine `core/config` retains its public bindings to those same values and the same `CONTENT_CAPS` object, so existing runtime imports remain compatible. Authoring and validation import format directly; `test/format-content-bounds.test.ts` checks identity for all nine bounds.
+
+G320: the pure AAC index, WMC1 collision and terrain-tile byte readers are defined in `@wildshard/format/{aacIndex,meshCollisionBytes,terrainTileBytes}`. Engine installation stays separate. Frozen runtime terrain imports keep `engine/world/terrainTileData`, whose public functions are the same format function objects, with no duplicate codec or legacy source edit.

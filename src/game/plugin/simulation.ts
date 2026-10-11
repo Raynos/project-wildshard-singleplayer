@@ -18,7 +18,7 @@ import { DEFAULT_NORMALIZED_DAY, normalizedDayClock, inNormalizedDayRange, type 
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimCommand, type SimHostPorts, type SimStrike, type SimValue } from "@wildshard/engine/sim";
 import { buildPlatformSpawns } from "@wildshard/engine/ai/platform";
 import { addBakedTerrainCollider } from "@wildshard/engine/physics/terrainTiles";
-import { decodeTerrainTile, terrainTileHeight } from "@wildshard/engine/world/terrainTileData";
+import { decodeTerrainTile, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
 import { fnv1a32 } from "@wildshard/engine/core/rng";
 import { installScriptLane, type ScriptLanePort } from "@wildshard/engine/script/lane";
 import type { EffectRules, ScriptEntity } from "@wildshard/engine/script/effects";

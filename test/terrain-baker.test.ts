@@ -13,7 +13,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { runCli } from '../src/sdk/cli';
 import { validateTerrainAssets } from '../src/game/plugin/product';
 import { TerrainSchema } from '@wildshard/format/terrain';
-import { decodeTerrainTile, encodeTerrainTile, terrainTileHeight } from '../src/engine/world/terrainTileData';
+import { decodeTerrainTile, encodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { addBakedTerrainCollider } from '../src/engine/physics/terrainTiles';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';

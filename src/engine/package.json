@@ -411,12 +411,10 @@
     "./combat/view/Bow": "./combat/view/Bow.ts",
     "./combat/view/bowProfile": "./combat/view/bowProfile.ts",
     "./combat/view/SweptMelee": "./combat/view/SweptMelee.ts",
-    "./core/meshCollision": "./core/meshCollision.ts",
     "./physics/meshCollision": "./physics/meshCollision.ts",
     "./player/combatMotion": "./player/combatMotion.ts",
     "./player/walk": "./player/walk.ts",
     "./render/offscreenPreparation": "./render/offscreenPreparation.ts",
-    "./render/materialPreparation": "./render/materialPreparation.ts",
-    "./audio/aacIndex": "./audio/aacIndex.ts"
+    "./render/materialPreparation": "./render/materialPreparation.ts"
   }
 }

@@ -14,7 +14,7 @@ import { ClampToEdgeWrapping, DataTexture, Float32BufferAttribute, LinearFilter,
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { PainterField } from '@wildshard/engine/render/look';
 import type { Terrain } from '@wildshard/engine/world/Terrain';
-import { decodeTerrainTile } from '@wildshard/engine/world/terrainTileData';
+import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/terrainTileView';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import type { EmissiveLook } from '@wildshard/engine/render/families/emissive';

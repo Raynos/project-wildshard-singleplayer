@@ -1,6 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { TerrainField } from '@wildshard/engine/level/data';
-import { decodeTerrainTile, type TerrainTileData } from '@wildshard/engine/world/terrainTileData';
+import { decodeTerrainTile, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import type { ResidencyAllocator } from '../grid/allocator';
 import type { ClientAssets } from './clientAssets';
 import { clientGround } from './clientGround';

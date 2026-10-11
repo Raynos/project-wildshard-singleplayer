@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Scope } from '../../../src/engine/app/scope';
 import { AacPull, AAC_WINDOW_FRAMES, type AacCodecFactory, type AacOutput } from '../../../src/engine/audio/aacPull';
-import type { AacIndex } from '../../../src/engine/audio/aacIndex';
+import type { AacIndex } from '@wildshard/format/aacIndex';
 
 function encoded(packets = 96): { bytes: Uint8Array; index: AacIndex } {
   const bytes = new Uint8Array(packets * 4), view = new DataView(bytes.buffer);

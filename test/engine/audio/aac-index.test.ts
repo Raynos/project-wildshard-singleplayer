@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Node fixture validates packet indexing against the committed compressed recordings.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { indexAac } from '../../../src/engine/audio/aacIndex';
+import { indexAac } from '@wildshard/format/aacIndex';
 
 const u32 = (...values: number[]): Uint8Array => {
   const bytes = new Uint8Array(values.length * 4), view = new DataView(bytes.buffer);

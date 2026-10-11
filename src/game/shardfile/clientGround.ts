@@ -1,7 +1,7 @@
-import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
+import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import type { TerrainField } from '@wildshard/engine/level/data';
 import type { Shardfile } from './schema';
-import { decodeMeshCollision, lowestMeshHeight } from '@wildshard/engine/core/meshCollision';
+import { decodeMeshCollision, lowestMeshHeight } from '@wildshard/format/meshCollisionBytes';
 
 /** Baked collider samples supply the existing player's terrain queries; they never allocate an analytic collider. */
 export function clientGround(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): TerrainField {

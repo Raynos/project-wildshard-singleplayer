@@ -2,7 +2,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { indexAac } from '../../../src/engine/audio/aacIndex.ts';
+import { indexAac } from '@wildshard/format/aacIndex';
 const [out] = process.argv.slice(2);
 if (!out) throw new Error('Pass OUT_JSON');
 const results = [];

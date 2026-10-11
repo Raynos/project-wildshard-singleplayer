@@ -1,7 +1,7 @@
 import type { Collider } from '@dimforge/rapier3d-simd';
 import type { Scope } from '../app/scope';
 import { withOwner } from '../app/ownership';
-import { decodeMeshCollision, type MeshCollisionData } from '../core/meshCollision';
+import { decodeMeshCollision, type MeshCollisionData } from '@wildshard/format/meshCollisionBytes';
 import type { Physics } from './Physics';
 import { groups } from './groups';
 import { tagCollider, type Material } from './surface';

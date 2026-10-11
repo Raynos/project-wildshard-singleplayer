@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { assetCost, parseGlb, visitGlbTriangles } from '../src/game/plugin/product';
-import { encodeTerrainTile, decodeTerrainTile } from '../src/engine/world/terrainTileData';
+import { encodeTerrainTile, decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { Physics } from '../src/engine/physics/Physics';
 import { addBakedTerrainCollider } from '../src/engine/physics/terrainTiles';

@@ -2,7 +2,7 @@
  * SF18b's decode worker: terrain tile wire bytes in (transferred), the validated `TerrainTileData` out with its sample
  * arrays transferred back, so the main thread only uploads. Started by `TileDecoder` (`./tileDecoder`).
  */
-import { decodeTerrainTile } from '@wildshard/engine/world/terrainTileData';
+import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import type { TileDecodeReply } from './tileDecoder';
 
 function reply(message: TileDecodeReply, transfer: Transferable[]): void {

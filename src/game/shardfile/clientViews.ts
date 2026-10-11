@@ -8,7 +8,7 @@
  */
 import { Mesh, type Material, type Object3D, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { TerrainTileData } from '@wildshard/engine/world/terrainTileData';
+import type { TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/terrainTileView';
 import { coarseTileMask } from '@wildshard/engine/world/coarseTileMask';
 import { installDeclaredProps, type PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';

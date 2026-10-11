@@ -1,7 +1,7 @@
 import type { Collider } from '@dimforge/rapier3d-simd';
 import type { Scope } from '../app/scope';
 import { withOwner } from '../app/ownership';
-import { decodeTerrainTile } from '../world/terrainTileData';
+import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import type { Physics } from './Physics';
 import { groups } from './groups';
 import { tagCollider } from './surface';

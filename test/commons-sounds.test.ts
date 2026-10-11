@@ -9,7 +9,7 @@ import { contentHash } from '../src/sdk/project';
 import { emptyShardfile } from '../src/sdk/author';
 import { ContentCache } from '../src/engine/boot/contentCache';
 import { Scope } from '../src/engine/app/scope';
-import { indexAac } from '../src/engine/audio/aacIndex';
+import { indexAac } from '@wildshard/format/aacIndex';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
 import { admitProduct, type CachedProduct, type ProductCache } from '../src/game/shardfile/product';

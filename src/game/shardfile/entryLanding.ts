@@ -1,4 +1,4 @@
-import { decodeTerrainTile } from '@wildshard/engine/world/terrainTileData';
+import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import type { ShardEntryways } from '@wildshard/format/entryways';
 import type { ShardProps } from './props';
 import { entryFootprints, clipEntryPolygon, type EntryFootprint, type EntryVertex } from './entryGeometry';

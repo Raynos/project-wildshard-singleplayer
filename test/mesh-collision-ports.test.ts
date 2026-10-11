@@ -1,6 +1,6 @@
 import { beforeAll, expect, it } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
-import { encodeMeshCollision } from '../src/engine/core/meshCollision';
+import { encodeMeshCollision } from '@wildshard/format/meshCollisionBytes';
 import { installBakedMeshColliders } from '../src/engine/physics/meshCollision';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';

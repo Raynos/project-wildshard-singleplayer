@@ -6,7 +6,7 @@ import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import { Physics } from '../../../src/engine/physics/Physics';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { addBakedTerrainCollider } from '../../../src/engine/physics/terrainTiles';
-import { decodeTerrainTile, encodeTerrainTile, terrainTileHeight } from '../../../src/engine/world/terrainTileData';
+import { decodeTerrainTile, encodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 
 it('walks all 92 Signal Dunes entry lanes on the unchanged native lattice, then releases every collider', async () => {
   const original = readFileSync('public/assets/baked/sunscar-dunes/terrain.bin');

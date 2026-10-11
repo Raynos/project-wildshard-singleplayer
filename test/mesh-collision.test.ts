@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeMeshCollision, encodeMeshCollision, isMeshCollisionData, meshCollisionCost, MESH_COLLISION_LIMITS } from '../src/engine/core/meshCollision';
+import { decodeMeshCollision, encodeMeshCollision, isMeshCollisionData, meshCollisionCost, MESH_COLLISION_LIMITS } from '@wildshard/format/meshCollisionBytes';
 import { addBakedMeshCollider } from '../src/engine/physics/meshCollision';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';

@@ -6,7 +6,7 @@
 import { Color, DirectionalLight, Fog, Group, HemisphereLight, Mesh, MeshLambertMaterial, PerspectiveCamera, PlaneGeometry, Scene, WebGLRenderer } from 'three';
 import { CONTENT_CAPS as C } from '../../../../src/engine/core/config';
 import { Scope } from '../../../../src/engine/app/scope';
-import { encodeTerrainTile, type TerrainTileData } from '../../../../src/engine/world/terrainTileData';
+import { encodeTerrainTile, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { installTerrainTile, maskTerrainTile } from '../../../../src/engine/world/terrainTileView';
 import { ResidencyAllocator } from '../../../../src/game/grid/allocator';
 import { RenderRings, type RingCell, type RingTile, type RingView } from '../../../../src/game/grid/rings';

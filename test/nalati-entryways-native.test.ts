@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import source from '../src/shards/nalati-grasslands/shard.config';
 import { NALATI_EDGES } from '../src/shards/nalati-grasslands/data/edges';
-import { encodeTerrainTile, decodeTerrainTile, terrainTileHeight } from '../src/engine/world/terrainTileData';
+import { encodeTerrainTile, decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { validateEntrywayTerrain } from '../src/game/shardfile/entryways';
 import { entryFootprints } from '../src/game/shardfile/entryGeometry';
 import { loadRapier } from '../src/engine/physics/rapier';

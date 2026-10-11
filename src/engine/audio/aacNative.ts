@@ -1,4 +1,4 @@
-import type { AacIndex } from './aacIndex';
+import type { AacIndex } from '@wildshard/format/aacIndex';
 import type { AacCodecFactory, AacOutput } from './aacPull';
 
 /** Minimal standard WebCodecs declarations, kept separate from playback policy. */

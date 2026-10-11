@@ -9,7 +9,7 @@ import { bakeAuthoredWorld } from '../src/sdk/bake/authoredWorld';
 import { emptyShardfile } from '../src/sdk/author';
 import { buildProject, canonicalJson, readProjectAssets, validateProject } from '../src/sdk/project';
 import { validateSimulation } from '../src/sdk/headless';
-import { decodeMeshCollision } from '../src/engine/core/meshCollision';
+import { decodeMeshCollision } from '@wildshard/format/meshCollisionBytes';
 import { shardfileSource } from '../src/game/plugin/loader';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 

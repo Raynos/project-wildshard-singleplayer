@@ -7,7 +7,7 @@ import { validateMeshCollisionAssets } from '../src/game/shardfile/meshCollision
 import { meshCollisionRules } from '@wildshard/format/meshCollision';
 import { assetCost } from '../src/game/plugin/product';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
-import { encodeMeshCollision, meshCollisionCost } from '../src/engine/core/meshCollision';
+import { encodeMeshCollision, meshCollisionCost } from '@wildshard/format/meshCollisionBytes';
 
 const mesh = { vertices: Float32Array.of(0, 0, 0, 10, 0, 0, 0, 0, 10), indices: Uint32Array.of(0, 2, 1) };
 function fixture() {

@@ -1,4 +1,4 @@
-import type { AacIndex } from './aacIndex';
+import type { AacIndex } from '@wildshard/format/aacIndex';
 import type { Scope } from '../app/scope';
 
 /** The small native-codec surface used by the bounded reader; injectable for deterministic lifecycle tests. */

@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
-import { terrainTileCost } from '../src/engine/world/terrainTileData';
+import { terrainTileCost } from '@wildshard/format/terrainTileBytes';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { clientSimStep } from '../src/game/shardfile/clientStep';
 import { clientWorld } from '../src/game/shardfile/clientWorld';

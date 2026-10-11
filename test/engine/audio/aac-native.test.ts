@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { nativeAacFactory, type NativeAacConfig, type NativeAacDecoder, type NativeAacPacket } from '../../../src/engine/audio/aacNative';
 import type { AacOutput } from '../../../src/engine/audio/aacPull';
-import type { AacIndex } from '../../../src/engine/audio/aacIndex';
+import type { AacIndex } from '@wildshard/format/aacIndex';
 
 const index: AacIndex = { sampleRate: 48000, channels: 2, description: Uint8Array.of(0x11, 0x90),
   offsets: Uint32Array.of(0), sizes: Uint32Array.of(1), primingFrames: 1024, mediaFrames: 1024 };

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { bakeWorldCollision } from '../src/sdk/bake/worldCollision';
 import type { WorldPrimitive } from '../src/sdk/bake/world';
-import { encodeMeshCollision } from '../src/engine/core/meshCollision';
+import { encodeMeshCollision } from '@wildshard/format/meshCollisionBytes';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { validateMeshEntryways } from '../src/game/shardfile/meshEntryways';
 import { validateSocketLandings } from '../src/game/shardfile/entryLanding';

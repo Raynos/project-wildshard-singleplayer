@@ -2,7 +2,7 @@ import { Document, NodeIO } from '@gltf-transform/core';
 import { expect, it } from 'vitest';
 import { bakeWorldCollision, type BakedWorldCollision } from '../src/sdk/bake/worldCollision';
 import { normalizeWorldGlb, type WorldPrimitive, type WorldPanel } from '../src/sdk/bake/world';
-import { decodeMeshCollision, MESH_COLLISION_LIMITS } from '../src/engine/core/meshCollision';
+import { decodeMeshCollision, MESH_COLLISION_LIMITS } from '@wildshard/format/meshCollisionBytes';
 import { addBakedMeshCollider } from '../src/engine/physics/meshCollision';
 import { floorBelow, canStandAt } from '../src/engine/physics/query';
 import { Physics } from '../src/engine/physics/Physics';

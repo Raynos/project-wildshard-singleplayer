@@ -1,4 +1,4 @@
-import { encodeMeshCollision, MESH_COLLISION_LIMITS } from '@wildshard/engine/core/meshCollision';
+import { encodeMeshCollision, MESH_COLLISION_LIMITS } from '@wildshard/format/meshCollisionBytes';
 import { hashImmutableBytes } from '../immutable';
 import type { NormalizedWorld, WorldPanel, WorldPrimitive } from './world';
 

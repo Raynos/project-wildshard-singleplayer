@@ -1,6 +1,6 @@
-import { indexAac } from '@wildshard/engine/audio/aacIndex';
-import { decodeTerrainTile, isTerrainTileData, terrainTileCost, terrainTileHeight } from "@wildshard/engine/world/terrainTileData";
-import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from "@wildshard/engine/core/meshCollision";
+import { indexAac } from '@wildshard/format/aacIndex';
+import { decodeTerrainTile, isTerrainTileData, terrainTileCost, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
+import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from "@wildshard/format/meshCollisionBytes";
 import { visitGlbGeometry, type GlbVertex } from "../shardfile/glbTriangles";
 import { projectedLayerCoverage, type OverdrawEstimate } from "../shardfile/overdraw";
 import { parseStillImage } from "../shardfile/stillImage";

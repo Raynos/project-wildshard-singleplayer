@@ -1,4 +1,4 @@
-import { indexAac, type AacIndex } from './aacIndex';
+import { indexAac, type AacIndex } from '@wildshard/format/aacIndex';
 import { AacPull, type AacCodecFactory } from './aacPull';
 import { nativeAacFactory } from './aacNative';
 import { AacWindows, aacWindowEligible, type AacWindow } from './aacWindows';

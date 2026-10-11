@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { Box3, Group, Mesh, MeshStandardMaterial, Raycaster, Scene, Vector3, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
-import { encodeTerrainTile, terrainTileHeight, type TerrainTileData } from '../src/engine/world/terrainTileData';
+import { encodeTerrainTile, terrainTileHeight, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { installTerrainTile, maskTerrainTile } from '../src/engine/world/terrainTileView';
 import { chunkShadowCasters } from '../src/engine/world/shadowChunks';
 import { addBakedTerrainCollider } from '../src/engine/physics/terrainTiles';

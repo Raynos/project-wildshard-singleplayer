@@ -7,7 +7,7 @@ import { parseShardfile } from '../src/game/shardfile/schema';
 import { validateEntrywayTerrain } from '../src/game/shardfile/entryways';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
 import { contentHash } from '@wildshard/sdk/project';
-import { decodeTerrainTile, encodeTerrainTile } from '../src/engine/world/terrainTileData';
+import { decodeTerrainTile, encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import template from '../src/shards/_template/shard.config';
 
 const empty = () => emptyShardfile({ slug: 'entry-test', name: 'Entry test', author: 'Test', seed: 1, revision: 1 });

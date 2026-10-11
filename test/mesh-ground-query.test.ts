@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { decodeMeshCollision, encodeMeshCollision, lowestMeshHeight } from '../src/engine/core/meshCollision';
+import { decodeMeshCollision, encodeMeshCollision, lowestMeshHeight } from '@wildshard/format/meshCollisionBytes';
 import { clientGround } from '../src/game/shardfile/clientGround';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';

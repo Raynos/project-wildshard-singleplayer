@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { MeshStandardMaterial } from 'three';
 import { CONTENT_CAPS } from '../../src/engine/core/config';
 import { parseBakedTerrain } from '../../src/engine/world/BakedTerrain';
-import { decodeTerrainTile } from '../../src/engine/world/terrainTileData';
+import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { buildFarProxy, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart } from '../../src/game/grid/farProxy';
 import { farProxyGeometry } from '../../src/game/grid/farView';
 import type { Shardfile } from '../../src/game/shardfile/schema';

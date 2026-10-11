@@ -68,7 +68,10 @@
     "./bossProfiles": "./bossProfiles.ts",
     "./materialGraph": "./materialGraph.ts",
     "./materialFamilies": "./materialFamilies.ts",
-    "./contentBounds": "./contentBounds.ts"
+    "./contentBounds": "./contentBounds.ts",
+    "./aacIndex": "./aacIndex.ts",
+    "./meshCollisionBytes": "./meshCollisionBytes.ts",
+    "./terrainTileBytes": "./terrainTileBytes.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

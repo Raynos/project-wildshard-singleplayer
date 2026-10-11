@@ -17,7 +17,7 @@
 import { BufferAttribute, BufferGeometry, Mesh, type Material, type Object3D } from 'three';
 import type { Scope } from '../app/scope';
 import { gpuOnlyAttributes } from '../core/gpuOnly';
-import { decodeTerrainTile, type TerrainTileData } from './terrainTileData';
+import { decodeTerrainTile, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { keepShadowWhole } from './shadowChunks';
 
 /** the coarse (L1) tile a quadrant mask applies to: 17 × 17 samples over 125 m, four 8 × 8-cell quadrants */

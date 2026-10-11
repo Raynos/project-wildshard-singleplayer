@@ -1,4 +1,4 @@
-import { decodeMeshCollision } from '@wildshard/engine/core/meshCollision';
+import { decodeMeshCollision } from '@wildshard/format/meshCollisionBytes';
 import { meshCollisionRules, type CollisionSource } from '@wildshard/format/meshCollision';
 
 /** Verify bounded WMC1 bytes and exact tile containment after immutable hashes and costs have been admitted. */

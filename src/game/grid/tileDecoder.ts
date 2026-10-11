@@ -3,7 +3,7 @@
  * `TerrainTileData` with transferred sample arrays, so the main thread spends its frame only on the budgeted upload. Where
  * there is no Worker (Node tests) the same decode runs inline on a microtask.
  */
-import { decodeTerrainTile, type TerrainTileData } from '@wildshard/engine/world/terrainTileData';
+import { decodeTerrainTile, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 
 /** Main thread → worker; the bytes are transferred. */
 export interface TileDecodeRequest { id: number; bytes: ArrayBuffer }
