@@ -244,8 +244,10 @@ it('shares the drawn frame budget even when a new builder has not spent its own 
   setFramePacing(true);
   try {
     noteFrameDrawn(now, now, 30);
-    now += 5; // Prior builders spent the quarter-frame budget; this builder is fresh.
+    now += 5; // Still within the bounded phone construction slice.
     const first = slicer(30);
+    expect(first.due()).toBeNull();
+    now += 4; // Prior builders spent the shared 8.33 ms budget; this builder is fresh.
     const pause = first.due();
     expect(pause).not.toBeNull();
     await pause;
@@ -254,7 +256,7 @@ it('shares the drawn frame budget even when a new builder has not spent its own 
 
     const second = slicer(30), progress = vi.fn<StepProgress['set']>();
     const reported = slicer(30, { set: progress, detail: () => undefined });
-    now += 5;
+    now += 9;
     expect(second.due()).not.toBeNull();
     await reported(1, 2, 'Next builder');
     expect(progress).toHaveBeenCalledWith(1, 2, 'Next builder');
