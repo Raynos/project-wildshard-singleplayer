@@ -1,0 +1,377 @@
+{
+  "schema": 1,
+  "pins": {
+    "baseline": "c3ae3493f72bcc7dacb9d92bf04bc3c4308ea5d5",
+    "candidate": "9c92fa9799da0ada9cd9b452fe3e13730f0e6d7b",
+    "tree": "af84cb2eb2f33ca43833c4eb87506a680e375452",
+    "landedSource": [
+      "559f6a07507de33b836eb8dac6168d018dd56e8f",
+      "43df4679958c8b119776850f6e5cb51c0c5ace15"
+    ],
+    "patchSha256": "7d0ce20eb39abf3709d316af08a6f3d346a5fcda4ce87810ce9295390caeb0e1"
+  },
+  "protocol": {
+    "desktop": {
+      "maxMs": 100,
+      "p95Ms": 17.5,
+      "framesOverMs": 50
+    },
+    "sim": {
+      "maxMs": 200,
+      "p95Ms": 35,
+      "framesOverMs": 100
+    },
+    "note": "Simulator shipped 30fps cap plus 34-35ms vsync jitter passes. Same parent plus only the prepared-memory patch; no profiler/GL instrumentation or quality changes."
+  },
+  "captures": [
+    {
+      "label": "before",
+      "surface": "sim",
+      "source": "c3ae3493f72bcc7dacb9d92bf04bc3c4308ea5d5",
+      "harness": "1a8ff1a540a3991cd1f37374e1090397b9b22fb3",
+      "when": "2026-10-11T15:55:48.394Z",
+      "elapsedSeconds": 131.831,
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "build": "devserver",
+      "glObserver": "off",
+      "glTime": false,
+      "errors": [],
+      "error": null,
+      "runtimeFailure": null,
+      "rawSha256": "86765543ebb52e183a673d1643f140a4cb4bfbe06eb1caf8559767454dc3a631",
+      "rows": [
+        {
+          "name": "spawn",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 35,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        },
+        {
+          "name": "grid-deck-east",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 38,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        },
+        {
+          "name": "grid-crossroads",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 34,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 56,
+          "maxMs": 133,
+          "over50Ms": 10,
+          "over100Ms": 2,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 750,
+          "p95Ms": 36,
+          "maxMs": 133,
+          "over50Ms": 12,
+          "over100Ms": 2,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 35,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        }
+      ],
+      "endpoints": [
+        {
+          "route": "pine-hollow-road-entry",
+          "inside": "pine-hollow",
+          "owner": "pine-hollow",
+          "feet": {
+            "x": 0,
+            "z": 343.74
+          },
+          "current": "pine-hollow",
+          "ready": true,
+          "residents": [
+            "pine-hollow"
+          ],
+          "pending": [],
+          "issues": {}
+        }
+      ]
+    },
+    {
+      "label": "after",
+      "surface": "sim",
+      "source": "9c92fa9799da0ada9cd9b452fe3e13730f0e6d7b",
+      "harness": "1a8ff1a540a3991cd1f37374e1090397b9b22fb3",
+      "when": "2026-10-11T15:58:08.677Z",
+      "elapsedSeconds": 136.008,
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "build": "devserver",
+      "glObserver": "off",
+      "glTime": false,
+      "errors": [],
+      "error": null,
+      "runtimeFailure": null,
+      "rawSha256": "8a2a9cc0626154baf83ffdf931f851b2d0561f9f5a4b69645cf09863555e1d74",
+      "rows": [
+        {
+          "name": "spawn",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 35,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        },
+        {
+          "name": "grid-deck-east",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 34,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        },
+        {
+          "name": "grid-crossroads",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 34,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 58,
+          "maxMs": 120,
+          "over50Ms": 10,
+          "over100Ms": 1,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 750,
+          "p95Ms": 37,
+          "maxMs": 120,
+          "over50Ms": 13,
+          "over100Ms": 1,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 35,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        }
+      ],
+      "endpoints": [
+        {
+          "route": "pine-hollow-road-entry",
+          "inside": "pine-hollow",
+          "owner": "pine-hollow",
+          "feet": {
+            "x": 0,
+            "z": 343.7
+          },
+          "current": "pine-hollow",
+          "ready": true,
+          "residents": [
+            "pine-hollow"
+          ],
+          "pending": [],
+          "issues": {}
+        }
+      ]
+    },
+    {
+      "label": "after",
+      "surface": "desktop",
+      "source": "9c92fa9799da0ada9cd9b452fe3e13730f0e6d7b",
+      "harness": "52625b34068c5c06ffb4ec0432838d9e2e7ed874",
+      "when": "2026-10-11T15:59:58.506Z",
+      "elapsedSeconds": 105.605,
+      "complete": true,
+      "pass": true,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "build": "devserver",
+      "glObserver": "off",
+      "glTime": false,
+      "errors": [],
+      "error": null,
+      "runtimeFailure": null,
+      "rawSha256": "21cd36187027174144b003436ce7991bbfd5a587a020eed545c21844115cc99e",
+      "rows": [
+        {
+          "name": "spawn",
+          "frames": 120,
+          "p95Ms": 16.8,
+          "maxMs": 16.8,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        },
+        {
+          "name": "grid-deck-east",
+          "frames": 120,
+          "p95Ms": 16.7,
+          "maxMs": 16.8,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        },
+        {
+          "name": "grid-deck-north",
+          "frames": 120,
+          "p95Ms": 16.8,
+          "maxMs": 16.8,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 16.8,
+          "maxMs": 33.4,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 990,
+          "p95Ms": 16.8,
+          "maxMs": 50.1,
+          "over50Ms": 1,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 16.8,
+          "maxMs": 16.8,
+          "over50Ms": 0,
+          "over100Ms": 0,
+          "skipped": 0,
+          "cpuPass": true,
+          "contextLost": false,
+          "pass": true
+        }
+      ],
+      "endpoints": [
+        {
+          "route": "pine-hollow-road-entry",
+          "inside": "pine-hollow",
+          "owner": "pine-hollow",
+          "feet": {
+            "x": 0,
+            "z": 343.53
+          },
+          "current": "pine-hollow",
+          "ready": true,
+          "residents": [
+            "pine-hollow"
+          ],
+          "pending": [],
+          "issues": {}
+        }
+      ]
+    }
+  ],
+  "pass": false,
+  "cancelledUnstartedPair": "20261011T104623: cancelled in the push queue before build or measurement; corrected the asynchronous construction-owner lookup first.",
+  "quietUtc": [
+    "2026-10-11T15:53:36.535079Z",
+    "2026-10-11T16:00:02.743411Z"
+  ],
+  "resources": "Owned previews, browser and Simulator helpers closed before quiet release."
+}
