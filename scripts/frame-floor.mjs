@@ -17,6 +17,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
+import { validateFrameFloorArgs } from './frame-floor-args.mjs';
 import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 import { GL_INIT } from './parity/glbytes.mjs';
 import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
@@ -27,6 +28,7 @@ const ROOT = resolvePath(import.meta.dirname, '..');
 const SCRIPT = import.meta.filename;
 const ALL = ['_template', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'blender-template', 'pastel-plain', 'ink-cel-valley', 'grid'];
 const args = process.argv.slice(2);
+validateFrameFloorArgs(args);
 const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const shards = flag('shards', ALL.join(',')).split(',');
 const surface = flag('surface', 'both');
