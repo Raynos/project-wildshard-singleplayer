@@ -1,3 +1,5 @@
+import { phasedDiverPreset, PhasedDiverSchema } from '../../../src/format/phasedFlyers';
+import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Initialize the real native engine for the oracle replay.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash every native frame against the captured shipping policy.
@@ -22,11 +24,13 @@ let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
 const level = { ...SIM_LEVEL, entities: [], quests: [], ground: { size: 2048, height: 0 } };
 function phased(actor: AnimalSim): SpeciesPolicy<HomeObservation> {
-  if (MATRIARCH_BRAIN.archetype !== 'phased-flyer') throw new Error('Missing phased declaration');
+  const profile = MATRIARCH_BRAIN;
+  if (profile.archetype !== 'diver' || profile.data.pattern !== 'phased') throw new Error('Missing phased declaration');
+  const data = phasedDiverPreset(profile.data);
   const strikes = new Map(SIGNAL_STRIKES.map(row => { const strike = strikeFromData(row); return [strike.id, strike] as const; }));
   const resolve = (id: string) => { const strike = strikes.get(id); if (strike === undefined) throw new Error('Missing strike'); return strike; };
-  const policy = new DiverBrain(actor, { pattern: 'phased', spec: MATRIARCH_BRAIN.data,
-    dive: MATRIARCH_BRAIN.data.dive.map(resolve), grounded: MATRIARCH_BRAIN.data.grounded.map(resolve) });
+  const policy = new DiverBrain(actor, { pattern: 'phased', spec: data,
+    dive: data.dive.map(resolve), grounded: data.grounded.map(resolve) });
   return { think: ports => { policy.think({ ...ports, pattern: 'phased' }); },
     act: ports => { policy.act({ ...ports, pattern: 'phased' }); }, snapshot: () => policy.snapshot(), restore: value => { policy.restore(value); } };
 }
@@ -87,3 +91,15 @@ it('the phased-flyer row moves, strikes and saves exactly as the Matriarch\'s sh
     expect(rowHits.length).toBeGreaterThan(0);
   } finally { oracle.dispose(); row.dispose(); shared.dispose(); }
 });
+
+  it('admits the phased diver profile with the old complete flight contract and refuses bad phase tuning', () => {
+    const profile = MATRIARCH_BRAIN;
+    if (profile.archetype !== 'diver' || profile.data.pattern !== 'phased') throw new Error('Missing phased diver row');
+    const data = profile.data, preset = phasedDiverPreset(data);
+    expect(preset.kind).toBe('phased-flyer');
+    expect(preset.fields).toEqual(data.fields); expect(preset.altitudes).toEqual(data.altitudes);
+    expect(preset.restSeconds).toEqual(data.restSeconds);
+    expect(() => phasedDiverPreset({ ...data, climbSpeedBonus: 31 })).toThrow();
+    expect(() => phasedDiverPreset({ ...data, fields: { ...data.fields, unused: 'bad' } })).toThrow();
+    expect(v.safeParse(PhasedDiverSchema, { ...data, pattern: 'patrol' }).success).toBe(false);
+  });

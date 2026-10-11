@@ -32,3 +32,15 @@ export const PhasedFlyerSchema = v.pipe(v.strictObject({
 export type ShardPhasedFlyer = v.InferOutput<typeof PhasedFlyerSchema>;
 /** Refuse an invalid phased flyer before any policy or callback exists. */
 export function parsePhasedFlyer(data: unknown): ShardPhasedFlyer { return v.parse(PhasedFlyerSchema, data); }
+
+/** Encounter-driven diver profile; its field names, phase arrays and bounds are the historical flyer's. */
+export const PhasedDiverSchema = v.pipe(v.strictObject({ ...PhasedFlyerSchema.pipe[0].entries,
+  kind: v.literal('diver'), pattern: v.literal('phased') }),
+  v.check(row => PhasedFlyerSchema.pipe[1].requirement({ ...row, kind: 'phased-flyer' }), 'Bounded climb speed'));
+/** Canonical encounter-driven flight declaration; the encounter keeps phase and body ownership. */
+export type ShardPhasedDiver = v.InferOutput<typeof PhasedDiverSchema>;
+/** Admit the authored profile and resolve the exact old preset before native construction or contact allocation. */
+export function phasedDiverPreset(input: unknown): ShardPhasedFlyer {
+  const { pattern: _pattern, ...row } = v.parse(PhasedDiverSchema, input);
+  return parsePhasedFlyer({ ...row, kind: 'phased-flyer' });
+}

@@ -26,7 +26,7 @@ import { TraversalSchema } from '@wildshard/format/traversal';
 import { RuntimeBindsSchema } from '@wildshard/format/runtimeBinds';
 import { RuntimeSpawnsSchema } from '@wildshard/format/runtimeSpawns';
 import { SkinPoseLayerSchema } from '@wildshard/format/skinLayers';
-import { PhasedFlyerSchema } from '@wildshard/format/phasedFlyers';
+import { PhasedDiverSchema, PhasedFlyerSchema } from '@wildshard/format/phasedFlyers';
 import { PresentationSchema } from '@wildshard/format/presentation';
 import { MeshCollisionSchema } from '@wildshard/format/meshCollision';
 import { ScriptBindingsSchema } from '@wildshard/format/scripts';
@@ -147,6 +147,7 @@ const wireRoots = {
   'runtimeSpawns.RuntimeSpawns': RuntimeSpawnsSchema,
   'skinLayers.SkinPoseLayer': SkinPoseLayerSchema,
   'phasedFlyers.PhasedFlyer': PhasedFlyerSchema,
+  'phasedFlyers.PhasedDiver': PhasedDiverSchema,
   'presentation.Presentation': PresentationSchema,
   'meshCollision.MeshCollision': MeshCollisionSchema,
   'scripts.ScriptBindings': ScriptBindingsSchema,

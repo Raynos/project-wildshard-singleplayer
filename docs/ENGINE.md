@@ -3237,3 +3237,10 @@ and constructs the unchanged native policy. Other flight/ram recipes still need
 an explicit native adapter and refuse automatic hosting. Signal's strider and
 ray use these canonical profiles; saved contracts, live witness names, six
 circling slots, body, contact, strike and RNG owners remain the original ones.
+
+SF82 the species catalogue's `diver/phased` profile is defined by
+`format/phasedFlyers.PhasedDiverSchema`; `phasedDiverPreset` resolves its exact
+historical contract before `plugin/brain` constructs the original flight law.
+Signal's Matriarch consumes it in page and native hosts. The encounter still
+owns phase/rise/fight fields, body and strikes; old `phased-flyer` data and
+continuations stay admitted. This does not add automatic creature-root hosting.

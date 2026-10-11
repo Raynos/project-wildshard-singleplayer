@@ -1579,3 +1579,15 @@ continuation remains unchanged. Template 1 anchors and horse presentation are se
 SF85 melee rows: optional `moves.passes.{left,right}` use the same ordered swing bounds. Optional `mounted` declares reach, cooldown, sense, chainWindow, chainStep, chainMax (at least one), positive speedDivisor and signed behind distance. Existing rows omit both unchanged.
 
 Trusted custom weapon families use `registerWeaponFamily` from `@wildshard/game/plugin/weaponFamily` with a session-local registry supplied to the existing runtime item binder. Signal lash and Sky fan keep their original declared family ids, trusted constructors and native owners. Registration validates the id, refuses reserved or duplicate names, and performs no construction; namespace admission still precedes allocation. This defining plugin also owns the optional AssemblyScript weapon hook installer; there is no SDK runtime facade.
+
+### Encounter-driven species flight (SF82)
+
+A trusted species catalogue may declare `{ archetype: "diver", data: { kind:
+"diver", pattern: "phased", ... } }`. The defining
+`@wildshard/format/phasedFlyers` profile retains the historical flyer's exact
+phase altitudes, rest intervals, named dive/grounded strikes, finite movement
+bounds and encounter memory fields. `phasedDiverPreset` validates and resolves
+the original `phased-flyer` preset before `plugin/brain` binds page or headless
+policies. Existing preset names and save contracts remain accepted. The SDK
+emits its standalone JSON Schema; it is a trusted catalogue declaration, not
+an additional branch of `creatures.brains` or an automatically installed boss.

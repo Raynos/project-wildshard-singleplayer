@@ -33,7 +33,7 @@ export const SKITTERER_BRAIN: SpeciesBrain = { archetype: 'script', data: { id: 
  * Round 2 (seat B: the camera passed through her): her centre never drops under `skim` m, so at 3.6x her belly clears
  * the player's head; her 4 m strike sphere still reaches the chest 3 m below.
  */
-export const MATRIARCH_BRAIN: SpeciesBrain = { archetype: 'phased-flyer', data: { id: 'sunscar.brain.matriarch', kind: 'phased-flyer',
+export const MATRIARCH_BRAIN: SpeciesBrain = { archetype: 'diver', data: { id: 'sunscar.brain.matriarch', kind: 'diver', pattern: 'phased',
   dive: [MAW_DATA.id], grounded: [TAIL_SWEEP_DATA.id, BUFFET_DATA.id], center: { x: BASIN.x, z: BASIN.z }, circleRadius: MATRIARCH.circleR, orbitLead: 0.5,
   altitudes: [MATRIARCH.alt, MATRIARCH.stormAlt, MATRIARCH.alt], restSeconds: [...MATRIARCH.every], initialRestSeconds: 3,
   speed: MATRIARCH.speed, diveSpeed: MATRIARCH.diveSpeed, climbSpeedBonus: 3, climbSeconds: MATRIARCH.climbFor, diveMaxSeconds: 5.5,
