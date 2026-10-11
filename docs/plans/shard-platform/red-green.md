@@ -32,3 +32,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-11 | Linux push CI: pusher fixtures use BSD-only mktemp templates (GNU refuses) | `e38a138a1` | `36f64a51e` (Linux verified, CI 38182470819) | sp-x7 |
 | 2026-10-11 | Linux push CI: Driftwood native-cache continuous vs mid-fight restore diverges on Node 24.21 | intermittent; artifact `dd61a915c` armed | pending | sp-x7 (diagnosis) |
 | 2026-10-11 | local gate: oxlint, redundant process.versions.v8 fallback in number-path-probe.mjs | `dd61a915c` | `321a8043f` | sp-x7 |
+| 2026-10-11 | nightly coverage (W12): 9 timeout files | heavy matchers, compiler, serial natives | `a2d0c5499`, `859e401d9`, `07865987e` (Linux run 38183108912 green) | sp-x7 |
