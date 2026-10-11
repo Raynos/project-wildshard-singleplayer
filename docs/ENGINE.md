@@ -3214,3 +3214,10 @@ Pure authored declarations import their types from format. Their native
 engagement, body, prelude, contact, random and continuation owners are unchanged.
 The unused SDK eliteScripts runtime forwarding module and export are removed;
 no frozen legacy source imported that module.
+
+SF82 Driftwood's live species catalogue selects `stalker/skirmish` for the crab,
+`guardian/interior` for the sailor and `guardian/perch` for the monkey. The
+existing strict admission resolves each to its legacy preset before selecting
+the original native body adapter. Every tuning field, cadence, perch/floor
+recipe, shared attack stream and contact clock stays unchanged. The unique
+Captain remains its custom recipe; this slice does not claim to port that boss.

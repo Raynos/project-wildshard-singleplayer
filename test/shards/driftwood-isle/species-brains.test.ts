@@ -7,6 +7,7 @@ import { driftwoodSpeciesBrains } from '../../../src/shards/driftwood-isle/runti
 import { DRIFTWOOD_ENEMY_SPECIES } from '../../../src/shards/driftwood-isle/data/enemySpecies';
 import { DRIFTWOOD_SPECIES } from '../../../src/shards/driftwood-isle/species/install';
 import { creature } from '../../fake/creature';
+import { CRAB_BRAIN_PROFILE, SAILOR_BRAIN_PROFILE, MONKEY_BRAIN_PROFILE } from '../../../src/shards/driftwood-isle/data/brains';
 
 const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: (): [number, number, number] => [0, 1, 0],
   waterLevel: () => -100, streamAt: () => null });
@@ -41,6 +42,13 @@ function replay(kind: 'crab' | 'sailor' | 'monkey', declared: boolean): object {
 }
 
 describe('Driftwood species-row decisions and native bodies', () => {
+  it('the live catalogue admits the authored stalker and both guardian patterns', () => {
+    expect(DRIFTWOOD_ENEMY_SPECIES.map(row => row.brain)).toEqual([
+      { archetype: 'stalker', data: CRAB_BRAIN_PROFILE },
+      { archetype: 'guardian', data: MONKEY_BRAIN_PROFILE },
+      { archetype: 'guardian', data: SAILOR_BRAIN_PROFILE },
+    ]);
+  });
   it('keeps every shipping gameplay field and leaves the unique Captain on its native recipe', () => {
     for (const row of DRIFTWOOD_ENEMY_SPECIES) {
       const legacy = DRIFTWOOD_SPECIES.find(candidate => candidate.kind === row.kind);

@@ -18,3 +18,10 @@ export const MONKEY_BRAIN = {
   underRadius: 2.6, underSeconds: 2, holdRadius: 3.4, runSpeed: 3.2, activeGroundSeconds: 7,
   biteCooldown: 1.2, throwCooldownMin: 2.5, throwCooldownMax: 4, alertCue: 'monkey_shriek', noticeCue: 'monkey_chatter',
 } as const;
+
+/** Shipping reef-crab decisions declared as the stalker's circling pattern. */
+export const CRAB_BRAIN_PROFILE = { ...CRAB_BRAIN, kind: 'stalker', pattern: 'skirmish' } as const;
+/** Shipping wreck-floor decisions declared as the guardian's interior pattern. */
+export const SAILOR_BRAIN_PROFILE = { ...SAILOR_BRAIN, pattern: 'interior' } as const;
+/** Shipping coconut decisions declared as the guardian's perch pattern. */
+export const MONKEY_BRAIN_PROFILE = { ...MONKEY_BRAIN, kind: 'guardian', pattern: 'perch' } as const;
