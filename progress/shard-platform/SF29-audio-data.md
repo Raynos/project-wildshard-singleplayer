@@ -1,6 +1,6 @@
 # SF29 audio declarations — acceptance evidence
 
-State: acceptance evidence complete, awaiting the serialized evidence push. All six legacy shards declare their audio. Node proofs and coordinator frame floors are green. Fresh strict parity remains recorded red; direct adjacent-commit controls attribute all four live audio discrepancies to G142 socket installation, rather than SF29.
+State (2026-10-11): emitted native routing/profile work landed; full recording-byte closure remains open. The original 2026-10-04 acceptance below covers source declarations, not the later emitted-product task. All six legacy shards declare their audio. Node proofs and coordinator frame floors are green. Fresh strict parity remains recorded red; direct adjacent-commit controls attribute all four live audio discrepancies to G142 socket installation, rather than SF29.
 
 Each shard's `shard.config.ts` takes its audio from `data/audio.ts`. The existing trusted runtime reads that same declaration. Transitional hybrid clients explicitly select runtime audio ownership, so they install it once; authored clients default to declared ownership. Runtime ownership is refused for outside authors.
 
@@ -35,4 +35,55 @@ The first controlled `ff2f848c9^` versus `ff2f848c9` comparison is recorded in [
 
 The [Driftwood/Pine phone control](SF29-control-drift-pine-ff2f848c9.json) completes the audio attribution: **4 captures, 426.86 seconds**, the same adjacent commits, one browser, no source surgery. It exactly reproduces Driftwood water **5→4**, sand **51→52**, the extra combat sand step and Pine litter **331→330**. Every listed Driftwood/Pine phone endpoint change also reproduces. All class-D checks pass, with zero errors/stuck/audio resources. Minimum masked SSIM is **0.990582556 Driftwood** and **0.999788746 Pine**. All four sound discrepancies in the broad SF29 comparison are therefore caused by `ff2f848c9`; their audio maps and data were already converted and identical before and after this control commit. The strict comparison records remain red, and no baseline or quarantine was changed.
 
-SF29 has no remaining implementation or measurement work. Residual non-audio endpoint fields in the broad six-shard report remain reported, not silently accepted; controls explicitly establish the Nine and Driftwood/Pine phone cases. Nalati's pre-existing phone combat harness failure was independently fixed in `603f8eaf4`. The coordinator owns plan closure and the serialized evidence push. All owned browsers and previews are closed; SF58 is next.
+The original source-declaration acceptance had no remaining implementation or measurement work; the emitted-product follow-up below supersedes that closure claim. Residual non-audio endpoint fields in the broad six-shard report remain reported, not silently accepted; controls explicitly establish the Nine and Driftwood/Pine phone cases. Nalati's pre-existing phone combat harness failure was independently fixed in `603f8eaf4`. The coordinator owns plan closure and the serialized evidence push. All owned browsers and previews are closed; SF58 is next.
+
+## Emitted native owners — 2026-10-11
+
+The full client lends its admitted `audio` rows to the existing first-party
+runtime owner. Legacy-only entries retain their original source declaration.
+This keeps one cue/bed/score owner and preserves sample bytes, playback clocks,
+RNG and scoped retirement; it does not move native algorithms into a second host.
+
+| Owner | Defining commit | Focused evidence |
+|---|---|---|
+| Runtime data port | `efc6a82a5` | Admitted resident audio is lent unchanged |
+| Sky / Signal cue aliases and silent score | `630fcca7f` | Existing native dispatch fixtures |
+| Driftwood cue routes / score profile | `992fd31b1` | Frozen native cue and score tests |
+| Nalati cue routes / score profile | `786595307` | Ordered scene fallback and two-entry ownership |
+| Nine aliases / score / enclosed beds | `92603cc43`, `36d4cb635` | Seven tests; native 1,200-tick bed/chime trace |
+| Pine cues / echo / positions | `812c21649` | Twelve tests; 1,728 dispatches and 54-zone hashes |
+| Pine bed profile | `4a7bb872d` | Fourteen tests; emitted graph, two-entry retirement |
+| Driftwood bed profile | `7017382be` | Seventeen audio/physics/spots tests; cold geometry exact |
+| Pine retained score profile | `5cc0b17bf` | Nine tests; emitted selection/set/lead/fade, native phase |
+| Nalati bed profile | `4d0f2c3a6` | Fourteen tests; 12,000-tick native calls/RNG exact |
+
+Every new slice passed strict typechecking, touched typed lint and commit hooks.
+Nalati's call-clock/position/RNG digest, captured from the pre-adoption owner,
+is `7d978f55742f4d899820e3e1c7b1992ccde0cea48e6c375386c758493e81b53e`.
+Missing emitted geometry refuses before listener allocation. Pine refuses live
+score recipe replacement; old-entry/old-recipe decodes cannot publish later.
+No new browser parity or phone performance verdict is claimed here.
+
+Pine's `runtime/index.ts` audio change invalidated its physical input fence.
+`da558cf70` ran both official Node producers on a committed export: six focused
+freshness tests passed. The 164 actors, three parked King bodies, 2,078 solids
+and 44 spots remain byte-identical; only source/build/revision provenance changed.
+The pusher refreshes witness manifests and King collision provenance, **not**
+ordinary physics or spots. Such inputs still require an actual producer run.
+
+### Open recording closure
+
+`audio.recordings` and `ClientAssets.audioRead()` admit immutable local/commons
+recording references with charged byte-derived costs (`e84032a58`, `8e35a39fa`).
+The SF26 fixture charges/downloads a shared sting once for two shards. Mono AAC
+admission uses the original bytes (`b0b412e99`); incremental playback remains
+stereo-only. Native whole banks still use their existing catalogue/decoder paths.
+They are not yet wholly routed through emitted charged asset closure.
+
+The original Pine mono sprite is 1,163,597 compressed bytes; admission charges
+7,494 packets × 1,024 frames × 4 bytes = **30,695,424 decoded bytes**. This alone
+exceeds the defining **25,000,000-byte library cap**, before other recordings.
+No cap relaxation, re-encoding or accounting discount has been applied. Full
+adoption needs a bounded lossless bank/stream ownership design and exact audio
+proof; declaring the current whole sprite would honestly refuse admission.
+SF29 therefore remains open for recording closure.
