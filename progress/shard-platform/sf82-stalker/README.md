@@ -32,3 +32,22 @@ the coordinator's generated receipt is required. No generated debt or graph file
 
 BR-1 group pack/hunt/herd and the wind diver remain open; authored stalker rows and the BR-2–BR-5
 boss/adoption gates are later slices. DIR5's stage host and elite prelude remain sp-x6's ownership.
+
+## Author-row continuation
+
+`kind: 'stalker', pattern: 'skirmish'` is admitted through the complete Shardfile schema and the
+SDK author API. Species catalogues also accept `archetype: 'stalker'`. Canonicalization restores
+the old skirmisher kind and parsed key order, so the trusted adapter and saved policy contract
+are the same. Native ports remain required; unhosted howl/pounce rows refuse explicitly.
+The duplicate guardian branch in the creature variant list is removed; existing field
+validators, messages, defaults and admission outcomes remain unchanged.
+
+85 focused tests in six files pass (18.84 s): strict bounds/defaults, authored species traces,
+complete factory installation, old-save restore and identical 1,000-tick mixed suffixes.
+The three real 10,000-frame crab trace hashes match the captured shipping policy through
+both the old and new author spelling. SF45 field/ABI coverage remains 100%; 92 defining
+JSON Schema roots regenerate deterministically. Root/layer strict, touched typed lint and
+the ratchet pass. All four native witnesses re-record with exact payloads/outcomes (49.6 s);
+input-only manifests remain excluded. No package export or new module dependency is added.
+
+Howl/pounce row hosting, group pack/hunt/herd, the wind diver and BR-2–BR-5 remain open.

@@ -1,6 +1,6 @@
-import { guardianPattern } from '@wildshard/sdk/brains';
+import { stalker, guardianPattern } from '@wildshard/sdk/brains';
 import { describe, expect, it } from 'vitest';
-import { parseGuardianPattern, guardianPreset, parseSkirmisher, parseScriptBrain, parseGuardian, parsePerchHunter } from '@wildshard/format/brains';
+import { parseStalker, stalkerPreset, parseGuardianPattern, guardianPreset, parseSkirmisher, parseScriptBrain, parseGuardian, parsePerchHunter } from '@wildshard/format/brains';
 import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../src/shards/driftwood-isle/data/brains';
 
 describe('declared skirmisher admission', () => {
@@ -51,5 +51,20 @@ describe('parametric guardian admission', () => {
   });
   it.each([{ runSpeed: 16 }, { throwCooldownMin: 5 }, { biteRadius: 15 }, { swingRadius: 1.8 }, { throwDuration: Number.NaN }])('refuses invalid and cross-pattern perch fields: %j', patch => {
     expect(() => parseGuardianPattern({ ...MONKEY_BRAIN, kind: 'guardian', pattern: 'perch', ...patch })).toThrow();
+  });
+});
+
+describe('parametric stalker admission', () => {
+  it('retains legacy defaults and parsed continuation key order through the author API', () => {
+    const { thinkDivisor: _cadence, ...legacy } = CRAB_BRAIN;
+    const row = parseStalker({ ...legacy, kind: 'stalker', pattern: 'skirmish' });
+    expect(stalker(row)).toEqual(row); expect(row.thinkDivisor).toBe(6);
+    expect(JSON.stringify(stalkerPreset(row))).toBe(JSON.stringify(parseSkirmisher(legacy)));
+  });
+  it.each([{ pattern: 'invented' }, { pattern: 'howler' }, { pattern: 'pouncer' }, { awareRadius: 601 },
+    { attackDuration: 0 }, { fleeSpeed: 16 }, { shyRadius: 10 }, { disengageRadius: 8 },
+    { alertCooldown: Number.NaN }, { thinkDivisor: 7 }, { noticeCue: '' }, { author: 'runtime.ts' },
+    { initialHowl: 1 }, { ledges: [] }])('refuses invalid or unbound pattern fields: %j', patch => {
+    expect(() => parseStalker({ ...CRAB_BRAIN, kind: 'stalker', pattern: 'skirmish', ...patch })).toThrow();
   });
 });

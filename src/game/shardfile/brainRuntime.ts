@@ -10,12 +10,12 @@ import { BurstFlyerBrain, type BurstFlyerPorts } from '@wildshard/engine/ai/burs
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost, SimStateAdapter } from '@wildshard/engine/sim';
-import { parseGuardianPattern, guardianPreset, type ShardGuardianPattern, parseSkirmisher, parseGuardian, parsePerchHunter, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from '@wildshard/format/brains';
+import { parseStalker, stalkerPreset, type ShardStalker, parseGuardianPattern, guardianPreset, type ShardGuardianPattern, parseSkirmisher, parseGuardian, parsePerchHunter, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from '@wildshard/format/brains';
 import { parseRamGrazer, parseChallengeGrazer, parseGrazer, grazerPreset, type ShardGrazer, type ShardRamGrazer, type ShardChallengeGrazer } from '@wildshard/format/grazers';
 import { parseDiver, diverPreset, type ShardDiver, parseOrbitDiver, parsePatrolDiver, parseBurstFlyer, type ShardOrbitDiver, type ShardPatrolDiver, type ShardBurstFlyer } from '@wildshard/format/flyers';
 
 /** Native decision families and the existing pursuit family; custom scripts require a composed host. */
-export type DeclaredNativeBrain = ShardGuardianPattern | ShardDiver | ShardGrazer | PlatformBrainSpec | ShardSkirmisher | ShardGuardian | ShardPerchHunter | ShardRamGrazer | ShardChallengeGrazer | ShardOrbitDiver | ShardPatrolDiver | ShardBurstFlyer;
+export type DeclaredNativeBrain = ShardStalker | ShardGuardianPattern | ShardDiver | ShardGrazer | PlatformBrainSpec | ShardSkirmisher | ShardGuardian | ShardPerchHunter | ShardRamGrazer | ShardChallengeGrazer | ShardOrbitDiver | ShardPatrolDiver | ShardBurstFlyer;
 /** One trusted actor's observations and body recipe; construction must not execute gameplay or consume RNG. */
 export interface DeclaredBrainRecipe<P> { observe: (dt: number) => P; body: (dt: number) => void }
 /** Loader-injected native recipes retain navigation, vertical movement, attack tokens and strike ownership. */
@@ -61,7 +61,7 @@ function mutableRegistration<P>(id: string, actor: AnimalSim, divisor: number,
 }
 /** Preflight every actor, declaration and native port before registering any callback; restore installs without running recipes. */
 export function installDeclaredBrains(host: SimHost, rows: readonly PlatformSpawn[], declarations: readonly DeclaredNativeBrain[], ports: DeclaredBrainPorts = {}): ReadonlyMap<string, SimStateAdapter> {
-  const presets = declarations.map(row => row.kind === 'guardian' && 'pattern' in row ? guardianPreset(parseGuardianPattern(row)) : row.kind === 'grazer' ? grazerPreset(parseGrazer(row)) : row.kind === 'diver' ? diverPreset(parseDiver(row)) : row);
+  const presets = declarations.map(row => row.kind === 'stalker' ? stalkerPreset(parseStalker(row)) : row.kind === 'guardian' && 'pattern' in row ? guardianPreset(parseGuardianPattern(row)) : row.kind === 'grazer' ? grazerPreset(parseGrazer(row)) : row.kind === 'diver' ? diverPreset(parseDiver(row)) : row);
   const definitions = new Map(presets.map(row => [row.id, row]));
   if (definitions.size !== declarations.length || new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Duplicate declared brain identity');
   for (const row of presets) {

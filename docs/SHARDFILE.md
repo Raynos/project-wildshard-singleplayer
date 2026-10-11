@@ -874,7 +874,7 @@ equipment viewmodel host, including off-hand tools, and leave with the level sco
 
 Edge rows retain every native boundary vertex; 129-point decimation is refused. A modern terrain collider is 257² and carries 257 samples per side, without resampling. When a 256-point neighbour meets a 257-point neighbour, the platform strip uses the sorted union of their native positions (511 points), so both exact boundaries survive.
 
-`creatures.brains` accepts `pursue`, `skirmisher`, `guardian`, `perch-hunter`,
+`creatures.brains` accepts `pursue`, `stalker`, `skirmisher`, `guardian`, `perch-hunter`,
 `grazer`, `diver`, `ram-grazer`, `challenge-grazer`, `orbit-diver`, `patrol-diver`, `burst-flyer` and `script`
 policies. The three native families use the strict schemas in `shardfile/brains`;
 their optional `thinkDivisor` defaults to six and must divide 60. Decisions run at
@@ -891,6 +891,16 @@ an admitted module in `sim.scripts`, a `thinkDivisor` dividing 60, bounded
 accepted from this declaration. The factory derives a trusted `brain:<actorId>`
 alias per spawn and rejects collisions with actor, item and director handles.
 All aliases count toward the one `serverBudget.entities` allowance.
+
+The `stalker` archetype (SF82) admits `pattern: 'skirmish'` with exactly the old flat `skirmisher` fields,
+bounds, ordered perception/strike checks and optional six-tick cadence. `@wildshard/format/brains` defines
+`StalkerSchema`, `parseStalker` and `stalkerPreset`; `@wildshard/sdk/brains` emits the validated row with
+`stalker(data)`. Full-factory rows and species catalogues (`archetype: 'stalker'`) canonicalize to the existing
+skirmisher native adapter, removing only the pattern and restoring the legacy kind and parsed key order.
+This preserves existing continuation bytes and restore without running a decision, allocating a body or drawing RNG.
+The old `skirmisher` spelling remains admitted. Native attack tokens, floor, navigation, body/contact and RNG ports
+are still required. Howl/pounce encounter patterns already share the engine policy but are not admitted as creature
+rows until their complete native encounter ports are hosted; an unbound pattern refuses rather than inventing them.
 
 The `guardian` archetype (SF82) also accepts an explicit `pattern`: `interior` or `perch`.
 The flat fields, numeric bounds, cue ids, ordered-range checks and optional six-tick cadence are exactly those of

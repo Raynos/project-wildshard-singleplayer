@@ -19,7 +19,7 @@ function source(parametric = false) {
   const s = emptyShardfile({ slug: 'native-brains', name: 'Native brains', author: 'Test', revision: 1, seed: 435 });
   const pursue = template.creatures.brains[0]; if (pursue?.kind !== 'pursue') throw new Error('Missing pursuit fixture');
   s.rows.species = template.rows.species;
-  s.creatures.brains = [pursue, { ...CRAB_BRAIN },
+  s.creatures.brains = [pursue, parametric ? { ...CRAB_BRAIN, kind: 'stalker', pattern: 'skirmish' } : { ...CRAB_BRAIN },
     parametric ? { ...SAILOR_BRAIN, pattern: 'interior' } : { ...SAILOR_BRAIN },
     parametric ? { ...MONKEY_BRAIN, kind: 'guardian', pattern: 'perch' } : { ...MONKEY_BRAIN }];
   s.creatures.spawns = s.creatures.brains.map((brain, index) => ({ id: `actor.${index}`, species: 'boar', variant: 'greyback', brain: brain.id, strike: null, seed: index, scale: 1, at: [index * 4, 0, 4], yaw: 0 }));
@@ -73,7 +73,7 @@ it('rebinds native policies on restore without replay and keeps the complete fac
   } finally { sim.dispose(); restored?.dispose(); }
 });
 
-it('admits both guardian patterns through the full schema and restores the legacy factory continuation exactly', () => {
+it('admits stalker and both guardian patterns through the full schema and restores the legacy factory continuation exactly', () => {
   const legacy = source(), patterned = source(true), assets = new Map<string, Uint8Array>();
   const original: string[] = [], patternTrace: string[] = [], suffix: string[] = [];
   const a = createShardfileSim(legacy, assets, { rapier, brains: recipes(original) });
@@ -98,6 +98,14 @@ it('refuses invalid guardian-pattern rows at the full-schema boundary', () => {
   const row = s.creatures.brains.find(brain => brain.kind === 'guardian' && 'pattern' in brain && brain.pattern === 'perch');
   if (row === undefined) throw new Error('Missing guardian fixture');
   for (const patch of [{ runSpeed: 16 }, { pattern: 'invented' }, { swingDuration: 1 }, { thinkDivisor: 7 }]) {
+    expect(() => parseShardfile({ ...s, creatures: { ...s.creatures, brains: [{ ...row, ...patch }] } })).toThrow();
+  }
+});
+
+it('refuses invalid stalker rows before native installation at the full-schema boundary', () => {
+  const s = source(true), row = s.creatures.brains.find(brain => brain.kind === 'stalker');
+  if (row === undefined) throw new Error('Missing stalker fixture');
+  for (const patch of [{ pattern: 'howler' }, { awareRadius: 601 }, { fleeSpeed: 16 }, { thinkDivisor: 7 }, { initialCooldown: 1 }]) {
     expect(() => parseShardfile({ ...s, creatures: { ...s.creatures, brains: [{ ...row, ...patch }] } })).toThrow();
   }
 });

@@ -2413,7 +2413,9 @@ the host. `spawned`, `reset`, `disposeTell`, `damage` and the howl-only `enterPh
 lifecycle. `snapshot()` / atomic `restore(value)` retain the original contract/object shapes; `howlerSnapshot()` and
 `pouncerSnapshot()` retain typed preset access and refuse the other pattern. `readHowlerSpec` / `readPouncerSpec` retain
 strict bounds. `ai/skirmisher` and Nalati's old runtime constructor paths are parameter presets of this shared policy,
-not independent decision implementations. Group `pack`/`hunt` and row adoption remain separate follow-up slices.
+not independent decision implementations. The admitted `stalker`/`skirmish` row and species catalogue canonicalize to the old skirmisher adapter and save
+contract, using the same native body/token/RNG ports. Howl/pounce encounter row hosting and group `pack`/`hunt` remain
+separate follow-up slices.
 
 **Parametric guardian (SF82 BR-1).** `@wildshard/engine/ai/guardianPolicy` defines `GuardianPolicy(actor, profile)`:
 `{ pattern: 'interior', spec: GuardianSpec }` or `{ pattern: 'perch', spec: PerchHunterSpec }`. `think(observation)`

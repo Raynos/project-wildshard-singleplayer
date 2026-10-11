@@ -35,13 +35,15 @@ function installHeadless(host: SimHost): void {
 }
 const catalogue = admitSpeciesBrains([{ id: 'species.crab', kind: 'crab', label: 'crab', variants: [],
   brain: { archetype: 'skirmisher', data: CRAB_BRAIN } }], []);
-function replay(platform: boolean | 'parametric', scenario: 'approach' | 'tokens' | 'scatter'): object {
+const patterned = admitSpeciesBrains([{ id: 'species.crab', kind: 'crab', label: 'crab', variants: [],
+  brain: { archetype: 'stalker', data: { ...CRAB_BRAIN, kind: 'stalker', pattern: 'skirmish' } } }], []);
+function replay(platform: boolean | 'parametric' | 'patterned', scenario: 'approach' | 'tokens' | 'scatter'): object {
   let brain: SkirmisherBrain<Animal> | CapturedSkirmisherBrain<Animal> | StalkerBrain<Animal> | undefined;
   const f = creature('crab', 'small', {}, undefined, (a, ctx) => {
     if (brain === undefined) {
       if (platform === false) brain = new CapturedSkirmisherBrain(a, CRAB_BRAIN);
       else if (platform === 'parametric') brain = new StalkerBrain({ pattern: 'skirmish', spec: CRAB_BRAIN });
-      else { const decision = catalogue.decision('crab', a);
+      else { const decision = (platform === 'patterned' ? patterned : catalogue).decision('crab', a);
         if (decision.archetype !== 'skirmisher') throw new Error('Wrong species decision'); brain = decision.policy; }
     }
     if (brain instanceof StalkerBrain) brain.think(a, { ...ctx, pattern: 'skirmish' }); else brain.think(ctx);
@@ -69,7 +71,7 @@ describe('data-selected circling melee archetype', () => {
   });
   it.each(['approach', 'tokens', 'scatter'] as const)('matches the real shipping crab for 10,000 fixed body frames: %s', scenario => {
     const expected = replay(false, scenario);
-    expect(replay(true, scenario)).toEqual(expected); expect(replay('parametric', scenario)).toEqual(expected);
+    expect(replay(true, scenario)).toEqual(expected); expect(replay('parametric', scenario)).toEqual(expected); expect(replay('patterned', scenario)).toEqual(expected);
   });
   it('restores actor, motor and RNG state into a fresh renderer-free host for an exact 10,000-tick suffix', () => {
     const sim = createSimHost(SIM_LEVEL, { rapier }); installHeadless(sim);

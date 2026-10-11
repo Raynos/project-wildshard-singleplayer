@@ -76,3 +76,17 @@ export function guardianPreset(data: ShardGuardianPattern): ShardGuardian | Shar
   const { pattern: _pattern, ...row } = data;
   return data.pattern === 'interior' ? parseGuardian(row) : parsePerchHunter({ ...row, kind: 'perch-hunter' });
 }
+
+/** Circling melee pattern of the stalker archetype, retaining exact legacy bounds and cadence. */
+export const StalkerSchema = v.pipe(v.strictObject({ ...SkirmisherSchema.pipe[0].entries,
+  kind: v.literal('stalker'), pattern: v.literal('skirmish') }),
+  v.check(row => SkirmisherSchema.pipe[1].requirement({ ...row, kind: 'skirmisher' }), 'Ordered skirmisher perception and strike radii'));
+/** Admitted stalker pattern data; native body, attack tokens and RNG remain host-owned. */
+export type ShardStalker = v.InferOutput<typeof StalkerSchema>;
+/** Admit a stalker row before any actor, native recipe or callback is allocated. */
+export function parseStalker(data: unknown): ShardStalker { return v.parse(StalkerSchema, data); }
+/** Canonical legacy row, including parsed key order, for native adapters and existing saved policy strings. */
+export function stalkerPreset(data: ShardStalker): ShardSkirmisher {
+  const { pattern: _pattern, ...row } = data;
+  return parseSkirmisher({ ...row, kind: 'skirmisher' });
+}

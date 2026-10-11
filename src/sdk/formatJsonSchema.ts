@@ -6,7 +6,7 @@ import { StateSchema } from '@wildshard/format/state';
 import { CommonsCostsSchema } from '@wildshard/format/commonsCosts';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 
-import { GuardianPatternsSchema, SkirmisherSchema, ScriptBrainSchema, GuardianSchema, PerchHunterSchema } from '@wildshard/format/brains';
+import { StalkerSchema, GuardianPatternsSchema, SkirmisherSchema, ScriptBrainSchema, GuardianSchema, PerchHunterSchema } from '@wildshard/format/brains';
 import { DiverSchema, OrbitDiverSchema, PatrolDiverSchema, BurstFlyerSchema } from '@wildshard/format/flyers';
 import { RamGrazerSchema, ChallengeGrazerSchema, GrazerSchema } from '@wildshard/format/grazers';
 import { GroupBrainSchema } from '@wildshard/format/groupBrains';
@@ -102,6 +102,7 @@ const finiteNumbers = new Set<object>([
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots = {
   'brains.Skirmisher': SkirmisherSchema,
+  'brains.Stalker': StalkerSchema,
   'brains.ScriptBrain': ScriptBrainSchema,
   'brains.Guardian': GuardianSchema,
   'brains.GuardianPatterns': GuardianPatternsSchema,

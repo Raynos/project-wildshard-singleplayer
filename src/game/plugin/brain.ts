@@ -26,7 +26,7 @@ import { parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGr
 import { parsePatrolDiver, type PatrolDiverSchema, type ShardPatrolDiver } from "@wildshard/format/flyers";
 import { parsePhasedFlyer, type PhasedFlyerSchema, type ShardPhasedFlyer } from "@wildshard/format/phasedFlyers";
 import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, type KeptHomeRow } from "../shardfile/homeKeeper";
-import { type GuardianPatternsSchema, guardianPreset, parseGuardianPattern, parseSkirmisher, parseGuardian, parsePerchHunter, type SkirmisherSchema, type GuardianSchema, type PerchHunterSchema, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from "@wildshard/format/brains";
+import { type StalkerSchema, parseStalker, stalkerPreset, type GuardianPatternsSchema, guardianPreset, parseGuardianPattern, parseSkirmisher, parseGuardian, parsePerchHunter, type SkirmisherSchema, type GuardianSchema, type PerchHunterSchema, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from "@wildshard/format/brains";
 
 /** Resolve both species and variant, preserving authored health and gameplay multipliers. */
 export function speciesResolver(rows: ShardRows): (speciesId: string, variantId: string) => AnimalSimSpec {
@@ -453,6 +453,7 @@ export type SpeciesBrain =
   | { readonly archetype: 'patrol-diver'; readonly data: v.InferInput<typeof PatrolDiverSchema> }
   | { readonly archetype: 'phased-flyer'; readonly data: v.InferInput<typeof PhasedFlyerSchema> }
   | { readonly archetype: 'script'; readonly data: v.InferInput<typeof ScriptSpeciesSchema> }
+  | { readonly archetype: 'stalker'; readonly data: v.InferInput<typeof StalkerSchema> }
   | { readonly archetype: 'skirmisher'; readonly data: v.InferInput<typeof SkirmisherSchema> }
   | { readonly archetype: 'guardian'; readonly data: v.InferInput<typeof GuardianSchema> | v.InferInput<typeof GuardianPatternsSchema> }
   | { readonly archetype: 'perch-hunter'; readonly data: v.InferInput<typeof PerchHunterSchema> };
@@ -519,6 +520,7 @@ function strikeOf(strikes: ReadonlyMap<string, StrikeSpec>, id: string, kind: st
 }
 function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, StrikeSpec>, modules: ReadonlyMap<string, Uint8Array>): Admitted {
   switch (brain.archetype) {
+    case 'stalker': return { archetype: 'skirmisher', data: stalkerPreset(parseStalker(brain.data)) };
     case 'skirmisher': return { archetype: brain.archetype, data: parseSkirmisher(brain.data) };
     case 'guardian': {
       const data = 'pattern' in brain.data ? guardianPreset(parseGuardianPattern(brain.data)) : parseGuardian(brain.data);
