@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { legacyDouble } from './fake/FakeGame';
-import { parseFamilyMaterial, PAINTED_TERRAIN_ATTRIBUTES, parsePaintedTerrain, paintedTerrainTextureRefs, type PainterlyMaterialParams } from '../src/engine/render/families/params';
+import { parseFamilyMaterial, PAINTED_TERRAIN_ATTRIBUTES, parsePaintedTerrain, paintedTerrainTextureRefs, type PainterlyMaterialParams } from '@wildshard/format/materialFamilies';
 import { bindPaintedTerrainBake, fillPaintedTerrainAttributes, paintedTerrainBakeOff, paintedTerrainBakesKey, paintedTerrainUniforms, applyPaintedTerrain } from '../src/engine/render/families/paintedTerrain';
 import { compilePainterly, PAINTERLY_PROGRAM_KEY, PainterlyLook } from '../src/engine/render/families/painterly';
 import { familyMaterial } from '../src/engine/render/families/registry';

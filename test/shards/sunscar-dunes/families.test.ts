@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseFamilyMaterial, parseGroundLayer } from '@wildshard/engine/render/families/params';
+import { parseFamilyMaterial, parseGroundLayer } from '@wildshard/format/materialFamilies';
 import { duskSandAt, duskSandEntry, duskSkyEntry, type GrainMeans } from '../../../src/shards/sunscar-dunes/runtime/looks/duskFamilies';
 import { duskDomeSun } from '../../../src/shards/sunscar-dunes/runtime/looks/duskDome';
 import { SAND_LOOK, SKY_LOOK } from '../../../src/shards/sunscar-dunes/runtime/looks/familyLook';

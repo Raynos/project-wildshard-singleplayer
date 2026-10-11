@@ -26,7 +26,7 @@ import { DATA_LOOK_DAY, dataLookClock, lookSample, sampleLook, type LookSample }
 import type { GraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { graphBindingSources, graphFileJson, presetLooks } from './materials';
-import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '@wildshard/engine/render/families/params';
+import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { familyPresetGraph, PRESET_CLOCK_PARAMS, PRESET_GRAPH_BUDGET } from '@wildshard/engine/render/graph/presets';
 import type { Shardfile } from './schema';
 

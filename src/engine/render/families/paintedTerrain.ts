@@ -24,7 +24,7 @@
 import * as THREE from 'three';
 import { TIER, TIER_CONFIG } from '../../core/tier';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
-import { PAINTED_TERRAIN_ATTRIBUTES, type PaintedTerrainParams } from './params';
+import { PAINTED_TERRAIN_ATTRIBUTES, type PaintedTerrainParams } from '@wildshard/format/materialFamilies';
 import type { TextureResolver } from './pbr';
 
 const A = PAINTED_TERRAIN_ATTRIBUTES;

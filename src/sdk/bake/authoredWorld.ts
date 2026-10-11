@@ -1,7 +1,7 @@
 import { Box3, DoubleSide, Float32BufferAttribute, Mesh, MeshStandardMaterial, Raycaster, Vector3, type BufferGeometry } from 'three';
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
-import { FAMILY_IDS, FamilyMaterialSchema, PbrMaterialSchema } from '@wildshard/engine/render/families/params';
+import { FAMILY_IDS, FamilyMaterialSchema, PbrMaterialSchema } from '@wildshard/format/materialFamilies';
 import { parseShardfile, type Shardfile } from '../shardfile';
 import { normalizeWorldGlb, type NormalizedWorld, type WorldPrimitive } from './world';
 import { parseWorldSource } from '../worldSource';

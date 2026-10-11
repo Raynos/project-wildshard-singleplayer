@@ -16,7 +16,7 @@
  */
 import * as THREE from 'three';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
-import { parseToonLook, type ToonLookParams, type ToonMaterialParams } from './params';
+import { parseToonLook, type ToonLookParams, type ToonMaterialParams } from '@wildshard/format/materialFamilies';
 
 /** the program-cache key every toon material shares (the source is the same for all of them) */
 export const TOON_PROGRAM_KEY = 'family.toon.v1';

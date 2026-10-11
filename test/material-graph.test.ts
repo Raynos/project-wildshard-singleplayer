@@ -7,7 +7,7 @@ import { ConditionalNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, Physi
 import { DEFAULT_GRAPH_BUDGET, LOOP_MAX, validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { emissiveGraph, painterlyGraph, pbrMeasureGraph, PRESET_GRAPH_BUDGET, toonGraph } from '../src/engine/render/graph/presets';
-import { parseFamilyMaterial, parsePainterlyLook, parseToonLook } from '../src/engine/render/families/params';
+import { parseFamilyMaterial, parsePainterlyLook, parseToonLook } from '@wildshard/format/materialFamilies';
 
 const pbr = parseFamilyMaterial({ family: 'pbr', colour: [0.8, 0.8, 0.8], roughness: 0.85, metalness: 0, measure: {} });
 if (pbr.family !== 'pbr' || pbr.measure === null) throw new Error('a PBR measure surface');

@@ -14,7 +14,7 @@
  */
 import * as THREE from 'three';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
-import { MEASURE_SLOT, type MeasureLayerParams } from './params';
+import { MEASURE_SLOT, type MeasureLayerParams } from '@wildshard/format/materialFamilies';
 
 /** the program-cache key of every PBR material with a measure layer */
 export const MEASURE_PROGRAM_KEY = 'family.pbr.measure.v1';

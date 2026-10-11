@@ -2,7 +2,7 @@ import { MeshStandardMaterial, type Material, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { setGroundPools, updateGround, type GroundPool } from '@wildshard/engine/render/families/ground';
-import type { GroundLayerParams } from '@wildshard/engine/render/families/params';
+import type { GroundLayerParams } from '@wildshard/format/materialFamilies';
 import { mappedFamilyMaterial } from './bakedGround';
 import { duskRow, type DuskRow } from './duskCurves';
 

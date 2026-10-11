@@ -19,7 +19,7 @@
  * into `PropsSchema` and calls `validatePropMaterials` from the props reference check).
  */
 import * as v from 'valibot';
-import { FAMILY_IDS } from '@wildshard/engine/render/families/params';
+import { FAMILY_IDS } from '@wildshard/format/materialFamilies';
 import { materialTextureRefs, type MaterialsSchema } from './materials';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { legacyDouble } from './fake/FakeGame';
-import { parseFamilyMaterial, parseGroundLayer, parsePainterlyLook, parseToonLook } from '../src/engine/render/families/params';
+import { parseFamilyMaterial, parseGroundLayer, parsePainterlyLook, parseToonLook } from '@wildshard/format/materialFamilies';
 import { compileEmissive, EMISSIVE_PROGRAM_KEY, EmissiveLook, injectEmissive } from '../src/engine/render/families/emissive';
 import { GROUND_POOLS, GROUND_PROGRAM_KEY, setGroundPools, updateGround } from '../src/engine/render/families/ground';
 import { compilePainterly, gradeRgb, PAINTERLY_PROGRAM_KEY, PainterlyLook } from '../src/engine/render/families/painterly';

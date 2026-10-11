@@ -52,18 +52,17 @@ describe('SF3a headless import closure', () => {
     const root = fixture({ 'src/engine/ai/brain.ts': "import '../entities/helper';", 'src/engine/entities/helper.ts': "import '../app/runtime'; import '../core/tier'; import '../core/frameCost'; import '../ai/view/debug'; document.createElement('div'); void import('./' + 'other');", 'src/engine/app/runtime.ts': 'export {};', 'src/engine/core/tier.ts': 'export {};', 'src/engine/core/frameCost.ts': 'export {};', 'src/engine/ai/view/debug.ts': 'export {};' });
     expect(simClosure(root).map((v) => v.id)).toEqual(expect.arrayContaining(['src/engine/entities/helper.ts:import:src/engine/app/runtime.ts', 'src/engine/entities/helper.ts:import:src/engine/core/tier.ts', 'src/engine/entities/helper.ts:import:src/engine/core/frameCost.ts', 'src/engine/entities/helper.ts:global:document', 'src/engine/entities/helper.ts:import:dynamic', 'src/engine/entities/helper.ts:import:src/engine/ai/view/debug.ts']));
   });
-  it('admits only the reviewed pure material schema leaf and guards its transitive dependencies', () => {
-    const base = { 'src/engine/ai/brain.ts': "import '../render/families/params';", 'src/engine/render/families/params.ts': "import * as v from 'valibot'; export const schema = v.number();" };
+  it('admits format contracts without a renderer exception and guards their transitive closure', () => {
+    const base = { 'src/engine/ai/brain.ts': "import '@wildshard/format/materialFamilies';", 'src/format/materialFamilies.ts': "import * as v from 'valibot'; export const schema = v.number();" };
     expect(simClosure(fixture(base))).toEqual([]);
-    for (const body of ["import { Vector3 } from 'three';", "document.createElement('div');", "import '../pbr';"]) {
-      const root = fixture({ ...base, 'src/engine/render/families/params.ts': body, 'src/engine/render/pbr.ts': 'export {};' });
+    for (const body of ["import { Vector3 } from 'three';", "document.createElement('div');", "import '@wildshard/engine/render/pbr';"]) {
+      const root = fixture({ ...base, 'src/format/materialFamilies.ts': body, 'src/engine/render/pbr.ts': 'export {};' });
       expect(simClosure(root)).toHaveLength(1);
     }
-    const root = fixture({ ...base, 'src/engine/render/families/params.ts': "import '../../entities/value';", 'src/engine/entities/value.ts': "import { Vector3 } from 'three';" });
+    const root = fixture({ ...base, 'src/format/materialFamilies.ts': "import '@wildshard/engine/entities/value';", 'src/engine/entities/value.ts': "import { Vector3 } from 'three';" });
     expect(simClosure(root).map((v) => v.id)).toEqual(['src/engine/entities/value.ts:import:three']);
-    const reviewed = JSON.parse(readFileSync('lint/sim-schema-leaves.json', 'utf8')) as Record<string, { owner: string; reason: string; removal: string }>;
-    expect(Object.keys(reviewed)).toEqual(['src/engine/render/families/params.ts']);
-    expect(reviewed['src/engine/render/families/params.ts']?.owner).toBe('SF16');
+    expect(JSON.parse(readFileSync('lint/sim-schema-leaves.json', 'utf8'))).toEqual({});
+    expect(simClosure(fixture({ 'src/engine/ai/brain.ts': "import '../render/families/params';", 'src/engine/render/families/params.ts': 'export const value = 1;' }))).toHaveLength(1);
   });
   it('guards authored template data and behaviour while excluding build-time views', () => {
     expect(simRoot('src/shards/_template/data/creatures.ts')).toBe(true);

@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import { applyGround } from './ground';
 import { applyMeasure } from './measure';
-import type { PbrMaterialParams } from './params';
+import type { PbrMaterialParams } from '@wildshard/format/materialFamilies';
 
 /** How a texture is read: `colour` is sRGB, `data` is linear (normals, ORM). */
 export type TextureUse = 'colour' | 'data';

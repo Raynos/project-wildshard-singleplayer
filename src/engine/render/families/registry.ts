@@ -12,7 +12,7 @@ import type { Scope } from '../../app/scope';
 import type { CompileJob } from '../precompile';
 import { engineString } from '../../strings';
 import { copyShaderPatches } from '../shaderPatches';
-import { parseFamilyMaterial, type FamilyMaterialParams } from './params';
+import { parseFamilyMaterial, type FamilyMaterialParams } from '@wildshard/format/materialFamilies';
 import { compileEmissive, type EmissiveLook } from './emissive';
 import { compilePainterly, type PainterlyLook } from './painterly';
 import { compilePbr, type TextureResolver } from './pbr';

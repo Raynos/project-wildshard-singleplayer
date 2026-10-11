@@ -26,7 +26,7 @@
 import {
   MEASURE_SLOT, presetRefusal, type EmissiveLookParams, type EmissiveMaterialParams, type FamilyMaterialParams, type MeasureLayerParams,
   type PainterlyLookParams, type PainterlyMaterialParams, type PbrMaterialParams, type ToonLookParams, type ToonMaterialParams,
-} from '../families/params';
+} from '@wildshard/format/materialFamilies';
 import { GRAPH_IR_VERSION, type GraphBudget, type GraphIr, type GraphNode, type GraphParam, type GraphRef } from '@wildshard/format/materialGraph';
 
 /** the ceilings a built-in preset compiles under (`compileGraph(preset, { budget: PRESET_GRAPH_BUDGET })`) */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { legacyDouble } from './fake/FakeGame';
-import { MEASURE_SLOT, measureUv, parseFamilyMaterial } from '../src/engine/render/families/params';
+import { MEASURE_SLOT, measureUv, parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { MEASURE_PROGRAM_KEY } from '../src/engine/render/families/measure';
 import { compilePbr, pbrFillers } from '../src/engine/render/families/pbr';
 import { measureBox } from '../src/shards/_template/generators/world';

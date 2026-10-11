@@ -18,7 +18,7 @@ import {
   type MinificationTextureFilter, type Texture, type Wrapping,
 } from 'three';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
-import { FAMILY_IDS } from '@wildshard/engine/render/families/params';
+import { FAMILY_IDS } from '@wildshard/format/materialFamilies';
 import { propMaterialSlots, propSlotUse, type PropMaterials, type PropTextureSlot } from './propMaterials';
 import type { Shardfile } from './schema';
 

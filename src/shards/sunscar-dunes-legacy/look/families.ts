@@ -4,7 +4,7 @@ import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { familyMaterial } from '@wildshard/engine/render/families/registry';
 import { setGroundPools, updateGround, type GroundPool } from '@wildshard/engine/render/families/ground';
-import type { GroundLayerParams } from '@wildshard/engine/render/families/params';
+import type { GroundLayerParams } from '@wildshard/format/materialFamilies';
 import { GROUND_HALF } from '../data/layout';
 import { WIND } from '../world/dunes';
 import { PAINTED } from './painted';

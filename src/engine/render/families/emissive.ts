@@ -15,7 +15,7 @@
  */
 import * as THREE from 'three';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
-import { parseEmissiveLook, type EmissiveLookParams, type EmissiveMaterialParams } from './params';
+import { parseEmissiveLook, type EmissiveLookParams, type EmissiveMaterialParams } from '@wildshard/format/materialFamilies';
 import type { TextureResolver } from './pbr';
 
 /** the program-cache key prefix every emissive material shares (the shape follows it) */

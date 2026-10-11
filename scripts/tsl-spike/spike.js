@@ -70,7 +70,7 @@ import { installFrameCounter, renderCount } from '@wildshard/engine/render/frame
 import { installShadowFilter } from '@wildshard/engine/world/shadowFilter';
 import { compilePbr } from '@wildshard/engine/render/families/pbr';
 import { compileEmissive, EmissiveLook } from '@wildshard/engine/render/families/emissive';
-import { parseFamilyMaterial, measureUv } from '@wildshard/engine/render/families/params';
+import { parseFamilyMaterial, measureUv } from '@wildshard/format/materialFamilies';
 import { installAtmosphere, fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { patchShader, PATCH_ORDER, takeForeignHook } from '@wildshard/engine/render/shaderPatches';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';

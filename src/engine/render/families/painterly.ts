@@ -17,7 +17,7 @@
  */
 import * as THREE from 'three';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
-import { parsePainterlyLook, type GradeParams, type PainterlyLookParams, type PainterlyMaterialParams } from './params';
+import { parsePainterlyLook, type GradeParams, type PainterlyLookParams, type PainterlyMaterialParams } from '@wildshard/format/materialFamilies';
 import type { TextureResolver } from './pbr';
 import { applyPaintedTerrain } from './paintedTerrain';
 

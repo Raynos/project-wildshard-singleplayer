@@ -16,7 +16,7 @@
  */
 import * as THREE from 'three';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
-import { parseGroundLayer, type GroundLayerParams } from './params';
+import { parseGroundLayer, type GroundLayerParams } from '@wildshard/format/materialFamilies';
 import type { TextureResolver } from './pbr';
 
 /** the program-cache key of every PBR material with a ground layer */

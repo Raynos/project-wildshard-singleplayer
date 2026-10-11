@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import {
   FAMILY_IDS, FamilyMaterialSchema, GRAPH_PRESET_VERSION, paintedTerrainTextureRefs, parseEmissiveLook, parsePainterlyLook, parseToonLook, presetRefusal,
   ToonLookSchema, PainterlyLookSchema, EmissiveLookSchema, type EmissiveLookParams, type FamilyMaterialParams, type PainterlyLookParams, type ToonLookParams,
-} from '@wildshard/engine/render/families/params';
+} from '@wildshard/format/materialFamilies';
 
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { isJsonData } from '@wildshard/format/json';

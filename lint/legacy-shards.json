@@ -972,7 +972,7 @@
         "generators/tower.ts": "ca2f8d5e0154a8003489b71422774ba59ac1b45c9d3d82c4e9f8575da883514b",
         "look/cube.ts": "0f592fd49db84041591153061de39e8efd10949676e9af4fb753832c564f9f92",
         "look/dusk.ts": "5f0d17a878b08f9332d3cce7db5387d96b32c3ff734a59ab64920f0912f7ff87",
-        "look/families.ts": "e46afe7dca82c0b6b9e5d63d614a481c741366b4024d6f260b504c37b46ef4fe",
+        "look/families.ts": "e6329d5de09b0c98efb80b86ff0d43127478301dd1075bc1ffa5570f5a4adc0a",
         "look/groundTiles.ts": "b0c40afd28321535af7eb1021079bfb30ae4dce387470b391829dc0617257002",
         "look/light.ts": "608700f316b985a2d6c28fab386ef1a946a0cc92efcf7b7d6819f785e727aa65",
         "look/map.baked.json": "bcc8c08265ab66b30e82a591b7d79a6f05327063951cbde619f679306af64697",
@@ -1029,6 +1029,13 @@
         "world/resources.ts": "d0ed2a5b7c452b38e4a25c09d8668a38d5ddc9693470b081053a8cb3948a62d0",
         "world/stormFx.ts": "36b065b04b8bd7e602b0e46559707fba3ac30700692ea5bb422e46a22610c6f9",
         "world/tower.ts": "17487fd84a563bd0f2d7ddc6f2d7efd28c1b840fb598263d526741364df95439"
+      },
+      "compatibility": {
+        "look/families.ts": {
+          "original": "e46afe7dca82c0b6b9e5d63d614a481c741366b4024d6f260b504c37b46ef4fe",
+          "current": "e6329d5de09b0c98efb80b86ff0d43127478301dd1075bc1ffa5570f5a4adc0a",
+          "reason": "G320 defining contract import repair only: the erased GroundLayerParams type now lives in format; all runtime source expressions remain exact."
+        }
       }
     },
     "nine-dragon-stack-legacy": {
