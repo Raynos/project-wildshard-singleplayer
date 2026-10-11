@@ -1,3 +1,4 @@
+import { BOW_PROFILE } from '../data/bowProfile';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily, ItemFamilyPresentation } from '@wildshard/engine/combat/itemFamilies';
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
@@ -21,15 +22,18 @@ export function bindNalatiItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game'
   const families = new Map<string, ItemFamily>();
   const adopt = (name: string, weapon: Weapon): void => {
     const native = weapon.row;
-    families.set(name, { kind: 'weapon', presentation: presentation(native), create: (row) => {
+    families.set(name, { kind: 'weapon', ...(name === 'bow' ? { profiles: ['bow'] } : {}), presentation: presentation(native), create: (row, _spec, ports) => {
+      if (name === 'bow' && JSON.stringify(ports.profile) !== JSON.stringify(BOW_PROFILE)) throw new Error('Native bow was built from a different authored profile');
       // G51: saved slots and the unchanged mounted controllers still address bow/sabre/spear/rifle.
       weapon.row = { ...row, legacySlot: weapon.id, meta: native.meta }; return weapon;
     } });
   };
-  adopt('nalati-grasslands.bow', weapons.bow); adopt('nalati-grasslands.sabre', weapons.sabre);
+  adopt('bow', weapons.bow); adopt('nalati-grasslands.sabre', weapons.sabre);
   adopt('nalati-grasslands.spear', weapons.spear); adopt('nalati-grasslands.rifle', weapons.rifle);
   const native = Object.values(weapons).map((weapon) => weapon.row);
-  bindRuntimeItems(ctx, data, { families, icon: (name) => {
+  const bow = families.get('bow'); if (bow === undefined) throw new Error('Missing Nalati bow family');
+  families.delete('bow');
+  bindRuntimeItems(ctx, data, { families, kit: new Map([['bow', bow]]), icon: (name) => {
     const row = native.find((entry) => entry.ui.icon === name);
     if (row === undefined) throw new Error(`Unknown Nalati item icon ${name}`);
     return row.ui.icon;

@@ -94,7 +94,7 @@ export class Bow<Style extends string = string> extends Weapon {
   freezeDraw: number | null = null;
 
   // draw state (bowDraw.ts)
-  private readonly draw = new BowDraw();
+  private readonly draw: BowDraw;
   private p = 0;              // the draw, 0..1
   private vis = 0; private visVel = 0; // the string's visual draw (a spring: the release overshoots)
   private mouseDraw = false; private mouseAds = false;
@@ -113,7 +113,7 @@ export class Bow<Style extends string = string> extends Weapon {
     super(opts.row);
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: opts.inputContext } };
     this.style = opts.initialStyle;
-    this.profile = opts.profile;
+    this.profile = opts.profile; this.draw = new BowDraw(this.profile.draw);
     this.magazine = this.profile.quiver;
     this.state = quiverState({ bolts: this.profile.quiver, loaded: true, reloading: false, reloadProgress: 1, ads: false }, this.profile.quiver);
     this.game = world.game; this.sky = world.sky; this.player = world.player;
@@ -137,7 +137,7 @@ export class Bow<Style extends string = string> extends Weapon {
     this.model.scale.setScalar(this.profile.vmScale);
     this.game.viewmodel.add(this.model);
 
-    this.arrows = new Projectiles(world, targets, this.profile.arrow(this.sky));
+    this.arrows = new Projectiles(world, targets, { ...this.profile.arrow(this.sky), ...this.profile.projectile });
     this.arrows.onTargetHit = (hit) => this.onArrowHit(hit);
     this.arrows.onHit = (kind, headshot, killed) => this.onHit?.(kind, headshot, killed);
     this.arrows.onImpact = (s, pt) => this.onImpact?.(s, pt);
@@ -185,11 +185,11 @@ export class Bow<Style extends string = string> extends Weapon {
   private loose(): void {
     const p = 1;
     this.aimRay(_v1, _fwd);
-    const spreadDeg = drawnSpreadDegrees(0.3, this.profile.aimSpread, this.aimBlend, 0.6,
+    const spreadDeg = drawnSpreadDegrees(this.profile.loose?.degrees ?? 0.3, this.profile.aimSpread, this.aimBlend, this.profile.loose?.motion ?? 0.6,
       this.player.speedFactor, this.extraSpreadDeg, this.mountSpread);
     const spread = THREE.MathUtils.degToRad(spreadDeg);
     _dir.copy(_fwd);
-    shotSpread(_dir, spread, gameplayRandom, { radius: 'sqrt', axisScale: 1 }, _v2);
+    shotSpread(_dir, spread, gameplayRandom, this.profile.loose ?? { radius: 'sqrt', axisScale: 1 }, _v2);
     this.launchFrom(_dir, p, this.spawnPos, this.launchVel);
     this.arrows.launch(this.spawnPos, this.launchVel, { damageScale: this.profile.damageScale, onHitScale: this.damageMultiplier });
     this.state.bolts--;
@@ -202,7 +202,7 @@ export class Bow<Style extends string = string> extends Weapon {
   /** the arrow's start (on the aim line, just in front of the eye, where the nocked arrow's tip is) and velocity */
   private launchFrom(dir: THREE.Vector3, p: number, pos: THREE.Vector3, vel: THREE.Vector3): void {
     this.aimRay(pos, _fwd);
-    pos.addScaledVector(dir, 0.55);
+    pos.addScaledVector(dir, this.profile.loose?.muzzle ?? 0.55);
     vel.copy(dir).multiplyScalar(this.profile.speedBase + this.profile.speedDraw * p).add(this.carrierVelocity);
   }
 
@@ -219,7 +219,7 @@ export class Bow<Style extends string = string> extends Weapon {
     const gait = mounted.gaits.find((row) => v < row.below)?.spread ?? 0;
     let off = this.player.yaw - m.yaw; off = Math.abs(Math.atan2(Math.sin(off), Math.cos(off)));
     this.parthian = off > THREE.MathUtils.degToRad(mounted.rearAngle);
-    this.mountDraw = DRAW_TIME / (mounted.drawTime + (this.parthian ? mounted.rearDraw : 0));
+    this.mountDraw = (this.profile.draw?.drawTime ?? DRAW_TIME) / (mounted.drawTime + (this.parthian ? mounted.rearDraw : 0));
     this.mountSpread = gait + (this.parthian ? mounted.rearSpread : 0);
     this.carrierVelocity.set(-Math.sin(m.yaw) * v, 0, -Math.cos(m.yaw) * v);
     this.mountArc = mounted.arc; this.mounted = true;

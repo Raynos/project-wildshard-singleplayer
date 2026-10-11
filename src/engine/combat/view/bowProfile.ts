@@ -1,4 +1,6 @@
 import type * as THREE from 'three';
+import type { BowDrawProfile } from '../bowDraw';
+import type { ShotCone } from '../shotSpread';
 import type { EquipmentRow } from '../Equipment';
 import type { ProjectileKind, WindField } from './projectile';
 import type { SkyRig as Sky } from '../../world/skyRig';
@@ -18,6 +20,10 @@ export type BowStyle = string;
 export interface BowProfile<Style extends string = string> {
   mounted?: { drawTime: number; rearAngle: number; rearDraw: number; rearSpread: number;
     gaits: readonly { below: number; spread: number }[]; arc: boolean };
+  /** Admitted numeric row clocks and loose law; absent keeps the shipping defaults. */
+  draw?: BowDrawProfile; loose?: ShotCone & { degrees: number; motion: number; muzzle: number };
+  /** Native projectile integration; physical view construction remains injected. */
+  projectile?: { gravity: number; drag: number; windCoupling: number; maxFlying: number; substeps: number; lifetime: number };
   family: 'bow'; parent?: EquipmentRow['id']; quiver: number; swayMax: number;
   speedBase: number; speedDraw: number; damageScale: number;
   aimZoom: number; aimVmZoom: number; aimSway: number; aimSpread: number; aimIn: number;

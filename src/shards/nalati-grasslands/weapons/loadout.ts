@@ -1,3 +1,4 @@
+import { BOW_PROFILE as BOW_ROW } from '../data/bowProfile';
 import { GoldenBow, type GoldenBowPower } from '../runtime/weapons/GoldenBow';
 import { Bow } from '@wildshard/game/weapons/Bow';
 import { BOW as BOW_PROFILE } from '@wildshard/game/weapons/starterBowProfile';
@@ -22,7 +23,9 @@ import { BOW } from './equipment';
 
 /** Nalati's recurve: the kit bow's numbers with the recurve's view (SF54: moved out of the kit's BOW row unchanged), and
  * its riding numbers, which are content; other bows opt into mounting through their own profile. */
-export const NALATI_BOW = { ...BOW_PROFILE, poses: POSE, arrowX: 0.02, arrowY: 0.058, arrowLength: ARROW_LEN, build: buildRecurve, arrow: arrowKind, mounted: {
+export const NALATI_BOW = { ...BOW_PROFILE, quiver: BOW_ROW.quiver, speedBase: BOW_ROW.speedBase, speedDraw: BOW_ROW.speedDraw, damageScale: BOW_ROW.damageScale,
+  aimSpread: BOW_ROW.spread.aimMultiplier, draw: BOW_ROW.draw, loose: { ...BOW_ROW.spread, muzzle: BOW_ROW.muzzle },
+  projectile: { ...BOW_ROW.flight, maxFlying: BOW_ROW.pool, substeps: BOW_ROW.substeps, lifetime: BOW_ROW.lifetime }, poses: POSE, arrowX: 0.02, arrowY: 0.058, arrowLength: ARROW_LEN, build: buildRecurve, arrow: arrowKind, mounted: {
   drawTime: 0.9, rearAngle: 110, rearDraw: 0.2, rearSpread: 0.5, arc: false,
   gaits: [{ below: 0.3, spread: 0.3 }, { below: 3.2, spread: 0.8 }, { below: 6.5, spread: 3 },
     { below: 10.5, spread: 1.5 }, { below: Infinity, spread: 1.8 }],

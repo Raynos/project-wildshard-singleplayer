@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+import { BowWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -109,6 +111,9 @@ export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
  * the grid's world (the scatter keeps the entry canyons clear, world/entryLanes.ts).
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets, rapier }) => {
+  const row = shard.items.rows.find(item => item.id === 'weapon.longbow');
+  if (row?.kind !== 'weapon' || row.family !== 'bow') throw new Error('Missing admitted Pine bow profile');
+  const bowProfile = v.parse(BowWeaponProfileSchema, row.profile);
   const director = await preparePineDirector(), nightDirector = await preparePineNightDirector();
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
   const nav = navBytes === undefined ? null : parseNavmesh(buffer(navBytes));
@@ -125,7 +130,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     const fresh = createSimHost(level, { ground: false, heightAt, rapier });
     try { addPineWorld(fresh, bake, isPineEdgeWall); fresh.step(); return provePineEntries(fresh.physics, shard.entryways, heightAt); } finally { fresh.dispose(); }
   }, install: (host, context) => {
-    installPine(host, { bake, grid, nav, heightAt, director, nightDirector, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
+    installPine(host, { bake, grid, nav, heightAt, director, nightDirector, bowProfile, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
       // a player command's attack pulls the held weapon's trigger at that body; its HEAVY hold draws the longbow; a
       // `pine.weapon` script command picks a weapon (the tick's last)
       shots: () => context.commands().flatMap(command => command.kind === 'player' && command.attack !== undefined ? [command.attack.targetId] : []),
@@ -139,6 +144,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
 };
 
 export interface PineInstall {
+  /** Admitted numeric bow row; isolated native fixtures use the same authored default. */
+  readonly bowProfile?: v.InferOutput<typeof BowWeaponProfileSchema>;
   /** Already admitted module factory; each installed quest consumes its own fresh author state. */
   readonly director: () => DirectorLane;
   /** Independent admitted night population handler; placement and roster owners remain native. */
@@ -217,7 +224,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   const crossbow = installPineCrossbow(host, { shots, enabled: () => loadout.live(PINE_WEAPON.crossbow), bodies, aim,
     ammunition: () => ammunition?.selected ?? 'iron', flight: kind => boltFlight(kind, atmosphere().weather.rain) });
   const lever = installPineLever(host, { shots, enabled: () => loadout.live(PINE_WEAPON.lever), bodies, aim, speedFactor });
-  const longbow = installPineLongbow(host, { heavy, enabled: () => loadout.live(PINE_WEAPON.longbow), bodies, aim, speedFactor,
+  const longbow = installPineLongbow(host, { ...(parts.bowProfile === undefined ? {} : { profile: parts.bowProfile }), heavy, enabled: () => loadout.live(PINE_WEAPON.longbow), bodies, aim, speedFactor,
     wind: { vecAt: (x, z, out) => atmosphere().wind.vecAt(x, z, out) } });
   const ammunitionOwner = new PineAmmunition({ crossbow, lever, longbow }); ammunition = ammunitionOwner;
   host.onStep('pine.ammunition', () => { ammunitionOwner.update(); }, undefined, 'afterBodies');

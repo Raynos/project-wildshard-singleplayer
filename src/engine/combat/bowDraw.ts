@@ -42,8 +42,25 @@ const clamp01 = (x: number): number => Math.min(1, Math.max(0, x));
  *  finger's edges. */
 export interface BowDrawState { drawT: number; holdT: number; renockT: number; tiredT: number; wasHeld: boolean; needLift: boolean; reachedFull: boolean }
 
+/** Authored draw clocks; body, input and the frame delta stay with the native owner. */
+export interface BowDrawProfile {
+  readonly drawTime: number; readonly letdownTime: number; readonly renockTime: number; readonly renockEarly: number;
+  readonly holdSteady: number; readonly holdTire: number; readonly tiredTime: number;
+}
+/** The shipping default; existing callers retain exactly the same arithmetic and clocks. */
+export const DEFAULT_BOW_DRAW: BowDrawProfile = Object.freeze({ drawTime: DRAW_TIME, letdownTime: LETDOWN_TIME,
+  renockTime: RENOCK_TIME, renockEarly: RN_EARLY, holdSteady: HOLD_STEADY, holdTire: HOLD_TIRE, tiredTime: TIRED_TIME });
+
 /** Pure held-draw, full-release, let-down, fatigue and re-nock state machine. */
 export class BowDraw {
+  private readonly profile: BowDrawProfile;
+  /** Snapshot the admitted clock parameters. No input edge or event is emitted at construction. */
+  constructor(profile: BowDrawProfile = DEFAULT_BOW_DRAW) {
+    if (Object.values(profile).some(n => !Number.isFinite(n) || n < 0)
+      || profile.drawTime <= 0 || profile.letdownTime <= 0 || profile.renockTime <= 0
+      || profile.renockEarly > 1 || profile.holdTire <= profile.holdSteady) throw new RangeError('Invalid bow draw profile');
+    this.profile = Object.freeze({ ...profile });
+  }
   /** linear draw time 0..1 (1 = full draw) */
   drawT = 0;
   /** s at full draw */
@@ -61,7 +78,7 @@ export class BowDraw {
   get p(): number { return 1 - (1 - this.drawT) ** 2; }
   get full(): boolean { return this.drawT >= 1; }
   /** 0..1 — the tremble of a long hold (0 until HOLD_STEADY, 1 at HOLD_TIRE) */
-  get sway(): number { return clamp01((this.holdT - HOLD_STEADY) / (HOLD_TIRE - HOLD_STEADY)); }
+  get sway(): number { return clamp01((this.holdT - this.profile.holdSteady) / (this.profile.holdTire - this.profile.holdSteady)); }
   /** the draw is coming / held (not letting down) */
   get drawing(): boolean { return this.wasHeld && !this.needLift && this.drawT > 0; }
 
@@ -94,21 +111,21 @@ export class BowDraw {
       if (!lifted && this.drawT > 0) {
         if (this.full && !blocked) {
           this.drawT = 0; this.holdT = 0; this.reachedFull = false;
-          this.renockT = RENOCK_TIME;
+          this.renockT = this.profile.renockTime;
           return 'loose';
         }
         ev = 'letdown';
       }
     }
-    const canDraw = held && !this.needLift && !blocked && this.tiredT <= 0 && this.renockT <= RENOCK_TIME * RN_EARLY;
+    const canDraw = held && !this.needLift && !blocked && this.tiredT <= 0 && this.renockT <= this.profile.renockTime * this.profile.renockEarly;
     if (canDraw) {
       if (this.drawT === 0) ev = 'start';
-      this.drawT = Math.min(1, this.drawT + (dt * rate) / DRAW_TIME);
+      this.drawT = Math.min(1, this.drawT + (dt * rate) / this.profile.drawTime);
       if (this.full && !this.reachedFull) { this.reachedFull = true; ev = 'full'; }
       if (this.full) {
         this.holdT += dt;
-        if (this.holdT >= HOLD_TIRE) {
-          this.tiredT = TIRED_TIME; this.holdT = 0; this.needLift = true; this.reachedFull = false;
+        if (this.holdT >= this.profile.holdTire) {
+          this.tiredT = this.profile.tiredTime; this.holdT = 0; this.needLift = true; this.reachedFull = false;
           ev = 'tired';
         }
       }
@@ -116,7 +133,7 @@ export class BowDraw {
     }
     // not drawing: a draw in hand that was blocked (a sprint, the water) is let down, and the finger must lift again
     if (held && !this.needLift && this.drawT > 0 && (blocked || this.tiredT > 0)) { this.needLift = true; ev = 'letdown'; }
-    this.drawT = Math.max(0, this.drawT - dt / LETDOWN_TIME);
+    this.drawT = Math.max(0, this.drawT - dt / this.profile.letdownTime);
     this.holdT = 0; this.reachedFull = false;
     return ev;
   }

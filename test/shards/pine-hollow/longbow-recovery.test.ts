@@ -1,3 +1,4 @@
+import { BOW_PROFILE } from '../../../src/shards/pine-hollow/data/bowProfile';
 // oxlint-disable-next-line import/no-nodejs-modules -- This native fixture loads the committed Rapier binary.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
@@ -66,6 +67,27 @@ it('lands a real native loose, saves its stopped shaft, and walks into the same 
     }
     expect(bow.stuck.count).toBe(0);
     expect([19, 20]).toContain(bow.state.arrows); // The real gameplay draw decides survival; neither result is fabricated.
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+  } finally { restored?.dispose(); original.dispose(); }
+});
+
+it('feeds an admitted altered row into the actual native draw, ammunition and exact restored suffix', () => {
+  let held = true;
+  const profile = { ...BOW_PROFILE, quiver: 7, draw: { ...BOW_PROFILE.draw, drawTime: 1.5 } };
+  const install = (host: SimHost): ReturnType<typeof installPineLongbow> => installPineLongbow(host, {
+    profile, heavy: () => held ? {} : null, enabled: () => true, bodies: () => [],
+  });
+  const original = createSimHost(level, { rapier }), bow = install(original);
+  let restored: SimHost | undefined;
+  try {
+    for (let tick = 0; tick < 50; tick++) original.step();
+    expect(bow.draw.full).toBe(false); expect(bow.state.arrows).toBe(7);
+    const saved = snapshotSimHost(original);
+    restored = restoreSimHost(level, { rapier }, saved, fresh => { install(fresh); });
+    expectSameSimSnapshot(snapshotSimHost(restored), saved);
+    for (let tick = 0; tick < 50; tick++) { original.step(); restored.step(); }
+    held = false; original.step(); restored.step();
+    expect(bow.state.arrows).toBe(6); expect(bow.flying()).toBe(1);
     expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
   } finally { restored?.dispose(); original.dispose(); }
 });

@@ -21,7 +21,7 @@ const melee = {
 const bow = {
   family: 'bow', quiver: LONGBOW_LOOSE.quiver, speedBase: LONGBOW_LOOSE.speedBase, speedDraw: LONGBOW_LOOSE.speedDraw, damageScale: LONGBOW_LOOSE.damageScale,
   draw: { drawTime: DRAW_TIME, letdownTime: LETDOWN_TIME, renockTime: RENOCK_TIME, renockEarly: RN_EARLY, holdSteady: HOLD_STEADY, holdTire: HOLD_TIRE, tiredTime: TIRED_TIME },
-  spread: { degrees: 0.3, radius: 'sqrt', axisScale: 1 }, flight: ARROW_FLIGHT, muzzle: 0.55, pool: 8, substeps: 4, lifetime: 12,
+  spread: { degrees: 0.3, radius: 'sqrt', axisScale: 1, aimMultiplier: 0.5, motion: 0.6 }, flight: ARROW_FLIGHT, muzzle: 0.55, pool: 8, substeps: 4, lifetime: 12,
 };
 const firearm = {
   family: 'firearm', action: 'lever', magazine: 7, reserve: 21, interval: 0.68, reload: 0.4, reloadMode: 'perRound', autoReload: 0.35,

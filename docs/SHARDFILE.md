@@ -1517,3 +1517,6 @@ SF84 traversal rows are declared as optional `modes.traverse` data. During nativ
 row at its existing player phase and the data client removes it, preventing a second owner. Sky Reach consumes its
 updraft geometry/force this way in both browser and trusted headless hosts. `@wildshard/sdk/modes` exposes the data types
 `ModeRows`, `ZiplineRow`, `UpdraftRow` alongside the ordinary three.js author objects.
+
+
+SF85 WP2 bow slice: Pine and Nalati use family bow with a numeric profile and their unchanged local view recipe. Spread includes the aiming multiplier and motion width; draw clocks and projectile subdivision/lifetime are data. Both page and Pine native clocks consume the row. Nalati’s native weapon coverage remains open: declaring its page bow does not fabricate a renderer-free weapon owner or close the gap. The existing mounted and Golden Bow modifiers stay native.

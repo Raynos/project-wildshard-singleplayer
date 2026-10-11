@@ -35,6 +35,8 @@ export interface ProjectileKind {
   recover: number;
   /** flying at once (older ones are recycled) */
   maxFlying: number;
+  /** Authored integration subdivisions and lifetime; omitted retains four steps and twelve seconds. */
+  substeps?: number; lifetime?: number;
   /** stuck ones kept (oldest evicted) */
   maxStuck: number;
   /** false = it never sticks (a ghost arrow comes apart on impact) — default true */
@@ -204,7 +206,7 @@ export class Projectiles {
     for (const f of this.flying) {
       if (!f.active) continue;
       f.age += dt;
-      const sub = 4, h = dt / sub;
+      const sub = this.kind.substeps ?? 4, h = dt / sub;
       let stopped = false;
       for (let s = 0; s < sub; s++) {
         const prev = _v1.copy(f.pos);
@@ -212,7 +214,7 @@ export class Projectiles {
         if (this.testHit(f, prev)) { stopped = true; break; }
       }
       if (stopped) continue;
-      if (Math.abs(f.pos.x) > CHUNK_HALF + 80 || Math.abs(f.pos.z) > CHUNK_HALF + 80 || f.pos.y < -150 || f.age > 12) { this.endFlying(f); continue; }
+      if (Math.abs(f.pos.x) > CHUNK_HALF + 80 || Math.abs(f.pos.z) > CHUNK_HALF + 80 || f.pos.y < -150 || f.age > (this.kind.lifetime ?? 12)) { this.endFlying(f); continue; }
       f.roll += dt * 9;
       this.writeFlying(f);
     }

@@ -1,3 +1,4 @@
+import { BOW_PROFILE } from '../data/bowProfile';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily, ItemFamilyPresentation } from '@wildshard/engine/combat/itemFamilies';
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
@@ -19,14 +20,17 @@ export function bindPineItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game'>,
   const families = new Map<string, ItemFamily>();
   const adopt = (name: string, weapon: Weapon): void => {
     const native = weapon.row;
-    families.set(name, { kind: 'weapon', presentation: presentation(native), create: (row) => {
+    families.set(name, { kind: 'weapon', ...(name === 'bow' ? { profiles: ['bow'] } : {}), presentation: presentation(native), create: (row, _spec, ports) => {
+      if (name === 'bow' && JSON.stringify(ports.profile) !== JSON.stringify(BOW_PROFILE)) throw new Error('Native bow was built from a different authored profile');
       // G51 compatibility: saved held slots and native controller branches retain crossbow/rifle/bow.
       weapon.row = { ...row, legacySlot: weapon.id, meta: native.meta }; return weapon;
     } });
   };
-  adopt('pine-hollow.crossbow', weapons.primary); adopt('pine-hollow.lever', weapons.rifle); adopt('pine-hollow.longbow', weapons.secondary);
+  adopt('pine-hollow.crossbow', weapons.primary); adopt('pine-hollow.lever', weapons.rifle); adopt('bow', weapons.secondary);
   const native = [weapons.primary.row, weapons.rifle.row, weapons.secondary.row];
-  bindRuntimeItems(ctx, source, { families, icon: (name) => {
+  const bow = families.get('bow'); if (bow === undefined) throw new Error('Missing Pine bow family');
+  families.delete('bow');
+  bindRuntimeItems(ctx, source, { families, kit: new Map([['bow', bow]]), icon: (name) => {
     const row = native.find((entry) => entry.ui.icon === name); if (row === undefined) throw new Error(`Unknown Pine item icon ${name}`); return row.ui.icon;
   } });
 }
