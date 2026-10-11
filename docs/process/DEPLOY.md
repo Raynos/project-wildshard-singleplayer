@@ -50,10 +50,13 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `.github/workflows/boot-smoke.yml` follows successful main push CI (or an explicit SHA dispatch), builds that exact
   commit and drives the real title, Driftwood gameplay and Developer grid home. It runs as two macOS legs at once (`boot`: title and
   gameplay; `hover`: the touch HOVER mounts), and its `verdict` job publishes the one `boot-smoke` status (SF74 W16). Fatal UI, page errors and bad asset
-  responses refuse the proof. Its macOS queue stays outside push CI's critical path. A missing, pending or failing
-  latest smoke status excludes that candidate; selection can still return an older proven build. Successful smoke
-  completion makes the candidate eligible for the next hourly/manual release; it does not change Jake's hourly
-  cadence. An earlier release may correctly select the already-live older build while the new smoke is pending.
+  responses refuse the proof. Its macOS queue stays outside push CI's critical path. A scheduled, backstop or manual
+  release waits within the same run while a newer CI-green candidate's exact-SHA smoke is pending. A newly completed
+  push CI with no smoke status yet gets the same wait (up to 15 minutes after CI completion), covering dispatch and
+  queue startup. The selector refreshes candidates and statuses every 30 seconds, with a total 15-minute wait budget.
+  Only an exact-SHA successful smoke can supply the pin. A terminal failure or superseded proof may be skipped for an
+  older proven build; an unresolved proof at the deadline refuses selection and names its SHA. Waiting never chooses
+  an unproven candidate or consumes another dispatch. The hourly cadence and manual dispatch limit stay unchanged.
   Smoke runs following manual/scheduled releases are intentionally skipped (only push CI or explicit smoke dispatch
   runs the proof), so inspect the run event as well as its SHA. An explicit emergency rollback may instead return to any SHA
   proven previously live in production, even before the smoke existed: verified `production-live` status or a

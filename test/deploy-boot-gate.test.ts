@@ -1,14 +1,16 @@
 import { expect, it } from 'vitest';
-import { ciGreen, bootGreen, logProvesProduction, newestCiGreen, productionLive, releaseSlot } from '../scripts/deploy-pin.mjs';
+import { ciGreen, bootGreen, logProvesProduction, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, productionLive, releaseSlot } from '../scripts/deploy-pin.mjs';
 
 const a = 'a'.repeat(40), b = 'b'.repeat(40), c = 'c'.repeat(40);
+const lines: string[] = [];
+const record = (line: string) => { lines.push(line); };
 function fixture(statuses: Record<string, string>, candidates = `${a}\n${b}\n${c}`) {
   const calls: string[] = [];
   const query = (args: string[]): string => {
     const endpoint = args[0] ?? ''; calls.push(endpoint);
     if (endpoint.includes('/actions/workflows/deploy.yml/')) {
       expect(endpoint).toContain('branch=main&event=push&status=success');
-      return candidates;
+      return candidates.split('\n').map(sha => `${sha}\t2026-10-01T00:00:00Z`).join('\n');
     }
     const sha = /\/commits\/([a-f0-9]{40})\/status$/u.exec(endpoint)?.[1];
     if (sha === undefined) throw new Error(`unexpected query ${endpoint}`);
@@ -17,12 +19,42 @@ function fixture(statuses: Record<string, string>, candidates = `${a}\n${b}\n${c
   return { query, calls };
 }
 
-it('selects the newest intersection of main push-CI and exact-SHA boot successes', () => {
+it('holds selection while a newer exact-SHA boot is pending, even with an older proven build', () => {
   const { query, calls } = fixture({ [a]: 'boot-smoke\tpending\tqueued', [b]: 'boot-smoke\tsuccess\tgameplay passed' });
-  const lines: string[] = [];
-  expect(newestCiGreen(query, (line: string) => { lines.push(line); })).toBe(b);
-  expect(calls).toHaveLength(3);
-  expect(lines).toEqual([`newest-ci-green: skipped ${a.slice(0, 9)}: push CI green, boot-smoke pending (queued)`]);
+  expect(() => newestCiGreen(query)).toThrow(PendingBootSmokeError);
+  expect(calls).toHaveLength(2);
+});
+
+it('waits in the same release and selects the newer SHA only after its proof succeeds', async () => {
+  const status = { [a]: 'boot-smoke\tpending\tqueued', [b]: 'boot-smoke\tsuccess\tpassed' };
+  const { query } = fixture(status);
+  let now = 0;
+  expect(await newestCiGreenAfterBoot(query, record, { now: () => now, wait: (ms) => {
+    now += ms; status[a] = 'boot-smoke\tsuccess\tpassed'; return Promise.resolve();
+  } })).toBe(a);
+  expect(now).toBe(30000);
+});
+
+it('allows fallback after a terminal smoke failure but refuses a still-pending proof at the deadline', async () => {
+  const status = { [a]: 'boot-smoke\tpending\tqueued', [b]: 'boot-smoke\tsuccess\tpassed' };
+  const { query } = fixture(status);
+  let now = 0;
+  expect(await newestCiGreenAfterBoot(query, record, { now: () => now, wait: (ms) => {
+    now += ms; status[a] = 'boot-smoke\tfailure\tfatal'; return Promise.resolve();
+  } })).toBe(b);
+  status[a] = 'boot-smoke\tpending\tqueued'; now = 0;
+  await expect(newestCiGreenAfterBoot(query, record, { now: () => now, maxWaitMs: 60000,
+    wait: (ms) => { now += ms; return Promise.resolve(); } })).rejects.toThrow('still unresolved after wait');
+  expect(now).toBe(60000);
+});
+
+it('holds a newly green push before smoke publishes its first exact-SHA status', () => {
+  const now = Date.parse('2026-10-11T13:00:00Z');
+  const base = fixture({ [b]: 'boot-smoke\tsuccess\tpassed' }, `${a}\n${b}`).query;
+  const query = (args: string[]) => (args[0] ?? '').includes('/workflows/')
+    ? `${a}\t2026-10-11T12:59:00Z\n${b}\t2026-10-01T00:00:00Z` : base(args);
+  expect(() => newestCiGreen(query, record, now)).toThrow(PendingBootSmokeError);
+  expect(newestCiGreen(query, record, now + 15 * 60000)).toBe(b);
 });
 
 it('refuses missing/failing smoke even when push CI is green, without accepting a neighbour SHA', () => {

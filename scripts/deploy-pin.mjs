@@ -128,21 +128,55 @@ export function ciGreen(sha, query = ghApi) {
   return runs.includes(sha);
 }
 
+/** A newer CI-green SHA has not finished its exact-SHA proof; never choose an older pin yet. */
+export class PendingBootSmokeError extends Error {
+  /** @param {string} sha */
+  constructor(sha) { super(`newest-ci-green: awaiting exact-SHA boot-smoke for ${sha}`); this.name = 'PendingBootSmokeError'; this.sha = sha; }
+}
+
 /** The newest successful push CI on main with a separate, successful real boot on that exact SHA. macOS boot
- * queueing never holds push CI, and an unproven/failing boot can never become a release pin. Each newer CI-green SHA it
- * passes over is logged with its boot-smoke state (SF74 W15: a stuck release says why); main SHAs whose push CI failed
+ * queueing never holds push CI, and an unproven/failing boot can never become a release pin. Pending smoke (or a newly green push still awaiting its first smoke status)
+ * holds selection; terminal smoke failures may be skipped and are logged with their state (SF74 W15: a stuck release says why); main SHAs whose push CI failed
  * or is still running are never candidates.
- * @param {(args:string[])=>string} [query] @param {(line: string) => void} [log] @returns {string} */
-export function newestCiGreen(query = ghApi, log = (line) => console.error(line)) {
+ * @param {(args:string[])=>string} [query] @param {(line: string) => void} [log] @param {number} [now] @returns {string} */
+export function newestCiGreen(query = ghApi, log = (line) => console.error(line), now = Date.now()) {
   const candidates = query([`repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&per_page=100`,
-    '--jq', '.workflow_runs[].head_sha']).trim().split('\n');
-  for (const sha of new Set(candidates)) {
+    '--jq', '.workflow_runs[] | [.head_sha, .updated_at] | @tsv']).trim().split('\n');
+  const seen = new Set();
+  for (const row of candidates) {
+    const [sha = '', completed = ''] = row.split('\t');
+    if (seen.has(sha)) continue;
+    seen.add(sha);
     if (!/^[0-9a-f]{40}$/.test(sha)) continue;
     const boot = statuses(sha, query).get('boot-smoke');
     if (boot?.state === 'success') return sha;
+    const completedAt = Date.parse(completed);
+    if (Number.isNaN(completedAt)) throw new Error(`newest-ci-green: unreadable completed CI time for ${sha}`);
+    // A successful push triggers smoke asynchronously; its exact-SHA status can be absent while queued.
+    if (boot?.state === 'pending' || (!boot && now - completedAt >= 0 && now - completedAt < 15 * 60 * 1000)) {
+      throw new PendingBootSmokeError(sha);
+    }
     log(`newest-ci-green: skipped ${sha.slice(0, 9)}: push CI green, boot-smoke ${boot ? `${boot.state} (${boot.description})` : 'not run yet'}`);
   }
   throw new Error('newest-ci-green: no successful push CI with a successful exact-SHA boot-smoke in the last 100 runs');
+}
+
+/** Keep one release waiting for up to 15 minutes; failures may fall back, unresolved proofs fail closed.
+ * Re-read CI and statuses every 30 seconds so a newer green push or coalesced smoke is observed.
+ * @param {(args:string[])=>string} [query] @param {(line:string)=>void} [log]
+ * @param {{now?:()=>number, wait?:(ms:number)=>Promise<void>, maxWaitMs?:number}} [options] @returns {Promise<string>} */
+export async function newestCiGreenAfterBoot(query = ghApi, log = (line) => console.error(line), options = {}) {
+  const now = options.now ?? Date.now;
+  const wait = options.wait ?? ((ms) => new Promise((resolve) => { setTimeout(resolve, ms); }));
+  const deadline = now() + (options.maxWaitMs ?? 15 * 60 * 1000);
+  for (;;) {
+    try { return newestCiGreen(query, log, now()); } catch (error) {
+      if (!(error instanceof PendingBootSmokeError)) throw error;
+      if (now() >= deadline) throw new Error(`release refused: exact-SHA boot-smoke still unresolved after wait: ${error.sha}`, { cause: error });
+      log(error.message);
+      await wait(Math.min(30000, deadline - now()));
+    }
+  }
 }
 
 /** Release runs (the hourly schedule or a dispatch) of deploy.yml that hold the hourly slot: one that started in the last
@@ -196,7 +230,7 @@ function memoryReading(sha) {
   return null;
 }
 
-function main() {
+async function main() {
   const [cmd, a1] = process.argv.slice(2);
   if (cmd === 'read') {
     const pin = readPin();
@@ -206,7 +240,7 @@ function main() {
       if (!found) throw new Error('newest-green: no gpu-gate-green SHA in the last 50 on origin/main');
       sha = found;
     }
-    if (pin.mode === 'newest-ci-green') sha = newestCiGreen();
+    if (pin.mode === 'newest-ci-green') sha = await newestCiGreenAfterBoot();
     // An explicit emergency rollback may return to a previously live build, including pre-smoke releases.
     if (!bootGreen(sha) && !(pin.mode === 'pinned' && productionLive(sha))) {
       throw new Error(`release refused: ${sha} has neither a green boot-smoke nor prior production proof`);
@@ -272,4 +306,4 @@ function main() {
   return 2;
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) process.exit(main());
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) process.exit(await main());
