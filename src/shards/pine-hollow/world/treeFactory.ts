@@ -9,8 +9,7 @@ import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls } from '@wildshard/engine/world/forest/treeSet';
 import { TreeFactory, patchFade, patchWind, type FadeBand } from '@wildshard/engine/world/TreeFactory';
 import { TREE_CROWN_EDITS, TREE_FAR_EDITS } from '../runtime/looks/forestLook';
-import { PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
-import { PINE_TREE_ASSETS } from './treeAssets';
+import { PINE_TREE_ASSETS, PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
 
 export interface PineTreeFactoryOptions { set: string }
 

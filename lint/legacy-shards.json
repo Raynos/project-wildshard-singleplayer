@@ -287,7 +287,7 @@
         "look/skyKeyFormat.ts": "d24cf9f3e90fe926bab1d6df29b89bfdfa4d39e460ba172f8835806c73689239",
         "look/skyKeys.ts": "52ab39caeea249542637350151d59ed5bd54b7aed8afae36ee3d2dbe9d042332",
         "look/viewDistance.ts": "5e887410f305769964a5f57d3e43f2af9f2c12f648f1c1f66788ef5976f33167",
-        "manifest.ts": "d24a2fbbd6308b7f46d8a6534ef7952df164b6cdd78c2c22e43a1e6747a9b62e",
+        "manifest.ts": "86bc588957ea072c2e4c2cf37c4200649ef68bac803c5f3ec00548538e3bf103",
         "models/antlerKing.ts": "7d11dba993f81b55cf96a3585f8b2bad96f66b6edcd46e9874836f57f64a0224",
         "models/beaverDam.ts": "17f77559e1bda4b8987da4e6005f1f6e4be2d167f08f9390e969b7ebfd2a6163",
         "models/birds.ts": "0ff21369ad7d33019aab019ea6a8f6cf46640c8f2e11084b9f4850860894b49f",
@@ -447,6 +447,13 @@
         "world/water.ts": "dfc6e3b0f4c748078a4a371628f58a06da5f2a8353e64ffe279ffbfaf67f5be5",
         "world/weather.ts": "1ee47cb7ace83e057753740afd128248ed61abffb996dba75a4f1df2056eac7e",
         "world/weatherProfile.ts": "6e1059224e102c09f24ea7e4200f81ebeaaf5ffdeccc1ceae804dd0948bd4f4d"
+      },
+      "compatibility": {
+        "manifest.ts": {
+          "original": "d24a2fbbd6308b7f46d8a6534ef7952df164b6cdd78c2c22e43a1e6747a9b62e",
+          "current": "86bc588957ea072c2e4c2cf37c4200649ef68bac803c5f3ec00548538e3bf103",
+          "reason": "Restore the 43-file frozen Pine manifest admission after pure format bounds/wave relocation. Declare the identical pond/creek bodies at the manifest; original frozen water module remains byte-identical, values and functions unchanged."
+        }
       }
     },
     "nalati-grasslands-legacy": {

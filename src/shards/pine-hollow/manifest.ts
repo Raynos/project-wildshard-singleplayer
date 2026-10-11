@@ -8,8 +8,7 @@ import compareDenTarget from './explore/pine-den-target.jpg';
 import compareHamletLive from './explore/pine-hamlet-live.jpg';
 import compareHamletTarget from './explore/pine-hamlet-target.jpg';
 import { PINE_STEPS, PINE_BYTES } from './boot/steps';
-import { PINE_TREE_ASSETS } from './world/treeAssets';
-import { PINE_TREE_SPECIES } from './world/treeSet';
+import { PINE_TREE_ASSETS, PINE_TREE_SPECIES } from './world/treeSet';
 import { pineTiers } from './look/viewDistance';
 import { bootFiles, bootSources, BAKED_UNREAD } from './boot/files';
 import exploreWorld from './explore/world-pine-hollow.webp';
@@ -26,12 +25,26 @@ import explorePractice from './explore/practice-pine-hollow.webp';
 import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { TERRAIN, forestDensity, oldGrowthMask, speciesMix } from './world/terrain';
-import { PINE_WATER } from './world/water';
-import { SPAWN, PINE_HOLLOW_POIS, inBeaverPool } from './layout';
+import { basinBody, type WaterBody } from '@wildshard/engine/world/water/body';
+import { surfaceReflect } from '@wildshard/engine/world/water/view';
+import { SPAWN, PINE_HOLLOW_POIS, inBeaverPool, creekWaterAt } from './layout';
 import { PINE_FAUNA } from './runtime/fauna';
 import thumbnail from './thumbs/pine-hollow.jpg';
 import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
 import heroLandscape from './thumbs/pine-hollow-landscape.jpg';
+
+/** the creek: water wherever `creekWaterAt` answers, at the surface it answers */
+function creekBody(): WaterBody {
+  return {
+    id: 'creek', get level() { return TERRAIN.waterLevel(); }, // it runs out of the pond
+    restAt: creekWaterAt,
+    surfaceAt: (x, z) => creekWaterAt(x, z) ?? TERRAIN.waterLevel(),
+    inside: (x, z, y) => { const s = creekWaterAt(x, z); return s !== null && y < s; },
+    reflect: surfaceReflect,
+  };
+}
+
+export const PINE_WATER: readonly WaterBody[] = [basinBody('pond', TERRAIN, surfaceReflect), creekBody()];
 
 const CELL = CHUNK_SIZE / (TERRAIN_RES - 1);
 
@@ -91,7 +104,7 @@ export const PINE_HOLLOW: ShardManifest = {
   minimap: { image: '/assets/pine-hollow/map/top.webp' }, // the map baked from the world (SF66)
   pois: PINE_HOLLOW_POIS.map(({ id, name, x, z, r }) => ({ id, name, x, z, r })),
 
-  // the pond and the creek are water bodies (app.world.water, world/water.ts): swimming and wading ask them
+  // the pond and the creek are water bodies (app.world.water, declared here): swimming and wading ask them
   ground: { terrain: TERRAIN, water: PINE_WATER },
   // Provisional coverage on the procedural grid, retained for the Blender export pipeline.
   blender: { area: { x0: -CHUNK_HALF + 87 * CELL, x1: -CHUNK_HALF + 168 * CELL, z0: -CHUNK_HALF + 66 * CELL, z1: -CHUNK_HALF + 148 * CELL }, models: [] },

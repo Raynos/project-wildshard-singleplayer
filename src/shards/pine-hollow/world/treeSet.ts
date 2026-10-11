@@ -33,3 +33,6 @@ export const PINE_TREE_SET = [
   { name: 'sapling-pine', species: 'sapling', height: 3.2, trunk: 0.06, collider: 1 },
   { name: 'sapling-fir', species: 'sapling', height: 4.5, trunk: 0.08, collider: 1 },
 ] as const satisfies readonly TreeSetVariant[];
+
+/** Assets used by the Pine tree bake and its declared boot files. */
+export const PINE_TREE_ASSETS = { bark: 'pine_bark', twigAtlas: 'pine_tree_01', set: 'pine-hollow-trees', setVariants: PINE_TREE_SET } as const;

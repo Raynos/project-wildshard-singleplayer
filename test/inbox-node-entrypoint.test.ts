@@ -19,13 +19,17 @@ it.each(['inbox', 'errors', 'telemetry'])('loads emitted %s in plain Node and re
   try {
     writeFileSync(join(directory, 'package.json'), '{"type":"module"}');
     for (const path of ['api/inbox', 'api/errors', 'api/telemetry', 'api/_blobStore', 'api/_crossroads',
-      'src/engine/core/crossroads', 'src/engine/core/config']) {
+      'src/engine/core/crossroads', 'src/engine/core/config', 'src/format/contentBounds']) {
       const source = readFileSync(join(root, `${path}.ts`), 'utf8');
       const emitted = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } });
       const target = join(directory, `${path}.js`);
       mkdirSync(dirname(target), { recursive: true });
       writeFileSync(target, emitted.outputText);
     }
+    // Core config now reads the defining pure format package. Resolve its real emitted
+    // module inside this fixture, so plain Node never falls back to checkout TypeScript.
+    const formatPackage: unknown = JSON.parse(readFileSync(join(root, 'src/format/package.json'), 'utf8'));
+    writeFileSync(join(directory, 'src/format/package.json'), JSON.stringify(formatPackage).replaceAll('.ts"', '.js"'));
     linkNodeModules(root, directory);
     const result = spawnSync(execPath, ['--input-type=module', '-e', `
       delete process.env.BLOB_READ_WRITE_TOKEN;
