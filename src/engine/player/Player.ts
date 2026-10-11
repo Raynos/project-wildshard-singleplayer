@@ -189,6 +189,9 @@ export class Player {
   carried = false;
   // ── the fixed step (PHYSICS.md P2): input() reads intents, step() moves at 60 Hz, update() poses the camera ──
   private inFwd = 0; private inStr = 0; private jumpQueued = false;
+  private activeCommand: PlayerCommand | null = null;
+  /** The admitted input during this fixed step only; traversal reads it without sampling the device or allocating again. */
+  get traversalCommand(): PlayerCommand | null { return this.activeCommand; }
   private commandJumpUsed = false;
   private commandDodgeUsed = false;
   private dodgeQueued = false;
@@ -454,7 +457,8 @@ export class Player {
     const resolved = command ?? this.sampleCommand();
     this.recordCommand?.({ ...resolved });
     this.commandJumpUsed = false; this.commandDodgeUsed = false;
-    this.stepCommand(dt, resolved);
+    this.activeCommand = resolved;
+    try { this.stepCommand(dt, resolved); } finally { this.activeCommand = null; }
     const used = this.commandUse(); // read back after the step: stepCommand sets the flags in nested calls
     if (command === undefined && used.jump) this.inputService?.consume('jump');
     if (command === undefined && used.dodge) this.inputService?.consume('dodge');

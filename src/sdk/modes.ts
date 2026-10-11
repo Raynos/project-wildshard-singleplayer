@@ -1,10 +1,10 @@
 import { Object3D, Vector3 } from 'three';
-import { ZiplineModeSchema, UpdraftModeSchema, type ZiplineMode, type UpdraftMode, RideModeSchema, type RideMode, GrappleModeSchema, type GrappleMode } from '@wildshard/format/modes';
+import { ZiplineModeSchema, UpdraftModeSchema, type ZiplineMode, type UpdraftMode, RideModeSchema, type RideMode, GrappleModeSchema, type GrappleMode, LadderModeSchema, type LadderMode } from '@wildshard/format/modes';
 import * as v from 'valibot';
 import { updateAuthoringMatrix } from './sceneTransform';
 
 /** A complete set of admitted platform traversal declarations. */
-export interface ModeRows { grapple?: GrappleMode[]; ride?: RideMode[]; traverse: (ZiplineMode | UpdraftMode)[] }
+export interface ModeRows { grapple?: GrappleMode[]; ride?: RideMode[]; traverse: (ZiplineMode | UpdraftMode | LadderMode)[] }
 /** A cable's admitted data, independent of any native view. */
 export type ZiplineRow = ZiplineMode;
 /** A board-only directional wind column's admitted data. */
@@ -79,4 +79,41 @@ export class Grapple extends Object3D {
   override copy(source: this, recursive = true): this { super.copy(source, recursive); this.options = { ...source.options }; return this; }
   /** Emit data only; no synthetic anchors, targets, floors or gameplay grants. */
   toModeData(): GrappleMode { return v.parse(GrappleModeSchema, { id: this.name, ...this.options }); }
+}
+
+/** Explicit world-metre climb controls; the outward normal is a local horizontal direction. */
+export interface LadderOptions { reach?: number; speed?: number }
+/** Vertical climbing declaration with ordinary scene transforms; its visible rungs, rails and colliders remain authored. */
+export class Ladder extends Object3D {
+  /** Local lower floor; the capsule starts climbing here without teleporting. */
+  readonly bottom = new Vector3();
+  /** Local top of the vertical route. */
+  readonly top = new Vector3(0, 3, 0);
+  /** Local upper landing floor beyond the top; the motor sweeps the exit. */
+  readonly exit = new Vector3(0, 3, -1);
+  /** Local outward horizontal direction; its opposite climbs and its direction descends. */
+  readonly normal = new Vector3(0, 0, 1);
+  /** Bounded speed/reach, explicitly in world metres. */
+  options: LadderOptions;
+  constructor(bottom = new Vector3(), top = new Vector3(0, 3, 0), exit = new Vector3(0, 3, -1), options: LadderOptions = {}) {
+    super(); this.name = 'ladder'; this.bottom.copy(bottom); this.top.copy(top); this.exit.copy(exit); this.options = { ...options };
+  }
+  /** Copy independent route vectors and parameters with the normal scene graph. */
+  override copy(source: this, recursive = true): this {
+    super.copy(source, recursive); this.bottom.copy(source.bottom); this.top.copy(source.top); this.exit.copy(source.exit);
+    this.normal.copy(source.normal); this.options = { ...source.options }; return this;
+  }
+  /** Emit a validated world route; tilted/nonvertical routes refuse rather than silently changing their law. */
+  toModeData(): LadderMode {
+    updateAuthoringMatrix(this);
+    const bottom = this.bottom.clone().applyMatrix4(this.matrixWorld), top = this.top.clone().applyMatrix4(this.matrixWorld);
+    const exit = this.exit.clone().applyMatrix4(this.matrixWorld), normal = this.normal.clone().transformDirection(this.matrixWorld);
+    if (Math.abs(normal.y) > 1e-10) throw new Error('Ladder normal must remain horizontal');
+    // Y-only rotation can leave identical endpoints a few ulps apart; no authored tilt is accepted.
+    if (Math.hypot(top.x - bottom.x, top.z - bottom.z) > 1e-10) throw new Error('Ladder route must remain vertical');
+    top.x = bottom.x; top.z = bottom.z;
+    return v.parse(LadderModeSchema, { ...this.options, kind: 'ladder', id: this.name,
+      bottom: { x: bottom.x, y: bottom.y, z: bottom.z }, top: { x: top.x, y: top.y, z: top.z },
+      exit: { x: exit.x, y: exit.y, z: exit.z }, normal: { x: normal.x, z: normal.z } });
+  }
 }

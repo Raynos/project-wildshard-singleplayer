@@ -43,6 +43,7 @@ import { dataCreaturePorts } from "../shardfile/dataCreaturePorts";
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from "../shardfile/groupRuntime";
 import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from "../shardfile/crowdRuntime";
 import { MoverScriptDriver } from "../shardfile/moverDriver";
+import { installLadders, type LadderClientPorts } from '../shardfile/ladder';
 import { MoverRuntime, type LiftApproachSource } from "./mover";
 import { socketLiftEntries, socketLiftRules, type SocketLiftEntry } from "../shardfile/socketLift";
 import { portalLinkEntries, portalLinkRules } from "../shardfile/portalLink";
@@ -78,6 +79,8 @@ export interface ShardfileSimPorts extends SimHostPorts {
   /** Tick-admitted numeric command values; the existing authoritative lane samples them once per fixed step. */
   commands?: () => ReadonlyMap<string, number>;
   query?: Parameters<typeof createShardfileScriptLane>[2]['query']; navigation?: Parameters<typeof scriptPhysicsQueries>[0]['navigation'];
+  /** Borrowed client controls and mode registry; owned Node hosts consume admitted movement commands instead. */
+  ladders?: LadderClientPorts;
   restoring?: boolean;
   /** The normal client or regional registry already owns its four platform sockets. */
   entrySocketsProvided?: boolean;
@@ -120,6 +123,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
   const levelId = shard.identity.slug;
   if (host.level.id !== levelId || host.level.seed !== shard.identity.seed || host.entities.size !== shard.creatures.spawns.length || shard.creatures.spawns.some((row) => !host.entities.has(row.id))) throw new Error('Shardfile simulation host mismatch');
   try {
+    installLadders(host, shard.modes?.traverse.filter(row => row.kind === 'ladder') ?? [], ports.ladders);
     const portals = portalLinkEntries(shard.entryways), portalErrors = portalLinkRules(portals, shard);
     if (portalErrors.length > 0) throw new Error(portalErrors.join('; '));
     validatePortalFloors(portals, shard, assets);

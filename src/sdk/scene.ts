@@ -7,7 +7,7 @@ import { readSceneAnimations, readSceneSkin, type SceneAnimation, type SceneSkin
 import { AmbienceZone, Cue, Score } from './sceneAudio';
 import type { AudioData } from './audio';
 import { readSceneDeclaration, type SceneDeclaration } from './sceneDeclarations';
-import { Grapple, Mount, Updraft, Zipline } from './modes';
+import { Grapple, Mount, Updraft, Zipline, Ladder } from './modes';
 import { parseModes, type ModeRows } from '@wildshard/format/modes';
 /** One geometry channel, including normalized attributes and its original typed-array representation. */
 export interface SceneAttribute {
@@ -261,7 +261,7 @@ export function readScene(scene: Object3D): SceneDescription {
         if (object instanceof Cue) cues.push(object.toCueData());
         if (object instanceof AmbienceZone) zones.push(object.toZoneData());
         if (object instanceof Score) { if (score !== undefined) throw new Error('Scene permits one audio profile'); score = object; }
-        if (object instanceof Zipline || object instanceof Updraft) modes.traverse.push(object.toModeData());
+        if (object instanceof Zipline || object instanceof Updraft || object instanceof Ladder) modes.traverse.push(object.toModeData());
         if (object instanceof Mount) ride.push(object.toModeData());
         if (object instanceof Grapple) grapple.push(object.toModeData());
         out.nodes.push(node);

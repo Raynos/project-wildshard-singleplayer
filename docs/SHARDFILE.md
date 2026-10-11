@@ -1510,14 +1510,14 @@ Inactive tracks freeze, including pendulums; phase and activation live in the ex
 and therefore use the same guest, physics and host snapshot/restore fences. No scheduler is added.
 
 
-SF84's `@wildshard/format/modes` admits all four current declarations:
+SF84's `@wildshard/format/modes` admits the following declarations:
 zipline floor endpoints/sag/hang/flight; board-only updraft endpoints/width/lift;
 ride gait speeds; grapple selection/range/timing. `@wildshard/sdk/modes` provides
-ordinary three.js `Zipline`, `Updraft`, `Mount` and `Grapple` objects.
+ordinary three.js `Zipline`, `Updraft`, `Mount`, `Grapple` and `Ladder` objects.
 `toModeData()` validates their rows, including world-space endpoint transforms.
-The root `modes` section requires `runtime.binds: ['modes']`: actual native
-player/body/input owners consume it at their existing phase; an unbound data-only
-section refuses. No declaration grants a mount, invents anchors or installs a
+Zipline, updraft, ride and grapple require `runtime.binds: ['modes']`: actual native
+player/body/input owners consume them at their existing phase. Ladder rows are installed
+by the normal data client and authoritative Node host, so a ladder-only section needs no runtime/ code. No declaration grants a mount, invents anchors or installs a
 second scheduler. The checked SDK guide contains a working example of all four.
 `readScene(scene)` automatically collects mode objects into validated `modes`
 rows in traversal order, applying parent endpoint transforms once. Empty ride/grapple
@@ -1544,8 +1544,8 @@ JSON Schema. Invalid bounds, phases or family mismatches refuse. Omitting a
 profile preserves existing item data. Only a native family explicitly accepting
 that profile kind consumes it; no view/controller is inferred from a parse.
 
-SF84 traversal rows are declared as optional `modes.traverse` data. During native player-owner transitions they require
-`runtime.binds: ['modes']`; pure-data or unbound traversal rows refuse admission. The native owner reads the admitted
+SF84 traversal rows are declared as optional `modes.traverse` data. Zipline and updraft rows require
+`runtime.binds: ['modes']`; pure-data or unbound native traversal rows refuse admission. Ladder is the installed data-host exception. The native owner reads the admitted
 row at its existing player phase and the data client removes it, preventing a second owner. Sky Reach consumes its
 updraft geometry/force this way in both browser and trusted headless hosts. `@wildshard/sdk/modes` exposes the data types
 `ModeRows`, `ZiplineRow`, `UpdraftRow` alongside the ordinary three.js author objects.
@@ -1654,3 +1654,41 @@ Use day:0.75..0.84 for a dusk boolean. Endpoints stay within 0..1 and increase; 
 ## Author proof tapes (OS-F6)
 
 Use wildshard prove with a version-1 finite command tape, checkpointTick and requiredFacts. Missing native facts refuse; the report proves grid residency/restore and quest-owned achievement filing with profile reload/deduplication. It does not claim browser storage availability or opaque Rapier-byte identity. See [the executed author workflow](authoring/author-proof.md).
+
+
+OS-F8 vertical ladder contract (data-only shards): `Ladder(bottom, top, exit, { reach?, speed? })` in
+`@wildshard/sdk/modes` emits `kind: 'ladder'` in `modes.traverse`. Set its stable
+`.name` and local `.normal` (outward, horizontal, unit length). `bottom` and `top`
+are vertically aligned capsule-feet positions; `exit` is an authored upper floor
+behind the outward normal, at top.y and within two metres. World positions must
+stay inside the cell's ±250 m bounds. Parent translation, upright rotation and
+scale transform endpoints; reach (0.1–1 m, default 0.6) and speed (0.1–5 m/s,
+default 2) are explicit world metres. Tilted ladders refuse.
+
+The object declares movement only. Author visible rungs/rails with normal meshes
+and their `BoxCollider`/`MeshCollider` objects, plus an actual upper landing and
+lower floor. Leave a capsule-clear corridor (player diameter 0.76 m, height 1.8 m)
+for the vertical path and the swept upper exit; a rung collider through that
+corridor blocks climbing. Decorative rungs need no collider; rails, walls and
+the landing remain solid. The mode creates no floor, sensor, teleporter or HUD.
+
+At either endpoint, ordinary movement toward the ladder climbs and movement
+along its outward normal descends. Once attached, neutral input holds; JUMP,
+DODGE, riding, swimming or HOVER releases it. Moving away from the normal does
+not sidestep around walls: the real CharacterMotor sweeps alignment, vertical
+motion and the upper exit. Obstructions stop the capsule. Releasing does not
+reattach on the same held input; neutral input rearms it. There is no inferred
+interaction, stamina, climb animation or grant. This is the approved `climb`
+traversal in the existing registry, with no second scheduler/input wire version.
+
+Ladder rows currently require `runtime: null`; trusted/native player-owner
+combinations refuse admission rather than dropping a row or installing a second
+player driver. This restriction does not affect existing native mode rows.
+The data-only client lends its actual player registry and input, while the owned
+headless host reads the existing admitted movement command. Both execute the
+same bounded law and save its attachment/exit/rearm continuation alongside real
+capsule state. Scope disposal removes the traversal. No ladder rows install no
+owner or continuation, preserving existing witness bytes. The one-shot's old
+inclined treads remain an ordinary walk proof; they do not retroactively become
+vertical-ladder evidence. See `test/ladder-mode.test.ts` for real Rapier ascent,
+descent, blocked ceiling, mid-climb native/worker restore and no-row equality.

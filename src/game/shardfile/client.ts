@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { playerModes } from '@wildshard/engine/player/modes';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { Object3D, Vector3 } from 'three';
@@ -269,6 +270,7 @@ export class ShardfileClient {
     yield;
     const saved = instanceSave(ctx.app.saves, encounterSave, { id: identity.instance, shard: identity.shard }), encounters = saved.read();
     let simulationActive = true, installing = true; // SF67: no sim step between the installation's parts
+    const ladderCommand = { x: 0, z: 0, release: true };
     const sim = createShardfileSim(source, this.assets.retained, { rapier: world.physics.R, physics: world.physics,
       ...(this.bindings.brains === undefined ? {} : { brains: this.bindings.brains }),
       ...(this.bindings.groups === undefined ? {} : { groups: this.bindings.groups }),
@@ -277,6 +279,14 @@ export class ShardfileClient {
       // G168: a module switched off after its strikes tells the player once, and Developer mode names it
       scriptDisabled: scriptDisabledNotice({ toast: (text) => { play.hud.toast(text, 'warn'); }, devAlert: (text) => { play.hud.devAlert(text); } }),
       player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, get motor() { return world.player.motor; } },
+      ladders: { modes: playerModes(world.player), enabled: () => simulationActive && !installing, command: () => {
+        const command = world.player.traversalCommand;
+        if (command === null) { ladderCommand.x = 0; ladderCommand.z = 0; ladderCommand.release = true; return ladderCommand; }
+        const sin = Math.sin(command.yaw), cos = Math.cos(command.yaw);
+        ladderCommand.x = cos * command.moveX - sin * command.moveY; ladderCommand.z = -sin * command.moveX - cos * command.moveY;
+        ladderCommand.release = command.jump || command.dodge || world.player.hover || world.player.swimming || world.player.ride !== null;
+        return ladderCommand;
+      }, claimed: () => { world.player.velocity.set(0, 0, 0); world.player.onGround = false; } },
       events: ctx.app.events, clock: ctx.app.clock, combat: ctx.app.combat, scope: ctx.scope, water: ctx.app.world.water,
       lookClock: () => {
         const clock = world.game.sky.dayNight;

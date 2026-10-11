@@ -7,7 +7,7 @@ import type { AudioData } from './audio';
 import { Director } from './director';
 import type { DirectorStagesData } from '@wildshard/format/directorStages';
 import { Mover, type MoverOptions } from './movers';
-import { Grapple, Mount, Updraft, Zipline, type UpdraftOptions, type ZiplineOptions } from './modes';
+import { Grapple, Mount, Updraft, Zipline, Ladder, type LadderOptions, type UpdraftOptions, type ZiplineOptions } from './modes';
 import type { GrappleMode, RideMode } from '@wildshard/format/modes';
 import { readSceneAnimations, restoreSceneAnimations, type SceneAnimation } from './sceneAnimation';
 
@@ -24,6 +24,7 @@ export type SceneDeclaration =
   | { kind: 'mover'; body: string; options: Omit<MoverOptions, 'clip'>; clip?: SceneAnimation }
   | { kind: 'zipline'; top: number[]; bottom: number[]; options: ZiplineOptions }
   | { kind: 'updraft'; from: number[]; to: number[]; options: UpdraftOptions }
+  | { kind: 'ladder'; bottom: number[]; top: number[]; exit: number[]; normal: number[]; options: LadderOptions }
   | { kind: 'mount'; gaits: RideMode['gaits'] }
   | { kind: 'grapple'; options: Partial<Omit<GrappleMode, 'id'>> };
 
@@ -54,6 +55,7 @@ export function readSceneDeclaration(object: Object3D, ids: ReadonlyMap<Object3D
   }
   if (object instanceof Zipline) return { kind: 'zipline', top: object.top.toArray(), bottom: object.bottom.toArray(), options: { ...object.options } };
   if (object instanceof Updraft) return { kind: 'updraft', from: object.from.toArray(), to: object.to.toArray(), options: { ...object.options } };
+  if (object instanceof Ladder) return { kind: 'ladder', bottom: object.bottom.toArray(), top: object.top.toArray(), exit: object.exit.toArray(), normal: object.normal.toArray(), options: { ...object.options } };
   if (object instanceof Mount) return { kind: 'mount', gaits: { ...object.gaits } };
   if (object instanceof Grapple) return { kind: 'grapple', options: { ...object.options } };
   return undefined;
@@ -87,6 +89,10 @@ export function restoreSceneDeclaration(row: SceneDeclaration, node: (id: string
     }
     case 'zipline': return new Zipline(new Vector3().fromArray(row.top), new Vector3().fromArray(row.bottom), row.options);
     case 'updraft': return new Updraft(new Vector3().fromArray(row.from), new Vector3().fromArray(row.to), row.options);
+    case 'ladder': {
+      const ladder = new Ladder(new Vector3().fromArray(row.bottom), new Vector3().fromArray(row.top), new Vector3().fromArray(row.exit), row.options);
+      ladder.normal.fromArray(row.normal); return ladder;
+    }
     case 'mount': return new Mount(row.gaits);
     case 'grapple': return new Grapple(row.options);
     default: throw new Error('Unknown SDK scene declaration');

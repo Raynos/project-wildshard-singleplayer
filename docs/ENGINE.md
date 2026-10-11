@@ -3297,3 +3297,17 @@ Stage inputs admit day:FROM..TO as a bounded boolean over the declared look cloc
 ## Author grid and ledger proof (OS-F6)
 
 The public SDK headless.proveAuthorSimulation and CLI prove run a fixed native worker: the real GridSimulation admission/save/unload/restore contract, uninterrupted regional suffix comparison, and quest-derived facts filed by Ledger through serialized SaveStore storage. No author host modules or synthetic facts are accepted. See [the author proof workflow](authoring/author-proof.md); validate still owns the full entry walk.
+
+
+OS-F8: SDK `@wildshard/sdk/modes` adds the ordinary three.js `Ladder` authoring
+object and its `LadderOptions` data. The defining format modes module validates
+vertical floors, outward direction, reach, speed and a bounded upper exit. The
+normal data client/Node simulation installs the existing `climb` traversal;
+its real CharacterMotor still owns collision. No new engine mode, command field,
+HUD control or public game plugin is introduced. SHARDFILE.md's OS-F8 contract
+describes the authored collider corridor and retained continuation.
+
+`Player.traversalCommand` exposes the current fixed-step's admitted `PlayerCommand`
+only inside `Player.step`; outside it returns null, including after a refusal.
+Data traversal reads this command rather than sampling input/aim a second time.
+The record sink, command shape, motion math and use/consume order stay unchanged.
