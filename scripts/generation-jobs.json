@@ -168,7 +168,11 @@
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "scripts/generate-json.mjs"
+        "scripts/generate-json.mjs",
+        "src/sdk/sceneDeclarations.ts",
+        "src/sdk/modes.ts",
+        "src/sdk/movers.ts",
+        "src/sdk/director.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/portalFloors.generated.json"
@@ -1427,7 +1431,11 @@
         "pnpm-workspace.yaml",
         "scripts/generate-json.mjs",
         "src/shards/nine-dragon-stack/generators/portalEntries.ts",
-        "src/shards/nine-dragon-stack/data/portals.ts"
+        "src/shards/nine-dragon-stack/data/portals.ts",
+        "src/sdk/sceneDeclarations.ts",
+        "src/sdk/modes.ts",
+        "src/sdk/movers.ts",
+        "src/sdk/director.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/portalEntries.generated.json"
@@ -1528,7 +1536,11 @@
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "scripts/generate-json.mjs"
+        "scripts/generate-json.mjs",
+        "src/sdk/sceneDeclarations.ts",
+        "src/sdk/modes.ts",
+        "src/sdk/movers.ts",
+        "src/sdk/director.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/fronts.generated.json"
@@ -1568,7 +1580,11 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "scripts/generate-json.mjs",
-        "src/shards/nine-dragon-stack/data/decks.ts"
+        "src/shards/nine-dragon-stack/data/decks.ts",
+        "src/sdk/sceneDeclarations.ts",
+        "src/sdk/modes.ts",
+        "src/sdk/movers.ts",
+        "src/sdk/director.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/floorBoxes.generated.json"
@@ -1608,7 +1624,11 @@
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "scripts/generate-json.mjs"
+        "scripts/generate-json.mjs",
+        "src/sdk/sceneDeclarations.ts",
+        "src/sdk/modes.ts",
+        "src/sdk/movers.ts",
+        "src/sdk/director.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/deckCaps.generated.json"

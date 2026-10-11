@@ -1,5 +1,7 @@
 import { Director } from '@wildshard/sdk/director';
 import { generateDirectorAbi } from '@wildshard/sdk/directorAbi';
+import { Scene } from 'three';
+import { readScene } from '@wildshard/sdk/scene';
 
 /** The actual Template 1 door/wave declaration, with the host-provided flags. */
 export function directorsExample() {
@@ -12,5 +14,6 @@ export function directorsExample() {
       { id: 'complete', when: 'waveDead', do: [{ flag: { key: 'template.wave-complete', value: true } }] },
     ],
   });
-  return { row: director.toJSON(), assemblyScript: generateDirectorAbi(director.toJSON()) };
+  const scene = new Scene(); director.attachTo(scene);
+  return { row: director.toJSON(), assemblyScript: generateDirectorAbi(director.toJSON()), scene: readScene(scene) };
 }

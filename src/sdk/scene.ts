@@ -6,6 +6,7 @@ import { PlayerStart, Spawn, spawnPlacement, type SpawnPlacement } from './spawn
 import { readSceneAnimations, readSceneSkin, type SceneAnimation, type SceneSkin } from './sceneAnimation';
 import { AmbienceZone, Cue, Score } from './sceneAudio';
 import type { AudioData } from './audio';
+import { readSceneDeclaration, type SceneDeclaration } from './sceneDeclarations';
 /** One geometry channel, including normalized attributes and its original typed-array representation. */
 export interface SceneAttribute {
     itemSize: number;
@@ -40,6 +41,8 @@ export interface SceneMaterial {
 }
 /** A graph node uses unique author names as identity; repeated display names receive deterministic traversal IDs. */
 export interface SceneNode {
+    /** Original local SDK recipe; restored with this node's hierarchy and transform. */
+    declaration?: SceneDeclaration;
     id: string;
     parent: string | null;
     name: string;
@@ -165,6 +168,8 @@ export function readScene(scene: Object3D): SceneDescription {
         if (object instanceof Line || object instanceof Points || object instanceof Sprite) throw new Error(`Unsupported draw primitive ${object.type}`);
         const node: SceneNode = { id, parent: object === scene ? null : ids.get(object.parent ?? scene) ?? null, name: object.name, type: object.type, matrix: [...(object === scene ? object.matrixWorld : object.matrix).elements], visible: object.visible, castShadow: object.castShadow, receiveShadow: object.receiveShadow };
         if (object.matrixAutoUpdate && (object !== scene || object.parent === null)) node.transform = { position: object.position.toArray(), quaternion: object.quaternion.toArray(), scale: object.scale.toArray() };
+        const declaration = readSceneDeclaration(object, ids);
+        if (declaration !== undefined) node.declaration = declaration;
         if (object.animations.length > 0) node.animations = readSceneAnimations(object.animations);
         if (isSkin(object)) node.skin = readSceneSkin(object, boneIds);
         if (isMesh(object)) {

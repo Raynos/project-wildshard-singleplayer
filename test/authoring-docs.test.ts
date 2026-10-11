@@ -85,9 +85,7 @@ describe('public SDK and format documentation', () => {
 
 it('transports the Template-style graph exactly, including four entries and real floor collision', () => {
   const { data, restored } = sceneExample();
-  expect(restored.nodes).toEqual(data.nodes);
-  expect(restored.geometries).toEqual(data.geometries);
-  expect(restored.materials).toEqual(data.materials);
+  expect(restored).toStrictEqual(data);
   expect(data.entries).toHaveLength(4);
   expect(data.colliders).toHaveLength(1);
 });

@@ -1,6 +1,7 @@
 import { AmbientLight, Bone, BufferAttribute, BufferGeometry, Color, DirectionalLight, Fog, FogExp2, Group, HemisphereLight, InstancedMesh, LOD, Matrix4, Mesh, MeshStandardMaterial, MeshToonMaterial, Object3D, PointLight, Scene, Skeleton, SkinnedMesh, SpotLight, type Light, type TypedArray } from 'three';
 import type { SceneDescription, SceneGeometry, SceneMaterial, SceneNode } from './scene';
 import { restoreSceneAnimations } from './sceneAnimation';
+import { restoreSceneDeclaration } from './sceneDeclarations';
 
 function isSkin(object: Object3D | undefined): object is SkinnedMesh { return object instanceof SkinnedMesh; }
 function isBone(object: Object3D | undefined): object is Bone { return object instanceof Bone; }
@@ -69,17 +70,27 @@ function lightOf(row: SceneNode): Light {
   return light;
 }
 
-/** Rebuild the ordinary draw/animation graph from persisted scene JSON in Node. Collider, spawn, entry and
- * other game-concept rows remain in SceneDescription for their defining compilers; this never installs hosts.
+/** Rebuild the draw/animation graph and defining SDK declarations from persisted scene JSON in Node.
+ * Declaration classes emit compiler rows again; restoration never installs runtime hosts.
  * It retains sharing, skeleton joint order, inverse binds and authored TRS without resampling clips. */
 export function restoreSceneGraph(data: SceneDescription): Object3D {
   if (data.nodes.length === 0) throw new Error('Empty scene description');
   const geometries = data.geometries.map(geometryOf), materials = data.materials.map(materialOf), nodes = new Map<string, Object3D>();
+  const rows = new Map(data.nodes.map(row => [row.id, row])), constructing = new Set<string>();
+  if (rows.size !== data.nodes.length) throw new Error('Duplicate scene node identity');
   let root: Object3D | undefined;
-  for (const row of data.nodes) {
-    if (nodes.has(row.id) || row.matrix.length !== 16 || !row.matrix.every(Number.isFinite)) throw new Error('Malformed scene node identity or matrix');
+  const linked = new Set<string>();
+  function create(row: SceneNode): Object3D {
+    const cached = nodes.get(row.id); if (cached !== undefined) return cached;
+    if (constructing.has(row.id)) throw new Error('Cyclic scene declaration dependency');
+    constructing.add(row.id);
+    if (row.matrix.length !== 16 || !row.matrix.every(Number.isFinite)) throw new Error('Malformed scene node identity or matrix');
     let object: Object3D;
-    if (row.geometry !== undefined) {
+    if (row.declaration !== undefined && (row.geometry !== undefined || row.light !== undefined)) throw new Error('SDK declaration cannot replace a draw resource');
+    if (row.declaration !== undefined) object = restoreSceneDeclaration(row.declaration, id => {
+      const child = rows.get(id); if (child === undefined || child.parent !== row.id) throw new Error('Mover body must be its graph child'); return create(child);
+    });
+    else if (row.geometry !== undefined) {
       const geometry = geometries[row.geometry], selected = row.materials?.map(index => materials[index]);
       if (geometry === undefined || selected === undefined || selected.length === 0 || selected.some(material => material === undefined)) throw new Error('Missing scene mesh resource');
       const valid = selected.filter((material): material is MeshStandardMaterial | MeshToonMaterial => material !== undefined);
@@ -97,8 +108,14 @@ export function restoreSceneGraph(data: SceneDescription): Object3D {
     else { object.position.fromArray(row.transform.position); object.quaternion.fromArray(row.transform.quaternion); object.scale.fromArray(row.transform.scale); }
     object.animations = restoreSceneAnimations(row.animations ?? []);
     nodes.set(row.id, object);
+    constructing.delete(row.id);
+    return object;
+  }
+  for (const row of data.nodes) {
+    const object = create(row);
     if (row.parent === null) { if (root !== undefined) throw new Error('Multiple scene roots'); root = object; }
-    else { const parent = nodes.get(row.parent); if (parent === undefined) throw new Error('Scene parent must precede its child'); parent.add(object); }
+    else { const parent = nodes.get(row.parent); if (parent === undefined || !linked.has(row.parent)) throw new Error('Scene parent must precede its child'); parent.add(object); }
+    linked.add(row.id);
   }
   if (root === undefined) throw new Error('Missing scene root');
   root.updateMatrixWorld(true);

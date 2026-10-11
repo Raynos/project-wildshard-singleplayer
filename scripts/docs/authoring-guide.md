@@ -36,9 +36,11 @@ whole-shard declarations remain outside format until DS1.4.
 Build the hall with ordinary hierarchy operations. Give objects stable names;
 place collision and player starts explicitly. A visible `Mesh` is not a collider.
 `readScene(scene)` reads the graph in Node; `restoreSceneGraph(description)`
-restores its ordinary three.js objects after JSON transport. Keep the original
-description for compiler-owned collision, entry and spawn sections: the graph
-restorer does not recreate those SDK declaration classes. Neither function
+restores its ordinary three.js objects and SDK declaration classes after JSON
+transport. Local recipes are retained separately from world-space compiler rows,
+so parent transforms apply once. Entries (including Portal and SocketLift),
+colliders, spawns, audio, movers and mode objects retain their defining classes.
+Neither function
 draws or installs gameplay. Instanced transforms, ordered skeleton joints and
 inverse binds, named animation tracks and SDK game-concept sections are retained.
 Unsupported shear/reflection, nonfinite values and unsupported texture/material
@@ -90,6 +92,11 @@ unconditional. The next stage's `when` controls advancement; an explicit `next`
 can be a stage id or an ordered array of `{ target, when }`, with the first true
 guard selected. Explicit cycles retain their declared order. Stages/actions are
 never sorted.
+
+`director.attachTo(scene)` also retains the data-only Director in a named graph
+node for scene.json transport. Restoration recreates it as
+`node.userData.director`; the Director keeps its existing row `toJSON()` API.
+This is an author declaration, not a runtime stage-host installation.
 
 Conditions admit aliases, `true`, `false`, `!`, `&&`, `||` and parentheses with
 normal boolean precedence. For example `doorOpen && !waveDead`; there are no
