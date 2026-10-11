@@ -37,7 +37,7 @@
     "driveP95Ms": 35,
     "driveMaxMs": 200
   },
-  "result": "Nalati arrival + whole-drive PASS: zero blocked/early-visible frames, p95 35 ms and max 90 ms. Short travel window FAIL at p95 40 ms; other cells and full Sky traversal pending.",
+  "result": "Arrival/whole-drive: Nalati and template PASS; Signal PASS; Pine FAIL (1.533 s wait and 302 ms max). Short travel still misses for Nalati/Pine/Signal. Nine/Sky and outbound 277 ms remain open.",
   "rows": [
     {
       "arm": "preparation",
@@ -728,6 +728,148 @@
         "p95Ms": 34,
         "maxMs": 44
       }
+    },
+    {
+      "slug": "pine-hollow",
+      "pin": "1ed327eec3e217f4eb09593f28eb0d3f9e262e0e",
+      "window": {
+        "start": "2026-10-11T10:57:44.023411Z",
+        "end": "2026-10-11T10:59:05.894999Z"
+      },
+      "complete": true,
+      "errors": [],
+      "arrival": {
+        "blockedFrames": 43,
+        "blockedMs": 1533,
+        "visibleBeforeReadyFrames": 0
+      },
+      "elapsedSeconds": 25.436,
+      "drive": {
+        "frames": 780,
+        "p95Ms": 35,
+        "p99Ms": 61,
+        "maxMs": 302
+      },
+      "travel": {
+        "frames": 120,
+        "p95Ms": 58,
+        "maxMs": 137
+      },
+      "longFrameHooks": [
+        {
+          "hook": "pine-hollow:world",
+          "frames": 8,
+          "maxMs": 112,
+          "totalMs": 524,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:activate",
+          "frames": 1,
+          "maxMs": 302,
+          "totalMs": 302,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:play",
+          "frames": 2,
+          "maxMs": 137,
+          "totalMs": 195,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:afterPlay",
+          "frames": 1,
+          "maxMs": 145,
+          "totalMs": 145,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:afterKit",
+          "frames": 2,
+          "maxMs": 60,
+          "totalMs": 113,
+          "gl": {}
+        },
+        {
+          "hook": "between hooks",
+          "frames": 1,
+          "maxMs": 74,
+          "totalMs": 74,
+          "gl": {}
+        }
+      ]
+    },
+    {
+      "slug": "sunscar-dunes",
+      "pin": "1ed327eec3e217f4eb09593f28eb0d3f9e262e0e",
+      "window": {
+        "start": "2026-10-11T11:01:07.890878Z",
+        "end": "2026-10-11T11:02:31.471522Z"
+      },
+      "complete": true,
+      "errors": [],
+      "arrival": {
+        "blockedFrames": 0,
+        "blockedMs": 0,
+        "visibleBeforeReadyFrames": 0
+      },
+      "elapsedSeconds": 23.438000000000002,
+      "drive": {
+        "frames": 750,
+        "p95Ms": 34,
+        "p99Ms": 46,
+        "maxMs": 81
+      },
+      "travel": {
+        "frames": 120,
+        "p95Ms": 42,
+        "maxMs": 81
+      },
+      "longFrameHooks": [
+        {
+          "hook": "sunscar-dunes:world",
+          "frames": 2,
+          "maxMs": 58,
+          "totalMs": 113,
+          "gl": {}
+        },
+        {
+          "hook": "sunscar-dunes:play",
+          "frames": 1,
+          "maxMs": 81,
+          "totalMs": 81,
+          "gl": {}
+        },
+        {
+          "hook": "sunscar-dunes:afterPlay",
+          "frames": 1,
+          "maxMs": 73,
+          "totalMs": 73,
+          "gl": {}
+        },
+        {
+          "hook": "sunscar-dunes:activate",
+          "frames": 1,
+          "maxMs": 58,
+          "totalMs": 58,
+          "gl": {}
+        },
+        {
+          "hook": "between hooks",
+          "frames": 1,
+          "maxMs": 56,
+          "totalMs": 56,
+          "gl": {}
+        },
+        {
+          "hook": "sunscar-dunes:afterKit",
+          "frames": 1,
+          "maxMs": 56,
+          "totalMs": 56,
+          "gl": {}
+        }
+      ]
     }
   ]
 }

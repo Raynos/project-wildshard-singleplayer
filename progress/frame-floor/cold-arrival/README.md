@@ -1,6 +1,6 @@
 # Cold road arrival: Nalati
 
-**Nalati arrival and whole-drive pass; the full milestone remains open.** The latest cold run records **0 blocked frames, 0 early-visible frames**, whole-drive **p95 35 ms / max 90 ms**. The short 120-frame travel window still misses at **p95 40 ms** (sp-x1 owns travel pacing). Other cells and Sky's full authored lift traversal are pending.
+**Nalati arrival and whole-drive pass; the full milestone remains open.** The latest cold run records **0 blocked frames, 0 early-visible frames**, whole-drive **p95 35 ms / max 90 ms**. The short 120-frame travel window still misses at **p95 40 ms** (sp-x1 owns travel pacing). Pine remains red; Nine and Sky's full authored lift traversal are pending.
 
 Phone Simulator, Developer on, 2× scale, seed 357. Start (277.5, 277.5), road turn (277.5, 0), endpoint (345, 0), normal held input capped at the shipping 30 m/s. Only the first road pose is seeded. Every drawn frame observes real motor blockage within 10 m of the unready cell edge and regional visibility; road gameplayReady cannot substitute for destination readiness.
 
@@ -22,3 +22,5 @@ The final run keeps all 95 textures and 138 parked drawables: compile 4.403 s / 
 Source `83a735edc` lands the bounded CPU slice. This receipt records the following combined warm-up candidate, including its still-failing short travel window. Focused parked-draw/upload/cancellation checks and strict in an owned committed-source export passed; the shared tree contains unrelated stale source hunks. No builder full suite was run.
 
 Template copy `template-2`, same app pin `1ed327eec`: cold shipping-speed road approach **0 blocked / 0 early-visible frames**, whole-drive **p95 34 / max 49 ms** (750 frames), short travel **p95 34 / max 44 ms**. Quiet 10:45:17–10:46:39 UTC; complete entered residency and document witnesses, no errors. One cold diagnostic, not a repeated cohort. Window and Simulator released. Other cells and the full Sky lift remain open.
+
+Same-pin cold coverage: Signal arrival **0 blocked / 0 early-visible**, whole-drive **p95 34 / max 81 ms** (750 frames); short travel p95 42 ms. Pine arrival **43 blocked frames / 1.533 s wait**, no early-visible frames; whole-drive **p95 35 / max 302 ms** (780 frames), short travel p95 58 ms. Both routes completed with zero game/document errors. The 302 ms Pine interval overlaps the activate label, but activate itself took only 4 ms: installer replay is not established as its CPU cause. These are one-run diagnostics; there is no credited saving or complete milestone pass. Both windows were released in cleanup. Nine/Sky captures were parked to prioritise the coordinator-assigned Nalati outbound 277 ms attribution.
