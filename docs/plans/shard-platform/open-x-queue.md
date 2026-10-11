@@ -1,0 +1,38 @@
+# SHARD-PLATFORM — open engineering (X) queue (coordinator-written)
+
+Source: sp-x6's read-only sweep of SHARD-PLATFORM.md and design-system.md on 2026-10-11, reconciled against the
+landing receipts. Graphical / O parts, the readability and looks seats, and Jake's picks are excluded; they wait for Opus.
+Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an owner below are one backlog, not separate estimates.
+
+## Part A: open engineering, assigned
+
+| Row | What remains | Size | Lane |
+|---|---|---|---|
+| SF22 / SF0 milestone gate | Safari / frame-floor main-thread waits, crossing and install cadence; requalify the assembled routes | M–L | sp-x4 (Safari), sp-x1 (floor) |
+| SF67 | Responsive cold/warm loads: the remaining > 100 ms work, cold-arrival waits, home exit/return, real progress; per-phase remeasure | L | sp-x2 (all cells), sp-x1 |
+| SF74 tails | W12 nightly flakes; W14 lock collisions; W16/W23 CI duration balance; W21 polling census; W24 cached-gate timings; W25 stale-prefix / non-vitest red handling; W27 regeneration census; W28 heavy-proof x64 portability; prove 12 h commit-to-origin and the one-day release | M–L | sp-x7 (between reds) |
+| SF86 / OS-1 | Grade run 2 (hard gates, friction delta); fix newly shown gaps; repeat at M3 | S + fixes | sp-x5 |
+| SF87 / G320 + G292 / G318 | Producers truly authoring-only; complete cold shard-product jobs; runtime/legacy/cache-deleted clean room green; then per-output cache promotions and removals (cold job, pinned hash, Linux build and boot) | XL | sp-x6 |
+| SF82 BR-1, BR-2, BR-4, BR-5 | Automatic row admission with per-body authority; automatic root boss construction; Driftwood Captain and Nalati Qara ownership; Pine's remaining native continuation gaps | L each | sp-x5 after run 2 |
+| SF82 BR-3 / SF49-p | Sky Roc flight and finite keeper: KEPT tail unless a fitting shared seam keeps frozen traces | L (feasibility) | held |
+| SP3 / SF7c | 83 function/class-valued row fields → serializable data or named admitted bindings (overlaps the port tails) | L, spread | with the ports |
+| SF25 | Read-only client presentation for ambient / idle / crowd / particle updates; shared-state writes refused | L | next free |
+| SF29 | Native audio, catalogue, bed and score routing through emitted declarations; sound bytes exact | M–L | next free |
+| SF57 | Current-catalogue memory qualification and the Developer cells + road soak | M + soak | next free |
+| SF60 | Daily pinned build / playtest / feedback receipts (automation only) | S, recurring | sp-x7 |
+| SF61 | Retire comparison and director switches after parity; delete dead paths; lower the Debug inventory | S–M | next free |
+| SF64 | < 10 % no-owner memory attribution with aligned native / heap / region evidence | L | next free |
+| SF66 | The baked map image inside the charged shardfile file closure / schema | M | next free |
+| SF77 / SF79 base exit | Content-gate adoption and enforcement as ports qualify; remove private runtime-decoded world binaries | M | next free |
+| SF80 / DS1.6 / SF26 | Production adoption of the qualified commons packs with download-once proof (figure textures are O) | M–L | after O inputs |
+| SF72 / SF46-p, SF47-p, SF48-p | Driftwood, Pine and Nalati whole-native witness gaps, then shrink the bridges | XL each | after BR rows |
+| SF50-p, SF49-p, SF51-p | Signal, Sky and Nine port X tails toward ≤ 20 % | L–XL | after BR rows |
+| SF73 | Per-shard legacy deletion and save migration after ≤ 20 % and the gates | S–M each | blocked by ports |
+
+## Part B: deferred (not started without Jake's word)
+
+S1 population / LOD-AI · S2 interior / vertical streaming · S3 physics toys and vehicles · S4 climb / drive / author-AS modes ·
+S5 restricted shader-source compiler · S8 director stem / reverb zones · S9 sandboxed panel canvas · S10 shared world-state
+persistence · S11 sign author metadata · S12 phone QR in wildshard dev · S13 one-click Vercel preview · S14 objective /
+stuck-route bot · S15 AI playtester · S16 npm create wildshard · S17 quickstart skill · S18 wildshard upgrade · S19
+outside-author battery · S20 grid-wide director events · S22 commons quest / dialogue / encounter generators.
