@@ -34,7 +34,7 @@ describe('sliced geometry bounds', () => {
   });
 
   it('yields within each position scan without changing geometry bytes', () => {
-    const array = new Float32Array(8192 * 3 * 3);
+    const array = new Float32Array(32768 * 3 * 3);
     for (let i = 0; i < array.length; i++) array[i] = Math.sin(i * 0.81) * 83;
     const before = array.slice(), geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(array, 3));
     const expected = reference(geometry);

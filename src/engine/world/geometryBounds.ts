@@ -1,6 +1,6 @@
 import { Box3, BufferAttribute, InterleavedBufferAttribute, Sphere, Vector3, type BufferGeometry } from 'three';
 
-/** Compute ordinary geometry bounds in fixed-size steps, with three.js's vertex order and arithmetic.
+/** Compute ordinary geometry bounds in 32,768-vertex steps, with three.js's vertex order and arithmetic.
  * Exhausting the generator is synchronous; a sliced builder may pause between steps. Geometry must remain
  * unmodified until completion. Existing bound objects retain their identity and are published only at completion.
  * Morph targets, GPU-only attributes and invalid coordinates keep three.js's original implementation. */
@@ -16,7 +16,7 @@ export function* geometryBoundsSteps(geometry: BufferGeometry, bounds: 'box' | '
   const box = new Box3(), point = new Vector3();
   for (let i = 0; i < position.count; i++) {
     point.fromBufferAttribute(position, i); box.expandByPoint(point);
-    if ((i & 8191) === 8191) yield;
+    if ((i & 32767) === 32767) yield;
   }
   if (Number.isNaN(box.min.x) || Number.isNaN(box.min.y) || Number.isNaN(box.min.z)) { original(); return; }
   if (bounds !== 'box') {
@@ -25,7 +25,7 @@ export function* geometryBoundsSteps(geometry: BufferGeometry, bounds: 'box' | '
     for (let i = 0; i < position.count; i++) {
       point.fromBufferAttribute(position, i);
       radiusSq = Math.max(radiusSq, sphere.center.distanceToSquared(point));
-      if ((i & 8191) === 8191) yield;
+      if ((i & 32767) === 32767) yield;
     }
     sphere.radius = Math.sqrt(radiusSq);
     if (Number.isNaN(sphere.radius)) { original(); return; }
