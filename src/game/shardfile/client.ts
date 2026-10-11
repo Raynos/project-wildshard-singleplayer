@@ -279,6 +279,7 @@ export class ShardfileClient {
     let simulationActive = true, installing = true; // SF67: no sim step between the installation's parts
     const ladderCommand = { x: 0, z: 0, release: true };
     const sim = createShardfileSim(source, this.assets.retained, { rapier: world.physics.R, physics: world.physics,
+      creatureImpulse: velocity => { world.player.impulse(velocity); },
       ...(this.bindings.brains === undefined ? {} : { brains: this.bindings.brains }),
       ...(this.bindings.groups === undefined ? {} : { groups: this.bindings.groups }),
       ...(this.bindings.crowds === undefined ? {} : { crowds: this.bindings.crowds }),

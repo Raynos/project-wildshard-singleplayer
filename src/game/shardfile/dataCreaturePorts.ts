@@ -14,11 +14,13 @@ import type { DeclaredGroupPorts } from './groupRuntime';
 const finite = v.pipe(v.number(), v.finite());
 const motionSchema = v.strictObject({ x: finite, z: finite, speed: v.pipe(finite, v.minValue(0)) });
 /** Default data-only herd and diver recipes over one real host; injected trusted recipes remain separate. */
-export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardCreatures['spawns'] = []): {
+export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardCreatures['spawns'] = [], borrowedImpulse?: (velocity: Vector3) => void): {
   brains: DeclaredBrainPorts; groups: DeclaredGroupPorts; install: () => void;
 } {
   let used = false;
   const homes = new Map(spawns.map(row => [row.id, row.home === undefined ? undefined : { ...row.home }]));
+  const impulse = borrowedImpulse ?? (host.embedded ? undefined : (velocity: Vector3) => { host.impulsePlayer(velocity); });
+  const push = new Vector3();
   const motion = { x: host.player.position.x, z: host.player.position.z, speed: 0 };
   const from = new Vector3(), to = new Vector3(), direction = new Vector3(), point = new Vector3();
   const strikes = new Map<string, StrikeSpec>(rows.strikes.map(({ weight, speed, ...row }) =>
@@ -64,6 +66,12 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
         rng: host.rng.stream('ai'), reach, claim: body => host.events.ask('ai.claim', body),
         hurt: damage => { hurt(actor, damage, strike.tags, strike.id); },
       }), body: () => undefined };
+    }, burstFlyer: (actor, row) => {
+      if (impulse === undefined) throw new Error('Missing borrowed data-host player impulse');
+      const recipe = diver(actor, row.strike);
+      return { strike: recipe.strike, body: recipe.body, observe: dt => ({ ...recipe.observe(dt),
+        shove: (yaw: number, speed: number, lift: number) => { impulse(push.set(Math.sin(yaw) * speed, lift, Math.cos(yaw) * speed)); },
+      }) };
     }, orbitDiver: (actor, row) => diver(actor, row.strike), patrolDiver: (actor, row) => diver(actor, row.strike) },
     groups: { herd: (group, _members) => {
       used = true;

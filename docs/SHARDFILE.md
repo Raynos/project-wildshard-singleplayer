@@ -1796,3 +1796,14 @@ strike clock; the actual body motor owns movement. No callback grants contact, n
 body is teleported and no home is guessed. Missing home/strike refuses before any
 controller registration or random draw. Trusted installations retain their explicit
 recipes. Guardian/perch body transitions and other missing authority remain OPEN.
+
+### Automatic burst diver authority (SF82 BR-1)
+
+Data-only `diver` rows with `pattern: 'burst'` (or legacy `burst-flyer`) now use the
+stock native flight, sphere-strike, reach and attack-claim owner. Their authored
+home comes from the catalogue or the per-body spawn override above. A landed
+contact files the real damage and applies the declared yaw/speed/lift impulse.
+Node owns and serializes that impulse. The normal client lends its actual Player
+impulse method through `ShardfileSimPorts.creatureImpulse`; an embedded host without
+that explicit authority refuses before registering the policy. No guest callback
+moves a borrowed player, and denied claims or blocked reach do not generate impulses.

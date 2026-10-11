@@ -19,3 +19,17 @@ No browser/Simulator/build/full suite started. No look claim.
 
 BR-1 remains OPEN for circle phase, burst player-shove and guardian/perch/group authority.
 BR-2 root boss allocation remains OPEN; BR-4 Captain/Qara and BR-5 Pine continuation follow.
+
+## Automatic burst diver forward
+
+The stock data-only burst owner now binds the real flight/reach/claim/strike pipeline
+and declared yaw/speed/lift impulse. Node owns the serialized impulse; the normal client
+lends its existing Player.impulse law. A borrowed host without that authority refuses
+before callback registration. Nothing grants an impulse through failed contact.
+
+17 focused tests/four files, strict and touched typed lint pass. Actual burst damage and
+a pending nonzero player impulse restore through a 600-tick suffix exactly. Embedded
+fixed-step execution lends the real owning SimHost player and verifies its movement;
+claim denial leaves player position/health unchanged. Existing home/herd/diver traces pass.
+No new graph edge, visual change, browser capture, full suite or generated output.
+Circle phase and guardian/perch/group authority remain OPEN; burst-shove is now hosted.
