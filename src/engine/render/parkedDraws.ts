@@ -56,14 +56,16 @@ function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera): Drawable[]
   // Plain static meshes share uploaded geometry and driver binding/pipeline state. Replaying every tree or
   // fence transform pays another painted slice without warming anything new. Object-owned buffers (instances,
   // skinning, morphs), draw callbacks and different material/shadow states keep their own first draw.
+  root.updateWorldMatrix(true, true);
   const seen = new Set<string>();
   return out.filter(object => {
     if (!(object instanceof THREE.Mesh) || Object.getPrototypeOf(object) !== THREE.Mesh.prototype || object.morphTargetInfluences !== undefined
+      || object.customDepthMaterial !== undefined || object.customDistanceMaterial !== undefined
       || object.onBeforeRender !== THREE.Object3D.prototype.onBeforeRender || object.onAfterRender !== THREE.Object3D.prototype.onAfterRender
       || object.onBeforeShadow !== THREE.Object3D.prototype.onBeforeShadow || object.onAfterShadow !== THREE.Object3D.prototype.onAfterShadow) return true;
     const geometry: unknown = object.geometry;
     if (!(geometry instanceof THREE.BufferGeometry)) return true;
-    const key = `${geometry.uuid}|${drawableMaterials(object).map(material => material.uuid).join(',')}|${object.castShadow}|${object.layers.test(camera.layers)}`;
+    const key = `${geometry.uuid}|${drawableMaterials(object).map(material => material.uuid).join(',')}|${object.castShadow}|${object.layers.test(camera.layers)}|${object.matrixWorld.determinant() < 0}`;
     if (seen.has(key)) return false;
     seen.add(key); return true;
   });

@@ -20,9 +20,11 @@ it('warms shared static geometry once but preserves material, shadow, callback a
   const scene = new Scene(), root = new Group(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
   const shared = new Mesh(geometry, material), transformed = new Mesh(geometry, material), shadow = new Mesh(geometry, material);
   const otherMaterial = new Mesh(geometry, new MeshStandardMaterial()), callback = new Mesh(geometry, material);
+  const mirrored = new Mesh(geometry, material), customDepth = new Mesh(geometry, material);
+  mirrored.scale.x = -1; customDepth.customDepthMaterial = new MeshStandardMaterial();
   const instances = [new InstancedMesh(geometry, material, 2), new InstancedMesh(geometry, material, 2)];
   transformed.position.x = 20; shadow.castShadow = true; callback.onBeforeRender = () => undefined;
-  root.add(shared, transformed, shadow, otherMaterial, callback, ...instances); root.visible = false; scene.add(root);
+  root.add(shared, transformed, shadow, otherMaterial, callback, mirrored, customDepth, ...instances); root.visible = false; scene.add(root);
   const drawn: Object3D[] = [];
   const renderer: ParkedDrawRenderer = {
     shadowMap: { autoUpdate: false, needsUpdate: false, type: PCFShadowMap },
@@ -32,7 +34,7 @@ it('warms shared static geometry once but preserves material, shadow, callback a
   };
   const count = await warmParkedDraws(renderer, scene, new PerspectiveCamera(), null, root, () => true, () => Promise.resolve(),
     { budget: { drawables: 1, newMaterials: 1 } });
-  expect(count).toBe(6); expect(drawn).toEqual([shared, shadow, otherMaterial, callback, ...instances]);
+  expect(count).toBe(8); expect(drawn).toEqual([shared, shadow, otherMaterial, callback, mirrored, customDepth, ...instances]);
   expect(transformed.visible).toBe(true); expect(transformed.layers.mask).toBe(1); expect(root.visible).toBe(false);
   geometry.dispose(); material.dispose();
 });
