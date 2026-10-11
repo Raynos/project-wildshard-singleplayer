@@ -7,6 +7,8 @@
 import { describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node test reads the shipped shardfiles and map stamps.
 import { existsSync, readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Native byte equality checks every decoded raster byte without a deep matcher.
+import { Buffer } from 'node:buffer';
 import { SHARDS } from '../src/shards.generated';
 import { toLevelSpec } from '../src/game/shard/spec';
 import { emptyShardfile } from '../src/sdk/author';
@@ -152,7 +154,7 @@ describe('map coverage (SF66: listed data on the baked map)', () => {
         level = toLevelSpec({ ...m, minimap: { ...m.minimap, ...admitted.minimap } });
         expect(level.minimap.image).toMatch(/^data:image\/(?:webp|png|jpeg);base64,/u);
         const encoded = level.minimap.image?.split(',')[1] ?? '';
-        expect(Uint8Array.from(atob(encoded), c => c.codePointAt(0) ?? 0)).toEqual(bytes);
+        expect(Buffer.from(encoded, 'base64').equals(bytes)).toBe(true);
       } else {
         expect(level.minimap.image?.split('?')[0]).toBe(stamp.image);
       }
