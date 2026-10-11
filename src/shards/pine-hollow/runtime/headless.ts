@@ -6,6 +6,7 @@ import { parseNavmesh } from '@wildshard/engine/physics/navmesh';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { PINE_GROUND_RES, pineBake, type PineBake, type PineSolid } from './baked';
 import { preparePineDirector } from './directorClock';
+import { preparePineNightDirector } from './nightDirector';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { installPineRoster, type PineRosterPorts } from './roster';
 import { installPineElites } from './elites';
@@ -24,7 +25,7 @@ import { isPineEdgeWall, provePineEntries } from './entries';
 import { installPineAir } from './air';
 import { installPineRainShelter } from './rainShelter';
 import { PineAmmunition } from './weapons/ammunition';
-import { installPineNight } from './night';
+import { installPineNight } from './nightPopulation';
 import { PINE_LODGE } from './lodge';
 import { installPineRangedMotion } from './weapons/motion';
 import { boltFlight } from '../loadout/ammo';
@@ -108,7 +109,7 @@ export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
  * the grid's world (the scatter keeps the entry canyons clear, world/entryLanes.ts).
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets, rapier }) => {
-  const director = await preparePineDirector();
+  const director = await preparePineDirector(), nightDirector = await preparePineNightDirector();
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
   const nav = navBytes === undefined ? null : parseNavmesh(buffer(navBytes));
   if (nav === null) throw new Error(`Pine headless needs its baked navmesh (${PINE_NAVMESH_ASSET})`);
@@ -124,7 +125,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     const fresh = createSimHost(level, { ground: false, heightAt, rapier });
     try { addPineWorld(fresh, bake, isPineEdgeWall); fresh.step(); return provePineEntries(fresh.physics, shard.entryways, heightAt); } finally { fresh.dispose(); }
   }, install: (host, context) => {
-    installPine(host, { bake, grid, nav, heightAt, director, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
+    installPine(host, { bake, grid, nav, heightAt, director, nightDirector, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
       // a player command's attack pulls the held weapon's trigger at that body; its HEAVY hold draws the longbow; a
       // `pine.weapon` script command picks a weapon (the tick's last)
       shots: () => context.commands().flatMap(command => command.kind === 'player' && command.attack !== undefined ? [command.attack.targetId] : []),
@@ -140,6 +141,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
 export interface PineInstall {
   /** Already admitted module factory; each installed quest consumes its own fresh author state. */
   readonly director: () => DirectorLane;
+  /** Independent admitted night population handler; placement and roster owners remain native. */
+  readonly nightDirector: () => DirectorLane;
   readonly bake: PineBake; readonly grid: BakedGrid; readonly nav: NonNullable<PineRosterPorts['nav']>; readonly heightAt: (x: number, z: number) => number;
   /** the level's authored spawn height (the manager's spawn ray) */
   readonly spawnY: number;
@@ -226,7 +229,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
     takeKingReward: eye => king.takeReward(eye), ammunition: ammunitionOwner, canSelectAmmo: () => loadout.live(PINE_WEAPON.crossbow) });
   // The page's quest frame advances the stag, then night thralls, before the creature manager. Late-bound roster
   // ports keep callbacks and restore adapters in that same order even when the population adds live bodies.
-  const thralls = installPineNight(host, { night, heightAt, spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant),
+  const thralls = installPineNight(host, parts.nightDirector(), { night, heightAt, spawn: (kind, x, z, yaw, variant) => live().spawn(kind, x, z, yaw, variant),
     retire: actor => { live().retire(actor); }, find: id => live().actor(id), ...(parts.nightMax === undefined ? {} : { max: parts.nightMax }) });
   air = installPineAir(host, () => day.phase, parts.weatherMode);
   const shelter = installPineRainShelter(host, () => roster?.hunt.herds ?? [], bake.shelterTrees, () => atmosphere().weather.rain);

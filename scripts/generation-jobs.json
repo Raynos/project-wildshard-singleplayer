@@ -1362,6 +1362,37 @@
       "buildOutputs": {
         "src/shards/nalati-grasslands/behaviour/qara.generated.json": "1f83e2bd97ccaf81fdb95c073a5d980d07ebe2b824be6b63e8b0037be3a39f47"
       }
+    },
+    {
+      "id": "pine-night-director",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-night-director.mjs",
+      "command": [
+        "src/shards/pine-hollow/generators/bake-pine-night-director.mjs"
+      ],
+      "inputRoots": [
+        "src/sdk/package.json",
+        "src/sdk/buildBehaviour.ts",
+        "src/sdk/compileScript.ts",
+        "src/sdk/directorAbi.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/sourceReader.ts",
+        "src/shards/pine-hollow/generators/bake-pine-night-director.mjs",
+        "src/shards/pine-hollow/behaviour/night.as",
+        "src/shards/pine-hollow/data/nightDirector.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/behaviour/night.generated.json",
+        "src/shards/pine-hollow/assets/a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/pine-hollow/behaviour/night.generated.json": "19d875cd69bc4ca409dead67186b7a449cdd563868b75202695c06e780ff2ba0",
+        "src/shards/pine-hollow/assets/a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda": "a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda"
+      }
     }
   ]
 }

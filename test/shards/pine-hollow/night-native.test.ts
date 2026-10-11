@@ -1,3 +1,4 @@
+import { preparePineNightDirector } from '../../../src/shards/pine-hollow/runtime/nightDirector';
 import { preparePineDirector } from '../../../src/shards/pine-hollow/runtime/directorClock';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the actual native physics and terrain/navmesh fixtures.
 import { readFileSync } from 'node:fs';
@@ -11,7 +12,7 @@ import { parseNavmesh } from '../../../src/engine/physics/navmesh';
 import { bakedSamplers } from '../../../src/engine/world/BakedTerrain';
 import { installPine, pineTerrainGrid, prepareHeadlessRuntime, PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET } from '../../../src/shards/pine-hollow/runtime/headless';
 import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
-import { NIGHT_STEP } from '../../../src/shards/pine-hollow/runtime/night';
+import { NIGHT_STEP } from '../../../src/shards/pine-hollow/runtime/nightPopulation';
 import { pineNightSpec } from '../../../src/shards/pine-hollow/quest/nightSpec';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import { OLD_GROWTH, HAMLET_SITES } from '../../../src/shards/pine-hollow/layout';
@@ -23,17 +24,17 @@ const grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), heightAt = bakedSa
 const navBytes = readFileSync(PINE_NAVMESH_ASSET);
 const nativeNav = (() => { const parsed = parseNavmesh(Uint8Array.from(navBytes).buffer); if (parsed === null) throw new Error('Missing Pine navmesh'); return parsed; })();
 nativeNav.datum = () => 0;
-let director: Awaited<ReturnType<typeof preparePineDirector>>;
+let director: Awaited<ReturnType<typeof preparePineDirector>>, nightDirector: Awaited<ReturnType<typeof preparePineNightDirector>>;
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 beforeAll(async () => {
-  director = await preparePineDirector();
+  director = await preparePineDirector(); nightDirector = await preparePineNightDirector();
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const { default: source } = await import('../../../src/shards/pine-hollow/shard.config');
   plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
 });
 const night = { value: 1 };
 function install(host: SimHost, saved?: SimSnapshot) {
-  const parts = installPine(host, { director, bake: pineBake(), grid, nav: nativeNav, heightAt, spawnY: 0,
+  const parts = installPine(host, { director, nightDirector, bake: pineBake(), grid, nav: nativeNav, heightAt, spawnY: 0,
     night: () => night.value, dusk: () => 0, ...(saved === undefined ? {} : { saved }) });
   return { ...parts, brain: parts.thralls };
 }

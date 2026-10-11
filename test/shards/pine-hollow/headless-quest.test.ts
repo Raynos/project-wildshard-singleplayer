@@ -1,3 +1,4 @@
+import { preparePineNightDirector } from '../../../src/shards/pine-hollow/runtime/nightDirector';
 import { preparePineDirector } from '../../../src/shards/pine-hollow/runtime/directorClock';
 // oxlint-disable-next-line import/no-nodejs-modules -- The headless runtime reads the native physics module and Pine's native bakes.
 import { readFileSync } from 'node:fs';
@@ -25,13 +26,13 @@ import { QUEST_DONE } from '../../../src/shards/pine-hollow/quest/wardensHollow'
 import { PINE_PHASES } from '../../../src/shards/pine-hollow/look/dayKeys';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
-let director: Awaited<ReturnType<typeof preparePineDirector>>;
+let director: Awaited<ReturnType<typeof preparePineDirector>>, nightDirector: Awaited<ReturnType<typeof preparePineNightDirector>>;
 let rapier: Rapier, plan: HeadlessRuntimePlan, basis: Uint8Array;
 const assets = new Map([PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
 const bake = pineBake(), spots = pineSpots(), EYE = 1.68, still = { moveX: 0, moveZ: 0, yaw: 0 };
 const heightAt = (x: number, z: number): number => { const h = plan.ports?.heightAt; if (h === undefined) throw new Error('no height query'); return h(x, z); };
 beforeAll(async () => {
-  director = await preparePineDirector();
+  director = await preparePineDirector(); nightDirector = await preparePineNightDirector();
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
   const fresh = createSimHost(plan.level, { ...plan.ports, rapier }); plan.install(fresh, { restoring: false, commands: () => [], emit: () => undefined });
@@ -44,7 +45,7 @@ function parts(tick: Tick): PineInstall {
   const bytes = readFileSync(PINE_NAVMESH_ASSET), nav = parseNavmesh(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
   if (nav === null) throw new Error('navmesh');
   nav.datum = () => 0;
-  return { director, bake, grid: pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), nav, heightAt, spawnY: source.spawn.y, night: () => tick.night,
+  return { director, nightDirector, bake, grid: pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), nav, heightAt, spawnY: source.spawn.y, night: () => tick.night,
     interact: () => [...tick.press.map(value => ({ actorId: PINE_INTERACT, value })), ...(tick.lodge ?? []).map(value => ({ actorId: PINE_LODGE, value })),
       ...(tick.trade ?? []).map(value => ({ actorId: PINE_TRADE, value })), ...(tick.ammo ?? []).map(value => ({ actorId: PINE_AMMO, value }))], fact: (name, entity) => { tick.facts.push(`${name}/${entity}`); } };
 }

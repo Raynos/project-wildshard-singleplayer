@@ -13,7 +13,8 @@
  * The thrall models are the King's (antlerKing.ts builds one of each kind at boot), so nothing here compiles mid-play.
  */
 import * as THREE from 'three';
-import { NightBrain } from './nightBrain';
+import { PineNightDirector } from '../runtime/nightDirector';
+import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -50,13 +51,13 @@ export interface NightHost {
 }
 
 export class NightThralls {
-  private readonly brain: NightBrain<Animal>;
+  private readonly brain: PineNightDirector<Animal>;
   private readonly puffs: Puffs;
   private readonly point = new THREE.Vector3();
-  constructor(h: NightHost) {
+  constructor(h: NightHost, lane: DirectorLane) {
     const spawner = thrallSpawner(h.animals, (kind, x, z, yaw) => spawnThrall(h.animals, kind, x, z, yaw));
     this.puffs = new Puffs(h.scene, new THREE.Color(0.55, 0.7, 0.62), 3);
-    this.brain = new NightBrain<Animal>({
+    this.brain = new PineNightDirector<Animal>(lane, {
       night: h.night, errand: h.errand, onErrandDone: h.onErrandDone, next: Math.random, height: heightAt,
       shot: (name, actor) => { h.shot(name, actor.position); },
       spawn: (kind, x, z, yaw) => spawnThrallFrom(spawner, kind === 'elk' ? 'elk' : 'boar', x, z, yaw,
@@ -67,5 +68,5 @@ export class NightThralls {
   }
   get count(): number { return this.brain.count; }
   force(p: THREE.Vector3): void { this.brain.force(p); }
-  update(dt: number, t: number, p: THREE.Vector3): void { this.puffs.update(dt, t); this.brain.update(dt, p); }
+  update(dt: number, t: number, p: THREE.Vector3): void { this.puffs.update(dt, t); this.brain.advance(dt, p); }
 }

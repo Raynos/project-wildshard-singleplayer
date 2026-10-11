@@ -29,7 +29,7 @@ const Saved = v.strictObject({ version: v.literal(1), spec: v.pipe(v.string(), v
   race: v.pipe(v.array(v.strictObject({ id: actorId, woke: v.boolean() })), v.maxLength(8)) });
 const headingTo = (x: number, z: number, tx: number, tz: number): number => Math.atan2(tx - x, tz - z);
 /** Night population lifecycle; content supplies placement, creatures, rendering and quest ports. */
-export class NightBrain<T extends NightActor> {
+export class LegacyNightBrain<T extends NightActor> {
   private roam: Roamer<T>[] = [];
   private race: Racer<T>[] = [];
   private acc = 0;

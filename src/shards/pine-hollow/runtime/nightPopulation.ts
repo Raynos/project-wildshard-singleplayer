@@ -1,7 +1,8 @@
 import * as v from 'valibot';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
-import { NightBrain } from '../quest/nightBrain';
+import { PineNightDirector } from './nightDirector';
+import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { pineNightSpec } from '../quest/nightSpec';
 import type { PineHuntBody } from './roster';
 
@@ -22,10 +23,10 @@ export interface PineNightPorts {
 /** The shipping population law on actual roster actors. Placement uses a dedicated saved native stream; the page's
  * Math.random placement source and variable render-frame cadence remain separate compatibility inputs, not an oracle.
  * Install after the quest clock and before the roster callback; ports are resolved only at update/restore time. */
-export function installPineNight(host: SimHost, ports: PineNightPorts): NightBrain<PineHuntBody> {
+export function installPineNight(host: SimHost, lane: DirectorLane, ports: PineNightPorts): PineNightDirector<PineHuntBody> {
   let rng = new Rng(host.level.seed).fork(NIGHT_STEP);
   const initial = rng.snapshot().initial;
-  const brain = new NightBrain<PineHuntBody>({ night: ports.night,
+  const brain = new PineNightDirector<PineHuntBody>(lane, { night: ports.night,
     errand: () => host.flags.has('errand:asked') && !host.flags.has('errand:done'),
     onErrandDone: () => { host.flags.set('errand:done'); }, next: () => rng.next(), height: ports.heightAt,
     spawn: (kind, x, z, yaw) => ports.spawn(kind, x, z, yaw, 'thrall'), retire: ports.retire,
@@ -33,7 +34,7 @@ export function installPineNight(host: SimHost, ports: PineNightPorts): NightBra
     release: actor => { actor.scripted = false; if (actor.alive && actor.state === 'sidestep') actor.state = 'alert'; },
     shot: () => undefined, burst: () => undefined,
   }, pineNightSpec(ports.max ?? 3));
-  host.onStep(NIGHT_STEP, dt => { brain.update(dt, host.player.position); }, {
+  host.onStep(NIGHT_STEP, dt => { brain.advance(dt, host.player.position); }, {
     snapshot: () => ({ version: 1, population: brain.snapshot(actor => actor.entityId), rng: { ...rng.snapshot() } }),
     restore: value => {
       const saved = v.parse(Saved, value), next = new Rng(host.level.seed).fork(NIGHT_STEP);

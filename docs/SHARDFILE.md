@@ -1409,3 +1409,6 @@ Admission verifies that the admitted module hash and numeric inputs equal the ro
 physics allocates. Runtime consumes the lowered row through the existing single mover host: script
 fuel, guest memory, native body ownership and saved continuation stay unchanged. The descriptors are
 build/admission inputs and are absent from the executable continuation contract.
+
+
+SF81 Pine night: `data/nightStages.json` selects the fixed lifecycle events from the typed author `behaviour/night.as`, bound by `data/nightDirector.json`. The retained author-only producer `generators/bake-pine-night-director.mjs` emits the immutable module and DO-NOT-EDIT embedded representation through the shared content-hash build cache. No generated module is committed. The native population stores the complete AS/stage continuation with its exact actor identities; pre-row population continuations refuse explicitly.

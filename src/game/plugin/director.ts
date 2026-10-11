@@ -179,6 +179,7 @@ export class DirectorStageLane {
 
 /** External-clock stage installation with an admitted AS escape handler. The native lane owns elapsed time,
  * quotas and typed observations; ordered output events select authored stage actions without a second scheduler.
+ * Publication also carries the admitted AS event for bounded native parameters; row actions retain their authored values.
  * initialDt preserves the admitted handler's native initialization ABI; its default is a zero-time observation. */
 export class DirectorScriptStageLane {
   private readonly definition: DirectorStagesData;
@@ -186,11 +187,11 @@ export class DirectorScriptStageLane {
   private readonly script: DirectorLane;
   private readonly ports: {
     readonly observe: () => Readonly<Record<string, number>>;
-    readonly publish: (action: DirectorAction) => void;
+    readonly publish: (action: DirectorAction, source?: Readonly<DirectorEvent>) => void;
   };
   constructor(data: unknown, script: DirectorLane, ports: {
     readonly observe: () => Readonly<Record<string, number>>;
-    readonly publish: (action: DirectorAction) => void;
+    readonly publish: (action: DirectorAction, source?: Readonly<DirectorEvent>) => void;
   }, restoring = false, initialDt = 0) {
     if (!Number.isFinite(initialDt) || initialDt < 0 || initialDt > 1) throw new Error('Invalid director initial delta');
     this.definition = structuredClone(parseDirectorStages(data));
@@ -226,7 +227,7 @@ export class DirectorScriptStageLane {
     return Object.fromEntries(Object.entries(this.definition.inputs).map(([name, binding]) => [name, binding === `event:${event?.key ?? ''}`]));
   }
   private deliver(events: readonly DirectorEvent[]): void {
-    for (const event of events) this.publish(this.stages.step(this.stages.tick + 1, this.observation(event)));
+    for (const event of events) this.publish(this.stages.step(this.stages.tick + 1, this.observation(event)), event);
   }
-  private publish(actions: readonly DirectorAction[]): void { for (const action of actions) this.ports.publish(action); }
+  private publish(actions: readonly DirectorAction[], source?: Readonly<DirectorEvent>): void { for (const action of actions) this.ports.publish(action, source); }
 }

@@ -1,4 +1,4 @@
-import type { NightSpec } from './nightBrain';
+import type { NightSpec } from '../runtime/nightDirector';
 import { OLD_GROWTH, KINGS_CLEARING, HAMLET_SITES, POND } from '../layout';
 
 /** The page's authored old-growth and three millrace placements; tier alone selects the roamer limit. */

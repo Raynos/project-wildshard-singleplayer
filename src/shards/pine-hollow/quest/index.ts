@@ -78,6 +78,7 @@ import { hollowLog, loadHollowLog } from '../models/hollowLog';
 import { pineModels } from '../world/context';
 import { StagLead } from './stagLead';
 import { NightThralls } from './nightThralls';
+import { preparePineNightDirector } from '../runtime/nightDirector';
 import { BEATS, beatFlags, isBeat, type Beat } from './beats';
 import { placeTokenShelf } from './tokenShelf';
 import { PINE_QUEST_CONTENT } from './content';
@@ -312,12 +313,14 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     });
   }
   const night = (): number => sky.dayNight?.night ?? 0;
+  const createNight = await preparePineNightDirector();
+  if (ctx.scope.disposed) throw new Error('Pine left during night director admission');
   const thralls = new NightThralls({
     animals, scene: game.scene, night,
     errand: () => flags.has('errand:asked') && !flags.has('errand:done'),
     onErrandDone: () => { flags.set('errand:done'); syncWheel(); hud.toast('The last of them goes down in the race. Behind you the mill wheel shudders, and turns'); h.music.sting('chunk'); },
     shot: (name, at) => { shot(name, at); },
-  });
+  }, createNight());
 
   // ── the lodge's contract board ──
   const lodge = bindRuntimeState(ctx, source, 'pine.lodge', () => JSON.stringify(lodgeSave.read(h.chunkId)), h.chunkId);

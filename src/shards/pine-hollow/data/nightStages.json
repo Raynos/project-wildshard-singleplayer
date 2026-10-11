@@ -1,0 +1,685 @@
+{
+  "version": 2,
+  "id": "pine.night.stages",
+  "inputs": {
+    "roam_move": "event:roam.move",
+    "roam_dawn": "event:roam.dawn",
+    "roam_retire": "event:roam.retire",
+    "race_listen": "event:race.listen",
+    "race_wake": "event:race.wake",
+    "population_clock": "event:population.clock",
+    "population_due": "event:population.due",
+    "race_finish": "event:race.finish",
+    "race_spawn": "event:race.spawn",
+    "roam_far": "event:roam.far",
+    "roam_spawn": "event:roam.spawn"
+  },
+  "stages": [
+    {
+      "id": "ready",
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    },
+    {
+      "id": "roam-move",
+      "when": "roam_move",
+      "do": [
+        {
+          "emit": "roam.move",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    },
+    {
+      "id": "roam-dawn",
+      "when": "roam_dawn",
+      "do": [
+        {
+          "emit": "roam.dawn",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    },
+    {
+      "id": "roam-retire",
+      "when": "roam_retire",
+      "do": [
+        {
+          "emit": "roam.retire",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    },
+    {
+      "id": "race-listen",
+      "when": "race_listen",
+      "do": [
+        {
+          "emit": "race.listen",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    },
+    {
+      "id": "race-wake",
+      "when": "race_wake",
+      "do": [
+        {
+          "emit": "race.wake",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    },
+    {
+      "id": "population-clock",
+      "when": "population_clock",
+      "do": [
+        {
+          "emit": "population.clock",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    },
+    {
+      "id": "population-due",
+      "when": "population_due",
+      "do": [
+        {
+          "emit": "population.due",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    },
+    {
+      "id": "race-finish",
+      "when": "race_finish",
+      "do": [
+        {
+          "emit": "race.finish",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    },
+    {
+      "id": "race-spawn",
+      "when": "race_spawn",
+      "do": [
+        {
+          "emit": "race.spawn",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    },
+    {
+      "id": "roam-far",
+      "when": "roam_far",
+      "do": [
+        {
+          "emit": "roam.far",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    },
+    {
+      "id": "roam-spawn",
+      "when": "roam_spawn",
+      "do": [
+        {
+          "emit": "roam.spawn",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "roam-move",
+          "when": "roam_move"
+        },
+        {
+          "target": "roam-dawn",
+          "when": "roam_dawn"
+        },
+        {
+          "target": "roam-retire",
+          "when": "roam_retire"
+        },
+        {
+          "target": "race-listen",
+          "when": "race_listen"
+        },
+        {
+          "target": "race-wake",
+          "when": "race_wake"
+        },
+        {
+          "target": "population-clock",
+          "when": "population_clock"
+        },
+        {
+          "target": "population-due",
+          "when": "population_due"
+        },
+        {
+          "target": "race-finish",
+          "when": "race_finish"
+        },
+        {
+          "target": "race-spawn",
+          "when": "race_spawn"
+        },
+        {
+          "target": "roam-far",
+          "when": "roam_far"
+        },
+        {
+          "target": "roam-spawn",
+          "when": "roam_spawn"
+        }
+      ]
+    }
+  ],
+  "script": "a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda"
+}

@@ -97,3 +97,6 @@ src/**/*.generated.*
 /public/assets/pine-hollow/creatures/bear-black.phone.rigged.glb
 /public/assets/pine-hollow/creatures/bear-brown.rigged.glb
 /public/assets/pine-hollow/creatures/bear-brown.phone.rigged.glb
+
+# SF81: retained typed night author rebuilds its 2 KB module in the shared build cache.
+/src/shards/pine-hollow/assets/a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda

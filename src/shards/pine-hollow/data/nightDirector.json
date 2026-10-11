@@ -1,0 +1,169 @@
+{
+  "id": "pine.night",
+  "entity": 9200,
+  "module": "a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda",
+  "inputs": [
+    {
+      "key": "phase",
+      "min": -1,
+      "max": 6
+    },
+    {
+      "key": "alive",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "flee",
+      "min": -1,
+      "max": 3.5
+    },
+    {
+      "key": "woke",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "distance",
+      "min": 0,
+      "max": 10000
+    },
+    {
+      "key": "hurt",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "night",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "errand",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "race-count",
+      "min": 0,
+      "max": 8
+    },
+    {
+      "key": "race-dead",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "near-mill",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "near-growth",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "roam-count",
+      "min": 0,
+      "max": 8
+    },
+    {
+      "key": "maximum",
+      "min": 3,
+      "max": 4
+    }
+  ],
+  "parameters": [],
+  "events": [
+    {
+      "id": 9201,
+      "key": "roam.move",
+      "direction": "output",
+      "type": "number",
+      "min": 0,
+      "max": 4.5
+    },
+    {
+      "id": 9202,
+      "key": "roam.dawn",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9203,
+      "key": "roam.retire",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9204,
+      "key": "race.listen",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9205,
+      "key": "race.wake",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9206,
+      "key": "population.clock",
+      "direction": "output",
+      "type": "number",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": 9207,
+      "key": "population.due",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9208,
+      "key": "race.finish",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9209,
+      "key": "race.spawn",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9210,
+      "key": "roam.far",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9211,
+      "key": "roam.spawn",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    }
+  ],
+  "subscriptions": []
+}

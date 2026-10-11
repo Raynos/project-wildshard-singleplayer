@@ -14,6 +14,21 @@
         }
       ],
       "director": "data/director.json"
+    },
+    {
+      "source": "behaviour/night.as",
+      "director": "data/nightDirector.json",
+      "maximumPages": 1,
+      "assets": "assets",
+      "bindings": [
+        "data/nightDirector.json"
+      ],
+      "embedded": [
+        {
+          "file": "behaviour/night.generated.json",
+          "generated": "DO-NOT-EDIT: generated from retained behaviour/night.as with the pinned SDK compiler; regenerate and compare hashes."
+        }
+      ]
     }
   ]
 }
