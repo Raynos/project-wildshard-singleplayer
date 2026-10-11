@@ -232,6 +232,34 @@ it('downloads nearby products without building worlds along parallel roads, then
   } finally { f.finish(); }
 });
 
+it('turns from the corner boulevard into a template mouth without retaining the parallel Pine runtime', async () => {
+  const f = await open((instance, fallback) => Promise.resolve({ ...fallback(), exclusiveRuntime: !instance.startsWith('template-') }), undefined, 10);
+  const cell = f.registry.assembly.cells.find(row => row.slug === '_template' && row.cell[0] === 1 && row.cell[1] === 1);
+  if (cell === undefined) throw new Error('Missing northeast template copy');
+  const walls = new ReadinessWalls(f.shell.physics, [{ instance: cell.instance, x: cell.origin.x - 256, z: cell.origin.z,
+    axis: 'x', halfLength: 250, floor: 0 }], f.platform);
+  const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+  try {
+    f.player.position.set(277.5, 0.5, cell.origin.z - 12); f.registry.beforeFixed(); await settle();
+    for (let tick = 0; tick < 24; tick++) {
+      f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.5 }); f.shell.physics.step();
+      f.registry.beforeFixed(); await settle();
+    }
+    expect(f.creates).toEqual([]); // Both neighbouring mouths are perpendicular to this road.
+    expect(f.registry.current()).toBeNull();
+    for (let tick = 0; tick < 100 && f.registry.worldFeet().x < cell.origin.x - 250; tick++) {
+      f.registry.beforeFixed(); walls.sync(f.registry.readiness);
+      f.player.motor.move(f.player.position, { x: 0.5, y: -0.05, z: 0 }); f.shell.physics.step();
+      await settle();
+    }
+    expect(f.creates).toEqual([cell.instance]); expect(f.registry.state().issues).toEqual({});
+    expect(f.registry.ready(cell.instance)).toBe(true); expect(f.registry.worldFeet().x).toBeGreaterThan(cell.origin.x - 256);
+    const entered = await f.registry.prepare(null, cell.instance); entered.commit();
+    expect(f.registry.current()).toBe(cell.instance); expect(f.registry.state().residents).toEqual([cell.instance]);
+    expect(f.owner.allocator.has('sim:pine-hollow')).toBe(false);
+  } finally { f.finish(); }
+});
+
 it('keeps a prepared approach across readiness-wall capsule recoil, then honours an actual road U-turn', async () => {
   const f = await open(undefined, undefined, 10);
   const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
