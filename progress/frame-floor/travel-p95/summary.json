@@ -523,10 +523,25 @@
         },
         "screenStatus": "refused"
       }
+    },
+    {
+      "source": "f71faa702382a7367ddee0215faccc7959e1d0ed",
+      "surface": "sim",
+      "complete": false,
+      "pass": false,
+      "seconds": 108.988,
+      "phase": "route-selection",
+      "failure": "Missing requested grid route: nalati-grasslands-road-entry",
+      "cause": "Caller selected all instead of milestone; no route was driven. Corrected cohort requeued.",
+      "timingCredit": false,
+      "quietUTC": [
+        "2026-10-11T09:08:03.175Z",
+        "2026-10-11T09:09:56.317Z"
+      ]
     }
   ],
   "simulatorAfter": "dbb89458de46c621b0705d3111bb0ef4577ce5b8",
-  "verdict": "RED: desktop and Simulator Nalati/return travel pass; Simulator template outbound37ms and loading maxima remain open.",
+  "verdict": "Target travel PASS: desktop16.8ms, Simulator34ms. Broad floor RED: Simulator spawn39ms and return max252ms.",
   "quietUTC": {
     "desktop": [
       "2026-10-11T04:55:47.488Z",
@@ -726,7 +741,9 @@
           "residents": [
             "template-2"
           ],
-          "issues": {}
+          "issues": {},
+          "pending": [],
+          "gameplayReady": true
         }
       },
       {
@@ -779,7 +796,9 @@
           "residents": [
             "driftwood-isle"
           ],
-          "issues": {}
+          "issues": {},
+          "pending": [],
+          "gameplayReady": true
         }
       },
       {
@@ -832,7 +851,9 @@
           "residents": [
             "nalati-grasslands"
           ],
-          "issues": {}
+          "issues": {},
+          "pending": [],
+          "gameplayReady": true
         }
       }
     ],
@@ -931,7 +952,9 @@
             "template-2"
           ],
           "issues": {},
-          "inside": "template-2"
+          "inside": "template-2",
+          "pending": [],
+          "gameplayReady": true
         },
         "constructedRuntimeInstances": [
           "driftwood-isle"
@@ -993,7 +1016,9 @@
             "driftwood-isle"
           ],
           "issues": {},
-          "inside": "driftwood-isle"
+          "inside": "driftwood-isle",
+          "pending": [],
+          "gameplayReady": true
         },
         "constructedRuntimeInstances": [
           "driftwood-isle"
@@ -1006,5 +1031,275 @@
       34
     ],
     "note": "Pine is never constructed. Outbound travel remains 37ms; return travel passes at35ms, between-hook drive max228ms is independently red."
+  },
+  "templateResidualAttribution": {
+    "source": "1f41fd31a",
+    "samples": 396,
+    "zeroTimestamps": 396,
+    "sampleInterpretation": "Counts are sample shares, not per-task durations. Diagnostic cadence receives no timing credit.",
+    "selfTextureUploadSamples": 22,
+    "selfTextureUploadShare": 5.6,
+    "wholeDriveCanvasUploads": {
+      "dimensions": [
+        1024,
+        640
+      ],
+      "calls": 37,
+      "slowCallTotalMs": 148
+    },
+    "errors": [],
+    "diagnosticTravelP95Ms": 34,
+    "diagnosticDriveMaxMs": 220,
+    "fix": "f71faa702",
+    "fixChecks": {
+      "focused": 21,
+      "strict": true,
+      "touchedLint": true
+    },
+    "plainCorroboration": true,
+    "recoveryGuard": "35ff09f34",
+    "recoveryProof": "A lost context causes no upload; restore resumes the original canvas; disposal cancels queued frames and timers."
+  },
+  "finalSimulator": {
+    "source": "f71faa702382a7367ddee0215faccc7959e1d0ed",
+    "harnessRevision": "16eff6535d681cc8bb0930c8fa5a5f254ccf9440",
+    "complete": true,
+    "overallPass": false,
+    "travelPass": true,
+    "seconds": 288.409,
+    "errors": [],
+    "quietUTC": [
+      "2026-10-11T09:17:29.774Z",
+      "2026-10-11T09:22:22.527Z"
+    ],
+    "rows": [
+      {
+        "route": "template-interior",
+        "travel": {
+          "p95Ms": 34,
+          "p99Ms": 35,
+          "maxMs": 38,
+          "gameP95Ms": 34,
+          "workP95Ms": 7,
+          "callbackP95Ms": 35,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "drive": {
+          "p95Ms": 34,
+          "p99Ms": 49,
+          "maxMs": 99,
+          "gameP95Ms": 34,
+          "workP95Ms": 6,
+          "callbackP95Ms": 36,
+          "frames": 1500,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 14,
+          "over100Ms": 0
+        },
+        "interior": {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 36,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "callbackP95Ms": 36,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "entry": {
+          "current": "template-2",
+          "residents": [
+            "template-2"
+          ],
+          "issues": {},
+          "pending": [],
+          "gameplayReady": true,
+          "inside": "template-2"
+        },
+        "constructedRuntimeInstances": [
+          "driftwood-isle",
+          "nalati-grasslands"
+        ]
+      },
+      {
+        "route": "template-return",
+        "travel": {
+          "p95Ms": 34,
+          "p99Ms": 35,
+          "maxMs": 44,
+          "gameP95Ms": 34,
+          "workP95Ms": 6,
+          "callbackP95Ms": 35,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "drive": {
+          "p95Ms": 34,
+          "p99Ms": 41,
+          "maxMs": 252,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "callbackP95Ms": 36,
+          "frames": 1860,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": false,
+          "medianFps": 30.303,
+          "over50Ms": 7,
+          "over100Ms": 3
+        },
+        "interior": {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "gameP95Ms": 34,
+          "workP95Ms": 9,
+          "callbackP95Ms": 35,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "entry": {
+          "current": "driftwood-isle",
+          "residents": [
+            "driftwood-isle"
+          ],
+          "issues": {},
+          "pending": [],
+          "gameplayReady": true,
+          "inside": "driftwood-isle"
+        },
+        "constructedRuntimeInstances": [
+          "driftwood-isle",
+          "nalati-grasslands"
+        ]
+      },
+      {
+        "route": "nalati-grasslands-road-entry",
+        "travel": {
+          "p95Ms": 34,
+          "p99Ms": 46,
+          "maxMs": 57,
+          "gameP95Ms": 34,
+          "workP95Ms": 4,
+          "callbackP95Ms": 35,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 1,
+          "over100Ms": 0
+        },
+        "drive": {
+          "p95Ms": 35,
+          "p99Ms": 51,
+          "maxMs": 86,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "callbackP95Ms": 38,
+          "frames": 960,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 10,
+          "over100Ms": 0
+        },
+        "interior": {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 39,
+          "gameP95Ms": 34,
+          "workP95Ms": 8,
+          "callbackP95Ms": 36,
+          "frames": 120,
+          "skipped": 0,
+          "contextLost": false,
+          "cpuPass": true,
+          "pass": true,
+          "medianFps": 30.303,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "entry": {
+          "current": "nalati-grasslands",
+          "residents": [
+            "nalati-grasslands"
+          ],
+          "issues": {},
+          "pending": [],
+          "gameplayReady": true,
+          "inside": "nalati-grasslands"
+        },
+        "constructedRuntimeInstances": [
+          "driftwood-isle",
+          "nalati-grasslands"
+        ]
+      }
+    ],
+    "standing": [
+      {
+        "pose": "spawn",
+        "p95Ms": 39,
+        "maxMs": 83,
+        "pass": false
+      },
+      {
+        "pose": "grid-crossroads",
+        "p95Ms": 34,
+        "maxMs": 85,
+        "pass": true
+      },
+      {
+        "pose": "grid-deck-east",
+        "p95Ms": 34,
+        "maxMs": 41,
+        "pass": true
+      }
+    ],
+    "conditions": {
+      "developer": "on",
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "glObserver": "off",
+      "safariProfile": false,
+      "glTime": false
+    },
+    "note": "All target travel rows PASS. Broad floor RED: spawn39ms and Driftwood return max252ms. No isolated per-change timing credit; intervening source/harness changes recorded."
   }
 }

@@ -1,16 +1,16 @@
 # Travel cadence and template readiness (E435)
 
-**RED: desktop travel passes; Simulator template travel remains open.** Template pin `1f41fd31a` completes with no Pine world; outbound still misses the gate at 37 ms. Nalati was last measured on `63560cdb9`. [summary.json](summary.json) retains every attempt, scalar validity and gate assertion.
+**Target travel PASS; broader frame floor RED.** All three Simulator travel rows are 34 ms on `f71faa702`. The template save regression is fixed and entry/return complete. Spawn p95 39 ms and a Driftwood return maximum 252 ms remain independently RED. [summary.json](summary.json) retains every attempt, scalar validity and gate assertion.
 
 | Surface / route | Baseline → latest travel p95 (ms) | Latest drive p95 / max (ms) | Drive >50 / >100 ms | Interior p95 (ms) | Verdict |
 | --- | ---: | ---: | ---: | ---: | --- |
 | Desktop Nine | 33.4 → 16.8 | 16.8 / 66.7 | 3 / 0 | 16.7 | PASS |
 | Desktop Nalati | 33.4 → 16.8 | 16.8 / 83.3 | 4 / 0 | 16.7 | PASS |
-| Simulator template outbound | 58 → 37 | 34 / 80 | 2 / 0 | 34 | FAIL: travel |
-| Simulator template return | 55 → 35 | 34 / 228 | 6 / 1 | 34 | Travel PASS; drive maximum FAIL |
-| Simulator Nalati | 66 → 35 | 35 / 207 | 7 / 1 | 34 | Travel PASS; drive maximum FAIL |
+| Simulator template outbound | 58 → 34 | 34 / 99 | 14 / 0 | 34 | PASS |
+| Simulator template return | 55 → 34 | 34 / 252 | 7 / 3 | 34 | Travel PASS; drive maximum FAIL |
+| Simulator Nalati | 66 → 34 | 35 / 86 | 10 / 0 | 34 | PASS |
 
-Desktop pin `0c9619149`; template Simulator pin `1f41fd31a`, Nalati pin `63560cdb9`; baseline `1046bba3d`. Desktop p95 ≤17.5 ms and maximum ≤100 ms; Simulator p95 ≤35 ms and maximum ≤200 ms. The Simulator's 30 fps cap makes 34–35 ms normal vsync jitter. Valid drawn frames, rounded median ≥60/30 fps, owner CPU pass and zero errors remain required. The latest template Simulator initial spawn passes at 35 ms; other standing poses pass at 34 ms. Nalati's 207 ms maximum remains with the shader-stall lane. No full-grid milestone pass is claimed.
+Desktop pin `0c9619149`; Simulator pin `f71faa702`; baseline `1046bba3d`. Desktop p95 ≤17.5 ms and maximum ≤100 ms; Simulator p95 ≤35 ms and maximum ≤200 ms. The Simulator's 30 fps cap makes 34–35 ms normal vsync jitter. Valid drawn frames, rounded median ≥60/30 fps, owner CPU pass and zero errors remain required. The latest Simulator spawn is independently RED at 39 ms; crossroads and east-deck standing poses pass at 34 ms. The return-drive long-frame gate is RED at 252 ms, with three frames over 100 ms. Shader-link stalls remain with sp-x2; this run does not identify the cause of every between-hook frame. No full-grid milestone pass is claimed.
 
 ## Template wall: real saved-game regression
 
@@ -32,6 +32,12 @@ Travel measures the first 120 drawn frames one second into the drive. It overlap
 
 The latest template hooks build Pine on each boulevard departure, then retire it when the traveller turns before the road midpoint. `b7b921a65` defers native world materialization to the destination half of the road; radial product/module prefetch keeps its full network reach. Readiness walls, exact claims, save/quota refusal, recoil and U-turn protection remain. A real-native corner fixture builds only the eventual destination. Fixture correction `1f41fd31a` explicitly requests its early product under the one-candidate limit. 27 focused checks, strict and touched lint pass. Plain Safari corroborates zero Pine constructions, entered template and home residents, and travel 46/44 → 37/35 ms. Outbound drive maximum falls 154 → 80 ms; return has a new independent 228 ms between-hook maximum. Outbound travel remains RED: its platform CPU p95 is 3 ms, game work p95 10 ms, and drawn/callback cadence p95 37/40 ms. Further attribution is required.
 
+## Residual upload attribution
+
+The outbound-only Safari diagnostic on `1f41fd31a` sampled 396 stacks (all proxy timestamps zero). `texSubImage2D` accounted for 22 self samples (5.6%); counts are shares, not durations. GL timing separately records 37 slow **1024×640 canvas** updates totalling 148 ms across the drive. They are the existing cell-screen textures. No Pine world is built. Diagnostic travel p95 is 34 ms, but receives no timing credit; its drive maximum remains independently RED at 220 ms.
+
+`f71faa702` paces subsequent screen reuploads after paint under the existing shared quarter-frame construction budget. Initial appearance and pacing OFF retain the ordinary draw upload. Coalescing keeps the latest original canvas; no bitmap, pixel conversion, rescale, content reduction or refresh-rule change. Slot disposal cancels queued frames/tasks. Twenty-one focused screen/pacing checks, scoped strict and touched lint pass. Game→engine rises by two downward imports (frame pacing and renderer type). Plain Safari corroboration on `f71faa702` completes all three targets at **34/34/34 ms travel p95**; each endpoint has the required entered/inside ready resident, no pending admission and no issues. Scope recovery guard `35ff09f34` adds no uploads while the context is lost; the same 21 checks pass. It does not change the measured healthy-context path. No quality or scale reduction.
+
 ## Conditions and limits
 
-Auto fps, Developer ON/DEVSERVER catalogue, build pacing ON, live clocks, 2× scale. Credited runs use no CPU profiler or GL observer. The latest template Safari run completes in 233.9 s; the prior combined Nalati run in 285.196 s; desktop in 109.9 s. Every completed sample has positive drawn frames, zero skipped frames, owner CPU pass and no context loss/errors. Quiet windows wait for the pusher, leave a two-minute gap and release owned previews/Inspector/Simulator helpers. Other lanes landed between pins: this is a targeted regression comparison, not an isolated native A/B. Simulator Safari is Mac-backed, not a physical phone. Incomplete attempts retain their stop evidence and receive no timing credit. Raw reports remain in scratch; only scalar summaries are committed.
+Auto fps, Developer ON/DEVSERVER catalogue, build pacing ON, live clocks, 2× scale. Credited runs use no CPU profiler or GL observer. The final combined Safari run completes in 288.409 s; desktop in 109.9 s. Every completed sample has positive drawn frames, zero skipped frames, owner CPU pass and no context loss/errors. Quiet windows wait for the pusher, leave a two-minute gap and release owned previews/Inspector/Simulator helpers. Other lanes/source and harness changes landed between pins: this is a targeted regression comparison, not an isolated native A/B. The earlier 37 ms outbound sample remains recorded; the profiled 34 ms sample receives no credit. One caller selected `all` instead of `milestone`: the missing-route guard refused before travel; that incomplete attempt also remains recorded without credit. Simulator Safari is Mac-backed, not a physical phone. Incomplete attempts retain their stop evidence and receive no timing credit. Raw reports remain in scratch; only scalar summaries are committed.
