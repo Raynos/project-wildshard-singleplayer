@@ -35,6 +35,30 @@ describe('framePacing', () => {
     setFramePacing(false);
     expect(frameBudgetSpent(8, last + 9)).toBe(false);
   });
+  it('includes the frame work in the next deadline before a fresh build spends its own budget', () => {
+    setFramePacing(true);
+    const t = 4_000_000;
+    noteFrameDrawn(t + 10, t, 60);
+    expect(frameDue(t + 12)).toBe(false);
+    expect(frameBudgetSpent(8, t + 12)).toBe(false);
+    // Only 5 ms since rendering completed, but the next vsync is already due.
+    expect(frameDue(t + 15)).toBe(true);
+    expect(frameBudgetSpent(8, t + 15)).toBe(true);
+  });
+  it('keeps the declared phone cadence and never treats a missed desktop vsync as spare build time', () => {
+    setFramePacing(true);
+    const t = 5_000_000;
+    noteFrameDrawn(t + 8, t, 30);
+    expect(frameInterval()).toBeCloseTo(1000 / 30);
+    expect(frameDue(t + 20)).toBe(false);
+    expect(frameDue(t + 32)).toBe(true);
+    noteFrameDrawn(t + 100 + 4, t + 100, 60);
+    noteFrameDrawn(t + 100 + 1000 / 30 + 4, t + 100 + 1000 / 30, 0);
+    expect(frameInterval()).toBeCloseTo(1000 / 60);
+    expect(frameDue(t + 100 + 1000 / 30 + 15)).toBe(true);
+    setFramePacing(false);
+    expect(frameDue(t + 100 + 1000 / 30 + 15)).toBe(false);
+  });
   it('yields through the caller\'s own hop when no frame is due, and never waits without a frame loop', async () => {
     let plain = 0;
     await paceYield(() => { plain++; return Promise.resolve(); });

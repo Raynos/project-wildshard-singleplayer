@@ -921,7 +921,7 @@ export class Game {
       this.flushEvents('render');
       if (this.captures.length > 0) this.flushCaptures();
       const done = performance.now(), work = done - lastRun;
-      noteFrameDrawn(done); // sliced builds in play pace their stretches to drawn frames (framePacing.ts)
+      noteFrameDrawn(done, now ?? lastRun, cap); // background builds share the actual vsync deadline, including this frame's work
       this.app.cpu.end();
       this.workMs[this.frameI] = work;
       this.frameRafTime = now ?? null;

@@ -722,6 +722,13 @@ drawing (and the tool is on), and `slicer()` then caps its stretches at `WORK_SL
 `workSlice()` yield all go through `paceYield`: when a frame is due they wait until the loop has drawn it (rAF, then a
 timer task after the paint). With the tool off, or off the road (the loading screen, Node bakers and tests), nothing changes.
 
+Build pacing uses the actual drawn frame's rAF timestamp and active fps cap to set the next deadline.
+The CPU/render work already spent by that frame is not spare construction time; `workSlice` yields
+when that deadline is due even if its own nominal budget is not exhausted. Uncapped deadlines use the
+fastest observed cadence, so a missed vsync cannot lower the build's target rate. Completion-only
+`noteFrameDrawn(at)` callers keep their original smoothed cadence. This changes scheduling only: no
+frame-cap, geometry, simulation, render-scale or quality change.
+
 `frameCapAnchor(lastDrawn, timestamp, positiveFps)` in `@wildshard/engine/core/Game` returns null when a capped
 draw is not due, otherwise its cadence anchor. A late 30 fps draw keeps its slot within a bounded phase window,
 so the following draw does not lose another vsync; normal jitter tolerance and the uncapped path are unchanged.

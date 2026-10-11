@@ -25,15 +25,19 @@ const DUE_SLACK_MS = 2;
 const WAIT_CAP_MS = 100;
 
 let lastDrawn = Number.NEGATIVE_INFINITY;
+let lastFrameAt = Number.NEGATIVE_INFINITY;
 let enabled = false;
-/** The drawn-frame interval, smoothed: 16.7 ms at 60 Hz uncapped, 33.3 ms under the phone's 30 fps cap. */
+/** Declared capped cadence, or the fastest observed uncapped cadence; legacy completion-only calls smooth it. */
 let interval = 1000 / 60;
 
-/** The engine loop drew a frame now (`Game`'s loop, after its composer rendered). */
-export function noteFrameDrawn(at: number = diagnosticNow()): void {
-  const gap = at - lastDrawn;
-  if (gap > 4 && gap < 70) interval += (gap - interval) * 0.2;
-  lastDrawn = at;
+/** Report completion and, when available, its rAF timestamp and active fps cap (0 = uncapped).
+ * Build deadlines start at the vsync, not after the frame's work; missed vsyncs never relax an uncapped deadline.
+ * A completion-only caller retains the original smoothed interval. */
+export function noteFrameDrawn(at: number = diagnosticNow(), frameAt?: number, capFps?: number): void {
+  const start = frameAt ?? at, gap = start - lastFrameAt;
+  if (capFps !== undefined && capFps > 0) interval = 1000 / capFps;
+  else if (gap > 4 && gap < 70) interval = capFps === 0 ? Math.min(interval, gap) : interval + (gap - interval) * 0.2;
+  lastFrameAt = start; lastDrawn = at;
 }
 
 /** Turn the pacing on or off (the `buildPacing` Developer tool; `Game` wires it). Off, `presenting()` is always false. */
@@ -44,7 +48,7 @@ export function presenting(now: number = diagnosticNow()): boolean { return enab
 
 /** Whether a presenting page's next frame is due (its interval since the last drawn frame has run out). */
 export function frameDue(now: number = diagnosticNow()): boolean {
-  return presenting(now) && now - lastDrawn >= interval - DUE_SLACK_MS;
+  return presenting(now) && now - lastFrameAt >= interval - DUE_SLACK_MS;
 }
 
 /**
@@ -53,10 +57,10 @@ export function frameDue(now: number = diagnosticNow()): boolean {
  * the ground's arrays, the terrain) each run their stretch back to back, so no frame was drawn for 100-130 ms.
  */
 export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
-  return presenting(now) && now - lastDrawn >= budgetMs;
+  return presenting(now) && (now - lastDrawn >= budgetMs || frameDue(now));
 }
 
-/** The smoothed interval between drawn frames (ms). */
+/** The reported or inferred interval between drawn frames (ms); completion-only callers retain smoothing. */
 export function frameInterval(): number { return interval; }
 
 /** Resolve after the loop has drawn a frame later than now (rAF, then a timer task after its paint), or after `WAIT_CAP_MS`. */
