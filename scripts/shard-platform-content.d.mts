@@ -1,5 +1,7 @@
 /** Structural content evidence, independent of behaviour compatibility and the 80/20 measure. */
 export interface ShardContent {
+  /** G304 structural evidence only; never a parity or admission verdict, and never a new hard failure. */
+  gate: { enforcement: 'report-only'; status: 'candidate' | 'incomplete' | 'unavailable'; issues: string[] };
   status: 'built' | 'missing' | 'invalid'; product: string; privateBinaries: string[];
   tiles: { total: number; l0: number; l1: number } | null;
   files: { total: number; kinds: Record<string, number> } | null;

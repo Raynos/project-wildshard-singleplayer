@@ -20,7 +20,7 @@ const present = value => value !== undefined && value !== null;
 export function shardContent(slug, root, products = resolve(root, 'public/shardfiles')) {
   const path = resolve(products, slug, 'shard.json');
   const privateBinaries = [...privateFiles(resolve(root, 'src/shards', slug), root), ...privateFiles(resolve(root, 'public/assets/baked', slug), root)].sort((a, b) => a.localeCompare(b));
-  const absent = status => ({ status, product: relative(root, path), privateBinaries, tiles: null, files: null, colliders: null, trustedSimulation: null, structuralWorld: null });
+  const absent = status => ({ status, product: relative(root, path), privateBinaries, tiles: null, files: null, colliders: null, trustedSimulation: null, structuralWorld: null, gate: { enforcement: 'report-only', status: 'unavailable', issues: [`product ${status}`] } });
   if (!existsSync(path)) return absent('missing');
   let source;
   try { source = JSON.parse(readFileSync(path, 'utf8')); } catch { return absent('invalid'); }
@@ -29,6 +29,8 @@ export function shardContent(slug, root, products = resolve(root, 'public/shardf
     || (present(source.props) && (!record(source.props) || !rows(source.props.colliders ?? [])
       || (source.props.colliders ?? []).some(collider => !rows(collider.shapes) || collider.shapes.some(shape => shape.kind === 'treads' && (!Number.isSafeInteger(shape.count) || shape.count < 1)))))
     || (present(source.meshCollision) && (!record(source.meshCollision) || !rows(source.meshCollision.tiles) || !rows(source.meshCollision.panels)))
+    || (present(source.terrain) && (!record(source.terrain) || typeof source.terrain.collider !== 'string' || !rows(source.terrain.tiles)
+      || source.terrain.tiles.some(tile => typeof tile.file !== 'string')))
     || (present(source.nativeGround) && (!record(source.nativeGround) || typeof source.nativeGround.file !== 'string'))
     || (present(source.runtime) && (!record(source.runtime) || typeof source.runtime.entry !== 'string'))) return absent('invalid');
   // Binaries a schema row hands to the platform's own decoder are tiles, not shard-private: mesh collision chunks and panels
@@ -49,9 +51,18 @@ export function shardContent(slug, root, products = resolve(root, 'public/shardf
   const trustedSimulation = present(source.runtime);
   // This is a structural candidate, not a claim that a partial world covers all native geometry.
   const structuralWorld = source.tiles.length > 0 && source.files.length > 0
-    && (colliders.heightfield || colliders.meshTiles > 0 || colliders.descriptors > 0)
+    && (colliders.heightfield || colliders.meshTiles > 0 || colliders.shapes > 0)
     && !present(source.nativeGround) && !trustedSimulation && privateBinaries.length === 0;
-  return { status: 'built', product: relative(root, path), privateBinaries,
+  const gateIssues = [];
+  if (!source.tiles.some(tile => tile.lod === 0)) gateIssues.push('no L0 render tiles');
+  if (source.files.length === 0) gateIssues.push('no declared asset files');
+  if (!colliders.heightfield && colliders.meshTiles === 0 && colliders.shapes === 0) gateIssues.push('no declared world collider shapes');
+  if (trustedSimulation) gateIssues.push('trusted runtime owns simulation');
+  if (present(source.nativeGround)) gateIssues.push('trusted native ground owns collision');
+  if (privateBinaries.length > 0) gateIssues.push('private binary content remains');
+  // Candidate means structural evidence only: parity, admitted bytes and gameplay witnesses remain separate.
+  const gate = { enforcement: 'report-only', status: gateIssues.length === 0 ? 'candidate' : 'incomplete', issues: gateIssues };
+  return { gate, status: 'built', product: relative(root, path), privateBinaries,
     tiles: { total: source.tiles.length, l0: source.tiles.filter(tile => tile.lod === 0).length, l1: source.tiles.filter(tile => tile.lod === 1).length },
     files: { total: source.files.length, kinds: Object.fromEntries(kinds), platformBinaries }, colliders, trustedSimulation, structuralWorld };
 }

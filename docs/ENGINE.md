@@ -2739,3 +2739,13 @@ package exports name defining schema modules; there is no barrel. The layer and
 public-index guards recognise it between engine and game. Format imports only
 `valibot` and its own modules; game and the authoring SDK may import its published
 modules. Engine cannot import it, and private schema paths remain refused.
+
+### Report-only conversion content gate (SF77 / G304)
+
+`node scripts/shard-platform.mjs --json` reports each emitted product’s content gate
+separately from its source ratio and gameplay witnesses. `candidate` requires L0
+render tiles, declared asset files and actual world collider shapes, with no trusted
+simulation/native-ground owner or private binary payloads. Missing or malformed
+products are `unavailable`; missing structural evidence is `incomplete`, with reasons.
+This is structural evidence, not parity or asset admission, and adds no hard failure.
+Templates do not make a one-user system public; AssemblyScript remains its own uncapped column.
