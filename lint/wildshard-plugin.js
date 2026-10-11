@@ -945,6 +945,14 @@ const sdkNoFacade = rule('The authoring SDK never aliases a game or engine runti
   return { Program(node) {
     const imported=new Map(), aliases=new Map(), candidates=[];
     const external=source=>shardGameImport(context.filename,source) || shardEngineImport(context.filename,source);
+    const bindingNames=value=>{
+      if(value?.type==='Identifier')return [value.name];
+      if(value?.type==='RestElement')return bindingNames(value.argument);
+      if(value?.type==='AssignmentPattern')return bindingNames(value.left);
+      if(value?.type==='ArrayPattern')return value.elements.flatMap(bindingNames);
+      if(value?.type==='ObjectPattern')return value.properties.flatMap(item=>bindingNames(item.type==='Property'?item.value:item));
+      return [];
+    };
     const reference=value=>{
       const n=unwrap(value);
       if(n?.type==='Identifier')return n.name;
@@ -958,9 +966,15 @@ const sdkNoFacade = rule('The authoring SDK never aliases a game or engine runti
         for(const item of statement.specifiers)imported.set(item.local.name,importPrefix(statement.source));
       }
       const declaration=statement.type==='ExportNamedDeclaration'?statement.declaration:statement;
+      if(declaration?.type==='TSImportEqualsDeclaration' && external(importPrefix(declaration.moduleReference?.expression))) {
+        imported.set(declaration.id.name,importPrefix(declaration.moduleReference.expression));
+        if(statement.type==='ExportNamedDeclaration')candidates.push({node:declaration,name:declaration.id.name,ref:declaration.id.name});
+      }
       if(declaration?.type==='VariableDeclaration')for(const item of declaration.declarations) {
-        if(item.id.type==='Identifier')aliases.set(item.id.name,reference(item.init));
-        if(statement.type==='ExportNamedDeclaration')candidates.push({node:item,name:item.id.name,ref:reference(item.init)});
+        for(const name of bindingNames(item.id)) {
+          aliases.set(name,reference(item.init));
+          if(statement.type==='ExportNamedDeclaration')candidates.push({node:item,name,ref:reference(item.init)});
+        }
       }
       if(declaration?.type==='TSTypeAliasDeclaration') {
         aliases.set(declaration.id.name,reference(declaration.typeAnnotation));

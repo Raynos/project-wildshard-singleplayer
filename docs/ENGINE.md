@@ -2668,6 +2668,8 @@ files. Module paths must be literal. `shard-engine-imports` records every direct
 primary-shard engine import, including relative paths and type imports.
 `sdk-no-facade` refuses public value/type aliases of game or engine bindings;
 the SDK defines authoring implementations rather than another runtime interface.
+Renamed and nested destructuring, namespace aliases and TypeScript `import = require`
+bindings retain that provenance; changing export syntax cannot hide a runtime facade.
 `shard-game-plugins` allows game imports only from `runtime/`, through published
 `@wildshard/game/plugin/*` definitions. Exact sealed legacy source paths remain
 exempt. Static, dynamic, require and type-import syntax are checked.
