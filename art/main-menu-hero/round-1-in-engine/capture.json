@@ -1,0 +1,253 @@
+{
+  "schema": "engine-hero-capture/1",
+  "version": {
+    "build": "27fc24f-mv4glb7b",
+    "time": "2026-10-11T23:33:19.736Z"
+  },
+  "device": "iPhone 16 Pro",
+  "developer": true,
+  "renderScale": 2,
+  "canvasOnly": true,
+  "muted": true,
+  "clock": "live",
+  "method": "look28 entry/pose; camera held, no scene, lighting, quality or material changes",
+  "shots": [
+    {
+      "id": "A",
+      "name": "Road spoke",
+      "mode": "grid",
+      "requestedPose": {
+        "id": "A",
+        "name": "North spoke",
+        "world": true,
+        "x": 277.5,
+        "y": 1.8,
+        "z": 277.5,
+        "heading": 0
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "position": [
+          277.5,
+          1.7388888902030886,
+          277.5
+        ],
+        "grid": null,
+        "frameCount": 263,
+        "renderScale": 2,
+        "clock": "live"
+      },
+      "file": "A.png",
+      "labelledFile": "A-grid.jpg"
+    },
+    {
+      "id": "B",
+      "name": "Crossroads: second spoke",
+      "mode": "grid",
+      "requestedPose": {
+        "id": "B",
+        "name": "Crossroads toward home",
+        "world": true,
+        "x": 277.5,
+        "y": 1.8,
+        "z": 277.5,
+        "heading": -1.5707963267948966
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "position": [
+          277.5,
+          1.7816666669212282,
+          277.5
+        ],
+        "grid": null,
+        "frameCount": 378,
+        "renderScale": 2,
+        "clock": "live"
+      },
+      "file": "B.png",
+      "labelledFile": "B-grid.jpg"
+    },
+    {
+      "id": "C",
+      "name": "Crossroads: east boulevard",
+      "mode": "grid",
+      "requestedPose": {
+        "id": "C",
+        "name": "East boulevard",
+        "world": true,
+        "x": 277.5,
+        "y": 1.8,
+        "z": 277.5,
+        "heading": 1.5707963267948966
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "position": [
+          277.5,
+          1.7816666669212282,
+          277.5
+        ],
+        "grid": null,
+        "frameCount": 493,
+        "renderScale": 2,
+        "clock": "live"
+      },
+      "file": "C.png",
+      "labelledFile": "C-grid.jpg"
+    },
+    {
+      "id": "D",
+      "name": "Raised template corner",
+      "mode": "grid",
+      "requestedPose": {
+        "id": "D",
+        "name": "Raised crossroads",
+        "world": true,
+        "x": 277.5,
+        "y": 35,
+        "z": 277.5,
+        "heading": -2.356194490192345,
+        "pitch": -0.25
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "position": [
+          277.5,
+          34.98166666692123,
+          277.5
+        ],
+        "grid": null,
+        "frameCount": 608,
+        "renderScale": 2,
+        "clock": "live"
+      },
+      "file": "D.png",
+      "labelledFile": "D-grid.jpg"
+    },
+    {
+      "id": "E",
+      "name": "Elevated template block",
+      "mode": "grid",
+      "requestedPose": {
+        "id": "E",
+        "name": "Home and road from above",
+        "world": true,
+        "x": 350,
+        "y": 160,
+        "z": 350,
+        "heading": -2.356194490192345,
+        "pitch": -0.42
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "position": [
+          905,
+          159.9388888902031,
+          905
+        ],
+        "grid": null,
+        "frameCount": 725,
+        "renderScale": 2,
+        "clock": "live"
+      },
+      "file": "E.png",
+      "labelledFile": "E-grid.jpg"
+    },
+    {
+      "id": "F",
+      "name": "Island above the junction",
+      "mode": "grid",
+      "requestedPose": {
+        "id": "F",
+        "name": "Central template junction",
+        "world": true,
+        "x": 277.5,
+        "y": 80,
+        "z": 277.5,
+        "heading": -2.356194490192345,
+        "pitch": -0.3
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "position": [
+          277.5,
+          79.93888889020309,
+          277.5
+        ],
+        "grid": null,
+        "frameCount": 840,
+        "renderScale": 2,
+        "clock": "live"
+      },
+      "file": "F.png",
+      "labelledFile": "F-grid.jpg"
+    },
+    {
+      "id": "G",
+      "name": "Driftwood pier at spawn",
+      "mode": "driftwood-isle",
+      "requestedPose": {
+        "id": "G",
+        "name": "Driftwood pier at spawn",
+        "x": -9.52783829291648e-06,
+        "y": 1.2140302816253097,
+        "z": -194.0000357304095,
+        "heading": -1.2246467991473532e-16,
+        "pitch": -0.05
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "position": [
+          -9.53553022889353e-06,
+          1.214028597914148,
+          -194.00003577566366
+        ],
+        "grid": null,
+        "frameCount": 263,
+        "renderScale": 2,
+        "clock": "live"
+      },
+      "file": "G.png",
+      "labelledFile": "G-driftwood-isle.jpg"
+    },
+    {
+      "id": "H",
+      "name": "Pine forest road at spawn",
+      "mode": "pine-hollow",
+      "requestedPose": {
+        "id": "H",
+        "name": "Pine cabin at spawn",
+        "x": -1.3264457522019213e-06,
+        "y": 0.020099732792004943,
+        "z": -234.99999220201613,
+        "heading": -1.2246467991473532e-16,
+        "pitch": -0.05
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "position": [
+          -2.3803667142593965e-06,
+          0.020099769753869623,
+          -234.9999920758544
+        ],
+        "grid": null,
+        "frameCount": 263,
+        "renderScale": 2,
+        "clock": "live"
+      },
+      "file": "H.png",
+      "labelledFile": "H-pine-hollow.jpg"
+    }
+  ],
+  "pin": "27fc24fb5",
+  "review": "Labels describe the visible scene; authored pose names remain in requestedPose."
+}

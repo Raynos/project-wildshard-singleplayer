@@ -1,5 +1,9 @@
 # Shipped image-model / mockup inventory — G332
 
+G334 scope: only the main-menu hero gets new candidate captures. The other
+rows are provenance findings, not an approved replacement queue. No G333
+Debug rows or image replacements were added.
+
 Audit of the current public image URLs at `380a8f46e665092be0b92a88e6d0c6c0dcc01223` (2026-10-11). No shipped image or look is changed by this audit.
 
 **131 proven image-model/mockup files**, including 26 declared compressed derivatives. Each file is listed once below. A compression, phone resize, silhouette or recolour does not erase its image-model ancestry.

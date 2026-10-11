@@ -19,13 +19,16 @@ const script = import.meta.filename;
 
 function requireNoQuiet() {
   const quiet = join(root, '.git/quiet');
-  if (existsSync(quiet)) throw new Error(`Capture waits for explicit release: ${readFileSync(quiet, 'utf8')}`);
+  if (!existsSync(quiet)) return;
+  const reservation = JSON.parse(readFileSync(quiet, 'utf8'));
+  if (reservation.owner === process.env.CAPTURE_QUIET_OWNER && String(reservation.pid) === process.env.CAPTURE_QUIET_PID) return;
+  throw new Error(`Capture waits for explicit release: ${JSON.stringify(reservation)}`);
 }
 function command(program, argv, cwd, env = process.env) {
   return new Promise((resolve, reject) => {
     const child = spawn(program, argv, { cwd, env, stdio: ['ignore', 'pipe', 'inherit'] });
     let stdout = '';
-    child.stdout.on('data', chunk => { stdout += chunk; });
+    child.stdout.on('data', chunk => { stdout += chunk; if (program.endsWith('browser-lane.sh')) process.stdout.write(chunk); });
     child.on('error', reject);
     child.on('close', code => { if (code === 0) resolve(stdout.trim()); else reject(new Error(`${program} exited ${code}`)); });
   });
@@ -97,14 +100,14 @@ async function capture(base) {
           if (!home) throw new Error('Grid home is not declared');
           const x = home.cell[0] * 555, z = home.cell[1] * 555;
           shots = [
-            { id: 'A', name: 'North spoke', world: true, x: x + 277.5, y: 1.8, z: z + 277.5, heading: 0 },
-            { id: 'B', name: 'Crossroads toward home', world: true, x: x + 277.5, y: 1.8, z: z + 277.5, heading: -Math.PI / 2 },
-            { id: 'C', name: 'East boulevard', world: true, x: x + 277.5, y: 1.8, z: z + 277.5, heading: Math.PI / 2 },
-            { id: 'D', name: 'Raised crossroads', world: true, x: x + 277.5, y: 35, z: z + 277.5, heading: -Math.PI * 0.75, pitch: -0.25 },
-            { id: 'E', name: 'Home and road from above', world: true, x: x + 350, y: 160, z: z + 350, heading: -Math.PI * 0.75, pitch: -0.42 },
-            { id: 'F', name: 'Central template junction', world: true, x: 277.5, y: 80, z: 277.5, heading: -Math.PI * 0.75, pitch: -0.3 },
+            { id: 'A', name: 'Road spoke', world: true, x: x + 277.5, y: 1.8, z: z + 277.5, heading: 0 },
+            { id: 'B', name: 'Crossroads: second spoke', world: true, x: x + 277.5, y: 1.8, z: z + 277.5, heading: -Math.PI / 2 },
+            { id: 'C', name: 'Crossroads: east boulevard', world: true, x: x + 277.5, y: 1.8, z: z + 277.5, heading: Math.PI / 2 },
+            { id: 'D', name: 'Raised template corner', world: true, x: x + 277.5, y: 35, z: z + 277.5, heading: -Math.PI * 0.75, pitch: -0.25 },
+            { id: 'E', name: 'Elevated template block', world: true, x: x + 350, y: 160, z: z + 350, heading: -Math.PI * 0.75, pitch: -0.42 },
+            { id: 'F', name: 'Island above the junction', world: true, x: 277.5, y: 80, z: 277.5, heading: -Math.PI * 0.75, pitch: -0.3 },
           ];
-        } else shots = [{ id: mode === 'driftwood-isle' ? 'G' : 'H', name: mode === 'driftwood-isle' ? 'Driftwood pier at spawn' : 'Pine cabin at spawn', ...initial.pose }];
+        } else shots = [{ id: mode === 'driftwood-isle' ? 'G' : 'H', name: mode === 'driftwood-isle' ? 'Driftwood pier at spawn' : 'Pine forest road at spawn', ...initial.pose }];
         for (const shot of shots) {
           requireNoQuiet();
           const row = { id: shot.id, name: shot.name, mode, requestedPose: shot, errors: [], complete: false };
@@ -131,6 +134,7 @@ async function capture(base) {
             row.complete = true;
           } catch (error) { row.errors.push(String(error)); }
           save();
+          console.log(`${shot.id}: ${row.complete ? 'captured' : row.errors.join('; ')}`);
         }
       } finally { await context.close(); }
     }
