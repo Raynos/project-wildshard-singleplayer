@@ -91,7 +91,7 @@
     "src/shards/nalati-grasslands/data/rifleProfile.ts": 2,
     "src/shards/nalati-grasslands/data/sabreProfile.ts": 2,
     "src/shards/nalati-grasslands/generators/bake-nalati-bodies.mjs": 4,
-    "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs": 5,
+    "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs": 3,
     "src/shards/nalati-grasslands/generators/bake-nalati-physics.mjs": 8,
     "src/shards/nalati-grasslands/generators/bake-nalati-places.mjs": 6,
     "src/shards/nalati-grasslands/generators/bake-nalati-raid-director.mjs": 3,
