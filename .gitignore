@@ -144,3 +144,7 @@ src/**/*.generated.*
 /art/sunscar-dunes/round-25-sky/mid/
 /art/sunscar-dunes/round-25-sky/late/
 /art/sunscar-dunes/round-25-sky/preview-mid.jpg
+
+# G331: abandoned Sky terrain bake; no catalogue output or committed consumer.
+/public/assets/baked/far-reach/terrain.bin
+/public/assets/baked/far-reach/terrain.json
