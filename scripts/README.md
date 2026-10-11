@@ -229,6 +229,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [game-plugins.mjs](./game-plugins.mjs)
 - [gate-cache.d.mts](./gate-cache.d.mts)
 - [gate-cache.mjs](./gate-cache.mjs)
+- [gate-jobs.sh](./gate-jobs.sh)
 - [gate-trace.mjs](./gate-trace.mjs)
 - [gen-api.d.mts](./gen-api.d.mts)
 - [gen-api.mjs](./gen-api.mjs)
