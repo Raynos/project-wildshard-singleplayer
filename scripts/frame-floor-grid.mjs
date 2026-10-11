@@ -9,9 +9,9 @@ export function floorGridPortalPlan(plan, cell, entryways) {
   const row = entryways.find(value => value?.edge === edge && (value.kind === 'portalLink' || value.kind === 'socketLift'));
   if (row === undefined) return plan;
   if (row.kind === 'socketLift') {
-    const approach = row.lift?.approach;
-    if (!Array.isArray(approach) || approach.length < 2 || !approach.every(point => point !== null && typeof point === 'object' && [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Invalid declared floor lift approach');
-    return { ...plan, waypoints: approach.map(point => ({ x: origin.x + point.x, z: origin.z + point.z })), authoredLift: { edge } };
+    const approach = row.lift?.approach?.route;
+    if (!Array.isArray(approach) || approach.length < 2 || !approach.every(point => Array.isArray(point) && point.length === 3 && point.every(Number.isFinite))) throw new Error('Invalid declared floor lift approach');
+    return { ...plan, waypoints: approach.map(point => ({ x: origin.x + point[0], z: origin.z + point[2] })), authoredLift: { edge } };
   }
   const node = value => {
     if (typeof value?.id !== 'string' || value.id.length === 0 || !Array.isArray(value.at) || value.at.length !== 3
