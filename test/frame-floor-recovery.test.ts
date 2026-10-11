@@ -111,3 +111,16 @@ it('retains one bounded memory ledger, samples real GL separately and preserves 
   lost = false; delete window.__sc_gl;
   expect(read()?.memory.glMB).toBeNull();
 });
+
+it('reads the census totals once a second when they exist, never the full census (op-hitch48: it drew a slow frame pair a second)', () => {
+  const census = vi.fn(() => [{ totalBytes: 206e6, reconciled: true }]), totals = vi.fn(() => [{ totalBytes: 150e6 }, { totalBytes: 56e6 }]);
+  const window: { __frameFloorGridProgress?: () => FloorGridProgress | null; __frameFloorGridStop: FloorGridProgress['stop']; __wildshard: object; __sc_gl: typeof census; __sc_gl_totals: typeof totals } = {
+    __frameFloorGridStop: last.stop, __sc_gl: census, __sc_gl_totals: totals, __wildshard: {
+      world: { game: { renderer: { getContext: () => ({ isContextLost: () => false }) } } },
+      shard: { grid: { state: () => ({ playingMB: 1082, accountedBytes: 705e6, inside: 'pine', live: { live: { ...last, worldFeet: last.feet } } }),
+        residency: () => ({ claims: [], cost: { playing: 1082e6 } }) } } } };
+  runInNewContext(`(${installFloorGridProgress.toString()})()`, { window, performance: { timeOrigin: 100, now: () => 0 } });
+  expect(window.__frameFloorGridProgress?.()?.memory).toMatchObject({ glMB: 206, glReconciled: null });
+  expect(totals).toHaveBeenCalledOnce();
+  expect(census).not.toHaveBeenCalled();
+});

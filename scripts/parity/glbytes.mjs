@@ -129,6 +129,10 @@ export const GL_INIT = String.raw`(() => { const W = window;
   };
   hook(W.WebGL2RenderingContext && W.WebGL2RenderingContext.prototype);
   hook(W.WebGLRenderingContext && W.WebGLRenderingContext.prototype);
+  // The live storage per context, summed without listing or labelling a resource: the frame floor's once-a-second ledger.
+  W.__sc_gl_totals = () => recs.filter((r) => !r.gl.isContextLost()).map((r) => { let totalBytes = 0;
+    for (const e of r.tex.values()) for (const i of e.values()) totalBytes += i.bytes;
+    for (const b of r.rb.values()) totalBytes += b; for (const b of r.buf.values()) totalBytes += b; return { totalBytes }; });
   W.__sc_gl = () => { sampleLabels(); for (const r of recs) if(r.gl.isContextLost())retire(r.gl); return recs.filter((r) => !r.gl.isContextLost()).map((r) => {
     let tex = 0, levels = 0; const per = [], resources = [];
     for (const [resource, e] of r.tex) { let b = 0, l0 = null; for (const [k, i] of e) { b += i.bytes; levels++; if (k === 0) l0 = i; } tex += b; per.push([b, l0 ? l0.w + 'x' + l0.h + (l0.d > 1 ? 'x' + l0.d : '') : '?', l0 ? '0x' + l0.ifmt.toString(16) : '?', e.size]); resources.push({ ...entry(resource, 'texture', b), subresources: [...e].map(([key, info]) => ({ face: Math.floor(key / 64), level: key % 64, ...info })) }); }

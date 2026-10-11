@@ -8,7 +8,7 @@ const file = readFileSync('scripts/parity/glbytes.mjs', 'utf8');
 const source = file.slice(file.indexOf('String.raw`') + 11, file.lastIndexOf('`;'));
 interface Resource { id: string; kind: string; bytes: number; owner: string; asset: string; labelled: boolean }
 interface Census { resources: Resource[]; totalBytes: number; listedBytes: number; reconciled: boolean; unlabelled: number }
-function census(scenario: string): Census[] {
+function census(scenario: string, read = 'window.__sc_gl().map(({gl,...record})=>record)'): Census[] {
   return runInNewContext(`
     class GL {
       listeners = new Map(); bindings = new Map(); canvas = {width:16,height:16,addEventListener:(name,fn,options)=>{if(options?.once!==true)throw Error('Loss observer must release itself');this.listeners.set(name,fn);}}; lost = false;
@@ -27,7 +27,7 @@ function census(scenario: string): Census[] {
     ${source}
     const gl = new GL();
     ${scenario}
-    window.__sc_gl().map(({gl,...record})=>record);
+    ${read};
   `) as Census[];
 }
 it('enumerates zero-byte creations and labelled mips, compressed blocks, buffers and multisample storage exactly', () => {
@@ -54,6 +54,18 @@ it('enumerates zero-byte creations and labelled mips, compressed blocks, buffers
     ['shadow-depth', 1024], ['/assets/pine/tree.ktx2', 84], ['tree.glb/position', 48], ['ground.ktx2', 32], ['builtin', 0],
   ]);
   expect(new Set(row?.resources.map((r) => r.id)).size).toBe(5);
+});
+it('sums the same live storage in its totals as the full census lists, without listing it (the frame floor ledger)', () => {
+  const scenario = `
+    const t = gl.createTexture(), data = new Uint8Array(64);
+    gl.bindTexture(0x0de1,t); gl.texImage2D(0x0de1,0,0x8058,4,4,0,0x1908,0x1401,data); gl.generateMipmap(0x0de1);
+    const rb = gl.createRenderbuffer(); gl.bindRenderbuffer(0x8d41,rb); gl.renderbufferStorageMultisample(0x8d41,4,0x8058,8,8);
+    const b = gl.createBuffer(); gl.bindBuffer(0x8892,b); gl.bufferData(0x8892,new Float32Array(12),0x88e4);
+    const gone = gl.createBuffer(); gl.bindBuffer(0x8892,gone); gl.bufferData(0x8892,999,0x88e4); gl.deleteBuffer(gone);`;
+  const totals = census(scenario, 'window.__sc_gl_totals()');
+  expect(totals).toEqual([{ totalBytes: 84 + 1024 + 48 }]);
+  expect(totals.map((row) => row.totalBytes)).toEqual(census(scenario).map((row) => row.totalBytes));
+  expect(census('gl.createTexture(); gl.lost = true;', 'window.__sc_gl_totals()')).toEqual([]);
 });
 it('exposes unlabelled entries, preserves identity on resize and removes deleted allocations', () => {
   const rows = census(`

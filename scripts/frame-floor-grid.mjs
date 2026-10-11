@@ -83,12 +83,14 @@ export function installFloorGridProgress() {
       if (!grid) return last;
       if (window.__wildshard?.world?.game?.renderer.getContext().isContextLost()) return last;
       const state = grid.state(), residency = grid.residency(), live = state.live?.live;
-      // The GL census is installed only in travel configurations, so its global can be absent here.
-      const contexts = '__sc_gl' in window ? window.__sc_gl() : null;
+      // The GL census is installed only in travel configurations, so its global can be absent here. The ledger reads its
+      // totals only (op-hitch48): the full census lists and labels every resource, 14-17 ms on the Simulator once a second,
+      // which drew a slow frame pair into every measured drive that the phone never pays. Reconciliation needs the full list.
+      const totals = '__sc_gl_totals' in window, contexts = totals ? window.__sc_gl_totals() : '__sc_gl' in window ? window.__sc_gl() : null;
       last = { documentOrigin: performance.timeOrigin, sampledAt: Date.now(), seconds: performance.now() / 1000,
         stop: { ...stop }, current: live?.current, inside: state.inside, feet: live?.worldFeet, gameplayReady: live?.gameplayReady,
         memory: { modelledMB: state.playingMB ?? null, accountedBytes: state.accountedBytes ?? null,
-          ...(contexts ? { glMB: contexts.reduce((sum, row) => sum + row.totalBytes, 0) / 1e6, glReconciled: contexts.every(row => row.reconciled) }
+          ...(contexts ? { glMB: contexts.reduce((sum, row) => sum + row.totalBytes, 0) / 1e6, glReconciled: totals ? null : contexts.every(row => row.reconciled) }
             : { glMB: null, glReconciled: null }), claims: residency.claims, cost: residency.cost } };
       sampled = performance.now(); return last;
     } catch { return last; } // Diagnostic reads must not replace the original route/renderer failure.
