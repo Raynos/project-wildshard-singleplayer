@@ -44,6 +44,16 @@ import { NativeGroundSchema } from '@wildshard/format/nativeGround';
 import { UiSchema } from '@wildshard/format/ui';
 import { ClientScriptsSchema } from '@wildshard/format/clientScripts';
 
+import { MemoryMeasurementSchema, RuntimeCostSchema, RegionalSimCostSchema } from '@wildshard/format/runtimeCost';
+import { RuntimeSchema } from '@wildshard/format/runtime';
+import { ClientCheckpointSchema, ItemCheckpointStatesSchema, LogicalClientCheckpointSchema } from '@wildshard/format/clientState';
+import { LiftRiderSchema } from '@wildshard/format/liftRider';
+import { WeaponHooksSchema } from '@wildshard/format/weaponHooks';
+import { ScriptSpeciesSchema } from '@wildshard/format/speciesScripts';
+import { EliteScriptSchema } from '@wildshard/format/eliteScripts';
+import { SkinLookParametersSchema, SkinClipParametersSchema, ShardSkinFileSchema } from '@wildshard/format/skins';
+import { SkinClipNameSchema, SkinRowSchema, SkinBindingSchema } from '@wildshard/format/skinData';
+
 /** JSON Schema plus explicit admission checks that JSON Schema cannot express. */
 export interface FormatJsonSchema extends JsonSchema {
   'x-wildshard-checks'?: string[];
@@ -135,6 +145,23 @@ const wireRoots = {
   'nativeGround.NativeGround': NativeGroundSchema,
   'ui.Ui': UiSchema,
   'clientScripts.ClientScripts': ClientScriptsSchema,
+  'runtimeCost.MemoryMeasurement': MemoryMeasurementSchema,
+  'runtimeCost.RuntimeCost': RuntimeCostSchema,
+  'runtimeCost.RegionalSimCost': RegionalSimCostSchema,
+  'runtime.Runtime': RuntimeSchema,
+  'clientState.ClientCheckpoint': ClientCheckpointSchema,
+  'clientState.ItemCheckpointStates': ItemCheckpointStatesSchema,
+  'clientState.LogicalClientCheckpoint': LogicalClientCheckpointSchema,
+  'liftRider.LiftRider': LiftRiderSchema,
+  'weaponHooks.WeaponHooks': WeaponHooksSchema,
+  'speciesScripts.ScriptSpecies': ScriptSpeciesSchema,
+  'eliteScripts.EliteScript': EliteScriptSchema,
+  'skins.SkinLookParameters': SkinLookParametersSchema,
+  'skins.SkinClipParameters': SkinClipParametersSchema,
+  'skins.ShardSkinFile': ShardSkinFileSchema,
+  'skinData.SkinClipName': SkinClipNameSchema,
+  'skinData.SkinRow': SkinRowSchema,
+  'skinData.SkinBinding': SkinBindingSchema,
  } satisfies Readonly<Record<string, GenericSchema>>;
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
@@ -184,6 +211,8 @@ export function formatJsonSchema(schema: GenericSchema): FormatJsonSchema {
       if (valibotAction === CommonsCostsSchema.pipe[1]) {
         return { ...jsonSchema, maxProperties: SHARDFILE_ADMISSION_LIMITS.commons };
       }
+      // The retained clip transform returns its input unchanged; identity is checked against its defining object.
+      if (valibotAction === SkinClipNameSchema.pipe[2]) return jsonSchema;
       const check = wireChecks.get(valibotAction);
       if (check !== undefined) {
         const before = (jsonSchema as FormatJsonSchema)['x-wildshard-checks'] ?? [];

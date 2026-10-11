@@ -13,7 +13,8 @@ import { browserShardfileOptions, shardfileSource } from './loader';
 import type { ProductOptions } from './product';
 import type { ShardfileClientBindings } from './client';
 import type { Shardfile } from './schema';
-import { prepareTrustedRuntime, type RuntimeDeclaration, type TrustedRuntimeEntry } from './runtime';
+import { prepareTrustedRuntime, type TrustedRuntimeEntry } from './runtime';
+import type { RuntimeDeclaration } from '@wildshard/format/runtime';
 
 /** A resident's data world stays alive when its independently scoped trusted play hooks leave. */
 export interface HybridResident {

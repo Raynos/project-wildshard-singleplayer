@@ -1,6 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { RingLevel, RingView } from './rings';
-import { runtimeAccountedBytes, type RuntimeCost } from './runtimeCost';
+import { runtimeAccountedBytes, type RuntimeCost } from '@wildshard/format/runtimeCost';
 
 /** Immutable shared presentation resource; count retained CPU data and all GPU buffers/mips once by stable id.
  * Per-chunk clones belong to the chunk. The same id must mean the same resource and byte shape across a page. */

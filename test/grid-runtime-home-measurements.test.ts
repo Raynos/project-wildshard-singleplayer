@@ -3,7 +3,7 @@ import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
 import { regionalRuntimeAccountedBytes } from '../src/game/grid/regionalRuntime';
 import { CONTENT_CAPS } from '../src/engine/core/config';
-import { runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
+import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { SKY_REACH } from '../src/shards/far-reach/manifest';
 import skySource from '../src/shards/far-reach/shard.config';
 import { SKY_REACH_RUNTIME_COST } from '../src/shards/far-reach/budgets';

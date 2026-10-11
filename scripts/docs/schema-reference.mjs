@@ -6,7 +6,7 @@ const sorted = value => Array.isArray(value) ? value.map(sorted) : record(value)
 const describe = value => value instanceof RegExp ? value.toString() : typeof value === 'function' ? '[function; not executed]'
   : value === undefined ? 'undefined' : JSON.stringify(sorted(value));
 const schemas = new Set(['array', 'boolean', 'custom', 'exact_optional', 'literal', 'null', 'nullable', 'number', 'object', 'optional', 'picklist', 'record', 'strict_object', 'string', 'tuple', 'union', 'unknown', 'variant']);
-const actions = new Set(['check', 'finite', 'integer', 'length', 'max_length', 'max_value', 'min_length', 'min_value', 'raw_check', 'raw_transform', 'regex', 'safe_integer']);
+const actions = new Set(['check', 'finite', 'integer', 'length', 'max_length', 'max_value', 'min_length', 'min_value', 'raw_check', 'raw_transform', 'transform', 'regex', 'safe_integer']);
 
 /** Extract every declared path, preserving alternative branches and refusing unknown metadata. */
 export function schemaInventory(schema, root = '$') {

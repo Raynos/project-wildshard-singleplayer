@@ -19,7 +19,8 @@ import type { AnimalSpecies, BoneDef, RigAnimCtx } from '@wildshard/engine/entit
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { loadSkin } from './skinPlayback';
 import { compileSkinPoseLayers, bindSkinPoseLayers, type CompiledSkinPoseLayers } from './skinLayerPlayback';
-import { parseSkinFile, skinLookParameters, SKIN_LOOK_RECIPE } from './skins';
+import { parseSkinFile, skinLookParameters } from './skins';
+import { SKIN_LOOK_RECIPE } from '@wildshard/format/skins';
 import type { ShardRows } from '@wildshard/format/rows';
 import type { Shardfile } from './schema';
 

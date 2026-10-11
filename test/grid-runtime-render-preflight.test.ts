@@ -4,7 +4,7 @@ import { expect, it } from 'vitest';
 import { BoxGeometry, type BufferGeometry, DataTexture, Group, InstancedMesh, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
 import { CHUNK_HALF } from '../src/engine/core/config';
 import { compileRuntimeRenderPlan } from '../src/game/grid/runtimeRenderPlan';
-import { runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
+import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { preflightRenderPlan, textureCost, toRuntimeRenderPlan, wantedL1Chunks, type PreflightPlan } from '../src/game/grid/runtimeRenderPreflight';
 import { PINE_IMAGES_FIRST_COST, PINE_RUNTIME_COST } from '../src/shards/pine-hollow/data/runtimeCost';
 

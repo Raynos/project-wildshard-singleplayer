@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseShardfile } from '../src/game/shardfile/schema';
-import { runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
+import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 
 const source = () => emptyShardfile({ slug: 'runtime-cost', name: 'Runtime cost', author: 'Fixture', seed: 1, revision: 1 });

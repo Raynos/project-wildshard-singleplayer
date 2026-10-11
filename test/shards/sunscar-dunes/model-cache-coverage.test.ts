@@ -9,7 +9,7 @@ import { sceneResources } from '../../../src/engine/app/sceneOwnership';
 import { cachedResourceAllocations } from '../../../src/engine/render/textureBytes';
 import { PageResidency } from '../../../src/game/grid/pageResidency';
 import { coverRuntimeAssets } from '../../../src/game/grid/assetResidency';
-import { runtimeAccountedBytes } from '../../../src/game/grid/runtimeCost';
+import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { SIGNAL_DUNES_RUNTIME_COST } from '../../../src/shards/sunscar-dunes/data/runtimeCost';
 import { duneHd, preloadDuneMeshes } from '../../../src/shards/sunscar-dunes/world/meshes';
 

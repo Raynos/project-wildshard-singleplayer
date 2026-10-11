@@ -3,7 +3,7 @@ import { DEFAULT_GRAPH_BUDGET, validateGraph } from '@wildshard/engine/core/mate
 import { SCRIPT_LIMITS } from '@wildshard/engine/script/host';
 import { memoryTargetWarnings, nearbyContentCost, worstContentCost } from './budget';
 import type { Shardfile } from './schema';
-import { runtimeAccountedBytes } from '../grid/runtimeCost';
+import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 
 /** Native offline observations; script execution is timed separately from physics and checkpoint/IPC work. */
 export interface PerformanceObservations {

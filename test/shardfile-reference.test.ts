@@ -122,3 +122,10 @@ describe('schema-derived shardfile reference', () => {
     } finally { rmSync(dir, { recursive: true, force: true }); }
   });
 });
+
+it('inventories opaque transform metadata without executing it or treating it as a structural bound', () => {
+  let calls = 0;
+  const rows = schemaInventory(v.pipe(v.string(), v.transform(value => { calls++; return value; })));
+  expect(rows).toEqual([{ path: '$', type: 'string', wrappers: [], constraints: ['transform'] }]);
+  expect(calls).toBe(0);
+});

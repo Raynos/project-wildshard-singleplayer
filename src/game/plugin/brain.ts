@@ -1,3 +1,5 @@
+import { parseScriptSpecies, type ScriptSpeciesSchema, type ScriptSpeciesData } from '@wildshard/format/speciesScripts';
+import { parseEliteScript, type EliteScriptData } from '@wildshard/format/eliteScripts';
 import * as v from "valibot";
 import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptSnapshot } from "@wildshard/engine/script/host";
 import { ScriptWorld, SCRIPT_OP, type EffectTransaction, type ScriptEffect } from "@wildshard/engine/script/effects";
@@ -42,28 +44,6 @@ import { parseSkirmisher, parseGuardian, parsePerchHunter, type SkirmisherSchema
  * attack token, then picks the strike from the declared catalogue (the trusted StrikeRunner owns windup, contact, damage
  * and cooldown). A trap, a fuel overrun or an undeclared record refuses the call (the body stands still that step).
  */
-
-const speciesScriptsFinite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
-const speciesScriptsId = v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff));
-const speciesScriptsKey = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.:-]*$/u), v.maxLength(128));
-const speciesScriptsField = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9_]*$/u), v.maxLength(64));
-/** A script species brain's declaration: its module, parameters, state slots, actor memory and strike catalogue. */
-export const ScriptSpeciesSchema = v.pipe(v.strictObject({
-  id: speciesScriptsKey, kind: v.literal('script'), module: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)),
-  parameters: v.pipe(v.array(speciesScriptsFinite), v.maxLength(64)),
-  /** the creature's numeric state, with its spawn values */
-  slots: v.pipe(v.array(speciesScriptsFinite), v.maxLength(8)),
-  /** actor memory fields the module reads and writes (a pose's `mem`), with their spawn values */
-  memory: v.pipe(v.array(v.strictObject({ field: speciesScriptsField, initial: speciesScriptsFinite })), v.maxLength(4)),
-  maxSpeed: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(15)),
-  maxTurnRate: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(30)),
-  strikes: v.pipe(v.array(v.strictObject({ event: speciesScriptsId, strike: speciesScriptsKey })), v.minLength(1), v.maxLength(8)),
-}), v.check(row => new Set(row.strikes.map(s => s.event)).size === row.strikes.length && new Set(row.memory.map(m => m.field)).size === row.memory.length,
-  'Unique script species strikes and memory fields'));
-/** Validated script species data. */
-export type ScriptSpeciesData = v.InferOutput<typeof ScriptSpeciesSchema>;
-/** Validate before admission or allocation. */
-export function parseScriptSpecies(input: unknown): ScriptSpeciesData { return v.parse(ScriptSpeciesSchema, input); }
 
 /**
  * The math query (kind 1): `[op, kx, x, ky, y, 0, 0, 0]` answers `[f(kx * 8192 + x, ky * 8192 + y)]` with the host's own
@@ -262,34 +242,6 @@ export function sha256(bytes: Uint8Array): string {
  * it replaces bit for bit; kind 2 draws the elite's own seeded stream. A trap, a fuel overrun or an undeclared record
  * refuses the call (the body stands still that step).
  */
-
-const eliteScriptsFinite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
-const eliteScriptsKey = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.:-]*$/u), v.maxLength(128));
-const name = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9_-]*$/u), v.maxLength(64));
-/** An elite fight script's declaration: its module, parameters, slots, modes, voices, lanes, contacts and own actions. */
-export const EliteScriptSchema = v.pipe(v.strictObject({
-  id: eliteScriptsKey, kind: v.literal('elite-script'), module: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)),
-  parameters: v.pipe(v.array(eliteScriptsFinite), v.maxLength(64)),
-  /** the fight's numeric state, with its spawn values */
-  slots: v.pipe(v.array(v.strictObject({ field: name, initial: eliteScriptsFinite })), v.maxLength(8)),
-  /** every mode the elite's brain can be in (the input and the `mode` verb use the index) */
-  modes: v.pipe(v.array(name), v.minLength(1), v.maxLength(16)),
-  /** the voices the `voice` verb names */
-  voices: v.pipe(v.array(name), v.maxLength(16)),
-  /** a lane that steps before the call while the elite is in `mode`; its hit shakes the view by `trauma` */
-  lanes: v.pipe(v.array(v.strictObject({ mode: name, lane: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(7)), trauma: eliteScriptsFinite })), v.maxLength(8)),
-  /** the measured contacts the `contact` verb runs: on a hit, the stun seconds (0: none), then the blow, then the shake */
-  contacts: v.pipe(v.array(v.strictObject({ strike: eliteScriptsKey, throughWalls: v.boolean(), stun: eliteScriptsFinite, trauma: eliteScriptsFinite })), v.maxLength(8)),
-  /** the shard's own actions the `action` verb names (a fade, a burst from a den, a call for rivals) */
-  actions: v.pipe(v.array(name), v.maxLength(8)),
-  maxSpeed: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(40)),
-  maxTurnRate: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(30)),
-}), v.check(row => new Set(row.slots.map(s => s.field)).size === row.slots.length && new Set(row.modes).size === row.modes.length,
-  'Unique elite script slots and modes'));
-/** Validated elite script data. */
-export type EliteScriptData = v.InferOutput<typeof EliteScriptSchema>;
-/** Validate before admission or allocation. */
-export function parseEliteScript(input: unknown): EliteScriptData { return v.parse(EliteScriptSchema, input); }
 
 /** The verbs an elite script's events name (event id → verb). */
 export const ELITE_VERB = Object.freeze({

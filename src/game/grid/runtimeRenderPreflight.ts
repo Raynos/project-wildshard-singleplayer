@@ -16,7 +16,7 @@
 import { Box3, Matrix4, Vector3, type BufferAttribute, type BufferGeometry, type InterleavedBufferAttribute, type Material, type Object3D, type Texture } from 'three';
 import { CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
 import type { RuntimeRenderPlan } from './runtimeRenderPlan';
-import type { RuntimeCost } from './runtimeCost';
+import type { RuntimeCost } from '@wildshard/format/runtimeCost';
 
 /** A classified shared resource set (charged once; `always` = used by a cell-wide drawable). */
 export interface PreflightDependency { readonly id: string; readonly jsBytes: number; readonly gpuBytes: number; readonly always?: boolean }

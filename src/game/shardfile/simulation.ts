@@ -31,7 +31,8 @@ import { socketLiftEntries } from './socketLift';
 import { portalLinkEntries, portalLinkRules } from './portalLink';
 import { validatePortalFloors } from './portalFloor';
 import { portalTransitioning } from './portalTraversal';
-import { LiftRiderSchema, captureLiftRider, restoreLiftRider, type LiftRider } from './liftRider';
+import { captureLiftRider, restoreLiftRider } from './liftRider';
+import { LiftRiderSchema, type LiftRider } from '@wildshard/format/liftRider';
 import * as v from 'valibot';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 

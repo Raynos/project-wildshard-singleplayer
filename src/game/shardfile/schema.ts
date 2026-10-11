@@ -25,7 +25,7 @@ import { PropsSchema, validatePropsReferences } from './props';
 import { TargetsSchema, targetRules } from '@wildshard/format/targets';
 import { ItemsSchema, itemRules } from '@wildshard/format/items';
 import { TraversalSchema } from '@wildshard/format/traversal';
-import { RuntimeSchema } from './runtime';
+import { RuntimeSchema } from '@wildshard/format/runtime';
 import { ClientScriptsSchema, clientScriptRules } from '@wildshard/format/clientScripts';
 import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema, entrywayRules } from '@wildshard/format/entryways';

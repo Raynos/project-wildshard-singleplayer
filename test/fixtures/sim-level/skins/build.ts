@@ -3,7 +3,8 @@ import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Artifact paths are controlled by the local baker CLI.
 import { join } from 'node:path';
 import { MeshStandardMaterial, Vector3 } from 'three';
-import { loadSkin, parseSkinBindings, parseSkinRows } from '../../../../src/game/shardfile/skinPlayback';
+import { loadSkin } from '../../../../src/game/shardfile/skinPlayback';
+import { parseSkinBindings, parseSkinRows } from '@wildshard/format/skinData';
 import { skinLayerDecoded } from '@wildshard/format/skinLayers';
 import { bakePoseLayers, type PoseLayer } from './layers';
 import type { ClipName } from '../../../../src/engine/anim/rig';

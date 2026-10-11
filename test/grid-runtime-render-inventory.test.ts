@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { compileRuntimeRenderPlan, type RuntimeRenderPlan } from '../src/game/grid/runtimeRenderPlan';
-import type { RuntimeCost } from '../src/game/grid/runtimeCost';
+import type { RuntimeCost } from '@wildshard/format/runtimeCost';
 
 const measured: RuntimeCost = { webContentMB: 350, glMB: 50, engineBaseMB: 299,
   rev: '123456789', device: 'reviewed test fixture', evidence: 'progress/memory/runtime-rings/summary.json' };

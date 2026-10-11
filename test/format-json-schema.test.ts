@@ -53,7 +53,7 @@ it('rebuilds all migrated documents byte-identically without committing generate
     const directory = join(root, '.wildshard/format');
     const files = readdirSync(directory).sort();
     expect(files).toEqual(Object.keys(formatJsonSchemas()).map(name => `${name}.schema.json`).sort());
-    expect(files.length).toBe(51);
+    expect(files.length).toBe(68);
     const before = files.map(name => readFileSync(join(directory, name), 'utf8'));
     writeFormatJsonSchemas(root);
     expect(files.map(name => readFileSync(join(directory, name), 'utf8'))).toEqual(before);
@@ -124,4 +124,16 @@ it('documents all entry variants and exact row/client/mover limits without broad
   expect(roots['nativeGround.NativeGround']?.additionalProperties).toBe(false);
   expect(roots['ui.Ui']?.maxItems).toBe(64);
   expect(JSON.stringify(roots['clientScripts.ClientScripts'])).toContain('maxOffset');
+});
+
+it('documents native client checkpoints and skin/script/runtime declarations without admitting new transforms', () => {
+  const roots = formatJsonSchemas();
+  expect(roots['runtime.Runtime']?.additionalProperties).toBe(false);
+  expect(roots['skinData.SkinClipName']?.pattern).toContain('idle|walk|run');
+  expect(JSON.stringify(roots['clientState.ClientCheckpoint'])).toContain('moverPending');
+  expect(roots['liftRider.LiftRider']).toBeDefined();
+  expect(roots['weaponHooks.WeaponHooks']?.additionalProperties).toBe(false);
+  expect(roots['speciesScripts.ScriptSpecies']?.additionalProperties).toBe(false);
+  expect(roots['eliteScripts.EliteScript']?.additionalProperties).toBe(false);
+  expect(() => formatJsonSchema(v.pipe(v.string(), v.transform(value => value)))).toThrow();
 });

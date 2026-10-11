@@ -21,7 +21,7 @@ import { shiftedFullMap, shiftedMinimap } from './mapFrame';
 import type { ResidencyAllocator, ResidencyLease } from './allocator';
 import type { LiveGridRegion } from './live';
 import type { GridLoadout } from './wallet';
-import { runtimeAccountedBytes, type RuntimeCost } from './runtimeCost';
+import { runtimeAccountedBytes, type RuntimeCost } from '@wildshard/format/runtimeCost';
 import { createRegionalView, type RegionalView } from './regionalView';
 import { installEnteredRuntimeService } from "../plugin/lifecycle";
 import { Progress } from '../Progress';

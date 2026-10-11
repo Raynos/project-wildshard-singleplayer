@@ -1,4 +1,5 @@
-import { installWeaponHooks as platformInstallWeaponHooks, type HookedWeapon as PlatformHookedWeapon, type WeaponHooksInstallation as PlatformWeaponHooksInstallation, parseWeaponHooks, type WeaponHookLane as PlatformWeaponHookLane, type WeaponHooksData as PlatformWeaponHooksData, type WeaponDamageInput as PlatformWeaponDamageInput, type WeaponHooks as PlatformWeaponHooks } from "@wildshard/game/plugin/weaponHooks";
+import { installWeaponHooks as platformInstallWeaponHooks, type HookedWeapon as PlatformHookedWeapon, type WeaponHooksInstallation as PlatformWeaponHooksInstallation, type WeaponHookLane as PlatformWeaponHookLane, type WeaponDamageInput as PlatformWeaponDamageInput, type WeaponHooks as PlatformWeaponHooks } from '@wildshard/game/plugin/weaponHooks';
+import { parseWeaponHooks, type WeaponHooksData as PlatformWeaponHooksData } from '@wildshard/format/weaponHooks';
 
 
 

@@ -17,7 +17,8 @@ import { BASIS_PATH } from '@wildshard/engine/core/ktx2';
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { familyMaterial } from '@wildshard/engine/render/families/registry';
-import { loadSkin, parseSkinBindings, parseSkinRows } from '../../src/game/shardfile/skinPlayback';
+import { loadSkin } from '../../src/game/shardfile/skinPlayback';
+import { parseSkinBindings, parseSkinRows } from '@wildshard/format/skinData';
 import { NpcModels } from '../../src/shards/pine-hollow/quest/npcModels';
 import { creatureSkinSource } from '../../test/fixtures/sim-level/skins/sources';
 

@@ -3,7 +3,7 @@ import { bootPageMode, pageGridInstance, type PageMode } from './boot';
 import { PageResidency } from './pageResidency';
 import { pageGridRecovery } from './recoveryBoot';
 import type { GridRecoveryRecord } from './recovery';
-import { runtimeAccountedBytes } from './runtimeCost';
+import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { ResidencyAllocator } from './allocator';
 import { MemoryAdmission } from './memoryAdmission';
 import { isDev } from '@wildshard/engine/core/devMode';

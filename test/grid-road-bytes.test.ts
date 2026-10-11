@@ -5,7 +5,7 @@ import { generatePlatform, type GeneratedStrip, type PlatformCell } from '../src
 import { GridAssembly } from '../src/game/grid/assembly';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
-import { runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
+import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 import { loadGridEdgeProfiles } from '../src/game/grid/edgeProfiles';
 import { readGridEdges } from '../src/game/grid/edgeSources';

@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
 import { allocateRenderSteps, PlatformRenderAdmissionError, PlatformRenderResidency } from '../src/game/grid/renderResidency';
-import { runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
+import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 
 it('accounts CPU and GPU bytes before constructing a mesh and keeps the claim through resource disposal', () => {

@@ -15,7 +15,8 @@ import { Scope } from '../src/engine/app/scope';
 import { ToonLook } from '../src/engine/render/families/toon';
 import { familyMaterial } from '../src/engine/render/families/registry';
 import { parseKtx2 } from '../src/game/shardfile/assets';
-import { loadSkin, parseSkinBindings, parseSkinRows } from '../src/game/shardfile/skinPlayback';
+import { loadSkin } from '../src/game/shardfile/skinPlayback';
+import { parseSkinBindings, parseSkinRows } from '@wildshard/format/skinData';
 import { skinFixtureSource } from './fixtures/sim-level/skins/build';
 
 const dir = join(cwd(), 'public/assets/baked/skin-fixture');

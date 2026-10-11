@@ -20,7 +20,7 @@ import type { WaterBody } from '@wildshard/engine/world/water/body';
 import { terrainFieldFor } from '@wildshard/engine/world/groundField';
 import type { ShardPlugin } from "../plugin/shardPlugin";
 import type { AccentId } from '@wildshard/format/accent';
-import type { RegionalSimCost, RuntimeCost } from '../grid/runtimeCost';
+import type { RegionalSimCost, RuntimeCost } from '@wildshard/format/runtimeCost';
 import type { ShardSlug } from './slugs.generated';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.

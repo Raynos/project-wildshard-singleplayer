@@ -16,21 +16,8 @@ import { AnimMachine } from '@wildshard/engine/anim/machine';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { parseGlb, type AssetCost } from './assets';
 import { skinLayerDecoded } from '@wildshard/format/skinLayers';
-import * as skinData from './skinData';
+import { parseSkinBindings, type SkinRow, type SkinBinding } from '@wildshard/format/skinData';
 import { skinPoseLayers } from './skinLayerPlayback';
-
-/** Validated exported skin rows; renderer-free admission is shared with the shardfile schema. */
-export const SkinRowSchema = skinData.SkinRowSchema;
-/** Validated exported skin binding schema. */
-export const SkinBindingSchema = skinData.SkinBindingSchema;
-/** A validated exported rig declaration. */
-export type SkinRow = skinData.SkinRow;
-/** A validated exported material and pose declaration. */
-export type SkinBinding = skinData.SkinBinding;
-/** Parse rig declarations before loading a view. */
-export const parseSkinRows = skinData.parseSkinRows;
-/** Parse material/pose declarations against their rig. */
-export const parseSkinBindings = skinData.parseSkinBindings;
 
 /** A loaded exported skin: its scene root, its one skinned mesh, the bound rig and the engine's clip player. */
 export interface SkinPlayer {

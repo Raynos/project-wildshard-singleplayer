@@ -8,7 +8,8 @@ import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmit
 import type { QuestDataPorts } from '../quest/declared';
 import type { Shardfile } from '../shardfile/schema';
 import { GridWallet } from './wallet';
-import { ClientCheckpointSchema, clientStateFromRegion, restoreClientState, type ClientCheckpoint } from '../shardfile/clientState';
+import { clientStateFromRegion, restoreClientState } from '../shardfile/clientState';
+import { ClientCheckpointSchema, type ClientCheckpoint } from '@wildshard/format/clientState';
 import type { ShardfileSimulation } from '../shardfile/simulation';
 
 const schema = v.nullable(v.strictObject({ revision: v.pipe(v.number(), v.integer(), v.minValue(1)),

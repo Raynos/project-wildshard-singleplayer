@@ -49,7 +49,16 @@
     "./nativeGround": "./nativeGround.ts",
     "./ui": "./ui.ts",
     "./clientScripts": "./clientScripts.ts",
-    "./wireLimits": "./wireLimits.ts"
+    "./wireLimits": "./wireLimits.ts",
+    "./runtimeCost": "./runtimeCost.ts",
+    "./runtime": "./runtime.ts",
+    "./clientState": "./clientState.ts",
+    "./liftRider": "./liftRider.ts",
+    "./weaponHooks": "./weaponHooks.ts",
+    "./speciesScripts": "./speciesScripts.ts",
+    "./eliteScripts": "./eliteScripts.ts",
+    "./skins": "./skins.ts",
+    "./skinData": "./skinData.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

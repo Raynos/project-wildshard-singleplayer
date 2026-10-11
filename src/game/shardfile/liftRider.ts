@@ -1,14 +1,11 @@
-import * as v from 'valibot';
 import { canStandAt } from '@wildshard/engine/physics/query';
 import { tagOf } from '@wildshard/engine/physics/surface';
 import type { Shardfile } from './schema';
 import type { ShardfileSimulation } from './simulation';
 import { socketLiftEntries } from './socketLift';
 
-/** Stable edge identity only: no historical pose, native handle or author function enters a rider checkpoint. */
-export const LiftRiderSchema = v.nullable(v.picklist(['north', 'east', 'south', 'west']));
-/** A rider reloads at its admitted road boarding point; other player progress keeps its existing save policy. */
-export type LiftRider = v.InferOutput<typeof LiftRiderSchema>;
+import type { LiftRider } from '@wildshard/format/liftRider';
+
 /** Capture only a live grounded rider aboard a declared moving lift, never a proximity guess. */
 export function captureLiftRider(source: Shardfile, sim: Pick<ShardfileSimulation, 'host' | 'movers'>): LiftRider {
   if (!sim.host.hasPlayerMotor || sim.movers === undefined) return null;

@@ -8,7 +8,8 @@ import { bindConstructionEnvironment, withOwner } from '../src/engine/app/owners
 import { createLevelInstallation } from '../src/engine/level/installation';
 import type { LevelDriver } from '../src/engine/level/load';
 import { emptyShardfile } from '../src/sdk/author';
-import { RuntimeSchema, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../src/game/shardfile/runtime';
+import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../src/game/shardfile/runtime';
+import { RuntimeSchema } from '@wildshard/format/runtime';
 import { HybridResidentWorld, HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident, type HybridRuntimeOptions } from '../src/game/shardfile/hybrid';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
 import { installEnteredRuntimeInput, installEnteredRuntimeService } from "../src/game/plugin/lifecycle";
