@@ -65,4 +65,18 @@ describe('framePacing', () => {
     expect(plain).toBe(1);
     await nextDrawnFrame(); // Node: no requestAnimationFrame, resolves at once
   });
+  it('never infers a faster display from the synchronous startup draw to the first vsync', () => {
+    setFramePacing(true);
+    const t = 6_000_000;
+    noteFrameDrawn(t, t, 60);
+    noteFrameDrawn(t + 10, undefined, 0);
+    noteFrameDrawn(t + 18, t + 16, 0);
+    expect(frameInterval()).toBeCloseTo(1000 / 60);
+    noteFrameDrawn(t + 18 + 1000 / 60, t + 16 + 1000 / 60, 0);
+    expect(frameInterval()).toBeCloseTo(1000 / 60);
+    // A real faster display is still observed from two real vsyncs.
+    noteFrameDrawn(t + 18 + 1000 / 60 + 1000 / 120, t + 16 + 1000 / 60 + 1000 / 120, 0);
+    expect(frameInterval()).toBeCloseTo(1000 / 120);
+    setFramePacing(false);
+  });
 });

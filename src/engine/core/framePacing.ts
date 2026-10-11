@@ -26,6 +26,7 @@ const WAIT_CAP_MS = 100;
 
 let lastDrawn = Number.NEGATIVE_INFINITY;
 let lastFrameAt = Number.NEGATIVE_INFINITY;
+let lastVsyncAt = Number.NEGATIVE_INFINITY;
 let enabled = false;
 /** Declared capped cadence, or the fastest observed uncapped cadence; legacy completion-only calls smooth it. */
 let interval = 1000 / 60;
@@ -34,9 +35,12 @@ let interval = 1000 / 60;
  * Build deadlines start at the vsync, not after the frame's work; missed vsyncs never relax an uncapped deadline.
  * A completion-only caller retains the original smoothed interval. */
 export function noteFrameDrawn(at: number = diagnosticNow(), frameAt?: number, capFps?: number): void {
-  const start = frameAt ?? at, gap = start - lastFrameAt;
+  const start = frameAt ?? at;
+  // The synchronous first draw can land midway between vsyncs. Only two actual rAF stamps establish cadence.
+  const gap = capFps === 0 ? (frameAt === undefined ? Number.POSITIVE_INFINITY : frameAt - lastVsyncAt) : start - lastFrameAt;
   if (capFps !== undefined && capFps > 0) interval = 1000 / capFps;
   else if (gap > 4 && gap < 70) interval = capFps === 0 ? Math.min(interval, gap) : interval + (gap - interval) * 0.2;
+  lastVsyncAt = frameAt ?? Number.NEGATIVE_INFINITY;
   lastFrameAt = start; lastDrawn = at;
 }
 

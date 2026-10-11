@@ -921,7 +921,7 @@ export class Game {
       this.flushEvents('render');
       if (this.captures.length > 0) this.flushCaptures();
       const done = performance.now(), work = done - lastRun;
-      noteFrameDrawn(done, now ?? lastRun, cap); // background builds share the actual vsync deadline, including this frame's work
+      noteFrameDrawn(done, now, cap); // background builds share the actual vsync deadline; the synchronous first draw is not a vsync
       this.app.cpu.end();
       this.workMs[this.frameI] = work;
       this.frameRafTime = now ?? null;
