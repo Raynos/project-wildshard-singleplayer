@@ -81,7 +81,7 @@ it('fails every phase on one long frame that median and p95 never see (100 ms de
     expect(assess({ ...result, maxMs: 100.001, pose: { name } }, 'desktop')).toMatchObject({ pass: false, maxFramePass: false });
     expect(assess({ ...result, maxMs: 200, pose: { name } }, 'sim')).toMatchObject({ maxFramePass: true, maxFrameLimitMs: 200 });
     expect(assess({ ...result, maxMs: 200.001, pose: { name } }, 'sim')).toMatchObject({ pass: false, maxFramePass: false });
-    expect(assess({ ...result, maxMs: NaN, pose: { name } }, 'desktop').pass).toBe(false);
+    expect(assess({ ...result, maxMs: Number.NaN, pose: { name } }, 'desktop').pass).toBe(false);
     expect(assess({ ...result, maxMs: Infinity, pose: { name } }, 'sim').pass).toBe(false);
   }
 });
