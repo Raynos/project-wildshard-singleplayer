@@ -1,0 +1,53 @@
+{
+  "version": 2,
+  "id": "nine.portal-ride",
+  "inputs": {
+    "touch": "zone:nine.portal",
+    "dark": "event:nine.portal-dark",
+    "clear": "event:nine.portal-clear"
+  },
+  "stages": [
+    {
+      "id": "idle",
+      "do": [
+        {
+          "emit": "portal.clear"
+        }
+      ],
+      "next": [
+        {
+          "target": "held",
+          "when": "touch"
+        }
+      ]
+    },
+    {
+      "id": "held",
+      "do": [
+        {
+          "emit": "portal.hold"
+        }
+      ],
+      "next": [
+        {
+          "target": "transferred",
+          "when": "dark"
+        }
+      ]
+    },
+    {
+      "id": "transferred",
+      "do": [
+        {
+          "emit": "portal.transfer"
+        }
+      ],
+      "next": [
+        {
+          "target": "idle",
+          "when": "clear"
+        }
+      ]
+    }
+  ]
+}

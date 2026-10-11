@@ -25,7 +25,9 @@ export type PortalSlot = RideSlot;
 
 /** the ride over the four decks' rings and the square's ring out */
 export function portalRide(rider: PortalRider, veil: (k: number) => void): PortalRide {
-  return walkInRide(rider, veil, { entries: declaredPortals(source), trigger: PORTAL_TRIGGER, fade: PORTAL_FADE });
+  const stages = source.directors?.find(row => row.id === 'nine.portal-ride');
+  if (stages === undefined) throw new Error('Missing Nine portal director declaration');
+  return walkInRide(rider, veil, { entries: declaredPortals(source), trigger: PORTAL_TRIGGER, fade: PORTAL_FADE, stages });
 }
 
 /** the player's side of the ride, transferring between shard.config.ts's four declared portal links */

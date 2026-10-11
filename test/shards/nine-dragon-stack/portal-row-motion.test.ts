@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import * as v from 'valibot';
+import stages from '../../../src/shards/nine-dragon-stack/data/portalStages.json' with { type: 'json' };
 import { readScene } from '@wildshard/sdk/scene';
 import { Portal } from '@wildshard/sdk/entries';
 import { portalLinkEntries, portalLinkRules } from '../../../src/game/shardfile/portalLink';
@@ -6,7 +8,7 @@ import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { portalEntryScene, portalEntryRows } from '../../../src/shards/nine-dragon-stack/generators/portalEntries';
 import { DECK_PORTALS, SQUARE_PORTAL, portalLinks } from '../../../src/shards/nine-dragon-stack/world/portalPlan';
 import { portalRide, type PortalRider } from '../../../src/shards/nine-dragon-stack/world/portalRide';
-import { walkInRide } from '../../../src/shards/nine-dragon-stack/runtime/portals/walkInRide';
+import { PortalRideStateSchema, walkInRide } from '../../../src/shards/nine-dragon-stack/runtime/portals/walkInRide';
 import { PORTAL_FADE, PORTAL_TRIGGER } from '../../../src/shards/nine-dragon-stack/data/portals';
 import { portalRide as shippingRide } from '../../../src/shards/nine-dragon-stack-legacy/world/portalRide';
 
@@ -60,10 +62,12 @@ describe('SF83 Nine portal rows', () => {
       before.refuse(refuses); after.refuse(refuses);
       const dt = dts[tick % dts.length]; if (dt === undefined) throw new Error('Missing oracle delta');
       old.step(dt); next.step(dt);
-      expect(next.snapshot()).toEqual(old.snapshot());
+      const { version, director, ...native } = next.snapshot();
+      expect(version).toBe(2); expect(typeof director).toBe('string');
+      expect(native).toEqual(old.snapshot());
       expect(after.position).toEqual(before.position);
       expect(after.holds).toEqual(before.holds); expect(after.settled).toEqual(before.settled); expect(after.veil).toEqual(before.veil);
-      if (tick === 4999) { old.restore(next.snapshot()); next.restore(old.snapshot()); }
+      if (tick === 4999) { old.restore(next.snapshot()); next.restore(next.snapshot()); }
     }
     expect(next.rides().length).toBeGreaterThan(0); expect(next.refused().length).toBeGreaterThan(0);
   });
@@ -79,5 +83,55 @@ describe('SF83 Nine portal rows', () => {
     expect(ride.busy()).toBe(false);
     Object.assign(actor.position, { x: at[0], y: at[1], z: at[2] }); ride.step(0);
     expect(ride.snapshot().from).toBe(north.portal.road.id); expect(actor.holds).toEqual([true]);
+  });
+});
+
+
+describe('SF81 Nine portal director', () => {
+  it('owns hold/transfer/clear order while the native clock and actual checked transfer retain their slots', () => {
+    const actor = body(), portal = DECK_PORTALS[0];
+    if (portal === undefined) throw new Error('Missing declared road');
+    const ride = portalRide(actor.rider, k => { actor.veil.push(k); });
+    const cursor = (): string => {
+      const saved = JSON.parse(ride.snapshot().director) as { contract: { stages: { id: string }[] }; state: { stage: number } };
+      return saved.contract.stages[saved.state.stage]?.id ?? 'missing';
+    };
+    Object.assign(actor.position, portal);
+    ride.step(0); expect(actor.holds).toEqual([true]); expect(cursor()).toBe('held');
+    for (let tick = 0; tick < 3; tick++) ride.step(0.1);
+    expect(cursor()).toBe('transferred'); expect(ride.rides()).toHaveLength(1);
+    expect(actor.holds).toEqual([true, false]);
+    for (let tick = 0; tick < 6; tick++) ride.step(0.1);
+    expect(cursor()).toBe('idle'); expect(ride.busy()).toBe(false); expect(actor.veil.at(-1)).toBe(0);
+    expect(ride.snapshot().armed).toBe(false);
+    Object.assign(actor.position, { x: 0, y: 125, z: 0 }); ride.step(0);
+    expect(ride.snapshot().armed).toBe(true);
+  });
+
+  it('uses the authored condition rather than advancing a parallel native transition', () => {
+    const edited = structuredClone(stages), held = edited.stages.find(stage => stage.id === 'held');
+    if (held?.next[0] === undefined) throw new Error('Missing held transition');
+    held.next[0].when = 'false';
+    const actor = body(), portal = DECK_PORTALS[0];
+    if (portal === undefined) throw new Error('Missing declared road');
+    const ride = walkInRide(actor.rider, () => { /* Native proof has no veil. */ }, {
+      entries: portalLinkEntries(source.entryways), trigger: PORTAL_TRIGGER, fade: PORTAL_FADE, stages: edited,
+    });
+    Object.assign(actor.position, portal);
+    for (let tick = 0; tick < 20; tick++) ride.step(0.1);
+    expect(ride.rides()).toEqual([]); expect(actor.holds).toEqual([true]);
+  });
+
+  it('refuses pre-row and foreign continuation before changing the cursor/native state or publishing effects', () => {
+    const actor = body(), ride = portalRide(actor.rider, k => { actor.veil.push(k); });
+    const saved = ride.snapshot(), { version: oldVersion, director: oldDirector, ...preRows } = saved;
+    expect(oldVersion).toBe(2); expect(oldDirector).toBe(saved.director);
+    expect(() => v.parse(PortalRideStateSchema, preRows)).toThrow();
+    const foreign = JSON.parse(saved.director) as { contract: { id: string } };
+    foreign.contract.id = 'nine.foreign';
+    expect(() => ride.restore({ ...saved, director: JSON.stringify(foreign), t: 10 })).toThrow(/Incompatible stage/u);
+    expect(ride.snapshot()).toEqual(saved);
+    ride.restore(saved); expect(ride.snapshot()).toEqual(saved);
+    expect(actor.holds).toEqual([]); expect(actor.settled).toEqual([]); expect(actor.veil).toEqual([]);
   });
 });

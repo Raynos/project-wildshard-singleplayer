@@ -1,11 +1,11 @@
 {
   "audit": {
-    "sourceRevision": "3aa69e4bd6f485e2dc1e6bc663de287e8caf81aa",
-    "candidate": "DS1.5: Node canonical native physics; five pavilion yaw values deliberately re-recorded, max absolute difference 2.7755575615628914e-17 rad; unchanged authored arithmetic, no quantization.",
+    "sourceRevision": "53b04886da6d2ff1ebaf224b2e06664a66debd71",
+    "candidate": "SF81 DIR5: authored Nine portal hold/transfer/clear stages. Native ring selection, numeric clock, floor-checked transfer, rearm and motor ownership unchanged.",
     "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs all",
     "exitStatus": 0,
-    "scope": "Real 1084-tick Jian/portal/Well journey, 92 entry lanes and 8 transfers, ledger from gameplay; complete 60/144-tick worker and restore suffixes exact. Only native physics chunks/checksums change in the recorded snapshots.",
-    "runs": "Two independent Node producer processes write identical physics bytes; browser comparison differs only at five yaw values; focused contracts and clean strict/touched lint pass."
+    "scope": "Command tape and all native effects, portal/link entry, grapple, heavy and durable Ledger outcomes exact. Both decoded checkpoints differ ONLY by versioned portal cursor.",
+    "runs": "Independent committed baseline/current whole native tapes, every-tick shipping-worker suffixes, 10k frozen shipping oracle, quiet restore/refusal, strict/touched lint."
   },
   "slug": "nine-dragon-stack",
   "entry": "runtime/headless.ts",
@@ -78,8 +78,8 @@
       },
       "suffixTicksExecuted": 60,
       "ticksExecuted": 120,
-      "hash": "dc5c43030a498c1a6c703492391c797d43969322b3a0d44222e0506b78568dd0",
-      "replayHash": "dc5c43030a498c1a6c703492391c797d43969322b3a0d44222e0506b78568dd0",
+      "hash": "5835fdb0169734953812266ede74cf8373aeae43ccb1095d1d642d470e90959b",
+      "replayHash": "5835fdb0169734953812266ede74cf8373aeae43ccb1095d1d642d470e90959b",
       "workerTicks": 60,
       "workerExact": true
     },
@@ -93,8 +93,8 @@
       },
       "suffixTicksExecuted": 144,
       "ticksExecuted": 288,
-      "hash": "a108d810931b9e8932e5e89215337f24b22cd832fe732fe78a6dfa2ef3327ae2",
-      "replayHash": "a108d810931b9e8932e5e89215337f24b22cd832fe732fe78a6dfa2ef3327ae2",
+      "hash": "3b788fd4eadd22b34d31a74b70573b8327ce5b5d77474cf5db6c50817257ab46",
+      "replayHash": "3b788fd4eadd22b34d31a74b70573b8327ce5b5d77474cf5db6c50817257ab46",
       "workerTicks": 144,
       "workerExact": true
     }

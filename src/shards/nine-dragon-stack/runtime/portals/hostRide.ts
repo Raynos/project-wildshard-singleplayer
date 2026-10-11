@@ -7,7 +7,7 @@
 //
 //   installHostRide(host, 'my-shard.portals', (body) => walkInRide(playerRider(body, () => host.physics, source), () => {}, rings));
 import * as v from 'valibot';
-import type { PortalPlayer, PortalRide } from './walkInRide';
+import { PortalRideStateSchema, type PortalPlayer, type PortalRide } from './walkInRide';
 
 interface Point { x: number; y: number; z: number }
 /** What the ride uses of the renderer-free host (the engine's SimHost, structurally): its player, the player's fall,
@@ -27,8 +27,7 @@ export interface RideHost<Physics> {
 const finite = v.pipe(v.number(), v.finite());
 const Saved = v.strictObject({
   held: v.nullable(v.strictObject({ x: finite, y: finite, z: finite })),
-  ride: v.strictObject({ entered: v.nullable(v.picklist(['north', 'east', 'south', 'west'])), armed: v.boolean(), t: finite, from: v.string(), moved: v.boolean(),
-    rides: v.array(v.strictObject({ from: v.string(), to: v.string(), yaw: finite })), refused: v.array(v.string()) }),
+  ride: PortalRideStateSchema,
 });
 
 /** Install a ride on the host's fixed step under `id`: `rideOf` makes it for the host's player, `stepOf` wraps its step
@@ -60,7 +59,7 @@ export function installHostRide<Physics>(host: RideHost<Physics>, id: string, ri
   }, { snapshot: () => JSON.stringify({ held, ride: ride.snapshot() }), restore: (value) => {
     if (typeof value !== 'string') throw new Error(`Invalid portal continuation (${id})`);
     const saved = v.parse(Saved, JSON.parse(value));
-    held = saved.held; ride.restore(saved.ride);
+    ride.restore(saved.ride); held = saved.held;
   } });
   return ride;
 }

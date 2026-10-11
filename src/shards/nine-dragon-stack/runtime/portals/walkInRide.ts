@@ -9,6 +9,9 @@
 // veil draws the fade) and in a headless host.
 //
 //   const ride = walkInRide(playerRider(player, () => physics, source), veil, { entries, trigger, fade });
+import * as v from 'valibot';
+import { DirectorStageLane } from '@wildshard/game/plugin/director';
+import portalStages from '../../data/portalStages.json' with { type: 'json' };
 import { createPortalTraversal, type PortalTransfer, type PortalTraversalPorts } from '@wildshard/game/shardfile/portalTraversal';
 import type { PortalLinkEntry, portalLinkRules } from '@wildshard/game/shardfile/portalLink';
 import { type RingPortal, type RingTrigger, type ShardEdge, inRingPortal } from './ringPortals';
@@ -21,6 +24,8 @@ export interface RideRings {
   readonly entries: readonly PortalLinkEntry[];
   readonly trigger: RingTrigger;
   readonly fade: RideFade;
+  /** The admitted portal stages; the page and native host consume the root declaration. */
+  readonly stages?: unknown;
 }
 
 /** what the ride needs of the player */
@@ -55,14 +60,35 @@ export interface PortalRide {
 /** the ride's whole state: the road you came in by, whether a ring is armed, the fade clock (−1 at rest), the node it
  *  rides from, whether the transfer is done, and the session's transfers and refusals */
 export interface PortalRideState {
+  readonly version: 2; readonly director: string;
   readonly entered: ShardEdge | null; readonly armed: boolean; readonly t: number; readonly from: string; readonly moved: boolean;
   readonly rides: readonly PortalTransfer[]; readonly refused: readonly string[];
 }
+const finite = v.pipe(v.number(), v.finite());
+/** Strict versioned native portal fields; the installed director validates its own complete contract/cursor. */
+export const PortalRideStateSchema = v.strictObject({
+  version: v.literal(2), director: v.string(),
+  entered: v.nullable(v.picklist(['north', 'east', 'south', 'west'])), armed: v.boolean(), t: finite, from: v.string(), moved: v.boolean(),
+  rides: v.array(v.strictObject({ from: v.string(), to: v.string(), yaw: finite })), refused: v.array(v.string()),
+});
 
 /** the pure ride: which ring the feet are in, the hold and the fade, the checked transfer under the dark; `veil(k)` is the
  *  fade, 0 clear to 1 dark */
 export function walkInRide(rider: PortalRider, veil: (k: number) => void, rings: RideRings): PortalRide {
   const { entries, trigger, fade } = rings;
+  const director = new DirectorStageLane(rings.stages ?? portalStages);
+  const observation = { touch: false, dark: false, clear: false };
+  const actions = new Set(['portal.hold', 'portal.transfer', 'portal.clear']);
+  if (director.data.stages.some(stage => stage.do.length > 1 || stage.do.some(action => !('emit' in action) || action.value !== 0 || !actions.has(action.emit)))) throw new Error('Invalid Nine portal director action');
+  // Idle admission is quiet: no native hold, teleport, veil or release runs while installing/restoring.
+  director.step(0, observation);
+  const select = (input: keyof typeof observation, eligible: boolean, event: string): boolean => {
+    observation[input] = eligible;
+    try {
+      const action = director.step(director.tick + 1, observation)[0];
+      return action !== undefined && 'emit' in action && action.emit === event;
+    } finally { observation[input] = false; }
+  };
   // Canonical quarter-turn node yaw reads exact axes; never introduce sine round-off into trigger boundaries.
   const heading = (yaw: number): { nx: number; nz: number } => {
     if (yaw === 0) return { nx: 0, nz: -1 };
@@ -103,26 +129,28 @@ export function walkInRide(rider: PortalRider, veil: (k: number) => void, rings:
       refused.push(error instanceof Error ? error.message : String(error));
     } finally { rider.hold(false); }
   };
-  const step = (dt: number): void => {
+  const advance = (dt: number): void => {
     if (t < 0) {
       const hit = touching();
       if (hit === null) { armed = true; return; }
-      if (!armed) return;
+      if (!select('touch', armed, 'portal.hold')) return;
       from = hit; t = 0; moved = false; armed = false;
       rider.hold(true);
     }
     t += Math.min(dt, 0.1);
-    if (!moved && t >= fade.out) { transfer(); moved = true; }
+    if (select('dark', !moved && t >= fade.out, 'portal.transfer')) { transfer(); moved = true; }
     const back = fade.out + fade.hold;
     veil(t < fade.out ? t / fade.out : t < back ? 1 : Math.max(0, 1 - (t - back) / fade.in));
-    if (t >= back + fade.in) { t = -1; veil(0); }
+    if (select('clear', t >= back + fade.in, 'portal.clear')) { t = -1; veil(0); }
   };
-  const snapshot = (): PortalRideState => ({ entered, armed, t, from, moved, rides: done.map((r) => ({ ...r })), refused: [...refused] });
-  const restore = (state: PortalRideState): void => {
+  const snapshot = (): PortalRideState => ({ version: 2, director: director.snapshot(), entered, armed, t, from, moved, rides: done.map((r) => ({ ...r })), refused: [...refused] });
+  const restore = (input: PortalRideState): void => {
+    const state = v.parse(PortalRideStateSchema, input);
+    director.restore(state.director);
     entered = state.entered; armed = state.armed; t = state.t; from = state.from; moved = state.moved;
     done.splice(0, done.length, ...state.rides.map((r) => ({ ...r }))); refused.splice(0, refused.length, ...state.refused);
   };
-  return { entered: () => entered, busy: () => t >= 0, rides: () => done, refused: () => refused, step, snapshot, restore };
+  return { entered: () => entered, busy: () => t >= 0, rides: () => done, refused: () => refused, step: advance, snapshot, restore };
 }
 
 /** what the ride uses of the engine's player: its feet and capsule, the hold, the hoverboard, the spawn's resets */
