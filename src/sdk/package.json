@@ -92,8 +92,6 @@
     "./species/clips": "./species/clips.ts",
     "./items/boltCrossbow": "./items/boltCrossbow.ts",
     "./items/leverFirearm": "./items/leverFirearm.ts",
-    "./items/coneFan": "./items/coneFan.ts",
-    "./items/coneStrikes": "./items/coneStrikes.ts",
     "./compileScript": "./compileScript.ts",
     "./sourceManifest": "./sourceManifest.ts",
     "./looks/offscreenPreparation": "./looks/offscreenPreparation.ts",

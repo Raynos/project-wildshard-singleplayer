@@ -1,7 +1,6 @@
 import { SKY_REACH_RUNTIME_COST } from './budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
-import { parseSocketLift } from '@wildshard/sdk/socketLift';
 import { SKY_QUESTS } from './data/quests';
 import { SKY_LEDGER } from './data/ledger';
 import { SKY_ITEMS } from './data/items';
@@ -22,7 +21,7 @@ import { ISLET_LIFTS } from './data/isletLift';
 // gates are this shardfile's compiled `movers` (one admitted module, behaviour/islet.as); the trusted runtime installs
 // exactly these rows (runtime/movers.ts). world/islets.ts is the one source of the geometry.
 const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wildshard', revision: 1, seed: 6417 });
-const lifts = new Map(ISLET_LIFTS.map((entry) => [entry.edge, parseSocketLift(entry.lift)]));
+const lifts = new Map(ISLET_LIFTS.map((entry) => [entry.edge, entry.lift]));
 const wasm = (module: { hash: string; bytes: number }) => ({ hash: module.hash, kind: 'wasm', compressed: module.bytes, decoded: module.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns'], spawns: SKY_SPAWNS }, audio: AUDIO,

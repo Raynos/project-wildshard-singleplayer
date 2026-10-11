@@ -1,4 +1,4 @@
-import type { ConeFanView } from '@wildshard/sdk/items/coneFan';
+import type { ConeFanView } from '../runtime/weapons/coneFan';
 
 /**
  * The war fan's viewmodel rows (the platform's cone fan, SHARD-PLATFORM M3).

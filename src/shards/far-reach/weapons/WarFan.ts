@@ -1,4 +1,4 @@
-import { coneFanType, type ConeFanWeapon } from '@wildshard/sdk/items/coneFan';
+import { coneFanType, type ConeFan } from '../runtime/weapons/coneFan';
 import { FAN_STRIKES } from '../data/items';
 import { FAN_VIEW } from '../data/fanView';
 import { FAN_ROW } from './rows';
@@ -13,4 +13,4 @@ import { fanParts, type FanParts } from './fanModel';
  */
 export const WarFan = coneFanType({ row: FAN_ROW, strikes: FAN_STRIKES, view: FAN_VIEW, gustAction: 'far.gust', parts: fanParts });
 /** A built war fan. */
-export type WarFanWeapon = ConeFanWeapon<FanParts>;
+export type WarFanWeapon = ConeFan<FanParts>;

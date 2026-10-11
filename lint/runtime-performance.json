@@ -6389,6 +6389,122 @@
     "src/shards/sunscar-dunes/generators/rigidSkin.ts:unbounded-loop:49a3ed7ab1fcb30bc2d65e3d7da2d78f2c8e0f95dcad3260f637a9b63a2b3db4": {
       "count": 1,
       "row": "SF76 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:unbounded-loop:d1385adc64159ea7ac0af23f5cb68342346c6912e1e560e258ae59f8b78c5579": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:unbounded-loop:b3bf6851bfe6c3c42447e6e89ce66dcde2b0648828f4b60162f440d60875ca56": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:frame-allocation:fd179e1c561bc85bcffbb3b86aecb69c551f4db49cdeec6e0170d5f800fdd8ca": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:unbounded-loop:5e9d18c37542f450312792c59b7b45d55cb61d4c603d54f7ca8b98c541cd2244": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:frame-allocation:f29e72908b86b235025707c01ada64b86b8ed13f4df9f70238ce7ce7e786b48c": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:frame-allocation:80b79cec3ff294fc59fb02e3fb66e503316cd67d538de5c148b7db72421ed35b": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:frame-allocation:5e27f2be0deaa833fe6180db82f62ae154e8b8b5a9c349989d46968478e0040b": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:frame-allocation:e8c0af7979e9fbc5239f85ffb8f34c4bc5b19d2e8ceffd96b7fffe2c228e4e21": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:frame-allocation:98e67da54002b7a7b6501b3a7764d5a59a2adce20c9fdc078ab702e8702e799e": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:frame-allocation:149126fd680df6f58af4664183b2d2aa7155420aba1df1b1dcb39e71ea3e7f57": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:frame-allocation:9b46b7a53dfee8427fe9a259889c649cf7458f78f48a0c616070be262492288d": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:unbounded-loop:a6448eae718d69a77a6fc578c622daaab896d387440180627f87823e04bb07d6": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:unbounded-loop:dc67bd916e631b31b8fc28ee12d152098df69035defcf1d0d0af165cd2ea7b76": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:unbounded-loop:7220fa029a1ea39623720787daf7d71efb3cfc1643d47448ca468b3a49df7333": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:unbounded-loop:8a9b08d6b308897cc1c8203b532df571d6cd37854cd955a229546c4d76207f97": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:unbounded-loop:c1559a5de98fbbae484f9e789acc10eb0ae3c6a360fdeb1d8bbb46d01396a416": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/socketLiftProof.ts:unbounded-loop:093f519f589f4709b86a31fdbdb74a9c119d3adc2dac060baeb99513a5451479": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/edgeEntries.ts:unbounded-loop:473353857eeb922574e43d7fc24c0aec4e74af28e66fde2d192221200f20bb9b": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/edgeEntries.ts:unbounded-loop:8b0de31d10c154d78945edcc56d2909d236e111b0ac2336e4bc4d677b5b2a489": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/weapons/coneFan.ts:unbounded-loop:2dcdcc2fd8e609e65d1099c508ef18c547492ab65b411a64bf79a8840ad6c254": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/weapons/coneFan.ts:frame-allocation:a2fd8406c8f247127e46ae804adeb4165ef40d52b5b7919f3dade26c20f3ec7c": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/weapons/coneFan.ts:frame-allocation:bb8152d0e3329cfa8ad099c35e77f3dffc9ff066c335dad2dc7928449a126710": {
+      "count": 2,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/weapons/coneFan.ts:frame-allocation:d5d13f7137d1f0c7afd770f5a9cbf5908d381aa874fa7120b408c31a1141edc5": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/weapons/coneFan.ts:frame-allocation:4779309586c35e2fd4019cc08059278a8b1ed11daed520fa255f7109b6887d6e": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/weapons/coneFan.ts:unbounded-loop:0c9f6030660e3f56196c9fed53a1506981fc2559448e6ca102a836e993fef803": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/weapons/coneFan.ts:frame-allocation:00416517ece9e82f1f2f0456db93990670ce825da21394624a950a7b9fe88238": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/weapons/coneFan.ts:frame-allocation:47099b518405f265afe4e72abb2bd469a320f0505e50f21828aa7c62fee5ddef": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/weapons/coneStrikes.ts:unbounded-loop:7856e3329a5c1033bace6767629f3906c049bb8bcf16d1e33bba90f8fd05e217": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
+    },
+    "src/shards/far-reach/runtime/weapons/coneStrikes.ts:unbounded-loop:e6e0a0ea3276cbdee681276401100bd7a1d5390f564f7b1a7aa7b1aac3707d19": {
+      "count": 1,
+      "row": "SF79 DS0.1 verbatim move"
     }
   }
 }

@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import { VANES } from '../data/layout';
-import { ConeStrikes, type ConeFanTarget, type ConeStrikesRuntime } from '@wildshard/sdk/items/coneStrikes';
+import { ConeStrikes, type ConeFanTarget } from './weapons/coneStrikes';
 import { FAN_ID, FAN_STRIKES } from '../data/items';
 import { turnVanes, VANE_HUB } from '../quest/vanes';
 
@@ -35,7 +35,7 @@ export type FanCommand = { readonly kind: 'swing'; readonly targetId: string } |
  * cone reaches once the keeper's notes are read (quest/vanes.ts, at the vane hubs world/build.ts places). The browser's
  * charge hold, viewmodel, cues and wind streaks are presentation. Its two cooldowns are exact continuation.
  */
-export function installSkyFan(host: SimHost, commands: () => readonly FanCommand[]): ConeStrikesRuntime {
+export function installSkyFan(host: SimHost, commands: () => readonly FanCommand[]): ConeStrikes {
   const targets = (): readonly ConeFanTarget[] => [...host.entities.values()].flatMap(actor => {
     const port = host.combat.targetPort(actor.combatActor(), actor, velocity => { actor.impulse(velocity); });
     return port.hittable ? [port] : [];

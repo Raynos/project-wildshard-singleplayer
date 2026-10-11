@@ -4,7 +4,7 @@ import { expect, it } from 'vitest';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { createShardfileSim } from '../../../src/game/shardfile/simulation';
 import { withoutRuntimeRows } from "../../../src/game/plugin/headless";
-import { proveShardfileEntries } from '../../../src/game/shardfile/socketLiftProof';
+import { proveShardfileEntries } from '../../../src/shards/far-reach/runtime/socketLiftProof';
 import { validateShardfileAssets } from '../../../src/game/shardfile/validate';
 import { contentHash } from '../../../src/sdk/project';
 import source from '../../../src/shards/far-reach/shard.config';

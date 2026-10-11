@@ -28,7 +28,7 @@ import manifest from '../../../src/shards/far-reach/manifest';
 import { SkyReachPlugin } from '../../../src/shards/far-reach/runtime/index';
 import { WarFan } from '../../../src/shards/far-reach/weapons/WarFan';
 import { FAN_GUST as GUST } from '../../../src/shards/far-reach/data/items';
-import { inCone } from '../../../src/game/systems/items/coneStrikes';
+import { inCone } from '../../../src/shards/far-reach/runtime/weapons/coneStrikes';
 import { VANE_HUB } from '../../../src/shards/far-reach/quest/vanes';
 import { DIVE } from '../../../src/shards/far-reach/runtime/strikes';
 import { DECK, HOVER_GAP, ISLES, SPANS, UPDRAFT, VANES, FALLEN_BRIDGE } from '../../../src/shards/far-reach/data/layout';

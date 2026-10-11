@@ -186,8 +186,6 @@
     "./systems/items/boltCrossbow": "./systems/items/boltCrossbow.ts",
     "./systems/items/leverFirearm": "./systems/items/leverFirearm.ts",
     "./systems/items/weaponHooks": "./systems/items/weaponHooks.ts",
-    "./systems/items/coneFan": "./systems/items/coneFan.ts",
-    "./systems/items/coneStrikes": "./systems/items/coneStrikes.ts",
     "./systems/tools/hoverboard": "./systems/tools/hoverboard.ts",
     "./icons": "./icons.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts",
@@ -210,7 +208,8 @@
     "./plugin/ui": "./plugin/ui.ts",
     "./plugin/clientScript": "./plugin/clientScript.ts",
     "./plugin/audio": "./plugin/audio.ts",
-    "./plugin/shaderFamily": "./systems/looks/shaderFamily.ts"
+    "./plugin/shaderFamily": "./systems/looks/shaderFamily.ts",
+    "./shardfile/socketLiftApproach": "./shardfile/socketLiftApproach.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

@@ -1,4 +1,4 @@
-import type { ConeStrikeSpec } from '@wildshard/sdk/items/coneStrikes';
+import type { ConeStrikeSpec } from '../runtime/weapons/coneStrikes';
 import { STRINGS } from './strings';
 
 /** The declared fan row's id: every contact names it as its weapon. */
