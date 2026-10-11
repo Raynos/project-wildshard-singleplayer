@@ -7,6 +7,8 @@ LABEL=com.wildshard.deploy-backstop
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 DIR="$HOME/.wildshard/deploy-backstop"
 GH="$(command -v gh)"
+NODE="$(command -v node)"
+"$NODE" --version
 "$GH" auth status
 mkdir -p "$DIR" "$HOME/Library/LaunchAgents"
 hours=""
@@ -20,7 +22,7 @@ cat > "$PLIST" <<PLIST
   <key>Label</key><string>$LABEL</string>
   <key>ProgramArguments</key><array><string>/bin/bash</string><string>$ROOT/scripts/deploy-backstop/backstop.sh</string></array>
   <key>WorkingDirectory</key><string>$ROOT</string>
-  <key>EnvironmentVariables</key><dict><key>PATH</key><string>$(dirname "$GH"):/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
+  <key>EnvironmentVariables</key><dict><key>PATH</key><string>$(dirname "$GH"):$(dirname "$NODE"):/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
   <key>StartCalendarInterval</key><array>$hours</array>
   <key>StandardOutPath</key><string>$DIR/launchd.log</string>
   <key>StandardErrorPath</key><string>$DIR/launchd.err.log</string>

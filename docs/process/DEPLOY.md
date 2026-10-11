@@ -42,8 +42,11 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
     is at most 10k ticks per test, with a 60 s budget.
 - **GitHub drops the :17 schedule** under load, with no error (2026-10-02/03: one run every 4–6 h). A launchd agent on
   Jake's Mac is the backstop (E403): `scripts/deploy-backstop/backstop.sh` runs at :47 every second hour and dispatches
-  the deploy when no scheduled run started in the last 119 minutes. `scripts/deploy-backstop/install.sh` (re)installs
-  it; the log is `~/.wildshard/deploy-backstop/backstop.log`; `backstop.sh --dry-run` only reports.
+  the deploy when no scheduled run started in the last 119 minutes and `deploy-pin.mjs release-slot` proves the shared
+  hourly slot is free. A recent scheduled/manual release or any queued/running release blocks it. Every retry checks
+  again, and an API error or unreadable proof refuses dispatch. `scripts/deploy-backstop/install.sh` (re)installs it
+  with both gh and Node on launchd's PATH; the log is `~/.wildshard/deploy-backstop/backstop.log`;
+  `backstop.sh --dry-run` checks the slot and only reports.
 - **Production ships the newest CI-green `main`** (Jake, 2026-10-02: "fix the deploy, whatever it takes"). The hourly
   or manual release reads `.github/deploy-pin.json`: mode `newest-ci-green` picks the newest main commit whose push
   `deploy` run (typecheck, lint, test, build) passed **and whose exact SHA has `boot-smoke = success`**. The separate
