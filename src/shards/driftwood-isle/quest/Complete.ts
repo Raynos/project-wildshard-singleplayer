@@ -13,7 +13,7 @@
  *   - A save that finished before this existed, or a reload during the hold, gets a toast once per session, out of
  *     combat (nothing hostile within 25 m). The menu's Achievements tab has a "Driftwood complete" row any time.
  */
-import { SEA_GLASS_COUNT, SHARD_FLAGS, DRIFTWOOD_INTERACT } from './interactables';
+import { SEA_GLASS_COUNT, SHARD_FLAGS, DRIFTWOOD_INTERACT } from '../data/interactables';
 import type { LiveMarker } from '@wildshard/engine/quest/view';
 import { ShardComplete, setCompleteEntry, type ShardCompleteData } from '@wildshard/game/complete/ShardComplete';
 import { findChunk } from '@wildshard/game/shard/registry';

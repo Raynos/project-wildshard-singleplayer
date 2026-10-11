@@ -12,7 +12,7 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/driftwood-isle/shard.config';
-import { DRIFTWOOD_INTERACT } from '../../../src/shards/driftwood-isle/quest/interactables';
+import { DRIFTWOOD_INTERACT } from '../../../src/shards/driftwood-isle/data/interactables';
 import { QUEST_DONE } from '../../../src/shards/driftwood-isle/data/questStory';
 import { DRIFTWOOD_ACT, DRIFTWOOD_INTERACT as ACTOR, QUEST_STEP, REWARD_FLAG, driftwoodSpots } from '../../../src/shards/driftwood-isle/runtime/quest';
 import { SWORDS_STEP } from '../../../src/shards/driftwood-isle/runtime/swords';

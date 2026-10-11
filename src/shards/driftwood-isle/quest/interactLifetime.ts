@@ -2,7 +2,7 @@ import { BatchedMesh } from 'three';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Interactables, InteractHost } from '@wildshard/engine/world/interact/Interactables';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { DRIFTWOOD_INTERACT } from './interactables';
+import { DRIFTWOOD_INTERACT } from '../data/interactables';
 import { ownEnteredTree } from './Spine';
 
 /** Build after lazy code admission under the actual entry owner, before registering its dependent cleanup. The two batches

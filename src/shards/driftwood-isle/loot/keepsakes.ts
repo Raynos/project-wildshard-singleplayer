@@ -42,7 +42,7 @@ import { seaGlassChime, SeaGlassChime } from '../models/seaGlassChime';
 import { buildTrophy, trophyPlaques, TrophyPlaques } from '../models/trophyPlaques';
 import { buildCaptainHat } from '../models/captainHat';
 import { buildSailclothCape } from '../models/sailclothCape';
-import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../quest/interactables';
+import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';
 import type { Adventure } from '../quest/adventure';
 import { ownEnteredTree } from '../quest/Spine';
 import type { BodyShadow } from '@wildshard/game/cosmetics/bodyShadow';

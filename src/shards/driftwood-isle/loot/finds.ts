@@ -1,7 +1,7 @@
 /**
  * Driftwood's FINDS (E314 L5, board 7 B): what the sticker book shows, read from the saved flags and Owned — pure, so the
  * counts are tested (test/loot.test.ts).
- *   sea glass:    the 15 beach pieces' flags (`glass:1…15`, src/shards/driftwood-isle/quest/interactables.ts) — ONLY those: the pack's
+ *   sea glass:    the 15 beach pieces' flags (`glass:1…15`, src/shards/driftwood-isle/data/interactables.ts) — ONLY those: the pack's
  *                 "Sea glass" items (the old sailor drop) never count, so the number can't drift (the audit's double count)
  *   places:       `seen:<id>` for the 9 named places (src/shards/driftwood-isle/quest/Places.ts)
  *   glyph shards: `shard:lookout` / `shard:wreck` / `shard:cave`
@@ -13,7 +13,7 @@
 import type { FindsView } from '@wildshard/game/bag/bag';
 import type { OwnedId } from '@wildshard/game/loot/Owned';
 import { DRIFTWOOD_PLACES } from '../data/discovery';
-import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from '../quest/interactables';
+import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from '../data/interactables';
 
 export interface FlagReader { has: (flag: string) => boolean }
 export interface OwnedReader { has: (id: OwnedId) => boolean }

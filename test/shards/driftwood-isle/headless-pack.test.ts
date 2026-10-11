@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { Inventory } from '../../../src/game/Inventory';
 import { DEFAULT_PACK_SLOTS } from '../../../src/game/inventoryLaw';
-import { DRIFTWOOD_INTERACT } from '../../../src/shards/driftwood-isle/quest/interactables';
+import { DRIFTWOOD_INTERACT } from '../../../src/shards/driftwood-isle/data/interactables';
 import { DriftwoodPack } from '../../../src/shards/driftwood-isle/runtime/pack';
 import { saveFixture } from '../../fake/saveFixture';
 

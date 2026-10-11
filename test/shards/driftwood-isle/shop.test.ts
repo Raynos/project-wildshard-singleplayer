@@ -8,7 +8,7 @@ import { Purse } from '../../../src/game/loot/Purse';
 import { driftwoodFinds, seaChartMarks } from '../../../src/shards/driftwood-isle/loot/finds';
 import { nearScale } from '../../../src/game/loot/CoinBurst';
 import { DRIFTWOOD_PLACES } from '../../../src/shards/driftwood-isle/data/discovery';
-import { SEA_GLASS_COUNT } from '../../../src/shards/driftwood-isle/quest/interactables';
+import { SEA_GLASS_COUNT } from '../../../src/shards/driftwood-isle/data/interactables';
 
 const SHARD = 'chunk://local/shop-test';
 const flags = (set: string[]): { has: (f: string) => boolean } => ({ has: (f) => set.includes(f) });

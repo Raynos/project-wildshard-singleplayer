@@ -14,7 +14,7 @@ import finaleStages from '../data/finaleStages.json' with { type: 'json' };
 import { driftwoodSwordProfiles, installDriftwoodSwords } from './swords';
 import { installDriftwoodKills } from './kills';
 import { DRIFTWOOD_FEATS } from '../data/questInventory';
-import { DRIFTWOOD_INTERACT } from '../quest/interactables';
+import { DRIFTWOOD_INTERACT } from '../data/interactables';
 import { driftwoodSpots, installDriftwoodQuest } from './quest';
 import { proveDriftwoodEntries } from './entries';
 import navmeshBaked from './navmesh.baked.json' with { type: 'json' };

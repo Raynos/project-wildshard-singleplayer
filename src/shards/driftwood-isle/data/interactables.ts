@@ -16,10 +16,15 @@
  *   CAVE      — the sluice gate seals the sea cave; two tide plates on the sand in front must be held at once — one
  *             by you, one by the barrel that washed up by the wreck — and the gate latches open → the shard.
  */
-import type { InteractTable, PickupDef } from '@wildshard/engine/world/interact/types';
+import type { compileQuestTable } from '@wildshard/sdk/questGraph';
+
+type InteractTable = Parameters<typeof compileQuestTable>[0];
+type PickupDef = Extract<InteractTable['rows'][number], { kind: 'pickup' }>;
+
 
 /** the flag every glyph shard raises (the quest counts them; the altar's sockets fill from them) */
 export const SHARD_FLAGS = ['shard:lookout', 'shard:wreck', 'shard:cave'] as const;
+/** Durable per-piece sea-glass flag prefix. */
 export const SEA_GLASS_FLAG = 'glass:';   // + piece id, one per piece
 
 const GLASS: [number, number][] = [
@@ -32,8 +37,10 @@ const glass: PickupDef[] = GLASS.map(([x, z], i) => ({
   kind: 'pickup', id: `glass-${i + 1}`, look: 'seaglass', label: 'Sea glass', touch: true, // a flag only, no pack item (E318 row 13: FINDS is the one count)
   color: COLORS[i % COLORS.length] ?? '#7df0d0', at: { poi: 'world', x, z }, sets: [`${SEA_GLASS_FLAG}${i + 1}`],
 }));
+/** The original number of authored shore pickups. */
 export const SEA_GLASS_COUNT = GLASS.length;
 
+/** Existing native interactable placement rows, compiled by the shared quest-table authoring contract. */
 export const DRIFTWOOD_INTERACT: InteractTable = {
   external: ['talked:castaway', 'dead:sailor', 'quest:shrine-open', 'dead:captain'],
   rows: [

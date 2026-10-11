@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { Flags, test as holds } from '../src/engine/world/interact/flags';
 import { validateTable } from '../src/engine/world/interact/validate';
 import { flagsRaised, flagsRead, type InteractTable } from '../src/engine/world/interact/types';
-import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SHARD_FLAGS } from '../src/shards/driftwood-isle/quest/interactables';
+import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SHARD_FLAGS } from '../src/shards/driftwood-isle/data/interactables';
 import { ITEMS } from '../src/game/bag/itemCatalog';
 
 const items = Object.keys(ITEMS);

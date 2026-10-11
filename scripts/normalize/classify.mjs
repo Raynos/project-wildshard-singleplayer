@@ -63,7 +63,7 @@ const REVIEWED_PLACEMENTS = new Map([
   ["src/world/Zipline.ts", { rule: "I", destination: "shards/driftwood-isle/world/Zipline.ts", why: "E357 F6m: Driftwood's zipline (its only importer: quest/Adventure.ts)" }],
   ["src/world/coverTint.ts", { rule: "G", destination: "shards/driftwood-isle/world/coverTint.ts", why: "E357 F6m: Driftwood's ground-cover tint (main, BlenderIsland, GroundCover)" }],
   ["src/world/driftwood.ts", { rule: "N", destination: "shards/driftwood-isle/world/driftLogs.ts", why: "E357 F6m: the drift-log painter (02 rule 4); renamed inside its own shard" }],
-  ["src/world/interact/driftwood.ts", { rule: "N", destination: "shards/driftwood-isle/quest/interactables.ts", why: "E357 F6m: Driftwood's interactables table (02 rule 4)" }],
+  ["src/world/interact/driftwood.ts", { rule: "N", destination: "shards/driftwood-isle/data/interactables.ts", why: "E357 F6m: Driftwood's interactables table (02 rule 4)" }],
   ["src/world/nalati/KurganDungeon.ts", { rule: "I", destination: "shards/nalati-grasslands/world/KurganDungeon.ts", why: "E357 F6m: Nalati world (02 rule 2; the extra nalati/ level dropped)" }],
   ["src/world/nalati/glbPaint.ts", { rule: "I", destination: "shards/nalati-grasslands/world/glbPaint.ts", why: "E357 F6m: Nalati world (02 rule 2; the extra nalati/ level dropped)" }],
   ["src/world/nalati/layout.ts", { rule: "I", destination: "shards/nalati-grasslands/world/layout.ts", why: "E357 F6m: Nalati world (02 rule 2; the extra nalati/ level dropped)" }],

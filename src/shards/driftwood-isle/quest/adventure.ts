@@ -15,7 +15,7 @@ import type { Progress, ProgressSink } from '@wildshard/game/Progress';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../manifest';
 import { Cove } from '../world/Cove';
-import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from './interactables';
+import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';
 import { installAdventureInteractables } from './interactLifetime';
 import { installSpine, ownEnteredTree, type Spine } from './Spine';
 import { installTrader, type TraderStall } from './TraderStall';
