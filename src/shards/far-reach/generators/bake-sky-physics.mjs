@@ -8,6 +8,7 @@ import { byteWriter } from '../../../../scripts/bake-output.mjs';
 import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs';
 import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 import { skyPhysicsInputs } from '../../../../scripts/sky-physics-inputs.mjs';
+import authoredPlacements from '../data/physicsPlacements.generated.json' with { type: 'json' };
 
 const root = resolve(import.meta.dirname, '../../../..');
 const at = path => import(pathToFileURL(resolve(root, path)).href);
@@ -56,8 +57,13 @@ try {
         const animal = animals.spawn(row.kind, row.at[0], row.at[1], row.yaw, row.look, { entityId: row.id });
         return { id: row.id, spec: copy(animal.simSpec), seed: animal.seed, scale: animal.scale };
       });
+      // G320: these rest placements are compiled from authoring source, not read back from world constructors.
+      const authored = new Map(authoredPlacements.map(row => [row.id, row]));
+      const missing = new Set(authored.keys());
       const pieces = registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
         // Piece.mode is the actual registry's board law, independent of a renderer/player instance.
+        const planned = authored.get(piece.id);
+        if (planned !== undefined) { missing.delete(piece.id); return structuredClone(planned); }
         const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file,
           colliders: copy(piece.colliders), active: piece.mode === 'board' ? false : piece.active?.() ?? true };
         if (piece.mode !== undefined) row.mode = piece.mode;
@@ -69,6 +75,7 @@ try {
         }
         return row;
       });
+      if (missing.size > 0) throw new Error(`Authored Sky placement has no native identity: ${[...missing].join(', ')}`);
       if (actors.length !== 13 || pieces.length === 0 || new Set(pieces.map(piece => piece.id)).size !== pieces.length) {
         throw new Error('Invalid native Sky Node capture');
       }

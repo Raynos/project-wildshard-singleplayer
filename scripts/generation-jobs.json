@@ -2843,6 +2843,46 @@
         "src/shards/nine-dragon-stack/data/physicsPlacements.generated.json": "044b4d71b4a17d42afbcce23672ac51fb97e2e9ece0c205d31a0fd855fd9606d"
       },
       "seedOutputs": []
+    },
+    {
+      "id": "sky-physics-placements",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/physicsPlacements.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/physicsPlacements.ts",
+        "skyPhysicsPlacements",
+        "src/shards/far-reach/data/physicsPlacements.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/json.ts",
+        "src/format/package.json",
+        "src/format/portalLink.ts",
+        "src/format/socketLift.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/entries.ts",
+        "src/sdk/package.json",
+        "src/sdk/physics.ts",
+        "src/sdk/sceneTransform.ts",
+        "src/shards/far-reach/data/isletDesign.ts",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/generators/physicsPlacements.ts",
+        "src/shards/far-reach/generators/risingIslets.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/physicsPlacements.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/far-reach/data/physicsPlacements.generated.json": "cc7ce2378d56f43ad1b40f9ab90518bc618110494de9a2456628070d88a68473"
+      },
+      "seedOutputs": []
     }
   ]
 }

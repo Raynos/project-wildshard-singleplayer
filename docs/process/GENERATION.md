@@ -197,3 +197,14 @@ physics baker adopts these placements directly, keeping the remaining
 mesh-derived pieces and hooks as an explicitly transitional capture.
 Live guard state, grid cap selection and body ownership stay unchanged.
 This component cannot authorise removal of the complete physics product.
+
+### Sky static physics placements (G320)
+
+The complete `sky-physics-placements` component compiles sixteen ordered
+island-top and road-lip rest pieces from retained island rows and SocketLift
+authoring. Its 11.4 KB JSON is generated on a cache miss and pinned to
+SHA-256 `cc7ce2378d56f43ad1b40f9ab90518bc618110494de9a2456628070d88a68473`; it is never a copied physics snapshot. The native
+physics baker adopts these placements directly, keeping the remaining
+mesh-derived hulls and creature rigs as an explicitly transitional capture.
+Live islet mover poses and body ownership stay unchanged.
+This component cannot authorise removal of the complete physics product.
