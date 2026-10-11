@@ -47,6 +47,7 @@ it.each(styles)('packs the shipped $style stings byte-exactly and downloads each
   try {
     for (const slug of ['driftwood-isle', 'pine-hollow']) {
       const shard = emptyShardfile({ slug, name: slug, author: 'Wildshard', seed: 1, revision: 1 });
+      shard.audio.recordings = Object.fromEntries(built.catalogue.entries.map(row => [`/assets/music/${style}/${source.stings[row.id.split('/').at(-1) as keyof typeof source.stings]}`, `commons:${row.hash}`]));
       shard.requires = { ...shard.requires, ...requirements }; shard.library = requirements.commons.map(hash => `commons:${hash}`);
       const product = await admitProduct(shard, { base: `https://platform.test/${slug}/`, offline: false, firstParty: true, cache,
         hash: bytes => Promise.resolve(contentHash(bytes)), fetch: url => {

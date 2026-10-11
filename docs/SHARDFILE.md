@@ -1034,6 +1034,16 @@ values and 512 uniquely named radial ambience zones. These are validated data;
 catalogue resolution, existing sample decoders, bar-grid scheduling, geometry
 queries and bespoke synthesis remain trusted platform/runtime installers.
 
+Optional `audio.recordings` maps at most 1024 existing catalogue paths such as
+`/assets/music/folk/pickup.m4a` to local SHA-256 or `commons:<SHA-256>`
+references. Paths are lookup identities, never network addresses: only bounded
+local music/SFX paths ending in `.m4a` or `.wav` are admitted. Each reference
+must be in the charged library closure. Local files must have kind `audio`;
+commons references must be declared in `requires`, and their actual bytes must
+pass the same PCM WAV / AAC admission. Multiple paths may share one hash and
+pay one resident/download cost. Omitting the bindings retains existing trusted
+catalogue resolution; bindings alone do not install a bed, score or voice.
+
 The full client owns declared audio by default. An explicit `audioOwner: "runtime"`
 binding is allowed only for a trusted first-party runtime declaration, whose
 installer consumes the same audio data once. This transition avoids duplicate

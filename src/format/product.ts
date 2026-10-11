@@ -285,7 +285,7 @@ export function assetCost(requestedKind: string, bytes: Uint8Array): AssetCost {
 }
 
 /** Refuse orphan wire assets and require look LUTs in the charged library closure before any asset read. */
-export function preflightAssetGraph(source: Pick<Shardfile, 'files' | 'library' | 'critical' | 'tiles' | 'far' | 'look' | 'requires'> & Partial<Pick<Shardfile, 'rows' | 'presentation'>>): void {
+export function preflightAssetGraph(source: Pick<Shardfile, 'files' | 'library' | 'critical' | 'tiles' | 'far' | 'look' | 'requires'> & Partial<Pick<Shardfile, 'rows' | 'presentation' | 'audio'>>): void {
   const files = new Map(source.files.map((file) => [file.hash, file]));
   const closure = (roots: readonly string[]): Set<string> => {
     const found = new Set<string>(), pending = [...roots];
@@ -299,6 +299,10 @@ export function preflightAssetGraph(source: Pick<Shardfile, 'files' | 'library' 
   if (lut !== null && !library.has(lut)) throw new Error('Look LUT must be in the charged library closure');
   for (const ref of Object.values(source.presentation?.card ?? {})) {
     if (!library.has(ref) || files.get(ref)?.kind !== 'image') throw new Error('Presentation images must be declared image files in the charged library closure');
+  }
+  for (const ref of Object.values(source.audio?.recordings ?? {})) {
+    const shared = ref.startsWith('commons:') && source.requires.commons.includes(ref.slice(8));
+    if (!library.has(ref) || (!shared && files.get(ref)?.kind !== 'audio')) throw new Error('Audio recordings must be declared audio in the charged library closure');
   }
   for (const row of source.rows?.compendiums ?? []) for (const entry of row.entries) {
     if (!entry.sketch.startsWith('data:') && !library.has(entry.sketch)) throw new Error('Compendium sketch hash must be in the charged library closure');

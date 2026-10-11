@@ -125,6 +125,10 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
       validatePropMaterials(used, { look: s.look.materials, models: [f.hash], textures: s.props?.textures ?? [], files: s.files });
     }
   }
+  for (const ref of new Set(Object.values(s.audio.recordings ?? {}))) {
+    const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted audio recording');
+    assetCost('audio', bytes); // Commons references also need actual supported audio bytes, never an opaque binary.
+  }
   const graphFiles = [...graphFileRules(s, (hash) => assets.get(hash)), ...postStackCost(s, (hash) => assets.get(hash)).errors];
   if (graphFiles.length > 0) throw new Error(`material / post graph files: ${graphFiles.join('; ')}`);
   const library = closure(s.library);
