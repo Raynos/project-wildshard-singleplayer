@@ -7,13 +7,13 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { ItemRuntime, scriptItemHook } from '../src/engine/combat/items';
 import { SaveStore } from '../src/engine/saves/store';
 import { instanceSave } from '../src/game/instanceSaves';
-import { createShardfileSim } from '../src/game/plugin/simulation';
+import { bindShardfileSim, createShardfileSim } from '../src/game/plugin/simulation';
 import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientStateFromRegion } from '../src/game/shardfile/clientState';
 import { projectItemFields } from '../src/game/shardfile/clientItems';
 import { syncTargetColliders } from '../src/game/shardfile/targets';
 import { parseMigrations } from '@wildshard/format/migrations';
 import { GridRegionDurability } from '../src/game/grid/durability';
-import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/sim/snapshot';
+import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import type { Shardfile } from '../src/game/shardfile/schema';
 import source from '../src/shards/_template/shard.config';
 import { MemoryStorage } from './setup';
@@ -119,4 +119,44 @@ it('migrates a durable regional companion without decoding old physics, retainin
     expect(new GridRegionDurability(nextStore, { ...identity, id: 'template-2' }, nextSource, []).read(true)).toBeUndefined();
     const preserved = local.getItem(key); expect(preserved).toContain('old engine unavailable');
   } finally { next.sim.dispose(); first.sim.dispose(); }
+});
+
+it('migrates the pre-director template checkpoint instead of refusing its new native registration at the grid wall', () => {
+  expect(source.identity.revision).toBeGreaterThan(1);
+  const previous = { ...source, identity: { ...source.identity, revision: 1 }, directors: [] };
+  const local = new MemoryStorage(), store = new SaveStore({ local, session: null });
+  const identity = { id: 'template-2', shard: source.identity.slug };
+  const old = new GridRegionDurability(store, identity, previous, []);
+  const first = createShardfileSim(previous, assets, { rapier, quest: old.quest });
+  const saved = new GridRegionDurability(store, identity, source, []);
+  const next = createShardfileSim(source, assets, { rapier, quest: saved.quest });
+  try {
+    old.bind(first.host); saved.bind(next.host);
+    const lane = first.lane, player = first.actors.get(first.host.player.id);
+    if (lane === undefined || player === undefined) throw new Error('Missing real template script');
+    lane.enqueue({ type: 201, target: player, value: 1 });
+    for (let tick = 0; tick < 30; tick++) first.host.step();
+    for (const flag of previous.quests.flags) first.host.flags.set(flag);
+    first.host.step(); expect(first.quest.quests[0]?.isComplete).toBe(true);
+    old.wallet.addCoins(9); old.wallet.savePack({ counts: { rope: 3 }, order: ['rope'] });
+    const snapshot = snapshotSimHost(first.host);
+    expect([...next.host.adapters.keys()].filter(id => !first.host.adapters.has(id))).toEqual(['director.template.door-wave']);
+    expect(() => restoreSimHost(first.host.level, { rapier }, snapshot, host => {
+      const proof = new GridRegionDurability(store, identity, source, []);
+      bindShardfileSim(host, source, assets, { rapier, quest: proof.quest, restoring: true }); proof.bind(host);
+    })).toThrow('Snapshot instance registrations do not match');
+    expect(old.checkpoint(snapshot)).toBe(true);
+    const key = 'wildshard.save.v2.template-2', bytes = local.getItem(key), fresh = next.lane?.host.checkpoint();
+    expect(saved.read(true)).toBeUndefined(); expect(local.getItem(key)).toBe(bytes);
+    expect(saved.restoreLogical(next)).toBe(true);
+    expect(next.lane?.host.checkpoint()).toEqual(fresh); // Portable fields, rather than old executable memory.
+    expect(next.lane?.world.view(next.host.player.id).shared['template.door.open']).toBe(1);
+    expect(next.host.state.tick).toBe(snapshot.state.tick);
+    expect(next.quest.quests[0]?.isComplete).toBe(true);
+    expect(saved.wallet.coins()).toBe(old.wallet.coins()); expect(saved.wallet.pack()).toEqual(old.wallet.pack());
+    expect(next.host.adapters.has('director.template.door-wave')).toBe(true);
+    const wallet = saved.wallet.coins(), facts = structuredClone(saved.ledger.state());
+    next.host.step(); expect(saved.wallet.coins()).toBe(wallet); expect(saved.ledger.state()).toEqual(facts);
+    expect(new GridRegionDurability(store, { ...identity, id: 'template-1' }, source, []).read(true)).toBeUndefined();
+  } finally { next.dispose(); first.dispose(); }
 });
