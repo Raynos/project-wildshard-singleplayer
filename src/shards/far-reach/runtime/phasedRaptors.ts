@@ -1,5 +1,4 @@
 import * as v from 'valibot';
-import type { PhasedRaptorSpec } from './phasedRaptor';
 
 const key = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
 const field = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9._:-]*$/u), v.maxLength(128));
@@ -40,6 +39,6 @@ export const PhasedRaptorSchema = v.strictObject({
   phases: v.pipe(v.array(phase), v.minLength(1), v.maxLength(8)),
 });
 /** An admitted phased raptor declaration: the engine brain's spec. */
-export type ShardPhasedRaptor = v.InferOutput<typeof PhasedRaptorSchema> & PhasedRaptorSpec;
+export type ShardPhasedRaptor = v.InferOutput<typeof PhasedRaptorSchema>;
 /** Refuse an invalid phased raptor before any policy or callback exists. */
 export function parsePhasedRaptor(data: unknown): ShardPhasedRaptor { return v.parse(PhasedRaptorSchema, data); }

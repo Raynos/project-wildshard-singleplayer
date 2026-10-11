@@ -4,60 +4,12 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimValue } from '@wildshard/engine/sim';
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
+import type { ShardPhasedRaptor } from './phasedRaptors';
 import { readStrikeState } from '@wildshard/engine/ai/strikeState';
 
-/**
- * How a phased raptor closes on the player before it strikes in one phase: hang `above` the player within `standOff`
- * (ready inside `ready.radius` and `ready.height` of that hang), hold off at `standOff` (backing away when closer,
- * ready inside `ready.tolerance` of it), or walk up (ready inside its strike's range).
- */
-export type PhasedRaptorReady =
-  | { readonly kind: 'over'; readonly radius: number; readonly height: number }
-  | { readonly kind: 'band'; readonly tolerance: number }
-  | { readonly kind: 'range' };
-
-/** One phase of a phased raptor's fight (world units, seconds). */
-export interface PhasedRaptorPhase {
-  /** The strike it makes in this phase (an id in its strike catalogue). */
-  readonly strike: string;
-  /** The altitude it circles, hovers or stands at. */
-  readonly altitude: number;
-  /** Its strike's target: the player's feet raised this far (the chest for a dive). */
-  readonly aimHeight: number;
-  /** The circle it laps between strikes, and at what speed. */
-  readonly orbit: { readonly x: number; readonly z: number; readonly r: number; readonly speed: number };
-  /** Its stalk: the distance it keeps, whether it backs off inside it, its fixed speed (null: it closes at `stalkSpeed` or slower near its mark), the height it hangs over the player (null: `altitude`) and when it is ready. */
-  readonly stalk: { readonly standOff: number; readonly retreat: boolean; readonly speed: number | null; readonly above: number | null; readonly ready: PhasedRaptorReady };
-  /** After its windup the strike is a dive onto the target at `speeds.dive`. */
-  readonly dive: boolean;
-  /** A contact of this phase's strike shoves the player along its committed heading (m/s along, m/s up). */
-  readonly shove: { readonly speed: number; readonly lift: number } | null;
-  /** Seconds it rests after a strike. */
-  readonly rest: number;
-}
-
-/**
- * A phased raptor's tuning (SHARD-PLATFORM SF27): a boss bird that waits on a perch facing `perch.yaw`, takes off as its
- * fight begins and swings round onto the player, laps `lap` between strikes and, per phase, closes in its own way and
- * makes its own strike. Its encounter drives it through `phase` and `fighting` (and `restart` at a checkpoint).
- */
-export interface PhasedRaptorSpec {
-  /** Where it perches out of a fight, and the heading it faces there. */
-  readonly perch: { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number };
-  /** The lap it flies round between strikes: its centre, radius and the altitude it is staged at. */
-  readonly lap: { readonly x: number; readonly z: number; readonly r: number; readonly y: number };
-  /** Lap and perch-return speed, the most it closes at in a stalk, and its dive's speed (m/s). */
-  readonly speeds: { readonly circle: number; readonly stalk: number; readonly dive: number };
-  /** The take-off: seconds, the speed it gathers, how fast it swings round (rad/s) and the most it leans into the swing (rad). */
-  readonly takeoff: { readonly seconds: number; readonly speed: number; readonly turn: number; readonly bank: number };
-  /** Seconds of rest before its first stalk. */
-  readonly firstRest: number;
-  /** Turn rates: back to its perch, lapping, stalking and striking. */
-  readonly turns: { readonly perch: number; readonly circle: number; readonly stalk: number; readonly strike: number };
-  /** The memory fields its look reads: the take-off's `lean` and the body's eased `bank` (reset on its perch). */
-  readonly fields: { readonly lean: string; readonly bank: string };
-  readonly phases: readonly PhasedRaptorPhase[];
-}
+/** The native owner reads the admitted row's defining contract, with no duplicate handwritten schema. */
+type PhasedRaptorSpec = Readonly<Omit<ShardPhasedRaptor, 'id' | 'kind' | 'phases'>> & { readonly phases: readonly PhasedRaptorPhase[] };
+type PhasedRaptorPhase = ShardPhasedRaptor['phases'][number];
 
 /** The trusted ports a phased raptor acts through: the player, calm, attack tokens, reach, contact and native flight. */
 export interface PhasedRaptorPorts<A extends AnimalSim> {
