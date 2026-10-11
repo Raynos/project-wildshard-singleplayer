@@ -1,3 +1,4 @@
+import { runtimeAudio } from '@wildshard/game/plugin/audio';
 import { bindSignalItems } from './runtime/items';
 import { SignalDirector } from './runtime/signalDirector';
 import { standaloneEntry } from './runtime/standalone';
@@ -118,12 +119,12 @@ export class SignalDunesPlugin extends ShardPlugin {
     bindRuntimeItemContexts(ctx, source);
     const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player;
     if (rt?.play) {
-      const play = rt.play;
+      const play = rt.play, audioRows = runtimeAudio(ctx, source.audio);
       if (retainsRuntimeServices(ctx)) installEnteredRuntimeService(ctx, scope => {
-        if (source.audio.score === 'silent') installSilentScore(play.music, scope);
-        installSunscarCues(play.audio, play.cues, scope);
+        if (audioRows.score === 'silent') installSilentScore(play.music, scope);
+        installSunscarCues(play.audio, play.cues, scope, audioRows.routing);
       });
-      else { if (source.audio.score === 'silent') installSilentScore(play.music, ctx.scope); installSunscarCues(play.audio, play.cues, ctx.scope); }
+      else { if (audioRows.score === 'silent') installSilentScore(play.music, ctx.scope); installSunscarCues(play.audio, play.cues, ctx.scope, audioRows.routing); }
     }
     const loot = rt?.play && rt.world ? installLoot({ ctx, manifest: ctx.manifest, owned: rt.play.owned, scene: rt.world.game.scene,
       player: rt.world.player, camera: rt.world.game.camera, animals: () => rt.play?.animals.animals ?? [], menu: rt.play.menu,

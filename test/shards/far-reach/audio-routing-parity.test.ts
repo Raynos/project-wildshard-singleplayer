@@ -5,11 +5,13 @@ import { expect, it, vi } from 'vitest';
 import { CombatCues, type CombatCueOpts } from '../../../src/engine/combat/cues';
 import { skyCueMap } from '../../../src/shards/far-reach-legacy/runtime/audio/cues';
 import { installSkyCues } from '../../../src/shards/far-reach/runtime/audio/cues';
-import { sharedWeaponVoices } from '../../../src/game/plugin/audio';
+import { sharedWeaponVoices, runtimeAudio } from '../../../src/game/plugin/audio';
 import { Audio } from '../../../src/engine/audio/Audio';
 import { Scope } from '../../../src/engine/app/scope';
 import { tap } from '../../../src/engine/core/harnessTap';
 import { CUES } from '../../../src/shards/far-reach/data/cues';
+import source from '../../../src/shards/far-reach/shard.config';
+import { parseAudioData } from '@wildshard/format/audio';
 
 // Captured from the original switch at 12310ead5.
 it('preserves 270 kit dispatches, fallback and optional impact arguments', () => {
@@ -38,7 +40,8 @@ it('the actual shared kit recipes preserve frozen surface/optional arguments, ta
   const frozen = skyCueMap(sharedWeaponVoices(beforeAudio));
   const previous = tap.sound;
   try {
-    installSkyCues(afterAudio, cues, scope);
+    const wire = JSON.stringify(source.audio);
+    installSkyCues(afterAudio, cues, scope, parseAudioData(JSON.parse(wire)).routing);
     for (const surface of [undefined, 'wood', 'flesh', 'ground', 'metal']) for (const pan of [undefined, 0, -0.4]) for (const gain of [undefined, 0, 0.7]) {
       const opts: CombatCueOpts = {};
       if (surface !== undefined) opts.surface = surface; if (pan !== undefined) opts.pan = pan; if (gain !== undefined) opts.gain = gain;
@@ -53,4 +56,20 @@ it('the actual shared kit recipes preserve frozen surface/optional arguments, ta
     scope.dispose(); after.length = 0;
     expect(cues.cue(CUES.fire)).toBe(false); expect(after).toEqual([]);
   } finally { tap.sound = previous; scope.dispose(); vi.restoreAllMocks(); beforeAudio.dispose(); afterAudio.dispose(); }
+});
+
+it('uses the emitted aliases rather than silently falling back to the imported source', () => {
+  const audio = new Audio(), cues = new CombatCues(), scope = new Scope('sky-emitted-audio');
+  const voice = vi.spyOn(audio, 'cue').mockReturnValue(true);
+  const emitted = parseAudioData({ ...source.audio, routing: [{ id: 'cue.emitted', actions: [{ voice: 'sword.swing' }] }] });
+  try {
+    expect(runtimeAudio({ game: {} }, source.audio)).toBe(source.audio);
+    const rows = runtimeAudio({ game: { declaredAudio: emitted } }, source.audio);
+    expect(rows).toBe(emitted);
+    installSkyCues(audio, cues, scope, rows.routing);
+    expect(cues.cue(CUES.fire)).toBe(false); expect(voice).not.toHaveBeenCalled();
+    expect(cues.cue('cue.emitted')).toBe(true); expect(voice).toHaveBeenCalledExactlyOnceWith('melee.swing');
+    expect(audio.ready).toBe(false); scope.dispose();
+    expect(cues.cue('cue.emitted')).toBe(false); expect(voice).toHaveBeenCalledTimes(1);
+  } finally { scope.dispose(); voice.mockRestore(); audio.dispose(); }
 });

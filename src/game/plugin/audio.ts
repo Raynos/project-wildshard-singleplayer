@@ -1,9 +1,15 @@
 import type { CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
 import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { AudioData } from '@wildshard/format/audio';
+import type { GameServices } from './context';
 import { crossbowFire, dryFire, boltImpact, reload } from "../systems/audio/crossbowSounds";
 import { rifleFire, rifleReload } from "../systems/audio/firearmSounds";
 import { swordSwing, swordHeavy, swordHit } from "../systems/audio/meleeSounds";
 
+/** Resolve this resident's admitted emitted rows; only legacy-only entries use the original declaration. */
+export function runtimeAudio(context: { readonly game: Pick<GameServices, 'declaredAudio'> }, legacy: AudioData): AudioData {
+  return context.game.declaredAudio ?? legacy;
+}
 
 /** Sound operations supplied by the owning mixer; the router allocates no audio resources. */
 export interface CombatAudio {

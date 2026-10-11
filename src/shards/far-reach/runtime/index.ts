@@ -1,3 +1,4 @@
+import { runtimeAudio } from '@wildshard/game/plugin/audio';
 import { declaredSkyRows } from './brains';
 import { installRuntimeLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -179,12 +180,12 @@ export class SkyReachPlugin extends ShardPlugin {
     });
     else { bindPlayerPush(push); ctx.scope.onDispose(() => { bindPlayerPush(null); }); }
     if (rt?.play) {
-      const play = rt.play;
+      const play = rt.play, audioRows = runtimeAudio(ctx, source.audio);
       if (retainsRuntimeServices(ctx)) installEnteredRuntimeService(ctx, scope => {
-        if (source.audio.score === 'silent') installSilentScore(play.music, scope);
-        installSkyCues(play.audio, play.cues, scope);
+        if (audioRows.score === 'silent') installSilentScore(play.music, scope);
+        installSkyCues(play.audio, play.cues, scope, audioRows.routing);
       });
-      else { if (source.audio.score === 'silent') installSilentScore(rt.play.music, ctx.scope); installSkyCues(rt.play.audio, rt.play.cues, ctx.scope); }
+      else { if (audioRows.score === 'silent') installSilentScore(rt.play.music, ctx.scope); installSkyCues(rt.play.audio, rt.play.cues, ctx.scope, audioRows.routing); }
     }
     const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null,
       charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });

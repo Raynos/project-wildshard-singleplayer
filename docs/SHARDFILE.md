@@ -1041,6 +1041,13 @@ Container and codec channel declarations must agree. The incremental title
 playback reader remains stereo-only; mono recordings use the existing whole
 file decoder. No recording is resampled or re-encoded by admission.
 
+Sky Reach and Signal Dunes bind their native cue recipes and silent score to
+`runtimeAudio(ctx, legacyAudio)` from the defining game audio module in an
+admitted hybrid entry. Routing comes from the
+emitted shardfile; voices, optional arguments, clocks and scoped randomness
+stay with the original native owner. Legacy-only entries use the unchanged
+source declaration. A routing alias allocates no sampled bank or sound bytes.
+
 Optional `audio.recordings` maps at most 1024 existing catalogue paths such as
 `/assets/music/folk/pickup.m4a` to local SHA-256 or `commons:<SHA-256>`
 references. Paths are lookup identities, never network addresses: only bounded

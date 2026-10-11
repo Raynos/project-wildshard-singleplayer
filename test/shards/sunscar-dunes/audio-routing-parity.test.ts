@@ -4,14 +4,17 @@ import { expect, it } from 'vitest';
 import type { CombatCueOpts } from '../../../src/engine/combat/cues';
 import { sunscarCueMap } from '../../../src/shards/sunscar-dunes/runtime/audio/cues';
 import { CUES } from '../../../src/shards/sunscar-dunes/data/cues';
+import source from '../../../src/shards/sunscar-dunes/shard.config';
+import { parseAudioData } from '@wildshard/format/audio';
 
 // Captured from the original switch at 12310ead5.
-it('preserves 270 kit dispatches, fallback and optional impact arguments', () => {
+it.each(['legacy', 'emitted'] as const)('preserves 270 %s kit dispatches, fallback and optional impact arguments', (entry) => {
   const digest = createHash('sha256'); let dispatches = 0;
   const record = (name: string, ...args: readonly (string | number | undefined)[]): void => { digest.update(JSON.stringify(['voice', name, ...args])); };
   const voices = { swordSwing: () => { record('swordSwing'); }, swordHeavy: () => { record('swordHeavy'); }, reload: () => { record('reload'); }, weaponSwap: () => { record('weaponSwap'); },
     swordHit: (kind?: 'wood' | 'flesh' | 'ground', pan?: number, gain?: number) => { record('swordHit', kind, pan, gain); } };
-  const cue = sunscarCueMap(voices);
+  const wire = JSON.stringify(source.audio);
+  const cue = sunscarCueMap(voices, entry === 'emitted' ? parseAudioData(JSON.parse(wire)).routing : undefined);
   for (const surface of [undefined, 'wood', 'flesh', 'ground', 'metal']) for (const pan of [undefined, 0, -0.4]) for (const gain of [undefined, 0, 0.7]) {
     const opts: CombatCueOpts = {};
     if (surface !== undefined) opts.surface = surface; if (pan !== undefined) opts.pan = pan; if (gain !== undefined) opts.gain = gain;
@@ -19,4 +22,13 @@ it('preserves 270 kit dispatches, fallback and optional impact arguments', () =>
   }
   expect(dispatches).toBe(270);
   expect(digest.digest('hex')).toBe('494b8b1f1ac21c95ef6a7a1396cd210849ebafac176fc365c1a9cc46f315f879');
+});
+
+it('binds only emitted cue aliases and retains the original voice arguments', () => {
+  const calls: unknown[] = [];
+  const emitted = parseAudioData({ ...source.audio, routing: [{ id: 'cue.emitted', actions: [{ voice: 'kit.swordHit' }] }] });
+  const cue = sunscarCueMap({ swordSwing: () => undefined, swordHeavy: () => undefined, reload: () => undefined, weaponSwap: () => undefined,
+    swordHit: (...args) => { calls.push(args); } }, emitted.routing);
+  expect(cue(CUES.impact, { pan: -0.4, gain: 0.7 })).toBe(false); expect(calls).toEqual([]);
+  expect(cue('cue.emitted', { pan: -0.4, gain: 0.7 })).toBe(true); expect(calls).toEqual([['flesh', -0.4, 0.7]]);
 });

@@ -3410,3 +3410,8 @@ The parent page's services remain unchanged. Legacy-only entries omit this
 port and retain their existing declarations; it installs no second mixer,
 score, bank or RNG owner. Native installers can consume those rows without
 importing a build-time config or fetching a different recording.
+
+`runtimeAudio(ctx, legacyAudio)` in `@wildshard/game/plugin/audio` resolves
+the resident's emitted declaration with a legacy-only fallback. It returns
+the existing declaration without creating an audio owner or drawing RNG.
+Sky and Signal use it for native cue aliases and silent-score selection.
