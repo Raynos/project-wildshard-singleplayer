@@ -5,6 +5,7 @@ import { BoxGeometry, Group, Mesh, MeshLambertMaterial, ShaderMaterial, Vector4,
 import { legacyDouble } from './fake/FakeGame';
 import { Scope } from '../src/engine/app/scope';
 import { HORIZON_FADE, horizonFade } from '../src/game/grid/horizonFade';
+import { copyShaderPatches } from '../src/engine/render/shaderPatches';
 
 /** run a material's chained `onBeforeCompile` on a stand-in program source (what three hands it) */
 function compiled(material: ShaderMaterial): WebGLProgramParametersWithUniforms {
@@ -54,4 +55,32 @@ it('puts one discard at the top of each fragment shader, keyed once, fed by the 
   scope.dispose();
   expect(material.customProgramCacheKey()).toBe(before);
   expect(lambert.customProgramCacheKey()).toBe(lambertKey);
+});
+
+it('keeps a copied horizon chain compileable and binds the current owner through retirement and re-entry', () => {
+  const sourceScope = new Scope('source'), enteredScope = new Scope('entered');
+  const sourceFade = horizonFade(sourceScope), enteredFade = horizonFade(enteredScope);
+  const source = new ShaderMaterial({ fragmentShader: 'varying vec3 vViewPosition;\nvoid main() { gl_FragColor = vec4(1.0); }' });
+  sourceFade.patch(source, 'outside');
+  sourceFade.set(0.3, { x: 0, z: 0, half: 256 });
+  const single = compiled(source);
+  const material = source.clone(); copyShaderPatches(source, material);
+  enteredFade.patch(material, 'outside');
+  enteredFade.set(0.8, { x: 555, z: 0, half: 256 });
+  const copied = compiled(material);
+  expect(copied.fragmentShader).toBe(single.fragmentShader);
+  expect(copied.fragmentShader.match(/uniform float wsHorizonOwned;/g)).toHaveLength(1);
+  expect(copied.fragmentShader.match(/uniform vec4 wsHorizonCell;/g)).toHaveLength(1);
+  expect(copied.fragmentShader.match(/discard/g)).toHaveLength(1);
+  expect(copied.uniforms['wsHorizonOwned']?.value).toBe(0.8);
+  const enteredCell: unknown = copied.uniforms['wsHorizonCell']?.value;
+  if (!(enteredCell instanceof Vector4)) throw new Error('no entered cell uniform');
+  expect(enteredCell.toArray()).toEqual([299, -256, 811, 256]);
+  enteredScope.dispose();
+  expect(compiled(material).uniforms['wsHorizonOwned']?.value).toBe(0.3);
+  const returnedScope = new Scope('returned'), returned = horizonFade(returnedScope);
+  returned.patch(material, 'outside'); returned.set(0.6, { x: -555, z: 0, half: 256 });
+  expect(compiled(material).fragmentShader).toBe(single.fragmentShader);
+  expect(compiled(material).uniforms['wsHorizonOwned']?.value).toBe(0.6);
+  returnedScope.dispose(); sourceScope.dispose(); material.dispose(); source.dispose();
 });

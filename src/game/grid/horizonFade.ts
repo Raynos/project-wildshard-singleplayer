@@ -56,6 +56,9 @@ export function horizonFade(scope: Scope): HorizonFade {
       const placed = /varying\s+vec3\s+vViewPosition\s*;/.test(shader.fragmentShader);
       if (!placed && kind === 'outside') return;
       shader.uniforms['wsHorizonOwned'] = owned; shader.uniforms['wsHorizonCell'] = cell;
+      // A family material can copy an already patched chain before this owner sees it.
+      // Its source already has the same discard; only the entered owner's live uniforms change.
+      if (/uniform\s+float\s+wsHorizonOwned\s*;/.test(shader.fragmentShader)) return;
       const outside = placed
         ? '\n  vec3 wsHorizonAt = transpose(mat3(viewMatrix)) * (-vViewPosition - viewMatrix[3].xyz);'
           + '\n  if (max(max(wsHorizonCell.x - wsHorizonAt.x, wsHorizonAt.x - wsHorizonCell.z), max(wsHorizonCell.y - wsHorizonAt.z, wsHorizonAt.z - wsHorizonCell.w)) > 0.0)'
