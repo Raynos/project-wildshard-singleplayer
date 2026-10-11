@@ -3223,3 +3223,10 @@ recipe, shared attack stream and contact clock stays unchanged. The unique
 Captain remains its custom recipe; this slice does not claim to port that boss.
 
 SF85 WP-5: `@wildshard/game/plugin/weaponFamily` defines both the built-in held-item families and weapon hooks. `registerWeaponFamily(registry, id, family)` inserts a trusted weapon constructor into a caller-owned session-local `Map`; it never allocates the weapon or installs inputs. Names must be bounded dotted ids outside `kit.*`; duplicates and non-weapon families refuse. The existing item binder checks the shard namespace and all item declarations before construction. Signal and Sky register their own native lash and fan factories; their local controllers, collision laws, cues and continuation owners remain in the shard.
+
+SF82 Nalati's page factories and renderer-free wildlife/raid/Argymaq groups
+read `stalker/pack` and `grazer/herd` authored profiles. The defining format
+`nativeGroupBrain` admits the complete ordered roster and resolves its original
+pack/herd preset before the existing native controller is constructed. Prey,
+threat, tame/mount, aggression, RNG, initialization and restore remain the
+original owners. No alternative creature manager or group registry is added.

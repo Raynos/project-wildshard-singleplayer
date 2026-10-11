@@ -16,3 +16,8 @@ export const NALATI_HERD_BRAIN = {
   alertThreshold: 0.45, flightMinDistance: 80, flightMaxDistance: 120,
   stallionVariant: 'stallion', foalPrefix: 'foal', snortCue: 'horse_snort', neighCue: 'horse_neigh', squealCue: 'horse_squeal',
 } as const;
+
+/** The shipping wolf-pack policy declared as the stalker's shared pack pattern. */
+export const NALATI_PACK_PROFILE = { ...NALATI_PACK_BRAIN, kind: 'stalker', pattern: 'pack' } as const;
+/** The shipping wild and guarded horse policy declared as the grazer's herd pattern. */
+export const NALATI_HERD_PROFILE = { ...NALATI_HERD_BRAIN, kind: 'grazer', pattern: 'herd' } as const;

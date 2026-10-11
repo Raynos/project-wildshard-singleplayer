@@ -13,6 +13,8 @@ import { Wildlife } from '../../../src/shards/nalati-grasslands/creatures/wildli
 import { declaredGroupFactories } from '../../../src/shards/nalati-grasslands/runtime/groupDeclared';
 import { APP_GROUP_HOST } from '../../../src/shards/nalati-grasslands/runtime/groupHost';
 import { manager } from '../../fake/manager';
+import { NALATI_PACK_PROFILE, NALATI_HERD_PROFILE, NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../../../src/shards/nalati-grasslands/data/brains';
+import { nativeGroupBrain } from '../../../src/format/groupBrains';
 
 const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(terrain);
@@ -27,6 +29,12 @@ function fixture(on?: boolean): { world: ReturnType<typeof manager>; wildlife: W
   return { world, wildlife };
 }
 describe('Nalati native world group binding', () => {
+  it('the authored archetype patterns resolve the exact original native parameters and ordered roster', () => {
+    const members = ['native:one', 'native:two'];
+    expect(nativeGroupBrain({ ...NALATI_PACK_PROFILE, home: [17, -31], members })).toEqual(
+      { ...NALATI_PACK_BRAIN, home: [17, -31], members });
+    expect(nativeGroupBrain({ ...NALATI_HERD_PROFILE, members })).toEqual({ ...NALATI_HERD_BRAIN, members });
+  });
   it('uses declared groups by default after G112 retirement, with the witnessed placement and setup draws', () => {
     const selected = fixture(true), actors = selected.world.manager.animals.map(actor => actor.snapshot()), rng = app.rng.snapshot();
     const current = fixture();

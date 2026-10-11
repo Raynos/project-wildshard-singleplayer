@@ -1,10 +1,10 @@
 import { PackBrain } from '@wildshard/engine/ai/pack';
 import { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { groupBrain } from '@wildshard/sdk/groupBrains';
+import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import { Pack, HorseHerd, type PackController, type PackPrey, type HerdController } from './groupRegistry';
 import { nativePackPorts, nativeHerdPorts, PAGE_GROUP_WORLD, type NativeGroupHost } from './groupPorts';
-import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../data/brains';
+import { NALATI_PACK_PROFILE, NALATI_HERD_PROFILE } from '../data/brains';
 
 /** Stable native prey/actor identities for raid, flock and elite continuation; no invented guest control protocol. */
 export interface NativeGroupIdentity {
@@ -18,14 +18,14 @@ export interface NativeGroupFactories {
   herd: (members: Animal[]) => HerdController;
 }
 function declaredPack(members: Animal[], x: number, z: number, identity: NativeGroupIdentity, host: NativeGroupHost): PackBrain<Animal> {
-    const data = groupBrain({ ...NALATI_PACK_BRAIN, home: [x, z], members: members.map(actor => actor.entityId) });
+    const data = nativeGroupBrain({ ...NALATI_PACK_PROFILE, home: [x, z], members: members.map(actor => actor.entityId) });
     if (data.kind !== 'pack') throw new Error('Invalid pack declaration');
     const policy = new PackBrain(members, x, z, data, { ...nativePackPorts(host, PAGE_GROUP_WORLD),
       preyIdentity: identity.preyIdentity, resolvePrey: identity.resolvePrey });
     policy.initialize(); Pack.register(policy); return policy;
 }
 function declaredHerd(members: Animal[], identity: NativeGroupIdentity, host: NativeGroupHost): HerdBrain<Animal> & HerdController {
-    const data = groupBrain({ ...NALATI_HERD_BRAIN, members: members.map(actor => actor.entityId) });
+    const data = nativeGroupBrain({ ...NALATI_HERD_PROFILE, members: members.map(actor => actor.entityId) });
     if (data.kind !== 'herd') throw new Error('Invalid herd declaration');
     const view: Pick<HerdController, 'findWolf'> = { findWolf: undefined };
     const policy = Object.assign(new HerdBrain(members, data, { ...nativeHerdPorts(host, PAGE_GROUP_WORLD), resolveActor: identity.resolveActor }), view);

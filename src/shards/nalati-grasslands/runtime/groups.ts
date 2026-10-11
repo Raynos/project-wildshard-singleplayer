@@ -2,8 +2,8 @@ import { PackBrain, type PackPorts, type PackPrey } from '@wildshard/engine/ai/p
 import { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
-import { groupBrain } from '@wildshard/sdk/groupBrains';
-import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../data/brains';
+import { nativeGroupBrain } from '@wildshard/format/groupBrains';
+import { NALATI_PACK_PROFILE, NALATI_HERD_PROFILE } from '../data/brains';
 import { NALATI_WILDLIFE } from '../creatures/wildPlacement';
 import { wildEnv, type WildEnv } from '../creatures/env';
 import { ARGYMAQ } from '../combat/eliteRoster';
@@ -62,7 +62,7 @@ export function nalatiHeadlessEnv(grass: NalatiGrassView): WildEnv {
 
 /**
  * Nalati's declared groups in a renderer-free host (SF72), built and seeded exactly as the page builds them: Wildlife's pack
- * (`PackBrain` over NALATI_PACK_BRAIN, home at its layout spot) and its wild herd (`HerdBrain` over NALATI_HERD_BRAIN), each
+ * (`PackBrain` over NALATI_PACK_PROFILE, home at its layout spot) and its wild herd (`HerdBrain` over NALATI_HERD_PROFILE), each
  * initialized right after its placement on the host's 'ai' stream (the pack's three draws a wolf, the herd's one), then the
  * raid director's first-raid timer and the Golden King's `reset(0)` draw (the King is not modelled yet), then Argymaq's herd (its mares and
  * foal, one draw) adopting him as its stallion (combat/elites.ts `Argymaq.spawn`). The packs see the herds' foals as prey and
@@ -105,7 +105,7 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   const nearestFoal = (x: number, z: number, r: number): AnimalSim | null => nearest(herds.flatMap(h => h.foals), x, z, r);
   const nearestWolf = (x: number, z: number, r: number): AnimalSim | null => nearest(wolves, x, z, r);
   const herd = (members: AnimalSim[]): HerdBrain<AnimalSim> => {
-    const data = groupBrain({ ...NALATI_HERD_BRAIN, members: members.map(a => a.entityId) });
+    const data = nativeGroupBrain({ ...NALATI_HERD_PROFILE, members: members.map(a => a.entityId) });
     if (data.kind !== 'herd') throw new Error('Invalid herd declaration');
     const policy = new HerdBrain(members, data, { ...nativeHerdPorts(group, world), resolveActor: identity.resolveActor });
     policy.findThreat = nearestWolf;
@@ -120,7 +120,7 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   if (den === undefined || NALATI_WILDLIFE.packs.length !== 1 || NALATI_WILDLIFE.herds.length !== 1) throw new Error('Nalati headless models one pack and one wild herd');
   const pack = herdOf(0, 'wolf');
   wolves.push(...pack);
-  const data = groupBrain({ ...NALATI_PACK_BRAIN, home: [den.x, den.z], members: pack.map(a => a.entityId) });
+  const data = nativeGroupBrain({ ...NALATI_PACK_PROFILE, home: [den.x, den.z], members: pack.map(a => a.entityId) });
   if (data.kind !== 'pack') throw new Error('Invalid pack declaration');
   const policy = new PackBrain(pack, den.x, den.z, data, { ...nativePackPorts(group, world), preyIdentity: identity.preyIdentity, resolvePrey: identity.resolvePrey });
   policy.findPrey = nearestFoal;
@@ -137,7 +137,7 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   herd(lair.slice(0, -1)).adoptStallion(argymaq);
   const addPack = (members: AnimalSim[], x: number, z: number): PackBrain<AnimalSim> => {
     members.forEach(a => { if (byId.has(a.entityId)) throw new Error('Duplicate Nalati raid actor'); byId.set(a.entityId, a); preyIds.set(a, `actor:${a.entityId}`); wolves.push(a); });
-    const row = groupBrain({ ...NALATI_PACK_BRAIN, home: [x, z], members: members.map(a => a.entityId) });
+    const row = nativeGroupBrain({ ...NALATI_PACK_PROFILE, home: [x, z], members: members.map(a => a.entityId) });
     if (row.kind !== 'pack') throw new Error('Invalid raid pack declaration');
     const p = new PackBrain(members, x, z, row, { ...nativePackPorts(group, world), preyIdentity: identity.preyIdentity, resolvePrey: identity.resolvePrey });
     p.findPrey = nearestFoal; // Wildlife.spawnPack uses the same foal query as its boot pack.
