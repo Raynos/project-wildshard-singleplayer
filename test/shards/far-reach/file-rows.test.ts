@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import * as files from '../../../src/shards/far-reach/data/files';
-import { bootSources, bootFiles, lateReads } from '../../../src/shards/far-reach/boot/files';
+import { bootSources, bootFiles, lateReads } from '../../../src/shards/far-reach/manifest';
 
 it('retains every ordered desktop/phone image/KTX2 boot URL and late read', () => {
   const sources = (['desktop', 'phone'] as const).flatMap(tier => (['img', 'ktx2'] as const).map(texture => bootSources(tier, texture)));
