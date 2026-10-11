@@ -877,16 +877,6 @@ Build
 
 The MMO
 
-## Nav · press
-
-Press
-
-# Press kit page (wildshard.io/press/)
-
-## Press page · title
-
-Press kit · Project Wildshard
-
 ## Nav · home
 
 Project Wildshard
@@ -894,64 +884,6 @@ Project Wildshard
 ## Nav · play now
 
 Play now ↗
-
-## Press · question
-
-I'm writing about it
-
-## Press · title
-
-Press kit.
-
-## Press · intro
-
-The logo, screenshots from the game and two blurbs, free to use when you write about Project Wildshard.
-
-## Press · logo description
-
-The Project Wildshard logo: a 3 by 3 lattice with a lit violet centre, and the wordmark
-
-## Press · one-line blurb
-
-**One line.** Project Wildshard is a browser MMO where every shard of the world is built by a player with Claude or any coding agent.
-
-## Press · paragraph blurb
-
-**A paragraph.** Project Wildshard is a first-person sandbox MMO that runs in the browser on desktop and phone. Its world is a grid of 500-metre shards, and every shard is built by a player: authors describe a world to Claude or any coding agent, which builds it with the Wildshard SDK, and upload it to the shared grid. Today it is a single-player alpha: seven shards already run on the engine, each in its own look, from a toon island to a painterly steppe and a neon city stacked 500 metres high.
-
-## Press · colours and type
-
-**Colours:** navy #050a12 · cyan #8fe3ff · violet #a487ff. **Type:** Rajdhani, JetBrains Mono.
-
-## Press · kit contents label
-
-In the kit
-
-## Press · kit contents
-
-- The logo lockup and the mark, as SVG and PNG, plus a one-colour logo for light backgrounds
-- Six in-engine screenshots at 1920 × 1080, real captures, not paint-overs
-- Both blurbs, the colours and the type
-
-## Press · download kit
-
-Download the kit (zip)
-
-## Press · download logo svg
-
-Logo (SVG)
-
-## Press · download logo png
-
-Logo (PNG)
-
-## Press · download mark svg
-
-Mark (SVG)
-
-## Press · contact label
-
-Contact:
 
 # Play page (wildshard.io/play/)
 
@@ -2243,10 +2175,6 @@ every shard in full
 ## Footer · name
 
 Project Wildshard
-
-## Footer · press link
-
-Press kit
 
 # Not found (404.html)
 

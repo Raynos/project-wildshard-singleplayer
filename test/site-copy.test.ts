@@ -8,7 +8,7 @@ import { fillCopy, inline, parseCopy, plain, unusedCopy } from '../site/tools/co
 import { describe, expect, it } from 'vitest';
 
 /** every page of the site (site/vite.config.ts PAGES) */
-const PAGES = ['site/index.html', 'site/play/index.html', 'site/build/index.html', 'site/mmo/index.html', 'site/press/index.html', 'site/404.html'];
+const PAGES = ['site/index.html', 'site/play/index.html', 'site/build/index.html', 'site/mmo/index.html', 'site/404.html'];
 
 describe('parseCopy', () => {
   it('reads `## Name` entries, skips notes and `# Section` lines', () => {
