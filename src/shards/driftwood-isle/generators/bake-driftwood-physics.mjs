@@ -7,8 +7,11 @@ import { pathToFileURL } from 'node:url';
 import { byteWriter } from '../../../../scripts/bake-output.mjs';
 import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs';
 import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
+import { driftwoodSpotsInputs } from '../../../../scripts/driftwood-spots-inputs.mjs';
+import { readDriftwoodSpots } from './driftwoodSpots.mjs';
 import { driftwoodPhysicsInputs } from '../../../../scripts/driftwood-physics-inputs.mjs';
 
+const spotsOnly = process.argv.includes('--spots');
 const root = resolvePath(import.meta.dirname, '../../../..');
 const at = path => import(pathToFileURL(resolvePath(root, path)).href);
 const environment = installBakeEnvironment(root);
@@ -175,12 +178,40 @@ try {
       const { installAdventure } = await at('src/shards/driftwood-isle/quest/adventure.ts');
       Object.assign(world.player,{velocity:new THREE.Vector3(),yaw:0,pitch:0,carried:false});
       runtime.play={animals};
+      let ironDrop;
+      if (spotsOnly) {
+        // The page's actual loadout row owns the pickup factory and its native point/radius.
+        const { driftwoodLoadoutRows } = await at('src/shards/driftwood-isle/loadout/rows.ts');
+        const pickup = driftwoodLoadoutRows(world, runtime)[1].pickup;
+        if (pickup === undefined) throw new Error('Missing native iron sword pickup');
+        ironDrop = pickup.create('wreck.deck', pickup.prompt);
+        if (ironDrop === null) throw new Error('The actual wreck has no sword drop');
+        runtime.interactables.push(ironDrop.interactable);
+        // Derive the reward direction through the page's real planet constructor, never a copied trig law.
+        const { SkyBackdropView } = await at('src/engine/world/skyBackdrop.ts');
+        const visual = new SkyBackdropView(scene, world.game.renderer, ctx.scope, sky);
+        scene.fog = new THREE.Fog(0xffffff, 1, 1000);
+        visual.configure(world.game.level, null);
+        visual.buildPlanet();
+        sky.planetDir = visual.planetDir;
+      }
       const adventure = await installAdventure(ctx,{game:world.game,sky,player:world.player,registry,chunk:manifest,
         prompts:runtime.interactables,hud:{toast:noop},audio:new Audio(),music:{sting:noop},inventory:new Inventory(manifest.slug),animals,
-        pois:{hut:built.hut,lookout:built.lookout,wreck:built.wreck,shrine:built.shrine,cave:built.cove}});
+        ...(ironDrop === undefined ? {} : {ironDrop}),pois:{hut:built.hut,lookout:built.lookout,wreck:built.wreck,shrine:built.shrine,cave:built.cove}});
       // The real interaction constructor refreshes closed boxes after registering them. Apply the page's
       // piece sync once before reading settled static geometry, without advancing AI or simulation clocks.
       for (const piece of addedPieces) piece.sync();
+      if (spotsOnly) {
+        // The real loot presentation installs the shop, making Maren's existing prompt reachable.
+        const { driftwoodLootPresentation } = await at('src/shards/driftwood-isle/loot/presentation.ts');
+        const { Owned } = await at('src/game/loot/Owned.ts');
+        const { Purse } = await at('src/game/loot/Purse.ts');
+        const view = await driftwoodLootPresentation({ adventure, owned: new Owned(manifest.slug), audio: new Audio(), scope: ctx.scope, toast: noop, hold: noop });
+        const shop = view.shop(new Purse(manifest.slug));
+        if (shop === null) throw new Error('Missing actual Driftwood shop');
+        ctx.scope.onDispose(() => shop.dispose());
+      }
+      if (spotsOnly) { captures.push(readDriftwoodSpots(adventure, runtime, registry)); return; }
       const captured=readMetadata(animals,physics,registry,runtime);
       adventure.flags.set('used:altar');
       const captain=adventure.finale.captain();if(captain===null)throw new Error('Actual Captain failed to spawn');
@@ -191,11 +222,13 @@ try {
   });
   const captured = captures[0];
   if(captured===undefined)throw new Error('Actual Driftwood capture did not complete');
-  const inputs = driftwoodPhysicsInputs(root), digest = createHash('sha256').update(JSON.stringify(inputs)).digest('hex');
-  const result={version:1,revision:digest.slice(0,40),build:`node-${digest}`,profile:'Node / phone / no renderer',notice:'DO NOT EDIT: regenerate with generators/bake-driftwood-physics.mjs. revision identifies the recipe inputs.',inputs,...captured};
-  const writer=byteWriter(process.argv.includes('--check'),'bake-driftwood-physics');
-  writer.put(resolvePath(root,'src/shards/driftwood-isle/runtime/physics.baked.json'),`${JSON.stringify(result)}\n`);writer.finish();
-  console.log(`bake-driftwood-physics: ${captured.actors.length} actual native actors, ${captured.solids.length} fixed solids and Captain, Node canonical`);
+  const inputs = spotsOnly ? driftwoodSpotsInputs(root) : driftwoodPhysicsInputs(root), digest = createHash('sha256').update(JSON.stringify(inputs)).digest('hex');
+  const label = spotsOnly ? 'bake-driftwood-spots' : 'bake-driftwood-physics';
+  const result={version:1,revision:digest.slice(0,40),build:`node-${digest}`,profile:'Node / phone / no renderer',notice:`DO NOT EDIT: regenerate with generators/${label}.mjs. revision identifies the recipe inputs.`,inputs,...captured};
+  const writer=byteWriter(process.argv.includes('--check'),label);
+  writer.put(resolvePath(root,`src/shards/driftwood-isle/runtime/${spotsOnly ? 'spots' : 'physics'}.baked.json`),`${JSON.stringify(result)}\n`);writer.finish();
+  if (spotsOnly) console.log(`${label}: ${captured.rows.length} native rows and ${captured.promptRegistrations.length} ordered prompts, Node canonical`);
+  else console.log(`bake-driftwood-physics: ${captured.actors.length} actual native actors, ${captured.solids.length} fixed solids and Captain, Node canonical`);
 } finally {
   try {(await at('src/engine/app/resources.ts')).pageScope.dispose();}finally{environment.dispose();}
 }

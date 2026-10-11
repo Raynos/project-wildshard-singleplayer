@@ -17,7 +17,7 @@ const run = (args, command = process.execPath) => {
 };
 // SF74 W24 (speed audit #10): the push gate caches each node baker on its own inputs (`--list-node`, then
 // `--node-only --only=<baker>` per cached step), so one touched src file re-runs only the bakers that read it.
-const NODE_BAKERS = ['directors', 'chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry', 'cloud-field', 'driftwood-fixed-models', 'nalati-bodies', 'nalati-places', 'nine-physics', 'sky-physics', 'signal-physics', 'pine-coat-pages', 'driftwood-physics', 'pine-physics', 'pine-spots', 'nalati-physics'];
+const NODE_BAKERS = ['directors', 'chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry', 'cloud-field', 'driftwood-fixed-models', 'nalati-bodies', 'nalati-places', 'nine-physics', 'sky-physics', 'signal-physics', 'pine-coat-pages', 'driftwood-physics', 'pine-physics', 'pine-spots', 'driftwood-spots', 'nalati-physics'];
 if (process.argv.includes('--list-node')) { console.log(NODE_BAKERS.join('\n')); process.exit(0); }
 const only = process.argv.find((arg) => arg.startsWith('--only='))?.slice('--only='.length);
 if (only !== undefined && !NODE_BAKERS.includes(only)) { console.error(`bake-check: no node baker ${only} (${NODE_BAKERS.join(', ')})`); process.exit(64); }
@@ -31,7 +31,7 @@ for (const baker of NODE_BAKERS) if (only === undefined || only === baker) {
   } else if (baker === 'driftwood-fixed-models' && process.platform !== 'darwin') {
     console.info('bake-check: driftwood-fixed-models skipped (byte-exact on macOS, where the bake is made)');
   } else {
-    const entry = baker === 'pine-spots' ? 'src/shards/pine-hollow/generators/bake-pine-spots.mjs' : baker === 'pine-physics' ? 'src/shards/pine-hollow/generators/bake-pine-physics.mjs' : baker === 'driftwood-physics' ? 'src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs' : baker === 'signal-physics' ? 'src/shards/sunscar-dunes/generators/bake-signal-physics.mjs' : baker === 'sky-physics' ? 'src/shards/far-reach/generators/bake-sky-physics.mjs' : baker === 'nine-physics' ? 'src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs' : baker === 'driftwood-fixed-models' ? 'src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs' : baker.startsWith('nalati-') ? `src/shards/nalati-grasslands/generators/bake-${baker}.mjs` : `scripts/bake-${baker}.mjs`;
+    const entry = baker === 'driftwood-spots' ? 'src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs' : baker === 'pine-spots' ? 'src/shards/pine-hollow/generators/bake-pine-spots.mjs' : baker === 'pine-physics' ? 'src/shards/pine-hollow/generators/bake-pine-physics.mjs' : baker === 'driftwood-physics' ? 'src/shards/driftwood-isle/generators/bake-driftwood-physics.mjs' : baker === 'signal-physics' ? 'src/shards/sunscar-dunes/generators/bake-signal-physics.mjs' : baker === 'sky-physics' ? 'src/shards/far-reach/generators/bake-sky-physics.mjs' : baker === 'nine-physics' ? 'src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs' : baker === 'driftwood-fixed-models' ? 'src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs' : baker.startsWith('nalati-') ? `src/shards/nalati-grasslands/generators/bake-${baker}.mjs` : `scripts/bake-${baker}.mjs`;
     run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', entry, '--check']);
   }
 }

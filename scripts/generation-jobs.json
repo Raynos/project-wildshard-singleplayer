@@ -338,6 +338,9 @@
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs",
       "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
         "src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs"
       ],
       "inputRoots": [
@@ -350,13 +353,13 @@
         "public",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "scripts/driftwood-spots-inputs.mjs"
       ],
       "outputs": [
         "src/shards/driftwood-isle/runtime/spots.baked.json"
       ],
-      "platform": "darwin",
-      "capture": true
+      "platform": "portable"
     },
     {
       "id": "pine-beaver-pool",
