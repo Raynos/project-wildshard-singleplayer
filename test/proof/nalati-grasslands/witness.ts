@@ -9,7 +9,7 @@ import { loadRapier } from '../../../src/engine/physics/rapier';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
 import { NALATI_NAVMESH_ASSET, NALATI_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
 import { nalatiTamingWitness } from './taming';
-import { canonicalSimDigest } from '../../fake/simState';
+import { canonicalSimDigest, sameBytes } from '../../fake/simState';
 
 /** Gaps are gameplay requirements, not exemptions; a boot/replay proof cannot certify the whole shard. */
 export const NALATI_WITNESS_GAPS = ['qyran', 'qara-and-night-roster', 'golden-king', 'storm-titan', 'taming', 'sabre-and-held-heavy', 'quests-and-gameplay-ledger'] as const;
@@ -36,7 +36,9 @@ export async function nalatiNativeWitness(replay: boolean, gameplay = true): Pro
     let suffixHash: string | undefined;
     if (replay) {
       const saved: SimSnapshot = decodeSimSnapshot(serializeSimSnapshot(checkpoint, basis), basis);
-      assert.deepEqual(saved, checkpoint, 'Codec must preserve every native byte and adapter');
+      const { physics: actualPhysics, ...actualState } = saved, { physics: expectedPhysics, ...expectedState } = checkpoint;
+      assert.equal(sameBytes(actualPhysics, expectedPhysics), true, 'Codec must preserve every native byte');
+      assert.deepEqual(actualState, expectedState, 'Codec must preserve every adapter');
       restored = restoreSimHost(plan.level, ports, saved, fresh => {
         if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt);
         plan.install(fresh, { restoring: true, snapshot: saved, ...effects });
@@ -63,4 +65,12 @@ export async function nalatiNativeWitness(replay: boolean, gameplay = true): Pro
     assert.ok(Object.values(first.scope.census).every(count => count === 0));
     if (restored !== undefined) assert.ok(Object.values(restored.scope.census).every(count => count === 0));
   }
+}
+
+/** Execute the actual long taming replay independently of the boot, codec and 92 entry lanes. */
+export async function nalatiTamingNativeWitness(): Promise<object> {
+  assert.equal(typeof window, 'undefined'); assert.equal(typeof document, 'undefined');
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const assets = new Map([NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
+  return { compatible: false, taming: await nalatiTamingWitness(rapier, assets, true) };
 }
