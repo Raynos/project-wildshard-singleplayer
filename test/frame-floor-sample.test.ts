@@ -79,3 +79,36 @@ it('fails a whole-drive row on one long frame that median and p95 never see (100
   // the 120-frame travel and standing rows keep median / p95 grading only
   expect(assess({ ...result, maxMs: 500, pose: { name: 'grid-template-interior-travel' } }, 'desktop')).toMatchObject({ maxFramePass: true, maxFrameLimitMs: null });
 });
+
+it('refuses a standing row displaced onto the road after its home retired', () => {
+  const start = source.indexOf('function assertStandingPosition('), end = source.indexOf('/** Profile the exact standing window');
+  const verify = runInNewContext(`(${source.slice(start, end).trim()})`) as (pose: { name: string; x: number; z: number }, sample: { position: { x: number; z: number } }) => void;
+  const pose = { name: 'spawn', x: 0, z: -194 };
+  expect(() => verify(pose, { position: { x: 273.9, z: -40 } })).toThrow('Standing pose spawn moved');
+  expect(() => verify(pose, { position: { x: 0.00001, z: -194.00001 } })).not.toThrow();
+});
+
+it('samples the actual boot spawn before any camera scan can retire its world', async () => {
+  const start = source.indexOf('async function measureShard('), end = source.indexOf('/** Long tasks inside a profiled travel leg');
+  const order: string[] = [], spawn = { name: 'spawn', x: 0, z: -194 };
+  const meta = { developer: true, deviceSaves: { devMode: true }, clock: 'live', renderScale: 2, settings: { tier: 'desktop', fps: 'auto' }, renderer: 'ANGLE Metal Renderer', spawn };
+  const run = runInNewContext(`(${source.slice(start, end).trim()})`, {
+    surface: 'desktop', developer: 'on', picks: {}, deviceSaves: {}, expectedSystems: [], publicGrid: false, gridScenario: 'baseline',
+    waitReady: () => Promise.resolve(), sleep: () => Promise.resolve(), settleMs: 2000, evaluationOriginDriftMaxMs: 0,
+    gridFloorDocumentIdentity: () => ({}), metadata: () => ({}), cameras: () => ({}),
+    standingSample: (_driver: object, pose: object) => { order.push('spawn'); expect(pose).toEqual(spawn); return Promise.resolve({ pass: true }); },
+    errorText: (error: Error) => error.message, gridFloorRuntimeFailure: () => null, console: { log: () => undefined, error: () => undefined },
+  }) as (driver: object, shard: string, deadline: number) => Promise<object>;
+  let reads = 0;
+  await run({
+    load: () => Promise.resolve(),
+    evaluate: () => {
+      reads++;
+      if (reads === 2) return Promise.resolve(meta);
+      if (reads === 3) { order.push('scan'); return Promise.reject(new Error('Stop after observing camera scan')); }
+      return Promise.resolve({});
+    },
+    errors: () => Promise.resolve([]), progress: () => null, unload: () => { order.push('unload'); return Promise.resolve(); },
+  }, '_template', Date.now() + 10000);
+  expect(order).toEqual(['spawn', 'scan', 'unload']);
+});

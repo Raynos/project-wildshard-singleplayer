@@ -64,7 +64,7 @@ const travelGl = glObserver === 'on' ? GL_INIT : '';
 const cpuProfileDir = flag('cpu-profile', '');
 if (cpuProfileDir !== '' && (surface !== 'desktop' || gridScenario === 'baseline' || !existsSync(cpuProfileDir))) throw new Error('--cpu-profile=<existing dir> profiles desktop grid travel legs only');
 const safariProfileDir = flag('safari-profile', '');
-if (safariProfileDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' || !existsSync(safariProfileDir))) throw new Error('--safari-profile=<existing dir> samples Simulator grid travel only (diagnostic, no timing credit)');
+if (safariProfileDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' || !existsSync(safariProfileDir))) throw new Error('--safari-profile=<existing dir> samples Simulator standing and whole-drive windows (diagnostic, no timing credit)');
 // op-hitch27: opt-in GL-call timing on BOTH surfaces (`--gl-time`): the heavy WebGL calls (uploads, shader compile / link
 // queries, draws) are timed per frame, and each long frame of a whole-drive row carries its GL split, so a Simulator
 // long frame says whether it was an image upload, a program link or a first draw. Diagnostic: no timing credit.
@@ -211,7 +211,7 @@ function sample(n) {
       const now = performance.now();
       if (g.frameCount !== count) {
         const delta = g.frameCount - count, glFrame = window.__frameFloorGlTake?.() ?? null; // --gl-time: this interval's GL calls
-        if (whole && glFrame !== null && !first && glAt.length < 8000) glAt.push([Math.round(last), glFrame]);
+        if (glFrame !== null && !first && glAt.length < 8000) glAt.push([Math.round(last), glFrame]);
         if (!first) {
           // rAF's shared vsync timestamp grades drawn cadence; callback time also includes preceding game work.
           interval.push(timestamp - last); if (timestamp - last > 50 && longAt.length < 400) longAt.push(glFrame === null ? [Math.round(last), Math.round(timestamp - last)] : [Math.round(last), Math.round(timestamp - last), glFrame]); callbackInterval.push(now - lastCallback); skipped += Math.max(0, delta - 1);
@@ -311,6 +311,40 @@ async function enterGrid(driver) {
   }
   throw new Error('The grid did not finish loading within 240 seconds');
 }
+/** Reject a standing row displaced by a readiness wall or recovery after camera scans. */
+function assertStandingPosition(pose, result) {
+  const distance = Math.hypot(result.position.x - pose.x, result.position.z - pose.z);
+  if (!Number.isFinite(distance) || distance > 2) throw new Error(`Standing pose ${pose.name} moved from (${pose.x}, ${pose.z}) to (${result.position.x}, ${result.position.z})`);
+}
+
+/** Profile the exact standing window on either surface, with no timing credit for diagnostics. */
+async function standingSample(driver, pose) {
+  const started = driver.profile ? await driver.profile.start() : null;
+  const stopScript = driver.scriptProfile ? await driver.scriptProfile.start() : undefined;
+  let result, raw, script;
+  try { result = await driver.evaluate(`(${sample.toString()})(${frames})`); }
+  finally {
+    if (stopScript !== undefined) script = await stopScript();
+    if (driver.profile && started !== null) raw = await driver.profile.stop();
+  }
+  assertStandingPosition(pose, result);
+  if (raw !== undefined) await saveProfileMaps(raw);
+  const cpuProfile = raw === undefined ? undefined : summarizeTravelProfile(raw, started, await driver.evaluate('window.__frameFloorLongTasks ?? []'), pose.name);
+  const scriptProfile = script === undefined ? undefined : await saveSafariProfile(pose.name, script, result.sampleRange);
+  const { glFrames, ...value } = result;
+  return { pose, ...value, ...assess(value, surface), ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, []) }),
+    ...(cpuProfile === undefined ? {} : { cpuProfile }), ...(scriptProfile === undefined ? {} : { scriptProfile }) };
+}
+
+/** Keep Safari's untimed samples and their exact caller window, never inventing per-task durations. */
+async function saveSafariProfile(name, profile, pageRange) {
+  const file = join(safariProfileDir, `${name}-${Date.now()}.scriptprofile.json`);
+  writeFileSync(file, JSON.stringify({ profile, pageRange }));
+  const urls = new Set((profile.samples?.stackTraces ?? []).flatMap(trace => trace.stackFrames.map(frame => frame.url)).filter(url => /^https?:.*\.js$/u.test(url)));
+  await saveScriptMaps(urls, safariProfileDir);
+  return { file, note: 'Diagnostic Safari samples in the caller-delimited page window. Proxy timestamps may be zero; no per-task timing or floor credit.' };
+}
+
 async function measureShard(driver, shard, deadline) {
   const start = Date.now(), floorMs = surface === 'sim' ? 33.3 : 16.7;
   const rows = [], scenarios = [];
@@ -332,6 +366,10 @@ async function measureShard(driver, shard, deadline) {
       const failures = publicGridWitnessFailures(meta.publicGrid, false);
       if (failures.length > 0) throw new Error(failures.join('; '));
     }
+    // Measure the actual boot spawn before camera scans can retire its cell. A later teleport into
+    // an unloaded home is refused/recovered onto the road; labelling that row 'spawn' hid the wrong view.
+    const spawnRow = await standingSample(driver, meta.spawn); rows.push(spawnRow);
+    console.log(`${surface} ${shard} spawn: ${spawnRow.medianFps} fps, p95 ${spawnRow.p95Ms} ms, p99 ${spawnRow.p99Ms} ms — ${spawnRow.pass ? 'PASS' : 'FAIL'}`);
     const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...(shard === 'grid' ? GRID_POSES : [])];
     const candidates = declared.length > 0 ? declared : [{ ...meta.spawn, name: 'spawn-reverse', yaw: meta.spawn.yaw + Math.PI }];
     const scan = [];
@@ -344,12 +382,12 @@ async function measureShard(driver, shard, deadline) {
     }
     // Rank authored standing parity cameras on the surface itself; no shard-name camera table to go stale.
     const heaviest = [...scan].sort((a, b) => b.p95Ms - a.p95Ms || b.workP95Ms - a.workP95Ms || b.triangles - a.triangles).slice(0, 2);
-    for (const pose of [meta.spawn, ...heaviest.map((r) => r.pose)]) {
+    for (const pose of heaviest.map((r) => r.pose)) {
       if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
       await driver.evaluate(`window.__wildshard.pose(${JSON.stringify(pose)})`);
       await sleep(settleMs);
-      const result = await driver.evaluate(`(${sample.toString()})(${frames})`);
-      rows.push({ pose, ...result, ...assess(result, surface) });
+      const result = await standingSample(driver, pose);
+      rows.push(result);
       console.log(`${surface} ${shard} ${pose.name}: ${result.medianFps} fps, p95 ${result.p95Ms} ms, p99 ${result.p99Ms} ms — ${rows.at(-1).pass ? 'PASS' : 'FAIL'}`);
     }
     if (shard === 'grid' && gridScenario !== 'baseline') {
@@ -361,6 +399,7 @@ async function measureShard(driver, shard, deadline) {
         await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)},(${driveFloorGrid.toString()}))`, 130000);
         const profileStart = driver.profile ? await driver.profile.start() : null;
         const traceAnchor = driver.trace ? await driver.trace.start(plan.name) : null;
+        const stopScriptProfile = driver.scriptProfile ? await driver.scriptProfile.start() : undefined;
         await driver.evaluate('(window.__frameFloorDriveDone = false, true)');
         // the whole drive, and every runtime hook still building once it has arrived (the 120-frame travel row ends early)
         const wholeDrive = (async () => {
@@ -372,23 +411,14 @@ async function measureShard(driver, shard, deadline) {
           catch (error) { return { error: error instanceof Error ? error : new Error('Grid floor drive failed', { cause: error }) }; }
         })();
         await sleep(1000);
-        // Safari proxy samples can have zero timestamps. Bound tracking to the same actual 120-frame page window,
-        // rather than inventing a clock join; reuse the one driving Inspector, without a second connection.
-        const stopScriptProfile = driver.scriptProfile === undefined || driver.scriptProfile === null ? undefined : await driver.scriptProfile.start();
-        let motion, profile;
-        try { motion = await driver.evaluate(`(${sample.toString()})(${frames})`); }
-        finally { if (stopScriptProfile !== undefined) profile = await stopScriptProfile(); }
-        let scriptProfile;
-        if (profile !== undefined) {
-          const file = join(safariProfileDir, `${plan.name}-${Date.now()}.scriptprofile.json`);
-          writeFileSync(file, JSON.stringify({ profile, pageRange: motion.sampleRange }));
-          const urls = new Set((profile.samples?.stackTraces ?? []).flatMap(trace => trace.stackFrames.map(frame => frame.url)).filter(url => /^https?:.*\.js$/u.test(url)));
-          await saveScriptMaps(urls, safariProfileDir);
-          scriptProfile = { file, note: 'Diagnostic Safari samples in the caller-delimited travel window. Proxy timestamps may be zero; no per-task timing or floor credit.' };
-        }
-        const driven = await moving; if (driven.error) throw driven.error;
-        await driver.evaluate('(window.__frameFloorDriveDone = true, true)');
-        const whole = await wholeDrive; if (whole.error) throw whole.error;
+        let motion, driven, whole, profile;
+        try {
+          motion = await driver.evaluate(`(${sample.toString()})(${frames})`);
+          driven = await moving; if (driven.error) throw driven.error;
+          await driver.evaluate('(window.__frameFloorDriveDone = true, true)');
+          whole = await wholeDrive; if (whole.error) throw whole.error;
+        } finally { if (stopScriptProfile !== undefined) profile = await stopScriptProfile(); }
+        const scriptProfile = profile === undefined ? undefined : await saveSafariProfile(plan.name, profile, whole.value.sampleRange);
         const rawProfile = driver.profile && profileStart !== null ? await driver.profile.stop() : null;
         if (driver.trace && traceAnchor !== null) await driver.trace.stop(traceAnchor, whole.value.longFrames.at, await driver.evaluate('window.__wildshard.shard.grid.state().live.runtimeTiming?.completed ?? []'));
         if (rawProfile !== null) await saveProfileMaps(rawProfile);
@@ -396,11 +426,11 @@ async function measureShard(driver, shard, deadline) {
         const witness = driven.value, failures = gridFloorWitnessFailures(witness);
         if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
         scenarios.push(witness);
-        rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface), ...(scriptProfile === undefined ? {} : { scriptProfile }) });
+        rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface) });
         const hookTimes = await driver.evaluate('window.__wildshard.shard.grid.state().live.runtimeTiming?.completed ?? []');
         const { glFrames, ...wholeValue } = whole.value;
         const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes),
-          ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, hookTimes) }), ...(cpuProfile === null ? {} : { cpuProfile }) };
+          ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, hookTimes) }), ...(cpuProfile === null ? {} : { cpuProfile }), ...(scriptProfile === undefined ? {} : { scriptProfile }) };
         rows.push(Object.assign(driveRow, assess(driveRow, surface)));
         await sleep(settleMs);
         const standing = await driver.evaluate(`(${sample.toString()})(${frames})`);
