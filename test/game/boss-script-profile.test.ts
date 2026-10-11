@@ -4,7 +4,7 @@ import { expect, it } from 'vitest';
 import { Rng } from '../../src/engine/core/rng';
 import { EliteScriptLane, moduleBytes } from '../../src/game/plugin/brain';
 import { bossFight } from '../../src/game/plugin/bossPhase';
-import { IRONHIDE_BRAIN, GHOST_STAG_BRAIN, BLACKPAW_BRAIN, IMPERIAL_BULL_BRAIN, PINE_ELITE_MODULES } from '../../src/shards/pine-hollow/runtime/brains/eliteBrains';
+import { IRONHIDE_BRAIN, GHOST_STAG_BRAIN, BLACKPAW_BRAIN, IMPERIAL_BULL_BRAIN, PINE_ELITE_MODULES } from '../../src/shards/pine-hollow/data/eliteBrainRows';
 import { qaraBrain, QARA_MODULE } from '../../src/shards/nalati-grasslands/runtime/qaraBrain';
 
 const qara = qaraBrain({x:17,z:-31});

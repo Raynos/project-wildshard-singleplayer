@@ -6,7 +6,7 @@ import { BEAR_CAVE } from '../layout';
 import { bossFight } from '@wildshard/game/plugin/bossPhase';
 import { moduleBytes, stepEliteScript, type EliteScriptLane as EliteScript, type EliteScriptPorts } from '@wildshard/game/plugin/brain';
 import { parseEliteScript, type EliteScriptData as EliteScriptRow } from '@wildshard/format/eliteScripts';
-import { BLACKPAW_BRAIN, GHOST_STAG_BRAIN, IMPERIAL_BULL_BRAIN, IRONHIDE_BRAIN, PINE_ELITE_MODULES } from '../runtime/brains/eliteBrains';
+import { BLACKPAW_BRAIN, GHOST_STAG_BRAIN, IMPERIAL_BULL_BRAIN, IRONHIDE_BRAIN, PINE_ELITE_MODULES } from '../data/eliteBrainRows';
 import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from './eliteRoster';
 import { pineEliteStreams, type PineEliteStreams } from './eliteStreams';
 import { behindPlayer, bugleHour, fadeCooldown, headingTo } from './combatMath';

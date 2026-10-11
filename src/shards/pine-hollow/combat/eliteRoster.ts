@@ -1,6 +1,7 @@
 import type { EliteDef } from '@wildshard/game/Elite';
 import type { ItemId } from '@wildshard/game/Inventory';
 import { DEN } from '../layout';
+import { GHOST_LAIR } from '../data/eliteHomes';
 
 /**
  * Pine Hollow's four named elites as data (PH-C3): their lairs, encounter rows, species identities and the boot swap that
@@ -9,7 +10,6 @@ import { DEN } from '../layout';
 
 // the lairs (x = WEST, z = NORTH: pineHollowLayout.ts's axis note). Chosen on open ground off the trails, one per zone.
 export const IRONHIDE_LAIR = { x: -44, z: -76, r: 16 };
-export const GHOST_LAIR = { x: 62, z: -100, r: 22 };   // > 110 m from the King's clearing: its bar must never ride into his fight
 export const IMPERIAL_LAIR = { x: -40, z: 78, r: 20 };
 export const BLACKPAW_LAIR = { x: DEN.x + 2, z: DEN.z + 2, r: 20 };
 
