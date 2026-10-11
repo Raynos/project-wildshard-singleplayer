@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Check the retained producer's declared source closure.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve authoring imports within the checkout.
 import { dirname, posix } from 'node:path';
 import { parseSync } from 'vite';
@@ -20,7 +20,7 @@ it('stages every relative SDK dependency of the retained portal-floor producer',
     for (const node of parseSync(file, readFileSync(file, 'utf8')).program.body) {
       if (node.type !== 'ImportDeclaration' || typeof node.source.value !== 'string' || !node.source.value.startsWith('.')) continue;
       const path = posix.normalize(posix.join(dirname(file), node.source.value));
-      const target = [path, `${path}.ts`].find(candidate => existsSync(candidate));
+      const target = [path, `${path}.ts`].find(candidate => existsSync(candidate) && statSync(candidate).isFile());
       if (target === undefined) throw new Error(`Unresolved authoring import: ${file} -> ${path}`);
       expect(roots.some(root => root === target || target.startsWith(`${root}/`)), `${file} -> ${target}`).toBe(true);
       if (target.endsWith('.ts')) queue.push(target);

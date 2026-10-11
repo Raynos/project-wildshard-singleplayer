@@ -102,6 +102,14 @@ the HDRI producer stays unavailable until that real dependency is supplied.
 
 ## DS1.5: builds without a browser
 
+Authoring-only JSON recipes use `node --import ./src/sdk/bake/source-loader.mjs src/sdk/bake/json.mjs
+<shard-generator> <function> <output>`. The resolver admits only that shard's six authoring folders plus SDK,
+commons and format; it refuses game, engine, runtime, frozen legacy and sibling-shard imports before evaluating them,
+including computed imports. It does not install the app, simulation bindings or page services. Nine's portal-floor
+job uses this path and retains its pinned output hash. The clean room audits an authoring preload's closure too;
+the old simulation/page preloads remain blocked. Selecting a job for an incremental rehearsal does not grant a
+complete shard-product match or permission to delete its legacy source.
+
 `node scripts/build-without-browser.mjs -- pnpm build` runs the real build with a fail-closed Playwright preloader.
 All Chromium, Firefox and WebKit launches, persistent launches, browser servers and connections refuse; the preloader
 is inherited by Node children. Push/PR CI wraps its checks/build step the same way. Runtime browser proofs and GPU

@@ -144,8 +144,8 @@
       "entry": "src/shards/nine-dragon-stack/generators/portalFloors.ts",
       "command": [
         "--import",
-        "./scripts/sim-node-loader.mjs",
-        "scripts/generate-json.mjs",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
         "src/shards/nine-dragon-stack/generators/portalFloors.ts",
         "portalFloorRows",
         "src/shards/nine-dragon-stack/data/portalFloors.generated.json"
@@ -163,16 +163,16 @@
         "src/shards/nine-dragon-stack/data/decks.ts",
         "src/shards/nine-dragon-stack/data/floorPlan.ts",
         "src/shards/nine-dragon-stack/generators/portalFloors.ts",
-        "scripts/sim-node-loader.mjs",
-        "lint/sim-schema-leaves.json",
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "scripts/generate-json.mjs",
         "src/sdk/sceneDeclarations.ts",
         "src/sdk/modes.ts",
         "src/sdk/movers.ts",
-        "src/sdk/director.ts"
+        "src/sdk/director.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/format"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/portalFloors.generated.json"

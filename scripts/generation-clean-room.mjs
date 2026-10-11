@@ -33,7 +33,7 @@ function metadata(path) { return ['package.json', 'pnpm-lock.yaml', 'pnpm-worksp
 /** Rehearse every registered output from a pinned archive and fresh cache. Every blocked producer is explicit.
  * Darwin-only comparisons stay unavailable on Linux; report-only never grants a match to an unrun job.
  * @param {string} root
- * @param {{pin:string,onUpdate?:(report:import('./generation-clean-room.mjs').CleanRoomReport)=>void}} options
+ * @param {{pin:string,jobIds?:readonly string[],onUpdate?:(report:import('./generation-clean-room.mjs').CleanRoomReport)=>void}} options
  * @returns {Promise<import('./generation-clean-room.mjs').CleanRoomReport>} */
 export async function cleanRoomGeneration(root, options) {
   const work = realpathSync(mkdtempSync(resolve(tmpdir(), 'wildshard-clean-room-')));
@@ -47,6 +47,7 @@ export async function cleanRoomGeneration(root, options) {
     execFileSync('git', ['archive', '--format=tar', `--output=${archive}`, options.pin], {cwd: root});
     execFileSync('tar', ['-xf', archive, '-C', tree]);
     const discovery = discoverGeneration(tree);
+    if (options.jobIds?.some(id => !discovery.jobs.some(job => job.id === id))) throw new Error('Unknown clean-room job');
     report.unregistered = discovery.unregistered;
     const retained = new Map(discovery.jobs.map(job => [job.id, Object.fromEntries(job.outputs.map(file => [file, sha(tree, file) ?? job.buildOutputs?.[file] ?? null]))]));
     removeTrusted(resolve(tree, 'src'), 'src', report.removed);
@@ -56,6 +57,7 @@ export async function cleanRoomGeneration(root, options) {
     const coatPage = 'src/shards/pine-hollow/generators/coatProducer.ts';
     if (existsSync(resolve(tree, coatPage))) report.sourceProbes.push({shard: 'pine-hollow', ...auditAuthoringInputs(tree, 'pine-hollow', coatPage)});
     for (const job of discovery.jobs) {
+      if (options.jobIds !== undefined && !options.jobIds.includes(job.id)) continue;
       /** @type {import('./generation-clean-room.mjs').CleanRoomJob} */
       const row = {id: job.id, entry: job.entry, status: 'blocked', reasons: [], outputs: []};
       if (job.shard === null) row.reasons.push('Producer has no shard-owned authoring sources');
@@ -67,7 +69,11 @@ export async function cleanRoomGeneration(root, options) {
       }
       if (job.capture === true || job.preview === true || job.browser === true) row.reasons.push('Page/browser-bound producer cannot run in the authoring clean room');
       if ((job.seedOutputs?.length ?? 0) > 0) row.reasons.push('Producer still imports a generated output as a source seed');
-      if (job.command.includes('--import')) row.reasons.push('Runtime loader must be replaced by an authoring-only producer command');
+      for (const [index, argument] of job.command.entries()) if (argument === '--import') {
+        const preload = job.command.at(index + 1)?.replace(/^\.\//u, '');
+        if (preload === undefined || job.shard === null || !isAuthoringInput(preload, job.shard)) row.reasons.push('Runtime loader must be replaced by an authoring-only producer command');
+        else row.reasons.push(...auditAuthoringInputs(tree, job.shard, preload).issues.map(issue => `Preload ${issue.reason}: ${issue.file}`));
+      }
       if (job.platform === 'darwin' && process.platform !== 'darwin') row.reasons.push('Darwin-only byte comparison unavailable on this platform');
       const expected = retained.get(job.id);
       if (expected === undefined) throw new Error(`Missing retained evidence: ${job.id}`);

@@ -60,3 +60,22 @@ it('reports page captures, runtime input roots and output seeds without running 
     expect(report.jobs[0]?.reasons.join('\n')).toContain('source seed');
   } finally {f.close();}
 });
+it('admits an authoring-only preload, but never a preload that reaches game services',async()=>{
+  for (const trusted of [false,true]) {
+    const f=fixture((job,put)=>{
+      job.command=['--import','./src/sdk/bake/loader.mjs',job.entry];job.inputRoots.push('src/sdk/bake');
+      put('src/sdk/bake/loader.mjs',trusted?"import '../../game/service.mjs';":"export const authoring = true;");
+      if(trusted)put('src/game/service.mjs',"throw new Error('must never execute');");
+    });
+    try {
+      const row=(await cleanRoomGeneration(f.root,{pin:f.pin,jobIds:['sample']})).jobs[0];
+      expect(row?.status).toBe(trusted?'blocked':'matched');
+      if(trusted)expect(row?.reasons.join('\n')).toContain('Preload outside-authoring');
+    } finally {f.close();}
+  }
+});
+it('refuses an unknown selected job instead of returning empty evidence',async()=>{
+  const f=fixture();
+  try {await expect(cleanRoomGeneration(f.root,{pin:f.pin,jobIds:['missing']})).rejects.toThrow('Unknown clean-room job');}
+  finally {f.close();}
+});
