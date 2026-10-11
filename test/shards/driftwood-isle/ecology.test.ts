@@ -1,7 +1,8 @@
 // src/shards/driftwood-isle/quest/Ecology.ts — the respawn timers: a kill queues its replacement; it comes back only once due, out of
 // sight (> 60 m) and, for the drowned sailor, after dark.
 import { describe, expect, it } from 'vitest';
-import { OUT_OF_SIGHT, RESPAWN, RespawnQueue } from '../../../src/shards/driftwood-isle/quest/Ecology';
+import { RespawnQueue } from '../../../src/shards/driftwood-isle/quest/Ecology';
+import { OUT_OF_SIGHT, RESPAWN } from '../../../src/shards/driftwood-isle/data/ecology';
 
 describe('RespawnQueue', () => {
   it('queues a known kind with a due time inside its rule, ignores the rest', () => {

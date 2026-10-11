@@ -27,7 +27,8 @@ import { COCONUTS, Coconuts } from '../combat/coconuts';
 import { placeEnemies, PRACTICE_AT } from './placement';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake } from './baked';
-import { RespawnQueue, RESPAWN } from './ecology';
+import { RespawnQueue } from './ecology';
+import { RESPAWN } from '../data/ecology';
 import { ISLAND_BOAR, ISLAND_BEAR } from '../creatures/species';
 import { DRIFTWOOD_FAUNA_TUNING, faunaPlacement, faunaSpecies } from './fauna';
 

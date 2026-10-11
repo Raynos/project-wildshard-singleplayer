@@ -1,3 +1,4 @@
+import { OUT_OF_SIGHT, RESPAWN, type RespawnRule } from '../data/ecology';
 /**
  * Ecology — the island's enemies come back (DRIFTWOOD-REMASTER A6): a crab, monkey, boar or bear you kill is
  * replaced a few minutes later by a fresh one of the same kind + variant at its herd's home (the tidepool, the grove,
@@ -13,19 +14,6 @@
  */
 import type { AdvAnimal, AdventureWorld } from './adventure';
 import { app } from '@wildshard/engine/app/runtime';
-
-export interface RespawnRule { delay: [number, number]; night?: boolean }
-
-/** seconds until a kind comes back (rolled in the range), and whether it only comes back at night */
-export const RESPAWN: Record<string, RespawnRule> = {
-  crab: { delay: [240, 360] },
-  monkey: { delay: [300, 420] },
-  boar: { delay: [300, 420] },
-  bear: { delay: [600, 900] },
-  sailor: { delay: [180, 180], night: true },
-};
-
-export const OUT_OF_SIGHT = 60;
 
 export interface RespawnEntry { kind: string; variant: string | undefined; herd: number; x: number; z: number; due: number; night: boolean }
 
