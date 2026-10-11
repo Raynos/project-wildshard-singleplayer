@@ -2408,7 +2408,14 @@ the host's combat pipeline inside the 70° strike arc with a clear line (`creatu
 the move `contactMove(kind)`). Both sides build the same engine brain from the same admitted data, so a row behaves the
 same in the client and the headless host. Signal Dunes' ray and strider are the first (`data/brains.ts` SIGNAL_SPECIES).
 
-**Parametric stalker (SF82 BR-1).** `@wildshard/engine/ai/stalker` defines `StalkerBrain(profile)` for
+**Parametric stalker (SF82 BR-1).** `StalkerBrain({pattern: 'pack', members, home, spec, ports})` also owns
+the circling-pack pattern over its actual ordered roster. `CirclingPackSpec`, `CirclingPackContext`,
+`CirclingPackPorts` and `CirclingPackPrey` define the native ports and parameters. `initialize` performs
+the original role/offset draws after preflight; `tick` shares the group decision clock and `drive`
+preserves native per-body cadence. `snapshotPack` retains the complete token/prey/role continuation.
+`ai/pack#PackBrain` stays the historical constructor preset; group-only calls refuse other patterns.
+
+ `@wildshard/engine/ai/stalker` defines `StalkerBrain(profile)` for
 `skirmish`, `howler` and `pouncer`. The skirmish profile supplies tuning; howl/pounce profiles also supply explicit
 native encounter/query/event ports. `think(actor, taggedObservation)` keeps manager perception separate from
 `act(actor)` contacts and `advance(actor|null, dt, time, engaged, leashing)` encounter frames.

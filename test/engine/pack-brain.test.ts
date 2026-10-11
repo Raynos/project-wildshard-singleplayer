@@ -2,6 +2,7 @@ import { afterAll, afterEach, describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash every complete frame of the real shipping oracle without retaining large trace arrays.
 import { createHash } from 'node:crypto';
 import { Vector3 } from 'three';
+import { StalkerBrain } from '../../src/engine/ai/stalker';
 import { PackBrain, type PackPorts } from '../../src/engine/ai/pack';
 import { Animal } from '../../src/engine/entities/AnimalView';
 import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
@@ -21,8 +22,8 @@ const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 
 afterAll(restoreTerrain);
 const originalEnv = { ...wildEnv };
 afterEach(() => { Object.assign(wildEnv, originalEnv); });
-function fixture(platform: boolean | 'bound', restoring = false): {
-  policy: PackController | PackBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx'];
+function fixture(platform: boolean | 'bound' | 'direct', restoring = false): {
+  policy: PackController | StalkerBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx'];
   events: unknown[]; prey: { position: Vector3; yaw: number; alive: boolean; applyDamage: () => boolean };
   ports: PackPorts<Animal>;
   construction: { beforeRng: ReturnType<Rng['snapshot']>; afterRng: ReturnType<Rng['snapshot']>; beforeMemory: Record<string, number>[]; afterMemory: Record<string, number>[] };
@@ -50,9 +51,9 @@ function fixture(platform: boolean | 'bound', restoring = false): {
   const beforeRng = app.rng.stream('ai').snapshot(), beforeMemory = members.map(actor => ({ ...actor.mem }));
   const policy = platform === 'bound' ? declaredGroupFactories({ preyIdentity: value => { if (value !== prey) throw new Error('Unknown prey'); return 'sheep.0'; },
     resolvePrey: id => id === 'sheep.0' ? prey : null, resolveActor: id => members.find(actor => actor.entityId === id) ?? null }, APP_GROUP_HOST).pack(members, 0, 0)
-    : platform ? new PackBrain(members, 0, 0, NALATI_PACK_BRAIN, ports) : new ShippingPack(members, 0, 0);
+    : platform === 'direct' ? new StalkerBrain({ pattern: 'pack', members, home: { x: 0, z: 0 }, spec: NALATI_PACK_BRAIN, ports }) : platform ? new PackBrain(members, 0, 0, NALATI_PACK_BRAIN, ports) : new ShippingPack(members, 0, 0);
   const construction = { beforeRng, afterRng: app.rng.stream('ai').snapshot(), beforeMemory, afterMemory: members.map(actor => ({ ...actor.mem })) };
-  if (policy instanceof PackBrain && platform !== 'bound' && !restoring) policy.initialize();
+  if (policy instanceof StalkerBrain && platform !== 'bound' && !restoring) policy.initialize();
   f.ctx.rng = new Rng(357); f.ctx.herd = members;
   f.ctx.confine = actor => { actor.position.x = Math.max(-220, Math.min(220, actor.position.x)); actor.position.z = Math.max(-220, Math.min(220, actor.position.z)); };
   f.ctx.claim = actor => app.events.ask('ai.claim', actor);
@@ -60,7 +61,7 @@ function fixture(platform: boolean | 'bound', restoring = false): {
   return { policy, members, context: f.ctx, events, prey, ports, construction };
 }
 const stateKeys = ['phase', 'awareness', 'homeX', 'homeZ', 'phaseT', 'roamX', 'roamZ', 'roamT', 'nextTokenT', 'boldT', 'calmT', 'hpStart', 'halfDone', 'deadSeen', 'shadowDur', 'howled', 'bites', 'scared'] as const;
-function state(policy: PackController | PackBrain<Animal>): unknown[] {
+function state(policy: PackController | StalkerBrain<Animal>): unknown[] {
   return stateKeys.map(key => { const value: unknown = Reflect.get(policy, key); if (!['number', 'string', 'boolean'].includes(typeof value)) throw new Error(`Missing group state ${key}`); return value; });
 }
 function step(f: ReturnType<typeof fixture>, tick: number, scenario: 'senses' | 'raid' | 'regroup' | 'mounted'): void {
@@ -81,7 +82,7 @@ function step(f: ReturnType<typeof fixture>, tick: number, scenario: 'senses' | 
   const body = { ...c, dt: 1 / 60 };
   for (const actor of f.members) { if (actor.alive) { f.policy.drive(actor, body, true); c.confine(actor); } actor.step(1 / 60); }
 }
-function replay(platform: boolean | 'bound', scenario: Parameters<typeof step>[2]): { hash: string; phases: string[]; groupRng: ReturnType<typeof app.rng.snapshot>; actorRng: ReturnType<Rng['snapshot']> } {
+function replay(platform: boolean | 'bound' | 'direct', scenario: Parameters<typeof step>[2]): { hash: string; phases: string[]; groupRng: ReturnType<typeof app.rng.snapshot>; actorRng: ReturnType<Rng['snapshot']> } {
   const f = fixture(platform), hash = createHash('sha256'), phases = new Set<string>();
   for (let tick = 0; tick < 10000; tick++) {
     step(f, tick, scenario); phases.add(f.policy.phase);
@@ -99,7 +100,7 @@ describe('declared pack family', () => {
   });
   it('keeps constructors pure and performs exactly the shipping setup draws and member writes once', () => {
     const native = fixture(false), expectedRng = app.rng.stream('ai').snapshot();
-    const platform = fixture(true), policy = platform.policy; if (!(policy instanceof PackBrain)) throw new Error('Missing platform brain');
+    const platform = fixture(true), policy = platform.policy; if (!(policy instanceof StalkerBrain)) throw new Error('Missing platform brain');
     expect(platform.construction.afterRng).toEqual(platform.construction.beforeRng);
     expect(platform.construction.afterMemory).toEqual(platform.construction.beforeMemory);
     expect(app.rng.stream('ai').snapshot()).toEqual(expectedRng);
@@ -108,19 +109,19 @@ describe('declared pack family', () => {
     expect(app.rng.stream('ai').snapshot()).toEqual(expectedRng);
   });
   it.each(['senses', 'raid', 'regroup', 'mounted'] as const)('matches the actual shipping group, body, strikes and RNG for 10,000 fixed ticks: %s', scenario => {
-    const actual = replay(true, scenario); expect(actual).toEqual(replay(false, scenario)); expect(replay('bound', scenario)).toEqual(actual);
+    const actual = replay(true, scenario); expect(actual).toEqual(replay(false, scenario)); expect(replay('bound', scenario)).toEqual(actual); expect(replay('direct', scenario)).toEqual(actual);
     for (const phase of ['roam', 'shadow', 'encircle', 'break']) expect(actual.phases).toContain(phase);
     if (scenario === 'regroup') expect(actual.phases).toContain('regroup');
   });
-  it('restores pending prey, group timers and token holders without consuming RNG, then matches a 10,000 tick suffix', () => {
-    const before = fixture(true); if (!(before.policy instanceof PackBrain)) throw new Error('Missing platform brain');
+  it.each([true, 'direct'] as const)('restores pending prey, group timers and token holders without consuming RNG, then matches a 10,000 tick suffix (%s)', platform => {
+    const before = fixture(platform); if (!(before.policy instanceof StalkerBrain)) throw new Error('Missing platform brain');
     for (let tick = 0; tick < 1900; tick++) step(before, tick, 'mounted');
     before.policy.prey = before.prey;
     before.events.length = 0;
     const saved = before.policy.snapshot(), actors = before.members.map(actor => actor.snapshot()), groupRng = app.rng.snapshot(), actorRng = before.context.rng.snapshot();
     const expected = createHash('sha256');
     for (let tick = 1900; tick < 11900; tick++) { step(before, tick, 'mounted'); expected.update(JSON.stringify([before.policy.snapshot(), before.members.map(actor => actor.snapshot()), before.events])); before.events.length = 0; }
-    const after = fixture(true, true); if (!(after.policy instanceof PackBrain)) throw new Error('Missing platform brain');
+    const after = fixture(platform, true); if (!(after.policy instanceof StalkerBrain)) throw new Error('Missing platform brain');
     after.members.forEach((actor, i) => { const data = actors[i]; if (data === undefined) throw new Error('Missing actor'); actor.restore(data); });
     app.rng.restore(groupRng); after.context.rng.restore(actorRng);
     after.policy.restore(saved); expect(app.rng.snapshot()).toEqual(groupRng);
@@ -129,8 +130,8 @@ describe('declared pack family', () => {
     expect(actual.digest('hex')).toBe(expected.digest('hex'));
   });
   it('refuses incompatible tuning and unresolved prey atomically', () => {
-    const f = fixture(true); if (!(f.policy instanceof PackBrain)) throw new Error('Missing platform brain');
-    const policy = f.policy; policy.prey = f.prey; const saved = policy.snapshot();
+    const f = fixture(true); if (!(f.policy instanceof StalkerBrain)) throw new Error('Missing platform brain');
+    const policy = f.policy; policy.prey = f.prey; const saved = policy.snapshotPack();
     const forged: unknown = JSON.parse(saved);
     if (typeof forged !== 'object' || forged === null) throw new Error('Invalid fixture');
     Reflect.set(forged, 'prey', 'missing'); expect(() => { policy.restore(JSON.stringify(forged)); }).toThrow();
