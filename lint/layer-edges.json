@@ -3,14 +3,14 @@
   "edges": {
     "commons → format": 1,
     "commons → sdk": 18,
-    "engine → format": 19,
-    "game → engine": 932,
-    "game → format": 194,
+    "engine → format": 24,
+    "game → engine": 920,
+    "game → format": 206,
     "root → engine": 21,
     "root → game": 24,
     "root → sdk": 2,
-    "sdk → engine": 31,
-    "sdk → format": 107,
+    "sdk → engine": 30,
+    "sdk → format": 108,
     "sdk → game": 44
   }
 }
