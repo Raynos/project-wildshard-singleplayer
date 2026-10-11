@@ -25,11 +25,16 @@
         "drivePass": true,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           59.88,
           59.88,
           59.88
+        ],
+        "drawnFrames": [
+          120,
+          300,
+          120
         ]
       },
       "after": {
@@ -43,11 +48,16 @@
         "drivePass": true,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           59.88,
           59.88,
           59.88
+        ],
+        "drawnFrames": [
+          120,
+          480,
+          120
         ]
       },
       "intermediate": null
@@ -66,11 +76,16 @@
         "drivePass": true,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           59.88,
           59.88,
           59.88
+        ],
+        "drawnFrames": [
+          120,
+          330,
+          120
         ]
       },
       "after": {
@@ -84,11 +99,16 @@
         "drivePass": true,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           59.88,
           59.88,
           59.88
+        ],
+        "drawnFrames": [
+          120,
+          390,
+          120
         ]
       },
       "intermediate": null
@@ -107,11 +127,16 @@
         "drivePass": false,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           29.412,
           30.303,
           30.303
+        ],
+        "drawnFrames": [
+          120,
+          1470,
+          120
         ]
       },
       "after": {
@@ -125,11 +150,16 @@
         "drivePass": true,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           30.303,
           30.303,
           30.303
+        ],
+        "drawnFrames": [
+          120,
+          1500,
+          120
         ]
       },
       "intermediate": {
@@ -143,11 +173,16 @@
         "drivePass": false,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           30.303,
           30.303,
           30.303
+        ],
+        "drawnFrames": [
+          120,
+          1500,
+          120
         ]
       }
     },
@@ -165,11 +200,16 @@
         "drivePass": false,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           30.303,
           30.303,
           30.303
+        ],
+        "drawnFrames": [
+          120,
+          1650,
+          120
         ]
       },
       "after": {
@@ -183,11 +223,16 @@
         "drivePass": true,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           30.303,
           30.303,
           30.303
+        ],
+        "drawnFrames": [
+          120,
+          1710,
+          120
         ]
       },
       "intermediate": {
@@ -201,11 +246,16 @@
         "drivePass": true,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           30.303,
           30.303,
           30.303
+        ],
+        "drawnFrames": [
+          120,
+          1680,
+          120
         ]
       }
     },
@@ -223,11 +273,16 @@
         "drivePass": false,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           29.412,
           30.303,
           30.303
+        ],
+        "drawnFrames": [
+          120,
+          480,
+          120
         ]
       },
       "after": {
@@ -241,11 +296,16 @@
         "drivePass": false,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           30.303,
           30.303,
           30.303
+        ],
+        "drawnFrames": [
+          120,
+          540,
+          120
         ]
       },
       "intermediate": {
@@ -259,11 +319,16 @@
         "drivePass": false,
         "interiorPass": true,
         "cpuPass": true,
-        "valid": false,
+        "valid": true,
         "medianFps": [
           30.303,
           30.303,
           30.303
+        ],
+        "drawnFrames": [
+          120,
+          480,
+          120
         ]
       }
     }
@@ -318,6 +383,113 @@
       "glObserver": "off",
       "cpuProfile": false,
       "glTime": false
+    },
+    {
+      "surface": "sim",
+      "sha": "88b76f10c682fae6796d276a5cfd83d94bc504de",
+      "complete": false,
+      "seconds": 307.894,
+      "errors": 0,
+      "failure": "Grid floor source driftwood-isle did not become an entered ready resident",
+      "routesCompleted": 0,
+      "standingP95Ms": [
+        34,
+        34,
+        34
+      ],
+      "glObserver": "off",
+      "cpuProfile": false,
+      "glTime": false,
+      "quietUTC": [
+        "2026-10-11T05:42:08.441Z",
+        "2026-10-11T05:47:20.456Z"
+      ],
+      "timingCredit": false
+    },
+    {
+      "surface": "sim",
+      "sha": "11e943f3518535307453e7b1f4ef1bd3e7ddf5c0",
+      "complete": false,
+      "seconds": 297.624,
+      "errors": 0,
+      "failure": "Error: Grid floor route template-interior timed out",
+      "routesCompleted": 0,
+      "standingP95Ms": [
+        34,
+        34,
+        34
+      ],
+      "glObserver": "off",
+      "cpuProfile": false,
+      "glTime": false,
+      "quietUTC": [
+        "2026-10-11T05:50:41.474Z",
+        "2026-10-11T05:55:43.136Z"
+      ],
+      "timingCredit": false,
+      "diagnosticConsoleErrors": 5,
+      "shaderFailure": "family:pbr fragment shader: duplicate wsHorizonOwned / wsHorizonCell uniforms",
+      "lastRoute": {
+        "current": null,
+        "inside": null,
+        "feet": {
+          "x": 298.3534721358195,
+          "y": 0.4488977371858832,
+          "z": 554.9787264647774
+        },
+        "gameplayReady": true,
+        "stop": {
+          "leg": "template-interior",
+          "phase": "travel",
+          "waypoint": 3,
+          "target": {
+            "x": 325,
+            "z": 555
+          }
+        }
+      }
+    },
+    {
+      "surface": "sim",
+      "sha": "ec6e984634e8d824f1ff977f95ff773abe6426f4",
+      "complete": false,
+      "seconds": 294.508,
+      "errors": 0,
+      "diagnosticConsoleErrors": 0,
+      "failure": "Error: Grid floor route template-interior timed out",
+      "routesCompleted": 0,
+      "standingP95Ms": [
+        34,
+        34,
+        34
+      ],
+      "lastRoute": {
+        "current": null,
+        "inside": null,
+        "feet": {
+          "x": 298.35173753578476,
+          "y": 0.44868023568090737,
+          "z": 555.085321571739
+        },
+        "gameplayReady": true,
+        "stop": {
+          "leg": "template-interior",
+          "phase": "travel",
+          "waypoint": 3,
+          "target": {
+            "x": 325,
+            "z": 555
+          }
+        }
+      },
+      "glObserver": "off",
+      "cpuProfile": false,
+      "glTime": false,
+      "quietUTC": [
+        "2026-10-11T06:01:03.368Z",
+        "2026-10-11T06:06:01.992Z"
+      ],
+      "timingCredit": false
     }
   ],
   "simulatorAfter": "dbb89458de46c621b0705d3111bb0ef4577ce5b8",
@@ -332,5 +504,85 @@
       "2026-10-11T05:17:47.254Z"
     ]
   },
-  "comparison": "Baseline is the full milestone; after selects original route plans. Other lanes landed between pins. Targeted regression comparison, not isolated native A/B."
+  "comparison": "Baseline is the full milestone; after selects original route plans. Other lanes landed between pins. Targeted regression comparison, not isolated native A/B.",
+  "validity": "valid means positive drawn frame counts, skipped=0 and contextLost=false for travel, drive and interior. This corrects the earlier scalar exporter reading a nonexistent raw valid field.",
+  "safariAttribution": {
+    "source": "dbb89458de46c621b0705d3111bb0ef4577ce5b8",
+    "harness": "919ac7ac6",
+    "diagnosticOnly": true,
+    "pageRange": {
+      "startMs": 36166,
+      "endMs": 40183
+    },
+    "samples": 855,
+    "zeroTimestamps": 855,
+    "self": [
+      {
+        "function": "Noise2D.get",
+        "samples": 66,
+        "percent": 7.7
+      },
+      {
+        "function": "TerrainField.trailDistance",
+        "samples": 47,
+        "percent": 5.5
+      }
+    ],
+    "inclusiveOverlapping": [
+      {
+        "function": "Nalati outcropSteps",
+        "samples": 135,
+        "percent": 15.8
+      },
+      {
+        "function": "TerrainField.heightAt",
+        "samples": 102,
+        "percent": 11.9
+      },
+      {
+        "function": "Nalati heightAt",
+        "samples": 93,
+        "percent": 10.9
+      }
+    ],
+    "slowWorldFrames": {
+      "frames": 5,
+      "maxMs": 129,
+      "allRecordedGlCallMs": 1
+    },
+    "note": "Sample shares only; proxy timestamps are zero, inclusive figures overlap. The plain credit run remains separate.",
+    "quietUTC": [
+      "2026-10-11T05:29:49.476Z",
+      "2026-10-11T05:32:04.688Z"
+    ],
+    "atomicSteps": [
+      "computeVertexNormals inside outcrop placement",
+      "geometry.applyMatrix4 inside PaintKit.add",
+      "bounding sphere/box inside PaintKit.shadeSteps",
+      "rejected outcrop candidates before its accepted-piece yield"
+    ]
+  },
+  "terrainOptimization": {
+    "sha": "11e943f35",
+    "rule": "Minimize the identical squared segment distances, then take one square root. No cache, approximation or rounding.",
+    "oracle": "10000 crossing/degenerate points plus mutable paths, nearly coincident paths, signed zero and non-finite inputs; final values Object.is-identical to the shipping formula.",
+    "rootsPer100SegmentQuery": {
+      "before": 100,
+      "after": 1
+    },
+    "focusedTests": 9,
+    "strict": true,
+    "touchedLint": true,
+    "timingCredit": false
+  },
+  "horizonCompileFix": {
+    "sha": "ec6e98463",
+    "cause": "Family material copies the existing horizon patch chain; a new owner then injected duplicate declarations/discard.",
+    "fix": "Preserve a single identical source injection while rebinding current owner uniforms.",
+    "focusedTests": 2,
+    "strict": true,
+    "touchedLint": true,
+    "traversalCausality": "Not established by the timeout diagnostics.",
+    "browserCorroboration": "No diagnostic console errors on ec6e98463, but the template readiness approach still timed out; no traversal/timing pass."
+  }
 }
