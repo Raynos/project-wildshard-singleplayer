@@ -3013,3 +3013,19 @@ SF81 typed stage publication: `DirectorScriptStageLane` supplies the original ad
 
 
 SF81 Pine elite prelude: authored elitePreludeStages.json selects absent, home, fight and idle in the native priority order. Each live stage advances the original owner clock before its motor or admitted fight actions; the absent stage clears tells without advancing time. Pine retains the real actor, lair math, RNG and existing SF27 fight ABI. Four independent versioned cursors restore quietly; the native elite continuation is version 3 and refuses older snapshots.
+
+### Shared species rest-joint fragments
+
+`@wildshard/commons/packs/species` defines `speciesRestPack(kind, glb, provenance)`
+v1.0.0. It runs only during authoring and emits the ordered model-space joint names,
+parents and exact rest positions of one retained hull. Parents precede their children;
+ambiguous names, external parents, malformed GLBs and unbounded positions refuse.
+It does not emit meshes, coats, inverse binds, clips, behaviour or a runtime service.
+
+Qualification compares all twenty boar/bear joints to Driftwood's native toon builder
+and Pine's shared PBR builder, then to Pine's actual phone hulls (boar, black bear and
+brown bear). The rest fragments are exact; the meshes differ and remain shard-owned.
+The SF26 fixture admits both fragments for two primary shards, reads the original
+hash-addressed bytes through `ClientAssets`, charges each once, and releases the two
+leases independently. Native body/playback routing to these files is still open;
+qualification and product admission are not evidence of production adoption.
