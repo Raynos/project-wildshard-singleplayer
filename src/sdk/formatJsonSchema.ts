@@ -18,6 +18,7 @@ import { AudioRoutingSchema } from '@wildshard/format/audioRouting';
 import { AudioDataSchema } from '@wildshard/format/audio';
 import { LedgerFactSchema, LedgerRulesSchema } from '@wildshard/format/ledger';
 import { DirectorSchema } from '@wildshard/format/director';
+import { DirectorStagesSchema } from '@wildshard/format/directorStages';
 import { LogicalStateSchema, MigrationsSchema } from '@wildshard/format/migrations';
 import { TraversalSchema } from '@wildshard/format/traversal';
 import { RuntimeBindsSchema } from '@wildshard/format/runtimeBinds';
@@ -121,6 +122,7 @@ const wireRoots = {
   'ledger.LedgerFact': LedgerFactSchema,
   'ledger.LedgerRules': LedgerRulesSchema,
   'director.Director': DirectorSchema,
+  'directorStages.DirectorStages': DirectorStagesSchema,
   'migrations.LogicalState': LogicalStateSchema,
   'migrations.Migrations': MigrationsSchema,
   'traversal.Traversal': TraversalSchema,

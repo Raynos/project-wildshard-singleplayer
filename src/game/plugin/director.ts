@@ -2,6 +2,8 @@ import * as v from "valibot";
 import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptQuery } from "@wildshard/engine/script/host";
 import { ScriptWorld, type EffectTransaction, type ScriptEffect } from "@wildshard/engine/script/effects";
 import { parseDirector, type DirectorData, type DirectorEvent } from "@wildshard/format/director";
+import { parseDirectorStages, type DirectorStagesData, type DirectorAction } from '@wildshard/format/directorStages';
+import { compileDirectorWhen, evaluateDirectorWhen, type DirectorWhenInstruction } from '@wildshard/format/directorWhen';
 
 function payload(row: DirectorData['events'][number], value: number): boolean {
   return Number.isFinite(value) && value >= row.min && value <= row.max && (row.type === 'number' || Number.isInteger(value));
@@ -115,3 +117,53 @@ export async function createDirectorLane(data: DirectorData, bytes: Uint8Array, 
   return (await prepareDirectorModule(data, bytes))(seed, query);
 }
 
+const stageState = v.strictObject({ tick: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(Number.MAX_SAFE_INTEGER)), stage: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(63)) });
+
+/** Version-two row interpreter. Native bindings supply observations; returned actions belong to their real owners.
+ * Enter the first stage on the first tick, then at most one successor per tick. An explicit next target permits a cycle.
+ * No callback or service is installed, and no stage action is replayed during restore. */
+export class DirectorStageLane {
+  private readonly definition: DirectorStagesData;
+  private readonly conditions: readonly (readonly DirectorWhenInstruction[])[];
+  private currentTick = -1;
+  private currentStage = -1;
+  constructor(data: unknown) {
+    this.definition = structuredClone(parseDirectorStages(data));
+    if (this.definition.script !== null) throw new Error('Scripted stage directors require a typed script installation');
+    const names = Object.keys(this.definition.inputs);
+    this.conditions = this.definition.stages.map(stage => compileDirectorWhen(stage.when ?? 'true', names));
+  }
+  /** An independent copy of the installed immutable author contract. */
+  get data(): DirectorStagesData { return structuredClone(this.definition); }
+  /** The last accepted fixed tick, including ticks that did not change stage. */
+  get tick(): number { return this.currentTick; }
+  /** The active stage identity, or null before the first accepted tick. */
+  get stage(): string | null { return this.definition.stages[this.currentStage]?.id ?? null; }
+  /** Validate a complete native observation before advancing; commands retain author order and cannot mutate installed rows. */
+  step(tick: number, observation: Readonly<Record<string, boolean>>): readonly DirectorAction[] {
+    if (!Number.isSafeInteger(tick) || tick < 0 || tick <= this.currentTick) throw new Error('Invalid stage director tick');
+    const names = Object.keys(this.definition.inputs);
+    if (Object.keys(observation).length !== names.length || names.some(name => !Object.hasOwn(observation, name) || typeof observation[name] !== 'boolean')) throw new Error('Invalid stage director observation');
+    let target = this.currentStage, entered = false;
+    if (target < 0) { target = 0; entered = true; }
+    else {
+      const stage = this.definition.stages[target];
+      if (stage === undefined) throw new Error('Invalid installed director stage');
+      const next = stage.next === undefined ? target + 1 : this.definition.stages.findIndex(row => row.id === stage.next);
+      const condition = this.conditions[next];
+      if (condition !== undefined && evaluateDirectorWhen(condition, observation)) { target = next; entered = true; }
+    }
+    const actions = entered ? structuredClone(this.definition.stages[target]?.do ?? []) : [];
+    this.currentTick = tick; this.currentStage = target;
+    return actions;
+  }
+  /** Persist the exact author contract and cursor; stage-entry effects are absent from the continuation. */
+  snapshot(): string { return JSON.stringify({ version: 2, contract: this.definition, state: { tick: this.currentTick, stage: this.currentStage } }); }
+  /** Refuse a foreign contract or malformed cursor before mutation. Restore never evaluates guards or emits effects. */
+  restore(text: string): void {
+    const saved = v.parse(v.strictObject({ version: v.literal(2), contract: v.unknown(), state: stageState }), JSON.parse(text));
+    if (JSON.stringify(saved.contract) !== JSON.stringify(this.definition) || saved.state.stage >= this.definition.stages.length
+      || (saved.state.tick === -1) !== (saved.state.stage === -1)) throw new Error('Incompatible stage director snapshot');
+    this.currentTick = saved.state.tick; this.currentStage = saved.state.stage;
+  }
+}
