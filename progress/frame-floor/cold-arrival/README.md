@@ -1,6 +1,6 @@
 # Cold road arrival: Nalati
 
-**Nalati arrival and whole-drive pass; the full milestone remains open.** The latest cold run records **0 blocked frames, 0 early-visible frames**, whole-drive **p95 35 ms / max 90 ms**. The short 120-frame travel window still misses at **p95 40 ms** (sp-x1 owns travel pacing). Pine remains red; Nine and Sky's full authored lift traversal are pending.
+**Nalati arrival passes; the matched graph-on drive tail remains red.** The explicit graphMaterials ON / Memory saver OFF confirmation records **0 ms wait, 0 blocked frames, 0 early-visible frames** at the shipping **30 m/s** cap. Whole-drive **p95 40 ms / max 85 ms**, short travel p95 **43 ms**: this is not a full floor pass. The earlier graph-default run was 35/90. Pine remains red; Nine and Sky's full authored lift traversal are pending.
 
 Phone Simulator, Developer on, 2× scale, seed 357. Start (277.5, 277.5), road turn (277.5, 0), endpoint (345, 0), normal held input capped at the shipping 30 m/s. Only the first road pose is seeded. Every drawn frame observes real motor blockage within 10 m of the unready cell edge and regional visibility; road gameplayReady cannot substitute for destination readiness.
 
@@ -14,6 +14,11 @@ Phone Simulator, Developer on, 2× scale, seed 357. Start (277.5, 277.5), road t
 | 312618b78 bounded construction / on | 2.400 s | 34 / 74 | 46 | 0 |
 | 312618b78 bounded construction / uploads | 0.533 s | 35 / 88 | 45 | 0 |
 | 1ed327eec bounded construction + image + parked batches / on | **0** | **35 / 90** | **40** | **0** |
+| 1ed327eec explicit graph ON / memorySaver OFF / on | **0** | **40 / 85 (p95 FAIL)** | **43** | **0** |
+
+Matched plain cold-runtime confirmation: quiet **2026-10-11 12:35:22–12:36:44 UTC**, load **7.07**, 750 drive frames, no game/document errors. The real destination was ready at trace time **13.376 s**, before the sampled 10 m approach zone at **13.643 s**; the every-frame wall/visibility counters are both zero. The route's actual motor cap is 30 m/s; the quantized trace's peak is 30.797 m/s. The normal-input route finished at 23.681 s with Nalati actually resident. Window and Simulator released. No full-suite or quality change. **59 focused checks in seven files passed.** The remaining drive p95 needs attribution; sp-x1 owns the separate short-travel tail.
+
+The matching plain [outbound proof](../nalati-outbound/README.md) passes **p95 34 / max 93 ms**, zero frames over 200 ms across 1,500 frames. The historical 277 ms frame is absent in this measured row; its cause is not claimed. This does not waive the cold-entry p95 failure above.
 
 Final quiet window **2026-10-11 10:35:06–10:36:29 UTC**, one-minute load **3.61**. Completed route 23.678 s; no game errors or document recovery. Simulator/window released in cleanup. Each source has one cold run, with intervening commits: this is a timing diagnostic, not a repeated-cohort or fully isolated causal saving. The bounded experiments use the corrected permanent-road crossroads camera (`63231ccbe`); the earlier control passed the old camera. The first old-camera bounded attempt lost its standing position and was incomplete; an initial uploads attempt was rejected by the configuration fence. Neither earns arrival or timing credit.
 

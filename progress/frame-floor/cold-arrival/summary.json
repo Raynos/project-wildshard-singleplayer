@@ -37,7 +37,7 @@
     "driveP95Ms": 35,
     "driveMaxMs": 200
   },
-  "result": "Arrival/whole-drive: Nalati and template PASS; Signal PASS; Pine FAIL (1.533 s wait and 302 ms max). Short travel still misses for Nalati/Pine/Signal. Nine/Sky and outbound 277 ms remain open.",
+  "result": "Nalati cold arrival: 0ms wait / 0 early-visible frames, including graphMaterials ON; graph-on drive p95 40ms FAIL (max85ms). Matched plain outbound PASS34/93, no277ms frame. Template/Signal arrival pass; Pine arrival/frame tail red; Nine/Sky pending.",
   "rows": [
     {
       "arm": "preparation",
@@ -680,6 +680,48 @@
           "units": 8
         }
       ]
+    },
+    {
+      "arm": "matched-graph-on-plain",
+      "pin": "1ed327eec3e217f4eb09593f28eb0d3f9e262e0e",
+      "window": {
+        "start": "2026-10-11T12:35:22.294293Z",
+        "end": "2026-10-11T12:36:44.756507Z",
+        "oneMinuteLoad": 7.07
+      },
+      "complete": true,
+      "arrival": {
+        "blockedFrames": 0,
+        "blockedMs": 0,
+        "visibleBeforeReadyFrames": 0
+      },
+      "elapsedSeconds": 23.681000000000008,
+      "settings": {
+        "graphMaterials": "on",
+        "memorySaver": "off",
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "hoverCapMps": 30,
+      "observedRoadPeakMps": 30.797101449276177,
+      "readySeconds": 13.376,
+      "within10mSeconds": 13.643,
+      "readinessLeadSeconds": 0.26700000000000124,
+      "drive": {
+        "frames": 750,
+        "p95Ms": 40,
+        "p99Ms": 63,
+        "maxMs": 85,
+        "pass": false
+      },
+      "travel": {
+        "frames": 120,
+        "p95Ms": 43,
+        "maxMs": 54,
+        "pass": false
+      },
+      "errors": []
     }
   ],
   "limits": [
@@ -687,7 +729,8 @@
     "Static draw deduplication has no measured benefit on this Nalati route.",
     "Other template-drive cells and full Sky lift traversal are not measured in this receipt.",
     "The bounded construction/image experiments use the corrected road crossroads camera; the old-camera control passed, but this is not a fully isolated preamble comparison.",
-    "The latest candidate adds image batching and bounded parked draws together; a combined fix, not isolated attribution of each saving. Native timing is one cold run per source."
+    "The latest candidate adds image batching and bounded parked draws together; a combined fix, not isolated attribution of each saving. Native timing is one cold run per source.",
+    "The explicit graph-on / memorySaver-off confirmation passes arrival but misses the 35ms whole-drive p95 limit; it is not a full floor pass. Sampled road peak30.797m/s includes clock/sample quantization; the actual motor cap remains30m/s."
   ],
   "incomplete": [
     {
@@ -871,5 +914,11 @@
         }
       ]
     }
-  ]
+  ],
+  "outboundReceipt": "progress/frame-floor/nalati-outbound/summary.json",
+  "checks": {
+    "focusedTests": 59,
+    "focusedFiles": 7,
+    "builderFullSuite": false
+  }
 }
