@@ -113,7 +113,9 @@ export async function regenerateCommitted(root, approvalFile) {
       const changed = Object.entries({ ...candidate.outputs, ...witnessOutputs }).filter(([file, content]) => committedText(root, base, file) !== content);
       if (text(root, ['rev-parse', 'HEAD']) !== base) continue;
       if (changed.length === 0) { console.log(`generated-files: ${base.slice(0, 9)} already current`); return base; }
-      const index = resolve(scratch, 'index'), env = { ...process.env, GIT_INDEX_FILE: index, WILDSHARD_GENERATED_SOURCE: base };
+      const attribution = text(root, ['show', '-s', '--format=%B', base]).split('\n').filter((line) => line.startsWith('Assisted-by:'));
+      if (attribution.length > 1) throw new Error('Source commit has duplicate Assisted-by trailers');
+      const index = resolve(scratch, 'index'), env = { ...process.env, GIT_INDEX_FILE: index, WILDSHARD_GENERATED_SOURCE: base, SKIP_ATTRIB: attribution.length === 0 ? '1' : '0' };
       text(root, ['read-tree', base], undefined, env);
       for (const [file, content] of changed) text(root, ['update-index', '--add', '--cacheinfo', `100644,${text(root, ['hash-object', '-w', '--stdin'], content)},${file}`], undefined, env);
       if (existsSync(resolve(root, '.githooks/pre-commit'))) {
@@ -125,8 +127,12 @@ export async function regenerateCommitted(root, approvalFile) {
         }
       }
       const refreshed = Object.keys(witnessOutputs).map((file) => isRecordedBake(file) ? file : file.split('/')[2]).join(', ');
-      const witnessNote = refreshed === '' ? '' : `Witness inputs re-recorded on clean HEAD, payloads byte-identical: ${refreshed}\n\n`;
-      const message = `SHARD-PLATFORM SF6b: regenerate committed outputs at the serialized push (E435)\n\n${witnessNote}Generated-Source: ${base}\n${trailers}\n\nCo-Authored-By: Codex GPT-6.1 Sol <noreply@openai.com>\n`;
+      const witnessText = `Witness inputs re-recorded on clean HEAD, payloads byte-identical: ${refreshed}`;
+      const witnessLines = witnessText.match(/.{1,72}(?:\s|$)|.{1,72}/gu) ?? [];
+      const witnessNote = refreshed === '' ? '' : `${witnessLines.map((line) => line.trim()).join('\n')}\n\n`;
+      // Deterministic regeneration inherits its source attribution, never the pusher's model.
+      const attributionNote = attribution.length === 0 ? '' : `\n\n${attribution[0]}`;
+      const message = `chore(gen): refresh committed outputs\n\n${witnessNote}Generated-Source: ${base}\n${trailers}${attributionNote}\n`;
       const messageFile = resolve(scratch, 'message'); writeFileSync(messageFile, message);
       if (existsSync(resolve(root, '.githooks/commit-msg'))) execFileSync(resolve(root, '.githooks/commit-msg'), [messageFile], { cwd: root, env, stdio: 'inherit' });
       const sha = text(root, ['commit-tree', text(root, ['write-tree'], undefined, env), '-p', base], message, env);

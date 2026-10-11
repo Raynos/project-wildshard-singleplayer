@@ -74,7 +74,11 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   receipt at push: `GENERATED_APPROVAL_FILE=<absolute-json-file> scripts/push-main.sh`. The JSON contains
   `approver: "wildshard-new"` and the exact `increases` list printed by the runner; it refuses absent, duplicate,
   extra or stale entries. The generated commit records `Generated-Source`, `Generated-Approver` and each
-  canonical `Generated-Increase` trailer. The receipt may also carry standing rules,
+  canonical `Generated-Increase` trailer. Long receipt lines use one-space continuations; the verifier rejoins their
+  exact bytes before comparing rows, and still accepts historical single-line receipts. Regeneration uses the
+  subject `chore(gen): refresh committed outputs` and copies its exact source commit's `Assisted-by` trailer. A source
+  with no attribution produces no attribution trailer; only that regeneration's hook invocation gets `SKIP_ATTRIB=1`.
+  The automation never assigns its own model to another lane's work. The receipt may also carry standing rules,
   `"standing": [{ "kind": "graph", "key": "<RegExp source>" }]`: a measured row a rule covers needs no exact entry,
   so a count that keeps moving does not stall the push; the trailers still list the exact rows. **A shard's downward
   imports (shard → engine / game / sdk / commons) are not counted at all** (Jake, G288, 2026-10-09:

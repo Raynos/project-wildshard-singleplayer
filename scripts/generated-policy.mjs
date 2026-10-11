@@ -51,12 +51,26 @@ export function generatedIncreases(previous, current) {
 export function increaseTrailers(increases, approver) {
   if (increases.length === 0) return '';
   if (approver !== 'wildshard-new') throw new Error('Generated increases require the coordinator approver wildshard-new');
-  return ['Generated-Approver: wildshard-new', ...increases.map((row) => `Generated-Increase: ${json(row)}`)].join('\n');
+  return ['Generated-Approver: wildshard-new', ...increases.map((row) => {
+    const value = `Generated-Increase: ${json(row)}`;
+    const lines = [value.slice(0, 72)];
+    for (let offset = 72; offset < value.length; offset += 71) lines.push(` ${value.slice(offset, offset + 71)}`);
+    return lines.join('\n');
+  })].join('\n');
 }
 
 /** No unlisted, overbroad, duplicate or unused approval can cover a measured increase. */
 export function verifyIncreaseTrailers(increases, message) {
-  const listed = message.split('\n').filter((line) => line.startsWith('Generated-Increase: ')).map((line) => {
+  // One leading space marks a byte-preserving continuation, including inside JSON strings.
+  // Historical single-line receipts remain readable; canonical row comparison stays exact.
+  const lines = message.split('\n'), receipts = [];
+  for (let index = 0; index < lines.length; index++) {
+    if (!lines[index].startsWith('Generated-Increase: ')) continue;
+    let line = lines[index];
+    while (lines[index + 1]?.startsWith(' ')) line += lines[++index].slice(1);
+    receipts.push(line);
+  }
+  const listed = receipts.map((line) => {
     try { return json(JSON.parse(line.slice('Generated-Increase: '.length))); }
     catch { throw new Error('Invalid Generated-Increase JSON'); }
   }).sort((a, b) => a.localeCompare(b));

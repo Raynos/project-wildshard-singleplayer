@@ -146,8 +146,12 @@ describe('SF6b clean committed regeneration', () => {
       // The second builder lands while the pusher is computing the first committed export.
       const pending = regenerateCommitted(root, approval);
       put('src/game/clock.ts', "import { tick } from '@wildshard/engine/clock';\n/** Shared clock. */\nexport const gameTick = tick;\n");
-      git(['add', '--', 'src/game/clock.ts']); git(['commit', '-qm', 'builder two import', '--', 'src/game/clock.ts']);
+      git(['add', '--', 'src/game/clock.ts']); git(['commit', '-qm', 'feat(clock): add source import\n\nAssisted-by: Fixture:source-model', '--', 'src/game/clock.ts']);
       const source = git(['rev-parse', 'HEAD']);
+      // Exercise the actual E476 hook against a private-index regeneration and its folded receipt.
+      mkdirSync(resolve(root, '.githooks'), { recursive: true });
+      cpSync('.githooks/commit-msg-conventions', resolve(root, '.githooks/commit-msg'));
+      git(['config', 'core.hooksPath', '.githooks']);
       expect(Date.now() - start).toBeLessThan(60_000);
       const policy = JSON.parse(readFileSync(resolve(root, 'lint/ratchet.json'), 'utf8')) as unknown;
       // Independent working edits must not enter the clean export or be overwritten by its private-index landing.
@@ -157,6 +161,7 @@ describe('SF6b clean committed regeneration', () => {
       const sha = await pending;
       expect(git(['rev-list', '--count', `${source}..HEAD`])).toBe('1');
       expect(git(['show', '-s', '--format=%B', sha])).toContain(`Generated-Source: ${source}`);
+      expect(git(['show', '-s', '--format=%B', sha]).trimEnd()).toMatch(/\n\nAssisted-by: Fixture:source-model$/u);
       // The push gate skips its duplicate check only for a commit this regeneration built and stamped.
       expect(readFileSync(verifiedStamp(root, sha), 'utf8')).toBe(`${source}\n`);
       expect(existsSync(verifiedStamp(root, source))).toBe(false);
@@ -271,7 +276,11 @@ writeFileSync(process.argv[4], JSON.stringify({ 'test/proof/fake/inputs.txt': 'b
 `);
       git(['add', '--', 'test', 'scripts/bake-loader.mjs', 'scripts/bake-input-hashes.mjs']);
       git(['commit', '-qm', 'witness consumes a recorded bake']);
+      mkdirSync(resolve(root, '.githooks'), { recursive: true });
+      cpSync('.githooks/commit-msg-conventions', resolve(root, '.githooks/commit-msg'));
+      git(['config', 'core.hooksPath', '.githooks']);
       const sha = await regenerateCommitted(root);
+      expect(git(['show', '-s', '--format=%B', sha])).not.toContain('Assisted-by:');
       expect(git(['show', `${sha}:test/proof/fake/inputs.txt`])).toBe('bb');
       expect(git(['show', `${sha}:test/proof/fake/checkpoints/manifest.json`])).toBe(fakeManifest('bb').trim());
       expect(git(['show', `${sha}:test/proof/fake/checkpoints/a.snap.gz`])).toBe('p1');
