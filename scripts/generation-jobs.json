@@ -1522,14 +1522,21 @@
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs",
       "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
         "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs"
       ],
       "inputRoots": [
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk/assemblyscriptCompiler.d.mts",
+        "src/format/admissionLimits.ts",
+        "src/format/director.ts",
+        "src/format/directorStages.ts",
+        "src/format/directorWhen.ts",
+        "src/format/package.json",
+        "src/format/state.ts",
         "src/sdk/assemblyscriptCompiler.mjs",
+        "src/sdk/bake/source-loader.mjs",
         "src/sdk/buildBehaviour.ts",
         "src/sdk/compileScript.ts",
         "src/sdk/directorAbi.ts",
