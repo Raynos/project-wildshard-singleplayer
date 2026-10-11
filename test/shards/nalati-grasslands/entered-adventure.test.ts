@@ -8,7 +8,7 @@ import { QuestChip } from '../../../src/engine/quest/view';
 import { RewardCaption } from '../../../src/engine/quest/view/ui';
 import { RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
 import { shardContext } from "../../../src/game/plugin/context";
-import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
+import { emptyShardfileSource } from '../../../src/game/plugin/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { installEnteredAdventure } from '../../../src/shards/nalati-grasslands/runtime/enteredAdventure';
 import { installNalatiAdventure } from '../../../src/shards/nalati-grasslands/adventure';

@@ -1,27 +1,27 @@
-import type { App } from '@wildshard/engine/app/app';
-import type { LevelSpec } from '@wildshard/engine/level/spec';
-import { _applyChunkConstants } from '@wildshard/engine/core/config';
-import { configureLevel } from '@wildshard/engine/level/selection';
-import type { ShardManifest } from '../shard/manifest';
-import { shardEntries } from '../shard/entryMode';
-import { game } from '../shard/registry';
-import { installShards, shards } from '../shard/list';
-import { toLevelSpec } from '../shard/spec';
-import { parseShardfile, type Shardfile } from './schema';
-import { sourceManifest } from '../plugin/shardPlugin';
-import { SHARDFILE_VERSION } from '@wildshard/format/version';
-import { emptyLook } from './emptyLook';
-import { shardfileLook } from './look';
-import { admitProduct, boundedResponse, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
-import { ClientAssets } from './clientAssets';
-import { ShardfileClient, type ShardfileClientBindings } from './client';
-import { clientGround } from './clientGround';
-import { shardfileWater } from './water';
-import { clientResidency } from './clientResidency';
-import { firstPartyInstance } from '../grid/instances';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
-import { preflightShardfile } from '@wildshard/format/preflight';
-import { ResidencyAllocator } from '../grid/allocator';
+import type { App } from "@wildshard/engine/app/app";
+import type { LevelSpec } from "@wildshard/engine/level/spec";
+import { _applyChunkConstants } from "@wildshard/engine/core/config";
+import { configureLevel } from "@wildshard/engine/level/selection";
+import type { ShardManifest } from "../shard/manifest";
+import { shardEntries } from "../shard/entryMode";
+import { game } from "../shard/registry";
+import { installShards, shards } from "../shard/list";
+import { toLevelSpec } from "../shard/spec";
+import { parseShardfile, type Shardfile } from "../shardfile/schema";
+import { sourceManifest } from "./shardPlugin";
+import { SHARDFILE_VERSION } from "@wildshard/format/version";
+import { emptyLook } from "../shardfile/emptyLook";
+import { shardfileLook } from "../shardfile/look";
+import { admitProduct, boundedResponse, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from "../shardfile/product";
+import { ClientAssets } from "../shardfile/clientAssets";
+import { ShardfileClient, type ShardfileClientBindings } from "../shardfile/client";
+import { clientGround } from "../shardfile/clientGround";
+import { shardfileWater } from "../shardfile/water";
+import { clientResidency } from "../shardfile/clientResidency";
+import { firstPartyInstance } from "../grid/instances";
+import { SHARDFILE_ADMISSION_LIMITS as limits } from "@wildshard/format/admissionLimits";
+import { preflightShardfile } from "@wildshard/format/preflight";
+import { ResidencyAllocator } from "../grid/allocator";
 
 /** Validate before allocating a level. Content bindings belong to the full loader. */
 export function emptyShardfileSource(input: unknown): ShardManifest {
@@ -98,7 +98,7 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   if (!options.firstParty) throw new Error('Manifest shardfile descriptors require first-party provenance');
   const url = new URL(manifest.shardfile, options.base);
   if (url.origin !== new URL(options.base).origin || url.search !== '' || url.hash !== '') throw new Error('Manifest shardfile must be an unqualified same-origin source');
-  const productOptions = { ...options, base: new URL('.', url).href };
+  const productOptions = { ...options, base: new URL('../shardfile', url).href };
   let input: unknown;
   if (options.offline) {
     options.progress?.({ phase: 'descriptor', detail: 'Reading visited shard descriptor', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 1 });

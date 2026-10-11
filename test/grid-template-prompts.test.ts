@@ -6,7 +6,7 @@ import { SaveStore } from '../src/engine/saves/store';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { GridAssembly } from '../src/game/grid/assembly';
-import { GridCellEvents } from '../src/game/plugin/boot';
+import { GridCellEvents } from '../src/game/plugin/context';
 import { GridRegionDurability } from '../src/game/grid/durability';
 import { copyPrompts, enteredCopy } from '../src/game/grid/copyPrompts';
 import { enteredRuntime, pickInFrame } from '../src/game/grid/enteredInteract';

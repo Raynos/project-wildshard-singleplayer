@@ -3,7 +3,7 @@ import { App } from '../../../src/engine/app/app';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import { shardContext } from "../../../src/game/plugin/context";
 import { RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
-import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
+import { emptyShardfileSource } from '../../../src/game/plugin/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { installPineLandmarkUpdate } from '../../../src/shards/pine-hollow/runtime/landmarkLifetime';
 

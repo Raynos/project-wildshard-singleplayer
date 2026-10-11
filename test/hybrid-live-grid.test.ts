@@ -13,14 +13,14 @@ import { PlayerHealth } from '../src/engine/combat/health';
 import { createSimHost, type SimHost } from '../src/engine/sim';
 import { emptyShardfile } from '../src/sdk/author';
 import { GridAssembly } from '../src/game/grid/assembly';
-import { GridCellEvents } from '../src/game/plugin/boot';
+import { GridCellEvents, shardContext } from "../src/game/plugin/context";
 import { LiveGridHost } from '../src/game/grid/live';
 import { GridCrossing } from '../src/game/grid/crossing';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { shardContext } from '../src/game/plugin/context';
+
 import { ShardPlugin, prepareTrustedRuntime } from "../src/game/plugin/shardPlugin";
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import { emptyShardfileSource } from '../src/game/shardfile/loader';
+import { emptyShardfileSource } from '../src/game/plugin/loader';
 import { HybridShardPlugin } from '../src/game/shardfile/hybrid';
 
 import { SIM_LEVEL } from './fixtures/sim-level/level';

@@ -92,5 +92,15 @@ it('defines boot admission and prompt selection without compatibility wrappers',
   for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
   for (const key of ["./grid/recoveryBoot","./grid/pageBoot","./plugin/clientScript"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
   expect(report.pluginExports).toBeLessThanOrEqual(20);
-  expect(report.entries.find(row => row.key === './plugin/boot')).toMatchObject({ published: true, target: './plugin/boot.ts' });
+  expect(report.entries.find(row => row.key === './plugin/context')).toMatchObject({ published: true, target: './plugin/context.ts' });
+});
+
+
+it('defines boot admission and prompt selection without compatibility wrappers', () => {
+  const report = gamePluginSurface();
+  expect(report.unresolved).toEqual([]);
+  for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
+  for (const key of ["./shardfile/loader","./plugin/boot"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
+  expect(report.pluginExports).toBeLessThanOrEqual(20);
+  expect(report.entries.find(row => row.key === './plugin/loader')).toMatchObject({ published: true, target: './plugin/loader.ts' });
 });

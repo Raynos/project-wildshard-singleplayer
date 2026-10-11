@@ -4,7 +4,7 @@ import { createLevelInstallation } from '../../../src/engine/level/installation'
 import { shardContext, type ShardContext } from '../../../src/game/plugin/context';
 import { ShardPlugin } from '../../../src/game/plugin/shardPlugin';
 import { emptyShardfile } from '../../../src/sdk/author';
-import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
+import { emptyShardfileSource } from '../../../src/game/plugin/loader';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import Plugin from '../../../src/shards/nalati-grasslands/plugin';
 import { NALATI_RUNTIME_COST } from '../../../src/shards/nalati-grasslands/data/runtimeCost';

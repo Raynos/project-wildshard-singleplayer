@@ -4,7 +4,7 @@ import { createLevelInstallation } from '../src/engine/level/installation';
 import { shardContext, type ShardContext } from '../src/game/plugin/context';
 import { ShardPlugin } from '../src/game/plugin/shardPlugin';
 import { emptyShardfile } from '../src/sdk/author';
-import { emptyShardfileSource } from '../src/game/shardfile/loader';
+import { emptyShardfileSource } from '../src/game/plugin/loader';
 import { shardEntries } from '../src/game/shard/entryMode';
 import SkyPlugin from '../src/shards/far-reach/plugin';
 import SignalPlugin from '../src/shards/sunscar-dunes/plugin';

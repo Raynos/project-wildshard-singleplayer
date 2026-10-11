@@ -2272,7 +2272,7 @@ The SDK cannot import shard content. Each module owns its exports; there is no b
 Driftwood's private `runtime/boot/modelGeometry.ts` loader (`modelGeometry(url, channels?)`) loads a single identity-space offline GLB before synchronous model placement. `load(bytes?)` deduplicates the intake and permits explicit bytes in Node; `copy()` returns independent geometry attributes for merging, scaling, collectible slots or release after upload. Custom GLB attributes map back to authored shader channels without quantization or recomputing normals; identity triangle indices restore an original triangle soup. Materials, colliders and animation stay with the runtime owner. Nothing loads or installs on import.
 
 
-`@wildshard/game/shardfile/loader` admits a browser product with `shardfileSource` or selects it with
+`@wildshard/game/plugin/loader` admits a browser product with `shardfileSource` or selects it with
 `installShardfileProduct`; `browserShardfileOptions` supplies the verified origin-wide content cache. Trusted kit
 recipes and item factories are injected by the composition root. The resulting manifest runs the ordinary Game
 stages and borrows its player, physics and fixed-step driver. Terrain and props refine under scoped tile residency;
@@ -2862,7 +2862,7 @@ The native director lane is defined by `plugin/director`; the retained
 `shardfile/directorClient` module owns Debug selection and page installation.
 Its page entry-choice service is not part of the native lane closure.
 
-`plugin/boot` defines page routing, recovery and early residency admission.
+`plugin/context` defines page routing, recovery and early residency admission.
 `plugin/ui` defines client-script pose/particle presentation alongside quest UI;
 these modules retain their existing singleton and lifecycle identities.
 

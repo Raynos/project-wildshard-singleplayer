@@ -14,7 +14,7 @@
 import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 import { buildTitleDeck, titleCards, type TitleDeck, type TitleDeckOptions } from './titleDeck';
 import { gridEntryShown, menuMode } from './grid/menu';
-import { dropGridIntent, enterGrid, gridRecoveryLoop } from "./plugin/boot";
+import { dropGridIntent, enterGrid, gridRecoveryLoop } from "./plugin/context";
 
 import { installGridDebug } from './grid/debug';
 import { GAME_STRINGS } from './strings';
@@ -37,7 +37,7 @@ let screen: MainMenuScreen = 'main';
 export interface TitleMenuOptions extends Omit<TitleDeckOptions, 'cards'> {
   /** the deck's cards (default: `titleCards()`, Developer read live) */
   readonly cards?: TitleDeckOptions['cards'];
-  /** INFINITE WILDSHARD's tap: boots the grid from its one-shot intent (src/game/plugin/boot.ts `enterGrid`) */
+  /** INFINITE WILDSHARD's tap: boots the grid from its one-shot intent (src/game/plugin/context.ts `enterGrid`) */
   readonly onGrid: () => void;
   /** which screen to open on (default: the one this page was last on, the main menu at first) */
   readonly screen?: MainMenuScreen;

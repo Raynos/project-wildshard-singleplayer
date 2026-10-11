@@ -7,7 +7,7 @@ import { Music } from '../../../src/engine/audio/Music';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import { RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
 import { shardContext } from "../../../src/game/plugin/context";
-import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
+import { emptyShardfileSource } from '../../../src/game/plugin/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { installEnteredPineVoices } from '../../../src/shards/pine-hollow/runtime/audio/entered';
 import { FOREST_AUDIO } from '../../../src/shards/pine-hollow/runtime/audio/profile';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GridAssembly } from '../src/game/grid/assembly';
-import { GridCellEvents } from '../src/game/plugin/boot';
+import { GridCellEvents } from '../src/game/plugin/context';
 import { fullMapOverlay, minimapOverlay, roadRects, ROAD_TERRAIN_ALPHA } from '../src/game/grid/minimapBlend';
 import { crossingSaveStatus } from '../src/game/grid/borderShimmer';
 

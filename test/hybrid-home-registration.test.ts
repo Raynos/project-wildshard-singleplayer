@@ -10,8 +10,8 @@ import { Game } from '../src/engine/core/Game';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { Flags } from '../src/engine/world/interact/flags';
-import { GridCellEvents } from '../src/game/plugin/boot';
-import { shardContext, type ShardContext } from '../src/game/plugin/context';
+import { GridCellEvents, shardContext, type ShardContext } from "../src/game/plugin/context";
+
 import { ShardPlugin } from '../src/game/plugin/shardPlugin';
 import type { ShardWorld } from '../src/game/shard/world';
 import type { ShardRuntime } from '../src/game/shard/runtime';

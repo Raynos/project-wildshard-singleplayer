@@ -4,7 +4,7 @@ import { type LevelSequence, bootLevel } from '@wildshard/engine/boot';
 import { retried } from '@wildshard/engine/boot/retry';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
-import { shardContext, type GameServices, type ShardContext } from "../plugin/context";
+import { shardContext, type GameServices, type ShardContext, bootPageMode, type PageMode } from "../plugin/context";
 import type { ShardManifest } from '../shard/manifest';
 import { toLevelSpec } from '../shard/spec';
 import { playable, findChunk } from '../shard/registry';
@@ -35,7 +35,7 @@ import { installErrorModal, showError } from '@wildshard/engine/ui/ErrorModal';
 import { registerLevelDebugRow } from '@wildshard/engine/ui/debugOptions';
 import { showLoadFailure } from '@wildshard/engine/ui/errorScreen';
 import { installWorldRegistry } from '@wildshard/engine/world/registry';
-import { bootPageMode, type PageMode } from '../plugin/boot';
+
 import { installGridDebug } from '../grid/debug';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';

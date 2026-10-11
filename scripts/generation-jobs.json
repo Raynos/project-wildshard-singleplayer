@@ -155,6 +155,8 @@
         "src/sdk/physics.ts",
         "src/sdk/scene.ts",
         "src/sdk/sceneTransform.ts",
+        "src/sdk/sceneAnimation.ts",
+        "src/sdk/audio.ts",
         "src/sdk/entries.ts",
         "src/sdk/spawns.ts",
         "src/shards/nine-dragon-stack/data/decks.ts",

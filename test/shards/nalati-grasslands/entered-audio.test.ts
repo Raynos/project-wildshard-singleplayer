@@ -10,7 +10,7 @@ import type { Player } from '../../../src/engine/player/Player';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import { installEnteredRuntimeService, RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
 import { shardContext } from "../../../src/game/plugin/context";
-import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
+import { emptyShardfileSource } from '../../../src/game/plugin/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import type { Wildlife } from '../../../src/shards/nalati-grasslands/creatures/wildlife';
 import type { NalatiWeather } from '../../../src/shards/nalati-grasslands/world/installWeather';

@@ -2,7 +2,7 @@
 import { expect, it } from 'vitest';
 import { App } from '../src/engine/app/app';
 import { Scene } from 'three';
-import { configuredShardfile, loadShardfile, shardfileLevelSpec } from '../src/game/shardfile/loader';
+import { configuredShardfile, loadShardfile, shardfileLevelSpec } from '../src/game/plugin/loader';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 

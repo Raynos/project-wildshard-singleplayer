@@ -47,7 +47,7 @@ import { GridWallet, stowGridMount, type GridLoadout } from './wallet';
 import { GridRegionDurability } from './durability';
 import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
-import { gridHomeSim, gridCells, type GridHomeSimulation } from '../plugin/boot';
+import { gridHomeSim, gridCells, type GridHomeSimulation } from '../plugin/context';
 import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct } from './products';
 import { gridPostPairRefusal } from './postPairs';

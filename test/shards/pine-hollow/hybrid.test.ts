@@ -4,7 +4,7 @@ import { createLevelInstallation } from '../../../src/engine/level/installation'
 import { shardContext, type ShardContext } from '../../../src/game/plugin/context';
 import { ShardPlugin } from '../../../src/game/plugin/shardPlugin';
 import { emptyShardfile } from '../../../src/sdk/author';
-import { emptyShardfileSource } from '../../../src/game/shardfile/loader';
+import { emptyShardfileSource } from '../../../src/game/plugin/loader';
 import source from '../../../src/shards/pine-hollow/shard.config';
 import Plugin, { preparePineHybrid } from '../../../src/shards/pine-hollow/plugin';
 import type { prepareHybridShard } from '../../../src/game/shardfile/hybrid';

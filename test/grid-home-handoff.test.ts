@@ -3,16 +3,17 @@ import { expect, it, vi } from 'vitest';
 import { PerspectiveCamera } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
-import { GridHomeHandoff } from '../src/game/plugin/boot';
+import { GridHomeHandoff } from '../src/game/plugin/context';
 import { installGridReveal } from '../src/game/grid/reveal';
-import { shardfileSource } from '../src/game/shardfile/loader';
+import { shardfileSource } from '../src/game/plugin/loader';
 import { prepareHybridShard } from '../src/game/shardfile/hybrid';
 import { ShardPlugin } from "../src/game/plugin/shardPlugin";
 import type { Shardfile } from '../src/game/shardfile/schema';
 import { emptyShardfile } from '../src/sdk/author';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
 
-const gridBoot = await import('../src/game/plugin/boot');
+const gridBoot = await import('../src/game/plugin/context');
+
 
 async function announce(source: Shardfile, trustedRuntime: boolean, handoff: GridHomeHandoff): Promise<void> {
   const manifest = await shardfileSource(source, { base: 'https://fixture.test/', firstParty: true, offline: false,

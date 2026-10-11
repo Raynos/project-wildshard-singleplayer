@@ -11,19 +11,19 @@ import { emptyShardfile } from '../src/sdk/author';
 import { prepareTrustedRuntime, type TrustedRuntimeEntry, ShardPlugin } from "../src/game/plugin/shardPlugin";
 import { RuntimeSchema } from '@wildshard/format/runtime';
 import { HybridResidentWorld, HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident, type HybridRuntimeOptions } from '../src/game/shardfile/hybrid';
-import { emptyShardfileSource } from '../src/game/shardfile/loader';
+import { emptyShardfileSource } from '../src/game/plugin/loader';
 import { installEnteredRuntimeInput, installEnteredRuntimeService } from "../src/game/plugin/lifecycle";
 import { installDeclaredItems } from '../src/game/shardfile/items';
 import nalatiSource from '../src/shards/nalati-grasslands/shard.config';
 import skySource from '../src/shards/far-reach/shard.config';
 import { bindScopedRuntime, createScopedRuntimeBinding } from '../src/game/shard/scopedRuntime';
-import { shardContext, type GameServices, type ShardContext } from '../src/game/plugin/context';
+import { shardContext, type GameServices, type ShardContext, GridCellEvents } from "../src/game/plugin/context";
 
 import { loadShardPlugin } from '../src/game/shard/pluginLoad';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { ITEMS } from '../src/game/bag/itemCatalog';
 import { achievementsFor } from '../src/game/achievements';
-import { GridCellEvents } from '../src/game/plugin/boot';
+
 import template from '../src/shards/_template/manifest';
 
 const noop = (): void => undefined;
@@ -570,7 +570,7 @@ it('keeps declared audio as the data-first hybrid default and refuses runtime ow
   const options = { base: 'https://fixture.test/', firstParty: true, offline: false,
     fetch: () => Promise.reject(new Error('Fixture cannot fetch')), hash: () => Promise.reject(new Error('Fixture cannot hash')) };
   const bindings = { catalogue: [], recipes: new Map(), items: new Map(), voices: () => new Map(), icon: () => { throw new Error('Fixture cannot resolve icons'); } };
-  const { shardfileSource } = await import('../src/game/shardfile/loader');
+  const { shardfileSource } = await import('../src/game/plugin/loader');
   await expect(shardfileSource(source, options, { ...bindings, instance: 'template', audioOwner: 'runtime' })).rejects.toThrow('Runtime audio ownership requires a trusted first-party runtime declaration');
   const manifest = await shardfileSource(source, options, { ...bindings, instance: 'template' });
   if (manifest.load === undefined) throw new Error('Missing data plugin');

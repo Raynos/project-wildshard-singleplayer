@@ -6,7 +6,7 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import { withOwner } from '../src/engine/app/ownership';
 import { shardContext } from "../src/game/plugin/context";
 import { installEnteredRuntimeService, RetainedRuntimeHooks } from "../src/game/plugin/lifecycle";
-import { emptyShardfileSource } from '../src/game/shardfile/loader';
+import { emptyShardfileSource } from '../src/game/plugin/loader';
 import { emptyShardfile } from '../src/sdk/author';
 
 function preparedFixture() {

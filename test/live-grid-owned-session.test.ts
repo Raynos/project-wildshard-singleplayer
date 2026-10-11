@@ -16,7 +16,7 @@ import { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { EquipmentService } from '../src/engine/combat/EquipmentService';
 import { GridAssembly } from '../src/game/grid/assembly';
-import { gridCells } from '../src/game/plugin/boot';
+import { gridCells, shardContext, type ShardContext } from "../src/game/plugin/context";
 import { LiveGridSession } from '../src/game/grid/liveSession';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { MemoryAdmission } from '../src/game/plugin/product';
@@ -25,7 +25,7 @@ import * as foundation from '../src/game/grid/regionalWorld';
 import * as products from '../src/game/grid/products';
 import { regionalRuntimeAccountedBytes } from '../src/game/grid/regionalRuntime';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
-import { shardContext, type ShardContext } from '../src/game/plugin/context';
+
 import { ShardPlugin } from '../src/game/plugin/shardPlugin';
 import { installEnteredRuntimeService } from "../src/game/plugin/lifecycle";
 import type { ShardPlayHost, ShardRuntime } from '../src/game/shard/runtime';

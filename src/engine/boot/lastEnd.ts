@@ -35,7 +35,7 @@ const INTENT_MS = 10_000;
 const BEAT_MS = 3000;
 
 /** what the running page is: its level, the resident list and the game's page mode (SF21a: the game's `'grid' | 'shard'`,
- *  src/game/plugin/boot.ts), so the next boot knows which way in ended */
+ *  src/game/plugin/context.ts), so the next boot knows which way in ended */
 export interface AliveInfo<M extends string = string> { slug: string; resident: string; mode: M }
 interface Stamp { t: number; build: string; slug: string; resident: string; mode: string }
 interface Unload extends Stamp { reason: string }

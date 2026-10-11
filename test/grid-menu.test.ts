@@ -8,7 +8,7 @@ import { setDev } from '../src/engine/core/devMode';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { gridIntents } from '../src/game/grid/intent';
 import { DEVSERVER, gridEntryShown, gridMode, selectEnters, selectExplores, type MenuMode } from '../src/game/grid/menu';
-import { GridCellEvents, gridHome } from '../src/game/plugin/boot';
+import { GridCellEvents, gridHome } from '../src/game/plugin/context';
 import { devserverCellOn, installGridDebug } from '../src/game/grid/debug';
 import { levelDebugRows } from '../src/engine/ui/debugOptions';
 import { ordinaryShardManifests } from '../src/game/shard/legacy';

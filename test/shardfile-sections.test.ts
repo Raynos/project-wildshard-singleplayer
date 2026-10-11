@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { parseShardfile, shardfileRules } from '@wildshard/sdk/shardfile';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { emptyShardfileSource } from '@wildshard/game/shardfile/loader';
+import { emptyShardfileSource } from '@wildshard/game/plugin/loader';
 import { TEMPLATE_ROWS } from '../src/shards/_template/data/rows';
 import { CREATURES } from '../src/shards/_template/data/creatures';
 import { ENCOUNTERS, ENCOUNTER_UI } from '../src/shards/_template/data/encounters';

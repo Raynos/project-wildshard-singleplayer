@@ -1,7 +1,7 @@
 import { afterAll, afterEach, expect, it, vi } from 'vitest';
 import { Mesh, PlaneGeometry, Vector3, type Material } from 'three';
-import * as boot from '../src/game/plugin/boot';
 import { gridLevel } from '../src/game/grid/session';
+import { setPageMode } from '../src/game/grid/pageMode';
 import { shardContext, type GameServices } from "../src/game/plugin/context";
 import type { LevelContext } from '../src/engine/level/context';
 import { Horizon } from '../src/engine/world/Horizon';
@@ -12,10 +12,11 @@ import { toLevelSpec } from '../src/game/shard/spec';
 import { SUNSCAR_DUNES } from '../src/shards/sunscar-dunes/manifest';
 import { SKIRT } from '../src/shards/sunscar-dunes/look/render';
 
+
 // G99: every shard is a 500 m cube; in a grid cell nothing it draws stands past 250 m (SHARD-PLATFORM SF50, E435)
 const restoreTerrain = overrideTerrain({ heightAt: () => 0, waterLevel: () => 0, pondMask: () => 0, streamAt: () => null });
 afterAll(restoreTerrain);
-afterEach(() => { vi.restoreAllMocks(); });
+afterEach(() => { vi.restoreAllMocks(); setPageMode('shard'); });
 const sky = (): { setupMaterial: (material: Material) => void; sunDir: Vector3; night: number } => ({ setupMaterial: vi.fn<(material: Material) => void>(), sunDir: new Vector3(0, 1, 0), night: 0 });
 
 it('keeps a standalone level and its horizon rings untouched', () => {
@@ -27,7 +28,7 @@ it('keeps a standalone level and its horizon rings untouched', () => {
 });
 
 it('drops a level\'s own horizon rings and cloud sea in a grid cell, and builds the booted spec\'s horizon', () => {
-  vi.spyOn(boot, 'pageMode').mockReturnValue('grid');
+  setPageMode('grid');
   const spec = toLevelSpec(SUNSCAR_DUNES), grid = gridLevel(spec);
   expect(grid.horizon).toEqual({ rings: [], cloudSea: false });
   expect(grid.boundary).toMatchObject({ visible: false, walls: false });
@@ -41,7 +42,7 @@ it('drops a level\'s own horizon rings and cloud sea in a grid cell, and builds 
 it('gives a shard its cube only in a grid cell', () => {
   const game: GameServices = { shard: SUNSCAR_DUNES, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } };
   expect(shardContext({} as LevelContext, SUNSCAR_DUNES, game).cube).toBeNull();
-  vi.spyOn(boot, 'pageMode').mockReturnValue('grid');
+  setPageMode('grid');
   expect(shardContext({} as LevelContext, SUNSCAR_DUNES, game).cube).toEqual({ half: 250 });
 });
 

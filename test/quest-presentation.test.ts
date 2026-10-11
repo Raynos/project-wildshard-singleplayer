@@ -15,7 +15,7 @@ import { createLevelInstallation } from '../src/engine/level/installation';
 import { shardContext } from "../src/game/plugin/context";
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { RetainedRuntimeHooks, installEnteredRuntimeInput } from "../src/game/plugin/lifecycle";
-import { emptyShardfileSource } from '../src/game/shardfile/loader';
+import { emptyShardfileSource } from '../src/game/plugin/loader';
 import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from './fake/FakeGame';
 import { DRIFTWOOD_QUEST } from '../src/shards/driftwood-isle/quest/questLine';

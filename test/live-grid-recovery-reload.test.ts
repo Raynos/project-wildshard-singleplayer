@@ -12,7 +12,7 @@ import { createSimHost } from '../src/engine/sim';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
 import { clientCheckpoint } from '../src/game/shardfile/clientState';
 import { GridAssembly } from '../src/game/grid/assembly';
-import { gridHomeSim } from '../src/game/plugin/boot';
+import { gridHomeSim } from '../src/game/plugin/context';
 import { LiveGridSession } from '../src/game/grid/liveSession';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';

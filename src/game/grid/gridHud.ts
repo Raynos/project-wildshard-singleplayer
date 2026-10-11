@@ -14,7 +14,7 @@
 import type { PerspectiveCamera, Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
-import type { GridCellEvents, GridCellRef } from '../plugin/boot';
+import type { GridCellEvents, GridCellRef } from '../plugin/context';
 import { GAME_STRINGS } from '../strings';
 import { accentVars } from '../shardfile/accent';
 import { ROAD_ACCENT } from '@wildshard/format/accent';

@@ -1,6 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ClientAssets } from './clientAssets';
-import { browserShardfileOptions } from './loader';
+import { browserShardfileOptions } from '../plugin/loader';
 import type { AdmittedProduct } from './product';
 import { bindRuntimeTerrain, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
 import type { Shardfile } from './schema';
