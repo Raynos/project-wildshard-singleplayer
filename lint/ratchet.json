@@ -671,7 +671,7 @@
     "src/shards/nalati-grasslands/runtime/index.ts": 10,
     "src/shards/nalati-grasslands/runtime/items.ts": 3,
     "src/shards/nalati-grasslands/runtime/kokboriKeeper.ts": 2,
-    "src/shards/nalati-grasslands/runtime/ledgePouncer.ts": 1,
+    "src/shards/nalati-grasslands/runtime/ledgePouncer.ts": 2,
     "src/shards/nalati-grasslands/runtime/packHowler.ts": 2,
     "src/shards/nalati-grasslands/runtime/persistence.ts": 1,
     "src/shards/nalati-grasslands/runtime/qaraKeeper.ts": 1,
