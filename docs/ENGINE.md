@@ -2776,3 +2776,7 @@ project imports must live in authoring folders. Game/engine and SDK runtime
 imports refuse. Scene JSON never ships or enters git. Two independently generated
 Template 1 graphs produce identical bytes; the CLI also works with a pure Node
 three.js author project without drawing a frame.
+
+### Format contracts (DS1.1 foundation)
+
+`@wildshard/format/edgeProfiles` defines the unchanged Valibot boundary contract: 256 or 257 finite height/colour samples and zero road height. The format workspace imports only Valibot; the loader imports its defining schema directly. The SDK package declaration copier and author-input audit include this layer. This first extraction does not complete the full shardfile contract migration or JSON Schema generation.

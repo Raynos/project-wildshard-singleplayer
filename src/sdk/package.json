@@ -134,7 +134,8 @@
     "sharp": "0.34.5",
     "meshoptimizer": "1.2.0",
     "assemblyscript": "0.28.20",
-    "binaryen": "132.0.0"
+    "binaryen": "132.0.0",
+    "@wildshard/format": "workspace:*"
   },
   "publishConfig": {
     "exports": {

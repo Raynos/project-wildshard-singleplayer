@@ -17,7 +17,7 @@ import { APPENDIX_END, APPENDIX_START, engineAppendix } from './generated-policy
 
 const ROOT = resolve(import.meta.dirname, '..');
 // E434: no index files; a package's public surface is every module its package.json `exports` lists
-const PACKAGES = ['engine', 'game', 'sdk', 'commons'];
+const PACKAGES = ['engine', 'format', 'game', 'sdk', 'commons'];
 const modulesOf = (root, layer) => Object.entries(JSON.parse(readFileSync(resolve(root, `src/${layer}/package.json`), 'utf8')).exports ?? {})
   .filter(([, target]) => typeof target === 'string').map(([subpath, target]) => ({ specifier: `@wildshard/${layer}/${subpath.slice(2)}`, file: `src/${layer}/${target.slice(2)}` }));
 const CONTEXTS = { LevelContext: 'src/engine/level/context.ts', ShardContext: 'src/game/plugin/context.ts' };
@@ -42,7 +42,7 @@ export function apiSurface(root = ROOT) {
   const configPath = ts.findConfigFile(root, (f) => ts.sys.fileExists(f));
   const config = configPath ? ts.readConfigFile(configPath, (f) => ts.sys.readFile(f)).config : {};
   const { options } = ts.parseJsonConfigFileContent(config, ts.sys, root);
-  const modules = Object.fromEntries(PACKAGES.map((layer) => [layer, modulesOf(root, layer)]));
+  const modules = Object.fromEntries(PACKAGES.filter(layer => existsSync(resolve(root, `src/${layer}/package.json`))).map((layer) => [layer, modulesOf(root, layer)]));
   const files = [...Object.values(modules).flat().map((m) => m.file), ...Object.values(CONTEXTS)].map((f) => resolve(root, f));
   const program = ts.createProgram(files, { ...options, noEmit: true });
   const checker = program.getTypeChecker();
@@ -84,6 +84,7 @@ export function renderPage(title, intro, rows, withFrom = false) {
 }
 export function pages(surface) {
   return {
+    ...(surface.indexes.format === undefined ? {} : {'docs/api/FORMAT.md': renderPage('@wildshard/format', 'The pure Valibot wire contracts shared by authoring and admission.', surface.indexes.format, true)}),
     'docs/api/ENGINE.md': renderPage('@wildshard/engine', 'The engine\'s public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.', surface.indexes.engine, true),
     'docs/api/GAME.md': renderPage('@wildshard/game', 'The game layer\'s public modules (src/game/package.json `exports`).', surface.indexes.game, true),
     'docs/api/SDK.md': renderPage('@wildshard/sdk', 'The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.', surface.indexes.sdk, true),

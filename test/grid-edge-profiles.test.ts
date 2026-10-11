@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import * as v from 'valibot';
 import { bakedEdgeProfiles, nativeEdgeProfiles, edgeSample, edgeSampleLocations } from '../src/engine/sim/edgeProfiles';
-import { EdgeProfilesSchema } from '../src/game/shardfile/edgeProfiles';
+import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 
 const colour = [0.25, 0.5, 0.75] as const;
 const grid = (resolution: number) => nativeEdgeProfiles({ resolution, heights: Float32Array.from({ length: resolution ** 2 }, (_, i) => Math.sin(i / 37)), colourAt: () => colour });

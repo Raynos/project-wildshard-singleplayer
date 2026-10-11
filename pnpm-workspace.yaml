@@ -3,6 +3,7 @@
 # Their package.json "exports" are the public entries; a deep path does not resolve.
 packages:
   - src/engine
+  - src/format
   - src/game
   - src/sdk
   - src/commons

@@ -47,6 +47,9 @@ importers:
       '@wildshard/engine':
         specifier: workspace:*
         version: link:src/engine
+      '@wildshard/format':
+        specifier: workspace:*
+        version: link:src/format
       '@wildshard/game':
         specifier: workspace:*
         version: link:src/game
@@ -138,10 +141,23 @@ importers:
 
   src/engine: {}
 
-  src/game: {}
+  src/format:
+    dependencies:
+      valibot:
+        specifier: 1.5.0
+        version: 1.5.0(typescript@7.0.2)
+
+  src/game:
+    dependencies:
+      '@wildshard/format':
+        specifier: workspace:*
+        version: link:../format
 
   src/sdk:
     dependencies:
+      '@wildshard/format':
+        specifier: workspace:*
+        version: link:../format
       assemblyscript:
         specifier: 0.28.20
         version: 0.28.20

@@ -45,6 +45,19 @@ export function linkNodeModules(repo, tree) {
       symlinkSync(relative(join(to, name), join(resolve(tree), inRepo)), join(to, name, pkg));
     }
   }
+  // A newly authored workspace may not have been installed in the shared checkout yet.
+  // Link the export's own defining package, never another checkout's source or dependencies.
+  const sources = resolve(tree, 'src');
+  if (existsSync(sources)) for (const entry of readdirSync(sources, { withFileTypes: true })) {
+    const manifest = join(sources, entry.name, 'package.json');
+    if (!entry.isDirectory() || !existsSync(manifest)) continue;
+    const name = JSON.parse(readFileSync(manifest, 'utf8')).name;
+    if (typeof name !== 'string' || !/^@wildshard\/[a-z][a-z0-9-]*$/u.test(name)) continue;
+    const link = join(to, name);
+    if (existsSync(link)) continue;
+    mkdirSync(dirname(link), { recursive: true });
+    symlinkSync(relative(dirname(link), join(sources, entry.name)), link);
+  }
   linkPackageNodeModules(repo, tree);
 }
 

@@ -12,6 +12,7 @@ function fixture(): {root:string;put:(file:string,source:string)=>void;close:()=
   return {root, put: (file,source) => {const path = join(root,file);mkdirSync(dirname(path),{recursive:true});writeFileSync(path,source);},close:()=>{rmSync(root,{recursive:true,force:true});}};
 }
 it('classifies the six authoring folders and refuses runtime, legacy, sibling shards and game sources', () => {
+  expect(isAuthoringInput('src/format/edgeProfiles.ts','fixture')).toBe(true);
   for (const folder of ['generators','data','quests','blender','assets','behaviour']) expect(isAuthoringInput(`src/shards/fixture/${folder}/source.ts`,'fixture')).toBe(true);
   for (const file of ['src/shards/fixture/runtime/source.ts','src/shards/fixture-legacy/data/source.ts','src/shards/other/data/source.ts','src/engine/source.ts','src/game/source.ts','src/sdk/runtime/source.ts','src/commons/runtime/source.ts']) expect(isAuthoringInput(file,'fixture')).toBe(false);
 });
@@ -20,12 +21,14 @@ it('closes relative imports and defining SDK/commons exports without executing s
   try {
     f.put('src/sdk/package.json',JSON.stringify({exports:{'./bake':'./bake.ts'}}));
     f.put('src/commons/package.json',JSON.stringify({exports:{'./pack':'./pack.ts'}}));
-    f.put('src/sdk/bake.ts','export const bake = 1;');f.put('src/commons/pack.ts',"import {bake} from '@wildshard/sdk/bake'; export const pack = bake;");
+    f.put('src/format/package.json',JSON.stringify({exports:{'./contract':'./contract.ts'}}));
+    f.put('src/format/contract.ts','export const contract = 1;');
+    f.put('src/sdk/bake.ts',"import {contract} from '@wildshard/format/contract'; export const bake = contract;");f.put('src/commons/pack.ts',"import {bake} from '@wildshard/sdk/bake'; export const pack = bake;");
     f.put('src/shards/fixture/data/rows.ts','export const rows = [1];');
     const entry = 'src/shards/fixture/generators/build.ts';
     f.put(entry,"import {pack} from '@wildshard/commons/pack'; import {rows} from '../data/rows'; // import '../runtime/hidden';\nthrow new Error('must never execute');");
     const report = auditAuthoringInputs(f.root,'fixture',entry);
-    expect(report.issues).toEqual([]);expect(report.files).toHaveLength(4);expect(report.files).toContain('src/sdk/bake.ts');
+    expect(report.issues).toEqual([]);expect(report.files).toHaveLength(5);expect(report.files).toContain('src/format/contract.ts');expect(report.files).toContain('src/sdk/bake.ts');
   } finally {f.close();}
 });
 it('refuses runtime reached indirectly through the SDK and retains the immediate importer', () => {

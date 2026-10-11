@@ -213,5 +213,8 @@
     "./plugin/clientScript": "./plugin/clientScript.ts",
     "./plugin/audio": "./plugin/audio.ts",
     "./plugin/shaderFamily": "./systems/looks/shaderFamily.ts"
+  },
+  "dependencies": {
+    "@wildshard/format": "workspace:*"
   }
 }

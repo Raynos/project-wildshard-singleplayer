@@ -27,7 +27,7 @@ import { ItemsSchema, itemRules } from './items';
 import { TraversalSchema } from './traversal';
 import { RuntimeSchema } from './runtime';
 import { ClientScriptsSchema, clientScriptRules } from './clientScripts';
-import { EdgeProfilesSchema } from './edgeProfiles';
+import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema, entrywayRules } from './entryways';
 import { MoversSchema, parseMovers } from './movers';
 import { socketLiftEntries, socketLiftRules } from './socketLift';

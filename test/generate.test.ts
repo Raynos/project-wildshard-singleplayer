@@ -30,6 +30,18 @@ function fixture():{root:string;job:ShardGenerationJob} {
   return {root,job};
 }
 describe('G292 shard generation entry',()=>{
+  it('stages and links a new format workspace and keys its defining contract before any shared install',async()=>{
+    const {root,job}=fixture(),cacheDir=resolve(root,'cache');
+    mkdirSync(resolve(root,'src/format'),{recursive:true});mkdirSync(resolve(root,'node_modules'),{recursive:true});
+    writeFileSync(resolve(root,'src/format/package.json'),JSON.stringify({name:'@wildshard/format',type:'module',exports:{'./contract':'./contract.mjs'}}));
+    const contract=resolve(root,'src/format/contract.mjs');writeFileSync(contract,"export const value = 'bit-exact';");
+    writeFileSync(resolve(root,job.entry),"import {value} from '@wildshard/format/contract';import {writeFileSync} from 'node:fs';writeFileSync('public/out/value.bin',value);");
+    const cold=await generateShardJob(root,job,{cacheDir});
+    const warm=await generateShardJob(root,job,{cacheDir});expect(warm.hit).toBe(true);expect(warm.key).toBe(cold.key);
+    writeFileSync(contract,"// defining contract revision\nexport const value = 'bit-exact';");
+    const changed=await generateShardJob(root,job,{cacheDir});expect(changed.hit).toBe(false);expect(changed.key).not.toBe(cold.key);expect(changed.hashes).toEqual(cold.hashes);
+  });
+
   it('G318 uses measured cold time and exact output size, with warm/unknown and boundary values ineligible',()=>{
     const {root,job}=fixture();
     const small=generationRetention(root,job.outputs,30.001);
