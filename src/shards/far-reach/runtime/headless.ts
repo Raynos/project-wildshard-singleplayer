@@ -21,7 +21,7 @@ import { FAN_ACT, FAN_ACTOR, FAN_AIM, installSkyFan, type FanCommand } from './f
 import { installSkyMovers, verifiedMoverModules, type SkyMovers } from './headlessMovers';
 import { installSkyQuest, skyWinchPermission } from './quest';
 import { WINCH_BRIDGE } from './moverRows';
-import { UPDRAFT_LIFT, inUpdraft } from './updraft';
+import { inUpdraft } from '@wildshard/game/plugin/mover';
 import baked from './physics.baked.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
@@ -76,7 +76,7 @@ export const UPDRAFT_STEP = 'far.updraft';
  * SWING, `far.fan` script commands its HEAVY and GUST at the `far.fan.aim` pitch; locked through the Roc's intro, stowed on the board), the
  * quest (runtime/quest.ts: its four steps, its fact and 10 coins once) and the movers (runtime/headlessMovers.ts: the
  * Rising Islets, their road gates and the winch bridge on their admitted modules, an exact continuation across a native
- * restore) and the updraft's lift on the board (runtime/updraft.ts). `finish` proves all four Rising Islet entries by a
+ * restore) and the updraft's lift on the board (the admitted modes row). `finish` proves all four Rising Islet entries by a
  * real capsule traversal on fresh hosts of this world.
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (input) => (await prepareSkyRuntime(input)).plan;
@@ -87,6 +87,8 @@ export interface SkyRuntime {
   readonly installSky: (host: SimHost, context: HeadlessRuntimeInstallation) => SkyMovers;
 }
 export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRuntimePreparation): Promise<SkyRuntime> {
+  const updraft = shard.modes?.traverse.find(row => row.id === 'far.updraft');
+  if (updraft?.kind !== 'updraft') throw new Error('Sky Reach requires its admitted updraft row');
   if (shard.terrain !== null) throw new Error('Sky Reach is a structures-only world');
   // the islet and bridge modules, admitted in shard.config.ts `files`, hash-checked once here (install is synchronous)
   const modules = await verifiedMoverModules(assets);
@@ -138,7 +140,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     const lift = new Vector3();
     host.onStep(UPDRAFT_STEP, dt => {
       const p = host.player.position;
-      if (host.playerBoard.on && inUpdraft(p.x, p.y, p.z)) host.impulsePlayer(lift.set(0, UPDRAFT_LIFT * dt, 0));
+      if (host.playerBoard.on && inUpdraft(updraft, p.x, p.y, p.z)) host.impulsePlayer(lift.set(0, updraft.lift * dt, 0));
     });
     flock.land();
     return movers;

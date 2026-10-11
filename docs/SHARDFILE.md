@@ -1508,3 +1508,12 @@ SF81 Nine declares data/portalStages.json in directors. The page and native host
 
 
 SF85 weapon profiles: the optional `items.rows[].profile` is one of four defining format contracts. Melee describes ordered swing phases, contact sampling and lunge limits; bow describes draw/fatigue clocks, spread and flight; firearm describes magazine/reload/action, spread and projectile flight; thrown describes launch, recovery, pool and pickup parameters. Each root has generated JSON Schema. Non-JSON callbacks, nonfinite or negative tuning, oversized/fractional pools, inconsistent phases and family mismatches refuse admission. Omitting the field keeps old item bytes unchanged. Only a trusted native family that explicitly lists the profile kind can consume it; no view or controller is inferred from data.
+
+
+SF85 weapon profiles: the optional `items.rows[].profile` is one of four defining format contracts. Melee describes ordered swing phases, contact sampling and lunge limits; bow describes draw/fatigue clocks, spread and flight; firearm describes magazine/reload/action, spread and projectile flight; thrown describes launch, recovery, pool and pickup parameters. Each root has generated JSON Schema. Non-JSON callbacks, nonfinite or negative tuning, oversized/fractional pools, inconsistent phases and family mismatches refuse admission. Omitting the field keeps old item bytes unchanged. Only a trusted native family that explicitly lists the profile kind can consume it; no view or controller is inferred from data.
+
+SF84 traversal rows are declared as optional `modes.traverse` data. During native player-owner transitions they require
+`runtime.binds: ['modes']`; pure-data or unbound traversal rows refuse admission. The native owner reads the admitted
+row at its existing player phase and the data client removes it, preventing a second owner. Sky Reach consumes its
+updraft geometry/force this way in both browser and trusted headless hosts. `@wildshard/sdk/modes` exposes the data types
+`ModeRows`, `ZiplineRow`, `UpdraftRow` alongside the ordinary three.js author objects.

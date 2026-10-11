@@ -59,7 +59,7 @@ import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { bindSkyActor } from './spawns';
 import { bindSkyItems } from './items';
 import { spawnSkyGoats } from '../species/goats';
-import { UPDRAFT_LIFT, inUpdraft } from './updraft';
+import { inUpdraft } from '@wildshard/game/plugin/mover';
 
 declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'far.gust': true }
@@ -223,12 +223,14 @@ export class SkyReachPlugin extends ShardPlugin {
     const calls = isletCalls((entry, action) => { const movers = this.movers, lift = lifts.get(entry.edge); if (movers !== null && lift !== undefined) commandSocketLift(movers, lift, action); });
     rt.interactables.push(...calls.interactables); this.isletCalls = calls;
     // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
-    // like an animal's, so a constant feed holds about UPDRAFT_LIFT / 3.5 m/s) floats you off the ramp to the high step.
+    // like an animal's, so a constant feed holds about updraft.lift / 3.5 m/s) floats you off the ramp to the high step.
+    const updraft = source.modes?.traverse.find(row => row.id === 'far.updraft');
+    if (updraft?.kind !== 'updraft') throw new Error('Sky Reach requires its admitted updraft row');
     const lift = new Vector3();
     ctx.system({ id: 'far.updraft', phase: 'fixed.pre', run: (dt) => {
       const p = position; if (!this.board()) return;
-      // inside the column (runtime/updraft.ts, the headless host's same rule)
-      if (inUpdraft(p.x, p.y, p.z)) ctx.app.player?.impulse(lift.set(0, UPDRAFT_LIFT * dt, 0));
+      // inside the column (the admitted modes row, the headless host's same rule)
+      if (inUpdraft(updraft, p.x, p.y, p.z)) ctx.app.player?.impulse(lift.set(0, updraft.lift * dt, 0));
     } });
 
     const moverPose = (id: string): ReturnType<MoverRuntime['pose']> => {

@@ -33,6 +33,7 @@ import { RuntimeSchema } from '@wildshard/format/runtime';
 import { ClientScriptsSchema, clientScriptRules } from '@wildshard/format/clientScripts';
 import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema, entrywayRules } from '@wildshard/format/entryways';
+import { ModesSchema } from '@wildshard/format/modes';
 import { MoversSchema, parseMovers } from '@wildshard/format/movers';
 import { socketLiftEntries, socketLiftRules } from './socketLift';
 import { portalLinkEntries, portalLinkRules } from './portalLink';
@@ -68,6 +69,7 @@ const rawSchema = v.strictObject({
   edge: EdgeProfilesSchema,
   entryways: EntrywaysSchema,
   movers: v.optional(MoversSchema, []),
+  modes: v.exactOptional(ModesSchema),
   files: FilesSchema, tiles: TilesSchema, library: LibrarySchema, critical: CriticalSchema,
   far: FarSchema,
   ui: v.optional(UiSchema, []),
@@ -169,6 +171,7 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...itemRules(s.items, s.sim.scripts));
   if ((s.items.runtimeContexts?.length ?? 0) > 0 && s.runtime?.binds?.includes('items') !== true) errors.push('runtime input context references require runtime.binds items');
   if (s.items.rows.some((row) => row.kind === 'tool' && row.action === null) && s.runtime?.binds?.includes('items') !== true) errors.push('native tools require runtime.binds items');
+  if (s.modes !== undefined && s.modes.traverse.length > 0 && s.runtime?.binds?.includes('modes') !== true) errors.push('traverse modes require runtime.binds modes until the data client owns their player phase');
   errors.push(...skinLookRules(s));
   errors.push(...clientScriptRules(s));
   if (s.props !== null) {

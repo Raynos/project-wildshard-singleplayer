@@ -8,6 +8,7 @@ import { SKY_ITEMS } from './data/items';
 import { SKY_SPAWNS } from './data/spawns';
 import { SKY_STATE } from './data/state';
 import { AUDIO } from './data/audio';
+import { SKY_MODES } from './data/modes';
 import { MOVERS } from './data/movers';
 import { LIFT_MODULE } from './data/liftModule';
 import { BRIDGE_MODULE } from './data/bridgeModule';
@@ -26,8 +27,8 @@ const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wil
 const lifts = new Map(ISLET_LIFTS.map((entry) => [entry.edge, entry.lift]));
 const wasm = (module: { hash: string; bytes: number }) => ({ hash: module.hash, kind: 'wasm', compressed: module.bytes, decoded: module.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: [bossStages],
-  quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
+export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: [bossStages],
+  modes: SKY_MODES, quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
   entryways: base.entryways.map(({ edge, at, width }) => {
     const lift = lifts.get(edge); if (lift === undefined) throw new Error(`Sky Reach entry ${edge} has no Rising Islet`);
     return { edge, at, width, kind: 'socketLift' as const, lift };

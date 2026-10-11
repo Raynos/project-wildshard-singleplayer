@@ -1,4 +1,4 @@
-import { UPDRAFT } from '../data/layout';
+import { UPDRAFT } from '../../../src/shards/far-reach/data/layout';
 
 /** The updraft's upward push while you ride its column (m/s², G24). */
 export const UPDRAFT_LIFT = 12;

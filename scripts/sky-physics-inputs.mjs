@@ -4,13 +4,13 @@ import { join, relative } from 'node:path';
 
 /** Exact native collision/model inputs; a changed recipe refuses the trusted headless bake. */
 export function skyPhysicsInputs(root) {
-  const paths = ['layout.ts', 'data/layout.ts', 'data/spawns.ts', 'runtime/variants.ts', 'data/movers.ts', 'data/isletLift.ts', 'data/storm.ts',
+  const paths = ['layout.ts', 'data/layout.ts', 'data/spawns.ts', 'runtime/variants.ts', 'data/movers.ts', 'data/isletLift.ts', 'data/storm.ts', 'data/modes.ts',
     'runtime/index.ts', 'runtime/crownLayout.ts'].map(path => `src/shards/far-reach/${path}`);
   // DS1.5: the native Node world, finite spawn factory and loaded rigs are the producer's defining closure.
   for (const file of ['src/shards/far-reach/manifest.ts', 'src/shards/far-reach/shard.config.ts',
     'src/shards/far-reach/generators/bake-sky-physics.mjs', 'scripts/sky-physics-inputs.mjs',
     'scripts/bake/worldHost.mjs', 'scripts/bake/nativeWorld.mjs', 'scripts/bake/environment.mjs', 'scripts/bake-loader.mjs',
-    'src/engine/entities/AnimalManager.ts', 'src/engine/entities/AnimalFactory.ts', 'src/engine/entities/AnimalView.ts',
+    'src/game/plugin/mover.ts', 'src/format/modes.ts', 'src/engine/entities/AnimalManager.ts', 'src/engine/entities/AnimalFactory.ts', 'src/engine/entities/AnimalView.ts',
     'src/engine/entities/AnimalSim.ts', 'src/shards/far-reach/runtime/skinnedModel.ts', 'src/engine/ai/hunt.ts',
     'src/engine/entities/species/registry.ts', 'src/engine/entities/species/look.ts', 'src/engine/practice/TrainingArena.ts',
     'src/engine/models/colliders.ts', 'src/engine/models/place.ts', 'src/engine/world/registry.ts', 'pnpm-lock.yaml']) paths.push(file);
