@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { parseCrossbowProfile } from '../weapons/crossbow/profiles';
 import { BowWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
@@ -115,6 +116,9 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const row = shard.items.rows.find(item => item.id === 'weapon.longbow');
   if (row?.kind !== 'weapon' || row.family !== 'bow') throw new Error('Missing admitted Pine bow profile');
   const bowProfile = v.parse(BowWeaponProfileSchema, row.profile);
+  const crossbowRow = shard.items.rows.find(item => item.id === 'weapon.crossbow');
+  if (crossbowRow?.kind !== 'weapon' || crossbowRow.family !== 'firearm') throw new Error('Missing admitted Pine crossbow profile');
+  const crossbowProfile = parseCrossbowProfile(crossbowRow.profile);
   const leverRow = shard.items.rows.find(item => item.id === 'weapon.lever');
   if (leverRow?.kind !== 'weapon' || leverRow.family !== 'firearm') throw new Error('Missing admitted Pine lever profile');
   const leverProfile = parseLeverProfile(leverRow.profile);
@@ -134,7 +138,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     const fresh = createSimHost(level, { ground: false, heightAt, rapier });
     try { addPineWorld(fresh, bake, isPineEdgeWall); fresh.step(); return provePineEntries(fresh.physics, shard.entryways, heightAt); } finally { fresh.dispose(); }
   }, install: (host, context) => {
-    installPine(host, { bake, grid, nav, heightAt, director, nightDirector, bowProfile, leverProfile, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
+    installPine(host, { bake, grid, nav, heightAt, director, nightDirector, bowProfile, leverProfile, crossbowProfile, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
       // a player command's attack pulls the held weapon's trigger at that body; its HEAVY hold draws the longbow; a
       // `pine.weapon` script command picks a weapon (the tick's last)
       shots: () => context.commands().flatMap(command => command.kind === 'player' && command.attack !== undefined ? [command.attack.targetId] : []),
@@ -148,6 +152,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
 };
 
 export interface PineInstall {
+  /** Actual admitted bolt declaration; same default row for standalone fixtures. */
+  readonly crossbowProfile?: ReturnType<typeof parseCrossbowProfile>;
   /** Admitted numeric lever row; isolated fixtures retain the exact authored default. */
   readonly leverProfile?: ReturnType<typeof parseLeverProfile>;
   /** Admitted numeric bow row; isolated native fixtures use the same authored default. */
@@ -227,7 +233,7 @@ export function installPine(host: SimHost, parts: PineInstall): {
   let air: ReturnType<typeof installPineAir> | null = null;
   const atmosphere = (): ReturnType<typeof installPineAir> => { if (air === null) throw new Error('Pine air is not installed'); return air; };
   let ammunition: PineAmmunition | null = null;
-  const crossbow = installPineCrossbow(host, { shots, enabled: () => loadout.live(PINE_WEAPON.crossbow), bodies, aim,
+  const crossbow = installPineCrossbow(host, { ...(parts.crossbowProfile === undefined ? {} : { profile: parts.crossbowProfile }), shots, enabled: () => loadout.live(PINE_WEAPON.crossbow), bodies, aim,
     ammunition: () => ammunition?.selected ?? 'iron', flight: kind => boltFlight(kind, atmosphere().weather.rain) });
   const lever = installPineLever(host, { ...(parts.leverProfile === undefined ? {} : { profile: parts.leverProfile }), shots, enabled: () => loadout.live(PINE_WEAPON.lever), bodies, aim, speedFactor });
   const longbow = installPineLongbow(host, { ...(parts.bowProfile === undefined ? {} : { profile: parts.bowProfile }), heavy, enabled: () => loadout.live(PINE_WEAPON.longbow), bodies, aim, speedFactor,

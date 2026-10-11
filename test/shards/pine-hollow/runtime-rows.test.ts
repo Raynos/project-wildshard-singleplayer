@@ -55,7 +55,7 @@ describe('Pine runtime-owned declarations (SF47-p, C26)', () => {
     const { onComplete, ...quest } = source.quests.quests[0] ?? {};
     expect(quest).toEqual(WARDENS_HOLLOW); expect(onComplete).toEqual({ fact: 'pine.feat.quest' });
     expect(source.items.rows.map(row => [row.id, row.family, row.kind === 'weapon' ? row.context : null])).toEqual([
-      ['weapon.crossbow', 'pine-hollow.crossbow', 'weapon.ranged'], ['weapon.lever', 'firearm', 'weapon.ranged'], ['weapon.longbow', 'bow', 'weapon.bow'],
+      ['weapon.crossbow', 'firearm', 'weapon.ranged'], ['weapon.lever', 'firearm', 'weapon.ranged'], ['weapon.longbow', 'bow', 'weapon.bow'],
     ]);
     expect(source.runtime?.spawns?.bosses).toEqual([{ id: 'pine.antler-king', kind: 'antler-king', look: 'warden', at: [150, -30], yaw: 0 }]);
     const data = withoutRuntimeRows(source);

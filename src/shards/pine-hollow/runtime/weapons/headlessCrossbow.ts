@@ -6,7 +6,8 @@ import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { sticksIn } from '@wildshard/engine/physics/query';
-import { CROSSBOW_PROFILE } from '../../weapons/crossbow/profiles';
+import { crossbowProfile } from '../../weapons/crossbow/profiles';
+import { CROSSBOW_WEAPON_PROFILE } from '../../data/crossbowProfile';
 import { boltFlightStep, PLAIN_FLIGHT, type BoltFlight } from '../../weapons/crossbow/flight';
 import { aimAt, bodyHit, worldHit } from './headlessRanged';
 import { boltDamage, type BoltKind } from '../../loadout/ammo';
@@ -14,24 +15,23 @@ import { boltDamage, type BoltKind } from '../../loadout/ammo';
 /** The crossbow's fixed-step id; its continuation is the bow's state and every bolt in flight. */
 export const CROSSBOW_STEP = 'pine.crossbow';
 /** Crossbow.ts: the bolt starts this far down the aim line, flies in four substeps a tick, dies past the chunk or after 12 s. */
-const MUZZLE = 0.35, SUBSTEPS = 4, MAX_AGE = 12, BOUND = 250 + 60, FLOOR = -150;
+const BOUND = 250 + 60, FLOOR = -150;
 /** Crossbow.ts's glance off a hard surface: lift off it, keep a little of the speed, a small bounce, a speed cap. */
 const GLANCE_LIFT = 0.02, GLANCE_KEEP = 0.25, GLANCE_BOUNCE = 0.15, GLANCE_MAX = 6;
-const CONE = { radius: 'linear', axisScale: 2 } as const;
 
 /** One bolt slot (Crossbow.ts's pool of `maxFlying`): in flight while `active`. */
 interface Bolt { active: boolean; pos: Vector3; vel: Vector3; age: number; glanced: boolean; ammo: BoltKind }
 /** The most shots a tick reads (the tick's command allowance). */
-const MAX_FLYING = 8, MAX_SHOTS = 1024, NO_SHOTS: readonly string[] = [];
+const MAX_FLYING = 1024, MAX_SUBSTEPS = 64, MAX_SHOTS = 1024, NO_SHOTS: readonly string[] = [];
 
 const finite = v.pipe(v.number(), v.finite());
-const Saved = v.strictObject({ loaded: v.boolean(), quiver: finite, reloading: v.boolean(), reloadT: finite, cooldown: finite, sinceFire: finite,
-  bolts: v.pipe(v.array(v.strictObject({ active: v.boolean(), pos: v.tuple([finite, finite, finite]), vel: v.tuple([finite, finite, finite]), age: finite, glanced: v.boolean(), ammo: v.optional(v.picklist(['iron', 'pitch', 'broadhead']), 'iron') })),
-    v.length(CROSSBOW_PROFILE.maxFlying)) });
+
 
 /** What the crossbow is lent: the tick's shots (the body each is aimed at), whether its trigger is live (held, not mid-swap,
  *  not locked by a boss intro) and the bodies a bolt can hit. */
 export interface PineCrossbowPorts {
+  /** Admitted single-bolt row; omitted standalone fixtures use the same authored declaration. */
+  readonly profile?: unknown;
   readonly shots: () => readonly string[];
   readonly enabled: () => boolean;
   readonly bodies: () => readonly AnimalSim[];
@@ -58,8 +58,11 @@ export interface PineCrossbowPorts {
  * a stowed bow still reloads itself and its bolts fly on, as the page updates every weapon. Stuck bolts are the page's view alone.
  */
 export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { readonly state: { loaded: boolean; quiver: number; reloading: boolean }; readonly flying: () => number; readonly addBolts: (count: number) => void } {
-  const p = CROSSBOW_PROFILE, random = (): number => host.rng.stream('gameplay').next(), player = host.player;
-  if (p.maxFlying !== MAX_FLYING) throw new Error('Pine crossbow profile changed its bolt pool');
+  const p = crossbowProfile(ports.profile ?? CROSSBOW_WEAPON_PROFILE), random = (): number => host.rng.stream('gameplay').next(), player = host.player;
+  const Saved = v.strictObject({ loaded: v.boolean(), quiver: finite, reloading: v.boolean(), reloadT: finite, cooldown: finite, sinceFire: finite,
+  bolts: v.pipe(v.array(v.strictObject({ active: v.boolean(), pos: v.tuple([finite, finite, finite]), vel: v.tuple([finite, finite, finite]), age: finite, glanced: v.boolean(), ammo: v.optional(v.picklist(['iron', 'pitch', 'broadhead']), 'iron') })),
+    v.length(p.maxFlying)) });
+  const cone = { radius: p.spreadRadius, axisScale: p.spreadAxisScale };
   const state = { loaded: true, quiver: p.quiver, reloading: false, reloadT: 0, cooldown: 0, sinceFire: 99 };
   const bolts: Bolt[] = Array.from({ length: p.maxFlying }, () => ({ active: false, pos: new Vector3(), vel: new Vector3(), age: 0, glanced: false, ammo: 'iron' }));
   const reload = (): void => { if (!state.reloading && !state.loaded && state.quiver > 0) { state.reloading = true; state.reloadT = 0; } };
@@ -68,12 +71,13 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
     state.loaded = false; state.quiver = Math.max(0, state.quiver - 1); state.cooldown = p.cooldown; state.sinceFire = 0;
     aimAt(host, target, eye, fwd, ports.aim?.());
     // the page's hip spread: a random axis across the line, a random fraction of 0.75°
-    const spread = (0.15 + (1 - smoothstep(0, 1, ports.adsBlend?.() ?? 0)) * 0.6) * (Math.PI / 180);
+    const spread = (p.spreadAds + (1 - smoothstep(0, 1, ports.adsBlend?.() ?? 0)) * (p.spreadHip - p.spreadAds)) * (Math.PI / 180);
     dir.copy(fwd);
-    shotSpread(dir, spread, random, CONE, side);
+    shotSpread(dir, spread, random, cone, side);
     // a free slot, else the oldest bolt's (Crossbow.ts spawnBolt)
     let b: Bolt | undefined;
     for (let i = 0; i < MAX_FLYING; i++) {
+      if (i >= p.maxFlying) break;
       const x = bolts[i];
       if (x === undefined) break;
       if (!x.active) { b = x; break; }
@@ -81,7 +85,7 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
     }
     if (b === undefined) return;
     b.active = true; b.age = 0; b.glanced = false; b.ammo = ports.ammunition?.() ?? 'iron';
-    b.pos.copy(eye).addScaledVector(fwd, MUZZLE); b.vel.copy(dir).multiplyScalar(p.speed);
+    b.pos.copy(eye).addScaledVector(fwd, p.muzzle); b.vel.copy(dir).multiplyScalar(p.speed);
   };
   // one request, refilled per hit (the pipeline copies the contact frame and the tags)
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.crossbow', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir: seg, headshot: false };
@@ -95,7 +99,7 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
     const hit = bodyHit(ports.bodies(), prev, seg, wall ? wall.distance : len), body = hit?.body ?? null;
     if (hit !== null && body !== null) {
       // the pipeline copies the contact frame (its scratch vectors are reused)
-      req.target = body.combatActor(); req.amount = body.damageFor(hit.head, hit.point.distanceTo(player.position)) * boltDamage(b.ammo, body.kind);
+      req.target = body.combatActor(); req.amount = body.damageFor(hit.head, hit.point.distanceTo(player.position)) * boltDamage(b.ammo, body.kind) * p.damageScale;
       req.point.copy(hit.point); req.headshot = hit.head;
       host.combat.hit(req);
       return true;
@@ -114,9 +118,9 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
   };
   const fly = (b: Bolt, dt: number): void => {
     b.age += dt;
-    const h = dt / SUBSTEPS;
-    for (let s = 0; s < SUBSTEPS; s++) { prev.copy(b.pos); boltFlightStep(b.pos, b.vel, h, ports.flight?.(b.ammo) ?? PLAIN_FLIGHT, p); if (testHit(b)) { b.active = false; return; } }
-    if (Math.abs(b.pos.x) > BOUND || Math.abs(b.pos.z) > BOUND || b.pos.y < FLOOR || b.age > MAX_AGE) b.active = false;
+    const h = dt / p.substeps;
+    for (let s = 0; s < MAX_SUBSTEPS; s++) { if (s >= p.substeps) break; prev.copy(b.pos); boltFlightStep(b.pos, b.vel, h, ports.flight?.(b.ammo) ?? PLAIN_FLIGHT, p); if (testHit(b)) { b.active = false; return; } }
+    if (Math.abs(b.pos.x) > BOUND || Math.abs(b.pos.z) > BOUND || b.pos.y < FLOOR || b.age > p.lifetime) b.active = false;
   };
   host.onStep(CROSSBOW_STEP, dt => {
     const shots = ports.enabled() ? ports.shots() : NO_SHOTS;
@@ -131,7 +135,7 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
     state.cooldown = Math.max(0, state.cooldown - dt); state.sinceFire += dt;
     if (!state.loaded && !state.reloading && state.quiver > 0 && state.sinceFire > p.autoReload) reload();
     if (state.reloading) { state.reloadT += dt; if (state.reloadT >= p.reload) { state.reloading = false; state.loaded = true; } }
-    for (let i = 0; i < MAX_FLYING; i++) { const b = bolts[i]; if (b?.active === true) fly(b, dt); }
+    for (let i = 0; i < MAX_FLYING; i++) { if (i >= p.maxFlying) break; const b = bolts[i]; if (b?.active === true) fly(b, dt); }
   }, {
     snapshot: () => ({ ...state, bolts: bolts.map(b => ({ active: b.active, pos: [b.pos.x, b.pos.y, b.pos.z], vel: [b.vel.x, b.vel.y, b.vel.z], age: b.age, glanced: b.glanced, ...(b.ammo === 'iron' ? {} : { ammo: b.ammo }) })) }),
     restore: value => {

@@ -1533,3 +1533,5 @@ trolley sway/park, prompts, sounds and update position. `ZiplineDriver.distance`
 presentation; restore retains the same native continuation and never draws or publishes.
 
 A lever `FirearmWeaponProfile` may provide `lever` (cycle delay/time, reload pose in/out, eject/cock fractions, auto-reload close). Pine's supported per-round hitscan owner requires these clocks and refuses a contract it does not host; its actual item row uses family `firearm` and keeps its local view recipe. Crossbows, Nalati weapons and WP-3/WP-5 remain separate unfinished work.
+
+SF85 WP-2 single-bolt rows: Pine declares crossbow and lever on `firearm`, dispatching admitted identities to their existing native owners. Crossbow launch/spread, pool, gravity/drag, substeps, lifetime, quiver and reload clocks derive from its JSON profile; ammunition/weather and body/cover queries remain actual owner ports. The fixed world domain (`range: 310`) is not a configurable bolt hitscan limit; unsupported bloom/movement/wind/action contracts refuse before allocation. View rigs, slot IDs, cues and native glance behavior stay unchanged.

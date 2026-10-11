@@ -45,6 +45,8 @@ export interface BoltCrossbowProfile {
   quiver: number; speed: number; gravity: number; drag: number; radius: number; bury: number;
   reload: number; autoReload: number; cooldown: number; kick: number; adsBlend: number; adsMotion: number;
   maxFlying: number; maxStuck: number;
+  spreadAds?: number; spreadHip?: number; spreadRadius?: 'linear' | 'sqrt'; spreadAxisScale?: 1 | 2;
+  muzzle?: number; substeps?: number; lifetime?: number; damageScale?: number;
 }
 
 /** The flight multipliers a bolt carries (the selected ammo's, the weather's): 1 / 1 is the plain bolt. */
@@ -405,11 +407,11 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     const a = sstep(0, 1, this.adsBlend);
     this.aimRay(_v3, _fwd);
     // spread: tight at ADS, a touch wider from the hip
-    const spread = THREE.MathUtils.degToRad(0.15 + (1 - a) * 0.6);
+    const spread = THREE.MathUtils.degToRad((this.profile.spreadAds ?? 0.15) + (1 - a) * ((this.profile.spreadHip ?? 0.75) - (this.profile.spreadAds ?? 0.15)));
     _dir.copy(_fwd);
-    shotSpread(_dir, spread, gameplayRandom, { radius: 'linear', axisScale: 2 }, _v1);
+    shotSpread(_dir, spread, gameplayRandom, { radius: this.profile.spreadRadius ?? 'linear', axisScale: this.profile.spreadAxisScale ?? 2 }, _v1);
     // Simulation launches from command data; the drawn bolt never chooses a shot's origin.
-    b.pos.copy(_v3).addScaledVector(_fwd, 0.35);
+    b.pos.copy(_v3).addScaledVector(_fwd, this.profile.muzzle ?? 0.35);
     b.vel.copy(_dir).multiplyScalar(this.profile.speed);
     b.active = true; b.age = 0; b.roll = 0; b.glanced = false;
     b.mod = this.boltMod; b.ammo = this.nextAmmo(); this.onShot(b); b.mesh.material = b.mod.material ?? this.boltMat;
@@ -605,12 +607,14 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
 
   // ── projectiles ──
   private stepBolts(dt: number): void {
-    for (const b of this.bolts) {
+    for (let index = 0; index < 1024; index++) {
+      const b = this.bolts[index]; if (b === undefined) break;
       if (!b.active) continue;
       b.age += dt;
-      const sub = 4, h = dt / sub;
+      const sub = this.profile.substeps ?? 4, h = dt / sub;
       let stopped = false;
-      for (let s = 0; s < sub; s++) {
+      for (let s = 0; s < 64; s++) {
+        if (s >= sub) break;
         _v1.copy(b.pos); // previous
         const flight = b.ammo && this.equipEvents ? this.equipEvents.ask('projectile.modify', { ammo: b.ammo, gravity: b.ammo.flight.gravity, drag: b.ammo.flight.drag }) : b.mod;
         this.flight(b.pos, b.vel, h, flight, this.profile);
@@ -618,7 +622,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
         b.tracer?.addPoint(b.pos);
       }
       if (stopped) continue;
-      if (Math.abs(b.pos.x) > CHUNK_HALF + 60 || Math.abs(b.pos.z) > CHUNK_HALF + 60 || b.pos.y < -150 || b.age > 12) { b.active = false; b.mesh.visible = false; this.endTracer(b, b.pos); continue; }
+      if (Math.abs(b.pos.x) > CHUNK_HALF + 60 || Math.abs(b.pos.z) > CHUNK_HALF + 60 || b.pos.y < -150 || b.age > (this.profile.lifetime ?? 12)) { b.active = false; b.mesh.visible = false; this.endTracer(b, b.pos); continue; }
       b.mesh.position.copy(b.pos);
       _dir.copy(b.vel).normalize();
       b.roll += dt * 14;
@@ -647,7 +651,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
       const hit = this.targets.raycast(prev, _dir, wall ? wall.distance : segLen);
       if (hit) {
         this.onBoltHit(hit);
-        const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.player.position)) * b.mod.damage(hit.animal.kind), hit.point, _dir);
+        const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.player.position)) * b.mod.damage(hit.animal.kind) * (this.profile.damageScale ?? 1), hit.point, _dir);
         this.onHit?.(hit.animal.kind, hit.headshot, killed);
         const frame = hit.animal.stuckFrame?.(hit.point) ?? null; // a practice dummy keeps the bolt, on the bone it hit
         const attached = frame instanceof THREE.Object3D ? frame : null;

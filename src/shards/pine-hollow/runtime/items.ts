@@ -1,3 +1,4 @@
+import { CROSSBOW_WEAPON_PROFILE } from '../data/crossbowProfile';
 import { LEVER_WEAPON_PROFILE } from '../data/leverProfile';
 import { BOW_PROFILE } from '../data/bowProfile';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
@@ -28,7 +29,18 @@ export function bindPineItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game'>,
       weapon.row = { ...row, legacySlot: weapon.id, meta: native.meta }; return weapon;
     } });
   };
-  adopt('pine-hollow.crossbow', weapons.primary); adopt('firearm', weapons.rifle); adopt('bow', weapons.secondary);
+  adopt('bow', weapons.secondary);
+  // Both native ranged owners use firearm declarations. Dispatch by admitted identity, retaining each owner's cues and UI.
+  const firearms = new Map([['weapon.crossbow', { weapon: weapons.primary, profile: CROSSBOW_WEAPON_PROFILE }],
+    ['weapon.lever', { weapon: weapons.rifle, profile: LEVER_WEAPON_PROFILE }]]);
+  const nativeRows = new Map(Array.from(firearms, ([id, value]) => [id, value.weapon.row]));
+  families.set('firearm', { kind: 'weapon', profiles: ['firearm'], create: (row, _spec, ports) => {
+    const binding = firearms.get(row.id), native = nativeRows.get(row.id);
+    if (binding === undefined || native === undefined || JSON.stringify(ports.profile) !== JSON.stringify(binding.profile)) throw new Error('Native firearm was built from a different authored profile');
+    const preserved = presentation(native);
+    binding.weapon.row = { ...preserved, ...row, ui: { ...row.ui, ...preserved.ui }, legacySlot: binding.weapon.id, meta: native.meta };
+    return binding.weapon;
+  } });
   const native = [weapons.primary.row, weapons.rifle.row, weapons.secondary.row];
   const bow = families.get('bow'); if (bow === undefined) throw new Error('Missing Pine bow family');
   const firearm = families.get('firearm'); if (firearm === undefined) throw new Error('Missing Pine firearm family');

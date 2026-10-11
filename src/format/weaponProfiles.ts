@@ -35,12 +35,12 @@ export const BowWeaponProfileSchema = v.strictObject({
 export const FirearmWeaponProfileSchema = v.strictObject({
   family: v.literal('firearm'), action: v.picklist(['semi', 'lever', 'bolt']), magazine: slots, reserve: count,
   interval: seconds, reload: duration, reloadMode: v.picklist(['magazine', 'perRound', 'single']), autoReload: seconds,
-  damageScale: scalar, range: positive, spreadAds: scalar, spreadHip: scalar, spreadRadius: v.picklist(['linear', 'sqrt']),
+  damageScale: scalar, range: positive, spreadAds: scalar, spreadHip: scalar, spreadRadius: v.picklist(['linear', 'sqrt']), spreadAxisScale: v.optional(v.picklist([1, 2])),
   bloomShot: scalar, bloomMax: scalar, movingSpread: scalar, movingAimReduction: probability,
   lever: v.exactOptional(v.strictObject({ cycleDelay: seconds, cycleTime: duration, reloadIn: seconds, reloadOut: seconds,
     ejectAt: probability, cockAt: probability, autoReloadClose: duration })),
   projectile: v.strictObject({ kind: v.picklist(['bullet', 'bolt']), delivery: v.picklist(['hitscan', 'flight']),
-    speed: scalar, radius: scalar, flight, pool: slots, substeps: v.pipe(slots, v.maxValue(64)), lifetime: duration }),
+    speed: scalar, radius: scalar, muzzle: v.optional(scalar), flight, pool: slots, substeps: v.pipe(slots, v.maxValue(64)), lifetime: duration }),
 });
 
 /** Existing ThrownProfile numeric launch, pool, pickup and recovery fields as data; no target, RNG or physics authority. */
