@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { hudSlots } from '../src/engine/ui/hudSlots';
 import { HUD } from '../src/engine/ui/HUD';
-import { WOODEN_SWORD } from '../src/game/plugin/weaponHooks';
+import { WOODEN_SWORD } from '../src/game/weapons/starterMeleeProfile';
 import { ItemCardPop, itemCardTile } from '../src/engine/ui/ItemCard';
 import { ShopPanel, type ShopState } from '../src/game/loot/ui/ShopPanel';
 import { accentHex, hudAccent, setHudAccent } from '../src/game/session/hudAccent';

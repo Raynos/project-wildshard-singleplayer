@@ -1,5 +1,5 @@
 import { BOAR } from '@wildshard/game/systems/species/boar';
-import { IRON_SWORD } from '@wildshard/game/plugin/weaponHooks';
+import { IRON_SWORD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { SimCommand, SimLevel } from '@wildshard/engine/sim';
 
 /** A real shared species and iron sword on plain flat ground, with no shard runtime or renderer. */

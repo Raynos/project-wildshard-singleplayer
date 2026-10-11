@@ -2,11 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { fnv1a32 } from '../../src/engine/core/rng';
 import * as gameMoves from '../../src/game/weapons/starterMoves';
 import * as starterMoves from '../../src/sdk/runtime/weapons/starterMoves';
-import { SWORD_WOOD as originalWood, SWORD_IRON as originalIron } from '../../src/game/weapons/starterMeleeProfile';
 import { SWORD_WOOD, SWORD_IRON } from '../../src/sdk/runtime/weapons/starterMeleeProfile';
 import { BOW as originalBow } from '../../src/game/weapons/starterBowProfile';
 import { BOW } from '../../src/sdk/runtime/weapons/starterBowProfile';
-import { SWORD as originalSwordRow, WOODEN_SWORD as originalWoodRow, IRON_SWORD as originalIronRow } from '../../src/game/plugin/weaponHooks';
+import { SWORD_WOOD as originalWood, SWORD_IRON as originalIron, SWORD as originalSwordRow, WOODEN_SWORD as originalWoodRow, IRON_SWORD as originalIronRow } from '../../src/game/weapons/starterMeleeProfile';
 import * as equipment from '../../src/sdk/runtime/weapons/starterEquipment';
 import { SWAP_GLYPHS as originalGlyphs } from '../../src/game/weapons/starterGlyphs';
 import { SWAP_GLYPHS } from '../../src/sdk/runtime/weapons/starterGlyphs';
@@ -42,7 +41,7 @@ describe('trusted starter recipes leave the kit without a second content identit
   });
   it('keeps all new defining recipe modules free of kit and runtime commons imports', () => {
     for (const name of ['starterGlyphs', 'starterEquipment', 'starterMoves', 'starterMeleeProfile', 'starterBowProfile', 'Sword', 'Bow']) {
-      const text = legacySource(name === 'starterEquipment' ? 'src/game/plugin/weaponHooks.ts' : `src/game/weapons/${name}.ts`).text;
+      const text = legacySource(name === 'starterEquipment' ? 'src/game/weapons/starterMeleeProfile.ts' : `src/game/weapons/${name}.ts`).text;
       expect(text).not.toContain('@wildshard/kit'); expect(text).not.toContain('@wildshard/commons');
     }
     for (const name of ['starterGlyphs', 'starterEquipment', 'starterMoves', 'starterMeleeProfile', 'starterBowProfile', 'Sword', 'starterBow']) {

@@ -8,7 +8,7 @@ const definitions=[
   {key:'./plugin/brain',target:'./plugin/brain.ts',old:null,load:async()=>[await import('@wildshard/game/plugin/brain'),await import('@wildshard/game/plugin/brain')]},
   {key:'./plugin/bossPhase',target:'./plugin/bossPhase.ts',old:null,load:async()=>[await import('@wildshard/game/plugin/bossPhase'),await import('../src/game/plugin/bossPhase')]},
   {key:'./plugin/mover',target:'./plugin/mover.ts',old:'./shardfile/moverRuntime',load:async()=>[await import('@wildshard/game/plugin/mover'),await import('@wildshard/game/shardfile/moverRuntime')]},
-  {key:'./plugin/director',target:'./plugin/director.ts',old:'./shardfile/directorClient',load:async()=>[await import('@wildshard/game/plugin/director'),await import('@wildshard/game/shardfile/directorClient')]},
+  {key:'./plugin/director',target:'./plugin/director.ts',old:null,load:async()=>[await import('@wildshard/game/plugin/director'),await import('../src/game/plugin/director')]},
   {key:'./plugin/ui',target:'./plugin/ui.ts',old:'./quest/presentation',load:async()=>[await import('@wildshard/game/plugin/ui'),await import('@wildshard/game/quest/presentation')]},
   {key:'./plugin/clientScript',target:'./plugin/clientScript.ts',old:null,load:async()=>[await import('@wildshard/game/plugin/clientScript'),await import('../src/game/plugin/clientScript')]},
 ];
@@ -16,6 +16,7 @@ it('publishes real plugin definitions and keeps exact binding identity for trans
   const manifest:unknown=JSON.parse(readFileSync('src/game/package.json','utf8'));
   if(manifest===null||typeof manifest!=='object'||!('exports' in manifest)||manifest.exports===null||typeof manifest.exports!=='object')throw new Error('Missing game exports');
   expect(Object.hasOwn(manifest.exports, './shardfile/phasedBoss')).toBe(false);
+  expect(manifest.exports).toMatchObject({ './shardfile/directorClient': './shardfile/directorClient.ts' });
   for(const row of definitions){
     expect(manifest.exports).toMatchObject({[row.key]:row.target});
     if(row.old!==null)expect(manifest.exports).toMatchObject({[row.old]:row.target});

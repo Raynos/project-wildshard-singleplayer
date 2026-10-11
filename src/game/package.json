@@ -71,7 +71,7 @@
     "./shardfile/hybrid": "./shardfile/hybrid.ts",
     "./shardfile/movers": "./shardfile/movers.ts",
     "./shardfile/moverRuntime": "./plugin/mover.ts",
-    "./shardfile/directorClient": "./plugin/director.ts",
+    "./shardfile/directorClient": "./shardfile/directorClient.ts",
     "./grid/pageBoot": "./grid/pageBoot.ts",
     "./shardfile/crowdRuntime": "./shardfile/crowdRuntime.ts",
     "./shardfile/socketLift": "./shardfile/socketLift.ts",

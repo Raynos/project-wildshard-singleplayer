@@ -6,7 +6,7 @@ import type { SystemSpec } from '../src/engine/app/systems';
 import type { DebugRowSpec } from '../src/engine/level/context';
 import { parseDirector, type DirectorEvent } from '@wildshard/format/director';
 import * as runtimeVariant from '../src/game/shard/runtimeVariant';
-import { directorVariant, installDeclaredDirector } from "../src/game/plugin/director";
+import { directorVariant, installDeclaredDirector } from "../src/game/shardfile/directorClient";
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 
 const data = parseDirector(declaration), bytes = readFileSync(`src/shards/driftwood-isle/assets/${data.module}`);
