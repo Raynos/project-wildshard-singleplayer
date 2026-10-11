@@ -1,13 +1,27 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Failed native replay artifacts survive the subprocess for triage.
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Diagnostics belong to an owned temporary directory, never gameplay saves.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Join the owned diagnostic artifact paths.
 import { join } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The CI artifact directory is an explicit failure-only output port.
+import process from 'node:process';
+import { capturedNumberPathProbe } from '../../scripts/number-path-probe.mjs';
 import { decodeSimSnapshot, type SimSnapshot } from '../../src/engine/sim/snapshot';
 import { canonicalSimDigest, physicsState } from './simState';
 
 interface FieldDifference { path: string; expected: unknown; actual: unknown; record?: string }
+function preview(value: unknown, limit = 512): string {
+  const serialized: unknown = JSON.stringify(value);
+  return (typeof serialized === 'string' ? serialized : String(value)).slice(0, limit);
+}
+function adapterOwner(path: string, state: unknown): string | undefined {
+  if (!object(state)) return undefined;
+  const match = /^state\["adapters"\]\[(\d+)\]/u.exec(path), adapters = state['adapters'];
+  if (match === null || !Array.isArray(adapters)) return undefined;
+  const row: unknown = adapters[Number(match[1])];
+  return object(row) && typeof row['id'] === 'string' ? row['id'] : undefined;
+}
 function object(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === 'object' && !Array.isArray(value); }
 function embedded(value: string): unknown {
   try { const parsed: unknown = JSON.parse(value); return parsed !== null && typeof parsed === 'object' ? parsed : undefined; }
@@ -61,6 +75,29 @@ export function simMismatchError(message: string, expected: SimSnapshot | string
     writeFileSync(join(directory, 'expected.canonical.json'), `${JSON.stringify(a, null, 2)}\n`);
     writeFileSync(join(directory, 'actual.canonical.json'), `${JSON.stringify(b, null, 2)}\n`);
     writeFileSync(join(directory, 'diff.json'), `${JSON.stringify({ message, expectedDigest: a.digest, actualDigest: b.digest, differences }, null, 2)}\n`);
-    return new Error(`${message}; canonical snapshots and field diff: ${directory}`);
+    const artifactRoot = process.env['WS_REPLAY_DIAGNOSTICS_DIR'];
+    const numberPaths = capturedNumberPathProbe();
+    if (artifactRoot !== undefined && artifactRoot !== '' && numberPaths !== undefined) {
+      // Upload only this bounded report, never the complete snapshots above.
+      const selected = [...differences.filter(row => row.record === undefined).slice(0, 16),
+        ...differences.filter(row => row.record !== undefined).slice(0, 16)];
+      const report = { message: message.slice(0, 512), expectedDigest: a.digest, actualDigest: b.digest,
+        differenceCount: differences.length, truncated: selected.length < differences.length,
+        differences: selected.map(row => ({ path: row.path.slice(0, 512),
+          adapter: adapterOwner(row.path, a.state) ?? null,
+          record: row.record?.slice(0, 128),
+          expected: preview(row.expected), actual: preview(row.actual) })),
+        numberPaths };
+      let text = `${JSON.stringify(report, null, 2)}\n`;
+      while (new TextEncoder().encode(text).byteLength > 128 * 1024 && report.differences.length > 0) {
+        report.differences.pop(); report.truncated = true;
+        text = `${JSON.stringify(report, null, 2)}\n`;
+      }
+      if (new TextEncoder().encode(text).byteLength > 128 * 1024) throw new Error('Bounded replay report exceeds 128 KiB');
+      mkdirSync(artifactRoot, { recursive: true });
+      writeFileSync(join(artifactRoot, `replay-${a.digest.slice(0, 16)}-${b.digest.slice(0, 16)}.json`), text);
+    }
+    const excerpt = differences.slice(0, 8).map(row => `${(adapterOwner(row.path, a.state) ?? row.record ?? '').slice(0, 64)} ${row.path.slice(0, 64)}: ${preview(row.expected, 32)} != ${preview(row.actual, 32)}`).join('; ');
+    return new Error(`${message}; ${differences.length} differing fields: ${excerpt}; canonical snapshots and field diff: ${directory}`);
   } catch (cause) { return new Error(`${message}; diagnostic artifact failed`, { cause }); }
 }

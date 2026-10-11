@@ -279,7 +279,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-native-witness-${{ matrix.shard }}-
       - name: Vitest shard ${{ matrix.shard }}/8
+        env:
+          WS_REPLAY_DIAGNOSTICS_DIR: ${{ runner.temp }}/wildshard-replay-diagnostics
         run: |
           pnpm gen
           node scripts/witness-manifests.mjs --prepare .
           python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --shard=${{ matrix.shard }}/8 --reporter=dot --reporter=github-actions
+      - name: Upload bounded replay mismatch
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: replay-mismatch-${{ github.sha }}-${{ matrix.shard }}
+          path: ${{ runner.temp }}/wildshard-replay-diagnostics/*.json
+          if-no-files-found: ignore
+          retention-days: 3

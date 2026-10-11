@@ -12,6 +12,7 @@ import { createHash } from 'node:crypto';
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const ROOT = new URL('../../../', import.meta.url), loaded = new Set();
 registerHooks({ load(url, context, next) { if (url.startsWith(ROOT.href) && !url.includes('/node_modules/')) loaded.add(url); return next(url, context); } });
+const { captureNumberPathProbe } = await import('../../../scripts/number-path-probe.mjs'); captureNumberPathProbe();
 const { installPortableMath } = await import('../../fake/portableMath.ts'); installPortableMath();
 const { installAppIdentity } = await import('../../../src/engine/app/identity.ts');
 const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts'); installAppIdentity(WILDSHARD_IDENTITY);

@@ -125,7 +125,11 @@ export async function recordGameplay(rapier: Rapier, inputs: string): Promise<ob
     if (name !== 'spawn' && name !== 'captain' && name !== 'lookout' && !name.startsWith('tick-')) return;
     const bytes = gzipSync(save(session), { level: 9 }); writeFileSync(new URL(`${name}.snap.gz`, DIR), bytes);
     checkpoints.push({ name, tick: session.host.state.tick, sha: hash(bytes), digest: digest(session), profile: [...local.data] });
-    if (name === 'captain') fork = await boot(rapier, gunzipSync(bytes).toString('utf8'));
+    if (name === 'captain') {
+      fork = await boot(rapier, gunzipSync(bytes).toString('utf8'));
+      const actualDigest = digest(fork), expectedDigest = digest(session);
+      if (actualDigest !== expectedDigest) throw simMismatchError('Continuous gameplay initial restore diverged', snapshotSimHost(session.host), snapshotSimHost(fork.host), { expected: expectedDigest, actual: actualDigest });
+    }
   };
   try {
     await mark('spawn');
@@ -138,7 +142,9 @@ export async function recordGameplay(rapier: Rapier, inputs: string): Promise<ob
       if (!ledger.flush()) throw new Error('Recording profile grant was not durable');
       if (frames.length % 10_000 === 0) { const name = `tick-${String(frames.length)}`, bytes = gzipSync(save(session), { level: 9 }); writeFileSync(new URL(`${name}.snap.gz`, DIR), bytes); checkpoints.push({ name, tick: session.host.state.tick, sha: hash(bytes), digest: digest(session), profile: [...local.data] }); }
     }, mark);
-    if (fork === undefined || digest(fork) !== digest(session)) throw new Error('Continuous gameplay / mid-fight restore diverged');
+    if (fork === undefined) throw new Error('Continuous gameplay has no mid-fight restore');
+    const actualDigest = digest(fork), expectedDigest = digest(session);
+    if (actualDigest !== expectedDigest) throw simMismatchError('Continuous gameplay / mid-fight restore diverged', snapshotSimHost(session.host), snapshotSimHost(fork.host), { expected: expectedDigest, actual: actualDigest });
     const cp = checkpoints.find(row => row.name === 'captain');
     if (cp === undefined) throw new Error('No Captain checkpoint');
     sameEffects(forkEffects, effects.filter(row => row.tick > cp.tick));
