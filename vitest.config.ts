@@ -4,7 +4,7 @@
 // in plain node: the few browser globals the pure modules touch (localStorage, location) are stubbed in test/setup.ts.
 import { defineConfig } from 'vitest/config';
 import { rapierAlias } from './vite/rapier';
-import { assertVitestLane, vitestMaxWorkers } from './scripts/vitest-lane';
+import { assertVitestLane, vitestCoverageEnabled, vitestMaxWorkers } from './scripts/vitest-lane';
 import { DurationSequencer } from './scripts/vitest-shard';
 
 assertVitestLane();
@@ -37,6 +37,14 @@ export const HEAVY_INTEGRATION_TESTS = [
   'test/proof/nalati-grasslands/headless.test.ts',
   'test/proof/nalati-grasslands/replay.test.ts',
   'test/shards/driftwood-isle/trailside-bake.test.ts',
+  // These exact nightly failures compete for native worlds and a complete type
+  // graph. Keep their 20/60 s deadlines after the covered parallel pool drains;
+  // ordinary push/local tests retain their current parallel scheduling.
+  ...(vitestCoverageEnabled() ? [
+    'test/shards/nalati-grasslands/headless-taming.test.ts',
+    'test/shards/sunscar-dunes/headless-runtime.test.ts',
+    'test/shard-coupling.test.ts',
+  ] : []),
 ];
 
 export default defineConfig({

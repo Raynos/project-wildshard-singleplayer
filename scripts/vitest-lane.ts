@@ -11,6 +11,11 @@ export function vitestMaxWorkers(env: NodeJS.ProcessEnv = process.env): number |
   return Number(requested);
 }
 
+/** Static compiler/native coverage work is serialized only when coverage is enabled. */
+export function vitestCoverageEnabled(argv: readonly string[] = process.argv.slice(2)): boolean {
+  return parseCLI(['vitest', ...argv]).options.coverage?.enabled === true;
+}
+
 /** Use Vitest's parser so flag values cannot masquerade as focused file filters. */
 export function isFullVitest(argv: readonly string[]): boolean {
   if (argv[0] === 'list' || argv[0] === 'init' || argv[0] === 'complete' || argv.some(arg => /^(?:--help|-h|--version|-v|--mergeReports|--merge-reports|--listTags|--list-tags|--clearCache|--clear-cache)(?:=|$)/u.test(arg))) return false;

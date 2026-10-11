@@ -92,23 +92,22 @@ it('runs 10k ticks of the shipping policies: real contacts hurt the player, a de
   } finally { host.dispose(); }
 });
 
-it('restores mid-fight and mid-respawn continuation exactly, reinstalling the saved roster before restore', () => {
-  for (const checkpoint of [700, 2600, 4100]) {
-    const original = boot(); let restored: SimHost | undefined;
-    try {
-      for (let tick = 0; tick < checkpoint; tick++) { if (tick === 2000) kill(original, 'sunscar.home:1'); step(original); }
-      const saved = serializeSimSnapshot(snapshotSimHost(original));
-      restored = restore(saved);
-      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
-      for (let tick = 0; tick < 900; tick++) {
-        if (tick === 120) { kill(original, 'sunscar.home:2'); kill(restored, 'sunscar.home:2'); }
-        step(original); step(restored);
-      }
-      expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
-      const keeper = snapshotSimHost(original).adapters.find(adapter => adapter.id === HOMES_STEP);
-      expect(keeper).toBeDefined();
-    } finally { restored?.dispose(); original.dispose(); }
-  }
+// DEPLOY.md's native proof budget is one real checkpoint per test.
+it.each([700, 2600, 4100])('restores checkpoint %i mid-fight or mid-respawn exactly, reinstalling the saved roster before restore', checkpoint => {
+  const original = boot(); let restored: SimHost | undefined;
+  try {
+    for (let tick = 0; tick < checkpoint; tick++) { if (tick === 2000) kill(original, 'sunscar.home:1'); step(original); }
+    const saved = serializeSimSnapshot(snapshotSimHost(original));
+    restored = restore(saved);
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    for (let tick = 0; tick < 900; tick++) {
+      if (tick === 120) { kill(original, 'sunscar.home:2'); kill(restored, 'sunscar.home:2'); }
+      step(original); step(restored);
+    }
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(original));
+    const keeper = snapshotSimHost(original).adapters.find(adapter => adapter.id === HOMES_STEP);
+    expect(keeper).toBeDefined();
+  } finally { restored?.dispose(); original.dispose(); }
 });
 
 it('cracks the declared whip row through the shared LashRuntime: 18 per light contact inside its reach, cooldown-gated, exact on restore', () => {

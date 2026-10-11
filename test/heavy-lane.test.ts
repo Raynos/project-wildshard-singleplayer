@@ -9,11 +9,19 @@ import { join, resolve as resolvePath } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Launch the same Node runtime and explicitly fence inherited leases.
 import process from 'node:process';
 import { afterEach, expect, it } from 'vitest';
-import { isFullVitest, vitestMaxWorkers } from '../scripts/vitest-lane';
+import { isFullVitest, vitestCoverageEnabled, vitestMaxWorkers } from '../scripts/vitest-lane';
 
 const lane = resolvePath('scripts/heavy-lane.py');
 const guard = new URL('../scripts/heavy-lane-lease.mjs', import.meta.url).href;
 const roots: string[] = [];
+it('recognizes enabled coverage without serializing disabled or reporter-only runs', () => {
+  for (const args of [['run', '--coverage'], ['run', '--coverage.enabled'], ['run', '--coverage=true'], ['run', '--coverage.enabled=true']]) {
+    expect(vitestCoverageEnabled(args)).toBe(true);
+  }
+  for (const args of [['run'], ['run', '--coverage=false'], ['run', '--coverage.enabled=false'], ['run', '--coverage', 'false'], ['run', '--coverage.provider', 'v8']]) {
+    expect(vitestCoverageEnabled(args)).toBe(false);
+  }
+});
 it('bounds local workers, retains CI defaults and refuses malformed overrides', () => {
   expect(vitestMaxWorkers({})).toBe(6);
   expect(vitestMaxWorkers({ CI: 'true' })).toBeUndefined();
