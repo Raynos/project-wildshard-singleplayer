@@ -787,6 +787,22 @@ Opus):
 
 Run 2 follows once these rows land (and again after Opus reopens for the readability seats and looks).
 
+**Run 2 (2026-10-11, Codex seat, pinned `c7b1c591b` with OS-F1–F10 landed; `311b9a4b9`,
+`progress/shard-platform/oneshot-run2/README.md`): FAIL.** The exact built client refused a goat rig missing its
+body bone, so the level never booted. Build/validate, fauna, dusk, native replay, grid, ledger, the vertical ladder and
+the commons spear closure passed. Source: 14 files / 628 lines, zero game/engine imports, no `runtime/`, no
+`ShaderMaterial`. New rows (all X):
+
+| Row | What | Owner |
+|---|---|---|
+| OS-G1 | Species view contract admission: documented per-species bone names; build/validate reject incompatible custom skins before the client (missing-body negative fixture); the exact built product must pass the client proof | sp-x5 |
+| OS-G2 | Config/generator boundary: document and diagnose Node file writes and compiler use in bundled `shard.config.ts`; the reference `generate.ts` compiles and writes assets before config loads | sp-x6 |
+| OS-G3 | Data-only director actions: make the supported action/host combinations explicit (emit-to-script was refused) with executable examples | sp-x6 |
+| OS-G4 | Schema/declaration discovery: root `/ui` lookup works or its real schema ID is documented; packaged declaration paths for exportGlb, skins and the commons spear | sp-x6 |
+| OS-G5 | Standalone proof execution: a supported recipe for bundling installed commons (Node type stripping refuses installed TS); bootstrap's package and dependency declarations | sp-x5 |
+| OS-G6 | Named interactive meshes: a documented export recipe that keeps named nodes (staticGlb merged primitive names) | sp-x5 |
+| OS-G7 | One-shot client environment: one isolated browser driver inside the seat, keeping source and network denial, so the F7/F9 client gates run inside the seat | sp-x5 |
+
 ---
 
 ## 7. Contradictions: older rows that today's decisions supersede
