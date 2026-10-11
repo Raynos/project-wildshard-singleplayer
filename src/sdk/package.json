@@ -100,7 +100,9 @@
     "./entries": "./entries.ts",
     "./spawns": "./spawns.ts",
     "./synth": "./synth.ts",
-    "./formatJsonSchema": "./formatJsonSchema.ts"
+    "./formatJsonSchema": "./formatJsonSchema.ts",
+    "./bake/rig": "./bake/rig.ts",
+    "./bake/image": "./bake/image.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -131,7 +133,8 @@
     "assemblyscript": "0.28.20",
     "binaryen": "132.0.0",
     "@wildshard/format": "workspace:*",
-    "@valibot/to-json-schema": "1.8.0"
+    "@valibot/to-json-schema": "1.8.0",
+    "@gltf-transform/extensions": "4.5.0"
   },
   "publishConfig": {
     "exports": {
@@ -462,6 +465,14 @@
       "./formatJsonSchema": {
         "types": "./dist/types/sdk/formatJsonSchema.d.ts",
         "default": "./dist/formatJsonSchema.js"
+      },
+      "./bake/rig": {
+        "types": "./dist/types/sdk/bake/rig.d.ts",
+        "default": "./dist/bake/rig.js"
+      },
+      "./bake/image": {
+        "types": "./dist/types/sdk/bake/image.d.ts",
+        "default": "./dist/bake/image.js"
       }
     }
   }

@@ -2841,3 +2841,9 @@ DS1.1: numeric world rows, inert sketches, mover/entry declarations, native-grou
 DS1.1: local checkpoint, lift rider, runtime measurements/declarations, skin rows and script-species/elite/weapon-hook declarations live in `@wildshard/format`. Native runtime admission, allocations, script hosts and playback remain in game. The wire calibration and weapon phase table are checked against the native owners; the skin clip narrowing is identity-only and grants no bridge to an unfamiliar author transform. Material and post graph contracts remain in game pending DS1.4.
 
 DS1.1: `@wildshard/format/shardSections` defines root identity, requirements, budgets, simulation, author/server limits, file/tile inventories, library/critical roots, far proxy and spawn. Root composition retains every original default and native reference check. Material-dependent props/splats and look/post graphs remain in game for DS1.4. Native tile sizes and fixed wire cell bounds are equality-tested.
+
+### Node authoring: retained rig and raster readers (DS1.3 / G320)
+
+`@wildshard/sdk/bake/rig` defines `readRigRest(glb)`: a bounded, single-skin triangle GLB becomes real Three `BufferGeometry`, ordered world-space rest joints and embedded colour image bytes. Positions stay mesh-local; normalized channels become Float32 exactly as in Three's GLTF loader. Meshopt and embedded WebP extensions are supported. Multiple skins/primitives, absent indices or atlas, and malformed input refuse. No renderer, registry or game service is installed.
+
+`@wildshard/sdk/bake/image` defines `readImagePixels(bytes, {flipY?})` and `writeImagePixels({width,height,pixels})`. The pinned Node decoder admits still PNG/JPEG/WebP up to 4096²; the writer emits lossless PNG with exact unpremultiplied RGBA, including transparent RGB. Source row order is preserved unless the caller asks to flip it. World texture baking uses this same reader.

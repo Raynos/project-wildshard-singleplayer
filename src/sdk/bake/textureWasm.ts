@@ -6,7 +6,7 @@ import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Local dependency artifacts, never an author-supplied path or URL.
 import { dirname, join } from 'node:path';
-import sharp from 'sharp';
+import { readImagePixels } from './image';
 import { worldImageInfo } from './worldImage';
 import { hashImmutableBytes } from '../immutable';
 import { parseKtx2 } from '../assets';
@@ -51,16 +51,13 @@ async function loadBasis(): Promise<BasisModule> {
 export async function bakeWorldTexture(image: Uint8Array, colourSpace: 'srgb' | 'linear', options: { flipY?: boolean } = {}): Promise<Uint8Array> {
   if (!['srgb', 'linear'].includes(colourSpace)) throw new Error('World texture transfer must be srgb or linear');
   const info = await worldImageInfo(image), size: [number, number] = [info.width, info.height];
-  const raster = sharp(image, { limitInputPixels: 4096 * 4096, animated: false, failOn: 'warning' });
-  if (options.flipY === true) raster.flip();
-  const decoded = await raster.ensureAlpha().raw({ depth: 'uchar' }).toBuffer({ resolveWithObject: true });
-  if (decoded.info.width !== size[0] || decoded.info.height !== size[1] || decoded.info.channels !== 4 || decoded.data.length !== size[0] * size[1] * 4) throw new Error('World texture decoded dimensions differ from admission');
+  const decoded = await readImagePixels(image, options);
   basis ??= loadBasis(); const module = await basis, raw = new module.BasisEncoder();
   if (!encoderApi(raw)) throw new Error('Invalid pinned encoder methods');
   try {
     const srgb = colourSpace === 'srgb';
     raw.setCreateKTX2File(true); raw.setKTX2UASTCSupercompression(true); raw.setKTX2SRGBTransferFunc(srgb);
-    raw.setSliceSourceImage(0, decoded.data, size[0], size[1], false); raw.setPerceptual(srgb); raw.setMipSRGB(srgb);
+    raw.setSliceSourceImage(0, new Uint8Array(decoded.pixels.buffer, decoded.pixels.byteOffset, decoded.pixels.byteLength), size[0], size[1], false); raw.setPerceptual(srgb); raw.setMipSRGB(srgb);
     raw.setQualityLevel(128); raw.setUASTC(true); raw.setMipGen(true);
     const output = new Uint8Array(size[0] * size[1] * 4 + 1_048_576), length = raw.encode(output);
     if (!Number.isSafeInteger(length) || length < 1 || length > output.length || length > 25_000_000) throw new Error('World texture encoding failed or exceeded wire cap');
