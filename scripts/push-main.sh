@@ -17,7 +17,7 @@ cd "$(git rev-parse --show-toplevel)" || exit 1
 if [ "${1:-}" != "--locked" ]; then
   # Run the locked loop from a private snapshot: bash reads a script as it goes, so an edit landing in the shared tree
   # mid-push must not change the running pusher (the gate snapshots itself the same way).
-  snap="$(mktemp -t push-main)" && cp "$0" "$snap" || exit 1
+  snap="$(mktemp "${TMPDIR:-/tmp}/push-main.XXXXXX")" && cp "$0" "$snap" || exit 1
   # PUSH_WAIT=1 (scripts/auto-push.sh): queue behind the push in flight (up to 30 min) instead of leaving commits local.
   if [ "${PUSH_WAIT:-}" = 1 ]; then lockf -k -t 1800 .git/push.lock bash "$snap" --locked; else lockf -k -t 0 .git/push.lock bash "$snap" --locked; fi
   rc=$?
@@ -65,7 +65,7 @@ for push_round in 1 2 3 4 5 6; do
   # SF6b: one clean committed export and private-index regeneration while this pusher holds the lock.
   # Increases require GENERATED_APPROVAL_FILE with the coordinator's exact reviewed receipt.
   t0=$SECONDS
-  rout="$(mktemp -t push-regen)"
+  rout="$(mktemp "${TMPDIR:-/tmp}/push-regen.XXXXXX")" || exit 1
   REGEN_SHA_FILE="$tipfile" node scripts/regenerate-committed.mjs 2>&1 | tee "$rout"; rc=${PIPESTATUS[0]}
   if [ "$rc" != 0 ]; then
     record '' 0 "$((SECONDS - t0))" 0 "$rc"
@@ -88,7 +88,7 @@ for push_round in 1 2 3 4 5 6; do
   # once, so GitHub's SSH session never idles through a 6-minute gate (2026-10-09: "Connection to github.com closed by
   # remote host" after a 385 s gate, and the whole gate ran again).
   if [ "${SKIP_VERCEL_GATE:-}" != 1 ]; then
-    gout="$(mktemp -t push-gate)"
+    gout="$(mktemp "${TMPDIR:-/tmp}/push-gate.XXXXXX")" || exit 1
     bash scripts/vercel-tree-gate.sh "$tip" 2>&1 | tee "$gout"; rc=${PIPESTATUS[0]}
     if [ "$rc" != 0 ]; then
       record "$tip" "$ahead" "$regen" "$((SECONDS - t0))" "$rc"
