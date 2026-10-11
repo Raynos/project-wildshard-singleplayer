@@ -63,6 +63,26 @@ function verbatimRuntimeMoves(before, after, trees) {
   return admitted;
 }
 
+// Retired primary debt can remain at an unchanged, already registered frozen source only.
+function frozenRuntimeRetentions(after, trees) {
+  const admitted = new Set();
+  if (trees === undefined) return admitted;
+  const inventory = legacyInventory(trees.baselineRoot);
+  for (const [site, item] of Object.entries(after.sites)) {
+    const match = /^(src\/shards\/([^/]+)\/(runtime\/[^:]+\.ts)):([^:]+):([a-f0-9]{64})$/u.exec(site);
+    if (match === null || !Number.isSafeInteger(item.count) || item.count <= 0) continue;
+    const [, file, folder, relativeFile, rule, hash] = match;
+    if (!Object.hasOwn(inventory.shards, folder) || !Object.hasOwn(inventory.shards[folder].files, relativeFile) || file.split('/').includes('..')) continue;
+    const digest = inventory.shards[folder].files[relativeFile];
+    const before = join(trees.baselineRoot, file), afterFile = join(trees.candidateRoot, file);
+    if (!existsSync(before) || !existsSync(afterFile)) continue;
+    const source = readFileSync(before, 'utf8');
+    if (createHash('sha256').update(source).digest('hex') !== digest || readFileSync(afterFile, 'utf8') !== source) continue;
+    if ((siteCounts(source, file).get(`${rule}:${hash}`) ?? 0) === item.count) admitted.add(site);
+  }
+  return admitted;
+}
+
 // Frozen callers keep their original module until SF73 retirement. Only their primary may own
 // one verbatim native copy; arbitrary retained platform modules still grant no new allowance.
 function legacyRuntimeCopies(after, trees) {
@@ -162,6 +182,7 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees) {
     }
     const before = JSON.parse(readFileSync(baselineFile, 'utf8')), failures = [];
     const migrated = verbatimRuntimeMoves(before, after, trees);
+    for (const site of frozenRuntimeRetentions(after, trees)) migrated.add(site);
     for (const site of legacyRuntimeCopies(after, trees)) migrated.add(site);
     if (after.baselineAt !== before.baselineAt || after.about !== before.about || Object.keys(after).sort().join(',') !== Object.keys(before).sort().join(',')) failures.push(`${list}: review metadata changed`);
     for (const [site, item] of Object.entries(after.sites)) {

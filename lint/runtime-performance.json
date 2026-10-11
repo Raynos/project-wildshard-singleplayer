@@ -6637,6 +6637,14 @@
     "src/shards/pine-hollow/runtime/items/leverFirearm.ts:unbounded-loop:97f363da657f5fe97f4eb894866087bd5737de591d7ff19f25187dae95e4ea26": {
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/driftwood-isle-legacy/runtime/finale.ts:unbounded-loop:928fea1e7c8b0fa5ea2e80fb4664079a41f389ab1f98cc8d0c44239ccb8a3391": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle-legacy/runtime/finale.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
+      "count": 1,
+      "row": "SF46"
     }
   }
 }

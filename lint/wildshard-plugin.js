@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { simClosure, simRoot } from './sim-closure.mjs';
 import { authoredHtmlSites } from './authored-html.mjs';
 import { runtimeCommonsClosure } from './commons-closure.mjs';
-import { runtimePerformanceViolations } from './runtime-performance.mjs';
+import { runtimePerformanceViolations, frozenRuntimePerformanceViolations } from './runtime-performance.mjs';
 import { shardGameImport, shardEngineImport, generatorImportViolation, legacyNpcImport, gamePluginImportViolation } from './shard-imports.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
@@ -430,7 +430,12 @@ const runtimePerformance = rule('Custom runtime has bounded work and no frame al
   const filename = pathOf(context);
   if (!/^src\/shards\/[^/]+\/runtime\/.*\.[jt]s$/u.test(filename)) return {};
   return { Program() {
-    for (const site of runtimePerformanceViolations(context.sourceCode.text, legacySourcePath(filename) ?? filename, runtimeDebt)) {
+    const primary = legacySourcePath(filename), match = /^src\/shards\/([^/]+)\/(.+)$/u.exec(filename);
+    const digest = match === null ? undefined : frozenShards[match[1]]?.files[match[2]];
+    const violations = primary !== null && digest !== undefined
+      ? frozenRuntimePerformanceViolations(context.sourceCode.text, filename, primary, digest, runtimeDebt)
+      : runtimePerformanceViolations(context.sourceCode.text, filename, runtimeDebt);
+    for (const site of violations) {
       context.report({ loc: { line: site.line, column: 0 }, message: `${site.kind}: ${site.message}` });
     }
   } };

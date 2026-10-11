@@ -2,3 +2,5 @@ export interface RuntimePerformanceIssue { kind: string; start: number; end: num
 export interface RuntimePerformanceDebt { count: number; row: string }
 export function runtimePerformanceSites(source: string, filename?: string): RuntimePerformanceIssue[];
 export function runtimePerformanceViolations(source: string, filename: string, baseline?: Readonly<Record<string, RuntimePerformanceDebt>>): RuntimePerformanceIssue[];
+/** Exact frozen bytes retain their historical debt without granting it to the live primary. */
+export function frozenRuntimePerformanceViolations(source: string, filename: string, primary: string, digest: string, baseline: Readonly<Record<string, RuntimePerformanceDebt>>): RuntimePerformanceIssue[];

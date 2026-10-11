@@ -120,3 +120,14 @@ export function runtimePerformanceViolations(source, filename, baseline = {}) {
     return count > (baseline[key]?.count ?? 0);
   });
 }
+
+/** Frozen files retain only exact historical site debt; changed bytes gain no historical allowance. */
+export function frozenRuntimePerformanceViolations(source, filename, primary, digest, baseline) {
+  if (createHash('sha256').update(source).digest('hex') !== digest) return runtimePerformanceViolations(source, filename);
+  const counts = new Map();
+  return runtimePerformanceSites(source, filename).filter(issue => {
+    const suffix = `:${issue.kind}:${issue.site}`, key = filename + suffix;
+    const count = (counts.get(key) ?? 0) + 1; counts.set(key, count);
+    return count > (baseline[key]?.count ?? baseline[primary + suffix]?.count ?? 0);
+  });
+}

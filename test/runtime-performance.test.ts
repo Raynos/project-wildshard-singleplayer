@@ -11,7 +11,7 @@ import { dirname, join, resolve } from 'node:path';
 import { checkProjectRuntime } from '../src/sdk/runtimePerformance';
 import { comparePlatformList } from '../scripts/check-platform-ratchets.mjs';
 import { expect, it } from 'vitest';
-import { runtimePerformanceSites, runtimePerformanceViolations } from '../lint/runtime-performance.mjs';
+import { runtimePerformanceSites, runtimePerformanceViolations, frozenRuntimePerformanceViolations } from '../lint/runtime-performance.mjs';
 
 it('refuses frame allocations through methods, local helpers, aliases and scheduled callbacks', () => {
   for (const code of [
@@ -192,6 +192,44 @@ it('admits one verbatim primary copy of a retained platform module only for an e
     write(candidateRoot, old, `${parent}// changed parent\n`);
     expect(compare().join(',')).toContain('new runtime site');
     write(candidateRoot, old, parent); write(candidateRoot, child, `${original}// changed dependency\n`);
+    expect(compare().join(',')).toContain('new runtime site');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+it('retains retired debt only for an exact registered frozen runtime file', () => {
+  const root = mkdtempSync(join(tmpdir(), 'frozen-runtime-debt-'));
+  try {
+    const baselineRoot = join(root, 'before'), candidateRoot = join(root, 'after');
+    const file = 'src/shards/fixture-legacy/runtime/retired.ts', primary = 'src/shards/fixture/runtime/retired.ts';
+    const source = 'export function update(){return new Float32Array(3)}';
+    const digest = createHash('sha256').update(source).digest('hex');
+    const site = runtimePerformanceSites(source, file)[0]; if (site === undefined) throw new Error('Missing frozen fixture');
+    const key = `${file}:${site.kind}:${site.site}`;
+    const before = { about: 'fixture', baselineAt: 'fixture', sites: {} };
+    const after = { ...before, sites: { [key]: { count: 1, row: 'SF46' } } };
+    const list = 'lint/runtime-performance.json';
+    const write = (tree: string, name: string, text: string): void => {
+      const path = join(tree, name); mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, text);
+    };
+    const inventory = JSON.stringify({ version: 1, sealed: true, shards: { 'fixture-legacy': {
+      primary: 'fixture', source: 'a'.repeat(40), files: { 'manifest.ts': digest, 'plugin.ts': digest, 'runtime/retired.ts': digest },
+    } } });
+    write(baselineRoot, 'lint/legacy-shards.json', inventory);
+    write(baselineRoot, list, JSON.stringify(before)); write(candidateRoot, list, JSON.stringify(after));
+    write(baselineRoot, file, source); write(candidateRoot, file, source);
+    const compare = (): string[] => comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), { baselineRoot, candidateRoot });
+    expect(compare()).toEqual([]);
+    expect(frozenRuntimePerformanceViolations(source, file, primary, digest, after.sites)).toEqual([]);
+    expect(runtimePerformanceViolations(source, primary, after.sites)).toHaveLength(1);
+    expect(frozenRuntimePerformanceViolations(`${source}\n`, file, primary, digest, after.sites)).toHaveLength(1);
+    write(candidateRoot, file, `${source}\n`); expect(compare().join(',')).toContain('new runtime site');
+    write(candidateRoot, file, source);
+    write(baselineRoot, 'lint/legacy-shards.json', JSON.stringify({ version: 1, sealed: true, shards: {} }));
+    expect(compare().join(',')).toContain('new runtime site');
+    write(baselineRoot, 'lint/legacy-shards.json', inventory);
+    write(candidateRoot, list, JSON.stringify({ ...after, sites: { [key]: { count: 2, row: 'SF46' } } }));
+    expect(compare().join(',')).toContain('new runtime site');
+    write(candidateRoot, list, JSON.stringify({ ...after, sites: { [`${file}:frame-allocation:${'0'.repeat(64)}`]: { count: 1, row: 'SF46' } } }));
     expect(compare().join(',')).toContain('new runtime site');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
