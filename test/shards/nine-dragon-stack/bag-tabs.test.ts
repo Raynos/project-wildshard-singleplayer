@@ -1,4 +1,4 @@
-import { NALATI_FEATS } from '../../../src/shards/nalati-grasslands/feats';
+import { NALATI_FEATS } from '../../../src/shards/nalati-grasslands/data/feats';
 import { registerAchievements } from '../../../src/game/achievements';
 /**
  * E314: every shard's BAG tabs (src/game/bag/bag.ts `bagTabs`, read by src/engine/ui/Menu.ts syncTabs) — Driftwood's five, Pine

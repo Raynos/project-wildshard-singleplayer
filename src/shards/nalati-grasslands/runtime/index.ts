@@ -2,7 +2,7 @@ import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard
 import { NALATI_SPECIES, NALATI_LOOKS } from '../species/rows';
 import { creatureRigs } from '../species/hulls';
 import { STRINGS } from '../strings';
-import { NALATI_FEATS } from '../feats';
+import { NALATI_FEATS } from '../data/feats';
 import { renderFinds } from '@wildshard/game/bag/bag';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';

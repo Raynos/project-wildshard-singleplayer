@@ -9,7 +9,7 @@ import type { Progress } from '@wildshard/game/Progress';
 import { bossesSave, elitesSave, progressSave } from '@wildshard/game/saves';
 import { horseNamesSave, tulparSave } from '../ride/saves';
 import { nalatiSkinsSave } from '../weapons/saves';
-import { NALATI_FEATS } from '../feats';
+import { NALATI_FEATS } from '../data/feats';
 import { NALATI_QUEST_FEATS } from '../data/ledger';
 
 const natural = v.pipe(v.number(), v.finite(), v.minValue(0));

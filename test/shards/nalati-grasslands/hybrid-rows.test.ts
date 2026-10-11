@@ -7,7 +7,7 @@ import { withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import manifest from '../../../src/shards/nalati-grasslands/manifest';
 import { NALATI_QUESTS } from '../../../src/shards/nalati-grasslands/quest';
-import { NALATI_FEATS } from '../../../src/shards/nalati-grasslands/feats';
+import { NALATI_FEATS } from '../../../src/shards/nalati-grasslands/data/feats';
 import { AR15, BOW, SABRE, SPEAR } from '../../../src/shards/nalati-grasslands/weapons/equipment';
 import { bindNalatiItems } from '../../../src/shards/nalati-grasslands/runtime/items';
 import { DUNGEON, COFFIN } from '../../../src/shards/nalati-grasslands/world/KurganDungeon';

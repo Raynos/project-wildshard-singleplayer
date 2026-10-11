@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { registerAchievements } from '../../../src/game/achievements';
-import { NALATI_FEATS } from '../../../src/shards/nalati-grasslands/feats';
+import { NALATI_FEATS } from '../../../src/shards/nalati-grasslands/data/feats';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { Scope } from '../../../src/engine/app/scope';
 import { app } from '../../../src/engine/app/runtime';

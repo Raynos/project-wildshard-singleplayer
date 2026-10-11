@@ -1,5 +1,5 @@
 import { parseLedgerRules } from '@wildshard/sdk/ledger';
-import { NALATI_FEATS } from '../feats';
+import { NALATI_FEATS } from './feats';
 
 /** Chapter completion facts keep the legacy feat ids; all other feats witness their original counted outcomes. */
 export const NALATI_QUEST_FEATS: Readonly<Record<string, string>> = { tulpar: 'tulpar', 'golden-king': 'chapter-king', 'father-wind': 'chapter-wind' };

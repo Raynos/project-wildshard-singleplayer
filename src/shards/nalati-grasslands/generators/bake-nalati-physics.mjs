@@ -129,7 +129,7 @@ try {
       (await moduleAt('src/game/systems/species/install.ts')).installKitSpecies();
       const { NALATI_SPECIES, NALATI_LOOKS } = await moduleAt('src/shards/nalati-grasslands/species/rows.ts');
       ctx.rows.species(NALATI_SPECIES); ctx.rows.speciesLook(NALATI_LOOKS);
-      ctx.rows.feat((await moduleAt('src/shards/nalati-grasslands/feats.ts')).NALATI_FEATS);
+      ctx.rows.feat((await moduleAt('src/shards/nalati-grasslands/data/feats.ts')).NALATI_FEATS);
     },
     nativeTerrain: readFileSync(resolvePath(root, 'public/assets/baked/nalati-grasslands/terrain.bin')),
     createTerrain: async () => {

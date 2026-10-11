@@ -1,4 +1,4 @@
-import { NALATI_FEATS } from './feats';
+import { NALATI_FEATS } from './data/feats';
 /**
  * Nalati's Bag (E314, Jake's pick C, art/loot/round-3-other-shards/board-2-nalati.jpg): MAP · GEAR · FINDS · FEATS. No
  * PACK and no harvest — src/game/Inventory.ts keeps nothing on Nalati, so the menu hides the tab and no carcass shows
