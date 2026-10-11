@@ -2656,6 +2656,14 @@ SF26's two-shard cache/lease proof uses this real pack asset: one download, one 
 two owners and zero residents after both owners dispose. Models, rig geometry, clip keyframes
 and playback timing are unchanged; those asset packs remain separate DS1.6 work.
 
+`@wildshard/commons/packs/weapons` defines `starterWeaponsPack(provenance)` v1.0.0,
+starting with the bow parameters shared by Nalati and Pine. Its readable authored `pack.ts`
+retains the original arithmetic; the pack emits identical immutable JSON. Normal generation
+expands it into an ignored literal table before producers run. The existing starter profile
+retains the same mutable `wind` field and injected view strategies, with no changed timing, damage,
+aim, framing or appearance. The SF26 proof admits that exact asset for both owning shards
+and verifies one download and one resident claim until the last lease is released.
+
 `@wildshard/game/plugin/context` defines `ShardContext` and `shardContext`;
 `@wildshard/game/plugin/shardPlugin` defines the staged `ShardPlugin` base class.
 Internal game consumers import these defining modules relatively. The frozen

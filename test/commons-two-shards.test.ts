@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import { createCatalogue } from '../src/commons/catalogue';
 import { starterArmClipsPack } from '@wildshard/commons/packs/arms';
+import { starterWeaponsPack } from '@wildshard/commons/packs/weapons';
 import { commonsRequirements } from '../src/sdk/commons';
 import { emptyShardfile } from '../src/sdk/author';
 import { contentHash } from '../src/sdk/project';
@@ -15,6 +16,7 @@ const binaryPack = { id: 'shared', version: '1.0.0', entries: [{ id: 'bridge', k
 
 it.each([
   { label: 'pinned binary', pack: binaryPack, entry: 'shared/bridge', shards: ['bridge-first', 'bridge-second'], firstParty: false },
+  { label: 'v1 bow data', pack: starterWeaponsPack({ credit: 'Wildshard', licence: 'First-party' }), entry: 'starter-weapons/bow', shards: ['nalati-grasslands', 'pine-hollow'], firstParty: true },
   { label: 'v1 arm aliases', pack: starterArmClipsPack({ credit: 'Wildshard', licence: 'First-party' }), entry: 'arm-clips/aliases', shards: ['driftwood-isle', 'nine-dragon-stack'], firstParty: true },
 ])('downloads $label once for two shards and charges it once while both own crossroads leases', async ({ pack, entry, shards, firstParty }) => {
   const bytes = pack.entries[0]?.bytes;
