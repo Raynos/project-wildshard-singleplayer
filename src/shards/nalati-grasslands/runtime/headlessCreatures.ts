@@ -1,3 +1,4 @@
+import type { DirectorLane } from '@wildshard/game/plugin/director';
 import * as v from 'valibot';
 import { MarmotBrain, MarmotContinuation } from '../creatures/marmotBrain';
 import { Vector3 } from 'three';
@@ -156,7 +157,7 @@ export function nalatiCreaturesOf(host: SimHost): NalatiHostCreatures | undefine
  */
 export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; groups: NalatiGroups; grid: BakedGrid; nav: HuntNav;
   trees: (x: number, z: number, r: number) => readonly HuntTree[]; stream: ReturnType<Rng['snapshot']>;
-  wildStream: ReturnType<Rng['snapshot']>; bake: NalatiBake; spawnY: number; elites: NalatiEliteBindings; rideUpdate?: (dt: number) => void; mounted?: () => boolean; crouching?: () => boolean; snapshot?: Readonly<SimSnapshot> }): NalatiHostCreatures {
+  raidDirector: DirectorLane; wildStream: ReturnType<Rng['snapshot']>; bake: NalatiBake; spawnY: number; elites: NalatiEliteBindings; rideUpdate?: (dt: number) => void; mounted?: () => boolean; crouching?: () => boolean; snapshot?: Readonly<SimSnapshot> }): NalatiHostCreatures {
   const { groups } = ports, player = host.player.position, env = groups.env;
   const rng = new Rng(NALATI_CREATURE_STREAM);
   // PlayerHurt.creature: an environmental blow at the creature, the host's knockback away from it (its tags per kind, made once)
@@ -458,7 +459,7 @@ export function installNalatiCreatures(host: SimHost, ports: { bodies: readonly 
     && a.position.x === firstFlock.cx + 12 && a.position.z === firstFlock.cz + 16) ?? null;
   const raid = new HeadlessSheepRaid(host, groups, firstFlock, horse, i => {
     const prey = preyRows[0]?.[i]; if (prey === undefined) throw new Error('Unknown Nalati sheep'); return prey;
-  }, spawnPack);
+  }, spawnPack, ports.raidDirector);
   /** AnimalManager.think for a self-thinking species: the dead and the stunned hold, else its own decision, the herd's centre after */
   const missingElite = new Error('Nalati leopard has no hosted elite brain');
   const decide = (a: NalatiHuntBody, dt: number): void => {

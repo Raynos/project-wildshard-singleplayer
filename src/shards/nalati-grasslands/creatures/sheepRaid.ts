@@ -11,8 +11,9 @@ import * as THREE from 'three';
 import type { Wildlife } from './wildlife';
 import type { SheepPrey, Flock } from './flock';
 import { Pack, type PackController } from '../runtime/groupRegistry';
-import { legacyRaidTick, type RaidClockPorts } from './raidClock';
-import { installRaidDirector } from './raidDirector';
+import type { RaidClockPorts } from './raidClock';
+import { enteredOwner } from '@wildshard/engine/app/ownership';
+import { NalatiRaidDirector, prepareNalatiRaidDirector } from '../runtime/raidDirector';
 import { horseBones } from '../species/horse';
 import { shepherdMotion, type ShepherdState } from './shepherdRule';
 import { PaintKit, v3 } from '../world/paint';
@@ -139,7 +140,7 @@ export class SheepRaid {
   raids = 0; taken = 0; drivenOff = 0; cracks = 0;
   private raidT = rand(FIRST_RAID);
   private raidPlayer: THREE.Vector3 | null = null;
-  private directed = false;
+  private raidDirector: NalatiRaidDirector | null = null;
   private readonly raidClock: RaidClockPorts = this.clockPorts();
   private pack: PackController | null = null;
   /** the valley pack (spawned with the first raid) and how many have been spawned */
@@ -204,18 +205,21 @@ export class SheepRaid {
   }
 
   update(dt: number, playerPos: THREE.Vector3): void {
-    if (!this.directed) this.director(dt, playerPos);
+    const director = this.raidDirector;
+    if (director === null) throw new Error('Nalati raid director is not admitted');
+    this.raidPlayer = playerPos;
+    director.advance(dt);
     this.ride(dt);
   }
 
-  /** SF24: pack combat/shepherd recipes remain native; a bounded fixed-step director can own raid timing. */
-  async installDirector(context: Parameters<typeof installRaidDirector>[0], player: () => THREE.Vector3): Promise<void> {
-    this.directed = await installRaidDirector(context, this.raidClock, () => { this.raidPlayer = player(); }, app.rng.seedValue);
-  }
-
-  private director(dt: number, playerPos: THREE.Vector3): void {
-    this.raidPlayer = playerPos;
-    legacyRaidTick(this.raidClock, dt);
+  /** Admit rows before gameplay; the actual ride owner advances them before its native shepherd motion. */
+  async installDirector(player: () => THREE.Vector3): Promise<void> {
+    if (this.raidDirector !== null) throw new Error('Nalati raid director already admitted');
+    const owner = enteredOwner();
+    const create = await prepareNalatiRaidDirector();
+    if (owner?.disposed === true) throw new Error('Nalati raid owner was disposed during admission');
+    this.raidPlayer = player();
+    this.raidDirector = new NalatiRaidDirector(create(app.rng.seedValue), this.raidClock);
   }
 
   private clockPorts(): RaidClockPorts {

@@ -1,16 +1,18 @@
+import { NalatiRaidDirector } from './raidDirector';
+import type { DirectorLane } from '@wildshard/game/plugin/director';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { PackBrain, PackPrey } from '@wildshard/engine/ai/pack';
 import type { FlockBrain } from '@wildshard/engine/ai/flock';
 import type { SimHost } from '@wildshard/engine/sim';
-import { legacyRaidTick, type RaidClockPorts } from '../creatures/raidClock';
+import type { RaidClockPorts } from '../creatures/raidClock';
 import { shepherdMotion, type ShepherdState } from '../creatures/shepherdRule';
 import type { NalatiGroups } from './groups';
 
 const finite = v.pipe(v.number(), v.finite()), count = v.pipe(finite, v.integer(), v.minValue(0));
 const savedIndex = v.pipe(finite, v.integer(), v.minValue(-1));
-const Saved = v.strictObject({ raiding: v.boolean(), raids: count, taken: count, drivenOff: count, cracks: count,
+const Saved = v.strictObject({ version: v.literal(2), director: v.pipe(v.string(), v.maxLength(1000000)), raiding: v.boolean(), raids: count, taken: count, drivenOff: count, cracks: count,
   raidT: finite, pendingT: finite, spawned: v.pipe(count, v.maxValue(2)), cracksNow: count,
   pack: savedIndex, raiders: savedIndex, prey: savedIndex, shepherd: v.strictObject({ crackCd: finite, patrolA: finite, restT: finite }) });
 
@@ -28,6 +30,7 @@ export class HeadlessSheepRaid {
   private preyIndex = -1;
   readonly shepherd: ShepherdState = { crackCd: 0, patrolA: 0, restT: 0 };
   private readonly clock: RaidClockPorts;
+  private readonly director: NalatiRaidDirector;
   private readonly dir = new Vector3();
   private readonly ai: () => number;
 
@@ -36,7 +39,7 @@ export class HeadlessSheepRaid {
   private readonly spawnPack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>;
   constructor(host: SimHost, groups: NalatiGroups, flock: FlockBrain | null,
     horse: AnimalSim | null, preyAt: (index: number) => PackPrey,
-    spawnPack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>) {
+    spawnPack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>, lane: DirectorLane) {
     this.host = host; this.groups = groups; this.flock = flock; this.horse = horse; this.preyAt = preyAt; this.spawnPack = spawnPack;
     this.raidT = groups.firstRaid;
     this.ai = () => host.rng.stream('ai').next();
@@ -52,10 +55,12 @@ export class HeadlessSheepRaid {
       start: this.beginRaid.bind(this), next: () => 360 + host.rng.stream('ai').next() * 180,
       taken: () => { this.taken++; }, drivenOff: () => { this.drivenOff++; },
     };
+    this.director = new NalatiRaidDirector(lane, this.clock);
     const continuation = { snapshot: () => this.snapshot(), restore: (value: unknown) => {
       const saved = v.parse(Saved, value);
       const pack = this.resolvePack(saved.pack), raiders = this.resolvePack(saved.raiders);
       if (saved.prey < -1 || (saved.prey >= 0 && (flock === null || saved.prey >= flock.n))) throw new Error('Unknown Nalati raid sheep');
+      this.director.restore(saved.director);
       this.pack = pack; this.raiders = raiders; this.preyIndex = saved.prey; this.prey = saved.prey === -1 ? null : preyAt(saved.prey);
       this.raiding = saved.raiding; this.raids = saved.raids; this.taken = saved.taken; this.drivenOff = saved.drivenOff; this.cracks = saved.cracks;
       this.raidT = saved.raidT; this.pendingT = saved.pendingT; this.spawned = saved.spawned; this.cracksNow = saved.cracksNow;
@@ -90,7 +95,7 @@ export class HeadlessSheepRaid {
 
   /** Wildlife has advanced first; this runs before the manager's think loop, exactly as Ride.update on the page. */
   update(dt: number, wolves: readonly AnimalSim[]): void {
-    legacyRaidTick(this.clock, dt);
+    this.director.advance(dt);
     const h = this.horse, motion = shepherdMotion(this.shepherd, dt, h, this.flock, wolves, this.ai);
     if (h === null || motion === null) return;
     const { speed, yaw, turn, crack } = motion;
@@ -108,7 +113,7 @@ export class HeadlessSheepRaid {
   }
 
   snapshot(): v.InferOutput<typeof Saved> {
-    return { raiding: this.raiding, raids: this.raids, taken: this.taken, drivenOff: this.drivenOff, cracks: this.cracks,
+    return { version: 2, director: this.director.snapshot(), raiding: this.raiding, raids: this.raids, taken: this.taken, drivenOff: this.drivenOff, cracks: this.cracks,
       raidT: this.raidT, pendingT: this.pendingT, spawned: this.spawned, cracksNow: this.cracksNow,
       pack: this.pack === null ? -1 : this.groups.packs.indexOf(this.pack), raiders: this.raiders === null ? -1 : this.groups.packs.indexOf(this.raiders),
       prey: this.preyIndex, shepherd: { ...this.shepherd } };

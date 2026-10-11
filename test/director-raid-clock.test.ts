@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { legacyRaidTick, type RaidClockPorts } from '../src/shards/nalati-grasslands/creatures/raidClock';
+import type { RaidClockPorts } from '../src/shards/nalati-grasslands/creatures/raidClock';
+import { legacyRaidTick } from './fixtures/director-nalati/raid';
 
 function fixture(first = 150) {
   const events: string[] = [];

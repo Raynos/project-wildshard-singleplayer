@@ -1434,6 +1434,37 @@
       "buildOutputs": {
         "src/shards/nine-dragon-stack/data/portalEntries.generated.json": "a0b4e8b10812011cca13d344075bba1685696a368f6d8ba03284c9e35866e5d9"
       }
+    },
+    {
+      "id": "nalati-raid-director",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-nalati-raid-director.mjs",
+      "command": [
+        "src/shards/nalati-grasslands/generators/bake-nalati-raid-director.mjs"
+      ],
+      "inputRoots": [
+        "src/sdk/package.json",
+        "src/sdk/buildBehaviour.ts",
+        "src/sdk/compileScript.ts",
+        "src/sdk/directorAbi.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/sourceReader.ts",
+        "src/shards/nalati-grasslands/generators/bake-nalati-raid-director.mjs",
+        "src/shards/nalati-grasslands/behaviour/director.as",
+        "src/shards/nalati-grasslands/data/director.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/behaviour/director.generated.json",
+        "src/shards/nalati-grasslands/assets/077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/behaviour/director.generated.json": "fa7b67a7ed284b103f38de59730335dac1e8a837ef76e1aeef98def4de97b1bd",
+        "src/shards/nalati-grasslands/assets/077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646": "077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646"
+      }
     }
   ]
 }

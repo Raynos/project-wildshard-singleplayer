@@ -100,3 +100,7 @@ src/**/*.generated.*
 
 # SF81: retained typed night author rebuilds its 2 KB module in the shared build cache.
 /src/shards/pine-hollow/assets/a99e1e49bad615716eecc55964300848fb9efc9aab3beeeeaee01adffa243cda
+
+# SF81: retained Nalati raid author, portable content-hash build outputs.
+/src/shards/nalati-grasslands/behaviour/director.generated.json
+/src/shards/nalati-grasslands/assets/077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646

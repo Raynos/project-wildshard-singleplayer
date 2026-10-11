@@ -8,7 +8,12 @@
       "bindings": [
         "data/director.json"
       ],
-      "embedded": [],
+      "embedded": [
+        {
+          "file": "behaviour/director.generated.json",
+          "generated": "DO-NOT-EDIT: generated from retained behaviour/director.as with the pinned SDK compiler; regenerate and compare hashes."
+        }
+      ],
       "director": "data/director.json"
     }
   ]

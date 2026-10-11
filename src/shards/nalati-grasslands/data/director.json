@@ -1,8 +1,13 @@
 {
   "id": "nalati.raid",
   "entity": 9080,
-  "module": "bd63ceed22276962945fb02af7cd63ee5dab9e954c2ded723c2f3f650a25ed98",
+  "module": "077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646",
   "inputs": [
+    {
+      "key": "phase",
+      "min": -1,
+      "max": 1
+    },
     {
       "key": "raiding",
       "min": 0,
@@ -35,8 +40,18 @@
     },
     {
       "key": "delay",
-      "min": 0,
+      "min": -1,
       "max": 540
+    },
+    {
+      "key": "pending",
+      "min": -1,
+      "max": 2
+    },
+    {
+      "key": "started",
+      "min": 0,
+      "max": 1
     }
   ],
   "parameters": [
@@ -67,6 +82,22 @@
       "type": "none",
       "min": 0,
       "max": 0
+    },
+    {
+      "id": 9084,
+      "key": "raid.clock",
+      "direction": "output",
+      "type": "number",
+      "min": -1,
+      "max": 540
+    },
+    {
+      "id": 9085,
+      "key": "raid.pending",
+      "direction": "output",
+      "type": "number",
+      "min": -1,
+      "max": 2
     }
   ],
   "subscriptions": []

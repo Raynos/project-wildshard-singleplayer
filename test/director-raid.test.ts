@@ -1,52 +1,96 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Replay executes the actual immutable author bytes.
-import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import * as v from 'valibot';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
-import { parseDirector } from '@wildshard/format/director';
-import { createDirectorLane } from '../src/game/plugin/director';
-import { legacyRaidTick, type RaidClockPorts } from '../src/shards/nalati-grasslands/creatures/raidClock';
-import { raidObservation, publishRaidEvent } from '../src/shards/nalati-grasslands/creatures/raidDirector';
-import declaration from '../src/shards/nalati-grasslands/data/director.json';
+import type { RaidClockPorts } from '../src/shards/nalati-grasslands/creatures/raidClock';
+import { NalatiRaidDirector, prepareNalatiRaidDirector } from '../src/shards/nalati-grasslands/runtime/raidDirector';
+import { legacyRaidTick } from './fixtures/director-nalati/raid';
 
-const data = parseDirector(declaration), bytes = readFileSync(`src/shards/nalati-grasslands/assets/${data.module}`);
+let create: Awaited<ReturnType<typeof prepareNalatiRaidDirector>>;
+beforeAll(async () => { create = await prepareNalatiRaidDirector(); });
 function fixture(seed: number) {
   const rng = new Rng(seed), events: { tick: number; key: string }[] = [];
-  let tick = 0, tries = 0, age = 0, hunts = 0;
-  const record = (key: string): void => { events.push({ tick, key }); };
-  const raid: RaidClockPorts = { raiding: false, pendingT: 0, raidT: 150 + rng.next() * 90, present: true, tracking: false, broken: false, preyAlive: true, cracked: false,
-    start: () => { record('try'); if (++tries < 3) return false; raid.raiding = true; raid.pendingT = 2; hunts++; age = 0; Object.assign(raid, { tracking: false, broken: false, preyAlive: true, cracked: false }); return true; },
-    next: () => { record('roll'); return 360 + rng.next() * 180; }, taken: () => { record('taken'); }, drivenOff: () => { record('driven-off'); } };
-  return { raid, rng, events, tick: (value: number) => {
-    tick = value;
-    if (raid.raiding) { age++; Object.assign(raid, { tracking: age >= 30, broken: age >= 180, preyAlive: !(age >= 180 && hunts % 2 === 0) }); }
-    // The native shepherd and pack also draw this same stream between director calls.
+  const counters = { tick: 0, tries: 0, age: 0, hunts: 0 };
+  const record = (key: string): void => { events.push({ tick: counters.tick, key }); };
+  const raid: RaidClockPorts = {
+    raiding: false, pendingT: 0, raidT: 150 + rng.next() * 90,
+    present: true, tracking: false, broken: false, preyAlive: true, cracked: false,
+    start: () => {
+      record('try'); if (++counters.tries < 3) return false;
+      raid.raiding = true; raid.pendingT = 2; counters.hunts++; counters.age = 0;
+      Object.assign(raid, { present: true, tracking: false, broken: false, preyAlive: true, cracked: false }); return true;
+    },
+    next: () => { record('roll'); return 360 + rng.next() * 180; },
+    taken: () => { record('taken'); }, drivenOff: () => { record('driven-off'); },
+  };
+  const state = () => ({ raiding: raid.raiding, pendingT: raid.pendingT, raidT: raid.raidT,
+    present: raid.present, tracking: raid.tracking, broken: raid.broken, preyAlive: raid.preyAlive, cracked: raid.cracked });
+  const snapshot = () => ({ raid: state(), counters: { ...counters }, rng: rng.snapshot() });
+  const restore = (saved: ReturnType<typeof snapshot>): void => {
+    Object.assign(raid, saved.raid); Object.assign(counters, saved.counters); rng.restore(saved.rng);
+  };
+  return { raid, rng, events, state, snapshot, restore, tick: (value: number): void => {
+    counters.tick = value;
+    if (raid.raiding) {
+      counters.age++;
+      Object.assign(raid, { tracking: counters.age >= 3, broken: counters.age >= 18,
+        preyAlive: !(counters.age >= 18 && counters.hunts % 2 === 0) });
+    }
+    // The real shepherd and pack consume this same stream between calls.
     if (value % 71 === 0) rng.next();
   } };
 }
-describe('SF24 Nalati director against the actual shipping raid clock', () => {
-  it.each([357, 182, 999])('preserves event ticks and shared RNG order through 65,000 fixed ticks (seed %i)', async (seed) => {
-    const legacy = fixture(seed), directed = fixture(seed), lane = await createDirectorLane(data, bytes, seed);
-    expect(lane.step(0, raidObservation(directed.raid))).toEqual([]);
-    for (let tick = 1; tick <= 65000; tick++) {
-      legacy.tick(tick); directed.tick(tick);
-      legacyRaidTick(legacy.raid, 1 / 60);
-      for (const event of lane.step(tick, raidObservation(directed.raid))) publishRaidEvent(directed.raid, event.key, event.value);
-      expect(directed.raid.raiding).toBe(legacy.raid.raiding);
+
+describe('SF81 Nalati raid rows against the unchanged shipping clock', () => {
+  it.each([357, 182, 999])('preserves every timer, native event and shared RNG draw over 10k variable frames (seed %i)', seed => {
+    const old = fixture(seed), next = fixture(seed), lane = create(seed), director = new NalatiRaidDirector(lane, next.raid);
+    const deltas = [1 / 60, 1 / 30, 0, 0.1, 0.5, 1 / 120];
+    for (let frame = 1; frame <= 10000; frame++) {
+      old.tick(frame); next.tick(frame);
+      const dt = deltas[frame % deltas.length] ?? 0;
+      legacyRaidTick(old.raid, dt); director.advance(dt);
+      expect(next.state()).toEqual(old.state());
+      expect(next.rng.snapshot()).toEqual(old.rng.snapshot());
     }
-    expect(directed.events).toEqual(legacy.events); expect(directed.rng.snapshot()).toEqual(legacy.rng.snapshot());
-    const tries = legacy.events.filter((event) => event.key === 'try');
-    expect(tries[0]?.tick).toBeGreaterThanOrEqual(150 * 60); expect(tries[0]?.tick).toBeLessThanOrEqual(240 * 60);
-    expect(tries[1]?.tick).toBe((tries[0]?.tick ?? 0) + 1801); expect(tries[2]?.tick).toBe((tries[1]?.tick ?? 0) + 1801);
-    expect(legacy.events.some((event) => event.key === 'taken')).toBe(true); expect(legacy.events.some((event) => event.key === 'driven-off')).toBe(true);
-    expect(lane.host.checkpoint().modules.map((module) => [module.failures, module.disabled])).toEqual([[0, false]]);
+    expect(next.events).toEqual(old.events);
+    expect(old.events.some(event => event.key === 'taken')).toBe(true);
+    expect(old.events.some(event => event.key === 'driven-off')).toBe(true);
+    expect(lane.host.checkpoint().modules.map(row => [row.failures, row.disabled])).toEqual([[0, false]]);
   }, 60000);
-  it('restores the complete author continuation across a 10,000-tick suffix', async () => {
-    const lane = await createDirectorLane(data, bytes, 357), native = fixture(357);
-    lane.step(0, raidObservation(native.raid));
-    for (let tick = 1; tick <= 10000; tick++) { native.tick(tick); for (const event of lane.step(tick, raidObservation(native.raid))) publishRaidEvent(native.raid, event.key, event.value); }
-    const checkpoint = lane.snapshot(), observations: Readonly<Record<string, number>>[] = [], tape: unknown[] = [];
-    for (let tick = 10001; tick <= 20000; tick++) { native.tick(tick); const observation = raidObservation(native.raid); observations.push(observation); const events = lane.step(tick, observation); tape.push(events); for (const event of events) publishRaidEvent(native.raid, event.key, event.value); }
-    const final = lane.snapshot(); lane.restore(checkpoint);
-    expect(observations.map((observation, index) => lane.step(10001 + index, observation))).toEqual(tape); expect(lane.snapshot()).toBe(final);
-  }, 60000);
+
+  it('retains failed admission, pending pickup, tracking, broken prey and missing-reference priority exactly', () => {
+    const old = fixture(357), next = fixture(357), director = new NalatiRaidDirector(create(357), next.raid);
+    const cases = [
+      { raiding: false, raidT: 0, pendingT: 0, present: true, tracking: false, broken: false, preyAlive: true, cracked: false },
+      { raiding: false, raidT: 0.01, pendingT: 0, present: true, tracking: false, broken: false, preyAlive: true, cracked: false },
+      { raiding: false, raidT: 0, pendingT: 0, present: true, tracking: false, broken: false, preyAlive: true, cracked: false },
+      { raiding: true, raidT: -0.05, pendingT: 0.01, present: false, tracking: false, broken: true, preyAlive: false, cracked: true },
+      { raiding: true, raidT: 180, pendingT: 2, present: true, tracking: false, broken: false, preyAlive: true, cracked: false },
+      { raiding: true, raidT: 180, pendingT: 2, present: true, tracking: true, broken: false, preyAlive: true, cracked: true },
+      { raiding: true, raidT: 180, pendingT: 2, present: true, tracking: true, broken: true, preyAlive: false, cracked: true },
+      { raiding: true, raidT: 180, pendingT: 0.01, present: true, tracking: false, broken: false, preyAlive: true, cracked: true },
+    ];
+    for (const row of cases) {
+      Object.assign(old.raid, row); Object.assign(next.raid, row);
+      legacyRaidTick(old.raid, 0.1); director.advance(0.1);
+      expect(next.state()).toEqual(old.state()); expect(next.events).toEqual(old.events); expect(next.rng.snapshot()).toEqual(old.rng.snapshot());
+    }
+  });
+
+  it('restores complete rows and AS memory quietly, refuses old contracts atomically, and repeats the exact native suffix', () => {
+    const first = fixture(357), next = fixture(357), director = new NalatiRaidDirector(create(357), first.raid);
+    for (let tick = 1; tick <= 1200; tick++) { first.tick(tick); director.advance(0.25); }
+    next.restore(first.snapshot()); const saved = director.snapshot();
+    const restored = new NalatiRaidDirector(create(357), next.raid); restored.restore(saved);
+    expect(next.events).toEqual([]); expect(restored.snapshot()).toBe(saved);
+    const parsed = v.parse(v.looseObject({ version: v.number(), contract: v.looseObject({ id: v.string() }) }), JSON.parse(saved));
+    for (const invalid of ['{}', JSON.stringify({ ...parsed, version: 2 }), JSON.stringify({ ...parsed, contract: { ...parsed.contract, id: 'foreign' } })]) {
+      expect(() => restored.restore(invalid)).toThrow(); expect(restored.snapshot()).toBe(saved); expect(next.events).toEqual([]);
+    }
+    first.events.length = 0;
+    for (let tick = 1201; tick <= 1400; tick++) {
+      first.tick(tick); next.tick(tick); director.advance(0.25); restored.advance(0.25);
+      expect(next.snapshot()).toEqual(first.snapshot()); expect(next.events).toEqual(first.events);
+    }
+    expect(restored.snapshot()).toBe(director.snapshot());
+  });
 });

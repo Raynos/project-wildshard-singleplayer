@@ -1431,3 +1431,6 @@ clip and the local-pitch winch clip. Its former per-shard lift and bridge guests
 
 
 Pine elitePreludeStages.json uses the fixed emit actions for native clock/clear/home/fight/idle owners. The when expressions put absence first, then leashing, then engagement. No AS escape handler is needed for these boolean guards. Each actor keeps a separate complete stage contract and cursor; existing admitted AS fights and their verbs are unchanged.
+
+
+Nalati raidStages.json binds the admitted raid.try, raid.finish, raid.abandon, raid.clock and raid.pending outputs to the fixed emit action set. Bounded AS payloads mirror exact native timers; the rows retain literal action values. Its retained behaviour/director.as and build.json regenerate the small module/embedded JSON through the portable content-hash build cache, never a one-time export. No page is a producer.

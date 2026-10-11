@@ -1,0 +1,200 @@
+{
+  "version": 2,
+  "id": "nalati.raid",
+  "inputs": {
+    "raid_try": "event:raid.try",
+    "raid_finish": "event:raid.finish",
+    "raid_abandon": "event:raid.abandon",
+    "raid_clock": "event:raid.clock",
+    "raid_pending": "event:raid.pending"
+  },
+  "stages": [
+    {
+      "id": "ready",
+      "do": [],
+      "next": [
+        {
+          "target": "try",
+          "when": "raid_try"
+        },
+        {
+          "target": "finish",
+          "when": "raid_finish"
+        },
+        {
+          "target": "abandon",
+          "when": "raid_abandon"
+        },
+        {
+          "target": "clock",
+          "when": "raid_clock"
+        },
+        {
+          "target": "pending",
+          "when": "raid_pending"
+        }
+      ]
+    },
+    {
+      "id": "try",
+      "when": "raid_try",
+      "do": [
+        {
+          "emit": "raid.try",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "try",
+          "when": "raid_try"
+        },
+        {
+          "target": "finish",
+          "when": "raid_finish"
+        },
+        {
+          "target": "abandon",
+          "when": "raid_abandon"
+        },
+        {
+          "target": "clock",
+          "when": "raid_clock"
+        },
+        {
+          "target": "pending",
+          "when": "raid_pending"
+        }
+      ]
+    },
+    {
+      "id": "finish",
+      "when": "raid_finish",
+      "do": [
+        {
+          "emit": "raid.finish",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "try",
+          "when": "raid_try"
+        },
+        {
+          "target": "finish",
+          "when": "raid_finish"
+        },
+        {
+          "target": "abandon",
+          "when": "raid_abandon"
+        },
+        {
+          "target": "clock",
+          "when": "raid_clock"
+        },
+        {
+          "target": "pending",
+          "when": "raid_pending"
+        }
+      ]
+    },
+    {
+      "id": "abandon",
+      "when": "raid_abandon",
+      "do": [
+        {
+          "emit": "raid.abandon",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "try",
+          "when": "raid_try"
+        },
+        {
+          "target": "finish",
+          "when": "raid_finish"
+        },
+        {
+          "target": "abandon",
+          "when": "raid_abandon"
+        },
+        {
+          "target": "clock",
+          "when": "raid_clock"
+        },
+        {
+          "target": "pending",
+          "when": "raid_pending"
+        }
+      ]
+    },
+    {
+      "id": "clock",
+      "when": "raid_clock",
+      "do": [
+        {
+          "emit": "raid.clock",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "try",
+          "when": "raid_try"
+        },
+        {
+          "target": "finish",
+          "when": "raid_finish"
+        },
+        {
+          "target": "abandon",
+          "when": "raid_abandon"
+        },
+        {
+          "target": "clock",
+          "when": "raid_clock"
+        },
+        {
+          "target": "pending",
+          "when": "raid_pending"
+        }
+      ]
+    },
+    {
+      "id": "pending",
+      "when": "raid_pending",
+      "do": [
+        {
+          "emit": "raid.pending",
+          "value": 0
+        }
+      ],
+      "next": [
+        {
+          "target": "try",
+          "when": "raid_try"
+        },
+        {
+          "target": "finish",
+          "when": "raid_finish"
+        },
+        {
+          "target": "abandon",
+          "when": "raid_abandon"
+        },
+        {
+          "target": "clock",
+          "when": "raid_clock"
+        },
+        {
+          "target": "pending",
+          "when": "raid_pending"
+        }
+      ]
+    }
+  ],
+  "script": "077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646"
+}

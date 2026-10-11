@@ -3070,3 +3070,6 @@ flight order; burst keeps its three-dimensional notice test and contact shove.
 The pattern tag is not inserted into historical save contracts. A different
 observation pattern refuses before effects. Phased flight, wind stooping and
 declared diver rows remain open; this seam changes no body or collider.
+
+
+SF81 Nalati raid: page and native Wildlife owners advance the same authored raidStages.json and typed AssemblyScript handler at the original phase, before shepherd motion. The handler owns elapsed raid/pickup timers and retry decisions; the native port owns actual pack/prey admission, spawn order, AI RNG and outcomes. A start result is delivered synchronously at zero elapsed time within the same quotas. The native raid adapter is version 2 with the complete version-3 AS/stage cursor; older snapshots refuse quietly.

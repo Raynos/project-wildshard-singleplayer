@@ -1,3 +1,4 @@
+import { prepareNalatiRaidDirector } from './raidDirector';
 import { installNalatiTaming, nalatiTamingOf } from './headlessTaming';
 import { proveNalatiEntryways } from './headlessEntryways';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
@@ -286,7 +287,8 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  * Golden King and the Storm Titan, taming/companions, the weapons, the dusk / night spawns as the day clock
  * passes them, the quests and their facts. The entry proof walks the installed native world.
  */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets }) => {
+  const raidDirector = await prepareNalatiRaidDirector();
   const bake = nalatiBake(), grid = nalatiTerrainGrid(assets.get(NALATI_TERRAIN_ASSET), shard.identity.seed), heightAt = bakedSamplers(grid).heightAt;
   const nav = nalatiNavmesh(assets.get(NALATI_NAVMESH_ASSET));
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: NALATI_GROUND_SIZE, height: 0 },
@@ -328,7 +330,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
       spawn: (kind, x, z, yaw, variant) => manager().spawnElite(kind, x, z, yaw, variant), retire: a => { manager().retireElite(a); } });
     // the creatures' frame after the weather (Wildlife's, then the manager's), its brain on the manager's stream
     const forest = nalatiLightningGround(bake).trees;
-    installed.creatures = installNalatiCreatures(host, { elites: bindings, bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, rideUpdate: dt => { nalatiTamingOf(host)?.update(dt); }, mounted: () => nalatiMountedOf(host)?.mounted === true, crouching: () => nalatiMountedOf(host)?.rider.crouching === true, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
+    installed.creatures = installNalatiCreatures(host, { raidDirector: raidDirector(shard.identity.seed), elites: bindings, bodies, herds: roster.herds, groups, grid, nav, trees: (x, z, r) => forest.nearby(x, z, r), stream: roster.stream, wildStream: roster.wildStream, bake, spawnY: shard.spawn.y, rideUpdate: dt => { nalatiTamingOf(host)?.update(dt); }, mounted: () => nalatiMountedOf(host)?.mounted === true, crouching: () => nalatiMountedOf(host)?.rider.crouching === true, ...(context.snapshot === undefined ? {} : { snapshot: context.snapshot }) });
     // The same two camp identities and authored road order as ride/ride.ts; taming adds other mountables later.
     const mountable = [...bodies.filter(b => HITCH_HORSE_SPOTS.some(p => p.x === b.boot.position.x && p.z === b.boot.position.z)).map(b => b.actor.entityId), ...manager().bondedHorseIds()];
     const mounted = installNalatiMountedPlayer(host, { groups, mountable, heightAt, waterLevel: TERRAIN.waterLevel, surfaceAt, wetAt: nalatiWetAt,
