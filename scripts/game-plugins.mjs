@@ -104,11 +104,8 @@ export function gamePluginSurface(root = ROOT) {
   };
 }
 
-// Removing a legacy importer never grants another exception. These four tails retire with their owners.
+// Removing a legacy importer never grants another exception. The remaining graphical tail retires with DS1.4.
 const TEMPORARY_EXPORTS = {
-  './shardfile/schema': { target: './shardfile/schema.ts', owner: 'DS1.1', reason: 'remaining defining format composition' },
-  './shardfile/validate': { target: './shardfile/validate.ts', owner: 'DS1.1', reason: 'renderer-free authored product validation' },
-  './shardfile/splatTerrain': { target: './shardfile/splatTerrain.ts', owner: 'DS1.4', reason: 'terrain material contract and immutable slot checks' },
   './systems/looks/surfaceLooks': { target: './systems/looks/surfaceLooks.ts', owner: 'DS1.4', reason: 'Signal material look migration' },
 };
 

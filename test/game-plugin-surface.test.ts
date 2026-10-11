@@ -58,6 +58,19 @@ it('derives compatibility from a registered actual importer and refuses its aban
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+it('refuses resurrection of the retired format exceptions without a sealed legacy importer', () => {
+  const root = mkdtempSync(join(tmpdir(), 'game-plugin-retired-format-'));
+  const put = (path: string, text: string): void => { const file = join(root, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, text); };
+  const keys = ['./shardfile/schema', './shardfile/validate', './shardfile/splatTerrain'];
+  try {
+    put('src/game/package.json', JSON.stringify({ exports: Object.fromEntries(keys.map(key => [key, `${key}.ts`])) }));
+    for (const key of keys) put(`src/game/${key.slice(2)}.ts`, 'export const contract = 1;');
+    put('lint/legacy-shards.json', JSON.stringify({ shards: {} }));
+    expect(checkGamePluginExports(root).temporary).toEqual([]);
+    expect(checkGamePluginExports(root).failures).toEqual(keys.sort().map(key => `${key}: non-plugin export has no registered legacy importer`));
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 it('enforces the real export surface and names only the remaining temporary migration exception', () => {
   const report = realExportCheck;
   expect(report.failures).toEqual([]);
