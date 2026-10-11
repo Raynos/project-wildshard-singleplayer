@@ -35,7 +35,7 @@ Native entry admission already proved the supplied root, but native play constru
 
 All 20 focused tests/4 files pass, including the real entry capsules, 10k-step row motion oracle, native factory comparison and held-phase restore. Mutating an admitted node changes actual native trigger selection; a declared false transition prevents transfer. The old factory and the new host emit the same gameplay ledger fact. Strict and touched typed lint pass. All four witness recordings are checked with identical payloads/outcomes; all 148 physics inputs and the map hash remain identical. No new platform algorithm, graphical change or compatible/20% claim is made.
 
-After the landing freeze, rebased on `c673ec015` and repeated the 20 focused tests, strict and touched typed lint: all green. All four witness recordings remain byte-identical. The current 148 physics inputs are unchanged by this slice; the current map hash is `cb806256f74e67ec7983bbb63ee09aa1c33305c656372de0f51ff6a4009b2a36`, also unchanged by this slice (the generator path migration landed separately during the freeze).
+After the landing freeze, rebased on `c673ec015` and repeated the 20 focused tests, strict and touched typed lint: all green. All four witness recordings remain byte-identical. The current 149 physics inputs (147 tracked files and two generated portal declarations) are unchanged by this slice; the current map hash is `cb806256f74e67ec7983bbb63ee09aa1c33305c656372de0f51ff6a4009b2a36`, also unchanged by this slice (the generator path migration landed separately during the freeze).
 
 ## Remaining work
 
