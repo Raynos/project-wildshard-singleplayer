@@ -123,9 +123,9 @@ Wildshard is an infinite MMO that runs in your browser. Every piece of content i
 - Every shard has its own look, its own rules and its own author.
 - Anyone can add one: describe it to Claude or any coding agent, then bring it into the world.
 
-## What · concept art tag
+## Mockup · tag
 
-Concept art
+GPT mockup
 
 ## What · painting 1 description
 
