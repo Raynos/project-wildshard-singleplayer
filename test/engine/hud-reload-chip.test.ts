@@ -7,7 +7,7 @@ import { HUD, type HUDState } from '../../src/engine/ui/HUD';
 import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 import { LEVER, CROSSBOW, LONGBOW } from '../../src/shards/pine-hollow/weapons/equipment';
 import { AR15 } from '../../src/shards/nalati-grasslands/weapons/equipment';
-import { SWORD } from '../../src/game/weapons/starterEquipment';
+import { SWORD } from '../../src/game/plugin/weaponHooks';
 import { LeverRifle, type LeverRifleWeapon } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { LeverAction } from '../../src/shards/pine-hollow/weapons/leverAction';
 import { Rifle } from '../../src/shards/nalati-grasslands/runtime/weapons/Rifle';

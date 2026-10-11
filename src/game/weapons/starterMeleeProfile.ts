@@ -1,4 +1,4 @@
-import { WOODEN_SWORD, IRON_SWORD } from './starterEquipment';
+import { WOODEN_SWORD, IRON_SWORD } from '../plugin/weaponHooks';
 import { REST, CHARGE, SPRINT, COMBO, HEAVY } from './starterMoves';
 import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 

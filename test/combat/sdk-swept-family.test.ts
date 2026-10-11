@@ -14,7 +14,7 @@ import { setActivePhysics } from '../../src/engine/physics/active';
 import { Sword, swordEvents } from '../../src/game/weapons/Sword';
 import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY } from '../../src/game/weapons/starterMoves';
 import { SWORD_WOOD, SWORD_IRON } from '../../src/game/weapons/starterMeleeProfile';
-import { SWORD } from '../../src/game/weapons/starterEquipment';
+import { SWORD } from '../../src/game/plugin/weaponHooks';
 import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import { SweptMelee as TrustedSwept } from '../../src/sdk/runtime/weapons/SweptMelee';
 import { Sword as StarterSword, swordEvents as starterSwordEvents } from '../../src/sdk/runtime/weapons/Sword';

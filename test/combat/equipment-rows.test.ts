@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SWAP_GLYPHS } from '../../src/game/weapons/starterGlyphs';
 import { Weapon } from '../../src/engine/combat/Weapon';
-import { WOODEN_SWORD, IRON_SWORD } from '../../src/game/weapons/starterEquipment';
+import { WOODEN_SWORD, IRON_SWORD } from '../../src/game/plugin/weaponHooks';
 import { JIAN_ROW as JIAN } from '../../src/shards/nine-dragon-stack/vm/jianRow';
 import { SABRE, SPEAR, BOW, AR15 } from '../../src/shards/nalati-grasslands/weapons/equipment';
 import { CROSSBOW, LONGBOW, LEVER } from '../../src/shards/pine-hollow/weapons/equipment';

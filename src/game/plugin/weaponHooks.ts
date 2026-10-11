@@ -1,8 +1,76 @@
-import { parseWeaponHooks, type WeaponHooksData } from '@wildshard/format/weaponHooks';
+import type { EquipmentRow } from "@wildshard/engine/combat/Equipment";
+import { SWAP_GLYPHS } from "../weapons/starterGlyphs";
+import { parseWeaponHooks, type WeaponHooksData } from "@wildshard/format/weaponHooks";
 import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptSnapshot } from "@wildshard/engine/script/host";
 import { ScriptWorld, SCRIPT_OP, type EffectTransaction, type ScriptEffect } from "@wildshard/engine/script/effects";
 import type { LevelContext } from "@wildshard/engine/level/context";
 import { directorVariant } from "./director";
+
+/** The base sword equipment row, retaining its legacy slot and cue IDs. */
+export const SWORD: EquipmentRow = {
+  cues: {"fire": "cue.sword.swing", "reload": "cue.reload", "impact": "cue.sword.hit"},
+  "id": "weapon.sword",
+  "legacySlot": "sword",
+  "ui": {
+    "swapIcon": SWAP_GLYPHS.sword,
+    "name": "Sword",
+    "icon": "sword",
+    "touch": "melee",
+    "lockOn": true,
+    "melee": true,
+    "tracers": false
+  },
+  "meta": {
+    "name": "Sword",
+    "icon": "sword",
+    "blurb": "",
+    "category": "weapon"
+  }
+};
+
+/** The starter wooden sword equipment row and existing UI metadata. */
+export const WOODEN_SWORD: EquipmentRow = {
+  cues: {"fire": "cue.sword.swing", "reload": "cue.reload", "impact": "cue.sword.hit"},
+  "id": "weapon.sword",
+  "legacySlot": "sword",
+  "ui": {
+    "swapIcon": SWAP_GLYPHS.sword,
+    "name": "Wooden sword",
+    "icon": "sword",
+    "touch": "melee",
+    "lockOn": true,
+    "melee": true,
+    "tracers": false
+  },
+  "meta": {
+    "name": "Wooden sword",
+    "icon": "sword",
+    "blurb": "",
+    "category": "weapon"
+  }
+};
+
+/** The upgraded iron sword equipment row and existing UI metadata. */
+export const IRON_SWORD: EquipmentRow = {
+  cues: {"fire": "cue.sword.swing", "reload": "cue.reload", "impact": "cue.sword.hit"},
+  "id": "weapon.sword-iron",
+  "legacySlot": "sword-iron",
+  "ui": {
+    "swapIcon": SWAP_GLYPHS.sword,
+    "name": "Iron sword",
+    "icon": "sword",
+    "touch": "melee",
+    "lockOn": true,
+    "melee": true,
+    "tracers": false
+  },
+  "meta": {
+    "name": "Iron sword",
+    "icon": "sword",
+    "blurb": "",
+    "category": "weapon"
+  }
+};
 
 /**
  * Weapon hooks (SHARD-PLATFORM SF36): the points where a weapon family asks a shard's admitted AssemblyScript for a number
@@ -55,9 +123,11 @@ export interface WeaponHooks {
 export const WEAPON_HOOK_DAMAGE = 1;
 
 class WeaponHookWorld extends ScriptWorld {
-  constructor(private readonly data: WeaponHooksData) {
+  private readonly data: WeaponHooksData;
+  constructor(data: WeaponHooksData) {
     super({ fields: {}, archetypes: [], events: data.weapons.map((row) => row.damage.event), maxEntities: 1 },
       [{ id: data.entity, name: data.id, position: [0, 0, 0], fields: {}, frozen: false, interactive: true }]);
+    this.data = data;
   }
   override prepare(effects: readonly ScriptEffect[], self: number, spawns: number, events: number): EffectTransaction {
     if (effects.length > 1 || effects.some((e) => e.op !== SCRIPT_OP.event || e.b !== self || !this.data.weapons.some((row) => row.damage.event === e.a))) throw new Error('Invalid weapon hook answer');

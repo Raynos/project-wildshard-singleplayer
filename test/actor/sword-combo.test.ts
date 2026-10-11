@@ -1,4 +1,4 @@
-import { SWORD } from '../../src/game/weapons/starterEquipment';
+import { SWORD } from '../../src/game/plugin/weaponHooks';
 // @vitest-environment happy-dom
 // S1.2: these contracts move from Sword's viewmodel-owning class to the renderer-free Melee family.
 import * as THREE from 'three';

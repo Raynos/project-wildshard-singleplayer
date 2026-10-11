@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { SWORD } from '../../src/game/weapons/starterEquipment';
+import { SWORD } from '../../src/game/plugin/weaponHooks';
 import { Sword } from '../../src/game/weapons/Sword';
 import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import type { SwordArms } from '../../src/engine/combat/view/melee';

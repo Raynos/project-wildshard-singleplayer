@@ -1,4 +1,4 @@
-import { SWORD } from '../../src/game/weapons/starterEquipment';
+import { SWORD } from '../../src/game/plugin/weaponHooks';
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { onFault } from '../../src/engine/core/faults';

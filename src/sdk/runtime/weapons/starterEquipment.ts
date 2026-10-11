@@ -1,4 +1,4 @@
-import { SWORD as StarterSWORD, WOODEN_SWORD as StarterWOODEN_SWORD, IRON_SWORD as StarterIRON_SWORD } from '@wildshard/game/weapons/starterEquipment';
+import { SWORD as StarterSWORD, WOODEN_SWORD as StarterWOODEN_SWORD, IRON_SWORD as StarterIRON_SWORD } from '@wildshard/game/plugin/weaponHooks';
 
 /** The original starter SWORD binding; all trusted callers share its identity. */
 export const SWORD: typeof StarterSWORD = StarterSWORD;
