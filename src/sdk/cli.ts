@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI accepts filesystem project/output paths.
 import { resolve } from 'node:path';
 import { buildProject, newProject, projectAssets, readProjectAssets, validateProject } from './project';
-import { parseShardfile, type Shardfile } from './shardfile';
+import { parseShardfile, ShardfileSchema, type Shardfile } from './shardfile';
 import { devProject } from './dev';
 import { measureSimulation, validateSimulation } from './headless';
 import { performanceReport, performanceReportLines, type PerformanceObservations } from './reportCard';
@@ -12,6 +12,7 @@ import { assetOverdraw } from './assets';
 import process from 'node:process';
 import { buildBehaviourProject } from './buildBehaviour';
 import { synthProject } from './synth';
+import { formatJsonSchemas, schemaAt, schemaDeclaration } from './formatJsonSchema';
 
 const unmeasured: PerformanceObservations = { scripts: { p95Micros: 0, maxMicros: 0, samples: 0 }, fuel: { p95: 0, max: 0, samples: 0 } };
 function printReport(shard: Shardfile, observed: PerformanceObservations, policy: 'warn' | 'refuse'): void {
@@ -28,6 +29,16 @@ async function admitBuild(shard: Shardfile, assets: ReadonlyMap<string, Uint8Arr
 /** Run the author CLI; returns only after validation/build completes. */
 export async function runCli(args: readonly string[]): Promise<void> {
   const [command, input, output, buildFlag] = args;
+  if (command === 'schema') {
+    if (buildFlag !== undefined) throw new Error('usage: wildshard schema [list|shardfile|root] [JSON-pointer]');
+    if (input === undefined || input === 'list') {
+      if (output !== undefined) throw new Error('schema list accepts no pointer');
+      console.info(JSON.stringify(['shardfile', ...Object.keys(formatJsonSchemas())], null, 2)); return;
+    }
+    const document = input === 'shardfile' ? schemaDeclaration(ShardfileSchema) : formatJsonSchemas()[input];
+    if (document === undefined) throw new Error(`Unknown schema root: ${input}`);
+    console.info(JSON.stringify(schemaAt(document, output), null, 2)); return;
+  }
   if (input === undefined) throw new Error('usage: wildshard new <project> | synth <project> | build <project> [output] [--product-only] | build <project> --behaviour-only | validate <project|shard.json> | dev <project> [port]');
   if (command === 'synth') {
     if (output !== undefined) throw new Error('usage: wildshard synth <project>');

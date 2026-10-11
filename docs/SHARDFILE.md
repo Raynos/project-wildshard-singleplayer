@@ -1621,3 +1621,7 @@ emits its standalone JSON Schema; it is a trusted catalogue declaration, not
 an additional branch of `creatures.brains` or an automatically installed boss.
 
 SF85 native lash profile: `items.rows[].profile` may declare `family: "lash"`, its optional bounded `contact` (chest height and body allowance), `timing` (unroll, second contact, show, stagger, pull and maximum pulled health), and its three named `moves`. Second contact and show must follow unroll. Signal’s existing trusted family requires its authored contact values and consumes the profile in its page and headless owners; older profiles remain admitted for their own native families, with no fabricated contact defaults. Damage, width, reach, cooldown and charge remain the item’s light/heavy rows; the native double-crack, contact order, yank, stagger, held input and saved continuation stay unchanged. No view is inferred or added.
+
+## Inspect author declarations (OS-F3)
+
+Use `wildshard schema list`, then `wildshard schema <root> [JSON-pointer]`. The `shardfile` root describes every defining section; format roots emit structural JSON Schema with mandatory native checks. The [schema discovery guide](authoring/schema-discovery.md) covers exact identifier grammars, four-channel hearing, player/creature coordinate forms and packaged declaration discovery. The retained `formatExample` executes the public inspection API.

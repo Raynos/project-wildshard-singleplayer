@@ -294,3 +294,81 @@ export function formatJsonSchemas(): Readonly<Record<string, FormatJsonSchema>> 
     state: document('state', StateSchema), 'commons-costs': document('commons-costs', CommonsCostsSchema),
     ...Object.fromEntries(Object.entries(wireRoots).map(([name, schema]) => [name, document(name, schema)])) };
 }
+
+/** JSON-only declaration discovery. Rules describe admission; this document never grants admission. */
+export interface SchemaDeclaration {
+  kind: string;
+  rules: { kind: string; requirement?: string | number | boolean; message?: string }[];
+  properties?: Record<string, SchemaDeclaration>;
+  items?: SchemaDeclaration[];
+  item?: SchemaDeclaration;
+  alternatives?: SchemaDeclaration[];
+  wrapped?: SchemaDeclaration;
+  optional?: boolean;
+  default?: string | number | boolean | null | object;
+  value?: string | number | boolean;
+  values?: (string | number | boolean)[];
+  key?: SchemaDeclaration;
+  valueSchema?: SchemaDeclaration;
+  rest?: SchemaDeclaration;
+}
+
+function declarationOf(value: unknown): SchemaDeclaration {
+  if (typeof value !== 'object' || value === null) throw new Error('Expected a defining schema');
+  const read = (key: string): unknown => Reflect.get(value, key);
+  const type = read('type');
+  if (typeof type !== 'string') throw new Error('Expected a defining schema type');
+  const pipeline = read('pipe');
+  if (Array.isArray(pipeline)) {
+    const schemas = pipeline.filter((part: unknown) => typeof part === 'object' && part !== null && Reflect.get(part, 'kind') === 'schema');
+    const base: unknown = schemas.at(-1);
+    if (base === undefined) throw new Error('Missing pipeline schema');
+    const declaration = declarationOf(base);
+    for (const part of pipeline) {
+      if (typeof part !== 'object' || part === null || Reflect.get(part, 'kind') === 'schema') continue;
+      const kind: unknown = Reflect.get(part, 'type'), requirement: unknown = Reflect.get(part, 'requirement'), message: unknown = Reflect.get(part, 'message');
+      if (typeof kind !== 'string') throw new Error('Missing admission rule type');
+      declaration.rules.push({ kind,
+        ...(requirement instanceof RegExp ? { requirement: requirement.source } : typeof requirement === 'number' || typeof requirement === 'string' || typeof requirement === 'boolean' ? { requirement } : {}),
+        ...(typeof message === 'string' ? { message } : {}),
+      });
+    }
+    return declaration;
+  }
+  const declaration: SchemaDeclaration = { kind: type, rules: [] };
+  const entries = read('entries'), items = read('items'), item = read('item'), alternatives = read('options'), wrapped = read('wrapped');
+  if (typeof entries === 'object' && entries !== null) declaration.properties = Object.fromEntries(Object.entries(entries).map(([key, schema]) => [key, declarationOf(schema)]));
+  if (Array.isArray(items)) declaration.items = items.map(declarationOf);
+  if (typeof item === 'object' && item !== null) declaration.item = declarationOf(item);
+  if (Array.isArray(alternatives)) {
+    if (alternatives.every((option: unknown) => typeof option === 'string' || typeof option === 'number' || typeof option === 'boolean')) declaration.values = alternatives;
+    else declaration.alternatives = alternatives.map(declarationOf);
+  }
+  if (typeof wrapped === 'object' && wrapped !== null) declaration.wrapped = declarationOf(wrapped);
+  for (const [source, target] of [['key', 'key'], ['value', 'valueSchema'], ['rest', 'rest']] as const) {
+    const child = read(source);
+    if (typeof child === 'object' && child !== null) declaration[target] = declarationOf(child);
+  }
+  if (type === 'optional' || type === 'exact_optional') declaration.optional = true;
+  const fallback = read('default'), literal = read('literal');
+  if (fallback === null || typeof fallback === 'string' || typeof fallback === 'number' || typeof fallback === 'boolean' || typeof fallback === 'object') declaration.default = structuredClone(fallback);
+  if (typeof literal === 'string' || typeof literal === 'number' || typeof literal === 'boolean') declaration.value = literal;
+  return declaration;
+}
+
+/** Inspect every defining field, tuple and union without reaching into Valibot; semantic rules remain mandatory. */
+export function schemaDeclaration(schema: GenericSchema): SchemaDeclaration { return declarationOf(schema); }
+
+/** Select an existing JSON document field by RFC 6901 pointer; malformed escapes and absent fields refuse. */
+export function schemaAt(document: object, pointer = ''): unknown {
+  if (pointer === '') return document;
+  if (!pointer.startsWith('/')) throw new Error('Schema pointer must be empty or start with /');
+  let value: unknown = document;
+  for (const token of pointer.slice(1).split('/')) {
+    if (/~(?![01])/u.test(token)) throw new Error('Invalid schema pointer escape');
+    const key = token.replaceAll('~1', '/').replaceAll('~0', '~');
+    if (typeof value !== 'object' || value === null || !Object.hasOwn(value, key)) throw new Error(`Unknown schema pointer: ${pointer}`);
+    value = Reflect.get(value, key);
+  }
+  return value;
+}
