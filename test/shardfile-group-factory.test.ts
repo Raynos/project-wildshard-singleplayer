@@ -69,7 +69,23 @@ it('full-schema parametric groups retain the exact native roster and refuse a mi
   expect(admitted.creatures.groups).toEqual(groups);
   const first = groups[0]; if (first === undefined) throw new Error('Missing group');
   expect(() => parseShardfile({ ...s, creatures: { ...s.creatures, groups: [{ ...first, pattern: 'wrong' }, ...groups.slice(1)] } })).toThrow();
-  expect(() => createShardfileSim(admitted, new Map(), { rapier })).toThrow('Missing declared group port');
+  expect(() => createShardfileSim(admitted, new Map(), { rapier, groups: {} })).toThrow('Missing declared group port');
+});
+it('automatically installs data-only group owners for both preset and parametric rows', () => {
+  const s = source();
+  for (const groups of [s.creatures.groups, s.creatures.groups.map(row => row.kind === 'pack'
+    ? { ...row, kind: 'stalker', pattern: 'pack' } : { ...row, kind: 'grazer', pattern: 'herd' })]) {
+    const admitted = parseShardfile({ ...s, creatures: { ...s.creatures, groups } });
+    const sim = createShardfileSim(admitted, new Map(), { rapier });
+    try {
+      expect(sim.groups.size).toBe(2);
+      expect(sim.host.adapters.has('brain.solo')).toBe(true);
+      for (const group of admitted.creatures.groups) expect(sim.host.adapters.has(`group.${group.id}`)).toBe(true);
+      for (const id of ['pack.0', 'pack.1', 'herd.0', 'herd.1']) expect(sim.host.hasStep(`brain.${id}`)).toBe(false);
+      for (let tick = 0; tick < 12; tick++) sim.host.step();
+      expect(sim.host.clock.frame).toBe(12);
+    } finally { sim.dispose(); }
+  }
 });
 it('installs two group controllers and one individual, drawing cold setup exactly once before fixed callbacks', () => {
   const s = source(), trace: string[] = [];
@@ -93,7 +109,7 @@ it('installs two group controllers and one individual, drawing cold setup exactl
 });
 it('refuses a missing group recipe and a later individual recipe before group setup or observations', () => {
   const s = source(), trace: string[] = [];
-  expect(() => createShardfileSim(s, new Map(), { rapier })).toThrow('Missing declared group port');
+  expect(() => createShardfileSim(s, new Map(), { rapier, groups: {} })).toThrow('Missing declared group port');
   const solo = s.creatures.spawns.find(row => row.id === 'solo');
   if (solo === undefined) throw new Error('Missing solo fixture');
   const invalid = parseShardfile({ ...s, creatures: { ...s.creatures, brains: [...s.creatures.brains, CRAB_BRAIN],
