@@ -23,3 +23,12 @@ it('allows build work but refuses every browser launch, including inherited chil
   expect(result.status, result.stderr).toBe(0);
   expect(result.stdout).toContain('build work completed without browsers');
 });
+
+
+it('refuses missing commands and malformed separators before spawning a child', () => {
+  for (const args of [[], ['--'], ['node'], ['wrong', process.execPath]]) {
+    const result = spawnSync(process.execPath, ['scripts/build-without-browser.mjs', ...args], { encoding: 'utf8', timeout: 10_000 });
+    expect(result.error).toBeUndefined(); expect(result.status).toBe(1);
+    expect(result.stderr).toContain('Usage: build-without-browser.mjs');
+  }
+});

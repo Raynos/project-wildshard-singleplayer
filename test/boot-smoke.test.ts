@@ -91,7 +91,7 @@ it('keeps hourly/manual promotion and reuses only an exact successful push-CI pr
     expect(workflow).toContain(`- name: ${step}\n        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'`);
   }
   // SF74 W16: push CI runs test:checks + the build in parallel, typecheck and lint in their own job, vitest in 8 shards.
-  expect(workflow).toContain("- name: Checks and build (parallel)\n        if: env.DEPLOY != 'true'\n        run: node scripts/ci-checks.mjs");
+  expect(workflow).toContain("- name: Checks and build (parallel)\n        if: env.DEPLOY != 'true'\n        run: node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs");
   expect(workflow).toContain('\n  typecheck-lint:\n');
   expect(workflow).toContain('shard: [1, 2, 3, 4, 5, 6, 7, 8]');
   // G287: push CI runs the shards without coverage; coverage.yml instruments them, merges and ratchets nightly + milestones.
