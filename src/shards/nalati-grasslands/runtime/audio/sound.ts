@@ -44,10 +44,7 @@ import { smoothstep } from '@wildshard/engine/core/noise';
 
 import { nalatiCombatCues } from './combatCues';
 
-const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.nalati');
-const RIVER_ZONE = requireAudioZone(PROFILE, 'river'), BROOK_ZONE = requireAudioZone(PROFILE, 'brook');
-const FALL_ZONE = requireAudioZone(PROFILE, 'fall'), CAMP = requireAudioZone(PROFILE, 'camp'), SUMMER_YURTS = requireAudioZone(PROFILE, 'summer');
-const MELT_ZONE = requireAudioZone(PROFILE, 'melt');
+
 
 export interface NalatiSound {
   bind: (audio: Audio, music?: Music, animals?: AnimalManager, wildlife?: Wildlife) => void;
@@ -96,6 +93,10 @@ function brookDistance(x: number, z: number): number {
 export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player: Player; weather: NalatiWeather; scope: Scope; on: ShardContext['on']; debug: ShardContext['debug'] },
   entered?: (install: (scope: Scope) => void) => void, audioRows: AudioData = source.audio): NalatiSound {
   const musicProfile = requireAudioProfile(audioRows.music, 'score.nalati');
+  const PROFILE = requireAudioProfile(audioRows.zones, 'ambience.nalati');
+  const RIVER_ZONE = requireAudioZone(PROFILE, 'river'), BROOK_ZONE = requireAudioZone(PROFILE, 'brook');
+  const FALL_ZONE = requireAudioZone(PROFILE, 'fall'), CAMP = requireAudioZone(PROFILE, 'camp'), SUMMER_YURTS = requireAudioZone(PROFILE, 'summer');
+  const MELT_ZONE = requireAudioZone(PROFILE, 'melt');
   const { player, weather } = ctx;
   let audio: Audio | null = null;
   let voices: SteppeVoices | null = null;
@@ -182,7 +183,7 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
           scope.onDispose(release);
           a.onLevelBank((bank) => { score?.useBank(bank.score); }, scope);
         }
-        amb = new SteppeAmbience(a);
+        amb = new SteppeAmbience(a, PROFILE);
         scope.onDispose(() => { amb?.dispose(); amb = null; audio = null; voices = null; });
         amb.onZone = (zone) => { setScene({ zone }); };
         if (entered !== undefined) scope.onDispose(() => {

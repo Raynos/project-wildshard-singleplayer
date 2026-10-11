@@ -29,10 +29,10 @@ import { Rng, fnv1a32 } from '@wildshard/engine/core/rng';
 import { Vector3 } from 'three';
 import { steppeVoices } from './synth';
 import type { SteppeZone } from './SteppeScore';
-import { requireAudioProfile, requireAudioLevel } from '@wildshard/engine/audio/audioProfiles';
+import { requireAudioProfile, requireAudioLevel, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
 import source from '../../shard.config';
 
-const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.nalati');
+const DEFAULT_PROFILE = requireAudioProfile(source.audio.zones, 'ambience.nalati');
 
 /** where the listener is, from src/shards/nalati-grasslands/sound.ts (all 0..1 unless noted) */
 export interface SteppePlace {
@@ -47,9 +47,6 @@ export interface SteppePlace {
   pan: { river: number; camp: number; melt: number };
 }
 
-const TAU = PROFILE.smoothSeconds;         // setTargetAtTime: ~1 s to 95 % (the mix changes at 4 Hz, walking pace)
-const SILENT_S = PROFILE.silentSeconds;       // a bed silent this long stops its source
-const ZONE_HOLD_S = PROFILE.holdSeconds;    // a zone must lead this long before onZone fires (no flapping on a line)
 /** Nalati's sampled beds (NALATI-MERGE A1 / A4) */
 export type SteppeLoop = 'steppe-wind' | 'steppe-larks' | 'steppe-night' | 'river' | 'meltwater' | 'camp' | 'highwind' | 'coldwind' | 'rain' | 'stormwind';
 export const STEPPE_LOOPS: readonly SteppeLoop[] = ['steppe-wind', 'steppe-larks', 'steppe-night', 'river', 'meltwater', 'camp', 'highwind', 'coldwind', 'rain', 'stormwind'];
@@ -81,7 +78,7 @@ export class SteppeAmbience {
   private lead: SteppeZone = 'grass'; private leadT = 0; private first = true;
   private herdT = rnd(8, 18); private marmotT = rnd(6, 14); private eagleT = rnd(15, 30);
 
-  constructor(private readonly audio: Audio) {
+  constructor(private readonly audio: Audio, private readonly profile: AudioZoneProfile = DEFAULT_PROFILE) {
     this.zones = new AmbienceZones(audio, steppeRandom);
     steppeVoices(audio).stormSink = (rain, wind) => {
       if (!this.sampled('rain') && !this.sampled('stormwind')) return false;
@@ -94,6 +91,7 @@ export class SteppeAmbience {
 
   /** the listener's place (sound.ts, ~4 Hz): re-mixes every bed */
   set(p: SteppePlace): void {
+    const PROFILE = this.profile, TAU = PROFILE.smoothSeconds;
     this.place = p;
     const [valley, bowl, snow] = p.zones;
     if (this.first) { // the spawn's zone counts at once (no 3 s hold, no crossfade from the valley's theme)
@@ -117,10 +115,12 @@ export class SteppeAmbience {
       stormwind: requireAudioLevel(PROFILE.levels, 'stormwind') * clamp01(this.storm.wind),
     };
     let any = 0;
-    for (const k of STEPPE_LOOPS) {
+    for (let i = 0; i < 10; i++) {
+      const k = STEPPE_LOOPS[i];
+      if (k === undefined) continue;
       const l = this.sampled(k), lv = l ? want[k] * out * l.gain : 0;
       if (l) any++;
-      this.mix(k, l, lv);
+      this.mixBed(k, l, lv);
       this.diag[k] = Math.round(lv * 1000) / 1000;
     }
     this.diag.valley = valley; this.diag.bowl = bowl; this.diag.snow = snow; this.diag.sampled = any;
@@ -131,20 +131,20 @@ export class SteppeAmbience {
   }
 
   /** one bed toward `level`: started on its first rise, restarted on a new buffer (a set switch), stopped after a silence */
-  private mix(k: SteppeLoop, l: SampleLoop | undefined, level: number): void {
-    this.zones.mix({ id: k, panned: PANNED.has(k), started: () => { tap.sound?.(`steppe.bed:${k}`); } }, l, level, TAU);
+  private mixBed(k: SteppeLoop, l: SampleLoop | undefined, level: number): void {
+    this.zones.mix({ id: k, panned: PANNED.has(k), started: () => { tap.sound?.(`steppe.bed:${k}`); } }, l, level, this.profile.smoothSeconds);
   }
 
   /** every frame: stop the beds that have been silent a while, fire the zones' far calls, track the dominant zone */
   update(dt: number, listener: { x: number; y: number; z: number }, yaw: number): void {
     const p = this.place, [valley, bowl, snow] = p.zones, day = 1 - clamp01(p.night), out = p.out > 0.5 && this.storm.wind < 0.5;
-    // the dominant zone, held ZONE_HOLD_S before it counts (the score follows it even before the first gesture)
+    // the dominant zone, held profile.holdSeconds before it counts (the score follows it even before the first gesture)
     const top = ZONES[valley >= bowl && valley >= snow ? 0 : bowl >= snow ? 1 : 2] ?? 'grass';
     if (top !== this.lead) { this.lead = top; this.leadT = 0; }
     this.leadT += dt;
-    if (this.lead !== this.zone && this.leadT >= ZONE_HOLD_S) { this.zone = this.lead; this.onZone?.(this.zone); }
+    if (this.lead !== this.zone && this.leadT >= this.profile.holdSeconds) { this.zone = this.lead; this.onZone?.(this.zone); }
     if (!this.audio.ready) return;
-    this.zones.silence(dt, SILENT_S);
+    this.zones.silence(dt, this.profile.silentSeconds);
     // the far calls: herds + marmots on the Sky Grassland, eagles over the Snow Lotus Valley (never in a gale or the kurgan)
     this.herdT -= dt; this.marmotT -= dt; this.eagleT -= dt;
     if (this.herdT <= 0) {

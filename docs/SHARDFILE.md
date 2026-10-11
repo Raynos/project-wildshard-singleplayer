@@ -1056,7 +1056,8 @@ construction. Legacy-only entries retain the source profile.
 Nalati binds its emitted music source, ordered scene selection, fade, synth lead
 and native weapon routing to its existing entered sound owner. On-demand decoding,
 bar-grid scheduling, thrust microtasks and two-entry callback restoration remain
-unchanged.
+unchanged. Emitted zone bounds, mix cadence, sampled-bed levels, smoothing,
+zone hold and silent retirement feed the same native steppe owner and RNG stream.
 Nine Dragon binds its emitted cue aliases, score source/selection and enclosed
 bed profile to the existing native owner. Zone bounds are prepared once per
 installation; footfall cycling, chime RNG, sample playback and scoped retirement
