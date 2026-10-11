@@ -4,7 +4,7 @@ import { PropsSchema, type ShardProps } from '@wildshard/format/props';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import * as v from 'valibot';
 import { parseGlb, parseKtx2 } from '../assets';
-import { contentHash } from '../project';
+import { hashImmutableBytes as contentHash } from '../immutable';
 import { staticGlb, type GlbPrimitive } from './glb';
 
 /** A reusable scatter shape and its world-local positive TRS matrices; generators run only at build time. */

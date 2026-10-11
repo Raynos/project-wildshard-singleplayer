@@ -1,7 +1,7 @@
 import { Group, Mesh, MeshStandardMaterial } from 'three';
 import { measureBox, type PastelWorldPorts } from './world';
 
-// the engine types this generator speaks, through world.ts's ports (no new engine edges for one build-time module)
+// The authored part types this generator emits, through world.ts ports.
 type Piece = Parameters<PastelWorldPorts['piece']>[0];
 /** one declared collider shape, as a registry piece carries it */
 export type ColliderDesc = NonNullable<Piece['colliders']>[number];

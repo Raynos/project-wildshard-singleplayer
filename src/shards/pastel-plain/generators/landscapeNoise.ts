@@ -51,3 +51,12 @@ export function pastelNoise(seed: number): (x: number, z: number) => number {
   const noise = new SeededNoise(seed);
   return (x, z) => noise.get(x, z);
 }
+
+/** The original named cosmetic stream, consumed only for authored scatter placement. */
+export function pastelScatterRandom(seed = 357): { range: (a: number, b: number) => number } {
+  const name = `${String(seed >>> 0)}:cosmetic`;
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < name.length; i++) hash = Math.imul(hash ^ (name.codePointAt(i) ?? 0), 0x01000193);
+  const draw = seededDraw(hash >>> 0);
+  return { range: (a, b) => a + (b - a) * draw() };
+}

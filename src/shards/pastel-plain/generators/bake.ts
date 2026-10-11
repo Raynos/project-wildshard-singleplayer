@@ -1,5 +1,5 @@
 import { bakeProps } from '@wildshard/sdk/bake/props';
-import { canonicalJson } from '@wildshard/sdk/project';
+import { encodeCanonicalJson as canonicalJson } from '@wildshard/sdk/immutable';
 import { pastelProps } from './props';
 import { pastelTerrain } from './terrain';
 

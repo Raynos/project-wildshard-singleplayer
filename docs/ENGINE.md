@@ -3350,3 +3350,5 @@ G320: the complete pure shardfile/asset admission closure is defined by format: 
 ### Author-only terrain job (G320)
 
 Pastel Plain retains its seeded yard/pool/trail/entry grading in `generators/landscape.ts`; `bake-pastel-terrain.mjs` emits all 81 immutable terrain files plus the defining terrain JSON through the SDK compiler. `pastel-author-terrain` is a registered cold regeneration job, with no runtime, legacy, registry or page input. It currently compares retained output bytes; cache promotion and a complete shard-product job remain separate gates. The authoring loader supports direct generator script paths and the confined SDK JSON driver, and refuses game/engine/runtime imports in both.
+
+G320 Pastel props: `pastel-author-props` retains readable geometry builders, authored collider rows and the original seeded cosmetic scatter stream. Its Node producer has no game, engine, runtime or generated-source imports. It regenerates `data/props.json` and all 79 immutable prop assets; complete shard-product and Linux removal gates remain separate. The props compiler and combined terrain/props producer use the pure immutable byte helpers.
