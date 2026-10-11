@@ -1,7 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Node fixture validates packet indexing against the committed compressed recordings.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { indexAac } from '@wildshard/format/aacIndex';
+import { parseAudio } from '@wildshard/format/product';
+import { indexAac, indexRecordingAac } from '@wildshard/format/aacIndex';
 
 const u32 = (...values: number[]): Uint8Array => {
   const bytes = new Uint8Array(values.length * 4), view = new DataView(bytes.buffer);
@@ -43,6 +44,7 @@ describe('bounded incremental AAC packet admission', () => {
   it('indexes only encoded packets, respects byteOffset and owns compact independent metadata', () => {
     const source = fixture(), padded = concat(new Uint8Array(9), source, new Uint8Array(7));
     const index = indexAac(padded.subarray(9, 9 + source.length));
+    expect(indexRecordingAac(padded.subarray(9, 9 + source.length))).toEqual(index);
     expect(index.sampleRate).toBe(48000); expect(index.channels).toBe(2);
     expect(index.primingFrames).toBe(1024); expect(index.mediaFrames).toBe(2040);
     expect([...index.description]).toEqual([0x11, 0x90]); expect([...index.sizes]).toEqual([3, 4]);
@@ -85,8 +87,34 @@ describe('bounded incremental AAC packet admission', () => {
     ['orchestral', 'title-b47c8a52.m4a', 2149, 2200127],
   ] as const)('indexes the shipped %s AAC without allocating decoded audio', (_genre, file, packets, frames) => {
     const index = indexAac(readFileSync(new URL(`../../../public/assets/music/${_genre}/${file}`, import.meta.url)));
+    expect(indexRecordingAac(readFileSync(new URL(`../../../public/assets/music/${_genre}/${file}`, import.meta.url)))).toEqual(index);
     expect(index.sizes).toHaveLength(packets); expect(index.mediaFrames).toBe(frames);
     expect(index.primingFrames).toBe(1024); expect([...index.description]).toEqual([0x11, 0x90, 0x56, 0xe5, 0]);
     expect(index.offsets.byteLength + index.sizes.byteLength + index.description.byteLength).toBe(packets * 8 + 5);
   });
+});
+
+it('admits the original mono Pine sprite without changing stereo incremental playback', () => {
+  const bytes = Uint8Array.from(readFileSync(new URL('../../../public/assets/sfx/pine-hollow/oneshots-362ce515.m4a', import.meta.url)));
+  expect(() => indexAac(bytes)).toThrow('sample format');
+  const indexed = indexRecordingAac(bytes);
+  expect(indexed.channels).toBe(1); expect(indexed.sampleRate).toBe(48000);
+  expect(indexed.mediaFrames).toBe(7673012); expect(indexed.primingFrames).toBe(1024);
+  expect(indexed.sizes).toHaveLength(7494);
+  expect((indexed.mediaFrames - indexed.primingFrames) / indexed.sampleRate).toBeCloseTo(159.833, 3);
+  expect(parseAudio(bytes)).toEqual({ decoded: indexed.sizes.length * 1024 * 4, gpu: 0, triangles: 0, draws: 0 });
+  const changed = Uint8Array.from(bytes), at = field(changed, 'mp4a');
+  new DataView(changed.buffer).setUint16(at + 16, 2);
+  expect(() => indexRecordingAac(changed)).toThrow('channel configuration');
+  expect(() => parseAudio(changed)).toThrow();
+  for (const [type, offset, value, reason] of [
+    ['stsc', 8, 2, 'chunk mapping'], ['stsc', 12, 0, 'chunk mapping'],
+    ['stsc', 16, 2, 'chunk mapping'], ['stsc', 20, 1, 'chunk mapping'],
+    ['stsc', 24, 569, 'chunk packet totals'], ['stsc', 24, 567, 'chunk packet totals'],
+    ['stco', 12, 30799, 'chunk outside media'],
+  ] as const) {
+    const invalid = Uint8Array.from(bytes);
+    new DataView(invalid.buffer).setUint32(field(invalid, type) + offset, value);
+    expect(() => indexRecordingAac(invalid)).toThrow(reason);
+  }
 });

@@ -12,6 +12,8 @@ export interface AacIndex {
   readonly offsets: Uint32Array;
   readonly sizes: Uint32Array;
 }
+/** Bounded packet metadata for full-file mono or stereo recording admission. */
+export type RecordingAacIndex = Omit<AacIndex, 'channels'> & { readonly channels: 1 | 2 };
 interface Box { readonly type: string; readonly start: number; readonly end: number }
 const MAX_BYTES = 32 * 1024 * 1024;
 const MAX_PACKETS = 16384;
@@ -62,12 +64,14 @@ class Reader {
     requireIndex(complete && size > 0 && at + size <= end, 'descriptor bounds');
     return { start: at, end: at + size };
   }
-  config(stsd: Box): Uint8Array {
+  config(stsd: Box, expectedChannels: 2 | undefined): { description: Uint8Array; channels: 1 | 2 } {
     const at = this.full(stsd); requireIndex(this.u32(at, stsd.end) === 1, 'one sample description');
     const sample = this.one(this.children(at + 4, stsd.end), 'mp4a');
     requireIndex(this.u16(sample.start + 6, sample.end) === 1, 'external sample data');
     requireIndex(this.u16(sample.start + 8, sample.end) === 0, 'audio sample version');
-    requireIndex(this.u16(sample.start + 16, sample.end) === 2 && this.u16(sample.start + 18, sample.end) === 16, 'sample format');
+    const channels = this.u16(sample.start + 16, sample.end);
+    requireIndex((channels === 1 || channels === 2) && (expectedChannels === undefined || channels === expectedChannels)
+      && this.u16(sample.start + 18, sample.end) === 16, 'sample format');
     requireIndex(this.u32(sample.start + 24, sample.end) === 48000 * 65536, 'sample rate');
     const esds = this.one(this.children(sample.start + 28, sample.end), 'esds');
     const es = this.descriptor(this.full(esds), esds.end, 3);
@@ -78,11 +82,11 @@ class Reader {
     requireIndex(specific.end === decoder.end && specific.end - specific.start <= 16, 'decoder description');
     const a = this.bytes[specific.start], b = this.bytes[specific.start + 1];
     requireIndex(a !== undefined && b !== undefined && a >>> 3 === 2 && ((a & 7) << 1 | b >>> 7) === 3
-      && (b >>> 3 & 15) === 2 && (b & 7) === 0, '48 kHz stereo AAC-LC configuration');
+      && (b >>> 3 & 15) === channels && (b & 7) === 0, '48 kHz AAC-LC channel configuration');
     requireIndex(specific.end - specific.start === 2 || (specific.end - specific.start === 5
       && this.bytes[specific.start + 2] === 0x56 && this.bytes[specific.start + 3] === 0xe5
       && this.bytes[specific.start + 4] === 0), 'AAC extension');
-    return this.bytes.slice(specific.start, specific.end);
+    return { description: this.bytes.slice(specific.start, specific.end), channels };
   }
 }
 
@@ -92,6 +96,15 @@ class Reader {
  * It has no import-time services and does not select a playback backend.
  */
 export function indexAac(bytes: Uint8Array): AacIndex {
+  const indexed = readIndex(bytes, true);
+  requireIndex(indexed.channels === 2, 'stereo playback');
+  return { ...indexed, channels: 2 };
+}
+/** Inspect full-file mono/stereo recordings without selecting incremental playback.
+ * Chunk mappings and media bounds are validated before packet metadata allocation.
+ */
+export function indexRecordingAac(bytes: Uint8Array): RecordingAacIndex { return readIndex(bytes, false); }
+function readIndex(bytes: Uint8Array, contiguousStereo: boolean): RecordingAacIndex {
   requireIndex(bytes.length >= 8 && bytes.length <= MAX_BYTES, 'file size');
   const r = new Reader(bytes), root = r.children(0, bytes.length);
   requireIndex(!root.some(box => box.type === 'moof'), 'fragmented media');
@@ -111,16 +124,22 @@ export function indexAac(bytes: Uint8Array): AacIndex {
   requireIndex(primingFrames <= 8192 && r.u32(editAt + 12, edit.end) === 65536, 'edit rate / priming');
   const table = r.inside(r.one(mdiaBoxes, 'minf'), 'stbl'), entries = r.children(table.start, table.end);
   requireIndex(!entries.some(box => ['ctts', 'stss', 'co64', 'senc', 'saiz', 'saio'].includes(box.type)), 'unsupported sample layout');
-  const description = r.config(r.one(entries, 'stsd'));
+  const { description, channels } = r.config(r.one(entries, 'stsd'), contiguousStereo ? 2 : undefined);
   const stsz = r.one(entries, 'stsz'), sizeAt = r.full(stsz);
   requireIndex(r.u32(sizeAt, stsz.end) === 0, 'explicit packet sizes');
   const count = r.u32(sizeAt + 4, stsz.end);
   requireIndex(count > 0 && count <= MAX_PACKETS && sizeAt + 8 + count * 4 === stsz.end, 'packet count');
-  const sc = r.one(entries, 'stsc'), scTable = r.table(sc, 12, 1);
-  requireIndex(r.u32(scTable.at, sc.end) === 1 && r.u32(scTable.at + 4, sc.end) === count
+  const sc = r.one(entries, 'stsc'), scTable = r.table(sc, 12, contiguousStereo ? 1 : MAX_PACKETS);
+  const co = r.one(entries, 'stco'), coTable = r.table(co, 4, contiguousStereo ? 1 : MAX_PACKETS);
+  if (contiguousStereo) requireIndex(r.u32(scTable.at, sc.end) === 1 && r.u32(scTable.at + 4, sc.end) === count
     && r.u32(scTable.at + 8, sc.end) === 1, 'contiguous chunk mapping');
-  const co = r.one(entries, 'stco'), coTable = r.table(co, 4, 1), offset = r.u32(coTable.at, co.end);
-  requireIndex(offset >= media.start && offset < media.end, 'chunk outside media');
+  let previous = 0;
+  for (let i = 0; i < scTable.count; i++) {
+    const at = scTable.at + i * 12, first = r.u32(at, sc.end), packets = r.u32(at + 4, sc.end);
+    requireIndex(first > previous && first <= coTable.count && (i !== 0 || first === 1)
+      && packets > 0 && packets <= count && r.u32(at + 8, sc.end) === 1, 'chunk mapping');
+    previous = first;
+  }
   const ts = r.one(entries, 'stts'), times = r.table(ts, 8, 2);
   let frames = 0, timedPackets = 0;
   for (let i = 0; i < times.count; i++) {
@@ -130,16 +149,28 @@ export function indexAac(bytes: Uint8Array): AacIndex {
     timedPackets += n; frames += n * duration;
   }
   requireIndex(timedPackets === count && frames === mediaFrames && mediaFrames > primingFrames, 'timing totals');
-  // Validate the entire table before allocating the compact descriptor arrays.
-  let end = offset;
-  for (let i = 0; i < count; i++) {
-    const size = r.u32(sizeAt + 8 + i * 4, stsz.end);
-    requireIndex(size > 0 && size <= 65536 && end + size <= media.end, 'packet outside media'); end += size;
-  }
+  // Validate every chunk and packet before allocating metadata. Chunks may contain padding,
+  // but cannot overlap, alias another chunk or leave the single admitted media box.
+  const visit = (write?: { offsets: Uint32Array; sizes: Uint32Array }): void => {
+    let packet = 0, mapping = 0, previousEnd = media.start;
+    for (let chunk = 1; chunk <= coTable.count; chunk++) {
+      if (mapping + 1 < scTable.count && r.u32(scTable.at + (mapping + 1) * 12, sc.end) === chunk) mapping++;
+      const packets = r.u32(scTable.at + mapping * 12 + 4, sc.end);
+      let at = r.u32(coTable.at + (chunk - 1) * 4, co.end);
+      requireIndex(at >= previousEnd && at < media.end, 'chunk outside media');
+      requireIndex(packet + packets <= count, 'chunk packet totals');
+      for (let i = 0; i < packets; i++, packet++) {
+        const size = r.u32(sizeAt + 8 + packet * 4, stsz.end);
+        requireIndex(size > 0 && size <= 65536 && at + size <= media.end, 'packet outside media');
+        if (write) { write.offsets[packet] = at; write.sizes[packet] = size; }
+        at += size;
+      }
+      previousEnd = at;
+    }
+    requireIndex(packet === count, 'chunk packet totals');
+  };
+  visit();
   const offsets = new Uint32Array(count), sizes = new Uint32Array(count);
-  let at = offset;
-  for (let i = 0; i < count; i++) {
-    const size = r.u32(sizeAt + 8 + i * 4, stsz.end); offsets[i] = at; sizes[i] = size; at += size;
-  }
-  return { sampleRate: 48000, channels: 2, description, primingFrames, mediaFrames, offsets, sizes };
+  visit({ offsets, sizes });
+  return { sampleRate: 48000, channels, description, primingFrames, mediaFrames, offsets, sizes };
 }

@@ -3393,3 +3393,12 @@ actual emitted audio section and that reader. Installers keep the existing
 sample/score decoder, selection order, WebAudio clock and scoped RNG. Existing
 one-argument installers remain valid. Native runtime ownership and catalogue
 adoption are separate; this port does not create another audio owner.
+
+`indexAac(bytes)` keeps the stereo-only incremental playback contract.
+`indexRecordingAac(bytes)` inspects bounded, unfragmented 48 kHz mono/stereo
+AAC-LC recordings for immutable admission, including ordered multiple chunks.
+Packet/configuration checks and channel
+agreement remain strict. `parseAudio` charges either accepted layout's actual
+full float32 frames, including priming/padding; it never decodes or changes
+recording bytes. This does not lower the library cap or promise a new playback
+backend for mono clips.

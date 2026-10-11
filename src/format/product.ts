@@ -1,4 +1,4 @@
-import { indexAac } from '@wildshard/format/aacIndex';
+import { indexRecordingAac } from '@wildshard/format/aacIndex';
 import { decodeTerrainTile, isTerrainTileData, terrainTileCost, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
 import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from "@wildshard/format/meshCollisionBytes";
 import { visitGlbGeometry, type GlbVertex } from "@wildshard/format/glbTriangles";
@@ -245,7 +245,7 @@ export function parseAudio(bytes: Uint8Array): AssetCost {
   requireRange(bytes, 0, 12);
   if (new TextDecoder().decode(bytes.subarray(4, 8)) === 'ftyp') {
     if (bytes.length > MAX_BYTES) throw new Error('audio byte cap');
-    const indexed = indexAac(bytes);
+    const indexed = indexRecordingAac(bytes);
     if (indexed.mediaFrames / indexed.sampleRate > 180) throw new Error('AAC duration cap');
     // Include priming and the entire final packet: never undercharge packet padding or encoder delay.
     return { decoded: indexed.sizes.length * 1024 * indexed.channels * 4, gpu: 0, triangles: 0, draws: 0 };

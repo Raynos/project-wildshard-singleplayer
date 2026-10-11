@@ -1035,6 +1035,12 @@ values and 512 uniquely named radial ambience zones. These are validated data;
 catalogue resolution, existing sample decoders, bar-grid scheduling, geometry
 queries and bespoke synthesis remain trusted platform/runtime installers.
 
+Immutable AAC admission accepts the same bounded 48 kHz AAC-LC packet layout
+in mono or stereo, charging the actual channel count, priming and final packet.
+Container and codec channel declarations must agree. The incremental title
+playback reader remains stereo-only; mono recordings use the existing whole
+file decoder. No recording is resampled or re-encoded by admission.
+
 Optional `audio.recordings` maps at most 1024 existing catalogue paths such as
 `/assets/music/folk/pickup.m4a` to local SHA-256 or `commons:<SHA-256>`
 references. Paths are lookup identities, never network addresses: only bounded
