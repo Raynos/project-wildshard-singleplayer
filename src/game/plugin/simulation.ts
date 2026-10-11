@@ -13,7 +13,7 @@ import { parseSocketLift, type SocketLift } from '@wildshard/format/socketLift';
 import { walkEdgeEntries } from '@wildshard/engine/physics/edgeEntries';
 import { provePortalLinks } from '../shardfile/portalLinkProof';
 import { DirectorStageLane } from './director';
-import { directorDayRange } from '@wildshard/format/directorStages';
+import { directorDayRange, directorDataHostIssues } from '@wildshard/format/directorStages';
 import { DEFAULT_NORMALIZED_DAY, normalizedDayClock, inNormalizedDayRange, type DayCycle } from '@wildshard/engine/world/dayCycle';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimCommand, type SimHostPorts, type SimStrike, type SimValue } from "@wildshard/engine/sim";
 import { buildPlatformSpawns } from "@wildshard/engine/ai/platform";
@@ -305,8 +305,8 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       }
     }
     for (const data of shard.directors ?? []) {
-      if (data.script !== null || Object.values(data.inputs).some(binding => !binding.startsWith('flag:') && directorDayRange(binding) === null)
-        || data.stages.some(stage => stage.do.some(action => !('flag' in action)))) throw new Error('Director rows require native bindings for their observations and actions');
+      const bindingIssues = directorDataHostIssues(data);
+      if (bindingIssues.length > 0) throw new Error(`Director rows require native bindings for their observations and actions: ${bindingIssues.join('; ')}`);
       if (Object.values(data.inputs).some(binding => binding.startsWith('flag:') && !shard.quests.flags.includes(binding.slice(5)))
         || data.stages.some(stage => stage.do.some(action => 'flag' in action && !shard.quests.flags.includes(action.flag.key)))) throw new Error('Director flag has no declared native owner');
       const director = new DirectorStageLane(data);

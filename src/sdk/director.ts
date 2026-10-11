@@ -1,5 +1,5 @@
 import { parseDirector } from '@wildshard/format/director';
-import { parseDirectorStages, type DirectorStagesData, type DirectorStagesDefinition } from '@wildshard/format/directorStages';
+import { directorDataHostIssues, parseDirectorStages, type DirectorStagesData, type DirectorStagesDefinition } from '@wildshard/format/directorStages';
 import { Object3D } from 'three';
 
 /** Typed director data with bounded observations, payloads and reserved grid subscriptions. */
@@ -15,6 +15,8 @@ export class Director {
   }
   /** Emit independent JSON data, retaining stage and action registration order. */
   toJSON(): DirectorStagesData { return structuredClone(this.definition); }
+  /** Inspect stock data-only support without granting native ownership or changing admitted rows. */
+  dataHostIssues(): readonly string[] { return directorDataHostIssues(this.definition); }
   /** Attach this data declaration to a named graph node for scene.json transport; never installs a stage host. */
   attachTo(parent: Object3D): Object3D {
     const object = new Object3D(); object.name = this.definition.id; object.userData['director'] = this; parent.add(object); return object;

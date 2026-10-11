@@ -1735,3 +1735,7 @@ G320: the complete pure shardfile/asset admission closure is defined by format: 
 ## Config and generator boundary (OS-G2)
 
 Compile and write in retained Node `generate.ts` before bundled config evaluation; configs import generated metadata. The reference project compiles an actual typed idle module and writes its immutable asset before loading config. See [the generation guide](authoring/config-generation.md). Bundled filesystem/compiler imports refuse before evaluation with that actionable diagnosis.
+
+## Director host capabilities (OS-G3)
+
+Director.dataHostIssues() describes stock data-only support: declared quest flags and bounded day observations, flag actions only. Other syntax needs an explicit native owner; emit never invents AS delivery. See [the host/action matrix](authoring/director-hosts.md) and the executed beacon flag-to-quest example.

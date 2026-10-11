@@ -71,3 +71,17 @@ export function parseDirectorStages(input: unknown): DirectorStagesData { return
 
 /** Root-owned pacing rows with distinct identities; an AS handler is installed only through explicit trusted bindings. */
 export const DirectorsSchema = v.pipe(v.array(DirectorStagesSchema), v.maxLength(16), v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'Unique director identities'));
+
+/** Describe stock data-only support: quest flags, bounded day inputs and flag actions.
+ * Other admitted actions need trusted native owners; emit is not AssemblyScript delivery. */
+export function directorDataHostIssues(data: DirectorStagesData): readonly string[] {
+  const issues: string[] = [];
+  if (data.script !== null) issues.push('script requires a trusted typed director host');
+  for (const [inputName, binding] of Object.entries(data.inputs)) {
+    if (!binding.startsWith('flag:') && directorDayRange(binding) === null) issues.push(`input ${inputName} (${binding}) requires a native observation owner`);
+  }
+  for (const stage of data.stages) for (const command of stage.do) {
+    if (!('flag' in command)) issues.push(`stage ${stage.id}: ${Object.keys(command)[0]} requires a native action owner${'emit' in command ? '; emit does not deliver an AssemblyScript input' : ''}`);
+  }
+  return issues;
+}

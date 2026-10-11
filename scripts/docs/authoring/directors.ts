@@ -24,3 +24,16 @@ export function dayDirectorExample() {
     { id: 'waiting' }, { id: 'lit', when: 'dusk', do: [{ flag: { key: 'outpost.beacon-ready', value: true } }] },
   ] }).toJSON();
 }
+
+/** Supported handoff: a director requests a declared flag; the existing quest owner completes it. */
+export function beaconRequestExample() {
+  const director = new Director({ id: 'outpost.beacon', inputs: { dusk: 'day:0.75..0.84' }, stages: [
+    { id: 'waiting' }, { id: 'requested', when: 'dusk', do: [{ flag: { key: 'outpost.beacon-request', value: true } }] },
+  ] });
+  const quests = { flags: ['outpost.beacon-request', 'outpost.beacon-complete'], triggers: [], dialogue: [], quests: [{
+    id: 'outpost.beacon', title: 'Light the beacon', completeFlag: 'outpost.beacon-complete',
+    steps: [{ id: 'request', objective: 'Request the beacon at dusk', done: { all: ['outpost.beacon-request'] } }],
+    onComplete: { fact: 'outpost.beacon-lit' },
+  }] };
+  return { director: director.toJSON(), quests, unsupported: director.dataHostIssues() };
+}
