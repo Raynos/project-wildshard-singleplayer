@@ -875,7 +875,7 @@ equipment viewmodel host, including off-hand tools, and leave with the level sco
 Edge rows retain every native boundary vertex; 129-point decimation is refused. A modern terrain collider is 257² and carries 257 samples per side, without resampling. When a 256-point neighbour meets a 257-point neighbour, the platform strip uses the sorted union of their native positions (511 points), so both exact boundaries survive.
 
 `creatures.brains` accepts `pursue`, `skirmisher`, `guardian`, `perch-hunter`,
-`grazer`, `ram-grazer`, `challenge-grazer`, `orbit-diver`, `patrol-diver`, `burst-flyer` and `script`
+`grazer`, `diver`, `ram-grazer`, `challenge-grazer`, `orbit-diver`, `patrol-diver`, `burst-flyer` and `script`
 policies. The three native families use the strict schemas in `shardfile/brains`;
 their optional `thinkDivisor` defaults to six and must divide 60. Decisions run at
 that cadence, and the owning body recipe runs once per fixed step. The loader
@@ -915,6 +915,16 @@ writes. One actor callback runs divisor-scheduled decisions, fixed-step policy
 action and native body work. Mutable policy and strike clocks are snapshotted
 with their cadence and tuning contracts; restoration runs no observations,
 body work or random draws.
+
+The `diver` archetype (SF82) selects a strict `pattern`: `orbit`, `patrol` or
+`burst`. Its flat tuning, home, named strike and default six-tick `thinkDivisor`
+are exactly those of the corresponding historical flight row; fields from a
+different pattern refuse. `@wildshard/format/flyers` defines `DiverSchema`,
+`parseDiver` and `diverPreset`; `@wildshard/sdk/flyers` emits the row through
+`diver(data)`. The shared policy preserves each pattern's state and contact laws.
+The pure canonicalization is also used by full-shard strike/home/flight admission
+and installation, so the existing trusted ports and save contracts remain exact.
+Old flight row names stay admitted presets. Phased and stoop patterns remain open.
 
 Flying policies use `shardfile/flyers` and name a declared sphere strike and a
 home inside the cell. Their spawned species must declare `flight`: finite
@@ -1431,6 +1441,3 @@ clip and the local-pitch winch clip. Its former per-shard lift and bridge guests
 
 
 Pine elitePreludeStages.json uses the fixed emit actions for native clock/clear/home/fight/idle owners. The when expressions put absence first, then leashing, then engagement. No AS escape handler is needed for these boolean guards. Each actor keeps a separate complete stage contract and cursor; existing admitted AS fights and their verbs are unchanged.
-
-
-Nalati raidStages.json binds the admitted raid.try, raid.finish, raid.abandon, raid.clock and raid.pending outputs to the fixed emit action set. Bounded AS payloads mirror exact native timers; the rows retain literal action values. Its retained behaviour/director.as and build.json regenerate the small module/embedded JSON through the portable content-hash build cache, never a one-time export. No page is a producer.

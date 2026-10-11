@@ -1,3 +1,4 @@
+import { diverPreset } from '@wildshard/format/flyers';
 import { grazerPreset } from '@wildshard/format/grazers';
 import { ShardFiniteSchema as finite, ShardReferenceSchema as ref, ShardNamesSchema as names, IdentitySchema, RequiresSchema, BudgetsSchema, SimSchema, AuthorCapsSchema, ServerBudgetSchema, FilesSchema, TilesSchema, LibrarySchema, CriticalSchema, FarSchema, SpawnSchema } from '@wildshard/format/shardSections';
 import * as v from 'valibot';
@@ -182,7 +183,7 @@ export function shardfileRules(s: Shardfile): string[] {
   const species = new Map(s.rows.species.map((row) => [row.id, row])), strikes = new Map(s.rows.strikes.map((row) => [row.id, row]));
   for (const brain of s.creatures.brains) if (brain.kind === 'script' && (!s.sim.scripts.includes(brain.module) || brain.strikes.some((request) => !strikes.has(request.strike)))) errors.push('declared custom brain module and strikes');
   for (const declared of s.creatures.brains) {
-    const brain = declared.kind === 'grazer' ? grazerPreset(declared) : declared;
+    const brain = declared.kind === 'grazer' ? grazerPreset(declared) : declared.kind === 'diver' ? diverPreset(declared) : declared;
     if (brain.kind === 'ram-grazer') {
       const strike = strikes.get(brain.strike);
       if (strike?.shape.kind !== 'lane' || strike.windup <= 0 || strike.range <= 0) errors.push('declared ram grazer lane strike');

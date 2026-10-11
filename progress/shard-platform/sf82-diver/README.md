@@ -29,3 +29,23 @@ Phased flyer, wind stooper, grazer herd, stalker, guardian and script unificatio
 remain open, as do boss rows and the subsequent shard row adoptions. Elite and
 director hosts remain reserved for the coordinated SF81 boundary. No figure
 texture admission change or graphical review is included.
+
+The additive data spelling is `kind: 'diver'`, `pattern: 'orbit' | 'patrol' |
+'burst'`. The strict defining schema reuses the historical fields and bounds;
+one pure mapping removes the pattern and selects its old contract. Full-shard
+reference checks and all-row native installation use the same mapping. No
+runtime facade, native body implementation or extra callback is introduced.
+
+The full-host fixture compares state and ordered callbacks between old and new
+rows, restores an old save into the new spelling without observations/RNG, then
+compares the next 1,000 ticks. Every pattern refuses missing/non-sphere strikes,
+ground-only actors and homes outside the cell. Author-schema fixtures cover
+unknown and cross-pattern fields, cadence, perception ordering and speed bounds.
+
+Row proof: 58 focused tests across five files pass in 10.63 seconds, including
+SF45's complete schema/ABI coverage and all 90 generated JSON Schema roots.
+Root strict, layer strict, touched typed lint and ratchet pass. Four native
+witnesses reproduce identical payloads/outcomes (43.7 seconds under shared load).
+The host gains one game→format defining import; SDK author/JSON declarations add
+three format bindings within the standing approval. No generated file, witness
+manifest, geometry, species registration or gameplay data is committed here.

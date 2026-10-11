@@ -1,4 +1,4 @@
-import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/format/flyers';
+import { parseDiver, parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/format/flyers';
 
 /** Admitted orbit/stalk/dive tuning with a stable home and named sphere strike. */
 export type OrbitDiverData = ReturnType<typeof parseOrbitDiver>;
@@ -12,3 +12,8 @@ export function patrolDiver(data: unknown): PatrolDiverData { return parsePatrol
 export type BurstFlyerData = ReturnType<typeof parseBurstFlyer>;
 /** Validate a burst flyer without publishing a contact, random draw or player impulse. */
 export function burstFlyer(data: unknown): BurstFlyerData { return parseBurstFlyer(data); }
+
+/** Admitted orbit, patrol or burst data for the shared diver archetype. */
+export type DiverData = ReturnType<typeof parseDiver>;
+/** Emit validated flight-pattern data, leaving bodies and contacts with the native host. */
+export function diver(data: unknown): DiverData { return parseDiver(data); }

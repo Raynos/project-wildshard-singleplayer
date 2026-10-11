@@ -10,13 +10,18 @@ const coordinate = v.pipe(finite, v.minValue(-10000), v.maxValue(10000));
 const home = v.strictObject({ x: coordinate, z: coordinate, r: positive, y: coordinate });
 const cadence = v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(60), v.check(n => 60 % n === 0, 'Brain divisor divides 60')), 6);
 
+function orderedOrbit(row: { noticeRadius: number; giveUpRadius: number }): boolean { return row.noticeRadius <= row.giveUpRadius; }
+function boundedPatrol(row: { diveFrom: number; noticeRadius: number; glideSpeed: number; climbSpeedBonus: number }): boolean {
+  return row.diveFrom <= row.noticeRadius && row.glideSpeed + row.climbSpeedBonus <= 30;
+}
+
 /** Circle, overhead stalk and chest dive declarations with a stable authored orbit and named sphere strike. */
 export const OrbitDiverSchema = v.pipe(v.strictObject({
   id: key, kind: v.literal('orbit-diver'), thinkDivisor: cadence, strike: key, home,
   circleSpeed: speed, hangAltitude: radius, stalkSpeed: speed, diveSpeed: speed, restSeconds: radius,
   noticeRadius: radius, giveUpRadius: radius, initialRestSeconds: radius, stalkMaxSeconds: positive,
   riseMargin: radius, targetHeight: radius, alignRadius: positive, alignTolerance: positive,
-}), v.check(row => row.noticeRadius <= row.giveUpRadius, 'Ordered orbit perception'));
+}), v.check(row => orderedOrbit(row), 'Ordered orbit perception'));
 /** Admitted orbit/dive policy; native flight, token and contact execution remain trusted host ports. */
 export type ShardOrbitDiver = v.InferOutput<typeof OrbitDiverSchema>;
 /** Validate overhead dive data without instantiating a creature or executing its native flight recipe. */
@@ -30,7 +35,7 @@ export const PatrolDiverSchema = v.pipe(v.strictObject({
   noticeRadius: radius, diveFrom: radius, diveSpeed: speed, climbAltitude: radius, climbSeconds: positive,
   diveMaxSeconds: positive, restSeconds: radius, targetHeight: radius, diveSlope: radius,
   climbSpeedBonus: speed, orbitLead: radius, heldField: field,
-}), v.check(row => row.diveFrom <= row.noticeRadius && row.glideSpeed + row.climbSpeedBonus <= 30, 'Ordered patrol perception and bounded climb speed'));
+}), v.check(row => boundedPatrol(row), 'Ordered patrol perception and bounded climb speed'));
 /** Admitted patrol/swoop policy with stable home, strike and held-field bindings. */
 export type ShardPatrolDiver = v.InferOutput<typeof PatrolDiverSchema>;
 /** Refuse invalid patrol timing, memory fields and speed before any callbacks register. */
@@ -45,3 +50,29 @@ export const BurstFlyerSchema = v.strictObject({
 export type ShardBurstFlyer = v.InferOutput<typeof BurstFlyerSchema>;
 /** Validate burst-flight tuning and its stable orbit without publishing contacts or impulses. */
 export function parseBurstFlyer(data: unknown): ShardBurstFlyer { return v.parse(BurstFlyerSchema, data); }
+
+/** One diver archetype; each flight pattern retains the existing bounds, home and named sphere strike. */
+export const DiverSchema = v.variant('pattern', [
+  v.pipe(v.strictObject({ ...OrbitDiverSchema.pipe[0].entries, kind: v.literal('diver'), pattern: v.literal('orbit') }),
+    v.check(row => orderedOrbit(row), 'Ordered orbit perception')),
+  v.pipe(v.strictObject({ ...PatrolDiverSchema.pipe[0].entries, kind: v.literal('diver'), pattern: v.literal('patrol') }),
+    v.check(row => boundedPatrol(row), 'Ordered patrol perception and bounded climb speed')),
+  v.strictObject({ ...BurstFlyerSchema.entries, kind: v.literal('diver'), pattern: v.literal('burst') }),
+]);
+/** Admitted diver row; native flight and contact authority remain loader-owned. */
+export type ShardDiver = v.InferOutput<typeof DiverSchema>;
+/** Validate a flight pattern without constructing a body, strike runner or callback. */
+export function parseDiver(data: unknown): ShardDiver { return v.parse(DiverSchema, data); }
+/** Exact historical preset spelling for body ports and serialized contracts; no tuning or cadence changes. */
+export function diverPreset(data: ShardDiver): ShardOrbitDiver | ShardPatrolDiver | ShardBurstFlyer {
+  if (data.pattern === 'orbit') {
+    const { pattern: _pattern, ...row } = data;
+    return { ...row, kind: 'orbit-diver' };
+  }
+  if (data.pattern === 'patrol') {
+    const { pattern: _pattern, ...row } = data;
+    return { ...row, kind: 'patrol-diver' };
+  }
+  const { pattern: _pattern, ...row } = data;
+  return { ...row, kind: 'burst-flyer' };
+}

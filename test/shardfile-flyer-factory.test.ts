@@ -9,7 +9,7 @@ import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile, shardfileRules, type Shardfile } from '../src/game/shardfile/schema';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimPorts } from '../src/game/plugin/simulation';
-import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/format/flyers';
+import { parseDiver, parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/format/flyers';
 import { scoredStrikes, speciesResolver } from '../src/game/plugin/brain';
 import { parseRows } from '@wildshard/format/rows';
 import template from '../src/shards/_template/shard.config';
@@ -41,6 +41,14 @@ function source(): Shardfile {
   s.creatures.spawns = s.creatures.brains.map((brain, i) => ({ id: `actor.${i}`, brain: brain.id,
     species: i === 3 ? 'boar' : 'flying-boar', variant: 'greyback', seed: i, scale: 1, strike: null,
     at: [i === 3 ? 4 : i * 4 - 4, i === 2 ? 3 : i === 3 ? 0 : 14, i === 3 ? -4 : 4], yaw: 0 }));
+  return parseShardfile(s);
+}
+function parametricSource(): Shardfile {
+  const s = source();
+  s.creatures.brains = s.creatures.brains.map(row => row.kind === 'orbit-diver'
+    ? parseDiver({ ...row, kind: 'diver', pattern: 'orbit' })
+    : row.kind === 'patrol-diver' ? parseDiver({ ...row, kind: 'diver', pattern: 'patrol' })
+      : row.kind === 'burst-flyer' ? parseDiver({ ...row, kind: 'diver', pattern: 'burst' }) : row);
   return parseShardfile(s);
 }
 function options(s: Shardfile, trace: string[], prepared?: (host: SimHost) => void): ShardfileSimPorts {
@@ -123,4 +131,43 @@ it('restores without observations and replays flight motors, policy clocks and c
     expect(original.some(row => row.startsWith('hit:'))).toBe(true);
     expect(suffix).toEqual(original); expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(sim.host));
   } finally { sim.dispose(); restored?.dispose(); }
+});
+it('applies full-schema strike, home and flight admission to every parametric diver', () => {
+  const s = parametricSource();
+  expect(s.creatures.brains.map(row => row.kind)).toEqual(['diver', 'diver', 'diver', 'pursue']);
+  for (const row of s.creatures.brains) {
+    if (row.kind !== 'diver') continue;
+    const missing = structuredClone(s); missing.rows.strikes = missing.rows.strikes.filter(strike => strike.id !== row.strike);
+    expect(() => parseShardfile(missing)).toThrow(); expect(shardfileRules(missing)).toContain('declared flyer sphere strike');
+    const invalid = structuredClone(s), strike = invalid.rows.strikes.find(value => value.id === row.strike);
+    if (strike === undefined) throw new Error('Missing fixture strike');
+    strike.shape = { kind: 'lane', length: 2, width: 1 };
+    expect(() => parseShardfile(invalid)).toThrow(); expect(shardfileRules(invalid)).toContain('declared flyer sphere strike');
+    const ground = structuredClone(s); ground.creatures.spawns = ground.creatures.spawns.map(spawn => spawn.brain === row.id ? { ...spawn, species: 'boar' } : spawn);
+    expect(() => parseShardfile(ground)).toThrow(); expect(shardfileRules(ground)).toContain('declared flyer species flight');
+    const outside = structuredClone(s), selected = outside.creatures.brains.find(brain => brain.id === row.id);
+    if (selected?.kind !== 'diver') throw new Error('Missing fixture diver'); selected.home.x = 251;
+    expect(() => parseShardfile(outside)).toThrow(); expect(shardfileRules(outside)).toContain('declared flyer home in cell');
+  }
+  expect(() => createShardfileSim(s, new Map(), { rapier })).toThrow('Missing native brain port');
+});
+it('runs diver rows byte-identically to old presets and restores their full-host save without effects', () => {
+  const legacySource = source(), declared = parametricSource(), assets = new Map<string, Uint8Array>();
+  const legacyTrace: string[] = [], declaredTrace: string[] = [], suffix: string[] = [];
+  const legacy = createShardfileSim(legacySource, assets, options(legacySource, legacyTrace));
+  const parametric = createShardfileSim(declared, assets, options(declared, declaredTrace));
+  let restored: SimHost | undefined;
+  try {
+    for (let tick = 0; tick < 250; tick++) { legacy.host.step(); parametric.host.step(); }
+    expect(declaredTrace).toEqual(legacyTrace);
+    expectSameSimSnapshot(snapshotSimHost(parametric.host), snapshotSimHost(legacy.host));
+    restored = restoreSimHost(parametric.host.level, { rapier }, snapshotSimHost(legacy.host), host => {
+      const rng = host.rng.snapshot(); bindShardfileSim(host, declared, assets, { ...options(declared, suffix), restoring: true });
+      expect(host.rng.snapshot()).toEqual(rng);
+    });
+    expect(suffix).toEqual([]); declaredTrace.length = 0;
+    for (let tick = 0; tick < 1000; tick++) { parametric.host.step(); restored.step(); }
+    expect(suffix).toEqual(declaredTrace);
+    expectSameSimSnapshot(snapshotSimHost(restored), snapshotSimHost(parametric.host));
+  } finally { legacy.dispose(); parametric.dispose(); restored?.dispose(); }
 });

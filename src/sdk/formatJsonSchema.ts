@@ -7,7 +7,7 @@ import { CommonsCostsSchema } from '@wildshard/format/commonsCosts';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 
 import { SkirmisherSchema, ScriptBrainSchema, GuardianSchema, PerchHunterSchema } from '@wildshard/format/brains';
-import { OrbitDiverSchema, PatrolDiverSchema, BurstFlyerSchema } from '@wildshard/format/flyers';
+import { DiverSchema, OrbitDiverSchema, PatrolDiverSchema, BurstFlyerSchema } from '@wildshard/format/flyers';
 import { RamGrazerSchema, ChallengeGrazerSchema, GrazerSchema } from '@wildshard/format/grazers';
 import { GroupBrainSchema } from '@wildshard/format/groupBrains';
 import { CreaturesSchema } from '@wildshard/format/creatures';
@@ -105,6 +105,7 @@ const wireRoots = {
   'brains.ScriptBrain': ScriptBrainSchema,
   'brains.Guardian': GuardianSchema,
   'brains.PerchHunter': PerchHunterSchema,
+  'flyers.Diver': DiverSchema,
   'flyers.OrbitDiver': OrbitDiverSchema,
   'flyers.PatrolDiver': PatrolDiverSchema,
   'flyers.BurstFlyer': BurstFlyerSchema,

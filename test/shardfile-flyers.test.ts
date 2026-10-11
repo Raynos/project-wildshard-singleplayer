@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/format/flyers';
+import { parseDiver, diverPreset, parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/format/flyers';
+import { diver } from '@wildshard/sdk/flyers';
 
 const orbit = { id: 'fixture.orbit', kind: 'orbit-diver', strike: 'fixture.dive', home: { x: 0, z: 0, r: 12, y: 14 },
   circleSpeed: 8, hangAltitude: 9, stalkSpeed: 10, diveSpeed: 16, restSeconds: 6, noticeRadius: 40, giveUpRadius: 60,
@@ -11,6 +12,25 @@ const patrol = { id: 'fixture.patrol', kind: 'patrol-diver', strike: 'fixture.sw
 const burst = { id: 'fixture.burst', kind: 'burst-flyer', strike: 'fixture.burst.strike', home: { x: 0, z: 0, r: 7, y: 3 },
   circleSpeed: 5, dartSpeed: 13, noticeRadius: 14, shoveSpeed: 7, liftSpeed: 2.5, targetHeight: 1.2 };
 describe('declared flight families', () => {
+  it('admits each diver pattern through the author API with the exact historical preset', () => {
+    for (const [pattern, data, admitted] of [
+      ['orbit', orbit, parseOrbitDiver(orbit)], ['patrol', patrol, parsePatrolDiver(patrol)], ['burst', burst, parseBurstFlyer(burst)],
+    ] as const) {
+      const row = diver({ ...data, kind: 'diver', pattern });
+      expect(row.thinkDivisor).toBe(6); expect(diverPreset(row)).toEqual(admitted);
+      expect(() => parseDiver({ ...row, script: 'unbound' })).toThrow();
+      expect(() => parseDiver({ ...row, thinkDivisor: 7 })).toThrow();
+    }
+  });
+  it('refuses unknown patterns, fields from another pattern and the original ordering/speed violations', () => {
+    expect(() => parseDiver({ ...orbit, kind: 'diver', pattern: 'unknown' })).toThrow();
+    expect(() => parseDiver({ ...orbit, kind: 'diver', pattern: 'orbit', noticeRadius: 61 })).toThrow();
+    expect(() => parseDiver({ ...orbit, kind: 'diver', pattern: 'orbit', heldField: 'held' })).toThrow();
+    expect(() => parseDiver({ ...patrol, kind: 'diver', pattern: 'patrol', climbSpeedBonus: 22 })).toThrow();
+    expect(() => parseDiver({ ...patrol, kind: 'diver', pattern: 'patrol', diveFrom: 56 })).toThrow();
+    expect(() => parseDiver({ ...burst, kind: 'diver', pattern: 'burst', shoveSpeed: 31 })).toThrow();
+    expect(() => parseDiver({ ...burst, kind: 'diver', pattern: 'burst', home: { ...burst.home, r: 0 } })).toThrow();
+  });
   it('admits all shipping tuning with a six-tick observation cadence', () => {
     expect(parseOrbitDiver(orbit)).toEqual({ ...orbit, thinkDivisor: 6 });
     expect(parsePatrolDiver(patrol)).toEqual({ ...patrol, thinkDivisor: 6 });
