@@ -3071,14 +3071,24 @@ serialized continuation bytes remain unchanged. Orbit keeps its horizontal stalk
 test and calm cancellation; patrol keeps its held-field reset and strike-before-
 flight order; burst keeps its three-dimensional notice test and contact shove.
 The pattern tag is not inserted into historical save contracts. A different
-observation pattern refuses before effects. Phased flight and wind stooping
-remain open; this seam changes no body or collider.
+observation pattern refuses before effects. Wind stooping remains open; this seam
+changes no body or collider.
 
 `@wildshard/format/flyers#DiverSchema` admits `kind: 'diver'` with a strict
 `orbit`, `patrol` or `burst` pattern and the historical row's bounded flat tuning.
 SDK `flyers.diver(data)` validates author data only. `diverPreset` canonicalizes
 to the original contract before full-shard reference checks and native recipe
 installation; missing sphere strikes, flight motors or cell-bounded homes refuse.
+
+The runtime `phased` diver pattern retains the already-admitted phase-altitude,
+rest, dormant-rise and grounded-strike data of `ai/phasedFlyer`. Its save remains
+the original `{version, actor, state, clock, wait, struck, strikes}` contract.
+The compatibility constructor retains its `CreatureBrain`/HFSM identity through
+an explicit `PhasedDiverStatePort`; the shared policy reads and transitions that
+same phase owner. A direct phased policy owns its phase internally. There is no
+second HFSM, encounter installation, new strike set or changed body recipe.
+The existing phased-row admission is unchanged; unified phased author spelling
+and the boss-row merge remain separate open work.
 
 
 SF81 ghost volley: Nalati page and renderer-free roster advance the same typed firing author after their unchanged death/fade/hidden guards, in reverse rider order. The AS publishes the elapsed clock delta, native shot and retry timer; native ports retain real ballistic sockets, two spread draws followed by the retry draw, body allocation and retirement. Signed eligibility projections bound author inputs without clamping negative native timers. GhostRosterKeeper v2 carries the complete v3 AS/stage cursor and refuses v1 quietly. Native roster admission does not allocate riders or register a second owner.

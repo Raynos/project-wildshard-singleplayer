@@ -25,7 +25,7 @@ lint and the ratchet pass. All four native witness recorders reproduced their
 payloads and outcomes in 11.5 seconds. No input-only manifests are committed.
 The engine adds one documented defining `ai/diver` export; no layer-pair rise.
 
-Phased flyer, wind stooper, grazer herd, stalker, guardian and script unification
+Unified phased author rows, wind stooper, grazer herd, stalker, guardian and script unification
 remain open, as do boss rows and the subsequent shard row adoptions. Elite and
 director hosts remain reserved for the coordinated SF81 boundary. No figure
 texture admission change or graphical review is included.
@@ -49,3 +49,24 @@ witnesses reproduce identical payloads/outcomes (43.7 seconds under shared load)
 The host gains one game→format defining import; SDK author/JSON declarations add
 three format bindings within the standing approval. No generated file, witness
 manifest, geometry, species registration or gameplay data is committed here.
+
+The next core slice makes Signal's phased flyer a preset of the same diver
+runner, target and clock owner. Dormant rise, per-phase altitudes/rest, dive and
+grounded strike lists and the original continuation remain exact. The legacy
+constructor retains its actual `CreatureBrain` HFSM via a trusted phase port;
+direct parametric use owns that phase internally. The existing format admission
+and spec-reference/strike-copy semantics are retained, including its original
+step law. No encounter or elite/director host changes.
+
+The real Matriarch fight compares a native trace SHA-256 against its captured
+shipping policy, the legacy preset and direct parametric construction, through
+dormant/rising and all three phases. Existing malformed-state and per-phase
+restore suffixes cover the unchanged continuation. Unified phased author rows,
+wind stooper and the boss merge remain open.
+
+Phased core proof: 46 focused tests across six files pass in 9.80 seconds. The
+3,600-tick Matriarch hash matches all three constructions; all four inspected
+states and real contact hits occur. Existing per-phase restores and malformed
+state refusal pass. The 18 orbit/patrol/burst scenarios remain exact. Root/layer
+strict, touched typed lint and ratchet pass; four native witnesses reproduce
+payloads/outcomes in 13.5 seconds. No layer-pair or package-export rise.

@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Initialize the real native engine for the oracle replay.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Hash every native frame against the captured shipping policy.
+import { createHash } from 'node:crypto';
 import { beforeAll, expect, it } from 'vitest';
 import { createSimHost, type SimHost, type SimSpawn } from '../../../src/engine/sim';
 import { snapshotSimHost } from '../../../src/engine/sim/snapshot';
@@ -7,8 +9,10 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import { canReach } from '../../../src/engine/ai/reach';
 import { speciesBrains } from '../../../src/sdk/speciesBrains';
-import type { HomeObservation, SpeciesPolicy } from "../../../src/game/plugin/brain";
-import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../../../src/shards/sunscar-dunes/data/brains';
+import type { HomeObservation, SpeciesPolicy } from '../../../src/game/plugin/brain';
+import { strikeFromData } from '../../../src/engine/ai/strikeRows';
+import { DiverBrain } from '../../../src/engine/ai/diver';
+import { MATRIARCH_BRAIN, SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../../../src/shards/sunscar-dunes/data/brains';
 import { BASIN } from '../../../src/shards/sunscar-dunes/data/layout';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { MatriarchBrain } from '../../fixtures/species-oracle/matriarch';
@@ -17,6 +21,15 @@ import { SIM_LEVEL } from '../../fixtures/sim-level/level';
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
 const level = { ...SIM_LEVEL, entities: [], quests: [], ground: { size: 2048, height: 0 } };
+function phased(actor: AnimalSim): SpeciesPolicy<HomeObservation> {
+  if (MATRIARCH_BRAIN.archetype !== 'phased-flyer') throw new Error('Missing phased declaration');
+  const strikes = new Map(SIGNAL_STRIKES.map(row => { const strike = strikeFromData(row); return [strike.id, strike] as const; }));
+  const resolve = (id: string) => { const strike = strikes.get(id); if (strike === undefined) throw new Error('Missing strike'); return strike; };
+  const policy = new DiverBrain(actor, { pattern: 'phased', spec: MATRIARCH_BRAIN.data,
+    dive: MATRIARCH_BRAIN.data.dive.map(resolve), grounded: MATRIARCH_BRAIN.data.grounded.map(resolve) });
+  return { think: ports => { policy.think({ ...ports, pattern: 'phased' }); },
+    act: ports => { policy.act({ ...ports, pattern: 'phased' }); }, snapshot: () => policy.snapshot(), restore: value => { policy.restore(value); } };
+}
 function recipe(): SimSpawn {
   const base = SIM_LEVEL.entities[0];
   if (base === undefined) throw new Error('Missing native fixture recipe');
@@ -49,21 +62,28 @@ function install(host: SimHost, make: (actor: AnimalSim) => SpeciesPolicy<HomeOb
 
 it('the phased-flyer row moves, strikes and saves exactly as the Matriarch\'s shipping brain over a whole fight', () => {
   const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES);
-  const oracleHits: number[] = [], rowHits: number[] = [];
-  const oracle = createSimHost(level, { rapier }), row = createSimHost(level, { rapier });
+  const oracleHits: number[] = [], rowHits: number[] = [], sharedHits: number[] = [];
+  const oracle = createSimHost(level, { rapier }), row = createSimHost(level, { rapier }), shared = createSimHost(level, { rapier });
   try {
     const before = install(oracle, actor => new MatriarchBrain<AnimalSim>(actor), oracleHits);
     const after = install(row, actor => { const policy = brains.policy('duneMatriarch', actor); if (policy === null) throw new Error('Missing Matriarch row'); return policy; }, rowHits);
+    const direct = install(shared, phased, sharedHits);
+    const oldHash = createHash('sha256'), presetHash = createHash('sha256'), sharedHash = createHash('sha256');
     const states = new Set<string>();
     for (let tick = 0; tick < 3600; tick++) {
-      oracle.step(); row.step();
+      oracle.step(); row.step(); shared.step();
       const saved = after.snapshot(); expect(saved).toBe(before.snapshot());
+      expect(direct.snapshot()).toBe(saved);
+      oldHash.update(JSON.stringify({ policy: before.snapshot(), sim: snapshotSimHost(oracle) }));
+      presetHash.update(JSON.stringify({ policy: saved, sim: snapshotSimHost(row) }));
+      sharedHash.update(JSON.stringify({ policy: direct.snapshot(), sim: snapshotSimHost(shared) }));
       if (typeof saved === 'string') { const value: unknown = JSON.parse(saved); if (typeof value === 'object' && value !== null) states.add(String(Reflect.get(value, 'state'))); }
       if (tick % 60 === 0) expectSameSimSnapshot(snapshotSimHost(row), snapshotSimHost(oracle));
     }
-    expectSameSimSnapshot(snapshotSimHost(row), snapshotSimHost(oracle));
-    expect(rowHits).toEqual(oracleHits);
+    expectSameSimSnapshot(snapshotSimHost(row), snapshotSimHost(oracle)); expectSameSimSnapshot(snapshotSimHost(shared), snapshotSimHost(oracle));
+    const expected = oldHash.digest('hex'); expect(presetHash.digest('hex')).toBe(expected); expect(sharedHash.digest('hex')).toBe(expected);
+    expect(rowHits).toEqual(oracleHits); expect(sharedHits).toEqual(oracleHits);
     expect([...states].sort()).toEqual(['circle', 'climb', 'dive', 'grounded']);
     expect(rowHits.length).toBeGreaterThan(0);
-  } finally { oracle.dispose(); row.dispose(); }
+  } finally { oracle.dispose(); row.dispose(); shared.dispose(); }
 });
