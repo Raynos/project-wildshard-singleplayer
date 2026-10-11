@@ -16,13 +16,13 @@ import { Noise2D, smoothstep, clamp, lerp } from '../core/noise';
 import { CHUNK_HALF, ROAD_WIDTH, ROAD_LENGTH } from '../core/config';
 import type { TerrainField, TerrainSpec, TerrainNoise, Vec2, CabinSite } from '../level/data';
 
-function distToSegment(px: number, pz: number, ax: number, az: number, bx: number, bz: number) {
+function distToSegmentSquared(px: number, pz: number, ax: number, az: number, bx: number, bz: number) {
   const vx = bx - ax, vz = bz - az;
   const wx = px - ax, wz = pz - az;
   const l2 = vx * vx + vz * vz;
   const t = l2 > 0 ? clamp((wx * vx + wz * vz) / l2, 0, 1) : 0;
   const dx = px - (ax + vx * t), dz = pz - (az + vz * t);
-  return Math.sqrt(dx * dx + dz * dz);
+  return dx * dx + dz * dz;
 }
 
 /** a graded path's cut / fill: full within GRADE_IN metres of its centreline, faded out by GRADE_OUT; sampled every GRADE_STEP */
@@ -132,8 +132,9 @@ export function buildTerrain(seed: number, spec: TerrainSpec): TerrainField {
 
   function trailDistance(x: number, z: number): number {
     let d = Infinity;
-    for (const poly of trails) for (let i = 0; i < poly.length - 1; i++) { const a = poly[i], b = poly[i + 1]; if (a && b) d = Math.min(d, distToSegment(x, z, a[0], a[1], b[0], b[1])); }
-    return d;
+    for (const poly of trails) for (let i = 0; i < poly.length - 1; i++) { const a = poly[i], b = poly[i + 1]; if (a && b) d = Math.min(d, distToSegmentSquared(x, z, a[0], a[1], b[0], b[1])); }
+    // sqrt is monotone: keep the same winning squared value and the exact final root, once per field query.
+    return Math.sqrt(d);
   }
 
   function cabinMask(x: number, z: number): number {
