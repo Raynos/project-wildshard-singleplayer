@@ -1,28 +1,16 @@
+import type { SIGNAL_HEADLESS } from '../../data/headlessOwners';
 import * as v from 'valibot';
 import stages from '../../data/bossStages.json' with { type: 'json' };
 import { Vector3 } from 'three';
-import type { BossBrain, BossDefinition } from '@wildshard/engine/ai/BossBrain';
+import type { BossBrain } from '@wildshard/engine/ai/BossBrain';
 import type { SimHost } from '@wildshard/engine/sim';
-import { bossFlagRecord, installBossRow, type BossRowFlagNames } from '@wildshard/game/shardfile/bossRow';
-import { bossFight, type BossFightProfile } from '@wildshard/game/plugin/bossPhase';
+import { bossFlagRecord, installBossRow } from '@wildshard/game/shardfile/bossRow';
+import { bossFight } from '@wildshard/game/plugin/bossPhase';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
-import type { KeptBossBody, KeptBossRow } from '@wildshard/game/shardfile/homeKeeper';
+import type { KeptBossBody } from '@wildshard/game/shardfile/homeKeeper';
 
-/** The rows a marked boss runs from headless: its body row, encounter, fight, record flags, coins, floor, respawn and victory. */
-export interface MarkedBossRowSpec {
-  /** The declared boss row (its id is the encounter's fixed-step id and its saved actor's identity; its `at` the arena heart). */
-  readonly row: KeptBossRow;
-  readonly definition: BossDefinition;
-  readonly profile: Extract<BossFightProfile, {pattern: 'spawned'}>;
-  readonly record: BossRowFlagNames;
-  readonly reward: number;
-  /** The arena floor the reward leaves from, at the row's spot. */
-  readonly floor: number;
-  /** Where a death in the fight returns the player, on the ground there. */
-  readonly respawn: { readonly x: number; readonly z: number; readonly yaw: number };
-  /** Victory raises `flag` (a quest's step) and emits `fact` under the boss's id. */
-  readonly victory: { readonly flag: string; readonly fact: string };
-}
+/** The actual authored Signal encounter row, admitted by its existing native owners. */
+export type MarkedBossRowSpec = typeof SIGNAL_HEADLESS.boss;
 /** What a headless marked boss is lent: its body in the creature keeper and the platform's effect ports. */
 export interface MarkedBossRowPorts {
   readonly body: KeptBossBody;
