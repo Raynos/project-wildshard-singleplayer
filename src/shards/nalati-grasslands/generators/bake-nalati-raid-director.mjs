@@ -1,24 +1,11 @@
 // Retained authoring-only typed AS producer. No game, runtime, legacy, page or renderer inputs.
-import { mkdirSync, readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { registerHooks } from 'node:module';
-import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
 
-registerHooks({ resolve(specifier, context, next) {
-  if (/^@wildshard\/(?:engine|game)\//u.test(specifier)) throw new Error('Nalati raid producer cannot import a runtime');
-  if (specifier.startsWith('.') && context.parentURL?.startsWith('file:')) {
-    const at = new URL(specifier, context.parentURL);
-    for (const suffix of ['', '.ts', '.mjs']) {
-      const url = new URL(at.href + suffix);
-      if (existsSync(fileURLToPath(url)) && statSync(fileURLToPath(url)).isFile()) return { url: url.href, shortCircuit: true };
-    }
-  }
-  return next(specifier, context);
-} });
+import { compileBehaviourModule } from '@wildshard/sdk/buildBehaviour';
+import { generateDirectorAbi } from '@wildshard/sdk/directorAbi';
 
-const { compileBehaviourModule } = await import('@wildshard/sdk/buildBehaviour');
-const { generateDirectorAbi } = await import('@wildshard/sdk/directorAbi');
 const root = resolve(import.meta.dirname, '../../../..'), project = 'src/shards/nalati-grasslands';
 const declaration = JSON.parse(readFileSync(resolve(root, project, 'data/director.json'), 'utf8'));
 const source = readFileSync(resolve(root, project, 'behaviour/director.as'), 'utf8');
