@@ -3,7 +3,7 @@
   "entry": "runtime/headless.ts",
   "compatible": false,
   "scope": "Real Sealed Ring, reef and spawn-to-zipline journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility",
-  "inputs": "4d6bdcb9dcd638297219410a552ae47f7c313f0a59b50b7353f5e70ec76e9c3b",
+  "inputs": "46258fc46080b1fa40214f8b7474068293ae0da100eac88c52c2cd7cd657de44",
   "open": [
     "Living creature rig volumes are reproduced; rendered ragdoll bodies and their contacts remain outside this witness.",
     "Named target attacks and dialogue actions are bounded input ports; camera crosshair, hitstop and clang are not modeled.",
@@ -13,7 +13,7 @@
   "headless": {
     "status": "passed",
     "ticksExecuted": 10000,
-    "hash": "05e52d259b3c2d89372efa6ba950740b0da4ce4372cc8ad0a70ba1be8a5cfeed",
+    "hash": "254e17ce9301d3f6c6afa07c885a16e99cd964fda57d21f7f2a0c4fc14c75957",
     "entries": {
       "lanes": 92,
       "steps": 34118
@@ -97,8 +97,8 @@
       "waitForReturn": false
     },
     "suffixTicksExecuted": 945,
-    "hash": "b1c2f28630f604ab36c6e59a0df46eb8882c99a0a3f9ac2eefa8ddc652db2f54",
-    "replayHash": "b1c2f28630f604ab36c6e59a0df46eb8882c99a0a3f9ac2eefa8ddc652db2f54",
+    "hash": "fc5d2f72e2dfdc9f223befc0feecd3e6d01c0c468c83816109fe91d897894aae",
+    "replayHash": "fc5d2f72e2dfdc9f223befc0feecd3e6d01c0c468c83816109fe91d897894aae",
     "effects": [
       {
         "tick": 19681,
@@ -321,7 +321,7 @@
     "surfaced": true,
     "treasureCount": 1,
     "durableReload": true,
-    "hash": "d7a372f3f489c4d932ef68cdc8595deabfa274ed84df8787d9682a82f29ff946"
+    "hash": "0a6728e1c503433efc064c913fdc578fb03b01704681b8b4feb94c1656ea6ffb"
   },
   "zipline": {
     "status": "passed",
@@ -342,7 +342,7 @@
     "landed": true,
     "durableReload": true,
     "ziplineCount": 1,
-    "hash": "6b538382bf6c2541491103e16ed39f39fe704da3e3b1fee806f5683cf5e6f075",
-    "replayHash": "6b538382bf6c2541491103e16ed39f39fe704da3e3b1fee806f5683cf5e6f075"
+    "hash": "59243699764aaa9378f9479cd51fc625b7f700eee014c2532acd479954e94fda",
+    "replayHash": "59243699764aaa9378f9479cd51fc625b7f700eee014c2532acd479954e94fda"
   }
 }

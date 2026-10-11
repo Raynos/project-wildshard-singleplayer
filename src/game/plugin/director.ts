@@ -125,6 +125,7 @@ const stageState = v.strictObject({ tick: v.pipe(v.number(), v.integer(), v.minV
 export class DirectorStageLane {
   private readonly definition: DirectorStagesData;
   private readonly conditions: readonly (readonly DirectorWhenInstruction[])[];
+  private readonly successors: readonly (readonly { target: number; condition: readonly DirectorWhenInstruction[] }[])[];
   private currentTick = -1;
   private currentStage = -1;
   constructor(data: unknown) {
@@ -132,6 +133,11 @@ export class DirectorStageLane {
     if (this.definition.script !== null) throw new Error('Scripted stage directors require a typed script installation');
     const names = Object.keys(this.definition.inputs);
     this.conditions = this.definition.stages.map(stage => compileDirectorWhen(stage.when ?? 'true', names));
+    this.successors = this.definition.stages.map((stage, index) => {
+      const targets = typeof stage.next === 'string' ? [{ target: stage.next, when: 'true' }] : stage.next;
+      return targets === undefined ? [{ target: index + 1, condition: compileDirectorWhen('true', names) }]
+        : targets.map(target => ({ target: this.definition.stages.findIndex(row => row.id === target.target), condition: compileDirectorWhen(target.when, names) }));
+    });
   }
   /** An independent copy of the installed immutable author contract. */
   get data(): DirectorStagesData { return structuredClone(this.definition); }
@@ -149,9 +155,12 @@ export class DirectorStageLane {
     else {
       const stage = this.definition.stages[target];
       if (stage === undefined) throw new Error('Invalid installed director stage');
-      const next = stage.next === undefined ? target + 1 : this.definition.stages.findIndex(row => row.id === stage.next);
-      const condition = this.conditions[next];
-      if (condition !== undefined && evaluateDirectorWhen(condition, observation)) { target = next; entered = true; }
+      for (const successor of this.successors[target] ?? []) {
+        const condition = this.conditions[successor.target];
+        if (condition !== undefined && evaluateDirectorWhen(successor.condition, observation) && evaluateDirectorWhen(condition, observation)) {
+          target = successor.target; entered = true; break;
+        }
+      }
     }
     const actions = entered ? structuredClone(this.definition.stages[target]?.do ?? []) : [];
     this.currentTick = tick; this.currentStage = target;
@@ -166,4 +175,56 @@ export class DirectorStageLane {
       || (saved.state.tick === -1) !== (saved.state.stage === -1)) throw new Error('Incompatible stage director snapshot');
     this.currentTick = saved.state.tick; this.currentStage = saved.state.stage;
   }
+}
+
+/** External-clock stage installation with an admitted AS escape handler. The native lane owns elapsed time,
+ * quotas and typed observations; ordered output events select authored stage actions without a second scheduler. */
+export class DirectorScriptStageLane {
+  private readonly definition: DirectorStagesData;
+  private readonly stages: DirectorStageLane;
+  private readonly script: DirectorLane;
+  private readonly ports: {
+    readonly observe: () => Readonly<Record<string, number>>;
+    readonly publish: (action: DirectorAction) => void;
+  };
+  constructor(data: unknown, script: DirectorLane, ports: {
+    readonly observe: () => Readonly<Record<string, number>>;
+    readonly publish: (action: DirectorAction) => void;
+  }, restoring = false) {
+    this.definition = structuredClone(parseDirectorStages(data));
+    if (this.definition.script !== script.data.module) throw new Error('Stage escape handler hash mismatch');
+    const outputs = script.data.events.filter(event => event.direction === 'output');
+    for (const binding of Object.values(this.definition.inputs)) {
+      if (!binding.startsWith('event:') || !outputs.some(event => binding === `event:${event.key}`)) throw new Error('Undeclared stage handler output');
+    }
+    if (outputs.some(event => !Object.values(this.definition.inputs).includes(`event:${event.key}`))) throw new Error('Unbound stage handler output');
+    this.stages = new DirectorStageLane({ ...this.definition, script: null });
+    this.script = script; this.ports = ports;
+    if (!restoring) {
+      if (script.tick !== -1) throw new Error('Stage escape handler already initialized');
+      this.publish(this.stages.step(0, this.observation()));
+      this.deliver(script.step(0, ports.observe(), 0));
+    }
+  }
+  /** Deliver real flag/request edges at zero dt within the existing native tick's remaining allowance. */
+  changed(): void { this.deliver(this.script.dispatch(this.ports.observe())); }
+  /** Advance once at the owner's existing clock phase, retaining fractional dt and native output order. */
+  update(dt: number): void { this.deliver(this.script.step(this.script.tick + 1, this.ports.observe(), dt)); }
+  /** Versioned complete continuation: immutable stage rows, cursor and the unchanged AS native checkpoint. */
+  snapshot(): string { return JSON.stringify({ version: 3, contract: this.definition, stages: this.stages.snapshot(), script: this.script.snapshot() }); }
+  /** Restore both owners quietly and atomically; pre-row snapshots require an explicit migration and are refused. */
+  restore(text: string): void {
+    const saved = v.parse(v.strictObject({ version: v.literal(3), contract: v.unknown(), stages: v.string(), script: v.string() }), JSON.parse(text));
+    if (JSON.stringify(saved.contract) !== JSON.stringify(this.definition)) throw new Error('Incompatible scripted stage snapshot');
+    const stages = this.stages.snapshot(), script = this.script.snapshot();
+    try { this.stages.restore(saved.stages); this.script.restore(saved.script); }
+    catch (error) { this.stages.restore(stages); this.script.restore(script); throw error; }
+  }
+  private observation(event?: DirectorEvent): Record<string, boolean> {
+    return Object.fromEntries(Object.entries(this.definition.inputs).map(([name, binding]) => [name, binding === `event:${event?.key ?? ''}`]));
+  }
+  private deliver(events: readonly DirectorEvent[]): void {
+    for (const event of events) this.publish(this.stages.step(this.stages.tick + 1, this.observation(event)));
+  }
+  private publish(actions: readonly DirectorAction[]): void { for (const action of actions) this.ports.publish(action); }
 }

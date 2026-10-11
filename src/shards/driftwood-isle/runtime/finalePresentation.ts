@@ -15,10 +15,10 @@ import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
 import type { Adventure, AdventureWorld, AdvAnimal } from '../quest/adventure';
 import { DrownedCaptain, CAPTAIN_DEF } from '../combat/captain';
-import { installDeclaredDirector } from '@wildshard/game/shardfile/directorClient';
-import { director } from '@wildshard/sdk/director';
-import declaration from '../data/director.json' with { type: 'json' };
-import { driftwoodDirectorBytes, DriftwoodScriptFinale } from './scriptFinale';
+import { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
+import type { LevelContext } from '@wildshard/engine/level/context';
+import { prepareDriftwoodDirector } from './director';
+import stages from '../data/finaleStages.json' with { type: 'json' };
 
 const GOLDEN = 0.745;          // DayNight phase of the golden-hour key (its KEYS table: GOLDEN at 0.74)
 const ARENA = 22;
@@ -58,7 +58,8 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
   const rewardAt = new THREE.Vector3(ringP.x, ringP.y, ringP.z);
   {
     let best = Infinity;
-    for (let d = 3; d <= 30; d += 0.25) {
+    for (let sample = 0; sample < 109; sample++) {
+      const d = 3 + sample * 0.25;
       const x = ringP.x - (planet.x / flatLen) * d, z = ringP.z - (planet.z / flatLen) * d;
       const eye = adv.floorAt(x, z) + 1.68;
       const want = ringP.y - (planet.y / flatLen) * d;   // the ray from the eye through the ring's centre climbs at the planet's slope
@@ -130,14 +131,15 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
 }
 
 /** SF24 decisions/timers are data + bounded script; captain combat and reward camera/renderer remain runtime recipes (G51). */
-export async function installDirectorFinale<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, context: Parameters<typeof installDeclaredDirector>[0], app: FinaleHost): Promise<Finale> {
-  const recipe = finaleRecipe(adv, w, app);
-  const lane = await installDeclaredDirector(context, { data: director(declaration), seed: 357, systemId: 'shard.driftwood.director', clock: 'external',
-    bytes: () => Promise.resolve(driftwoodDirectorBytes()),
-    observe: recipe.observe, publish: (event) => { recipe.publish(event.key); },
-  });
-  const clock = new DriftwoodScriptFinale(lane, { observe: recipe.observe, publish: recipe.publish });
-  context.scope.onDispose(adv.flags.onChange((flag, on) => {
+export async function installDirectorFinale<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, context: Pick<LevelContext, 'scope' | 'system'>, app: FinaleHost): Promise<Finale> {
+  const recipe = finaleRecipe(adv, w, app), scope = context.scope;
+  const create = await prepareDriftwoodDirector();
+  if (scope.disposed) throw new Error('Finale scope left during admission');
+  const clock = new DirectorScriptStageLane(stages, create(), { observe: recipe.observe, publish: action => {
+    if (!('emit' in action) || action.value !== 0) throw new Error('Invalid finale stage action');
+    recipe.publish(action.emit);
+  } });
+  scope.onDispose(adv.flags.onChange((flag, on) => {
     if (on && (flag === 'used:altar' || flag === 'dead:captain')) clock.changed();
   }));
   // G51: the page's existing rendered clock owns the reward view. Decisions use the same elapsed dt,

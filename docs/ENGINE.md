@@ -2949,3 +2949,10 @@ encoded files and the validation receipt. The source reader remains build-only;
 no commons module is copied into client or simulation code. The real compiler
 fixture builds two products and compares every emitted recording to its source.
 This authoring proof does not imply the trusted native music bank has migrated.
+
+
+SF81 DIR-3: `DirectorStageLane` accepts ordered `next: [{ target, when }]` edges in addition to the unchanged string successor. The first edge whose own guard and target guard both admit wins; one step enters at most one stage. Guards use the same bounded when-language. `DirectorScriptStageLane(rows, nativeLane, {observe, publish}, restoring?)` binds every declared native AS output to an `event:<key>` boolean observation. It requires the exact immutable handler hash, preserves the owner's zero-dt dispatch and elapsed-time clock, and publishes authored fixed actions in native event order. It neither allocates actors nor grants flag, reward or presentation authority.
+
+Scripted row continuations are version 3: original row contract, stage cursor and the unchanged complete native AS checkpoint. Restore validates both owners atomically, never steps or publishes, and explicitly refuses pre-row continuations. Driftwood's cinematic body/camera/carry/golden-hour work remains trusted presentation; authored event rows route the unchanged AS pacing. Its four cached witnesses are re-recorded deliberately, with exact decoded native state after removing the new wrapper.
+
+The optional shardfile `directors` root contains at most sixteen uniquely named stage machines. Its generic native binding presently admits only declared quest-flag observations and flag actions; other observations/actions and AS handlers require an explicit trusted installation and refuse here. Template 1 observes its actual door script condition through the existing quest owner, then the shipped creature's death flag. Its director cursor survives a real native checkpoint and the existing weapon/quest/ledger suffix.

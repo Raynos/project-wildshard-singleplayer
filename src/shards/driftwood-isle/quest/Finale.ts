@@ -1,5 +1,5 @@
 import { app } from '@wildshard/engine/app/runtime';
-import { installDirectorFinale, type Finale as RuntimeFinale, type FinaleAdventure as RuntimeAdventure, type FinaleWorld as RuntimeWorld } from '../runtime/finale';
+import { installDirectorFinale, type Finale as RuntimeFinale, type FinaleAdventure as RuntimeAdventure, type FinaleWorld as RuntimeWorld } from '../runtime/finalePresentation';
 import type { AdvAnimal } from './adventure';
 
 /** Legacy service boundary retained until SF46 retires the native combat/view recipe. */

@@ -4,6 +4,8 @@ import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { DirectorStageLane } from '../src/game/plugin/director';
 import { Director } from '../src/sdk/director';
+import { emptyShardfile } from '../src/sdk/author';
+import { createShardfileSim } from '../src/game/plugin/simulation';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { expectSameSimSnapshot } from './fake/simSnapshot';
@@ -11,6 +13,22 @@ import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()); });
+
+it('binds root flag rows to declared native quest ownership and refuses unsupported observations or actions', () => {
+  const base = emptyShardfile({ slug: 'fixture', name: 'Fixture', author: 'Native proof', revision: 1, seed: 357 });
+  const rows = new Director({ id: 'fixture.root', inputs: { opened: 'flag:fixture.open' }, stages: [
+    { id: 'closed' }, { id: 'open', when: 'opened', do: [{ flag: { key: 'fixture.done', value: true } }] },
+  ] }).toJSON();
+  const source = { ...base, quests: { ...base.quests, flags: ['fixture.open', 'fixture.done'] }, directors: [rows] };
+  const sim = createShardfileSim(source, new Map(), { rapier });
+  try {
+    sim.host.step(); expect(sim.host.flags.has('fixture.done')).toBe(false);
+    sim.host.flags.set('fixture.open'); sim.host.step(); expect(sim.host.flags.has('fixture.done')).toBe(true);
+  } finally { sim.dispose(); }
+  expect(() => createShardfileSim({ ...source, quests: { ...source.quests, flags: [] } }, new Map(), { rapier })).toThrow('no declared native owner');
+  expect(() => createShardfileSim({ ...source, directors: [{ ...rows, inputs: { opened: 'actor:missing.dead' } }] }, new Map(), { rapier })).toThrow('require native bindings');
+  expect(() => createShardfileSim({ ...source, directors: [{ ...rows, stages: [{ id: 'closed', do: [{ spawn: 'missing' }] }] }] }, new Map(), { rapier })).toThrow('require native bindings');
+});
 
 it('hosts stage rows on the actual fixed-step SimHost and restores a native checkpoint with exact effects and replay hash', () => {
   const level = { ...SIM_LEVEL, entities: [], quests: [] }, declaration = new Director({

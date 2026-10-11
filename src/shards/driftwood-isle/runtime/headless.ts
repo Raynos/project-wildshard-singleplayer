@@ -8,7 +8,9 @@ import { waveHeight } from '@wildshard/engine/world/waves';
 import { driftwoodBake, driftwoodSpecs, type DriftwoodBake } from './baked';
 import { installIsland } from './keeper';
 import { installCaptain } from './captain';
-import { DriftwoodScriptFinale, prepareDriftwoodDirector } from './scriptFinale';
+import { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
+import { prepareDriftwoodDirector } from './director';
+import finaleStages from '../data/finaleStages.json' with { type: 'json' };
 import { driftwoodSwordProfiles, installDriftwoodSwords } from './swords';
 import { installDriftwoodKills } from './kills';
 import { DRIFTWOOD_FEATS } from '../quest/rows';
@@ -102,14 +104,17 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard }) 
     const captain = installCaptain(host, bake, island);
     const reward = { started: false };
     const observation = { altar: 0, dead: 0, seen: 0, 'player-x': 0, 'player-z': 0, 'reward-x': spots.reward.x, 'reward-z': spots.reward.z };
-    const finale = new DriftwoodScriptFinale(createDirector(), { observe: () => {
+    const finale = new DirectorScriptStageLane(finaleStages, createDirector(), { observe: () => {
       observation.altar = Number(host.flags.has('used:altar')); observation.dead = Number(host.flags.has('dead:captain'));
       observation.seen = Number(host.flags.has('seen:reward')); observation['player-x'] = host.player.position.x; observation['player-z'] = host.player.position.z;
       return observation;
-    }, publish: event => {
+    }, publish: action => {
+      if (!('emit' in action) || action.value !== 0) throw new Error('Invalid finale stage action');
+      const event = action.emit;
       if (event === 'captain.restore' || event === 'captain.wake') captain.publish(event);
       else if (event === 'reward.start') reward.started = true;
       else if (event === 'reward.finish') host.flags.set('seen:reward');
+      else if (event !== 'captain.dead') throw new Error('Unknown finale stage action');
       // The native encounter owns death; the quest keeper owns the same reward pose/carry continuation.
     } }, context.restoring);
     const offFinale = host.flags.onChange((flag, on) => { if (on && (flag === 'used:altar' || flag === 'dead:captain')) finale.changed(); });

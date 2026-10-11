@@ -5,12 +5,20 @@ import { Scope } from '../../../src/engine/app/scope';
 import { withOwner } from '../../../src/engine/app/ownership';
 import { app } from '../../../src/engine/app/runtime';
 import { Flags } from '../../../src/engine/world/interact/flags';
-import { DriftwoodScriptFinale, prepareDriftwoodDirector, driftwoodDirectorBytes } from '../../../src/shards/driftwood-isle/runtime/scriptFinale';
+import { prepareDriftwoodDirector, driftwoodDirectorBytes } from '../../../src/shards/driftwood-isle/runtime/director';
+import stages from '../../../src/shards/driftwood-isle/data/finaleStages.json' with { type: 'json' };
 import { installLegacyFinale, type FinaleWorld } from '../../fixtures/quest-oracle/driftwood-finale';
-import { prepareDirectorModule } from '../../../src/game/plugin/director';
+import { prepareDirectorModule, DirectorScriptStageLane, type DirectorLane } from '../../../src/game/plugin/director';
 import { director } from '../../../src/sdk/director';
 import declaration from '../../../src/shards/driftwood-isle/data/director.json' with { type: 'json' };
 import type { AdvAnimal } from '../../../src/shards/driftwood-isle/quest/adventure';
+
+function finale(lane: DirectorLane, ports: { observe: () => Readonly<Record<string, number>>; publish: (event: string) => void }, restoring = false): DirectorScriptStageLane {
+  return new DirectorScriptStageLane(stages, lane, { observe: ports.observe, publish: action => {
+    if (!('emit' in action) || action.value !== 0) throw new Error('Invalid finale stage action');
+    ports.publish(action.emit);
+  } }, restoring);
+}
 
 it('preserves ten thousand shipping phase decisions and restores full author state without publishing or stepping', async () => {
   const create = await prepareDriftwoodDirector(), scope = new Scope('finale.clock.oracle');
@@ -29,8 +37,8 @@ it('preserves ten thousand shipping phase decisions and restores full author sta
   flags.onChange((flag, on) => { if (on && flag === 'seen:reward') native.push(`${tick}:reward.finish`); });
   const observe = () => ({ altar: Number(flags.has('used:altar')), dead: Number(flags.has('dead:captain')), seen: Number(flags.has('seen:reward')),
     'player-x': player.position.x, 'player-z': player.position.z, 'reward-x': recipe.rewardAt.x, 'reward-z': recipe.rewardAt.z });
-  const clock = new DriftwoodScriptFinale(create(), { observe, publish: event => { script.push(`${tick}:${event}`); } });
-  let restored: DriftwoodScriptFinale | undefined;
+  const clock = finale(create(), { observe, publish: event => { script.push(`${tick}:${event}`); } });
+  let restored: DirectorScriptStageLane | undefined;
   const off = flags.onChange((flag, on) => { if (on && (flag === 'used:altar' || flag === 'dead:captain')) { clock.changed(); restored?.changed(); } });
   try {
     for (tick = 1; tick <= 10000; tick++) {
@@ -45,7 +53,7 @@ it('preserves ten thousand shipping phase decisions and restores full author sta
       expect(script).toEqual(native);
       if (tick === 300) {
         const saved = clock.snapshot();
-        restored = new DriftwoodScriptFinale(create(), { observe, publish: event => { suffix.push(`${tick}:${event}`); } }, true);
+        restored = finale(create(), { observe, publish: event => { suffix.push(`${tick}:${event}`); } }, true);
         restored.restore(saved); expect(suffix).toEqual([]); expect(restored.snapshot()).toBe(saved);
       }
       if (restored !== undefined && (tick === 400 || tick === 640 || tick === 10000)) expect(restored.snapshot()).toBe(clock.snapshot());
@@ -60,19 +68,41 @@ it('admits real road-side pre-entry and re-entry observations without starting t
   const create = await prepareDriftwoodDirector();
   const prior = await prepareDirectorModule(director({ ...declaration, inputs: declaration.inputs.map(row => row.key === 'player-x' || row.key === 'player-z' ? { key: row.key, min: -250, max: 250 } : row) }), driftwoodDirectorBytes());
   // Exact failed return: only player-x lies outside the former cell-only observation range.
-  expect(() => new DriftwoodScriptFinale(prior(357), { observe: () => ({ altar: 0, dead: 0, seen: 0, 'player-x': -256.631, 'player-z': -0.066, 'reward-x': -96.21572111113656, 'reward-z': 105.52632596242425 }), publish: () => undefined })).toThrow('Invalid director observation');
+  expect(() => finale(prior(357), { observe: () => ({ altar: 0, dead: 0, seen: 0, 'player-x': -256.631, 'player-z': -0.066, 'reward-x': -96.21572111113656, 'reward-z': 105.52632596242425 }), publish: () => undefined })).toThrow('Invalid director observation');
   for (const [x, z] of [[-256.631, -0.066], [256.631, 0.066], [0, -256.631], [0, 256.631], [-10000, 10000]]) {
     const events: string[] = [];
     const observe = () => ({ altar: 1, dead: 0, seen: 0, 'player-x': x ?? 0, 'player-z': z ?? 0, 'reward-x': -96.21572111113656, 'reward-z': 105.52632596242425 });
-    const clock = new DriftwoodScriptFinale(create(), { observe, publish: event => { events.push(event); } });
+    const clock = finale(create(), { observe, publish: event => { events.push(event); } });
     expect(events).toEqual(['captain.restore']);
     clock.update(1 / 30);
     expect(events).toEqual(['captain.restore']);
-    const completed = new DriftwoodScriptFinale(create(), { observe: () => ({ ...observe(), dead: 1 }), publish: event => { events.push(event); } });
+    const completed = finale(create(), { observe: () => ({ ...observe(), dead: 1 }), publish: event => { events.push(event); } });
     completed.update(1 / 30);
     expect(events).toEqual(['captain.restore']);
   }
   for (const x of [Number.NaN, Infinity, 10001, -10001]) {
-    expect(() => new DriftwoodScriptFinale(create(), { observe: () => ({ altar: 0, dead: 0, seen: 0, 'player-x': x, 'player-z': 0, 'reward-x': -96, 'reward-z': 105 }), publish: () => undefined })).toThrow('Invalid director observation');
+    expect(() => finale(create(), { observe: () => ({ altar: 0, dead: 0, seen: 0, 'player-x': x, 'player-z': 0, 'reward-x': -96, 'reward-z': 105 }), publish: () => undefined })).toThrow('Invalid director observation');
   }
+});
+
+
+it('refuses the pre-row continuation explicitly and rolls back a malformed stage restore without effects', async () => {
+  const create = await prepareDriftwoodDirector(), native = create();
+  const observe = () => ({ altar: 0, dead: 0, seen: 0, 'player-x': 20, 'player-z': 0, 'reward-x': 0, 'reward-z': 0 });
+  const events: string[] = [], clock = finale(native, { observe, publish: event => { events.push(event); } });
+  const saved = clock.snapshot();
+  expect(JSON.parse(saved)).toMatchObject({ version: 3 });
+  expect(() => clock.restore(native.snapshot())).toThrow();
+  const damaged = JSON.parse(saved) as { version: number; contract: unknown; stages: string; script: string };
+  damaged.script = '{}';
+  expect(() => clock.restore(JSON.stringify(damaged))).toThrow();
+  expect(clock.snapshot()).toBe(saved); expect(events).toEqual([]);
+});
+
+
+it('admits only the immutable handler and its actual declared output bindings', async () => {
+  const create = await prepareDriftwoodDirector(), ports = { observe: () => ({}), publish: () => undefined };
+  expect(() => new DirectorScriptStageLane({ ...stages, script: 'a'.repeat(64) }, create(), ports, true)).toThrow('hash mismatch');
+  expect(() => new DirectorScriptStageLane({ ...stages, inputs: { ...stages.inputs, invented: 'event:captain.fake' } }, create(), ports, true)).toThrow('Undeclared');
+  expect(() => new DirectorScriptStageLane({ ...stages, inputs: { awakened: 'event:captain.wake' } }, create(), ports, true)).toThrow();
 });

@@ -12,12 +12,14 @@ const action = v.union([
   v.strictObject({ toast: key }), v.strictObject({ reward: key }),
   v.strictObject({ emit: key, value: v.optional(v.union([v.boolean(), value]), 0) }),
 ]);
+const condition = v.pipe(v.string(), v.minLength(1), v.maxLength(1024));
+const next = v.union([key, v.pipe(v.array(v.strictObject({ target: key, when: condition })), v.minLength(1), v.maxLength(64))]);
 const raw = v.strictObject({
   version: v.literal(2), id: key,
   inputs: v.pipe(v.record(name, binding), v.check(inputs => Object.keys(inputs).length <= 16, 'At most sixteen director inputs')),
   stages: v.pipe(v.array(v.strictObject({
-    id: key, when: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(1024))),
-    do: v.optional(v.pipe(v.array(action), v.maxLength(32)), []), next: v.exactOptional(key),
+    id: key, when: v.exactOptional(condition),
+    do: v.optional(v.pipe(v.array(action), v.maxLength(32)), []), next: v.exactOptional(next),
   })), v.minLength(1), v.maxLength(64)),
   script: v.optional(v.nullable(v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u))), null),
 });
@@ -30,7 +32,11 @@ export function directorStagesRules(data: Stages): readonly string[] {
   if (new Set(ids).size !== ids.length) failures.push('unique director stages');
   if (data.stages[0]?.when !== undefined) failures.push('initial director stage is unconditional');
   for (const stage of data.stages) {
-    if (stage.next !== undefined && !ids.includes(stage.next)) failures.push('declared director next stage');
+    const targets = typeof stage.next === 'string' ? [{ target: stage.next, when: 'true' }] : stage.next ?? [];
+    for (const target of targets) {
+      if (!ids.includes(target.target)) failures.push('declared director next stage');
+      try { compileDirectorWhen(target.when, names); } catch { failures.push('bounded director next condition'); }
+    }
     if (stage.when !== undefined) {
       try { compileDirectorWhen(stage.when, names); } catch { failures.push('bounded director condition'); }
     }
@@ -48,3 +54,7 @@ export type DirectorStagesDefinition = v.InferInput<typeof DirectorStagesSchema>
 export type DirectorAction = DirectorStagesData['stages'][number]['do'][number];
 /** Validate all row syntax and semantic limits before installing or writing a director. */
 export function parseDirectorStages(input: unknown): DirectorStagesData { return v.parse(DirectorStagesSchema, input); }
+
+
+/** Root-owned pacing rows with distinct identities; an AS handler is installed only through explicit trusted bindings. */
+export const DirectorsSchema = v.pipe(v.array(DirectorStagesSchema), v.maxLength(16), v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'Unique director identities'));

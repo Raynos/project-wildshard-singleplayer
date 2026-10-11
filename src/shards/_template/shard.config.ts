@@ -1,3 +1,4 @@
+import { TEMPLATE_DIRECTORS } from './data/director';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import terrain from './data/terrain.json' with { type: 'json' };
@@ -42,6 +43,6 @@ export default parseShardfile({ ...base, accent: 'sand',
   terrain: terrain.terrain, tiles, files: [...terrain.files, ...props.files, ...TEMPLATE_SKIN_FILES, script, itemScript, clientScript], edge: terrain.edge,
   library: [...props.library, ...TEMPLATE_SKIN_LIBRARY, CLIENT_IDLE_HASH], far: props.far, props: props.props, items: ITEMS, targets: TEMPLATE_TARGETS, clientScripts: TEMPLATE_CLIENT_SCRIPTS,
   critical: [...terrain.critical, door.hash, itemModule], water: TEMPLATE_WATER, creatures: CREATURES, encounters: ENCOUNTERS,
-  quests: ADVENTURE, ledger: TEMPLATE_LEDGER, audio: TEMPLATE_AUDIO, state: TEMPLATE_STATE, hooks: TEMPLATE_HOOKS,
+  quests: ADVENTURE, directors: TEMPLATE_DIRECTORS, ledger: TEMPLATE_LEDGER, audio: TEMPLATE_AUDIO, state: TEMPLATE_STATE, hooks: TEMPLATE_HOOKS,
   sim: { ...base.sim, scriptTickDivisor: 1, scripts: [door.hash, itemModule], bindings: [{ module: door.hash, entity: playerHandle, actorId: 'actor.player', kind: 'server' }] },
 });

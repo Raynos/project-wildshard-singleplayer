@@ -9,6 +9,7 @@ import { SHARDFILE_VERSION } from '@wildshard/format/version';
 import { UiSchema, uiRules } from '@wildshard/format/ui';
 import { scriptBindingRules } from '@wildshard/format/scripts';
 import { RowsSchema } from '@wildshard/format/rows';
+import { DirectorsSchema } from '@wildshard/format/directorStages';
 import { TerrainSchema } from '@wildshard/format/terrain';
 import { MeshCollisionSchema, meshCollisionRules } from '@wildshard/format/meshCollision';
 import { NativeGroundSchema, nativeGroundRules } from '@wildshard/format/nativeGround';
@@ -76,6 +77,7 @@ const rawSchema = v.strictObject({
   creatures: v.optional(CreaturesSchema, { brains: [], groups: [], spawns: [] }),
   crowds: v.optional(v.pipe(v.array(FlockSchema), v.maxLength(64)), []),
   encounters: v.optional(EncountersSchema, []),
+  directors: v.exactOptional(DirectorsSchema),
   quests: v.optional(QuestDataSchema, { flags: [], quests: [], triggers: [], dialogue: [] }),
   audio: v.optional(AudioDataSchema, { cues: [], ambience: null, score: 'silent' }),
   ledger: v.optional(LedgerRulesSchema, []),

@@ -1,0 +1,189 @@
+{
+  "version": 2,
+  "id": "driftwood.finale.stages",
+  "inputs": {
+    "restored": "event:captain.restore",
+    "awakened": "event:captain.wake",
+    "dead": "event:captain.dead",
+    "rewarding": "event:reward.start",
+    "finished": "event:reward.finish"
+  },
+  "stages": [
+    {
+      "id": "ready",
+      "next": [
+        {
+          "target": "restored",
+          "when": "restored"
+        },
+        {
+          "target": "awakened",
+          "when": "awakened"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "rewarding",
+          "when": "rewarding"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "restored",
+      "do": [
+        {
+          "emit": "captain.restore"
+        }
+      ],
+      "next": [
+        {
+          "target": "restored",
+          "when": "restored"
+        },
+        {
+          "target": "awakened",
+          "when": "awakened"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "rewarding",
+          "when": "rewarding"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "awakened",
+      "do": [
+        {
+          "emit": "captain.wake"
+        }
+      ],
+      "next": [
+        {
+          "target": "restored",
+          "when": "restored"
+        },
+        {
+          "target": "awakened",
+          "when": "awakened"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "rewarding",
+          "when": "rewarding"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "dead",
+      "do": [
+        {
+          "emit": "captain.dead"
+        }
+      ],
+      "next": [
+        {
+          "target": "restored",
+          "when": "restored"
+        },
+        {
+          "target": "awakened",
+          "when": "awakened"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "rewarding",
+          "when": "rewarding"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "rewarding",
+      "do": [
+        {
+          "emit": "reward.start"
+        }
+      ],
+      "next": [
+        {
+          "target": "restored",
+          "when": "restored"
+        },
+        {
+          "target": "awakened",
+          "when": "awakened"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "rewarding",
+          "when": "rewarding"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    },
+    {
+      "id": "finished",
+      "do": [
+        {
+          "emit": "reward.finish"
+        }
+      ],
+      "next": [
+        {
+          "target": "restored",
+          "when": "restored"
+        },
+        {
+          "target": "awakened",
+          "when": "awakened"
+        },
+        {
+          "target": "dead",
+          "when": "dead"
+        },
+        {
+          "target": "rewarding",
+          "when": "rewarding"
+        },
+        {
+          "target": "finished",
+          "when": "finished"
+        }
+      ]
+    }
+  ],
+  "script": "25121a8616589da2265bc6d0537c86eabec4d64d26d0bd757268d80dac2cba1b"
+}

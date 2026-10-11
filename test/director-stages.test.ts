@@ -111,3 +111,23 @@ it('publishes structural JSON Schema with mandatory defining semantic checks', (
   expect(schema.properties?.['version']).toEqual({ const: 2 });
   expect(schema['x-wildshard-checks']).toContain('@wildshard/format/directorStages#DirectorStagesSchema.pipe.1');
 });
+
+
+it('takes the first admitted guarded target in author order, including dead-on-entry and self delivery', () => {
+  const data = new Director({ id: 'fixture.branches', inputs: { dead: 'actor:captain.dead', wake: 'event:captain.wake' }, stages: [
+    { id: 'ready', next: [{ target: 'dead', when: 'dead' }, { target: 'awake', when: 'wake' }] },
+    { id: 'awake', next: [{ target: 'dead', when: 'dead' }, { target: 'awake', when: 'wake' }], do: [{ emit: 'captain.wake' }] },
+    { id: 'dead', next: 'ready', do: [{ emit: 'captain.dead' }] },
+  ] }).toJSON();
+  const lane = new DirectorStageLane(data);
+  lane.step(0, { dead: false, wake: false });
+  expect(lane.step(1, { dead: true, wake: true })).toEqual([{ emit: 'captain.dead', value: 0 }]);
+  const saved = lane.snapshot(), restored = new DirectorStageLane(data); restored.restore(saved);
+  expect(restored.step(2, { dead: false, wake: false })).toEqual(lane.step(2, { dead: false, wake: false }));
+  expect(restored.step(3, { dead: false, wake: true })).toEqual(lane.step(3, { dead: false, wake: true }));
+  expect(restored.step(4, { dead: false, wake: true })).toEqual([{ emit: 'captain.wake', value: 0 }]);
+  lane.step(4, { dead: false, wake: true }); expect(restored.snapshot()).toBe(lane.snapshot());
+  for (const next of [[], [{ target: 'missing', when: 'dead' }], [{ target: 'ready', when: 'unknown' }], Array.from({ length: 65 }, () => ({ target: 'ready', when: 'true' }))]) {
+    expect(() => parseDirectorStages({ ...data, stages: [{ id: 'ready', next }] })).toThrow();
+  }
+});

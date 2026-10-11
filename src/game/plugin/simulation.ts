@@ -1,3 +1,4 @@
+import { DirectorStageLane } from './director';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimStrike, type SimValue } from "@wildshard/engine/sim";
 import { buildPlatformSpawns } from "@wildshard/engine/ai/platform";
 import { addBakedTerrainCollider } from "@wildshard/engine/physics/terrainTiles";
@@ -246,6 +247,22 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const quest = new DeclaredQuests(host, shard.quests, { ...ports.quest,
       ...(lane === undefined ? {} : { script: createQuestScriptPorts(lane, hooks, actors) }),
     });
+    for (const data of shard.directors ?? []) {
+      if (data.script !== null || Object.values(data.inputs).some(binding => !binding.startsWith('flag:'))
+        || data.stages.some(stage => stage.do.some(action => !('flag' in action)))) throw new Error('Director rows require native bindings for their observations and actions');
+      if (Object.values(data.inputs).some(binding => !shard.quests.flags.includes(binding.slice(5)))
+        || data.stages.some(stage => stage.do.some(action => 'flag' in action && !shard.quests.flags.includes(action.flag.key)))) throw new Error('Director flag has no declared native owner');
+      const director = new DirectorStageLane(data);
+      host.onStep(`director.${data.id}`, (_dt, native) => {
+        const observation = Object.fromEntries(Object.entries(data.inputs).map(([name, binding]) => [name, native.flags.has(binding.slice(5))]));
+        for (const action of director.step(native.state.tick, observation)) {
+          if (!('flag' in action)) throw new Error('Director action has no native owner');
+          native.flags.set(action.flag.key, action.flag.value);
+        }
+      }, { snapshot: () => director.snapshot(), restore: state => {
+        if (typeof state !== 'string') throw new Error('Invalid director row continuation'); director.restore(state);
+      } });
+    }
     installDeclaredBrains(host, shard.creatures.spawns.filter((spawn) => spawn.brain === null || (!custom.has(spawn.brain) && !groupIds.has(spawn.brain))), shard.creatures.brains.filter((brain) => brain.kind !== 'script'), ports.brains);
     const encounters = installDeclaredEncounters(host, shard.encounters, ports.encounters ?? (() => ({ saved: { defeated: false, rewardTaken: false, kills: 0 }, persist: () => undefined, reward: () => undefined })), ports.hud);
     // All individual/custom aliases and encounter recipes have admitted successfully before setup draws or group work.

@@ -144,3 +144,27 @@ export function ledgerProof(rapier: Rapier): object {
     return { facts: facts.length, receipt: receipt.status, achievement: achievement.id, count: achievement.count };
   } finally { sim.dispose(); }
 }
+
+
+/** The reference advances from the real shared-state door through the native creature/death/quest owners. */
+export function directorProof(rapier: Rapier): object {
+  const first = boot(rapier); let restored: ProofSimulation | undefined;
+  try {
+    const lane = requireValue(first.sim.lane, 'Missing door script'), actor = requireValue(first.sim.actors.get(first.sim.host.player.id), 'Missing door actor');
+    tick(first.sim, 1);
+    if (first.sim.host.flags.has('template.wave-started')) throw new Error('Wave started through a closed door');
+    lane.enqueue({ type: 201, target: actor, value: 1 }); tick(first.sim, 2);
+    if (lane.world.view(first.sim.host.player.id).shared['template.door.open'] !== 1 || first.sim.colliders.get('template.door')?.active() !== false
+      || !first.sim.host.flags.has('template.wave-started')) throw new Error('Director did not read the actual door owner');
+    const checkpoint = snapshotSimHost(first.sim.host), ledger = profile(first.local.copy()), hooks = ports(rapier, ledger);
+    const host = restoreSimHost(first.sim.host.level, { rapier }, checkpoint, fresh => {
+      restored = itemRuntimes(bindShardfileSim(fresh, source, assets, { ...hooks.ports, restoring: true })); hooks.install(fresh);
+    });
+    restored = requireValue(restored, 'Missing director restore installation');
+    if (digest(host) !== digest(first.sim.host)) throw new Error('Director restore changed native state');
+    finishQuest(first.sim); finishQuest(restored);
+    if (!first.sim.host.flags.has('template.wave-complete') || !host.flags.has('template.wave-complete')) throw new Error('Native wave death did not advance the director');
+    if (digest(host) !== digest(first.sim.host) || JSON.stringify(ledger.state()) !== JSON.stringify(first.ledger.state())) throw new Error('Door/wave continuation changed');
+    return { doorCollider: false, waveStarted: true, waveComplete: true, checkpointTick: checkpoint.state.tick, suffixHash: digest(host), facts: Object.keys(ledger.state().facts).length };
+  } finally { restored?.dispose(); first.sim.dispose(); }
+}

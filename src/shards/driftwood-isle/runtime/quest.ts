@@ -18,7 +18,7 @@ import baked from './spots.baked.json' with { type: 'json' };
 import { DriftwoodPack } from './pack';
 import { DriftwoodZipline } from './zipline';
 import { DriftwoodReward } from './reward';
-import type { DriftwoodScriptFinale } from './scriptFinale';
+import type { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from '@wildshard/sdk/runtime/prompts';
 
 /** The script command actor that carries Driftwood's [E] prompts (`{ kind: 'script', actorId: DRIFTWOOD_INTERACT, value }`). */
@@ -27,7 +27,7 @@ export const DRIFTWOOD_INTERACT = 'driftwood.interact';
 export const DRIFTWOOD_ACT = { talk: 0, sword: 1, zipline: 2, row: 100 } as const;
 /** The quest keeper's fixed-step id (the dropped key's point, the reward beat's clock, the flag feats' counts). */
 export const QUEST_STEP = 'driftwood.quest';
-/** The finale's last flag (runtime/finale.ts: the reward view's end). */
+/** The finale's last flag (runtime/finalePresentation.ts: the reward view's end). */
 export const REWARD_FLAG = 'seen:reward';
 
 /** The browser player's eye above the feet (engine Player EYE): prompts pick by eye distance (Interactables.pickInteractable). */
@@ -81,7 +81,7 @@ export interface DriftwoodQuestPorts {
   /** a restoring install: the barrel's native body comes back with the saved world, never spawned again */
   readonly restoring: boolean;
   /** The admitted finale, stepped at this keeper's existing post-player/ride phase. */
-  readonly finale: DriftwoodScriptFinale;
+  readonly finale: DirectorScriptStageLane;
   /** Events from the same admitted director, consumed at the native post-player reward phase. */
   readonly reward: { readonly started: boolean };
 }

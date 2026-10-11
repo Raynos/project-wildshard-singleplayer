@@ -1,0 +1,9 @@
+/** Door state is the real field-101 condition published by the quest owner; the wave is the shipped grey blob. */
+export const TEMPLATE_DIRECTORS = [{
+  version: 2, id: 'template.door-wave', inputs: { doorOpen: 'flag:template.door-open', waveDead: 'flag:template.blob' },
+  stages: [
+    { id: 'door' },
+    { id: 'wave', when: 'doorOpen', do: [{ flag: { key: 'template.wave-started', value: true } }] },
+    { id: 'complete', when: 'waveDead', do: [{ flag: { key: 'template.wave-complete', value: true } }] },
+  ],
+}] as const;
