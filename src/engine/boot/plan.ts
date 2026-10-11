@@ -26,7 +26,7 @@ import { resourceScope } from '../app/resources';
  */
 import { BOOT_STEPS, BYTE_SOURCES, STEP_INFO, byteLabel, closedBy, type BootStep, type ByteKey } from './steps';
 import { expectedDurations, saveTimings, type Timings } from './timing';
-import { paceYield, presenting } from '../core/framePacing';
+import { frameBudgetSpent, paceYield, presenting } from '../core/framePacing';
 import { WORK_SLICE_MS } from '../core/workSlice';
 
 export interface StepProgress {
@@ -108,15 +108,17 @@ export const macrotask = (): Promise<void> => paceYield(messageHop, undefined, W
 export function slicer(budgetMs = 30, progress?: StepProgress): Slice {
   let t0 = performance.now();
   // in play (a grid cell built on the road while the engine loop draws, op-hitch26) a stretch is a work slice, not a loading
-  // task: the loading screen's ~100 ms rule becomes the frame floor's
+  // task: the loading screen's ~100 ms rule becomes the frame floor's. Every builder also shares
+  // the work spent since the last draw, so a fresh builder cannot refill an already spent frame.
   const budget = (): number => (presenting() ? Math.min(budgetMs, WORK_SLICE_MS) : budgetMs);
+  const due = (): boolean => { const now = performance.now(); return now - t0 >= budget() || frameBudgetSpent(budgetMs, now); };
   const next = async (): Promise<void> => { await macrotask(); t0 = performance.now(); };
   const slice = async (done?: number, total?: number, detail?: string): Promise<void> => {
     if (done !== undefined && total !== undefined) progress?.set(done, total, detail);
-    if (performance.now() - t0 < budget()) return;
+    if (!due()) return;
     await next();
   };
-  return Object.assign(slice, { due: (): Promise<void> | null => (performance.now() - t0 < budget() ? null : next()) });
+  return Object.assign(slice, { due: (): Promise<void> | null => (due() ? next() : null) });
 }
 
 /** A `slicer()` yield point, plus `due()` on the same clock for code that pauses inside a step (`placeSliced`'s `due`):

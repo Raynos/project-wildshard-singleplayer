@@ -2,6 +2,7 @@ import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 // src/engine/boot/plan.ts + steps.ts + timing.ts — the loading screen's progress invariants (header of plan.ts):
 // both fractions are monotone, a running step never reads complete, and done() reads exactly 1 / 1.
 import { describe, expect, it, vi } from 'vitest';
+import { noteFrameDrawn, setFramePacing } from '@wildshard/engine/core/framePacing';
 import { BOOT_STEPS, BYTE_SOURCES, STEP_INFO, byteLabel, closedBy, shardTimingKey, useShardSteps, type BootStep, type ByteKey } from '../src/engine/boot/steps';
 import { createBootPlan, formatMB, runDirect, slicer, type Plan, type PlanOptions, type ProgressView, type StepProgress } from '../src/engine/boot/plan';
 import { expectedDurations, loadTimings, saveTimings, type Timings } from '../src/engine/boot/timing';
@@ -234,4 +235,30 @@ it('reports actual builder units through the slicer even before its yield budget
   const slice = slicer(1e9, { set, detail });
   await slice(1, 3, 'First builder'); await slice(2, 3, 'Second builder');
   expect(set.mock.calls).toEqual([[1, 3, 'First builder'], [2, 3, 'Second builder']]);
+});
+
+
+it('shares the drawn frame budget even when a new builder has not spent its own slice', async () => {
+  let now = 10_000_000;
+  vi.spyOn(performance, 'now').mockImplementation(() => now);
+  setFramePacing(true);
+  try {
+    noteFrameDrawn(now, now, 30);
+    now += 5; // Prior builders spent the quarter-frame budget; this builder is fresh.
+    const first = slicer(30);
+    const pause = first.due();
+    expect(pause).not.toBeNull();
+    await pause;
+    noteFrameDrawn(now, now, 30);
+    expect(first.due()).toBeNull();
+
+    const second = slicer(30), progress = vi.fn<StepProgress['set']>();
+    const reported = slicer(30, { set: progress, detail: () => undefined });
+    now += 5;
+    expect(second.due()).not.toBeNull();
+    await reported(1, 2, 'Next builder');
+    expect(progress).toHaveBeenCalledWith(1, 2, 'Next builder');
+    setFramePacing(false);
+    expect(second.due()).toBeNull(); // Loading and native callers retain their own 30 ms.
+  } finally { setFramePacing(false); vi.restoreAllMocks(); }
 });
