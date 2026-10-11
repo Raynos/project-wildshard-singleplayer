@@ -632,7 +632,7 @@ async function main() {
     const registry = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
     const dist = join(registry[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
     const helper = join(dist, 'frame-floor-safari.html');
-    writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${travelGl}</script>`));
+    writeFileSync(helper, html.replace('<head>', `<head><script>${fixture('phone')};window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${travelGl}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--developer=${developer}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(glTime ? ['--gl-time'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
