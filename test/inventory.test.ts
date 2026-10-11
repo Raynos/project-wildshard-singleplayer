@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
 import { Inventory, PACK_SLOTS, harvestOf, type ItemId } from '../src/game/Inventory';
 import { ITEMS } from '../src/game/bag/itemCatalog';
-import { PINE_PACK_SLOTS } from '../src/shards/pine-hollow/items';
+import { PINE_PACK_SLOTS } from '../src/shards/pine-hollow/data/questInventory';
 import { speciesDef } from '../src/engine/entities/species/registry';
 
 const PINE = 'chunk://local/pine-hollow';

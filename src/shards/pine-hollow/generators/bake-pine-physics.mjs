@@ -162,8 +162,8 @@ try {
         context.rows.species([...PINE_SPECIES, pineElk()]);
         context.rows.speciesLook((await moduleAt('src/shards/pine-hollow/species/looks.ts')).pineLooks());
         context.rows.spawnTable((await moduleAt('src/shards/pine-hollow/combat/spawns.ts')).PINE_SPAWNS);
-        context.rows.item((await moduleAt('src/shards/pine-hollow/items.ts')).PINE_ITEMS);
-        context.rows.feat((await moduleAt('src/shards/pine-hollow/feats.ts')).PINE_FEATS);
+        context.rows.item((await moduleAt('src/shards/pine-hollow/data/questInventory.ts')).PINE_BAG_ITEMS);
+        context.rows.feat((await moduleAt('src/shards/pine-hollow/data/questInventory.ts')).PINE_FEATS);
       },
       nativeTerrain: readFileSync(resolvePath(root, 'public/assets/baked/pine-hollow/terrain.bin')),
       createTerrain: async () => {

@@ -8,7 +8,7 @@ import { installPineDebug } from '../debug/options';
 import { PINE_SPAWNS } from '../combat/spawns';
 import { PINE_SPECIES, pineElk } from '../species/rows';
 import { pineLooks } from '../species/looks';
-import { PINE_FEATS } from '../feats';
+import { PINE_FEATS, PINE_BAG_ITEMS as PINE_ITEMS } from '../data/questInventory';
 import { PINE_HOLLOW_COMPENDIUM } from '../compendium';
 import { installPineCompendium } from '../compendium/install';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -48,7 +48,7 @@ import { PINE_FINISH_EFFECTS, pineFinishes, finishPick } from '../loadout/finish
 import { SKINS, PINE_FINISHES } from '../loadout/skins';
 import { bindLoadoutDeath } from '../loadout/events';
 import { mottLine } from '../quest/trades';
-import { isPineItem, PINE_ITEMS } from '../items';
+import { isPineItem } from '../items';
 import { KING_KIND, registerKing } from './antlerKing';
 
 function runtime(ctx: ShardContext): ShardRuntime {

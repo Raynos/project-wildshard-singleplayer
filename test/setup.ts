@@ -30,7 +30,7 @@ vi.stubGlobal('location', new URL('http://localhost:5173/'));
 await import('../src/identity');
 await import('../src/shardList');
 const { registerAchievements } = await import('../src/game/achievements');
-const { PINE_FEATS } = await import('../src/shards/pine-hollow/feats');
+const { PINE_FEATS } = await import('../src/shards/pine-hollow/data/questInventory');
 const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('../src/shards/driftwood-isle/data/questInventory');
 registerAchievements('pine-hollow', PINE_FEATS);
 registerAchievements('driftwood-isle', DRIFTWOOD_FEATS);
@@ -72,7 +72,7 @@ registerSpecies(speciesWithLook(pineElk(), pineElkLook()));
 // Pure inventory fixtures explicitly install the authored item catalogs.
 const { registerItemRow } = await import('../src/game/bag/itemCatalog');
 const { STARTER_BAG_ITEMS } = await import('../src/game/bag/starter.generated');
-const { PINE_ITEMS } = await import('../src/shards/pine-hollow/items');
+const { PINE_BAG_ITEMS: PINE_ITEMS } = await import('../src/shards/pine-hollow/data/questInventory');
 for (const row of [...STARTER_BAG_ITEMS, ...PINE_ITEMS, ...DRIFTWOOD_ITEMS]) registerItemRow(row);
 
 beforeEach(() => { localStorage.clear(); });

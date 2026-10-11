@@ -4,7 +4,7 @@ import { withOwner } from '../src/engine/app/ownership';
 import { SaveStore } from '../src/engine/saves/store';
 import { Progress, type ProgressLedger } from '../src/game/Progress';
 import { registerAchievements, type AchievementDef } from '../src/game/achievements';
-import { PINE_FEATS } from '../src/shards/pine-hollow/feats';
+import { PINE_FEATS } from '../src/shards/pine-hollow/data/questInventory';
 import { Ledger } from '../src/game/ledger';
 import { progressSave } from '../src/game/saves';
 import { readSummary } from '../src/game/summary';

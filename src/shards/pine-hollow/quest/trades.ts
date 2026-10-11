@@ -15,7 +15,7 @@
  */
 import type { IconId } from '@wildshard/engine/ui/icons';
 import type { ShopCost, ShopGood, ShopState } from '@wildshard/game/loot/ui/ShopPanel';
-import type { PineItem } from '../items';
+import type { PineItem } from '../data/questInventory';
 import type { AmmoKind } from '../loadout/ammo';
 
 export type TradeItem = PineItem;

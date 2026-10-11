@@ -1,4 +1,4 @@
-import { PINE_FEATS } from '../feats';
+import { PINE_FEATS } from '../data/questInventory';
 import { LANTERN_FLAGS, QUEST_DONE } from './wardensHollow';
 import { RESIN_FLAG, TOKEN_FLAG, SECRET_FLAGS } from './table';
 

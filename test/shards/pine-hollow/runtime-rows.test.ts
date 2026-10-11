@@ -9,7 +9,7 @@ import { Ledger, LedgerEmitter } from '../../../src/game/ledger';
 import { SaveStore } from '../../../src/engine/saves/store';
 import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState, withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import source from '../../../src/shards/pine-hollow/shard.config';
-import { PINE_FEATS } from '../../../src/shards/pine-hollow/feats';
+import { PINE_FEATS } from '../../../src/shards/pine-hollow/data/questInventory';
 import { WARDENS_HOLLOW, QUEST_EXTERNAL, QUEST_DONE } from '../../../src/shards/pine-hollow/quest/wardensHollow';
 import { loadBoard, saveBoard, reroll } from '../../../src/shards/pine-hollow/quest/contracts';
 import { bindPineCombatState } from '../../../src/shards/pine-hollow/runtime/persistence';
@@ -130,7 +130,7 @@ describe('Pine runtime-owned declarations (SF47-p, C26)', () => {
         emit: (fact, entity) => { identities.add(`${fact}/${entity}`); emissions++; } });
       for (const feat of PINE_FEATS) for (let n = 0; n < feat.count + 2; n++) {
         if (feat.kind !== undefined) { oracle.recordKill(feat.kind, feat.variant); facts.kill(feat.kind, feat.variant); hostFacts.kill(feat.kind, feat.variant); }
-        else if (feat.event !== undefined) { oracle.recordEvent(feat.event); facts.event(feat.event); hostFacts.event(feat.event); }
+        else { oracle.recordEvent(feat.event); facts.event(feat.event); hostFacts.event(feat.event); }
         expect(bound.rows).toEqual(oracle.rows); expect(actual).toEqual(expected);
         for (const row of oracle.rows) expect(counts[row.def.id] ?? 0).toBe(row.count);
       }

@@ -1,5 +1,5 @@
 import { NALATI_FEATS } from '../src/shards/nalati-grasslands/feats';
-import { PINE_FEATS } from '../src/shards/pine-hollow/feats';
+import { PINE_FEATS } from '../src/shards/pine-hollow/data/questInventory';
 // src/game/achievements.ts + src/game/Progress.ts — kills → achievement counts → earned titles → the worn title.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';

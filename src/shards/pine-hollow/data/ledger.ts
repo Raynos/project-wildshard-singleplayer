@@ -1,5 +1,5 @@
 import { parseLedgerRules } from '@wildshard/sdk/ledger';
-import { PINE_FEATS } from '../feats';
+import { PINE_FEATS } from '../data/questInventory';
 
 /** Native progress remains the journal/title presentation adapter; profile grants are declared, deduplicated facts. */
 export const PINE_LEDGER = parseLedgerRules(PINE_FEATS.map((feat) => ({

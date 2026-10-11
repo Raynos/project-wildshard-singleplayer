@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { createPinePack } from '../../../src/shards/pine-hollow/runtime/pack';
-import { PINE_PACK_KINDS } from '../../../src/shards/pine-hollow/items';
+import { PINE_PACK_KINDS } from '../../../src/shards/pine-hollow/data/questInventory';
 
 it('keeps the authored pack policy, full stacks and all-or-nothing trades across a silent restore', () => {
   const pack = createPinePack();

@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { addInventory, takeInventory, type InventoryState } from '@wildshard/game/inventoryLaw';
-import { PINE_PACK_KINDS, PINE_PACK_SLOTS, type PineItem } from '../items';
+import { PINE_PACK_KINDS, PINE_PACK_SLOTS, type PineItem } from '../data/questInventory';
 
 const kind = v.picklist(PINE_PACK_KINDS);
 /** The seven authored pack kinds, bounded for the headless continuation; the page's save format is unchanged. */
