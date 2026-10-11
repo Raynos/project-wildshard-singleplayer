@@ -2701,6 +2701,47 @@
       "buildOutputs": {
         "src/shards/nalati-grasslands/behaviour/qara.generated.json": "1f83e2bd97ccaf81fdb95c073a5d980d07ebe2b824be6b63e8b0037be3a39f47"
       }
+    },
+    {
+      "id": "pine-elite-behaviours",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/admissionLimits.ts",
+        "src/format/director.ts",
+        "src/format/directorStages.ts",
+        "src/format/directorWhen.ts",
+        "src/format/package.json",
+        "src/format/state.ts",
+        "src/sdk/assemblyscriptCompiler.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/buildBehaviour.ts",
+        "src/sdk/compileScript.ts",
+        "src/sdk/directorAbi.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/package.json",
+        "src/sdk/sourceReader.ts",
+        "src/shards/pine-hollow/behaviour/blackpaw.as",
+        "src/shards/pine-hollow/behaviour/elitePrelude.as",
+        "src/shards/pine-hollow/behaviour/ghostStag.as",
+        "src/shards/pine-hollow/behaviour/imperialBull.as",
+        "src/shards/pine-hollow/behaviour/ironhide.as",
+        "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/behaviour/ironhide.json",
+        "src/shards/pine-hollow/behaviour/ghostStag.json",
+        "src/shards/pine-hollow/behaviour/blackpaw.json",
+        "src/shards/pine-hollow/behaviour/imperialBull.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

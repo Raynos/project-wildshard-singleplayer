@@ -182,3 +182,5 @@ Pine’s `pine-clock-director` job compiles its retained typed AssemblyScript an
 Signal’s `signal-skitterer-behaviour` report-only job compiles its retained native AssemblyScript policy through the confined SDK author loader. Its exact historical transport shape and hash regenerate without runtime, legacy, seeds or a warm cache. No activation or removal is admitted until the whole shard product passes.
 
 Nalati’s existing `nalati-qara` component now runs through the confined SDK author loader with its exact compiler/retained AS closure. Cold, forced and official clean-room regeneration preserve the original transport hash. Existing activation is unchanged, and this component evidence cannot authorize whole-product removal.
+
+Pine’s `pine-elite-behaviours` report-only component compiles the four retained native elite policies after their exact shared AS prelude, through the confined SDK author loader. All four original transport hashes regenerate without runtime, legacy, seeds or a warm cache. No activation or removal is admitted until the whole shard product passes.
