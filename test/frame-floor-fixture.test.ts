@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- A fresh origin verifies fixtures before the game's first module.
 import { runInNewContext } from 'node:vm';
 import { expect, it } from 'vitest';
+import { GridAssembly } from '../src/game/grid/assembly';
 
 const source = readFileSync('scripts/frame-floor.mjs', 'utf8');
 const debug = readFileSync('scripts/debug-settings.mjs', 'utf8');
@@ -29,4 +30,19 @@ it.each(['on', 'off'])('seeds a fresh Safari origin before modules boot with Dev
   expect(read('device')).toMatchObject({ keys: { devMode: { data: developer === 'on' } } });
   expect(read('global')).toMatchObject({ keys: { settings: { data: { tier: 'phone', buildPacing: 'on', fps: 'auto' } }, gfx: { data: { dpr: '2' } } } });
   expect(window).toMatchObject({ __wildshardHarness: { seed: 357, capture: null } });
+});
+
+it('keeps every platform standing camera outside cell-owned terrain on the permanent road', () => {
+  const declaration = source.split('\n').find(line => line.startsWith('const GRID_POSES ='));
+  if (declaration === undefined) throw new Error('Grid camera declaration missing');
+  const poses: unknown = runInNewContext(`${declaration}\nGRID_POSES`);
+  if (!Array.isArray(poses)) throw new Error('Grid camera inventory missing');
+  expect(poses.length).toBeGreaterThan(0);
+  const assembly = new GridAssembly({ developer: true, devserver: true });
+  for (const pose of poses) {
+    if (typeof pose !== 'object' || pose === null) throw new Error('Invalid camera');
+    const x: unknown = Reflect.get(pose, 'x'), z: unknown = Reflect.get(pose, 'z');
+    if (typeof x !== 'number' || typeof z !== 'number') throw new Error('Invalid camera coordinates');
+    expect(assembly.at(x, z)).toBeUndefined();
+  }
 });
