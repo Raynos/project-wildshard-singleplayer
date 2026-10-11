@@ -3289,3 +3289,7 @@ The author CLI `wildshard schema list` lists every format JSON Schema and the co
 ## Typed numeric author scripts (OS-F4)
 
 `@wildshard/sdk/directorAbi.generateScriptModule` produces the complete ABI-v0 AS module from admitted state rows and an on_tick body. It allocates memory, emits typed stable-ID state accessors, and documents byte versus record capacities and native actor provenance. The [typed ABI guide](authoring/script-abi.md) and executed numericScriptExample are checked against ScriptLane, including rollback and exact restore. Existing director accessor bytes remain unchanged.
+
+## Director day observations (OS-F5)
+
+Stage inputs admit day:FROM..TO as a bounded boolean over the declared look clock, with half-open normalized endpoints. The renderer and native host share world/dayCycle.normalizedDayClock; the client lends its actual page clock and never steps it twice. Complete clock continuation restores silently, and flag-only directors retain their prior state shape. See [the day observation guide](authoring/director-day.md) and the executed dayDirectorExample/native continuation checks.

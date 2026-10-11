@@ -10,7 +10,7 @@
  */
 import * as THREE from 'three';
 import { LookupTexture } from 'postprocessing';
-import { DayCycle } from '../world/dayCycle';
+import { DEFAULT_NORMALIZED_DAY, normalizedDayClock, type DayCycle } from '../world/dayCycle';
 import type { LookStrategy, SkyBackdropTargets } from './look';
 import { LUT_SIZE, fetchLut } from './lut';
 import { PATCH_ORDER, patchShader, setInheritedPatch, type ShaderSource } from './shaderPatches';
@@ -35,7 +35,7 @@ export interface LookKey {
 export interface LookDay { readonly minutes: number; readonly start: number; readonly maxElevation: number; readonly azimuth: number }
 
 /** The clock a data look gets when its data names none: a 12-minute day from noon, the sun 60° high at 35° azimuth. */
-export const DATA_LOOK_DAY: LookDay = { minutes: 12, start: 0.5, maxElevation: 60, azimuth: 35 };
+export const DATA_LOOK_DAY: LookDay = DEFAULT_NORMALIZED_DAY;
 
 /** A data look: its clock, an optional fixed time of day, its ordered keys (at least one) and the LUT file's URL. */
 export interface DataLookSpec {
@@ -88,11 +88,7 @@ export function sampleLook(keys: readonly LookKey[], time: number, out: LookSamp
 
 /** The engine clock for a data look (an hour clock with one day-long segment, the sun on the day's arc). */
 export function dataLookClock(day: LookDay, dayOverride: number | null): DayCycle {
-  const clock = new DayCycle({ units: 'hour', start: (dayOverride ?? day.start) * 24,
-    schedule: [{ phase: 'day', from: 0, to: 24, minutes: day.minutes }], sun: { maxElevation: day.maxElevation, azimuthOffset: day.azimuth },
-    fixed: { midday: 12, golden: 17, sunset: 18, night: 0 }, presets: { dawn: 6, noon: 12, dusk: 18, night: 0 } });
-  clock.paused = dayOverride !== null;
-  return clock;
+  return normalizedDayClock(day, dayOverride);
 }
 
 /** The engine's gradient dome: radius 600 m, drawn first, unfogged, kept on the camera by Game (the backdrop's `clouds`). */

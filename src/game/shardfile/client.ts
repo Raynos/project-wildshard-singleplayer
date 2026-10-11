@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { Object3D, Vector3 } from 'three';
+import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
 import { scriptItemHook, type ItemTarget, type ItemRuntime } from '@wildshard/engine/combat/items';
@@ -277,6 +278,11 @@ export class ShardfileClient {
       scriptDisabled: scriptDisabledNotice({ toast: (text) => { play.hud.toast(text, 'warn'); }, devAlert: (text) => { play.hud.devAlert(text); } }),
       player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, get motor() { return world.player.motor; } },
       events: ctx.app.events, clock: ctx.app.clock, combat: ctx.app.combat, scope: ctx.scope, water: ctx.app.world.water,
+      lookClock: () => {
+        const clock = world.game.sky.dayNight;
+        if (!(clock instanceof DayCycle)) throw new Error('Director requires the rendered declared look clock');
+        return clock;
+      },
       fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => simulationActive && !installing, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
       quest: { fact: (name, entity) => { fact(name, entity, 'quest.complete'); }, coins: (amount, entity) => {
         if (loot?.purse !== null && loot?.purse !== undefined) { loot.purse.add(amount); return; }

@@ -5,6 +5,8 @@ import { parseSocketLift, type SocketLift } from '@wildshard/format/socketLift';
 import { walkEdgeEntries } from '@wildshard/engine/physics/edgeEntries';
 import { provePortalLinks } from '../shardfile/portalLinkProof';
 import { DirectorStageLane } from './director';
+import { directorDayRange } from '@wildshard/format/directorStages';
+import { DEFAULT_NORMALIZED_DAY, normalizedDayClock, inNormalizedDayRange, type DayCycle } from '@wildshard/engine/world/dayCycle';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimStrike, type SimValue } from "@wildshard/engine/sim";
 import { buildPlatformSpawns } from "@wildshard/engine/ai/platform";
 import { addBakedTerrainCollider } from "@wildshard/engine/physics/terrainTiles";
@@ -44,6 +46,12 @@ import { LiftRiderSchema, type LiftRider } from "@wildshard/format/liftRider";
 import * as v from "valibot";
 import { installEntrySockets } from "@wildshard/engine/physics/entrySockets";
 
+const dayClockContinuation = v.strictObject({
+  value: v.number(), paused: v.boolean(), scale: v.number(), cycle: v.number(),
+  held: v.nullable(v.strictObject({ value: v.number(), paused: v.boolean() })),
+  last: v.picklist(['dawn', 'day', 'golden', 'dusk', 'night']),
+});
+
 /** Positive stable actor handle; reordering spawns changes nothing. Hash collisions are refused during composition. */
 export function numericScriptEntityId(id: string): number { return (fnv1a32(id) & 0x7fffffff) || 1; }
 /** The existing client can lend its physics/player/fixed-step driver; Node owns them by default. */
@@ -66,6 +74,8 @@ export interface ShardfileSimPorts extends SimHostPorts {
   restoring?: boolean;
   /** The normal client or regional registry already owns its four platform sockets. */
   entrySocketsProvided?: boolean;
+  /** Embedded pages lend their actual rendered look clock; the page alone advances it. */
+  lookClock?: () => Pick<DayCycle, 'hour' | 'snapshot' | 'restore'>;
   /** G168: a declared module crossed its failure limit and stays off (the client tells the player; Node ignores it). */
   scriptDisabled?: ShardScriptPorts['onDisabled'];
 }
@@ -261,14 +271,35 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const quest = new DeclaredQuests(host, shard.quests, { ...ports.quest,
       ...(lane === undefined ? {} : { script: createQuestScriptPorts(lane, hooks, actors) }),
     });
+    const needsDay = (shard.directors ?? []).some(data => Object.values(data.inputs).some(binding => directorDayRange(binding) !== null));
+    let day: (() => number) | undefined;
+    if (needsDay) {
+      if (host.embedded) {
+        const clock = ports.lookClock;
+        if (clock === undefined) throw new Error('Day director requires the page-owned look clock');
+        day = () => clock().hour;
+        host.onStep('director.day', () => undefined, { snapshot: () => JSON.stringify(clock().snapshot()), restore: value => {
+          if (typeof value !== 'string') throw new Error('Invalid director day continuation');
+          clock().restore(v.parse(dayClockContinuation, JSON.parse(value)));
+        } });
+      } else {
+        const clock = host.useDayClock(normalizedDayClock(shard.look.day ?? DEFAULT_NORMALIZED_DAY, shard.look.dayOverride));
+        day = () => clock.hour;
+      }
+    }
     for (const data of shard.directors ?? []) {
-      if (data.script !== null || Object.values(data.inputs).some(binding => !binding.startsWith('flag:'))
+      if (data.script !== null || Object.values(data.inputs).some(binding => !binding.startsWith('flag:') && directorDayRange(binding) === null)
         || data.stages.some(stage => stage.do.some(action => !('flag' in action)))) throw new Error('Director rows require native bindings for their observations and actions');
-      if (Object.values(data.inputs).some(binding => !shard.quests.flags.includes(binding.slice(5)))
+      if (Object.values(data.inputs).some(binding => binding.startsWith('flag:') && !shard.quests.flags.includes(binding.slice(5)))
         || data.stages.some(stage => stage.do.some(action => 'flag' in action && !shard.quests.flags.includes(action.flag.key)))) throw new Error('Director flag has no declared native owner');
       const director = new DirectorStageLane(data);
       host.onStep(`director.${data.id}`, (_dt, native) => {
-        const observation = Object.fromEntries(Object.entries(data.inputs).map(([name, binding]) => [name, native.flags.has(binding.slice(5))]));
+        const observation = Object.fromEntries(Object.entries(data.inputs).map(([name, binding]) => {
+          const range = directorDayRange(binding);
+          if (range === null) return [name, native.flags.has(binding.slice(5))];
+          if (day === undefined) throw new Error('Missing director day clock');
+          return [name, inNormalizedDayRange(day(), range[0], range[1])];
+        }));
         for (const action of director.step(native.state.tick, observation)) {
           if (!('flag' in action)) throw new Error('Director action has no native owner');
           native.flags.set(action.flag.key, action.flag.value);

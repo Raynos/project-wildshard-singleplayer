@@ -29,6 +29,11 @@ export interface DayCycleSpec<K = never> {
 }
 export type DayCycleClock = Pick<DayCycle, 'hour' | 'phase' | 'dayPhase' | 'night' | 'dusk' | 'dawn' | 'lamps' | 'body' | 'sunDir' | 'setTime' | 'set' | 'pin' | 'scale' | 'paused' | 'update' | 'sunElevation' | 'sunAzimuth' | 'moonElevation' | 'moonAzimuth' | 'onDawn' | 'onDay' | 'onGolden' | 'onDusk' | 'onNight' | 'onPhase' | 'dayMinutes' | 'phaseProgress'>;
 
+/** A normalized look clock: real minutes per day, midnight-zero start and the sun's arc in degrees. */
+export interface NormalizedDay { readonly minutes: number; readonly start: number; readonly maxElevation: number; readonly azimuth: number }
+/** The declared look's default 12-minute day starts at noon. */
+export const DEFAULT_NORMALIZED_DAY: NormalizedDay = { minutes: 12, start: 0.5, maxElevation: 60, azimuth: 35 };
+
 const wrap = wrapClock;
 /** The fixed hour table a phase clock names its phase by (sim/dayClock.ts). */
 export function phaseOfHour(h: number): DayPhase { return hourPhase(h); }
@@ -171,4 +176,20 @@ export class DayCycle<K = never> {
     for (const l of this.listeners.slice()) if (l.phase === null || l.phase === phase) l.fn(phase, prev);
   }
   private segAt(hour: number): ScheduleSeg { return scheduleSegment(this.spec.schedule, hour); }
+}
+
+/** One clock recipe shared by rendered data looks and their owned native director observations. */
+export function normalizedDayClock(day: NormalizedDay, dayOverride: number | null): DayCycle {
+  const clock = new DayCycle({ units: 'hour', start: (dayOverride ?? day.start) * 24,
+    schedule: [{ phase: 'day', from: 0, to: 24, minutes: day.minutes }], sun: { maxElevation: day.maxElevation, azimuthOffset: day.azimuth },
+    fixed: { midday: 12, golden: 17, sunset: 18, night: 0 }, presets: { dawn: 6, noon: 12, dusk: 18, night: 0 } });
+  clock.paused = dayOverride !== null;
+  return clock;
+}
+
+/** Compare a normalized half-open day interval in the clock's canonical hour units, including pinned endpoints. */
+export function inNormalizedDayRange(hour: number, from: number, to: number): boolean {
+  if (!Number.isFinite(hour) || hour < 0 || hour >= 24) throw new Error('Invalid director day observation');
+  // Pinning a declared fraction uses wrapClock; apply the same canonicalization to the interval's endpoints.
+  return hour >= wrap(from * 24, 24) && hour < (to === 1 ? 24 : wrap(to * 24, 24));
 }

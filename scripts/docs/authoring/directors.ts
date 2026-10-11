@@ -17,3 +17,10 @@ export function directorsExample() {
   const scene = new Scene(); director.attachTo(scene);
   return { row: director.toJSON(), assemblyScript: generateDirectorAbi(director.toJSON()), scene: readScene(scene) };
 }
+
+/** Observe the declared look clock's dusk interval without author-side ticks or arithmetic. */
+export function dayDirectorExample() {
+  return new Director({ id: 'outpost.dusk', inputs: { dusk: 'day:0.75..0.84' }, stages: [
+    { id: 'waiting' }, { id: 'lit', when: 'dusk', do: [{ flag: { key: 'outpost.beacon-ready', value: true } }] },
+  ] }).toJSON();
+}
