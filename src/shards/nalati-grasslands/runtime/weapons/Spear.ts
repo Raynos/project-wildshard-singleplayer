@@ -1,3 +1,4 @@
+import { JAVELIN_WEAPON_PROFILE } from '../../data/javelinProfile';
 import { javelinSpearType, type JavelinSpearMount, type JavelinSpearParts, type JavelinSpearPose, type JavelinSpearRowOptions, type JavelinSpearView, type JavelinSpear as JavelinSpearWeapon, type JavelinSpearWorld } from './javelinSpear';
 import { lin } from '@wildshard/engine/math/color';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
@@ -54,12 +55,12 @@ const THRUST_FAN = { yaws: [0, -0.05, 0.05, -0.1, 0.1], pitches: [0, -0.15, -0.3
 const RMB_TAP_MAX = 0.25; // quick desktop tap throws; a held RMB has no action
 const LANCE_REHIT = 1.2;
 const LANCE_REACH = 2.5, LANCE_CONE = 15 * Math.PI / 180, LANCE_MIN_SPEED = 8;
-const WINDUP = 0.4, THROW_T = 0.14, THROW_RECOVER = 0.45;
-const JAV_SPEED = 28, JAV_GRAVITY = 9.8, JAV_DAMAGE = 55, JAV_HEAD = 2;
-const JAV_POOL = 5, PICKUP_R = 1.6, JAV_SURVIVE = 0.9;
+const WINDUP = JAVELIN_WEAPON_PROFILE.windup, THROW_T = JAVELIN_WEAPON_PROFILE.release, THROW_RECOVER = JAVELIN_WEAPON_PROFILE.recovery;
+const JAV_SPEED = JAVELIN_WEAPON_PROFILE.speed, JAV_GRAVITY = JAVELIN_WEAPON_PROFILE.gravity, JAV_DAMAGE = JAVELIN_WEAPON_PROFILE.damage, JAV_HEAD = JAVELIN_WEAPON_PROFILE.headMultiplier;
+const JAV_POOL = JAVELIN_WEAPON_PROFILE.pool, PICKUP_R = JAVELIN_WEAPON_PROFILE.pickupRadius, JAV_SURVIVE = JAVELIN_WEAPON_PROFILE.survive;
 /** the ball a javelin's head sweeps through the world (NALATI-MERGE P2) */
-const JAV_RADIUS = 0.03;
-const ARC_POINTS = 32, ARC_SHOW_AFTER = 0.12;
+const JAV_RADIUS = JAVELIN_WEAPON_PROFILE.radius;
+const ARC_POINTS = JAVELIN_WEAPON_PROFILE.arcPoints, ARC_SHOW_AFTER = JAVELIN_WEAPON_PROFILE.arcAfter;
 const FOV_HIP = 72;
 const LEFT_HAND_Y = 0.3;         // the left fist sits this far up the shaft from the right
 
@@ -188,9 +189,9 @@ export const SPEAR_PARTS: JavelinSpearParts = {
 
 export const JAVELIN: ThrownProfile = {
   id: 'weapon.javelin', speed: JAV_SPEED, gravity: JAV_GRAVITY, damage: JAV_DAMAGE, headMultiplier: JAV_HEAD,
-  radius: JAV_RADIUS, headOffset: 0.8, windup: WINDUP, release: THROW_T, recovery: THROW_RECOVER,
-  carried: 3, pool: JAV_POOL, pickupRadius: PICKUP_R, pickupHeight: 2.2, survive: JAV_SURVIVE,
-  arcPoints: ARC_POINTS, arcAfter: ARC_SHOW_AFTER, stagger: 1,
+  radius: JAV_RADIUS, headOffset: JAVELIN_WEAPON_PROFILE.headOffset, windup: WINDUP, release: THROW_T, recovery: THROW_RECOVER,
+  carried: JAVELIN_WEAPON_PROFILE.carried, pool: JAV_POOL, pickupRadius: PICKUP_R, pickupHeight: JAVELIN_WEAPON_PROFILE.pickupHeight, survive: JAV_SURVIVE,
+  arcPoints: ARC_POINTS, arcAfter: ARC_SHOW_AFTER, stagger: JAVELIN_WEAPON_PROFILE.stagger,
 };
 
 export const SPEAR_PROFILE: MeleeProfile & {

@@ -3,6 +3,7 @@ import { LONGBOW } from '../../src/shards/pine-hollow/weapons/longbowProfile';
 import { CROSSBOW_PROFILE } from '../../src/shards/pine-hollow/weapons/crossbow/profiles';
 import { AR15 } from '../../src/shards/nalati-grasslands/data/firearmProfile';
 import { AR15 as PINE_AR15 } from '../../src/shards/pine-hollow/data/firearmProfile';
+import { JAVELIN_WEAPON_PROFILE } from '../../src/shards/nalati-grasslands/data/javelinProfile';
 import { LEVER_WEAPON_PROFILE } from '../../src/shards/pine-hollow/data/leverProfile';
 import { LEVER_PROFILE } from '../../src/shards/pine-hollow/weapons/leverAction';
 import { SWORD_WOOD, SWORD_IRON } from '../../src/game/weapons/starterMeleeProfile';
@@ -38,7 +39,7 @@ const profiles: readonly [string, Record<string, unknown>][] = [
 
 describe('weapon tuning parity (09 §1.4)', () => {
   it.each(profiles)('%s preserves its own profile', (file, expected) => {
-    const actual = legacyConstants(file, Object.keys(expected), { THREE, LEVER_WEAPON_PROFILE });
+    const actual = legacyConstants(file, Object.keys(expected), { THREE, LEVER_WEAPON_PROFILE, JAVELIN_WEAPON_PROFILE });
     for (const [name, value] of Object.entries(expected)) {
       if (typeof value === 'number') expect(actual[name], `${file}:${name}`).toBeCloseTo(value, 14);
       else expect(actual[name], `${file}:${name}`).toEqual(value);

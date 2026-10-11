@@ -26,7 +26,7 @@ it('declares the unchanged chapters, feats, native equipment and fixed coffin bo
   expect(source.ledger.flatMap((row) => row.rewards.flatMap((reward) => reward.kind === 'achievement' ? [reward.id] : []))).toEqual(NALATI_FEATS.map((feat) => feat.id));
   expect(source.items.rows.map((row) => [row.id, row.family])).toEqual([
     ['weapon.bow', 'bow'], ['weapon.sabre', 'nalati-grasslands.sabre'],
-    ['weapon.spear', 'nalati-grasslands.spear'], ['weapon.rifle', 'firearm'],
+    ['weapon.spear', 'thrown'], ['weapon.rifle', 'firearm'],
   ]);
   expect(source.runtime?.spawns?.bosses).toEqual([{ id: 'nalati.golden-king', kind: 'golden-king', look: 'king',
     at: [DUNGEON.x + COFFIN.x, DUNGEON.z + COFFIN.z], yaw: 0 }]);
