@@ -18,7 +18,7 @@ import type { LiveMarker } from '@wildshard/engine/quest/view';
 import { ShardComplete, setCompleteEntry, type ShardCompleteData } from '@wildshard/game/complete/ShardComplete';
 import { findChunk } from '@wildshard/game/shard/registry';
 import { travel } from '@wildshard/game/travel/travel';
-import { DRIFTWOOD_PLACES } from './Places';
+import { DRIFTWOOD_PLACES } from '../data/discovery';
 import { QUEST_DONE } from '../data/questStory';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 

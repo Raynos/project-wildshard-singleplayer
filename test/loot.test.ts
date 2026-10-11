@@ -7,7 +7,7 @@ import { Bounty, bountyKey } from '../src/game/loot/Bounty';
 import { MAX_BURST, burstCount, coinShare, coinsFor, coinsOn } from '../src/game/loot/coins';
 import { DRIFTWOOD_COIN_VALUES } from '../src/shards/driftwood-isle/data/economy';
 import { driftwoodFinds, nextCharmAt } from '../src/shards/driftwood-isle/loot/finds';
-import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/quest/Places';
+import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/data/discovery';
 import { DRIFTWOOD_ISLE } from '../src/shards/driftwood-isle/manifest';
 import { SHARDS } from '../src/shards.generated';
 

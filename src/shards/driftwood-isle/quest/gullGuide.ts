@@ -1,3 +1,4 @@
+import { GUIDE } from '../data/discovery';
 /**
  * The gull guide (E309 pick B, DRIFTWOOD-TOP10 row 9b "reasons to wander"): wander a while without finding anything, or
  * stand idle, and three gulls fly past you toward the nearest place you haven't found. The trigger is pure (tested in
@@ -10,19 +11,6 @@
 import type * as THREE from 'three';
 import type { PlacePoint } from '@wildshard/engine/quest/view';
 import { TRANSIENT_PREFIXES } from '@wildshard/engine/world/interact/types';
-
-export const GUIDE = {
-  /** seconds of wandering with no progress before the gulls show the way */
-  wander: 50,
-  /** seconds standing still before they do */
-  idle: 10,
-  /** m/s: slower than this is standing still */
-  idleSpeed: 0.4,
-  /** seconds between two guides */
-  cooldown: 90,
-  /** seconds before trying again when no gull could fly (all busy / none far enough to borrow) */
-  retry: 8,
-} as const;
 
 export interface GuideClock {
   /** seconds since the last progress */

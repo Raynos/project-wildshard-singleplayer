@@ -7,7 +7,7 @@ import { Owned, OWNED } from '../../../src/game/loot/Owned';
 import { Purse } from '../../../src/game/loot/Purse';
 import { driftwoodFinds, seaChartMarks } from '../../../src/shards/driftwood-isle/loot/finds';
 import { nearScale } from '../../../src/game/loot/CoinBurst';
-import { DRIFTWOOD_PLACES } from '../../../src/shards/driftwood-isle/quest/Places';
+import { DRIFTWOOD_PLACES } from '../../../src/shards/driftwood-isle/data/discovery';
 import { SEA_GLASS_COUNT } from '../../../src/shards/driftwood-isle/quest/interactables';
 
 const SHARD = 'chunk://local/shop-test';

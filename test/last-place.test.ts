@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LastPlace, placeAt, placeName, yawToward, type PlaceArea } from '../src/game/LastPlace';
 import { deathCause, deathLine, respawnWhere } from '../src/engine/ui/HurtArc';
-import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/quest/Places';
+import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/data/discovery';
 import { app } from '../src/engine/app/runtime';
 import { Scope } from '../src/engine/app/scope';
 import { STRINGS as PINE } from '../src/shards/pine-hollow/strings';

@@ -12,7 +12,7 @@
  */
 import type { FindsView } from '@wildshard/game/bag/bag';
 import type { OwnedId } from '@wildshard/game/loot/Owned';
-import { DRIFTWOOD_PLACES } from '../quest/Places';
+import { DRIFTWOOD_PLACES } from '../data/discovery';
 import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from '../quest/interactables';
 
 export interface FlagReader { has: (flag: string) => boolean }

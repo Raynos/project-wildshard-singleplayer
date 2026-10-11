@@ -256,7 +256,7 @@ function importsOf(file, text) {
  */
 export const NAMED_PLACES = {
   ...Object.fromEntries(primaryFolders().map((slug) => [slug, [{ file: `src/shards/${slug}/quest/Places.ts`, list: 'PLACES', optional: true }]])),
-  'driftwood-isle': [{ file: 'src/shards/driftwood-isle/quest/Places.ts', list: 'DRIFTWOOD_PLACES' }],
+  'driftwood-isle': [{ file: 'src/shards/driftwood-isle/data/discovery.ts', list: 'DRIFTWOOD_PLACES' }],
   'nalati-grasslands': [{ file: 'src/shards/nalati-grasslands/layout.ts', list: 'pois', labels: true }], // NALATI_PLACES = NALATI_MAP.pois, slugged (src/shards/nalati-grasslands/quest.ts)
   'pine-hollow': [{ file: 'src/shards/pine-hollow/layout.ts', list: 'PINE_HOLLOW_POIS' }, { file: 'src/shards/pine-hollow/world/places.ts', list: 'PINE_HOLLOW_QUEST_PLACES', optional: true }],
   'nine-dragon-stack': [{ file: 'src/shards/nine-dragon-stack/places.ts', list: 'NINE_DRAGON_PLACES' }],

@@ -1,5 +1,6 @@
+import { GUIDE } from '../../../src/shards/driftwood-isle/data/discovery';
 import { describe, expect, it } from 'vitest';
-import { GUIDE, failed, guided, installGullGuide, nearestUnfound, newGuideClock, progressed, tickGuide } from '../../../src/shards/driftwood-isle/quest/gullGuide';
+import { failed, guided, installGullGuide, nearestUnfound, newGuideClock, progressed, tickGuide } from '../../../src/shards/driftwood-isle/quest/gullGuide';
 import type { PlacePoint } from '../../../src/engine/quest/view';
 import * as THREE from 'three';
 

@@ -16,7 +16,7 @@ import * as THREE from 'three';
 import type { Placed } from '@wildshard/engine/models/place';
 import { placeSet } from '@wildshard/engine/models/sets';
 import type { Place } from '@wildshard/engine/world/interact/types';
-import { DRIFTWOOD_PLACES } from '../quest/Places';
+import { DRIFTWOOD_PLACES } from '../data/discovery';
 
 const FILE = 'src/shards/driftwood-isle/world/places.ts';
 

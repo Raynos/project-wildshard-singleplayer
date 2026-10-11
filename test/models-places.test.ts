@@ -6,7 +6,7 @@ import { SHARDS } from '../src/shards.generated';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node test checks optional authored lists against the exported tree.
 import { existsSync } from 'node:fs';
 import { checkModels, NAMED_PLACES, PLACES_ENFORCED } from '../scripts/check-models.mjs';
-import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/quest/Places';
+import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/data/discovery';
 import { NALATI_PLACES } from '../src/shards/nalati-grasslands/quest';
 import { PINE_HOLLOW_POIS } from '../src/shards/pine-hollow/layout';
 
@@ -53,7 +53,7 @@ describe('every named place is a set (E315 M12)', () => {
   it('fails a place with no set, and a set naming a place that is not there, on an enforced shard', () => {
     const list = "export const DRIFTWOOD_PLACES: PlaceDef[] = [\n  { id: 'pier', label: 'THE PIER', at: { poi: 'world', x: 0, z: 0 }, r: 40 },\n  { id: 'hut', label: 'HUT', at: { poi: 'hut', x: 0, z: 0 }, r: 26 },\n];\n";
     const sets = "placeSet({ id: 'driftwood-isle/pier-landing', name: 'Pier', file: 'x', place: 'driftwood-isle/pier', members });\nplaceSet({ id: 'x', name: 'x', file: 'x', place: 'driftwood-isle/pierr', members });\n";
-    const r = checkModels({ 'src/shards/driftwood-isle/quest/Places.ts': list, 'src/world/x.ts': sets });
+    const r = checkModels({ 'src/shards/driftwood-isle/data/discovery.ts': list, 'src/world/x.ts': sets });
     expect(r.places['driftwood-isle']).toEqual({ named: 2, sets: 1, missing: ['hut'] });
     expect(r.placeProblems.some((p) => p.includes("'hut' has no set"))).toBe(true);
     expect(r.placeProblems.some((p) => p.includes("'driftwood-isle/pierr', which is not"))).toBe(true);
