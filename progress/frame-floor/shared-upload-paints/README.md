@@ -28,9 +28,30 @@ were byte-identical after excluding only `inputs`, `revision` and `build`;
 the engine upload inputs and admitted audio rows changed those fences.
 No collider, placement, actor or quest payload changed.
 
+Same-pin desktop comparison on `3ab73b7e2`, at shipping road speed 30 m/s:
+
+| Setting | Wait | p95 | Maximum | Verdict |
+| --- | ---: | ---: | ---: | --- |
+| `on` | 0 ms | 16.8 ms | 133.3 ms | FAIL: play hook |
+| `shared-paints` | 0 ms | 16.8 ms | 133.3 ms | FAIL: play hook |
+
+Both completed without game errors or context loss and with zero frames
+visible before readiness. This single pair establishes no desktop benefit.
+The quiet capture ran 22:35:31–22:38:14 UTC, load 7.09 / 8.60 / 9.95.
+
+Both Simulator attempts failed configuration checks before measurement:
+the owned preview lacked the pre-navigation Safari fixture page. They are
+explicitly unavailable in `summary.json`; no Simulator pass or saving is
+claimed. The scratch worker now creates the standard helper from the exact
+served index before its next Simulator attempt. All workers, browsers and
+Inspector connections closed; Simulator 0 booted at explicit release.
+
 Open:
 
-- Desktop and Simulator same-pin `on` / `shared-paints` arrival floors after
-  sp-x1 releases both milestone surfaces. Report GL errors, wait, p95 and max.
+- Simulator same-pin `on` / `shared-paints` arrival floors after sp-x1
+  diagnostic and the held landings. If no benefit, remove the option and
+  its implementation together (E451).
+- Pine desktop play spike: 133.3 ms in both arms, coordinated with sp-x1’s
+  active CPU/GPU diagnostic; desktop gate remains 100 ms.
 - Physical-device memory/stability reading before any default flip. The
   variant stays default-off even if local floors improve (RENDERING.md).

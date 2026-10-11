@@ -1,0 +1,173 @@
+{
+  "schema": "upload-paint-comparison/1",
+  "pin": "3ab73b7e2e653cc468427082c06465e19a1dc965",
+  "cell": "pine-hollow",
+  "speedMetresPerSecond": 30,
+  "started": "2026-10-11T22:35:31.619318+00:00",
+  "released": "2026-10-11T22:38:14.533402+00:00",
+  "load": "17:35  up 51 days, 10:08, 2 users, load averages: 7.09 8.60 9.95",
+  "settings": {
+    "developer": true,
+    "renderScale": 2,
+    "graphMaterials": "on",
+    "memorySaver": "off",
+    "fps": "auto"
+  },
+  "gates": {
+    "waitMs": 0,
+    "simP95Ms": 35,
+    "simMaxMs": 200,
+    "desktopMaxMs": 100
+  },
+  "runs": [
+    {
+      "setting": "on",
+      "surface": "desktop",
+      "complete": true,
+      "waitMs": 0,
+      "blockedFrames": 0,
+      "visibleBeforeReadyFrames": 0,
+      "p95Ms": 16.8,
+      "maxMs": 133.3,
+      "frames": 1410,
+      "longFrameHooks": [
+        {
+          "hook": "pine-hollow:play",
+          "frames": 1,
+          "maxMs": 133,
+          "totalMs": 133,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:afterPlay",
+          "frames": 2,
+          "maxMs": 67,
+          "totalMs": 117,
+          "gl": {}
+        },
+        {
+          "hook": "pine-hollow:afterKit",
+          "frames": 1,
+          "maxMs": 50,
+          "totalMs": 50,
+          "gl": {}
+        }
+      ],
+      "errors": [],
+      "contextLost": false,
+      "preparationStages": [
+        {
+          "phase": "compile",
+          "elapsedMs": 257.1000003814697,
+          "units": 116
+        },
+        {
+          "phase": "link",
+          "elapsedMs": 111.69999980926514,
+          "units": 142
+        },
+        {
+          "phase": "upload",
+          "elapsedMs": 599.9000000953674,
+          "units": 208
+        },
+        {
+          "phase": "shaders-and-composer",
+          "elapsedMs": 1076.2000002861023,
+          "units": 1
+        },
+        {
+          "phase": "parked-draws",
+          "elapsedMs": 1849,
+          "units": 254
+        },
+        {
+          "phase": "offscreen-draws",
+          "elapsedMs": 0.8000001907348633,
+          "units": 0
+        }
+      ],
+      "shortTravelP95Ms": 33.3,
+      "pass": false
+    },
+    {
+      "setting": "on",
+      "surface": "sim",
+      "complete": false,
+      "missing": [
+        "Rejected before timing: missing saved measurement settings; owned preview had no pre-navigation Safari fixture."
+      ],
+      "measurements": null
+    },
+    {
+      "setting": "shared-paints",
+      "surface": "desktop",
+      "complete": true,
+      "waitMs": 0,
+      "blockedFrames": 0,
+      "visibleBeforeReadyFrames": 0,
+      "p95Ms": 16.8,
+      "maxMs": 133.3,
+      "frames": 1440,
+      "longFrameHooks": [
+        {
+          "hook": "pine-hollow:play",
+          "frames": 1,
+          "maxMs": 133,
+          "totalMs": 133,
+          "gl": {}
+        }
+      ],
+      "errors": [],
+      "contextLost": false,
+      "preparationStages": [
+        {
+          "phase": "compile",
+          "elapsedMs": 259.40000009536743,
+          "units": 116
+        },
+        {
+          "phase": "link",
+          "elapsedMs": 33.5,
+          "units": 142
+        },
+        {
+          "phase": "upload",
+          "elapsedMs": 605.7000002861023,
+          "units": 208
+        },
+        {
+          "phase": "shaders-and-composer",
+          "elapsedMs": 1003.3000001907349,
+          "units": 1
+        },
+        {
+          "phase": "parked-draws",
+          "elapsedMs": 1851,
+          "units": 254
+        },
+        {
+          "phase": "offscreen-draws",
+          "elapsedMs": 0.8999996185302734,
+          "units": 0
+        }
+      ],
+      "shortTravelP95Ms": 33.3,
+      "pass": false
+    },
+    {
+      "setting": "shared-paints",
+      "surface": "sim",
+      "complete": false,
+      "missing": [
+        "Rejected before timing: missing saved measurement settings; owned preview had no pre-navigation Safari fixture."
+      ],
+      "measurements": null
+    }
+  ],
+  "conclusion": "No desktop arrival/frame-floor improvement established; both arms violate the desktop maximum. Simulator comparison is unavailable, not zero.",
+  "open": [
+    "Simulator on/shared-paints pair after sp-x1 diagnostic and held commits.",
+    "Physical-device stability/memory reading required before any default flip."
+  ]
+}
