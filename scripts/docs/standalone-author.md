@@ -82,6 +82,16 @@ The standalone proof checks installed files, runs generation/synth/build/validat
 requires no symlink back to the repository. No generated GLB or project output replaces
 its retained TypeScript generator.
 
+## Prove the rendered client from an isolated seat
+
+Use the [isolated browser driver](../../docs/authoring/isolated-browser.md) when the
+author seat denies checkout reads and permits only API network calls. A maintainer
+opens the exact built product in one owned muted browser; the seat sends bounded
+real keyboard input and reads installed SDK proof ports over file pipes. The original
+read/network sandbox stays unchanged. Pass `seatProofPage(channel)` as the executing
+proof's real client argument; no supplied observations, CDP endpoint or arbitrary
+page evaluator enters the seat. Close the owned driver when the proof finishes.
+
 ## Run retained proof programs with installed commons
 
 Node 24 does not strip TypeScript inside `node_modules`. Commons packs and format
