@@ -129,7 +129,7 @@ void test('SF57 prepared-cell rehearsal records open coverage and refuses qualif
   const cells = soakCatalogue(catalogue, 'dev');
   const route = ownedSoakPlans({ cells, home: 'driftwood-isle' }, 'cells', soakRouteScope('prepared'));
   assert.deepEqual(route.plans.map(plan => plan.to), ['pine-hollow', 'nalati-grasslands', 'template-2', 'driftwood-isle']);
-  assert.deepEqual([...route.omitted].sort((a, b) => a.localeCompare(b)), ['blender-template-1', 'far-reach', 'sunscar-dunes']);
+  assert.deepEqual([...route.omitted].sort((a, b) => a.localeCompare(b)), ['blender-template-1', 'far-reach', 'ink-cel-valley-1', 'pastel-plain-1', 'sunscar-dunes']);
   assert.equal(new Set(route.coveragePlans.map(plan => plan.crossroads).filter(Boolean)).size, 16);
   assert.throws(() => soakRouteScope('prepared', true), /rehearsal only/u);
   assert.throws(() => soakRouteScope('typo'), /Unknown soak route/u);
