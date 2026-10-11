@@ -352,7 +352,10 @@ export class Minimap {
     if (this.size === 0) return;
     if (this.roomMap !== null) { this.paintRoom(pos, yaw, this.roomMap); return; }
     this.paintDay();
-    const ground = this.ground();
+    const overlay = this.extrasSource?.() ?? null, baseAlpha = overlay?.baseAlpha ?? 1;
+    // A replacement overlay can hide this base entirely. Keep its dirty layer lazy
+    // until visible; painting an unseen terrain must not stall the live frame.
+    const ground = baseAlpha > 0 ? this.ground() : null;
 
     // heading, for the player arrow — the compass band's convention (HUD.ts): +Z is north, turning left decreases it
     let deg = 180 - (yaw * 180) / Math.PI; deg = ((deg % 360) + 360) % 360;
@@ -368,7 +371,6 @@ export class Minimap {
     const ctx = this.ctx;
     ctx.save();
     ctx.beginPath(); ctx.arc(c, c, c, 0, Math.PI * 2); ctx.clip();
-    const overlay = this.extrasSource?.() ?? null, baseAlpha = overlay?.baseAlpha ?? 1;
     ctx.fillStyle = overlay?.outside ?? activeLevel().minimap.outside ?? VOID; ctx.fillRect(0, 0, D, D); // the island's sea runs on past the chunk edge (the pier spawn looks off it)
     if (overlay !== null) this.paintExtraGround(overlay, pos, c, k);
 
