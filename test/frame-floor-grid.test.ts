@@ -22,6 +22,22 @@ it('routes a corner template through midpoint entrances and returns over the sam
   expect(back?.start).toBeUndefined();
 });
 
+it('covers every milestone road entry and home re-entry without counting a missing cell as a visit', () => {
+  const full = [...cells, { instance: 'nine', slug: 'nine-dragon-stack', cell: [1, -1] as const },
+    { instance: 'sky', slug: 'far-reach', cell: [0, -1] as const },
+    { instance: 'sun', slug: 'sunscar-dunes', cell: [-1, 0] as const }];
+  const plans = gridFloorPlans({ home: 'home', cells: full }, 'milestone');
+  expect(plans.slice(0, 2)).toEqual(gridFloorPlans({ home: 'home', cells: full }, 'template'));
+  expect(plans.slice(2).map(plan => plan.to)).toEqual(['nine', 'sky', 'nalati', 'pine', 'sun', 'home']);
+  for (const plan of plans.slice(2)) {
+    expect(plan).toMatchObject({ from: null, finishOnArrival: true, requiredResidents: [plan.to] });
+    expect(plan.start).toBeDefined();
+    expect(plan.waypoints).toHaveLength(1);
+  }
+  expect(plans.at(-1)).toMatchObject({ start: { x: 0, z: 277.5 }, waypoints: [{ x: 0, z: 210 }] });
+  expect(() => gridFloorPlans({ home: 'home', cells }, 'milestone')).toThrow('requires nine-dragon-stack');
+});
+
 it('requires the entered runtime resident and the prior owned runtime retired under G226', () => {
   const [pine, nalati] = gridFloorPlans({ home: 'home', cells }, 'runtime-travel');
   expect(pine?.requiredResidents).toEqual(['pine']);

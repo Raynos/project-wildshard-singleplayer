@@ -4,6 +4,22 @@ export function gridFloorPlans(state, scenario, options = {}) {
   if (!home) throw new Error('Grid floor has no assembled home');
   const origin = cell => ({ x: cell.cell[0] * 555, z: cell.cell[1] * 555 });
   const h = origin(home), plans = [];
+  if (scenario === 'milestone') {
+    // Each road entry is an independent approach after the continuous template out/back drive.
+    // Seed its road, let the real source checkpoint/leave settle, then measure held input through the border.
+    plans.push(...gridFloorPlans(state, 'template'));
+    for (const slug of ['nine-dragon-stack', 'far-reach', 'nalati-grasslands', 'pine-hollow', 'sunscar-dunes', 'driftwood-isle']) {
+      const target = state.cells.find(cell => cell.slug === slug);
+      if (!target) throw new Error(`Milestone floor requires ${slug} (Nine requires --devserver)`);
+      const t = origin(target), dx = Math.sign(h.x - t.x), dz = Math.sign(h.z - t.z);
+      const vertical = dz !== 0 || dx === 0, direction = vertical ? (dz === 0 ? 1 : dz) : dx;
+      const road = vertical ? { x: t.x, z: t.z + direction * 277.5 } : { x: t.x + direction * 277.5, z: t.z };
+      const entry = vertical ? { x: t.x, z: t.z + direction * 210 } : { x: t.x + direction * 210, z: t.z };
+      plans.push({ name: `${slug}-road-entry`, from: null, to: target.instance, movement: 'road-hover', start: road,
+        waypoints: [entry], requiredResidents: [target.instance], finishOnArrival: true });
+    }
+    return plans;
+  }
   if (scenario === 'cell') {
     // op-frame22 (SF63 / G158): any assembled cell by its slug, entered from the road at the edge that faces home (a corner
     // cell from its home-side midpoint), one road seed, then held input into its interior
