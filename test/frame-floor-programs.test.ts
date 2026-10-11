@@ -11,8 +11,8 @@ if (typeof script !== 'string') throw new Error('Program initializer missing');
 it('names submitted shader variants without GL queries or changing driver arguments/results', () => {
   const calls: { method: string; args: readonly unknown[] }[] = [];
   class Context {
-    shaderSource(shader: object, source: string): string { calls.push({ method: 'source', args: [shader, source] }); return 'source-result'; }
-    attachShader(program: object, shader: object): string { calls.push({ method: 'attach', args: [program, shader] }); return 'attach-result'; }
+    shaderSource(shader: object | null, source: string): string { calls.push({ method: 'source', args: [shader, source] }); return 'source-result'; }
+    attachShader(program: object | null, shader: object | null): string { calls.push({ method: 'attach', args: [program, shader] }); return 'attach-result'; }
   }
   const window: { WebGLRenderingContext: typeof Context; WebGL2RenderingContext: typeof Context; __frameFloorProgramName?: unknown } = { WebGLRenderingContext: Context, WebGL2RenderingContext: Context };
   runInNewContext(script, { window });
@@ -33,4 +33,7 @@ it('names submitted shader variants without GL queries or changing driver argume
   expect(Reflect.apply(reader, window, [{}])).toBe('unobserved');
   expect(calls.map(call => call.method)).toEqual(['source', 'source', 'attach', 'attach', 'source', 'attach']);
   expect(calls[0]?.args).toEqual([vertex, source]);
+  expect(gl.shaderSource(null, source)).toBe('source-result');
+  expect(gl.attachShader(null, null)).toBe('attach-result');
+  expect(calls.at(-1)?.args).toEqual([null, null]);
 });

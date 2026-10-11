@@ -18,8 +18,9 @@ function installProgramNames() {
       if (typeof original !== 'function' || original.__floorProgramNames === true) continue;
       const wrapped = function wrapped(...args) {
         const result = original.apply(this, args);
-        if (method === 'shaderSource') shaders.set(args[0], name(args[1]));
-        else {
+        const object = args[0] !== null && typeof args[0] === 'object';
+        if (method === 'shaderSource' && object && typeof args[1] === 'string') shaders.set(args[0], name(args[1]));
+        else if (method === 'attachShader' && object) {
           let sources = programs.get(args[0]);
           if (sources === undefined) { sources = []; programs.set(args[0], sources); }
           sources.push(shaders.get(args[1]) ?? 'unobserved');
