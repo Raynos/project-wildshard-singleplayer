@@ -33,7 +33,7 @@
 | sp-x1 | travel p95 (desktop Nine/Nalati, Simulator all) |
 | sp-x2 | frame cap landed (`fef091031`), Signal entry 33.4 ms · shader-link stalls (Sim maxima) |
 | sp-x4 | DS1.5 CLOSED · SF83 MV-1–4 landed (Sky, Driftwood, Nine) · MV-1 tail · then SF84 PM-1–4 |
-| sp-x5 | DS0.2/0.3 done · DS1.6 packs (clips, bag, audio, species rest; figure models wait for KTX2 = Opus) · SF82 brains BR-1–5 |
+| sp-x5 | DS0.2/0.3 done · DS1.6 packs (clips, bag, audio, species rest; figures wait for KTX2) · SF82 brains BR-1–5 |
 | sp-x6 | DS1.1–1.3 non-graphical done; G320 coats · SF81 DIR-1–4 landed (Driftwood, Pine, Nalati) · DIR-5 |
 
 **Jake picks landed:** G321/G322/G324/G325/G326 (all six public cards shardfile)/G327/G328.
