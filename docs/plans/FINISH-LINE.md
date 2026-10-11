@@ -118,9 +118,12 @@ Real-world steps only Jake can take. They are not nagged in the session brief; t
 
 ## Docs to fix (found by the audit; not built here)
 
-- **Pine Hollow is described as the whole game.** `README.md`, `docs/SUBAGENT-BRIEF.md` and `docs/SHARDS.md` still describe "a pine forest, three cabins, a crossbow".
-- **`docs/RUNNING.md` still says `vercel deploy`.**
-- **`docs/AAA-PLAN.md` claims Pine Hollow runs at 60 fps.**
+- ✅ **Pine Hollow is described as the whole game.** Fixed by E478 (2026-10-11): the old `README.md` is archived
+  (27def5ccb), `docs/SUBAGENT-BRIEF.md` is rewritten (f3b2e6018), and `docs/SHARDS.md` names the cabins and the
+  crossbow only in Pine Hollow's own section.
+- ✅ **`docs/RUNNING.md` still says `vercel deploy`.** Fixed by E478 (d395ae76e).
+- ✅ **`docs/AAA-PLAN.md` claims Pine Hollow runs at 60 fps.** Archived as finished by E478:
+  `project/archive/2026-10-11-aaa-plan.md` (55ebccc12).
 - **Ask D38 says day/night is not built.** It is, and it runs by default (`src/engine/world/DayNight.ts`).
 
 ## Engine verdict (for the record)
