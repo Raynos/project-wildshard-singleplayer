@@ -2,6 +2,8 @@
 
 **Target travel PASS; broader frame floor RED.** All three Simulator travel rows are 34 ms on `f71faa702`. The template save regression is fixed and entry/return complete. Spawn p95 39 ms and a Driftwood return maximum 252 ms remain independently RED. [summary.json](summary.json) retains every attempt, scalar validity and gate assertion.
 
+Follow-up: [spawn/return residuals](../spawn-return/README.md) validates the actual boot spawn at34 ms and Driftwood return at131 ms; the old39 ms spawn row was displaced. The full Simulator route still fails independently at outbound277 ms. Historical numbers below stay intact.
+
 | Surface / route | Baseline → latest travel p95 (ms) | Latest drive p95 / max (ms) | Drive >50 / >100 ms | Interior p95 (ms) | Verdict |
 | --- | ---: | ---: | ---: | ---: | --- |
 | Desktop Nine | 33.4 → 16.8 | 16.8 / 66.7 | 3 / 0 | 16.7 | PASS |

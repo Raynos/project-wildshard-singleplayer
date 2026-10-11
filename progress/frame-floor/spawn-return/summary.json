@@ -1,0 +1,339 @@
+{
+  "schema": 1,
+  "gates": {
+    "desktopP95Ms": 17.5,
+    "desktopDriveMaxMs": 100,
+    "simulatorP95Ms": 35,
+    "simulatorDriveMaxMs": 200
+  },
+  "changes": {
+    "harness": "f5ce03363341de070d0938e21d4a0233559e9daa",
+    "scriptRestore": "1edab04561094f33ba9949e9006f42cc2906c5f8"
+  },
+  "original": {
+    "pin": "f71faa702",
+    "spawnP95Ms": 39,
+    "spawnValidity": "invalid: old harness sampled after scans at road feet (273.9,-40), not boot spawn (0,-194)",
+    "returnMaxMs": 252,
+    "returnCause": "not established: original had no CPU/GL profile; later diagnostic does not reproduce"
+  },
+  "attribution": {
+    "spawn": "Corrected position-checked boot-spawn diagnostic: 34ms p95/37ms max. No engine gain claimed for replacing an invalid sample.",
+    "safariOutbound": {
+      "maxMs": 256,
+      "glMsInThatFrame": 3,
+      "memoryConstructorSelfSamples": 151,
+      "totalSamples": 6467,
+      "sameSizeRestoreMemorySamples": 36,
+      "stack": "WebAssembly.Memory -> ScriptHost.instantiate -> restoreState -> script lane restore -> restoreSimHost -> LiveGridSession.create",
+      "timingLimitation": "Safari proxy reports zero CPU sample timestamps; counts are shares, not durations or a time-aligned cause of the 256ms frame.",
+      "phaseCorrelation": {
+        "diagnostic": {
+          "longFrameStartMs": 59091,
+          "nalatiAfterPlayEndMs": 58985
+        },
+        "plain": {
+          "longFrameStartMs": 76888,
+          "nalatiAfterPlayEndMs": 76777
+        },
+        "conclusion": "Both peaks follow Nalati road-preparation afterPlay by106/111ms; correlation only. Its cold-arrival preparation is sp-x2-owned."
+      }
+    },
+    "safariReturn": {
+      "maxMs": 93,
+      "p95Ms": 34,
+      "longFrameGlMs": [3, 0, 1, 0],
+      "cause": "CPU-side world/play/activation work, not a measured large GL stall. Original 252ms not reproduced on this pin."
+    }
+  },
+  "runs": [
+    {
+      "name": "return-desktop-diagnostic",
+      "sha": "f5ce03363341de070d0938e21d4a0233559e9daa",
+      "harnessRevision": "da4ed602c7b0b72c1446d65eac6bb2ca94b4d8fe",
+      "surface": "desktop",
+      "when": "2026-10-11T09:41:10.300Z",
+      "seconds": 192.177,
+      "complete": true,
+      "pass": true,
+      "diagnostic": true,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "rows": [
+        ["spawn", 120, 16.8, 16.8, 0, 0, 0, 59.88, true, false, true],
+        ["grid-deck-north", 120, 16.7, 16.8, 0, 0, 0, 59.88, true, false, true],
+        ["grid-deck-east", 120, 16.8, 16.8, 0, 0, 0, 59.88, true, false, true],
+        ["grid-template-interior-travel", 120, 16.7, 16.8, 0, 0, 0, 59.88, true, false, true],
+        ["grid-template-interior-drive", 2910, 16.8, 83.4, 3, 0, 0, 59.88, true, false, true],
+        ["grid-template-interior", 120, 16.7, 16.8, 0, 0, 0, 59.88, true, false, true],
+        ["grid-template-return-travel", 120, 16.7, 16.8, 0, 0, 0, 59.88, true, false, true],
+        ["grid-template-return-drive", 3030, 16.7, 66.6, 2, 0, 0, 59.88, true, false, true],
+        ["grid-template-return", 120, 16.7, 16.8, 0, 0, 0, 59.88, true, false, true]
+      ],
+      "endpoints": [
+        {
+          "inside": "template-2",
+          "current": "template-2",
+          "ready": true,
+          "pending": [],
+          "issues": {
+
+          },
+          "crossing": {
+            "current": "template-2",
+            "target": "template-2",
+            "phase": "settled",
+            "issue": null
+          },
+          "frameOwner": "template-2"
+        },
+        {
+          "inside": "driftwood-isle",
+          "current": "driftwood-isle",
+          "ready": true,
+          "pending": [],
+          "issues": {
+
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "frameOwner": "driftwood-isle"
+        }
+      ],
+      "errors": [],
+      "spawnPosition": {
+        "x": -8.588974861806209e-06,
+        "y": 1.2168309093714924,
+        "z": -194.00002205334158
+      }
+    },
+    {
+      "name": "return-safari-diagnostic",
+      "sha": "f5ce03363341de070d0938e21d4a0233559e9daa",
+      "harnessRevision": "246673f056fc7cc2e72f9c8ab04f3c64fa78fd42",
+      "surface": "sim",
+      "when": "2026-10-11T09:50:53.931Z",
+      "seconds": 236.795,
+      "complete": true,
+      "pass": false,
+      "diagnostic": true,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "rows": [
+        ["spawn", 120, 34, 37, 0, 0, 0, 30.303, true, false, true],
+        ["grid-deck-north", 120, 34, 50, 0, 0, 0, 30.303, true, false, true],
+        ["grid-crossroads", 120, 34, 39, 0, 0, 0, 30.303, true, false, true],
+        ["grid-template-interior-travel", 120, 34, 39, 0, 0, 0, 30.303, true, false, true],
+        ["grid-template-interior-drive", 1500, 34, 256, 9, 1, 0, 30.303, true, false, false],
+        ["grid-template-interior", 120, 34, 34, 0, 0, 0, 30.303, true, false, true],
+        ["grid-template-return-travel", 120, 34, 38, 0, 0, 0, 30.303, true, false, true],
+        ["grid-template-return-drive", 1800, 34, 93, 4, 0, 0, 30.303, true, false, true],
+        ["grid-template-return", 120, 34, 34, 0, 0, 0, 30.303, true, false, true]
+      ],
+      "endpoints": [
+        {
+          "inside": "template-2",
+          "current": "template-2",
+          "ready": true,
+          "pending": [],
+          "issues": {
+
+          },
+          "crossing": {
+            "current": "template-2",
+            "target": "template-2",
+            "phase": "settled",
+            "issue": null
+          },
+          "frameOwner": "template-2"
+        },
+        {
+          "inside": "driftwood-isle",
+          "current": "driftwood-isle",
+          "ready": true,
+          "pending": [],
+          "issues": {
+
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "frameOwner": "driftwood-isle"
+        }
+      ],
+      "errors": [],
+      "spawnPosition": {
+        "x": -1.1804630902140234e-05,
+        "y": 1.2143564029094704,
+        "z": -194.00003798972682
+      }
+    },
+    {
+      "name": "return-safari-plain",
+      "sha": "1edab04561094f33ba9949e9006f42cc2906c5f8",
+      "harnessRevision": "53e1d8c01a37f128a03c4a41a624d69a6b1a1b78",
+      "surface": "sim",
+      "when": "2026-10-11T10:07:57.251Z",
+      "seconds": 244.214,
+      "complete": true,
+      "pass": false,
+      "diagnostic": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "rows": [
+        ["spawn", 120, 34, 35, 0, 0, 0, 30.303, true, false, true],
+        ["grid-deck-east", 120, 34, 34, 0, 0, 0, 30.303, true, false, true],
+        ["grid-crossroads", 120, 34, 34, 0, 0, 0, 30.303, true, false, true],
+        ["grid-template-interior-travel", 120, 34, 35, 0, 0, 0, 30.303, true, false, true],
+        ["grid-template-interior-drive", 1500, 34, 277, 18, 1, 0, 30.303, true, false, false],
+        ["grid-template-interior", 120, 34, 73, 2, 0, 0, 30.303, true, false, true],
+        ["grid-template-return-travel", 120, 34, 131, 1, 1, 0, 30.303, true, false, true],
+        ["grid-template-return-drive", 1830, 34, 131, 6, 2, 0, 30.303, true, false, true],
+        ["grid-template-return", 120, 34, 35, 0, 0, 0, 30.303, true, false, true]
+      ],
+      "endpoints": [
+        {
+          "inside": "template-2",
+          "current": "template-2",
+          "ready": true,
+          "pending": [],
+          "issues": {
+
+          },
+          "crossing": {
+            "current": "template-2",
+            "target": "template-2",
+            "phase": "settled",
+            "issue": null
+          },
+          "frameOwner": "template-2"
+        },
+        {
+          "inside": "driftwood-isle",
+          "current": "driftwood-isle",
+          "ready": true,
+          "pending": [],
+          "issues": {
+
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "frameOwner": "driftwood-isle"
+        }
+      ],
+      "errors": [],
+      "spawnPosition": {
+        "x": -1.2394664476306216e-05,
+        "y": 1.2153564028551045,
+        "z": -194.0000369427573
+      }
+    },
+    {
+      "name": "return-desktop-plain",
+      "sha": "1edab04561094f33ba9949e9006f42cc2906c5f8",
+      "harnessRevision": "3ab3ca57123ddd8d317f6f9be275708371211d3b",
+      "surface": "desktop",
+      "when": "2026-10-11T10:17:35.807Z",
+      "seconds": 194.167,
+      "complete": true,
+      "pass": true,
+      "diagnostic": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "rows": [
+        ["spawn", 120, 16.7, 16.8, 0, 0, 0, 59.88, true, false, true],
+        ["grid-crossroads", 120, 16.8, 16.8, 0, 0, 0, 59.88, true, false, true],
+        ["grid-deck-east", 120, 16.7, 16.8, 0, 0, 0, 59.88, true, false, true],
+        ["grid-template-interior-travel", 120, 16.8, 16.8, 0, 0, 0, 59.88, true, false, true],
+        ["grid-template-interior-drive", 2940, 16.8, 50.1, 1, 0, 0, 59.88, true, false, true],
+        ["grid-template-interior", 120, 16.7, 16.8, 0, 0, 0, 59.88, true, false, true],
+        ["grid-template-return-travel", 120, 16.7, 100, 2, 0, 0, 59.88, true, false, true],
+        ["grid-template-return-drive", 3030, 16.8, 100, 3, 0, 0, 59.88, true, false, true],
+        ["grid-template-return", 120, 16.7, 16.8, 0, 0, 0, 59.88, true, false, true]
+      ],
+      "endpoints": [
+        {
+          "inside": "template-2",
+          "current": "template-2",
+          "ready": true,
+          "pending": [],
+          "issues": {
+
+          },
+          "crossing": {
+            "current": "template-2",
+            "target": "template-2",
+            "phase": "settled",
+            "issue": null
+          },
+          "frameOwner": "template-2"
+        },
+        {
+          "inside": "driftwood-isle",
+          "current": "driftwood-isle",
+          "ready": true,
+          "pending": [],
+          "issues": {
+
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "frameOwner": "driftwood-isle"
+        }
+      ],
+      "errors": [],
+      "spawnPosition": {
+        "x": -8.544723123532494e-06,
+        "y": 1.2167309093740186,
+        "z": -194.00002134531377
+      }
+    }
+  ],
+  "rowFields": ["name", "frames", "p95Ms", "maxMs", "over50Ms", "over100Ms", "skipped", "medianFps", "cpuPass", "contextLost", "pass"],
+  "verdict": "Requested spawn/return rows PASS; whole Simulator route RED at outbound277ms. Original displaced spawn39ms is invalid. No isolated timing credit for the restore change.",
+  "checks": {
+    "focusedTests": 43,
+    "strict": "scoped touched import closure green",
+    "touchedLint": "green",
+    "hooks": "green",
+    "sameSizeRestoreNewWasmMemories": 0,
+    "sameSizeRestoreNewWasmInstances": 0,
+    "atomicLaterModuleRefusal": "green",
+    "grownAndShrunkMemoryExactSuffix": "green"
+  },
+  "windows": {
+    "desktopDiagnostic": ["2026-10-11T09:37:58Z", "2026-10-11T09:41:14Z"],
+    "simulatorDiagnostic": ["2026-10-11T09:46:57Z", "2026-10-11T09:50:58Z"],
+    "simulatorPlain": ["2026-10-11T10:03:53Z", "2026-10-11T10:08:01Z"],
+    "desktopPlain": ["2026-10-11T10:14:21Z", "2026-10-11T10:17:39Z"],
+    "policy": "wait for no other quiet window and no pusher; at least120s gaps; owned previews/helpers closed"
+  },
+  "limitations": ["Original return252ms did not reproduce under profiling; its exact cause remains unestablished.", "f5ce baseline already includes intervening owned shader warm-ups93188c5f4/15ba9b22a. This is targeted current-build corroboration, not an isolated source A/B.", "Safari CPU proxy sample timestamps are zero; diagnostic samples carry no timing credit.", "Mac-backed Simulator Safari, not a physical phone; auto fps,2x scale,Developer/DEVSERVER catalogue,build pacing ON.", "No quality/render-scale changes. Whole Simulator route remains RED: outbound277ms."]
+}
