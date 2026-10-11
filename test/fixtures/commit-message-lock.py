@@ -36,6 +36,10 @@ for scenario in ('overlap', 'timeout', 'abort'):
                                 'if [ "$WS_COMMIT_LANE" = a ]; then read token < release-a; fi\n')
         message_hook.chmod(0o755)
         os.mkfifo(root / 'release-a')
+        # Keep the FIFO available before either hook starts. A's ready marker
+        # precedes its read, so a writer opened only after contention can race
+        # that read and fail with ENXIO under load.
+        release_descriptor = os.open(root / 'release-a', os.O_RDWR | os.O_NONBLOCK)
         jobs = []
         try:
             for name in ('a', 'b'):
@@ -69,11 +73,7 @@ for scenario in ('overlap', 'timeout', 'abort'):
             if scenario == 'abort':
                 os.killpg(jobs[0].pid, signal.SIGTERM)
             else:
-                descriptor = os.open(root / 'release-a', os.O_WRONLY | os.O_NONBLOCK)
-                try:
-                    os.write(descriptor, b'continue\n')
-                finally:
-                    os.close(descriptor)
+                os.write(release_descriptor, b'continue\n')
             outputs = []
             for job in jobs:
                 if job.pid in finished:
@@ -101,6 +101,7 @@ for scenario in ('overlap', 'timeout', 'abort'):
                             'hookSeconds': [row['seconds'] for row in receipts],
                             'statuses': [row['status'] for row in outputs]})
         finally:
+            os.close(release_descriptor)
             for job in jobs:
                 if job.poll() is None:
                     os.killpg(job.pid, signal.SIGTERM)
