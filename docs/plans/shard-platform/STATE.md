@@ -10,7 +10,7 @@
   - **Memory:** G269.
 - **M3:** **0 of 6 at 80/20** under Jake's measure.
 
-**Live:** origin/main = HEAD (`c528d9b63`, 19:44); the ~145-commit backlog landed in `acb850d96`'s green push.
+**Live:** origin/main = HEAD (`c528d9b63`, 19:44); backlog landed (`acb850d96`).
 
 **G298 done:** all six shards' bakers in their own `generators/` (only the shared `bake-sky.mjs` HDRI baker stays in scripts/). **G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact (Nalati physics after `8b144a8d0`), witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`).
 
