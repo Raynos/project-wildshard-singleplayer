@@ -119,3 +119,5 @@ This is the baseline file inventory; later slice commits report the measured tot
 | quest/flags.ts | 2 |
 
 The entry-proof slice removes the two runtime copies (`socketLiftProof.ts`, 159 lines, and `edgeEntries.ts`, 37 lines). Sky now consumes the defining simulation plugin's existing admission proof and engine capsule law. Custom runtime is 5,524 / 6,745 = 81.9%; the 20% target remains open. No one-user platform lines are added.
+
+The retained-boss port had already replaced its trusted preset wrapper. Removing that unreferenced production wrapper removes another nine custom lines: 5,515 / 6,745 = 81.8%. The frozen 10,000-frame retained-body oracle still compares the profile and explicit held-pattern construction directly, including null-body refusal and restore.

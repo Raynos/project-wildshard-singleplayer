@@ -11,7 +11,6 @@ import { bossFight, type BossFightProfile, type SpawnedBossFight, type HeldBossF
 import { markedBossFight as shippingSpawned } from '../fixtures/species-oracle/markedBossFight';
 import { heldBossFight as shippingHeld } from '../fixtures/species-oracle/heldBossFight';
 import { markedBossFight } from '../../src/shards/sunscar-dunes/runtime/shardfile/bossFight';
-import { heldBossFight } from '../../src/shards/far-reach/runtime/heldBossFight';
 import { ROC_BOSS_PROFILE } from '../../src/shards/far-reach/data/rocFight';
 import { MATRIARCH_BOSS_PROFILE } from '../../src/shards/sunscar-dunes/data/matriarchBoss';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
@@ -47,7 +46,7 @@ function make(pattern: 'spawned'|'held', version: 'frozen'|'preset'|'profile', s
   const body = spawn(host,0), brain = { phase: 0, fighting: false, restart: () => { events.push(['restart',brain.phase,brain.fighting,body.hp,body.alive]); } };
   const victory = (at: Vector3): void => { events.push(['victory',at.toArray()]); };
   const ports: HeldBossPorts<AnimalSim> = { body,brain,victory };
-  const fight = version === 'frozen' ? shippingHeld(profile.fight,body,brain,victory) : version === 'preset' ? heldBossFight(profile.fight,body,brain,victory) : bossFight(profile,ports);
+  const fight = version === 'frozen' ? shippingHeld(profile.fight,body,brain,victory) : version === 'preset' ? bossFight({ kind: 'boss', pattern: 'held', fight: profile.fight }, ports) : bossFight(profile,ports);
   return { host, fight, body: () => body, events, brain };
 }
 function frame(run: Run, tick: number): string {
