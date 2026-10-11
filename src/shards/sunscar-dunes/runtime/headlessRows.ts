@@ -1,24 +1,13 @@
+import { SIGNAL_OWNER_ROWS } from '../data/hostOwners';
 import { MATRIARCH_BOSS_PROFILE } from '../data/matriarchBoss';
 import type { RowsHeadlessManifest } from './rowsHeadless';
-import { SEED } from '../data/layout';
 import { SIGNAL_SPAWNS } from '../data/spawns';
-import { WHIP_PROFILE } from '../data/items';
-import { SCOUT_FLAG } from '../data/flags';
 import { MATRIARCH_DEFINITION, MATRIARCH_RECORD, MATRIARCH_REWARD } from '../data/matriarchEncounter';
 import { MATRIARCH_PRESENTATION } from './quest/matriarchFight';
 import { FACT, MATRIARCH_FLAG } from '../data/signalQuest';
 import { SIGNAL_INTERACTIONS } from '../data/signalInteractions';
 import { SCOUT_NPC } from '../quests/scout';
 import { SIGNAL_GRAPH } from '../data/signalGraph';
-
-/** The declared whip row's id (data/items.ts). */
-export const WHIP_ID = 'weapon.sunscar-whip';
-/** The whip's fixed-step id (its lash and aim continuation). */
-export const WHIP_STEP = `item.${WHIP_ID}`;
-/** `fight.attackers` in manifest.ts (E297); the headless test holds the two equal (the manifest itself imports views). */
-export const SIGNAL_ATTACKERS = 2;
-/** The homes keeper's fixed-step id; its continuation also names the live roster to reinstall before restore. */
-export const HOMES_STEP = 'sunscar.homes';
 
 const matriarch = SIGNAL_SPAWNS.bosses[0];
 if (matriarch === undefined) throw new Error('Signal Dunes declares the Matriarch\'s boss row');
@@ -31,11 +20,8 @@ if (matriarch === undefined) throw new Error('Signal Dunes declares the Matriarc
  * timing and moves); "The signal"'s quest graph; and the entry walk, 23 lanes 50 m in from 249.55 m within 600 steps.
  */
 export const SIGNAL_HEADLESS: Omit<RowsHeadlessManifest, 'baked' | 'homes'> & { readonly homes: Omit<RowsHeadlessManifest['homes'], 'species' | 'strikes' | 'modules'> } = {
-  homes: { step: HOMES_STEP, seed: SEED, rows: SIGNAL_SPAWNS.homes, attackers: SIGNAL_ATTACKERS, think: { every: 6, dt: 0.1 },
-    contact: { prefix: 'sunscar.', suffix: '.contact' }, holds: [{ home: 0, field: 'held', until: SCOUT_FLAG }] },
+  ...SIGNAL_OWNER_ROWS,
   boss: { row: matriarch, definition: MATRIARCH_DEFINITION, profile: MATRIARCH_BOSS_PROFILE, record: MATRIARCH_RECORD, reward: MATRIARCH_REWARD,
     floor: MATRIARCH_PRESENTATION.floor, respawn: MATRIARCH_PRESENTATION.respawn, victory: { flag: MATRIARCH_FLAG, fact: FACT.matriarch } },
-  lash: { id: WHIP_ID, step: WHIP_STEP, profile: WHIP_PROFILE, eye: 1.68 },
   quest: { interactions: SIGNAL_INTERACTIONS, npcs: [SCOUT_NPC], graph: SIGNAL_GRAPH },
-  entries: { lanes: 23, walk: 50, start: 249.55, maxTicks: 600 },
 };

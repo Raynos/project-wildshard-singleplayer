@@ -13,7 +13,7 @@ import source from '../../../src/shards/sunscar-dunes/shard.config';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
 import { COMPLETE_FLAG } from '../../../src/shards/sunscar-dunes/data/signalQuest';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
-import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/headlessRows';
+import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/data/hostOwners';
 import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/quests';
 import { SIGNAL_GRAPH } from '../../../src/shards/sunscar-dunes/data/signalGraph';
 import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/data/signalInteractions';
