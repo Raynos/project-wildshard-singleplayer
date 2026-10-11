@@ -6,7 +6,8 @@ import type { Isle } from '../data/layout';
 import { apothem } from '../layout';
 import { STRINGS } from '../data/strings';
 import { islandMesh } from './isle';
-import { ISLET, RISING_ISLETS, type P3, type RisingIslet } from './islets';
+import { RISING_ISLETS } from './islets';
+import { ISLET, type P3, type RisingIslet } from '../data/isletDesign';
 import { PALETTE, flat } from './shapes';
 
 /**

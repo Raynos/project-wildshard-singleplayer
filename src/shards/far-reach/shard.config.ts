@@ -12,7 +12,8 @@ import { SKY_MODES } from './data/modes';
 import { MOVERS } from './data/movers';
 import { LIFT_MODULE } from './data/liftModule';
 import { BRIDGE_MODULE } from './data/bridgeModule';
-import { RISING_ISLETS, isleStrips } from './world/islets';
+import isletRows from './data/islets.generated.json' with { type: 'json' };
+import { RISING_ISLETS } from './world/islets';
 import { ISLET_LIFTS } from './data/isletLift';
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
@@ -41,4 +42,4 @@ export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runt
   sim: { ...base.sim, scripts: [LIFT_MODULE.hash] },
   props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [],
     colliders: [...RISING_ISLETS.map((entry) => ({ id: `landing.${entry.edge}`, panel: null, initialActive: true, shapes: [{ ...entry.landing }] })),
-      ...RISING_ISLETS.map((entry) => ({ id: `gate-isle.${entry.edge}`, panel: null, initialActive: true, shapes: isleStrips(entry.gate) }))] } });
+      ...RISING_ISLETS.map((entry) => ({ id: `gate-isle.${entry.edge}`, panel: null, initialActive: true, shapes: isletRows.entries.flatMap(row => row.edge === entry.edge ? row.strips.map(strip => ({ ...strip, kind: 'box' as const, surface: 'grass' as const })) : []) }))] } });

@@ -7,7 +7,9 @@
     "data/files.ts",
     "world",
     "generators",
-    "models"
+    "models",
+    "data/isletDesign.ts",
+    "data/islets.generated.json"
   ],
   "hide": [
     "far.storm",

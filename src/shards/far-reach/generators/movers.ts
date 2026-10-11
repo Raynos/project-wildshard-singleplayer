@@ -5,7 +5,8 @@ import { Mover } from '@wildshard/sdk/movers';
 import { SPANS, FALLEN_BRIDGE } from '../data/layout';
 import { FALLEN_ANGLE, deckCollider, saggedColliders, railColliders, spanYaw } from '../world/build';
 import { isletBoxes, isletId, gateId } from '../world/risingIslet';
-import { ISLET, RISING_ISLETS } from '../world/islets';
+import { RISING_ISLETS } from '../world/islets';
+import { ISLET } from '../data/isletDesign';
 
 // Three's configurable buffer types preserve authored f64 stops instead of rounding native gameplay to Float32.
 class PositionStops extends VectorKeyframeTrack {}

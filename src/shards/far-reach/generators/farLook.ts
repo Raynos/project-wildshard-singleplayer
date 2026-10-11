@@ -21,7 +21,8 @@ import { skyIslesIn } from '../world/skyIsles';
 import { ISLES, MILL, PINES, WINDMILL, type Isle } from '../data/layout';
 import { apothem } from '../layout';
 import { islandMesh } from '../world/isle';
-import { ISLET, RISING_ISLETS, type RisingIslet } from '../world/islets';
+import { RISING_ISLETS } from '../world/islets';
+import { ISLET, type RisingIslet } from '../data/isletDesign';
 import { PALETTE } from '../world/shapes';
 
 type Rgb = [number, number, number];

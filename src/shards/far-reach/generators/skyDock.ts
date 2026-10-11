@@ -2,7 +2,8 @@ import { ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BoxGeometry, Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import { bakeKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
-import { ISLET, RISING_ISLETS, type EntryEdge, type RisingIslet } from '../world/islets';
+import { RISING_ISLETS } from '../world/islets';
+import { ISLET, type EntryEdge, type RisingIslet } from '../data/isletDesign';
 import { PALETTE, flat } from '../world/shapes';
 
 /**
