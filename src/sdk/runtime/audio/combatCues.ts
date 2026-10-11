@@ -1,4 +1,4 @@
-import { sharedCombatCues as platformCombatCues } from '@wildshard/game/systems/audio/combatCues';
+import { sharedCombatCues as platformCombatCues } from '@wildshard/game/plugin/audio';
 
 /** Existing mixer operations consumed by the trusted combat-cue router. */
 export type CombatAudio = Parameters<typeof platformCombatCues>[0];

@@ -1,6 +1,6 @@
 import { phasedBossFight as platformFight, type PhasedBossBody as PlatformBody, type PhasedBossFight as PlatformFight, type PhasedBossPorts as PlatformPorts,
   type PhasedBossRow as PlatformRow, type BossViewBinding as PlatformViews, type BossViewCall as PlatformViewCall, type PhasedBossState as PlatformState,
-  type RoamingBossBody as MobileBody, type RoamingBossRow as MobileRow, type RoamingBossPorts as MobilePorts, type RoamingBossFight as MobileFight } from '@wildshard/game/shardfile/phasedBoss';
+  type RoamingBossBody as MobileBody, type RoamingBossRow as MobileRow, type RoamingBossPorts as MobilePorts, type RoamingBossFight as MobileFight } from '@wildshard/game/plugin/bossPhase';
 
 /** A phased boss fight's row (SHARD-PLATFORM SF27): modes, phases, attack rows, adds, hazards and the declared view names. */
 export type PhasedBossRow = PlatformRow;

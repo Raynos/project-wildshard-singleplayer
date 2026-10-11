@@ -1,7 +1,7 @@
 // Frozen shipping move policy; independent of the new row interpreter.
 import type { Vector3 } from 'three';
 import type { BrainPoint } from '@wildshard/engine/ai/strikes';
-import { clipHitReached } from '@wildshard/game/combat/clipTiming';
+import { clipHitReached } from '../../../src/game/combat/clipTiming';
 import type { Lane, LaneBody } from '../../../src/shards/pine-hollow/combat/lane';
 import type { PhShot } from '../../../src/shards/pine-hollow/runtime/audio/sfx';
 import { headingTo } from '../../../src/shards/pine-hollow/combat/combatMath';
