@@ -1,7 +1,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { InputService } from '@wildshard/engine/input/InputService';
 import type { DebugRowSpec, TierKnobSchema } from '@wildshard/engine/level/context';
-import { parsePlumbing, type PlumbingData } from '../shardfile/plumbing';
+import { parsePlumbing, type PlumbingData } from '@wildshard/format/plumbing';
 
 /** Session-owned instance/activity and admitted scene dispatcher; data never calls arbitrary module exports. */
 export interface PlumbingPorts {

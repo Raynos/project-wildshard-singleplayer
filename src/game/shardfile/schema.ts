@@ -20,7 +20,7 @@ import { QuestDataSchema } from './quests';
 import { AudioDataSchema } from './audio';
 import { LedgerRulesSchema } from './ledger';
 import { HooksSchema, hookRules } from './hooks';
-import { PlumbingSchema } from './plumbing';
+import { PlumbingSchema } from '@wildshard/format/plumbing';
 import { PropsSchema, validatePropsReferences } from './props';
 import { TargetsSchema, targetRules } from './targets';
 import { ItemsSchema, itemRules } from './items';

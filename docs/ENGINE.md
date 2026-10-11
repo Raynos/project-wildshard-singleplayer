@@ -2780,3 +2780,5 @@ three.js author project without drawing a frame.
 ### Format contracts (DS1.1 foundation)
 
 `@wildshard/format/edgeProfiles` defines the unchanged Valibot boundary contract: 256 or 257 finite height/colour samples and zero road height. The format workspace imports only Valibot; the loader imports its defining schema directly. The SDK package declaration copier and author-input audit include this layer. This first extraction does not complete the full shardfile contract migration or JSON Schema generation.
+
+The scoped input/knob/Debug wire contract is now defined by `@wildshard/format/plumbing`: both loader admission and SDK author validation consume it. Namespace ownership, duplicate IDs, touch-action references and Debug defaults retain their existing checks. `@wildshard/sdk/plumbing` is author-time Valibot parsing; it no longer calls a game module.

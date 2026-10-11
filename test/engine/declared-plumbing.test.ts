@@ -4,7 +4,7 @@ import { InputService, type ActionCommand } from '../../src/engine/input/InputSe
 import type { DebugRowSpec } from '../../src/engine/level/context';
 import { LevelRegistrations } from '../../src/engine/level/registrations';
 import { installDeclaredPlumbing } from '../../src/game/shard/declaredPlumbing';
-import { parsePlumbing } from '../../src/game/shardfile/plumbing';
+import { parsePlumbing } from '@wildshard/format/plumbing';
 import { TEMPLATE_PLUMBING } from '../../src/shards/_template/data/plumbing';
 
 const plumbingFixture = parsePlumbing({ ...TEMPLATE_PLUMBING, debug: [{

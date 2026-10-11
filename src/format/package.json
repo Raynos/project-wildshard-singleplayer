@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./edgeProfiles": "./edgeProfiles.ts"
+    "./edgeProfiles": "./edgeProfiles.ts",
+    "./plumbing": "./plumbing.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"
