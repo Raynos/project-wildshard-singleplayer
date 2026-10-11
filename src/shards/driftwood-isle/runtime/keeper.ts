@@ -1,3 +1,4 @@
+import { DRIFTWOOD_FAUNA_TUNING } from '../data/fauna';
 import { attachDriftwoodPose, type DriftwoodPosedVolumes, type DriftwoodPoseRecipe } from './posedVolumes';
 import { animateCrab } from '../species/crabPose';
 import { animateMonkey } from '../species/monkeyPose';
@@ -30,7 +31,7 @@ import type { DriftwoodBake } from './baked';
 import { RespawnQueue } from './ecology';
 import { RESPAWN } from '../data/ecology';
 import { ISLAND_BOAR, ISLAND_BEAR } from '../creatures/species';
-import { DRIFTWOOD_FAUNA_TUNING, faunaPlacement, faunaSpecies } from './fauna';
+import { faunaPlacement, faunaSpecies } from './fauna';
 
 /** The island keeper's fixed-step id; its continuation also names the live roster to reinstall before restore. */
 export const ISLAND_STEP = 'driftwood.island';

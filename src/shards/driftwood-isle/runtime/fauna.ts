@@ -1,13 +1,7 @@
 import { Rng } from '@wildshard/engine/core/rng';
-import type { HuntSpecies, HuntTuning } from '@wildshard/engine/ai/hunt';
+import type { HuntSpecies } from '@wildshard/engine/ai/hunt';
 import { ISLAND_BOAR, ISLAND_BEAR } from '../creatures/species';
-import { DRIFTWOOD_FAUNA_PLANS } from '../creatures/tables';
-
-/** manifest.ts `faunaTuning` (the beach boars' long sight lines); test/shards/driftwood-isle/headless-runtime.test.ts holds
- *  it equal to DRIFTWOOD_ISLE.faunaTuning. */
-export const DRIFTWOOD_FAUNA_TUNING: Partial<Record<string, Partial<HuntTuning>>> = {
-  boar: { sightRange: 42, sightRangeGraze: 26, sightCone: 1.22, hearWalk: 18, hearSprint: 34, noticeRate: 0.65, impactAlert: 28 },
-};
+import { DRIFTWOOD_FAUNA_PLANS } from '../data/fauna';
 
 /** The island fauna's species rows as the hunting brain reads them (creatures/install.ts registers these two). */
 export function faunaSpecies(kind: string): HuntSpecies {

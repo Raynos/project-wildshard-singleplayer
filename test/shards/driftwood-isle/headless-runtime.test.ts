@@ -1,3 +1,4 @@
+import { DRIFTWOOD_FAUNA_TUNING } from '../../../src/shards/driftwood-isle/data/fauna';
 // oxlint-disable-next-line import/no-nodejs-modules -- The headless runtime reads the native physics module.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Import the trusted runtime in plain Node with the renderer-denying loader.
@@ -24,7 +25,7 @@ import { CAPTAIN } from '../../../src/shards/driftwood-isle/species/captain';
 import { SWORDS_STEP, driftwoodSwordProfiles } from '../../../src/shards/driftwood-isle/runtime/swords';
 import { KILLS_STEP, SAILOR_DEAD_FLAG } from '../../../src/shards/driftwood-isle/runtime/kills';
 import { SWORD_IRON, SWORD_WOOD } from '../../../src/game/weapons/starterMeleeProfile';
-import { DRIFTWOOD_FAUNA_TUNING, faunaPlacement } from '../../../src/shards/driftwood-isle/runtime/fauna';
+import { faunaPlacement } from '../../../src/shards/driftwood-isle/runtime/fauna';
 import { LOWERED_SEA } from '../../../src/shards/driftwood-isle/world/sea';
 import { SEA_RAMP_RUN } from '../../../src/shards/driftwood-isle/world/build';
 import { ENTRY_RAMP_RUN } from '../../../src/shards/driftwood-isle/runtime/entries';

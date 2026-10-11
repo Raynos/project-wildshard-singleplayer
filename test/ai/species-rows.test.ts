@@ -1,3 +1,4 @@
+import { ISLAND_BOARS } from '../../src/shards/driftwood-isle/data/fauna';
 import { describe, expect, it } from 'vitest';
 import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
 import { speciesDef, rollVariant, type AnimalSpecies } from '../../src/engine/entities/species/registry';
@@ -10,7 +11,7 @@ import { BEAR } from '../../src/game/systems/species/bear';
 import { BOAR_LOOK } from '../../src/game/systems/species/view/boar';
 import { BEAR_LOOK } from '../../src/game/systems/species/view/bear';
 import { PINE_BOAR, PINE_BEAR } from '../../src/shards/pine-hollow/species/rows';
-import { ISLAND_BOAR, ISLAND_BOARS } from '../../src/shards/driftwood-isle/creatures/species';
+import { ISLAND_BOAR } from '../../src/shards/driftwood-isle/creatures/species';
 
 function fingerprint(model: AnimalSpecies): string {
   let hash = 2166136261;

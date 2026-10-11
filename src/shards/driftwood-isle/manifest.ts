@@ -1,7 +1,7 @@
 import { DRIFTWOOD_BUDGET_INPUTS } from './budgets';
 import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
 import { area as BLENDER_AREA } from './world/blenderArea';
-import { DRIFTWOOD_FAUNA_PLANS } from './creatures/tables';
+import { DRIFTWOOD_FAUNA_PLANS, DRIFTWOOD_FAUNA_TUNING } from './data/fauna';
 import exploreWorld from './explore/world-driftwood-isle.webp';
 import exploreModels from './explore/models-driftwood-isle.webp';
 import exploreSets from './explore/sets-driftwood-isle.webp';
@@ -308,9 +308,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   bodyShadow: true,
 
   // open sand: a boar sees you from far off; merged over the species' HuntTuning by AnimalManager.tuningFor
-  faunaTuning: {
-    boar: { sightRange: 42, sightRangeGraze: 26, sightCone: 1.22, hearWalk: 18, hearSprint: 34, noticeRate: 0.65, impactAlert: 28 },
-  },
+  faunaTuning: DRIFTWOOD_FAUNA_TUNING,
   sky: {
     sunColor: [1.0, 0.97, 0.9],
     sunIntensity: 2.7,
