@@ -1,5 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash the actual immutable fixture bytes.
 import { createHash } from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the detached guard's actual CLI in an isolated fixture.
+import { execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Use the same Node binary as the test process.
+import { execPath } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- All writes belong to the temporary fixture.
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep the fixture outside the shared tree.
@@ -52,5 +56,32 @@ it('admits only staged-hash JSON bytes and leaves missing dependencies fail-clos
     write(root, 'src/shards/example/data/evil.generated.ts', bytes);
     materializeGuardData(root, snapshot);
     expect(existsSync(join(snapshot, 'src/shards/example/data/evil.generated.ts'))).toBe(false);
+  } finally { rmSync(owned, { recursive: true, force: true }); }
+});
+
+it('materializes pinned JSON through the detached ratchet CLI without admitting wrong bytes', () => {
+  const owned = mkdtempSync(join(tmpdir(), 'ratchet-data-'));
+  const root = join(owned, 'root'), snapshot = join(owned, 'snapshot');
+  const path = 'src/shards/example/data/rows.generated.json', bytes = '{"lifts":[]}\n';
+  const write = (base: string, relativePath: string, content: string): void => {
+    const file = join(base, relativePath); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, content);
+  };
+  const command = (): void => {
+    execFileSync(execPath, ['scripts/precommit-generated-data.mjs', root, snapshot], { stdio: 'pipe' });
+  };
+  try {
+    write(snapshot, 'src/shards/example/data/lifts.ts', "import rows from './rows.generated.json' with {type:'json'}; export const lifts=rows.lifts;");
+    write(snapshot, 'scripts/generation-jobs.json', JSON.stringify({ jobs: [{ buildOutputs: {
+      [path]: createHash('sha256').update(bytes).digest('hex'),
+    } }] }));
+    command();
+    expect(simClosure(snapshot)).toHaveLength(1);
+    write(root, path, 'wrong bytes');
+    expect(command).toThrow('does not match staged hash');
+    expect(existsSync(join(snapshot, path))).toBe(false);
+    write(root, path, bytes);
+    command();
+    expect(simClosure(snapshot)).toEqual([]);
+    expect(readFileSync(join(snapshot, path), 'utf8')).toBe(bytes);
   } finally { rmSync(owned, { recursive: true, force: true }); }
 });

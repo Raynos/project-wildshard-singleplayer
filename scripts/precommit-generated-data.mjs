@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 /** Supply immutable JSON build outputs to a source-only guard export, without running a producer.
  * The exported (staged) catalogue pins the bytes; working source and unpinned outputs never participate.
@@ -27,5 +28,16 @@ export function materializeGuardData(root, snapshot) {
       mkdirSync(dirname(target), { recursive: true });
       writeFileSync(target, bytes);
     }
+  }
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  try {
+    const [root, snapshot] = process.argv.slice(2);
+    if (!root || !snapshot || process.argv.length !== 4) throw new Error('Usage: precommit-generated-data.mjs <root> <snapshot>');
+    materializeGuardData(resolve(root), resolve(snapshot));
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
   }
 }

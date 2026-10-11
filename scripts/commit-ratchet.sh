@@ -23,13 +23,21 @@ fi
 
 # the ratchet reads both oxlint configs and (since E362 AG16/17) scripts/guard-counts.mjs; archive only what the commit has
 paths="src lint .oxlintrc.ratchet.json package.json"
-for extra in .oxlintrc.json scripts/guard-counts.mjs scripts/legacy-shards.mjs; do git -C "$repo" cat-file -e "$sha:$extra" 2>/dev/null && paths="$paths $extra"; done
+for extra in .oxlintrc.json scripts/guard-counts.mjs scripts/legacy-shards.mjs scripts/generation-jobs.json scripts/precommit-generated-data.mjs; do git -C "$repo" cat-file -e "$sha:$extra" 2>/dev/null && paths="$paths $extra"; done
 tmp="$(cd "$(mktemp -d /tmp/ratchet-commit.XXXXXX)" && pwd -P)" || exit 0 # canonical: /tmp is a symlink on macOS (E432)
 trap 'rm -rf "$tmp"' EXIT
 t0=$SECONDS
 # shellcheck disable=SC2086 # word-split on purpose: a list of literal paths
 git -C "$repo" archive "$sha" -- $paths | tar -x -C "$tmp" 2>/dev/null
 node "$repo/scripts/link-node-modules.mjs" "$repo" "$tmp" # E432: @wildshard/* resolve to this export, not the working tree
+# Source-only trees omit cached JSON. Use this commit's catalogue and helper, never unpinned working data.
+if [ -f "$tmp/scripts/precommit-generated-data.mjs" ]; then
+  if ! out="$(node "$tmp/scripts/precommit-generated-data.mjs" "$repo" "$tmp" 2>&1)"; then
+    printf '%s ROSE\n%s\n' "$sha" "$out" > "$common/ratchet-last.txt"
+    note "ROSE: generated guard data refused"
+    exit 0
+  fi
+fi
 # A detached older commit may still be running when this launcher changes in the shared checkout.
 ratchet_args=()
 if grep -q -- '--defer-reductions' "$tmp/lint/ratchet.mjs"; then ratchet_args=(--defer-reductions); fi
