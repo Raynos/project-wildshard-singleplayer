@@ -25,4 +25,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-11 | local gate: map-coverage expects old map URLs | `e2bc770ab` | `dd6a2b918` | sp-x4 |
 | 2026-10-11 | push: unapproved Driftwood audio/install engine imports 2 → 3 | `992fd31b1` | `84193208e` (receipt) | sp-x5 |
 | 2026-10-11 | push: unapproved Signal plugin game imports / plugins 6 → 7 | `630fcca7f` | `84193208e` (receipt) | sp-x5 |
-| 2026-10-11 | regeneration: nine bake freshness tests (6 physics, Driftwood quest/spots, Pine spots) | `3ab73b7e2` (x2), `630fcca7f` + `786595307` (x5) | pending (owners rebake) | sp-x2, sp-x5 |
+| 2026-10-11 | regeneration: nine bake freshness tests (6 physics, Driftwood quest/spots, Pine spots) | `3ab73b7e2` (x2), `630fcca7f` + `786595307` (x5) | `d1b7d0333` (recapture) | sp-x2, sp-x5 |
