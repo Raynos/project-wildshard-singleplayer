@@ -67,6 +67,15 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 
 ## Version control → [docs/process/GIT.md](docs/process/GIT.md)
 
+- **Commit early and often with small commits** (Jake, 2026-10-11, E476, from project-wildshard-meta). Leave nothing
+  staged in the shared index, and keep captures and generated outputs out of the tree until they're committed.
+- Use **Conventional Commits** subjects (`type(scope): summary`), at most 50 characters, imperative mood, no trailing
+  period. Wrap the body at 72 characters and lead with intent or impact.
+- Every AI-assisted commit ends with a blank line and **`Assisted-by: AGENT_NAME:MODEL_VERSION`**, using the actual
+  runtime model verified from session metadata (`unknown` is forbidden; the agent name cannot contain a colon). No
+  `Co-Authored-By:` for AI agents and no emoji banners. `SKIP_ATTRIB=1` skips only the trailer, for human-only commits.
+- The commit-message hook enforces this (`.githooks/commit-msg-conventions`, run by `.githooks/commit-msg`); hooks are
+  on via `git config core.hooksPath .githooks`.
 - ~10 agents share **one working tree, one index and one `main`**. Never stash, checkout, restore or rm what you didn't
   author; kill only your own processes, by PID.
 - **Commit with a pathspec** (`git commit -m "…" -- <paths>`; `git add` only new files). A file with someone else's

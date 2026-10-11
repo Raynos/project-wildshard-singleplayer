@@ -2,6 +2,9 @@
 # commit-msg: the E357 lock check (GAME-NORMALIZATION F0). Refuses a commit outside the lock unless it carries
 # the trailer `E357-Lead: yes` or stays inside a reopened shard's allowlist (.github/lock.json).
 node scripts/check-lock.mjs "$1" || exit 1
+# Commit-message conventions, adopted verbatim from project-wildshard-meta (Jake, 2026-10-11, E476): Conventional
+# Commits subject ≤ 50 chars, body wrapped at 72, one closing `Assisted-by: AGENT:MODEL` trailer, no AI banners.
+python3 .githooks/commit-msg-conventions "$1" || exit 1
 # No Plan-State trailer check (Jake, 2026-10-09, process audit progress/process/audit-2026-10-09/): a plan's status lives
 # in docs/plans/<plan>/STATE.md, written by its coordinator, not in every commit.
 exec node scripts/legacy-shards.mjs --commit-message "$1"

@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+"""Enforce the commit-message rules in AGENTS.md."""
+
+import os
+import re
+import sys
+from pathlib import Path
+
+
+def validate(message, human=False):
+    lines = [line for line in message.splitlines() if not line.startswith("#")]
+    while lines and not lines[-1].strip():
+        lines.pop()
+    if not lines:
+        return "Commit message is empty."
+    subject = lines[0]
+    if len(subject) > 50:
+        return "Subject must be at most 50 characters."
+    if not re.fullmatch(
+        r"(?:feat|fix|docs|chore|refactor|test|perf|build)"
+        r"(?:\([a-z0-9][a-z0-9._/-]*\))?!?: \S.*", subject
+    ):
+        return "Use a Conventional Commits subject: type(scope): summary."
+    if subject.endswith("."):
+        return "Subject must not end with a period."
+    if len(lines) > 1 and lines[1].strip():
+        return "Separate the subject and body with a blank line."
+    if any(len(line) > 72 for line in lines[2:]):
+        return "Wrap the body and trailers at 72 characters."
+    if any(re.search(r"🤖|Generated with.*(?:Claude|Codex|ChatGPT)", line, re.IGNORECASE)
+           for line in lines):
+        return "Do not add AI generation banners."
+    if any(re.search(
+        r"^Co-Authored-By:.*(?:Claude|Codex|ChatGPT|OpenAI|anthropic\.com)",
+        line, re.IGNORECASE
+    ) for line in lines):
+        return "Use Assisted-by, not Co-Authored-By, for AI agents."
+    trailers = [i for i, line in enumerate(lines) if line.startswith("Assisted-by:")]
+    if human and not trailers:
+        return None
+    if len(trailers) != 1 or trailers[0] != len(lines) - 1:
+        return "End with exactly one Assisted-by: AGENT_NAME:MODEL_VERSION trailer."
+    match = re.fullmatch(r"Assisted-by: ([^:\s][^:]*):([^:\s]+)", lines[-1])
+    if not match or match[1] != match[1].strip():
+        return "Malformed Assisted-by trailer; agent names cannot contain a colon."
+    if match[2].casefold() == "unknown":
+        return "The model must be verified; unknown is forbidden."
+    if len(lines) < 3 or lines[-2].strip():
+        return "Put a blank line before the Assisted-by trailer."
+    return None
+
+
+if __name__ == "__main__":
+    error = validate(Path(sys.argv[1]).read_text(), human=os.getenv("SKIP_ATTRIB") == "1")
+    if error:
+        print("Commit blocked: " + error, file=sys.stderr)
+        print("See AGENTS.md. SKIP_ATTRIB=1 is only for human-only commits.", file=sys.stderr)
+        sys.exit(1)
