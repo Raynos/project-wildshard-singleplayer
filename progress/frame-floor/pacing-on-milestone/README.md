@@ -2,7 +2,7 @@
 
 Pinned source: `1046bba3d4f3e1f78cdcedd28c9f9621e5f63664`. Developer ON, DEVSERVER catalogue (Nine included), default build pacing ON, live clocks, Auto fps, 2× render scale, muted. No CPU/GPU profiling or GL allocation observer in the baseline. Desktop: uncapped Metal; Simulator: portrait Safari phone tier.
 
-Gate: desktop max ≤100 ms and p95 ≤17.5 ms; Simulator max ≤200 ms and p95 ≤33 ms. Integer-rounded medians must be ≥60 / ≥30 fps; content CPU ownership and valid drawn-frame samples remain required. A short-window cadence miss remains FAIL even when the whole-drive p95 passes.
+Gate: desktop max ≤100 ms and p95 ≤17.5 ms; Simulator max ≤200 ms and p95 ≤35 ms. The Simulator caps at 30 fps (33.3 ms), so 34–35 ms is cap plus vsync jitter, not a failure. Integer-rounded medians must be ≥60 / ≥30 fps; content CPU ownership and valid drawn-frame samples remain required. A short-window cadence miss remains FAIL even when the whole-drive p95 passes.
 
 Each row covers a real driven road entry (template out/back use their continuous route), its 120-frame travel window and a subsequent 120-frame **entry-interior** sample. These are entry interiors, not a claim about every interior pose. Independent runtime approaches seed the road, complete the actual source checkpoint/leave, then drive the border; they do not fabricate an entered resident.
 
@@ -34,7 +34,7 @@ Standing samples: spawn p95 16.7 ms / max 16.8 ms: PASS; grid-crossroads p95 16.
 | sunscar-dunes-road-entry | 277 / 34 | 45 / 54 / 34 | 1 | FAIL |
 | driftwood-isle-road-entry | 124 / 34 | 43 / 47 / 34 | 1 | FAIL |
 
-Standing samples: spawn p95 36 ms / max 237 ms: FAIL; grid-crossroads p95 34 ms / max 39 ms: FAIL; grid-deck-north p95 34 ms / max 36 ms: FAIL.
+Standing samples: spawn p95 36 ms / max 237 ms: FAIL; grid-crossroads p95 34 ms / max 39 ms: PASS; grid-deck-north p95 34 ms / max 36 ms: PASS.
 
 desktop: complete=True, 255.13 seconds; errors=0.
 sim: complete=True, 393.604 seconds; errors=0.
@@ -42,7 +42,7 @@ sim: complete=True, 393.604 seconds; errors=0.
 Raw arrays stay in scratch. The scalar summary retains all phase metrics, validity verdicts and long-frame hook attribution. Both surfaces use the same source pin. Quiet windows are separately acquired/released; browser/preview/Simulator cleanup is required before release.
 
 
-Worst route: Pine activation, 414 ms on the Simulator. Nalati activation is 230 ms; the template outbound drive has a 228 ms between-hook frame. Signal has a 277 ms afterPlay frame. This is a RED milestone, not a passing default-pacing claim. Pine activation is the next profiling target; Signal activation and the Simulator frame-cap fix remain with sp-x2.
+Worst route: Pine activation, 414 ms on the Simulator. Nalati activation is 230 ms; the template outbound drive has a 228 ms between-hook frame. Signal has a 277 ms afterPlay frame. This is a RED milestone, not a passing default-pacing claim. Correction: the earlier README wrongly classified 34–35 ms standing samples under a 33 ms limit; the raw harness already accepted 35 ms. The travel and long-frame failures below remain valid. Pine activation is the next profiling target; Signal activation and the Simulator frame-cap fix remain with sp-x2.
 
 ## Pine attribution and first-frame preparation
 

@@ -1,0 +1,336 @@
+{
+  "schema": 1,
+  "baseline": "1046bba3d4f3e1f78cdcedd28c9f9621e5f63664",
+  "desktopAfter": "0c961914905ac5ebde1664a1b40018058cf1c559",
+  "simulatorIntermediate": "0c961914905ac5ebde1664a1b40018058cf1c559",
+  "gates": {
+    "desktopP95Ms": 17.5,
+    "desktopDriveMaxMs": 100,
+    "simulatorP95Ms": 35,
+    "simulatorDriveMaxMs": 200,
+    "note": "Simulator phone cap is 30 fps; 34-35ms is vsync jitter within its cap. No quality or render-scale reduction."
+  },
+  "rows": [
+    {
+      "surface": "desktop",
+      "route": "nine-dragon-stack-road-entry",
+      "before": {
+        "travelP95Ms": 33.4,
+        "driveP95Ms": 16.8,
+        "driveMaxMs": 83.4,
+        "interiorP95Ms": 16.7,
+        "driveOver50Ms": 2,
+        "driveOver100Ms": 0,
+        "travelPass": false,
+        "drivePass": true,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          59.88,
+          59.88,
+          59.88
+        ]
+      },
+      "after": {
+        "travelP95Ms": 16.8,
+        "driveP95Ms": 16.8,
+        "driveMaxMs": 66.7,
+        "interiorP95Ms": 16.7,
+        "driveOver50Ms": 3,
+        "driveOver100Ms": 0,
+        "travelPass": true,
+        "drivePass": true,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          59.88,
+          59.88,
+          59.88
+        ]
+      },
+      "intermediate": null
+    },
+    {
+      "surface": "desktop",
+      "route": "nalati-grasslands-road-entry",
+      "before": {
+        "travelP95Ms": 33.4,
+        "driveP95Ms": 16.8,
+        "driveMaxMs": 50,
+        "interiorP95Ms": 16.7,
+        "driveOver50Ms": 0,
+        "driveOver100Ms": 0,
+        "travelPass": false,
+        "drivePass": true,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          59.88,
+          59.88,
+          59.88
+        ]
+      },
+      "after": {
+        "travelP95Ms": 16.8,
+        "driveP95Ms": 16.8,
+        "driveMaxMs": 83.3,
+        "interiorP95Ms": 16.7,
+        "driveOver50Ms": 4,
+        "driveOver100Ms": 0,
+        "travelPass": true,
+        "drivePass": true,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          59.88,
+          59.88,
+          59.88
+        ]
+      },
+      "intermediate": null
+    },
+    {
+      "surface": "sim",
+      "route": "template-interior",
+      "before": {
+        "travelP95Ms": 58,
+        "driveP95Ms": 35,
+        "driveMaxMs": 228,
+        "interiorP95Ms": 34,
+        "driveOver50Ms": 14,
+        "driveOver100Ms": 3,
+        "travelPass": false,
+        "drivePass": false,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          29.412,
+          30.303,
+          30.303
+        ]
+      },
+      "after": {
+        "travelP95Ms": 40,
+        "driveP95Ms": 34,
+        "driveMaxMs": 160,
+        "interiorP95Ms": 34,
+        "driveOver50Ms": 13,
+        "driveOver100Ms": 2,
+        "travelPass": false,
+        "drivePass": true,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          30.303,
+          30.303,
+          30.303
+        ]
+      },
+      "intermediate": {
+        "travelP95Ms": 49,
+        "driveP95Ms": 34,
+        "driveMaxMs": 234,
+        "interiorP95Ms": 34,
+        "driveOver50Ms": 12,
+        "driveOver100Ms": 3,
+        "travelPass": false,
+        "drivePass": false,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          30.303,
+          30.303,
+          30.303
+        ]
+      }
+    },
+    {
+      "surface": "sim",
+      "route": "template-return",
+      "before": {
+        "travelP95Ms": 55,
+        "driveP95Ms": 36,
+        "driveMaxMs": 175,
+        "interiorP95Ms": 34,
+        "driveOver50Ms": 20,
+        "driveOver100Ms": 2,
+        "travelPass": false,
+        "drivePass": false,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          30.303,
+          30.303,
+          30.303
+        ]
+      },
+      "after": {
+        "travelP95Ms": 42,
+        "driveP95Ms": 34,
+        "driveMaxMs": 151,
+        "interiorP95Ms": 34,
+        "driveOver50Ms": 13,
+        "driveOver100Ms": 2,
+        "travelPass": false,
+        "drivePass": true,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          30.303,
+          30.303,
+          30.303
+        ]
+      },
+      "intermediate": {
+        "travelP95Ms": 55,
+        "driveP95Ms": 34,
+        "driveMaxMs": 159,
+        "interiorP95Ms": 34,
+        "driveOver50Ms": 15,
+        "driveOver100Ms": 3,
+        "travelPass": false,
+        "drivePass": true,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          30.303,
+          30.303,
+          30.303
+        ]
+      }
+    },
+    {
+      "surface": "sim",
+      "route": "nalati-grasslands-road-entry",
+      "before": {
+        "travelP95Ms": 66,
+        "driveP95Ms": 49,
+        "driveMaxMs": 230,
+        "interiorP95Ms": 34,
+        "driveOver50Ms": 21,
+        "driveOver100Ms": 1,
+        "travelPass": false,
+        "drivePass": false,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          29.412,
+          30.303,
+          30.303
+        ]
+      },
+      "after": {
+        "travelP95Ms": 44,
+        "driveP95Ms": 39,
+        "driveMaxMs": 91,
+        "interiorP95Ms": 34,
+        "driveOver50Ms": 12,
+        "driveOver100Ms": 0,
+        "travelPass": false,
+        "drivePass": false,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          30.303,
+          30.303,
+          30.303
+        ]
+      },
+      "intermediate": {
+        "travelP95Ms": 52,
+        "driveP95Ms": 40,
+        "driveMaxMs": 77,
+        "interiorP95Ms": 34,
+        "driveOver50Ms": 11,
+        "driveOver100Ms": 0,
+        "travelPass": false,
+        "drivePass": false,
+        "interiorPass": true,
+        "cpuPass": true,
+        "valid": false,
+        "medianFps": [
+          30.303,
+          30.303,
+          30.303
+        ]
+      }
+    }
+  ],
+  "runs": [
+    {
+      "surface": "desktop",
+      "sha": "1046bba3d4f3e1f78cdcedd28c9f9621e5f63664",
+      "complete": true,
+      "seconds": 255.13,
+      "errors": 0,
+      "glObserver": "off",
+      "cpuProfile": false,
+      "glTime": false
+    },
+    {
+      "surface": "sim",
+      "sha": "1046bba3d4f3e1f78cdcedd28c9f9621e5f63664",
+      "complete": true,
+      "seconds": 393.604,
+      "errors": 0,
+      "glObserver": "off",
+      "cpuProfile": false,
+      "glTime": false
+    },
+    {
+      "surface": "desktop",
+      "sha": "0c961914905ac5ebde1664a1b40018058cf1c559",
+      "complete": true,
+      "seconds": 109.855,
+      "errors": 0,
+      "glObserver": "off",
+      "cpuProfile": false,
+      "glTime": false
+    },
+    {
+      "surface": "sim",
+      "sha": "0c961914905ac5ebde1664a1b40018058cf1c559",
+      "complete": true,
+      "seconds": 251.254,
+      "errors": 0,
+      "glObserver": "off",
+      "cpuProfile": false,
+      "glTime": false
+    },
+    {
+      "surface": "sim",
+      "sha": "dbb89458de46c621b0705d3111bb0ef4577ce5b8",
+      "complete": true,
+      "seconds": 290.217,
+      "errors": 0,
+      "glObserver": "off",
+      "cpuProfile": false,
+      "glTime": false
+    }
+  ],
+  "simulatorAfter": "dbb89458de46c621b0705d3111bb0ef4577ce5b8",
+  "verdict": "RED: desktop travel passes; Simulator travel cadence remains above 35ms.",
+  "quietUTC": {
+    "desktop": [
+      "2026-10-11T04:55:47.488Z",
+      "2026-10-11T04:57:41.403Z"
+    ],
+    "simulator": [
+      "2026-10-11T05:12:53.140Z",
+      "2026-10-11T05:17:47.254Z"
+    ]
+  },
+  "comparison": "Baseline is the full milestone; after selects original route plans. Other lanes landed between pins. Targeted regression comparison, not isolated native A/B."
+}
