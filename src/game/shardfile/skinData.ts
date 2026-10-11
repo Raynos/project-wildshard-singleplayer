@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type { ClipName } from '@wildshard/engine/anim/rig';
-import { SkinPoseLayerSchema, validateSkinLayers } from './skinLayers';
+import { SkinPoseLayerSchema, validateSkinLayers } from '@wildshard/format/skinLayers';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
 const hash = v.pipe(v.string(), v.regex(/^[0-9a-f]{64}$/u));

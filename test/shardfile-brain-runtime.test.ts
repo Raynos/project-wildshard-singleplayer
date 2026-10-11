@@ -6,7 +6,7 @@ import { createSimHost, type SimHost } from '../src/engine/sim';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import type { PlatformBrainSpec, PlatformSpawn } from '../src/engine/ai/platform';
 import { installDeclaredBrains, type DeclaredBrainPorts } from '../src/game/shardfile/brainRuntime';
-import { parseSkirmisher, parseGuardian, parsePerchHunter } from '../src/game/shardfile/brains';
+import { parseSkirmisher, parseGuardian, parsePerchHunter } from '@wildshard/format/brains';
 import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../src/shards/driftwood-isle/data/brains';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { expectSameSimSnapshot } from './fake/simSnapshot';

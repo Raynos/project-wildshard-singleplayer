@@ -7,7 +7,7 @@ import { createSimHost, type SimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { Ledger, installLedgerEmitter, ledgerFactId } from '../src/game/ledger';
-import { parseLedgerRules, type LedgerFact } from '../src/game/shardfile/ledger';
+import { parseLedgerRules, type LedgerFact } from '@wildshard/format/ledger';
 import { firstPartyInstance, templateInstance } from '../src/game/grid/instances';
 import { TEMPLATE_LEDGER } from '../src/shards/_template/data/ledger';
 import { MemoryStorage } from './setup';

@@ -6,7 +6,7 @@ import { createSimHost, type SimHost } from '../src/engine/sim';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import { installDeclaredBrains } from '../src/game/shardfile/brainRuntime';
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts } from '../src/game/shardfile/groupRuntime';
-import { parseGroupBrain } from '../src/game/shardfile/groupBrains';
+import { parseGroupBrain } from '@wildshard/format/groupBrains';
 import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../src/shards/nalati-grasslands/data/brains';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { expectSameSimSnapshot } from './fake/simSnapshot';

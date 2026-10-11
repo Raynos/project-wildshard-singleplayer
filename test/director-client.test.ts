@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import type { SystemSpec } from '../src/engine/app/systems';
 import type { DebugRowSpec } from '../src/engine/level/context';
-import { parseDirector, type DirectorEvent } from '../src/game/shardfile/director';
+import { parseDirector, type DirectorEvent } from '@wildshard/format/director';
 import * as runtimeVariant from '../src/game/shard/runtimeVariant';
 import { directorVariant, installDeclaredDirector } from "../src/game/plugin/director";
 import declaration from '../src/shards/driftwood-isle/data/director.json';

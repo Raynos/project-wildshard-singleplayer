@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { createCueRouter } from '../../../src/engine/audio/cueRouting';
-import { parseAudioRouting } from '../../../src/game/shardfile/audioRouting';
+import { parseAudioRouting } from '@wildshard/format/audioRouting';
 
 it('keeps option references, conditional actions, declared defaults and synchronous voice order', () => {
   const hit = vi.fn(() => undefined), death = vi.fn(() => undefined), point = new Vector3(1, 2, 3);

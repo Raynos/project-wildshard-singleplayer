@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { TraversalSchema as schema, parseTraversal as parseData, type ShardTraversal as Data } from '@wildshard/game/shardfile/traversal';
+import { TraversalSchema as schema, parseTraversal as parseData, type ShardTraversal as Data } from '@wildshard/format/traversal';
 /** Optional author tuning for the grid's interior board cap. */
 export const TraversalSchema = v.pipe(schema);
 /** Callback-free interior traversal tuning. */

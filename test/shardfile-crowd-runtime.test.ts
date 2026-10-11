@@ -8,7 +8,7 @@ import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import type { SystemSpec } from '../src/engine/app/systems';
 import { Rng } from '../src/engine/core/rng';
 import { prepareDeclaredCrowds, installDeclaredCrowdFrames, type DeclaredCrowdPorts } from '../src/game/shardfile/crowdRuntime';
-import { parseFlock } from '../src/game/shardfile/crowds';
+import { parseFlock } from '@wildshard/format/crowds';
 import { ShippingFlock } from './fixtures/flock-oracle/flock';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { expectSameSimSnapshot } from './fake/simSnapshot';

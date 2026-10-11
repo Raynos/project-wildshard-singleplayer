@@ -7,7 +7,7 @@ import { createSimHost, type SimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { installScriptLane } from '../src/engine/script/lane';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { parseScriptBrain } from '../src/game/shardfile/brains';
+import { parseScriptBrain } from '@wildshard/format/brains';
 import type { ShardScriptPorts } from '../src/game/shardfile/scripts';
 import { compileScript } from '../scripts/compile-script.mjs';
 import { scriptSource } from './script/fixture';

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { MigrationsSchema as schema, parseMigrations as parse, type DeclaredMigrations as Data } from '@wildshard/game/shardfile/migrations';
+import { MigrationsSchema as schema, parseMigrations as parse, type DeclaredMigrations as Data } from '@wildshard/format/migrations';
 /** Sequential declarative state-version edits; custom migration hooks remain reserved and null. */
 export const MigrationsSchema = v.pipe(schema);
 /** Portable author migration declarations addressed by stable field IDs. */

@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import type { ShardfileSimulation } from './simulation';
 import type { DeclaredItems } from './items';
 import type { Shardfile } from './schema';
-import { LogicalStateSchema, migrateLogicalState } from './migrations';
+import { LogicalStateSchema, migrateLogicalState } from '@wildshard/format/migrations';
 import { logicalStateFromLane, restoreLogicalLane } from './logicalState';
 import { test as flagsMatch } from '@wildshard/engine/world/interact/flags';
 import { socketLiftEntries } from './socketLift';

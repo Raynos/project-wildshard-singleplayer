@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { AudioDataSchema as schema, parseAudioData as parseData, type AudioData as Data } from '@wildshard/game/shardfile/audio';
+import { AudioDataSchema as schema, parseAudioData as parseData, type AudioData as Data } from '@wildshard/format/audio';
 
 /** Compile cue mappings, wind ambience and silent/default score declarations. */
 export const AudioDataSchema = v.pipe(schema);

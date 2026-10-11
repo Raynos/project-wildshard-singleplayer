@@ -3,7 +3,7 @@ import { PerspectiveCamera, Vector3 } from 'three';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { TEMPLATE_WEST_GRID } from './fixtures/grid/templateWest';
 import { gridHoverSpeed, gridZone, gridCanAct, GridCombatRules, reframeGridUnit, installGridHoverSpeed, type GridPresence, type GridTravelUnit } from '../src/game/grid/rules';
-import { parseTraversal } from '../src/game/shardfile/traversal';
+import { parseTraversal } from '@wildshard/format/traversal';
 import { Scope } from '../src/engine/app/scope';
 import { Events } from '../src/engine/events/events';
 import { CombatPipeline } from '../src/engine/combat/pipeline';

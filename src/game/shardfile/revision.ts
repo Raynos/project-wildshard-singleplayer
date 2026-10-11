@@ -1,5 +1,5 @@
 import type { Shardfile } from './schema';
-import { assertMigrationCompatibility } from './migrations';
+import { assertMigrationCompatibility } from '@wildshard/format/migrations';
 import { StateSchema } from '@wildshard/format/state';
 import * as v from 'valibot';
 

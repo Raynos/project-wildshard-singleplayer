@@ -1,7 +1,7 @@
 import { ScriptComposition, type ScriptRole, type ScriptSchedule } from '@wildshard/engine/script/composition';
 import { ScriptDriver, type ScriptLanePort } from '@wildshard/engine/script/lane';
 import { ScriptBrainDriver, type ScriptBrainOptions } from '@wildshard/engine/ai/scriptBrain';
-import { parseScriptBrain, type ShardScriptBrain } from './brains';
+import { parseScriptBrain, type ShardScriptBrain } from '@wildshard/format/brains';
 import { prepareShardfileScriptOptions, type ShardScriptContent, type ShardScriptPorts } from './scripts';
 
 /** Session-owned alias handles keep brain motion fields separate from the same actor's numeric declared fields. */

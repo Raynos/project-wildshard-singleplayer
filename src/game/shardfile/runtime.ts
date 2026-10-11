@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import type { ShardPlugin } from "../plugin/shardPlugin";
 import { RuntimeCostSchema, runtimeAccountedBytes } from '../grid/runtimeCost';
-import { RuntimeBindsSchema } from './runtimeBinds';
-import { RuntimeSpawnsSchema } from './runtimeSpawns';
+import { RuntimeBindsSchema } from '@wildshard/format/runtimeBinds';
+import { RuntimeSpawnsSchema } from '@wildshard/format/runtimeSpawns';
 
 const cost = v.pipe(RuntimeCostSchema, v.check((row) => {
   try { runtimeAccountedBytes(row); return true; } catch { return false; }

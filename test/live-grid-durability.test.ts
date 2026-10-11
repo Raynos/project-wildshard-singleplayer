@@ -27,7 +27,7 @@ import { GridAssembly, type GridCell } from '../src/game/grid/assembly';
 import { TEMPLATE_WEST_GRID } from './fixtures/grid/templateWest';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
-import { parseMigrations } from '../src/game/shardfile/migrations';
+import { parseMigrations } from '@wildshard/format/migrations';
 import source from '../src/shards/_template/shard.config';
 import { withCopyLayout } from '../src/game/grid/copyLayout';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

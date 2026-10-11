@@ -8,7 +8,7 @@ import type { SimHost } from '../src/engine/sim';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import { createShardfileSim, bindShardfileSim } from '../src/game/shardfile/simulation';
 import { parseShardfile } from '../src/game/shardfile/schema';
-import { parseGroupBrain } from '../src/game/shardfile/groupBrains';
+import { parseGroupBrain } from '@wildshard/format/groupBrains';
 import type { DeclaredGroupPorts } from '../src/game/shardfile/groupRuntime';
 import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../src/shards/nalati-grasslands/data/brains';
 import { CRAB_BRAIN } from '../src/shards/driftwood-isle/data/brains';

@@ -1,4 +1,4 @@
-import { parseFlock } from '@wildshard/game/shardfile/crowds';
+import { parseFlock } from '@wildshard/format/crowds';
 
 /** Stable ordered flock declaration with seeded placement and trusted native terrain/view/prey recipes. */
 export type FlockData = ReturnType<typeof parseFlock>;

@@ -4,7 +4,7 @@ import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { MeshStandardMaterial, Vector3 } from 'three';
 import { loadSkin, parseSkinBindings, parseSkinRows } from '../../../../src/game/shardfile/skinPlayback';
-import { skinLayerDecoded } from '../../../../src/game/shardfile/skinLayers';
+import { skinLayerDecoded } from '@wildshard/format/skinLayers';
 import { bakePoseLayers, type PoseLayer } from './layers';
 import type { ClipName } from '../../../../src/engine/anim/rig';
 import { creatureSkinSource, rangerSkinSource, type SkinSource } from './sources';

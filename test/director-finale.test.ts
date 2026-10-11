@@ -6,7 +6,7 @@ import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
 import { Flags } from '../src/engine/world/interact/flags';
-import { parseDirector } from '../src/game/shardfile/director';
+import { parseDirector } from '@wildshard/format/director';
 import { createDirectorLane } from '../src/game/shardfile/directorRuntime';
 import type { FinaleWorld } from '../src/shards/driftwood-isle/quest/Finale';
 import { app } from '../src/engine/app/runtime';

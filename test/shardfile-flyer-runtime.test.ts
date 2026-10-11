@@ -8,7 +8,7 @@ import type { PlatformSpawn, PlatformBrainSpec } from '../src/engine/ai/platform
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import type { StrikeSpec } from '../src/engine/ai/strikes';
 import { installDeclaredBrains, type DeclaredBrainPorts } from '../src/game/shardfile/brainRuntime';
-import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '../src/game/shardfile/flyers';
+import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/format/flyers';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { expectSameSimSnapshot } from './fake/simSnapshot';
 

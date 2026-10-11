@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { LedgerFactSchema as factSchema, LedgerRulesSchema as rulesSchema, parseLedgerRules as parseRules, type LedgerFact as Fact, type LedgerRule as Rule } from '@wildshard/game/shardfile/ledger';
+import { LedgerFactSchema as factSchema, LedgerRulesSchema as rulesSchema, parseLedgerRules as parseRules, type LedgerFact as Fact, type LedgerRule as Rule } from '@wildshard/format/ledger';
 
 /** Compile a host-witnessed fact with placement identity and provenance. */
 export const LedgerFactSchema = v.pipe(factSchema);

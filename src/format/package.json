@@ -11,7 +11,25 @@
     "./state": "./state.ts",
     "./preflight": "./preflight.ts",
     "./json": "./json.ts",
-    "./commonsCosts": "./commonsCosts.ts"
+    "./commonsCosts": "./commonsCosts.ts",
+    "./brains": "./brains.ts",
+    "./flyers": "./flyers.ts",
+    "./grazers": "./grazers.ts",
+    "./groupBrains": "./groupBrains.ts",
+    "./creatures": "./creatures.ts",
+    "./crowds": "./crowds.ts",
+    "./encounters": "./encounters.ts",
+    "./audioProfiles": "./audioProfiles.ts",
+    "./audioRouting": "./audioRouting.ts",
+    "./audio": "./audio.ts",
+    "./ledger": "./ledger.ts",
+    "./director": "./director.ts",
+    "./migrations": "./migrations.ts",
+    "./traversal": "./traversal.ts",
+    "./runtimeBinds": "./runtimeBinds.ts",
+    "./runtimeSpawns": "./runtimeSpawns.ts",
+    "./skinLayers": "./skinLayers.ts",
+    "./phasedFlyers": "./phasedFlyers.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

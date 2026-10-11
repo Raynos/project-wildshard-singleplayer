@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseGroupBrain, groupBrainRules } from '../src/game/shardfile/groupBrains';
+import { parseGroupBrain, groupBrainRules } from '@wildshard/format/groupBrains';
 import { groupBrain } from '../src/sdk/groupBrains';
 import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../src/shards/nalati-grasslands/data/brains';
 

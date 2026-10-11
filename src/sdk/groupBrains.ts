@@ -1,4 +1,4 @@
-import { parseGroupBrain } from '@wildshard/game/shardfile/groupBrains';
+import { parseGroupBrain } from '@wildshard/format/groupBrains';
 
 /** One admitted group policy and its explicit ordered stable actor roster. */
 export type GroupBrainData = ReturnType<typeof parseGroupBrain>;

@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type { SaveStore, SaveSlot } from '@wildshard/engine/saves/store';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
-import { LedgerFactSchema, parseLedgerRules, type LedgerFact, type LedgerRule } from './shardfile/ledger';
+import { LedgerFactSchema, parseLedgerRules, type LedgerFact, type LedgerRule } from '@wildshard/format/ledger';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const schema = v.strictObject({ facts: v.record(v.string(), LedgerFactSchema),

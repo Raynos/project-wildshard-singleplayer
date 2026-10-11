@@ -8,7 +8,7 @@ import { PINE_FEATS } from '../src/shards/pine-hollow/feats';
 import { Ledger } from '../src/game/ledger';
 import { progressSave } from '../src/game/saves';
 import { readSummary } from '../src/game/summary';
-import { parseLedgerRules } from '../src/game/shardfile/ledger';
+import { parseLedgerRules } from '@wildshard/format/ledger';
 import { MemoryStorage } from './setup';
 
 let release: (() => void) | undefined;

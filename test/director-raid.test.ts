@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
-import { parseDirector } from '../src/game/shardfile/director';
+import { parseDirector } from '@wildshard/format/director';
 import { createDirectorLane } from '../src/game/shardfile/directorRuntime';
 import { legacyRaidTick, type RaidClockPorts } from '../src/shards/nalati-grasslands/creatures/raidClock';
 import { raidObservation, publishRaidEvent } from '../src/shards/nalati-grasslands/creatures/raidDirector';

@@ -3,7 +3,7 @@ import { Audio } from '../../src/engine/audio/Audio';
 import { Scope } from '../../src/engine/app/scope';
 import { CombatCues, type CombatCueOpts } from '../../src/engine/combat/cues';
 import { installDeclaredAudio, type DeclaredAudioPorts } from '../../src/engine/audio/declared';
-import { parseAudioData } from '../../src/game/shardfile/audio';
+import { parseAudioData } from '@wildshard/format/audio';
 import { TEMPLATE_AUDIO } from '../../src/shards/_template/data/audio';
 
 function fixture() {

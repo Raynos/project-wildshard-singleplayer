@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { parseAudioData } from '../src/game/shardfile/audio';
+import { parseAudioData } from '@wildshard/format/audio';
 import { selectScoreSlots } from '../src/engine/audio/scoreSelection';
 import { emptyShardfile } from '../src/sdk/author';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';

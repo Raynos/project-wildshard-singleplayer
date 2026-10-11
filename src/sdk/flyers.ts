@@ -1,4 +1,4 @@
-import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/game/shardfile/flyers';
+import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/format/flyers';
 
 /** Admitted orbit/stalk/dive tuning with a stable home and named sphere strike. */
 export type OrbitDiverData = ReturnType<typeof parseOrbitDiver>;

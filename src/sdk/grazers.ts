@@ -1,4 +1,4 @@
-import { parseRamGrazer, parseChallengeGrazer } from '@wildshard/game/shardfile/grazers';
+import { parseRamGrazer, parseChallengeGrazer } from '@wildshard/format/grazers';
 
 /** Admitted rim-aware ram policy with named strikes and host-owned home, terrain and random stream. */
 export type RamGrazerData = ReturnType<typeof parseRamGrazer>;

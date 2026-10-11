@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { EncountersSchema } from '../shardfile/encounters';
+import { EncountersSchema } from '@wildshard/format/encounters';
 import { PhaseEncounter, type PhaseEncounterPorts, type PhaseEncounterSpec } from '@wildshard/engine/ai/phases';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { DeclaredHudHandles } from '@wildshard/engine/ui/declared';

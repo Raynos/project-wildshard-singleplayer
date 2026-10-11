@@ -10,8 +10,8 @@ import { installEnteredRuntimeInput, retainsRuntimeServices } from "./lifecycle"
 import { Ledger, LedgerEmitter, type LedgerReceipt } from "../ledger";
 import { Purse } from "../loot/Purse";
 import { installDeclaredItems, type DeclaredItems } from "../shardfile/items";
-import type { RuntimeBoundSection } from "../shardfile/runtimeBinds";
-import type { RuntimeActorRow, RuntimeBossRow, RuntimeHomeRow } from "../shardfile/runtimeSpawns";
+import type { RuntimeBoundSection } from "@wildshard/format/runtimeBinds";
+import type { RuntimeActorRow, RuntimeBossRow, RuntimeHomeRow } from "@wildshard/format/runtimeSpawns";
 import type { Shardfile } from "../shardfile/schema";
 import { installRuntimeState, type RuntimeState, type RuntimeStateValue } from "../shardfile/runtimeState";
 

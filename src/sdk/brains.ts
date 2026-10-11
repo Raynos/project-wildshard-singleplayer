@@ -1,4 +1,4 @@
-import { parseSkirmisher, parseScriptBrain, parseGuardian, parsePerchHunter } from '@wildshard/game/shardfile/brains';
+import { parseSkirmisher, parseScriptBrain, parseGuardian, parsePerchHunter } from '@wildshard/format/brains';
 
 /** Data-selected circling melee policy with host-owned perception and attack authority. */
 export type SkirmisherData = ReturnType<typeof parseSkirmisher>;

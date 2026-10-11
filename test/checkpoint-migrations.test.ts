@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { assertMigrationCompatibility, migrateLogicalState, parseMigrations, type LogicalState } from '../src/game/shardfile/migrations';
+import { assertMigrationCompatibility, migrateLogicalState, parseMigrations, type LogicalState } from '@wildshard/format/migrations';
 
 const old: LogicalState = { version: 1, shared: [{ id: 7, name: 'door.open', type: 'bool', value: true }, { id: 8, name: 'stage', type: 'i32', value: 2 }],
   players: [{ actorId: 'actor.player', fields: [{ id: 10, name: 'oil', type: 'f64', value: 0.3 }] }] };

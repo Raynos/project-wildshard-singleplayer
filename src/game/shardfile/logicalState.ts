@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type { ScriptLanePort } from '@wildshard/engine/script/lane';
-import { LogicalStateSchema, type LogicalState } from './migrations';
+import { LogicalStateSchema, type LogicalState } from '@wildshard/format/migrations';
 
 const finite = v.pipe(v.number(), v.finite());
 const fieldSchema = v.object({ id: v.number(), name: v.string(), type: v.picklist(['bool', 'i32', 'f64']) });

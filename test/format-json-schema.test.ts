@@ -52,12 +52,13 @@ it('rebuilds all migrated documents byte-identically without committing generate
     writeFormatJsonSchemas(root);
     const directory = join(root, '.wildshard/format');
     const files = readdirSync(directory).sort();
-    expect(files).toEqual(['commons-costs.schema.json', 'edge-profiles.schema.json', 'plumbing.schema.json', 'state.schema.json']);
+    expect(files).toEqual(Object.keys(formatJsonSchemas()).map(name => `${name}.schema.json`).sort());
+    expect(files.length).toBe(32);
     const before = files.map(name => readFileSync(join(directory, name), 'utf8'));
     writeFormatJsonSchemas(root);
     expect(files.map(name => readFileSync(join(directory, name), 'utf8'))).toEqual(before);
     expect(before.every(text => text.includes('DO-NOT-EDIT'))).toBe(true);
-    expect(Object.keys(formatJsonSchemas())).toEqual(['edge-profiles', 'plumbing', 'state', 'commons-costs']);
+    expect(Object.keys(formatJsonSchemas()).slice(0, 4)).toEqual(['edge-profiles', 'plumbing', 'state', 'commons-costs']);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -74,4 +75,14 @@ it('retains typed state defaults and global capacity as defining semantic checks
   expect(costs.maxProperties).toBe(1024);
   expect(v.safeParse(CommonsCostsSchema, { ['a'.repeat(64)]: { decoded: 0, gpu: 0, triangles: 0, draws: 0 } }).success).toBe(true);
   expect(() => formatJsonSchema(v.pipe(StateSchema, v.check(() => true, 'state declaration semantic rules')))).toThrow();
+});
+
+it('documents defining creature, audio, director and migration checks without granting a familiar new validator', () => {
+  const roots = formatJsonSchemas();
+  expect(roots['brains.Guardian']?.['x-wildshard-checks']).toEqual(['@wildshard/format/brains#GuardianSchema.pipe.1']);
+  expect(roots['director.Director']?.['x-wildshard-checks']).toEqual(['@wildshard/format/director#DirectorSchema.pipe.1']);
+  expect(JSON.stringify(roots['audio.AudioData'])).toContain('@wildshard/format/audio#AudioDataSchema.entries.cues.pipe.2');
+  expect(roots['runtimeBinds.RuntimeBinds']?.type).toBe('array');
+  expect(roots['runtimeSpawns.RuntimeSpawns']?.additionalProperties).toBe(false);
+  expect(() => formatJsonSchema(v.pipe(v.string(), v.check(() => true, 'Ordered guardian radii')))).toThrow();
 });

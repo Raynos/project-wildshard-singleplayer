@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptQuery } from '@wildshard/engine/script/host';
 import { ScriptWorld, type EffectTransaction, type ScriptEffect } from '@wildshard/engine/script/effects';
-import { parseDirector, type DirectorData, type DirectorEvent } from './director';
+import { parseDirector, type DirectorData, type DirectorEvent } from '@wildshard/format/director';
 
 function payload(row: DirectorData['events'][number], value: number): boolean {
   return Number.isFinite(value) && value >= row.min && value <= row.max && (row.type === 'number' || Number.isInteger(value));

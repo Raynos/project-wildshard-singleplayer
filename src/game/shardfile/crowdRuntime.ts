@@ -2,7 +2,7 @@ import { FlockBrain, type FlockPorts, type FlockThreat } from '@wildshard/engine
 import type { SimHost } from '@wildshard/engine/sim';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { Vector3 } from 'three';
-import { parseFlock, type ShardFlock } from './crowds';
+import { parseFlock, type ShardFlock } from '@wildshard/format/crowds';
 
 /** Trusted perception sampled in the owning clock; threat identities remain native references. */
 export interface CrowdObservation {

@@ -1,8 +1,8 @@
 import { RamGrazerBrain } from '@wildshard/engine/ai/ramGrazer';
 import { OrbitDiverBrain } from '@wildshard/engine/ai/orbitDiver';
 import { BurstFlyerBrain } from '@wildshard/engine/ai/burstFlyer';
-import { parseRamGrazer as ramGrazer } from '@wildshard/game/shardfile/grazers';
-import { parseOrbitDiver as orbitDiver, parseBurstFlyer as burstFlyer } from '@wildshard/game/shardfile/flyers';
+import { parseRamGrazer as ramGrazer } from '@wildshard/format/grazers';
+import { parseOrbitDiver as orbitDiver, parseBurstFlyer as burstFlyer } from '@wildshard/format/flyers';
 import { GOAT_BRAIN, RAY_BRAIN, WISP_BRAIN } from '../data/brains';
 import { SKY_GOAT } from '../species/skyGoat';
 import { DRIFT_RAY } from '../species/driftRay';

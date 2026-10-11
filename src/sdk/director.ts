@@ -1,4 +1,4 @@
-import { parseDirector } from '@wildshard/game/shardfile/director';
+import { parseDirector } from '@wildshard/format/director';
 
 /** Typed director data with bounded observations, payloads and reserved grid subscriptions. */
 export type DirectorData = ReturnType<typeof parseDirector>;

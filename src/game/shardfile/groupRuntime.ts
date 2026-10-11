@@ -3,7 +3,7 @@ import { HerdBrain, type HerdPorts, type HerdContext } from '@wildshard/engine/a
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { Rng, RngState } from '@wildshard/engine/core/rng';
-import { parseGroupBrain, groupBrainRules, type ShardGroupBrain, type ShardPackGroup, type ShardHerdGroup } from './groupBrains';
+import { parseGroupBrain, groupBrainRules, type ShardGroupBrain, type ShardPackGroup, type ShardHerdGroup } from '@wildshard/format/groupBrains';
 
 /** One group continuation; actor memory, motors and random streams remain with the simulation owner. */
 export type DeclaredGroupPolicy = PackBrain<AnimalSim> | HerdBrain<AnimalSim>;

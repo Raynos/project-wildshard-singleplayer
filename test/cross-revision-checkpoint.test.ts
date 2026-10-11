@@ -11,7 +11,7 @@ import { createShardfileSim } from '../src/game/shardfile/simulation';
 import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientStateFromRegion } from '../src/game/shardfile/clientState';
 import { projectItemFields } from '../src/game/shardfile/clientItems';
 import { syncTargetColliders } from '../src/game/shardfile/targets';
-import { parseMigrations } from '../src/game/shardfile/migrations';
+import { parseMigrations } from '@wildshard/format/migrations';
 import { GridRegionDurability } from '../src/game/grid/durability';
 import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import type { Shardfile } from '../src/game/shardfile/schema';

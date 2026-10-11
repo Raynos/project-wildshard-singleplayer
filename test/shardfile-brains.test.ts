@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseSkirmisher, parseScriptBrain, parseGuardian, parsePerchHunter } from '../src/game/shardfile/brains';
+import { parseSkirmisher, parseScriptBrain, parseGuardian, parsePerchHunter } from '@wildshard/format/brains';
 import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../src/shards/driftwood-isle/data/brains';
 
 describe('declared skirmisher admission', () => {

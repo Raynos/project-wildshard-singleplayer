@@ -5,7 +5,7 @@ import { isDev, setDev } from '../src/engine/core/devMode';
 import { Scope } from '../src/engine/app/scope';
 import type { DebugRowSpec } from '../src/engine/level/context';
 import type { SystemSpec } from '../src/engine/app/systems';
-import { parseDirector } from '../src/game/shardfile/director';
+import { parseDirector } from '@wildshard/format/director';
 import { createDirectorLane, prepareDirectorModule } from '../src/game/shardfile/directorRuntime';
 import { LegacyPineClock, type PineClockPorts, type PineClockEvent } from '../src/shards/pine-hollow/runtime/questClock';
 import { pineDirectorRecipe, installPineClock } from '../src/shards/pine-hollow/runtime/questDirector';

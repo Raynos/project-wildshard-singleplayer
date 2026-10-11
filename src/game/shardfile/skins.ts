@@ -15,7 +15,7 @@ import { parseSkinBindings, parseSkinRows, type SkinBinding, type SkinRow } from
 import type { ShardRows } from './rows';
 import type { Shardfile } from './schema';
 import { parseGlb } from './assets';
-import { skinLayerDecoded } from './skinLayers';
+import { skinLayerDecoded } from '@wildshard/format/skinLayers';
 import { MaterialsSchema } from './materials';
 
 /** The look recipe for an exported skin, and its animation recipe. */

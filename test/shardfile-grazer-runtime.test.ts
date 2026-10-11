@@ -7,7 +7,7 @@ import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import type { PlatformSpawn, PlatformBrainSpec } from '../src/engine/ai/platform';
 import type { StrikeSpec } from '../src/engine/ai/strikes';
 import { installDeclaredBrains, type DeclaredBrainPorts } from '../src/game/shardfile/brainRuntime';
-import { parseRamGrazer, parseChallengeGrazer } from '../src/game/shardfile/grazers';
+import { parseRamGrazer, parseChallengeGrazer } from '@wildshard/format/grazers';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { expectSameSimSnapshot } from './fake/simSnapshot';
 

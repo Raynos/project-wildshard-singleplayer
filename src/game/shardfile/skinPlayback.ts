@@ -15,7 +15,7 @@ import { bindRig, type ClipName, type RigInstance } from '@wildshard/engine/anim
 import { AnimMachine } from '@wildshard/engine/anim/machine';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { parseGlb, type AssetCost } from './assets';
-import { skinLayerDecoded } from './skinLayers';
+import { skinLayerDecoded } from '@wildshard/format/skinLayers';
 import * as skinData from './skinData';
 import { skinPoseLayers } from './skinLayerPlayback';
 

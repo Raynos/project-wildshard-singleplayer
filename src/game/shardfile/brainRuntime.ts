@@ -10,9 +10,9 @@ import { BurstFlyerBrain, type BurstFlyerPorts } from '@wildshard/engine/ai/burs
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost, SimStateAdapter } from '@wildshard/engine/sim';
-import { parseSkirmisher, parseGuardian, parsePerchHunter, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from './brains';
-import { parseRamGrazer, parseChallengeGrazer, type ShardRamGrazer, type ShardChallengeGrazer } from './grazers';
-import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer, type ShardOrbitDiver, type ShardPatrolDiver, type ShardBurstFlyer } from './flyers';
+import { parseSkirmisher, parseGuardian, parsePerchHunter, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from '@wildshard/format/brains';
+import { parseRamGrazer, parseChallengeGrazer, type ShardRamGrazer, type ShardChallengeGrazer } from '@wildshard/format/grazers';
+import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer, type ShardOrbitDiver, type ShardPatrolDiver, type ShardBurstFlyer } from '@wildshard/format/flyers';
 
 /** Native decision families and the existing pursuit family; custom scripts require a composed host. */
 export type DeclaredNativeBrain = PlatformBrainSpec | ShardSkirmisher | ShardGuardian | ShardPerchHunter | ShardRamGrazer | ShardChallengeGrazer | ShardOrbitDiver | ShardPatrolDiver | ShardBurstFlyer;

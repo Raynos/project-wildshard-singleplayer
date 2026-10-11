@@ -1,5 +1,5 @@
 import { Euler, Quaternion, type Bone, type SkinnedMesh } from 'three';
-import { validateSkinLayers, type SkinPoseLayer } from './skinLayers';
+import { validateSkinLayers, type SkinPoseLayer } from '@wildshard/format/skinLayers';
 
 interface CompiledTrack { bone: string; property: SkinPoseLayer['tracks'][number]['property']; axis: 'x' | 'y' | 'z'; order: SkinPoseLayer['tracks'][number]['order']; values: Float32Array }
 /** A skin's pose layers compiled to float buffers once; every instance of the skin binds the same buffers to its own bones. */

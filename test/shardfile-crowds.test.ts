@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseFlock } from '../src/game/shardfile/crowds';
+import { parseFlock } from '@wildshard/format/crowds';
 
 const DATA = { id: 'crowd.pasture', kind: 'flock', x: 0, z: 0, count: 40, seed: 357,
   range: 45, runSpeed: 4.6, walkSpeed: 0.9, grazeStep: 0.35, bleatCue: 'sheep_bleat' };

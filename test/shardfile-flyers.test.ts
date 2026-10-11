@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '../src/game/shardfile/flyers';
+import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/format/flyers';
 
 const orbit = { id: 'fixture.orbit', kind: 'orbit-diver', strike: 'fixture.dive', home: { x: 0, z: 0, r: 12, y: 14 },
   circleSpeed: 8, hangAltitude: 9, stalkSpeed: 10, diveSpeed: 16, restSeconds: 6, noticeRadius: 40, giveUpRadius: 60,

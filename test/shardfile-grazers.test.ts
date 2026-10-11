@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseRamGrazer, parseChallengeGrazer } from '../src/game/shardfile/grazers';
+import { parseRamGrazer, parseChallengeGrazer } from '@wildshard/format/grazers';
 
 const ram = { id: 'fixture.ram', kind: 'ram-grazer', strike: 'fixture.ram.strike',
   grazeSpeed: 1.2, ramSpeed: 7.5, noticeRadius: 9, rimMargin: 2.5, fallDrop: 1.5,
