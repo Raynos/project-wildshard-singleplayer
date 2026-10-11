@@ -1470,3 +1470,19 @@ host field of the same type. Missing/mistyped authority refuses before native bo
 Interaction activation requires the declared permission: action 1 toggles, 2 pauses, 3 restarts.
 Inactive tracks freeze, including pendulums; phase and activation live in the existing mover fields
 and therefore use the same guest, physics and host snapshot/restore fences. No scheduler is added.
+
+
+SF84's `@wildshard/format/modes` parser admits bounded platform traversal rows:
+`zipline` floor endpoints, sag, hanging height, gravity, drag and a bounded speed;
+`updraft` directional endpoints, width, margin and bounded board lift. Duplicate
+identities, zero horizontal runs, unknown callbacks and nonfinite tuning refuse
+before installation. The root shardfile will acquire this section with its live installers; the current
+root still refuses unhosted mode rows and every existing host/snapshot is unchanged.
+`@wildshard/sdk/modes` authors ordinary three.js `Zipline` and `Updraft` objects;
+`toModeData()` emits world-space rows from their actual hierarchy. Width and
+physical tuning remain explicit world-metre parameters. The defining native laws
+live in `@wildshard/game/plugin/playerMode` (`CableLayout`, `ZiplineDriver`,
+`UpdraftDriver`, `inUpdraft`). A trusted host invokes them at its existing player
+phase; importing author objects or rows installs no services or second scheduler.
+Ride, grapple, water and hover-deck rows follow only when their live consumers are
+installed; these declarations cannot pretend to host an unimplemented mode.

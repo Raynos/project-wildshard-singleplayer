@@ -62,7 +62,8 @@
     "./shardSections": "./shardSections.ts",
     "./directorStages": "./directorStages.ts",
     "./directorWhen": "./directorWhen.ts",
-    "./moverMotion": "./moverMotion.ts"
+    "./moverMotion": "./moverMotion.ts",
+    "./modes": "./modes.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

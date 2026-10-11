@@ -109,7 +109,8 @@
     "./sceneAnimation": "./sceneAnimation.ts",
     "./immutable": "./immutable.ts",
     "./bake/normalizeRig": "./bake/normalizeRig.ts",
-    "./compileMovers": "./compileMovers.ts"
+    "./compileMovers": "./compileMovers.ts",
+    "./modes": "./modes.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"

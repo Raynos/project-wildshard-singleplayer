@@ -1,0 +1,53 @@
+import { Object3D, Vector3 } from 'three';
+import { ZiplineModeSchema, UpdraftModeSchema, type ZiplineMode, type UpdraftMode } from '@wildshard/format/modes';
+import * as v from 'valibot';
+import { updateAuthoringMatrix } from './sceneTransform';
+
+/** Data-only cable parameters; its endpoints come from ordinary authoring vectors. */
+export type ZiplineOptions = Partial<Pick<ZiplineMode, 'sag' | 'hang' | 'gravity' | 'drag' | 'maxSpeed'>>;
+/** An authored cable traversal in a normal three.js hierarchy; nothing installs a runtime service. */
+export class Zipline extends Object3D {
+  /** Floor positions in this object's local frame. */
+  readonly top = new Vector3();
+  /** The floor at the landing, in this object's local frame. */
+  readonly bottom = new Vector3();
+  /** Bounded physical parameters emitted at synth time. */
+  options: ZiplineOptions;
+  constructor(top = new Vector3(), bottom = new Vector3(), options: ZiplineOptions = {}) {
+    super(); this.name = 'zipline'; this.top.copy(top); this.bottom.copy(bottom); this.options = { ...options };
+  }
+  /** Clone independent endpoint vectors and parameter data together with the normal graph state. */
+  override copy(source: this, recursive = true): this { super.copy(source, recursive); this.top.copy(source.top); this.bottom.copy(source.bottom); this.options = { ...source.options }; return this; }
+  /** Emit validated world-space floors; the platform derives cable height and sag using one law. */
+  toModeData(): ZiplineMode {
+    updateAuthoringMatrix(this);
+    const top = this.top.clone().applyMatrix4(this.matrixWorld), bottom = this.bottom.clone().applyMatrix4(this.matrixWorld);
+    return v.parse(ZiplineModeSchema, { ...this.options, kind: 'zipline', id: this.name,
+      top: { x: top.x, y: top.y, z: top.z }, bottom: { x: bottom.x, y: bottom.y, z: bottom.z } });
+  }
+}
+
+/** The width and force of a directional board wind column. */
+export interface UpdraftOptions { width: number; lift: number; margin?: number }
+const DEFAULT_UPDRAFT = { width: 1, lift: 0 };
+/** An authored directional wind column; from/to are local points and the ceiling is to.y + margin. */
+export class Updraft extends Object3D {
+  /** Beginning of the column's horizontal run. */
+  readonly from = new Vector3();
+  /** End of the run, including its upper ceiling. */
+  readonly to = new Vector3();
+  /** Data-only world-metre width and force. */
+  options: UpdraftOptions;
+  constructor(from = new Vector3(), to = new Vector3(), options: UpdraftOptions = DEFAULT_UPDRAFT) {
+    super(); this.name = 'updraft'; this.from.copy(from); this.to.copy(to); this.options = { ...options };
+  }
+  /** Clone independent endpoints and bounded tuning with the normal transform. */
+  override copy(source: this, recursive = true): this { super.copy(source, recursive); this.from.copy(source.from); this.to.copy(source.to); this.options = { ...source.options }; return this; }
+  /** Emit the admitted world-space column; width and margin remain explicit world metres. */
+  toModeData(): UpdraftMode {
+    updateAuthoringMatrix(this);
+    const from = this.from.clone().applyMatrix4(this.matrixWorld), to = this.to.clone().applyMatrix4(this.matrixWorld);
+    return v.parse(UpdraftModeSchema, { ...this.options, kind: 'updraft', id: this.name,
+      from: { x: from.x, y: from.y, z: from.z }, to: { x: to.x, y: to.y, z: to.z } });
+  }
+}
