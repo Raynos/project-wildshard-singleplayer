@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { DirectionalLight, Group, Light, PointLight, Scene, PerspectiveCamera, BoxGeometry, Mesh, MeshDepthMaterial, MeshStandardMaterial, WebGLRenderer, DataTexture, Fog, type Object3D } from 'three';
-import { includeFutureLights, prepareSceneRoots, precompileLevel, registerExteriorLighting, sceneJobs, type CompileJob } from '../src/engine/render/precompile';
+import { entryFrameExclusions, includeFutureLights, prepareSceneRoots, precompileLevel, registerExteriorLighting, sceneJobs, type CompileJob } from '../src/engine/render/precompile';
 
 import { Scope } from '../src/engine/app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
@@ -17,6 +17,51 @@ function lightInputs(target: Scene, root: Object3D, camera: PerspectiveCamera): 
   if (root !== target) root.traverseVisible(collect);
   return result.sort();
 }
+
+it('keeps the future hierarchy and visible roots while excluding only registered hidden siblings', () => {
+  const page = new Scene(), future = new Group(), ancestor = new Group(), descendant = new Group(), hidden = new Group(), visible = new Group();
+  ancestor.visible = false; descendant.visible = false; hidden.visible = false;
+  ancestor.add(future); future.add(descendant); page.add(ancestor, hidden, visible);
+  const owner = new Scope('registered-roots');
+  for (const root of [ancestor, future, descendant, hidden, visible]) registerExteriorLighting(page, owner, root, null);
+  try {
+    expect(entryFrameExclusions(page)).toBeUndefined();
+    expect(entryFrameExclusions(page, future)).toEqual(new Set([hidden]));
+    expect([ancestor.visible, descendant.visible, hidden.visible, visible.visible]).toEqual([false, false, false, true]);
+    owner.dispose(); expect(entryFrameExclusions(page, future)).toEqual(new Set());
+  } finally { owner.dispose(); }
+});
+
+it('does not compile or upload hidden neighbours during another root entry, and still warms them on their own entry', async () => {
+  const prior = scopeEnvironment();
+  installScopeEnvironment({ targetKind: () => 'other', frame: render => { queueMicrotask(() => { render(0); }); return 1; }, cancelFrame: () => undefined });
+  const page = new Scene(), future = new Group(), hidden = new Group(), camera = new PerspectiveCamera();
+  future.visible = false; hidden.visible = false; page.add(new PointLight(), future, hidden);
+  const geometry = new BoxGeometry(), shared = new MeshStandardMaterial(), unusedImage = new DataTexture(), unused = new MeshStandardMaterial({ map: unusedImage });
+  const meshes = [new Mesh(geometry, shared), new Mesh(geometry, shared), new Mesh(geometry, unused), new Mesh(geometry, shared)] as const;
+  for (const [i, mesh] of meshes.entries()) { mesh.name = `fixture-${String(i)}`; mesh.castShadow = true; }
+  page.add(meshes[0]); future.add(meshes[1]); hidden.add(meshes[2], meshes[3]);
+  const owner = new Scope('warm-siblings'), composer = new EffectComposer(), names = new Set<string>(), uploads = new Set<unknown>();
+  registerExteriorLighting(page, owner, future, null); registerExteriorLighting(page, owner, hidden, null);
+  const renderer: unknown = Object.create(WebGLRenderer.prototype), game: unknown = Object.create(Game.prototype);
+  if (!(renderer instanceof WebGLRenderer) || !(game instanceof Game)) throw new Error('Fixture prototypes');
+  const commands = { shadowMap: { type: 1 }, extensions: { has: () => false }, info: { programs: [] },
+    getRenderTarget: () => null, setRenderTarget: () => undefined, initTexture: (texture: unknown) => { uploads.add(texture); },
+    compile: (root: Object3D): void => { root.traverse(object => { if (object instanceof Mesh) names.add(object.name); }); } };
+  for (const [key, value] of Object.entries(commands)) Reflect.set(renderer, key, value);
+  Reflect.set(game, 'renderer', renderer); Reflect.set(game, 'camera', camera); Reflect.set(game, 'rootScene', page);
+  Reflect.set(game, '_composer', composer); Reflect.set(game, 'level', { boot: { shaders: { background: false, post: false } } });
+  try {
+    await precompileLevel(game, undefined, { chunkCasters: false, futureLighting: future, owner });
+    expect(names.has('fixture-2')).toBe(false); expect(names.has('fixture-3')).toBe(false);
+    expect(names.has('fixture-0')).toBe(true); expect(uploads.has(unusedImage)).toBe(false);
+    // Shared materials remain represented even when the visible page object supplies their identical program key.
+    expect(future.visible).toBe(false); expect(hidden.visible).toBe(false); expect(meshes[1].parent).toBe(future);
+    names.clear();
+    await precompileLevel(game, undefined, { chunkCasters: false, futureLighting: hidden, owner });
+    expect(names.has('fixture-2')).toBe(true); expect(uploads.has(unusedImage)).toBe(true);
+  } finally { owner.dispose(); composer.dispose(); unused.dispose(); shared.dispose(); unusedImage.dispose(); geometry.dispose(); installScopeEnvironment(prior); }
+});
 
 it('limits a staged inventory to borrowed roots while retaining page lighting and hidden source state', () => {
   const page = new Scene(), sky = new Group(), other = new Mesh(new BoxGeometry(), new MeshStandardMaterial());

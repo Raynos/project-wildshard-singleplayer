@@ -90,6 +90,28 @@ export function registerExteriorLighting(scene: THREE.Scene, owner: Scope, root:
   owner.onDispose(() => { held.roots.delete(root); if (held.roots.size === 0) exteriorLighting.delete(scene); });
 }
 
+/** Hidden registered siblings cannot draw on this entered frame. Keep its entire hierarchy and any visible roots;
+ * ordinary boot has no exclusion. Borrowed roots and their visibility are never changed. */
+export function entryFrameExclusions(scene: THREE.Scene, future?: THREE.Object3D): ReadonlySet<THREE.Object3D> | undefined {
+  if (future === undefined) return undefined;
+  const contains = (root: THREE.Object3D, child: THREE.Object3D): boolean => {
+    for (let node: THREE.Object3D | null = child; node !== null; node = node.parent) if (node === root) return true;
+    return false;
+  };
+  return new Set([...exteriorLighting.get(scene)?.roots ?? []].filter(root => !root.visible
+    && !contains(root, future) && !contains(future, root)));
+}
+
+function exclusiveMaterials(scene: THREE.Scene, excluded: ReadonlySet<THREE.Object3D> | undefined): Set<THREE.Material> | undefined {
+  if (excluded === undefined || excluded.size === 0) return undefined;
+  const included = new Set<THREE.Material>(), materials = new Set<THREE.Material>();
+  compileObjects(scene, object => { for (const material of materialsOf(object)) included.add(material); }, excluded);
+  for (const root of excluded) root.traverse(object => {
+    for (const material of materialsOf(object)) if (!included.has(material)) materials.add(material);
+  });
+  return materials;
+}
+
 function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, shadows: boolean, roots?: readonly THREE.Object3D[], per = 6): CompileJob[] {
   const state = exteriorLighting.get(scene);
   if (state === undefined) return [];
@@ -275,11 +297,12 @@ export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera
 }
 
 /** Prepare registered override passes with their real caster flags and camera layers. Borrowed materials, geometry,
- * textures and scene state stay untouched; each pass is compiled into its own real target in the ordinary slices. */
-export function offscreenJobs(scene: THREE.Scene, per = 1): CompileJob[] {
+ * textures and scene state stay untouched; each pass is compiled into its own real target in the ordinary slices.
+ * Optional excluded roots defer passes owned by another hidden entered-frame hierarchy. */
+export function offscreenJobs(scene: THREE.Scene, per = 1, excludedRoots?: ReadonlySet<THREE.Object3D>): CompileJob[] {
   const isScene = (object: THREE.Object3D): object is THREE.Scene => object instanceof THREE.Scene;
   const jobs: CompileJob[] = [];
-  scene.traverse(object => {
+  compileObjects(scene, object => {
     if (!isScene(object)) return;
     for (const pass of offscreenPreparations(object)) {
       const seen = new Set<string>(), clones: THREE.Object3D[] = [];
@@ -307,7 +330,7 @@ export function offscreenJobs(scene: THREE.Scene, per = 1): CompileJob[] {
         jobs.push({ label: pass.label, root, target: object, rt: pass.target, camera: pass.camera });
       }
     }
-  });
+  }, excludedRoots);
   return jobs;
 }
 
@@ -838,17 +861,18 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const rt = game.composer.inputBuffer;
     const policy = game.level.boot.shaders;
     const per = options.isolateImageUploads === true ? 1 : 6;
-    const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 } : sceneJobs(scene, rt, per);
+    const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
+    const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 } : sceneJobs(scene, rt, per, [scene], excludedRoots);
     // material families (SF10a): live family programs the scene does not hold yet (none live: no jobs)
-    if (policy?.scene !== false) jobs.push(...familyCompileJobs(scene, rt, per), ...offscreenJobs(scene));
-    if (policy?.shadows !== false) jobs.push(...shadowJobs(scene, rt, per));
+    if (policy?.scene !== false) jobs.push(...familyCompileJobs(scene, rt, per, exclusiveMaterials(scene, excludedRoots)), ...offscreenJobs(scene, 1, excludedRoots));
+    if (policy?.shadows !== false) jobs.push(...shadowJobs(scene, rt, per, excludedRoots));
     const bg = backgroundJob(scene, rt);
     if (bg && policy?.background !== false) jobs.push(bg); else bg?.dispose?.();
     if (policy?.post !== false) jobs.push(...postJobs(game.composer, rt, options.isolateImageUploads === true ? 1 : Number.POSITIVE_INFINITY));
     // Three renders shadows before setupLights(), so the first entered shadow draw still uses the preceding
     // road frame's light state. Warm that depth variant too; the following shadow draw uses the future state.
     const previousShadows = policy?.shadows !== false && options.futureLighting !== undefined && options.futureLighting !== scene
-      ? shadowJobs(scene, rt, per) : [];
+      ? shadowJobs(scene, rt, per, excludedRoots) : [];
     if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting, options.futureEnvironment);
     jobs.push(...previousShadows);
     if (policy?.scene !== false) jobs.push(...exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per));

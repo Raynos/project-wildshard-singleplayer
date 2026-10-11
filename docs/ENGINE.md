@@ -1176,7 +1176,11 @@ each pass once, one caster per program-and-layout key, into a 1×1 stand-in with
 target's formats (`warmOffscreenPasses` in `render/parkedDraws`), so the pass's first real
 update builds no driver pipeline; the real target is never written. Disposal unregisters before resources
 retire. `offscreenPreparations(scene)` reads registrations; `offscreenJobs(scene)`
-collects detached compile jobs across the page's nested scenes. `CompileJob.camera?`
+collects detached compile jobs across the page's nested scenes. During entered-frame preparation,
+`entryFrameExclusions(scene, futureRoot)` excludes only other registered, hidden
+content roots. The future hierarchy, visible roots, shared materials and page
+passes remain eligible. The same exclusions apply to colour/depth/family jobs
+and offscreen pre-draws; ordinary boot retains its complete inventory. `CompileJob.camera?`
 overrides the page camera for those jobs, keeping light-layer program keys exact. Set `positionOnly: true` only when the authored vertex shader reads no normal, colour or UV attributes; preparation then keeps the real draw cache's one representative per object flag set, including instancing, batching and skinning, without adding unused attribute programs.
 
 **Offscreen builds.** `@wildshard/engine/render/offscreenBuild` defines

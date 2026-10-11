@@ -314,12 +314,18 @@ export function warmOffscreenPass(renderer: OffscreenWarmRenderer, scene: THREE.
 /**
  * Warm every offscreen override pass registered on a scene under `root` (`warmOffscreenPass`), one pass per `pause()`.
  * `current` fences every pass; a pass that throws ends the warm-up (logged), never the entry, like `warmParkedDraws`.
+ * Optional excluded roots defer their registered passes without changing scene state.
  */
 export async function warmOffscreenPasses(renderer: OffscreenWarmRenderer, root: THREE.Object3D, current: () => boolean,
-  pause: () => Promise<void>): Promise<number> {
+  pause: () => Promise<void>, excludedRoots?: ReadonlySet<THREE.Object3D>): Promise<number> {
   const passes: { scene: THREE.Scene; pass: OffscreenPreparation }[] = [];
   const isScene = (object: THREE.Object3D): object is THREE.Scene => object instanceof THREE.Scene;
-  root.traverse(object => { if (isScene(object)) for (const pass of offscreenPreparations(object)) passes.push({ scene: object, pass }); });
+  const collect = (object: THREE.Object3D): void => { if (isScene(object)) for (const pass of offscreenPreparations(object)) passes.push({ scene: object, pass }); };
+  const walk = (object: THREE.Object3D): void => {
+    if (excludedRoots?.has(object) === true) return;
+    collect(object); for (const child of object.children) walk(child);
+  };
+  if (excludedRoots === undefined) root.traverse(collect); else walk(root);
   let drawn = 0;
   for (const { scene, pass } of passes) {
     if (!current()) throw new Error('Offscreen warm owner left');

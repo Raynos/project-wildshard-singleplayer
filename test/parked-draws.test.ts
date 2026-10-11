@@ -205,6 +205,25 @@ it('draws each offscreen pass once, one caster per program key, into a stand-in,
   expect(await warmOffscreenPasses(renderer, outer, () => true, () => Promise.resolve())).toBe(0);
 });
 
+it('defers a hidden sibling override pass without changing its caster or target', async () => {
+  const page = new Scene(), hidden = new Group(), scene = new Scene(), owner = new Scope('parked-offscreen');
+  hidden.visible = false; page.add(hidden); hidden.add(scene);
+  const geometry = new BoxGeometry(), source = new MeshStandardMaterial(), caster = new Mesh(geometry, source), material = new ShaderMaterial();
+  scene.add(caster);
+  const camera = new PerspectiveCamera(), target = new WebGLRenderTarget(32, 32);
+  registerOffscreenPreparation(scene, owner, { label: 'held-pass', camera, material, target, roots: () => [caster] });
+  const drawn: Object3D[] = [];
+  const renderer: OffscreenWarmRenderer = { shadowMap: { autoUpdate: true, needsUpdate: false },
+    render: object => { drawn.push(object); }, getRenderTarget: () => null, setRenderTarget: () => undefined,
+    getActiveCubeFace: () => 0, getActiveMipmapLevel: () => 0 };
+  try {
+    expect(await warmOffscreenPasses(renderer, page, () => true, () => Promise.resolve(), new Set([hidden]))).toBe(0);
+    expect(drawn).toHaveLength(0); expect(hidden.visible).toBe(false); expect(caster.parent).toBe(scene);
+    expect(await warmOffscreenPasses(renderer, page, () => true, () => Promise.resolve())).toBe(1);
+    expect(drawn).toEqual([scene]); expect([target.width, target.height]).toEqual([32, 32]);
+  } finally { owner.dispose(); target.dispose(); material.dispose(); source.dispose(); geometry.dispose(); }
+});
+
 
 it('shares cheap parked draws within the real construction budget and restores visibility at every yield', async () => {
   const previous = scopeEnvironment(), oldRaf: unknown = Reflect.get(globalThis, 'requestAnimationFrame');

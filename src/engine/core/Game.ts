@@ -748,7 +748,7 @@ export class Game {
     const onStage = (phase: string, elapsedMs: number, units: number): void => { trace.stages.push({ phase, elapsedMs, units }); };
     const current = (): boolean => !owner.disposed;
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
-    const { precompileLevel, warmComposerFrame, waitForDrawnFrame, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET } = await import('../render/precompile');
+    const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET } = await import('../render/precompile');
     const pause = isolateImageUploads && this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
     // Live image batches share the measured byte/time bound. Compressed uploads retain their independent painted fences.
     const uploadBudget = isolateImageUploads && setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET
@@ -774,7 +774,7 @@ export class Game {
     // op-hitch37: a registered offscreen pass (Nalati's look bake) built its casters' pipelines on its first real
     // update, after entry; draw each once into a 1×1 stand-in of its target first.
     const offscreenStart = diagnosticNow();
-    const passes = await warmOffscreenPasses(this.renderer, this.rootScene, current, drawnPause);
+    const passes = await warmOffscreenPasses(this.renderer, this.rootScene, current, drawnPause, entryFrameExclusions(this.rootScene, futureRoot));
     onStage('offscreen-draws', diagnosticNow() - offscreenStart, passes);
     trace.completed = true;
   }
