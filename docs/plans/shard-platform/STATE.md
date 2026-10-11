@@ -13,7 +13,9 @@
 
 **Live: P0 RED.** Push CI red since 10-10 19:54Z (prod c24dd65af); origin 245dbd3f8, ~95 waiting; landing freeze. **sp-x7 = Jake's dedicated gate/CI/deploy lane (10-11).**
 
-**G298 done:** all six shards' bakers in their own `generators/` (only the shared `bake-sky.mjs` HDRI baker stays in scripts/). **G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact, witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`).
+**Red → green (G330):** row-data JSON export; culprit `255dd529c`; fix `b4a36e751` (sp-x4).
+
+**G298 done.** **G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact, witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`).
 
 **80/20 (G291 + G294, `2218a5937`, report-only):** custom = shard runtime TS + one-user game/SDK TS, over the frozen legacy TS.
 
