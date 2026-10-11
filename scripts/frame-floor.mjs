@@ -20,6 +20,7 @@ import { saveFixtureCode } from './debug-settings.mjs';
 import { selectFloorGridPlans, gridFloorPlans, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 import { GL_INIT } from './parity/glbytes.mjs';
 import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
+import { startScriptProfile } from './frame-floor-script-profile.mjs';
 import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGridWitnessFailures } from './public-grid.mjs';
 
 const ROOT = resolvePath(import.meta.dirname, '..');
@@ -58,6 +59,8 @@ const travelGl = glObserver === 'on' ? GL_INIT : '';
 // .cpuprofile goes to the named scratch folder, a per-long-task inclusive summary goes in the row. Diagnostic: no timing credit.
 const cpuProfileDir = flag('cpu-profile', '');
 if (cpuProfileDir !== '' && (surface !== 'desktop' || gridScenario === 'baseline' || !existsSync(cpuProfileDir))) throw new Error('--cpu-profile=<existing dir> profiles desktop grid travel legs only');
+const safariProfileDir = flag('safari-profile', '');
+if (safariProfileDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' || !existsSync(safariProfileDir))) throw new Error('--safari-profile=<existing dir> samples Simulator grid travel only (diagnostic, no timing credit)');
 // op-hitch27: opt-in GL-call timing on BOTH surfaces (`--gl-time`): the heavy WebGL calls (uploads, shader compile / link
 // queries, draws) are timed per frame, and each long frame of a whole-drive row carries its GL split, so a Simulator
 // long frame says whether it was an image upload, a program link or a first draw. Diagnostic: no timing credit.
@@ -79,7 +82,7 @@ if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'mil
 if (publicGrid && gridScenario === 'milestone') throw new Error('Milestone floor requires Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--gl-time]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--gl-time]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -365,7 +368,20 @@ async function measureShard(driver, shard, deadline) {
           catch (error) { return { error: error instanceof Error ? error : new Error('Grid floor drive failed', { cause: error }) }; }
         })();
         await sleep(1000);
-        const motion = await driver.evaluate(`(${sample.toString()})(${frames})`);
+        // Safari proxy samples can have zero timestamps. Bound tracking to the same actual 120-frame page window,
+        // rather than inventing a clock join; reuse the one driving Inspector, without a second connection.
+        const stopScriptProfile = driver.scriptProfile === undefined || driver.scriptProfile === null ? undefined : await driver.scriptProfile.start();
+        let motion, profile;
+        try { motion = await driver.evaluate(`(${sample.toString()})(${frames})`); }
+        finally { if (stopScriptProfile !== undefined) profile = await stopScriptProfile(); }
+        let scriptProfile;
+        if (profile !== undefined) {
+          const file = join(safariProfileDir, `${plan.name}-${Date.now()}.scriptprofile.json`);
+          writeFileSync(file, JSON.stringify({ profile, pageRange: motion.sampleRange }));
+          const urls = new Set((profile.samples?.stackTraces ?? []).flatMap(trace => trace.stackFrames.map(frame => frame.url)).filter(url => /^https?:.*\.js$/u.test(url)));
+          await saveScriptMaps(urls, safariProfileDir);
+          scriptProfile = { file, note: 'Diagnostic Safari samples in the caller-delimited travel window. Proxy timestamps may be zero; no per-task timing or floor credit.' };
+        }
         const driven = await moving; if (driven.error) throw driven.error;
         await driver.evaluate('(window.__frameFloorDriveDone = true, true)');
         const whole = await wholeDrive; if (whole.error) throw whole.error;
@@ -376,7 +392,7 @@ async function measureShard(driver, shard, deadline) {
         const witness = driven.value, failures = gridFloorWitnessFailures(witness);
         if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
         scenarios.push(witness);
-        rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface) });
+        rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface), ...(scriptProfile === undefined ? {} : { scriptProfile }) });
         const hookTimes = await driver.evaluate('window.__wildshard.shard.grid.state().live.runtimeTiming?.completed ?? []');
         const { glFrames, ...wholeValue } = whole.value;
         const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes),
@@ -433,10 +449,13 @@ function longFrameHooks(at, completed) {
 /** The preview's hidden source maps for every script the profile sampled, saved beside it (`<dir>/maps/<file>.map`): the
  *  preview build is deleted when the run ends, and the summary's frames are minified. */
 async function saveProfileMaps(profile) {
-  mkdirSync(join(cpuProfileDir, 'maps'), { recursive: true });
   const urls = new Set(profile.nodes.map((node) => node.callFrame.url).filter((url) => /^https?:.*\.js$/u.test(url)));
+  await saveScriptMaps(urls, cpuProfileDir);
+}
+async function saveScriptMaps(urls, directory) {
+  mkdirSync(join(directory, 'maps'), { recursive: true });
   for (const url of urls) {
-    const out = join(cpuProfileDir, 'maps', `${url.split('/').pop()}.map`);
+    const out = join(directory, 'maps', `${url.split('/').pop()}.map`);
     if (existsSync(out)) continue;
     try { const response = await fetch(`${url}.map`); if (response.ok) writeFileSync(out, await response.text()); }
     catch { /* a script without a map stays minified in offline resolution */ }
@@ -480,12 +499,13 @@ function summarizeTravelProfile(profile, startedAt, longTasks, name) {
   return { note: 'Diagnostic CPU attribution (sampling profiler on): no timing credit', longTasks: tasks.length, longTaskMs: tasks.reduce((sum, task) => sum + task.ms, 0), file, startedAt, tasks }; // file + startedAt: re-resolve the raw profile offline (source maps)
 }
 function webkit(wsUrl) {
-  const ws = new WebSocket(wsUrl), pending = new Map();
+  const ws = new WebSocket(wsUrl), pending = new Map(), listeners = new Map();
   let seq = 0, target = null;
   const opened = new Promise((resolve, reject) => { ws.addEventListener('open', resolve, { once: true }); ws.addEventListener('error', reject, { once: true }); });
   const inner = (message) => {
     const waiter = pending.get(message.id);
     if (waiter) { pending.delete(message.id); clearTimeout(waiter.timer); if (message.error) waiter.reject(new Error(message.error.message)); else waiter.done(message.result); }
+    if (message.method) for (const listener of listeners.get(message.method) ?? []) listener(message.params);
   };
   ws.addEventListener('message', (event) => {
     const message = JSON.parse(String(event.data));
@@ -501,11 +521,14 @@ function webkit(wsUrl) {
     const message = { id, method, params };
     ws.send(JSON.stringify(target ? { id: ++seq, method: 'Target.sendMessageToTarget', params: { targetId: target, message: JSON.stringify(message) } } : message));
   });
-  return { opened, raw: async (expression) => {
+  return { opened, send, on: (method, receive) => {
+    const set = listeners.get(method) ?? new Set(); set.add(receive); listeners.set(method, set);
+    return () => { set.delete(receive); if (set.size === 0) listeners.delete(method); };
+  }, raw: async (expression) => {
     const result = await send('Runtime.evaluate', { expression, returnByValue: true });
     if (result.wasThrown) throw new Error(result.result?.description ?? 'Safari evaluation threw');
     return result.result?.value;
-  }, close: () => { for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('Inspector closed')); } pending.clear(); ws.close(); } };
+  }, close: () => { for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('Inspector closed')); } pending.clear(); listeners.clear(); ws.close(); } };
 }
 async function safariPage(base) {
   const start = Date.now();
@@ -592,6 +615,7 @@ async function worker() {
         evaluate: retryEvaluate, errors: () => retryEvaluate('window.__frameFloorErrors ?? []'), progress: () => lastRoute, unload: () => { inspector?.close(); inspector = undefined; },
         // the tap's fresh document (same helper page, so the pins stay): reconnect to whatever page the helper path now holds
         followed: async () => { await sleep(1500); await connect(`${base}frame-floor-safari.html`); },
+        scriptProfile: safariProfileDir === '' ? null : { start: () => startScriptProfile(inspector) },
       };
     }
     for (const shard of shards) { lastRoute = null; evaluationOriginDriftMaxMs = 0; rows.push(await measureShard(driver, shard, deadline)); }
@@ -640,7 +664,7 @@ async function main() {
     writeFileSync(helper, html.replace('<head>', `<head><script>${fixture('phone')};window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${travelGl}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
-      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--developer=${developer}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(glTime ? ['--gl-time'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
+      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--developer=${developer}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(glTime ? ['--gl-time'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));
@@ -649,7 +673,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, shards, surface, developer, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, shards, surface, developer, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, safariProfile: safariProfileDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });
