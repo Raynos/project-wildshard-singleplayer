@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // DS1.5: Node is the canonical physics producer. Execute the native authored recipes, including the engine practice
-// room, without drawing. compare-nine-physics-page.mjs retains the independent browser oracle for milestones.
+// room, without drawing. Independent Node runs are the canonical byte oracle.
 // node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs [--check]
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';

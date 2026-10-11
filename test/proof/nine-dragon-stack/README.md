@@ -131,7 +131,7 @@ map inputs and needs a browser-equivalence proof and map rebake.
 The retained native recipes now run in Node, with the real engine practice-room constructor and no drawing. Build/CI use
 `node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs --check`.
 The generation job is portable and needs no preview or browser. Its header is content-addressed from its recipe inputs.
-`compare-nine-physics-page.mjs --url=<DEVSERVER preview> --revision=<pin>` retains the independent page oracle.
+The temporary page-comparison producer is retired after the canonical re-record. The retained gate compares independent Node runs.
 
 The deliberate re-record changes five pavilion collider yaws from `2.7755575615628914e-17` to
 `5.551115123125783e-17` radians: maximum absolute difference **2.7755575615628914e-17 rad**.
