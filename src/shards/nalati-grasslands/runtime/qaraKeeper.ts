@@ -1,7 +1,9 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { eliteScript, type EliteScript } from '@wildshard/sdk/eliteScripts';
+import { bossFight } from '@wildshard/game/plugin/bossPhase';
+import { moduleBytes, type EliteScriptLane as EliteScript } from '@wildshard/game/plugin/brain';
+import { parseEliteScript } from '@wildshard/format/eliteScripts';
 import { QARA_RULES, QARA_MODES, QARA_OPEN_CUE } from '../data/qaraBrain';
 import { qaraBrain, QARA_MODULE } from './qaraBrain';
 
@@ -33,7 +35,8 @@ export class QaraKeeper<A extends AnimalSim> {
   private line: readonly A[] = [];
   private readonly c0 = new Vector3(); private readonly c1 = new Vector3();
   constructor(private readonly ports: QaraPorts<A>) {
-    this.script = eliteScript(qaraBrain(ports.lair), QARA_MODULE.bytes, () => { throw new Error('Qara has no random decisions'); });
+    this.script = bossFight({ kind: 'boss', pattern: 'script', fight: parseEliteScript(qaraBrain(ports.lair)) },
+      { bytes: moduleBytes(QARA_MODULE.bytes), random: () => { throw new Error('Qara has no random decisions'); } });
   }
   spawned(): void { this.st = 'wait'; }
   reset(): void { this.st = 'home'; this.ports.lane.hide(); }

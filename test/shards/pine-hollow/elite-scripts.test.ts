@@ -4,7 +4,7 @@ import { Lane } from '../../../src/shards/pine-hollow/combat/lane';
 import { pineEliteScripts, type PineEliteBody, type PineEliteWorld } from '../../../src/shards/pine-hollow/combat/eliteScripts';
 import { pineEliteScripts as oracleScripts } from '../../fixtures/species-oracle/pineElites';
 import { sha256, moduleBytes } from '../../../src/game/plugin/brain';
-import { eliteScript } from '../../../src/sdk/eliteScripts';
+import { bossFight } from '../../../src/game/plugin/bossPhase';
 import { IRONHIDE_BRAIN, PINE_ELITE_MODULES } from '../../../src/shards/pine-hollow/runtime/brains/eliteBrains';
 
 // SF27: Pine Hollow's four named elites fight through admitted elite scripts (behaviour/*.as, data/eliteBrains.ts). Each is
@@ -117,6 +117,6 @@ describe('Pine elite scripts against their TypeScript oracle', () => {
     const bytes = PINE_ELITE_MODULES[IRONHIDE_BRAIN.module];
     if (bytes === undefined) throw new Error('missing module');
     const tampered = moduleBytes(bytes); tampered[tampered.length - 1] = (tampered.at(-1) ?? 0) ^ 1;
-    expect(() => eliteScript(IRONHIDE_BRAIN, btoa(String.fromCodePoint(...tampered)), () => 0)).toThrow(/hash mismatch/u);
+    expect(() => bossFight({ kind: 'boss', pattern: 'script', fight: IRONHIDE_BRAIN }, { bytes: tampered, random: () => 0 })).toThrow(/hash mismatch/u);
   });
 });

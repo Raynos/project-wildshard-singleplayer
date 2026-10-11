@@ -3206,3 +3206,11 @@ fields keep their native owners. This data adoption does not close either
 shard's remaining gameplay compatibility gaps.
 
 SF85 WP-3: melee numeric rows may declare paired `moves.passes` and a bounded `mounted` contact/chain profile. Nalati consumes these in its existing mounted sword, preserving side selection, horse speed authority, pose recipes and reward effects.
+
+SF82 Pine's actual elite hosts and Nalati's prepared Qara keeper admit the `script` boss
+profile through `plugin/bossPhase.bossFight`, then use the defining
+`plugin/brain` module for byte decoding, lane-first stepping and host types.
+Pure authored declarations import their types from format. Their native
+engagement, body, prelude, contact, random and continuation owners are unchanged.
+The unused SDK eliteScripts runtime forwarding module and export are removed;
+no frozen legacy source imported that module.

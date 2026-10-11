@@ -1,4 +1,4 @@
-import type { EliteScriptRow } from '@wildshard/sdk/eliteScripts';
+import type { EliteScriptData as EliteScriptRow } from '@wildshard/format/eliteScripts';
 import { QARA_RULES, QARA_MODES } from '../data/qaraBrain';
 
 import compiled from '../behaviour/qara.generated.json' with { type: 'json' };

@@ -3,7 +3,9 @@ import type { Vector3 } from 'three';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { BEAR_CAVE } from '../layout';
-import { eliteScript, stepElite, type EliteScript, type EliteScriptPorts, type EliteScriptRow } from '@wildshard/sdk/eliteScripts';
+import { bossFight } from '@wildshard/game/plugin/bossPhase';
+import { moduleBytes, stepEliteScript, type EliteScriptLane as EliteScript, type EliteScriptPorts } from '@wildshard/game/plugin/brain';
+import { parseEliteScript, type EliteScriptData as EliteScriptRow } from '@wildshard/format/eliteScripts';
 import { BLACKPAW_BRAIN, GHOST_STAG_BRAIN, IMPERIAL_BULL_BRAIN, IRONHIDE_BRAIN, PINE_ELITE_MODULES } from '../runtime/brains/eliteBrains';
 import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from './eliteRoster';
 import { pineEliteStreams, type PineEliteStreams } from './eliteStreams';
@@ -109,7 +111,7 @@ export abstract class PineEliteScript<B extends PineEliteBody> extends EliteBrai
     });
     const bytes = PINE_ELITE_MODULES[row.module];
     if (bytes === undefined) throw new Error(`pine elite '${id}' has no module`);
-    this.script = eliteScript(row, bytes, () => streams.fight.next());
+    this.script = bossFight({ kind: 'boss', pattern: 'script', fight: parseEliteScript(row) }, { bytes: moduleBytes(bytes), random: () => streams.fight.next() });
     const who = PINE_ELITE_ANIMALS[def.id];
     if (who === undefined) throw new Error(`pine elite '${def.id}' has no animal`);
     this.who = who;
@@ -157,7 +159,7 @@ export abstract class PineEliteScript<B extends PineEliteBody> extends EliteBrai
   /** the fight: one engaged step of its admitted script (the row's lanes step first, then its verbs in order) */
   protected fight(a: B, dt: number, t: number): void {
     const { d, yaw } = this.toPlayer(a);
-    stepElite(this.script, { body: a, dt, t, mode: this.mode, modeT: this.modeT, p2: this.p2, d, yaw, player: this.env.player.position, god: this.env.god }, this.scriptPorts(a, dt, t));
+    stepEliteScript(this.script, { body: a, dt, t, mode: this.mode, modeT: this.modeT, p2: this.p2, d, yaw, player: this.env.player.position, god: this.env.god }, this.scriptPorts(a, dt, t));
   }
   /** the verbs' world: the shared voices, lanes and contacts, and this elite's own actions */
   protected scriptPorts(a: B, dt: number, t: number): EliteScriptPorts {

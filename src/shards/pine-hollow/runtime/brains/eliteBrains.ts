@@ -1,4 +1,4 @@
-import type { EliteScriptRow } from '@wildshard/sdk/eliteScripts';
+import type { EliteScriptData as EliteScriptRow } from '@wildshard/format/eliteScripts';
 import ironhide from '../../behaviour/ironhide.json' with { type: 'json' };
 import ghostStag from '../../behaviour/ghostStag.json' with { type: 'json' };
 import blackpaw from '../../behaviour/blackpaw.json' with { type: 'json' };
