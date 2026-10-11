@@ -1,0 +1,98 @@
+{
+  "at": "2026-10-11T22:23:51.999239+00:00",
+  "hours": 12.0,
+  "commits": 405,
+  "originUpdates": 27,
+  "reachedLatencyMinutes": {
+    "count": 305,
+    "median": 33.02,
+    "p90": 149.27
+  },
+  "unreached": 100,
+  "oldestUnreachedMinutes": 327.92,
+  "regenerationCommits": 53,
+  "regenerationPercent": 13.09,
+  "gateWallSeconds": {
+    "cached": {
+      "count": 54,
+      "median": 314.5,
+      "p90": 354
+    },
+    "full": {
+      "count": 13,
+      "median": 361,
+      "p90": 427
+    }
+  },
+  "gateResults": {
+    "true": 27,
+    "false": 40
+  },
+  "regenerationSeconds": {
+    "count": 91,
+    "median": 48,
+    "p90": 117
+  },
+  "completedPushCI": {
+    "failure": 3,
+    "success": 20
+  },
+  "releaseStarts": [
+    {
+      "id": 38179014718,
+      "at": "2026-10-11T22:05:27Z",
+      "result": "success"
+    },
+    {
+      "id": 38171224015,
+      "at": "2026-10-11T20:12:29Z",
+      "result": "success"
+    },
+    {
+      "id": 38162578994,
+      "at": "2026-10-11T18:08:45Z",
+      "result": "success"
+    },
+    {
+      "id": 38161318176,
+      "at": "2026-10-11T17:50:30Z",
+      "result": "success"
+    },
+    {
+      "id": 38156897749,
+      "at": "2026-10-11T16:47:09Z",
+      "result": "success"
+    },
+    {
+      "id": 38156525798,
+      "at": "2026-10-11T16:41:45Z",
+      "result": "success"
+    },
+    {
+      "id": 38152302605,
+      "at": "2026-10-11T15:41:03Z",
+      "result": "failure"
+    },
+    {
+      "id": 38146171941,
+      "at": "2026-10-11T14:11:25Z",
+      "result": "success"
+    },
+    {
+      "id": 38141629062,
+      "at": "2026-10-11T13:02:59Z",
+      "result": "success"
+    },
+    {
+      "id": 38140589408,
+      "at": "2026-10-11T12:47:07Z",
+      "result": "success"
+    },
+    {
+      "id": 38133187249,
+      "at": "2026-10-11T10:47:08Z",
+      "result": "success"
+    }
+  ],
+  "ciWindowComplete": true
+}
