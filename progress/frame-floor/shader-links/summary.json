@@ -1,0 +1,896 @@
+{
+  "schema": "shader-link-proof/1",
+  "source": "64a9b48a91f02a33b722aa9ea9f7dc48b50389c7",
+  "before": "adab6caa893179616ad441caa9676b99c6177b3f",
+  "after": "734f86ea24fcd2bdd94575f79f5510af9ce3d3dd",
+  "settings": {
+    "developer": true,
+    "buildPacing": "on",
+    "renderScale": 2,
+    "fps": "auto",
+    "seed": 357,
+    "build": "devserver including Nine"
+  },
+  "timingInstrumentation": {
+    "glTime": false,
+    "cpuProfile": false
+  },
+  "rows": [
+    {
+      "arm": "before",
+      "surface": "sim",
+      "cell": "_template",
+      "current": "template-2",
+      "complete": true,
+      "errors": [],
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "maxMs": 62,
+      "frames": 210,
+      "over50": 2,
+      "floorPass": true,
+      "strictP95Pass": false,
+      "crossingSeconds": 3.084,
+      "hooksMs": {},
+      "longFrameHooks": [
+        {
+          "hook": "between hooks",
+          "frames": 2,
+          "maxMs": 62
+        }
+      ]
+    },
+    {
+      "arm": "before",
+      "surface": "sim",
+      "cell": "far-reach",
+      "current": "far-reach",
+      "complete": true,
+      "errors": [],
+      "medianFps": 30.303,
+      "p95Ms": 39,
+      "maxMs": 2056,
+      "frames": 300,
+      "over50": 6,
+      "floorPass": false,
+      "strictP95Pass": false,
+      "crossingSeconds": 10.48,
+      "hooksMs": {
+        "beforeWorld": 0,
+        "constructor": 0,
+        "world": 1223,
+        "afterWorld": 0.0,
+        "kit": 8,
+        "afterKit": 1,
+        "play": 86,
+        "afterPlay": 7859,
+        "activate": 2
+      },
+      "longFrameHooks": [
+        {
+          "hook": "far-reach:afterPlay",
+          "frames": 2,
+          "maxMs": 2056
+        },
+        {
+          "hook": "far-reach:world",
+          "frames": 2,
+          "maxMs": 65
+        },
+        {
+          "hook": "far-reach:activate",
+          "frames": 1,
+          "maxMs": 103
+        },
+        {
+          "hook": "far-reach:play",
+          "frames": 1,
+          "maxMs": 68
+        }
+      ]
+    },
+    {
+      "arm": "before",
+      "surface": "sim",
+      "cell": "nalati-grasslands",
+      "current": "nalati-grasslands",
+      "complete": true,
+      "errors": [],
+      "medianFps": 30.303,
+      "p95Ms": 46,
+      "maxMs": 86,
+      "frames": 450,
+      "over50": 13,
+      "floorPass": false,
+      "strictP95Pass": false,
+      "crossingSeconds": 13.43,
+      "hooksMs": {
+        "beforeWorld": 0,
+        "constructor": 1.0,
+        "world": 1979,
+        "afterWorld": 0.0,
+        "kit": 0,
+        "afterKit": 386,
+        "play": 143.0,
+        "afterPlay": 8564,
+        "activate": 3
+      },
+      "longFrameHooks": [
+        {
+          "hook": "nalati-grasslands:world",
+          "frames": 6,
+          "maxMs": 86
+        },
+        {
+          "hook": "nalati-grasslands:afterKit",
+          "frames": 3,
+          "maxMs": 75
+        },
+        {
+          "hook": "nalati-grasslands:activate",
+          "frames": 1,
+          "maxMs": 85
+        },
+        {
+          "hook": "between hooks",
+          "frames": 1,
+          "maxMs": 59
+        },
+        {
+          "hook": "nalati-grasslands:kit",
+          "frames": 1,
+          "maxMs": 59
+        },
+        {
+          "hook": "nalati-grasslands:play",
+          "frames": 1,
+          "maxMs": 52
+        }
+      ]
+    },
+    {
+      "arm": "before",
+      "surface": "sim",
+      "cell": "nine-dragon-stack",
+      "current": "nine-dragon-stack",
+      "complete": true,
+      "errors": [],
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "maxMs": 384,
+      "frames": 1380,
+      "over50": 6,
+      "floorPass": false,
+      "strictP95Pass": false,
+      "crossingSeconds": 45.409,
+      "hooksMs": {
+        "beforeWorld": 0,
+        "constructor": 0,
+        "world": 39992,
+        "afterWorld": 0,
+        "kit": 12,
+        "afterKit": 82.0,
+        "play": 2,
+        "afterPlay": 3771,
+        "activate": 1
+      },
+      "longFrameHooks": [
+        {
+          "hook": "nine-dragon-stack:afterPlay",
+          "frames": 1,
+          "maxMs": 384
+        },
+        {
+          "hook": "nine-dragon-stack:world",
+          "frames": 4,
+          "maxMs": 145
+        },
+        {
+          "hook": "nine-dragon-stack:activate",
+          "frames": 1,
+          "maxMs": 93
+        }
+      ]
+    },
+    {
+      "arm": "before",
+      "surface": "desktop",
+      "cell": "_template",
+      "current": "template-2",
+      "complete": true,
+      "errors": [],
+      "medianFps": 59.88,
+      "p95Ms": 16.7,
+      "maxMs": 16.8,
+      "frames": 240,
+      "over50": 0,
+      "floorPass": true,
+      "strictP95Pass": true,
+      "crossingSeconds": 3.088,
+      "hooksMs": {},
+      "longFrameHooks": []
+    },
+    {
+      "arm": "before",
+      "surface": "desktop",
+      "cell": "far-reach",
+      "current": "far-reach",
+      "complete": true,
+      "errors": [],
+      "medianFps": 59.88,
+      "p95Ms": 16.8,
+      "maxMs": 66.6,
+      "frames": 240,
+      "over50": 1,
+      "floorPass": true,
+      "strictP95Pass": false,
+      "crossingSeconds": 3.474,
+      "hooksMs": {
+        "beforeWorld": 0.0,
+        "constructor": 0.0,
+        "world": 405.5,
+        "afterWorld": 0.0,
+        "kit": 3.5,
+        "afterKit": 0.6,
+        "play": 22.0,
+        "afterPlay": 1506,
+        "activate": 1.0
+      },
+      "longFrameHooks": [
+        {
+          "hook": "far-reach:afterPlay",
+          "frames": 1,
+          "maxMs": 67
+        }
+      ]
+    },
+    {
+      "arm": "before",
+      "surface": "desktop",
+      "cell": "nalati-grasslands",
+      "current": "nalati-grasslands",
+      "complete": true,
+      "errors": [],
+      "medianFps": 59.88,
+      "p95Ms": 16.8,
+      "maxMs": 66.6,
+      "frames": 330,
+      "over50": 1,
+      "floorPass": true,
+      "strictP95Pass": false,
+      "crossingSeconds": 5.164,
+      "hooksMs": {
+        "beforeWorld": 0.0,
+        "constructor": 0.1,
+        "world": 1199.4,
+        "afterWorld": 0.0,
+        "kit": 0.1,
+        "afterKit": 241.4,
+        "play": 102.3,
+        "afterPlay": 1779.8,
+        "activate": 1.4
+      },
+      "longFrameHooks": [
+        {
+          "hook": "nalati-grasslands:afterPlay",
+          "frames": 1,
+          "maxMs": 67
+        }
+      ]
+    },
+    {
+      "arm": "before",
+      "surface": "desktop",
+      "cell": "nine-dragon-stack",
+      "current": "nine-dragon-stack",
+      "complete": true,
+      "errors": [],
+      "medianFps": 59.88,
+      "p95Ms": 16.8,
+      "maxMs": 66.7,
+      "frames": 330,
+      "over50": 2,
+      "floorPass": true,
+      "strictP95Pass": false,
+      "crossingSeconds": 4.688,
+      "hooksMs": {
+        "beforeWorld": 0.0,
+        "constructor": 0.0,
+        "world": 2524.6,
+        "afterWorld": 0.0,
+        "kit": 4.4,
+        "afterKit": 38.0,
+        "play": 1.7,
+        "afterPlay": 649.8,
+        "activate": 0.3
+      },
+      "longFrameHooks": [
+        {
+          "hook": "nine-dragon-stack:world",
+          "frames": 1,
+          "maxMs": 67
+        },
+        {
+          "hook": "nine-dragon-stack:afterPlay",
+          "frames": 1,
+          "maxMs": 50
+        }
+      ]
+    },
+    {
+      "arm": "before",
+      "surface": "desktop-control",
+      "cell": "nalati-grasslands",
+      "current": "nalati-grasslands",
+      "complete": true,
+      "errors": [],
+      "medianFps": 59.88,
+      "p95Ms": 33.3,
+      "maxMs": 66.6,
+      "frames": 330,
+      "over50": 1,
+      "floorPass": false,
+      "strictP95Pass": false,
+      "crossingSeconds": 5.151,
+      "hooksMs": {
+        "beforeWorld": 0.0,
+        "constructor": 0.0,
+        "world": 1175.6,
+        "afterWorld": 0.0,
+        "kit": 0.2,
+        "afterKit": 249.8,
+        "play": 100.2,
+        "afterPlay": 1723.9,
+        "activate": 2.4
+      },
+      "longFrameHooks": [
+        {
+          "hook": "nalati-grasslands:afterPlay",
+          "frames": 1,
+          "maxMs": 67
+        }
+      ]
+    },
+    {
+      "arm": "settled",
+      "surface": "sim",
+      "cell": "_template",
+      "current": "template-2",
+      "complete": true,
+      "errors": [],
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "maxMs": 77,
+      "frames": 180,
+      "over50": 2,
+      "floorPass": true,
+      "strictP95Pass": false,
+      "crossingSeconds": 3.152,
+      "hooksMs": {},
+      "longFrameHooks": [
+        {
+          "hook": "between hooks",
+          "frames": 2,
+          "maxMs": 77
+        }
+      ]
+    },
+    {
+      "arm": "settled",
+      "surface": "sim",
+      "cell": "far-reach",
+      "current": "far-reach",
+      "complete": true,
+      "errors": [],
+      "medianFps": 30.303,
+      "p95Ms": 36,
+      "maxMs": 79,
+      "frames": 390,
+      "over50": 4,
+      "floorPass": false,
+      "strictP95Pass": false,
+      "crossingSeconds": 11.138,
+      "hooksMs": {
+        "beforeWorld": 0,
+        "constructor": 0.0,
+        "world": 1197,
+        "afterWorld": 0,
+        "kit": 8.0,
+        "afterKit": 2,
+        "play": 97,
+        "afterPlay": 8349,
+        "activate": 1
+      },
+      "longFrameHooks": [
+        {
+          "hook": "far-reach:world",
+          "frames": 2,
+          "maxMs": 78
+        },
+        {
+          "hook": "far-reach:play",
+          "frames": 1,
+          "maxMs": 79
+        },
+        {
+          "hook": "far-reach:activate",
+          "frames": 1,
+          "maxMs": 63
+        }
+      ]
+    },
+    {
+      "arm": "settled",
+      "surface": "sim",
+      "cell": "nalati-grasslands",
+      "current": "nalati-grasslands",
+      "complete": true,
+      "errors": [],
+      "medianFps": 30.303,
+      "p95Ms": 38,
+      "maxMs": 89,
+      "frames": 720,
+      "over50": 14,
+      "floorPass": false,
+      "strictP95Pass": false,
+      "crossingSeconds": 23.142,
+      "hooksMs": {
+        "beforeWorld": 0,
+        "constructor": 0,
+        "world": 2069.0,
+        "afterWorld": 0,
+        "kit": 1,
+        "afterKit": 362,
+        "play": 139,
+        "afterPlay": 18073,
+        "activate": 3
+      },
+      "longFrameHooks": [
+        {
+          "hook": "nalati-grasslands:world",
+          "frames": 8,
+          "maxMs": 85
+        },
+        {
+          "hook": "nalati-grasslands:afterKit",
+          "frames": 4,
+          "maxMs": 59
+        },
+        {
+          "hook": "nalati-grasslands:activate",
+          "frames": 1,
+          "maxMs": 89
+        },
+        {
+          "hook": "between hooks",
+          "frames": 1,
+          "maxMs": 54
+        }
+      ]
+    },
+    {
+      "arm": "settled",
+      "surface": "sim",
+      "cell": "nine-dragon-stack",
+      "current": "nine-dragon-stack",
+      "complete": true,
+      "errors": [],
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "maxMs": 152,
+      "frames": 1380,
+      "over50": 4,
+      "floorPass": true,
+      "strictP95Pass": false,
+      "crossingSeconds": 45.042,
+      "hooksMs": {
+        "beforeWorld": 0,
+        "constructor": 0,
+        "world": 38515,
+        "afterWorld": 0,
+        "kit": 8.0,
+        "afterKit": 59,
+        "play": 2,
+        "afterPlay": 4953,
+        "activate": 1.0
+      },
+      "longFrameHooks": [
+        {
+          "hook": "nine-dragon-stack:world",
+          "frames": 2,
+          "maxMs": 152
+        },
+        {
+          "hook": "nine-dragon-stack:activate",
+          "frames": 1,
+          "maxMs": 93
+        },
+        {
+          "hook": "nine-dragon-stack:constructor",
+          "frames": 1,
+          "maxMs": 78
+        }
+      ]
+    },
+    {
+      "arm": "settled",
+      "surface": "desktop",
+      "cell": "_template",
+      "current": "template-2",
+      "complete": true,
+      "errors": [],
+      "medianFps": 59.88,
+      "p95Ms": 16.7,
+      "maxMs": 16.8,
+      "frames": 240,
+      "over50": 0,
+      "floorPass": true,
+      "strictP95Pass": true,
+      "crossingSeconds": 3.1,
+      "hooksMs": {},
+      "longFrameHooks": []
+    },
+    {
+      "arm": "settled",
+      "surface": "desktop",
+      "cell": "far-reach",
+      "current": "far-reach",
+      "complete": true,
+      "errors": [],
+      "medianFps": 59.88,
+      "p95Ms": 16.8,
+      "maxMs": 49.9,
+      "frames": 240,
+      "over50": 0,
+      "floorPass": true,
+      "strictP95Pass": false,
+      "crossingSeconds": 3.448,
+      "hooksMs": {
+        "beforeWorld": 0.0,
+        "constructor": 0,
+        "world": 390.8,
+        "afterWorld": 0.0,
+        "kit": 3.4,
+        "afterKit": 0.6,
+        "play": 22.4,
+        "afterPlay": 1506.9,
+        "activate": 1.1
+      },
+      "longFrameHooks": []
+    },
+    {
+      "arm": "settled",
+      "surface": "desktop",
+      "cell": "nalati-grasslands",
+      "current": "nalati-grasslands",
+      "complete": true,
+      "errors": [],
+      "medianFps": 59.88,
+      "p95Ms": 33.2,
+      "maxMs": 50,
+      "frames": 330,
+      "over50": 0,
+      "floorPass": false,
+      "strictP95Pass": false,
+      "crossingSeconds": 5.226,
+      "hooksMs": {
+        "beforeWorld": 0.0,
+        "constructor": 0,
+        "world": 1243.4,
+        "afterWorld": 0.0,
+        "kit": 0.2,
+        "afterKit": 237.9,
+        "play": 103.5,
+        "afterPlay": 1762.4,
+        "activate": 2.3
+      },
+      "longFrameHooks": []
+    },
+    {
+      "arm": "settled",
+      "surface": "desktop",
+      "cell": "nine-dragon-stack",
+      "current": "nine-dragon-stack",
+      "complete": true,
+      "errors": [],
+      "medianFps": 59.88,
+      "p95Ms": 16.8,
+      "maxMs": 66.7,
+      "frames": 300,
+      "over50": 2,
+      "floorPass": true,
+      "strictP95Pass": false,
+      "crossingSeconds": 4.48,
+      "hooksMs": {
+        "beforeWorld": 0.0,
+        "constructor": 0.1,
+        "world": 2328.2,
+        "afterWorld": 0.0,
+        "kit": 3.8,
+        "afterKit": 32.5,
+        "play": 1.5,
+        "afterPlay": 651.2,
+        "activate": 0.8
+      },
+      "longFrameHooks": [
+        {
+          "hook": "nine-dragon-stack:world",
+          "frames": 2,
+          "maxMs": 67
+        }
+      ]
+    },
+    {
+      "arm": "settled",
+      "surface": "desktop-control",
+      "cell": "nalati-grasslands",
+      "current": "nalati-grasslands",
+      "complete": true,
+      "errors": [],
+      "medianFps": 59.88,
+      "p95Ms": 16.8,
+      "maxMs": 66.7,
+      "frames": 330,
+      "over50": 2,
+      "floorPass": true,
+      "strictP95Pass": false,
+      "crossingSeconds": 5.152,
+      "hooksMs": {
+        "beforeWorld": 0.1,
+        "constructor": 0.0,
+        "world": 1179.6,
+        "afterWorld": 0.0,
+        "kit": 0.1,
+        "afterKit": 328.8,
+        "play": 101.1,
+        "afterPlay": 1690.5,
+        "activate": 2.6
+      },
+      "longFrameHooks": [
+        {
+          "hook": "nalati-grasslands:afterKit",
+          "frames": 1,
+          "maxMs": 67
+        },
+        {
+          "hook": "nalati-grasslands:afterPlay",
+          "frames": 1,
+          "maxMs": 50
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "capture": "desktop.json",
+      "complete": true,
+      "errors": [],
+      "queries": [
+        {
+          "hook": "between hooks",
+          "variant": "slow getProgramInfoLog EffectMaterial/d327e5e1+EffectMaterial/c51571a5",
+          "totalMs": 5.6,
+          "calls": 1
+        },
+        {
+          "hook": "between hooks",
+          "variant": "slow getProgramInfoLog grid-void-floor/53cd6887+grid-void-floor/c56ec7fd",
+          "totalMs": 6.8,
+          "calls": 1
+        },
+        {
+          "hook": "between hooks",
+          "variant": "slow getProgramInfoLog #define DOUBLE_SIDED/6377f89f+#define DOUBLE_SIDED/db329fd6",
+          "totalMs": 3,
+          "calls": 1
+        },
+        {
+          "hook": "nalati-grasslands:afterKit",
+          "variant": "slow getProgramInfoLog nalati-viewmodel/5452c418+nalati-viewmodel/687e4252",
+          "totalMs": 8.8,
+          "calls": 1
+        },
+        {
+          "hook": "nalati-grasslands:afterKit",
+          "variant": "slow getProgramInfoLog nalati-steel/379b821+nalati-steel/7abd7a40",
+          "totalMs": 8.3,
+          "calls": 1
+        },
+        {
+          "hook": "nalati-grasslands:afterPlay",
+          "variant": "slow getProgramParameter #define HAS_NORMAL/cc314b+#define USE_SHADOWMAP/51187d19",
+          "totalMs": 17,
+          "calls": 1
+        },
+        {
+          "hook": "nalati-grasslands:afterPlay",
+          "variant": "slow getProgramParameter nalati-viewmodel/5452c418+nalati-viewmodel/647d14bd",
+          "totalMs": 8.5,
+          "calls": 1
+        },
+        {
+          "hook": "nalati-grasslands:afterPlay",
+          "variant": "slow getProgramInfoLog #define USE_INSTANCING/7a0b45b+#define USE_FOG/6e352a77",
+          "totalMs": 3.6,
+          "calls": 1
+        },
+        {
+          "hook": "nalati-grasslands:afterPlay",
+          "variant": "slow getProgramInfoLog #define USE_BATCHING/9a2f6f06+#define USE_COLOR_ALPHA/6ba4560b",
+          "totalMs": 22.6,
+          "calls": 1
+        }
+      ],
+      "timingCredit": false
+    },
+    {
+      "capture": "sim.json",
+      "complete": true,
+      "errors": [],
+      "queries": [
+        {
+          "hook": "between hooks",
+          "variant": "slow getProgramInfoLog EffectMaterial/5c8883d+EffectMaterial/e15f8ac0",
+          "totalMs": 30,
+          "calls": 1
+        },
+        {
+          "hook": "nalati-grasslands:afterPlay",
+          "variant": "slow getProgramInfoLog #define HAS_NORMAL/cc314b+#define USE_SHADOWMAP/51187d19",
+          "totalMs": 19,
+          "calls": 1
+        }
+      ],
+      "timingCredit": false
+    },
+    {
+      "capture": "cells/desktop/_template.json",
+      "complete": true,
+      "errors": [],
+      "queries": [
+        {
+          "hook": "between hooks",
+          "variant": "slow getProgramInfoLog family:pbr/62677b66+family:pbr/febf60f6",
+          "totalMs": 14,
+          "calls": 1
+        },
+        {
+          "hook": "between hooks",
+          "variant": "slow getProgramInfoLog family:pbr/76f6e199+family:pbr/680d2735",
+          "totalMs": 3.4,
+          "calls": 1
+        }
+      ],
+      "timingCredit": false
+    },
+    {
+      "capture": "cells/desktop/far-reach.json",
+      "complete": true,
+      "errors": [],
+      "queries": [
+        {
+          "hook": "far-reach:play",
+          "variant": "slow getProgramInfoLog EffectMaterial/d327e5e1+EffectMaterial/b46ac2e5",
+          "totalMs": 5.4,
+          "calls": 1
+        },
+        {
+          "hook": "far-reach:afterPlay",
+          "variant": "slow getProgramInfoLog MeshStandardMaterial/4f62ca61+MeshStandardMaterial/5cacb000",
+          "totalMs": 4.9,
+          "calls": 1
+        }
+      ],
+      "timingCredit": false
+    },
+    {
+      "capture": "cells/desktop/nine-dragon-stack.json",
+      "complete": true,
+      "errors": [],
+      "queries": [
+        {
+          "hook": "between hooks",
+          "variant": "slow getProgramInfoLog NdReflectTrace/c5bb3546+NdReflectTrace/d0ccf830",
+          "totalMs": 38.6,
+          "calls": 1
+        },
+        {
+          "hook": "between hooks",
+          "variant": "slow getProgramInfoLog EffectMaterial/d327e5e1+EffectMaterial/6a9dd803",
+          "totalMs": 9.9,
+          "calls": 1
+        }
+      ],
+      "timingCredit": false
+    },
+    {
+      "capture": "cells/sim/_template.json",
+      "complete": true,
+      "errors": [],
+      "queries": [
+        {
+          "hook": "between hooks",
+          "variant": "slow getProgramInfoLog family:pbr/70dbc8f9+family:pbr/577db2ad",
+          "totalMs": 10,
+          "calls": 1
+        }
+      ],
+      "timingCredit": false
+    },
+    {
+      "capture": "cells/sim/far-reach.json",
+      "complete": true,
+      "errors": [],
+      "queries": [
+        {
+          "hook": "between hooks",
+          "variant": "slow getProgramInfoLog EffectMaterial/5c8883d+EffectMaterial/bb608d06",
+          "totalMs": 6,
+          "calls": 1
+        }
+      ],
+      "timingCredit": false
+    },
+    {
+      "capture": "cells/sim/nine-dragon-stack.json",
+      "complete": true,
+      "errors": [],
+      "queries": [
+        {
+          "hook": "between hooks",
+          "variant": "slow getProgramInfoLog EffectMaterial/5c8883d+EffectMaterial/3450420e",
+          "totalMs": 9,
+          "calls": 1
+        }
+      ],
+      "timingCredit": false
+    }
+  ],
+  "excluded": [
+    {
+      "cell": "_template",
+      "revision": "c17ae0eda705e8e8051a3362fea59cd54e16e938",
+      "p95Ms": 34,
+      "maxMs": 65,
+      "reason": "Rejected separate poll/resolve candidate; exploratory only",
+      "complete": true,
+      "errors": []
+    },
+    {
+      "cell": "far-reach",
+      "revision": "c17ae0eda705e8e8051a3362fea59cd54e16e938",
+      "p95Ms": 36,
+      "maxMs": 75,
+      "reason": "Rejected separate poll/resolve candidate; exploratory only",
+      "complete": true,
+      "errors": []
+    },
+    {
+      "cell": "nalati-grasslands",
+      "revision": "c17ae0eda705e8e8051a3362fea59cd54e16e938",
+      "p95Ms": 38,
+      "maxMs": 95,
+      "reason": "Rejected separate poll/resolve candidate; Nalati also overlapped an automatic-push retry",
+      "complete": true,
+      "errors": []
+    },
+    {
+      "cell": "nine-dragon-stack",
+      "revision": "c17ae0eda705e8e8051a3362fea59cd54e16e938",
+      "p95Ms": 34,
+      "maxMs": 150,
+      "reason": "Rejected separate poll/resolve candidate; exploratory only",
+      "complete": true,
+      "errors": []
+    }
+  ],
+  "limitations": [
+    "No complete 33 ms target pass: Simulator rows are 34\u201338 ms.",
+    "Nalati preparation 13.430 -> 23.142 s; whole-drive percentiles include the longer wait.",
+    "The early Nalati label reader consumed an empty SHADER_NAME line; original source fingerprints are preserved, exact material type unavailable in that early capture.",
+    "No native memory or physical-device saving claimed.",
+    "One diagnostic command was rejected before browser startup because its CPU-profile directory was absent; corrected.",
+    "Desktop Nalati p95 varies on both arms; both pairs are retained.",
+    "The diagnostic window immediately followed the desktop control; it has no timing credit."
+  ]
+}
