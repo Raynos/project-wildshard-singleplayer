@@ -766,6 +766,27 @@ hand-written three.js shard.
 **When.** At the end of phase 1 (it is the exit of the G299 SDK redesign), then at M3 and at each later milestone,
 never per push. A failed run files rows, and the next run must clear them.
 
+**Baseline run 1 (2026-10-11, Codex seat, pinned `3032075bb` before the new docs; `71257a779`,
+`progress/shard-platform/oneshot-2026-10-11/README.md`): hard gates FAIL.** The fleeing goats, the diving hawk and the
+commons spear were missing. Build/validate, the 92-entry proof, grid save/unload/restore, quest replay, ledger filing and
+an 857-tick walk with 0 stuck passed. 37 friction items. The rows the run filed (all X; readability and looks wait for
+Opus):
+
+| Row | What | Owner |
+|---|---|---|
+| OS-F1 | Public data-host creature owners: author-declared herd and diver rows get an admitted native owner without game imports or `runtime/` code; prove real goat flight and hawk dive | sp-x5 (SF82) |
+| OS-F2 | Commons spear catalogue: an equipped spear with its asset/profile closure, catalogue identity and author example | sp-x5 (DS1.6) |
+| OS-F3 | Schema/declaration discovery: one documented way to inspect every root and section, identifier grammar, hearing arity, spawn coordinates; no Valibot internals | sp-x6 |
+| OS-F4 | Typed AS ABI path: documented or generated buffer capacities, memory, effect records, actor bindings, field/event offsets; a public typed example | sp-x6 |
+| OS-F5 | Native director day input: the admitted day observation for client and headless directors | sp-x6 |
+| OS-F6 | Author-only proof runner: grid enter-save-unload-restore and ledger filing from real facts, through the author workflow | sp-x6 |
+| OS-F7 | Scene interaction and view proof: an author-only native/browser test for creature views and scene prompts (distance and LOS) | sp-x6 |
+| OS-F8 | Traversal contract: document whether ladders are supported and the authored collider/traversal rows | sp-x4 (SF84) |
+| OS-F9 | Enforced brief coverage: scripted checks for flight response, dive/attack, the equipped commons spear and the beacon interaction | sp-x6 |
+| OS-F10 | Standalone author setup: the exact install, catalogue and bootstrap path for an isolated fresh seat; readable TS author generators | sp-x5 (docs) |
+
+Run 2 follows once these rows land (and again after Opus reopens for the readability seats and looks).
+
 ---
 
 ## 7. Contradictions: older rows that today's decisions supersede
