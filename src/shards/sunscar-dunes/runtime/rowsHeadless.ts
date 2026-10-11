@@ -2,49 +2,11 @@ import { SIGNAL_LEVEL } from '../data/headlessLevel';
 import * as v from 'valibot';
 import { SIM_API_VERSION, type SimLevel } from '@wildshard/engine/sim';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import type { StrikeData } from '@wildshard/sdk/species';
 import type { Material } from '@wildshard/engine/physics/surface';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
-import type { BrainedSpecies } from '@wildshard/game/plugin/brain';
-import type { KeptHomeRow, KeptBossRow } from '@wildshard/game/shardfile/homeKeeper';
-import type { MarkedBossRowSpec } from './shardfile/markedBossRow';
-import type { LashHostSpec } from './items/lashHost';
-import type { QuestGraphPorts, QuestGraphRows } from '@wildshard/game/plugin/quests';
+import type { QuestGraphPorts } from '@wildshard/game/plugin/quests';
 import { proveTerrainEntries, type TerrainEntryWalk } from '@wildshard/game/plugin/mover';
 import type { HeadlessRuntimePreparation, HeadlessRuntimePlan } from '@wildshard/sdk/headlessRuntime';
-
-/**
- * A trusted runtime's renderer-free host declared as rows (SHARD-PLATFORM SF27): the browser-baked metadata (`baked`:
- * each kind's native spec, the collider pieces, the prompt and crack spots), the creature homes and their declared
- * brains, a marked boss, a lash item, the quest graph and the terrain entry walk.
- */
-export interface RowsHeadlessManifest {
-  /** The browser-baked metadata (`{ actors, bosses, pieces, spots }`), parsed strictly here. */
-  readonly baked: unknown;
-  readonly homes: {
-    /** The keeper's fixed-step id; its continuation names the live roster. */
-    readonly step: string;
-    readonly seed: number;
-    readonly rows: readonly KeptHomeRow[];
-    readonly species: readonly BrainedSpecies[];
-    readonly strikes: readonly StrikeData[];
-    /** Admitted species script modules, sha256 → base64. */
-    readonly modules: Readonly<Record<string, string>>;
-    readonly attackers: number;
-    readonly think: { readonly every: number; readonly dt: number };
-    /** A kind's contact move is `${prefix}${kind}${suffix}`. */
-    readonly contact: { readonly prefix: string; readonly suffix: string };
-    /** A home's actor holds (its memory `field` is 1) until a flag is raised (a creature that waits for the quest). */
-    readonly holds?: readonly { readonly home: number; readonly field: string; readonly until: string }[];
-  };
-  /** The marked boss: its body row and fight rows; its body is the keeper's. */
-  readonly boss: MarkedBossRowSpec & { readonly row: KeptBossRow };
-  /** The lash item: its declared row's id and its host rows (a player attack is its light crack; a crack row's act its world crack). */
-  readonly lash: { readonly id: string } & Pick<LashHostSpec, 'step' | 'profile' | 'eye'>;
-  /** The quest graph (the admitted quests come from the shardfile). */
-  readonly quest: Omit<QuestGraphRows, 'quests'>;
-  readonly entries: TerrainEntryWalk;
-}
 
 const finite = v.pipe(v.number(), v.finite());
 const BakedSpec = v.strictObject({ kind: v.string(), label: v.string(), variant: v.string(), rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']),
@@ -81,7 +43,7 @@ export function bakedSpecs(baked: unknown): ReadonlyMap<string, AnimalSimSpec> {
 }
 
 /** Prepare only the admitted native level; Signal installs its declared owners exactly once in signalPlan.ts. */
-export function prepareRowLevel(manifest: Pick<RowsHeadlessManifest, 'entries'>, { shard, assets }: HeadlessRuntimePreparation): Omit<HeadlessRuntimePlan, 'install'> {
+export function prepareRowLevel(manifest: { readonly entries: TerrainEntryWalk }, { shard, assets }: HeadlessRuntimePreparation): Omit<HeadlessRuntimePlan, 'install'> {
   if (shard.terrain === null) throw new Error('A rows headless runtime declares its admitted terrain collider');
   const bytes = assets.get(shard.terrain.collider);
   if (bytes === undefined) throw new Error('Missing the admitted terrain collider');

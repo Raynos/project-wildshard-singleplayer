@@ -12,7 +12,7 @@ import { prepareRowLevel, bakedSpecs, bakedSpots } from './rowsHeadless';
 import { parsePromptRegistrations } from '@wildshard/sdk/runtime/prompts';
 import type { HeadlessRuntimeInstallation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../data/brains';
-import { SIGNAL_HEADLESS } from './headlessRows';
+import { SIGNAL_HEADLESS } from '../data/headlessOwners';
 import baked from './physics.baked.json' with { type: 'json' };
 import { SignalLashInput } from './lashInput';
 
@@ -56,7 +56,7 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = args => {
       custom: kind => { throw new Error(`No declared Signal policy for ${kind}`); },
       beforeStep: kept => {
         for (let i = 0; i < 1024; i++) {
-          const hold = holds?.[i];
+          const hold = holds[i];
           if (hold === undefined) break;
           const actor = kept[hold.home]?.actor;
           if (actor) actor.mem[hold.field] = host.flags.has(hold.until) ? 0 : 1;

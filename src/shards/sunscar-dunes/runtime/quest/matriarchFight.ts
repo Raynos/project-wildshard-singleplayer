@@ -1,6 +1,6 @@
 import { parseMarkedBossPresentation } from '../shardfile/markedBossPresentation';
 import { DUNE_FIELD } from '../looks/duneFieldRows';
-import { BASIN } from '../../data/layout';
+import { MATRIARCH_ARENA } from '../../data/matriarchEncounter';
 import { STRINGS } from '../../data/strings';
 
 /**
@@ -10,6 +10,6 @@ import { STRINGS } from '../../data/strings';
  * dunes are gone by 100 m) and two shells of blown sand (P2 #11: 46 m at 0.85, 22 m at 0.4) streaking down the dunes'
  * wind; the summons and reward toasts.
  */
-export const MATRIARCH_PRESENTATION = parseMarkedBossPresentation({ floor: DUNE_FIELD.basinFloor, respawn: { x: BASIN.x, z: BASIN.z + BASIN.r + 4, yaw: 0 },
+export const MATRIARCH_PRESENTATION = parseMarkedBossPresentation({ ...MATRIARCH_ARENA,
   storm: { dist: 0.03, color: 0x8a5238, shells: [[46, 0.85], [22, 0.4]], wind: DUNE_FIELD.wind },
   toasts: { summoned: STRINGS.summoned, reward: STRINGS.bossReward, rewardAgain: STRINGS.bossRewardAgain } });

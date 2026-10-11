@@ -1,3 +1,7 @@
+import { SIGNAL_HEADLESS } from '../../../src/shards/sunscar-dunes/data/headlessOwners';
+import { MATRIARCH_ARENA } from '../../../src/shards/sunscar-dunes/data/matriarchEncounter';
+import { MATRIARCH_PRESENTATION } from '../../../src/shards/sunscar-dunes/runtime/quest/matriarchFight';
+import { DUNE_FIELD } from '../../../src/shards/sunscar-dunes/runtime/looks/duneFieldRows';
 import { describe, expect, it } from 'vitest';
 import { SCOUT_ROW, DISCOVERY_PLACES } from '../../../src/shards/sunscar-dunes/data/questPresentation';
 import { SCOUT_NPC, SCOUT_MODEL } from '../../../src/shards/sunscar-dunes/quests/scout';
@@ -6,6 +10,13 @@ import { STRINGS } from '../../../src/shards/sunscar-dunes/data/strings';
 import { COMPLETE_FLAG } from '../../../src/shards/sunscar-dunes/data/signalQuest';
 
 describe('Signal authored quest presentation rows', () => {
+  it('feeds the page and native arena and scout from the same authored parameters', () => {
+    expect(MATRIARCH_ARENA.floor).toBe(DUNE_FIELD.basinFloor);
+    expect(MATRIARCH_ARENA).toEqual({ floor: 0.8, respawn: { x: -14, z: -90, yaw: 0 } });
+    expect(MATRIARCH_PRESENTATION).toMatchObject(MATRIARCH_ARENA);
+    expect(SIGNAL_HEADLESS.boss).toMatchObject(MATRIARCH_ARENA);
+    expect(SIGNAL_HEADLESS.quest.npcs).toEqual([SCOUT_NPC]);
+  });
   it('keeps the scout column, pivots and ordered dialogue on its real validated binding', () => {
     expect(SCOUT_NPC).toMatchObject({ id: 'sunscar.scout', name: STRINGS.scoutName, spot: 'scout', at: SCOUT_AT,
       faceHome: { x: 0, z: 70 }, metFlag: SCOUT_FLAG, talkHeight: 1.62, talkRadius: 3.5, faceRange: 12, waveRange: 16,

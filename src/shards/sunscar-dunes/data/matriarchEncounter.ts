@@ -1,3 +1,4 @@
+import { BASIN } from './layout';
 import { MATRIARCH_BOSS_PROFILE } from './matriarchBoss';
 import { STRINGS } from './strings';
 import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from './signalQuest';
@@ -13,3 +14,6 @@ export const MATRIARCH_DEFINITION = { id: MATRIARCH_ID, name: STRINGS.matriarch,
     { at: 0.33, caption: STRINGS.phaseGrounded, name: STRINGS.phaseGrounded }], reward: {} };
 /** Current-save defeated and paid flags used by both native encounter owners. */
 export const MATRIARCH_RECORD = { defeated: MATRIARCH_DEFEATED_FLAG, paid: MATRIARCH_PAID_FLAG } as const;
+
+/** The native arena floor and death return at the south rim, shared by both fight owners. */
+export const MATRIARCH_ARENA = { floor: 0.8, respawn: { x: BASIN.x, z: BASIN.z + BASIN.r + 4, yaw: 0 } };
