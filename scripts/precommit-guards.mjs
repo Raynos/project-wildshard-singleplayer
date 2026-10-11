@@ -68,8 +68,8 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'))
     const manifest = changed.some((p) => /^src\/shards\/[^/]+\/manifest\.ts$/u.test(p));
     const predecessor = join(scratch, 'predecessor');
     mkdirSync(predecessor);
-    const predecessorLists = PLATFORM_LISTS.filter((list) => !['lint/weapon-subclasses.json', 'lint/runtime-performance.json', 'lint/legacy-shards.json'].includes(list) || spawnSync('git', ['cat-file', '-e', `HEAD:${list}`], { cwd: root }).status === 0);
-    extractGuardArchive(root, 'HEAD', [...predecessorLists, ...(changed.includes('lint/runtime-performance.json') ? ['src/game', 'src/sdk', 'src/engine'] : [])], predecessor);
+    const predecessorLists = PLATFORM_LISTS.filter((list) => !['lint/weapon-subclasses.json', 'lint/class-moves.json', 'lint/runtime-performance.json', 'lint/legacy-shards.json'].includes(list) || spawnSync('git', ['cat-file', '-e', `HEAD:${list}`], { cwd: root }).status === 0);
+    extractGuardArchive(root, 'HEAD', [...predecessorLists, ...(changed.includes('lint/runtime-performance.json') || changed.includes('lint/class-moves.json') ? ['src/game', 'src/sdk', 'src/engine'] : [])], predecessor);
     const snapshot = guardSnapshot(root, tree, scratch, paths);
     // SF2 observes every shard, including inherited context/class types outside changed files. A manifest change also
     // needs the generator scripts; one extraction, so no child reads a file while another tar rewrites it.

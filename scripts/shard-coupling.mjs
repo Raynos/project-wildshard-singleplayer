@@ -1,13 +1,48 @@
 #!/usr/bin/env node
 // SF2: count typed boundary reaches and engine inheritance, never comments or identifier spelling.
 import { existsSync, globSync, readFileSync, writeFileSync } from 'node:fs';
-import { relative, resolve } from 'node:path';
+import { dirname, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 import ts from '@typescript/typescript6';
 import { legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const LIST = 'lint/shard-coupling.json';
+/** Exact predecessor-proven class relocations; raw measured counts remain visible. */
+export const CLASS_MOVE_LIST = 'lint/class-moves.json';
+
+/** Hash each complete class body, including its heritage; import relocation does not alter its implementation. */
+export function classMoveSites(text, filename, root = ROOT) {
+  const source = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true), sites = [];
+  const bindings = new Map(), locals = new Set();
+  const moduleFile = module => {
+    if (module.startsWith('.')) return relative(root, resolve(root, dirname(filename), module.replace(/\.js$/u, '') + (module.endsWith('.ts') ? '' : '.ts'))).replaceAll('\\', '/');
+    const match = /^@wildshard\/(engine|game|sdk)\/(.+)$/u.exec(module);
+    if (match === null) return null;
+    const pack = resolve(root, `src/${match[1]}/package.json`);
+    const exported = existsSync(pack) ? JSON.parse(readFileSync(pack, 'utf8')).exports?.[`./${match[2]}`] : null;
+    return typeof exported === 'string' ? `src/${match[1]}/${exported.replace(/^\.\//u, '')}` : `src/${match[1]}/${match[2]}.ts`;
+  };
+  const collect = node => {
+    if (ts.isClassDeclaration(node) && node.name) locals.add(node.name.text);
+    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+      const bound = node.importClause?.namedBindings;
+      if (bound && ts.isNamedImports(bound)) for (const item of bound.elements) bindings.set(item.name.text, moduleFile(node.moduleSpecifier.text));
+    }
+    ts.forEachChild(node, collect);
+  }; collect(source);
+  const visit = node => {
+    if (ts.isClassDeclaration(node) || ts.isClassExpression(node)) {
+      const heritage = node.heritageClauses?.find(clause => clause.token === ts.SyntaxKind.ExtendsKeyword)?.types[0]?.expression;
+      const binding = heritage && ts.isIdentifier(heritage) ? heritage.text : null;
+      sites.push({ hash: createHash('sha256').update(node.getText(source)).digest('hex'), name: node.name?.text ?? '<anonymous>',
+        baseFile: binding === null ? null : locals.has(binding) ? filename : bindings.get(binding) ?? null });
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source); return sites;
+}
 export const WEAPON_TRANSFER_LIST = 'lint/weapon-subclasses.json';
 // Reviewed bootstrap for the two classes relocated by f6d18f088, not a wildcard or a new inheritance budget.
 export const WEAPON_TRANSFER_BOOTSTRAP = {
@@ -28,6 +63,9 @@ const CONTEXT_FILES = new Set(['src/game/plugin/context.ts', 'src/engine/level/c
 const initial = () => ({ 'ctx.app': 0, 'ctx.game': 0, 'ctx.game.runtime': 0, engineSubclasses: 0 });
 
 export function shardCoupling(root = ROOT) {
+  const movePath = resolve(root, CLASS_MOVE_LIST);
+  const moves = existsSync(movePath) ? JSON.parse(readFileSync(movePath, 'utf8')).moves : {};
+  const usedMoves = new Set();
   const transferPath = resolve(root, WEAPON_TRANSFER_LIST);
   const transfers = existsSync(transferPath) ? JSON.parse(readFileSync(transferPath, 'utf8')).transfers : {};
   const invalid = compareWeaponTransfers(WEAPON_TRANSFER_BOOTSTRAP, transfers);
@@ -146,7 +184,20 @@ export function shardCoupling(root = ROOT) {
               claimedTransfers.add(original);
               const at = source.getLineAndCharacterOfPosition(node.getStart(source));
               (row.transfers ??= []).push({ from: transfer.from, site: `${file}:${at.line + 1}:${at.character + 1}`, class: transfer.class, base: name });
-            } else { add('engineSubclasses', node); add(`subclass.${name}`, node); }
+            } else {
+              add('engineSubclasses', node); add(`subclass.${name}`, node);
+              const hash = createHash('sha256').update(node.getText(source)).digest('hex'), key = `${file}:${hash}`, move = moves[key];
+              if (move !== undefined) {
+                const baseDeclarations = type.getSymbol()?.declarations ?? [];
+                const definedAt = baseDeclarations.find(decl => ts.isClassDeclaration(decl) || ts.isClassExpression(decl));
+                const definedFile = definedAt === undefined ? null : local(definedAt.getSourceFile().fileName);
+                const originalFile = Object.values(moves).find(item => item.to === definedFile)?.from ?? definedFile;
+                if (move.to !== file || move.hash !== hash || move.name !== (node.name?.text ?? '<anonymous>') || move.base !== name || move.baseFile !== originalFile
+                  || existsSync(resolve(root, move.from)) || usedMoves.has(key)) throw new Error(`Invalid verbatim class move ${key}`);
+                usedMoves.add(key);
+                (row.verbatimMoves ??= []).push({ from: move.from, site: key, base: name });
+              }
+            }
           }
         }
       }
@@ -154,6 +205,7 @@ export function shardCoupling(root = ROOT) {
     };
     visit(source);
   }
+  for (const key of Object.keys(moves)) if (!usedMoves.has(key)) throw new Error(`Unmatched verbatim class move ${key}; retire it before editing the class`);
   return shards;
 }
 
@@ -161,8 +213,10 @@ export function shardCoupling(root = ROOT) {
 export function compareCoupling(baseline, candidate) {
   const failures = [];
   for (const [slug, row] of Object.entries(candidate)) for (const [metric, count] of Object.entries(row.counts)) {
-    const ceiling = baseline[slug]?.counts[metric] ?? 0;
-    if (!Number.isSafeInteger(count) || count < 0 || count > ceiling) failures.push(`${slug}: ${metric} rose ${ceiling} → ${count}`);
+    const moved = value => (value?.verbatimMoves ?? []).filter(move => metric === 'engineSubclasses' || metric === `subclass.${move.base}`).length;
+    const ceiling = (baseline[slug]?.counts[metric] ?? 0) - moved(baseline[slug]);
+    const active = count - moved(row);
+    if (!Number.isSafeInteger(count) || active < 0 || active > ceiling) failures.push(`${slug}: ${metric} rose ${ceiling} → ${active}`);
   }
   return failures;
 }

@@ -1,5 +1,5 @@
 // SF1b: immutable predecessor lists, never the candidate's own allowance, set the limit.
-import { compareCoupling, compareWeaponTransfers, WEAPON_TRANSFER_BOOTSTRAP, WEAPON_TRANSFER_LIST } from './shard-coupling.mjs';
+import { compareCoupling, compareWeaponTransfers, WEAPON_TRANSFER_BOOTSTRAP, WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, classMoveSites } from './shard-coupling.mjs';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { runtimePerformanceSites } from '../lint/runtime-performance.mjs';
 import { compareLegacyInventory, LEGACY_INVENTORY } from './legacy-shards.mjs';
 
-export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY];
+export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY];
 
 // Consume removed predecessor syntax once, across all destinations. Immutable source trees establish
 // whether an implementation actually moved; neither the new allowance nor a review label can grant debt.
@@ -63,6 +63,32 @@ function verbatimRuntimeMoves(before, after, trees) {
 
 /** Explicit immutable trees permit proven verbatim moves; every other policy allowance remains shrink-only. */
 export function comparePlatformList(list, baselineFile, candidateFile, trees) {
+  if (list === CLASS_MOVE_LIST) {
+    const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')).moves : {};
+    if (!existsSync(candidateFile)) return Object.keys(before).length > 0 ? [`${list}: class move records removed`] : [];
+    const after = JSON.parse(readFileSync(candidateFile, 'utf8')), failures = [], consumed = new Map();
+    if (after.version !== 1 || Object.keys(after).sort().join(',') !== 'moves,version') return [`${list}: invalid shape`];
+    for (const [key, move] of Object.entries(after.moves)) {
+      if (before[key] !== undefined) {
+        if (JSON.stringify(before[key]) !== JSON.stringify(move)) failures.push(`${list}: immutable move changed ${key}`);
+        continue;
+      }
+      if (trees === undefined || Object.keys(move).sort().join(',') !== 'base,baseFile,from,hash,name,to'
+        || !/^src\/(?:game|sdk|engine)\/[^.][^:]*\.ts$/u.test(move.from) || move.from.split('/').includes('..')
+        || !/^src\/shards\/[^/]+\/runtime\/[^:]+\.ts$/u.test(move.to) || move.to.split('/').includes('..')
+        || key !== `${move.to}:${move.hash}` || !/^[a-f0-9]{64}$/u.test(move.hash)) { failures.push(`${list}: unproved move ${key}`); continue; }
+      const source = join(trees.baselineRoot, move.from), target = join(trees.candidateRoot, move.to);
+      if (!existsSync(source) || existsSync(join(trees.candidateRoot, move.from)) || !existsSync(target)) { failures.push(`${list}: source not retired ${key}`); continue; }
+      const matches = (path, file, root, original) => classMoveSites(readFileSync(path, 'utf8'), file, root).filter(site => {
+        const baseFile = original ? site.baseFile : Object.values(after.moves).find(item => item.to === site.baseFile)?.from ?? site.baseFile;
+        return site.hash === move.hash && site.name === move.name && baseFile === move.baseFile && baseFile !== null;
+      }).length;
+      const original = matches(source, move.from, trees.baselineRoot, true), current = matches(target, move.to, trees.candidateRoot, false), sourceKey = `${move.from}:${move.hash}`;
+      const used = (consumed.get(sourceKey) ?? 0) + 1; consumed.set(sourceKey, used);
+      if (original < used || current !== 1) failures.push(`${list}: class body changed or copied ${key}`);
+    }
+    return failures;
+  }
   if (list === LEGACY_INVENTORY) {
     if (!existsSync(candidateFile)) return existsSync(baselineFile) ? [`${list}: frozen policy removed; retire its rows instead`] : [];
     const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')) : { version: 1, sealed: false, shards: {} };
