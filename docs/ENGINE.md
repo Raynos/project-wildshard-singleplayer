@@ -3315,3 +3315,7 @@ The record sink, command shape, motion math and use/consume order stay unchanged
 ## Author scene proof (OS-F7)
 
 Data-only interaction commands use the shipping prompt law (distance, nearest priority and native LOS). SDK headless.proveSceneClient reads the built client's actual native-bound visible skins and selected prompt; it accepts no caller evidence. See [scene proof](authoring/scene-proof.md).
+
+## Mandatory author brief proof (OS-F9)
+
+SDK headless.proveMesaNative runs a bounded native approach, proves all three goats flee and the hawk dives and lands damage, controls the beacon interaction against an unlit replay, and restores an exact suffix. headless.proveEquippedItemClient checks actual mounted visible geometry from the admitted asset lease. The retained author-template/prove-mesa.ts combines these with scene proof and the exact commons spear catalogue. See [mandatory brief coverage](authoring/brief-coverage.md).

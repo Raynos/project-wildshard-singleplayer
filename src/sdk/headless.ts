@@ -9,8 +9,9 @@ import { pathToFileURL } from 'node:url';
 import { validateShardfileAssets } from '@wildshard/game/shardfile/validate';
 import type { Shardfile } from './shardfile';
 import { TickWorkerHost } from './tickWorkerHost';
-import { AuthorProofPlanSchema, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommandSource, type HeadlessTickCommit } from './tickProtocol';
+import { AuthorProofPlanSchema, TickCommandSchema, type HeadlessCommand, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommandSource, type HeadlessTickCommit } from './tickProtocol';
 import * as v from 'valibot';
+import { decodeSimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { trustedHeadlessModule, type TrustedHeadlessRuntime } from './headlessRuntime';
 import { SCRIPT_LIMITS } from '@wildshard/engine/script/host';
 
@@ -124,4 +125,117 @@ export async function proveSceneClient(page: AuthorProofPage, expected: { creatu
   }
   if (evidence.selectedInteraction !== expected.selectedInteraction) throw new Error('Actual page prompt selection differs');
   return evidence;
+}
+
+/** Mandatory native Mesa Outpost identities: three distinct goats, one hawk and a scene-controlled boolean beacon. */
+export interface MesaProofPlan { goats: readonly [string, string, string]; hawk: string; beacon: string; beaconField: string; route: HeadlessCommand[][] }
+/** Observations from the SDK-owned native worker; each mandatory gate refuses instead of publishing a partial PASS. */
+export interface MesaNativeReport {
+  ticks: number; goats: { id: string; fleeing: true; displacement: number; distance: number }[];
+  hawk: { id: string; attacking: true; hit: true; minimumAbovePlayer: number; initialHealth: number; minimumHealth: number };
+  beacon: { id: string; field: string; lit: true }; replay: { checkpointTick: number; suffixTicks: 30; exact: true };
+}
+function authorHealth(saved: ReturnType<typeof decodeSimSnapshot>): number {
+  const root = saved.player.health;
+  if (root.kind !== 'record') throw new Error('Missing native player health');
+  const attributes = root.entries.find(([name]) => name === 'attributes')?.[1];
+  if (attributes?.kind !== 'record') throw new Error('Missing native health attributes');
+  const health = attributes.entries.find(([name]) => name === 'health')?.[1];
+  if (health?.kind !== 'value' || typeof health.value !== 'number' || !Number.isFinite(health.value)) throw new Error('Invalid native health observation');
+  return health.value;
+}
+function beaconValue(saved: ReturnType<typeof decodeSimSnapshot>, shard: Shardfile, name: string): number {
+  const index = shard.state.shared.findIndex(row => row.name === name && row.type === 'bool');
+  const lane = saved.adapters.find(row => row.id === 'script.declared');
+  if (index === -1 || typeof lane?.state !== 'string') throw new Error('Beacon requires a declared script-owned boolean');
+  const data = v.parse(v.object({ world: v.object({ shared: v.array(v.number()) }) }), JSON.parse(lane.state));
+  const value = data.world.shared[index]; if (value !== 0 && value !== 1) throw new Error('Missing native beacon state'); return value;
+}
+function authorStrikeHit(saved: ReturnType<typeof decodeSimSnapshot>, id: string): boolean {
+  const lane = saved.adapters.find(row => row.id === `brain.${id}`);
+  if (!Array.isArray(lane?.state) || typeof lane.state[1] !== 'string') throw new Error('Missing native diver continuation');
+  const policy = v.parse(v.object({ strikes: v.object({ hit: v.boolean() }) }), JSON.parse(lane.state[1]));
+  return policy.strikes.hit;
+}
+/** Execute every Mesa fauna/beacon gate with real bodies, native strikes and a gated interaction, plus an exact restored suffix.
+ * This function owns its worker; no supplied snapshots, observations, facts, host modules or optional gate switches count. */
+export async function proveMesaNative(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, plan: MesaProofPlan): Promise<MesaNativeReport> {
+  const route = v.parse(v.pipe(v.array(v.pipe(v.array(TickCommandSchema), v.maxLength(1024))), v.maxLength(4096)), plan.route);
+  const ids = [...plan.goats, plan.hawk];
+  if (ids.length !== 4 || new Set(ids).size !== 4 || ids.some(id => typeof id !== 'string' || id.length === 0)) throw new Error('Mesa requires three distinct goats and one hawk');
+  if (shard.runtime !== null || !shard.targets.interactions.some(row => row.id === plan.beacon)) throw new Error('Mesa requires a data-only scene beacon');
+  for (const id of ids) {
+    const spawn = shard.creatures.spawns.find(row => row.id === id), species = shard.rows.species.find(row => row.id === spawn?.species);
+    if (species?.kind !== (id === plan.hawk ? 'hawk' : 'goat')) throw new Error(`Missing required Mesa species: ${id}`);
+  }
+  const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory' });
+  try {
+    const initial = decodeSimSnapshot((await sim.step()).snapshot), initialHealth = authorHealth(initial);
+    if (beaconValue(initial, shard, plan.beaconField) !== 0) throw new Error('Beacon starts lit; no interaction proved');
+    const distance = (a: readonly number[], b: readonly number[]): number => Math.hypot(...a.map((value, index) => value - (b[index] ?? 0)));
+    const goats = plan.goats.map(id => {
+      const body = initial.entities.find(row => row.id === id); if (body === undefined) throw new Error('Missing native goat');
+      return { id, start: body.state.position, fleeing: false };
+    });
+    const attacks = { attacking: false, hit: false };
+    let minimumAbovePlayer = Infinity, minimumHealth = initialHealth, checkpoint = '', checkpointTick = 0;
+    const suffix: string[] = []; let last = initial;
+    const observeMesa = (snapshot: string): void => {
+      last = decodeSimSnapshot(snapshot);
+      for (const goat of goats) {
+        const body = last.entities.find(row => row.id === goat.id); if (body === undefined) throw new Error('Required native goat disappeared');
+        goat.fleeing ||= body.state.state === 'flee' && body.state.motion.desiredSpeed > 3;
+      }
+      const hawk = last.entities.find(row => row.id === plan.hawk); if (hawk === undefined) throw new Error('Required native hawk disappeared');
+      attacks.attacking ||= hawk.state.motion.attackT >= 0;
+      attacks.hit ||= authorStrikeHit(last, plan.hawk);
+      minimumAbovePlayer = Math.min(minimumAbovePlayer, (hawk.state.position[1] ?? Infinity) - (last.player.position[1] ?? -Infinity));
+      minimumHealth = Math.min(minimumHealth, authorHealth(last));
+    };
+    for (const commands of route) observeMesa((await sim.step([{ source: 'mesa.route', commands }])).snapshot);
+    if (beaconValue(last, shard, plan.beaconField) !== 0) throw new Error('Beacon changed before its required interaction');
+    const interactionStart = sim.checkpoint?.snapshot;
+    if (interactionStart === undefined) throw new Error('Missing native interaction checkpoint');
+    const control = await HeadlessSimulation.create(shard, assets, interactionStart, { deadline: 'advisory' });
+    try {
+      for (let tick = 0; tick <= shard.sim.scriptTickDivisor; tick++) {
+        if (beaconValue(decodeSimSnapshot((await control.step()).snapshot), shard, plan.beaconField) !== 0) throw new Error('Beacon lights without its required interaction');
+      }
+    } finally { await control.dispose(); }
+    observeMesa((await sim.step([{ source: 'mesa.beacon', commands: [{ kind: 'interact', id: plan.beacon }] }])).snapshot);
+    for (let tick = 0; tick < shard.sim.scriptTickDivisor; tick++) observeMesa((await sim.step()).snapshot);
+    if (beaconValue(last, shard, plan.beaconField) !== 1) throw new Error('Real reachable beacon interaction did not light its declared state');
+    for (let tick = 0; tick < 600; tick++) {
+      const commit = await sim.step(); observeMesa(commit.snapshot);
+      if (tick === 299) { checkpoint = commit.snapshot; checkpointTick = commit.tick; }
+      if (tick >= 300 && tick < 330) suffix.push(commit.snapshot);
+    }
+    const flights = goats.map(goat => {
+      const body = last.entities.find(row => row.id === goat.id); if (body === undefined) throw new Error('Missing final native goat');
+      const displacement = distance(body.state.position, goat.start), away = distance(body.state.position, last.player.position);
+      if (!goat.fleeing || displacement <= 10 || away <= 15) throw new Error(`Goat flight not proved: ${goat.id}`);
+      return { id: goat.id, fleeing: true as const, displacement, distance: away };
+    });
+    if (!attacks.attacking || !attacks.hit || minimumAbovePlayer > 1.21 || minimumHealth >= initialHealth) throw new Error(`Hawk dive and landed native attack not proved: ${JSON.stringify({ ...attacks, minimumAbovePlayer, initialHealth, minimumHealth })}`);
+    const restored = await HeadlessSimulation.create(shard, assets, checkpoint, { deadline: 'advisory' });
+    try { for (const expected of suffix) if ((await restored.step()).snapshot !== expected) throw new Error('Mesa native restored suffix differs'); }
+    finally { await restored.dispose(); }
+    return { ticks: last.state.tick, goats: flights, hawk: { id: plan.hawk, attacking: true, hit: true, minimumAbovePlayer, initialHealth, minimumHealth },
+      beacon: { id: plan.beacon, field: plan.beaconField, lit: true }, replay: { checkpointTick, suffixTicks: 30, exact: true } };
+  } finally { await sim.dispose(); }
+}
+
+/** Prove the current weapon is mounted and drawing geometry from its admitted immutable asset lease, rather than a placeholder. */
+export async function proveEquippedItemClient(page: AuthorProofPage, id: string, asset: string): Promise<{ id: string; asset: string; meshes: number }> {
+  const raw = await page.evaluate(() => {
+    const probe: unknown = Reflect.get(window, '__wildshard');
+    if (typeof probe !== 'object' || probe === null || !('shard' in probe) || typeof probe.shard !== 'object' || probe.shard === null) throw new Error('Missing built author client');
+    const data: unknown = Reflect.get(probe.shard, 'shardfile');
+    if (typeof data !== 'object' || data === null || !('equipmentEvidence' in data) || typeof data.equipmentEvidence !== 'function') throw new Error('Missing live equipment proof owner');
+    return (data as { equipmentEvidence: () => unknown }).equipmentEvidence();
+  });
+  const evidence = v.parse(v.strictObject({ tick: v.pipe(v.number(), v.minValue(1)), frames: v.pipe(v.number(), v.minValue(1)), id: v.string(), asset: v.nullable(v.string()),
+    mounted: v.boolean(), visible: v.boolean(), meshes: v.number(), sameAsset: v.boolean() }), raw);
+  if (evidence.id !== id || evidence.asset !== asset || !evidence.mounted || !evidence.visible || !evidence.sameAsset || evidence.meshes < 1) throw new Error('Required asset-backed item is not actually equipped');
+  return { id, asset, meshes: evidence.meshes };
 }

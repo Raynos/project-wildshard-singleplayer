@@ -1715,3 +1715,7 @@ game and engine runtime imports remain refused. This starter has no javelin thro
 ## Authored scene interaction proof (OS-F7)
 
 Use a finite interact command naming a declared target to prove its reachable scene, rather than directly enqueueing a numeric event. Use SDK headless.proveSceneClient for actual bound views and page prompt selection. The retained scripts/test-author-scene.mjs builds and enters a real public-author product; negative view/prompt checks and native distance/LOS refusals are required.
+
+## Mandatory Mesa brief coverage (OS-F9)
+
+Author bootstrap includes prove-mesa.ts. Its proveMesaOutpost requires all three native fleeing goats, a diving/hitting hawk, a gated scene-controlled beacon with an unlit control replay, visible native-bound client views and the exact equipped commons spear asset/profile closure. Pass the actual built shard and admitted bytes, an entered browser page and a finite native approach tape; no teleport, caller evidence or optional gates. Run it beside validate and prove for the separate entry, budget, grid and Ledger gates. See [brief coverage](authoring/brief-coverage.md).

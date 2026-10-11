@@ -17,6 +17,7 @@ it('bootstraps retained TS generators without replacing installed dependencies o
     expect(manifest).toMatchObject({ ...installed, private: true, type: 'module', scripts: { ...installed.scripts, generate: 'node --experimental-strip-types generate.ts', synth: 'wildshard synth .' } });
     expect(readFileSync(join(root, 'generators/world.ts'), 'utf8')).toContain('new Mesh(new BoxGeometry');
     expect(readFileSync(join(root, 'shard.config.ts'), 'utf8')).toContain('createCatalogue');
+    expect(readFileSync(join(root, 'prove-mesa.ts'), 'utf8')).toContain('proveMesaOutpost');
     const before = readFileSync(join(root, 'shard.config.ts'));
     expect(() => bootstrapAuthor(root)).toThrow('Refusing to replace');
     expect(readFileSync(join(root, 'shard.config.ts'))).toEqual(before);

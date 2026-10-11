@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { Object3D, Vector3 } from 'three';
+import { Mesh, Object3D, Vector3 } from 'three';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
@@ -58,6 +58,8 @@ import { scriptDisabledNotice } from './scriptNotice';
 import type { DeclaredGroupPorts } from './groupRuntime';
 import type { Shardfile } from './schema';
 import type { DeclaredBrainPorts } from './brainRuntime';
+
+function isProofMesh(value: Object3D): value is Mesh { return value instanceof Mesh; }
 
 function isItemModel(value: unknown): value is Object3D { return value instanceof Object3D; }
 
@@ -387,6 +389,28 @@ export class ShardfileClient {
     if (this.bindings.audioOwner !== 'runtime') installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play) });
     ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather,
       // Read actual live views; an authored spawn or a detached model alone cannot satisfy the author view proof.
+      equipmentEvidence: () => {
+        const equipment = ctx.app.equipment;
+        if (equipment === null) throw new Error('Missing actual equipment owner');
+        const current = equipment.current, declaration = source.items.rows.find(row => row.id === current.row.id);
+        const asset = declaration?.view.asset ?? null, loaded = asset === null ? undefined : this.itemModels.get(asset), model = current.model;
+        let meshes = 0, sameAsset = loaded !== undefined, visible = model.visible;
+        const geometries = new Set<Mesh['geometry']>();
+        loaded?.traverse(node => { if (isProofMesh(node)) geometries.add(node.geometry); });
+        if (model instanceof Object3D) {
+          for (let parent: Object3D | null = model; parent !== null; parent = parent.parent) visible &&= parent.visible;
+          model.traverse(node => {
+            if (!(isProofMesh(node))) return;
+            const materials = Array.isArray(node.material) ? node.material : [node.material];
+            let draws = true;
+            for (let parent: Object3D | null = node; parent !== null; parent = parent.parent) draws &&= parent.visible;
+            if (draws && node.geometry.getAttribute('position').count >= 3 && materials.some(material => material.visible && material.opacity > 0)) meshes++;
+            sameAsset &&= geometries.has(node.geometry);
+          });
+        }
+        return { tick: sim.host.state.tick, frames: renderCount(world.game.renderer), id: current.row.id, asset,
+          mounted: model.parent === equipmentHost.viewmodel, visible, meshes, sameAsset };
+      },
       sceneEvidence: () => {
         const selected = pickPrompt(runtime.interactables, world.game.camera.position, sim.host.physics);
         const interaction = selected === undefined ? undefined : source.targets.interactions.find(row => row.label === selected.label && row.at.every((coordinate, axis) => coordinate === selected.position.getComponent(axis)));
