@@ -87,3 +87,10 @@ No cap relaxation, re-encoding or accounting discount has been applied. Full
 adoption needs a bounded lossless bank/stream ownership design and exact audio
 proof; declaring the current whole sprite would honestly refuse admission.
 SF29 therefore remains open for recording closure.
+
+The requested lossless AAC packet split also failed exactness on both FFmpeg
+and Apple AudioToolbox. The [retained negative proof](SF29-pine-aac-split.md)
+records unchanged encoded packets, exact full-decode controls, all 84 offset
+round trips, and 41 changed cues after independent restart. Entire-prefix
+replay is exact but still exceeds 25 MB. This audio change is stopped; no cap
+relaxation or re-encoding was applied.
