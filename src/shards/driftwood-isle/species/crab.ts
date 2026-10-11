@@ -1,6 +1,6 @@
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { animateCrab } from './crabPose';
-import { legacyCrabDecision, type CrabMem } from '../runtime/crabDecision';
+import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';
@@ -219,10 +219,21 @@ export class CrabBrain<A extends AnimalSim, C extends CrabStrikePorts<A>> extend
   }
   override act(ctx: C): void { strikeCrab(this.actor, ctx); }
 }
+/** `Animal.mem` as the crab uses it (numbers only, the registry contract): every key is written by the first `think` tick */
+interface CrabMem extends Record<string, number> {
+  init: number; hx: number; hz: number; st: number; tm: number; sd: number; cd: number; hitT: number; shy: number; scat: number;
+  wander: number; tx: number; tz: number; hit: number;
+}
+
 const brains = new WeakMap<Animal, CrabBrain<Animal, ThinkCtx>>();
 function brain(a: Animal): CrabBrain<Animal, ThinkCtx> {
   let value = brains.get(a);
-  if (value === undefined) { value = new CrabBrain(a, legacyCrabDecision); brains.set(a, value); }
+  if (value === undefined) {
+    const decision = driftwoodSpeciesBrains.decision('crab', a);
+    if (decision.archetype !== 'skirmisher') throw new Error('Driftwood crab requires its authored stalker skirmish row');
+    value = new CrabBrain<Animal, ThinkCtx>(a, (_actor, ctx) => { decision.policy.think(ctx); });
+    brains.set(a, value);
+  }
   return value;
 }
 function thinkCrab(a: Animal, ctx: ThinkCtx): void { brain(a).think(ctx); }

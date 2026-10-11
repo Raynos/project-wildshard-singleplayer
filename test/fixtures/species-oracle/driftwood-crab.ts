@@ -1,5 +1,6 @@
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
+// Shipping default decision captured verbatim (apart from defining type-import paths) from 5206a41281771a40b0b2f73f65e40562474554ac:src/shards/driftwood-isle/runtime/crabDecision.ts.
+import type { Animal } from '../../../src/engine/entities/AnimalView';
+import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
 
 /** `Animal.mem` as the crab uses it (numbers only, the registry contract): every key is written by the first `think` tick */
 export interface CrabMem extends Record<string, number> {

@@ -1,3 +1,12 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Validate the immutable shipping policy fixture.
+import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Original source/fixture provenance is content hashed.
+import { createHash } from 'node:crypto';
+import type { Animal } from '../../../src/engine/entities/AnimalView';
+import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
+import { CrabBrain } from '../../../src/shards/driftwood-isle/species/crab';
+import { legacyCrabDecision } from '../../fixtures/species-oracle/driftwood-crab';
+import provenance from '../../fixtures/species-oracle/driftwood-crab-provenance.json' with { type: 'json' };
 import { afterAll, describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { app } from '../../../src/engine/app/runtime';
@@ -17,7 +26,15 @@ function replay(kind: 'crab' | 'sailor' | 'monkey', declared: boolean): object {
   const row = (declared ? declaredCreatureRows() : DRIFTWOOD_SPECIES).find(candidate => candidate.kind === kind);
   if (row?.think === undefined) throw new Error(`Missing ${kind} policy`);
   const variant = kind === 'crab' ? 'small' : kind;
-  const fixture = creature(kind, variant, {}, undefined, row.think, row.act);
+  const captured = new WeakMap<Animal, CrabBrain<Animal, ThinkCtx>>();
+  const legacyCrab = (a: Animal): CrabBrain<Animal, ThinkCtx> => {
+    let brain = captured.get(a);
+    if (brain === undefined) { brain = new CrabBrain(a, legacyCrabDecision); captured.set(a, brain); }
+    return brain;
+  };
+  const oldCrab = kind === 'crab' && !declared;
+  const fixture = creature(kind, variant, {}, undefined, oldCrab ? (a, c) => { legacyCrab(a).think(c); } : row.think,
+    oldCrab ? (a, c) => { legacyCrab(a).act(c); } : row.act);
   const splashes: number[] = [], throws: number[][] = [];
   fixture.ctx.world = { hold: { x: 0, z: 0, r: 8, guardR: 9, floorAt: () => 1.5 },
     perches: [new Vector3(0, 5, 0), new Vector3(20, 5, 0), new Vector3(35, 7, 0)],
@@ -42,6 +59,10 @@ function replay(kind: 'crab' | 'sailor' | 'monkey', declared: boolean): object {
 }
 
 describe('Driftwood species-row decisions and native bodies', () => {
+  it('pins the original default crab oracle independently of the shipping row implementation', () => {
+    expect(createHash('sha256').update(readFileSync(provenance.fixture)).digest('hex')).toBe(provenance.fixtureHash);
+    expect(provenance.sourceHash).toMatch(/^[a-f0-9]{64}$/u);
+  });
   it('the live catalogue admits the authored stalker and both guardian patterns', () => {
     expect(DRIFTWOOD_ENEMY_SPECIES.map(row => row.brain)).toEqual([
       { archetype: 'stalker', data: CRAB_BRAIN_PROFILE },

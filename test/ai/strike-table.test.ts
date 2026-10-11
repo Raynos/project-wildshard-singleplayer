@@ -1,3 +1,4 @@
+import { CRAB_BRAIN } from '../../src/shards/driftwood-isle/data/brains';
 import { PINE_LANES, PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';
 import { BOAR } from '../../src/game/systems/species/boar';
 import { BEAR } from '../../src/game/systems/species/bear';
@@ -25,7 +26,6 @@ afterAll(restoreTerrain);
 const island = 'src/shards/driftwood-isle/species/', species = 'src/shards/nalati-grasslands/species/', nalati = 'src/shards/nalati-grasslands/combat/', pine = 'src/shards/pine-hollow/combat/';
 const tuning = [
   ['S1 crab snap', `${island}crab.ts`, { SNAP_R: 1.6, SNAP_DAMAGE: 10, WINDUP: 0.5, SNAP_DUR: 0.78 }],
-  ['S1 crab holding ring', 'src/shards/driftwood-isle/runtime/crabDecision.ts', { HOLD_R: 3.6 }],
   ['S2 monkey bite', `${island}monkeyPolicy.ts`, { BITE_R: 1.3, BITE_DAMAGE: 6, BITE_DUR: 0.9 }],
   ['S3 monkey coconut release', `${island}monkeyPolicy.ts`, { THROW_R: 14, THROW_DUR: 1, THROW_RELEASE: 0.62 }],
   ['S4 sailor swing', `${island}sailor.ts`, { SWING_R: 1.8, HIT_R: 1.9, SWING_DAMAGE: 14, WINDUP: 0.6, SWING_DUR: 0.9 }],
@@ -157,3 +157,5 @@ describe('species strikes retain current hit timing and damage', () => {
     expect(f.hits.map((h) => h.damage)).toEqual([25]); expect(Reflect.get(herd, 'stallionState')).toBe('wheel'); expect(Reflect.get(herd, 'chargeCd')).toBe(5);
   });
 });
+
+it('keeps the authored crab holding ring at the original 3.6m', () => { expect(CRAB_BRAIN.holdRadius).toBe(3.6); });
