@@ -46,7 +46,8 @@ import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule, ty
 import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { PaintKit, M, v3 } from '../world/paint';
 import { pole, blob } from '@wildshard/engine/world/geometryKit';
-import { ARGYMAQ as ARGYMAQ_KIND, argymaqDefinition, eliteRuleHolds, NALATI_ELITE_DEFS } from './eliteRoster';
+import { argymaqDefinition, eliteRuleHolds } from './eliteRoster';
+import { ARGYMAQ as ARGYMAQ_KIND, NALATI_ELITE_DEFS } from '../data/eliteEncounters';
 import { EAGLE_ROCK } from '../world/layout';
 
 /**

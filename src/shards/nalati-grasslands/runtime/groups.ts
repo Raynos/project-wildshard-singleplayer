@@ -6,7 +6,7 @@ import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import { NALATI_PACK_PROFILE, NALATI_HERD_PROFILE } from '../data/brains';
 import { NALATI_WILDLIFE } from '../data/fauna';
 import { wildEnv, type WildEnv } from '../creatures/env';
-import { ARGYMAQ } from '../combat/eliteRoster';
+import { ARGYMAQ } from '../data/eliteEncounters';
 import { nativeHerdPorts, nativePackPorts, passThroughPlayer, type NativeGroupHost, type NativeGroupWorld } from './groupPorts';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { NalatiBody } from './headless';

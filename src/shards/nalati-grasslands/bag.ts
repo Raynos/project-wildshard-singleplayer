@@ -16,7 +16,7 @@ import type { IconId } from '@wildshard/engine/ui/icons';
 import type { SkinRow } from '@wildshard/engine/ui/Menu';
 import { NALATI_PLACES } from './data/questStory';
 import { NALATI_SKINS, type NalatiSkinEntry } from './weapons/nalatiSkins';
-import { NALATI_ELITE_DEFS as ELITE_DEFS } from './combat/eliteRoster';
+import { NALATI_ELITE_DEFS as ELITE_DEFS } from './data/eliteEncounters';
 
 export const NALATI_CHUNK_ID = 'chunk://local/nalati-grasslands';
 

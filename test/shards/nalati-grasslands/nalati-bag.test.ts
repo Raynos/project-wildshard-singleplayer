@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { Inventory, harvestOf, type ItemId } from '../../../src/game/Inventory';
 import { ITEMS } from '../../../src/game/bag/itemCatalog';
 import { NALATI_SKINS, NalatiSkinLocker } from '../../../src/shards/nalati-grasslands/weapons/nalatiSkins';
-import { NALATI_ELITE_DEFS as ELITE_DEFS } from '../../../src/shards/nalati-grasslands/combat/eliteRoster';
+import { NALATI_ELITE_DEFS as ELITE_DEFS } from '../../../src/shards/nalati-grasslands/data/eliteEncounters';
 import { FINDS_ELITES, elitePrize, nalatiFinds, skinRows, skinSource } from '../../../src/shards/nalati-grasslands/bag';
 import { NALATI_PLACES } from '../../../src/shards/nalati-grasslands/data/questStory';
 

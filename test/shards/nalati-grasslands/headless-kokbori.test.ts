@@ -8,7 +8,7 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
-import { NALATI_ELITE_DEFS } from '../../../src/shards/nalati-grasslands/combat/eliteRoster';
+import { NALATI_ELITE_DEFS } from '../../../src/shards/nalati-grasslands/data/eliteEncounters';
 import { NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
 import { nalatiCreaturesOf } from '../../../src/shards/nalati-grasslands/runtime/headlessCreatures';
 import { nalatiElitesOf } from '../../../src/shards/nalati-grasslands/runtime/headlessElites';
