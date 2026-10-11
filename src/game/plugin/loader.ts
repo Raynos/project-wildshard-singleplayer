@@ -98,7 +98,7 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   if (!options.firstParty) throw new Error('Manifest shardfile descriptors require first-party provenance');
   const url = new URL(manifest.shardfile, options.base);
   if (url.origin !== new URL(options.base).origin || url.search !== '' || url.hash !== '') throw new Error('Manifest shardfile must be an unqualified same-origin source');
-  const productOptions = { ...options, base: new URL('../shardfile', url).href };
+  const productOptions = { ...options, base: new URL('.', url).href };
   let input: unknown;
   if (options.offline) {
     options.progress?.({ phase: 'descriptor', detail: 'Reading visited shard descriptor', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 1 });

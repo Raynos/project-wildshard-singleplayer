@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import { PageResidency } from '../src/game/grid/pageResidency';
 import { emptyShardfile } from '@wildshard/sdk/author';
+import { contentHash } from '@wildshard/sdk/project';
 import { emptyShardfileSource, installManifestShardfile } from '../src/game/plugin/loader';
 import { installShards, shards } from '../src/game/shard/list';
 import type { ShardManifest } from '../src/game/shard/manifest';
@@ -52,4 +53,33 @@ it('preserves the placed home identity and allocator already owned by the page d
     expect(residency.allocator.has('sim:template-2')).toBe(true);
     expect(residency.allocator.has('sim:template-solo')).toBe(false);
   } finally { residency.dispose(); }
+});
+
+
+it.each(['/shardfiles/_template/shard.json', '/content/nested/template/source.json'])('fetches and revisits immutable files beside the descriptor %s', async (descriptor) => {
+  const f = fixture(), bytes = new TextEncoder().encode('{"value":1}'), hash = contentHash(bytes);
+  f.source.files.push({ hash, kind: 'json', compressed: bytes.length, decoded: bytes.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+  f.source.library.push(hash); f.source.budgets.library = { compressed: bytes.length, resident: bytes.length };
+  const descriptorUrl = `https://fixture.test${descriptor}`, base = new URL('.', descriptorUrl).href;
+  const requests: string[] = [], products = new Map<string, CachedProduct>(), assets = new Map<string, Uint8Array>();
+  const options: ProductOptions = { ...f.options, hash: (value) => Promise.resolve(contentHash(value)),
+    fetch: (url) => {
+      requests.push(url);
+      if (url === descriptorUrl) return Promise.resolve(Response.json(f.source));
+      if (url === `${base}${hash}`) return Promise.resolve(new Response(Uint8Array.from(bytes)));
+      return Promise.reject(new Error(`Unexpected product URL: ${url}`));
+    },
+    cache: {
+      product: (key) => { expect(key).toBe(base); return Promise.resolve(products.get(key) ?? null); },
+      asset: (key, file) => { expect(key).toBe(base); return Promise.resolve(assets.get(file) ?? null); },
+      putAsset: (key, file, value) => { expect(key).toBe(base); assets.set(file, value); return Promise.resolve(); },
+      putProduct: (key, value) => { expect(key).toBe(base); products.set(key, value); return Promise.resolve(); },
+    },
+  };
+  const selected = { ...f.selected, shardfile: descriptor };
+  expect((await installManifestShardfile(selected, options, bindings)).slug).toBe('_template');
+  expect(requests).toEqual([descriptorUrl, `${base}${hash}`]);
+  expect([...products.keys()]).toEqual([base]);
+  expect((await installManifestShardfile(selected, { ...options, offline: true, fetch: () => Promise.reject(new Error('Offline cannot fetch')) }, bindings)).slug).toBe('_template');
+  expect(requests).toHaveLength(2);
 });
