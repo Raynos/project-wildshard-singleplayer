@@ -64,7 +64,8 @@
     "./directorWhen": "./directorWhen.ts",
     "./moverMotion": "./moverMotion.ts",
     "./modes": "./modes.ts",
-    "./weaponProfiles": "./weaponProfiles.ts"
+    "./weaponProfiles": "./weaponProfiles.ts",
+    "./bossProfiles": "./bossProfiles.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

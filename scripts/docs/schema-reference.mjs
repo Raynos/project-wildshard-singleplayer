@@ -5,8 +5,8 @@ const sorted = value => Array.isArray(value) ? value.map(sorted) : record(value)
   ? Object.fromEntries(Object.keys(value).sort(order).map(key => [key, sorted(value[key])])) : value;
 const describe = value => value instanceof RegExp ? value.toString() : typeof value === 'function' ? '[function; not executed]'
   : value === undefined ? 'undefined' : JSON.stringify(sorted(value));
-const schemas = new Set(['array', 'boolean', 'custom', 'exact_optional', 'literal', 'null', 'nullable', 'number', 'object', 'optional', 'picklist', 'record', 'strict_object', 'string', 'tuple', 'union', 'unknown', 'variant']);
-const actions = new Set(['check', 'finite', 'integer', 'length', 'max_length', 'max_value', 'min_length', 'min_value', 'raw_check', 'raw_transform', 'transform', 'regex', 'safe_integer']);
+const schemas = new Set(['array', 'boolean', 'custom', 'exact_optional', 'literal', 'null', 'nullable', 'number', 'object', 'optional', 'picklist', 'record', 'strict_object', 'string', 'tuple', 'tuple_with_rest', 'union', 'unknown', 'variant']);
+const actions = new Set(['check', 'finite', 'integer', 'length', 'max_length', 'max_entries', 'max_value', 'min_length', 'min_value', 'raw_check', 'raw_transform', 'transform', 'regex', 'safe_integer']);
 
 /** Extract every declared path, preserving alternative branches and refusing unknown metadata. */
 export function schemaInventory(schema, root = '$') {
@@ -54,7 +54,10 @@ export function schemaInventory(schema, root = '$') {
         for (const key of Object.keys(base.entries).sort(order)) visit(base.entries[key], `${path}.${key}`);
       } else if (base.type === 'array') visit(base.item, `${path}[]`);
       else if (base.type === 'record') { visit(base.key, `${path}{key}`); visit(base.value, `${path}{value}`); }
-      else if (base.type === 'tuple') base.items.forEach((item, index) => visit(item, `${path}[${index}]`));
+      else if (base.type === 'tuple' || base.type === 'tuple_with_rest') {
+        base.items.forEach((item, index) => visit(item, `${path}[${index}]`));
+        if (base.type === 'tuple_with_rest') visit(base.rest, `${path}[rest]`);
+      }
       else if (base.type === 'union' || base.type === 'variant') base.options.forEach((option, index) => visit(option, `${path}<${index}>`));
     } finally { stack.delete(input); }
   }

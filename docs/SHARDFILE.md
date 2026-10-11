@@ -1539,3 +1539,25 @@ SF85 WP-2 single-bolt rows: Pine declares crossbow and lever on `firearm`, dispa
 SF85 WP-2 Nalati rifle declaration: its existing magazine owner reads `data/rifleProfile.ts` through the native AR15 profile. The numeric firearm declaration owns magazine/reserve, reload/interval, hitscan range/damage/spread and bloom; the native class body, rendered rig and saved slot remain unchanged. Declaration adoption does not host a headless rifle: Nalati's native weapon requirement stays open.
 
 SF85 WP-2 Nalati javelins: the numeric `thrown` declaration in `data/javelinProfile.ts` feeds the existing native spear-slot `Thrown` profile (weapon.javelin), its gravity helper, ammunition, launch/recovery, pickup and pool. Thrust and mounted lance remain independent native laws; the rendered rig, class body and saved spear slot do not change. This declaration does not close Nalati's unhosted headless spear/weapon requirement.
+
+### Boss policy declarations (SF82 BR-2)
+
+`@wildshard/format/bossProfiles` defines `BossProfileSchema` and `parseBossProfile`.
+A strict `{kind: 'boss', pattern, fight}` selects `arena`, `roaming`, `spawned`, `held`,
+or the existing `script` policy. These are standalone authoring contracts; they are
+not an ignored extra field on `encounters`. Root admission and recipe/AS phase
+binding remain open. The native entry `plugin/bossPhase.bossFight` hosts the four
+native patterns. A script declaration keeps the exact `EliteScriptSchema`; it
+does not move the native prelude, clocks, RNG or ordered command stream.
+
+Arena/roaming rows carry the actual phase thresholds, named modes, strikes, adds,
+hazards and presentation calls. Modes, transitions, phase indices, add indices
+and declared view calls must resolve. Checkpoint shares start at one and descend
+strictly above zero. Every number is finite and bounded to ±1,000,000; allocation
+counts are bounded integers ≤256; records hold ≤64 entries, lists ≤256 members,
+phases ≤16, view calls ≤16 numeric arguments, and strings ≤512 UTF-16 code units.
+Native divisors must be positive. Signed cooldowns and mode-clock offsets remain
+valid because they represent native immediate/overdue beats. Unknown fields
+refuse instead of being dropped, and parsing introduces no defaults or rounding.
+The generated JSON Schema records cross-field checks explicitly; it never
+replaces the defining Valibot admission verdict.
