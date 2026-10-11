@@ -183,6 +183,7 @@ it('keeps network prefetch early but builds the destination only after crossing 
     const entered = await f.registry.prepare(null, 'driftwood-isle'); entered.commit();
     const road = await f.registry.prepare('driftwood-isle', null); road.commit();
     expect(f.registry.unload('driftwood-isle')).toBe(true);
+    await f.registry.prefetch(['pine-hollow']); // Explicit request: this fixture admits one nearest background product.
     f.player.position.set(0, 0.5, 275); f.registry.beforeFixed(); await settle();
     expect(f.creates).toEqual(['driftwood-isle']); // The source is closer, but the traveller is leaving it.
     f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
