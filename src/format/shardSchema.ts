@@ -40,7 +40,7 @@ import { portalLinkEntries, portalLinkRules } from '@wildshard/format/portalLink
 import { StateSchema, stateRules } from '@wildshard/format/state';
 import { assertCommonsCosts } from '@wildshard/format/commonsCosts';
 import { AccentSchema } from '@wildshard/format/accent';
-import { PresentationSchema } from '@wildshard/format/presentation';
+import { MapSchema, PresentationSchema } from '@wildshard/format/presentation';
 import { MigrationsSchema, migrationRules } from '@wildshard/format/migrations';
 import { skinLookRules } from '@wildshard/format/skinAssets';
 import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs, materialGraphRules } from '@wildshard/format/materials';
@@ -58,6 +58,7 @@ const rawSchema = v.strictObject({
   accent: AccentSchema,
   identity: IdentitySchema,
   presentation: v.exactOptional(PresentationSchema),
+  map: v.exactOptional(MapSchema),
   requires: RequiresSchema,
   budgets: BudgetsSchema,
   look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), post: v.exactOptional(PostStackSchema), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),

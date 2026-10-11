@@ -28,7 +28,7 @@ function fixture() {
 it('hydrates through the normal data plugin while retaining canonical discovery identity and picker art', async () => {
   const f = fixture(), hydrated = await installManifestShardfile(f.selected, f.options, bindings);
   expect(hydrated.slug).toBe('_template'); expect(hydrated.name).toBe('Picker name'); expect(hydrated.card).toEqual(f.selected.card);
-  expect(hydrated.minimap).toEqual({ image: '/assets/_template/map/top.webp' }); // G252b: the baked map survives admission
+  expect(hydrated.minimap).toEqual({}); // SF66: an unadmitted manifest URL never becomes the map image.
   expect(shards()).toEqual([hydrated]); expect(hydrated.load).toBeTypeOf('function'); expect(f.requests()).toBe(1);
   const offline = await installManifestShardfile(f.selected, { ...f.options, offline: true, fetch: () => Promise.reject(new Error('Offline cannot fetch')) }, bindings);
   expect(offline.slug).toBe('_template'); expect(f.requests()).toBe(1);

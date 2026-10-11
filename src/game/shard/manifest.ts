@@ -615,7 +615,7 @@ declare const __BUILD_ID__: string; // vite.config.ts define; absent under Node
  * immutable for a year, so a rebake must never reuse a URL a phone already holds. Undefined = none baked.
  */
 export function bakedMapUrl(image: string | undefined): string | undefined {
-  if (image === undefined) return undefined;
+  if (image === undefined || image.startsWith('data:')) return image;
   const build = ((): string => { try { return __BUILD_ID__; } catch { return ''; } })();
   return build === '' ? image : `${image}?v=${encodeURIComponent(build)}`;
 }

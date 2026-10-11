@@ -75,7 +75,7 @@ import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
 import { NeighbourPanels } from './neighbourPanels';
 import { copyMarks } from './copyIdentity';
 import { CellMinimaps } from './minimapBlend';
-import { bakedMapUrl } from '../shard/manifest';
+import { leaseMapImage } from '../shardfile/mapImage';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, type FarViewStatus, type ShardRefusal } from './refusal';
@@ -285,7 +285,13 @@ export class GridSession {
 
   constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad; readonly plans: Map<Mesh, CullPlan> }) {
     this.host = host;
-    this.mapImages = new CellMinimaps(host.scope, (slug) => bakedMapUrl(findShard(slug)?.minimap?.image));
+    this.mapImages = new CellMinimaps(host.scope, async slug => {
+      const pending = gridShardfileProduct(slug, { allocator: this.allocator, scope: host.scope });
+      if (pending === null) return undefined;
+      const product = await pending;
+      try { return leaseMapImage(product.admitted.source, product.admitted.assets, this.allocator, host.scope); }
+      finally { product.release(); }
+    }, identity => { const { slug: homeIdentity } = this.home; return identity === homeIdentity; });
     const residency = host.residency;
     if (residency === undefined) throw new Error('Grid session requires the early page residency owner');
     if (allocator !== undefined && allocator !== residency.allocator) throw new Error('Grid session must share the page allocator');
@@ -537,8 +543,8 @@ export class GridSession {
   }
 
   private rebased(mesh: CollisionMesh): CollisionMesh { return { ...mesh, origin: { x: mesh.origin.x - this.home.origin.x, z: mesh.origin.z - this.home.origin.z } }; }
-  /** G107 / SF66: a cell's baked map once loaded; null for the home cell, whose full-size map is the minimap's own ground. */
-  mapImage(instance: string): HTMLCanvasElement | null { return instance === this.home.instance ? null : this.mapImages.image(this.assembly.cell(instance).slug); }
+  /** G107 / SF66: a cell's admitted baked map once loaded, retaining the home's full raster size. */
+  mapImage(instance: string): HTMLCanvasElement | null { return this.mapImages.image(this.assembly.cell(instance).slug); }
   /** the neighbours' baked maps held now (bytes), for the memory readouts */
   get mapImageBytes(): number { return this.mapImages.bytes; }
   /** The traveller's feet in grid metres, whatever frame it is in. */

@@ -19,7 +19,10 @@ for (const entry of readdirSync(projects, { withFileTypes: true }).sort((a, b) =
   if (!entry.isDirectory() || Object.hasOwn(frozen.shards, entry.name) || !existsSync(resolve(project, 'shard.config.ts'))) continue;
   const stamp = resolve(project, 'look/map.baked.json');
   if (!existsSync(stamp) || JSON.parse(readFileSync(stamp, 'utf8')).tilesHash !== mapTilesHash(project)) stale.push(entry.name);
-  await runWildshard(['build', project, resolve(root, 'public/shardfiles', entry.name), '--product-only']); count++;
+  const map = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : undefined;
+  if (map !== undefined && map.image !== `/assets/${entry.name}/map/top.webp`) throw new Error(`Unexpected baked map path for ${entry.name}`);
+  const flags = map === undefined ? [] : [`--map=${resolve(root, 'public', map.image.slice(1))}`, `--map-tiles-hash=${map.tilesHash}`];
+  await runWildshard(['build', project, resolve(root, 'public/shardfiles', entry.name), '--product-only', ...flags]); count++;
 }
 console.info(`wildshard build: ${count} shardfile project(s)`);
 if (stale.length > 0) {

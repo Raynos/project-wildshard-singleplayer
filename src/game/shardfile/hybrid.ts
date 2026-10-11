@@ -10,9 +10,12 @@ import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBindin
 import { RetainedRuntimeHooks } from "../plugin/lifecycle";
 
 import { browserShardfileOptions, shardfileSource } from '../plugin/loader';
-import type { ProductOptions } from './product';
+import { boundedResponse, type ProductOptions } from './product';
+import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
+import { configureLevel, selectedLevel } from '@wildshard/engine/level/selection';
+import { reserveMapImage } from './mapImage';
 import type { ShardfileClientBindings } from './client';
-import type { Shardfile } from '@wildshard/format/shardSchema';
+import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 
 import type { RuntimeDeclaration } from '@wildshard/format/runtime';
 
@@ -238,7 +241,7 @@ export class HybridShardPlugin extends ShardPlugin {
 }
 
 /** Admit declared data and trusted hooks; catalogue placement and cell activation stay in the game layer. */
-export async function prepareHybridShard(source: Shardfile, options: ProductOptions | { firstParty: true },
+export async function prepareHybridShard(declaredSource: Shardfile, options: ProductOptions | { firstParty: true },
   bindings: Omit<ShardfileClientBindings, 'instance' | 'trustedRuntime'> & {
     /** The game adapter forwards the page owner; the shard need not read or own another service. */
     readonly residencyContext?: Pick<ShardContext, 'game'>;
@@ -250,6 +253,7 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
   },
   entries: readonly TrustedRuntimeEntry[],
   debug?: { context: ShardContext; row: Omit<Parameters<ShardContext['debugRow']>[0], 'change'> }): Promise<ShardPlugin> {
+  let source = declaredSource;
   if (source.runtime === null) throw new Error('Hybrid requires a declared runtime entry');
   if (bindings.stagesOwner === 'runtime' && !options.firstParty) throw new Error('Runtime stage ownership requires a trusted first-party shard');
   if (debug !== undefined) {
@@ -269,6 +273,15 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
   const clientBindings = residency === undefined ? providedBindings : { ...providedBindings, residency };
   const productOptions = 'base' in options ? options : browserShardfileOptions(
     new URL(`shardfiles/${source.identity.slug}/`, document.baseURI || location.href).href, options.firstParty);
+  if (!('base' in options)) {
+    const visited = productOptions.offline ? await productOptions.cache?.product(productOptions.base) : undefined;
+    if (productOptions.offline && visited?.firstParty !== true) throw new Error('First-party shardfile has not been visited offline');
+    const input: unknown = productOptions.offline ? visited?.source : JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await productOptions.fetch(new URL('shard.json', productOptions.base).href), SHARDFILE_ADMISSION_LIMITS.sourceBytes)));
+    const published = parseShardfile(input);
+    const { slug: publishedIdentity } = published.identity, { slug: expectedIdentity } = source.identity;
+    if (publishedIdentity !== expectedIdentity || published.identity.revision !== source.identity.revision || published.runtime?.entry !== source.runtime.entry) throw new Error('Built hybrid descriptor differs from its trusted identity');
+    source = published;
+  }
   const gridInstance = pageGridInstance(), instance = gridInstance ?? source.identity.slug;
   // The data client announces only when it will actually build a simulation. An empty trusted transition runs its
   // legacy gameplay directly and has no handoff; promising one would hold the reveal until its safety ceiling.
@@ -280,11 +293,24 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
       ...(binding.residency === undefined ? {} : { residency: binding.residency }),
     });
   };
+  const declaration = source.runtime;
+  if (declaration === null) throw new Error('Built hybrid requires a trusted runtime entry');
   const data = await shardfileSource(source, productOptions, { ...clientBindings, instance, trustedRuntime: true, audioOwner: clientBindings.audioOwner ?? 'runtime', worldOwner: clientBindings.worldOwner ?? 'runtime', onSimulationExpected, ...(onSimulation === undefined ? {} : { onSimulation }) });
   const load = data.load; if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
   const [installed, Runtime] = await Promise.all([stagesOwner === 'runtime' ? Promise.resolve(new class extends ShardPlugin {}) : load().then(({ default: Data }) => new Data()),
-    prepareTrustedRuntime(source.runtime, source.identity.slug, productOptions.firstParty, entries)]);
-  return new HybridShardPlugin(installed, Runtime, gridInstance === null ? undefined : { instance, cells: gridCells, ...(retainHomeRuntime === undefined ? {} : { retainHomeRuntime }) });
+    prepareTrustedRuntime(declaration, source.identity.slug, productOptions.firstParty, entries)]);
+  const mapped: ShardPlugin = source.map === undefined ? installed : {
+    async world(ctx) {
+      const allocator = clientBindings.residency?.allocator ?? clientBindings.allocator;
+      if (allocator === undefined) throw new Error('Hybrid map requires its page allocator');
+      reserveMapImage(source, allocator, ctx.scope);
+      const level = selectedLevel(), image = data.minimap?.image;
+      if (gridInstance === null && level !== null && image !== undefined) configureLevel({ ...level, minimap: { ...level.minimap, image } });
+      await installed.world?.(ctx);
+    },
+    kit: ctx => installed.kit?.(ctx), play: ctx => installed.play?.(ctx),
+  };
+  return new HybridShardPlugin(mapped, Runtime, gridInstance === null ? undefined : { instance, cells: gridCells, ...(retainHomeRuntime === undefined ? {} : { retainHomeRuntime }) });
 }
 
 /** Keep a transitional shard's existing standalone presentation while admitting data and resolving its declared code separately. */

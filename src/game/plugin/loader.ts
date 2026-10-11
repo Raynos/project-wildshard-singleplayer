@@ -121,13 +121,15 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   if (authoredIdentity !== expectedIdentity) throw new Error('Manifest and shardfile identities differ');
   if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
   const admitted = await admitProduct(source, productOptions);
-  return selectSource({ ...clientSource(admitted, productOptions, { ...bindings, instance: bindings.residency === undefined ? firstPartyInstance(manifest.slug) : bindings.instance }),
+  const client = clientSource(admitted, productOptions, { ...bindings, instance: bindings.residency === undefined ? firstPartyInstance(manifest.slug) : bindings.instance });
+  const { image: _unadmittedImage, ...mapLook } = manifest.minimap ?? {};
+  return selectSource({ ...client,
     slug: manifest.slug, name: manifest.name, order: manifest.order, status: manifest.status, label: manifest.label,
     ...(source.presentation === undefined ? { biome: manifest.biome, blurb: manifest.blurb, card: manifest.card } : {}),
     // SF65 (G241): the picker's ways in survive admission (the admitted manifest's client `load` is not legacy TypeScript)
     entries: shardEntries(manifest),
-    // G252b: so does its map (the baked image, SF66): the admitted source's empty minimap left Bag ▸ MAP with only the fog
-    ...(manifest.minimap === undefined ? {} : { minimap: manifest.minimap }),
+    // Keep the authored map look; image bytes come exclusively from the admitted product (SF66).
+    minimap: { ...mapLook, ...client.minimap },
     // and its listed places, the full map's pins (SF66): the admitted source has none
     ...(manifest.pois === undefined ? {} : { pois: manifest.pois }),
   }, true);

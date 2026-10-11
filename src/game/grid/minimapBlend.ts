@@ -7,8 +7,8 @@
  * - **on the road / no-man's land**: every cell in view as faded terrain (~50 %) on both sides, so a roundabout shows all four.
  *
  * The full map (`FullMap.setExtras`) lays out every cell's baked map at its cell, the road network and each shard's name.
- * Each cell's ground is its shard's map baked from the world (SF66, `ShardManifest.minimap.image`): the home's at full size
- * as the minimap's own ground, each other shard's decoded once, downscaled to CELL_PX and shared by its copies; they go
+ * Each cell's ground is its admitted shardfile map (SF66): the home's at full size, each other shard's decoded once,
+ * downscaled to CELL_PX and shared by its copies; they go
  * with the grid's scope.
  */
 import type { MapExtras, MapExtraImage, MapExtraLabel, MapExtraRect } from '@wildshard/engine/ui/Minimap';
@@ -35,7 +35,7 @@ const STRIP = '#3b4038', ROAD = '#2a2e35', LINE = '#c9a640', VOID = '#0b1016', N
 export class CellMinimaps {
   private readonly maps = new Map<string, { image: HTMLCanvasElement | null }>();
   private disposed = false;
-  constructor(scope: Scope, private readonly url: (slug: string) => string | undefined) {
+  constructor(scope: Scope, private readonly url: (slug: string) => Promise<string | undefined>, private readonly fullSize: (slug: string) => boolean = () => false) {
     scope.onDispose(() => { this.disposed = true; for (const m of this.maps.values()) if (m.image !== null) m.image.width = m.image.height = 0; this.maps.clear(); });
   }
   /** the shard's map, or null while it loads (or when it names none) */
@@ -44,27 +44,30 @@ export class CellMinimaps {
     if (hit !== undefined) return hit.image;
     const entry: { image: HTMLCanvasElement | null } = { image: null };
     this.maps.set(slug, entry);
-    const url = this.url(slug);
-    if (url !== undefined && typeof document !== 'undefined') void this.load(url, entry);
+    if (typeof document !== 'undefined') void this.load(slug, entry);
     return null;
   }
   /** bytes held now (RGBA), for the memory readouts */
   get bytes(): number { let n = 0; for (const m of this.maps.values()) if (m.image !== null) n += m.image.width * m.image.height * 4; return n; }
-  private async load(url: string, entry: { image: HTMLCanvasElement | null }): Promise<void> {
+  private isDisposed(): boolean { return this.disposed; }
+  private async load(slug: string, entry: { image: HTMLCanvasElement | null }): Promise<void> {
     try {
+      const url = await this.url(slug);
+      if (url === undefined || this.isDisposed()) return;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const full = await createImageBitmap(await res.blob());
       try {
         if (this.disposed) return;
-        const canvas = document.createElement('canvas'); canvas.width = canvas.height = CELL_PX;
+        const canvas = document.createElement('canvas'), fullSize = this.fullSize(slug);
+        canvas.width = fullSize ? full.width : CELL_PX; canvas.height = fullSize ? full.height : CELL_PX;
         const ctx = canvas.getContext('2d');
         if (ctx === null) return;
         ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(full, 0, 0, CELL_PX, CELL_PX);
+        ctx.drawImage(full, 0, 0, canvas.width, canvas.height);
         entry.image = canvas;
       } finally { full.close(); }
-    } catch (error) { if (!this.disposed) console.warn(`[grid] the baked map ${url} did not load:`, error); }
+    } catch (error) { if (!this.disposed) console.warn(`[grid] the baked map ${slug} did not load:`, error); }
   }
 }
 

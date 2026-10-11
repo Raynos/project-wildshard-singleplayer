@@ -10,7 +10,8 @@ import { devProject } from './dev';
 import { proveAuthorSimulation, measureSimulation, validateSimulation } from './headless';
 import { performanceReport, performanceReportLines, type PerformanceObservations } from './reportCard';
 import { projectPerformancePolicy } from './performancePolicy';
-import { readShardfileSource } from './sourceReader';
+import { readBoundedFile, readShardfileSource } from './sourceReader';
+import { STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
 import { assetOverdraw } from './assets';
 // oxlint-disable-next-line import/no-nodejs-modules -- The CLI releases its author server on termination.
 import process from 'node:process';
@@ -65,8 +66,10 @@ export async function runCli(args: readonly string[]): Promise<void> {
       const files = await buildBehaviourProject(resolve(input), { check: buildFlag === '--check' });
       console.info(`built ${files.length} native behaviour outputs`); return;
     }
-    if (buildFlag !== undefined && buildFlag !== '--product-only') throw new Error('unknown build flag');
-    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { ...(buildFlag === '--product-only' ? { client: null } : {}), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
+    const flags = args.slice(3), mapPath = flags.find(flag => flag.startsWith('--map='))?.slice(6), tilesHash = flags.find(flag => flag.startsWith('--map-tiles-hash='))?.slice(17);
+    if (flags.some(flag => flag !== '--product-only' && !flag.startsWith('--map=') && !flag.startsWith('--map-tiles-hash=')) || flags.length !== new Set(flags).size || flags.filter(flag => flag.startsWith('--map=')).length > 1 || flags.filter(flag => flag.startsWith('--map-tiles-hash=')).length > 1 || ((mapPath === undefined) !== (tilesHash === undefined))) throw new Error('unknown or incomplete build map flag');
+    const map = mapPath === undefined || tilesHash === undefined ? undefined : { bytes: readBoundedFile(resolve(mapPath), STILL_IMAGE_LIMITS.bytes), tilesHash };
+    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { ...(flags.includes('--product-only') ? { client: null } : {}), ...(map === undefined ? {} : { map }), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
   }
   if (command === 'prove') {
     if (output === undefined || buildFlag !== undefined) throw new Error('usage: wildshard prove <project|shard.json> <proof.json>');

@@ -9,3 +9,6 @@ export const PresentationSchema = v.strictObject({
 });
 /** Data-only card metadata accepted by the full shardfile schema. */
 export type Presentation = v.InferOutput<typeof PresentationSchema>;
+
+/** Baked full-cell map: an immutable charged image and the authoring inputs freshness hash. */
+export const MapSchema = v.strictObject({ image: hash, tilesHash: hash });

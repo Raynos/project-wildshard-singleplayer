@@ -21,6 +21,7 @@ import { bakeAuthoredWorld } from './bake/authoredWorld';
 import { parseWorldSource } from './worldSource';
 import { compileBehaviourSource } from './behaviourSource';
 import { buildBehaviourProject } from './buildBehaviour';
+import { packProjectMap, type ProjectMap } from './projectMap';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -76,10 +77,13 @@ async function projectModule(project: string): Promise<{ shard: Shardfile; commo
 export async function readProject(project: string): Promise<Shardfile> { return (await projectModule(project)).shard; }
 
 /** Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder. */
-export async function readProjectAssets(project: string): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array> }> {
+export async function readProjectAssets(project: string, map?: ProjectMap): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array> }> {
   const loaded = await projectModule(project), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
   for (const [hash, bytes] of loaded.baked ?? []) pinned.set(hash, bytes);
-  return { shard: loaded.shard, assets: projectAssets(project, loaded.shard, 'project', pinned) };
+  const packed = map === undefined ? undefined : packProjectMap(loaded.shard, map);
+  if (packed !== undefined && map !== undefined) pinned.set(packed.hash, map.bytes);
+  const shard = packed?.shard ?? loaded.shard;
+  return { shard, assets: projectAssets(project, shard, 'project', pinned) };
 }
 
 function pinnedCommons(input: unknown, source: Shardfile, project: string): ReadonlyMap<string, Uint8Array> | undefined {
@@ -108,9 +112,9 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
   return new Map([...shard.files.map((f) => [f.hash, read(f.hash, f.compressed, 'assets')] as const), ...shard.requires.commons.map((h) => [`commons:${h}`, read(h, shard.requires.commonsWire[h] ?? 0, 'commons')] as const)]);
 }
 /** Build a deterministic shard.json, immutable files and the distributed normal client when present. */
-export async function buildProject(project: string, output?: string, options: { devserver?: boolean; client?: string | null; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
+export async function buildProject(project: string, output?: string, options: { devserver?: boolean; client?: string | null; map?: ProjectMap; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
   await buildBehaviourProject(project);
-  const loaded = await readProjectAssets(project), assets = loaded.assets, shard = validateProject(loaded.shard, assets, project);
+  const loaded = await readProjectAssets(project, options.map), assets = loaded.assets, shard = validateProject(loaded.shard, assets, project);
   await options.admit?.(shard, assets, projectPerformancePolicy(project, shard));
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
   shard.files.sort((a, b) => a.hash.localeCompare(b.hash)); shard.tiles.sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);

@@ -32,7 +32,9 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
     loadout: manifest.loadout ?? { weapons: [], tools: [], start: [] },
     species: manifest.species ?? [], spawns: manifest.spawns,
     minimap: ((map) => {
-      const { image: path, ...look } = map ?? {}, image = bakedMapUrl(path);
+      const { image: path, ...look } = map ?? {};
+      const product = manifest.shardfile !== undefined || manifest.entries?.shardfile === true;
+      const image = path === undefined || (product && !path.startsWith('data:')) ? undefined : bakedMapUrl(path);
       return image === undefined ? look : { ...look, image };
     })(manifest.minimap),
     kitLook: manifest.kitLook ?? 'pbr',

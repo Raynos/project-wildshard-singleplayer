@@ -114,6 +114,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 |---|---|
 | `identity` | Kebab/dot slug, nonempty display name and author (128 characters max), positive revision, unsigned seed. No grid coordinates. |
 | `presentation` | Optional SHARD SELECT data: nonempty `biome` (≤128 characters), `blurb` (≤512), and `card: {thumb, portrait, landscape}` (local immutable image hashes in the charged library closure). No author URLs or page code. |
+| `map` | Optional baked full-cell map: `image` is a local immutable image hash in the charged library closure; `tilesHash` is the SHA-256 of the defining world inputs. URLs, SVG and uncharged map bytes refuse admission. |
 | `accent` | Required lowercase ID from the platform’s 20-colour palette; road/safe-zone cyan is reserved. |
 | `requires` | SDK revision 0; capability names; unique declared SHA-256 commons hashes and `commonsWire` (exact hash→wire bytes) and `commonsCosts` (exact hash→`{decoded, gpu, triangles, draws}`). Both maps default to `{}` only for an empty commons list; missing or extra keys fail format admission before asset reads. Costs are nonnegative safe integers derived from pinned bytes, not author estimates. |
 | `budgets` | Library resident ≤25 MB and wire ≤8 MB; sim resident ≤25 MB and critical wire ≤2 MB; decode/refinement slack ≤80 MB. |
@@ -1846,3 +1847,19 @@ This stock owner has no declared animal-prey, grass or scent field. It grants no
 prey/smell observation and refuses a continuation containing undeclared prey.
 Trusted group recipes still provide those worlds explicitly. The actual body
 motor owns all movement; sound cues remain presentation-only.
+
+### Charged baked maps (SF66)
+
+`wildshard build <project> <output> --map=<baked-image>
+--map-tiles-hash=<64-character-SHA-256>` packs the existing PNG, JPEG or
+WebP bytes into the product without changing a pixel. The built `map.image`
+is its content hash, and the library declares its verified wire, decoded
+and GPU costs. The normal hard total-memory limits still apply. An authored
+map can instead declare the same hash in `shard.config.ts` and store the
+image in `assets/<hash>`. Both paths use normal immutable admission.
+
+First-party builds use `look/map.baked.json` as the freshness receipt. The
+existing map generator owns the source image; the product copies its exact
+bytes into its file closure. Standalone and grid maps resolve admitted
+bytes, share library reservations by hash and release them with the owner.
+Legacy entries retain their original map path while those folders exist.
