@@ -154,6 +154,7 @@ fi
 if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ]; then
   job check-css node scripts/check-css.mjs
   job gen-check node scripts/gen-shards.mjs --check
+  job game-plugin-exports node scripts/game-plugins.mjs --check
   cached shard-coupling node scripts/shard-coupling.mjs --check
   job typecheck pnpm exec tsc --noEmit
   job typecheck-layers pnpm exec tsc -b tsconfig.layers.json   # E362 AG4: no layer reaches up, in any syntax

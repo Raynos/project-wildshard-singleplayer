@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture sources without shell commands.
 import { dirname, join } from 'node:path';
 import { expect, it } from 'vitest';
-import { gamePluginSurface } from '../scripts/game-plugins.mjs';
+import { checkGamePluginExports, gamePluginSurface } from '../scripts/game-plugins.mjs';
 
 it('keeps frozen compatibility exports visible and detects removed keys or definitions', () => {
   const root = mkdtempSync(join(tmpdir(), 'game-plugin-surface-'));
@@ -30,6 +30,36 @@ it('keeps frozen compatibility exports visible and detects removed keys or defin
     put('src/game/package.json', JSON.stringify({ exports: Object.fromEntries(Array.from({ length: 21 }, (_, i) => [`./plugin/module${i}`, './plugin/context.ts'])) }));
     expect(gamePluginSurface(root)).toMatchObject({ totalExports: 21, pluginExports: 21, withinPluginLimit: false, pluginOnly: true });
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+it('derives compatibility from a registered actual importer and refuses its abandoned export', () => {
+  const root = mkdtempSync(join(tmpdir(), 'game-plugin-export-check-'));
+  const put = (path: string, text: string): void => { const file = join(root, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, text); };
+  try {
+    put('src/game/package.json', JSON.stringify({ exports: { './plugin/context': './plugin/context.ts', './old': './old.ts' } }));
+    put('src/game/plugin/context.ts', 'export const context = 1;');
+    put('src/game/old.ts', 'export const old = 1;');
+    put('lint/legacy-shards.json', JSON.stringify({ shards: { 'ember-legacy': { files: { 'world.ts': 'sealed' } } } }));
+    put('src/shards/ember-legacy/world.ts', "import '@wildshard/game/old';");
+    expect(checkGamePluginExports(root)).toMatchObject({ failures: [], pluginExports: 1, legacyExports: 1 });
+    put('src/shards/ember-legacy/world.ts', 'export const retired = 1;');
+    put('src/shards/ember-legacy/unregistered.ts', "import '@wildshard/game/old';");
+    expect(checkGamePluginExports(root).failures).toEqual(['./old: non-plugin export has no registered legacy importer']);
+    put('src/game/package.json', JSON.stringify({ exports: { './plugin/context': './plugin/context.ts' } }));
+    put('src/shards/ember-legacy/unregistered.ts', 'export const retired = 1;');
+    expect(checkGamePluginExports(root).failures).toEqual([]);
+    put('src/game/package.json', JSON.stringify({ exports: Object.fromEntries(Array.from({ length: 21 }, (_, i) => [`./plugin/module${i}`, `./plugin/module${i}.ts`])) }));
+    for (let i = 0; i < 21; i++) put(`src/game/plugin/module${i}.ts`, 'export const context = 1;');
+    expect(checkGamePluginExports(root).failures).toEqual(['game plugin exports 21 exceed 20']);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+it('enforces the real export surface and names only the four temporary migration exceptions', () => {
+  const report = checkGamePluginExports();
+  expect(report.failures).toEqual([]);
+  expect(report.pluginExports).toBeLessThanOrEqual(20);
+  expect(report.temporary.map(row => row.key)).toEqual(['./shardfile/schema', './shardfile/splatTerrain', './shardfile/validate', './systems/looks/surfaceLooks']);
+  expect(report.temporary.every(row => row.owner.length > 0 && row.reason.length > 0)).toBe(true);
 });
 
 

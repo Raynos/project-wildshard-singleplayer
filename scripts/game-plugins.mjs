@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { dirname, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
+import { registeredLegacyFile } from './legacy-shards.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 function filesIn(root) {
@@ -70,7 +71,7 @@ export function gamePluginInventory(root = ROOT) {
 }
 
 
-/** Report the complete export surface and its exact frozen consumers without granting compatibility exceptions. */
+/** Report the complete export surface and its exact registered frozen consumers. */
 export function gamePluginSurface(root = ROOT) {
   const manifest = JSON.parse(readFileSync(resolve(root, 'src/game/package.json'), 'utf8'));
   const frozenFile = resolve(root, 'lint/legacy-shards.json');
@@ -85,7 +86,7 @@ export function gamePluginSurface(root = ROOT) {
   for (const directory of ['src', 'test', 'scripts', 'api', 'vite']) for (const file of filesIn(resolve(root, directory))) {
     const path = relative(root, file), shard = /^src\/shards\/([^/]+)\/(.+)$/u.exec(path);
     const group = shard === null ? 'otherConsumers'
-      : Object.hasOwn(frozen[shard[1]]?.files ?? {}, shard[2]) ? 'frozenConsumers' : 'primaryConsumers';
+      : registeredLegacyFile({ shards: frozen }, path) ? 'frozenConsumers' : 'primaryConsumers';
     for (const specifier of specifiers(file, readFileSync(file, 'utf8'))) {
       if (!specifier.startsWith('@wildshard/game/')) continue;
       const key = `.${specifier.slice('@wildshard/game'.length)}`, row = byKey.get(key);
@@ -103,8 +104,40 @@ export function gamePluginSurface(root = ROOT) {
   };
 }
 
+// Removing a legacy importer never grants another exception. These four tails retire with their owners.
+const TEMPORARY_EXPORTS = {
+  './shardfile/schema': { target: './shardfile/schema.ts', owner: 'DS1.1', reason: 'remaining defining format composition' },
+  './shardfile/validate': { target: './shardfile/validate.ts', owner: 'DS1.1', reason: 'renderer-free authored product validation' },
+  './shardfile/splatTerrain': { target: './shardfile/splatTerrain.ts', owner: 'DS1.4', reason: 'terrain material contract and immutable slot checks' },
+  './systems/looks/surfaceLooks': { target: './systems/looks/surfaceLooks.ts', owner: 'DS1.4', reason: 'Signal material look migration' },
+};
+
+/** Enforce defining plugins and derive compatibility solely from actual registered legacy importers. */
+export function checkGamePluginExports(root = ROOT) {
+  const surface = gamePluginSurface(root), failures = [], temporary = [];
+  if (!surface.withinPluginLimit) failures.push(`game plugin exports ${surface.pluginExports} exceed ${surface.limit}`);
+  for (const row of surface.entries) {
+    if (!row.published) failures.push(`${row.key}: export definition missing`);
+    if (row.plugin) {
+      if (row.target !== `${row.key}.ts`) failures.push(`${row.key}: plugin export must name its defining module`);
+      continue;
+    }
+    if (row.frozenConsumers.length > 0) continue;
+    const exception = TEMPORARY_EXPORTS[row.key];
+    if (exception !== undefined && row.target === exception.target) temporary.push({ key: row.key, ...exception });
+    else failures.push(`${row.key}: non-plugin export has no registered legacy importer`);
+  }
+  for (const row of surface.unresolved) failures.push(`${row.specifier}: unresolved import in ${row.consumers.join(', ')}`);
+  return { failures, pluginExports: surface.pluginExports,
+    legacyExports: surface.entries.filter(row => !row.plugin && row.frozenConsumers.length > 0).length, temporary };
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  if (process.argv.includes('--report')) {
+  if (process.argv.includes('--check')) {
+    const result = checkGamePluginExports();
+    console.log(JSON.stringify(result, null, 2));
+    if (result.failures.length > 0) process.exitCode = 1;
+  } else if (process.argv.includes('--report')) {
     const scratch = mkdtempSync(resolve(tmpdir(), 'game-plugin-report-'));
     try {
       const config = resolve(scratch, 'config.json');

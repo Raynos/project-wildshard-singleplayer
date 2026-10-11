@@ -23,7 +23,7 @@
     "check:chunks": "node scripts/check-chunks.mjs dist",
     "audit:assets": "pnpm gen && node scripts/audit-assets.mjs",
     "test": "python3 scripts/heavy-lane.py check -- bash -c 'pnpm run test:checks && vitest run'",
-    "test:checks": "pnpm gen && node scripts/audit-assets.mjs && node scripts/check-model-sources.mjs && node scripts/check-paths.mjs && node scripts/check-graph.mjs && node scripts/gen-api.mjs --check && node lint/ratchet.mjs && node scripts/normalize/liveness.mjs --readme --check && node scripts/webgpu-inventory.mjs --check && node scripts/bake-check.mjs",
+    "test:checks": "pnpm gen && node scripts/audit-assets.mjs && node scripts/check-model-sources.mjs && node scripts/check-paths.mjs && node scripts/check-graph.mjs && node scripts/game-plugins.mjs --check && node scripts/gen-api.mjs --check && node lint/ratchet.mjs && node scripts/normalize/liveness.mjs --readme --check && node scripts/webgpu-inventory.mjs --check && node scripts/bake-check.mjs",
     "test:coverage": "python3 scripts/heavy-lane.py full-test -- bash -c 'vitest run --coverage && node scripts/coverage-ratchet.mjs'",
     "test:gpu-boot": "bash scripts/test-nine-gpu-boot.sh",
     "preview": "vite preview",
