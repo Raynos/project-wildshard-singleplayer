@@ -1,6 +1,7 @@
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash complete replay frames from the actual shipping group without retaining large arrays.
 import { createHash } from 'node:crypto';
+import { GrazerBrain } from '../../src/engine/ai/grazer';
 import { HerdBrain, type HerdPorts } from '../../src/engine/ai/herd';
 import { Animal } from '../../src/engine/entities/AnimalView';
 import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
@@ -22,7 +23,7 @@ const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 
 afterAll(restoreTerrain);
 const originalEnv = { ...wildEnv };
 afterEach(() => { Object.assign(wildEnv, originalEnv); });
-function fixture(platform: boolean | 'bound', restoring = false): { policy: ShippingHorseHerd | HerdBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx']; events: unknown[]; ports: HerdPorts<Animal>;
+function fixture(platform: boolean | 'bound' | 'direct', restoring = false): { policy: ShippingHorseHerd | GrazerBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx']; events: unknown[]; ports: HerdPorts<Animal>;
   construction: { beforeRng: ReturnType<Rng['snapshot']>; afterRng: ReturnType<Rng['snapshot']>; beforeMemory: Record<string, number>[]; afterMemory: Record<string, number>[] } } {
   app.rng.seed(357);
   const f = creature('crab', 'small'), factory = new AnimalFactory(f.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } }), model = factory.model('crab', 'small');
@@ -49,10 +50,10 @@ function fixture(platform: boolean | 'bound', restoring = false): { policy: Ship
   const beforeRng = app.rng.stream('ai').snapshot(), beforeMemory = members.map(actor => ({ ...actor.mem }));
   const policy = platform === 'bound' ? declaredGroupFactories({ preyIdentity: () => 'prey.none', resolvePrey: () => null,
     resolveActor: id => members.find(actor => actor.entityId === id) ?? null }, APP_GROUP_HOST).herd(members)
-    : platform ? new HerdBrain(members, NALATI_HERD_BRAIN, ports) : new ShippingHorseHerd(members);
-  if (!(policy instanceof HerdBrain) && !(policy instanceof ShippingHorseHerd)) throw new Error('Missing fixture policy');
+    : platform === 'direct' ? new GrazerBrain(members, { pattern: 'herd', spec: NALATI_HERD_BRAIN, ports }) : platform ? new HerdBrain(members, NALATI_HERD_BRAIN, ports) : new ShippingHorseHerd(members);
+  if (!(policy instanceof GrazerBrain) && !(policy instanceof ShippingHorseHerd)) throw new Error('Missing fixture policy');
   const construction = { beforeRng, afterRng: app.rng.stream('ai').snapshot(), beforeMemory, afterMemory: members.map(actor => ({ ...actor.mem })) };
-  if (policy instanceof HerdBrain && platform !== 'bound' && !restoring) policy.initialize();
+  if (policy instanceof GrazerBrain && platform !== 'bound' && !restoring) policy.initialize();
   f.ctx.rng = new Rng(357); f.ctx.herd = members;
   f.ctx.hurt = damage => { events.push(['damage', damage]); }; f.ctx.sound = cue => { events.push(['cue', cue]); };
   f.ctx.confine = actor => { actor.position.x = Math.max(-220, Math.min(220, actor.position.x)); actor.position.z = Math.max(-220, Math.min(220, actor.position.z)); };
@@ -61,7 +62,7 @@ function fixture(platform: boolean | 'bound', restoring = false): { policy: Ship
   return { policy, members, context: f.ctx, events, ports, construction };
 }
 const stateKeys = ['mode', 'stampeding', 'stallionState', 'trust', 'alert', 'alertOwned', 'cx', 'cz', 'spotX', 'spotZ', 'spotT', 'fleeX', 'fleeZ', 'fleeRun', 'fleeLen', 'fleeFromX', 'fleeFromZ', 'modeT', 'sT', 'chargeCd', 'beatenT', 'beaten', 'knockCd'] as const;
-function state(policy: ShippingHorseHerd | HerdBrain<Animal>): unknown[] {
+function state(policy: ShippingHorseHerd | GrazerBrain<Animal>): unknown[] {
   return stateKeys.map(key => { const value: unknown = Reflect.get(policy, key); if (!['number', 'string', 'boolean'].includes(typeof value)) throw new Error(`Missing group state ${key}`); return value; });
 }
 function step(f: ReturnType<typeof fixture>, tick: number, scenario: 'senses' | 'stampede' | 'guard' | 'taming'): void {
@@ -84,7 +85,7 @@ function step(f: ReturnType<typeof fixture>, tick: number, scenario: 'senses' | 
   if (tick % 6 === 0) for (const actor of f.members) if (actor.alive) { f.policy.tick(c); f.policy.drive(actor, c); }
   for (const actor of f.members) { if (actor.alive) f.policy.drive(actor, { ...c, dt: 1 / 60 }, true); actor.step(1 / 60); }
 }
-function replay(platform: boolean | 'bound', scenario: Parameters<typeof step>[2]): { hash: string; modes: string[]; guards: string[]; rng: ReturnType<typeof app.rng.snapshot>; actorRng: ReturnType<Rng['snapshot']> } {
+function replay(platform: boolean | 'bound' | 'direct', scenario: Parameters<typeof step>[2]): { hash: string; modes: string[]; guards: string[]; rng: ReturnType<typeof app.rng.snapshot>; actorRng: ReturnType<Rng['snapshot']> } {
   const f = fixture(platform), hash = createHash('sha256'), modes = new Set<string>(), guards = new Set<string>();
   for (let tick = 0; tick < 10000; tick++) { step(f, tick, scenario); modes.add(f.policy.mode); guards.add(f.policy.stallionState);
     hash.update(JSON.stringify([state(f.policy), f.members.map(actor => actor.snapshot()), f.events])); f.events.length = 0; }
@@ -102,7 +103,7 @@ describe('declared guarded-herd family', () => {
   });
   it('keeps constructors pure and initializes the shipping timer exactly once after preflight', () => {
     const native = fixture(false), expectedRng = app.rng.stream('ai').snapshot();
-    const platform = fixture(true), policy = platform.policy; if (!(policy instanceof HerdBrain)) throw new Error('Missing platform herd');
+    const platform = fixture(true), policy = platform.policy; if (!(policy instanceof GrazerBrain)) throw new Error('Missing platform herd');
     expect(platform.construction.afterRng).toEqual(platform.construction.beforeRng);
     expect(platform.construction.afterMemory).toEqual(platform.construction.beforeMemory);
     expect(app.rng.stream('ai').snapshot()).toEqual(expectedRng); expect(state(platform.policy)).toEqual(state(native.policy));
@@ -110,18 +111,18 @@ describe('declared guarded-herd family', () => {
     expect(app.rng.stream('ai').snapshot()).toEqual(expectedRng);
   });
   it.each(['senses', 'stampede', 'guard', 'taming'] as const)('matches the actual shipping boids, guard, contact/filter recipes and RNG for 10,000 fixed ticks: %s', scenario => {
-    const actual = replay(true, scenario); expect(actual).toEqual(replay(false, scenario)); expect(replay('bound', scenario)).toEqual(actual);
+    const actual = replay(true, scenario); expect(actual).toEqual(replay(false, scenario)); expect(replay('bound', scenario)).toEqual(actual); expect(replay('direct', scenario)).toEqual(actual);
     if (scenario === 'stampede') for (const mode of ['flee', 'settle', 'graze']) expect(actual.modes).toContain(mode);
     if (scenario === 'taming') for (const guard of ['ridden', 'beaten', 'watch']) expect(actual.guards).toContain(guard);
     if (scenario === 'guard') for (const guard of ['watch', 'warn', 'display', 'charge', 'wheel']) expect(actual.guards).toContain(guard);
   });
-  it('restores flight, mothers and taming state without callbacks or RNG, then matches a 10,000-tick suffix', () => {
-    const before = fixture(true); if (!(before.policy instanceof HerdBrain)) throw new Error('Missing platform herd');
+  it.each([true, 'direct'] as const)('restores flight, mothers and taming state without callbacks or RNG, then matches a 10,000-tick suffix (%s)', platform => {
+    const before = fixture(platform); if (!(before.policy instanceof GrazerBrain)) throw new Error('Missing platform herd');
     for (let tick = 0; tick < 1300; tick++) step(before, tick, 'stampede'); before.events.length = 0;
     const saved = before.policy.snapshot(), actors = before.members.map(actor => actor.snapshot()), rng = app.rng.snapshot(), actorRng = before.context.rng.snapshot();
     const expected = createHash('sha256');
     for (let tick = 1300; tick < 11300; tick++) { step(before, tick, 'stampede'); expected.update(JSON.stringify([before.policy.snapshot(), before.members.map(actor => actor.snapshot()), before.events])); before.events.length = 0; }
-    const after = fixture(true, true); if (!(after.policy instanceof HerdBrain)) throw new Error('Missing platform herd');
+    const after = fixture(platform, true); if (!(after.policy instanceof GrazerBrain)) throw new Error('Missing platform herd');
     after.members.forEach((actor, i) => { const data = actors[i]; if (data === undefined) throw new Error('Missing actor'); actor.restore(data); });
     app.rng.restore(rng); after.context.rng.restore(actorRng); after.policy.restore(saved);
     expect(app.rng.snapshot()).toEqual(rng); expect(after.events).toEqual([]);

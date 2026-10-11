@@ -3085,7 +3085,12 @@ they are parameter presets, preserving their row names, public observations, ins
 phases and byte-identical saved JSON. Wandering rams retain their three-dimensional
 notice distance and duration-before-yaw random draws; circular challengers retain their
 horizontal notice distance, timed face phase and ordered charge/close utility selection.
-The herd pattern and the other SF82 archetypes remain open. The additive row
+The `herd` pattern uses a real ordered roster: `new GrazerBrain(members, {pattern: 'herd', spec, ports})`.
+`GuardedHerdSpec`, `GuardedHerdContext` and `GuardedHerdPorts` define its native laws.
+`initialize` performs the sole initial timer draw after preflight; `tick` shares one decision clock
+while `drive` retains each member's body cadence. Taming/guard fields, callback identity and the
+complete string continuation remain unchanged. `ai/herd#HerdBrain` is the legacy constructor preset.
+Single-body patterns refuse group-only entry points before effects. The hunt and pack extensions remain open. The additive row
 spelling below changes no species registration, collider or gameplay law.
 
 The matching author declaration is `@wildshard/format/grazers#GrazerSchema`:
