@@ -3184,3 +3184,11 @@ and module hash before constructing the original `EliteScriptLane`. The same
 `plugin/brain.stepEliteScript` steps lanes first, reads host values, then applies
 the returned ordered verbs. This changes neither the native engagement prelude
 nor the fixed encounter clock. No module bytes or random stream are inferred.
+
+SF82 Signal and Sky's native page and headless hosts admit the same authored
+`{kind: "boss", pattern, fight}` data profile before allocating their fight.
+Signal's `data/matriarchBoss.ts` owns its fresh-body/storm/checkpoint tuning;
+Sky's `data/rocFight.ts` owns its held-body tuning. The old row/preset names
+retain the same interpreted values. Director stages, native bodies, clocks,
+rewards and continuations are unchanged. These trusted bindings do not claim
+whole-shard recipe admission or eliminate each shard's custom brain policy.

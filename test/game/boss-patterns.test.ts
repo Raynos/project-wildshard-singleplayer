@@ -12,6 +12,8 @@ import { markedBossFight as shippingSpawned } from '../fixtures/species-oracle/m
 import { heldBossFight as shippingHeld } from '../fixtures/species-oracle/heldBossFight';
 import { markedBossFight } from '../../src/shards/sunscar-dunes/runtime/shardfile/bossFight';
 import { heldBossFight } from '../../src/shards/far-reach/runtime/heldBossFight';
+import { ROC_BOSS_PROFILE } from '../../src/shards/far-reach/data/rocFight';
+import { MATRIARCH_BOSS_PROFILE } from '../../src/shards/sunscar-dunes/data/matriarchBoss';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
 
 let rapier: Rapier;
@@ -29,19 +31,23 @@ function spawn(host: SimHost, serial: number): AnimalSim {
   const id = `boss.${String(serial)}`, body = host.spawn({ id, spec: native, seed: 7, scale: 1, at: { x: 1, y: 4, z: 2 }, yaw: 0 });
   ids.set(body,id); return body;
 }
-function make(pattern: 'spawned'|'held', version: 'frozen'|'preset'|'profile'): Run {
+function make(pattern: 'spawned'|'held', version: 'frozen'|'preset'|'profile', selected?: Extract<BossFightProfile, {pattern:'spawned'|'held'}>): Run {
   const host = createSimHost(level, { rapier }), events: unknown[] = [];
   if (pattern === 'spawned') {
+    const profile = selected ?? spawnedProfile;
+    if (profile.pattern !== 'spawned') throw new Error('Wrong body pattern');
     let next = 0;
     const ports: SpawnedBossPorts<AnimalSim> = { body: { spawn: previous => { events.push(['spawn',previous === undefined ? null : idOf(previous)]); return spawn(host,next++); }, retire: a => { events.push(['retire',idOf(a)]); host.retire(idOf(a)); } },
       rewardPoint: new Vector3(1,4,2), respawnPoint: () => { events.push(['respawn']); return { pos: new Vector3(3, 4, 7), yaw: 0.6 }; }, victory: () => { events.push(['victory']); }, update: (dt,storm) => { events.push(['weather',dt,storm]); } };
-    const fight = version === 'frozen' ? shippingSpawned(spawnedProfile.fight,ports) : version === 'preset' ? markedBossFight(spawnedProfile.fight,ports) : bossFight(spawnedProfile,ports);
+    const fight = version === 'frozen' ? shippingSpawned(profile.fight,ports) : version === 'preset' ? markedBossFight(profile.fight,ports) : bossFight(profile,ports);
     return { host, fight, body: fight.body, events, brain: null };
   }
+  const profile = selected ?? heldProfile;
+  if (profile.pattern !== 'held') throw new Error('Wrong body pattern');
   const body = spawn(host,0), brain = { phase: 0, fighting: false, restart: () => { events.push(['restart',brain.phase,brain.fighting,body.hp,body.alive]); } };
   const victory = (at: Vector3): void => { events.push(['victory',at.toArray()]); };
   const ports: HeldBossPorts<AnimalSim> = { body,brain,victory };
-  const fight = version === 'frozen' ? shippingHeld(heldProfile.fight,body,brain,victory) : version === 'preset' ? heldBossFight(heldProfile.fight,body,brain,victory) : bossFight(heldProfile,ports);
+  const fight = version === 'frozen' ? shippingHeld(profile.fight,body,brain,victory) : version === 'preset' ? heldBossFight(profile.fight,body,brain,victory) : bossFight(profile,ports);
   return { host, fight, body: () => body, events, brain };
 }
 function frame(run: Run, tick: number): string {
@@ -86,4 +92,15 @@ it('refuses a mismatched host before reads, spawns, randomness or allocation',()
   expect(() => { Reflect.apply(bossFight,undefined,[spawnedProfile,ports]); }).toThrow('Boss row/host policy mismatch');
   expect(() => { Reflect.apply(bossFight,undefined,[{...heldProfile,pattern:'unknown'},ports]); }).toThrow('Boss row/host policy mismatch');
   expect(() => { Reflect.apply(bossFight,undefined,[{...heldProfile,kind:'unknown'},ports]); }).toThrow('Unknown boss row kind');
+});
+
+for (const [name, row] of [['Sky', ROC_BOSS_PROFILE], ['Signal', MATRIARCH_BOSS_PROFILE]] as const) it(`${name}: the authored profile retains the frozen complete 10,000-frame fight hash`, () => {
+  const runs = (['frozen', 'profile'] as const).map(version => make(row.pattern, version, row)), hashes = runs.map(() => createHash('sha256'));
+  try {
+    for (let tick = 0; tick < 10_000; tick++) {
+      const states = runs.map((run, i) => { const value = frame(run, tick); hashes[i]?.update(value); return value; });
+      expect(states[1], `authored frame ${String(tick)}`).toBe(states[0]);
+    }
+    expect(new Set(hashes.map(hash => hash.digest('hex'))).size).toBe(1);
+  } finally { for (const run of runs) run.host.dispose(); }
 });

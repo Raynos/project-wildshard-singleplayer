@@ -6,8 +6,9 @@ import { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { Vector3 } from 'three';
 import { rocBrain } from '../species/stormRoc';
-import { heldBossFight } from '../runtime/heldBossFight';
-import { ROC_DEFINITION, ROC_FIGHT } from '../data/rocFight';
+import { bossFight } from '@wildshard/game/plugin/bossPhase';
+import { parseBossProfile } from '@wildshard/format/bossProfiles';
+import { ROC_DEFINITION, ROC_BOSS_PROFILE } from '../data/rocFight';
 
 /**
  * The Storm Roc: the engine's BossBrain owns the intro, the HP-threshold phases, checkpoint and retry, and victory.
@@ -16,7 +17,9 @@ import { ROC_DEFINITION, ROC_FIGHT } from '../data/rocFight';
  */
 export class StormRocBoss extends DirectorBossBrain {
   constructor(ctx: ShardContext, player: Vector3, roc: Animal | null, onVictory: (at: Vector3) => void, saves: { read: () => BossSaved; write: (value: BossSaved) => void }) {
-    const fight = heldBossFight(ROC_FIGHT, roc, roc ? rocBrain(roc) : null, onVictory);
+    const profile = parseBossProfile(ROC_BOSS_PROFILE);
+    if (profile.pattern !== 'held') throw new Error('The Storm Roc requires its declared held-body pattern');
+    const fight = bossFight(profile, {body: roc, brain: roc ? rocBrain(roc) : null, victory: onVictory});
     const presentation = new BossBar(); ctx.scope.onDispose(() => { presentation.scope.dispose(); });
     ctx.answer('damage.modify', (request) => request !== null && roc !== null && request.target === roc.combatActor() && fight.shielded() ? null : request);
     const saved = saves.read();

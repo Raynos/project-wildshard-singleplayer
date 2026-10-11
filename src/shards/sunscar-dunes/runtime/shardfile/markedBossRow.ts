@@ -4,7 +4,8 @@ import { Vector3 } from 'three';
 import type { BossBrain, BossDefinition } from '@wildshard/engine/ai/BossBrain';
 import type { SimHost } from '@wildshard/engine/sim';
 import { bossFlagRecord, installBossRow, type BossRowFlagNames } from '@wildshard/game/shardfile/bossRow';
-import { markedBossFight, type MarkedBossFightRow } from './bossFight';
+import { bossFight, type BossFightProfile } from '@wildshard/game/plugin/bossPhase';
+import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { KeptBossBody, KeptBossRow } from '@wildshard/game/shardfile/homeKeeper';
 
 /** The rows a marked boss runs from headless: its body row, encounter, fight, record flags, coins, floor, respawn and victory. */
@@ -12,7 +13,7 @@ export interface MarkedBossRowSpec {
   /** The declared boss row (its id is the encounter's fixed-step id and its saved actor's identity; its `at` the arena heart). */
   readonly row: KeptBossRow;
   readonly definition: BossDefinition;
-  readonly fight: MarkedBossFightRow;
+  readonly profile: Extract<BossFightProfile, {pattern: 'spawned'}>;
   readonly record: BossRowFlagNames;
   readonly reward: number;
   /** The arena floor the reward leaves from, at the row's spot. */
@@ -40,8 +41,10 @@ const Fight = v.strictObject({ stormGoal: finite, storm: finite, invulnerable: v
  * phase. Its record is the shard's flags.
  */
 export function installMarkedBossRow(host: SimHost, spec: MarkedBossRowSpec, ports: MarkedBossRowPorts): { boss: BossBrain; summon: () => void; locked: () => boolean } {
+  const profile = parseBossProfile(spec.profile);
+  if (profile.pattern !== 'spawned') throw new Error('The Matriarch requires its declared spawned-body pattern');
   const record = bossFlagRecord(host.flags, spec.record), saved = record.saved, id = spec.row.id, [x, z] = spec.row.at, back = spec.respawn;
-  const fight = markedBossFight(spec.fight, { body: { spawn: () => ports.body.draw(), retire: () => { ports.body.free(); } },
+  const fight = bossFight(profile, { body: { spawn: () => ports.body.draw(), retire: () => { ports.body.free(); } },
     rewardPoint: new Vector3(x, spec.floor, z),
     respawnPoint: () => ({ pos: new Vector3(back.x, host.groundHeightAt(back.x, back.z), back.z), yaw: back.yaw }),
     victory: () => { host.flags.set(spec.victory.flag); ports.fact(spec.victory.fact, id); } });

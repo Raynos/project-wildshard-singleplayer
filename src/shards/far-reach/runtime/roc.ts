@@ -3,8 +3,9 @@ import { installBossRow } from '@wildshard/game/shardfile/bossRow';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { FLAGS } from '../quest/flags';
-import { BOSS_REWARD, ROC_ID, ROC_DEFINITION, ROC_FIGHT } from '../data/rocFight';
-import { heldBossFight } from './heldBossFight';
+import { BOSS_REWARD, ROC_ID, ROC_DEFINITION, ROC_BOSS_PROFILE } from '../data/rocFight';
+import { bossFight } from '@wildshard/game/plugin/bossPhase';
+import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { StormRocBrain } from './stormRocBrain';
 
 /** The Roc encounter's fixed-step id; its continuation is BossBrain's plus the script's HP and shield. */
@@ -31,10 +32,12 @@ export interface SkyRocPorts {
  * are views.
  */
 export function installSkyRoc(host: SimHost, ports: SkyRocPorts): { boss: ReturnType<typeof installBossRow>['boss']; locked: () => boolean } {
-  const fight = heldBossFight(ROC_FIGHT, ports.roc, ports.body, () => {
+  const profile = parseBossProfile(ROC_BOSS_PROFILE);
+  if (profile.pattern !== 'held') throw new Error('The Storm Roc requires its declared held-body pattern');
+  const fight = bossFight(profile, {body: ports.roc, brain: ports.body, victory: () => {
     if (host.flags.has(FLAGS.roc)) return;
     host.flags.set(FLAGS.roc); ports.fact(ROC_FACT, ROC_ID); ports.coins(BOSS_REWARD, ROC_ID);
-  });
+  }});
   const row = installBossRow(host, { step: ROC_STEP, stages, definition: ROC_DEFINITION, script: fight.script, body: () => ports.roc, shielded: fight.shielded,
     fight: { snapshot: fight.snapshot, restore: fight.restore }, saved: { defeated: false, rewardTaken: false, kills: 0 }, persist: () => undefined, armed: true });
   return { boss: row.boss, locked: row.locked };

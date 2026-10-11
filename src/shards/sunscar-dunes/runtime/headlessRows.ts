@@ -1,9 +1,10 @@
+import { MATRIARCH_BOSS_PROFILE } from '../data/matriarchBoss';
 import type { RowsHeadlessManifest } from './rowsHeadless';
 import { SEED } from '../data/layout';
 import { SIGNAL_SPAWNS } from '../data/spawns';
 import { WHIP_MOVES, WHIP_TIMING } from '../data/items';
 import { SCOUT_FLAG } from '../data/flags';
-import { MATRIARCH_DEFINITION, MATRIARCH_FIGHT, MATRIARCH_PRESENTATION, MATRIARCH_RECORD, MATRIARCH_REWARD } from './quest/matriarchFight';
+import { MATRIARCH_DEFINITION, MATRIARCH_PRESENTATION, MATRIARCH_RECORD, MATRIARCH_REWARD } from './quest/matriarchFight';
 import { FACT, MATRIARCH_FLAG } from '../quests/signal';
 import { SIGNAL_INTERACTIONS } from '../quests/interactions';
 import { SCOUT_NPC } from '../quests/scout';
@@ -31,7 +32,7 @@ if (matriarch === undefined) throw new Error('Signal Dunes declares the Matriarc
 export const SIGNAL_HEADLESS: Omit<RowsHeadlessManifest, 'baked' | 'homes'> & { readonly homes: Omit<RowsHeadlessManifest['homes'], 'species' | 'strikes' | 'modules'> } = {
   homes: { step: HOMES_STEP, seed: SEED, rows: SIGNAL_SPAWNS.homes, attackers: SIGNAL_ATTACKERS, think: { every: 6, dt: 0.1 },
     contact: { prefix: 'sunscar.', suffix: '.contact' }, holds: [{ home: 0, field: 'held', until: SCOUT_FLAG }] },
-  boss: { row: matriarch, definition: MATRIARCH_DEFINITION, fight: MATRIARCH_FIGHT, record: MATRIARCH_RECORD, reward: MATRIARCH_REWARD,
+  boss: { row: matriarch, definition: MATRIARCH_DEFINITION, profile: MATRIARCH_BOSS_PROFILE, record: MATRIARCH_RECORD, reward: MATRIARCH_REWARD,
     floor: MATRIARCH_PRESENTATION.floor, respawn: MATRIARCH_PRESENTATION.respawn, victory: { flag: MATRIARCH_FLAG, fact: FACT.matriarch } },
   lash: { id: WHIP_ID, step: WHIP_STEP, timing: WHIP_TIMING, moves: WHIP_MOVES, eye: 1.68 },
   quest: { interactions: SIGNAL_INTERACTIONS, npcs: [SCOUT_NPC], graph: SIGNAL_GRAPH },

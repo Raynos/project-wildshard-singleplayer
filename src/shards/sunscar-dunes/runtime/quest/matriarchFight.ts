@@ -1,6 +1,6 @@
 import { parseMarkedBossPresentation } from '../shardfile/markedBossPresentation';
 import type { BossDefinition } from '@wildshard/engine/ai/BossBrain';
-import type { MarkedBossFightRow } from '../shardfile/bossFight';
+import { MATRIARCH_BOSS_PROFILE } from '../../data/matriarchBoss';
 import { DUNE_FIELD } from '../looks/duneFieldRows';
 import { BASIN } from '../../data/layout';
 import { STRINGS } from '../../data/strings';
@@ -11,9 +11,9 @@ export const MATRIARCH_ID = 'sunscar.matriarch';
 /** The reward: coins once, on the first fall (her paid flag). */
 export const MATRIARCH_REWARD = 20;
 /** Her rise out of the basin (the intro's pose), seconds. */
-export const MATRIARCH_RISE = 3.2;
+export const MATRIARCH_RISE = MATRIARCH_BOSS_PROFILE.fight.riseSeconds;
 /** The phase II storm closes in and lifts over this many seconds. */
-export const STORM_FADE = 2.5;
+export const STORM_FADE = MATRIARCH_BOSS_PROFILE.fight.stormFade;
 
 /** Her encounter: the intro, three phases at 100 / 66 / 33 % and their captions (the engine's `BossBrain` runs them). */
 export const MATRIARCH_DEFINITION: BossDefinition = { id: MATRIARCH_ID, name: STRINGS.matriarch, title: STRINGS.matriarchTitle, retryTitle: STRINGS.retry,
@@ -30,8 +30,7 @@ export const MATRIARCH_RECORD = { defeated: MATRIARCH_DEFEATED_FLAG, paid: MATRI
  * at full, two-thirds or one-third health; phase II (index 1) raises the sand storm over `STORM_FADE` s; her brain
  * (data/brains.ts MATRIARCH_BRAIN) reads the marks.
  */
-export const MATRIARCH_FIGHT: MarkedBossFightRow = { arena: { x: BASIN.x, z: BASIN.z, r: BASIN.r + 34 }, hpShares: [1, 0.66, 0.33], riseSeconds: MATRIARCH_RISE,
-  stormPhases: [1], stormFade: STORM_FADE, fields: { fight: 'fight', rise: 'rise', phase: 'phase' } };
+export const MATRIARCH_FIGHT = MATRIARCH_BOSS_PROFILE.fight;
 
 /**
  * Her fight's browser presentation (SF27 / SF7f, a marked boss presentation row): the coin burst leaves from the basin

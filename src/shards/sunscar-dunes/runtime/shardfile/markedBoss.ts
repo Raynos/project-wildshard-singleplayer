@@ -10,7 +10,8 @@ import { bossesSave, shardSave } from '@wildshard/game/saves';
 import type { ShardContext } from "@wildshard/game/plugin/context";
 import type { RuntimeBoss, RuntimeCoins } from "@wildshard/game/plugin/headless";
 import { bossFlagRecord, type BossRowFlagNames, type BossRowFlags } from '@wildshard/game/shardfile/bossRow';
-import { markedBossFight, type MarkedBossFightRow } from './bossFight';
+import { bossFight, type BossFightProfile } from '@wildshard/game/plugin/bossPhase';
+import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import { stormShellMaterial } from '../looks/stormShell';
 import type { MarkedBossPresentation } from './markedBossPresentation';
 
@@ -28,7 +29,7 @@ export function carriedBossRecord(ctx: Pick<ShardContext, 'manifest'>, flags: Bo
 /** The rows a marked boss is built from: its encounter definition, its view-free fight, its presentation and its coins. */
 export interface MarkedBossRows {
   readonly definition: BossDefinition;
-  readonly fight: MarkedBossFightRow;
+  readonly profile: Extract<BossFightProfile, {pattern: 'spawned'}>;
   readonly presentation: MarkedBossPresentation;
   readonly reward: number;
 }
@@ -47,6 +48,8 @@ export class MarkedBoss extends DirectorBossBrain {
   /** The boss's body while it is up. */
   readonly body: () => Animal | null;
   constructor(ctx: ShardContext, player: Vector3, body: RuntimeBoss, rows: MarkedBossRows, record: { saved: BossSaved; persist: (value: BossSaved) => void }, coins: RuntimeCoins, onDown?: () => void) {
+    const profile = parseBossProfile(rows.profile);
+    if (profile.pattern !== 'spawned') throw new Error('The Matriarch requires its declared spawned-body pattern');
     const look = rows.presentation, storm = look.storm, color = new Color(storm.color);
     const at = new Vector3(body.row.at[0], look.floor, body.row.at[1]);
     let stormT = 0;
@@ -61,7 +64,7 @@ export class MarkedBoss extends DirectorBossBrain {
       ctx.scope.own(shell.geometry); ctx.scope.own(shell.material); ctx.scope.onDispose(() => { shell.removeFromParent(); });
       return shell;
     });
-    const fight = markedBossFight<Animal>(rows.fight, { body: { spawn: (previous) => body.spawn(previous), retire: (a) => { body.retire(a); } }, rewardPoint: at,
+    const fight = bossFight<Animal>(profile, { body: { spawn: (previous) => body.spawn(previous), retire: (a) => { body.retire(a); } }, rewardPoint: at,
       respawnPoint: () => ({ pos: new Vector3(look.respawn.x, ctx.manifest.ground.terrain?.heightAt(look.respawn.x, look.respawn.z) ?? 0, look.respawn.z), yaw: look.respawn.yaw }),
       victory: () => { ctx.game.runtime?.play?.hud.toast(saved.rewardTaken ? look.toasts.rewardAgain : look.toasts.reward); onDown?.(); },
       update: (dt, strength) => {

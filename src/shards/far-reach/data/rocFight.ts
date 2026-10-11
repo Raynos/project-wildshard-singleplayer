@@ -18,5 +18,8 @@ export const ROC_DEFINITION = { id: ROC_ID, name: STRINGS.roc, title: STRINGS.ro
  * its top); the intro looks at, and the victory pays out over, the dais; a player who dies in the fight comes back at the
  * fallen bridge's crown landing, 2 m back, facing in.
  */
-export const ROC_FIGHT = { arena: { x: CROWN.x, z: CROWN.z, r: CROWN.r * 0.9, floor: CROWN.y - 2 }, hpShares: PHASES,
-  rewardPoint: { x: DAIS.x, y: CROWN.y + DAIS.h, z: DAIS.z }, respawn: { x: FALLEN_BRIDGE.x1, y: CROWN.y + 0.2, z: FALLEN_BRIDGE.z1 - 2, yaw: 0 } };
+export const ROC_BOSS_PROFILE = { kind: 'boss', pattern: 'held', fight: { arena: { x: CROWN.x, z: CROWN.z, r: CROWN.r * 0.9, floor: CROWN.y - 2 }, hpShares: PHASES,
+  rewardPoint: { x: DAIS.x, y: CROWN.y + DAIS.h, z: DAIS.z }, respawn: { x: FALLEN_BRIDGE.x1, y: CROWN.y + 0.2, z: FALLEN_BRIDGE.z1 - 2, yaw: 0 } } } as const;
+
+/** Historical row name; its source is the same authored held-pattern boss profile. */
+export const ROC_FIGHT = ROC_BOSS_PROFILE.fight;
