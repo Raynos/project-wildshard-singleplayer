@@ -19,6 +19,7 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
 } {
   let used = false;
   const homes = new Map(spawns.map(row => [row.id, row.home === undefined ? undefined : { ...row.home }]));
+  const phases = new Map(spawns.map(row => [row.id, row.phaseOffset]));
   const impulse = borrowedImpulse ?? (host.embedded ? undefined : (velocity: Vector3) => { host.impulsePlayer(velocity); });
   const push = new Vector3();
   const motion = { x: host.player.position.x, z: host.player.position.z, speed: 0 };
@@ -65,6 +66,18 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
       return { strike, observe: dt => ({ dt, home, player: host.player.position, calm: !host.player.health.alive,
         rng: host.rng.stream('ai'), reach, claim: body => host.events.ask('ai.claim', body),
         hurt: damage => { hurt(actor, damage, strike.tags, strike.id); },
+        strikeHit: selected => { hurt(actor, selected.damage, selected.tags, selected.id); },
+      }), body: () => undefined };
+    }, challengeGrazer: (actor, row) => {
+      const phaseOffset = phases.get(actor.entityId), charge = strikes.get(row.charge), close = strikes.get(row.close);
+      if (phaseOffset === undefined) throw new Error('Missing authored data-host circle phase');
+      if (charge === undefined || close === undefined) throw new Error('Unresolved data-host challenge strikes');
+      used = true;
+      return { charge, close, observe: dt => ({ dt, t: host.clock.now, phaseOffset, player: host.player.position,
+        calm: !host.player.health.alive, reach, claim: body => host.events.ask('ai.claim', body),
+        hurt: () => { throw new Error('Missing selected data-host challenge strike'); },
+        strikeHit: selected => { hurt(actor, selected.damage, selected.tags, selected.id); },
+        steer: (body, yaw, speed, turn) => { body.setMotion(yaw, speed, turn); },
       }), body: () => undefined };
     }, burstFlyer: (actor, row) => {
       if (impulse === undefined) throw new Error('Missing borrowed data-host player impulse');

@@ -25,11 +25,15 @@ export interface WanderGrazerPorts<A extends AnimalSim> {
   dt: number; player: A['position']; calm: boolean; rng: Pick<Rng, 'range'>;
   home: { x: number; z: number; r: number; y: number };
   reach: (actor: A) => boolean; claim: (actor: A) => boolean; hurt: (damage: number) => void;
+  /** Optional exact selected-strike filing; absent preserves the legacy damage-only callback. */
+  strikeHit?: (strike: StrikeSpec) => void;
 }
 /** Trusted stable circle phase, target, navigation and contact for challenging grazers. */
 export interface CircleGrazerPorts<A extends AnimalSim> {
   dt: number; t: number; player: A['position']; calm: boolean; phaseOffset: number;
   reach: (actor: A) => boolean; claim: (actor: A) => boolean; hurt: (damage: number) => void;
+  /** Optional exact selected-strike filing; absent preserves the legacy damage-only callback. */
+  strikeHit?: (strike: StrikeSpec) => void;
   steer: (actor: A, yaw: number, speed: number, turn: number) => void;
 }
 /** Shared grazing, alert and flight modes of a guarded herd. */
@@ -224,7 +228,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     }
   }
   private context(c: WanderGrazerPorts<A> | CircleGrazerPorts<A>): StrikeContext {
-    return { actor: this.actor, target: c.player, canReach: () => c.reach(this.actor), hit: spec => { c.hurt(spec.damage); } };
+    return { actor: this.actor, target: c.player, canReach: () => c.reach(this.actor), hit: spec => { if (c.strikeHit === undefined) c.hurt(spec.damage); else c.strikeHit(spec); } };
   }
   // A zero step is an interrupt's second wake in a frame; it is an ordinary admitted observation.
   private step(c: GrazerObservation<A>): void {

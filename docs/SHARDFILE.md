@@ -1807,3 +1807,18 @@ Node owns and serializes that impulse. The normal client lends its actual Player
 impulse method through `ShardfileSimPorts.creatureImpulse`; an embedded host without
 that explicit authority refuses before registering the policy. No guest callback
 moves a borrowed player, and denied claims or blocked reach do not generate impulses.
+
+### Authored circle phases (SF82 BR-1)
+
+A `grazer` with `pattern: 'circle-challenge'` (or legacy `challenge-grazer`)
+installs automatically when each spawn supplies `phaseOffset`, in radians within
+−2π…2π. For example, two authored bodies can declare `phaseOffset: 0` and
+`phaseOffset: Math.PI`. Omission is preserved; the stock host refuses a missing
+phase instead of deriving it from an id, roster slot or RNG. Other policies reject
+this metadata. The body's initial position remains its circle centre.
+
+The real host supplies time, steering, reach, attack claims and CombatSystem
+contact. Both charge and close strikes file their actual selected id and tags.
+The optional engine `strikeHit` port preserves this identity; old trusted ports
+without it retain their exact damage-only callback. Restoring with a changed
+authored phase refuses before ticking.

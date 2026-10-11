@@ -33,3 +33,16 @@ fixed-step execution lends the real owning SimHost player and verifies its movem
 claim denial leaves player position/health unchanged. Existing home/herd/diver traces pass.
 No new graph edge, visual change, browser capture, full suite or generated output.
 Circle phase and guardian/perch/group authority remain OPEN; burst-shove is now hosted.
+
+## Circle challenge authority
+
+Optional per-spawn phase metadata is bounded, policy-checked and fenced in the
+native continuation. The stock circle owner uses the actual host clock and
+selected strike identity; it draws no setup randomness and guesses no phase.
+Existing damage-only trusted adapters remain byte-compatible. Guardian/perch
+body completion and pack authority remain OPEN; no synthetic callbacks were added.
+
+Proof: 40 focused tests in six files, root strict and touched typed lint green.
+Charge/close contacts preserve selected ids/tags; real physics restores a
+600-tick suffix exactly, changed phases refuse, and denied claims file no damage.
+No browser/build/full suite or geometry changes.

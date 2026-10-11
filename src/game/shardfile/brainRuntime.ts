@@ -38,7 +38,7 @@ export interface DeclaredBrainPorts {
   burstFlyer?: (actor: AnimalSim, declaration: ShardBurstFlyer, host: SimHost) => DeclaredBrainRecipe<BurstFlyerPorts<AnimalSim>> & { strike: StrikeSpec };
 }
 /** Stable spawn identity with optional explicitly authored per-body home authority. */
-export type DeclaredBrainSpawn = PlatformSpawn & { home?: ShardCreatureHome | undefined };
+export type DeclaredBrainSpawn = PlatformSpawn & { home?: ShardCreatureHome | undefined; phaseOffset?: number | undefined };
 interface Registration { id: string; run: (dt: number) => void; adapter: SimStateAdapter }
 function nativeRegistration<P>(id: string, actor: AnimalSim, divisor: number, brain: SimStateAdapter & { think: (ports: P) => void }, recipe: DeclaredBrainRecipe<P>, host: SimHost): Registration {
   if (typeof recipe.observe !== 'function' || typeof recipe.body !== 'function') throw new Error('Missing native brain recipe');
@@ -52,8 +52,8 @@ function nativeRegistration<P>(id: string, actor: AnimalSim, divisor: number, br
   } } };
 }
 function mutableRegistration<P>(id: string, actor: AnimalSim, divisor: number,
-  brain: SimStateAdapter & { think: (ports: P) => void; act: (ports: P) => void }, recipe: DeclaredBrainRecipe<P>, host: SimHost, home?: ShardCreatureHome): Registration {
-  const contract = JSON.stringify({ version: 1, divisor, ...(home === undefined ? {} : { home }) });
+  brain: SimStateAdapter & { think: (ports: P) => void; act: (ports: P) => void }, recipe: DeclaredBrainRecipe<P>, host: SimHost, home?: ShardCreatureHome, phaseOffset?: number): Registration {
+  const contract = JSON.stringify({ version: 1, divisor, ...(home === undefined ? {} : { home }), ...(phaseOffset === undefined ? {} : { phaseOffset }) });
   return { id, run: dt => {
     if (!actor.alive) return;
     if (host.state.tick % divisor === 0) brain.think(recipe.observe(divisor / 60));
@@ -84,6 +84,7 @@ export function installDeclaredBrains(host: SimHost, rows: readonly DeclaredBrai
   }
   for (const row of rows) {
     if (row.home !== undefined) v.parse(CreatureHomeSchema, row.home);
+    if (row.phaseOffset !== undefined && (!Number.isFinite(row.phaseOffset) || Math.abs(row.phaseOffset) > 2 * Math.PI)) throw new Error('Invalid authored circle phase');
     if (row.brain === null) continue;
     const spec = definitions.get(row.brain);
     if (!host.entities.has(row.id) || spec === undefined || host.adapters.has(`brain.${row.id}`)) throw new Error('Unresolved or installed declared brain');
@@ -129,7 +130,7 @@ export function installDeclaredBrains(host: SimHost, rows: readonly DeclaredBrai
         const recipe = ports.challengeGrazer(actor, spec, host);
         if (typeof recipe.observe !== 'function' || typeof recipe.body !== 'function' || recipe.charge.id !== spec.charge
           || recipe.close.id !== spec.close) throw new Error('Unresolved declared grazer strikes or recipe');
-        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new ChallengeGrazerBrain(actor, spec, recipe.charge, recipe.close), recipe, host, row.home)); break;
+        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new ChallengeGrazerBrain(actor, spec, recipe.charge, recipe.close), recipe, host, row.home, row.phaseOffset)); break;
       }
       case 'orbit-diver': {
         if (ports.orbitDiver === undefined) throw new Error('Missing native brain port');
