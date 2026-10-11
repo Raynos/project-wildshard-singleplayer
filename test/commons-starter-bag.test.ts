@@ -17,6 +17,7 @@ it('packs the unchanged harvest rows deterministically and boot consumes the exa
   expect(first).toEqual(second);
   const entry = first.catalogue.entries.at(0);
   if (entry === undefined) throw new Error('Missing starter bag catalogue entry');
+  expect(entry).toMatchObject({ id: 'bag/starter-items', packVersion: '1.0.0', kind: 'binary' });
   expect(entry.hash).toBe('40c8bb21a1e8e77a9404bdc278a077ec78cc84a0fed67ca29f113469a4568670');
   const bytes = first.assets.get(entry.hash);
   if (bytes === undefined) throw new Error('Missing packed bag rows');
