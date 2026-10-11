@@ -1,5 +1,5 @@
 import { AnimalManager } from '../../src/engine/entities/AnimalManager';
-import { HuntBrain } from '../../src/engine/ai/hunt';
+import { StalkerBrain } from '../../src/engine/ai/stalker';
 import { fakeWorld } from './world';
 import { TickScheduler, type TickActor } from '../../src/engine/app/scheduler';
 import type { Animal } from '../../src/engine/entities/AnimalView';
@@ -24,9 +24,9 @@ export function manager({ legacyClock = false } = {}): ReturnType<typeof fakeWor
   if (legacyClock) {
     const scheduler = new LegacyClock(), prev = f.player.position.clone();
     let initialized = false, speed = 0;
-    // the decision tick is the manager's; the charge body clock is the hunting brain's (src/engine/ai/hunt.ts, SF72)
+    // the decision tick is the manager's; the charge body clock is the hunting brain's (src/engine/ai/stalker.ts hunt pattern, SF82)
     const hunt: unknown = Reflect.get(m, 'hunt');
-    if (!(hunt instanceof HuntBrain)) throw new Error('Manager hunting brain moved');
+    if (!(hunt instanceof StalkerBrain)) throw new Error('Manager hunting brain moved');
     const think: unknown = Reflect.get(m, 'think'), charge: unknown = Reflect.get(hunt, 'advanceCharge');
     if (typeof think !== 'function' || typeof charge !== 'function') throw new Error('Manager decision/body hooks moved');
     Reflect.set(m, 'scheduler', scheduler);
@@ -45,11 +45,11 @@ export function manager({ legacyClock = false } = {}): ReturnType<typeof fakeWor
   return { ...f, manager: m, advance(n): void { for (let i = 0; i < n; i++) f.game.advance(1 / 60); if (f.game.dead) throw new Error('manager fixture faulted'); } };
 }
 
-/** The manager's hunting brain (src/engine/ai/hunt.ts, SF72): the herd animals' memories and charge body clock. */
-export function huntOf(m: AnimalManager): HuntBrain<Animal> {
+/** The manager's hunting brain (src/engine/ai/stalker.ts hunt pattern, SF82): the herd animals' memories and charge body clock. */
+export function huntOf(m: AnimalManager): StalkerBrain<Animal> {
   const hunt: unknown = Reflect.get(m, 'hunt');
   if (!isHunt(hunt)) throw new Error('Manager hunting brain moved');
   return hunt;
 }
-/** the manager makes exactly one HuntBrain, over its Animals */
-function isHunt(value: unknown): value is HuntBrain<Animal> { return value instanceof HuntBrain; }
+/** The manager owns the canonical hunt-pattern StalkerBrain over its Animals. */
+function isHunt(value: unknown): value is StalkerBrain<Animal> { return value instanceof StalkerBrain; }

@@ -12,3 +12,9 @@ Status: OPEN, 2026-10-11. No compatible/80–20 claim is made from constructor r
 | BR-6 | No changed motion trace has been credited by this lane. | WAITING FOR OPUS: visual clip review where a future conversion changes a trace. |
 
 The last two native-user slices prove 24 tests/8 files (`9f468a5ec`) and 59 tests/11 files (`029b7763a`), strict and typed lint, actual repeat-equal collision captures and all four byte-identical witness recordings. No legacy folder, actor identity, geometry, reward, health, physics law or checkpoint payload was edited to manufacture parity.
+
+## Push-gate forward
+
+The old test manager fixture still refused the real manager unless it was an instance of the historical HuntBrain subclass. After canonical StalkerBrain adoption, this aborted the approach, contact, wind-up and cover tests before their gameplay assertions. The fixture now checks the defining canonical constructor; **all 54 tests/4 files pass with their original snapshots and assertions**. No runtime law was changed.
+
+Both spots were actually rebuilt through their Node generators and captured again with --check: **Pine 44 rows; Driftwood 30 rows and 16 ordered prompts**. Every payload field is identical; only build/revision provenance (plus Driftwood’s exact input hashes) changed. The seven spots/headless-quest tests pass, strict and touched typed lint pass, and all four checkpoint recordings retain identical payloads/outcomes.
