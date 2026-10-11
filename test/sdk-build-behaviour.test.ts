@@ -3,26 +3,39 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync
 // oxlint-disable-next-line import/no-nodejs-modules -- Temporary author projects remain outside the shared source tree.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine each fixture's paths to its temporary project.
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import * as v from 'valibot';
 import { expect, it } from 'vitest';
-import { buildBehaviourProject } from '@wildshard/sdk/buildBehaviour';
+import { BehaviourBuildSchema, buildBehaviourProject } from '@wildshard/sdk/buildBehaviour';
 import { runCli } from '../src/sdk/cli';
 
 it.each(['driftwood-isle', 'nalati-grasslands', 'pine-hollow'])('wildshard build regenerates %s native director outputs byte-for-byte', async slug => {
   const root = mkdtempSync(join(tmpdir(), 'native-behaviour-build-'));
   const project = `src/shards/${slug}`;
   try {
-    mkdirSync(join(root, 'behaviour')); mkdirSync(join(root, 'data'));
-    for (const path of ['behaviour/director.as', 'behaviour/build.json', 'data/director.json']) copyFileSync(`${project}/${path}`, join(root, path));
+    const descriptor = v.parse(BehaviourBuildSchema, JSON.parse(readFileSync(`${project}/behaviour/build.json`, 'utf8')));
+    const inputs = new Set(['behaviour/build.json', ...descriptor.modules.flatMap(row => [row.source, ...row.bindings, ...(row.director === undefined ? [] : [row.director])])]);
+    for (const path of inputs) {
+      mkdirSync(dirname(join(root, path)), { recursive: true });
+      copyFileSync(`${project}/${path}`, join(root, path));
+    }
     await runCli(['build', root, '--behaviour-only']);
     await runCli(['build', root, '--behaviour-only', '--check']);
-    expect(readFileSync(join(root, 'data/director.json'))).toEqual(readFileSync(`${project}/data/director.json`));
-    const data = JSON.parse(readFileSync(join(root, 'data/director.json'), 'utf8')) as { module: string };
-    expect(readFileSync(join(root, 'assets', data.module))).toEqual(readFileSync(`${project}/assets/${data.module}`));
-    writeFileSync(join(root, 'assets', data.module), 'stale');
-    await expect(runCli(['build', root, '--behaviour-only', '--check'])).rejects.toThrow('output is stale');
-    expect(readFileSync(join(root, 'assets', data.module), 'utf8')).toBe('stale');
-    if (slug !== 'nalati-grasslands') expect(readFileSync(join(root, 'behaviour/director.json'))).toEqual(readFileSync(`${project}/behaviour/director.json`));
+    for (const row of descriptor.modules) {
+      for (const path of [...row.bindings, ...row.embedded.map(output => output.file)]) {
+        expect(readFileSync(join(root, path))).toEqual(readFileSync(`${project}/${path}`));
+      }
+      const binding = row.bindings[0];
+      if (binding === undefined) throw new Error('Native director fixture requires its binding');
+      const data = v.parse(v.object({ module: v.string() }), JSON.parse(readFileSync(join(root, binding), 'utf8')));
+      const output = join(root, row.assets, data.module);
+      expect(readFileSync(output)).toEqual(readFileSync(`${project}/${row.assets}/${data.module}`));
+      writeFileSync(output, 'stale');
+      await expect(runCli(['build', root, '--behaviour-only', '--check'])).rejects.toThrow('output is stale');
+      expect(readFileSync(output, 'utf8')).toBe('stale');
+      // Restore only this generated fixture output so the next module's stale check reaches it.
+      copyFileSync(`${project}/${row.assets}/${data.module}`, output);
+    }
   } finally { rmSync(root, { recursive: true, force: true }); }
 }, 20_000);
 

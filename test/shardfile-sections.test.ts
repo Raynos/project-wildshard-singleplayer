@@ -2,6 +2,8 @@ import { expect, it } from 'vitest';
 import { parseShardfile, shardfileRules } from '@wildshard/sdk/shardfile';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { emptyShardfileSource } from '@wildshard/game/plugin/loader';
+import door from '../src/shards/_template/behaviour/door.json' with { type: 'json' };
+import { TEMPLATE_HOOKS, TEMPLATE_STATE } from '../src/shards/_template/behaviour/hooks';
 import { TEMPLATE_ROWS } from '../src/shards/_template/data/rows';
 import { CREATURES } from '../src/shards/_template/data/creatures';
 import { ENCOUNTERS, ENCOUNTER_UI } from '../src/shards/_template/data/encounters';
@@ -12,7 +14,11 @@ import { TEMPLATE_AUDIO } from '../src/shards/_template/data/audio';
 const empty = () => emptyShardfile({ slug: 'sections-test', name: 'Sections', author: 'Fixture', revision: 1, seed: 1 });
 const fixture = () => {
   const source = empty(); source.serverBudget.entities = CREATURES.spawns.length;
-  return parseShardfile({ ...source, rows: TEMPLATE_ROWS, creatures: CREATURES, encounters: ENCOUNTERS, ui: ENCOUNTER_UI, quests: TEMPLATE_QUESTS, audio: TEMPLATE_AUDIO, ledger: TEMPLATE_LEDGER });
+  source.files = [{ hash: door.hash, kind: 'wasm', compressed: door.compressed, decoded: door.compressed, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true }];
+  source.critical = [door.hash];
+  source.sim.scripts = [door.hash];
+  source.sim.bindings = [{ module: door.hash, entity: 1106943697, actorId: 'actor.player', kind: 'server' }];
+  return parseShardfile({ ...source, hooks: TEMPLATE_HOOKS, state: TEMPLATE_STATE, rows: TEMPLATE_ROWS, creatures: CREATURES, encounters: ENCOUNTERS, ui: ENCOUNTER_UI, quests: TEMPLATE_QUESTS, audio: TEMPLATE_AUDIO, ledger: TEMPLATE_LEDGER });
 };
 it('keeps legacy empty fixtures compatible and default sections empty', () => {
   const source = empty();

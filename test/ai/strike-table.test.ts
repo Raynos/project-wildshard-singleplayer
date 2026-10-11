@@ -7,6 +7,7 @@ import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { LaneCharge } from '../../src/shards/pine-hollow/combat/ctx';
 import { Animal } from '../../src/engine/entities/AnimalView';
 import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
+import { GhostVolleyDirector, prepareGhostVolleyDirector } from '../../src/shards/nalati-grasslands/runtime/ghostVolleyDirector';
 import { legacyConstants } from '../fake/legacySource';
 import { creature } from '../fake/creature';
 import { fakeWorld } from '../fake/world';
@@ -32,9 +33,18 @@ const tuning = [
   ['S7 captain burst', `${island}captainPolicy.ts`, { BURST_R: 3, BURST_DMG: 16, UNDER_T: 1.1, SINK_EVERY: [0, 0, 7, 5] }],
   ['S8/S9 boar/bear charge', 'src/engine/ai/hunt.ts', { BOAR_CHARGE: 7.5, CHARGE_HIT_DIST: 1.4, CHARGE_ARC: THREE.MathUtils.degToRad(50), CHARGE_COMMIT: 4.5, CHARGE_COMMIT_TURN: 1.1 }],
   ['S11 balbal slam', `${species}balbal.ts`, { ATK_T: 2.9, W_END: 0.52, S_END: 0.58, HIT_R: 3.1, HIT_CONE: 0.96, DAMAGE: 30, KURGAN_DAMAGE: 18, COOLDOWN: 1.4 }],
-  ['S12 ghost rider arrow', `${nalati}ghostRiders.ts`, { SPACING: 11, CIRCLE_R: 34, ENGAGE: 70, DISENGAGE: 115, SHOOT: 62, ARROW_SPEED: 34, ARROW_G: 5, ARROW_DMG: 10, RESPAWN: 60 }],
+  ['S12 ghost rider arrow', `${nalati}ghostRiders.ts`, { SPACING: 11, CIRCLE_R: 34, ENGAGE: 70, DISENGAGE: 115, ARROW_SPEED: 34, ARROW_G: 5, ARROW_DMG: 10, RESPAWN: 60 }],
 ] as const;
 describe('strike tuning from current production declarations', () => {
+  it('S12 the authored ghost volley fires strictly between 6 and 62 metres', async () => {
+    const create = await prepareGhostVolleyDirector();
+    for (const distance of [6, 6.001, 61.999, 62]) {
+      const shoot = vi.fn((): void => undefined), member = { fireT: 0, quiet: false };
+      const director = new GhostVolleyDirector(create(435), () => 0.5, shoot);
+      director.advance(member, 1 / 60, distance, true);
+      expect(shoot.mock.calls.length).toBe(distance > 6 && distance < 62 ? 1 : 0);
+    }
+  });
   it('S10/S18 read the live declared pack lunge and guarded-herd charge tuning', () => {
     expect([NALATI_PACK_BRAIN.runSpeed, NALATI_PACK_BRAIN.biteRadius, NALATI_PACK_BRAIN.telegraphSeconds,
       NALATI_PACK_BRAIN.dashSeconds, NALATI_PACK_BRAIN.breakoffSeconds]).toEqual([9.5, 1.4, 0.4, 1.8, 1.1]);
