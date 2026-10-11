@@ -9,6 +9,11 @@ import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { SHARDS } from '../src/shards.generated';
 import { toLevelSpec } from '../src/game/shard/spec';
+import { emptyShardfile } from '../src/sdk/author';
+import { packProjectMap } from '../src/sdk/projectMap';
+import { sourceManifest } from '../src/game/plugin/shardPlugin';
+import { admitProduct } from '../src/game/shardfile/product';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const root = `${import.meta.dirname}/..`;
 /** each shardfile project's parsed document (its shard.config.ts default export), keyed by slug */
@@ -19,7 +24,7 @@ for (const m of SHARDS) {
   CONFIGS.set(m.slug, typeof mod === 'object' && mod !== null && 'default' in mod ? mod.default : undefined);
 }
 interface Listed { kind: 'place' | 'entry' | 'portal' | 'quest'; id: string; label: string; x: number; z: number }
-interface Stamp { image: string; metres: number }
+interface Stamp { image: string; metres: number; tilesHash: string }
 
 /** every listed datum the map draws for a shard: its manifest's places, its shardfile's entryways (a lift / portal entry is a
  *  portal) and its quest markers (region triggers) */
@@ -124,16 +129,38 @@ const IGNORES = readIgnores();
 describe('map coverage (SF66: listed data on the baked map)', () => {
   it('covers every shard', () => { expect(SHARDS.length).toBeGreaterThanOrEqual(7); });
   for (const m of SHARDS) {
-    it(`${m.slug}: names its baked map, and every place, entry, portal and quest marker is on it`, () => {
+    it(`${m.slug}: names its baked map, and every place, entry, portal and quest marker is on it`, async () => {
       const stamp = JSON.parse(readFileSync(`${root}/src/shards/${m.slug}/look/map.baked.json`, 'utf8')) as Stamp;
       expect(m.minimap?.image, `${m.slug} draws no baked map (minimap.image)`).toBeDefined();
       expect(m.minimap?.image).toBe(stamp.image);
-      expect(toLevelSpec(m).minimap.image?.split('?')[0]).toBe(stamp.image); // what the minimap fetches
+      let level = toLevelSpec(m);
+      if (m.shardfile !== undefined || m.entries?.shardfile === true) {
+        // Public map URLs are authoring inputs, never a product's fallback. Pack the actual raster and project its admitted bytes.
+        expect(level.minimap.image).toBeUndefined();
+        const bytes = Uint8Array.from(readFileSync(`${root}/public${stamp.image}`));
+        const slug = field(field(CONFIGS.get(m.slug), 'identity'), 'slug');
+        if (typeof slug !== 'string') throw new Error(`${m.slug} has no authored product identity`);
+        const source = emptyShardfile({ slug, name: m.name, author: 'Map coverage', seed: m.seed, revision: 1 });
+        const packed = packProjectMap(source, { bytes, tilesHash: stamp.tilesHash });
+        expect(packed.shard.library).toContain(packed.hash);
+        expect(packed.shard.map).toEqual({ image: packed.hash, tilesHash: stamp.tilesHash });
+        const product = await admitProduct(packed.shard, { firstParty: true, offline: true, base: 'https://map-coverage.test/product/',
+          cache: { product: () => Promise.resolve({ source: packed.shard, firstParty: true }),
+            asset: (_base, hash) => Promise.resolve(hash === packed.hash ? bytes : null), putAsset: () => Promise.resolve(), putProduct: () => Promise.resolve() },
+          hash: image => Promise.resolve(hashImmutableBytes(image)), fetch: () => Promise.reject(new Error('No public map URL fallback')) });
+        const admitted = sourceManifest(product.source, product.assets);
+        level = toLevelSpec({ ...m, minimap: { ...m.minimap, ...admitted.minimap } });
+        expect(level.minimap.image).toMatch(/^data:image\/(?:webp|png|jpeg);base64,/u);
+        const encoded = level.minimap.image?.split(',')[1] ?? '';
+        expect(Uint8Array.from(atob(encoded), c => c.codePointAt(0) ?? 0)).toEqual(bytes);
+      } else {
+        expect(level.minimap.image?.split('?')[0]).toBe(stamp.image);
+      }
       const items = listed(m.slug, m.pois ?? []);
       expect(dead(items, stamp.metres)).toEqual([]);
       expect(items.filter((i) => i.kind === 'entry' || i.kind === 'portal')).toHaveLength(4); // the four midpoint entryways
       // the full map's default pins (Map.ts levelPins) read the level's places: every listed place reaches it
-      expect(toLevelSpec(m).pois?.map((p) => p.id) ?? []).toEqual((m.pois ?? []).map((p) => p.id));
+      expect(level.pois?.map((p) => p.id) ?? []).toEqual((m.pois ?? []).map((p) => p.id));
     });
     it(`${m.slug}: every portal, lift, quest trigger, interaction, marker, arena, boss and mover is on a listed place (or reviewed)`, () => {
       const shard = CONFIGS.get(m.slug);
