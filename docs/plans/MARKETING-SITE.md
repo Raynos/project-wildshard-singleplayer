@@ -192,3 +192,6 @@ Two read-only seats, one brief, the live site screen by screen (WebKit, phone 40
   the hero, the seven cards and wide stills, the loops and trailer, the share card's Sky Reach; the logo is hand-made SVG.
 - **Concept art that stays (Jake 2026-10-11):** Coming worlds and Thin Ice keep their image-model pictures: *"No that's
   a good use of ai images"*. The rule: concept art may picture an idea or a plan, labelled; it never stands in for the game.
+- **Road-grid concept art (Jake 2026-10-11):** the two old paintings with glowing purple seams give way to the meta
+  repo's approved refresh (project-wildshard-meta 4b0cb15, docs/concept-art/ALPHA-REFRESH.md and DRAFTS.md): A1
+  Frontier Atlas on the home page's What, B1 Emerald and Ember on /play; both keep the GPT mockup banner.

@@ -129,7 +129,7 @@ GPT mockup
 
 ## What · painting 1 description
 
-Concept painting: a vast world of player-built shards, stitched together by glowing seams
+Concept painting: three travellers on a ruined ledge above a frontier of shards in their own looks, a lagoon, red canyons, snowy peaks, a lava field and floating islands, joined by straight highways
 
 # Shards you can play
 
@@ -1172,11 +1172,11 @@ Today it's a single-player alpha, on the engine the MMO is built on. Next: one w
 
 ## Play · concept description
 
-Concept painting: two players on a jungle shard, glowing seams running between shards, a volcanic shard beyond
+Concept painting: two players on a jungle shard of ruins and waterfalls, a highway crossing to a volcanic shard beyond
 
 ## Play · concept caption
 
-Where it's going, not the game today: two players on a jungle shard, the next shard's volcano across the seam.
+Where it's going, not the game today: two players on a jungle shard, the next shard's volcano across the road.
 
 ## Play · live label
 
