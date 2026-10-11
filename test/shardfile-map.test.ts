@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify actual immutable image addresses.
 import { createHash } from 'node:crypto';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { packProjectMap } from '../src/sdk/projectMap';
 import { parseShardfile } from '@wildshard/format/shardSchema';
@@ -10,6 +10,14 @@ const bytes = Uint8Array.from(atob('UklGRjAAAABXRUJQVlA4ICQAAABwAQCdASoCAAMAAUAm
 const hash = (image: Uint8Array): string => createHash('sha256').update(image).digest('hex');
 const base = emptyShardfile({ slug: 'template', name: 'Map', author: 'Fixture', seed: 1, revision: 1 });
 const baked = { bytes, tilesHash: 'b'.repeat(64) };
+
+function mapPlatform(values: Readonly<Record<string, unknown>>): () => void {
+  const previous = Object.keys(values).map(key => ({ key, descriptor: Object.getOwnPropertyDescriptor(globalThis, key) }));
+  for (const [key, value] of Object.entries(values)) Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
+  return () => { for (const { key, descriptor } of previous) {
+    if (descriptor === undefined) Reflect.deleteProperty(globalThis, key); else Object.defineProperty(globalThis, key, descriptor);
+  } };
+}
 
 it('packs exact pixels into a hash-addressed library and charges both wire and decoded/GPU residency', () => {
   const product = packProjectMap(base, baked), source = validateShardfileAssets(product.shard, new Map([[product.hash, bytes]]), hash);
@@ -85,4 +93,38 @@ it('shares a charged map lease across owners and releases late/disposed requests
     expect(() => leaseMapImage(source, assets, allocator, a)).toThrow('disposed');
   } finally { a.dispose(); b.dispose(); }
   expect(allocator.entries()).toEqual([]);
+});
+
+it('retains the full-size home raster, shares neighbour copies and clears their scoped canvases', async () => {
+  const { Scope } = await import('../src/engine/app/scope');
+  const { CellMinimaps } = await import('../src/game/grid/minimapBlend');
+  const close = vi.fn(), draw = vi.fn<(image: unknown, x: number, y: number, width: number, height: number) => void>(), provider = vi.fn(() => Promise.resolve('data:image/webp;base64,AA=='));
+  const restore = mapPlatform({ document: { createElement: () => ({ width: 0, height: 0, getContext: () => ({ drawImage: draw }) }) },
+    fetch: () => Promise.resolve(new Response(bytes)), createImageBitmap: () => Promise.resolve({ width: 1000, height: 1000, close }) });
+  const scope = new Scope('map.canvas'), maps = new CellMinimaps(scope, provider, id => id === 'home');
+  try {
+    expect(maps.image('home')).toBeNull(); expect(maps.image('neighbour')).toBeNull(); expect(maps.image('neighbour')).toBeNull();
+    await vi.waitFor(() => { expect(maps.image('home')?.width).toBe(1000); expect(maps.image('neighbour')?.width).toBe(400); });
+    expect(provider).toHaveBeenCalledTimes(2); expect(close).toHaveBeenCalledTimes(2);
+    expect(draw.mock.calls.map(call => call.slice(1))).toEqual([[0, 0, 1000, 1000], [0, 0, 400, 400]]);
+    const home = maps.image('home'), neighbour = maps.image('neighbour');
+    expect(maps.bytes).toBe(4_640_000);
+    scope.dispose(); expect(home?.width).toBe(0); expect(neighbour?.width).toBe(0); expect(maps.bytes).toBe(0);
+  } finally { scope.dispose(); restore(); }
+});
+
+it('closes a bitmap arriving after its owner left without publishing or allocating a canvas', async () => {
+  const { Scope } = await import('../src/engine/app/scope');
+  const { CellMinimaps } = await import('../src/game/grid/minimapBlend');
+  const bitmap = { width: 1000, height: 1000, close: vi.fn() }, canvas = vi.fn();
+  let release: (value: typeof bitmap) => void = () => { throw new Error('Bitmap request not started'); };
+  const pending = new Promise<typeof bitmap>(resolve => { release = resolve; });
+  const decode = vi.fn(() => pending);
+  const restore = mapPlatform({ document: { createElement: canvas }, fetch: () => Promise.resolve(new Response(bytes)), createImageBitmap: decode });
+  const scope = new Scope('map.late'), maps = new CellMinimaps(scope, () => Promise.resolve('data:image/webp;base64,AA=='));
+  try {
+    maps.image('home'); await vi.waitFor(() => { expect(decode).toHaveBeenCalledTimes(1); });
+    scope.dispose(); release(bitmap); await pending;
+    expect(bitmap.close).toHaveBeenCalledTimes(1); expect(canvas).not.toHaveBeenCalled(); expect(maps.bytes).toBe(0);
+  } finally { scope.dispose(); release(bitmap); restore(); }
 });
