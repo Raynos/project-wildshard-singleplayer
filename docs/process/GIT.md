@@ -29,6 +29,15 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
     `-- <paths>`. Rare escape: `SKIP_SWEEPGUARD=1`; every use lands in `project/sweepguard-ledger.md`.
   - A pathspec commit takes the **whole file**. If the file also carries another agent's uncommitted hunk, wait for
     them, or commit only your hunks through a private index (`.claude/skills/prepare-to-exit/SKILL.md` step 1).
+  - **Preferred lane path:** validate a private message with `python3 .githooks/commit-msg-conventions <file>`, run
+    the actual pre-commit and commit-msg hooks with the private index, then `commit-tree` and compare-and-swap
+    `update-ref`. Run post-commit after landing. Each process owns its message file; no shared `COMMIT_EDITMSG`.
+    Ordinary `git commit`, including with a private index, serializes message handling through the pre-commit
+    kernel lock until that Git process exits. A waiter prints the holder PID and known lane/pane; it refuses after
+    120 seconds by default (`WS_COMMIT_LOCK_TIMEOUT`, positive and at most 600 seconds), so retry or use the preferred
+    private-message path. It never removes another process's lock. Pre-commit prints its wall time under the lock
+    and records `.git/commit-hook-times.jsonl`; queue waiting is excluded. Darwin kqueue / Linux pidfd releases
+    the lock on success, refusal or process death, with no polling guardian.
 - **Pushes are automatic** (SF74 W14, 2026-10-09: commit → origin was p90 54 min because nobody ran the pusher).
   `.githooks/post-commit` records the commit's herdr pane in `.git/commit-lanes.jsonl` and starts `scripts/auto-push.sh`
   detached: single-instance, it waits 10 s to batch a burst, waits out `.git/quiet` (the coordinator's measurement
