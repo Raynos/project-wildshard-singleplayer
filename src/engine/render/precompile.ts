@@ -87,7 +87,7 @@ export function registerExteriorLighting(scene: THREE.Scene, owner: Scope, root:
   owner.onDispose(() => { held.roots.delete(root); if (held.roots.size === 0) exteriorLighting.delete(scene); });
 }
 
-function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, shadows: boolean, roots?: readonly THREE.Object3D[]): CompileJob[] {
+function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, shadows: boolean, roots?: readonly THREE.Object3D[], per = 6): CompileJob[] {
   const state = exteriorLighting.get(scene);
   if (state === undefined) return [];
   const target = new THREE.Scene();
@@ -99,7 +99,7 @@ function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, sh
   };
   visit(scene);
   const jobs = roots === undefined
-    ? [...sceneJobs(scene, rt).jobs, ...familyCompileJobs(scene, rt), ...(shadows ? shadowJobs(scene, rt) : [])]
+    ? [...sceneJobs(scene, rt, per).jobs, ...familyCompileJobs(scene, rt, per), ...(shadows ? shadowJobs(scene, rt, per) : [])]
     : sceneJobs(scene, rt, 1, roots).jobs;
   // Passes with their own scene keep their authored state. Only the page world/depth variants transition outside.
   for (const job of jobs) if (job.target === scene) job.target = target;
@@ -368,7 +368,7 @@ export function backgroundJob(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | 
  * downsample materials passes swap in, nested passes of effects), each on a screen triangle in an
  * empty scene: no fog, no lights, into a frame buffer — except the pass that renders to screen.
  */
-export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget | null): CompileJob[] {
+export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget | null, per = Number.POSITIVE_INFINITY): CompileJob[] {
   const found = new Map<THREE.Material, boolean>(); // material → renders to screen
   const visited = new Set<object>();
   const walk = (v: unknown, toScreenIn: boolean, depth: number): void => {
@@ -399,8 +399,14 @@ export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget |
   const empty = new THREE.Scene();
   const groups = { buffer: new THREE.Group(), screen: new THREE.Group() };
   for (const [m, toScreen] of found) (toScreen ? groups.screen : groups.buffer).add(new THREE.Mesh(tri, m));
-  if (groups.buffer.children.length > 0) jobs.push({ label: engineString('s_178612197e2b'), root: groups.buffer, target: empty, rt });
-  if (groups.screen.children.length > 0) jobs.push({ label: engineString('s_9070659b32c3'), root: groups.screen, target: empty, rt: null });
+  for (const [group, target, label] of [[groups.buffer, rt, 's_178612197e2b'], [groups.screen, null, 's_9070659b32c3']] as const) {
+    const meshes = [...group.children];
+    for (let i = 0; i < meshes.length; i += per) {
+      const root = new THREE.Group();
+      for (const mesh of meshes.slice(i, i + per)) root.add(mesh);
+      jobs.push({ label: engineString(label), root, target: empty, rt: target });
+    }
+  }
   const first = jobs[0];
   if (first === undefined) tri.dispose(); else first.dispose = disposerOf([tri]);
   return jobs;
@@ -451,8 +457,11 @@ export interface UploadBudget {
 /** The Developer tool's budget for isolated (WebKit) uploads: about a quarter of a 30 fps frame, 8 MiB of decoded texels. */
 export const LIVE_UPLOAD_BUDGET: UploadBudget = { ms: 8, bytes: 8 * 1024 * 1024 };
 
-/** A live WebKit warm-up issues (about) and resolves at most this many programs per painted slice (op-hitch37). */
-export const LIVE_PROGRAMS_PER_FRAME = 4;
+/** Live WebKit preparation settles one program per painted slice. A material can issue two side variants. */
+export const LIVE_PROGRAMS_PER_FRAME = 1;
+
+// Program identities are renderer-owned; preparation must not keep a retired renderer or revisit its resolved links.
+const resolvedPrograms = new WeakSet<ProgramLike>();
 
 /** The Developer tool's budget for other browsers' slices: under the 12 ms checked after the fact, and 64 MiB. */
 export const SLICED_UPLOAD_BUDGET: UploadBudget = { ms: 10, bytes: 64 * 1024 * 1024 };
@@ -589,14 +598,20 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   }
   created.push(...newProgramsSince(renderer, before));
   for (const program of before) if (jobPrograms.has(program)) created.push(program);
-  const n = created.length;
-  // Phase A (parallel drivers): wait for COMPLETION_STATUS_KHR on every program, counting them up.
+  const pending = created.filter(program => !resolvedPrograms.has(program));
+  const n = pending.length;
+  // Ordinary parallel preparation waits for the batch before resolving it. Live preparation
+  // settles one ready identity below; completion polls also cross the GPU-process boundary.
   const units = parallel ? 2 * n : n;
-  if (parallel) {
+  if (parallel && !isolateImageUploads) {
+    const linked = new Set<ProgramLike>();
     for (;;) {
       checkCurrent();
       let ready = 0;
-      for (const p of created) if (p.isReady()) ready++;
+      for (const p of pending) {
+        if (linked.has(p)) { ready++; continue; }
+        if (p.isReady()) { linked.add(p); ready++; }
+      }
       onProgress?.(jobs.length + ready, jobs.length + units + textures.length, `${ready} / ${n} programs linked · parallel`);
       if (ready >= n) break;
       await pause();
@@ -613,10 +628,15 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // main thread, so the 12 ms box never closed, but the frame waited for every library they forced (Nine Dragon's entry:
   // 759 uniforms resolved in one 699 ms Simulator frame of afterPlay).
   let tSlice = performance.now(), resolvedInSlice = 0;
-  for (const [i, p] of created.entries()) {
+  for (const [i, p] of pending.entries()) {
     checkCurrent();
-    p.getUniforms(); resolvedInSlice++;
-    onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
+    // A live slice settles one ready program. An incomplete link alone needs another poll.
+    if (parallel && isolateImageUploads) {
+      while (!p.isReady()) { await pause(); checkCurrent(); }
+    }
+    p.getUniforms(); resolvedPrograms.add(p); resolvedInSlice++;
+    const linkedProgress = parallel ? (isolateImageUploads ? 2 * (i + 1) : n + i + 1) : i + 1;
+    onProgress?.(jobs.length + linkedProgress, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
     if (performance.now() - tSlice > 12 || (isolateImageUploads && resolvedInSlice >= LIVE_PROGRAMS_PER_FRAME)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
   }
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
@@ -649,7 +669,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // The batch's last uploads keep their own drawn frame before whatever follows warm-up, as isolation did.
   if (batch?.pending() === true) await pause();
   checkCurrent();
-  return { materials, jobs: jobs.length, programs: n, parallel };
+  return { materials, jobs: jobs.length, programs: created.length, parallel };
 }
 
 
@@ -710,20 +730,21 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const scene = game.rootScene;
     const rt = game.composer.inputBuffer;
     const policy = game.level.boot.shaders;
-    const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 } : sceneJobs(scene, rt);
+    const per = options.isolateImageUploads === true ? 1 : 6;
+    const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 } : sceneJobs(scene, rt, per);
     // material families (SF10a): live family programs the scene does not hold yet (none live: no jobs)
-    if (policy?.scene !== false) jobs.push(...familyCompileJobs(scene, rt), ...offscreenJobs(scene));
-    if (policy?.shadows !== false) jobs.push(...shadowJobs(scene, rt));
+    if (policy?.scene !== false) jobs.push(...familyCompileJobs(scene, rt, per), ...offscreenJobs(scene));
+    if (policy?.shadows !== false) jobs.push(...shadowJobs(scene, rt, per));
     const bg = backgroundJob(scene, rt);
     if (bg && policy?.background !== false) jobs.push(bg); else bg?.dispose?.();
-    if (policy?.post !== false) jobs.push(...postJobs(game.composer, rt));
+    if (policy?.post !== false) jobs.push(...postJobs(game.composer, rt, options.isolateImageUploads === true ? 1 : Number.POSITIVE_INFINITY));
     // Three renders shadows before setupLights(), so the first entered shadow draw still uses the preceding
     // road frame's light state. Warm that depth variant too; the following shadow draw uses the future state.
     const previousShadows = policy?.shadows !== false && options.futureLighting !== undefined && options.futureLighting !== scene
-      ? shadowJobs(scene, rt) : [];
+      ? shadowJobs(scene, rt, per) : [];
     if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting, options.futureEnvironment);
     jobs.push(...previousShadows);
-    if (policy?.scene !== false) jobs.push(...exteriorJobs(scene, rt, policy?.shadows !== false));
+    if (policy?.scene !== false) jobs.push(...exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per));
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
     const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget);

@@ -825,6 +825,14 @@ During WebKit entered-world preparation, `Game.warmEnteredFrame` requests isolat
 Each image keeps its original texture/source/sampler and upload order, with a paint opportunity before the next
 upload. Compressed textures retain their fenced upload path. Ordinary boot and desktop keep batched uploads.
 This bounds combined upload work; it cannot split or guarantee the duration of one native upload.
+
+Live WebKit shader preparation separates drawable compile jobs and settles one program per drawn frame.
+Incomplete links yield before retrying completion; ready links resolve in the same slice, then yield.
+Ready programs are not polled again; weak resolved identities avoid repeating work for borrowed variants.
+KHR completion is checked before uniforms are resolved, and shader-error diagnostics remain enabled.
+A two-sided material can still issue two variants; one native query can still overshoot. Desktop and
+initial boot retain their ordinary job grouping and time budget.
+
 For a running WebKit game, `Game.warmEnteredFrame` and `Game.warmSceneRoots` supply `waitForDrawnFrame` as the
 `pause` callback. It waits for a fresh completed game draw and a paint opportunity; a capped/skipped browser rAF
 Isolation costs a drawn frame per image: Pine's entered warm-up took 7.8 s on the Simulator at 30 fps (op-hitch27).
