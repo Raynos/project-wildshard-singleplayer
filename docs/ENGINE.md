@@ -833,6 +833,13 @@ cannot release the next preparation batch. Scope retirement or an obsolete owner
 handles. It never advances simulation or forces a draw. Initial boot (no completed draw yet) and desktop keep the
 ordinary paint barrier. `prepareSceneRoots` and `precompileLevel` accept the same optional callback.
 
+**Resident CPU preparation.** `prepareSceneRoots` runs owner-scoped render-data preparations before
+compiling/uploading a newly resident root. The camera is converted to each registered root's local frame.
+Grass fills its initial toroidal cell window in cooperative slices here, using the same cell order and
+per-cell seeds as its ordinary first update. Gameplay, clocks, trample and live visibility do not advance;
+the completed matrices and colours reach the first draw together. Retirement cancels preparation and
+removes the registration. Ordinary standalone updates retain their existing first-fill behaviour.
+
 ## 9. Saves
 
 All persistent state goes through `SaveStore` (`app.saves`, also exported as `saves`). Raw `localStorage` /

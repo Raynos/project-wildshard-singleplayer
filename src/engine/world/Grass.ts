@@ -17,6 +17,10 @@ import { practiceRoom } from '../core/practiceRoom';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 import { memorySaverOn } from '../render/memorySaver';
 import { gpuOnlyTexture } from '../core/gpuOnly';
+import { registerScenePreparation } from '../render/scenePreparation';
+import { resourceScope } from '../app/resources';
+import { withOwner } from '../app/ownership';
+import { workSlice } from '../core/workSlice';
 
 /**
  * Wind-swept grass carpet around the player (Skyrim SE / Horizon style).
@@ -176,6 +180,16 @@ export class Grass {
     // the sky's own objects (not copies): the day / night clock moves the sun by mutating them in place
     grassUniforms.uSunDir.value = this.sky.sunDir;
     grassUniforms.uSunColor.value = this.sky.sunColor;
+    const owner = resourceScope();
+    registerScenePreparation(this.group, owner, async (eye, current) => {
+      withOwner(owner, () => { this.queueAt(eye); });
+      const slice = workSlice(undefined, owner);
+      while (this.queue.length > 0) {
+        if (!current()) throw new Error('Grass preparation left its owner');
+        withOwner(owner, () => { this.flush(1); });
+        if (slice.due()) await slice.yield();
+      }
+    });
     return this;
   }
 
@@ -311,9 +325,15 @@ export class Grass {
     if (this.driven) { this.driven.update(dt, playerPos); return; }
     grassUniforms.uGrassWind.value = this.params.windStrength;
     if (this.policy.trample) this.trampleStep(this.policy.trample.field, dt, playerPos);
+    const first = this.lastCellX === 0x7fffffff;
+    this.queueAt(playerPos);
+    if (first) this.flush(Infinity);
+    if (this.queue.length > 0) this.flush(this.queue.length > 300 ? Infinity : this.params.budget);
+  }
+
+  private queueAt(playerPos: THREE.Vector3): void {
     const pcx = Math.floor(playerPos.x / CELL), pcz = Math.floor(playerPos.z / CELL);
     if (pcx !== this.lastCellX || pcz !== this.lastCellZ) {
-      const first = this.lastCellX === 0x7fffffff;
       this.lastCellX = pcx; this.lastCellZ = pcz;
       const half = N >> 1;
       for (let cx = pcx - half; cx < pcx + half; cx++) for (let cz = pcz - half; cz < pcz + half; cz++) {
@@ -329,9 +349,7 @@ export class Grass {
           return (ax - pcx) ** 2 + (az - pcz) ** 2 - ((bx - pcx) ** 2 + (bz - pcz) ** 2);
         });
       }
-      if (first) this.flush(Infinity);
     }
-    if (this.queue.length > 0) this.flush(this.queue.length > 300 ? Infinity : this.params.budget);
   }
 
   /** E322 F-L4: the player parts the grass and leaves a trail (the animals push from AnimalManager); the map advances */

@@ -16,6 +16,7 @@ import { uploadCompressedTexture } from './compressedUpload';
 import { linkStandIn } from '../app/sceneOwnership';
 import { offscreenPreparations } from './offscreenPreparation';
 import { waitMaterialPreparations } from './materialPreparation';
+import { prepareSceneResources } from './scenePreparation';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -204,6 +205,7 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
 export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera, scene: THREE.Scene,
   target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean, pause?: () => Promise<void>,
   uploadBudget?: UploadBudget): Promise<void> {
+  await prepareSceneResources(roots, camera, current);
   const { jobs, materials } = sceneJobs(scene, target, 1, roots);
   jobs.push(...exteriorJobs(scene, target, false, roots));
   await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget);
