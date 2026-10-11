@@ -13,7 +13,7 @@
 
 **Live:** production `f3c1f5f-mv3wnszj`; queue drained. **sp-x7 = gate/CI/deploy lane (G330).**
 
-**Red → green (G330):** `red-green.md` (5 reds fixed 10-11).
+**Queue:** `open-x-queue.md` (open engineering, 10-11 sweep). **Red → green (G330):** `red-green.md` (5 reds fixed 10-11).
 
 **G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact, witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`).
 
@@ -33,11 +33,11 @@
 | Lane | Work |
 |---|---|
 | sp-x1 | frame floor: milestone rerun on HEAD (gate job handed to sp-x7) |
-| sp-x7 | push queue + GitHub CI + daily deploy green, standing first responder |
-| sp-x2 | Sim drive Nalati/Sky 35 PASS (`368a54202`) · Nalati cold-arrival wait 19.7 s |
-| sp-x4 | DS1.5, SF83, SF84 X done (Template horse/anchors = Opus) · port Signal to 80/20 |
-| sp-x5 | DS1.6 packs (figures wait: KTX2) · SF82 BR-1–5 landed, BR tail |
-| sp-x6 | SF81 done · SF85 X done (WP-4 = Opus) · port Sky to 80/20 |
+| sp-x7 | gate/CI/deploy first responder · SF74 tails, SF60 |
+| sp-x2 | Nalati cold arrival 0 s (`8d8ae2711`) · every cell's arrival readiness |
+| sp-x4 | ports at non-graphical floor (Driftwood, Nalati) · OS-F8 · SF22 Safari cadence |
+| sp-x5 | OS-F1/F2/F10 done · one-shot run 2 · then SF82 BR-1/2/4/5 |
+| sp-x6 | OS-F3–F7, F9 done · SF87/G320 + G292 clean room |
 
 **Jake picks landed:** G321/G322/G324/G325/G326/G327/G328.
 
