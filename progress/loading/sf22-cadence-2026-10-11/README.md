@@ -1,41 +1,25 @@
-# SF22: cadence passes; isolated draw stalls remain open
+# SF22: cadence and maximum-gap subset passes
 
-On `a819411795ede65ceca6e860fa40c33b9604c6f4`, the real Driftwood → Signal → Driftwood
-route admits both returns without errors or refusals. Developer OFF, Auto images,
-Memory saver OFF, phone tier, DPR 2, muted; aggregate 5 Mbit/s and 3/10-second asset
-stalls begin after the home is playable. Standing samples retain the actual final
-pose. Both surfaces use the browser rAF timestamp of each completed Game draw;
-callback-start and polling clocks stay diagnostic. No missed observations.
+The source fix is `bf3b0c45e`; the measured candidate is `6f6dd47c78b5391285df8723223725c208643fc9`, containing the same eight-path source projection. Baseline `a819411795ede65ceca6e860fa40c33b9604c6f4` and after use the same actual Driftwood → Signal → Driftwood road-hover inputs, Developer OFF, Memory saver OFF, Auto images, phone tier, DPR 2 and mute. Network shaping is aggregate 5 Mbit/s with 3/10-second asset stalls after home becomes playable. Clock: native browser rAF timestamp of each completed Game draw. Limits and quality remain unchanged.
 
-| Check | Previous comparable receipt (`77380da36`) | This run |
+| Surface / check | Before | After |
 | --- | --- | --- |
-| Safari route p95 / p99 | 36 / 53 ms | **34 / 46 ms** |
-| Safari standing p95 / clock quantum | 34 / 1 ms | 34 / 1 ms |
-| Desktop route p95 / p99 | 33.4 / 33.4 ms | **33.4 / 33.4 ms** |
-| Desktop warm invocation maximum | 6.5 ms | **6.2 ms** |
-| Desktop warm-task upper bound | 50 ms | **50 ms** (no reported warm Long Task) |
+| Desktop p95 / p99 | 33.4 / 33.4 ms | 33.4 / 33.4 ms |
+| Desktop maximum draw gap (100 ms limit) | 366.6 ms FAIL | 66.6 ms PASS |
+| Desktop PBR shader calls outside explicit compile | 4 | 0 |
+| Desktop warm invocation / task upper bound | 6.2 / ≤50 ms | 6.1 / ≤50 ms |
+| Safari p95 / p99 | 34 / 46 ms | 34 / 44 ms |
+| Safari maximum draw gap (200 ms limit) | 301 ms FAIL | 85 ms PASS |
+| Safari PBR shader calls outside explicit compile | 4 | 0 |
 
-The headline 49 ms came from the older polling clock. It is not the before value
-for this comparison. The older 51 ms desktop warm-task outlier did not recur;
-absence of a Long Task gives a censored ≤50 ms bound, not an exact duration.
-Safari has no Long Task observation, so its whole warm-task bound is unavailable.
-The existing generic pacing, shared construction budget, message-port turns and
-late frame-cap recovery were already enabled on this pin; this receipt changes
-no scheduler, quality, clock, gate or runtime behavior.
+The source diagnostic found synchronous shader-link inspection on the main Game renderer, rather than a timer or worker owner. Signal streamed terrain forced 273/257 ms `getProgramInfoLog` calls; their completed-draw gaps were 350/374 ms with zero frame-gate refusals. A drawn sky material selected a warm-issued program before readiness and blocked 811 ms (826 ms draw gap). These are loaded diagnostic wall intervals, not GPU execution times or normative cadence results. Other short gaps remain unclassified; no GC, worker or timer time is invented.
 
-**SF22 stays open.** The improved whole-drive maximum policy fails: desktop
-366.6 ms >100 ms, Safari 301 ms >200 ms. P95 passing does not clear these stalls.
-The whole routes record 26 desktop / 4 Safari shader calls outside
-`renderer.compile`, including utility/warm-draw calls. Desktop's *explicit warm-up*
-subset has zero outside calls and passes the 50 ms task bound; that is not a
-zero-compilation claim for the whole route. The two largest Safari gaps overlap
-new PBR one-point-light and zero-point-light variants. That overlap is a source
-lead, not CPU, GPU or blocking-call attribution. A separate owner diagnostic is
-queued; timers, awaits, ports, workers and GC are not assigned invented durations.
+`bf3b0c45e` prepares detached streamed tiles after their final horizon patch and before publication, through the existing sliced compile/link/upload path. Live compilation preserves the last real draw's selected program, renderer material state and uniform bindings while retaining the newly compiled variants in the program cache. Geometry, materials, leases, shader sources, resolution and quality are unchanged. Thirty-seven focused tests, root strict and touched-file typed lint pass. No scheduler or timing-limit changes.
 
-Quiet was 16:39:34–16:43:39 UTC, after the pusher exited and more than two minutes
-after sp-x1's release. All owned browsers, Simulator helpers, preview and quiet
-marker closed. The failed BSD-regex queue and reservation cancellation happened
-before measurement and are retained in [summary.json](summary.json). Source
-evidence remains scratch-only; no raw archive is committed. This subset does not
-claim full G270 or physical-phone memory clearance.
+The before/after scalar journals, measured load, build identities, failed attempts and gate limitations are in [summary.json](summary.json). Desktop completed both directions without errors/refusals and zero missing draw observations. Safari completed both directions with zero errors/refusals, zero missing draw observations, and zero shader calls outside explicit compilation. Its warm invocation maximum was 3 ms. Safari's Long Task bound is unavailable; it is not credited as zero. Desktop retains utility/warm-draw shader calls outside renderer.compile, so this does not claim zero compilation for the whole route. The old 49 ms headline used a polling clock and is not the comparable before value; the comparable earlier Safari p95/p99 was 36/53 ms on `77380da36`.
+
+A missing scratch import stopped the first after Safari attempt before sampling; the valid desktop run is retained and Safari alone is retried. The scalar receipt preserves the failed attempts. The ordered Safari retry waited for sp-x2’s release, the two-minute gap and the pusher to exit; its quiet ran 19:54:59–19:57:04 UTC. All owned browsers, Simulator helpers, proxy, preview and quiet marker are closed. SF22 has no timing slot reserved; sp-x1 may follow the coordinator’s current order. This subset is not the full G270 gate or physical-phone memory clearance.
+
+These are single matched route observations. Browser/app cache is cold/no-store as driven by the harness; driver disk caches are not erased. Timing differences are not a population estimate or a shader-cache-reset experiment. The call-site diagnostic and PBR compile-call reduction establish the removed path independently.
+
+Safari retains the harness’s under-load flags: route load-average medians were 20.09 / 15.06 (before: 24.71 / 14.81). Desktop after medians were 7.03 / 6.85. The browser and Simulator lanes were isolated, but these flags are not cleared or recast as an uncontended qualification. The measured cadence/max-gap subset passes; the full G270 and physical-phone gates remain open.

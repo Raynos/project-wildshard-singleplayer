@@ -1,7 +1,8 @@
 {
-  "status": "open",
+  "status": "Measured cadence and maximum-gap subset PASS; SF22 overall remains OPEN",
   "scope": "Shaped Auto Driftwood -> Signal -> Driftwood; completed-game-draw rAF clock, not full G270 or physical iPhone clearance",
-  "pin": "a819411795ede65ceca6e860fa40c33b9604c6f4",
+  "sourceCommit": "bf3b0c45e61e9beff739e89815ce02997d6e2d68",
+  "measuredCandidate": "6f6dd47c78b5391285df8723223725c208643fc9",
   "settings": {
     "developer": false,
     "memorySaver": "off",
@@ -20,201 +21,461 @@
     ],
     "begins": "after initial home is playable"
   },
-  "previous": {
-    "pin": "77380da36",
-    "safari": {
-      "p95Ms": 36,
-      "p99Ms": 53,
-      "standingP95Ms": 34,
-      "timestampQuantumMs": 1
-    },
-    "desktop": {
-      "p95Ms": 33.4,
-      "p99Ms": 33.4,
-      "warmInvocationMaxMs": 6.5,
-      "warmTaskUpperBoundMs": 50
-    },
-    "olderHeadline": {
-      "pollingP95Ms": 49,
-      "warmTaskObservedMs": 51,
-      "note": "49ms is a polling-clock result, not a comparable delivered-game-rAF baseline. The 51ms warm task was an older outlier."
-    }
-  },
-  "surfaces": {
-    "desktop": {
-      "started": "2026-10-11T16:39:35.009Z",
-      "routesComplete": true,
-      "errors": [],
-      "cadence": {
-        "frames": 1687,
-        "p95Ms": 33.400000000001455,
-        "p99Ms": 33.40000000000873,
-        "maxMs": 366.59999999999854,
-        "timestampQuantumMs": 0.1,
-        "standingReferenceMs": 33.40000000000873,
-        "clock": "Browser rAF timestamp of the actual completed Game draw; callback-start and polling retained separately",
-        "missedFrames": 0,
-        "startedP95Ms": 34.80000019073486,
-        "startedP99Ms": 38.200000286102295,
-        "polledP95Ms": 33.400000000001455,
-        "polledP99Ms": 33.5,
-        "measurementRule": "Same-session crossing p95 may exceed the smallest standing p95 by at most one observed timestamp quantum; standing p95 must match the unchanged 33.3 ms limit within that quantum. Raw values retained."
-      },
-      "cadencePass": true,
-      "maxDrawGapMs": 366.59999999999854,
-      "wholeDriveMaxLimitMs": 100,
-      "standing": [
-        {
-          "frames": 300,
-          "p95Ms": 33.40000000000873,
-          "missedFrames": 0
-        },
-        {
-          "frames": 300,
-          "p95Ms": 33.40000000000873,
-          "missedFrames": 0
-        }
-      ],
-      "crossingMaxSyncMs": 16.59999990463257,
-      "crossingMaxDemandWaitMs": 4.199999809265137,
-      "activationMaxMs": 2,
-      "shaderCalls": {
-        "explicitWarmUp": 272,
-        "outsideRendererCompile": 26,
-        "classification": "Outside renderer.compile includes driver/utility/warm draw; it is not proof of a gameplay draw."
-      },
-      "warmInvocationMaxMs": 6.199999809265137,
-      "warmTask": {
-        "totalCalls": 109,
-        "explicitWarmUpCalls": 109,
-        "drawOrDriverCalls": 0,
-        "unclassifiedCalls": 0,
-        "longTasksAvailable": true,
-        "observerThresholdMs": 50,
-        "limitMs": 50,
-        "observedWarmUpTasks": 0,
-        "observedMaxWarmUpTaskMs": null,
-        "maxWarmUpTaskMsUpperBound": 50,
-        "pass": true
-      },
-      "routes": [
-        {
-          "name": "driftwood-to-signal",
-          "durationMs": 23102.800000190735,
-          "p95Ms": 33.400000000001455,
-          "p99Ms": 33.400000000001455,
-          "load": {
-            "median": 7.02978515625,
-            "min": 6.4033203125,
-            "max": 8.0673828125,
-            "samples": 23,
-            "underLoad": false
-          }
-        },
-        {
-          "name": "signal-to-driftwood",
-          "durationMs": 33671.90000009537,
+  "cacheCaveat": "Browser/app cold/no-store as driven by the harness; GPU driver disk caches not erased. Single matched observations, not a population estimate.",
+  "before": {
+    "pin": "a819411795ede65ceca6e860fa40c33b9604c6f4",
+    "surfaces": {
+      "desktop": {
+        "started": "2026-10-11T16:39:35.009Z",
+        "routesComplete": true,
+        "errors": [],
+        "cadence": {
+          "frames": 1687,
           "p95Ms": 33.400000000001455,
           "p99Ms": 33.40000000000873,
-          "load": {
-            "median": 6.37060546875,
-            "min": 6.2587890625,
-            "max": 6.599609375,
-            "samples": 34,
-            "underLoad": false
+          "maxMs": 366.59999999999854,
+          "timestampQuantumMs": 0.1,
+          "standingReferenceMs": 33.40000000000873,
+          "clock": "Browser rAF timestamp of the actual completed Game draw; callback-start and polling retained separately",
+          "missedFrames": 0,
+          "startedP95Ms": 34.80000019073486,
+          "startedP99Ms": 38.200000286102295,
+          "polledP95Ms": 33.400000000001455,
+          "polledP99Ms": 33.5,
+          "measurementRule": "Same-session crossing p95 may exceed the smallest standing p95 by at most one observed timestamp quantum; standing p95 must match the unchanged 33.3 ms limit within that quantum. Raw values retained."
+        },
+        "cadencePass": true,
+        "maxDrawGapMs": 366.59999999999854,
+        "wholeDriveMaxLimitMs": 100,
+        "standing": [
+          {
+            "frames": 300,
+            "p95Ms": 33.40000000000873,
+            "missedFrames": 0
+          },
+          {
+            "frames": 300,
+            "p95Ms": 33.40000000000873,
+            "missedFrames": 0
           }
-        }
-      ],
-      "wholeDriveMaxPass": false
+        ],
+        "crossingMaxSyncMs": 16.59999990463257,
+        "crossingMaxDemandWaitMs": 4.199999809265137,
+        "activationMaxMs": 2,
+        "shaderCalls": {
+          "explicitWarmUp": 272,
+          "outsideRendererCompile": 26,
+          "classification": "Outside renderer.compile includes driver/utility/warm draw; it is not proof of a gameplay draw."
+        },
+        "warmInvocationMaxMs": 6.199999809265137,
+        "warmTask": {
+          "totalCalls": 109,
+          "explicitWarmUpCalls": 109,
+          "drawOrDriverCalls": 0,
+          "unclassifiedCalls": 0,
+          "longTasksAvailable": true,
+          "observerThresholdMs": 50,
+          "limitMs": 50,
+          "observedWarmUpTasks": 0,
+          "observedMaxWarmUpTaskMs": null,
+          "maxWarmUpTaskMsUpperBound": 50,
+          "pass": true
+        },
+        "routes": [
+          {
+            "name": "driftwood-to-signal",
+            "durationMs": 23102.800000190735,
+            "p95Ms": 33.400000000001455,
+            "p99Ms": 33.400000000001455,
+            "load": {
+              "median": 7.02978515625,
+              "min": 6.4033203125,
+              "max": 8.0673828125,
+              "samples": 23,
+              "underLoad": false
+            }
+          },
+          {
+            "name": "signal-to-driftwood",
+            "durationMs": 33671.90000009537,
+            "p95Ms": 33.400000000001455,
+            "p99Ms": 33.40000000000873,
+            "load": {
+              "median": 6.37060546875,
+              "min": 6.2587890625,
+              "max": 6.599609375,
+              "samples": 34,
+              "underLoad": false
+            }
+          }
+        ],
+        "wholeDriveMaxPass": false
+      },
+      "safari": {
+        "started": "2026-10-11T16:41:28.182Z",
+        "routesComplete": true,
+        "errors": [],
+        "cadence": {
+          "frames": 2131,
+          "p95Ms": 34,
+          "p99Ms": 46,
+          "timestampQuantumMs": 1,
+          "standingReferenceMs": 34,
+          "clock": "Browser rAF timestamp of the actual completed Game draw; callback-start and polling retained separately",
+          "missedFrames": 0,
+          "startedP95Ms": 34.00000000001455,
+          "startedP99Ms": 47,
+          "polledP95Ms": 34,
+          "polledP99Ms": 60,
+          "measurementRule": "Same-session crossing p95 compared to the smallest standing p95 within one observed timestamp quantum; standing p95 must match the unchanged 33.3 ms limit within that quantum. Raw values retained."
+        },
+        "cadencePass": true,
+        "maxDrawGapMs": 301,
+        "wholeDriveMaxLimitMs": 200,
+        "standing": [
+          {
+            "frames": 300,
+            "p95Ms": 34,
+            "missedFrames": 0
+          },
+          {
+            "frames": 300,
+            "p95Ms": 34,
+            "missedFrames": 0
+          }
+        ],
+        "crossingMaxSyncMs": 16,
+        "crossingMaxDemandWaitMs": 6,
+        "activationMaxMs": 3,
+        "shaderCalls": {
+          "explicitWarmUp": 280,
+          "outsideRendererCompile": 4,
+          "classification": "Outside renderer.compile includes driver/utility/warm draw; it is not proof of a gameplay draw."
+        },
+        "warmInvocationMaxMs": 6,
+        "warmTask": {
+          "totalCalls": 284,
+          "explicitWarmUpCalls": 280,
+          "drawOrDriverCalls": 4,
+          "unclassifiedCalls": 0,
+          "longTasksAvailable": false,
+          "observerThresholdMs": 50,
+          "limitMs": 50,
+          "observedWarmUpTasks": 0,
+          "observedMaxWarmUpTaskMs": null,
+          "maxWarmUpTaskMsUpperBound": null,
+          "pass": false
+        },
+        "routes": [
+          {
+            "name": "driftwood-to-signal",
+            "durationMs": 31452,
+            "p95Ms": 34,
+            "p99Ms": 53,
+            "load": {
+              "median": 24.7060546875,
+              "min": 20.27880859375,
+              "max": 30.84326171875,
+              "underLoad": true
+            }
+          },
+          {
+            "name": "signal-to-driftwood",
+            "durationMs": 40515,
+            "p95Ms": 34,
+            "p99Ms": 39,
+            "load": {
+              "median": 14.80859375,
+              "min": 12.33447265625,
+              "max": 18.97509765625,
+              "underLoad": true
+            }
+          }
+        ],
+        "wholeDriveMaxPass": false
+      }
     },
-    "safari": {
-      "started": "2026-10-11T16:41:28.182Z",
-      "routesComplete": true,
-      "errors": [],
-      "cadence": {
-        "frames": 2131,
-        "p95Ms": 34,
-        "p99Ms": 46,
-        "timestampQuantumMs": 1,
-        "standingReferenceMs": 34,
-        "clock": "Browser rAF timestamp of the actual completed Game draw; callback-start and polling retained separately",
-        "missedFrames": 0,
-        "startedP95Ms": 34.00000000001455,
-        "startedP99Ms": 47,
-        "polledP95Ms": 34,
-        "polledP99Ms": 60,
-        "measurementRule": "Same-session crossing p95 compared to the smallest standing p95 within one observed timestamp quantum; standing p95 must match the unchanged 33.3 ms limit within that quantum. Raw values retained."
+    "quiet": {
+      "started": "2026-10-11T16:39:34.526Z",
+      "ended": "2026-10-11T16:43:39.423Z",
+      "gapMs": 120000
+    },
+    "previous": {
+      "pin": "77380da36",
+      "safari": {
+        "p95Ms": 36,
+        "p99Ms": 53,
+        "standingP95Ms": 34,
+        "timestampQuantumMs": 1
       },
-      "cadencePass": true,
-      "maxDrawGapMs": 301,
-      "wholeDriveMaxLimitMs": 200,
-      "standing": [
-        {
-          "frames": 300,
-          "p95Ms": 34,
-          "missedFrames": 0
-        },
-        {
-          "frames": 300,
-          "p95Ms": 34,
-          "missedFrames": 0
-        }
-      ],
-      "crossingMaxSyncMs": 16,
-      "crossingMaxDemandWaitMs": 6,
-      "activationMaxMs": 3,
-      "shaderCalls": {
-        "explicitWarmUp": 280,
-        "outsideRendererCompile": 4,
-        "classification": "Outside renderer.compile includes driver/utility/warm draw; it is not proof of a gameplay draw."
+      "desktop": {
+        "p95Ms": 33.4,
+        "p99Ms": 33.4,
+        "warmInvocationMaxMs": 6.5,
+        "warmTaskUpperBoundMs": 50
       },
-      "warmInvocationMaxMs": 6,
-      "warmTask": {
-        "totalCalls": 284,
-        "explicitWarmUpCalls": 280,
-        "drawOrDriverCalls": 4,
-        "unclassifiedCalls": 0,
-        "longTasksAvailable": false,
-        "observerThresholdMs": 50,
-        "limitMs": 50,
-        "observedWarmUpTasks": 0,
-        "observedMaxWarmUpTaskMs": null,
-        "maxWarmUpTaskMsUpperBound": null,
-        "pass": false
-      },
-      "routes": [
-        {
-          "name": "driftwood-to-signal",
-          "durationMs": 31452,
-          "p95Ms": 34,
-          "p99Ms": 53,
-          "load": {
-            "median": 24.7060546875,
-            "min": 20.27880859375,
-            "max": 30.84326171875,
-            "underLoad": true
-          }
-        },
-        {
-          "name": "signal-to-driftwood",
-          "durationMs": 40515,
-          "p95Ms": 34,
-          "p99Ms": 39,
-          "load": {
-            "median": 14.80859375,
-            "min": 12.33447265625,
-            "max": 18.97509765625,
-            "underLoad": true
-          }
-        }
-      ],
-      "wholeDriveMaxPass": false
+      "olderHeadline": {
+        "pollingP95Ms": 49,
+        "warmTaskObservedMs": 51,
+        "note": "49ms is a polling-clock result, not a comparable delivered-game-rAF baseline. The 51ms warm task was an older outlier."
+      }
     }
   },
-  "quiet": {
-    "started": "2026-10-11T16:39:34.526Z",
-    "ended": "2026-10-11T16:43:39.423Z",
-    "gapMs": 120000
+  "after": {
+    "surfaces": {
+      "desktop": {
+        "pin": "6f6dd47c78b5391285df8723223725c208643fc9",
+        "version": {
+          "build": "6f6dd47-mv44z7cn",
+          "time": "2026-10-11T18:08:19.870Z"
+        },
+        "started": "2026-10-11T18:25:15.186Z",
+        "finished": "2026-10-11T18:26:49.450Z",
+        "routesComplete": true,
+        "errors": [],
+        "cadence": {
+          "frames": 1678,
+          "p95Ms": 33.400000000001455,
+          "p99Ms": 33.40000000000873,
+          "maxMs": 66.59999999999854,
+          "timestampQuantumMs": 0.1,
+          "standingReferenceMs": 33.40000000000873,
+          "clock": "Browser rAF timestamp of the actual completed Game draw; callback-start and polling retained separately",
+          "missedFrames": 0,
+          "startedP95Ms": 34.700000286102295,
+          "startedP99Ms": 35.10000038146973,
+          "polledP95Ms": 33.400000000001455,
+          "polledP99Ms": 33.40000000000873,
+          "measurementRule": "Same-session crossing p95 may exceed the smallest standing p95 by at most one observed timestamp quantum; standing p95 must match the unchanged 33.3 ms limit within that quantum. Raw values retained."
+        },
+        "cadencePass": true,
+        "maxDrawGapMs": 66.59999999999854,
+        "wholeDriveMaxLimitMs": 100,
+        "standing": [
+          {
+            "pose": {
+              "name": "post-route-a"
+            },
+            "start": 70053.40000009537,
+            "end": 80060.2999997139,
+            "frames": 301,
+            "p95Ms": 33.40000000000873,
+            "missedFrames": 0
+          },
+          {
+            "pose": {
+              "name": "post-route-b"
+            },
+            "start": 82063.5,
+            "end": 92066.2999997139,
+            "frames": 300,
+            "p95Ms": 33.40000000000873,
+            "missedFrames": 0
+          }
+        ],
+        "shaderCalls": {
+          "explicitWarmUp": 272,
+          "outsideRendererCompile": 22,
+          "outsideRendererCompileByName": {
+            "unnamed": 14,
+            "family:emissive:sky": 2,
+            "PMREMGGXConvolution": 2,
+            "driftwood-fp-wood": 2,
+            "driftwood-fp-arms": 2
+          }
+        },
+        "warmInvocationMaxMs": 6.099999904632568,
+        "warmTask": {
+          "totalCalls": 164,
+          "explicitWarmUpCalls": 164,
+          "drawOrDriverCalls": 0,
+          "unclassifiedCalls": 0,
+          "longTasksAvailable": true,
+          "observerThresholdMs": 50,
+          "limitMs": 50,
+          "observedWarmUpTasks": 0,
+          "observedMaxWarmUpTaskMs": null,
+          "maxWarmUpTaskMsUpperBound": 50,
+          "pass": true
+        },
+        "routes": [
+          {
+            "name": "driftwood-to-signal",
+            "durationMs": 22315.0,
+            "load": {
+              "median": 7.0302734375,
+              "min": 6.72412109375,
+              "max": 7.30517578125,
+              "samples": 22,
+              "underLoad": false
+            },
+            "failures": []
+          },
+          {
+            "name": "signal-to-driftwood",
+            "durationMs": 33684.5,
+            "load": {
+              "median": 6.84619140625,
+              "min": 6.26416015625,
+              "max": 7.0986328125,
+              "samples": 34,
+              "underLoad": false
+            },
+            "failures": []
+          }
+        ],
+        "wholeDriveMaxPass": true
+      },
+      "safari": {
+        "pin": "6f6dd47c78b5391285df8723223725c208643fc9",
+        "version": {
+          "build": "6f6dd47-mv45seui",
+          "time": "2026-10-11T18:31:00.605Z"
+        },
+        "started": "2026-10-11T19:55:06.079Z",
+        "finished": "2026-10-11T19:56:59.648Z",
+        "routesComplete": true,
+        "errors": [],
+        "cadence": {
+          "frames": 2027,
+          "p95Ms": 34,
+          "p99Ms": 44,
+          "timestampQuantumMs": 1,
+          "standingReferenceMs": 34,
+          "clock": "Browser rAF timestamp of the actual completed Game draw; callback-start and polling retained separately",
+          "missedFrames": 0,
+          "startedP95Ms": 34.000000000007276,
+          "startedP99Ms": 43.00000000000364,
+          "polledP95Ms": 34,
+          "polledP99Ms": 53,
+          "measurementRule": "Same-session crossing p95 compared to the smallest standing p95 within one observed timestamp quantum; standing p95 must match the unchanged 33.3 ms limit within that quantum. Raw values retained."
+        },
+        "cadencePass": true,
+        "maxDrawGapMs": 85,
+        "wholeDriveMaxLimitMs": 200,
+        "standing": [
+          {
+            "name": "post-route-a",
+            "start": 83110,
+            "end": 93112.00000000001,
+            "frames": 300,
+            "p95Ms": 34,
+            "missedFrames": 0
+          },
+          {
+            "name": "post-route-b",
+            "start": 95114,
+            "end": 105127,
+            "frames": 300,
+            "p95Ms": 34,
+            "missedFrames": 0
+          }
+        ],
+        "shaderCalls": {
+          "explicitWarmUp": 280,
+          "outsideRendererCompile": 0,
+          "outsideRendererCompileByName": {}
+        },
+        "warmInvocationMaxMs": 3,
+        "warmTask": {
+          "longTasksAvailable": false,
+          "maxWarmUpTaskMsUpperBound": null,
+          "pass": null,
+          "reason": "Safari Long Task observation unavailable; not credited as zero"
+        },
+        "routes": [
+          {
+            "name": "driftwood-to-signal",
+            "durationMs": 28077,
+            "load": {
+              "median": 20.09033203125,
+              "min": 18.14453125,
+              "max": 23.9736328125,
+              "underLoad": true
+            },
+            "failures": []
+          },
+          {
+            "name": "signal-to-driftwood",
+            "durationMs": 39861,
+            "load": {
+              "median": 15.05615234375,
+              "min": 13.93017578125,
+              "max": 17.412109375,
+              "underLoad": true
+            },
+            "failures": []
+          }
+        ],
+        "wholeDriveMaxPass": true
+      }
+    },
+    "checks": {
+      "desktop": {
+        "cadence": true,
+        "wholeDriveMaximum": true,
+        "routesComplete": true,
+        "zeroErrors": true,
+        "zeroMissingDraws": true
+      },
+      "safari": {
+        "cadence": true,
+        "wholeDriveMaximum": true,
+        "routesComplete": true,
+        "zeroErrors": true,
+        "zeroMissingDraws": true
+      }
+    },
+    "quiet": {
+      "desktop": {
+        "started": "2026-10-11T18:25:14.623Z",
+        "ended": "2026-10-11T18:27:02.131Z",
+        "gapMs": 120000,
+        "load1Min": {
+          "min": 6.16259765625,
+          "max": 7.68017578125
+        },
+        "observations": 107
+      },
+      "safari": {
+        "started": "2026-10-11T19:54:59.988Z",
+        "ended": "2026-10-11T19:57:04.987Z",
+        "gapMs": 120000,
+        "load1Min": {
+          "min": 8.3115234375,
+          "max": 25.20751953125
+        },
+        "observations": 124
+      }
+    }
+  },
+  "sourceAttribution": {
+    "diagnosticPin": "3ded362e15c671f7a4a1ada093184ca5e5f2567b",
+    "scope": "Loaded source diagnostic only; API wall time, not GPU execution or normative cadence",
+    "safari": [
+      {
+        "owner": "Signal L1/3/2 terrain:125,0 PBR",
+        "api": "getProgramInfoLog",
+        "wallMs": 273,
+        "drawGapMs": 350,
+        "frameGateRefusals": 0
+      },
+      {
+        "owner": "Signal L0/7/4 terrain:187.5,0 PBR",
+        "api": "getProgramInfoLog",
+        "wallMs": 257,
+        "drawGapMs": 374,
+        "frameGateRefusals": 0
+      },
+      {
+        "owner": "Drawn emissive sky selected a warm-issued variant before readiness",
+        "api": "getProgramInfoLog",
+        "wallMs": 811,
+        "drawGapMs": 826,
+        "frameGateRefusals": 0
+      }
+    ],
+    "unclassified": "Other short gaps are unclassified; no asserted GC/timer/worker/message-port owner."
   },
   "failedAttempts": [
     {
@@ -224,12 +485,35 @@
     {
       "kind": "coordination",
       "result": "unacquired own queue cancelled to honor newly reported x1 reservation; no measurement"
+    },
+    {
+      "kind": "diagnostic-queue",
+      "result": "Own unacquired 58-minute queue cancelled; zero samples."
+    },
+    {
+      "kind": "diagnostic-safari-import",
+      "result": "Missing callback helper before sampling; valid desktop diagnostic retained; helper repaired."
+    },
+    {
+      "kind": "after-safari-import",
+      "result": "Missing gl-wall-owner.mjs before Safari sampling; zero Safari samples, valid desktop retained; both optional helpers and all relative imports verified."
+    },
+    {
+      "kind": "ordered-queue",
+      "result": "Own unacquired Safari retry cancelled on corrected x2 -> x4 -> x1 order; zero samples. Replacement waits for x2 release +2minutes."
     }
   ],
+  "verification": {
+    "focusedTests": 37,
+    "files": 9,
+    "rootStrict": true,
+    "touchedRootTypedLint": true,
+    "hooks": true,
+    "graphOrImportRise": false
+  },
   "open": [
-    "Whole-drive maximum gap fails on both surfaces despite p95 passing.",
-    "PBR light-count variants coincide with the two largest Safari gaps; source/API attribution pending, no CPU/GC/worker/timer claim.",
-    "Safari lacks Long Task observations; its whole warm-task bound remains unavailable.",
-    "Full G270 and physical-phone memory clearance remain outside this subset."
+    "Safari whole warm-task Long Task bound is unavailable; not credited as zero.",
+    "Desktop utility/warm-draw shader API calls remain outside renderer.compile; no zero whole-route compilation claim.",
+    "Full G270 gate and physical-phone memory clearance are outside this subset."
   ]
 }
