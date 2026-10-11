@@ -1,3 +1,4 @@
+import { NALATI_RIDE } from '../data/modes';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
@@ -44,7 +45,7 @@ import { wildEnv } from '../creatures/env';
  * Palette keys (VariantDef.tint): coat belly points mane muzzle sock hoof eye earIn dorsal.
  */
 
-export const HORSE_SPEED = { walk: 1.8, trot: 4.5, canter: 8.5, gallop: 13 } as const;
+export const HORSE_SPEED = NALATI_RIDE.gaits;
 
 export const HORSE = {   // exported: glbCreatures.ts recolours the rigged hull per variant from it
   coat: [0.50, 0.27, 0.14], belly: [0.60, 0.38, 0.22], points: [0.07, 0.055, 0.05], mane: [0.07, 0.055, 0.05],

@@ -16,12 +16,20 @@ export const UpdraftModeSchema = v.pipe(v.strictObject({
   kind: v.literal('updraft'), id, from: point, to: point,
   width: range(0.1, 100), margin: v.optional(range(0, 5), 0.5), lift: range(0, 64),
 }), v.check(row => Math.hypot(row.to.x - row.from.x, row.to.z - row.from.z) > 0, 'updraft requires a horizontal run'));
+/** Admitted native gait speeds, strictly increasing in metres per second. */
+export const RideGaitsSchema = v.pipe(v.strictObject({ walk: range(0.1, 30), trot: range(0.1, 30), canter: range(0.1, 30), gallop: range(0.1, 30) }),
+  v.check(g => g.walk < g.trot && g.trot < g.canter && g.canter < g.gallop, 'increasing mounted gaits'));
+/** Mounted control profile; an installed native actor and its owner still decide whether mounting is allowed. */
+export const RideModeSchema = v.strictObject({ id, gaits: RideGaitsSchema });
+/** One admitted mounted law profile. */
+export type RideMode = v.InferOutput<typeof RideModeSchema>;
 /** Only implemented platform traverse laws cross admission; executable callbacks never do. */
 export const TraverseModeSchema = v.variant('kind', [ZiplineModeSchema, UpdraftModeSchema]);
 /** Actual mode parameters admitted from authoring objects; absence retains the ordinary player law. */
 export const ModesSchema = v.pipe(v.strictObject({
+  ride: v.exactOptional(v.pipe(v.array(RideModeSchema), v.maxLength(64))),
   traverse: v.optional(v.pipe(v.array(TraverseModeSchema), v.maxLength(64)), []),
-}), v.check(rows => new Set(rows.traverse.map(row => row.id)).size === rows.traverse.length, 'unique traverse identities'));
+}), v.check(rows => new Set(rows.traverse.map(row => row.id)).size === rows.traverse.length, 'unique traverse identities'), v.check(rows => new Set(rows.ride?.map(row => row.id)).size === (rows.ride?.length ?? 0), 'unique mounted identities'));
 /** Admitted platform traversal rows. */
 export type ModeRows = v.InferOutput<typeof ModesSchema>;
 /** One cable law's admitted parameters. */

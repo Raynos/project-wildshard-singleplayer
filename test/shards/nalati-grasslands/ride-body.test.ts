@@ -1,3 +1,4 @@
+import { MountedBody, mountedMotorOptions, type MountedWorld, type MountedRider, type ReinsFrame } from '@wildshard/game/plugin/mover';
 // oxlint-disable-next-line import/no-nodejs-modules -- Authenticate the original shipping mounted motion source.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The frozen oracle is a source-hashed receipt of the page law.
@@ -10,10 +11,8 @@ import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import { groups } from '../../../src/engine/physics/groups';
 import { tagCollider } from '../../../src/engine/physics/surface';
 import { AnimalSim } from '../../../src/engine/entities/AnimalSim';
-import { MountedBody, mountedMotorOptions, type MountedWorld, type MountedRider } from '../../../src/shards/nalati-grasslands/runtime/rideBody';
 import { HORSE_SPEED } from '../../../src/shards/nalati-grasslands/species/horse';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
-import type { ReinsFrame } from '../../../src/shards/nalati-grasslands/runtime/rideReins';
 import { ShippingBody } from '../../fixtures/nalati-motor-oracle/shipping';
 import source from '../../fixtures/nalati-motor-oracle/source.json' with { type: 'json' };
 

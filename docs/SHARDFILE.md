@@ -1561,3 +1561,9 @@ valid because they represent native immediate/overdue beats. Unknown fields
 refuse instead of being dropped, and parsing introduces no defaults or rounding.
 The generated JSON Schema records cross-field checks explicitly; it never
 replaces the defining Valibot admission verdict.
+
+SF84 mounted mode rows carry a bounded, strictly increasing walk/trot/canter/gallop profile. SDK `Mount` emits this
+profile without creating a creature or granting a saddle. The defining `plugin/mover` owns `MountedReins`,
+`MountedBody`, `mountedMotorOptions`, road following and the rhythm spur. Nalati's page and native host pass the same
+authored profile into that one law; its real roster, taming, contacts, mounted weapons and presentation remain owned
+by the existing native installers. Restore retains every reins edge, physical motor and gait clock.

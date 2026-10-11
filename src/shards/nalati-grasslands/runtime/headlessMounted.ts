@@ -1,3 +1,4 @@
+import { MountedBody, mountedMotorOptions, type MountedRider, type MountedWorld, type ReinsFrame, type RoadXZ } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost, SimPlayerDriver, SimPlayerMotionSample, SimValue } from '@wildshard/engine/sim';
@@ -9,9 +10,6 @@ import { tagOf } from '@wildshard/engine/physics/surface';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { walkingSpeed } from '@wildshard/engine/player/walk';
 import type { NalatiGroups } from './groups';
-import { MountedBody, mountedMotorOptions, type MountedRider, type MountedWorld } from './rideBody';
-import type { ReinsFrame } from './rideReins';
-import type { RoadXZ } from '../ride/rideAssist';
 import { HORSE_SPEED, HORSE_SPECIES } from '../species/horse';
 
 const num = v.pipe(v.number(), v.finite()), triple = v.tuple([num, num, num]);

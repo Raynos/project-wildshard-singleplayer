@@ -1,6 +1,5 @@
+import { RhythmSpur, roadSteer, SPUR_WINDOW, type ReinsFrame, type HorseSpeeds } from '@wildshard/game/plugin/mover';
 import * as THREE from 'three';
-import { RhythmSpur, roadSteer, SPUR_WINDOW } from '../../../src/shards/nalati-grasslands/ride/rideAssist';
-import type { ReinsFrame, HorseSpeeds } from '../../../src/shards/nalati-grasslands/runtime/rideReins';
 const SECTOR = 0.38;                 // the stick's forward / back sectors: |y| > 0.38 × its length (~67° either side of up / down)
 const PIVOT_SPEED = 0.6, BACK_SPEED = 1.1;   // m/s: the stick beside you from a stand (a turn on the spot), reining back
 /** rad/s turn at full rein per gait (between them it blends by speed) — at a gallop 0.62 rad/s = a ~21 m radius */

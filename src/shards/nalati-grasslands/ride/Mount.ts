@@ -1,3 +1,4 @@
+import { type RoadXZ, type ReinsFrame, MountedBody, mountedMotorOptions, type MountedWorld } from '@wildshard/game/plugin/mover';
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
@@ -18,9 +19,6 @@ import { wildEnv } from '../creatures/env';
 import { Bow } from '@wildshard/game/weapons/Bow';
 import { Sabre, type MountState } from '../runtime/weapons/Sabre';
 import { Spear } from '../runtime/weapons/Spear';
-import type { RoadXZ } from './rideAssist';
-import type { ReinsFrame } from '../runtime/rideReins';
-import { MountedBody, mountedMotorOptions, type MountedWorld } from '../runtime/rideBody';
 import type { NalatiRecord } from '../runtime/persistence';
 import { horseKey, savedHorseName, saveHorseName } from './horseNames';
 

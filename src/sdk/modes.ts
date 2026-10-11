@@ -1,10 +1,10 @@
 import { Object3D, Vector3 } from 'three';
-import { ZiplineModeSchema, UpdraftModeSchema, type ZiplineMode, type UpdraftMode } from '@wildshard/format/modes';
+import { ZiplineModeSchema, UpdraftModeSchema, type ZiplineMode, type UpdraftMode, RideModeSchema, type RideMode } from '@wildshard/format/modes';
 import * as v from 'valibot';
 import { updateAuthoringMatrix } from './sceneTransform';
 
 /** A complete set of admitted platform traversal declarations. */
-export interface ModeRows { traverse: (ZiplineMode | UpdraftMode)[] }
+export interface ModeRows { ride?: RideMode[]; traverse: (ZiplineMode | UpdraftMode)[] }
 /** A cable's admitted data, independent of any native view. */
 export type ZiplineRow = ZiplineMode;
 /** A board-only directional wind column's admitted data. */
@@ -57,4 +57,15 @@ export class Updraft extends Object3D {
     return v.parse(UpdraftModeSchema, { ...this.options, kind: 'updraft', id: this.name,
       from: { x: from.x, y: from.y, z: from.z }, to: { x: to.x, y: to.y, z: to.z } });
   }
+}
+
+/** A mounted control profile with normal three.js graph semantics; it neither spawns nor grants a mount. */
+export class Mount extends Object3D {
+  /** Explicit bounded gait speeds in metres per second. */
+  gaits: RideMode['gaits'];
+  constructor(gaits: RideMode['gaits']) { super(); this.name = 'ride'; this.gaits = { ...gaits }; }
+  /** Copy independent control parameters with the ordinary graph state. */
+  override copy(source: this, recursive = true): this { super.copy(source, recursive); this.gaits = { ...source.gaits }; return this; }
+  /** Emit validated control data; native mount/taming ownership stays with the host. */
+  toModeData(): RideMode { return v.parse(RideModeSchema, { id: this.name, gaits: this.gaits }); }
 }

@@ -5,7 +5,7 @@ import type { CharacterMotor, MotorOptions } from '@wildshard/engine/physics/Cha
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { castRay, floorBelow } from '@wildshard/engine/physics/query';
 import { tagOf } from '@wildshard/engine/physics/surface';
-import { MountedReins, type HorseSpeeds } from '../../../src/shards/nalati-grasslands/runtime/rideReins';
+import { MountedReins, type HorseSpeeds } from '@wildshard/game/plugin/mover';
 
 /** Explicit world queries and contact classification, shared by the page and trusted native host. */
 export interface MountedWorld {

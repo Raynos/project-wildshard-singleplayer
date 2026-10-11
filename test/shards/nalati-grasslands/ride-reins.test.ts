@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Authenticate the shipping source body.
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
-import { MountedReins, type ReinsFrame } from '../../../src/shards/nalati-grasslands/runtime/rideReins';
+import { MountedReins, type ReinsFrame } from '@wildshard/game/plugin/mover';
 import { ShippingReins } from '../../fixtures/nalati-reins-oracle/shipping';
 import source from '../../fixtures/nalati-reins-oracle/source.json' with { type: 'json' };
 
