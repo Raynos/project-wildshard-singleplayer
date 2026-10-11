@@ -1,8 +1,9 @@
-import { AmbientLight, type BufferGeometry, DirectionalLight, Fog, FogExp2, HemisphereLight, InstancedMesh, Light, Line, LOD, Material, Mesh, MeshStandardMaterial, MeshToonMaterial, PointLight, Points, Scene, ShaderMaterial, SkinnedMesh, SpotLight, Sprite, Matrix4, type Object3D, type Side } from 'three';
+import { AmbientLight, Bone, type BufferGeometry, DirectionalLight, Fog, FogExp2, HemisphereLight, InstancedMesh, InterleavedBufferAttribute, Light, Line, LOD, Material, Mesh, MeshStandardMaterial, MeshToonMaterial, PointLight, Points, Scene, ShaderMaterial, SkinnedMesh, SpotLight, Sprite, Matrix4, type Object3D, type Side } from 'three';
 import { updateAuthoringMatrix } from './sceneTransform';
 import { Collider, type ColliderData } from './physics';
 import { Entry, type EntryData } from './entries';
 import { PlayerStart, Spawn, spawnPlacement, type SpawnPlacement } from './spawns';
+import { readSceneAnimations, readSceneSkin, type SceneAnimation, type SceneSkin } from './sceneAnimation';
 /** One geometry channel, including normalized attributes and its original typed-array representation. */
 export interface SceneAttribute {
     itemSize: number;
@@ -42,6 +43,7 @@ export interface SceneNode {
     name: string;
     type: string;
     matrix: number[];
+    transform?: { position: number[]; quaternion: number[]; scale: number[] };
     visible: boolean;
     castShadow: boolean;
     receiveShadow: boolean;
@@ -49,6 +51,8 @@ export interface SceneNode {
     materials?: number[];
     instances?: number[][];
     instanceColors?: number[][];
+    skin?: SceneSkin;
+    animations?: SceneAnimation[];
     levels?: {
         object: string;
         distance: number;
@@ -88,11 +92,16 @@ export interface SceneDescription {
     } | null;
 }
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
+function isSkin(object: Object3D): object is SkinnedMesh { return object instanceof SkinnedMesh; }
+function isBone(object: Object3D): object is Bone { return object instanceof Bone; }
 function geometryData(geometry: BufferGeometry): SceneGeometry {
     const attributes: Record<string, SceneAttribute> = {};
     for (const name of Object.keys(geometry.attributes).sort()) {
         const attribute = geometry.getAttribute(name);
-        const array = Array.from({ length: attribute.count * attribute.itemSize }, (_, i) => attribute.getComponent(Math.floor(i / attribute.itemSize), i % attribute.itemSize));
+        // Preserve integer storage, including normalized weights; component getters decode those integers.
+        const array = Array.from({ length: attribute.count * attribute.itemSize }, (_, i) => attribute instanceof InterleavedBufferAttribute
+            ? attribute.data.array[Math.floor(i / attribute.itemSize) * attribute.data.stride + attribute.offset + i % attribute.itemSize] ?? Number.NaN
+            : attribute.array[i] ?? Number.NaN);
         if (!array.every(Number.isFinite))
             throw new Error(`Nonfinite geometry attribute ${name}`);
         attributes[name] = { itemSize: attribute.itemSize, normalized: attribute.normalized, array, storage: attribute.array.constructor.name };
@@ -139,6 +148,8 @@ export function readScene(scene: Object3D): SceneDescription {
         }
     }
     const out: SceneDescription = { version: 1, nodes: [], geometries: [], materials: [], colliders: [], spawns: [], playerStart: null, entries: [], fog: null };
+    const boneIds = new Map<Bone, string>();
+    for (const object of objects) if (isBone(object)) { const id = ids.get(object); if (id === undefined) throw new Error('Unindexed bone'); boneIds.set(object, id); }
     const geometries = new Map<BufferGeometry, number>(), materials = new Map<Material, number>();
     for (const object of objects) {
         const id = ids.get(object);
@@ -146,11 +157,11 @@ export function readScene(scene: Object3D): SceneDescription {
             throw new Error('Unindexed scene node');
         if (!object.matrix.elements.every(Number.isFinite))
             throw new Error('Scene requires finite matrices');
-        if (object.animations.length > 0) throw new Error('Animated scenes require the animation compiler');
         if (object instanceof Line || object instanceof Points || object instanceof Sprite) throw new Error(`Unsupported draw primitive ${object.type}`);
         const node: SceneNode = { id, parent: object === scene ? null : ids.get(object.parent ?? scene) ?? null, name: object.name, type: object.type, matrix: [...(object === scene ? object.matrixWorld : object.matrix).elements], visible: object.visible, castShadow: object.castShadow, receiveShadow: object.receiveShadow };
-        if (object instanceof SkinnedMesh)
-            throw new Error('Skinned scenes require the skinned compiler');
+        if (object.matrixAutoUpdate && (object !== scene || object.parent === null)) node.transform = { position: object.position.toArray(), quaternion: object.quaternion.toArray(), scale: object.scale.toArray() };
+        if (object.animations.length > 0) node.animations = readSceneAnimations(object.animations);
+        if (isSkin(object)) node.skin = readSceneSkin(object, boneIds);
         if (isMesh(object)) {
             let geometry = geometries.get(object.geometry);
             if (geometry === undefined) {

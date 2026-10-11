@@ -102,7 +102,8 @@
     "./synth": "./synth.ts",
     "./formatJsonSchema": "./formatJsonSchema.ts",
     "./bake/rig": "./bake/rig.ts",
-    "./bake/image": "./bake/image.ts"
+    "./bake/image": "./bake/image.ts",
+    "./sceneGraph": "./sceneGraph.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -473,6 +474,10 @@
       "./bake/image": {
         "types": "./dist/types/sdk/bake/image.d.ts",
         "default": "./dist/bake/image.js"
+      },
+      "./sceneGraph": {
+        "types": "./dist/types/sdk/sceneGraph.d.ts",
+        "default": "./dist/sceneGraph.js"
       }
     }
   }

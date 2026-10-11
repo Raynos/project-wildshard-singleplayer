@@ -2865,3 +2865,8 @@ Its page entry-choice service is not part of the native lane closure.
 `plugin/boot` defines page routing, recovery and early residency admission.
 `plugin/ui` defines client-script pose/particle presentation alongside quest UI;
 these modules retain their existing singleton and lifecycle identities.
+
+
+DS1.3: the scene reader now includes `SkinnedMesh` bind mode/matrices, ordered joint references and inverse binds, typed skin channels, and standard `AnimationClip` / `KeyframeTrack` interpolation, times and values. Raw integer channels stay raw even when normalized or interleaved. Named targets and all rest joints must belong to the author graph; UUID-bound tracks, duplicate joints, malformed influences and custom interpolants refuse. Local TRS is retained alongside matrices so clips remain executable without a decomposition changing the rest pose.
+
+`@wildshard/sdk/sceneGraph` defines `restoreSceneGraph(description)`: reconstruct the real three.js draw/animation hierarchy from persisted JSON, retaining shared geometry/materials, ordered skeletons, explicit LODs, instance data, lights and fog. Collider/spawn/entry sections remain data for their existing compilers, not simulated objects. Texture and physical/TSL material serialization remains DS1.4. Both shipping template geometry byte gates use this reader; an added animated rig in each pilot also regenerates identical sampled channels and skin GLB bytes.

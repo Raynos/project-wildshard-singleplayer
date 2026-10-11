@@ -1,7 +1,8 @@
 import { expect, it } from 'vitest';
-import { BufferGeometry, Color, Float32BufferAttribute, Group, Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
+import { Matrix4, type Object3D } from 'three';
 import { BoxCollider } from '../src/sdk/physics';
 import { readScene, type SceneDescription } from '../src/sdk/scene';
+import { restoreSceneGraph } from '../src/sdk/sceneGraph';
 import { contentHash } from '../src/sdk/project';
 import { bakeProps, type PropsBakeSource } from '../src/sdk/bake/props';
 import { templateProps } from '../src/shards/_template/generators/templatePropsSource';
@@ -10,37 +11,7 @@ import { pastelProps } from '../src/shards/pastel-plain/generators/props';
 // Independent consumer of the JSON intermediate, not a clone of the input graph. The pilot's PBR geometry is
 // deliberately reconstructed from emitted channels/matrices before the existing compiler sees any object.
 function graph(rows: SceneDescription): Object3D {
-  const geometries = rows.geometries.map(row => {
-    const geometry = new BufferGeometry();
-    for (const [name, attribute] of Object.entries(row.attributes)) {
-      if (attribute.normalized || attribute.storage !== 'Float32Array') throw new Error('Unexpected pilot channel');
-      geometry.setAttribute(name, new Float32BufferAttribute(attribute.array, attribute.itemSize));
-    }
-    geometry.setDrawRange(row.drawRange.start, row.drawRange.count ?? Infinity);
-    if (row.index !== null) geometry.setIndex(row.index);
-    for (const group of row.groups) geometry.addGroup(group.start, group.count, group.materialIndex);
-    return geometry;
-  });
-  const materials = rows.materials.map(row => new MeshStandardMaterial({
-    name: row.name, color: new Color().fromArray(row.color), opacity: row.opacity, transparent: row.transparent,
-    side: row.side, vertexColors: row.vertexColors, flatShading: row.parameters['flatShading'] === true,
-    roughness: typeof row.parameters['roughness'] === 'number' ? row.parameters['roughness'] : 1,
-    metalness: typeof row.parameters['metalness'] === 'number' ? row.parameters['metalness'] : 0,
-  }));
-  const objects = new Map<string, Object3D>();
-  for (const row of rows.nodes) {
-    let object: Object3D = new Group();
-    if (row.geometry !== undefined) {
-      const geometry = geometries[row.geometry], material = materials[row.materials?.[0] ?? -1];
-      if (geometry === undefined || material === undefined || row.materials?.length !== 1) throw new Error('Missing pilot mesh');
-      object = new Mesh(geometry, material);
-    }
-    object.name = row.name; object.visible = row.visible; object.castShadow = row.castShadow; object.receiveShadow = row.receiveShadow; object.matrixAutoUpdate = false; object.matrix.copy(new Matrix4().fromArray(row.matrix));
-    objects.set(row.id, object);
-    if (row.parent !== null) { const parent = objects.get(row.parent); if (parent === undefined) throw new Error('Missing graph parent'); parent.add(object); }
-  }
-  const root = rows.nodes[0], object = root === undefined ? undefined : objects.get(root.id);
-  if (object === undefined) throw new Error('Missing graph root'); return object;
+  return restoreSceneGraph(rows);
 }
 function rebuilt(source: PropsBakeSource): PropsBakeSource {
   // oxlint-disable-next-line unicorn/prefer-structured-clone -- The gate crosses JSON wire transport; structuredClone bypasses it.
