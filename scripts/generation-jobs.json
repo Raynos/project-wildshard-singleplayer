@@ -733,6 +733,9 @@
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-pine-physics.mjs",
       "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
         "src/shards/pine-hollow/generators/bake-pine-physics.mjs"
       ],
       "inputRoots": [
@@ -750,8 +753,7 @@
       "outputs": [
         "src/shards/pine-hollow/runtime/physics.baked.json"
       ],
-      "platform": "darwin",
-      "capture": true
+      "platform": "portable"
     },
     {
       "id": "pine-spots",

@@ -1,50 +1,41 @@
 #!/usr/bin/env node
-// Trusted SF72 metadata only (Pine Hollow): the real native browser recipes remain the shipping source. Captures the
-// standalone level's native floor (the terrain heightfield collider exactly as the page built it, crag cuts included),
-// its edge walls and every solid world collider (trunks, rocks, crags, cabins, props), the registry pieces' metadata, the
-// forest's trunk circles the herds' placement reads,
-// the forest herds' and the Den's model-derived simulation specs, seeds, scales and herd membership at load, and the Antler
-// King's parked prewarm bodies (the King and a thrall of each kind). Two independent same-page captures must match exactly.
-// scripts/browser-lane.sh node src/shards/pine-hollow/generators/bake-pine-physics.mjs --url=<clean candidate preview> [--revision=<sha>] [--census]
-import { chromium, devices } from 'playwright';
-import { writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { execFileSync } from 'node:child_process';
+// DS1.5: execute Pine's authored native recipes without drawing; Node is the canonical physics producer.
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { resolve as resolvePath } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { byteWriter } from '../../../../scripts/bake-output.mjs';
+import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs';
+import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 import { pinePhysicsInputs } from '../../../../scripts/pine-physics-inputs.mjs';
-import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
-const root = resolve(import.meta.dirname, '../../../..');
-const url = process.argv.find(arg => arg.startsWith('--url='))?.slice(6);
-if (url === undefined) throw new Error('bake-pine-physics requires a clean-candidate --url');
-const census = process.argv.includes('--census');
-const revision = process.argv.find(arg => arg.startsWith('--revision='))?.slice(11)
-  ?? execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-const version = await (await fetch(new URL('/version.json', url))).json();
-if (typeof version.build !== 'string' || !version.build.startsWith(`${revision.slice(0, 7)}-`)) throw new Error(`Pine bake revision mismatch: ${JSON.stringify(version)} vs ${revision}`);
-const errors = [];
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
-try {
-  const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
-  await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
-  const page = await context.newPage(); page.on('pageerror', error => { errors.push(String(error)); });
-  await page.goto(new URL('/?chunk=pine-hollow&mute=1&skipintro=1&nolock=1&sw=0&tier=phone', url).href, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => {
-    const w = window.__wildshard?.world;
-    return (w?.animals?.animals?.length ?? 0) > 0 && w?.game?.app?.physics !== undefined && !document.querySelector('.ws-load');
-  }, null, { timeout: 240000 });
-  await page.waitForTimeout(1500);
-  const capture = (wantCensus) => {
-    const w = window.__wildshard.world, g = w.game, physics = g.app.physics;
+const root = resolvePath(import.meta.dirname, '../../../..');
+const moduleAt = path => import(pathToFileURL(resolvePath(root, path)).href);
+const environment = installBakeEnvironment(root);
+// Nondrawing panel identities let the actual quest constructor retain its native collider registration.
+const uiNames = ['Element', 'HTMLElement', 'HTMLInputElement', 'HTMLButtonElement'];
+const uiBefore = new Map(uiNames.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
+class BakeElement { value = ''; }
+class BakeInput extends BakeElement {}
+class BakeButton extends BakeElement {}
+Object.assign(globalThis, { Element: BakeElement, HTMLElement: BakeElement, HTMLInputElement: BakeInput, HTMLButtonElement: BakeButton });
+const element = tag => {
+  const node = tag === 'input' ? new BakeInput() : tag === 'button' ? new BakeButton() : new BakeElement();
+  Object.defineProperties(node, Object.getOwnPropertyDescriptors(environment.element()));
+  return Object.assign(node, { prepend: () => undefined, replaceChildren: () => undefined, contains: () => false, blur: () => undefined });
+};
+Object.defineProperty(document, 'createElement', { value: element, configurable: true });
+Object.defineProperty(document, 'createElementNS', { value: (_namespace, tag) => element(tag), configurable: true });
+const readMetadata = (animals, physics, registry, fight, fx) => {
     const copy = value => JSON.parse(JSON.stringify(value, (_key, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
     // the manager's list at load, in its own order: every body the page simulates before the player moves
-    const actors = w.animals.animals.map(a => {
+    const actors = animals.animals.map(a => {
       if (!a.simSpec) throw new Error(`Missing native simulation spec: ${a.entityId}`);
       return { id: a.entityId, kind: a.kind, variant: a.variant, herd: a.herd, spec: copy(a.simSpec), seed: a.seed, scale: a.scale,
         scripted: a.scripted === true };
     });
     // the Antler King's prewarm (runtime/antlerKing.ts `prewarm`): his body and a thrall of each kind, spawned before the
     // lair elites and parked out of the manager's list: their ids and draws come between the herds and the elites
-    const fight = window.__antlerKing?.fight;
     if (fight?.king === undefined || fight.king === null || !Array.isArray(fight.parked)) throw new Error('Missing the Antler King prewarm');
     const parked = [fight.king, ...fight.parked].map(a => {
       if (!a.simSpec) throw new Error(`Missing native simulation spec: ${a.entityId}`);
@@ -81,21 +72,21 @@ try {
     };
     // herd membership is a placement fact; positions and herd centres are not (the page ticks and recentres between
     // captures): the members' placement draws are the next step's (progress/shard-platform/handoffs/sf72-pine.md)
-    const herds = w.animals.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.entityId) }));
+    const herds = animals.herds.map(h => ({ kind: h.kind, members: h.members.map(m => m.entityId) }));
     // the forest's trunks as the hunting brain's placement reads them (HuntGround.trees: x, z, r), in the forest's order
-    const trees = w.animals.forest.trees.map(t => [t.x, t.z, t.r]);
+    const trees = animals.forest.trees.map(t => [t.x, t.z, t.r]);
     // Exact shelter inputs: the shipped tree heights and the already-built RainFx crown texture's CPU readings.
-    const rain = g.app.debug.snapshot()['pine.weather'];
-    if (typeof rain?.fx?.coverAt !== 'function') throw new Error('Missing Pine rain crown-cover reader');
-    const shelterTrees = w.animals.forest.trees.map(t => [t.x, t.z, t.r, t.height, rain.fx.coverAt(t.x, t.z)]);
+    const rain = { fx };
+    if (typeof rain.fx.coverAt !== 'function') throw new Error('Missing Pine rain crown-cover reader');
+    const shelterTrees = animals.forest.trees.map(t => [t.x, t.z, t.r, t.height, rain.fx.coverAt(t.x, t.z)]);
     // The query tag is the authority: registry object identity and declared string ownership are distinct.
     const ownerKeys = new Map(), ownerIds = new Set();
-    for (const piece of g.app.registry.pieceList()) {
+    for (const piece of registry.pieceList()) {
       const key = `piece:${piece.id}`;
       if (typeof piece.id !== 'string' || piece.id.length === 0 || piece.id.length > 256 || /[\r\n]/u.test(piece.id) || ownerIds.has(key)) throw new Error('Ambiguous baked Pine piece owner');
       ownerKeys.set(piece, key); ownerIds.add(key);
     }
-    const pieces = g.app.registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
+    const pieces = registry.pieceList().filter(piece => piece.colliders?.length > 0).map(piece => {
       const row = { id: piece.id, name: piece.name, category: piece.category, file: piece.file, colliders: piece.colliders.length, active: piece.active?.() ?? true };
       if (piece.surface !== undefined) row.surface = piece.surface;
       if (piece.colliderOwner !== undefined) row.colliderOwner = piece.colliderOwner;
@@ -125,7 +116,7 @@ try {
       // projectiles and sensors are the runtime's own allocations, never baked world
       if (((groups >>> 16) & 1) === 0 || c.isSensor()) return;
       const row = { shape, groups, friction: c.friction(), body: c.parent()?.bodyType() ?? null, at: [t.x, t.y, t.z], rot: [r.x, r.y, r.z, r.w] };
-      const tag = window.__wildshard.colliderTag(c.handle), owner = tag?.owner;
+      const tag = physics.colliderTag(c), owner = tag?.owner;
       if (tag !== undefined) row.material = tag.material;
       if (owner !== null && owner !== undefined) {
         const ownerId = typeof owner === 'string' ? `declared:${owner}` : ownerKeys.get(owner);
@@ -139,21 +130,120 @@ try {
       else throw new Error(`Unbaked native collider shape ${shape}`);
       solids.push(row);
     });
-    return wantCensus ? { kinds, actors: actors.length, herds: w.animals.herds.length, trees: trees.length, pieces: pieces.length, solids: solids.length, solidBytes: JSON.stringify(solids).length, grounds: grounds.map(gr => ({ ...gr, heights: gr.heights.length })) } : { actors, parked, kingHit, herds, trees, shelterTrees, pieces, grounds, solids };
+    return { actors, parked, kingHit, herds, trees, shelterTrees, pieces, grounds, solids };
   };
-  if (census) { console.log(JSON.stringify(await page.evaluate(capture, true), null, 1)); console.log(JSON.stringify(errors)); }
-  else {
-    const first = await page.evaluate(capture, false), second = await page.evaluate(capture, false);
-    if (JSON.stringify(first) !== JSON.stringify(second)) {
-      const moved = Object.keys(first).filter(key => JSON.stringify(first[key]) !== JSON.stringify(second[key]));
-      const rows = moved.flatMap(key => Array.isArray(first[key]) ? first[key].flatMap((row, i) => JSON.stringify(row) === JSON.stringify(second[key][i]) ? [] : [{ key, i, a: JSON.stringify(row).slice(0, 300), b: JSON.stringify(second[key][i]).slice(0, 300) }]).slice(0, 4) : [{ key }]);
-      throw new Error(`Native Pine metadata changed between independent captures: ${JSON.stringify(rows)}`);
-    }
-    if (errors.length > 0 || first.actors.length === 0 || first.pieces.length === 0 || first.grounds.length !== 1) throw new Error(`Invalid native Pine bake: ${JSON.stringify(errors)} ${first.grounds.length}`);
-    const [ground] = first.grounds;
-    const result = { version: 1, revision, build: version.build, profile: 'iPhone 16 Pro / phone / DPR2', inputs: pinePhysicsInputs(root), ground, solids: first.solids, actors: first.actors, parked: first.parked, kingHit: first.kingHit, herds: first.herds, trees: first.trees, shelterTrees: first.shelterTrees, pieces: first.pieces };
-    writeFileSync(resolve(root, 'src/shards/pine-hollow/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`);
-    console.log(`bake-pine-physics: ${first.actors.length} native bodies, ${first.trees.length} trees, ${first.solids.length} solid world colliders (${first.pieces.length} registry pieces), floor ${ground.rows}x${ground.cols}, exact repeated browser equality`);
+try {
+  const THREE = await import('three');
+  const noop = () => undefined;
+  const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.DirectionalLight()], update: noop },
+    hemi: new THREE.HemisphereLight(), sunDisc: new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshBasicMaterial()),
+    planet: new THREE.Group(), clouds: null, dayNight: { dusk: 0, night: 0 }, viewCamera: new THREE.PerspectiveCamera(), sunDir: new THREE.Vector3(0, 1, 0) },
+    { get: (target, key) => key in target ? target[key] : typeof key === 'string' && key.endsWith('Color') ? new THREE.Color(1, 1, 1)
+      : typeof key === 'string' && key.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
+  (await moduleAt('src/engine/core/tier.ts')).initializeTier('phone');
+  const { default: manifest } = await moduleAt('src/shards/pine-hollow/manifest.ts');
+  (await moduleAt('src/game/shard/list.ts')).installShards([manifest]);
+  (await moduleAt('src/game/shard/registry.ts')).setActiveChunk(manifest.slug);
+  const { PineHollow } = await moduleAt('src/shards/pine-hollow/runtime/index.ts');
+  const contexts = [];
+  class CapturePine extends PineHollow {
+    async world(ctx) { sky.sceneRoot = ctx.game.runtime.world.game.scene; await super.world(ctx); contexts.push({ ctx, cabins: this.cabins, landmarks: this.landmarks }); }
   }
-  await context.close();
-} finally { await browser.close(); }
+  const { Terrain, terrainChunkGeometry } = await moduleAt('src/engine/world/Terrain.ts');
+  const captures = [];
+  await visitAuthoredWorld({ ...manifest, load: () => Promise.resolve({ default: CapturePine }) },
+    { root, sky, element: environment.element, tier: 'phone', practiceArena: true,
+      installKit: async () => {
+        const context = contexts[0]?.ctx;
+        if (context === undefined) throw new Error('Pine world did not complete before kit');
+        (await moduleAt('src/game/systems/species/install.ts')).installKitSpecies();
+        (await moduleAt('src/shards/pine-hollow/runtime/antlerKing.ts')).registerKing();
+        const { PINE_SPECIES, pineElk } = await moduleAt('src/shards/pine-hollow/species/rows.ts');
+        context.rows.species([...PINE_SPECIES, pineElk()]);
+        context.rows.speciesLook((await moduleAt('src/shards/pine-hollow/species/looks.ts')).pineLooks());
+        context.rows.spawnTable((await moduleAt('src/shards/pine-hollow/combat/spawns.ts')).PINE_SPAWNS);
+        context.rows.item((await moduleAt('src/shards/pine-hollow/items.ts')).PINE_ITEMS);
+        context.rows.feat((await moduleAt('src/shards/pine-hollow/feats.ts')).PINE_FEATS);
+      },
+      nativeTerrain: readFileSync(resolvePath(root, 'public/assets/baked/pine-hollow/terrain.bin')),
+      createTerrain: async () => {
+        const field = await moduleAt('src/engine/world/Heightfield.ts');
+        const terrain = new Terrain(); terrain.mesh = new THREE.Mesh(terrainChunkGeometry(field), new THREE.MeshBasicMaterial());
+        return terrain;
+      },
+      visit: async ({ scene, forest, registry, physics }) => {
+        const native = contexts[0];
+        if (native === undefined) throw new Error('Missing native Pine world');
+        const ctx = native.ctx, runtime = ctx.game.runtime, world = runtime.world;
+        (await moduleAt('src/engine/physics/terrain.ts')).addEdgeWalls(physics);
+        (await moduleAt('src/engine/physics/entrySockets.ts')).installEntrySockets(physics, ctx.scope, [{ x: 0, z: 0 }]);
+        const { addPiece } = await moduleAt('src/engine/physics/pieces.ts');
+        const additions = [];
+        registry.onAdd(piece => {
+          if (piece.object !== undefined) scene.add(piece.object);
+          additions.push(addPiece(physics, piece));
+          if (piece.floor !== undefined && piece.solidFloor !== true) world.player.platforms.push(piece.floor);
+        });
+        await (await moduleAt('src/shards/pine-hollow/models/wildlife.ts')).preloadPineWildlife();
+        const { AnimalManager } = await moduleAt('src/engine/entities/AnimalManager.ts');
+        const animals = await new AnimalManager(scene, sky, forest).buildAsync(() => Promise.resolve());
+        const { swapRolledElites, makePineElites } = await moduleAt('src/shards/pine-hollow/combat/elites.ts');
+        swapRolledElites(animals);
+        Object.assign(world.player, { velocity: new THREE.Vector3(), yaw: 0, pitch: 0, carried: false });
+        const { canReach } = await moduleAt('src/engine/ai/reach.ts');
+        const { lineOfSight } = await moduleAt('src/engine/physics/query.ts');
+        const { PINE_DAY } = await moduleAt('src/shards/pine-hollow/look/dayKeys.ts');
+        const dusk = () => PINE_DAY.curves.dusk(PINE_DAY.start);
+        const night = () => PINE_DAY.curves.night(PINE_DAY.start);
+        const combat = { game: world.game, sky, player: world.player, animals, reach: (actor, target) => canReach(actor, target, physics), god: false,
+          hurt: noop, stun: noop, trauma: noop, sound: noop, shot: noop, toast: noop, feed: noop,
+          addItem: noop, ownSkin: noop, skinModel: () => new THREE.Group(), dusk, night, longbow: null };
+        const { Elites } = await moduleAt('src/game/Elite.ts');
+        const { EliteBar } = await moduleAt('src/engine/ui/EliteBar.ts');
+        const elites = new Elites({ scene, camera: world.game.camera, renderer: world.game.renderer, player: world.player,
+          condition: rule => rule === 'always' || (rule === 'dusk' ? dusk() > 0.5 : rule === 'night' ? night() > 0.5 : false),
+          addInteractable: it => runtime.interactables.push(it), removeInteractable: noop,
+          toast: noop, sting: noop, pickupHum: noop, ownSkin: noop, canSee: (from, to) => lineOfSight(physics, from, to, 0.6) }, new EliteBar(), manifest.slug);
+        makePineElites(combat, elites);
+        const { AntlerKingFight } = await moduleAt('src/shards/pine-hollow/runtime/antlerKing.ts');
+        const fight = new AntlerKingFight(combat); fight.prewarm();
+        elites.initialize();
+        runtime.play = { animals };
+        const { Inventory } = await moduleAt('src/game/Inventory.ts');
+        const { Progress } = await moduleAt('src/game/Progress.ts');
+        const { SkinLocker } = await moduleAt('src/game/cosmetics/locker.ts');
+        const { Audio } = await moduleAt('src/engine/audio/Audio.ts');
+        (await moduleAt('src/game/models/interact.ts')).installKitProps();
+        const { installPineQuest } = await moduleAt('src/shards/pine-hollow/quest/index.ts');
+        await installPineQuest({ ctx, game: world.game, sky, player: world.player, animals,
+          hud: { toast: noop, killFeed: noop, holdPause: false }, audio: new Audio(), music: { sting: noop },
+          inventory: new Inventory(manifest.slug), progress: new Progress(manifest.slug), skins: new SkinLocker(manifest.slug), wearSkin: noop,
+          weapons: { visible: true, setEnabled: noop }, crossbow: { addBolts: noop }, menu: { isOpen: false, close: noop },
+          interactables: runtime.interactables, registry, cabins: native.cabins, landmarks: native.landmarks, trees: forest.trees,
+          fullMap: { setQuest: noop, setPois: noop, setZones: noop, setFeatures: noop }, compendium: null,
+          chunkId: manifest.slug, params: new URLSearchParams(), touchUi: () => true, nolock: true });
+        (await moduleAt('src/shards/pine-hollow/world/places.ts')).placePineHollowSets(registry);
+        for (const piece of additions) piece.sync();
+        const { RainFx } = await moduleAt('src/shards/pine-hollow/runtime/looks/rainFx.ts');
+        const { PINE_RAIN, PINE_RAIN_PROGRAMS } = await moduleAt('src/shards/pine-hollow/runtime/looks/weatherLook.ts');
+        const { SEED } = await moduleAt('src/engine/core/config.ts');
+        const fx = new RainFx({ name: 'pine-weather', sky, trees: forest.trees, roofAt: (x, z) => native.cabins.floorHeightAt(x, z) !== undefined,
+          phone: true, seed: SEED, look: PINE_RAIN, programs: PINE_RAIN_PROGRAMS }).build();
+        captures.push(readMetadata(animals, physics, registry, fight, fx));
+      },
+    });
+  const captured = captures[0];
+  if (captured === undefined || captured.grounds.length !== 1 || captured.actors.length === 0) throw new Error('Native Pine capture did not complete');
+  const inputs = pinePhysicsInputs(root), digest = createHash('sha256').update(JSON.stringify(inputs)).digest('hex');
+  const { grounds, ...metadata } = captured;
+  const result = { version: 1, revision: digest.slice(0, 40), build: `node-${digest}`, profile: 'Node / phone / no renderer',
+    notice: 'DO NOT EDIT: regenerate with generators/bake-pine-physics.mjs. revision identifies recipe inputs.', inputs, ground: grounds[0], ...metadata };
+  const writer = byteWriter(process.argv.includes('--check'), 'bake-pine-physics');
+  writer.put(resolvePath(root, 'src/shards/pine-hollow/runtime/physics.baked.json'), `${JSON.stringify(result)}\n`); writer.finish();
+  console.log(`bake-pine-physics: ${result.actors.length} native actors, ${result.parked.length} King prewarm bodies, ${result.solids.length} world solids, Node canonical`);
+} finally {
+  try { (await moduleAt('src/engine/app/resources.ts')).pageScope.dispose(); } finally {
+    for (const name of uiNames) { const previous = uiBefore.get(name); if (previous === undefined) Reflect.deleteProperty(globalThis, name); else Object.defineProperty(globalThis, name, previous); }
+    environment.dispose();
+  }
+}
