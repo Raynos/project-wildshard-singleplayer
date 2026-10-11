@@ -2629,7 +2629,12 @@ Internal game consumers import these defining modules relatively. The frozen
 preserving the exact constructor identity without collapsing distinct frozen imports. They retire with the old consumers; no duplicate class or service
 registry exists. The remaining exports are transitional while the schema and
 app-shell consumers migrate. DS0.2's final ≤20, `./plugin/*`-only surface is not
-yet claimed.
+yet claimed. `node scripts/game-plugins.mjs` reports the complete export count,
+the plugin count and its ≤20 check, and whether every key is a plugin. Each key
+lists its primary, exact sealed-legacy and other literal consumers. Unpublished
+imports and missing definition files remain visible. Frozen compatibility keys
+still count in the complete surface; this report grants no exception and never
+labels a larger transitional export map as the final plugin-only surface.
 
 
 ### Authoring boundary checks (SF79 DS0.3)

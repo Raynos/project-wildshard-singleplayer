@@ -69,6 +69,40 @@ export function gamePluginInventory(root = ROOT) {
   }));
 }
 
+
+/** Report the complete export surface and its exact frozen consumers without granting compatibility exceptions. */
+export function gamePluginSurface(root = ROOT) {
+  const manifest = JSON.parse(readFileSync(resolve(root, 'src/game/package.json'), 'utf8'));
+  const frozenFile = resolve(root, 'lint/legacy-shards.json');
+  const frozen = existsSync(frozenFile) ? JSON.parse(readFileSync(frozenFile, 'utf8')).shards : {};
+  const entries = Object.entries(manifest.exports).map(([key, target]) => ({
+    key, target: typeof target === 'string' ? target : null,
+    plugin: key.startsWith('./plugin/'),
+    published: typeof target === 'string' && existsSync(resolve(root, 'src/game', target)),
+    primaryConsumers: [], frozenConsumers: [], otherConsumers: [],
+  }));
+  const byKey = new Map(entries.map(row => [row.key, row])), unresolved = new Map();
+  for (const directory of ['src', 'test', 'scripts', 'api', 'vite']) for (const file of filesIn(resolve(root, directory))) {
+    const path = relative(root, file), shard = /^src\/shards\/([^/]+)\/(.+)$/u.exec(path);
+    const group = shard === null ? 'otherConsumers'
+      : Object.hasOwn(frozen[shard[1]]?.files ?? {}, shard[2]) ? 'frozenConsumers' : 'primaryConsumers';
+    for (const specifier of specifiers(file, readFileSync(file, 'utf8'))) {
+      if (!specifier.startsWith('@wildshard/game/')) continue;
+      const key = `.${specifier.slice('@wildshard/game'.length)}`, row = byKey.get(key);
+      if (row !== undefined) row[group].push(path);
+      else { if (!unresolved.has(specifier)) unresolved.set(specifier, new Set()); unresolved.get(specifier).add(path); }
+    }
+  }
+  entries.sort((a, b) => a.key.localeCompare(b.key));
+  for (const row of entries) for (const group of ['primaryConsumers', 'frozenConsumers', 'otherConsumers']) row[group].sort((a, b) => a.localeCompare(b));
+  const pluginExports = entries.filter(row => row.plugin).length;
+  return {
+    enforcement: 'report-only', limit: 20, totalExports: entries.length, pluginExports,
+    withinPluginLimit: pluginExports <= 20, pluginOnly: entries.every(row => row.plugin), entries,
+    unresolved: [...unresolved].sort(([a], [b]) => a.localeCompare(b)).map(([specifier, paths]) => ({ specifier, consumers: [...paths].sort((a, b) => a.localeCompare(b)) })),
+  };
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   if (process.argv.includes('--report')) {
     const scratch = mkdtempSync(resolve(tmpdir(), 'game-plugin-report-'));
@@ -81,5 +115,5 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
       if (result.error) throw result.error;
       if (result.status !== 0) throw new Error('Plugin report failed to execute');
     } finally { rmSync(scratch, { recursive: true, force: true }); }
-  } else console.log(JSON.stringify({ enforcement: 'report-only', modules: gamePluginInventory() }, null, 2));
+  } else console.log(JSON.stringify({ enforcement: 'report-only', surface: gamePluginSurface(), modules: gamePluginInventory() }, null, 2));
 }
