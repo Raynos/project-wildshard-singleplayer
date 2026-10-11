@@ -6,18 +6,24 @@ const literalLimit = 65_536, matchMinimum = 64;
 
 // Long-range matches cover repeated native geometry/BVHs outside DEFLATE's 32 KiB window.
 // All decisions affect compression ratio only; full bytes and lengths remain authoritative.
-function hash(bytes: Uint8Array, at: number): number {
-  let value = 2166136261;
-  for (let i = 0; i < 16; i += 4) {
-    const word = (bytes[at + i] ?? 0) | ((bytes[at + i + 1] ?? 0) << 8) | ((bytes[at + i + 2] ?? 0) << 16) | ((bytes[at + i + 3] ?? 0) << 24);
-    value = Math.imul(value ^ word, 16777619);
-  }
+function hash(view: DataView, at: number): number {
+  // Every indexed start has at least sixteen bytes. Read the same little-endian words directly;
+  // a per-byte load/loop dominated synchronous crossing checkpoints on the desktop trace.
+  let value = Math.imul(2166136261 ^ view.getUint32(at, true), 16777619);
+  value = Math.imul(value ^ view.getUint32(at + 4, true), 16777619);
+  value = Math.imul(value ^ view.getUint32(at + 8, true), 16777619);
+  value = Math.imul(value ^ view.getUint32(at + 12, true), 16777619);
   return (value >>> 0) & 0xfffff;
 }
 // Compare unaligned words first, then retain the exact first differing byte.
 function matchedBytes(left: DataView, leftAt: number, right: DataView, rightAt: number): number {
   const limit = Math.min(left.byteLength - leftAt, right.byteLength - rightAt);
   let length = 0;
+  while (length + 16 <= limit
+    && left.getUint32(leftAt + length, true) === right.getUint32(rightAt + length, true)
+    && left.getUint32(leftAt + length + 4, true) === right.getUint32(rightAt + length + 4, true)
+    && left.getUint32(leftAt + length + 8, true) === right.getUint32(rightAt + length + 8, true)
+    && left.getUint32(leftAt + length + 12, true) === right.getUint32(rightAt + length + 12, true)) length += 16;
   while (length + 4 <= limit && left.getUint32(leftAt + length, true) === right.getUint32(rightAt + length, true)) length += 4;
   while (length < limit && left.getUint8(leftAt + length) === right.getUint8(rightAt + length)) length++;
   return length;
@@ -43,7 +49,7 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): 
   const basisView = basis === undefined ? undefined : new DataView(basis.buffer, basis.byteOffset, basis.byteLength);
   const dictionary = new Int32Array(0x100000).fill(-1);
   const basisDictionary = basis === undefined ? undefined : new Int32Array(0x100000).fill(-1);
-  if (basis !== undefined && basisDictionary !== undefined) for (let i = 0; i + matchMinimum <= basis.length; i += basisStride) basisDictionary[hash(basis, i)] = i;
+  if (basisView !== undefined && basisDictionary !== undefined) for (let i = 0; i + matchMinimum <= basisView.byteLength; i += basisStride) basisDictionary[hash(basisView, i)] = i;
   let written = 0, literal = 0, at = 0;
   const flush = (end: number): void => {
     while (literal < end) {
@@ -53,7 +59,7 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): 
     }
   };
   while (at + matchMinimum <= bytes.length) {
-    const key = hash(bytes, at), previous = dictionary[key] ?? -1; dictionary[key] = at;
+    const key = hash(rawView, at), previous = dictionary[key] ?? -1; dictionary[key] = at;
     let length = previous < 0 ? 0 : matchedBytes(rawView, previous, rawView, at);
     const basisAt = basisDictionary?.[key] ?? -1;
     const basisLength = basisView === undefined || basisAt < 0 ? 0 : matchedBytes(basisView, basisAt, rawView, at);
@@ -62,7 +68,7 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): 
     if (length < matchMinimum) { at++; continue; }
     flush(at);
     encoded[written++] = external ? 2 : 1; view.setUint32(written, external ? basisAt : at - previous, true); written += 4; view.setUint32(written, length, true); written += 4;
-    if (!external) for (let i = at + 1; i < at + length && i + 16 <= bytes.length; i++) dictionary[hash(bytes, i)] = i;
+    if (!external) for (let i = at + 1; i < at + length && i + 16 <= bytes.length; i++) dictionary[hash(rawView, i)] = i;
     at += length; literal = at;
   }
   flush(bytes.length);

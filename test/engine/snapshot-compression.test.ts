@@ -69,7 +69,7 @@ it('keeps the existing reference wire across unaligned word tails, first differi
     expect(encodePhysicsReferences(overlapping)).toEqual(Uint8Array.from([0, 0, 0, 11, 1, 1, 0, 0, 0, length - 1, 0, 0, 0]));
     expect(decodePhysicsReferences(encodePhysicsReferences(overlapping), length)).toEqual(overlapping);
   }
-  for (const tail of [1, 2, 3, 4]) {
+  for (const tail of Array.from({ length: 20 }, (_, i) => i + 1)) {
     const raw = basis.subarray(17, 160).slice(); raw[raw.length - tail] = 255;
     const packed = encodePhysicsReferences(raw, basis);
     expect(packed).toEqual(Uint8Array.from([
@@ -96,4 +96,16 @@ it('rejects short/oversized blocks, bad lengths, extra fields and corrupt bytes 
     expect(() => decodeSimSnapshot(wire(short))).toThrow('block length');
     expect(snapshotSimHost(host)).toEqual(saved);
   } finally { host.dispose(); }
+});
+
+it('keeps packet bytes for offset basis and source views', () => {
+  const storage = Uint8Array.from({ length: 320 }, (_, i) => (i - 3 + 251) % 251);
+  const basis = storage.subarray(3, 304), bytes = new Uint8Array(151);
+  bytes.set(basis.subarray(17, 160), 5);
+  const raw = bytes.subarray(5, 148);
+  const expected = Uint8Array.from([0, 14, 0, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+    2, 32, 0, 0, 0, 128, 0, 0, 0]);
+  expect(encodePhysicsReferences(raw, basis)).toEqual(expected);
+  expect(decodePhysicsReferences(expected, raw.length, basis)).toEqual(raw);
+  expect(storage.byteOffset).toBe(0); expect(basis.byteOffset).toBe(3); expect(raw.byteOffset).toBe(5);
 });
