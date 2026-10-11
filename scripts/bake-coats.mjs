@@ -4,7 +4,7 @@
 // entry hundreds of milliseconds to seconds (and which a KTX2 hull cannot do at all: its atlas has no pixels). So the game
 // paints them here, offline, and the runtime loads the result.
 //
-// How, Pine Hollow (SF87, G320): no game page. scripts/bake/pineCoatsPage.ts (Pine's data/hulls.ts row, its species rows
+// How, Pine Hollow (SF87, G320): no game page. src/shards/pine-hollow/generators/pineCoatsPage.ts (Pine's data/hulls.ts row, its species rows
 // and looks, the game's rigged-hull coat painter; no runtime/ or legacy code) is bundled alone and run per tier (the phone
 // as "iPhone 16 Pro", the desktop at 1440×900, muted) on a page served from public/ only (the committed rig GLBs).
 // How, Nalati: a served build of the shard per tier, as above, booted through `?chunk=` on an IMAGES page; once the world
@@ -36,7 +36,7 @@ const ROOT = resolve(import.meta.dirname, '..');
 const PUB = resolve(ROOT, 'public');
 /** per shard: the KTX2 folder, the table, and (Nalati) the folder of the lossless images the table names */
 const SHARDS = {
-  'pine-hollow': { ktx2: 'assets/gpu/pine-hollow/creatures/coats', table: 'src/shards/pine-hollow/generators/bake-pine-coats.json', images: null, doc: 'G187 cut 2', page: { entry: 'scripts/bake/pineCoatsPage.ts', fn: 'bakePineCoats' } },
+  'pine-hollow': { ktx2: 'assets/gpu/pine-hollow/creatures/coats', table: 'src/shards/pine-hollow/generators/bake-pine-coats.json', images: null, doc: 'G187 cut 2', page: { entry: 'src/shards/pine-hollow/generators/pineCoatsPage.ts', fn: 'bakePineCoats' } },
   'nalati-grasslands': { ktx2: 'assets/gpu/nalati/models/coats', table: 'src/shards/nalati-grasslands/generators/bake-nalati-coats.json', images: 'assets/nalati/models/coats', doc: 'SHARD-PLATFORM G226', page: null },
 };
 const argv = process.argv.slice(2);

@@ -53,7 +53,7 @@ export async function cleanRoomGeneration(root, options) {
     // Delete ALL generated outputs before the first producer: one job cannot consume another job's retained bytes.
     for (const job of discovery.jobs) for (const file of job.outputs) rmSync(resolve(tree, file), {force: true});
     linkNodeModules(root, tree);
-    const coatPage = 'scripts/bake/pineCoatsPage.ts';
+    const coatPage = 'src/shards/pine-hollow/generators/pineCoatsPage.ts';
     if (existsSync(resolve(tree, coatPage))) report.sourceProbes.push({shard: 'pine-hollow', ...auditAuthoringInputs(tree, 'pine-hollow', coatPage)});
     for (const job of discovery.jobs) {
       /** @type {import('./generation-clean-room.mjs').CleanRoomJob} */

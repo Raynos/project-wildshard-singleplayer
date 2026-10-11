@@ -2,16 +2,16 @@
 // only public/, it loads Pine's rigged hulls (data/hulls.ts and their committed rig GLBs), registers the kit species and Pine's
 // own species rows whose variants the coats paint (game/systems/species/install.ts, species/rows.ts) and paints every coat that repaints its hull with the game's
 // own coat painter (game/systems/looks/riggedHulls.ts coatSources). No game, no level, no shard runtime or legacy code.
-import { app } from '../../src/engine/app/runtime';
-import { Scope } from '../../src/engine/app/scope';
-import { hasSpecies } from '../../src/engine/entities/species/registry';
-import type { RiggedHullsRow } from '../../src/shards/pine-hollow/runtime/looks/riggedHullRows';
-import { installKitSpecies } from '../../src/game/systems/species/install';
-import { riggedHulls } from '../../src/shards/pine-hollow/runtime/looks/riggedHulls';
-import { PINE_HULLS } from '../../src/shards/pine-hollow/runtime/looks/hulls';
-import { pineCoatUrl, pineCreatureRigUrl } from '../../src/shards/pine-hollow/species/rigs';
-import { PINE_BEAR_LOOK, PINE_BOAR_LOOK, pineElkLook } from '../../src/shards/pine-hollow/species/looks';
-import { PINE_SPECIES, pineElk } from '../../src/shards/pine-hollow/species/rows';
+import { app } from '../../../engine/app/runtime';
+import { Scope } from '../../../engine/app/scope';
+import { hasSpecies } from '../../../engine/entities/species/registry';
+import type { RiggedHullsRow } from '../runtime/looks/riggedHullRows';
+import { installKitSpecies } from '../../../game/systems/species/install';
+import { riggedHulls } from '../runtime/looks/riggedHulls';
+import { PINE_HULLS } from '../runtime/looks/hulls';
+import { pineCoatUrl, pineCreatureRigUrl } from '../species/rigs';
+import { PINE_BEAR_LOOK, PINE_BOAR_LOOK, pineElkLook } from '../species/looks';
+import { PINE_SPECIES, pineElk } from '../species/rows';
 
 /**
  * The row without the hulls of species only Pine's runtime registers (the Antler King), each checked to wear its own
