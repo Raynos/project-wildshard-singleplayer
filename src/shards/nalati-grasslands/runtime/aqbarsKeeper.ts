@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { StalkerBrain, type PouncerPorts, type PouncerContext, type PouncerLedge } from '@wildshard/engine/ai/stalker';
-import { AQBARS_OPEN, AQBARS_PROFILE } from './eliteBrains';
+import { AQBARS_OPEN, AQBARS_PROFILE } from '../data/eliteProfiles';
 
 /** Solid Crags ledges observed by the native world. */
 export type AqbarsLedge = PouncerLedge;

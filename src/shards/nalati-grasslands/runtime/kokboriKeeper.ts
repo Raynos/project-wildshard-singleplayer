@@ -2,7 +2,7 @@ import type { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import { StalkerBrain, type HowlerPorts, type PouncerContext } from '@wildshard/engine/ai/stalker';
-import { KOKBORI_CUES, KOKBORI_PROFILE } from './eliteBrains';
+import { KOKBORI_CUES, KOKBORI_PROFILE } from '../data/eliteProfiles';
 
 /** The actual pack remains owned and snapshotted by its group host. */
 export type KokboriPack<A extends AnimalSim> = Pick<PackBrain<A>, 'homeX' | 'homeZ' | 'phase' | 'awareness' | 'scare'>;
