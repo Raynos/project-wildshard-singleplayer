@@ -43,7 +43,7 @@ export function captureNumberPathProbe() {
   for (const [op, fn] of Object.entries(binary)) {
     for (const [a, b] of pairs) math.push({ op, args: [a, b], argBits: [bits(a), bits(b)], bits: bits(fn(a, b)) });
   }
-  const result = { runtime: { node: process.version, v8: process.versions.v8 ?? '',
+  const result = { runtime: { node: process.version, v8: process.versions.v8,
     platform: process.platform, arch: process.arch }, json, math };
   captured = result;
   return result;
