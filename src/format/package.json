@@ -58,7 +58,8 @@
     "./speciesScripts": "./speciesScripts.ts",
     "./eliteScripts": "./eliteScripts.ts",
     "./skins": "./skins.ts",
-    "./skinData": "./skinData.ts"
+    "./skinData": "./skinData.ts",
+    "./shardSections": "./shardSections.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

@@ -1,3 +1,4 @@
+import { ShardFiniteSchema as finite, ShardReferenceSchema as ref, ShardNamesSchema as names, IdentitySchema, RequiresSchema, BudgetsSchema, SimSchema, AuthorCapsSchema, ServerBudgetSchema, FilesSchema, TilesSchema, LibrarySchema, CriticalSchema, FarSchema, SpawnSchema } from '@wildshard/format/shardSections';
 import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { isJsonData } from '@wildshard/format/json';
@@ -6,7 +7,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { preflightAssetGraph } from './assetGraph';
 import { SHARDFILE_VERSION } from '@wildshard/format/version';
 import { UiSchema, uiRules } from '@wildshard/format/ui';
-import { ScriptBindingsSchema, scriptBindingRules } from '@wildshard/format/scripts';
+import { scriptBindingRules } from '@wildshard/format/scripts';
 import { RowsSchema } from '@wildshard/format/rows';
 import { TerrainSchema } from '@wildshard/format/terrain';
 import { MeshCollisionSchema, meshCollisionRules } from '@wildshard/format/meshCollision';
@@ -33,7 +34,7 @@ import { MoversSchema, parseMovers } from '@wildshard/format/movers';
 import { socketLiftEntries, socketLiftRules } from './socketLift';
 import { portalLinkEntries, portalLinkRules } from './portalLink';
 import { StateSchema, stateRules } from '@wildshard/format/state';
-import { CommonsCostsSchema, assertCommonsCosts } from '@wildshard/format/commonsCosts';
+import { assertCommonsCosts } from '@wildshard/format/commonsCosts';
 import { AccentSchema } from '@wildshard/format/accent';
 import { PresentationSchema } from '@wildshard/format/presentation';
 import { MigrationsSchema, migrationRules } from '@wildshard/format/migrations';
@@ -41,45 +42,31 @@ import { skinLookRules } from './skins';
 import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs, materialGraphRules } from './materials';
 import { PostStackSchema, postStackRules } from './postStack';
 
-const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
-const positive = v.pipe(natural, v.minValue(1));
-const finite = v.pipe(v.number(), v.finite());
-const name = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(limits.idCharacters));
-const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
-const ref = v.pipe(v.string(), v.regex(/^(?:commons:)?[a-f0-9]{64}$/u));
-const references = v.pipe(v.array(ref), v.maxLength(limits.files + limits.commons));
-const names = v.pipe(v.array(name), v.maxLength(limits.files));
-const vec3 = v.tuple([finite, finite, finite]);
 const channel = v.pipe(finite, v.minValue(0), v.maxValue(1));
 const colour = v.tuple([channel, channel, channel]);
-const bounds = v.pipe(v.strictObject({ min: vec3, max: vec3 }), v.check((b) => b.min.every((n, i) => n <= (b.max[i] ?? -Infinity)), 'ordered bounds'), v.check((b) => b.min[0] >= -CHUNK_HALF && b.max[0] <= CHUNK_HALF && b.min[2] >= -CHUNK_HALF && b.max[2] <= CHUNK_HALF && b.min[1] >= -CELL_BELOW && b.max[1] <= CELL_ABOVE, 'cell bounds'));
-const costs = { compressed: natural, decoded: natural, gpu: natural, triangles: natural, draws: natural };
 const unsigned = v.pipe(finite, v.minValue(0));
 const key = v.strictObject({ time: channel, sky: v.strictObject({ zenith: colour, horizon: colour }), fog: v.strictObject({ colour, density: unsigned, near: v.optional(unsigned), far: v.optional(unsigned) }), sun: v.strictObject({ colour, intensity: unsigned }), ambient: v.strictObject({ sky: colour, ground: colour, intensity: unsigned }) });
 const day = v.strictObject({ minutes: v.pipe(finite, v.minValue(1), v.maxValue(1440)), start: channel, maxElevation: v.pipe(finite, v.minValue(0), v.maxValue(90)), azimuth: v.pipe(finite, v.minValue(-180), v.maxValue(180)) });
 /** A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format). */
 export const LOOK_LUT_BYTES = 33 ** 3 * 4;
-const tile = v.strictObject({ lod: v.picklist([0, 1]), x: natural, z: natural, bounds, geometricError: v.pipe(finite, v.minValue(0)), files: references, ...costs });
-const file = v.strictObject({ hash, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'binary', 'image']), ...costs, dependencies: references, critical: v.boolean() });
-const tileCount = (2 * CHUNK_HALF / CONTENT_CAPS.l0.size) ** 2 + (2 * CHUNK_HALF / CONTENT_CAPS.l1.size) ** 2;
 const rawSchema = v.strictObject({
   version: v.literal(SHARDFILE_VERSION),
   accent: AccentSchema,
-  identity: v.strictObject({ slug: name, name: v.pipe(v.string(), v.minLength(1), v.maxLength(limits.idCharacters)), author: v.pipe(v.string(), v.minLength(1), v.maxLength(limits.idCharacters)), revision: positive, seed: natural }),
+  identity: IdentitySchema,
   presentation: v.exactOptional(PresentationSchema),
-  requires: v.strictObject({ sdk: v.literal(SHARDFILE_VERSION), capabilities: names, commons: v.pipe(v.array(hash), v.maxLength(limits.commons)), commonsWire: v.optional(v.record(hash, natural), {}), commonsCosts: v.optional(CommonsCostsSchema, {}) }),
-  budgets: v.strictObject({ library: v.strictObject({ resident: natural, compressed: natural }), sim: v.strictObject({ resident: natural, compressed: natural }), overlap: natural }),
+  requires: RequiresSchema,
+  budgets: BudgetsSchema,
   look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), post: v.exactOptional(PostStackSchema), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
-  sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: references, bindings: v.optional(ScriptBindingsSchema, []) }),
+  sim: SimSchema,
   state: StateSchema,
   migrations: v.optional(MigrationsSchema, []),
-  authorCaps: v.strictObject({ players: v.pipe(positive, v.maxValue(32)), speed: v.pipe(finite, v.minValue(0), v.maxValue(15)) }),
-  serverBudget: v.strictObject({ tickMicros: v.pipe(positive, v.maxValue(16_666)), memory: positive, entities: v.pipe(natural, v.maxValue(10_000)), commandsPerTick: v.pipe(natural, v.maxValue(1024)) }),
+  authorCaps: AuthorCapsSchema,
+  serverBudget: ServerBudgetSchema,
   edge: EdgeProfilesSchema,
   entryways: EntrywaysSchema,
   movers: v.optional(MoversSchema, []),
-  files: v.pipe(v.array(file), v.maxLength(limits.files)), tiles: v.pipe(v.array(tile), v.maxLength(tileCount)), library: references, critical: references,
-  far: v.nullable(v.strictObject({ files: references, bounds, ...costs })),
+  files: FilesSchema, tiles: TilesSchema, library: LibrarySchema, critical: CriticalSchema,
+  far: FarSchema,
   ui: v.optional(UiSchema, []),
   rows: v.optional(RowsSchema, { strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [] }),
   terrain: v.optional(v.nullable(TerrainSchema), null),
@@ -101,7 +88,7 @@ const rawSchema = v.strictObject({
   clientScripts: v.optional(ClientScriptsSchema, { divisor: 2, bindings: [] }),
   // RuntimeSchema owns strict binds/spawns and their exact pairing; bound state also passes ownership and ordinary field admission.
   runtime: v.optional(v.nullable(RuntimeSchema), null),
-  spawn: v.optional(v.strictObject({ x: finite, y: finite, z: finite, yaw: finite }), { x: 0, y: 2, z: 0, yaw: 0 }),
+  spawn: v.optional(SpawnSchema, { x: 0, y: 2, z: 0, yaw: 0 }),
 });
 /** A serialisable shardfile v0, independent of renderer and placement. */
 export type Shardfile = v.InferOutput<typeof rawSchema>;

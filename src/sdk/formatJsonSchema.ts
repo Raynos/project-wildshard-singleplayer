@@ -54,6 +54,8 @@ import { EliteScriptSchema } from '@wildshard/format/eliteScripts';
 import { SkinLookParametersSchema, SkinClipParametersSchema, ShardSkinFileSchema } from '@wildshard/format/skins';
 import { SkinClipNameSchema, SkinRowSchema, SkinBindingSchema } from '@wildshard/format/skinData';
 
+import { ShardNaturalSchema, ShardFiniteSchema, ShardHashSchema, ShardReferenceSchema, ShardReferencesSchema, ShardNamesSchema, CellBoundsSchema, IdentitySchema, RequiresSchema, BudgetsSchema, SimSchema, AuthorCapsSchema, ServerBudgetSchema, FilesSchema, TilesSchema, LibrarySchema, CriticalSchema, FarSchema, SpawnSchema } from '@wildshard/format/shardSections';
+
 /** JSON Schema plus explicit admission checks that JSON Schema cannot express. */
 export interface FormatJsonSchema extends JsonSchema {
   'x-wildshard-checks'?: string[];
@@ -162,6 +164,25 @@ const wireRoots = {
   'skinData.SkinClipName': SkinClipNameSchema,
   'skinData.SkinRow': SkinRowSchema,
   'skinData.SkinBinding': SkinBindingSchema,
+  'shardSections.ShardNatural': ShardNaturalSchema,
+  'shardSections.ShardFinite': ShardFiniteSchema,
+  'shardSections.ShardHash': ShardHashSchema,
+  'shardSections.ShardReference': ShardReferenceSchema,
+  'shardSections.ShardReferences': ShardReferencesSchema,
+  'shardSections.ShardNames': ShardNamesSchema,
+  'shardSections.CellBounds': CellBoundsSchema,
+  'shardSections.Identity': IdentitySchema,
+  'shardSections.Requires': RequiresSchema,
+  'shardSections.Budgets': BudgetsSchema,
+  'shardSections.Sim': SimSchema,
+  'shardSections.AuthorCaps': AuthorCapsSchema,
+  'shardSections.ServerBudget': ServerBudgetSchema,
+  'shardSections.Files': FilesSchema,
+  'shardSections.Tiles': TilesSchema,
+  'shardSections.Library': LibrarySchema,
+  'shardSections.Critical': CriticalSchema,
+  'shardSections.Far': FarSchema,
+  'shardSections.Spawn': SpawnSchema,
  } satisfies Readonly<Record<string, GenericSchema>>;
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
