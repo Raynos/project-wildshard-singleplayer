@@ -2941,3 +2941,11 @@ Unsupported/encrypted/fragmented layouts refuse; costs include priming and full 
 packet padding. PCM WAV admission remains unchanged. SF26 covers the shipped recordings:
 one fetch and one commons claim across two shard admissions, with independent leases.
 Native style-bank routing into emitted commons files remains a separate integration step.
+
+A TypeScript author config exports its compiled `commons` catalogue alongside the
+shard declaration. Select the sting entries with `commonsRequirements`, put their
+`commons:<hash>` references in the library, and `wildshard build` emits the exact
+encoded files and the validation receipt. The source reader remains build-only;
+no commons module is copied into client or simulation code. The real compiler
+fixture builds two products and compares every emitted recording to its source.
+This authoring proof does not imply the trusted native music bank has migrated.

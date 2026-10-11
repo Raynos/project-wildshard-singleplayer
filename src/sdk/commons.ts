@@ -43,7 +43,7 @@ export function buildCommons(packs: readonly CommonsPack[]): BuiltCommons {
       if (previous !== undefined && previous !== row.kind) throw new Error('Commons hash has conflicting kinds');
       if (!assets.has(hash)) {
         wire += input.bytes.byteLength; if (wire > limits.wireBytes) throw new Error('Commons total wire exceeds admission cap');
-        assets.set(hash, input.bytes.slice()); hashes.set(hash, row.kind);
+        assets.set(hash, Uint8Array.from(input.bytes)); hashes.set(hash, row.kind);
       }
       const bytes = assets.get(hash); if (bytes === undefined) throw new Error('Missing owned commons bytes');
       entries.push({ id: key, pack: pack.id, packVersion: pack.version, hash, kind: row.kind, wire: bytes.byteLength, cost: assetCost(row.kind, bytes), credit: row.credit, licence: row.licence });

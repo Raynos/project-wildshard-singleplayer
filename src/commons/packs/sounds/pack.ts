@@ -14,6 +14,6 @@ export async function scoreStingsPack(style: string, source: ScoreStingsSource,
   });
   // Validate every path before the reader performs any I/O. Ordered results are deterministic.
   const entries = await Promise.all(rows.map(async ({ id, file }) => ({ id, kind: 'audio' as const,
-    bytes: (await read(file)).slice(), credit: provenance.credit, licence: provenance.licence })));
+    bytes: Uint8Array.from(await read(file)), credit: provenance.credit, licence: provenance.licence })));
   return { id: `score-stings/${style}`, version: '1.0.0', entries };
 }

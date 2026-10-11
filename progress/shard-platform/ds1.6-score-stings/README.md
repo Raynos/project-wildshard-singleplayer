@@ -26,5 +26,21 @@ at the last release. Repeated pack generation is byte-identical.
 This slice makes real sound packs available to authoring products. Native music
 bank routing into emitted commons addresses is still open; it is not a production
 network-saving claim. Real shared model/rig/clip packs remain open. The Driftwood
-and Nine arm meshes differ, and their sixteen same-named authored clips also
-have different track bytes; they must not be falsely combined as one asset.
+and Nine arm meshes differ and must not be combined as one mesh asset. Their
+sixteen shared clips are identical after the actual Meshopt decoder: raw buffer
+views in compressed GLBs cannot establish accessor identity. These clips qualify
+for the next non-visual pack slice.
+
+## Real compiler and Node ownership follow-up
+
+The actual author compiler builds two separate TypeScript projects selecting the
+real Folk pack. Both outputs contain the same three original recording hashes,
+shard data and real validation receipts. There is no runtime commons module.
+The 16 focused compiler/pack/admission tests and root strict/touched lint pass.
+Four native witness payloads/outcomes remain byte-identical.
+
+This proof exposed the Node `Buffer.slice()` shared-view pitfall. Pack intake and
+the generic commons compiler now take `Uint8Array.from` copies. A regression
+mutates the original reader Buffer after compilation and verifies both owned
+pack bytes and catalogue bytes still equal the original recording. Sound bytes,
+hashes, decoder settings and costs are unchanged.

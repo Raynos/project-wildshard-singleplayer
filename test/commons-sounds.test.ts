@@ -18,7 +18,7 @@ import piano from '../public/assets/music/piano/music.json' with { type: 'json' 
 import orchestral from '../public/assets/music/orchestral/music.json' with { type: 'json' };
 
 const styles = [{ style: 'folk', source: folk }, { style: 'piano', source: piano }, { style: 'orchestral', source: orchestral }];
-const recording = (style: string, file: string): Uint8Array => readFileSync(new URL(`../public/assets/music/${style}/${file}`, import.meta.url));
+const recording = (style: string, file: string): Uint8Array => Uint8Array.from(readFileSync(new URL(`../public/assets/music/${style}/${file}`, import.meta.url)));
 
 it.each(styles)('packs the shipped $style stings byte-exactly and downloads each once for Driftwood and Pine', async ({ style, source }) => {
   const pack = await scoreStingsPack(style, source, file => Promise.resolve(recording(style, file)), { credit: source.credit, licence: 'MiniMax-Music3 Community' });
