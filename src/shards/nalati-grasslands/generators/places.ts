@@ -9,6 +9,7 @@
  * generated (GLB) instances and per model the copies `place` registers. `world/placeBake.ts` draws them back bit-exact.
  */
 import type * as THREE from 'three';
+import { withPortableMath } from '../../../../test/fake/portableMath';
 import { paramsOf, type ModelDef } from '@wildshard/engine/models/model';
 import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { bakedSamplers, parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
@@ -355,7 +356,8 @@ export function bakeNalatiPlaces(ground: Ground): { places: PlacesBake<PlaceRow>
   });
   const places = { rows, bin: join(blocks) };
   const specimenBlocks: Uint8Array[] = [];
-  const specimens = specimenJobs().flatMap((run) => run(specimenBlocks));
+  // Native V8 trig differs on arm64/x64; even a final float32 UV can cross its rounding midpoint.
+  const specimens = withPortableMath(() => specimenJobs().flatMap((run) => run(specimenBlocks)));
   // the dressing's scatter shapes (generators/dressingGeos.ts): ground-free, indexed, kept as built
   const dressingBlocks: Uint8Array[] = [];
   const dressing = DRESSING_GEOS.map(([key, build]): DressingGeoRow => ({ key, geometry: writeGeometry(build(), dressingBlocks, `dressing ${key}`) }));

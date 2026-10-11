@@ -9,8 +9,10 @@ import { byteWriter } from '../../../../scripts/bake-output.mjs';
 import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs';
 import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 import { ninePhysicsInputs } from '../../../../scripts/nine-physics-inputs.mjs';
+import { installPortableMath } from '../../../../test/fake/portableMath.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
+const restoreMath = installPortableMath();
 const environment = installBakeEnvironment(root);
 const at = path => import(pathToFileURL(resolve(root, path)).href);
 const noop = () => undefined;
@@ -63,5 +65,5 @@ try {
   console.log(`bake-nine-physics: ${String(captured.pieces.length)} collider pieces, ${String(captured.hooks.length)} hooks, Node canonical`);
 } finally {
   try { (await at('src/engine/app/resources.ts')).pageScope.dispose(); }
-  finally { environment.dispose(); }
+  finally { environment.dispose(); restoreMath(); }
 }

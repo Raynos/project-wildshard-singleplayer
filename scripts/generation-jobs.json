@@ -928,6 +928,7 @@
         "--force-write"
       ],
       "inputRoots": [
+        "test/fake/portableMath.ts",
         "src/engine",
         "src/game",
         "src/sdk",
@@ -1291,6 +1292,7 @@
         "src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs"
       ],
       "inputRoots": [
+        "test/fake/portableMath.ts",
         "src/engine",
         "src/game",
         "src/sdk",
