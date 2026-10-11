@@ -7,7 +7,7 @@ afterEach(() => { vi.restoreAllMocks(); });
 
 /** Run `jobs` jobs that each issue `perJob` programs, on a frozen clock (the 12 ms box never closes). Returns the pause
  * index at which each job compiled and each program resolved. */
-async function slices(jobs: number, perJob: number, live: boolean): Promise<{ compiled: number[]; resolved: number[] }> {
+async function slices(jobs: number, perJob: number, live: boolean, linkDelay = 0): Promise<{ compiled: number[]; resolved: number[] }> {
   const prior = scopeEnvironment();
   installScopeEnvironment({ targetKind: () => 'other', frame: paint => { queueMicrotask(() => { paint(0); }); return 0; }, cancelFrame: () => undefined });
   vi.spyOn(performance, 'now').mockReturnValue(0);
@@ -16,11 +16,12 @@ async function slices(jobs: number, perJob: number, live: boolean): Promise<{ co
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Expected renderer prototype');
   let target: THREE.WebGLRenderTarget | null = null;
-  const commands = { extensions: { has: () => false }, info: { programs }, toneMapping: THREE.NoToneMapping,
+  const commands = { extensions: { has: () => linkDelay > 0 }, info: { programs }, toneMapping: THREE.NoToneMapping,
     getRenderTarget: () => target, setRenderTarget: (next: THREE.WebGLRenderTarget | null) => { target = next; },
     compile: () => {
       compiled.push(pauses);
-      for (let i = 0; i < perJob; i++) programs.push({ isReady: () => true, getUniforms: () => { resolved.push(pauses); } });
+      const issuedAt = pauses;
+      for (let i = 0; i < perJob; i++) programs.push({ isReady: () => pauses >= issuedAt + linkDelay, getUniforms: () => { resolved.push(pauses); } });
     } };
   for (const [key, value] of Object.entries(commands)) Reflect.set(renderer, key, value);
   const list: CompileJob[] = Array.from({ length: jobs }, (_, i) => ({ label: `job ${String(i)}`, root: new THREE.Group(), target: null, rt: null }));
@@ -29,13 +30,19 @@ async function slices(jobs: number, perJob: number, live: boolean): Promise<{ co
   return { compiled, resolved };
 }
 
-it('a live WebKit warm-up separates jobs and gives each link resolve its own painted slice', async () => {
+it('a live WebKit warm-up separates jobs and resolves at most one ready link per painted slice', async () => {
   expect(LIVE_PROGRAMS_PER_FRAME).toBe(1);
   const { compiled, resolved } = await slices(5, 2, true);
   // A material may issue two side variants; no following job shares that slice.
   expect(compiled).toEqual([0, 1, 2, 3, 4]);
   // Query resolution is bounded independently of the clock and compile-job count.
-  expect(resolved).toEqual(Array.from({ length: 10 }, (_, i) => i + 5));
+  expect(resolved).toEqual(Array.from({ length: 10 }, (_, i) => i));
+});
+
+it('pipelines ready older links while issuing new jobs without resolving an incomplete link', async () => {
+  const { compiled, resolved } = await slices(5, 1, true, 1);
+  expect(compiled).toEqual([0, 1, 2, 3, 4]);
+  expect(resolved).toEqual([1, 2, 3, 4, 5]);
 });
 
 it('boot and other browsers keep the 12 ms box alone', async () => {
@@ -63,11 +70,11 @@ it('bounds parallel completion queries and never revisits resolved borrowed prog
   const run = () => runPrecompile(renderer, new THREE.PerspectiveCamera(), [{ label: 'parallel', root, target: null, rt: null }], 1, undefined, [], () => true, true, () => { frame++; return Promise.resolve(); });
   try {
     await run();
-    expect(reads).toEqual([1, 2, 3]);
-    expect(resolutions).toEqual([1, 2, 3]);
+    expect(reads).toEqual([0, 1, 2]);
+    expect(resolutions).toEqual([0, 1, 2]);
     await run();
-    expect(reads).toEqual([1, 2, 3]);
-    expect(resolutions).toEqual([1, 2, 3]);
+    expect(reads).toEqual([0, 1, 2]);
+    expect(resolutions).toEqual([0, 1, 2]);
   } finally { material.dispose(); geometry.dispose(); installScopeEnvironment(prior); }
 });
 
@@ -86,7 +93,7 @@ it('waits for a pending parallel link before first use and fences a retired owne
   try {
     await expect(runPrecompile(renderer, new THREE.PerspectiveCamera(), [{ label: 'pending', root: new THREE.Group(), target: null, rt: null }], 0,
       undefined, [], () => alive, true, () => { frame++; if (frame === 3) alive = false; return Promise.resolve(); })).rejects.toThrow('Shader warm-up owner left');
-    expect(reads).toEqual([1, 2]);
+    expect(reads).toEqual([0, 1, 2]);
     expect(resolutions).toEqual([]);
   } finally { installScopeEnvironment(prior); }
 });

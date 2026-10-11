@@ -523,7 +523,7 @@ export function waitForDrawnFrame(scope: Scope, drawn: () => number, current: ()
 }
 
 /**
- * Issue every job, then wait for the driver: reports (done, total, detail) monotonically —
+ * Issue jobs and settle their driver links: reports (done, total, detail) monotonically —
  * `total` = jobs + programs once the programs are known. Live preparation may isolate image
  * uploads so an unpredictable native upload cannot join another upload in the same painted slice.
  * An optional pause port requires a completed live draw between batches instead of a browser rAF the game may skip.
@@ -568,6 +568,18 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // offscreen factory such as PMREM issues its own in `_compileMaterial` during capture). Without them the replayed
   // draw was their first use: a blocking link query (53-99 ms getProgramInfoLog on the Simulator) in one frame.
   const jobPrograms = new Set<unknown>();
+  // Keep issue and first use on one painted slice when the driver has already finished linking.
+  // An incomplete link is queued; it never blocks issuing the next material or loses its owner fence.
+  const queued: ProgramLike[] = [], enqueued = new Set<ProgramLike>();
+  let settled = 0;
+  const queue = (program: ProgramLike): void => {
+    if (!enqueued.has(program) && !resolvedPrograms.has(program)) { enqueued.add(program); queued.push(program); }
+  };
+  const settleOne = (): void => {
+    const program = queued[settled];
+    if (program === undefined || parallel && !program.isReady()) return;
+    program.getUniforms(); resolvedPrograms.add(program); settled++;
+  };
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now(), programsAtFrame = programCount(renderer);
@@ -588,13 +600,16 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.fogOff && job.target) job.target.fog = fog;
       if (job.environment !== undefined && job.target) job.target.environment = environment;
     }
+    if (isolateImageUploads) {
+      for (const program of snapshotPrograms(renderer)) if (!before.has(program) || jobPrograms.has(program)) queue(program);
+    }
     onProgress?.(i + 1, total(), `${materials} materials · ${i + 1} / ${jobs.length} batches · ${mode}`);
     // op-hitch37: a live WebKit warm-up also yields once a slice has issued LIVE_PROGRAMS_PER_FRAME programs: WebKit
     // queues compile/link to its GPU process, so the JS slice is cheap but the frame that presents it waits for all of
     // them (Sky Reach's entry: 18 programs in one 217 ms Simulator frame of afterPlay).
     const capped = isolateImageUploads && programCount(renderer) - programsAtFrame >= LIVE_PROGRAMS_PER_FRAME;
     // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
-    if (performance.now() - tFrame > 12 || capped || i === jobs.length - 1) { await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
+    if (performance.now() - tFrame > 12 || capped || i === jobs.length - 1) { if (isolateImageUploads) settleOne(); await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
   }
   created.push(...newProgramsSince(renderer, before));
   for (const program of before) if (jobPrograms.has(program)) created.push(program);
