@@ -29,7 +29,7 @@ import { ROC_ID } from '../../../src/shards/far-reach/data/rocFight';
  * Sky Reach's whole-shard witness (E435 §C / SF72) on its trusted renderer-free entry, `runtime/headless.ts`, composed
  * exactly as the platform's trusted adapter composes it (`createTrustedHeadlessAdapter`: the plan's level and ports, one
  * install, the tick's commands lent to the runtime, its effects buffered per tick), and cross-checked against the shipping
- * worker (`HeadlessSimulation` + `trustedRuntime`) from the gale-wall checkpoint. The player's tape is tick commands only
+ * worker (`HeadlessSimulation` + the same real `trustedRuntime` under portable math) from the gale-wall checkpoint. The player's tape is tick commands only
  * (`player` moves, fan swings and HOVER presses; `script` prompts, GUSTs and the fan's aim), chosen each tick from what a
  * player sees: from the spawn on Sunrest to the keeper, over the grove rope bridge, on the board over the hover bridges to
  * the keeper's isle and the roost, on foot to the ruin, each vane GUSTed, the roost's rays felled by the fan, on the board
@@ -38,7 +38,7 @@ import { ROC_ID } from '../../../src/shards/far-reach/data/rocFight';
  */
 export const ENTRY = 'runtime/headless.ts';
 const ROOT = new URL('../../../', import.meta.url);
-const MODULE = new URL(`src/shards/far-reach/${ENTRY}`, ROOT).href;
+const MODULE = new URL('worker.ts', import.meta.url).href;
 const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/far-reach/assets/${file.hash}`, ROOT)))]));
 const EYE = 1.68;
 const identity = { instance: 'far-reach-witness', shard: source.identity.slug, revision: source.identity.revision };

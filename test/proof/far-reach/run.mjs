@@ -16,6 +16,8 @@ import { createHash } from 'node:crypto';
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const ROOT = new URL('../../../', import.meta.url), loaded = new Set();
 registerHooks({ load(url, context, next) { if (url.startsWith(ROOT.href) && !url.includes('/node_modules/')) loaded.add(url); return next(url, context); } });
+const { installPortableMath } = await import('../../fake/portableMath.ts'); installPortableMath();
+await import('./worker.ts'); // Fence the actual worker adapter's defining bytes too.
 const { installAppIdentity } = await import('../../../src/engine/app/identity.ts');
 const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts');
 const witness = await import('./witness.ts');
