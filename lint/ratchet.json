@@ -137,6 +137,7 @@
     "src/shards/pastel-plain/generators/terrain.ts": 1,
     "src/shards/pastel-plain/generators/world.ts": 4,
     "src/shards/pine-hollow/data/bowProfile.ts": 2,
+    "src/shards/pine-hollow/data/crossbowProfile.ts": 2,
     "src/shards/pine-hollow/data/leverProfile.ts": 2,
     "src/shards/pine-hollow/generators/bake-hdri-keys.mjs": 4,
     "src/shards/pine-hollow/generators/bake-pine-beaver-pool.mjs": 2,
