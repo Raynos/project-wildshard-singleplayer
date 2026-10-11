@@ -1,0 +1,9 @@
+# SF82 BR-2: native boss patterns
+
+`bossFight({kind: "boss", pattern, fight}, ports)` is the defining native entry for arena, roaming, spawned-body and held-body patterns. The fixed and roaming phased-boss names, Signal's marked-boss name and Sky's held-boss name are presets. The same actual bodies, phase/strike/add/hazard laws, weather, RNG streams, callback order and checkpoint continuations remain authoritative. Unknown kinds/patterns and mismatched host policies refuse before native effects. No generic brain or fabricated actor replaces an existing owner.
+
+Proof: 32 focused tests in ten files. Signal and Sky's body patterns match the frozen shipping implementation, preset and direct profile at every one of 10,000 variable-step frames each, including body retirement/replacement, native phase marks, shields, weather, death, victory, checkpoint bounds and continuation reads. Pine and Nalati's complete 14,000-frame frozen fight replays remain exact, including strikes, hazards, adds and restores. The actual Signal gameplay tape, BossBrain continuation and director cursor tests pass. Root/layer strict, touched typed lint and hooks are green.
+
+Four actual native physics captures repeat exactly; all actor/collider payloads are byte-identical outside source provenance: Pine 164 + three parked bodies / 2,078 solids, Nalati 35 / 2,694, Sky 13 / 43 pieces, Signal 13 / 10 pieces. All four witness payloads and outcomes re-record exactly. Their input-only manifests stay with the serialized pusher.
+
+No new package module export. Routine approved downward rises: Sky and Signal each add one shard-to-game defining plugin edge and remove one shard-to-engine edge. The director/encounter clock and AS elite command policy are unchanged. BR-2 remains open for the admitted wire schema and elite-policy integration; BR-3–5 author-row migrations and BR-6 eye review remain open. This slice claims native pattern consolidation, not their completion.

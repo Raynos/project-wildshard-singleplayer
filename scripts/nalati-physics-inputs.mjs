@@ -12,6 +12,8 @@ export function nalatiPhysicsInputs(root) {
   paths.push('src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/diver.ts', 'src/engine/ai/stalker.ts', 'src/engine/ai/hunt.ts', 'src/engine/ai/huntPattern.ts', 'src/engine/ai/pack.ts', 'src/engine/ai/herd.ts', 'src/engine/ai/grazer.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');
   // the grass field the bake samples (its `grass` rows)
   paths.push('src/game/systems/looks/grassField.ts');
+  // SF82: the canonical native boss patterns are part of the actual producer's defining closure.
+  paths.push('src/game/plugin/bossPhase.ts', 'src/game/shardfile/phasedBossRoaming.ts');
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

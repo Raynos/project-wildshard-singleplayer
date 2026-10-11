@@ -12,6 +12,8 @@ export function pinePhysicsInputs(root) {
   paths.push('src/engine/physics/surface.ts', 'src/engine/physics/pieces.ts', 'src/engine/world/registry.ts', 'src/engine/debug/probe.ts');
   // Native rain goals read the page's exact crown-cover values from this defining texture builder.
   paths.push('src/shards/pine-hollow/runtime/looks/rainFx.ts');
+  // SF82: the canonical native boss patterns are part of the actual producer's defining closure.
+  paths.push('src/game/plugin/bossPhase.ts', 'src/game/shardfile/phasedBossRoaming.ts');
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

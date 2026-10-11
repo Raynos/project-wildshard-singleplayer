@@ -2487,6 +2487,8 @@ Matriarch is the first (`data/brains.ts` MATRIARCH_BRAIN, `runtime/quest/matriar
 brain by `test/shards/sunscar-dunes/matriarch-brain.test.ts`.
 
 **Phased boss fights (SF27).** `@wildshard/game/shardfile/phasedBoss` (SDK `@wildshard/sdk/phasedBoss`)
+`bossFight({kind: 'boss', pattern, fight}, ports)` is the defining parametric fight entry. `arena` and `roaming` retain the existing phase/strike/add/hazard policies; `spawned` binds a real fresh body per checkpoint with phase memory and eased weather; `held` binds one retained body and its native brain restart. Pattern/host mismatches refuse before allocation, RNG or actor/view effects. `phasedBossFight`, the Signal marked-boss and Sky held-boss names remain presets. Their native clocks, callback order, body ownership and serialized continuations stay unchanged. This entry does not replace the outer `BossBrain`/director encounter clock or an admitted AS body policy.
+
 `phasedBossFight(row, ports)` is the richer sibling of `markedBossFight`: one body fought through a declared state machine.
 A `PhasedBossRow` holds the arena frame (`origin`, `bounds`), the body's `rest` and `shieldSpot`, the `phases` (hp share
 at each checkpoint, memory at a reset, how a resumed checkpoint begins, what entering the phase does: a roar act that may
