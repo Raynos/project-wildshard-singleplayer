@@ -11,7 +11,7 @@ import { StateSchema } from "@wildshard/format/state";
 import * as v from "valibot";
 import { worstContentCost, memoryTargetWarnings, nearbyContentCost } from "../shardfile/budget";
 import { CONTENT_CAPS as C, CONTENT_CAPS } from "@wildshard/engine/core/config";
-import { DEFAULT_GRAPH_BUDGET, validateGraph } from "@wildshard/engine/core/materialGraph";
+import { DEFAULT_GRAPH_BUDGET, validateGraph } from "@wildshard/format/materialGraph";
 import { SCRIPT_LIMITS } from "@wildshard/engine/script/host";
 import { runtimeAccountedBytes } from "@wildshard/format/runtimeCost";
 import type { ContentCostInput } from "@wildshard/engine/core/contentCost";

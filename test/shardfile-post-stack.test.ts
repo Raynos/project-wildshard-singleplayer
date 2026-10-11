@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { MeshBasicNodeMaterial } from 'three/webgpu';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile, shardfileRules } from '@wildshard/game/shardfile/schema';
-import { validateGraph, type GraphIr, type GraphNode } from '../src/engine/core/materialGraph';
+import { validateGraph, type GraphIr, type GraphNode } from '../src/format/materialGraph';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { NO_POST, POST_NORMAL_PREPASS_COST, POST_STACK_BUDGET, postPairRefusal, postStackCost } from '../src/game/shardfile/postStack';
 

@@ -287,7 +287,7 @@ const modulePath = (filename, source) => {
 const layerOf = (path) => {
   const match = /^src\/(engine|format|game|sdk|commons|shards)(?:\/([^/]+)?)?$/u.exec(path) ?? /^src\/(engine|format|game|sdk|commons|shards)\/([^/]+)?/u.exec(path);
   if (!match) return /^src\/[^/]+$/u.test(path) ? { name: 'app', rank: 6, slug: null } : null;
-  return { name: match[1], rank: ['engine', 'format', 'game', 'sdk', 'commons', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
+  return { name: match[1], rank: ['format', 'engine', 'game', 'sdk', 'commons', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
 };
 const engineWords = JSON.parse(readFileSync(new URL('engine-words.json', import.meta.url), 'utf8'));
 const generatedWordsFile = new URL('shard-words.generated.json', import.meta.url);

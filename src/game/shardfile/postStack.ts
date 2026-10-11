@@ -10,7 +10,7 @@
  * it is static: no runtime sensing. Pure data and checks: no three.js.
  */
 import * as v from 'valibot';
-import { validateGraph, type GraphIr, type PostInputs } from '@wildshard/engine/core/materialGraph';
+import { validateGraph, type GraphIr, type PostInputs } from '@wildshard/format/materialGraph';
 import { graphBindingSources, graphFileJson } from './materials';
 import { isJsonData } from '@wildshard/format/json';
 import type { Shardfile } from './schema';

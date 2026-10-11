@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/game/shardfile/schema';
-import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphIr } from '../src/engine/core/materialGraph';
+import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { attachOutline, compileGraph } from '../src/engine/render/graph/compile';
 import { Scope } from '../src/engine/app/scope';
 import { clientGraphs, graphOutlineHook, isGraphEntry } from '../src/game/shardfile/clientGraphs';

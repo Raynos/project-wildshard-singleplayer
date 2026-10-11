@@ -3,7 +3,7 @@
 // each with colour + normal + metallic-roughness + emissive slots (the graph reads colour, MR and emissive through its
 // own texture params).
 import { Document, NodeIO } from '@gltf-transform/core';
-import type { GraphIr } from '../../../src/engine/core/materialGraph';
+import type { GraphIr } from '../../../src/format/materialGraph';
 
 /** a box's indexed triangles with normals and UV0, centred on (cx, 0.5, 0) */
 function box(cx: number): { positions: Float32Array<ArrayBuffer>; normals: Float32Array<ArrayBuffer>; uvs: Float32Array<ArrayBuffer>; indices: Uint16Array<ArrayBuffer> } {

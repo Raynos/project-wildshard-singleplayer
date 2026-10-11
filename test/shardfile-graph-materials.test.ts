@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/game/shardfile/schema';
-import { validateGraph, type GraphIr, type GraphNode } from '@wildshard/engine/core/materialGraph';
+import { validateGraph, type GraphIr, type GraphNode } from '@wildshard/format/materialGraph';
 import { materialGraphRules, materialTextureRefs } from '../src/game/shardfile/materials';
 
 const source = () => emptyShardfile({ slug: 'graph-test', name: 'Graph', author: 'Local', seed: 1, revision: 1 });

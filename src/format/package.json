@@ -65,7 +65,8 @@
     "./moverMotion": "./moverMotion.ts",
     "./modes": "./modes.ts",
     "./weaponProfiles": "./weaponProfiles.ts",
-    "./bossProfiles": "./bossProfiles.ts"
+    "./bossProfiles": "./bossProfiles.ts",
+    "./materialGraph": "./materialGraph.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

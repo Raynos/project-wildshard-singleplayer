@@ -5,7 +5,7 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile, shardfileRules } from '@wildshard/game/shardfile/schema';
-import type { GraphIr } from '../src/engine/core/materialGraph';
+import type { GraphIr } from '../src/format/materialGraph';
 import { POST_NORMAL_PREPASS_COST, POST_STACK_BUDGET, postPairRefusal, postStackCost } from '../src/game/shardfile/postStack';
 import { inkGraph, inkPostGraph, pastelGraph } from '../scripts/tsl-spike/stress.js';
 

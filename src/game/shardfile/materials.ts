@@ -4,7 +4,7 @@ import {
   ToonLookSchema, PainterlyLookSchema, EmissiveLookSchema, type EmissiveLookParams, type FamilyMaterialParams, type PainterlyLookParams, type ToonLookParams,
 } from '@wildshard/engine/render/families/params';
 
-import { validateGraph, type GraphIr } from '@wildshard/engine/core/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { isJsonData } from '@wildshard/format/json';
 import type { Shardfile } from './schema';
 

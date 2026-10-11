@@ -46,7 +46,7 @@ import { retargetableTexture } from '../nodes/engineNodesHandler';
 import {
   GRAPH_OPS, SUN_OPS, validateGraph, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
   type GraphRef, type GraphValidationOptions, type GraphValueType,
-} from '../../core/materialGraph';
+} from '@wildshard/format/materialGraph';
 
 /** a select side costing at most this many estimated instructions is evaluated unconditionally (branch-free) */
 export const BRANCH_LIGHT_COST = 16;

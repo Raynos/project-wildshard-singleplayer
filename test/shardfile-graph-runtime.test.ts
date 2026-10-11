@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { MeshStandardNodeMaterial } from 'three/webgpu';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/game/shardfile/schema';
-import type { GraphIr, GraphLiteral, GraphNode, GraphValidationOptions } from '../src/engine/core/materialGraph';
+import type { GraphIr, GraphLiteral, GraphNode, GraphValidationOptions } from '../src/format/materialGraph';
 import { attachOutline, compileGraph, type CompileGraphOptions } from '../src/engine/render/graph/compile';
 import type { GraphCompiler } from '../src/engine/render/graphBackend';
 import { clientGraphs, graphFallbackEntry, isGraphEntry } from '../src/game/shardfile/clientGraphs';

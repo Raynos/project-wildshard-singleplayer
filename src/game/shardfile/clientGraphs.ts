@@ -21,7 +21,7 @@
  *   already in the graph's admitted cost (`validateGraph` counts the `outlineVertex` / `outline` programs).
  */
 import { Color, Mesh, SRGBColorSpace, type Material, type Object3D, type Texture } from 'three';
-import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphBudget, type GraphIr, type GraphParamType } from '@wildshard/engine/core/materialGraph';
+import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphBudget, type GraphIr, type GraphParamType } from '@wildshard/format/materialGraph';
 import { DATA_LOOK_DAY, dataLookClock, lookSample, sampleLook, type LookSample } from '@wildshard/engine/render/dataLook';
 import type { GraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';

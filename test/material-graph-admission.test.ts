@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { GRAPH_ADMISSION_LIMITS as limits, graphAdmissionErrors, validateGraph } from '../src/engine/core/materialGraph';
+import { GRAPH_ADMISSION_LIMITS as limits, graphAdmissionErrors, validateGraph } from '../src/format/materialGraph';
 import { compileGraph } from '../src/engine/render/graph/compile';
 
 const base = () => ({ version: 1, kind: 'material', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } });

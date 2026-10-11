@@ -14,7 +14,7 @@
  */
 import { Texture, type Camera, type Scene } from 'three';
 import type { EffectComposer, Pass } from 'postprocessing';
-import { validateGraph } from '@wildshard/engine/core/materialGraph';
+import { validateGraph } from '@wildshard/format/materialGraph';
 import type { GraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { graphBindingSources, graphFileJson } from './materials';

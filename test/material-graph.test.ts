@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { ConditionalNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, PhysicalLightingModel, type Node } from 'three/webgpu';
-import { DEFAULT_GRAPH_BUDGET, LOOP_MAX, validateGraph, type GraphIr } from '../src/engine/core/materialGraph';
+import { DEFAULT_GRAPH_BUDGET, LOOP_MAX, validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { emissiveGraph, painterlyGraph, pbrMeasureGraph, PRESET_GRAPH_BUDGET, toonGraph } from '../src/engine/render/graph/presets';
 import { parseFamilyMaterial, parsePainterlyLook, parseToonLook } from '../src/engine/render/families/params';
