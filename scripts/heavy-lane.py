@@ -209,7 +209,10 @@ def main():
         env = {**os.environ, 'WS_HEAVY_TOKEN': token, 'WS_HEAVY_ROOT': str(root)}
         if args.kind == 'gate':
             env['WS_HEAVY_GATE'] = '1'
-        child = subprocess.Popen(command, env=env, start_new_session=True, pass_fds=tuple(fd.fileno() for fd in held))
+        # Owned heavy commands and their descendants yield CPU to interactive lanes.
+        # Nested wrappers reuse the lease and inherit this priority without adding it again.
+        child = subprocess.Popen(['nice', '-n', '10', *command], env=env, start_new_session=True,
+                                 pass_fds=tuple(fd.fileno() for fd in held))
         entry['childPid'] = child.pid
         with scheduler(root):
             for resource in resources:

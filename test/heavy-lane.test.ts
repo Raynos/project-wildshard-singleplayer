@@ -151,6 +151,15 @@ it('reuses a gate for nested wrappers and refuses resource upgrades', async () =
   expect(await start(env, 'full-test', nested).done).not.toBe(0);
 });
 
+it('lowers owned heavy jobs and nested descendants to interactive-friendly priority', async () => {
+  const { root, env } = fixture();
+  const output = join(root, 'priority.json');
+  const inner = `require('node:fs').writeFileSync(${JSON.stringify(output)},JSON.stringify(require('node:os').getPriority()));`;
+  const nested = `require('node:child_process').execFileSync('python3',[${JSON.stringify(lane)},'build','--',process.execPath,'-e',${JSON.stringify(inner)}],{stdio:'inherit'});`;
+  expect(await start(env, 'gate', nested).done).toBe(0);
+  expect(JSON.parse(readFileSync(output, 'utf8'))).toBeGreaterThanOrEqual(10);
+});
+
 it('keeps the lock with the owned child after its wrapper is killed', async () => {
   const { root, env } = fixture();
   const holder = start(env, 'build', marker(root, 'orphan', 'release-orphan'));
