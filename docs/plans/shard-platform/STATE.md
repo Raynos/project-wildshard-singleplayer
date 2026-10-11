@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-10 22:30 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
+**2026-10-10 23:00 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
 
 **Milestones**
 - **M1:** done.
@@ -8,11 +8,12 @@
   - **SF22 desktop:** PASS (`d393dc95b`).
   - **SF22 Safari:** install PASS; **0 draw compiles** (was 46); cadence FAIL (p95 49): the gaps are main-thread waits (165 ms with 5 ms frame work), not rendering (`9c3b969c2`); desktop warm task 51 ms > 50; Nine cell entry 191 ms on the Simulator (sp-x5).
   - **Memory:** G269.
+- **Frame floor (pacing on, `159c66b35`, `6af4e1a2c`):** desktop 6/8 (Nine, Nalati travel p95 33.4); Simulator 0/8 (travel p95 36–66; maxima 111–277; interior 34–35 = the 30 fps cap).
 - **M3:** **0 of 6 at 80/20** under Jake's measure.
 
 **Live:** origin/main = HEAD (`c528d9b63`, 19:44); backlog landed (`acb850d96`).
 
-**G298 done:** all six shards' bakers in their own `generators/` (only the shared `bake-sky.mjs` HDRI baker stays in scripts/). **G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact (Nalati physics after `8b144a8d0`), witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`).
+**G298 done:** all six shards' bakers in their own `generators/` (only the shared `bake-sky.mjs` HDRI baker stays in scripts/). **G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact, witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`).
 
 **80/20 (G291 + G294, `2218a5937`, report-only):** custom = shard runtime TS + one-user game/SDK TS, over the frozen legacy TS.
 
@@ -29,9 +30,9 @@
 
 | Lane | Work |
 |---|---|
-| sp-x1 | buildPacing default ON (`9ba34b4bb`; Sky AudioContext spike `9f099616a`) · milestone frame floor, all routes · fix worst row |
-| sp-x2 | Pine move-back done (`51d548ec1`) · Signal 117 ms activate frame · then the frame-cap recheck |
-| sp-x4 | DS1.5 bakes to Node (Node canonical; deliberate re-record per shard, walk 0 stuck) |
+| sp-x1 | travel p95 (desktop Nine/Nalati, Simulator all) |
+| sp-x2 | frame cap landed (`fef091031`), Signal entry 33.4 ms · shader-link stalls (Sim maxima) |
+| sp-x4 | DS1.5 physics bakes to Node (Nine, Sky, Signal under way) |
 | sp-x5 | DS0.2 game exports 207 → 130 (gate ≤ 20) · DS0.3 guards · then DS1.6 commons (non-visual) |
 | sp-x6 | DS1.1 non-graphical done: 87 JSON roots, SF45 100 % (`abe97e1af`; material/look/post wait for DS1.4) · Pine G320 coats |
 
