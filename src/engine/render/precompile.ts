@@ -466,8 +466,8 @@ const frame = (): Promise<void> => new Promise((resolve) => { pageScope.raf(() =
  * A per-frame budget for live image uploads (op-hitch32). Isolated preparation (WebKit's entered world) uploads one image
  * per drawn frame, and other browsers check 12 ms only after each upload; with a budget, a frame takes uploads while their
  * measured time stays under `ms`, predicting the next one's cost from its decoded size before it starts, so a large image
- * uploads alone and a slice never starts an upload it cannot fit. The Developer tool `buildPacing` = `uploads` turns it on
- * (`Game`), default off.
+ * uploads alone and a slice never starts an upload it cannot fit. `Game` uses this bound for paced live WebKit
+ * preparation; other browsers select it explicitly with the `uploads` Developer mode.
  */
 export interface UploadBudget {
   /** Measured upload milliseconds one drawn frame may hold. */

@@ -4,6 +4,9 @@ import { SHADOW_LAYER } from '../src/engine/core/shadowLayer';
 import { parkedDrawSlices, standInTarget, warmOffscreenPasses, warmParkedDraws, type OffscreenWarmRenderer, type ParkedDrawRenderer } from '../src/engine/render/parkedDraws';
 import { registerOffscreenPreparation } from '../src/engine/render/offscreenPreparation';
 import { Scope } from '../src/engine/app/scope';
+import { buildYield } from '../src/engine/core/workSlice';
+import { noteFrameDrawn, setFramePacing } from '../src/engine/core/framePacing';
+import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
 
 const mesh = (material = new MeshStandardMaterial()): Mesh => new Mesh(new BoxGeometry(), material);
 
@@ -200,4 +203,44 @@ it('draws each offscreen pass once, one caster per program key, into a stand-in,
   await expect(warmOffscreenPasses(renderer, outer, () => false, () => Promise.resolve())).rejects.toThrow('Offscreen warm owner left');
   owner.dispose();
   expect(await warmOffscreenPasses(renderer, outer, () => true, () => Promise.resolve())).toBe(0);
+});
+
+
+it('shares cheap parked draws within the real construction budget and restores visibility at every yield', async () => {
+  const previous = scopeEnvironment(), oldRaf: unknown = Reflect.get(globalThis, 'requestAnimationFrame');
+  const owner = new Scope('paced-parked'), scene = new Scene(), root = new Group();
+  const objects = [mesh(), mesh(), mesh(), mesh()]; root.add(...objects); root.visible = false; scene.add(root);
+  let now = 9_000_000, frames = 0, draws = 0, pauses = 0;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  Reflect.set(globalThis, 'requestAnimationFrame', () => 1);
+  installScopeEnvironment({ ...previous, frame: fn => {
+    frames++;
+    queueMicrotask(() => { now += 1000 / 30; noteFrameDrawn(now, now, 30); fn(now); });
+    return frames;
+  }, cancelFrame: () => undefined });
+  const renderer: ParkedDrawRenderer = {
+    shadowMap: { autoUpdate: false, needsUpdate: false, type: PCFShadowMap },
+    render: () => { draws++; now += 3; },
+    getRenderTarget: () => null, setRenderTarget: () => undefined, getActiveCubeFace: () => 0, getActiveMipmapLevel: () => 0,
+    getScissor: out => out.set(0, 0, 0, 0), setScissor: () => undefined, getScissorTest: () => false, setScissorTest: () => undefined,
+  };
+  try {
+    setFramePacing(true); noteFrameDrawn(now, now, 30);
+    const drawn = await warmParkedDraws(renderer, scene, new PerspectiveCamera(), null, root, () => !owner.disposed, async () => {
+      expect(root.visible).toBe(false); pauses++; await buildYield(owner);
+    }, { budget: { drawables: 1, newMaterials: 1 } });
+    expect(drawn).toBe(4); expect(draws).toBe(4); expect(pauses).toBe(4);
+    expect(frames).toBe(1); // Cheap draws share tasks; the third spends the shared 8 ms and owes a real frame.
+    expect(owner.census).toMatchObject({ listeners: 0, timers: 0, rafs: 0, disposers: 0 });
+    owner.dispose();
+    await expect(warmParkedDraws(renderer, scene, new PerspectiveCamera(), null, root,
+      () => !owner.disposed, () => buildYield(owner))).rejects.toThrow('Parked draw owner left');
+  } finally {
+    owner.dispose(); setFramePacing(false); installScopeEnvironment(previous); clock.mockRestore();
+    if (oldRaf === undefined) Reflect.deleteProperty(globalThis, 'requestAnimationFrame');
+    else Reflect.set(globalThis, 'requestAnimationFrame', oldRaf);
+    for (const object of objects) {
+      object.geometry.dispose(); for (const material of Array.isArray(object.material) ? object.material : [object.material]) material.dispose();
+    }
+  }
 });

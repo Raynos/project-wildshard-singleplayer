@@ -37,6 +37,7 @@ import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults
 import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
 import { noteFrameDrawn, setFramePacing } from './framePacing';
+import { buildYield } from './workSlice';
 import { onSettingChange, setting } from '../ui/Settings';
 import { dropOutputDepth, halfLuminance, installMemorySaver, memorySaverOn, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
@@ -726,7 +727,7 @@ export class Game {
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
     const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.engineScope, () => this.frameCount, current) : undefined;
     await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, current, pause,
-      setting('buildPacing') === 'uploads' ? LIVE_UPLOAD_BUDGET : undefined);
+      setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined);
   }
 
   private _entryPreparation: { root: string; completed: boolean; stages: { phase: string; elapsedMs: number; units: number }[] } | null = null;
@@ -749,8 +750,9 @@ export class Game {
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
     const { precompileLevel, warmComposerFrame, waitForDrawnFrame, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET } = await import('../render/precompile');
     const pause = isolateImageUploads && this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
-    // op-hitch32: the Developer tool `buildPacing` = `uploads` batches the image uploads under a per-frame budget.
-    const uploadBudget = setting('buildPacing') !== 'uploads' ? undefined : isolateImageUploads ? LIVE_UPLOAD_BUDGET : SLICED_UPLOAD_BUDGET;
+    // Live image batches share the measured byte/time bound. Compressed uploads retain their independent painted fences.
+    const uploadBudget = isolateImageUploads && setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET
+      : setting('buildPacing') === 'uploads' ? SLICED_UPLOAD_BUDGET : undefined;
     const shaderStart = diagnosticNow();
     await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage,
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
@@ -761,7 +763,12 @@ export class Game {
     // desktop, up to 1011 ms Simulator, in `activate`); draw it a few objects a frame into a 1×1 scissor first.
     if (futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible) {
       const start = diagnosticNow();
-      const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current, drawnPause, { environment: futureEnvironment });
+      // Tiny already-linked draws can share the bounded construction slice. Each draw restores every flag
+      // before yielding; the final painted barrier still precedes readiness. Desktop retains its prior cadence.
+      const paced = isolateImageUploads && this.frameCount > 0 && setting('buildPacing') !== 'off';
+      const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current,
+        paced ? () => buildYield(owner) : drawnPause, { environment: futureEnvironment });
+      if (paced) await drawnPause();
       onStage('parked-draws', diagnosticNow() - start, drawn);
     }
     // op-hitch37: a registered offscreen pass (Nalati's look bake) built its casters' pipelines on its first real

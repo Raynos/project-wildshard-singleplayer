@@ -850,9 +850,9 @@ An optional `UploadBudget` (`{ ms, bytes }`, `precompileLevel`'s `uploadBudget`,
 under `ms`, the next one's cost predicted before it starts from its decoded size (`imageUploadBytes`) and the
 byte-weighted rate measured so far, so a large image still uploads alone and one native upload can overshoot by itself
 only. Without isolation (desktop) the same budget replaces the 12 ms check made after each upload, so a slice never
-starts an upload it cannot fit. Compressed textures keep their fenced path. `Game` passes `LIVE_UPLOAD_BUDGET` (8 ms, 8 MiB; isolated) or `SLICED_UPLOAD_BUDGET`
-(10 ms, 64 MiB) only when the Developer tool `buildPacing` is `uploads` (pacing on as well). Upload budgeting remains
-opt-in; the default `on` mode enables frame pacing alone.
+starts an upload it cannot fit. Compressed textures keep their fenced path. `Game` passes `LIVE_UPLOAD_BUDGET` (8 ms, 8 MiB) during paced live WebKit preparation. Explicit `off` retains isolated uploads; desktop retains its ordinary path unless `uploads` selects `SLICED_UPLOAD_BUDGET` (10 ms, 64 MiB).
+
+Live WebKit parked draws can share the same bounded construction slice through `buildYield`. Each existing drawable/material-count slice restores every flag before its task yield. A final `waitForDrawnFrame` remains before offscreen warm-up and readiness; compressed-upload fences and desktop parked-draw cadence are unchanged.
 
 cannot release the next preparation batch. Scope retirement or an obsolete owner rejects and clears its scheduling
 handles. It never advances simulation or forces a draw. Initial boot (no completed draw yet) and desktop keep the
