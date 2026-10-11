@@ -1,7 +1,8 @@
+import { DRIFTWOOD_EFFECTS } from '../../src/shards/driftwood-isle/data/economy';
 import { describe, expect, it } from 'vitest';
 import { EffectService } from '../../src/engine/combat/effects/EffectService';
 import { sourceMultiplier, type EffectTarget, type EffectDef } from '../../src/engine/combat/effects/types';
-import { DRIFTWOOD_EFFECTS, driftwoodAttributes, bindDriftwoodEffects } from '../../src/shards/driftwood-isle/loot/effects';
+import { driftwoodAttributes, bindDriftwoodEffects } from '../../src/shards/driftwood-isle/loot/effects';
 import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS, nalatiSkinEffect, balbalPiercing } from '../../src/shards/nalati-grasslands/weapons/effects';
 import { AMMO_ROWS, PINE_AMMO_EFFECTS, PINE_SOURCE_MULTIPLIERS, pineFinishEffect } from '../../src/shards/pine-hollow/loadout/effects';
 import { Scope } from '../../src/engine/app/scope';

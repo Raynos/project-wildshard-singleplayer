@@ -1,7 +1,8 @@
+import { FULL_CLEAR, GOODS } from '../../../src/shards/driftwood-isle/data/economy';
 // E314 stage 2 (src/shards/driftwood-isle/loot/shop.ts): the trader's goods, their prices against the island's one full clear, buying, and
 // the effects' numbers; the sea chart's marks; FINDS' places and the map's PLACES tally read the one list.
 import { describe, expect, it } from 'vitest';
-import { FULL_CLEAR, GOODS, buyGood, goodState, goodsTotal, maxHealthOf, swordMul } from '../../../src/shards/driftwood-isle/loot/shop';
+import { buyGood, goodState, goodsTotal, maxHealthOf, swordMul } from '../../../src/shards/driftwood-isle/loot/shop';
 import { Owned, OWNED } from '../../../src/game/loot/Owned';
 import { Purse } from '../../../src/game/loot/Purse';
 import { driftwoodFinds, seaChartMarks } from '../../../src/shards/driftwood-isle/loot/finds';

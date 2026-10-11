@@ -11,7 +11,8 @@
  */
 import type { IconId } from '@wildshard/engine/ui/icons';
 import type { OwnedId } from '@wildshard/game/loot/Owned';
-import { DRIFTWOOD_EFFECTS, driftwoodAttributes } from './effects';
+import { driftwoodAttributes } from './effects';
+import { DRIFTWOOD_EFFECTS, GOODS } from '../data/economy';
 
 /**
  * PRICES — coins are capped per enemy (Bounty.ts), so the island holds a fixed purse: one full clear of Driftwood is
@@ -20,7 +21,6 @@ import { DRIFTWOOD_EFFECTS, driftwoodAttributes } from './effects';
  * The six goods add up to 90 (98 % of it), so buying everything takes about one full clear; the IIs are the dearest,
  * the cape the cheapest.
  */
-export const FULL_CLEAR = 92;
 
 export interface Good {
   id: OwnedId;
@@ -32,15 +32,6 @@ export interface Good {
   /** bought first (a II needs its I) */
   needs?: OwnedId;
 }
-
-export const GOODS: readonly Good[] = [
-  { id: 'whetstone-1', name: 'Whetstone I', does: 'Sword damage +25 %', icon: 'whetstone', price: 12 },
-  { id: 'whetstone-2', name: 'Whetstone II', does: 'Sword damage +50 %', icon: 'whetstone', price: 22, needs: 'whetstone-1' },
-  { id: 'heart-1', name: 'Sturdy Heart I', does: 'Max health 120', icon: 'heart', price: 14 },
-  { id: 'heart-2', name: 'Sturdy Heart II', does: 'Max health 140', icon: 'heart', price: 22, needs: 'heart-1' },
-  { id: 'sea-chart', name: 'Sea chart', does: 'Unfound sea glass on the map', icon: 'chart', price: 12 },
-  { id: 'cape', name: 'Sailcloth cape', does: 'A look · worn from GEAR', icon: 'cape', price: 8 },
-];
 
 export const goodsTotal = (): number => GOODS.reduce((s, g) => s + g.price, 0);
 

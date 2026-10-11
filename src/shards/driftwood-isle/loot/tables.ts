@@ -1,10 +1,8 @@
+import { DRIFTWOOD_COIN_VALUES } from '../data/economy';
 import { WeightedTable } from '@wildshard/engine/ai/weighted';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { registerLootTable, type LootContext, type LootTableRow } from '@wildshard/game/loot/tables';
 
-export const DRIFTWOOD_COIN_VALUES: Readonly<Record<string, number>> = {
-  crab: 1, monkey: 1, boar: 2, sailor: 5, bear: 10, captain: 25,
-};
 export const DRIFTWOOD_COINS: LootTableRow = {
   id: 'loot.driftwood.coins', domain: 'coins', table: { mode: 'each',
     rows: Object.entries(DRIFTWOOD_COIN_VALUES).map(([kind, count]) => ({

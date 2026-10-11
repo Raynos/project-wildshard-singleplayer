@@ -1,3 +1,4 @@
+import { GOODS } from '../data/economy';
 import type { CosmeticSlot } from '@wildshard/game/bag/bag';
 import { OWNED, type Owned } from '@wildshard/game/loot/Owned';
 import type { LootPresentation } from '@wildshard/game/loot/runtime';
@@ -7,7 +8,7 @@ import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Adventure } from '../quest/adventure';
 import { TRADER_NAME } from '../quest/TraderStall';
 import { driftwoodFinds, nextCharmAt, seaChartMarks, seaGlassFound } from './finds';
-import { buyGood, goodById, goodState, GOODS, maxHealthOf, type Good } from './shop';
+import { buyGood, goodById, goodState, maxHealthOf, type Good } from './shop';
 
 /** The island's authored counter and bag rows, supplied to the common loot mechanism. */
 export async function driftwoodLootPresentation(o: { adventure: Adventure; owned: Owned; audio: Audio; scope: Scope; toast: (text: string) => void; hold: (on: boolean) => void }): Promise<LootPresentation> {

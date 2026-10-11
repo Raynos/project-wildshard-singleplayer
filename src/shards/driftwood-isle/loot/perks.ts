@@ -12,7 +12,7 @@
  * defaults (×1, 0, ×1, false).
  */
 import type { OwnedId } from '@wildshard/game/loot/Owned';
-import { DRIFTWOOD_EFFECTS } from './effects';
+import { DRIFTWOOD_EFFECTS } from '../data/economy';
 
 const effect = (id: string) => {
   const row = DRIFTWOOD_EFFECTS.find((def) => def.id === id);
