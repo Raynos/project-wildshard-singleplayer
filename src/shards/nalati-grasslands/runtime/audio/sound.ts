@@ -1,3 +1,4 @@
+import type { AudioData } from '@wildshard/format/audio';
 import type { Wildlife } from '../../creatures/wildlife';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -44,7 +45,6 @@ import { smoothstep } from '@wildshard/engine/core/noise';
 import { nalatiCombatCues } from './combatCues';
 
 const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.nalati');
-const MUSIC = requireAudioProfile(source.audio.music, 'score.nalati');
 const RIVER_ZONE = requireAudioZone(PROFILE, 'river'), BROOK_ZONE = requireAudioZone(PROFILE, 'brook');
 const FALL_ZONE = requireAudioZone(PROFILE, 'fall'), CAMP = requireAudioZone(PROFILE, 'camp'), SUMMER_YURTS = requireAudioZone(PROFILE, 'summer');
 const MELT_ZONE = requireAudioZone(PROFILE, 'melt');
@@ -94,7 +94,8 @@ function brookDistance(x: number, z: number): number {
 }
 
 export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player: Player; weather: NalatiWeather; scope: Scope; on: ShardContext['on']; debug: ShardContext['debug'] },
-  entered?: (install: (scope: Scope) => void) => void): NalatiSound {
+  entered?: (install: (scope: Scope) => void) => void, audioRows: AudioData = source.audio): NalatiSound {
+  const musicProfile = requireAudioProfile(audioRows.music, 'score.nalati');
   const { player, weather } = ctx;
   let audio: Audio | null = null;
   let voices: SteppeVoices | null = null;
@@ -116,7 +117,7 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
   const cues = new CombatCues(nalatiCombatCues({ ready: () => audio !== null, voices: () => voices, thrust: () => {
     thrustPending = true;
     queueMicrotask(() => { if (thrustPending) { thrustPending = false; voices?.spearThrust(); } });
-  } }));
+  } }, audioRows.routing));
   let manager: AnimalManager | null = null;
   ctx.on('creature.signal', ({ name, x, z }) => { event(name, x, z); });
   ctx.on('weapon.charge', ({ id, phase, value }) => {
@@ -175,9 +176,9 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
         a.setAmbient(STEPPE_BED);
         // A4: the zones' sampled beds (the synth bed stays the fallback); A2: the score follows the zone they report
         if (music) {
-          score = createSteppeScore((url) => import('@wildshard/engine/audio/preload').then(({ cachedBytes }) => cachedBytes(url)), (bytes) => import('@wildshard/engine/audio/preload').then(({ decodeBytes }) => decodeBytes(bytes)), () => { music.refreshScore(); });
+          score = createSteppeScore((url) => import('@wildshard/engine/audio/preload').then(({ cachedBytes }) => cachedBytes(url)), (bytes) => import('@wildshard/engine/audio/preload').then(({ decodeBytes }) => decodeBytes(bytes)), () => { music.refreshScore(); }, musicProfile);
           refresh = () => { music.refreshScore(); };
-          const release = music.setScore(MUSIC.id, score);
+          const release = music.setScore(musicProfile.id, score);
           scope.onDispose(release);
           a.onLevelBank((bank) => { score?.useBank(bank.score); }, scope);
         }

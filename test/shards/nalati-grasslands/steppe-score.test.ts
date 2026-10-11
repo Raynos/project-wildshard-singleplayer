@@ -2,6 +2,9 @@
 // build ships; decoded on demand (the wanted + the playing slot resident, nothing else); a slot that fails is skipped.
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { assetVersions, bootPacks, installAssetTables, musicManifests, publicBytes, sfxManifests } from '../../../src/engine/boot/tables';
+import { parseAudioData } from '@wildshard/format/audio';
+import { requireAudioProfile } from '../../../src/engine/audio/audioProfiles';
+import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { createSteppeScore, steppeFiles, steppeBootFiles, steppePick } from '../../../src/shards/nalati-grasslands/runtime/audio/SteppeScore';
 
 // The score reads the app's asset tables (E415): this test installs its own small build, then puts the real one back.
@@ -68,4 +71,19 @@ test('all 24 scenes retain the original ordered fallback chain including repeate
   for (const zone of ['grass', 'sky', 'snow'] as const) for (const night of [false, true]) for (const storm of [false, true]) for (const boss of [null, 'king'] as const) {
     expect(steppePick({ zone, night, storm, boss })).toEqual([...(boss === 'king' ? ['steppe-king'] : []), ...(storm ? ['steppe-storm'] : []), ...(night ? ['steppe-night'] : []), `steppe-${zone}`, 'steppe-grass']);
   }
+});
+
+test('emitted score rows keep every scene and use their own source, selection and decode order', async () => {
+  const wire = JSON.stringify(source.audio), rows = parseAudioData(JSON.parse(wire));
+  const profile = requireAudioProfile(rows.music, 'score.nalati');
+  for (const zone of ['grass', 'sky', 'snow'] as const) for (const night of [false, true]) for (const storm of [false, true]) for (const boss of [null, 'king'] as const) {
+    expect(steppePick({ zone, night, storm, boss }, profile)).toEqual(steppePick({ zone, night, storm, boss }));
+  }
+  const reads: string[] = [];
+  const changed = { ...profile, minFade: 4, synthLead: 'marimba' as const, selection: [{ slots: ['steppe-sky'], when: [] }] };
+  const score = createSteppeScore((url) => { reads.push(url); return Promise.resolve(new ArrayBuffer(8)); }, () => Promise.resolve(buf(22)), () => undefined, changed);
+  expect(score.target()).toBe('steppe-sky'); expect(score.minFade).toBe(4); expect(score.synthLead).toBe('marimba');
+  expect(score.want(undefined)).toBeUndefined(); await tick(); await tick();
+  expect(reads).toEqual(['/assets/music/nalati/s-calm.m4a', '/assets/music/nalati/s-tension.m4a', '/assets/music/nalati/d.m4a']);
+  expect(score.want(undefined)?.slot).toBe('steppe-sky');
 });

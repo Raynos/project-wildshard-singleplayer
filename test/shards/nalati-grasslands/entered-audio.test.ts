@@ -14,6 +14,9 @@ import { emptyShardfileSource } from '../../../src/game/plugin/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import type { Wildlife } from '../../../src/shards/nalati-grasslands/creatures/wildlife';
 import type { NalatiWeather } from '../../../src/shards/nalati-grasslands/world/installWeather';
+import { parseAudioData } from '@wildshard/format/audio';
+import source from '../../../src/shards/nalati-grasslands/shard.config';
+import { runtimeAudio } from '../../../src/game/plugin/audio';
 import { wireSound } from '../../../src/shards/nalati-grasslands/runtime/audio/sound';
 
 function fixturePort<T extends object>(fields: Partial<T>): T {
@@ -23,7 +26,7 @@ function fixturePort<T extends object>(fields: Partial<T>): T {
   } }) as T;
 }
 
-it('reinstalls real Nalati voices and score on two entries, restoring borrowed callbacks on the road', () => {
+it.each(['legacy', 'emitted'] as const)('reinstalls real Nalati voices and score on two entries through %s rows', (arm) => {
   const app = new App(), resident = app.engineScope.child('nalati.audio');
   const manifest = emptyShardfileSource(emptyShardfile({ slug: 'fixture', name: 'Fixture', author: 'Fixture', seed: 1, revision: 1 }));
   const installation = createLevelInstallation(app, resident, {}, () => ({ set: () => undefined, detail: () => undefined }));
@@ -37,9 +40,10 @@ it('reinstalls real Nalati voices and score on two entries, restoring borrowed c
   const wildlife = fixturePort<Wildlife>({ onSound: roadWildlife });
   audio.hoofSurfaceAt = roadHoof;
   const player = fixturePort<Player>({ position: new Vector3(), yaw: 0 });
+  const wire = JSON.stringify(source.audio), rows = parseAudioData(JSON.parse(wire));
   const sound = wireSound({ boss: fixturePort({}), titan: fixturePort({}) },
     { player, weather: fixturePort<NalatiWeather>({}), scope: resident, on: hooks.context.on, debug: hooks.context.debug },
-    (install) => { installEnteredRuntimeService(hooks.context, install); });
+    (install) => { installEnteredRuntimeService(hooks.context, install); }, arm === 'emitted' ? runtimeAudio({ game: { declaredAudio: rows } }, source.audio) : undefined);
   try {
     sound.bind(audio, music, animals, wildlife);
     let previousAmbience = sound.ambience;

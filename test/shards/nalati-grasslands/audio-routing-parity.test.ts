@@ -1,11 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Native oracle hashes the pre-conversion voice/microtask argument stream.
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
+import { parseAudioData } from '@wildshard/format/audio';
+import source from '../../../src/shards/nalati-grasslands/shard.config';
 import type { CombatCueOpts } from '../../../src/engine/combat/cues';
 import { nalatiCombatCues } from '../../../src/shards/nalati-grasslands/runtime/audio/combatCues';
 
 // Captured from sound.ts at 12310ead5 before its switch became declared routes.
-it('preserves voice arguments, unbound fallback, silent loose and thrust microtasks across 6480 dispatches', () => {
+it.each(['legacy', 'emitted'] as const)('preserves 6480 frozen voice/microtask dispatches through %s rows', (arm) => {
+  const wire = JSON.stringify(source.audio), routing = arm === 'emitted' ? parseAudioData(JSON.parse(wire)).routing : source.audio.routing;
   const digest = createHash('sha256'); let dispatches = 0;
   const record = (name: string, ...args: readonly (string | number)[]): void => { digest.update(JSON.stringify(['voice', name, ...args])); };
   const voices = {
@@ -24,7 +27,7 @@ it('preserves voice arguments, unbound fallback, silent loose and thrust microta
       if (gain !== undefined) opts.gain = gain; if (strength !== undefined) opts.strength = strength;
       const cue = nalatiCombatCues({ ready: () => ready, voices: () => loaded ? voices : null, thrust: () => {
         digest.update(JSON.stringify(['microtask'])); jobs.push(() => { record('spearThrust'); });
-      } });
+      } }, routing);
       for (const id of ids) { digest.update(JSON.stringify([id, opts, cue(id, opts)])); for (const job of jobs.splice(0)) job(); dispatches++; }
     }
   expect(dispatches).toBe(6480);

@@ -1,3 +1,5 @@
+import { runtimeAudio } from '@wildshard/game/plugin/audio';
+import source from '../shard.config';
 import type { NalatiPersistence } from './persistence';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
@@ -438,7 +440,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/shards/nalati-grasslands/sound.ts ──
   const sound = wireSound(nalati, { player: ctx.player, weather, scope: plugin.scope, on: plugin.on, debug: plugin.debug },
-    retainsRuntimeServices(plugin) ? (install) => { installEnteredRuntimeService(plugin, install); } : undefined);
+    retainsRuntimeServices(plugin) ? (install) => { installEnteredRuntimeService(plugin, install); } : undefined, runtimeAudio(plugin, source.audio));
   nalati.sound = sound;
   updates.push((dt) => { sound.update(dt); });
 

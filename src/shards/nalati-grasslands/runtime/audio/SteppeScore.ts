@@ -17,7 +17,7 @@
 // while the old one plays on, then crossfades in.
 import { SetScore, decodeScore, scoreFiles, scoreManifest, type AudioRead, type AudioDecode, type ScoreBank } from '@wildshard/engine/audio/SetScore';
 import type { MusicManifest } from '@wildshard/engine/audio/Stems';
-import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
+import { requireAudioProfile, type AudioMusicProfile } from '@wildshard/engine/audio/audioProfiles';
 import { selectScoreSlots } from '@wildshard/engine/audio/scoreSelection';
 import source from '../../shard.config';
 
@@ -35,9 +35,11 @@ export const steppeFiles = (): string[] => scoreFiles(SET);
 export const steppeBootFiles = (first: SteppeSlot = 'steppe-grass'): string[] => scoreFiles(SET, [first]);
 export type SteppeBank = ScoreBank;
 export const decodeSteppe = (slots: readonly SteppeSlot[], read: AudioRead, decode: AudioDecode, withStings: boolean, onFile?: () => void): Promise<SteppeBank> => decodeScore(SET, slots, read, decode, withStings, onFile);
-export function steppePick(scene: SteppeScene): readonly string[] {
-  return selectScoreSlots(PROFILE.selection, PROFILE.selectMode, { boss: scene.boss, storm: scene.storm, night: scene.night, zone: scene.zone });
+export function steppePick(scene: SteppeScene, profile: AudioMusicProfile = PROFILE): readonly string[] {
+  return selectScoreSlots(profile.selection, profile.selectMode, { boss: scene.boss, storm: scene.storm, night: scene.night, zone: scene.zone });
 }
-export function createSteppeScore(read: AudioRead, decode: AudioDecode, onReady: () => void): SetScore<SteppeScene> {
-  return new SetScore<SteppeScene>({ ...SET, minFade: PROFILE.minFade, synthLead: PROFILE.synthLead, scene: { zone: 'grass', night: false, storm: false, boss: null }, pick: steppePick, read, decode, onReady });
+/** Bind admitted score data to the existing decoder, scene fallback and bar-grid playback. */
+export function createSteppeScore(read: AudioRead, decode: AudioDecode, onReady: () => void, profile: AudioMusicProfile = PROFILE): SetScore<SteppeScene> {
+  const set = requireAudioProfile(profile.source ?? undefined, 'nalati.music.source');
+  return new SetScore<SteppeScene>({ ...set, minFade: profile.minFade, synthLead: profile.synthLead, scene: { zone: 'grass', night: false, storm: false, boss: null }, pick: (observation) => steppePick(observation, profile), read, decode, onReady });
 }
