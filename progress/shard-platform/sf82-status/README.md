@@ -1,0 +1,14 @@
+# SF82: native laws landed; remaining X work
+
+Status: OPEN, 2026-10-11. No compatible/80–20 claim is made from constructor renaming.
+
+| Row | Landed evidence | Remaining work and reason |
+|---|---|---|
+| BR-1 | Canonical stalker, guardian, grazer, diver and existing AS script laws retain historical preset names. Shipping hunt-manager golden hashes, 10k-step group/pouncer/howler/diver traces and restored suffixes are exact. | OPEN: full automatic row admission still needs each native owner’s home, shove, terrain, group and callback ports. Sky wander-ram/orbit/burst admission and bindings are released to sp-x6; these must not be inferred or replaced by default callbacks. |
+| BR-2 | One canonical boss dispatcher selects the original arena, roaming, spawned, held or script law. Signal Matriarch, Pine King/AS elites and Nalati arena replays preserve outcomes; the old names remain valid presets. | OPEN: automatic root boss construction is not complete. Native bodies, collision/pose owners, RNG and stage callbacks still require explicit host bindings. The profile alone is not an autonomous declared boss. |
+| BR-3 | Signal canonical grazer/diver and spawned Matriarch (`b86659bf0`, `f8f6551b5`); phased flyer row (`75f9f25bb`). | OPEN with sp-x6: Sky’s remaining ram/orbit/burst/flock bindings and authored Roc stages. Sky paths and canonical brain admission are released to that lane. |
+| BR-4 | Driftwood crab/sailor/monkey (`c7471010b`); Nalati groups (`28c9ff780`), pouncer/howler/wind (`9f468a5ec`); real native hunt hosts in Driftwood/Nalati/Pine (`029b7763a`). All four checkpoint recordings reproduce payloads and outcomes exactly. | OPEN: Driftwood Captain’s rise/sink/pool/retry/strike law is not expressible by the current boss patterns without changing gameplay. It needs an authored encounter law, not a one-user branch in the platform. Nalati Qara’s canonical AS keeper exists, but shipping `combat/elites.ts` has foreign activation edits; those have not been swept into this lane’s commits. |
+| BR-5 | Pine’s real King uses the canonical roaming boss (`6c4822e5d`); four actual AS elite bodies use the canonical script boss (`aa6c10b81`); native wolves use the shared stalker hunt law (`029b7763a`). | Native pose/collision keeper deliberately remains custom. Existing Pine compatibility outcome differences remain OPEN; this work does not close missing native simulation laws or declare compatible:true. |
+| BR-6 | No changed motion trace has been credited by this lane. | WAITING FOR OPUS: visual clip review where a future conversion changes a trace. |
+
+The last two native-user slices prove 24 tests/8 files (`9f468a5ec`) and 59 tests/11 files (`029b7763a`), strict and typed lint, actual repeat-equal collision captures and all four byte-identical witness recordings. No legacy folder, actor identity, geometry, reward, health, physics law or checkpoint payload was edited to manufacture parity.

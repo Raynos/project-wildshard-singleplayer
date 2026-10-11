@@ -9,7 +9,6 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { bakedColliderDesc, bakedColliderSchemas } from './props/bakedColliders';
 import { portalLinkEntries } from '@wildshard/game/shardfile/portalLink';
 import { provePortalLinks } from '@wildshard/game/shardfile/portalLinkProof';
-import { JIAN_ROW } from '../vm/jianRow';
 import { entryCapColliders } from '../world/floorRows';
 import { installNineJian, JIAN_ID } from './jian';
 import { installNinePortals } from './portals';
@@ -93,7 +92,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     return { lanes: proof.lanes, steps: proof.steps, portalTransfers: proof.transfers };
   }, install: (host, context) => {
     const guard = context.restoring ? [] : addNinePieces(host.physics).guard;
-    installNineJian(host, jian, JIAN_ROW, () => context.commands().some(command => command.kind === 'player' && command.attack !== undefined),
+    installNineJian(host, jian, () => context.commands().some(command => command.kind === 'player' && command.attack !== undefined),
       () => context.commands().some(command => command.kind === 'player' && command.heavy !== undefined));
     const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
     installNinePortals(host, fact);

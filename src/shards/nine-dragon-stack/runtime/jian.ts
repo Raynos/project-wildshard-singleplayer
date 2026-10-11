@@ -1,8 +1,6 @@
 import * as v from 'valibot';
 import type { SimHost } from '@wildshard/engine/sim';
-import type { ItemSpec } from '@wildshard/engine/combat/items';
-import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
-import type { Move } from '@wildshard/engine/combat/view/melee';
+import type { ShardItems } from '@wildshard/format/items';
 import { SweptMeleeCore } from '@wildshard/engine/combat/sweptMeleeCore';
 
 /** The declared Jian row's id (data/items.ts) and its fixed-step adapter id. */
@@ -24,19 +22,21 @@ const Saved = v.strictObject({ queued: v.boolean(), struck: v.boolean(), swings:
 
 /**
  * Nine Dragon's Jian as a real item in the renderer-free host (SF72): the swept melee family's own clock
- * (`SweptMeleeCore`, the one the browser's `Sword` drives) over the shipping move set and profile (vm/jianRow.ts
- * `JIAN_ROW`: the starter wooden sword's combo, heavy, cooldown, combo gap and chain lag). A player command's attack is a
+ * (`SweptMeleeCore`, the one the browser's `Sword` drives) over the admitted item's numeric profile
+ * (data/items.ts: the shipping combo, heavy, cooldown, combo gap and chain lag). A player command's attack is a
  * light tap; its `heavy` is the HEAVY hold, held while the commands carry it, charging and releasing the heavy as the
  * browser's Sword does on the same clock. Each swing's active
  * window fires the declared row's contact once (data/items.ts: zero damage within 0.01 m), never an invented one; Nine
  * has no creature, so there is nothing for it to strike and no targeting is installed. The clock, its one-deep queued
  * tap, the swing's fired flag and the counts are exact continuation.
  */
-export function installNineJian(host: SimHost, row: Extract<ItemSpec, { kind: 'weapon' }>, profile: MeleeProfile, attacks: () => boolean, heavy: () => boolean = () => false): NineJian {
+export function installNineJian(host: SimHost, row: Extract<ShardItems['rows'][number], { kind: 'weapon' }>, attacks: () => boolean, heavy: () => boolean = () => false): NineJian {
   if (row.id !== JIAN_ID) throw new Error('Nine Dragon declares its Jian as a weapon row');
-  const moves = profile.moves; if (moves === undefined) throw new Error('The Jian profile names its move set');
+  const profile = row.profile;
+  if (profile?.family !== 'melee') throw new Error('The Jian row requires its admitted melee profile');
+  const moves = profile.moves;
   const state = { queued: false, struck: false, swings: 0, hits: 0 };
-  const clock = new SweptMeleeCore<Move>(moves, profile, { queue: () => { state.queued = true; }, consume: () => { const was = state.queued; state.queued = false; return was; } },
+  const clock = new SweptMeleeCore(moves, profile, { queue: () => { state.queued = true; }, consume: () => { const was = state.queued; state.queued = false; return was; } },
     { start: () => { state.struck = false; state.swings++; }, charge: () => { /* the heavy's charge is presentation */ } });
   host.onStep(JIAN_STEP, () => {
     if (attacks()) clock.tryFire();

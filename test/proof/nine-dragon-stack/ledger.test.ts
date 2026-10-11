@@ -8,7 +8,7 @@ it('grants both declared achievements once from gameplay facts, durably, with no
   const result = nativeCompatibility('nine-dragon-stack', 'ledger');
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
   expect(JSON.parse(result.stdout)).toMatchObject({ compatible: false,
-    declarations: { sourceLoaded: true, quests: [], ledgerRules: ['nine-dragon-stack.lantern-square', 'nine-dragon-stack.well'], runtimeBinds: ['items', 'ledger'] },
+    declarations: { sourceLoaded: true, quests: [], ledgerRules: ['nine-dragon-stack.lantern-square', 'nine-dragon-stack.well'], runtimeBinds: ['items', 'ledger', 'modes'] },
     ledger: { status: 'passed', rules: 2,
       facts: [{ name: 'nine-dragon-stack.lantern-square', origin: 'engine.portal.ride', entity: 'portal.square.arrival' }, { name: 'nine-dragon-stack.well', origin: 'engine.fei-zhua.crossing', entity: 'well' }],
       achievements: [{ id: 'nine-dragon-stack.lantern-square', count: 1, earned: true }, { id: 'nine-dragon-stack.well', count: 1, earned: true }],

@@ -22,7 +22,9 @@ describe('Nine Dragon authored Jian row', () => {
   });
   it('has explicit damage12 and inherits light/heavy clocks, lock-on and assets', () => {
     expect(JIAN_ROW.damage).toBe(12); expect(JIAN_ROW.parent).toBe(SWORD_WOOD.id);
-    expect(JIAN_ROW.moves).toBe(SWORD_WOOD.moves); expect(JIAN_ROW.ui.lockOn).toBe(true);
+    expect(JIAN_ROW.moves).toEqual(SWORD_WOOD.moves);
+    expect(JIAN_ROW.moves?.combo[0]?.keys).toBe(SWORD_WOOD.moves?.combo[0]?.keys);
+    expect(JIAN_ROW.moves?.heavy.trail).toBe(SWORD_WOOD.moves?.heavy.trail); expect(JIAN_ROW.ui.lockOn).toBe(true);
     expect(JIAN_ROW.feel.portraitFov).toBe(78); expect(JIAN_ROW.assets).toHaveLength(9);
   });
 });
