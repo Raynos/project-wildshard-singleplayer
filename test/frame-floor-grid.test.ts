@@ -317,3 +317,12 @@ it('selects a diagnostic cohort without weakening its exact plans or silently om
   expect(() => selectFloorGridPlans(plans, ['missing'])).toThrow('Missing requested');
   expect(() => selectFloorGridPlans(plans, ['template-return', 'template-return'])).toThrow('Duplicate requested');
 });
+
+
+it('observes preparation while driving from the crossroads through the actual midpoint turn-in', () => {
+  const [normal] = gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'nalati-grasslands', roadApproach: true });
+  expect(normal).toMatchObject({ start: { x: 277.5, z: 277.5 }, waypoints: [{ x: 277.5, z: 0 }, { x: 345, z: 0 }], observePreparation: true });
+  const [edge] = gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'nalati-grasslands' });
+  expect(edge?.start).toEqual({ x: 277.5, z: 0 });
+  expect(edge?.observePreparation).toBeUndefined();
+});

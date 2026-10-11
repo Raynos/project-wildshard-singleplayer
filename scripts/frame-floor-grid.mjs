@@ -30,8 +30,11 @@ export function gridFloorPlans(state, scenario, options = {}) {
     const road = dz !== 0 ? { x: t.x, z: t.z + dz * 277.5 } : { x: t.x + dx * 277.5, z: t.z };
     const entry = dz !== 0 ? { x: t.x, z: t.z + dz * 210 } : { x: t.x + dx * 210, z: t.z };
     // an entry may carry the player on (a deck's portal): the leg ends once the cell is entered and ready
-    plans.push({ name: `${target.slug}-road-entry`, from: null, to: target.instance, movement: 'road-hover', start: road,
-      waypoints: [entry], requiredResidents: [target.instance], finishOnArrival: true });
+    const approach = options.roadApproach === true;
+    const start = approach ? (dz !== 0 ? { x: road.x + 277.5, z: road.z } : { x: road.x, z: road.z + 277.5 }) : road;
+    plans.push({ name: `${target.slug}-road-entry`, from: null, to: target.instance, movement: 'road-hover', start,
+      waypoints: approach ? [road, entry] : [entry], requiredResidents: [target.instance], finishOnArrival: true,
+      ...(approach ? { observePreparation: true } : {}) });
   }
   if (scenario === 'sun-entry') {
     const sun = state.cells.find(cell => cell.slug === 'sunscar-dunes');
@@ -223,7 +226,15 @@ export async function driveFloorGrid(plan, documentOrigin) {
           const state = read(), active = state.live.live, feet = active.worldFeet, seconds = (performance.now() - started) / 1000;
           window.__frameFloorGridStop = { leg: plan.name, phase: 'travel', waypoint, target: plan.waypoints[waypoint] ?? null };
           if (plan.movement === 'road-hover') player.setHover(active.current === null);
-          if (seconds - lastSample >= 0.25) { trace.push({ seconds, ...feet, current: active.current, gameplayReady: active.gameplayReady, hover: player.hover }); lastSample = seconds; }
+          if (seconds - lastSample >= 0.25) {
+            const preparation = plan.observePreparation === true ? {
+              pending: active.pending ?? [], resident: active.residents.includes(plan.to),
+              visible: world.game.rootScene.getObjectByName(`region:${plan.to}`)?.visible ?? null,
+              hook: state.live.runtimeTiming?.current?.hook ?? null,
+            } : undefined;
+            trace.push({ seconds, ...feet, current: active.current, gameplayReady: active.gameplayReady, hover: player.hover,
+              ...(preparation === undefined ? {} : { preparation }) }); lastSample = seconds;
+          }
           if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor crossing blocked: ${state.live.crossing.issue}`);
           const target = plan.waypoints[waypoint];
           if (plan.finishOnArrival === true && active.current === plan.to && state.inside === plan.to && active.gameplayReady) { finish(); return; }
