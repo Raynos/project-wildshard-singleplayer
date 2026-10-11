@@ -124,3 +124,26 @@ it('reads the census totals once a second when they exist, never the full census
   expect(totals).toHaveBeenCalledOnce();
   expect(census).not.toHaveBeenCalled();
 });
+
+it('captures pending, refusal and resident fences independently of road gameplay readiness', () => {
+  let now = 0;
+  const live = { current: null, worldFeet: { x: 298.35, y: 0.45, z: 555 }, gameplayReady: true,
+    residents: ['pine'], pending: ['template-2'], issues: { pine: 'checkpoint refused' } };
+  const crossing = { phase: 'preparing', issue: null };
+  const window: { __frameFloorGridProgress?: () => FloorGridProgress | null; __frameFloorGridStop: FloorGridProgress['stop']; __wildshard: object } = {
+    __frameFloorGridStop: last.stop, __wildshard: {
+      world: { game: { renderer: { getContext: () => ({ isContextLost: () => false }) } } },
+      shard: { grid: { state: () => ({ inside: null, live: { live, crossing } }), residency: () => ({ claims: [] }) } } } };
+  runInNewContext(`(${installFloorGridProgress.toString()})()`, { window, performance: { timeOrigin: 100, now: () => now } });
+  const read = window.__frameFloorGridProgress;
+  if (read === undefined) throw new Error('Missing diagnostic reader');
+  const first = read();
+  expect(first).toMatchObject({ current: null, gameplayReady: true, admission: {
+    residents: ['pine'], pending: ['template-2'], issues: { pine: 'checkpoint refused' }, crossing, screens: null } });
+  live.residents.length = 0; live.pending.length = 0; live.issues.pine = 'changed'; crossing.phase = 'idle';
+  expect(first?.admission?.pending).toEqual(['template-2']);
+  expect(first?.admission?.issues['pine']).toBe('checkpoint refused');
+  expect(first?.admission?.crossing?.phase).toBe('preparing');
+  now = 1001;
+  expect(read()?.admission?.pending).toEqual([]);
+});

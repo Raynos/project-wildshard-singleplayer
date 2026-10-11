@@ -16,6 +16,9 @@ export interface FloorGridWitness { plan: FloorGridPlan; before: FloorGridState;
 export interface FloorGridProgress { documentOrigin: number; sampledAt: number; seconds: number;
   stop: { leg: string; phase: string; waypoint: number | null; target: { x: number; z: number } | null };
   current: string | null; inside: string | null; feet: { x: number; y: number; z: number }; gameplayReady: boolean;
+  /** Existing scalar admission telemetry, copied at the ledger's one-second cadence; old records may omit it. */
+  admission?: { residents: string[]; pending: string[]; issues: Record<string, string>;
+    crossing: { phase: string; issue: string | null } | null; screens: unknown };
   memory: { modelledMB: number | null; accountedBytes: number | null; glMB: number | null; glReconciled: boolean | null; claims: unknown; cost: unknown } }
 export interface FloorGridFailure { kind: string; stop: FloorGridProgress['stop']; lastSample: FloorGridProgress; recoveryReason: string; nextDocumentOrigin: number }
 export function installFloorGridProgress(): void;

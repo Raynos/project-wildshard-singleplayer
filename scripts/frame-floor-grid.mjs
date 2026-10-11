@@ -108,6 +108,9 @@ export function installFloorGridProgress() {
       const totals = '__sc_gl_totals' in window, contexts = totals ? window.__sc_gl_totals() : '__sc_gl' in window ? window.__sc_gl() : null;
       last = { documentOrigin: performance.timeOrigin, sampledAt: Date.now(), seconds: performance.now() / 1000,
         stop: { ...stop }, current: live?.current, inside: state.inside, feet: live?.worldFeet, gameplayReady: live?.gameplayReady,
+        admission: { residents: [...(live?.residents ?? [])], pending: [...(live?.pending ?? [])], issues: { ...live?.issues },
+          crossing: state.live?.crossing === undefined ? null : { phase: state.live.crossing.phase, issue: state.live.crossing.issue },
+          screens: state.screens ?? null },
         memory: { modelledMB: state.playingMB ?? null, accountedBytes: state.accountedBytes ?? null,
           ...(contexts ? { glMB: contexts.reduce((sum, row) => sum + row.totalBytes, 0) / 1e6, glReconciled: totals ? null : contexts.every(row => row.reconciled) }
             : { glMB: null, glReconciled: null }), claims: residency.claims, cost: residency.cost } };
