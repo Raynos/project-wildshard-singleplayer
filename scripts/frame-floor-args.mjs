@@ -1,7 +1,7 @@
 const switches = new Set(['help', 'worker', 'devserver', 'gl-time', 'road-approach', 'entry-socket']);
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile',
-  'settle', 'shards', 'surface', 'worker-out', 'device-save', 'expect-system', 'setting']);
+  'settle', 'shards', 'surface', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir']);
 
 /** Refuse misspelled or incomplete floor commands before a build, browser or Simulator lease is acquired.
  * @param {readonly string[]} args

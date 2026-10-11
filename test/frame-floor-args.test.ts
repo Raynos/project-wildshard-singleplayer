@@ -5,6 +5,7 @@ describe('frame floor resource preflight', () => {
   it.each([
     [],
     ['--help'],
+    ['--output-dir=/private/tmp/claude-501/sp-builders/sp-x1'],
     ['--regrade=/tmp/report.json'],
     ['--shards=grid', '--surface=sim', '--grid-scenario=milestone', '--devserver', '--safari-profile=/tmp/profile', '--gl-time', '--grid-routes=pine-hollow-road-entry'],
     ['--shards=grid', '--grid-scenario=cell', '--grid-cell=far-reach', '--entry-socket', '--rising-islet=north', '--road-approach'],

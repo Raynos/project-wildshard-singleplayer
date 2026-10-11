@@ -11,7 +11,7 @@
 // Long-frame gate (Jake: 60-120 fps desktop / 30-60 fps Simulator "at all moments"): every row FAILS
 // when a frame exceeds 100 ms desktop / 200 ms Simulator. Whole drives include every build still running
 // after arrival, so a freeze that p95 never sees cannot pass.
-// Results: progress/frame-floor/<measured-short-sha>.json.
+// Results: --output-dir=<scratch dir> (default progress/frame-floor)/<measured-short-sha>-<run-id>.json.
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
@@ -720,7 +720,7 @@ async function main() {
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });
-    const directory = join(ROOT, 'progress/frame-floor'); mkdirSync(directory, { recursive: true });
+    const directory = resolvePath(ROOT, flag('output-dir', 'progress/frame-floor')); mkdirSync(directory, { recursive: true });
     const output = join(directory, `${sha.slice(0, 9)}-${runId}.json`);
     writeFileSync(output, `${JSON.stringify(record, null, 2)}\n`);
     printVerdict(record);
