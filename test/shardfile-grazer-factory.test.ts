@@ -87,9 +87,10 @@ it('uses the existing full-factory native ports for one body/act per tick and di
     expect(sim.host.entities.get('actor.1')?.desiredSpeed).toBeGreaterThan(0);
   } finally { sim.dispose(); }
 });
-it('refuses absent recipes or mismatched trusted strike identities before callbacks, RNG or actor memory changes', () => {
+it('refuses missing explicit recipes, absent authored homes and mismatched trusted strikes before mutation', () => {
   const s = source(), trace: string[] = [];
-  expect(() => createShardfileSim(s, new Map(), { rapier })).toThrow('Missing native brain port');
+  expect(() => createShardfileSim(s, new Map(), { rapier, brains: {} })).toThrow('Missing native brain port');
+  expect(() => createShardfileSim(s, new Map(), { rapier })).toThrow('Missing authored data-host ram home');
   let preparedHost: SimHost | undefined, before: ReturnType<typeof snapshotSimHost> | undefined;
   const ports = options(s, trace, host => { preparedHost = host; before = snapshotSimHost(host); });
   const recipe = ports.brains?.challengeGrazer;

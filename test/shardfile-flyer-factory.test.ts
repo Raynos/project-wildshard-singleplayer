@@ -104,9 +104,19 @@ it('boots all flying policies with pursuit and runs one body/act per tick with d
     expect(sim.host.entities.get('actor.3')?.desiredSpeed).toBeGreaterThan(0);
   } finally { sim.dispose(); }
 });
-it('refuses missing or mismatched trusted recipes before callbacks, RNG draws or actor mutation', () => {
+it('admits default native owners for every flyer preset and parametric row', () => {
+  for (const s of [source(), parametricSource()]) {
+    const sim = createShardfileSim(s, new Map(), { rapier });
+    try {
+      for (let i = 0; i < 3; i++) expect(sim.host.adapters.has(`brain.actor.${i}`)).toBe(true);
+      for (let tick = 0; tick < 12; tick++) sim.host.step();
+      for (let i = 0; i < 3; i++) expect(sim.host.entities.get(`actor.${i}`)?.snapshot().flight).not.toBeNull();
+    } finally { sim.dispose(); }
+  }
+});
+it('refuses explicit missing or mismatched trusted recipes before callbacks, RNG draws or actor mutation', () => {
   const s = source(), trace: string[] = [];
-  expect(() => createShardfileSim(s, new Map(), { rapier })).toThrow('Missing native brain port');
+  expect(() => createShardfileSim(s, new Map(), { rapier, brains: {} })).toThrow('Missing native brain port');
   let host: SimHost | undefined, before: ReturnType<typeof snapshotSimHost> | undefined;
   const ports = options(s, trace, prepared => { host = prepared; before ??= snapshotSimHost(prepared); });
   const recipe = ports.brains?.burstFlyer;
@@ -149,7 +159,7 @@ it('applies full-schema strike, home and flight admission to every parametric di
     if (selected?.kind !== 'diver') throw new Error('Missing fixture diver'); selected.home.x = 251;
     expect(() => parseShardfile(outside)).toThrow(); expect(shardfileRules(outside)).toContain('declared flyer home in cell');
   }
-  expect(() => createShardfileSim(s, new Map(), { rapier })).toThrow('Missing native brain port');
+  expect(() => createShardfileSim(s, new Map(), { rapier, brains: {} })).toThrow('Missing native brain port');
 });
 it('runs diver rows byte-identically to old presets and restores their full-host save without effects', () => {
   const legacySource = source(), declared = parametricSource(), assets = new Map<string, Uint8Array>();
