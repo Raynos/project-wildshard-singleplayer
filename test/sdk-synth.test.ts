@@ -61,3 +61,29 @@ it('refuses corrupt immutable bytes and cache/source symlinks before writing out
     await expect(synthProject(project)).rejects.toThrow('outside project');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+
+it('synth preserves SDK declaration constructors in the authored module graph', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'scene-synth-declarations-'));
+  try {
+    symlinkSync(resolve('node_modules'), join(root, 'node_modules'));
+    writeFileSync(join(root, 'shard.config.ts'), `import { Scene, Vector3 } from 'three';
+import { Entry } from '@wildshard/sdk/entries';
+import { PlayerStart, Spawn } from '@wildshard/sdk/spawns';
+import { BoxCollider } from '@wildshard/sdk/physics';
+import { Zipline } from '@wildshard/sdk/modes';
+export const identity = { slug: 'declaration-pilot' };
+export const scene = new Scene();
+const goat = new Spawn('goat'); goat.name = 'goat-1';
+const collider = new BoxCollider(2, 1, 3); collider.name = 'floor';
+scene.add(...Entry.midpoints(), new PlayerStart(), goat, collider, new Zipline(new Vector3(0, 10, 0), new Vector3(0, 0, 20)));`);
+    const a = await synthProject(root), b = await synthProject(root);
+    expect(b.hash).toBe(a.hash);
+    expect(a.scene.entries).toHaveLength(4);
+    expect(a.scene.playerStart).not.toBeNull();
+    expect(a.scene.spawns).toHaveLength(1);
+    expect(a.scene.colliders).toHaveLength(1);
+    expect(a.scene.modes?.traverse).toHaveLength(1);
+    expect(a.scene.nodes.filter(node => node.declaration !== undefined)).toHaveLength(8);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}, 20_000);
