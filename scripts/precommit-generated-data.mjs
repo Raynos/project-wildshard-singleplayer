@@ -16,7 +16,7 @@ export function materializeGuardData(root, snapshot) {
   for (const job of staged.jobs) {
     for (const [path, hash] of Object.entries(job.buildOutputs ?? {})) {
       if (!path.endsWith('.json')) continue; // Executable modules must always come from the staged Git tree.
-      if (!/^src\/shards\/[^/]+\/(?:data|assets)\//u.test(path)
+      if (!/^src\/shards\/[^/]+\//u.test(path)
         || path.includes('\\') || path.split('/').some(part => part === '' || part === '.' || part === '..')
         || !/^[a-f0-9]{64}$/u.test(hash)) throw new Error(`Invalid generated guard data: ${path}`);
       const target = resolve(snapshot, path), source = resolve(root, path);

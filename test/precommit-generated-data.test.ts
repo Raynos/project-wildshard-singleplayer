@@ -42,6 +42,10 @@ it('admits only staged-hash JSON bytes and leaves missing dependencies fail-clos
     write(root, output, 'later working edit');
     materializeGuardData(root, snapshot);
     expect(readFileSync(join(snapshot, output), 'utf8')).toBe(bytes);
+    pin('src/shards/example/behaviour/stages.generated.json', hash);
+    write(root, 'src/shards/example/behaviour/stages.generated.json', bytes);
+    materializeGuardData(root, snapshot);
+    expect(readFileSync(join(snapshot, 'src/shards/example/behaviour/stages.generated.json'), 'utf8')).toBe(bytes);
     pin('src/shards/example/data/../../escape.json', hash);
     expect(() => materializeGuardData(root, snapshot)).toThrow('Invalid generated guard data');
     pin('src/shards/example/data/evil.generated.ts', hash);
