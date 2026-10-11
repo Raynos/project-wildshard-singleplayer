@@ -8,10 +8,10 @@
   - **SF22 desktop:** PASS (`d393dc95b`).
   - **SF22 Safari:** install PASS; **0 draw compiles** (was 46); cadence FAIL (p95 49): the gaps are main-thread waits (165 ms with 5 ms frame work), not rendering (`9c3b969c2`); Nine cell entry 191 ms on the Simulator (sp-x5).
   - **Memory:** G269.
-- **Frame floor (`c66b5b324`, clean):** every max gate passes. Desktop: only Pine short travel p95 33.3 (gate 17.5). Simulator p95 over 35: Driftwood 59, Pine 58, Signal 52, Sky 37, Nalati 36. Cell arrival waits remain for Driftwood, Pine and Nine.
+- **Frame floor (`c66b5b324`, clean):** every max gate passes. Desktop: only Pine short travel p95 33.3 (gate 17.5). Simulator p95 over 35: Driftwood 59, Pine 58, Signal 52, Sky 37, Nalati 36. Arrival waits: Driftwood, Pine, Nine.
 - **M3:** **0 of 6 at 80/20** under Jake's measure.
 
-**Live:** queue green, 99 commits reached origin at `8b9ff3e58`; production `1d378b7ba-mv49rdxs` until the next release. **sp-x7 = gate/CI/deploy lane (G330).**
+**Live:** queue green, 99 commits reached origin at `8b9ff3e58`; production `1d378b7ba-mv49rdxs`. **sp-x7 = gate/CI/deploy lane (G330).**
 
 **Queue:** `open-x-queue.md` (open engineering, 10-11 sweep). **Red → green (G330):** `red-green.md` (5 reds fixed 10-11).
 
