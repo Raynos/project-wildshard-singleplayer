@@ -22,7 +22,7 @@ export function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<string
   }
   for (const hash of source.requires.commons) {
     const bytes = assets.get(`commons:${hash}`); if (bytes === undefined) throw new Error('Missing admitted commons residency');
-    const kind = bytes[0] === 171 ? 'ktx2' : bytes[0] === 103 ? 'glb' : bytes[0] === 82 ? 'audio' : 'binary', cost = assetCost(kind, bytes);
+    const cost = assetCost('commons', bytes);
     claims.push({ id: `commons:${hash}`, category: 'commons', bytes: cost.decoded + cost.gpu, owner: 'platform', distance: 0, needed: true });
   }
   for (const module of new Set(source.clientScripts.bindings.map((binding) => binding.module))) {

@@ -486,9 +486,11 @@ scripts/test-sdk-client.mjs <built-product-directory> [report.json]` from scratc
 after any active performance quiet window; it serves only that installed product.
 
 The initial parsers accept GLB 2 with embedded buffers and separate KTX2 textures,
-2D KTX2 within 4096² (RGBA transcode is the conservative GPU bound), and PCM WAV
-within 180 seconds / two channels. Unsupported mesh compression, sparse accessors,
-external GLB URLs, embedded images and non-PCM audio fail explicitly. Subsequent
+2D KTX2 within 4096² (RGBA transcode is the conservative GPU bound), and audio within 180 seconds / two channels: PCM WAV or self-contained, unfragmented
+48 kHz stereo AAC-LC M4A with the bounded packet layout admitted by `indexAac`.
+AAC residency charges every complete 1024-frame packet as stereo float32, including
+encoder priming and final padding; the compressed file is never charged as PCM wire. Unsupported mesh compression, sparse accessors,
+external GLB URLs, embedded images and unsupported audio layouts fail explicitly. Subsequent
 asset rows extend supported encodings; they do not bypass these caps. The shared
 model is `@wildshard/engine/core/contentCost`, consumed by the game's
 `@wildshard/game/shardfile/budget`. The validator expands its 5 m search grid's

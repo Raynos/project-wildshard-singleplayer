@@ -2925,3 +2925,19 @@ SF81 DIR-1: `@wildshard/sdk/director` defines `new Director({ id, inputs, stages
 SF81 DIR-2: `@wildshard/sdk/directorAbi` defines `generateDirectorAbi(declaration)`, an allocation-free AssemblyScript source generator for the unchanged ABI-v0 input packing. v1 numeric input keys become camelCase `inputs.<name>: f64` getters, retaining fractional channels even at bounds 0..1; v2 stage inputs retain their declared names and become `bool` getters. Declaration order defines offsets in both versions. Ambiguous aliases and reserved AS identifiers refuse before compilation. `clock.tick`, `clock.dt`, `clock.self` and `incomingEvents.count/type(index)` expose the existing host channels. Native admission validates observations and incoming event counts before author code runs.
 
 `behaviour/build.json` modules may declare `director: "data/director.json"`. `wildshard build --behaviour-only` admits that confined declaration and supplies the generated `./wildshard-director` module to the pinned compiler in memory. The generated module is build-time source, never a runtime facade or manually maintained offset table. `compileBehaviourModule(source, maximumPages, virtualSources)` also accepts these named virtual AS sources. All declared modules compile before publishing outputs; `--check` compares existing immutable outputs without writing. Driftwood, Pine and Nalati now read named input getters; their original event/parameter writers and host bindings remain unchanged. Rebuilt metered Wasm bytes, hashes, fuel behavior and embedded declarations are byte-identical.
+
+### Shared score recordings (DS1.6)
+
+`@wildshard/commons/packs/sounds` defines `scoreStingsPack(style, source, read, provenance)`
+v1.0.0. This build-time generator reads the three named score stings in a style manifest,
+preserves every encoded byte and emits audio entries. Driftwood and Pine both consume
+these platform score banks; the template and frozen copies are not additional users.
+The caller supplies immutable file bytes and the original credit/licence. No mixer,
+decoder, playback timing or file-fetch service is installed by this pack.
+
+`@wildshard/engine/audio/aacIndex` defines `indexAac(bytes)`, the renderer-free bounded
+48 kHz stereo AAC-LC packet reader shared by incremental playback and product admission.
+Unsupported/encrypted/fragmented layouts refuse; costs include priming and full final
+packet padding. PCM WAV admission remains unchanged. SF26 covers the shipped recordings:
+one fetch and one commons claim across two shard admissions, with independent leases.
+Native style-bank routing into emitted commons files remains a separate integration step.

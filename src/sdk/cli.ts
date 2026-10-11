@@ -60,7 +60,7 @@ export async function runCli(args: readonly string[]): Promise<void> {
     let layers = 0, blended = 0, masked = 0;
     const kinds = new Map(shard.files.map((file) => [file.hash, file.kind]));
     for (const [hash, bytes] of assets) {
-      const kind = kinds.get(hash) ?? (bytes[0] === 103 ? 'glb' : bytes[0] === 171 ? 'ktx2' : bytes[0] === 82 ? 'audio' : 'binary');
+      const kind = kinds.get(hash) ?? 'commons';
       const estimate = assetOverdraw(kind, bytes); layers += estimate.layers; blended += estimate.blendedLayers; masked += estimate.maskedLayers;
     }
     console.info(`advisory asset raster layers: ${layers.toFixed(2)} total, ${blended.toFixed(2)} blended, ${masked.toFixed(2)} alpha-tested (primitive bounds; before culling/occlusion, not measured screen overdraw)`);

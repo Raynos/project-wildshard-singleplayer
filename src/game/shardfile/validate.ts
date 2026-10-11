@@ -101,8 +101,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   if (s.props?.far !== undefined && s.props.far !== null) propModels.add(s.props.far);
   for (const hash of s.requires.commons) {
     const bytes = assets.get(`commons:${hash}`); if (bytes === undefined || bytes.length !== s.requires.commonsWire[hash] || contentHash(bytes) !== hash) throw new Error('unavailable commons asset or wire size mismatch');
-    const kind = bytes[0] === 171 ? 'ktx2' : bytes[0] === 103 ? 'glb' : bytes[0] === 82 ? 'audio' : 'binary';
-    const cost = assetCost(kind, bytes), pinned = declared[hash];
+    const cost = assetCost('commons', bytes), pinned = declared[hash];
     if (pinned === undefined || (['decoded', 'gpu', 'triangles', 'draws'] as const).some(key => cost[key] !== pinned[key])) throw new Error('commons cost declaration differs from actual bytes');
     commons += cost.decoded + cost.gpu; commonsCosts.set(`commons:${hash}`, cost);
   }

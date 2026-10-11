@@ -1,3 +1,4 @@
+import { indexAac } from '@wildshard/engine/audio/aacIndex';
 import { decodeTerrainTile, isTerrainTileData, terrainTileCost, terrainTileHeight } from "@wildshard/engine/world/terrainTileData";
 import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from "@wildshard/engine/core/meshCollision";
 import { visitGlbGeometry, type GlbVertex } from "../shardfile/glbTriangles";
@@ -35,7 +36,8 @@ export function parseGlb(bytes: Uint8Array): AssetCost { return parseGlbData(byt
 /** Inspect exact static triangles only after the bounded GLB parser admits the complete payload. */
 export function visitGlbTriangles(bytes: Uint8Array, visit: (triangle: readonly GlbVertex[]) => void): void { parseGlbData(bytes, visit); }
 /** Shared byte-derived raster estimate; no author-supplied overdraw number is accepted. */
-export function assetOverdraw(kind: string, bytes: Uint8Array): OverdrawEstimate {
+export function assetOverdraw(requestedKind: string, bytes: Uint8Array): OverdrawEstimate {
+  const kind = requestedKind === 'commons' ? commonsKind(bytes) : requestedKind;
   const estimate: OverdrawEstimate = { layers: 0, blendedLayers: 0, maskedLayers: 0, basis: 'primitive-bounds' };
   if (kind === 'glb') parseGlbData(bytes, undefined, estimate);
   else { assetCost(kind, bytes); if (isTerrainTileData(bytes)) estimate.layers = 1; }
@@ -238,8 +240,16 @@ export function parseKtx2(bytes: Uint8Array): AssetCost {
   return { decoded: 0, gpu, triangles: 0, draws: 0 };
 }
 
-/** Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory. */
+/** Admit bounded PCM WAV or indexed AAC-LC without decoding; charge full float32 sample residency. */
 export function parseAudio(bytes: Uint8Array): AssetCost {
+  requireRange(bytes, 0, 12);
+  if (new TextDecoder().decode(bytes.subarray(4, 8)) === 'ftyp') {
+    if (bytes.length > MAX_BYTES) throw new Error('audio byte cap');
+    const indexed = indexAac(bytes);
+    if (indexed.mediaFrames / indexed.sampleRate > 180) throw new Error('AAC duration cap');
+    // Include priming and the entire final packet: never undercharge packet padding or encoder delay.
+    return { decoded: indexed.sizes.length * 1024 * indexed.channels * 4, gpu: 0, triangles: 0, draws: 0 };
+  }
   requireRange(bytes, 0, 12); const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), tag = (at: number): string => new TextDecoder().decode(bytes.subarray(at, at + 4));
   if (bytes.length > MAX_BYTES || tag(0) !== 'RIFF' || tag(8) !== 'WAVE' || view.getUint32(4, true) + 8 !== bytes.length) throw new Error('invalid WAV header');
   let at = 12, channels = 0, rate = 0, alignment = 0, data = 0;
@@ -255,8 +265,13 @@ export function parseAudio(bytes: Uint8Array): AssetCost {
   if (channels === 0 || data === 0 || data % alignment !== 0 || data / alignment / rate > 180 || at !== bytes.length) throw new Error('WAV duration or data cap');
   return { decoded: data / alignment * channels * 4, gpu: 0, triangles: 0, draws: 0 };
 }
+function commonsKind(bytes: Uint8Array): 'ktx2' | 'glb' | 'audio' | 'binary' {
+  return bytes[0] === 171 ? 'ktx2' : bytes[0] === 103 ? 'glb'
+    : bytes[0] === 82 || new TextDecoder().decode(bytes.subarray(4, 8)) === 'ftyp' ? 'audio' : 'binary';
+}
 /** Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run. */
-export function assetCost(kind: string, bytes: Uint8Array): AssetCost {
+export function assetCost(requestedKind: string, bytes: Uint8Array): AssetCost {
+  const kind = requestedKind === 'commons' ? commonsKind(bytes) : requestedKind;
   if (kind === 'image') { const image = parseStillImage(bytes); return { decoded: image.decoded, gpu: image.gpu, triangles: 0, draws: 0 }; }
   if (kind === 'glb') return parseGlb(bytes);
   if (kind === 'ktx2') return parseKtx2(bytes);

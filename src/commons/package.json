@@ -9,7 +9,8 @@
     "./packs/bag": "./packs/bag/pack.ts",
     "./packs/effects": "./packs/effects/pack.ts",
     "./packs/arms": "./packs/arms/pack.ts",
-    "./packs/weapons": "./packs/weapons/pack.ts"
+    "./packs/weapons": "./packs/weapons/pack.ts",
+    "./packs/sounds": "./packs/sounds/pack.ts"
   },
   "dependencies": {
     "@wildshard/sdk": "workspace:*"

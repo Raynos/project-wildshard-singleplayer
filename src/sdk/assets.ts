@@ -10,7 +10,7 @@ export function assetBytes(base64: string): Uint8Array {
 export function parseGlb(bytes: Uint8Array): Cost { return glb(bytes); }
 /** Admit bounded KTX2 mip ranges and conservative transcode residency. */
 export function parseKtx2(bytes: Uint8Array): Cost { return ktx2(bytes); }
-/** Admit bounded PCM audio and derive decoded sample residency. */
+/** Admit bounded PCM WAV or indexed 48 kHz stereo AAC-LC and derive decoded sample residency. */
 export function parseAudio(bytes: Uint8Array): Cost { return audio(bytes); }
 /** Select the game's shared asset parser for CLI and browser admission. */
 export function assetCost(kind: string, bytes: Uint8Array): Cost { return cost(kind, bytes); }
