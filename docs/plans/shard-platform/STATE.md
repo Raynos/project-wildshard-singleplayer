@@ -11,7 +11,7 @@
 - **Frame floor:** desktop all routes pass (return 100 ms on the line); Simulator travel/spawn/drive pass at ≤35 p95; open: outbound 277 ms, Nalati 19.7 s cold wait.
 - **M3:** **0 of 6 at 80/20** under Jake's measure.
 
-**Live:** origin moved (`17bc55bdf`, ~100 commits, 07:07 CT); freeze lifted; push CI and the deploy pending (prod c24dd65af). **sp-x7 = gate/CI/deploy lane (G330).**
+**Live:** origin moving again (07:07 CT); push CI and deploy pending (prod c24dd65af). **sp-x7 = gate/CI/deploy lane (G330).**
 
 **Red → green (G330):** row-data export `255dd529c` → `b4a36e751`; Linux Nine physics `669511341` and Nalati places `27b0d8da1` → `baa8a3165` (sp-x4); layers TS6307 `baa8a3165` → `0f0fa888d` (sp-x7).
 
