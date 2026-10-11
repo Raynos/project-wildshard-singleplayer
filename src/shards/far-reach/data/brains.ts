@@ -1,3 +1,4 @@
+import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
 import { CROWN, DAIS, ROC, RAY_HOMES, DECK, KEEPER } from './layout';
 import { SKY_GOAT_DATA, DRIFT_RAY_DATA, GALE_WISP_DATA } from './species';
 
@@ -50,7 +51,7 @@ export const ROC_BRAIN = { id: 'far.brain.roc', kind: 'phased-raptor',
   ] };
 
 /** Canonical gameplay profiles; each native body binds its actual island home and existing authority. */
-export const SKY_SPECIES_BRAINS = [
+export const SKY_SPECIES_BRAINS: readonly BrainedSpecies[] = [
   { ...SKY_GOAT_DATA, brain: { archetype: 'grazer' as const, data: { ...GOAT_BRAIN, kind: 'grazer' as const, pattern: 'wander-ram' as const } } },
   { ...DRIFT_RAY_DATA, brain: { archetype: 'diver' as const, data: { ...RAY_BRAIN, kind: 'diver' as const, pattern: 'orbit' as const,
     home: RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 } } } },
