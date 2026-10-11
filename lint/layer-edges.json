@@ -4,13 +4,13 @@
     "commons → format": 1,
     "commons → sdk": 18,
     "engine → format": 25,
-    "game → engine": 922,
-    "game → format": 187,
+    "game → engine": 923,
+    "game → format": 189,
     "root → engine": 21,
     "root → game": 24,
     "root → sdk": 2,
     "sdk → engine": 30,
-    "sdk → format": 123,
+    "sdk → format": 126,
     "sdk → game": 29
   }
 }
