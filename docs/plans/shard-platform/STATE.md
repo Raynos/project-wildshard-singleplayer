@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-11 05:30 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
+**2026-10-11 06:55 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
 
 **Milestones**
 - **M1:** done.
@@ -11,7 +11,7 @@
 - **Frame floor:** desktop all routes pass (return 100 ms on the line); Simulator travel/spawn/drive pass at ≤35 p95; open: outbound 277 ms, Nalati 19.7 s cold wait.
 - **M3:** **0 of 6 at 80/20** under Jake's measure.
 
-**Live:** origin/main = HEAD (`c528d9b63`, 19:44); backlog landed (`acb850d96`).
+**Live: P0 RED.** Push CI red since 10-10 19:54Z (prod c24dd65af); local gate red, origin 245dbd3f8, ~95 waiting. sp-x1 = green-the-gate lane.
 
 **G298 done:** all six shards' bakers in their own `generators/` (only the shared `bake-sky.mjs` HDRI baker stays in scripts/). **G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact, witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`).
 
@@ -30,7 +30,7 @@
 
 | Lane | Work |
 |---|---|
-| sp-x1 | Sim travel 34, spawn 34, return 131 PASS · outbound 277 after Nalati prep |
+| sp-x1 | P0: green the local gate + push CI (typecheck-lint admin test, Linux bake-check, timeouts) |
 | sp-x2 | Sim drive Nalati/Sky 35 PASS (`368a54202`) · Nalati cold-arrival wait 19.7 s |
 | sp-x4 | DS1.5, SF83, SF84 X done (Template horse/anchors = Opus) · port Signal to 80/20 |
 | sp-x5 | DS1.6 packs (figures wait: KTX2) · SF82 BR-1–5 landed, BR tail |
