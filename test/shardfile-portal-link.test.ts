@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import * as v from 'valibot';
-import { parsePortalLink, portalLinkEntries, portalLinkRules } from '../src/game/shardfile/portalLink';
+import { portalLinkEntries, portalLinkRules } from '../src/game/shardfile/portalLink';
+import { parsePortalLink } from '@wildshard/format/portalLink';
 import { PropsSchema } from '../src/game/shardfile/props';
 
 const declaration = () => ({ road: { id: 'portal.north', at: [0, 0, 242], floor: 'deck.north' },

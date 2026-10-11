@@ -8,7 +8,7 @@ import { contentHash } from '../../../src/sdk/project';
 import { validateShardfileAssets } from '../../../src/game/shardfile/validate';
 import { socketLiftEntries, socketLiftRules } from '../../../src/game/shardfile/socketLift';
 import { validateEntrywayClearance } from '../../../src/game/shardfile/entryClearance';
-import { parseMovers } from '../../../src/game/shardfile/movers';
+import { parseMovers } from '@wildshard/format/movers';
 import { ISLET, RISING_ISLETS } from '../../../src/shards/far-reach/world/islets';
 import { ISLET_ISLE, isletBoxes, lipCollider } from '../../../src/shards/far-reach/world/risingIslet';
 import { CROWN, ISLES, KEEPER, NEST, SPIRES, STEP, type Isle } from '../../../src/shards/far-reach/data/layout';

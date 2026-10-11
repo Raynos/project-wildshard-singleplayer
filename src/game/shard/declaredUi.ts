@@ -1,5 +1,5 @@
 import { mountDeclaredHud, textPanelFragment, type DeclaredHud, type DeclaredHudHandles, type DeclaredHudPorts } from '@wildshard/engine/ui/declared';
-import type { ShardUi } from '../shardfile/ui';
+import type { ShardUi } from '@wildshard/format/ui';
 import type { BagVerbs } from "../plugin/context";
 
 /** the engine's HUD ports plus the shard's Bag */

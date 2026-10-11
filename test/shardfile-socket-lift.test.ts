@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseSocketLift, socketLiftRules, type SocketLiftEntry } from '../src/game/shardfile/socketLift';
-import type { MoverData } from '../src/game/shardfile/movers';
+import { socketLiftRules, type SocketLiftEntry } from '../src/game/shardfile/socketLift';
+import { parseSocketLift } from '@wildshard/format/socketLift';
+import type { MoverData } from '@wildshard/format/movers';
 
 const declaration = () => parseSocketLift({ mover: 'entry.lift', gate: 'entry.gate', roadStop: [0, 0, 230], topStop: [0, 25, 205], route: [[0, 25, 205], [0, 25, 195]], rideTicks: 600 });
 const movers = (): MoverData => [{ id: 'entry.lift', entity: 1001, module: 'a'.repeat(64), kind: 'platform', at: { x: 0, y: 0, z: 230 }, euler: { x: 0, y: 0, z: 0 }, enabled: true,

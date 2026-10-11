@@ -53,7 +53,7 @@ it('rebuilds all migrated documents byte-identically without committing generate
     const directory = join(root, '.wildshard/format');
     const files = readdirSync(directory).sort();
     expect(files).toEqual(Object.keys(formatJsonSchemas()).map(name => `${name}.schema.json`).sort());
-    expect(files.length).toBe(43);
+    expect(files.length).toBe(51);
     const before = files.map(name => readFileSync(join(directory, name), 'utf8'));
     writeFormatJsonSchemas(root);
     expect(files.map(name => readFileSync(join(directory, name), 'utf8'))).toEqual(before);
@@ -113,4 +113,15 @@ it('documents item template identities and native item, target and quest referen
   expect(roots['targets.Targets']?.additionalProperties).toBe(false);
   expect(roots['quests.QuestData']?.['x-wildshard-checks']).toEqual(['@wildshard/format/quests#QuestDataSchema.pipe.1']);
   expect(() => formatJsonSchema(v.custom<`weapon.${string}`>(() => true))).toThrow();
+});
+
+it('documents all entry variants and exact row/client/mover limits without broadening custom admission', () => {
+  const roots = formatJsonSchemas();
+  expect(JSON.stringify(roots['entryways.Entryways'])).toContain('socketLift');
+  expect(JSON.stringify(roots['entryways.Entryways'])).toContain('portalLink');
+  expect(JSON.stringify(roots['rows.Rows'])).toContain('@wildshard/format/rows#RowsSchema.pipe.3');
+  expect(roots['movers.Movers']?.maxItems).toBe(32);
+  expect(roots['nativeGround.NativeGround']?.additionalProperties).toBe(false);
+  expect(roots['ui.Ui']?.maxItems).toBe(64);
+  expect(JSON.stringify(roots['clientScripts.ClientScripts'])).toContain('maxOffset');
 });

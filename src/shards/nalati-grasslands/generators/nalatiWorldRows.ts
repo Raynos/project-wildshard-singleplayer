@@ -1,6 +1,6 @@
 import { WorldBakeRows, type BakedWorldRows } from '@wildshard/sdk/bake/worldRows';
 import { staticMaterialNames, type StaticMaterialCatalogue } from '@wildshard/sdk/bake/staticMaterials';
-import type { NativeGround } from '@wildshard/game/shardfile/nativeGround';
+import type { NativeGround } from '@wildshard/format/nativeGround';
 import { bakeNalatiGround, bakeNalatiGroundLod, nalatiGroundSource, type NalatiGroundTile, type NalatiStaticTile } from './nalatiGroundSource';
 
 /** Compile ordinary render rows, with one combined ground/props GLB per address and the unchanged critical WSTR.

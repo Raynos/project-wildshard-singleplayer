@@ -17,7 +17,7 @@
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import type { GridCell } from './assembly';
 import type { GridEdgeObservations, GridEdgeSource } from './edgeProfiles';
-import type { ShardEntryways } from '../shardfile/entryways';
+import type { ShardEntryways } from '@wildshard/format/entryways';
 import { findShard } from '../shard/registry';
 import { bakesTerrain } from '../shard/terrainBake';
 

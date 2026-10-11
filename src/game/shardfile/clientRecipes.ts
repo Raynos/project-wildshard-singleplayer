@@ -1,7 +1,7 @@
 import { SphereGeometry, Float32BufferAttribute, Uint16BufferAttribute, MeshStandardMaterial, MeshLambertMaterial, type Material } from 'three';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import type { ShardRows } from './rows';
+import type { ShardRows } from '@wildshard/format/rows';
 import { SKIN_LOOK_RECIPE } from './skins';
 import { skinSpeciesLook, type ClientSkin } from './clientSkins';
 

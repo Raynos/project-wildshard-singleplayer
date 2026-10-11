@@ -10,7 +10,8 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile, shardfileRules, type Shardfile } from '../src/game/shardfile/schema';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimPorts } from '../src/game/shardfile/simulation';
 import { parseOrbitDiver, parsePatrolDiver, parseBurstFlyer } from '@wildshard/format/flyers';
-import { parseRows, scoredStrikes, speciesResolver } from '../src/game/shardfile/rows';
+import { scoredStrikes, speciesResolver } from '../src/game/shardfile/rows';
+import { parseRows } from '@wildshard/format/rows';
 import template from '../src/shards/_template/shard.config';
 import { expectSameSimSnapshot } from './fake/simSnapshot';
 

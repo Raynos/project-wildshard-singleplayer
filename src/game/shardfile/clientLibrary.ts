@@ -3,7 +3,7 @@ import type { ResidencyAllocator, ResidencyClaim } from '../grid/allocator';
 import { assetCost } from './assets';
 import { admitScript } from '@wildshard/engine/script/admission';
 import type { Shardfile } from './schema';
-import { clientScriptViewCost } from './clientScripts';
+import { clientScriptViewCost } from '@wildshard/format/clientScripts';
 import { compendiumSketches } from './sketch';
 
 /** Reserve only library and commons bytes in the session's one allocator; render rings and the sim registry own their claims. */

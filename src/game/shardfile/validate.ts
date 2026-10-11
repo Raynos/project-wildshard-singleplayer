@@ -18,7 +18,7 @@ import { validateEntrywayClearance } from './entryClearance';
 import { validateSocketLandings } from './entryLanding';
 import { portalLinkEntries } from './portalLink';
 import { validatePortalFloors } from './portalFloor';
-import { clientScriptViewCost } from './clientScripts';
+import { clientScriptViewCost } from '@wildshard/format/clientScripts';
 import { preflightShardfile } from '@wildshard/format/preflight';
 import { preflightAssetGraph } from './assetGraph';
 import { compendiumSketches } from './sketch';

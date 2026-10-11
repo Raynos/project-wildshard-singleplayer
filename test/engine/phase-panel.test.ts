@@ -9,7 +9,7 @@ import { loadRapier } from '../../src/engine/physics/rapier';
 import { mountDeclaredHud } from '../../src/engine/ui/declared';
 import { installDeclaredEncounters } from '../../src/game/shard/declaredEncounters';
 import { EncountersSchema } from '@wildshard/format/encounters';
-import { UiSchema } from '../../src/game/shardfile/ui';
+import { UiSchema } from '@wildshard/format/ui';
 import { ENCOUNTERS, ENCOUNTER_UI } from '../../src/shards/_template/data/encounters';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
 

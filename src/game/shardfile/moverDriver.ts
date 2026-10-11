@@ -2,7 +2,8 @@ import * as v from 'valibot';
 import { ScriptWorld } from '@wildshard/engine/script/effects';
 import type { ScriptQuery } from '@wildshard/engine/script/host';
 import type { ScriptRole, ScriptSchedule } from '@wildshard/engine/script/composition';
-import { parseMovers, moverScriptEntities, MOVER_FIELD_RANGES, type MoverData } from './movers';
+import { moverScriptEntities, MOVER_FIELD_RANGES } from './movers';
+import { parseMovers, type MoverData } from '@wildshard/format/movers';
 import { moverQueries, type MoverRuntime } from "../plugin/mover";
 
 const finite = v.pipe(v.number(), v.finite());

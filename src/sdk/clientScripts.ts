@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { ClientScriptsSchema as schema, parseClientScripts as parse, clientScriptViewCost as viewCost, type ShardClientScripts as Data } from '@wildshard/game/shardfile/clientScripts';
+import { ClientScriptsSchema as schema, parseClientScripts as parse, clientScriptViewCost as viewCost, type ShardClientScripts as Data } from '@wildshard/format/clientScripts';
 /** Strict presentation-only module/target declarations, with bounded pose and particle recipes. */
 export const ClientScriptsSchema = v.pipe(schema);
 /** Data-only author contract for isolated client scripts. */

@@ -4,8 +4,8 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { ShardCompendium } from '../compendium/types';
 import type { LootPresentation } from '../loot/runtime';
-import type { ShardRows } from '../shardfile/rows';
-import { sketchReference } from '../shardfile/sketch';
+import type { ShardRows } from '@wildshard/format/rows';
+import { sketchReference } from '@wildshard/format/sketch';
 
 /** Expand a table of authored outputs into the existing seeded weather mechanism. */
 export function declaredWeather(row: ShardRows['weather'][number], rng: Rng): Weather {

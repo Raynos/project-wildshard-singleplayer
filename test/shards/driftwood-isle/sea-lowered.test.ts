@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { configureLevel } from '../../../src/engine/level/selection';
 import { terrainDatum } from '../../../src/engine/world/terrainHeight';
-import { entrywayRules } from '../../../src/game/shardfile/entryways';
+import { entrywayRules } from '@wildshard/format/entryways';
 import { contentHash, validateProject } from '../../../src/sdk/project';
 import { validateShardfileAssets } from '../../../src/game/shardfile/validate';
 import { validateSocketLandings } from '../../../src/game/shardfile/entryLanding';

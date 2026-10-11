@@ -1,8 +1,8 @@
 import { emptyShardfile } from '../../../src/sdk/author';
 import { parseShardfile } from '../../../src/game/shardfile/schema';
 import { assetCost } from '../../../src/game/shardfile/assets';
-import { parseMovers } from '../../../src/game/shardfile/movers';
-import { parseSocketLift } from '../../../src/game/shardfile/socketLift';
+import { parseMovers } from '@wildshard/format/movers';
+import { parseSocketLift } from '@wildshard/format/socketLift';
 
 /** A disconnected island and real lift; no hidden flat world can make a refused ride pass. */
 export function liftShard(bytes: Uint8Array, hash: string) {

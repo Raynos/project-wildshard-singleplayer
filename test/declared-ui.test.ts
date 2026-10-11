@@ -12,7 +12,7 @@ import type { HudBand, DiscSpot } from '../src/engine/ui/hudSlots';
 import type { TabFragment, TabSpec } from '../src/engine/ui/tabs';
 import { mountDeclaredUi } from '../src/game/shard/declaredUi';
 import { parseShardfile } from '../src/game/shardfile/schema';
-import { UiSchema, uiRules, type ShardUiDeclaration } from '../src/game/shardfile/ui';
+import { UiSchema, uiRules, type ShardUiDeclaration } from '@wildshard/format/ui';
 import { STRINGS } from './fixtures/templateLegacyText';
 
 const dir = 'test/fixtures/shardfile/';

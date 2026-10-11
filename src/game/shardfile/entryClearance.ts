@@ -1,4 +1,4 @@
-import type { ShardEntryways } from './entryways';
+import type { ShardEntryways } from '@wildshard/format/entryways';
 import type { ShardProps } from './props';
 import type { ShardWater } from '@wildshard/format/water';
 import { entryFootprints, clipEntryPolygon, obstructsEntry, type EntryVertex, type EntryFootprint } from './entryGeometry';

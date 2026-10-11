@@ -20,7 +20,7 @@ import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { loadSkin } from './skinPlayback';
 import { compileSkinPoseLayers, bindSkinPoseLayers, type CompiledSkinPoseLayers } from './skinLayerPlayback';
 import { parseSkinFile, skinLookParameters, SKIN_LOOK_RECIPE } from './skins';
-import type { ShardRows } from './rows';
+import type { ShardRows } from '@wildshard/format/rows';
 import type { Shardfile } from './schema';
 
 interface SampledTrack { bone: string; property: 'position' | 'quaternion' | 'scale'; interpolant: Interpolant }

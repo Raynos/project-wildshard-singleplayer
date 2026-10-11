@@ -1,4 +1,4 @@
-import { parseMovers } from '@wildshard/game/shardfile/movers';
+import { parseMovers } from '@wildshard/format/movers';
 
 /** Typed numeric mover declarations: local collider primitives and admitted fixed-step scripts. */
 export type MoverData = ReturnType<typeof parseMovers>;

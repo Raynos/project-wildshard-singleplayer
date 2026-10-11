@@ -20,7 +20,7 @@ import { loadSkin, parseSkinBindings, parseSkinRows } from '../src/game/shardfil
 import { loadClientSkins, SkinDriver, type SkinDriveState } from '../src/game/shardfile/clientSkins';
 import { clientSpeciesLooks } from '../src/game/shardfile/clientRecipes';
 import { skinLookRules, SKIN_CLIPS_RECIPE, SKIN_LOOK_RECIPE } from '../src/game/shardfile/skins';
-import { parseRows } from '../src/game/shardfile/rows';
+import { parseRows } from '@wildshard/format/rows';
 import type { Shardfile } from '../src/game/shardfile/schema';
 import { TEMPLATE_ROWS } from '../src/shards/_template/data/rows';
 

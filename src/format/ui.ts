@@ -1,5 +1,7 @@
 import * as v from 'valibot';
-import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from '@wildshard/engine/core/config';
+import { WIRE_CELL } from './wireLimits';
+
+const CELL_ABOVE = WIRE_CELL.above, CELL_BELOW = WIRE_CELL.below, CHUNK_HALF = WIRE_CELL.half;
 
 /** The most declarations one shardfile's `ui` section may hold. */
 export const UI_DECLARATIONS_MAX = 64;

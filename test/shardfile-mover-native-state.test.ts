@@ -8,7 +8,7 @@ import { createSimHost, type SimHost } from '../src/engine/sim';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createShardfileComposedLane } from '../src/game/shardfile/scriptComposition';
-import { parseMovers } from '../src/game/shardfile/movers';
+import { parseMovers } from '@wildshard/format/movers';
 import { MoverScriptDriver } from '../src/game/shardfile/moverDriver';
 import { MoverRuntime } from "../src/game/plugin/mover";
 import { SIM_LEVEL } from './fixtures/sim-level/level';

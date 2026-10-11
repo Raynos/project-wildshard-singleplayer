@@ -1,6 +1,6 @@
 import { WAVES, seaDamp } from '@wildshard/engine/world/waves';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import type { MoverData } from '@wildshard/game/shardfile/movers';
+import type { MoverData } from '@wildshard/format/movers';
 import manifest, { BOAT_MOOR, BRIDGE } from '../manifest';
 import { LOWERED_SEA, WORLD_DROP } from '../world/sea';
 import { boatColliders } from '../models/boat';

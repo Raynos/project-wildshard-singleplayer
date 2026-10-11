@@ -35,6 +35,15 @@ import { ItemsSchema, ItemFamilyNameSchema } from '@wildshard/format/items';
 import { TargetsSchema } from '@wildshard/format/targets';
 import { QuestDataSchema } from '@wildshard/format/quests';
 
+import { RowsSchema } from '@wildshard/format/rows';
+import { MoversSchema } from '@wildshard/format/movers';
+import { SocketLiftSchema } from '@wildshard/format/socketLift';
+import { PortalLinkSchema } from '@wildshard/format/portalLink';
+import { EntrywaysSchema } from '@wildshard/format/entryways';
+import { NativeGroundSchema } from '@wildshard/format/nativeGround';
+import { UiSchema } from '@wildshard/format/ui';
+import { ClientScriptsSchema } from '@wildshard/format/clientScripts';
+
 /** JSON Schema plus explicit admission checks that JSON Schema cannot express. */
 export interface FormatJsonSchema extends JsonSchema {
   'x-wildshard-checks'?: string[];
@@ -60,6 +69,8 @@ customSchemas.set(weaponRow.entries.slot, { type: 'string', maxLength: 128, patt
 customSchemas.set(weaponRow.entries.light.entries.tags.pipe[0].item, { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9.-]*\\.[a-zA-Z0-9.-]+$' });
 customSchemas.set(weaponRow.entries.light.entries.effect.wrapped, { type: 'string', pattern: '^effect\\.[a-z][a-zA-Z0-9.-]*$' });
 customSchemas.set(toolRow.entries.action.wrapped, { type: 'string', pattern: '^[a-z][a-zA-Z0-9.-]*\\.[a-zA-Z0-9.-]+$' });
+// The namespaced combat tag validator is the exact defining row object.
+customSchemas.set(RowsSchema.pipe[2].entries.strikes.pipe[0].item.entries.tags.pipe[0].item, { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9.-]*\\.[a-zA-Z0-9.-]+$' });
 const unicodeRegexes = new Set<object>([
   plumbing.entries.namespace.pipe[1],
   input.entries.actions.pipe[0].item.entries.keys.pipe[0].item.pipe[1],
@@ -116,6 +127,14 @@ const wireRoots = {
   'items.Items': ItemsSchema,
   'targets.Targets': TargetsSchema,
   'quests.QuestData': QuestDataSchema,
+  'rows.Rows': RowsSchema,
+  'movers.Movers': MoversSchema,
+  'socketLift.SocketLift': SocketLiftSchema,
+  'portalLink.PortalLink': PortalLinkSchema,
+  'entryways.Entryways': EntrywaysSchema,
+  'nativeGround.NativeGround': NativeGroundSchema,
+  'ui.Ui': UiSchema,
+  'clientScripts.ClientScripts': ClientScriptsSchema,
  } satisfies Readonly<Record<string, GenericSchema>>;
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

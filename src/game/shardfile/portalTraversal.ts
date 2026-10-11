@@ -1,7 +1,8 @@
 import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { canStandAt } from '@wildshard/engine/physics/query';
-import { parsePortalLink, portalLinkRules, type PortalLink, type PortalLinkEntry } from './portalLink';
+import { portalLinkRules, type PortalLinkEntry } from './portalLink';
+import { parsePortalLink, type PortalLink } from '@wildshard/format/portalLink';
 
 const transitioning = new WeakSet<Physics>();
 /** Checkpoint owners refuse every write while a portal is validating or committing a transfer in this physics world. */

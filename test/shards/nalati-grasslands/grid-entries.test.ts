@@ -2,7 +2,8 @@ import { expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- The proof reads the committed terrain bake the game installs.
 import { readFileSync } from 'node:fs';
 import { encodeTerrainTile } from '../../../src/engine/world/terrainTileData';
-import { entrywayRules, validateEntrywayTerrain } from '../../../src/game/shardfile/entryways';
+import { validateEntrywayTerrain } from '../../../src/game/shardfile/entryways';
+import { entrywayRules } from '@wildshard/format/entryways';
 import { contentHash } from '../../../src/sdk/project';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 

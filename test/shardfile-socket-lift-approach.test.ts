@@ -1,9 +1,10 @@
 import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
-import { parseSocketLift, socketLiftRules, type SocketLiftEntry } from '../src/game/shardfile/socketLift';
+import { socketLiftRules, type SocketLiftEntry } from '../src/game/shardfile/socketLift';
+import { parseSocketLift } from '@wildshard/format/socketLift';
 import { PropsSchema } from '../src/game/shardfile/props';
 import type { LiftApproachSource } from '../src/game/shardfile/socketLiftApproach';
-import type { MoverData } from '../src/game/shardfile/movers';
+import type { MoverData } from '@wildshard/format/movers';
 
 const rot = { x: 0, y: 0, z: 0, w: 1 };
 function fixture(narrow = false) {

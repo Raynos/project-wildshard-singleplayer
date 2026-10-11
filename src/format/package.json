@@ -39,7 +39,17 @@
     "./accent": "./accent.ts",
     "./items": "./items.ts",
     "./targets": "./targets.ts",
-    "./quests": "./quests.ts"
+    "./quests": "./quests.ts",
+    "./rows": "./rows.ts",
+    "./sketch": "./sketch.ts",
+    "./movers": "./movers.ts",
+    "./socketLift": "./socketLift.ts",
+    "./portalLink": "./portalLink.ts",
+    "./entryways": "./entryways.ts",
+    "./nativeGround": "./nativeGround.ts",
+    "./ui": "./ui.ts",
+    "./clientScripts": "./clientScripts.ts",
+    "./wireLimits": "./wireLimits.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

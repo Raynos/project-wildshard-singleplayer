@@ -6,7 +6,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { compileScript } from '../scripts/compile-script.mjs';
 import { createShardfileComposedLane } from '../src/game/shardfile/scriptComposition';
 import { MoverScriptDriver } from '../src/game/shardfile/moverDriver';
-import { parseMovers } from '../src/game/shardfile/movers';
+import { parseMovers } from '@wildshard/format/movers';
 import { MoverRuntime } from "../src/game/plugin/mover";
 import { Scope } from '../src/engine/app/scope';
 import { Physics } from '../src/engine/physics/Physics';

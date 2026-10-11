@@ -13,7 +13,8 @@
 import { Bone, Skeleton, SkinnedMesh, type Group, type Object3D, type Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { createShardfileClientScripts, type ClientScriptTarget } from '../shardfile/clientScripts';
+import { createShardfileClientScripts } from '../shardfile/clientScripts';
+import type { ClientScriptTarget } from '@wildshard/format/clientScripts';
 import { loadClientSkins, SkinDriver, type ClientSkin } from '../shardfile/clientSkins';
 import { ClientScriptViews, type ClientScriptViewTarget, type ClientScriptViewState } from "../plugin/clientScript";
 import type { ShardfileSimulation } from '../shardfile/simulation';
