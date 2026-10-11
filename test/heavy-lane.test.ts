@@ -203,6 +203,7 @@ it('collects each test file once and serializes the build, native continuation a
     if (row.projectName === 'integration') integration.push(row.file.slice(resolvePath('.').length + 1));
   }
   expect(integration.sort()).toEqual([
+    'test/authoring-docs.test.ts',
     'test/grid-collision-strips.test.ts',
     'test/immutable-vegetation-canvases-off.test.ts',
     'test/immutable-vegetation-canvases.test.ts',
