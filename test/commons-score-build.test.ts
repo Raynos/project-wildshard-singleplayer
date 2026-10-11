@@ -1,3 +1,7 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Use the same Node executable for the retained generator.
+import process from 'node:process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Run the retained real pack generator before the pure bundled config.
+import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture owns two complete author projects and their emitted products.
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolate the author projects from shipped sources.
@@ -18,18 +22,24 @@ it('the real author compiler emits identical original sound hashes for two shard
     const products = [];
     for (const slug of ['driftwood-isle', 'pine-hollow']) {
       const project = join(root, slug); mkdirSync(project); symlinkSync(resolve('node_modules'), join(project, 'node_modules'));
-      // This retained TypeScript is the source of the product, including its actual shared pack generator.
-      writeFileSync(join(project, 'shard.config.ts'), `import {readFileSync} from 'node:fs';
-import {emptyShardfile} from '@wildshard/sdk/author';
+      // Retained generation owns filesystem access; the bundled config imports only its pinned metadata.
+      writeFileSync(join(project, 'generate.mjs'), `import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {commonsRequirements} from '@wildshard/sdk/commons';
 import {createCatalogue} from '@wildshard/commons/catalogue';
 import {scoreStingsPack} from '@wildshard/commons/packs/sounds';
 const source=${JSON.stringify(folk)};
-export const commons=createCatalogue([await scoreStingsPack('folk',source,
+const commons=createCatalogue([await scoreStingsPack('folk',source,
 file=>Promise.resolve(readFileSync(${JSON.stringify(sourceDir)}+'/'+file)),
 {credit:source.credit,licence:'MiniMax-Music3 Community'})]);
+mkdirSync('commons',{recursive:true});mkdirSync('data',{recursive:true});
+for(const [hash,bytes] of commons.assets)writeFileSync('commons/'+hash,bytes);
+writeFileSync('data/commons-requirements.json',JSON.stringify(commonsRequirements(commons,commons.catalogue.entries.map(row=>row.id))));
+`);
+      execFileSync(process.execPath, ['--experimental-transform-types', '--import', resolve('scripts/sim-node-loader.mjs'), join(project, 'generate.mjs')], { cwd: project, stdio: 'pipe' });
+      writeFileSync(join(project, 'shard.config.ts'), `import {emptyShardfile} from '@wildshard/sdk/author';
+import requirements from './data/commons-requirements.json' with {type:'json'};
 const shard=emptyShardfile({slug:${JSON.stringify(slug)},name:${JSON.stringify(slug)},author:'Wildshard',seed:1,revision:1});
-shard.requires={...shard.requires,...commonsRequirements(commons,commons.catalogue.entries.map(row=>row.id))};
+shard.requires={...shard.requires,...requirements};
 shard.library=shard.requires.commons.map(hash=>'commons:'+hash);
 export default shard;
 `);
