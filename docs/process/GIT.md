@@ -41,7 +41,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 - **A red gate can identify and release a green prefix** (SF74 W25). The pusher bisects failed test files, typechecks,
   lint, CSS, generated shard/plugin contracts and Node bakers on clean committed exports using their exact gate
   commands; mixed failures must all pass. Unsupported build/browser steps refuse selection. A candidate still needs
-  current regeneration and witness fences and the complete green push gate. Stale historical outputs are refused;
+  current regeneration, witness and baked-map/native-physics fences and the complete green push gate. Those bake
+  checks also refuse an older red that the newest gate no longer reports. Stale historical outputs are refused;
   the pusher never inserts a regeneration commit underneath shared main or rewrites the lanes' history.
 - **Push with `scripts/push-main.sh`, never `git push`** (enforced by `.claude/hooks/guard-bash-safety.sh`). It takes
   `.git/push.lock`. If another push holds the lock, your commits stay local and it exits 0: that push re-checks

@@ -10,7 +10,8 @@
 //   3. from there it walks back to a commit that is pushable as it is, needing no regeneration commit of its own (a
 //      regeneration commit cannot be slotted under commits already on local main): a verified regeneration commit
 //      (.git/generated-verified/<sha>) or one `regenerate-committed.mjs --check` passes (3 checks at most), whose
-//      witness checkpoints are current, skipping any commit a gate already failed (.git/gate-timings.jsonl).
+//      witness checkpoints and map/native physics bakes are current, skipping any commit a gate already failed
+//      (.git/gate-timings.jsonl). A newer failure must not hide an older stale bake still present in the candidate.
 // push-main.sh then runs the full gate on that commit and pushes it when green; the rest waits for the fix as before.
 // `--witness`: the regeneration refused a witness payload change (a behaviour change landed without its rebake); the
 // probe is then the witness re-record itself. Typecheck, lint, CSS, generated contracts and Node bakes use the gate's
@@ -117,6 +118,15 @@ function generatedCurrent(root, sha) {
 const MAX_GENERATED_CHECKS = 3;
 /** the witnesses' checkpoint fences: a commit whose manifests are stale is not pushable as it is */
 const CHECKPOINTS = ['driftwood-isle', 'far-reach', 'nine-dragon-stack', 'pine-hollow'].map((slug) => `test/proof/${slug}/checkpoints.test.ts`);
+// These existing gate tests also inspect committed input fences. A historical prefix
+// may predate the fix for an earlier red that the newest gate no longer reports.
+const BAKE_FENCES = ['test/baked-maps.test.ts', ...['driftwood-isle', 'far-reach', 'nine-dragon-stack',
+  'pine-hollow', 'nalati-grasslands', 'sunscar-dunes'].map((slug) => `test/shards/${slug}/physics-bake.test.ts`)];
+/** Check the existing witness and bake gates before spending a complete gate on a historical prefix.
+ * @param {string} root @param {string} sha @param {readonly string[]} [alreadyProbed] */
+export function prefixFresh(root, sha, alreadyProbed = []) {
+  return probeFailure(root, sha, [...CHECKPOINTS, ...BAKE_FENCES].filter((file) => !alreadyProbed.includes(file)));
+}
 
 /** Whether the witnesses re-record at <sha> with byte-identical payloads (the regeneration's refusal, probed alone). @param {string} root @param {string} common @param {string} sha */
 function witnessProbe(root, common, sha) {
@@ -178,7 +188,7 @@ export function greenPrefix(root, tip, out, mode = 'vitest') {
       checks++;
       if (!generatedCurrent(root, sha)) continue;
     }
-    if (!probeFailure(root, sha, CHECKPOINTS.filter((file) => !files.includes(file)))) continue;
+    if (!prefixFresh(root, sha, files)) continue;
     log(`pushable prefix: ${sha.slice(0, 9)} (${git(root, ['rev-list', '--count', `origin/main..${sha}`])} of ${commits.length + 1} unpushed commits)`);
     return sha;
   }
