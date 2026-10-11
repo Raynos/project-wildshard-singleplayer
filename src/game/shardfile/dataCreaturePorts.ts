@@ -1,0 +1,100 @@
+import { Vector3 } from 'three';
+import * as v from 'valibot';
+import { canReach } from '@wildshard/engine/ai/reach';
+import { lineOfSight } from '@wildshard/engine/physics/query';
+import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import type { SimHost } from '@wildshard/engine/sim';
+import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
+import type { ShardRows } from '@wildshard/format/rows';
+import type { DeclaredBrainPorts } from './brainRuntime';
+import type { DeclaredGroupPorts } from './groupRuntime';
+
+const finite = v.pipe(v.number(), v.finite());
+const motionSchema = v.strictObject({ x: finite, z: finite, speed: v.pipe(finite, v.minValue(0)) });
+/** Default data-only herd and diver recipes over one real host; injected trusted recipes remain separate. */
+export function dataCreaturePorts(host: SimHost, rows: ShardRows): {
+  brains: DeclaredBrainPorts; groups: DeclaredGroupPorts; install: () => void;
+} {
+  let used = false;
+  const motion = { x: host.player.position.x, z: host.player.position.z, speed: 0 };
+  const from = new Vector3(), to = new Vector3(), direction = new Vector3(), point = new Vector3();
+  const strikes = new Map<string, StrikeSpec>(rows.strikes.map(({ weight, speed, ...row }) =>
+    [row.id, { ...row, motion: { speed }, weight: () => weight }]));
+  const reach = (actor: AnimalSim): boolean => canReach(actor, host.player.position, host.physics);
+  const hurt = (actor: AnimalSim, damage: number, tags: StrikeSpec['tags'], moveId: string): void => {
+    if (!actor.alive || !host.player.health.alive) return;
+    point.copy(host.player.position); point.y += 1.2;
+    from.copy(actor.position); from.y += actor.dims.bodyY * actor.scale;
+    direction.subVectors(point, from).normalize();
+    host.combat.hit({ source: actor.combatActor(), sourceTags: tags, target: host.player.health,
+      amount: damage, point, dir: direction, from, moveId });
+  };
+  const inBounds = (x: number, z: number, margin: number): boolean => Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin;
+  const normalY = (x: number, z: number): number => {
+    const dx = host.groundHeightAt(x + 0.25, z) - host.groundHeightAt(x - 0.25, z);
+    const dz = host.groundHeightAt(x, z + 0.25) - host.groundHeightAt(x, z - 0.25);
+    return 0.5 / Math.hypot(dx, dz, 0.5);
+  };
+  const confine = (actor: AnimalSim): void => {
+    // The body motor owns obstacles. Reject outward steering at the cell's native bounds, without teleporting.
+    if (!inBounds(actor.position.x + Math.sin(actor.desiredYaw) * 2,
+      actor.position.z + Math.cos(actor.desiredYaw) * 2, 1)) actor.setMotion(Math.atan2(-actor.position.x, -actor.position.z), 0, 3);
+  };
+  const diver = (actor: AnimalSim, id: string) => {
+    used = true;
+    const strike = strikes.get(id);
+    if (strike === undefined) throw new Error('Unresolved data-host diver strike');
+    return { strike, observe: (dt: number) => ({ dt, player: host.player.position, calm: !host.player.health.alive,
+      mayAttack: (body: AnimalSim) => host.events.ask('ai.mayAttack', body),
+      claim: (body: AnimalSim) => host.events.ask('ai.claim', body), reach,
+      hurt: (damage: number) => { hurt(actor, damage, strike.tags, strike.id); },
+      flight: { steer: (body: AnimalSim, yaw: number, speed: number, altitude: number, turn: number) => { body.fly(yaw, speed, altitude, turn); } },
+    }), body: () => { confine(actor); } };
+  };
+  return {
+    brains: { orbitDiver: (actor, row) => diver(actor, row.strike), patrolDiver: (actor, row) => diver(actor, row.strike) },
+    groups: { herd: (group, _members) => {
+      used = true;
+      return { ports: {
+        sharedRng: () => host.rng.stream('ai'),
+        environment: () => ({ playerMounted: host.playerMode === 'ride', playerCrouched: false }),
+        visibility: (x, z, player) => {
+          from.set(x, host.groundHeightAt(x, z) + 1.2, z); to.copy(player); to.y += 1.2;
+          return lineOfSight(host.physics, from, to) ? 1 : 0;
+        },
+        hearing: (radii, _player, speed) => radii[speed < 0.4 ? 0 : speed <= 2.6 ? 1 : speed < 5.2 ? 2 : 3],
+        // Data-only rows declare no wind/scent field. Absence does not grant the smell observation.
+        downwind: () => false, inBounds, normalY,
+        passThrough: (actor, through) => {
+          const motor = actor.motor;
+          if (motor instanceof CharacterMotor) motor.passThrough(through ? ['PLAYER'] : []);
+        },
+        chargeContact: (actor, _context, radius) => {
+          if (actor.position.distanceTo(host.player.position) < radius && reach(actor))
+            hurt(actor, actor.mods.chargeDamage, ['animal.charge', 'feel.blow'], group.id);
+        },
+        // No declared pack owner is installed by this herd-only recipe.
+        scarePack: () => false, resolveActor: id => host.entities.get(id) ?? null,
+      }, observe: (actor, dt) => ({ dt, t: host.clock.now, player: host.player.position, playerSpeed: motion.speed,
+        calm: !host.player.health.alive, rng: host.rng.stream('ai'),
+        // Cues are presentation-only; this owner has no audio callback, reward or event grant.
+        sound: () => undefined, hurt: (damage: number) => { hurt(actor, damage, ['animal.herd', 'feel.blow'], group.id); },
+        steer: (body, yaw, speed, turn) => { body.setMotion(yaw, speed, turn); },
+        pathYaw: (body, x, z) => {
+          from.copy(body.position); from.y += body.dims.bodyY * body.scale;
+          to.set(x, host.groundHeightAt(x, z) + body.dims.bodyY * body.scale, z);
+          return lineOfSight(host.physics, from, to) ? Math.atan2(x - body.position.x, z - body.position.z) : body.yaw + Math.PI / 2;
+        }, confine,
+      }) };
+    } },
+    install: () => {
+      if (!used) return;
+      host.onStep('creatures.data-motion', dt => {
+        const player = host.player.position;
+        motion.speed = Math.hypot(player.x - motion.x, player.z - motion.z) / dt;
+        motion.x = player.x; motion.z = player.z;
+      }, { snapshot: () => ({ ...motion }), restore: value => { Object.assign(motion, v.parse(motionSchema, value)); } });
+    },
+  };
+}

@@ -258,3 +258,16 @@ figure geometry, animation controllers or rigs. Full shared figure-model
 adoption waits for the KTX2 graphical quality pass. Models, clips and sounds
 remain backed by retained authored inputs; generated output never substitutes
 for its generator.
+
+## Data-only herds and divers
+
+The ordinary client and `HeadlessSimulation` install herd/grazer-herd and orbit/patrol-diver recipes for
+a shard with no trusted runtime. Declare real species/variants, ordered group members and a sphere strike.
+No `runtime/` installer or game import is needed. The recipe reads native world LOS and ground slope,
+the player's measured speed, the host's shared `ai` RNG and attack authorization; the existing flight motor
+and strike/contact pipeline move and damage. Per-host motion and policy clocks restore with the world.
+There is no inferred cover, wind/scent, taming, pack interaction or audible cue binding; those need their
+explicit owners. Trusted injected recipes retain precedence. Pack, burst and other specialized recipes still
+refuse when no native owner is supplied. This example declares no rendered rig; creature view proof is separate.
+
+<!-- example: creatures -->

@@ -30,6 +30,7 @@ import { speciesResolver, simStrikes } from "./brain";
 import { createShardfileScriptLane, type ShardScriptPorts } from "../shardfile/scripts";
 import { installDeclaredBrains, type DeclaredBrainPorts } from "../shardfile/brainRuntime";
 import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from "../shardfile/scriptComposition";
+import { dataCreaturePorts } from "../shardfile/dataCreaturePorts";
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from "../shardfile/groupRuntime";
 import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from "../shardfile/crowdRuntime";
 import { MoverScriptDriver } from "../shardfile/moverDriver";
@@ -170,8 +171,9 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       return brain === undefined ? [] : [{ actorId: spawn.id, entity: numericScriptEntityId(`brain:${spawn.id}`), brain }];
     });
     if (brainBindings.length > 0 && ports.scriptBrains === undefined) throw new Error('Missing custom brain port');
+    const dataPorts = shard.runtime === null ? dataCreaturePorts(host, shard.rows) : undefined;
     const groupIds = new Set(shard.creatures.groups.map((group) => group.id));
-    const preparedGroups = prepareDeclaredGroupBrains(host, shard.creatures.groups, shard.creatures.spawns, ports.groups ?? {},
+    const preparedGroups = prepareDeclaredGroupBrains(host, shard.creatures.groups, shard.creatures.spawns, ports.groups ?? dataPorts?.groups ?? {},
       shard.creatures.brains.map((brain) => brain.id), shard.encounters.map((row) => row.entity));
     if (shard.crowds.length > 0 && ports.crowds === undefined) throw new Error('Missing declared crowd ports');
     const preparedCrowds = prepareDeclaredCrowds(shard.crowds, ports.crowds?.(host) ?? { flock: () => { throw new Error('Missing declared crowd recipe'); } });
@@ -275,7 +277,8 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         if (typeof state !== 'string') throw new Error('Invalid director row continuation'); director.restore(state);
       } });
     }
-    installDeclaredBrains(host, shard.creatures.spawns.filter((spawn) => spawn.brain === null || (!custom.has(spawn.brain) && !groupIds.has(spawn.brain))), shard.creatures.brains.filter((brain) => brain.kind !== 'script'), ports.brains);
+    installDeclaredBrains(host, shard.creatures.spawns.filter((spawn) => spawn.brain === null || (!custom.has(spawn.brain) && !groupIds.has(spawn.brain))), shard.creatures.brains.filter((brain) => brain.kind !== 'script'), ports.brains ?? dataPorts?.brains);
+    dataPorts?.install();
     const encounters = installDeclaredEncounters(host, shard.encounters, ports.encounters ?? (() => ({ saved: { defeated: false, rewardTaken: false, kills: 0 }, persist: () => undefined, reward: () => undefined })), ports.hud);
     // All individual/custom aliases and encounter recipes have admitted successfully before setup draws or group work.
     const groups = preparedGroups.install(ports.restoring ?? false);

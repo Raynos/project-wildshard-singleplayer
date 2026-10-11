@@ -16,6 +16,7 @@ import { moversExample } from '../scripts/docs/authoring/movers';
 import { modesExample } from '../scripts/docs/authoring/modes';
 import { weaponsExample } from '../scripts/docs/authoring/weapons';
 import { brainsExample } from '../scripts/docs/authoring/brains';
+import { creaturesExample } from '../scripts/docs/authoring/creatures';
 import { commonsExample } from '../scripts/docs/authoring/commons';
 import { readersExample } from '../scripts/docs/authoring/readers';
 import { weaponFamilyExample } from '../scripts/docs/authoring/weapon-family';
@@ -25,7 +26,7 @@ import { parseDirectorStages } from '@wildshard/format/directorStages';
 const examples = {
   scene: sceneExample, synth: synthExample, format: formatExample, directors: directorsExample,
   'director-script': directorScriptExample, movers: moversExample, modes: modesExample,
-  weapons: weaponsExample, brains: brainsExample, commons: commonsExample, readers: readersExample,
+  weapons: weaponsExample, brains: brainsExample, creatures: creaturesExample, commons: commonsExample, readers: readersExample,
   'weapon-family': weaponFamilyExample,
 };
 
