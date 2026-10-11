@@ -216,6 +216,27 @@ describe('SF6 platform measures', () => {
       expect(shardLines(root)['_template']?.conversion.gameSystemAttribution.lines).toBe(0);
     });
   });
+  it('charges the live copy while a platform original reached only by registered legacy stays historical', () => {
+    fixture((root, put) => {
+      const implementation = 'export const retained = 1;\n';
+      put('src/game/package.json', JSON.stringify({ name: '@wildshard/game', exports: { './retained': './retained.ts' } }));
+      put('src/game/retained.ts', implementation);
+      put('src/shards/alpha/runtime/retained.ts', implementation);
+      put('src/shards/alpha/runtime/entry.ts', "import './retained';\n");
+      put('src/shards/alpha-legacy/manifest.ts', "import '@wildshard/game/retained';\n");
+      put('src/shards/alpha-legacy/plugin.ts', 'export const plugin = 1;\n');
+      put('lint/legacy-shards.json', JSON.stringify({ version: 1, sealed: true, shards: { 'alpha-legacy': {
+        primary: 'alpha', source: 'a'.repeat(40), files: { 'manifest.ts': 'b'.repeat(64), 'plugin.ts': 'b'.repeat(64) },
+      } } }));
+      const measured = shardLines(root);
+      expect(measured['alpha-legacy']).toBeUndefined();
+      expect(alpha(root).conversion.gameSystemAttribution).toMatchObject({ lines: 0, modules: [] });
+      expect(alpha(root).conversion.customRuntimeLines).toBe(2);
+      // A live import of the original is still charged, even when a frozen caller also reaches it.
+      put('src/shards/alpha/runtime/entry.ts', "import '@wildshard/game/retained';\n");
+      expect(alpha(root).conversion.gameSystemAttribution).toMatchObject({ lines: 1, modules: [{ path: 'src/game/retained.ts', lines: 1 }] });
+    });
+  });
   it('G315 reports authored AssemblyScript separately with no cap or change to the TypeScript ratio', () => {
     fixture((root, put) => {
       put('src/shards/alpha/runtime/a.ts', 'export const a = 1;\n');
