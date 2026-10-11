@@ -7,6 +7,7 @@ import { withOwner } from '../../../src/engine/app/ownership';
 import { Audio } from '../../../src/engine/audio/Audio';
 import { Music } from '../../../src/engine/audio/Music';
 import { audioUnlocked, installAudioUnlock, pageAudioContext, resetAudioUnlockForTest } from '../../../src/engine/audio/unlock';
+import { installSilentScore } from '../../../src/game/systems/audio/silentScore';
 
 /** A WebAudio stand-in: every node, param and buffer is one forgiving object (connect chains, params take values, buffers hold samples). */
 function fakeNode(): Record<string, unknown> {
@@ -38,6 +39,31 @@ afterEach(() => { unlockScope.dispose(); unlockScope = new Scope('g325.page'); r
 beforeEach(() => { for (const name of ['OscillatorNode', 'GainNode', 'AudioScheduledSourceNode', 'AudioBufferSourceNode']) vi.stubGlobal(name, notThisNode); });
 
 describe('the first-gesture AudioContext (G325)', () => {
+  it('a prepared silent score creates no graph on activation and restores the gain after real audio starts', () => {
+    vi.stubGlobal('AudioContext', FakeContext);
+    const target = new EventTarget(), uninstall = installAudioUnlock(unlockScope, target);
+    const resident = new Scope('silent.resident'), entered = resident.child('entered');
+    const audio = withOwner(resident, () => new Audio()), music = withOwner(resident, () => new Music(audio));
+    installSilentScore(music, entered);
+    expect(made).toBe(0); expect(audio.ready).toBe(false);
+    audio.resume(); music.play('theme');
+    target.dispatchEvent(new Event('pointerdown'));
+    expect(made).toBe(1); expect(music.out.gain.value).toBe(0);
+    entered.dispose(); expect(music.out.gain.value).toBe(music.volume);
+    uninstall(); resident.dispose();
+  });
+
+  it('a silent entry retired before any audio starts leaves the next entry audible', () => {
+    vi.stubGlobal('AudioContext', FakeContext);
+    const resident = new Scope('silent.retired'), entered = resident.child('entered');
+    const audio = withOwner(resident, () => new Audio()), music = withOwner(resident, () => new Music(audio));
+    installSilentScore(music, entered); entered.dispose();
+    expect(made).toBe(0);
+    audio.resume(); music.play('theme');
+    expect(music.out.gain.value).toBe(music.volume);
+    resident.dispose();
+  });
+
   it('makes no context before the gesture; the gesture builds the graph and starts the queued music', () => {
     vi.stubGlobal('AudioContext', FakeContext);
     const target = new EventTarget(), uninstall = installAudioUnlock(unlockScope, target);
