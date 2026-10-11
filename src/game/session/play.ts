@@ -70,7 +70,7 @@ import { installGridReveal } from '../grid/reveal';
 import { installGridHud } from '../grid/gridHud';
 import { installBudgetOverlay } from '../grid/budgetOverlay';
 import { installMemoryWarning } from '../grid/memoryWarning';
-import { ACCENTS } from '../shardfile/accent';
+import { ACCENTS } from '@wildshard/format/accent';
 import { installMinimapBlend } from '../grid/minimapBlend';
 import { findShard } from '../shard/registry';
 import { accentHex, hudAccent, onHudAccent, setHudAccent } from './hudAccent';

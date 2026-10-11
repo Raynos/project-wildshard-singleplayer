@@ -8,7 +8,7 @@ import { visitGlbTriangles, parseGlb } from '../src/game/shardfile/assets';
 import { parseShardfile } from '../src/game/shardfile/schema';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
 import type { ShardProps } from '../src/game/shardfile/props';
-import type { ShardWater } from '../src/game/shardfile/water';
+import type { ShardWater } from '@wildshard/format/water';
 
 const empty = () => emptyShardfile({ slug: 'clearance-test', name: 'Clearance', author: 'Test', seed: 1, revision: 1 });
 const props = (): ShardProps => ({ version: 1, family: 'pbr', tiles: [], panels: [], models: [], far: null, textures: [], colliders: [] });

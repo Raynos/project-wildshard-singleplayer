@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
-import { AccentSchema } from '../shardfile/accent';
+import { AccentSchema } from '@wildshard/format/accent';
 
 const id = v.pipe(v.string(), v.regex(/^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u));
 const signed = v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(1));

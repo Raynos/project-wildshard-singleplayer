@@ -1,4 +1,4 @@
-import { ACCENTS, type AccentId } from '../shardfile/accent';
+import { ACCENTS, type AccentId } from '@wildshard/format/accent';
 
 /**
  * The accent the big item cards wear right now (SHARD-PLATFORM SF28, G87 / G104): the booted shard's declared accent

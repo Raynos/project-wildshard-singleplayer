@@ -8,7 +8,7 @@
  */
 import { BufferAttribute, BufferGeometry, CircleGeometry, Mesh, MeshStandardMaterial, PlaneGeometry, Shape, ShapeGeometry, Vector2, type Material, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ShardWater } from './water';
+import type { ShardWater } from '@wildshard/format/water';
 import type { GraphOutlineHook } from './clientGraphs';
 
 /** the cell edge (500 m) a sea plane covers */

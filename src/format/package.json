@@ -33,7 +33,10 @@
     "./presentation": "./presentation.ts",
     "./scripts": "./scripts.ts",
     "./hooks": "./hooks.ts",
-    "./meshCollision": "./meshCollision.ts"
+    "./meshCollision": "./meshCollision.ts",
+    "./terrain": "./terrain.ts",
+    "./water": "./water.ts",
+    "./accent": "./accent.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

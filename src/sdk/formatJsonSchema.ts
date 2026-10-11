@@ -28,6 +28,9 @@ import { PresentationSchema } from '@wildshard/format/presentation';
 import { MeshCollisionSchema } from '@wildshard/format/meshCollision';
 import { ScriptBindingsSchema } from '@wildshard/format/scripts';
 import { HooksSchema } from '@wildshard/format/hooks';
+import { TerrainSchema } from '@wildshard/format/terrain';
+import { WaterSchema } from '@wildshard/format/water';
+import { AccentSchema, ACCENT_IDS } from '@wildshard/format/accent';
 
 /** JSON Schema plus explicit admission checks that JSON Schema cannot express. */
 export interface FormatJsonSchema extends JsonSchema {
@@ -43,6 +46,8 @@ const customSchemas = new Map<object, JsonSchema>([
   [input.entries.id, { type: 'string', maxLength: 128, pattern: '^[a-z][a-z0-9-]*(?:\\.[a-z][a-zA-Z0-9-]*)+$' }],
   [debug.entries.ask, { type: 'string', pattern: '^E[1-9][0-9]*$' }],
 ]);
+// Exact fixed-palette validator; a caller's new custom schema receives no bridge.
+customSchemas.set(AccentSchema.pipe[2], { type: 'string', enum: [...ACCENT_IDS] });
 const unicodeRegexes = new Set<object>([
   plumbing.entries.namespace.pipe[1],
   input.entries.actions.pipe[0].item.entries.keys.pipe[0].item.pipe[1],
@@ -92,6 +97,9 @@ const wireRoots = {
   'meshCollision.MeshCollision': MeshCollisionSchema,
   'scripts.ScriptBindings': ScriptBindingsSchema,
   'hooks.Hooks': HooksSchema,
+  'terrain.Terrain': TerrainSchema,
+  'water.Water': WaterSchema,
+  'accent.Accent': AccentSchema,
  } satisfies Readonly<Record<string, GenericSchema>>;
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

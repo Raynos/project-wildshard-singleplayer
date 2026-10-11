@@ -2818,3 +2818,5 @@ DS1.1: `@wildshard/format/{admissionLimits,version,state,preflight,json,commonsC
 DS1.1: the pure creature/brain, audio, ledger, director, migration, traversal, runtime declaration and sampled skin contracts now live in defining `@wildshard/format` modules. Their Valibot bounds, semantic checks and pure continuation transformations move verbatim; native hosts and renderer adapters remain in game. Public format schemas join the SF45 generated reference inventory automatically.
 
 DS1.1: presentation metadata, exact mesh-collision declarations, script bindings/fields and named hooks are defined in `@wildshard/format`. Image URL resolution, native mesh-byte validation and script-host installation remain in game; all bounds and reference verdicts are unchanged.
+
+DS1.1: terrain tile addressing, bounded water declarations and the immutable accent palette are defined in `@wildshard/format`. Game retains byte validation, fresh water motor bodies and HUD CSS mapping unchanged. Authors and loader consume the same defining Valibot contracts.

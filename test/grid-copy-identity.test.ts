@@ -6,7 +6,7 @@ import { GridAssembly } from '../src/game/grid/assembly';
 import { GridCellEvents } from '../src/game/grid/boot';
 import { copyAccent, copyMarks, copyNumber, numberQuads } from '../src/game/grid/copyIdentity';
 import { installGridHud } from '../src/game/grid/gridHud';
-import { ACCENTS } from '../src/game/shardfile/accent';
+import { ACCENTS } from '@wildshard/format/accent';
 
 const copies = (mode: { developer: boolean; devserver: boolean }) => new GridAssembly(mode).cells.filter((cell) => cell.slug === '_template');
 

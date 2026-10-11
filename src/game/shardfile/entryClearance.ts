@@ -1,6 +1,6 @@
 import type { ShardEntryways } from './entryways';
 import type { ShardProps } from './props';
-import type { ShardWater } from './water';
+import type { ShardWater } from '@wildshard/format/water';
 import { entryFootprints, clipEntryPolygon, obstructsEntry, type EntryVertex, type EntryFootprint } from './entryGeometry';
 import { visitGlbTriangles } from './assets';
 import { glbPoint, glbTransform } from './glbTriangles';

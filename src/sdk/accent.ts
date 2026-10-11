@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { ACCENTS as palette, ACCENT_IDS as ids, AccentSchema as schema, parseAccent as parse, type AccentId as Id } from '@wildshard/game/shardfile/accent';
+import { ACCENTS as palette, ACCENT_IDS as ids, AccentSchema as schema, parseAccent as parse, type AccentId as Id } from '@wildshard/format/accent';
 
 /** The platform's 20 shard accents, keyed by the required shardfile palette ID. */
 export const ACCENTS = { ...palette };

@@ -11,7 +11,7 @@ import { attachOutline, compileGraph } from '../src/engine/render/graph/compile'
 import { Scope } from '../src/engine/app/scope';
 import { clientGraphs, graphOutlineHook, isGraphEntry } from '../src/game/shardfile/clientGraphs';
 import { installClientWater } from '../src/game/shardfile/clientWater';
-import { WaterSchema } from '../src/game/shardfile/water';
+import { WaterSchema } from '@wildshard/format/water';
 import { materialGraphRules } from '../src/game/shardfile/materials';
 import { inkGraph } from '../scripts/tsl-spike/stress.js';
 

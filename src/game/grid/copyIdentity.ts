@@ -11,7 +11,7 @@
  */
 import { BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import catalogue from './singleplayer.json' with { type: 'json' };
-import { ACCENTS } from '../shardfile/accent';
+import { ACCENTS } from '@wildshard/format/accent';
 import { parseGridCatalogue, type CopyIdentity } from './catalogue';
 import { copyLayoutMesh } from './copyLayout';
 

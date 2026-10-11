@@ -53,7 +53,7 @@ it('rebuilds all migrated documents byte-identically without committing generate
     const directory = join(root, '.wildshard/format');
     const files = readdirSync(directory).sort();
     expect(files).toEqual(Object.keys(formatJsonSchemas()).map(name => `${name}.schema.json`).sort());
-    expect(files.length).toBe(36);
+    expect(files.length).toBe(39);
     const before = files.map(name => readFileSync(join(directory, name), 'utf8'));
     writeFormatJsonSchemas(root);
     expect(files.map(name => readFileSync(join(directory, name), 'utf8'))).toEqual(before);
@@ -94,4 +94,12 @@ it('retains presentation hashes, independent mesh chunk checks and strict hook/s
   expect(roots['meshCollision.MeshCollision']?.['x-wildshard-checks']).toEqual([1, 2, 3].map(index => `@wildshard/format/meshCollision#MeshCollisionSchema.pipe.${index}`));
   expect(roots['scripts.ScriptBindings']?.maxItems).toBe(10000);
   expect(roots['hooks.Hooks']?.additionalProperties).toBe(false);
+});
+
+it('documents exact terrain grids, bounded water and the closed twenty-accent palette', () => {
+  const roots = formatJsonSchemas();
+  expect(roots['terrain.Terrain']?.['x-wildshard-checks']).toEqual(['@wildshard/format/terrain#TerrainSchema.pipe.1']);
+  expect(roots['water.Water']?.maxItems).toBe(64);
+  expect(roots['accent.Accent']?.enum).toHaveLength(20);
+  expect(roots['accent.Accent']?.enum).not.toContain('cyan');
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ACCENTS, ACCENT_IDS, ROAD_ACCENT, accentVars, parseAccent } from '../src/game/shardfile/accent';
+import { accentVars } from '../src/game/shardfile/accent';
+import { ACCENTS, ACCENT_IDS, ROAD_ACCENT, parseAccent } from '@wildshard/format/accent';
 
 describe('G104 HUD accents', () => {
   it('has the 20 palette accents and keeps the road cyan out of them', () => {

@@ -19,7 +19,7 @@ import type { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import type { WaterBody } from '@wildshard/engine/world/water/body';
 import { terrainFieldFor } from '@wildshard/engine/world/groundField';
 import type { ShardPlugin } from "../plugin/shardPlugin";
-import type { AccentId } from '../shardfile/accent';
+import type { AccentId } from '@wildshard/format/accent';
 import type { RegionalSimCost, RuntimeCost } from '../grid/runtimeCost';
 import type { ShardSlug } from './slugs.generated';
 /**

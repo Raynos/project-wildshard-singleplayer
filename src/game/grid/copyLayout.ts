@@ -11,7 +11,7 @@
  * collider row in that copy's region, `withCopyLayout`), so what you see is what the board hits.
  */
 import { BoxGeometry, BufferAttribute, BufferGeometry, Color, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
-import { ACCENTS } from '../shardfile/accent';
+import { ACCENTS } from '@wildshard/format/accent';
 import type { Shardfile } from '../shardfile/schema';
 import type { CopyIdentity } from './catalogue';
 

@@ -1,6 +1,7 @@
 import { CELL_ABOVE, CELL_BELOW, CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { encodeTerrainTile, terrainTileCost, terrainTileHeight, type TerrainTileData } from '@wildshard/engine/world/terrainTileData';
-import { TerrainSchema, validateTerrainAssets, type ShardTerrain } from '@wildshard/game/shardfile/terrain';
+import { validateTerrainAssets } from '@wildshard/game/shardfile/terrain';
+import { TerrainSchema, type ShardTerrain } from '@wildshard/format/terrain';
 import type { Shardfile } from '@wildshard/game/shardfile/schema';
 import * as v from 'valibot';
 import { contentHash } from '../project';
