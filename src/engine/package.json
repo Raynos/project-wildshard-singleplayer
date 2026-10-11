@@ -17,6 +17,7 @@
     "./ai/burstFlyer": "./ai/burstFlyer.ts",
     "./ai/challengeGrazer": "./ai/challengeGrazer.ts",
     "./ai/ramGrazer": "./ai/ramGrazer.ts",
+    "./ai/diver": "./ai/diver.ts",
     "./ai/grazer": "./ai/grazer.ts",
     "./ai/BossBrain": "./ai/BossBrain.ts",
     "./ai/CreatureBrain": "./ai/CreatureBrain.ts",

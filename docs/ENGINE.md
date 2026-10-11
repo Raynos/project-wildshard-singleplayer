@@ -3053,3 +3053,20 @@ existing bounded flat tuning and strike ids. SDK `grazers.grazer(data)` validate
 without installing code. `grazerPreset` converts admitted data to the historical
 contract; the native installer and full-shard strike checks use this same pure
 mapping, so existing body ports and save bytes survive the spelling change.
+
+### Parametric divers (SF82 BR-1)
+
+`@wildshard/engine/ai/diver` defines `DiverBrain`. Its immutable `DiverProfile`
+selects `orbit`, `patrol` or `burst`, each with admitted tuning, home and a sphere
+strike. `DiverObservation` tags the matching trusted flight/contact ports. The
+policy owns one strike runner, target vector, phase clocks and atomic restore;
+the host retains movement, collision, damage and player-shove authority.
+
+The existing `ai/orbitDiver`, `ai/patrolDiver` and `ai/burstFlyer` constructors are
+presets of that implementation. Their observation signatures, inspect phases and
+serialized continuation bytes remain unchanged. Orbit keeps its horizontal stalk
+test and calm cancellation; patrol keeps its held-field reset and strike-before-
+flight order; burst keeps its three-dimensional notice test and contact shove.
+The pattern tag is not inserted into historical save contracts. A different
+observation pattern refuses before effects. Phased flight, wind stooping and
+declared diver rows remain open; this seam changes no body or collider.
