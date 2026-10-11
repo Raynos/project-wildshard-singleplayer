@@ -183,3 +183,6 @@ Two read-only seats, one brief, the live site screen by screen (WebKit, phone 40
   having a page about what it's like building zones, shards in the game, and having that last page with the technical
   details of Project Wildshard"*: the October plan's three sagas (play, build, the MMO) become /play, /build and /mmo
   (MS29–MS32), and what the audit cut from the home page lands there.
+- **Experimental shards (Jake 2026-10-11, "Tag them Experimental"):** Sky Reach, Signal Dunes and Nine Dragon Stack are
+  locked in the public game (Developer off), so their home cards wear the game's own Experimental badge, and Pine
+  Hollow (Early access) takes Sky Reach's place among the three phone cards.
