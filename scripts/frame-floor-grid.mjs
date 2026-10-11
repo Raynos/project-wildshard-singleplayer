@@ -4,14 +4,16 @@ import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 export function floorGridPortalPlan(plan, cell, entryways) {
   if (plan.from !== null || plan.start === undefined || !Array.isArray(entryways)) return plan;
   const origin = { x: cell.cell[0] * 555, z: cell.cell[1] * 555 };
-  const dx = plan.start.x - origin.x, dz = plan.start.z - origin.z;
+  const entry = plan.waypoints.at(-1) ?? plan.start;
+  const dx = entry.x - origin.x, dz = entry.z - origin.z;
   const edge = Math.abs(dz) >= Math.abs(dx) ? (dz >= 0 ? 'north' : 'south') : (dx >= 0 ? 'east' : 'west');
   const row = entryways.find(value => value?.edge === edge && (value.kind === 'portalLink' || value.kind === 'socketLift'));
   if (row === undefined) return plan;
+  const prefix = plan.observePreparation === true ? plan.waypoints.slice(0, -1) : [];
   if (row.kind === 'socketLift') {
     const approach = row.lift?.approach?.route;
     if (!Array.isArray(approach) || approach.length < 2 || !approach.every(point => Array.isArray(point) && point.length === 3 && point.every(Number.isFinite))) throw new Error('Invalid declared floor lift approach');
-    return { ...plan, waypoints: approach.map(point => ({ x: origin.x + point[0], z: origin.z + point[2] })), authoredLift: { edge } };
+    return { ...plan, waypoints: [...prefix, ...approach.map(point => ({ x: origin.x + point[0], z: origin.z + point[2] }))], authoredLift: { edge } };
   }
   const node = value => {
     if (typeof value?.id !== 'string' || value.id.length === 0 || !Array.isArray(value.at) || value.at.length !== 3
@@ -20,7 +22,7 @@ export function floorGridPortalPlan(plan, cell, entryways) {
   };
   const road = node(row.portal?.road), destination = node(row.portal?.destination);
   if (!Array.isArray(row.portal?.links) || !row.portal.links.some(link => link.from === road.id && link.to === destination.id)) throw new Error('Missing declared floor portal link');
-  return { ...plan, waypoints: [road, destination], portal: { road, destination } };
+  return { ...plan, waypoints: [...prefix, road, destination], portal: { road, destination } };
 }
 
 /** Actual-frame floor routes; only the first home pose is seeded, every seam afterwards is driven by held input. */

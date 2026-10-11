@@ -397,7 +397,7 @@ async function measureShard(driver, shard, deadline) {
       const state = await driver.evaluate('window.__wildshard.shard.grid.state()');
       for (let plan of selectFloorGridPlans(publicGrid ? publicGridPlans(state) : gridFloorPlans(state, gridScenario, { cell: gridCell, roadApproach, entrySocket, ...(risingIslet === '' ? {} : { risingIslet }) }), gridRoutes)) {
         if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
-        if (gridScenario === 'milestone' && plan.from === null) {
+        if ((gridScenario === 'milestone' || gridScenario === 'cell') && plan.from === null) {
           const cell = state.cells.find(row => row.instance === plan.to);
           if (!cell) throw new Error('Floor entry cell missing');
           const path = `/shardfiles/${encodeURIComponent(cell.slug)}/shard.json`;

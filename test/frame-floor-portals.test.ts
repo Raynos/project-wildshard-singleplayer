@@ -45,3 +45,12 @@ it('walks the declared lift approach before resolving an entered runtime, withou
   expect(() => floorGridPortalPlan(plan, cell, [{ edge: 'east', kind: 'socketLift', lift: { approach: { route: [[235, 0, 0]] } } }])).toThrow('Invalid declared');
   expect(() => floorGridPortalPlan(plan, cell, [{ edge: 'east', kind: 'socketLift', lift: { approach: { route: [approach[0], [234, Infinity, 0]] } } }])).toThrow('Invalid declared');
 });
+
+
+it('keeps the shipping-speed road turn before the authored portal landing', () => {
+  const turn = { x: 1387.5, z: 1665 };
+  const approaching = { ...plan, start: { x: 1387.5, z: 1942.5 }, waypoints: [turn, ...plan.waypoints], observePreparation: true, hoverMaxSpeed: 30 };
+  const resolved = floorGridPortalPlan(approaching, cell, entries);
+  expect(resolved.waypoints).toEqual([turn, { id: 'road.east', x: 1346, y: 0, z: 1665 }, { id: 'square', x: 1110.95, y: 125, z: 1672.5 }]);
+  expect(resolved).toMatchObject({ observePreparation: true, hoverMaxSpeed: 30, start: approaching.start });
+});
