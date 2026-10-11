@@ -11,7 +11,7 @@ import { canonicalSimDigest } from '../../fake/simState';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 import { prepareSignalRuntime, SIGNAL_LASH_INPUT } from '../../../src/shards/sunscar-dunes/runtime/signalPlan';
-import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/data/headless';
+import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/headlessRows';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;

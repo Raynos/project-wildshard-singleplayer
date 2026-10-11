@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hashes the geometry and texture bytes against the recorded ones.
 import { createHash } from 'node:crypto';
 import { CylinderGeometry, Vector3, type BufferAttribute, type InterleavedBufferAttribute } from 'three';
-import { braidColours, coilPoints, LashCord, plaitedCord, plaitTextures, type PlaitStyle } from '../../../src/game/systems/items/lashView';
-import { COIL_A, LASH_CORD, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B } from '../../../src/shards/sunscar-dunes/data/whip';
+import { braidColours, coilPoints, LashCord, plaitedCord, plaitTextures, type PlaitStyle } from '../../../src/shards/sunscar-dunes/runtime/items/lashView';
+import { COIL_A, LASH_CORD, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B } from '../../../src/shards/sunscar-dunes/runtime/items/whipRows';
 // The bullwhip's cord, plait tile and held coil as Signal Dunes' own code built them before they became rows (HEAD d91bc1a63, weapons/whipModel.ts).
 import before from './whip-view.json' with { type: 'json' };
 

@@ -1937,8 +1937,7 @@ const view = installQuestPresentation(ctx, {
 view.quest.flags.set('template.bell.rung');
 ```
 
-**A quest's coin reward (SHARD-PLATFORM M3).** `@wildshard/game/quest/questReward` holds the reward plumbing every
-rewarded quest repeated. `questReward(ctx, { player, coins, amount, paid, markPaid, toast })` makes the `CoinBurst` (on
+**A quest's coin reward (SHARD-PLATFORM M3).** Signal Dunes’ private `runtime/quest/questReward.ts` holds its reward plumbing. `questReward(ctx, { player, coins, amount, paid, markPaid, toast })` makes the `CoinBurst` (on
 the play scene, or a scene of its own headless) and `pay`, which pays `amount` coins once per save through the platform
 purse (`coins`, a `RuntimeCoins`) and toasts after the last lands; `paid` / `markPaid` are the save's record (a quest
 flag, a shard save). `presentRewardedQuest(ctx, quest, reward, { id, player, paidAtLoad, newQuest, presentation, beat })`
@@ -2404,12 +2403,12 @@ round and rises `dormant.from` → `dormant.to` with `rise`; in the fight it cir
 under `skim`, `diveSlope` m of altitude per metre to the chest), climbs away for `climbSeconds` and rests
 `restSeconds[phase]` before the next dive; from `groundedPhase` it lies at `lieAltitude`, crawls to `standOff` and
 strikes with its `grounded` strikes. Its continuation is `{ version: 1, actor, state, clock, wait, struck, strikes }`.
-`@wildshard/game/shardfile/bossFight` (SDK `@wildshard/sdk/bossFight`) `markedBossFight(row, ports)` is the matching
+Signal Dunes’ private `runtime/shardfile/bossFight.ts` `markedBossFight(row, ports)` is the matching
 view-free `BossScript`: a fresh body per checkpoint at `hpShares[checkpoint]`, the intro's rise over `riseSeconds`, the
 phase marks, a storm (0..1, goal 1 in `stormPhases`, eased over `stormFade` s) the views read through `update(dt, storm)`,
 invulnerability through the beats and the victory, inside a circular `arena`; its continuation is `{ stormGoal, storm,
 invulnerable }`. The browser runs it under its views and the headless host through `installBossRow`. Signal's Dune
-Matriarch is the first (`data/brains.ts` MATRIARCH_BRAIN, `data/matriarchFight.ts` MATRIARCH_FIGHT), held to her old
+Matriarch is the first (`data/brains.ts` MATRIARCH_BRAIN, `runtime/quest/matriarchFight.ts` MATRIARCH_FIGHT), held to her old
 brain by `test/shards/sunscar-dunes/matriarch-brain.test.ts`.
 
 **Phased boss fights (SF27).** `@wildshard/game/shardfile/phasedBoss` (SDK `@wildshard/sdk/phasedBoss`)
@@ -2442,16 +2441,16 @@ body identities, hazard clocks, lane state and both streams. Pine's `data/kingFi
 its fields or order. The frozen shipping fight and goals in `test/fixtures/species-oracle/antlerKing*.ts` cover every
 mode, phase transition, view/contact ordering and restored suffix tick for tick. The fixed-arena policy above is unchanged.
 
-`@wildshard/game/shardfile/markedBoss` (SDK `@wildshard/sdk/markedBoss`) is the browser side (SF27 / SF7f):
+Signal Dunes’ private `runtime/shardfile/markedBoss.ts` is the browser side (SF27 / SF7f):
 `installMarkedBoss(ctx, rows, { player, body, record, coins, lit, onDown })` builds a `MarkedBoss` (the engine's
 `BossBrain` over `markedBossFight`) from `{ definition, fight, presentation, reward }`, registers it with the encounters,
 arms it when `lit` holds (else `summon` arms it and toasts the summons), answers the death checkpoint and updates it each
-frame. Its presentation row (`@wildshard/game/shardfile/markedBossPresentation`, SDK `parseMarkedBossPresentation`) is the
+frame. Its presentation row (Signal’s `runtime/shardfile/markedBossPresentation.ts`, `parseMarkedBossPresentation`) is the
 arena `floor` the coin burst leaves from, the `respawn` point, the storm's look (a weather fog of `dist` in `color`, eased
 with the storm strength, and blown-sand shells `[radius, opacity]` streaking down `wind`,
-`@wildshard/game/systems/looks/stormShell` `stormShellMaterial`) and its toasts; the boss bar is the engine's `BossBar`.
+Signal’s `runtime/looks/stormShell.ts` `stormShellMaterial`) and its toasts; the boss bar is the engine's `BossBar`.
 `carriedBossRecord(ctx, flags, id, names)` is `bossFlagRecord` after carrying a save's old `bossesSave` entry over once.
-Headless, `@wildshard/game/shardfile/markedBossRow` `installMarkedBossRow(host, spec, { body, fact, coins })` runs the same
+Headless, Signal’s `runtime/shardfile/markedBossRow.ts` `installMarkedBossRow(host, spec, { body, fact, coins })` runs the same
 rows on `installBossRow`, its victory raising `spec.victory.flag` and emitting its fact.
 
 `@wildshard/game/quest/questGraph` `installQuestGraph(host, { quests, interactions, npcs, graph }, ports)` runs a shard's
@@ -2460,14 +2459,15 @@ talk spot, its runtime row (`parseQuestGraph`: `actor`, `step`, `actions`: `{ ro
 runs). `drive: "external"` lets an existing modal/ride owner deliver `run(id)` without a second step or snapshot; transient marks refuse without their own continuation. `compileQuestTable(table, bindings)` compiles only supported latched-lever, pickup and bench flag effects, preserving ordered sets and leaving geometry, inventory and sitting with their existing owners.
 A skinned NPC can use `parseNpcDialogueRow` (SDK `questGraph`) to validate its unchanged dialogue without inventing pivot-body data. A quest-giver is an NPC row (`@wildshard/game/quest/npcRow` `parseNpcRow`, `npcDef`, `npcSpot`): id, name, talk spot,
 place, home facing, met flag, talk height and reach, face and wave ranges, its solid column, its pivot figure (model,
-height, neck, shoulder, arm cut, material) and its dialogue. `@wildshard/game/quest/pivotNpc` (SDK `@wildshard/sdk/pivotNpc`)
+height, neck, shoulder, arm cut, material) and its dialogue. Signal’s private `runtime/quest/pivotNpc.ts`
 `installPivotNpc(ctx, row, { source, groundAt, player, met, file, dress })` stands it in a level; `pivotNpcParts` is its
-Model Explorer figure. The SDK's `@wildshard/sdk/rowsHeadless` `rowsHeadlessRuntime(manifest)` is a whole trusted
+Model Explorer figure. Signal’s private `runtime/rowsHeadless.ts` `rowsHeadlessRuntime(manifest)` is a whole trusted
 `prepareHeadlessRuntime` from rows: the baked metadata (`bakedSpecs`, `bakedSpots`), the homes and their brains (with
 `holds`: a home's memory field held until a flag), the marked boss, the lash item, the quest graph and the terrain entry
-walk (`@wildshard/game/shardfile/terrainEntries` `proveTerrainEntries`). `@wildshard/sdk/standaloneEntry`
+walk (`@wildshard/game/shardfile/terrainEntries` `proveTerrainEntries`). Signal’s private `runtime/shard/standaloneEntry.ts`
 `standaloneHybridEntry(Native, { name, source, entry, runtime })` is a first-party primary's standalone hybrid entry.
-Signal Dunes is the first on all of them (`data/headless.ts`, `quests/graph.ts`, `quests/scout.ts`, `data/matriarchFight.ts`).
+These one-user implementations and their SDK facades returned to Signal under DS0.1; its bindings live in
+`runtime/headlessRows.ts`, `quests/graph.ts`, `quests/scout.ts` and `runtime/quest/matriarchFight.ts`.
 
 
 ### Exported creature skins and clips

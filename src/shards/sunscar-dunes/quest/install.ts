@@ -1,7 +1,7 @@
 import type { QuestMarker, QuestState } from '@wildshard/engine/quest/core';
 import type { CoinBurst } from '@wildshard/game/loot/CoinBurst';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
-import { presentRewardedQuest, questReward } from '@wildshard/game/quest/questReward';
+import { presentRewardedQuest, questReward } from '../runtime/quest/questReward';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
@@ -10,7 +10,8 @@ import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { lastLightAll } from '../look/light';
 import { ownPrimitives } from '../world/resources';
-import { installPivotNpc, npcDef } from '@wildshard/sdk/pivotNpc';
+import { installPivotNpc } from '../runtime/quest/pivotNpc';
+import { npcDef } from '@wildshard/game/quest/npcRow';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
 import { duneMesh } from '../world/meshes';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';

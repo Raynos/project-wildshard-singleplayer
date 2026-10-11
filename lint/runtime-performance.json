@@ -6177,6 +6177,138 @@
     "src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts:unbounded-loop:97f363da657f5fe97f4eb894866087bd5737de591d7ff19f25187dae95e4ea26": {
       "count": 1,
       "row": "SF76"
+    },
+    "src/shards/sunscar-dunes/runtime/quest/questReward.ts:raw-render:b97696f6c4b41e4882c531fa5ff621f7bbfd2ef54debc5c5ec88104ef5bb1053": {
+      "count": 3,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/quest/questReward.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 2,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/quest/questReward.ts:raw-render:da4f5bdeab263051d899a311ca25863754670e43de50f1f5c3572e6d5c8bee67": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/shardfile/bossFight.ts:unbounded-loop:f1d9ef54a87924c54df476db90bfd567f7fc3106fb7c824040428b7d7428386f": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts:raw-render:b97696f6c4b41e4882c531fa5ff621f7bbfd2ef54debc5c5ec88104ef5bb1053": {
+      "count": 3,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 3,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts:raw-render:da4f5bdeab263051d899a311ca25863754670e43de50f1f5c3572e6d5c8bee67": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts:unbounded-loop:92987777897b3a611731e327912f6fd393b4523c11e8ec2ff8f7c8b32c0b13ba": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts:frame-allocation:7125f5427952011b464d91cb13f85bcd9bf5600fd1316190b53d7431a8832981": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts:frame-allocation:92d2448eedd7f5f0d28e268b617e7dcf6938a9d63b8da4e4a49c849621854d34": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/rowsHeadless.ts:unbounded-loop:180a9f96cb210b7ad16f2dd94795c4554cad007760c67d0c0c986c04e0f803af": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashHold.ts:unbounded-loop:151e97b178068730ef6539a745629ac7e7657ca1176ab0737c755e57a8d8d680": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashHold.ts:unbounded-loop:556aa028bcd40ea3abd652c1c9aba7d12442ff09368b507a134fe6bcc037e1b2": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashHold.ts:unbounded-loop:caee2ccde153d12de55b491ade63bb2b21b3ee59198a08e46032f4ade3164c0a": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashHold.ts:unbounded-loop:827cee560b2da2cd318e1b22af083f53b8a1087540a3354d4c0b620f5f71c273": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashHold.ts:unbounded-loop:570afdf3ddf34cbd17fe20dc96d1ed0e43ef2dd6085793d392f51998c4f1ef51": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:1ac961925ee174de8a54ff8d0637d8faa049b131226645f3b816027351ebe8a4": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:22ae1ad250e8f8c8774d11eeeff07a500a1d98aff4b01e033c7dd31168eec624": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:f06be45cd1dc8b349852b85b9317dcd662ac9a3b8454802fb77820cb5c99ab55": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:3b609889f2df25e83c3624d28ef3489322e5e1fa341876ef372b9c4296593b3b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:1a08cdfbcf7e7f46d40914461cecd2477f218729ffa712c9598e3993c09fed8b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:e166fe0ecd75c197feaf7bf110863ba2eb5be20d85b901e2ccbd6d1231e308b4": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:d8adbb70eb1f9104f8c42533916cbc7949e65ceb61dca7811445778e0845a43a": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:3a5d17a889375aec68dff9e029513d7a09fd84cfd888adb2925e58febbc40383": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:bf58c90da48e628af8cfe38368c99f8f6278dfa65a58d9bb12012b732f2ef240": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:3fb8189e4a31b39c7cfbb2f72a1b38eb71a85f3eb7b98aa07b20ac0885f6a0c5": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:4489c6b5ce5976eb655d20705c0c3a626670ca5eacfb7fc95fb5ea562e23d124": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashView.ts:unbounded-loop:589efd9d3fa4c16253971d45d5fdd8ec5cb75a6f94d45498a6612e92d6554ba2": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashWeapon.ts:unbounded-loop:8cefa299590fbe8488a39aa28db86391025f33b4e679bf1d02dad04bdda2812c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashWeapon.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 3,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashWeapon.ts:raw-render:47d2c6d11e8c254f66de4698272a1d691118388a9c60414120a6cce656e38879": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashWeapon.ts:unbounded-loop:eab148f5b8d601ccd30f6a41d9faa64bf14b695e96b973f8b019423a522df848": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashWeapon.ts:frame-allocation:47099b518405f265afe4e72abb2bd469a320f0505e50f21828aa7c62fee5ddef": {
+      "count": 1,
+      "row": "SF46"
     }
   }
 }

@@ -8,7 +8,7 @@ import { skittererBody } from '../species/skitterer';
 import { striderSpecimen } from '../species/strider';
 import { rayGeometry } from '../species/duneRay';
 import { matriarchBody } from '../species/matriarch';
-import { pivotNpcParts } from '@wildshard/sdk/pivotNpc';
+import { pivotNpcParts } from '../runtime/quest/pivotNpc';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
 import { duneMesh } from '../world/meshes';
 import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';

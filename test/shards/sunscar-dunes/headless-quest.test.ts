@@ -14,7 +14,7 @@ import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/da
 import { brazierFlag } from '../../../src/shards/sunscar-dunes/quests/brazierFlag';
 import { COMPLETE_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
 import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
-import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/data/headless';
+import { WHIP_STEP } from '../../../src/shards/sunscar-dunes/runtime/headlessRows';
 import type { QuestGraphSpot as SignalSpot } from '../../../src/game/quest/questGraph';
 import { SIGNAL_GRAPH } from '../../../src/shards/sunscar-dunes/quests/graph';
 import { SIGNAL_ACT, SIGNAL_INTERACT } from '../../../src/shards/sunscar-dunes/quests/interactions';

@@ -1,9 +1,9 @@
-import type { RowsHeadlessManifest } from '@wildshard/sdk/rowsHeadless';
-import { SEED } from './layout';
-import { SIGNAL_SPAWNS } from './spawns';
-import { WHIP_MOVES, WHIP_TIMING } from './items';
-import { SCOUT_FLAG } from './flags';
-import { MATRIARCH_DEFINITION, MATRIARCH_FIGHT, MATRIARCH_PRESENTATION, MATRIARCH_RECORD, MATRIARCH_REWARD } from './matriarchFight';
+import type { RowsHeadlessManifest } from './rowsHeadless';
+import { SEED } from '../data/layout';
+import { SIGNAL_SPAWNS } from '../data/spawns';
+import { WHIP_MOVES, WHIP_TIMING } from '../data/items';
+import { SCOUT_FLAG } from '../data/flags';
+import { MATRIARCH_DEFINITION, MATRIARCH_FIGHT, MATRIARCH_PRESENTATION, MATRIARCH_RECORD, MATRIARCH_REWARD } from './quest/matriarchFight';
 import { FACT, MATRIARCH_FLAG } from '../quests/signal';
 import { SIGNAL_INTERACTIONS } from '../quests/interactions';
 import { SCOUT_NPC } from '../quests/scout';

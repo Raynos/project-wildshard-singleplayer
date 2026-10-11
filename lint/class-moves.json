@@ -48,6 +48,22 @@
       "name": "<anonymous>",
       "base": "Weapon",
       "baseFile": "src/game/systems/items/magazineFirearm.ts"
+    },
+    "src/shards/sunscar-dunes/runtime/items/lashWeapon.ts:f5cf9c2d807c0bfe11d51ba0ab3c7a575b8c3da81afa0ba814ecbcef71c80241": {
+      "from": "src/game/systems/items/lashWeapon.ts",
+      "to": "src/shards/sunscar-dunes/runtime/items/lashWeapon.ts",
+      "hash": "f5cf9c2d807c0bfe11d51ba0ab3c7a575b8c3da81afa0ba814ecbcef71c80241",
+      "name": "LashWeapon",
+      "base": "Weapon",
+      "baseFile": "src/engine/combat/Weapon.ts"
+    },
+    "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts:e6e052719efbff27f1bc13397d03c1661902e86e259eb1d332f26b0c83b2a3dd": {
+      "from": "src/game/shardfile/markedBoss.ts",
+      "to": "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts",
+      "hash": "e6e052719efbff27f1bc13397d03c1661902e86e259eb1d332f26b0c83b2a3dd",
+      "name": "MarkedBoss",
+      "base": "BossBrain",
+      "baseFile": "src/engine/ai/BossBrain.ts"
     }
   }
 }

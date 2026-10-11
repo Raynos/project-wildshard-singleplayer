@@ -1,8 +1,8 @@
-import type { ShardContext } from '../plugin/context';
-import { ShardPlugin } from '../plugin/shardPlugin';
-import { shardfileEntry } from './runtimeVariant';
-import type { Shardfile } from '../shardfile/schema';
-import type { TrustedRuntimeEntry } from '../shardfile/runtime';
+import type { ShardContext } from '@wildshard/game/plugin/context';
+import { ShardPlugin } from '@wildshard/game/plugin/shardPlugin';
+import { shardfileEntry } from '@wildshard/game/shard/runtimeVariant';
+import type { Shardfile } from '@wildshard/game/shardfile/schema';
+import type { TrustedRuntimeEntry } from '@wildshard/game/shardfile/runtime';
 
 /** Where a first-party primary's shardfile and trusted runtime load from, lazily (each its own chunk). */
 export interface StandaloneSources {
@@ -24,7 +24,7 @@ export type StandaloneEntry = new (Legacy?: new () => ShardPlugin, admit?: (ctx:
  */
 export function standaloneHybridEntry(Native: new () => ShardPlugin, sources: StandaloneSources): StandaloneEntry {
   const prepareHybrid = async (ctx: ShardContext): Promise<ShardPlugin> => {
-    const [{ prepareHybridShard }, { default: source }] = await Promise.all([import('../shardfile/hybrid'), sources.source()]);
+    const [{ prepareHybridShard }, { default: source }] = await Promise.all([import('@wildshard/game/shardfile/hybrid'), sources.source()]);
     return prepareHybridShard(source, { firstParty: true }, {
       residencyContext: ctx, retainHomeRuntime: true,
       catalogue: [], items: new Map(), recipes: new Map(), voices: () => new Map(),

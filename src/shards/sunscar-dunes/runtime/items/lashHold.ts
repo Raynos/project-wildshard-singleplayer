@@ -1,5 +1,5 @@
 import { type BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TubeGeometry, Vector3 } from 'three';
-import { smoothColors } from '../looks/modelLibrary';
+import { smoothColors } from '@wildshard/game/systems/looks/modelLibrary';
 import { braidColours, coilPoints, LashCord, plaitedCord, type CoilPath, type CordRgb, type CordStyle, type PlaitStyle } from './lashView';
 
 /**

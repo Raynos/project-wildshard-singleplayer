@@ -1,19 +1,19 @@
 import * as v from 'valibot';
 import { SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import type { StrikeData } from './species';
+import type { StrikeData } from '@wildshard/sdk/species';
 import { addBakedTerrainCollider } from '@wildshard/engine/physics/terrainTiles';
 import { addPiece } from '@wildshard/engine/physics/pieces';
 import type { Material } from '@wildshard/engine/physics/surface';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
 import { installSpeciesHomes, type BrainedSpecies } from '@wildshard/game/shardfile/speciesBrains';
 import type { KeptHomeRow, KeptBossRow } from '@wildshard/game/shardfile/homeKeeper';
-import { installMarkedBossRow, type MarkedBossRowSpec } from '@wildshard/game/shardfile/markedBossRow';
-import { installLashHost, type LashCommand, type LashHostSpec, type LashTargetRow } from '@wildshard/game/systems/items/lashHost';
+import { installMarkedBossRow, type MarkedBossRowSpec } from './shardfile/markedBossRow';
+import { installLashHost, type LashCommand, type LashHostSpec, type LashTargetRow } from './items/lashHost';
 import { installQuestGraph, type QuestGraphPorts, type QuestGraphRows } from '@wildshard/game/quest/questGraph';
 import { proveTerrainEntries, type TerrainEntryWalk } from '@wildshard/game/shardfile/terrainEntries';
-import { speciesBrains } from './speciesBrains';
-import type { PrepareHeadlessRuntime } from './headlessRuntime';
+import { speciesBrains } from '@wildshard/sdk/speciesBrains';
+import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { parsePromptRegistrations } from '@wildshard/game/quest/headlessPrompts';
 
 /**

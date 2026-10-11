@@ -3,13 +3,13 @@ import { BossBrain, type BossDefinition, type BossSaved } from '@wildshard/engin
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { weatherFog, type WeatherFog } from '@wildshard/engine/world/Atmosphere';
-import { CoinBurst } from '../loot/CoinBurst';
-import { bossesSave, shardSave } from '../saves';
-import type { ShardContext } from "../plugin/context";
-import type { RuntimeBoss, RuntimeCoins } from "../plugin/headless";
-import { bossFlagRecord, type BossRowFlagNames, type BossRowFlags } from './bossRow';
+import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
+import { bossesSave, shardSave } from '@wildshard/game/saves';
+import type { ShardContext } from "@wildshard/game/plugin/context";
+import type { RuntimeBoss, RuntimeCoins } from "@wildshard/game/plugin/headless";
+import { bossFlagRecord, type BossRowFlagNames, type BossRowFlags } from '@wildshard/game/shardfile/bossRow';
 import { markedBossFight, type MarkedBossFightRow } from './bossFight';
-import { stormShellMaterial } from '../systems/looks/stormShell';
+import { stormShellMaterial } from '../looks/stormShell';
 import type { MarkedBossPresentation } from './markedBossPresentation';
 
 /**

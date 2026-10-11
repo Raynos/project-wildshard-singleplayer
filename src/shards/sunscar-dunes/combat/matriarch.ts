@@ -1,10 +1,10 @@
 import type { Vector3 } from 'three';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeBoss, bindRuntimeCoins, type RuntimeCoins } from '@wildshard/game/shardfile/hybridRows';
-import { carriedBossRecord, installMarkedBoss, type MarkedBoss, type MarkedBossRows } from '@wildshard/sdk/markedBoss';
+import { carriedBossRecord, installMarkedBoss, type MarkedBoss, type MarkedBossRows } from '../runtime/shardfile/markedBoss';
 import { lastLightAll } from '../look/light';
 import source from '../shard.config';
-import { MATRIARCH_DEFINITION, MATRIARCH_FIGHT, MATRIARCH_ID, MATRIARCH_PRESENTATION, MATRIARCH_RECORD, MATRIARCH_REWARD } from '../data/matriarchFight';
+import { MATRIARCH_DEFINITION, MATRIARCH_FIGHT, MATRIARCH_ID, MATRIARCH_PRESENTATION, MATRIARCH_RECORD, MATRIARCH_REWARD } from '../runtime/quest/matriarchFight';
 import type { SignalWorld } from '../world/build';
 
 /** Her rows (data/matriarchFight.ts): the encounter, the marked fight, its presentation and her 20 coins. */

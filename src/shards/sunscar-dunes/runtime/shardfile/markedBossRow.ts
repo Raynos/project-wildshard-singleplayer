@@ -2,9 +2,9 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { BossBrain, BossDefinition } from '@wildshard/engine/ai/BossBrain';
 import type { SimHost } from '@wildshard/engine/sim';
-import { bossFlagRecord, installBossRow, type BossRowFlagNames } from './bossRow';
+import { bossFlagRecord, installBossRow, type BossRowFlagNames } from '@wildshard/game/shardfile/bossRow';
 import { markedBossFight, type MarkedBossFightRow } from './bossFight';
-import type { KeptBossBody, KeptBossRow } from './homeKeeper';
+import type { KeptBossBody, KeptBossRow } from '@wildshard/game/shardfile/homeKeeper';
 
 /** The rows a marked boss runs from headless: its body row, encounter, fight, record flags, coins, floor, respawn and victory. */
 export interface MarkedBossRowSpec {

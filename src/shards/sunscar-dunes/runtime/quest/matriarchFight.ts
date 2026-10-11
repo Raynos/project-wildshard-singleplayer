@@ -1,8 +1,10 @@
-import { parseMarkedBossPresentation, type BossDefinition, type MarkedBossFightRow } from '@wildshard/sdk/bossFight';
-import { DUNE_FIELD } from '../runtime/looks/duneFieldRows';
-import { BASIN } from './layout';
-import { STRINGS } from './strings';
-import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from '../quests/signal';
+import { parseMarkedBossPresentation } from '../shardfile/markedBossPresentation';
+import type { BossDefinition } from '@wildshard/engine/ai/BossBrain';
+import type { MarkedBossFightRow } from '../shardfile/bossFight';
+import { DUNE_FIELD } from '../looks/duneFieldRows';
+import { BASIN } from '../../data/layout';
+import { STRINGS } from '../../data/strings';
+import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from '../../quests/signal';
 
 /** Her declared boss row's id (data/spawns.ts `bosses`), her encounter's id and her saved actor's identity. */
 export const MATRIARCH_ID = 'sunscar.matriarch';

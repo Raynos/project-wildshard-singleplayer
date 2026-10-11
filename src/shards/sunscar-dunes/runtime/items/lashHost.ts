@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { CombatTarget } from '@wildshard/engine/combat/pipeline';
 import type { SimHost } from '@wildshard/engine/sim';
-import { LashRuntime, lashSpec, lashVolumeHit, type LashMoves, type LashTiming, type LashWorldTarget } from './lash';
+import { LashRuntime, lashSpec, lashVolumeHit, type LashMoves, type LashTiming, type LashWorldTarget } from '@wildshard/game/systems/items/lash';
 
 /** One player attack this tick: a light crack at the named target (the protocol's `player.attack`), or a heavy one. */
 export interface LashCreatureCommand { readonly targetId: string; readonly heavy?: boolean }

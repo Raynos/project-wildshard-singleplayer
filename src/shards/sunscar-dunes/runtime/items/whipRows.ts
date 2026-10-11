@@ -1,5 +1,5 @@
-import type { LashHoldRow } from '@wildshard/sdk/items/lashHold';
-import type { LashView } from '@wildshard/sdk/items/lashWeapon';
+import type { LashHoldRow } from './lashHold';
+import type { LashView } from './lashWeapon';
 
 /**
  * The bullwhip's look as rows (E374 polish; council rounds 1-25) on the lash item's view (`@wildshard/game/systems/items/lashView`):

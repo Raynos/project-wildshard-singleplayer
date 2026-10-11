@@ -1,4 +1,4 @@
-import { standaloneHybridEntry } from '@wildshard/sdk/standaloneEntry';
+import { standaloneHybridEntry } from './runtime/shard/standaloneEntry';
 import { speciesBrains, type SpeciesBrains } from '@wildshard/sdk/speciesBrains';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from './data/brains';
 import { SKITTERER_DATA } from './data/species/skitterer';
@@ -34,7 +34,7 @@ import { SAND_SKITTERER_LOOK } from './species/skitterer';
 import { DUNE_STRIDER_LOOK } from './species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from './species/matriarch';
 import { installMatriarch } from './combat/matriarch';
-import type { MarkedBoss } from '@wildshard/sdk/markedBoss';
+import type { MarkedBoss } from './runtime/shardfile/markedBoss';
 import { SAND_TILES, SKIRT } from './look/render';
 
 // the slot merges through @wildshard/engine (deep engine paths do not resolve); a program sees it only when it includes this file

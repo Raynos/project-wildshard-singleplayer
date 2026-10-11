@@ -1,4 +1,4 @@
-import { bakedSpots } from '@wildshard/sdk/rowsHeadless';
+import { bakedSpots } from './rowsHeadless';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { prepareSignalRuntime } from './signalPlan';
 import baked from './physics.baked.json' with { type: 'json' };

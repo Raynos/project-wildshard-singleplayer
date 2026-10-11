@@ -1,9 +1,10 @@
 import type { App } from '@wildshard/engine/app/app';
 import type { Targets } from '@wildshard/engine/combat/types';
-import { LashWeapon, lashSpec } from '@wildshard/sdk/items/lashWeapon';
+import { LashWeapon } from '../runtime/items/lashWeapon';
+import { lashSpec } from '@wildshard/game/systems/items/lash';
 import { WHIP_ROW } from './rows';
 import { WHIP_ITEM, WHIP_MOVES, WHIP_TIMING } from '../data/items';
-import { WHIP_VIEW } from '../data/whip';
+import { WHIP_VIEW } from '../runtime/items/whipRows';
 import { braidedMaterial, buildWhipModel } from './whipModel';
 
 /** The crack's numbers: reach, width, damage, cooldowns and charge are the declared item row's (data/items.ts); the lash's timing is the whip's own (`pull` is the yank's speed, m/s, on a creature of `pullMaxHp` or less). */

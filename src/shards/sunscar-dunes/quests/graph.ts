@@ -1,5 +1,5 @@
 import { parseQuestGraph } from '@wildshard/sdk/questGraph';
-import { MATRIARCH_ID } from '../data/matriarchFight';
+import { MATRIARCH_ID } from '../runtime/quest/matriarchFight';
 import { SIGNAL_INTERACT } from './interactions';
 
 /**
