@@ -118,3 +118,21 @@ src/**/*.generated.*
 /.merge_file_*
 /boot-smoke-results/
 /scratchpad/
+
+# G331: raw proof runs and expanded memory dumps stay local; commit summaries.
+/progress/**/*.jsonl
+/progress/**/*.phase
+/progress/**/*.vmmap.txt
+/progress/**/*.heap.json
+/progress/**/*.heap-analysis.json
+/progress/**/*.heap-owners.json
+/progress/**/*.log
+/progress/**/*.gz
+/progress/**/*.br
+/progress/**/*.zst
+/progress/frame-floor/*-*-*.json
+/progress/physics/*.json
+/progress/memory/g227-budget/native-*.json
+/progress/memory/g227-budget/webkit-nalati-*.json
+/progress/memory/g227-budget/isolated-gl-*.json
+/progress/shard-platform/jake-reports/*.png
