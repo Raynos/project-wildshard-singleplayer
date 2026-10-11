@@ -21,3 +21,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-11 | push: E476 commit-msg hook refuses the pusher's legacy regeneration messages | `95cd3e37a` | `47b53311b` | wildshard-new / sp-x7 |
 | 2026-10-11 | local gate: brain-factory refusal tests (flyer, grazer) | `70f2b1ede` | `26eb99d50` | sp-x5 |
 | 2026-10-11 | commit message swapped between concurrent commits (shared COMMIT_EDITMSG; `fc3d42c39` kept its wrong label) | — | `b87365957` (commit lock) | sp-x7 |
+| 2026-10-11 | local gate: group-factory missing-port assertions | `a52097c07` | `d2754ee70` | sp-x5 |
