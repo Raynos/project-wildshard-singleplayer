@@ -159,6 +159,15 @@ row: the boss smoke and memory reads at IC5, IC9 and IC12.
 
 ## 7. Picks for Jake (asked with the question tool when he gives the go)
 
+**Jake's answers (question tool, 2026-10-10):**
+1. *"Hybrid but I do think the pre rendered cutscenes are the most interesting to me"* — hybrid stands; the generated
+   (pre-rendered) track gets equal weight with the engine timeline, not a token "1–2 hero moments" afterthought.
+2. *"Those three plus extra driftwood content at least 3 driftwood cutscenes"* — Golden King (engine), Antler King
+   (generated), Driftwood finale (engine), **plus Driftwood gets at least three cutscenes in total** (rows to add).
+3. *"Generic hero, from behind"* — as recommended.
+
+The original questions, for the record:
+
 1. **Hybrid, in engine first** (D1)? Recommended: yes.
 2. **First three moments** (§5: Golden King in engine, Antler King generated, Driftwood finale)? Recommended: yes.
 3. **Generated clips use one generic hero, seen from behind; no hero on screen in engine shots for v1** (D2)?
