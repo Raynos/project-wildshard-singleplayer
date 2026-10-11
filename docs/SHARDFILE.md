@@ -1769,3 +1769,30 @@ Admission is still not a rendered-view proof. Run the complete built product's
 `proveMesaOutpost` / `proveSceneClient` and `proveEquippedItemClient` against its
 actual entered client. The run-2 missing-body product is a negative case, never a
 passing fixture just because its native gameplay works.
+
+### Per-body creature homes (SF82 BR-1)
+
+`creatures.spawns[].home` is optional `{x, y, z, r}`: finite local coordinates within
+−250…250 and a positive radius at most 500. `CreatureHomeSchema` and
+`ShardCreatureHome` in `@wildshard/format/creatures` define the contract; JSON Schema
+root `creatures.CreatureHome` exposes it. Omission preserves existing rows exactly.
+For orbit, patrol and burst divers the per-body home overrides the catalogue home
+before policy construction, so each body has its own initial angle and save fence.
+
+A data-only `grazer` with `pattern: 'wander-ram'` (or legacy `ram-grazer`) now installs
+automatically when its spawn declares that home and its named lane strike is admitted:
+
+```ts
+const spawn = {
+  id: 'goat.0', species: 'goat', variant: 'plain', brain: 'goat.ram', strike: null,
+  seed: 1, scale: 1, at: [4, 0, 0], yaw: 0,
+  home: { x: 4, y: 0, z: 0, r: 12 },
+};
+```
+
+The native host supplies its real player, shared AI RNG, reach query, attack claim
+and CombatSystem damage filing. The existing grazer policy owns steering and its
+strike clock; the actual body motor owns movement. No callback grants contact, no
+body is teleported and no home is guessed. Missing home/strike refuses before any
+controller registration or random draw. Trusted installations retain their explicit
+recipes. Guardian/perch body transitions and other missing authority remain OPEN.

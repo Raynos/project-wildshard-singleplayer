@@ -198,7 +198,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       return brain === undefined ? [] : [{ actorId: spawn.id, entity: numericScriptEntityId(`brain:${spawn.id}`), brain }];
     });
     if (brainBindings.length > 0 && ports.scriptBrains === undefined) throw new Error('Missing custom brain port');
-    const dataPorts = shard.runtime === null ? dataCreaturePorts(host, shard.rows) : undefined;
+    const dataPorts = shard.runtime === null ? dataCreaturePorts(host, shard.rows, shard.creatures.spawns) : undefined;
     const groupIds = new Set(shard.creatures.groups.map((group) => group.id));
     const preparedGroups = prepareDeclaredGroupBrains(host, shard.creatures.groups, shard.creatures.spawns, ports.groups ?? dataPorts?.groups ?? {},
       shard.creatures.brains.map((brain) => brain.id), shard.encounters.map((row) => row.entity));

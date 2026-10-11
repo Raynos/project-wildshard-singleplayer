@@ -6,6 +6,7 @@ import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
+import type { ShardCreatures } from '@wildshard/format/creatures';
 import type { ShardRows } from '@wildshard/format/rows';
 import type { DeclaredBrainPorts } from './brainRuntime';
 import type { DeclaredGroupPorts } from './groupRuntime';
@@ -13,10 +14,11 @@ import type { DeclaredGroupPorts } from './groupRuntime';
 const finite = v.pipe(v.number(), v.finite());
 const motionSchema = v.strictObject({ x: finite, z: finite, speed: v.pipe(finite, v.minValue(0)) });
 /** Default data-only herd and diver recipes over one real host; injected trusted recipes remain separate. */
-export function dataCreaturePorts(host: SimHost, rows: ShardRows): {
+export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardCreatures['spawns'] = []): {
   brains: DeclaredBrainPorts; groups: DeclaredGroupPorts; install: () => void;
 } {
   let used = false;
+  const homes = new Map(spawns.map(row => [row.id, row.home === undefined ? undefined : { ...row.home }]));
   const motion = { x: host.player.position.x, z: host.player.position.z, speed: 0 };
   const from = new Vector3(), to = new Vector3(), direction = new Vector3(), point = new Vector3();
   const strikes = new Map<string, StrikeSpec>(rows.strikes.map(({ weight, speed, ...row }) =>
@@ -53,7 +55,16 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows): {
     }), body: () => { confine(actor); } };
   };
   return {
-    brains: { orbitDiver: (actor, row) => diver(actor, row.strike), patrolDiver: (actor, row) => diver(actor, row.strike) },
+    brains: { ramGrazer: (actor, row) => {
+      const home = homes.get(actor.entityId), strike = strikes.get(row.strike);
+      if (home === undefined) throw new Error('Missing authored data-host ram home');
+      if (strike === undefined) throw new Error('Unresolved data-host ram strike');
+      used = true;
+      return { strike, observe: dt => ({ dt, home, player: host.player.position, calm: !host.player.health.alive,
+        rng: host.rng.stream('ai'), reach, claim: body => host.events.ask('ai.claim', body),
+        hurt: damage => { hurt(actor, damage, strike.tags, strike.id); },
+      }), body: () => undefined };
+    }, orbitDiver: (actor, row) => diver(actor, row.strike), patrolDiver: (actor, row) => diver(actor, row.strike) },
     groups: { herd: (group, _members) => {
       used = true;
       return { ports: {

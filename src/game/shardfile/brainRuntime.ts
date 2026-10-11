@@ -7,6 +7,8 @@ import { ChallengeGrazerBrain, type ChallengeGrazerPorts } from '@wildshard/engi
 import { OrbitDiverBrain, type OrbitDiverPorts } from '@wildshard/engine/ai/orbitDiver';
 import { PatrolDiverBrain, type PatrolDiverPorts } from '@wildshard/engine/ai/patrolDiver';
 import { BurstFlyerBrain, type BurstFlyerPorts } from '@wildshard/engine/ai/burstFlyer';
+import * as v from 'valibot';
+import { CreatureHomeSchema, type ShardCreatureHome } from '@wildshard/format/creatures';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost, SimStateAdapter } from '@wildshard/engine/sim';
@@ -35,6 +37,8 @@ export interface DeclaredBrainPorts {
   /** Bind the native flight body and authorized player-shove port; all mutable clocks stay policy-owned. */
   burstFlyer?: (actor: AnimalSim, declaration: ShardBurstFlyer, host: SimHost) => DeclaredBrainRecipe<BurstFlyerPorts<AnimalSim>> & { strike: StrikeSpec };
 }
+/** Stable spawn identity with optional explicitly authored per-body home authority. */
+export type DeclaredBrainSpawn = PlatformSpawn & { home?: ShardCreatureHome | undefined };
 interface Registration { id: string; run: (dt: number) => void; adapter: SimStateAdapter }
 function nativeRegistration<P>(id: string, actor: AnimalSim, divisor: number, brain: SimStateAdapter & { think: (ports: P) => void }, recipe: DeclaredBrainRecipe<P>, host: SimHost): Registration {
   if (typeof recipe.observe !== 'function' || typeof recipe.body !== 'function') throw new Error('Missing native brain recipe');
@@ -48,8 +52,8 @@ function nativeRegistration<P>(id: string, actor: AnimalSim, divisor: number, br
   } } };
 }
 function mutableRegistration<P>(id: string, actor: AnimalSim, divisor: number,
-  brain: SimStateAdapter & { think: (ports: P) => void; act: (ports: P) => void }, recipe: DeclaredBrainRecipe<P>, host: SimHost): Registration {
-  const contract = JSON.stringify({ version: 1, divisor });
+  brain: SimStateAdapter & { think: (ports: P) => void; act: (ports: P) => void }, recipe: DeclaredBrainRecipe<P>, host: SimHost, home?: ShardCreatureHome): Registration {
+  const contract = JSON.stringify({ version: 1, divisor, ...(home === undefined ? {} : { home }) });
   return { id, run: dt => {
     if (!actor.alive) return;
     if (host.state.tick % divisor === 0) brain.think(recipe.observe(divisor / 60));
@@ -60,7 +64,7 @@ function mutableRegistration<P>(id: string, actor: AnimalSim, divisor: number,
   } } };
 }
 /** Preflight every actor, declaration and native port before registering any callback; restore installs without running recipes. */
-export function installDeclaredBrains(host: SimHost, rows: readonly PlatformSpawn[], declarations: readonly DeclaredNativeBrain[], ports: DeclaredBrainPorts = {}): ReadonlyMap<string, SimStateAdapter> {
+export function installDeclaredBrains(host: SimHost, rows: readonly DeclaredBrainSpawn[], declarations: readonly DeclaredNativeBrain[], ports: DeclaredBrainPorts = {}): ReadonlyMap<string, SimStateAdapter> {
   const presets = declarations.map(row => row.kind === 'stalker' ? stalkerPreset(parseStalker(row)) : row.kind === 'guardian' && 'pattern' in row ? guardianPreset(parseGuardianPattern(row)) : row.kind === 'grazer' ? grazerPreset(parseGrazer(row)) : row.kind === 'diver' ? diverPreset(parseDiver(row)) : row);
   const definitions = new Map(presets.map(row => [row.id, row]));
   if (definitions.size !== declarations.length || new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Duplicate declared brain identity');
@@ -79,6 +83,7 @@ export function installDeclaredBrains(host: SimHost, rows: readonly PlatformSpaw
     }
   }
   for (const row of rows) {
+    if (row.home !== undefined) v.parse(CreatureHomeSchema, row.home);
     if (row.brain === null) continue;
     const spec = definitions.get(row.brain);
     if (!host.entities.has(row.id) || spec === undefined || host.adapters.has(`brain.${row.id}`)) throw new Error('Unresolved or installed declared brain');
@@ -117,32 +122,32 @@ export function installDeclaredBrains(host: SimHost, rows: readonly PlatformSpaw
         if (ports.ramGrazer === undefined) throw new Error('Missing native brain port');
         const recipe = ports.ramGrazer(actor, spec, host);
         if (typeof recipe.observe !== 'function' || typeof recipe.body !== 'function' || recipe.strike.id !== spec.strike) throw new Error('Unresolved declared grazer strike or recipe');
-        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new RamGrazerBrain(actor, spec, recipe.strike), recipe, host)); break;
+        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new RamGrazerBrain(actor, spec, recipe.strike), recipe, host, row.home)); break;
       }
       case 'challenge-grazer': {
         if (ports.challengeGrazer === undefined) throw new Error('Missing native brain port');
         const recipe = ports.challengeGrazer(actor, spec, host);
         if (typeof recipe.observe !== 'function' || typeof recipe.body !== 'function' || recipe.charge.id !== spec.charge
           || recipe.close.id !== spec.close) throw new Error('Unresolved declared grazer strikes or recipe');
-        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new ChallengeGrazerBrain(actor, spec, recipe.charge, recipe.close), recipe, host)); break;
+        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new ChallengeGrazerBrain(actor, spec, recipe.charge, recipe.close), recipe, host, row.home)); break;
       }
       case 'orbit-diver': {
         if (ports.orbitDiver === undefined) throw new Error('Missing native brain port');
         const recipe = ports.orbitDiver(actor, spec, host);
         if (typeof recipe.observe !== 'function' || typeof recipe.body !== 'function' || recipe.strike.id !== spec.strike) throw new Error('Unresolved declared flyer strike or recipe');
-        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new OrbitDiverBrain(actor, spec, spec.home, recipe.strike), recipe, host)); break;
+        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new OrbitDiverBrain(actor, spec, row.home ?? spec.home, recipe.strike), recipe, host, row.home)); break;
       }
       case 'patrol-diver': {
         if (ports.patrolDiver === undefined) throw new Error('Missing native brain port');
         const recipe = ports.patrolDiver(actor, spec, host);
         if (typeof recipe.observe !== 'function' || typeof recipe.body !== 'function' || recipe.strike.id !== spec.strike) throw new Error('Unresolved declared flyer strike or recipe');
-        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new PatrolDiverBrain(actor, spec, spec.home, recipe.strike), recipe, host)); break;
+        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new PatrolDiverBrain(actor, spec, row.home ?? spec.home, recipe.strike), recipe, host, row.home)); break;
       }
       case 'burst-flyer': {
         if (ports.burstFlyer === undefined) throw new Error('Missing native brain port');
         const recipe = ports.burstFlyer(actor, spec, host);
         if (typeof recipe.observe !== 'function' || typeof recipe.body !== 'function' || recipe.strike.id !== spec.strike) throw new Error('Unresolved declared flyer strike or recipe');
-        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new BurstFlyerBrain(actor, spec, spec.home, recipe.strike), recipe, host)); break;
+        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new BurstFlyerBrain(actor, spec, row.home ?? spec.home, recipe.strike), recipe, host, row.home)); break;
       }
       default: throw new Error('Unsupported declared brain family');
     }

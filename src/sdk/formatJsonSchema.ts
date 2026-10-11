@@ -12,7 +12,7 @@ import { StalkerSchema, GuardianPatternsSchema, SkirmisherSchema, ScriptBrainSch
 import { DiverSchema, OrbitDiverSchema, PatrolDiverSchema, BurstFlyerSchema } from '@wildshard/format/flyers';
 import { RamGrazerSchema, ChallengeGrazerSchema, GrazerSchema } from '@wildshard/format/grazers';
 import { GroupBrainSchema } from '@wildshard/format/groupBrains';
-import { CreaturesSchema } from '@wildshard/format/creatures';
+import { CreaturesSchema, CreatureHomeSchema } from '@wildshard/format/creatures';
 import { FlockSchema } from '@wildshard/format/crowds';
 import { EncountersSchema } from '@wildshard/format/encounters';
 import { AudioMusicSchema, AudioSamplesSchema, AudioZonesSchema } from '@wildshard/format/audioProfiles';
@@ -132,6 +132,7 @@ const wireRoots = {
   'grazers.ChallengeGrazer': ChallengeGrazerSchema,
   'groupBrains.GroupBrain': GroupBrainSchema,
   'creatures.Creatures': CreaturesSchema,
+  'creatures.CreatureHome': CreatureHomeSchema,
   'crowds.Flock': FlockSchema,
   'encounters.Encounters': EncountersSchema,
   'audioProfiles.AudioMusic': AudioMusicSchema,
