@@ -62,7 +62,7 @@ import type { CollisionStrip } from './collisionStrips';
 import { loadNavmesh } from '@wildshard/engine/physics/navmeshLoad';
 import { enteredRuntime, pickInFrame } from './enteredInteract';
 import { copyPrompts, enteredCopy } from './copyPrompts';
-import { yieldGridAdmission } from './admissionYield';
+import { yieldGridAdmission, yieldGridConstruction } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
 import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/shardPlugin';
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage } from './regionalRuntime';
@@ -644,7 +644,7 @@ export class LiveGridSession {
     return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: release, prepareRuntime: async () => { await prepareTrustedRuntime(declaration, cell.slug, true, [entry]); }, create: async (_prior, claim) => {
       const factory = createRegionalRuntimeFactory({ home: this.ports.home.origin,
         continuation: regionalRuntimeCheckpoint(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source.identity.revision),
-        prepareFoundation: createRegionalWorldFoundation({ rapier: this.ports.physics.R, navmesh: level => loadNavmesh(level.id), pause: () => yieldGridAdmission(this.runtimeScope),
+        prepareFoundation: createRegionalWorldFoundation({ rapier: this.ports.physics.R, navmesh: level => loadNavmesh(level.id), pause: () => yieldGridConstruction(this.runtimeScope),
           install: host => {
             for (const strip of this.ports.strips) for (const row of strip.duplicates) if (row.instance === cell.instance) installStripCollider(host.physics, row.mesh, host.scope);
             installEntrySockets(host.physics, host.scope, [{ x: 0, z: 0 }], 'backstop');

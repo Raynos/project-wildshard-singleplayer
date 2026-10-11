@@ -1,4 +1,13 @@
 import type { Scope } from '@wildshard/engine/app/scope';
+import { presenting } from '@wildshard/engine/core/framePacing';
+import { buildYield } from '@wildshard/engine/core/workSlice';
+
+/** Cheap regional construction pieces share the engine's bounded build slice rather than each consuming a full
+ * painted frame. Admission checkpoints still use the unconditional paint boundary below; headless and unpaced
+ * callers preserve that boundary. The scoped task and drawn-frame barrier both stop retired construction. */
+export function yieldGridConstruction(scope: Scope): Promise<void> {
+  return presenting() ? buildYield(scope) : yieldGridAdmission(scope);
+}
 
 /** End an admission batch after a browser paint opportunity, so the road and G217 loading screen keep drawing.
  * Node has no presentation loop; cancellation rejects the pending batch before any further allocation. */
