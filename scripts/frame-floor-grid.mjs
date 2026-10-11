@@ -59,7 +59,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
       // Retire the owned home through actual travel before measuring its return. Reusing the boot
       // resident would hide preparation; this leg has no second pose seed or warm home allocation.
       return [{ ...out, movement: 'road-hover', hoverMaxSpeed: 30, retiredResidents: [home.instance] },
-        { ...back, name: `${home.slug}-road-entry`, movement: 'road-hover', hoverMaxSpeed: 30,
+        { ...back, name: `${home.slug}-road-entry`, movement: 'road-hover', hoverMaxSpeed: 30, requiredResidents: [home.instance],
           observePreparation: true, finishOnArrival: false }];
     }
     const t = origin(target), dx = options.risingIslet === 'west' ? -1 : options.risingIslet === 'east' ? 1 : options.risingIslet ? 0 : Math.sign(h.x - t.x),

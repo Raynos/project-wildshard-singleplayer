@@ -471,7 +471,7 @@ it('measures the home cold return only after real template travel retires its ru
   const [out, back] = gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'driftwood-isle', roadApproach: true });
   expect(out).toMatchObject({ from: 'home', to: 'template-1', movement: 'road-hover', hoverMaxSpeed: 30, retiredResidents: ['home'] });
   expect(back).toMatchObject({ name: 'driftwood-isle-road-entry', from: 'template-1', to: 'home', movement: 'road-hover',
-    hoverMaxSpeed: 30, observePreparation: true, finishOnArrival: false });
+    hoverMaxSpeed: 30, requiredResidents: ['home'], observePreparation: true, finishOnArrival: false });
   expect(back?.start).toBeUndefined();
   expect(() => gridFloorPlans({ home: 'home', cells }, 'cell', { cell: 'home' })).toThrow('cold road return');
 });
