@@ -3197,6 +3197,7 @@
         "src/format/audioProfiles.ts",
         "src/format/audioRouting.ts",
         "src/format/bakedTerrainBytes.ts",
+        "src/format/bakedTerrainSampling.ts",
         "src/format/brains.ts",
         "src/format/budget.ts",
         "src/format/clientChannels.ts",

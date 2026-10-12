@@ -78,6 +78,7 @@
     "./scriptAdmission": "./scriptAdmission.ts",
     "./scriptLimits": "./scriptLimits.ts",
     "./bakedTerrainBytes": "./bakedTerrainBytes.ts",
+    "./bakedTerrainSampling": "./bakedTerrainSampling.ts",
     "./waterWaves": "./waterWaves.ts",
     "./shardSchema": "./shardSchema.ts",
     "./materials": "./materials.ts",

@@ -74,6 +74,8 @@ recipes and authored audio assets remain separate content; this router carries n
 
 `@wildshard/engine/render/memorySaver.releaseOnUpload(source, done)` opts an exclusively owned, immutable decoded image into the existing Memory saver upload retirement. The callback closes the private bitmap or releases its cache owner after upload; the texture keeps its dimensions and GPU allocation. Register only when no later CPU reader or different-sampler clone needs the pixels, and also release on owner disposal. Memory saver OFF keeps the decode until disposal; GPU-only context-loss recovery reloads the page.
 
+`@wildshard/format/bakedTerrainSampling.bakedSamplers(grid)` supplies the original bilinear height, central-difference normal and normalized four-channel splat queries over a parsed WSTR lattice. It needs no active level or renderer. Authoring reads `format/bakedTerrainBytes.parseBakedTerrain` and calls this pure sampler; the engine's existing `world/BakedTerrain.bakedSamplers` binding is the same function object. Apply a shard's vertical datum after sampling; this module does not install terrain or shift coordinates.
+
 `@wildshard/engine/world/BakedTerrain.installBakedGrid(grid, binding?)` installs original native samplers and undergrowth decisions into the selected binding without a second fetch. It refuses a mismatched seed. The Node authored-world bake uses this before forest/model construction; geometry capture still supplies the production terrain constructor and retains native collision ownership.
 
 `@wildshard/game/grid/simulation` owns local physics residencies, prepared fixed-step frame changes and durable
