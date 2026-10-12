@@ -415,6 +415,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [sim-node-loader.mjs](./sim-node-loader.mjs)
 - [sky-physics-inputs.d.mts](./sky-physics-inputs.d.mts)
 - [sky-physics-inputs.mjs](./sky-physics-inputs.mjs)
+- [source-generation-outputs.json](./source-generation-outputs.json)
 - [stutter-run.mjs](./stutter-run.mjs)
 - [telemetry-brief.mjs](./telemetry-brief.mjs)
 - [texmem-probe.mjs](./texmem-probe.mjs)
