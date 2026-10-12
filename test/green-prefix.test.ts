@@ -130,7 +130,7 @@ exit 1
       expect(git('rev-parse', 'origin/main')).toBe(secondRed ? base : first);
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
-  it('retries only a committed descendant named edit, refusing unsafe, working, deleted or mixed failures', () => {
+  it('retries committed named edits, refusing unsafe, working, deleted or unknown failures', () => {
     const root = mkdtempSync(join(tmpdir(), 'green-prefix-newer-'));
     const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
     const redOutput = '  ✗ vitest (10 s)\n FAIL test/repair.test.ts > real failing assertion';
@@ -158,7 +158,8 @@ exit 1
       for (const out of [`${lintOutput}\n  ✗ vitest (1 s)`, lintOutput.replace('scripts/repair', '../scripts/repair'), lintOutput.replace('scripts/repair', '/scripts/repair'), lintOutput.replace('scripts/repair', 'scripts//repair'), lintOutput.replace('error test-rule', 'warning test-rule'), lintOutput.replace('scripts/repair.mjs:1:1:', 'unparsed lint refusal:')]) {
         expect(newerGateFix(root, red, out)).toBeNull();
       }
-      for (const out of [`${redOutput}\n  ✗ typecheck (1 s)`, '  ✗ vitest (1 s)', redOutput.replace('test/repair', '../test/repair')]) {
+      expect(newerGateFix(root, red, `${redOutput}\n  ✗ typecheck (1 s)`)).toBe(fixed);
+      for (const out of [`${redOutput}\n  ✗ vite-build (1 s)`, '  ✗ vitest (1 s)', redOutput.replace('test/repair', '../test/repair')]) {
         expect(newerGateFix(root, red, out)).toBeNull();
       }
       expect(newerGateFix(root, 'missing-ref', redOutput)).toBeNull();
@@ -167,6 +168,34 @@ exit 1
       expect(newerGateFix(root, red, redOutput)).toBeNull();
       git('checkout', '-q', '--orphan', 'separate'); writeFileSync(file, 'unrelated history'); const separate = commit();
       expect(newerGateFix(root, separate, redOutput)).toBeNull();
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+  it('earns a complete retry for committed source and catalogue repairs without editing failing tests', () => {
+    const root = mkdtempSync(join(tmpdir(), 'green-prefix-source-repair-'));
+    const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+    const commit = () => { git('add', '.'); git('commit', '-qm', 'fixture'); return git('rev-parse', 'HEAD'); };
+    const output = '  ✗ vitest (10 s)\n  ✗ bake-sky-physics (1 s)\n FAIL test/repair.test.ts > exact source and bake inputs';
+    try {
+      git('init', '-q', '-b', 'main'); git('config', 'core.hooksPath', '/dev/null');
+      git('config', 'user.name', 'Fixture'); git('config', 'user.email', 'fixture@example.invalid');
+      for (const dir of ['src', 'scripts', 'test']) mkdirSync(join(root, dir));
+      const source = join(root, 'src/producer.ts'), catalogue = join(root, 'scripts/generation-jobs.json');
+      writeFileSync(source, 'red source'); writeFileSync(catalogue, '{"jobs":[]}');
+      writeFileSync(join(root, 'test/repair.test.ts'), 'unchanged complete refusal');
+      const red = commit();
+      writeFileSync(join(root, 'README.md'), 'docs only'); commit();
+      writeFileSync(source, 'working repair');
+      expect(newerGateFix(root, red, output)).toBeNull();
+      const repairedSource = commit();
+      expect(newerGateFix(root, red, output)).toBe(repairedSource);
+      expect(git('diff', red, repairedSource, '--', 'test')).toBe('');
+      writeFileSync(catalogue, '{"jobs":[{"id":"complete-inputs"}]}');
+      const repairedCatalogue = commit();
+      expect(newerGateFix(root, repairedSource, output)).toBe(repairedCatalogue);
+      expect(newerGateFix(root, repairedSource, '  ✗ typecheck (1 s)')).toBe(repairedCatalogue);
+      expect(newerGateFix(root, repairedSource, `${output}\n  ✗ webkit-smoke (1 s)`)).toBeNull();
+      rmSync(join(root, 'test/repair.test.ts')); commit();
+      expect(newerGateFix(root, red, output)).toBeNull();
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
   it('probes mixed native-bake and typed failures with exact focused commands and refuses unsupported steps', () => {

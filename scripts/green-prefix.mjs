@@ -94,22 +94,25 @@ export function failingLintFiles(out) {
   return [...files].sort((a, b) => a.localeCompare(b));
 }
 
-/** A committed descendant editing a named failure earns one fresh complete gate, never a green inference.
- * Only Vitest-only or lint-only failures with known diagnostics qualify; working edits and additions/deletions refuse.
+/** A committed descendant repair earns one fresh complete gate, never a green inference.
+ * Supported failures may be repaired in source, catalogue or baked inputs as well as named tests.
+ * Working edits, removed failing files and unknown gate steps cannot earn a retry.
  * @param {string} root @param {string} tip @param {string} out @returns {string | null} */
 export function newerGateFix(root, tip, out) {
   const steps = failedSteps(out);
-  if (steps.length !== 1) return null;
-  const step = steps[0];
-  const files = step === 'vitest' ? failingTestFiles(out) : step === 'oxlint' ? failingLintFiles(out) : [];
-  if (files.length === 0) return null;
-  if (files.some(file => file.startsWith('/') || (step === 'vitest' && !file.startsWith('test/')) || file.split('/').some(part => part === '..' || part === '.' || part === ''))) return null;
+  if (steps.length === 0 || failureCommands(steps) === null) return null;
+  const tests = steps.includes('vitest') ? failingTestFiles(out) : [];
+  const lint = steps.includes('oxlint') ? failingLintFiles(out) : [];
+  if ((steps.includes('vitest') && tests.length === 0) || (steps.includes('oxlint') && lint.length === 0)) return null;
+  const files = [...tests, ...lint];
+  if (tests.some(file => !file.startsWith('test/')) || files.some(file => file.startsWith('/') || file.split('/').some(part => part === '..' || part === '.' || part === ''))) return null;
   try {
     const red = git(root, ['rev-parse', `${tip}^{commit}`]), current = git(root, ['rev-parse', 'main^{commit}']);
     if (red === current || spawnSync('git', ['merge-base', '--is-ancestor', red, current], { cwd: root }).status !== 0) return null;
-    const changes = git(root, ['diff', '--no-renames', '--name-status', red, current, '--', ...files.map(file => `:(literal)${file}`)]).split('\n').filter(Boolean);
-    if (changes.length === 0 || changes.some(change => !change.startsWith('M\t'))) return null;
-    log(`${current.slice(0, 9)} edits a named ${step} failure after ${red.slice(0, 9)}: regenerate and gate once before prefix search`);
+    for (const file of files) if (spawnSync('git', ['cat-file', '-e', `${current}:${file}`], { cwd: root, stdio: 'ignore' }).status !== 0) return null;
+    const changes = git(root, ['diff', '--no-renames', '--name-status', red, current, '--', 'src', 'scripts', 'package.json', 'pnpm-lock.yaml', ...files.map(file => `:(literal)${file}`)]).split('\n').filter(Boolean);
+    if (!changes.some(change => change.startsWith('M\t'))) return null;
+    log(`${current.slice(0, 9)} changes committed inputs after ${red.slice(0, 9)} (${steps.join(', ')}): regenerate and gate once before prefix search`);
     return current;
   } catch { return null; } // An unreadable commit or diff cannot authorize a retry.
 }
