@@ -2918,6 +2918,34 @@ shader code (G306).
   `irradiance`, `litColour`, `instanceHash`, `objectOrigin`, `vertexColour`,
   `sceneColour`) are the graph-only inputs. Anything else (`uniform()`, a `Fn`,
   `sqrt`, a node-valued conversion, `loop`) is refused with its name.
+- The vocabulary for a trusted shard's own programs (SF51-p, Nine Dragon's GLSL):
+  - `atan(y, x)` and `mod(a, b)` are graph ops, GLSL's two-argument `atan` and
+    `a − b·floor(a / b)`.
+  - `varying(node)` is the `varying` op: its input is typed and costed in the
+    vertex program and interpolated to the fragment, so a vertex-only input
+    (`positionGeometry`) reaches the surface through it. It runs in fragment places
+    only.
+  - `attribute('aSeed', 'float')` is the `attribute` op (`name`, `type`): a
+    geometry attribute named `a` plus a capital (never one of three's own),
+    typed float to vec4. It is a mesh-place op and is refused in a post graph.
+  - `screenCoordinate` is the `fragCoord` input: the pixel's window coordinate,
+    from the top left as three's node back-end gives it. It is a mesh-fragment
+    input; a full-screen pass uses `screenUV`.
+  - `surface.discard` is a bool: the fragment is dropped where it is true (three's
+    `maskNode`), for an ordered dither or a clip.
+  - A **code-fed uniform** (`uCam`, `uRootAt`, `uFogScale`, a look clock) is a
+    `param()` with no `bind`: the trusted runtime moves it with
+    `CompiledGraph.setParam` each frame.
+
+  `test/sdk-graph-vocabulary.test.ts` proves these on real Nine programs:
+  - the portal disc, node for node against its hand transcription of `FS_DISC`;
+  - the disc, the jian heat halo (`aSide` through a varying) and the
+    `bayer4` dither discard, evaluated on the CPU against line-by-line
+    transcriptions of the shipped GLSL;
+  - the GLSL that three's node back-end emits for each.
+
+  Nine is not switched over: a graph look compiles only while the
+  `graphMaterials` row is on (E435).
 
 Ink & Cel Valley and Pastel Plain author their looks this way
 (`generators/materials.ts`): `test/sdk-materials-parity.test.ts` holds the

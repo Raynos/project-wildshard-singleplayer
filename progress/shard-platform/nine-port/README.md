@@ -118,7 +118,7 @@ The legend for what each program needs beyond the DS1.4 `graph()` vocabulary:
 | 10 | `look.ts#FS_SKY` / `FS_SCREEN` / `FS_SHEET` / `FS_NEON` / `FS_STEAM` / `FS_LINE` (≈ 300 with their vertex shaders) | A V U F T | fits once `F` is a helper |
 | 11 | `paint.ts`, `scroll.ts`, `light.ts`, `neonText.ts` (≈ 410) | A V U F X | the LUT, the glyph atlas and the light volume need texture admission |
 | 12 | `lanterns.ts` (66) | A V U F T | fits once `F` is a helper |
-| 13 | `portalLook.ts` ring and disc (30) | V U T | fits with T·V·U (the next sp-o8 slices) |
+| 13 | `portalLook.ts` ring and disc (30) | V U T | **fits now**: proven in `test/sdk-graph-vocabulary.test.ts` |
 | 14 | `portalLook.ts` sparks, `burstFx.ts` sparks (34) | P | blocked: no point sprites |
 | 15 | `burstFx.ts` flash, `ropeFilament.ts`, `brushTrail.ts`, `vm/jian.ts` halo (≈ 140) | A V U T | fits with A·V·U·T |
 

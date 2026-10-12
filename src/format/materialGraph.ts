@@ -68,6 +68,10 @@ export interface GraphNode {
   readonly count?: number;
   /** `loop`: the body, run `count` times; inside it `acc` is the running value and `index` the iteration (a float) */
   readonly body?: GraphLoopBody;
+  /** `attribute`: the geometry attribute's name (`aSeed`: `a`, then a capital; three's own attributes are inputs) */
+  readonly name?: string;
+  /** `attribute`: the attribute's type */
+  readonly type?: GraphValueType;
 }
 /** a loop's body: its own nodes (they may read the outer graph's nodes too) and the node that is the next `acc` */
 export interface GraphLoopBody {
@@ -97,6 +101,8 @@ export interface GraphSurface {
   readonly roughness?: GraphRef;
   readonly metalness?: GraphRef;
   readonly occlusion?: GraphRef;
+  /** bool: the fragment is discarded where it is true (a dither or a clip; a fragment-place op, like `alphaCutoff`) */
+  readonly discard?: GraphRef;
 }
 /** the vertex stage: an object-space offset; `shadow` (a matching depth variant) is refused until the back-end emits one (§2.5) */
 export interface GraphVertexOffset {
@@ -216,7 +222,8 @@ type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' |
 /** how an op types its inputs */
 type TypeRule =
   | 'input' | 'const' | 'param' | 'same' | 'unary' | 'vecUnary' | 'length' | 'dot' | 'mix' | 'compare' | 'logic' | 'not'
-  | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'dir3' | 'sceneTap';
+  | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'dir3' | 'sceneTap'
+  | 'varying' | 'attribute';
 /** one op of the vocabulary */
 export interface GraphOpSpec {
   /** the number of inputs (min, max) */
@@ -257,6 +264,13 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   instanceHash: { arity: [0, 0], rule: 'input', cost: 4, type: 'float', places: MESH },
   vertexColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH }, // the geometry's `color` attribute (rgb, linear); white where it has none
   screenUV: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: ['post'] },
+  // the pixel's window coordinate in pixels (`gl_FragCoord.xy`, from the top left as three's node back-end gives it): a
+  // screen-space dither or clip on a mesh, never a full-screen pass (that is `screenUV`)
+  fragCoord: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: ['fragment', 'outline'] },
+  // a declared geometry attribute (`name`, `type`): a shard's own per-vertex or per-instance data
+  attribute: { arity: [0, 0], rule: 'attribute', cost: 0, places: MESH },
+  // a value computed per vertex and interpolated to the fragment: its input is typed (and costed) in the vertex place
+  varying: { arity: [1, 1], rule: 'varying', cost: 1, places: ['fragment', 'outline', ...LIT] },
   // the lighting stage's inputs (SF59 step 6): view space, unit vectors; the engine supplies them from its own lights
   normalView: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: LIT }, // the shading normal (the face's under flatShading)
   viewDirection: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: LIT }, // toward the camera
@@ -292,6 +306,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   sin: { arity: [1, 1], rule: 'unary', cost: 4 },
   cos: { arity: [1, 1], rule: 'unary', cost: 4 },
   exp: { arity: [1, 1], rule: 'unary', cost: 4 }, // e^x (the emissive family's halo falloff)
+  atan: { arity: [2, 2], rule: 'same', cost: 8 }, // atan(y, x): the angle of (x, y), −π … π (GLSL's two-argument atan)
   negate: { arity: [1, 1], rule: 'unary', cost: 1 },
   oneMinus: { arity: [1, 1], rule: 'unary', cost: 1 },
   saturate: { arity: [1, 1], rule: 'unary', cost: 1 },
@@ -357,7 +372,11 @@ const VEC_LEN: Readonly<Record<GraphValueType, number>> = { float: 1, vec2: 2, v
 const vecOf = (n: number): GraphValueType | null => (n === 1 ? 'float' : n === 2 ? 'vec2' : n === 3 ? 'vec3' : n === 4 ? 'vec4' : null);
 const isNumeric = (t: GraphValueType): boolean => t !== 'bool';
 const ID = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
-const SURFACE_TYPES: Readonly<Record<string, GraphValueType>> = { colour: 'vec3', alpha: 'float', emissive: 'vec3', roughness: 'float', metalness: 'float', occlusion: 'float' };
+const SURFACE_TYPES: Readonly<Record<string, GraphValueType>> = { colour: 'vec3', alpha: 'float', emissive: 'vec3', roughness: 'float', metalness: 'float', occlusion: 'float', discard: 'bool' };
+/** an `attribute` node's name: `a` and a capital (`aSeed`), so it never names one of three's own attributes */
+export const GRAPH_ATTRIBUTE_NAME = /^a[A-Z][A-Za-z0-9]{0,31}$/;
+/** where a `varying`'s input runs: the vertex program of the place reading it */
+const VARYING_SOURCE: Readonly<Partial<Record<GraphPlace, GraphPlace>>> = { fragment: 'vertex', sun: 'vertex', ambient: 'vertex', grade: 'vertex', outline: 'outlineVertex' };
 
 /** an object read from content, with the fields this module looks at named (each still unknown) */
 interface Raw {
@@ -367,7 +386,7 @@ interface Raw {
   readonly type?: unknown; readonly value?: unknown; readonly min?: unknown; readonly max?: unknown; readonly bind?: unknown;
   readonly day?: unknown; readonly state?: unknown;
   readonly op?: unknown; readonly in?: unknown; readonly param?: unknown; readonly mask?: unknown; readonly count?: unknown;
-  readonly body?: unknown; readonly out?: unknown;
+  readonly body?: unknown; readonly out?: unknown; readonly name?: unknown; readonly discard?: unknown;
   readonly offset?: unknown; readonly shadow?: unknown; readonly surface?: unknown; readonly post?: unknown;
   readonly lighting?: unknown; readonly colour?: unknown; readonly outline?: unknown;
   readonly sun?: unknown; readonly sunSpecular?: unknown; readonly ambient?: unknown; readonly grade?: unknown;
@@ -500,7 +519,8 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     if (!Array.isArray(ins)) return fail(`${at}: in is not a list`);
     if (ins.length < spec.arity[0] || ins.length > spec.arity[1]) return fail(`${at}: ${op} takes ${spec.arity[0] === spec.arity[1] ? spec.arity[0] : spec.arity.join('–')} inputs, got ${ins.length}`);
     visiting.add(key);
-    const inner = spec.rule === 'loop' ? [] : ins.map((r, i) => typeRef(r, scope, place, `${at}.in[${i}]`, mult));
+    const inputPlace = spec.rule === 'varying' ? VARYING_SOURCE[place] ?? place : place;
+    const inner = spec.rule === 'loop' ? [] : ins.map((r, i) => typeRef(r, scope, inputPlace, `${at}.in[${i}]`, mult));
     const t = inner.some((x) => x === null) ? null : resolve(op, spec, raw, inner.filter((x): x is GraphValueType => x !== null), scope, place, at, ins, mult);
     visiting.delete(key);
     if (t !== null) {
@@ -567,6 +587,13 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       }
       case 'noise': return ins[0] === 'vec2' || ins[0] === 'vec3' ? 'float' : fail(`${at}: noise takes a vec2 or vec3`);
       case 'dir3': return ins[0] === 'vec3' ? 'vec3' : fail(`${at}: ${op} takes a vec3 direction`);
+      case 'varying': return ins[0] !== undefined && isNumeric(ins[0]) ? ins[0] : fail(`${at}: a varying carries a number`);
+      case 'attribute': {
+        const name = raw.name, type = raw.type;
+        if (typeof name !== 'string' || !GRAPH_ATTRIBUTE_NAME.test(name)) return fail(`${at}: attribute name ${String(name)} (a, then a capital: aSeed)`);
+        if (type !== 'float' && type !== 'vec2' && type !== 'vec3' && type !== 'vec4') return fail(`${at}: attribute type ${String(type)} (float, vec2, vec3 or vec4)`);
+        return type;
+      }
       case 'sceneTap':
         if (ins.length === 1 && ins[0] !== 'vec2') return fail(`${at}: ${op} samples at a vec2`);
         if (op === 'sceneDepth') sampled.depth = true; else if (op === 'sceneNormal') sampled.normal = true; else sampled.scene = true;
@@ -695,6 +722,8 @@ function toNodes(raw: Raw): Record<string, GraphNode> {
       ...(typeof n.param === 'string' ? { param: n.param } : {}),
       ...(typeof n.mask === 'string' ? { mask: n.mask } : {}),
       ...(typeof n.count === 'number' ? { count: n.count } : {}),
+      ...(typeof n.name === 'string' ? { name: n.name } : {}),
+      ...(n.type === 'float' || n.type === 'vec2' || n.type === 'vec3' || n.type === 'vec4' ? { type: n.type } : {}),
       ...(isRecord(n.body) && isRecord(n.body.nodes) ? { body: { nodes: toNodes(n.body.nodes), out: toRef(n.body.out) } } : {}),
     };
   }

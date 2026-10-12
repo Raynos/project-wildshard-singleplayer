@@ -36,10 +36,10 @@ import {
   PhysicalLightingModel, SplitNode, type Node, type NodeBuilder, type NodeMaterial,
 } from 'three/webgpu';
 import {
-  Fn, Loop, OnBeforeFrameUpdate, Var, and, cameraPosition, cameraViewMatrix, clamp, diffuseContribution, dot, float, hash,
+  Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraViewMatrix, clamp, diffuseContribution, dot, float, hash,
   instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, modelPosition, modelWorldMatrix,
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, positionGeometry, positionLocal,
-  positionViewDirection, positionWorld, texture, time, uniform, uv, vec2, vec3, vec4, vertexColor,
+  positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
@@ -399,6 +399,13 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'instanceHash': return { t: 'float', n: hash(instanceIndex) };
       case 'vertexColour': return { t: 'vec3', n: new SplitNode(vertexColor(), 'xyz') };
       case 'screenUV': return { t: 'vec2', n: uv() };
+      case 'fragCoord': return { t: 'vec2', n: screenCoordinate };
+      case 'attribute': {
+        const t = n.type;
+        if (n.name === undefined || t === undefined || t === 'bool') break;
+        return { t, n: attribute(n.name, t) };
+      }
+      case 'varying': { const v = one(); return { t: v.t, n: varying(v.n) }; }
       case 'normalView': return { t: 'vec3', n: normalView };
       case 'viewDirection': return { t: 'vec3', n: positionViewDirection };
       case 'albedo': return { t: 'vec3', n: diffuseContribution };
@@ -437,6 +444,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'div': return same((x, y) => new OperatorNode('/', x, safeDivisor(y, n.in?.[1])), two());
       case 'min': return same((x, y) => new MathNode('min', x, y), two());
       case 'max': return same((x, y) => new MathNode('max', x, y), two());
+      case 'atan': return same((y, x) => { const m = new MathNode('atan', y); m.bNode = x; return m; }, two()); // GLSL's atan(y, x) (three's typings list atan as unary)
       case 'mod': return same((x, y) => { const d = safeDivisor(y, n.in?.[1]); return new OperatorNode('-', x, new OperatorNode('*', d, new MathNode('floor', new OperatorNode('/', x, d)))); }, two());
       case 'pow': return same((x, y) => new MathNode('pow', new MathNode('max', x, float(0)), y), two());
       case 'step': return same((x, y) => new MathNode('step', x, y), two());
@@ -570,6 +578,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     const alpha = out(s.alpha);
     if (alpha !== null) { m.opacityNode = asFloat(alpha); m.transparent = s.alphaCutoff === undefined; }
     if (s.alphaCutoff !== undefined) m.alphaTest = s.alphaCutoff;
+    const discard = out(s.discard);
+    if (discard !== null) m.maskNode = not(asBool(discard)); // three discards where the mask is false
     const occlusion = out(s.occlusion);
     if (occlusion !== null) m.aoNode = asFloat(occlusion);
     if (m instanceof MeshStandardNodeMaterial) {

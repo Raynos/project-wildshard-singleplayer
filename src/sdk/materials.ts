@@ -1,8 +1,8 @@
 import { Color, DoubleSide, FrontSide, MeshStandardMaterial, MeshToonMaterial, SRGBColorSpace, Vector2, Vector3, Vector4, type ColorRepresentation } from 'three';
-import { AttributeNode, ConditionalNode, ConstNode, ConvertNode, JoinNode, MathNode, Node, OperatorNode, SplitNode, UniformNode, VarNode } from 'three/webgpu';
+import { AttributeNode, ConditionalNode, ConstNode, ConvertNode, JoinNode, MathNode, Node, OperatorNode, SplitNode, SubBuildNode, UniformNode, VaryingNode, VarNode } from 'three/webgpu';
 import {
   cameraPosition, dot, normalLocal, normalView, normalWorld, normalWorldGeometry, positionGeometry, positionLocal, positionViewDirection,
-  positionWorld, screenUV, smoothstep, step, time,
+  positionWorld, screenCoordinate, screenUV, smoothstep, step, time,
 } from 'three/tsl';
 import { GRAPH_PRESET_VERSION, parseFamilyMaterial, type PainterlyMaterialParams, type ToonMaterialParams } from '@wildshard/format/materialFamilies';
 import { validateGraph, type GraphIr, type GraphLiteral, type GraphNode, type GraphParam, type GraphRef, type GraphStages, type GraphValueType } from '@wildshard/format/materialGraph';
@@ -22,6 +22,8 @@ import type { MaterialEntry } from '@wildshard/format/materials';
  *   (`@wildshard/format/materialGraph`), validated under the author caps. Only the approved vocabulary converts; a TSL
  *   node with no graph op (a `Fn`, `uniform()`, a code node, a texture not declared through `sample`) is refused with
  *   its class name. Graph-only inputs (the sun, irradiance, the lit colour, noise, the post taps) are the exports below.
+ *   A trusted shard's own programs also have `atan(y, x)`, `mod`, `varying(node)`, `attribute('aName', type)`,
+ *   `screenCoordinate` (the `fragCoord` input) and `surface.discard`; a code-fed uniform is an unbound `param()`.
  */
 
 /** A value a graph stage or op input takes: a TSL node, or a literal number / 2–4 number vector. */
@@ -106,9 +108,10 @@ const BUILTINS = new Map<Node, string>([
   [positionLocal, 'positionLocal'], [positionGeometry, 'positionGeometry'], [positionWorld, 'positionWorld'],
   [normalLocal, 'normalLocal'], [normalWorld, 'normalWorld'], [normalWorldGeometry, 'normalWorld'], [normalView, 'normalView'],
   [positionViewDirection, 'viewDirection'], [cameraPosition, 'cameraPosition'], [time, 'time'], [screenUV, 'screenUV'],
+  [screenCoordinate, 'fragCoord'],
 ]);
 const OPERATORS: Readonly<Record<string, string>> = { '+': 'add', '-': 'sub', '*': 'mul', '/': 'div', '%': 'mod', '<': 'lt', '<=': 'lte', '>': 'gt', '>=': 'gte', '==': 'eq', '&&': 'and', '||': 'or', '!': 'not' };
-const METHODS = new Set(['abs', 'floor', 'fract', 'sin', 'cos', 'exp', 'negate', 'oneMinus', 'fwidth', 'normalize', 'length', 'dot', 'mix', 'min', 'max', 'pow', 'step', 'smoothstep', 'clamp']);
+const METHODS = new Set(['abs', 'floor', 'fract', 'sin', 'cos', 'exp', 'atan', 'mod', 'negate', 'oneMinus', 'fwidth', 'normalize', 'length', 'dot', 'mix', 'min', 'max', 'pow', 'step', 'smoothstep', 'clamp']);
 const SWIZZLE: Readonly<Record<string, string>> = { r: 'x', g: 'y', b: 'z', a: 'w', s: 'x', t: 'y', p: 'z', q: 'w', x: 'x', y: 'y', z: 'z', w: 'w' };
 
 /** What `graph()` compiles: TSL values in the graph's stages, plus the graph's own switches. */
@@ -122,6 +125,8 @@ export interface GraphSpec {
   readonly surface?: {
     readonly colour?: GraphValue; readonly alpha?: GraphValue; readonly alphaCutoff?: number; readonly emissive?: GraphValue;
     readonly roughness?: GraphValue; readonly metalness?: GraphValue; readonly occlusion?: GraphValue;
+    /** bool: discard the fragment where true (a dither against `screenCoordinate`, a clip) */
+    readonly discard?: GraphValue;
   };
   readonly lighting?: { readonly sun: GraphValue; readonly sunSpecular?: GraphValue; readonly ambient?: GraphValue; readonly grade?: GraphValue };
   readonly outline?: { readonly offset: GraphValue; readonly colour: GraphValue };
@@ -194,7 +199,18 @@ export function graph(spec: GraphSpec): GraphIr {
       const inputs = info.args.map(refOf);
       return define(key, name, { op: info.graphOp, ...(inputs.length === 0 ? {} : { in: inputs }), ...(info.paramName === undefined ? {} : { param: info.paramName }) });
     }
-    if (key instanceof AttributeNode && Reflect.get(key, '_attributeName') === 'uv') return define(key, name, { op: 'uv' });
+    if (key instanceof AttributeNode) {
+      const attributeName: unknown = Reflect.get(key, '_attributeName'), type = key.nodeType;
+      if (attributeName === 'uv') return define(key, name, { op: 'uv' });
+      if (typeof attributeName !== 'string' || (type !== 'float' && type !== 'vec2' && type !== 'vec3' && type !== 'vec4')) {
+        throw new Error(`graph: attribute ${String(attributeName)} needs a float / vec2 / vec3 / vec4 type: attribute('aSeed', 'float')`);
+      }
+      return define(key, name, { op: 'attribute', name: attributeName, type });
+    }
+    if (key instanceof VaryingNode) {
+      const source = key.node instanceof SubBuildNode ? key.node.node : key.node; // varying() wraps its input in the vertex sub-build
+      return define(key, name, { op: 'varying', in: [refOf(source)] });
+    }
     if (key instanceof OperatorNode) {
       const graphOp = OPERATORS[key.op];
       if (graphOp === undefined) throw new Error(`graph: the TSL operator ${key.op} has no graph op`);
@@ -233,7 +249,7 @@ export function graph(spec: GraphSpec): GraphIr {
   let surface: GraphStages['surface'];
   if (spec.surface !== undefined) {
     const s = spec.surface, refs: Record<string, GraphRef> = {};
-    for (const key of ['colour', 'alpha', 'emissive', 'roughness', 'metalness', 'occlusion'] as const) { const value = s[key]; if (value !== undefined) refs[key] = refOf(value); }
+    for (const key of ['colour', 'alpha', 'emissive', 'roughness', 'metalness', 'occlusion', 'discard'] as const) { const value = s[key]; if (value !== undefined) refs[key] = refOf(value); }
     surface = { ...refs, ...(s.alphaCutoff === undefined ? {} : { alphaCutoff: s.alphaCutoff }) };
   }
   const l = spec.lighting;
