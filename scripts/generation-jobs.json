@@ -3118,6 +3118,62 @@
         "public/assets/baked/driftwood-isle/terrain.bin": "7ee9dec5bd542063dce4c19d70d3e2fe9c3f61b54eff23387c0aec5629346c43"
       },
       "seedOutputs": []
+    },
+    {
+      "id": "driftwood-entry-floors",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/entryFloors.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/driftwood-isle/generators/entryFloors.ts",
+        "driftwoodEntryFloorRows",
+        "src/shards/driftwood-isle/data/entryFloors.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/audio.ts",
+        "src/format/audioProfiles.ts",
+        "src/format/audioRouting.ts",
+        "src/format/contentBounds.ts",
+        "src/format/director.ts",
+        "src/format/directorStages.ts",
+        "src/format/directorWhen.ts",
+        "src/format/json.ts",
+        "src/format/modes.ts",
+        "src/format/moverMotion.ts",
+        "src/format/movers.ts",
+        "src/format/package.json",
+        "src/format/portalLink.ts",
+        "src/format/socketLift.ts",
+        "src/sdk/audio.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/director.ts",
+        "src/sdk/entries.ts",
+        "src/sdk/modes.ts",
+        "src/sdk/movers.ts",
+        "src/sdk/package.json",
+        "src/sdk/physics.ts",
+        "src/sdk/scene.ts",
+        "src/sdk/sceneAnimation.ts",
+        "src/sdk/sceneAudio.ts",
+        "src/sdk/sceneDeclarations.ts",
+        "src/sdk/sceneTransform.ts",
+        "src/sdk/spawns.ts",
+        "src/shards/driftwood-isle/data/entryRows.ts",
+        "src/shards/driftwood-isle/generators/entryFloors.ts"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/entryFloors.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/driftwood-isle/data/entryFloors.generated.json": "4e49e80ad17b80e82198c38aaf929cc46d62f9ce6e44a4228dd739665a8feddd"
+      },
+      "seedOutputs": []
     }
   ]
 }

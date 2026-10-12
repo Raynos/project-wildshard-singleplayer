@@ -15,6 +15,7 @@ import { swellBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterExtent } from '@wildshard/engine/world/waves';
 import { SHORE_REVETMENT_INNER_FACE } from '@wildshard/engine/sim/shore';
 import type { ChunkTerrain } from '@wildshard/game/shard/manifest';
+import { DRY_ENTRIES, type DryEntryEdge } from '../data/entryRows';
 
 /** the waterline the island was authored round (its landscape and its offline bake) */
 export const SHORE_LEVEL = 0.8;
@@ -52,35 +53,9 @@ function loweredReaches(x: number, z: number): boolean {
 /** a level-space rectangle (metres) */
 export interface DryRect { readonly minX: number; readonly minZ: number; readonly maxX: number; readonly maxZ: number }
 
-/** a shardfile `dryEntries` edge (the engine's `DryEntryEdge`, water/declared.ts; spelled here so the manifest's static closure
- *  stays inside its budget) */
-export type DryEntryEdge = 'north' | 'east' | 'south' | 'west';
-/** G164 (SHARDFILE.md `socketOverWater`): each of Driftwood's four entries meets the road over the lowered sea, so the
- *  shardfile's `sea` row declares all four `dryEntries` and the platform's 8 × 15 m socket floor is the approach */
-export const DRY_ENTRIES: readonly DryEntryEdge[] = ['north', 'east', 'south', 'west'];
 /** the declared `sea` water row (shard.config.ts): road height, the swell, the four dry sockets. The runtime consumes the
  *  same row: the lowered swim / wade body and the ocean's clip both read its `dryEntries` */
 export const DECLARED_SEA = { id: 'sea', kind: 'sea', level: LOWERED_SEA, waves: true, dryEntries: DRY_ENTRIES } as const;
-
-/** how far in from its socket's shard-side edge an entry landing runs (metres) */
-export const LANDING_RUN = 1.5;
-const LANDING_HALF = 0.1;
-/** one declared entry landing: an axis-aligned slab at road height (top y = 0 exactly), the full 8 m across the socket's
- *  shard-side edge, `LANDING_RUN` deep (G170: the inner end of the asphalt road deck, world/entryDeck.ts); the pier /
- *  jetty's sea-end ramp rises from it */
-export interface EntryLanding {
-  readonly edge: DryEntryEdge;
-  readonly box: { readonly kind: 'box'; readonly x: number; readonly y: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number; readonly surface: 'stone' };
-}
-function landing(edge: DryEntryEdge): EntryLanding {
-  const centre = CHUNK_HALF - ENTRY_ASPHALT - LANDING_RUN / 2, across = ENTRY_WIDTH / 2, along = LANDING_RUN / 2;
-  const at = { north: [0, centre, across, along], south: [0, -centre, across, along], east: [centre, 0, along, across], west: [-centre, 0, along, across] } as const;
-  const [x, z, hx, hz] = at[edge];
-  return { edge, box: { kind: 'box', x, y: -LANDING_HALF, z, hx, hy: LANDING_HALF, hz, surface: 'stone' } };
-}
-/** G164: the four landings, declared by the shardfile as active static colliders (its socket-landing proof) and installed
- *  exactly as declared by the lowered world build (world/build.ts); G170: the road deck draws each as its inner end */
-export const ENTRY_LANDINGS: readonly EntryLanding[] = DRY_ENTRIES.map(landing);
 
 /** the canonical 8 × 15 m socket of a dry entry as a rectangle for the ocean shader's clip (inclusive, the same region as
  *  the engine's `dryEntryContains`) */

@@ -15,7 +15,9 @@ import { boatColliders } from '../../../src/shards/driftwood-isle/models/boat';
 import { MOVERS } from '../../../src/shards/driftwood-isle/data/movers';
 import { WATER_UNBOUNDED, seaDamp, waterExtent } from '../../../src/engine/world/waves';
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '../../../src/engine/core/config';
-import { DRIFTWOOD_SEA, DRY_ENTRIES, ENTRY_LANDINGS, LANDING_RUN, dryEntryRect, inEntryFootprint, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, SHORE_LEVEL, WORLD_DROP, droppedTerrain } from '../../../src/shards/driftwood-isle/world/sea';
+import { DRIFTWOOD_SEA, dryEntryRect, inEntryFootprint, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, SHORE_LEVEL, WORLD_DROP, droppedTerrain } from '../../../src/shards/driftwood-isle/world/sea';
+import { DRY_ENTRIES, LANDING_RUN } from '../../../src/shards/driftwood-isle/data/entryRows';
+import { ENTRY_LANDINGS } from '../../../src/shards/driftwood-isle/data/entryLandings';
 import { DRIFTWOOD_EDGE_HEIGHTS } from '../../../src/shards/driftwood-isle/data/edges';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 

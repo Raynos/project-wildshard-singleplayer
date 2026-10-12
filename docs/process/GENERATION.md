@@ -252,3 +252,14 @@ captured collider is an input. The pinned output SHA-256 is `7ee9dec5bd542063dce
 The committed terrain stays until the whole-product clean room is green.
 Navmesh completion still requires all collider/floor dependencies; a ground
 component pass grants no output removal.
+
+### Driftwood entry floors (G320)
+
+The complete `driftwood-entry-floors` primitive component builds the four
+original road-height landing slabs as SDK `BoxCollider` objects and compiles
+them through `readScene`. The world and shardfile read the admitted cached
+JSON; neither imports the generator. Coordinates, stone contacts, registration
+order and native collider/floor ownership remain the original G164/G170 ones.
+The output is a build-time cache product with pinned SHA-256 `4e49e80ad17b80e82198c38aaf929cc46d62f9ce6e44a4228dd739665a8feddd`.
+No retained output seeds the job. Full physics/navmesh and whole-product
+clean rooms remain separate requirements; this component grants no deletion.

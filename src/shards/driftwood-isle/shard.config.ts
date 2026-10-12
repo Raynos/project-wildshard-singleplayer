@@ -8,7 +8,8 @@ import { DRIFTWOOD_MODES } from './data/modes';
 import { DRIFTWOOD_AUDIO } from './data/audio';
 import { DRIFTWOOD_EDGE_HEIGHTS } from './data/edges';
 import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
-import { DECLARED_SEA, ENTRY_LANDINGS, WORLD_DROP } from './world/sea';
+import { DECLARED_SEA, WORLD_DROP } from './world/sea';
+import { ENTRY_LANDINGS } from './data/entryLandings';
 
 // SF46 step 1: content and the existing look stay in the declared trusted entry until the grid-ready bake lands.
 // SF46 edges (G93 / G99 / G164): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand on

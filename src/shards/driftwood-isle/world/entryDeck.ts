@@ -9,7 +9,8 @@ import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/engine/core/c
 import type { Placement } from '@wildshard/engine/models/model';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import { DECK_SLAB, type EntryDeckParams } from '../models/entryDeck';
-import { LANDING_RUN, type DryEntryEdge, type DryRect } from './sea';
+import type { DryRect } from './sea';
+import { LANDING_RUN, type DryEntryEdge } from '../data/entryRows';
 
 /** how far in from the cell edge each deck runs: the 15 m socket plus the declared landing */
 export const DECK_RUN = ENTRY_ASPHALT + LANDING_RUN;
