@@ -13,6 +13,9 @@ and menu-board.jpg (the pick on the real menu, desktop landscape beside iPhone p
 Square round (capture.json round 'square', G344): ... <captures> <art> --pick=<square id> --pick-landscape=<id>
   --why=<one line> --phone-today=<phone png> --phone-pick=<phone png> --reference=<today's L-b jpg>
 labels every capture with its 1x lens and writes a portrait board.jpg (squares, landscapes, the pick on the phone).
+
+Round 4 (capture.json round '4', G343): ... <captures> <art> --pick=<square id> --pick-landscape=<id> --why=<one line>
+  --phone-today=<phone png> --phone-pick=<phone png>: every capture labelled, and a portrait board.jpg by spot.
 """
 import json
 import math
@@ -144,13 +147,8 @@ def hfov(vfov, aspect):
     return 2 * math.degrees(math.atan(math.tan(math.radians(vfov) / 2) * aspect))
 
 
-def square(source, output, report, options):
-    """G344: the phone-1x round. Each capture keeps its full size under a label band (id, lens, height, angle,
-    distance, resolution, build); board.jpg is portrait: the square picks, the landscape picks, then the recommended
-    square in the real phone layout beside today's, with today's L-b for its lens."""
-    rows = report['shots']
-    if not rows or not all(row['complete'] for row in rows):
-        raise RuntimeError('every square-round capture must be complete')
+def label_full(source, output, rows, report):
+    """Each capture at full size under a three-line label band (name; lens and pose; resolution and build)."""
     output.mkdir(parents=True, exist_ok=True)
     pin = report['version']['build']
     for row in rows:
@@ -179,6 +177,17 @@ def square(source, output, report, options):
         filename = f"{row['id']}-{row['session']}.jpg"
         jpeg(panel, output / filename)
         row['labelledFile'] = filename
+    return pin
+
+
+def square(source, output, report, options):
+    """G344: the phone-1x round. Each capture keeps its full size under a label band (id, lens, height, angle,
+    distance, resolution, build); board.jpg is portrait: the square picks, the landscape picks, then the recommended
+    square in the real phone layout beside today's, with today's L-b for its lens."""
+    rows = report['shots']
+    if not rows or not all(row['complete'] for row in rows):
+        raise RuntimeError('every square-round capture must be complete')
+    pin = label_full(source, output, rows, report)
     pick, pick_wide, why = options['pick'], options['pick-landscape'], options['why']
     sizes = {row['session'] for row in rows}
     big_square = max((s for s in sizes if s.split('x')[0] == s.split('x')[1]), key=lambda s: int(s.split('x')[0]))
@@ -241,9 +250,75 @@ def square(source, output, report, options):
     print(f'{len(rows)} labelled JPEGs and board: {output}')
 
 
+def round4(source, output, report, options):
+    """G343: hero round 4, the camera over Driftwood, Nalati and Pine (never the template) with the near tier on. Every
+    capture labelled at full size; board.jpg is portrait: a row of squares and a row of landscapes per spot, then the
+    recommended square in the real phone layout (G341 B) beside today's SQ-c."""
+    rows = report['shots']
+    if not rows or not all(row['complete'] for row in rows):
+        raise RuntimeError('every round-4 capture must be complete')
+    pin = label_full(source, output, rows, report)
+    pick, pick_wide, why = options['pick'], options['pick-landscape'], options['why']
+    squares = {row['id']: row for row in rows if row['session'] == '2048x2048'}
+    wides = {row['id']: row for row in rows if row['session'] == '2560x1440'}
+    if pick not in squares or pick_wide not in wides:
+        raise RuntimeError('--pick must be a square id and --pick-landscape a landscape id')
+    spots = [('DW', 'ABOVE DRIFTWOOD'), ('NA', 'ABOVE NALATI'), ('PH', 'ABOVE PINE')]
+    margin, gap, cell, head = 30, 24, 560, 92
+    width = margin * 2 + cell * 3 + gap * 2
+    wide_h, phone_h = round(cell * 9 / 16), 1000
+    spot_h = 64 + (head + cell + 20) + (head + wide_h + 30)
+    heights = [250, spot_h * 3, 64 + head + phone_h + 30, 70]
+    board = Image.new('RGB', (width, sum(heights)), '#101820')
+    draw = ImageDraw.Draw(board)
+    draw.text((margin, 24), 'MAIN MENU HERO · ROUND 4 · ABOVE THE SHARDS (G343)', font=font(46), fill='white')
+    draw.text((margin, 90), 'The camera stands over Driftwood, Nalati or Pine (never the template), aimed across the roundabout,',
+              font=font(25), fill='#a9cce0')
+    draw.text((margin, 128), 'with the near-placeholder tier on (Neighbour detail B); phone-1x lens: square 62°, landscape 70° across.',
+              font=font(25), fill='#a9cce0')
+    draw.text((margin, 176), f'Recommended: {pick} (square) and {pick_wide} (landscape). {why}', font=font(27), fill='#ffd27a')
+
+    def tile(x, y, image, w, h, title, detail, chosen):
+        thumb = image.resize((w, h), Image.Resampling.LANCZOS) if abs(image.width / image.height - w / h) < 0.01 \
+            else fit(image, w, h)
+        board.paste(thumb, (x + (w - thumb.width) // 2, y + head))
+        draw.text((x, y + 6), title, font=font(27), fill='#ffd27a' if chosen else 'white')
+        draw.text((x, y + 46), detail, font=font(21), fill='#a9cce0')
+        if chosen:
+            draw.rectangle((x - 5, y + head - 5, x + w + 4, y + head + thumb.height + 4), outline='#ffd27a', width=5)
+
+    def lens(row):
+        slant = math.dist([row['eye'][k] for k in 'xyz'], [row['target'][k] for k in 'xyz'])
+        return f"{row['eye']['y']:g} m high · {row['downDegrees']:.0f}° down · {slant:.0f} m from the roundabout"
+
+    y = heights[0]
+    for code, title in spots:
+        draw.text((margin, y + 8), title, font=font(34), fill='white')
+        y += 64
+        for group, prefix, h, chosen in [(squares, 'SQ', cell, pick), (wides, 'LS', wide_h, pick_wide)]:
+            for index, variant in enumerate('abc'):
+                row = group[f'{prefix}-{code}-{variant}']
+                tile(margin + index * (cell + gap), y, Image.open(source / row['file']).convert('RGB'), cell, h,
+                     f"{row['id']} · {row['name'].split(', ', 1)[-1]}" + ('  · PICK' if row['id'] == chosen else ''), lens(row), row['id'] == chosen)
+            y += head + h + (20 if prefix == 'SQ' else 30)
+    draw.text((margin, y + 8), 'ON THE PHONE · iPhone 16 Pro portrait, real menu (G341 B), Developer off', font=font(32), fill='white')
+    today, routed = (Image.open(options[k]).convert('RGB') for k in ('phone-today', 'phone-pick'))
+    phone_w = round(phone_h * today.width / today.height)
+    tile(margin, y + 64, today, phone_w, phone_h, 'Today: SQ-c band', 'interim hero (G346)', False)
+    tile(margin + phone_w + gap, y + 64, routed, phone_w, phone_h, f'{pick} band', 'routed as the square hero image', True)
+    draw.text((margin, board.height - 50), f'{pin} · desktop tier, DSF 1 · near tier B · no HUD or weapon · capture lens only, '
+              'shipped hero unchanged', font=font(23), fill='white')
+    jpeg(board, output / 'board.jpg')
+    (output / 'capture.json').write_text(json.dumps(report, indent=2)+'\n')
+    print(f'{len(rows)} labelled JPEGs and board: {output}')
+
+
 def main(source, output, menu=None, pick=None, why='', phone=None, options=None):
     source, output = Path(source), Path(output)
     report = json.loads((source / 'capture.json').read_text())
+    if report.get('round') == '4':
+        round4(source, output, report, options or {})
+        return
     if report.get('round') == 'square':
         square(source, output, report, options or {})
         return
