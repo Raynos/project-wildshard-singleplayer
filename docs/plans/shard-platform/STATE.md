@@ -24,6 +24,8 @@ template, phone-1x lens, square + landscape; the pick ships via G341's layouts.
 **Before the sprint (paused, not dropped):** frame floor (desktop Pine p95 33.4; Simulator Driftwood 59, Pine 58,
 Sky 37, Nalati 36; fixes `38ea143c5`, `512bb3d16`, `dc4dfb106` unproven; task clock `99b0866c0`; leads: Driftwood unsliced world builders + late sailor light), SF22 assembled routes, SF57 re-entry, SF67.
 
+**G342 near tier:** built behind Debug Look ▸ Neighbour detail (A default; `26f3a96e4`, `f508e4a83`, `822416aca`); raw A/B round 1 in `art/near-tier/round-1/` (`79cbd5547`; known gaps: Pine forest missing, texture tints); round 2 after sp-o20's fixes, then hero round 4.
+
 **For wildshard-v:** G344 interim hero SHIPPED in code `9422ff1d1`: SQ-c square band on portrait (full width), LS-c full-bleed on landscape (next release). Nine graph rollout needs one physical-iPhone reading (`graphMaterials`).
 
 **Jake open picks:** `docs/reviews/shard-platform-open-picks.md`.
