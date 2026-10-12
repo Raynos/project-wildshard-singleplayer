@@ -6,10 +6,10 @@
  * boundary-face flag in TEXCOORD_0.y (G222: 1 lip, 2 foot), where the material lays rock strata over the shard's cliff
  * palette.
  */
-import { BufferAttribute, BufferGeometry, Color, Mesh, MeshLambertMaterial, MeshStandardMaterial, Vector3, type Material, type Object3D } from 'three';
+import { Color, Mesh, MeshLambertMaterial, MeshStandardMaterial, Vector3, type BufferGeometry, type Material, type Object3D } from 'three';
 import { patchShader } from '@wildshard/engine/render/shaderPatches';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import type { FarLookRuntime, FarProxyMesh } from './farProxy';
+import type { FarLookRuntime } from './farProxy';
 
 /**
  * SF23 / G90: how far (m) the foot of a proxy's border skirt steps in from the cell edge. The skirt keeps its top on the
@@ -73,13 +73,6 @@ if (vFarCliff > 0.5) {
       .replace('#include <fog_fragment>', '#include <fog_fragment>\ngl_FragColor.rgb = mix(gl_FragColor.rgb, farHazeColour, smoothstep(farHaze.x, farHaze.y, vFarDepth) * farHaze.z);\ngl_FragColor.a = 1.0;');
   }, { key: `sf23-far-${look.family}${positionalMask ? '-position' : ''}` });
   return { material, setMask: (excluded) => { for (let r = 0; r < 16; r++) mask[r] = excluded.has(r) ? 1 : 0; }, frame: { haze: hazeColour } };
-}
-
-/** Geometry from a baked mesh (tests, the board) or reuse a GLTF-parsed one: either way the region is uv.x, the cliff uv.y. */
-export function farProxyGeometry(mesh: FarProxyMesh): BufferGeometry {
-  const uv = new Float32Array(mesh.region.length * 2); mesh.region.forEach((r, i) => { uv[i * 2] = r; uv[i * 2 + 1] = mesh.cliff[i] ?? 0; });
-  return new BufferGeometry().setAttribute('position', new BufferAttribute(mesh.positions, 3)).setAttribute('normal', new BufferAttribute(mesh.normals, 3))
-    .setAttribute('color', new BufferAttribute(mesh.colours, 3)).setAttribute('uv', new BufferAttribute(uv, 2)).setIndex(new BufferAttribute(mesh.index, 1));
 }
 
 /**

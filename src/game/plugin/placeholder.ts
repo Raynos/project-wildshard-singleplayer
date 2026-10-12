@@ -1,6 +1,5 @@
-import type { BufferGeometry } from 'three';
-import { buildFarProxy, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart } from '../grid/farProxy';
-import { farProxyGeometry } from '../grid/farView';
+import { BufferAttribute, BufferGeometry } from 'three';
+import { buildFarProxy, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart, type FarProxyMesh } from '../grid/farProxy';
 
 /**
  * G348 (Jake: the near and far placeholders are generic for any shard the MMO loads): the one placeholder mesh the bakes
@@ -25,4 +24,12 @@ export type PlaceholderPart = FarPart;
 export function placeholderGeometry(grid: PlaceholderGrid, look: PlaceholderLook, parts: readonly PlaceholderPart[] = [], cap?: number,
   reduce?: (positions: Float32Array, index: Uint32Array) => Uint32Array): BufferGeometry {
   return farProxyGeometry(buildFarProxy(grid, look, parts, cap, reduce));
+}
+
+/** The far mesh as geometry (region in uv.x, cliff in uv.y), kept here rather than beside the far material
+ *  (`grid/farView.ts`) so a Node build's closure reaches no renderer module (the native sim loader refuses one). */
+function farProxyGeometry(mesh: FarProxyMesh): BufferGeometry {
+  const uv = new Float32Array(mesh.region.length * 2); mesh.region.forEach((r, i) => { uv[i * 2] = r; uv[i * 2 + 1] = mesh.cliff[i] ?? 0; });
+  return new BufferGeometry().setAttribute('position', new BufferAttribute(mesh.positions, 3)).setAttribute('normal', new BufferAttribute(mesh.normals, 3))
+    .setAttribute('color', new BufferAttribute(mesh.colours, 3)).setAttribute('uv', new BufferAttribute(uv, 2)).setIndex(new BufferAttribute(mesh.index, 1));
 }
