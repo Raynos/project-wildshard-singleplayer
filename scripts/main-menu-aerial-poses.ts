@@ -76,6 +76,8 @@ export interface LandscapeHeroPose {
   readonly fovDegrees?: number;
   /** G344: which frame the shot is for (the square portrait band, or the desktop landscape); absent = landscape (round 3) */
   readonly aspect?: 'square' | 'landscape';
+  /** G343: the cell the eye stands over; the capture enters it first so it draws its own runtime, not a placeholder */
+  readonly over?: { readonly instance: string; readonly slug: string; readonly stand: { readonly x: number; readonly z: number } };
 }
 
 /** One shot aimed exactly at `target` from `headingDegrees` round it, `distance` metres away on the ground, `height` up. */
@@ -170,12 +172,16 @@ export function round4HeroPlan(): { junction: string; surrounding: readonly stri
     if (cell === undefined) throw new Error(`Round 4 stands over ${slug}, which is not at the roundabout`);
     const headingDegrees = Math.atan2(cell.origin.x - target.x, cell.origin.z - target.z) * 180 / Math.PI;
     const centre = Math.hypot(cell.origin.x - target.x, cell.origin.z - target.z);
+    // The player stands in the cell a third of the way from its centre to the roundabout: the part of the cell in frame
+    // (from below the eye to the roundabout) then sits inside its L0 / L1 rings, whichever of the three poses shoots.
+    const over = { instance: cell.instance, slug, stand: { x: Math.round(cell.origin.x + (target.x - cell.origin.x) / 3),
+      z: Math.round(cell.origin.z + (target.z - cell.origin.z) / 3) } };
     for (const [variant, label, distance, height] of [
       ['a', 'over its centre', centre, 260], ['b', 'nearer and lower', centre - 90, 200], ['c', 'back over its edge, higher', centre + 110, 320],
     ] as const) {
       for (const aspect of ['square', 'landscape'] as const) {
-        poses.push(aimedPose(target, cells, { id: `${aspect === 'square' ? 'SQ' : 'LS'}-${code}-${variant}`, name: `Above ${name}, ${label}`,
-          headingDegrees, height, distance: Math.round(distance), aspect, fovDegrees: HERO_1X_FOV[aspect] }));
+        poses.push({ ...aimedPose(target, cells, { id: `${aspect === 'square' ? 'SQ' : 'LS'}-${code}-${variant}`, name: `Above ${name}, ${label}`,
+          headingDegrees, height, distance: Math.round(distance), aspect, fovDegrees: HERO_1X_FOV[aspect] }), over });
       }
     }
   }

@@ -8,6 +8,8 @@
  *   1920×1080 desktop; files <A|B>-<pose>-<device>.png.
  * --round=4 (G343): round4HeroPlan (above Driftwood, Nalati and Pine, aimed across the roundabout; never the template)
  *   with Debug Neighbour detail B (near placeholders) on; the square round's sizes and lenses.
+ *   --enter stands the player in the cell under the eye first (enterOver); --only=<ids> / --sessions=<keys> narrow a re-shoot.
+ * --tree builds the working tree instead of a clean HEAD export (a change not yet committed, e.g. during a push freeze).
  * Owns one clean --head preview and one muted browser-lane capture, then stops both.
  * Entry and calibrated pose follow progress/shard-platform/look28/capture.mjs.
  */
@@ -65,6 +67,46 @@ async function poseAt(page, pose) {
     };
     keepCameraPosition();
   }, pose);
+}
+
+/** G343: stand the player in the cell the hero eye is over and wait until that shard is the entered, ready runtime with
+ *  its own L0 / L1 tiles resident, then detach the camera again. The grid admits a cell by the feet's position (look48's
+ *  TELEPORT entry): held above the ground until the cell's own colliders exist, then set down on them. */
+async function enterOver(page, over) {
+  await page.evaluate(() => { window.__heroAerialPose = null; const w = window.__wildshard.requireWorld(); w.freeCamera = false; w.player.keys.clear(); });
+  const place = height => page.evaluate(async ({ stand, y }) => {
+    const api = window.__wildshard, w = api.requireWorld(), live = api.shard.grid.state().live.live;
+    const offset = { x: live.worldFeet.x - w.player.position.x, z: live.worldFeet.z - w.player.position.z };
+    await api.pose({ x: stand.x - offset.x, z: stand.z - offset.z, ...(y === null ? {} : { y }), yaw: 0, pitch: 0 });
+  }, { stand: over.stand, y: height });
+  await place(40);
+  await page.waitForFunction(instance => {
+    const s = window.__wildshard.shard.grid.state(), l = s.live.live;
+    return l.current === instance && s.inside === instance && l.gameplayReady && l.pending.length === 0 && l.residents.includes(instance);
+  }, over.instance, { timeout: 240000, polling: 250 });
+  await place(null);
+  // Settled: the cell is the entered runtime and no tile is in flight or queued, for three polls in a row
+  const handle = await page.waitForFunction(instance => {
+    const grid = window.__wildshard.shard.grid, s = grid.state(), claims = grid.residency().claims;
+    const own = claims.filter(claim => claim.owner === instance);
+    const count = category => own.filter(claim => claim.category === category).length;
+    const tiles = { l0: count('l0'), l1: count('l1'), sim: count('sim'), rings: s.rings, ringsReady: s.ringsReady };
+    // a cell streaming ring tiles has its own l0 / l1 claims; a runtime that streams itself (Driftwood's) holds its sim
+    // claims and draws its own ground, so the witness records the tile counts and requires the entered runtime's sim
+    const quiet = s.rings.inFlight === 0 && s.rings.queued === 0 && s.ringsReady && tiles.sim > 0 && s.live.live.current === instance;
+    window.__heroSettled = quiet ? (window.__heroSettled ?? 0) + 1 : 0;
+    return window.__heroSettled >= 3 ? { instance, current: s.live.live.current, inside: s.inside, feet: s.live.live.worldFeet, tiles } : false;
+  }, over.instance, { timeout: 180000, polling: 500 }).catch(async error => {
+    const census = await page.evaluate(() => {
+      const grid = window.__wildshard.shard.grid, rows = {};
+      for (const claim of grid.residency().claims) rows[`${claim.owner}/${claim.category}`] = (rows[`${claim.owner}/${claim.category}`] ?? 0) + 1;
+      return { rings: grid.state().rings, ringsReady: grid.state().ringsReady, claims: rows };
+    });
+    throw new Error(`${over.instance} tiles did not settle: ${JSON.stringify(census)} (${String(error)})`);
+  });
+  const witness = await handle.jsonValue();
+  await page.evaluate(() => { const w = window.__wildshard.requireWorld(); w.player.keys.clear(); w.freeCamera = true; w.game.viewmodel.visible = false; });
+  return witness;
 }
 
 async function capture(base) {
@@ -156,6 +198,12 @@ async function captureAerial(base) {
   requireNoQuiet();
   const plan = JSON.parse(await command(process.execPath,
     ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round === 'near' ? 'square' : round], root));
+  // --only=<pose id,…> and --sessions=<key,…> (e.g. 2048x2048) narrow a re-shoot; sessions left with no pose are skipped
+  const only = flag('only', ''), keys = flag('sessions', '');
+  // --enter (round 4): stand the player in the cell under the eye first. Off until an entered standalone level stops
+  // drawing its own world over the grid from the air (Driftwood's ocean runs to the horizon over every neighbour)
+  const enter = args.includes('--enter');
+  if (only !== '') plan.poses = plan.poses.filter(p => only.split(',').includes(p.id));
   // G343 round 4: the square round's sessions over round4HeroPlan, with the near-placeholder tier on (G342)
   const near = round === 'near', round4 = round === '4', square = round === 'square' || round4, landscape = round === 'landscape' || square || near;
   // Aerial: one phone context per Debug time pick. Landscape: one desktop context per resolution, desktop tier, DSF 1.
@@ -167,7 +215,7 @@ async function captureAerial(base) {
   const centre0 = plan.poses[0].target, nearPoses = [...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => ({ id: `road-${i}`, name: `Road view ${i}`,
     eye: { x: centre0.x - sx * 30, y: 22, z: centre0.z - sz * 30 }, target: { x: centre0.x + sx * 240, y: 0, z: centre0.z + sz * 240 } })),
   ...plan.poses.filter(p => p.id === 'SQ-c')];
-  const sessions = near
+  const sessions = (near
     ? ['far', 'near'].flatMap(nearTier => [
       { key: `${nearTier === 'far' ? 'A' : 'B'}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] },
         settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, nearTier }, gfx: { dpr: '2', aa: 'auto' } },
@@ -180,7 +228,8 @@ async function captureAerial(base) {
       ? [[2560, 1440], [1920, 1080]].map(([width, height]) => desktop(width, height, plan.poses))
       : ['golden', 'midday', 'sunset'].map(timePick => ({ key: timePick, poses: plan.poses.filter(p => p.timePick === timePick),
         context: { ...devices['iPhone 16 Pro'] },
-        settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, time: timePick }, gfx: { dpr: '2', aa: 'auto' } }));
+        settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, time: timePick }, gfx: { dpr: '2', aa: 'auto' } })))
+    .filter(session => session.poses.length > 0 && (keys === '' || keys.split(',').includes(session.key)));
   const expected = landscape ? sessions.reduce((sum, session) => sum + session.poses.length, 0) : 15;
   const report = { schema: 'engine-hero-capture/1', version: await (await fetch(new URL('version.json', base))).json(),
     round, device: landscape ? `Desktop Chrome (${sessions.map(session => session.key.replace('x', '×')).join(', ')}, DSF 1)` : 'iPhone 16 Pro', developer: true,
@@ -244,11 +293,18 @@ async function captureAerial(base) {
           }, 'harness.hero-aerial');
         });
         await page.addStyleTag({ content: 'body * { visibility: hidden !important; } canvas[data-hero-canvas] { visibility: visible !important; }' });
+        let entered = null;
         for (const shot of session.poses) {
           requireNoQuiet();
           const row = { ...shot, session: session.key, requestedPose: shot, errors: [], complete: false };
           report.shots.push(row); save();
           try {
+            // G343: stand the player in the cell the eye is over, so that shard draws its own runtime (not a placeholder)
+            if (enter && shot.over !== undefined && shot.over.instance !== entered?.instance) {
+              entered = await enterOver(page, shot.over);
+              console.log(`entered ${shot.over.slug} for ${session.key}: ${JSON.stringify(entered.tiles)}`);
+            }
+            if (enter && shot.over !== undefined) row.entered = entered;
             await page.evaluate(p => { window.__heroAerialPose = p; }, shot);
             await page.waitForTimeout(3500);
             const current = await page.evaluate(gridFloorDocumentIdentity);
@@ -264,9 +320,13 @@ async function captureAerial(base) {
                 dayClock: w.sky.dayNight?.snapshot() ?? null, clock: w.game.app.clock.mode };
             });
             if (!row.frame.freeCamera || row.frame.viewmodelVisible) throw new Error('Detached-camera / no-viewmodel witness failed');
+            if (enter && shot.over !== undefined && row.frame.cells.find(cell => cell.instance === shot.over.instance)?.shows !== 'playing') throw new Error(`${shot.over.instance} is not the playing cell under the eye`);
             if (Math.hypot(...row.frame.cameraWorld.map((v, i) => v - [shot.eye.x, shot.eye.y, shot.eye.z][i])) > 0.01) throw new Error('Actual aerial camera differs from requested pose');
             if (typeof shot.fovDegrees === 'number' && Math.abs(row.frame.fov - shot.fovDegrees) > 0.01) throw new Error(`Camera FOV ${row.frame.fov} is not the requested ${shot.fovDegrees}`);
-            row.file = near ? `${session.key.slice(0, 1)}-${shot.id}-${session.key.slice(2)}.png` : landscape ? `${shot.id}-${session.key}.png` : `${shot.id}.png`;
+            // a road view is named for the shard it looks at (Jake: every neighbour obvious, e.g. A-road-nalati-iphone)
+            const facing = shot.id.startsWith('road-') ? row.frame.cells.find(cell => Math.abs(cell.cell[0] * 555 - shot.target.x) < 277.5 && Math.abs(cell.cell[1] * 555 - shot.target.z) < 277.5) : undefined;
+            const name = facing === undefined ? shot.id : `road-${facing.slug.replace(/^_/u, '').split('-')[0]}`;
+            row.file = near ? `${session.key.slice(0, 1)}-${name}-${session.key.slice(2)}.png` : landscape ? `${shot.id}-${session.key}.png` : `${shot.id}.png`;
             await page.locator('canvas[data-hero-canvas]').screenshot({ path: join(out, row.file) });
             row.consoleErrors = [...consoleErrors]; row.complete = true;
           } catch (error) { row.errors.push(String(error)); }
@@ -288,10 +348,11 @@ if (args.includes('--worker')) {
   const scratch = join(out, 'build'); mkdirSync(scratch, { recursive: true });
   let base;
   try {
-    base = (await command(join(root, 'scripts/serve-build.sh'), ['--head', '--name', 'main-menu-hero', '--hours', '1'], scratch,
+    base = (await command(join(root, 'scripts/serve-build.sh'), [...(args.includes('--tree') ? [] : ['--head']), '--name', 'main-menu-hero', '--hours', '1'], scratch,
       { ...process.env, SERVE_OWNER: 'sp-x2-g332' })).split('\n').at(-1);
     requireNoQuiet();
-    await command(join(root, 'scripts/browser-lane.sh'), ['--max', '20', process.execPath, script, '--worker', `--round=${round}`, `--base=${base}`, `--out=${out}`], root,
+    await command(join(root, 'scripts/browser-lane.sh'), ['--max', '20', process.execPath, script, '--worker', `--round=${round}`, `--base=${base}`, `--out=${out}`,
+      ...args.filter(value => /^--(?:only=|sessions=|enter$)/u.test(value))], root,
       { ...process.env, HERO_CAPTURE_LANE: '1' });
     console.log(`Canvas candidates and pinned capture.json: ${out}`);
   } finally {
