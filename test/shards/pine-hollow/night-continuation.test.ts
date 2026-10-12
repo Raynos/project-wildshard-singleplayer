@@ -58,6 +58,7 @@ it('retains the frozen shipping oracle used by the variable-frame body and place
 it('restores every night population clock and identity silently through 10000 mixed roam/race/dawn ticks', () => {
   const original = setup(), resumed = setup(); resumed.restore(original.snapshot());
   for (let tick = 0; tick < 10_000; tick++) {
+    const eventStart = original.events.length;
     const centre = tick % 1700 < 1100 ? OLD_GROWTH : HAMLET_SITES.mill;
     const feet = { x: centre.x + tick % 7, y: 2, z: centre.z + tick % 11 };
     for (const world of [original, resumed]) {
@@ -69,12 +70,16 @@ it('restores every night population clock and identity silently through 10000 mi
       }
       world.brain.advance(1 / 60, feet);
     }
-    expect(resumed.gameplay()).toEqual(original.gameplay()); expect(resumed.events).toEqual(original.events);
+    expect(resumed.gameplay()).toEqual(original.gameplay());
+    expect(resumed.events).toHaveLength(original.events.length);
+    // The fixture appends immutable event rows; compare each suffix once, then the whole history below.
+    expect(resumed.events.slice(eventStart)).toEqual(original.events.slice(eventStart));
     if (tick % 179 === 0) {
       const before = resumed.events.length; resumed.restore(original.snapshot()); expect(resumed.events).toHaveLength(before); expect(resumed.snapshot()).toEqual(original.snapshot());
     }
   }
   expect(resumed.snapshot()).toEqual(original.snapshot());
+  expect(resumed.events).toEqual(original.events);
   expect(original.events.some(event => JSON.stringify(event).includes('spawn'))).toBe(true);
   expect(original.events.some(event => JSON.stringify(event).includes('retire'))).toBe(true);
   expect(original.events.some(event => JSON.stringify(event).includes('release'))).toBe(true);
