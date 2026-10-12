@@ -20,6 +20,8 @@ export function ninePhysicsInputs(root) {
     'src/engine/practice/TrainingArena.ts', 'src/engine/world/registry.ts', 'test/fake/portableMath.ts', 'pnpm-lock.yaml']) paths.push(file);
   // DS1.3: the declared portal floors now compile through the retained authoring reader.
   for (const file of ['scene', 'sceneDeclarations', 'physics', 'sceneTransform', 'sceneAnimation', 'sceneAudio', 'audio', 'entries', 'spawns', 'movers', 'modes', 'director']) paths.push(`src/sdk/${file}.ts`);
+  // DS1.4: the reader's catalogue materials and light rows.
+  for (const file of ['src/sdk/materials.ts', 'src/format/lights.ts', 'src/format/materialFamilies.ts', 'src/format/materialGraph.ts']) paths.push(file);
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);
