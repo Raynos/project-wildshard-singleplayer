@@ -21,7 +21,7 @@ import { FAN_ID } from '../data/items';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM, installSkyFan, type FanCommand } from './fan';
 import { installSkyQuest, skyWinchPermission } from './quest';
 import { SKY_MOVER_BINDING } from '../data/moverBindings';
-import { inUpdraft, installHeadlessMovers, verifiedMoverModules, type HeadlessMovers } from '@wildshard/game/plugin/mover';
+import { UpdraftDriver, installHeadlessMovers, verifiedMoverModules, type HeadlessMovers } from '@wildshard/game/plugin/mover';
 import baked from './physics.baked.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
@@ -124,10 +124,10 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
       winch: { command: () => { movers.runtime.command(SKY_MOVER_BINDING.winch, 1); }, raised: () => movers.runtime.pose(SKY_MOVER_BINDING.winch).enabled } });
     // the updraft (G24): riding the board inside its column, a steady upward push through the host impulse, as the
     // browser's `far.updraft` fixed.pre system; read after this tick's move, it feeds the next one, as the browser's does
-    const lift = new Vector3();
+    const force = new UpdraftDriver(updraft), lift = new Vector3();
     host.onStep(UPDRAFT_STEP, dt => {
-      const p = host.player.position;
-      if (host.playerBoard.on && inUpdraft(updraft, p.x, p.y, p.z)) host.impulsePlayer(lift.set(0, updraft.lift * dt, 0));
+      force.step(dt, host.player.position, host.playerBoard.on, lift.set(0, 0, 0));
+      if (lift.y !== 0) host.impulsePlayer(lift);
     });
     flock.land();
     return movers;

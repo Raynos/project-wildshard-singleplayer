@@ -17,7 +17,7 @@ import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
 import { SKY_FLOCK_GROUPS } from '../data/spawns';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { skyMoverViews } from './movers';
-import { inUpdraft, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
+import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import { commandSocketLift } from '@wildshard/game/plugin/simulation';
 import { isletCalls, type IsletCalls } from '../world/risingIslet';
 import { gustFx } from './looks/windFx';
@@ -206,11 +206,10 @@ export class SkyReachPlugin extends ShardPlugin {
     // like an animal's, so a constant feed holds about updraft.lift / 3.5 m/s) floats you off the ramp to the high step.
     const updraft = source.modes?.traverse.find(row => row.id === 'far.updraft');
     if (updraft?.kind !== 'updraft') throw new Error('Sky Reach requires its admitted updraft row');
-    const lift = new Vector3();
+    const force = new UpdraftDriver(updraft), lift = new Vector3();
     ctx.system({ id: 'far.updraft', phase: 'fixed.pre', run: (dt) => {
-      const p = position; if (!this.board()) return;
-      // inside the column (the admitted modes row, the headless host's same rule)
-      if (inUpdraft(updraft, p.x, p.y, p.z)) ctx.app.player?.impulse(lift.set(0, updraft.lift * dt, 0));
+      force.step(dt, position, this.board(), lift.set(0, 0, 0));
+      if (lift.y !== 0) ctx.app.player?.impulse(lift);
     } });
 
     const moverPose = (id: string): ReturnType<MoverRuntime['pose']> => {
