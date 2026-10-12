@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 import { nineWitness } from './native';
+import compatibility from './compatibility.json';
 
 it.each([
   { name: 'ride', tick: 400, suffix: 60, at: { swing: 1 } },
@@ -10,4 +11,5 @@ it.each([
   const report = JSON.parse(result.stdout) as { replay: { hash: string; replayHash: string } };
   expect(report).toMatchObject({ replay: { status: 'passed', checkpointCaptured: true, checkpoint: { tick, ...at }, suffixTicksExecuted: suffix, ticksExecuted: 2 * suffix, workerTicks: suffix, workerExact: true } });
   expect(report.replay.replayHash).toBe(report.replay.hash);
+  if (process.platform === 'darwin') expect(report.replay.hash).toBe(compatibility.replay[name].hash);
 }, 60_000);

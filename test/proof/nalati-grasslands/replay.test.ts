@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import * as v from 'valibot';
 import { nalatiWitness } from './native';
+import compatibility from './compatibility.json';
 
 it('replays the complete codec/native continuation exactly without claiming the missing gameplay is hosted', () => {
   const result = nalatiWitness('slice-replay');
@@ -10,6 +11,8 @@ it('replays the complete codec/native continuation exactly without claiming the 
   expect(report).toMatchObject({ compatible: false, replay: { status: 'partial',
     checkpointCaptured: true, codecByteExact: true, suffixTicksExecuted: 60, wholeShard: false } });
   expect(report.replay.suffixHash).toMatch(/^[a-f0-9]{64}$/u);
+  expect(report.replay.suffixTicksExecuted).toBe(compatibility.replay.suffixTicksExecuted);
+  if (process.platform === 'darwin') expect(report.replay.suffixHash).toBe(compatibility.replay.suffixHash);
 });
 
 // The real 8,172-tick journey has one mid-round checkpoint and a 4,297-tick restored suffix.

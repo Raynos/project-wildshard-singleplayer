@@ -530,11 +530,12 @@ export async function ledgerSlice(rapier: Rapier): Promise<object> {
     if (rows.length !== 2 || receipts.length !== 2 || receipts.some(r => r.status !== 'granted') || achievements.some(a => !a.earned || a.count !== 1)) throw new Error('Gameplay facts did not grant once');
     // a restored session re-emits nothing; the reopened profile holds the same grants and refuses a replayed fact
     const ended = requireValue(last, 'missing storm window'), tail = new SkyTape(); // past its last leg the tape stands still
+    const endpoint = { ticksExecuted: ended.host.state.tick, victoryTick: ended.host.state.tick - AFTER, hash: digest(ended.host) };
     after = restore(plan, rapier, serializeSimSnapshot(snapshotSimHost(ended.host)));
     for (let i = 0; i < AFTER; i++) step(after, tail.next(after.host));
     const reopened = profile(local), replayed = rows.map(row => reopened.record(row).status);
     if (after.effects.length > 0 || JSON.stringify(reopened.state()) !== JSON.stringify(durable) || replayed.some(status => status !== 'duplicate')) throw new Error('Ledger was not durable and deduplicated');
-    return { status: 'passed', rules: source.ledger.length, windows, facts: rows.map(row => ({ name: row.name, origin: `${row.origin.kind}.${row.origin.source}`, entity: row.entity })),
+    return { status: 'passed', rules: source.ledger.length, windows, endpoint, facts: rows.map(row => ({ name: row.name, origin: `${row.origin.kind}.${row.origin.source}`, entity: row.entity })),
       achievements: achievements.map(a => ({ id: a.id, count: a.count, earned: a.earned })), durableReload: true, duplicateStable: true, restoredReemits: 0, gameplayEmissionProven: true };
   } finally { after?.host.dispose(); last?.host.dispose(); }
 }
