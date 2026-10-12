@@ -3556,3 +3556,14 @@ cursor quietly; `advance()` reads the native observations and runs entered-stage
 actions in author order. Snapshot/restore retain the same stage contract/cursor
 and restore emits nothing. Signal's fire edge and both native boss transition
 owners use this binding; it introduces no tick loop or independent clock.
+
+`@wildshard/engine/world/bakedTerrainField.createBakedTerrainField(source, metadata)`
+creates a manifest ground backed by required native WSTR bytes. `source` names a
+charged absolute asset URL and the level seed. `metadata` retains the existing
+trail, water, pond, cabin and datum laws; no landscape is evaluated. Construction
+never selects a level or fetches. Height/normal/splat reads refuse until the
+owning boot calls `loadBakedTerrain(binding)` (custom terrain painters use their
+`field.ready()` port). A missing, malformed, wrong-seed or uncharged source fails
+boot instead of falling back. The existing optional analytic bake path keeps its
+warning/fallback behavior. Installation shifts datum exactly once and targets
+the captured frame; quiet native bakes may install the verified grid directly.

@@ -18,6 +18,7 @@ import { captureHeightfield, type HeightfieldBinding } from './Heightfield';
 import { SEED } from '../core/config';
 import type { TerrainField } from '../level/data';
 import { levelBakedId } from '../level/spec';
+import { bakedTerrainSource, installDeclaredBakedTerrain } from './bakedTerrainField';
 
 /** Existing runtime grid type is defined by the pure byte reader. */
 export type BakedGrid = terrainBytes.BakedGrid;
@@ -44,6 +45,7 @@ export function bakedUndergrowth(binding: HeightfieldBinding = captureHeightfiel
 /** Install original native samples and their placement decisions into one selected binding without fetching or rebuilding. */
 export function installBakedGrid(grid: BakedGrid, binding: HeightfieldBinding = captureHeightfield()): void {
   if (grid.seed !== ((binding.level.seed ?? SEED) >>> 0)) throw new Error('Baked terrain seed differs from selected level');
+  installDeclaredBakedTerrain(binding.base, grid);
   binding.install(bakedSamplers(grid));
   installed.set(binding, { placement: grid.undergrowth });
 }
@@ -52,9 +54,12 @@ export function installBakedGrid(grid: BakedGrid, binding: HeightfieldBinding = 
 export async function loadBakedTerrain(binding: HeightfieldBinding = captureHeightfield()): Promise<boolean> {
   const levelId = binding.level.id, seed = binding.level.seed ?? SEED;
   if (installed.has(binding)) return true;
-  const url = bakedTerrainUrl(levelBakedId(binding.level));
-  if (!url || new URLSearchParams(location.search).has('nobake')) return false; // ?nobake=1: A/B against the analytic field
+  const required = bakedTerrainSource(binding.base);
+  if (required !== null && required.seed !== (seed >>> 0)) throw new Error('Declared baked terrain seed differs from selected level');
+  const url = required?.url ?? bakedTerrainUrl(levelBakedId(binding.level));
+  if (!url || (required === null && new URLSearchParams(location.search).has('nobake'))) return false; // ?nobake=1: A/B against the analytic field
   try {
+    if (required !== null && !(url in publicBytes())) throw new Error('Required terrain is absent from the boot byte catalogue');
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${res.status}`);
     const grid = parseBakedTerrain(await res.arrayBuffer());
@@ -62,6 +67,7 @@ export async function loadBakedTerrain(binding: HeightfieldBinding = captureHeig
     installBakedGrid(grid, binding);
     return true;
   } catch (e) {
+    if (required !== null) throw e;
     console.warn(`[baked] terrain for ${levelId} not used (${e instanceof Error ? e.message : String(e)}); computing at launch`);
     return false;
   }
