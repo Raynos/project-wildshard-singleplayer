@@ -65,3 +65,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-12 | frozen gate: debug raisedBy named a plan row (G342) | `f508e4a83` | `db3e524d1` | wildshard-new |
 | 2026-10-12 | stale private-index commits reverted other landings (`bb6291f57`, `15d7f33b4`) | private index read before HEAD moved | re-landed `3ba757ba5`, `957b05e68`; guard queued after push (sp-x7) | sp-o24, sp-o25 |
 | 2026-10-12 | frozen gate: Sky headless-runtime test lint (duplicate Roc import; optional chains) | `cd925ed46` (duplicate import) + `fe3cb30c2` (`SKY_ITEMS … as const` made the test's optional chains unnecessary) | `957b05e68` (re-land of `d0a96e6e1` after `15d7f33b4` reverted it) | sp-x1 |
+| 2026-10-12 | silent-revert guard refused native pathspec commits when HEAD moved during the hook | `afad1ea04` | `594cf8762` (validates Git's own next-index; native ref CAS kept) | sp-x7 |
