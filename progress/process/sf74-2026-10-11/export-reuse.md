@@ -26,3 +26,10 @@ Scoped strict typing, touched type-aware lint and Bash syntax also passed.
 The real push gate supplies the end-to-end timing after landing. No
 fseventsd percentage reduction or full-gate wall-time improvement is
 claimed from these focused results.
+
+Actual source `77aa917d1` reached origin at 06:47:36 UTC. The cached gate
+passed in 122.31 s (120 s in its own timer): 4 files / 38 tests, zero
+failures or skips. `generated = 0` reused the completed check; `ratchet =
+26 s` independently ran. Vitest took 27 s. Regeneration plus gate/upload
+was 39 + 125 = 164 s, excluding batching. The two-minute push target
+remains open. Exact scalar receipt: [export-reuse.json](export-reuse.json).
