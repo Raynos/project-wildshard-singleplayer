@@ -9,6 +9,8 @@ import { Grass } from '../src/engine/world/Grass';
 import { configureLevel } from '../src/engine/level/selection';
 import { toLevelSpec } from '../src/game/shard/spec';
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
+import { NALATI_GRASSLANDS } from '../src/shards/nalati-grasslands/manifest';
+import { bindHeightfield, HeightfieldBinding } from '../src/engine/world/Heightfield';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import type { Forest } from '../src/engine/world/forest/Forest';
 import { legacyDouble } from './fake/FakeGame';
@@ -57,6 +59,26 @@ describe('resident render-only CPU preparation', () => {
     const owner = new Scope('cpu.cancel'), root = new THREE.Group();
     registerScenePreparation(root, owner, () => { owner.dispose(); return Promise.resolve(); });
     await expect(prepareSceneResources([root], new THREE.PerspectiveCamera(), () => true)).rejects.toThrow('left its owner');
+  });
+
+  it('seeds a grid cell\'s grass on its own terrain when the warm-up runs under another field (look48)', async () => {
+    const owner = new Scope('cpu.grass.cell');
+    configureLevel(toLevelSpec(NALATI_GRASSLANDS)); // the page's own field while the cell warms up
+    const pine = new HeightfieldBinding(toLevelSpec(PINE_HOLLOW));
+    vi.stubGlobal('document', { createElement: () => new Canvas() });
+    try {
+      const inPine = <T>(run: () => T): T => { const leave = bindHeightfield(pine); try { return withOwner(owner, run); } finally { leave(); } };
+      const reference = inPine(() => new Grass(sky, forest).build()), prepared = inPine(() => new Grass(sky, forest).build());
+      const root = new THREE.Group(); root.position.z = 555; root.add(prepared.group);
+      const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, 555 - 235);
+      inPine(() => { reference.update(0, new THREE.Vector3(0, 2, -235)); });
+      await prepareSceneResources([root], camera, () => !owner.disposed);
+      expect(sameGrass(prepared, reference)).toBe(true);
+      // the cell's first tick under its own frame refills nothing
+      const matrixVersion = prepared.mesh.instanceMatrix.version;
+      inPine(() => { prepared.update(0, new THREE.Vector3(0, 2, -235)); });
+      expect(prepared.mesh.instanceMatrix.version).toBe(matrixVersion);
+    } finally { owner.dispose(); } // the document stub stays for the next case, which restores every global (unstubAllGlobals also drops setup's localStorage)
   });
 
   it('fills exactly the old first-frame grass and flowers before exposure, with yielded work and no next-frame refill', async () => {

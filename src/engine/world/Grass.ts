@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { SEED } from '../core/config';
 import { Rng } from '../core/rng';
 import { Noise2D, smoothstep, lerp } from '../core/noise';
-import { heightAt, normalAt, splatAt, inChunk, pondMask, waterLevel } from './Heightfield';
+import { heightAt, normalAt, splatAt, inChunk, pondMask, waterLevel, bindHeightfield, captureHeightfield } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import { windUniforms } from './TreeFactory';
 import { patchWindField } from './wind';
@@ -181,12 +181,20 @@ export class Grass {
     grassUniforms.uSunDir.value = this.sky.sunDir;
     grassUniforms.uSunColor.value = this.sky.sunColor;
     const owner = resourceScope();
+    // the terrain this grass grows on, captured while its level frame is entered: a grid cell's warm-up prepares its
+    // roots from the road, under the road's field, and cells seeded there were never reseeded (look48: Pine's cell lost
+    // its near grass). Each synchronous slice enters the captured field and leaves it before the next yield.
+    const terrain = captureHeightfield();
+    const onTerrain = (run: () => void): void => {
+      const leave = bindHeightfield(terrain);
+      try { withOwner(owner, run); } finally { leave(); }
+    };
     registerScenePreparation(this.group, owner, async (eye, current) => {
-      withOwner(owner, () => { this.queueAt(eye); });
+      onTerrain(() => { this.queueAt(eye); });
       const slice = workSlice(undefined, owner);
       while (this.queue.length > 0) {
         if (!current()) throw new Error('Grass preparation left its owner');
-        withOwner(owner, () => { this.flush(1); });
+        onTerrain(() => { this.flush(1); });
         if (slice.due()) await slice.yield();
       }
     });
