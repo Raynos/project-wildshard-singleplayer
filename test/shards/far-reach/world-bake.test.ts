@@ -23,7 +23,7 @@ import { seaTexture } from '../../../src/shards/far-reach/look/cloudSea';
 import seaRows from '../../../src/shards/far-reach/data/seaTexture.json' with { type: 'json' };
 import { bakeSkyCards } from '../../../src/shards/far-reach/generators/skyCards';
 import skyCardRows from '../../../src/shards/far-reach/data/skyCards.json' with { type: 'json' };
-import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../../../src/shards/far-reach/runtime/looks/skyCardsLook';
+import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../../../src/shards/far-reach/data/skyCardsLook';
 import { cardField, cardFieldRow, cardGroup, cardGroupRow } from '../../../src/shards/far-reach/runtime/looks/cardField';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { skyBakedPiece, skyKnollHulls } from '../../../src/shards/far-reach/world/baked';
