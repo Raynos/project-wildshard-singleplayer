@@ -1,5 +1,6 @@
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
+import type { MapPoi as MapPoiRow } from '@wildshard/format/minimap';
 /**
  * Minimap — the circular top-down map top-right of the HUD (mockup B, art/minimap/round-1/minimap-k1-B-terrain.png).
  *
@@ -98,8 +99,8 @@ export interface MapExtraImage { readonly image: CanvasImageSource; readonly x: 
 /** a text label at a point; one past the rim is pinned just inside it, in its direction */
 export interface MapExtraLabel { readonly x: number; readonly z: number; readonly text: string; readonly color: string }
 
-/** a named place on the maps (the minimap's labels, the full map's pins) */
-export interface MapPoi { x: number; z: number; label: string; color: string }
+/** a named place on the maps: the format's row (`@wildshard/format/minimap`); frozen legacy folders still name it here */
+export type MapPoi = MapPoiRow;
 /** what a palette's overlay paints with: the terrain layer's context, world → layer px, px per metre, the trails */
 export interface MapOverlay {
   ctx: CanvasRenderingContext2D; toU: (x: number) => number; toV: (z: number) => number; ppm: number;

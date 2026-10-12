@@ -3050,6 +3050,8 @@ DS1.1: presentation metadata, exact mesh-collision declarations, script bindings
 
 DS1.1: terrain tile addressing, bounded water declarations and the immutable accent palette are defined in `@wildshard/format`. Game retains byte validation, fresh water motor bodies and HUD CSS mapping unchanged. Authors and loader consume the same defining Valibot contracts.
 
+DS1.1: the pure row contracts a shard's `data/` declares for looks and maps are defined in `@wildshard/format`: `surfaceLooks` (the surface look rows `applySurfaceLooks` installs; the GLSL stays in game), `minimap` (`MapPoi`, a named place; `@wildshard/engine/ui/Minimap` keeps an alias for frozen legacy folders) and `dayCycle` (`DayClockPhase`, `DayClockSegment` and `DayClockRow`, the plain-data part of the engine's `DayCycleSpec`, which extends it with sun paths, look keys and curves). Engine and game import them from format; no behaviour moved.
+
 DS1.1: item/loadout declarations, target binding references and quest/dialogue graphs are defined in `@wildshard/format`. Game keeps item construction and collider activation unchanged. The frozen legacy quest type path infers its type from the single defining format schema.
 
 DS1.1: numeric world rows, inert sketches, mover/entry declarations, native-ground references, HUD rows and client presentation bindings live in `@wildshard/format`. Engine runtime bounds remain independent; `test/format-wire-limits.test.ts` requires exact wire/runtime agreement. Native solver, terrain/GLB byte validation, draw and input ownership remain game/engine functions. Frozen legacy mover handles retain the original game path.

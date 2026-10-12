@@ -1,10 +1,10 @@
 import type { HdLookRow } from '@wildshard/sdk/looks/modelLibrary';
-import type { FirelightLook, SurfaceLook, ViewerLightLook } from '@wildshard/game/systems/looks/surfaceLooks';
-import type { DuneHdName } from '../../data/files';
+import type { FirelightLook, SurfaceLook, ViewerLightLook } from '@wildshard/format/surfaceLooks';
+import type { DuneHdName } from './files';
 
 /**
  * Signal Dunes' surface looks as rows (SHARD-PLATFORM SF72, look-family rows) on the platform's surface families
- * (`@wildshard/sdk/looks/surfaceLooks`): the camp's firelight, the held leather's viewer light and grain, the brazier's
+ * (`@wildshard/format/surfaceLooks`): the camp's firelight, the held leather's viewer light and grain, the brazier's
  * soot-dark iron on a fieldstone drum. `world/meshes.ts` chains them onto the loaded hero models, the whip's coil its own.
  */
 

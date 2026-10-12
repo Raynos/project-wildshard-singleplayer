@@ -1,42 +1,15 @@
 import { Color, Fog, Mesh, SphereGeometry, Vector3, type DataTexture, type HemisphereLight, type Material, type Texture } from 'three';
 import type { LookStrategy, PainterField } from '@wildshard/engine/render/look';
 import { Scope } from '@wildshard/engine/app/scope';
-import { DayCycle, type DayCycleSpec } from '@wildshard/engine/world/dayCycle';
+import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Terrain } from '@wildshard/engine/world/Terrain';
 import type { GroundPool } from '@wildshard/engine/render/families/ground';
 import { curveAt } from './duskCurves';
-import type { DuskCurve } from '../../data/dusk';
 import { duskDomeMaterial, duskDomeSun } from './duskDome';
-import type { DuskDomeStyle } from '../../data/sky';
 import { duskSand, duskSky, type DuskSand, type DuskSky } from './duskFamilies';
-import type { DuskSandRow, DuskSkyRow } from '../../data/familyLook';
 import { loadPaintedStrips } from './paintedStrips';
-import { loadBakedMaps, skirtGrid, type BakedMapRow, type CubeSkirt, type SkirtGridRow, type SwellSkirtRow, type TintedTileGround } from './bakedGround';
-
-type Rgb = readonly [number, number, number];
-
-/** A dusk look's sand tint: a vertex's height against its `ring` m ring mean, over `span` m, lerps the sand toward the
- *  hollow (× `hollowGain`) or the crest (× `crestGain`); the skirt is the sand `skirtHollow` toward the hollow. */
-export interface DuskTintRow { readonly sand: Rgb; readonly hollow: Rgb; readonly crest: Rgb; readonly ring: number; readonly span: number; readonly hollowGain: number; readonly crestGain: number; readonly skirtHollow: number }
-
-/**
- * One dusk look as data (SHARD-PLATFORM M3, Signal Dunes' "Last Light"): the scene fog, the key light (direction, colour,
- * its colour at the deepest dusk, intensity), the held day clock, the dusk curves of the key, the sky fill, the fog's sun
- * tint, the far rings' haze and the aerial fog, the sand tint, the skirt, the procedural dome, the sand and sky family rows
- * and the painted sky stages that replace the dome once they load.
- */
-export interface DuskLookRow {
-  readonly fog: { readonly color: number; readonly near: number; readonly far: number };
-  readonly key: { readonly dir: Rgb; readonly color: Rgb; readonly deep: Rgb; readonly intensity: number };
-  readonly clock: DayCycleSpec;
-  readonly curves: { readonly key: DuskCurve; readonly fill: DuskCurve; readonly fogSun: DuskCurve; readonly farHaze: DuskCurve; readonly aerialFog: DuskCurve };
-  readonly tint: DuskTintRow;
-  readonly skirt: { readonly grid: SkirtGridRow; readonly swell: SwellSkirtRow };
-  readonly dome: DuskDomeStyle;
-  readonly sand: DuskSandRow;
-  readonly sky: DuskSkyRow;
-  readonly painted: { readonly stages: readonly string[]; readonly urls: Readonly<Record<string, string>>; readonly tag: string; readonly fault: string; readonly scope: string };
-}
+import { loadBakedMaps, skirtGrid, type BakedMapRow, type CubeSkirt, type TintedTileGround } from './bakedGround';
+import type { DuskLookRow, DuskTintRow } from '../../data/lastLight';
 
 /** The sand's three baked maps a dusk look draws with. */
 export type DuskSandMaps = Record<'shadow' | 'trail' | 'grain', DataTexture>;

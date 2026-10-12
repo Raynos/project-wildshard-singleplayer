@@ -1,5 +1,37 @@
+import type { DayClockRow } from '@wildshard/format/dayCycle';
+import { AERIAL_FOG, FAR_HAZE, FILL, FOG_SUN, KEY_DIM, type DuskCurve } from './dusk';
+import { KEY_DIR, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from './sand';
+import { SKY_STYLE, type DuskDomeStyle } from './sky';
+import { SAND_LOOK, SKY_LOOK, type DuskSandRow, type DuskSkyRow } from './familyLook';
+import { PAINTED_STAGES, PAINTED_URLS } from './files';
+
+type Rgb = readonly [number, number, number];
+
+/** A dusk look's sand tint: a vertex's height against its `ring` m ring mean, over `span` m, lerps the sand toward the
+ *  hollow (× `hollowGain`) or the crest (× `crestGain`); the skirt is the sand `skirtHollow` toward the hollow. */
+export interface DuskTintRow { readonly sand: Rgb; readonly hollow: Rgb; readonly crest: Rgb; readonly ring: number; readonly span: number; readonly hollowGain: number; readonly crestGain: number; readonly skirtHollow: number }
+
 /**
- * "Last Light"'s colours and clock as rows (runtime/looks/renderLook.ts binds them into SIGNAL_DUSK_LOOK;
+ * One dusk look as data (SHARD-PLATFORM M3, Signal Dunes' "Last Light"; runtime/looks/duskLook.ts draws it): the scene
+ * fog, the key light (direction, colour, its colour at the deepest dusk, intensity), the held day clock, the dusk curves
+ * of the key, the sky fill, the fog's sun tint, the far rings' haze and the aerial fog, the sand tint, the skirt, the
+ * procedural dome, the sand and sky family rows and the painted sky stages that replace the dome once they load.
+ */
+export interface DuskLookRow {
+  readonly fog: { readonly color: number; readonly near: number; readonly far: number };
+  readonly key: { readonly dir: Rgb; readonly color: Rgb; readonly deep: Rgb; readonly intensity: number };
+  readonly clock: DayClockRow;
+  readonly curves: { readonly key: DuskCurve; readonly fill: DuskCurve; readonly fogSun: DuskCurve; readonly farHaze: DuskCurve; readonly aerialFog: DuskCurve };
+  readonly tint: DuskTintRow;
+  readonly skirt: { readonly grid: SkirtGridRow; readonly swell: SwellSkirtRow };
+  readonly dome: DuskDomeStyle;
+  readonly sand: DuskSandRow;
+  readonly sky: DuskSkyRow;
+  readonly painted: { readonly stages: readonly string[]; readonly urls: Readonly<Record<string, string>>; readonly tag: string; readonly fault: string; readonly scope: string };
+}
+
+/**
+ * "Last Light"'s colours and clock as rows, bound below into SIGNAL_DUSK_LOOK (look/render.ts draws it;
  * docs/design/sunscar-dunes/style-bible.md). Linear RGB unless named.
  */
 /** The key light's colour and intensity (its direction is data/sand.ts KEY_DIR). loop 3: a deeper, redder key (ΔE00 of
@@ -24,3 +56,17 @@ export const DUSK_CLOCK = { units: 'hour', start: 19,
   schedule: [{ phase: 'day', from: 0, to: 24, minutes: 24 * 60 }],
   sun: { maxElevation: 60, azimuthOffset: 250 },
   fixed: { midday: 12, golden: 18, sunset: 19, night: 0 }, presets: { dawn: 6, noon: 12, dusk: 19, night: 0 } } as const;
+
+/**
+ * "Last Light" as one dusk look row (SHARD-PLATFORM M3, runtime/looks/duskLook.ts; look/render.ts binds it): the
+ * violet fog, the key from 20° left of north (data/sand.ts KEY_DIR; round 19: one global art-directed direction that
+ * lights the faces the mockups light, the painted glow staying right of the tower) dimming and reddening toward DEEP_KEY
+ * as the quest's dusk deepens, the held clock, the dusk curves (data/dusk.ts), the sand tint, the skirt, the procedural
+ * dome (data/sky.ts) and the two painted dusk stages that replace it (E409 second top-10 row 2).
+ */
+export const SIGNAL_DUSK_LOOK: DuskLookRow = {
+  fog: FOG, key: { dir: KEY_DIR, color: KEY_LIGHT.color, deep: DEEP_KEY, intensity: KEY_LIGHT.intensity }, clock: DUSK_CLOCK,
+  curves: { key: KEY_DIM, fill: FILL, fogSun: FOG_SUN, farHaze: FAR_HAZE, aerialFog: AERIAL_FOG },
+  tint: SAND_TINT, skirt: { grid: SKIRT_GRID, swell: SKIRT_SWELL }, dome: SKY_STYLE, sand: SAND_LOOK, sky: SKY_LOOK,
+  painted: { stages: PAINTED_STAGES, urls: PAINTED_URLS, tag: 'sunscar.sky', fault: '[sunscar-dunes] painted sky', scope: 'sunscar-dunes.sky' },
+};

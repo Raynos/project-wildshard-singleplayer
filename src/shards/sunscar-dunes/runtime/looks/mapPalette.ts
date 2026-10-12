@@ -10,7 +10,8 @@
  *   stroke (each stroke with its own dash, or none), then the marks.
  * - Widths, sizes and dashes are metres (scaled by the map's pixels per metre).
  */
-import type { MapOverlay, MapPoi, MinimapPalette } from '@wildshard/engine/ui/Minimap';
+import type { MapOverlay, MinimapPalette } from '@wildshard/engine/ui/Minimap';
+import type { MapPoi } from '@wildshard/format/minimap';
 import type { MapGroundLayer, MapMark, MapPaletteRow, MapRgb } from '../../data/minimap';
 
 const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };

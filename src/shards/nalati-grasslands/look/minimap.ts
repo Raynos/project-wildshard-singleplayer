@@ -8,7 +8,8 @@
 import { SEED } from '@wildshard/engine/core/config';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { MinimapPalette, MapPoi, MapOverlay } from '@wildshard/engine/ui/Minimap';
+import type { MinimapPalette, MapOverlay } from '@wildshard/engine/ui/Minimap';
+import type { MapPoi } from '@wildshard/format/minimap';
 import { NALATI_MAP, SNOW_LINE } from '../layout';
 import { riverMask } from '../world/terrain';
 import { nalatiWetAt } from '../wet';

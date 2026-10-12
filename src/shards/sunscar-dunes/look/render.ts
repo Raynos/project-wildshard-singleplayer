@@ -4,7 +4,7 @@ import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import { CubeSkirt, TintedTileGround } from '../runtime/looks/bakedGround';
 import { duskLook, loadDuskSandMaps, type DuskSandMaps } from '../runtime/looks/duskLook';
 import { SEED, SPAWN, TRAIL } from '../data/layout';
-import { SIGNAL_DUSK_LOOK } from '../runtime/looks/renderLook';
+import { SIGNAL_DUSK_LOOK } from '../data/lastLight';
 import { SAND_MAPS } from '../data/sand';
 import sandMeans from '../data/sand.json' with { type: 'json' };
 import { duneHeight, WIND } from '../world/dunes';
@@ -13,7 +13,7 @@ import source from '../shard.config';
 
 /**
  * "Last Light" (docs/design/sunscar-dunes/style-bible.md) on the platform's dusk look (`@wildshard/sdk/looks/duskLook`,
- * its row data/renderLook.ts SIGNAL_DUSK_LOOK): a low warm key ~9° up with the afterglow behind the tower (E399: the
+ * its row data/lastLight.ts SIGNAL_DUSK_LOOK): a low warm key ~9° up with the afterglow behind the tower (E399: the
  * mockups win over the old "never in the player's face" rule), so the dune faces turned to the camera fall into cool shade,
  * the crests catch the light and the ripples graze; the crests run diagonally across the view (`world/dunes.ts` WIND).
  */

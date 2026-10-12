@@ -1,8 +1,9 @@
 import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
-import { applySurfaceLooks, type SurfaceLook } from '@wildshard/game/systems/looks/surfaceLooks';
+import { applySurfaceLooks } from '@wildshard/game/systems/looks/surfaceLooks';
+import type { SurfaceLook } from '@wildshard/format/surfaceLooks';
 import { FIRE_LIGHTS } from './fireFx';
 import { DUSK } from '../look/dusk';
-import { CAMP_SURFACE } from '../runtime/looks/surfaces';
+import { CAMP_SURFACE } from '../data/surfaces';
 import { DUNE_MODELS } from '../data/files';
 import type { MeshStandardMaterial } from 'three';
 

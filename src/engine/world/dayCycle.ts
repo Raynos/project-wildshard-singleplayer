@@ -1,9 +1,10 @@
 import { Vector3 } from 'three';
-import { checkDayClockState, clockDayPhase, clockHour, clockPeriod, hourPhase, scheduleSeconds, scheduleSegment, stepDayClock, wrapClock, type DayClockPhase, type DayClockSegment, type DayClockState } from '../sim/dayClock';
+import { checkDayClockState, clockDayPhase, clockHour, clockPeriod, hourPhase, scheduleSeconds, scheduleSegment, stepDayClock, wrapClock, type DayClockState } from '../sim/dayClock';
+import type { DayClockPhase, DayClockRow, DayClockSegment } from '@wildshard/format/dayCycle';
 
 export type DayPhase = DayClockPhase;
-export type TimePick = 'live' | 'midday' | 'golden' | 'sunset' | 'night';
-export type LightPreset = 'dawn' | 'noon' | 'dusk' | 'night';
+export type TimePick = 'live' | keyof DayClockRow['fixed'];
+export type LightPreset = keyof DayClockRow['presets'];
 export type PhaseListener = (phase: DayPhase, prev: DayPhase) => void;
 export type ScheduleSeg = DayClockSegment;
 export interface DayKeys<K> {
@@ -11,21 +12,13 @@ export interface DayKeys<K> {
   frames: readonly (readonly [number, K])[];
   blend: (out: K, a: K, b: K, t: number) => void;
 }
-export interface DayCycleSpec<K = never> {
-  schedule: readonly ScheduleSeg[];
-  start: number;
-  /** Uniform clocks retain phase arithmetic; scheduled clocks retain hour arithmetic. */
-  units: 'phase' | 'hour';
+/** A clock's spec: its row (`@wildshard/format/dayCycle` DayClockRow, content data) or a sun path, with optional look keys and curves. */
+export interface DayCycleSpec<K = never> extends Omit<DayClockRow, 'sun'> {
   keys?: DayKeys<K>;
-  sun: { maxElevation: number; azimuthOffset: number } | { path: (p: number, out: Vector3) => Vector3; moon: (p: number, out: Vector3) => Vector3 };
-  fixed: Record<Exclude<TimePick, 'live'>, number>;
-  presets: Record<LightPreset, number>;
+  sun: DayClockRow['sun'] | { path: (p: number, out: Vector3) => Vector3; moon: (p: number, out: Vector3) => Vector3 };
   curves?: {
     night: (p: number) => number; dusk: (p: number) => number; dawn: (p: number) => number; lamps: (p: number) => number;
   };
-  dayFraction?: number;
-  /** Phase clocks historically pin once per frame; hour clocks also pause. */
-  pauseOnPin?: boolean;
 }
 export type DayCycleClock = Pick<DayCycle, 'hour' | 'phase' | 'dayPhase' | 'night' | 'dusk' | 'dawn' | 'lamps' | 'body' | 'sunDir' | 'setTime' | 'set' | 'pin' | 'scale' | 'paused' | 'update' | 'sunElevation' | 'sunAzimuth' | 'moonElevation' | 'moonAzimuth' | 'onDawn' | 'onDay' | 'onGolden' | 'onDusk' | 'onNight' | 'onPhase' | 'dayMinutes' | 'phaseProgress'>;
 

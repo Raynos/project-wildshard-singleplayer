@@ -1,5 +1,6 @@
 import { BASIN, BRAZIERS, CARAVAN, RIDGES, TOWER, WELL } from './layout';
 import { STRINGS } from './strings';
+import type { MapPoi } from '@wildshard/format/minimap';
 
 /** An sRGB colour, 0–255 per channel. */
 export type MapRgb = readonly [number, number, number];
@@ -39,16 +40,14 @@ export type MapMark =
   | { readonly kind: 'ring'; readonly x: number; readonly z: number; readonly r: number; readonly line: number; readonly stroke: string }
   | { readonly kind: 'dot'; readonly x: number; readonly z: number; readonly r: number; readonly fill: string };
 
-/** A named place: the full map's pin (the engine's `MapPoi`). */
-export interface MapPoiRow { readonly x: number; readonly z: number; readonly label: string; readonly color: string }
-
 /** A level's whole map look as data. */
 export interface MapPaletteRow {
   readonly ground: { readonly base: MapRgb; readonly layers: readonly MapGroundLayer[] };
   readonly segments: readonly MapSegment[];
   readonly trails: readonly MapStroke[];
   readonly marks: readonly MapMark[];
-  readonly pois: readonly MapPoiRow[];
+  /** the named places: the full map's pins */
+  readonly pois: readonly Readonly<MapPoi>[];
 }
 
 /**

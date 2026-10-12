@@ -24,6 +24,19 @@ export const SAND_MAPS = {
   grain: { url: SAND_FILES.grain, size: GRAIN_TILE, channels: 4, standIn: 128, anisotropy: 8 },
 } as const;
 /**
+ * The skirt's swells past the ground's square edge (half width `edge`): inside (`out < inside`) the ground's own height;
+ * outside, the clamped edge height eased over `ease` metres into `base + swell · sin(2π (u + sin(v) · wobble))` along the
+ * wind (u along it over `along` metres, v across it over `across`), lowered by `drop`.
+ */
+export interface SwellSkirtRow {
+  readonly edge: number; readonly inside: number; readonly ease: number; readonly wind: readonly [number, number];
+  readonly along: number; readonly across: number; readonly base: number; readonly swell: number; readonly wobble: number; readonly drop: number;
+}
+
+/** The skirt grid: `cell` metres a quad, out to `reach` either side; inside the ground (`out < inside`) it sinks `sink` metres under it. */
+export interface SkirtGridRow { readonly reach: number; readonly cell: number; readonly sink: number }
+
+/**
  * The skirt round the painted ground (round 2, R1C-5): past the ground's edge its edge heights ease over 60 m into swells
  * along the wind (`world/dunes.ts` WIND); the skirt mesh (look/render.ts) and the baked dune-shadow map
  * (generators/sand.ts) both stand on it.

@@ -1,7 +1,8 @@
 import { loadRigFile } from "@wildshard/engine/anim/rig";
 import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
 import { Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters } from "three";
-import { applySurfaceLooks, type SurfaceInputs, type SurfaceLook } from "../systems/looks/surfaceLooks";
+import { applySurfaceLooks, type SurfaceInputs } from "../systems/looks/surfaceLooks";
+import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
 import { Rng } from "@wildshard/engine/core/rng";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 

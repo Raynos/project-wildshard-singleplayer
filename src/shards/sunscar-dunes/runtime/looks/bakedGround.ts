@@ -21,6 +21,7 @@ import type { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { familyMaterial } from '@wildshard/engine/render/families/registry';
 import { bindRuntimeProductTerrain } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
+import type { SkirtGridRow, SwellSkirtRow } from '../../data/sand';
 
 /** One baked map: its file (a zlib stream of `size`² × `channels` raw bytes), the byte a failed load stands in with, its sampling. */
 export interface BakedMapRow {
@@ -66,16 +67,6 @@ export async function loadBakedMaps<K extends string>(rows: Readonly<Record<K, B
   return out as Record<K, DataTexture>;
 }
 
-/**
- * The skirt's swells past the ground's square edge (half width `edge`): inside (`out < inside`) the ground's own height;
- * outside, the clamped edge height eased over `ease` metres into `base + swell · sin(2π (u + sin(v) · wobble))` along the
- * wind (u along it over `along` metres, v across it over `across`), lowered by `drop`.
- */
-export interface SwellSkirtRow {
-  readonly edge: number; readonly inside: number; readonly ease: number; readonly wind: readonly [number, number];
-  readonly along: number; readonly across: number; readonly base: number; readonly swell: number; readonly wobble: number; readonly drop: number;
-}
-
 /** The skirt's height at (x, z) over `heightAt` (see `SwellSkirtRow`). */
 export function swellSkirtAt(row: SwellSkirtRow, heightAt: (x: number, z: number) => number, x: number, z: number): number {
   const edge = row.edge, out = Math.max(Math.abs(x), Math.abs(z)) - edge;
@@ -85,9 +76,6 @@ export function swellSkirtAt(row: SwellSkirtRow, heightAt: (x: number, z: number
   const wx = row.wind[0], wz = row.wind[1], u = (x * wx + z * wz) / row.along, v = (-x * wz + z * wx) / row.across;
   return heightAt(cx, cz) * (1 - e) + (row.base + row.swell * Math.sin((u + Math.sin(v) * row.wobble) * Math.PI * 2)) * e - row.drop;
 }
-
-/** The skirt grid: `cell` metres a quad, out to `reach` either side; inside the ground (`out < inside`) it sinks `sink` metres under it. */
-export interface SkirtGridRow { readonly reach: number; readonly cell: number; readonly sink: number }
 
 /** One indexed skirt grid with smooth normals, every vertex `colour`, standing on `skirt` (heights) and `heightAt` inside `swell.edge`. */
 export function skirtGrid(row: SkirtGridRow, swell: SwellSkirtRow, heightAt: (x: number, z: number) => number, colour: Color, reach: number = row.reach): BufferGeometry {

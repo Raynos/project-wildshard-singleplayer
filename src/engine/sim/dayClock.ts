@@ -12,10 +12,8 @@
  *   golden 16:30, dusk 18:00, night 19:45); an 'hour' clock names it from its schedule segment.
  */
 
-/** The named parts of a day, in order. */
-export type DayClockPhase = 'dawn' | 'day' | 'golden' | 'dusk' | 'night';
-/** One schedule segment: the phase, its hours [from, to) (to may pass 24) and its real-time minutes. */
-export interface DayClockSegment { phase: DayClockPhase; from: number; to: number; minutes: number }
+import type { DayClockPhase, DayClockSegment } from '@wildshard/format/dayCycle';
+
 /** The parts of a clock spec its law reads (DayCycleSpec's). */
 export interface DayClockLaw { units: 'phase' | 'hour'; schedule: readonly DayClockSegment[]; dayFraction?: number }
 /**

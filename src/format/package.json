@@ -106,7 +106,10 @@
     "./portalFloor": "./portalFloor.ts",
     "./compendiumSketches": "./compendiumSketches.ts",
     "./product": "./product.ts",
-    "./liftApproach": "./liftApproach.ts"
+    "./liftApproach": "./liftApproach.ts",
+    "./surfaceLooks": "./surfaceLooks.ts",
+    "./minimap": "./minimap.ts",
+    "./dayCycle": "./dayCycle.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"
