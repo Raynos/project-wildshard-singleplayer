@@ -271,6 +271,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [generate.mjs](./generate.mjs)
 - [generated-files.d.mts](./generated-files.d.mts)
 - [generated-files.mjs](./generated-files.mjs)
+- [generated-index.d.mts](./generated-index.d.mts)
+- [generated-index.mjs](./generated-index.mjs)
 - [generated-policy.d.mts](./generated-policy.d.mts)
 - [generated-policy.mjs](./generated-policy.mjs)
 - [generation-cache.d.mts](./generation-cache.d.mts)
