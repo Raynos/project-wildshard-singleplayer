@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-12T00:24:18+00:00",
+  "cutoff": "2026-10-11T12:24:18+00:00",
+  "head": "19809d3e78cf93d7cd36ed92f8b2b26b0cb3d68d",
+  "hours": 12.0,
+  "first_parent_commits": 397,
+  "regen_commits": 54,
+  "regen_percent": 13.6,
+  "push_updates": 38,
+  "all_delivered": {
+    "count": 397,
+    "median_seconds": 1748,
+    "p90_seconds": 7170,
+    "max_seconds": 9830
+  },
+  "source_delivered": {
+    "count": 343,
+    "median_seconds": 1875,
+    "p90_seconds": 7097,
+    "max_seconds": 9830
+  },
+  "unreached": 0,
+  "negative_clock_anomalies": [],
+  "unmapped_recent_pushes": 0,
+  "method": "Committer epochs; earliest recorded update-by-push of a current first-parent descendant. Percentile nearest rank. Full audit and CI/day production targets not measured."
+}
