@@ -6,10 +6,10 @@ import { carriedBossRecord, installMarkedBoss, type MarkedBoss, type MarkedBossR
 import { lastLightAll } from '../look/light';
 import source from '../shard.config';
 import { MATRIARCH_DEFINITION, MATRIARCH_ID, MATRIARCH_RECORD, MATRIARCH_REWARD } from '../data/matriarchEncounter';
-import { MATRIARCH_PRESENTATION } from '../runtime/quest/matriarchFight';
+import { MATRIARCH_PRESENTATION } from '../data/matriarchPresentation';
 import type { SignalWorld } from '../world/build';
 
-/** Her rows (data/matriarchFight.ts): the encounter, the marked fight, its presentation and her 20 coins. */
+/** Her rows (data/matriarchEncounter.ts, data/matriarchPresentation.ts): the encounter, the marked fight, its presentation and her 20 coins. */
 const ROWS: MarkedBossRows = { definition: MATRIARCH_DEFINITION, profile: MATRIARCH_BOSS_PROFILE, presentation: MATRIARCH_PRESENTATION, reward: MATRIARCH_REWARD };
 
 /**

@@ -10,9 +10,8 @@ import type { ShardContext } from "@wildshard/game/plugin/context";
 import type { RuntimeBoss, RuntimeCoins } from "@wildshard/game/plugin/headless";
 import { bossFlagRecord, type BossRowFlagNames, type BossRowFlags } from '@wildshard/game/shardfile/bossRow';
 import { bossFight, type BossFightProfile } from '@wildshard/game/plugin/bossPhase';
-import { parseBossProfile } from '@wildshard/format/bossProfiles';
+import { parseBossProfile, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import { stormShellMaterial } from '../looks/stormShell';
-import type { MarkedBossPresentation } from './markedBossPresentation';
 
 /**
  * A boss's record on the shard's flags (`bossFlagRecord`), first carrying over a current save's old `bossesSave` entry

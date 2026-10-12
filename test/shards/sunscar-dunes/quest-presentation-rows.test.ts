@@ -1,6 +1,6 @@
 import { SIGNAL_HEADLESS } from '../../../src/shards/sunscar-dunes/data/headlessOwners';
 import { MATRIARCH_ARENA } from '../../../src/shards/sunscar-dunes/data/matriarchEncounter';
-import { MATRIARCH_PRESENTATION } from '../../../src/shards/sunscar-dunes/runtime/quest/matriarchFight';
+import { MATRIARCH_PRESENTATION } from '../../../src/shards/sunscar-dunes/data/matriarchPresentation';
 import { DUNE_FIELD } from '../../../src/shards/sunscar-dunes/data/duneField';
 import { describe, expect, it } from 'vitest';
 import { SCOUT_ROW, DISCOVERY_PLACES } from '../../../src/shards/sunscar-dunes/data/questPresentation';

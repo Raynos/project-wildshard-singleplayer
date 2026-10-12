@@ -1,7 +1,7 @@
-import { parseMarkedBossPresentation } from '../shardfile/markedBossPresentation';
-import { DUNE_FIELD } from '../../data/duneField';
-import { MATRIARCH_ARENA } from '../../data/matriarchEncounter';
-import { STRINGS } from '../../data/strings';
+import { parseMarkedBossPresentation } from '@wildshard/format/bossProfiles';
+import { DUNE_FIELD } from './duneField';
+import { MATRIARCH_ARENA } from './matriarchEncounter';
+import { STRINGS } from './strings';
 
 /**
  * Her fight's browser presentation (SF27 / SF7f, a marked boss presentation row): the coin burst leaves from the basin
