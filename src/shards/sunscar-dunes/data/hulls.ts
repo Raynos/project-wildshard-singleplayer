@@ -18,8 +18,6 @@ export interface QuadrupedHullRow {
   readonly tail: number;
   /** the body, head and tail bones' heights as shares of the hull's height */
   readonly boneY: { readonly body: number; readonly head: number; readonly tail: number };
-  /** the stand-in: its height and skeleton when the generated mesh did not load (drawn as nothing) */
-  readonly standIn: { readonly h: number; readonly bones: readonly HullBone[] };
 }
 
 /** A smooth band: 0 at `from`, 1 at `from + over` (a smoothstep). */
@@ -42,19 +40,13 @@ export interface HullTint { readonly top: readonly [number, number, number]; rea
 /**
  * The generated strider's hull (C6: Hunyuan3D-2 from `art/sunscar-dunes/round-7-models/ref-strider.jpg`, its head along −X,
  * turned to +Z): 3.6 m nose to tail, hooves at y 0. Facets under half its height ride the leg of their quadrant (each leg
- * bone at its leg's top), the front fifth above the withers is the head and horns, the back tenth the tail. A strider whose
- * model did not load stands undrawn on the stand-in skeleton (its load was faulted, SF72).
+ * bone at its leg's top), the front fifth above the withers is the head and horns, the back tenth the tail. Baked offline
+ * (generators/hulls.ts, G345): the client loads rigs/strider.glb on data/striderRig.baked.ts's skeleton.
  */
 export const STRIDER_HULL: QuadrupedHullRow = {
   fit: { size: 3.6, by: 'span', yaw: Math.PI / 2 },
   legs: [['legFL', -0.42, 0.75], ['legFR', 0.42, 0.75], ['legBL', -0.42, -0.8], ['legBR', 0.42, -0.8]],
   legTop: 0.5, legFoot: 0.8, head: { share: 0.2, above: 0.55 }, tail: 0.1, boneY: { body: 0.7, head: 0.75, tail: 0.7 },
-  standIn: { h: 2.8, bones: [
-    { name: 'body', parent: null, pos: [0, 2.0, 0] }, { name: 'head', parent: 'body', pos: [0, 2.2, 1.0] },
-    { name: 'legFL', parent: 'body', pos: [-0.42, 1.85, 0.75] }, { name: 'legFR', parent: 'body', pos: [0.42, 1.85, 0.75] },
-    { name: 'legBL', parent: 'body', pos: [-0.42, 1.85, -0.8] }, { name: 'legBR', parent: 'body', pos: [0.42, 1.85, -0.8] },
-    { name: 'tail', parent: 'body', pos: [0, 2.0, -1.2] },
-  ] },
 };
 
 /**

@@ -3,10 +3,6 @@
  * facets) fitted to its size and skinned to a species skeleton from rows, so the shard keeps only the numbers. Nothing here
  * knows a shard.
  *
- * - `quadrupedHull`: a four-legged body, rigid per facet (`bindRigid`). Facets low under the body ride the leg of their
- *   quadrant (front is +Z, left is −X; legs in the order front-left, front-right, back-left, back-right, each leg bone at
- *   the mean x / z of its quadrant's low vertices), the front share above the withers is the head, the back share the
- *   tail, the rest the body. Bones: body, head, the four legs, the tail.
  * - `bandSkin`: a flat winged body (a ray, a manta) skinned per vertex with smooth bands, so a shared corner never splits:
  *   the wings by |x|, the head forward of an edge, the tail behind one, the body the rest (bones body, head, left / right
  *   wing, tail); optionally tinted, the back by a factor and the underside toward a belly colour.
@@ -16,31 +12,12 @@ import { Float32BufferAttribute, Uint16BufferAttribute, type BufferGeometry } fr
 import type { ClipName, SocketName } from '@wildshard/engine/anim/rig';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { bindRigid, fitGeometry, undrawnRig } from '@wildshard/game/plugin/geometry';
+import { fitGeometry } from '@wildshard/game/plugin/geometry';
 import { clipAnimate, type SpeciesClips } from '@wildshard/game/plugin/animation';
-import type { BandSkinRow, HullBone, HullTint, QuadrupedHullRow } from '../../data/hulls';
+import type { BandSkinRow, HullBone, HullTint } from '../../data/hulls';
 
 /** A fitted hull: its skeleton, its skinned geometry and its height. */
 export interface FittedHull { bones: HullBone[]; geometry: BufferGeometry; h: number }
-
-/** A generated four-legged body fitted and rigidly skinned from its rows; an undrawn stand-in when `source` is null. */
-export function quadrupedHull(source: BufferGeometry | null, row: QuadrupedHullRow): FittedHull {
-  if (source === null) return { bones: row.standIn.bones.map((b) => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] })), geometry: undrawnRig(), h: row.standIn.h };
-  const g = fitGeometry(source, row.fit), b = g.boundingBox, p = g.getAttribute('position');
-  const h = b ? b.max.y : row.standIn.h, z0 = b ? b.min.z : -row.fit.size / 2, z1 = b ? b.max.z : row.fit.size / 2, legTop = h * row.legTop;
-  const head = z1 - (z1 - z0) * row.head.share, tail = z0 + (z1 - z0) * row.tail;
-  const quad = (x: number, z: number): number => (z > 0 ? 0 : 2) + (x < 0 ? 0 : 1), sum = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]];
-  for (let i = 0; i < p.count; i++) if (p.getY(i) < legTop * row.legFoot) { const q = sum[quad(p.getX(i), p.getZ(i))]; if (q) { q[0] = (q[0] ?? 0) + p.getX(i); q[1] = (q[1] ?? 0) + p.getZ(i); q[2] = (q[2] ?? 0) + 1; } }
-  const top = (q: number): [number, number, number] => {
-    const s = sum[q], n = s?.[2] ?? 0, [, x, z] = row.legs[q] ?? ['', 0, 0];
-    return n > 0 ? [(s?.[0] ?? 0) / n, legTop, (s?.[1] ?? 0) / n] : [x, legTop, z];
-  };
-  const tailBone = 2 + row.legs.length;
-  bindRigid(g, (x, y, z) => y < legTop ? 2 + quad(x, z) : z > head && y > h * row.head.above ? 1 : z < tail ? tailBone : 0);
-  return { geometry: g, h, bones: [{ name: 'body', parent: null, pos: [0, h * row.boneY.body, 0] }, { name: 'head', parent: 'body', pos: [0, h * row.boneY.head, head] },
-    ...row.legs.map(([name], i): HullBone => ({ name, parent: 'body', pos: top(i) })),
-    { name: 'tail', parent: 'body', pos: [0, h * row.boneY.tail, tail] }] };
-}
 
 const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
 
