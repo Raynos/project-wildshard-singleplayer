@@ -46,3 +46,17 @@ parent's snapshot. Both cases fail before the portable fix, then pass
 with all 14 prefix cases in 7.15 seconds wall. Typed lint, focused test
 strict and Bash syntax pass again. This follow-up retains the original
 snapshot, queue, gate and retry behavior.
+
+Exact Linux push CI 38197310268 exposed that startup failure at
+39c838c177. Portable fix 92c179a167 passed its complete local gate in
+147.02 seconds, reached origin, then passed exact Linux push CI
+38197826454 at 2026-10-12T03:03:57Z. All eight Vitest shards, strict,
+typed lint and build passed. Owner sp-x7 supplied the generic boundary
+and portability fixes; sp-x6 supplied the original handoff diagnosis
+and corrected its scratch helpers.
+
+The following cadence-triggered full gate on c73fe79e9 also passed:
+7,628 tests, zero failures, six workers, 334.77 seconds of Vitest and
+490.60 seconds for the complete gate. Every local commit reached
+origin. This qualifies the full suite without claiming the still-open
+two-minute push target. The exact-SHA boot smoke is a separate proof.
