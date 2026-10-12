@@ -17,6 +17,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { installInit } from './parity/init.mjs';
+import { creatureKinds, creatureShot } from './look-parity-creatures.mjs';
 
 /** yaw 0 looks south (−z, toward the low sun and the crown), +π/2 east (−x); x / y / z in metres (y a little over the deck:
  *  the spawn drops onto it) */
@@ -133,6 +134,14 @@ try {
       if (raw !== undefined) { row.raw = join(raw, `${tier}-${p.id}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
       rows.push(row);
       console.log(`${tier} ${p.id} at ${shot.player.join(',')}: ${shot.calls} draws, ${shot.triangles} triangles, ${shot.lit} lit pixels`);
+    }
+    // one staged frame per creature kind (scripts/look-parity-creatures.mjs): the bodies' geometry, skin, maps and materials
+    for (const kind of await page.evaluate(creatureKinds)) {
+      const shot = await page.evaluate(creatureShot, kind);
+      const row = { tier, pose: `creature:${kind}`, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels };
+      if (raw !== undefined) { row.raw = join(raw, `${tier}-creature-${kind}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
+      rows.push(row);
+      console.log(`${tier} creature ${kind} (scale ${shot.player[0]}, ${shot.player[1]} bones): ${shot.calls} draws, ${shot.triangles} triangles, ${shot.lit} lit pixels`);
     }
     tiers[tier].gpuBytes = await page.evaluate(() => window.__sc_gl().reduce((n, row) => n + row.totalBytes, 0));
     tiers[tier].programs = await page.evaluate(() => window.__wildshard.world.game.renderer.info.programs?.length ?? -1);
