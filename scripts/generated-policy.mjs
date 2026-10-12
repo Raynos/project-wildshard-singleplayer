@@ -76,7 +76,7 @@ export function verifyIncreaseTrailers(increases, message) {
   }).sort((a, b) => a.localeCompare(b));
   const wanted = increases.map(json).sort((a, b) => a.localeCompare(b));
   const approvers = message.split('\n').filter((line) => line.startsWith('Generated-Approver: '));
-  if (wanted.length > 0 && (approvers.length !== 1 || approvers[0] !== 'Generated-Approver: wildshard-new')) throw new Error('Generated increase has no coordinator approver');
+  if (wanted.length > 0 && (approvers.length !== 1 || approvers[0] !== 'Generated-Approver: wildshard-new')) throw new Error(`Generated increase has no coordinator approver; exact required rows: ${json(increases)}`);
   if (json(listed) !== json(wanted)) throw new Error(`Unlisted or stale generated increases: expected ${json(wanted)}, got ${json(listed)}`);
 }
 
