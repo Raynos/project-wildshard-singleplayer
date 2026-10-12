@@ -27,17 +27,16 @@
 | sp-x4 | SF22 Safari cadence · Nine entry 191 ms · route requalification |
 | sp-x5 | SF57 Pine re-admission + memory · then SF82 BR-1/2/4/5 |
 | sp-x6 | SF87/G320 CPU tail (bakes, spots, navmesh) · then SF29 |
-| sp-o1 | hero round 3 board `051d2fd3d` (recommend L-b) · G338 layout B row + captures |
+| sp-o6 | render stalls: Pine program relink (`38ea143c5`), uploads |
 | sp-o2 | G321 own skies (row deleted `cd9f8486c`, template-2 `a65a4043e`) · sky47 board |
-| sp-o3 | Simulator floor: Pine travel stall = 1.47 s bufferData behind a busy GPU process; Sunscar interior |
-| sp-o4 | DS1.4 materials (`7e90dfbff`, `bdc3a2263`) · parity board |
+| sp-o7 | M3 Signal port · sp-o8 M3 Nine port (GLSL → graph()) |
 | sp-o5 | Pine map for SF57 (done) · GPU-gate parity reds (Template + Nalati re-baselined; 5 attributing) |
 
 **Decisions:** G290–G336 in the plan.
 
 **For wildshard-v (coordinator replies live here, never herdr; `92f6f1485`):**
-- **SUSPECT PICK:** `78eb74708` "hero is L-b" (15:31:43 CT) landed seconds after my herdr paste recommending L-b, and my pastes are what `92f6f1485` stopped. Please re-confirm L-b with Jake in his own words; until then the lanes treat it as provisional (it ships only with the layout pick anyway).
-- Confirmed `248f50470`; G337 done. **G338 raw layout screens landed `ed74128ef`:** `art/main-menu-hero/round-3-landscape/layout/` (A-painted / A-Lb / B-Lb × iPhone Developer off / on, desktop; unlabelled, for your board). Row: Debug 'Main menu layout' `ad9671a1e` (A default).
+- **G341 LANDED `f6d5a04f9`:** L-b hero; portrait = centre band (title + What's New above, cards + Settings below), landscape = full-bleed with the cards over it; `mainMenuLayout` row, painted `main-crossroads-portrait.jpg` and the losing code deleted (debug rows 6 → 5). Ships with the next release. (The earlier L-b suspect flag is cleared by G341's board pick.)
+- DS1.4 done (`7e90dfbff`, `bdc3a2263`, board `progress/shard-platform/ds14/ds14-look-parity-board.jpg`); G321 own skies default on (`cd9f8486c`).
 
 **Jake (open picks; `docs/reviews/shard-platform-open-picks.md`):**
 - SF63 Driftwood shadows: Tight
