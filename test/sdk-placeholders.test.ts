@@ -9,6 +9,7 @@ import { buildProject, readProjectAssets } from '@wildshard/sdk/project';
 import { parseGlb } from '@wildshard/sdk/assets';
 import { projectPlaceholders } from '@wildshard/sdk/bake/placeholders';
 import { NEAR_PLACEHOLDER_LIMITS, nearPlaceholderCost } from '@wildshard/format/nearPlaceholder';
+import { loadShardfileNear } from '../src/game/grid/shardfileFar';
 
 // G348: the template stands in for an unknown uploaded shard: `wildshard build` gives it both placeholders from its own
 // terrain collider, its own coarse tiles and its own look, with no per-shard code and nothing it declares.
@@ -31,6 +32,16 @@ it('wildshard build (placeholders on, the CLI default) bakes a near placeholder 
   const cost = nearPlaceholderCost(near, built);
   expect(cost.content.resident).toBeGreaterThan(0); expect(cost.content.resident).toBeLessThanOrEqual(NEAR_PLACEHOLDER_LIMITS.contentBytes);
   expect(built.far?.files.every((hash) => existsSync(join(root, 'product', hash)))).toBe(true);
+  // the grid reads that row from the admitted shardfile itself (no baked folder, no slug): it draws, owns its cell and is
+  // charged its admitted content residency
+  const reads: string[] = [];
+  const loaded = await loadShardfileNear(built, (hash) => { reads.push(hash); return Promise.resolve(new Uint8Array(readFileSync(join(root, 'product', hash)))); });
+  try {
+    expect(reads).toEqual(near.content); expect(loaded.owns).toBe(true); expect(loaded.bytes).toBe(cost.content.resident);
+    expect(loaded.prepared.positionalMask).toBe(true); expect(loaded.prepared.geometry.getAttribute('position').count).toBeGreaterThan(1000);
+    expect(loaded.prepared.geometry.hasAttribute('color')).toBe(true);
+  } finally { loaded.prepared.geometry.dispose(); }
+  await expect(loadShardfileNear({ ...built, near: undefined }, () => Promise.reject(new Error('unread')))).rejects.toThrow('no near content');
 }, 120_000);
 
 it('a shardfile that ships no far proxy gets one, and the bake is deterministic', async () => {

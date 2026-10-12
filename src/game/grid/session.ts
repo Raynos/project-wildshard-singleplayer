@@ -55,7 +55,7 @@ import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
 import { gridShardfileProduct } from './products';
-import { loadShardfileFar } from './shardfileFar';
+import { loadShardfileFar, loadShardfileNear } from './shardfileFar';
 import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
 import type { RoadLookState } from './roadLook';
@@ -199,8 +199,24 @@ const FarRow = v.object({ far: v.object({ gpu: num, decoded: num }),
     band: v.optional(v.object({ colour: v.tuple([num, num, num]), height: num, opacity: num, own: num })) }) });
 /** The part of `near.json` the client reads. */
 const NearRow = v.object({ near: v.object({ gpu: num, decoded: num, content: v.optional(num) }), look: FarRow.entries.look });
-/** G342: a shard's near placeholder (`scripts/bake/near-placeholder.mjs`), from its baked folder like the far proxy. */
-async function loadNear(slug: string): Promise<{ prepared: FarPrepared; bytes: number; owns: boolean }> {
+/**
+ * G342 / G348: a shard's near placeholder. Its admitted shardfile's own `near` row first (`wildshard build` bakes one for
+ * any terrain shardfile, so an unknown uploaded shard draws its own); else its baked folder like the far proxy
+ * (`scripts/bake/near-placeholder.mjs`, the first-party shards until their shardfiles carry the row).
+ */
+async function loadNear(slug: string, owner: Parameters<typeof gridShardfileProduct>[1]): Promise<{ prepared: FarPrepared; bytes: number; owns: boolean }> {
+  const product = gridShardfileProduct(slug, owner);
+  const retained = product === null ? null : await product.catch(() => null);
+  if (retained !== null) {
+    try {
+      const { source } = retained.admitted;
+      if (source.near !== undefined && source.near.content.length > 0) {
+        const assets = new ClientAssets(source, retained.admitted.assets, retained.options), release = assets.lease(source.near.content);
+        try { return await loadShardfileNear(source, ref => assets.read(ref)); }
+        finally { release(); }
+      }
+    } finally { retained.release(); }
+  }
   const response = await fetch(versionedUrl(`/assets/baked/${slug}/near.json`));
   if (!response.ok) throw new Error(`near.json ${slug}: ${String(response.status)}`);
   const row = v.parse(NearRow, await response.json());
@@ -446,7 +462,7 @@ export class GridSession {
     } };
     if (setting('nearTier') === 'near') {
       this.near = new NearPlaceholders({ allocator: this.allocator, cells: this.assembly.cells, pitch: this.assembly.pitch, root: (id) => roots.get(id),
-        load: (id) => loadNear(this.assembly.cell(id).slug),
+        load: (id) => loadNear(this.assembly.cell(id).slug, { allocator: this.allocator, scope: host.scope }),
         cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
         mask: (id) => drawnFar.get(id)?.excluded ?? new Set<number>(),
         adopt: (view) => (frame === null ? () => undefined : frame.proxy(view)), decorate: horizon.patch });
