@@ -1099,7 +1099,7 @@
     "src/shards/sunscar-dunes/runtime/looks/duskFamilies.ts": 3,
     "src/shards/sunscar-dunes/runtime/looks/duskLook.ts": 5,
     "src/shards/sunscar-dunes/runtime/looks/fireFx.ts": 1,
-    "src/shards/sunscar-dunes/runtime/looks/fittedHull.ts": 3,
+    "src/shards/sunscar-dunes/runtime/looks/fittedHull.ts": 4,
     "src/shards/sunscar-dunes/runtime/looks/mapPalette.ts": 1,
     "src/shards/sunscar-dunes/runtime/rowsHeadless.ts": 3,
     "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts": 3,
@@ -1107,7 +1107,6 @@
     "src/shards/sunscar-dunes/runtime/species/skitterer.ts": 1,
     "src/shards/sunscar-dunes/species/duneRay.ts": 2,
     "src/shards/sunscar-dunes/species/matriarch.ts": 2,
-    "src/shards/sunscar-dunes/species/skitterer.ts": 2,
     "src/shards/sunscar-dunes/weapons/Bullwhip.ts": 2,
     "src/shards/sunscar-dunes/weapons/rows.ts": 1,
     "src/shards/sunscar-dunes/world/baked.ts": 1,
@@ -1241,7 +1240,7 @@
     "src/shards/sunscar-dunes/roster.ts": 1,
     "src/shards/sunscar-dunes/world/baked.ts": 1,
     "src/shards/sunscar-dunes/world/build.ts": 3,
-    "src/shards/sunscar-dunes/world/meshes.ts": 1,
+    "src/shards/sunscar-dunes/world/meshes.ts": 2,
     "src/shards/sunscar-dunes/world/places.ts": 1
   },
   "wildshard/shard-game-plugins": {
@@ -1434,7 +1433,7 @@
     "src/shards/sunscar-dunes/runtime/standalone.ts": 1,
     "src/shards/sunscar-dunes/world/baked.ts": 1,
     "src/shards/sunscar-dunes/world/build.ts": 3,
-    "src/shards/sunscar-dunes/world/meshes.ts": 1,
+    "src/shards/sunscar-dunes/world/meshes.ts": 2,
     "src/shards/sunscar-dunes/world/places.ts": 1
   },
   "wildshard/shard-sandbox": {
