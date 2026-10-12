@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Select the committed native hash policy in this Node-only replay test.
+import process from 'node:process';
 import { expect, it } from 'vitest';
 import * as v from 'valibot';
 import { nalatiWitness } from './native';
