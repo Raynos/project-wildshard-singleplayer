@@ -1,8 +1,10 @@
 /**
  * The KTX2 capability probe (E435 ktx2-probe): does this GPU sample MIPMAPPED compressed textures correctly?
  *
- * The iOS Simulator's Safari reads mipmapped sRGB ASTC and mipmapped ETC2 (linear and sRGB) as [0, 0, 0, 0] while every
- * single-level upload and mipmapped linear ASTC are right: Pine Hollow's needle cards lost their alpha (bare black
+ * The iOS Simulator advertises ASTC/ETC2, but Safari reads lower mips of sRGB ASTC and ETC2/EAC as [0, 0, 0, 0].
+ * Independent controls confirm linear ASTC and RGBA8 at every mip; single-level RGB-only ETC2 also decodes incorrectly.
+ * Single-level ASTC and ETC2/EAC RGBA work. This is a sampling failure, not absent extensions or an iPhone hardware
+ * capability claim. Every device is probed independently: Pine Hollow's needle cards lost their alpha (bare black
  * branches) and the ETC2 roughness / AO planes read 0 (mirror-white ground). `extensions.has()` cannot see that, so once
  * per page, before the texture mode resolves to KTX2 (src/engine/boot/gpuFiles.ts texModeWhy), this uploads one 8×8,
  * 4-level texture per format the Basis transcoder can target — through three's own path (texStorage2D, then

@@ -6,9 +6,10 @@
  * Equal surfaces share one material across tiles (`installDeclaredProps`), so each coarse tile draws with its own variant
  * (`familyVariant`: the family's patches and key kept) carrying its own mask uniforms; the shared material is never patched.
  */
-import { Mesh, Uniform, Vector2, Vector4, type Material, type Object3D } from 'three';
+import { GLSL3, Mesh, Uniform, Vector2, Vector4, type Material, type Object3D } from 'three';
 import { patchShader, PATCH_ORDER } from '../render/shaderPatches';
 import { familyVariant } from '../render/families/registry';
+import { applyNodeCoarseMask } from '../render/nodeCoarseMask';
 import { CHUNK_HALF } from '../core/config';
 import type { Scope } from '../app/scope';
 
@@ -42,9 +43,16 @@ export function coarseTileMask(root: Object3D, x: number, z: number, scope: Scop
     scope.onDispose(() => { object.material = before; });
   });
   for (const material of own.values()) {
+    // Node shaders have no classic chunk anchors; the loaded backend owns their mask.
+    if (applyNodeCoarseMask(material, origin, mask, COARSE_SIZE / 2)) continue;
     patchShader(material, 'engine.coarse-tile-mask', PATCH_ORDER.decorate, (shader) => {
       Object.assign(shader.uniforms, { wsCoarseOrigin: origin, wsCoarseMask: mask });
-      shader.vertexShader = `varying vec2 wsCoarseXZ;\n${shader.vertexShader}`.replace('#include <project_vertex>', `
+      // Raw GLSL3 gets no classic renderer compatibility aliases or precision prefix.
+      const raw3 = shader.isRawShaderMaterial && shader.glslVersion === GLSL3;
+      const vertexVarying = raw3 ? 'out highp' : 'varying';
+      const fragmentVarying = raw3 ? 'in highp' : 'varying';
+      const precision = raw3 ? 'highp ' : '';
+      shader.vertexShader = `${vertexVarying} vec2 wsCoarseXZ;\n${shader.vertexShader}`.replace('#include <project_vertex>', `
         vec4 wsCoarsePosition = vec4(transformed, 1.0);
         #ifdef USE_BATCHING
           wsCoarsePosition = batchingMatrix * wsCoarsePosition;
@@ -55,7 +63,7 @@ export function coarseTileMask(root: Object3D, x: number, z: number, scope: Scop
         wsCoarseXZ = (modelMatrix * wsCoarsePosition).xz;
         #include <project_vertex>
       `);
-      shader.fragmentShader = `varying vec2 wsCoarseXZ; uniform vec2 wsCoarseOrigin; uniform vec4 wsCoarseMask;\n${shader.fragmentShader}`.replace('#include <clipping_planes_fragment>', `
+      shader.fragmentShader = `${fragmentVarying} vec2 wsCoarseXZ; uniform ${precision}vec2 wsCoarseOrigin; uniform ${precision}vec4 wsCoarseMask;\n${shader.fragmentShader}`.replace('#include <clipping_planes_fragment>', `
         vec2 wsCoarseHalf = step(vec2(${half}), wsCoarseXZ - wsCoarseOrigin);
         float wsCoarseHidden = mix(mix(wsCoarseMask.x, wsCoarseMask.y, wsCoarseHalf.x), mix(wsCoarseMask.z, wsCoarseMask.w, wsCoarseHalf.x), wsCoarseHalf.y);
         if (wsCoarseHidden > 0.5) discard;

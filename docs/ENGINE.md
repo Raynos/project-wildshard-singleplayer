@@ -1245,9 +1245,14 @@ patchShader(material, 'template.linear-fog', PATCH_ORDER.decorate, (shader) => {
 The renderer type is named only in `src/engine/render/**` (`wildshard/no-renderer-type`). The handle is `Renderer`
 (`probeRenderer`, `isRenderer`). No WebGPU. **Facade multi-draw is banned everywhere** (AGENTS.md E271).
 
+Coarse prop masks keep classic shader sources unchanged. The loaded node handler explicitly installs the internal
+`render/nodeCoarseMask.ts` port: node materials compose their existing `maskNode` with the quadrant predicate using
+their final world position, including instances. The port itself imports no TSL. Raw GLSL3 chunk shaders use matching
+`out highp` / `in highp` declarations; node shaders use their native mask because they have no classic chunk anchors.
+
 **Material graphs (SF59, lazy, not on the default path).** TSL is reached only through `render/graphBackend.ts`:
 `loadGraphBackend(renderer)` installs `EngineNodesHandler` (the output transform, the upright target sample, the fog
-epilogue, the tent and cascade shadows as nodes); `loadGraphCompiler(renderer)` then loads `compileGraph(ir)`
+epilogue, the tent and cascade shadows as nodes, and the coarse-mask port); `loadGraphCompiler(renderer)` then loads `compileGraph(ir)`
 (`render/graph/compile.ts`), which turns a graph IR into a node material. The renderer-neutral IR (`core/materialGraph.ts`,
 `GRAPH_IR_VERSION` 1) is data: `nodes` of an allowlisted vocabulary (`GRAPH_OPS`: inputs, safe maths, comparisons and a
 branch-light `select`, swizzles, MaterialX noise, an admitted texture, a constant-count `loop`), the stages

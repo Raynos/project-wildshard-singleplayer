@@ -34,8 +34,8 @@
  */
 import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
-import { TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
-import { nodeObject, workingToColorSpace } from 'three/tsl';
+import { ConvertNode, NodeMaterial, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
+import { and, mix, nodeObject, positionWorld, step, uniform, vec2, workingToColorSpace } from 'three/tsl';
 import { fogPatches } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
 import { engineFog } from './engineFog';
@@ -46,6 +46,7 @@ import { isCascadeGhost } from '../../world/cascadeLights';
 import { diagnosticNow } from '../../core/clock';
 import type { Renderer } from '../renderer';
 import { NodeUniformBuffers, type BlockGroup } from './nodeUniformBuffers';
+import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
 
 /** what an epilogue stage is handed: the builder, its material, the scene's fog and the renderer */
 export interface EpilogueContext {
@@ -152,6 +153,18 @@ function uniformsListOf(program: unknown, uniforms: Record<string, unknown>): un
   return list;
 }
 
+/** Native coarse masks follow node-transformed world positions, including instances. */
+const nodeCoarseMask: NodeCoarseMask = (material, origin, mask, half) => {
+  if (!(material instanceof NodeMaterial)) return false;
+  const quadrant = step(vec2(half), positionWorld.xz.sub(uniform(origin.value)));
+  const flags = uniform(mask.value);
+  const hidden = mix(mix(flags.x, flags.y, quadrant.x), mix(flags.z, flags.w, quadrant.x), quadrant.y);
+  // The updater and step both produce exact binary flags.
+  const keep = hidden.equal(0);
+  material.maskNode = material.maskNode === null ? keep : and(new ConvertNode<'bool'>(material.maskNode, 'bool'), keep);
+  return true;
+};
+
 const PROGRAM_KEY = 'engine-nodes';
 
 /** three's node handler fitted to the engine's frame (the module comment lists what it changes); install it with `loadGraphBackend` */
@@ -171,6 +184,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   constructor() {
     super();
+    installNodeCoarseMask(nodeCoarseMask);
     const self = internals(this);
     // the stock per-draw and dispose callbacks, as three writes them, plus the engine's uniform blocks: every draw binds
     // its program's blocks once their nodes are updated, and a disposed material's blocks free their buffers

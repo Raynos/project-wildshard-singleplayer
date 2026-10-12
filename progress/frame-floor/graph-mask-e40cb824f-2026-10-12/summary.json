@@ -1,0 +1,3022 @@
+{
+  "baseline": "e40cb824fbc6fcc3352a7765554f6795ad7ca544",
+  "renderProfile": {
+    "name": "iPhone 16 Pro",
+    "css": [
+      402,
+      874
+    ],
+    "renderScale": 2,
+    "buffer": [
+      804,
+      1748
+    ]
+  },
+  "surfaces": {
+    "webkit": {
+      "rows": [
+        {
+          "kind": "classic",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "4ac66b6a3f830e2005d6a926e0ccb2d5b1f0c78c67ba5f4ff70b75d488b6d451",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97676,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99426,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100786,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100817,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398705,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "raw",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "47a31de194955c018559e4381ce45bb9c8fb24cbafd4c074ddc1fac6aacdb9a2",
+          "noMaskDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 1,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 2,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 3,
+              "bytes": 0,
+              "pixels": 0
+            }
+          ],
+          "allDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "glError": 1282,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": [
+            "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false"
+          ]
+        },
+        {
+          "kind": "pastel-plain",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "b6e25c603250a6af57629d7ec9a30ced7f4b4abd52224b66612dd82b64fc406f",
+          "noMaskDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 1,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 2,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 3,
+              "bytes": 0,
+              "pixels": 0
+            }
+          ],
+          "allDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "glError": 1282,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": [
+            "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false"
+          ]
+        },
+        {
+          "kind": "ink-cel-valley",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "4c1e7f00e07fbb24e557715e9cd5588431e5269c2d99e1fd873e768f4b2b0135",
+          "noMaskDifference": {
+            "bytes": 430181,
+            "pixels": 145604
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 1,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 2,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 3,
+              "bytes": 0,
+              "pixels": 0
+            }
+          ],
+          "allDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "glError": 1282,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": [
+            "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false",
+            "THREE.WebGLProgram: Shader Error 1282 - VALIDATE_STATUS false"
+          ]
+        },
+        {
+          "kind": "classic",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "4ac66b6a3f830e2005d6a926e0ccb2d5b1f0c78c67ba5f4ff70b75d488b6d451",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97676,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99426,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100786,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100817,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398705,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "raw",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "47a31de194955c018559e4381ce45bb9c8fb24cbafd4c074ddc1fac6aacdb9a2",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97686,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99447,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100812,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100836,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "pastel-plain",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "b6e25c603250a6af57629d7ec9a30ced7f4b4abd52224b66612dd82b64fc406f",
+          "noMaskDifference": {
+            "bytes": 1,
+            "pixels": 1
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97686,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99447,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100812,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100836,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "ink-cel-valley",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "4c1e7f00e07fbb24e557715e9cd5588431e5269c2d99e1fd873e768f4b2b0135",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 107181,
+              "pixels": 36078
+            },
+            {
+              "quadrant": 1,
+              "bytes": 108384,
+              "pixels": 36712
+            },
+            {
+              "quadrant": 2,
+              "bytes": 107411,
+              "pixels": 36412
+            },
+            {
+              "quadrant": 3,
+              "bytes": 107205,
+              "pixels": 36402
+            }
+          ],
+          "allDifference": {
+            "bytes": 430181,
+            "pixels": 145604
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        }
+      ],
+      "previouslyCompiledPixelsIdentical": true,
+      "classicSourcesIdentical": true,
+      "probe": {
+        "families": {
+          "astc": true,
+          "etc2": true,
+          "bptc": true,
+          "s3tc": true
+        },
+        "formats": [
+          {
+            "family": "astc",
+            "format": "RGBA_ASTC_4x4",
+            "ok": true
+          },
+          {
+            "family": "astc",
+            "format": "SRGB8_ALPHA8_ASTC_4x4",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "RGB8_ETC2",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "SRGB8_ETC2",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "RGBA8_ETC2_EAC",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "SRGB8_ALPHA8_ETC2_EAC",
+            "ok": true
+          },
+          {
+            "family": "bptc",
+            "format": "RGBA_BPTC_UNORM",
+            "ok": true
+          },
+          {
+            "family": "bptc",
+            "format": "SRGB_ALPHA_BPTC_UNORM",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "RGB_S3TC_DXT1",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "RGBA_S3TC_DXT5",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "SRGB_S3TC_DXT1",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "SRGB_ALPHA_S3TC_DXT5",
+            "ok": true
+          }
+        ],
+        "available": {
+          "astcSupported": true,
+          "etc2Supported": true,
+          "etc1Supported": true,
+          "bptcSupported": true,
+          "dxtSupported": true,
+          "pvrtcSupported": true
+        }
+      },
+      "independentControls": [
+        {
+          "format": "RGBA8",
+          "levels": 1,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "RGBA8",
+          "levels": 4,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-linear",
+          "levels": 1,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-linear",
+          "levels": 4,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-sRGB",
+          "levels": 1,
+          "expected": [
+            154,
+            34,
+            8,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-sRGB",
+          "levels": 4,
+          "expected": [
+            154,
+            34,
+            8,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-linear",
+          "levels": 1,
+          "expected": [
+            206,
+            104,
+            53,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                206,
+                104,
+                53,
+                255
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-linear",
+          "levels": 4,
+          "expected": [
+            206,
+            104,
+            53,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                206,
+                104,
+                53,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                206,
+                104,
+                53,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                206,
+                104,
+                53,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                206,
+                104,
+                53,
+                255
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-sRGB",
+          "levels": 1,
+          "expected": [
+            157,
+            35,
+            9,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                157,
+                35,
+                9,
+                255
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-sRGB",
+          "levels": 4,
+          "expected": [
+            157,
+            35,
+            9,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                157,
+                35,
+                9,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                157,
+                35,
+                9,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                157,
+                35,
+                9,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                157,
+                35,
+                9,
+                255
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-linear",
+          "levels": 1,
+          "expected": [
+            206,
+            104,
+            53,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-linear",
+          "levels": 4,
+          "expected": [
+            206,
+            104,
+            53,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-sRGB",
+          "levels": 1,
+          "expected": [
+            157,
+            35,
+            9,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-sRGB",
+          "levels": 4,
+          "expected": [
+            157,
+            35,
+            9,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            }
+          ]
+        }
+      ]
+    },
+    "chromium": {
+      "rows": [
+        {
+          "kind": "classic",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "4ac66b6a3f830e2005d6a926e0ccb2d5b1f0c78c67ba5f4ff70b75d488b6d451",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97676,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99426,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100786,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100817,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398705,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "raw",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "47a31de194955c018559e4381ce45bb9c8fb24cbafd4c074ddc1fac6aacdb9a2",
+          "noMaskDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 1,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 2,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 3,
+              "bytes": 0,
+              "pixels": 0
+            }
+          ],
+          "allDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "glError": 1282,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": [
+            "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false"
+          ]
+        },
+        {
+          "kind": "pastel-plain",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "b6e25c603250a6af57629d7ec9a30ced7f4b4abd52224b66612dd82b64fc406f",
+          "noMaskDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 1,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 2,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 3,
+              "bytes": 0,
+              "pixels": 0
+            }
+          ],
+          "allDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "glError": 1282,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": [
+            "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false"
+          ]
+        },
+        {
+          "kind": "ink-cel-valley",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "4c1e7f00e07fbb24e557715e9cd5588431e5269c2d99e1fd873e768f4b2b0135",
+          "noMaskDifference": {
+            "bytes": 430181,
+            "pixels": 145604
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 1,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 2,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 3,
+              "bytes": 0,
+              "pixels": 0
+            }
+          ],
+          "allDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "glError": 1282,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": [
+            "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false",
+            "THREE.WebGLProgram: Shader Error 1282 - VALIDATE_STATUS false"
+          ]
+        },
+        {
+          "kind": "classic",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "4ac66b6a3f830e2005d6a926e0ccb2d5b1f0c78c67ba5f4ff70b75d488b6d451",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97676,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99426,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100786,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100817,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398705,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "raw",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "47a31de194955c018559e4381ce45bb9c8fb24cbafd4c074ddc1fac6aacdb9a2",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97686,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99447,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100812,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100836,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "pastel-plain",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "b6e25c603250a6af57629d7ec9a30ced7f4b4abd52224b66612dd82b64fc406f",
+          "noMaskDifference": {
+            "bytes": 1,
+            "pixels": 1
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97686,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99447,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100812,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100836,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "ink-cel-valley",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1362
+          ],
+          "referenceHash": "4c1e7f00e07fbb24e557715e9cd5588431e5269c2d99e1fd873e768f4b2b0135",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 107181,
+              "pixels": 36078
+            },
+            {
+              "quadrant": 1,
+              "bytes": 108384,
+              "pixels": 36712
+            },
+            {
+              "quadrant": 2,
+              "bytes": 107411,
+              "pixels": 36412
+            },
+            {
+              "quadrant": 3,
+              "bytes": 107205,
+              "pixels": 36402
+            }
+          ],
+          "allDifference": {
+            "bytes": 430181,
+            "pixels": 145604
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        }
+      ],
+      "previouslyCompiledPixelsIdentical": true,
+      "classicSourcesIdentical": true,
+      "probe": {
+        "families": {
+          "astc": true,
+          "etc2": true,
+          "bptc": true,
+          "s3tc": true
+        },
+        "formats": [
+          {
+            "family": "astc",
+            "format": "RGBA_ASTC_4x4",
+            "ok": true
+          },
+          {
+            "family": "astc",
+            "format": "SRGB8_ALPHA8_ASTC_4x4",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "RGB8_ETC2",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "SRGB8_ETC2",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "RGBA8_ETC2_EAC",
+            "ok": true
+          },
+          {
+            "family": "etc2",
+            "format": "SRGB8_ALPHA8_ETC2_EAC",
+            "ok": true
+          },
+          {
+            "family": "bptc",
+            "format": "RGBA_BPTC_UNORM",
+            "ok": true
+          },
+          {
+            "family": "bptc",
+            "format": "SRGB_ALPHA_BPTC_UNORM",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "RGB_S3TC_DXT1",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "RGBA_S3TC_DXT5",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "SRGB_S3TC_DXT1",
+            "ok": true
+          },
+          {
+            "family": "s3tc",
+            "format": "SRGB_ALPHA_S3TC_DXT5",
+            "ok": true
+          }
+        ],
+        "available": {
+          "astcSupported": true,
+          "etc2Supported": true,
+          "etc1Supported": true,
+          "bptcSupported": true,
+          "dxtSupported": true,
+          "pvrtcSupported": true
+        }
+      },
+      "independentControls": [
+        {
+          "format": "RGBA8",
+          "levels": 1,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "RGBA8",
+          "levels": 4,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-linear",
+          "levels": 1,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-linear",
+          "levels": 4,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-sRGB",
+          "levels": 1,
+          "expected": [
+            154,
+            34,
+            8,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-sRGB",
+          "levels": 4,
+          "expected": [
+            154,
+            34,
+            8,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-linear",
+          "levels": 1,
+          "expected": [
+            206,
+            104,
+            53,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                206,
+                104,
+                53,
+                255
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-linear",
+          "levels": 4,
+          "expected": [
+            206,
+            104,
+            53,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                206,
+                104,
+                53,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                206,
+                104,
+                53,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                206,
+                104,
+                53,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                206,
+                104,
+                53,
+                255
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-sRGB",
+          "levels": 1,
+          "expected": [
+            157,
+            35,
+            9,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                157,
+                35,
+                9,
+                255
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-sRGB",
+          "levels": 4,
+          "expected": [
+            157,
+            35,
+            9,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                157,
+                35,
+                9,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                157,
+                35,
+                9,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                157,
+                35,
+                9,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                157,
+                35,
+                9,
+                255
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-linear",
+          "levels": 1,
+          "expected": [
+            206,
+            104,
+            53,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-linear",
+          "levels": 4,
+          "expected": [
+            206,
+            104,
+            53,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-sRGB",
+          "levels": 1,
+          "expected": [
+            157,
+            35,
+            9,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-sRGB",
+          "levels": 4,
+          "expected": [
+            157,
+            35,
+            9,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            }
+          ]
+        }
+      ]
+    },
+    "sim": {
+      "rows": [
+        {
+          "kind": "classic",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1748
+          ],
+          "referenceHash": "4de42a2de975be01ab3a0831df927bd7888e75c891aa98a403d23874ec45a049",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97676,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99426,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100786,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100817,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398705,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "raw",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1748
+          ],
+          "referenceHash": "0011806014b940c62dd6dd885353e515e9cdee910c8ab997cd4fe01078d422cd",
+          "noMaskDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 1,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 2,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 3,
+              "bytes": 0,
+              "pixels": 0
+            }
+          ],
+          "allDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "glError": 1282,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": [
+            "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false"
+          ]
+        },
+        {
+          "kind": "pastel-plain",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1748
+          ],
+          "referenceHash": "c6f6311e446f39f4f2d16269d63a3f94b28816fee97301946c7158b651870ad7",
+          "noMaskDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 1,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 2,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 3,
+              "bytes": 0,
+              "pixels": 0
+            }
+          ],
+          "allDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "glError": 1282,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": [
+            "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false"
+          ]
+        },
+        {
+          "kind": "ink-cel-valley",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:before",
+          "size": [
+            804,
+            1748
+          ],
+          "referenceHash": "87e46dda9d9fd3f31d3c6bddd83b5a6d22f1c7b280e1e4f3acfd6173a7002ccc",
+          "noMaskDifference": {
+            "bytes": 430181,
+            "pixels": 145604
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 1,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 2,
+              "bytes": 0,
+              "pixels": 0
+            },
+            {
+              "quadrant": 3,
+              "bytes": 0,
+              "pixels": 0
+            }
+          ],
+          "allDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "glError": 1282,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": [
+            "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false",
+            "THREE.WebGLProgram: Shader Error 1282 - VALIDATE_STATUS false"
+          ]
+        },
+        {
+          "kind": "classic",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1748
+          ],
+          "referenceHash": "4de42a2de975be01ab3a0831df927bd7888e75c891aa98a403d23874ec45a049",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97676,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99426,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100786,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100817,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398705,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "raw",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1748
+          ],
+          "referenceHash": "0011806014b940c62dd6dd885353e515e9cdee910c8ab997cd4fe01078d422cd",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97686,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99447,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100812,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100836,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "pastel-plain",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1748
+          ],
+          "referenceHash": "c6f6311e446f39f4f2d16269d63a3f94b28816fee97301946c7158b651870ad7",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 97686,
+              "pixels": 32562
+            },
+            {
+              "quadrant": 1,
+              "bytes": 99447,
+              "pixels": 33149
+            },
+            {
+              "quadrant": 2,
+              "bytes": 100812,
+              "pixels": 33604
+            },
+            {
+              "quadrant": 3,
+              "bytes": 100836,
+              "pixels": 33612
+            }
+          ],
+          "allDifference": {
+            "bytes": 398781,
+            "pixels": 132927
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        },
+        {
+          "kind": "ink-cel-valley",
+          "source": "e40cb824fbc6fcc3352a7765554f6795ad7ca544:fixed",
+          "size": [
+            804,
+            1748
+          ],
+          "referenceHash": "87e46dda9d9fd3f31d3c6bddd83b5a6d22f1c7b280e1e4f3acfd6173a7002ccc",
+          "noMaskDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "quadrants": [
+            {
+              "quadrant": 0,
+              "bytes": 107181,
+              "pixels": 36078
+            },
+            {
+              "quadrant": 1,
+              "bytes": 108384,
+              "pixels": 36712
+            },
+            {
+              "quadrant": 2,
+              "bytes": 107411,
+              "pixels": 36412
+            },
+            {
+              "quadrant": 3,
+              "bytes": 107205,
+              "pixels": 36402
+            }
+          ],
+          "allDifference": {
+            "bytes": 430181,
+            "pixels": 145604
+          },
+          "glError": 0,
+          "referenceRebuildDifference": {
+            "bytes": 0,
+            "pixels": 0
+          },
+          "shaderErrors": []
+        }
+      ],
+      "previouslyCompiledPixelsIdentical": true,
+      "classicSourcesIdentical": true,
+      "probe": {
+        "families": {
+          "astc": false,
+          "etc2": false
+        },
+        "formats": [
+          {
+            "family": "astc",
+            "format": "RGBA_ASTC_4x4",
+            "ok": true
+          },
+          {
+            "family": "astc",
+            "format": "SRGB8_ALPHA8_ASTC_4x4",
+            "ok": false,
+            "level": 1,
+            "read": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "expected": [
+              154,
+              34,
+              8,
+              153
+            ]
+          },
+          {
+            "family": "etc2",
+            "format": "RGB8_ETC2",
+            "ok": false,
+            "level": 0,
+            "read": [
+              2,
+              2,
+              2,
+              255
+            ],
+            "expected": [
+              206,
+              104,
+              53,
+              255
+            ]
+          },
+          {
+            "family": "etc2",
+            "format": "SRGB8_ETC2",
+            "ok": false,
+            "level": 0,
+            "read": [
+              0,
+              0,
+              0,
+              255
+            ],
+            "expected": [
+              157,
+              35,
+              9,
+              255
+            ]
+          },
+          {
+            "family": "etc2",
+            "format": "RGBA8_ETC2_EAC",
+            "ok": false,
+            "level": 1,
+            "read": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "expected": [
+              206,
+              104,
+              53,
+              155
+            ]
+          },
+          {
+            "family": "etc2",
+            "format": "SRGB8_ALPHA8_ETC2_EAC",
+            "ok": false,
+            "level": 1,
+            "read": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "expected": [
+              157,
+              35,
+              9,
+              155
+            ]
+          }
+        ],
+        "available": {
+          "astcSupported": true,
+          "etc2Supported": true,
+          "etc1Supported": true,
+          "bptcSupported": false,
+          "dxtSupported": false,
+          "pvrtcSupported": false
+        }
+      },
+      "independentControls": [
+        {
+          "format": "RGBA8",
+          "levels": 1,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "RGBA8",
+          "levels": 4,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-linear",
+          "levels": 1,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-linear",
+          "levels": 4,
+          "expected": [
+            204,
+            102,
+            51,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                204,
+                102,
+                51,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-sRGB",
+          "levels": 1,
+          "expected": [
+            154,
+            34,
+            8,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ASTC-sRGB",
+          "levels": 4,
+          "expected": [
+            154,
+            34,
+            8,
+            153
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                154,
+                34,
+                8,
+                153
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-linear",
+          "levels": 1,
+          "expected": [
+            206,
+            104,
+            53,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                189,
+                2,
+                2,
+                255
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-linear",
+          "levels": 4,
+          "expected": [
+            206,
+            104,
+            53,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                2,
+                2,
+                2,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-sRGB",
+          "levels": 1,
+          "expected": [
+            157,
+            35,
+            9,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                157,
+                0,
+                0,
+                255
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "ETC2-sRGB",
+          "levels": 4,
+          "expected": [
+            157,
+            35,
+            9,
+            255
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                0,
+                0,
+                0,
+                255
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-linear",
+          "levels": 1,
+          "expected": [
+            206,
+            104,
+            53,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-linear",
+          "levels": 4,
+          "expected": [
+            206,
+            104,
+            53,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                206,
+                104,
+                53,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-sRGB",
+          "levels": 1,
+          "expected": [
+            157,
+            35,
+            9,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            }
+          ]
+        },
+        {
+          "format": "EAC-sRGB",
+          "levels": 4,
+          "expected": [
+            157,
+            35,
+            9,
+            155
+          ],
+          "uploadError": 0,
+          "reads": [
+            {
+              "level": 0,
+              "rgba": [
+                157,
+                35,
+                9,
+                155
+              ],
+              "error": 0
+            },
+            {
+              "level": 1,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            },
+            {
+              "level": 2,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            },
+            {
+              "level": 3,
+              "rgba": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "error": 0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": {
+    "focusedTests": 9,
+    "strict": true,
+    "touchedTypedLint": true,
+    "reusableWebKitCompileGate": true
+  },
+  "sourceSha256": {
+    "src/engine/world/coarseTileMask.ts": "eb1ac12d1278c2340f3edff85aab9265cace960a73926e17f1d73123ac22d870",
+    "src/engine/render/nodes/engineNodesHandler.ts": "9acfc75a5f36e1d87c8b603421de0f01a5bc1ca91e54447098f849fc6c6134c7",
+    "src/engine/render/nodeCoarseMask.ts": "ee86ac85d8655d66c9c7f7fb284e7e6a77468a264367ac2678c3b8efd8a00da9",
+    "src/engine/render/ktx2Probe.ts": "697cfac7a09339ae7c8f15ef7fe84999a0b83d284d1bee9d8a08f208fb18af89",
+    "test/coarse-tile-mask-dialects.test.ts": "ad26acdfe3be78c83a4a36b0d5b7fa84f0e34b1e97055fb37a01b1ca2bfe905d",
+    "test/fixtures/coarse-mask-webkit/entry.js": "f13897bcc71dfc72281816f52a44220be303eeb317cea36432ced85ba6ffe6f3",
+    "test/fixtures/coarse-mask-webkit/ktx-controls.js": "23bd06bf00000c94e8676694f897515291620f5dbfc2572f788b3ca550af6ff3",
+    "scripts/coarse-mask-webkit.mjs": "5011d68c6005847ced50b6730ba912ff2fb3b01f5dd9c88080fcc64df62d6465",
+    "docs/ENGINE.md": "f808b4e2c7ff0ebd3ba4bab014f68cfb6f568cc725081aa7f0a05bbe6ba4e383"
+  }
+}
