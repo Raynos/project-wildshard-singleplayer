@@ -22,7 +22,10 @@ for (const entry of readdirSync(projects, { withFileTypes: true }).sort((a, b) =
   const map = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : undefined;
   if (map !== undefined && map.image !== `/assets/${entry.name}/map/top.webp`) throw new Error(`Unexpected baked map path for ${entry.name}`);
   const flags = map === undefined ? [] : [`--map=${resolve(root, 'public', map.image.slice(1))}`, `--map-tiles-hash=${map.tilesHash}`];
-  await runWildshard(['build', project, resolve(root, 'public/shardfiles', entry.name), '--product-only', ...flags]); count++;
+  // --no-placeholders (G348): a first-party product keeps its own bytes; its near / far views come from the repo bakes
+  // until the grid reads a shardfile's `near`. The CLI's default baked a near row into Signal Dunes' product, whose play
+  // stage then never ran (677bd1cf1: "Shardfile requires the normal play stage", the page held at 82 %).
+  await runWildshard(['build', project, resolve(root, 'public/shardfiles', entry.name), '--product-only', '--no-placeholders', ...flags]); count++;
 }
 console.info(`wildshard build: ${count} shardfile project(s)`);
 if (stale.length > 0) {
