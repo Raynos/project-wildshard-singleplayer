@@ -293,3 +293,15 @@ jobs:
           path: ${{ runner.temp }}/wildshard-replay-diagnostics/*.json
           if-no-files-found: ignore
           retention-days: 3
+
+      # Keep Linux per-file durations for W16/W23 balancing; no tests or
+      # shard weights change. Upload only the existing Vitest timing cache.
+      - name: Upload Vitest timing cache
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-timings-${{ github.sha }}-${{ matrix.shard }}
+          path: node_modules/.vite/vitest/**/results.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 3
