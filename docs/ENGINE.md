@@ -2704,8 +2704,10 @@ an initially hidden identity-transform group under the existing camera pass.
 Other owners retain normal mounting; geometry, material identity, authored
 visibility and the shared depth-clear order stay unchanged. The owner removes
 the group without disposing its models, whose equipment/resource owners keep
-cleanup. `Game.stageViewmodels(owner)` enables this on WebKit with a live
-composer (otherwise returns `null`). Regional preparation keeps the group
+cleanup. `Game.stageViewmodels(owner)` enables this on every browser with a
+live composer (otherwise returns `null`; sp-o6 extended it from WebKit, since
+an unstaged weapon drew on the live camera mid-construction and uploaded its
+textures inside a travel frame). Regional preparation keeps the group
 hidden through ordinary whole-world shader warm-up, exposing it only during
 entry and hiding it again on leave.
 

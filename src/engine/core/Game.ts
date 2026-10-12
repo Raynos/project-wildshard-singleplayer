@@ -711,11 +711,13 @@ export class Game {
     if (composer !== null) await layer.prepare(this.renderer, this.camera, composer.inputBuffer);
   }
 
-  /** Hide newly constructed models from this owner's asynchronous preparation until entry on WebKit.
-   * The existing whole-world warm-up still sees them under the camera. Early boot has no live composer to draw,
-   * and other browsers retain their ordinary path. The returned identity group is owned by the supplied scope. */
+  /** Hide newly constructed models from this owner's asynchronous preparation until entry, on every browser.
+   * The existing whole-world warm-up still sees them under the camera. Early boot has no live composer to draw.
+   * The returned identity group is owned by the supplied scope. (sp-o6: unstaged on Chromium, a region's weapons built
+   * mid-afterKit drew on the live camera between construction tasks, uploading their textures inside a travel frame,
+   * the likely source of the Pine road's 200 ms draw-time upload of two 1024² bitmaps; staged, the warm-up uploads them.) */
   stageViewmodels(owner: Scope): THREE.Group | null {
-    if (this._composer === null || !navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent)) return null;
+    if (this._composer === null) return null;
     return this.viewmodel.stage(owner);
   }
 
