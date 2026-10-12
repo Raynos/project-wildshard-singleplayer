@@ -49,11 +49,10 @@ it('gives a shard its cube only in a grid cell', () => {
 it('cuts Signal Dunes\' skirt back to the cube once, and frees the standalone geometry', () => {
   const scope = new Scope('test'), standalone = new PlaneGeometry(1040, 1040, 4, 4), mesh = new Mesh(standalone);
   const disposed = vi.fn<() => void>(); standalone.addEventListener('dispose', disposed);
-  const rebuild = vi.fn((half: number) => new PlaneGeometry(half * 2, half * 2, 2, 2));
-  SKIRT.hold(mesh, rebuild, scope);
+  SKIRT.hold(mesh, new PlaneGeometry(500, 500, 2, 2), 250, scope);
   expect(SKIRT.reach()).toBe(520);
+  expect(() => { SKIRT.fit(300); }).toThrow(/250 m cube/u);
   SKIRT.fit(250); SKIRT.fit(250);
-  expect(rebuild).toHaveBeenCalledOnce();
   expect(SKIRT.reach()).toBe(250);
   expect(disposed).toHaveBeenCalledOnce();
   scope.dispose();

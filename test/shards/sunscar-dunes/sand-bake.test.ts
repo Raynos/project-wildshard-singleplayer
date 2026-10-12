@@ -7,7 +7,9 @@ import { bakeSignalSand } from '../../../src/shards/sunscar-dunes/generators/san
 import { GRAIN_TILE, SAND_FILES, SAND_MAP } from '../../../src/shards/sunscar-dunes/data/sand';
 import sandMeans from '../../../src/shards/sunscar-dunes/data/sand.json' with { type: 'json' };
 import { bootFiles } from '../../../src/shards/sunscar-dunes/boot/files';
-import { loadSandMaps } from '../../../src/shards/sunscar-dunes/look/render';
+import { loadSandMaps, SKIRT } from '../../../src/shards/sunscar-dunes/look/render';
+import { bakeSignalSkirt } from '../../../src/shards/sunscar-dunes/generators/skirt';
+import skirtRows from '../../../src/shards/sunscar-dunes/data/skirt.json' with { type: 'json' };
 
 const committed = (url: string): Uint8Array => new Uint8Array(readFileSync(`public${url}`));
 const serve = (bytes: (url: string) => Uint8Array | null): void => {
@@ -26,8 +28,11 @@ describe('Signal Dunes bakes its sand maps offline (SHARD-PLATFORM SF72, RENDERI
     expect(unzlibSync(committed(SAND_FILES.trail))).toEqual(bake.trail);
     expect(unzlibSync(committed(SAND_FILES.grain))).toEqual(bake.grain);
     expect(sandMeans).toEqual({ meanR: bake.meanR, meanGlint: bake.meanGlint });
+    const skirt = bakeSignalSkirt();
+    expect(unzlibSync(committed(SAND_FILES.skirt))).toEqual(skirt.bytes);
+    expect(skirtRows).toEqual(JSON.parse(JSON.stringify(skirt.rows)));
     // the folder holds exactly this bake, and the boot fetches every map
-    expect(readdirSync('public/assets/sunscar-dunes/sand').sort()).toEqual(['grain.bin', 'shadow.bin', 'trail.bin']);
+    expect(readdirSync('public/assets/sunscar-dunes/sand').sort()).toEqual(['grain.bin', 'shadow.bin', 'skirt.bin', 'trail.bin']);
     for (const url of Object.values(SAND_FILES)) expect(bootFiles()).toContain(url);
   });
 
@@ -44,6 +49,24 @@ describe('Signal Dunes bakes its sand maps offline (SHARD-PLATFORM SF72, RENDERI
     expect([grain.image.width, grain.format, grain.wrapS, grain.minFilter, grain.generateMipmaps, grain.anisotropy]).toEqual([GRAIN_TILE, RGBAFormat, RepeatWrapping, LinearMipmapLinearFilter, true, 8]);
     expect(grain.image.data).toEqual(bake.grain);
     expect([grain.userData['meanR'], grain.userData['meanGlint']]).toEqual([bake.meanR, bake.meanGlint]);
+  });
+
+  it('the client reads the baked skirt back exact: the standalone reach and the cube cut, indexed as built', async () => {
+    serve(committed);
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const skirt = await SKIRT.load(SAND_FILES.skirt, skirtRows, 'skirt');
+    expect(errors).not.toHaveBeenCalled();
+    if (skirt === null) throw new Error('no skirt');
+    for (const [geometry, reach] of [[skirt.standalone, 520], [skirt.cube, 250]] as const) {
+      expect(Object.keys(geometry.attributes)).toEqual(['position', 'normal', 'uv', 'color']);
+      expect(geometry.getIndex()?.array).toBeInstanceOf(Uint16Array);
+      geometry.computeBoundingBox();
+      expect(geometry.boundingBox?.max.x).toBe(reach);
+    }
+    expect(skirt.half).toBe(250);
+    serve(() => null);
+    expect(await SKIRT.load(SAND_FILES.skirt, skirtRows, 'skirt fault')).toBeNull();
+    expect(String(errors.mock.calls[0]?.[0])).toBe('skirt fault');
   });
 
   it('a map that fails to load is a page fault and the sand draws without it (lit, no trail, flat grain)', async () => {

@@ -5,8 +5,9 @@ import { CubeSkirt, TintedTileGround } from '../runtime/looks/bakedGround';
 import { duskLook, loadDuskSandMaps, type DuskSandMaps } from '../runtime/looks/duskLook';
 import { SEED, SPAWN, TRAIL } from '../data/layout';
 import { SIGNAL_DUSK_LOOK } from '../data/lastLight';
-import { SAND_MAPS } from '../data/sand';
+import { SAND_FILES, SAND_MAPS } from '../data/sand';
 import sandMeans from '../data/sand.json' with { type: 'json' };
+import skirtRows from '../data/skirt.json' with { type: 'json' };
 import { duneHeight, WIND } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';
 import source from '../shard.config';
@@ -26,11 +27,12 @@ import source from '../shard.config';
 export const loadSandMaps = (): Promise<DuskSandMaps> => loadDuskSandMaps(SAND_MAPS, sandMeans, '[sunscar-dunes] the baked sand map did not load:');
 /** The sand's tiles (G227 M3; the only ground since Jake's G266), their fine ring following the player past 8 m. */
 export const SAND_TILES = new TintedTileGround({ source, x: SPAWN.x, z: SPAWN.z, follow: 8, name: 'Signal Dunes', tag: 'sunscar-dunes' });
-/** The skirt, held so the plugin can cut it back to a grid cell's cube (G99). */
+/** The skirt (baked, `generators/skirt.ts`), held so the plugin can cut it back to a grid cell's cube (G99). */
 export const SKIRT = new CubeSkirt();
 
 /** Signal Dunes' look: the dusk look over the quest's dusk (look/dusk.ts), the fires' light pools and the analytic dune field. */
 export function signalDunesLook(): LookStrategy {
   return duskLook(SIGNAL_DUSK_LOOK, { dusk: DUSK, fires: FIRE_LIGHTS, wind: WIND, maps: loadSandMaps, tiles: SAND_TILES, skirt: SKIRT,
+    skirtPack: { url: SAND_FILES.skirt, rows: skirtRows, fault: '[sunscar-dunes] the baked dune skirt did not load:' },
     field: () => buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] }).heightAt });
 }

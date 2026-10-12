@@ -7,14 +7,15 @@ import type { GroundPool } from '@wildshard/engine/render/families/ground';
 import { curveAt } from './duskCurves';
 import { duskSand, duskSky, type DuskSand, type DuskSky } from './duskFamilies';
 import { loadPaintedStrips } from './paintedStrips';
-import { loadBakedMaps, skirtGrid, type BakedMapRow, type CubeSkirt, type TintedTileGround } from './bakedGround';
+import { loadBakedMaps, type BakedMapRow, type CubeSkirt, type TintedTileGround } from './bakedGround';
+import type { PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import type { DuskLookRow, DuskTintRow } from '../../data/lastLight';
 
 /** The sand's three baked maps a dusk look draws with. */
 export type DuskSandMaps = Record<'shadow' | 'trail' | 'grain', DataTexture>;
 
 /** What a dusk look reads live: the quest's dusk and the fires' light uniforms, the sand's wind, the analytic field (built
- *  when the ground is), the baked sand maps, the tile ground and the held skirt. */
+ *  when the ground is), the baked sand maps, the tile ground and the held skirt with its baked pack. */
 export interface DuskLookParts {
   readonly dusk: { readonly value: number };
   readonly fires: { readonly value: readonly GroundPool[] };
@@ -23,6 +24,7 @@ export interface DuskLookParts {
   readonly maps: () => Promise<DuskSandMaps>;
   readonly tiles: TintedTileGround;
   readonly skirt: CubeSkirt;
+  readonly skirtPack: { readonly url: string; readonly rows: PackedGeometryJson & { readonly cubeHalf: number }; readonly fault: string };
 }
 
 /**
@@ -61,18 +63,19 @@ export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
   let painted: { scope: Scope; sky: DuskSky; textures: readonly Texture[] } | null = null;
   let sand: DuskSand | null = null;
   const buildSand = async (terrain: Terrain, field: PainterField, scope: Scope): Promise<void> => {
-    const { shadow, trail, grain } = await parts.maps(); scope.own(shadow); scope.own(trail); scope.own(grain);
+    const [{ shadow, trail, grain }, skirt] = await Promise.all([parts.maps(), parts.skirt.load(parts.skirtPack.url, parts.skirtPack.rows, parts.skirtPack.fault)]);
+    scope.own(shadow); scope.own(trail); scope.own(grain);
     const familyGround = duskSand(row.sand, { grain, trail, shadow }, site, dusk.value, scope); sand = familyGround;
     scope.onDispose(() => { if (sand === familyGround) sand = null; });
     const material = familyGround.material; terrain.material = material;
-    // the skirt and the tint's ring mean read the analytic field (the code-built mesh's), never the collider the ground binds
-    const heightAt = parts.field(), c = new Color(), { grid, swell } = row.skirt;
-    const skirtColour = new Color().copy(tones.sand).lerp(tones.hollow, row.tint.skirtHollow), skirt = skirtGrid(grid, swell, heightAt, skirtColour); scope.own(skirt);
-    const skirtMesh = new Mesh(skirt, material); skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh);
+    // the tint's ring mean reads the analytic field (the code-built mesh's), never the collider the ground binds
+    const heightAt = parts.field(), c = new Color();
+    const skirtMesh = skirt === null ? null : new Mesh(scope.own(skirt.standalone), material);
+    if (skirtMesh !== null) { skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh); }
     await parts.tiles.bind(terrain, field, material, (x, z, h, out, at) => {
       sandTint(row.tint, tones, heightAt, x, z, h, c); out[at] = c.r; out[at + 1] = c.g; out[at + 2] = c.b;
     }, scope);
-    parts.skirt.hold(skirtMesh, (half) => skirtGrid(grid, swell, heightAt, skirtColour, half), scope);
+    if (skirt !== null && skirtMesh !== null) parts.skirt.hold(skirtMesh, skirt.cube, skirt.half, scope);
   };
   const fog = row.fog;
   // the clean chain is declared as well as composed, so a grid cell carries it without composing (absent: cinematic)

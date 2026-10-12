@@ -1,0 +1,54 @@
+{
+  "bytes": 1185736,
+  "geometries": [
+    {
+      "attrs": [
+        [
+          "position",
+          3
+        ],
+        [
+          "normal",
+          3
+        ],
+        [
+          "uv",
+          2
+        ],
+        [
+          "color",
+          3
+        ]
+      ],
+      "count": 17161,
+      "unique": 17161,
+      "own": "u16",
+      "indexCount": 101400
+    },
+    {
+      "attrs": [
+        [
+          "position",
+          3
+        ],
+        [
+          "normal",
+          3
+        ],
+        [
+          "uv",
+          2
+        ],
+        [
+          "color",
+          3
+        ]
+      ],
+      "count": 4096,
+      "unique": 4096,
+      "own": "u16",
+      "indexCount": 23814
+    }
+  ],
+  "cubeHalf": 250
+}
