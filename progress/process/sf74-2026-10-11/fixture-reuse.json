@@ -1,0 +1,103 @@
+{
+  "sourceBase": "b13c3bb554a2b9f35e602b223e43f44d21061058",
+  "before": {
+    "wallSeconds": 17.59,
+    "tests": 13,
+    "environment": "Personal global Git config retained",
+    "retainedTestMs": 16256.029332999999
+  },
+  "after": {
+    "wallSeconds": 15.67,
+    "tests": 14,
+    "environment": "GIT_CONFIG_GLOBAL=/dev/null",
+    "retainedTestMs": 13289.601376999999,
+    "newTestMs": 888.576959
+  },
+  "retainedCases": [
+    {
+      "name": "SF6b clean committed regeneration builds the schema reference from committed sources at build time; the push has nothing to regenerate (SF74 W13)",
+      "beforeMs": 2291.4812920000004,
+      "afterMs": 1881.9089169999997,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b clean committed regeneration covers a moving count with a standing rule, and still refuses what no rule or exact row covers (SF74 W14)",
+      "beforeMs": 0.544166000000132,
+      "afterMs": 0.39516699999967386,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b clean committed regeneration warns about source-only graph increases but keeps shard reach and cross-layer cycles fatal",
+      "beforeMs": 976.6367919999998,
+      "afterMs": 602.4645,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b clean committed regeneration discovers newly exported SDK and format schemas and refuses missing fields or ABI calls in the committed reference",
+      "beforeMs": 1773.6030410000003,
+      "afterMs": 1431.9532499999996,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b clean committed regeneration checks staged generated edits while allowing source-only commits and manual prose or policy edits",
+      "beforeMs": 610.0993749999998,
+      "afterMs": 193.00874999999996,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b clean committed regeneration joins two export/import source commits within a minute with one regeneration, preserving foreign WIP and policy",
+      "beforeMs": 3353.06775,
+      "afterMs": 2947.8730830000004,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b clean committed regeneration rejects stale docs, measured increases without approval and hand-edited counts without touching HEAD",
+      "beforeMs": 2164.3495829999993,
+      "afterMs": 1801.5570420000004,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b witness manifests re-recorded at the serialized push refreshes a cached witness through its small manifest without writing committed payloads",
+      "beforeMs": 163.89183400000002,
+      "afterMs": 180.494917,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b witness manifests re-recorded at the serialized push blanks only the top-level inputs hash",
+      "beforeMs": 0.17991600000095787,
+      "afterMs": 0.18520799999896553,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b witness manifests re-recorded at the serialized push refreshes input-only staleness, remembers the verified triple and names every changed payload",
+      "beforeMs": 200.49862500000017,
+      "afterMs": 242.78499999999985,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b witness manifests re-recorded at the serialized push refreshes recorded bake files before hashing witnesses that load them",
+      "beforeMs": 1658.2988749999986,
+      "afterMs": 1242.9724999999999,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b witness manifests re-recorded at the serialized push commits refreshed input hashes in the regeneration commit and refuses a changed payload without touching HEAD",
+      "beforeMs": 2935.2485000000015,
+      "afterMs": 2634.337334,
+      "status": "passed"
+    },
+    {
+      "name": "SF6b witness manifests re-recorded at the serialized push refuses a builder commit that only refreshes a witness input hash, but admits a deliberate rebake",
+      "beforeMs": 128.12958399999843,
+      "afterMs": 129.6657090000008,
+      "status": "passed"
+    }
+  ],
+  "negativeProbe": {
+    "environment": "GIT_CONFIG_GLOBAL=/dev/null",
+    "wallSeconds": 1.89,
+    "beforeResult": "fails: 14 tracked node_modules symlinks",
+    "afterResult": "passes in the complete 14-test suite"
+  },
+  "causalSpeedClaim": false
+}
