@@ -122,8 +122,8 @@ describe('the browser Bullwhip is byte-identical on the shared lash runtime', ()
   // the whip as it ships: its models and bake loaded from public/ (the textured hero models stay unloaded: no images here)
   beforeAll(async () => {
     const parser = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const loaded = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async (url) => {
-      if (!/\/(?:baked|rigs|models\/whip-glove)\//u.test(url)) throw new Error(`not loaded here: ${url}`);
+    const loaded = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation((url) => {
+      if (!/\/(?:baked|rigs|models\/whip-glove)\//u.test(url)) return Promise.reject(new Error(`not loaded here: ${url}`));
       const bytes = readFileSync(`public${url}`);
       return parser.parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
     });
