@@ -1,11 +1,11 @@
 {
   "audit": {
-    "sourceRevision": "53b04886da6d2ff1ebaf224b2e06664a66debd71",
-    "candidate": "SF81 DIR5: authored Nine portal hold/transfer/clear stages. Native ring selection, numeric clock, floor-checked transfer, rearm and motor ownership unchanged.",
+    "sourceRevision": "00e7da5fbf89cf32395fdf32e602161399e107aa",
+    "candidate": "Current Nine native modes and client channels, including defining grapple host 53e1d8c01 and visual channels 39e8f5ed4.",
     "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs all",
     "exitStatus": 0,
-    "scope": "Command tape and all native effects, portal/link entry, grapple, heavy and durable Ledger outcomes exact. Both decoded checkpoints differ ONLY by versioned portal cursor.",
-    "runs": "Independent committed baseline/current whole native tapes, every-tick shipping-worker suffixes, 10k frozen shipping oracle, quiet restore/refusal, strict/touched lint."
+    "scope": "Headless gameplay and ledger outcomes exactly match the committed record. Runtime bind metadata and the ride/crossing native continuation hashes are refreshed; exact restored shipping-worker suffixes pass.",
+    "runs": "Clean committed source export, complete headless, both replay legs and durable gameplay ledger."
   },
   "slug": "nine-dragon-stack",
   "entry": "runtime/headless.ts",
@@ -78,8 +78,8 @@
       },
       "suffixTicksExecuted": 60,
       "ticksExecuted": 120,
-      "hash": "5835fdb0169734953812266ede74cf8373aeae43ccb1095d1d642d470e90959b",
-      "replayHash": "5835fdb0169734953812266ede74cf8373aeae43ccb1095d1d642d470e90959b",
+      "hash": "eb5a2b2d18496a5113cbcc6fa5c607806b61345428f0f27074a993509f8fbbb9",
+      "replayHash": "eb5a2b2d18496a5113cbcc6fa5c607806b61345428f0f27074a993509f8fbbb9",
       "workerTicks": 60,
       "workerExact": true
     },
@@ -93,8 +93,8 @@
       },
       "suffixTicksExecuted": 144,
       "ticksExecuted": 288,
-      "hash": "3b788fd4eadd22b34d31a74b70573b8327ce5b5d77474cf5db6c50817257ab46",
-      "replayHash": "3b788fd4eadd22b34d31a74b70573b8327ce5b5d77474cf5db6c50817257ab46",
+      "hash": "7f6553798d19d1439d452318bc7df352d4b8e28c1e0a93f0e6473911894792c9",
+      "replayHash": "7f6553798d19d1439d452318bc7df352d4b8e28c1e0a93f0e6473911894792c9",
       "workerTicks": 144,
       "workerExact": true
     }
@@ -108,7 +108,9 @@
     ],
     "runtimeBinds": [
       "items",
-      "ledger"
+      "ledger",
+      "modes",
+      "clientChannels"
     ]
   },
   "ledger": {
