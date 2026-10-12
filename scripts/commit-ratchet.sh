@@ -74,10 +74,15 @@ if out="$(cd "$tmp" && node lint/ratchet.mjs ${ratchet_arg:+"$ratchet_arg"} 2>&1
   note "ok in $((SECONDS - t0)) s"
   exit 0
 fi
+if printf '%s\n' "$out" | node "$repo/scripts/ratchet-advisory.mjs" "$tmp/.oxlintrc.json" "$common/generated-approval.json" >/dev/null 2>&1; then
+  printf '%s APPROVED\n%s\n' "$sha" "$out" > "$common/ratchet-last.txt"
+  note "APPROVED: exact coordinator receipt covers the measured debt; push regeneration still required"
+  exit 0
+fi
 printf '%s ROSE\n%s\n' "$sha" "$out" > "$common/ratchet-last.txt"
 note "ROSE in $((SECONDS - t0)) s"
 if [ -n "$pane" ] && command -v herdr >/dev/null 2>&1; then
   rows="$(echo "$out" | grep -E "was|rose" | head -4 | cut -c1-200 | tr '\n' ' ')"
-  "$repo/scripts/herdr-prompt.sh" "$pane" "[commit-ratchet] the ratchet ROSE in your commit ${sha:0:9}; it blocks every push, fix it now. $rows (full output: .git/ratchet-last.txt)" >/dev/null 2>&1 || true
+  "$repo/scripts/herdr-prompt.sh" "$pane" "[commit-ratchet] unapproved ratchet rise or guard failure in ${sha:0:9}; needs a source fix or exact coordinator receipt before push regeneration. $rows (full output: .git/ratchet-last.txt)" >/dev/null 2>&1 || true
 fi
 exit 0

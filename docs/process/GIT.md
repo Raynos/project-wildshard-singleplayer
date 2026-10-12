@@ -112,6 +112,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   run `pnpm gen` before retrying. Hooks never run producers. The detached reader clears Git-local overrides and
   loads source and dependency helpers from the requested commit; an incomplete export reports `REFUSED`, never a
   debt rise. This refusal also covers historical helpers that silently skipped missing outputs.
+  An advisory rise fully covered by the coordinator's exact receipt reports `APPROVED` without a blocker ping;
+  regeneration and every push gate still run. Hard rules, unknown failures and partly covered rises remain red.
 - **No tree-wide destructive git, no escape:** `git restore .` / `checkout .`, a bare `git stash`, `git reset --hard`
   and `git clean -f` without paths are blocked. Name the paths you authored.
 - **Keep pushes small.** `.githooks/pre-commit` refuses a `progress/` image over 500 KB (save JPEG / WebP) and any
