@@ -34,7 +34,7 @@ it('admits only staged-hash JSON bytes and leaves missing dependencies fail-clos
     expect(simClosure(snapshot).map(site => site.id)).toEqual(['src/shards/example/data/rows.ts:unresolved:./rows.generated.json']);
     rmSync(join(root, output));
     pin(output, hash);
-    materializeGuardData(root, snapshot);
+    expect(() => materializeGuardData(root, snapshot)).toThrow('Missing pinned generated guard data');
     expect(simClosure(snapshot).map(site => site.id)).toEqual(['src/shards/example/data/rows.ts:unresolved:./rows.generated.json']);
     write(root, output, '{"unrelated":true}');
     expect(() => materializeGuardData(root, snapshot)).toThrow('does not match staged hash');
@@ -74,7 +74,7 @@ it('materializes pinned JSON through the detached ratchet CLI without admitting 
     write(snapshot, 'scripts/generation-jobs.json', JSON.stringify({ jobs: [{ buildOutputs: {
       [path]: createHash('sha256').update(bytes).digest('hex'),
     } }] }));
-    command();
+    expect(command).toThrow('Missing pinned generated guard data');
     expect(simClosure(snapshot)).toHaveLength(1);
     write(root, path, 'wrong bytes');
     expect(command).toThrow('does not match staged hash');

@@ -107,6 +107,11 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   refused by the `layer` / `shard-sandbox` lint rules, one shard reaching into another by the reach check, and
   every other layer pair is still counted. The auto-pusher passes the coordinator's `.git/generated-approval.json`. Hard rules,
   zero-debt promotion and ambient checks stay fatal.
+- **Source guards require their pinned JSON.** Pre-commit and the detached commit ratchet copy only JSON whose bytes
+  match the immutable tree's generation catalogue. Missing pins refuse before lint, naming the output and job;
+  run `pnpm gen` before retrying. Hooks never run producers. The detached reader clears Git-local overrides and
+  loads source and dependency helpers from the requested commit; an incomplete export reports `REFUSED`, never a
+  debt rise. This refusal also covers historical helpers that silently skipped missing outputs.
 - **No tree-wide destructive git, no escape:** `git restore .` / `checkout .`, a bare `git stash`, `git reset --hard`
   and `git clean -f` without paths are blocked. Name the paths you authored.
 - **Keep pushes small.** `.githooks/pre-commit` refuses a `progress/` image over 500 KB (save JPEG / WebP) and any
