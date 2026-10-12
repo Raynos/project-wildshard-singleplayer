@@ -30,7 +30,7 @@ describe('Signal Dunes bakes its sand maps offline (SHARD-PLATFORM SF72, RENDERI
     expect(sandMeans).toEqual({ meanR: bake.meanR, meanGlint: bake.meanGlint });
     const skirt = bakeSignalSkirt();
     expect(unzlibSync(committed(SAND_FILES.skirt))).toEqual(skirt.bytes);
-    expect(skirtRows).toEqual(JSON.parse(JSON.stringify(skirt.rows)));
+    expect(JSON.stringify(skirtRows)).toBe(JSON.stringify(skirt.rows));
     // the folder holds exactly this bake, and the boot fetches every map
     expect(readdirSync('public/assets/sunscar-dunes/sand').sort()).toEqual(['grain.bin', 'shadow.bin', 'skirt.bin', 'trail.bin']);
     for (const url of Object.values(SAND_FILES)) expect(bootFiles()).toContain(url);
