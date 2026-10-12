@@ -147,9 +147,10 @@
       }
     },
     {
-      // G348 (Jake): the placeholder bakes are generic for any shard; a slug branch there is refused. Each shard declares
-      // its own far look / grid / parts, ground and tree stand-ins in data/placeholder.ts; the bakers are the SDK's.
-      "files": ["scripts/bake/near*.mjs", "scripts/bake/far*.mjs", "scripts/bake/placeholder*.mjs"],
+      // G348 (Jake): the bakes are generic for any shard; a slug branch anywhere in scripts/bake is refused. Each shard
+      // declares its own far look / grid / parts, ground and tree stand-ins in data/placeholder.ts and its mover modules
+      // in data/moverBake.ts; the bakers are the SDK's.
+      "files": ["scripts/bake/**"],
       "rules": { "wildshard/no-shard-branch": "error" }
     },
     {

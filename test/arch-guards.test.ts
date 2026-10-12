@@ -100,8 +100,8 @@ describe('AG14 generated vocabulary', () => {
     expect(result.status, result.stderr).toBe(1);
     expect(found.filter((d) => d.filename === 'src/game/new-shard-branch.ts' && d.code === 'wildshard(no-shard-branch)')).toHaveLength(3);
     expect(found.filter((d) => d.filename === 'src/engine/new-shard-words.ts' && d.code === 'wildshard(engine-words)')).toHaveLength(2);
-    // G348: the placeholder bakes in scripts/ refuse a slug branch too (the gate's override, then the rule on a fixture)
-    const gate = readLintConfig(resolve('.oxlintrc.json')).overrides?.find((o) => o.files?.includes('scripts/bake/near*.mjs'));
+    // G348: every bake in scripts/bake refuses a slug branch too (the gate's override, then the rule on a fixture)
+    const gate = readLintConfig(resolve('.oxlintrc.json')).overrides?.find((o) => o.files?.includes('scripts/bake/**'));
     expect(gate?.rules?.['wildshard/no-shard-branch']).toBe('error');
     put(root, 'scripts/bake/near-emberfall.mjs', "const slug = process.argv[2]; export const ground = slug === 'emberfall' ? 1 : 0;");
     const bake = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', join(root, '.oxlintrc.ratchet.json'), '-f', 'json', 'scripts/bake'], { cwd: root, encoding: 'utf8' });

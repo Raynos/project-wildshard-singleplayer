@@ -28,3 +28,28 @@ export function parseMovers(input: unknown): MoverData {
     return driver?.kind === 'track' || driver?.kind === 'pendulum' ? row : compiled;
   });
 }
+
+const exportName = v.pipe(v.string(), v.regex(/^[A-Za-z_$][A-Za-z0-9_$]*$/u));
+/**
+ * G348: what the mover bake (`scripts/bake/movers.mjs`) compiles for one shard, declared in the shard's own
+ * `data/moverBake.ts` (`MOVER_BAKE`), so the bake keeps no table of shards: each admitted module's fixed driver (its
+ * label names it in the bake's output), the export of the shard's `generators/movers.ts` that captures its rows from those
+ * modules' hashes (passed in declared order), and any module whose hash its runtime imports as a generated constant
+ * (`emit`: the file under the shard, the constant's name and its one-line note).
+ */
+export const MoverBakeSchema = v.strictObject({
+  capture: exportName,
+  modules: v.pipe(v.array(v.strictObject({
+    file: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9-]*\.as$/u)),
+    driver: v.picklist(['ride', 'hinge', 'waves', 'clip']),
+    emit: v.exactOptional(v.strictObject({ file: v.pipe(v.string(), v.regex(/^data\/[A-Za-z][A-Za-z0-9]*\.ts$/u)), name: v.pipe(v.string(), v.regex(/^[A-Z][A-Z0-9_]*$/u)), note: v.pipe(v.string(), v.regex(/^[^\n]{1,200}$/u)) })),
+  })), v.minLength(1), v.maxLength(8), v.check(rows => new Set(rows.map(row => row.file)).size === rows.length, 'unique module labels')),
+});
+/** A shard's mover bake declaration (`MoverBakeSchema`). */
+export type MoverBake = v.InferOutput<typeof MoverBakeSchema>;
+/** Validate one shard's `MOVER_BAKE`, naming the shard on refusal. */
+export function moverBake(slug: string, value: unknown): MoverBake {
+  const parsed = v.safeParse(MoverBakeSchema, value);
+  if (!parsed.success) throw new Error(`${slug}: data/moverBake.ts MOVER_BAKE: ${parsed.issues.map(issue => issue.message).join('; ')}`);
+  return parsed.output;
+}

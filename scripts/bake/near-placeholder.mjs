@@ -5,6 +5,15 @@
 // (`@wildshard/sdk/bake/nearPlaceholder`) to a low-LOD budget, and merged over its terrain at L1 density (17 × 17 per
 // 125 m region) in its own far look: one draw, regions in TEXCOORD_0.x, no colliders.
 // node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake/near-placeholder.mjs <slug> [--report]
+//
+// G348: why this runner stays beside `wildshard build` (which bakes any shardfile's near row from its own terrain
+// collider and its L1 tiles' meshes, `projectPlaceholders`): the first-party hybrids (Driftwood, Nalati, Pine) have no
+// world in their shardfiles yet (no terrain, no tiles; `public/shardfiles/<slug>/shard.json`). Their props and forests
+// exist only when their TypeScript builders run, so the SDK build has nothing to harvest, and no shardfile input can
+// reproduce these bytes (the coarsest built LOD of every placement, Pine's per-tree placements, the colour maps' mean
+// texels). Nothing here is per shard (each declares its ground and tree stand-ins in data/placeholder.ts); the grid
+// prefers a shardfile's own `near` row and reads this runner's near.json only for a shard whose shardfile has none. It
+// retires per shard as each one's world moves into its shardfile tiles.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
