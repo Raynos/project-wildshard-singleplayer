@@ -376,6 +376,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [proof-sky-look-parity.mjs](./proof-sky-look-parity.mjs)
 - [public-grid.d.mts](./public-grid.d.mts)
 - [public-grid.mjs](./public-grid.mjs)
+- [ratchet-advisory.d.mts](./ratchet-advisory.d.mts)
+- [ratchet-advisory.mjs](./ratchet-advisory.mjs)
 - [regenerate-committed.d.mts](./regenerate-committed.d.mts)
 - [regenerate-committed.mjs](./regenerate-committed.mjs)
 - [release-url.sh](./release-url.sh)
