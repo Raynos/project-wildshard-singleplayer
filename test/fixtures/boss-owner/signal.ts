@@ -1,6 +1,7 @@
-import type { SIGNAL_HEADLESS } from '../../data/headlessOwners';
+// Frozen native owner before the DIR-5 data binding.
+import type { SIGNAL_HEADLESS } from '../../../src/shards/sunscar-dunes/data/headlessOwners';
 import * as v from 'valibot';
-import stages from '../../data/bossStages.json' with { type: 'json' };
+import stages from '../../../src/shards/sunscar-dunes/data/bossStages.json' with { type: 'json' };
 import { Vector3 } from 'three';
 import type { BossBrain } from '@wildshard/engine/ai/BossBrain';
 import type { SimHost } from '@wildshard/engine/sim';

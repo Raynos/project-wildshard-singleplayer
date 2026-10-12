@@ -1,12 +1,13 @@
-import stages from '../data/bossStages.json' with { type: 'json' };
+// Frozen native owner before the DIR-5 data binding.
+import stages from '../../../src/shards/far-reach/data/bossStages.json' with { type: 'json' };
 import { installBossRow } from '@wildshard/game/shardfile/bossRow';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
-import { FLAGS } from '../quest/flags';
-import { BOSS_REWARD, ROC_ID, ROC_DEFINITION, ROC_BOSS_PROFILE } from '../data/rocFight';
+import { FLAGS } from '../../../src/shards/far-reach/quest/flags';
+import { BOSS_REWARD, ROC_ID, ROC_DEFINITION, ROC_BOSS_PROFILE } from '../../../src/shards/far-reach/data/rocFight';
 import { bossFight } from '@wildshard/game/plugin/bossPhase';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
-import type { StormRocBrain } from './stormRocBrain';
+import type { StormRocBrain } from '../../../src/shards/far-reach/runtime/stormRocBrain';
 
 /** The Roc encounter's fixed-step id; its continuation is BossBrain's plus the script's HP and shield. */
 export const ROC_STEP = 'far.roc.encounter';

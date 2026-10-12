@@ -1,3 +1,5 @@
+import { parseBossOwnerRow, type BossOwnerRow } from '@wildshard/format/bossProfiles';
+import bossStages from './bossStages.json' with { type: 'json' };
 import { SIGNAL_OWNER_ROWS } from './hostOwners';
 import { MATRIARCH_BOSS_PROFILE } from './matriarchBoss';
 import { SIGNAL_SPAWNS } from './spawns';
@@ -24,3 +26,13 @@ export const SIGNAL_HEADLESS = {
     ...MATRIARCH_ARENA, victory: { flag: MATRIARCH_FLAG, fact: FACT.matriarch } },
   quest: { interactions: SIGNAL_INTERACTIONS, npcs: [parseNpcRow(SCOUT_ROW)], graph: SIGNAL_GRAPH },
 };
+
+/** Native Matriarch stage/record/effect binding; the keeper lends its actual body. */
+export const SIGNAL_BOSS_OWNER: BossOwnerRow = parseBossOwnerRow({
+  step: matriarch.id, actor: matriarch.id, profile: MATRIARCH_BOSS_PROFILE,
+  definition: MATRIARCH_DEFINITION, stages: bossStages, armed: false,
+  record: MATRIARCH_RECORD, victory: { flag: MATRIARCH_FLAG, fact: FACT.matriarch, once: false },
+  reward: { when: 'claim', amount: MATRIARCH_REWARD },
+  placement: { rewardPoint: { x: matriarch.at[0], y: MATRIARCH_ARENA.floor, z: matriarch.at[1] },
+    respawn: MATRIARCH_ARENA.respawn },
+});

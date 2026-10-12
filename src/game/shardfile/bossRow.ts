@@ -1,5 +1,8 @@
 import * as v from 'valibot';
-import type { Vector3 } from 'three';
+import { Vector3 } from 'three';
+import { parseBossOwnerRow } from '@wildshard/format/bossProfiles';
+import { bossFight, type HeldBossBrain } from '../plugin/bossPhase';
+import type { KeptBossBody } from './homeKeeper';
 import { DirectorBossBrain } from '../plugin/director';
 import { BossBrain, type BossContinuation, type BossDefinition, type BossSaved, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { silentBossPresentation } from '@wildshard/engine/ai/phases';
@@ -82,4 +85,55 @@ export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBr
     },
   });
   return { boss, summon: () => { if (boss.state === 'dormant') boss.arm(); }, locked: () => boss.state === 'intro' };
+}
+
+
+/** Real roster ownership; the row cannot manufacture, retire or replace a foreign body. */
+export type BossOwnerBody =
+  | { readonly kind: 'spawned'; readonly keeper: KeptBossBody }
+  | { readonly kind: 'held'; readonly actor: AnimalSim; readonly brain: HeldBossBrain };
+/** Native effect ports are supplied by the host, never serialized callbacks. */
+export interface BossOwnerPorts {
+  readonly body: BossOwnerBody;
+  readonly fact: (name: string, actorId: string) => void;
+  readonly coins: (amount: number, actorId: string) => void;
+}
+const spawnedState = v.strictObject({ stormGoal: finite, storm: finite, invulnerable: v.boolean() });
+/** Install the authored stage/profile and its real body's native lifetime together.
+ * Both held and spawned patterns preserve install order, reward timing and the
+ * existing BossBrain/fight continuation; restore only adopts the owned roster. */
+export function installBossOwnerRow(host: SimHost, input: unknown, ports: BossOwnerPorts): ReturnType<typeof installBossRow> {
+  const row = parseBossOwnerRow(input), profile = row.profile, owner = ports.body;
+  if (profile.pattern !== owner.kind) throw new Error('Boss owner/profile mismatch');
+  const record = row.record === undefined ? undefined : bossFlagRecord(host.flags, row.record);
+  const saved = record?.saved ?? row.saved ?? { defeated: false, rewardTaken: false, kills: 0 };
+  const persist = record?.persist ?? (() => undefined);
+  const victory = (): void => {
+    if (row.victory.once && host.flags.has(row.victory.flag)) return;
+    host.flags.set(row.victory.flag); ports.fact(row.victory.fact, row.actor);
+    if (row.reward.when === 'victory') ports.coins(row.reward.amount, row.actor);
+  };
+  const reward = row.reward.when === 'claim' ? () => {
+    saved.rewardTaken = true; persist(saved); ports.coins(row.reward.amount, row.actor);
+  } : undefined;
+  if (profile.pattern === 'spawned' && owner.kind === 'spawned') {
+    const placement = row.placement;
+    if (placement === undefined) throw new Error('Spawned boss placement missing');
+    const at = placement.rewardPoint, back = placement.respawn, keeper = owner.keeper;
+    const fight = bossFight(profile, { body: { spawn: () => keeper.draw(), retire: () => { keeper.free(); } },
+      rewardPoint: new Vector3(at.x, at.y, at.z),
+      respawnPoint: () => ({ pos: new Vector3(back.x, host.groundHeightAt(back.x, back.z), back.z), yaw: back.yaw }), victory });
+    fight.adopt(keeper.actor());
+    return installBossRow(host, { step: row.step, stages: row.stages, definition: row.definition,
+      script: fight.script, body: fight.body, shielded: fight.invulnerable,
+      fight: { snapshot: fight.snapshot, restore: value => { fight.restore(v.parse(spawnedState, value)); } },
+      saved, persist, ...(reward === undefined ? {} : { spawnReward: reward }), armed: row.armed,
+      restored: () => { fight.adopt(keeper.actor()); } });
+  }
+  if (profile.pattern !== 'held' || owner.kind !== 'held') throw new Error('Held boss owner missing');
+  const fight = bossFight(profile, { body: owner.actor, brain: owner.brain, victory });
+  return installBossRow(host, { step: row.step, stages: row.stages, definition: row.definition,
+    script: fight.script, body: () => owner.actor, shielded: fight.shielded,
+    fight: { snapshot: fight.snapshot, restore: fight.restore }, saved, persist,
+    ...(reward === undefined ? {} : { spawnReward: reward }), armed: row.armed });
 }

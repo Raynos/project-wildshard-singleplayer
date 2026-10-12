@@ -1,10 +1,11 @@
-import { SignalDirector } from './signalDirector';
+import { bindDirectorActions } from '@wildshard/game/plugin/director';
+import signalStages from '../data/signalStages.json' with { type: 'json' };
 import { FLAG } from '../data/flags';
 import * as v from 'valibot';
 import { addBakedTerrainCollider } from '@wildshard/engine/physics/terrainTiles';
 import { addPiece } from '@wildshard/engine/physics/pieces';
 import { installSpeciesHomes } from '@wildshard/game/plugin/brain';
-import { installMarkedBossRow } from './shardfile/markedBossRow';
+import { installBossOwnerRow } from '@wildshard/game/shardfile/bossRow';
 import { installLashHost, type LashCommand, type LashTargetRow, type LashHost } from './items/lashHost';
 import { installQuestGraph } from '@wildshard/game/plugin/quests';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
@@ -12,7 +13,7 @@ import { prepareRowLevel, bakedSpecs, bakedSpots } from './rowsHeadless';
 import { parsePromptRegistrations } from '@wildshard/sdk/runtime/prompts';
 import type { HeadlessRuntimeInstallation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../data/brains';
-import { SIGNAL_HEADLESS } from '../data/headlessOwners';
+import { SIGNAL_HEADLESS, SIGNAL_BOSS_OWNER } from '../data/headlessOwners';
 import baked from './physics.baked.json' with { type: 'json' };
 import { SignalLashInput } from './lashInput';
 
@@ -65,7 +66,7 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = args => {
     if (keeper.boss === null) throw new Error('Missing native Matriarch body');
     const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
     const coins = (amount: number, actorId: string): void => { context.emit({ kind: 'coins', amount, actorId }); };
-    const encounter = installMarkedBossRow(host, boss, { body: keeper.boss, fact, coins });
+    const encounter = installBossOwnerRow(host, SIGNAL_BOSS_OWNER, { body: { kind: 'spawned', keeper: keeper.boss }, fact, coins });
     const input = new SignalLashInput();
     let released = { released: false, target: null as string | null };
     host.onStep(SIGNAL_LASH_INPUT, dt => { released = input.sample(dt, context.commands(), !encounter.locked()); },
@@ -101,7 +102,9 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = args => {
         }
         return attacks;
       } });
-    const signal = new SignalDirector({ lit: () => host.flags.has(FLAG.lit), summon: encounter.summon });
+    const signal = bindDirectorActions(signalStages, { read: () => ({ lit: host.flags.has(FLAG.lit) }),
+      bindings: [{ action: { spawn: 'sunscar.matriarch' }, run: encounter.summon }],
+      initial: host.flags.has(FLAG.lit) ? [{ lit: false }, { lit: true }] : [{ lit: false }] });
     host.onStep('sunscar.signal-fire', () => undefined, {
       snapshot: () => signal.snapshot(),
       restore: saved => { if (typeof saved !== 'string') throw new Error('Invalid Signal fire continuation'); signal.restore(saved); },
@@ -117,7 +120,7 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = args => {
           if (command.kind === 'script') scripts.push(command);
         }
         return scripts;
-      }, fact, coins, summon: id => { if (id === boss.row.id) signal.light(); } });
+      }, fact, coins, summon: id => { if (id === boss.row.id) signal.advance(); } });
     keeper.settle();
   } };
 };

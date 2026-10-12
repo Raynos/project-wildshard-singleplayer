@@ -178,6 +178,52 @@ export class DirectorStageLane {
   }
 }
 
+/** A concrete fixed director action bound to its existing native owner. */
+export interface DirectorActionBinding { readonly action: DirectorAction; readonly run: () => void }
+/** External observations and quiet installation; advancing never owns another clock. */
+export interface DirectorActionHostSpec {
+  readonly read: () => Readonly<Record<string, boolean>>;
+  readonly bindings: readonly DirectorActionBinding[];
+  readonly initial: readonly Readonly<Record<string, boolean>>[];
+}
+/** The same stage cursor, with declared ordered native actions and silent restore. */
+export interface BoundDirectorActions { advance: () => void; snapshot: () => string; restore: (value: string) => void }
+function actionIdentity(action: DirectorAction): string {
+  if ('spawn' in action) return JSON.stringify(['spawn', action.spawn]);
+  if ('despawn' in action) return JSON.stringify(['despawn', action.despawn]);
+  if ('flag' in action) return JSON.stringify(['flag', action.flag.key, action.flag.value]);
+  if ('score' in action) return JSON.stringify(['score', action.score]);
+  if ('weather' in action) return JSON.stringify(['weather', action.weather]);
+  if ('toast' in action) return JSON.stringify(['toast', action.toast]);
+  if ('reward' in action) return JSON.stringify(['reward', action.reward]);
+  return JSON.stringify(['emit', action.emit, action.value]);
+}
+/**
+ * Bind every authored action before advancing or invoking a native callback.
+ * Quiet initial observations seed the existing lane without replaying effects;
+ * accepted native edges advance its tick and dispatch in the authored order.
+ */
+export function bindDirectorActions(data: unknown, spec: DirectorActionHostSpec): BoundDirectorActions {
+  const lane = new DirectorStageLane(data), hooks = new Map<string, () => void>();
+  for (const binding of spec.bindings) {
+    const key = actionIdentity(binding.action);
+    if (hooks.has(key)) throw new Error('Duplicate director action binding');
+    hooks.set(key, binding.run);
+  }
+  if (lane.data.stages.some(stage => stage.do.some(action => !hooks.has(actionIdentity(action))))) throw new Error('Unbound native director action');
+  for (const observation of spec.initial) lane.step(lane.tick + 1, observation);
+  return {
+    advance: () => {
+      for (const action of lane.step(lane.tick + 1, spec.read())) {
+        const run = hooks.get(actionIdentity(action));
+        if (run === undefined) throw new Error('Unbound native director action');
+        run();
+      }
+    },
+    snapshot: () => lane.snapshot(), restore: value => { lane.restore(value); },
+  };
+}
+
 /** External-clock stage installation with an admitted AS escape handler. The native lane owns elapsed time,
  * quotas and typed observations; ordered output events select authored stage actions without a second scheduler.
  * Publication also carries the admitted AS event for bounded native parameters; row actions retain their authored values.
@@ -236,22 +282,25 @@ export class DirectorScriptStageLane {
 /** Encounter rows select transitions for native bosses; clocks, body callbacks, rewards and views stay BossBrain's.
  * Sky's held Roc and Signal's respawning Matriarch use the same owner in their page and renderer-free hosts. */
 export class DirectorBossBrain extends BossBrain {
-  private readonly stages: DirectorStageLane;
+  private readonly stages: BoundDirectorActions;
+  private selected: string | null = null;
   private readonly observations = { arena: false, intro: false, beat: false, dead: false, phase: false };
   constructor(def: BossDefinition, script: BossScript, ports: BossPorts, presentation: BossPresentation, saved: BossSaved, rows: unknown) {
     super(def, script, ports, presentation, saved);
-    this.stages = new DirectorStageLane(rows);
+    const definition = parseDirectorStages(rows);
     const keys = new Set(['boss.intro', 'boss.fight', 'boss.resume', 'boss.won', 'boss.phase']);
-    if (this.stages.data.stages.some(stage => stage.do.length > 1 || stage.do.some(action => !('emit' in action) || action.value !== 0 || !keys.has(action.emit)))) throw new Error('Invalid authored boss action');
-    this.stages.step(0, this.observations);
+    if (definition.stages.some(stage => stage.do.length > 1 || stage.do.some(action => !('emit' in action) || action.value !== 0 || !keys.has(action.emit)))) throw new Error('Invalid authored boss action');
+    this.stages = bindDirectorActions(definition, { read: () => this.observations,
+      bindings: [...keys].map(emit => ({ action: { emit, value: 0 }, run: () => { this.selected = emit; } })), initial: [this.observations] });
   }
   private select(input: keyof DirectorBossBrain['observations'], eligible: boolean, event: string): boolean {
     this.observations[input] = eligible;
     try {
-      const action = this.stages.step(this.stages.tick + 1, this.observations)[0];
-      return action !== undefined && 'emit' in action && action.emit === event;
+      this.selected = null; this.stages.advance();
+      return this.selectedAction() === event;
     } finally { this.observations[input] = false; }
   }
+  private selectedAction(): string | null { return this.selected; }
   protected override introReady(inside: boolean): boolean { return this.select('arena', inside, 'boss.intro'); }
   protected override fightReady(elapsed: number, skip: number, length: number): boolean {
     return this.select('intro', elapsed >= length || skip >= 0.6, 'boss.fight');

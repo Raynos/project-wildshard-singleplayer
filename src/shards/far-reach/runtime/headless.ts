@@ -15,7 +15,8 @@ import { proveSocketLift } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN } from '../data/layout';
 import { DRIFT_RAY_VARIANTS, SKY_GOAT_VARIANTS, STORM_ROC_VARIANTS, GALE_WISP_VARIANTS } from '../data/variants';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
-import { installSkyRoc } from './roc';
+import { installBossOwnerRow } from '@wildshard/game/shardfile/bossRow';
+import { ROC_OWNER } from '../data/rocFight';
 import { coneStrikeSpec } from './weapons/coneStrikes';
 import { FAN_ID } from '../data/items';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM, installSkyFan, type FanCommand } from './fan';
@@ -52,7 +53,7 @@ export const UPDRAFT_STEP = 'far.updraft';
  * collider (`ground: false`), the analytic placement floor at -1000 m, and every island, rope bridge, dock, lip and prop
  * the browser registers, from the Node-baked native colliders (the hover decks and the updraft ramp collide only on the
  * board, through the host's board mode; the fallen crown bridge stays out), with the host's layered WORLD floor queries
- * for flight and falls. Owns the 13 declared bodies and their shipping policies (runtime/flock.ts) and the Storm Roc's encounter (runtime/roc.ts: BossBrain, its
+ * for flight and falls. Owns the 13 declared bodies and their shipping policies (runtime/flock.ts) and the Storm Roc's encounter (data/rocFight.ts: authored BossBrain owner, its
  * fact and purse) and the War Fan (runtime/fan.ts: the browser fan's own move recipe; a `player.attack` is its light
  * SWING, `far.fan` script commands its HEAVY and GUST at the `far.fan.aim` pitch; locked through the Roc's intro, stowed on the board), the
  * quest (runtime/quest.ts: its four steps, its fact and 10 coins once) and the movers (the admitted track/trigger/driver rows:
@@ -109,7 +110,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
       permissions: () => new Map([[SKY_MOVER_BINDING.winch, skyWinchPermission(host.flags)]]),
     });
     const flock = installSkyFlock(host, { specs, ranges, seed: shard.identity.seed }, context.snapshot);
-    const encounter = installSkyRoc(host, { roc: flock.roc.actor, body: flock.roc.body, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
+    const encounter = installBossOwnerRow(host, ROC_OWNER, { body: { kind: 'held', actor: flock.roc.actor, brain: flock.roc.body }, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
       coins: (amount, actorId) => { context.emit({ kind: 'coins', amount, actorId }); } });
     // the browser disables the player's weapons through the Roc's intro (BossPorts.lockInput) and stows the fan on the board
     installSkyFan(host, () => encounter.locked() || host.playerBoard.on ? [] : context.commands().flatMap((command): FanCommand[] => {

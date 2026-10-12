@@ -1703,6 +1703,13 @@ SF85 WP-2 Nalati javelins: the numeric `thrown` declaration in `data/javelinProf
 ### Boss policy declarations (SF82 BR-2)
 
 `@wildshard/format/bossProfiles` defines `BossProfileSchema` and `parseBossProfile`.
+`BossOwnerRowSchema` binds a spawned or held profile to its native stage rows,
+actor identity, phase definition, record, victory fact and reward timing. The
+actor must match the definition; phases must match the profile's checkpoint
+shares. Spawned owners declare their reward and respawn placement; a claim
+requires a flag-backed record. Conflicting saved/flag records refuse. The host
+lends its real keeper or held body and brain to `installBossOwnerRow`; no body,
+callback, extra clock or random stream is serialized.
 A strict `{kind: 'boss', pattern, fight}` selects `arena`, `roaming`, `spawned`, `held`,
 or the existing `script` policy. These are standalone authoring contracts; they are
 not an ignored extra field on `encounters`. Root admission and recipe/AS phase

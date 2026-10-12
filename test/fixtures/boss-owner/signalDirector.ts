@@ -1,5 +1,6 @@
+// Frozen accepted signal edge before native action binding.
 import { DirectorStageLane } from '@wildshard/game/plugin/director';
-import rows from '../data/signalStages.json' with { type: 'json' };
+import rows from '../../../src/shards/sunscar-dunes/data/signalStages.json' with { type: 'json' };
 
 /** The original signal owner supplies the live flag and boss admission, never a fabricated actor. */
 export interface SignalDirectorPorts {

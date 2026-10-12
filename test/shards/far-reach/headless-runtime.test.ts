@@ -18,7 +18,7 @@ import { FAN_ACT, FAN_ACTOR, FAN_AIM, FAN_STEP } from '../../../src/shards/far-r
 import { FAN_GUST, FAN_ID, FAN_SWING, SKY_ITEMS } from '../../../src/shards/far-reach/data/items';
 import { FAN_ROW } from '../../../src/shards/far-reach/weapons/rows';
 import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
-import { ROC_STEP } from '../../../src/shards/far-reach/runtime/roc';
+import { ROC_STEP } from '../../../src/shards/far-reach/data/rocFight';
 import { PHASES } from '../../../src/shards/far-reach/data/rocFight';
 import { FLOCK_STEP, SKY_KILL_Y } from '../../../src/shards/far-reach/runtime/flock';
 import { SKY_REACH } from '../../../src/shards/far-reach/manifest';

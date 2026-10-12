@@ -1,3 +1,6 @@
+import { parseBossOwnerRow, type BossOwnerRow } from '@wildshard/format/bossProfiles';
+import stages from './bossStages.json' with { type: 'json' };
+import { FLAGS } from '../quest/flags';
 import { CROWN, DAIS, FALLEN_BRIDGE } from './layout';
 import { STRINGS } from './strings';
 
@@ -23,3 +26,13 @@ export const ROC_BOSS_PROFILE = { kind: 'boss', pattern: 'held', fight: { arena:
 
 /** Historical row name; its source is the same authored held-pattern boss profile. */
 export const ROC_FIGHT = ROC_BOSS_PROFILE.fight;
+
+/** Native encounter continuation and ledger identity. */
+export const ROC_STEP = 'far.roc.encounter';
+export const ROC_FACT = 'far-reach.roc';
+/** Held native Roc binding; its flock owns the real body and flight brain. */
+export const ROC_OWNER: BossOwnerRow = parseBossOwnerRow({ step: ROC_STEP, actor: ROC_ID,
+  definition: ROC_DEFINITION, profile: ROC_BOSS_PROFILE, stages, armed: true,
+  saved: { defeated: false, rewardTaken: false, kills: 0 },
+  victory: { flag: FLAGS.roc, fact: ROC_FACT, once: true }, reward: { when: 'victory', amount: BOSS_REWARD },
+});

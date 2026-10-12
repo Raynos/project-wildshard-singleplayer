@@ -3540,3 +3540,19 @@ game or engine code and installs no renderer. The transitional shared
 navmesh CLI still collects trusted world colliders; extracting its CPU
 compiler does not qualify that CLI as a complete author-only product or
 permit any output deletion.
+
+SF81 native boss ownership: `@wildshard/game/shardfile/bossRow.installBossOwnerRow`
+consumes `@wildshard/format/bossProfiles.BossOwnerRowSchema` data and a real
+spawned keeper or held actor/brain. It refuses a mismatched body pattern before
+installation. The existing boss step owns the unchanged stage cursor and fight
+continuation. Flags, facts and coins retain declared claim/victory timing; quiet
+restore re-adopts the keeper's body without drawing or emitting a reward. Signal
+and Sky use this shared binding with their own authored phase and stage rows.
+
+`plugin/director.bindDirectorActions` resolves each declared fixed action to an
+explicit native callback before installation. Duplicate or unbound actions
+refuse before any observation or effect. `initial` observations seed the stage
+cursor quietly; `advance()` reads the native observations and runs entered-stage
+actions in author order. Snapshot/restore retain the same stage contract/cursor
+and restore emits nothing. Signal's fire edge and both native boss transition
+owners use this binding; it introduces no tick loop or independent clock.

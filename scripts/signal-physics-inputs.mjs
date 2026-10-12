@@ -8,7 +8,7 @@ export function signalPhysicsInputs(root) {
     .map(path => `src/shards/sunscar-dunes/${path}`);
   paths.push('src/shards/sunscar-dunes/generators/bake-signal-physics.mjs', 'src/engine/world/interact/prompts.ts');
   paths.push('src/shards/sunscar-dunes/runtime/looks/bakedGround.ts', 'src/shards/sunscar-dunes/runtime/looks/duneField.ts', 'src/shards/sunscar-dunes/runtime/looks/duskCurves.ts', 'src/shards/sunscar-dunes/runtime/looks/duskFamilies.ts', 'src/shards/sunscar-dunes/runtime/looks/duskLook.ts', 'src/shards/sunscar-dunes/runtime/looks/fireFx.ts', 'src/shards/sunscar-dunes/runtime/looks/fittedHull.ts', 'src/shards/sunscar-dunes/runtime/looks/mapPalette.ts', 'src/shards/sunscar-dunes/runtime/looks/paintedStrips.ts');
-  paths.push('src/shards/sunscar-dunes/runtime/looks/stormShell.ts', 'src/shards/sunscar-dunes/runtime/quest/pivotNpc.ts', 'src/game/plugin/ui.ts', 'src/shards/sunscar-dunes/runtime/rowsHeadless.ts', 'src/shards/sunscar-dunes/runtime/standalone.ts', 'src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts', 'src/shards/sunscar-dunes/runtime/shardfile/markedBossRow.ts');
+  paths.push('src/shards/sunscar-dunes/runtime/looks/stormShell.ts', 'src/shards/sunscar-dunes/runtime/quest/pivotNpc.ts', 'src/game/plugin/ui.ts', 'src/shards/sunscar-dunes/runtime/rowsHeadless.ts', 'src/shards/sunscar-dunes/runtime/standalone.ts', 'src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts');
   paths.push('src/shards/sunscar-dunes/runtime/items/lashHold.ts', 'src/shards/sunscar-dunes/runtime/items/lashHost.ts', 'src/shards/sunscar-dunes/runtime/items/lashView.ts', 'src/shards/sunscar-dunes/runtime/items/lashWeapon.ts');
   paths.push('src/shards/sunscar-dunes/runtime/items/lash.ts', 'src/engine/combat/contactWeapon.ts');
   // DS1.5: the Node host, real creature factory and actual scout/prompt constructors define the producer.
@@ -20,7 +20,7 @@ export function signalPhysicsInputs(root) {
     'src/engine/quest/view.ts', 'src/engine/quest/view/ui.ts', 'src/game/plugin/quests.ts',
     'src/engine/models/colliders.ts', 'src/engine/models/place.ts', 'src/engine/world/geometryBounds.ts', 'src/engine/world/registry.ts', 'pnpm-lock.yaml']) paths.push(file);
   // SF82: the canonical native boss patterns are part of the actual producer's defining closure.
-  paths.push('src/format/weaponProfiles.ts', 'src/format/bossProfiles.ts', 'src/game/plugin/bossPhase.ts', 'src/game/shardfile/phasedBossRoaming.ts');
+  paths.push('src/format/weaponProfiles.ts', 'src/format/bossProfiles.ts', 'src/game/shardfile/bossRow.ts', 'src/game/plugin/director.ts', 'src/game/plugin/bossPhase.ts', 'src/game/shardfile/phasedBossRoaming.ts');
   const walk = (dir, accept) => {
     for (const entry of readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = join(dir, entry.name);

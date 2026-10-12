@@ -1,3 +1,4 @@
+import { DirectorStagesSchema } from './directorStages';
 import * as v from 'valibot';
 import { EliteScriptSchema } from './eliteScripts';
 
@@ -651,3 +652,33 @@ export const MarkedBossPresentationSchema = v.strictObject({
 export type MarkedBossPresentation = v.InferOutput<typeof MarkedBossPresentationSchema>;
 /** Compile an authored marked boss presentation row; an unknown field refuses. */
 export function parseMarkedBossPresentation(input: unknown): MarkedBossPresentation { return v.parse(MarkedBossPresentationSchema, input); }
+
+const ownerDefinition = v.strictObject({ id: key, name: key, title: key, retryTitle: key,
+  intro: v.pipe(finite, v.minValue(0), v.maxValue(60)), introShort: v.pipe(finite, v.minValue(0), v.maxValue(60)),
+  phases: v.pipe(v.array(v.strictObject({ at: fraction, caption: key, name: key })), v.minLength(1), v.maxLength(16)),
+  reward: v.strictObject({}) });
+const ownerSaved = v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: count });
+/** Native encounter binding, with no callbacks, body copies or second director clock.
+ * The owned actor/keeper is lent separately by the host. Held bodies pay at victory;
+ * spawned bodies may retain a flag-backed claim, exactly as their existing owner did. */
+export const BossOwnerRowSchema = v.pipe(v.strictObject({ step: key, actor: key,
+  profile: v.variant('pattern', [SpawnedBossProfileSchema, HeldBossProfileSchema]),
+  definition: ownerDefinition, stages: DirectorStagesSchema,
+  armed: v.boolean(),
+  record: v.exactOptional(v.strictObject({ defeated: key, paid: key })),
+  saved: v.exactOptional(ownerSaved),
+  victory: v.strictObject({ flag: key, fact: key, once: v.boolean() }),
+  reward: v.strictObject({ when: v.picklist(['claim', 'victory']), amount: count }),
+  placement: v.exactOptional(v.strictObject({ rewardPoint: v.strictObject({ x: finite, y: finite, z: finite }),
+    respawn: v.strictObject({ x: finite, z: finite, yaw: finite }) })) }),
+  v.check(row => row.actor === row.definition.id
+    && row.definition.phases.length === row.profile.fight.hpShares.length
+    && row.definition.phases.every((phase, i) => phase.at === row.profile.fight.hpShares[i])
+    && (row.profile.pattern === 'spawned') === (row.placement !== undefined)
+    && (row.reward.when !== 'claim' || row.record !== undefined)
+    && !(row.record !== undefined && row.saved !== undefined)
+    && row.stages.script === null, 'Owned boss identity, placement, phases and reward binding'));
+/** Admitted JSON binding for a real spawned or held native encounter owner. */
+export type BossOwnerRow = v.InferOutput<typeof BossOwnerRowSchema>;
+/** Validate the data contract before lending native bodies or installing callbacks. */
+export function parseBossOwnerRow(input: unknown): BossOwnerRow { return v.parse(BossOwnerRowSchema, input); }
