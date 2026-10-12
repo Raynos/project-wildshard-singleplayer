@@ -5,7 +5,7 @@ import { VolumetricsEffect } from '../src/engine/core/Volumetrics';
 import { RegionCinematic } from '../src/engine/render/regionCinematic';
 import { GradeEffect, GradeLookEffect } from '../src/engine/core/Grade';
 import { FRAME_BAND, HIGHWAY_GRADE, ROAD_SKY, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, frameTime } from '../src/game/grid/frameModel';
-import { FrameGradeEffect, GridFrame, chainKnobs, neutralLut, opacityFade, passEffects, swappableLut } from '../src/game/grid/frame';
+import { FrameGradeEffect, GridFrame, HORIZON_LIFT, chainKnobs, neutralLut, opacityFade, passEffects, swappableLut } from '../src/game/grid/frame';
 import { ROAD_SKY_ORDER } from '../src/game/grid/roadSky';
 import { frameLookOf, lookChainKind, regionChain, regionGrade } from '../src/game/grid/frameLook';
 import { ENGINE_CHAIN_TUNING } from '../src/engine/render/look';
@@ -181,6 +181,25 @@ describe('grid frame grade pieces', () => {
     at(half + 27.5); expect(owned.at(-1)).toBe(0);
     releaseSky(); release(); at(pitch); expect(camera.fov).toBe(86.8); expect(frame.state().horizon).toBe(0);
     unhook(); scope.dispose();
+  });
+
+  it('G343: an eye lifted far above the player hands its cell\'s horizon back to the grid; at the player it is unchanged', () => {
+    const scene = new Scene(), camera = new PerspectiveCamera(72), scope = new Scope('g343-lift'), home = cells[4];
+    if (home === undefined) throw new Error('no home cell');
+    let lift = 0;
+    const frame = new GridFrame({ host: { scene, camera, composer: () => { throw new Error('not built'); }, post: () => null, lift: () => lift }, scope, cells, home, half, feet: () => ({ x: pitch, z: 0 }) });
+    const owned: number[] = [];
+    const unhook = frame.horizon((w) => { owned.push(w); });
+    const port = frameLookOf(scene), sky = port?.sky;
+    if (port === null || sky === undefined) throw new Error('the frame binds its port to its scene');
+    const release = port.contribute('1,0', { fog: null });
+    const releaseSky = sky('1,0', { weight: () => undefined, state: () => ({ weight: 1, drawn: true, bytes: 0, reserved: 0 }) });
+    const share = (metres: number): number | undefined => { lift = metres; scene.onBeforeRender(legacyDouble({}), scene, camera, legacyDouble({}), legacyDouble({}), legacyDouble({})); frame.frame(); return owned.at(-1); };
+    expect(share(0)).toBe(1); expect(share(HORIZON_LIFT.near)).toBe(1);   // a play camera: the cell's sky owns it, as before
+    expect(share((HORIZON_LIFT.near + HORIZON_LIFT.far) / 2)).toBeCloseTo(0.5, 5);
+    expect(share(HORIZON_LIFT.far)).toBe(0); expect(share(260)).toBe(0);  // the hero camera over the cell: the grid shows
+    expect(share(-5)).toBe(1);
+    releaseSky(); release(); unhook(); scope.dispose();
   });
 
   it("E452: a level's own grade as the frame's uniform grade (Pine: richer colour, more contrast, warm)", () => {

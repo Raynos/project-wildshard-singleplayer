@@ -109,6 +109,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     frame: { scene: game.rootScene, camera: game.camera, composer: () => game.composer, post: () => game.post, sunDir: () => game.sky.sunDir, cinematic: () => game.regionCinematic(), slices: () => game.depthSlices,
       // G321: the frame blends the camera's field of view by owner; the shadow cascades follow it
       refit: () => { game.sky.csm.updateFrustums(); },
+      // G343: an eye lifted far above the player (a free camera) hands the horizon back to the grid
+      lift: () => game.camera.position.y - player.position.y,
       // G242: the road's dome and key light are a base layer on the page's sky rig (game.sky throws until it is built)
       sky: () => { const rig = game.sky; return { layerBackdrop: (o) => rig.layerBackdrop(o), warm: (object) => {
         // into the composer's input buffer, as the dome is drawn: the canvas target would be a second program variant

@@ -69,6 +69,22 @@ export interface GridFrameHost {
   readonly sky?: () => RoadSkyPage | null;
   /** G321: the camera's projection changed (the frame's lens blend): refit what derives from it (the shadow cascades) */
   readonly refit?: () => void;
+  /** G343: how far the eye stands above the player's feet, metres (absent: 0, the eye at the player) */
+  readonly lift?: () => number;
+}
+
+/**
+ * G343: a cell's own sky owns the horizon around the player (G321): what stands outside the cell dithers away past the
+ * near road, as on SHARD SELECT. An eye lifted far above the player (Explore's free camera, the hero camera over a cell)
+ * is no longer standing in that horizon: between `near` and `far` metres above the feet the ownership hands back to the
+ * grid, so the road and the neighbours draw as from the road. A play camera stays within a few metres of the feet (a
+ * hover is the feet's own height), so what a player sees never changes.
+ */
+export const HORIZON_LIFT = { near: 40, far: 80 } as const;
+/** The share of the horizon a cell's sky keeps with the eye `lift` metres above the feet (1 at the player, 0 up high). */
+export function horizonLiftShare(lift: number): number {
+  const t = Math.min(1, Math.max(0, (lift - HORIZON_LIFT.near) / (HORIZON_LIFT.far - HORIZON_LIFT.near)));
+  return 1 - t * t * (3 - 2 * t);
 }
 /** The engine chain's grade effects the frame fades, and on a neutral shell writes a region's grade into (G232). */
 export interface FramePostEffects {
@@ -374,6 +390,8 @@ export class GridFrame {
   /** G321: what fades by how much the regions' own skies own the frame (the road's void floor), and that share as told */
   private readonly horizons = new Set<(owned: number, cell: FrameCell | null) => void>();
   private skyShare = 0;
+  /** the eye's height above the feet when the scene last drew (G343) */
+  private drawnLift = 0;
   /** G321 part 4: the cell whose own sky owns most of the frame (null on the road) */
   private skyCell: FrameCell | null = null;
   private readonly restore: (() => void)[] = [];
@@ -549,7 +567,7 @@ export class GridFrame {
       const w = this.weights.cells.get(instance) ?? 0; owned += w;
       if (w > top) { top = w; cell = this.cells.find((c) => c.instance === instance) ?? null; }
     }
-    this.skyShare = Math.min(1, owned); this.skyCell = cell;
+    this.skyShare = Math.min(1, owned) * horizonLiftShare(this.drawnLift); this.skyCell = cell;
     for (const fade of this.horizons) fade(this.skyShare, this.skyCell);
     if (!this.installed) this.install();
     this.bypass?.apply(this.carrier !== null && this.wholes.has(this.carrier.instance) ? this.chainWeight : 0);
@@ -727,6 +745,8 @@ export class GridFrame {
 
   /** Before the scene draws: the scene fog becomes the owner's air, every far proxy hazes toward it. */
   private beforeScene(): void {
+    // G343: the eye as drawn (a free camera is placed after the frame's late phase): the next frame's horizon reads it
+    this.drawnLift = this.host.lift?.() ?? 0;
     const live = this.host.scene.fog?.color ?? null;
     // the backdrop rewrites the fog each frame; if it did not, keep the home value it wrote last
     if (live !== null && !live.equals(this.written)) this.homeFog.copy(live);
