@@ -50,3 +50,7 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-12 | gate `221a20c3a`: far-reach physics-bake freshness | `7b8bdcff4`, then `accf9c96c` + a `scripts/bake/worldHost.mjs` change (physics inputs changed without a recapture) | `00fb50071` (official Node recapture on f508e4a83; `da2017283` was overtaken) | sp-o12 |
 | 2026-10-12 | gate `221a20c3a`: six author-closure fixtures miss `src/format/nearPlaceholder.ts` | `69c4798aa` | pending (sp-x6, all seven job unions) | sp-x6 |
 | 2026-10-12 | gate `221a20c3a`: 18 frozen Pine named-place lookups; Pine manifest closure 44 > 43 | `cf0cf8bb1` | pending (sp-x6, scanner alias/list resolution; no frozen edits, no budget raise) | sp-x6 |
+| 2026-10-12 | gate `221a20c3a`: oxlint prefer-template in capture-main-menu-hero | `64c23b133` | `9805aead8` | sp-x7 |
+| 2026-10-12 | push queue stuck on obsolete prefixes (source-fix repairs earned no retry) | `e38a138a1` / `e50a44ceb` | `b0e5804e3` | sp-x7 |
+| 2026-10-12 | gate `221a20c3a`: game-plugin-exports refuses `quest/coinReward`, `shardfile/bossView`, `shardfile/bakedSpecs` | `ff158375e`, `33db1ffb2`, `0ee63c170` | pending (move under `game/plugin/`) | sp-o16 |
+| 2026-10-12 | Sky canonical run drift: Roc fight ~5.3k ticks longer (21134 → 26469), undetected (ledger asserts only an eventual reward) | bisecting | pending | sp-x1 |
