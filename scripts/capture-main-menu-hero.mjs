@@ -182,8 +182,7 @@ async function captureAerial(base) {
   const report = { schema: 'engine-hero-capture/1', version: await (await fetch(new URL('version.json', base))).json(),
     round, device: landscape ? `Desktop Chrome (${sessions.map(session => session.key.replace('x', '×')).join(', ')}, DSF 1)` : 'iPhone 16 Pro', developer: true,
     renderScale: landscape ? 1 : 2, tier: landscape ? 'desktop' : 'phone', canvasOnly: true, muted: true,
-    clock: 'live', camera: 'Existing freeCamera flag; fixed detached camera in late phase; player remains on the road'
-      + (square ? '; per-pose capture-time vertical FOV (fovDegrees) on that camera only, CAMERA_FOV unchanged' : ''),
+    clock: 'live', camera: `Existing freeCamera flag; fixed detached camera in late phase; player remains on the road${square ? '; per-pose capture-time vertical FOV (fovDegrees) on that camera only, CAMERA_FOV unchanged' : ''}`,
     noViewmodel: true, junction: plan.junction, surrounding: plan.surrounding,
     roadLighting: 'Shipping ROAD_SKY is fixed low dawn; requested Debug time picks do not rewrite that look', shots: [] };
   const save = () => writeFileSync(join(out, 'capture.json'), `${JSON.stringify(report, null, 2)}\n`);
