@@ -1,0 +1,3203 @@
+{
+  "schema": "engine-hero-capture/1",
+  "version": {
+    "build": "c44c503-mv5t09zn",
+    "time": "2026-10-12T22:08:39.895Z"
+  },
+  "round": "near",
+  "device": "Desktop Chrome (A-iphone, A-desktop, B-iphone, B-desktop, DSF 1)",
+  "developer": true,
+  "renderScale": 1,
+  "tier": "desktop",
+  "canvasOnly": true,
+  "muted": true,
+  "clock": "live",
+  "camera": "Existing freeCamera flag; fixed detached camera in late phase; player remains on the road",
+  "noViewmodel": true,
+  "junction": "cross.0.0",
+  "surrounding": [
+    "pine-hollow",
+    "template-2",
+    "driftwood-isle",
+    "nalati-grasslands"
+  ],
+  "roadLighting": "Shipping ROAD_SKY is fixed low dawn; requested Debug time picks do not rewrite that look",
+  "shots": [
+    {
+      "id": "road-0",
+      "name": "Road view 0",
+      "eye": {
+        "x": 307.5,
+        "y": 22,
+        "z": 307.5
+      },
+      "target": {
+        "x": 37.5,
+        "y": 0,
+        "z": 37.5
+      },
+      "session": "A-iphone",
+      "requestedPose": {
+        "id": "road-0",
+        "name": "Road view 0",
+        "eye": {
+          "x": 307.5,
+          "y": 22,
+          "z": 307.5
+        },
+        "target": {
+          "x": 37.5,
+          "y": 0,
+          "z": 37.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          307.5,
+          22,
+          307.5
+        ],
+        "direction": [
+          -0.7059360337441922,
+          -0.057520713860637895,
+          -0.7059360337441922
+        ],
+        "playerWorld": {
+          "x": 277.4998890165512,
+          "y": 0.019928881014493527,
+          "z": 277.50001748732547
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 2,
+        "frameCount": 499,
+        "fov": 72,
+        "aspect": 0.5903083700440529,
+        "dayClock": {
+          "value": 12.555986666666143,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "A-road-0-iphone.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-1",
+      "name": "Road view 1",
+      "eye": {
+        "x": 247.5,
+        "y": 22,
+        "z": 307.5
+      },
+      "target": {
+        "x": 517.5,
+        "y": 0,
+        "z": 37.5
+      },
+      "session": "A-iphone",
+      "requestedPose": {
+        "id": "road-1",
+        "name": "Road view 1",
+        "eye": {
+          "x": 247.5,
+          "y": 22,
+          "z": 307.5
+        },
+        "target": {
+          "x": 517.5,
+          "y": 0,
+          "z": 37.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          247.5,
+          22,
+          307.5
+        ],
+        "direction": [
+          0.7059360337441922,
+          -0.057520713860637895,
+          -0.7059360337441922
+        ],
+        "playerWorld": {
+          "x": 277.49988538181003,
+          "y": 0.02006716603136738,
+          "z": 277.50001945656953
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 2,
+        "frameCount": 610,
+        "fov": 72,
+        "aspect": 0.5903083700440529,
+        "dayClock": {
+          "value": 12.680429999999404,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "A-road-1-iphone.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-2",
+      "name": "Road view 2",
+      "eye": {
+        "x": 307.5,
+        "y": 22,
+        "z": 247.5
+      },
+      "target": {
+        "x": 37.5,
+        "y": 0,
+        "z": 517.5
+      },
+      "session": "A-iphone",
+      "requestedPose": {
+        "id": "road-2",
+        "name": "Road view 2",
+        "eye": {
+          "x": 307.5,
+          "y": 22,
+          "z": 247.5
+        },
+        "target": {
+          "x": 37.5,
+          "y": 0,
+          "z": 517.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          307.5,
+          22,
+          247.5
+        ],
+        "direction": [
+          -0.7059360337441923,
+          -0.05752071386063791,
+          0.7059360337441921
+        ],
+        "playerWorld": {
+          "x": 277.4998813896754,
+          "y": 0.01992886917651049,
+          "z": 277.5000199966661
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 2,
+        "frameCount": 722,
+        "fov": 72,
+        "aspect": 0.5903083700440529,
+        "dayClock": {
+          "value": 12.80598999999932,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "A-road-2-iphone.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-3",
+      "name": "Road view 3",
+      "eye": {
+        "x": 247.5,
+        "y": 22,
+        "z": 247.5
+      },
+      "target": {
+        "x": 517.5,
+        "y": 0,
+        "z": 517.5
+      },
+      "session": "A-iphone",
+      "requestedPose": {
+        "id": "road-3",
+        "name": "Road view 3",
+        "eye": {
+          "x": 247.5,
+          "y": 22,
+          "z": 247.5
+        },
+        "target": {
+          "x": 517.5,
+          "y": 0,
+          "z": 517.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          247.5,
+          22,
+          247.5
+        ],
+        "direction": [
+          0.7059360337441923,
+          -0.05752071386063791,
+          0.7059360337441921
+        ],
+        "playerWorld": {
+          "x": 277.4998776076605,
+          "y": 0.020028871313115815,
+          "z": 277.50002137543714
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 2,
+        "frameCount": 832,
+        "fov": 72,
+        "aspect": 0.5903083700440529,
+        "dayClock": {
+          "value": 12.929323333332547,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "A-road-3-iphone.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-0",
+      "name": "Road view 0",
+      "eye": {
+        "x": 307.5,
+        "y": 22,
+        "z": 307.5
+      },
+      "target": {
+        "x": 37.5,
+        "y": 0,
+        "z": 37.5
+      },
+      "session": "A-desktop",
+      "requestedPose": {
+        "id": "road-0",
+        "name": "Road view 0",
+        "eye": {
+          "x": 307.5,
+          "y": 22,
+          "z": 307.5
+        },
+        "target": {
+          "x": 37.5,
+          "y": 0,
+          "z": 37.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          307.5,
+          22,
+          307.5
+        ],
+        "direction": [
+          -0.7059360337441922,
+          -0.057520713860637895,
+          -0.7059360337441922
+        ],
+        "playerWorld": {
+          "x": 277.49988909085744,
+          "y": 0.020028881011967314,
+          "z": 277.5000171901005
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 1,
+        "frameCount": 993,
+        "fov": 72,
+        "aspect": 1.7777777777777777,
+        "dayClock": {
+          "value": 12.558009999999925,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "A-road-0-desktop.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-1",
+      "name": "Road view 1",
+      "eye": {
+        "x": 247.5,
+        "y": 22,
+        "z": 307.5
+      },
+      "target": {
+        "x": 517.5,
+        "y": 0,
+        "z": 37.5
+      },
+      "session": "A-desktop",
+      "requestedPose": {
+        "id": "road-1",
+        "name": "Road view 1",
+        "eye": {
+          "x": 247.5,
+          "y": 22,
+          "z": 307.5
+        },
+        "target": {
+          "x": 517.5,
+          "y": 0,
+          "z": 37.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          247.5,
+          22,
+          307.5
+        ],
+        "direction": [
+          0.7059360337441922,
+          -0.057520713860637895,
+          -0.7059360337441922
+        ],
+        "playerWorld": {
+          "x": 277.4998852774392,
+          "y": 0.019967142590758158,
+          "z": 277.50001962462886
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 1,
+        "frameCount": 1218,
+        "fov": 72,
+        "aspect": 1.7777777777777777,
+        "dayClock": {
+          "value": 12.683006666666607,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "A-road-1-desktop.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-2",
+      "name": "Road view 2",
+      "eye": {
+        "x": 307.5,
+        "y": 22,
+        "z": 247.5
+      },
+      "target": {
+        "x": 37.5,
+        "y": 0,
+        "z": 517.5
+      },
+      "session": "A-desktop",
+      "requestedPose": {
+        "id": "road-2",
+        "name": "Road view 2",
+        "eye": {
+          "x": 307.5,
+          "y": 22,
+          "z": 247.5
+        },
+        "target": {
+          "x": 37.5,
+          "y": 0,
+          "z": 517.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          307.5,
+          22,
+          247.5
+        ],
+        "direction": [
+          -0.7059360337441923,
+          -0.05752071386063791,
+          0.7059360337441921
+        ],
+        "playerWorld": {
+          "x": 277.49988139087174,
+          "y": 0.0199671520422271,
+          "z": 277.50002117144874
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 1,
+        "frameCount": 1442,
+        "fov": 72,
+        "aspect": 1.7777777777777777,
+        "dayClock": {
+          "value": 12.807443333333268,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "A-road-2-desktop.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-3",
+      "name": "Road view 3",
+      "eye": {
+        "x": 247.5,
+        "y": 22,
+        "z": 247.5
+      },
+      "target": {
+        "x": 517.5,
+        "y": 0,
+        "z": 517.5
+      },
+      "session": "A-desktop",
+      "requestedPose": {
+        "id": "road-3",
+        "name": "Road view 3",
+        "eye": {
+          "x": 247.5,
+          "y": 22,
+          "z": 247.5
+        },
+        "target": {
+          "x": 517.5,
+          "y": 0,
+          "z": 517.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          247.5,
+          22,
+          247.5
+        ],
+        "direction": [
+          0.7059360337441923,
+          -0.05752071386063791,
+          0.7059360337441921
+        ],
+        "playerWorld": {
+          "x": 277.49987765157823,
+          "y": 0.020067161498445785,
+          "z": 277.5000221291728
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 1,
+        "frameCount": 1667,
+        "fov": 72,
+        "aspect": 1.7777777777777777,
+        "dayClock": {
+          "value": 12.932399999999888,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "A-road-3-desktop.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-0",
+      "name": "Road view 0",
+      "eye": {
+        "x": 307.5,
+        "y": 22,
+        "z": 307.5
+      },
+      "target": {
+        "x": 37.5,
+        "y": 0,
+        "z": 37.5
+      },
+      "session": "B-iphone",
+      "requestedPose": {
+        "id": "road-0",
+        "name": "Road view 0",
+        "eye": {
+          "x": 307.5,
+          "y": 22,
+          "z": 307.5
+        },
+        "target": {
+          "x": 37.5,
+          "y": 0,
+          "z": 37.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          307.5,
+          22,
+          307.5
+        ],
+        "direction": [
+          -0.7059360337441922,
+          -0.057520713860637895,
+          -0.7059360337441922
+        ],
+        "playerWorld": {
+          "x": 277.49988909085744,
+          "y": 0.019967163887486095,
+          "z": 277.5000183696685
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 2,
+        "frameCount": 500,
+        "fov": 72,
+        "aspect": 0.5903083700440529,
+        "dayClock": {
+          "value": 12.556969999999879,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "B-road-0-iphone.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-1",
+      "name": "Road view 1",
+      "eye": {
+        "x": 247.5,
+        "y": 22,
+        "z": 307.5
+      },
+      "target": {
+        "x": 517.5,
+        "y": 0,
+        "z": 37.5
+      },
+      "session": "B-iphone",
+      "requestedPose": {
+        "id": "road-1",
+        "name": "Road view 1",
+        "eye": {
+          "x": 247.5,
+          "y": 22,
+          "z": 307.5
+        },
+        "target": {
+          "x": 517.5,
+          "y": 0,
+          "z": 37.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          247.5,
+          22,
+          307.5
+        ],
+        "direction": [
+          0.7059360337441922,
+          -0.057520713860637895,
+          -0.7059360337441922
+        ],
+        "playerWorld": {
+          "x": 277.4998852774392,
+          "y": 0.02002880106374505,
+          "z": 277.5000184446328
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 2,
+        "frameCount": 611,
+        "fov": 72,
+        "aspect": 0.5903083700440529,
+        "dayClock": {
+          "value": 12.680916666666548,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "B-road-1-iphone.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-2",
+      "name": "Road view 2",
+      "eye": {
+        "x": 307.5,
+        "y": 22,
+        "z": 247.5
+      },
+      "target": {
+        "x": 37.5,
+        "y": 0,
+        "z": 517.5
+      },
+      "session": "B-iphone",
+      "requestedPose": {
+        "id": "road-2",
+        "name": "Road view 2",
+        "eye": {
+          "x": 307.5,
+          "y": 22,
+          "z": 247.5
+        },
+        "target": {
+          "x": 37.5,
+          "y": 0,
+          "z": 517.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          307.5,
+          22,
+          247.5
+        ],
+        "direction": [
+          -0.7059360337441923,
+          -0.05752071386063791,
+          0.7059360337441921
+        ],
+        "playerWorld": {
+          "x": 277.4998813896754,
+          "y": 0.01992886917651049,
+          "z": 277.5000199966661
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 2,
+        "frameCount": 722,
+        "fov": 72,
+        "aspect": 0.5903083700440529,
+        "dayClock": {
+          "value": 12.806456666666506,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "B-road-2-iphone.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-3",
+      "name": "Road view 3",
+      "eye": {
+        "x": 247.5,
+        "y": 22,
+        "z": 247.5
+      },
+      "target": {
+        "x": 517.5,
+        "y": 0,
+        "z": 517.5
+      },
+      "session": "B-iphone",
+      "requestedPose": {
+        "id": "road-3",
+        "name": "Road view 3",
+        "eye": {
+          "x": 247.5,
+          "y": 22,
+          "z": 247.5
+        },
+        "target": {
+          "x": 517.5,
+          "y": 0,
+          "z": 517.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          247.5,
+          22,
+          247.5
+        ],
+        "direction": [
+          0.7059360337441923,
+          -0.05752071386063791,
+          0.7059360337441921
+        ],
+        "playerWorld": {
+          "x": 277.49987768182433,
+          "y": 0.020067154186108382,
+          "z": 277.50002225834976
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 2,
+        "frameCount": 833,
+        "fov": 72,
+        "aspect": 0.5903083700440529,
+        "dayClock": {
+          "value": 12.931463333333198,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "B-road-3-iphone.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-0",
+      "name": "Road view 0",
+      "eye": {
+        "x": 307.5,
+        "y": 22,
+        "z": 307.5
+      },
+      "target": {
+        "x": 37.5,
+        "y": 0,
+        "z": 37.5
+      },
+      "session": "B-desktop",
+      "requestedPose": {
+        "id": "road-0",
+        "name": "Road view 0",
+        "eye": {
+          "x": 307.5,
+          "y": 22,
+          "z": 307.5
+        },
+        "target": {
+          "x": 37.5,
+          "y": 0,
+          "z": 37.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          307.5,
+          22,
+          307.5
+        ],
+        "direction": [
+          -0.7059360337441922,
+          -0.057520713860637895,
+          -0.7059360337441922
+        ],
+        "playerWorld": {
+          "x": 277.49988909085744,
+          "y": 0.019967163887486095,
+          "z": 277.5000183696685
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 1,
+        "frameCount": 993,
+        "fov": 72,
+        "aspect": 1.7777777777777777,
+        "dayClock": {
+          "value": 12.557919999999925,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "B-road-0-desktop.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-1",
+      "name": "Road view 1",
+      "eye": {
+        "x": 247.5,
+        "y": 22,
+        "z": 307.5
+      },
+      "target": {
+        "x": 517.5,
+        "y": 0,
+        "z": 37.5
+      },
+      "session": "B-desktop",
+      "requestedPose": {
+        "id": "road-1",
+        "name": "Road view 1",
+        "eye": {
+          "x": 247.5,
+          "y": 22,
+          "z": 307.5
+        },
+        "target": {
+          "x": 517.5,
+          "y": 0,
+          "z": 37.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          247.5,
+          22,
+          307.5
+        ],
+        "direction": [
+          0.7059360337441922,
+          -0.057520713860637895,
+          -0.7059360337441922
+        ],
+        "playerWorld": {
+          "x": 277.4998852774392,
+          "y": 0.019967142590758158,
+          "z": 277.50001962462886
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 1,
+        "frameCount": 1217,
+        "fov": 72,
+        "aspect": 1.7777777777777777,
+        "dayClock": {
+          "value": 12.682379999999888,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "B-road-1-desktop.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-2",
+      "name": "Road view 2",
+      "eye": {
+        "x": 307.5,
+        "y": 22,
+        "z": 247.5
+      },
+      "target": {
+        "x": 37.5,
+        "y": 0,
+        "z": 517.5
+      },
+      "session": "B-desktop",
+      "requestedPose": {
+        "id": "road-2",
+        "name": "Road view 2",
+        "eye": {
+          "x": 307.5,
+          "y": 22,
+          "z": 247.5
+        },
+        "target": {
+          "x": 37.5,
+          "y": 0,
+          "z": 517.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          307.5,
+          22,
+          247.5
+        ],
+        "direction": [
+          -0.7059360337441923,
+          -0.05752071386063791,
+          0.7059360337441921
+        ],
+        "playerWorld": {
+          "x": 277.49988139087174,
+          "y": 0.0199671520422271,
+          "z": 277.50002117144874
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 1,
+        "frameCount": 1441,
+        "fov": 72,
+        "aspect": 1.7777777777777777,
+        "dayClock": {
+          "value": 12.806816666666528,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "B-road-2-desktop.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "road-3",
+      "name": "Road view 3",
+      "eye": {
+        "x": 247.5,
+        "y": 22,
+        "z": 247.5
+      },
+      "target": {
+        "x": 517.5,
+        "y": 0,
+        "z": 517.5
+      },
+      "session": "B-desktop",
+      "requestedPose": {
+        "id": "road-3",
+        "name": "Road view 3",
+        "eye": {
+          "x": 247.5,
+          "y": 22,
+          "z": 247.5
+        },
+        "target": {
+          "x": 517.5,
+          "y": 0,
+          "z": 517.5
+        }
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          247.5,
+          22,
+          247.5
+        ],
+        "direction": [
+          0.7059360337441923,
+          -0.05752071386063791,
+          0.7059360337441921
+        ],
+        "playerWorld": {
+          "x": 277.49987765157823,
+          "y": 0.020067161498445785,
+          "z": 277.5000221291728
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 1,
+        "frameCount": 1666,
+        "fov": 72,
+        "aspect": 1.7777777777777777,
+        "dayClock": {
+          "value": 12.931809999999864,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "B-road-3-desktop.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "SQ-c",
+      "name": "Square, higher and steeper",
+      "mode": "grid",
+      "eye": {
+        "x": 628.9320702497141,
+        "y": 336,
+        "z": 628.9320702497141
+      },
+      "target": {
+        "x": 277.5,
+        "y": 0,
+        "z": 277.5
+      },
+      "headingDegrees": 45,
+      "downDegrees": 34.060908816807846,
+      "placement": [
+        {
+          "instance": "pine-hollow",
+          "side": "left",
+          "depth": "near"
+        },
+        {
+          "instance": "template-2",
+          "side": "centre",
+          "depth": "near"
+        },
+        {
+          "instance": "driftwood-isle",
+          "side": "centre",
+          "depth": "far"
+        },
+        {
+          "instance": "nalati-grasslands",
+          "side": "right",
+          "depth": "near"
+        }
+      ],
+      "fovDegrees": 62,
+      "aspect": "square",
+      "session": "A-iphone",
+      "requestedPose": {
+        "id": "SQ-c",
+        "name": "Square, higher and steeper",
+        "mode": "grid",
+        "eye": {
+          "x": 628.9320702497141,
+          "y": 336,
+          "z": 628.9320702497141
+        },
+        "target": {
+          "x": 277.5,
+          "y": 0,
+          "z": 277.5
+        },
+        "headingDegrees": 45,
+        "downDegrees": 34.060908816807846,
+        "placement": [
+          {
+            "instance": "pine-hollow",
+            "side": "left",
+            "depth": "near"
+          },
+          {
+            "instance": "template-2",
+            "side": "centre",
+            "depth": "near"
+          },
+          {
+            "instance": "driftwood-isle",
+            "side": "centre",
+            "depth": "far"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "side": "right",
+            "depth": "near"
+          }
+        ],
+        "fovDegrees": 62,
+        "aspect": "square"
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          628.9320702497141,
+          336,
+          628.9320702497141
+        ],
+        "direction": [
+          -0.5857974148971675,
+          -0.560073903515948,
+          -0.5857974148971676
+        ],
+        "playerWorld": {
+          "x": 277.49987371989647,
+          "y": 0.019928880774386926,
+          "z": 277.5000229270432
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 2,
+        "frameCount": 943,
+        "fov": 62,
+        "aspect": 0.5903083700440529,
+        "dayClock": {
+          "value": 13.053769999999062,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "A-SQ-c-iphone.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "SQ-c",
+      "name": "Square, higher and steeper",
+      "mode": "grid",
+      "eye": {
+        "x": 628.9320702497141,
+        "y": 336,
+        "z": 628.9320702497141
+      },
+      "target": {
+        "x": 277.5,
+        "y": 0,
+        "z": 277.5
+      },
+      "headingDegrees": 45,
+      "downDegrees": 34.060908816807846,
+      "placement": [
+        {
+          "instance": "pine-hollow",
+          "side": "left",
+          "depth": "near"
+        },
+        {
+          "instance": "template-2",
+          "side": "centre",
+          "depth": "near"
+        },
+        {
+          "instance": "driftwood-isle",
+          "side": "centre",
+          "depth": "far"
+        },
+        {
+          "instance": "nalati-grasslands",
+          "side": "right",
+          "depth": "near"
+        }
+      ],
+      "fovDegrees": 62,
+      "aspect": "square",
+      "session": "A-desktop",
+      "requestedPose": {
+        "id": "SQ-c",
+        "name": "Square, higher and steeper",
+        "mode": "grid",
+        "eye": {
+          "x": 628.9320702497141,
+          "y": 336,
+          "z": 628.9320702497141
+        },
+        "target": {
+          "x": 277.5,
+          "y": 0,
+          "z": 277.5
+        },
+        "headingDegrees": 45,
+        "downDegrees": 34.060908816807846,
+        "placement": [
+          {
+            "instance": "pine-hollow",
+            "side": "left",
+            "depth": "near"
+          },
+          {
+            "instance": "template-2",
+            "side": "centre",
+            "depth": "near"
+          },
+          {
+            "instance": "driftwood-isle",
+            "side": "centre",
+            "depth": "far"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "side": "right",
+            "depth": "near"
+          }
+        ],
+        "fovDegrees": 62,
+        "aspect": "square"
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          628.9320702497141,
+          336,
+          628.9320702497141
+        ],
+        "direction": [
+          -0.5857974148971675,
+          -0.560073903515948,
+          -0.5857974148971676
+        ],
+        "playerWorld": {
+          "x": 277.4998737639957,
+          "y": 0.01996714020424406,
+          "z": 277.50002368079015
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 1,
+        "frameCount": 1890,
+        "fov": 62,
+        "aspect": 1.7777777777777777,
+        "dayClock": {
+          "value": 13.056326666666521,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "A-SQ-c-desktop.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "SQ-c",
+      "name": "Square, higher and steeper",
+      "mode": "grid",
+      "eye": {
+        "x": 628.9320702497141,
+        "y": 336,
+        "z": 628.9320702497141
+      },
+      "target": {
+        "x": 277.5,
+        "y": 0,
+        "z": 277.5
+      },
+      "headingDegrees": 45,
+      "downDegrees": 34.060908816807846,
+      "placement": [
+        {
+          "instance": "pine-hollow",
+          "side": "left",
+          "depth": "near"
+        },
+        {
+          "instance": "template-2",
+          "side": "centre",
+          "depth": "near"
+        },
+        {
+          "instance": "driftwood-isle",
+          "side": "centre",
+          "depth": "far"
+        },
+        {
+          "instance": "nalati-grasslands",
+          "side": "right",
+          "depth": "near"
+        }
+      ],
+      "fovDegrees": 62,
+      "aspect": "square",
+      "session": "B-iphone",
+      "requestedPose": {
+        "id": "SQ-c",
+        "name": "Square, higher and steeper",
+        "mode": "grid",
+        "eye": {
+          "x": 628.9320702497141,
+          "y": 336,
+          "z": 628.9320702497141
+        },
+        "target": {
+          "x": 277.5,
+          "y": 0,
+          "z": 277.5
+        },
+        "headingDegrees": 45,
+        "downDegrees": 34.060908816807846,
+        "placement": [
+          {
+            "instance": "pine-hollow",
+            "side": "left",
+            "depth": "near"
+          },
+          {
+            "instance": "template-2",
+            "side": "centre",
+            "depth": "near"
+          },
+          {
+            "instance": "driftwood-isle",
+            "side": "centre",
+            "depth": "far"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "side": "right",
+            "depth": "near"
+          }
+        ],
+        "fovDegrees": 62,
+        "aspect": "square"
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          628.9320702497141,
+          336,
+          628.9320702497141
+        ],
+        "direction": [
+          -0.5857974148971675,
+          -0.560073903515948,
+          -0.5857974148971676
+        ],
+        "playerWorld": {
+          "x": 277.4998737942027,
+          "y": 0.020028880771860713,
+          "z": 277.5000226298182
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 2,
+        "frameCount": 944,
+        "fov": 62,
+        "aspect": 0.5903083700440529,
+        "dayClock": {
+          "value": 13.054746666666482,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "B-SQ-c-iphone.jpg",
+      "consoleErrors": []
+    },
+    {
+      "id": "SQ-c",
+      "name": "Square, higher and steeper",
+      "mode": "grid",
+      "eye": {
+        "x": 628.9320702497141,
+        "y": 336,
+        "z": 628.9320702497141
+      },
+      "target": {
+        "x": 277.5,
+        "y": 0,
+        "z": 277.5
+      },
+      "headingDegrees": 45,
+      "downDegrees": 34.060908816807846,
+      "placement": [
+        {
+          "instance": "pine-hollow",
+          "side": "left",
+          "depth": "near"
+        },
+        {
+          "instance": "template-2",
+          "side": "centre",
+          "depth": "near"
+        },
+        {
+          "instance": "driftwood-isle",
+          "side": "centre",
+          "depth": "far"
+        },
+        {
+          "instance": "nalati-grasslands",
+          "side": "right",
+          "depth": "near"
+        }
+      ],
+      "fovDegrees": 62,
+      "aspect": "square",
+      "session": "B-desktop",
+      "requestedPose": {
+        "id": "SQ-c",
+        "name": "Square, higher and steeper",
+        "mode": "grid",
+        "eye": {
+          "x": 628.9320702497141,
+          "y": 336,
+          "z": 628.9320702497141
+        },
+        "target": {
+          "x": 277.5,
+          "y": 0,
+          "z": 277.5
+        },
+        "headingDegrees": 45,
+        "downDegrees": 34.060908816807846,
+        "placement": [
+          {
+            "instance": "pine-hollow",
+            "side": "left",
+            "depth": "near"
+          },
+          {
+            "instance": "template-2",
+            "side": "centre",
+            "depth": "near"
+          },
+          {
+            "instance": "driftwood-isle",
+            "side": "centre",
+            "depth": "far"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "side": "right",
+            "depth": "near"
+          }
+        ],
+        "fovDegrees": 62,
+        "aspect": "square"
+      },
+      "errors": [],
+      "complete": true,
+      "frame": {
+        "cameraWorld": [
+          628.9320702497141,
+          336,
+          628.9320702497141
+        ],
+        "direction": [
+          -0.5857974148971675,
+          -0.560073903515948,
+          -0.5857974148971676
+        ],
+        "playerWorld": {
+          "x": 277.4998738381598,
+          "y": 0.020067140201717848,
+          "z": 277.5000233841339
+        },
+        "freeCamera": true,
+        "viewmodelVisible": false,
+        "cells": [
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "frozen"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "blender-template-1",
+            "slug": "blender-template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pastel-plain-1",
+            "slug": "pastel-plain",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "ink-cel-valley-1",
+            "slug": "ink-cel-valley",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "renderScale": 1,
+        "frameCount": 1890,
+        "fov": 62,
+        "aspect": 1.7777777777777777,
+        "dayClock": {
+          "value": 13.056229999999822,
+          "paused": false,
+          "scale": 1,
+          "cycle": 720,
+          "held": null,
+          "last": "day"
+        },
+        "clock": "live"
+      },
+      "file": "B-SQ-c-desktop.jpg",
+      "consoleErrors": []
+    }
+  ]
+}
