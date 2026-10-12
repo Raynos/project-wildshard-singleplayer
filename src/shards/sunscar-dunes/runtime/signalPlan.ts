@@ -3,7 +3,7 @@ import signalStages from '../data/signalStages.json' with { type: 'json' };
 import { FLAG } from '../data/flags';
 import * as v from 'valibot';
 import { addBakedTerrainCollider } from '@wildshard/engine/physics/terrainTiles';
-import { addPiece } from '@wildshard/engine/physics/pieces';
+import { addBakedPieces } from '@wildshard/game/plugin/simulation';
 import { installSpeciesHomes } from '@wildshard/game/plugin/brain';
 import { installBossOwnerRow } from '@wildshard/game/shardfile/bossRow';
 import { installLashHost, type LashCommand, type LashTargetRow, type LashHost } from './items/lashHost';
@@ -17,18 +17,13 @@ import { SIGNAL_HEADLESS, SIGNAL_BOSS_OWNER } from '../data/headlessOwners';
 import baked from './physics.baked.json' with { type: 'json' };
 import { SignalLashInput } from './lashInput';
 
-const finite = v.pipe(v.number(), v.finite());
-const surface = v.picklist(['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand']);
-const Pieces = v.pipe(v.array(v.object({ id: v.string(), name: v.string(), file: v.string(), active: v.boolean(), surface,
-  owner: v.optional(v.string()), colliders: v.array(v.strictObject({ kind: v.literal('box'), x: finite, y: finite, z: finite,
-    hx: finite, hy: finite, hz: finite, yaw: v.exactOptional(finite), surface: v.exactOptional(surface) })) })), v.maxLength(1024));
 /** The held whip input's quiet continuation; the existing lash adapter owns unroll, cooldown and both contacts. */
 export const SIGNAL_LASH_INPUT = 'sunscar.whip-input';
 const manifest = { ...SIGNAL_HEADLESS, baked, homes: { ...SIGNAL_HEADLESS.homes, species: SIGNAL_SPECIES, strikes: SIGNAL_STRIKES, modules: SIGNAL_MODULES } };
 
 /** Compose Signal's existing native owners in-shard, preserving their install order and adding the shipping hold/release input. */
 export const prepareSignalRuntime: PrepareHeadlessRuntime = args => {
-  const prepared = prepareRowLevel(manifest, args), specs = bakedSpecs(baked), spots = bakedSpots(baked), pieces = v.parse(Pieces, baked.pieces);
+  const prepared = prepareRowLevel(manifest, args), specs = bakedSpecs(baked), spots = bakedSpots(baked);
   const { homes, boss, quest } = manifest;
   const brains = speciesBrains(homes.species, homes.strikes, homes.modules), holds = homes.holds;
   const terrain = args.shard.terrain === null ? undefined : args.assets.get(args.shard.terrain.collider);
@@ -44,13 +39,7 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = args => {
   return { ...prepared, install: (host, context) => {
     if (!context.restoring) {
       addBakedTerrainCollider(host.physics, terrain, host.scope);
-      for (let i = 0; i < 1024; i++) {
-        const piece = pieces[i];
-        if (piece === undefined) break;
-        if (!piece.active) continue;
-        addPiece(host.physics, { id: piece.id, name: piece.name, file: piece.file, surface: piece.surface,
-          colliders: piece.colliders, category: 'props', colliderOwner: piece.owner ?? piece.id });
-      }
+      addBakedPieces(host.physics, baked.pieces);
     }
     const keeper = installSpeciesHomes(host, { step: homes.step, seed: homes.seed, homes: homes.rows, boss: boss.row, specs,
       species: homes.species, brains, attackers: homes.attackers, think: homes.think, contactMove: kind => `${homes.contact.prefix}${kind}${homes.contact.suffix}`,

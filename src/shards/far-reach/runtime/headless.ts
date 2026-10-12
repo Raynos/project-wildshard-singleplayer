@@ -1,17 +1,14 @@
-import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimePreparation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIM_API_VERSION, createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { addPiece } from '@wildshard/engine/physics/pieces';
 import { bakedSpecs } from '@wildshard/game/plugin/brain';
 import { floorBelow } from '@wildshard/engine/physics/query';
-import type { Material } from '@wildshard/engine/physics/surface';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { installDeclaredPropColliders } from '@wildshard/engine/physics/declaredProps';
 import { propColliderDescriptors } from '@wildshard/game/shardfile/props';
 import { socketLiftEntries } from '@wildshard/format/socketLiftAssets';
-import { proveSocketLift } from '@wildshard/game/plugin/simulation';
+import { addBakedPieces, proveSocketLift } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN } from '../data/layout';
 import { DRIFT_RAY_VARIANTS, SKY_GOAT_VARIANTS, STORM_ROC_VARIANTS, GALE_WISP_VARIANTS } from '../data/variants';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
@@ -24,15 +21,6 @@ import { installSkyQuest, skyWinchPermission } from './quest';
 import { SKY_MOVER_BINDING } from '../data/moverBindings';
 import { UpdraftDriver, installHeadlessMovers, verifiedMoverModules, type HeadlessMovers } from '@wildshard/game/plugin/mover';
 import baked from './physics.baked.json' with { type: 'json' };
-
-const finite = v.pipe(v.number(), v.finite());
-const Quat = v.strictObject({ x: finite, y: finite, z: finite, w: finite });
-const Placed = { x: finite, y: finite, z: finite, yaw: v.optional(finite), rot: v.optional(Quat), surface: v.optional(v.string()) };
-/** One baked native collider piece (scripts/bake-sky-physics.mjs): boxes and convex hulls, as the world registers them. */
-const BakedPiece = v.strictObject({ id: v.string(), name: v.string(), category: v.picklist(['buildings', 'nature', 'props', 'ground']), file: v.string(),
-  active: v.boolean(), mode: v.optional(v.literal('board')), surface: v.string(), colliders: v.array(v.union([
-    v.strictObject({ kind: v.literal('box'), ...Placed, hx: finite, hy: finite, hz: finite }),
-    v.strictObject({ kind: v.literal('hull'), ...Placed, points: v.array(finite) })])) });
 
 /** The baked native specs by kind (generators/bake-sky-physics.mjs); every body of a kind shares one recipe. */
 export const skySpecs = (): ReadonlyMap<string, AnimalSimSpec> => bakedSpecs(baked.actors);
@@ -78,7 +66,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
   // the islet and bridge modules, admitted in shard.config.ts `files`, hash-checked once here (install is synchronous)
   const moverRows = shard.movers.filter(row => !row.id.startsWith(SKY_MOVER_BINDING.staticPrefix));
   const modules = await verifiedMoverModules(assets, moverRows);
-  const specs = skySpecs(), ranges = skyScaleRanges(), pieces = baked.pieces.map(piece => v.parse(BakedPiece, piece));
+  const specs = skySpecs(), ranges = skyScaleRanges();
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: 500, height: SKY_ANALYTIC_FLOOR },
     // the shipping spawn (manifest `spawn`, layout SPAWN) standing on Sunrest's deck, not the shardfile's grid datum
     player: { at: { x: SPAWN.x, y: DECK, z: SPAWN.z }, yaw: SPAWN.yaw, speed: Math.min(5, shard.authorCaps.speed) },
@@ -86,19 +74,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
   // every piece the browser collides with on foot, plus the board-only ones (the hover decks and the updraft ramp, baked
   // `mode: 'board'`), returned so a fresh install registers them with the host's board mode (SimHost.boardColliders)
-  const colliders = (host: SimHost): { readonly handle: number }[] => {
-    const board: { readonly handle: number }[] = [];
-    pieces.forEach(piece => {
-      if (!piece.active && piece.mode !== 'board') return;
-      const added = addPiece(host.physics, { id: piece.id, name: piece.name, category: piece.category, file: piece.file, surface: surface(piece.surface), colliderOwner: piece.id,
-        colliders: piece.colliders.map(c => {
-          const placed = { x: c.x, y: c.y, z: c.z, ...(c.yaw === undefined ? {} : { yaw: c.yaw }), ...(c.rot === undefined ? {} : { rot: c.rot }), ...(c.surface === undefined ? {} : { surface: surface(c.surface) }) };
-          return c.kind === 'box' ? { kind: 'box' as const, ...placed, hx: c.hx, hy: c.hy, hz: c.hz } : { kind: 'hull' as const, ...placed, points: new Float32Array(c.points) };
-        }) });
-      if (piece.mode === 'board') board.push(...added.colliders);
-    });
-    return board;
-  };
+  const colliders = (host: SimHost): { readonly handle: number }[] => addBakedPieces(host.physics, baked.pieces);
   const ports = { ground: false, heightAt: () => SKY_ANALYTIC_FLOOR } as const;
   const installSky = (host: SimHost, context: HeadlessRuntimeInstallation): HeadlessMovers => {
     // a restore brings the board-only handles back with the physics (SimSnapshot.boardColliders)
@@ -158,8 +134,4 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     return { lanes, steps, liftRides, liftCalls };
   } };
   return { plan, installSky };
-}
-const SURFACES: readonly Material[] = ['wood', 'metal', 'stone', 'grass'];
-function surface(value: string): Material {
-  const known = SURFACES.find(name => name === value); if (known === undefined) throw new Error(`Unknown baked surface ${value}`); return known;
 }

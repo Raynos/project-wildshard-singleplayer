@@ -9,7 +9,7 @@ import { SaveStore } from '@wildshard/engine/saves/store';
 import { Ledger } from '../ledger';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { Physics } from '@wildshard/engine/physics/Physics';
-import { tagOf } from '@wildshard/engine/physics/surface';
+import { tagOf, type Material } from '@wildshard/engine/physics/surface';
 import { parseSocketLift, type SocketLift } from '@wildshard/format/socketLift';
 import { walkEdgeEntries } from '@wildshard/engine/physics/edgeEntries';
 import { provePortalLinks } from '../shardfile/portalLinkProof';
@@ -56,6 +56,36 @@ import { captureLiftRider, restoreLiftRider } from "../shardfile/liftRider";
 import { LiftRiderSchema, type LiftRider } from "@wildshard/format/liftRider";
 import * as v from "valibot";
 import { installEntrySockets } from "@wildshard/engine/physics/entrySockets";
+import { addPiece, type AddedPiece } from "@wildshard/engine/physics/pieces";
+
+/** The most collider pieces one node bake may register. */
+const MAX_BAKED_PIECES = 1024;
+const BAKED_SURFACES = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand', 'grass'] as const satisfies readonly Material[];
+const bakedNumber = v.pipe(v.number(), v.finite());
+const bakedPlaced = { x: bakedNumber, y: bakedNumber, z: bakedNumber, yaw: v.exactOptional(bakedNumber),
+  rot: v.exactOptional(v.strictObject({ x: bakedNumber, y: bakedNumber, z: bakedNumber, w: bakedNumber })), surface: v.exactOptional(v.picklist(BAKED_SURFACES)) };
+const BakedPieces = v.pipe(v.array(v.object({ id: v.string(), name: v.string(), file: v.string(), active: v.boolean(),
+  category: v.exactOptional(v.picklist(['buildings', 'nature', 'props', 'ground'])), mode: v.exactOptional(v.literal('board')),
+  surface: v.picklist(BAKED_SURFACES), owner: v.exactOptional(v.string()), colliders: v.array(v.union([
+    v.strictObject({ kind: v.literal('box'), ...bakedPlaced, hx: bakedNumber, hy: bakedNumber, hz: bakedNumber }),
+    v.strictObject({ kind: v.literal('hull'), ...bakedPlaced, points: v.array(bakedNumber) })])) })), v.maxLength(MAX_BAKED_PIECES));
+
+/**
+ * Register a Node bake's collider pieces (a `physics.baked.json`'s `pieces`, strictly parsed) with a native host's physics
+ * in their baked order: every active piece, and the board-only ones (`mode: 'board'`), whose colliders return for
+ * `SimHost.boardColliders`. A piece's colliders belong to its `owner`, else to the piece.
+ */
+export function addBakedPieces(physics: Physics, pieces: unknown): AddedPiece['colliders'] {
+  const rows = v.parse(BakedPieces, pieces), board: AddedPiece['colliders'] = [];
+  for (let i = 0; i < MAX_BAKED_PIECES; i++) {
+    const piece = rows[i]; if (piece === undefined) break;
+    if (!piece.active && piece.mode !== 'board') continue;
+    const added = addPiece(physics, { id: piece.id, name: piece.name, category: piece.category ?? 'props', file: piece.file, surface: piece.surface,
+      colliderOwner: piece.owner ?? piece.id, colliders: piece.colliders.map(c => c.kind === 'box' ? c : { ...c, points: new Float32Array(c.points) }) });
+    if (piece.mode === 'board') board.push(...added.colliders);
+  }
+  return board;
+}
 
 const dayClockContinuation = v.strictObject({
   value: v.number(), paused: v.boolean(), scale: v.number(), cycle: v.number(),
