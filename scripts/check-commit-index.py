@@ -2,7 +2,7 @@
 """Refuse stale staged trees that undo another lane's committed paths."""
 import json
 import os
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 import subprocess
 import sys
 
@@ -64,6 +64,21 @@ def main():
             raise ValueError('Staged paths outside declared commit intent: '
                              + ', '.join(foreign))
         return
+    # Git constructs a pathspec commit's next-index from its captured parent
+    # and owns the ref CAS. Comparing that snapshot with a HEAD that moved
+    # while the hook waited incorrectly labels unchanged paths as rollbacks.
+    # Only Git's own PID-named index gets this treatment; ordinary private
+    # indexes still need the ancestor/intent checks below.
+    owner = int(sys.argv[1]) if len(sys.argv) > 1 else os.getppid()
+    index = os.environ.get('GIT_INDEX_FILE')
+    if index is not None:
+        actual = Path(index).resolve()
+        gitdir = Path(git('rev-parse', '--absolute-git-dir').decode().strip())
+        if actual == gitdir / f'next-index-{owner}.lock':
+            process = subprocess.run(['ps', '-p', str(owner), '-o', 'comm='],
+                                     stdout=subprocess.PIPE, text=True, timeout=5)
+            if process.returncode == 0 and Path(process.stdout.strip()).name == 'git':
+                return
     paths = [os.fsdecode(path) for path, _, _ in staged]
     # The shared branch is linear. Every old first-parent state is evidence
     # that a private snapshot could restore an earlier lane's bytes or mode.

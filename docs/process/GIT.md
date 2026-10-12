@@ -42,12 +42,15 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
     Git-local state, runs the real hooks with a private index/message and lands by CAS. It never nests a Git commit
     under its parent's message lock or overwrites a foreign staged path. Quiet defers it to the next post-hook;
     failures leave the ledger bytes and report in `.git/sweep-ledger.log`. Attribution follows the source commit.
-  - **A stale index cannot undo another lane's landing.** Both pre-commit and commit-msg refuse staged bytes or modes
+  - **A stale private index cannot undo another lane's landing.** Both pre-commit and commit-msg refuse staged bytes or modes
     that restore an ancestor's state, including deletion of a newly landed file. Rebuild from current HEAD, apply
     only your paths and use the preferred commit-tree/CAS path. A deliberate rollback, or a producer that may return
     to an earlier output, declares `WS_COMMIT_INTENT` as JSON with `base` (the full parent SHA) and `paths` (unique
     literal repository-relative paths). The hooks refuse a moved parent and every staged path outside that list;
     the declaration does not skip any source, attribution, generation or push check. Recompute it on every CAS retry.
+    Native pathspec commits use Git's own PID-named `next-index` and ref CAS: unrelated shared stages do not become
+    the commit, and a parent moving during the hooks refuses the ref update. The ancestor heuristic applies to
+    caller-owned indexes, not Git's validated temporary pathspec index; every other hook still checks that index.
 - **Pushes are automatic** (SF74 W14, 2026-10-09: commit → origin was p90 54 min because nobody ran the pusher).
   `.githooks/post-commit` records the commit's herdr pane in `.git/commit-lanes.jsonl` and starts `scripts/auto-push.sh`
   detached: single-instance, it waits 10 s to batch a burst, waits out `.git/quiet` (the coordinator's measurement

@@ -105,6 +105,26 @@ with tempfile.TemporaryDirectory(prefix='commit-index-fixture-') as directory:
     refused = git('commit', '-qm', 'moved during hook', active=delayed, check=False)
     assert refused.returncode != 0 and 'parent moved' in refused.stderr
     assert git('rev-parse', 'HEAD').stdout.strip() == commit
+    # A literal pathspec must ignore stale entries in the shared index.
+    (hooks / 'pre-commit').write_text(f'#!/bin/sh\nexec python3 "{guard}"\n')
+    (root / 'own.txt').write_text('pathspec A\n')
+    git('commit', '-qm', 'pathspec A', '--', 'own.txt')
+    assert git('show', 'HEAD:new foreign.txt').stdout == 'third B\n'
+    assert git('show', 'HEAD:own.txt').stdout == 'pathspec A\n'
+    # If HEAD moves after Git built next-index, its native CAS must refuse.
+    current = git('rev-parse', 'HEAD').stdout.strip()
+    tip = private('pathspec-tip.index', current)
+    put(tip, 'new foreign.txt', 'fourth B\n')
+    tree = git('write-tree', active=tip).stdout.strip()
+    commit = git('commit-tree', tree, '-p', current, '-m', 'fourth B').stdout.strip()
+    (hooks / 'pre-commit').write_text(f'#!/bin/sh\npython3 "{guard}" "$PPID" || exit $?\ngit update-ref refs/heads/main {commit} {current}\n')
+    (root / 'own.txt').write_text('later pathspec A\n')
+    refused = git('commit', '-qm', 'racing pathspec A', '--', 'own.txt', check=False)
+    assert refused.returncode != 0 and 'cannot lock ref' in refused.stderr
+    assert git('rev-parse', 'HEAD').stdout.strip() == commit
+    assert git('show', 'HEAD:new foreign.txt').stdout == 'fourth B\n'
+    assert git('show', 'HEAD:own.txt').stdout == 'pathspec A\n'
     print(json.dumps({'race': 'refused', 'fresh': 'passed', 'rollback': 'scoped',
                       'foreign_intent': 'refused', 'moved_parent': 'refused',
-                      'between_hooks': 'refused'}))
+                      'between_hooks': 'refused', 'pathspec': 'passed',
+                      'pathspec_cas': 'refused'}))

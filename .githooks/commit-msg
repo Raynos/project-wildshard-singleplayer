@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # commit-msg: the E357 lock check (GAME-NORMALIZATION F0). Refuses a commit outside the lock unless it carries
 # the trailer `E357-Lead: yes` or stays inside a reopened shard's allowlist (.github/lock.json).
-python3 scripts/check-commit-index.py || exit $?
+python3 scripts/check-commit-index.py "$PPID" || exit $?
 node scripts/check-lock.mjs "$1" || exit 1
 # Commit-message conventions, adopted verbatim from project-wildshard-meta (Jake, 2026-10-11, E476): Conventional
 # Commits subject ≤ 50 chars, body wrapped at 72, one closing `Assisted-by: AGENT:MODEL` trailer, no AI banners.
