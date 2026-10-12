@@ -33,10 +33,13 @@ def font(size):
 
 
 def jpeg(image, path):
-    for quality in range(88, 39, -4):
-        image.save(path, 'JPEG', quality=quality, optimize=True)
-        if path.stat().st_size <= 500000:
-            return
+    # progress/ and art/ images stay <= 500 KB: lower the quality, then (a tall board) the size
+    for _ in range(6):
+        for quality in range(88, 59, -4):
+            image.save(path, 'JPEG', quality=quality, optimize=True)
+            if path.stat().st_size <= 500000:
+                return
+        image = image.resize((round(image.width * 0.85), round(image.height * 0.85)), Image.Resampling.LANCZOS)
     raise RuntimeError(f'JPEG exceeds 500 KB: {path}')
 
 
