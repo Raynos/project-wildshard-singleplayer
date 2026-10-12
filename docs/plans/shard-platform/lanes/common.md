@@ -14,9 +14,9 @@ p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may 
 - **Never use the question tool** or wait on a prompt: decide, note the call in your report, keep going. A real fork for
   Jake goes to wildshard-new as one line with your recommendation.
 - Don't run `~/.claude/set-label.sh`. Never herdr-message `wildshard-v` (the plan agent); only `wildshard-new`.
-- **Report** each landing in ≤ 10 lines: `herdr agent prompt wildshard-new "[from <lane>] LANDED <sha>: <what>; next: <what>"`.
+- **Herdr messages only via `scripts/herdr-prompt.sh <agent> "<msg>"`** (9a3b244cc; it refuses when a question is open). **Report** each landing in ≤ 10 lines: `scripts/herdr-prompt.sh wildshard-new "[from <lane>] LANDED <sha>: <what>; next: <what>"`.
   Reds you cause are yours to fix first. The Opus lanes `sp-o*` are the coordinator's subagents, not herdr panes (G337):
-  message them as `herdr agent prompt wildshard-new "[for sp-oN] …"` and the coordinator relays.
+  message them as `scripts/herdr-prompt.sh wildshard-new "[for sp-oN] …"` and the coordinator relays.
 - **Git (GIT.md):** small commits early and often; `git commit -m … -- <paths>` (pathspec), `git add` only new files;
   never stash / checkout / restore / reset / rm what you didn't author; never `git push` or `push-main.sh` (post-commit
   auto-pushes). Messages: Conventional subject ≤ 50 chars, body wrapped at 72, last line
