@@ -39,6 +39,9 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   coordinator; the plan file holds decisions and rows; no `Plan-State` trailer check (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`). A plan archives (to `project/archive/<date>-<name>.md`) in the same commit it finishes, with no row open.
 - **No per-lane handoff files** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`): lanes report landings over herdr; the coordinator's STATE.md is the restart record.
 - **Agent-to-agent requests** go over herdr to the owner (who replies with the SHA), else into the owner's plan.
+- **Never herdr-prompt a pane that is talking to Jake** (the plan agent `wildshard-v`, or any session asking him
+  questions): a pasted message lands in his open question and answers it for him (Jake, 2026-10-12). Reply to it in
+  your plan's STATE.md or a commit message; it reads those.
 - **Pages for Jake to read** get `docs/reviews/<slug>.md` in the commit that links them; only Jake's words mark one read.
 - **Council rounds** ([docs/process/COUNCIL.md](docs/process/COUNCIL.md)): three fresh seats a round, four rounds at
   most; the round files are archived the day the council ends.
