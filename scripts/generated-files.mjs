@@ -51,9 +51,11 @@ export function generatedFiles(root) {
   }
   return { outputs, measurement: { edges, ratchet } };
 }
-/** Refuse stale bytes and unlisted measured increases, including the docs Vercel excludes. */
-export function checkGenerated(root, predecessor, message) {
-  const candidate = generatedFiles(root);
+/**
+ * Refuse stale bytes and unlisted measured increases, including the docs Vercel excludes.
+ * The serialized pusher may reuse a candidate it just measured on this same unchanged committed export.
+ */
+export function checkGenerated(root, predecessor, message, candidate = generatedFiles(root)) {
   const stale = Object.entries(candidate.outputs).filter(([file, text]) => (existsSync(resolve(root, file)) ? read(root, file) : '') !== text).map(([file]) => file);
   if (stale.length > 0) throw new Error(`Stale or hand-edited generated files: ${stale.join(', ')}`);
   verifyIncreaseTrailers(generatedIncreases(predecessor, candidate.measurement), message);

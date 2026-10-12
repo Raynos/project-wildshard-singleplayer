@@ -17,7 +17,8 @@ const text = (root, args, input, env = process.env) => execFileSync('git', args,
 /**
  * Stamp a regeneration commit this process built and verified, so the push gate need not repeat the same clean export
  * and check (process audit 2026-10-09: the gate's duplicate `generated` step cost 57-107 s per push). Only commits
- * made here are stamped; a builder tip reported "already current" is still checked by the gate.
+ * made here receive this stamp. An already-current builder tip receives a separate complete-check receipt;
+ * it cannot reuse this stamp's ratchet proof.
  */
 export function verifiedStamp(root, sha) {
   return resolve(text(root, ['rev-parse', '--path-format=absolute', '--git-common-dir']), 'generated-verified', sha);
@@ -112,7 +113,17 @@ export async function regenerateCommitted(root, approvalFile) {
       try { witnessOutputs = await witnesses; console.log(`generated-files: witness manifests waited ${((performance.now() - waitFrom) / 1000).toFixed(1)} s after the generators`); } catch (error) { if (text(root, ['rev-parse', 'HEAD']) !== base) continue; throw error; }
       const changed = Object.entries({ ...candidate.outputs, ...witnessOutputs }).filter(([file, content]) => committedText(root, base, file) !== content);
       if (text(root, ['rev-parse', 'HEAD']) !== base) continue;
-      if (changed.length === 0) { console.log(`generated-files: ${base.slice(0, 9)} already current`); return base; }
+      if (changed.length === 0) {
+        // Reuse this exact committed export for the complete check before removing it.
+        // This receipt cannot authorize the gate's separate ratchet skip.
+        try { await checkCommittedExport(root, base, scratch, candidate); }
+        catch (error) { if (text(root, ['rev-parse', 'HEAD']) !== base) continue; throw error; }
+        if (text(root, ['rev-parse', 'HEAD']) !== base) continue;
+        const checked = resolve(text(root, ['rev-parse', '--path-format=absolute', '--git-common-dir']), 'generated-checked', base);
+        mkdirSync(resolve(checked, '..'), { recursive: true }); writeFileSync(checked, `${base}\n`);
+        console.log(`generated-files: ${base.slice(0, 9)} already current; committed export checked`);
+        return base;
+      }
       const attribution = text(root, ['show', '-s', '--format=%B', base]).split('\n').filter((line) => line.startsWith('Assisted-by:'));
       if (attribution.length > 1) throw new Error('Source commit has duplicate Assisted-by trailers');
       const index = resolve(scratch, 'index'), env = { ...process.env, GIT_INDEX_FILE: index, WILDSHARD_GENERATED_SOURCE: base, SKIP_ATTRIB: attribution.length === 0 ? '1' : '0' };
@@ -179,30 +190,34 @@ export async function regenerateCommitted(root, approvalFile) {
   }
   throw new Error('Generated regeneration source changed 12 times; retry after the source commit burst settles');
 }
+/** Run every generated-output, parent-policy and exact-receipt check on a clean committed export. */
+async function checkCommittedExport(root, sha, scratch, candidate) {
+  const { checkGenerated } = await import(pathToFileURL(resolve(scratch, 'scripts/generated-files.mjs')).href);
+  const parent = text(root, ['rev-parse', `${sha}^`]), message = text(root, ['show', '-s', '--format=%B', sha]);
+  const changed = text(root, ['diff-tree', '--no-commit-id', '--name-only', '-r', sha]).split('\n').filter(Boolean);
+  const generatedChanged = changed.filter((file) => GENERATED_FILES.includes(file) && generatedPart(file, committedText(root, parent, file) ?? '') !== generatedPart(file, committedText(root, sha, file) ?? ''));
+  if (generatedChanged.length > 0 && !message.split('\n').includes(`Generated-Source: ${parent}`)) throw new Error('Generated edits require a serialized regeneration commit naming its exact source parent');
+  if (message.split('\n').some((line) => line.startsWith('Generated-Source: '))) {
+    if (!message.split('\n').includes(`Generated-Source: ${parent}`) || changed.some((file) => !GENERATED_FILES.includes(file) && !isWitnessManifest(file) && !isRecordedBake(file))) throw new Error('Regeneration commit may only touch generated outputs of its exact parent');
+    for (const file of changed.filter(isWitnessManifest)) {
+      const before = committedText(root, parent, file), after = committedText(root, sha, file);
+      if (before === null || after === null || manifestOutcome(before) !== manifestOutcome(after)) throw new Error(`Regeneration may only refresh the inputs hash of ${file}, never its payload records`);
+    }
+    for (const file of changed.filter(isRecordedBake)) {
+      const before = committedText(root, parent, file), after = committedText(root, sha, file);
+      if (before === null || after === null || bakeOutcome(before) !== bakeOutcome(after)) throw new Error(`Regeneration may only refresh the input hashes of ${file}, never its baked output`);
+    }
+    if (!isDeepStrictEqual(replaceDebt(measurement(root, parent).ratchet, {}), replaceDebt(measurement(root, sha).ratchet, {}))) throw new Error('Regeneration cannot modify ratchet policy inputs');
+  }
+  checkGenerated(scratch, measurement(root, parent), message, candidate);
+  console.log(`generated-files: ${sha.slice(0, 9)} committed outputs and exact increase receipts passed`);
+}
 /** Check the complete committed docs/inputs before the Vercel filter removes documentation. */
 export async function checkCommitted(root, sha) {
   const scratch = realpathSync(mkdtempSync(resolve(tmpdir(), 'wildshard-generated-check-')));
   try {
     committedExport(root, sha, scratch);
-    const { checkGenerated } = await import(pathToFileURL(resolve(scratch, 'scripts/generated-files.mjs')).href);
-    const parent = text(root, ['rev-parse', `${sha}^`]), message = text(root, ['show', '-s', '--format=%B', sha]);
-    const changed = text(root, ['diff-tree', '--no-commit-id', '--name-only', '-r', sha]).split('\n').filter(Boolean);
-    const generatedChanged = changed.filter((file) => GENERATED_FILES.includes(file) && generatedPart(file, committedText(root, parent, file) ?? '') !== generatedPart(file, committedText(root, sha, file) ?? ''));
-    if (generatedChanged.length > 0 && !message.split('\n').includes(`Generated-Source: ${parent}`)) throw new Error('Generated edits require a serialized regeneration commit naming its exact source parent');
-    if (message.split('\n').some((line) => line.startsWith('Generated-Source: '))) {
-      if (!message.split('\n').includes(`Generated-Source: ${parent}`) || changed.some((file) => !GENERATED_FILES.includes(file) && !isWitnessManifest(file) && !isRecordedBake(file))) throw new Error('Regeneration commit may only touch generated outputs of its exact parent');
-      for (const file of changed.filter(isWitnessManifest)) {
-        const before = committedText(root, parent, file), after = committedText(root, sha, file);
-        if (before === null || after === null || manifestOutcome(before) !== manifestOutcome(after)) throw new Error(`Regeneration may only refresh the inputs hash of ${file}, never its payload records`);
-      }
-      for (const file of changed.filter(isRecordedBake)) {
-        const before = committedText(root, parent, file), after = committedText(root, sha, file);
-        if (before === null || after === null || bakeOutcome(before) !== bakeOutcome(after)) throw new Error(`Regeneration may only refresh the input hashes of ${file}, never its baked output`);
-      }
-      if (!isDeepStrictEqual(replaceDebt(measurement(root, parent).ratchet, {}), replaceDebt(measurement(root, sha).ratchet, {}))) throw new Error('Regeneration cannot modify ratchet policy inputs');
-    }
-    checkGenerated(scratch, measurement(root, parent), message);
-    console.log(`generated-files: ${sha.slice(0, 9)} committed outputs and exact increase receipts passed`);
+    await checkCommittedExport(root, sha, scratch);
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

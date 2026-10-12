@@ -56,11 +56,16 @@ run() { local name="$1"; shift; local t0=$SECONDS; "$@" > "$work/$name.log" 2>&1
 # Verify the full committed docs and policy inputs before Vercel's filter drops docs/ (its own committed export, so it
 # runs beside this one).
 # A regeneration commit that scripts/regenerate-committed.mjs built and verified in this push carries a stamp; its check
-# would repeat the same clean export and the same comparison (57-107 s), so it is skipped. Any other tip is checked.
+# would repeat the same clean export and comparison (57-107 s). An already-current source tip may instead carry a
+# completed check receipt for this exact SHA; it saves a second export without authorizing the separate ratchet skip.
 verified="$(git rev-parse --path-format=absolute --git-common-dir)/generated-verified/$sha"
+checked="$(git rev-parse --path-format=absolute --git-common-dir)/generated-checked/$sha"
 if [ "$generated_workflow" = 1 ] && [ -f "$verified" ]; then
   steps+=(generated); echo 0 > "$work/generated.sec"; echo 0 > "$work/generated.rc"
   echo "verified by the regeneration commit at push" > "$work/generated.cached"
+elif [ "$generated_workflow" = 1 ] && [ -f "$checked" ] && [ "$(cat "$checked")" = "$sha" ]; then
+  steps+=(generated); echo 0 > "$work/generated.sec"; echo 0 > "$work/generated.rc"
+  echo "complete committed-export check at push" > "$work/generated.cached"
 elif [ "$generated_workflow" = 1 ]; then
   steps+=(generated)
   gate_launch run generated node "$ROOT/scripts/regenerate-committed.mjs" --check "$sha"

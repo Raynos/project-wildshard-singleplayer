@@ -77,7 +77,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   The pusher pushes **exactly the tip it regenerated** (`git push origin <sha>:refs/heads/main`); a commit landing
   meanwhile goes in its next loop, so the gate never sees an unregenerated tip (the "Ratchet rose: … is clean" reds).
   A regeneration commit it built is stamped in `.git/generated-verified/`, and the gate skips its duplicate check
-  for that SHA only (57-107 s); every other tip is still checked.
+  for that SHA only (57-107 s). When a builder tip is already current, the pusher runs the complete generated-output,
+  predecessor-policy and exact-receipt check on its existing committed export before deleting it. It records that
+  exact SHA separately in `.git/generated-checked/`; the gate reuses only that completed generated check, retaining
+  its independent ratchet check. An absent or mismatched receipt runs the normal clean-export check.
 - **Witness input hashes are the pusher's too.** `scripts/witness-manifests.mjs` re-records every stale
   `test/proof/<slug>/checkpoints/manifest.json` with its real recorder on the same clean export, beside the generators
   (~12–18 s, hidden behind them; verified triples cached in `.git/witness-verified/`), and puts the new `inputs` in the

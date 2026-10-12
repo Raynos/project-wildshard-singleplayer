@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Canonical temporary fixture paths.
 import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture package links from the real checkout.
-import { cwd, execPath } from 'node:process';
+import { cwd, env, execPath } from 'node:process';
 import { afterAll, describe, expect, it } from 'vitest';
 import { generatedFiles } from '../scripts/generated-files.mjs';
 import { writeApiDocs } from '../scripts/gen-api.mjs';
@@ -71,6 +71,69 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
   })();
 }
 describe('SF6b clean committed regeneration', () => {
+  it('checks an already-current source export before giving its exact SHA a reusable check receipt', async () => {
+    await fixture(async (root, put, git) => {
+      put('docs/NOTES.md', 'Committed manual explanation.\n');
+      git(['add', '--', 'docs/NOTES.md']);
+      git(['commit', '-qm', 'manual explanation']);
+      const head = git(['rev-parse', 'HEAD']);
+      const receipt = resolve(root, '.git/generated-checked', head);
+      expect(existsSync(receipt)).toBe(false);
+      put('src/engine/clock.ts', '/** Foreign staged source. */\nexport const foreign = 9;\n');
+      git(['add', '--', 'src/engine/clock.ts']);
+      expect(await regenerateCommitted(root)).toBe(head);
+      expect(readFileSync(receipt, 'utf8')).toBe(`${head}\n`);
+      expect(existsSync(verifiedStamp(root, head))).toBe(false);
+      expect(git(['rev-parse', 'HEAD'])).toBe(head);
+      expect(git(['diff', '--cached', '--name-only'])).toBe('src/engine/clock.ts');
+      expect(readFileSync(resolve(root, 'src/engine/clock.ts'), 'utf8')).toContain('foreign');
+      await expect(checkCommitted(root, head)).resolves.toBeUndefined();
+    });
+  }, 30_000);
+  it('refuses an already-current forged regeneration policy change without issuing a reusable check receipt', async () => {
+    await fixture(async (root, put, git) => {
+      const parent = git(['rev-parse', 'HEAD']);
+      const policy: unknown = JSON.parse(readFileSync(resolve(root, 'lint/ratchet.json'), 'utf8'));
+      if (typeof policy !== 'object' || policy === null || !('budgets' in policy)) throw new Error('Fixture policy must have budgets');
+      const budgets = policy.budgets;
+      if (typeof budgets !== 'object' || budgets === null || !('gpu' in budgets) || typeof budgets.gpu !== 'number') throw new Error('Fixture GPU budget must be numeric');
+      budgets.gpu += 1;
+      put('lint/ratchet.json', JSON.stringify(policy));
+      const ratchet = generatedFiles(root).outputs['lint/ratchet.json'];
+      if (ratchet === undefined) throw new Error('Fixture generator must produce the ratchet');
+      put('lint/ratchet.json', ratchet);
+      git(['commit', '-qm', `forged regeneration\n\nGenerated-Source: ${parent}`, '--', 'lint/ratchet.json']);
+      const head = git(['rev-parse', 'HEAD']);
+      await expect(regenerateCommitted(root)).rejects.toThrow('Regeneration cannot modify ratchet policy inputs');
+      expect(existsSync(resolve(root, '.git/generated-checked', head))).toBe(false);
+      expect(existsSync(verifiedStamp(root, head))).toBe(false);
+      expect(git(['rev-parse', 'HEAD'])).toBe(head);
+    });
+  }, 30_000);
+  it('measures an already-current committed export once while checking its complete receipt', async () => {
+    await fixture(async (root, put, git) => {
+      cpSync('scripts/bake-input-hashes.mjs', resolve(root, 'scripts/bake-input-hashes.mjs'));
+      cpSync(resolve(root, 'lint/ratchet.mjs'), resolve(root, 'lint/ratchet-original.mjs'));
+      put('lint/ratchet.mjs', `import { appendFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+if (process.env['SF6B_MEASURE_LOG']) appendFileSync(process.env['SF6B_MEASURE_LOG'], 'x\\n');
+const result = spawnSync(process.execPath, [fileURLToPath(new URL('./ratchet-original.mjs', import.meta.url)), ...process.argv.slice(2)], { stdio: 'inherit' });
+if (result.error) throw result.error;
+process.exitCode = result.status ?? 1;
+`);
+      git(['add', '--', 'scripts/bake-input-hashes.mjs', 'lint/ratchet.mjs', 'lint/ratchet-original.mjs']);
+      git(['commit', '-qm', 'record actual fixture measurements']);
+      await regenerateCommitted(root);
+      const head = git(['rev-parse', 'HEAD']);
+      const log = resolve(root, '.git/measurements');
+      const result = spawnSync(execPath, ['scripts/regenerate-committed.mjs'], { cwd: root, encoding: 'utf8', env: { ...env, SF6B_MEASURE_LOG: log } });
+      expect(result.status, result.stderr).toBe(0);
+      expect(readFileSync(log, 'utf8')).toBe('x\n');
+      expect(readFileSync(resolve(root, '.git/generated-checked', head), 'utf8')).toBe(`${head}\n`);
+      expect(git(['rev-parse', 'HEAD'])).toBe(head);
+    });
+  }, 30_000);
   it('isolates fixture sources, Git indexes and workspace dependency links', async () => {
     await fixture((root, put, git) => {
       expect(git(['ls-files']).split('\n').filter(file => file.split('/').includes('node_modules'))).toEqual([]);
