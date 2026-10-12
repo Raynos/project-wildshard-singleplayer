@@ -79,7 +79,16 @@ async function enterOver(page, over) {
     const offset = { x: live.worldFeet.x - w.player.position.x, z: live.worldFeet.z - w.player.position.z };
     await api.pose({ x: stand.x - offset.x, z: stand.z - offset.z, ...(y === null ? {} : { y }), yaw: 0, pitch: 0 });
   }, { stand: over.stand, y: height });
-  await place(40);
+  // an owned runtime crossing commits onto the neutral road first: from one entered cell, back to the roundabout, then in
+  if (await page.evaluate(() => window.__wildshard.shard.grid.state().live.live.current !== null)) {
+    await page.evaluate(async c => {
+      const api = window.__wildshard, w = api.requireWorld(), live = api.shard.grid.state().live.live;
+      await api.pose({ x: c.x - (live.worldFeet.x - w.player.position.x), z: c.z - (live.worldFeet.z - w.player.position.z), y: 0, yaw: 0, pitch: 0 });
+    }, over.road);
+    await page.waitForFunction(() => window.__wildshard.shard.grid.state().live.live.current === null, null, { timeout: 120000, polling: 250 });
+  }
+  // held high over the cell (above any of its hills) until its own colliders exist, then set down on them
+  await place(300);
   await page.waitForFunction(instance => {
     const s = window.__wildshard.shard.grid.state(), l = s.live.live;
     return l.current === instance && s.inside === instance && l.gameplayReady && l.pending.length === 0 && l.residents.includes(instance);
@@ -200,8 +209,8 @@ async function captureAerial(base) {
     ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round === 'near' ? 'square' : round], root));
   // --only=<pose id,…> and --sessions=<key,…> (e.g. 2048x2048) narrow a re-shoot; sessions left with no pose are skipped
   const only = flag('only', ''), keys = flag('sessions', '');
-  // --enter (round 4): stand the player in the cell under the eye first. Off until an entered standalone level stops
-  // drawing its own world over the grid from the air (Driftwood's ocean runs to the horizon over every neighbour)
+  // --enter (round 4): stand the player in the cell under the eye first (its runtime draws at full quality; the
+  // lifted eye hands the cell's horizon back to the grid, G343)
   const enter = args.includes('--enter');
   if (only !== '') plan.poses = plan.poses.filter(p => only.split(',').includes(p.id));
   // G343 round 4: the square round's sessions over round4HeroPlan, with the near-placeholder tier on (G342)
@@ -281,7 +290,7 @@ async function captureAerial(base) {
             const p = window.__heroAerialPose;
             if (!p) return;
             const live = window.__wildshard.shard.grid.state().live.live;
-            const dx = live.worldFeet.x - w.player.position.x, dz = live.worldFeet.z - w.player.position.z;
+            const origin = window.__wildshard.shard.grid.state().live.renderOrigin, dx = live.worldFeet.x - w.player.position.x - origin.x, dz = live.worldFeet.z - w.player.position.z - origin.z;
             w.game.camera.position.set(p.eye.x - dx, p.eye.y, p.eye.z - dz);
             w.game.camera.lookAt(p.target.x - dx, p.target.y, p.target.z - dz);
             // G344: a pose's own lens, held each late phase over whatever lens the road or a cell wrote this frame.
@@ -301,7 +310,7 @@ async function captureAerial(base) {
           try {
             // G343: stand the player in the cell the eye is over, so that shard draws its own runtime (not a placeholder)
             if (enter && shot.over !== undefined && shot.over.instance !== entered?.instance) {
-              entered = await enterOver(page, shot.over);
+              entered = await enterOver(page, { ...shot.over, road: plan.poses[0].target });
               console.log(`entered ${shot.over.slug} for ${session.key}: ${JSON.stringify(entered.tiles)}`);
             }
             if (enter && shot.over !== undefined) row.entered = entered;
@@ -312,7 +321,7 @@ async function captureAerial(base) {
             if (errors.length > 0) throw new Error(errors.join('; '));
             row.frame = await page.evaluate(() => {
               const w = window.__wildshard.requireWorld(), grid = window.__wildshard.shard.grid.state();
-              const live = grid.live.live, dx = live.worldFeet.x - w.player.position.x, dz = live.worldFeet.z - w.player.position.z;
+              const live = grid.live.live, dx = live.worldFeet.x - w.player.position.x - grid.live.renderOrigin.x, dz = live.worldFeet.z - w.player.position.z - grid.live.renderOrigin.z;
               const p = w.game.camera.position, direction = w.game.camera.getWorldDirection(p.clone());
               return { cameraWorld: [p.x + dx, p.y, p.z + dz], direction: direction.toArray(), playerWorld: live.worldFeet,
                 freeCamera: w.freeCamera, viewmodelVisible: w.game.viewmodel.visible, cells: grid.cells,
