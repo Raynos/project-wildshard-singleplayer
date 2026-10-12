@@ -40,6 +40,24 @@ same private export. No shared generated output is copied back.
 Cancellation still refuses proof, now with an accurate incomplete-job
 description. Shellcheck also found an existing masked return value in
 release pin export; assigning before exporting preserves failure status.
-Exact subsequent macOS smoke and production recovery remain open until
-those jobs finish. No timeout, assertion, baseline, witness or hourly
-limit changes; no GPU parity success is claimed.
+Exact Linux push CI 38205581726 passes on the defining repair
+7250a95cc22c67680260cfb5f2049aa90c54862c. Exact macOS smoke 38205999930
+also passes: boot, HOVER and verdict are successful, and the exact-SHA
+boot-smoke status is success at 05:10:22 UTC. HOVER starts at 04:59:21
+and finishes at 05:10:17: 10 minutes 56 seconds within the unchanged
+12-minute limit. Chromium template/road pass at 05:05:51/05:07:37;
+WebKit template/road pass at 05:08:22/05:10:01. Their original page-error
+and mount/unmount assertions remain intact.
+
+The local cached gate passes in 127.10 seconds; commit-to-origin is
+2 minutes 54 seconds. The remote completion qualifies this repair but
+is not a controlled speed comparison across runners. The real throwing
+generation-config fixture proves duplicate generation is absent from
+built preview startup.
+
+The successful smoke follow-up selects this proven repair, then correctly
+declines another dispatch: release 38205706682 started only 16 minutes
+earlier. Production currently serves the separately proven
+5f780a93a-mv4s89ks; shipping the repair waits for the shared hourly slot.
+No timeout, assertion, baseline, witness or hourly limit changes;
+no GPU parity success is claimed.

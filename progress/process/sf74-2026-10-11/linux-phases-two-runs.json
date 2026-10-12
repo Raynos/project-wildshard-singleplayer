@@ -1,0 +1,176 @@
+{
+  "runs": [
+    {
+      "sha": "5f780a93a9e18c633dc2485c05571047176c43a2",
+      "run": 38204511958,
+      "jobs": [
+        {
+          "shard": 1,
+          "job": 114664904852,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 17 s",
+            "ci-vitest-phase: native-cache 2 s",
+            "ci-vitest-phase: vitest 328 s"
+          ]
+        },
+        {
+          "shard": 2,
+          "job": 114664904829,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 17 s",
+            "ci-vitest-phase: native-cache 2 s",
+            "ci-vitest-phase: vitest 237 s"
+          ]
+        },
+        {
+          "shard": 3,
+          "job": 114664904871,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 14 s",
+            "ci-vitest-phase: native-cache 1 s",
+            "ci-vitest-phase: vitest 196 s"
+          ]
+        },
+        {
+          "shard": 4,
+          "job": 114664904746,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 11 s",
+            "ci-vitest-phase: native-cache 2 s",
+            "ci-vitest-phase: vitest 160 s"
+          ]
+        },
+        {
+          "shard": 5,
+          "job": 114664904914,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 14 s",
+            "ci-vitest-phase: native-cache 2 s",
+            "ci-vitest-phase: vitest 200 s"
+          ]
+        },
+        {
+          "shard": 6,
+          "job": 114664904844,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 17 s",
+            "ci-vitest-phase: native-cache 3 s",
+            "ci-vitest-phase: vitest 259 s"
+          ]
+        },
+        {
+          "shard": 7,
+          "job": 114664904968,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 17 s",
+            "ci-vitest-phase: native-cache 2 s",
+            "ci-vitest-phase: vitest 237 s"
+          ]
+        },
+        {
+          "shard": 8,
+          "job": 114664904854,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 17 s",
+            "ci-vitest-phase: native-cache 3 s",
+            "ci-vitest-phase: vitest 304 s"
+          ]
+        }
+      ]
+    },
+    {
+      "sha": "7250a95cc22c67680260cfb5f2049aa90c54862c",
+      "run": 38205581726,
+      "jobs": [
+        {
+          "shard": 1,
+          "job": 114668222731,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 15 s",
+            "ci-vitest-phase: native-cache 2 s",
+            "ci-vitest-phase: vitest 250 s"
+          ]
+        },
+        {
+          "shard": 2,
+          "job": 114668222853,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 17 s",
+            "ci-vitest-phase: native-cache 2 s",
+            "ci-vitest-phase: vitest 231 s"
+          ]
+        },
+        {
+          "shard": 3,
+          "job": 114668222800,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 17 s",
+            "ci-vitest-phase: native-cache 2 s",
+            "ci-vitest-phase: vitest 254 s"
+          ]
+        },
+        {
+          "shard": 4,
+          "job": 114668222750,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 17 s",
+            "ci-vitest-phase: native-cache 3 s",
+            "ci-vitest-phase: vitest 250 s"
+          ]
+        },
+        {
+          "shard": 5,
+          "job": 114668222732,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 16 s",
+            "ci-vitest-phase: native-cache 3 s",
+            "ci-vitest-phase: vitest 257 s"
+          ]
+        },
+        {
+          "shard": 6,
+          "job": 114668222718,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 18 s",
+            "ci-vitest-phase: native-cache 3 s",
+            "ci-vitest-phase: vitest 263 s"
+          ]
+        },
+        {
+          "shard": 7,
+          "job": 114668222791,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 17 s",
+            "ci-vitest-phase: native-cache 2 s",
+            "ci-vitest-phase: vitest 237 s"
+          ]
+        },
+        {
+          "shard": 8,
+          "job": 114668222810,
+          "receipts": [
+            "ci-vitest-resource: cores=4 available=4",
+            "ci-vitest-phase: generation 18 s",
+            "ci-vitest-phase: native-cache 2 s",
+            "ci-vitest-phase: vitest 302 s"
+          ]
+        }
+      ]
+    }
+  ]
+}

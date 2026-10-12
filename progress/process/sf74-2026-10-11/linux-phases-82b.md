@@ -49,3 +49,29 @@ Further phase balance, the two-minute push and the one-day release
 targets remain open. Preserve the determinism suite's independent real
 processes and gameplay journeys; its large file time is not permission
 to reduce coverage or raise a timeout.
+
+## First two completed phase receipts
+
+The logging slice is now qualified by two successful exact Linux push
+runs: 38204511958 on 5f780a93a and 38205581726 on 7250a95cc. All eight
+jobs in both runs report four cores and four available processors.
+
+| Shard | 5f780 generation / native / Vitest seconds | 7250 generation / native / Vitest seconds |
+|---|---:|---:|
+| 1 | 17 / 2 / 328 | 15 / 2 / 250 |
+| 2 | 17 / 2 / 237 | 17 / 2 / 231 |
+| 3 | 14 / 1 / 196 | 17 / 2 / 254 |
+| 4 | 11 / 2 / 160 | 17 / 3 / 250 |
+| 5 | 14 / 2 / 200 | 16 / 3 / 257 |
+| 6 | 17 / 3 / 259 | 18 / 3 / 263 |
+| 7 | 17 / 2 / 237 | 17 / 2 / 237 |
+| 8 | 17 / 3 / 304 | 18 / 2 / 302 |
+
+Vitest wall-time spread is 2.05x in the first run and 1.31x in the
+second. Generation and native preparation do not explain the larger
+test-phase spread. The allocation algorithm and worker settings are
+unchanged between these runs; the latter adds one real preview fixture.
+Runner, cache and contention differences remain confounders. These
+numbers do not prove an allocation improvement or justify replacing
+weights from a single run. The compact job IDs and raw scalar receipt
+lines are preserved in [linux-phases-two-runs.json](linux-phases-two-runs.json).
