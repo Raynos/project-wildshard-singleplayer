@@ -9,7 +9,7 @@ import { striderSpecimen } from '../species/strider';
 import { mantaBody } from '../species/duneRay';
 import { RAY_TINT } from '../data/hulls';
 import { matriarchBody } from '../species/matriarch';
-import { pivotNpcParts } from '../runtime/quest/pivotNpc';
+import { pivotNpcParts } from '@wildshard/game/plugin/geometry';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
 import { duneMesh } from '../world/meshes';
 import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';

@@ -60,7 +60,7 @@ try {
       if (body === null) throw new Error('Signal skitterer rig is missing');
       scope.own(body);
       const { SCOUT_NPC } = await at('src/shards/sunscar-dunes/quests/scout.ts');
-      const { installPivotNpc } = await at('src/shards/sunscar-dunes/runtime/quest/pivotNpc.ts');
+      const { installPivotNpc } = await at('src/game/plugin/geometry.ts');
       const scout = installPivotNpc(ctx, SCOUT_NPC, { source,
         groundAt: (x, z) => manifest.ground.terrain?.heightAt(x, z) ?? 0,
         player: new THREE.Vector3(manifest.spawn.x, manifest.spawn.y, manifest.spawn.z), met: () => false,

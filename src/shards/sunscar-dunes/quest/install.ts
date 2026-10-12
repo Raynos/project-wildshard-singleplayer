@@ -10,7 +10,7 @@ import { DISCOVERY_PLACES } from '../data/questPresentation';
 import { STRINGS } from '../data/strings';
 import { lastLightAll } from '../look/light';
 import { ownPrimitives } from '../world/resources';
-import { installPivotNpc } from '../runtime/quest/pivotNpc';
+import { installPivotNpc } from '@wildshard/game/plugin/geometry';
 import { npcDef } from '@wildshard/game/plugin/quests';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
 import { duneMesh } from '../world/meshes';
