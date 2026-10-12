@@ -133,3 +133,36 @@ private-message commit-tree landings intentionally do not take that
 lock and do not enter this ledger. It does not prove zero collisions
 or close the six-hour contention census. The repair's own hook and
 CAS wrapper took 1.09 seconds, a separate measurement.
+
+## W14/W21: six-hour follow-up
+
+Window: 2026-10-11 22:11:33 UTC to 2026-10-12 04:11:33 UTC.
+The same read-only reader, `measure-waits.py --hours 6`, emits aggregates
+only. Its frozen output is [waits-6h-0411.json](waits-6h-0411.json).
+
+| Measure | Observation |
+|---|---:|
+| Repository Codex / Claude transcripts | 6 / 4 |
+| Foreign Codex sessions excluded | 45 |
+| Index-lock error tool outputs | 0 |
+| Codex sleep calls | 210 |
+| Observed sleep time | 8,719.584 s, 2.42 agent-hours |
+| Requested sleep time | 10,430 s |
+| Claude Bash poll candidates | 6, 7.632 s |
+| Ordinary pre-commit hooks | 47, all successful |
+| Hook median / p90 / maximum | 0.244 / 0.362 / 0.458 s |
+
+Authorized quiet-window waits and the standing gate/deploy watch are
+included in sleep time. Bash candidates are regex matches, not proof of
+an executed polling loop. Transcript spans overlap and can include
+copied history, so neither their sum nor the sleep total supplies a waste
+percentage. Zero recorded index-lock errors does not prove zero message
+collisions. Hook durations exclude queue wait and private-message
+commit-tree landings. These limitations keep W14/W21 qualification open.
+
+The following source push, 82b919f09, passes its complete cached gate:
+132 seconds internally, 133.56 seconds with the heavy-lane wrapper;
+related Vitest takes nine seconds. Commit time is 04:10:30 UTC and the
+actual origin update is 04:13:32 UTC, a 182-second delivery. This single
+observation exceeds the two-minute median target and supplies no new
+12-hour or one-day qualification. Its Linux CI is a separate proof.
