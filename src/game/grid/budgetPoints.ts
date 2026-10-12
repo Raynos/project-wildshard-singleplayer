@@ -79,6 +79,7 @@ export const SHARD_BUDGET = CONTENT_CAPS.library.resident + CONTENT_CAPS.sim.res
 const zero = (): Record<BudgetCategory, number> => ({ library: 0, l0: 0, l1: 0, sim: 0, road: 0, far: 0, commons: 0, product: 0 });
 function categoryOf(entry: ResidencyEntry): BudgetCategory {
   if (entry.category === 'page') return 'commons';
+  if (entry.category === 'near') return 'far'; // G342: the near placeholders score with the far proxies they stand in for
   return entry.owner === PLATFORM_OWNER && (entry.category === 'l0' || entry.category === 'l1') ? 'road' : entry.category;
 }
 

@@ -119,9 +119,9 @@ function sampler(grid: FarGrid): { height: (x: number, z: number) => number; spl
 
 /**
  * Bake one shard's proxy mesh from its grid, far look and model parts. Deterministic; refuses output over the far triangle
- * cap and a part outside the cell.
+ * cap (G342's near placeholder passes its own) and a part outside the cell.
  */
-export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonly FarPart[] = []): FarProxyMesh {
+export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonly FarPart[] = [], cap: number = CONTENT_CAPS.far.triangles): FarProxyMesh {
   const quads = look.quads ?? FAR_QUADS;
   if (!Number.isInteger(quads) || quads < 1) throw new RangeError('Invalid far lattice');
   const sample = sampler(grid), regionSize = (CHUNK_HALF * 2) / FAR_REGIONS, step = regionSize / quads, n = quads + 1;
@@ -185,7 +185,7 @@ export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonl
   }
   for (const part of parts) addPart(part, regionSize, { positions, normals, colours, region, cliff, index });
   const triangles = index.length / 3;
-  if (triangles > CONTENT_CAPS.far.triangles) throw new RangeError(`Far proxy has ${triangles} triangles, over the ${CONTENT_CAPS.far.triangles} cap`);
+  if (triangles > cap) throw new RangeError(`Far proxy has ${triangles} triangles, over the ${cap} cap`);
   return { positions: Float32Array.from(positions), normals: Float32Array.from(normals), colours: Float32Array.from(colours), region: Float32Array.from(region), cliff: Float32Array.from(cliff), index: Uint32Array.from(index), triangles };
 }
 

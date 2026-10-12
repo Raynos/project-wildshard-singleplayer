@@ -16,7 +16,8 @@ import { contentCost, type ContentCostInput } from '@wildshard/format/contentCos
 import { MemoryAdmission } from '@wildshard/format/product';
 
 /** The cost model's categories; `library` and `sim` map onto its plural fields. */
-export type ResidencyCategory = 'l0' | 'l1' | 'far' | 'library' | 'sim' | 'commons' | 'product' | 'page';
+/** `near`: G342's near-placeholder views, on their own residency line. */
+export type ResidencyCategory = 'l0' | 'l1' | 'far' | 'near' | 'library' | 'sim' | 'commons' | 'product' | 'page';
 /** One resident thing. `bytes` are its decoded + GPU resident bytes (MB = 10^6). */
 export interface ResidencyClaim {
   readonly id: string; readonly category: ResidencyCategory; readonly bytes: number;
@@ -52,7 +53,7 @@ export interface ResidencyLease {
 export interface ResidencyEntry { readonly id: string; readonly category: ResidencyCategory; readonly bytes: number; readonly owner: string; readonly distance: number; readonly needed: boolean; readonly refs: number; readonly holds: number; readonly accountedBytes: number; readonly coveredBy?: string }
 interface Entry { id: string; category: ResidencyCategory; bytes: number; owner: string; distance: number; needed: boolean; prepare: (() => ResidencyEviction | null) | undefined; refs: number; holds: number; generation: number; coveredBy: string | undefined; baseCredit: number }
 
-const field = { l0: 'l0', l1: 'l1', far: 'far', library: 'libraries', sim: 'sims', commons: 'commons', product: 'products', page: 'page' } as const;
+const field = { l0: 'l0', l1: 'l1', far: 'far', near: 'near', library: 'libraries', sim: 'sims', commons: 'commons', product: 'products', page: 'page' } as const;
 
 /** One allocator per grid session. `playing` defaults to the §3.2 envelope (1.0 GB, G65). */
 export class ResidencyAllocator {
