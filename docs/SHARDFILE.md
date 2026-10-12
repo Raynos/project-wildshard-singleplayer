@@ -1667,7 +1667,11 @@ The cone profile admits no target callback, rig or input owner. Registration
 through `@wildshard/game/plugin/weaponFamily` must explicitly accept `cone`
 profiles before the item installer calls its native factory. Sky's registered
 `far-reach.fan` family declares `profiles: ['cone']` and adopts these numbers into
-the already-built fan. Its native preparation also reads the admitted item row;
+the already-built fan. The registered Signal lash and Sky fan lend their actual
+targets, damage pipeline and body reactions to one renderer-free contact host.
+Contact clocks and hold/release are shared; profile values stay admitted numeric
+data. No second actor, query authority, RNG or input owner is created.
+Sky's native preparation also reads the admitted item row;
 a missing profile, changed weapon identity or incompatible slash shapes refuse
 before mutation. Rebinding numbers retains both cooldowns. Gust impulses precede
 their damage contact, as in the existing page law.

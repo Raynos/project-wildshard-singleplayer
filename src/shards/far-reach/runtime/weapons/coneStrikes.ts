@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { parseWeaponProfile } from '@wildshard/format/weaponProfiles';
+import { ContactWeaponHost, weaponContactDistance, type WeaponContactMove } from '@wildshard/engine/combat/contactWeapon';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { Vector3 } from 'three';
 import type { Actor, CombatTag, DamageDealt, DamageRequest } from '@wildshard/engine/combat/pipeline';
@@ -44,11 +45,17 @@ export function coneStrikeSpec(row: ItemSpec, input: unknown): ConeStrikeSpec {
     tags: [...light.tags], moves: { light: light.id, heavy: heavy.id } }, gust: profile.gust };
 }
 
+function coneMoves(spec: ConeStrikeSpec): readonly [WeaponContactMove, WeaponContactMove, WeaponContactMove] {
+  const common = { source: 'env', weaponId: spec.weaponId, copyVectors: true, copyTags: true } as const;
+  return [{ ...common, damage: spec.slash.light, tags: spec.slash.tags, moveId: spec.slash.moves.light, reactions: [] },
+    { ...common, damage: spec.slash.heavy, tags: spec.slash.tags, moveId: spec.slash.moves.heavy, reactions: [] },
+    { ...common, damage: spec.gust.damage, tags: spec.gust.tags, moveId: spec.gust.move,
+      reactions: [{ when: 'before', kind: 'impulse', direction: 'radial-away', speed: spec.gust.push, lift: spec.gust.lift }] }];
+}
+
 /** True when `to` lies inside a cone of `reach` metres and `halfAngle` radians around `dir` from `from`. */
 export function inCone(from: Vector3, dir: Vector3, to: Vector3, reach: number, halfAngle: number): boolean {
-  const d = to.clone().sub(from), len = d.length();
-  if (len > reach) return false; if (len < 1e-3) return true;
-  return d.dot(dir) / (len * Math.max(dir.length(), 1e-6)) >= Math.cos(halfAngle);
+  return weaponContactDistance(from, dir, to, 'cone', reach, halfAngle) !== null;
 }
 
 const finite = v.pipe(v.number(), v.finite(), v.minValue(0));
@@ -61,36 +68,41 @@ const Saved = v.strictObject({ cooldown: finite, gustCooldown: finite });
  */
 export class ConeStrikes {
   /** Seconds until the next SWING / HEAVY, and the next GUST. */
-  cooldown = 0; gustCooldown = 0;
+  get cooldown(): number { return this.host.primary; }
+  set cooldown(value: number) { this.host.primary = value; }
+  get gustCooldown(): number { return this.host.secondary; }
+  set gustCooldown(value: number) { this.host.secondary = value; }
+  private readonly host: ContactWeaponHost;
   private spec: ConeStrikeSpec;
+  private moves: readonly [WeaponContactMove, WeaponContactMove, WeaponContactMove];
   private readonly ports: ConeStrikePorts;
-  constructor(spec: ConeStrikeSpec, ports: ConeStrikePorts) { this.spec = spec; this.ports = ports; }
+  constructor(spec: ConeStrikeSpec, ports: ConeStrikePorts) { this.spec = spec; this.moves = coneMoves(spec); this.ports = ports; this.host = new ContactWeaponHost(req => ports.hit(req)); }
   /** Adopt the same weapon's admitted parameters without restarting either retained cooldown. */
   configure(row: ItemSpec, input: unknown): void {
     const spec = coneStrikeSpec(row, input);
     if (spec.weaponId !== this.spec.weaponId) throw new Error('Cone profile cannot replace the native weapon identity');
-    this.spec = spec;
+    this.spec = spec; this.moves = coneMoves(spec);
   }
   /** Claim a swing: false while cooling down, otherwise the move's cooldown starts. */
   startSwing(heavy: boolean): boolean {
-    if (this.cooldown > 0) return false;
-    this.cooldown = heavy ? this.spec.slash.heavyCooldown : this.spec.slash.cooldown; return true;
+    return this.host.claim('primary', heavy ? this.spec.slash.heavyCooldown : this.spec.slash.cooldown);
   }
   /** Claim a gust: false while cooling down, otherwise its cooldown starts. */
   startGust(): boolean {
-    if (this.gustCooldown > 0) return false;
-    this.gustCooldown = this.spec.gust.cooldown; return true;
+    return this.host.claim('secondary', this.spec.gust.cooldown);
   }
   /** One slash from `from` along `dir`: every target in the arc takes a hit. Returns how many were struck. */
   slash(from: Vector3, dir: Vector3, heavy: boolean, struckOne?: (actorId: string, killed: boolean) => void): number {
     const s = this.spec.slash;
     let struck = 0;
-    for (const target of this.ports.targets()) {
-      if (target.actor === null || !target.actor.alive || !inCone(from, dir, target.position, s.reach, s.halfAngle)) continue;
-      const result = this.ports.hit({ source: 'env', sourceTags: [...s.tags], target: target.actor,
-        amount: heavy ? s.heavy : s.light, point: target.position.clone(), dir: dir.clone(), from: from.clone(), weaponId: this.spec.weaponId,
-        moveId: heavy ? s.moves.heavy : s.moves.light, surface: 'flesh' });
-      if (result !== null) { struck++; struckOne?.(target.actor.id, result.killed); }
+    const targets = this.ports.targets();
+    if (targets.length > 4096) throw new RangeError('Cone targets exceed the admitted actor bound');
+    for (let i = 0; i < 4096; i++) {
+      const target = targets[i]; if (target === undefined) break;
+      const actor = target.actor;
+      if (actor === null || !actor.alive || !inCone(from, dir, target.position, s.reach, s.halfAngle)) continue;
+      const result = this.host.contact(target, this.moves[heavy ? 1 : 0], target.position, dir, from, struckOne);
+      if (result !== null) struck++;
     }
     return struck;
   }
@@ -98,18 +110,19 @@ export class ConeStrikes {
   blow(from: Vector3, dir: Vector3): number {
     const g = this.spec.gust;
     let blown = 0;
-    for (const target of this.ports.targets()) {
-      if (target.actor === null || !target.actor.alive || !inCone(from, dir, target.position, g.reach, g.halfAngle)) continue;
-      const away = target.position.clone().sub(from); away.y = 0; if (away.lengthSq() < 1e-4) away.set(dir.x, 0, dir.z); away.normalize();
-      target.impulse?.(away.multiplyScalar(g.push).setY(g.lift));
-      this.ports.hit({ source: 'env', sourceTags: [...g.tags], target: target.actor, amount: g.damage,
-        point: target.position.clone(), dir: dir.clone(), from: from.clone(), weaponId: this.spec.weaponId, moveId: g.move, surface: 'flesh' });
+    const targets = this.ports.targets();
+    if (targets.length > 4096) throw new RangeError('Cone targets exceed the admitted actor bound');
+    for (let i = 0; i < 4096; i++) {
+      const target = targets[i]; if (target === undefined) break;
+      const actor = target.actor;
+      if (actor === null || !actor.alive || !inCone(from, dir, target.position, g.reach, g.halfAngle)) continue;
+      this.host.contact(target, this.moves[2], target.position, dir, from);
       blown++;
     }
     return blown;
   }
   /** Count both cooldowns down by `dt` seconds. */
-  tick(dt: number): void { this.cooldown = Math.max(0, this.cooldown - dt); this.gustCooldown = Math.max(0, this.gustCooldown - dt); }
+  tick(dt: number): void { this.host.countDown(dt); }
   /** The continuation: both cooldowns. */
   snapshot(): { cooldown: number; gustCooldown: number } { return { cooldown: this.cooldown, gustCooldown: this.gustCooldown }; }
   /** Take a snapshot back (validated). */

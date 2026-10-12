@@ -49,14 +49,6 @@
       "base": "Weapon",
       "baseFile": "src/game/systems/items/magazineFirearm.ts"
     },
-    "src/shards/sunscar-dunes/runtime/items/lashWeapon.ts:f5cf9c2d807c0bfe11d51ba0ab3c7a575b8c3da81afa0ba814ecbcef71c80241": {
-      "from": "src/game/systems/items/lashWeapon.ts",
-      "to": "src/shards/sunscar-dunes/runtime/items/lashWeapon.ts",
-      "hash": "f5cf9c2d807c0bfe11d51ba0ab3c7a575b8c3da81afa0ba814ecbcef71c80241",
-      "name": "LashWeapon",
-      "base": "Weapon",
-      "baseFile": "src/engine/combat/Weapon.ts"
-    },
     "src/shards/far-reach/runtime/weapons/coneFan.ts:20b9903b8bf7c3c864a238ab18febe7d9abc6cd12426185f8cca8941b8d0baec": {
       "from": "src/game/systems/items/coneFan.ts",
       "to": "src/shards/far-reach/runtime/weapons/coneFan.ts",

@@ -1160,7 +1160,7 @@
         "ctx.app": 7,
         "ctx.game": 20,
         "ctx.game.runtime": 20,
-        "engineSubclasses": 6,
+        "engineSubclasses": 7,
         "context.game": 20,
         "context.scope": 27,
         "context.on": 1,
@@ -1176,7 +1176,7 @@
         "context.root": 10,
         "context.piece": 7,
         "subclass.CreatureBrain": 4,
-        "subclass.Weapon": 1
+        "subclass.Weapon": 2
       },
       "sites": {
         "ctx.game.runtime": [

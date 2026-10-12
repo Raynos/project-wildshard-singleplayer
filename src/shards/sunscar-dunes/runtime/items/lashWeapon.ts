@@ -1,3 +1,4 @@
+import { HeldWeaponClock } from '@wildshard/engine/combat/contactWeapon';
 import type { App } from '@wildshard/engine/app/app';
 import { blocks } from '@wildshard/engine/blocks';
 import type { EquipContext, EquipmentRow } from '@wildshard/engine/combat/Equipment';
@@ -47,7 +48,8 @@ export class LashWeapon extends Weapon {
   private readonly contact: ReturnType<typeof blocks.melee>;
   private readonly vm: ReturnType<typeof blocks.viewmodel>;
   private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
-  private held = 0; private wasHeld = false; private time = 0;
+  private readonly releaseHold = (): void => { this.lash.cooldown = 0; this.swing(true); };
+  private readonly hold = new HeldWeaponClock(); private time = 0;
   private readonly from = new Vector3(); private readonly end = new Vector3();
   /** What the lash reacts to in the world when it hits no creature. */
   private crackables: readonly LashWorldTarget[] = [];
@@ -77,13 +79,13 @@ export class LashWeapon extends Weapon {
   }
   /** The world things the lash can crack. */
   aimAt(crackables: readonly LashWorldTarget[]): void { this.crackables = crackables; }
-  override get charge(): number { return Math.min(1, this.held / this.spec.charge); }
+  override get charge(): number { return Math.min(1, this.hold.elapsed / this.spec.charge); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled);
     this.app.input.bind('heavy', () => { this.swing(true); }, ctx.scope, () => this.enabled);
     ctx.scope.onDispose(() => {
-      this.wasHeld = false; this.held = 0; this.lash.cancel();
+      this.hold.reset(); this.lash.cancel();
       if (this.wrapCoil) { this.wrapCoil.removeFromParent(); this.wrapCoil.geometry.dispose(); this.wrapCoil = null; }
     });
   }
@@ -112,10 +114,7 @@ export class LashWeapon extends Weapon {
   override update(dt: number): void {
     this.time += dt; this.lash.cool(dt);
     const drawn = this.enabled && this.holster <= 0.001;
-    if (!drawn) { this.wasHeld = false; this.held = 0; }
-    else if (this.adsHeld) this.held += dt;
-    else if (this.wasHeld) { this.lash.cooldown = 0; this.swing(true); this.held = 0; }
-    this.wasHeld = drawn && this.adsHeld;
+    this.hold.step(dt, drawn, this.adsHeld, this.releaseHold);
     this.model.visible = this.holster < 0.5;
     this.vm.step(this.spring, new Vector2(), dt); this.model.rotation.y = this.spring.yaw;
     this.animate(dt);

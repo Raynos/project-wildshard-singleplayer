@@ -10,7 +10,7 @@ export function signalPhysicsInputs(root) {
   paths.push('src/shards/sunscar-dunes/runtime/looks/bakedGround.ts', 'src/shards/sunscar-dunes/runtime/looks/duneField.ts', 'src/shards/sunscar-dunes/runtime/looks/duskCurves.ts', 'src/shards/sunscar-dunes/runtime/looks/duskFamilies.ts', 'src/shards/sunscar-dunes/runtime/looks/duskLook.ts', 'src/shards/sunscar-dunes/runtime/looks/fireFx.ts', 'src/shards/sunscar-dunes/runtime/looks/fittedHull.ts', 'src/shards/sunscar-dunes/runtime/looks/lightLook.ts', 'src/shards/sunscar-dunes/runtime/looks/mapPalette.ts', 'src/shards/sunscar-dunes/runtime/looks/paintedStrips.ts');
   paths.push('src/shards/sunscar-dunes/runtime/looks/stormShell.ts', 'src/shards/sunscar-dunes/runtime/quest/pivotNpc.ts', 'src/game/plugin/ui.ts', 'src/shards/sunscar-dunes/runtime/rowsHeadless.ts', 'src/shards/sunscar-dunes/runtime/standalone.ts', 'src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts', 'src/shards/sunscar-dunes/runtime/shardfile/markedBossRow.ts');
   paths.push('src/shards/sunscar-dunes/runtime/items/lashHold.ts', 'src/shards/sunscar-dunes/runtime/items/lashHost.ts', 'src/shards/sunscar-dunes/runtime/items/lashView.ts', 'src/shards/sunscar-dunes/runtime/items/lashWeapon.ts');
-  paths.push('src/shards/sunscar-dunes/runtime/items/lash.ts');
+  paths.push('src/shards/sunscar-dunes/runtime/items/lash.ts', 'src/engine/combat/contactWeapon.ts');
   // DS1.5: the Node host, real creature factory and actual scout/prompt constructors define the producer.
   for (const file of ['src/shards/sunscar-dunes/manifest.ts', 'scripts/signal-physics-inputs.mjs',
     'scripts/bake/worldHost.mjs', 'scripts/bake/nativeWorld.mjs', 'scripts/bake/environment.mjs', 'scripts/bake-loader.mjs',

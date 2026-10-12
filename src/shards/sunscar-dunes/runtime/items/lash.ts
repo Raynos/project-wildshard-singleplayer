@@ -1,3 +1,4 @@
+import { ContactWeaponHost, weaponContactDistance, type WeaponContactMove } from '@wildshard/engine/combat/contactWeapon';
 import { Vector3 } from 'three';
 import { parseWeaponProfile, type WeaponProfile } from '@wildshard/format/weaponProfiles';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
@@ -12,7 +13,7 @@ export interface LashVolumes {
   readonly a: Vector3; readonly b: Vector3; readonly bodyRadius: number;
 }
 
-const oc = new Vector3(), ba = new Vector3(), oa = new Vector3(), closest = new Vector3(), laneDelta = new Vector3();
+const oc = new Vector3(), ba = new Vector3(), oa = new Vector3(), closest = new Vector3();
 
 /** First non-negative hit of the ray on a ball, or null (the origin is outside it). */
 function ball(from: Vector3, dir: Vector3, centre: Vector3, radius: number): number | null {
@@ -50,10 +51,7 @@ export function lashVolumeHit(from: Vector3, dir: Vector3, reach: number, body: 
  * lane (`reach` + `contact.bodyAllowance` long, `width` + `contact.bodyAllowance` wide), or null. The lash lands at `min(forward, reach)`.
  */
 export function lashLane(from: Vector3, dir: Vector3, reach: number, width: number, feet: Vector3, contact: LashContact): number | null {
-  laneDelta.copy(feet).sub(from); laneDelta.y += contact.chestHeight;
-  const forward = laneDelta.dot(dir);
-  if (forward < 0 || forward > reach + contact.bodyAllowance) return null;
-  return laneDelta.addScaledVector(dir, -forward).length() > width + contact.bodyAllowance ? null : forward;
+  return weaponContactDistance(from, dir, feet, 'lane', reach, width, contact.chestHeight, contact.bodyAllowance);
 }
 
 /**
@@ -83,6 +81,15 @@ export function lashSpec(row: ItemSpec, input: unknown): LashSpec {
   if (row.kind !== 'weapon' || profile.family !== 'lash' || profile.contact === undefined) throw new Error(`Item ${row.id} requires its native lash profile`);
   return { id: row.id, reach: row.light.range, heavyReach: row.heavy.range, width: row.light.width, light: row.light.damage, heavy: row.heavy.damage,
     cooldown: row.light.cooldown, heavyCooldown: row.heavy.cooldown, charge: row.charge, tags: [...row.light.tags], moves: { ...profile.moves }, contact: { ...profile.contact }, ...profile.timing };
+}
+
+function lashMoves(spec: LashSpec, source: Actor | 'env'): readonly [WeaponContactMove, WeaponContactMove, WeaponContactMove] {
+  const common = { source, weaponId: spec.id, tags: spec.tags, copyVectors: false, copyTags: false };
+  return [{ ...common, damage: spec.light, moveId: spec.moves.light, reactions: [] },
+    { ...common, damage: spec.heavy, moveId: spec.moves.first,
+      reactions: [{ when: 'survived', kind: 'impulse', direction: 'aim-backward', speed: spec.pull, lift: 0, maxHealth: spec.pullMaxHp }] },
+    { ...common, damage: spec.heavy, moveId: spec.moves.second,
+      reactions: [{ when: 'survived', kind: 'stagger', strength: spec.stagger, aboveHealth: spec.pullMaxHp }] }];
 }
 
 /** What a lash lands on: the combat actor, and the body's yank and stagger when it has them. */
@@ -132,23 +139,26 @@ export class LashRuntime {
   private readonly ports: LashPorts;
   private readonly laneOverflow = new RangeError('Lash targets exceed the admitted contact scan');
   /** Seconds left before the next swing. */
-  cooldown = 0;
+  get cooldown(): number { return this.host.primary; }
+  set cooldown(value: number) { this.host.primary = value; }
+  private readonly host: ContactWeaponHost;
+  private readonly moves: readonly [WeaponContactMove, WeaponContactMove, WeaponContactMove];
+  private readonly accepted = (id: string, killed: boolean): void => { this.ports.struck?.(id, killed); };
   /** Time since the current crack started, or −1 when idle. */
   crackT = -1;
   heavy = false;
   /** Lashes landed in the current crack (0, 1, 2). */
   landed = 0;
-  constructor(spec: LashSpec, ports: LashPorts) { this.spec = spec; this.ports = ports; }
+  constructor(spec: LashSpec, ports: LashPorts) { this.spec = spec; this.ports = ports; this.host = new ContactWeaponHost(req => ports.hit(req)); this.moves = lashMoves(spec, ports.source); }
   /** The current crack's whole showing time. */
   get length(): number { return this.heavy ? this.spec.show + this.spec.second - this.spec.unroll : this.spec.show; }
   /** Starts a crack when the cooldown allows; it lands `unroll` s later (and again at `second` for the heavy). */
   swing(heavy: boolean): boolean {
-    if (this.cooldown > 0) return false;
-    this.cooldown = heavy ? this.spec.heavyCooldown : this.spec.cooldown; this.crackT = 0; this.heavy = heavy; this.landed = 0;
+    if (!this.host.claim('primary', heavy ? this.spec.heavyCooldown : this.spec.cooldown)) return false; this.crackT = 0; this.heavy = heavy; this.landed = 0;
     return true;
   }
   /** The cooldown runs down. */
-  cool(dt: number): void { this.cooldown = Math.max(0, this.cooldown - dt); }
+  cool(dt: number): void { this.host.countDown(dt); }
   /** The crack advances by `dt` and lands its lashes on time; answers its time, or −1 once it ended (or was idle). */
   advance(dt: number): number {
     if (this.crackT < 0) return -1;
@@ -202,19 +212,8 @@ export class LashRuntime {
   strike(target: LashTarget, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean {
     const spec = this.spec, reach = heavy ? spec.heavyReach : spec.reach, delta = point.clone().sub(from), forward = delta.dot(dir);
     if (forward < 0 || forward > reach || delta.addScaledVector(dir, -forward).length() > spec.width) return false;
-    const { actor } = target;
-    const result = this.ports.hit({ source: this.ports.source, sourceTags: spec.tags, target: actor,
-      amount: heavy ? spec.heavy : spec.light, point, dir, from, weaponId: spec.id,
-      moveId: heavy ? (second ? spec.moves.second : spec.moves.first) : spec.moves.light, surface: 'flesh' });
+    const result = this.host.contact(target, this.moves[heavy ? (second ? 2 : 1) : 0], point, dir, from, this.accepted);
     if (result === null) return false;
-    this.ports.struck?.(actor.id, result.killed);
-    // The pull: the double crack's first lash wraps a small creature and yanks it to the player's feet (the second
-    // lash then lands on it close); a big one shrugs the wrap off and the second lash staggers it.
-    if (heavy && !result.killed) {
-      const small = actor.attributes.maxHealth <= spec.pullMaxHp;
-      if (small && !second) target.impulse?.(new Vector3(-dir.x, 0, -dir.z).normalize().multiplyScalar(spec.pull));
-      else if (!small && second) target.stagger?.(dir, spec.stagger);
-    }
     return true;
   }
   snapshot(): LashState { return { cooldown: this.cooldown, crackT: this.crackT, heavy: this.heavy, landed: this.landed }; }

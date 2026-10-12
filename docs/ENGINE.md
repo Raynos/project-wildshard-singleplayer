@@ -3352,7 +3352,27 @@ the original native body adapter. Every tuning field, cadence, perch/floor
 recipe, shared attack stream and contact clock stays unchanged. The unique
 Captain remains its custom recipe; this slice does not claim to port that boss.
 
-SF85 WP-5: `@wildshard/game/plugin/weaponFamily` defines both the built-in held-item families and weapon hooks. `registerWeaponFamily(registry, id, family)` inserts a trusted weapon constructor into a caller-owned session-local `Map`; it never allocates the weapon or installs inputs. Names must be bounded dotted ids outside `kit.*`; duplicates and non-weapon families refuse. The existing item binder checks the shard namespace and all item declarations before construction. Signal and Sky register their own native lash and fan factories; their local controllers, collision laws, cues and continuation owners remain in the shard.
+SF85 WP-5: `@wildshard/game/plugin/weaponFamily` defines both the built-in held-item families and weapon hooks. `registerWeaponFamily(registry, id, family)` inserts a trusted weapon constructor into a caller-owned session-local `Map`; it never allocates the weapon or installs inputs. Names must be bounded dotted ids outside `kit.*`; duplicates and non-weapon families refuse. The existing item binder checks the shard namespace and all item declarations before construction. Signal and Sky register their native lash and fan factories; local models, cues and continuation owners remain in the shard.
+
+`@wildshard/engine/combat/contactWeapon` defines the renderer-free
+`ContactWeaponHost` and `HeldWeaponClock`. Signal's lash and Sky's fan consume
+these same clocks, contact-shape arithmetic and ordered pipeline responses.
+`claim(lane, seconds)` refuses a cooling lane; `countDown(dt)` advances it in the
+existing owner phase. `weaponContactDistance(from, dir, at, kind, reach, size,
+height, allowance)` tests a numeric cone or chest lane; native callers retain
+target order and nearest/all selection. `contact(target, move, point, dir, from,
+accepted)` executes the move's ordered numeric `before` reactions, samples the
+request, runs the pipeline and accepted hook, then applies `survived` reactions
+only for a surviving hit. Health predicates read the real actor at that instant.
+The move declares vector/tag ownership for event lifetime. Gust pushes precede damage; lash pulls/staggers
+follow acceptance. The host creates no actors, RNG, query grants or callbacks.
+
+`HeldWeaponClock.step(dt, enabled, held, release)` invokes release before
+clearing elapsed charge, and cancels a disabled hold without firing. `reset()`
+cancels on scope retirement. Signal's native input adapter serializes these
+scalars in its existing version-1 continuation; both families retain their
+existing move snapshots. Admission and registration stay on the defining
+`plugin/weaponFamily` surface. Model, rope, pose and cue owners stay local.
 
 SF82 Nalati's page factories and renderer-free wildlife/raid/Argymaq groups
 read `stalker/pack` and `grazer/herd` authored profiles. The defining format

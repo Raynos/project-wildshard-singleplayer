@@ -1,3 +1,4 @@
+import { HeldWeaponClock } from '@wildshard/engine/combat/contactWeapon';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { App } from '@wildshard/engine/app/app';
 import { blocks } from '@wildshard/engine/blocks';
@@ -90,7 +91,8 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends Weapon {
   onGust: ((from: Vector3, dir: Vector3) => void) | null = null;
   /** True while the fan is put away (e.g. riding a board): it hides and neither swings nor gusts. */
   stowed: () => boolean = () => false;
-  private wasHeld = false; private held = 0;
+  private readonly releaseHold = (): void => { this.strikes.cooldown = 0; this.swing(true); };
+  private readonly hold = new HeldWeaponClock();
   /** The move playing and how far through it (0…1; 1 = done). */
   motion: ConeFanMotion = 'swing'; motionK = 1;
   private readonly app: App; private readonly targets: () => readonly ConeFanTarget[];
@@ -99,7 +101,7 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends Weapon {
   private readonly vm: ReturnType<typeof blocks.viewmodel>;
   private readonly contact: ReturnType<typeof blocks.melee>;
   private readonly strikes: ConeStrikes;
-  override get charge(): number { return Math.min(1, this.held / this.chargeSeconds); }
+  override get charge(): number { return Math.min(1, this.hold.elapsed / this.chargeSeconds); }
 
   constructor(app: App, targets: () => readonly ConeFanTarget[], o: ConeFanOptions<P>) {
     super(o.row);
@@ -123,7 +125,7 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends Weapon {
     this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled);
     this.app.input.bind('heavy', () => { this.swing(true); }, ctx.scope, () => this.enabled);
     this.app.input.bind(this.gustAction, () => { this.gust(); }, ctx.scope, () => this.enabled);
-    ctx.scope.onDispose(() => { this.wasHeld = false; this.held = 0; });
+    ctx.scope.onDispose(() => { this.hold.reset(); });
   }
   override tryFire(): void { this.swing(false); }
   private aim(): { from: Vector3; dir: Vector3 } | null {
@@ -156,10 +158,7 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends Weapon {
   private play(motion: ConeFanMotion): void { this.motion = motion; this.motionK = 0; }
   override update(dt: number): void {
     this.strikes.tick(dt);
-    if (!this.enabled || this.holster > 0.001) { this.wasHeld = false; this.held = 0; }
-    else if (this.adsHeld) this.held += dt;
-    else if (this.wasHeld) { this.strikes.cooldown = 0; this.swing(true); this.held = 0; }
-    this.wasHeld = this.enabled && this.holster <= 0.001 && this.adsHeld;
+    this.hold.step(dt, this.enabled && this.holster <= 0.001, this.adsHeld, this.releaseHold);
     const view = this.view, hold = view.hold, draw = view.draw;
     this.motionK = Math.min(1, this.motionK + dt / view.motions[this.motion].seconds);
     this.vm.step(this.spring, new Vector2(), dt);
