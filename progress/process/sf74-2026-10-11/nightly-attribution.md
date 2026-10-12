@@ -76,3 +76,45 @@ export also passes ordinary generation and the tooling path check;
 its missing author JSON is produced by the registered jobs and matches
 the catalogue's pinned SHA256 bytes. No shared generated file is copied
 back or committed.
+
+Further read-only owner attribution preserves the historical pins above:
+
+| Shard / field | Proven source | Remaining limit |
+|---|---|---|
+| Nalati save/profile read and loot/profile write keys | 28fe9f479 declarations, a4ffb1c2d bindings, 70e2a5094 Progress | Key presence does not prove a grant-count change |
+| Nalati mesh 307 → 308 | 195597049 eagerly materializes the existing kurgan interior | No new geometry recipe or parity acceptance |
+| Signal sunscar.ray system | 0f30825c9 separates held-ray assignment | No extra behavior inferred from a system name |
+| Signal terrain and pose heights | 8cce2181c / G266 compiled tile ground; historical feet max 6.4 cm | Exact aggregate triangles/calls/SSIM remain open |
+| Driftwood director system | 99ecc7bcd and 256a71405 | The pose/walk residual is separate |
+| Sky registry 55 → 56, colliders 1,216 → 1,256 | 2a432fe486 adds far.islet.rails, forty wood cuboids | All other registry rows and body counts are identical |
+| Sky mesh −5, instanced +45, instances +90 | Allocation table below | Draw and GPU-byte ownership are separate |
+| Sky hover +480 triangles | Forty twelve-triangle rail boxes, frustum culling disabled | Spawn's extra 828 and both poses' −1 calls remain open |
+| Sky shallow named census | 20882ab8c / G321 reparents existing dressing | Unchanged depth-one cutoff does not prove removed geometry |
+
+Sky's representation sums reconcile exactly:
+
+| Source | Mesh delta | Instanced delta | Instance delta |
+|---|---:|---:|---:|
+| Winch house 8942c04ec | −1 | +13 | +14 |
+| Roost 3df45db44 | −2 | +5 | +7 |
+| 124b14522 crown | 0 | +5 | +5 |
+| 124b14522 mill | −3 | +15 | +18 |
+| 124b14522 two book stands | 0 | +4 | +4 |
+| 124b14522 knolls | 0 | +2 | +2 |
+| Rails 2a432fe486 | +1 | +1 | +40 |
+| Total | −5 | +45 | +90 |
+
+Sky's full buffer increase of 28,560 bytes remains open: the rail source
+accounts for 3,400 bytes, while other bake matrices and index formats
+are identifiable mechanisms without a complete allocation journal.
+Both retained runs repeat the same counts. The model catalogue remains
+10/0, and bodies remain fixed 4, kinematic 4, dynamic 0.
+
+Signal's mesh 391 → 260, instanced 17 → 25 and instances 123 → 247
+have proven tower, rocks, dressing, places and tile contributors, but
+the artifacts contain no exact per-draw allocation oracle. Driftwood's
+three poses each lose 24 triangles with unchanged calls; its pier walk
+ends 3 mm east and 8 mm south of the old endpoint. Flared-ramp/contact
+commits 00196a4c2 and 794c4e128 are candidates, not isolated culprits.
+Those residuals require draw/contact traces and stay open without a
+capture, threshold change or baseline acceptance.
