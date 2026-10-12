@@ -425,16 +425,16 @@ export interface CellDataSkyRequest {
  * and freed with the region's resident scope. Its air and grade stay what its far proxy declared to the frame: the layer's
  * clock writes its fog into a private fog object. 'off' when it has none (an empty look, no page sky yet).
  */
-export async function hangCellDataSky(request: CellDataSkyRequest): Promise<RegionSkyOutcome> {
+export function hangCellDataSky(request: CellDataSkyRequest): Promise<RegionSkyOutcome> {
   const { page, scope } = request, manifest = findShard(request.slug);
-  if (page === null || manifest === undefined || request.look.keys.length === 0) return 'off';
+  if (page === null || manifest === undefined || request.look.keys.length === 0) return Promise.resolve('off');
   const sky = page.world.sky, game = page.world.game;
-  if (!(sky instanceof SkyRig)) return 'off';
+  if (!(sky instanceof SkyRig)) return Promise.resolve('off');
   const level = toLevelSpec(manifest), look = shardfileLook(request.look, request.assets), make = look.backdrop;
-  if (make === undefined) return 'off';
+  if (make === undefined) return Promise.resolve('off');
   scope.onDispose(() => { look.dispose?.(); });
   const air = new Fog(0xffffff, 1, 2);
-  return await buildRegionSky<LayerAttachable>({ instance: request.instance, look: frameLookOf(game.rootScene), allocator: request.allocator, scope, layered: async () => {
+  return buildRegionSky<LayerAttachable>({ instance: request.instance, look: frameLookOf(game.rootScene), allocator: request.allocator, scope, layered: async () => {
     const layered = await sky.layeredBackdrop(make, { level, scope, air: () => air, planet: look.sky?.planet !== false, clouds: look.sky?.clouds !== false, sun: look.sky?.sun });
     if (layered === null) return null;
     return { ...layered, prepare: () => game.warmSkyLayer(layered.layer) };
