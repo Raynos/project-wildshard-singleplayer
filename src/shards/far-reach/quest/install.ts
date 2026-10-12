@@ -36,7 +36,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
   const reward = questReward(ctx, { player, coins: onCoin ?? bindRuntimeCoins(ctx, null), amount: bound.reward.coins, paid: () => rewarded.read(), markPaid: () => { rewarded.write(true); }, toast: STRINGS.reward });
   // The keeper at the spawn: he waves within 16 m and gestures while he talks.
   const npc = keeper(DECK); ctx.root.add(npc.group); ownPrimitives(npc.group, ctx.scope);
-  ctx.system({ id: 'far.keeper', phase: 'update', run: (_dt, t) => { npc.update(t, player); } });
+  ctx.system({ id: 'far.keeper', phase: 'update', run: (dt, t) => { npc.update(dt, t, player, false); } });
   // The one-call presentation (ENGINE §20); headless (tests, a node bake) the reward pays at once.
   const view = presentRewardedQuest(ctx, quest, reward, { id: 'far.reward', player, unpaid: () => !rewarded.read(), newQuest: `${STRINGS.newQuest} · ${STRINGS.quest}`,
     presentation: { flags, places: [...SKY_PLACES], introTitle: STRINGS.quest, npc: { npc: KEEPER_NPC, at: npc.head, label: STRINGS.talkKeeper, speaker: npc.speaker, radius: 3.5 } },

@@ -1,10 +1,12 @@
 import { loadRigFile } from "@wildshard/engine/anim/rig";
 import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
-import { Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters } from "three";
+import { Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material } from "three";
 import { applySurfaceLooks, type SurfaceInputs } from "../systems/looks/surfaceLooks";
 import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
 import { Rng } from "@wildshard/engine/core/rng";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import type { LevelContext } from "@wildshard/engine/level/context";
+import type { NpcMotion, NpcRow } from "./quests";
 
 /**
  * A model library (SHARD-PLATFORM M3; ex a dune shard's generated models): the GLBs a level loads once behind its loading
@@ -55,7 +57,8 @@ export interface ModelLibraryRows<M extends string, H extends string, R extends 
 }
 
 /** How a copy is framed: turned `yaw` about +Y, centred on x / z, its lowest point at `floor`, `size` metres by span or height. */
-export interface ModelFit { readonly size: number; readonly by: 'span' | 'height'; readonly floor?: number; readonly yaw?: number }
+/** How `fitGeometry` frames a model; `centre: 'base'` centres x / z on its footing (the lowest tenth), not its whole box. */
+export interface ModelFit { readonly size: number; readonly by: 'span' | 'height'; readonly floor?: number; readonly yaw?: number; readonly centre?: 'base' }
 
 /** A loaded model library: preload once, then take copies. */
 export interface ModelLibrary<M extends string, H extends string, R extends string> {
@@ -184,7 +187,12 @@ export const facetMaterial = (): MeshStandardMaterial => new MeshStandardMateria
 /** Fit a geometry into a frame (turned `yaw` radians about +Y first): centred on x / z, its lowest point at `floor`, scaled to `size`. */
 export function fitGeometry(g: BufferGeometry, o: ModelFit): BufferGeometry {
   if (o.yaw !== undefined) g.rotateY(o.yaw);
-  const b = new Box3().setFromBufferAttribute(g.getAttribute('position') as BufferAttribute);
+  const p = g.getAttribute('position'), b = new Box3().setFromBufferAttribute(p as BufferAttribute);
+  if (o.centre === 'base') {
+    let x = 0, z = 0, n = 0; const top = b.min.y + (b.max.y - b.min.y) * 0.1;
+    for (let i = 0; i < p.count; i++) if (p.getY(i) <= top) { x += p.getX(i); z += p.getZ(i); n++; }
+    if (n > 0) { const cx = x / n, cz = z / n, hx = Math.max(b.max.x - cx, cx - b.min.x), hz = Math.max(b.max.z - cz, cz - b.min.z); b.min.x = cx - hx; b.max.x = cx + hx; b.min.z = cz - hz; b.max.z = cz + hz; }
+  }
   const span = o.by === 'height' ? b.max.y - b.min.y : Math.max(b.max.x - b.min.x, b.max.z - b.min.z), k = o.size / Math.max(1e-6, span);
   g.translate(-(b.min.x + b.max.x) / 2, -b.min.y, -(b.min.z + b.max.z) / 2);
   g.scale(k, k, k); g.translate(0, o.floor ?? 0, 0); g.computeBoundingBox(); g.computeBoundingSphere();
@@ -1060,4 +1068,109 @@ export function standardMaterial(row: StandardMaterialRow): MeshStandardMaterial
   if (row.emissiveIntensity !== undefined) p.emissiveIntensity = row.emissiveIntensity;
   if (row.fog !== undefined) p.fog = row.fog;
   return new MeshStandardMaterial(p);
+}
+
+/** Split a geometry by triangle centroid into `parts` (de-indexed, every attribute kept; flat normals recomputed when `flat`); disposes the input. */
+function partition(source: BufferGeometry, parts: number, of: (x: number, y: number, z: number) => number, flat: boolean): BufferGeometry[] {
+  const g = source.index === null ? source : source.toNonIndexed(), p = g.getAttribute('position'), side: number[] = [];
+  for (let t = 0; t + 2 < p.count; t += 3) side.push(of((p.getX(t) + p.getX(t + 1) + p.getX(t + 2)) / 3, (p.getY(t) + p.getY(t + 1) + p.getY(t + 2)) / 3, (p.getZ(t) + p.getZ(t + 1) + p.getZ(t + 2)) / 3));
+  const out = Array.from({ length: parts }, (_, part) => {
+    const r = new BufferGeometry();
+    for (const [name, a] of Object.entries(g.attributes)) {
+      const values: number[] = [];
+      side.forEach((s, t) => { if (s === part) for (let v = t * 3; v < t * 3 + 3; v++) for (let c = 0; c < a.itemSize; c++) values.push(a.getComponent(v, c)); });
+      r.setAttribute(name, new Float32BufferAttribute(values, a.itemSize));
+    }
+    if (flat) r.computeVertexNormals();
+    r.computeBoundingBox(); r.computeBoundingSphere(); return r;
+  });
+  if (g !== source) g.dispose();
+  source.dispose(); return out;
+}
+
+/** A pivot NPC's figure on its pivots: the body under `root`, the head at the neck, the arm at the shoulder and its forearm at the elbow. */
+export interface PivotNpcParts { readonly root: Group; readonly head: Group; readonly arm: Group; readonly elbow: Group }
+/**
+ * A pivot NPC's figure (SF27): the row's model (`source`) fitted to its height and cut onto pivots by its figure row
+ * (`NpcRowSchema`): the body, the head at the neck, the arm at the shoulder and its forearm at the elbow, in `material`
+ * (else one vertex-coloured standard material). Feet on y 0, facing +Z, at its own origin (the Model Explorer shows it so).
+ */
+export function pivotNpcParts(row: NpcRow, source: BufferGeometry, material?: Material): PivotNpcParts {
+  const fig = row.figure, neck = fig.neck, [sx, sy, sz] = fig.shoulder, top = fig.armTopY ?? (neck === undefined ? Infinity : neck[1] + 0.02);
+  const slope = fig.armSlope ?? 0, cut = fig.elbow, [ex, ey, ez] = cut?.at ?? fig.shoulder;
+  const whole = fitGeometry(source, { size: fig.height, by: 'height', ...(fig.centre === undefined ? {} : { centre: fig.centre }) });
+  const [body, head, arm, fore] = partition(whole, 4, (x, y) => neck !== undefined && y >= neck[1] ? 1
+    : x < fig.armBelowX + slope * y && y > fig.armAboveY && y < top ? (cut !== undefined && (x - ex) * cut.axis[0] + (y - ey) * cut.axis[1] > 0 ? 3 : 2) : 0, fig.flat);
+  const paint = material ?? new MeshStandardMaterial({ vertexColors: true, roughness: fig.roughness, metalness: 0, flatShading: fig.flat });
+  const root = new Group(), headPivot = new Group(), armPivot = new Group(), elbow = new Group();
+  if (neck !== undefined) { headPivot.position.set(neck[0], neck[1], neck[2]); head?.translate(-neck[0], -neck[1], -neck[2]); }
+  armPivot.position.set(sx, sy, sz); elbow.position.set(ex - sx, ey - sy, ez - sz);
+  for (const [g, pivot] of [[body, root], [head, headPivot], [arm?.translate(-sx, -sy, -sz), armPivot], [fore?.translate(-ex, -ey, -ez), elbow]] as const) {
+    if (g === undefined) continue;
+    if (g.getAttribute('position').count > 0) pivot.add(new Mesh(g, paint)); else g.dispose();
+  }
+  armPivot.add(elbow); root.add(headPivot, armPivot);
+  return { root, head: headPivot, arm: armPivot, elbow };
+}
+
+/** The SF27 quest-giver's motion: it faces you, waves overhead until met, gestures at the chest as it talks and breathes. */
+export const PIVOT_NPC_MOTION: NpcMotion = { turns: true, waveUntilMet: true, ease: 8, breathe: { yaw: [0, 0], scale: [0.008, 1.3] },
+  rest: { lift: [0, 0, 0], forward: [0, 0, 0], bend: [0, 0, 0] },
+  wave: { lift: [-2.5, 0.3, 7], forward: [0, 0, 0], bend: [0, 0, 0] },
+  talk: { lift: [-0.9, 0.2, 2.3], forward: [-0.5, -0.3, 1.7, 'half'], bend: [0, 0, 0] } };
+/** A pivot NPC in the world: its group, its head (the talk prompt's anchor), its speaker and its per-frame motion. */
+export interface PivotNpc { readonly group: Group; readonly head: Vector3; readonly speaker: { talking: boolean }; update: (dt: number, t: number, player: Vector3, met: boolean) => void }
+
+const wrapAngle = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
+const swingAt = (s: NpcMotion['rest']['lift'], t: number): number => s[0] + s[1] * (s.length === 4 ? Math.max(0, Math.sin(t * s[2])) : Math.sin(t * s[2]));
+/**
+ * The row's NPC standing on the ground, moving by its motion row (`NpcMotionSchema`, else `PIVOT_NPC_MOTION`): it turns
+ * to face the player within `faceRange` or while it talks (else back to `faceHome`), its head follows within ±0.7 rad,
+ * its arm takes the talk pose while it talks, the wave pose within `waveRange` (until met, when the row says so), else
+ * the rest pose, and it breathes. No source (its model did not load): no figure, the talk anchor and speaker still stand.
+ */
+export function pivotNpc(row: NpcRow, source: BufferGeometry | null, groundAt: (x: number, z: number) => number, material?: Material): PivotNpc {
+  const { x: ax, z: az } = row.at, y = groundAt(ax, az), m = row.motion ?? PIVOT_NPC_MOTION, group = new Group(), speaker = { talking: false };
+  const head = new Vector3(ax, y + row.talkHeight, az), home = Math.atan2(row.faceHome.x - ax, row.faceHome.z - az);
+  group.position.set(ax, y, az); group.rotation.y = home;
+  if (source === null) return { group, head, speaker, update: () => undefined };
+  const parts = pivotNpcParts(row, source, material); group.add(parts.root);
+  let facing = home;
+  return { group, head, speaker, update: (dt, t, player, met) => {
+    const dx = player.x - ax, dz = player.z - az, d = Math.hypot(dx, dz), toYou = Math.atan2(dx, dz), k = 1 - Math.exp(-3 * dt);
+    if (m.turns) facing += wrapAngle((d < row.faceRange || speaker.talking ? toYou : home) - facing) * k;
+    group.rotation.y = facing + m.breathe.yaw[0] * Math.sin(t * m.breathe.yaw[1]);
+    parts.head.rotation.y += (Math.max(-0.7, Math.min(0.7, wrapAngle(toYou - group.rotation.y))) * (d < row.faceRange ? 1 : 0) - parts.head.rotation.y) * k;
+    parts.head.rotation.x = speaker.talking ? Math.sin(t * 5.2) * 0.05 : Math.sin(t * 0.7) * 0.02;
+    const pose = speaker.talking ? m.talk : d < row.waveRange && !(m.waveUntilMet && met) ? m.wave : m.rest, e = Math.min(1, dt * m.ease);
+    parts.arm.rotation.z += (swingAt(pose.lift, t) - parts.arm.rotation.z) * e; parts.arm.rotation.x += (swingAt(pose.forward, t) - parts.arm.rotation.x) * e;
+    parts.elbow.rotation.z += (swingAt(pose.bend, t) - parts.elbow.rotation.z) * e;
+    parts.root.scale.y = 1 + m.breathe.scale[0] * Math.sin(t * m.breathe.scale[1]);
+  } };
+}
+
+/** What `installPivotNpc` is lent: the model (null: not loaded), its material, the ground, the player, its met flag's reader, the piece's source file and the shard's dressing of the figure. */
+export interface PivotNpcPorts {
+  readonly source: BufferGeometry | null;
+  /** the figure's material (a textured model's own); else one vertex-coloured standard material */
+  readonly material?: Material;
+  readonly groundAt: (x: number, z: number) => number;
+  readonly player: Vector3;
+  readonly met: () => boolean;
+  /** the authored file the piece names (the Model Explorer and the physics bake list it) */
+  readonly file: string;
+  /** the shard's look on the figure (its light rim, resource ownership) */
+  readonly dress?: (group: Group) => void;
+}
+/**
+ * Installs the row's NPC in a level: the figure under the level root, a solid column piece round it when the row has a
+ * collider (it turns in place, so the box stays square), and its motion each frame.
+ */
+export function installPivotNpc(ctx: Pick<LevelContext, 'root' | 'piece' | 'system'>, row: NpcRow, ports: PivotNpcPorts): PivotNpc {
+  const npc = pivotNpc(row, ports.source, ports.groundAt, ports.material), c = row.collider, y = npc.group.position.y;
+  ctx.root.add(npc.group); ports.dress?.(npc.group);
+  if (c !== undefined) ctx.piece({ id: row.id, name: row.name, category: 'props', file: ports.file, object: npc.group,
+    colliders: [{ kind: 'box', x: row.at.x, y: y + (c.above - c.below) / 2, z: row.at.z, hx: c.half, hy: Math.max(0.005, (c.above + c.below) / 2), hz: c.half, yaw: -0, surface: c.surface }], surface: c.surface });
+  if (ports.source !== null) ctx.system({ id: row.id, phase: 'update', run: (dt, t) => { npc.update(dt, t, ports.player, ports.met()); } });
+  return npc;
 }
