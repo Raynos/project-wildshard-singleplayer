@@ -43,7 +43,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **GitHub drops the :17 schedule** under load, with no error (2026-10-02/03: one run every 4–6 h). A launchd agent on
   Jake's Mac is the backstop (E403): `scripts/deploy-backstop/backstop.sh` runs at :47 every second hour and dispatches
   the deploy when no scheduled run started in the last 119 minutes and `deploy-pin.mjs release-slot` proves the shared
-  hourly slot is free. A recent scheduled/manual release or any queued/running release blocks it. Every retry checks
+  hourly slot is free and `release-ready` finds no newer CI-green candidate still awaiting its exact-SHA smoke.
+  Pending proof defers dispatch without consuming the hour; API or unreadable proof errors refuse it.
+  Other configured pin modes retain their release-job proof checks. A recent scheduled/manual release or any
+  queued/running release blocks it. Every retry checks
   again, and an API error or unreadable proof refuses dispatch. `scripts/deploy-backstop/install.sh` (re)installs it
   with both gh and Node on launchd's PATH; the log is `~/.wildshard/deploy-backstop/backstop.log`;
   `backstop.sh --dry-run` checks the slot and only reports.
@@ -73,8 +76,11 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   and no `deploy` release run (schedule or dispatch) started in the last 60 minutes, run `gh workflow run deploy`; never
   a second dispatch inside the hour, and never while a release run is queued or in progress.
   **boot-smoke does the same by itself** (SF74 W16, G284): its `release` job runs after a green exact-SHA smoke of main and
-  dispatches `deploy` only when `node scripts/deploy-pin.mjs release-slot` says the hour is free and `version.json` does
-  not already serve that SHA; otherwise it does nothing and the cron, the backstop or a hand dispatch picks the pin up.
+  dispatches `deploy` only when `release-ready` finds the newest candidate already proven,
+  `node scripts/deploy-pin.mjs release-slot` says the hour is free and `version.json` does
+  not already serve that selected SHA. An older smoke finishing while a newer proof is pending
+  leaves the hour free for that newer completion; otherwise it does nothing and the cron, the backstop or a hand
+  dispatch picks the pin up.
 - **Nobody waits for GitHub after a push** (Jake, E428, 2026-10-03: "waiting 15 minutes for remote GitHub is just too
   slow"). The local gates on a clean export of HEAD are the check; CI and the hourly deploy run on their own. A red CI
   run is fixed by whoever sees it. If the game needs an immediate release, `gh workflow run deploy` (no need to watch it).

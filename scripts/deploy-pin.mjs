@@ -5,6 +5,7 @@
 //   node scripts/deploy-pin.mjs read                                  # prints the SHA; sha= mode= gate= to $GITHUB_OUTPUT
 //   node scripts/deploy-pin.mjs check-gate <sha>                      # exit 0 only if <sha> has gpu-gate = success
 //   node scripts/deploy-pin.mjs release-slot                          # free= to $GITHUB_OUTPUT: no release run in the last hour
+//   node scripts/deploy-pin.mjs release-ready                         # ready=, sha= to $GITHUB_OUTPUT; no wait
 //   node scripts/deploy-pin.mjs set <sha> --milestone M<n> --go "<where Jake OKed>"
 //   node scripts/deploy-pin.mjs rollback <sha> --go "<Jake's words>"   # any SHA proven previously live in production
 //   node scripts/deploy-pin.mjs mode newest-green --go "<…>"          # Z4 only
@@ -161,6 +162,18 @@ export function newestCiGreen(query = ghApi, log = (line) => console.error(line)
   throw new Error('newest-ci-green: no successful push CI with a successful exact-SHA boot-smoke in the last 100 runs');
 }
 
+/** Check automatic-dispatch readiness without spending the hourly slot on a newer pending proof.
+ * Actual releases still reselect and enforce the bounded wait and every exact-SHA proof.
+ * @param {(args:string[])=>string} [query] @param {(line:string)=>void} [log] @param {number} [now]
+ * @returns {{ready:boolean, sha:string}} */
+export function releaseReady(query = ghApi, log = (line) => console.error(line), now = Date.now()) {
+  try { return { ready: true, sha: newestCiGreen(query, log, now) }; } catch (error) {
+    if (!(error instanceof PendingBootSmokeError)) throw error;
+    log(error.message);
+    return { ready: false, sha: error.sha };
+  }
+}
+
 /** Keep one release waiting for up to 15 minutes; failures may fall back, unresolved proofs fail closed.
  * Re-read CI and statuses every 30 seconds so a newer green push or coalesced smoke is observed.
  * @param {(args:string[])=>string} [query] @param {(line:string)=>void} [log]
@@ -251,6 +264,15 @@ async function main() {
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `sha=${sha}\nmode=${pin.mode}\ngate=${pin.gate}\nci_green=${ciPassed}\n`);
     return 0;
   }
+  if (cmd === 'release-ready') {
+    const pin = readPin();
+    // Other modes retain their existing release-job proof checks; this preflight defers only newest-CI dispatches.
+    const candidate = pin.mode === 'newest-ci-green' ? releaseReady() : { ready: true, sha: pin.sha };
+    console.log(`release readiness: ${candidate.ready ? 'ready' : 'deferred'} ${candidate.sha} (${pin.mode})`);
+    const output = process.env.GITHUB_OUTPUT;
+    if (output) appendFileSync(output, `ready=${candidate.ready}\nsha=${candidate.sha}\n`);
+    return 0;
+  }
   if (cmd === 'release-slot') {
     const slot = releaseSlot();
     console.log(`release slot: ${slot.free ? 'free' : 'taken'}: ${slot.why}`);
@@ -302,7 +324,7 @@ async function main() {
     writePin({ ...readPin(), mode: a1, gate: 'grandfathered', go, set: new Date().toISOString(), by: 'E357 lead' });
     return 0;
   }
-  console.error('usage: deploy-pin.mjs read | release-slot | check-gate <sha> | set <sha> --milestone M<n> --go "…" | rollback <sha> --go "…" | mode newest-green|newest-ci-green --go "…"');
+  console.error('usage: deploy-pin.mjs read | release-ready | release-slot | check-gate <sha> | set <sha> --milestone M<n> --go "…" | rollback <sha> --go "…" | mode newest-green|newest-ci-green --go "…"');
   return 2;
 }
 

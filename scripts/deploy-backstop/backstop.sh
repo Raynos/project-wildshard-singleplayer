@@ -21,7 +21,10 @@ if [[ -n "$last" && ! "$last" < "$since" ]]; then
   exit 0
 fi
 slot_file="$(mktemp "$LOG_DIR/release-slot.XXXXXX")"
-trap 'rm -f "$slot_file"' EXIT
+ready_file=""
+trap 'rm -f "$slot_file" "$ready_file"' EXIT
+ready_file="$(mktemp "$LOG_DIR/release-ready.XXXXXX")"
+ready_pattern=$'^ready=(true|false)\nsha=([0-9a-f]{40})$'
 # a dispatch sometimes answers HTTP 500 and works on a retry
 for attempt in 1 2 3; do
   # Recheck before retries: an HTTP error may have followed a successful dispatch.
@@ -38,6 +41,20 @@ for attempt in 1 2 3; do
   if [[ "$slot" != "free=true" ]]; then
     log "FAILED: unreadable shared release-slot proof"
     exit 1
+  fi
+  : > "$ready_file"
+  if ! GITHUB_OUTPUT="$ready_file" node scripts/deploy-pin.mjs release-ready; then
+    log "FAILED: cannot prove newest candidate readiness"
+    exit 1
+  fi
+  readiness="$(cat "$ready_file")"
+  if [[ ! "$readiness" =~ $ready_pattern ]]; then
+    log "FAILED: unreadable candidate-readiness proof"
+    exit 1
+  fi
+  if [[ "${BASH_REMATCH[1]}" == false ]]; then
+    log "ok: newer candidate ${BASH_REMATCH[2]} awaits exact-SHA smoke; leaving the hour free"
+    exit 0
   fi
   if [[ "$DRY" == 1 ]]; then
     log "dry run: no scheduled deploy since $since (last: ${last:-none}); slot free; would dispatch"

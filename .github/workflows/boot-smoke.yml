@@ -144,6 +144,7 @@ jobs:
     permissions:
       contents: read
       actions: write # read the release runs and dispatch deploy.yml
+      statuses: read # inspect the newest candidate's exact-SHA boot proof
     steps:
       - uses: actions/checkout@v4
         with:
@@ -162,6 +163,9 @@ jobs:
           mode=$(node -p "require('./.github/deploy-pin.json').mode")
           if [ "$mode" != newest-ci-green ]; then echo "Release mode $mode: keeping the configured pin policy."; exit 0; fi
           export GITHUB_OUTPUT="$RUNNER_TEMP/release.out"
+          node scripts/deploy-pin.mjs release-ready
+          if ! grep -qx 'ready=true' "$GITHUB_OUTPUT"; then echo 'A newer exact-SHA smoke is pending; leaving the hourly slot free.'; exit 0; fi
+          export DEPLOY_SHA="$(sed -n 's/^sha=//p' "$GITHUB_OUTPUT")"
           node scripts/deploy-version.mjs check
           if grep -qx 'skip=true' "$GITHUB_OUTPUT"; then echo "Production already serves $DEPLOY_SHA."; exit 0; fi
           node scripts/deploy-pin.mjs release-slot

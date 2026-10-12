@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { ciGreen, bootGreen, logProvesProduction, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, productionLive, releaseSlot } from '../scripts/deploy-pin.mjs';
+import { ciGreen, bootGreen, logProvesProduction, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, productionLive, releaseReady, releaseSlot } from '../scripts/deploy-pin.mjs';
 
 const a = 'a'.repeat(40), b = 'b'.repeat(40), c = 'c'.repeat(40);
 const lines: string[] = [];
@@ -137,4 +137,28 @@ it('frees the hourly release slot only when no release run started in the last h
   expect(slot({ dispatch: '2\tqueued\t2026-10-09T18:00:00Z' })).toEqual({ free: false, why: 'workflow_dispatch run 2 is queued' });
   expect(slot({ dispatch: '2\tin_progress\t2026-10-09T19:30:00Z' }).free).toBe(false);
   expect(() => slot({ schedule: 'garbage' })).toThrow('unreadable run row');
+});
+
+it('defers an older smoke completion without starting a release while a newer exact proof is pending', () => {
+  const status = { [a]: 'boot-smoke\tpending\tqueued', [b]: 'boot-smoke\tsuccess\tpassed' };
+  const { query, calls } = fixture(status);
+  expect(releaseReady(query, record)).toEqual({ ready: false, sha: a });
+  expect(calls).toHaveLength(2);
+  status[a] = 'boot-smoke\tsuccess\tpassed';
+  expect(releaseReady(query, record)).toEqual({ ready: true, sha: a });
+});
+
+it('keeps readiness closed during the newly-green status publication gap', () => {
+  const now = Date.parse('2026-10-11T13:00:00Z');
+  const base = fixture({ [b]: 'boot-smoke\tsuccess\tpassed' }, `${a}\n${b}`).query;
+  const query = (args: string[]) => (args[0] ?? '').includes('/workflows/')
+    ? `${a}\t2026-10-11T12:59:00Z\n${b}\t2026-10-01T00:00:00Z` : base(args);
+  expect(releaseReady(query, record, now)).toEqual({ ready: false, sha: a });
+});
+
+it('readiness keeps terminal fallback and refuses API or malformed proof errors', () => {
+  expect(releaseReady(fixture({ [a]: 'boot-smoke\tfailure\tfatal', [b]: 'boot-smoke\tsuccess\tpassed' }).query, record))
+    .toEqual({ ready: true, sha: b });
+  expect(() => releaseReady(() => { throw new Error('API unavailable'); }, record)).toThrow('API unavailable');
+  expect(() => releaseReady(fixture({}, 'not-a-sha').query, record)).toThrow();
 });
