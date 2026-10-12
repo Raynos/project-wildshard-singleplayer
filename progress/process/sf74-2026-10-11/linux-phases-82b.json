@@ -1,0 +1,228 @@
+{
+  "sha": "82b919f09158dc79febeac8a43699e05d4ba5bf1",
+  "run": 38202915035,
+  "conclusion": "success",
+  "files": 1494,
+  "failedFileEntries": 0,
+  "shards": [
+    {
+      "shard": 1,
+      "files": 184,
+      "summedFileSeconds": 309.679,
+      "jobSeconds": 326.0,
+      "preparationAndVitestSeconds": 269.0,
+      "poolWorkSeconds": {
+        "unit": 191.844,
+        "integration": 117.835
+      },
+      "serialFiles": [
+        {
+          "file": "integration:test/proof/compatibility/determinism.test.ts",
+          "fileSeconds": 117.835
+        }
+      ]
+    },
+    {
+      "shard": 2,
+      "files": 187,
+      "summedFileSeconds": 253.704,
+      "jobSeconds": 242.0,
+      "preparationAndVitestSeconds": 187.0,
+      "poolWorkSeconds": {
+        "unit": 244.749,
+        "integration": 8.955
+      },
+      "serialFiles": [
+        {
+          "file": "integration:test/shards/driftwood-isle/trailside-bake.test.ts",
+          "fileSeconds": 3.115
+        },
+        {
+          "file": "integration:test/grid-collision-strips.test.ts",
+          "fileSeconds": 5.841
+        }
+      ]
+    },
+    {
+      "shard": 3,
+      "files": 187,
+      "summedFileSeconds": 241.87,
+      "jobSeconds": 215.0,
+      "preparationAndVitestSeconds": 170.0,
+      "poolWorkSeconds": {
+        "unit": 218.533,
+        "integration": 23.337
+      },
+      "serialFiles": [
+        {
+          "file": "integration:test/live-grid.test.ts",
+          "fileSeconds": 3.306
+        },
+        {
+          "file": "integration:test/proof/driftwood-isle/reef.test.ts",
+          "fileSeconds": 19.935
+        },
+        {
+          "file": "integration:test/immutable-vegetation-canvases.test.ts",
+          "fileSeconds": 0.096
+        }
+      ]
+    },
+    {
+      "shard": 4,
+      "files": 187,
+      "summedFileSeconds": 340.237,
+      "jobSeconds": 265.0,
+      "preparationAndVitestSeconds": 215.0,
+      "poolWorkSeconds": {
+        "unit": 322.642,
+        "integration": 17.596
+      },
+      "serialFiles": [
+        {
+          "file": "integration:test/proof/nine-dragon-stack/headless.test.ts",
+          "fileSeconds": 17.596
+        }
+      ]
+    },
+    {
+      "shard": 5,
+      "files": 187,
+      "summedFileSeconds": 389.675,
+      "jobSeconds": 325.0,
+      "preparationAndVitestSeconds": 274.0,
+      "poolWorkSeconds": {
+        "unit": 347.462,
+        "integration": 42.213
+      },
+      "serialFiles": [
+        {
+          "file": "integration:test/authoring-docs.test.ts",
+          "fileSeconds": 14.269
+        },
+        {
+          "file": "integration:test/proof/driftwood-isle/replay.test.ts",
+          "fileSeconds": 27.944
+        }
+      ]
+    },
+    {
+      "shard": 6,
+      "files": 187,
+      "summedFileSeconds": 379.713,
+      "jobSeconds": 381.0,
+      "preparationAndVitestSeconds": 332.0,
+      "poolWorkSeconds": {
+        "unit": 337.209,
+        "integration": 42.505
+      },
+      "serialFiles": [
+        {
+          "file": "integration:test/shardfile-splat-admission.test.ts",
+          "fileSeconds": 0.223
+        },
+        {
+          "file": "integration:test/sdk-repo-build.test.ts",
+          "fileSeconds": 28.318
+        },
+        {
+          "file": "integration:test/template-copy-scaffold.test.ts",
+          "fileSeconds": 13.964
+        }
+      ]
+    },
+    {
+      "shard": 7,
+      "files": 187,
+      "summedFileSeconds": 382.294,
+      "jobSeconds": 367.0,
+      "preparationAndVitestSeconds": 324.0,
+      "poolWorkSeconds": {
+        "unit": 370.447,
+        "integration": 11.847
+      },
+      "serialFiles": [
+        {
+          "file": "integration:test/proof/nalati-grasslands/headless.test.ts",
+          "fileSeconds": 11.847
+        }
+      ]
+    },
+    {
+      "shard": 8,
+      "files": 188,
+      "summedFileSeconds": 408.916,
+      "jobSeconds": 429.0,
+      "preparationAndVitestSeconds": 388.0,
+      "poolWorkSeconds": {
+        "unit": 340.97,
+        "integration": 67.946
+      },
+      "serialFiles": [
+        {
+          "file": "integration:test/proof/nalati-grasslands/replay.test.ts",
+          "fileSeconds": 20.832
+        },
+        {
+          "file": "integration:test/proof/driftwood-isle/zipline.test.ts",
+          "fileSeconds": 30.068
+        },
+        {
+          "file": "integration:test/proof/blender-template/replay.test.ts",
+          "fileSeconds": 16.894
+        },
+        {
+          "file": "integration:test/immutable-vegetation-canvases-off.test.ts",
+          "fileSeconds": 0.153
+        }
+      ]
+    }
+  ],
+  "top10": [
+    {
+      "file": "integration:test/proof/compatibility/determinism.test.ts",
+      "fileSeconds": 117.835
+    },
+    {
+      "file": "unit:test/shards/pine-hollow/headless-runtime.test.ts",
+      "fileSeconds": 69.309
+    },
+    {
+      "file": "unit:test/generated-workflow.test.ts",
+      "fileSeconds": 66.308
+    },
+    {
+      "file": "unit:test/shards/driftwood-isle/headless-runtime.test.ts",
+      "fileSeconds": 54.235
+    },
+    {
+      "file": "unit:test/lint-ratchet.test.ts",
+      "fileSeconds": 52.6
+    },
+    {
+      "file": "unit:test/shards/nalati-grasslands/headless-taming.test.ts",
+      "fileSeconds": 52.463
+    },
+    {
+      "file": "unit:test/grid-render-rings.test.ts",
+      "fileSeconds": 49.23
+    },
+    {
+      "file": "unit:test/shards/far-reach/headless-runtime.test.ts",
+      "fileSeconds": 45.063
+    },
+    {
+      "file": "unit:test/author-brief.test.ts",
+      "fileSeconds": 40.006
+    },
+    {
+      "file": "unit:test/shards/sunscar-dunes/headless-runtime.test.ts",
+      "fileSeconds": 36.158
+    }
+  ],
+  "limitations": [
+    "Cache file durations are not independent wall times and can overlap within a forked pool.",
+    "Vitest step includes generation and native cache preparation; job includes setup and upload.",
+    "Different SHAs and runner activity do not support an isolated causal comparison."
+  ]
+}

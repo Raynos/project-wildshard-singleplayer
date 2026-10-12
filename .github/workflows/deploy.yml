@@ -282,9 +282,16 @@ jobs:
         env:
           WS_REPLAY_DIAGNOSTICS_DIR: ${{ runner.temp }}/wildshard-replay-diagnostics
         run: |
+          node --input-type=module -e "import { availableParallelism, cpus } from 'node:os'; console.log('ci-vitest-resource: cores=' + cpus().length + ' available=' + availableParallelism());"
+          phase_started=$SECONDS
           pnpm gen
+          printf 'ci-vitest-phase: generation %s s\n' "$((SECONDS - phase_started))"
+          phase_started=$SECONDS
           node scripts/witness-manifests.mjs --prepare .
+          printf 'ci-vitest-phase: native-cache %s s\n' "$((SECONDS - phase_started))"
+          phase_started=$SECONDS
           python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --shard=${{ matrix.shard }}/8 --reporter=dot --reporter=github-actions
+          printf 'ci-vitest-phase: vitest %s s\n' "$((SECONDS - phase_started))"
       - name: Upload bounded replay mismatch
         if: failure()
         uses: actions/upload-artifact@v4
