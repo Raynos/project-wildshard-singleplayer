@@ -13,6 +13,7 @@ import { ROC_SLATE_EDITS } from '../data/paintLook';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from '../data/strings';
+import { GUST_ICON, SWING_ICON } from '../data/icons';
 import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
 import { SKY_FLOCK_GROUPS } from '../data/spawns';
 import { buildWorld, type BuiltWorld } from '../world/build';
@@ -73,15 +74,8 @@ declare module '@wildshard/engine/combat/Equipment' {
   interface EquipmentSlotMap { 'far-fan': true }
 }
 
-/** The touch icons (council R1B-11: every primary and verb carries one): an open fan for SWING (the attack disc's own
- * 24 × 24 svg), wind curls for GUST (a whole svg before the verb's label). */
-const SWING_ICON = '<path d="M12 19.5 4.2 9.8a10 10 0 0 1 15.6 0Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'
-  + '<path d="M12 19.5 8.6 7.6M12 19.5V6.8M12 19.5l3.4-11.9" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>';
-const GUST_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5h10.5a3 3 0 1 0-3-3M3 12.5h14.5a3 3 0 1 1-3 3M3 16.5h7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
 /** How far above its island's deck a goat's spawn ray starts (metres): above the grass, below anything overhead. */
 export const GOAT_SPAWN_ABOVE = 2;
-/** How fast the winch lifts the fallen bridge (radians per second). */
-export const RAISE_RATE = 0.55;
 
 /** Every runtime collection is a finite authored roster; refuse overflow instead of silently dropping content. */
 const MAX_RUNTIME_ROWS = 64;
@@ -195,17 +189,13 @@ export class SkyReachPlugin extends ShardPlugin {
     if (rt) rt.hooks.questFlags = () => quest.isComplete ? [FLAGS.complete] : [];
 
     const showGust = (): boolean => ctx.app.state === 'play' && !this.board();
-    if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, { id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
+    const fanInput: Parameters<ShardContext['inputContext']>[0] = { id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
       touch: { mode: 'melee', lockable: true, relabel: { r0: { label: STRINGS.swing, icon: SWING_ICON } },
-        verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: GUST_ICON, show: showGust } } } },
-    { rows: [{ group: 'combat', id: 'far.gust', label: STRINGS.gustBinding, actions: ['far.gust'] }] });
-    else {
-    ctx.inputContext({ id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
-      touch: { mode: 'melee', lockable: true, relabel: { r0: { label: STRINGS.swing, icon: SWING_ICON } },
-        verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: GUST_ICON, show: showGust } } } });
+        verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: GUST_ICON, show: showGust } } } };
     // the gust in the key-bindings table, under Combat (E418: G worked but was listed nowhere), while the shard is loaded
-    ctx.app.input.bindings.describe({ rows: [{ group: 'combat', id: 'far.gust', label: STRINGS.gustBinding, actions: ['far.gust'] }] }, ctx.scope);
-    }
+    const gustRow: Parameters<ShardContext['app']['input']['bindings']['describe']>[0] = { rows: [{ group: 'combat', id: 'far.gust', label: STRINGS.gustBinding, actions: ['far.gust'] }] };
+    if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, fanInput, gustRow);
+    else { ctx.inputContext(fanInput); ctx.app.input.bindings.describe(gustRow, ctx.scope); }
 
     // Step 1: the keeper's notes.
     bindSkyItems(ctx, fan);
@@ -270,8 +260,11 @@ export class SkyReachPlugin extends ShardPlugin {
 
     // Creatures: each one knows its home (an island or a flying circle).
     const animals = rt.play?.animals;
-    const rayHomes = boundedRows(SKY_FLOCK_GROUPS.rays);
-    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = rayHomes[i]; if (row === undefined) break; const a = bindSkyActor(ctx, row.id, row.home).spawn(); if (a) this.rays.push(a); }
+    const spawnGroup = (group: typeof SKY_FLOCK_GROUPS.rays, into: Animal[]): void => {
+      const rows = boundedRows(group);
+      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = rows[i]; if (row === undefined) break; const a = bindSkyActor(ctx, row.id, row.home).spawn(); if (a) into.push(a); }
+    };
+    spawnGroup(SKY_FLOCK_GROUPS.rays, this.rays);
     // each free ray trails its luminous wake (data/rayWakeLook.ts on @wildshard/sdk/looks/wakeRibbon; proposal B's ray beside the mill)
     const wakes = this.rays.map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
     boundedRows(wakes);
@@ -280,8 +273,7 @@ export class SkyReachPlugin extends ShardPlugin {
       // each wake in the level's own frame (it stands at the root), as the meadow's eye
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = wakes[i]; if (row === undefined) break; row.w.update(row.ray.position, row.ray.alive, row.w.mesh.worldToLocal(cam.getWorldPosition(eye)), dt); }
     } });
-    const roostHomes = boundedRows(SKY_FLOCK_GROUPS.roost);
-    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = roostHomes[i]; if (row === undefined) break; const a = bindSkyActor(ctx, row.id, row.home).spawn(); if (a) this.roostRays.push(a); }
+    spawnGroup(SKY_FLOCK_GROUPS.roost, this.roostRays);
     // The goats walk their island's deck (G26): the spawn lands them on the first WORLD floor under `fromY`. That ray
     // finds the islands only once physics has stepped (in `play` it hits nothing and the goat lands on the −1000 m
     // analytic floor), so they spawn on the first fixed step.
@@ -296,8 +288,7 @@ export class SkyReachPlugin extends ShardPlugin {
         if (a) this.goats.push(a);
       }
     } });
-    const wispHomes = boundedRows(SKY_FLOCK_GROUPS.wisps);
-    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = wispHomes[i]; if (row === undefined) break; const a = bindSkyActor(ctx, row.id, row.home).spawn(); if (a) this.wisps.push(a); }
+    spawnGroup(SKY_FLOCK_GROUPS.wisps, this.wisps);
     this.roc = bindRuntimeBoss(ctx, source, ROC_ID, undefined, { identity: 'runtime' }).spawn();
     if (this.roc !== null) setHome(this.roc, ROC);
     // Preserve the shipping identity order: deferred goats follow the Roc. Retained restore runs before any tick;
