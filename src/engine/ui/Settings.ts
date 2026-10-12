@@ -127,6 +127,7 @@ export const OPTION_VALUES = {
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
   buildPacing: ['on', 'off', 'uploads'],               // SF63: quiet frame floors back paced builds by default; Developer can switch them off. uploads also budgets WebKit's isolated warm-up image uploads (src/engine/render/precompile.ts UploadBudget).
+  mainMenuLayout: ['a', 'b'],                         // G338: A the full-screen hero with the cards over it / B the landscape hero as a band in the centre — live; default A until Jake's pick
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -143,7 +144,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   tex: { def: 'auto', params: [], url: () => null },
   
-  memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, buildPacing: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, buildPacing: DEBUG_ONLY, mainMenuLayout: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
@@ -212,6 +213,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     
     
     memorySaver: option('memorySaver'), graphMaterials: option('graphMaterials'), buildPacing: option('buildPacing'),
+    mainMenuLayout: option('mainMenuLayout'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};

@@ -61,4 +61,12 @@ uv run --with pillow python scripts/main-menu-hero-board.py $s/cap art/main-menu
 
 Jake's follow-up was: *"the hero image can be the top half of the screen"*, then *"Not the top half more like in the
 center"*. The `layout/` folder holds the raw A / B screens of the main-menu layout row (pause ▸ Settings ▸ Debug ▸ Main
-menu layout). B ships L-b at 1920×1080 as `public/assets/title/main-crossroads-landscape.jpg`.
+menu layout, default A). Only layout B loads L-b (1920×1080, `public/assets/title/main-crossroads-landscape.jpg`); layout
+A keeps the shipped painted hero until Jake picks a layout. The screens, unlabelled for the plan desk's board, are on
+iPhone 16 Pro portrait with Developer off and on, plus desktop 1920×1080 with Developer on:
+
+- `A-painted-*`: layout A as shipped.
+- `A-Lb-*`: layout A with L-b answered for its hero image request.
+- `B-Lb-*`: layout B.
+
+`layout/capture-layouts.mjs` reproduces them on a local build.
