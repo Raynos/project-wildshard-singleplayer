@@ -7,8 +7,8 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
-import { setTimeout as sleep } from 'node:timers/promises';
 import { linkNodeModules } from './link-node-modules.mjs';
+import { alignGeneratedIndex } from './generated-index.mjs';
 import { GENERATED_FILES, generatedIncreases, generatedPart, increaseTrailers, replaceDebt, verifyIncreaseTrailers } from './generated-policy.mjs';
 import { isWitnessManifest, manifestOutcome } from './witness-manifests.mjs';
 import { bakeOutcome, isRecordedBake } from './bake-input-hashes.mjs';
@@ -150,34 +150,17 @@ export async function regenerateCommitted(root, approvalFile) {
       const result = spawnSync('git', ['update-ref', 'refs/heads/main', sha, base], { cwd: root, encoding: 'utf8' });
       if (result.error) throw result.error;
       if (result.status !== 0) { if (text(root, ['rev-parse', 'HEAD']) !== base) continue; throw new Error(result.stderr); }
-      // Preserve independently staged changes and every foreign working hunk. Only advance untouched copies.
+      // Own the shared index lock once; compare and update its unchanged entries atomically.
+      const aligned = new Set(await alignGeneratedIndex(root, changed.map(([file]) => ({
+        file, before: committedText(root, base, file) === null ? null : text(root, ['rev-parse', `${base}:${file}`]),
+        after: text(root, ['rev-parse', `${sha}:${file}`]),
+      }))));
+      // Preserve every foreign working hunk. Only advance untouched copies admitted above.
       for (const [file, content] of changed) {
         const fresh = committedText(root, base, file) === null; // a newly generated output (no copy in the base yet)
-        const old = fresh ? '' : text(root, ['rev-parse', `${base}:${file}`]);
-        let staged;
-        try { staged = text(root, ['rev-parse', `:${file}`]); } catch { staged = ''; }
-        if (fresh) {
-          // a new output: put the committed blob in the shared index too, or HEAD's new file would show as a staged deletion
-          for (let retry = 0; retry < 20; retry++) {
-            const added = spawnSync('git', ['update-index', '--add', '--cacheinfo', `100644,${text(root, ['rev-parse', `${sha}:${file}`])},${file}`], { cwd: root, encoding: 'utf8' });
-            if (added.error) throw added.error;
-            if (added.status === 0) break;
-            if (!added.stderr.includes('index.lock') || retry === 19) throw new Error(added.stderr);
-            await sleep(100);
-          }
-        } else if (staged === old) {
-          for (let retry = 0; retry < 20; retry++) {
-            if (text(root, ['rev-parse', `:${file}`]) !== old) { staged = ''; break; }
-            const aligned = spawnSync('git', ['update-index', '--cacheinfo', `100644,${text(root, ['rev-parse', `${sha}:${file}`])},${file}`], { cwd: root, encoding: 'utf8' });
-            if (aligned.error) throw aligned.error;
-            if (aligned.status === 0) break;
-            if (!aligned.stderr.includes('index.lock') || retry === 19) throw new Error(aligned.stderr);
-            await sleep(100);
-          }
-        }
         const disk = resolve(root, file);
         const original = committedText(root, base, file);
-        if (fresh ? !existsSync(disk) : staged === old && existsSync(disk) && readFileSync(disk, 'utf8') === original) writeFileSync(disk, content);
+        if (aligned.has(file) && (fresh ? !existsSync(disk) : existsSync(disk) && readFileSync(disk, 'utf8') === original)) writeFileSync(disk, content);
         else console.warn(`generated-files: preserved working edits in ${file}; committed output is current`);
       }
       mkdirSync(resolve(verifiedStamp(root, sha), '..'), { recursive: true }); writeFileSync(verifiedStamp(root, sha), `${base}\n`);

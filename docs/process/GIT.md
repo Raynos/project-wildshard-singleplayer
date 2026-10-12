@@ -77,6 +77,9 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   `docs/api/EXPORTS.md` (once ENGINE.md's appendix) are build outputs that `pnpm gen` writes, gitignored (SF74 W13, G281).
   It renders a clean committed export into a private index, retries a moved HEAD, and lands one generated commit
   before the gate. Working and staged edits from another builder stay untouched; never hand-merge these outputs.
+  Shared-index alignment waits at most 30 s, reporting the holder PID and lane when identifiable. It holds Git's
+  index lock only while comparing and atomically replacing unchanged generated entries; hooks run outside that lock.
+  A peer's staged content, including a newly generated path, is preserved; a timeout leaves the peer lock intact.
   Write JSDoc and manual API explanations with the source. The gate checks the complete committed docs before
   Vercel filters them out, and refuses stale bytes or generated edits outside the regeneration commit.
   The pusher pushes **exactly the tip it regenerated** (`git push origin <sha>:refs/heads/main`); a commit landing
