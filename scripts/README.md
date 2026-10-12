@@ -205,6 +205,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [build-without-browser.mjs](./build-without-browser.mjs)
 - [calibrate.mjs](./calibrate.mjs)
 - [ci-checks.mjs](./ci-checks.mjs)
+- [coarse-mask-webkit.mjs](./coarse-mask-webkit.mjs)
 - [commit-message-lock.py](./commit-message-lock.py)
 - [commit-ratchet.sh](./commit-ratchet.sh)
 - [compile-script.d.mts](./compile-script.d.mts)
