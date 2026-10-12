@@ -5,14 +5,14 @@ push gate only; frame floor / Simulator / soak / boards / quiet windows paused. 
 
 **80/20 (custom / legacy, `scripts/shard-platform.mjs`; ≤ 20 % = done)**
 
-| Shard | 21:40Z → 22:45Z | Target lines |
+| Shard | 21:40Z → 23:15Z | Target lines |
 |---|---|---|
-| Signal Dunes | 70.7 % → **65.3 %** (2675, `fe3cb30c2`) | ≤ 819 |
-| Sky Reach | 78.4 % → **72.9 %** (4917 incl. 439 GLSL) | ≤ 1349 |
+| Signal Dunes | 70.7 % → **63.2 %** (2583) | ≤ 819 |
+| Sky Reach | 78.4 % → **68.8 %** | ≤ 1349 |
 | Nine | 69.5 % | — (graph rollout blocked) |
 
 **Fleet:** Codex sp-x7 push/deploy; sp-x4 Sky movers MV-2; sp-x5 lash + war-fan WP-5; sp-x6 directors DIR-5; sp-x1
-headless proofs + metric. Opus: Signal A sp-o14 (looks/world → generators), Signal B sp-o16 (behaviour → rows), Sky A sp-o12, Sky B sp-o15, looks (next free slot).
+headless proofs + metric. Opus: Signal A sp-o19, Signal B sp-o21, Sky A sp-o12, Sky B sp-o18, looks sp-o20.
 
 **LOOKS LINE (Jake: "I don't want to forget this main hero thing and the near look and feel"):** one dedicated Opus
 subagent, start to end: (1) G342 near-shard tier (selection `18fad8ea2`, sp-x4's format slice) with raw A/B crossroads
