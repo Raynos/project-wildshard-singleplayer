@@ -1,4 +1,4 @@
-import { Color, Float32BufferAttribute, MeshStandardMaterial, Uint16BufferAttribute, type BufferGeometry } from 'three';
+import { BufferGeometry, Color, Float32BufferAttribute, IcosahedronGeometry, MeshStandardMaterial, OctahedronGeometry, TorusGeometry, Uint16BufferAttribute, Vector3 } from 'three';
 import { readSourceModel, skinnedGlb, type RawTexture, type SkinnedBone, type SkinnedOutput } from './skinned';
 import type { AnimalDims } from '@wildshard/engine/entities/species/registry';
 import { bindRigid } from '@wildshard/sdk/looks/modelLibrary';
@@ -13,7 +13,7 @@ import type { SkyCreature } from '../data/files';
  * exact WebP bytes, so the KTX2 bake makes its phone stand-in as it did for the source). Each generated source is read offline through the runtime's own intake
  * (`@wildshard/sdk/looks/modelIntake` facetedGeometry / hdGeometry), fitted, re-skinned and recoloured here exactly as the runtime did it,
  * and written as a standard skinned GLB (`@wildshard/sdk/bake/skinned`); the client only loads it (`species/bodies.ts`).
- * The code stand-ins (and the code-built gale wisp) stay in `species/`: headless builds them. `test/shards/far-reach/creature-bake.test.ts`
+ * The gale wisp is code-built here (no source model): its primitive parts painted and rigidly skinned, one bone each. `test/shards/far-reach/creature-bake.test.ts`
  * is the byte-exact stale gate.
  */
 
@@ -181,6 +181,39 @@ function rayMesh(source: BufferGeometry): Body {
     geometry: g, dims: { bodyY: 0.3, bodyHalfLen: 1.4, bodyRadius: 0.9, headRadius: 0.4, legLen: 0.1, feet: [], halfWidth: 2.7 } };
 }
 
+/**
+ * A flat-shaded creature hull from primitive parts: each part is placed in bind space, painted one colour and skinned
+ * rigidly to one bone (its index in the body's bones).
+ */
+function hull(parts: readonly { geometry: BufferGeometry; bone: number; color: number; at?: readonly [number, number, number]; rot?: readonly [number, number, number] }[]): BufferGeometry {
+  const pos: number[] = [], col: number[] = [], bones: number[] = [], c = new Color(), v = new Vector3();
+  for (const part of parts) {
+    const g = part.geometry.index ? part.geometry.toNonIndexed() : part.geometry;
+    if (part.rot) { g.rotateX(part.rot[0]); g.rotateY(part.rot[1]); g.rotateZ(part.rot[2]); }
+    if (part.at) g.translate(part.at[0], part.at[1], part.at[2]);
+    const p = g.getAttribute('position'); c.setHex(part.color);
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); pos.push(v.x, v.y, v.z); col.push(c.r, c.g, c.b); bones.push(part.bone); }
+    if (g !== part.geometry) g.dispose(); part.geometry.dispose();
+  }
+  const g = new BufferGeometry(), count = pos.length / 3;
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  const index = new Uint16Array(count * 4), weight = new Float32Array(count * 4);
+  for (let i = 0; i < count; i++) { index[i * 4] = bones[i] ?? 0; weight[i * 4] = 1; }
+  g.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
+  g.computeVertexNormals(); return g;
+}
+/** The gale wisp (code-built): a pale icosahedron body, a crystal head and two tilted swirl rings on the swirl bone. */
+function wispBody(): Body {
+  return { bones: [{ name: 'body', parent: null, pos: [0, 0, 0] }, { name: 'head', parent: 'body', pos: [0, 0.1, 0.2] }, { name: 'swirl', parent: 'body', pos: [0, 0, 0] }],
+    geometry: hull([
+      { geometry: new IcosahedronGeometry(0.45, 0), bone: 0, color: 0xeaf8ff },
+      { geometry: new OctahedronGeometry(0.2, 0), bone: 1, color: 0x9fe6f2, at: [0, 0.1, 0.32] },
+      { geometry: new TorusGeometry(0.75, 0.05, 3, 10), bone: 2, color: 0xcdeff8, rot: [Math.PI / 2, 0, 0] },
+      { geometry: new TorusGeometry(0.55, 0.04, 3, 8), bone: 2, color: 0xffffff, rot: [Math.PI / 2.6, 0.4, 0] },
+    ]),
+    dims: { bodyY: 0, bodyHalfLen: 0.4, bodyRadius: 0.45, headRadius: 0.2, legLen: 0.1, feet: [], halfWidth: 0.75 } };
+}
+
 /** Process each creature's source as the runtime did (a source GLB's bytes by its public URL). */
 export async function skyCreatureBodies(read: (url: string) => Uint8Array): Promise<Record<SkyCreature, Body>> {
   const roc = await readSourceModel(read(SKY_CREATURE_SOURCES['storm-roc']));
@@ -191,7 +224,7 @@ export async function skyCreatureBodies(read: (url: string) => Uint8Array): Prom
     if (g === null) throw new Error(`${creature}: no mesh`);
     return g;
   };
-  return { 'storm-roc': rocHd(painted.geometry, texture), 'sky-goat': goatMesh(await faceted('sky-goat')), 'drift-ray': rayMesh(await faceted('drift-ray')) };
+  return { 'storm-roc': rocHd(painted.geometry, texture), 'sky-goat': goatMesh(await faceted('sky-goat')), 'drift-ray': rayMesh(await faceted('drift-ray')), 'gale-wisp': wispBody() };
 }
 
 /** Bake every creature body to its skinned GLB. */
@@ -208,5 +241,5 @@ export async function bakeSkyCreatures(read: (url: string) => Uint8Array): Promi
     material.dispose();
     return output;
   };
-  return { 'storm-roc': bake('storm-roc'), 'sky-goat': bake('sky-goat'), 'drift-ray': bake('drift-ray') };
+  return { 'storm-roc': bake('storm-roc'), 'sky-goat': bake('sky-goat'), 'drift-ray': bake('drift-ray'), 'gale-wisp': bake('gale-wisp') };
 }
