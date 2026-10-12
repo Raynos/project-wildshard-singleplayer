@@ -1,0 +1,601 @@
+{
+  "schema": "sf57-current-catalogue/1",
+  "sourceSha": "c5a704e604391cc6bec856e36fe9dd03ee6c9183",
+  "build": {
+    "build": "c5a704e-mv4hlfkt",
+    "time": "2026-10-12T00:01:26.093Z"
+  },
+  "surface": "portrait iOS Simulator Safari",
+  "preparationMode": "rehearsal: true; no current prepared-layout witness supplied",
+  "quiet": {
+    "owner": "sp-x5",
+    "started": "2026-10-12T00:16:02.809Z",
+    "pushDrained": "2026-10-12T00:17:47Z",
+    "proofEndedEpoch": 1791767416,
+    "allResourcesClosed": true
+  },
+  "limitsBytes": {
+    "playing": 1000000000,
+    "loading": 1800000000
+  },
+  "legs": [
+    {
+      "leg": "cells",
+      "clock": "live",
+      "renderScale": 2,
+      "developer": true,
+      "viewport": [
+        402,
+        714
+      ],
+      "textures": {
+        "mode": "img",
+        "why": "auto: images-first playing estimate 1206688286 exceeds 1000000000; overruled: KTX2 probe: SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0 \u2014 no compressed target left for UASTC, ETC1S",
+        "probe": {
+          "ran": true,
+          "note": "SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0",
+          "veto": "KTX2 probe: SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0 \u2014 no compressed target left for UASTC, ETC1S"
+        }
+      },
+      "seconds": 1169.561,
+      "circuits": 1,
+      "gamePid": 11761,
+      "functionalPass": false,
+      "errors": [
+        "[grid] pine-hollow: admission failed; it stays closed until a retry Error: [cabins] not built (useCabins)",
+        "Error: Error: Grid floor route driftwood-isle-to-pine-hollow timed out\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:262:59)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:193:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:360:40"
+      ],
+      "refusalIssues": {
+        "pine-hollow": "[cabins] not built (useCabins)"
+      },
+      "stop": {
+        "leg": "driftwood-isle-to-pine-hollow",
+        "phase": "travel",
+        "waypoint": 1,
+        "target": {
+          "x": 0,
+          "z": 325
+        }
+      },
+      "feet": {
+        "x": -0.01,
+        "z": 298.35
+      },
+      "entries": [
+        {
+          "cycle": 0,
+          "instance": "pine-hollow",
+          "admitted": true
+        },
+        {
+          "cycle": 0,
+          "instance": "nalati-grasslands",
+          "admitted": true
+        },
+        {
+          "cycle": 0,
+          "instance": "template-2",
+          "admitted": true
+        },
+        {
+          "cycle": 0,
+          "instance": "blender-template-1",
+          "admitted": true
+        },
+        {
+          "cycle": 0,
+          "instance": "far-reach",
+          "admitted": true
+        },
+        {
+          "cycle": 0,
+          "instance": "ink-cel-valley-1",
+          "admitted": true
+        },
+        {
+          "cycle": 0,
+          "instance": "pastel-plain-1",
+          "admitted": true
+        },
+        {
+          "cycle": 0,
+          "instance": "sunscar-dunes",
+          "admitted": true
+        },
+        {
+          "cycle": 0,
+          "instance": "driftwood-isle",
+          "admitted": true
+        },
+        {
+          "cycle": 0,
+          "instance": "driftwood-isle",
+          "admitted": true
+        }
+      ],
+      "routes": 29,
+      "peak": {
+        "t": "2026-10-12T00:28:04.503113+00:00",
+        "phase": "drive",
+        "webContentBytes": 1463111976,
+        "intervalHighBytes": 1553568064,
+        "labelledGlBytes": 298913948,
+        "accountedBytes": 437121907,
+        "unlabelledBytes": 0
+      },
+      "sampling": {
+        "rows": 1220,
+        "largestGap": {
+          "seconds": 1.0150001049041748,
+          "phase": "drive",
+          "t": "2026-10-12T00:28:52.831145+00:00"
+        },
+        "gapsOver2point5": 0,
+        "unlabelledSamples": 37,
+        "unlabelledPeakBytes": 2361941,
+        "unreconciled": 0,
+        "nonpositiveFootprints": 0
+      },
+      "perLap": [
+        {
+          "cycle": 0,
+          "complete": true,
+          "samples": 1013,
+          "peakBytes": 1852482012,
+          "troughBytes": 442258760,
+          "webContentPeakBytes": 1584632080,
+          "allWebContentPeakBytes": 1586715248,
+          "glPeakBytes": 527165044,
+          "accountedPeakBytes": 1062720610,
+          "gpuProcessPeakBytes": 841764416,
+          "wasmPeakBytes": 65863680,
+          "overCapBytes": 852482012
+        },
+        {
+          "cycle": 1,
+          "complete": false,
+          "samples": 149,
+          "peakBytes": 1572898009,
+          "troughBytes": 1471978340,
+          "webContentPeakBytes": 1298043272,
+          "allWebContentPeakBytes": 1316068072,
+          "glPeakBytes": 274854737,
+          "accountedPeakBytes": 517501242,
+          "gpuProcessPeakBytes": 657690104,
+          "wasmPeakBytes": 65601536,
+          "overCapBytes": 572898009
+        }
+      ],
+      "load": {
+        "min": 3.96,
+        "max": 66.99,
+        "mean": 9.64
+      },
+      "rawEvidence": [
+        {
+          "file": "dev-cells.json",
+          "bytes": 5626281,
+          "sha256": "ea35621b24161faafcf04d876ea16866027d77ca45ff0064bae8a4c74b404cd4"
+        },
+        {
+          "file": "dev-cells-native.jsonl",
+          "bytes": 329278,
+          "sha256": "1de27a5067152f492855e9527c5ef668289411a6b8f6a1375af70607e94cb16c"
+        },
+        {
+          "file": "dev-cells-gl.jsonl",
+          "bytes": 71888851,
+          "sha256": "7747971fc95920c69827152fde618ae03515df5b3880b800a22cf79dcd627652"
+        },
+        {
+          "file": "dev-cells-gl-events.jsonl",
+          "bytes": 35429262,
+          "sha256": "a3393545b41173dfeb6fa97deecc51c237f1c2fb0dd5b91993b914049adfce8e"
+        }
+      ],
+      "recordedGrade": {
+        "contentCut": null,
+        "requiredSeconds": 1800,
+        "memoryPass": false,
+        "gatePass": false,
+        "peakBytes": 1852482012,
+        "loadingPeakBytes": 578184303,
+        "baselines": [
+          {
+            "cycle": 0,
+            "start": 1791764336.563,
+            "end": 1791764346.643,
+            "samples": 10,
+            "bytes": 534386027
+          },
+          {
+            "cycle": 1,
+            "start": 1791765356.008,
+            "end": 1791765366.127,
+            "samples": 10,
+            "bytes": 1570325721
+          }
+        ],
+        "baselineDeltaBytes": [
+          null,
+          null
+        ],
+        "loops": [
+          {
+            "cycle": 0,
+            "complete": true,
+            "peakBytes": 1852482012,
+            "troughBytes": 442258760
+          },
+          {
+            "cycle": 1,
+            "complete": false,
+            "peakBytes": 1572898009,
+            "troughBytes": 1471978340
+          }
+        ],
+        "recovery": false,
+        "calibration": false,
+        "ratios": [
+          {
+            "cycle": 1,
+            "raw": 3.0344385550286272,
+            "adjusted": 2.4547298014020997
+          }
+        ],
+        "missingGlSamples": 0,
+        "sampling": false,
+        "leakZero": false,
+        "admitted": [
+          "pine-hollow",
+          "template-2",
+          "sunscar-dunes",
+          "driftwood-isle",
+          "nalati-grasslands",
+          "far-reach",
+          "blender-template-1",
+          "pastel-plain-1",
+          "ink-cel-valley-1"
+        ],
+        "refused": [],
+        "attemptedEveryCell": true,
+        "crossroads": 16,
+        "rehearsal": true,
+        "limitation": null
+      },
+      "teardown": {
+        "after": {
+          "geometries": 0,
+          "textures": 4,
+          "programs": 2,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 9
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "scopedCountersZero": true,
+        "disposalErrors": [],
+        "listenerAttribution": "Raw counts include recorder registrations; exact baseline/identity causal attribution remains open."
+      }
+    },
+    {
+      "leg": "road",
+      "clock": "live",
+      "renderScale": 2,
+      "developer": true,
+      "viewport": [
+        402,
+        714
+      ],
+      "textures": {
+        "mode": "img",
+        "why": "auto: images-first playing estimate 1206688286 exceeds 1000000000; overruled: KTX2 probe: SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0 \u2014 no compressed target left for UASTC, ETC1S",
+        "probe": {
+          "ran": true,
+          "note": "SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0",
+          "veto": "KTX2 probe: SRGB8_ALPHA8_ASTC_4x4 L1 0,0,0,0; RGB8_ETC2 L0 2,2,2,255; SRGB8_ETC2 L0 0,0,0,255; RGBA8_ETC2_EAC L1 0,0,0,0; SRGB8_ALPHA8_ETC2_EAC L1 0,0,0,0 \u2014 no compressed target left for UASTC, ETC1S"
+        }
+      },
+      "seconds": 1808.347,
+      "circuits": 3,
+      "gamePid": 39280,
+      "functionalPass": false,
+      "errors": [
+        "[grid] pine-hollow: admission failed; it stays closed until a retry Error: [cabins] not built (useCabins)"
+      ],
+      "refusalIssues": null,
+      "stop": null,
+      "feet": null,
+      "entries": [],
+      "routes": 71,
+      "peak": {
+        "t": "2026-10-12T00:57:42.666311+00:00",
+        "phase": "drive",
+        "webContentBytes": 983584920,
+        "intervalHighBytes": 1061212336,
+        "labelledGlBytes": 355858406,
+        "accountedBytes": 443786933,
+        "unlabelledBytes": 0
+      },
+      "sampling": {
+        "rows": 1861,
+        "largestGap": {
+          "seconds": 1.0169999599456787,
+          "phase": "drive",
+          "t": "2026-10-12T00:46:42.057385+00:00"
+        },
+        "gapsOver2point5": 0,
+        "unlabelledSamples": 8,
+        "unlabelledPeakBytes": 2361941,
+        "unreconciled": 0,
+        "nonpositiveFootprints": 0
+      },
+      "perLap": [
+        {
+          "cycle": 0,
+          "complete": true,
+          "samples": 468,
+          "peakBytes": 1246257584,
+          "troughBytes": 422318328,
+          "webContentPeakBytes": 893079344,
+          "allWebContentPeakBytes": 901060776,
+          "glPeakBytes": 538217528,
+          "accountedPeakBytes": 1065005446,
+          "gpuProcessPeakBytes": 529517832,
+          "wasmPeakBytes": 64421888,
+          "overCapBytes": 246257584
+        },
+        {
+          "cycle": 1,
+          "complete": true,
+          "samples": 468,
+          "peakBytes": 1097462988,
+          "troughBytes": 779886128,
+          "webContentPeakBytes": 777506944,
+          "allWebContentPeakBytes": 787536352,
+          "glPeakBytes": 374288258,
+          "accountedPeakBytes": 717842031,
+          "gpuProcessPeakBytes": 739216912,
+          "wasmPeakBytes": 64159744,
+          "overCapBytes": 97462988
+        },
+        {
+          "cycle": 2,
+          "complete": true,
+          "samples": 469,
+          "peakBytes": 1417070742,
+          "troughBytes": 843304044,
+          "webContentPeakBytes": 1061212336,
+          "allWebContentPeakBytes": 1071454712,
+          "glPeakBytes": 374288258,
+          "accountedPeakBytes": 717842031,
+          "gpuProcessPeakBytes": 924454656,
+          "wasmPeakBytes": 64225280,
+          "overCapBytes": 417070742
+        },
+        {
+          "cycle": 3,
+          "complete": false,
+          "samples": 391,
+          "peakBytes": 1397636000,
+          "troughBytes": 1107664576,
+          "webContentPeakBytes": 1063981232,
+          "allWebContentPeakBytes": 1074453008,
+          "glPeakBytes": 374288258,
+          "accountedPeakBytes": 715337163,
+          "gpuProcessPeakBytes": 969494344,
+          "wasmPeakBytes": 64225280,
+          "overCapBytes": 397636000
+        }
+      ],
+      "load": {
+        "min": 4.58,
+        "max": 13.84,
+        "mean": 6.97
+      },
+      "rawEvidence": [
+        {
+          "file": "dev-road.json",
+          "bytes": 10898902,
+          "sha256": "aad9fe02856aa671601c79c41b60ef6c653a8cbe3936abb7f406a63b38abfa72"
+        },
+        {
+          "file": "dev-road-native.jsonl",
+          "bytes": 496750,
+          "sha256": "2281eabb531cb51a6e5eeac9e763cf111c00f1e1370f8abfb5f12928218e5a42"
+        },
+        {
+          "file": "dev-road-gl.jsonl",
+          "bytes": 100763756,
+          "sha256": "225dbd19e9f6174cc6d616ec5c39c26e7662bc95884022bc0bad092bfa3b8646"
+        },
+        {
+          "file": "dev-road-gl-events.jsonl",
+          "bytes": 53132652,
+          "sha256": "9e161ed50919e7a40cc029e1ad569f636b8797770d989024d077f2b18f245a09"
+        }
+      ],
+      "recordedGrade": {
+        "contentCut": null,
+        "requiredSeconds": 1800,
+        "memoryPass": false,
+        "gatePass": false,
+        "peakBytes": 1417070742,
+        "loadingPeakBytes": 647224011,
+        "baselines": [
+          {
+            "cycle": 0,
+            "start": 1791765571.073,
+            "end": 1791765581.105,
+            "samples": 10,
+            "bytes": 427264620
+          },
+          {
+            "cycle": 1,
+            "start": 1791766041.931,
+            "end": 1791766051.969,
+            "samples": 10,
+            "bytes": 788499468
+          },
+          {
+            "cycle": 2,
+            "start": 1791766513.143,
+            "end": 1791766523.189,
+            "samples": 10,
+            "bytes": 832113772
+          },
+          {
+            "cycle": 3,
+            "start": 1791766985.667,
+            "end": 1791766995.712,
+            "samples": 10,
+            "bytes": 1116540060
+          }
+        ],
+        "baselineDeltaBytes": [
+          -404849152,
+          -43614304,
+          0,
+          284426288
+        ],
+        "loops": [
+          {
+            "cycle": 0,
+            "complete": true,
+            "peakBytes": 1246257584,
+            "troughBytes": 422318328
+          },
+          {
+            "cycle": 1,
+            "complete": true,
+            "peakBytes": 1097462988,
+            "troughBytes": 779886128
+          },
+          {
+            "cycle": 2,
+            "complete": true,
+            "peakBytes": 1417070742,
+            "troughBytes": 843304044
+          },
+          {
+            "cycle": 3,
+            "complete": false,
+            "peakBytes": 1397636000,
+            "troughBytes": 1107664576
+          }
+        ],
+        "recovery": false,
+        "calibration": false,
+        "ratios": [
+          {
+            "cycle": 1,
+            "raw": 3.5921234997037352,
+            "adjusted": 2.225430060271864
+          },
+          {
+            "cycle": 2,
+            "raw": 3.790814776844359,
+            "adjusted": 2.424121337412488
+          },
+          {
+            "cycle": 3,
+            "raw": 5.086559916216226,
+            "adjusted": 3.7198664767843543
+          }
+        ],
+        "missingGlSamples": 0,
+        "sampling": false,
+        "leakZero": false,
+        "admitted": [],
+        "refused": [],
+        "attemptedEveryCell": true,
+        "crossroads": 16,
+        "rehearsal": true,
+        "limitation": null
+      },
+      "teardown": {
+        "after": {
+          "geometries": 0,
+          "textures": 4,
+          "programs": 1,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 11
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "scopedCountersZero": true,
+        "disposalErrors": [],
+        "listenerAttribution": "Raw counts include recorder registrations; exact baseline/identity causal attribution remains open."
+      }
+    }
+  ],
+  "originAtDrainAudit": "19809d3e78cf93d7cd36ed92f8b2b26b0cb3d68d"
+}
