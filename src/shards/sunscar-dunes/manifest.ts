@@ -11,6 +11,7 @@ import { bootFiles, bootSources, lateReads } from './boot/files';
 import { duneHeight } from './world/dunes';
 import { mapPalette } from './runtime/looks/mapPalette';
 import { SIGNAL_DUNES_MAP } from './data/minimap';
+import { SIGNAL_MANIFEST_ROWS } from './data/manifestRows';
 import { SIGNAL_ATMOSPHERE, SIGNAL_GRADE, SIGNAL_HORIZON, SIGNAL_SKY } from './data/manifestLook';
 
 const terrain = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
@@ -21,14 +22,10 @@ const feet = (x: number, z: number): [number, number, number] => [x, ground(x, z
 
 export const SUNSCAR_DUNES: ShardManifest = {
   runtimeCost: SIGNAL_DUNES_RUNTIME_COST,
-  entries: { legacy: true, shardfile: true, public: 'shardfile' }, // G326: public card flipped once boot, walk and parity passed (op-ship38)
-  gridShardfile: '/shardfiles/sunscar-dunes/shard.json',
   trustedRuntime: { get slug() { return SUNSCAR_DUNES.slug; }, entry: 'runtime/index.ts' },
-  budgets: BUDGETS, api: 1, slug: 'sunscar-dunes', order: 50, status: 'experimental', name: STRINGS.name, label: '(+2, −1)', seed: SEED,
-  accent: 'orchid', // G104: the HUD accent inside its grid cell
+  ...SIGNAL_MANIFEST_ROWS, slug: 'sunscar-dunes', budgets: BUDGETS, name: STRINGS.name, seed: SEED, spawns: [],
   biome: STRINGS.biome, blurb: STRINGS.blurb, 
   card: { thumb: DUSK_CARD.thumb, portrait: DUSK_CARD.portrait, landscape: DUSK_CARD.landscape },
-  style: 'dusk', kitLook: 'pbr', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'dunes' },
   ground: { paths: 'plugin', terrain },
   groundColor: (_x, _z, _h, _slope, _terrain, out) => { out[0] = 0.42; out[1] = 0.17; out[2] = 0.07; return out; },
   // Start just above the crest: the analytic trail bed sits a little lower between grid vertices.
@@ -36,16 +33,8 @@ export const SUNSCAR_DUNES: ShardManifest = {
   bounds: { x0: -PLAY_HALF, x1: PLAY_HALF, z0: -PLAY_HALF, z1: PLAY_HALF, floor: -10 },
   // "Last Light" (data/manifestLook.ts): the low warm key, the aerial fog, the split-tone grade and the hazed dune ranges
   sky: SIGNAL_SKY, atmosphere: SIGNAL_ATMOSPHERE, grade: SIGNAL_GRADE, horizon: SIGNAL_HORIZON,
-  boundary: { visible: false },
   minimap: { image: '/assets/sunscar-dunes/map/top.webp', palette: mapPalette(SIGNAL_DUNES_MAP) }, // the map baked from the world (SF66); the palette paints the grid's edges (data/minimap.ts)
   render: async () => (await import('./look/render')).signalDunesLook(),
-  uses: ['quests', 'coins', 'loot', 'hover'],
-  assetGlobs: ['public/assets/sunscar-dunes/**', 'public/assets/lut/sunscar-dunes.bin'],
-  loadout: { weapons: ['weapon.sunscar-whip'], tools: ['tool.hoverboard'], start: ['weapon.sunscar-whip', 'tool.hoverboard'], held: 'weapon.sunscar-whip' },
-  species: ['duneRay', 'sandSkitterer', 'duneStrider', 'duneMatriarch'], spawns: [], fight: { attackers: 2, telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
-  creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
-  tiers: { phone: { godRays: false, ao: false }, desktop: { godRays: false, ao: false } },
-  loot: { coins: true },
   audio: { ambience: 'none', score: 'sunscar.silent', cues: CUES },
   boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, lateReads, viewmodelSets: [], shaders: { background: false }, audio: [], precache: [] },
   dev: { poses: () => Promise.resolve({
