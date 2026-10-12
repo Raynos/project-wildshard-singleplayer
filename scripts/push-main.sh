@@ -74,6 +74,13 @@ try_prefix() {
   done
 }
 for push_round in 1 2 3 4 5 6; do
+  # Do not export/regenerate a tree already delivered. A commit arriving after
+  # this check is picked up by auto-push; descendants of an active gate still
+  # enter the next round and receive their own regeneration and complete gate.
+  if [ "$(git rev-list --count origin/main..main)" = 0 ]; then
+    echo "push-main: origin/main has every local commit ($(git rev-parse --short main))"
+    exit 0
+  fi
   # SF6b: one clean committed export and private-index regeneration while this pusher holds the lock.
   # Increases require GENERATED_APPROVAL_FILE with the coordinator's exact reviewed receipt.
   t0=$SECONDS

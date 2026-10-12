@@ -3,7 +3,7 @@ import { failedSteps, failingTestFiles, failingLintFiles, failureCommands, newes
 // oxlint-disable-next-line import/no-nodejs-modules -- Probe real archived fixture commits without touching shared Git state.
 import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The focused-check fixture owns and deletes its temporary files.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync, renameSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync, renameSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Place the owned Git fixture outside the shared checkout.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture paths for real archived probes.
@@ -24,6 +24,45 @@ const GATE = [
 ].join('\n');
 
 describe('green prefix', () => {
+  it.each([false, true])('skips idle regeneration and carries a commit arriving during a green gate: %s', (arriving) => {
+    const root = mkdtempSync(join(tmpdir(), 'push-main-idle-'));
+    const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+    try {
+      git('init', '-q', '-b', 'main'); git('config', 'core.hooksPath', '/dev/null');
+      const commit = (text: string) => {
+        writeFileSync(join(root, 'source.txt'), text); git('add', 'source.txt');
+        git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com', 'commit', '-qm', 'fixture');
+        return git('rev-parse', 'HEAD');
+      };
+      const base = commit('base'), first = commit('first'), second = commit('second');
+      const remote = join(root, 'remote.git'); git('init', '-q', '--bare', remote);
+      git('remote', 'add', 'origin', remote); git('update-ref', 'refs/heads/main', base); git('push', '-q', 'origin', 'main');
+      if (arriving) git('update-ref', 'refs/heads/main', first);
+      mkdirSync(join(root, 'scripts'));
+      writeFileSync(join(root, 'scripts/push-main.sh'), readFileSync('scripts/push-main.sh'));
+      writeFileSync(join(root, 'scripts/regenerate-committed.mjs'), `
+import { appendFileSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+const tip = execFileSync('git', ['rev-parse', 'main'], { encoding: 'utf8' }).trim();
+writeFileSync(process.env.REGEN_SHA_FILE, tip); appendFileSync('.git/regens', tip + '\\n');
+`);
+      writeFileSync(join(root, 'scripts/vercel-tree-gate.sh'), `
+printf '%s\\n' "$1" >> .git/gates
+if [ "$1" = '${first}' ]; then git update-ref refs/heads/main ${second}; fi
+exit 0
+`);
+      const run = spawnSync('bash', ['scripts/push-main.sh', '--locked'], {
+        cwd: root, encoding: 'utf8', env: { ...process.env, SKIP_VERCEL_GATE: '0' }, timeout: 10_000,
+      });
+      expect(run.error).toBeUndefined(); expect(run.status, run.stdout + run.stderr).toBe(0);
+      const lines = (name: string) => existsSync(join(root, '.git', name))
+        ? readFileSync(join(root, '.git', name), 'utf8').trim().split('\n') : [];
+      const expected = arriving ? [first, second] : [];
+      expect(lines('regens')).toEqual(expected); expect(lines('gates')).toEqual(expected);
+      expect(git('rev-parse', 'origin/main')).toBe(arriving ? second : base);
+      expect(run.stdout).toContain('origin/main has every local commit');
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
   it.each([['vitest', false, false], ['vitest', true, false], ['oxlint', false, false], ['oxlint', true, false], ['oxlint', false, true], ['oxlint', true, true]] as const)('regenerates and gates one %s repair, then stops retrying a second red (%s), repair during prefix (%s)', (step, secondRed, duringPrefix) => {
     const root = mkdtempSync(join(tmpdir(), 'push-main-newer-'));
     const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
@@ -86,7 +125,7 @@ exit 1
       });
       expect(run.error).toBeUndefined(); expect(run.status, run.stdout + run.stderr).toBe(secondRed ? 1 : 0);
       expect(readFileSync(join(root, '.git/gates'), 'utf8').trim().split('\n')).toEqual([red, first]);
-      expect(readFileSync(join(root, '.git/regens'), 'utf8').trim().split('\n').slice(0, 2)).toEqual([red, first]);
+      expect(readFileSync(join(root, '.git/regens'), 'utf8').trim().split('\n')).toEqual([red, first]);
       expect(run.stdout.match(/retrying regeneration and complete gate once/gu)).toHaveLength(1);
       expect(git('rev-parse', 'origin/main')).toBe(secondRed ? base : first);
     } finally { rmSync(root, { recursive: true, force: true }); }
