@@ -63,7 +63,7 @@ export const SKY_REACH: ShardManifest = {
   ktx2: () => import('./ktx2.generated'),
   loot: { coins: true },
   audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./data/cues')).CUES },
-  boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, lateReads, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
+  boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, lateReads, viewmodelSets: [], shaders: { background: false }, audio: [], precache: [] },
   dev: { poses: () => Promise.resolve({
     spawn: { eye: [SPAWN.x, DECK + 1.7, SPAWN.z], feet: [SPAWN.x, DECK, SPAWN.z], yaw: 0, pitch: 0, mockup: 'art/far-reach/round-1-proposals/B-sky-reach.jpg', frame: 'Spawn: Sunrest, the windmill isle across the gap' },
     hover: { eye: [12, DECK + 1.7, -2.5], feet: [12, DECK, -2.5], yaw: 80, pitch: -6, mockup: '', frame: 'The hover bridge to the Roost' },

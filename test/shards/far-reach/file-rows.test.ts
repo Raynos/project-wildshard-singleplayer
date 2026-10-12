@@ -2,7 +2,12 @@
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import * as files from '../../../src/shards/far-reach/data/files';
-import { bootSources, bootFiles, lateReads } from '../../../src/shards/far-reach/manifest';
+import manifest, { bootSources, bootFiles, lateReads } from '../../../src/shards/far-reach/manifest';
+
+it('declares the empty boot audio inventory as serializable data', () => {
+  expect(manifest.boot?.audio).toEqual([]);
+  expect(JSON.stringify(manifest.boot?.audio)).toBe('[]');
+});
 
 it('retains every ordered desktop/phone image/KTX2 boot URL and late read', () => {
   const sources = (['desktop', 'phone'] as const).flatMap(tier => (['img', 'ktx2'] as const).map(texture => bootSources(tier, texture)));
