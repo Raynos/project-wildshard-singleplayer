@@ -1,0 +1,24 @@
+{
+  "schema": "source-generation-outputs/1",
+  "producers": {
+    "scripts/ktx2-tables.mjs": [
+      "src/engine/boot/ktx2.generated.ts",
+      "src/shards/driftwood-isle/ktx2.generated.ts",
+      "src/shards/far-reach/ktx2.generated.ts",
+      "src/shards/nalati-grasslands/ktx2.generated.ts",
+      "src/shards/nine-dragon-stack/ktx2.generated.ts",
+      "src/shards/pine-hollow/ktx2.generated.ts"
+    ],
+    "scripts/bake/movers.mjs": [
+      "src/shards/driftwood-isle/data/movers.ts",
+      "src/shards/far-reach/data/movers.ts",
+      "src/shards/far-reach/data/bridgeModule.ts",
+      "src/shards/far-reach/data/liftModule.ts"
+    ],
+    "scripts/bake-astc6.mjs": ["src/shards/pine-hollow/boot/astc6/ktx2.generated.ts"],
+    "src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs": ["src/shards/sunscar-dunes/data/striderRig.baked.ts"],
+    "progress/shard-platform/sf48/edges.mjs": ["src/shards/nalati-grasslands/data/edges.ts"],
+    "scripts/nalati-panorama.py": ["src/shards/nalati-grasslands/look/panoramaData.ts"],
+    "art/far-reach/round-14-loop-4/pano/prep.py": ["src/shards/far-reach/look/panoramaData.ts"]
+  }
+}
