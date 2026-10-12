@@ -19,7 +19,7 @@ subagent, start to end: (1) G342 near-shard tier (selection `18fad8ea2`, sp-x4's
 captures; (2) then G343/G344 hero round 4: camera above Driftwood, Nalati and Pine across the roundabout, never above the
 template, phone-1x lens, square + landscape; the pick ships via G341's layouts.
 
-**Live:** `56de6e6-mv5qksnd`; push queue stuck (sp-x7 unsticking). Reds: `red-green.md`.
+**Live:** `56de6e6-mv5qksnd`. **Push queue stuck 2 h (179 waiting) → fixing (23:20Z):** (a) standing debt rule for shard downward imports + generator-imports added to `.git/generated-approval.json` (public-index / sandbox still exact); (b) sp-x7 pushes the longest green prefix; (c) sp-x7 finds why a gate took 1,138 s. Goal: origin moves within the hour. Reds: `red-green.md`.
 
 **Before the sprint (paused, not dropped):** frame floor (desktop Pine p95 33.4; Simulator Driftwood 59, Pine 58,
 Sky 37, Nalati 36; fixes `38ea143c5`, `512bb3d16`, `dc4dfb106` unproven; task clock `99b0866c0`; leads: Driftwood unsliced world builders + late sailor light), SF22 assembled routes, SF57 re-entry, SF67.
