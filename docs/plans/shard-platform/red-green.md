@@ -68,3 +68,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-12 | silent-revert guard refused native pathspec commits when HEAD moved during the hook | `afad1ea04` | `594cf8762` (validates Git's own next-index; native ref CAS kept) | sp-x7 |
 | 2026-10-12 | gate: Pine manifest closure 44 > 43 (verified: only `pine-hollow/data/placeholder.ts` added) | `7d6b3c0b4` | `c21f24156` + `8c24b45d8` (manifest imports no placeholder data) | sp-o32 |
 | 2026-10-12 | gate: Sunscar whip-parity require-await | `fd523da91` | `744854d7d` | wildshard-new |
+| 2026-10-12 | gate: Driftwood + Pine physics/spots freshness (new `data/placeholder.ts` inputs) | `7d6b3c0b4`, then `c21f24156` + `8c24b45d8` | DW `ec8a8e7fa` (sp-x7); Pine `17d1d63d9` (sp-o32) | sp-x7, sp-o32 |
