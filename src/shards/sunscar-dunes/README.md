@@ -15,7 +15,7 @@ alone (E357 Z3, round 4). No engine edits.
 | `status`, `order` | `experimental`, 50 |
 | `style`, `kitLook` | `dusk`, `pbr` |
 | `uses` | `quests`, `coins`, `loot`, `hover` |
-| `ground` | `buildTerrain` over transverse dunes (`world/dunes.ts`), ±200 m playable: slip faces ~30° over long windward slopes, the wind blowing toward the spawn view (the far slip faces in shade, as the mockups draw them), authored landforms (`data/layout.ts` LANDFORMS: round 13's low crest, mostly under the field so its receding rows show; the tower's mound; a dune 150 m out along B's view; waymark 0's 18 m rise; E407 row 1), a crest under the spawn, flat pads at the caravan and the well, the boss basin (a 56 m sand bowl), four crest trails |
+| `ground` | Required baked heightfield over cold-authored transverse dunes (`generators/landscape.ts`), ±200 m playable: slip faces ~30° over long windward slopes, the wind blowing toward the spawn view (the far slip faces in shade, as the mockups draw them), authored landforms (`data/layout.ts` LANDFORMS: round 13's low crest, mostly under the field so its receding rows show; the tower's mound; a dune 150 m out along B's view; waymark 0's 18 m rise; E407 row 1), a crest under the spawn, flat pads at the caravan and the well, the boss basin (a 56 m sand bowl), four crest trails |
 | `horizon`, `boundary` | two low dune rings in shadowed sand; no cloud sea; the drawn edge hidden (containment stays) |
 | `loadout` | the bullwhip (held) and the kit hoverboard |
 | `species` | `duneRay` (flying), `sandSkitterer` (burrowing packs), `duneStrider` (charger), `duneMatriarch` (the boss, flying): each its own brain |
@@ -71,3 +71,12 @@ fog from 70 to 330 m; the tower and the ray read as dark silhouettes. The baseli
 - E374: Jake's look at the content board and the boss clip (`art/sunscar-dunes/round-6-content/`).
 - E374 C6: Jake's look at the model board (`art/sunscar-dunes/round-7-models/`). The Matriarch and the tower stay code.
 - Leftovers: the whip crack and a wind bed generated locally (MOSS + Stable Audio), a dusk score (MiniMax).
+
+The manifest loads the required WSTR ground before height queries.
+`generators/bake-manifest-ground.mjs` cold-produces the unchanged native
+terrain bytes, original developer pose heights, and exact f64 tint ring means.
+The `signal-manifest-ground` cache job pins the new manifest queries; neither
+a retained grid nor runtime code seeds the producer. Tint/material equations
+and terrain tile bytes remain unchanged. Missing or malformed ground and tint
+bytes refuse. Native actor/prompt authoring retains its original analytic f64
+placement queries through `signalAuthorGround`; the client reads baked ground.

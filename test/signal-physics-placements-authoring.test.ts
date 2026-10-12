@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Inspect the registered complete authoring job in this isolated tree.
 import process from 'node:process';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
-import { duneHeight } from '../src/shards/sunscar-dunes/world/dunes';
+import { duneHeight } from './fixtures/signal-dune-law';
 import { TRAIL } from '../src/shards/sunscar-dunes/data/layout';
 import { signalHeightAt } from '../src/shards/sunscar-dunes/generators/landscape';
 import { expect, it } from 'vitest';

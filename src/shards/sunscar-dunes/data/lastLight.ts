@@ -1,3 +1,4 @@
+import { SAND_TINT } from './duneField';
 import type { DayClockRow } from '@wildshard/format/dayCycle';
 import { AERIAL_FOG, FAR_HAZE, FILL, FOG_SUN, KEY_DIM, type DuskCurve } from './dusk';
 import { KEY_DIR, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from './sand';
@@ -51,7 +52,6 @@ export const FOG = { color: 0x3e3452, near: 80, far: 430 } as const;
  * toward the hollow. loop 6: lit sand a gold-orange, less saturated and a little lighter than loop 5 (the targets' lit
  * faces); E399 (council round 2, R2B-1: the mockups' ground measures warm brown, R/B ~3): less blue in every tone.
  */
-export const SAND_TINT = { sand: [0.5, 0.23, 0.075], hollow: [0.22, 0.14, 0.12], crest: [0.64, 0.33, 0.1], ring: 14, span: 2.5, hollowGain: 0.75, crestGain: 0.6, skirtHollow: 0.25 } as const;
 /** The day clock: Signal Dunes holds at dusk (the clock is never advanced). */
 export const DUSK_CLOCK = { units: 'hour', start: 19,
   schedule: [{ phase: 'day', from: 0, to: 24, minutes: 24 * 60 }],

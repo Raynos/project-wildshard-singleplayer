@@ -3,6 +3,44 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "signal-manifest-ground",
+      "shard": "sunscar-dunes",
+      "entry": "src/shards/sunscar-dunes/generators/bake-manifest-ground.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/sunscar-dunes/generators/bake-manifest-ground.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/contentBounds.ts",
+        "src/format/package.json",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/sunscar-dunes/data/duneField.ts",
+        "src/shards/sunscar-dunes/data/flags.ts",
+        "src/shards/sunscar-dunes/data/layout.ts",
+        "src/shards/sunscar-dunes/generators/bake-manifest-ground.mjs",
+        "src/shards/sunscar-dunes/generators/duneField.ts",
+        "src/shards/sunscar-dunes/generators/landscape.ts",
+        "src/shards/sunscar-dunes/generators/landscapeNoise.ts",
+        "src/shards/sunscar-dunes/generators/manifestGround.ts",
+        "src/shards/sunscar-dunes/generators/nativeTerrain.ts"
+      ],
+      "outputs": [
+        "public/assets/sunscar-dunes/ground/ring-mean.bin",
+        "src/shards/sunscar-dunes/data/manifestGround.generated.json",
+        "public/assets/baked/sunscar-dunes/terrain.bin",
+        "public/assets/baked/sunscar-dunes/terrain.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "public/assets/sunscar-dunes/ground/ring-mean.bin": "75a22d84597191eef96f8db39672fe0b475220a0a7b8e4ceb058f57f1a16b3b2",
+        "src/shards/sunscar-dunes/data/manifestGround.generated.json": "ffb994ab2122111979074b82014225498393aaa96ed2155cbd620335850fe92f"
+      }
+    },
+    {
       "id": "pine-coat-pages",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-pine-coat-pages.mjs",

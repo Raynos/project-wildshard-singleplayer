@@ -36,7 +36,7 @@ export interface DuneFieldRow {
 }
 
 /**
- * Signal Dunes' crescent dunes (P2) as rows on the dune field law (`generators/duneField.ts` bakes it, `runtime/looks/duneField.ts` samples it): 6-12 m knife-edge
+ * Signal Dunes' crescent dunes (P2) as rows on the dune field law (`generators/duneField.ts` bakes it; the client samples the required WSTR grid): 6-12 m knife-edge
  * crests, a gentle windward side, a 28-32° slip face that faces the low key light, so every dune splits into a lit
  * orange face and a cool shaded one. The spawn and the tower stand on broad raised mounds; the caravan and the well on
  * small pads levelled to their own dune height; a wide sand bowl north of the tower for the boss. Every face stays under
@@ -64,3 +64,6 @@ export const DUNE_FIELD: DuneFieldRow = {
   crestLines: CREST_LINES, landforms: LANDFORMS,
   spots: [...CRESTS.map((c) => ({ x: c.x, z: c.z, r: c.r, lift: c.lift, ease: c.ease })), ...PADS.map((p) => ({ x: p.x, z: p.z, r: p.r, lift: p.lift ?? 0, ease: p.ease ?? Math.max(p.r * 4.6, 46) }))],
 };
+
+/** Exact retained hollow/crest tint; author and client share its ring radius. */
+export const SAND_TINT = { sand: [0.5, 0.23, 0.075], hollow: [0.22, 0.14, 0.12], crest: [0.64, 0.33, 0.1], ring: 14, span: 2.5, hollowGain: 0.75, crestGain: 0.6, skirtHollow: 0.25 } as const;

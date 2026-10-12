@@ -68,6 +68,18 @@ for (const def of SHARDS) {
   // one rule with the grid's edge reader (src/game/shard/terrainBake.ts): a structures world ships no bake, and the reader
   // never fetches one for it (C4-R1-C13)
   if (!bakesTerrain(def.ground)) continue;
+  // Required baked fields are compiled by their registered cold author job.
+  // Re-run that complete job in check mode; never sample an unready field or
+  // treat the retained bytes as its source.
+  const { bakedTerrainSource } = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/bakedTerrainField.ts')).href);
+  const declared = bakedTerrainSource(def.ground.terrain);
+  if (declared !== null) {
+    const { discoverGeneration, generateShardJob } = await import('./generate.mjs');
+    const file = `public${declared.url}`, job = discoverGeneration(ROOT).jobs.find(row => row.outputs.includes(file));
+    if (job === undefined) throw new Error(`Required ground has no cold producer: ${file}`);
+    await generateShardJob(ROOT, job, { forceCompare: check, restore: !check });
+    continue;
+  }
     // the bake holds the authored (unshifted) heights: a field shifted at runtime (its `datum`, Driftwood's G164 drop)
     // installs this bake shifted by it (src/engine/world/Heightfield.ts)
     const terrain = def.ground.terrain, datum = terrain.datum ?? 0, authored = { heightAt: (x, z) => terrain.heightAt(x, z) - datum };

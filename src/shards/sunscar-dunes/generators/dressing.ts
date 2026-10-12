@@ -3,7 +3,7 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { rock } from '@wildshard/engine/world/geometryKit';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, TRAIL, WELL } from '../data/layout';
-import { WIND } from '../world/dunes';
+import { DUNE_FIELD } from '../data/duneField';
 import { signalDunesField } from './tiles';
 import { bakeKinds } from './kinds';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
@@ -191,7 +191,7 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
   };
   const material = (): MeshStandardMaterial => new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true, side: DoubleSide });
   const range = (half: number): number => rng.range(-half, half);
-  const downwind = Math.atan2(-WIND.z, WIND.x); // a yaw that turns local +x along the wind
+  const downwind = Math.atan2(-DUNE_FIELD.wind.z, DUNE_FIELD.wind.x); // a yaw that turns local +x along the wind
 
   // Shrubs: in clumps of 1–4 in the hollows and beside the trails (never on the trail bed, the crests mostly bare).
   const shrubs = new InstancedMesh(shrubGeometry(SEED + 1), material(), DRESSING.shrubs);

@@ -148,3 +148,7 @@ src/**/*.generated.*
 # G331: abandoned Sky terrain bake; no catalogue output or committed consumer.
 /public/assets/baked/far-reach/terrain.bin
 /public/assets/baked/far-reach/terrain.json
+
+# Cold-authored Signal manifest queries (SHA256 pins in generation-jobs.json).
+/public/assets/sunscar-dunes/ground/ring-mean.bin
+/src/shards/sunscar-dunes/data/manifestGround.generated.json

@@ -14,13 +14,12 @@ import type { DuskLookRow, DuskTintRow } from '../../data/lastLight';
 /** The sand's three baked maps a dusk look draws with. */
 export type DuskSandMaps = Record<'shadow' | 'trail' | 'grain', DataTexture>;
 
-/** What a dusk look reads live: the quest's dusk and the fires' light uniforms, the sand's wind, the analytic field (built
- *  when the ground is), the baked sand maps, the tile ground and the held skirt with its baked pack. */
+/** What a dusk look reads live: the quest's dusk and the fires' light uniforms, the sand's wind, the exact authored ring means, the baked sand maps, the tile ground and the held skirt with its baked pack. */
 export interface DuskLookParts {
   readonly dusk: { readonly value: number };
   readonly fires: { readonly value: readonly GroundPool[] };
   readonly wind: { readonly x: number; readonly z: number };
-  readonly field: () => (x: number, z: number) => number;
+  readonly mean: () => Promise<(x: number, z: number) => number>;
   readonly maps: () => Promise<DuskSandMaps>;
   readonly tiles: TintedTileGround;
   readonly skirt: CubeSkirt;
@@ -39,9 +38,9 @@ export async function loadDuskSandMaps(rows: Readonly<Record<'shadow' | 'trail' 
 }
 
 /** The sand's hollow / crest tint at one vertex: its height `h` against its ring's mean. */
-function sandTint(row: DuskTintRow, tones: { sand: Color; hollow: Color; crest: Color }, heightAt: (x: number, z: number) => number, x: number, z: number, h: number, c: Color): Color {
-  const { ring, span, hollowGain, crestGain } = row;
-  const mean = (heightAt(x + ring, z) + heightAt(x - ring, z) + heightAt(x, z + ring) + heightAt(x, z - ring)) / 4;
+function sandTint(row: DuskTintRow, tones: { sand: Color; hollow: Color; crest: Color }, meanAt: (x: number, z: number) => number, x: number, z: number, h: number, c: Color): Color {
+  const { span, hollowGain, crestGain } = row;
+  const mean = meanAt(x, z);
   const rel = Math.max(-1, Math.min(1, (h - mean) / span));
   c.copy(tones.sand); if (rel < 0) c.lerp(tones.hollow, -rel * hollowGain); else c.lerp(tones.crest, rel * crestGain);
   return c;
@@ -63,17 +62,18 @@ export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
   let painted: { scope: Scope; sky: DuskSky; textures: readonly Texture[] } | null = null;
   let sand: DuskSand | null = null;
   const buildSand = async (terrain: Terrain, field: PainterField, scope: Scope): Promise<void> => {
-    const [{ shadow, trail, grain }, skirt] = await Promise.all([parts.maps(), parts.skirt.load(parts.skirtPack.url, parts.skirtPack.rows, parts.skirtPack.fault)]);
+    await field.ready();
+    const [{ shadow, trail, grain }, skirt, meanAt] = await Promise.all([parts.maps(), parts.skirt.load(parts.skirtPack.url, parts.skirtPack.rows, parts.skirtPack.fault), parts.mean()]);
     scope.own(shadow); scope.own(trail); scope.own(grain);
     const familyGround = duskSand(row.sand, { grain, trail, shadow }, site, dusk.value, scope); sand = familyGround;
     scope.onDispose(() => { if (sand === familyGround) sand = null; });
     const material = familyGround.material; terrain.material = material;
-    // the tint's ring mean reads the analytic field (the code-built mesh's), never the collider the ground binds
-    const heightAt = parts.field(), c = new Color();
+    // The authored f64 ring means preserve the original analytic tint, independently of the collider.
+    const c = new Color();
     const skirtMesh = skirt === null ? null : new Mesh(scope.own(skirt.standalone), material);
     if (skirtMesh !== null) { skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh); }
     await parts.tiles.bind(terrain, field, material, (x, z, h, out, at) => {
-      sandTint(row.tint, tones, heightAt, x, z, h, c); out[at] = c.r; out[at + 1] = c.g; out[at + 2] = c.b;
+      sandTint(row.tint, tones, meanAt, x, z, h, c); out[at] = c.r; out[at + 1] = c.g; out[at + 2] = c.b;
     }, scope);
     if (skirt !== null && skirtMesh !== null) parts.skirt.hold(skirtMesh, skirt.cube, skirt.half, scope);
   };

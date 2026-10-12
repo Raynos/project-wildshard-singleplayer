@@ -8,17 +8,18 @@ import { SIGNAL_DUNES_RUNTIME_COST } from './data/runtimeCost';
 import { DUSK_CARD } from './thumbs/card';
 import { EXPLORE } from './explore/art';
 import { bootFiles, bootSources, lateReads } from './boot/files';
-import { duneHeight } from './world/dunes';
+import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
+import groundQueries from './data/manifestGround.generated.json' with { type: 'json' };
 import { mapPalette } from './runtime/looks/mapPalette';
 import { SIGNAL_DUNES_MAP } from './data/minimap';
 import { SIGNAL_MANIFEST_ROWS } from './data/manifestRows';
 import { SIGNAL_ATMOSPHERE, SIGNAL_GRADE, SIGNAL_HORIZON, SIGNAL_SKY } from './data/manifestLook';
 
-const terrain = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
-const ground = (x: number, z: number): number => terrain.heightAt(x, z);
-const spawnY = ground(SPAWN.x, SPAWN.z), towerY = ground(TOWER.x, TOWER.z);
-const eye = (x: number, z: number, lift = 1.6): [number, number, number] => [x, ground(x, z) + lift, z];
-const feet = (x: number, z: number): [number, number, number] => [x, ground(x, z), z];
+const terrain = createBakedTerrainField({ url: '/assets/baked/sunscar-dunes/terrain.bin', seed: SEED },
+  buildTerrain(SEED, { landscape: () => 0, trails: TRAIL, cabinSites: [] }));
+const { spawnY, towerY, heights } = groundQueries;
+const eye = (x: number, z: number, height: number, lift = 1.6): [number, number, number] => [x, height + lift, z];
+const feet = (x: number, z: number, height: number): [number, number, number] => [x, height, z];
 
 export const SUNSCAR_DUNES: ShardManifest = {
   runtimeCost: SIGNAL_DUNES_RUNTIME_COST,
@@ -38,10 +39,10 @@ export const SUNSCAR_DUNES: ShardManifest = {
   audio: { ambience: 'none', score: 'sunscar.silent', cues: CUES },
   boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, lateReads, viewmodelSets: [], shaders: { background: false }, audio: [], precache: [] },
   dev: { poses: () => Promise.resolve({
-    spawn: { eye: eye(SPAWN.x, SPAWN.z), feet: feet(SPAWN.x, SPAWN.z), yaw: 0, pitch: 2, mockup: 'art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg', frame: STRINGS.frameSpawn },
-    whip: { eye: eye(SPAWN.x, SPAWN.z - 4), feet: feet(SPAWN.x, SPAWN.z - 4), yaw: -20, pitch: -4, mockup: '', frame: STRINGS.frameWhip },
-    ray: { eye: eye(SPAWN.x, SPAWN.z), feet: feet(SPAWN.x, SPAWN.z), yaw: -3, pitch: 9, mockup: '', frame: STRINGS.frameRay },
-    quest: { eye: eye(TOWER.x - 4, TOWER.z + 12), feet: feet(TOWER.x - 4, TOWER.z + 12), yaw: 15, pitch: 22, mockup: '', frame: STRINGS.frameQuest },
+    spawn: { eye: eye(SPAWN.x, SPAWN.z, heights.spawn), feet: feet(SPAWN.x, SPAWN.z, heights.spawn), yaw: 0, pitch: 2, mockup: 'art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg', frame: STRINGS.frameSpawn },
+    whip: { eye: eye(SPAWN.x, SPAWN.z - 4, heights.whip), feet: feet(SPAWN.x, SPAWN.z - 4, heights.whip), yaw: -20, pitch: -4, mockup: '', frame: STRINGS.frameWhip },
+    ray: { eye: eye(SPAWN.x, SPAWN.z, heights.spawn), feet: feet(SPAWN.x, SPAWN.z, heights.spawn), yaw: -3, pitch: 9, mockup: '', frame: STRINGS.frameRay },
+    quest: { eye: eye(TOWER.x - 4, TOWER.z + 12, heights.quest), feet: feet(TOWER.x - 4, TOWER.z + 12, heights.quest), yaw: 15, pitch: 22, mockup: '', frame: STRINGS.frameQuest },
     tower: { eye: [TOWER.x, towerY + TOWER.deck + 1.6, TOWER.z + 1], yaw: 180, pitch: -8, mockup: '', frame: STRINGS.tower },
   }) },
   explore: EXPLORE, roster: async () => (await import('./roster')).roster(), load: () => import('./plugin'),

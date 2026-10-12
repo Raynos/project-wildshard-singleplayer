@@ -1,14 +1,14 @@
 import { DUSK } from './dusk';
 import type { LookStrategy } from '@wildshard/engine/render/look';
-import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import { CubeSkirt, TintedTileGround } from '../runtime/looks/bakedGround';
 import { duskLook, loadDuskSandMaps, type DuskSandMaps } from '../runtime/looks/duskLook';
-import { SEED, SPAWN, TRAIL } from '../data/layout';
+import { SPAWN } from '../data/layout';
 import { SIGNAL_DUSK_LOOK } from '../data/lastLight';
 import { SAND_FILES, SAND_MAPS } from '../data/sand';
 import sandMeans from '../data/sand.json' with { type: 'json' };
 import skirtRows from '../data/skirt.json' with { type: 'json' };
-import { duneHeight, WIND } from '../world/dunes';
+import { DUNE_FIELD } from '../data/duneField';
+import { loadSignalRingMeans } from '../runtime/looks/ringMeans';
 import { FIRE_LIGHTS } from '../world/fireFx';
 import source from '../shard.config';
 
@@ -16,7 +16,7 @@ import source from '../shard.config';
  * "Last Light" (docs/design/sunscar-dunes/style-bible.md) on the platform's dusk look (`@wildshard/sdk/looks/duskLook`,
  * its row data/lastLight.ts SIGNAL_DUSK_LOOK): a low warm key ~9° up with the afterglow behind the tower (E399: the
  * mockups win over the old "never in the player's face" rule), so the dune faces turned to the camera fall into cool shade,
- * the crests catch the light and the ripples graze; the crests run diagonally across the view (`world/dunes.ts` WIND).
+ * the crests catch the light and the ripples graze; the crests run diagonally across the view (`data/duneField.ts` wind).
  */
 
 /**
@@ -32,7 +32,7 @@ export const SKIRT = new CubeSkirt();
 
 /** Signal Dunes' look: the dusk look over the quest's dusk (look/dusk.ts), the fires' light pools and the analytic dune field. */
 export function signalDunesLook(): LookStrategy {
-  return duskLook(SIGNAL_DUSK_LOOK, { dusk: DUSK, fires: FIRE_LIGHTS, wind: WIND, maps: loadSandMaps, tiles: SAND_TILES, skirt: SKIRT,
+  return duskLook(SIGNAL_DUSK_LOOK, { dusk: DUSK, fires: FIRE_LIGHTS, wind: DUNE_FIELD.wind, maps: loadSandMaps, tiles: SAND_TILES, skirt: SKIRT,
     skirtPack: { url: SAND_FILES.skirt, rows: skirtRows, fault: '[sunscar-dunes] the baked dune skirt did not load:' },
-    field: () => buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] }).heightAt });
+    mean: () => loadSignalRingMeans(SAND_FILES.ringMean) });
 }

@@ -6,6 +6,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
 import type { SignalWorld } from '../world/build';
+import groundQueries from '../data/manifestGround.generated.json' with { type: 'json' };
 import { DISCOVERY_PLACES } from '../data/questPresentation';
 import { STRINGS } from '../data/strings';
 import { lastLightAll } from '../look/light';
@@ -40,7 +41,10 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   // SF14 / M3: Signal Dunes' feats are its shardfile's ledger rows (runtime.binds); the platform grants each achievement once.
   // The instance is the first-party placement id (the slug: Select a shard, explore and the grid share it).
   const slug = ctx.manifest.slug, runtime = ctx.game.runtime, facts = bindSignalFacts(ctx, runtime?.play?.progress, slug);
-  const groundAt = (x: number, z: number): number => ctx.manifest.ground.terrain?.heightAt(x, z) ?? 0;
+  const groundAt = (x: number, z: number): number => {
+    if (x !== SCOUT_AT.x || z !== SCOUT_AT.z) throw new Error('Undeclared authored scout ground query');
+    return groundQueries.heights.scout;
+  };
   // C26: a current save that recorded the paid reward in the old shard save carries it over as the quest flag.
   if (!flags.has(PAID_FLAG) && legacy.read(slug)) flags.set(PAID_FLAG);
   // A save from before Sefa (loop 2) or a player who walked past her to the caravan: any later step done means the

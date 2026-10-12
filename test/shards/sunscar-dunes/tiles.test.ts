@@ -5,15 +5,13 @@ import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { Group, MeshStandardMaterial } from 'three';
 import { Scope } from '../../../src/engine/app/scope';
-import { buildTerrain } from '../../../src/engine/world/terrainField';
 import { ClientAssets } from '../../../src/game/shardfile/clientAssets';
 import { clientViews } from '../../../src/game/shardfile/clientViews';
 import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import { bindRuntimeTerrain } from '../../../src/game/shardfile/runtimeWorld';
 import { parseShardfile } from '@wildshard/format/shardSchema';
-import { signalDunesTiles } from '../../../src/shards/sunscar-dunes/generators/tiles';
-import { SEED, SPAWN, TOWER, TRAIL } from '../../../src/shards/sunscar-dunes/data/layout';
-import { duneHeight } from '../../../src/shards/sunscar-dunes/world/dunes';
+import { signalDunesTiles, signalDunesField } from '../../../src/shards/sunscar-dunes/generators/tiles';
+import { SPAWN, TOWER } from '../../../src/shards/sunscar-dunes/data/layout';
 import tiles from '../../../src/shards/sunscar-dunes/data/tiles.json' with { type: 'json' };
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 
@@ -57,7 +55,7 @@ describe('Signal Dunes compiles its dune field into shardfile terrain tiles (SHA
       const views = clientViews({ root, terrain: 'pbr', materials: new Map([['pbr', material]]), textures: new Map() });
       const terrain = await bindRuntimeTerrain({ scope }, source, { assets: new ClientAssets(source, committed, options), terrain: views.terrain, x: SPAWN.x, z: SPAWN.z });
       expect(terrain.fine.size).toBeGreaterThan(0);
-      const field = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
+      const field = signalDunesField();
       // on the 1.95 m lattice the collider is exact; between lattice points it is the bilinear of the same samples
       for (const [x, z] of [[-250, -250], [0, 250], [250, 0]] as const) expect(terrain.ground.heightAt(x, z)).toBeCloseTo(field.heightAt(x, z), 4);
       for (const at of [SPAWN, TOWER]) expect(Math.abs(terrain.ground.heightAt(at.x, at.z) - field.heightAt(at.x, at.z))).toBeLessThan(0.15);

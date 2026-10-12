@@ -2,7 +2,7 @@ import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32Buffe
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { BRAZIERS, CARAVAN, WELL } from '../data/layout';
 import { COOK, CRATES, HORSE, LANTERN, WELL_RIG } from '../data/places';
-import { WIND } from '../world/dunes';
+import { DUNE_FIELD } from '../data/duneField';
 import { signalDunesField } from './tiles';
 import { bakeKinds, foldKinds } from './kinds';
 import { colliderRows, type PieceBake } from '@wildshard/sdk/bake/kinds';
@@ -55,7 +55,7 @@ function markerPole(parent: Group, lx: number, lz: number, groundY: number, h: n
   const pole = box(0.11, h, 0.11, mat(POLE)); at(pole, lx, groundY + h / 2 - 0.3, lz, parent);
   const flag = new Mesh(bannerGeometry(), new MeshStandardMaterial({ color: RAG, roughness: 0.9, side: DoubleSide, emissive: RAG_GLOW }));
   flag.scale.set(1.6, 1.2, 1.2); flag.position.set(lx, groundY + h - 0.35, lz);
-  flag.rotation.y = Math.atan2(-WIND.z, WIND.x) - parent.rotation.y; parent.add(flag);
+  flag.rotation.y = Math.atan2(-DUNE_FIELD.wind.z, DUNE_FIELD.wind.x) - parent.rotation.y; parent.add(flag);
   colliders.push(boxDesc({ x: wx, z: wz, hw: 0.07, hd: 0.07, rot: 0, yBottom: worldY - 0.3, yTop: worldY + h }, 'wood'));
 }
 

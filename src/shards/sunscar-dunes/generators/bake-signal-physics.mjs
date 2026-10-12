@@ -10,6 +10,7 @@ import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 import { signalPhysicsInputs } from '../../../../scripts/signal-physics-inputs.mjs';
 import authoredPlacements from '../data/physicsPlacements.generated.json' with { type: 'json' };
 import authoredTower from '../data/towerPhysics.generated.json' with { type: 'json' };
+import { signalAuthorGround } from './landscape.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const at = path => import(pathToFileURL(resolve(root, path)).href);
@@ -25,7 +26,10 @@ try {
     ? new THREE.Color(1, 1, 1) : typeof key === 'string' && key.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
   (await at('src/engine/core/tier.ts')).initializeTier('phone');
   const { default: manifest } = await at('src/shards/sunscar-dunes/manifest.ts');
-  (await at('src/game/shard/list.ts')).installShards([manifest]);
+  const ground = manifest.ground.terrain;
+  if (ground === undefined) throw new Error('Signal author world requires ground metadata');
+  const authorManifest = { ...manifest, ground: { ...manifest.ground, terrain: { ...ground, ...signalAuthorGround() } } };
+  (await at('src/game/shard/list.ts')).installShards([authorManifest]);
   (await at('src/game/shard/registry.ts')).setActiveChunk(manifest.slug);
   const { SignalDunesPlugin } = await at('src/shards/sunscar-dunes/plugin.ts');
   const contexts = [];
@@ -35,7 +39,9 @@ try {
     async world(ctx) { await super.world(ctx); contexts.push({ ctx, places: this.places }); }
   }
   const captures = [];
-  await visitAuthoredWorld({ ...manifest, load: () => Promise.resolve({ default: CaptureSignal }) },
+  // Actor/prompt author poses use the retained analytic f64 recipe. The client
+  // required ground is installed separately from its immutable WSTR bytes.
+  await visitAuthoredWorld({ ...authorManifest, load: () => Promise.resolve({ default: CaptureSignal }) },
   { root, sky, element: environment.element, tier: 'phone', practiceArena: true,
     createTerrain: () => ({ mesh: new THREE.Mesh(new THREE.PlaneGeometry(500, 500).rotateX(-Math.PI / 2)), punch: noop }),
     visit: async ({ scene, forest, registry }) => {
@@ -62,7 +68,7 @@ try {
       const { SCOUT_NPC } = await at('src/shards/sunscar-dunes/quests/scout.ts');
       const { installPivotNpc } = await at('src/game/plugin/geometry.ts');
       const scout = installPivotNpc(ctx, SCOUT_NPC, { source,
-        groundAt: (x, z) => manifest.ground.terrain?.heightAt(x, z) ?? 0,
+        groundAt: (x, z) => authorManifest.ground.terrain.heightAt(x, z),
         player: new THREE.Vector3(manifest.spawn.x, manifest.spawn.y, manifest.spawn.z), met: () => false,
         file: 'src/shards/sunscar-dunes/quests/scout.ts' });
       // The page's actual prompt constructor, row and live head anchor; no rendered presentation is needed.

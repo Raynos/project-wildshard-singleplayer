@@ -1,7 +1,5 @@
-import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import { bakeTerrain, type BakedTerrain } from '@wildshard/sdk/bake/terrain';
-import { SEED, TRAIL } from '../data/layout';
-import { duneHeight } from '../world/dunes';
+import { signalHeightAt, signalTrailDistance } from './landscape';
 import { mapPalette } from '../runtime/looks/mapPalette';
 import { SIGNAL_DUNES_MAP } from '../data/minimap';
 
@@ -11,7 +9,7 @@ const linear = (c: number): number => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 
 const unit = (c: number): number => Math.max(0, Math.min(1, Number.isFinite(c) ? c : 0));
 
 /** The manifest's own dune field (entry roads and graded trails included): the ground every Signal bake reads. */
-export const signalDunesField = (): ReturnType<typeof buildTerrain> => buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
+export const signalDunesField = (): { heightAt: (x: number, z: number) => number; trailDistance: (x: number, z: number) => number } => ({ heightAt: signalHeightAt(), trailDistance: signalTrailDistance });
 
 /**
  * SHARD-PLATFORM M3 (G227, "the shardfile is the bake"): Signal Dunes' code-built heightfield compiled into the shardfile's
