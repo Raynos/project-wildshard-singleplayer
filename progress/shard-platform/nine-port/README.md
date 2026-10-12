@@ -80,6 +80,52 @@ Proof: 36 focused checks in nine files, strict and typed lint pass, plus the phy
 
 Current custom metric: **15,205 / 21,111 = 72.0241%**, comprising 14,296 authored shard TS lines, one additional GLSL line and 908 one-user platform lines. The complete 179-file inventory below reproduces that numerator. The strict ownership/lookup adapter adds eleven net counted lines; this is an authoring conversion, with no runtime-size saving claimed. AssemblyScript remains zero; trusted simulation is transitional, the 20% gate fails and the full-world content gate remains OPEN.
 
+## Raw GLSL fit inventory (sp-o8, 2026-10-12)
+
+Measured at `b59d2a6ab` with the defining `rawShaderLines` rule: **3,205 raw GLSL lines in 79 programs** (all but one
+inside runtime TS, so they are already in the 14,385-line numerator). The shard stands at **69.5 %** (14,674 / 21,111).
+The 20 % budget is 4,222 lines.
+
+**Blocker, recorded by the coordinator in STATE:** a graph material only compiles through the lazy TSL back-end, and
+the default-off Debug row `graphMaterials` (E435) gates that back-end. Until a physical-iPhone reading turns it on by
+default, a ported look keeps its GLSL as the fallback, so no GLSL is deleted this session. Pixel parity does not cover
+the TSL chunk (≈ 117 KB gzip) or the node-program compile cost on the phone.
+
+The legend for what each program needs beyond the DS1.4 `graph()` vocabulary:
+
+- `A` custom vertex attributes (`aFace`, `aSeed` …)
+- `V` vertex-computed varyings
+- `U` code-fed uniforms (`uCam`, `uRootAt`, `uFogScale`, the look clock `uTime`)
+- `F` silkFog: the shard's own fog, with no engine epilogue fog
+- `D` a `gl_FragCoord` Bayer discard
+- `T` atan
+- `X` a texture or LUT that is not an admitted file
+- `L` a non-constant loop
+- `P` point sprites
+- `M` a multi-target post chain
+
+| Rank | Program (lines) | Needs | Fit after A·V·U·T·D land |
+|---:|---|---|---|
+| 1 | `look.ts#FS_JIEHUA` + `VS_JIEHUA` (420 + 37) | A V U F D X | fog override and atlas textures still missing |
+| 2 | `facadeLook.ts#FS_JIEHUA` + `VS` (208 + 43) | A V U F T X | same as 1 |
+| 3 | `facadeLook.ts#FS_WIN` + `VS_WIN` (196 + 37) | A V U F X | same as 1 |
+| 4 | `vmLook.ts#VM_FS` + `VM_VS` + hull (184 + 44 + 40) | A V U X | viewmodel textures; the hull fits `outline` |
+| 5 | `passes.ts#*` (385) | M X | blocked: a pyramid and trace chain is not one post graph |
+| 6 | `look.ts#FOG_GLSL` (124) | U L | a TSL helper once `U` lands; it unblocks every `F` program |
+| 7 | `canopy.ts` (142) | A V U F | fits once `F` is a TSL helper |
+| 8 | `heroVm.ts` (121) | A V U X | same as 4 |
+| 9 | `streaks.ts` (144) | A V U F | per-card discard: fits with `D` / surface discard |
+| 10 | `look.ts#FS_SKY` / `FS_SCREEN` / `FS_SHEET` / `FS_NEON` / `FS_STEAM` / `FS_LINE` (≈ 300 with their vertex shaders) | A V U F T | fits once `F` is a helper |
+| 11 | `paint.ts`, `scroll.ts`, `light.ts`, `neonText.ts` (≈ 410) | A V U F X | the LUT, the glyph atlas and the light volume need texture admission |
+| 12 | `lanterns.ts` (66) | A V U F T | fits once `F` is a helper |
+| 13 | `portalLook.ts` ring and disc (30) | V U T | fits with T·V·U (the next sp-o8 slices) |
+| 14 | `portalLook.ts` sparks, `burstFx.ts` sparks (34) | P | blocked: no point sprites |
+| 15 | `burstFx.ts` flash, `ropeFilament.ts`, `brushTrail.ts`, `vm/jian.ts` halo (≈ 140) | A V U T | fits with A·V·U·T |
+
+Order of the vocabulary work, by lines unlocked: **V + A + U** (every mesh program), then **T** and **D**, then a
+**shard fog override** (`F`, ≈ 1,600 lines need it), then texture admission for atlases and LUTs (`X`). `P` and `M`
+stay custom until the format grows point and multi-pass stages.
+
 ## Remaining work
 
 - **OPEN, non-visual:** native item/portal/grapple host adapters and continuation. Portal links and DIR stages already drive the native ride; grapple numeric modes already drive the shared law. The Well’s line-of-sight exception, cap owner and lift geometry require explicit course ports. Deleting those adapters without an equivalent row host would change gameplay.
