@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { registerSpecies } from '../../../src/engine/entities/species/registry';
 import { speciesWithLook } from '../../../src/engine/entities/species/look';
 import { overrideTerrain } from '../../../src/engine/world/Heightfield';
-import { PhasedRaptorBrain } from '../../../src/shards/far-reach/runtime/phasedRaptor';
+import { DiverBrain } from '../../../src/engine/ai/diver';
 import { stormRocBrain, type StormRocBrain } from '../../../src/shards/far-reach/runtime/stormRocBrain';
 import { STORM_ROC, STORM_ROC_LOOK } from '../../../src/shards/far-reach/species/stormRoc';
 import { bindPlayerPush } from '../../../src/shards/far-reach/species/rig';
@@ -66,7 +66,7 @@ it('matches the shipping Roc for 10,000 ticks across all phases, calm, reach, to
 });
 it.each([1400, 3400, 6400])('restores the exact body and policy suffix at tick %i without effects or RNG draws', at => {
   const f = fixture(true), restored = fixture(true);
-  if (!(f.policy instanceof PhasedRaptorBrain) || !(restored.policy instanceof PhasedRaptorBrain)) throw new Error('Expected native Roc policy');
+  if (!(f.policy instanceof DiverBrain) || !(restored.policy instanceof DiverBrain)) throw new Error('Expected native Roc policy');
   for (let tick = 0; tick < at; tick++) { drive(f, tick); drive(restored, tick); }
   const state = f.policy.snapshot(), actor = f.animal.snapshot(), rng = f.ctx.rng.snapshot();
   const next = stormRocBrain(restored.animal), effects = restored.hits.length, attacks = restored.starts.length;
@@ -77,7 +77,7 @@ it.each([1400, 3400, 6400])('restores the exact body and policy suffix at tick %
   expect(restored.hits).toEqual(f.hits); expect(restored.starts).toEqual(f.starts); expect(restored.shoves).toEqual(f.shoves);
 });
 it('rejects invalid continuations before mutating the policy', () => {
-  const f = fixture(true), policy = f.policy; if (!(policy instanceof PhasedRaptorBrain)) throw new Error('Expected Roc');
+  const f = fixture(true), policy = f.policy; if (!(policy instanceof DiverBrain)) throw new Error('Expected Roc');
   const saved = policy.snapshot(); expect(() => { policy.restore(null); }).toThrow('continuation');
   if (typeof saved !== 'string') throw new Error('Expected bounded continuation');
   expect(() => { policy.restore(saved.replace('"phase":0', '"phase":9')); }).toThrow();

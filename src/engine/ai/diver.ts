@@ -135,22 +135,76 @@ export function readWindDiverSpec(input: unknown): WindDiverSpec { return v.pars
 const windFinite = v.pipe(v.number(), v.finite()), windTriple = v.tuple([windFinite, windFinite, windFinite]);
 const WindDiverSaved = v.strictObject({ st: v.picklist(['soar', 'tell', 'stoop', 'ground', 'climb']), stT: windFinite, stoopT: windFinite,
   ang: windFinite, centre: windTriple, tgt: windTriple, overYou: v.boolean() });
+const raptorKey = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
+const raptorField = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9._:-]*$/u), v.maxLength(128));
+const raptorRadius = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(600)), raptorPositive = v.pipe(raptorRadius, v.minValue(Number.MIN_VALUE));
+const raptorSpeed = v.pipe(raptorRadius, v.maxValue(30)), raptorTurn = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(20));
+const raptorAt = v.pipe(v.number(), v.finite(), v.minValue(-10000), v.maxValue(10000)), raptorSeconds = v.pipe(raptorRadius, v.maxValue(60));
+const RaptorPhaseSchema = v.strictObject({
+  strike: raptorKey, altitude: raptorAt, aimHeight: v.pipe(v.number(), v.finite(), v.minValue(-10), v.maxValue(10)),
+  orbit: v.strictObject({ x: raptorAt, z: raptorAt, r: raptorPositive, speed: raptorSpeed }),
+  stalk: v.strictObject({ standOff: raptorRadius, retreat: v.boolean(), speed: v.nullable(raptorSpeed), above: v.nullable(v.pipe(v.number(), v.finite(), v.minValue(-100), v.maxValue(100))),
+    ready: v.variant('kind', [v.strictObject({ kind: v.literal('over'), radius: raptorPositive, height: raptorPositive }),
+      v.strictObject({ kind: v.literal('band'), tolerance: raptorPositive }), v.strictObject({ kind: v.literal('range') })]) }),
+  dive: v.boolean(), shove: v.nullable(v.strictObject({ speed: raptorSpeed, lift: raptorSpeed })), rest: raptorSeconds,
+});
+/**
+ * A raptor's declaration (SHARD-PLATFORM SF27, a phased boss bird): on a perch it takes off as its fight begins, laps
+ * `lap` between strikes and, per phase, closes in its own way (hang over the player, hold off and back away, or walk up)
+ * to make that phase's strike (an id in its strike rows), a dive or a held strike that may shove the player. Its
+ * encounter sets the phase and the fight; `perch` comes from the place it lands.
+ */
+export const RaptorDiverSchema = v.strictObject({
+  id: raptorKey, kind: v.literal('phased-raptor'),
+  perch: v.strictObject({ x: raptorAt, y: raptorAt, z: raptorAt, yaw: v.pipe(v.number(), v.finite(), v.minValue(-2 * Math.PI), v.maxValue(2 * Math.PI)) }),
+  lap: v.strictObject({ x: raptorAt, z: raptorAt, r: raptorPositive, y: raptorAt }),
+  speeds: v.strictObject({ circle: raptorSpeed, stalk: raptorSpeed, dive: raptorSpeed }),
+  takeoff: v.strictObject({ seconds: raptorPositive, speed: raptorSpeed, turn: raptorTurn, bank: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(Math.PI / 2)) }),
+  firstRest: raptorSeconds,
+  turns: v.strictObject({ perch: raptorTurn, circle: raptorTurn, stalk: raptorTurn, strike: raptorTurn }),
+  fields: v.strictObject({ lean: raptorField, bank: raptorField }),
+  phases: v.pipe(v.array(RaptorPhaseSchema), v.minLength(1), v.maxLength(8)),
+});
+/** An admitted raptor declaration. */
+export type RaptorDiverSpec = v.InferOutput<typeof RaptorDiverSchema>;
+/** Refuse an invalid raptor declaration before any policy or callback exists. */
+export function readRaptorDiverSpec(data: unknown): RaptorDiverSpec { return v.parse(RaptorDiverSchema, data); }
+type RaptorPhase = RaptorDiverSpec['phases'][number];
+/** The trusted ports a raptor acts through: the player, calm, attack tokens, reach, contact and native flight. Its
+ *  observation carries no pattern tag (the page's ThinkCtx and the headless ports feed it as they are). */
+export interface RaptorDiverPorts<A extends AnimalSim> {
+  dt: number; player: Vector3; calm: boolean;
+  reach: (actor: A) => boolean; claim: (actor: A) => boolean; hurt: (damage: number) => void;
+  flight: { steer: (actor: A, yaw: number, speed: number, altitude: number, turn?: number) => void };
+}
+const raptorFinite = v.pipe(v.number(), v.finite());
+const raptorContinuation = (phases: number) => v.strictObject({ version: v.literal(1), actor: v.string(), state: v.picklist(['circle', 'stalk', 'strike', 'rest']),
+  phase: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(phases - 1)), fighting: v.boolean(), current: v.nullable(v.string()),
+  windup: raptorFinite, angle: raptorFinite, rest: raptorFinite, chest: v.tuple([raptorFinite, raptorFinite, raptorFinite]), takeoff: raptorFinite,
+  wasFighting: v.boolean(), aim: raptorFinite, strikes: v.unknown() });
+interface RaptorPlan { readonly spec: RaptorDiverSpec; readonly catalogue: readonly StrikeSpec[]; readonly specs: readonly StrikeSpec[];
+  readonly shoves: ReadonlyMap<string, { readonly speed: number; readonly lift: number }>; readonly continuation: ReturnType<typeof raptorContinuation>;
+  readonly shove: (yaw: number, speed: number, lift: number) => void }
+
 /** One admitted flight pattern, immutable home and ordered attack contract. */
 export type DiverProfile<A extends AnimalSim = AnimalSim> =
   | { pattern: 'wind'; spec: WindDiverSpec; ports: WindDiverPorts<A> }
   | { pattern: 'orbit'; spec: OrbitDiverSpec; home: OrbitDiverHome; strike: StrikeSpec }
   | { pattern: 'patrol'; spec: PatrolDiverSpec; home: { x: number; z: number }; strike: StrikeSpec }
   | { pattern: 'burst'; spec: BurstFlyerSpec; home: OrbitDiverHome; strike: StrikeSpec }
-  | { pattern: 'phased'; spec: PhasedDiverSpec; dive: readonly StrikeSpec[]; grounded: readonly StrikeSpec[]; state?: PhasedDiverStatePort };
+  | { pattern: 'phased'; spec: PhasedDiverSpec; dive: readonly StrikeSpec[]; grounded: readonly StrikeSpec[]; state?: PhasedDiverStatePort }
+  /** `strikes` holds every phase's strike; `shove` pushes the player (yaw in the creature convention, m/s, m/s up). */
+  | { pattern: 'raptor'; spec: RaptorDiverSpec; strikes: readonly StrikeSpec[]; shove: (yaw: number, speed: number, lift: number) => void };
 /** Pattern-specific body authority; a mismatched observation refuses before changing state. */
 export type DiverObservation<A extends AnimalSim> =
   | (OrbitDiverPorts<A> & { pattern: 'orbit' })
   | (PatrolDiverPorts<A> & { pattern: 'patrol' })
   | (BurstFlyerPorts<A> & { pattern: 'burst' })
   | (PhasedDiverPorts<A> & { pattern: 'phased' })
-  | { pattern: 'wind'; actor: A; player: Vector3 };
+  | { pattern: 'wind'; actor: A; player: Vector3 }
+  | RaptorDiverPorts<A>;
 /** Flight policy phases; strike windup/contact/recovery are owned by the shared strike runner. */
-export type DiverState = 'circle' | 'stalk' | 'dive' | 'rise' | 'glide' | 'climb' | 'drift' | 'dart' | 'grounded' | 'soar' | 'tell' | 'stoop' | 'ground';
+export type DiverState = 'circle' | 'stalk' | 'dive' | 'rise' | 'glide' | 'climb' | 'drift' | 'dart' | 'grounded' | 'soar' | 'tell' | 'stoop' | 'ground' | 'strike' | 'rest';
 const finite = v.pipe(v.number(), v.finite());
 const orbitContinuation = v.strictObject({ contract: v.string(), state: v.picklist(['circle', 'stalk', 'dive', 'rise']),
   angle: finite, rest: finite, timer: v.pipe(finite, v.minValue(0)), diving: v.pipe(finite, v.minValue(0)), strikes: v.unknown() });
@@ -164,6 +218,7 @@ function admitProfile<A extends AnimalSim>(profile: DiverProfile<A>): DiverProfi
   if (profile.pattern === 'wind') return { ...profile, spec: readWindDiverSpec(profile.spec) };
   // The phased host already admits these rows. Retain its reference/copy semantics and strike order.
   if (profile.pattern === 'phased') return { ...profile, dive: [...profile.dive], grounded: [...profile.grounded] };
+  if (profile.pattern === 'raptor') return { ...profile, strikes: [...profile.strikes] };
   if (profile.pattern === 'orbit') {
     const { spec, home, strike } = profile;
     const values = [spec.circleSpeed, spec.hangAltitude, spec.stalkSpeed, spec.diveSpeed, spec.restSeconds, spec.noticeRadius,
@@ -201,8 +256,21 @@ function admitProfile<A extends AnimalSim>(profile: DiverProfile<A>): DiverProfi
   return { pattern: profile.pattern, spec: { ...profile.spec }, home: { ...profile.home }, strike };
 }
 
-/** Parametric orbit/patrol/burst/phased/wind policy with one contact runner and exact preset save contracts. */
+/** Parametric orbit/patrol/burst/phased/wind/raptor policy with one contact runner and exact preset save contracts. */
 export class DiverBrain<A extends AnimalSim> {
+  /** Raptor: the phase its encounter set (an index into its phases). */
+  phase = 0;
+  /** Raptor: whether its encounter's fight is on. */
+  fighting = false;
+  /** Raptor: the strike in flight (a gale wall's visual reads it). */
+  current: StrikeSpec | null = null;
+  /** Raptor: seconds into the strike in flight. */
+  windup = 0;
+  /** Raptor: the committed strike heading (a lane strike's line). */
+  aim = 0;
+  private readonly raptorPlan: RaptorPlan | null = null;
+  private takeoff = 0;
+  private wasFighting = false;
   private readonly boundActor: A | null;
   private get actor(): A { if (this.boundActor === null) throw new Error('Missing diver actor authority'); return this.boundActor; }
   private readonly profile: DiverProfile<A>;
@@ -231,7 +299,15 @@ export class DiverBrain<A extends AnimalSim> {
       this.phasedContact = null; this.contract = ''; return;
     }
     if (actor === null) throw new Error('Missing diver actor authority');
-    this.phaseValue = p.pattern === 'orbit' || p.pattern === 'phased' ? 'circle' : p.pattern === 'patrol' ? 'glide' : 'drift';
+    if (p.pattern === 'raptor') {
+      const specs = p.spec.phases.map(phase => {
+        const found = p.strikes.find(strike => strike.id === phase.strike); if (found === undefined) throw new Error(`Raptor names an undeclared strike ${phase.strike}`); return found;
+      });
+      this.raptorPlan = { spec: p.spec, catalogue: p.strikes, specs, continuation: raptorContinuation(specs.length), shove: p.shove,
+        shoves: new Map(p.spec.phases.flatMap(phase => phase.shove === null ? [] : [[phase.strike, phase.shove] as const])) };
+      this.rest = p.spec.firstRest;
+    }
+    this.phaseValue = p.pattern === 'orbit' || p.pattern === 'phased' || p.pattern === 'raptor' ? 'circle' : p.pattern === 'patrol' ? 'glide' : 'drift';
     this.phasedContact = p.pattern === 'phased' ? { actor, target: actor.position,
       canReach: () => this.phasedObservation?.reach(actor) === true,
       hit: value => { this.struck = true; this.phasedObservation?.hurt(value.damage); } } : null;
@@ -240,15 +316,15 @@ export class DiverBrain<A extends AnimalSim> {
       this.rest = p.spec.initialRestSeconds;
     } else if (p.pattern === 'patrol') this.rest = p.spec.restSeconds;
     if (p.pattern === 'phased') this.wait = p.spec.initialRestSeconds;
-    this.contract = p.pattern === 'phased' ? '' : JSON.stringify({ version: 1, actor: actor.entityId, spec: p.spec, home: p.home, strike: p.strike });
+    this.contract = p.pattern === 'phased' || p.pattern === 'raptor' ? '' : JSON.stringify({ version: 1, actor: actor.entityId, spec: p.spec, home: p.home, strike: p.strike });
     inspectBrain(actor, () => ({ state: this.state, picks: [], brainHz: 20, pinned: false }));
   }
   /** Current pattern phase, separately scheduled from perception and body execution. */
-  get state(): DiverState { return this.phase; }
-  private get phase(): DiverState {
+  get state(): DiverState { return this.mode; }
+  private get mode(): DiverState {
     const p = this.profile; return p.pattern === 'phased' ? p.state?.read() ?? this.phaseValue : this.phaseValue;
   }
-  private set phase(value: DiverState) {
+  private set mode(value: DiverState) {
     const p = this.profile;
     if (p.pattern === 'phased' && p.state !== undefined) {
       if (value !== 'circle' && value !== 'dive' && value !== 'climb' && value !== 'grounded') throw new Error('Incompatible phased diver state');
@@ -258,17 +334,21 @@ export class DiverBrain<A extends AnimalSim> {
   /** Exact legacy clock/strike continuation, including each preset's JSON field order. */
   snapshot(): SimValue {
     if (this.profile.pattern === 'wind') return this.windSnapshot();
+    if (this.profile.pattern === 'raptor') return JSON.stringify({ version: 1, actor: this.actor.entityId, state: this.mode, phase: this.phase, fighting: this.fighting,
+      current: this.current?.id ?? null, windup: this.windup, angle: this.angle, rest: this.rest, chest: this.chest.toArray(),
+      takeoff: this.takeoff, wasFighting: this.wasFighting, aim: this.aim, strikes: this.strikes.snapshot() });
     if (this.profile.pattern === 'phased') return JSON.stringify({ version: 1, actor: this.actor.entityId, state: this.state,
       clock: this.clock, wait: this.wait, struck: this.struck, strikes: this.strikes.snapshot() });
-    if (this.profile.pattern === 'orbit') return JSON.stringify({ contract: this.contract, state: this.phase,
+    if (this.profile.pattern === 'orbit') return JSON.stringify({ contract: this.contract, state: this.mode,
       angle: this.angle, rest: this.rest, timer: this.timer, diving: this.diving, strikes: this.strikes.snapshot() });
-    if (this.profile.pattern === 'patrol') return JSON.stringify({ contract: this.contract, state: this.phase,
+    if (this.profile.pattern === 'patrol') return JSON.stringify({ contract: this.contract, state: this.mode,
       clock: this.clock, rest: this.rest, struck: this.struck, strikes: this.strikes.snapshot() });
-    return JSON.stringify({ contract: this.contract, state: this.phase, angle: this.angle, dart: this.dart, strikes: this.strikes.snapshot() });
+    return JSON.stringify({ contract: this.contract, state: this.mode, angle: this.angle, dart: this.dart, strikes: this.strikes.snapshot() });
   }
   /** Validate all clocks and immutable references before mutation; restoration publishes no body effects. */
   restore(saved: unknown): void {
     if (this.profile.pattern === 'wind') { this.restoreWind(saved); return; }
+    if (this.profile.pattern === 'raptor') { this.restoreRaptor(saved); return; }
     const p = this.profile, name = p.pattern === 'burst' ? 'burst flyer' : p.pattern === 'phased' ? 'phased flyer' : `${p.pattern} diver`;
     if (typeof saved !== 'string') throw new Error(`Invalid ${name} continuation`);
     const parsed: unknown = JSON.parse(saved);
@@ -276,27 +356,27 @@ export class DiverBrain<A extends AnimalSim> {
       const value = v.parse(phasedContinuation, parsed);
       if (value.actor !== this.actor.entityId) throw new Error('Incompatible phased flyer actor');
       const catalogue = [...p.dive, ...p.grounded], strikes = readStrikeState(value.strikes, catalogue);
-      this.strikes.restore(strikes, catalogue); this.phase = value.state; this.clock = value.clock; this.wait = value.wait; this.struck = value.struck;
+      this.strikes.restore(strikes, catalogue); this.mode = value.state; this.clock = value.clock; this.wait = value.wait; this.struck = value.struck;
     } else if (p.pattern === 'orbit') {
       const value = v.parse(orbitContinuation, parsed);
       if (value.contract !== this.contract) throw new Error('Incompatible orbit diver continuation');
       const strikes = readStrikeState(value.strikes, [p.strike]);
       this.strikes.restore(strikes, [p.strike]);
-      this.phase = value.state; this.angle = value.angle; this.rest = value.rest; this.timer = value.timer; this.diving = value.diving;
+      this.mode = value.state; this.angle = value.angle; this.rest = value.rest; this.timer = value.timer; this.diving = value.diving;
     } else if (p.pattern === 'patrol') {
       const value = v.parse(patrolContinuation, parsed);
       if (value.contract !== this.contract) throw new Error('Incompatible patrol diver continuation');
       const strikes = readStrikeState(value.strikes, [p.strike]);
       this.strikes.restore(strikes, [p.strike]);
-      this.phase = value.state; this.clock = value.clock; this.rest = value.rest; this.struck = value.struck;
+      this.mode = value.state; this.clock = value.clock; this.rest = value.rest; this.struck = value.struck;
     } else {
       const value = v.parse(burstContinuation, parsed);
       if (value.contract !== this.contract) throw new Error('Incompatible burst flyer continuation');
       const strikes = readStrikeState(value.strikes, [p.strike]);
-      this.strikes.restore(strikes, [p.strike]); this.phase = value.state; this.angle = value.angle; this.dart = value.dart;
+      this.strikes.restore(strikes, [p.strike]); this.mode = value.state; this.angle = value.angle; this.dart = value.dart;
     }
   }
-  private context(c: OrbitDiverPorts<A> | PatrolDiverPorts<A> | BurstFlyerPorts<A>, p: Exclude<DiverProfile<A>, { pattern: 'wind' }>): StrikeContext {
+  private context(c: OrbitDiverPorts<A> | PatrolDiverPorts<A> | BurstFlyerPorts<A>, p: Exclude<DiverProfile<A>, { pattern: 'wind' | 'raptor' }>): StrikeContext {
     this.chest.copy(c.player); this.chest.y += p.spec.targetHeight;
     return { actor: this.actor, target: this.chest, canReach: () => c.reach(this.actor), hit: value => {
       if (p.pattern === 'patrol') this.struck = true;
@@ -306,7 +386,7 @@ export class DiverBrain<A extends AnimalSim> {
     } };
   }
   // Zero is an interrupt's second wake in the same frame, not an invalid simulation step.
-  private step(c: DiverObservation<A>): void {
+  private step(c: Exclude<DiverObservation<A>, RaptorDiverPorts<A>>): void {
     if (c.pattern !== this.profile.pattern) throw new Error('Incompatible diver observation');
     if (c.pattern !== 'phased' && c.pattern !== 'wind' && (!Number.isFinite(c.dt) || c.dt < 0 || c.dt > 1)) {
       throw new Error(`Invalid ${c.pattern === 'burst' ? 'burst flyer' : `${c.pattern} diver`} step`);
@@ -314,6 +394,7 @@ export class DiverBrain<A extends AnimalSim> {
   }
   /** Observe using the preset's original distance, calm reset, token and held-field laws. */
   think(c: DiverObservation<A>): void {
+    if (!('pattern' in c)) { this.thinkRaptor(c, this.raptor()); return; }
     this.step(c); const p = this.profile;
     if (p.pattern === 'orbit' && c.pattern === 'orbit') this.thinkOrbit(c, p);
     else if (p.pattern === 'patrol' && c.pattern === 'patrol') this.thinkPatrol(c, p);
@@ -323,6 +404,7 @@ export class DiverBrain<A extends AnimalSim> {
   }
   /** Advance one body tick; the host retains flight, reach, damage and impulse authority. */
   act(c: DiverObservation<A>): void {
+    if (!('pattern' in c)) { this.actRaptor(c, this.raptor()); return; }
     this.step(c); const p = this.profile;
     if (p.pattern === 'orbit' && c.pattern === 'orbit') this.actOrbit(c, p);
     else if (p.pattern === 'patrol' && c.pattern === 'patrol') this.actPatrol(c, p);
@@ -330,14 +412,111 @@ export class DiverBrain<A extends AnimalSim> {
     else if (p.pattern === 'phased' && c.pattern === 'phased') this.actPhased(c, p);
     else if (p.pattern === 'wind') throw new Error('Wind motion uses the explicit encounter frame');
   }
+  private raptor(): RaptorPlan { if (this.raptorPlan === null) throw new Error('Incompatible raptor pattern'); return this.raptorPlan; }
+  private restoreRaptor(saved: unknown): void {
+    const plan = this.raptor();
+    if (typeof saved !== 'string') throw new Error('Invalid raptor continuation');
+    const value = v.parse(plan.continuation, JSON.parse(saved));
+    if (value.actor !== this.actor.entityId) throw new Error('Incompatible raptor continuation');
+    const strikes = readStrikeState(value.strikes, plan.catalogue);
+    const current = value.current === null ? null : plan.catalogue.find(spec => spec.id === value.current);
+    if (current === undefined) throw new Error('Invalid raptor strike identity');
+    this.strikes.restore(strikes, plan.catalogue); this.mode = value.state; this.phase = value.phase; this.fighting = value.fighting;
+    this.current = current; this.windup = value.windup; this.angle = value.angle; this.rest = value.rest;
+    this.chest.fromArray(value.chest); this.takeoff = value.takeoff; this.wasFighting = value.wasFighting; this.aim = value.aim;
+  }
+  private raptorRow(plan: RaptorPlan): RaptorPhase { const phases = plan.spec.phases, row = phases[this.phase] ?? phases[phases.length - 1]; if (row === undefined) throw new Error('A raptor needs at least one phase'); return row; }
+  private raptorStrike(plan: RaptorPlan): StrikeSpec { const spec = plan.specs[this.phase] ?? plan.specs[plan.specs.length - 1]; if (spec === undefined) throw new Error('A raptor needs at least one phase'); return spec; }
+  private raptorContext(ctx: RaptorDiverPorts<A>, plan: RaptorPlan): StrikeContext { const a = this.actor; this.chest.copy(ctx.player); this.chest.y += this.raptorRow(plan).aimHeight;
+    return { actor: a, target: this.chest, canReach: () => ctx.reach(a), hit: (spec) => { ctx.hurt(spec.damage); const push = plan.shoves.get(spec.id); if (push !== undefined) plan.shove(this.aim, push.speed, push.lift); } }; }
+  /** Raptor: the height it holds over the player in a stalk and a strike's windup (`stalk.above`), else its phase's altitude. */
+  private raptorHold(plan: RaptorPlan, p: Vector3): number { const above = this.raptorRow(plan).stalk.above; return above === null ? this.raptorRow(plan).altitude : p.y + above; }
+  /** Raptor: stage a lap (captures): the rest after a strike, placed on the lap at `theta` and flying along it. Real flight state only. */
+  stageLap(theta: number): void {
+    const a = this.actor, lap = this.raptor().spec.lap; if (!this.fighting || this.phase !== 0) return;
+    this.strikes.cancel(); a.cancelAttack(); this.current = null; this.angle = theta; this.rest = 2.4; this.mode = 'rest';
+    a.place(lap.x + Math.cos(theta) * lap.r, lap.z + Math.sin(theta) * lap.r, 0, lap.y);
+    a.yaw = this.yawTo(lap.x + Math.cos(theta + 0.3) * lap.r, lap.z + Math.sin(theta + 0.3) * lap.r);
+  }
+  /** Raptor: a fight restart (a retry or checkpoint): back on its perch at rest, facing its perch heading; the first rest and the take-off run again. */
+  restart(): void {
+    const { spec } = this.raptor(), perch = spec.perch, lap = spec.lap;
+    this.strikes.cancel(); this.actor.cancelAttack(); this.current = null; this.rest = spec.firstRest; this.takeoff = 0; this.wasFighting = false; this.mode = 'circle';
+    this.angle = Math.atan2(perch.z - lap.z, perch.x - lap.x);
+    this.actor.place(perch.x, perch.z, 0, perch.y); this.actor.yaw = perch.yaw; this.actor.speed = 0; this.actor.mem[spec.fields.bank] = 0;
+  }
+  /** Raptor: stage the fight's opening (captures): on its perch as the fight begins, its take-off about to run. */
+  stageOpening(): void {
+    const a = this.actor, { spec } = this.raptor(), perch = spec.perch, lap = spec.lap, takeoff = spec.takeoff; if (!this.fighting || this.phase !== 0) return;
+    this.strikes.cancel(); a.cancelAttack(); this.current = null; this.rest = spec.firstRest; this.mode = 'circle';
+    this.angle = Math.atan2(perch.z - lap.z, perch.x - lap.x);
+    a.place(perch.x, perch.z, 0, perch.y); a.yaw = perch.yaw; a.speed = 0; a.mem[spec.fields.bank] = 0; this.takeoff = takeoff.seconds; this.rest = takeoff.seconds + 0.5; this.wasFighting = true;
+  }
+  /** Raptor: stage a first-phase stalk under way (captures): at `at` at the lap's height, flying in at `face`. */
+  stageStalk(at: { x: number; z: number }, face: { x: number; z: number }): void {
+    const a = this.actor, lap = this.raptor().spec.lap; if (!this.fighting || this.phase !== 0) return;
+    this.rest = 0; this.strikes.cancel(); a.cancelAttack(); this.current = null; this.mode = 'stalk';
+    a.place(at.x, at.z, 0, lap.y); a.yaw = this.yawTo(face.x, face.z);
+  }
+  /** Raptor: the take-off as a fight begins, calm standing it down, and the rests that end in a stalk. */
+  private thinkRaptor(ctx: RaptorDiverPorts<A>, plan: RaptorPlan): void {
+    const a = this.actor, takeoff = plan.spec.takeoff; if (!a.alive) return;
+    if (this.fighting && !this.wasFighting && this.phase === 0) { this.takeoff = takeoff.seconds; this.rest = Math.max(this.rest, takeoff.seconds + 0.5); }
+    this.wasFighting = this.fighting;
+    if (!this.fighting || ctx.calm) { if (this.mode !== 'circle') { this.strikes.cancel(); a.cancelAttack(); this.current = null; this.mode = 'circle'; } return; }
+    this.rest -= ctx.dt;
+    if (this.mode === 'circle' && this.rest <= 0) this.mode = 'stalk';
+    if (this.mode === 'rest' && this.rest <= 0) this.mode = 'stalk';
+  }
+  /** Raptor: steer and strike: to its perch out of a fight, the take-off, the lap, the stalk, then the strike in flight. */
+  private actRaptor(ctx: RaptorDiverPorts<A>, plan: RaptorPlan): void {
+    const a = this.actor; if (!a.alive) return;
+    const s = this.raptorContext(ctx, plan), spec = this.raptorStrike(plan), row = this.raptorRow(plan), p = ctx.player, { perch, lap, speeds, takeoff, turns, fields } = plan.spec;
+    if (this.mode === 'circle' && !this.fighting) {
+      const d = Math.hypot(perch.x - a.position.x, perch.z - a.position.z);
+      ctx.flight.steer(a, d > 0.6 ? this.yawTo(perch.x, perch.z) : perch.yaw, d > 0.6 ? Math.min(speeds.circle, d * 1.2) : 0, perch.y, turns.perch);
+      a.mem[fields.lean] = 0;
+      return;
+    }
+    if (this.mode === 'circle' && this.takeoff > 0) {
+      // a slow rise off the perch, swinging round onto the player and leaning into the swing (eased in as it drops off)
+      this.takeoff = Math.max(0, this.takeoff - ctx.dt);
+      const k = 1 - this.takeoff / takeoff.seconds;
+      const want = this.yawTo(p.x, p.z), off = Math.atan2(Math.sin(want - a.yaw), Math.cos(want - a.yaw));
+      a.mem[fields.lean] = -Math.max(-takeoff.bank, Math.min(takeoff.bank, off * 1.2)) * Math.min(1, k * 4);
+      ctx.flight.steer(a, want, takeoff.speed * k, perch.y + (row.altitude - perch.y) * k, takeoff.turn);
+      return;
+    }
+    a.mem[fields.lean] = 0;
+    if (this.mode === 'circle' || this.mode === 'rest') {
+      this.angle += (ctx.dt * speeds.circle) / lap.r;
+      const o = row.orbit;
+      ctx.flight.steer(a, this.yawTo(o.x + Math.cos(this.angle) * o.r, o.z + Math.sin(this.angle) * o.r), o.speed, row.altitude, turns.circle);
+      return;
+    }
+    if (this.mode === 'stalk') {
+      const d = Math.hypot(p.x - a.position.x, p.z - a.position.z), stalk = row.stalk, want = stalk.standOff;
+      const heading = stalk.retreat && d < want ? this.yawTo(p.x, p.z) + Math.PI : this.yawTo(p.x, p.z);
+      ctx.flight.steer(a, heading, stalk.speed ?? Math.min(speeds.stalk, Math.abs(d - want) * 1.5), this.raptorHold(plan, p), turns.stalk);
+      const ready = stalk.ready.kind === 'over' ? d < stalk.ready.radius && Math.abs(a.position.y - this.raptorHold(plan, p)) < stalk.ready.height
+        : stalk.ready.kind === 'band' ? Math.abs(d - want) < stalk.ready.tolerance : d < spec.range;
+      if (ready && ctx.reach(a) && ctx.claim(a)) { this.aim = this.yawTo(p.x, p.z); this.strikes.start(spec, a, this.chest); this.current = spec; this.windup = 0; this.mode = 'strike'; }
+      return;
+    }
+    this.windup += ctx.dt;
+    if (row.dive && this.windup >= spec.windup) ctx.flight.steer(a, this.yawTo(this.chest.x, this.chest.z), speeds.dive, this.chest.y, turns.strike);
+    else ctx.flight.steer(a, this.aim, 0, this.raptorHold(plan, p), turns.strike);
+    this.strikes.update(ctx.dt, s);
+    if (!this.strikes.busy) { this.current = null; this.rest = row.rest; this.mode = 'rest'; }
+  }
   private thinkOrbit(c: OrbitDiverPorts<A>, profile: Extract<DiverProfile, { pattern: 'orbit' }>): void {
     const a = this.actor; if (!a.alive) return;
-    if (c.calm) { if (this.state !== 'circle') { this.strikes.cancel(); a.cancelAttack(); this.phase = 'circle'; } return; }
+    if (c.calm) { if (this.state !== 'circle') { this.strikes.cancel(); a.cancelAttack(); this.mode = 'circle'; } return; }
     this.rest -= c.dt; this.timer += c.dt;
     const d = Math.hypot(c.player.x - a.position.x, c.player.z - a.position.z);
-    if (this.state === 'circle' && this.rest <= 0 && d < profile.spec.noticeRadius && c.mayAttack(a)) { this.timer = 0; this.phase = 'stalk'; }
-    else if (this.state === 'stalk' && (d > profile.spec.giveUpRadius || this.timer > profile.spec.stalkMaxSeconds)) this.phase = 'rise';
-    else if (this.state === 'rise' && a.position.y > profile.home.y - profile.spec.riseMargin) this.phase = 'circle';
+    if (this.state === 'circle' && this.rest <= 0 && d < profile.spec.noticeRadius && c.mayAttack(a)) { this.timer = 0; this.mode = 'stalk'; }
+    else if (this.state === 'stalk' && (d > profile.spec.giveUpRadius || this.timer > profile.spec.stalkMaxSeconds)) this.mode = 'rise';
+    else if (this.state === 'rise' && a.position.y > profile.home.y - profile.spec.riseMargin) this.mode = 'circle';
   }
   private actOrbit(c: OrbitDiverPorts<A>, profile: Extract<DiverProfile, { pattern: 'orbit' }>): void {
     const a = this.actor; if (!a.alive) return;
@@ -351,21 +530,21 @@ export class DiverBrain<A extends AnimalSim> {
      const over = p.y + profile.spec.hangAltitude;
       c.flight.steer(a, toPlayer, Math.min(profile.spec.stalkSpeed, d * 1.5), over, 3);
       if (d < profile.spec.alignRadius && Math.abs(a.position.y - over) < profile.spec.alignTolerance && !this.strikes.busy && c.reach(a) && c.claim(a)) {
-        this.strikes.start(profile.strike, a, this.chest); this.diving = 0; this.phase = 'dive';
+        this.strikes.start(profile.strike, a, this.chest); this.diving = 0; this.mode = 'dive';
       }
     } else if (this.state === 'dive') {
       this.diving += c.dt;
       if (this.diving < profile.strike.windup) c.flight.steer(a, toPlayer, 0, p.y + profile.spec.hangAltitude, 3);
       else c.flight.steer(a, toPlayer, profile.spec.diveSpeed, this.chest.y, 4);
       this.strikes.update(c.dt, strike);
-      if (!this.strikes.busy) { this.rest = profile.spec.restSeconds; this.phase = 'rise'; }
+      if (!this.strikes.busy) { this.rest = profile.spec.restSeconds; this.mode = 'rise'; }
     } else c.flight.steer(a, toPlayer + Math.PI, profile.spec.circleSpeed, profile.home.y, 2);
   }
   private thinkPatrol(c: PatrolDiverPorts<A>, profile: Extract<DiverProfile, { pattern: 'patrol' }>): void {
     const a = this.actor; if (!a.alive) return;
-    if (c.calm || a.mem[profile.spec.heldField] === 1) { if (this.state !== 'glide') this.phase = 'glide'; return; }
+    if (c.calm || a.mem[profile.spec.heldField] === 1) { if (this.state !== 'glide') this.mode = 'glide'; return; }
     const dh = Math.hypot(c.player.x - a.position.x, c.player.z - a.position.z);
-    if (this.state === 'glide' && this.rest <= 0 && dh < profile.spec.diveFrom && c.reach(a) && c.claim(a)) { this.phase = 'dive'; this.clock = 0; this.struck = false; }
+    if (this.state === 'glide' && this.rest <= 0 && dh < profile.spec.diveFrom && c.reach(a) && c.claim(a)) { this.mode = 'dive'; this.clock = 0; this.struck = false; }
   }
   private actPatrol(c: PatrolDiverPorts<A>, profile: Extract<DiverProfile, { pattern: 'patrol' }>): void {
     const a = this.actor; if (!a.alive) return;
@@ -377,12 +556,12 @@ export class DiverBrain<A extends AnimalSim> {
      const d3 = a.position.distanceTo(this.chest), passed = this.struck && !this.strikes.busy;
       c.flight.steer(a, toYaw(this.chest.x, this.chest.z), s.diveSpeed, Math.max(s.targetHeight, Math.min(s.glideAltitude, d3 * s.diveSlope)), 3);
       if (!this.strikes.busy && !this.struck) { const next = this.strikes.pick([profile.strike], strike); if (next !== null) this.strikes.start(next, a, this.chest); }
-      if (passed || this.clock > s.diveMaxSeconds || c.calm) { this.phase = 'climb'; this.clock = 0; }
+      if (passed || this.clock > s.diveMaxSeconds || c.calm) { this.mode = 'climb'; this.clock = 0; }
       return;
     }
     if (this.state === 'climb') {
       c.flight.steer(a, a.yaw, s.glideSpeed + s.climbSpeedBonus, s.climbAltitude, 1.2);
-      if (this.clock > s.climbSeconds) { this.phase = 'glide'; this.rest = s.restSeconds; }
+      if (this.clock > s.climbSeconds) { this.mode = 'glide'; this.rest = s.restSeconds; }
       return;
     }
     const near = !c.calm && a.mem[s.heldField] !== 1 && Math.hypot(c.player.x - a.position.x, c.player.z - a.position.z) < s.noticeRadius;
@@ -394,7 +573,7 @@ export class DiverBrain<A extends AnimalSim> {
   private thinkBurst(c: BurstFlyerPorts<A>, profile: Extract<DiverProfile, { pattern: 'burst' }>): void {
     const a = this.actor; if (!a.alive || this.state === 'dart') return;
     if (!c.calm && a.position.distanceTo(c.player) < profile.spec.noticeRadius && !this.strikes.busy && c.claim(a)) {
-      this.context(c, profile); this.strikes.start(profile.strike, a, this.chest); this.dart = 0; this.phase = 'dart';
+      this.context(c, profile); this.strikes.start(profile.strike, a, this.chest); this.dart = 0; this.mode = 'dart';
     }
   }
   private actBurst(c: BurstFlyerPorts<A>, profile: Extract<DiverProfile, { pattern: 'burst' }>): void {
@@ -402,7 +581,7 @@ export class DiverBrain<A extends AnimalSim> {
     if (this.state === 'dart') {
      const strike = this.context(c, profile); this.dart += c.dt;
       c.flight.steer(a, Math.atan2(this.chest.x - a.position.x, this.chest.z - a.position.z), this.dart < profile.strike.windup ? 0 : profile.spec.dartSpeed, this.chest.y, 6);
-      this.strikes.update(c.dt, strike); if (!this.strikes.busy) this.phase = 'drift'; return;
+      this.strikes.update(c.dt, strike); if (!this.strikes.busy) this.mode = 'drift'; return;
     }
     this.angle += (c.dt * profile.spec.circleSpeed) / profile.home.r;
     c.flight.steer(a, Math.atan2(profile.home.x + Math.cos(this.angle) * profile.home.r - a.position.x,
@@ -416,11 +595,11 @@ export class DiverBrain<A extends AnimalSim> {
   private thinkPhased(ctx: PhasedDiverPorts<A>, p: Extract<DiverProfile, { pattern: 'phased' }>): void {
     const a = this.actor, f = p.spec.fields; if (!a.alive || (a.mem[f.fight] ?? 0) < 1) return;
     const phase = a.mem[f.phase] ?? 0;
-    if (phase >= p.spec.groundedPhase && this.state !== 'grounded') { this.phase = 'grounded'; this.strikes.cancel(); return; }
+    if (phase >= p.spec.groundedPhase && this.state !== 'grounded') { this.mode = 'grounded'; this.strikes.cancel(); return; }
     if (this.state === 'grounded' && !this.strikes.busy) {
       const pick = this.strikes.pick(p.grounded, this.phasedContext(ctx, ctx.player)); if (pick && ctx.claim(a)) this.strikes.start(pick, a, ctx.player);
     }
-    if (this.state === 'circle' && this.wait <= 0 && ctx.claim(a)) { this.phase = 'dive'; this.clock = 0; this.struck = false; }
+    if (this.state === 'circle' && this.wait <= 0 && ctx.claim(a)) { this.mode = 'dive'; this.clock = 0; this.struck = false; }
   }
   private actPhased(ctx: PhasedDiverPorts<A>, p: Extract<DiverProfile, { pattern: 'phased' }>): void {
     const a = this.actor, s = p.spec, f = s.fields; if (!a.alive) return;
@@ -442,12 +621,12 @@ export class DiverBrain<A extends AnimalSim> {
       const d3 = a.position.distanceTo(this.chest);
       ctx.flight.steer(a, this.yawTo(this.chest.x, this.chest.z), s.diveSpeed, Math.max(s.skim, Math.min(high, d3 * s.diveSlope)), s.turns.dive);
       if (!this.strikes.busy && !this.struck) { const next = this.strikes.pick(p.dive, strike); if (next !== null) this.strikes.start(next, a, this.chest); }
-      if ((this.struck && !this.strikes.busy) || this.clock > s.diveMaxSeconds) { this.phase = 'climb'; this.clock = 0; }
+      if ((this.struck && !this.strikes.busy) || this.clock > s.diveMaxSeconds) { this.mode = 'climb'; this.clock = 0; }
       return;
     }
     if (this.state === 'climb') {
       ctx.flight.steer(a, a.yaw, s.speed + s.climbSpeedBonus, high, s.turns.climb);
-      if (this.clock > s.climbSeconds) { this.phase = 'circle'; this.wait = s.restSeconds[phase] ?? 4; }
+      if (this.clock > s.climbSeconds) { this.mode = 'circle'; this.wait = s.restSeconds[phase] ?? 4; }
       return;
     }
     const around = Math.atan2(a.position.x - s.center.x, a.position.z - s.center.z) + s.orbitLead;
@@ -462,13 +641,13 @@ export class DiverBrain<A extends AnimalSim> {
   private get windSpec(): WindDiverSpec { const p = this.profile; if (p.pattern !== 'wind') throw new Error('Incompatible wind diver pattern'); return p.spec; }
   private get windPorts(): WindDiverPorts<A> { const p = this.profile; if (p.pattern !== 'wind') throw new Error('Incompatible wind diver pattern'); return p.ports; }
   private windPhase(): v.InferOutput<typeof WindDiverSaved>['st'] {
-    const phase = this.phase;
+    const phase = this.mode;
     if (phase === 'soar' || phase === 'tell' || phase === 'stoop' || phase === 'ground' || phase === 'climb') return phase;
     throw new Error('Incompatible wind diver phase');
   }
   private get windP2(): boolean { return this.windPorts.phase2(); }
   /** Return to the climb phase without resetting retained clocks. */
-  resetWind(): void { this.requireWind(); this.phase = 'climb'; this.windPorts.tell.hide(); }
+  resetWind(): void { this.requireWind(); this.mode = 'climb'; this.windPorts.tell.hide(); }
   /** Release transient entered tells without changing the body law. */
   disposeWindTell(): void { this.requireWind(); this.windPorts.tell.hide(); this.windPorts.tell.chevron(null); }
   private windCruise(a: A | null): number {
@@ -481,11 +660,11 @@ export class DiverBrain<A extends AnimalSim> {
   spawnWind(a: A): void { this.requireWind();
     this.windCentre.set(this.windPorts.rock.x, 0, this.windPorts.rock.z);
     a.mem[this.windSpec.fields.altitude] = this.windCruise(a); a.mem[this.windSpec.fields.flap] = this.windSpec.pose.initialFlap;
-    this.phase = 'soar'; this.windStoopT = this.windSpec.initialCooldown;
+    this.mode = 'soar'; this.windStoopT = this.windSpec.initialCooldown;
   }
   /** Resolve the grounded weak point with the authoritative head query. */
   windDamage(a: A, p: Vector3): number { this.requireWind();
-    if (this.phase === 'ground') return this.windPorts.isHead(a, p) ? 1 : this.windSpec.ground.damage;       // grounded: every hit a headshot
+    if (this.mode === 'ground') return this.windPorts.isHead(a, p) ? 1 : this.windSpec.ground.damage;       // grounded: every hit a headshot
     return 1;
   }
   /** Preserve the manager decision cadence without taking frame motion authority. */
@@ -508,15 +687,15 @@ export class DiverBrain<A extends AnimalSim> {
       case 'soar': case 'climb': {
         this.angle += dt * this.windSpec.orbit.speed / R;
         const tx = this.windCentre.x + Math.cos(this.angle) * R, tz = this.windCentre.z + Math.sin(this.angle) * R;
-        const k = this.phase === 'climb' ? this.windSpec.orbit.climbEase : this.windSpec.orbit.soarEase;
+        const k = this.mode === 'climb' ? this.windSpec.orbit.climbEase : this.windSpec.orbit.soarEase;
         a.position.x += (tx - a.position.x) * Math.min(1, dt * k); a.position.z += (tz - a.position.z) * Math.min(1, dt * k);
         a.yaw = a.desiredYaw = Math.atan2(-Math.sin(this.angle), Math.cos(this.angle));
         const cruise = this.windCruise(a);
         const alt = m[this.windSpec.fields.altitude] ?? cruise;
-        m[this.windSpec.fields.altitude] = this.phase === 'climb' ? Math.min(cruise, alt + this.windSpec.orbit.climbSpeed * dt) : alt + (cruise + this.windSpec.cruise.wave * Math.sin(t * this.windSpec.cruise.waveFrequency) - alt) * Math.min(1, dt * this.windSpec.cruise.ease);
-        m[this.windSpec.fields.flap] = this.phase === 'climb' ? this.windSpec.pose.climbFlap : this.windSpec.pose.soarFlap + this.windSpec.pose.waveFlap * Math.max(0, Math.sin(t * this.windSpec.pose.flapFrequency)); m[this.windSpec.fields.fold] = 0; m[this.windSpec.fields.ground] = 0; m[this.windSpec.fields.bank] = this.windSpec.pose.bank;
-        if (this.phase === 'climb' && (m[this.windSpec.fields.altitude] ?? 0) >= cruise - this.windSpec.orbit.arrival) this.phase = 'soar';
-        if (engaged && this.phase === 'soar') { this.windStoopT -= dt; if (this.windStoopT <= 0) { this.phase = 'tell'; this.windStT = 0; this.windPorts.signature(); this.windPorts.cry(a.position); } }
+        m[this.windSpec.fields.altitude] = this.mode === 'climb' ? Math.min(cruise, alt + this.windSpec.orbit.climbSpeed * dt) : alt + (cruise + this.windSpec.cruise.wave * Math.sin(t * this.windSpec.cruise.waveFrequency) - alt) * Math.min(1, dt * this.windSpec.cruise.ease);
+        m[this.windSpec.fields.flap] = this.mode === 'climb' ? this.windSpec.pose.climbFlap : this.windSpec.pose.soarFlap + this.windSpec.pose.waveFlap * Math.max(0, Math.sin(t * this.windSpec.pose.flapFrequency)); m[this.windSpec.fields.fold] = 0; m[this.windSpec.fields.ground] = 0; m[this.windSpec.fields.bank] = this.windSpec.pose.bank;
+        if (this.mode === 'climb' && (m[this.windSpec.fields.altitude] ?? 0) >= cruise - this.windSpec.orbit.arrival) this.mode = 'soar';
+        if (engaged && this.mode === 'soar') { this.windStoopT -= dt; if (this.windStoopT <= 0) { this.mode = 'tell'; this.windStT = 0; this.windPorts.signature(); this.windPorts.cry(a.position); } }
         break;
     }
       case 'tell': {
@@ -528,7 +707,7 @@ export class DiverBrain<A extends AnimalSim> {
         this.windDelta.set(p.x, p.y + this.windSpec.tell.targetHeight, p.z);
         this.windPorts.tell.aim(this.windFrom, this.windDelta, this.windSpec.tell.alpha + this.windSpec.tell.alphaGrowth * (this.windStT / T));
         this.windPorts.tell.chevron(this.windFrom);
-        if (this.windStT >= T) { this.phase = 'stoop'; this.windStT = 0; this.windTarget.set(p.x, p.y + this.windSpec.stoop.targetHeight, p.z); }
+        if (this.windStT >= T) { this.mode = 'stoop'; this.windStT = 0; this.windTarget.set(p.x, p.y + this.windSpec.stoop.targetHeight, p.z); }
         break;
     }
       case 'stoop': {
@@ -543,8 +722,8 @@ export class DiverBrain<A extends AnimalSim> {
           a.position.x = this.windTarget.x; a.position.z = this.windTarget.z;
           if (Math.hypot(p.x - this.windTarget.x, p.z - this.windTarget.z) < this.windSpec.stoop.range && p.y - this.windPorts.heightAt(p.x, p.z) < this.windSpec.stoop.playerHeight) {
             this.windPorts.hurt(a, this.windSpec.stoop.damage); this.windPorts.knock(p.x - this.windFrom.x, p.z - this.windFrom.z);
-            this.phase = 'climb'; m[this.windSpec.fields.altitude] = this.windTarget.y + this.windSpec.stoop.climbHeight;
-          } else { this.phase = 'ground'; this.windStT = 0; m[this.windSpec.fields.altitude] = this.windPorts.heightAt(a.position.x, a.position.z) + this.windSpec.ground.onScale * a.scale; this.windPorts.grounded(); }
+            this.mode = 'climb'; m[this.windSpec.fields.altitude] = this.windTarget.y + this.windSpec.stoop.climbHeight;
+          } else { this.mode = 'ground'; this.windStT = 0; m[this.windSpec.fields.altitude] = this.windPorts.heightAt(a.position.x, a.position.z) + this.windSpec.ground.onScale * a.scale; this.windPorts.grounded(); }
           this.windStoopT = this.windP2 ? this.windSpec.stoop.phaseCooldown + this.windPorts.random() * this.windSpec.stoop.phaseRandom : this.windSpec.stoop.cooldown + this.windPorts.random() * this.windSpec.stoop.randomCooldown;
         } else {
           this.windDelta.multiplyScalar(step / L);
@@ -556,15 +735,15 @@ export class DiverBrain<A extends AnimalSim> {
       case 'ground': {
         m[this.windSpec.fields.ground] = 1; m[this.windSpec.fields.fold] = 0; m[this.windSpec.fields.flap] = 0;
         m[this.windSpec.fields.altitude] = this.windPorts.heightAt(a.position.x, a.position.z) + this.windSpec.ground.idleScale * a.scale;
-        if (this.windStT > this.windSpec.ground.seconds) { this.phase = 'climb'; m[this.windSpec.fields.ground] = 0; }
+        if (this.windStT > this.windSpec.ground.seconds) { this.mode = 'climb'; m[this.windSpec.fields.ground] = 0; }
         break;
     }
       default: break;
   }
-    if (this.phase !== 'tell' && this.phase !== 'stoop') { this.windPorts.tell.hide(); this.windPorts.tell.chevron(null); }
+    if (this.mode !== 'tell' && this.mode !== 'stoop') { this.windPorts.tell.hide(); this.windPorts.tell.chevron(null); }
   }
   /** Capture every custom clock and fixed target without events or draws. */
   windSnapshot(): v.InferOutput<typeof WindDiverSaved> { this.requireWind(); return { st: this.windPhase(), stT: this.windStT, stoopT: this.windStoopT, ang: this.angle, centre: [this.windCentre.x, this.windCentre.y, this.windCentre.z], tgt: [this.windTarget.x, this.windTarget.y, this.windTarget.z], overYou: this.windOverPlayer }; }
   /** Validate the complete continuation atomically before mutation. */
-  private restoreWind(input: unknown): void { const s = v.parse(WindDiverSaved, input); this.phase = s.st; this.windStT = s.stT; this.windStoopT = s.stoopT; this.angle = s.ang; this.windCentre.fromArray(s.centre); this.windTarget.fromArray(s.tgt); this.windOverPlayer = s.overYou; }
+  private restoreWind(input: unknown): void { const s = v.parse(WindDiverSaved, input); this.mode = s.st; this.windStT = s.stT; this.windStoopT = s.stoopT; this.angle = s.ang; this.windCentre.fromArray(s.centre); this.windTarget.fromArray(s.tgt); this.windOverPlayer = s.overYou; }
 }
