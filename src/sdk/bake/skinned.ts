@@ -109,14 +109,26 @@ export async function readSourceModel(bytes: Uint8Array): Promise<SourceModel> {
 export interface SkinnedBone { readonly name: string; readonly parent: string | null; readonly pos: readonly [number, number, number] }
 /** A skinned part: a geometry with `skinIndex` / `skinWeight` over the bake's bones, its material and its map. */
 export interface SkinnedPart {
-  readonly geometry: BufferGeometry; readonly material: MeshStandardMaterial;
+  /** Packed attributes, every channel written as baked (float32 but for `skinIndex`; non-glTF channels as `_NAME`). */
+  readonly geometry: BufferGeometry;
+  /** Its colour, opacity, metalness, roughness and side become the part's glTF material. */
+  readonly material: MeshStandardMaterial;
   /** The base-colour map: the source's exact image bytes and sampler. */
   readonly texture?: RawTexture;
+  /** The part's mesh and node name (default `<bake name>.<part index>`). */
   readonly name?: string;
 }
+/**
+ * One skinned model to bake (`skinnedGlb`): its skeleton, its parts skinned over it, its clips and the shard's extras. The
+ * runtime reads the GLB back bit-exact with the game's `skinnedModel` (`@wildshard/game/plugin/geometry`), a creature body
+ * with `creatureBodies`.
+ */
 export interface SkinnedBake {
+  /** The model's name: an unnamed part's mesh and node are named `<name>.<part index>`. */
   readonly name: string;
+  /** The skeleton, uniquely named, each parent before its children: every part's `skinIndex` indexes this list. */
   readonly bones: readonly SkinnedBone[];
+  /** The skinned meshes, each its own mesh and node over the one skin. */
   readonly parts: readonly SkinnedPart[];
   /** Bone animations (`<bone>.position|quaternion|scale` tracks, linear or step). */
   readonly clips?: readonly AnimationClip[];
