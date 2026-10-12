@@ -216,7 +216,8 @@ function sample(n, timeline = false) {
     const tick = (timestamp) => {
       const now = performance.now();
       if (g.frameCount !== count) {
-        const delta = g.frameCount - count, glFrame = window.__frameFloorGlTake?.() ?? null; // --gl-time: this interval's GL calls
+        // Only the whole drive drains GL counters: the simultaneous short sampler must not steal calls.
+        const delta = g.frameCount - count, glFrame = whole ? window.__frameFloorGlTake?.() ?? null : null;
         if (glFrame !== null && !first && glAt.length < 8000) glAt.push([Math.round(last), glFrame]);
         if (!first) {
           // rAF's shared vsync timestamp grades drawn cadence; callback time also includes preceding game work.

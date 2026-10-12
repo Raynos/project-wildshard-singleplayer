@@ -42,6 +42,36 @@ it('keeps the bounded timeline opt-in and separates cadence from callback delay 
   expect(capped.frameTimeline?.frames).toHaveLength(8000);
   expect(capped.frameTimeline?.droppedFrames).toBe(10);
 });
+it.each([true, false])('retains every whole-drive GL counter with concurrent samplers (short first: %s)', async shortFirst => {
+  const cpu = { enabled: false, frame: 0, snapshot: () => ({ enabled: cpu.enabled, frame: cpu.frame, owners: [{ id: 'fixture', ms: 2, calls: 1 }] }) };
+  const game = { app: { cpu }, frameCount: 0, frameI: 1, frameMs: [60], workMs: [3],
+    lastFrame: { calls: 5, triangles: 10 }, renderer: { getContext: () => ({ isContextLost: () => false }) } };
+  const queue: ((time: number) => void)[] = [];
+  let now = 0, pending = false, takes = 0;
+  interface GlSample { frames: number; glFrames?: [number, { drawElements: [number, number] }][] }
+  const promise = runInNewContext(`${sampler}\nPromise.all([sample(${shortFirst ? 30 : 0}),sample(${shortFirst ? 0 : 30})])`, {
+    frameTimeline: false,
+    window: { __frameFloorDriveDone: true, __frameFloorGlTake: () => {
+      takes++;
+      if (!pending) return null;
+      pending = false; return { drawElements: [2, 1] };
+    }, __wildshard: { world: { game, player: { position: { x: 0, y: 0, z: 0 } } },
+      shard: { grid: { state: () => ({ live: { runtimeTiming: { current: null } } }) } } } },
+    performance: { now: () => now }, requestAnimationFrame: (fn: (time: number) => void) => { queue.push(fn); return 1; },
+    cancelAnimationFrame: () => undefined, setTimeout: () => 1, clearTimeout: () => undefined,
+  }) as Promise<GlSample[]>;
+  for (let frame = 1; frame <= 31; frame++) {
+    game.frameCount++; cpu.frame++; now = frame * 60; pending = true;
+    for (const tick of queue.splice(0)) tick(now);
+  }
+  const results = await promise;
+  const whole = results[shortFirst ? 1 : 0], short = results[shortFirst ? 0 : 1];
+  expect(short?.glFrames).toBeUndefined();
+  expect(whole?.frames).toBe(30);
+  expect(whole?.glFrames).toHaveLength(30);
+  expect(whole?.glFrames?.map(([, gl]) => gl.drawElements)).toEqual(Array.from({ length: 30 }, () => [2, 1]));
+  expect(takes).toBe(31); // First whole counter is discarded; each subsequent counter belongs to one interval.
+});
 it('grades vsync cadence while retaining preceding-work callback jitter as a diagnostic', async () => {
   const result = await measure(1000 / 60);
   expect(Math.round(result.medianFps)).toBe(60);
