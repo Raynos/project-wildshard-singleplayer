@@ -42,7 +42,10 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - **Agent-to-agent requests** go over herdr to the owner (who replies with the SHA), else into the owner's plan.
 - **Never herdr-prompt a pane that is talking to Jake** (the plan agent `wildshard-v`, or any session asking him
   questions): a pasted message lands in his open question and answers it for him (Jake, 2026-10-12). Reply to it in
-  your plan's STATE.md or a commit message; it reads those.
+  your plan's STATE.md or a commit message; it reads those. **Read before write:** before any `herdr agent prompt` or
+  `herdr pane send-text|run` into another pane, check it has no question open: Claude lanes are stopped by the hook
+  `.claude/hooks/guard-herdr-prompt.sh`; Codex lanes send with `scripts/herdr-prompt.sh <agent> "<msg>"`, which refuses
+  when `scripts/herdr-question-open.sh` finds one.
 - **Pages for Jake to read** get `docs/reviews/<slug>.md` in the commit that links them; only Jake's words mark one read.
 - **Council rounds** ([docs/process/COUNCIL.md](docs/process/COUNCIL.md)): three fresh seats a round, four rounds at
   most; the round files are archived the day the council ends.
