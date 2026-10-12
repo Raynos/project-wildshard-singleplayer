@@ -35,3 +35,7 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-11 | nightly coverage (W12): 9 timeout files | heavy matchers, compiler, serial natives | `a2d0c5499`, `859e401d9`, `07865987e` (Linux run 38183108912 green) | sp-x7 |
 | 2026-10-11 | push: unapproved Driftwood ground generator-import rows | `c5a704e60` | `ee237da77` (receipt) | sp-x6 |
 | 2026-10-11 | push: unapproved Nalati Bowl game-imports / plugins | `669c3e6d6` | `ee237da77` (receipt) | sp-x4 |
+| 2026-10-12 | deploy backstop: launchd registration lost after the reboot | host state (reboot) | re-registered with `scripts/deploy-backstop/install.sh` (no source change) | sp-x7 |
+| 2026-10-12 | nightly coverage 38295529534: Pine night-continuation 20 s timeout (whole growing history compared every tick) | — | `56de6e642` (append-only suffix check, final exact history) | sp-x5 |
+| 2026-10-12 | nightly GPU gate 38289166087: 3 asset-audit false positives (packed Nine BOOT_FILES, Pine `{id}` strings) + 7 parity cases red | — | parser: pending (sp-x7); parity: diagnosis (sp-o5) | sp-x7, sp-o5 |
+| 2026-10-12 | commit-ratchet: Driftwood entryDecks / entryLandings sim-no-render 0 → 1 with their generated JSON missing | `cd9f8486c` (touches neither file) | pending | sp-x7 |
