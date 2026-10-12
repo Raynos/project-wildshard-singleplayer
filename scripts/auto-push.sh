@@ -30,7 +30,7 @@ while IFS= read -r git_local_name; do unset "$git_local_name"; done <<< "$git_lo
 # Run from a private snapshot (bash reads a script as it goes; an edit landing in the shared tree mid-run must not change
 # this run). Each locked round below runs a fresh copy of the tree's pusher, so a busy pusher still picks up its edits.
 if [ -z "${AUTO_PUSH_SNAP:-}" ]; then
-  snap="$(mktemp -t auto-push)" && cp "$0" "$snap" || exit 1
+  snap="$(mktemp "${TMPDIR:-/tmp}/auto-push.XXXXXX")" && cp "$0" "$snap" || exit 1
   AUTO_PUSH_SNAP="$snap" exec bash "$snap" "$@"
 fi
 cd "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || { rm -f "$AUTO_PUSH_SNAP"; exit 0; }
@@ -52,7 +52,7 @@ if [ "${1:-}" != --locked ]; then
   touch "$pending"
   # Holder exits only after it found no mark; a start that lost the lock race marked first, so re-check after release.
   while [ -e "$pending" ]; do
-    body="$(mktemp -t auto-push)" && cp scripts/auto-push.sh "$body" || break # the tree's current pusher, per round
+    body="$(mktemp "${TMPDIR:-/tmp}/auto-push.XXXXXX")" && cp scripts/auto-push.sh "$body" || break # the tree's current pusher, per round
     AUTO_PUSH_SNAP="$body" lockf -k -t 0 "$lock" bash "$body" --locked
     rc=$?
     rm -f "$body"

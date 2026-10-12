@@ -27,6 +27,16 @@ it.each(['index', 'repository'] as const)('isolates a detached push from inherit
     execFileSync('git', ['read-tree', head], { cwd: root, env: { ...process.env, GIT_INDEX_FILE: index } });
     const originalIndex = readFileSync(index);
     mkdirSync(join(root, 'scripts'));
+    mkdirSync(join(root, 'bin'));
+    const mktemp = execFileSync('which', ['mktemp'], { encoding: 'utf8' }).trim();
+    // GNU refuses BSD's suffix-free -t form; require a portable explicit template.
+    writeFileSync(join(root, 'bin/mktemp'), `#!/usr/bin/env bash
+if [ "$#" != 1 ] || [[ "$1" != */auto-push.XXXXXX ]]; then
+  echo 'mktemp requires an explicit portable template' >&2
+  exit 1
+fi
+exec '${mktemp}' "$@"
+`, { mode: 0o755 });
     writeFileSync(join(root, 'scripts/auto-push.sh'), readFileSync('scripts/auto-push.sh'));
     writeFileSync(join(root, 'scripts/push-main.sh'), `set -e
 trap 'echo "vercel-gate: FAILED fixture Git isolation" >&2' ERR
@@ -47,7 +57,8 @@ git push -q origin main
       : { GIT_DIR: join(root, '.git'), GIT_WORK_TREE: root };
     const run = spawnSync('bash', ['scripts/auto-push.sh', '--locked'], {
       cwd: root, encoding: 'utf8', timeout: 10_000,
-      env: { ...process.env, ...injected, CI: '', WS_AUTO_PUSH: '1', AUTO_PUSH_SETTLE: '0' },
+      env: { ...process.env, ...injected, CI: '', WS_AUTO_PUSH: '1', AUTO_PUSH_SETTLE: '0',
+        AUTO_PUSH_SNAP: '', PATH: `${join(root, 'bin')}:${process.env['PATH'] ?? ''}` },
     });
     expect(run.error).toBeUndefined(); expect(run.status, run.stdout + run.stderr).toBe(0);
     const logs = readdirSync(join(root, '.git/auto-push')).map(file => readFileSync(join(root, '.git/auto-push', file), 'utf8')).join('\n');

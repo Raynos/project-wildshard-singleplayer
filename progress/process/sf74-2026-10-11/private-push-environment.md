@@ -26,10 +26,23 @@ contains only its own file, the owned bare remote receives the intended
 parent SHA, and the original private index is byte-identical. Both
 regressions plus all 14 existing green-prefix tests pass in 5.91 seconds
 wall. Focused test strict, touched typed lint and Bash syntax pass.
-Actual private-index hooks run at landing; the next normal complete
-gate remains the queue qualification.
+Actual private-index hooks passed in 0.58 seconds. The normal complete
+gate on 39c838c177 passed in 172.00 seconds and pushed all four commits;
+the total automatic push took 211 seconds. Its JSON report has zero
+failures and 1,208 passed tests. The root shared index is empty.
 
 The same leaked context left two regenerated shared-index entries on
 the source parent while their disk bytes already matched c05198c46.
 Only those exact parent-index/current-HEAD-byte entries were aligned;
 no working content, foreign hunk, allowance or payload was restored.
+
+The new standalone startup fixture also exposed two BSD-only mktemp
+calls. Actual GNU mktemp refuses the old suffix-free -t auto-push form
+with "too few X's"; the explicit directory/auto-push.XXXXXX form works.
+Both automatic-pusher snapshots now use that portable form. The test
+requires an explicit template, creates its own startup snapshot and
+clears inherited AUTO_PUSH_SNAP so its exit trap cannot remove a live
+parent's snapshot. Both cases fail before the portable fix, then pass
+with all 14 prefix cases in 7.15 seconds wall. Typed lint, focused test
+strict and Bash syntax pass again. This follow-up retains the original
+snapshot, queue, gate and retry behavior.
