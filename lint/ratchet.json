@@ -1355,7 +1355,6 @@
     "src/shards/nine-dragon-stack/plugin.ts": 3,
     "src/shards/nine-dragon-stack/runtime/audio/ambience.ts": 1,
     "src/shards/nine-dragon-stack/runtime/facts.ts": 1,
-    "src/shards/nine-dragon-stack/runtime/headless.ts": 1,
     "src/shards/nine-dragon-stack/runtime/items.ts": 2,
     "src/shards/nine-dragon-stack/runtime/portals.ts": 1,
     "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts": 1,
