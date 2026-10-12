@@ -1041,6 +1041,19 @@ owner; there is no public SDK pivot-NPC installer. Sky's phased-raptor remains a
 kept one-shard law: perch/return/takeoff, altitude and phase-specific ready laws are
 not expressed by the current generic diver/phased-flyer rows.
 
+Species catalogue rows may also declare a bounded `body` recipe
+(`CreatureBodyRecipeSchema` in `@wildshard/format/creatures`). `brains.body`
+binds that declaration to an existing host-owned animal, its actual ground/flight
+motor, keeper RNG stream and either the keeper's real claim or an explicitly
+unlimited owner. It never spawns a body, draws RNG or introduces a clock. Ram,
+orbit and burst policies require the body's real bounded home. Environmental
+contacts and actor/move contacts retain their distinct native filing; `look-hold`
+retains the existing stunned-body observation law. Unknown native protocols
+(skirmisher, guardian and perch) refuse rather than synthesizing missing authority.
+`bindSpeciesBody` lets an existing trusted encounter policy reuse that same body
+binding without replacing its encounter owner or saved policy. Exact traces,
+refusal and restore are exercised in `test/species-body-admission.test.ts`.
+
 A boss with stances, adds and arena tricks is an `arena` or `roaming` boss profile
 (`bossFight(profile, ports)`, `@wildshard/game/plugin/bossPhase`, trusted runtime only): its modes (damage rule, hp lock, motion, timed beats), phases (checkpoint hp, roar, what
 entering each does), attack rows (a charged burst, a cut combo), weak points, adds in waves and hazards (expanding rings,

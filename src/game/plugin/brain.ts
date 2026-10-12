@@ -23,12 +23,14 @@ import { BurstFlyerBrain } from "@wildshard/engine/ai/burstFlyer";
 import { ChallengeGrazerBrain } from "@wildshard/engine/ai/challengeGrazer";
 import { PatrolDiverBrain } from "@wildshard/engine/ai/patrolDiver";
 import { PhasedFlyerBrain } from "@wildshard/engine/ai/phasedFlyer";
+import type { Rng } from "@wildshard/engine/core/rng";
+import { CreatureBodyRecipeSchema, CreatureHomeSchema, type CreatureBodyRecipe } from "@wildshard/format/creatures";
 import { canReach } from "@wildshard/engine/ai/reach";
 import type { SimSnapshot } from "@wildshard/engine/sim/snapshot";
 import { parseGrazer, grazerPreset, type GrazerSchema, parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGrazer, type ShardRamGrazer } from "@wildshard/format/grazers";
 import { parseDiver, diverPreset, type DiverSchema, parsePatrolDiver, type PatrolDiverSchema, type ShardPatrolDiver, type ShardOrbitDiver, type ShardBurstFlyer } from "@wildshard/format/flyers";
 import { phasedDiverPreset, type PhasedDiverSchema, parsePhasedFlyer, type PhasedFlyerSchema, type ShardPhasedFlyer } from "@wildshard/format/phasedFlyers";
-import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, type KeptHomeRow } from "../shardfile/homeKeeper";
+import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, type KeptHomeRow, type KeptPolicy } from "../shardfile/homeKeeper";
 import { type StalkerSchema, parseStalker, stalkerPreset, type GuardianPatternsSchema, guardianPreset, parseGuardianPattern, parseSkirmisher, parseGuardian, parsePerchHunter, type SkirmisherSchema, type GuardianSchema, type PerchHunterSchema, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from "@wildshard/format/brains";
 
 /** Resolve both species and variant, preserving authored health and gameplay multipliers. */
@@ -464,7 +466,7 @@ export type SpeciesBrain =
   | { readonly archetype: 'guardian'; readonly data: v.InferInput<typeof GuardianSchema> | v.InferInput<typeof GuardianPatternsSchema> }
   | { readonly archetype: 'perch-hunter'; readonly data: v.InferInput<typeof PerchHunterSchema> };
 /** A species' gameplay data with an optional declared brain; a row without one keeps its runtime's own policy. */
-export type BrainedSpecies = Omit<SpeciesRow, 'parent' | 'think' | 'act'> & { readonly brain?: SpeciesBrain };
+export type BrainedSpecies = Omit<SpeciesRow, 'parent' | 'think' | 'act'> & { readonly brain?: SpeciesBrain; readonly body?: CreatureBodyRecipe };
 
 /** A finite circular home supplied by the actual owning body before its policy initializes. */
 export interface SpeciesBodyHome { readonly x: number; readonly z: number; readonly r: number; readonly y: number }
@@ -528,6 +530,8 @@ export interface SpeciesBrains {
   witness: (actor: Animal) => string | null;
   /** A fresh headless policy for one body of a declared kind, or null when the kind declares no brain. */
   policy: (kind: string, actor: AnimalSim) => SpeciesPolicy<HomeObservation> | null;
+  /** Bind a declared native recipe to an already-owned body, refusing missing motor, home or attack authority. */
+  body: (kind: string, actor: AnimalSim, ports: SpeciesBodyPorts) => KeptPolicy | null;
   /** The headless phase offset of one body (its challenge grazer's seed slot, else 0). */
   phase: (kind: string, actor: AnimalSim) => number;
 }
@@ -638,6 +642,74 @@ function decisionOf<A extends AnimalSim>(brain: Admitted, actor: A, home?: Speci
   }
 }
 
+/** The actual owning host, creature stream and attack authority; a recipe never manufactures any of them. */
+export interface SpeciesBodyPorts {
+  readonly host: SimHost; readonly stream: Rng; readonly home?: SpeciesBodyHome;
+  readonly attacks: { readonly kind: 'keeper'; readonly claim: (actor: AnimalSim) => boolean }
+    | { readonly kind: 'unlimited'; readonly limit: number };
+}
+/** Once-allocated observations shared by the existing ground, flight and scripted policies. */
+export interface SpeciesBodyObservation extends HomeObservation {
+  readonly rng: Rng; readonly mayAttack: (actor: AnimalSim) => boolean;
+  readonly shove: (yaw: number, speed: number, lift: number) => void;
+}
+/** Bind an admitted body recipe to its existing policy; no roster, clock, RNG draw or continuation is added. */
+export function bindSpeciesBody(actor: AnimalSim, input: CreatureBodyRecipe, shared: SpeciesBodyPorts,
+  create: (ports: SpeciesBodyObservation) => SpeciesPolicy<SpeciesBodyObservation>, phaseOffset = 0): KeptPolicy {
+  const recipe = v.parse(CreatureBodyRecipeSchema, input), { host, attacks } = shared;
+  if (host.entities.get(actor.entityId) !== actor || (recipe.motion === 'flight') !== actor.flying)
+    throw new Error('Species body requires its actual host and declared motor');
+  if (recipe.attack !== attacks.kind || attacks.kind === 'unlimited' && attacks.limit !== Infinity)
+    throw new Error('Species body requires its actual attack authority');
+  const player = host.player.position, point = new Vector3(), dir = new Vector3(), from = new Vector3(), push = new Vector3();
+  const tags: readonly `${string}.${string}`[] = [`creature.${actor.kind}`, 'feel.blow', 'cover.checked'];
+  const reach = (body: AnimalSim): boolean => canReach(body, player, host.physics);
+  const claim = attacks.kind === 'keeper' ? attacks.claim : (): boolean => true;
+  const hurt = (damage: number): void => {
+    let rel = Math.atan2(player.x - actor.position.x, player.z - actor.position.z) - actor.yaw;
+    rel = Math.atan2(Math.sin(rel), Math.cos(rel));
+    if (Math.abs(rel) > recipe.contact.halfArc || !reach(actor)) return;
+    if (recipe.contact.kind === 'environment') {
+      host.combat.hit({ source: 'env', sourceTags: tags, target: host.player.health, amount: damage,
+        point: actor.position.clone(), dir: new Vector3(), cause: { kind: actor.kind, label: actor.label } });
+    } else {
+      point.copy(actor.position); dir.subVectors(player, actor.position).normalize(); from.copy(actor.position);
+      host.combat.hit({ source: actor.combatActor(), sourceTags: tags, target: host.player.health, amount: damage,
+        point, dir, from, moveId: recipe.contact.move });
+    }
+  };
+  const ports: SpeciesBodyObservation = { dt: 0, t: 0, player, calm: false, phaseOffset, rng: shared.stream, reach, claim, mayAttack: claim, hurt,
+    steer: (body, yaw, speed, turn) => { body.setMotion(yaw, speed, turn); },
+    flight: { steer: (body, yaw, speed, altitude, turn) => { body.fly(yaw, speed, altitude, turn); } },
+    shove: (yaw, speed, lift) => { host.impulsePlayer(push.set(Math.sin(yaw) * speed, lift, Math.cos(yaw) * speed)); } };
+  const brain = create(ports), observe = (dt: number): void => { ports.dt = dt; ports.t = host.clock.now; };
+  return {
+    decide: dt => {
+      if (recipe.stunned === 'look-hold' && actor.stunned) {
+        actor.setMotion(actor.yaw, 0, 1); actor.lookTarget.copy(player); actor.lookWeight = 1; return;
+      }
+      observe(dt); brain.think(ports);
+    },
+    move: dt => { observe(dt); brain.act(ports); },
+    snapshot: () => brain.snapshot(), restore: value => { brain.restore(value); },
+  };
+}
+function bodyPolicy<P>(policy: SpeciesPolicy<P>, ports: P): SpeciesPolicy<SpeciesBodyObservation> {
+  return { think: () => { policy.think(ports); }, act: () => { policy.act(ports); },
+    snapshot: () => policy.snapshot(), restore: value => { policy.restore(value); } };
+}
+function homePolicy(brain: Admitted, actor: AnimalSim): SpeciesPolicy<HomeObservation> {
+  switch (brain.archetype) {
+    case 'challenge-grazer': return new ChallengeGrazerBrain(actor, brain.data, brain.charge, brain.close);
+    case 'patrol-diver': return new PatrolDiverBrain(actor, brain.data, brain.data.home, brain.strike);
+    case 'phased-flyer': return new PhasedFlyerBrain(actor, brain.data, brain);
+    case 'script': return new ScriptSpeciesPolicy(actor, brain.lane, brain.catalogue);
+    case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': case 'skirmisher': case 'guardian': case 'perch-hunter':
+      throw new Error(`Species ${actor.kind} requires a trusted native body adapter`);
+    default: throw new Error('Unknown admitted brain archetype');
+  }
+}
+
 /**
  * Admit a species catalogue's declared brains (SF27) against its strike rows: every brain's data passes its archetype's
  * strict schema and every strike it names resolves, before any row, policy or actor exists; a script brain's module
@@ -647,6 +719,12 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
   const strikes = new Map(strikeRows.map(row => [row.id, strikeFromData(row)] as const));
   if (strikes.size !== strikeRows.length || new Set(species.map(row => row.kind)).size !== species.length) throw new Error('Duplicate species kind or strike id');
   const admitted = new Map(species.flatMap(row => row.brain === undefined ? [] : [[row.kind, admit(row.brain, row.kind, strikes, modules)] as const]));
+  const bodies = new Map(species.flatMap(row => row.body === undefined ? [] : [[row.kind, v.parse(CreatureBodyRecipeSchema, row.body)] as const]));
+  for (const kind of bodies.keys()) {
+    const brain = admitted.get(kind);
+    if (brain === undefined || brain.archetype === 'skirmisher' || brain.archetype === 'guardian' || brain.archetype === 'perch-hunter')
+      throw new Error(`Species ${kind} has no admitted native body protocol`);
+  }
   const witnesses: { archetype: string; live: (actor: Animal) => boolean }[] = [];
   return {
     kinds: new Set(admitted.keys()),
@@ -664,14 +742,31 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
     policy: (kind, actor) => {
       const brain = admitted.get(kind);
       if (brain === undefined) return null;
-      switch (brain.archetype) {
-        case 'challenge-grazer': return new ChallengeGrazerBrain(actor, brain.data, brain.charge, brain.close);
-        case 'patrol-diver': return new PatrolDiverBrain(actor, brain.data, brain.data.home, brain.strike);
-        case 'phased-flyer': return new PhasedFlyerBrain(actor, brain.data, brain);
-        case 'script': return new ScriptSpeciesPolicy(actor, brain.lane, brain.catalogue);
-        case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': case 'skirmisher': case 'guardian': case 'perch-hunter': throw new Error(`Species ${kind} requires a trusted native body adapter`);
-        default: throw new Error('Unknown admitted brain archetype');
-      }
+      return homePolicy(brain, actor);
+    },
+    body: (kind, actor, shared) => {
+      const recipe = bodies.get(kind), brain = admitted.get(kind);
+      if (recipe === undefined) return null;
+      if (brain === undefined || actor.kind !== kind) throw new Error(`Species ${kind} requires its declared live body`);
+      if (shared.home !== undefined) v.parse(CreatureHomeSchema, shared.home);
+      const home = shared.home;
+      if ((brain.archetype === 'ram-grazer' || brain.archetype === 'orbit-diver' || brain.archetype === 'burst-flyer') && home === undefined)
+        throw new Error(`Species ${kind} requires its actual body home`);
+      return bindSpeciesBody(actor, recipe, shared, ports => {
+        if (brain.archetype === 'ram-grazer') {
+          if (home === undefined) throw new Error('Missing admitted ram home');
+          return bodyPolicy(new RamGrazerBrain(actor, brain.data, brain.strike), Object.assign(ports, { home }));
+        }
+        if (brain.archetype === 'orbit-diver') {
+          if (home === undefined) throw new Error('Missing admitted orbit home');
+          const data = { ...brain.data, home }; return new OrbitDiverBrain(actor, data, home, brain.strike);
+        }
+        if (brain.archetype === 'burst-flyer') {
+          if (home === undefined) throw new Error('Missing admitted burst home');
+          const data = { ...brain.data, home }; return new BurstFlyerBrain(actor, data, home, brain.strike);
+        }
+        return homePolicy(brain, actor);
+      }, brain.archetype === 'challenge-grazer' ? seedSlot(actor.seed, brain.phaseSlots) : 0);
     },
     phase: (kind, actor) => { const brain = admitted.get(kind); return brain?.archetype === 'challenge-grazer' ? seedSlot(actor.seed, brain.phaseSlots) : 0; },
   };
@@ -721,7 +816,9 @@ export function installSpeciesHomes(host: SimHost, spec: SpeciesHomesSpec, saved
   const player = host.player.position, reach = (a: AnimalSim): boolean => canReach(a, player, host.physics);
   return installHomeKeeper(host, { step: spec.step, seed: spec.seed, homes: spec.homes, ...(spec.boss === undefined ? {} : { boss: spec.boss }),
     specs: spec.specs, scales, attackers: spec.attackers, think: spec.think, ...(spec.beforeStep === undefined ? {} : { beforeStep: spec.beforeStep }),
-    policy: (kind, actor, claim) => {
+    policy: (kind, actor, claim, stream) => {
+      const declared = spec.brains.body(kind, actor, { host, stream, attacks: { kind: 'keeper', claim } });
+      if (declared !== null) return declared;
       const point = new Vector3(), dir = new Vector3(), from = new Vector3(), tags: readonly `${string}.${string}`[] = [`creature.${kind}`, 'feel.blow', 'cover.checked'], move = spec.contactMove(kind);
       const hurt = (damage: number): void => {
         let rel = Math.atan2(player.x - actor.position.x, player.z - actor.position.z) - actor.yaw; rel = Math.atan2(Math.sin(rel), Math.cos(rel));
