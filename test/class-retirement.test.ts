@@ -35,6 +35,15 @@ it('admits exactly the existing class after its exact move hash retires and its 
   const f = fixture(); expect(f.compare()).toEqual([]);
   expect(comparePlatformList(list, join(f.before, list), join(f.after, list))).toHaveLength(2);
 });
+it('retains the proven parent identity for unchanged descendants when its move record retires', () => {
+  const f = fixture(), derived = 'src/shards/alpha/runtime/derived.ts';
+  const source = "import { Rifle } from './rifle'; export class Derived extends Rifle {}";
+  for (const root of [f.before, f.after]) put(root, derived, source);
+  expect(f.compare()).toEqual([]);
+  put(f.after, derived, source.replace('./rifle', './other'));
+  put(f.after, 'src/shards/alpha/runtime/other.ts', shipping);
+  expect(f.compare()).toHaveLength(2);
+});
 it('refuses a retained, stale, untouched or missing class record rather than allowing a +1 receipt', () => {
   for (const mode of ['retained', 'stale', 'untouched', 'missing']) {
     const f = fixture();

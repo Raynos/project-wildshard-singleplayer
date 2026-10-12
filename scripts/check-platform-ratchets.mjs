@@ -143,9 +143,13 @@ function retiredClassCeilings(trees) {
     return existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')).moves : {};
   };
   const before = readMoves(trees.baselineRoot), after = readMoves(trees.candidateRoot);
-  const normalized = (site, moves) => ({ name: site.name, heritage: site.heritage,
-    baseFile: Object.values(moves).find(move => move.to === site.baseFile)?.from ?? site.baseFile });
-  const roster = (root, slug, moves) => {
+  // A descendant still resolves to the same moved file after its exact record
+  // retires. Compare both complete rosters using that proven file identity;
+  // changed imports, heritage and additional classes still change the roster.
+  const ancestryMoves = { ...before, ...after };
+  const normalized = site => ({ name: site.name, heritage: site.heritage,
+    baseFile: Object.values(ancestryMoves).find(move => move.to === site.baseFile)?.from ?? site.baseFile });
+  const roster = (root, slug) => {
     const rows = {};
     const walk = directory => {
       if (!existsSync(join(root, directory))) return;
@@ -154,7 +158,7 @@ function retiredClassCeilings(trees) {
         if (item.isDirectory()) walk(file);
         else if (item.isFile() && /\.tsx?$/u.test(file) && !file.endsWith('.d.ts')) {
           const sites = classMoveSites(readFileSync(join(root, file), 'utf8'), file, root).filter(site => site.heritage.length > 0);
-          if (sites.length > 0) rows[file] = sites.map(site => normalized(site, moves));
+          if (sites.length > 0) rows[file] = sites.map(site => normalized(site));
         }
       }
     };
@@ -170,9 +174,9 @@ function retiredClassCeilings(trees) {
     if (!existsSync(originalFile) || !existsSync(nextFile)) continue;
     const original = classMoveSites(readFileSync(originalFile, 'utf8'), move.to, trees.baselineRoot).filter(site => site.hash === move.hash && site.name === move.name);
     const next = classMoveSites(readFileSync(nextFile, 'utf8'), move.to, trees.candidateRoot).filter(site => site.name === move.name);
-    if (original.length !== 1 || next.length !== 1 || next[0].hash === move.hash || normalized(original[0], before).baseFile !== move.baseFile ||
-      JSON.stringify(normalized(original[0], before)) !== JSON.stringify(normalized(next[0], after))) continue;
-    if (!unchanged.has(slug)) unchanged.set(slug, roster(trees.baselineRoot, slug, before) === roster(trees.candidateRoot, slug, after));
+    if (original.length !== 1 || next.length !== 1 || next[0].hash === move.hash || normalized(original[0]).baseFile !== move.baseFile ||
+      JSON.stringify(normalized(original[0])) !== JSON.stringify(normalized(next[0]))) continue;
+    if (!unchanged.has(slug)) unchanged.set(slug, roster(trees.baselineRoot, slug) === roster(trees.candidateRoot, slug));
     if (!unchanged.get(slug)) continue;
     const row = credit[slug] ??= { engineSubclasses: 0, 'subclass.Weapon': 0 };
     row.engineSubclasses++; row['subclass.Weapon']++;
