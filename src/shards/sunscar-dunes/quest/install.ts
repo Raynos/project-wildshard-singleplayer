@@ -1,7 +1,7 @@
 import type { QuestMarker, QuestState } from '@wildshard/engine/quest/core';
 import type { CoinBurst } from '@wildshard/game/loot/CoinBurst';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
-import { presentRewardedQuest, questReward } from '../runtime/quest/questReward';
+import { presentRewardedQuest, questReward } from '@wildshard/game/quest/coinReward';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
@@ -64,7 +64,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
     dress: (group) => { ownPrimitives(group, ctx.scope); lastLightAll(group, ctx.scope); } });
   // The one-call presentation (ENGINE §20): the chip with distance and bearing, minimap and map diamonds, world pins, the
   // MAP card, saved discovery of the places, step toasts, the held reward beat and, on the first frame, the quest's toast.
-  const view = presentRewardedQuest(ctx, quest, reward, { id: 'sunscar.reward', player, paidAtLoad, newQuest: `${STRINGS.newQuest} · ${STRINGS.quest}`,
+  const view = presentRewardedQuest(ctx, quest, reward, { id: 'sunscar.reward', player, unpaid: () => !paidAtLoad, newQuest: `${STRINGS.newQuest} · ${STRINGS.quest}`,
     presentation: { places: [...DISCOVERY_PLACES], introTitle: STRINGS.quest,
       ...(sefa === null ? {} : { npc: { npc: npcDef(SCOUT_NPC), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: SCOUT_NPC.talkRadius } }) },
     beat: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle } });

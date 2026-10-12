@@ -47,6 +47,7 @@
     "./loot/ui/ShopPanel": "./loot/ui/ShopPanel.ts",
     "./quest/presentation": "./plugin/ui.ts",
     "./quest/reward": "./quest/reward.ts",
+    "./quest/coinReward": "./quest/coinReward.ts",
     "./saves": "./saves.ts",
     "./shard/context": "./plugin/context.ts",
     "./shard/retainedHooks": "./plugin/lifecycle.ts",
