@@ -1,11 +1,14 @@
 import * as v from 'valibot';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import type { SimHost, SimSpawn, SimValue } from '@wildshard/engine/sim';
+import { killBelowWorld } from '@wildshard/engine/entities/killHeight';
+import type { SimBodyBands, SimHost, SimSpawn, SimValue } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 
-/** A declared home the keeper refills (`runtime.spawns.homes`): `respawn` seconds after its body falls, a fresh one. */
-export interface KeptHomeRow { readonly id: string; readonly kind: string; readonly at: readonly [number, number]; readonly yaw: number; readonly respawn: number }
+/** A declared home the keeper refills (`runtime.spawns.homes`): `respawn` seconds after its body falls, a fresh one (0: never
+ *  refilled, the fallen body stays). A `late` home spawns on the keeper's first step instead of at install, after every
+ *  install-time registration (a body that lands once the world it stands on is in place). */
+export interface KeptHomeRow { readonly id: string; readonly kind: string; readonly at: readonly [number, number]; readonly yaw: number; readonly respawn: number; readonly late?: boolean }
 /** A declared boss row (`runtime.spawns.bosses`): one more body of the same keeper, never refilled; its encounter draws and frees it. */
 export interface KeptBossRow { readonly id: string; readonly kind: string; readonly at: readonly [number, number]; readonly yaw: number }
 /** One live body's policy, built at its spawn: decisions on the keeper's cadence, movement every tick, its own continuation. */
@@ -29,10 +32,21 @@ export interface HomeKeeperSpec {
   readonly scales: ReadonlyMap<string, readonly [number, number]>;
   /** `fight.attackers` from the manifest (E297): at most this many bodies hold an attack token at once. */
   readonly attackers: number;
-  /** Decisions run on ticks where `tick % every === 1`, each with `dt` seconds (the browser's 'legacy' band: 6, 0.1). */
-  readonly think: { readonly every: number; readonly dt: number };
-  /** The shipping policy for one fresh body; `claim` asks for one of the keeper's attack tokens. */
-  readonly policy: (kind: string, actor: AnimalSim, claim: (actor: AnimalSim) => boolean) => KeptPolicy;
+  /** Decisions run on ticks where `tick % every === 1`, each with `dt` seconds (the browser's 'legacy' band: 6, 0.1). With
+   *  `bands`, the keeper opts the host into the page's body bands (`SimHost.useBodyBands`) at install instead: every body
+   *  with an actor takes its decision step from its band clock (`brainDt`, taken alive or not; a live body decides when it
+   *  is due) and moves on its body clock (`bodyDt`, when non-zero). */
+  readonly think: { readonly every: number; readonly dt: number } | { readonly bands: SimBodyBands };
+  /** The shipping policy for one fresh body; `claim` asks for one of the keeper's attack tokens, `stream` is the creature
+   *  stream itself (a policy whose own draws share it, after the spawns'). */
+  readonly policy: (kind: string, actor: AnimalSim, claim: (actor: AnimalSim) => boolean, stream: Rng) => KeptPolicy;
+  /** A declared death plane: first on every tick, a live body under it dies by the fall pipeline (`killBelowWorld`). */
+  readonly killY?: number;
+  /** Where a drawn body stands, asked after its six draws instead of the host's ground at install: the floor under its
+   *  home and whether that floor is a structure (the body's `levelGround`); a flyer still flies its altitude over it. */
+  readonly place?: (id: string) => { readonly y: number; readonly structure: boolean };
+  /** Runs on every body the keeper materializes, fresh or restored, before its policy is built (a body's own ground law). */
+  readonly adopt?: (actor: AnimalSim) => void;
   /** Runs first on every tick, before the token sweep: a gate the homes read (a held flag in a body's memory). */
   readonly beforeStep?: (homes: readonly KeptHome[]) => void;
 }
@@ -47,7 +61,7 @@ const Saved = v.strictObject({ version: v.literal(1), rng: Stream, tokens: v.arr
   boss: v.nullable(v.strictObject({ id: v.string(), live: v.boolean(), policy: v.nullable(v.string()) })) });
 
 interface Body { readonly id: string; readonly kind: string; readonly recipe: SimSpawn; readonly range: readonly [number, number]; actor: AnimalSim | null; brain: KeptPolicy | null }
-interface Home extends Body { readonly respawn: number; wait: number }
+interface Home extends Body { readonly respawn: number; readonly late: boolean; wait: number }
 
 /**
  * Declared creature homes in a renderer-free host (SHARD-PLATFORM SF72): the platform's spawn, death and respawn rules
@@ -70,29 +84,45 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
   const recipe = (id: string, kind: string, at: readonly [number, number], yaw: number): { recipe: SimSpawn; range: readonly [number, number] } => {
     const native = spec.specs.get(kind), range = spec.scales.get(kind);
     if (native === undefined || range === undefined) throw new Error(`Missing native recipe ${kind} (${step})`);
-    const ground = host.groundHeightAt(at[0], at[1]), y = native.flight === undefined ? ground : native.flight.altitude + (native.flight.above === 'world' ? 0 : ground);
+    const ground = spec.place === undefined ? host.groundHeightAt(at[0], at[1]) : 0, y = native.flight === undefined ? ground : native.flight.altitude + (native.flight.above === 'world' ? 0 : ground);
     return { range, recipe: { id, spec: native, seed: 0, scale: 1, at: { x: at[0], y, z: at[1] }, yaw } };
   };
   const homes: Home[] = spec.homes.map(row => { const made = recipe(row.id, row.kind, row.at, row.yaw);
-    return { id: row.id, kind: row.kind, respawn: row.respawn, wait: 0, actor: null, brain: null, recipe: made.recipe, range: made.range }; });
+    return { id: row.id, kind: row.kind, respawn: row.respawn, late: row.late === true, wait: 0, actor: null, brain: null, recipe: made.recipe, range: made.range }; });
   const row = spec.boss, made = row === undefined ? null : recipe(row.id, row.kind, row.at, row.yaw);
   const boss: Body | null = row === undefined || made === null ? null : { id: row.id, kind: row.kind, actor: null, brain: null, recipe: made.recipe, range: made.range };
   const bodies: readonly Body[] = boss === null ? homes : [...homes, boss];
-  const homeCount = homes.length, bodyCount = bodies.length, every = spec.think.every, thinkDt = spec.think.dt;
-  const materialize = (body: Body, next: SimSpawn): AnimalSim => { const a = host.spawn(next); body.actor = a; body.brain = spec.policy(body.kind, a, claim); return a; };
-  /** The creature manager's six draws, into the body's own recipe (the host copies it at spawn). */
+  const homeCount = homes.length, bodyCount = bodies.length, think = spec.think, banded = 'bands' in think;
+  const every = 'bands' in think ? 0 : think.every, thinkDt = 'bands' in think ? 0 : think.dt, world = spec.killY === undefined ? undefined : { killY: spec.killY };
+  if ('bands' in think) host.useBodyBands(think.bands);
+  const materialize = (body: Body, next: SimSpawn): AnimalSim => {
+    const a = host.spawn(next); spec.adopt?.(a); body.actor = a; body.brain = spec.policy(body.kind, a, claim, rng); return a;
+  };
+  /** The creature manager's six draws, into the body's own recipe (the host copies it at spawn), then its placement. */
   const drawBody = (body: Body): AnimalSim => {
     body.recipe.scale = rng.range(body.range[0], body.range[1]); rng.next(); body.recipe.seed = rng.next(); rng.next(); rng.next(); rng.next();
-    return materialize(body, body.recipe);
+    const floor = spec.place?.(body.id), flight = body.recipe.spec.flight;
+    if (floor !== undefined) body.recipe.at.y = flight === undefined ? floor.y : flight.altitude + (flight.above === 'world' ? 0 : floor.y);
+    const a = materialize(body, body.recipe); if (floor !== undefined) a.levelGround = floor.structure; return a;
   };
+  let lateDue = homes.some(home => home.late);
   const freeBody = (body: Body): void => { if (body.actor) { holders.delete(body.actor); host.retire(body.id); body.actor = null; body.brain = null; } };
   const respawn = (home: Home): void => { home.wait = 0; drawBody(home); };
   host.events.on('actor.died', ({ actor }) => { const home = homes.find(h => h.actor?.combatActor() === actor); if (home) home.wait = home.respawn; }, host.scope);
   host.onStep(step, dt => {
+    if (world !== undefined) for (let i = 0; i < bodyCount; i++) { const a = bodies[i]?.actor; if (a?.alive === true) killBelowWorld(a, world, host.combat); }
     spec.beforeStep?.(homes);
+    if (lateDue) { lateDue = false; for (let i = 0; i < homeCount; i++) { const home = homes[i]; if (home?.late === true) respawn(home); } }
     for (let i = 0; i < bodyCount; i++) { const a = bodies[i]?.actor; if (a && holders.has(a) && (!a.alive || a.attackPhase < 0)) holders.delete(a); }
-    if (host.state.tick % every === 1) for (let i = 0; i < bodyCount; i++) { const body = bodies[i]; if (body?.actor?.alive === true) body.brain?.decide(thinkDt); }
-    for (let i = 0; i < bodyCount; i++) { const body = bodies[i]; if (body === undefined) continue; const a = body.actor; if (a && a.alive && !a.stunned) body.brain?.move(dt); }
+    if (banded) for (let i = 0; i < bodyCount; i++) {
+      const body = bodies[i], a = body?.actor; if (body === undefined || a === null || a === undefined) continue;
+      const due = host.brainDt(body.id); if (due > 0 && a.alive) body.brain?.decide(due);
+    }
+    else if (host.state.tick % every === 1) for (let i = 0; i < bodyCount; i++) { const body = bodies[i]; if (body?.actor?.alive === true) body.brain?.decide(thinkDt); }
+    for (let i = 0; i < bodyCount; i++) {
+      const body = bodies[i], a = body?.actor; if (body === undefined || a === null || a === undefined) continue;
+      const moved = banded ? host.bodyDt(body.id) : dt; if (moved > 0 && a.alive && !a.stunned) body.brain?.move(moved);
+    }
     for (let i = 0; i < homeCount; i++) {
       const home = homes[i];
       if (home === undefined || home.wait <= 0) continue;
@@ -117,9 +147,11 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
   });
   const deferred: Body[] = [];
   let settle = (): void => undefined;
-  if (saved === undefined) homes.forEach(respawn);
+  if (saved === undefined) homes.forEach(home => { if (!home.late) respawn(home); });
   else {
     const keeper = v.parse(Saved, saved.adapters.find(adapter => adapter.id === step)?.state);
+    // the late homes are due until they have landed (a landed body is held, alive or fallen, until a refill replaces it)
+    lateDue = homes.some((home, i) => home.late && keeper.homes[i]?.live !== true);
     const reinstall = (body: Body): void => {
       const contract = saved.adapters.find(adapter => adapter.id === `runtime.actor.${body.id}`)?.state;
       if (typeof contract !== 'string') throw new Error(`Missing saved actor ${body.id} (${step})`);

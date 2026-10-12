@@ -18,3 +18,5 @@ Fresh native page comparison confirms these exact last-bit differences. The actu
 
 
 SF81 DIR5 Roc stages are authored for page and native hosts, with the shared DirectorBossBrain over the original held body/fight ports. Deliberately re-recorded step, gale and storm hash manifests: decoded command tape and every canonical native field are identical except the encounter wrapper version1->2 and its complete authored stage cursor. The full native spawn-to-Roc tape, gameplay/contacts, retries, quest/encounter facts and Ledger outcomes remain exact; physical payloads and map pixels are unchanged. No gzip payload committed.
+
+G345 flock keeper: `runtime/flock.ts` runs on the shared `installHomeKeeper` (options `late`, `think.bands`, `killY`, `place`, `adopt`, the policy's `stream`). Deliberately re-recorded step, gale and storm checkpoints: every tick's player, bodies, effects and every other adapter are identical on a clean export of HEAD vs HEAD + the port; only the `far.flock` continuation wrapper changes (the keeper's `tokens: []`, `wait: 0`, `boss: null` for Sky's derived `goats` flag). Signal's keeper witness is byte-exact.

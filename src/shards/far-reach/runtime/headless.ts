@@ -16,7 +16,6 @@ import { DECK, SPAWN } from '../data/layout';
 import { DRIFT_RAY_VARIANTS, SKY_GOAT_VARIANTS, STORM_ROC_VARIANTS, GALE_WISP_VARIANTS } from '../data/variants';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
 import { installSkyRoc } from './roc';
-import { ROC_ID } from '../data/rocFight';
 import { coneStrikeSpec } from './weapons/coneStrikes';
 import { FAN_ID } from '../data/items';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM, installSkyFan, type FanCommand } from './fan';
@@ -106,9 +105,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
     const movers = installSkyMovers(host, modules, context.restoring, () => skyWinchPermission(host.flags));
     const flock = installSkyFlock(host, { specs, ranges, seed: shard.identity.seed }, context.snapshot);
-    const roc = flock.bodies().find(body => body.id === ROC_ID), body = roc?.brain?.roc ?? null;
-    if (roc?.actor === null || roc?.actor === undefined || body === null) throw new Error('Sky Reach declares the Storm Roc\'s body');
-    const encounter = installSkyRoc(host, { roc: roc.actor, body, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
+    const encounter = installSkyRoc(host, { roc: flock.roc.actor, body: flock.roc.body, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
       coins: (amount, actorId) => { context.emit({ kind: 'coins', amount, actorId }); } });
     // the browser disables the player's weapons through the Roc's intro (BossPorts.lockInput) and stows the fan on the board
     installSkyFan(host, () => encounter.locked() || host.playerBoard.on ? [] : context.commands().flatMap((command): FanCommand[] => {

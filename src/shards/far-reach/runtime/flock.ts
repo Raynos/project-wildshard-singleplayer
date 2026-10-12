@@ -1,144 +1,70 @@
-import * as v from 'valibot';
-import { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { killBelowWorld } from '@wildshard/engine/entities/killHeight';
 import { castRay } from '@wildshard/engine/physics/query';
-import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
+import type { SimHost } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { installHomeKeeper } from '@wildshard/game/shardfile/homeKeeper';
 import { SKY_FLOCK_ROWS } from '../data/spawns';
-import { DECK, type Home } from '../data/layout';
-import { flockBrain, type FlockBrain } from './flockBrains';
+import { DECK } from '../data/layout';
+import { ROC_ID } from '../data/rocFight';
+import { flockBrain } from './flockBrains';
+import type { StormRocBrain } from './stormRocBrain';
 
 /** The death plane under the islands: manifest `world.killY` (DECK - 24). The headless test holds the two equal (the
  * manifest itself imports views). */
 export const SKY_KILL_Y = DECK - 24;
-/** The flock keeper's fixed-step id; its continuation also says whether the goats have landed. */
+/** The flock keeper's fixed-step id. */
 export const FLOCK_STEP = 'far.flock';
-/** How far above its island's deck a goat's spawn ray starts (runtime/index.ts GOAT_SPAWN_ABOVE, which imports views). */
-const GOAT_RAY_ABOVE = 2;
 /** The analytic placement floor of a structures-only world (game/shard/manifest `terrainFor`: y = -1000 m). */
 export const SKY_ANALYTIC_FLOOR = -1000;
-/** The creature manager's tick rate for a self-thinking species (AnimalManager.tickRate): 'legacy', decisions at 10 Hz and
- *  the body every frame at any distance, on the page scheduler's own clocks (SimHost.useBodyBands). */
-const SKY_TICK_RATE = 'legacy';
-/** The declared roster (data/spawns.ts): 13 finite bodies, so every keeper loop is bounded. */
-const BODY_COUNT = 13;
 
-interface Body { readonly id: string; readonly kind: string; readonly label: string; readonly home: Home; readonly range: readonly [number, number]; readonly recipe: SimSpawn; actor: AnimalSim | null; brain: FlockBrain | null }
-/** What the keeper is lent: the baked native specs and each kind's variant scale range and label (the species rows). */
+/** What the keeper is lent: the baked native specs and each kind's variant scale range (the species rows). */
 export interface SkyFlockPorts {
   readonly specs: ReadonlyMap<string, AnimalSimSpec>;
   readonly ranges: ReadonlyMap<string, readonly [number, number]>;
   /** The level seed (shard identity): the creature manager's stream is `Rng(seed + 31)` once the level is installed. */
   readonly seed: number;
 }
-const finite = v.pipe(v.number(), v.finite());
-const Stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
-const Placed = v.object({ id: v.string(), seed: finite, scale: finite, at: v.strictObject({ x: finite, y: finite, z: finite }), yaw: finite });
-const Saved = v.strictObject({ version: v.literal(1), rng: Stream, goats: v.boolean(),
-  bodies: v.array(v.strictObject({ id: v.string(), live: v.boolean(), policy: v.nullable(v.string()) })) });
 
 /**
- * Sky Reach's 13 declared bodies in a renderer-free host (SF72), as the shipping plugin and creature manager run them:
- * the eight flyers (the free ray, the three roost rays, the three wisps, then the Storm Roc) spawn at install in that
- * order, at their flight altitude over their authored circle; the five goats spawn on the first fixed step (the shipping
- * deferred `far.goats` fixed.post spawn), each on the first WORLD floor under its island deck + 2 m. Every spawn takes
- * the manager's six draws from its private stream `Rng(level seed + 31)` (scale, rig seed, actor seed, timer, fleeUntil,
- * callT), and the goats' wander draws come from the same stream. The host runs on the page's distance bands (`useBodyBands`,
- * before any spawn and before a restoring host restores its clocks): each body decides on the 'legacy' rate's clock (10 Hz,
- * the step the time since its last decision), moves every tick at any distance, and holds the page's creature capsule
- * only within 45 m of the player (released past 55 m). A body under the world's kill height dies by the fall pipeline. Nothing respawns (Sky's plugin never replaces a body).
- * Restore reinstalls exactly the saved roster from its recipes before the host restores, with no stream draw.
+ * Sky Reach's 13 declared bodies on the platform's home keeper (`installHomeKeeper`), as the shipping plugin and creature
+ * manager run them: the eight flyers spawn at install, the five goats (`late`) on the first fixed step, each body on the
+ * first WORLD floor under its island deck + 2 m (a flyer's ray from the level spawn's height, at its flight altitude),
+ * with the manager's six draws from `Rng(level seed + 31)` and the goats' wander draws from the same stream. The page's
+ * distance bands ('legacy': decisions at 10 Hz, the body every tick at any distance), the world's death plane, no attack
+ * cap (every policy grants itself) and no refill. A stunned body holds instead of deciding (AnimalManager.think).
  */
 export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Readonly<SimSnapshot>): {
-  bodies: () => readonly { id: string; actor: AnimalSim | null; brain: FlockBrain | null }[];
+  /** The Storm Roc's body and brain (its encounter's port). */
+  readonly roc: { readonly actor: AnimalSim; readonly body: StormRocBrain<AnimalSim> };
   /** On restore, reinstall the landed goats after every other install-time registration (a no-op on a fresh boot). */
   land: () => void;
 } {
-  host.useBodyBands({ rate: () => SKY_TICK_RATE });
-  const rng = new Rng(ports.seed + 31), rows = SKY_FLOCK_ROWS;
-  if (rows.length !== BODY_COUNT || new Set(rows.map(row => row.id)).size !== BODY_COUNT) throw new Error('Sky declares 13 finite bodies');
-  const bodies: Body[] = rows.map(row => {
-    const { id, home } = row;
-    const spec = ports.specs.get(row.kind), range = ports.ranges.get(row.kind);
-    if (spec === undefined || range === undefined) throw new Error(`Missing native Sky recipe ${row.kind}`);
-    // the height is set at the spawn: a goat's floor, a flyer's altitude over the world (or over its floor)
-    return { id, kind: row.kind, label: spec.label, home, range, actor: null, brain: null,
-      recipe: { id, spec, seed: 0, scale: 1, at: { x: row.at[0], y: 0, z: row.at[1] }, yaw: row.yaw } };
-  });
-  const flyers = bodies.filter(b => b.recipe.spec.flight !== undefined), goats = bodies.filter(b => b.recipe.spec.flight === undefined);
-  let goatsDue = true;
-  /** creatureFloor: the first WORLD hit under `fromY` (a structure, noted in `structure`), else the analytic floor. */
-  const origin = { x: 0, y: 0, z: 0 }, down = { x: 0, y: -1, z: 0 }, sees = ['WORLD'] as const, under = { structure: false };
-  const floor = (x: number, z: number, fromY: number): number => {
+  const rows = new Map(SKY_FLOCK_ROWS.map(row => [row.id, row]));
+  /** creatureFloor: the first WORLD hit under the ray's start (a structure), else the analytic floor. */
+  const origin = { x: 0, y: 0, z: 0 }, down = { x: 0, y: -1, z: 0 }, sees = ['WORLD'] as const;
+  const floor = (x: number, z: number, fromY: number): { y: number; structure: boolean } => {
     origin.x = x; origin.y = fromY; origin.z = z;
     const hit = castRay(host.physics, origin, down, Math.max(201, fromY - SKY_ANALYTIC_FLOOR + 1), sees);
-    under.structure = hit !== null; return hit === null ? SKY_ANALYTIC_FLOOR : hit.point.y;
+    return hit === null ? { y: SKY_ANALYTIC_FLOOR, structure: false } : { y: hit.point.y, structure: true };
   };
-  /** A structures world gives every body the layered floor under its feet (AnimalManager.spawnAnimal `groundHeight`). */
-  const groundHeight = (x: number, z: number, fromY: number): number => floor(x, z, fromY), brainPorts = { host, rng };
-  const materialize = (body: Body, recipe: SimSpawn): AnimalSim => {
-    const a = host.spawn(recipe); a.groundHeight = groundHeight;
-    body.actor = a; body.brain = flockBrain(body.kind, body.label, a, body.home, brainPorts); return a;
-  };
-  /** The creature manager's six draws, into the body's own recipe (the host copies it at spawn), from its floor ray. */
-  const arrive = (body: Body, fromY: number): void => {
-    body.recipe.scale = rng.range(body.range[0], body.range[1]); rng.next(); body.recipe.seed = rng.next(); rng.next(); rng.next(); rng.next();
-    const y = floor(body.recipe.at.x, body.recipe.at.z, fromY), structure = under.structure, flight = body.recipe.spec.flight;
-    body.recipe.at.y = flight === undefined ? y : flight.altitude + (flight.above === 'world' ? 0 : y);
-    materialize(body, body.recipe).levelGround = structure;
-  };
-  const world = { killY: SKY_KILL_Y };
-  host.onStep(FLOCK_STEP, () => {
-    // the body step that just ran: a body under the death plane dies by the fall pipeline (killBelowWorld)
-    for (let i = 0; i < BODY_COUNT; i++) { const a = bodies[i]?.actor; if (a?.alive === true) killBelowWorld(a, world, host.combat); }
-    if (goatsDue) {
-      goatsDue = false;
-      for (let i = 0; i < BODY_COUNT; i++) {
-        const goat = goats[i]; if (goat === undefined) continue;
-        arrive(goat, goat.home.y + GOAT_RAY_ABOVE);
-      }
-    }
-    // the page's think loop: every body takes its decision step from its clock, alive or not (AnimalManager.update)
-    for (let i = 0; i < BODY_COUNT; i++) {
-      const body = bodies[i], a = body?.actor; if (body === undefined || a === null || a === undefined) continue;
-      const think = host.brainDt(body.id); if (think <= 0 || !a.alive) continue;
-      // a staggered self-thinking species holds (AnimalManager.think)
-      if (a.stunned) { a.setMotion(a.yaw, 0, 1); a.lookTarget.copy(host.player.position); a.lookWeight = 1; continue; }
-      body.brain?.decide(think);
-    }
-    for (let i = 0; i < BODY_COUNT; i++) {
-      const body = bodies[i], a = body?.actor; if (body === undefined || a === null || a === undefined) continue;
-      const step = host.bodyDt(body.id); if (step > 0 && a.alive && !a.stunned) body.brain?.move(step);
-    }
-  }, {
-    snapshot: () => ({ version: 1, rng: { ...rng.snapshot() }, goats: !goatsDue,
-      bodies: bodies.map(b => ({ id: b.id, live: b.actor !== null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })) }),
-    restore: value => {
-      const state = v.parse(Saved, value);
-      if (state.goats === goatsDue || state.bodies.length !== bodies.length
-        || state.bodies.some((b, i) => { const body = bodies.at(i); return body === undefined || b.id !== body.id || b.live !== (body.actor !== null); })) throw new Error('Incompatible Sky flock continuation');
-      const policies = state.bodies.map(b => b.policy === null ? null : v.parse(v.string(), JSON.parse(b.policy)));
-      rng.restore(state.rng);
-      policies.forEach((policy, i) => { if (policy !== null) bodies[i]?.brain?.restore(policy); });
-    },
-  });
-  // a flyer's floor ray starts a metre over the level spawn's height (manifest spawn y = DECK + 1)
-  const view = (): readonly { id: string; actor: AnimalSim | null; brain: FlockBrain | null }[] => bodies.map(b => ({ id: b.id, actor: b.actor, brain: b.brain }));
-  // a flyer's floor ray starts a metre over the level spawn's height (manifest spawn y = DECK + 1)
-  if (saved === undefined) { flyers.forEach(body => { arrive(body, DECK + 2); }); return { bodies: view, land: () => undefined }; }
-  const keeper = v.parse(Saved, saved.adapters.find(adapter => adapter.id === FLOCK_STEP)?.state);
-  goatsDue = !keeper.goats;
-  const reinstall = (group: readonly Body[]): void => keeper.bodies.forEach((b, i) => {
-    const body = bodies[i]; if (body === undefined || !b.live || !group.includes(body)) return;
-    const contract = saved.adapters.find(adapter => adapter.id === `runtime.actor.${body.id}`)?.state;
-    if (typeof contract !== 'string') throw new Error(`Missing saved Sky body ${body.id}`);
-    const placed = v.parse(Placed, JSON.parse(contract));
-    if (placed.id !== body.id) throw new Error(`Incompatible saved Sky body ${body.id}`);
-    materialize(body, { id: placed.id, spec: body.recipe.spec, seed: placed.seed, scale: placed.scale, at: placed.at, yaw: placed.yaw });
-  });
-  reinstall(flyers);
-  // the goats landed on a later tick than every install-time registration: reinstall them last (`land`), so the
-  // continuation keeps the order it had when it was saved
-  return { bodies: view, land: () => { reinstall(goats); } };
+  const groundHeight = (x: number, z: number, fromY: number): number => floor(x, z, fromY).y;
+  const held: { roc: { actor: AnimalSim; body: StormRocBrain<AnimalSim> } | null } = { roc: null };
+  const keeper = installHomeKeeper(host, { step: FLOCK_STEP, seed: ports.seed, specs: ports.specs, scales: ports.ranges, attackers: Infinity,
+    homes: SKY_FLOCK_ROWS.map(row => ({ id: row.id, kind: row.kind, at: row.at, yaw: row.yaw, respawn: 0, late: ports.specs.get(row.kind)?.flight === undefined })),
+    think: { bands: { rate: () => 'legacy' } }, killY: SKY_KILL_Y,
+    place: id => { const row = rows.get(id); if (row === undefined) throw new Error(`Undeclared Sky body ${id}`);
+      return floor(row.at[0], row.at[1], row.kind === 'skyGoat' ? row.home.y + 2 : DECK + 2); },
+    adopt: actor => { actor.groundHeight = groundHeight; },
+    policy: (kind, actor, _claim, rng) => {
+      const home = rows.get(actor.entityId)?.home, label = ports.specs.get(kind)?.label;
+      if (home === undefined || label === undefined) throw new Error(`Undeclared Sky body ${actor.entityId}`);
+      const brain = flockBrain(kind, label, actor, home, { host, rng });
+      if (brain.roc !== null && actor.entityId === ROC_ID) held.roc = { actor, body: brain.roc };
+      return { ...brain, decide: dt => {
+        if (!actor.stunned) { brain.decide(dt); return; }
+        actor.setMotion(actor.yaw, 0, 1); actor.lookTarget.copy(host.player.position); actor.lookWeight = 1;
+      } };
+    } }, saved);
+  const roc = held.roc; if (roc === null) throw new Error('Sky Reach declares the Storm Roc\'s body');
+  return { roc, land: keeper.settle };
 }
