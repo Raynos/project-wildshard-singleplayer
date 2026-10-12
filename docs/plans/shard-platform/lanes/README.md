@@ -1,10 +1,10 @@
-# SHARD-PLATFORM lanes (G335 + G337: 5 Codex herdr panes + 5 Opus as the coordinator's own subagents; coordinator wildshard-new)
+# SHARD-PLATFORM lanes (G335 + G337: 4 building Codex panes + 1 push/deploy Codex pane + 5 Opus as the coordinator's own subagents; coordinator wildshard-new)
 
 Read `common.md` first. Order (Jake via the plan desk, 2026-10-12): graphical rows first on the Opus lanes (G321, G322, the hero, DS1.4, parity); Codex lanes saturated on SF79–SF85 engineering with green (G330) as one of them. One row per lane; the coordinator rewrites a row when a lane finishes it. Herdr tab `wT`.
 
 | Lane | Kind | Pane | Row |
 |---|---|---|---|
-| sp-x7 | Codex | wT:pE | **Green (G330) + tree hygiene (G331).** Push queue, GitHub CI and the hourly deploy green; every red goes to wildshard-new as red / culprit / fix for `red-green.md`. After the 10-12 reboot, first check the auto-pusher, the launchd deploy backstop and any push left half-done. Every ~30 min: `git status`; orphaned work gets committed by its owner (ask them over herdr) or, if ownerless and clearly finished, in small commits; junk goes to `.gitignore`. Between reds: SF74 tails, SF60. |
+| sp-x7 | Codex | wT:pE | **Push + deploy only (G330; Jake 2026-10-12, `248f50470`: "the 5th codex lane only responsible for pushing, making sure the website deploy succeeds etc").** Owns the push queue, GitHub CI, the hourly game release and the Vercel deploys (game, wildshard-admin, wildshard.io); fixes or reverts whatever turns them red, and reports each red to wildshard-new for `red-green.md`. Takes no build rows (no tree hygiene, no SF60, no feature work). |
 | sp-x1 | Codex | wT:p3 | **Desktop frame floor:** Pine short travel p95 33.4 → ≤ 17.5 ms (main-thread / CPU side; rendering causes go to sp-o2). Then SF67 responsive loads (remaining > 100 ms work, cold-arrival waits, home exit / return, per-phase remeasure). |
 | sp-x4 | Codex | wT:p4 | **SF22 Safari cadence:** p95 49 from main-thread waits (165 ms gaps with 5 ms frame work); Nine cell entry 191 ms on the Simulator; then the assembled-route requalification for the M2 gate. |
 | sp-x5 | Codex | wT:p5 | **SF57:** Pine re-admission refused ("[cabins] not built"), residency, road growth, unlabelled GL; the current-catalogue memory qualification. Then SF82 BR-1, BR-2, BR-4, BR-5. |
