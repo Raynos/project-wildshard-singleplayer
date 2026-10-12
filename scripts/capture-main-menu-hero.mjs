@@ -1,6 +1,8 @@
 /** G332: real canvas-only hero candidates; never changes the shipped menu or scene look.
- * node scripts/capture-main-menu-hero.mjs [--round=1|aerial|landscape] --out=<scratch directory>
+ * node scripts/capture-main-menu-hero.mjs [--round=1|aerial|landscape|square] --out=<scratch directory>
  * --round=landscape (G336 round 3): the five landscapeHeroPlan poses at 2560×1440 and 1920×1080, desktop tier, DSF 1.
+ * --round=square (G344): squareHeroPlan at a phone-1x lens, the square poses at 2048×2048 and 1440×1440 and the
+ *   landscape ones at 2560×1440 and 1920×1080, desktop tier, DSF 1; each pose's fovDegrees is the capture camera's only.
  * Owns one clean --head preview and one muted browser-lane capture, then stops both.
  * Entry and calibrated pose follow progress/shard-platform/look28/capture.mjs.
  */
@@ -18,7 +20,7 @@ const flag = (name, fallback) => args.find(value => value.startsWith(`--${name}=
 const out = resolvePath(flag('out', join(tmpdir(), `main-menu-hero-${process.pid}`)));
 const script = import.meta.filename;
 const round = flag('round', '1');
-if (!['1', 'aerial', 'landscape'].includes(round)) throw new Error('Capture round must be 1, aerial or landscape');
+if (!['1', 'aerial', 'landscape', 'square'].includes(round)) throw new Error('Capture round must be 1, aerial, landscape or square');
 
 function requireNoQuiet() {
   const quiet = join(root, '.git/quiet');
@@ -149,20 +151,26 @@ async function captureAerial(base) {
   requireNoQuiet();
   const plan = JSON.parse(await command(process.execPath,
     ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round], root));
-  const landscape = round === 'landscape';
+  const square = round === 'square', landscape = round === 'landscape' || square;
   // Aerial: one phone context per Debug time pick. Landscape: one desktop context per resolution, desktop tier, DSF 1.
-  const sessions = landscape
-    ? [[2560, 1440], [1920, 1080]].map(([width, height]) => ({ key: `${width}x${height}`, poses: plan.poses,
-      context: { ...devices['Desktop Chrome'], viewport: { width, height }, deviceScaleFactor: 1 },
-      settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' } }))
-    : ['golden', 'midday', 'sunset'].map(timePick => ({ key: timePick, poses: plan.poses.filter(p => p.timePick === timePick),
-      context: { ...devices['iPhone 16 Pro'] },
-      settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, time: timePick }, gfx: { dpr: '2', aa: 'auto' } }));
-  const expected = landscape ? plan.poses.length * sessions.length : 15;
+  // Square (G344): the same desktop contexts, square resolutions for the square poses and 16:9 for the landscape ones.
+  const desktop = (width, height, poses) => ({ key: `${width}x${height}`, poses,
+    context: { ...devices['Desktop Chrome'], viewport: { width, height }, deviceScaleFactor: 1 },
+    settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' } });
+  const sessions = square
+    ? [[2048, 2048, 'square'], [1440, 1440, 'square'], [2560, 1440, 'landscape'], [1920, 1080, 'landscape']]
+      .map(([width, height, aspect]) => desktop(width, height, plan.poses.filter(p => p.aspect === aspect)))
+    : landscape
+      ? [[2560, 1440], [1920, 1080]].map(([width, height]) => desktop(width, height, plan.poses))
+      : ['golden', 'midday', 'sunset'].map(timePick => ({ key: timePick, poses: plan.poses.filter(p => p.timePick === timePick),
+        context: { ...devices['iPhone 16 Pro'] },
+        settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, time: timePick }, gfx: { dpr: '2', aa: 'auto' } }));
+  const expected = landscape ? sessions.reduce((sum, session) => sum + session.poses.length, 0) : 15;
   const report = { schema: 'engine-hero-capture/1', version: await (await fetch(new URL('version.json', base))).json(),
-    round, device: landscape ? 'Desktop Chrome (2560×1440, 1920×1080, DSF 1)' : 'iPhone 16 Pro', developer: true,
+    round, device: landscape ? `Desktop Chrome (${sessions.map(session => session.key.replace('x', '×')).join(', ')}, DSF 1)` : 'iPhone 16 Pro', developer: true,
     renderScale: landscape ? 1 : 2, tier: landscape ? 'desktop' : 'phone', canvasOnly: true, muted: true,
-    clock: 'live', camera: 'Existing freeCamera flag; fixed detached camera in late phase; player remains on the road',
+    clock: 'live', camera: 'Existing freeCamera flag; fixed detached camera in late phase; player remains on the road'
+      + (square ? '; per-pose capture-time vertical FOV (fovDegrees) on that camera only, CAMERA_FOV unchanged' : ''),
     noViewmodel: true, junction: plan.junction, surrounding: plan.surrounding,
     roadLighting: 'Shipping ROAD_SKY is fixed low dawn; requested Debug time picks do not rewrite that look', shots: [] };
   const save = () => writeFileSync(join(out, 'capture.json'), `${JSON.stringify(report, null, 2)}\n`);
@@ -212,6 +220,10 @@ async function captureAerial(base) {
             const dx = live.worldFeet.x - w.player.position.x, dz = live.worldFeet.z - w.player.position.z;
             w.game.camera.position.set(p.eye.x - dx, p.eye.y, p.eye.z - dz);
             w.game.camera.lookAt(p.target.x - dx, p.target.y, p.target.z - dz);
+            // G344: a pose's own lens, held each late phase over whatever lens the road or a cell wrote this frame.
+            if (typeof p.fovDegrees === 'number' && Math.abs(w.game.camera.fov - p.fovDegrees) > 1e-4) {
+              w.game.camera.fov = p.fovDegrees; w.game.camera.updateProjectionMatrix(); w.sky.csm.updateFrustums();
+            }
             w.game.camera.updateMatrixWorld(true);
             w.game.viewmodel.visible = false;
           }, 'harness.hero-aerial');
@@ -233,11 +245,12 @@ async function captureAerial(base) {
               const p = w.game.camera.position, direction = w.game.camera.getWorldDirection(p.clone());
               return { cameraWorld: [p.x + dx, p.y, p.z + dz], direction: direction.toArray(), playerWorld: live.worldFeet,
                 freeCamera: w.freeCamera, viewmodelVisible: w.game.viewmodel.visible, cells: grid.cells,
-                renderScale: w.game.renderer.getPixelRatio(), frameCount: w.game.frameCount,
+                renderScale: w.game.renderer.getPixelRatio(), frameCount: w.game.frameCount, fov: w.game.camera.fov, aspect: w.game.camera.aspect,
                 dayClock: w.sky.dayNight?.snapshot() ?? null, clock: w.game.app.clock.mode };
             });
             if (!row.frame.freeCamera || row.frame.viewmodelVisible) throw new Error('Detached-camera / no-viewmodel witness failed');
             if (Math.hypot(...row.frame.cameraWorld.map((v, i) => v - [shot.eye.x, shot.eye.y, shot.eye.z][i])) > 0.01) throw new Error('Actual aerial camera differs from requested pose');
+            if (typeof shot.fovDegrees === 'number' && Math.abs(row.frame.fov - shot.fovDegrees) > 0.01) throw new Error(`Camera FOV ${row.frame.fov} is not the requested ${shot.fovDegrees}`);
             row.file = landscape ? `${shot.id}-${session.key}.png` : `${shot.id}.png`;
             await page.locator('canvas[data-hero-canvas]').screenshot({ path: join(out, row.file) });
             row.consoleErrors = [...consoleErrors]; row.complete = true;
@@ -254,7 +267,7 @@ async function captureAerial(base) {
 mkdirSync(out, { recursive: true });
 if (args.includes('--worker')) {
   if (process.env.HERO_CAPTURE_LANE !== '1') throw new Error('Run through this command’s browser-lane launcher');
-  await (round === 'aerial' || round === 'landscape' ? captureAerial(flag('base', '')) : capture(flag('base', '')));
+  await (round === 'aerial' || round === 'landscape' || round === 'square' ? captureAerial(flag('base', '')) : capture(flag('base', '')));
 } else {
   requireNoQuiet();
   const scratch = join(out, 'build'); mkdirSync(scratch, { recursive: true });

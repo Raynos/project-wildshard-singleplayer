@@ -72,6 +72,30 @@ export interface LandscapeHeroPose {
   readonly headingDegrees: number;
   /** Where each surrounding cell's centre falls in frame: left / centre / right of the roundabout, nearer or farther. */
   readonly placement: readonly { readonly instance: string; readonly side: 'left' | 'centre' | 'right'; readonly depth: 'near' | 'far' }[];
+  /** G344: a capture-time vertical field of view for this shot only (the game's CAMERA_FOV never changes); absent = the game's own */
+  readonly fovDegrees?: number;
+  /** G344: which frame the shot is for (the square portrait band, or the desktop landscape); absent = landscape (round 3) */
+  readonly aspect?: 'square' | 'landscape';
+}
+
+/** One shot aimed exactly at `target` from `headingDegrees` round it, `distance` metres away on the ground, `height` up. */
+function aimedPose(target: LandscapeHeroPose['target'], cells: readonly { readonly instance: string; readonly origin: { readonly x: number; readonly z: number } }[],
+  shot: { id: string; name: string; headingDegrees: number; height: number; distance: number; fovDegrees?: number; aspect?: 'square' | 'landscape' }): LandscapeHeroPose {
+  const angle = shot.headingDegrees * Math.PI / 180;
+  const eye = { x: target.x + shot.distance * Math.sin(angle), y: shot.height, z: target.z + shot.distance * Math.cos(angle) };
+  // three.js right axis for a camera looking along f with +y up is (-f.z, 0, f.x).
+  const fx = target.x - eye.x, fz = target.z - eye.z;
+  const placement = cells.map(cell => {
+    const dx = cell.origin.x - target.x, dz = cell.origin.z - target.z;
+    const across = dx * -fz + dz * fx, along = dx * fx + dz * fz;
+    // Within 20° of the line of sight reads as centre.
+    const side = Math.abs(Math.atan2(across, along)) < Math.PI / 9 || Math.abs(Math.atan2(across, -along)) < Math.PI / 9
+      ? 'centre' as const : across < 0 ? 'left' as const : 'right' as const;
+    return { instance: cell.instance, side, depth: along > 0 ? 'far' as const : 'near' as const, across };
+  }).sort((a, b) => a.across - b.across).map(({ instance, side, depth }) => ({ instance, side, depth }));
+  return { id: shot.id, name: shot.name, mode: 'grid', eye, target, headingDegrees: shot.headingDegrees,
+    downDegrees: Math.atan2(eye.y - target.y, Math.hypot(fx, fz)) * 180 / Math.PI, placement,
+    ...(shot.fovDegrees === undefined ? {} : { fovDegrees: shot.fovDegrees }), ...(shot.aspect === undefined ? {} : { aspect: shot.aspect }) };
 }
 
 /** Round 3 (Jake on M-b: "we need to capture this on desktop landscape"): M-b's spot, a tilt down, and headings around it. */
@@ -85,20 +109,7 @@ export function landscapeHeroPlan(): { junction: string; surrounding: readonly s
   const radius = Math.hypot(mb.eye.x - target.x, mb.eye.z - target.z);
   const poses: LandscapeHeroPose[] = [];
   const add = (id: string, name: string, headingDegrees: number, height: number, distance = radius): void => {
-    const angle = headingDegrees * Math.PI / 180;
-    const eye = { x: target.x + distance * Math.sin(angle), y: height, z: target.z + distance * Math.cos(angle) };
-    // three.js right axis for a camera looking along f with +y up is (-f.z, 0, f.x).
-    const fx = target.x - eye.x, fz = target.z - eye.z;
-    const placement = cells.map(cell => {
-      const dx = cell.origin.x - target.x, dz = cell.origin.z - target.z;
-      const across = dx * -fz + dz * fx, along = dx * fx + dz * fz;
-      // Within 20° of the line of sight reads as centre.
-      const side = Math.abs(Math.atan2(across, along)) < Math.PI / 9 || Math.abs(Math.atan2(across, -along)) < Math.PI / 9
-        ? 'centre' as const : across < 0 ? 'left' as const : 'right' as const;
-      return { instance: cell.instance, side, depth: along > 0 ? 'far' as const : 'near' as const, across };
-    }).sort((a, b) => a.across - b.across).map(({ instance, side, depth }) => ({ instance, side, depth }));
-    poses.push({ id, name, mode: 'grid', eye, target, headingDegrees,
-      downDegrees: Math.atan2(eye.y - target.y, Math.hypot(fx, fz)) * 180 / Math.PI, placement });
+    poses.push(aimedPose(target, cells, { id, name, headingDegrees, height, distance }));
   };
   add('L-a', 'M-b spot, landscape', 45, mb.eye.y);
   add('L-b', 'M-b spot, tilted down', 45, 135);
@@ -106,4 +117,36 @@ export function landscapeHeroPlan(): { junction: string; surrounding: readonly s
   add('L-d', 'Swung toward Nalati', 65, 120);
   add('L-e', 'Down the road, 2 × 2', 0, 120, 200);
   return { junction: round2.junction, surrounding: round2.surrounding, poses };
+}
+
+/** G344's phone-1x lens: about 70° across a 16:9 frame (43° vertical) and 62° each way for the square, a ~26 mm lens. */
+export const HERO_1X_FOV = { landscape: 43, square: 62 } as const;
+
+/**
+ * G344 (Jake on L-b: "it looks like 0.5x zoom … too fisheye"): the interim L-b re-shot at a phone-1x field of view, as
+ * a square for the portrait centre band (G341 B) and a landscape for desktop (A). Same roundabout, same 45° heading over
+ * the template; the narrower lens steps the camera back along L-b's line (and lower in angle, so a strip of sky stays),
+ * so Pine (left), Nalati (right), Driftwood (far) and template-2 (near) still fit. `slant` is the eye-to-roundabout
+ * distance; each aspect has a pick and two neighbours (farther, steeper).
+ */
+export function squareHeroPlan(): { junction: string; surrounding: readonly string[]; poses: LandscapeHeroPose[] } {
+  const round3 = landscapeHeroPlan();
+  const lb = round3.poses.find(pose => pose.id === 'L-b');
+  if (lb === undefined) throw new Error('G344 starts from round 3 L-b');
+  const grid = new GridAssembly({ developer: true, devserver: false });
+  const cells = grid.cells.filter(cell => round3.surrounding.includes(cell.instance));
+  const poses: LandscapeHeroPose[] = [];
+  for (const [id, name, aspect, slant, down] of [
+    ['SQ-a', 'Square, L-b line stepped back', 'square', 600, 28],
+    ['SQ-b', 'Square, farther back', 'square', 700, 28],
+    ['SQ-c', 'Square, higher and steeper', 'square', 600, 34],
+    ['LS-a', 'Landscape, L-b line stepped back', 'landscape', 520, 21],
+    ['LS-b', 'Landscape, farther back', 'landscape', 600, 21],
+    ['LS-c', 'Landscape, higher and steeper', 'landscape', 520, 26],
+  ] as const) {
+    const radians = down * Math.PI / 180;
+    poses.push(aimedPose(lb.target, cells, { id, name, headingDegrees: lb.headingDegrees, aspect, fovDegrees: HERO_1X_FOV[aspect],
+      height: Math.round(slant * Math.sin(radians)), distance: Math.round(slant * Math.cos(radians)) }));
+  }
+  return { junction: round3.junction, surrounding: round3.surrounding, poses };
 }
