@@ -1,13 +1,10 @@
-import { DataTexture, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, UnsignedByteType } from 'three';
+import { SWARD_ATLAS } from '../data/swardAtlas';
 
 /**
- * The sward's tuft atlas (E407 row 4, a green, varied meadow; the mockups' sward is three grasses at once: a fine low
- * lawn, broad arching blades and tall wild stalks with seed heads). `variants` tufts side by side, each `w × h` texels,
- * two per species in species order (lawn, broad, wild), drawn in code so no file ships. The channels are data, not colour:
- * R the strand's own shade, G how far along its strand the texel is (0 root, 1 tip), B where across its blade the texel
- * sits (0 one edge, 255 the other: world/meadow.ts lights the sun-side edge and the midrib from it), A the coverage.
+ * Build-time only (SHARD-PLATFORM M3): the sward's tuft atlas texels (data/swardAtlas.ts), baked by
+ * `bake-sky-world.mjs` into `baked/sward-atlas.bin` (deflated RGBA); the client wraps the bytes in a DataTexture
+ * (world/baked.ts `skySwardAtlas`). The same strands, seeded, drawn here once instead of on every load.
  */
-export const SWARD_ATLAS = { variants: 6, perSpecies: 2, w: 192, h: 512 } as const;
 
 /** One grass: how many strands, how long (share of the tuft's height), how wide at the root (texels), how they arch. */
 interface Species { strands: number; len: readonly [number, number]; base: readonly [number, number]; spread: number; arch: number; stalks: number }
@@ -20,7 +17,7 @@ const SPECIES: readonly Species[] = [
   { strands: 45, len: [0.4, 0.85], base: [2.0, 3.4], spread: 0.32, arch: 0.3, stalks: 2 },
 ];
 
-export function swardAtlas(seed = 6417): DataTexture {
+export function bakeSkySwardAtlas(seed = 6417): Uint8Array {
   const { variants, perSpecies, w, h } = SWARD_ATLAS, W = w * variants, data = new Uint8Array(W * h * 4);
   let a = seed >>> 0;
   const rnd = (): number => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -75,8 +72,5 @@ export function swardAtlas(seed = 6417): DataTexture {
       }
     }
   }
-  const tex = new DataTexture(data, W, h, RGBAFormat, UnsignedByteType);
-  tex.minFilter = LinearMipmapLinearFilter; tex.magFilter = LinearFilter; tex.generateMipmaps = true; tex.needsUpdate = true;
-  tex.name = 'far.sward-atlas';
-  return tex;
+  return data;
 }

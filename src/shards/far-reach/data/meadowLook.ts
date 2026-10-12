@@ -37,7 +37,7 @@ export const MEADOW = {
 } as const;
 
 /**
- * The sward (E407 row 4, a green, varied meadow): three grasses (world/swardAtlas.ts), each its own height (metres, at the
+ * The sward (E407 row 4, a green, varied meadow): three grasses (data/swardAtlas.ts), each its own height (metres, at the
  * tuft's full size) and body green, on one root-to-tip ramp (sRGB): dark roots, green bodies, warm tips. `light`: the
  * shade floor deep in the sward, the gain up the blade, the sun through the blades when you look toward it (one term for
  * every distance: the round-6-to-10 glow coefficients and their near/far split are gone) and the sun-side edge of a

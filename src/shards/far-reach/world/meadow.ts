@@ -10,7 +10,8 @@ import { KEEPER_STAND } from '../quest/keeper';
 import { KEEPER_AT } from '../data/quests';
 import { CROWN_STONES } from '../data/crownLayout';
 import { FOG, SKY } from '../look/sun';
-import { SWARD_ATLAS, swardAtlas } from './swardAtlas';
+import { SWARD_ATLAS } from '../data/swardAtlas';
+import { skySwardAtlas } from './baked';
 
 /**
  * The near meadow (loop 4): a field of tuft cards and flowers that travels with the camera, drawn by data/meadowLook.ts's
@@ -63,7 +64,7 @@ export interface Meadow { readonly mesh: Mesh<InstancedBufferGeometry, ShaderMat
  * hid in 0.6 m grass; the mockups' rocks stand out of a lower sward round them).
  */
 export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] = ISLES, rocks: readonly (readonly [number, number, number])[] = []): Meadow {
-  const atlas = swardAtlas();
+  const atlas = skySwardAtlas();
   const g = tileFieldGeometry({ across: MEADOW.across, layers: MEADOW.layers, seed: MEADOW.seed, card: MEADOW_CARD }, blades);
   const isleU = isles.map((isle) => new Vector4(isle.x, isle.z, apothem(isle), isle.y));
   const holes = [...meadowHoles(), ...rocks.map(([x, z, r]) => new Vector4(x, z, r, 1))], paths = meadowPaths(isles);

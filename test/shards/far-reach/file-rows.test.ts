@@ -12,7 +12,7 @@ it('declares the empty boot audio inventory as serializable data', () => {
 it('retains every ordered desktop/phone image/KTX2 boot URL and late read', () => {
   const sources = (['desktop', 'phone'] as const).flatMap(tier => (['img', 'ktx2'] as const).map(texture => bootSources(tier, texture)));
   const digest = createHash('sha256').update(JSON.stringify({ sources, boot: bootFiles(), late: lateReads() })).digest('hex');
-  expect(digest).toBe('bca6d3c9d49f6a1820d282ab9746c0f9a3b3f4ba9ae0ecb5f3fa109fc4712808');
+  expect(digest).toBe('47ff960a7d8957bf86dba9a1f6e42bb35b51d804c9ed7c192d0cba7f96d3b417');
 });
 it('publishes only finite JSON data and resolves every model, rig and generated piece name', () => {
   for (const value of Object.values(files)) {

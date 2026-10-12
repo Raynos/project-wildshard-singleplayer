@@ -58,15 +58,17 @@ export const HD_URLS: Readonly<Record<SkyHdName, string>> = {
   'mill-tower': '/assets/far-reach/models/mill/mill-tower.glb', 'mill-foot': '/assets/far-reach/models/mill/mill-foot.glb',
 };
 /** The world pieces baked offline (SF72: `generators/<piece>.ts` → `scripts/bake-sky-world.mjs`), drawn by `world/baked.ts`. */
-export const BAKED_PIECES = ['winch-house', 'roost', 'docks', 'crown', 'mill', 'book-stand', 'knolls', 'geometries'] as const;
+export const BAKED_PIECES = ['winch-house', 'roost', 'docks', 'crown', 'mill', 'book-stand', 'knolls', 'geometries', 'islet-rig'] as const;
 export type BakedPiece = (typeof BAKED_PIECES)[number];
 /** Generated world piece URLs keyed by authored piece name. */
 export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { 'winch-house': '/assets/far-reach/baked/winch-house.glb', roost: '/assets/far-reach/baked/roost.glb', docks: '/assets/far-reach/baked/docks.glb',
   crown: '/assets/far-reach/baked/crown.glb', mill: '/assets/far-reach/baked/mill.glb',
   'book-stand': '/assets/far-reach/baked/book-stand.glb', knolls: '/assets/far-reach/baked/knolls.glb',
-  geometries: '/assets/far-reach/baked/geometries.glb' };
+  geometries: '/assets/far-reach/baked/geometries.glb', 'islet-rig': '/assets/far-reach/baked/islet-rig.glb' };
 /** The island dressing's baked instance sets (world/dressing.ts; SHARD-PLATFORM M3). */
 export const DRESSING_URL = '/assets/far-reach/baked/dressing.bin';
+/** The sward's tuft atlas texels, deflated RGBA (world/meadow.ts; SHARD-PLATFORM M3, generators/swardAtlas.ts). */
+export const SWARD_ATLAS_URL = '/assets/far-reach/baked/sward-atlas.bin';
 /** The rope bridges' baked geometry pack (world/shapes.ts `ropeBridge`; SHARD-PLATFORM M3, generators/bridges.ts). */
 export const BRIDGES_URL = '/assets/far-reach/baked/bridges.bin';
 /** The war fan's baked shapes (weapons/fanModel.ts `fanParts`; SHARD-PLATFORM M3, generators/fan.ts). */

@@ -1,6 +1,7 @@
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { bakedColliders, bakedKindsGroup, loadBakedKinds } from '@wildshard/game/shardfile/bakedKinds';
-import { BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Group } from 'three';
+import { BufferGeometry, DataTexture, InstancedBufferAttribute, InstancedMesh, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, UnsignedByteType, type Group } from 'three';
+import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import winchHouse from '../data/winchHouse.json' with { type: 'json' };
 import roost from '../data/roost.json' with { type: 'json' };
 import docks from '../data/docks.json' with { type: 'json' };
@@ -9,7 +10,9 @@ import mill from '../data/mill.json' with { type: 'json' };
 import bookStand from '../data/bookStand.json' with { type: 'json' };
 import knolls from '../data/knolls.json' with { type: 'json' };
 import geometries from '../data/geometries.json' with { type: 'json' };
-import { BAKED_PIECES, BAKED_URLS, type BakedPiece } from '../data/files';
+import isletRig from '../data/isletRig.json' with { type: 'json' };
+import { BAKED_PIECES, BAKED_URLS, SWARD_ATLAS_URL, type BakedPiece } from '../data/files';
+import { SWARD_ATLAS } from '../data/swardAtlas';
 import { shackMaterial, type ShackKind } from './shack';
 import { paintIsleMaterial } from './isle';
 
@@ -20,7 +23,7 @@ import { paintIsleMaterial } from './isle';
  * procedural shader (`world/shack.ts`), anything else in its row's standard material (a kind with a `paint` in the islands'
  * painted rock, `paintIsleMaterial`). The colliders are the rows'.
  */
-const PIECES = { 'winch-house': winchHouse, roost, docks, crown, mill, 'book-stand': bookStand, knolls, geometries } as const satisfies Readonly<Record<BakedPiece, unknown>>;
+const PIECES = { 'winch-house': winchHouse, roost, docks, crown, mill, 'book-stand': bookStand, knolls, geometries, 'islet-rig': isletRig } as const satisfies Readonly<Record<BakedPiece, unknown>>;
 
 const SHACK: readonly ShackKind[] = ['plank', 'shingle', 'stone', 'beam'];
 const shackKind = (kind: object): ShackKind | undefined => {
@@ -29,10 +32,25 @@ const shackKind = (kind: object): ShackKind | undefined => {
 };
 
 let loaded: ReadonlyMap<BakedPiece, ReadonlyMap<string, InstancedMesh>> = new Map();
-/** Load every baked piece (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */
+let sward: Uint8Array | null = null;
+/** Load every baked piece and the sward atlas (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */
 export async function loadSkyBaked(): Promise<void> {
-  const meshes = await Promise.all(BAKED_PIECES.map((piece) => loadBakedKinds(BAKED_URLS[piece], PIECES[piece].kinds, `far-reach ${piece}`)));
+  const [meshes, atlas] = await Promise.all([Promise.all(BAKED_PIECES.map((piece) => loadBakedKinds(BAKED_URLS[piece], PIECES[piece].kinds, `far-reach ${piece}`))),
+    fetchDeflated(SWARD_ATLAS_URL).catch((e: unknown) => { console.warn('[far-reach] the sward atlas did not load; the meadow stands bare:', e); return null; })]);
   loaded = new Map(BAKED_PIECES.map((piece, i) => [piece, meshes[i] ?? new Map<string, InstancedMesh>()]));
+  sward = atlas;
+}
+
+/**
+ * The sward's tuft atlas (data/swardAtlas.ts) from its bake (generators/swardAtlas.ts → baked/sward-atlas.bin): a new
+ * texture over the loaded texels, mipmapped; all zero (no blades) when the bake did not load.
+ */
+export function skySwardAtlas(): DataTexture {
+  const { variants, w, h } = SWARD_ATLAS, texels = sward?.length === w * variants * h * 4 ? sward : new Uint8Array(w * variants * h * 4);
+  const tex = new DataTexture(texels, w * variants, h, RGBAFormat, UnsignedByteType);
+  tex.minFilter = LinearMipmapLinearFilter; tex.magFilter = LinearFilter; tex.generateMipmaps = true; tex.needsUpdate = true;
+  tex.name = 'far.sward-atlas';
+  return tex;
 }
 
 /**

@@ -1,6 +1,6 @@
 import type { MoverBox, MoverPose } from '@wildshard/engine/physics/mover';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
+import type { ColliderDesc, Piece } from '@wildshard/engine/world/registry';
 import { BoxGeometry, Group, InstancedMesh, Matrix4, Mesh, Quaternion, TorusGeometry, Vector3 } from 'three';
 import type { Isle } from '../data/layout';
 import { apothem } from '../layout';
@@ -9,6 +9,9 @@ import { islandMesh } from './isle';
 import { RISING_ISLETS } from './islets';
 import { ISLET, type P3, type RisingIslet } from '../data/isletDesign';
 import { PALETTE, flat } from './shapes';
+import { skyBakedPiece } from './baked';
+import { bakedColliders } from '@wildshard/game/shardfile/bakedKinds';
+import ISLET_RIG from '../data/isletRig.json' with { type: 'json' };
 
 /**
  * SF49-g (G183): the shared Rising Islet builder. Every entry in world/islets.ts gets the same parts:
@@ -44,63 +47,17 @@ export function lipCollider(entry: RisingIslet): ColliderDesc {
   return { kind: 'box', x: l.x, y: l.y, z: l.z, hx: l.hx, hy: l.hy, hz: l.hz, surface: l.surface };
 }
 
-/** Where the chains meet the islet and the gate isle (the horizontal climb direction `h`, its perpendicular `p`). */
-interface Rig { readonly h: Vector3; readonly p: Vector3; readonly tops: readonly Vector3[]; readonly local: readonly Vector3[] }
-const POST = { h: 2.8, side: 3.2, inset: 0.7 } as const;
-function rig(entry: RisingIslet): Rig {
-  const h = new Vector3(entry.dock.x - entry.rest.x, 0, entry.dock.z - entry.rest.z).normalize(), p = new Vector3(-h.z, 0, h.x);
-  const rim = new Vector3(entry.dock.x, entry.gate.y, entry.dock.z).addScaledVector(h, apothem(ISLET_ISLE) + ISLET.gap + POST.inset);
-  const tops = [-1, 1].map((k) => rim.clone().addScaledVector(p, k * POST.side).setY(entry.gate.y + POST.h - 0.3));
-  // the islet's four rings: a near and a far pair, one each side; each side's pair meets that side's post
-  const local = [-1, 1].flatMap((k) => [-1, 1].map((f) => new Vector3().addScaledVector(p, k * (POST.side + 0.2)).addScaledVector(h, f * 2.4).setY(0.15)));
-  return { h, p, tops, local };
-}
-
-/** The static parts of every entry: lip, posts and lanterns (the gate isles and bridges are world/build.ts's). */
+/** The static parts of every entry: the lips, the posts with their lanterns (baked, `generators/isletRig.ts`) and the rails. */
 export function isletPieces(): Piece[] {
-  const stone = flat(PALETTE.rock), posts = new InstancedMesh(new BoxGeometry(0.36, POST.h, 0.36), flat(PALETTE.trunk), RISING_ISLETS.length * 2);
-  const lanterns = new InstancedMesh(new BoxGeometry(0.34, 0.42, 0.34), flat(0xffc56a, { emissive: 0xffa040, emissiveIntensity: 1.4 }), RISING_ISLETS.length * 2);
-  const m = new Matrix4(), q = new Quaternion(), one = new Vector3(1, 1, 1), postColliders: ColliderDesc[] = [];
-  RISING_ISLETS.forEach((entry, i) => {
-    rig(entry).tops.forEach((top, k) => {
-      posts.setMatrixAt(i * 2 + k, m.compose(new Vector3(top.x, entry.gate.y + POST.h / 2, top.z), q, one));
-      lanterns.setMatrixAt(i * 2 + k, m.compose(new Vector3(top.x, entry.gate.y + POST.h + 0.2, top.z), q, one));
-      postColliders.push(boxDesc({ x: top.x, z: top.z, hw: 0.18, hd: 0.18, rot: 0, yBottom: entry.gate.y, yTop: entry.gate.y + POST.h }, 'wood'));
-    });
-  });
-  posts.computeBoundingSphere(); lanterns.computeBoundingSphere();
-  const rigGroup = new Group(); rigGroup.name = 'far.islet.posts'; rigGroup.add(posts, lanterns);
+  const stone = flat(PALETTE.rock), rigs = skyBakedPiece('islet-rig'); rigs.root.name = 'far.islet.posts';
   const lips = RISING_ISLETS.map((entry): Piece => {
     const l = entry.landing, mesh = new Mesh(new BoxGeometry(2 * l.hx, 2 * l.hy, 2 * l.hz), stone);
     mesh.position.set(l.x, l.y, l.z); mesh.name = `far.islet.lip.${entry.edge}`;
     return { id: `far.islet.lip.${entry.edge}`, name: STRINGS.isletLip, category: 'buildings', file: FILE, object: mesh, colliders: [lipCollider(entry)], surface: 'stone' };
   });
-  return [...lips, rails(), { id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: rigGroup, colliders: postColliders, surface: 'wood' }];
-}
-
-/**
- * Playtest round 3 (#8): the resting islet's rail. Driving straight in from the road crossed the lip and the resting islet
- * and went off its far rim into the cloud sea ("FELL TOO FAR") before the RIDE prompt could matter. Around every rim edge but
- * the two that face the lip (the way on and off), a timber rail stands just outside the resting islet's rim, so a walker or a
- * hover rider stops on the deck, inside the RIDE prompt. The rail's colliders are static (`isletPieces`); it is drawn with
- * the moving parts (`isletViews`) only while its islet rests at the road, and the islet lifts out of it.
- */
-const RAIL = { thick: 0.22, height: 1 } as const;
-type RailBox = ReturnType<typeof boxDesc>;
-const OUTWARD_OF: Readonly<Record<RisingIslet['edge'], readonly [number, number]>> = { north: [0, 1], east: [1, 0], south: [0, -1], west: [-1, 0] };
-/** An entry's rail: per closed rim edge (the 12-gon's edge normal `a`, radians from +x toward +z), one box. */
-export function railBoxes(entry: RisingIslet): { a: number; box: RailBox }[] {
-  const [ox, oz] = OUTWARD_OF[entry.edge], lip = Math.atan2(oz, ox), inner = apothem(ISLET_ISLE) + ISLET.gap, mid = inner + RAIL.thick / 2;
-  const half = (inner + RAIL.thick) * Math.tan(Math.PI / 12), out: { a: number; box: RailBox }[] = [];
-  for (let k = 0; k < 12; k++) {
-    const a = Math.PI / 12 + (k * Math.PI) / 6;
-    if (Math.abs(Math.atan2(Math.sin(a - lip), Math.cos(a - lip))) < Math.PI / 6) continue; // faces the lip: open
-    out.push({ a, box: boxDesc({ x: entry.rest.x + Math.cos(a) * mid, z: entry.rest.z + Math.sin(a) * mid, hw: RAIL.thick / 2, hd: half, rot: a, yBottom: 0, yTop: RAIL.height }, 'wood') });
-  }
-  return out;
-}
-function rails(): Piece {
-  return { id: 'far.islet.rails', name: STRINGS.isletRail, category: 'props', file: FILE, colliders: RISING_ISLETS.flatMap((entry) => railBoxes(entry).map((r) => r.box)), surface: 'wood' };
+  // round 3 (#8): each resting islet's rail (generators/isletRig.ts), collided always, drawn by `isletViews` while it rests
+  const rails: Piece = { id: 'far.islet.rails', name: STRINGS.isletRail, category: 'props', file: FILE, colliders: bakedColliders(ISLET_RIG.rails.flat().map((r) => r.box)), surface: 'wood' };
+  return [...lips, rails, { id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: rigs.root, colliders: rigs.colliders, surface: 'wood' }];
 }
 
 const LINK = { r: 0.3, tube: 0.075, pitch: 0.46 } as const;
@@ -109,7 +66,7 @@ export interface IsletViews { readonly group: Group; readonly ids: readonly stri
 export function isletViews(): IsletViews {
   const group = new Group(); group.name = 'far.islets';
   let seed = 4183; const rnd = (): number => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-  const rigs = RISING_ISLETS.map(rig), islets = RISING_ISLETS.map((entry) => {
+  const rigs = ISLET_RIG.rigs.map((r) => ({ tops: r.tops.map(([x, y, z]) => new Vector3(x, y, z)), local: r.local.map(([x, y, z]) => new Vector3(x, y, z)) })), islets = RISING_ISLETS.map((entry) => {
     const g = new Group(), mesh = islandMesh(ISLET_ISLE, rnd); g.name = isletId(entry); g.add(mesh); g.position.set(entry.rest.x, entry.rest.y, entry.rest.z); group.add(g); return g;
   });
   // the most links a chain needs: its length with the islet at rest
@@ -150,7 +107,7 @@ export function isletViews(): IsletViews {
   RISING_ISLETS.forEach((_entry, i) => { barAt(i, false); });
   bars.instanceMatrix.needsUpdate = true;
   // round 3 (#8): each entry's rail, drawn while its islet rests at the road (its colliders are isletPieces')
-  const railRows = RISING_ISLETS.map((entry) => railBoxes(entry)), perEntry = Math.max(...railRows.map((r) => r.length));
+  const railRows = ISLET_RIG.rails, perEntry = Math.max(...railRows.map((r) => r.length));
   const railMesh = new InstancedMesh(new BoxGeometry(1, 1, 1), flat(PALETTE.trunk), RISING_ISLETS.length * perEntry), resting = RISING_ISLETS.map(() => true);
   railMesh.name = 'far.islet.rails'; railMesh.frustumCulled = false; group.add(railMesh);
   const railAt = (i: number, on: boolean): void => {

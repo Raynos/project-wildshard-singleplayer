@@ -16,6 +16,8 @@ import { bakeSkyMill, buildMillSet } from '../../../src/shards/far-reach/generat
 import { bakeSkyBookStand, buildBookStandSet } from '../../../src/shards/far-reach/generators/bookStand';
 import { bakeSkyKnolls, buildKnolls, knollHull } from '../../../src/shards/far-reach/generators/knoll';
 import { bakeSkyGeometries, buildGeometries } from '../../../src/shards/far-reach/generators/geometries';
+import { bakeSkySwardAtlas } from '../../../src/shards/far-reach/generators/swardAtlas';
+import { SWARD_ATLAS } from '../../../src/shards/far-reach/data/swardAtlas';
 import { bakeSkySeaTexture } from '../../../src/shards/far-reach/generators/seaTexture';
 import { seaTexture } from '../../../src/shards/far-reach/look/cloudSea';
 import seaRows from '../../../src/shards/far-reach/data/seaTexture.json' with { type: 'json' };
@@ -39,6 +41,8 @@ import millRows from '../../../src/shards/far-reach/data/mill.json' with { type:
 import bookRows from '../../../src/shards/far-reach/data/bookStand.json' with { type: 'json' };
 import knollRows from '../../../src/shards/far-reach/data/knolls.json' with { type: 'json' };
 import geometryRows from '../../../src/shards/far-reach/data/geometries.json' with { type: 'json' };
+import isletRigRows from '../../../src/shards/far-reach/data/isletRig.json' with { type: 'json' };
+import { bakeSkyIsletRig } from '../../../src/shards/far-reach/generators/isletRig';
 
 const folder = new URL('../../../public/assets/far-reach/baked/', import.meta.url);
 const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
@@ -53,7 +57,7 @@ async function nodesOf(piece: string, kinds: readonly { name: string }[]): Promi
 
 describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', () => {
   it('every committed piece is byte-exact against its generator (the stale gate: rerun src/shards/far-reach/generators/bake-sky-world.mjs)', () => {
-    const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows], ['docks', bakeSkyDocks(), dockRows], ['crown', bakeSkyCrown(), crownRows], ['mill', bakeSkyMill(), millRows], ['book-stand', bakeSkyBookStand(), bookRows], ['knolls', bakeSkyKnolls(), knollRows], ['geometries', bakeSkyGeometries(), geometryRows]] as const;
+    const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows], ['docks', bakeSkyDocks(), dockRows], ['crown', bakeSkyCrown(), crownRows], ['mill', bakeSkyMill(), millRows], ['book-stand', bakeSkyBookStand(), bookRows], ['knolls', bakeSkyKnolls(), knollRows], ['geometries', bakeSkyGeometries(), geometryRows], ['islet-rig', bakeSkyIsletRig(), isletRigRows]] as const;
     for (const [piece, { glb, ...rows }, committed] of pieces) {
       expect({ glb: sha(glb), ...rows }).toEqual(committed);
       expect(sha(new Uint8Array(readFileSync(new URL(`${piece}.glb`, folder))))).toBe(committed.glb);
@@ -188,6 +192,14 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
     const tex = seaTexture(), data: unknown = tex.image.data;
     expect(data instanceof Uint8Array ? Array.from(data) : null).toEqual(Array.from(atob(rows.rgba), (c) => c.codePointAt(0)));
     expect([tex.image.width, tex.image.height]).toEqual([rows.size, rows.size]);
+    tex.dispose();
+  });
+  it('the sward atlas is its generator\'s texels (the stale gate) and the client wraps a texture of its size', async () => {
+    const texels = bakeSkySwardAtlas(), shipped = inflateSync(readFileSync(new URL('sward-atlas.bin', folder)));
+    expect(sha(shipped)).toBe(sha(texels));
+    const { skySwardAtlas } = await import('../../../src/shards/far-reach/world/baked');
+    const tex = skySwardAtlas(), { variants, w, h } = SWARD_ATLAS;
+    expect([tex.image.width, tex.image.height]).toEqual([w * variants, h]);
     tex.dispose();
   });
   it('the sky cards (cumulus field, sun glow) are the generator rows (the stale gate) and build from the SDK card field', () => {

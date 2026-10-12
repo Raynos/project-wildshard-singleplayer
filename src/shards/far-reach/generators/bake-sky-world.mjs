@@ -17,7 +17,7 @@ const out = resolve(root, 'public/assets/far-reach/baked');
 const PIECES = [['winch-house', 'winchHouse', 'generators/winchHouse.ts', 'bakeSkyWinchHouse'], ['roost', 'roost', 'generators/roost.ts', 'bakeSkyRoost'], ['docks', 'docks', 'generators/skyDock.ts', 'bakeSkyDocks'],
   ['crown', 'crown', 'generators/crown.ts', 'bakeSkyCrown'], ['mill', 'mill', 'generators/mill.ts', 'bakeSkyMill'],
   ['book-stand', 'bookStand', 'generators/bookStand.ts', 'bakeSkyBookStand'], ['knolls', 'knolls', 'generators/knoll.ts', 'bakeSkyKnolls'],
-  ['geometries', 'geometries', 'generators/geometries.ts', 'bakeSkyGeometries']];
+  ['geometries', 'geometries', 'generators/geometries.ts', 'bakeSkyGeometries'], ['islet-rig', 'isletRig', 'generators/isletRig.ts', 'bakeSkyIsletRig']];
 const check = process.argv.includes('--check');
 const emit = (file, bytes) => {
   if (check) {
@@ -71,6 +71,13 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
   emit(resolve(out, 'mill-model.bin'), packed);
   emit(resolve(project, 'data/millModel.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
   console.info(`far-reach mill model: ${String(bin.length)} bytes → baked/mill-model.bin (${String(packed.length)} deflated), hub ${String(rows.hubAt.y)} / ${String(rows.hubAt.z)}`);
+}
+// the sward's tuft atlas texels, deflated RGBA (world/baked.ts skySwardAtlas)
+{
+  const { bakeSkySwardAtlas } = await import(pathToFileURL(resolve(project, 'generators/swardAtlas.ts')).href);
+  const texels = bakeSkySwardAtlas(), packed = deflateSync(texels, { level: 9 });
+  emit(resolve(out, 'sward-atlas.bin'), packed);
+  console.info(`far-reach sward atlas: ${String(texels.length)} bytes → baked/sward-atlas.bin (${String(packed.length)} deflated)`);
 }
 // the sky-isle models' unit frames (world/skyIsleHd.ts skyIsleUnit), found from each model's GLB
 {

@@ -1148,6 +1148,7 @@
         "public/assets/far-reach/baked/book-stand.glb",
         "public/assets/far-reach/baked/knolls.glb",
         "public/assets/far-reach/baked/geometries.glb",
+        "public/assets/far-reach/baked/islet-rig.glb",
         "src/shards/far-reach/data/winchHouse.json",
         "src/shards/far-reach/data/roost.json",
         "src/shards/far-reach/data/docks.json",
@@ -1164,10 +1165,12 @@
         "src/shards/far-reach/data/skyIsleFrames.json",
         "src/shards/far-reach/data/millModel.json",
         "src/shards/far-reach/data/skyIslePines.json",
+        "src/shards/far-reach/data/isletRig.json",
         "public/assets/far-reach/baked/dressing.bin",
         "public/assets/far-reach/baked/bridges.bin",
         "public/assets/far-reach/baked/fan.bin",
-        "public/assets/far-reach/baked/mill-model.bin"
+        "public/assets/far-reach/baked/mill-model.bin",
+        "public/assets/far-reach/baked/sward-atlas.bin"
       ],
       "platform": "native",
       "seedOutputs": [
@@ -1186,7 +1189,8 @@
         "src/shards/far-reach/data/fan.json",
         "src/shards/far-reach/data/skyIsleFrames.json",
         "src/shards/far-reach/data/millModel.json",
-        "src/shards/far-reach/data/skyIslePines.json"
+        "src/shards/far-reach/data/skyIslePines.json",
+        "src/shards/far-reach/data/isletRig.json"
       ]
     },
     {
