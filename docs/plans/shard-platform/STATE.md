@@ -5,10 +5,10 @@ push gate only; frame floor / Simulator / soak / boards / quiet windows paused. 
 
 **80/20 (custom / legacy, `scripts/shard-platform.mjs`; ≤ 20 % = done)**
 
-| Shard | 21:40Z → 23:15Z (post-freeze landings pending re-measure) | Target lines |
+| Shard | 21:40Z → 23:20Z (metric `f36d2a239`, authored `baked.ts` now counted) | Target lines |
 |---|---|---|
-| Signal Dunes | 70.7 % → **63.2 %** (2583) | ≤ 819 |
-| Sky Reach | 78.4 % → **68.8 %** | ≤ 1349 |
+| Signal Dunes | 70.7 % → **61.3 %** (2526 / 4122) | ≤ 824 |
+| Sky Reach | 78.4 % → **63.9 %** (4329 / 6777) | ≤ 1355 |
 | Nine | 69.5 % | — (graph rollout blocked) |
 
 **Fleet:** Codex sp-x7 push/deploy; sp-x4 Sky movers MV-2; sp-x5 lash + war-fan WP-5; sp-x6 directors DIR-5; sp-x1
