@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { AnimationClip, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, QuaternionKeyframeTrack, Uint16BufferAttribute, VectorKeyframeTrack } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { skinnedGlb, type SkinnedBone } from '../src/shards/far-reach/generators/skinned';
-import { skinnedModel } from '../src/shards/far-reach/runtime/skinnedModel';
+import { skinnedModel } from '../src/game/plugin/geometry';
 
 const BONES: SkinnedBone[] = [{ name: 'body', parent: null, pos: [0, 1.6, 0] }, { name: 'head', parent: 'body', pos: [0.1, 2.0000000001, 1.3] }, { name: 'tail', parent: 'body', pos: [0, 1.5, -1.4] }];
 /** A soup of two triangles sharing an edge (the weld shares the one corner that matches in every channel), weights that do not sum to exactly 1. */

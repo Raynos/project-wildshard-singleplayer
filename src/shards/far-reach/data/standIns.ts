@@ -4,7 +4,7 @@ interface Bone { readonly name: string; readonly parent: string | null; readonly
 interface Dims { readonly bodyY: number; readonly bodyHalfLen: number; readonly bodyRadius: number; readonly headRadius: number; readonly legLen: number; readonly halfWidth: number }
 
 /**
- * Each baked creature's undrawn stand-in skeleton and body size (species/bodies.ts `skyBody`): what a species builds when
+ * Each baked creature's undrawn stand-in skeleton and body size (species/bodies.ts, the game's `creatureBodies`): what a species builds when
  * its baked rig did not load (a page fault), as Signal's skitterer does (`undrawnRig`). The sockets match each look's
  * rig contract, so its clips still drive the bones.
  */
