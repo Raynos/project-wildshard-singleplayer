@@ -13,6 +13,11 @@ const COAT_IMAGE = /^\/assets\/pine-hollow\/creatures\/[^/]+\.coat\.png$/u;
 /** G187 cut 3: the weapon viewmodel sets baked to KTX2 (scripts/bake-viewmodel-sets.mjs), likewise KTX2 lists only */
 const VIEWMODEL = /^\/assets\/gpu\/baked\/pine-hollow\/viewmodel\/[^/]+\.ktx2$/u;
 
+it('keeps the eager forest sample tuning exact', () => {
+  expect(PINE_HOLLOW.audio?.bed).toBe('forest');
+  expect(PINE_HOLLOW.audio?.samples?.loopGains).toEqual({ forest: 0.5 });
+});
+
 it.each(['phone', 'desktop'] as const)('preserves the frozen %s image and KTX2 boot lists', (tier) => {
   for (const tex of ['img', 'ktx2'] as const) {
     const sources = bootSources(tier, tex), added = worldReads(tier, tex);

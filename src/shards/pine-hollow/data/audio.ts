@@ -1,6 +1,6 @@
 import { parseAudioData } from '@wildshard/sdk/audio';
 import { PINE_AUDIO_ZONES } from './audioZones';
-import { PINE_AUDIO_SAMPLES } from './audioSamples';
+import { PINE_AUDIO_SAMPLES } from './runtimeCost';
 
 /** Existing forest samples, score/boss slots, scoped rifle echo and authored ambience zones. */
 export const PINE_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'default',

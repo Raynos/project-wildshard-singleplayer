@@ -29,3 +29,6 @@ export const PINE_RUNTIME_COST = {
   evidence: 'progress/memory/g258-accounting/summary.json',
   imagesFirst: PINE_IMAGES_FIRST_COST,
 } as const;
+
+/** Pure sample literals shared by the eager manifest and the validated shardfile audio section. */
+export const PINE_AUDIO_SAMPLES = { set: 'pine-hollow', bed: 'forest', loopGains: { forest: 0.5 } };

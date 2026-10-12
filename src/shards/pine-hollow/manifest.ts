@@ -1,6 +1,5 @@
 import { PINE_BUDGET_INPUTS } from './budgets';
-import { PINE_AUDIO_SAMPLES } from './data/audioSamples';
-import { PINE_RUNTIME_COST } from './data/runtimeCost';
+import { PINE_AUDIO_SAMPLES, PINE_RUNTIME_COST } from './data/runtimeCost';
 import compareRidgeLive from './explore/pine-ridge-live.jpg';
 import compareRidgeTarget from './explore/pine-ridge-target.jpg';
 import compareDenLive from './explore/pine-den-live.jpg';
