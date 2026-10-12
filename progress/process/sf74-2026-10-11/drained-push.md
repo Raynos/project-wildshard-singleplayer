@@ -16,6 +16,11 @@ exactly twice and reach the owned bare remote. These fixture times do
 not measure production bake cost or prove the two-minute push target.
 
 Root strict, touched typed lint, Bash syntax and whitespace checks pass.
-Landing uses the actual private-index hooks. The next normal pusher run
-supplies the shared-machine wall-time receipt; no gate is skipped for
-any unpushed commit.
+Landing uses the actual private-index hooks. The normal pusher on
+2026-10-12 ran from 02:26:31 to 02:30:45 UTC (254 seconds): it regenerated
+fc3eab08b as 81640d17c, gated that exact SHA in 199.55 seconds, and pushed
+all seven pending commits. Its next round printed "origin/main has every
+local commit" and exited without another export. The queue was drained,
+with no gate skipped for an unpushed commit. This measured complete push
+still exceeds the two-minute target; no historical before/after wall
+comparison is claimed.
