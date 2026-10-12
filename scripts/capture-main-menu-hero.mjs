@@ -16,6 +16,8 @@ const args = process.argv.slice(2);
 const flag = (name, fallback) => args.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const out = resolvePath(flag('out', join(tmpdir(), `main-menu-hero-${process.pid}`)));
 const script = import.meta.filename;
+const round = flag('round', '1');
+if (!['1', 'aerial'].includes(round)) throw new Error('Capture round must be 1 or aerial');
 
 function requireNoQuiet() {
   const quiet = join(root, '.git/quiet');
@@ -142,10 +144,106 @@ async function capture(base) {
   if (report.shots.length !== 8 || report.shots.some(shot => !shot.complete)) throw new Error('Incomplete hero set; inspect capture.json');
 }
 
+async function captureAerial(base) {
+  requireNoQuiet();
+  const plan = JSON.parse(await command(process.execPath,
+    ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs')], root));
+  const report = { schema: 'engine-hero-capture/1', version: await (await fetch(new URL('version.json', base))).json(),
+    round: 'aerial', device: 'iPhone 16 Pro', developer: true, renderScale: 2, canvasOnly: true, muted: true,
+    clock: 'live', camera: 'Existing freeCamera flag; fixed detached camera in late phase; player remains on the road',
+    noViewmodel: true, junction: plan.junction, surrounding: plan.surrounding,
+    roadLighting: 'Shipping ROAD_SKY is fixed low dawn; requested Debug time picks do not rewrite that look', shots: [] };
+  const save = () => writeFileSync(join(out, 'capture.json'), `${JSON.stringify(report, null, 2)}\n`);
+  const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+  try {
+    for (const timePick of ['golden', 'midday', 'sunset']) {
+      requireNoQuiet();
+      const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });
+      try {
+        await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
+        await saveFixture(context, { scope: 'global', key: 'settings', merge: true,
+          data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, time: timePick } });
+        await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
+        await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });
+        await context.route('**/api/errors', route => route.fulfill({ status: 204, body: '' }));
+        const page = await context.newPage(), errors = [], consoleErrors = [];
+        page.setDefaultTimeout(180000);
+        page.on('pageerror', error => { errors.push(error.message); });
+        page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+        await page.goto(base, { waitUntil: 'domcontentloaded' });
+        await page.locator('.ws-main-grid').click();
+        await page.waitForFunction(() => Boolean(document.querySelector('#wserr .msg')?.textContent)
+          || (!document.querySelector('.ws-load') && Boolean(window.__wildshard?.world?.game)));
+        const failure = await page.evaluate(() => document.querySelector('#wserr .msg')?.textContent ?? null);
+        if (failure) throw new Error(failure);
+        await page.evaluate(() => window.__wildshard.requireWorld().hud.enterNow());
+        await page.waitForTimeout(8000);
+        const identity = await page.evaluate(gridFloorDocumentIdentity);
+        const centre = plan.poses[0].target;
+        await page.evaluate(async p => {
+          const api = window.__wildshard, w = api.requireWorld(), live = api.shard.grid.state().live.live;
+          const offset = { x: live.worldFeet.x - w.player.position.x, z: live.worldFeet.z - w.player.position.z };
+          await api.pose({ x: p.x - offset.x, z: p.z - offset.z, y: 0, yaw: 0, pitch: 0 });
+        }, centre);
+        await page.waitForTimeout(5000);
+        await page.evaluate(() => {
+          const w = window.__wildshard.requireWorld();
+          w.freeCamera = true;
+          w.game.viewmodel.visible = false;
+          w.player.keys.clear();
+          w.game.renderer.domElement.dataset.heroCanvas = 'true';
+          // This is the existing free-camera gate, not a player teleported around
+          // the sky. Grid origin shifts are resolved anew on every real frame.
+          w.game.onLate(() => {
+            const p = window.__heroAerialPose;
+            if (!p) return;
+            const live = window.__wildshard.shard.grid.state().live.live;
+            const dx = live.worldFeet.x - w.player.position.x, dz = live.worldFeet.z - w.player.position.z;
+            w.game.camera.position.set(p.eye.x - dx, p.eye.y, p.eye.z - dz);
+            w.game.camera.lookAt(p.target.x - dx, p.target.y, p.target.z - dz);
+            w.game.camera.updateMatrixWorld(true);
+            w.game.viewmodel.visible = false;
+          }, 'harness.hero-aerial');
+        });
+        await page.addStyleTag({ content: 'body * { visibility: hidden !important; } canvas[data-hero-canvas] { visibility: visible !important; }' });
+        for (const shot of plan.poses.filter(p => p.timePick === timePick)) {
+          requireNoQuiet();
+          const row = { ...shot, requestedPose: shot, errors: [], complete: false };
+          report.shots.push(row); save();
+          try {
+            await page.evaluate(p => { window.__heroAerialPose = p; }, shot);
+            await page.waitForTimeout(3500);
+            const current = await page.evaluate(gridFloorDocumentIdentity);
+            if (current.token !== identity.token) throw new Error('Document changed; aerial camera witness invalid');
+            if (errors.length > 0) throw new Error(errors.join('; '));
+            row.frame = await page.evaluate(() => {
+              const w = window.__wildshard.requireWorld(), grid = window.__wildshard.shard.grid.state();
+              const live = grid.live.live, dx = live.worldFeet.x - w.player.position.x, dz = live.worldFeet.z - w.player.position.z;
+              const p = w.game.camera.position, direction = w.game.camera.getWorldDirection(p.clone());
+              return { cameraWorld: [p.x + dx, p.y, p.z + dz], direction: direction.toArray(), playerWorld: live.worldFeet,
+                freeCamera: w.freeCamera, viewmodelVisible: w.game.viewmodel.visible, cells: grid.cells,
+                renderScale: w.game.renderer.getPixelRatio(), frameCount: w.game.frameCount,
+                dayClock: w.sky.dayNight?.snapshot() ?? null, clock: w.game.app.clock.mode };
+            });
+            if (!row.frame.freeCamera || row.frame.viewmodelVisible) throw new Error('Detached-camera / no-viewmodel witness failed');
+            if (Math.hypot(...row.frame.cameraWorld.map((v, i) => v - [shot.eye.x, shot.eye.y, shot.eye.z][i])) > 0.01) throw new Error('Actual aerial camera differs from requested pose');
+            row.file = `${shot.id}.png`;
+            await page.locator('canvas[data-hero-canvas]').screenshot({ path: join(out, row.file) });
+            row.consoleErrors = [...consoleErrors]; row.complete = true;
+          } catch (error) { row.errors.push(String(error)); }
+          save(); console.log(`${shot.id}: ${row.complete ? 'captured' : row.errors.join('; ')}`);
+        }
+      } finally { await context.close(); }
+    }
+  } finally { await browser.close(); save(); }
+  report.shots.sort((a, b) => plan.poses.findIndex(p => p.id === a.id) - plan.poses.findIndex(p => p.id === b.id)); save();
+  if (report.shots.length !== 15 || report.shots.some(shot => !shot.complete)) throw new Error('Incomplete aerial set; inspect capture.json');
+}
+
 mkdirSync(out, { recursive: true });
 if (args.includes('--worker')) {
   if (process.env.HERO_CAPTURE_LANE !== '1') throw new Error('Run through this command’s browser-lane launcher');
-  await capture(flag('base', ''));
+  await (round === 'aerial' ? captureAerial(flag('base', '')) : capture(flag('base', '')));
 } else {
   requireNoQuiet();
   const scratch = join(out, 'build'); mkdirSync(scratch, { recursive: true });
@@ -154,7 +252,7 @@ if (args.includes('--worker')) {
     base = (await command(join(root, 'scripts/serve-build.sh'), ['--head', '--name', 'main-menu-hero', '--hours', '1'], scratch,
       { ...process.env, SERVE_OWNER: 'sp-x2-g332' })).split('\n').at(-1);
     requireNoQuiet();
-    await command(join(root, 'scripts/browser-lane.sh'), ['--max', '20', process.execPath, script, '--worker', `--base=${base}`, `--out=${out}`], root,
+    await command(join(root, 'scripts/browser-lane.sh'), ['--max', '20', process.execPath, script, '--worker', `--round=${round}`, `--base=${base}`, `--out=${out}`], root,
       { ...process.env, HERO_CAPTURE_LANE: '1' });
     console.log(`Canvas candidates and pinned capture.json: ${out}`);
   } finally {
