@@ -1,7 +1,8 @@
 import { Float32BufferAttribute, type BufferGeometry } from 'three';
 import { readSourceModel } from './skinned';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
-import { fitModel, hdGeometry } from '../runtime/looks/modelIntake';
+import { hdGeometry } from '../runtime/looks/modelIntake';
+import { fitModel } from './modelIntake';
 import { MILL_COURSES, MILL_TOWER, MODELLED } from '../data/millShape';
 import { HD_URLS } from '../data/files';
 

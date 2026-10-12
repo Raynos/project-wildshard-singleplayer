@@ -3,7 +3,7 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { LANTERN_GLOW_EDITS } from '../data/paintLook';
 import { LECTERN } from '../data/bookStand';
-import { fitModel } from '../runtime/looks/modelIntake';
+import { fitGeometry } from '@wildshard/sdk/looks/modelLibrary';
 import { hdMaterial, skyHd } from './meshes';
 import { skyBakedPiece } from './baked';
 
@@ -31,11 +31,11 @@ function modelled(withLantern: boolean): Group | null {
   const l = skyHd('lectern-hd'), h = withLantern ? skyHd('lantern-hd') : null;
   if (l === null || (withLantern && h === null)) return null;
   const group = new Group();
-  const lectern = new Mesh(fitModel(l.geometry, { size: LECTERN.height, by: 'height', floor: 0, centre: 'base' }), hdMaterial(l.map)); lectern.name = 'far.lectern';
+  const lectern = new Mesh(fitGeometry(l.geometry, { size: LECTERN.height, by: 'height', floor: 0, centre: 'base' }), hdMaterial(l.map)); lectern.name = 'far.lectern';
   group.add(lectern);
   if (h !== null) {
     // hung by its ring from the hook: the lantern's top at the hook's tip
-    const lantern = new Mesh(fitModel(h.geometry, { size: LECTERN.lantern, by: 'height', floor: 0, centre: 'base' }), lanternMaterial(h.map)); lantern.name = 'far.lectern-lantern';
+    const lantern = new Mesh(fitGeometry(h.geometry, { size: LECTERN.lantern, by: 'height', floor: 0, centre: 'base' }), lanternMaterial(h.map)); lantern.name = 'far.lectern-lantern';
     const [hx, hy, hz] = LECTERN.hook; lantern.position.set(hx, hy - LECTERN.lantern, hz); group.add(lantern);
     // a small warm halo round the glass, so the light reads from the spawn (mockup B's lit lantern)
     const halo = new Mesh(new SphereGeometry(0.12, 12, 8), new MeshBasicMaterial({ color: 0xffb860, transparent: true, opacity: 0.18, blending: AdditiveBlending, depthWrite: false }));

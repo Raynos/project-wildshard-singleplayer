@@ -3,7 +3,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { DECK_WOOD_EDITS, HOVER_FRAME_EDITS, POST_WEATHER_EDITS } from '../data/bridgeLook';
-import { fitModel, splitAbove } from '../runtime/looks/modelIntake';
+import { splitAbove } from '../runtime/looks/modelIntake';
+import { fitGeometry } from '@wildshard/sdk/looks/modelLibrary';
 import { GeometryPack, fetchDeflated, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import bridgeRows from '../data/bridges.json' with { type: 'json' };
 import { BRIDGES_URL } from '../data/files';
@@ -87,7 +88,7 @@ function anchorPost(): { geometry: BufferGeometry; material: MeshStandardMateria
   patchShader(material, 'far.post-weather', PATCH_ORDER.decorate, (shader) => {
     editShader(shader, spliceEdits(POST_WEATHER_EDITS, { weather: WEATHER.post.toFixed(2) }));
   }, { key: (prior) => `${prior}|far.post-weather` });
-  return { geometry: fitModel(source.geometry, { size: 1.9, by: 'height', floor: 0, centre: 'base' }), material };
+  return { geometry: fitGeometry(source.geometry, { size: 1.9, by: 'height', floor: 0, centre: 'base' }), material };
 }
 /**
  * A rope span from its bake (SHARD-PLATFORM M3: generators/bridges.ts, by span id; `kit` is the Explorer's one segment):
@@ -146,7 +147,7 @@ const VANE_ROTOR_Y = 2.2;
 export function vane(): { group: Group; rotor: Object3D } {
   const group = new Group(), rotor = new Group(), model = skyMesh('wind-vane');
   if (model !== null) {
-    const g = fitModel(model, { size: 3.6, by: 'height', floor: 0, centre: 'base' }), [post, top] = splitAbove(g, VANE_ROTOR_Y), mat = flat(0xffffff, { vertexColors: true });
+    const g = fitGeometry(model, { size: 3.6, by: 'height', floor: 0, centre: 'base' }), [post, top] = splitAbove(g, VANE_ROTOR_Y), mat = flat(0xffffff, { vertexColors: true });
     group.add(new Mesh(post, mat)); top.translate(0, -VANE_ROTOR_Y, 0); rotor.add(new Mesh(top, mat)); rotor.position.y = VANE_ROTOR_Y; group.add(rotor);
     return { group, rotor };
   }

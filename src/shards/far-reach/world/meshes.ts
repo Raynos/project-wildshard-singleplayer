@@ -3,7 +3,8 @@ import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app
 import { releaseDecodedOnUpload } from '../look/image';
 import { preloadSkyBodies } from '../species/bodies';
 import { SKY_HD, SKY_MESHES, HD_URLS, MODEL_URLS, type SkyHdName, type SkyMeshName } from '../data/files';
-import { facetedGeometry, hdGeometry } from '../runtime/looks/modelIntake';
+import { hdGeometry } from '../runtime/looks/modelIntake';
+import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
 import { MeshStandardMaterial, type BufferGeometry, type Texture } from 'three';
 
 /**
@@ -14,20 +15,12 @@ import { MeshStandardMaterial, type BufferGeometry, type Texture } from 'three';
  * that fails to load leaves its code model in place.
  */
 
-const ready = new Map<SkyMeshName, BufferGeometry>();
 /** How much of the baked AO survives: a facet in full occlusion keeps this share of its colour (the runtime intake and
  *  the offline creature bake, `generators/creatures.ts`, share it). */
 export const SKY_AO_FLOOR = 0.6;
 let loading: Promise<void> | null = null;
-
-async function load(name: SkyMeshName): Promise<void> {
-  try {
-    const gltf = await loadRigFile(MODEL_URLS[name]), g = facetedGeometry(gltf.scene, SKY_AO_FLOOR);
-    if (g === null) throw new Error(`${name}: no mesh`);
-    retainCachedResources(g); ready.set(name, g);
-    cacheUntilDisposed(g, () => { if (ready.get(name) === g) { ready.delete(name); loading = null; } });
-  } catch (e: unknown) { console.warn(`[far-reach] ${name} not loaded, the code model stands in:`, e); }
-}
+/** The facet models, through the SDK model library (its facet intake is the bakes' `generators/modelIntake.ts`). */
+const FACETS = createModelLibrary<SkyMeshName, never, never>({ meshes: SKY_MESHES, meshUrls: MODEL_URLS, hd: [], hdUrls: {}, rigs: [], rigUrls: {}, aoFloor: SKY_AO_FLOOR, hdLooks: {} }, '[far-reach]');
 
 /** A textured hero model: one indexed geometry (float position, normal, uv in the file's frame) and its painted map. */
 export interface SkyHd { readonly geometry: BufferGeometry; readonly map: Texture }
@@ -48,8 +41,8 @@ async function loadHd(name: SkyHdName): Promise<void> {
 
 /** Load every generated model and baked creature body once (a failed one is skipped). */
 export function preloadSkyMeshes(): Promise<void> {
-  loading ??= Promise.all([...SKY_MESHES.filter(name => !ready.has(name)).map(load), ...SKY_HD.filter(name => !hd.has(name)).map(loadHd), preloadSkyBodies()]).then(() => undefined);
-  return loading;
+  loading ??= Promise.all([...SKY_HD.filter(name => !hd.has(name)).map(loadHd), preloadSkyBodies()]).then(() => undefined);
+  return Promise.all([FACETS.preload(), loading]).then(() => undefined);
 }
 
 /** A textured hero model (a copy of its geometry, its shared map), or null (not loaded: use the faceted model). */
@@ -59,4 +52,4 @@ export function skyHd(name: SkyHdName): SkyHd | null { const m = hd.get(name); r
 export const hdMaterial = (map: Texture): MeshStandardMaterial => new MeshStandardMaterial({ map, roughness: 0.85, metalness: 0 });
 
 /** A copy of a loaded model's geometry, or null (not loaded: use the code model). */
-export function skyMesh(name: SkyMeshName): BufferGeometry | null { return ready.get(name)?.clone() ?? null; }
+export const skyMesh = FACETS.mesh;
