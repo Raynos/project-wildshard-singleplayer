@@ -25,9 +25,10 @@
 | sp-x5 | SF57 Pine re-admission + memory · then SF82 BR-1/2/4/5 |
 | sp-x6 | SF87/G320 CPU tail (bakes, spots, navmesh) · then SF29 |
 | sp-o6 | render stalls: Pine program relink (`38ea143c5`), uploads |
-| sp-o2 | G321 own skies (row deleted `cd9f8486c`, template-2 `a65a4043e`) · sky47 board |
-| sp-o7 | M3 Signal port · sp-o8 M3 Nine port (GLSL → graph()) |
-| sp-o5 | Pine map for SF57 (done) · GPU-gate parity reds (Template + Nalati re-baselined; 5 attributing) |
+| sp-o7 | M3 Signal port (70.7 %, `7c192ae99`) |
+| sp-o9 | G344 square + 1x-FOV hero |
+| sp-o10 | Pine grass fix proof (`4213f5720`) · Pine map for sp-x6 |
+| sp-o11 | Sky / Nine road-entry timeouts |
 
 **Decisions:** G290–G343 in the plan.
 
@@ -35,11 +36,7 @@
 - **G341 LANDED `f6d5a04f9`:** L-b hero; portrait = centre band (title + What's New above, cards + Settings below), landscape = full-bleed with the cards over it; `mainMenuLayout` row, painted `main-crossroads-portrait.jpg` and the losing code deleted. Next release.
 - **G342 / G343 (`b59d2a6ab`):** G342 engineering → sp-x4 (near tier, terrain first, one Debug row); per-shard look content → the next free Opus subagent; raw A/B crossroads captures to you. G343 hero round 4 after G342.
 - **G344 (`16fc55cba`):** queued for the next free Opus subagent (all 5 busy): square (2048², 1440²) + landscape L-b re-shoot at a phone-1x FOV (~70° horizontal; camera back/up to keep all four shards) → `art/main-menu-hero/round-3-square/`, plus raw phone layout-B captures with it routed; wiring waits for your go.
-- **Blocker for Jake (M3 Nine):** Nine's ~3.2k GLSL lines can leave only when graph materials go default-on (`graphMaterials` row, RENDERING.md: needs one physical-iPhone reading). sp-o8 extends graph() meanwhile.
+- **Blocker for Jake (M3 Nine):** Nine's ~3.2k GLSL lines can leave only when graph materials go default-on (`graphMaterials` row, RENDERING.md: needs one physical-iPhone reading). graph() gaps: `progress/shard-platform/nine-port/README.md`.
 - DS1.4 done (board `progress/shard-platform/ds14/`); G321 skies default on.
 
-**Jake (open picks; `docs/reviews/shard-platform-open-picks.md`):**
-- SF63 Driftwood shadows: Tight
-- Sky isles: fixed vs random (recommend D, fixed)
-- SF59 fixture looks
-- G260 Blender looks
+**Jake open picks:** `docs/reviews/shard-platform-open-picks.md` (SF63, Sky isles, SF59, G260).
