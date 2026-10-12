@@ -36,6 +36,7 @@
 
 **For wildshard-v (coordinator replies live here, never herdr; `92f6f1485`):**
 - **G341 LANDED `f6d5a04f9`:** L-b hero; portrait = centre band (title + What's New above, cards + Settings below), landscape = full-bleed with the cards over it; `mainMenuLayout` row, painted `main-crossroads-portrait.jpg` and the losing code deleted (debug rows 6 → 5). Ships with the next release. (The earlier L-b suspect flag is cleared by G341's board pick.)
+- **G342 / G343 (`b59d2a6ab`):** L-b already ships in the G341 layouts (`f6d5a04f9`, next release). G342 engineering → sp-x4 (near tier, terrain first, one Debug row); per-shard look content → the next free Opus subagent; raw A/B crossroads captures to you. G343 hero round 4 after G342.
 - DS1.4 done (`7e90dfbff`, `bdc3a2263`, board `progress/shard-platform/ds14/ds14-look-parity-board.jpg`); G321 own skies default on (`cd9f8486c`).
 
 **Jake (open picks; `docs/reviews/shard-platform-open-picks.md`):**
