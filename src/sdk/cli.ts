@@ -47,7 +47,7 @@ export async function runCli(args: readonly string[]): Promise<void> {
       ? `/properties${output}` : output;
     console.info(JSON.stringify(schemaAt(document, pointer), null, 2)); return;
   }
-  if (input === undefined) throw new Error('usage: wildshard new <project> | synth <project> | build <project> [output] [--product-only] | build <project> --behaviour-only | validate <project|shard.json> | dev <project> [port]');
+  if (input === undefined) throw new Error('usage: wildshard new <project> | synth <project> | build <project> [output] [--product-only] [--no-placeholders] | build <project> --behaviour-only | validate <project|shard.json> | dev <project> [port]');
   if (command === 'synth') {
     if (output !== undefined) throw new Error('usage: wildshard synth <project>');
     const result = await synthProject(resolve(input));
@@ -67,9 +67,9 @@ export async function runCli(args: readonly string[]): Promise<void> {
       console.info(`built ${files.length} native behaviour outputs`); return;
     }
     const flags = args.slice(3), mapPath = flags.find(flag => flag.startsWith('--map='))?.slice(6), tilesHash = flags.find(flag => flag.startsWith('--map-tiles-hash='))?.slice(17);
-    if (flags.some(flag => flag !== '--product-only' && !flag.startsWith('--map=') && !flag.startsWith('--map-tiles-hash=')) || flags.length !== new Set(flags).size || flags.filter(flag => flag.startsWith('--map=')).length > 1 || flags.filter(flag => flag.startsWith('--map-tiles-hash=')).length > 1 || ((mapPath === undefined) !== (tilesHash === undefined))) throw new Error('unknown or incomplete build map flag');
+    if (flags.some(flag => flag !== '--product-only' && flag !== '--no-placeholders' && !flag.startsWith('--map=') && !flag.startsWith('--map-tiles-hash=')) || flags.length !== new Set(flags).size || flags.filter(flag => flag.startsWith('--map=')).length > 1 || flags.filter(flag => flag.startsWith('--map-tiles-hash=')).length > 1 || ((mapPath === undefined) !== (tilesHash === undefined))) throw new Error('unknown or incomplete build map flag');
     const map = mapPath === undefined || tilesHash === undefined ? undefined : { bytes: readBoundedFile(resolve(mapPath), STILL_IMAGE_LIMITS.bytes), tilesHash };
-    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { ...(flags.includes('--product-only') ? { client: null } : {}), ...(map === undefined ? {} : { map }), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
+    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { ...(flags.includes('--product-only') ? { client: null } : {}), ...(map === undefined ? {} : { map }), placeholders: !flags.includes('--no-placeholders'), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
   }
   if (command === 'prove') {
     if (output === undefined || buildFlag !== undefined) throw new Error('usage: wildshard prove <project|shard.json> <proof.json>');

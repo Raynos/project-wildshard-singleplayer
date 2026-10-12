@@ -1,8 +1,10 @@
+import { NodeIO } from '@gltf-transform/core';
 import { Color, Matrix4, MeshStandardMaterial, Quaternion, SRGBColorSpace, Vector3 } from 'three';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import type { PlaceholderTree } from '@wildshard/format/placeholderSource';
+import { NEAR_PLACEHOLDER_LIMITS } from '@wildshard/format/nearPlaceholder';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { placeholderGeometry, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/placeholder';
 import { parseGlb } from '../assets';
@@ -182,4 +184,80 @@ export async function bakeNearPlaceholder(input: NearPlaceholderInput): Promise<
     if (budget < 4000) throw new Error(`Near placeholder terrain alone exceeds ${residentCeiling} B`);
     budget = Math.floor(budget * 0.9);
   }
+}
+
+type Rgb = readonly [number, number, number];
+const mixRgb = (a: Rgb, b: Rgb, t: number): Rgb => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+
+/**
+ * The far look of a shard that declares none (any shardfile, an uploaded unknown one included): its ground in its own
+ * ambient ground colour easing to a neutral rock on steep slopes, its cliff in that rock, its haze its own first fog key.
+ */
+export function shardfileLook(shard: Shardfile): PlaceholderLook {
+  const key = shard.look.keys[0], ground: Rgb = key?.ambient.ground ?? [0.32, 0.36, 0.24], rock: Rgb = [0.33, 0.31, 0.29];
+  const fog = key?.fog;
+  return {
+    family: 'pbr',
+    colourAt: (_x, _z, _h, slope) => mixRgb(ground, rock, Math.min(1, Math.max(0, (slope - 0.2) * 3))),
+    cliff: { lip: rock, foot: mixRgb(rock, [0, 0, 0], 0.4) },
+    haze: { colour: fog?.colour ?? [1, 1, 1], near: fog?.near ?? 160, far: fog?.far ?? 700, max: 1 },
+  };
+}
+
+/**
+ * A shardfile's drawn static world as near-placeholder prototypes: every mesh of its coarse (L1) tiles' GLBs, each
+ * primitive one prototype at its node's world matrix, coloured by its base colour factor times its vertex colours.
+ */
+export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<NearPrototype[]> {
+  const glbs = new Set(shard.files.filter(file => file.kind === 'glb').map(file => file.hash)), io = new NodeIO(), out: NearPrototype[] = [];
+  for (const tile of shard.tiles) {
+    if (tile.lod !== 1) continue;
+    for (const ref of tile.files) {
+      const bytes = assets.get(ref);
+      if (!glbs.has(ref) || bytes === undefined) continue;
+      const document = await io.readBinary(Uint8Array.from(bytes));
+      for (const node of document.getRoot().listNodes()) {
+        const mesh = node.getMesh(); if (mesh === null) continue;
+        const matrix = Array.from(node.getWorldMatrix());
+        for (const [i, primitive] of mesh.listPrimitives().entries()) {
+          const position = primitive.getAttribute('POSITION'), indices = primitive.getIndices(), colour = primitive.getAttribute('COLOR_0');
+          if (position === null || primitive.getMode() !== 4) continue;
+          const factor = primitive.getMaterial()?.getBaseColorFactor() ?? [1, 1, 1, 1], count = position.getCount(), p = [0, 0, 0], c = [1, 1, 1, 1];
+          const positions = new Float32Array(count * 3), colours = new Float32Array(count * 3);
+          for (let v = 0; v < count; v++) {
+            position.getElement(v, p); positions.set([p[0] ?? 0, p[1] ?? 0, p[2] ?? 0], v * 3);
+            if (colour !== null) colour.getElement(v, c);
+            colours.set([factor[0] * (c[0] ?? 1), factor[1] * (c[1] ?? 1), factor[2] * (c[2] ?? 1)], v * 3);
+          }
+          const index = indices === null ? Uint32Array.from({ length: count }, (_, k) => k) : Uint32Array.from({ length: indices.getCount() }, (_, k) => indices.getScalar(k));
+          out.push({ name: `${ref.slice(0, 8)}:${node.getName()}:${String(i)}`, positions, colours, index, transforms: [matrix] });
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * G348: `wildshard build`'s placeholders for any shardfile with a terrain: its far proxy when it ships none, and its near
+ * placeholder (one render-only GLB in `near.content`) when it declares none, both from its own terrain collider, its own
+ * coarse tiles' meshes and its own look. A shard without a height field (an authored mesh world ships its own far) is
+ * returned unchanged. New files are added to `assets` and the returned shardfile.
+ */
+export async function projectPlaceholders(shard: Shardfile, assets: Map<string, Uint8Array>): Promise<Shardfile> {
+  const collider = shard.terrain === null ? undefined : assets.get(shard.terrain.collider);
+  if (collider === undefined || (shard.far !== null && shard.near !== undefined)) return shard;
+  const grid = colliderGrid(collider), look = shardfileLook(shard), files = [...shard.files];
+  let far = shard.far, near = shard.near;
+  if (far === null) {
+    const baked = bakeFarPlaceholder(grid, look);
+    far = baked.manifest.far; files.push(baked.manifest.file); assets.set(baked.manifest.file.hash, baked.bytes);
+  }
+  if (near === undefined) {
+    const baked = await bakeNearPlaceholder({ grid, look, prototypes: await shardfileWorld(shard, assets), residentBytes: Math.min(NEAR_BAKE.residentBytes, NEAR_PLACEHOLDER_LIMITS.contentBytes) });
+    const file = baked.manifest.file;
+    if (!files.some(row => row.hash === file.hash)) files.push(file);
+    assets.set(file.hash, baked.bytes); near = { version: 1, terrain: [], content: [file.hash] };
+  }
+  return { ...shard, files, far, near };
 }

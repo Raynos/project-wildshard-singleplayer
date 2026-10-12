@@ -22,6 +22,7 @@ import { parseWorldSource } from './worldSource';
 import { compileBehaviourSource } from './behaviourSource';
 import { buildBehaviourProject } from './buildBehaviour';
 import { packProjectMap, type ProjectMap } from './projectMap';
+import { projectPlaceholders } from './bake/placeholders';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -111,10 +112,16 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
   };
   return new Map([...shard.files.map((f) => [f.hash, read(f.hash, f.compressed, 'assets')] as const), ...shard.requires.commons.map((h) => [`commons:${h}`, read(h, shard.requires.commonsWire[h] ?? 0, 'commons')] as const)]);
 }
-/** Build a deterministic shard.json, immutable files and the distributed normal client when present. */
-export async function buildProject(project: string, output?: string, options: { devserver?: boolean; client?: string | null; map?: ProjectMap; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
+/**
+ * Build a deterministic shard.json, immutable files and the distributed normal client when present; a shardfile with a
+ * terrain gains its far / near placeholders when `placeholders` is set (the CLI's default).
+ */
+export async function buildProject(project: string, output?: string, options: { devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse') => Promise<void> } = {}): Promise<Shardfile> {
   await buildBehaviourProject(project);
-  const loaded = await readProjectAssets(project, options.map), assets = loaded.assets, shard = validateProject(loaded.shard, assets, project);
+  const loaded = await readProjectAssets(project, options.map), assets = loaded.assets;
+  // G348: a shardfile with a terrain gets its far and near placeholders from its own terrain, tiles and look (`wildshard
+  // build` asks for them; the first-party product builds keep theirs in the repo bake until the grid reads `near`)
+  const shard = validateProject(options.placeholders === true ? await projectPlaceholders(loaded.shard, assets) : loaded.shard, assets, project);
   await options.admit?.(shard, assets, projectPerformancePolicy(project, shard));
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
   shard.files.sort((a, b) => a.hash.localeCompare(b.hash)); shard.tiles.sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
