@@ -16,6 +16,11 @@ export interface NearPrototype {
 }
 /** One region's merged copies: cell-local metres, linear RGB, indexed (the far proxy's part shape). */
 export interface NearPart { readonly positions: Float32Array; readonly colours: Float32Array; readonly index: Uint32Array }
+/**
+ * How `nearPlaceholderParts` reduces a shard's harvested world: the cell-wide content triangle budget the prototypes
+ * share (each is simplified by one common ratio, bisected to fit), the cell half-size that clips copies leaving the cell,
+ * the smallest copy worth keeping from a neighbour's road, and the floor a kept prototype is never simplified below.
+ */
 export interface NearPlaceholderOptions {
   /** content triangle budget for the whole cell */
   readonly triangles: number;
@@ -26,6 +31,11 @@ export interface NearPlaceholderOptions {
   /** fewest triangles a kept prototype is simplified to */
   readonly minTriangles?: number;
 }
+/**
+ * What a near-placeholder reduction kept and dropped, for the bake's `--report`: each kept prototype with its placed
+ * copies and its triangles after / before simplification, each dropped one with why (malformed, a two-triangle card,
+ * every copy too small, or outside the cell), and the content triangles the parts carry in all.
+ */
 export interface NearPlaceholderReport { readonly kept: { name: string; copies: number; triangles: number; source: number }[]; readonly dropped: { name: string; why: string }[]; readonly triangles: number }
 
 const REGIONS = 4;

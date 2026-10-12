@@ -14,8 +14,8 @@ import { installBakeEnvironment } from './environment.mjs';
 import { visitAuthoredWorld } from './worldHost.mjs';
 import { NEAR_TREE_TRIANGLES, nearTreePrototypes } from './nearTrees.mjs';
 
-const [slug] = process.argv.slice(2);
-if (slug === undefined) throw new Error('usage: near-placeholder.mjs <slug> [--report]');
+const slug = process.argv.slice(2).find(value => !value.startsWith('--'));
+if (typeof slug !== 'string') throw new Error('usage: near-placeholder.mjs <slug> [--report]');
 const report = process.argv.includes('--report');
 const root = resolve(import.meta.dirname, '../..');
 const at = path => import(pathToFileURL(resolve(root, path)).href);
