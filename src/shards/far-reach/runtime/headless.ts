@@ -4,6 +4,7 @@ import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimeP
 import { SIM_API_VERSION, createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { addPiece } from '@wildshard/engine/physics/pieces';
+import { bakedSpecs } from '@wildshard/game/shardfile/bakedSpecs';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import type { Material } from '@wildshard/engine/physics/surface';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
@@ -24,12 +25,6 @@ import { inUpdraft } from '@wildshard/game/plugin/mover';
 import baked from './physics.baked.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
-/** One baked native simulation spec, strictly: an unknown or missing field refuses the bake rather than defaulting. */
-const BakedSpec = v.strictObject({ kind: v.string(), label: v.string(), variant: v.string(), rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']),
-  hp: finite, aggressive: v.boolean(), lockable: v.optional(v.boolean()),
-  dims: v.strictObject({ bodyY: finite, bodyHalfLen: finite, bodyRadius: finite, headRadius: finite, legLen: finite, feet: v.array(v.tuple([finite, finite])), halfWidth: finite }),
-  mods: v.strictObject({ speed: finite, chargeDist: finite, damageTaken: finite, chargeDamage: finite, relentless: v.boolean() }),
-  flight: v.optional(v.strictObject({ altitude: finite, above: v.optional(v.picklist(['ground', 'world'])), climbRate: finite, diveRate: finite, lockRange: v.optional(finite), bank: v.optional(finite) })) });
 const Quat = v.strictObject({ x: finite, y: finite, z: finite, w: finite });
 const Placed = { x: finite, y: finite, z: finite, yaw: v.optional(finite), rot: v.optional(Quat), surface: v.optional(v.string()) };
 /** One baked native collider piece (scripts/bake-sky-physics.mjs): boxes and convex hulls, as the world registers them. */
@@ -38,21 +33,8 @@ const BakedPiece = v.strictObject({ id: v.string(), name: v.string(), category: 
     v.strictObject({ kind: v.literal('box'), ...Placed, hx: finite, hy: finite, hz: finite }),
     v.strictObject({ kind: v.literal('hull'), ...Placed, points: v.array(finite) })])) });
 
-/** The baked native specs by kind (scripts/bake-sky-physics.mjs); every body of a kind shares one recipe. */
-export function skySpecs(): ReadonlyMap<string, AnimalSimSpec> {
-  const specs = new Map<string, AnimalSimSpec>();
-  baked.actors.forEach(actor => {
-    const { flight, lockable, ...rest } = v.parse(BakedSpec, actor.spec);
-    const spec: AnimalSimSpec = { ...rest, ...(lockable === undefined ? {} : { lockable }),
-      ...(flight === undefined ? {} : { flight: { altitude: flight.altitude, climbRate: flight.climbRate, diveRate: flight.diveRate,
-        ...(flight.above === undefined ? {} : { above: flight.above }), ...(flight.lockRange === undefined ? {} : { lockRange: flight.lockRange }),
-        ...(flight.bank === undefined ? {} : { bank: flight.bank }) } }) };
-    const known = specs.get(spec.kind);
-    if (known !== undefined && JSON.stringify(known) !== JSON.stringify(spec)) throw new Error(`Divergent native Sky spec ${spec.kind}`);
-    specs.set(spec.kind, spec);
-  });
-  return specs;
-}
+/** The baked native specs by kind (generators/bake-sky-physics.mjs); every body of a kind shares one recipe. */
+export const skySpecs = (): ReadonlyMap<string, AnimalSimSpec> => bakedSpecs(baked.actors);
 /** Each kind's variant scale range (the species rows' one variant each): the manager's first draw. */
 export function skyScaleRanges(): ReadonlyMap<string, readonly [number, number]> {
   const rows = [['driftRay', DRIFT_RAY_VARIANTS], ['skyGoat', SKY_GOAT_VARIANTS], ['galeWisp', GALE_WISP_VARIANTS], ['stormRoc', STORM_ROC_VARIANTS]] as const;

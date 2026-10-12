@@ -61,6 +61,7 @@
     "./shardfile/bossRow": "./shardfile/bossRow.ts",
     "./shardfile/bossView": "./shardfile/bossView.ts",
     "./shardfile/bakedKinds": "./shardfile/bakedKinds.ts",
+    "./shardfile/bakedSpecs": "./shardfile/bakedSpecs.ts",
     "./shardfile/homeKeeper": "./shardfile/homeKeeper.ts",
     "./shardfile/runtimeProduct": "./shardfile/runtimeProduct.ts",
     "./shardfile/props": "./shardfile/props.ts",
