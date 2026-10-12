@@ -74,6 +74,7 @@ import { imagesFirstPlayingBytes } from './runtimeCost';
 import { provideRuntimeProduct } from '../shardfile/runtimeProduct';
 import { shardfileLook } from '../shardfile/look';
 import { findShard } from '../shard/registry';
+import { cellClip } from './cellClip';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -335,6 +336,14 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
             app.addSystem({ id: `grid.look.${cell.instance}`, phase: 'late', run: lookCensus }, resident);
             regionLook = scoped;
           }
+          // G343: its world-sized sheets (a sea to the horizon, a far ground ring) stay in its cell, so the road and the
+          // neighbours show past it; a fragment inside the cell draws as before. Swept as its runtime adds them (every
+          // 4th frame, before its warm-up compiles them)
+          const clip = cellClip(view.root, CHUNK_SIZE / 2, resident);
+          let clipFrame = 0;
+          const clipCensus = (): void => { if (clipFrame++ % 4 === 0 && clip.sweep() > 0) console.info(`[region clip] ${cell.instance}: ${JSON.stringify(clip.state())}`); };
+          clipCensus();
+          app.addSystem({ id: `grid.clip.${cell.instance}`, phase: 'late', run: clipCensus }, resident);
           if (forest.trees.length > 0 && forest.drawer === 'self') withOwner(view.scope, () => view.registry.add({ id: `forest:${cell.instance}`, name: 'Forest', category: 'nature',
             file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() }));
           world = { ...home, terrain, forest, physics: host.physics, registry: view.registry, chunk: request.manifest };
