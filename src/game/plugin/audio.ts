@@ -1,7 +1,10 @@
-import type { CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
+import type { CombatCueMap, CombatCueOpts, CombatCues } from '@wildshard/engine/combat/cues';
 import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Scope } from '@wildshard/engine/app/scope';
 import type { AudioData } from '@wildshard/format/audio';
-import type { GameServices } from './context';
+import type { GameServices, ShardContext } from './context';
+import { installEnteredRuntimeService } from './lifecycle';
+import { installSilentScore } from '../systems/audio/silentScore';
 import { crossbowFire, dryFire, boltImpact, reload } from "../systems/audio/crossbowSounds";
 import { rifleFire, rifleReload } from "../systems/audio/firearmSounds";
 import { swordSwing, swordHeavy, swordHit } from "../systems/audio/meleeSounds";
@@ -9,6 +12,19 @@ import { swordSwing, swordHeavy, swordHit } from "../systems/audio/meleeSounds";
 /** Resolve this resident's admitted emitted rows; only legacy-only entries use the original declaration. */
 export function runtimeAudio(context: { readonly game: Pick<GameServices, 'declaredAudio'> }, legacy: AudioData): AudioData {
   return context.game.declaredAudio ?? legacy;
+}
+
+/**
+ * A runtime's declared audio in play (SF29; Signal Dunes and Sky Reach): its admitted rows (`runtimeAudio`), the silent
+ * score when they say so, and the shard's combat cues routed by them, on each entry of a retained home (else the level's
+ * scope). Absent play (headless), nothing.
+ */
+export function installRuntimeAudio(context: ShardContext, legacy: AudioData,
+  cues: (audio: Audio, combat: CombatCues, scope: Scope, routing: AudioData['routing']) => void): void {
+  const play = context.game.runtime?.play;
+  if (!play) return;
+  const rows = runtimeAudio(context, legacy);
+  installEnteredRuntimeService(context, scope => { if (rows.score === 'silent') installSilentScore(play.music, scope); cues(play.audio, play.cues, scope, rows.routing); });
 }
 
 /** Sound operations supplied by the owning mixer; the router allocates no audio resources. */

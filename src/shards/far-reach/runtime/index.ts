@@ -1,9 +1,8 @@
-import { runtimeAudio } from '@wildshard/game/plugin/audio';
+import { installRuntimeAudio } from '@wildshard/game/plugin/audio';
 import { declaredSkyRows } from './brains';
 import { installRuntimeLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
-import { installSilentScore } from '@wildshard/game/systems/audio/silentScore';
 import source from '../shard.config';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { QuestState } from '@wildshard/engine/quest/core';
@@ -169,18 +168,8 @@ export class SkyReachPlugin extends ShardPlugin {
     fan.stowed = () => this.board();
     // G24: the wisp's burst and the Roc's gale wall shove the player (`app.player.impulse`).
     const push = (v: Vector3): void => { ctx.app.player?.impulse(v); };
-    if (retainsRuntimeServices(ctx)) installEnteredRuntimeService(ctx, scope => {
-      bindPlayerPush(push); scope.onDispose(() => { bindPlayerPush(null); });
-    });
-    else { bindPlayerPush(push); ctx.scope.onDispose(() => { bindPlayerPush(null); }); }
-    if (rt?.play) {
-      const play = rt.play, audioRows = runtimeAudio(ctx, source.audio);
-      if (retainsRuntimeServices(ctx)) installEnteredRuntimeService(ctx, scope => {
-        if (audioRows.score === 'silent') installSilentScore(play.music, scope);
-        installSkyCues(play.audio, play.cues, scope, audioRows.routing);
-      });
-      else { if (audioRows.score === 'silent') installSilentScore(rt.play.music, ctx.scope); installSkyCues(rt.play.audio, rt.play.cues, ctx.scope, audioRows.routing); }
-    }
+    installEnteredRuntimeService(ctx, scope => { bindPlayerPush(push); scope.onDispose(() => { bindPlayerPush(null); }); });
+    installRuntimeAudio(ctx, source.audio, installSkyCues);
     const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null,
       charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
     const { quest, flags, burst, finished, persistence } = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined);

@@ -1,4 +1,4 @@
-import { runtimeAudio } from '@wildshard/game/plugin/audio';
+import { installRuntimeAudio } from '@wildshard/game/plugin/audio';
 import { bindSignalItems } from './runtime/items';
 import { SignalDirector } from './runtime/signalDirector';
 import { standaloneEntry } from './runtime/standalone';
@@ -7,12 +7,11 @@ import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from './data/brains';
 import { SKITTERER_DATA } from './data/species/skitterer';
 import { DUNE_RAY } from './data/species/duneRay';
 import { DUNE_STRIDER } from './data/species/strider';
-import { installLoot } from '@wildshard/game/loot/runtime';
+import { installRuntimeLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
-import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { bindRuntimeCoins, bindRuntimeItemContexts } from '@wildshard/game/shardfile/hybridRows';
-import { installSilentScore } from '@wildshard/game/systems/audio/silentScore';
 import source from './shard.config';
 import { Vector3 } from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -118,17 +117,8 @@ export class SignalDunesPlugin extends ShardPlugin {
     // the whip's declared input context (shard.config.ts items.contexts): while the cell is entered for a retained home
     bindRuntimeItemContexts(ctx, source);
     const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player;
-    if (rt?.play) {
-      const play = rt.play, audioRows = runtimeAudio(ctx, source.audio);
-      if (retainsRuntimeServices(ctx)) installEnteredRuntimeService(ctx, scope => {
-        if (audioRows.score === 'silent') installSilentScore(play.music, scope);
-        installSunscarCues(play.audio, play.cues, scope, audioRows.routing);
-      });
-      else { if (audioRows.score === 'silent') installSilentScore(play.music, ctx.scope); installSunscarCues(play.audio, play.cues, ctx.scope, audioRows.routing); }
-    }
-    const loot = rt?.play && rt.world ? installLoot({ ctx, manifest: ctx.manifest, owned: rt.play.owned, scene: rt.world.game.scene,
-      player: rt.world.player, camera: rt.world.game.camera, animals: () => rt.play?.animals.animals ?? [], menu: rt.play.menu,
-      presentation: { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt.play?.cues.cue('cue.swap'); } } }) : null;
+    installRuntimeAudio(ctx, source.audio, installSunscarCues);
+    const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
     const places = this.places;
     // SF50-p: every coin the runtime pays goes through the platform purse (the level's loot purse; headless, the shard's).
     const coins = bindRuntimeCoins(ctx, loot?.purse ?? null);
@@ -147,11 +137,7 @@ export class SignalDunesPlugin extends ShardPlugin {
     this.creatures = installCreatures(ctx, () => places !== null && !places.flags.has(SCOUT_FLAG));
     // The dusk deepens with the quest (E399, look/dusk.ts): a save loads at its step's light, play eases to each new one.
     if (places) {
-      if (retainsRuntimeServices(ctx)) installEnteredRuntimeService(ctx, scope => {
-        setDusk(duskOf(places), true);
-        scope.onDispose(() => { setDusk(0, true); });
-      });
-      else { setDusk(duskOf(places), true); ctx.scope.onDispose(() => { setDusk(0, true); }); }
+      installEnteredRuntimeService(ctx, scope => { setDusk(duskOf(places), true); scope.onDispose(() => { setDusk(0, true); }); });
       ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); SAND_TILES.follow(position.x, position.z); } });
     }
     ctx.debug.expose('sunscar', this);
