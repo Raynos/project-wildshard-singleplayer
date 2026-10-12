@@ -54,3 +54,5 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-12 | push queue stuck on obsolete prefixes (source-fix repairs earned no retry) | `e38a138a1` / `e50a44ceb` | `b0e5804e3` | sp-x7 |
 | 2026-10-12 | gate `221a20c3a`: game-plugin-exports refuses `quest/coinReward`, `shardfile/bossView`, `shardfile/bakedSpecs` | `ff158375e`, `33db1ffb2`, `0ee63c170` | pending (move under `game/plugin/`) | sp-o16 |
 | 2026-10-12 | Sky canonical run drift: Roc fight ~5.3k ticks longer (21134 → 26469), undetected (ledger asserts only an eventual reward) | bisecting | pending | sp-x1 |
+| 2026-10-12 | push retry refused the real mixed `221a20c3a` log (lint section ran into bake diagnostics) | `b0e5804e3` / old `e38a138a1` lint parser | `1e4406f18` | sp-x7 |
+| 2026-10-12 | gate `221a20c3a`: TASK_CLOCK fixture context | `99b0866c0` | `7e3409bfe` | sp-x1 |
