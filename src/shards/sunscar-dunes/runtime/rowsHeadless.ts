@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { SIM_API_VERSION, type SimLevel } from '@wildshard/engine/sim';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { Material } from '@wildshard/engine/physics/surface';
-import { bakedSpecs as nativeSpecs } from '@wildshard/game/shardfile/bakedSpecs';
+import { bakedSpecs as nativeSpecs } from '@wildshard/game/plugin/brain';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import type { QuestGraphPorts } from '@wildshard/game/plugin/quests';
 import { proveTerrainEntries, type TerrainEntryWalk } from '@wildshard/game/plugin/mover';

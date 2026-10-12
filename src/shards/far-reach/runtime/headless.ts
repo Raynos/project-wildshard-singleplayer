@@ -4,7 +4,7 @@ import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimeP
 import { SIM_API_VERSION, createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { addPiece } from '@wildshard/engine/physics/pieces';
-import { bakedSpecs } from '@wildshard/game/shardfile/bakedSpecs';
+import { bakedSpecs } from '@wildshard/game/plugin/brain';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import type { Material } from '@wildshard/engine/physics/surface';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';

@@ -1,6 +1,6 @@
 import { Color, Mesh, Scene, SphereGeometry, Vector3 } from 'three';
 import type { BossDefinition, BossSaved } from '@wildshard/engine/ai/BossBrain';
-import { BossView, installBossView } from '@wildshard/game/shardfile/bossView';
+import { BossView, installBossView } from '@wildshard/game/plugin/ui';
 import stages from '../../data/bossStages.json' with { type: 'json' };
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { weatherFog, type WeatherFog } from '@wildshard/engine/world/Atmosphere';

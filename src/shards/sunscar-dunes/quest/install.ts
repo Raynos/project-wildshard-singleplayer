@@ -1,7 +1,7 @@
 import type { QuestMarker, QuestState } from '@wildshard/engine/quest/core';
 import type { CoinBurst } from '@wildshard/game/loot/CoinBurst';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
-import { presentRewardedQuest, questReward } from '@wildshard/game/quest/coinReward';
+import { presentRewardedQuest, questReward } from '@wildshard/game/plugin/ui';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';

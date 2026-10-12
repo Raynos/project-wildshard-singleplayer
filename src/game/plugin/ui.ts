@@ -1,6 +1,6 @@
 import { parseClientChannels, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import "../quest/presentation.css";
-import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, ShaderMaterial, Vector3, type Object3D } from "three";
+import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, type Object3D } from "three";
 import type { Scope } from "@wildshard/engine/app/scope";
 import { ParticlePool, pointScale } from "@wildshard/engine/fx/ParticlePool";
 import { CLIENT_SCRIPT_LIMITS, type ClientScriptFrame } from "@wildshard/engine/script/client";
@@ -18,6 +18,12 @@ import { DialogueBox } from "@wildshard/engine/quest/view/ui";
 import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from "../quest/reward";
 import { createLevelInstallation } from "@wildshard/engine/level/installation";
 import type { ShardContext } from "./context";
+import type { BossDefinition, BossSaved, BossScript } from "@wildshard/engine/ai/BossBrain";
+import type { Animal } from "@wildshard/engine/entities/AnimalView";
+import { BossBar } from "@wildshard/engine/ui/BossBar";
+import { CoinBurst } from "../loot/CoinBurst";
+import { DirectorBossBrain } from "./director";
+import type { RuntimeCoins } from "./headless";
 import { installEnteredRuntimeService, retainsRuntimeServices } from "./lifecycle";
 
 /**
@@ -463,4 +469,93 @@ export function createClientChannels(input: unknown): {
     published.set(scratch);
   };
   return Object.freeze({ reads: Object.freeze([...program.reads]), frame, evaluate });
+}
+
+/** A quest's coin reward: the burst that flies the coins to the player, `pay`, which pays once per save, and `spawn`, any other coins through the same burst. */
+export interface QuestReward { readonly burst: CoinBurst; readonly pay: () => undefined; readonly spawn: (amount: number, toast: string) => void }
+
+/**
+ * A declared quest's coin reward (SHARD-PLATFORM M3; Signal Dunes and Sky Reach): `amount` coins burst out of the player through the platform purse
+ * (`coins`), the `toast` after the last lands; `paid` / `markPaid` are the save's once-only record (a quest flag, a shard
+ * save). The burst lives on the play scene, or on a scene of its own headless.
+ */
+export function questReward(ctx: ShardContext, o: { readonly player: Vector3; readonly coins: RuntimeCoins; readonly amount: number; readonly paid: () => boolean; readonly markPaid: () => void; readonly toast: string }): QuestReward {
+  const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene);
+  const spawn = (amount: number, toast: string): void => { burst.spawn(o.player, amount, o.coins, () => { ctx.game.runtime?.play?.hud.toast(toast); }); };
+  const pay = (): undefined => {
+    if (o.paid()) return undefined;
+    o.markPaid(); spawn(o.amount, o.toast);
+    return undefined;
+  };
+  return { burst, pay, spawn };
+}
+
+/**
+ * A quest's one-call presentation with its coin reward (ENGINE §20): the chip, markers, MAP card, places and step toasts,
+ * the held reward beat (`reward`, shown while the quest is complete and `unpaid` holds) that pays; entered
+ * for a retained home, installed in plain play, absent headless (the reward then pays at once on completion). A quest
+ * still open toasts `newQuest` on the first frame. The burst animates under the system `id` and is freed with the level.
+ */
+export function presentRewardedQuest(ctx: ShardContext, quest: QuestState, reward: QuestReward, o: { readonly id: string; readonly player: Vector3; readonly unpaid: () => boolean; readonly newQuest: string; readonly presentation: Omit<QuestPresentationOptions, 'reward'>; readonly beat: Omit<QuestRewardSpec, 'when' | 'finish'> }): () => QuestPresentation | null {
+  const runtime = ctx.game.runtime, live = runtime?.world && runtime.play ? runtime : null, { burst, pay } = reward;
+  const presentation: QuestPresentationOptions = { ...o.presentation, reward: { ...o.beat, when: () => o.unpaid() && quest.isComplete, finish: pay } };
+  const entered = live !== null && retainsRuntimeServices(ctx) ? installEnteredQuestPresentation(ctx, quest, presentation) : null;
+  const view = live === null || entered !== null ? null : installQuestPresentation(ctx, quest, presentation);
+  ctx.scope.onDispose(quest.observe({ complete: () => { if (live === null) pay(); } }));
+  if (!quest.isComplete) ctx.game.runtime?.play?.hud.toast(o.newQuest);
+  ctx.system({ id: o.id, phase: 'update', run: (dt) => { burst.update(dt, o.player); } });
+  ctx.scope.onDispose(() => { burst.update(3, o.player); burst.dispose(); });
+  return () => entered === null ? view : entered();
+}
+
+/** What a boss row's browser encounter is given: its rows, its view-free script, its body and its record. */
+export interface BossViewSpec {
+  readonly definition: BossDefinition;
+  /** The encounter's authored stage rows (`DirectorBossBrain`). */
+  readonly stages: unknown;
+  readonly script: BossScript;
+  /** The player's live position (the arena check, the reward's target). */
+  readonly player: Vector3;
+  /** The boss's live body: a hit on it is refused while `shielded`. */
+  readonly body: () => Animal | null;
+  readonly shielded: () => boolean;
+  readonly saved: BossSaved;
+  readonly persist: (value: BossSaved) => void;
+  /** The first fall's reward (absent: the victory callback pays it). */
+  readonly spawnReward?: () => void;
+  /** Toast the brain's own lines on the HUD (a later fall's); absent, the shard's victory callback says it. */
+  readonly toast?: boolean;
+}
+
+/**
+ * A boss row's encounter in the browser (SHARD-PLATFORM BR-2), the twin of `installBossRow` in the renderer-free host:
+ * the engine's `BossBrain` under its authored stages over the shard's view-free script, with the engine's `BossBar` (boss
+ * bar, name card, skip hold), the player's weapons locked through the intro, respawn / face-toward on the player's motor,
+ * its toasts on the HUD when asked, and `damage.modify` refusing hits on the body while the script is shielded. Signal's Dune Matriarch
+ * and Sky Reach's Storm Roc are these.
+ */
+export class BossView extends DirectorBossBrain {
+  constructor(ctx: ShardContext, spec: BossViewSpec) {
+    const bar = new BossBar(), motor = (): { position: Vector3; yaw: number } | null => ctx.game.runtime?.world?.player ?? null;
+    ctx.scope.onDispose(() => { bar.scope.dispose(); });
+    ctx.answer('damage.modify', (request) => { const body = spec.body(); return request !== null && body !== null && request.target === body.combatActor() && spec.shielded() ? null : request; });
+    super(spec.definition, spec.script, { events: ctx.app.events, player: { position: spec.player },
+      lockInput: (on) => { ctx.game.runtime?.play?.weapons.setEnabled(!on); }, skipHeld: () => ctx.app.input.held('skip'),
+      respawn: (pos, yaw) => { const m = motor(); if (m) { m.position.copy(pos); m.yaw = yaw; } },
+      faceToward: (target) => { const m = motor(); if (m) m.yaw = Math.atan2(m.position.x - target.x, m.position.z - target.z); },
+      spawnReward: () => { spec.spawnReward?.(); }, toast: spec.toast === true ? (message) => { ctx.game.runtime?.play?.hud.toast(message); } : undefined,
+      persist: spec.persist }, bar, spec.saved, spec.stages);
+  }
+}
+
+/**
+ * Registers a browser boss with the level's encounters under `id`: armed now when `armed`, answering the health model's
+ * death checkpoint, updated each frame. `summon` arms a dormant boss (`onSummon` runs then, e.g. its summons toast).
+ */
+export function installBossView<T extends BossView>(ctx: ShardContext, id: string, brain: T, armed: boolean, onSummon?: () => void): { boss: T; summon: () => void } {
+  const live = ctx.app.encounters.boss(id, brain, ctx.scope);
+  if (armed) live.arm();
+  ctx.answer('death.checkpoint', (value) => live.onPlayerDeath() || value === true);
+  ctx.system({ id, phase: 'update', run: (dt, t) => { live.update(dt, t); } });
+  return { boss: live, summon: () => { if (live.state === 'dormant') { live.arm(); onSummon?.(); } } };
 }

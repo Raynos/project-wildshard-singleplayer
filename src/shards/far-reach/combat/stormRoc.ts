@@ -1,5 +1,5 @@
 import type { BossSaved } from '@wildshard/engine/ai/BossBrain';
-import { BossView } from '@wildshard/game/shardfile/bossView';
+import { BossView } from '@wildshard/game/plugin/ui';
 import stages from '../data/bossStages.json' with { type: 'json' };
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { ShardContext } from '@wildshard/game/shard/context';

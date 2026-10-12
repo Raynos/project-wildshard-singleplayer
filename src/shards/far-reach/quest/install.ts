@@ -1,6 +1,6 @@
 import type { QuestState } from '@wildshard/engine/quest/core';
 import { Flags } from '@wildshard/engine/world/interact/flags';
-import { presentRewardedQuest, questReward } from '@wildshard/game/quest/coinReward';
+import { presentRewardedQuest, questReward } from '@wildshard/game/plugin/ui';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
 import { bindRuntimeCoins, bindRuntimeQuest } from '@wildshard/game/shardfile/hybridRows';
 import type { ShardContext } from '@wildshard/game/shard/context';

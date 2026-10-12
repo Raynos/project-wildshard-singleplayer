@@ -1,4 +1,5 @@
 import { MATRIARCH_BOSS_PROFILE } from '../data/matriarchBoss';
+import { parseMarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import type { Vector3 } from 'three';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeBoss, bindRuntimeCoins, type RuntimeCoins } from '@wildshard/game/shardfile/hybridRows';
@@ -10,7 +11,7 @@ import { MATRIARCH_PRESENTATION } from '../data/matriarchPresentation';
 import type { SignalWorld } from '../world/build';
 
 /** Her rows (data/matriarchEncounter.ts, data/matriarchPresentation.ts): the encounter, the marked fight, its presentation and her 20 coins. */
-const ROWS: MarkedBossRows = { definition: MATRIARCH_DEFINITION, profile: MATRIARCH_BOSS_PROFILE, presentation: MATRIARCH_PRESENTATION, reward: MATRIARCH_REWARD };
+const ROWS: MarkedBossRows = { definition: MATRIARCH_DEFINITION, profile: MATRIARCH_BOSS_PROFILE, presentation: parseMarkedBossPresentation(MATRIARCH_PRESENTATION), reward: MATRIARCH_REWARD };
 
 /**
  * The Dune Matriarch (C5), a platform marked boss (`@wildshard/game/shardfile/markedBoss`) from her rows: a huge ray that
