@@ -650,6 +650,8 @@ export interface SpeciesBodyPorts {
 }
 /** Once-allocated observations shared by the existing ground, flight and scripted policies. */
 export interface SpeciesBodyObservation extends HomeObservation {
+  /** Native flight may omit its turn override, retaining the motor's default as the browser does. */
+  flight: { steer: (actor: AnimalSim, yaw: number, speed: number, altitude: number, turn?: number) => void };
   readonly rng: Rng; readonly mayAttack: (actor: AnimalSim) => boolean;
   readonly shove: (yaw: number, speed: number, lift: number) => void;
 }

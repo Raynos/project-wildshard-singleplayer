@@ -6,8 +6,10 @@ import { installHomeKeeper } from '@wildshard/game/shardfile/homeKeeper';
 import { SKY_FLOCK_ROWS } from '../data/spawns';
 import { DECK } from '../data/layout';
 import { ROC_ID } from '../data/rocFight';
-import { flockBrain } from './flockBrains';
-import type { StormRocBrain } from './stormRocBrain';
+import { bindSpeciesBody } from '@wildshard/game/plugin/brain';
+import { skyBrainCatalogue } from './brainCatalogue';
+import { SKY_BODY_ROWS } from '../data/brains';
+import { stormRocBrain, type StormRocBrain } from './stormRocBrain';
 
 /** The death plane under the islands: manifest `world.killY` (DECK - 24). The headless test holds the two equal (the
  * manifest itself imports views). */
@@ -39,6 +41,7 @@ export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Rea
   /** On restore, reinstall the landed goats after every other install-time registration (a no-op on a fresh boot). */
   land: () => void;
 } {
+  const brains = skyBrainCatalogue();
   const rows = new Map(SKY_FLOCK_ROWS.map(row => [row.id, row]));
   /** creatureFloor: the first WORLD hit under the ray's start (a structure), else the analytic floor. */
   const origin = { x: 0, y: 0, z: 0 }, down = { x: 0, y: -1, z: 0 }, sees = ['WORLD'] as const;
@@ -58,12 +61,15 @@ export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Rea
     policy: (kind, actor, _claim, rng) => {
       const home = rows.get(actor.entityId)?.home, label = ports.specs.get(kind)?.label;
       if (home === undefined || label === undefined) throw new Error(`Undeclared Sky body ${actor.entityId}`);
-      const brain = flockBrain(kind, label, actor, home, { host, rng });
-      if (brain.roc !== null && actor.entityId === ROC_ID) held.roc = { actor, body: brain.roc };
-      return { ...brain, decide: dt => {
-        if (!actor.stunned) { brain.decide(dt); return; }
-        actor.setMotion(actor.yaw, 0, 1); actor.lookTarget.copy(host.player.position); actor.lookWeight = 1;
-      } };
+      const shared = { host, stream: rng, home, attacks: { kind: 'unlimited' as const, limit: Infinity } };
+      if (kind === 'stormRoc') return bindSpeciesBody(actor, SKY_BODY_ROWS.flight, shared, observation => {
+        const body = stormRocBrain(actor, observation.shove);
+        if (actor.entityId === ROC_ID) held.roc = { actor, body };
+        return body;
+      });
+      const brain = brains.body(kind, actor, shared);
+      if (brain === null) throw new Error(`Undeclared Sky policy ${kind}`);
+      return brain;
     } }, saved);
   const roc = held.roc; if (roc === null) throw new Error('Sky Reach declares the Storm Roc\'s body');
   return { roc, land: keeper.settle };

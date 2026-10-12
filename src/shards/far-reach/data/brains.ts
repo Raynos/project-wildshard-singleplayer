@@ -52,12 +52,18 @@ export const ROC_BRAIN = { id: 'far.brain.roc', kind: 'phased-raptor',
       stalk: { standOff: 3, retreat: false, speed: 2.4, above: null, ready: { kind: 'range' } }, dive: false, shove: null, rest: 1.2 },
   ] };
 
+/** The page's exact native motor, unlimited attack and environment-contact recipes; decisions invent none of these ports. */
+export const SKY_BODY_ROWS = {
+  ground: { kind: 'animal', motion: 'ground', attack: 'unlimited', stunned: 'look-hold', contact: { kind: 'environment', halfArc: 70 * Math.PI / 180 } },
+  flight: { kind: 'animal', motion: 'flight', attack: 'unlimited', stunned: 'look-hold', contact: { kind: 'environment', halfArc: 70 * Math.PI / 180 } },
+} as const;
+
 /** Canonical gameplay profiles; each native body binds its actual island home and existing authority. */
 export const SKY_SPECIES_BRAINS: readonly BrainedSpecies[] = [
-  { ...SKY_GOAT_DATA, brain: { archetype: 'grazer' as const, data: { ...GOAT_BRAIN, kind: 'grazer' as const, pattern: 'wander-ram' as const } } },
-  { ...DRIFT_RAY_DATA, brain: { archetype: 'diver' as const, data: { ...RAY_BRAIN, kind: 'diver' as const, pattern: 'orbit' as const,
+  { ...SKY_GOAT_DATA, body: SKY_BODY_ROWS.ground, brain: { archetype: 'grazer' as const, data: { ...GOAT_BRAIN, kind: 'grazer' as const, pattern: 'wander-ram' as const } } },
+  { ...DRIFT_RAY_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'diver' as const, data: { ...RAY_BRAIN, kind: 'diver' as const, pattern: 'orbit' as const,
     home: RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 } } } },
-  { ...GALE_WISP_DATA, brain: { archetype: 'diver' as const, data: { ...WISP_BRAIN, kind: 'diver' as const, pattern: 'burst' as const,
+  { ...GALE_WISP_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'diver' as const, data: { ...WISP_BRAIN, kind: 'diver' as const, pattern: 'burst' as const,
     home: { x: KEEPER.x, z: KEEPER.z, r: 7, y: KEEPER.y + 3 } } } },
 ];
 
