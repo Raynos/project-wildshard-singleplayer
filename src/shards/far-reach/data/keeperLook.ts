@@ -5,7 +5,7 @@ import { KEEPER_AT } from './quests';
 import { KEEPER_NPC } from './keeperDialogue';
 
 /**
- * The bridge-keeper as a pivot NPC row (SHARD-PLATFORM SF27; the shared host in `@wildshard/sdk/looks/modelLibrary` stands
+ * The bridge-keeper as a pivot NPC row (SHARD-PLATFORM SF27; the shared host in `@wildshard/game/plugin/geometry` stands
  * and moves him): at Sunrest's north rim, left of the rope bridge's posts, facing the spawn (mockup B, E399), his talk
  * anchor 1.8 m over the deck within 3.5 m. He is not solid (no collider) and never turns: he waves within 16 m, met or
  * not, gestures while he talks and sways a slow breath of a turn.

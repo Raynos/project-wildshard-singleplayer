@@ -1,5 +1,5 @@
 import type { MeshStandardMaterial } from 'three';
-import { pivotNpc, type PivotNpc } from '@wildshard/sdk/looks/modelLibrary';
+import { pivotNpc, type PivotNpc } from '@wildshard/game/plugin/geometry';
 import { hdMaterial, skyHd } from '../world/meshes';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';

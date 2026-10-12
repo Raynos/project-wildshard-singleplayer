@@ -5,7 +5,6 @@ import { applySurfaceLooks, type SurfaceInputs } from "../systems/looks/surfaceL
 import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
 import { Rng } from "@wildshard/engine/core/rng";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import type { LevelContext } from "@wildshard/engine/level/context";
 import type { NpcMotion, NpcRow } from "./quests";
 
 /**
@@ -1162,11 +1161,19 @@ export interface PivotNpcPorts {
   /** the shard's look on the figure (its light rim, resource ownership) */
   readonly dress?: (group: Group) => void;
 }
+type NpcSurface = NonNullable<NpcRow['collider']>['surface'];
+/** The level a pivot NPC is installed in (a LevelContext fits): its root, its piece registry and its systems. */
+export interface PivotNpcLevel {
+  readonly root: Group;
+  piece: (piece: { id: string; name: string; category: 'props'; file: string; object: Group; surface: NpcSurface;
+    colliders: { kind: 'box'; x: number; y: number; z: number; hx: number; hy: number; hz: number; yaw: number; surface: NpcSurface }[] }) => void;
+  system: (spec: { id: string; phase: 'update'; run: (dt: number, t: number) => void }) => void;
+}
 /**
  * Installs the row's NPC in a level: the figure under the level root, a solid column piece round it when the row has a
  * collider (it turns in place, so the box stays square), and its motion each frame.
  */
-export function installPivotNpc(ctx: Pick<LevelContext, 'root' | 'piece' | 'system'>, row: NpcRow, ports: PivotNpcPorts): PivotNpc {
+export function installPivotNpc(ctx: PivotNpcLevel, row: NpcRow, ports: PivotNpcPorts): PivotNpc {
   const npc = pivotNpc(row, ports.source, ports.groundAt, ports.material), c = row.collider, y = npc.group.position.y;
   ctx.root.add(npc.group); ports.dress?.(npc.group);
   if (c !== undefined) ctx.piece({ id: row.id, name: row.name, category: 'props', file: ports.file, object: npc.group,
