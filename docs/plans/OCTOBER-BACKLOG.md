@@ -1,6 +1,6 @@
 # Plan: OCTOBER-BACKLOG — the October backlog (E469)
 
-**State:** `draft` 2026-10-12 — Jake's three sagas and twelve backlog items in his words, and the live plans grouped by saga (E469, E479, E480, E481); unowned, nothing built.
+**State:** `draft` 2026-10-12 — Jake's three sagas and thirteen backlog items in his words, and the live plans grouped by saga (E469, E479, E480, E481); unowned, nothing built.
 
 Only Jake writes this backlog (2026-10-10: *"the backlog should only contain things I write"*). Agents record his words
 verbatim; any added context only with his yes (*"You can add a bit more context if you want but always ask me"*).
@@ -39,3 +39,4 @@ Saga 3: no live plan yet for multiplayer or the API server.
 | OB10 | *"Add a third person camera mode"* |
 | OB11 | *"Add landscape mobile controls HUD design"* |
 | OB12 | *"rewrite all the marketing website copy and redo its design"* |
+| OB13 | *"When I'm looking at a Pine Hollow or a Nalati or some of these other shards, they were clearly not built for Wildshard. They were clearly not built for the continuous shard … they were built for a single shard in shard select, where no one ever looks over the edge, where it's just a wall. Because when you look at the shard from the outside, you just see this huge wall, this low texture, huge wall of, like, as if the earth was cut, as if someone came with the biggest knife you've ever seen and just cut the earth. So they were never designed or built or thought about how would they look like from the exterior. And we've done a bit of work … the four road entries for the four shards … we've fixed the valleys and improved that. But no thought was spent on how a shard looks like from its four roundabouts. When you're looking at the shard, it just looks like a low texture, blurry cliff, massive cliff. And that kind of first look from the roundabout impacts the first impressions of a shard … we want to remaster how a shard looks like from the outside, from the road, from all of the edges and the four corners from the road."* (2026-10-12, approved; not now) |
