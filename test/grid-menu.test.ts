@@ -14,8 +14,7 @@ import { levelDebugRows } from '../src/engine/ui/debugOptions';
 import { ordinaryShardManifests } from '../src/game/shard/legacy';
 import { shards } from '../src/game/shard/list';
 import { buildTitleDeck, titleCards } from '../src/game/titleDeck';
-import { buildTitleMenu, MAIN_MENU_HERO, MAIN_MENU_LANDSCAPE_HERO } from '../src/game/mainMenu';
-import { saveSetting, setting } from '../src/engine/ui/Settings';
+import { buildTitleMenu, MAIN_MENU_HERO } from '../src/game/mainMenu';
 
 class MemoryStorage {
   private data = new Map<string, string>();
@@ -128,18 +127,10 @@ describe('the main menu (G79 / G88)', () => {
       menu.dispose(); menu.root.remove();
     });
   }
-  it('G338 Main menu layout: A the full-screen painted hero by default; B the landscape band, live, and back', () => {
+  it('G341 hero: the real L-b capture, one image for both orientations (the layout follows the screen in CSS)', () => {
     const menu = buildTitleMenu({ cards: titleCards(), active: null, onEnter: noop, onExplore: noop, onSettings: noop, onGrid: noop, screen: 'main' });
-    const main = menu.root.querySelector<HTMLElement>('.ws-main'), hero = menu.root.querySelector<HTMLElement>('.ws-main-hero');
-    expect(setting('mainMenuLayout')).toBe('a');
-    expect(main?.classList.contains('ws-main-band')).toBe(false);
-    expect(hero?.style.backgroundImage).toContain(MAIN_MENU_HERO);
-    try {
-      saveSetting('mainMenuLayout', 'b');
-      expect(main?.classList.contains('ws-main-band')).toBe(true);
-      expect(hero?.style.backgroundImage).toContain(MAIN_MENU_LANDSCAPE_HERO);
-    } finally { saveSetting('mainMenuLayout', 'a'); }
-    expect(main?.classList.contains('ws-main-band')).toBe(false);
+    const hero = menu.root.querySelector<HTMLElement>('.ws-main-hero');
+    expect(MAIN_MENU_HERO).toBe('/assets/title/main-crossroads-landscape.jpg');
     expect(hero?.style.backgroundImage).toContain(MAIN_MENU_HERO);
     menu.dispose();
   });
