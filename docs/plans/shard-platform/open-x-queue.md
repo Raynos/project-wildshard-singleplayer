@@ -44,6 +44,17 @@ Still trusted / blocked:
   collision; Nalati bodies and places; Sky rigs and world; Signal rigs, sand and world) and every skin need geometry,
   rig or pixel authoring owners.
 
+## SF87 Pine: the O producers left after sp-x6's author ground (2026-10-12)
+
+sp-x6 owns Pine's author ground (native analytic lattice), the `data/layout` / `behaviour/layout` split and the streams
+job. These producers still run trusted constructors and need geometry authored first (Opus subagent work):
+- **crags, props:** author forest trunks + GLB kit geometry.
+- **lookout, timbers, cabins:** author timber / UV geometry.
+- **undergrowth, wildlife:** author forest / rig / spec builders.
+- **beaver pool:** author `pondGrid`.
+- **King collision:** author rig / pose metadata.
+No trusted constructor goes into an allowlist; Pine's product deletion waits for all of them.
+
 ## Part B: deferred (not started without Jake's word)
 
 S1 population / LOD-AI · S2 interior / vertical streaming · S3 physics toys and vehicles · S4 climb / drive / author-AS modes ·
