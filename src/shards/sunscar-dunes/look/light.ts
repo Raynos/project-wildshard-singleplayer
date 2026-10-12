@@ -2,7 +2,7 @@ import { Mesh, MeshStandardMaterial, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { patchShader, PATCH_ORDER } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { LAST_LIGHT_EDITS } from '../runtime/looks/lightLook';
+import { LAST_LIGHT_EDITS } from '../data/lightLook';
 
 /** The style bible's rim and shade floor ("Last Light", data/lightLook.ts): a material patch, applied once per material at build. */
 export function lastLight(material: MeshStandardMaterial, scope: Scope): void {
