@@ -209,6 +209,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [coarse-mask-webkit.mjs](./coarse-mask-webkit.mjs)
 - [commit-message-lock.py](./commit-message-lock.py)
 - [commit-ratchet.sh](./commit-ratchet.sh)
+- [commit-sweep-ledger.py](./commit-sweep-ledger.py)
 - [compile-script.d.mts](./compile-script.d.mts)
 - [compile-script.mjs](./compile-script.mjs)
 - [coverage-merge.mjs](./coverage-merge.mjs)
@@ -231,6 +232,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [frame-floor-programs.mjs](./frame-floor-programs.mjs)
 - [frame-floor-script-profile.d.mts](./frame-floor-script-profile.d.mts)
 - [frame-floor-script-profile.mjs](./frame-floor-script-profile.mjs)
+- [frame-floor-task-clock.d.mts](./frame-floor-task-clock.d.mts)
+- [frame-floor-task-clock.mjs](./frame-floor-task-clock.mjs)
 - [frame-floor-webkit-timeline.d.mts](./frame-floor-webkit-timeline.d.mts)
 - [frame-floor-webkit-timeline.mjs](./frame-floor-webkit-timeline.mjs)
 - [frame-floor.mjs](./frame-floor.mjs) — live cadence from drawn-frame rAF timestamps, with callback-time and CPU-work p95 diagnostics; owns isolated previews and browser/Simulator lanes. `--device=<name>` selects the Simulator (default `frame-floor-iphone-17-pro`); each run writes a separate `progress/frame-floor/<sha>-<run-id>.json`.
