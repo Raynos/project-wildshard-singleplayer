@@ -1,6 +1,6 @@
-import type { MoverInstallation, MoverView } from '@wildshard/sdk/runtime/movers';
+import type { MoverInstallation, MoverView } from '@wildshard/game/plugin/mover';
 import source from '../shard.config';
-import { SKY_MOVERS, isIsletMover as isIslet } from './moverRows';
+import { SKY_MOVER_BINDING } from '../data/moverBindings';
 import { runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { LIFT_MODULE } from '../data/liftModule';
 import { BRIDGE_MODULE } from '../data/bridgeModule';
@@ -14,14 +14,14 @@ const modules = new Map([[BRIDGE_MODULE.hash, new URL('../assets/1371d8959aebb56
  * which carries the rider, and the plugin draws them from the published poses.
  */
 export function skyMoverViews(built: BuiltWorld, permissions: () => number, raised: () => void, onDispose: () => void): MoverInstallation {
-  const data = SKY_MOVERS;
-  const views = new Map<string, MoverView>(data.filter((row) => !isIslet(row.id)).map((row) => [row.id, { pose: (pose, fields) => {
-    if (row.id !== 'far.winch.bridge') return;
+  const data = source.movers;
+  const views = new Map<string, MoverView>(data.filter((row) => !row.id.startsWith(SKY_MOVER_BINDING.socketPrefix)).map((row) => [row.id, { pose: (pose, fields) => {
+    if (row.id !== SKY_MOVER_BINDING.winch) return;
     const previouslyRaised = built.state.raised;
     built.fallen.rotation.set(pose.euler.x, pose.euler.y, pose.euler.z, 'YXZ');
     built.state.raised = pose.enabled; built.state.raising = fields[6] === 1;
     if (!previouslyRaised && built.state.raised) raised();
   } }]));
   // SF72: in a grid cell both modules are the admission's verified bytes (shard.config.ts `files`); standalone fetches them
-  return { data, modules, admitted: runtimeProduct(source).assets.retained, views, systemId: 'far.movers', permissions: () => new Map([['far.winch.bridge', permissions()]]), onDispose };
+  return { data, modules, admitted: runtimeProduct(source).assets.retained, views, systemId: SKY_MOVER_BINDING.systemId, permissions: () => new Map([[SKY_MOVER_BINDING.winch, permissions()]]), onDispose };
 }

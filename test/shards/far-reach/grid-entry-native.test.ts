@@ -23,7 +23,7 @@ it('walks and rides all four authored Rising Islets, calls both stops and closes
     expect(proof).toMatchObject({ lanes: 92, liftRides: 8, liftCalls: 8 });
     expect(proof.steps).toBeGreaterThan(0);
     expect([sim.host.physics.world.bodies.len(), sim.host.physics.world.colliders.len()]).toEqual(before);
-    expect(sim.lane?.host.checkpoint().modules).toHaveLength(1);
+    expect(sim.lane?.host.checkpoint().modules).toHaveLength(2);
   } finally { sim.dispose(); }
   expect(sim.host.scope.disposed).toBe(true);
   expect(sim.host.physics.world.bodies).toBeUndefined();

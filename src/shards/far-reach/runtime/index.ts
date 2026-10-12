@@ -17,7 +17,7 @@ import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
 import { SKY_FLOCK_GROUPS } from '../data/spawns';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { skyMoverViews } from './movers';
-import { installDeclaredMovers, type MoverRuntimeInstance as MoverRuntime } from '@wildshard/sdk/runtime/movers';
+import { inUpdraft, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import { commandSocketLift } from '@wildshard/game/plugin/simulation';
 import { isletCalls, type IsletCalls } from '../world/risingIslet';
 import { gustFx } from './looks/windFx';
@@ -61,7 +61,6 @@ import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { bindSkyActor } from './spawns';
 import { bindSkyItems } from './items';
 import { spawnSkyGoats } from '../species/goats';
-import { inUpdraft } from '@wildshard/game/plugin/mover';
 
 declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'far.gust': true }

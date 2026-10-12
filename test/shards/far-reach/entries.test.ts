@@ -33,8 +33,9 @@ describe('Sky Reach Rising Islet entries', () => {
     const lifts = socketLiftEntries(source.entryways);
     expect(lifts.map((row) => [row.lift.mover, row.lift.gate, row.lift.approach?.colliders])).toEqual(RISING_ISLETS.map((e) => [`far.islet.${e.edge}`, `far.islet.${e.edge}.gate`, [`landing.${e.edge}`]]));
     expect(socketLiftRules(lifts, source.movers, source)).toEqual([]);
-    // the compiled movers are exactly the islets and their gates, on the one admitted module
-    expect(source.movers.map((m) => m.id).sort()).toEqual(RISING_ISLETS.flatMap((e) => [`far.islet.${e.edge}`, `far.islet.${e.edge}.gate`]).sort());
+    // All authored movers are admitted; the socket subset remains exactly the four islets and gates.
+    expect(source.movers).toEqual(MOVERS);
+    expect(source.movers.filter(row => row.id.startsWith('far.islet.')).map((m) => m.id).sort()).toEqual(RISING_ISLETS.flatMap((e) => [`far.islet.${e.edge}`, `far.islet.${e.edge}.gate`]).sort());
     expect(new Set(source.movers.map((m) => m.module))).toEqual(new Set(source.sim.scripts));
     // no lip, one shifted 9.5 m along the edge, or one 1 cm proud of the road: refused
     const props = source.props; if (props === null) throw new Error('Sky Reach declares its landings');

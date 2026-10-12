@@ -34,12 +34,11 @@ export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runt
     const lift = lifts.get(edge); if (lift === undefined) throw new Error(`Sky Reach entry ${edge} has no Rising Islet`);
     return { edge, at, width, kind: 'socketLift' as const, lift };
   }),
-  movers: MOVERS.filter((row) => row.id.startsWith('far.islet.')),
-  // SF72: the winch and rope bridges' module (fixed hinge driver) is admitted beside the islets' so the grid admission and
-  // the trusted headless runtime read the same verified bytes; the bridge rows stay the trusted runtime's (runtime/movers.ts)
+  // The authored clips declare every bridge, islet and gate; both hosts install this admitted order once.
+  movers: MOVERS,
   files: [wasm(BRIDGE_MODULE), wasm(LIFT_MODULE)], critical: [BRIDGE_MODULE.hash, LIFT_MODULE.hash],
   budgets: { ...base.budgets, sim: { resident: 1_000_000, compressed: LIFT_MODULE.bytes + BRIDGE_MODULE.bytes } },
-  sim: { ...base.sim, scripts: [LIFT_MODULE.hash] },
+  sim: { ...base.sim, scripts: [BRIDGE_MODULE.hash, LIFT_MODULE.hash] },
   props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [],
     colliders: [...RISING_ISLETS.map((entry) => ({ id: `landing.${entry.edge}`, panel: null, initialActive: true, shapes: [{ ...entry.landing }] })),
       ...RISING_ISLETS.map((entry) => ({ id: `gate-isle.${entry.edge}`, panel: null, initialActive: true, shapes: isletRows.entries.flatMap(row => row.edge === entry.edge ? row.strips.map(strip => ({ ...strip, kind: 'box' as const, surface: 'grass' as const })) : []) }))] } });

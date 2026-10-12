@@ -11,10 +11,10 @@ import { KEEPER_AT } from '../../../src/shards/far-reach/data/quests';
 import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
 import { FAN_GUST, FAN_ID } from '../../../src/shards/far-reach/data/items';
 import { FAN_ACT, FAN_ACTOR } from '../../../src/shards/far-reach/runtime/fan';
-import { WINCH_BRIDGE } from '../../../src/shards/far-reach/runtime/moverRows';
+import { SKY_MOVER_BINDING } from '../../../src/shards/far-reach/data/moverBindings';
 import { ROOST_IDS, SKY_ACT, SKY_INTERACT } from '../../../src/shards/far-reach/data/questPrompts';
 import { prepareSkyRuntime, type SkyRuntime } from '../../../src/shards/far-reach/runtime/headless';
-import type { SkyMovers } from '../../../src/shards/far-reach/runtime/headlessMovers';
+import type { HeadlessMovers as SkyMovers } from '@wildshard/game/plugin/mover';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
 let rapier: Rapier, sky: SkyRuntime;
@@ -48,7 +48,7 @@ it('plays the crown bridge quest on the played host with its movers: four steps,
   let movers: SkyMovers | undefined;
   try {
     movers = sky.installSky(host, { restoring: false, commands: () => tape, emit: effect => { effects.push(effect); } });
-    const raised = (): boolean => movers?.runtime.pose(WINCH_BRIDGE).enabled === true, fanKills = new Set<unknown>();
+    const raised = (): boolean => movers?.runtime.pose(SKY_MOVER_BINDING.winch).enabled === true, fanKills = new Set<unknown>();
     host.events.on('damage.dealt', ({ req, killed }) => { if (killed && req.weaponId === FAN_ID) fanKills.add(req.target); }, host.scope);
     run(host); // the goats land
     expect(raised()).toBe(false);
