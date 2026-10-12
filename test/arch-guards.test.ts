@@ -10,7 +10,7 @@ import { dirname, join, resolve } from 'node:path';
 import { env, execPath } from 'node:process';
 import { afterAll, describe, expect, it } from 'vitest';
 import { comparePlatformList, PLATFORM_LISTS } from '../scripts/check-platform-ratchets.mjs';
-import { compareCounts, hardRules } from '../scripts/guard-counts.mjs';
+import { compareCounts, hardRules, readLintConfig } from '../scripts/guard-counts.mjs';
 import { checkShardLayout, checkShards, shardEntries, type ShardLayout } from '../scripts/check-shards.mjs';
 import { genShardWords, shardWordData } from '../scripts/gen-shard-words.mjs';
 import { CAPTURE_SHELL_FILES, SIM_DIRS, TIME_ALLOW, VIEW_PATHS } from '../lint/wildshard-plugin.js';
@@ -100,6 +100,12 @@ describe('AG14 generated vocabulary', () => {
     expect(result.status, result.stderr).toBe(1);
     expect(found.filter((d) => d.filename === 'src/game/new-shard-branch.ts' && d.code === 'wildshard(no-shard-branch)')).toHaveLength(3);
     expect(found.filter((d) => d.filename === 'src/engine/new-shard-words.ts' && d.code === 'wildshard(engine-words)')).toHaveLength(2);
+    // G348: the placeholder bakes in scripts/ refuse a slug branch too (the gate's override, then the rule on a fixture)
+    const gate = readLintConfig(resolve('.oxlintrc.json')).overrides?.find((o) => o.files?.includes('scripts/bake/near*.mjs'));
+    expect(gate?.rules?.['wildshard/no-shard-branch']).toBe('error');
+    put(root, 'scripts/bake/near-emberfall.mjs', "const slug = process.argv[2]; export const ground = slug === 'emberfall' ? 1 : 0;");
+    const bake = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', join(root, '.oxlintrc.ratchet.json'), '-f', 'json', 'scripts/bake'], { cwd: root, encoding: 'utf8' });
+    expect((JSON.parse(bake.stdout) as { diagnostics: Diagnostic[] }).diagnostics.filter((d) => d.filename === 'scripts/bake/near-emberfall.mjs' && d.code === 'wildshard(no-shard-branch)')).toHaveLength(1);
     writeFileSync(file, '{}'); expect(() => genShardWords(root, true)).toThrow('stale');
   });
 });

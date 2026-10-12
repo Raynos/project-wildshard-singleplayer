@@ -147,6 +147,12 @@
       }
     },
     {
+      // G348 (Jake): the placeholder bakes are generic for any shard; a slug branch there is refused. The rest of scripts/
+      // (≈130 harness hits on 2026-10-12, e.g. farProxiesSource.ts's look table) joins as each moves into `wildshard build`.
+      "files": ["scripts/bake/near-placeholder.mjs", "scripts/bake/nearTrees.mjs", "scripts/bake/near*.mjs"],
+      "rules": { "wildshard/no-shard-branch": "error" }
+    },
+    {
       "files": ["lint/**"],
       "rules": { "import/no-default-export": "off" } // oxlint loads a JS plugin from its default export
     },
