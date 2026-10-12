@@ -38,14 +38,14 @@ def fit(image, width, height):
     return copy
 
 
-CELL_NAMES = {'pine-hollow': 'Pine Hollow', 'driftwood-isle': 'Driftwood', 'nalati-grasslands': 'Nalati',
+CELL_NAMES = {'pine-hollow': 'Pine', 'driftwood-isle': 'Driftwood', 'nalati-grasslands': 'Nalati',
               'template-2': 'template-2'}
 
 
 def placement_text(row):
     parts = []
     for cell in row['placement']:
-        where = cell['side'] if cell['side'] != 'centre' else f"centre {cell['depth']}"
+        where = f"{cell['side']}, {cell['depth']}" if cell['side'] != 'centre' else cell['depth']
         parts.append(f"{CELL_NAMES.get(cell['instance'], cell['instance'])} ({where})")
     return 'left to right: ' + ' · '.join(parts)
 
@@ -66,13 +66,15 @@ def landscape(source, output, report, menu, pick, why, phone=None):
         panel = Image.new('RGB', (width, height + band), '#101820')
         panel.paste(world, (0, band))
         label = ImageDraw.Draw(panel)
-        big, small = font(round(band * 0.36)), font(round(band * 0.24))
+        big, small = font(round(band * 0.36)), font(round(band * 0.22))
         label.text((round(band * 0.2), round(band * 0.1)), f"{row['id']} · {row['name']}", font=big, fill='white')
         right = f"{row['session'].replace('x', ' × ')} desktop · real engine, canvas only · {pin}"
         label.text((width - round(band * 0.2) - label.textlength(right, font=small), round(band * 0.17)), right,
                    font=small, fill='#a9cce0')
         detail = (f"{row['eye']['y']:g} m high · {row['downDegrees']:.1f}° down · heading {row['headingDegrees']:g}° · "
-                  f"aimed at the roundabout · {placement_text(row)}")
+                  f"roundabout centred · {placement_text(row)}")
+        if label.textlength(detail, font=small) > width - band * 0.4:
+            raise RuntimeError(f"label overflows {row['file']}")
         label.text((round(band * 0.2), round(band * 0.6)), detail, font=small, fill='#a9cce0')
         filename = f"{row['id']}-{row['session']}.jpg"
         jpeg(panel, output / filename)
@@ -103,7 +105,7 @@ def landscape(source, output, report, menu, pick, why, phone=None):
                 title, detail, colour = f'{pick} on the real desktop menu', \
                     f"{Image.open(menu).width} × {Image.open(menu).height} · local build {pin} · hero image routed", '#ffd27a'
             else:
-                title = f"{row['id']} · {row['name']}" + ('  ★ RECOMMENDED' if row['id'] == pick else '')
+                title = f"{row['id']} · {row['name']}" + ('  · RECOMMENDED' if row['id'] == pick else '')
                 detail = f"{row['eye']['y']:g} m · {row['downDegrees']:.1f}° down · heading {row['headingDegrees']:g}°"
                 colour = '#ffd27a' if row['id'] == pick else 'white'
             draw.text((x, y + 4), title, font=font(27), fill=colour)
@@ -122,8 +124,8 @@ def landscape(source, output, report, menu, pick, why, phone=None):
         sheet = Image.new('RGB', (desk.width + hand.width + 72, body + 210), '#101820')
         draw = ImageDraw.Draw(sheet)
         draw.text((24, 22), f'{pick} AS THE MAIN-MENU HERO · REAL MENU, LOCAL BUILD {pin}', font=font(40), fill='white')
-        draw.text((24, 80), 'A · desktop landscape 1920 × 1080', font=font(28), fill='#ffd27a')
-        draw.text((desk.width + 48, 80), 'B · iPhone 16 Pro portrait', font=font(28), fill='#ffd27a')
+        draw.text((24, 80), 'Desktop landscape 1920 × 1080', font=font(28), fill='#ffd27a')
+        draw.text((desk.width + 48, 80), 'iPhone 16 Pro portrait', font=font(28), fill='#ffd27a')
         sheet.paste(desk, (24, 130))
         sheet.paste(hand, (desk.width + 48, 130))
         draw.text((24, body + 156), 'Only the hero image request is answered with the capture; menu code and layout unchanged.',
