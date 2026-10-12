@@ -1,53 +1,46 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-11 18:25 CT.** Councils done. Part A only. **Route: the shardfile design system (G319, `design-system.md`).** Now phase 0 = SF79 (DS0.1–0.5, with SF76–SF78); then SF80 authoring core; then SF81–85 in parallel; ports resume Signal → Sky → Nine → Driftwood → Pine → Nalati. G312–G318 folded into SF76–SF78 (`4390474a9`).
+**2026-10-12 15:20 CT.** Councils done; Part A only. Route: the shardfile design system (G319, `design-system.md`).
+Mac rebooted ~07:00Z and Xcode's licence prompt killed every lane; Jake accepted it at 14:54 CT. All lanes resumed by
+session (Codex) or started fresh (Opus). **Fleet G335: 5 Codex + 5 Opus**; briefs in `lanes/` (survive reboots).
 
 **Milestones**
 - **M1:** done.
 - **M2:**
-  - **SF22 desktop:** PASS (`d393dc95b`).
-  - **SF22 Safari:** install PASS; **0 draw compiles** (was 46); cadence FAIL (p95 49): the gaps are main-thread waits (165 ms with 5 ms frame work), not rendering (`9c3b969c2`); Nine cell entry 191 ms on the Simulator (sp-x5).
-  - **Memory:** G269.
-- **Frame floor (`c66b5b324`, clean):** every max gate passes. Desktop: only Pine short travel p95 33.3 (gate 17.5). Simulator p95 over 35: Driftwood 59, Pine 58, Signal 52, Sky 37, Nalati 36. Arrival waits: Driftwood, Pine, Nine.
-- **M3:** **0 of 6 at 80/20** under Jake's measure.
+  - **SF22 desktop:** PASS.
+  - **Safari:** install PASS (`bf3b0c45e`); cadence FAIL p95 49 (main-thread waits); Nine cell entry 191 ms on the Simulator.
+- **Frame floor (`c66b5b324`, then `511be2330` minimap, `04f4a7596` shader):** every max gate passes.
+  - **Desktop:** only Pine short travel p95 33.4 (gate 17.5).
+  - **Simulator p95 over 35:** Driftwood 59, Pine 58, Signal 52, Sky 37, Nalati 36.
+- **SF57:** FAIL, Pine re-admission refused ("[cabins] not built"); Pine audio sprite 30.7 MB over the 25 MB cap (OPEN).
+- **M3:** 0 of 6 at 80/20 (Nine 53.6 %, Sky 74.2, Signal 79.7, Nalati 95.4, Driftwood 97.7, Pine 100.1; custom / legacy).
 
-**Live:** production `5fc3423-mv4g37dy` (23:19Z); push CI, boot smoke, release and Linux coverage green.
+**Live:** production `0a8cb8d-mv4udq2c` (05:59Z). Nightly coverage and gpu-gate red on `03484c121` (sp-x7).
 
-**Queue:** `open-x-queue.md` (open engineering, 10-11 sweep). **Red → green (G330):** `red-green.md` (5 reds fixed 10-11).
+**Queue:** `open-x-queue.md`. **Red → green (G330):** `red-green.md`. **Tree:** clean after sp-tidy (G331).
 
-**G292:** shared cache + runner (`3ab406c30`, `d1469f93f`), every shard's producers declared and Darwin-exact, witness checkpoints on the cache (`298d0b856`), **their 15 payloads (9.2 MB) out of git** (`91a3d7cba`).
-
-**80/20 (G291 + G294, `2218a5937`, report-only):** custom = shard runtime TS + one-user game/SDK TS, over the frozen legacy TS.
-
-| Shard | Custom / legacy |
-|---|---|
-| Nine | 53.6 % |
-| Sky | 74.2 % |
-| Signal | 79.7 % |
-| Nalati | 95.4 % |
-| Driftwood | 97.7 % |
-| Pine | 100.1 % |
-
-**Lanes (0 Opus, G329; graphical rows wait for Opus)**
+**Lanes (`lanes/README.md`)**
 
 | Lane | Work |
 |---|---|
-| sp-x1 | frame floor: milestone rerun on HEAD (gate job handed to sp-x7) |
-| sp-x7 | gate/CI/deploy (G330) · E476 pusher messages · SF74 tails |
-| sp-tidy | git tidy (G331): commit the backlog in small commits; .gitignore junk |
-| sp-x2 | Nalati cold arrival 0 s (`8d8ae2711`) · every cell's arrival readiness |
-| sp-x4 | ports at non-graphical floor (Driftwood, Nalati) · OS-F8 · SF22 Safari cadence |
-| sp-x5 | OS-F1/F2/F10 done · one-shot run 2 · then SF82 BR-1/2/4/5 |
-| sp-x6 | OS-F3–F7, F9 done · SF87/G320 + G292 clean room |
+| sp-x7 | green (G330) + tree hygiene (G331) · SF74 tails · SF60 |
+| sp-x1 | desktop Pine short-travel p95 (CPU) · then SF67 loads |
+| sp-x4 | SF22 Safari cadence · Nine entry 191 ms · route requalification |
+| sp-x5 | SF57 Pine re-admission + memory · then SF82 BR-1/2/4/5 |
+| sp-x6 | SF87/G320 CPU tail (bakes, spots, navmesh) · then SF29 |
+| sp-o1 | G332/G336 main-menu hero round 3 (desktop landscape from M-b) |
+| sp-o2 | Simulator frame floor p95 ≤ 35 on every route |
+| sp-o3 | SF87 graphical producers (Nine layout, static jobs) |
+| sp-o4 | M3 ports: Signal, then Sky |
+| sp-o5 | M3 port: Nine · then SF80 commons figure textures |
 
-**Jake picks landed:** G321/G322/G324/G325/G326/G327/G328.
+**Pacing:** Codex 18 % weekly left (resets 10-18) → Codex on non-graphical rows only; Claude weekly fresh.
 
-**Follow-up:** fresh SDK install needs npm `@loaders.gl/worker-utils@4.5.4` (else pin core 4.5.3).
+**Decisions:** G290–G336 in the plan.
 
-**Decisions:** G290–G330 in the plan.
-
-**Jake (open picks; details `docs/reviews/shard-platform-open-picks.md`):**
-- SF63 Driftwood shadows Tight: `art/sf63/round-1-driftwood-shadows/board-ab.jpg`
-- Sky isles fixed vs random: `progress/shard-platform/sky36/isles-board.jpg` (recommend D, fixed)
-- SF59 fixture looks: `progress/shard-platform/sf59/tsl-spike-desktop.jpg`, `sf59-pastel/`
-- G260 Blender: `art/blender-template/round-2-look/board.jpg`, `round-3-filled/board.jpg`
+**Jake (open picks; `docs/reviews/shard-platform-open-picks.md`):**
+- SF63 Driftwood shadows: Tight
+- Sky isles: fixed vs random (recommend D, fixed)
+- SF59 fixture looks
+- G260 Blender looks
+- Hero round 3 board (pending sp-o1)
