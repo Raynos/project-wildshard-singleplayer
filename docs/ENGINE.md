@@ -2559,9 +2559,9 @@ talk spot, its runtime row (`parseQuestGraph`: `actor`, `step`, `actions`: `{ ro
 runs). `drive: "external"` lets an existing modal/ride owner deliver `run(id)` without a second step or snapshot; transient marks refuse without their own continuation. `compileQuestTable(table, bindings)` compiles only supported latched-lever, pickup and bench flag effects, preserving ordered sets and leaving geometry, inventory and sitting with their existing owners.
 A skinned NPC can use `parseNpcDialogueRow` (SDK `questGraph`) to validate its unchanged dialogue without inventing pivot-body data. A quest-giver is an NPC row (`@wildshard/game/plugin/quests` `parseNpcRow`, `npcDef`, `npcSpot`): id, name, talk spot,
 place, home facing, met flag, talk height and reach, face and wave ranges, its solid column, its pivot figure (model,
-height, neck, shoulder, arm cut, material) and its dialogue. Signal’s private `runtime/quest/pivotNpc.ts`
-`installPivotNpc(ctx, row, { source, groundAt, player, met, file, dress })` stands it in a level; `pivotNpcParts` is its
-Model Explorer figure. Signal’s private `runtime/rowsHeadless.ts` `rowsHeadlessRuntime(manifest)` is a whole trusted
+height, neck, shoulder, arm cut, material) and its dialogue. The shared pivot NPC host
+(`@wildshard/game/plugin/geometry`) `installPivotNpc(ctx, row, { source, groundAt, player, met, file, dress })` stands it
+in a level; `pivotNpcParts` is its Model Explorer figure. Signal’s private `runtime/rowsHeadless.ts` `rowsHeadlessRuntime(manifest)` is a whole trusted
 `prepareHeadlessRuntime` from rows: the baked metadata (`bakedSpecs`, `bakedSpots`), the homes and their brains (with
 `holds`: a home's memory field held until a flag), the marked boss, the lash item, the quest graph and the terrain entry
 walk (`@wildshard/game/plugin/productEntries` `proveTerrainEntries`). Signal’s private `runtime/shard/standaloneEntry.ts`
