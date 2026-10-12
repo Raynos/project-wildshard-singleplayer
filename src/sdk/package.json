@@ -101,6 +101,7 @@
     "./bake/rig": "./bake/rig.ts",
     "./bake/image": "./bake/image.ts",
     "./sceneGraph": "./sceneGraph.ts",
+    "./materials": "./materials.ts",
     "./sceneAudio": "./sceneAudio.ts",
     "./directorAbi": "./directorAbi.ts",
     "./sceneAnimation": "./sceneAnimation.ts",
@@ -535,6 +536,10 @@
       "./sceneGraph": {
         "types": "./dist/types/sdk/sceneGraph.d.ts",
         "default": "./dist/sceneGraph.js"
+      },
+      "./materials": {
+        "types": "./dist/types/sdk/materials.d.ts",
+        "default": "./dist/materials.js"
       },
       "./sceneAudio": {
         "types": "./dist/types/sdk/sceneAudio.d.ts",

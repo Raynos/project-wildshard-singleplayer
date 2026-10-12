@@ -2,6 +2,7 @@ import { AmbientLight, Bone, BufferAttribute, BufferGeometry, Color, Directional
 import type { SceneDescription, SceneGeometry, SceneMaterial, SceneNode } from './scene';
 import { restoreSceneAnimations } from './sceneAnimation';
 import { restoreSceneDeclaration } from './sceneDeclarations';
+import { catalogueMaterial } from './materials';
 
 function isSkin(object: Object3D | undefined): object is SkinnedMesh { return object instanceof SkinnedMesh; }
 function isBone(object: Object3D | undefined): object is Bone { return object instanceof Bone; }
@@ -36,7 +37,7 @@ function geometryOf(row: SceneGeometry): BufferGeometry {
 }
 
 function materialOf(row: SceneMaterial): MeshStandardMaterial | MeshToonMaterial {
-  const material = row.type === 'MeshStandardMaterial' ? new MeshStandardMaterial() : row.type === 'MeshToonMaterial' ? new MeshToonMaterial() : null;
+  const material = row.entry !== undefined ? catalogueMaterial(row.entry) : row.type === 'MeshStandardMaterial' ? new MeshStandardMaterial() : row.type === 'MeshToonMaterial' ? new MeshToonMaterial() : null;
   if (material === null) throw new Error(`Unknown scene material ${row.type}`);
   material.name = row.name; material.color.fromArray(row.color); material.opacity = row.opacity; material.transparent = row.transparent; material.side = row.side; material.vertexColors = row.vertexColors;
   const { emissive, emissiveIntensity, alphaTest, flatShading, roughness, metalness } = row.parameters;

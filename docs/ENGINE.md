@@ -74,8 +74,6 @@ recipes and authored audio assets remain separate content; this router carries n
 
 `@wildshard/engine/render/memorySaver.releaseOnUpload(source, done)` opts an exclusively owned, immutable decoded image into the existing Memory saver upload retirement. The callback closes the private bitmap or releases its cache owner after upload; the texture keeps its dimensions and GPU allocation. Register only when no later CPU reader or different-sampler clone needs the pixels, and also release on owner disposal. Memory saver OFF keeps the decode until disposal; GPU-only context-loss recovery reloads the page.
 
-`@wildshard/format/bakedTerrainSampling.bakedSamplers(grid)` supplies the original bilinear height, central-difference normal and normalized four-channel splat queries over a parsed WSTR lattice. It needs no active level or renderer. Authoring reads `format/bakedTerrainBytes.parseBakedTerrain` and calls this pure sampler; the engine's existing `world/BakedTerrain.bakedSamplers` binding is the same function object. Apply a shard's vertical datum after sampling; this module does not install terrain or shift coordinates.
-
 `@wildshard/engine/world/BakedTerrain.installBakedGrid(grid, binding?)` installs original native samplers and undergrowth decisions into the selected binding without a second fetch. It refuses a mismatched seed. The Node authored-world bake uses this before forest/model construction; geometry capture still supplies the production terrain constructor and retains native collision ownership.
 
 `@wildshard/game/grid/simulation` owns local physics residencies, prepared fixed-step frame changes and durable
@@ -2880,6 +2878,59 @@ box rows pass through the reader and rebuild to identical compiled rows and GLB
 hashes. Existing authoring stair rows remain stairs, with no ramp approximation.
 The page-bound physics producers still need their G320 authoring-only conversion.
 
+### Materials and light rows (DS1.4)
+
+`@wildshard/sdk/materials` defines the authoring materials a generator puts on its
+three.js meshes. Each is an ordinary three.js material (a generator previews in
+any three.js renderer) that also knows its shardfile catalogue entry,
+`toMaterialEntry()`; `readScene` writes that entry into `SceneMaterial.entry`
+and `restoreSceneGraph` rebuilds the same class from it. No material becomes
+shader code (G306).
+
+- `ToonMaterial extends MeshToonMaterial` (`color`, `vertexColors`, `faceted`,
+  `doubleSided`, `roughness`, `metalness`): the `toon` family entry, or with
+  `graphPreset: true` the `{ family: 'graph', preset, version: 1 }` reference.
+  Setting `bands` (an integer 2–8) or `rim` (0–2) bakes a cel graph instead: the
+  sun in N hard steps over the albedo and a sun-coloured rim on the lit side.
+- `PainterlyMaterial extends MeshStandardMaterial` (`rim`, `bands`, `shade`,
+  `floor`, `sway`, `emissive`, `alphaCutoff`): the `painterly` family entry or its
+  graph preset. A mapped or painted-terrain surface still needs its texture
+  declarations and is refused on restore.
+- `GraphMaterial extends MeshStandardMaterial`: holds one validated material
+  graph (`GraphIr`, or a `GraphSpec` it compiles) and bakes to
+  `{ family: 'graph', graph }`.
+- `graph(spec)` compiles TSL node trees (`three/tsl`) placed in the graph stages
+  (`vertex`, `surface`, `lighting`, `outline`, `post`) into SF59 graph IR
+  (`@wildshard/format/materialGraph`), validated under the author caps. Shared
+  subtrees become one node, `.toVar('name')` names a node (otherwise `n0`, `n1`
+  …), TSL constants become inline literals, and `clamp(x, 0, 1)` is `saturate`.
+  TSL operators and math map one to one onto the version 1 vocabulary; the TSL
+  built-ins `positionLocal`, `positionGeometry`, `positionWorld`, `normalLocal`,
+  `normalWorld` (and `normalWorldGeometry`), `normalView`,
+  `positionViewDirection` (`viewDirection`), `cameraPosition`, `time`,
+  `screenUV` and `uv()` are graph inputs as they are. `param(name, def)` declares
+  a typed param (the format's `GraphParam`, with its range and optional day /
+  state binding); `sample(param, uv)` reads a texture param; `noise`,
+  `viewToWorld`, `worldToLocal`, `sceneColourAt`, `sceneDepth`, `sceneNormal` and
+  `graphInputs` (`sunDirection`, `sunColour`, `sunShadow`, `albedo`,
+  `irradiance`, `litColour`, `instanceHash`, `objectOrigin`, `vertexColour`,
+  `sceneColour`) are the graph-only inputs. Anything else (`uniform()`, a `Fn`,
+  `sqrt`, a node-valued conversion, `loop`) is refused with its name.
+
+Ink & Cel Valley and Pastel Plain author their looks this way
+(`generators/materials.ts`): `test/sdk-materials-parity.test.ts` holds the
+ground presets identical and the TSL rocks equal, node for node, to the shipped
+`data/rock.graph.json` graphs.
+
+`@wildshard/format/lights` defines light rows: `PointLightRowSchema`,
+`SpotLightRowSchema`, `LightRowsSchema` (at most `LIGHT_ROWS_MAX` = 64, unique
+ids) and `parseLightRows`. `readScene` writes every `PointLight` and `SpotLight`
+as a row in `SceneDescription.lights` (graph order, world `position`, linear
+`colour`, three.js `intensity`, `distance`, `decay`; a spot adds its world
+`target`, `angle` and `penumbra`); the field is absent when no local light is
+placed. Directional, hemisphere and ambient lights stay look rows. The rows are
+a build intermediate: no shardfile key or renderer consumes them yet.
+
 `@wildshard/game/plugin/shaderFamily` publishes the shared shader-family implementation
 used by multiple shards. It resolves directly to `systems/looks/shaderFamily.ts`;
 the historical export and defining file remain intact for frozen consumers.
@@ -3003,7 +3054,7 @@ the author builder; SHARDFILE.md documents the executed example and limits.
 
 DS1.3: the scene reader now includes `SkinnedMesh` bind mode/matrices, ordered joint references and inverse binds, typed skin channels, and standard `AnimationClip` / `KeyframeTrack` interpolation, times and values. Raw integer channels stay raw even when normalized or interleaved. Named targets and all rest joints must belong to the author graph; UUID-bound tracks, duplicate joints, malformed influences and custom interpolants refuse. Local TRS is retained alongside matrices so clips remain executable without a decomposition changing the rest pose.
 
-`@wildshard/sdk/sceneGraph` defines `restoreSceneGraph(description)`: reconstruct the real three.js draw/animation hierarchy from persisted JSON, retaining shared geometry/materials, ordered skeletons, explicit LODs, instance data, lights and fog. Collider/spawn/entry sections remain data for their existing compilers, not simulated objects. Texture and physical/TSL material serialization remains DS1.4. Both shipping template geometry byte gates use this reader; an added animated rig in each pilot also regenerates identical sampled channels and skin GLB bytes.
+`@wildshard/sdk/sceneGraph` defines `restoreSceneGraph(description)`: reconstruct the real three.js draw/animation hierarchy from persisted JSON, retaining shared geometry/materials, ordered skeletons, explicit LODs, instance data, lights and fog. Collider/spawn/entry sections remain data for their existing compilers, not simulated objects. SDK catalogue materials (DS1.4, `@wildshard/sdk/materials`) restore from their entries; texture and physical-material serialization remain open. Both shipping template geometry byte gates use this reader; an added animated rig in each pilot also regenerates identical sampled channels and skin GLB bytes.
 
 
 DS1.3 audio authoring: `@wildshard/sdk/sceneAudio` defines `Cue(id, voice)`, `AmbienceZone(recipe)` and `Score(recipe)` as ordinary Object3D declarations. `Score.fromData(profile)` adopts cue/zone registration order; `toAudioData()` emits the defining format contract. `readScene` collects one profile and its graph declarations into optional `SceneDescription.audio`. These objects never create an AudioContext, decode or play a sound. Cues bind named events to catalogue voices; event owners supply moving sound positions. Zones move their centres and scale their circular radii through horizontal similarity transforms; tilt, shear, nonfinite or elliptic frames refuse. A zone requires its real mixer profile. Existing Template 1 and Pastel profiles emit identical bytes through persisted scene JSON.

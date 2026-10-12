@@ -1,4 +1,4 @@
-import { AmbientLight, Bone, type BufferGeometry, DirectionalLight, Fog, FogExp2, HemisphereLight, InstancedMesh, InterleavedBufferAttribute, Light, Line, LOD, Material, Mesh, MeshStandardMaterial, MeshToonMaterial, PointLight, Points, Scene, ShaderMaterial, SkinnedMesh, SpotLight, Sprite, Matrix4, type Object3D, type Side } from 'three';
+import { AmbientLight, Bone, type BufferGeometry, DirectionalLight, Fog, FogExp2, HemisphereLight, InstancedMesh, InterleavedBufferAttribute, Light, Line, LOD, Material, Mesh, MeshStandardMaterial, MeshToonMaterial, PointLight, Points, Scene, ShaderMaterial, SkinnedMesh, SpotLight, Sprite, Matrix4, Vector3, type Object3D, type Side } from 'three';
 import { updateAuthoringMatrix } from './sceneTransform';
 import { Collider, type ColliderData } from './physics';
 import { Entry, type EntryData } from './entries';
@@ -9,6 +9,9 @@ import type { AudioData } from './audio';
 import { readSceneDeclaration, type SceneDeclaration } from './sceneDeclarations';
 import { Grapple, Mount, Updraft, Zipline, Ladder } from './modes';
 import { parseModes, type ModeRows } from '@wildshard/format/modes';
+import { parseLightRows, type LightRow } from '@wildshard/format/lights';
+import type { MaterialEntry } from '@wildshard/format/materials';
+import { isCatalogueMaterial } from './materials';
 /** One geometry channel, including normalized attributes and its original typed-array representation. */
 export interface SceneAttribute {
     itemSize: number;
@@ -40,6 +43,8 @@ export interface SceneMaterial {
     side: Side;
     vertexColors: boolean;
     parameters: Record<string, number | boolean | number[]>;
+    /** The catalogue entry an SDK material (`@wildshard/sdk/materials`) bakes to: a family, a graph preset or a graph. */
+    entry?: MaterialEntry;
 }
 /** A graph node uses unique author names as identity; repeated display names receive deterministic traversal IDs. */
 export interface SceneNode {
@@ -88,6 +93,8 @@ export interface SceneDescription {
     playerStart: SpawnPlacement | null;
     entries: EntryData[];
     audio?: AudioData;
+    /** Point and spot light rows (`@wildshard/format/lights`) in graph order, world space; absent when none is placed. */
+    lights?: LightRow[];
     /** Admitted player-mode rows collected in graph order; absent when no mode is authored. */
     modes?: ModeRows;
     fog: {
@@ -137,7 +144,9 @@ function materialData(material: Material): SceneMaterial {
         parameters['roughness'] = material.roughness;
         parameters['metalness'] = material.metalness;
     }
-    return { type: material.type, name: material.name, color: [...material.color], opacity: material.opacity, transparent: material.transparent, side: material.side, vertexColors: material.vertexColors, parameters };
+    const row: SceneMaterial = { type: material.type, name: material.name, color: [...material.color], opacity: material.opacity, transparent: material.transparent, side: material.side, vertexColors: material.vertexColors, parameters };
+    if (isCatalogueMaterial(material)) row.entry = material.toMaterialEntry();
+    return row;
 }
 /** Walk an ordinary three.js hierarchy in Node. Updates world matrices; never installs services or draws a frame.
  * Unsupported authoring features fail explicitly instead of silently changing a collider, material or spawn. */
@@ -161,6 +170,7 @@ export function readScene(scene: Object3D): SceneDescription {
     const boneIds = new Map<Bone, string>();
     for (const object of objects) if (isBone(object)) { const id = ids.get(object); if (id === undefined) throw new Error('Unindexed bone'); boneIds.set(object, id); }
     const geometries = new Map<BufferGeometry, number>(), materials = new Map<Material, number>();
+    const lights: LightRow[] = [];
     const cues: AudioData['cues'] = [], zones: NonNullable<AudioData['zones']>['zones'] = [];
     const modes: ModeRows = { traverse: [] }, ride: NonNullable<ModeRows['ride']> = [], grapple: NonNullable<ModeRows['grapple']> = [];
     let score: Score | undefined;
@@ -234,6 +244,12 @@ export function readScene(scene: Object3D): SceneDescription {
                 parameters['target'] = [object.target.matrixWorld.elements[12], object.target.matrixWorld.elements[13], object.target.matrixWorld.elements[14]];
             }
             node.light = { color: [...object.color], intensity: object.intensity, parameters };
+            if (object instanceof PointLight || object instanceof SpotLight) {
+                const base = { id, position: new Vector3().setFromMatrixPosition(object.matrixWorld).toArray(), colour: [object.color.r, object.color.g, object.color.b] as [number, number, number], intensity: object.intensity, distance: object.distance, decay: object.decay };
+                lights.push(object instanceof SpotLight
+                    ? { kind: 'spot', ...base, target: new Vector3().setFromMatrixPosition(object.target.matrixWorld).toArray(), angle: object.angle, penumbra: object.penumbra }
+                    : { kind: 'point', ...base });
+            }
         }
         if (object instanceof Collider) {
             if (!object.name)
@@ -268,6 +284,7 @@ export function readScene(scene: Object3D): SceneDescription {
     }
     if (new Set(out.entries.map(entry => entry.edge)).size !== out.entries.length)
         throw new Error('Duplicate entry edge');
+    if (lights.length > 0) out.lights = lights;
     if (score !== undefined || cues.length > 0 || zones.length > 0) out.audio = (score ?? new Score()).toAudioData(cues, zones);
     if (modes.traverse.length > 0 || ride.length > 0 || grapple.length > 0) out.modes = parseModes({ ...modes, ...(ride.length === 0 ? {} : { ride }), ...(grapple.length === 0 ? {} : { grapple }) });
     if (scene instanceof Scene) {
@@ -278,6 +295,7 @@ export function readScene(scene: Object3D): SceneDescription {
     }
     if (!finiteData(out))
         throw new Error('Scene description requires finite JSON data');
+    if (out.lights !== undefined) out.lights = parseLightRows(out.lights);
     return out;
 }
 function finiteData(value: unknown): boolean {
