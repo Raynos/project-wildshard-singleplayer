@@ -254,11 +254,12 @@ function importsOf(file, text) {
  *    file not in the checked files (a test's partial map) skips that shard. New shards may omit quest/Places.ts;
  *    a declared list is still fully checked, and the original shards' required lists cannot disappear.
  */
+/** @type {Record<string, {file:string,list:string,optional?:boolean,labels?:boolean,legacyFile?:string}[]>} */
 export const NAMED_PLACES = {
   ...Object.fromEntries(primaryFolders().map((slug) => [slug, [{ file: `src/shards/${slug}/quest/Places.ts`, list: 'PLACES', optional: true }]])),
   'driftwood-isle': [{ file: 'src/shards/driftwood-isle/data/discovery.ts', list: 'DRIFTWOOD_PLACES' }],
   'nalati-grasslands': [{ file: 'src/shards/nalati-grasslands/layout.ts', list: 'pois', labels: true }], // NALATI_PLACES = NALATI_MAP.pois, slugged (src/shards/nalati-grasslands/data/questStory.ts)
-  'pine-hollow': [{ file: 'src/shards/pine-hollow/data/layout.ts', list: 'PINE_HOLLOW_POIS' }, { file: 'src/shards/pine-hollow/world/places.ts', list: 'PINE_HOLLOW_QUEST_PLACES', optional: true }],
+  'pine-hollow': [{ file: 'src/shards/pine-hollow/data/layout.ts', list: 'PINE_HOLLOW_POIS', legacyFile: 'layout.ts' }, { file: 'src/shards/pine-hollow/world/places.ts', list: 'PINE_HOLLOW_QUEST_PLACES', optional: true }],
   'nine-dragon-stack': [{ file: 'src/shards/nine-dragon-stack/places.ts', list: 'NINE_DRAGON_PLACES' }],
 };
 /** the shards whose every named place must have its set (the rest are reported) */
@@ -376,7 +377,14 @@ export function checkModels(files) {
   for (const p of problems) if (PLACES_ENFORCED.includes(p.shard)) violations.push(p.msg);
   // Check each frozen named-place copy independently: a primary's current sets cannot mask a missing frozen set.
   for (const slug of Object.keys(FROZEN.shards)) {
-    const subset = Object.fromEntries(Object.entries(texts).filter(([file]) => file.startsWith(`src/shards/${slug}/`)).map(([file, text]) => [policyPath(file), text]));
+    const primary = FROZEN.shards[slug].primary;
+    const subset = Object.fromEntries(Object.entries(texts).filter(([file]) => file.startsWith(`src/shards/${slug}/`)).map(([file, text]) => {
+      const local = file.slice(`src/shards/${slug}/`.length);
+      const list = NAMED_PLACES[primary]?.find(row => row.legacyFile === local);
+      // Read the frozen source's own list under its defining canonical list key.
+      // Current primary lists/sets never enter this independent frozen scan.
+      return [list?.file ?? policyPath(file), text];
+    }));
     if (Object.keys(subset).length === 0) continue;
     const frozenPlaces = namedPlaceSets(subset, false, strip);
     for (const p of frozenPlaces.problems) if (PLACES_ENFORCED.includes(p.shard)) violations.push(`${slug}: ${p.msg}`);

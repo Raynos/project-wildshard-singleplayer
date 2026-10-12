@@ -59,3 +59,18 @@ describe('every named place is a set (E315 M12)', () => {
     expect(r.placeProblems.some((p) => p.includes("'driftwood-isle/pierr', which is not"))).toBe(true);
   });
 });
+
+
+it('reads the frozen Pine list after its primary moves, without borrowing primary sets', () => {
+  const old = 'src/shards/pine-hollow-legacy/layout.ts';
+  const set = 'src/shards/pine-hollow-legacy/world/gateSet.ts';
+  const list = "export const PINE_HOLLOW_POIS = [{ id: 'gate' }];";
+  const valid = "placeSet({ place: 'pine-hollow/gate' });";
+  const current = 'src/shards/pine-hollow/data/layout.ts';
+  expect(checkModels({ [old]: list, [set]: valid }).violations).toEqual([]);
+  const missing = checkModels({ [old]: list, [current]: list,
+    'src/shards/pine-hollow/world/gateSet.ts': valid });
+  expect(missing.violations.some(problem => problem.includes('pine-hollow-legacy:') && problem.includes("'gate' has no set"))).toBe(true);
+  const unknown = checkModels({ [old]: list, [set]: "placeSet({ place: 'pine-hollow/typo' });" });
+  expect(unknown.violations.some(problem => problem.includes('pine-hollow-legacy:') && problem.includes("'pine-hollow/typo', which is not"))).toBe(true);
+});
