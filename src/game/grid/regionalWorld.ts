@@ -21,7 +21,7 @@
  *   shadow maps, painterly / fog uniforms, volumetric light, engine grade) is held on each entry and put back on leave.
  * - its own sky (`regionSky.ts`, G223 / G232): its level's sky backdrop laid
  *   over the page's one sky by its owner weight, charged under its own `sim-sky:` claim beside the runtime's. A level with
- *   no backdrop and a painted sky (G321 part 5, Debug ▸ Grid cell sky light, default off) lays its standalone sky
+ *   no backdrop and a painted sky (G321 part 5) lays its standalone sky
  *   environment there instead (`SkyRig.layeredEnvironment`: swapped in at half weight, under the same claim).
  * - its own look parts (SF63): its level's grass driver (`LookStrategy.grass`) is bound with its level frame, so its
  *   runtime grows its own grass, never the page look's or the engine carpet reading its splat wrongly; and (G232)
@@ -70,7 +70,6 @@ import type { RegionalRuntimeFoundation, RegionalRuntimeRequest, RegionalRuntime
 import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wholeChainKnobs, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky, type RegionBackdrop } from './regionSky';
-import { setting } from '@wildshard/engine/ui/Settings';
 import { imagesFirstPlayingBytes } from './runtimeCost';
 import { provideRuntimeProduct } from '../shardfile/runtimeProduct';
 
@@ -274,11 +273,11 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
               const outcome = await buildRegionSky<LayerAttachable>({ instance: cell.instance, look, allocator: request.allocator, scope: resident,
                 ...(measured?.residentBaseMB === undefined ? {} : { coveredBy: request.claim.id }), layered: async () => {
                 const make = levelLook?.backdrop;
-                // G321 part 5 (Debug row, default off): a level with no backdrop lights with its painted sky's environment on
+                // G321 part 5: a level with no backdrop lights with its painted sky's environment on
                 // its own page; its cell lays that environment alone, its intensity what its clock writes on its own scene
                 // (seeded with its declared one), so its world is lit as standalone. Everything else stays its world's own.
                 if (make === undefined) {
-                  if (setting('gridSkyEnvironment') !== 'on' || level.sky.painted === undefined) return null;
+                  if (level.sky.painted === undefined) return null;
                   scene.environmentIntensity = level.sky.envIntensity;
                   const env = await sky.layeredEnvironment({ level, scope: resident, intensity: () => scene.environmentIntensity });
                   if (env === null) return null;
