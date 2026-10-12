@@ -53,6 +53,6 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-12 | gate `221a20c3a`: oxlint prefer-template in capture-main-menu-hero | `64c23b133` | `9805aead8` | sp-x7 |
 | 2026-10-12 | push queue stuck on obsolete prefixes (source-fix repairs earned no retry) | `e38a138a1` / `e50a44ceb` | `b0e5804e3` | sp-x7 |
 | 2026-10-12 | gate `221a20c3a`: game-plugin-exports refuses `quest/coinReward`, `shardfile/bossView`, `shardfile/bakedSpecs` | `ff158375e`, `33db1ffb2`, `0ee63c170` | `0d8708dac` (moved under `game/plugin/`) | sp-o16 |
-| 2026-10-12 | Sky canonical run drift: Roc fight ~5.3k ticks longer (21134 → 26469), undetected (ledger asserts only an eventual reward) | `dbcef52f5` (portable maths in recorder/worker; intended; record left stale) | pending: re-record on HEAD (`2c62014c`, also `dd74465a8` wrapper) + full-endpoint guard | sp-x1 |
+| 2026-10-12 | Sky canonical run drift: Roc fight ~5.3k ticks longer (21134 → 26469), undetected (ledger asserts only an eventual reward) | `dbcef52f5` (portable maths in recorder/worker; intended; record left stale) | `f0135d33c` (re-record on 00e7da5fb: 26469 / 26349 / `2c62014c`); full-endpoint guard pending | sp-x1 |
 | 2026-10-12 | push retry refused the real mixed `221a20c3a` log (lint section ran into bake diagnostics) | `b0e5804e3` / old `e38a138a1` lint parser | `1e4406f18` | sp-x7 |
 | 2026-10-12 | gate `221a20c3a`: TASK_CLOCK fixture context | `99b0866c0` | `7e3409bfe` | sp-x1 |
