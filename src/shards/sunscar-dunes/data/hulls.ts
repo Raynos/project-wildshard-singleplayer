@@ -39,26 +39,6 @@ export interface BandSkinRow {
 /** A tint for a hull's painted facets (linear): the back × `top`, the underside lerped to `belly` by `bellyMix`. */
 export interface HullTint { readonly top: readonly [number, number, number]; readonly belly: readonly [number, number, number]; readonly bellyMix: number }
 
-type V3 = readonly [number, number, number];
-
-/** A code-built winged body as rows: the outline's right half (x / z, nose first, x 0 at both ends), mirrored. */
-export interface LoftedBandHullRow {
-  readonly half: readonly (readonly [number, number])[];
-  /** the rim's height: `base` plus `perX` per metre out from the spine */
-  readonly lift: { readonly base: number; readonly perX: number };
-  /** the raised centre the top fans to, and the lower one the belly fans to */
-  readonly top: V3;
-  readonly bottom: V3;
-  /** the back's and the belly's grey, times `tint` per channel (linear) */
-  readonly shade: { readonly top: number; readonly bottom: number; readonly tint: V3 };
-  /** the wing and head bands (as `BandSkinRow`'s) and the z behind which a vertex is wholly tail */
-  readonly wing: HullBand;
-  readonly head: HullBand;
-  readonly tailBehind: number;
-  /** the tail: a three-sided spine from its root's left, right and top corners to the tip */
-  readonly tail: { readonly left: V3; readonly right: V3; readonly up: V3; readonly tip: V3 };
-}
-
 /**
  * The generated strider's hull (C6: Hunyuan3D-2 from `art/sunscar-dunes/round-7-models/ref-strider.jpg`, its head along −X,
  * turned to +Z): 3.6 m nose to tail, hooves at y 0. Facets under half its height ride the leg of their quadrant (each leg
@@ -90,15 +70,3 @@ export const MANTA_HULL: BandSkinRow = { fit: { size: 5.3, by: 'span', floor: 0.
  *  scale, a lighter hide over a pale belly, so it reads against the dusk sky); council round 2: a dark silhouette, not a
  *  pale card. */
 export const RAY_TINT: HullTint = { top: [0.62, 0.52, 0.5], belly: [0.42, 0.3, 0.24], bellyMix: 0.7 };
-
-/**
- * The code ray (the stand-in while the generated manta is missing, and the Model Explorer's dune ray): a flat manta with
- * a raised back, cephalic lobes and a long whip tail, a near-black back over a dark grey belly, skinned to the ray's five
- * bones with the generated body's wing and head bands; its whip tail a thin three-sided spine 2.2 m behind the body.
- */
-export const RAY_CODE_HULL: LoftedBandHullRow = {
-  half: [[0, 1.45], [0.35, 1.78], [0.62, 1.3], [1.6, 0.62], [2.65, -0.15], [1.45, -0.6], [0.42, -1.0], [0, -1.08]],
-  lift: { base: 0.3, perX: 0.06 }, top: [0, 0.58, 0.15], bottom: [0, 0.12, 0.15], shade: { top: 0.07, bottom: 0.16, tint: [1.1, 0.85, 1] },
-  wing: { from: 0.5, over: 1.6 }, head: { from: 1.0, over: 0.6 }, tailBehind: -1.05,
-  tail: { left: [-0.07, 0.3, -1.0], right: [0.07, 0.3, -1.0], up: [0, 0.4, -1.0], tip: [0, 0.32, -3.2] },
-};

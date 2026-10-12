@@ -10,17 +10,15 @@
  * - `bandSkin`: a flat winged body (a ray, a manta) skinned per vertex with smooth bands, so a shared corner never splits:
  *   the wings by |x|, the head forward of an edge, the tail behind one, the body the rest (bones body, head, left / right
  *   wing, tail); optionally tinted, the back by a factor and the underside toward a belly colour.
- * - `loftedBandHull`: the code stand-in for such a body: a mirrored outline lofted to a raised centre on top and a lower
- *   one beneath (a dark back over a paler belly), a thin three-sided spine tail, band-skinned the same way.
  * - `quadrupedLook`: a species look on a fitted four-legged hull: its rig contract, clips and dims as rows.
  */
-import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 'three';
+import { Float32BufferAttribute, Uint16BufferAttribute, type BufferGeometry } from 'three';
 import type { ClipName, SocketName } from '@wildshard/engine/anim/rig';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { bindRigid, fitGeometry, undrawnRig } from '@wildshard/game/plugin/geometry';
 import { clipAnimate, type SpeciesClips } from '@wildshard/game/plugin/animation';
-import type { BandSkinRow, HullBone, HullTint, LoftedBandHullRow, QuadrupedHullRow } from '../../data/hulls';
+import type { BandSkinRow, HullBone, HullTint, QuadrupedHullRow } from '../../data/hulls';
 
 /** A fitted hull: its skeleton, its skinned geometry and its height. */
 export interface FittedHull { bones: HullBone[]; geometry: BufferGeometry; h: number }
@@ -72,36 +70,6 @@ export function bandSkin(source: BufferGeometry, row: BandSkinRow, tint: HullTin
     col.needsUpdate = true;
   }
   return g;
-}
-
-type V3 = readonly [number, number, number];
-
-/** A code-built winged body lofted and band-skinned from its rows (bones body, head, left / right wing, tail). */
-export function loftedBandHull(row: LoftedBandHullRow): BufferGeometry {
-  const half = row.half, outline: (readonly [number, number])[] = [...half, ...half.slice(1, -1).reverse().map(([x, z]): [number, number] => [-x, z])];
-  const lift = (x: number): number => row.lift.base + Math.abs(x) * row.lift.perX;
-  const pos: number[] = [], col: number[] = [], idx: number[] = [], wts: number[] = [], [tr, tg, tb] = row.shade.tint;
-  const push = (x: number, y: number, z: number, top: boolean): void => {
-    pos.push(x, y, z); const shade = top ? row.shade.top : row.shade.bottom; col.push(shade * tr, shade * tg, shade * tb);
-    const wing = smooth((Math.abs(x) - row.wing.from) / row.wing.over), tail = z < row.tailBehind ? 1 : 0, head = smooth((z - row.head.from) / row.head.over) * (1 - wing);
-    const body = Math.max(0, 1 - wing - tail - head);
-    idx.push(0, 1, x < 0 ? 2 : 3, 4); wts.push(body, head, tail ? 0 : wing, tail);
-  };
-  const tri = (a: V3, b: V3, c: V3, top: boolean): void => { push(...a, top); push(...b, top); push(...c, top); };
-  for (let i = 0; i < outline.length; i++) {
-    const p = outline[i], q = outline[(i + 1) % outline.length]; if (p === undefined || q === undefined) continue;
-    const pa: V3 = [p[0], lift(p[0]), p[1]], qa: V3 = [q[0], lift(q[0]), q[1]];
-    tri(row.top, pa, qa, true); tri(row.bottom, qa, pa, false);
-  }
-  const { left, right, up, tip } = row.tail;
-  tri(left, up, tip, true); tri(up, right, tip, true); tri(right, left, tip, false);
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new Float32BufferAttribute(pos, 3));
-  geometry.setAttribute('color', new Float32BufferAttribute(col, 3));
-  geometry.setAttribute('skinIndex', new Uint16BufferAttribute(new Uint16Array(idx), 4));
-  geometry.setAttribute('skinWeight', new Float32BufferAttribute(wts, 4));
-  geometry.computeVertexNormals();
-  return geometry;
 }
 
 /** A four-legged hull's species look as rows: its ids, rig contract and dims (`bodyY` and `legLen` as shares of the hull's height). */

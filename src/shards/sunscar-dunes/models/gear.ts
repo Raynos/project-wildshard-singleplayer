@@ -1,12 +1,13 @@
 import { defineModel } from '@wildshard/engine/models/model';
-import { Group, Mesh, MeshStandardMaterial } from 'three';
+import { Group, Mesh, MeshStandardMaterial, type BufferGeometry } from 'three';
 import { buildWhipModel } from '../weapons/whipModel';
 import { buildTower } from '../world/tower';
 import { lastBakedWorld } from '../world/baked';
 import { buildBrazier, buildCaravan, buildWell } from '../world/places';
 import { skittererBody } from '../species/skitterer';
 import { striderSpecimen } from '../species/strider';
-import { rayGeometry } from '../species/duneRay';
+import { mantaBody } from '../species/duneRay';
+import { RAY_TINT } from '../data/hulls';
 import { matriarchBody } from '../species/matriarch';
 import { pivotNpcParts } from '../runtime/quest/pivotNpc';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
@@ -27,9 +28,7 @@ export const towerModel = defineModel({ id: 'sunscar-dunes/signal-tower', name: 
     const parts = buildTower(lastBakedWorld() ?? new Map()), group = new Group();
     parts.root.position.set(-TOWER.x, TOWER.deck - parts.deckY, -TOWER.z); parts.fire.visible = true; group.add(parts.root); return group;
   } });
-export const rayModel = defineModel({ id: 'sunscar-dunes/dune-ray', name: STRINGS.ray, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
-  build: () => new Mesh(rayGeometry(), new MeshStandardMaterial({ vertexColors: true, roughness: 0.8, flatShading: true })) });
-const creature = (geometry: ReturnType<typeof rayGeometry>, scale = 1): Mesh => {
+const creature = (geometry: BufferGeometry, scale = 1): Mesh => {
   const mesh = new Mesh(geometry, new MeshStandardMaterial({ vertexColors: true, roughness: 0.8, flatShading: true })); mesh.scale.setScalar(scale); return mesh;
 };
 /** A world place from its bake moved to the origin, its ground there (flat under its live parts). */
@@ -44,12 +43,15 @@ export const brazierModel = defineModel({ id: 'sunscar-dunes/waymark-brazier', n
     const parts = buildBrazier(0, () => brazierY); parts.fire.visible = true; parts.oil.visible = true;
     return centred(parts.root, BRAZIERS[0]?.x ?? 0, brazierY, BRAZIERS[0]?.z ?? 0);
   } });
+/** The dune ray: the generated manta in its tint, as it flies (species/duneRay.ts). */
+export const rayModel = defineModel({ id: 'sunscar-dunes/dune-ray', name: STRINGS.ray, category: 'creatures', pipeline: ['hunyuan'], file: FILE, defaults: {},
+  build: () => creature(mantaBody(RAY_TINT)) });
 export const skittererModel = defineModel({ id: 'sunscar-dunes/sand-skitterer', name: STRINGS.skitterer, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
   build: () => creature(skittererBody()) });
 export const striderModel = defineModel({ id: 'sunscar-dunes/dune-strider', name: STRINGS.strider, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
   build: () => creature(striderSpecimen()) });
 export const matriarchModel = defineModel({ id: 'sunscar-dunes/dune-matriarch', name: STRINGS.matriarch, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
-  build: () => creature(matriarchBody() ?? rayGeometry(), 3.6) });
+  build: () => creature(matriarchBody(), 3.6) });
 /** Sefa, the caravan scout who gives the quest (loop 2): the generated figure at her own origin. */
 export const scoutModel = defineModel({ id: 'sunscar-dunes/caravan-scout', name: STRINGS.scoutName, category: 'people', pipeline: ['hunyuan'], file: FILE, defaults: {},
   build: () => { const source = duneMesh(SCOUT_MODEL); return source === null ? new Group() : pivotNpcParts(SCOUT_NPC, source).root; } });
