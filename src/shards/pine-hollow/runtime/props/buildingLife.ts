@@ -146,7 +146,12 @@ export class BuildingLife {
           this.fires.push({ light, base: a.intensity, seed: a.seed, kind: a.kind });
         });
       }
-      this.sharedLights.forEach((light, i) => { const a = this.order[i]; if (a) a.anchor.getWorldPosition(light.position); });
+      // the pool's group sits at its scene's origin, which a grid region offsets: place each light in its parent's frame
+      // (a pool holds a handful of lights; 8 bounds the loop)
+      for (let i = 0; i < Math.min(this.sharedLights.length, 8); i++) {
+        const light = this.sharedLights[i], a = this.order[i];
+        if (light !== undefined && a !== undefined) { a.anchor.getWorldPosition(light.position); light.parent?.worldToLocal(light.position); }
+      }
     }
     for (const d of this.doors) {
       const target = d.open ? 1 : 0;

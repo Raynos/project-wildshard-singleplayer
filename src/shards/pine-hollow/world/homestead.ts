@@ -31,7 +31,7 @@ import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinG
  * building where it stands, `place` merges and welds them and drops their detail with distance,
  * src/shards/pine-hollow/world/cabins.ts).
  *
- *   const cabins = new Cabins(sky);
+ *   const cabins = new Cabins(sky, game.scene);
  *   const { group, interactables } = await cabins.build();     // every building built where it stands, one per task
  *   scene.add(group);
  *   await placeCabins({ cabins, sky, registry, scope: ctx.scope });              // their models placed: drawn, registered
@@ -197,10 +197,18 @@ export class Cabins extends BuildingLife implements BuildingOwner {
   /** what the buildings were built from: kept for the Model Explorer's specimens */
   private loaded: { mats: Mats; props: Record<PropKind, PropPart[]>; firePit: THREE.Object3D; lantern: THREE.Object3D; geometries: CabinGeometries } | null = null;
   private readonly sky: Sky;
+  /** the content scene the phone's shared cabin lights join (`game.scene`: a grid region's parked frame) */
+  private readonly lightScene: THREE.Scene;
 
-  constructor(sky: Sky) {
+  /**
+   * `lightScene` is the scene the homestead's content goes in (`game.scene`), never the page's root: a light added to
+   * the live root while a region builds changes every visible program's light count (sp-o6: nine programs relinked in one
+   * 162 ms Simulator frame of Pine's `world` hook). In the parked frame the lights are future lights the entry warms.
+   */
+  constructor(sky: Sky, lightScene: THREE.Scene) {
     super(CABIN_LIFE);
     this.sky = sky;
+    this.lightScene = lightScene;
   }
 
   /** what the buildings were built from (their materials, the props' scans, the fire pit and the lantern, the bake); null before `build` */
@@ -232,7 +240,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
     this._lamp(mats.glass, mats.glass.emissiveIntensity);
     // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
     // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)
-    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < SHARED_CABIN_LIGHTS; k++) this.addSharedLight(LightPool.for(this.sky.sceneRoot).acquire(0xffa050, 0, 10, 2));
+    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < SHARED_CABIN_LIGHTS; k++) this.addSharedLight(LightPool.for(this.lightScene).acquire(0xffa050, 0, 10, 2));
     if (geometries === null) return { group: this.group, colliders: this.colliders, interactables: this.interactables };
     this.loaded = { mats, props, firePit: firePitGltf.scene, lantern: lanternGltf.scene, geometries };
     const models = { firePit: firePitGltf.scene, lantern: lanternGltf.scene };

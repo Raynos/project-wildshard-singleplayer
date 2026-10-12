@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MeshStandardMaterial } from 'three';
+import { MeshStandardMaterial, Scene } from 'three';
 import { Scope } from '../../../src/engine/app/scope';
 import { modelContext } from '../../../src/engine/models/model';
 import { Cabins } from '../../../src/shards/pine-hollow/world/homestead';
@@ -17,7 +17,7 @@ function cabinContext(): ReturnType<typeof modelContext> {
 describe('Pine homestead construction binding', () => {
   it('survives resource retirement until the actual construction owner leaves', () => {
     const ctx = cabinContext(), sky = ctx.sky, owner = new Scope('pine-entry');
-    const cabins = new Cabins(sky), lamp = new MeshStandardMaterial();
+    const cabins = new Cabins(sky, new Scene()), lamp = new MeshStandardMaterial();
     cabins._lamp(lamp, 1);
     // The former binding traversed Cabins' material containers and vanished on disposal.
     ctx.once('old-cabins-binding', () => cabins);
@@ -33,7 +33,7 @@ describe('Pine homestead construction binding', () => {
   it('binds fresh homes across three entries with the same regional sky', () => {
     const ctx = cabinContext(), sky = ctx.sky;
     for (let entry = 0; entry < 3; entry++) {
-      const owner = new Scope(`pine-entry-${String(entry)}`), cabins = new Cabins(sky);
+      const owner = new Scope(`pine-entry-${String(entry)}`), cabins = new Cabins(sky, new Scene());
       useCabins(ctx, cabins, owner);
       expect(cabinsOf(ctx)).toBe(cabins);
       const joined = { sky, renderer: ctx.renderer, once: ctx.once };
@@ -46,7 +46,7 @@ describe('Pine homestead construction binding', () => {
   it('does not let an older owner remove a replacement binding', () => {
     const ctx = cabinContext(), sky = ctx.sky;
     const oldOwner = new Scope('old-home'), nextOwner = new Scope('fresh-home');
-    const oldCabins = new Cabins(sky), nextCabins = new Cabins(sky);
+    const oldCabins = new Cabins(sky, new Scene()), nextCabins = new Cabins(sky, new Scene());
     useCabins(ctx, oldCabins, oldOwner);
     useCabins(ctx, nextCabins, nextOwner);
     oldOwner.dispose();

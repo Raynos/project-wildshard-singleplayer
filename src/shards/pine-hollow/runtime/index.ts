@@ -96,9 +96,9 @@ export class PineHollow extends ShardPlugin {
     this.particles = carpet.particles;
     rt.overhead.push(carpet.grass.group, carpet.under.group, carpet.particles.group);
     await step('cabins', async () => {
-      const cabins = new Cabins(sky);
+      const content = game.scene, cabins = new Cabins(sky, content);
       const built = await cabins.build();
-      game.scene.add(built.group);
+      content.add(built.group);
       rt.interactables.push(...built.interactables);
       await placeCabins({ cabins, sky, registry, scope: ctx.scope });
       const at = new THREE.Vector3();
