@@ -208,7 +208,7 @@ function sample(n, timeline = false) {
   return new Promise((resolve, reject) => {
     const interval = [], longAt = [], glAt = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [], cpuOwners = new Map();
     const timelineFrames = [], timelineLimit = 8000;
-    let idleChecks = 0, checkedAt = -1;
+    let idleChecks = 0, checkedAt = -1, glPrevious = null;
     const finished = () => {
       if (!whole) return interval.length >= n;
       if (window.__frameFloorDriveDone !== true || interval.length === checkedAt || interval.length % 30 !== 0) return false;
@@ -226,10 +226,13 @@ function sample(n, timeline = false) {
       if (g.frameCount !== count) {
         // Only the whole drive drains GL counters: the simultaneous short sampler must not steal calls.
         const delta = g.frameCount - count, glFrame = whole ? window.__frameFloorGlTake?.() ?? null : null;
+        // GL is taken at the END of each interval; a long interval's own cause is usually the frame drawn at its START
+        // (its render ran before the next vsync could come), so a long frame also keeps that start frame's take.
+        const glStart = glPrevious; glPrevious = glFrame;
         if (glFrame !== null && !first && glAt.length < 8000) glAt.push([Math.round(last), glFrame]);
         if (!first) {
           // rAF's shared vsync timestamp grades drawn cadence; callback time also includes preceding game work.
-          interval.push(timestamp - last); if (timestamp - last > 50 && longAt.length < 400) longAt.push(glFrame === null ? [Math.round(last), Math.round(timestamp - last)] : [Math.round(last), Math.round(timestamp - last), glFrame]); callbackInterval.push(now - lastCallback); skipped += Math.max(0, delta - 1);
+          interval.push(timestamp - last); if (timestamp - last > 50 && longAt.length < 400) longAt.push(glFrame === null ? [Math.round(last), Math.round(timestamp - last)] : [Math.round(last), Math.round(timestamp - last), glFrame, glStart ?? {}]); callbackInterval.push(now - lastCallback); skipped += Math.max(0, delta - 1);
           const i = (g.frameI + g.frameMs.length - 1) % g.frameMs.length;
           ring.push(g.frameMs[i]); work.push(g.workMs[i]); calls.push(g.lastFrame.calls); triangles.push(g.lastFrame.triangles);
           if (timeline && timelineFrames.length < timelineLimit) timelineFrames.push({
@@ -509,15 +512,17 @@ async function measureShard(driver, shard, deadline) {
  *  on either surface, with no profiler running. */
 function longFrameHooks(at, completed) {
   const out = new Map();
-  for (const [start, ms, gl] of at ?? []) {
+  for (const [start, ms, gl, glStart] of at ?? []) {
     const hit = completed.find((t) => start < t.end && start + ms > t.start);
     const key = hit === undefined ? 'between hooks' : `${hit.instance}:${hit.hook}`;
-    const row = out.get(key) ?? { hook: key, frames: 0, maxMs: 0, totalMs: 0, gl: {} };
+    const row = out.get(key) ?? { hook: key, frames: 0, maxMs: 0, totalMs: 0, gl: {}, glStart: {} };
     row.frames++; row.maxMs = Math.max(row.maxMs, ms); row.totalMs += ms; out.set(key, row);
     // --gl-time: [ms, calls] per WebGL method in those frames
     for (const [method, [glMs, calls]] of Object.entries(gl ?? {})) { const sum = row.gl[method] ?? [0, 0]; row.gl[method] = [Math.round((sum[0] + glMs) * 10) / 10, sum[1] + calls]; }
+    // glStart: the take of the frame drawn at the interval's start (its render delayed this interval's end)
+    for (const [method, [glMs, calls]] of Object.entries(glStart ?? {})) { const sum = row.glStart[method] ?? [0, 0]; row.glStart[method] = [Math.round((sum[0] + glMs) * 10) / 10, sum[1] + calls]; }
   }
-  return [...out.values()].sort((a, b) => b.totalMs - a.totalMs).map((row) => Object.assign(row, { gl: Object.fromEntries(Object.entries(row.gl).sort((a, b) => b[1][0] - a[1][0]).slice(0, 8)) }));
+  return [...out.values()].sort((a, b) => b.totalMs - a.totalMs).map((row) => Object.assign(row, { gl: Object.fromEntries(Object.entries(row.gl).sort((a, b) => b[1][0] - a[1][0]).slice(0, 8)), glStart: Object.fromEntries(Object.entries(row.glStart).sort((a, b) => b[1][0] - a[1][0]).slice(0, 8)) }));
 }
 /** The preview's hidden source maps for every script the profile sampled, saved beside it (`<dir>/maps/<file>.map`): the
  *  preview build is deleted when the run ends, and the summary's frames are minified. */
