@@ -3,9 +3,14 @@ import type { FilesSchema } from './shardSections';
 import type { CommonsCosts } from './commonsCosts';
 import { isJsonData } from './json';
 
-/** Initial G342 presentation limits; content may rise only with a reviewed measured budget. */
-export const NEAR_PLACEHOLDER_LIMITS = Object.freeze({ terrainBytes: 1_000_000, contentBytes: 2_000_000,
-  cells: 4, residentBytes: 12_000_000, terrainFiles: 16, contentFiles: 32 });
+/**
+ * G342 presentation limits, raised to the measured bakes (2026-10-12, `scripts/bake/near-placeholder.mjs`): a cell's
+ * L1-density terrain is 0.77 MB resident and its terrain plus low-LOD world 4.3–5.9 MB (Pine's forest of stand-in trees
+ * the most), under the bake's 6 MB per-cell ceiling (`NEAR_BAKE.residentBytes`); four cells at most, 24 MB in all on
+ * the near residency line inside the 1.0 GB Explorer envelope. Content may rise again only with a measured budget.
+ */
+export const NEAR_PLACEHOLDER_LIMITS = Object.freeze({ terrainBytes: 1_000_000, contentBytes: 5_000_000,
+  cells: 4, residentBytes: 24_000_000, terrainFiles: 16, contentFiles: 32 });
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const address = v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(3));
 /** Visual L1 terrain and optional authored low-LOD meshes; never simulation or collider roots. */

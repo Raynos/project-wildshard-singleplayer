@@ -16,7 +16,7 @@ import { installFarProxy, type FarPrepared, type FarProxyView } from './farView'
 import { planNearPlaceholders, type NearCrossroads } from './nearPlaceholderPlan';
 
 /** The bake's budget (measured, G342): L1-density terrain, a content triangle budget and the per-cell resident ceiling. */
-export const NEAR_BAKE = { quads: 16, contentTriangles: 42_000, triangles: 64_000, residentBytes: 5_000_000 } as const;
+export const NEAR_BAKE = { quads: 16, contentTriangles: 42_000, triangles: 64_000, residentBytes: 6_000_000 } as const;
 
 /** What the owner needs from the grid session. */
 export interface NearPlaceholderHost {
