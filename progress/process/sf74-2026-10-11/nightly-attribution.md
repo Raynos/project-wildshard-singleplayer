@@ -51,3 +51,28 @@ are not Nine's CueBank, parent scope status does not prove child scope
 status, and inspection must not construct audio graphs or draw RNG.
 Push CI and exact boot smoke on 92c179a167 are green; this older GPU
 parity run remains red and holds no release under newest-ci-green.
+
+The harness diagnostic follow-up copies existing readiness, mixer key
+counts, music state, parent scope counts, clock, named RNG state and
+the last 16 audio-log entries at boot and walk/combat boundaries. It
+does not unlock, play a sample, drain sound counters, create streams or
+read getters that build graphs. Its sidecar stays outside raw/compared
+baseline fields, retains at most two runs and four boundaries, and
+refuses output beyond 64 KiB. It is emitted only for a final red and
+removed after a green. Unsupported historical reads produce a bounded
+unavailable note, preserving the original comparison verdict.
+
+The diagnostic explicitly cannot observe CueBank, exact child scope,
+AudioContext running state, scheduler due times, Math.random or Pine's
+local RNG. Those remain further evidence requirements. Pure fixtures
+prove serialized-page execution, forbidden getter/RNG/counter access,
+bounded copies and output, unchanged report values and green cleanup.
+No new browser capture or GPU-green claim accompanies this slice.
+
+Validation: the diagnostic and existing probe-adapter suites pass all
+five tests in 1.50 seconds. Scripts strict checking, the fixture's strict
+checking and touched type-aware lint pass. The immutable candidate
+export also passes ordinary generation and the tooling path check;
+its missing author JSON is produced by the registered jobs and matches
+the catalogue's pinned SHA256 bytes. No shared generated file is copied
+back or committed.

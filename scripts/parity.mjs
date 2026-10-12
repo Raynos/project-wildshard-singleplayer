@@ -23,6 +23,7 @@ import { fastSelection, nextRotation } from './parity/profile.mjs';
 import { budgetLines, budgetViews } from './parity/budgets.mjs';
 import { waitForToastIdle } from './parity/hud.mjs';
 import { telemetryFixtureAccepts } from './parity/telemetry.mjs';
+import { sampleAudioBoundary, rememberAudioBoundary, publishAudioDiagnostics } from './parity/audio-diagnostics.mjs';
 
 /** @typedef {import('./parity/value.mjs').RecordValue} RecordValue */
 const ROOT=resolve(import.meta.dirname,'..');
@@ -93,6 +94,10 @@ export async function capture(browser,url,opts) {
     if(!boot)return {boot:{shard:opts.shard,tier:opts.tier,lane:opts.lane,errors:errors.length > 0?errors:['boot did not install probe'],renderer:'ANGLE (Apple, ANGLE Metal Renderer',scene:{totals:{batched:0}}}};
     boot.errors=[...new Set([...boot.errors,...errors])];
     /** @type {RecordValue} */const result={boot:object(boot)};
+    const observeAudio = async(/** @type {string} */ boundary) => {
+      try { rememberAudioBoundary(result,boundary,await page.evaluate(sampleAudioBoundary)); }
+      catch(error) { rememberAudioBoundary(result,boundary,{unavailable:(error instanceof Error?error.message:String(error)).slice(0,200)}); }
+    };
     if(errors.length > 0)return result;
     await page.waitForFunction(()=>!document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
     boot.hud=await within(page.evaluate(waitForToastIdle,opts.tier==='desktop'?60:30),11_000,'startup toast idle');
@@ -112,6 +117,7 @@ export async function capture(browser,url,opts) {
       result.debugSettings=Object.fromEntries(Object.keys(opts.settings).map((key)=>[key,observed[key]]));
     }
     mark('bootMs');
+    await observeAudio('boot');
     if(opts.offline){offlineStep='explore';await page.evaluate(()=>window.__wildshard.requireWorld().hud.startExplore());await page.locator('.ws-x').waitFor({state:'visible'});result.offline={title:true,play:true,explore:true};object(result.boot).errors=[...new Set([...boot.errors,...errors])];return result;}
     if(opts.only!=='walk+combat+leak'){console.error(`parity: ${opts.shard}.${opts.tier} poses`);result.poses=await within(poses(page,opts),opts.timeout*1000,'poses');mark('posesMs');}
     const hasBudgets=await page.evaluate(()=>Object.hasOwn(window.__wildshard,'budgets'));
@@ -120,9 +126,12 @@ export async function capture(browser,url,opts) {
     for(const [name,observed] of Object.entries(extra))object(object(result.budgets)[name]).observed=object(observed);
     writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.partial.json`),JSON.stringify(result,null,2));
     if(opts.only!=='fingerprint+poses') {
+      await observeAudio('before-walk');
       console.error(`parity: ${opts.shard}.${opts.tier} walk`);result.walk=object(await walk(page,opts));mark('walkMs');
+      await observeAudio('after-walk');
       writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.partial.json`),JSON.stringify(result,null,2));
       console.error(`parity: ${opts.shard}.${opts.tier} combat`);result.combat=await within(combat(page,opts),opts.timeout*1000,'combat');mark('combatMs');
+      await observeAudio('after-combat');
       console.error(`parity: ${opts.shard}.${opts.tier} pause/resume`);result.pauseResume=object(await within(pauseResume(page,opts.tier),opts.timeout*1000,'pause/resume'));mark('pauseResumeMs');
       result.leak=object(await page.evaluate(()=>window.__wildshard.leak()));mark('leakMs');
     }
@@ -249,6 +258,7 @@ async function main(opts) {
     const browser=await pool.browser(0),scoreContext=await browser.newContext(),scorePage=await scoreContext.newPage();
     try {for(const [index,{shard,tier,isRecord}] of pairs.entries()){
       const rawRuns=captures.filter((r)=>r.index===index).map((r)=>r.captured);
+      const audioRuns=[...rawRuns];
       const baselineFile=join(fixtureRoot,`test/parity/baselines/${lane}/${shard}.${tier}.json`),baseline=object(readJson(baselineFile));
       const current=isRecord?await aggregate(scorePage,rawRuns,{sha,browser:browser.version()}):rawRuns[0]??{};
       const ignore=opts.only==='fingerprint+poses'?['walk','combat','pauseResume','leak']:opts.only==='walk+combat+leak'?['poses']:[];
@@ -264,11 +274,12 @@ async function main(opts) {
       let checked=opts.offline?compareOffline(currentNormalized):compare(isRecord&&!opts.accept?{}:baseline,currentNormalized,options);
       if(isRecord&&!opts.accept)for(const r of rawRuns){const consistency=compare(current,normalize(r),{...options,renames:[],ignore:[...ignore,...Object.keys(flatten(current)).filter((p)=>p.endsWith('.ssim'))]});if(consistency.verdict==='red')checked=consistency;}
       if(isRecord&&opts.accept)for(const r of rawRuns){const normalized=normalize(r);await scorePoses(normalized);const consistency=compare(baseline,normalized,options);if(consistency.verdict==='red')checked=consistency;}
-      if(!isRecord&&checked.verdict==='red'&&retry){const firstRed=checked.rows.filter((r)=>r.verdict==='red').map((r)=>r.field),dir=join(out,'retry');mkdirSync(dir,{recursive:true});const again=normalize(await capture(browser,url,{shard,tier,lane,sha,root,out:dir,timeout,full:Boolean(opts.full),only:opts.only,offline:Boolean(opts.offline),fast:Boolean(opts.fast),accelerated}));if(again.leak&&['pine-hollow','nalati-grasslands'].includes(shard)){const weather=await weatherLeak(browser,url,{shard,tier,lane,sha,timeout,accelerated});object(again.leak).weather=object(weather);}if(!opts.offline)await scorePoses(again);const retried=opts.offline?compareOffline(again):compare(baseline,again,options);checked=retried;currentNormalized=again;if(retried.verdict!=='red')currentNormalized.flaked=firstRed;}
+      if(!isRecord&&checked.verdict==='red'&&retry){const firstRed=checked.rows.filter((r)=>r.verdict==='red').map((r)=>r.field),dir=join(out,'retry');mkdirSync(dir,{recursive:true});const recaptured=object(await capture(browser,url,{shard,tier,lane,sha,root,out:dir,timeout,full:Boolean(opts.full),only:opts.only,offline:Boolean(opts.offline),fast:Boolean(opts.fast),accelerated}));audioRuns.push(recaptured);const again=normalize(recaptured);if(again.leak&&['pine-hollow','nalati-grasslands'].includes(shard)){const weather=await weatherLeak(browser,url,{shard,tier,lane,sha,timeout,accelerated});object(again.leak).weather=object(weather);}if(!opts.offline)await scorePoses(again);const retried=opts.offline?compareOffline(again):compare(baseline,again,options);checked=retried;currentNormalized=again;if(retried.verdict!=='red')currentNormalized.flaked=firstRed;}
       for(const reason of failureReasons(checked))console.error(`parity: ${shard}.${tier}${opts.offline?' offline':''} red: ${reason}`);
       currentNormalized.verdict=checked.verdict;currentNormalized.fields=checked.rows.map((r)=>object(r));reports.push(currentNormalized);
       for(const [name,p] of Object.entries(object(currentNormalized.poses)))if(existsSync(string(object(p).shot)))copyFileSync(string(object(p).shot),join(out,`${shard}.${tier}.${name}.jpg`));
       writeFileSync(join(out,`${shard}.${tier}.json`),`${JSON.stringify(currentNormalized,null,2)}\n`);report(reports,sha,out,Boolean(opts.ms));
+      publishAudioDiagnostics(join(out,`${shard}.${tier}.audio-diagnostics.json`),audioRuns,checked.verdict==='red');
       if(isRecord)writes.push({shard,tier,baseline:opts.accept?acceptFields(baselineNormalized,current,fields):current,fields:opts.accept?fields:undefined});
       if(opts['pending-fill'])for(const entry of selected.filter((p)=>p.shard===shard)){if(array(entry.fields).every((p)=>string(p).startsWith('memory.')))continue;const expect=object(entry.expect);for(const field of array(entry.fields).map(string))for(const [path,val]of Object.entries(flatten(currentNormalized)))if(matches(field,path)&&val!==undefined)expect[`${tier}/${path}`]=val;entry.expect=expect;}
     }
