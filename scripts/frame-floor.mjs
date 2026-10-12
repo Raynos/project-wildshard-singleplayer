@@ -75,6 +75,9 @@ if (safariProfileDir !== '' && (surface !== 'sim' || gridScenario === 'baseline'
 // op-hitch32: an image upload of 3 ms or more also counts under `slow <call> <source type> <width>x<height>` (a typed
 // array's byte length in place of the width), so a long upload frame names what it uploaded.
 const glTime = args.includes('--gl-time');
+// Optional bounded clock/ring reads, without wrapping rAF or changing the frame gate.
+// A sampler callback is not an entire rAF batch: its delay cannot partition tasks, idle or GPU waits.
+const frameTimeline = args.includes('--frame-timeline');
 if (glTime && gridScenario === 'baseline') throw new Error('--gl-time attributes grid drive long frames only');
 const GL_TIMED = ['texImage2D', 'texSubImage2D', 'texImage3D', 'texSubImage3D', 'compressedTexImage2D', 'compressedTexSubImage2D', 'compressedTexImage3D', 'compressedTexSubImage3D', 'texStorage2D', 'texStorage3D', 'copyTexSubImage3D', 'generateMipmap', 'compileShader', 'linkProgram', 'getProgramParameter', 'getShaderParameter', 'getProgramInfoLog', 'getShaderInfoLog', 'getUniformLocation', 'getActiveUniform', 'getActiveAttrib', 'bufferData', 'bufferSubData', 'readPixels', 'getBufferSubData', 'getError', 'getParameter', 'checkFramebufferStatus', 'finish', 'clientWaitSync', 'drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced', 'clear', 'blitFramebuffer', 'invalidateFramebuffer'];
 const GL_TIME_SCRIPT = !glTime ? '' : `${PROGRAM_NAMES_SCRIPT}(()=>{const W=window;if(typeof W.__frameFloorGlTake==='function')return;const acc=new Map();W.__frameFloorGlTake=()=>{if(acc.size===0)return null;const o={};for(const[k,v]of acc)o[k]=[Math.round(v[0]*10)/10,v[1]];acc.clear();return o;};for(const C of[W.WebGLRenderingContext,W.WebGL2RenderingContext]){if(!C)continue;const p=C.prototype;for(const n of ${JSON.stringify(GL_TIMED)}){const f=p[n];if(typeof f!=='function'||f.__ffTimed)continue;const up=/^tex(Sub)?Image[23]D$/.test(n);const w=function(...a){const t=performance.now();try{return f.apply(this,a);}finally{const d=performance.now()-t,e=acc.get(n);if(e){e[0]+=d;e[1]++;}else acc.set(n,[d,1]);if(d>=3&&/^getProgram/.test(n)){const k='slow '+n+' '+W.__frameFloorProgramName(a[0]),g=acc.get(k);if(g){g[0]+=d;g[1]++;}else acc.set(k,[d,1]);}if(up&&d>=3){const s=a[a.length-1],x=s&&typeof s==='object'?(s.naturalWidth||s.width||s.byteLength||0)+'x'+(s.naturalHeight||s.height||0):'null',k='slow '+n+' '+(s&&s.constructor?s.constructor.name:'?')+' '+x,g=acc.get(k);if(g){g[0]+=d;g[1]++;}else acc.set(k,[d,1]);}}};w.__ffTimed=true;p[n]=w;}}})();`;
@@ -90,7 +93,7 @@ if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'mil
 if (publicGrid && gridScenario === 'milestone') throw new Error('Milestone floor requires Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--gl-time] [--scratch-dir=<owned workspace>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--gl-time] [--frame-timeline] [--scratch-dir=<owned workspace>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -189,13 +192,14 @@ async function cameras() {
 }
 /** `n` drawn frames; n = 0: every frame until `window.__frameFloorDriveDone` is set and no runtime hook is running
  *  (the whole drive, then whatever its cells still build after it: Pine's afterKit outlived the 120-frame travel row). */
-function sample(n) {
+function sample(n, timeline = false) {
   const g = window.__wildshard.world.game, meter = g.app?.cpu;
   const whole = n === 0;
   if (!meter) return Promise.reject(new Error('Content CPU meter unavailable; use an SF62-capable pin'));
   meter.enabled = true;
   return new Promise((resolve, reject) => {
     const interval = [], longAt = [], glAt = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [], cpuOwners = new Map();
+    const timelineFrames = [], timelineLimit = 8000;
     let idleChecks = 0, checkedAt = -1;
     const finished = () => {
       if (!whole) return interval.length >= n;
@@ -219,6 +223,12 @@ function sample(n) {
           interval.push(timestamp - last); if (timestamp - last > 50 && longAt.length < 400) longAt.push(glFrame === null ? [Math.round(last), Math.round(timestamp - last)] : [Math.round(last), Math.round(timestamp - last), glFrame]); callbackInterval.push(now - lastCallback); skipped += Math.max(0, delta - 1);
           const i = (g.frameI + g.frameMs.length - 1) % g.frameMs.length;
           ring.push(g.frameMs[i]); work.push(g.workMs[i]); calls.push(g.lastFrame.calls); triangles.push(g.lastFrame.triangles);
+          if (timeline && timelineFrames.length < timelineLimit) timelineFrames.push({
+            startMs: last, endMs: timestamp, intervalMs: timestamp - last,
+            callbackAtMs: now, callbackDelayMs: now - timestamp, callbackIntervalMs: now - lastCallback,
+            gameRafMs: g.frameRafTime, frameDelta: delta,
+            updateMs: g.updateMs[i], renderMs: g.renderMs[i], workMs: g.workMs[i],
+          });
           const cpu = meter.snapshot();
           if (cpu.enabled && cpu.frame > cpuFrame && cpu.owners.length > 0) {
             cpuFrame = cpu.frame; cpuFrames++;
@@ -243,6 +253,9 @@ function sample(n) {
         gameP95Ms: round(pct(ring, 0.95)), workP95Ms: round(pct(work, 0.95)), calls: pct(calls, 0.5), triangles: pct(triangles, 0.5),
         position: { x: window.__wildshard.world.player.position.x, y: window.__wildshard.world.player.position.y, z: window.__wildshard.world.player.position.z },
         cpu: { enabled: meter.snapshot().enabled, frames: cpuFrames, owners: [...cpuOwners].map(([id, row]) => ({ id, samples: row.ms.length, p95Ms: pct(row.ms, 0.95), maxMs: pct(row.ms, 1), calls: row.calls })) },
+        ...(timeline ? { frameTimeline: { limit: timelineLimit, droppedFrames: interval.length - timelineFrames.length,
+          clock: 'Page performance milliseconds; callback is the sampler, not the whole rAF batch. Update/render/work belong to the latest Game frame; frameDelta > 1 omits intermediate work.',
+          frames: timelineFrames } } : {}),
         contextLost: g.renderer.getContext().isContextLost() });
     };
     raf = requestAnimationFrame(tick);
@@ -250,7 +263,7 @@ function sample(n) {
 }
 
 /** the whole-drive sampler's expression (`sample(0)`) */
-const SAMPLE_WHOLE = `(${sample.toString()})(0)`;
+const SAMPLE_WHOLE = `(${sample.toString()})(0,${frameTimeline})`;
 
 // Runtime.evaluate on Safari does not await JavaScript promises. Poll an explicit result envelope;
 // Target.* multiplexing is supported; a new document invalidates the measurement rather than replaying it.
@@ -324,7 +337,7 @@ async function standingSample(driver, pose) {
   const started = driver.profile ? await driver.profile.start() : null;
   const stopScript = driver.scriptProfile ? await driver.scriptProfile.start() : undefined;
   let result, raw, script;
-  try { result = await driver.evaluate(`(${sample.toString()})(${frames})`); }
+  try { result = await driver.evaluate(`(${sample.toString()})(${frames},${frameTimeline})`); }
   finally {
     if (stopScript !== undefined) script = await stopScript();
     if (driver.profile && started !== null) raw = await driver.profile.stop();
@@ -379,7 +392,7 @@ async function measureShard(driver, shard, deadline) {
       if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
       await driver.evaluate(`window.__wildshard.pose(${JSON.stringify(pose)})`);
       await sleep(500);
-      const result = await driver.evaluate(`(${sample.toString()})(24)`);
+      const result = await driver.evaluate(`(${sample.toString()})(24,${frameTimeline})`);
       scan.push({ pose, p95Ms: result.p95Ms, workP95Ms: result.workP95Ms, calls: result.calls, triangles: result.triangles });
     }
     // Rank authored standing parity cameras on the surface itself; no shard-name camera table to go stale.
@@ -422,7 +435,7 @@ async function measureShard(driver, shard, deadline) {
         await sleep(1000);
         let motion, driven, whole, profile;
         try {
-          motion = await driver.evaluate(`(${sample.toString()})(${frames})`);
+          motion = await driver.evaluate(`(${sample.toString()})(${frames},${frameTimeline})`);
           driven = await moving; if (driven.error) throw driven.error;
           await driver.evaluate('(window.__frameFloorDriveDone = true, true)');
           whole = await wholeDrive; if (whole.error) throw whole.error;
@@ -442,7 +455,7 @@ async function measureShard(driver, shard, deadline) {
           ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, hookTimes) }), ...(cpuProfile === null ? {} : { cpuProfile }), ...(scriptProfile === undefined ? {} : { scriptProfile }) };
         rows.push(Object.assign(driveRow, assess(driveRow, surface)));
         await sleep(settleMs);
-        const standing = await driver.evaluate(`(${sample.toString()})(${frames})`);
+        const standing = await driver.evaluate(`(${sample.toString()})(${frames},${frameTimeline})`);
         rows.push({ pose: { name: `grid-${plan.name}` }, ...standing, ...assess(standing, surface) });
         console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; residents=${witness.after.live.live.residents.join(',')}`);
       }
@@ -451,7 +464,7 @@ async function measureShard(driver, shard, deadline) {
         await driver.evaluate(`window.__wildshard.pose(${JSON.stringify(gridCellPose)})`);
         await driver.evaluate(`(async () => { const t = performance.now() + 120000; for (;;) { const l = window.__wildshard.shard.grid.state().live.live; if (l.current !== null && l.gameplayReady && l.pending.length === 0) return true; if (performance.now() > t) throw new Error('Grid cell pose never settled'); await new Promise((r) => { setTimeout(r, 100); }); } })()`, 130000);
         await sleep(settleMs);
-        const posed = await driver.evaluate(`(${sample.toString()})(${frames})`);
+        const posed = await driver.evaluate(`(${sample.toString()})(${frames},${frameTimeline})`);
         rows.push({ pose: gridCellPose, ...posed, ...assess(posed, surface) });
         console.log(`${surface} grid ${gridCellPose.name}: ${posed.medianFps} fps, p95 ${posed.p95Ms} ms — ${rows.at(-1).pass ? 'PASS' : 'FAIL'}`);
       }
@@ -707,7 +720,7 @@ async function main() {
     writeFileSync(helper, html.replace('<head>', `<head><script>${fixture('phone')};window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${travelGl}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
-      const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(glTime ? ['--gl-time'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
+      const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(glTime ? ['--gl-time'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));
@@ -716,7 +729,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, shards, surface, developer, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, safariProfile: safariProfileDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, shards, surface, developer, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, safariProfile: safariProfileDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });

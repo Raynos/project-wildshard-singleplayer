@@ -5,20 +5,22 @@ import { runInNewContext } from 'node:vm';
 import { expect, it } from 'vitest';
 
 const source = readFileSync('scripts/frame-floor.mjs', 'utf8');
-const sampler = source.slice(source.indexOf('function sample(n)'), source.indexOf('// Runtime.evaluate'));
+const sampler = source.slice(source.indexOf('function sample(n,'), source.indexOf('// Runtime.evaluate'));
 interface Sample { sampleRange: { startMs: number; endMs: number }; p95Ms: number; callbackP95Ms: number; workP95Ms: number; medianFps: number; frames: number; cpu: { enabled: boolean; frames: number; owners: { id: string; p95Ms: number }[] } }
-function measure(period: number): Promise<Sample> {
+function measure(period: number, timeline = false, count = 30): Promise<Sample & { frameTimeline?: { limit: number; droppedFrames: number; frames: { intervalMs: number; callbackDelayMs: number; gameRafMs: number; updateMs: number; renderMs: number; workMs: number; frameDelta: number }[] } }> {
   const cpu = { enabled: false, frame: 0, snapshot: () => ({ enabled: cpu.enabled, frame: cpu.frame, owners: [{ id: 'fixture', ms: 2, calls: 2 }] }) };
-  const game = { app: { cpu }, frameCount: 0, frameI: 1, frameMs: [16.667], workMs: [3], lastFrame: { calls: 5, triangles: 10 }, renderer: { getContext: () => ({ isContextLost: () => false }) } };
+  const game = { app: { cpu }, frameCount: 0, frameRafTime: 0, frameI: 1, frameMs: [16.667], workMs: [3], updateMs: [1], renderMs: [2], lastFrame: { calls: 5, triangles: 10 }, renderer: { getContext: () => ({ isContextLost: () => false }) } };
   const queue: ((time: number) => void)[] = [];
   let now = 0;
-  const promise = runInNewContext(`${sampler}\nsample(30)`, {
+  const promise = runInNewContext(`${sampler}\nsample(${count},${timeline})`, {
+    frameTimeline: timeline,
     window: { __wildshard: { world: { game, player: { position: { x: 0, y: 0, z: 0 } } } } },
     performance: { now: () => now }, requestAnimationFrame: (fn: (time: number) => void) => { queue.push(fn); return 1; },
     cancelAnimationFrame: () => undefined, setTimeout: () => 1, clearTimeout: () => undefined,
   }) as Promise<Sample>;
-  for (let frame = 1; frame <= 31; frame++) {
+  for (let frame = 1; frame <= count + 1; frame++) {
     game.frameCount++; cpu.frame++;
+    game.frameRafTime = frame * period;
     now = frame * period + (frame % 2 ? 0 : 8);
     const tick = queue.shift();
     if (!tick) throw new Error('Sampler stopped scheduling rAF');
@@ -26,6 +28,20 @@ function measure(period: number): Promise<Sample> {
   }
   return promise;
 }
+it('keeps the bounded timeline opt-in and separates cadence from callback delay and game work', async () => {
+  const plain = await measure(1000 / 30);
+  const diagnostic = await measure(1000 / 30, true);
+  expect(plain.frameTimeline).toBeUndefined();
+  expect(diagnostic.p95Ms).toBe(plain.p95Ms);
+  expect(diagnostic.cpu).toEqual(plain.cpu);
+  expect(diagnostic.frameTimeline?.frames).toHaveLength(30);
+  expect(diagnostic.frameTimeline?.frames[0]).toMatchObject({ intervalMs: 1000 / 30,
+    callbackDelayMs: 8, gameRafMs: 2000 / 30, updateMs: 1, renderMs: 2, workMs: 3, frameDelta: 1 });
+  const capped = await measure(1000 / 60, true, 8010);
+  expect(capped.frames).toBe(8010);
+  expect(capped.frameTimeline?.frames).toHaveLength(8000);
+  expect(capped.frameTimeline?.droppedFrames).toBe(10);
+});
 it('grades vsync cadence while retaining preceding-work callback jitter as a diagnostic', async () => {
   const result = await measure(1000 / 60);
   expect(Math.round(result.medianFps)).toBe(60);
