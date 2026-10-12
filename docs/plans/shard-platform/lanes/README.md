@@ -1,5 +1,24 @@
 # SHARD-PLATFORM lanes (G335 + G337: 4 building Codex panes + 1 push/deploy Codex pane + 5 Opus as the coordinator's own subagents; coordinator wildshard-new)
 
+## G345 SPRINT (Jake, 2026-10-12 21:30Z → 09:30Z, `34527bde0`): Signal Dunes + Sky Reach to 80/20
+
+"rip into mega build and no process porn". Quick checks of what a change touched + the push gate only; NO frame floor,
+Simulator, soak or boards (one board only for a taste call); no .git/quiet windows. SF22 / frame floor / SF57 / SF67
+timing proofs are paused. Progress: custom % per shard in STATE.md every ~2 h.
+
+| Lane | Sprint row |
+|---|---|
+| sp-x7 | Push queue first (96 waiting, origin stale), then CI / deploys green. |
+| sp-x4 | Land the held G342 format slice, then **Sky movers MV-2** (SF83) for the Sky port. |
+| sp-x5 | **Lash + war-fan weapon families WP-5** (SF85) for Signal / Sky; BR-4 Qara parked. |
+| sp-x6 | Land the Pine layout move (map from sp-o10), then **directors DIR-5** (`signalPlan` etc., SF81). |
+| sp-x1 | **Headless proofs + the metric** for Signal / Sky (`scripts/shard-platform.mjs`, witnesses the ports need). |
+| Opus × 2 | **Signal port** (generators in real three.js + shared rows). |
+| Opus × 2 | **Sky port** (sp-o12 = Sky A). |
+| Opus × 1 | **Looks, start to end:** G342 near tier (on sp-x4's selection `18fad8ea2` + format slice), then G343 / G344 hero round 4 (above Driftwood / Nalati / Pine, 1x lens, square + landscape), shipped via G341. |
+
+The rows below are the pre-sprint lanes (history).
+
 Read `common.md` first. Order (Jake via the plan desk, 2026-10-12): graphical rows first on the Opus lanes (G321, G322, the hero, DS1.4, parity); Codex lanes saturated on SF79–SF85 engineering with green (G330) as one of them. One row per lane; the coordinator rewrites a row when a lane finishes it. Herdr tab `wT`.
 
 | Lane | Kind | Pane | Row |
