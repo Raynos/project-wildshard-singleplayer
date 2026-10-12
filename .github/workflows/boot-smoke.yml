@@ -22,12 +22,12 @@ jobs:
     # a waiting older one, and only the running proof finishes (2026-10-09: three per-SHA runs queued back to back, the
     # newest waited 10.5 min for a macOS runner). Job-level, so the skipped runs (release / failed CI) never take the slot.
     # A dispatch proves its own SHA in its own group.
-    # SF74 W16: two legs on two macOS runners at once (the boot drive ~3.6 min, the HOVER touch drive ~3.1 min, each after
-    # ~2.2 min of setup and build): ~5.8 min instead of ~8.9. Each leg coalesces in its own group; `verdict` publishes.
+    # Build/setup plus both serial HOVER engines exceeded the 12-minute job deadline on 2026-10-12.
+    # Each browser now has its own leg and unchanged drive. Every leg is required for the exact-SHA verdict.
     strategy:
       fail-fast: false
       matrix:
-        part: [boot, hover]
+        part: [boot, hover-chromium, hover-webkit]
     concurrency:
       group: boot-smoke-${{ matrix.part }}-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
       cancel-in-progress: false
@@ -77,11 +77,12 @@ jobs:
       - name: Real title, Driftwood gameplay and Developer grid home
         if: matrix.part == 'boot'
         run: node scripts/parity/boot-smoke.mjs
-      - name: Touch HOVER mounts in the template and on the grid road
-        if: matrix.part == 'hover'
-        run: |
-          node scripts/parity/hover-touch.mjs --out=boot-smoke-results/hover-chromium
-          scripts/browser-lane.sh --max 8 node scripts/parity/hover-touch.mjs --engine=webkit --out=boot-smoke-results/hover-webkit
+      - name: Chromium touch HOVER mounts in the template and on the grid road
+        if: matrix.part == 'hover-chromium'
+        run: node scripts/parity/hover-touch.mjs --out=boot-smoke-results/hover-chromium
+      - name: WebKit touch HOVER mounts in the template and on the grid road
+        if: matrix.part == 'hover-webkit'
+        run: scripts/browser-lane.sh --max 8 node scripts/parity/hover-touch.mjs --engine=webkit --out=boot-smoke-results/hover-webkit
       - name: Record smoke queue and run timings
         if: always()
         env:
@@ -99,7 +100,7 @@ jobs:
           if-no-files-found: warn
 
   verdict:
-    # The exact-SHA proof is both legs. A leg replaced by a newer main before it ran (coalescing) leaves this SHA unproven:
+    # The exact-SHA proof requires all three legs. A replaced leg leaves this SHA unproven:
     # it gets `error` so a pending status never lingers; the newer SHA carries the proof.
     needs: boot-smoke
     if: always() && needs.boot-smoke.result != 'skipped'
@@ -122,7 +123,7 @@ jobs:
         run: |
           case "$LEGS" in
             success) state=success; description='Real built-dist title and gameplay proof' ;;
-            cancelled) state=error; description='Cancelled before both smoke legs completed' ;;
+            cancelled) state=error; description='Cancelled before all smoke legs completed' ;;
             *) state=failure; description='Real built-dist title and gameplay proof' ;;
           esac
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_SHA" \

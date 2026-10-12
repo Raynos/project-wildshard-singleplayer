@@ -104,8 +104,12 @@ it('keeps hourly/manual promotion and reuses only an exact successful push-CI pr
   expect(coverage).toContain('workflow_dispatch:');
   expect(coverage).not.toMatch(/^ {2}(push|pull_request):/mu);
   expect(job).toContain(`group: boot-smoke-\${{ matrix.part }}-\${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}`);
-  // SF74 W16: the boot and HOVER legs run at once; `verdict` publishes the one exact-SHA status from both.
-  expect(job).toContain('part: [boot, hover]');
+  // Each full browser drive gets its own unchanged deadline; all three legs supply the exact-SHA verdict.
+  expect(job).toContain('part: [boot, hover-chromium, hover-webkit]');
+  expect(job).toContain("if: matrix.part == 'hover-chromium'\n        run: node scripts/parity/hover-touch.mjs --out=boot-smoke-results/hover-chromium");
+  expect(job).toContain("if: matrix.part == 'hover-webkit'\n        run: scripts/browser-lane.sh --max 8 node scripts/parity/hover-touch.mjs --engine=webkit --out=boot-smoke-results/hover-webkit");
+  expect(job).toContain('timeout-minutes: 12');
+  expect(job).toContain('fail-fast: false');
   expect(job).toContain("needs: boot-smoke\n    if: always() && needs.boot-smoke.result != 'skipped'");
   expect(job).toContain("cancelled) state=error;");
   expect(workflow).toContain('python3 scripts/heavy-lane.py build -- pnpm exec vite build');
