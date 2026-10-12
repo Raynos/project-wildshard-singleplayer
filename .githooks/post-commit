@@ -5,27 +5,26 @@
 # every SKIP_SWEEPGUARD=1 use. Pathspec commits (this repo's mandatory shape)
 # build their temp index from HEAD + the NAMED paths only, so a pre-commit hook
 # cannot fold the ledger into the same commit — instead this hook sweeps a
-# dirty ledger into its own tiny follow-up commit the moment any commit lands.
-# Mechanical, can't be forgotten; recursion is cut by LEDGER_AUTOCOMMIT.
+# dirty ledger into a detached follow-up after the owning commit exits.
+# Never nest a Git commit under its parent's message lock. Recursion is cut by LEDGER_AUTOCOMMIT.
 
 set -uo pipefail
 
-[ "${LEDGER_AUTOCOMMIT:-0}" = "1" ] && exit 0
-
 repo="$(git rev-parse --show-toplevel 2>/dev/null || exit 0)"
 ledger="project/sweepguard-ledger.md"
+common="$(git -C "$repo" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
 
-if ! git -C "$repo" diff --quiet HEAD -- "$ledger" 2>/dev/null; then
-  LEDGER_AUTOCOMMIT=1 \
-    git -C "$repo" commit -q -m "Sweep-guard ledger: bypass entries (auto, .githooks/post-commit)" -- "$ledger" \
-    && echo "  - sweep-guard ledger was dirty -> auto-committed" >&2 \
-    || echo "  !! sweep-guard ledger is dirty and the auto-commit FAILED - commit $ledger yourself" >&2
+if [ "${LEDGER_AUTOCOMMIT:-0}" != 1 ] && ! git -C "$repo" diff --quiet HEAD -- "$ledger" 2>/dev/null; then
+  source="$(git -C "$repo" rev-parse HEAD)"
+  (cd "$repo" && python3 -c 'import os, sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
+    python3 scripts/commit-sweep-ledger.py "$PPID" "$source" \
+    < /dev/null >> "$common/sweep-ledger.log" 2>&1 &) || true
+  echo "  - dirty sweep ledger deferred until parent PID $PPID exits" >&2
 fi
 
 # SF74 W14: the automatic pusher. Record which herdr pane made this commit (a red push pings that lane), then start
 # scripts/auto-push.sh detached in its own session so the commit returns at once; it batches, queues behind a push in
 # flight and is single-instance. Off: `touch .git/auto-push.off`. A feature worktree / other branch is skipped inside.
-common="$(git -C "$repo" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
 if [ -n "$common" ] && [ -n "${HERDR_PANE_ID:-}" ]; then
   printf '{"sha":"%s","pane":"%s","at":%s}\n' "$(git -C "$repo" rev-parse HEAD)" "$HERDR_PANE_ID" "$(date +%s)" >> "$common/commit-lanes.jsonl" 2>/dev/null || true
 fi

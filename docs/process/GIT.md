@@ -38,6 +38,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
     private-message path. It never removes another process's lock. Pre-commit prints its wall time under the lock
     and records `.git/commit-hook-times.jsonl`; queue waiting is excluded. Darwin kqueue / Linux pidfd releases
     the lock on success, refusal or process death, with no polling guardian.
+    The post-hook defers a dirty sweep ledger until the committing parent exits; its follow-up clears inherited
+    Git-local state, runs the real hooks with a private index/message and lands by CAS. It never nests a Git commit
+    under its parent's message lock or overwrites a foreign staged path. Quiet defers it to the next post-hook;
+    failures leave the ledger bytes and report in `.git/sweep-ledger.log`. Attribution follows the source commit.
 - **Pushes are automatic** (SF74 W14, 2026-10-09: commit → origin was p90 54 min because nobody ran the pusher).
   `.githooks/post-commit` records the commit's herdr pane in `.git/commit-lanes.jsonl` and starts `scripts/auto-push.sh`
   detached: single-instance, it waits 10 s to batch a burst, waits out `.git/quiet` (the coordinator's measurement
