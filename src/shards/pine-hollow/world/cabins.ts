@@ -13,9 +13,10 @@
  * copies', so every card counts them, a tap picks the one under the finger and VIEW IN WORLD lands on a real copy. The
  * fire pits and lanterns are drawn by their building (`drawnInto`); the doors stay the homestead's moving pieces.
  *
- *   await placeCabins({ cabins, sky, registry });   // main.ts's cabins step, once `cabins.build()` has run
+ *   await placeCabins({ cabins, sky, registry, scope: ctx.scope });   // main.ts's cabins step, once `cabins.build()` has run
  */
 import * as THREE from 'three';
+import type { Scope } from '@wildshard/engine/app/scope';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
@@ -54,10 +55,10 @@ function floorIn(floors: CabinBuilding['floors'], x: number, z: number): number 
 
 const at = (m: THREE.Matrix4, host?: number): Placement<Record<string, never>> => { const e = m.elements; return { x: e[12], y: e[13], z: e[14], matrix: m, ...(host === undefined ? {} : { host }) }; };
 
-export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: WorldRegistry }): Promise<void> {
+export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: WorldRegistry; scope: Scope }): Promise<void> {
   const { cabins, registry } = h;
   const ctx = pineModels(h.sky);
-  useCabins(ctx, cabins);
+  useCabins(ctx, cabins, h.scope);
   const detail = TIER_CONFIG.cabinDetailDist;
   // the cabins: each its own unit, their never-hidden materials welded across the three; on the desktop tier each draws its
   // depth near as one proxy (its detail and props included)

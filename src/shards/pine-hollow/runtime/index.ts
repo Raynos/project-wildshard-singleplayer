@@ -100,7 +100,7 @@ export class PineHollow extends ShardPlugin {
       const built = await cabins.build();
       game.scene.add(built.group);
       rt.interactables.push(...built.interactables);
-      await placeCabins({ cabins, sky, registry });
+      await placeCabins({ cabins, sky, registry, scope: ctx.scope });
       const at = new THREE.Vector3();
       for (const door of cabins.doorPieces()) {
         let on = true;

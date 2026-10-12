@@ -34,7 +34,7 @@ import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinG
  *   const cabins = new Cabins(sky);
  *   const { group, interactables } = await cabins.build();     // every building built where it stands, one per task
  *   scene.add(group);
- *   await placeCabins({ cabins, sky, registry });              // their models placed: drawn, registered
+ *   await placeCabins({ cabins, sky, registry, scope: ctx.scope });              // their models placed: drawn, registered
  *   game.onUpdate((dt, t) => cabins.update(dt, t));
  *
  * - `group`         the buildings' roots (doors, fires, smoke, lanterns, the wheel) and what `place` draws of them.

@@ -12,6 +12,7 @@
  * `mergeParts` stay here for the landmarks' timber and the props.
  */
 import * as THREE from 'three';
+import type { Scope } from '@wildshard/engine/app/scope';
 import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import { UnitParts, mergeOrNull, nearProxy, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { Cabins, Mats, MatKey } from '../world/homestead';
@@ -66,13 +67,23 @@ export function mergeParts(parts: PropPart[]): PropPart[] {
 
 // ───────────────────────────── the homestead, as its models read it ─────────────────────────────
 
-const KEY = 'pine-hollow/cabins';
+const cabinsBySky = new WeakMap<ModelContext['sky'], Cabins>();
 
-/** hand the built homestead to its models (src/shards/pine-hollow/world/cabins.ts) */
-export function useCabins(ctx: ModelContext, cabins: Cabins): void { ctx.once(KEY, () => cabins); }
+/** Bind the current homestead for its construction owner, independently of disposable model assets.
+ * A returning home replaces the previous binding; its old owner cannot remove the replacement. */
+export function useCabins(ctx: ModelContext, cabins: Cabins, owner: Scope): void {
+  if (owner.disposed) throw new Error('Cabins require a live construction owner');
+  const sky = ctx.sky;
+  cabinsBySky.set(sky, cabins);
+  owner.onDispose(() => { if (cabinsBySky.get(sky) === cabins) cabinsBySky.delete(sky); });
+}
 
-/** the homestead handed to this shard's models */
-export const cabinsOf = (ctx: ModelContext): Cabins => ctx.once<Cabins>(KEY, () => { throw new Error('[cabins] not built (useCabins)'); });
+/** Read the live homestead; resource-cache eviction never removes a construction service. */
+export function cabinsOf(ctx: ModelContext): Cabins {
+  const cabins = cabinsBySky.get(ctx.sky);
+  if (cabins === undefined) throw new Error('[cabins] not built (useCabins)');
+  return cabins;
+}
 
 /** building `id` (`cabin-1` … or a hamlet building's) as the homestead built it where it stands: its `place` weld build */
 export function builtBuilding(ctx: ModelContext, id: string): WeldBuild {
