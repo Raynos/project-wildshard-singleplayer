@@ -3,6 +3,9 @@
  * --round=landscape (G336 round 3): the five landscapeHeroPlan poses at 2560×1440 and 1920×1080, desktop tier, DSF 1.
  * --round=square (G344): squareHeroPlan at a phone-1x lens, the square poses at 2048×2048 and 1440×1440 and the
  *   landscape ones at 2560×1440 and 1920×1080, desktop tier, DSF 1; each pose's fovDegrees is the capture camera's only.
+ * --round=near (G342): the near-tier A / B, raw and unlabelled: Debug Neighbour detail A (far proxy) and B (near
+ *   placeholder), four road views from the roundabout to each crossroads cell plus SQ-c, on iPhone 16 Pro portrait and
+ *   1920×1080 desktop; files <A|B>-<pose>-<device>.png.
  * Owns one clean --head preview and one muted browser-lane capture, then stops both.
  * Entry and calibrated pose follow progress/shard-platform/look28/capture.mjs.
  */
@@ -20,7 +23,7 @@ const flag = (name, fallback) => args.find(value => value.startsWith(`--${name}=
 const out = resolvePath(flag('out', join(tmpdir(), `main-menu-hero-${process.pid}`)));
 const script = import.meta.filename;
 const round = flag('round', '1');
-if (!['1', 'aerial', 'landscape', 'square'].includes(round)) throw new Error('Capture round must be 1, aerial, landscape or square');
+if (!['1', 'aerial', 'landscape', 'square', 'near'].includes(round)) throw new Error('Capture round must be 1, aerial, landscape, square or near');
 
 function requireNoQuiet() {
   const quiet = join(root, '.git/quiet');
@@ -150,14 +153,24 @@ async function capture(base) {
 async function captureAerial(base) {
   requireNoQuiet();
   const plan = JSON.parse(await command(process.execPath,
-    ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round], root));
-  const square = round === 'square', landscape = round === 'landscape' || square;
+    ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round === 'near' ? 'square' : round], root));
+  const near = round === 'near', square = round === 'square', landscape = round === 'landscape' || square || near;
   // Aerial: one phone context per Debug time pick. Landscape: one desktop context per resolution, desktop tier, DSF 1.
   // Square (G344): the same desktop contexts, square resolutions for the square poses and 16:9 for the landscape ones.
   const desktop = (width, height, poses) => ({ key: `${width}x${height}`, poses,
     context: { ...devices['Desktop Chrome'], viewport: { width, height }, deviceScaleFactor: 1 },
     settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' } });
-  const sessions = square
+  // G342: from the roundabout to each of the four crossroads cells (the game's own lens), then the square hero over them
+  const centre0 = plan.poses[0].target, nearPoses = [...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => ({ id: `road-${i}`, name: `Road view ${i}`,
+    eye: { x: centre0.x - sx * 30, y: 22, z: centre0.z - sz * 30 }, target: { x: centre0.x + sx * 240, y: 0, z: centre0.z + sz * 240 } })),
+  ...plan.poses.filter(p => p.id === 'SQ-c')];
+  const sessions = near
+    ? ['far', 'near'].flatMap(nearTier => [
+      { key: `${nearTier === 'far' ? 'A' : 'B'}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] },
+        settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, nearTier }, gfx: { dpr: '2', aa: 'auto' } },
+      { key: `${nearTier === 'far' ? 'A' : 'B'}-desktop`, poses: nearPoses, context: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 },
+        settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0, nearTier }, gfx: { dpr: 'native', aa: 'auto' } }])
+    : square
     ? [[2048, 2048, 'square'], [1440, 1440, 'square'], [2560, 1440, 'landscape'], [1920, 1080, 'landscape']]
       .map(([width, height, aspect]) => desktop(width, height, plan.poses.filter(p => p.aspect === aspect)))
     : landscape
@@ -251,7 +264,7 @@ async function captureAerial(base) {
             if (!row.frame.freeCamera || row.frame.viewmodelVisible) throw new Error('Detached-camera / no-viewmodel witness failed');
             if (Math.hypot(...row.frame.cameraWorld.map((v, i) => v - [shot.eye.x, shot.eye.y, shot.eye.z][i])) > 0.01) throw new Error('Actual aerial camera differs from requested pose');
             if (typeof shot.fovDegrees === 'number' && Math.abs(row.frame.fov - shot.fovDegrees) > 0.01) throw new Error(`Camera FOV ${row.frame.fov} is not the requested ${shot.fovDegrees}`);
-            row.file = landscape ? `${shot.id}-${session.key}.png` : `${shot.id}.png`;
+            row.file = near ? `${session.key.slice(0, 1)}-${shot.id}-${session.key.slice(2)}.png` : landscape ? `${shot.id}-${session.key}.png` : `${shot.id}.png`;
             await page.locator('canvas[data-hero-canvas]').screenshot({ path: join(out, row.file) });
             row.consoleErrors = [...consoleErrors]; row.complete = true;
           } catch (error) { row.errors.push(String(error)); }
@@ -267,7 +280,7 @@ async function captureAerial(base) {
 mkdirSync(out, { recursive: true });
 if (args.includes('--worker')) {
   if (process.env.HERO_CAPTURE_LANE !== '1') throw new Error('Run through this command’s browser-lane launcher');
-  await (round === 'aerial' || round === 'landscape' || round === 'square' ? captureAerial(flag('base', '')) : capture(flag('base', '')));
+  await (round === 'aerial' || round === 'landscape' || round === 'square' || round === 'near' ? captureAerial(flag('base', '')) : capture(flag('base', '')));
 } else {
   requireNoQuiet();
   const scratch = join(out, 'build'); mkdirSync(scratch, { recursive: true });
