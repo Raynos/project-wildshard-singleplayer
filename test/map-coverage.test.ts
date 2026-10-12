@@ -16,6 +16,7 @@ import { packProjectMap } from '../src/sdk/projectMap';
 import { sourceManifest } from '../src/game/plugin/shardPlugin';
 import { admitProduct } from '../src/game/shardfile/product';
 import { hashImmutableBytes } from '../src/sdk/immutable';
+import { parseMovers } from '../src/format/movers';
 
 const root = `${import.meta.dirname}/..`;
 /** each shardfile project's parsed document (its shard.config.ts default export), keyed by slug */
@@ -78,6 +79,14 @@ const xz = (at: unknown): [number, number] => {
   if (Array.isArray(at)) return at.length === 2 ? [num(at[0]), num(at[1])] : [num(at[0]), num(at[2])];
   return [num(field(at, 'x')), num(field(at, 'z'))];
 };
+/** Fixed bridge infrastructure has a physics pivot, not a map destination. Unknown or malformed motion stays exposed. */
+function fixedInfrastructure(mover: Row): boolean {
+  const driver = field(mover, 'driver'), kind = field(driver, 'kind');
+  const fixed = kind === 'static' && field(mover, 'kind') === 'static';
+  const hinge = kind === 'winch' && field(driver, 'mode') === 'hinge' && field(field(mover, 'track'), 'position') === undefined;
+  if (!fixed && !hinge) return false;
+  try { parseMovers([mover]); return true; } catch { return false; }
+}
 /** every POI-bearing datum in a shard's shardfile document (its shard.config.ts default export) */
 function poiBearing(shard: unknown): Datum[] {
   const out: Datum[] = [], push = (key: string, at: [number, number]): void => { out.push({ key, x: at[0], z: at[1] }); };
@@ -95,7 +104,15 @@ function poiBearing(shard: unknown): Datum[] {
   for (const u of rows(field(shard, 'ui'))) if (field(u, 'kind') === 'marker') push(`marker:${id(u)}`, at(u));
   for (const e of rows(field(shard, 'encounters'))) push(`encounter:${id(e)}`, xz(field(field(e, 'arena'), 'at')));
   for (const b of rows(field(field(field(shard, 'runtime'), 'spawns'), 'bosses'))) push(`boss:${id(b)}`, at(b));
-  for (const m of rows(field(shard, 'movers'))) push(`mover:${id(m)}`, at(m));
+  // A socket's moving deck and gate are destinations even when their body is stationary. Other fixed bridge bodies
+  // remain on the baked raster; their world-origin/hinge pivot does not become a new pin when admitted to the runtime.
+  const entryMovers = new Set(rows(field(shard, 'entryways')).flatMap(e => {
+    const lift = field(e, 'lift'); return [field(lift, 'mover'), field(lift, 'gate')];
+  }));
+  for (const m of rows(field(shard, 'movers'))) {
+    if (!entryMovers.has(field(m, 'id')) && fixedInfrastructure(m)) continue;
+    push(`mover:${id(m)}`, at(m));
+  }
   return out;
 }
 const matches = (pattern: string, key: string): boolean => (pattern.endsWith('*') ? key.startsWith(pattern.slice(0, -1)) : key === pattern);
@@ -185,6 +202,22 @@ describe('map coverage (SF66: listed data on the baked map)', () => {
     // the shardfile reader: a lift entry at its road stop, a plain entry not at all, a marker but not a counter
     expect(poiBearing({ entryways: [{ edge: 'north', at: [0, 0, 250], lift: { roadStop: [0, 0, 228] } }, { edge: 'east', at: [250, 0, 0] }], ui: [{ kind: 'marker', id: 'pin', at: [1, 2, 3] }, { kind: 'counter', id: 'c' }] }))
       .toEqual([{ key: 'lift:north', x: 0, z: 228 }, { key: 'marker:pin', x: 1, z: 3 }]);
+  });
+  it('keeps admitted fixed bridge pivots out of POIs, but exposes every entry owner and unknown or malformed mover', () => {
+    const movers = rows(field(CONFIGS.get('far-reach'), 'movers'));
+    const rope = movers.find(m => field(m, 'id') === 'far.rope.ruin');
+    const hinge = movers.find(m => field(m, 'id') === 'far.winch.bridge');
+    if (rope === undefined || hinge === undefined) throw new Error('Missing actual Sky bridge fixtures');
+    expect(fixedInfrastructure(rope)).toBe(true);
+    expect(fixedInfrastructure(hinge)).toBe(true);
+    expect(poiBearing({ movers: [rope, hinge] })).toEqual([]);
+    const unknown = { id: 'new.destination', at: { x: 120, z: 90 } };
+    const malformed = { ...rope, input: [1] };
+    expect(poiBearing({ movers: [unknown, malformed] }).map(d => d.key)).toEqual(['mover:new.destination', 'mover:far.rope.ruin']);
+    expect(coverage(poiBearing({ movers: [unknown] }), [{ x: 0, z: 0 }], []).missing).toHaveLength(1);
+    const entries = { entryways: [{ edge: 'north', lift: { mover: field(hinge, 'id'), gate: field(rope, 'id'), roadStop: [0, 0, 228] } }], movers: [rope, hinge] };
+    expect(poiBearing(entries).map(d => d.key)).toEqual(['lift:north', 'mover:far.rope.ruin', 'mover:far.winch.bridge']);
+    expect(coverage(poiBearing(entries), [{ x: 0, z: 228 }], []).missing).toHaveLength(2);
   });
   it('a dead entry fails: off the map, unnamed or listed twice (fixture)', () => {
     const ok: Listed = { kind: 'place', id: 'hut', label: 'Hut', x: 10, z: -20 };
