@@ -42,7 +42,8 @@ export interface BootSpec {
   bakedUnread?: RegExp;
   steps?: Readonly<Record<string, { label: string; weight: number }>>;
   bytes?: Readonly<Partial<Record<ByteKey, string>>>;
-  audio?: () => Promise<readonly string[]>;
+  /** Serializable audio URLs; a trusted legacy loader remains supported during conversion. */
+  audio?: readonly string[] | (() => Promise<readonly string[]>);
   explore?: { art: readonly string[] };
   precache?: readonly string[];
   barrier?: boolean;

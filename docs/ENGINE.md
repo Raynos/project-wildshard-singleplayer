@@ -773,7 +773,7 @@ rejection. The entry (including composition-root imports), shard plugin loader a
 |---|---|
 | `files(tier)` | the pack files the loading bar downloads. Required |
 | `sources?(tier, tex)` | the same, split by kind (`ChunkFiles`: sky, baked, terrain, trees, physics, cabins, props, art, music, sfx) |
-| `audio?()`, `precache?`, `explore?` | audio files, service-worker precache, Explore art |
+| `audio?`, `precache?`, `explore?` | serializable audio URL list (trusted legacy async loaders also supported), service-worker precache, Explore art |
 | `steps?` | `{ key: { label, weight } }` for the loading screen |
 | `viewmodelSets?`, `shaders?` | viewmodel texture sets to preload; which shader groups to precompile |
 | `stagedWorld?`, `lateReads?`, `bakedUnread?`, `bytes?` | pack bookkeeping for big shards |
@@ -789,7 +789,7 @@ A shard with no assets declares empty lists. The template:
 ```ts
 export const bootSources = () => ({ sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [], art: [], music: [], sfx: [] });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
-// manifest: boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] }
+// manifest: boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: [], precache: [] }
 ```
 
 Boot helpers on `@wildshard/engine`: `StepProgress`, `StepRunner`, `macrotask`, `slicer` (yield inside a long build),

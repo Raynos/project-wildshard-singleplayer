@@ -7,6 +7,10 @@ import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import { manifestClosure } from '../../../scripts/gen-shards.mjs';
 
 describe('node-safe Signal Dunes manifest', () => {
+  it('declares its empty audio inventory as serializable data', () => {
+    expect(manifest.boot?.audio).toEqual([]);
+    expect(JSON.stringify(manifest.boot?.audio)).toBe('[]');
+  });
   it('imports buildTerrain from its module only (no barrel) and keeps the plugin out of its startup closure', { timeout: 30_000 }, () => {
     const root = cwd();
     expect(readFileSync(`${root}/src/shards/sunscar-dunes/manifest.ts`, 'utf8')).toContain("import { buildTerrain } from '@wildshard/engine/world/terrainField'");

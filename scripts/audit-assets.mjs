@@ -76,6 +76,7 @@ if (tier) {
   const { registerGpuFiles, autoTexturePolicy } = await import('../src/engine/boot/gpuFiles.ts');
   const { imagesFirstPlayingBytes } = await import('../src/game/grid/runtimeCost.ts');
   const { chunkFiles } = await import('../src/engine/boot/manifest.ts');
+  const { resolveBootAudio } = await import('../src/engine/boot/audioInventory.ts');
   const { bootFetches } = await import('../src/engine/boot/prefetch.ts');
   // Match the pack baker and cold boot: install shard overlays before resolving the same Auto policy and file source.
   await Promise.all(SHARDS.map((manifest) => prepareShardAssets(manifest, registerGpuFiles)));
@@ -84,7 +85,7 @@ if (tier) {
     if (manifest.status === 'hidden') continue;
     const boot = manifest.boot;
     if (!boot?.sources) throw new Error(`audit-assets: ${manifest.slug} has no authored boot.sources`);
-    const audio = await boot.audio?.() ?? [];
+    const audio = await resolveBootAudio(boot);
     const art = boot.explore?.art ?? [];
     const shown = [];
     const pictures = (value) => {
