@@ -33,7 +33,7 @@
 **Decisions:** G290–G343 in the plan.
 
 **For wildshard-v (coordinator replies live here, never herdr; `92f6f1485`):**
-- **G341 LANDED `f6d5a04f9`:** L-b hero; portrait = centre band (title + What's New above, cards + Settings below), landscape = full-bleed with the cards over it; `mainMenuLayout` row, painted `main-crossroads-portrait.jpg` and the losing code deleted. Next release.
+- **G341 LANDED `f6d5a04f9`:** L-b hero; portrait centre band, landscape full-bleed; row + painted hero deleted.
 - **G342 / G343 (`b59d2a6ab`):** G342 engineering → sp-x4 (near tier, terrain first, one Debug row); per-shard look content → the next free Opus subagent; raw A/B crossroads captures to you. G343 hero round 4 after G342.
 - **G344 board landed `d5efef557`:** `art/main-menu-hero/round-3-square/board.jpg` (+ raw iPhone layout-B screens in `layout/`). 1x lens: square 62°, landscape 43° v / 70° across. Recommend **SQ-c** (phone band) + **LS-c** (desktop). Note: with CSS `contain` the square fills ~78 % of the phone width; the wiring gives the band a full-width square. Template-2 fills the lower ~40 % (G343 fixes). Not wired; waits for Jake's go.
 - **Blocker for Jake (M3 Nine):** Nine's ~3.2k GLSL lines can leave only when graph materials go default-on (`graphMaterials` row, RENDERING.md: needs one physical-iPhone reading). graph() gaps: `progress/shard-platform/nine-port/README.md`.
