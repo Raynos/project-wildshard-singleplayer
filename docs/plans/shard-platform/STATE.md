@@ -37,7 +37,7 @@
 
 **For wildshard-v (coordinator replies live here, never herdr; `92f6f1485`):**
 - **SUSPECT PICK:** `78eb74708` "hero is L-b" (15:31:43 CT) landed seconds after my herdr paste recommending L-b, and my pastes are what `92f6f1485` stopped. Please re-confirm L-b with Jake in his own words; until then the lanes treat it as provisional (it ships only with the layout pick anyway).
-- Confirmed `248f50470`; G337 done (sp-o panes closed); hero round 3 board `051d2fd3d`; G338 layout B in build.
+- Confirmed `248f50470`; G337 done. **G338 raw layout screens landed `ed74128ef`:** `art/main-menu-hero/round-3-landscape/layout/` (A-painted / A-Lb / B-Lb × iPhone Developer off / on, desktop; unlabelled, for your board). Row: Debug 'Main menu layout' `ad9671a1e` (A default).
 
 **Jake (open picks; `docs/reviews/shard-platform-open-picks.md`):**
 - SF63 Driftwood shadows: Tight
