@@ -1,11 +1,10 @@
-import { Color, Fog, Mesh, SphereGeometry, Vector3, type DataTexture, type HemisphereLight, type Material, type Texture } from 'three';
+import { BackSide, Color, Fog, Mesh, MeshBasicMaterial, SphereGeometry, Vector3, type DataTexture, type HemisphereLight, type Material, type Texture } from 'three';
 import type { LookStrategy, PainterField } from '@wildshard/engine/render/look';
 import { Scope } from '@wildshard/engine/app/scope';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Terrain } from '@wildshard/engine/world/Terrain';
 import type { GroundPool } from '@wildshard/engine/render/families/ground';
 import { curveAt } from './duskCurves';
-import { duskDomeMaterial, duskDomeSun } from './duskDome';
 import { duskSand, duskSky, type DuskSand, type DuskSky } from './duskFamilies';
 import { loadPaintedStrips } from './paintedStrips';
 import { loadBakedMaps, skirtGrid, type BakedMapRow, type CubeSkirt, type TintedTileGround } from './bakedGround';
@@ -47,17 +46,17 @@ function sandTint(row: DuskTintRow, tones: { sand: Color; hollow: Color; crest: 
 }
 
 /**
- * A dusk look (`extend`): the engine's clean chain, a dusk dome (replaced by the painted sky family once its stages
- * load), the scene's fog edited in place, a low key light that dims and deepens with the dusk, the sky fill, the fog's sun
+ * A dusk look (`extend`): the engine's clean chain, the painted sky family on its dome (a strip that fails to load is a
+ * page fault: the dome stands in the fog's colour), the scene's fog edited in place, a low key light that dims and deepens with the dusk, the sky fill, the fog's sun
  * tint, the far rings' haze and the aerial fog on their curves, and the sand family over the tile ground with its skirt
  * (cut back to a grid cell's cube through `parts.skirt`), tinted by height against its ring.
  */
 export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
   const key = { dir: new Vector3(...row.key.dir).normalize(), color: new Color(...row.key.color), intensity: row.key.intensity }, deepKey = new Color(...row.key.deep);
   const tones = { sand: new Color(...row.tint.sand), hollow: new Color(...row.tint.hollow), crest: new Color(...row.tint.crest) };
-  const site = { wind: parts.wind, glow: duskDomeSun(row.dome) }, dusk = parts.dusk;
+  const sun = new Vector3(...row.sun).normalize(), site = { wind: parts.wind, glow: sun }, dusk = parts.dusk;
   // 120 m: the dome draws first with no depth test, so its size never occludes; at 300 m the far plane clipped it (an arc)
-  const dome = new Mesh<SphereGeometry, Material>(new SphereGeometry(120, 48, 24), duskDomeMaterial(row.dome, dusk));
+  const dome = new Mesh<SphereGeometry, Material>(new SphereGeometry(120, 48, 24), new MeshBasicMaterial({ color: row.fog.color, side: BackSide, depthTest: false, depthWrite: false, fog: false }));
   dome.renderOrder = -1000; dome.frustumCulled = false;
   let painted: { scope: Scope; sky: DuskSky; textures: readonly Texture[] } | null = null;
   let sand: DuskSand | null = null;
@@ -96,8 +95,8 @@ export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
       const strips = await loadPaintedStrips(row.painted.stages, row.painted.urls, row.painted.tag, row.painted.fault);
       const stages = strips?.[0] !== undefined && strips[1] !== undefined ? [strips[0], strips[1]] as const : null;
       if (stages) {
-        const procedural = dome.material, skyScope = new Scope(row.painted.scope), family = duskSky(row.sky, stages, dusk.value, skyScope);
-        dome.material = family.material; procedural.dispose(); painted = { scope: skyScope, sky: family, textures: stages };
+        const standIn = dome.material, skyScope = new Scope(row.painted.scope), family = duskSky(row.sky, stages, dusk.value, skyScope);
+        dome.material = family.material; standIn.dispose(); painted = { scope: skyScope, sky: family, textures: stages };
       }
       const clock = new DayCycle(row.clock), keyColor = new Color();
       let hemi: HemisphereLight | null = null, hemiBase = 1;

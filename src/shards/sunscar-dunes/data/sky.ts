@@ -1,62 +1,9 @@
-/** RGB in the dome's authored space. */
-export type DomeRgb = readonly [number, number, number];
-/** A colour at the dusk's start and at its end. */
-export interface DomeStage { readonly early: DomeRgb; readonly late: DomeRgb }
-
-/** One dusk dome, as data. */
-export interface DuskDomeStyle {
-  /** Where the afterglow is brightest (normalized by the dome): the set sun's direction. */
-  readonly sun: readonly [number, number, number];
-  /** The band: `away` from the sun to `toward` it (blend by the turn to the sun ^ `power`), scaled by `gain[0]` + `gain[1]` × dusk. */
-  readonly band: { readonly away: DomeRgb; readonly toward: DomeRgb; readonly power: number; readonly gain: readonly [number, number] };
-  readonly rose: DomeStage;
-  readonly mid: DomeStage;
-  readonly zenith: DomeStage;
-  /** The hot glow over the sun: `colour` × turn ^ `power` × `gain`, fading with height and dusk. */
-  readonly glow: { readonly colour: DomeRgb; readonly power: number; readonly gain: number };
-  /** The late dusk's glow line on the horizon. */
-  readonly horizon: { readonly colour: DomeRgb; readonly gain: number };
-  /** The under-lit cloud streaks (lit bellies `lit` → `litHot` near the glow, `litEdge` at their edge; dark tops `dark` → `darkHot`), gone by dusk `clearBy[1]`; null: a clear sky. */
-  readonly clouds: { readonly lit: DomeRgb; readonly litHot: DomeRgb; readonly litEdge: DomeRgb; readonly dark: DomeRgb; readonly darkHot: DomeRgb; readonly clearBy: readonly [number, number] } | null;
-  /** Stars: one in `1 - density` of the cells, `colour` × (`gain[0]` + `gain[1]` × a hash). */
-  readonly stars: { readonly colour: DomeRgb; readonly density: number; readonly gain: readonly [number, number] };
-  /** The dither's amplitude against 8-bit banding. */
-  readonly dither: number;
-  /** The authored colour's power to linear. */
-  readonly gamma: number;
-}
-
 /**
- * Signal Dunes' procedural dusk dome as a row (SHARD-PLATFORM SF72, look-family rows) on the platform's dome
- * (`@wildshard/sdk/looks/duskDome`), authored in sRGB (style bible "Last Light"): a tall band (orange at the glow, rose
- * away from it) → dusty mauve → a greyed violet → a slate-indigo zenith, thin under-lit cloud streaks over the band side
- * and the first stars. The painted skies replace it once they load (PAINTED below); it is the sky until then.
+ * Where the afterglow is brightest (normalized by the look): the set sun 4° under the horizon just right of the signal
+ * tower (round 9: mockup A's afterglow peaks right of it). The painted skies (PAINTED below) carry the dusk's colours; the
+ * key light is art-directed apart from this (data/sand.ts KEY_DIR). The sand's faces turned from it darken.
  */
-export const SKY_STYLE: DuskDomeStyle = {
-  // the sun 4° under the horizon just right of the signal tower (round 9: mockup A's afterglow peaks right of it); the key
-  // light is art-directed apart from it (look/render.ts KEY)
-  sun: [0.2, -0.07, -0.98],
-  // Loop 5 / rounds 8b-14 (measured, Rec. 709 bands against the mockups): a deeper, redder afterglow that holds as the dusk
-  // deepens, keeping some blue (the dome's gamma crushed a 0.19 blue to ~0)
-  band: { away: [0.64, 0.34, 0.29], toward: [0.78, 0.38, 0.26], power: 1.2, gain: [0.42, 0.66] },
-  // round 8: a dusty rose-peach above the band and a bluer, less plum dome; E399: as the quest goes on the rose turns
-  // violet, the mid sky a lighter lavender (mockup D), the indigo comes down a touch bluer (mockup B)
-  rose: { early: [0.44, 0.29, 0.3], late: [0.42, 0.3, 0.42] },
-  mid: { early: [0.24, 0.2, 0.29], late: [0.27, 0.22, 0.41] },
-  zenith: { early: [0.1, 0.09, 0.19], late: [0.15, 0.155, 0.31] },
-  // round 10 (R9B-5: the mockup's hot spot right of the tower)
-  glow: { colour: [1, 0.56, 0.34], power: 9, gain: 0.36 },
-  // rounds 10-11: late dusk only, a broad peach band ~3° (mockup D)
-  horizon: { colour: [0.95, 0.62, 0.42], gain: 0.4 },
-  // E399 / rounds 8-12 (mockups A and dusk-fire: broken, layered banks beside the glow, lit orange-gold from below; past
-  // 1, as the dome's gamma and AgX wash a 1.0 orange to dusty pink); B-D are clear, so the deck clears with the dusk
-  clouds: { lit: [1.25, 0.46, 0.22], litHot: [1.3, 0.56, 0.24], litEdge: [1.3, 0.7, 0.36], dark: [0.2, 0.15, 0.22], darkHot: [0.3, 0.17, 0.16], clearBy: [0.03, 0.14] },
-  // round 9 (seat C: the mockups' stars crisp white points): fewer, larger, brighter
-  stars: { colour: [0.9, 0.92, 1], density: 0.9955, gain: [2.2, 2.6] },
-  // a smooth gradient this dark crossed one 8-bit step in a visible line across the sky (the scorer's arc)
-  dither: 0.014,
-  gamma: 2.2,
-};
+export const SKY_SUN = [0.2, -0.07, -0.98] as const;
 
 /**
  * E407 row 5: the painted dusk sky at infinity (loaded by `@wildshard/sdk/looks/paintedStrips` in look/render.ts, drawn
@@ -64,7 +11,7 @@ export const SKY_STYLE: DuskDomeStyle = {
  * outpaints them with codex image_gen from the mockups' skies, prep.py crops and sizes them). x = heading (0 = the
  * spawn's forward view, -z; 90 = +x), the strip spans elevTop down to elevBottom degrees; above it the top row carries
  * on, darkening a little to the zenith. The dome blends the stages by the dusk (look/dusk.ts: Sefa 0.50, the waymarks
- * 0.62 / 0.74 / 0.86), so the sky deepens with the quest as the procedural dome did.
+ * 0.62 / 0.74 / 0.86), so the sky deepens with the quest.
  */
 // round 18: two stages. Sampled at the five mock cameras, the late painting fits every mockup's sky bands best (the first
 // early and mid paintings painted the afterglow too tall); early is the late painting re-coloured twenty minutes earlier

@@ -58,7 +58,7 @@ it('uploads a delayed uniform resource before compiling/drawing, with the exact 
   } finally { dispose(); fetcher.mockRestore(); restoreDecoder(); installScopeEnvironment(previous); }
 });
 
-it('keeps the procedural fallback on failure and never publishes a retired fetch', async () => {
+it('leaves the flame undrawn on failure and never publishes a retired fetch', async () => {
   const fetched = deferred(), warned = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => { await fetched.work; return new Response(null, { status: 404 }); });
   const fx = createFireFx(FIRE_STYLE), dispose = fx.loadBook();

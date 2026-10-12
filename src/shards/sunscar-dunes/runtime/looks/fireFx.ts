@@ -7,8 +7,8 @@ import { AdditiveBlending, BufferGeometry, CustomBlending, LinearFilter, LinearM
  * from them. Every part is a shader on a few quads or points, animated on the GPU from one shared time uniform: no CPU
  * particles, no lights, ~4 draws a fire.
  *
- * - the flame: cylindrical billboards (they turn about Y to the camera), a flipbook when one loaded, else a procedural
- *   ragged flame of torn noise licks over a hot core;
+ * - the flame: cylindrical billboards (they turn about Y to the camera) playing a flipbook of a fire render (one that
+ *   did not load is a page fault: the flame stands undrawn, its glow, embers and smoke still burn);
  * - the glow: a soft spherical billboard round the flame (a lit fire reads at 60 m+), and a lamp's brighter halo;
  * - embers: points that rise and drift on the breeze, each a short dash along its own motion, cooling hot → cool;
  * - smoke: a tall billboard column that widens and leans downwind, or a thin curling wisp (`FireSize.wisp`);
@@ -29,12 +29,12 @@ export interface FireSmoke { readonly drift: FireDrift; readonly foot: FireRgb; 
 export interface FireStyle {
   /** The direction (x, z) the smoke and embers drift on. */
   readonly breeze: readonly [number, number];
-  /** A flipbook of a fire render (light over black), `columns` × `rows` cells played at `fps`; null keeps the procedural flame. */
-  readonly book: { readonly url: string; readonly columns: number; readonly rows: number; readonly fps: number; readonly name: string } | null;
+  /** A flipbook of a fire render (light over black), `columns` × `rows` cells played at `fps`. */
+  readonly book: { readonly url: string; readonly columns: number; readonly rows: number; readonly fps: number; readonly name: string };
   /** The flipbook flame's grade: per-channel power, then a tint, the hot core raised by `core`. */
   readonly bookGrade: { readonly power: FireRgb; readonly tint: FireRgb; readonly core: number };
-  /** The procedural flame: its licks from `low` to `high` with heat, at `gain`; its core `core` × `coreGain`. */
-  readonly flame: { readonly drift: FireDrift; readonly low: FireRgb; readonly high: FireRgb; readonly gain: number; readonly core: FireRgb; readonly coreGain: number };
+  /** The flame billboards' drift. */
+  readonly flame: { readonly drift: FireDrift };
   readonly plume: FireSmoke;
   readonly wisp: FireSmoke;
   /** The halo round a fire and round a lamp (its own gain). */
@@ -55,7 +55,7 @@ export interface FireFx {
   resetLights: () => void;
   /** Advances every fire's shared clock. */
   tick: (t: number) => void;
-  /** Starts the flipbook fetch; shader preparation awaits its publication. A failure keeps the procedural flame; returns the unload disposer. */
+  /** Starts the flipbook fetch; shader preparation awaits its publication. A failure leaves the flame undrawn; returns the unload disposer. */
   loadBook: () => () => void;
   /** Up to four burning fires: xyz the flame, w its gain (0 when out). */
   readonly lights: { value: Vector4[] };
@@ -104,7 +104,7 @@ void main() {
   vFar = length(cameraPosition - world);
   gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
 }`;
-  const cells = style.book ?? { columns: 1, rows: 1, fps: 0 }, frames = cells.columns * cells.rows;
+  const cells = style.book, frames = cells.columns * cells.rows;
   const { bookGrade: grade, flame: fl } = style;
   // premultiplied alpha, so the flame's body covers the sky behind it
   const flameMaterial = new ShaderMaterial({
@@ -118,46 +118,24 @@ varying vec2 vUv;
 varying float vFar;
 varying float vNear;
 varying float vSeed;
-${NOISE}
 // cell i of the flipbook at the quad's uv (row 0 at the image's top; the bitmap is flipped at decode)
 vec3 bookAt(float i, vec2 uv) { float col = mod(i, ${f(cells.columns)}), row = floor(i / ${f(cells.columns)}); return texture2D(uBook, vec2((col + uv.x) / ${f(cells.columns)}, (${f(cells.rows - 1)} - row + uv.y) / ${f(cells.rows)})).rgb; }
 void main() {
   float fade = smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25);
-  if (uHasBook > 0.5) {
-    // each billboard its own phase, the next frame cross-faded in
-    float ft = uTime * ${f(cells.fps)} + vSeed * ${f(frames)}, i0 = mod(floor(ft), ${f(frames)}), k = fract(ft);
-    vec2 uv = clamp(vUv, vec2(0.004), vec2(0.996));
-    vec3 c = mix(bookAt(i0, uv), bookAt(mod(i0 + 1.0, ${f(frames)}), uv), k);
-    float lum = max(c.r, max(c.g, c.b));
-    // the render is light over black: its coverage from its brightness
-    float cover = clamp(lum * 1.7, 0.0, 1.0);
-    c = pow(c, ${v3(grade.power)}) * ${v3(grade.tint)};
-    // the white-hot core gated by its place in the flame, low and central
-    float coreAt = (1.0 - smoothstep(0.1, 0.42, vUv.y)) * (1.0 - smoothstep(0.12, 0.32, abs(vUv.x - 0.5))) * smoothstep(0.3, 0.6, lum);
-    c *= 1.0 + ${f(grade.core)} * coreAt;
-    gl_FragColor = vec4(c * fade, cover * fade);
-    return;
-  }
-  // a ragged procedural flame: many thin licks torn by three noise octaves, a hard edge and a hot core low in it
-  float y = vUv.y, x = vUv.x - 0.5, uTime = uTime + vSeed * 17.0; // each tongue its own phase
-  float n1 = fxNoise(vec2(x * 7.0, y * 3.4 - uTime * 4.2)), n2 = fxNoise(vec2(x * 15.0 + 4.0, y * 8.0 - uTime * 7.5));
-  float n3 = fxNoise(vec2(x * 34.0 + 9.0, y * 16.0 - uTime * 11.0));
-  float lick = (n1 - 0.5) * 0.3 * y + (n2 - 0.5) * 0.1 * y;
-  float tongues = 0.5 + 0.5 * sin((x + lick) * 42.0 + n1 * 5.0 + uTime * 1.9);
-  // the base tapers into the bowl
-  float w = (0.47 * pow(1.0 - y, 0.7) + 0.02) * mix(1.0, tongues, smoothstep(0.1, 0.5, y)) * mix(0.6, 1.0, smoothstep(0.0, 0.18, y));
-  float d = abs(x + lick) / w;
-  float top = y + (n1 - 0.5) * 0.6 + (n2 - 0.5) * 0.3 + (n3 - 0.5) * 0.12;
-  float body = (1.0 - smoothstep(0.84, 0.94, d + (n3 - 0.5) * 0.55 + (n2 - 0.5) * 0.25)) * (1.0 - smoothstep(0.7, 0.76, top)) * smoothstep(0.0, 0.14, y);
-  float core = (1.0 - smoothstep(0.12, 0.6, d)) * (1.0 - smoothstep(0.1, 0.55, top + (n2 - 0.5) * 0.2));
-  float heat = smoothstep(0.0, 0.55, 1.0 - d) * (1.0 - smoothstep(0.3, 0.8, top));
-  vec3 c = mix(${v3(fl.low)}, ${v3(fl.high)}, heat) * ${f(fl.gain)};
-  c = mix(c, ${v3(fl.core)} * ${f(fl.coreGain)}, core);
-  // fine vertical streaks rising through the body, and the base thin so what burns reads through it
-  float streak = fxNoise(vec2((x + lick) * 38.0, y * 5.0 - uTime * 6.5));
-  c *= 0.65 + 0.7 * streak;
-  float base = mix(0.45, 1.0, smoothstep(0.08, 0.3, y));
-  gl_FragColor = vec4(c * body * fade * base, body * fade * base);
+  // the flipbook is the flame; one that did not load is a page fault and the flame stands undrawn
+  if (uHasBook < 0.5) discard;
+  // each billboard its own phase, the next frame cross-faded in
+  float ft = uTime * ${f(cells.fps)} + vSeed * ${f(frames)}, i0 = mod(floor(ft), ${f(frames)}), k = fract(ft);
+  vec2 uv = clamp(vUv, vec2(0.004), vec2(0.996));
+  vec3 c = mix(bookAt(i0, uv), bookAt(mod(i0 + 1.0, ${f(frames)}), uv), k);
+  float lum = max(c.r, max(c.g, c.b));
+  // the render is light over black: its coverage from its brightness
+  float cover = clamp(lum * 1.7, 0.0, 1.0);
+  c = pow(c, ${v3(grade.power)}) * ${v3(grade.tint)};
+  // the white-hot core gated by its place in the flame, low and central
+  float coreAt = (1.0 - smoothstep(0.1, 0.42, vUv.y)) * (1.0 - smoothstep(0.12, 0.32, abs(vUv.x - 0.5))) * smoothstep(0.3, 0.6, lum);
+  c *= 1.0 + ${f(grade.core)} * coreAt;
+  gl_FragColor = vec4(c * fade, cover * fade);
 }`,
   });
   /** The smoke: a plume leaning downwind off a big fire, or a thin wisp off a cookfire. */
@@ -318,7 +296,7 @@ void main() {
     tick: (t) => { time.value = t; },
     loadBook: () => {
       const gen = ++bookGen, source = style.book;
-      if (source !== null) registerMaterialPreparation(flameMaterial, (async () => {
+      registerMaterialPreparation(flameMaterial, (async () => {
         try {
           const response = await fetch(source.url);
           if (!response.ok) throw new Error(`${String(response.status)} ${source.url}`);

@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { MeshStandardMaterial, Vector3, Vector4, type ShaderMaterial, type WebGLProgramParametersWithUniforms, type WebGLRenderer } from 'three';
+import { MeshStandardMaterial, Vector4, type WebGLProgramParametersWithUniforms, type WebGLRenderer } from 'three';
 import { legacyDouble } from '../../fake/FakeGame';
 import { applySurfaceLooks } from '../../../src/game/systems/looks/surfaceLooks';
 import type { SurfaceLook } from '../../../src/format/surfaceLooks';
-import { duskDomeFragment, duskDomeMaterial, DUSK_DOME_VERTEX } from '../../../src/shards/sunscar-dunes/runtime/looks/duskDome';
 import { BRAZIER_SURFACE, CAMP_SURFACE, COIL_SURFACE, GLOVE_SURFACE } from '../../../src/shards/sunscar-dunes/data/surfaces';
-import { SKY_STYLE, type DuskDomeStyle } from '../../../src/shards/sunscar-dunes/data/sky';
-// The hero models' shader patches and the procedural dome as Signal Dunes' own code built them before they became rows
+// The hero models' shader patches as Signal Dunes' own code built them before they became rows
 // (HEAD ba62c96f2, world/meshes.ts warmByFire / viewerLit / leatherDetail / fieldstoneBase / greyed, look/sky.ts), each
 // patch chain run over a skeleton of the standard material's include points.
 import before from './surface-shaders.json' with { type: 'json' };
@@ -34,27 +32,13 @@ const SLATE: readonly SurfaceLook[] = [
     dark: [0.04, 0.06, 0.05], light: [0.1, 0.16, 0.12], speckle: [0.9, 0.2], speckleScale: 3, mortarColour: [0.08, 0.12, 0.06] },
   { kind: 'desaturate', amount: 0.3 }, SPIRIT_FIRE,
 ];
-/** A second dome: a clear teal-and-violet alien dusk, no cloud deck. */
-const ALIEN_DUSK: DuskDomeStyle = {
-  ...SKY_STYLE, sun: [-0.5, -0.1, 0.8], band: { away: [0.2, 0.5, 0.45], toward: [0.3, 0.8, 0.6], power: 2, gain: [0.6, 0.2] },
-  rose: { early: [0.3, 0.3, 0.5], late: [0.2, 0.25, 0.5] }, clouds: null, stars: { colour: [1, 0.8, 0.7], density: 0.99, gain: [1, 1] },
-};
-
-describe('surface looks and the dusk dome run a shard\'s look from rows (SHARD-PLATFORM SF72, look-family rows)', () => {
+describe('surface looks run a shard\'s look from rows (SHARD-PLATFORM SF72, look-family rows)', () => {
   it('Signal Dunes\' surface rows compile to exactly the shaders its own patches built (pixel parity by construction)', () => {
     const rows = [['glove', GLOVE_SURFACE], ['brazier', BRAZIER_SURFACE], ['camp', CAMP_SURFACE], ['coil', COIL_SURFACE]] as const;
     for (const [name, looks] of rows) {
       const got = compiled(looks), want = before[name];
       expect([glsl(got.vertexShader), glsl(got.fragmentShader), got.uniforms], name).toEqual([glsl(want.vertexShader), glsl(want.fragmentShader), want.uniforms]);
     }
-  });
-
-  it('Signal Dunes\' dome row compiles to exactly the old dome, and its material is the old one\'s', () => {
-    expect([glsl(DUSK_DOME_VERTEX), glsl(duskDomeFragment(SKY_STYLE))]).toEqual([glsl(before.sky.vertexShader), glsl(before.sky.fragmentShader)]);
-    const dusk = { value: 0.5 }, m: ShaderMaterial = duskDomeMaterial(SKY_STYLE, dusk);
-    expect([m.depthTest, m.depthWrite, m.fog, m.side, m.uniforms['uDusk'] === dusk]).toEqual([false, false, false, 1, true]);
-    const sun: unknown = m.uniforms['uSun']?.value;
-    expect(sun instanceof Vector3 ? sun.toArray() : null).toEqual(new Vector3(0.2, -0.07, -0.98).normalize().toArray());
   });
 
   it('second looks draw in their own numbers, and two rows of one family never share a program', () => {
@@ -65,10 +49,6 @@ describe('surface looks and the dusk dome run a shard\'s look from rows (SHARD-P
     expect(slate.fragmentShader).toContain('smoothstep(0.1, 0.3, vStoneP.y)');
     expect(compiled(COIL_SURFACE).key).not.toBe(compiled([RANGER_LIGHT]).key);
     expect(compiled([SPIRIT_FIRE]).key).not.toBe(compiled(CAMP_SURFACE).key);
-    const alien = duskDomeFragment(ALIEN_DUSK);
-    expect(alien).toContain('float cov = 0.0;');
-    expect(alien).not.toContain('cBelow');
-    expect(alien).toContain('mix(vec3(0.2, 0.5, 0.45), vec3(0.3, 0.8, 0.6), pow(toward, 2.0))');
   });
 
   it('a row that reads a shared input refuses a material without it', () => {

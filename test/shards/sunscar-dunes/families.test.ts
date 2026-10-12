@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { parseFamilyMaterial, parseGroundLayer } from '@wildshard/format/materialFamilies';
 import { duskSandAt, duskSandEntry, duskSkyEntry, type GrainMeans } from '../../../src/shards/sunscar-dunes/runtime/looks/duskFamilies';
-import { duskDomeSun } from '../../../src/shards/sunscar-dunes/runtime/looks/duskDome';
+import { Vector3 } from 'three';
 import { SAND_LOOK, SKY_LOOK } from '../../../src/shards/sunscar-dunes/data/familyLook';
-import { SKY_STYLE } from '../../../src/shards/sunscar-dunes/data/sky';
+import { SKY_SUN } from '../../../src/shards/sunscar-dunes/data/sky';
 import { WIND } from '../../../src/shards/sunscar-dunes/world/dunes';
 
 // SF50 (A10): Signal Dunes' sand and sky as family entries (data/familyLook.ts on the SDK's dusk families); the dusk adapter reproduces the retired sand shader's dusk terms.
 const grain = { mean: 0.49, glintMean: 0.002 };
 // the site the platform's dusk look feeds the sand (game systems/looks/duskLook): the dunes' wind and the dome's set sun
-const site = { wind: WIND, glow: duskDomeSun(SKY_STYLE) };
+const site = { wind: WIND, glow: new Vector3(...SKY_SUN).normalize() };
 const sandAtDusk = (dusk: number, means: GrainMeans): ReturnType<typeof duskSandAt> => duskSandAt(SAND_LOOK, dusk, means, site.glow);
 const sandEntry = (dusk: number, means: GrainMeans): unknown => duskSandEntry(SAND_LOOK, dusk, means, site);
 const SKY_ENTRY = duskSkyEntry(SKY_LOOK);
