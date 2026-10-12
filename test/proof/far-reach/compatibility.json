@@ -1,20 +1,20 @@
 {
   "audit": {
-    "sourceRevision": "fd084eb1d962af0d7c37b632086f274191db8961",
-    "candidate": "SF81 DIR5: live and native encounter stage rows, complete authored boss cursor. Body, clock, ballistic, reward and presentation owners unchanged.",
+    "sourceRevision": "00e7da5fbf89cf32395fdf32e602161399e107aa",
+    "candidate": "Accepted portable recorder/worker math (dbcef52f5), shared home keeper continuation (dd74465a8), and exact MV-2 mover admission (3345469e4).",
     "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/far-reach/run.mjs all",
     "exitStatus": 0,
-    "scope": "All tape/effects, victories, retry, creature contacts, quest facts and ledger outcomes exactly match the committed predecessor. Only the encounter v2 wrapper and full stage cursor change canonical snapshot hashes.",
-    "runs": "Independent committed baseline/current whole native tapes, complete codec/native suffix, mixed-rate 3x10k actual callback/eligibility oracle, root strict and touched lint."
+    "scope": "Portable math deliberately changes the terminal tick from 21134 to 26469 and victory from 21014 to 26349. The shared home keeper changes only the far.flock continuation wrapper and terminal hash. Gameplay facts, coins, entries and MV-2 native laws remain exact.",
+    "runs": "Complete headless, shipping-worker replay and durable gameplay ledger on a clean committed source export with installed Rapier and existing generated resources."
   },
   "slug": "far-reach",
   "entry": "runtime/headless.ts",
   "compatible": true,
   "headless": {
     "status": "passed",
-    "ticksExecuted": 21134,
-    "hash": "1ff101c4e2e7a7fc555eb4b6022f7e16063bf5c23288f1c4ec7c040c6b0a6822",
-    "victoryTick": 21014,
+    "ticksExecuted": 26469,
+    "hash": "2c62014cd744811d83b9fd842eb9b8ee450c078222805a8f4ea95af860fe24d5",
+    "victoryTick": 26349,
     "attempts": 1,
     "questComplete": true,
     "facts": [
@@ -289,11 +289,11 @@
       },
       {
         "leg": "crown",
-        "tick": 21014,
+        "tick": 26349,
         "at": [
-          14.62,
-          44.02,
-          -194.06
+          -3.32,
+          45.23,
+          -173.68
         ]
       }
     ],
@@ -313,10 +313,10 @@
       "phase": 1,
       "hp": 277.2
     },
-    "suffixTicksExecuted": 10994,
-    "victoryTick": 21014,
-    "hash": "1ff101c4e2e7a7fc555eb4b6022f7e16063bf5c23288f1c4ec7c040c6b0a6822",
-    "replayHash": "1ff101c4e2e7a7fc555eb4b6022f7e16063bf5c23288f1c4ec7c040c6b0a6822",
+    "suffixTicksExecuted": 16329,
+    "victoryTick": 26349,
+    "hash": "2c62014cd744811d83b9fd842eb9b8ee450c078222805a8f4ea95af860fe24d5",
+    "replayHash": "2c62014cd744811d83b9fd842eb9b8ee450c078222805a8f4ea95af860fe24d5",
     "workerTicks": 60,
     "workerExact": true,
     "suffixFacts": [
@@ -337,7 +337,7 @@
       {
         "name": "far-reach.roc",
         "origin": "engine.encounter.victory",
-        "tick": 21014,
+        "tick": 26349,
         "entity": "far.roc"
       }
     ],
