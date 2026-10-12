@@ -13,7 +13,7 @@ const transport = v.pipe(v.strictObject({ notice: v.pipe(v.string(), v.startsWit
 /** One immutable landing: the native world and shardfile consume the same admitted row. */
 export type EntryLanding = v.InferOutput<typeof landing>;
 /** Refuse malformed cached data before it reaches the native collider owner. */
-export function decodeEntryLandings(source: unknown): EntryLanding[] {
+function decodeEntryLandings(source: unknown): EntryLanding[] {
   return v.parse(transport, source).rows;
 }
 /** Native slabs compiled at build time; no runtime recipe or generator enters the client. */
