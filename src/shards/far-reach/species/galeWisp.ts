@@ -7,7 +7,6 @@ import { IcosahedronGeometry, OctahedronGeometry, TorusGeometry } from 'three';
 import { GALE_WISP_DATA } from '../data/species';
 import { hull } from './rig';
 
-export const WISP = { circle: 5, dart: 13, notice: 14, shove: 7, lift: 2.5 } as const;
 export const GALE_WISP: SpeciesRow = GALE_WISP_DATA;
 
 export const GALE_WISP_LOOK: SpeciesLook = { id: 'far.look.galeWisp', species: GALE_WISP.id, kind: 'galeWisp', rig: 'custom', fur: NO_FUR,

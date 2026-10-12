@@ -4,12 +4,14 @@ import { skinnedModel, type SkinnedModel } from '../runtime/skinnedModel';
 import { SKY_CREATURES, SKY_CREATURE_RIGS, type SkyCreature } from '../data/files';
 import type { SkyCreatureExtras } from '../data/creatures';
 import { releaseDecodedOnUpload } from '../look/image';
+import { undrawnRig } from '@wildshard/sdk/looks/modelLibrary';
+import { SKY_STAND_INS } from '../data/standIns';
 
 /**
  * Sky Reach's creature bodies, baked offline (SHARD-PLATFORM M3: `generators/creatures.ts` → `rigs/<creature>.glb`, the
  * SDK's skinned-model bake): each is loaded once behind the loading screen and every spawn takes a copy, its bones, skin,
  * dims and (the Roc) painted map exactly as the generator processed them. A body that fails to load is a console.error
- * page fault; its species then stands in its code model, as headless always does.
+ * page fault; its species then stands undrawn on its stand-in skeleton (data/standIns.ts).
  */
 const models = new Map<SkyCreature, SkinnedModel>();
 let loading: Promise<void> | null = null;
@@ -45,7 +47,7 @@ function extrasOf(value: unknown): SkyCreatureExtras | null {
   if (bodyY === null || bodyHalfLen === null || bodyRadius === null || headRadius === null || legLen === null || halfWidth === null) return null;
   return { dims: { bodyY, bodyHalfLen, bodyRadius, headRadius, legLen, feet: [], halfWidth }, ...(isNumber(jitter) ? { facetJitter: jitter } : {}), ...(isNumber(light) ? { selfLight: light } : {}) };
 }
-/** A copy of a baked creature body, as the species look's `build()` returns it, or null (not loaded: the code model stands in). */
+/** A copy of a baked creature body, as the species look's `build()` returns it, or null (not loaded). */
 export function skyBody(creature: SkyCreature): AnimalSpecies | null {
   const model = models.get(creature);
   if (model === undefined) return null;
@@ -54,4 +56,10 @@ export function skyBody(creature: SkyCreature): AnimalSpecies | null {
   return { bones: asset.bones.map((bone) => ({ name: bone.name, parent: bone.parent, pos: bone.pos })), furParts: [], eyeParts: [], hardParts: asset.parts.map((part) => part.geometry),
     dims: extras.dims, ...(map === null ? {} : { map }), ...(extras.facetJitter === undefined ? {} : { facetJitter: extras.facetJitter }),
     ...(extras.selfLight === undefined ? {} : { selfLight: extras.selfLight }) };
+}
+/** A species look's body: the baked copy, else (not loaded) its undrawn stand-in on the authored skeleton. */
+export function skyBodyOrStandIn(creature: SkyCreature): AnimalSpecies {
+  const stand = SKY_STAND_INS[creature];
+  return skyBody(creature) ?? { bones: stand.bones.map(bone => ({ name: bone.name, parent: bone.parent, pos: [...bone.pos] })), furParts: [], eyeParts: [],
+    hardParts: [undrawnRig()], dims: { ...stand.dims, feet: [] } };
 }
