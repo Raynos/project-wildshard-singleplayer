@@ -59,3 +59,51 @@ export function aerialHeroPlan(): { junction: string; surrounding: readonly stri
   return { junction: junction.id, surrounding: grid.cells.filter(cell =>
     Math.abs(cell.origin.x - target.x) < grid.pitch && Math.abs(cell.origin.z - target.z) < grid.pitch).map(cell => cell.instance), poses };
 }
+
+/** One G332 round-3 desktop-landscape view: an actual eye aimed exactly at the roundabout, so it sits at frame centre. */
+export interface LandscapeHeroPose {
+  readonly id: string;
+  readonly name: string;
+  readonly mode: 'grid';
+  readonly eye: { readonly x: number; readonly y: number; readonly z: number };
+  readonly target: { readonly x: number; readonly y: number; readonly z: number };
+  readonly downDegrees: number;
+  /** Compass of the eye around the roundabout; 45° is M-b's corner–centre diagonal over the template. */
+  readonly headingDegrees: number;
+  /** Where each surrounding cell's centre falls in frame: left / centre / right of the roundabout, nearer or farther. */
+  readonly placement: readonly { readonly instance: string; readonly side: 'left' | 'centre' | 'right'; readonly depth: 'near' | 'far' }[];
+}
+
+/** Round 3 (Jake on M-b: "we need to capture this on desktop landscape"): M-b's spot, a tilt down, and headings around it. */
+export function landscapeHeroPlan(): { junction: string; surrounding: readonly string[]; poses: LandscapeHeroPose[] } {
+  const round2 = aerialHeroPlan();
+  const mb = round2.poses.find(pose => pose.id === 'M-b');
+  if (mb === undefined) throw new Error('Round 3 starts from round 2 M-b');
+  const grid = new GridAssembly({ developer: true, devserver: false });
+  const cells = grid.cells.filter(cell => round2.surrounding.includes(cell.instance));
+  const target = mb.target;
+  const radius = Math.hypot(mb.eye.x - target.x, mb.eye.z - target.z);
+  const poses: LandscapeHeroPose[] = [];
+  const add = (id: string, name: string, headingDegrees: number, height: number, distance = radius): void => {
+    const angle = headingDegrees * Math.PI / 180;
+    const eye = { x: target.x + distance * Math.sin(angle), y: height, z: target.z + distance * Math.cos(angle) };
+    // three.js right axis for a camera looking along f with +y up is (-f.z, 0, f.x).
+    const fx = target.x - eye.x, fz = target.z - eye.z;
+    const placement = cells.map(cell => {
+      const dx = cell.origin.x - target.x, dz = cell.origin.z - target.z;
+      const across = dx * -fz + dz * fx, along = dx * fx + dz * fz;
+      // Within 20° of the line of sight reads as centre.
+      const side = Math.abs(Math.atan2(across, along)) < Math.PI / 9 || Math.abs(Math.atan2(across, -along)) < Math.PI / 9
+        ? 'centre' as const : across < 0 ? 'left' as const : 'right' as const;
+      return { instance: cell.instance, side, depth: along > 0 ? 'far' as const : 'near' as const, across };
+    }).sort((a, b) => a.across - b.across).map(({ instance, side, depth }) => ({ instance, side, depth }));
+    poses.push({ id, name, mode: 'grid', eye, target, headingDegrees,
+      downDegrees: Math.atan2(eye.y - target.y, Math.hypot(fx, fz)) * 180 / Math.PI, placement });
+  };
+  add('L-a', 'M-b spot, landscape', 45, mb.eye.y);
+  add('L-b', 'M-b spot, tilted down', 45, 135);
+  add('L-c', 'Swung toward Pine', 25, 120);
+  add('L-d', 'Swung toward Nalati', 65, 120);
+  add('L-e', 'Down the road, 2 × 2', 0, 120, 200);
+  return { junction: round2.junction, surrounding: round2.surrounding, poses };
+}

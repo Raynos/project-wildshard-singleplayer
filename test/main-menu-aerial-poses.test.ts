@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { aerialHeroPlan } from '../scripts/main-menu-aerial-poses';
+import { aerialHeroPlan, landscapeHeroPlan } from '../scripts/main-menu-aerial-poses';
 
 it('aims fifteen real poses at the central roundabout and its four adjacent cells', () => {
   const plan = aerialHeroPlan();
@@ -25,5 +25,18 @@ it('keeps the requested corner, midpoint and centre homes while sweeping the aim
     expect(rows.map(p => p.id)).toEqual([`${group}-a`, `${group}-b`, `${group}-c`]);
     for (const row of rows) expect([row.eye.x, row.eye.z]).toEqual([coordinate, coordinate]);
     expect(new Set(rows.map(p => p.eye.y)).size).toBe(3);
+  }
+});
+
+it('frames round 3 landscape views around M-b, aimed at the roundabout', () => {
+  const plan = landscapeHeroPlan();
+  expect(plan.poses.map(p => p.id)).toEqual(['L-a', 'L-b', 'L-c', 'L-d', 'L-e']);
+  const mb = aerialHeroPlan().poses.find(p => p.id === 'M-b');
+  expect(plan.poses[0]?.eye).toEqual(mb?.eye);
+  for (const pose of plan.poses) {
+    expect(pose.target).toEqual(mb?.target);
+    expect(new Set(pose.placement.map(c => c.instance))).toEqual(new Set(plan.surrounding));
+    expect(pose.placement[0]?.instance).toBe('pine-hollow');
+    expect(pose.placement.at(-1)?.instance).toBe('nalati-grasslands');
   }
 });
