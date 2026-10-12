@@ -33,7 +33,8 @@ import { tintTerrain } from './coverTint';
 import type { BlenderIsland } from './BlenderIsland';
 import { ENTRY_FOOTPRINTS, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, type DryRect } from './sea';
 import { ENTRY_LANDINGS, type EntryLanding } from '../data/entryLandings';
-import { deckPlacements, deckRects, deckSlabs, onDeck } from './entryDeck';
+import { onDeck } from './entryDeck';
+import { ENTRY_DECKS } from '../data/entryDecks';
 import { entryDeck } from '../models/entryDeck';
 import { loadFixedGeometry } from '../boot/fixedGeometry';
 import { modelContext } from '@wildshard/engine/models/model';
@@ -91,7 +92,11 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const total = 16 + JETTIES.length;
   progress?.set(0, total, 'Preparing world builders'); // between the builders below: a task ends once it has run ~30 ms (the pier … cove were one 0.3–0.5 s task)
   // G170: the ocean is clipped out under each whole road deck (the socket and its landing), not only the socket
-  const edges = lowered.landings.map(({ edge }) => edge), decks = deckRects(edges);
+  const deckRows = lowered.landings.map(({ edge }) => {
+    const row = ENTRY_DECKS.find(deck => deck.edge === edge);
+    if (row === undefined) throw new Error('Missing admitted entry deck');
+    return row;
+  }), decks = deckRows.map(({ rect }) => rect);
   const ocean = new Ocean(sky).build(sea.level, decks, lowered.edgeInset);
   game.scene.add(ocean.group);
   // the south entry road is a wooden pier over the water; the player spawns on its deck
@@ -103,9 +108,9 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   registry.add({ id: 'entry-landings', name: 'Entry landings', category: 'props', file: 'src/shards/driftwood-isle/world/sea.ts', surface: 'stone',
     colliders: lowered.landings.map(({ box }) => ({ ...box })), solidFloor: true,
     floor: (x, z) => (lowered.landings.some(({ box }) => Math.abs(x - box.x) <= box.hx && Math.abs(z - box.z) <= box.hz) ? 0 : undefined) });
-  place(entryDeck, deckPlacements(edges, heightAt), { ctx: modelContext(sky), draw: 'merged', registry,
+  place(entryDeck, deckRows.map(({ placement }) => placement), { ctx: modelContext(sky), draw: 'merged', registry,
     piece: { id: 'entry-decks', floor: (x, z) => (onDeck(decks, x, z) ? 0 : undefined), solidFloor: true } });
-  statics.push(...deckSlabs(edges));
+  statics.push(...deckRows.map(({ slab }) => slab));
   statics.push(...pier.colliders);
   const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
   // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it

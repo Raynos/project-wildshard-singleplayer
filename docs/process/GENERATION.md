@@ -263,3 +263,15 @@ order and native collider/floor ownership remain the original G164/G170 ones.
 The output is a build-time cache product with pinned SHA-256 `4e49e80ad17b80e82198c38aaf929cc46d62f9ce6e44a4228dd739665a8feddd`.
 No retained output seeds the job. Full physics/navmesh and whole-product
 clean rooms remain separate requirements; this component grants no deletion.
+
+### Driftwood road-deck placements (G320)
+
+The complete `driftwood-entry-decks` numeric component derives the original
+four road-deck footprints, ocean foam slabs and column depths from the cold
+native ground lattice. The bilinear sample arithmetic and datum remain the
+shipping heightfield law. The client reads admitted cached JSON and supplies
+those exact parameters to the retained geometry factory; geometry is not
+produced or rewritten by this component.
+The cache output has pinned SHA-256 `a8e29b1476aed0e84a45e139a7492fc30603349845ee6c828a918d2b67fe9297` and no retained seed.
+Full physics/navmesh and whole-product clean rooms remain separate gates;
+this component grants no output deletion.

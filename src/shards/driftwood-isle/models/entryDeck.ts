@@ -11,6 +11,7 @@
  * is the shardfile's declared landing (world/sea.ts), installed as declared by the world build.
  */
 import * as THREE from 'three';
+import { DECK_SLAB } from '../data/entryRows';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { defineModel } from '@wildshard/engine/models/model';
@@ -22,8 +23,6 @@ export interface EntryDeckParams {
   readonly bed: number;
 }
 
-/** the slab's thickness under its y = 0 top */
-export const DECK_SLAB = 0.55;
 const CAP_DEPTH = 0.45, CAP_RUN = 0.7, COLUMN = 0.6, COLUMN_ACROSS = 2.7, FASCIA = 0.12, LIP = 0.05;
 /** the road look's colours (roadLook.ts ASPHALT / KERB / WHITE), the columns a shade darker */
 const ASPHALT = new THREE.Color(0x3a3c40), CONCRETE = new THREE.Color(0x9a9c98), COLUMN_GREY = new THREE.Color(0x7c7e7b), LINE = new THREE.Color(0xe9ebe6);
