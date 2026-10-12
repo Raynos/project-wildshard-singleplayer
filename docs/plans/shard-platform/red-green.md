@@ -69,3 +69,7 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-12 | gate: Pine manifest closure 44 > 43 (verified: only `pine-hollow/data/placeholder.ts` added) | `7d6b3c0b4` | `c21f24156` + `8c24b45d8` (manifest imports no placeholder data) | sp-o32 |
 | 2026-10-12 | gate: Sunscar whip-parity require-await | `fd523da91` | `744854d7d` | wildshard-new |
 | 2026-10-12 | gate: Driftwood + Pine physics/spots freshness (new `data/placeholder.ts` inputs) | `7d6b3c0b4`, then `c21f24156` + `8c24b45d8` | DW `ec8a8e7fa` (sp-x7); Pine `17d1d63d9` (sp-o32) | sp-x7, sp-o32 |
+| 2026-10-12 | gate `5d957bdce`: Nine/Nalati/DW/Signal physics stale (new placeholder / moverBake / shared geometry inputs) | `c21f24156`, `8c24b45d8`, `83585e874`, `f526c81ca` | `87a20b7ee` (all-native recapture, gameplay identical) | sp-x7 |
+| 2026-10-12 | gate: 5 Blender-template proofs (renderer reached Node closure via plugin/placeholder → grid/farView) | `677bd1cf1` | `caca880f5` | sp-o34 |
+| 2026-10-12 | gate: authoring-docs SkinnedBake undocumented | `02e371386` | `5639fa58c` | sp-o33 |
+| 2026-10-12 | **LIVE-GAME P0 (caught pre-release): Signal never reaches ready at HEAD** ('Shardfile requires the normal play stage'); boot smoke doesn't cover Signal page-ready | bisecting `e840b5474..` | pending (sp-o33); release pinned to 957 `ba9d6e00e` | sp-o33, sp-x7 |
