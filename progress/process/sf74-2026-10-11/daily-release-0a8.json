@@ -1,0 +1,136 @@
+{
+  "duration": {
+    "run": 38208490517,
+    "sha": "0a8cb8d8f8292d43eebe81968d97374e0eabc33f",
+    "files": 1495,
+    "failureEntries": 0,
+    "generatedWorkflow": [
+      {
+        "name": "unit:test/generated-workflow.test.ts",
+        "durationMs": 51363.696008,
+        "failed": false
+      }
+    ],
+    "top10": [
+      {
+        "name": "integration:test/proof/compatibility/determinism.test.ts",
+        "durationMs": 152600.204758,
+        "failed": false
+      },
+      {
+        "name": "unit:test/shards/driftwood-isle/headless-runtime.test.ts",
+        "durationMs": 83542.765233,
+        "failed": false
+      },
+      {
+        "name": "unit:test/shards/far-reach/headless-runtime.test.ts",
+        "durationMs": 73368.455797,
+        "failed": false
+      },
+      {
+        "name": "unit:test/shards/nalati-grasslands/headless-taming.test.ts",
+        "durationMs": 66265.902023,
+        "failed": false
+      },
+      {
+        "name": "unit:test/shards/pine-hollow/headless-runtime.test.ts",
+        "durationMs": 64653.775747,
+        "failed": false
+      },
+      {
+        "name": "unit:test/lint-ratchet.test.ts",
+        "durationMs": 53964.491821,
+        "failed": false
+      },
+      {
+        "name": "unit:test/generated-workflow.test.ts",
+        "durationMs": 51363.696008,
+        "failed": false
+      },
+      {
+        "name": "unit:test/grid-render-rings.test.ts",
+        "durationMs": 49022.476457,
+        "failed": false
+      },
+      {
+        "name": "unit:test/author-brief.test.ts",
+        "durationMs": 38200.138446000004,
+        "failed": false
+      },
+      {
+        "name": "unit:test/arch-guards.test.ts",
+        "durationMs": 37294.94811,
+        "failed": false
+      }
+    ]
+  },
+  "load": {
+    "at": "2026-10-12T05:27:44.092022+00:00",
+    "sha": "0a8cb8d8f8292d43eebe81968d97374e0eabc33f",
+    "mode": "automatic full gate",
+    "cores": 18,
+    "uptime": "0:27  up 51 days, 17 hrs, 2 users, load averages: 9.79 7.15 6.88",
+    "workers": [
+      {
+        "pid": 96468,
+        "parent": 85658,
+        "nice": 10,
+        "cpuPercent": 114.2
+      },
+      {
+        "pid": 96469,
+        "parent": 85658,
+        "nice": 10,
+        "cpuPercent": 103.3
+      },
+      {
+        "pid": 96470,
+        "parent": 85658,
+        "nice": 10,
+        "cpuPercent": 0.1
+      },
+      {
+        "pid": 96471,
+        "parent": 85658,
+        "nice": 10,
+        "cpuPercent": 239.0
+      },
+      {
+        "pid": 96473,
+        "parent": 85658,
+        "nice": 10,
+        "cpuPercent": 116.9
+      },
+      {
+        "pid": 96510,
+        "parent": 85658,
+        "nice": 10,
+        "cpuPercent": 62.9
+      }
+    ],
+    "controlledBeforeAfter": false
+  },
+  "dispatch": {
+    "at": "2026-10-12T05:55:39.946751+00:00",
+    "sha": "0a8cb8d8f8292d43eebe81968d97374e0eabc33f",
+    "readiness": {
+      "ready": "true",
+      "sha": "0a8cb8d8f8292d43eebe81968d97374e0eabc33f"
+    },
+    "slot": {
+      "free": "true"
+    },
+    "priorLive": {
+      "build": "5f780a93a-mv4s89ks",
+      "time": "2026-10-12T04:59:16.986Z"
+    },
+    "dispatchAccepted": true
+  },
+  "live": {
+    "build": "0a8cb8d-mv4udq2c",
+    "time": "2026-10-12T05:59:31.486Z",
+    "exactPin": "0a8cb8d8f8292d43eebe81968d97374e0eabc33f",
+    "productionStatusAt": "2026-10-12T06:00:08Z",
+    "release": 38210106848
+  }
+}
