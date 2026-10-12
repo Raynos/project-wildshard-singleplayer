@@ -4,9 +4,14 @@ import { readFileSync } from 'node:fs';
 import { cwd } from 'node:process';
 import { describe, expect, it } from 'vitest';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
+import { CUES } from '../../../src/shards/sunscar-dunes/data/cues';
 import { manifestClosure } from '../../../scripts/gen-shards.mjs';
 
 describe('node-safe Signal Dunes manifest', () => {
+  it('declares the original weapon cue IDs as serializable data', () => {
+    expect(manifest.audio?.cues).toEqual(CUES);
+    expect(JSON.stringify(manifest.audio?.cues)).toBe(JSON.stringify(CUES));
+  });
   it('declares its empty audio inventory as serializable data', () => {
     expect(manifest.boot?.audio).toEqual([]);
     expect(JSON.stringify(manifest.boot?.audio)).toBe('[]');

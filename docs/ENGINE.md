@@ -571,7 +571,7 @@ This does not change `bounds` / soft respawn or the creature death plane `world.
 | `species`, `encounters?`, `spawns`, `faunaTuning?`, `creatures?` | creature ids, encounter ids, herd plans, per-species tuning, creature render flags |
 | `fight?` | `{ input: { bufferMs, coyoteMs }, telegraphed?, maxHitDamage?, capExempt?, attackers? }` |
 | `bag?`, `loot?`, `bodyShadow?` | Bag tabs and pack, coins on kills, the body shadow |
-| `audio` | `{ bed?, ambience, score, cues?, preload?, samples?, alertOnlyHostile? }` (§15) |
+| `audio` | `{ bed?, ambience, score, cues?, preload?, samples?, alertOnlyHostile? }` (§15); `cues` is a serializable name-to-ID map (frozen trusted manifests may retain a lazy loader) |
 | `boot` | §8 |
 | `explore?`, `roster?` | Explore art and the Model Explorer roster (§22) |
 | `debugOptions?` | which engine Debug rows apply to this level (§23) |

@@ -29,7 +29,10 @@ export interface AudioSpec {
   bed?: string; samples?: SfxDecodePolicy; alertOnlyHostile?: boolean;
   /** 'none' declares no ambience: omit bed and install no sampled/synth/zoned ambient content. Score and cues remain independent. */
   ambience: string;
-  score: string; cues?: () => Promise<object>; preload?: () => Promise<LevelAudioProfile>;
+  score: string;
+  /** Serializable cue IDs; frozen trusted manifests may retain their lazy legacy loader. */
+  cues?: Readonly<Record<string, string>> | (() => Promise<object>);
+  preload?: () => Promise<LevelAudioProfile>;
 }
 export interface BootSpec {
   viewmodelSets?: readonly SetName[];
