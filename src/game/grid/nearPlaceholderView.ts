@@ -15,8 +15,15 @@ import type { ResidencyAllocator, ResidencyLease } from './allocator';
 import { installFarProxy, type FarPrepared, type FarProxyView } from './farView';
 import { planNearPlaceholders, type NearCrossroads } from './nearPlaceholderPlan';
 
-/** The bake's budget (measured, G342): L1-density terrain, a content triangle budget and the per-cell resident ceiling. */
-export const NEAR_BAKE = { quads: 16, contentTriangles: 42_000, triangles: 64_000, residentBytes: 6_000_000 } as const;
+/**
+ * The bake's budget (measured, G342): the ground sampled at the height field's own ~2 m (64 quads a 125 m region) and
+ * reduced to `groundError` metres (round 3), a content triangle budget, a sanity triangle cap and the per-cell resident
+ * ceiling. Round 3 (Jake: Nalati's terrain "super low poly") measured the dense ground at 0.5 m on 2026-10-12: Nalati
+ * 24k triangles / 1.9 MB, Pine 20k / 1.67 MB, Driftwood 16k / 1.38 MB (the L1-density ground was 10k / 0.77 MB); whole
+ * cells Nalati 5.47, Driftwood 5.81 and Pine 8.07 MB with its 40k props, so the ceiling went 6 → 8.5 MB (coordinator
+ * approval, G342 / E435): four cells 34 MB on the near line, inside the 1.0 GB Explorer envelope.
+ */
+export const NEAR_BAKE = { quads: 64, groundError: 0.5, contentTriangles: 42_000, triangles: 160_000, residentBytes: 8_500_000 } as const;
 
 /** What the owner needs from the grid session. */
 export interface NearPlaceholderHost {
@@ -25,8 +32,10 @@ export interface NearPlaceholderHost {
   readonly pitch: number;
   /** the cell's render root (absent: not a neighbour of this session) */
   root: (instance: string) => Object3D | undefined;
-  /** fetch and parse the cell's near placeholder; rejects when its shard has none (the far proxy stays) */
-  load: (instance: string) => Promise<{ prepared: FarPrepared; bytes: number }>;
+  /** fetch and parse the cell's near placeholder; rejects when its shard has none (the far proxy stays). `owns`: the bake
+   *  carries the shard's own world (props, trees), so the near view may own the whole cell over its L1 / L0 ring tiles; a
+   *  terrain-only bake (a shardfile project whose world is in its tiles) leaves those tiles refining */
+  load: (instance: string) => Promise<{ prepared: FarPrepared; bytes: number; owns?: boolean }>;
   /** the far proxy's visibility override: true hides it while the near view draws */
   cover: (instance: string, covered: boolean) => void;
   /** the regions the rings refined in this cell (the far proxy's current mask) */
@@ -35,7 +44,7 @@ export interface NearPlaceholderHost {
   adopt?: (view: FarProxyView, prepared: FarPrepared) => () => void;
   decorate?: (material: Material) => void;
 }
-interface Slot { readonly instance: string; generation: number; view: FarProxyView | null; lease: ResidencyLease | null; undo: (() => void) | null }
+interface Slot { readonly instance: string; generation: number; view: FarProxyView | null; lease: ResidencyLease | null; undo: (() => void) | null; owns: boolean }
 /** A readout for the cell screen and captures. */
 export interface NearPlaceholderState { readonly crossroads: NearCrossroads | null; readonly mode: 'crossroads' | 'adjacent'; readonly cells: readonly { instance: string; shows: 'near' | 'loading' | 'none' }[]; readonly bytes: number }
 
@@ -71,6 +80,9 @@ export class NearPlaceholders {
   /** True while the cell's near view is drawn (its far proxy is covered). */
   shows(instance: string): boolean { return (this.slots.get(instance)?.view ?? null) !== null; }
 
+  /** True while the cell's near view is drawn and owns the cell (round 3: the rings stop refining it to its L1 / L0 tiles). */
+  owns(instance: string): boolean { const slot = this.slots.get(instance); return slot?.view !== null && slot?.view !== undefined && slot.owns; }
+
   state(): NearPlaceholderState {
     let bytes = 0;
     const cells: { instance: string; shows: 'near' | 'loading' | 'none' }[] = [...this.slots.values()].map(s => {
@@ -90,7 +102,7 @@ export class NearPlaceholders {
   private readonly bytes = new Map<string, number>();
 
   private start(instance: string, distance: number): void {
-    const slot: Slot = { instance, generation: ++this.generation, view: null, lease: null, undo: null };
+    const slot: Slot = { instance, generation: ++this.generation, view: null, lease: null, undo: null, owns: false };
     this.slots.set(instance, slot);
     const generation = slot.generation;
     const run = async (): Promise<void> => {
@@ -99,7 +111,7 @@ export class NearPlaceholders {
         if (this.slots.get(instance)?.generation === generation) { this.slots.delete(instance); this.missing.add(instance); }
         return;
       }
-      const { prepared, bytes } = loaded;
+      const { prepared, bytes, owns = false } = loaded;
       // cancel-safe: a cell that left the plan (or a disposed owner) discards what arrived
       if (this.disposed || this.slots.get(instance)?.generation !== generation) { prepared.geometry.dispose(); return; }
       const root = this.host.root(instance);
@@ -108,7 +120,7 @@ export class NearPlaceholders {
       if (root === undefined || lease === null) { prepared.geometry.dispose(); this.slots.delete(instance); return; } // refused: the far proxy stays
       const view = installFarProxy(root, prepared.geometry, prepared.look, prepared.positionalMask === true, this.host.decorate);
       view.mesh.name = 'near-placeholder';
-      slot.view = view; slot.lease = lease; slot.undo = this.host.adopt?.(view, prepared) ?? null;
+      slot.view = view; slot.lease = lease; slot.undo = this.host.adopt?.(view, prepared) ?? null; slot.owns = owns;
       this.bytes.set(instance, bytes);
       view.mask(this.host.mask(instance));
       this.host.cover(instance, true);

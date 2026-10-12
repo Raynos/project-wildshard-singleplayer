@@ -38,6 +38,7 @@
     "./terrain": "./terrain.ts",
     "./nearPlaceholder": "./nearPlaceholder.ts",
     "./nearPlaceholderAssets": "./nearPlaceholderAssets.ts",
+    "./placeholderSource": "./placeholderSource.ts",
     "./water": "./water.ts",
     "./accent": "./accent.ts",
     "./items": "./items.ts",

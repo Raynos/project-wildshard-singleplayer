@@ -20,6 +20,7 @@ import type { WaterBody } from '@wildshard/engine/world/water/body';
 import { terrainFieldFor } from '@wildshard/engine/world/groundField';
 
 import type { AccentId } from '@wildshard/format/accent';
+import type { PlaceholderSource } from '@wildshard/format/placeholderSource';
 import type { RegionalSimCost, RuntimeCost } from '@wildshard/format/runtimeCost';
 import type { ShardSlug } from './slugs.generated';
 /**
@@ -548,6 +549,8 @@ export interface ShardManifest {
   horizon?: ChunkHorizon;
   /** Visual edge dressing only (default visible); never disables player-containment colliders. */
   boundary?: { visible?: boolean };
+  /** G348: the shard's own steer for its generated near / far placeholders (ground source, tree stand-ins); bake-time data */
+  placeholder?: PlaceholderSource;
   /** Authored far-field imagery; consumed by the generic painted-horizon renderer. */
   horizonStrips?: { day: string; night: string; elMin: number; elMax: number; scale?: number; phone?: { day: string; night: string } };
   /**

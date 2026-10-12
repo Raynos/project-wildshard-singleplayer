@@ -120,8 +120,12 @@ function sampler(grid: FarGrid): { height: (x: number, z: number) => number; spl
 /**
  * Bake one shard's proxy mesh from its grid, far look and model parts. Deterministic; refuses output over the far triangle
  * cap (G342's near placeholder passes its own) and a part outside the cell.
+ * `reduce` (G342 round 3, the near placeholder's dense ground): each region's ground lattice (region-local positions and
+ * index) goes through it before its skirts; it returns a reduced index over the same vertices that keeps the lattice's
+ * border vertices (the skirts hang from them). Vertices no triangle uses are dropped at the end.
  */
-export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonly FarPart[] = [], cap: number = CONTENT_CAPS.far.triangles): FarProxyMesh {
+export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonly FarPart[] = [], cap: number = CONTENT_CAPS.far.triangles,
+  reduce?: (positions: Float32Array, index: Uint32Array) => Uint32Array): FarProxyMesh {
   const quads = look.quads ?? FAR_QUADS;
   if (!Number.isInteger(quads) || quads < 1) throw new RangeError('Invalid far lattice');
   const sample = sampler(grid), regionSize = (CHUNK_HALF * 2) / FAR_REGIONS, step = regionSize / quads, n = quads + 1;
@@ -150,10 +154,13 @@ export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonl
       const x = x0 + i * step, z = z0 + j * step, g = ground(x, z), id = vertex(x, g.top, z, g.normal, g.rgb, r); low = Math.min(low, g.h);
       if (j === 0) edge[0]?.push(id); if (i === n - 1) edge[1]?.push(id); if (j === n - 1) edge[2]?.push(id); if (i === 0) edge[3]?.push(id);
     }
+    const lattice: number[] = [];
     for (let j = 0; j < quads; j++) for (let i = 0; i < quads; i++) {
-      const a = base + j * n + i, b = a + 1, c = a + n, d = c + 1;
-      index.push(a, c, b, b, c, d);
+      const a = j * n + i, b = a + 1, c = a + n, d = c + 1;
+      lattice.push(a, c, b, b, c, d);
     }
+    const kept = reduce === undefined ? lattice : reduce(Float32Array.from(positions.slice(base * 3, (base + n * n) * 3)), Uint32Array.from(lattice));
+    for (const i of kept) { if (!Number.isInteger(i) || i < 0 || i >= n * n) throw new RangeError('Invalid reduced far lattice'); index.push(base + i); }
     // skirts: each edge vertex drops FAR_SKIRT, darkened; wound outward (south edge faces −z, east +x, north +z, west −x).
     // On the cell's border the skirt is the exposed boundary face (G222): it drops to FAR_EDGE_FLOOR as a rock cliff, with
     // its own lip vertices (the outward normal, not the ground's smooth one, and the cliff palette, not the snow or grass
@@ -186,7 +193,23 @@ export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonl
   for (const part of parts) addPart(part, regionSize, { positions, normals, colours, region, cliff, index });
   const triangles = index.length / 3;
   if (triangles > cap) throw new RangeError(`Far proxy has ${triangles} triangles, over the ${cap} cap`);
-  return { positions: Float32Array.from(positions), normals: Float32Array.from(normals), colours: Float32Array.from(colours), region: Float32Array.from(region), cliff: Float32Array.from(cliff), index: Uint32Array.from(index), triangles };
+  const mesh = { positions: Float32Array.from(positions), normals: Float32Array.from(normals), colours: Float32Array.from(colours), region: Float32Array.from(region), cliff: Float32Array.from(cliff), index: Uint32Array.from(index), triangles };
+  return reduce === undefined ? mesh : compact(mesh);
+}
+
+/** Drop the vertices no triangle uses (a reduced lattice's), keeping the survivors' order. */
+function compact(mesh: FarProxyMesh): FarProxyMesh {
+  const count = mesh.region.length, remap = new Int32Array(count).fill(-1);
+  for (const i of mesh.index) remap[i] = 0;
+  let kept = 0;
+  for (let v = 0; v < count; v++) if (remap[v] === 0) remap[v] = kept++;
+  const pick = (source: Float32Array, width: number): Float32Array => {
+    const out = new Float32Array(kept * width);
+    for (let v = 0; v < count; v++) { const to = remap[v] ?? -1; if (to >= 0) out.set(source.subarray(v * width, v * width + width), to * width); }
+    return out;
+  };
+  return { positions: pick(mesh.positions, 3), normals: pick(mesh.normals, 3), colours: pick(mesh.colours, 3), region: pick(mesh.region, 1), cliff: pick(mesh.cliff, 1),
+    index: Uint32Array.from(mesh.index, (i) => remap[i] ?? 0), triangles: mesh.triangles };
 }
 
 /** Append a model part: its region from its centre, area-weighted vertex normals from its faces. */

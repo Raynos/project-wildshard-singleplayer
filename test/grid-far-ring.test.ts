@@ -55,6 +55,19 @@ describe('SF23 far proxies', () => {
     expect(Math.min(...mesh.positions.filter((_, i) => i % 3 === 1))).toBeLessThan(4);
   });
 
+  it('G342 round 3: a reduced ground lattice keeps its skirts and drops the vertices nothing draws', () => {
+    const look: FarLookSource = { family: 'toon', colourAt: () => [0.5, 0.5, 0.5], cliff: ROCK, haze: { colour: [1, 1, 1], near: 1, far: 2, max: 0.5 }, quads: 4 };
+    const res = 33, grid = { res, size: 500, heights: new Float32Array(res * res).fill(4), splat: null };
+    const full = buildFarProxy(grid, look), seen: number[] = [];
+    // keep each region's corner quad only: its interior vertices go, the border ones stay for the skirts
+    const reduced = buildFarProxy(grid, look, [], undefined, (positions, index) => { seen.push(positions.length / 3); return index.slice(0, 6); });
+    expect(seen).toEqual(Array.from({ length: 16 }, () => 25));
+    expect(reduced.triangles).toBe(16 * (2 + 4 * 4 * 2));
+    expect(reduced.region.length).toBeLessThan(full.region.length);
+    expect(Math.max(...reduced.index)).toBe(reduced.region.length - 1);
+    expect(() => buildFarProxy(grid, look, [], undefined, () => Uint32Array.from([0, 1, 99]))).toThrow(/reduced far lattice/u);
+  });
+
   it('G222: draws the cell boundary as a rock cliff (own lip, outward normals, flagged), the inner skirts as ground', () => {
     const look: FarLookSource = { family: 'painterly', colourAt: () => [0.9, 0.92, 0.97], cliff: ROCK, haze: { colour: [1, 1, 1], near: 1, far: 2, max: 0.5 } };
     const res = 33, heights = new Float32Array(res * res).fill(4);

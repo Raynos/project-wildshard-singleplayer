@@ -67,6 +67,21 @@ const apply = (m: readonly number[], x: number, y: number, z: number): [number, 
   (m[1] ?? 0) * x + (m[5] ?? 0) * y + (m[9] ?? 0) * z + (m[13] ?? 0),
   (m[2] ?? 0) * x + (m[6] ?? 0) * y + (m[10] ?? 0) * z + (m[14] ?? 0)];
 
+/**
+ * G342 round 3 (Jake: "the whole terrain and mountains of Nalati looks super low poly"): the near ground is sampled at
+ * the shard's own height-field density and reduced per region by geometric error, so a mountain keeps its ridges and a
+ * flat meadow or sea floor spends almost nothing. The region's border stays whole (its skirts hang from it). Pass the
+ * result to `buildFarProxy` as its `reduce`.
+ */
+export async function nearGroundReducer(errorMetres: number): Promise<(positions: Float32Array, index: Uint32Array) => Uint32Array> {
+  if (!Number.isFinite(errorMetres) || errorMetres <= 0) throw new RangeError('Invalid near ground error');
+  await MeshoptSimplifier.ready;
+  return (positions, index) => {
+    const [kept] = MeshoptSimplifier.simplify(index, positions, 3, 3, errorMetres, ['LockBorder', 'ErrorAbsolute']);
+    return kept.length > 0 ? kept : index;
+  };
+}
+
 /** Reduce harvested prototypes to region-grouped parts inside the budget. Deterministic for the same input order. */
 export async function nearPlaceholderParts(prototypes: readonly NearPrototype[], options: NearPlaceholderOptions): Promise<{ parts: NearPart[]; report: NearPlaceholderReport }> {
   await MeshoptSimplifier.ready;

@@ -32,6 +32,7 @@ import { PINE_FAUNA } from './runtime/fauna';
 import thumbnail from './thumbs/pine-hollow.jpg';
 import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
 import heroLandscape from './thumbs/pine-hollow-landscape.jpg';
+import { PINE_PLACEHOLDER } from './data/placeholder';
 
 /** the creek: water wherever `creekWaterAt` answers, at the surface it answers */
 function creekBody(): WaterBody {
@@ -56,6 +57,7 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
 
 export const PINE_HOLLOW: ShardManifest = {
   runtimeCost: PINE_RUNTIME_COST,
+  placeholder: PINE_PLACEHOLDER,
   gridShardfile: '/shardfiles/pine-hollow/shard.json',
   // SF65 (G237): SHARDFILE is the SF47 hybrid boot (shard.config.ts admitted over the trusted runtime); public stays LEGACY
   entries: { legacy: true, shardfile: true, public: 'shardfile' }, // G326: public card flipped once boot, walk and parity passed (op-flip39; legacy lost Pine's LUT at SF73)
