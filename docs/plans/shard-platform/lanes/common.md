@@ -21,6 +21,9 @@ p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may 
   never stash / checkout / restore / reset / rm what you didn't author; never `git push` or `push-main.sh` (post-commit
   auto-pushes). Messages: Conventional subject ≤ 50 chars, body wrapped at 72, last line
   `Assisted-by: Codex:gpt-6.1-sol` (Codex lanes) or `Assisted-by: Claude Code:claude-opus-5-5` (Opus lanes).
+- **Private-index commits must be built on the CURRENT HEAD.** `GIT_INDEX_FILE=x git read-tree HEAD` then commit
+  immediately and verify the new commit's parent is the HEAD you read. If HEAD moved in between, your index silently
+  reverts the newer landings (bb6291f57 reverted ae7304f04). Re-read the tree and retry rather than committing a stale index.
 - **Strict TS:** no `any`, `!`, `@ts-ignore`, `as unknown as`, blanket disables. Fix the type, never the gate. Never
   disable a lint guard. No `?foo=` URL switches (Debug rows only, DEBUG-TOGGLES.md). Never edit frozen `*-legacy` folders.
 - **Debt-row approvals:** a push refused for a generated rise under `src/shards/` (shard-engine-imports,
