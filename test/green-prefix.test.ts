@@ -155,6 +155,9 @@ exit 1
       const fixed = commit();
       expect(newerGateFix(root, red, redOutput)).toBe(fixed);
       expect(newerGateFix(root, red, lintOutput)).toBe(fixed);
+      const mixed = `  ✗ vitest (10 s)\n  ✗ oxlint (1 s)\n  ✗ bake-sky-physics (1 s)\n── vitest ──\n FAIL test/repair.test.ts > real failure\n── oxlint ──\nscripts/repair.mjs:1:1: error test-rule: exact lint failure\n── bake-sky-physics ──\nbake-sky-physics: STALE src/shards/example/runtime/physics.baked.json\nvercel-gate: FAILED at fixture — vitest oxlint bake-sky-physics`;
+      expect(failingLintFiles(mixed)).toEqual(['scripts/repair.mjs']);
+      expect(newerGateFix(root, red, mixed)).toBe(fixed);
       for (const out of [`${lintOutput}\n  ✗ vitest (1 s)`, lintOutput.replace('scripts/repair', '../scripts/repair'), lintOutput.replace('scripts/repair', '/scripts/repair'), lintOutput.replace('scripts/repair', 'scripts//repair'), lintOutput.replace('error test-rule', 'warning test-rule'), lintOutput.replace('scripts/repair.mjs:1:1:', 'unparsed lint refusal:')]) {
         expect(newerGateFix(root, red, out)).toBeNull();
       }

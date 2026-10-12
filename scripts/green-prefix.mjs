@@ -80,7 +80,7 @@ export function failingLintFiles(out) {
   const sections = out.split('── oxlint ──\n');
   const section = sections.at(1);
   if (sections.length !== 2 || section === undefined) return [];
-  const boundary = section.search(/^vercel-gate:/mu);
+  const boundary = section.search(/^(?:── .+ ──|vercel-gate:)/mu);
   const body = boundary < 0 ? section : section.slice(0, boundary);
   const lines = body.split('\n').map(line => line.trim()).filter(Boolean);
   /** @type {Set<string>} */
