@@ -7,13 +7,13 @@
 - **M2:**
   - **SF22 desktop:** PASS.
   - **Safari:** subset PASS (`bf3b0c45e`); assembled routes + Nine entry OPEN (harness race fixed `db524a44a`).
-- **Frame floor (`c66b5b324`+):** every max gate passes.
+- **Frame floor:** max gates pass.
   - **Desktop:** only Pine short travel p95 33.4 (gate 17.5).
   - **Simulator p95 over 35:** Driftwood 59, Pine 58, Signal 52, Sky 37, Nalati 36.
 - **SF57:** Pine re-admission fixed (`95e2e8d34`); repeat-entry GL residency proof open; Pine audio sprite 30.7 MB over the 25 MB cap (OPEN).
 - **M3:** 0 of 6 at 80/20 (`scripts/shard-platform.mjs`: Nine 69.5 %, Signal 78.4, Sky 78.4).
 
-**Live:** `77aa917d1-mv4wr3im`; release of `56de6e642` running. Reds: `red-green.md`. Queue: `open-x-queue.md`.
+**Live:** `56de6e6-mv5qksnd` (21:00Z). Reds: `red-green.md`. Queue: `open-x-queue.md`.
 
 **Lanes (`lanes/README.md`)**
 
