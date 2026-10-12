@@ -1,6 +1,6 @@
 # Plan: OCTOBER-BACKLOG — the October backlog (E469)
 
-**State:** `draft` 2026-10-12 — Jake's three sagas and nine backlog items in his words, and the live plans grouped by saga (E469, E479); unowned, nothing built.
+**State:** `draft` 2026-10-12 — Jake's three sagas and eleven backlog items in his words, and the live plans grouped by saga (E469, E479, E480); unowned, nothing built.
 
 Only Jake writes this backlog (2026-10-10: *"the backlog should only contain things I write"*). Agents record his words
 verbatim; any added context only with his yes (*"You can add a bit more context if you want but always ask me"*).
@@ -36,3 +36,5 @@ Saga 3: no live plan yet for multiplayer or the API server.
 | OB7 | *"The developer toggle. Let's move the developer toggle somewhere easily hittable on the main screen. When you're not in developer mode, let's make it easy to toggle it on without having to go to settings."* |
 | OB8 | *"The loading screens. I don't know why we have these really dumb plain loading screens for non-developed mode. We should have the fully technical loading screens for everyone, public and developer mode."* Then: *"The loading screens that are being rendered as cards in the infinite wild shard, they also have the really dumb loading where it's just like 75% or whatever. They don't have the detailed loading screen. So the detailed loading screen is the only loading screen we want, and we want to have that, you know, on the shard select. We want to have that as floating 3D cards in the infinite wild shard."* |
 | OB9 | *"add [pensieve](https://github.com/TedHaley/pensieve) to the october backlog plan thing"* |
+| OB10 | *"Add a third person camera mode"* |
+| OB11 | *"Add landscape mobile controls HUD design"* |
