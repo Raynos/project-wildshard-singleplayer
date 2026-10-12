@@ -1,6 +1,6 @@
 # Plan: OCTOBER-BACKLOG — the October backlog (E469)
 
-**State:** `draft` 2026-10-12 — Jake's three sagas and eleven backlog items in his words, and the live plans grouped by saga (E469, E479, E480); unowned, nothing built.
+**State:** `draft` 2026-10-12 — Jake's three sagas and twelve backlog items in his words, and the live plans grouped by saga (E469, E479, E480, E481); unowned, nothing built.
 
 Only Jake writes this backlog (2026-10-10: *"the backlog should only contain things I write"*). Agents record his words
 verbatim; any added context only with his yes (*"You can add a bit more context if you want but always ask me"*).
@@ -38,3 +38,4 @@ Saga 3: no live plan yet for multiplayer or the API server.
 | OB9 | *"add [pensieve](https://github.com/TedHaley/pensieve) to the october backlog plan thing"* |
 | OB10 | *"Add a third person camera mode"* |
 | OB11 | *"Add landscape mobile controls HUD design"* |
+| OB12 | *"rewrite all the marketing website copy and redo its design"* |
