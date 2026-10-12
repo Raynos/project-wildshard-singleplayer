@@ -40,6 +40,8 @@ export function gridFloorRuntimeFailure(last: FloorGridProgress | null, diagnost
 export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'sun-entry' | 'cell' | 'all' | 'milestone', options?: { cell?: string; roadApproach?: boolean; entrySocket?: boolean; risingIslet?: 'north' | 'east' | 'south' | 'west' }): FloorGridPlan[];
 /** Resolve declared portal nodes or the socket-lift approach from the pinned shardfile. */
 export function floorGridPortalPlan(plan: FloorGridPlan, cell: FloorGridState['cells'][number], entryways: unknown): FloorGridPlan;
+/** Fetch the destination cell's served shardfile entryways in the page and resolve a road entry through floorGridPortalPlan. */
+export function gridFloorDeclaredPlan(page: { evaluate: (expression: string) => Promise<unknown> }, state: Pick<FloorGridState, 'cells'>, plan: FloorGridPlan): Promise<FloorGridPlan>;
 export interface FloorGridDocumentIdentity { readonly timeOrigin: number; readonly token: string }
 export function gridFloorDocumentIdentity(): FloorGridDocumentIdentity;
 export function driveFloorGrid(plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridWitness>;

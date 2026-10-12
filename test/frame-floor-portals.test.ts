@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { floorGridPortalPlan, gridFloorWitnessFailures, type FloorGridPlan, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
+import { floorGridPortalPlan, gridFloorDeclaredPlan, gridFloorWitnessFailures, type FloorGridPlan, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
 
 const cell = { instance: 'floating', slug: 'fixture', cell: [2, 3] as const };
 const plan: FloorGridPlan = { name: 'fixture-road-entry', from: null, to: cell.instance, movement: 'road-hover',
@@ -53,4 +53,20 @@ it('keeps the shipping-speed road turn before the authored portal landing', () =
   const resolved = floorGridPortalPlan(approaching, cell, entries);
   expect(resolved.waypoints).toEqual([turn, { id: 'road.east', x: 1346, y: 0, z: 1665 }, { id: 'square', x: 1110.95, y: 125, z: 1672.5 }]);
   expect(resolved).toMatchObject({ observePreparation: true, hoverMaxSpeed: 30, start: approaching.start });
+});
+
+it('resolves a host road entry from the served shardfile, so a capture never drives a flat waypoint past a lift or portal', async () => {
+  // sp-o11: look48's capture drove Sky Reach / Nine Dragon to the flat 210 m waypoint and timed out at the landing / on the square
+  const asked: string[] = [];
+  const page = { evaluate: (expression: string) => { asked.push(expression); return Promise.resolve(entries); } };
+  const resolved = await gridFloorDeclaredPlan(page, { cells: [cell] }, plan);
+  expect(asked).toHaveLength(1);
+  expect(asked[0]).toContain('/shardfiles/fixture/shard.json');
+  expect(resolved.portal?.destination).toEqual({ id: 'square', x: 1110.95, y: 125, z: 1672.5 });
+  const lift = { evaluate: () => Promise.resolve([{ edge: 'east', kind: 'socketLift', lift: { approach: { route: [[235, 0, 0], [234, 0, 0]] } } }]) };
+  expect((await gridFloorDeclaredPlan(lift, { cells: [cell] }, plan)).authoredLift).toEqual({ edge: 'east' });
+  const leg = { ...plan, from: cell.instance };
+  expect(await gridFloorDeclaredPlan(page, { cells: [cell] }, leg)).toBe(leg);
+  expect(asked).toHaveLength(1);
+  await expect(gridFloorDeclaredPlan(page, { cells: [] }, plan)).rejects.toThrow('Floor entry cell missing');
 });

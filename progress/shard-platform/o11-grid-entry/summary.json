@@ -1,0 +1,40 @@
+{
+  "build": {
+    "build": "9693744-mv5qxqe0",
+    "time": "2026-10-12T21:10:43.270Z"
+  },
+  "phone": {
+    "far-reach": {
+      "owner": "far-reach",
+      "inside": "far-reach",
+      "routeWitnessFailures": [],
+      "local": [
+        0,
+        30.02,
+        -5.5
+      ],
+      "pageErrors": 0,
+      "consoleErrors": 0
+    },
+    "nine-dragon-stack": {
+      "owner": "nine-dragon-stack",
+      "inside": "nine-dragon-stack",
+      "routeWitnessFailures": [],
+      "local": [
+        0.95,
+        125.02,
+        7.5
+      ],
+      "pageErrors": 0,
+      "consoleErrors": 0
+    }
+  },
+  "repro_old_route_phone": {
+    "far-reach": [
+      "grid: page.evaluate: Error: Grid floor route far-reach-road-entry timed out (waypoint 0/1, feet 0, 0.1, -332.2, current far-reach)"
+    ],
+    "nine-dragon-stack": [
+      "grid: page.evaluate: Error: Grid floor route nine-dragon-stack-road-entry timed out (waypoint 0/1, feet 555.9, 125, -535.4, current nine-dragon-stack)"
+    ]
+  }
+}

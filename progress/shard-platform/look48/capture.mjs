@@ -16,7 +16,7 @@ import { chromium, devices } from 'playwright';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { saveFixture } from '../../../scripts/debug-settings.mjs';
-import { gridFloorDocumentIdentity, gridFloorPlans, runFloorGridRoute, gridFloorWitnessFailures } from '../../../scripts/frame-floor-grid.mjs';
+import { gridFloorDocumentIdentity, gridFloorPlans, gridFloorDeclaredPlan, runFloorGridRoute, gridFloorWitnessFailures } from '../../../scripts/frame-floor-grid.mjs';
 
 const [base, out, slugs, modes = 'select,grid'] = process.argv.slice(2);
 const DESKTOP = process.env.DESKTOP === '1';
@@ -248,7 +248,9 @@ async function gridHome(row, slug, cellSlug = slug) {
       await page.waitForFunction((inst) => { const l = window.__wildshard.shard.grid.state().live.live; return l.current === inst && l.gameplayReady && l.pending.length === 0; }, cell.instance, { timeout: 180000 });
       route = 'teleport';
     } else if (cell.instance !== state.home) {
-      const [plan] = gridFloorPlans(state, 'cell', { cell: cell.slug });
+      // sp-o11: follow the cell's declared entry (Sky Reach's socket lift, Nine Dragon's portal) as frame-floor does; the
+      // flat waypoint at 210 m stalled at the landing rail / on the square and timed out (look48's two 'timeouts')
+      const plan = await gridFloorDeclaredPlan(page, state, gridFloorPlans(state, 'cell', { cell: cell.slug })[0]);
       // off the home cell onto the road at the plan's start (page-local), then the plan drives in with held input
       await page.evaluate(async (p) => {
         const api = window.__wildshard, live = api.shard.grid.state().live.live, player = api.requireWorld().player;

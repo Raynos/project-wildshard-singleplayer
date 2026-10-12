@@ -25,6 +25,18 @@ export function floorGridPortalPlan(plan, cell, entryways) {
   return { ...plan, waypoints: [...prefix, road, destination], portal: { road, destination } };
 }
 
+/** Host side of floorGridPortalPlan: read the served cell's shardfile entryways in the page, so every road entry
+ *  follows its declared portal or socket lift. A flat waypoint stops at Sky Reach's landing rail and on Nine Dragon's
+ *  square after its portal, then times out (sp-o11: look48's two "timeouts" were this). */
+export async function gridFloorDeclaredPlan(page, state, plan) {
+  if (plan.from !== null || plan.start === undefined || plan.to === null) return plan;
+  const cell = state.cells.find(row => row.instance === plan.to);
+  if (!cell) throw new Error('Floor entry cell missing');
+  const path = `/shardfiles/${encodeURIComponent(cell.slug)}/shard.json`;
+  const entries = await page.evaluate(`(async () => { const response = await fetch(${JSON.stringify(path)}); if (!response.ok) throw new Error('Floor entry declaration unavailable'); return (await response.json()).entryways; })()`);
+  return floorGridPortalPlan(plan, cell, entries);
+}
+
 /** Actual-frame floor routes; only the first home pose is seeded, every seam afterwards is driven by held input. */
 export function gridFloorPlans(state, scenario, options = {}) {
   const home = state.cells.find(cell => cell.instance === state.home);
@@ -312,7 +324,10 @@ export async function driveFloorGrid(plan, documentOrigin) {
   try {
     await new Promise((resolve, reject) => {
       let stop = () => undefined, waypoint = 0, lastSample = -1;
-      const timer = setTimeout(() => { stop(); input.clear(); reject(new Error(`Grid floor route ${plan.name} timed out`)); }, 150000);
+      // Name where the drive stopped: a flat waypoint past a portal or a lift rail stalls at the landing (sp-o11)
+      const where = () => { const at = trace.at(-1); return at === undefined ? 'no motion sample'
+        : `waypoint ${waypoint}/${waypoints.length}, feet ${[at.x, at.y, at.z].map(v => Math.round(v * 10) / 10).join(', ')}, current ${String(at.current)}`; };
+      const timer = setTimeout(() => { stop(); input.clear(); reject(new Error(`Grid floor route ${plan.name} timed out (${where()})`)); }, 150000);
       const finish = error => { stop(); clearTimeout(timer); input.clear(); if (error) reject(error instanceof Error ? error : new Error(String(error))); else resolve(undefined); };
       stop = world.game.watchFrames(() => {
         try {
