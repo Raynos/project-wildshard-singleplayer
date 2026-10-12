@@ -122,7 +122,7 @@ jobs:
         run: |
           case "$LEGS" in
             success) state=success; description='Real built-dist title and gameplay proof' ;;
-            cancelled) state=error; description='Superseded by a newer main before both smoke legs ran' ;;
+            cancelled) state=error; description='Cancelled before both smoke legs completed' ;;
             *) state=failure; description='Real built-dist title and gameplay proof' ;;
           esac
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_SHA" \
@@ -165,7 +165,8 @@ jobs:
           export GITHUB_OUTPUT="$RUNNER_TEMP/release.out"
           node scripts/deploy-pin.mjs release-ready
           if ! grep -qx 'ready=true' "$GITHUB_OUTPUT"; then echo 'A newer exact-SHA smoke is pending; leaving the hourly slot free.'; exit 0; fi
-          export DEPLOY_SHA="$(sed -n 's/^sha=//p' "$GITHUB_OUTPUT")"
+          DEPLOY_SHA="$(sed -n 's/^sha=//p' "$GITHUB_OUTPUT")"
+          export DEPLOY_SHA
           node scripts/deploy-version.mjs check
           if grep -qx 'skip=true' "$GITHUB_OUTPUT"; then echo "Production already serves $DEPLOY_SHA."; exit 0; fi
           node scripts/deploy-pin.mjs release-slot

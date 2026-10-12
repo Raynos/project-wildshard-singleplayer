@@ -36,11 +36,18 @@ export function previewReady(url, timeoutMs=1000) {
 /** @param {string} tree @param {string} sha @param {boolean} [built] */
 export async function serve(tree,sha,built=false) {
   if(!built)buildTree(tree,sha);
-  const port=await freePort(), child=spawn('pnpm',['exec','vite','preview','--host','127.0.0.1','--port',String(port),'--strictPort'],{cwd:tree,stdio:['ignore','pipe','pipe'],detached:true});
+  const port=await freePort(), configDir=mkdtempSync(join(tmpdir(),'wildshard-parity-preview-'));
+  const localModule=join(tree,'vite/preview.ts');
+  const module=existsSync(localModule)?localModule:fileURLToPath(new URL('../../vite/preview.ts',import.meta.url));
+  const config=join(configDir,'vite.preview.mjs');
+  writeFileSync(config,`import { previewConfig } from ${JSON.stringify(module)};\nexport default { ...previewConfig(), root: ${JSON.stringify(tree)} };\n`);
+  const cleanup=()=>rmSync(configDir,{recursive:true,force:true});
+  const child=spawn('pnpm',['exec','vite','preview','--config',config,'--host','127.0.0.1','--port',String(port),'--strictPort'],{cwd:tree,stdio:['ignore','pipe','pipe'],detached:true});
+  child.once('exit',cleanup);
   let startup='';child.stdout.on('data',(chunk)=>{startup+=String(chunk);});child.stderr.on('data',(chunk)=>{startup+=String(chunk);});
   const url=`http://127.0.0.1:${port}`;
-  const close=()=> {if(child.pid) {try {process.kill(-child.pid,'SIGTERM');} catch { /* already stopped */ }} };
-  // vite preview runs the config's startup bakes (terrain, sky) before it serves: ~30 s on a loaded Mac
+  const close=()=> {if(child.pid) {try {process.kill(-child.pid,'SIGTERM');} catch { /* already stopped */ }} cleanup();};
+  // Serve the completed bytes with production headers, without importing the build's generation plugins again.
   const deadline=Date.now()+120000;
   try {while(Date.now()<deadline){if(child.exitCode!==null) throw new Error(`preview exited: ${startup}`);if(await previewReady(`${url}/version.json`,Math.min(1000,Math.max(1,deadline-Date.now())))) return {url,close};await new Promise((resolve)=>{setTimeout(resolve,100);});} throw new Error(`preview never served: ${startup}`);}catch(e){close();throw e;}
 }
