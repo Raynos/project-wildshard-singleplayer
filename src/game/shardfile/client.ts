@@ -57,6 +57,7 @@ import { createShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } 
 import { scriptDisabledNotice } from './scriptNotice';
 import type { DeclaredGroupPorts } from './groupRuntime';
 import type { Shardfile } from '@wildshard/format/shardSchema';
+import { nearPlaceholderRoots } from '@wildshard/format/nearPlaceholder';
 import type { DeclaredBrainPorts } from './brainRuntime';
 
 function isProofMesh(value: Object3D): value is Mesh { return value instanceof Mesh; }
@@ -97,13 +98,24 @@ export interface ShardfileClientBindings {
 const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: v.pipe(v.number(), v.integer(), v.minValue(0)) }));
 const encounterSave = { key: 'platform.encounters', scope: 'shard' as const, version: 1, schema: encounterSchema, initial: (): v.InferOutput<typeof encounterSchema> => ({}) };
 
+/** G348: the far proxy's and near placeholder's files (and what they depend on): the grid's presentation of the shard,
+ *  which `wildshard build` bakes into any terrain shardfile and the data client never installs. */
+function placeholderFiles(source: Shardfile): ReadonlySet<string> {
+  const files = new Map(source.files.map(file => [file.hash, file])), out = new Set<string>(), pending = [...(source.far?.files ?? []), ...nearPlaceholderRoots(source.near)];
+  for (let ref = pending.pop(); ref !== undefined; ref = pending.pop()) if (!out.has(ref)) { out.add(ref); pending.push(...(files.get(ref)?.dependencies ?? [])); }
+  return out;
+}
+
 function emptyHybridData(source: Shardfile, audioOwner: ShardfileClientBindings['audioOwner'], worldOwner: ShardfileClientBindings['worldOwner']): boolean {
   // a runtime-owned world declaration: water rows and props that only declare colliders (no tiles, panels, models, far or textures)
   const runtimeWorld = worldOwner === 'runtime', props = source.props;
+  // G348: placeholders (a far proxy, a near row and their files) are grid presentation, never data this client installs, so a
+  // trusted transition that ships them stays empty (Signal's play stage, 54603cb17); an authored props far still counts
+  const placeholders = placeholderFiles(source), shown = (ref: string): boolean => ref !== source.map?.image && !placeholders.has(ref);
   const propsEmpty = props === null || (runtimeWorld && props.tiles.length + props.panels.length + props.models.length + props.textures.length === 0 && props.far === null);
   const audioEmpty = audioOwner === 'runtime' || (source.audio.cues.length + source.audio.routing.length === 0 && source.audio.ambience === null && source.audio.score === 'silent' && source.audio.music === undefined && source.audio.samples === undefined && source.audio.zones === undefined);
-  return (source.modes?.traverse.length ?? 0) + source.movers.length + source.crowds.length + source.clientScripts.bindings.length + source.files.filter(file => file.hash !== source.map?.image).length + source.requires.commons.length + source.requires.capabilities.length + source.tiles.length + source.library.filter(ref => ref !== source.map?.image).length + source.critical.length + source.ui.length + source.sim.scripts.length + source.sim.bindings.length + source.state.shared.length + source.state.player.length + Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + (runtimeWorld ? 0 : source.water.length) + source.creatures.brains.length + source.creatures.groups.length + source.creatures.spawns.length + source.encounters.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0) + source.ledger.length + source.hooks.conditions.length + source.hooks.scenes.length + source.items.rows.length + source.items.contexts.length + source.targets.panels.length + source.targets.interactions.length + source.look.families.length + source.look.keys.length + Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length === 0
-    && source.terrain === null && propsEmpty && source.far === null && source.plumbing === null
+  return (source.modes?.traverse.length ?? 0) + source.movers.length + source.crowds.length + source.clientScripts.bindings.length + source.files.filter(file => shown(file.hash)).length + source.requires.commons.length + source.requires.capabilities.length + source.tiles.length + source.library.filter(shown).length + source.critical.length + source.ui.length + source.sim.scripts.length + source.sim.bindings.length + source.state.shared.length + source.state.player.length + Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + (runtimeWorld ? 0 : source.water.length) + source.creatures.brains.length + source.creatures.groups.length + source.creatures.spawns.length + source.encounters.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0) + source.ledger.length + source.hooks.conditions.length + source.hooks.scenes.length + source.items.rows.length + source.items.contexts.length + source.targets.panels.length + source.targets.interactions.length + source.look.families.length + source.look.keys.length + Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length === 0
+    && source.terrain === null && propsEmpty && source.plumbing === null
     && audioEmpty && source.look.grade.lut === null
     && source.look.day === undefined && source.look.dayOverride === null;
 }

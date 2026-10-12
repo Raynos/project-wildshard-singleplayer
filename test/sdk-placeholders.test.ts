@@ -32,16 +32,17 @@ it('wildshard build (placeholders on, the CLI default) bakes a near placeholder 
   const cost = nearPlaceholderCost(near, built);
   expect(cost.content.resident).toBeGreaterThan(0); expect(cost.content.resident).toBeLessThanOrEqual(NEAR_PLACEHOLDER_LIMITS.contentBytes);
   expect(built.far?.files.every((hash) => existsSync(join(root, 'product', hash)))).toBe(true);
-  // the grid reads that row from the admitted shardfile itself (no baked folder, no slug): it draws, owns its cell and is
-  // charged its admitted content residency
+  // the grid reads that row from the admitted shardfile itself (no baked folder, no slug): it draws, is charged its
+  // admitted content residency and leaves the shard's own tiles refining (it never owns the cell)
   const reads: string[] = [];
   const loaded = await loadShardfileNear(built, (hash) => { reads.push(hash); return Promise.resolve(new Uint8Array(readFileSync(join(root, 'product', hash)))); });
   try {
-    expect(reads).toEqual(near.content); expect(loaded.owns).toBe(true); expect(loaded.bytes).toBe(cost.content.resident);
+    expect(reads).toEqual(near.content); expect(loaded.owns).toBe(false); expect(loaded.bytes).toBe(cost.content.resident);
     expect(loaded.prepared.positionalMask).toBe(true); expect(loaded.prepared.geometry.getAttribute('position').count).toBeGreaterThan(1000);
     expect(loaded.prepared.geometry.hasAttribute('color')).toBe(true);
   } finally { loaded.prepared.geometry.dispose(); }
-  await expect(loadShardfileNear({ ...built, near: undefined }, () => Promise.reject(new Error('unread')))).rejects.toThrow('no near content');
+  const bare = { ...built }; delete bare.near;
+  await expect(loadShardfileNear(bare, () => Promise.reject(new Error('unread')))).rejects.toThrow('no near content');
 }, 120_000);
 
 it('a shardfile that ships no far proxy gets one, and the bake is deterministic', async () => {

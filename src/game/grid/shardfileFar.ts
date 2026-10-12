@@ -40,9 +40,10 @@ function shardfileHaze(source: Shardfile): FarPrepared['look'] {
 /**
  * G348: any shardfile's own near placeholder (its admitted `near` row, which `wildshard build` bakes for every terrain
  * shardfile, an unknown uploaded one included): its content GLBs' meshes merged into the near view's one draw, masked by
- * position (an authored GLB's UVs carry no region contract), charged its admitted content residency. A row with content
- * owns its cell (it carries the shard's coarse world); a terrain-only row (L1 height tiles) is not drawn yet and rejects,
- * so the far proxy stays. Rejects when the shardfile declares no near row.
+ * position (an authored GLB's UVs carry no region contract), charged its admitted content residency. It never owns its
+ * cell: a shardfile's own L1 / L0 tiles are its real world (the template's buildings live in its props, which the bake
+ * cannot see), so they keep refining over it. A terrain-only row (L1 height tiles) is not drawn yet and rejects, so the
+ * far proxy stays. Rejects when the shardfile declares no near row.
  */
 export async function loadShardfileNear(source: Shardfile, read: (ref: string) => Promise<Uint8Array>): Promise<{ prepared: FarPrepared; bytes: number; owns: boolean }> {
   const near = source.near;
@@ -64,5 +65,5 @@ export async function loadShardfileNear(source: Shardfile, read: (ref: string) =
   const geometry = parts.length === 1 ? first : merge(parts);
   if (parts.length > 1) for (const part of parts) part.dispose();
   if (geometry === null) throw new Error('Near content has no mergeable mesh');
-  return { prepared: { geometry, positionalMask: true, look: shardfileHaze(source) }, bytes: cost.content.resident, owns: true };
+  return { prepared: { geometry, positionalMask: true, look: shardfileHaze(source) }, bytes: cost.content.resident, owns: false };
 }

@@ -22,7 +22,6 @@ import { parseWorldSource } from './worldSource';
 import { compileBehaviourSource } from './behaviourSource';
 import { buildBehaviourProject } from './buildBehaviour';
 import { packProjectMap, type ProjectMap } from './projectMap';
-import { projectPlaceholders } from './bake/placeholders';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -121,7 +120,8 @@ export async function buildProject(project: string, output?: string, options: { 
   const loaded = await readProjectAssets(project, options.map), assets = loaded.assets;
   // G348: a shardfile with a terrain gets its far and near placeholders from its own terrain, tiles and look (`wildshard
   // build` asks for them; the first-party product builds keep theirs in the repo bake until the grid reads `near`)
-  const shard = validateProject(options.placeholders === true ? await projectPlaceholders(loaded.shard, assets) : loaded.shard, assets, project);
+  // loaded only on that path: the bakers reach three.js meshes the Node sim proofs, which import this module, must not load
+  const shard = validateProject(options.placeholders === true ? await (await import('./bake/placeholders')).projectPlaceholders(loaded.shard, assets) : loaded.shard, assets, project);
   await options.admit?.(shard, assets, projectPerformancePolicy(project, shard));
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
   shard.files.sort((a, b) => a.hash.localeCompare(b.hash)); shard.tiles.sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);

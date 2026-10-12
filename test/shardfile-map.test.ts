@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { expect, it, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { packProjectMap } from '../src/sdk/projectMap';
-import { parseShardfile } from '@wildshard/format/shardSchema';
+import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
 
 const bytes = Uint8Array.from(atob('UklGRjAAAABXRUJQVlA4ICQAAABwAQCdASoCAAMAAUAmJYwCdAFAAAD++b4XAkrVm6WHJtcxAAA='), c => c.codePointAt(0) ?? 0);
@@ -127,4 +127,24 @@ it('closes a bitmap arriving after its owner left without publishing or allocati
     scope.dispose(); release(bitmap); await pending;
     expect(bitmap.close).toHaveBeenCalledTimes(1); expect(canvas).not.toHaveBeenCalled(); expect(maps.bytes).toBe(0);
   } finally { scope.dispose(); release(bitmap); restore(); }
+});
+
+it('far / near placeholders keep a trusted hybrid empty; other content still announces its simulation (G348)', async () => {
+  const { ShardfileClient } = await import('../src/game/shardfile/client');
+  const { ClientAssets } = await import('../src/game/shardfile/clientAssets');
+  const glb = (n: string) => ({ hash: n.repeat(64), kind: 'glb' as const, compressed: 10, decoded: 10, gpu: 10, triangles: 1, draws: 1, dependencies: [], critical: false });
+  const mapped = packProjectMap({ ...base, runtime: { entry: 'runtime/index.ts' } }, baked).shard;
+  // what `wildshard build` adds to a terrain shardfile: a far proxy and a near row, each one GLB
+  const placed: Shardfile = { ...mapped, files: [...mapped.files, glb('d'), glb('e')], near: { version: 1 as const, terrain: [], content: ['e'.repeat(64)] },
+    far: { bounds: { min: [-250, 0, -250], max: [250, 10, 250] }, files: ['d'.repeat(64)], compressed: 10, decoded: 10, gpu: 10, triangles: 1, draws: 1 } };
+  const announced = (source: Shardfile): number => {
+    let expected = 0;
+    const assets = new ClientAssets(source, new Map([[hash(bytes), bytes]]), { base: 'https://fixture.test/', firstParty: true, offline: false,
+      hash: value => Promise.resolve(hash(value)), fetch: () => Promise.reject(new Error('Already admitted')) });
+    new ShardfileClient(source, assets, { trustedRuntime: true, instance: 'template', catalogue: [], items: new Map(), recipes: new Map(),
+      icon: () => 'glyph', voices: () => new Map(), onSimulationExpected: () => { expected++; } });
+    return expected;
+  };
+  expect(announced(placed)).toBe(0);
+  expect(announced({ ...placed, files: [...placed.files, glb('f')] })).toBe(1);
 });
