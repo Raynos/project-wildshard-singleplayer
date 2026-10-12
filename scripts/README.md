@@ -314,6 +314,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [link-node-modules.d.mts](./link-node-modules.d.mts)
 - [link-node-modules.mjs](./link-node-modules.mjs)
 - [load-mem-probe.mjs](./load-mem-probe.mjs)
+- [look-parity-creatures.mjs](./look-parity-creatures.mjs)
 - [main-menu-aerial-plan.mjs](./main-menu-aerial-plan.mjs)
 - [main-menu-aerial-poses.ts](./main-menu-aerial-poses.ts)
 - [map-hash.d.mts](./map-hash.d.mts)
