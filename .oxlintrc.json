@@ -147,9 +147,9 @@
       }
     },
     {
-      // G348 (Jake): the placeholder bakes are generic for any shard; a slug branch there is refused. The rest of scripts/
-      // (≈130 harness hits on 2026-10-12, e.g. farProxiesSource.ts's look table) joins as each moves into `wildshard build`.
-      "files": ["scripts/bake/near-placeholder.mjs", "scripts/bake/nearTrees.mjs", "scripts/bake/near*.mjs"],
+      // G348 (Jake): the placeholder bakes are generic for any shard; a slug branch there is refused. Each shard declares
+      // its own far look / grid / parts, ground and tree stand-ins in data/placeholder.ts; the bakers are the SDK's.
+      "files": ["scripts/bake/near*.mjs", "scripts/bake/far*.mjs", "scripts/bake/placeholder*.mjs"],
       "rules": { "wildshard/no-shard-branch": "error" }
     },
     {

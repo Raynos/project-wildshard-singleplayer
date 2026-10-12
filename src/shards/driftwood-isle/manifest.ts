@@ -118,8 +118,6 @@ export const PRACTICE_CRAB = { x: -7, z: -143 };
 
 export const DRIFTWOOD_ISLE: ShardManifest = {
   gridShardfile: '/shardfiles/driftwood-isle/shard.json',
-  // G348: its ground is built by its own generator (the island's rows), not a baked terrain.bin
-  placeholder: { ground: { generator: 'generators/groundRows.ts', export: 'driftwoodGroundBytes' } },
   // SF65 (G237): the SF46 hybrid boot ships (G172); LEGACY is the TypeScript runtime alone, no shardfile admitted
   entries: { legacy: true, shardfile: true, public: 'shardfile' },
   trustedRuntime: { get slug() { return DRIFTWOOD_ISLE.slug; }, entry: 'runtime/hybrid.ts' },

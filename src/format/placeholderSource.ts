@@ -19,9 +19,26 @@ export const PlaceholderTreeSchema = v.strictObject({
   rings: v.pipe(v.array(v.tuple([unit, unit])), v.maxLength(6)),
   crown: rgb,
 });
+/** A named export of one of the shard's own bake-time modules (under its `look/` or `generators/`). */
+const ModuleExportSchema = v.strictObject({
+  module: v.pipe(v.string(), v.regex(/^(?:look|generators)\/[A-Za-z0-9_/-]+\.ts$/u)),
+  export: v.pipe(v.string(), v.regex(/^[A-Za-z_$][A-Za-z0-9_$]*$/u)),
+});
 /**
- * A shard's whole placeholder steer (its manifest's `placeholder` row): where its ground comes from and how its forest is
- * stood in; every field is optional and an empty row means the bake's generic defaults.
+ * How the shard's far proxy is coloured and shaped (G348; was `scripts/bake/farProxiesSource.ts`'s per-shard tables):
+ * its far look (a `FarLookSource`), an optional grid its look builds when its land is structures (a `() => FarGrid`),
+ * and optional model parts when its land is models (`(tools) => Promise<FarPart[]>`). Without a grid the bake reads the
+ * shard's baked `terrain.bin`, else its shardfile terrain collider.
+ */
+export const PlaceholderFarSchema = v.strictObject({
+  look: ModuleExportSchema,
+  grid: v.optional(ModuleExportSchema),
+  parts: v.optional(ModuleExportSchema),
+});
+/**
+ * A shard's whole placeholder steer (`src/shards/<slug>/data/placeholder.ts`'s `PLACEHOLDER`, the one place the bakes
+ * look): where its ground comes from, how its forest is stood in and how its far proxy is coloured; every field is
+ * optional and an empty row means the bake's generic defaults.
  */
 export const PlaceholderSourceSchema = v.strictObject({
   /** a ground built by the shard's own generator instead of its `terrain.bin`: a module under its `generators/` and the
@@ -32,9 +49,13 @@ export const PlaceholderSourceSchema = v.strictObject({
   })),
   /** the forest's stand-in shapes by species; a species without a row takes the first row */
   trees: v.optional(v.pipe(v.array(PlaceholderTreeSchema), v.minLength(1), v.maxLength(16))),
+  /** the far proxy's look, and its grid or model parts when its land is not a height field */
+  far: v.optional(PlaceholderFarSchema),
 });
 /** One admitted stand-in tree shape (`PlaceholderTreeSchema`): species, optional stem, crown rings and colour, unit high. */
 export type PlaceholderTree = v.InferOutput<typeof PlaceholderTreeSchema>;
+/** A shard's far-proxy steer (`PlaceholderFarSchema`): module exports for its look, grid and parts. */
+export type PlaceholderFar = v.InferOutput<typeof PlaceholderFarSchema>;
 /** A shard's admitted placeholder steer (`PlaceholderSourceSchema`), as the near / far bake reads it. */
 export type PlaceholderSource = v.InferOutput<typeof PlaceholderSourceSchema>;
 

@@ -27,6 +27,7 @@
     "./bake/props": "./bake/props.ts",
     "./bake/glb": "./bake/glb.ts",
     "./bake/nearPlaceholder": "./bake/nearPlaceholder.ts",
+    "./bake/placeholders": "./bake/placeholders.ts",
     "./bake/kinds": "./bake/kinds.ts",
     "./bake/texture": "./bake/texture.ts",
     "./bake/export": "./bake/export.ts",
@@ -241,6 +242,10 @@
       "./bake/nearPlaceholder": {
         "types": "./dist/types/sdk/bake/nearPlaceholder.d.ts",
         "default": "./dist/bake/nearPlaceholder.js"
+      },
+      "./bake/placeholders": {
+        "types": "./dist/types/sdk/bake/placeholders.d.ts",
+        "default": "./dist/bake/placeholders.js"
       },
       "./bake/kinds": {
         "types": "./dist/types/sdk/bake/kinds.d.ts",

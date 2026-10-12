@@ -5,7 +5,8 @@ import type { PlaceholderSource } from '@wildshard/format/placeholderSource';
  * drawn by its own tree model, so the bake stands each kept placement in with one of these unit-high shapes by species.
  * sRGB colours; the fir and sapling crowns are lifted (G342 polish: the round-2 firs read near-black from the road).
  */
-export const PINE_PLACEHOLDER = {
+export const PLACEHOLDER = {
+  far: { look: { module: 'look/far.ts', export: 'farLook' } },
   trees: [
     { species: 'fir', stem: null, rings: [[0.06, 0.24], [0.45, 0.15]], crown: [74, 114, 68] },
     { species: 'pine', stem: [0.62, 0.022, [124, 96, 76]], rings: [[0.5, 0.1], [0.74, 0.19], [0.93, 0.13]], crown: [82, 116, 62] },

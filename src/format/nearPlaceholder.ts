@@ -7,7 +7,7 @@ import { isJsonData } from './json';
  * G342 presentation limits, raised to the measured bakes (2026-10-12, `scripts/bake/near-placeholder.mjs`). Round 3's
  * dense ground (the height field's ~2 m lattice reduced to 0.5 m error) is 1.4–1.9 MB resident a cell (the L1-density
  * ground was 0.77 MB) and a whole cell 5.5–8.1 MB (Pine's 40k props and forest of stand-in trees the most), under the
- * bake's 8.5 MB per-cell ceiling (`NEAR_BAKE.residentBytes`, raised from 6 MB with coordinator approval); four cells at
+ * bake's 8.5 MB per-cell ceiling (`@wildshard/sdk/bake/placeholders`'s `NEAR_BAKE.residentBytes`, raised from 6 MB with coordinator approval); four cells at
  * most, 34 MB in all on the near residency line inside the 1.0 GB Explorer envelope. Content may rise again only with a
  * measured budget.
  */

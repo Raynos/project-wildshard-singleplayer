@@ -1,7 +1,7 @@
 /**
  * G342: the near-placeholder tier. The cells around the player's crossroads (or next to the player's cell) draw a richer
  * placeholder than the far proxy: the terrain at L1 density (17 × 17 per 125 m region) and the shard's own drawn world
- * (landmarks, trees, water) at a low LOD, baked by `scripts/bake/near-placeholder.mjs` into one single-draw GLB per shard
+ * (landmarks, trees, water) at a low LOD, baked by the generic `@wildshard/sdk/bake/placeholders` (G348) into one single-draw GLB per shard
  * (`public/assets/baked/<slug>/near.glb`, regions in TEXCOORD_0.x like the far proxy, so the rings' masks apply to it
  * unchanged). Cells further out keep the far proxy; the entered runtime always wins; it never registers a collider.
  *
@@ -14,16 +14,6 @@ import type { GridCell } from './assembly';
 import type { ResidencyAllocator, ResidencyLease } from './allocator';
 import { installFarProxy, type FarPrepared, type FarProxyView } from './farView';
 import { planNearPlaceholders, type NearCrossroads } from './nearPlaceholderPlan';
-
-/**
- * The bake's budget (measured, G342): the ground sampled at the height field's own ~2 m (64 quads a 125 m region) and
- * reduced to `groundError` metres (round 3), a content triangle budget, a sanity triangle cap and the per-cell resident
- * ceiling. Round 3 (Jake: Nalati's terrain "super low poly") measured the dense ground at 0.5 m on 2026-10-12: Nalati
- * 24k triangles / 1.9 MB, Pine 20k / 1.67 MB, Driftwood 16k / 1.38 MB (the L1-density ground was 10k / 0.77 MB); whole
- * cells Nalati 5.47, Driftwood 5.81 and Pine 8.07 MB with its 40k props, so the ceiling went 6 → 8.5 MB (coordinator
- * approval, G342 / E435): four cells 34 MB on the near line, inside the 1.0 GB Explorer envelope.
- */
-export const NEAR_BAKE = { quads: 64, groundError: 0.5, contentTriangles: 42_000, triangles: 160_000, residentBytes: 8_500_000 } as const;
 
 /** What the owner needs from the grid session. */
 export interface NearPlaceholderHost {

@@ -12,7 +12,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { installBakeEnvironment } from './environment.mjs';
 import { visitAuthoredWorld } from './worldHost.mjs';
-import { NEAR_TREE_TRIANGLES, nearTreePrototypes } from './nearTrees.mjs';
+import { placeholderGridBytes, placeholderOf } from './placeholderShards.mjs';
 
 const slug = process.argv.slice(2).find(value => !value.startsWith('--'));
 if (typeof slug !== 'string') throw new Error('usage: near-placeholder.mjs <slug> [--report] [--ground-error=<m>] [--resident=<bytes>]');
@@ -54,8 +54,8 @@ const { default: manifest } = await at(`src/shards/${slug}/manifest.ts`);
 (await at('src/game/shard/registry.ts')).setActiveChunk(manifest.slug);
 const { Terrain, terrainChunkGeometry } = await at('src/engine/world/Terrain.ts');
 const terrainBin = resolve(root, 'public/assets/baked', slug, 'terrain.bin');
-// G348: the shard's own data says where its ground comes from (its manifest's placeholder row); no slug branch here
-const source = (await at('src/format/placeholderSource.ts')).placeholderSource(slug, manifest.placeholder);
+// G348: the shard's own data says where its ground comes from (its data/placeholder.ts row); no slug branch here
+const source = await placeholderOf(root, slug);
 const groundFrom = source.ground;
 const nativeTerrain = groundFrom === undefined ? readFileSync(terrainBin) : (await at(`src/shards/${slug}/${groundFrom.generator}`))[groundFrom.export]();
 if (!(nativeTerrain instanceof Uint8Array)) throw new Error(`${slug}: placeholder ground ${JSON.stringify(groundFrom)} returned no bytes`);
@@ -193,50 +193,21 @@ const prototypes = parts.filter((p) => {
   if (report && p.transforms.length > 0) console.log(`  ${skip === null ? "take" : "skip"} ${p.name} (${skip}) ${p.index.length / 3} tris x ${p.transforms.length} ${box(p)}`);
   return skip === null; // ground / sea / sky come from the lattice; an unlit white or an emissive glow is not paint
 });
-const { FAR_LOOKS, FAR_GRIDS, FAR_SHARDFILE_TERRAIN, farGrid, shardfileGrid } = await at('scripts/bake/farProxiesSource.ts');
-const { NEAR_BAKE } = await at('src/game/grid/nearPlaceholderView.ts');
-const { nearGroundReducer, nearPlaceholderParts } = await at('src/sdk/bake/nearPlaceholder.ts');
-const { buildFarProxy } = await at('src/game/grid/farProxy.ts');
-const { farProxyGeometry } = await at('src/game/grid/farView.ts');
-const { staticGlb } = await at('src/sdk/bake/glb.ts');
-const { parseGlb } = await at('src/sdk/assets.ts');
-const { canonicalJson, contentHash } = await at('src/sdk/project.ts');
-const look = FAR_LOOKS[slug];
-if (look === undefined) throw new Error(`${slug}: no far look`);
-const grid = FAR_GRIDS[slug]?.() ?? (FAR_SHARDFILE_TERRAIN.includes(slug) ? shardfileGrid(root, slug) : farGrid(root, slug));
-// a forest drawn by its shard's tree model is placed tree by tree (nearTrees.mjs), so its far look's canopy lift goes
-const forest = forestTrees.length === 0 ? null : nearTreePrototypes(forestTrees, 250, source.trees);
-if (forest !== null) console.log(`${slug}: forest ${JSON.stringify(forest.report)}`);
-const trees = forest === null ? { parts: [], report: { triangles: 0 } }
-  : await nearPlaceholderParts(forest.prototypes, { triangles: NEAR_TREE_TRIANGLES * 2, half: 250, minSize: 0 });
-const nearLook = forest === null ? { ...look, quads: NEAR_BAKE.quads } : { ...look, quads: NEAR_BAKE.quads, canopyAt: undefined };
-// the content budget steps down until the whole cell fits its resident ceiling (many single copies weld fewer vertices)
+// the far look, the grid and the bake are the generic ones (`@wildshard/sdk/bake/placeholders`, as `wildshard build`)
+const sdk = await at('src/sdk/bake/placeholders.ts');
+if (source.far === undefined) throw new Error(`${slug}: no far row in its data/placeholder.ts`);
+const exported = async (ref) => { const value = (await at(`src/shards/${slug}/${ref.module}`))[ref.export]; if (value === undefined) throw new Error(`${slug}: ${ref.module} has no export ${ref.export}`); return value; };
+const look = await exported(source.far.look);
+const ground = source.far.grid === undefined ? placeholderGridBytes(root, resolve(root, 'src/shards', slug), slug) : null;
+const grid = ground === null ? (await exported(source.far.grid))() : ground.kind === 'baked' ? sdk.bakedTerrainGrid(ground.bytes) : sdk.colliderGrid(ground.bytes);
 // round 3: the ground at the height field's own density, reduced by geometric error (--ground-error=<m> to measure)
 const arg = (name) => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
-const groundError = Number(arg('ground-error') ?? NEAR_BAKE.groundError), residentCeiling = Number(arg('resident') ?? NEAR_BAKE.residentBytes);
-const reduceGround = await nearGroundReducer(groundError);
-{
-  const ground = farProxyGeometry(buildFarProxy(grid, nearLook, [], NEAR_BAKE.triangles, reduceGround)), groundBytes = staticGlb([{ geometry: ground, material: new THREE.MeshStandardMaterial({ vertexColors: true }), castShadow: false }], 'near-ground');
-  const cost = parseGlb(groundBytes);
-  console.log(`${slug}: ground at ${groundError} m: ${cost.triangles} tris, resident ${((cost.decoded + cost.gpu) / 1e6).toFixed(3)} MB`);
-}
-let budget = NEAR_BAKE.contentTriangles, baked;
-for (;;) {
-  const { parts: near, report: reduced } = await nearPlaceholderParts(prototypes, { triangles: budget, half: 250 });
-  const geometry = farProxyGeometry(buildFarProxy(grid, nearLook, [...near, ...trees.parts], NEAR_BAKE.triangles + trees.report.triangles, reduceGround));
-  const bytes = staticGlb([{ geometry, material: new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true }), castShadow: false }], 'near-placeholder');
-  const file = { hash: contentHash(bytes), kind: 'glb', compressed: bytes.length, ...parseGlb(bytes), dependencies: [], critical: false };
-  if (file.decoded + file.gpu <= residentCeiling) { baked = { bytes, file, reduced }; break; }
-  if (budget < 4000) throw new Error(`${slug}: near placeholder terrain alone exceeds ${residentCeiling} B`);
-  budget = Math.floor(budget * 0.9);
-}
-const { bytes, file, reduced } = baked, resident = file.decoded + file.gpu;
+const { bytes, manifest: row, reduced } = await sdk.bakeNearPlaceholder({ grid, look, prototypes, trees: forestTrees, stands: source.trees,
+  groundError: Number(arg('ground-error') ?? sdk.NEAR_BAKE.groundError), residentBytes: Number(arg('resident') ?? sdk.NEAR_BAKE.residentBytes), log: line => console.log(`${slug}: ${line}`) });
+const { file } = row, resident = file.decoded + file.gpu;
 if (report) { for (const k of reduced.kept) console.log(`  keep ${k.name}: ${k.copies} x ${k.triangles}/${k.source}`); for (const d of reduced.dropped) console.log(`  drop ${d.name}: ${d.why}`); }
-const row = { near: { files: [file.hash], compressed: file.compressed, decoded: file.decoded, gpu: file.gpu, triangles: file.triangles, draws: file.draws, content: reduced.triangles,
-  ...(forest === null ? {} : { trees: forest.report.kept, treeTriangles: trees.report.triangles }) },
-  file, look: { family: look.family, haze: look.haze, ...(look.grade === undefined ? {} : { grade: look.grade }) } };
 const dir = resolve(root, 'public/assets/baked', slug);
 mkdirSync(dir, { recursive: true });
-writeFileSync(resolve(dir, 'near.glb'), bytes); writeFileSync(resolve(dir, 'near.json'), canonicalJson(row));
+writeFileSync(resolve(dir, 'near.glb'), bytes); writeFileSync(resolve(dir, 'near.json'), sdk.placeholderJson(row));
 console.log(`${slug.padEnd(18)} near resident ${(resident / 1e6).toFixed(3)} MB  wire ${(file.compressed / 1e3).toFixed(0)} KB  ${file.triangles} tris (${reduced.triangles} content)  ${file.draws} draw`);
 process.exit(0);

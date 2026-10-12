@@ -98,6 +98,7 @@
     "./plugin/lifecycle": "./plugin/lifecycle.ts",
     "./plugin/headless": "./plugin/headless.ts",
     "./plugin/brain": "./plugin/brain.ts",
+    "./plugin/placeholder": "./plugin/placeholder.ts",
     "./plugin/bossPhase": "./plugin/bossPhase.ts",
     "./plugin/mover": "./plugin/mover.ts",
     "./plugin/director": "./plugin/director.ts",
