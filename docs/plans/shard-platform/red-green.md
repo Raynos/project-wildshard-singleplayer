@@ -56,3 +56,12 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-12 | Sky canonical run drift: Roc fight ~5.3k ticks longer (21134 → 26469), undetected (ledger asserts only an eventual reward) | `dbcef52f5` (portable maths in recorder/worker; intended; record left stale) | `f0135d33c` (re-record on 00e7da5fb: 26469 / 26349 / `2c62014c`); endpoint guards `0808b458d` (Nine `3ef5ed223`, Nalati `a284c8f1d` records refreshed) | sp-x1 |
 | 2026-10-12 | push retry refused the real mixed `221a20c3a` log (lint section ran into bake diagnostics) | `b0e5804e3` / old `e38a138a1` lint parser | `1e4406f18` | sp-x7 |
 | 2026-10-12 | gate `221a20c3a`: TASK_CLOCK fixture context | `99b0866c0` | `7e3409bfe` | sp-x1 |
+| 2026-10-12 | frozen gate `638194c1b`: Pine physics/spots freshness | `cd925ed46` (director.ts) | `997ec082f` | sp-x5 |
+| 2026-10-12 | frozen gate: Driftwood + Nine physics freshness | `f508e4a83` (worldHost) | `5b17eb0a5` | sp-x7 |
+| 2026-10-12 | frozen gate: Sky map stale stamp + raster (gate checked stamps only since `1157af929`) | first-bad not isolated | `ae7bda975` (official rebake); pixel-digest guard queued (sp-x1) | sp-o28 |
+| 2026-10-12 | frozen gate: SDK release exports (near producer) | `26f3a96e4` | `e689457f1` | sp-x7 |
+| 2026-10-12 | frozen gate: authoring-docs (near types undocumented) | `26f3a96e4` | `15d7f33b4` | sp-o25 |
+| 2026-10-12 | frozen gate: Sky map POI coverage (all movers exposed) | `3345469e4` | `fba1c8aa8` | sp-x4 |
+| 2026-10-12 | frozen gate: debug raisedBy named a plan row (G342) | `f508e4a83` | `db3e524d1` | wildshard-new |
+| 2026-10-12 | stale private-index commits reverted other landings (`bb6291f57`, `15d7f33b4`) | private index read before HEAD moved | re-landed `3ba757ba5`, `957b05e68`; guard queued after push (sp-x7) | sp-o24, sp-o25 |
+| 2026-10-12 | frozen gate: Sky headless-runtime test lint (duplicate Roc import; optional chains) | `cd925ed46` (duplicate import) + `fe3cb30c2` (`SKY_ITEMS … as const` made the test's optional chains unnecessary) | `957b05e68` (re-land of `d0a96e6e1` after `15d7f33b4` reverted it) | sp-x1 |
