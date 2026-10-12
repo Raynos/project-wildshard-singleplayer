@@ -30,7 +30,8 @@ it('splits a long frame into the rendering update after rAF, tasks and idle main
   ];
   const summary = timelineLongFrames({ records, anchors: timelineAnchors(records) }, [[1000, 60]]);
   expect(summary).toMatchObject({ valid: true, invalid: [], anchorDriftMs: 0 });
-  const [f] = summary.frames;
+  const f = summary.frames[0];
+  if (f === undefined) throw new Error('no frame');
   expect(f).toMatchObject({ start: 1000, ms: 60, busyMs: 43, afterRafMs: 25, tasksMs: 8, rafMs: 10, idleMs: 17, verdict: 'renderUpdate', longestBusyMs: 35 });
   expect(f.top[0]).toBe('FireAnimationFrame 10');
   expect(f.top).toContain('EventDispatch:message 8');
