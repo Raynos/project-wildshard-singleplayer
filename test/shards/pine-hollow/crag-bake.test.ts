@@ -7,7 +7,7 @@ import { inflateSync } from 'node:zlib';
 import { platform } from 'node:process';
 import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import { CRAG_ROWS, CragSkin } from '../../../src/shards/pine-hollow/world/cragBake';
-import { unshuffleLanes } from '../../../src/shards/pine-hollow/world/bakeBytes';
+import { unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import committed from '../../../src/shards/pine-hollow/data/crags.json' with { type: 'json' };
 import { bakeCragRows, installPineGround } from '../../../src/shards/pine-hollow/generators/bake-pine-crags.mjs';
 

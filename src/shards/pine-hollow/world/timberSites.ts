@@ -11,7 +11,7 @@ import * as v from 'valibot';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { CREEK_BRIDGE, E_ROAD, ZIPLINE } from '../data/layout';
-import { fetchBake } from './bakeBytes';
+import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { timberFrame, type Timber } from './timber';
 import { TimberBlocks, TimberRowSchema, type TimberRow } from './timberBake';
 import siteJson from '../data/siteTimbers.json' with { type: 'json' };
@@ -55,7 +55,7 @@ const KEY = 'pine-hollow/site-timbers:bake';
 
 /** Fetch the site timbers' bake into this shard's context (once). */
 export async function loadSiteTimbers(ctx: ModelContext): Promise<void> {
-  const bytes = await fetchBake(SITE_TIMBER_BAKE_URL);
+  const bytes = await fetchLaneBake(SITE_TIMBER_BAKE_URL);
   ctx.once(KEY, () => bytes);
 }
 

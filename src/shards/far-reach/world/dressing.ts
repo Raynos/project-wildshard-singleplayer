@@ -1,7 +1,7 @@
 import { ConeGeometry, DoubleSide, Group, MeshStandardMaterial, type InstancedMesh } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { fetchInstanceSets, instancedFromSet, type InstanceSet } from '../runtime/looks/bakedInstances';
+import { fetchInstanceSets, instancedFromSet, type InstanceSet } from '@wildshard/game/plugin/geometry';
 import { paintIsleMaterial } from './isle';
 import { skyBakedGeometry } from './baked';
 import dressing from '../data/dressing.json' with { type: 'json' };

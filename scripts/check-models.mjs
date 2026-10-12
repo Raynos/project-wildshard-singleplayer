@@ -170,13 +170,12 @@ export const DONE = {
     'src/engine/world/Grass.ts': { why: 'the grass blades: a shader-drawn field (world, §1)', counts: { InstancedMesh: 2 } },
     'src/game/systems/looks/particles.ts': { why: 'mist and needle fall: an effect', counts: { InstancedMesh: 2 } },
     'src/shards/far-reach/runtime/looks/windFx.ts': { why: "visible wind: an effect (SHARD-PLATFORM M3, moved from Sky Reach's world/windFx.ts): a gust's and an updraft's streaks and flakes, one instanced draw per kind", counts: { InstancedMesh: 2 } },
-    'src/shards/far-reach/runtime/looks/bakedInstances.ts': { why: 'a scatter baked offline drawn as one instanced draw per set (SHARD-PLATFORM M3, Sky Reach\'s island dressing): a generator\'s placed copies, their float32 instance matrices and colours, in the caller\'s geometry and material', counts: { InstancedMesh: 1 } },
     'src/sdk/bake/kinds.ts': { why: "SF72: the offline bake folds a shard's code-built world piece into instanced kinds (build time only, never in the client): world", counts: { InstancedMesh: 1 } },
     'src/game/shardfile/bakedKinds.ts': { why: "SF72: a shard's baked world piece drawn from its bake, one InstancedMesh per kind on the bake's own transforms (world, like the bake it draws)", counts: { InstancedMesh: 1 } },
     'src/engine/world/interact/Interactables.ts': { why: "draws the interactables' copies (models in src/engine/models/interact.ts, placed drawnInto its batches)", counts: { BatchedMesh: 2 } },
     'src/engine/world/lowpolyKit.ts': { why: "a geometry kit the models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
     'src/engine/world/geometryKit.ts': { why: "the engine geometry kit's shape builders (a rope's segments merged; no thing of its own)", counts: { mergeGeometries: 1 } },
-    'src/game/plugin/geometry.ts': { why: "the kit system's merged primitives (SHARD-PLATFORM M3, from Pine Hollow's models/antlerKing.ts, a models file): a worn prop's primitive parts (a lantern frame, a ribcage) merged into one geometry, no thing of its own", counts: { mergeGeometries: 1 } },
+    'src/game/plugin/geometry.ts': { why: "the kit system's merged primitives (SHARD-PLATFORM M3, from Pine Hollow's models/antlerKing.ts, a models file): a worn prop's primitive parts (a lantern frame, a ribcage) merged into one geometry, no thing of its own; and a scatter baked offline drawn as one instanced draw per set (Sky Reach's island dressing): a generator's placed copies, their float32 instance matrices and colours, in the caller's geometry and material", counts: { mergeGeometries: 1, InstancedMesh: 1 } },
   },
 };
 

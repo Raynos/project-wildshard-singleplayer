@@ -30,7 +30,7 @@ import { skyBakedPiece, skyKnollHulls } from '../../../src/shards/far-reach/worl
 import { bakeSkyDressing, buildDressing } from '../../../src/shards/far-reach/generators/dressing';
 import dressingRows from '../../../src/shards/far-reach/data/dressing.json' with { type: 'json' };
 import { dressIslands, heroStoneDiscs } from '../../../src/shards/far-reach/world/dressing';
-import { decodeInstanceSets, unshuffleLanes } from '../../../src/shards/far-reach/runtime/looks/bakedInstances';
+import { decodeInstanceSets, unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import { BAKED_PIECES } from '../../../src/shards/far-reach/data/files';
 import { ISLES, KNOLLS, STEP, WINCH_HOUSE } from '../../../src/shards/far-reach/data/layout';
 import winchHouse from '../../../src/shards/far-reach/data/winchHouse.json' with { type: 'json' };

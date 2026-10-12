@@ -8,7 +8,7 @@ import { platform } from 'node:process';
 import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import { LOOKOUT_ROWS } from '../../../src/shards/pine-hollow/models/fireLookout';
 import { TimberBlocks } from '../../../src/shards/pine-hollow/world/timberBake';
-import { unshuffleLanes } from '../../../src/shards/pine-hollow/world/bakeBytes';
+import { unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import committed from '../../../src/shards/pine-hollow/data/lookout.json' with { type: 'json' };
 import { bakeLookoutRows } from '../../../src/shards/pine-hollow/generators/bake-pine-lookout.mjs';
 

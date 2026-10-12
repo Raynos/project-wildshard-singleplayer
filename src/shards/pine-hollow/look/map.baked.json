@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "tilesHash": "c366677cbc93cbdadc43ae37dc96c78c3e7a1f0e3c7d0cc673e8cd3ea938b0c2",
+  "tilesHash": "4400e76ce13220cd0f8fcca89ea73686ed61c832d5d1fb33b7003ee56b3f3688",
+  "pixelHash": "fd37e5c5af057ab229df892d75e60a3a9c5dad059de33152b9242103378178d9",
   "image": "/assets/pine-hollow/map/top.webp",
   "size": 1000,
   "metres": 500,
   "north": "+z",
   "east": "-x",
   "style": "stylized:ground",
-  "bytes": 95600,
-  "pixelHash": "fd37e5c5af057ab229df892d75e60a3a9c5dad059de33152b9242103378178d9"
+  "bytes": 95600
 }

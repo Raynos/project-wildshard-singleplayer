@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The committed bake is a zlib stream the page inflates.
 import { inflateSync } from 'node:zlib';
-import { unshuffleLanes } from '../../../src/shards/pine-hollow/world/bakeBytes';
+import { unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import { STREAM_ROWS, streamGeometry } from '../../../src/shards/pine-hollow/world/streams';
 import committed from '../../../src/shards/pine-hollow/data/streams.json' with { type: 'json' };
 import { bakeStreamRows } from '../../../src/shards/pine-hollow/generators/bake-pine-streams.mjs';

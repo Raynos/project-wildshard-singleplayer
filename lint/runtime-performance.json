@@ -5790,42 +5790,6 @@
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
     },
-    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:88fe10f5f4972a75cf2d7e9af285b2d8f1138dabea4238b6635702b9769c08f3": {
-      "count": 1,
-      "row": "SF76"
-    },
-    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:547faf1bc35eb6cb6fa2cc5bd0760e6f976a883cba42eafdf9512f8dd8038fbb": {
-      "count": 1,
-      "row": "SF76"
-    },
-    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:426944a087c7688d4aeaf569788f89f3aa45161cc6e3561461d4e7204f7f5985": {
-      "count": 1,
-      "row": "SF76"
-    },
-    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:a3998f7480bdf7689133ec4f5353bfc8fc41c4ae7c03838e8a8654062163730f": {
-      "count": 1,
-      "row": "SF76"
-    },
-    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:8a3cd784e5e94a454a26c24d57cfbc644609f04fc8d3178a3ad72540282ad3ca": {
-      "count": 1,
-      "row": "SF76"
-    },
-    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:dd25ca3e4a7eeffefb4b275eb37a77a44c52dea0603ebe31e256c37986b638e6": {
-      "count": 1,
-      "row": "SF76"
-    },
-    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:a27313189bdb5adea0d1ba29349220fd839288c5439d030570e4bcf0486022c7": {
-      "count": 1,
-      "row": "SF76"
-    },
-    "src/shards/far-reach/runtime/looks/bakedInstances.ts:unbounded-loop:15e5e5123741977bc7e14ace60aec714542f00fa29a8023ad0dc6bfc85c960cb": {
-      "count": 1,
-      "row": "SF76"
-    },
-    "src/shards/far-reach/runtime/looks/bakedInstances.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
-      "count": 1,
-      "row": "SF76"
-    },
     "src/shards/far-reach/runtime/looks/cardField.ts:unbounded-loop:fca4ece2832b3bb82bc404c653c7e0eab75c289def306a4a7fb0e9f01e2c03d1": {
       "count": 1,
       "row": "SF76"

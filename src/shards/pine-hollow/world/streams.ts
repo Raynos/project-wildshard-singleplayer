@@ -23,7 +23,7 @@ import * as v from 'valibot';
 import streamJson from '../data/streams.json' with { type: 'json' };
 import { SPRAY_ANCHORS, SPRAY_PROGRAMS } from '../runtime/looks/streamLook';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { fetchBake } from './bakeBytes';
+import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -73,7 +73,7 @@ export class PineStreams {
 
   /** the water from its bake (a bake that fails to load is a page fault, `console.error`: the spray stands alone), the spray */
   async build(): Promise<this> {
-    const bytes = await fetchBake(STREAM_BAKE_URL).catch((error: unknown) => { console.error('[pine-hollow] the baked streams did not load:', error); return null; });
+    const bytes = await fetchLaneBake(STREAM_BAKE_URL).catch((error: unknown) => { console.error('[pine-hollow] the baked streams did not load:', error); return null; });
     if (bytes) {
       // the gully's banks and the forest over them fill the low reflections (sin 0.3 ≈ 17°)
       const { material } = createWaterMaterial(this.sky, { skyline: null, forestSinEl: 0.3 });

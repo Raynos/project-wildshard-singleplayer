@@ -14,7 +14,7 @@
  */
 import * as v from 'valibot';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
-import { fetchBake } from '../world/bakeBytes';
+import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { timberFacts, timberMats } from '../world/timber';
 import { TIMBER_ROW, TimberBlocks } from '../world/timberBake';
 import lookoutJson from '../data/lookout.json' with { type: 'json' };
@@ -35,7 +35,7 @@ const KEY = 'pine-hollow/fire-lookout:bake';
 
 /** Fetch the lookout's bake into this shard's context (once). */
 export async function loadFireLookout(ctx: ModelContext): Promise<void> {
-  const bytes = await fetchBake(LOOKOUT_BAKE_URL);
+  const bytes = await fetchLaneBake(LOOKOUT_BAKE_URL);
   ctx.once(KEY, () => bytes);
 }
 

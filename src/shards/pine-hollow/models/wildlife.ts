@@ -28,7 +28,7 @@ import { spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import * as vb from 'valibot';
 import { WILDLIFE_LOOK } from '../runtime/looks/wildlifeLook';
 import wildJson from '../data/wildlife.json' with { type: 'json' };
-import { fetchBake } from '../world/bakeBytes';
+import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 
 export const KIND = { raven: 0, owl: 1, woodpecker: 2, hare: 4 } as const;
 export type WildKind = (typeof KIND)[keyof typeof KIND];
@@ -92,7 +92,7 @@ let loading: Promise<void> | null = null;
  *  to load is a page fault (`console.error`), and the procedural animals stand absent. */
 export function preloadPineWildlife(): Promise<void> {
   loading ??= (async (): Promise<void> => {
-    try { shapes = wildShapes(await fetchBake(WILDLIFE_BAKE_URL)); } catch (error: unknown) { console.error('[pine-hollow] the baked wildlife did not load:', error); }
+    try { shapes = wildShapes(await fetchLaneBake(WILDLIFE_BAKE_URL)); } catch (error: unknown) { console.error('[pine-hollow] the baked wildlife did not load:', error); }
   })();
   return loading;
 }

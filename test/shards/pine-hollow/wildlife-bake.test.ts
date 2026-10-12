@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { platform } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The committed bake is a zlib stream the page inflates.
 import { inflateSync } from 'node:zlib';
-import { unshuffleLanes } from '../../../src/shards/pine-hollow/world/bakeBytes';
+import { unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import { KIND, WILD_BAKE_KINDS, WILD_ROWS, WildlifeMesh, useWildShapes, wildShapes } from '../../../src/shards/pine-hollow/models/wildlife';
 import committed from '../../../src/shards/pine-hollow/data/wildlife.json' with { type: 'json' };
 import { bakeWildlifeRows } from '../../../src/shards/pine-hollow/generators/bake-pine-wildlife.mjs';

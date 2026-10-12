@@ -3,13 +3,13 @@
  * face skin's tiles are built at build time (`../generators/crags.ts`, `src/shards/pine-hollow/generators/bake-pine-crags.mjs`) over the page's own
  * baked terrain: `../data/crags.json` holds every placement and each tier's tile table, and
  * `public/assets/pine-hollow/baked/crags.<tier>.bin` (zlib) each tier's two skin resolutions. Here a tile becomes the
- * geometry the crags' one batch draws (./crags.ts), exactly as the builder made it. The file ships in lanes (./bakeBytes.ts).
+ * geometry the crags' one batch draws (./crags.ts), exactly as the builder made it. The file ships in lanes (`@wildshard/game/plugin/geometry` fetchLaneBake).
  */
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { Tier } from '@wildshard/engine/core/tier';
 import { BEAR_CAVE } from '../data/layout';
-import { fetchBake } from './bakeBytes';
+import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import cragJson from '../data/crags.json' with { type: 'json' };
 
 /** the kit's modules (nodes `<id>` and `<id>-lod1`: the cliff bands, buttress and slab in crags-b.glb, the rest in crags.glb) */
@@ -110,7 +110,7 @@ export class CragSkin {
 export async function loadCragSkin(tier: Tier): Promise<CragSkin | null> {
   const url = cragBakeUrl(tier);
   try {
-    return new CragSkin(await fetchBake(url), CRAG_ROWS.skin[tier]);
+    return new CragSkin(await fetchLaneBake(url), CRAG_ROWS.skin[tier]);
   } catch (error: unknown) {
     console.error('[pine-hollow] the baked crag skin did not load:', error);
     return null;

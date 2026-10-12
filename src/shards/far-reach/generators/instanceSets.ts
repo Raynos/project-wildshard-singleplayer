@@ -1,10 +1,16 @@
 import type { InstancedMesh } from 'three';
-import { SIGN, type ColumnRow, type InstanceSetRow } from '../runtime/looks/bakedInstances';
 
 /**
- * The bake half of the baked instance sets (runtime/looks/bakedInstances.ts reads them on the page): each set's instance
+ * The bake half of the baked instance sets (`@wildshard/game/plugin/geometry` fetchInstanceSets reads them on the page): each set's instance
  * matrices and colours, column by column, as rows and one lane-shuffled binary.
  */
+
+/** How one column is stored (the page's `ColumnRow`): in the binary, one word throughout, or an earlier column (negated). */
+export type ColumnRow = { readonly lane: boolean } | { readonly bits: number } | { readonly of: number; readonly neg: boolean };
+/** One baked set's row (the page's `InstanceSetRow`): its name, count, matrix columns (16) and colour columns (3, or null). */
+export interface InstanceSetRow { readonly name: string; readonly count: number; readonly matrix: readonly ColumnRow[]; readonly color: readonly ColumnRow[] | null }
+/** The float32 sign bit (a negated column's words). */
+const SIGN = 0x80000000;
 
 /** `words`' columns (`width` per instance) as rows; the stored columns' words are appended to `out`, column by column. */
 function planColumns(words: Uint32Array, width: number, out: number[]): ColumnRow[] {
