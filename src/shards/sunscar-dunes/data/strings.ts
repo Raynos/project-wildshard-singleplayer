@@ -37,6 +37,7 @@ export const STRINGS = {
   placeCrest: 'Signal crest', placeBasin: 'The sand bowl',
   rewardKicker: 'Quest complete', rewardSubtitle: 'Answering fires on the far dunes: the riders are coming home',
   dunes: 'Dune sea', trail: 'Crest path',
+  lookRow: 'Signal look', lookA: 'A current', lookB: 'B baked', lookNote: 'G345 taste pick: A the hand-written fire shaders; B the fires on standard materials (flipbook on basic materials, baked glow, pool and smoke, CPU embers)',
   frameSpawn: 'Spawn: the crest, the signal tower far off', frameWhip: 'The bullwhip mid-crack',
   frameRay: 'The dune ray against the dusk', frameQuest: 'Quest done: the signal fire lit',
 } as const;

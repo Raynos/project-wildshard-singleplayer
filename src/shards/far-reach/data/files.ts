@@ -1,10 +1,10 @@
 /** The boot inventory and species loader share these rig identities; offline source metadata stays outside the manifest closure. */
-export const SKY_CREATURES = ['storm-roc', 'sky-goat', 'drift-ray', 'gale-wisp'] as const;
+export const SKY_CREATURES = ['storm-roc', 'sky-goat', 'drift-ray'] as const;
 export type SkyCreature = typeof SKY_CREATURES[number];
 /** The baked skinned bodies the client loads (the Roc's painted map, `storm-roc.webp`, beside them). */
 export const SKY_CREATURE_RIGS = {
   'storm-roc': '/assets/far-reach/rigs/storm-roc.glb', 'sky-goat': '/assets/far-reach/rigs/sky-goat.glb',
-  'drift-ray': '/assets/far-reach/rigs/drift-ray.glb', 'gale-wisp': '/assets/far-reach/rigs/gale-wisp.glb',
+  'drift-ray': '/assets/far-reach/rigs/drift-ray.glb',
 } as const;
 
 

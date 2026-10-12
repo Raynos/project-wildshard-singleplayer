@@ -1,4 +1,5 @@
 import { InteractionRules } from '@wildshard/game/quest/interactionRows';
+import { runtimeVariantEnabled } from '@wildshard/game/shard/runtimeVariant';
 import { PointLight, type Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -9,7 +10,7 @@ import { ownPrimitives } from './resources';
 import { buildTower, type TowerParts } from './tower';
 import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
 import { bakedPiece, type BakedWorld } from './baked';
-import { FIRE_RESOURCES, fireGeometries, fireLight, loadFireBook, resetFireLights, tickFires } from './fireFx';
+import { fireGeometries, fireLight, fireResources, loadFireBook, resetFireLights, tickFires, useBakedFire } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
 import { SIGNAL_INTERACTIONS } from '../data/signalInteractions';
@@ -41,6 +42,9 @@ const WAY_LIGHT = 9;
 const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales the point lights on flat sand (x0.55 of round 24's)
 
 export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): SignalWorld {
+  // G345: Jake's taste pick between the current look (A) and the baked one on standard materials (B), read once per build
+  useBakedFire(runtimeVariantEnabled(ctx, { id: 'sunscar.look', group: 'look', label: STRINGS.lookRow, initial: 'off', reload: true, choices: [{ value: 'off', text: STRINGS.lookA }, { value: 'on', text: STRINGS.lookB }],
+    note: STRINGS.lookNote, ask: 'E435', reviewBy: '2026-12-30' }));
   const terrain = ctx.manifest.ground.terrain, groundAt = (x: number, z: number): number => terrain?.heightAt(x, z) ?? 0;
   const file = 'src/shards/sunscar-dunes/generators/places.ts';
   // SF72: the tower's frame is baked offline (generators/tower.ts); the client adds its lamp, brazier and fire
@@ -129,7 +133,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   ];
   lastLightAll(ctx.root, ctx.scope); // the style bible's rim and shade floor on every prop
   ownPrimitives(ctx.root, ctx.scope);
-  for (const r of FIRE_RESOURCES) ctx.scope.own(r);
+  for (const r of fireResources()) ctx.scope.own(r);
   ctx.scope.onDispose(() => { for (const g of fireGeometries()) g.dispose(); });
   ctx.scope.onDispose(loadFireBook()); // E407 row 6: the flame's flipbook, freed with the shard
   // round 18 (row 3: a warm light pool on the sand AND the plinth, from a real light): one short-range point light rides to
