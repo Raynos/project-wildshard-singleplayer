@@ -6,6 +6,7 @@ describe('frame floor resource preflight', () => {
     [],
     ['--help'],
     ['--frame-timeline', '--surface=sim'],
+    ['--frame-timeline', '--task-clock', '--surface=sim'],
     ['--shards=grid', '--surface=sim', '--grid-scenario=milestone', '--devserver', '--gl-time', '--gpu-bisect'],
     ['--output-dir=/private/tmp/sp-lanes/sp-x4/results', '--scratch-dir=/private/tmp/sp-lanes/sp-x4'],
     ['--regrade=/tmp/report.json'],
