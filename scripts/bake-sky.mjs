@@ -91,6 +91,8 @@ function encodeSky(width, height, px) {
   }
   const size = `${width}x${height}`;
   const sky = execFileSync('magick', ['-size', size, '-depth', '8', 'rgb:-', '-quality', '95', '-sampling-factor', '1x1', '-strip', 'jpg:-'], { input: rgb, maxBuffer: 64 << 20, timeout: 180_000 });
-  const gainBytes = execFileSync('magick', ['-size', size, '-depth', '8', 'gray:-', '-strip', '-define', 'png:compression-level=9', 'PNG8:-'], { input: gain, maxBuffer: 64 << 20, timeout: 180_000 });
+  // lossless 8-bit greyscale: a palette PNG8 is quantized by ImageMagick, and 7.1.2-33 kept 26 of Pine's 164 gain levels
+  // (up to 8 steps off, half a stop) where the colour plane was divided by the exact gain
+  const gainBytes = execFileSync('magick', ['-size', size, '-depth', '8', 'gray:-', '-strip', '-define', 'png:color-type=0', '-define', 'png:bit-depth=8', '-define', 'png:compression-level=9', 'PNG:-'], { input: gain, maxBuffer: 64 << 20, timeout: 180_000 });
   return { sky, gain: gainBytes };
 }
