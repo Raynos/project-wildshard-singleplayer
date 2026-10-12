@@ -8,6 +8,7 @@ set -uo pipefail
 # E476: keep Git message handling exclusive until the commit exits.
 python3 scripts/commit-message-lock.py "$PPID" || exit $?
 trap 'python3 scripts/commit-message-lock.py --record "$PPID" "$?"' EXIT
+python3 scripts/check-commit-index.py || exit $?
 
 LIMIT=512000
 bad=""

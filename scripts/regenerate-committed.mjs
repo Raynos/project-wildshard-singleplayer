@@ -126,7 +126,7 @@ export async function regenerateCommitted(root, approvalFile) {
       }
       const attribution = text(root, ['show', '-s', '--format=%B', base]).split('\n').filter((line) => line.startsWith('Assisted-by:'));
       if (attribution.length > 1) throw new Error('Source commit has duplicate Assisted-by trailers');
-      const index = resolve(scratch, 'index'), env = { ...process.env, GIT_INDEX_FILE: index, WILDSHARD_GENERATED_SOURCE: base, SKIP_ATTRIB: attribution.length === 0 ? '1' : '0' };
+      const index = resolve(scratch, 'index'), env = { ...process.env, GIT_INDEX_FILE: index, WILDSHARD_GENERATED_SOURCE: base, WS_COMMIT_INTENT: JSON.stringify({ base, paths: changed.map(([file]) => file) }), SKIP_ATTRIB: attribution.length === 0 ? '1' : '0' };
       text(root, ['read-tree', base], undefined, env);
       for (const [file, content] of changed) text(root, ['update-index', '--add', '--cacheinfo', `100644,${text(root, ['hash-object', '-w', '--stdin'], content)},${file}`], undefined, env);
       if (existsSync(resolve(root, '.githooks/pre-commit'))) {
@@ -145,7 +145,10 @@ export async function regenerateCommitted(root, approvalFile) {
       const attributionNote = attribution.length === 0 ? '' : `\n\n${attribution[0]}`;
       const message = `chore(gen): refresh committed outputs\n\n${witnessNote}Generated-Source: ${base}\n${trailers}${attributionNote}\n`;
       const messageFile = resolve(scratch, 'message'); writeFileSync(messageFile, message);
-      if (existsSync(resolve(root, '.githooks/commit-msg'))) execFileSync(resolve(root, '.githooks/commit-msg'), [messageFile], { cwd: root, env, stdio: 'inherit' });
+      if (existsSync(resolve(root, '.githooks/commit-msg'))) {
+        try { execFileSync(resolve(root, '.githooks/commit-msg'), [messageFile], { cwd: root, env, stdio: 'inherit' }); }
+        catch (error) { if (text(root, ['rev-parse', 'HEAD']) !== base) continue; throw error; }
+      }
       const sha = text(root, ['commit-tree', text(root, ['write-tree'], undefined, env), '-p', base], message, env);
       const result = spawnSync('git', ['update-ref', 'refs/heads/main', sha, base], { cwd: root, encoding: 'utf8' });
       if (result.error) throw result.error;

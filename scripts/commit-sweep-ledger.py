@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Commit the mechanical ledger after its parent exits, with a private index."""
 import fcntl
+import json
 import os
 from pathlib import Path
 import select
@@ -43,7 +44,8 @@ def main():
     names = subprocess.check_output(['git', 'rev-parse', '--local-env-vars'], text=True)
     for name in names.splitlines():
         env.pop(name, None)
-    for name in ('SKIP_ATTRIB', 'SKIP_ARCH_GUARDS', 'SKIP_SWEEPGUARD', 'LEDGER_AUTOCOMMIT'):
+    for name in ('SKIP_ATTRIB', 'SKIP_ARCH_GUARDS', 'SKIP_SWEEPGUARD',
+                 'LEDGER_AUTOCOMMIT', 'WS_COMMIT_INTENT'):
         env.pop(name, None)
 
     def git(*args, active_env=None, input=None):
@@ -87,6 +89,7 @@ def main():
                 if (common / 'quiet').exists():
                     return
                 tip = git('rev-parse', 'HEAD')
+                private['WS_COMMIT_INTENT'] = json.dumps({'base': tip, 'paths': [ledger]})
                 if subprocess.run(['git', 'diff', '--quiet', tip, '--', ledger], env=env).returncode == 0:
                     return
                 old = git('ls-tree', tip, '--', ledger).split()
@@ -97,12 +100,17 @@ def main():
                 git('read-tree', tip, active_env=private)
                 git('update-index', '--add', '--cacheinfo', old[0], blob, ledger, active_env=private)
                 tree = git('write-tree', active_env=private)
-                for command in (['python3', '.githooks/commit-msg-conventions', str(msg)],
-                                ['bash', '.githooks/pre-commit'],
-                                ['bash', '.githooks/commit-msg', str(msg)]):
-                    if (common / 'quiet').exists():
-                        return
-                    subprocess.run(command, env=private, check=True)
+                try:
+                    for command in (['python3', '.githooks/commit-msg-conventions', str(msg)],
+                                    ['bash', '.githooks/pre-commit'],
+                                    ['bash', '.githooks/commit-msg', str(msg)]):
+                        if (common / 'quiet').exists():
+                            return
+                        subprocess.run(command, env=private, check=True)
+                except subprocess.CalledProcessError:
+                    if git('rev-parse', 'HEAD') != tip:
+                        continue
+                    raise
                 sha = git('commit-tree', tree, '-p', tip, '-F', str(msg), active_env=private)
                 if (common / 'quiet').exists():
                     return
