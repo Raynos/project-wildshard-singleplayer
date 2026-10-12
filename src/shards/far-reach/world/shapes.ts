@@ -2,7 +2,7 @@ import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, ConeGeometry, Cylin
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
-import { DECK_WOOD_EDITS, HOVER_FRAME_EDITS, POST_WEATHER_EDITS } from '../runtime/looks/bridgeLook';
+import { DECK_WOOD_EDITS, HOVER_FRAME_EDITS, POST_WEATHER_EDITS } from '../data/bridgeLook';
 import { fitModel, splitAbove } from '../runtime/looks/modelIntake';
 import { GeometryPack, fetchDeflated, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import bridgeRows from '../data/bridges.json' with { type: 'json' };

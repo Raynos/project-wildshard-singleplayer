@@ -2,7 +2,7 @@ import { BackSide, Color, DoubleSide, FrontSide, Group, InstancedMesh, Matrix4, 
 import type { Isle } from '../data/layout';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
-import { SKY_ISLE_CLIP_EDITS, SKY_ISLE_ROCK, SKY_ISLE_ROCK_EDITS } from '../runtime/looks/skyIsleLook';
+import { SKY_ISLE_CLIP_EDITS, SKY_ISLE_ROCK, SKY_ISLE_ROCK_EDITS } from '../data/skyIsleLook';
 import { ISLE_KEEL_CUT, KEEL_TOP, SKY_ISLE_HD, SKY_ISLE_MODELS, SKY_ISLE_WEAR, type SkyIsle, type SkyIsleModel } from '../data/skyIsles';
 import { hdMaterial, skyHd } from './meshes';
 import FRAMES from '../data/skyIsleFrames.json' with { type: 'json' };

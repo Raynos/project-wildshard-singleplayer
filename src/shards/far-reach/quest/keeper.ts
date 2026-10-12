@@ -4,7 +4,7 @@ import { fitModel, splitTriangles } from '../runtime/looks/modelIntake';
 import { hdMaterial, skyHd, skyMesh } from '../world/meshes';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { KEEPER_SCARF_EDITS } from '../runtime/looks/paintLook';
+import { KEEPER_SCARF_EDITS } from '../data/paintLook';
 import { SPAWN } from '../data/layout';
 import { KEEPER_AT } from '../data/quests';
 import { FACETED_POSE, KEEPER_CODE, KEEPER_HALO, KEEPER_HD, KEEPER_LANTERN, KEEPER_MODEL, KEEPER_PAINTS, WAVE_RANGE } from '../data/keeperLook';

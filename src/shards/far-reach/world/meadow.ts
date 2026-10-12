@@ -3,7 +3,7 @@ import { Color, type Texture, type InstancedBufferGeometry, Mesh, type ShaderMat
 import { ShaderFamily, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { tileFieldGeometry, tileOrigin } from '../runtime/looks/tileField';
 import { DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, SPANS, UPDRAFT, VANES, NEST, SPIRES, WINCH, WINCH_HOUSE, type Isle } from '../data/layout';
-import { MEADOW, MEADOW_CARD, MEADOW_GLSL, MEADOW_PROGRAMS, SWARD } from '../runtime/looks/meadowLook';
+import { MEADOW, MEADOW_CARD, MEADOW_GLSL, MEADOW_PROGRAMS, SWARD } from '../data/meadowLook';
 import { apothem, spireAt } from '../layout';
 import { MILL_DRUM } from './mill';
 import { KEEPER_STAND } from '../quest/keeper';

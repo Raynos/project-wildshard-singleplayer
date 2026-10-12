@@ -4,7 +4,7 @@ import { fitModel } from '../runtime/looks/modelIntake';
 import { hdMaterial, skyHd } from './meshes';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { CROWN_DAIS_EDITS } from '../runtime/looks/paintLook';
+import { CROWN_DAIS_EDITS } from '../data/paintLook';
 import { CROWN_STONES, type Stone } from '../data/crownLayout';
 import { skyBakedPiece } from './baked';
 

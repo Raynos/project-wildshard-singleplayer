@@ -1,6 +1,6 @@
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { ISLE_CUT_EDITS } from '../runtime/looks/paintLook';
+import { ISLE_CUT_EDITS } from '../data/paintLook';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { ShardContext } from '@wildshard/game/shard/context';

@@ -1,7 +1,7 @@
 import { AdditiveBlending, Group, Mesh, MeshBasicMaterial, SphereGeometry, type InstancedMesh, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { LANTERN_GLOW_EDITS } from '../runtime/looks/paintLook';
+import { LANTERN_GLOW_EDITS } from '../data/paintLook';
 import { LECTERN } from '../data/bookStand';
 import { fitModel } from '../runtime/looks/modelIntake';
 import { hdMaterial, skyHd } from './meshes';

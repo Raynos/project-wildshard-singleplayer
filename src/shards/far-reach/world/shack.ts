@@ -1,7 +1,7 @@
 import { MeshStandardMaterial } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { SHACK_EDITS, SHACK_KINDS } from '../runtime/looks/shackLook';
+import { SHACK_EDITS, SHACK_KINDS } from '../data/shackLook';
 
 /**
  * The weathered-timber surfaces of Sky Reach's small buildings (E392, round 18): the procedural program that draws a baked

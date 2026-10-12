@@ -5,7 +5,7 @@ import { fetchInstanceSets, instancedFromSet, type InstanceSet } from '../runtim
 import { paintIsleMaterial } from './isle';
 import { skyBakedGeometry } from './baked';
 import dressing from '../data/dressing.json' with { type: 'json' };
-import { BOULDER_EDITS, CLUMP_EDITS, FLOWER_EDITS } from '../runtime/looks/dressingLook';
+import { BOULDER_EDITS, CLUMP_EDITS, FLOWER_EDITS } from '../data/dressingLook';
 import { DRESSING_URL } from '../data/files';
 
 /**

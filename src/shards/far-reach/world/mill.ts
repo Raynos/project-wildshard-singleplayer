@@ -1,7 +1,7 @@
 import { Group, Mesh, MeshStandardMaterial, DoubleSide, Float32BufferAttribute, type BufferGeometry, type InstancedMesh, type Material, type Object3D, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { MILL_CANVAS_EDITS, MILL_TOWER_EDITS } from '../runtime/looks/millLook';
+import { MILL_CANVAS_EDITS, MILL_TOWER_EDITS } from '../data/millLook';
 import { fitModel } from '../runtime/looks/modelIntake';
 import { hdMaterial, skyHd } from './meshes';
 import { onPaintedDispose } from '../look/image';

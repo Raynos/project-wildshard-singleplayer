@@ -1,7 +1,7 @@
 import { BufferGeometry, Color, Float32BufferAttribute, Mesh, MeshStandardMaterial, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
-import { ISLE_PAINT, ISLE_PAINT_EDITS } from '../runtime/looks/isleLook';
+import { ISLE_PAINT, ISLE_PAINT_EDITS } from '../data/isleLook';
 import type { Isle } from '../data/layout';
 import { apothem } from '../layout';
 import { onPaintedDispose } from '../look/image';

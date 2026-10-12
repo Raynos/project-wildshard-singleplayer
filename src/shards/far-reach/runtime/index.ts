@@ -9,7 +9,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { QuestState } from '@wildshard/engine/quest/core';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { ROC_SLATE_EDITS } from './looks/paintLook';
+import { ROC_SLATE_EDITS } from '../data/paintLook';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from '../data/strings';
