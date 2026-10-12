@@ -3,7 +3,7 @@ import { InstancedBufferAttribute, InstancedMesh, type BufferGeometry, type Mate
 /**
  * Baked instance sets (SHARD-PLATFORM M3, offline bakes): a scatter (grass clumps, flowers, boulders over a shard's
  * ground) placed at build time instead of on the page. A generator places its copies into instanced meshes as it always
- * did; `encodeInstanceSets` writes each set's instance matrices (and colours, when it has them) as the float32 words three
+ * did; `encodeInstanceSets` (generators/instanceSets.ts) writes each set's instance matrices (and colours, when it has them) as the float32 words three
  * keeps them in, so the page draws exactly the matrices the live placement computed, bit for bit. They are stored column
  * by column (one matrix element, or colour channel, across every instance): a column that holds one word throughout, or
  * an earlier column's words (or their negation), is stored as its row only. The binary's 4-byte words are split into
@@ -32,28 +32,8 @@ export interface InstanceSet {
   readonly colors: Float32Array | null;
 }
 
-const SIGN = 0x80000000;
-
-/** `words`' columns (`width` per instance) as rows; the stored columns' words are appended to `out`, column by column. */
-function planColumns(words: Uint32Array, width: number, out: number[]): ColumnRow[] {
-  const count = words.length / width;
-  const columns = Array.from({ length: width }, (_, j) => Uint32Array.from({ length: count }, (_unused, i) => words[i * width + j] ?? 0));
-  const rows: ColumnRow[] = [];
-  columns.forEach((col, j) => {
-    const first = col[0] ?? 0;
-    if (col.every((w) => w === first)) { rows.push({ bits: first }); return; }
-    let row: ColumnRow | null = null;
-    for (let k = 0; k < j && row === null; k++) {
-      const prior = columns[k], earlier = rows[k];
-      if (prior === undefined || earlier === undefined || !('lane' in earlier)) continue;
-      if (col.every((w, i) => w === prior[i])) row = { of: k, neg: false };
-      else if (col.every((w, i) => w === ((prior[i] ?? 0) ^ SIGN) >>> 0)) row = { of: k, neg: true };
-    }
-    if (row === null) { row = { lane: true }; for (const w of col) out.push(w); }
-    rows.push(row);
-  });
-  return rows;
-}
+/** The float32 sign bit (a negated column's words). */
+export const SIGN = 0x80000000;
 
 /** Fills `target` (`count` instances × `rows.length` columns), the stored columns read from `words` at `at`; returns the new `at`. */
 function fillColumns(target: Uint32Array, rows: readonly ColumnRow[], count: number, words: Uint32Array, at: number): number {
@@ -68,33 +48,12 @@ function fillColumns(target: Uint32Array, rows: readonly ColumnRow[], count: num
   return next;
 }
 
-/** `words` (a whole number of 4-byte words) as byte lanes: every word's byte 0, then every byte 1, … */
-export function shuffleLanes(words: Uint8Array): Uint8Array {
-  if (words.length % 4 !== 0) throw new Error('shuffleLanes: not whole words');
-  const n = words.length / 4, out = new Uint8Array(words.length);
-  for (let b = 0; b < 4; b++) for (let i = 0; i < n; i++) out[b * n + i] = words[i * 4 + b] ?? 0;
-  return out;
-}
-
-/** The words from their byte lanes (`shuffleLanes` reversed). */
+/** The words from their byte lanes (generators/instanceSets.ts `shuffleLanes` reversed). */
 export function unshuffleLanes(lanes: Uint8Array): Uint8Array {
   if (lanes.length % 4 !== 0) throw new Error('unshuffleLanes: not whole words');
   const n = lanes.length / 4, out = new Uint8Array(lanes.length);
   for (let b = 0; b < 4; b++) for (let i = 0; i < n; i++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
   return out;
-}
-
-/**
- * Build time: the named instanced meshes' matrices and colours as rows and one lane-shuffled binary (not yet deflated:
- * the bake script deflates it): each set's stored matrix columns, then its stored colour columns, in row order.
- */
-export function encodeInstanceSets(meshes: readonly (readonly [string, InstancedMesh])[]): { rows: InstanceSetRow[]; bytes: Uint8Array } {
-  const out: number[] = [];
-  const rows = meshes.map(([name, mesh]): InstanceSetRow => {
-    const matrix = planColumns(new Uint32Array(mesh.instanceMatrix.array.slice(0, mesh.count * 16).buffer), 16, out), colors = mesh.instanceColor;
-    return { name, count: mesh.count, matrix, color: colors === null ? null : planColumns(new Uint32Array(colors.array.slice(0, mesh.count * 3).buffer), 3, out) };
-  });
-  return { rows, bytes: shuffleLanes(new Uint8Array(Uint32Array.from(out).buffer)) };
 }
 
 /** The sets from their (unshuffled) words, by name; throws when the binary is not the rows' size. */

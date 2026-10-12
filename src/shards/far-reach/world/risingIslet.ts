@@ -1,4 +1,4 @@
-import type { MoverBox, MoverPose } from '@wildshard/engine/physics/mover';
+import type { MoverPose } from '@wildshard/engine/physics/mover';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc, Piece } from '@wildshard/engine/world/registry';
 import { BoxGeometry, Group, InstancedMesh, Matrix4, Mesh, Quaternion, TorusGeometry, Vector3 } from 'three';
@@ -33,14 +33,6 @@ export const ISLET_ISLE: Isle = { id: 'islet', x: 0, z: 0, r: ISLET.islet.r, y: 
 /** The gate isles as islands (world/build.ts draws and collides them with the playable ones' builder). */
 export const GATE_ISLES: readonly Isle[] = RISING_ISLETS.map((entry) => entry.gate);
 
-/** The islet's deck: six strips 30° apart over its 12-gon (world/build.ts islandColliders), as local mover boxes. */
-export function isletBoxes(): MoverBox[] {
-  const half = apothem(ISLET_ISLE), width = ISLET_ISLE.r * 0.26;
-  return [0, 1, 2, 3, 4, 5].map((i) => {
-    const a = (i * Math.PI) / 6, q = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -a);
-    return { x: 0, y: -1, z: 0, hx: half, hy: 1, hz: width, rot: { x: q.x, y: q.y, z: q.z, w: q.w } };
-  });
-}
 /** The lip's collider exactly as the shardfile declares it. */
 export function lipCollider(entry: RisingIslet): ColliderDesc {
   const l = entry.landing;

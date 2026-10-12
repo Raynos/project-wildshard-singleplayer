@@ -1,5 +1,6 @@
 import { BufferGeometry, Color, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
-import { encodeInstanceSets, type InstanceSetRow } from '../runtime/looks/bakedInstances';
+import type { InstanceSetRow } from '../runtime/looks/bakedInstances';
+import { encodeInstanceSets } from './instanceSets';
 import { buildGeometries } from './geometries';
 import { meadowHoles, meadowPaths } from '../world/meadow';
 import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, type Isle, type Span } from '../data/layout';

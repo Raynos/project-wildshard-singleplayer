@@ -83,14 +83,6 @@ function floats(base64: string): Float32Array {
   return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4);
 }
 
-/** The float32 bytes of `values`, base64 (a bake writes a field's attributes with it). */
-export function cardFloats(values: ArrayLike<number>): string {
-  const bytes = new Uint8Array(Float32Array.from(values).buffer);
-  let out = '';
-  for (let i = 0; i < bytes.length; i += 0x8000) out += String.fromCodePoint(...bytes.subarray(i, i + 0x8000));
-  return btoa(out);
-}
-
 /** An instanced card field from a row, one draw: `uniforms` adds the caller's (a texture) over the program's. */
 export function cardField<P extends string>(family: ShaderFamily<P>, row: CardFieldRow<P>, shared: UniformMap, uniforms?: UniformMap): Mesh<InstancedBufferGeometry, ShaderMaterial> {
   const base = new PlaneGeometry(row.plane[0], row.plane[1]), g = new InstancedBufferGeometry();

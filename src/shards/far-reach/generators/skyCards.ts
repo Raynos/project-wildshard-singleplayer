@@ -1,8 +1,16 @@
 import { Vector3 } from 'three';
-import { cardFloats, type CardFieldRow, type CardGroupRow, type CardRow } from '../runtime/looks/cardField';
+import type { CardFieldRow, CardGroupRow, CardRow } from '../runtime/looks/cardField';
 import { ISLES, SPANS } from '../data/layout';
 import { SKY_ISLES } from '../data/skyIsles';
 import { SUN_DIR } from '../look/sun';
+
+/** The float32 bytes of `values`, base64 (a bake writes a field's attributes with it). */
+export function cardFloats(values: ArrayLike<number>): string {
+  const bytes = new Uint8Array(Float32Array.from(values).buffer);
+  let out = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) out += String.fromCodePoint(...bytes.subarray(i, i + 0x8000));
+  return btoa(out);
+}
 
 /**
  * Build-time only (SHARD-PLATFORM M3): baked by scripts/bake-sky-world.mjs into data/skyCards.json; the client

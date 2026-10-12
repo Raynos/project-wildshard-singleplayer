@@ -5,7 +5,9 @@ import { Mover } from '@wildshard/sdk/movers';
 import { SPANS, FALLEN_BRIDGE } from '../data/layout';
 import { FALLEN_ANGLE, spanYaw } from '../world/build';
 import { deckCollider, saggedColliders, railColliders } from './bridgeColliders';
-import { isletBoxes, isletId, gateId } from '../world/risingIslet';
+import { ISLET_ISLE, isletId, gateId } from '../world/risingIslet';
+import { apothem } from '../layout';
+import type { MoverBox } from '@wildshard/engine/physics/mover';
 import { RISING_ISLETS } from '../world/islets';
 import { ISLET } from '../data/isletDesign';
 
@@ -15,6 +17,14 @@ PositionStops.prototype.TimeBufferType = Float64Array; PositionStops.prototype.V
 class RotationStops extends QuaternionKeyframeTrack {}
 RotationStops.prototype.TimeBufferType = Float64Array; RotationStops.prototype.ValueBufferType = Float64Array;
 const zero = { x: 0, y: 0, z: 0 };
+/** The islet's deck: six strips 30° apart over its 12-gon (world/build.ts islandColliders), as local mover boxes. */
+export function isletBoxes(): MoverBox[] {
+  const half = apothem(ISLET_ISLE), width = ISLET_ISLE.r * 0.26;
+  return [0, 1, 2, 3, 4, 5].map((i) => {
+    const a = (i * Math.PI) / 6, q = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -a);
+    return { x: 0, y: -1, z: 0, hx: half, hy: 1, hz: width, rot: { x: q.x, y: q.y, z: q.z, w: q.w } };
+  });
+}
 function body(id: string): Group { const object = new Group(); object.name = id; return object; }
 function ride(id: string, from: { x: number; y: number; z: number }, to: { x: number; y: number; z: number }, travel: number, gate: boolean): Mover {
   const object = body(id), keys = new PositionStops(`${id}.position`, [0, travel], [from.x, from.y, from.z, to.x, to.y, to.z]);
