@@ -49,7 +49,7 @@ import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './r
 import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
 import { bindCellCover, cellCoverPort } from './cellCover';
 import type { FarLookRuntime } from './farProxy';
-import { NearPlaceholders } from './nearPlaceholderView';
+import { NearPlaceholders, type NearPlaceholderState } from './nearPlaceholderView';
 import { setting } from '@wildshard/engine/ui/Settings';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
@@ -151,6 +151,8 @@ export interface GridSessionState {
   readonly live: LiveGridSessionState | null;
   /** SF25 / G66: each shardfile neighbour's client-script life (frozen cells breathe and graze) */
   readonly life: readonly NeighbourLifeCell[];
+  /** G342: the near-placeholder tier's cells and resident bytes (null on Debug ▸ Look ▸ Neighbour detail A) */
+  readonly near: NearPlaceholderState | null;
 }
 
 /** The shardfile neighbours' L1 / L0 tiles (sources load late: until then the catalogue has no tile and the far proxy draws). */
@@ -638,6 +640,7 @@ export class GridSession {
       frame: this.frame?.state() ?? null,
       live: this.live?.state() ?? null,
       life: this.life.state(),
+      near: this.near?.state() ?? null,
     };
   }
 }
