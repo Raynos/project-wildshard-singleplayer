@@ -13,7 +13,7 @@ function git(root, args, env = process.env) {
 /** @param {string} root @param {string} lock @param {NodeJS.ProcessEnv} env */
 function holder(root, lock, env) {
   const result = spawnSync('lsof', ['-t', lock], { encoding: 'utf8', timeout: 1000 });
-  const candidate = result.stdout?.trim().split('\n')[0] ?? '';
+  const candidate = result.error ? '' : result.stdout.trim().split('\n')[0] ?? '';
   const pid = candidate === '' ? '?' : candidate;
   let lane = '?';
   try {
