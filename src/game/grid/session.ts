@@ -198,9 +198,9 @@ const FarRow = v.object({ far: v.object({ gpu: num, decoded: num }),
     grade: v.optional(v.object({ exposure: num, saturation: num, contrast: num, tint: v.optional(v.tuple([num, num, num])) })),
     band: v.optional(v.object({ colour: v.tuple([num, num, num]), height: num, opacity: num, own: num })) }) });
 /** The part of `near.json` the client reads. */
-const NearRow = v.object({ near: v.object({ gpu: num, decoded: num }), look: FarRow.entries.look });
+const NearRow = v.object({ near: v.object({ gpu: num, decoded: num, content: v.optional(num) }), look: FarRow.entries.look });
 /** G342: a shard's near placeholder (`scripts/bake/near-placeholder.mjs`), from its baked folder like the far proxy. */
-async function loadNear(slug: string): Promise<{ prepared: FarPrepared; bytes: number }> {
+async function loadNear(slug: string): Promise<{ prepared: FarPrepared; bytes: number; owns: boolean }> {
   const response = await fetch(versionedUrl(`/assets/baked/${slug}/near.json`));
   if (!response.ok) throw new Error(`near.json ${slug}: ${String(response.status)}`);
   const row = v.parse(NearRow, await response.json());
@@ -208,7 +208,7 @@ async function loadNear(slug: string): Promise<{ prepared: FarPrepared; bytes: n
   let geometry: BufferGeometry | undefined;
   gltf.scene.traverse((node) => { if (geometry === undefined && node instanceof Mesh) { const found: unknown = node.geometry; if (found instanceof BufferGeometry) geometry = found as BufferGeometry; } });
   if (geometry === undefined) throw new Error(`near.glb ${slug}: no mesh`);
-  return { prepared: { geometry, look: row.look }, bytes: Math.round(row.near.gpu + row.near.decoded) };
+  return { prepared: { geometry, look: row.look }, bytes: Math.round(row.near.gpu + row.near.decoded), owns: (row.near.content ?? 0) > 0 };
 }
 function farLook(row: unknown): FarLookRuntime { return v.parse(FarRow, row).look; }
 function farBytes(row: unknown): number { const { far } = v.parse(FarRow, row); return Math.round(far.gpu + far.decoded); }
@@ -462,7 +462,11 @@ export class GridSession {
       horizon.patch(tile.group, 'outside');
       await host.prepareTile?.(tile);
     }), tileCost = clientRingCatalogue(tiles.instances);
-    this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000 : tileCost(id, level, x, z)),
+    // G342 round 3, Neighbour detail B: a cell whose near view draws and carries its own world owns it whole (its dense
+    // ground over the cell), so the rings stop refining it to its own L1 / L0 tiles, which would mask the near view near
+    // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them
+    this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000
+      : this.near?.owns(id) === true ? null : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports));
     if (host.renderer !== undefined) void this.admitTiles(host.renderer, roots, tiles.instances);
     host.scope.onDispose(() => {
@@ -598,6 +602,7 @@ export class GridSession {
     this.last = at;
     const speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
+    if (this.near !== null) for (const cell of this.neighbours) if (this.near.owns(cell.instance)) this.rings.retireRefinement(cell.instance);
     this.softWalls.step();
     this.screens.step();
     this.shimmer.step();

@@ -225,3 +225,21 @@ it('dispose re-masks nothing: a session scope that already uninstalled the coars
   expect(masksAfterTeardown).toBe(0);
   expect(allocator.entries()).toEqual([]);
 });
+
+it('G342 B: a covered cell retires its L1 / L0 tiles and its far level unmasks', () => {
+  const covered = new Set<string>(), masks = new Map<string, ReadonlySet<number>>();
+  const catalogue = (instance: string, level: RingLevel): number | null => level === 'far' ? 1_000 : covered.has(instance) ? null : 1_000;
+  const rings = new RenderRings<number>(cells, new ResidencyAllocator(), catalogue, {
+    fetch: (_tile, done) => { done(1); },
+    upload: (tile): RingView => ({ mask: (excluded) => { masks.set(tile.key, excluded); }, shadow: () => undefined, dispose: () => undefined }),
+  }, { uploadsPerFrame: 1000, uploadBytesPerFrame: Infinity });
+  const camera = { x: 0, z: 0, vx: 0, vz: 0 };
+  for (let i = 0; i < 20; i++) rings.step(camera);
+  const refined = (instance: string): string[] => rings.resident().filter((k) => k.startsWith(`${instance}:l`));
+  expect(refined('cell11').length).toBeGreaterThan(0);
+  covered.add('cell11'); rings.retireRefinement('cell11');
+  for (let i = 0; i < 3; i++) rings.step(camera);
+  expect(refined('cell11')).toEqual([]);
+  expect(masks.get('cell11:far')?.size).toBe(0);
+  expect(refined('cell21').length).toBeGreaterThan(0);
+});

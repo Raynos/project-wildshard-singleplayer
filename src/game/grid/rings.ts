@@ -140,6 +140,16 @@ export class RenderRings<D> {
     }
     return true;
   }
+  /**
+   * G342 B (Neighbour detail B): drop a cell's L1 / L0 tiles, children first, so its coarse level (the near view over its
+   * far proxy) draws the whole cell. The caller's catalogue must stop offering the cell's tiles, or the next step wants
+   * them again. The parents' masks follow on the next step's re-mask.
+   */
+  retireRefinement(instance: string): void {
+    const order = [...this.slots.values()].filter((slot) => slot.tile.instance === instance && slot.tile.level !== 'far')
+      .sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level] || a.tile.key.localeCompare(b.tile.key));
+    for (const slot of order) this.drop(slot);
+  }
   /** Uploaded keys in key order (deterministic traces). */
   resident(): readonly string[] { return [...this.slots.values()].filter((s) => s.state === 'uploaded').map((s) => s.tile.key).sort(); }
   stats(): RingStats {
