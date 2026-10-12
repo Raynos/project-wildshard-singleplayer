@@ -66,6 +66,8 @@ export async function nearPlaceholderParts(prototypes: readonly NearPrototype[],
   const live: { name: string; mesh: ReturnType<typeof weld>; copies: (readonly number[])[]; source: number }[] = [];
   for (const p of prototypes) {
     if (p.positions.length % 3 !== 0 || p.colours.length !== p.positions.length || p.index.length % 3 !== 0 || p.index.length === 0) { dropped.push({ name: p.name, why: 'malformed' }); continue; }
+    // a two-triangle card is a sprite (a decal, an impostor, a light shaft): untextured it draws as a grey slab
+    if (p.index.length <= 6) { dropped.push({ name: p.name, why: 'card' }); continue; }
     const copies: (readonly number[])[] = [];
     let small = 0;
     for (const m of p.transforms) {
