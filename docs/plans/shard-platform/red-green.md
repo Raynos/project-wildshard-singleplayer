@@ -48,7 +48,7 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-12 | gate `7240`: advisory declaration import/newline-after-import | `3b8c5033a` | `8219db760` | sp-x7 |
 | 2026-10-12 | gate `7240`: stale Pine + Sunscar maps, Nine + Pine physics inputs, Pine spots | `95e2e8d34`, `38ea143c5`, `7c192ae99`, `0eb28545b` | maps `e6355981d`; Pine physics/spots `5b0efa66e`; Nine physics `278e5284b` | sp-o10, sp-x5, sp-x7 |
 | 2026-10-12 | gate `221a20c3a`: far-reach physics-bake freshness | `7b8bdcff4`, then `accf9c96c` + a `scripts/bake/worldHost.mjs` change (physics inputs changed without a recapture) | `00fb50071` (official Node recapture on f508e4a83; `da2017283` was overtaken) | sp-o12 |
-| 2026-10-12 | gate `221a20c3a`: six author-closure fixtures miss `src/format/nearPlaceholder.ts` | `69c4798aa` | pending (sp-x6, all seven job unions) | sp-x6 |
+| 2026-10-12 | gate `221a20c3a`: six author-closure fixtures miss `src/format/nearPlaceholder.ts` | `69c4798aa` | `f17a7c846` (all nine author jobs) | sp-x6 |
 | 2026-10-12 | gate `221a20c3a`: 18 frozen Pine named-place lookups; Pine manifest closure 44 > 43 | `cf0cf8bb1` | pending (sp-x6, scanner alias/list resolution; no frozen edits, no budget raise) | sp-x6 |
 | 2026-10-12 | gate `221a20c3a`: oxlint prefer-template in capture-main-menu-hero | `64c23b133` | `9805aead8` | sp-x7 |
 | 2026-10-12 | push queue stuck on obsolete prefixes (source-fix repairs earned no retry) | `e38a138a1` / `e50a44ceb` | `b0e5804e3` | sp-x7 |
