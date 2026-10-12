@@ -66,9 +66,23 @@ export const LashWeaponProfileSchema = v.pipe(v.strictObject({
     first: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), second: v.pipe(v.string(), v.minLength(1), v.maxLength(128)) }),
 }), v.check(row => row.timing.second > row.timing.unroll && row.timing.show > row.timing.unroll, 'Ordered native lash contacts'));
 
+const contactTag = v.custom<`${string}.${string}`>((value) => typeof value === 'string'
+  && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value) && value.length <= 128);
+/** Cone contacts read slash damage/cooldowns from the item; this profile declares the reach allowance and gust. */
+export const ConeWeaponProfileSchema = v.strictObject({
+  family: v.literal('cone'), slash: v.strictObject({ reachAllowance: v.pipe(scalar, v.maxValue(20)) }),
+  gust: v.strictObject({ reach: positive, halfAngle: v.pipe(positive, v.maxValue(Math.PI)),
+    push: scalar, lift: scalar, damage: scalar, cooldown: seconds,
+    tags: v.pipe(v.array(contactTag), v.maxLength(32)),
+    move: v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u), v.maxLength(128)),
+  }),
+});
+/** Parsed cone contact parameters; view poses, input and body authority stay outside the profile. */
+export type ConeWeaponProfile = v.InferOutput<typeof ConeWeaponProfileSchema>;
+
 /** Bounded numeric weapon profiles. Optional item attachment is additive; native family controllers stay with their owners. */
 export const WeaponProfileSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only weapon profile'),
-  v.variant('family', [MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema]));
+  v.variant('family', [MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema]));
 /** Authored numeric profile, independent of engine, game, renderer and injected view callbacks. */
 export type WeaponProfile = v.InferOutput<typeof WeaponProfileSchema>;
 /** Validate all bounds and relationships before allocation or passing data to a native family. */

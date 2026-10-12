@@ -34,15 +34,18 @@ const thrown = {
   windup: 0.4, release: 0.14, recovery: 0.45, carried: 3, pool: 5, pickupRadius: 1.6, pickupHeight: 2.2, survive: 0.9,
   arcPoints: 20, arcAfter: 0.1, stagger: 1,
 };
+const cone = { family: 'cone', slash: { reachAllowance: 1 },
+  gust: { reach: 9, halfAngle: 0.6, push: 15, lift: 4, damage: 4, cooldown: 1.6,
+    tags: ['actor.player', 'weapon.far-fan', 'dmg.wind'], move: 'far.fan.gust' } };
 
-it('round-trips all five complete numeric families exactly and emits a JSON Schema for each defining root', () => {
-  for (const row of [melee, bow, firearm, thrown, WHIP_PROFILE]) {
+it('round-trips all six complete numeric families exactly and emits a JSON Schema for each defining root', () => {
+  for (const row of [melee, bow, firearm, thrown, WHIP_PROFILE, cone]) {
     expect(parseWeaponProfile(row)).toEqual(row);
     // oxlint-disable-next-line unicorn/prefer-structured-clone -- Prove the persisted JSON boundary, not a structured in-memory copy.
     expect(parseWeaponProfile(JSON.parse(JSON.stringify(row)) as unknown)).toEqual(row);
   }
   const schemas = formatJsonSchemas();
-  for (const name of ['WeaponProfile', 'MeleeWeaponProfile', 'BowWeaponProfile', 'FirearmWeaponProfile', 'ThrownWeaponProfile', 'LashWeaponProfile']) {
+  for (const name of ['WeaponProfile', 'MeleeWeaponProfile', 'BowWeaponProfile', 'FirearmWeaponProfile', 'ThrownWeaponProfile', 'LashWeaponProfile', 'ConeWeaponProfile']) {
     expect(schemas[`weaponProfiles.${name}`]?.title).toBe(`weaponProfiles.${name}`);
   }
 });
@@ -62,7 +65,11 @@ it('refuses non-JSON author code, nonfinite/negative tuning, wrong families and 
     { ...melee, moves: { ...melee.moves, heavy: { ...melee.moves.heavy, slashEnd: 2 } } },
     { ...firearm, magazine: 0 }, { ...firearm, spreadHip: -1 }, { ...firearm, reloadMode: 'invented' },
     { ...thrown, carried: 6 }, { ...thrown, survive: 1.01 }, { ...thrown, arcPoints: 1 }, { ...thrown, pool: 1025 },
+    { ...cone, slash: { reachAllowance: -1 } }, { ...cone, slash: { reachAllowance: 20.01 } },
   ]) expect(() => parseWeaponProfile(invalid)).toThrow();
+  for (const gust of [{ halfAngle: Math.PI + 0.01 }, { reach: 0 }, { push: Infinity }, { lift: -1 }, { cooldown: -1 },
+    { move: 'not an id' }, { tags: ['invalid'] }, { tags: Array.from({ length: 33 }, () => 'dmg.wind') },
+    { targets: () => [] }]) expect(() => parseWeaponProfile({ ...cone, gust: { ...cone.gust, ...gust } })).toThrow();
 });
 
 it('leaves absent-profile item rows byte-identical and requires a matching shared family for an additive profile', () => {

@@ -1,5 +1,5 @@
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
-import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
 import type { GenericSchema } from 'valibot';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
@@ -85,6 +85,7 @@ customSchemas.set(weaponRow.entries.id, { type: 'string', maxLength: 128, patter
 customSchemas.set(toolRow.entries.id, { type: 'string', maxLength: 128, pattern: '^tool\\.[a-z][a-zA-Z0-9.-]*$' });
 customSchemas.set(weaponRow.entries.slot, { type: 'string', maxLength: 128, pattern: '^declared\\.weapon\\.[a-z][a-zA-Z0-9.-]*$' });
 customSchemas.set(weaponRow.entries.light.entries.tags.pipe[0].item, { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9.-]*\\.[a-zA-Z0-9.-]+$' });
+customSchemas.set(ConeWeaponProfileSchema.entries.gust.entries.tags.pipe[0].item, { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9.-]*\\.[a-zA-Z0-9.-]+$' });
 customSchemas.set(weaponRow.entries.light.entries.effect.wrapped, { type: 'string', pattern: '^effect\\.[a-z][a-zA-Z0-9.-]*$' });
 customSchemas.set(toolRow.entries.action.wrapped, { type: 'string', pattern: '^[a-z][a-zA-Z0-9.-]*\\.[a-zA-Z0-9.-]+$' });
 // The namespaced combat tag validator is the exact defining row object.
@@ -118,6 +119,7 @@ const wireRoots = {
   'weaponProfiles.FirearmWeaponProfile': FirearmWeaponProfileSchema,
   'weaponProfiles.ThrownWeaponProfile': ThrownWeaponProfileSchema,
   'weaponProfiles.LashWeaponProfile': LashWeaponProfileSchema,
+  'weaponProfiles.ConeWeaponProfile': ConeWeaponProfileSchema,
   'brains.Skirmisher': SkirmisherSchema,
   'brains.Stalker': StalkerSchema,
   'brains.ScriptBrain': ScriptBrainSchema,

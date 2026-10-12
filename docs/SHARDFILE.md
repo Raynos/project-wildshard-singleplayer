@@ -1639,13 +1639,33 @@ SF81 Nine declares data/portalStages.json in directors. The page and native host
 
 
 SF85 weapon profiles: optional `items.rows[].profile` admits melee, bow, firearm,
-thrown or lash numeric data. Melee describes ordered swings, contacts and lunges;
+thrown, lash or cone numeric data. Melee describes ordered swings, contacts and lunges;
 bow describes draw/fatigue, spread and flight; firearm describes reload/action,
 spread and projectiles; thrown describes launch/recovery/pool/pickup; lash describes
-ordered crack clocks, pull/stagger and named moves. Each profile root has generated
+ordered crack clocks, pull/stagger and named moves; cone describes a slash reach
+allowance plus gust range, half-angle, push, lift, damage, cooldown, tags and move.
+Each profile root has generated
 JSON Schema. Invalid bounds, phases or family mismatches refuse. Omitting a
 profile preserves existing item data. Only a native family explicitly accepting
 that profile kind consumes it; no view/controller is inferred from a parse.
+
+A cone family reads light/heavy damage, cooldown, tags, move IDs, range and
+half-angle from the weapon row. `profile.slash.reachAllowance` extends that row's
+range at contact. The gust is a separate declared move; it keeps its own cooldown.
+`@wildshard/format/weaponProfiles` defines `ConeWeaponProfileSchema` and the
+inferred `ConeWeaponProfile` type.
+For Sky's shipping fan the profile is:
+
+```ts
+const profile = { family: 'cone', slash: { reachAllowance: 1 },
+  gust: { reach: 9, halfAngle: 0.6, push: 15, lift: 4, damage: 4,
+    cooldown: 1.6, tags: ['actor.player', 'weapon.far-fan', 'dmg.wind'],
+    move: 'far.fan.gust' } };
+```
+
+The cone profile admits no target callback, rig or input owner. Registration
+through `@wildshard/game/plugin/weaponFamily` must explicitly accept `cone`
+profiles before the item installer calls its native factory.
 
 SF84 traversal rows are declared as optional `modes.traverse` data. Zipline and updraft rows require
 `runtime.binds: ['modes']`; pure-data or unbound native traversal rows refuse admission. Ladder is the installed data-host exception. The native owner reads the admitted
