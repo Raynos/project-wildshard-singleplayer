@@ -30,35 +30,21 @@ export interface LashCodeCoil { readonly turns: number; readonly loopR: number; 
 export interface LashHoldRow {
   /** the tubes' sides */
   readonly radial: number;
-  /** the code fist's leathers (hex), their roughness and warm self-light (hex) */
-  readonly leathers: { readonly glove: number; readonly cuff: number; readonly knob: number; readonly roughness: number; readonly emissive: number };
-  /** the braid: the handle's two strands, the popper, and the braided materials' roughness */
-  readonly braid: { readonly a: CordRgb; readonly b: CordRgb; readonly popper: CordRgb; readonly roughness: number };
+  /** the leathers' warm self-light (hex) */
+  readonly leathers: { readonly emissive: number };
+  /** the braid: the popper, and the braided materials' roughness */
+  readonly braid: { readonly popper: CordRgb; readonly roughness: number };
   /** the plain wrap material's colour (hex) and roughness */
   readonly wrap: { readonly colour: number; readonly roughness: number };
-  /** the handle: a braided open cylinder, its top and bottom radii, length, height segments and its height on the grip */
-  readonly handle: { readonly top: number; readonly bottom: number; readonly length: number; readonly segments: number; readonly y: number };
-  /** the knob: a squashed sphere at the butt */
-  readonly knob: { readonly r: number; readonly widthSegments: number; readonly heightSegments: number; readonly y: number; readonly squash: number };
-  /** the palm: a capsule, its position and scale */
-  readonly palm: { readonly r: number; readonly length: number; readonly cap: number; readonly radial: number; readonly pos: V3; readonly scale: V3 };
-  /** the fingers: `count` capsules lying along X, the first at `pos`, each next one `step` lower */
-  readonly fingers: { readonly count: number; readonly r: number; readonly length: number; readonly cap: number; readonly radial: number; readonly pos: V3; readonly step: number };
-  /** the thumb: a capsule, its position and turn */
-  readonly thumb: { readonly r: number; readonly length: number; readonly cap: number; readonly radial: number; readonly pos: V3; readonly rot: V3 };
-  /** the cuff: an open flared cylinder */
-  readonly cuff: { readonly top: number; readonly bottom: number; readonly h: number; readonly radial: number; readonly pos: V3 };
   /**
-   * The generated glove's fit: its handle runs along +X from the butt; the handle's axis is the mean of the vertices
-   * between `collar[0]` and `collar[1]` short of the far end, the fist `fist` of the way along; stood on +Y, turned by
-   * `turn` about it and scaled; the lash leaves `keeper` short of the far end. Normals averaged per position, the
-   * painted colours `smooth` of the way; a matte material of `colour` (linear) and `roughness`.
+   * The generated glove's fit (the bake's `tip`, `generators/lash.ts`): its handle runs along +X from the butt; the
+   * handle's axis is the mean of the vertices between `collar[0]` and `collar[1]` short of the far end, the fist `fist`
+   * of the way along; stood on +Y, turned by `turn` about it and scaled; the lash leaves `keeper` short of the far end.
    */
-  readonly glove: { readonly collar: readonly [number, number]; readonly fist: number; readonly turn: number; readonly scale: number; readonly keeper: number; readonly smooth: number; readonly colour: V3; readonly roughness: number };
-  /** the poses: the grip's turn and the coil, with the code fist (`code`, its keeper's height `tip`) or the generated glove (`made`) */
-  readonly code: { readonly grip: V3; readonly tip: number; readonly coil: LashCodeCoil };
+  readonly glove: { readonly collar: readonly [number, number]; readonly fist: number; readonly turn: number; readonly scale: number; readonly keeper: number };
+  /** the generated glove's pose: the grip's turn and the rest coil */
   readonly made: { readonly grip: V3; readonly coil: LashCodeCoil };
-  /** the code coil's path: points round the loops, the loops' horizontal squash, their start, their drift per unit along, then the fall's points */
+  /** the rest coil's path: points round the loops, the loops' horizontal squash, their start, their drift per unit along, then the fall's points */
   readonly coil: { readonly points: number; readonly tubular: number; readonly shrink: number; readonly squash: number; readonly origin: V3; readonly drift: readonly [number, number]; readonly fall: readonly V3[]; readonly a: CordRgb; readonly b: CordRgb; readonly roughness: number };
   /** user data set on both coils' materials (e.g. a flag a shard's light pass reads) */
   readonly coilUserData: Readonly<Record<string, boolean>>;
@@ -158,17 +144,10 @@ export const WHIP_VIEW: LashView = {
  */
 export const WHIP_HOLD: LashHoldRow = {
   radial: RADIAL,
-  leathers: { glove: 0x7a4a28, cuff: 0x5a3219, knob: 0x3a2214, roughness: 0.62, emissive: GLOW },
-  braid: { a: STRAND_A, b: STRAND_B, popper: POPPER, roughness: 0.55 },
+  leathers: { emissive: GLOW },
+  braid: { popper: POPPER, roughness: 0.55 },
   wrap: { colour: 0x7a4a26, roughness: 0.85 },
-  handle: { top: 0.017, bottom: 0.021, length: 0.26, segments: 12, y: 0.02 },
-  knob: { r: 0.025, widthSegments: 10, heightSegments: 8, y: -0.115, squash: 0.8 },
-  palm: { r: 0.04, length: 0.05, cap: 4, radial: 10, pos: [0.012, -0.04, 0.008], scale: [1.05, 1, 1.15] },
-  fingers: { count: 4, r: 0.013, length: 0.03, cap: 3, radial: 8, pos: [-0.012, -0.002, -0.034], step: 0.022 },
-  thumb: { r: 0.012, length: 0.038, cap: 3, radial: 8, pos: [-0.03, 0.01, -0.006], rot: [0.2, 0, 0.45] },
-  cuff: { top: 0.046, bottom: 0.06, h: 0.11, radial: 12, pos: [0.02, -0.12, 0.016] },
-  glove: { collar: [0.16, 0.1], fist: 0.48, turn: -2.06, scale: 0.55, keeper: 0.06, smooth: 0.45, colour: [0.42, 0.32, 0.25], roughness: 0.7 },
-  code: { grip: [-1.2, 0, -0.25], tip: 0.15, coil: { turns: 3.2, loopR: 0.064, cord: 0.0085, pos: [0, 0.1, -0.02], rot: [0.1, 0.4, 0.1] } },
+  glove: { collar: [0.16, 0.1], fist: 0.48, turn: -2.06, scale: 0.55, keeper: 0.06 },
   made: { grip: [-0.9, 0, -0.55], coil: { turns: 2.2, loopR: 0.05, cord: 0.006, pos: [0.01, -0.02, -0.01], rot: [0.05, 0.35, 0.12] } },
   coil: { points: 80, tubular: 140, shrink: 0.12, squash: 0.85, origin: [-0.005, -0.01, -0.02], drift: [0.03, 0.03],
     fall: [[-0.02, -0.06, -0.04], [0.0, -0.2, -0.05], [0.02, -0.36, -0.06]], a: COIL_A, b: COIL_B, roughness: 0.75 },

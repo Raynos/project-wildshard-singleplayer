@@ -20,13 +20,15 @@ import tower from '../../../src/shards/sunscar-dunes/data/tower.json' with { typ
 import caravan from '../../../src/shards/sunscar-dunes/data/caravan.json' with { type: 'json' };
 import well from '../../../src/shards/sunscar-dunes/data/well.json' with { type: 'json' };
 import braziers from '../../../src/shards/sunscar-dunes/data/braziers.json' with { type: 'json' };
+import lash from '../../../src/shards/sunscar-dunes/data/lash.json' with { type: 'json' };
 
 const folder = new URL('../../../public/assets/sunscar-dunes/baked/', import.meta.url);
 const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
 const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
 const sha = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
-const ROWS: Record<BakedPiece, { glb: string; kinds: readonly { name: string }[] }> = { rocks, dressing, tower, caravan, well };
-const BAKES: Record<BakedPiece, () => PieceBake> = { rocks: bakeSignalRocks, dressing: bakeSignalDressing, tower: bakeSignalTower, caravan: bakeSignalCaravan, well: bakeSignalWell };
+const ROWS: Record<BakedPiece, { glb: string; kinds: readonly { name: string }[] }> = { rocks, dressing, tower, caravan, well, lash };
+// the held lash bakes over the generated glove's intake: its stale gate is whip-view.test.ts
+const BAKES: Record<Exclude<BakedPiece, 'lash'>, () => PieceBake> = { rocks: bakeSignalRocks, dressing: bakeSignalDressing, tower: bakeSignalTower, caravan: bakeSignalCaravan, well: bakeSignalWell };
 
 async function loadBaked(): Promise<BakedWorld> {
   const world = new Map<BakedPiece, Map<string, InstancedMesh>>();
@@ -48,6 +50,7 @@ const near = (got: InstancedMesh, want: InstancedMesh): void => {
 describe('Signal Dunes bakes its code-built world offline (SHARD-PLATFORM SF72, SF67 fix 3)', () => {
   it('every committed piece is byte-exact against its generator (the stale gate: rerun src/shards/sunscar-dunes/generators/bake-signal-world.mjs)', () => {
     for (const piece of BAKED_PIECES) {
+      if (piece === 'lash') continue;
       const { glb, ...rows } = BAKES[piece]();
       expect({ glb: sha(glb), ...rows }).toEqual(ROWS[piece]);
       expect(sha(new Uint8Array(readFileSync(new URL(`${piece}.glb`, folder))))).toBe(ROWS[piece].glb);

@@ -60,7 +60,8 @@ it('loads the actual pack horse with standalone and grid coverage, charging conc
         const commons = page.allocator.entries().filter(row => row.category === 'commons');
         // SF72: + 59,904 for the baked skitterer rig (rigs/skitterer.glb, kept once like the generated models)
         // G345: + 115,200 for the strider as its baked rig (skin indices and weights now cached beside its 4,800 vertices)
-        expect(commons.reduce((total, row) => total + row.bytes, 0)).toBe(53_346_808);
+        // G345: − 1,511,784 for the whip glove, no longer loaded (the lash's bake reads it offline, generators/lash.ts)
+        expect(commons.reduce((total, row) => total + row.bytes, 0)).toBe(51_835_024);
         expect(commons.reduce((total, row) => total + row.accountedBytes, 0)).toBeGreaterThan(0);
         expect(commons.filter(row => row.coveredBy !== undefined).reduce((total, row) => total + row.bytes, 0)).toBeLessThanOrEqual(bytes);
         expect(page.allocator.cost().playing).toBeLessThanOrEqual(1_000_000_000);

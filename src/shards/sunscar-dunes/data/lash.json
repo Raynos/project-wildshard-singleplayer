@@ -1,0 +1,48 @@
+{
+  "glb": "4472b7eaf97a04b9ea797902e3c16d996b70ace92d7836ff44adc494e1e67dd3",
+  "kinds": [
+    {
+      "name": "coil",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "loop",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "cord",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    }
+  ],
+  "colliders": [],
+  "tip": [
+    -0.04935241128166193,
+    -0.05003700856880042,
+    0.06305454752961058
+  ],
+  "along": 20.503505061265088
+}

@@ -1336,11 +1336,13 @@
         "public/assets/sunscar-dunes/baked/tower.glb",
         "public/assets/sunscar-dunes/baked/caravan.glb",
         "public/assets/sunscar-dunes/baked/well.glb",
+        "public/assets/sunscar-dunes/baked/lash.glb",
         "src/shards/sunscar-dunes/data/rocks.json",
         "src/shards/sunscar-dunes/data/dressing.json",
         "src/shards/sunscar-dunes/data/tower.json",
         "src/shards/sunscar-dunes/data/caravan.json",
         "src/shards/sunscar-dunes/data/well.json",
+        "src/shards/sunscar-dunes/data/lash.json",
         "src/shards/sunscar-dunes/data/braziers.json"
       ],
       "platform": "native",
@@ -1350,6 +1352,7 @@
         "src/shards/sunscar-dunes/data/tower.json",
         "src/shards/sunscar-dunes/data/caravan.json",
         "src/shards/sunscar-dunes/data/well.json",
+        "src/shards/sunscar-dunes/data/lash.json",
         "src/shards/sunscar-dunes/data/braziers.json"
       ]
     },

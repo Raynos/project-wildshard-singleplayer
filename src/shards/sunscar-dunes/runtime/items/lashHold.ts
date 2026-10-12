@@ -1,106 +1,53 @@
-import { type BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TubeGeometry, Vector3 } from 'three';
-import { smoothColors } from '@wildshard/game/plugin/geometry';
-import { braidColours, coilPoints, LashCord, plaitedCord } from './lashView';
+import { type BufferGeometry, Group, Mesh, MeshStandardMaterial, type Object3D, Vector3 } from 'three';
+import { LashCord, plaitTextures } from './lashView';
 import type { LashHoldRow } from '../../data/whip';
 
 /**
- * The lash item's held view (SHARD-PLATFORM M3; ex a dune shard's whip model): a braided handle in a gloved fist with a
- * coil hanging from it, and the thrown cord, built from rows. Three layers, each replacing the one before when its
- * model loaded: a code fist (palm, knuckles, thumb and cuff of capsules round a braided cylinder, a knob at the butt,
- * a code coil of `turns` shrinking loops and a fall), a generated glove (fitted so its handle stands on the grip's +Y),
- * and a textured hero glove with a plaited coil in its own frame. Nothing here knows a shard: the models arrive as
- * loaders, the coil's surface as a callback.
+ * The lash item's held view (SHARD-PLATFORM M3; ex a dune shard's whip model): the textured hero glove with its plaited
+ * coil, a braided rest coil and the thrown cord. Every tube is baked offline (`generators/lash.ts`, G345): this only
+ * dresses the baked kinds in their materials and places them. Nothing here knows a shard: the models arrive as loaders,
+ * the coil's surface as a callback.
  */
 
-/** The held lash's models: the generated glove's geometry (a copy) and the fitted hero glove, each null when not loaded, and the hero coil's surface. */
+/** The held lash's models: a copy of one of its baked kinds (null: the bake did not load), the fitted hero glove (null: not loaded), the hero coil's surface. */
 export interface LashHoldModels {
-  readonly glove: () => BufferGeometry | null;
+  readonly baked: (kind: 'coil' | 'loop' | 'cord') => BufferGeometry | null;
   readonly hd: () => Group | null;
   readonly coilSurface: (m: MeshStandardMaterial) => void;
 }
+/** The bake's numbers: where the lash leaves the hand (the hold's frame), the plait tile's repeat along the hero coil. */
+export interface LashFit { readonly tip: readonly [number, number, number]; readonly along: number }
 
-/** A built held lash: the root, the grip, the code coil, the thrown cord, where the lash leaves the hand, and the loaded gloves. */
-export interface LashHoldParts { root: Group; grip: Group; coil: Mesh; lash: LashCord; tip: Vector3; glove: Mesh | null; hd: Group | null }
+/** A built held lash: the root, the grip that flicks, the rest coil, the thrown cord, where the lash leaves the hand, and the hero glove. */
+export interface LashHoldParts { root: Group; grip: Group; coil: Object3D; lash: LashCord; tip: Vector3; hd: Group | null }
 
 /** The lash's matte braid as a plain material (no vertex colours), for a pull's wrap coil. */
 export function lashWrapMaterial(row: LashHoldRow): MeshStandardMaterial {
   return new MeshStandardMaterial({ color: row.wrap.colour, roughness: row.wrap.roughness, metalness: 0, emissive: row.leathers.emissive });
 }
 
-/** Averages the normals of every vertex at one position, then the painted colours `amount` of the way. */
-function smoothNormals(g: BufferGeometry, amount: number): void {
-  const p = g.getAttribute('position'), n = g.getAttribute('normal'), sum = new Map<string, [number, number, number]>();
-  const key = (i: number): string => `${p.getX(i).toFixed(4)},${p.getY(i).toFixed(4)},${p.getZ(i).toFixed(4)}`;
-  for (let i = 0; i < p.count; i++) { const k = key(i), v = sum.get(k) ?? [0, 0, 0]; v[0] += n.getX(i); v[1] += n.getY(i); v[2] += n.getZ(i); sum.set(k, v); }
-  for (let i = 0; i < p.count; i++) { const v = sum.get(key(i)) ?? [0, 1, 0], l = Math.hypot(v[0], v[1], v[2]) || 1; n.setXYZ(i, v[0] / l, v[1] / l, v[2] / l); }
-  n.needsUpdate = true;
-  smoothColors(g, amount);
-}
-
-function gloveMesh(row: LashHoldRow, g: BufferGeometry | null): { mesh: Mesh; top: number } | null {
-  if (g === null) return null;
-  const fit = row.glove;
-  g.computeBoundingBox(); const b = g.boundingBox; if (b === null) return null;
-  const p = g.getAttribute('position'), x1 = b.max.x - fit.collar[0], x2 = b.max.x - fit.collar[1]; let n = 0, y = 0, z = 0;
-  for (let i = 0; i < p.count; i++) if (p.getX(i) > x1 && p.getX(i) < x2) { y += p.getY(i); z += p.getZ(i); n++; }
-  const fist = b.min.x + (b.max.x - b.min.x) * fit.fist;
-  g.translate(-fist, n > 0 ? -y / n : -(b.min.y + b.max.y) / 2, n > 0 ? -z / n : -(b.min.z + b.max.z) / 2);
-  g.rotateZ(Math.PI / 2); g.rotateY(fit.turn); g.scale(fit.scale, fit.scale, fit.scale);
-  g.computeVertexNormals(); smoothNormals(g, fit.smooth); g.computeBoundingSphere();
-  const top = (b.max.x - fist - fit.keeper) * fit.scale;
-  const material = new MeshStandardMaterial({ vertexColors: true, roughness: fit.roughness, metalness: 0, emissive: row.leathers.emissive });
-  material.color.setRGB(...fit.colour);
-  return { mesh: new Mesh(g, material), top };
-}
-
-/** Builds the held lash from its rows: the code fist, replaced by the generated glove and then the hero glove as each loaded. */
-export function buildLashHold(row: LashHoldRow, models: LashHoldModels): LashHoldParts {
-  const L = row.leathers, sides = row.radial + 1;
-  const leather = (color: number): MeshStandardMaterial => new MeshStandardMaterial({ color, roughness: L.roughness, metalness: 0, emissive: L.emissive });
-  const braided = (): MeshStandardMaterial => new MeshStandardMaterial({ vertexColors: true, roughness: row.braid.roughness, metalness: 0, emissive: L.emissive });
-  const root = new Group(), grip = new Group(), glove = leather(L.glove), cuffLeather = leather(L.cuff);
-  const H = row.handle, handleGeometry = new CylinderGeometry(H.top, H.bottom, H.length, row.radial, H.segments, true);
-  braidColours(handleGeometry, H.segments + 1, sides, 0, row.braid.a, row.braid.b, row.braid.popper);
-  const handle = new Mesh(handleGeometry, braided()); handle.position.y = H.y;
-  const K = row.knob, knob = new Mesh(new SphereGeometry(K.r, K.widthSegments, K.heightSegments), leather(L.knob)); knob.position.y = K.y; knob.scale.set(1, K.squash, 1);
-  const P = row.palm, palm = new Mesh(new CapsuleGeometry(P.r, P.length, P.cap, P.radial), glove); palm.position.set(...P.pos); palm.scale.set(...P.scale);
-  const fist = new Group(); fist.add(palm);
-  const F = row.fingers;
-  for (let k = 0; k < F.count; k++) {
-    const finger = new Mesh(new CapsuleGeometry(F.r, F.length, F.cap, F.radial), glove);
-    finger.rotation.z = Math.PI / 2; finger.position.set(F.pos[0], F.pos[1] - k * F.step, F.pos[2]); fist.add(finger);
-  }
-  const T = row.thumb, thumb = new Mesh(new CapsuleGeometry(T.r, T.length, T.cap, T.radial), glove); thumb.position.set(...T.pos); thumb.rotation.set(...T.rot);
-  const C = row.cuff, cuff = new Mesh(new CylinderGeometry(C.top, C.bottom, C.h, C.radial, 1, true), cuffLeather); cuff.position.set(...C.pos);
-  fist.add(thumb, cuff);
-  grip.add(handle, knob, fist);
-  const made = gloveMesh(row, models.glove());
-  if (made !== null) { handle.visible = false; knob.visible = false; fist.visible = false; grip.add(made.mesh); }
-  const pose = made === null ? row.code : row.made, c = pose.coil, W = row.coil;
-  grip.rotation.set(...pose.grip);
-  const points: Vector3[] = [];
-  for (let i = 0; i <= W.points; i++) {
-    const s = i / W.points, a = -Math.PI / 2 + s * Math.PI * 2 * c.turns / 2, r = c.loopR * (1 - W.shrink * s);
-    points.push(new Vector3(W.origin[0] + Math.cos(a) * r * W.squash - s * W.drift[0], W.origin[1] + (Math.sin(a) + 1) * r, W.origin[2] - s * W.drift[1]));
-  }
-  points.push(...W.fall.map(([x, y, z]) => new Vector3(x, y, z)));
-  const coilGeometry = new TubeGeometry(new CatmullRomCurve3(points), W.tubular, c.cord, row.radial, false);
-  braidColours(coilGeometry, W.tubular + 1, sides, 0, W.a, W.b, row.braid.popper);
-  const coilMaterial = braided(); coilMaterial.roughness = W.roughness; Object.assign(coilMaterial.userData, row.coilUserData);
-  const coil = new Mesh(coilGeometry, coilMaterial);
+/** Builds the held lash from its rows and its bake: the rest coil beside the grip, the thrown cord, the hero glove holding its plaited coil. */
+export function buildLashHold(row: LashHoldRow, fit: LashFit, models: LashHoldModels): LashHoldParts {
+  const root = new Group(), grip = new Group(), c = row.made.coil, rest = models.baked('coil');
+  const coilMaterial = new MeshStandardMaterial({ vertexColors: true, roughness: row.braid.roughness, metalness: 0, emissive: row.leathers.emissive });
+  coilMaterial.roughness = row.coil.roughness; Object.assign(coilMaterial.userData, row.coilUserData);
+  const coil = rest === null ? new Group() : new Mesh(rest, coilMaterial);
   coil.position.set(...c.pos); coil.rotation.set(...c.rot);
   root.add(grip, coil);
-  const lash = new LashCord(row.lash); root.add(lash.mesh);
-  const tip = new Vector3(0, made === null ? row.code.tip : made.top, 0).applyEuler(grip.rotation);
-  const hd = models.hd();
+  const lash = new LashCord(row.lash, models.baked('cord')); root.add(lash.mesh);
+  const hd = models.hd(), loop = models.baked('loop');
   if (hd !== null) {
     hd.position.set(...row.hd.pos); hd.rotation.set(...row.hd.rot); root.add(hd);
-    // the hero coil in the hero glove's own frame (the fitted model: out → holder (scaled) → turn (centred))
+    // the hero coil in the hero glove's own frame (the fitted model: out → holder (scaled) → turn (centred)): matte, unfogged
     const turn = hd.children[0]?.children[0];
-    const coilMesh = plaitedCord(coilPoints(row.loop), row.loop.cord, row.plait);
-    Object.assign(coilMesh.material.userData, row.coilUserData); models.coilSurface(coilMesh.material);
-    turn?.add(coilMesh);
-    grip.visible = false; coil.visible = false;
+    if (loop !== null) {
+      const { map, normal, rough } = plaitTextures(row.plait);
+      map.repeat.set(fit.along, 1); normal.repeat.set(fit.along, 1); rough.repeat.set(fit.along, 1);
+      const material = new MeshStandardMaterial({ map, normalMap: normal, roughnessMap: rough, roughness: 1, metalness: 0, fog: false });
+      Object.assign(material.userData, row.coilUserData); models.coilSurface(material);
+      turn?.add(new Mesh(loop, material));
+    }
+    coil.visible = false;
   }
-  return { root, grip, coil, lash, tip, glove: made?.mesh ?? null, hd };
+  return { root, grip, coil, lash, tip: new Vector3(...fit.tip), hd };
 }

@@ -6,6 +6,7 @@ import dressing from '../data/dressing.json' with { type: 'json' };
 import tower from '../data/tower.json' with { type: 'json' };
 import caravan from '../data/caravan.json' with { type: 'json' };
 import well from '../data/well.json' with { type: 'json' };
+import lash from '../data/lash.json' with { type: 'json' };
 import { BAKED_PIECES, BAKED_URLS, type BakedPiece } from '../data/files';
 import { warmByFire } from './meshes';
 
@@ -17,7 +18,7 @@ import { warmByFire } from './meshes';
  */
 interface KindRow extends BakedKindRow { readonly warm?: boolean }
 interface PieceRows { kinds: readonly KindRow[]; colliders: readonly BakedColliderRow[] }
-const PIECES: Readonly<Record<BakedPiece, PieceRows>> = { rocks, dressing, tower, caravan, well };
+const PIECES: Readonly<Record<BakedPiece, PieceRows>> = { rocks, dressing, tower, caravan, well, lash };
 
 /** A loaded bake: each piece's instanced meshes (their geometry and transforms), keyed by the kind's name. */
 export type BakedWorld = ReadonlyMap<BakedPiece, ReadonlyMap<string, InstancedMesh>>;

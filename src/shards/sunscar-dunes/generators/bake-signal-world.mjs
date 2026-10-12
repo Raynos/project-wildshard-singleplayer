@@ -32,6 +32,24 @@ for (const [piece, file, name] of PIECES) {
   emit(resolve(project, `data/${piece}.json`), `${JSON.stringify({ glb: hash, ...rows }, null, 2)}\n`);
   console.info(`sunscar-dunes ${piece}: ${String(glb.length)} bytes → baked/${piece}.glb (${hash}), ${String(rows.colliders.length)} colliders`);
 }
+// the held lash (G345, generators/lash.ts): its tubes, and where the lash leaves the hand from the client's own intake of the
+// generated glove (the model library, reading public/ through the bake fetch); the client no longer loads the glove
+{
+  const { installBakeEnvironment } = await import(pathToFileURL(resolve(root, 'scripts/bake/environment.mjs')).href);
+  const environment = installBakeEnvironment(root);
+  try {
+    const [{ createModelLibrary }, { DUNE_MODELS }, { bakeSignalLash }] = await Promise.all([import(pathToFileURL(resolve(root, 'src/sdk/looks/modelLibrary.ts')).href),
+      import(pathToFileURL(resolve(project, 'data/files.ts')).href), import(pathToFileURL(resolve(project, 'generators/lash.ts')).href)]);
+    const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['whip-glove'], hd: [], rigs: [] }, '[sunscar-dunes bake]');
+    await library.preload();
+    const glove = library.mesh('whip-glove');
+    if (glove === null) throw new Error('whip-glove did not load');
+    const { glb, ...rows } = bakeSignalLash(glove), hash = createHash('sha256').update(glb).digest('hex');
+    emit(resolve(out, 'lash.glb'), glb); keep.add('lash.glb');
+    emit(resolve(project, 'data/lash.json'), `${JSON.stringify({ glb: hash, ...rows }, null, 2)}\n`);
+    console.info(`sunscar-dunes lash: ${String(glb.length)} bytes → baked/lash.glb (${hash})`);
+  } finally { environment.dispose(); }
+}
 for (const [piece, file, name] of ROWS) {
   const generator = await import(pathToFileURL(resolve(project, file)).href);
   emit(resolve(project, `data/${piece}.json`), `${JSON.stringify(generator[name](), null, 2)}\n`);

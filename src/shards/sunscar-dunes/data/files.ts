@@ -11,8 +11,9 @@ import { FACET_AO_FLOOR, HD_LOOKS } from './surfaces';
  * facet-painted caravan and waymark brazier stay on disk, unloaded: the camp draws wagon-hd2 and every brazier brazier-hd.
  */
 export type DuneMeshName = 'dry-well' | 'dune-strider' | 'dune-matriarch' | 'caravan-scout' | 'whip-glove';
-// G345: the strider's model is its rig's bake source (generators/hulls.ts → rigs/strider.glb); the client loads the rig
-export const DUNE_MESHES: readonly DuneMeshName[] = ['dry-well', 'dune-matriarch', 'caravan-scout', 'whip-glove'];
+// G345: the strider's model is its rig's bake source (generators/hulls.ts → rigs/strider.glb), and the whip glove the lash's
+// (generators/lash.ts: where the lash leaves the hand); the client loads neither
+export const DUNE_MESHES: readonly DuneMeshName[] = ['dry-well', 'dune-matriarch', 'caravan-scout'];
 /**
  * The hero models kept TEXTURED (loop 6, toward the mockups B-D): Hunyuan3D-2 shape + 2048 paint, decimated, the paint
  * kept as a 1024 WebP map on its UVs (the facet-colour path above reads low-poly and blotchy up close).
@@ -50,12 +51,12 @@ export const DUNE_MESH_URLS: Readonly<Record<DuneMeshName, string>> = {
   'dune-matriarch': '/assets/sunscar-dunes/models/dune-matriarch/dune-matriarch.glb', 'caravan-scout': '/assets/sunscar-dunes/models/caravan-scout/caravan-scout.glb',
   'whip-glove': '/assets/sunscar-dunes/models/whip-glove/whip-glove.glb',
 };
-/** The world pieces baked offline (SF72: `generators/<piece>.ts` → `scripts/bake-signal-world.mjs`), drawn by `world/baked.ts`. */
-export const BAKED_PIECES = ['rocks', 'dressing', 'tower', 'caravan', 'well'] as const;
+/** The world pieces baked offline (SF72: `generators/<piece>.ts` → `scripts/bake-signal-world.mjs`), drawn by `world/baked.ts`; `lash` is the held whip's tubes (G345). */
+export const BAKED_PIECES = ['rocks', 'dressing', 'tower', 'caravan', 'well', 'lash'] as const;
 export type BakedPiece = (typeof BAKED_PIECES)[number];
 export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = {
   rocks: '/assets/sunscar-dunes/baked/rocks.glb', dressing: '/assets/sunscar-dunes/baked/dressing.glb', tower: '/assets/sunscar-dunes/baked/tower.glb',
-  caravan: '/assets/sunscar-dunes/baked/caravan.glb', well: '/assets/sunscar-dunes/baked/well.glb',
+  caravan: '/assets/sunscar-dunes/baked/caravan.glb', well: '/assets/sunscar-dunes/baked/well.glb', lash: '/assets/sunscar-dunes/baked/lash.glb',
 };
 /** The creature bodies baked offline as skinned rig files (SF72: `generators/species.ts`, G345 `generators/hulls.ts` → `generators/bake-signal-rigs.mjs`), read by `world/meshes.ts`. */
 export const DUNE_RIGS = ['skitterer', 'strider'] as const;

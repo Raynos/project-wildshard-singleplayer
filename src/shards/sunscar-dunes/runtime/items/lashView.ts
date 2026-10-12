@@ -1,43 +1,25 @@
-import type { CoilPath, CordRgb, CordStyle, PlaitStyle } from '../../data/whip';
-import { BufferAttribute, BufferGeometry, CatmullRomCurve3, DataTexture, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, RepeatWrapping, RGBAFormat, SRGBColorSpace, TubeGeometry, UnsignedByteType, Vector3 } from 'three';
+import type { CordStyle, PlaitStyle } from '../../data/whip';
+import { BufferAttribute, BufferGeometry, DataTexture, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, RepeatWrapping, RGBAFormat, SRGBColorSpace, UnsignedByteType, Vector3 } from 'three';
 
 /**
  * The lash item's view (SHARD-PLATFORM SF72, a declared item view beside `./lash`, the item's runtime): a braided cord
- * that unrolls along a moving curve, the plait painted as two strands in a spiral, and a held coil as a plaited tube with
- * a code-made plait tile. A shard declares the cord's look as rows (`CordStyle`, `PlaitStyle`, `CoilPath`); the meshes,
- * textures and paths come from here.
+ * that unrolls along a moving curve, and the plait tile a held coil wears. The cord's rings and braid, and every coil's
+ * tube, are baked offline (`generators/lash.ts`); a shard declares the look as rows (`CordStyle`, `PlaitStyle`).
  */
-
-/** Paints a tube's rings with two strands laid in a spiral (the plait), so the braid reads without a texture; the last `popperRings` are the popper. */
-export function braidColours(geometry: BufferGeometry, rings: number, sides: number, popperRings: number, a: CordRgb, b: CordRgb, popper: CordRgb): void {
-  const count = geometry.getAttribute('position').count, colors = new Float32Array(count * 3);
-  for (let v = 0; v < count; v++) {
-    const i = Math.floor(v / sides), j = v % sides;
-    const c = i >= rings - popperRings ? popper : (i * 2 + j) % 4 < 2 ? a : b;
-    colors[v * 3] = c[0]; colors[v * 3 + 1] = c[1]; colors[v * 3 + 2] = c[2];
-  }
-  geometry.setAttribute('color', new BufferAttribute(colors, 3));
-}
 
 /** The thrown cord: one braided tube whose rings are rewritten along a moving curve (no per-frame allocation). */
 export class LashCord {
   readonly mesh: Mesh<BufferGeometry, MeshStandardMaterial>;
-  private readonly positions: Float32Array;
+  private readonly positions: Float32Array | null;
   private readonly point = new Vector3(); private readonly next = new Vector3();
   private readonly side = new Vector3(); private readonly up = new Vector3(); private readonly tangent = new Vector3();
-  constructor(private readonly style: CordStyle) {
-    const geometry = new BufferGeometry(), { segments, radial } = style, rings = segments + 1;
-    this.positions = new Float32Array(rings * radial * 3);
-    const index: number[] = [];
-    for (let s = 0; s < segments; s++) for (let r = 0; r < radial; r++) {
-      const a = s * radial + r, b = s * radial + (r + 1) % radial, c = a + radial, d = b + radial;
-      index.push(a, c, b, b, c, d);
-    }
-    geometry.setAttribute('position', new BufferAttribute(this.positions, 3));
-    geometry.setIndex(index);
-    braidColours(geometry, rings, radial, style.popperRings, style.strandA, style.strandB, style.popper);
+  /** `geometry`: the cord's baked rings and braid (`generators/lash.ts` cordGeometry), its own copy; null (its bake did not load): an undrawn cord. */
+  constructor(private readonly style: CordStyle, geometry: BufferGeometry | null) {
+    const position = geometry?.getAttribute('position'), positions = position instanceof BufferAttribute && position.array instanceof Float32Array ? position.array : null;
+    if (geometry !== null && positions?.length !== (style.segments + 1) * style.radial * 3) throw new Error('lash cord: baked rings do not match its style');
+    this.positions = positions;
     const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, emissive: style.emissive }); material.roughness = style.roughness;
-    this.mesh = new Mesh(geometry, material);
+    this.mesh = new Mesh(geometry ?? new BufferGeometry(), material);
     this.mesh.visible = false;
   }
   /**
@@ -46,6 +28,7 @@ export class LashCord {
    * a frayed popper that stays a few pixels wide far out.
    */
   shape(from: Vector3, to: Vector3, ext: number, wave: number, time: number): void {
+    if (this.positions === null) return;
     const { segments, radial } = this.style, length = from.distanceTo(to);
     this.tangent.subVectors(to, from).normalize();
     this.side.set(1, 0, 0).cross(this.tangent).normalize(); this.up.crossVectors(this.tangent, this.side).normalize();
@@ -100,33 +83,4 @@ export function plaitTextures(p: PlaitStyle): { map: DataTexture; normal: DataTe
     return t;
   };
   return { map: tex(map, true), normal: tex(nor, false), rough: tex(rough, false) };
-}
-
-/**
- * A held coil's centre line: the cord leaves the handle's top straight into the ellipse at `start`, turns counter-clockwise
- * as the camera sees it (up the right side, over the top, down the left), ends at its foot and drops through the fall, so
- * no stretch of cord crosses the coil's middle.
- */
-export function coilPoints(c: CoilPath): Vector3[] {
-  const [fx, fy, fz] = c.from, a0 = c.start;
-  // the ellipse placed so its point at `start` is the handle's top (in the plane turned by `face`)
-  const cx = fx - Math.cos(a0) * c.rx * Math.cos(c.face), cy = fy - Math.sin(a0) * c.ry, cz = fz - Math.cos(a0) * c.rx * Math.sin(c.face);
-  const pts: Vector3[] = [], n = 40 * c.turns, sweep = Math.PI * 2 * c.turns - (a0 + Math.PI * 0.5);
-  for (let i = 0; i <= n; i++) {
-    const t = i / n, a = a0 + t * sweep, k = t * (c.turns - 1);
-    const wob = 1 - 0.04 * Math.sin(a * 3 + 0.7), ex = Math.cos(a) * c.rx * wob;
-    pts.push(new Vector3(cx + ex * Math.cos(c.face) + c.step[0] * k, cy + Math.sin(a) * c.ry * wob + c.step[1] * k, cz + ex * Math.sin(c.face) + c.step[2] * k + Math.sin(a) * 0.05));
-  }
-  for (const q of c.tail) pts.push(new Vector3(q[0], q[1], q[2]));
-  return pts;
-}
-
-/** A plaited cord along `pts`, `cord` thick: true UVs, the plait tile at 45 deg along it, matte, unfogged. */
-export function plaitedCord(pts: Vector3[], cord: number, plait: PlaitStyle): Mesh<TubeGeometry, MeshStandardMaterial> {
-  const curve = new CatmullRomCurve3(pts, false, 'centripetal'), length = curve.getLength();
-  const geometry = new TubeGeometry(curve, 360, cord, 12, false);
-  const { map, normal, rough } = plaitTextures(plait);
-  const along = length / (plait.rows * (2 * Math.PI * cord) / plait.columns);
-  for (const t of [map, normal, rough]) t.repeat.set(along, 1);
-  return new Mesh(geometry, new MeshStandardMaterial({ map, normalMap: normal, roughnessMap: rough, roughness: 1, metalness: 0, fog: false }));
 }

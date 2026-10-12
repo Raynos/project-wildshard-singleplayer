@@ -1,12 +1,14 @@
 // @vitest-environment happy-dom
 import { Vector3 } from 'three';
 // oxlint-disable-next-line import/no-nodejs-modules -- WHIP_PARITY_RECORD=1 re-pins the trace from a base tree.
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hashes the lash's laid geometry each frame against the pinned one.
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- the record switch is a test-runner environment value, not game configuration.
 import process from 'node:process';
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { App } from '../../../src/engine/app/app';
 import { Scope } from '../../../src/engine/app/scope';
 import type { Actor, CombatTarget } from '../../../src/engine/combat/pipeline';
@@ -16,6 +18,8 @@ import type { AimCommand } from '../../../src/engine/input/commands';
 import type { Player } from '../../../src/engine/player/Player';
 import { Bullwhip } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
 import { FakeGame, legacyDouble } from '../../fake/FakeGame';
+import { loadBakedWorld } from '../../../src/shards/sunscar-dunes/world/baked';
+import { preloadDuneMeshes } from '../../../src/shards/sunscar-dunes/world/meshes';
 import expected from './whip-parity.json' with { type: 'json' };
 
 /** One creature in the probe: a ball the shared raycast meets (or not), its feet, its health and its reactions. */
@@ -115,6 +119,16 @@ const CASES: Case[] = [
 const recorded: Record<string, unknown> = {};
 
 describe('the browser Bullwhip is byte-identical on the shared lash runtime', () => {
+  // the whip as it ships: its models and bake loaded from public/ (the textured hero models stay unloaded: no images here)
+  beforeAll(async () => {
+    const parser = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const loaded = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async (url) => {
+      if (!/\/(?:baked|rigs|models\/whip-glove)\//u.test(url)) throw new Error(`not loaded here: ${url}`);
+      const bytes = readFileSync(`public${url}`);
+      return parser.parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
+    });
+    try { await preloadDuneMeshes(); await loadBakedWorld(); } finally { loaded.mockRestore(); errors.mockRestore(); }
+  });
   it.each(CASES.map(c => [c.name, c] as const))('%s', (name, c) => {
     const trace = run(c);
     if (process.env['WHIP_PARITY_RECORD'] === '1') { recorded[name] = trace; return; }
