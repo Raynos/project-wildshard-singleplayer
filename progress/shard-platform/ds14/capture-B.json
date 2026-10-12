@@ -1,0 +1,100 @@
+{
+  "tag": "B",
+  "base": "http://127.0.0.1:4405/",
+  "shots": {
+    "ink-cel-valley-phone": {
+      "pose": {
+        "x": 0.0015032327244171029,
+        "y": -0.3295741346591967,
+        "z": 0.0015009228116014128,
+        "yaw": -3.141592653589793
+      },
+      "shots": [
+        "ink-cel-valley-phone-spawn-B.png",
+        "ink-cel-valley-phone-quarter-B.png"
+      ],
+      "drew": {
+        "meshes": 233,
+        "nodeMaterials": 168,
+        "passes": [
+          "RenderPass",
+          "GraphNormalPrepass",
+          "GraphPostPass",
+          "EffectPass",
+          "EffectPass"
+        ]
+      },
+      "errors": []
+    },
+    "ink-cel-valley-desktop": {
+      "pose": {
+        "x": 0.0015064880476529652,
+        "y": -0.32957339301356114,
+        "z": 0.0015041781325635384,
+        "yaw": -3.141592653589793
+      },
+      "shots": [
+        "ink-cel-valley-desktop-spawn-B.png",
+        "ink-cel-valley-desktop-quarter-B.png"
+      ],
+      "drew": {
+        "meshes": 233,
+        "nodeMaterials": 168,
+        "passes": [
+          "RenderPass",
+          "GraphNormalPrepass",
+          "GraphPostPass",
+          "EffectPass",
+          "EffectPass"
+        ]
+      },
+      "errors": []
+    },
+    "pastel-plain-phone": {
+      "pose": {
+        "x": 0.001499977395269525,
+        "y": -0.3296740286241402,
+        "z": 0.001497667489502419,
+        "yaw": -3.141592653589793
+      },
+      "shots": [
+        "pastel-plain-phone-spawn-B.png",
+        "pastel-plain-phone-quarter-B.png"
+      ],
+      "drew": {
+        "meshes": 181,
+        "nodeMaterials": 116,
+        "passes": [
+          "RenderPass",
+          "GraphPostPass",
+          "EffectPass",
+          "EffectPass"
+        ]
+      },
+      "errors": []
+    },
+    "pastel-plain-desktop": {
+      "pose": {
+        "x": 0.0015032327244171029,
+        "y": -0.3295741346591967,
+        "z": 0.0015009228116014128,
+        "yaw": -3.141592653589793
+      },
+      "shots": [
+        "pastel-plain-desktop-spawn-B.png",
+        "pastel-plain-desktop-quarter-B.png"
+      ],
+      "drew": {
+        "meshes": 181,
+        "nodeMaterials": 116,
+        "passes": [
+          "RenderPass",
+          "GraphPostPass",
+          "EffectPass",
+          "EffectPass"
+        ]
+      },
+      "errors": []
+    }
+  }
+}
