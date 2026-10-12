@@ -117,6 +117,31 @@ function ownedHomeSoakPlans(state, leg, routeScope) {
   return { reference, plans, coveragePlans, omitted };
 }
 
+/** Validate an explicitly partial, three-entry diagnostic; it can never select a qualifying soak.
+ * @param {unknown} value
+ * @param {{dryRun:boolean,qualifying:boolean,layout:string,leg:string,routeScope:string,contentCut:unknown,firstCrossing:boolean,circuits:unknown}} mode */
+export function soakReentryDiagnostic(value, mode) {
+  if (value === undefined || value === '') return null;
+  if (typeof value !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/u.test(value)) throw new Error('Invalid reentry diagnostic instance');
+  if (!mode.dryRun || mode.qualifying || mode.layout !== 'dev' || mode.leg !== 'cells' || mode.routeScope !== 'catalogue'
+    || mode.contentCut !== null || mode.firstCrossing || (mode.circuits !== undefined && mode.circuits !== '')) {
+    throw new Error('Reentry diagnostics require a nonqualifying Developer cells dry run without other modes');
+  }
+  return value;
+}
+
+/** Keep ordinary socket roads and retirement witnesses, but explicitly report the unvisited catalogue.
+ * @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells'>} state
+ * @param {string} instance
+ * @param {string} homeMode */
+export function reentrySoakPlans(state, instance, homeMode = 'owned') {
+  const target = state.cells.find(cell => cell.instance === instance);
+  if (target === undefined || instance === state.home) throw new Error('Reentry diagnostic requires an actual neighbour');
+  const selected = state.cells.filter(cell => cell.instance === state.home || cell.instance === instance);
+  const route = ownedSoakPlans({ ...state, cells: selected }, 'cells', 'catalogue', homeMode);
+  return { ...route, coveragePlans: [], omitted: state.cells.filter(cell => !selected.includes(cell)).map(cell => cell.instance) };
+}
+
 /** A prepared-cell functional rehearsal cannot claim the full-catalogue memory gate. */
 export function soakRouteScope(/** @type {string} */ value = 'catalogue', /** @type {boolean} */ qualifying = false) {
   if (value !== 'catalogue' && value !== 'prepared') throw new Error('Unknown soak route scope');

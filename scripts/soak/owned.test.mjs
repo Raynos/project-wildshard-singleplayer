@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry, soakWitnessFailures } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
 import { circuitPlans } from './boundary.mjs';
 
@@ -272,4 +272,25 @@ void test('SF57 historical borrowed-home road plans retain their one departure l
   assert.ok(route.plans.every(p => p.to === null && p.from === null));
   assert.deepEqual(circuitPlans(route, 0, null).map(p => p.name), ['home-to-road', ...route.plans.map(p => p.name)]);
   assert.deepEqual(circuitPlans(route, 1, null).map(p => p.name), route.plans.map(p => p.name));
+});
+
+void test('reentry diagnostics retain real roads and report every unvisited cell without qualifying', () => {
+  const cells = soakCatalogue(catalogue, 'dev'), state = { cells, home: 'driftwood-isle' };
+  const mode = { dryRun: true, qualifying: false, layout: 'dev', leg: 'cells', routeScope: 'catalogue', contentCut: null, firstCrossing: false, circuits: undefined };
+  assert.equal(soakReentryDiagnostic(undefined, mode), null);
+  assert.equal(soakReentryDiagnostic('', mode), null);
+  assert.equal(soakReentryDiagnostic('pine-hollow', mode), 'pine-hollow');
+  for (const patch of [{ dryRun: false }, { qualifying: true }, { layout: 'shipped' }, { leg: 'road' }, { routeScope: 'prepared' },
+    { contentCut: {} }, { firstCrossing: true }, { circuits: 4 }]) assert.throws(() => soakReentryDiagnostic('pine-hollow', { ...mode, ...patch }), /nonqualifying/u);
+  for (const value of [null, 1, 'bad/path', 'x'.repeat(65)]) assert.throws(() => soakReentryDiagnostic(value, mode), /Invalid/u);
+  const route = reentrySoakPlans(state, 'pine-hollow'), target = cells.filter(cell => cell.instance === state.home || cell.instance === 'pine-hollow');
+  assert.deepEqual(route.plans, ownedSoakPlans({ ...state, cells: target }).plans);
+  assert.deepEqual(route.plans.map(plan => [plan.from, plan.to]), [['driftwood-isle', 'pine-hollow'], ['pine-hollow', 'driftwood-isle']]);
+  assert.deepEqual(route.coveragePlans, []);
+  assert.deepEqual(route.omitted.sort(), cells.filter(cell => !target.includes(cell)).map(cell => cell.instance).sort());
+  assert.equal(circuitPlans(route, 0, null).length, 2);
+  assert.equal(circuitPlans(route, 1, null).length, 2);
+  assert.throws(() => reentrySoakPlans(state, 'absent'), /actual neighbour/u);
+  assert.throws(() => reentrySoakPlans(state, state.home), /actual neighbour/u);
+  assert.equal(state.cells.length, cells.length);
 });
