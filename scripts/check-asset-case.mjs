@@ -16,6 +16,14 @@ function filesUnder(root) {
 /** @param {string} url */
 const normalize = (url) => url.replace(/[?#].*$/, '').replace(/^\.?\/?assets\//, '/assets/');
 
+/** A string constant, including the expression-free templates emitted by the minifier.
+ * @param {import('vite').ESTree.Node | undefined} node @returns {string | null} */
+function literalString(node) {
+  if (node?.type === 'Literal' && typeof node.value === 'string') return node.value;
+  if (node?.type === 'TemplateLiteral' && node.expressions.length === 0) return node.quasis[0]?.value.cooked ?? null;
+  return null;
+}
+
 /** @param {string} root @param {string} url @returns {{ exists: boolean, closest: string | null }} */
 function spelling(root, url) {
   let parent = root;
@@ -72,7 +80,12 @@ export function checkAssetCase(root) {
     index(tree);
     /** Resolve declared alternatives without executing bundle code. @param {import('vite').ESTree.Node} node @param {Set<string>} [seen] @returns {string[] | null} */
     const values = (node, seen = new Set()) => {
-      if (node.type === 'Literal' && typeof node.value === 'string') return [node.value];
+      const literal = literalString(node);
+      if (literal !== null) return [literal];
+      if (node.type === 'CallExpression' && node.arguments.length === 1 && node.callee.type === 'MemberExpression' && !node.callee.computed && node.callee.property.type === 'Identifier' && node.callee.property.name === 'split') {
+        const packed = literalString(node.callee.object), separator = literalString(node.arguments[0]);
+        if (packed !== null && separator === ',') return packed.split(separator);
+      }
       if (node.type === 'ConditionalExpression') {
         const yes = values(node.consequent, seen), no = values(node.alternate, seen);
         return yes && no ? [...new Set([...yes, ...no])] : null;
@@ -102,12 +115,49 @@ export function checkAssetCase(root) {
       }
       return null;
     };
+    /** Resolve a named data format only from explicit values in its enclosing object.
+     * Unresolved formats remain failures, never inventory-only wildcards.
+     * @param {import('vite').ESTree.Node} node @param {string} value @returns {string[]} */
+    const formats = (node, value) => {
+      const names = [...new Set([...value.matchAll(/\{([A-Za-z_$][\w$]*)\}/g)].map((match) => match[1]))];
+      if (names.length !== 1) return [value];
+      const name = names[0];
+      let scope = parents.get(node);
+      while (scope) {
+        if (scope.type === 'ObjectExpression') {
+          /** @type {Set<string>} */
+          const choices = new Set();
+          /** @param {import('vite').ESTree.Node} row */
+          const collect = (row) => {
+            if (row.type === 'Property' && !row.computed && (row.key.type === 'Identifier' ? row.key.name : literalString(row.key)) === name) {
+              for (const choice of values(row.value) ?? []) choices.add(choice);
+            }
+            for (const child of children(row)) collect(child);
+          };
+          collect(scope);
+          if (choices.size > 0) return [...choices].map((choice) => value.replaceAll(`{${name}}`, choice));
+        }
+        scope = parents.get(scope);
+      }
+      return [value];
+    };
+    /** Check each item of a minified split list, or the single concrete URL otherwise.
+     * A comma in an ordinary URL keeps its literal meaning.
+     * @param {import('vite').ESTree.Node} node @param {string} value */
+    const addLiteral = (node, value) => {
+      const member = parents.get(node), call = member?.type === 'MemberExpression' && member.object === node ? parents.get(member) : undefined;
+      const parts = call?.type === 'CallExpression' && call.callee === member ? values(call) : null;
+      for (const part of parts ?? [value]) if (/^\/?(?:\.\/)?assets\//.test(part)) {
+        for (const alternative of formats(node, part)) add(alternative, from);
+      }
+    };
     /** @param {string} part */
     const escape = (part) => part.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
     /** @param {import('vite').ESTree.Node} node */
     const visit = (node) => {
-      if (node.type === 'Literal' && typeof node.value === 'string') add(node.value, from);
-      if (node.type === 'TemplateLiteral' && /^\/?(?:\.\/)?assets\//.test(node.quasis[0]?.value.cooked ?? '')) {
+      const literal = literalString(node);
+      if (literal !== null) addLiteral(node, literal);
+      else if (node.type === 'TemplateLiteral' && /^\/?(?:\.\/)?assets\//.test(node.quasis[0]?.value.cooked ?? '')) {
         let alternatives = [node.quasis[0]?.value.cooked ?? ''];
         for (let i = 0; i < node.expressions.length; i++) {
           const choices = values(node.expressions[i]) ?? ['*'];

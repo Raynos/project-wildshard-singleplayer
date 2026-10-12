@@ -29,4 +29,14 @@ describe('asset URL spelling', () => {
       { url: '/assets/Music/theme.mp3', from: 'assets/bundle.js', closest: '/assets/music/theme.mp3' },
     ]);
   });
+  it('checks every minified split item and declared format value, retaining concrete missing and wrong-case refusals', () => {
+    expect(checkAssetCase(join(import.meta.dirname, 'fixtures/asset-case/formats')).missing).toEqual([
+      { url: '/assets/music/absent.mp3', from: 'assets/bundle.js', closest: null },
+      { url: '/assets/Music/theme.mp3', from: 'assets/bundle.js', closest: '/assets/music/theme.mp3' },
+      { url: '/assets/hdri/absent.jpg', from: 'assets/bundle.js', closest: null },
+      { url: '/assets/hdri/Wrong.jpg', from: 'assets/bundle.js', closest: '/assets/hdri/wrong.jpg' },
+      { url: '/assets/unknown/{id}.jpg', from: 'assets/bundle.js', closest: null },
+      { url: '/assets/packs/demo.desktop.bin', from: 'assets/bundle.js', closest: null },
+    ]);
+  });
 });
