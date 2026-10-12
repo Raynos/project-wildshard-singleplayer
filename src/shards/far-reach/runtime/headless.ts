@@ -17,6 +17,8 @@ import { DRIFT_RAY_VARIANTS, SKY_GOAT_VARIANTS, STORM_ROC_VARIANTS, GALE_WISP_VA
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
 import { installSkyRoc } from './roc';
 import { ROC_ID } from '../data/rocFight';
+import { coneStrikeSpec } from './weapons/coneStrikes';
+import { FAN_ID } from '../data/items';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM, installSkyFan, type FanCommand } from './fan';
 import { installSkyMovers, verifiedMoverModules, type SkyMovers } from './headlessMovers';
 import { installSkyQuest, skyWinchPermission } from './quest';
@@ -68,6 +70,9 @@ export interface SkyRuntime {
   readonly installSky: (host: SimHost, context: HeadlessRuntimeInstallation) => SkyMovers;
 }
 export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRuntimePreparation): Promise<SkyRuntime> {
+  const fanRow = shard.items.rows.find(row => row.id === FAN_ID);
+  if (fanRow?.kind !== 'weapon') throw new Error('Sky Reach requires its admitted fan weapon');
+  const fanSpec = coneStrikeSpec(fanRow, fanRow.profile);
   const updraft = shard.modes?.traverse.find(row => row.id === 'far.updraft');
   if (updraft?.kind !== 'updraft') throw new Error('Sky Reach requires its admitted updraft row');
   if (shard.terrain !== null) throw new Error('Sky Reach is a structures-only world');
@@ -111,7 +116,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
       if (command.kind === 'script' && command.actorId === FAN_AIM) return [{ kind: 'aim', pitch: command.value }];
       if (command.kind !== 'script' || command.actorId !== FAN_ACTOR) return [];
       return command.value === FAN_ACT.heavy ? [{ kind: 'heavy' }] : command.value === FAN_ACT.gust ? [{ kind: 'gust' }] : [];
-    }));
+    }), fanSpec);
     installSkyQuest(host, { quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
       coins: (amount, actorId) => { context.emit({ kind: 'coins', amount, actorId }); },
       commands: () => context.commands().flatMap(command => command.kind === 'script' ? [command] : []),

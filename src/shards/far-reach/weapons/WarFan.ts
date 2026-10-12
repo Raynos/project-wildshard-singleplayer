@@ -1,5 +1,6 @@
 import { coneFanType, type ConeFan } from '../runtime/weapons/coneFan';
-import { FAN_STRIKES } from '../data/items';
+import { SKY_ITEMS, FAN_PROFILE } from '../data/items';
+import { coneStrikeSpec } from '../runtime/weapons/coneStrikes';
 import { FAN_VIEW } from '../data/fanView';
 import { FAN_ROW } from './rows';
 import { fanParts, type FanParts } from './fanModel';
@@ -11,6 +12,6 @@ import { fanParts, type FanParts } from './fanModel';
  * it stands near one. Its numbers are data/items.ts FAN_STRIKES (the renderer-free host runs them too, runtime/fan.ts),
  * its viewmodel data/fanView.ts FAN_VIEW over the model of weapons/fanModel.ts (the tassel its pendant).
  */
-export const WarFan = coneFanType({ row: FAN_ROW, strikes: FAN_STRIKES, view: FAN_VIEW, gustAction: 'far.gust', parts: fanParts });
+export const WarFan = coneFanType({ row: FAN_ROW, strikes: coneStrikeSpec(SKY_ITEMS.rows[0], FAN_PROFILE), view: FAN_VIEW, gustAction: 'far.gust', parts: fanParts });
 /** A built war fan. */
 export type WarFanWeapon = ConeFan<FanParts>;

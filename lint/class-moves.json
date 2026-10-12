@@ -57,14 +57,6 @@
       "base": "Weapon",
       "baseFile": "src/engine/combat/Weapon.ts"
     },
-    "src/shards/far-reach/runtime/weapons/coneFan.ts:8f783e21de7f601baf400a4713ea59f5efe2eab597e6c7cafc2a989a4ab5b085": {
-      "from": "src/game/systems/items/coneFan.ts",
-      "to": "src/shards/far-reach/runtime/weapons/coneFan.ts",
-      "hash": "8f783e21de7f601baf400a4713ea59f5efe2eab597e6c7cafc2a989a4ab5b085",
-      "name": "ConeFan",
-      "base": "Weapon",
-      "baseFile": "src/engine/combat/Weapon.ts"
-    },
     "src/shards/far-reach/runtime/weapons/coneFan.ts:20b9903b8bf7c3c864a238ab18febe7d9abc6cd12426185f8cca8941b8d0baec": {
       "from": "src/game/systems/items/coneFan.ts",
       "to": "src/shards/far-reach/runtime/weapons/coneFan.ts",

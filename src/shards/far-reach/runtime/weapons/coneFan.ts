@@ -1,3 +1,4 @@
+import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { App } from '@wildshard/engine/app/app';
 import { blocks } from '@wildshard/engine/blocks';
 import type { EquipContext, EquipmentRow } from '@wildshard/engine/combat/Equipment';
@@ -80,6 +81,7 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends Weapon {
   readonly parts: P;
   override readonly model: Group;
   private time = 0;
+  private chargeSeconds: number;
   override readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   override holster = 0; override enabled = true; override adsHeld = false; override aimInfo = null;
   /** told of every swing's start (heavy or light) */
@@ -97,10 +99,11 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends Weapon {
   private readonly vm: ReturnType<typeof blocks.viewmodel>;
   private readonly contact: ReturnType<typeof blocks.melee>;
   private readonly strikes: ConeStrikes;
-  override get charge(): number { return Math.min(1, this.held / this.view.charge); }
+  override get charge(): number { return Math.min(1, this.held / this.chargeSeconds); }
 
   constructor(app: App, targets: () => readonly ConeFanTarget[], o: ConeFanOptions<P>) {
     super(o.row);
+    this.chargeSeconds = o.view.charge;
     this.parts = o.parts(); this.model = this.parts.group;
     this.app = app; this.targets = targets; this.view = o.view; this.gustAction = o.gustAction;
     this.vm = blocks.viewmodel({ ...o.view.spring });
@@ -109,6 +112,11 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends Weapon {
     this.blocks.vm = this.vm; this.blocks.melee = this.contact;
     const hold = o.view.hold;
     this.model.position.set(hold.x, hold.y, hold.z); this.model.rotation.set(hold.pitch, hold.yaw, hold.roll); this.model.scale.setScalar(hold.scale);
+  }
+  /** Hand the existing held owner its admitted profile; refusal leaves its row and clocks untouched. */
+  bindProfile(row: ItemSpec, input: unknown): void {
+    this.strikes.configure(row, input);
+    if (row.kind === 'weapon') this.chargeSeconds = row.charge;
   }
   override install(ctx: EquipContext): void {
     super.install(ctx);

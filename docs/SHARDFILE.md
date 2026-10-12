@@ -1665,7 +1665,12 @@ const profile = { family: 'cone', slash: { reachAllowance: 1 },
 
 The cone profile admits no target callback, rig or input owner. Registration
 through `@wildshard/game/plugin/weaponFamily` must explicitly accept `cone`
-profiles before the item installer calls its native factory.
+profiles before the item installer calls its native factory. Sky's registered
+`far-reach.fan` family declares `profiles: ['cone']` and adopts these numbers into
+the already-built fan. Its native preparation also reads the admitted item row;
+a missing profile, changed weapon identity or incompatible slash shapes refuse
+before mutation. Rebinding numbers retains both cooldowns. Gust impulses precede
+their damage contact, as in the existing page law.
 
 SF84 traversal rows are declared as optional `modes.traverse` data. Zipline and updraft rows require
 `runtime.binds: ['modes']`; pure-data or unbound native traversal rows refuse admission. Ladder is the installed data-host exception. The native owner reads the admitted

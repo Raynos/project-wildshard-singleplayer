@@ -398,7 +398,7 @@
         "ctx.app": 16,
         "ctx.game": 12,
         "ctx.game.runtime": 12,
-        "engineSubclasses": 6,
+        "engineSubclasses": 7,
         "subclass.BossBrain": 1,
         "context.scope": 28,
         "context.answer": 2,
@@ -413,7 +413,7 @@
         "context.system": 11,
         "context.debug": 1,
         "subclass.CreatureBrain": 4,
-        "subclass.Weapon": 1,
+        "subclass.Weapon": 2,
         "context.piece": 16
       },
       "sites": {

@@ -1,4 +1,6 @@
 import * as v from 'valibot';
+import { parseWeaponProfile } from '@wildshard/format/weaponProfiles';
+import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { Vector3 } from 'three';
 import type { Actor, CombatTag, DamageDealt, DamageRequest } from '@wildshard/engine/combat/pipeline';
 
@@ -29,6 +31,19 @@ export interface ConeGustSpec {
 /** A cone fan's strikes: the weapon id every contact names, the slash and the gust. */
 export interface ConeStrikeSpec { readonly weaponId: string; readonly slash: ConeSlashSpec; readonly gust: ConeGustSpec }
 
+/** Build contact parameters from an admitted item and its cone profile before touching the native owner. */
+export function coneStrikeSpec(row: ItemSpec, input: unknown): ConeStrikeSpec {
+  const profile = parseWeaponProfile(input);
+  if (row.kind !== 'weapon' || profile.family !== 'cone') throw new Error('Cone family requires a weapon and cone profile');
+  const light = row.light, heavy = row.heavy;
+  if (light.range !== heavy.range || light.width !== heavy.width || light.width > Math.PI
+    || light.effect !== null || heavy.effect !== null || light.tags.length !== heavy.tags.length
+    || light.tags.some((tag, index) => tag !== heavy.tags[index])) throw new Error('Cone slashes require one shared contact shape and tags');
+  return { weaponId: row.id, slash: { reach: light.range + profile.slash.reachAllowance, halfAngle: light.width,
+    light: light.damage, heavy: heavy.damage, cooldown: light.cooldown, heavyCooldown: heavy.cooldown,
+    tags: [...light.tags], moves: { light: light.id, heavy: heavy.id } }, gust: profile.gust };
+}
+
 /** True when `to` lies inside a cone of `reach` metres and `halfAngle` radians around `dir` from `from`. */
 export function inCone(from: Vector3, dir: Vector3, to: Vector3, reach: number, halfAngle: number): boolean {
   const d = to.clone().sub(from), len = d.length();
@@ -47,9 +62,15 @@ const Saved = v.strictObject({ cooldown: finite, gustCooldown: finite });
 export class ConeStrikes {
   /** Seconds until the next SWING / HEAVY, and the next GUST. */
   cooldown = 0; gustCooldown = 0;
-  private readonly spec: ConeStrikeSpec;
+  private spec: ConeStrikeSpec;
   private readonly ports: ConeStrikePorts;
   constructor(spec: ConeStrikeSpec, ports: ConeStrikePorts) { this.spec = spec; this.ports = ports; }
+  /** Adopt the same weapon's admitted parameters without restarting either retained cooldown. */
+  configure(row: ItemSpec, input: unknown): void {
+    const spec = coneStrikeSpec(row, input);
+    if (spec.weaponId !== this.spec.weaponId) throw new Error('Cone profile cannot replace the native weapon identity');
+    this.spec = spec;
+  }
   /** Claim a swing: false while cooling down, otherwise the move's cooldown starts. */
   startSwing(heavy: boolean): boolean {
     if (this.cooldown > 0) return false;
