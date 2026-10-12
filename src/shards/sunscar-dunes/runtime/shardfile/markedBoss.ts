@@ -1,9 +1,8 @@
 import { Color, Mesh, Scene, SphereGeometry, Vector3 } from 'three';
 import type { BossDefinition, BossSaved } from '@wildshard/engine/ai/BossBrain';
-import { DirectorBossBrain } from '@wildshard/game/plugin/director';
+import { BossView, installBossView } from '@wildshard/game/shardfile/bossView';
 import stages from '../../data/bossStages.json' with { type: 'json' };
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { weatherFog, type WeatherFog } from '@wildshard/engine/world/Atmosphere';
 import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
 import { bossesSave, shardSave } from '@wildshard/game/saves';
@@ -40,7 +39,7 @@ export interface MarkedBossRows {
  * invulnerability); this adds the presentation row's views — the storm's weather fog and sand shells, the boss bar and
  * the reward's coin burst — and its toasts, and refuses hits while the fight is invulnerable.
  */
-export class MarkedBoss extends DirectorBossBrain {
+export class MarkedBoss extends BossView {
   /** The arena's reward point (the declared body's spot on the floor). */
   readonly at: Vector3;
   /** The storm's strength 0..1 (captures and tests read it). */
@@ -82,15 +81,8 @@ export class MarkedBoss extends DirectorBossBrain {
         });
         burst.update(dt, player);
       } });
-    const presentation = new BossBar(); ctx.scope.onDispose(() => { presentation.scope.dispose(); });
-    ctx.answer('damage.modify', (request) => { const animal = fight.body(); return request !== null && animal !== null && request.target === animal.combatActor() && fight.invulnerable() ? null : request; });
-    super(rows.definition, fight.script,
-      { events: ctx.app.events, player: { position: player }, lockInput: (on) => { ctx.game.runtime?.play?.weapons.setEnabled(!on); },
-        respawn: (pos, yaw) => { const motor = ctx.game.runtime?.world?.player; if (motor) { motor.position.copy(pos); motor.yaw = yaw; } }, skipHeld: () => ctx.app.input.held('skip'),
-        faceToward: (target) => { const motor = ctx.game.runtime?.world?.player; if (motor) motor.yaw = Math.atan2(motor.position.x - target.x, motor.position.z - target.z); },
-        spawnReward: () => { saved.rewardTaken = true; record.persist(saved); burst.spawn(player, rows.reward, coins, () => undefined); },
-        toast: (message) => { ctx.game.runtime?.play?.hud.toast(message); },
-        persist: record.persist }, presentation, saved, stages);
+    super(ctx, { definition: rows.definition, stages, script: fight.script, player, body: fight.body, shielded: fight.invulnerable, saved, persist: record.persist, toast: true,
+      spawnReward: () => { saved.rewardTaken = true; record.persist(saved); burst.spawn(player, rows.reward, coins, () => undefined); } });
     this.at = at; this.weather = fight.weather; this.body = fight.body;
     if (saved.defeated) onDown?.();
     ctx.scope.onDispose(() => {
@@ -115,10 +107,6 @@ export interface MarkedBossPorts {
  * checkpoint, updated each frame.
  */
 export function installMarkedBoss(ctx: ShardContext, rows: MarkedBossRows, ports: MarkedBossPorts): { boss: MarkedBoss; summon: () => void } {
-  const live = ctx.app.encounters.boss(rows.definition.id, new MarkedBoss(ctx, ports.player, ports.body, rows, ports.record, ports.coins, ports.onDown), ctx.scope);
-  const summon = (): void => { if (live.state === 'dormant') { live.arm(); ctx.game.runtime?.play?.hud.toast(rows.presentation.toasts.summoned); } };
-  if (ports.lit()) live.arm();
-  ctx.answer('death.checkpoint', (value) => live.onPlayerDeath() || value === true);
-  ctx.system({ id: rows.definition.id, phase: 'update', run: (dt, t) => { live.update(dt, t); } });
-  return { boss: live, summon };
+  return installBossView(ctx, rows.definition.id, new MarkedBoss(ctx, ports.player, ports.body, rows, ports.record, ports.coins, ports.onDown), ports.lit(),
+    () => { ctx.game.runtime?.play?.hud.toast(rows.presentation.toasts.summoned); });
 }

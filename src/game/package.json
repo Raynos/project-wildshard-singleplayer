@@ -59,6 +59,7 @@
     "./shardfile/quests": "./shardfile/quests.ts",
     "./shardfile/hybridRows": "./plugin/headless.ts",
     "./shardfile/bossRow": "./shardfile/bossRow.ts",
+    "./shardfile/bossView": "./shardfile/bossView.ts",
     "./shardfile/bakedKinds": "./shardfile/bakedKinds.ts",
     "./shardfile/homeKeeper": "./shardfile/homeKeeper.ts",
     "./shardfile/runtimeProduct": "./shardfile/runtimeProduct.ts",
