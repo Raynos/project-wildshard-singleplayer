@@ -49,6 +49,8 @@ import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './r
 import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
 import { bindCellCover, cellCoverPort } from './cellCover';
 import type { FarLookRuntime } from './farProxy';
+import { NearPlaceholders } from './nearPlaceholderView';
+import { setting } from '@wildshard/engine/ui/Settings';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
@@ -193,6 +195,19 @@ const FarRow = v.object({ far: v.object({ gpu: num, decoded: num }),
   look: v.object({ family: v.picklist(['toon', 'painterly', 'pbr']), haze: v.object({ colour: v.tuple([num, num, num]), near: num, far: num, max: num }),
     grade: v.optional(v.object({ exposure: num, saturation: num, contrast: num, tint: v.optional(v.tuple([num, num, num])) })),
     band: v.optional(v.object({ colour: v.tuple([num, num, num]), height: num, opacity: num, own: num })) }) });
+/** The part of `near.json` the client reads. */
+const NearRow = v.object({ near: v.object({ gpu: num, decoded: num }), look: FarRow.entries.look });
+/** G342: a shard's near placeholder (`scripts/bake/near-placeholder.mjs`), from its baked folder like the far proxy. */
+async function loadNear(slug: string): Promise<{ prepared: FarPrepared; bytes: number }> {
+  const response = await fetch(versionedUrl(`/assets/baked/${slug}/near.json`));
+  if (!response.ok) throw new Error(`near.json ${slug}: ${String(response.status)}`);
+  const row = v.parse(NearRow, await response.json());
+  const gltf = await new GLTFLoader().loadAsync(versionedUrl(`/assets/baked/${slug}/near.glb`));
+  let geometry: BufferGeometry | undefined;
+  gltf.scene.traverse((node) => { if (geometry === undefined && node instanceof Mesh) { const found: unknown = node.geometry; if (found instanceof BufferGeometry) geometry = found as BufferGeometry; } });
+  if (geometry === undefined) throw new Error(`near.glb ${slug}: no mesh`);
+  return { prepared: { geometry, look: row.look }, bytes: Math.round(row.near.gpu + row.near.decoded) };
+}
 function farLook(row: unknown): FarLookRuntime { return v.parse(FarRow, row).look; }
 function farBytes(row: unknown): number { const { far } = v.parse(FarRow, row); return Math.round(far.gpu + far.decoded); }
 
@@ -238,6 +253,8 @@ export class GridSession {
   /** G222 playtest #7: each neighbour's declared doors and gates, shown exactly when its region has them standing */
   private readonly panels: NeighbourPanels;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
+  /** G342: the near-placeholder tier (Debug ▸ Look ▸ Neighbour detail B); null on A, the shipped far proxies */
+  private near: NearPlaceholders | null = null;
   private readonly shimmer: { readonly step: () => void; readonly state: () => BorderShimmerState };
   /** G167: why a neighbour's shard can't load (its product refused, with the admission's message) and its far view's status */
   private readonly refusals = new Map<string, ShardRefusal>();
@@ -410,13 +427,29 @@ export class GridSession {
       view.dispose = () => { unband(); untag(); dispose(); };
       return view;
     } };
-    // the drawn far views, for the cell screen's far-view row
+    // the drawn far views, for the cell screen's far-view row; G342 B: each one's mask is mirrored onto its near view
+    const drawnFar = new Map<string, { view: FarProxyView; excluded: ReadonlySet<number> }>();
     const farPorts = { ...framedPorts, upload: (tile: { instance: string }, data: FarPrepared) => {
       const view: FarProxyView = framedPorts.upload(tile, data), dispose = view.dispose;
       this.farViews.add(tile.instance);
       view.dispose = () => { this.farViews.delete(tile.instance); dispose(); };
+      if (this.near !== null) {
+        const id = tile.instance, entry = { view, excluded: new Set<number>() as ReadonlySet<number> }, mask = view.mask, gone = view.dispose;
+        drawnFar.set(id, entry);
+        view.mask = (excluded) => { entry.excluded = excluded; mask(excluded); if (this.near?.shows(id) === true) view.mesh.visible = false; this.near?.remask(id); };
+        view.dispose = () => { if (drawnFar.get(id) === entry) drawnFar.delete(id); gone(); };
+        if (this.near.shows(id)) view.mesh.visible = false;
+      }
       return view;
     } };
+    if (setting('nearTier') === 'near') {
+      this.near = new NearPlaceholders({ allocator: this.allocator, cells: this.assembly.cells, pitch: this.assembly.pitch, root: (id) => roots.get(id),
+        load: (id) => loadNear(this.assembly.cell(id).slug),
+        cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
+        mask: (id) => drawnFar.get(id)?.excluded ?? new Set<number>(),
+        adopt: (view) => (frame === null ? () => undefined : frame.proxy(view)), decorate: horizon.patch });
+      host.scope.onDispose(() => { this.near?.dispose(); this.near = null; });
+    }
     // SF25 / G66: frozen neighbours look alive (presentation-only client scripts; their sims never step here)
     this.life = new NeighbourLife({ scope: host.scope, simulation: (id) => this.live?.simulation(id), active: (id) => (this.live === null ? this.home.instance : this.live.live.current()) === id });
     // one late system for the grid (the page's onLate takes one label): the alive neighbours, then the one frame's weights
@@ -568,6 +601,7 @@ export class GridSession {
     this.shimmer.step();
     this.plots.step(dt);
     const inside = this.assembly.at(at.x, at.z), active = this.live === null ? this.home.instance : this.live.live.current();
+    this.near?.update(at, active);
     if (inside === undefined || inside.instance !== active) gridCells.leave();
     else gridCells.enter({ instance: inside.instance, slug: inside.slug });
   }
