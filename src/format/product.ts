@@ -15,6 +15,7 @@ import { DEFAULT_GRAPH_BUDGET, validateGraph } from "@wildshard/format/materialG
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { runtimeAccountedBytes } from "@wildshard/format/runtimeCost";
 import type { ContentCostInput } from "@wildshard/format/contentCost";
+import { nearPlaceholderRoots } from '@wildshard/format/nearPlaceholder';
 
 /** Actual costs derived from a bounded parser, never trusted from the author declaration. */
 export interface AssetCost { decoded: number; gpu: number; triangles: number; draws: number }
@@ -285,7 +286,7 @@ export function assetCost(requestedKind: string, bytes: Uint8Array): AssetCost {
 }
 
 /** Refuse orphan wire assets and require look LUTs in the charged library closure before any asset read. */
-export function preflightAssetGraph(source: Pick<Shardfile, 'files' | 'library' | 'critical' | 'tiles' | 'far' | 'look' | 'requires'> & Partial<Pick<Shardfile, 'rows' | 'presentation' | 'map' | 'audio'>>): void {
+export function preflightAssetGraph(source: Pick<Shardfile, 'files' | 'library' | 'critical' | 'tiles' | 'far' | 'look' | 'requires'> & Partial<Pick<Shardfile, 'rows' | 'presentation' | 'map' | 'audio' | 'near'>>): void {
   const files = new Map(source.files.map((file) => [file.hash, file]));
   const closure = (roots: readonly string[]): Set<string> => {
     const found = new Set<string>(), pending = [...roots];
@@ -308,7 +309,7 @@ export function preflightAssetGraph(source: Pick<Shardfile, 'files' | 'library' 
   for (const row of source.rows?.compendiums ?? []) for (const entry of row.entries) {
     if (!entry.sketch.startsWith('data:') && !library.has(entry.sketch)) throw new Error('Compendium sketch hash must be in the charged library closure');
   }
-  const reachable = closure([...source.library, ...source.critical, ...source.tiles.flatMap((tile) => tile.files), ...source.far?.files ?? []]);
+  const reachable = closure([...source.library, ...source.critical, ...source.tiles.flatMap((tile) => tile.files), ...source.far?.files ?? [], ...nearPlaceholderRoots(source.near)]);
   if (source.files.some((file) => !reachable.has(file.hash)) || source.requires.commons.some((hash) => !reachable.has(`commons:${hash}`))) throw new Error('Orphan shardfile asset is not reachable from a bundle root');
 }
 
@@ -415,7 +416,7 @@ export interface PerformanceReport {
   views: { name: string; x: number; z: number; draws: number; triangles: number }[];
   graphs: { id: string; nodes: number; samplers: number; instructions: number }[];
   scripts: PerformanceObservations;
-  download: { critical: number; tiles: number; library: number; far: number; total: number; playable: number };
+  download: { critical: number; tiles: number; library: number; far: number; near?: number; total: number; playable: number };
   estimatedPlayable: { seconds: number; bytesPerSecond: number; setupSeconds: number };
   issues: PerformanceIssue[];
 }
@@ -481,11 +482,12 @@ export function performanceReport(source: Shardfile, observations: PerformanceOb
   if (source.runtime !== null && source.runtime.cost === undefined) check('native resident measurement required', 1, 0);
   check('worst playing total bytes', worst.playing, C.playing); check('worst loading total bytes', worst.loading, C.loading);
   const library = reportCardClosure(source, source.library), critical = reportCardClosure(source, source.critical);
-  const tileRoots = source.tiles.flatMap(tile => tile.files), farRoots = source.far?.files ?? [];
+  const tileRoots = source.tiles.flatMap(tile => tile.files), farRoots = source.far?.files ?? [], nearRoots = nearPlaceholderRoots(source.near);
   const playable = reportCardClosure(source, [...source.critical, ...source.library, ...farRoots, ...source.tiles.filter(tile => tile.lod === 1 || near(tile, spawn.x, spawn.z)).flatMap(tile => tile.files)]);
   const download = { critical: totals(source, critical).bytes, tiles: totals(source, reportCardClosure(source, tileRoots)).bytes,
     library: totals(source, library).bytes, far: totals(source, reportCardClosure(source, farRoots)).bytes,
-    total: totals(source, reportCardClosure(source, [...source.critical, ...source.library, ...tileRoots, ...farRoots])).bytes, playable: totals(source, playable).bytes };
+    ...(source.near === undefined ? {} : { near: totals(source, reportCardClosure(source, nearRoots)).bytes }),
+    total: totals(source, reportCardClosure(source, [...source.critical, ...source.library, ...tileRoots, ...farRoots, ...nearRoots])).bytes, playable: totals(source, playable).bytes };
   const libraryView = totals(source, library);
   const views = [['spawn', spawn.x, spawn.z], ['worst memory', ...worst.location]].map(([name, x, z]) => {
     if (typeof name !== 'string' || typeof x !== 'number' || typeof z !== 'number') throw new Error('Invalid report view');
@@ -525,7 +527,7 @@ export function performanceReportLines(report: PerformanceReport): string[] {
     ...report.graphs.map(graph => `graph ${graph.id}: ${graph.nodes}/${DEFAULT_GRAPH_BUDGET.nodes} nodes, ${graph.samplers}/${DEFAULT_GRAPH_BUDGET.samplers} samplers, ${graph.instructions}/${DEFAULT_GRAPH_BUDGET.instructions} instructions`),
     ...(report.graphs.length === 0 ? ['graphs: 0 authored graphs; platform family shader presets'] : []),
     report.scripts.scripts.samples === 0 ? 'scripts CPU/fuel: UNMEASURED (execution proof required)' : `measured scripts (${report.scripts.scripts.samples} ticks): p95 ${report.scripts.scripts.p95Micros.toFixed(1)} us/tick, max ${report.scripts.scripts.maxMicros.toFixed(1)} us/tick; fuel p95 ${report.scripts.fuel.p95}, max ${report.scripts.fuel.max}/${SCRIPT_LIMITS.fuelPerTick}`,
-    `download closures: critical ${mb(report.download.critical)}, tiles ${mb(report.download.tiles)}, library ${mb(report.download.library)}, far ${mb(report.download.far)}, unique total ${mb(report.download.total)}`,
+    `download closures: critical ${mb(report.download.critical)}, tiles ${mb(report.download.tiles)}, library ${mb(report.download.library)}, far ${mb(report.download.far)}${report.download.near === undefined ? '' : `, near ${mb(report.download.near)}`}, unique total ${mb(report.download.total)}`,
     `estimated playable ${report.estimatedPlayable.seconds.toFixed(3)} s: ${mb(report.download.playable)} at ${mb(report.estimatedPlayable.bytesPerSecond)}/s + ${report.estimatedPlayable.setupSeconds} s setup (assumptions, not a phone reading)`,
     ...report.issues.map(issue => `${issue.severity.toUpperCase()}: ${issue.metric}: ${issue.actual} > ${issue.limit}`)];
 }

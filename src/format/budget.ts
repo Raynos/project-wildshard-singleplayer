@@ -1,6 +1,7 @@
 import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
 import { contentCost } from '@wildshard/format/contentCost';
 import type { Shardfile } from '@wildshard/format/shardSchema';
+import { NEAR_PLACEHOLDER_LIMITS, nearPlaceholderCost } from '@wildshard/format/nearPlaceholder';
 
 /** Category resident targets are tradeable warnings; only the complete playing/loading totals refuse memory. */
 export function memoryTargetWarnings(shard: Shardfile): { category: string; bytes: number; target: number }[] {
@@ -28,6 +29,8 @@ function locationModels(shard: Shardfile, commons: number): ((x: number, z: numb
   const own = shard.tiles.filter(tile => tile.lod === 0);
   const coarseExcess = shard.tiles.filter(tile => tile.lod === 1).reduce((sum, tile) => sum + Math.max(0, tile.decoded + tile.gpu - C.l1.resident), 0);
   const models: ((x: number, z: number) => LocationCost)[] = [];
+  const nearBytes = shard.near === undefined ? 0 : nearPlaceholderCost(shard.near, shard).total.resident +
+    (NEAR_PLACEHOLDER_LIMITS.cells - 1) * (NEAR_PLACEHOLDER_LIMITS.terrainBytes + NEAR_PLACEHOLDER_LIMITS.contentBytes);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
     const neighbours = [[sx * C.pitch, 0], [0, sz * C.pitch], [sx * C.pitch, sz * C.pitch]] as const;
     const tiles = neighbours.flatMap(([cx, cz]) => Array.from({ length: 64 }, (_, i) => ({ x0: cx - 250 + (i % 8) * 62.5, z0: cz - 250 + Math.floor(i / 8) * 62.5 })));
@@ -38,7 +41,7 @@ function locationModels(shard: Shardfile, commons: number): ((x: number, z: numb
       let l0 = 8 * C.l0.resident;
       for (const tile of own) if (distance2(x, z, tile.bounds.min[0], tile.bounds.min[2], tile.bounds.max[0], tile.bounds.max[2]) <= RADIUS2) l0 += tile.decoded + tile.gpu;
       for (const tile of tiles) if (distance2(x, z, tile.x0, tile.z0, tile.x0 + 62.5, tile.z0 + 62.5) <= RADIUS2) l0 += C.l0.resident;
-      const cost = contentCost({ l0, l1: C.l1Count * C.l1.resident + coarseExcess, far: (C.farCount - 1) * C.far.resident + (shard.far === null ? 0 : shard.far.decoded + shard.far.gpu), libraries: (ownActive ? shard.budgets.library.resident : 0) + active * C.library.resident, sims: Math.max(shard.budgets.sim.resident, shard.serverBudget.memory) + 3 * C.sim.resident, commons, overlap: Math.max(C.overlap, shard.budgets.overlap) });
+      const cost = contentCost({ l0, l1: C.l1Count * C.l1.resident + coarseExcess, far: (C.farCount - 1) * C.far.resident + (shard.far === null ? 0 : shard.far.decoded + shard.far.gpu), libraries: (ownActive ? shard.budgets.library.resident : 0) + active * C.library.resident, sims: Math.max(shard.budgets.sim.resident, shard.serverBudget.memory) + 3 * C.sim.resident, commons, near: nearBytes, overlap: Math.max(C.overlap, shard.budgets.overlap) });
       return { ...cost, location: [x, z] };
     });
   }
@@ -57,7 +60,8 @@ const worstCache = new Map<string, LocationCost>();
 
 /** Worst disc with three synthetic neighbours at the platform targets; grid padding covers unsampled gaps. */
 export function worstContentCost(shard: Shardfile, commons = 0): LocationCost {
-  const key = JSON.stringify([shard.tiles.map(tile => [tile.lod, tile.decoded, tile.gpu, tile.bounds.min[0], tile.bounds.min[2], tile.bounds.max[0], tile.bounds.max[2]]), shard.far === null ? null : [shard.far.decoded, shard.far.gpu], shard.budgets.library.resident, shard.budgets.sim.resident, shard.budgets.overlap, shard.serverBudget.memory, commons]);
+  const key = JSON.stringify([shard.tiles.map(tile => [tile.lod, tile.decoded, tile.gpu, tile.bounds.min[0], tile.bounds.min[2], tile.bounds.max[0], tile.bounds.max[2]]), shard.far === null ? null : [shard.far.decoded, shard.far.gpu], shard.budgets.library.resident, shard.budgets.sim.resident, shard.budgets.overlap, shard.serverBudget.memory, commons,
+    shard.near === undefined ? 0 : nearPlaceholderCost(shard.near, shard).total.resident]);
   const cached = worstCache.get(key);
   if (cached !== undefined) return { ...cached, location: [...cached.location] };
   let worst: LocationCost = { playing: 0, loading: 0, accounted: 0, location: [0, 0] };

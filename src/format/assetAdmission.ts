@@ -23,6 +23,8 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 
 import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 import { assertCommonsCosts, type CommonsCosts } from '@wildshard/format/commonsCosts';
+import { nearPlaceholderCost } from '@wildshard/format/nearPlaceholder';
+import { validateNearPlaceholderAssets } from '@wildshard/format/nearPlaceholderAssets';
 
 
 function acceptsTotal(memory: MemoryAdmission | undefined, source: Shardfile, stage: 'declared' | 'actual', cost: ReturnType<typeof worstContentCost>): boolean {
@@ -39,6 +41,7 @@ export function acceptValidatedCost(source: Shardfile, cost: ReturnType<typeof w
 /** Check declared residency before immutable reads; exact parsed headers are checked again on admission. */
 export function preflightDeclaredCosts(source: Shardfile, memory?: MemoryAdmission): { commons: CommonsCosts; worst: ReturnType<typeof worstContentCost> } {
   const commons = assertCommonsCosts(source.requires.commons, source.requires.commonsCosts);
+  if (source.near !== undefined) nearPlaceholderCost(source.near, source);
   const files = new Map(source.files.map(file => [file.hash, file]));
   const closure = (roots: readonly string[]): Set<string> => {
     const found = new Set<string>(), pending = [...roots];
@@ -192,6 +195,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   validateSocketLandings(s, assets);
   validatePortalFloors(portalLinkEntries(s.entryways), s, assets);
   if (s.terrain !== null) validateTerrainAssets(s.terrain, assets, s);
+  if (s.near !== undefined) validateNearPlaceholderAssets(s.near, assets);
   validateSkinAssets(s, assets);
   return s;
 }

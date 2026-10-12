@@ -322,7 +322,33 @@ commons catalogue bytes. Metadata establishes the declared envelope before fetch
 or cache reads; byte validation subsequently checks equality with the declaration.
 Empty older products may omit both maps and parse with empty defaults.
 
-Admission checks declared transitive library, critical, tile/far and worst-location
+**Near placeholders (G342).** Optional `near: {version: 1, terrain, content}`
+declares a separate visual bundle. `terrain` is either empty for a mesh world or
+the complete 4 × 4 L1 grid: `{x, z, file}` with coordinates 0–3 and immutable
+binary references. Each actual payload must contain a coloured 17 × 17 lattice
+over its declared 125 m square. `content` contains at most 32 unique local GLB
+references; actual transformed geometry must fit the cell. These are render
+roots, never critical simulation roots or collider registrations. Missing `near`
+retains the ordinary far proxy without adding a default field to the product.
+
+`@wildshard/format/nearPlaceholder` defines the schema, roots and deduplicated
+closure costs. Initial per-cell limits are 1 MB terrain plus 2 MB content,
+including persistent CPU/GPU dependencies; four cells reserve at most 12 MB.
+The complete playing/loading envelope still controls admission. Content limits
+may rise only with a reviewed measured budget. Missing, cyclic, executable or
+critical dependencies fail before fetch; understated costs and incorrect tile
+addresses fail when actual bytes are admitted. Commons costs remain explicit.
+The product report lists the near download closure and includes it in the unique
+total, while it does not make near content a playable-entry prerequisite.
+
+`test/near-placeholder-admission.test.ts` constructs sixteen actual coloured L1
+payloads, hashes and admits them through the ordinary product reader, and proves
+that simulation, critical, terrain-collider and mesh-collision rows stay empty.
+Runtime activation follows in the budgeted adapter: one Debug comparison,
+A far proxy / B near placeholder, default A. The real cell runtime replaces it
+when entered; this contract never installs a simulation or renderer on import.
+
+Admission checks declared transitive library, critical, tile/far/near and worst-location
 costs before immutable asset network or cache reads. An oversized declared envelope
 is refused at that stage. Hashes and parsed asset headers are then validated;
 actual costs cannot exceed their declarations, and commons costs must match exactly.

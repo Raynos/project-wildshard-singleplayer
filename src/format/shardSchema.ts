@@ -13,6 +13,7 @@ import { scriptBindingRules } from '@wildshard/format/scripts';
 import { RowsSchema } from '@wildshard/format/rows';
 import { DirectorsSchema } from '@wildshard/format/directorStages';
 import { TerrainSchema } from '@wildshard/format/terrain';
+import { NearPlaceholderSchema, nearPlaceholderCost, nearPlaceholderRoots } from '@wildshard/format/nearPlaceholder';
 import { MeshCollisionSchema, meshCollisionRules } from '@wildshard/format/meshCollision';
 import { NativeGroundSchema, nativeGroundRules } from '@wildshard/format/nativeGround';
 import { WaterSchema } from '@wildshard/format/water';
@@ -74,6 +75,7 @@ const rawSchema = v.strictObject({
   modes: v.exactOptional(ModesSchema),
   files: FilesSchema, tiles: TilesSchema, library: LibrarySchema, critical: CriticalSchema,
   far: FarSchema,
+  near: v.exactOptional(NearPlaceholderSchema),
   ui: v.optional(UiSchema, []),
   rows: v.optional(RowsSchema, { strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [] }),
   terrain: v.optional(v.nullable(TerrainSchema), null),
@@ -127,7 +129,7 @@ export function shardfileRules(s: Shardfile): string[] {
   if (commonsWire.length !== commons.size || commonsWire.some((id) => !commons.has(id))) errors.push('commons wire declarations match the exact commons hash keyset');
   const files = new Map(s.files.map((f) => [f.hash, f]));
   if (files.size !== s.files.length) errors.push('unique file hashes');
-  const refs = [...s.files.flatMap((f) => f.dependencies), ...s.tiles.flatMap((t) => t.files), ...s.library, ...s.critical, ...s.sim.scripts, ...(s.far?.files ?? []), ...(s.look.grade.lut === null ? [] : [s.look.grade.lut])];
+  const refs = [...s.files.flatMap((f) => f.dependencies), ...s.tiles.flatMap((t) => t.files), ...s.library, ...s.critical, ...s.sim.scripts, ...(s.far?.files ?? []), ...nearPlaceholderRoots(s.near), ...(s.look.grade.lut === null ? [] : [s.look.grade.lut])];
   for (const r of refs) if (r.startsWith('commons:') ? !s.requires.commons.includes(r.slice(8)) : !files.has(r)) errors.push(`undeclared reference ${r}`);
   const visited = new Set<string>(), active = new Set<string>();
   for (const root of files.keys()) {
@@ -169,6 +171,9 @@ export function shardfileRules(s: Shardfile): string[] {
     if (t.lod === 1 && t.files.some((r) => s.library.includes(r))) errors.push('self-contained coarse tile');
   }
   for (const f of s.files) if (f.critical !== s.critical.includes(f.hash)) errors.push('critical flags match roots');
+  if (s.near !== undefined) {
+    try { nearPlaceholderCost(s.near, s); } catch { errors.push('admitted bounded visual near-placeholder closure'); }
+  }
   errors.push(...uiRules(s.ui, s.state));
   errors.push(...hookRules(s.hooks, s.state));
   errors.push(...meshCollisionRules(s));
