@@ -58,13 +58,13 @@ export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = {
   rocks: '/assets/sunscar-dunes/baked/rocks.glb', dressing: '/assets/sunscar-dunes/baked/dressing.glb', tower: '/assets/sunscar-dunes/baked/tower.glb',
   caravan: '/assets/sunscar-dunes/baked/caravan.glb', well: '/assets/sunscar-dunes/baked/well.glb', lash: '/assets/sunscar-dunes/baked/lash.glb',
 };
-/** The creature bodies baked offline as skinned rig files (SF72: `generators/species.ts`, G345 `generators/hulls.ts` → `generators/bake-signal-rigs.mjs`), read by `world/meshes.ts`. */
+/** The creature bodies baked offline as skinned rig files (SF72: `generators/species.ts`, G345 `generators/hulls.ts` → `generators/bake-signal-rigs.mjs`), loaded by `world/meshes.ts` (the game's `creatureBodies`). */
 export const DUNE_RIGS = ['skitterer', 'strider'] as const;
 export type DuneRigName = (typeof DUNE_RIGS)[number];
 export const DUNE_RIG_URLS: Readonly<Record<DuneRigName, string>> = { skitterer: '/assets/sunscar-dunes/rigs/skitterer.glb', strider: '/assets/sunscar-dunes/rigs/strider.glb' };
 /** The model library `world/meshes.ts` loads (`@wildshard/sdk/looks/modelLibrary`): the lists above, the AO floor, the hero dressing. */
-export const DUNE_MODELS: ModelLibraryRows<DuneMeshName, DuneHdName, DuneRigName> = {
-  meshes: DUNE_MESHES, meshUrls: DUNE_MESH_URLS, hd: DUNE_HD, hdUrls: DUNE_HD_URLS, rigs: DUNE_RIGS, rigUrls: DUNE_RIG_URLS,
+export const DUNE_MODELS: ModelLibraryRows<DuneMeshName, DuneHdName, never> = {
+  meshes: DUNE_MESHES, meshUrls: DUNE_MESH_URLS, hd: DUNE_HD, hdUrls: DUNE_HD_URLS, rigs: [], rigUrls: {},
   aoFloor: FACET_AO_FLOOR, hdLooks: HD_LOOKS,
 };
 

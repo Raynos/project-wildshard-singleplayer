@@ -6,7 +6,7 @@
  * - `bandSkin`: a flat winged body (a ray, a manta) skinned per vertex with smooth bands, so a shared corner never splits:
  *   the wings by |x|, the head forward of an edge, the tail behind one, the body the rest (bones body, head, left / right
  *   wing, tail); optionally tinted, the back by a factor and the underside toward a belly colour.
- * - `quadrupedLook`: a species look on a fitted four-legged hull: its rig contract, clips and dims as rows.
+ * - `bakedLook`: a species look on a baked body (the skitterer, the strider): its rig contract and clips as rows.
  */
 import { Float32BufferAttribute, Uint16BufferAttribute, type BufferGeometry } from 'three';
 import type { ClipName, SocketName } from '@wildshard/engine/anim/rig';
@@ -14,10 +14,8 @@ import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { fitGeometry } from '@wildshard/game/plugin/geometry';
 import { clipAnimate, type SpeciesClips } from '@wildshard/game/plugin/animation';
-import type { BandSkinRow, HullBone, HullTint } from '../../data/hulls';
-
-/** A fitted hull: its skeleton, its skinned geometry and its height. */
-export interface FittedHull { bones: HullBone[]; geometry: BufferGeometry; h: number }
+import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
+import type { BandSkinRow, HullTint } from '../../data/hulls';
 
 const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
 
@@ -49,23 +47,14 @@ export function bandSkin(source: BufferGeometry, row: BandSkinRow, tint: HullTin
   return g;
 }
 
-/** A four-legged hull's species look as rows: its ids, rig contract and dims (`bodyY` and `legLen` as shares of the hull's height). */
-export interface QuadrupedLookRow {
+/** A baked body's species look as rows: its ids and rig contract (its dims ride in the baked body). */
+export interface BakedLookRow {
   readonly id: string; readonly species: string; readonly kind: string;
   readonly skeleton: string; readonly sockets: readonly SocketName[]; readonly clipNames: readonly ClipName[];
-  readonly dims: { readonly bodyY: number; readonly bodyHalfLen: number; readonly bodyRadius: number; readonly headRadius: number; readonly legLen: number; readonly halfWidth: number };
 }
 
-/** A species look on a fitted four-legged hull (built fresh each time from `hull`), animated by its clip rows. */
-export function quadrupedLook(row: QuadrupedLookRow, hull: () => FittedHull, clips: SpeciesClips): SpeciesLook {
-  const d = row.dims;
+/** A species look on a baked body (`build`: a fresh copy each time, world/meshes.ts duneBody), animated by its clip rows. */
+export function bakedLook(row: BakedLookRow, build: () => AnimalSpecies, clips: SpeciesClips): SpeciesLook {
   return { id: row.id, species: row.species, kind: row.kind, rig: 'custom', fur: NO_FUR,
-    rigContract: { skeleton: row.skeleton, sockets: [...row.sockets], clips: [...row.clipNames] },
-    build: () => {
-      const body = hull();
-      return { bones: body.bones, furParts: [], hardParts: [body.geometry], eyeParts: [],
-        dims: { bodyY: body.h * d.bodyY, bodyHalfLen: d.bodyHalfLen, bodyRadius: d.bodyRadius, headRadius: d.headRadius, legLen: body.h * d.legLen, feet: [], halfWidth: d.halfWidth } };
-    },
-    animate: clipAnimate(clips),
-  };
+    rigContract: { skeleton: row.skeleton, sockets: [...row.sockets], clips: [...row.clipNames] }, build, animate: clipAnimate(clips) };
 }

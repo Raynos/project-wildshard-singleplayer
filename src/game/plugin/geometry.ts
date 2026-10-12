@@ -213,6 +213,8 @@ export interface SkinnedModel {
   copy: () => SkinnedAsset;
   /** The shared maps every copy draws with (for the owner's cache and upload policy). */
   textures: () => readonly Texture[];
+  /** The loaded parts every copy clones (kept once, for the owner's cache policy). */
+  geometries: () => readonly BufferGeometry[];
 }
 
 const isSkinnedMesh = (node: Object3D): node is SkinnedMesh => node instanceof SkinnedMesh;
@@ -296,6 +298,7 @@ export function skinnedModel(url: string): SkinnedModel {
     load: (bytes) => { pending ??= start(bytes); return pending; },
     loaded: () => template !== undefined,
     textures: () => template === undefined ? [] : [...new Set(template.parts.flatMap((part) => part.map === null ? [] : [part.map]))],
+    geometries: () => template === undefined ? [] : template.parts.map((part) => part.geometry),
     copy: () => {
       if (template === undefined) throw new Error(`Skinned model was not loaded: ${url}`);
       return { clips: template.clips, extras: template.extras, bones: template.bones.map((bone) => ({ name: bone.name, parent: bone.parent, pos: [bone.pos[0], bone.pos[1], bone.pos[2]] })),
@@ -328,6 +331,8 @@ export interface CreatureBodies<C extends string> {
   bodyOrStandIn: (creature: C) => AnimalSpecies;
 }
 
+/** A part baked without normals (a smaller file) gets its flat normals from its own positions, per copy. */
+const flatNormals = (g: BufferGeometry): BufferGeometry => { if (!g.hasAttribute('normal')) g.computeVertexNormals(); return g; };
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 /** A baked body's extras as its look numbers (`dims`, optional `facetJitter` / `selfLight`), or null. */
 function bodyExtras(value: unknown): { dims: CreatureDims; facetJitter?: number; selfLight?: number } | null {
@@ -350,10 +355,11 @@ export function creatureBodies<C extends string>(rows: CreatureBodyRows<C>): Cre
     const model = skinnedModel(rows.urls[creature]);
     try {
       await model.load();
-      for (const map of model.textures()) {
-        rows.onMap?.(map);
-        retainCachedResources(map);
-        cacheUntilDisposed(map, () => { if (models.get(creature) === model) { models.delete(creature); loading = null; } });
+      for (const map of model.textures()) rows.onMap?.(map);
+      // the maps and the loaded parts are kept once, like the model library's models; a retired one reloads on the next preload
+      for (const kept of [...model.textures(), ...model.geometries()]) {
+        retainCachedResources(kept);
+        cacheUntilDisposed(kept, () => { if (models.get(creature) === model) { models.delete(creature); loading = null; } });
       }
       models.set(creature, model);
     } catch (e: unknown) { console.error(`${rows.fault} the baked creature ${creature} did not load:`, e); }
@@ -363,7 +369,7 @@ export function creatureBodies<C extends string>(rows: CreatureBodyRows<C>): Cre
     if (model === undefined) return null;
     const asset = model.copy(), extras = bodyExtras(asset.extras), map = asset.parts[0]?.map ?? null;
     if (extras === null) throw new Error(`${rows.fault} the baked creature ${creature} has no dims`);
-    return { bones: asset.bones.map((bone) => ({ name: bone.name, parent: bone.parent, pos: bone.pos })), furParts: [], eyeParts: [], hardParts: asset.parts.map((part) => part.geometry),
+    return { bones: asset.bones.map((bone) => ({ name: bone.name, parent: bone.parent, pos: bone.pos })), furParts: [], eyeParts: [], hardParts: asset.parts.map((part) => flatNormals(part.geometry)),
       dims: { ...extras.dims, feet: [] }, ...(map === null ? {} : { map }), ...(extras.facetJitter === undefined ? {} : { facetJitter: extras.facetJitter }),
       ...(extras.selfLight === undefined ? {} : { selfLight: extras.selfLight }) };
   };

@@ -1,5 +1,5 @@
 import { BufferGeometry, Color, Float32BufferAttribute, IcosahedronGeometry, MeshStandardMaterial, OctahedronGeometry, TorusGeometry, Uint16BufferAttribute, Vector3 } from 'three';
-import { readSourceModel, skinnedGlb, type RawTexture, type SkinnedBone, type SkinnedOutput } from './skinned';
+import { readSourceModel, skinnedGlb, type RawTexture, type SkinnedBone, type SkinnedOutput } from '@wildshard/sdk/bake/skinned';
 import type { AnimalDims } from '@wildshard/engine/entities/species/registry';
 import { bindRigid } from '@wildshard/sdk/looks/modelLibrary';
 import { hdGeometry } from '../runtime/looks/modelIntake';

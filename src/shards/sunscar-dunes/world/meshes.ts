@@ -1,11 +1,14 @@
-import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
+import { createModelLibrary, undrawnRig } from '@wildshard/sdk/looks/modelLibrary';
+import { creatureBodies } from '@wildshard/game/plugin/geometry';
+import { SKITTERER_BODY } from '../data/species/skitterer';
+import { STRIDER_BODY } from '../data/striderRig.baked';
 import { applySurfaceLooks } from '@wildshard/game/systems/looks/surfaceLooks';
 import type { SurfaceLook } from '@wildshard/format/surfaceLooks';
 import { FIRE_LIGHTS } from './fireFx';
 import { DUSK } from '../look/dusk';
 import { CAMP_SURFACE } from '../data/surfaces';
-import { DUNE_MODELS } from '../data/files';
-import type { MeshStandardMaterial } from 'three';
+import { DUNE_MODELS, DUNE_RIGS, DUNE_RIG_URLS, type DuneRigName } from '../data/files';
+import type { BufferGeometry, MeshStandardMaterial } from 'three';
 
 /**
  * Signal Dunes' generated models (C6, E374): codex refs → Hunyuan3D-2 → faceted, vertex-coloured GLBs, the textured hero
@@ -17,13 +20,18 @@ import type { MeshStandardMaterial } from 'three';
 /** The live inputs Signal's surface rows read: the fires' light slots and the dusk. */
 const SURFACE_INPUTS = { lights: FIRE_LIGHTS, dusk: DUSK };
 const MODELS = createModelLibrary(DUNE_MODELS, '[sunscar-dunes]', SURFACE_INPUTS);
+const BODIES = creatureBodies({ creatures: DUNE_RIGS, urls: DUNE_RIG_URLS, standIns: { skitterer: SKITTERER_BODY, strider: STRIDER_BODY }, fault: '[sunscar-dunes]' });
 
-/** Load every generated model and baked rig once (a failed one is skipped and faulted). */
-export const preloadDuneMeshes = MODELS.preload;
+/** Load every generated model and baked creature body once (a failed one is skipped and faulted). */
+export const preloadDuneMeshes = (): Promise<void> => Promise.all([MODELS.preload(), BODIES.preload()]).then(() => undefined);
 /** A copy of a loaded model's geometry, or null (not loaded: use the code model). */
 export const duneMesh = MODELS.mesh;
-/** A copy of a baked creature body, or null (not loaded: its load was faulted). */
-export const duneRig = MODELS.rig;
+/** A copy of a baked creature body (bones, skin, dims), else its undrawn stand-in on its skeleton (its load was faulted). */
+export const duneBody = BODIES.bodyOrStandIn;
+/** A copy of a baked creature body, or null (not loaded): the physics bake refuses the stand-in. */
+export const duneBakedBody = BODIES.body;
+/** A baked creature body's skin alone (the Model Explorer's specimen). */
+export const duneBodyGeometry = (creature: DuneRigName): BufferGeometry => duneBody(creature).hardParts[0] ?? undrawnRig();
 /** A textured hero model fitted (turned, centred, its lowest point at its floor, sized), or null when it did not load. */
 export const duneHd = MODELS.hd;
 /** A camp material warmed by each burning fire within ~4.5 m (`data/surfaces.ts` FIRELIGHT): its own fire lights it. */

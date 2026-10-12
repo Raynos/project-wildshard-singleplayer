@@ -1,5 +1,5 @@
 import { Float32BufferAttribute, type BufferGeometry } from 'three';
-import { readSourceModel } from './skinned';
+import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { hdGeometry } from '../runtime/looks/modelIntake';
 import { fitModel } from './modelIntake';

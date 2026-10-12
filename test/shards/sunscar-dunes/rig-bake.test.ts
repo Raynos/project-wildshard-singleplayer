@@ -3,14 +3,16 @@ import { describe, expect, it, vi } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import type { BufferGeometry } from 'three';
+import { FileLoader, type BufferGeometry } from 'three';
 import { bakeSignalSkitterer, skittererGeometry } from '../../../src/shards/sunscar-dunes/generators/species';
 import { bakeSignalStrider, quadrupedHull } from '../../../src/shards/sunscar-dunes/generators/hulls';
 import { DUNE_MODELS, DUNE_RIGS } from '../../../src/shards/sunscar-dunes/data/files';
 import { STRIDER_HULL } from '../../../src/shards/sunscar-dunes/data/hulls';
-import { STRIDER_RIG } from '../../../src/shards/sunscar-dunes/data/striderRig.baked';
+import { STRIDER_BODY } from '../../../src/shards/sunscar-dunes/data/striderRig.baked';
+import { SKITTERER_BODY } from '../../../src/shards/sunscar-dunes/data/species/skitterer';
+import { STRIDER_LOOK } from '../../../src/shards/sunscar-dunes/data/species/strider';
 import { createModelLibrary } from '../../../src/sdk/looks/modelLibrary';
-import { duneRig, preloadDuneMeshes } from '../../../src/shards/sunscar-dunes/world/meshes';
+import { duneBakedBody, preloadDuneMeshes } from '../../../src/shards/sunscar-dunes/world/meshes';
 
 const folder = new URL('../../../public/assets/sunscar-dunes/rigs/', import.meta.url);
 
@@ -28,9 +30,13 @@ describe('Signal Dunes bakes its code-built creature bodies offline (SHARD-PLATF
       const bytes = readFileSync(`public${url}`);
       return parser.setMeshoptDecoder(MeshoptDecoder).parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
     });
+    const files = vi.spyOn(FileLoader.prototype, 'loadAsync').mockImplementation((url) => {
+      const bytes = readFileSync(`public${url}`);
+      return Promise.resolve(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+    });
     return { restore: () => {
-      expect(errors.mock.calls.map(([message]) => String(message)).filter((m) => m.includes('baked rig') || m.includes('dune-strider'))).toEqual([]);
-      loaded.mockRestore(); errors.mockRestore();
+      expect(errors.mock.calls.map(([message]) => String(message)).filter((m) => m.includes('baked creature') || m.includes('dune-strider'))).toEqual([]);
+      loaded.mockRestore(); files.mockRestore(); errors.mockRestore();
     } };
   };
   const same = (got: BufferGeometry, want: BufferGeometry, names: readonly string[]): void => {
@@ -41,14 +47,15 @@ describe('Signal Dunes bakes its code-built creature bodies offline (SHARD-PLATF
     }
   };
 
-  it('the client reads the bake as the code built it: the same positions, colours, flat normals, bones and weights', async () => {
+  it('the client reads the bake as the code built it: the same positions, colours, flat normals, bones, weights and dims', async () => {
     const io = fromPublic();
     try {
       await preloadDuneMeshes();
-      const got = duneRig('skitterer'), want = skittererGeometry();
-      if (got === null) throw new Error('skitterer rig missing');
+      const body = duneBakedBody('skitterer'), got = body?.hardParts[0], want = skittererGeometry();
+      if (body === null || got === undefined) throw new Error('skitterer rig missing');
       same(got, want, ['position', 'color', 'normal', 'skinIndex', 'skinWeight']);
       expect([got.getIndex(), Object.keys(got.attributes).sort()]).toEqual([want.getIndex(), Object.keys(want.attributes).sort()]);
+      expect([body.bones, body.dims]).toEqual([SKITTERER_BODY.bones, { ...SKITTERER_BODY.dims, feet: [] }]);
     } finally { io.restore(); }
   });
 
@@ -61,12 +68,16 @@ describe('Signal Dunes bakes its code-built creature bodies offline (SHARD-PLATF
       const baked = bakeSignalStrider(source(), STRIDER_HULL);
       expect(new Uint8Array(readFileSync(new URL('strider.glb', folder)))).toEqual(baked.glb);
       expect(readFileSync('src/shards/sunscar-dunes/data/striderRig.baked.ts', 'utf8')).toBe(baked.rig);
-      const hull = quadrupedHull(source(), STRIDER_HULL);
-      expect([STRIDER_RIG.h, STRIDER_RIG.bones]).toEqual([hull.h, hull.bones]);
+      const hull = quadrupedHull(source(), STRIDER_HULL), d = STRIDER_LOOK.dims;
+      const dims = { bodyY: hull.h * d.bodyY, bodyHalfLen: d.bodyHalfLen, bodyRadius: d.bodyRadius, headRadius: d.headRadius, legLen: hull.h * d.legLen, halfWidth: d.halfWidth };
+      expect(STRIDER_BODY).toEqual({ bones: hull.bones, dims });
       await preloadDuneMeshes();
-      const got = duneRig('strider');
-      if (got === null) throw new Error('strider rig missing');
-      same(got, hull.geometry, ['position', 'color', 'skinIndex', 'skinWeight']);
+      const body = duneBakedBody('strider'), got = body?.hardParts[0];
+      if (body === null || got === undefined) throw new Error('strider rig missing');
+      const want = hull.geometry.index === null ? hull.geometry : hull.geometry.toNonIndexed();
+      want.computeVertexNormals();
+      same(got, want, ['position', 'color', 'normal', 'skinIndex', 'skinWeight']);
+      expect([body.bones, body.dims]).toEqual([hull.bones, { ...dims, feet: [] }]);
     } finally { io.restore(); }
   });
 });

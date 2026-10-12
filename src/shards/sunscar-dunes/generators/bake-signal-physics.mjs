@@ -52,13 +52,13 @@ try {
         const rows = await at(`src/shards/sunscar-dunes/${rowFile}.ts`), looks = await at(`src/shards/sunscar-dunes/${lookFile}.ts`);
         app.species.registerRow(rows[row], scope); app.species.registerLook(looks[look], scope);
       }
-      const { duneMesh, duneRig } = await at('src/shards/sunscar-dunes/world/meshes.ts');
+      const { duneMesh, duneBakedBody } = await at('src/shards/sunscar-dunes/world/meshes.ts');
       const source = duneMesh('caravan-scout');
       if (source === null) throw new Error('Signal scout model is missing');
       scope.own(source);
-      const body = duneRig('skitterer');
+      const body = duneBakedBody('skitterer');
       if (body === null) throw new Error('Signal skitterer rig is missing');
-      scope.own(body);
+      for (const part of body.hardParts) scope.own(part);
       const { SCOUT_NPC } = await at('src/shards/sunscar-dunes/quests/scout.ts');
       const { installPivotNpc } = await at('src/game/plugin/geometry.ts');
       const scout = installPivotNpc(ctx, SCOUT_NPC, { source,

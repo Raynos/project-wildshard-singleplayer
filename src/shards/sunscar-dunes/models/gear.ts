@@ -4,14 +4,12 @@ import { buildWhipModel } from '../weapons/whipModel';
 import { buildTower } from '../world/tower';
 import { lastBakedWorld } from '../world/baked';
 import { buildBrazier, buildCaravan, buildWell } from '../world/places';
-import { skittererBody } from '../species/skitterer';
-import { striderSpecimen } from '../species/strider';
 import { mantaBody } from '../species/duneRay';
 import { RAY_TINT } from '../data/hulls';
 import { matriarchBody } from '../species/matriarch';
 import { pivotNpcParts } from '@wildshard/game/plugin/geometry';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
-import { duneMesh } from '../world/meshes';
+import { duneBodyGeometry, duneMesh } from '../world/meshes';
 import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';
 import caravanRows from '../data/caravan.json' with { type: 'json' };
 import wellRows from '../data/well.json' with { type: 'json' };
@@ -47,9 +45,9 @@ export const brazierModel = defineModel({ id: 'sunscar-dunes/waymark-brazier', n
 export const rayModel = defineModel({ id: 'sunscar-dunes/dune-ray', name: STRINGS.ray, category: 'creatures', pipeline: ['hunyuan'], file: FILE, defaults: {},
   build: () => creature(mantaBody(RAY_TINT)) });
 export const skittererModel = defineModel({ id: 'sunscar-dunes/sand-skitterer', name: STRINGS.skitterer, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
-  build: () => creature(skittererBody()) });
+  build: () => creature(duneBodyGeometry('skitterer')) });
 export const striderModel = defineModel({ id: 'sunscar-dunes/dune-strider', name: STRINGS.strider, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
-  build: () => creature(striderSpecimen()) });
+  build: () => creature(duneBodyGeometry('strider')) });
 export const matriarchModel = defineModel({ id: 'sunscar-dunes/dune-matriarch', name: STRINGS.matriarch, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
   build: () => creature(matriarchBody(), 3.6) });
 /** Sefa, the caravan scout who gives the quest (loop 2): the generated figure at her own origin. */

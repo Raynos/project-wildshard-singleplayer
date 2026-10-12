@@ -6,7 +6,7 @@ import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
  * (`readSourceModel`), runs its own processing on it (fit, retarget, merge, strip, recolour, re-skin: a generator function in
  * the shard's folder), and writes the result as a standard skinned glTF (`skinnedGlb`): a joint hierarchy with inverse
  * bind matrices, `JOINTS_0` / `WEIGHTS_0`, the animations as glTF channels and the shard's own JSON beside it. The client
- * only loads it (`@wildshard/sdk/skinnedModel`), bit-exact: every float32 channel, the joint bind positions as JSON
+ * only loads it (`@wildshard/game/plugin/geometry` skinnedModel / creatureBodies), bit-exact: every float32 channel, the joint bind positions as JSON
  * doubles, the weights as written (never renormalized) and an authored triangle soup restored.
  *
  * A part's base-colour map rides inside the GLB as the source's exact image bytes (never re-encoded), so the client decodes

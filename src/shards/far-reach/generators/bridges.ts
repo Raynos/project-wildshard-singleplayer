@@ -1,5 +1,5 @@
 import { Euler, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry } from 'three';
-import { readSourceModel } from './skinned';
+import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { facetedGeometry, fitModel } from './modelIntake';
 import { FALLEN_BRIDGE, SPANS, type Span } from '../data/layout';

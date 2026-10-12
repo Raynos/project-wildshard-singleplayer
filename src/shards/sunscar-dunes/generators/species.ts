@@ -1,11 +1,12 @@
 import { BoxGeometry, ConeGeometry, IcosahedronGeometry, MeshStandardMaterial, type BufferGeometry } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { skinnedGlb } from '@wildshard/sdk/bake/skinned';
+import { SKITTERER_BODY } from '../data/species/skitterer';
 import { placed, skinParts } from './rigidSkin';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72, SF67 fix 3 "bake the code-built worlds"): the sand skitterer's code-built body,
- * baked offline (`scripts/bake-signal-rigs.mjs` → `rigs/skitterer.glb`). The client reads it as one skinned geometry
- * (`world/meshes.ts` duneRig): positions, the parts' flat colours and the bone each part rides, as `_JOINTS` / `_WEIGHTS`;
+ * baked offline (`scripts/bake-signal-rigs.mjs` → `rigs/skitterer.glb`) as a standard skinned GLB the game's
+ * `creatureBodies` loads (`world/meshes.ts` duneBody): positions, the parts' flat colours and the bone each part rides;
  * no normals, because the client recomputes them from the same positions. The two generated bodies (the strider, the
  * Matriarch) keep their skinning in the client: baked, their float positions cost more than the files they replace.
  */
@@ -28,9 +29,9 @@ export function skittererGeometry(): BufferGeometry {
   return skinParts(parts);
 }
 
-/** The skitterer's rig file: its skinned body without normals, the bone indices and weights as custom attributes. */
+/** The skitterer's rig file: its skinned body without normals (the client computes them), its skeleton and dims (SKITTERER_BODY). */
 export function bakeSignalSkitterer(): { glb: Uint8Array } {
   const geometry = skittererGeometry(); geometry.deleteAttribute('normal');
   const material = new MeshStandardMaterial({ name: 'sunscar.skitterer', vertexColors: true });
-  return { glb: staticGlb([{ geometry, material, castShadow: false, customAttributes: { _JOINTS: 'skinIndex', _WEIGHTS: 'skinWeight' } }], 'sunscar.skitterer') };
+  return skinnedGlb({ name: 'sunscar.skitterer', bones: SKITTERER_BODY.bones, parts: [{ geometry, material }], extras: { dims: { ...SKITTERER_BODY.dims } } });
 }

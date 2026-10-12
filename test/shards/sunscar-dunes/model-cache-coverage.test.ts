@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Parse the committed GLBs in this Node-only allocation witness.
 import { readFileSync } from 'node:fs';
 import { expect, it, vi } from 'vitest';
+import { FileLoader } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { app } from '../../../src/engine/app/runtime';
@@ -39,6 +40,11 @@ it('loads the actual pack horse with standalone and grid coverage, charging conc
     const bytes = readFileSync(`public${url}`);
     return parser.parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
   });
+  // the creature bodies' skinned GLBs (the game's creatureBodies) read their bytes through three's FileLoader
+  const files = vi.spyOn(FileLoader.prototype, 'loadAsync').mockImplementation(url => {
+    const bytes = readFileSync(`public${url.replace(/\?.*$/u, '')}`);
+    return Promise.resolve(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+  });
   const warnings = vi.spyOn(console, 'warn'), faults = vi.spyOn(console, 'error');
   const initial = new Set(app.assets.retained().map(row => row.key));
   try {
@@ -73,7 +79,7 @@ it('loads the actual pack horse with standalone and grid coverage, charging conc
       expect(page.allocator.entries()).toEqual([]);
     }
   } finally {
-    loaded.mockRestore(); warnings.mockRestore(); faults.mockRestore();
+    loaded.mockRestore(); files.mockRestore(); warnings.mockRestore(); faults.mockRestore();
     for (const [key, descriptor] of [['ImageBitmap', priorBitmap], ['createImageBitmap', priorDecode], ['self', priorSelf]] as const) {
       if (descriptor === undefined) Reflect.deleteProperty(globalThis, key); else Object.defineProperty(globalThis, key, descriptor);
     }

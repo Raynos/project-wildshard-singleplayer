@@ -101,6 +101,7 @@
     "./synth": "./synth.ts",
     "./formatJsonSchema": "./formatJsonSchema.ts",
     "./bake/rig": "./bake/rig.ts",
+    "./bake/skinned": "./bake/skinned.ts",
     "./bake/image": "./bake/image.ts",
     "./sceneGraph": "./sceneGraph.ts",
     "./materials": "./materials.ts",
@@ -538,6 +539,10 @@
       "./bake/rig": {
         "types": "./dist/types/sdk/bake/rig.d.ts",
         "default": "./dist/bake/rig.js"
+      },
+      "./bake/skinned": {
+        "types": "./dist/types/sdk/bake/skinned.d.ts",
+        "default": "./dist/bake/skinned.js"
       },
       "./bake/image": {
         "types": "./dist/types/sdk/bake/image.d.ts",
