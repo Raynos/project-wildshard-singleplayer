@@ -1,0 +1,37 @@
+{
+  "source": "81640d17c8115a83759aab70a9e41d276746382f",
+  "weightCommit": "87a214b36f5ce4288b920be574eae7000a28f4cf",
+  "run": 38196076328,
+  "artifacts": 8,
+  "files": 1491,
+  "duplicateFiles": 0,
+  "failedFiles": 0,
+  "actualPackingMatches": true,
+  "beforeRun": 38193988948,
+  "beforeSource": "8891780f198024937bdfc7e065c50e74e248a3d2",
+  "beforeVitestSeconds": [
+    238,
+    286,
+    235,
+    284,
+    409,
+    309,
+    284,
+    159
+  ],
+  "afterVitestSeconds": [
+    372,
+    258,
+    318,
+    318,
+    293,
+    193,
+    235,
+    355
+  ],
+  "beforeSpread": 2.5723270440251573,
+  "afterSpread": 1.927461139896373,
+  "beforeCompleteCiSeconds": 472,
+  "afterCompleteCiSeconds": 431,
+  "caveat": "Changed source, runner and cache state; observed qualification, not isolated causal wall-time proof."
+}
