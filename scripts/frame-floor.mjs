@@ -18,6 +18,7 @@ import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { validateFrameFloorArgs } from './frame-floor-args.mjs';
+import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
 import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 import { GL_INIT } from './parity/glbytes.mjs';
 import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
@@ -324,8 +325,7 @@ async function enterGrid(driver) {
     await sleep(300);
   }
   await sleep(800);
-  await driver.evaluate("(setTimeout(() => { document.querySelector('.ws-main-grid').click(); }, 100), true)"); // the tap navigates: return first
-  await driver.followed();
+  await handoffFloorGridNavigation(driver);
   while (Date.now() - start < 240000) {
     const state = await driver.evaluate(`(() => { const s = (${status.toString()})(); return { ...s, grid: window.__wildshard?.shard?.grid !== undefined }; })()`).catch(() => null); // mid-navigation
     if (state?.error) throw new Error(state.error);
@@ -632,6 +632,7 @@ async function worker() {
       let errors = [], profiler = null;
       driver = {
         load: async (shard) => { errors = []; page = await context.newPage(); page.on('pageerror', (e) => errors.push(e.message.slice(0, 240))); page.on('console', (message) => { if (message.type() === 'error' && message.text().includes('[faults]')) errors.push(message.text().slice(0, 1000)); }); await page.goto(`${base}${query(shard)}`, { waitUntil: 'domcontentloaded' }); },
+        tapGrid: () => page.evaluate(FLOOR_GRID_TAP),
         evaluate: evaluator((expr) => page.evaluate(expr), observe), errors: () => Promise.resolve(errors), progress: () => lastRoute, followed: () => page.waitForURL((u) => !u.search.includes('mute=1') || u.search.includes('chunk='), { timeout: 60000 }).catch(() => undefined),
         unload: async () => { await page?.close(); },
         profile: cpuProfileDir === '' ? null : {
@@ -685,6 +686,7 @@ async function worker() {
           xcrun(['openurl', udid, gameUrl]);
           await connect(gameUrl);
         },
+        tapGrid: () => inspector.raw(FLOOR_GRID_TAP),
         evaluate: retryEvaluate, errors: () => retryEvaluate('window.__frameFloorErrors ?? []'), progress: () => lastRoute, unload: () => { inspector?.close(); inspector = undefined; },
         // the tap's fresh document (same helper page, so the pins stay): reconnect to whatever page the helper path now holds
         followed: async () => { await sleep(1500); await connect(`${base}frame-floor-safari.html`); },
