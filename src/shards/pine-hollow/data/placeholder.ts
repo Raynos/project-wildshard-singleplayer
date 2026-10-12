@@ -1,5 +1,3 @@
-import type { PlaceholderSource } from '@wildshard/format/placeholderSource';
-
 /**
  * Pine Hollow's steer for its generated near placeholder (G348: declared here, read by the generic bake): its forest is
  * drawn by its own tree model, so the bake stands each kept placement in with one of these unit-high shapes by species.
@@ -15,4 +13,4 @@ export const PLACEHOLDER = {
     { species: 'sapling', stem: null, rings: [[0.05, 0.26], [0.45, 0.16]], crown: [84, 122, 66] },
     { species: 'snag', stem: [1, 0.025, [120, 110, 98]], rings: [], crown: [0, 0, 0] },
   ],
-} as const satisfies PlaceholderSource;
+} as const;
