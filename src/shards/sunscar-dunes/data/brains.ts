@@ -43,10 +43,18 @@ export const MATRIARCH_BRAIN: SpeciesBrain = { archetype: 'diver', data: { id: '
 /** The admitted species script modules: each module's SHA-256 → the base64 its bake wrote (a plain JSON row). */
 export const SIGNAL_MODULES: Readonly<Record<string, string>> = { [skitterer.module]: skitterer.bytes };
 
+/** The page's existing native motor/contact recipes; the home keeper retains attack tokens, RNG and all clocks. */
+export const SIGNAL_BODY_ROWS = {
+  duneRay: { kind: 'animal', motion: 'flight', attack: 'keeper', stunned: 'none', contact: { kind: 'actor', halfArc: 70 * Math.PI / 180, move: 'sunscar.duneRay.contact' } },
+  skitterer: { kind: 'animal', motion: 'ground', attack: 'keeper', stunned: 'none', contact: { kind: 'actor', halfArc: 70 * Math.PI / 180, move: 'sunscar.skitterer.contact' } },
+  duneStrider: { kind: 'animal', motion: 'ground', attack: 'keeper', stunned: 'none', contact: { kind: 'actor', halfArc: 70 * Math.PI / 180, move: 'sunscar.duneStrider.contact' } },
+  matriarch: { kind: 'animal', motion: 'flight', attack: 'keeper', stunned: 'none', contact: { kind: 'actor', halfArc: 70 * Math.PI / 180, move: 'sunscar.matriarch.contact' } },
+} as const;
+
 /**
  * Signal Dunes' species catalogue in home-kind order (SF27): every kind runs its declared brain (the ray, the skitterer's
  * admitted script, the strider and the Matriarch).
  */
-export const SIGNAL_SPECIES: readonly BrainedSpecies[] = [{ ...DUNE_RAY, brain: RAY_BRAIN }, { ...SKITTERER_DATA, brain: SKITTERER_BRAIN }, { ...DUNE_STRIDER, brain: STRIDER_BRAIN }, { ...MATRIARCH_DATA, brain: MATRIARCH_BRAIN }];
+export const SIGNAL_SPECIES: readonly BrainedSpecies[] = [{ ...DUNE_RAY, body: SIGNAL_BODY_ROWS.duneRay, brain: RAY_BRAIN }, { ...SKITTERER_DATA, body: SIGNAL_BODY_ROWS.skitterer, brain: SKITTERER_BRAIN }, { ...DUNE_STRIDER, body: SIGNAL_BODY_ROWS.duneStrider, brain: STRIDER_BRAIN }, { ...MATRIARCH_DATA, body: SIGNAL_BODY_ROWS.matriarch, brain: MATRIARCH_BRAIN }];
 /** Every strike row the catalogue's creatures use. */
 export const SIGNAL_STRIKES: readonly StrikeData[] = [SWOOP_DATA, CHARGE_DATA, HORNS_DATA, BITE_DATA, MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA];
