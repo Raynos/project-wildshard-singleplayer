@@ -17,13 +17,14 @@
 .ws-main .ws-main-foot { display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 40px); }
 /* G341 (Jake's pick of G338): a portrait screen shows the landscape hero as a band across the middle on the plain menu
    background, the logo and WHAT'S NEW above it, the cards and SETTINGS below it, no scrim over the image; the band takes the
-   room between them and shows the whole 16:9 image (contain). A landscape screen keeps the full-bleed hero with the cards over it. */
-.ws-main .ws-main-hero { background-position: 50% 50%; }
+   room between them. A landscape screen keeps the full-bleed hero with the cards over it. */
+.ws-main .ws-main-hero { background-position: 50% 50%; background-image: var(--ws-hero-landscape); }
 @media (orientation: portrait) {
   .ws-main { background: #0b1622; }
   .ws-main::before { display: none; }
   .ws-main .ws-main-head { order: 0; flex: none; }
-  .ws-main .ws-main-hero { order: 1; position: relative; inset: auto; flex: 1 1 auto; min-height: 0; margin: 18px 0; background-size: contain; background-repeat: no-repeat; }
+  /* G344: the square hero fills the phone's width; on a short screen the band gives up height (cover crops top and bottom) */
+  .ws-main .ws-main-hero { order: 1; position: relative; inset: auto; flex: 0 1 auto; align-self: stretch; width: 100%; aspect-ratio: 1 / 1; min-height: 0; margin: 18px 0; background-image: var(--ws-hero-square); background-size: cover; background-repeat: no-repeat; }
   .ws-main .ws-main-foot { order: 2; flex: none; padding-top: 0; }
 }
 .ws-main .ws-main-cards { display: flex; gap: 12px; width: min(560px, 100%); }

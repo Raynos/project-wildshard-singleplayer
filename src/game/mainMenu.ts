@@ -22,9 +22,11 @@ import { WHATS_NEW, type WhatsNew } from './whatsNew';
 import { buildWhatsNewBanner, type HiddenStore } from './whatsNewBanner';
 import './mainMenu.css';
 
-/** the hero (G340 / G341): the real in-engine aerial L-b over the central roundabout (G336 round 3,
- * art/main-menu-hero/round-3-landscape); a band in the centre on portrait screens, full-bleed on landscape (mainMenu.css) */
+/** the hero (G341 layouts, G344 interim pick): real in-engine aerials over the central roundabout at a phone-1x lens
+ * (art/main-menu-hero/round-3-square): LS-c full-bleed on landscape screens, the square SQ-c as the centre band on
+ * portrait screens. mainMenu.css picks one per orientation, so a screen downloads only its own image. */
 export const MAIN_MENU_HERO = '/assets/title/main-crossroads-landscape.jpg';
+export const MAIN_MENU_SQUARE_HERO = '/assets/title/main-crossroads-square.jpg';
 
 const CARDS_ICON = '<svg viewBox="0 0 64 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6" y="11" width="18" height="27" rx="2" transform="rotate(-16 15 24)"/><rect x="40" y="11" width="18" height="27" rx="2" transform="rotate(16 49 24)"/><rect x="22" y="4" width="20" height="31" rx="2" fill="rgba(6,10,18,0.85)"/></g></svg>';
 const GRID_CELLS = [0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${17 + c * 11}" y="${6 + r * 13}" width="8" height="9" rx="1"/>`)).join('');
@@ -91,7 +93,9 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
       </div>
       <button class="ws-main-settings" type="button">${s.settings}</button>
     </div>`;
-  required(main, '.ws-main-hero', HTMLElement).style.backgroundImage = `url('${MAIN_MENU_HERO}')`;
+  const hero = required(main, '.ws-main-hero', HTMLElement);
+  hero.style.setProperty('--ws-hero-landscape', `url('${MAIN_MENU_HERO}')`);
+  hero.style.setProperty('--ws-hero-square', `url('${MAIN_MENU_SQUARE_HERO}')`);
   if (notice !== undefined && notice !== '') {
     const line = document.createElement('div');
     line.className = 'ws-main-notice';
