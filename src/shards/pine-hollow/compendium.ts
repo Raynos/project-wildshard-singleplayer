@@ -7,12 +7,12 @@
  * variants (the Ghost stag, Old Ironhide, Old Blackpaw, the Imperial bull) and stay so: the elite system (PH-C3,
  * src/shards/pine-hollow/combat/elites.ts) places the same kind + variant at a lair, so these `match`es are the elites. The Antler King
  * answers to kind 'antler-king', which the boss (PH-C2, src/shards/pine-hollow/combat/antlerKing.ts) registers and spawns.
- * The places are the 18 Explore POIs of layout v2 (src/shards/pine-hollow/layout.ts).
+ * The places are the 18 Explore POIs of layout v2 (src/shards/pine-hollow/data/layout.ts).
  *
  * Sketches: art/pine-hollow/round-6-journal-sketches/ (codex image_gen), shipped as public/assets/pine-hollow/journal/
  * <id>.webp (+ <id>-sil.webp, the silhouette an unknown page shows; chalk.webp, the wall's outline atlas).
  */
-import { PINE_HOLLOW_POIS } from './layout';
+import { PINE_HOLLOW_POIS } from './data/layout';
 import type { CompendiumSkin, EntryDef, EntryStats, ShardCompendium, TrophySlot } from '@wildshard/game/compendium/types';
 
 export const PINE_HOLLOW_ID = 'chunk://local/pine-hollow';

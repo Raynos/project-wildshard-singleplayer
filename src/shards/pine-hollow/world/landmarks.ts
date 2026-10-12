@@ -1,6 +1,6 @@
 /**
  * PineLandmarks — Pine Hollow's landmarks (PINE-HOLLOW-REMASTER PH-B3 and the B6-adjacent buildings), every site from
- * src/shards/pine-hollow/layout.ts:
+ * src/shards/pine-hollow/data/layout.ts:
  *
  *   · the FIRE LOOKOUT on the ridge pad: four splayed peeled-log legs with girts and X-bracing, a stair of five flights
  *     inside a railed cage (treads the character climbs), a 6 m deck with a railing, the glazed cab with a hipped moss
@@ -36,9 +36,7 @@ import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/regist
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { makeGlowTexture, type Cabins } from './homestead';
-import {
-  LOOKOUT, BEAVER_DAM, CREEK, BEAR_CAVE, STANDING_STONES, KINGS_CLEARING, HAMLET_SITES, POND, SPURS,
-} from '../layout';
+import { LOOKOUT, BEAVER_DAM, CREEK, BEAR_CAVE, STANDING_STONES, KINGS_CLEARING, HAMLET_SITES, POND, SPURS } from '../data/layout';
 import { PINE_HERO_IDS, type PineHeroId } from './heroFiles';
 import { pineModels } from './context';
 import { HERO_FRONT, heroLod0, loadPineHero } from './hero';

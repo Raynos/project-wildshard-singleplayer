@@ -8,7 +8,7 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { Tier } from '@wildshard/engine/core/tier';
-import { BEAR_CAVE } from '../layout';
+import { BEAR_CAVE } from '../data/layout';
 import { fetchBake } from './bakeBytes';
 import cragJson from '../data/crags.json' with { type: 'json' };
 

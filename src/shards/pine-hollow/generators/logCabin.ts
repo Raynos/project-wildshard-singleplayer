@@ -15,7 +15,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { CABIN_SITES, HAMLET_SITES } from '../layout';
+import { CABIN_SITES, HAMLET_SITES } from '../data/layout';
 import { BOARDS, BOARD_LEN, PROP_BOXES, boxUV, logGeo, swapUV, type BakedBuilding, type BakedGeometry, type BakedLight, type BakedNode, type CabinRows,
   type Floor, type KitMat as MatKey, type LightKind, type PropKind, type Room } from '../world/logKit';
 

@@ -16,7 +16,7 @@ import { buildPrimitiveParts, type PrimitivePartRow } from '../runtime/kit/primi
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { standInPerson, type StandInPerson } from '../runtime/npc/standInPerson';
 import { NPC_FIGURE, NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } from '../runtime/kit/peopleLook';
-import { KINGS_CLEARING } from '../layout';
+import { KINGS_CLEARING } from '../data/layout';
 import { npcModels, type NpcModels } from '../quest/npcModels';
 import { MILLER, RANGER, TRADER } from '../quest/wardensHollow';
 

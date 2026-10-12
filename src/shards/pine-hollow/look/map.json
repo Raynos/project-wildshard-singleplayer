@@ -77,7 +77,8 @@
   },
   "inputs": [
     "shard.config.ts",
-    "layout.ts",
+    "data/layout.ts",
+    "behaviour/layout.ts",
     "world",
     "generators",
     "models",

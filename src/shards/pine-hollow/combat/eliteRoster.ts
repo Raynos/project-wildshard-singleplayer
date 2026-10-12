@@ -1,6 +1,6 @@
 import type { EliteDef } from '@wildshard/game/Elite';
 import type { ItemId } from '@wildshard/game/Inventory';
-import { DEN } from '../layout';
+import { DEN } from '../data/layout';
 import { GHOST_LAIR } from '../data/eliteHomes';
 
 /**

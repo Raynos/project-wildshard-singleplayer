@@ -2,7 +2,7 @@ import { PineElitePrelude } from '../runtime/elitePrelude';
 import type { Vector3 } from 'three';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
-import { BEAR_CAVE } from '../layout';
+import { BEAR_CAVE } from '../data/layout';
 import { bossFight } from '@wildshard/game/plugin/bossPhase';
 import { moduleBytes, stepEliteScript, type EliteScriptLane as EliteScript, type EliteScriptPorts } from '@wildshard/game/plugin/brain';
 import { parseEliteScript, type EliteScriptData as EliteScriptRow } from '@wildshard/format/eliteScripts';

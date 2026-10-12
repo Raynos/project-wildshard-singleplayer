@@ -29,7 +29,7 @@ import { PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/combat/eliteRos
 import { PINE_LEVEL_SEED, pineEliteStreams } from '../../../src/shards/pine-hollow/combat/eliteStreams';
 import { PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
-import { BEAR_CAVE, KINGS_CLEARING } from '../../../src/shards/pine-hollow/layout';
+import { BEAR_CAVE, KINGS_CLEARING } from '../../../src/shards/pine-hollow/data/layout';
 import { PINE_PHASES } from '../../../src/shards/pine-hollow/look/dayKeys';
 import { PINE_ACT, PINE_INTERACT } from '../../../src/shards/pine-hollow/runtime/quest';
 

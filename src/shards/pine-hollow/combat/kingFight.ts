@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import type { BossBrain, BossScript } from '@wildshard/engine/ai/BossBrain';
 import { fnv1a32, Rng, type RngState } from '@wildshard/engine/core/rng';
-import { KINGS_CLEARING } from '../layout';
+import { KINGS_CLEARING } from '../data/layout';
 import { PINE_LEVEL_SEED } from './eliteStreams';
 import { PINE_STRIKES, pineContact } from './strikes';
 import type { Lane, LaneBody, LaneState } from './lane';

@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { heightAt } from '@wildshard/engine/world/Heightfield';
-import { CABIN_SITES } from '../layout';
+import { CABIN_SITES } from '../data/layout';
 
 /** The native cabin floor point shared by the live rifle pickup and its Node spots producer. */
 export function pineRifleFloor(cabins: { floorHeightAt: (x: number, z: number) => number | undefined } | null): Vector3 | null {

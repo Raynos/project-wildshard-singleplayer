@@ -6,7 +6,7 @@ import { placeCrags, skinWeight, skinTile } from '../../../src/shards/pine-hollo
 import { caveLocal, caveWorld, skinGeometry, CRAG_IDS, CRAG_HERO, type CragId, type CragSize } from '../../../src/shards/pine-hollow/world/cragBake';
 import type { CaveMeta } from '../../../src/shards/pine-hollow/runtime/kit/caveInterior';
 import { trailDistance, normalAt } from '../../../src/engine/world/Heightfield';
-import { DEN, LOOKOUT } from '../../../src/shards/pine-hollow/layout';
+import { DEN, LOOKOUT } from '../../../src/shards/pine-hollow/data/layout';
 import kitJson from '../../../public/assets/models/pine-hollow-crags/crags.json?raw';
 import caveJson from '../../../public/assets/models/pine-hollow-crags/cave.json?raw';
 import kitBJson from '../../../public/assets/models/pine-hollow-crags/crags-b.json?raw';

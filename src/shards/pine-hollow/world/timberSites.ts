@@ -10,7 +10,7 @@ import type * as THREE from 'three';
 import * as v from 'valibot';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { CREEK_BRIDGE, E_ROAD, ZIPLINE } from '../layout';
+import { CREEK_BRIDGE, E_ROAD, ZIPLINE } from '../data/layout';
 import { fetchBake } from './bakeBytes';
 import { timberFrame, type Timber } from './timber';
 import { TimberBlocks, TimberRowSchema, type TimberRow } from './timberBake';

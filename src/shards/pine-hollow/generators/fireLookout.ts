@@ -14,7 +14,7 @@
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { boxUV } from '../world/logKit';
-import { ZIPLINE } from '../layout';
+import { ZIPLINE } from '../data/layout';
 import { TimberBuilder, V } from './timberKit';
 import { LOOKOUT_SEED, type LookoutRows } from '../models/fireLookout';
 import { TimberRecorder } from './timberBake';

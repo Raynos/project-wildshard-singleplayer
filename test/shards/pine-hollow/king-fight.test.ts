@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { AntlerKingCore, pineKingStreams, type KingBody, type KingCoreEnv } from '../../../src/shards/pine-hollow/combat/kingFight';
 import { Lane } from '../../../src/shards/pine-hollow/combat/lane';
 import { PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
-import { KINGS_CLEARING } from '../../../src/shards/pine-hollow/layout';
+import { KINGS_CLEARING } from '../../../src/shards/pine-hollow/data/layout';
 
 /** A body the fight drives, renderer-free: it walks at its set motion when the test steps it. */
 class Body implements KingBody {

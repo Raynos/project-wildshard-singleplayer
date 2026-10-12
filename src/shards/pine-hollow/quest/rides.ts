@@ -14,7 +14,7 @@
 import * as THREE from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { POND } from '../layout';
+import { POND } from '../data/layout';
 import { PartKit } from '../runtime/kit/primitiveParts';
 import { npcMaterial } from '../models/people';
 import { ZIP_LAUNCH_V, ZIP_START, ZIP_VMAX, ZipWire, type ZipState } from './zipWire';

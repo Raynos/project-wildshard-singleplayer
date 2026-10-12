@@ -12,7 +12,8 @@
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { pondGrid } from '../world/pond';
-import { BEAVER_POOL, CREEK, CREEK_WATER, creekBedAt, creekSpan, inBeaverPool, type XZ } from '../layout';
+import { BEAVER_POOL, CREEK, CREEK_WATER, type XZ } from '../data/layout';
+import { creekBedAt, creekSpan, inBeaverPool } from '../behaviour/layout';
 import type { PoolRows } from '../world/beaverPool';
 
 /** the trickle's across-channel offsets (m) and its depth code there (0 at the edges: they fade into the mud) */

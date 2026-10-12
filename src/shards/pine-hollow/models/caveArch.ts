@@ -8,7 +8,7 @@
  */
 import * as THREE from 'three';
 import { defineModel, type ColliderSpec, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { BEAR_CAVE } from '../layout';
+import { BEAR_CAVE } from '../data/layout';
 import { heroFar, heroLod0, heroLod1, heroNear } from '../world/hero';
 
 export interface CaveArchParams {

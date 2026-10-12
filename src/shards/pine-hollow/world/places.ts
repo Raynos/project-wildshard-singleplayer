@@ -1,6 +1,6 @@
 /**
  * Pine Hollow's named places as Sets (E315 M12, Jake: every named place is a Set). The discovery list
- * (src/shards/pine-hollow/layout.ts `PINE_HOLLOW_POIS`) names eighteen places; the Warden's Hollow quest names one more that
+ * (src/shards/pine-hollow/data/layout.ts `PINE_HOLLOW_POIS`) names eighteen places; the Warden's Hollow quest names one more that
  * is not among them (`PINE_HOLLOW_QUEST_PLACES`). Each place's Set lists the models placed there — every copy whose box
  * centre stands within the place's radius, of every `place` call the shard made (the forest's trees and floor, the
  * scatter, the homestead, the landmarks, the crags, the quest's props). A place's welded ground stays world. The mill
@@ -12,7 +12,7 @@
 import { copiesNear, placedGroups, type Placed } from '@wildshard/engine/models/place';
 import { placeSet } from '@wildshard/engine/models/sets';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import { PINE_HOLLOW_POIS } from '../layout';
+import { PINE_HOLLOW_POIS } from '../data/layout';
 
 /** the quest's named places that are not discovery places (the stag's lead ends on the west road) */
 export const PINE_HOLLOW_QUEST_PLACES = [

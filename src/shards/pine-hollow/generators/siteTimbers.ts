@@ -15,7 +15,7 @@
 import type * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { ZIPLINE } from '../layout';
+import { ZIPLINE } from '../data/layout';
 import { TimberBuilder, V } from './timberKit';
 import { BRIDGE, BRIDGE_HALF, LANDING, bridgeSite, landingSite, type SiteTimberRows } from '../world/timberSites';
 import { TimberRecorder } from './timberBake';

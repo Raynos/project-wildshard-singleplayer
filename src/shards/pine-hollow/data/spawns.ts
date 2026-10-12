@@ -1,4 +1,4 @@
-import { KINGS_CLEARING } from '../layout';
+import { KINGS_CLEARING } from './layout';
 
 /** The encounter owns when this body exists; forest herds and elite/random dressing remain native G51 recipes. */
 export const PINE_RUNTIME_SPAWNS = { homes: [], bosses: [

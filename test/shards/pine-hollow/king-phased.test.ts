@@ -4,7 +4,7 @@ import { AntlerKingCore,type KingBody,type KingCoreEnv } from '../../../src/shar
 import { AntlerKingCore as OracleCore } from '../../fixtures/species-oracle/antlerKingFight';
 import { Lane } from '../../../src/shards/pine-hollow/combat/lane';
 import { PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
-import { KINGS_CLEARING as C } from '../../../src/shards/pine-hollow/layout';
+import { KINGS_CLEARING as C } from '../../../src/shards/pine-hollow/data/layout';
 
 const KINGS_CLEARING=C;
 /** A body the fight drives, renderer-free: it walks at its set motion when the test steps it. */

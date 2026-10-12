@@ -22,7 +22,7 @@ import * as THREE from 'three';
 import { Boss, type BossDef, type BossPersistence } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
 import { PINE_PHASES } from '../look/dayKeys';
-import { KINGS_CLEARING } from '../layout';
+import { KINGS_CLEARING } from '../data/layout';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { FogWall, Puffs, flameCard } from '../combat/fxKit';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKit, type KingLook } from '../models/antlerKing';

@@ -15,7 +15,7 @@ import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProto
 import { PINE_NAVMESH_ASSET, PINE_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/pine-hollow/runtime/headless';
 import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
 import { PinePackSchema } from '../../../src/shards/pine-hollow/runtime/pack';
-import { KINGS_CLEARING, LOOKOUT_TRAIL } from '../../../src/shards/pine-hollow/layout';
+import { KINGS_CLEARING, LOOKOUT_TRAIL } from '../../../src/shards/pine-hollow/data/layout';
 import { STAG_PATH } from '../../../src/shards/pine-hollow/quest/stagWalk';
 import { QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
 import { KING_RECORD, KING_STEP } from '../../../src/shards/pine-hollow/runtime/king';

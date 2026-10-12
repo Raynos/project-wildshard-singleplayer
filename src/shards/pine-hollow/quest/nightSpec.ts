@@ -1,5 +1,5 @@
 import type { NightSpec } from '../runtime/nightDirector';
-import { OLD_GROWTH, KINGS_CLEARING, HAMLET_SITES, POND } from '../layout';
+import { OLD_GROWTH, KINGS_CLEARING, HAMLET_SITES, POND } from '../data/layout';
 
 /** The page's authored old-growth and three millrace placements; tier alone selects the roamer limit. */
 export function pineNightSpec(max: 3 | 4): NightSpec {

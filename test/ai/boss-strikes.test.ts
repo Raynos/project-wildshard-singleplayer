@@ -7,7 +7,7 @@ import { GoldenKingFight } from '../fixtures/species-oracle/goldenKing';
 import { StormTitan, StormTitanFight } from '../../src/shards/nalati-grasslands/combat/stormTitan';
 import { AntlerKingProbe } from '../fake/antlerKing';
 import { DUNGEON } from '../../src/shards/nalati-grasslands/data/kurganLayout';
-import { KINGS_CLEARING } from '../../src/shards/pine-hollow/layout';
+import { KINGS_CLEARING } from '../../src/shards/pine-hollow/data/layout';
 import { CAIRN } from '../../src/shards/nalati-grasslands/layout';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { creature } from '../fake/creature';

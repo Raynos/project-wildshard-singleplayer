@@ -1,5 +1,5 @@
 import type { RoamingBossRow } from '@wildshard/sdk/phasedBoss';
-import { KINGS_CLEARING } from '../layout';
+import { KINGS_CLEARING } from './layout';
 import { ANTLER_KING_PHASES } from './antlerKing';
 import { KING_ATTACK_TIMING } from '../combat/kingTiming';
 

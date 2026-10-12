@@ -10,7 +10,7 @@ import type { BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import { isEliteVariant, PINE_ELITE_ANIMALS, PINE_ELITE_DEFS, swapRolledElites } from '../combat/eliteRoster';
 import { pineEliteStreams } from '../combat/eliteStreams';
-import { SPAWN } from '../layout';
+import { SPAWN } from '../data/layout';
 import { PINE_FAUNA } from './fauna';
 import { PINE_HERD_STREAM, PINE_KING_KIND, pineHuntGround, pineSpawnSpecies } from './herds';
 import type { PineBake } from './baked';

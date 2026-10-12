@@ -6,7 +6,7 @@ import { beforeAll, expect, it } from 'vitest';
 import { Rng } from '../../../src/engine/core/rng';
 import { PineNightDirector, preparePineNightDirector, type NightActor, type NightSpec } from '../../../src/shards/pine-hollow/runtime/nightDirector';
 
-import { OLD_GROWTH, KINGS_CLEARING, HAMLET_SITES, POND } from '../../../src/shards/pine-hollow/layout';
+import { OLD_GROWTH, KINGS_CLEARING, HAMLET_SITES, POND } from '../../../src/shards/pine-hollow/data/layout';
 
 let create: Awaited<ReturnType<typeof preparePineNightDirector>>;
 beforeAll(async () => { create = await preparePineNightDirector(); });

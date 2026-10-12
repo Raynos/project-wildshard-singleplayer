@@ -4,7 +4,7 @@ import { saveFixture, readFixture } from './fake/saveFixture';
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
 import { hasSpecies, speciesDef } from '../src/engine/entities/species/registry';
-import { PINE_HOLLOW_POIS } from '../src/shards/pine-hollow/layout';
+import { PINE_HOLLOW_POIS } from '../src/shards/pine-hollow/data/layout';
 import { PINE_HOLLOW_COMPENDIUM } from '../src/shards/pine-hollow/compendium';
 import { compendiumFor, registerCompendium } from '../src/game/compendium/registry';
 import { COMPENDIUM_STORE, CompendiumState } from '../src/game/compendium/state';

@@ -18,7 +18,7 @@ const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
 const registry = await src('game/shard/registry.ts');
 const HF = await src('engine/world/Heightfield.ts');
 const BT = await src('engine/world/BakedTerrain.ts');
-const L = await src('shards/pine-hollow/layout.ts');
+const L = await src('shards/pine-hollow/data/layout.ts');
 registry.setActiveChunk('pine-hollow');
 const buf = readFileSync(resolve(ROOT, 'public/assets/baked/pine-hollow/terrain.bin'));
 HF._installBakedTerrain(BT.bakedSamplers(BT.parseBakedTerrain(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength))));

@@ -63,7 +63,7 @@ import { installPineClock, type PineClockEvent } from '../runtime/directorClock'
 import { waystoneSites, contractBoardSite, CANOE_SITE, type PineLandmarks } from '../world/landmarks';
 import { ZIP_YAW } from '../world/timberSites';
 import { hamletRoofs } from '../world/cabinBake';
-import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../layout';
+import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../data/layout';
 import { KING_KIND } from '../runtime/antlerKing';
 import { RANGER, MILLER, TRADER } from './wardensHollow';
 import { WARDENS_HOLLOW, QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';

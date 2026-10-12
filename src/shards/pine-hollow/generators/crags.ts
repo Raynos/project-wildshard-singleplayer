@@ -15,7 +15,8 @@
  * over crags.glb), turned, rolled and sunk more freely, boulders in their joints, the lookout's hero crag.
  */
 import type * as THREE from 'three';
-import { DEN, LOOKOUT, ZIPLINE, WATERFALL, RIDGE_STREAM, POND, RIDGE, CABIN_SITES, ridgeFootZ, nearestOnPolyline, type XZ } from '../layout';
+import { DEN, LOOKOUT, ZIPLINE, WATERFALL, RIDGE_STREAM, POND, RIDGE, CABIN_SITES, type XZ } from '../data/layout';
+import { ridgeFootZ, nearestOnPolyline } from '../behaviour/layout';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { Tier } from '@wildshard/engine/core/tier';

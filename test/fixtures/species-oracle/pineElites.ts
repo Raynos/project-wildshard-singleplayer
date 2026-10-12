@@ -8,7 +8,7 @@ import { bugleHour, fleeHeading, behindPlayer, fadeCooldown, headingTo } from '.
 import { PINE_STRIKES, pineContact, PINE_LANES } from '../../../src/shards/pine-hollow/combat/strikes';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
-import { BEAR_CAVE } from '../../../src/shards/pine-hollow/layout';
+import { BEAR_CAVE } from '../../../src/shards/pine-hollow/data/layout';
 import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/combat/eliteRoster';
 import { pineEliteStreams, type PineEliteStreams } from '../../../src/shards/pine-hollow/combat/eliteStreams';
 

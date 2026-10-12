@@ -4,7 +4,7 @@ import { setActiveChunk, getActiveChunk } from '../src/game/shard/registry';
 import { placeForest, plantSpecs } from '../src/engine/world/forest/placement';
 import { treeSetOf, TREE_SPECS } from '../src/engine/world/forest/treeSpec';
 import { PINE_TREE_SET as TREE_SPECS_V2 } from '../src/shards/pine-hollow/world/treeSet';
-import { KINGS_CLEARING, OLD_GROWTH } from '../src/shards/pine-hollow/layout';
+import { KINGS_CLEARING, OLD_GROWTH } from '../src/shards/pine-hollow/data/layout';
 import setJson from '../public/assets/models/pine-hollow-trees/trees.json?raw';
 
 interface SetMeta { variants: { name: string; species: string; height: number; trunk: number; tris: Record<string, number> }[] }

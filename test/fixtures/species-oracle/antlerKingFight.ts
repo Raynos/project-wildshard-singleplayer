@@ -2,7 +2,7 @@
 import { Vector3 } from 'three';
 import type { BossBrain, BossScript } from '@wildshard/engine/ai/BossBrain';
 import { fnv1a32, Rng, type RngState } from '@wildshard/engine/core/rng';
-import { KINGS_CLEARING } from '../../../src/shards/pine-hollow/layout';
+import { KINGS_CLEARING } from '../../../src/shards/pine-hollow/data/layout';
 import { KING_PHASE_AT, burnTick, headingTo, wallPush } from '../../../src/shards/pine-hollow/combat/combatMath';
 import { PINE_LEVEL_SEED } from '../../../src/shards/pine-hollow/combat/eliteStreams';
 import { PINE_STRIKES, pineContact } from '../../../src/shards/pine-hollow/combat/strikes';

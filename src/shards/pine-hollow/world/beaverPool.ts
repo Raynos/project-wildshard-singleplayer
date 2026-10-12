@@ -1,6 +1,6 @@
 /**
  * Pine Hollow's beaver pool (E322 F-L6, Jake's pick "Local pool"): the dam's own small pool on the creek between the
- * gravel riffle at the pond's outlet and the dam (its bowl: BEAVER_POOL in src/shards/pine-hollow/layout.ts, carved by the
+ * gravel riffle at the pond's outlet and the dam (its bowl: BEAVER_POOL in src/shards/pine-hollow/data/layout.ts, carved by the
  * chunk's landscape). Full, it stands at the pond's level; when the sluice opens (`open:dam-sluice`) it drains over
  * DRAIN_S to a muddy bed and the pond's outflow runs on as a trickle down the bed and out through the sluice.
  *
@@ -21,7 +21,7 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
-import { BEAVER_POOL, beaverPoolLevel } from '../layout';
+import { BEAVER_POOL, beaverPoolLevel } from '../data/layout';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import poolJson from '../data/beaverPool.json' with { type: 'json' };
 

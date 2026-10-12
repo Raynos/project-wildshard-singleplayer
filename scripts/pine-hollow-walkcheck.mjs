@@ -20,7 +20,8 @@ import { writeFileSync } from 'node:fs';
 await import('./bake-loader.mjs'); // lets Node import the game's TypeScript chunk modules
 if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('http://localhost/') });
 const { PINE_HOLLOW } = await import('../src/shards/pine-hollow/manifest.ts');
-const L = await import('../src/shards/pine-hollow/layout.ts');
+const L = await import('../src/shards/pine-hollow/data/layout.ts');
+const { ziplineAt } = await import('../src/shards/pine-hollow/behaviour/layout.ts');
 
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
@@ -89,7 +90,7 @@ const Z = L.ZIPLINE, gTop = t.heightAt(Z.from.x, Z.from.z), gEnd = t.heightAt(Z.
 const len = Math.hypot(Z.to.x - Z.from.x, Z.to.z - Z.from.z);
 let minClear = Infinity, minAt = 0;
 for (let s = 10; s <= len - 10; s += 1) {
-  const p = L.ziplineAt(s / len, gTop, gEnd), c = p.y - t.heightAt(p.x, p.z);
+  const p = ziplineAt(s / len, gTop, gEnd), c = p.y - t.heightAt(p.x, p.z);
   if (c < minClear) { minClear = c; minAt = s; }
 }
 const drop = gTop + Z.from.deck - (gEnd + Z.to.deck);

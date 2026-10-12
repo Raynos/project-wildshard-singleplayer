@@ -7,7 +7,8 @@
  * anchors); the page draws it (../world/streams.ts) and never runs this. test/shards/pine-hollow/streams-bake.test.ts is
  * the stale gate.
  */
-import { CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt, type XZ } from '../layout';
+import { CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, type XZ } from '../data/layout';
+import { creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt } from '../behaviour/layout';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { normalAt, waterLevel } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';

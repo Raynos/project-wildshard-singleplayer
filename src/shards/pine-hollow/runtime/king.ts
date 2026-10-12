@@ -4,7 +4,7 @@ import { canReach } from '@wildshard/engine/ai/reach';
 import type { SimHost } from '@wildshard/engine/sim';
 import { bossFlagRecord, installBossRow } from '@wildshard/game/shardfile/bossRow';
 import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
-import { KINGS_CLEARING } from '../layout';
+import { KINGS_CLEARING } from '../data/layout';
 import { AntlerKingCore, kingDormant, kingPresence, type KingCoreEnv } from '../combat/kingFight';
 import { Lane } from '../combat/lane';
 import { PINE_LANES } from '../combat/strikes';

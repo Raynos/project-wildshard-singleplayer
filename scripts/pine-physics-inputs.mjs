@@ -4,7 +4,7 @@ import { join, relative } from 'node:path';
 
 /** Exact native actor/collision/model inputs of Pine Hollow; a changed recipe refuses the trusted headless bake (SF72). */
 export function pinePhysicsInputs(root) {
-  const paths = ['layout.ts', 'shard.config.ts', 'manifest.ts', 'plugin.ts', 'runtime/index.ts', 'runtime/fauna.ts']
+  const paths = ['data/layout.ts', 'behaviour/layout.ts', 'shard.config.ts', 'manifest.ts', 'plugin.ts', 'runtime/index.ts', 'runtime/fauna.ts']
     .map(path => `src/shards/pine-hollow/${path}`);
   // the shared creature rows Pine's herds derive their simulation fields from, the manager and the hunting brain that roll them
   paths.push('src/shards/pine-hollow/generators/bake-pine-physics.mjs', 'src/shards/pine-hollow/generators/pineSpots.mjs', 'src/shards/pine-hollow/generators/bake-pine-spots.mjs', 'src/engine/player/WeaponPickup.ts', 'src/engine/entities/AnimalView.ts', 'src/engine/entities/animalPose.ts', 'src/engine/entities/animalRig.ts', 'src/engine/entities/species/rigs.ts', 'src/engine/entities/AnimalManager.ts', 'src/engine/entities/bodyClear.ts', 'src/engine/ai/hunt.ts', 'src/engine/ai/huntPattern.ts', 'src/engine/ai/stalker.ts', 'src/engine/world/faunaLayout.ts', 'src/engine/physics/terrain.ts');

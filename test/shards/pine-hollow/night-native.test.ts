@@ -15,7 +15,7 @@ import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { NIGHT_STEP } from '../../../src/shards/pine-hollow/runtime/nightPopulation';
 import { pineNightSpec } from '../../../src/shards/pine-hollow/quest/nightSpec';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
-import { OLD_GROWTH, HAMLET_SITES } from '../../../src/shards/pine-hollow/layout';
+import { OLD_GROWTH, HAMLET_SITES } from '../../../src/shards/pine-hollow/data/layout';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
 const assets = new Map([PINE_TERRAIN_ASSET, PINE_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));

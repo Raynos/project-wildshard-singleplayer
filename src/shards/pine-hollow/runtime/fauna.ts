@@ -2,7 +2,8 @@ import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { HerdPlan } from '@wildshard/engine/level/data';
 import { layoutFauna } from '@wildshard/engine/world/faunaLayout';
 import { TERRAIN } from '../world/terrain';
-import { SPAWN, CABIN_SITES, POND, HAMLET, KINGS_CLEARING, DEN, ridgeFootZ } from '../layout';
+import { SPAWN, CABIN_SITES, POND, HAMLET, KINGS_CLEARING, DEN } from '../data/layout';
+import { ridgeFootZ } from '../behaviour/layout';
 
 // Fauna: MANY SMALL GROUPS across the whole shard (user: "I don't want to search endlessly in an empty
 // forest" — nor nine boars in one clearing). `layoutFauna` lays a ~60 m grid of cells over the chunk (25 m
