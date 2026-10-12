@@ -42,7 +42,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   `.githooks/post-commit` records the commit's herdr pane in `.git/commit-lanes.jsonl` and starts `scripts/auto-push.sh`
   detached: single-instance, it waits 10 s to batch a burst, waits out `.git/quiet` (the coordinator's measurement
   windows), then runs `scripts/push-main.sh` queued behind any push in flight (`PUSH_WAIT=1`), with
-  `.git/generated-approval.json` as `GENERATED_APPROVAL_FILE` when the coordinator keeps one. A red push is not retried
+  `.git/generated-approval.json` as `GENERATED_APPROVAL_FILE` when the coordinator keeps one. The detached auto-pusher
+  clears the Git-local environment names reported by `git rev-parse --local-env-vars` before resolving its checkout.
+  A private-index hook cannot lend its index, repository or object-store overrides to gates and their Git fixtures;
+  the committing process retains its own context. A red push is not retried
   on the same tip: it pings each lane whose commit is in the red range once (the coordinator when none is known, or for
   a missing approval receipt) and waits for the next commit. Log `.git/auto-push.log`, each run's output in
   `.git/auto-push/`; off switch `touch .git/auto-push.off`. Commits that never ran post-commit (a private-index

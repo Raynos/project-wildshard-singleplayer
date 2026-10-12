@@ -22,6 +22,11 @@
 #
 #   scripts/auto-push.sh            (post-commit runs it; safe to run by hand)
 set -uo pipefail
+# A lane's post-commit may inherit its private index. This detached service
+# belongs to the checkout, not that commit's index or repository overrides.
+# Otherwise nested Git fixtures read main's index and cannot find its objects.
+git_local_vars="$(git rev-parse --local-env-vars)" || exit 1
+while IFS= read -r git_local_name; do unset "$git_local_name"; done <<< "$git_local_vars"
 # Run from a private snapshot (bash reads a script as it goes; an edit landing in the shared tree mid-run must not change
 # this run). Each locked round below runs a fresh copy of the tree's pusher, so a busy pusher still picks up its edits.
 if [ -z "${AUTO_PUSH_SNAP:-}" ]; then
