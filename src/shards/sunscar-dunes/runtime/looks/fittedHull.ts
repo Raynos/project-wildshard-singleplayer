@@ -18,30 +18,9 @@ import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 't
 import type { ClipName, SocketName } from '@wildshard/engine/anim/rig';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { bindRigid, fitGeometry, undrawnRig, type ModelFit } from '@wildshard/game/plugin/geometry';
+import { bindRigid, fitGeometry, undrawnRig } from '@wildshard/game/plugin/geometry';
 import { clipAnimate, type SpeciesClips } from '@wildshard/game/plugin/animation';
-
-/** One bone of a hull's skeleton (absolute bind space). */
-export interface HullBone { name: string; parent: string | null; pos: [number, number, number] }
-
-/** A four-legged hull as rows: its fit, its legs' names and stand-in tops, and the shares that split it. */
-export interface QuadrupedHullRow {
-  readonly fit: ModelFit;
-  /** the legs, front-left, front-right, back-left, back-right: name and the stand-in top's x / z */
-  readonly legs: readonly (readonly [string, number, number])[];
-  /** the leg tops' height as a share of the hull's height; a facet below it rides a leg */
-  readonly legTop: number;
-  /** the vertices that place a leg's top: below this share of the leg top */
-  readonly legFoot: number;
-  /** the head: the front `share` of the length, above `above` of the height */
-  readonly head: { readonly share: number; readonly above: number };
-  /** the tail: the back share of the length */
-  readonly tail: number;
-  /** the body, head and tail bones' heights as shares of the hull's height */
-  readonly boneY: { readonly body: number; readonly head: number; readonly tail: number };
-  /** the stand-in: its height and skeleton when the generated mesh did not load (drawn as nothing) */
-  readonly standIn: { readonly h: number; readonly bones: readonly HullBone[] };
-}
+import type { BandSkinRow, HullBone, HullTint, LoftedBandHullRow, QuadrupedHullRow } from '../../data/hulls';
 
 /** A fitted hull: its skeleton, its skinned geometry and its height. */
 export interface FittedHull { bones: HullBone[]; geometry: BufferGeometry; h: number }
@@ -64,23 +43,6 @@ export function quadrupedHull(source: BufferGeometry | null, row: QuadrupedHullR
     ...row.legs.map(([name], i): HullBone => ({ name, parent: 'body', pos: top(i) })),
     { name: 'tail', parent: 'body', pos: [0, h * row.boneY.tail, tail] }] };
 }
-
-/** A smooth band: 0 at `from`, 1 at `from + over` (a smoothstep). */
-export interface HullBand { readonly from: number; readonly over: number }
-
-/** A winged hull as rows: its fit, its nose, its three bands and an optional tint. */
-export interface BandSkinRow {
-  readonly fit: ModelFit;
-  /** the nose's z after the fit (the hull is moved along z so its front lies there) */
-  readonly nose: number;
-  /** the wings by |x|; the tail by −z (behind −`from`); the head by z */
-  readonly wing: HullBand;
-  readonly tail: HullBand;
-  readonly head: HullBand;
-}
-
-/** A tint for a hull's painted facets (linear): the back × `top`, the underside lerped to `belly` by `bellyMix`. */
-export interface HullTint { readonly top: readonly [number, number, number]; readonly belly: readonly [number, number, number]; readonly bellyMix: number }
 
 const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
 
@@ -113,24 +75,6 @@ export function bandSkin(source: BufferGeometry, row: BandSkinRow, tint: HullTin
 }
 
 type V3 = readonly [number, number, number];
-
-/** A code-built winged body as rows: the outline's right half (x / z, nose first, x 0 at both ends), mirrored. */
-export interface LoftedBandHullRow {
-  readonly half: readonly (readonly [number, number])[];
-  /** the rim's height: `base` plus `perX` per metre out from the spine */
-  readonly lift: { readonly base: number; readonly perX: number };
-  /** the raised centre the top fans to, and the lower one the belly fans to */
-  readonly top: V3;
-  readonly bottom: V3;
-  /** the back's and the belly's grey, times `tint` per channel (linear) */
-  readonly shade: { readonly top: number; readonly bottom: number; readonly tint: V3 };
-  /** the wing and head bands (as `BandSkinRow`'s) and the z behind which a vertex is wholly tail */
-  readonly wing: HullBand;
-  readonly head: HullBand;
-  readonly tailBehind: number;
-  /** the tail: a three-sided spine from its root's left, right and top corners to the tip */
-  readonly tail: { readonly left: V3; readonly right: V3; readonly up: V3; readonly tip: V3 };
-}
 
 /** A code-built winged body lofted and band-skinned from its rows (bones body, head, left / right wing, tail). */
 export function loftedBandHull(row: LoftedBandHullRow): BufferGeometry {

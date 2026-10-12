@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { parseFamilyMaterial, parseGroundLayer } from '@wildshard/format/materialFamilies';
 import { duskSandAt, duskSandEntry, duskSkyEntry, type GrainMeans } from '../../../src/shards/sunscar-dunes/runtime/looks/duskFamilies';
 import { duskDomeSun } from '../../../src/shards/sunscar-dunes/runtime/looks/duskDome';
-import { SAND_LOOK, SKY_LOOK } from '../../../src/shards/sunscar-dunes/runtime/looks/familyLook';
-import { SKY_STYLE } from '../../../src/shards/sunscar-dunes/runtime/looks/sky';
+import { SAND_LOOK, SKY_LOOK } from '../../../src/shards/sunscar-dunes/data/familyLook';
+import { SKY_STYLE } from '../../../src/shards/sunscar-dunes/data/sky';
 import { WIND } from '../../../src/shards/sunscar-dunes/world/dunes';
 
 // SF50 (A10): Signal Dunes' sand and sky as family entries (data/familyLook.ts on the SDK's dusk families); the dusk adapter reproduces the retired sand shader's dusk terms.

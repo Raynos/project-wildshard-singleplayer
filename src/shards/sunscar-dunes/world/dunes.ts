@@ -1,6 +1,6 @@
 import type { TerrainNoise } from '@wildshard/engine/level/data';
 import { duneField } from '../runtime/looks/duneField';
-import { DUNE_FIELD } from '../runtime/looks/duneFieldRows';
+import { DUNE_FIELD } from '../data/duneField';
 
 /** The wind (x, z): the crests run across it (data/duneField.ts). */
 export const WIND = DUNE_FIELD.wind;

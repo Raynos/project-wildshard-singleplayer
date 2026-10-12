@@ -1,11 +1,35 @@
-import type { DuskCurve, DuskRow } from './duskCurves';
 
 /**
  * How Signal Dunes' light moves with the quest's dusk (`look/dusk.ts` DUSK, 0 the first frame's sunset … 1 the blue
- * hour), as curves on the SDK's dusk curves (`@wildshard/sdk/looks/duskCurves`): the key's dimming and the fill's
+ * hour), as dusk curves (the row types below; `runtime/looks/duskCurves.ts` evaluates them): the key's dimming and the fill's
  * (`look/render.ts`), the fog's sun-side lift, the far rings' haze and the aerial fog, and the sand's ground-layer terms
  * (`look/render.ts` on the platform dusk look). The why of each number is in the council rounds the comments name.
  */
+
+/**
+ * One term of a curve: `gain` × a shape of d. A `fold` ramp multiplies its gain in from the left (gain·t·t·(3 − 2t)
+ * rather than gain·(t·t·(3 − 2t))): the same curve, rounded the way a hand-written one was.
+ */
+export type DuskTerm =
+  | { readonly gain: number; readonly pow: number }
+  | { readonly gain: number; readonly edges: readonly [number, number] }
+  | { readonly gain: number; readonly ramp: readonly [number, number]; readonly fold?: boolean }
+  | { readonly gain: number; readonly linear: readonly [number, number] };
+
+/** A curve of d: `scale × (base + Σ terms) × times`, or `mix` (from a to b along d). */
+export interface DuskCurve {
+  readonly base?: number;
+  readonly terms?: readonly DuskTerm[];
+  /** a second curve the first is multiplied by */
+  readonly times?: DuskCurve;
+  /** a constant factor in front */
+  readonly scale?: number;
+  /** a + (b − a) × d (with no base or terms) */
+  readonly mix?: readonly [number, number];
+}
+
+/** A row whose leaves are numbers, curves (`{ curve: … }`), strings, booleans or nested rows and arrays of them. */
+export type DuskRow = number | string | boolean | { readonly curve: DuskCurve } | readonly DuskRow[] | { readonly [key: string]: DuskRow };
 
 /** The key light's dimming (E407: a slower fall through the middle steps, still monotonic; the sun drops fast once the quest starts). */
 export const KEY_DIM: DuskCurve = { base: 1, terms: [{ gain: -0.95, pow: 0.7 }] };

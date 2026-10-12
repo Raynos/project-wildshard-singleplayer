@@ -1,7 +1,7 @@
 import { STRIDER_CLIPS, STRIDER_LOOK } from '../data/species/strider';
 import type { BufferGeometry } from 'three';
 import { quadrupedHull, quadrupedLook, type FittedHull } from '../runtime/looks/fittedHull';
-import { STRIDER_HULL } from '../runtime/species/hullsRows';
+import { STRIDER_HULL } from '../data/hulls';
 import { duneMesh } from '../world/meshes';
 
 /** The strider's body: the generated model fitted and skinned from its rows (data/species/hulls.ts); undrawn when it did not load (SF72). */

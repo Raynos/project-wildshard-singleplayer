@@ -1,4 +1,5 @@
 import type { TerrainNoise } from '@wildshard/engine/level/data';
+import type { DuneFieldRow } from '../../data/duneField';
 
 /**
  * A crescent dune field (SHARD-PLATFORM M3; ex a dune shard's landscape): a terrain height function from rows. Barchan-like
@@ -9,41 +10,6 @@ import type { TerrainNoise } from '@wildshard/engine/level/data';
  * their face profile, and cosine mounds by a max), flat spots levelled to their own dune height, and a sand bowl eased
  * over its rim. Nothing here knows a shard: every number is the row's.
  */
-
-type V2 = readonly [number, number];
-
-/** An authored crest line: a lift along the segment a → b, `w` wide on the windward side and `lee` on the slip side, faded at the ends, a trough behind. */
-export interface DuneCrestLine { readonly a: V2; readonly b: V2; readonly lift: number; readonly w: number; readonly lee: number; readonly fade: number; readonly trough: number }
-/** An authored polyline crest (x, z, height per point): its faces' widths, which side is the slip face, its end fade. */
-export interface DuneLandformCrest { readonly pts: readonly (readonly [number, number, number])[]; readonly w: number; readonly lee: number; readonly leeSide: number; readonly fade: number }
-/** A cosine mound. */
-export interface DuneMound { readonly x: number; readonly z: number; readonly r: number; readonly h: number }
-/** A flat spot levelled to its own dune height plus `lift`, eased out over `ease`. */
-export interface DuneSpot { readonly x: number; readonly z: number; readonly r: number; readonly lift: number; readonly ease: number }
-
-/** A crescent dune field as rows. */
-export interface DuneFieldRow {
-  /** the wind's direction (x, z): the crests run across it */
-  readonly wind: { readonly x: number; readonly z: number };
-  /** the crests' wavelength (m), the slip face's share of it, the amplitude's cap, and the phase a crest takes at `spawn` */
-  readonly wave: number; readonly lee: number; readonly ampMax: number; readonly spawnPhase: number;
-  readonly spawn: { readonly x: number; readonly z: number };
-  /** the crescent bow (its frequency across the wind and amplitude) and the wander (noise scale and amplitude) */
-  readonly warp: { readonly bow: number; readonly bowAmp: number; readonly noise: number; readonly noiseAmp: number };
-  /** the amplitude: `base + noise ×` a noise sampled at (v × `v[0]` + `v[1]`, u × `u[0]` + `u[1]`) */
-  readonly amp: { readonly base: number; readonly noise: number; readonly v: V2; readonly u: V2 };
-  /** the damping: toward the square's edge (from `edge[0]` over `edge[1]` m, by `edge[2]`) and round the basin (over `basin[0]` m past its rim, by `basin[1]`) */
-  readonly damp: { readonly edge: readonly [number, number, number]; readonly basin: V2 };
-  /** the floor height and a broad relief noise (amplitude, scale, x and z offsets) */
-  readonly floor: number;
-  readonly relief: { readonly amp: number; readonly scale: number; readonly x: number; readonly z: number };
-  /** the basin: its centre, rim radius and flat floor radius; the bowl's floor height and how far past the rim its wall eases */
-  readonly basin: { readonly x: number; readonly z: number; readonly r: number; readonly floor: number };
-  readonly basinFloor: number; readonly bowlEase: number;
-  readonly crestLines: readonly DuneCrestLine[];
-  readonly landforms: { readonly crests: readonly DuneLandformCrest[]; readonly mounds: readonly DuneMound[] };
-  readonly spots: readonly DuneSpot[];
-}
 
 const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
 /** Stoss (windward) rise 0 → 1: eased out of the trough, still climbing at the crest so the crest is a knife edge. */

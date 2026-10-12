@@ -6,6 +6,7 @@ import { Weapon, type WeaponState } from '@wildshard/engine/combat/Weapon';
 import { CatmullRomCurve3, Mesh, TubeGeometry, Vector2, Vector3, type Group, type Material, type Object3D } from 'three';
 import { LashRuntime, type LashSpec, type LashTarget, type LashWorldTarget } from './lash';
 import type { LashCord } from './lashView';
+import type { LashView } from '../../data/whip';
 
 /**
  * The lash item as a held weapon with a declared view (SHARD-PLATFORM SF72, a declared item view): the platform's lash
@@ -33,22 +34,6 @@ export interface LashParts {
   readonly restCoil: boolean;
   /** the material of the coil wound round a caught lever */
   readonly wrapMaterial: () => Material;
-}
-
-/** The lash weapon's view as rows (metres, seconds, radians). */
-export interface LashView {
-  /** the model's place in the view: with the hero hand, and with the code hand */
-  readonly hold: { readonly hero: readonly [number, number, number]; readonly code: readonly [number, number, number] };
-  /** the view spring (`blocks.viewmodel`) */
-  readonly spring: { readonly gain: number; readonly clampYaw: number; readonly clampPitch: number; readonly k: number; readonly c: number };
-  /**
-   * The flick: the grip rises `lift` and pushes `push` as the cord unrolls and settles back as it falls slack; the slack
-   * cord's far end drops `drop` and comes back `back` per unit slack; the far end sits `reach - lead` out; the cord's
-   * extension loosens by `loosen` × slack; its sag is `sag[0]` + `sag[1]` × slack, `tautSag` when caught.
-   */
-  readonly flick: { readonly lift: number; readonly push: number; readonly drop: number; readonly back: number; readonly lead: number; readonly loosen: number; readonly sag: readonly [number, number]; readonly tautSag: number; readonly overlap: number };
-  /** The wrap round a caught lever: coil radius, height, turns, cord, how long it holds; the helix's samples, tube segments and sides. */
-  readonly wrap: { readonly r: number; readonly h: number; readonly turns: number; readonly cord: number; readonly hold: number; readonly samples: number; readonly segments: number; readonly sides: number };
 }
 
 /** A lash held as a weapon: the declared crack (`spec`) on the lash runtime, its viewmodel moved by `view`. */

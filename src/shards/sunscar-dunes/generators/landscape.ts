@@ -1,7 +1,7 @@
 import { CHUNK_HALF } from '@wildshard/format/contentBounds';
 import { SEED, TRAIL } from '../data/layout';
 import { duneField } from './duneField';
-import { DUNE_FIELD } from './duneFieldRows';
+import { DUNE_FIELD } from '../data/duneField';
 import { signalNoise } from './landscapeNoise';
 
 // Retained authored entry grading: 15 m road, reaching 60 m into the cell.

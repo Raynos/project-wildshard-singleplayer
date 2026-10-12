@@ -4,9 +4,12 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { DayCycle, type DayCycleSpec } from '@wildshard/engine/world/dayCycle';
 import type { Terrain } from '@wildshard/engine/world/Terrain';
 import type { GroundPool } from '@wildshard/engine/render/families/ground';
-import { curveAt, type DuskCurve } from './duskCurves';
-import { duskDomeMaterial, duskDomeSun, type DuskDomeStyle } from './duskDome';
-import { duskSand, duskSky, type DuskSand, type DuskSandRow, type DuskSky, type DuskSkyRow } from './duskFamilies';
+import { curveAt } from './duskCurves';
+import type { DuskCurve } from '../../data/dusk';
+import { duskDomeMaterial, duskDomeSun } from './duskDome';
+import type { DuskDomeStyle } from '../../data/sky';
+import { duskSand, duskSky, type DuskSand, type DuskSky } from './duskFamilies';
+import type { DuskSandRow, DuskSkyRow } from '../../data/familyLook';
 import { loadPaintedStrips } from './paintedStrips';
 import { loadBakedMaps, skirtGrid, type BakedMapRow, type CubeSkirt, type SkirtGridRow, type SwellSkirtRow, type TintedTileGround } from './bakedGround';
 

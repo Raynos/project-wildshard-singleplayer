@@ -1,3 +1,4 @@
+import type { CoilPath, CordRgb, CordStyle, PlaitStyle } from '../../data/whip';
 import { BufferAttribute, BufferGeometry, CatmullRomCurve3, DataTexture, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, RepeatWrapping, RGBAFormat, SRGBColorSpace, TubeGeometry, UnsignedByteType, Vector3 } from 'three';
 
 /**
@@ -6,28 +7,6 @@ import { BufferAttribute, BufferGeometry, CatmullRomCurve3, DataTexture, LinearF
  * a code-made plait tile. A shard declares the cord's look as rows (`CordStyle`, `PlaitStyle`, `CoilPath`); the meshes,
  * textures and paths come from here.
  */
-
-export type CordRgb = readonly [number, number, number];
-/** A cord's braid: its tube's segments and sides, the two strands' colours, and the pale popper at the tip. */
-export interface CordStyle {
-  readonly segments: number; readonly radial: number;
-  readonly strandA: CordRgb; readonly strandB: CordRgb; readonly popper: CordRgb; readonly popperRings: number;
-  /** The thrown cord's matte braid (`roughness`) and its warm self-light (`emissive`, hex). */
-  readonly roughness: number; readonly emissive: number;
-}
-/** The plait tile (u along the cord, v round it): `size` texels a side, `columns` strands round, `rows` strands along. */
-export interface PlaitStyle {
-  readonly size: number; readonly columns: number; readonly rows: number;
-  /** sRGB bytes: the creases' near-black and what the crown adds over them. */
-  readonly crease: CordRgb; readonly crown: CordRgb;
-  /** The normal map's relief, and the roughness from the creases (`rough[0]`) down by `rough[1]` on the crowns. */
-  readonly relief: number; readonly rough: readonly [number, number];
-}
-/** A held coil: from the handle's top (`from`, at the ellipse angle `start`) round `turns` turns of an ellipse turned by `face`, each turn stepped by `step`, then the fall through `tail`. */
-export interface CoilPath {
-  readonly cord: number; readonly from: readonly [number, number, number]; readonly start: number; readonly rx: number; readonly ry: number; readonly face: number;
-  readonly turns: number; readonly step: readonly [number, number, number]; readonly tail: readonly (readonly [number, number, number])[];
-}
 
 /** Paints a tube's rings with two strands laid in a spiral (the plait), so the braid reads without a texture; the last `popperRings` are the popper. */
 export function braidColours(geometry: BufferGeometry, rings: number, sides: number, popperRings: number, a: CordRgb, b: CordRgb, popper: CordRgb): void {

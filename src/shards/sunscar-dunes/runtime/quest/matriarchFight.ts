@@ -1,5 +1,5 @@
 import { parseMarkedBossPresentation } from '../shardfile/markedBossPresentation';
-import { DUNE_FIELD } from '../looks/duneFieldRows';
+import { DUNE_FIELD } from '../../data/duneField';
 import { MATRIARCH_ARENA } from '../../data/matriarchEncounter';
 import { STRINGS } from '../../data/strings';
 

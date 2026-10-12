@@ -4,7 +4,7 @@ import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import type { BufferGeometry } from 'three';
 import { bandSkin, loftedBandHull } from '../runtime/looks/fittedHull';
-import { MANTA_HULL, RAY_CODE_HULL, RAY_TINT } from '../runtime/species/hullsRows';
+import { MANTA_HULL, RAY_CODE_HULL, RAY_TINT } from '../data/hulls';
 import { duneMesh } from '../world/meshes';
 
 /** Bones (absolute bind space, +Z forward): body first, then head, the two wings and the tail. */

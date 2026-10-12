@@ -11,53 +11,7 @@
  * - Widths, sizes and dashes are metres (scaled by the map's pixels per metre).
  */
 import type { MapOverlay, MapPoi, MinimapPalette } from '@wildshard/engine/ui/Minimap';
-
-/** An sRGB colour, 0–255 per channel. */
-export type MapRgb = readonly [number, number, number];
-
-/** One layer of the ground paint: `color` mixed over the colour so far by a field's smoothstep between `edges`. */
-export interface MapGroundLayer {
-  readonly color: MapRgb;
-  /** the field: the sample's height or slope, or (with `centre`) its distance from the centre */
-  readonly by: 'height' | 'slope' | 'distance';
-  readonly edges: readonly [number, number];
-  /** the weight's scale (default 1) */
-  readonly gain?: number;
-  /** the weight is 1 − the smoothstep (nearer the low edge, more of the colour) */
-  readonly invert?: boolean;
-  /** for `by: 'distance'`: the centre (x, z, metres) and the radius past which the layer paints nothing */
-  readonly centre?: { readonly x: number; readonly z: number; readonly within: number };
-}
-
-/** One stroke of a segment or a trail: its width (metres), its CSS style and its dash (metres; none when unset). */
-export interface MapStroke {
-  readonly width: number;
-  readonly style: string;
-  readonly dash?: readonly [number, number];
-}
-
-/** A straight mark from `from` to `to` (x, z), painted with each stroke in order. */
-export interface MapSegment {
-  readonly from: readonly [number, number];
-  readonly to: readonly [number, number];
-  readonly strokes: readonly MapStroke[];
-}
-
-/** A place's mark: a square (`half` its half-side), a turned box, a ring or a dot (sizes in metres). */
-export type MapMark =
-  | { readonly kind: 'square'; readonly x: number; readonly z: number; readonly half: number; readonly fill: string }
-  | { readonly kind: 'box'; readonly x: number; readonly z: number; readonly yaw: number; readonly width: number; readonly length: number; readonly fill: string }
-  | { readonly kind: 'ring'; readonly x: number; readonly z: number; readonly r: number; readonly line: number; readonly stroke: string }
-  | { readonly kind: 'dot'; readonly x: number; readonly z: number; readonly r: number; readonly fill: string };
-
-/** A level's whole map look as data. */
-export interface MapPaletteRow {
-  readonly ground: { readonly base: MapRgb; readonly layers: readonly MapGroundLayer[] };
-  readonly segments: readonly MapSegment[];
-  readonly trails: readonly MapStroke[];
-  readonly marks: readonly MapMark[];
-  readonly pois: readonly MapPoi[];
-}
+import type { MapGroundLayer, MapMark, MapPaletteRow, MapRgb } from '../../data/minimap';
 
 const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 

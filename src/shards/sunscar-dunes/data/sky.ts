@@ -1,4 +1,30 @@
-import type { DuskDomeStyle } from './duskDome';
+/** RGB in the dome's authored space. */
+export type DomeRgb = readonly [number, number, number];
+/** A colour at the dusk's start and at its end. */
+export interface DomeStage { readonly early: DomeRgb; readonly late: DomeRgb }
+
+/** One dusk dome, as data. */
+export interface DuskDomeStyle {
+  /** Where the afterglow is brightest (normalized by the dome): the set sun's direction. */
+  readonly sun: readonly [number, number, number];
+  /** The band: `away` from the sun to `toward` it (blend by the turn to the sun ^ `power`), scaled by `gain[0]` + `gain[1]` × dusk. */
+  readonly band: { readonly away: DomeRgb; readonly toward: DomeRgb; readonly power: number; readonly gain: readonly [number, number] };
+  readonly rose: DomeStage;
+  readonly mid: DomeStage;
+  readonly zenith: DomeStage;
+  /** The hot glow over the sun: `colour` × turn ^ `power` × `gain`, fading with height and dusk. */
+  readonly glow: { readonly colour: DomeRgb; readonly power: number; readonly gain: number };
+  /** The late dusk's glow line on the horizon. */
+  readonly horizon: { readonly colour: DomeRgb; readonly gain: number };
+  /** The under-lit cloud streaks (lit bellies `lit` → `litHot` near the glow, `litEdge` at their edge; dark tops `dark` → `darkHot`), gone by dusk `clearBy[1]`; null: a clear sky. */
+  readonly clouds: { readonly lit: DomeRgb; readonly litHot: DomeRgb; readonly litEdge: DomeRgb; readonly dark: DomeRgb; readonly darkHot: DomeRgb; readonly clearBy: readonly [number, number] } | null;
+  /** Stars: one in `1 - density` of the cells, `colour` × (`gain[0]` + `gain[1]` × a hash). */
+  readonly stars: { readonly colour: DomeRgb; readonly density: number; readonly gain: readonly [number, number] };
+  /** The dither's amplitude against 8-bit banding. */
+  readonly dither: number;
+  /** The authored colour's power to linear. */
+  readonly gamma: number;
+}
 
 /**
  * Signal Dunes' procedural dusk dome as a row (SHARD-PLATFORM SF72, look-family rows) on the platform's dome

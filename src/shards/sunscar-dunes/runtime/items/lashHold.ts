@@ -1,6 +1,7 @@
 import { type BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TubeGeometry, Vector3 } from 'three';
 import { smoothColors } from '@wildshard/game/plugin/geometry';
-import { braidColours, coilPoints, LashCord, plaitedCord, type CoilPath, type CordRgb, type CordStyle, type PlaitStyle } from './lashView';
+import { braidColours, coilPoints, LashCord, plaitedCord } from './lashView';
+import type { LashHoldRow } from '../../data/whip';
 
 /**
  * The lash item's held view (SHARD-PLATFORM M3; ex a dune shard's whip model): a braided handle in a gloved fist with a
@@ -10,56 +11,6 @@ import { braidColours, coilPoints, LashCord, plaitedCord, type CoilPath, type Co
  * and a textured hero glove with a plaited coil in its own frame. Nothing here knows a shard: the models arrive as
  * loaders, the coil's surface as a callback.
  */
-
-type V3 = readonly [number, number, number];
-
-/** A code coil: `turns` loops of radius `loopR` shrinking by `shrink` along it, its cord's radius, and its pose. */
-export interface LashCodeCoil { readonly turns: number; readonly loopR: number; readonly cord: number; readonly pos: V3; readonly rot: V3 }
-
-/** The held lash as rows. */
-export interface LashHoldRow {
-  /** the tubes' sides */
-  readonly radial: number;
-  /** the code fist's leathers (hex), their roughness and warm self-light (hex) */
-  readonly leathers: { readonly glove: number; readonly cuff: number; readonly knob: number; readonly roughness: number; readonly emissive: number };
-  /** the braid: the handle's two strands, the popper, and the braided materials' roughness */
-  readonly braid: { readonly a: CordRgb; readonly b: CordRgb; readonly popper: CordRgb; readonly roughness: number };
-  /** the plain wrap material's colour (hex) and roughness */
-  readonly wrap: { readonly colour: number; readonly roughness: number };
-  /** the handle: a braided open cylinder, its top and bottom radii, length, height segments and its height on the grip */
-  readonly handle: { readonly top: number; readonly bottom: number; readonly length: number; readonly segments: number; readonly y: number };
-  /** the knob: a squashed sphere at the butt */
-  readonly knob: { readonly r: number; readonly widthSegments: number; readonly heightSegments: number; readonly y: number; readonly squash: number };
-  /** the palm: a capsule, its position and scale */
-  readonly palm: { readonly r: number; readonly length: number; readonly cap: number; readonly radial: number; readonly pos: V3; readonly scale: V3 };
-  /** the fingers: `count` capsules lying along X, the first at `pos`, each next one `step` lower */
-  readonly fingers: { readonly count: number; readonly r: number; readonly length: number; readonly cap: number; readonly radial: number; readonly pos: V3; readonly step: number };
-  /** the thumb: a capsule, its position and turn */
-  readonly thumb: { readonly r: number; readonly length: number; readonly cap: number; readonly radial: number; readonly pos: V3; readonly rot: V3 };
-  /** the cuff: an open flared cylinder */
-  readonly cuff: { readonly top: number; readonly bottom: number; readonly h: number; readonly radial: number; readonly pos: V3 };
-  /**
-   * The generated glove's fit: its handle runs along +X from the butt; the handle's axis is the mean of the vertices
-   * between `collar[0]` and `collar[1]` short of the far end, the fist `fist` of the way along; stood on +Y, turned by
-   * `turn` about it and scaled; the lash leaves `keeper` short of the far end. Normals averaged per position, the
-   * painted colours `smooth` of the way; a matte material of `colour` (linear) and `roughness`.
-   */
-  readonly glove: { readonly collar: readonly [number, number]; readonly fist: number; readonly turn: number; readonly scale: number; readonly keeper: number; readonly smooth: number; readonly colour: V3; readonly roughness: number };
-  /** the poses: the grip's turn and the coil, with the code fist (`code`, its keeper's height `tip`) or the generated glove (`made`) */
-  readonly code: { readonly grip: V3; readonly tip: number; readonly coil: LashCodeCoil };
-  readonly made: { readonly grip: V3; readonly coil: LashCodeCoil };
-  /** the code coil's path: points round the loops, the loops' horizontal squash, their start, their drift per unit along, then the fall's points */
-  readonly coil: { readonly points: number; readonly tubular: number; readonly shrink: number; readonly squash: number; readonly origin: V3; readonly drift: readonly [number, number]; readonly fall: readonly V3[]; readonly a: CordRgb; readonly b: CordRgb; readonly roughness: number };
-  /** user data set on both coils' materials (e.g. a flag a shard's light pass reads) */
-  readonly coilUserData: Readonly<Record<string, boolean>>;
-  /** the hero glove's pose in the hold's frame */
-  readonly hd: { readonly pos: V3; readonly rot: V3 };
-  /** the hero coil's path in the hero glove's own frame, and its plait */
-  readonly loop: CoilPath;
-  readonly plait: PlaitStyle;
-  /** the thrown cord */
-  readonly lash: CordStyle;
-}
 
 /** The held lash's models: the generated glove's geometry (a copy) and the fitted hero glove, each null when not loaded, and the hero coil's surface. */
 export interface LashHoldModels {

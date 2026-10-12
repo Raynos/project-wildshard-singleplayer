@@ -1,6 +1,6 @@
 import type { MeshStandardMaterial } from 'three';
 import { buildLashHold, lashWrapMaterial, type LashHoldParts } from '../runtime/items/lashHold';
-import { HD_GLOVE_SIZE, WHIP_HOLD } from '../runtime/items/whipRows';
+import { HD_GLOVE_SIZE, WHIP_HOLD } from '../data/whip';
 import { COIL_SURFACE } from '../runtime/looks/surfaces';
 import { duneHd, duneMesh, heldSurface } from '../world/meshes';
 

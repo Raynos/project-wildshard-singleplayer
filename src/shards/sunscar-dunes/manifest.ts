@@ -10,7 +10,7 @@ import { EXPLORE } from './explore/art';
 import { bootFiles, bootSources, lateReads } from './boot/files';
 import { duneHeight } from './world/dunes';
 import { mapPalette } from './runtime/looks/mapPalette';
-import { SIGNAL_DUNES_MAP } from './runtime/looks/minimap';
+import { SIGNAL_DUNES_MAP } from './data/minimap';
 import { SIGNAL_ATMOSPHERE, SIGNAL_GRADE, SIGNAL_HORIZON, SIGNAL_SKY } from './data/manifestLook';
 
 const terrain = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });

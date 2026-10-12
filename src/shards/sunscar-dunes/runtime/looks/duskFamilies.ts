@@ -4,7 +4,8 @@ import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { setGroundPools, updateGround, type GroundPool } from '@wildshard/engine/render/families/ground';
 import type { GroundLayerParams } from '@wildshard/format/materialFamilies';
 import { mappedFamilyMaterial } from './bakedGround';
-import { duskRow, type DuskRow } from './duskCurves';
+import { duskRow } from './duskCurves';
+import type { DuskSandRow, DuskSkyRow } from '../../data/familyLook';
 
 /**
  * Dusk family surfaces (SHARD-PLATFORM M3; ex a dune shard's sky and sand): a sand that is the PBR family's ground layer
@@ -14,24 +15,6 @@ import { duskRow, type DuskRow } from './duskCurves';
  * afterglow) are dusk-curve rows (`./duskCurves`); the burning fires are the ground layer's light pools. Nothing here
  * knows a shard: the maps' names, numbers, wind and afterglow come in as rows and arguments.
  */
-
-type V2 = readonly [number, number];
-type V3 = readonly [number, number, number];
-
-/** A dusk sand as rows: its name, its three maps' names, its PBR surface, its dusk curves and its trail / key-shadow / fire-pool layers. */
-export interface DuskSandRow {
-  readonly name: string;
-  readonly maps: { readonly grain: string; readonly trail: string; readonly shadow: string };
-  readonly roughness: number; readonly metalness: number;
-  /** dusk-curve rows for `contrast`, `grainStrength`, `albedo`, `shade` and `away` (the dimming of faces turned from the afterglow) */
-  readonly curves: DuskRow;
-  /** the trail mask's rect (x0, z0, x1, z1), how much of the ripples it keeps, its tint and amount */
-  readonly trail: { readonly rect: readonly [number, number, number, number]; readonly ripples: number; readonly tint: V3; readonly amount: number };
-  /** the key-shadow map's rect, its edge and the key's floor in cast shade */
-  readonly keyShadow: { readonly rect: readonly [number, number, number, number]; readonly edge: V2; readonly floor: number };
-  /** the fires' light pools: the low and high colours, their split, radius and gain */
-  readonly pools: { readonly low: V3; readonly high: V3; readonly split: number; readonly radius: number; readonly gain: number };
-}
 
 /** Where a dusk sand lies: the wind its ripples run with and where the afterglow is brightest (x / z). */
 export interface DuskSandSite { readonly wind: { readonly x: number; readonly z: number }; readonly glow: { readonly x: number; readonly z: number } }
@@ -74,13 +57,6 @@ export function duskSand(row: DuskSandRow, maps: { readonly grain: Texture; read
     if (next !== fed) { fed = next; updateGround(material, duskSandAt(row, next, grain, site.glow)); }
     setGroundPools(material, fires);
   } };
-}
-
-/** A painted dusk sky as rows: its name, its two stages' map names, the strip's elevations, the dusk window, the first stage's gain and the hold. */
-export interface DuskSkyRow {
-  readonly name: string;
-  readonly maps: readonly [string, string];
-  readonly elevation: V2; readonly window: V2; readonly firstGain: V2; readonly hold: number;
 }
 
 /** A painted dusk sky's family entry: the emissive family's sky over its two stages. */

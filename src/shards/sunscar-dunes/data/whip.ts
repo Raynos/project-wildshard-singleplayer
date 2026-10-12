@@ -1,5 +1,91 @@
-import type { LashHoldRow } from './lashHold';
-import type { LashView } from './lashWeapon';
+
+type V3 = readonly [number, number, number];
+
+export type CordRgb = readonly [number, number, number];
+/** A cord's braid: its tube's segments and sides, the two strands' colours, and the pale popper at the tip. */
+export interface CordStyle {
+  readonly segments: number; readonly radial: number;
+  readonly strandA: CordRgb; readonly strandB: CordRgb; readonly popper: CordRgb; readonly popperRings: number;
+  /** The thrown cord's matte braid (`roughness`) and its warm self-light (`emissive`, hex). */
+  readonly roughness: number; readonly emissive: number;
+}
+/** The plait tile (u along the cord, v round it): `size` texels a side, `columns` strands round, `rows` strands along. */
+export interface PlaitStyle {
+  readonly size: number; readonly columns: number; readonly rows: number;
+  /** sRGB bytes: the creases' near-black and what the crown adds over them. */
+  readonly crease: CordRgb; readonly crown: CordRgb;
+  /** The normal map's relief, and the roughness from the creases (`rough[0]`) down by `rough[1]` on the crowns. */
+  readonly relief: number; readonly rough: readonly [number, number];
+}
+/** A held coil: from the handle's top (`from`, at the ellipse angle `start`) round `turns` turns of an ellipse turned by `face`, each turn stepped by `step`, then the fall through `tail`. */
+export interface CoilPath {
+  readonly cord: number; readonly from: readonly [number, number, number]; readonly start: number; readonly rx: number; readonly ry: number; readonly face: number;
+  readonly turns: number; readonly step: readonly [number, number, number]; readonly tail: readonly (readonly [number, number, number])[];
+}
+
+/** A code coil: `turns` loops of radius `loopR` shrinking by `shrink` along it, its cord's radius, and its pose. */
+export interface LashCodeCoil { readonly turns: number; readonly loopR: number; readonly cord: number; readonly pos: V3; readonly rot: V3 }
+
+/** The held lash as rows. */
+export interface LashHoldRow {
+  /** the tubes' sides */
+  readonly radial: number;
+  /** the code fist's leathers (hex), their roughness and warm self-light (hex) */
+  readonly leathers: { readonly glove: number; readonly cuff: number; readonly knob: number; readonly roughness: number; readonly emissive: number };
+  /** the braid: the handle's two strands, the popper, and the braided materials' roughness */
+  readonly braid: { readonly a: CordRgb; readonly b: CordRgb; readonly popper: CordRgb; readonly roughness: number };
+  /** the plain wrap material's colour (hex) and roughness */
+  readonly wrap: { readonly colour: number; readonly roughness: number };
+  /** the handle: a braided open cylinder, its top and bottom radii, length, height segments and its height on the grip */
+  readonly handle: { readonly top: number; readonly bottom: number; readonly length: number; readonly segments: number; readonly y: number };
+  /** the knob: a squashed sphere at the butt */
+  readonly knob: { readonly r: number; readonly widthSegments: number; readonly heightSegments: number; readonly y: number; readonly squash: number };
+  /** the palm: a capsule, its position and scale */
+  readonly palm: { readonly r: number; readonly length: number; readonly cap: number; readonly radial: number; readonly pos: V3; readonly scale: V3 };
+  /** the fingers: `count` capsules lying along X, the first at `pos`, each next one `step` lower */
+  readonly fingers: { readonly count: number; readonly r: number; readonly length: number; readonly cap: number; readonly radial: number; readonly pos: V3; readonly step: number };
+  /** the thumb: a capsule, its position and turn */
+  readonly thumb: { readonly r: number; readonly length: number; readonly cap: number; readonly radial: number; readonly pos: V3; readonly rot: V3 };
+  /** the cuff: an open flared cylinder */
+  readonly cuff: { readonly top: number; readonly bottom: number; readonly h: number; readonly radial: number; readonly pos: V3 };
+  /**
+   * The generated glove's fit: its handle runs along +X from the butt; the handle's axis is the mean of the vertices
+   * between `collar[0]` and `collar[1]` short of the far end, the fist `fist` of the way along; stood on +Y, turned by
+   * `turn` about it and scaled; the lash leaves `keeper` short of the far end. Normals averaged per position, the
+   * painted colours `smooth` of the way; a matte material of `colour` (linear) and `roughness`.
+   */
+  readonly glove: { readonly collar: readonly [number, number]; readonly fist: number; readonly turn: number; readonly scale: number; readonly keeper: number; readonly smooth: number; readonly colour: V3; readonly roughness: number };
+  /** the poses: the grip's turn and the coil, with the code fist (`code`, its keeper's height `tip`) or the generated glove (`made`) */
+  readonly code: { readonly grip: V3; readonly tip: number; readonly coil: LashCodeCoil };
+  readonly made: { readonly grip: V3; readonly coil: LashCodeCoil };
+  /** the code coil's path: points round the loops, the loops' horizontal squash, their start, their drift per unit along, then the fall's points */
+  readonly coil: { readonly points: number; readonly tubular: number; readonly shrink: number; readonly squash: number; readonly origin: V3; readonly drift: readonly [number, number]; readonly fall: readonly V3[]; readonly a: CordRgb; readonly b: CordRgb; readonly roughness: number };
+  /** user data set on both coils' materials (e.g. a flag a shard's light pass reads) */
+  readonly coilUserData: Readonly<Record<string, boolean>>;
+  /** the hero glove's pose in the hold's frame */
+  readonly hd: { readonly pos: V3; readonly rot: V3 };
+  /** the hero coil's path in the hero glove's own frame, and its plait */
+  readonly loop: CoilPath;
+  readonly plait: PlaitStyle;
+  /** the thrown cord */
+  readonly lash: CordStyle;
+}
+
+/** The lash weapon's view as rows (metres, seconds, radians). */
+export interface LashView {
+  /** the model's place in the view: with the hero hand, and with the code hand */
+  readonly hold: { readonly hero: readonly [number, number, number]; readonly code: readonly [number, number, number] };
+  /** the view spring (`blocks.viewmodel`) */
+  readonly spring: { readonly gain: number; readonly clampYaw: number; readonly clampPitch: number; readonly k: number; readonly c: number };
+  /**
+   * The flick: the grip rises `lift` and pushes `push` as the cord unrolls and settles back as it falls slack; the slack
+   * cord's far end drops `drop` and comes back `back` per unit slack; the far end sits `reach - lead` out; the cord's
+   * extension loosens by `loosen` × slack; its sag is `sag[0]` + `sag[1]` × slack, `tautSag` when caught.
+   */
+  readonly flick: { readonly lift: number; readonly push: number; readonly drop: number; readonly back: number; readonly lead: number; readonly loosen: number; readonly sag: readonly [number, number]; readonly tautSag: number; readonly overlap: number };
+  /** The wrap round a caught lever: coil radius, height, turns, cord, how long it holds; the helix's samples, tube segments and sides. */
+  readonly wrap: { readonly r: number; readonly h: number; readonly turns: number; readonly cord: number; readonly hold: number; readonly samples: number; readonly segments: number; readonly sides: number };
+}
 
 /**
  * The bullwhip's look as rows (E374 polish; council rounds 1-25) on the lash item's view (`@wildshard/game/systems/items/lashView`):
