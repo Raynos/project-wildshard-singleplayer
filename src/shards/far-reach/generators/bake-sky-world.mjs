@@ -64,6 +64,14 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
   emit(resolve(project, 'data/fan.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
   console.info(`far-reach fan: ${String(bin.length)} bytes → baked/fan.bin (${String(packed.length)} deflated), ${String(rows.geometries.length)} geometries`);
 }
+// the windmill's modelled tower and foot, fitted from their GLBs (world/mill.ts modelledSet)
+{
+  const { bakeSkyMillModel } = await import(pathToFileURL(resolve(project, 'generators/millModel.ts')).href);
+  const { bin, rows } = await bakeSkyMillModel((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`)))), packed = deflateSync(bin, { level: 9 });
+  emit(resolve(out, 'mill-model.bin'), packed);
+  emit(resolve(project, 'data/millModel.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
+  console.info(`far-reach mill model: ${String(bin.length)} bytes → baked/mill-model.bin (${String(packed.length)} deflated), hub ${String(rows.hubAt.y)} / ${String(rows.hubAt.z)}`);
+}
 // the sky-isle models' unit frames (world/skyIsleHd.ts skyIsleUnit), found from each model's GLB
 {
   const { bakeSkyIsleFrames } = await import(pathToFileURL(resolve(project, 'generators/skyIsleFrames.ts')).href);
