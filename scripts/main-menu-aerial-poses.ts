@@ -150,3 +150,34 @@ export function squareHeroPlan(): { junction: string; surrounding: readonly stri
   }
   return { junction: round3.junction, surrounding: round3.surrounding, poses };
 }
+
+/**
+ * G343 hero round 4 (Jake: "standing above Driftwood looking the other way … above Nalati looking towards Pine … above
+ * Pine looking towards Nalati"; never above the template, which would spend the frame's best detail on itself): the eye
+ * over each of the three highest-quality shards, aimed across the roundabout at the others, with the near-placeholder
+ * tier on (G342). Three poses a spot: over the cell's centre, nearer the roundabout and lower, and back over its outer
+ * edge and higher; each as the square (G344's phone-1x 62°) and the landscape (43° vertical, ~70° across).
+ */
+export function round4HeroPlan(): { junction: string; surrounding: readonly string[]; poses: LandscapeHeroPose[] } {
+  const round3 = landscapeHeroPlan();
+  const grid = new GridAssembly({ developer: true, devserver: false });
+  const cells = grid.cells.filter(cell => round3.surrounding.includes(cell.instance));
+  const target = round3.poses.at(0)?.target;
+  if (target === undefined) throw new Error('Round 4 aims at round 3’s roundabout');
+  const poses: LandscapeHeroPose[] = [];
+  for (const [code, slug, name] of [['DW', 'driftwood-isle', 'Driftwood'], ['NA', 'nalati-grasslands', 'Nalati'], ['PH', 'pine-hollow', 'Pine']] as const) {
+    const cell = cells.find(c => c.slug === slug);
+    if (cell === undefined) throw new Error(`Round 4 stands over ${slug}, which is not at the roundabout`);
+    const headingDegrees = Math.atan2(cell.origin.x - target.x, cell.origin.z - target.z) * 180 / Math.PI;
+    const centre = Math.hypot(cell.origin.x - target.x, cell.origin.z - target.z);
+    for (const [variant, label, distance, height] of [
+      ['a', 'over its centre', centre, 260], ['b', 'nearer and lower', centre - 90, 200], ['c', 'back over its edge, higher', centre + 110, 320],
+    ] as const) {
+      for (const aspect of ['square', 'landscape'] as const) {
+        poses.push(aimedPose(target, cells, { id: `${aspect === 'square' ? 'SQ' : 'LS'}-${code}-${variant}`, name: `Above ${name}, ${label}`,
+          headingDegrees, height, distance: Math.round(distance), aspect, fovDegrees: HERO_1X_FOV[aspect] }));
+      }
+    }
+  }
+  return { junction: round3.junction, surrounding: round3.surrounding, poses };
+}
