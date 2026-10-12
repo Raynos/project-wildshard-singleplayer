@@ -30,7 +30,8 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   it in pre-commit and prints it in the session brief.
 - **Picks go to Jake with the question tool** (AskUserQuestion with context and one recommendation; boards / images
   sent right above it), never as a decision page. A skipped pick stays `needs pick` and is asked again next session;
-  it never expires (Jake, E423 grill).
+  it never expires (Jake, E423 grill). **Option 1 is always "Skip for now"** (Jake, 2026-10-12), so a stray Enter or a
+  pasted herdr message can only skip a question, never pick for him.
 - **Done = pushed to `origin/main` with the local gates green** (E428): no wait for the CI run or the deploy. Add the
   live build id when the deploy ships it.
 - **Plans are the one queue.** Follow-up work is a plan row, never another ask. **A leftover is built in the session
