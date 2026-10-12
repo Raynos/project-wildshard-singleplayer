@@ -1,4 +1,4 @@
-import { BackSide, Color, DoubleSide, FrontSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Vector3, type BufferAttribute, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
+import { Color, Group, InstancedMesh, Matrix4, Quaternion, Vector3, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
 import type { Isle } from '../data/layout';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
@@ -35,70 +35,8 @@ export const keelIsles = (isles: readonly Isle[]): SkyIsle[] => isles.map((isle)
 
 /** A model in its unit frame, with a probe of its turf and its rim radius per angle. */
 /** `bulge`: the model's widest horizontal reach under its turf (deck radii), where its overhangs and bushes spill out. */
-export interface SkyIsleUnit { readonly geometry: BufferGeometry; readonly depth: number; readonly rim: Float32Array; readonly probe: Mesh; readonly bulge: number }
+export interface SkyIsleUnit { readonly geometry: BufferGeometry; readonly depth: number; readonly rim: Float32Array; readonly bulge: number }
 interface Unit extends SkyIsleUnit { readonly map: Texture }
-
-/**
- * A probe's straight-down rays without walking every triangle (rt3-crossing2). Three's Mesh.raycast tests all of a model's
- * triangles for each ray: 49 rays a model (twice: the isles and the keels) and one per pine cost Sky Reach's entry a 4.8 s
- * task at 4x CPU. This bins the triangles by their x / z extent once (per position version) and runs three's own
- * ray-triangle test, in index order, on the triangles under the ray: the nearest hit's height, as
- * `new Raycaster(origin, down).intersectObject(probe, false)[0]?.point.y` returns it (a vertical ray meets only triangles
- * whose x / z extent holds it). Any other ray or a moved probe takes three's raycast.
- */
-interface DownGrid { readonly version: number; readonly x0: number; readonly z0: number; readonly step: number; readonly cells: readonly (number[] | undefined)[] }
-const DOWN_GRID = 64;
-const downGrids = new WeakMap<BufferGeometry, DownGrid>();
-const downA = new Vector3(), downB = new Vector3(), downC = new Vector3(), downHit = new Vector3(), downRay = new Raycaster(), DOWN = new Vector3(0, -1, 0), IDENTITY = new Matrix4();
-function downRange(geometry: BufferGeometry): { readonly start: number; readonly end: number; readonly corner: (i: number) => number } {
-  const index = geometry.getIndex(), count = index === null ? geometry.getAttribute('position').count : index.count, range = geometry.drawRange;
-  return { start: Math.max(0, range.start), end: Math.min(count, range.start + range.count), corner: index === null ? (i) => i : (i) => index.getX(i) };
-}
-function downGrid(geometry: BufferGeometry): DownGrid {
-  const p = geometry.getAttribute('position') as BufferAttribute, held = downGrids.get(geometry);
-  if (held !== undefined && held.version === p.version) return held;
-  const { start, end, corner } = downRange(geometry);
-  let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
-  for (let i = start; i < end; i++) { const v = corner(i), x = p.getX(v), z = p.getZ(v); x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
-  const step = Math.max(x1 - x0, z1 - z0, 1e-6) / DOWN_GRID, cells = Array.from<number[] | undefined>({ length: DOWN_GRID * DOWN_GRID });
-  const cell = (v: number, o: number): number => Math.min(DOWN_GRID - 1, Math.max(0, Math.floor((v - o) / step)));
-  for (let i = start; i + 2 < end; i += 3) {
-    const a = corner(i), b = corner(i + 1), c = corner(i + 2);
-    const ax = p.getX(a), bx = p.getX(b), cx = p.getX(c), az = p.getZ(a), bz = p.getZ(b), cz = p.getZ(c);
-    const i0 = cell(Math.min(ax, bx, cx), x0), i1 = cell(Math.max(ax, bx, cx), x0), k0 = cell(Math.min(az, bz, cz), z0), k1 = cell(Math.max(az, bz, cz), z0);
-    for (let k = k0; k <= k1; k++) for (let j = i0; j <= i1; j++) { const at = k * DOWN_GRID + j; (cells[at] ??= []).push(i); }
-  }
-  const grid = { version: p.version, x0, z0, step, cells };
-  downGrids.set(geometry, grid);
-  return grid;
-}
-/** The height of the first hit of a ray from `origin` straight down onto `probe` (undefined: a miss). */
-export function skyIsleHitDown(probe: Mesh, origin: Vector3): number | undefined {
-  const geometry = probe.geometry, material = probe.material;
-  downRay.set(origin, DOWN);
-  if (Array.isArray(material) || !probe.matrixWorld.equals(IDENTITY) || probe.morphTargetInfluences !== undefined) return downRay.intersectObject(probe, false)[0]?.point.y;
-  // three's early-outs, in its order: the bounding sphere (computed if absent), then the box if the geometry has one
-  if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
-  const sphere = geometry.boundingSphere;
-  if (sphere === null || !downRay.ray.intersectsSphere(sphere) || (geometry.boundingBox !== null && !downRay.ray.intersectsBox(geometry.boundingBox))) return undefined;
-  const grid = downGrid(geometry), p = geometry.getAttribute('position') as BufferAttribute, { corner } = downRange(geometry);
-  const j = Math.floor((origin.x - grid.x0) / grid.step), k = Math.floor((origin.z - grid.z0) / grid.step);
-  if (j < 0 || k < 0 || j >= DOWN_GRID || k >= DOWN_GRID) {
-    // past the outermost cell edge only by the clamp's rounding: three's walk decides
-    if (origin.x < grid.x0 || origin.z < grid.z0 || origin.x > grid.x0 + grid.step * DOWN_GRID || origin.z > grid.z0 + grid.step * DOWN_GRID) return undefined;
-    return downRay.intersectObject(probe, false)[0]?.point.y;
-  }
-  const backface = material.side === FrontSide, flip = material.side === BackSide;
-  let best = Infinity, y: number | undefined;
-  for (const i of grid.cells[k * DOWN_GRID + j] ?? []) {
-    downA.fromBufferAttribute(p, corner(i)); downB.fromBufferAttribute(p, corner(i + 1)); downC.fromBufferAttribute(p, corner(i + 2));
-    const hit = flip ? downRay.ray.intersectTriangle(downC, downB, downA, true, downHit) : downRay.ray.intersectTriangle(downA, downB, downC, backface, downHit);
-    if (hit === null) continue;
-    const distance = origin.distanceTo(hit);
-    if (distance < best) { best = distance; y = hit.y; }
-  }
-  return y;
-}
 
 /**
  * A model's unit frame as baked (generators/skyIsleFrames.ts, `data/skyIsleFrames.json`): the move (its top's centre and
@@ -109,10 +47,9 @@ export interface SkyIsleFrame { model: string; tx: number; deck: number; tz: num
 
 /** Bring a loaded model to the unit frame by its `frame` (see the module note); moves the geometry in place. Node-safe (the far bake). */
 export function skyIsleUnit(geometry: BufferGeometry, frame: Omit<SkyIsleFrame, 'model'>): SkyIsleUnit {
-  const probe = new Mesh(geometry, new MeshBasicMaterial({ side: DoubleSide }));
   geometry.translate(-frame.tx, -frame.deck, -frame.tz); geometry.scale(frame.k, frame.k, frame.k);
   geometry.computeBoundingBox(); geometry.computeBoundingSphere();
-  return { geometry, depth: -(geometry.boundingBox?.min.y ?? -1), rim: Float32Array.from(frame.rim), probe, bulge: frame.bulge };
+  return { geometry, depth: -(geometry.boundingBox?.min.y ?? -1), rim: Float32Array.from(frame.rim), bulge: frame.bulge };
 }
 
 /**
@@ -138,8 +75,6 @@ export interface SkyIsleHd {
   readonly group: Group;
   /** The isles no model covers (their model did not load): the code builder makes them. */
   readonly fallback: readonly SkyIsle[];
-  /** The turf's height at a world point on an isle the models cover (null: off its top, or a code isle). */
-  readonly topAt: (isle: Isle, x: number, z: number) => number | null;
   /** The rim's radius at a world angle round an isle the models cover (null: a code isle): where its waterfall hangs. */
   readonly lipAt: (isle: Isle, a: number) => number | null;
 }
@@ -152,7 +87,7 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
     const m = skyHd(name), frame = FRAMES.find((f) => f.model === name);
     if (m !== null && frame !== undefined) units.set(name, { ...skyIsleUnit(m.geometry, frame), map: m.map });
   }
-  const group = new Group(), fallback: SkyIsle[] = [], placed = new Map<string, { u: Unit; yaw: number; sy: number }>();
+  const group = new Group(), fallback: SkyIsle[] = [], placed = new Map<string, { u: Unit; yaw: number }>();
   const byModel = new Map<SkyIsleModel, SkyIsle[]>();
   isles.forEach((s, i) => {
     const name = skyIsleWear(s, i);
@@ -175,21 +110,13 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
     list.forEach((s, k) => {
       const { yaw, r, sy } = skyIslePose(s, u, k, clipTop);
       q.setFromAxisAngle(up, yaw); m.compose(new Vector3(s.x, s.y, s.z), q, new Vector3(r, r * sy, r)); mesh.setMatrixAt(k, m);
-      placed.set(s.id, { u, yaw, sy });
+      placed.set(s.id, { u, yaw });
     });
     mesh.computeBoundingSphere(); group.add(mesh);
   }
   const local = new Vector3();
   return {
     group, fallback,
-    topAt: (isle, x, z) => {
-      const at = placed.get(isle.id); if (at === undefined) return null;
-      local.set((x - isle.x) / isle.r, 0, (z - isle.z) / isle.r).applyAxisAngle(up, -at.yaw);
-      const hit = skyIsleHitDown(at.u.probe, new Vector3(local.x, 5, local.z));
-      // off the turf (a lip, a bush top, a root): no tree there
-      if (hit === undefined || Math.abs(hit) > SKY_ISLE_HD.turf) return null;
-      return isle.y + hit * isle.r * at.sy;
-    },
     lipAt: (isle, a) => {
       const at = placed.get(isle.id); if (at === undefined) return null;
       local.set(Math.cos(a), 0, Math.sin(a)).applyAxisAngle(up, -at.yaw);

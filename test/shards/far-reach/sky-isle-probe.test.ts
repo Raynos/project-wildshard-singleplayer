@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BufferAttribute, BufferGeometry, DoubleSide, FrontSide, IcosahedronGeometry, Mesh, MeshBasicMaterial, Raycaster, TorusKnotGeometry, Vector3, type Side } from 'three';
-import { skyIsleHitDown } from '../../../src/shards/far-reach/world/skyIsleHd';
+import { skyIsleHitDown } from '../../../src/shards/far-reach/generators/skyIsleProbe';
 
 // rt3-crossing2: the binned straight-down probe returns exactly what three's full-mesh raycast does (the first hit's height).
 const random = (seed: number): (() => number) => { let s = seed; return () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; }; };

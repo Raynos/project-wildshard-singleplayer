@@ -2,7 +2,8 @@ import { Box3, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type BufferAttribut
 import { readSourceModel } from './skinned';
 import { hdGeometry } from '../runtime/looks/modelIntake';
 import { SKY_ISLE_HD, SKY_ISLE_MODELS } from '../data/skyIsles';
-import { skyIsleHitDown, type SkyIsleFrame } from '../world/skyIsleHd';
+import type { SkyIsleFrame } from '../world/skyIsleHd';
+import { skyIsleHitDown } from './skyIsleProbe';
 import { HD_URLS } from '../data/files';
 
 /**

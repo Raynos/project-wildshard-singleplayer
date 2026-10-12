@@ -14,6 +14,7 @@ import { crownArena } from './crown';
 import { firSheet, firs } from './fir';
 import { trees } from './trees';
 import { ISLE_CUT, ISLE_KEEL_CUT, SKY_ISLES } from '../data/skyIsles';
+import skyIslePines from '../data/skyIslePines.json' with { type: 'json' };
 import { inCube, skyIslesIn } from './skyIsles';
 import { keelIsles, skyIsleModels } from './skyIsleHd';
 import { skyBakedPiece, skyKnollHulls } from './baked';
@@ -174,7 +175,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>):
   for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) pineAt.push([isle.x + dx, isle.y, isle.z + dz, s]);
   // a pine on each gate isle beside the chain posts (the board's tree over the islet)
   for (const isle of GATE_ISLES) pineAt.push([isle.x + 3, isle.y, isle.z - 3, 0.9]);
-  // the sky around the archipelago (E392): decorative isles from the same builder, their own seeded stream
+  // the sky around the archipelago (E392): decorative isles from the same builder (a model's fallback), their own seeded stream
   let skySeed = 9001;
   const skyRnd = (): number => { skySeed = (skySeed * 16807) % 2147483647; return skySeed / 2147483647; };
   // E392/E399: the textured floating-island models (world/skyIsleHd.ts) where they loaded, the code builder for the rest
@@ -189,16 +190,12 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>):
   const keels = skyIsleModels(keelIsles(ISLES), true);
   keels.group.name = 'far.isle-keels'; skyGroup.add(keels.group);
   await pause();
+  const SKY_ISLE_PINES: Readonly<Record<string, readonly { x: number; z: number; size: number; y: number | null }[]>> = skyIslePines;
   for (const s of SKY_ISLES) {
-    // an isle out of the cube still draws its pines' numbers, so the seeded stream (and every isle inside) matches standalone
     const kept = half === null || inCube(s, half), code = kept && skyHd.fallback.includes(s);
     if (code) { const mesh = islandMesh(s, skyRnd); mesh.position.set(s.x, s.y, s.z); skyGroup.add(mesh); }
-    for (let k = 0; k < s.pines; k++) {
-      const a = skyRnd() * Math.PI * 2, d = s.r * (0.2 + skyRnd() * 0.55), x = s.x + Math.cos(a) * d, z = s.z + Math.sin(a) * d, size = 0.7 + skyRnd() * 0.5;
-      if (!kept) continue;
-      // on a model, the fir stands on its turf (a little sunk), or not at all where the turf is not
-      const y = code ? s.y : skyHd.topAt(s, x, z); if (y !== null) pineAt.push([x, code ? y : y - 0.2, z, size]);
-    }
+    // the firs placed offline (generators/skyIslePines.ts): on a model, on its turf or not at all; on a code isle, on its top
+    if (kept) for (const p of SKY_ISLE_PINES[s.id] ?? []) { if (code) pineAt.push([p.x, s.y, p.z, p.size]); else if (p.y !== null) pineAt.push([p.x, p.y, p.z, p.size]); }
     if (code) await pause();
   }
   root.add(skyGroup);

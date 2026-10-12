@@ -1162,6 +1162,7 @@
         "src/shards/far-reach/data/fan.json",
         "src/shards/far-reach/data/skyIsleFrames.json",
         "src/shards/far-reach/data/millModel.json",
+        "src/shards/far-reach/data/skyIslePines.json",
         "public/assets/far-reach/baked/dressing.bin",
         "public/assets/far-reach/baked/bridges.bin",
         "public/assets/far-reach/baked/fan.bin",
@@ -1183,7 +1184,8 @@
         "src/shards/far-reach/data/bridges.json",
         "src/shards/far-reach/data/fan.json",
         "src/shards/far-reach/data/skyIsleFrames.json",
-        "src/shards/far-reach/data/millModel.json"
+        "src/shards/far-reach/data/millModel.json",
+        "src/shards/far-reach/data/skyIslePines.json"
       ]
     },
     {
