@@ -28,7 +28,7 @@ function spanBox(span: Span, centre: [number, number, number], half: [number, nu
   return { kind: 'box', x: c.x, y: c.y, z: c.z, hx: half[0], hy: half[1], hz: half[2], rot: { x: q.x, y: q.y, z: q.z, w: q.w }, surface };
 }
 /** The deck under a span (loop 5: any heading, sloped between two decks), its top on the deck line. */
-function deckCollider(span: Span): BoxColliderData {
+export function deckCollider(span: Span): BoxColliderData {
   const len = spanLength(span);
   return spanBox(span, [0, -0.15, -len / 2], [span.width / 2, 0.15, len / 2], 'wood');
 }
@@ -36,7 +36,7 @@ function deckCollider(span: Span): BoxColliderData {
  * A rope span's deck and rails along its sag (layout ropeSag), as ~2 m chords, each its own short sloped span, overlapping
  * a little so the joins have no seam (a chord sits at most a few mm above the curve).
  */
-function saggedColliders(span: Span): BoxColliderData[] {
+export function saggedColliders(span: Span): BoxColliderData[] {
   const len = spanLength(span), n = Math.max(1, Math.ceil(len / 2)), out: BoxColliderData[] = [];
   const at = (s: number): { x: number; y: number; z: number } => {
     const f = s / len; return { x: span.x0 + (span.x1 - span.x0) * f, y: span.y + (span.y1 - span.y) * f - ropeSag(len, s), z: span.z0 + (span.z1 - span.z0) * f };
@@ -49,7 +49,7 @@ function saggedColliders(span: Span): BoxColliderData[] {
   return out;
 }
 /** Rope rails along both long sides of a span. */
-function railColliders(span: Span): BoxColliderData[] {
+export function railColliders(span: Span): BoxColliderData[] {
   const len = spanLength(span);
   return [-1, 1].map((side) => spanBox(span, [side * span.width / 2, 0.55, -len / 2], [0.06, 0.55, len / 2], 'wood'));
 }

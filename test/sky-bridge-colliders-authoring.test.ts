@@ -3,10 +3,9 @@ import process from 'node:process';
 import { expect, it } from 'vitest';
 import { auditAuthoringInputs, isAuthoringInput } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
-import { skyBridgePhysicsPlacements } from '../src/shards/far-reach/generators/bridgeColliders';
+import { deckCollider, railColliders, saggedColliders, skyBridgePhysicsPlacements } from '../src/shards/far-reach/generators/bridgeColliders';
 import { SPANS, FALLEN_BRIDGE, UPDRAFT } from '../src/shards/far-reach/data/layout';
 import { risingIsletRows } from '../src/shards/far-reach/generators/risingIslets';
-import { deckCollider, saggedColliders, railColliders } from '../src/shards/far-reach/world/build';
 import native from '../src/shards/far-reach/runtime/physics.baked.json' with { type: 'json' };
 
 it('compiles eleven bridge rest placements and all 975 boxes with exact persisted native property order', () => {
