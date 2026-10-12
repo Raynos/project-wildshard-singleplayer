@@ -11,15 +11,11 @@ push gate only; frame floor / Simulator / soak / boards / quiet windows paused. 
 | Sky Reach | 78.4 % → **63.9 %** (4329 / 6777) | ≤ 1355 |
 | Nine | 69.5 % | — (graph rollout blocked) |
 
-**Fleet:** Codex sp-x7 push/deploy; sp-x4 Sky movers MV-2; sp-x5 lash + war-fan WP-5; sp-x6 directors DIR-5; sp-x1
-headless proofs + metric. Opus: Sky A sp-o29 (render builders, shared instance bake w/ Pine), shared rig loader sp-o30 (Signal + Sky), looks sp-o25 (near round 3 + hero r4 landing).
+**Fleet:** Codex sp-x7 push/deploy, sp-x6 Signal baked ground; sp-x1/x4/x5 PARKED (Codex 9 %). Opus: Sky A sp-o29, rig-loader verify sp-o33, looks sp-o31 (grid ocean clip + hero r4 entered), G348 tail sp-o34.
 
-**LOOKS LINE (Jake: "I don't want to forget this main hero thing and the near look and feel"):** one dedicated Opus
-subagent, start to end: (1) G342 near-shard tier (selection `18fad8ea2`, sp-x4's format slice) with raw A/B crossroads
-captures; (2) then G343/G344 hero round 4: camera above Driftwood, Nalati and Pine across the roundabout, never above the
-template, phone-1x lens, square + landscape; the pick ships via G341's layouts.
+**LOOKS LINE (Jake: "I don't want to forget this main hero thing and the near look and feel"):** a dedicated Opus subagent always carries G342 near tier → G343/G344 hero round 4 (above Driftwood/Nalati/Pine, 1x lens, square + landscape) → the pick ships via G341.
 
-**Live:** `957b05e6-mv5vop4l` (23:23Z): the sprint's first 220 commits incl. G341 hero SQ-c/LS-c, near tier (Debug B), G321 skies, DS1.4. **Origin moved 23:05Z to `957b05e68`** after a landing freeze; standing debt rule for shard imports. **Codex weekly 9 % left (23:10Z) → trimming to essential Codex lanes as it nears 0.** Reds: `red-green.md`.
+**Live:** `957b05e6-mv5vop4l` (23:23Z): the sprint's first 220 commits incl. G341 hero SQ-c/LS-c, near tier (Debug B), G321 skies, DS1.4. Reds: `red-green.md`.
 
 **Before the sprint (paused, not dropped):** frame floor (desktop Pine p95 33.4; Simulator Driftwood 59, Pine 58,
 Sky 37, Nalati 36; fixes `38ea143c5`, `512bb3d16`, `dc4dfb106` unproven; task clock `99b0866c0`; leads: Driftwood unsliced world builders + late sailor light), SF22 assembled routes, SF57 re-entry, SF67.
