@@ -18,8 +18,7 @@ import { FAN_ACT, FAN_ACTOR, FAN_AIM, FAN_STEP } from '../../../src/shards/far-r
 import { FAN_GUST, FAN_ID, FAN_SWING, SKY_ITEMS } from '../../../src/shards/far-reach/data/items';
 import { FAN_ROW } from '../../../src/shards/far-reach/weapons/rows';
 import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
-import { ROC_STEP } from '../../../src/shards/far-reach/data/rocFight';
-import { PHASES } from '../../../src/shards/far-reach/data/rocFight';
+import { PHASES, ROC_STEP } from '../../../src/shards/far-reach/data/rocFight';
 import { FLOCK_STEP, SKY_KILL_Y } from '../../../src/shards/far-reach/runtime/flock';
 import { SKY_REACH } from '../../../src/shards/far-reach/manifest';
 import { prepareHeadlessRuntime } from '../../../src/shards/far-reach/runtime/headless';
@@ -229,9 +228,9 @@ it('restores the Roc encounter mid-fight exactly, its victory paying once on the
 }, 300_000);
 
 it('declares the War Fan as its row: the item, the browser row and the shared recipe agree', () => {
-  expect([FAN_ROW.id, SKY_ITEMS.rows[0]?.id, SKY_ITEMS.loadout.primary]).toEqual([FAN_ID, FAN_ID, FAN_ID]);
-  expect(SKY_ITEMS.rows[0]?.light).toMatchObject({ damage: FAN_SWING.light, cooldown: FAN_SWING.cooldown, range: FAN_SWING.reach });
-  expect(SKY_ITEMS.rows[0]?.heavy).toMatchObject({ damage: FAN_SWING.heavy, cooldown: FAN_SWING.heavyCooldown, range: FAN_SWING.reach });
+  expect([FAN_ROW.id, SKY_ITEMS.rows[0].id, SKY_ITEMS.loadout.primary]).toEqual([FAN_ID, FAN_ID, FAN_ID]);
+  expect(SKY_ITEMS.rows[0].light).toMatchObject({ damage: FAN_SWING.light, cooldown: FAN_SWING.cooldown, range: FAN_SWING.reach });
+  expect(SKY_ITEMS.rows[0].heavy).toMatchObject({ damage: FAN_SWING.heavy, cooldown: FAN_SWING.heavyCooldown, range: FAN_SWING.reach });
 });
 
 it('swings the War Fan on player attacks: the row\'s light contact, gated by its cooldown, only within its arc', () => {
