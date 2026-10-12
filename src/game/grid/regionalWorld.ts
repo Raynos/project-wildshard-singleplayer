@@ -66,12 +66,14 @@ import type { ShardManifest } from '../shard/manifest';
 import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
 import type { ShardWorld } from '../shard/world';
-import type { RegionalRuntimeFoundation, RegionalRuntimeRequest, RegionalRuntimeTextures } from './regionalRuntime';
+import type { RegionalRuntimeFoundation, RegionalRuntimePage, RegionalRuntimeRequest, RegionalRuntimeTextures } from './regionalRuntime';
 import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wholeChainKnobs, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
-import { buildRegionSky, type RegionBackdrop } from './regionSky';
+import { buildRegionSky, type RegionBackdrop, type RegionSkyOutcome } from './regionSky';
 import { imagesFirstPlayingBytes } from './runtimeCost';
 import { provideRuntimeProduct } from '../shardfile/runtimeProduct';
+import { shardfileLook } from '../shardfile/look';
+import { findShard } from '../shard/registry';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -398,4 +400,43 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       throw error;
     } finally { leaveTextures(); }
   };
+}
+
+/** What a shardfile cell's own sky is built from (`hangCellDataSky`). */
+export interface CellDataSkyRequest {
+  readonly instance: string;
+  readonly slug: string;
+  /** the admitted source's look section and its assets (its LUT, when it declares one) */
+  readonly look: Parameters<typeof shardfileLook>[0];
+  readonly assets: ReadonlyMap<string, Uint8Array>;
+  /** the page's staged services (its sky rig, its game); null before they exist: no sky */
+  readonly page: RegionalRuntimePage | null;
+  readonly allocator: Pick<RegionalRuntimeRequest['allocator'], 'reserve' | 'entries'>;
+  /** the region's resident scope: the sky leaves with it */
+  readonly scope: Scope;
+}
+
+/**
+ * The own sky of a grid cell whose shard is a shardfile with no runtime (SHARD-PLATFORM G321, Jake 2026-10-10: *"when you
+ * enter a shard, you enter it with its sky"*): its look is data (`dataLook`: a gradient dome, the key light, the ambient and
+ * the fog turned by its day keys on its own clock), so its cell lays that backdrop on the page's one sky as a layer, as a
+ * runtime cell above lays its level's backdrop: weighted by the cell's owner weight (1 inside, blended across the 16 m edge
+ * band, 0 on the road, where nothing of it runs or draws), charged on its `sim-sky:` claim (the data dome holds no texture)
+ * and freed with the region's resident scope. Its air and grade stay what its far proxy declared to the frame: the layer's
+ * clock writes its fog into a private fog object. 'off' when it has none (an empty look, no page sky yet).
+ */
+export async function hangCellDataSky(request: CellDataSkyRequest): Promise<RegionSkyOutcome> {
+  const { page, scope } = request, manifest = findShard(request.slug);
+  if (page === null || manifest === undefined || request.look.keys.length === 0) return 'off';
+  const sky = page.world.sky, game = page.world.game;
+  if (!(sky instanceof SkyRig)) return 'off';
+  const level = toLevelSpec(manifest), look = shardfileLook(request.look, request.assets), make = look.backdrop;
+  if (make === undefined) return 'off';
+  scope.onDispose(() => { look.dispose?.(); });
+  const air = new Fog(0xffffff, 1, 2);
+  return await buildRegionSky<LayerAttachable>({ instance: request.instance, look: frameLookOf(game.rootScene), allocator: request.allocator, scope, layered: async () => {
+    const layered = await sky.layeredBackdrop(make, { level, scope, air: () => air, planet: look.sky?.planet !== false, clouds: look.sky?.clouds !== false, sun: look.sky?.sun });
+    if (layered === null) return null;
+    return { ...layered, prepare: () => game.warmSkyLayer(layered.layer) };
+  } });
 }

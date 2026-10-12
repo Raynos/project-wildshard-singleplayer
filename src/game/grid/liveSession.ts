@@ -67,7 +67,7 @@ import { yieldGridAdmission, yieldGridConstruction } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
 import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/shardPlugin';
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage } from './regionalRuntime';
-import { createRegionalWorldFoundation, resolveRegionalRuntimeTextures } from './regionalWorld';
+import { createRegionalWorldFoundation, hangCellDataSky, resolveRegionalRuntimeTextures } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
 import { regionalSimAccountedBytes } from './runtimeCost';
 import { resolveLevelBounds } from '../shard/runtime';
@@ -610,6 +610,13 @@ export class LiveGridSession {
           // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
           queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region, prompts: copyPrompts(copySource, region) });
         this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: source.entryways });
+        // G321: its own sky inside its cell (its data look's dome and light), laid while it is resident
+        if (cell.instance !== this.ports.home.instance) {
+          const request = { instance: cell.instance, slug: cell.slug, look: copySource.look, assets, page: this.page.runtimePage?.() ?? null, allocator: this.ports.allocator, scope: host.scope };
+          void (async (): Promise<void> => {
+            try { await hangCellDataSky(request); } catch (error) { console.warn(`[region sky] ${cell.instance}`, error); }
+          })();
+        }
         return Promise.resolve({ host: region.host, dispose: () => {
           this.regions.delete(cell.instance); this.transferWalls.delete(cell.instance); savedRegion.unbind();
           try { region.dispose(); } finally { try { releaseBasis(); } finally { releaseProduct(); } }
