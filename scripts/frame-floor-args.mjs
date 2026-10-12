@@ -1,4 +1,4 @@
-const switches = new Set(['help', 'worker', 'devserver', 'gl-time', 'frame-timeline', 'road-approach', 'entry-socket']);
+const switches = new Set(['help', 'worker', 'devserver', 'gl-time', 'gpu-bisect', 'frame-timeline', 'road-approach', 'entry-socket']);
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir']);
