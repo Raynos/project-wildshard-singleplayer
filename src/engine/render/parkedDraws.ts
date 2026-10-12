@@ -71,21 +71,49 @@ function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera): Drawable[]
   });
 }
 
-/** Slice size: at most this many drawables, and at most this many materials not drawn by an earlier slice. */
-export interface ParkedDrawBudget { readonly drawables: number; readonly newMaterials: number }
+/** Slice size: at most this many drawables, at most this many materials not drawn by an earlier slice, and (optional)
+ * at most this many bytes of vertex/index/instance buffers no earlier slice uploaded; a larger single drawable goes alone. */
+export interface ParkedDrawBudget { readonly drawables: number; readonly newMaterials: number; readonly bufferBytes?: number }
 
-/** Split drawables into slices so that each slice builds only a few new pipelines. */
+/** A geometry with three's default attribute map (an `instanceof` alone keeps `any` generics). */
+const isBufferGeometry = (value: unknown): value is THREE.BufferGeometry => value instanceof THREE.BufferGeometry;
+
+/** The typed arrays a drawable's first draw uploads with `bufferData`: its geometry's attributes (an interleaved buffer
+ * once), its index and an instanced mesh's per-instance matrices and colours. */
+function drawBuffers(object: THREE.Object3D): ArrayBufferView[] {
+  const out = new Set<ArrayBufferView>();
+  const geometry: unknown = (object as THREE.Object3D & { geometry?: unknown }).geometry;
+  const add = (attribute: THREE.BufferAttribute | THREE.InterleavedBufferAttribute | null | undefined): void => {
+    if (attribute === null || attribute === undefined) return;
+    out.add(attribute instanceof THREE.InterleavedBufferAttribute ? attribute.data.array : attribute.array);
+  };
+  if (isBufferGeometry(geometry)) {
+    for (const name of Object.keys(geometry.attributes)) add(geometry.getAttribute(name));
+    add(geometry.index);
+  }
+  if (object instanceof THREE.InstancedMesh) { add(object.instanceMatrix); add(object.instanceColor); }
+  return [...out];
+}
+
+/** Split drawables into slices so that each slice builds only a few new pipelines and, with `bufferBytes`, uploads a
+ * bounded amount of new buffer data (sp-o6: a whole cell's first draws queued enough `bufferData` to stall Chromium's GPU
+ * process, 43 ms `WaitForToken` waits and once a 1.47 s render). Slicing changes no pixel: the next frame redraws the
+ * scissor texel. */
 export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T[], budget: ParkedDrawBudget): T[][] {
   const slices: T[][] = [];
-  const seen = new Set<THREE.Material>();
-  let slice: T[] = [], fresh = 0;
+  const seen = new Set<THREE.Material>(), uploaded = new Set<ArrayBufferView>();
+  const byteCap = budget.bufferBytes ?? Number.POSITIVE_INFINITY;
+  let slice: T[] = [], fresh = 0, bytes = 0;
   for (const object of drawables) {
     const unseen = drawableMaterials(object).filter(material => !seen.has(material));
-    if (slice.length > 0 && (slice.length >= budget.drawables || fresh + unseen.length > budget.newMaterials)) {
-      slices.push(slice); slice = []; fresh = 0;
+    const buffers = Number.isFinite(byteCap) ? drawBuffers(object).filter(buffer => !uploaded.has(buffer)) : [];
+    const size = buffers.reduce((sum, buffer) => sum + buffer.byteLength, 0);
+    if (slice.length > 0 && (slice.length >= budget.drawables || fresh + unseen.length > budget.newMaterials || bytes + size > byteCap)) {
+      slices.push(slice); slice = []; fresh = 0; bytes = 0;
     }
-    slice.push(object); fresh += unseen.length;
+    slice.push(object); fresh += unseen.length; bytes += size;
     for (const material of unseen) seen.add(material);
+    for (const buffer of buffers) uploaded.add(buffer);
   }
   if (slice.length > 0) slices.push(slice);
   return slices;
@@ -178,7 +206,8 @@ export type ParkedDrawRenderer = Pick<Renderer, 'render' | 'getRenderTarget' | '
   | 'getScissor' | 'setScissor' | 'getScissorTest' | 'setScissorTest'> & {
   readonly shadowMap: { autoUpdate: boolean; needsUpdate: boolean; type: THREE.ShadowMapType } };
 
-const DEFAULT_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 2 };
+/** 4 MiB of new buffers a slice: a few milliseconds of `bufferData` at most. */
+const DEFAULT_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 2, bufferBytes: 4 * 1024 * 1024 };
 
 /**
  * Draw every visible drawable under the hidden `root` into a 1×1 scissor of `target`, and its casters into the shadow

@@ -19,6 +19,17 @@ it('slices drawables by count and by materials no earlier slice drew', () => {
   expect(parkedDrawSlices([], { drawables: 8, newMaterials: 2 })).toEqual([]);
 });
 
+it('slices by new buffer bytes, counting a shared geometry once and a larger drawable alone', () => {
+  const material = new MeshStandardMaterial(), box = new BoxGeometry();
+  const boxBytes = Object.values(box.attributes).reduce((sum, a) => sum + a.array.byteLength, 0) + (box.index?.array.byteLength ?? 0);
+  const big = new Mesh(new BoxGeometry(1, 1, 1, 40, 40, 40), material);
+  const objects = [new Mesh(box, material), new Mesh(box, material), new Mesh(new BoxGeometry(), material), big, new Mesh(new BoxGeometry(), material)];
+  const budget = { drawables: 8, newMaterials: 8, bufferBytes: boxBytes * 1.5 };
+  // the second box shares the first's buffers (no new bytes); the third's own buffers overflow; the big one goes alone
+  expect(parkedDrawSlices(objects, budget).map(slice => slice.length)).toEqual([2, 1, 1, 1]);
+  expect(parkedDrawSlices(objects, { drawables: 8, newMaterials: 8 }).map(slice => slice.length)).toEqual([5]);
+});
+
 it('warms shared static geometry once but preserves material, shadow, callback and per-object buffer draws', async () => {
   const scene = new Scene(), root = new Group(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
   const shared = new Mesh(geometry, material), transformed = new Mesh(geometry, material), shadow = new Mesh(geometry, material);
