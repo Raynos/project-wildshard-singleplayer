@@ -18,7 +18,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { saveFixture } from './debug-settings.mjs';
 import { installInit } from './parity/init.mjs';
-import { MAP_METRES, mapSettings, mapShards, mapTilesHash } from './map-hash.mjs';
+import { MAP_METRES, mapPixelHash, mapSettings, mapShards, mapTilesHash } from './map-hash.mjs';
 
 const option = (name) => process.argv.find((part) => part.startsWith(`--${name}=`))?.slice(name.length + 3);
 const root = resolve(import.meta.dirname, '..');
@@ -35,7 +35,8 @@ const todo = mapShards(root).filter(({ slug, dir }) => {
   if (mapSettings(dir).from !== null) return false;
   if (only) return only.includes(slug);
   if (process.argv.includes('--all') || !existsSync(stampPath(dir))) return true;
-  return JSON.parse(readFileSync(stampPath(dir), 'utf8')).tilesHash !== mapTilesHash(dir);
+  const stamp = JSON.parse(readFileSync(stampPath(dir), 'utf8'));
+  return stamp.tilesHash !== mapTilesHash(dir) || typeof stamp.pixelHash !== 'string';
 });
 if (todo.length === 0) { console.log('bake-maps: every map is current'); process.exit(0); }
 
@@ -190,7 +191,7 @@ try {
       writeFileSync(stylePath, JSON.stringify(settings.style));
       execFileSync('uv', ['run', '--quiet', '--with', 'numpy', '--with', 'scipy', '--with', 'pillow', 'python', join(root, 'scripts/map-stylize.py'), colourPng, heightPng, stylePath, webp, String(OUT)], { stdio: 'inherit' });
       const bytes = statSync(webp).size;
-      const stamp = { version: 1, tilesHash: mapTilesHash(dir), image: `/assets/${slug}/map/top.webp`, size: OUT, metres: MAP_METRES, north: '+z', east: '-x', style: `stylized:${settings.style.kind}`, bytes };
+      const stamp = { version: 1, tilesHash: mapTilesHash(dir), pixelHash: await mapPixelHash(webp), image: `/assets/${slug}/map/top.webp`, size: OUT, metres: MAP_METRES, north: '+z', east: '-x', style: `stylized:${settings.style.kind}`, bytes };
       writeFileSync(stampPath(dir), `${JSON.stringify(stamp, null, 2)}\n`);
       console.log(`bake-maps: ${slug} ${OUT}px ${(bytes / 1024).toFixed(0)} KB${out.collapsed > 0 ? `, ${String(out.collapsed)} instances hidden with what they stand on (${out.from})` : ''}`);
     } catch (error) {

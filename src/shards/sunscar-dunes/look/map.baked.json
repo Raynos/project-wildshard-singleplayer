@@ -7,5 +7,6 @@
   "north": "+z",
   "east": "-x",
   "style": "stylized:ground",
-  "bytes": 27290
+  "bytes": 27290,
+  "pixelHash": "ba64cf8083423c1832fc78f1c8c5e0fded2cbc8f2f139dbedfe69407cf6b6f52"
 }

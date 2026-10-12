@@ -14,7 +14,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, wri
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { NodeIO } from '@gltf-transform/core';
-import { MAP_METRES, mapSettings, mapShards, mapTilesHash } from './map-hash.mjs';
+import { MAP_METRES, mapPixelHash, mapSettings, mapShards, mapTilesHash } from './map-hash.mjs';
 
 const SIDE = 2000, OUT = 1000, PPM = SIDE / MAP_METRES, BG = [0.16, 0.18, 0.2];
 const option = (name) => process.argv.find((part) => part.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -101,7 +101,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (mapSettings(dir).from === null) return false;
     if (only) return only.includes(slug);
     if (process.argv.includes('--all') || !existsSync(stampPath(dir))) return true;
-    return JSON.parse(readFileSync(stampPath(dir), 'utf8')).tilesHash !== mapTilesHash(dir);
+    const stamp = JSON.parse(readFileSync(stampPath(dir), 'utf8'));
+    return stamp.tilesHash !== mapTilesHash(dir) || typeof stamp.pixelHash !== 'string';
   });
   if (todo.length === 0) { console.log('bake-map-glb: every GLB-baked map is current'); process.exit(0); }
   const work = keep ?? mkdtempSync(join(tmpdir(), 'bake-map-glb-'));
@@ -117,7 +118,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       mkdirSync(imageDir, { recursive: true });
       execFileSync('uv', ['run', '--quiet', '--with', 'numpy', '--with', 'scipy', '--with', 'pillow', 'python', join(root, 'scripts/map-stylize.py'), colourPath, heightPath, stylePath, webp, String(OUT)], { stdio: 'inherit' });
       const bytes = statSync(webp).size;
-      const stamp = { version: 1, tilesHash: mapTilesHash(dir), image: `/assets/${slug}/map/top.webp`, size: OUT, metres: MAP_METRES, north: '+z', east: '-x', style: `stylized:${settings.style.kind}`, bytes };
+      const stamp = { version: 1, tilesHash: mapTilesHash(dir), pixelHash: await mapPixelHash(webp), image: `/assets/${slug}/map/top.webp`, size: OUT, metres: MAP_METRES, north: '+z', east: '-x', style: `stylized:${settings.style.kind}`, bytes };
       writeFileSync(stampPath(dir), `${JSON.stringify(stamp, null, 2)}\n`);
       console.log(`bake-map-glb: ${slug} from ${settings.from}, ${out.triangles} triangles, ${OUT}px ${(bytes / 1024).toFixed(0)} KB`);
     }

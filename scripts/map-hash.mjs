@@ -3,9 +3,31 @@
 // gate test (test/baked-maps.test.ts) recomputes it, so a world change without a rebake fails before it deploys.
 // Node only, no git (the Vercel tree has no .git): file paths and contents, sorted.
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { legacyInventory } from './legacy-shards.mjs';
+
+// Reuse the SDK's pinned Node image decoder; root scripts have no separate Sharp dependency.
+const sharp = createRequire(new URL('../src/sdk/package.json', import.meta.url))('sharp');
+
+/** Hash decoded sRGB RGBA8 pixels and their dimensions, independent of image encoding and metadata.
+ * This binds a stamp to its raster; world freshness still requires the official map bake.
+ * @param {string} image @returns {Promise<string>} */
+export async function mapPixelHash(image) {
+  const { data, info } = await sharp(image, { limitInputPixels: 4096 * 4096, animated: false, failOn: 'warning' })
+    .toColourspace('srgb').ensureAlpha().raw({ depth: 'uchar' }).toBuffer({ resolveWithObject: true });
+  if (info.channels !== 4) throw new Error(`${image}: map must decode to RGBA8`);
+  return createHash('sha256').update(`map-rgba8/1\0${info.width}x${info.height}\0`).update(data).digest('hex');
+}
+
+/** Refuse an image omitted or replaced independently of its recorded bake stamp.
+ * @param {string} image @param {string} expected @returns {Promise<void>} */
+export async function verifyMapPixels(image, expected) {
+  if (!/^[a-f0-9]{64}$/u.test(expected) || await mapPixelHash(image) !== expected) {
+    throw new Error(`${image}: decoded pixels differ from map.baked.json; commit the official bake's image and stamp together`);
+  }
+}
 
 /** what places a shard's world, relative to its folder; a shard may name its own in look/map.json ("inputs") */
 export const DEFAULT_MAP_INPUTS = ['shard.config.ts', 'layout.ts', 'world', 'generators', 'models'];
