@@ -2,8 +2,8 @@
   "boot": {
     "schema": 1,
     "lane": "gh-macos15",
-    "sha": "8664edaed3f139d99601a71332358eb5ea0e560f",
-    "build": "8664eda-mv05gccx",
+    "sha": "230a3664474ed7dbebfc562cb96d8b7c598022ca",
+    "build": "230a366-mv5pnjx2",
     "shard": "nalati-grasslands",
     "tier": "phone",
     "viewport": {
@@ -2227,7 +2227,7 @@
     },
     "scene": {
       "totals": {
-        "mesh": 307,
+        "mesh": 308,
         "instanced": 44,
         "instances": 1722,
         "skinned": 36,
@@ -2271,7 +2271,12 @@
         {
           "path": "kurgan-dungeon",
           "type": "Group",
-          "n": 33
+          "n": 34
+        },
+        {
+          "path": "kurgan-dungeon/kurgan-interior",
+          "type": "Mesh",
+          "n": 0
         },
         {
           "path": "light-pool",
@@ -2607,17 +2612,17 @@
     },
     "render": {
       "programs": 98,
-      "programKeys": "743369ab53ad1621985d13d908d61a1daaccdd5ca88f0db9f32990e354bdcf7f",
+      "programKeys": "885f326840ec69a31eeb56cbc5b36c15d2eec6bfc6fa51e7a2dfdfb015824488",
       "memory": {
         "geometries": 120,
         "textures": 125
       }
     },
     "gpuBytes": {
-      "textures": 121436988,
+      "textures": 122485564,
       "renderbuffers": 41060224,
       "buffers": 73219036,
-      "total": 235716248
+      "total": 236764824
     },
     "audio": {
       "requests": [
@@ -4772,35 +4777,37 @@
         "local:wildshard.save.v2.nalati-grasslands",
         "local:wildshard.save.v2.nine-dragon-stack",
         "local:wildshard.save.v2.pine-hollow",
+        "local:wildshard.save.v2.profile",
         "local:wildshard.save.v2.sunscar-dunes",
         "session:wildshard.save.v2.session"
       ],
       "written": [
         "local:wildshard.save.v2.device",
         "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
         "session:wildshard.save.v2.session"
       ]
     },
-    "playMs": 14845,
+    "playMs": 10085.900000000023,
     "stepMs": {
-      "renderer": 57,
-      "sky": 682,
-      "terrain": 631,
-      "cards": 103,
-      "forest": 104,
-      "physics": 10,
-      "edge": 61,
-      "grass": 242,
+      "renderer": 64,
+      "sky": 350,
+      "terrain": 726,
+      "cards": 105,
+      "forest": 157,
+      "physics": 7,
+      "edge": 39,
+      "grass": 204,
       "cabins": 0,
-      "props": 3613,
-      "animals": 160,
+      "props": 1971,
+      "animals": 255,
       "weapon": 0,
-      "menu": 19,
-      "shaders": 1961,
-      "firstFrame": 2334,
-      "audio": 806
+      "menu": 24,
+      "shaders": 1018,
+      "firstFrame": 1500,
+      "audio": 812
     },
-    "heapMB": 163.47580337524414
+    "heapMB": 209.2576446533203
   },
   "poses": {
     "camp": {
@@ -4812,10 +4819,10 @@
       ],
       "calls": 79,
       "tris": 1174948,
-      "fps": 39.02055781065864,
-      "frameP95Ms": 34,
-      "cpuP50Ms": 20.599999999976717,
-      "cpuP95Ms": 30,
+      "fps": 40.71594480120235,
+      "frameP95Ms": 110,
+      "cpuP50Ms": 12.29999999993015,
+      "cpuP95Ms": 17.300000000046566,
       "creatureBoxes": 2,
       "boxes": [
         [
@@ -4843,10 +4850,10 @@
       ],
       "calls": 90,
       "tris": 1279751,
-      "fps": 35.27712668986946,
-      "frameP95Ms": 46.29999999993015,
-      "cpuP50Ms": 21.400000000023283,
-      "cpuP95Ms": 38.300000000046566,
+      "fps": 42.78535534816942,
+      "frameP95Ms": 103.30000000004657,
+      "cpuP50Ms": 11.599999999976717,
+      "cpuP95Ms": 17.599999999976717,
       "creatureBoxes": 15,
       "boxes": [
         [
@@ -4952,10 +4959,10 @@
       ],
       "calls": 108,
       "tris": 1292909,
-      "fps": 32.562612002272495,
-      "frameP95Ms": 56.70000000006985,
-      "cpuP50Ms": 24.900000000023283,
-      "cpuP95Ms": 41.40000000002328,
+      "fps": 36.77922590837325,
+      "frameP95Ms": 131.5,
+      "cpuP50Ms": 12,
+      "cpuP95Ms": 20.199999999953434,
       "creatureBoxes": 17,
       "boxes": [
         [
@@ -5421,7 +5428,7 @@
         },
         "maxY": 0.021,
         "out": 0,
-        "seconds": 26.63333333333524,
+        "seconds": 26.633333333335273,
         "trace": [
           [
             0.033,
@@ -15011,7 +15018,7 @@
         },
         "maxY": 34.938,
         "out": 0,
-        "seconds": 3.4666666666661623,
+        "seconds": 3.466666666666919,
         "trace": [
           [
             0.033,
@@ -16261,7 +16268,7 @@
         },
         "maxY": 54.119,
         "out": 0,
-        "seconds": 39.76666666666088,
+        "seconds": 39.76666666666091,
         "trace": [
           [
             0.033,
@@ -30575,21 +30582,12 @@
       "event": {
         "footstep:gravel": 92,
         "footstep:grass": 105,
-        "steppe.bed:camp": 1,
         "animal:marmot_whistle": 3,
-        "steppe.bed:coldwind": 1,
-        "steppe.bed:steppe-wind": 1,
-        "steppe.bed:steppe-larks": 1,
-        "steppe.bed:river": 1,
-        "steppe.bed:highwind": 1,
         "dodge": 1,
+        "audio.startSteppe": 1,
         "weaponSwap": 1
       },
-      "ambient": [
-        "steppe.eagle",
-        "steppe.herd",
-        "steppe.marmot"
-      ]
+      "ambient": []
     },
     "touch": {
       "moved": 15.095295492559705,
@@ -30631,12 +30629,17 @@
     "loot": {
       "written": [
         "local:wildshard.save.v2.global",
-        "local:wildshard.save.v2.nalati-grasslands"
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.profile"
       ]
     },
     "sounds": {
       "event": {
         "land": 1,
+        "steppe.bed:steppe-wind": 1,
+        "steppe.bed:steppe-larks": 1,
+        "steppe.bed:river": 1,
+        "steppe.bed:highwind": 1,
         "lunge": 1,
         "sabreSwing": 3,
         "animal:wolf_yelp": 5,
@@ -30649,10 +30652,7 @@
         "arrowWhoosh": 2,
         "arrowImpact:flesh": 2
       },
-      "ambient": [
-        "steppe.herd",
-        "steppe.marmot"
-      ]
+      "ambient": []
     }
   },
   "pauseResume": {
@@ -30830,7 +30830,7 @@
             "z": 216.9
           },
           "hp": 150,
-          "brain": "graze"
+          "brain": "idle"
         },
         {
           "id": "horse:23",
@@ -31264,7 +31264,7 @@
             "z": 216.9
           },
           "hp": 150,
-          "brain": "graze"
+          "brain": "idle"
         },
         {
           "id": "horse:23",
@@ -31640,16 +31640,16 @@
       "listeners": [
         "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4400/?chunk=nalati-grasslands&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:35:16",
         "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4400/?chunk=nalati-grasslands&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
-        "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:4209)\n    at O (http://127.0.0.1:4400/assets/bootTrace-WfcWJaOj.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:960)\n    at http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:864",
-        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:1268)\n    at http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:864",
-        "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:1378)\n    at http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:864"
+        "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:4368)\n    at O (http://127.0.0.1:4400/assets/bootTrace-BS7grcUA.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:960)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:864",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:4368)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:1268)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:864",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:4368)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:1378)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:864"
       ],
       "timers": [
-        "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:4912)\n    at e.combat (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:75196)\n    at HL.E.onHit (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:2111:13862)\n    at e.onHit (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:333:72189)\n    at arrows.onHit (http://127.0.0.1:4400/assets/Elite-NRDZUkoo.js:61:16187)\n    at Ge.testHit (http://127.0.0.1:4400/assets/Elite-NRDZUkoo.js:61:9312)\n    at Ge.update (http://127.0.0.1:4400/assets/Elite-NRDZUkoo.js:61:7493)\n    at dt.update (http://127.0.0.1:4400/assets/Elite-NRDZUkoo.js:61:21759)\n    at vv.update (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:333:77083)",
-        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:5181)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:1236)\n    at http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:864",
-        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:5181)\n    at Wt (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:74:4045)\n    at G (http://127.0.0.1:4400/assets/pageServices-hqUF7ceI.js:1:273681)\n    at http://127.0.0.1:4400/assets/main-8wAICgYX.js:10:1507",
-        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:5181)\n    at Wt (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:74:4145)\n    at G (http://127.0.0.1:4400/assets/pageServices-hqUF7ceI.js:1:273681)\n    at http://127.0.0.1:4400/assets/main-8wAICgYX.js:10:1507",
-        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:5181)\n    at Wt (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:74:4254)\n    at G (http://127.0.0.1:4400/assets/pageServices-hqUF7ceI.js:1:273681)\n    at http://127.0.0.1:4400/assets/main-8wAICgYX.js:10:1507"
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:5340)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:1236)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:864",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:5340)\n    at rn (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:74:4048)\n    at q (http://127.0.0.1:4400/assets/pageServices-Zb9ef4Rr.js:1:299355)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:5340)\n    at rn (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:74:4148)\n    at q (http://127.0.0.1:4400/assets/pageServices-Zb9ef4Rr.js:1:299355)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:5340)\n    at rn (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:74:4257)\n    at q (http://127.0.0.1:4400/assets/pageServices-Zb9ef4Rr.js:1:299355)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:5340)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:11:7468"
       ]
     },
     "retained": [
@@ -31664,7 +31664,7 @@
         "retained": false
       },
       {
-        "key": "scene:003e316c-3c2f-4e2e-aff0-24815ed44e82",
+        "key": "scene:68355345-d4ac-4701-ae40-e2ca4b358d1b",
         "refs": 1,
         "retained": false
       },
@@ -31674,7 +31674,7 @@
         "retained": false
       },
       {
-        "key": "scene:c61cc6f0-64c8-420c-8961-188cedc793c8",
+        "key": "scene:1fd471af-1043-4817-a754-e5b30fc78008",
         "refs": 1,
         "retained": false
       },
@@ -31684,7 +31684,7 @@
         "retained": false
       },
       {
-        "key": "scene:2e8d92f8-e2ca-4187-ac02-dfd264909b13",
+        "key": "scene:7916d208-171b-4102-97ee-0ea1377f3af2",
         "refs": 1,
         "retained": false
       },
@@ -31694,12 +31694,12 @@
         "retained": false
       },
       {
-        "key": "scene:f1957783-454f-4bdd-b20d-cf88e31feec5",
+        "key": "scene:906af9d4-483a-4c28-ab6c-5d82917adb32",
         "refs": 1,
         "retained": false
       },
       {
-        "key": "scene:392b9738-4495-4e57-a248-03113ef3e351",
+        "key": "scene:06c50d30-e90a-4c40-8bcf-579ced99f8a0",
         "refs": 1,
         "retained": false
       }
@@ -31710,46 +31710,16 @@
         "textures": 1,
         "programs": 9
       },
+      "orphans": {
+        "live": 0,
+        "collected": 0
+      },
       "retained": {
         "geometries": 1,
         "textures": 1,
         "programs": 9
       },
       "resources": [
-        {
-          "type": "Fr",
-          "owner": null,
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "003e316c-3c2f-4e2e-aff0-24815ed44e82",
-          "name": "EffectComposer.Buffer",
-          "owner": null,
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "ddd2b811-40d5-4631-890f-98238325bd13",
-          "image": {
-            "width": 780,
-            "height": 1688
-          }
-        },
-        {
-          "type": "Tt",
-          "uuid": "392b9738-4495-4e57-a248-03113ef3e351",
-          "name": "EffectMaterial",
-          "owner": null,
-          "retained": true,
-          "texture": false,
-          "programs": [
-            89
-          ],
-          "image": {}
-        },
         {
           "type": "ru",
           "uuid": "2faf4bf3-d78b-448c-b279-f1cc1a6bafba",
@@ -31758,11 +31728,11 @@
           "retained": true,
           "texture": false,
           "programs": [
-            81,
-            84,
-            86,
-            82,
-            87,
+            89,
+            92,
+            94,
+            90,
+            95,
             98,
             99,
             100
@@ -31771,23 +31741,13 @@
         },
         {
           "type": "e",
-          "uuid": "6b574646-21a6-4fbe-8ef3-a245c49bc0f5",
-          "name": "",
-          "owner": null,
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "c61cc6f0-64c8-420c-8961-188cedc793c8",
+          "uuid": "68355345-d4ac-4701-ae40-e2ca4b358d1b",
           "name": "EffectComposer.Buffer",
           "owner": null,
           "retained": true,
-          "texture": false,
+          "texture": true,
           "programs": [],
-          "source": "ddac483e-9a02-42f1-ae8f-f81e2c043a4c",
+          "source": "b3bf7131-b652-4e56-b62b-bcf7095ca063",
           "image": {
             "width": 780,
             "height": 1688
@@ -31803,13 +31763,35 @@
         },
         {
           "type": "e",
-          "uuid": "f1957783-454f-4bdd-b20d-cf88e31feec5",
+          "uuid": "1fd471af-1043-4817-a754-e5b30fc78008",
+          "name": "EffectComposer.Buffer",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "a7542b4c-e085-46d7-8c76-8b6e9c6aee7a",
+          "image": {
+            "width": 780,
+            "height": 1688
+          }
+        },
+        {
+          "type": "Fr",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "906af9d4-483a-4c28-ab6c-5d82917adb32",
           "name": "CopyPass.Target",
           "owner": null,
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "ade548c4-d43b-4b11-9b92-7d12fc79fc9e",
+          "source": "a47b8a7d-5437-4986-851c-fc946de224ec",
           "image": {
             "width": 1,
             "height": 1
@@ -31817,6 +31799,28 @@
         },
         {
           "type": "Fr",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "Tt",
+          "uuid": "06c50d30-e90a-4c40-8bcf-579ced99f8a0",
+          "name": "EffectMaterial",
+          "owner": null,
+          "retained": true,
+          "texture": false,
+          "programs": [
+            97
+          ],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "6b574646-21a6-4fbe-8ef3-a245c49bc0f5",
+          "name": "",
           "owner": null,
           "retained": true,
           "texture": false,
@@ -31936,16 +31940,16 @@
         "listeners": [
           "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4400/?chunk=nalati-grasslands&tier=phone&skipintro=1&nolock=1&mute=1&sw=0&weather=storm&touch=1:35:16",
           "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at http://127.0.0.1:4400/?chunk=nalati-grasslands&tier=phone&skipintro=1&nolock=1&mute=1&sw=0&weather=storm&touch=1:36:16",
-          "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:4209)\n    at O (http://127.0.0.1:4400/assets/bootTrace-WfcWJaOj.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:960)\n    at http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:864",
-          "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:1268)\n    at http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:864",
-          "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:4209)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:1378)\n    at http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:864"
+          "Error: listener online\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:4368)\n    at O (http://127.0.0.1:4400/assets/bootTrace-BS7grcUA.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:960)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:864",
+          "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:4368)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:1268)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:864",
+          "Error: listener pagehide\n    at addEventListener (<anonymous>:19:95)\n    at e.listen (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:4368)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:1378)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:864"
         ],
         "timers": [
-          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:4912)\n    at jf (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:11664)\n    at c (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:13407)\n    at async http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:13617\n    at async http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:6420",
-          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:4912)\n    at jf (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:11664)\n    at c (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:13407)\n    at async http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:13617\n    at async http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:6420",
-          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:4912)\n    at jf (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:11664)\n    at c (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:13407)\n    at async http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:13617\n    at async http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:6420",
-          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:4912)\n    at jf (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:11664)\n    at c (http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:13407)\n    at async http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:13617\n    at async http://127.0.0.1:4400/assets/session-Ci7KGIdb.js:228:6420",
-          "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/runtime-BroSbPuX.js:3:5181)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:1236)\n    at http://127.0.0.1:4400/assets/main-8wAICgYX.js:3:864"
+          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:5071)\n    at Fh (http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:15716)\n    at c (http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:17459)\n    at async http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:17669\n    at async http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:10448",
+          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:5071)\n    at Fh (http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:15716)\n    at c (http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:17459)\n    at async http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:17669\n    at async http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:10448",
+          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:5071)\n    at Fh (http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:15716)\n    at c (http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:17459)\n    at async http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:17669\n    at async http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:10448",
+          "Error: timeout\n    at w.setTimeout (<anonymous>:33:21)\n    at e.timeout (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:5071)\n    at Fh (http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:15716)\n    at c (http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:17459)\n    at async http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:17669\n    at async http://127.0.0.1:4400/assets/session-CO4nDeeH.js:1535:10448",
+          "Error: interval\n    at w.setInterval (<anonymous>:35:101)\n    at e.interval (http://127.0.0.1:4400/assets/unlock-y8-aaUp7.js:3:5340)\n    at new <anonymous> (http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:1236)\n    at http://127.0.0.1:4400/assets/main-9f880_Mg.js:3:864"
         ]
       },
       "retained": [
@@ -31960,7 +31964,7 @@
           "retained": false
         },
         {
-          "key": "scene:003e316c-3c2f-4e2e-aff0-24815ed44e82",
+          "key": "scene:68355345-d4ac-4701-ae40-e2ca4b358d1b",
           "refs": 1,
           "retained": false
         },
@@ -31970,7 +31974,7 @@
           "retained": false
         },
         {
-          "key": "scene:c61cc6f0-64c8-420c-8961-188cedc793c8",
+          "key": "scene:1fd471af-1043-4817-a754-e5b30fc78008",
           "refs": 1,
           "retained": false
         },
@@ -31980,7 +31984,7 @@
           "retained": false
         },
         {
-          "key": "scene:2e8d92f8-e2ca-4187-ac02-dfd264909b13",
+          "key": "scene:7916d208-171b-4102-97ee-0ea1377f3af2",
           "refs": 1,
           "retained": false
         },
@@ -31990,12 +31994,12 @@
           "retained": false
         },
         {
-          "key": "scene:f1957783-454f-4bdd-b20d-cf88e31feec5",
+          "key": "scene:906af9d4-483a-4c28-ab6c-5d82917adb32",
           "refs": 1,
           "retained": false
         },
         {
-          "key": "scene:392b9738-4495-4e57-a248-03113ef3e351",
+          "key": "scene:06c50d30-e90a-4c40-8bcf-579ced99f8a0",
           "refs": 1,
           "retained": false
         }
@@ -32006,46 +32010,16 @@
           "textures": 1,
           "programs": 9
         },
+        "orphans": {
+          "live": 0,
+          "collected": 0
+        },
         "retained": {
           "geometries": 1,
           "textures": 1,
           "programs": 9
         },
         "resources": [
-          {
-            "type": "Fr",
-            "owner": null,
-            "retained": true,
-            "texture": false,
-            "programs": [],
-            "image": {}
-          },
-          {
-            "type": "e",
-            "uuid": "003e316c-3c2f-4e2e-aff0-24815ed44e82",
-            "name": "EffectComposer.Buffer",
-            "owner": null,
-            "retained": true,
-            "texture": true,
-            "programs": [],
-            "source": "ddd2b811-40d5-4631-890f-98238325bd13",
-            "image": {
-              "width": 780,
-              "height": 1688
-            }
-          },
-          {
-            "type": "Tt",
-            "uuid": "392b9738-4495-4e57-a248-03113ef3e351",
-            "name": "EffectMaterial",
-            "owner": null,
-            "retained": true,
-            "texture": false,
-            "programs": [
-              89
-            ],
-            "image": {}
-          },
           {
             "type": "ru",
             "uuid": "2faf4bf3-d78b-448c-b279-f1cc1a6bafba",
@@ -32054,11 +32028,11 @@
             "retained": true,
             "texture": false,
             "programs": [
-              81,
-              84,
-              86,
-              82,
-              87,
+              89,
+              92,
+              94,
+              90,
+              95,
               98,
               99,
               100
@@ -32067,23 +32041,13 @@
           },
           {
             "type": "e",
-            "uuid": "6b574646-21a6-4fbe-8ef3-a245c49bc0f5",
-            "name": "",
-            "owner": null,
-            "retained": true,
-            "texture": false,
-            "programs": [],
-            "image": {}
-          },
-          {
-            "type": "e",
-            "uuid": "c61cc6f0-64c8-420c-8961-188cedc793c8",
+            "uuid": "68355345-d4ac-4701-ae40-e2ca4b358d1b",
             "name": "EffectComposer.Buffer",
             "owner": null,
             "retained": true,
-            "texture": false,
+            "texture": true,
             "programs": [],
-            "source": "ddac483e-9a02-42f1-ae8f-f81e2c043a4c",
+            "source": "b3bf7131-b652-4e56-b62b-bcf7095ca063",
             "image": {
               "width": 780,
               "height": 1688
@@ -32099,13 +32063,35 @@
           },
           {
             "type": "e",
-            "uuid": "f1957783-454f-4bdd-b20d-cf88e31feec5",
+            "uuid": "1fd471af-1043-4817-a754-e5b30fc78008",
+            "name": "EffectComposer.Buffer",
+            "owner": null,
+            "retained": true,
+            "texture": false,
+            "programs": [],
+            "source": "a7542b4c-e085-46d7-8c76-8b6e9c6aee7a",
+            "image": {
+              "width": 780,
+              "height": 1688
+            }
+          },
+          {
+            "type": "Fr",
+            "owner": null,
+            "retained": true,
+            "texture": false,
+            "programs": [],
+            "image": {}
+          },
+          {
+            "type": "e",
+            "uuid": "906af9d4-483a-4c28-ab6c-5d82917adb32",
             "name": "CopyPass.Target",
             "owner": null,
             "retained": true,
             "texture": false,
             "programs": [],
-            "source": "ade548c4-d43b-4b11-9b92-7d12fc79fc9e",
+            "source": "a47b8a7d-5437-4986-851c-fc946de224ec",
             "image": {
               "width": 1,
               "height": 1
@@ -32113,6 +32099,28 @@
           },
           {
             "type": "Fr",
+            "owner": null,
+            "retained": true,
+            "texture": false,
+            "programs": [],
+            "image": {}
+          },
+          {
+            "type": "Tt",
+            "uuid": "06c50d30-e90a-4c40-8bcf-579ced99f8a0",
+            "name": "EffectMaterial",
+            "owner": null,
+            "retained": true,
+            "texture": false,
+            "programs": [
+              97
+            ],
+            "image": {}
+          },
+          {
+            "type": "e",
+            "uuid": "6b574646-21a6-4fbe-8ef3-a245c49bc0f5",
+            "name": "",
             "owner": null,
             "retained": true,
             "texture": false,
@@ -32151,24 +32159,24 @@
     "boot.gpuBytes.renderbuffers": 0,
     "boot.gpuBytes.buffers": 0,
     "boot.gpuBytes.total": 0,
-    "boot.playMs": 21660.300000000047,
-    "boot.stepMs.renderer": 23,
-    "boot.stepMs.sky": 549,
-    "boot.stepMs.terrain": 269,
-    "boot.stepMs.cards": 184,
-    "boot.stepMs.forest": 43,
-    "boot.stepMs.physics": 7,
-    "boot.stepMs.edge": 22,
-    "boot.stepMs.grass": 27,
-    "boot.stepMs.cabins": 1,
-    "boot.stepMs.props": 1269,
-    "boot.stepMs.animals": 111,
+    "boot.playMs": 19668.300000000047,
+    "boot.stepMs.renderer": 58,
+    "boot.stepMs.sky": 601,
+    "boot.stepMs.terrain": 352,
+    "boot.stepMs.cards": 111,
+    "boot.stepMs.forest": 85,
+    "boot.stepMs.physics": 11,
+    "boot.stepMs.edge": 2,
+    "boot.stepMs.grass": 108,
+    "boot.stepMs.cabins": 0,
+    "boot.stepMs.props": 1268,
+    "boot.stepMs.animals": 170,
     "boot.stepMs.weapon": 0,
-    "boot.stepMs.menu": 25,
-    "boot.stepMs.shaders": 10923,
-    "boot.stepMs.firstFrame": 1628,
-    "boot.stepMs.audio": 610,
-    "boot.heapMB": 102.07890701293945,
+    "boot.stepMs.menu": 55,
+    "boot.stepMs.shaders": 12646,
+    "boot.stepMs.firstFrame": 1189,
+    "boot.stepMs.audio": 567,
+    "boot.heapMB": 129.32549667358398,
     "poses.camp.pos": [
       0,
       0,
@@ -32176,10 +32184,10 @@
     ],
     "poses.camp.calls": 0,
     "poses.camp.tris": 0,
-    "poses.camp.fps": 5.1920284013884554,
-    "poses.camp.frameP95Ms": 2.400000000023283,
-    "poses.camp.cpuP50Ms": 1.599999999976717,
-    "poses.camp.cpuP95Ms": 1.6999999999534339,
+    "poses.camp.fps": 3.6265446930624563,
+    "poses.camp.frameP95Ms": 35.60000000009313,
+    "poses.camp.cpuP50Ms": 2.400000000023283,
+    "poses.camp.cpuP95Ms": 9,
     "poses.camp.creatureBoxes": 0,
     "poses.camp.ssim": 0,
     "poses.bridge.pos": [
@@ -32189,10 +32197,10 @@
     ],
     "poses.bridge.calls": 0,
     "poses.bridge.tris": 0,
-    "poses.bridge.fps": 12.525805795555812,
-    "poses.bridge.frameP95Ms": 12.099999999976717,
-    "poses.bridge.cpuP50Ms": 6.5,
-    "poses.bridge.cpuP95Ms": 12,
+    "poses.bridge.fps": 11.28995198835728,
+    "poses.bridge.frameP95Ms": 65.19999999995343,
+    "poses.bridge.cpuP50Ms": 0.9000000000232831,
+    "poses.bridge.cpuP95Ms": 7.200000000069849,
     "poses.bridge.creatureBoxes": 0,
     "poses.bridge.ssim": 0,
     "poses.plains.pos": [
@@ -32202,10 +32210,10 @@
     ],
     "poses.plains.calls": 0,
     "poses.plains.tris": 0,
-    "poses.plains.fps": 7.557651742248847,
-    "poses.plains.frameP95Ms": 33.09999999997672,
-    "poses.plains.cpuP50Ms": 5.699999999953434,
-    "poses.plains.cpuP95Ms": 29.999999999883585,
+    "poses.plains.fps": 18.32561589407753,
+    "poses.plains.frameP95Ms": 79.90000000002328,
+    "poses.plains.cpuP50Ms": 1.8000000000465661,
+    "poses.plains.cpuP95Ms": 7.299999999930151,
     "poses.plains.creatureBoxes": 0,
     "poses.plains.ssim": 0,
     "budgets.camp.derived.draws": 0,
@@ -32388,33 +32396,29 @@
     "walk.legs.road-camp.end.z": 0,
     "walk.legs.road-camp.maxY": 0,
     "walk.legs.road-camp.out": 0,
-    "walk.legs.road-camp.seconds": 4.302336265027407e-12,
+    "walk.legs.road-camp.seconds": 2.9913849175500218e-12,
     "walk.legs.great-kurgan-door.stuck": [],
     "walk.legs.great-kurgan-door.end.x": 0,
     "walk.legs.great-kurgan-door.end.y": 0,
     "walk.legs.great-kurgan-door.end.z": 0,
     "walk.legs.great-kurgan-door.maxY": 0,
     "walk.legs.great-kurgan-door.out": 0,
-    "walk.legs.great-kurgan-door.seconds": 3.2729374765949615e-13,
+    "walk.legs.great-kurgan-door.seconds": 7.567280135845067e-13,
     "walk.legs.leopard-cave.stuck": [],
     "walk.legs.leopard-cave.end.x": 0,
     "walk.legs.leopard-cave.end.y": 0,
     "walk.legs.leopard-cave.end.z": 0,
     "walk.legs.leopard-cave.maxY": 0,
     "walk.legs.leopard-cave.out": 0,
-    "walk.legs.leopard-cave.seconds": 0,
+    "walk.legs.leopard-cave.seconds": 3.339550858072471e-13,
     "walk.stuck": 0,
     "walk.sounds.event.footstep:gravel": 0,
     "walk.sounds.event.footstep:grass": 0,
-    "walk.sounds.event.steppe.bed:camp": 0,
     "walk.sounds.event.animal:marmot_whistle": 0,
-    "walk.sounds.event.steppe.bed:coldwind": 0,
-    "walk.sounds.event.steppe.bed:steppe-wind": 0,
-    "walk.sounds.event.steppe.bed:steppe-larks": 0,
-    "walk.sounds.event.steppe.bed:river": 0,
-    "walk.sounds.event.steppe.bed:highwind": 0,
     "walk.sounds.event.dodge": 0,
+    "walk.sounds.event.audio.startSteppe": 0,
     "walk.sounds.event.weaponSwap": 0,
+    "walk.sounds.ambient": [],
     "walk.touch.moved": 0,
     "walk.touch.yawDelta": 0,
     "combat.swing.hits": 0,
@@ -32430,6 +32434,10 @@
     "combat.hitsToKill.swing": 0,
     "combat.hitsToKill.shot": 0,
     "combat.sounds.event.land": 0,
+    "combat.sounds.event.steppe.bed:steppe-wind": 0,
+    "combat.sounds.event.steppe.bed:steppe-larks": 0,
+    "combat.sounds.event.steppe.bed:river": 0,
+    "combat.sounds.event.steppe.bed:highwind": 0,
     "combat.sounds.event.lunge": 0,
     "combat.sounds.event.sabreSwing": 0,
     "combat.sounds.event.animal:wolf_yelp": 0,
@@ -32441,6 +32449,7 @@
     "combat.sounds.event.bowTwang": 0,
     "combat.sounds.event.arrowWhoosh": 0,
     "combat.sounds.event.arrowImpact:flesh": 0,
+    "combat.sounds.ambient": [],
     "pauseResume.before.clockNow": 0,
     "pauseResume.before.player.pos.x": 0,
     "pauseResume.before.player.pos.y": 0,
@@ -32551,6 +32560,8 @@
     "leak.gpu.total.geometries": 0,
     "leak.gpu.total.textures": 0,
     "leak.gpu.total.programs": 0,
+    "leak.gpu.orphans.live": 0,
+    "leak.gpu.orphans.collected": 0,
     "leak.gpu.retained.geometries": 0,
     "leak.gpu.retained.textures": 0,
     "leak.gpu.retained.programs": 0,
@@ -32629,17 +32640,19 @@
     "leak.weather.gpu.total.geometries": 0,
     "leak.weather.gpu.total.textures": 0,
     "leak.weather.gpu.total.programs": 0,
+    "leak.weather.gpu.orphans.live": 0,
+    "leak.weather.gpu.orphans.collected": 0,
     "leak.weather.gpu.retained.geometries": 0,
     "leak.weather.gpu.retained.textures": 0,
     "leak.weather.gpu.retained.programs": 0
   },
   "selfMin": {
-    "camp": 1,
+    "camp": 0.9999999999999548,
     "bridge": 1,
-    "plains": 0.9999640543885173
+    "plains": 0.9999640543884784
   },
   "harness": 2,
-  "sha": "8664edaed3f139d99601a71332358eb5ea0e560f",
-  "recorded": "2026-10-08T23:20:25.854Z",
+  "sha": "230a3664474ed7dbebfc562cb96d8b7c598022ca",
+  "recorded": "2026-10-12T20:43:50.820Z",
   "browser": "153.0.8010.12"
 }
