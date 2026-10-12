@@ -24,7 +24,7 @@ template, phone-1x lens, square + landscape; the pick ships via G341's layouts.
 **Before the sprint (paused, not dropped):** frame floor (desktop Pine p95 33.4; Simulator Driftwood 59, Pine 58,
 Sky 37, Nalati 36; fixes `38ea143c5`, `512bb3d16`, `dc4dfb106` unproven; task clock `99b0866c0`; leads: Driftwood unsliced world builders + late sailor light), SF22 assembled routes, SF57 re-entry, SF67.
 
-**G342 near tier:** built behind Debug Look ▸ Neighbour detail (A default; `26f3a96e4`, `f508e4a83`, `822416aca`); raw A/B **round 2 (for your board) `art/near-tier/round-2/` (`c992a1235`)**: Pine forest (918 trees), Driftwood hut/pier/lookout/shrine/bridge, real texture colours (`ac87c91fd`; ≤ 6 MB/cell). Round 1 superseded. Hero round 4 in progress (camera must sit in the cell it flies over).
+**G342 near tier:** built behind Debug Look ▸ Neighbour detail (A default; `26f3a96e4`, `f508e4a83`, `822416aca`); raw A/B **round 2 (for your board) `art/near-tier/round-2/` (`c992a1235`)**: Pine forest (918 trees), Driftwood hut/pier/lookout/shrine/bridge, real texture colours (`ac87c91fd`; ≤ 6 MB/cell). Round 1 superseded. **Next (looks lane sp-o25):** G348 generic near/far bake in the SDK build (no slug branch / Pine species table; shards declare stand-ins in their own data; no-shard-branch guard extended to scripts/) → round-3 dense terrain (own L1/L0 + splat/normals) with all four road views + hero, A/B → hero round 4 (player in the cell).
 
 **For wildshard-v:** G344 interim hero SHIPPED in code `9422ff1d1`: SQ-c square band on portrait (full width), LS-c full-bleed on landscape (next release). Nine graph rollout needs one physical-iPhone reading (`graphMaterials`).
 
