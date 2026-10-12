@@ -1,5 +1,14 @@
 import { readLoadingReport } from '../admin-data/validate.mjs';
 
+/** Label the measured CPU rate, never a hard-coded historical ruler.
+ * @param {readonly { cpu: unknown }[]} captures */
+export function loadingDevice(captures) {
+  const rate = captures[0]?.cpu;
+  if (typeof rate !== 'number' || !Number.isFinite(rate) || rate <= 0) throw new Error('Missing or invalid capture CPU rate');
+  if (captures.some(capture => capture.cpu !== rate)) throw new Error('Mixed capture CPU rates');
+  return `Desktop Chromium/Metal; iPhone 16 Pro 402x874 portrait emulation, DPR 3, ${rate}x CPU; muted`;
+}
+
 const phaseOwner = (name, shard) => {
   if (name === 'admission.modules') return 'src/entry.ts';
   if (name === 'admission.descriptor') return 'src/game/plugin/loader.ts';
@@ -14,7 +23,7 @@ const phaseOwner = (name, shard) => {
 /** Convert measured navigation/trace clocks into the strict SF68 consumer contract. Failed runs stay missing;
  * no missing task samples or unsupported Safari observer is silently interpreted as zero work. */
 export function loadingReport(pin, device, captures, analyses) {
-  const missing = ['iOS Simulator and physical phone timings not measured in this desktop 4x-CPU comparison.'];
+  const missing = ['iOS Simulator and physical phone timings not measured in this desktop capture.'];
   const runs = [];
   for (const capture of captures) {
     const base = `${capture.shard}-${capture.cache}`, analysis = analyses.find(row => row.base === base);

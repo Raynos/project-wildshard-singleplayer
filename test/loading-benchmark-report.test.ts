@@ -1,5 +1,13 @@
 import { expect, it } from 'vitest';
-import { loadingReport } from '../scripts/loading-benchmark/benchmark.mjs';
+import { loadingReport, loadingDevice } from '../scripts/loading-benchmark/benchmark.mjs';
+
+it('labels the measured CPU rate and refuses mixed, missing or invalid rates', () => {
+  expect(loadingDevice([{ cpu: 1 }, { cpu: 1 }])).toContain('1x CPU');
+  expect(loadingDevice([{ cpu: 4 }])).toContain('4x CPU');
+  expect(() => loadingDevice([{ cpu: 1 }, { cpu: 4 }])).toThrow('Mixed capture CPU rates');
+  for (const cpu of [undefined, '4', 0, -1, Number.POSITIVE_INFINITY, Number.NaN]) expect(() => loadingDevice([{ cpu }])).toThrow('invalid capture CPU rate');
+  expect(() => loadingDevice([])).toThrow('Missing');
+});
 
 it('uses tap-to-playable clocks, records all loading tasks over 50ms, and excludes post-play tasks', () => {
   const report = loadingReport('pin', 'iPhone 16 Pro emulation / 4x CPU', [{ shard: 'fixture', cache: 'cold', status: 'ok', playMs: 200, tapToOriginMs: 10 }],
