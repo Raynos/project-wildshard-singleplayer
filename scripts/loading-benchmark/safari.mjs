@@ -7,13 +7,12 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { soakInspector } from '../soak/inspector.mjs';
 import { installSafariFixture } from './safari-fixture.mjs';
 import { safariEntryPolicy } from './safari-data.mjs';
+import { loadingCardIndex } from './catalogue.mjs';
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const repeat = Number(arg('repeat') ?? 1), profiling = arg('profile') === '1';
 const udid = process.env.SIM_UDID, shard = arg('shard'), out = arg('out'), timeout = Number(arg('timeout') ?? 180) * 1000;
 if (!udid || !shard || !out) throw new Error('Requires SIM_UDID (sim-lane), --shard and --out');
-const names = { 'driftwood-isle': 'Driftwood Isle', 'nalati-grasslands': 'Nalati', 'pine-hollow': 'Pine Hollow', _template: 'Template shard', 'far-reach': 'Sky Reach', 'sunscar-dunes': 'Signal Dunes', 'nine-dragon-stack': 'Nine Dragon' };
-if (!Object.hasOwn(names, shard)) throw new Error('Unknown benchmark shard');
 const policy = safariEntryPolicy(shard);
 const arms = ['before', 'after'].map(name => ({ name, base: arg(name), pin: arg(`${name}-pin`), dist: arg(`${name}-dist`) }));
 if (arg('order') === 'after') arms.reverse();
@@ -78,8 +77,8 @@ for (const arm of arms) {
       await gesture(`document.querySelector('.ws-main-select').click()`);
       await wait(`document.querySelectorAll('.ws-menu-card').length > 0`, arm.base);
       await sleep(1500);
-      const index = JSON.parse(await inspector.evaluate(`JSON.stringify((() => { const cards = [...document.querySelectorAll('.ws-menu-card')]; return cards.findIndex(card => (card.querySelector('b')?.textContent ?? '').toLowerCase().includes(${JSON.stringify(names[shard].toLowerCase())})); })())`));
-      if (typeof index !== 'number' || index < 0) throw new Error('Selected shard card absent');
+      const titles = JSON.parse(await inspector.evaluate(`JSON.stringify([...document.querySelectorAll('.ws-menu-card')].map(card => card.querySelector('b')?.textContent ?? ''))`));
+      const index = loadingCardIndex(titles, shard);
       await gesture(`document.querySelector('.ws-menu-dots i[data-i="${index}"]').click()`);
       await sleep(600);
       await wait(`document.querySelector('.ws-menu-card.selected')?.dataset.i === '${index}'`, arm.base);

@@ -14,22 +14,21 @@ import { mkdirSync, createWriteStream, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { chromium, devices } from 'playwright';
 import { saveFixture } from '../debug-settings.mjs';
+import { loadingShards, loadingCardIndex, loadingShardNeedsDeveloper } from './catalogue.mjs';
 
 const arg = (name, dflt) => { const a = process.argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : dflt; };
 const BASE = arg('base', 'http://127.0.0.1:4406');
 const PIN = arg('pin', '');
 if (!/^[a-f0-9]{40}$/u.test(PIN)) throw new Error('--pin requires the exact served commit');
+const SHARDS = loadingShards(arg('shards', 'driftwood-isle'));
 const VERSION = await (await fetch(new URL('/version.json', BASE))).json();
 if (!VERSION.build?.startsWith(PIN.slice(0, 7))) throw new Error('Preview pin mismatch');
-const SHARDS = arg('shards', 'driftwood-isle').split(',');
 const CACHES = arg('cache', 'cold,warm').split(',');
 const CPU = Number(arg('cpu', '4'));
 const OUT = resolvePath(arg('out', '.'));
 const TRACE = arg('trace', '1') === '1';
 const TIMEOUT = Number(arg('timeout', '240')) * 1000;
 mkdirSync(OUT, { recursive: true });
-
-const NAMES = { 'driftwood-isle': 'Driftwood Isle', 'pine-hollow': 'Pine Hollow', 'nalati-grasslands': 'Nalati', _template: 'Template shard' };
 
 const INIT = `(() => {
   const W = window; W.__a_isLoad = location.href; W.__a_markAt = performance.now(); try { performance.mark('ws-audit-origin'); } catch {} W.__a_longSupported = PerformanceObserver.supportedEntryTypes.includes('longtask'); W.__a_ready = 0; W.__a_steps = []; W.__a_long = []; W.__a_play = 0; W.__a_frames = [];
@@ -88,8 +87,8 @@ try {
 for (const shard of SHARDS) {
   const ctx = await browser.newContext({ ...phone, serviceWorkers: 'allow' });
   await ctx.addInitScript(INIT);
-  // the template is a Developer-only card (titleDeck.ts titleCards): Developer on for it, as Jake has it
-  if (shard.startsWith('_') || arg('dev', '0') === '1') await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
+  // Show the requested Developer-only card through the same picker policy as Safari.
+  if (loadingShardNeedsDeveloper(shard) || arg('dev', '0') === '1') await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
   for (const cache of CACHES) {
     const page = await ctx.newPage();
     const errors = []; page.on('pageerror', (e) => errors.push(e.message.slice(0, 300)));
@@ -105,17 +104,19 @@ for (const shard of SHARDS) {
     await page.waitForSelector('.ws-menu-card', { timeout: TIMEOUT });
     await page.waitForTimeout(1500);
     // pick the card by its visible name
-    const idx = await page.evaluate((name) => { const cards = [...document.querySelectorAll('.ws-menu-card')]; const i = cards.findIndex((c) => (c.querySelector('b')?.textContent ?? '').toLowerCase().includes(name.toLowerCase())); return { i, names: cards.map((c) => c.querySelector('b')?.textContent) }; }, NAMES[shard] ?? shard);
-    if (idx.i < 0) { console.error(`${shard}: no card (${idx.names.join(', ')})`); await page.close(); continue; }
+    const titles = await page.evaluate(() => [...document.querySelectorAll('.ws-menu-card')].map(card => card.querySelector('b')?.textContent ?? ''));
+    const index = loadingCardIndex(titles, shard);
     const file = resolvePath(OUT, `${shard}-${cache}.trace.json`);
-    let status = 'ok'; let tapAt = 0;
+    let status = 'ok'; let tapAt = 0; let entry = 'unselected';
     const m = await traced(async () => {
-      await page.evaluate((i) => { document.querySelector(`.ws-menu-dots i[data-i="${i}"]`)?.click(); }, idx.i);
+      await page.evaluate((i) => { document.querySelector(`.ws-menu-dots i[data-i="${i}"]`)?.click(); }, index);
       await page.waitForTimeout(600);
-      await page.waitForFunction((i) => document.querySelector('.ws-menu-card.selected')?.dataset.i === String(i), idx.i, { timeout: 3000 });
+      await page.waitForFunction((i) => document.querySelector('.ws-menu-card.selected')?.dataset.i === String(i), index, { timeout: 3000 });
       tapAt = Date.now();
       const compiled = page.locator('.ws-menu-shardfile');
-      const enter = await compiled.isVisible() && await compiled.isEnabled() ? compiled : page.locator('.ws-menu-play');
+      const useCompiled = await compiled.isVisible() && await compiled.isEnabled();
+      entry = useCompiled ? 'shardfile' : 'legacy';
+      const enter = useCompiled ? compiled : page.locator('.ws-menu-play');
       await enter.click();
       try {
         await page.waitForURL(/chunk=/, { timeout: 30000 });
@@ -128,7 +129,7 @@ for (const shard of SHARDS) {
       // Non-graphical loading profile: no captures.
       return page.evaluate(COLLECT);
     }, file);
-    const rec = { pin: PIN, version: VERSION, shard, cache, cpu: CPU, status, navs, tapAt, tapToOriginMs: m.timeOrigin - tapAt, errors, ...m };
+    const rec = { pin: PIN, version: VERSION, shard, cache, entry, cpu: CPU, status, navs, tapAt, tapToOriginMs: m.timeOrigin - tapAt, errors, ...m };
     writeFileSync(resolvePath(OUT, `${shard}-${cache}.json`), JSON.stringify(rec, null, 1));
     const lt = m.long.filter((l) => l[1] > 50);
     console.log(`${shard} ${cache}: ${status} play=${m.playMs}ms (+${Math.round(m.timeOrigin - tapAt)} nav) long>50=${lt.length} sum=${lt.reduce((s, l) => s + l[1], 0)} max=${Math.max(0, ...lt.map((l) => l[1]))} heap=${m.heapMB}MB progs=${m.programs} errs=${errors.length}`);
