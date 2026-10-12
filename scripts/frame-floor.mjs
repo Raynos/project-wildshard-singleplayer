@@ -90,7 +90,7 @@ if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'mil
 if (publicGrid && gridScenario === 'milestone') throw new Error('Milestone floor requires Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--gl-time]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--gl-time] [--scratch-dir=<owned workspace>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -691,7 +691,7 @@ async function main() {
   }
   const start = Date.now(), sha = execFileSync('git', ['rev-parse', flag('rev', 'HEAD')], { cwd: ROOT, encoding: 'utf8' }).trim();
   const runId = `${process.pid}-${Date.now()}`;
-  const scratch = `/private/tmp/claude-501/sp-builders/sp-x1/frame-floor-${runId}`;
+  const scratch = join(resolvePath(flag('scratch-dir', '/private/tmp/sp-lanes/frame-floor')), `frame-floor-${runId}`);
   mkdirSync(scratch, { recursive: true });
   const results = [], temporary = [];
   let base;
