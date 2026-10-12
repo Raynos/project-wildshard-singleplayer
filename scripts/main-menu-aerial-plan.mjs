@@ -1,4 +1,7 @@
 // Plain-Node capture launcher; sim-node-loader resolves the existing pure layout.
-import { aerialHeroPlan } from './main-menu-aerial-poses.ts';
+//   node --import scripts/sim-node-loader.mjs scripts/main-menu-aerial-plan.mjs [aerial|landscape]
+import { aerialHeroPlan, landscapeHeroPlan } from './main-menu-aerial-poses.ts';
 
-process.stdout.write(`${JSON.stringify(aerialHeroPlan())}\n`);
+const round = process.argv[2] ?? 'aerial';
+if (round !== 'aerial' && round !== 'landscape') throw new Error('Plan round must be aerial or landscape');
+process.stdout.write(`${JSON.stringify(round === 'landscape' ? landscapeHeroPlan() : aerialHeroPlan())}\n`);

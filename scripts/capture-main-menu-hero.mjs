@@ -1,5 +1,6 @@
 /** G332: real canvas-only hero candidates; never changes the shipped menu or scene look.
- * node scripts/capture-main-menu-hero.mjs --out=<scratch directory>
+ * node scripts/capture-main-menu-hero.mjs [--round=1|aerial|landscape] --out=<scratch directory>
+ * --round=landscape (G336 round 3): the five landscapeHeroPlan poses at 2560×1440 and 1920×1080, desktop tier, DSF 1.
  * Owns one clean --head preview and one muted browser-lane capture, then stops both.
  * Entry and calibrated pose follow progress/shard-platform/look28/capture.mjs.
  */
@@ -17,7 +18,7 @@ const flag = (name, fallback) => args.find(value => value.startsWith(`--${name}=
 const out = resolvePath(flag('out', join(tmpdir(), `main-menu-hero-${process.pid}`)));
 const script = import.meta.filename;
 const round = flag('round', '1');
-if (!['1', 'aerial'].includes(round)) throw new Error('Capture round must be 1 or aerial');
+if (!['1', 'aerial', 'landscape'].includes(round)) throw new Error('Capture round must be 1, aerial or landscape');
 
 function requireNoQuiet() {
   const quiet = join(root, '.git/quiet');
@@ -147,23 +148,33 @@ async function capture(base) {
 async function captureAerial(base) {
   requireNoQuiet();
   const plan = JSON.parse(await command(process.execPath,
-    ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs')], root));
+    ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round], root));
+  const landscape = round === 'landscape';
+  // Aerial: one phone context per Debug time pick. Landscape: one desktop context per resolution, desktop tier, DSF 1.
+  const sessions = landscape
+    ? [[2560, 1440], [1920, 1080]].map(([width, height]) => ({ key: `${width}x${height}`, poses: plan.poses,
+      context: { ...devices['Desktop Chrome'], viewport: { width, height }, deviceScaleFactor: 1 },
+      settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' } }))
+    : ['golden', 'midday', 'sunset'].map(timePick => ({ key: timePick, poses: plan.poses.filter(p => p.timePick === timePick),
+      context: { ...devices['iPhone 16 Pro'] },
+      settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, time: timePick }, gfx: { dpr: '2', aa: 'auto' } }));
+  const expected = landscape ? plan.poses.length * sessions.length : 15;
   const report = { schema: 'engine-hero-capture/1', version: await (await fetch(new URL('version.json', base))).json(),
-    round: 'aerial', device: 'iPhone 16 Pro', developer: true, renderScale: 2, canvasOnly: true, muted: true,
+    round, device: landscape ? 'Desktop Chrome (2560×1440, 1920×1080, DSF 1)' : 'iPhone 16 Pro', developer: true,
+    renderScale: landscape ? 1 : 2, tier: landscape ? 'desktop' : 'phone', canvasOnly: true, muted: true,
     clock: 'live', camera: 'Existing freeCamera flag; fixed detached camera in late phase; player remains on the road',
     noViewmodel: true, junction: plan.junction, surrounding: plan.surrounding,
     roadLighting: 'Shipping ROAD_SKY is fixed low dawn; requested Debug time picks do not rewrite that look', shots: [] };
   const save = () => writeFileSync(join(out, 'capture.json'), `${JSON.stringify(report, null, 2)}\n`);
   const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
   try {
-    for (const timePick of ['golden', 'midday', 'sunset']) {
+    for (const session of sessions) {
       requireNoQuiet();
-      const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });
+      const context = await browser.newContext(session.context);
       try {
         await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
-        await saveFixture(context, { scope: 'global', key: 'settings', merge: true,
-          data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, time: timePick } });
-        await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
+        await saveFixture(context, { scope: 'global', key: 'settings', merge: true, data: session.settings });
+        await saveFixture(context, { scope: 'global', key: 'gfx', data: session.gfx });
         await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });
         await context.route('**/api/errors', route => route.fulfill({ status: 204, body: '' }));
         const page = await context.newPage(), errors = [], consoleErrors = [];
@@ -206,9 +217,9 @@ async function captureAerial(base) {
           }, 'harness.hero-aerial');
         });
         await page.addStyleTag({ content: 'body * { visibility: hidden !important; } canvas[data-hero-canvas] { visibility: visible !important; }' });
-        for (const shot of plan.poses.filter(p => p.timePick === timePick)) {
+        for (const shot of session.poses) {
           requireNoQuiet();
-          const row = { ...shot, requestedPose: shot, errors: [], complete: false };
+          const row = { ...shot, session: session.key, requestedPose: shot, errors: [], complete: false };
           report.shots.push(row); save();
           try {
             await page.evaluate(p => { window.__heroAerialPose = p; }, shot);
@@ -227,23 +238,23 @@ async function captureAerial(base) {
             });
             if (!row.frame.freeCamera || row.frame.viewmodelVisible) throw new Error('Detached-camera / no-viewmodel witness failed');
             if (Math.hypot(...row.frame.cameraWorld.map((v, i) => v - [shot.eye.x, shot.eye.y, shot.eye.z][i])) > 0.01) throw new Error('Actual aerial camera differs from requested pose');
-            row.file = `${shot.id}.png`;
+            row.file = landscape ? `${shot.id}-${session.key}.png` : `${shot.id}.png`;
             await page.locator('canvas[data-hero-canvas]').screenshot({ path: join(out, row.file) });
             row.consoleErrors = [...consoleErrors]; row.complete = true;
           } catch (error) { row.errors.push(String(error)); }
-          save(); console.log(`${shot.id}: ${row.complete ? 'captured' : row.errors.join('; ')}`);
+          save(); console.log(`${shot.id} ${session.key}: ${row.complete ? 'captured' : row.errors.join('; ')}`);
         }
       } finally { await context.close(); }
     }
   } finally { await browser.close(); save(); }
   report.shots.sort((a, b) => plan.poses.findIndex(p => p.id === a.id) - plan.poses.findIndex(p => p.id === b.id)); save();
-  if (report.shots.length !== 15 || report.shots.some(shot => !shot.complete)) throw new Error('Incomplete aerial set; inspect capture.json');
+  if (report.shots.length !== expected || report.shots.some(shot => !shot.complete)) throw new Error('Incomplete aerial set; inspect capture.json');
 }
 
 mkdirSync(out, { recursive: true });
 if (args.includes('--worker')) {
   if (process.env.HERO_CAPTURE_LANE !== '1') throw new Error('Run through this command’s browser-lane launcher');
-  await (round === 'aerial' ? captureAerial(flag('base', '')) : capture(flag('base', '')));
+  await (round === 'aerial' || round === 'landscape' ? captureAerial(flag('base', '')) : capture(flag('base', '')));
 } else {
   requireNoQuiet();
   const scratch = join(out, 'build'); mkdirSync(scratch, { recursive: true });
