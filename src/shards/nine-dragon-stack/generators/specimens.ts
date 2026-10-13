@@ -10,12 +10,13 @@
  */
 import { type BufferGeometry, Vector3 } from 'three';
 import { Rng } from '@wildshard/sdk/random';
-import { HAWKER, STALL } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { Ctx } from '../world/ctx';
 import { Kit } from '../world/kit';
 import { KitX, merge } from '../world/hero/kitx';
 import type { SignSink } from '../look/signs';
-import { PLANTER, WELL_BALUSTRADE_AT as O, centred } from '../world/specimenDims';
+import { PLANTER, WELL_BALUSTRADE_AT as O } from '../data/specimenDims';
+import { centred } from './layoutMath';
 import type { CanopyLump } from '../world/banyanPlan';
 import { boothSet, hawkerStall, noodleStall, parasolSet, pavilionSet } from './stalls';
 import { buildGate } from './gate';
@@ -31,6 +32,8 @@ import { geometryWriter } from './bakeWrite';
 import { PIECES as FACADE_PIECES, PIECE_FAR } from './facadePieces';
 import { PIECE_IDS } from '../world/facade/pieceIds';
 import { PAIFANG, PAIFANG_PROFILE, HOOK_PROFILE, STOOL_PROFILE, SCOOTER_PROFILE, FIGURE_PROFILE, LAUNDRY_PROFILE, LOTUS_PROFILE, type SpecimenProfile } from '../data/specimenProfiles';
+
+const { HAWKER, STALL } = NINE_LAYOUT_PLAN;
 
 /** the signs a specimen's builder would hang (a plaque, couplets, menu strips, eave neon): counted, not drawn — signs are
  *  their own models, drawn by the page's sign builder (the specimens' old `NoSigns`) */

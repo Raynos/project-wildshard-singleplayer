@@ -6,7 +6,7 @@
  * frame and medallion stay. The balustrade's posts, rails and plinth are the square's own fabric (its kit).
  */
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { PANEL_LOD } from '../world/specimenDims';
+import { PANEL_LOD } from '../data/specimenDims';
 import { ndLook, need, specimen } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/balustradePanel.ts';

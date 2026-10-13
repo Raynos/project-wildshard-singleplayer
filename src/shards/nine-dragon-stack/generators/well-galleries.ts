@@ -13,8 +13,10 @@ import { SURF } from '../look/paint';
 import { laundry, stool } from './props';
 import { NEONS } from './towers';
 import { WORDS } from '../world/words';
-import { Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { Rng } from '@wildshard/sdk/random';
+
+const { Y0 } = NINE_LAYOUT_PLAN;
 
 export const FLOOR_H = 3;
 const UP = new Vector3(0, 1, 0);

@@ -9,7 +9,7 @@
 import { Vector3 } from 'three';
 import { spanStreet } from './facadeGrammar';
 import { E, K, type Kit, type Look } from '../world/kit';
-import { WELL, Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { dragonHook } from './props';
 import { NEONS } from './towers';
 import { WORDS } from '../world/words';
@@ -22,6 +22,8 @@ import type { Ctx } from '../world/ctx';
 import { type BandKits, CROSSINGS, type Crossing, DECK_TOP, LOW, type WellPlan, snapFloor } from './well-plan';
 import { CABLE, CROSSING_COLLIDERS, EXT, FAR } from '../world/wellBounds';
 import { ghostLevels } from './well-lower-deep';
+
+const { WELL, Y0 } = NINE_LAYOUT_PLAN;
 
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 

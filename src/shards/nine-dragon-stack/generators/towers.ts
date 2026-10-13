@@ -8,7 +8,7 @@ import { type DressOptions, dressTower, dressWall, spanStreet } from './facadeGr
 import { Dressing } from '../world/facade/dressing';
 import type { PieceId } from '../world/facade/pieceIds';
 import { K, type Kit, type Look } from '../world/kit';
-import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { dragonHook, person } from './props';
 import { lanternString } from '../look/lanterns';
 import { hipRoof } from '../world/hipRoof';
@@ -18,6 +18,8 @@ import { SQ_DEPTH } from '../world/stairPlan';
 import { buildStairUpper } from './stairstreet-upper';
 import { NEON, chars } from '../util';
 import { Rng } from '@wildshard/sdk/random';
+
+const { PLAZA, STAIR, STREET, WELL, Y0 } = NINE_LAYOUT_PLAN;
 
 export const NEONS = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber, NEON.red, NEON.magenta, NEON.cyan, 0xff7a2a, 0xa8ff5a] as const;
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;

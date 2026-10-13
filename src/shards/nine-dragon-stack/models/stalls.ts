@@ -14,7 +14,8 @@
  */
 import { HAWKER, STALL } from '../layout';
 import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
-import { type StallRect, centred } from '../world/specimenDims';
+import type { StallRect } from '../data/specimenDims';
+import { centred } from '../world/specimenDims';
 import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 

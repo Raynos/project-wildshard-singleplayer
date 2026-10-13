@@ -16,7 +16,7 @@ import type { SignSink } from '../look/signs';
 import { type KitX, type XLook, curve } from '../world/hero/kitx';
 import { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
-import type { GateSpec } from '../world/specimenDims';
+import type { GateSpec } from '../data/specimenDims';
 
 // the washes, fitted to the dome-B targets by ΔE00 (round 2: lacquer #a3463a vs #823c31, stone #636365 vs #544e4e)
 // the painted surfaces (paint.ts, lab P5): weathered lacquer on the posts and beams; the stone takes the broad, soft

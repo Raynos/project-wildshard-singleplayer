@@ -6,7 +6,7 @@
 import { Vector3 } from 'three';
 import { dressWall } from './facadeGrammar';
 import { K, type Kit } from '../world/kit';
-import { WELL, Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { dragonHook, stool } from './props';
 import { relief } from './gate';
 import { placeLion } from '../world/props3d';
@@ -19,6 +19,8 @@ import { SURF } from '../look/paint';
 import { FLOOR_H, pentRoof, stand, win } from './well-galleries';
 import { type BandKits, SPLIT, type WellPlan, snapFloor } from './well-plan';
 import { RIM } from '../world/wellBounds';
+
+const { WELL, Y0 } = NINE_LAYOUT_PLAN;
 
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 

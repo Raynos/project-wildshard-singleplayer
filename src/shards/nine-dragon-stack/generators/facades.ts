@@ -6,9 +6,11 @@ import { Color, Matrix4, Vector3 } from 'three';
 import type { Ctx } from '../world/ctx';
 import { E, K, type Look } from '../world/kit';
 import { hipRoof } from '../world/hipRoof';
-import { Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { SIGN_WORDS } from '../world/words';
 import { NEON, WALL, chars } from '../util';
+
+const { Y0 } = NINE_LAYOUT_PLAN;
 
 const AWNINGS = [0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441, 0xe8dfc9, 0x8a3a6a, 0xc23b22] as const;
 const SIGNCOLS = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber, NEON.red, 0xff7a2a] as const;

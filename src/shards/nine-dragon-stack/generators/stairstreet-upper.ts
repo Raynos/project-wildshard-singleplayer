@@ -27,11 +27,13 @@ import { type Hole, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, 
 import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from '../world/stairPlan';
 import { SURF } from '../look/paint';
 import type { SignPlace, SignSink } from '../look/signs';
-import { STAIR, Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { ASHLAR, COPING, FLOWER_COLS, ICO0, landingPlanter, leafBush, leafLook, leafQuad, tint } from './landingPlanter';
-import { PLANTER } from '../world/specimenDims';
+import { PLANTER } from '../data/specimenDims';
 import { MIN, NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
+
+const { STAIR, Y0 } = NINE_LAYOUT_PLAN;
 
 // ── looks ──
 const STEP_TOP: Look = { wash: 0x51545a, kind: K.flag, wet: 1, line: 1.8 };

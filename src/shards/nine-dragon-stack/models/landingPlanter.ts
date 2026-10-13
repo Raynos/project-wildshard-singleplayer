@@ -6,7 +6,7 @@
  * with `drawnInto`). It is what the stair's walkers bump into: a box of its trough. Built here alone, its foot on the
  * origin, for the Model Explorer, its flowers from a stream of its own.
  */
-import { PLANTER } from '../world/specimenDims';
+import { PLANTER } from '../data/specimenDims';
 import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 import { defineModel } from '@wildshard/engine/models/model';
 

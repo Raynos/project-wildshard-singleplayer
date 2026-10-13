@@ -2,36 +2,36 @@
 // Yamen Well opens on the left behind a stone balustrade, the paifang stands ahead, the banyan and the mahjong tables
 // on the right, the street runs on north through the gate under a skybridge, the monorail and the Cable Deck's screens.
 
-import { NINE_FLOOR_PLAN } from './data/floorPlan';
+import { NINE_LAYOUT_PLAN } from './data/layoutPlan';
 
 /** Lantern Square's datum (stratum 6, +125 m) */
-export const Y0 = NINE_FLOOR_PLAN.datum;
+export const Y0 = NINE_LAYOUT_PLAN.Y0;
 
 /** the Yamen Well's shaft */
-export const WELL = NINE_FLOOR_PLAN.well;
+export const WELL = NINE_LAYOUT_PLAN.WELL;
 
 /** the open plaza (the Well's balustrade is its west edge) */
-export const PLAZA = NINE_FLOOR_PLAN.square;
+export const PLAZA = NINE_LAYOUT_PLAN.PLAZA;
 
 /** the paifang: centre x, z, bay posts */
-export const GATE = { x: 6.05, z: -24.5, posts: [0.6, 3.9, 8.2, 11.5] as const, s: 1.85 } as const;
+export const GATE = NINE_LAYOUT_PLAN.GATE;
 
 /** the street north through the gate */
-export const STREET = NINE_FLOOR_PLAN.street;
+export const STREET = NINE_LAYOUT_PLAN.STREET;
 
 /** the stair-street climbing east out of the square */
-export const STAIR = NINE_FLOOR_PLAN.stair;
+export const STAIR = NINE_LAYOUT_PLAN.STAIR;
 
-export const BANYAN = { x: 18.4, z: -22.6, r: 3.2 } as const;
+export const BANYAN = NINE_LAYOUT_PLAN.BANYAN;
 
 /** the noodle stall (dome B: moved 0.5 m east and 0.6 m south so the earth-god shrine stands clear at the planter's south-west) */
-export const STALL = { x0: 16.3, x1: 22.1, z0: -18.4, z1: -15.2 } as const;
+export const STALL = NINE_LAYOUT_PLAN.STALL;
 
 /** dome B: the small hawker stall at the spawn's right, ~11 m ahead, its counter facing south (toward the spawn) */
-export const HAWKER = { x0: 6.3, x1: 9.7, z0: -3.6, z1: -1.4 } as const;
+export const HAWKER = NINE_LAYOUT_PLAN.HAWKER;
 
 /** the nine strata's street levels (altitude of each ring walkway in the Well) */
-export const STRATA = [-245, -150, -70, 0, 70, 125, 167, 210, 240] as const;
+export const STRATA = NINE_LAYOUT_PLAN.STRATA;
 
 /** where the player may walk (simple bounds, no physics) */
 export function walkable(x: number, z: number): boolean {

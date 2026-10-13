@@ -8,7 +8,7 @@
  * order): the square builds it there and hands the geometry over (../world/props3d.ts `placeSet`); a booth built for
  * any other reason (a tool, a test) seeds its own stream.
  */
-import { BOOTH, PAV } from '../world/specimenDims';
+import { BOOTH, PAV } from '../data/specimenDims';
 import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';

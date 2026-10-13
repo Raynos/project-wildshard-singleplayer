@@ -17,7 +17,7 @@ import { defineModel } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { NINE_FLOOR_PLAN } from '../data/floorPlan';
 import { PLAZA, WELL, Y0 } from '../layout';
-import { WELL_BALUSTRADE_AT } from '../world/specimenDims';
+import { WELL_BALUSTRADE_AT } from '../data/specimenDims';
 import { RIM } from '../world/wellBounds';
 import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 

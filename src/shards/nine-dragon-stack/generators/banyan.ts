@@ -14,11 +14,13 @@ import { Box3, Color, Vector3 } from 'three';
 import type { Ctx } from '../world/ctx';
 import { curvedRoof, relief } from './gate';
 import { E, K, type Kit, type Look } from '../world/kit';
-import { BANYAN, Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
 import { type KitX, curve } from '../world/hero/kitx';
 import { type BanyanPlan, type CanopyLump, banyanOut } from '../world/banyanPlan';
+
+const { BANYAN, Y0 } = NINE_LAYOUT_PLAN;
 
 export interface BanyanSpec {
   x: number; y: number; z: number; r: number; seed: number; height: number; spread: number;

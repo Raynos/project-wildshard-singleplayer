@@ -23,9 +23,11 @@ import { NEONS } from './towers';
 import { WORDS } from '../world/words';
 import { hungLine } from './props';
 import { laundryLine, laundryPole } from './wellParts';
-import { Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { Rng } from '@wildshard/sdk/random';
 import { FLOOR_H, type GalleryKits, type GalleryProfile } from './well-galleries';
+
+const { Y0 } = NINE_LAYOUT_PLAN;
 
 const UP = new Vector3(0, 1, 0);
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;

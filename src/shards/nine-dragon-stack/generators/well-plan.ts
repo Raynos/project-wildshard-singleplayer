@@ -10,10 +10,12 @@
 import { Vector3 } from 'three';
 import type { Ctx } from '../world/ctx';
 import type { Kit } from '../world/kit';
-import { WELL, Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { CABLE, EXT, RIM } from '../world/wellBounds';
 import { FLOOR_H, type GalleryProfile, galleryWall } from './well-galleries';
 import type { BridgeKind } from './well-bridges';
+
+const { WELL, Y0 } = NINE_LAYOUT_PLAN;
 
 /** the near galleries (well-rim.ts) run down to SPLIT + one floor; the lower levels (well-lower.ts) from SPLIT down */
 export const SPLIT = Y0 - 30;

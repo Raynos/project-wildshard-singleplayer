@@ -7,14 +7,16 @@
 import { Box3, type BufferGeometry, Color, Matrix4, Quaternion, Vector3 } from 'three';
 import type { Ctx } from '../world/ctx';
 import { E, K, Kit, type Look } from '../world/kit';
-import { HAWKER, STALL, Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import type { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
 import { person } from './heroFigures';
 import { KitX, curve, merge } from '../world/hero/kitx';
 import { curvedRoof } from './gate';
 import { placeSet } from '../world/props3d';
-import { BOOTH, PAV, type StallRect } from '../world/specimenDims';
+import { BOOTH, PAV, type StallRect } from '../data/specimenDims';
+
+const { HAWKER, STALL, Y0 } = NINE_LAYOUT_PLAN;
 
 const X = new Vector3(1, 0, 0), Y = new Vector3(0, 1, 0), Z = new Vector3(0, 0, 1);
 const STEEL: Look = { wash: 0x2c463a, line: 1, accent: true };

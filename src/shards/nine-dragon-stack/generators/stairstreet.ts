@@ -24,10 +24,12 @@ import { KitX } from '../world/hero/kitx';
 import { buildGuardProcedural } from '../world/hero/weapon-parts';
 import { K, Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
-import { PLAZA, STAIR, Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { MIN, NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
 import { FACE_N, FACE_S, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, SQ_CORNER, STAIR_GATE, stairFloor } from '../world/stairPlan';
+
+const { PLAZA, STAIR, Y0 } = NINE_LAYOUT_PLAN;
 
 /** the corner towers' base (their end faces on the stair's edges stand on it) */
 const SQ_BASE = Y0 + 5;

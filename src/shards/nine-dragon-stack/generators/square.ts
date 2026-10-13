@@ -8,11 +8,14 @@ import { buildGate } from './gate';
 import { SURF } from '../look/paint';
 import { BOOTHS, PARASOLS, PAVILIONS, hawkerStall, marketDiners, marketRow, noodleStall, pavilionDiners, pavilions, stallDiners } from './stalls';
 import { K, type Kit, type Look } from '../world/kit';
-import { GATE, PLAZA, STALL, STREET, Y0, walkable } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import { walkable } from './layoutMath';
 import { dragonHook, scooter } from './props';
 import { WELL_RUNS, balustrade, mahjongTable } from './squareParts';
-import { BOOTH, WELL_BALUSTRADE_AT } from '../world/specimenDims';
+import { BOOTH, WELL_BALUSTRADE_AT } from '../data/specimenDims';
 import { Rng } from '@wildshard/sdk/random';
+
+const { GATE, PLAZA, STALL, STREET, Y0 } = NINE_LAYOUT_PLAN;
 
 const UPV = new Vector3(0, 1, 0);
 /** a figure's placement on the square's floor */

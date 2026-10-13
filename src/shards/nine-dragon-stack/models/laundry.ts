@@ -8,7 +8,7 @@
  * its washing from a stream of its own. (The facade kit's laundry poles are facade pieces: models/facade.ts.)
  */
 import { LAUNDRY_PROFILE } from '../data/specimenProfiles';
-import type { LaundryKind } from '../world/specimenDims';
+import type { LaundryKind } from '../data/specimenDims';
 import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 import { defineModel } from '@wildshard/engine/models/model';
 
