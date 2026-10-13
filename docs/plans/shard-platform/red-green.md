@@ -101,3 +101,5 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | CI red since 02:01Z (nav fixtures, stale tables, lint, terrain readers, type docs) | various | **Full CI GREEN 38350364280 on `b7656034b`**; exact-SHA smoke 38351115302 queued | sp-x7 |
 | 2026-10-13 | commit-time map producer never stamped (checked a `revision` field `version.json` never has) | `1a80b9e5c` | `03dc55baa` (pinned-preview check; changed-during-capture refused) | sp-x7 |
 | 2026-10-13 | pre-commit fallback export ran `git diff --cached` outside a repo ("unknown option cached") | `ce5a5fcf0` | `29303b889` | sp-x7 |
+| 2026-10-13 | release never shipped: selector chased newer pending smokes forever (prod stale on `957b05e6` since 23:23Z) | release selector | `6c9c810e7` (20-min bound) → **live `35e6c10ba-mv6a7k7z` 06:10Z** | sp-x7 |
+| 2026-10-13 | gate: row-data refused a function (`isleNode`) exported from Sky `data/` | `fd1b0a9a4` | `ad1220312` | sp-o83 |
