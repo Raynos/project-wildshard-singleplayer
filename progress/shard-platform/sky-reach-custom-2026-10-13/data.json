@@ -1,0 +1,332 @@
+{
+ "measured": {
+  "date": "2026-10-13",
+  "head": "ccf5c7532",
+  "script": "scripts/shard-platform.mjs",
+  "custom": 3398,
+  "shard_ts": 2547,
+  "additional_glsl": 614,
+  "g294_attributed": 237,
+  "raw_glsl_total": 647,
+  "assemblyscript": 0,
+  "legacy": 6777,
+  "bar_20pct": 1355,
+  "percent": 50.1
+ },
+ "parts": [
+  {
+   "key": "glue",
+   "name": "Shard glue outside data/",
+   "lines": 168,
+   "files": [
+    "budgetCeilings.ts 13",
+    "budgets.ts 24",
+    "explore/art.ts 5",
+    "layout.ts 20",
+    "manifest.ts 62",
+    "roster.ts 5",
+    "shard.config.ts 35",
+    "thumbs/card.ts 4"
+   ],
+   "what": "shard.config.ts, the legacy manifest (boot sources, cards, minimap), phone budgets and ceilings, the layout maths, the roster and the card/Explore image lists: declarations, not behaviour, but outside data/ and generators/ so the metric counts them.",
+   "way_out": "Pure rows (budgets, ceilings, roster, card and Explore images) move into data/; layout maths goes to generators/ (it is bake-time) or data/; the manifest fields move into defineShard in shard.config.ts. Ask the coordinator to rule on shard.config.ts itself: design-system.md section 2.3 calls it SDK-driven, the metric counts it (35 lines, not counted as removed here).",
+   "mechanism": "data rows / SDK defineShard",
+   "lines_removed": 120,
+   "lines_left": 48,
+   "effort": "S",
+   "blocker": "defineShard lacks the manifest's boot-source, tier and budget fields; data modules may export no functions (bootSources is a function of tier); shard.config.ts needs a metric ruling",
+   "order": 1
+  },
+  {
+   "key": "movers",
+   "name": "Movers, Rising Islets, updraft",
+   "lines": 237,
+   "files": [
+    "runtime/movers.ts 20",
+    "world/islets.ts 16",
+    "world/risingIslet.ts 122",
+    "src/game/plugin/mover.ts 69 (G294)",
+    "src/sdk/entries.ts 9 (G294)",
+    "src/sdk/modes.ts 1 (G294)"
+   ],
+   "what": "The four Rising Islet entries (islet bodies, chains, RIDE/CALL prompts), the winch bridge, their mover modules, plus game/SDK code only Sky uses: the headless mover installer and the updraft driver in game/plugin/mover.ts (69), SocketLift in sdk/entries.ts (9).",
+   "way_out": "G388 (decided): Sky's headless moves onto the generic MoverScriptDriver and the one-user headless mover code goes, the fingerprint re-recorded (MV-2). Then the islet bodies become baked mover body nodes with chain rows (MV-1), the prompts socketLift rows answered by the platform's commandSocketLift, and the updraft a PM-4 traverse row.",
+   "mechanism": "data rows on the shared mover / mode system (MV-1, MV-2, PM-4)",
+   "lines_removed": 200,
+   "lines_left": 37,
+   "effort": "M",
+   "blocker": "G388 is queued for sp-x6; the drawing and prompt half and SocketLift/UpdraftDriver need a second real mover user (Driftwood boat/bridge MV-3, Nine lifts MV-4), or the generic code still counts to Sky (G294)",
+   "order": 2
+  },
+  {
+   "key": "glsl",
+   "name": "Raw GLSL look rows (data/*Look.ts)",
+   "lines": 614,
+   "files": [
+    "data/bridgeLook.ts 26 (glsl 26)",
+    "data/cloudSeaLook.ts 96 (glsl 96)",
+    "data/dressingLook.ts 35 (glsl 35)",
+    "data/isleLook.ts 41 (glsl 41)",
+    "data/meadowLook.ts 120 (glsl 120)",
+    "data/millLook.ts 31 (glsl 31)",
+    "data/paintLook.ts 35 (glsl 35)",
+    "data/shackLook.ts 68 (glsl 68)",
+    "data/skyCardsLook.ts 54 (glsl 54)",
+    "data/skyDomeLook.ts 25 (glsl 25)",
+    "data/skyIsleLook.ts 22 (glsl 22)",
+    "data/stormLook.ts 61 (glsl 61)"
+   ],
+   "what": "Twelve hand-written GLSL programs: the cloud sea, meadow tufts, sky cards and sun shafts, storm vortex, shack timber, isle rock and turf, mill stone, bridges, dressing, sky dome, sky isles and the shared paint edits. Raw GLSL is custom wherever it sits (G306), so these 614 lines count even inside data/.",
+   "way_out": "G382 (decided): rewrite each as an SF59 material graph (vertex + fragment stages, noise, textures and sun inputs already exist in format/materialGraph.ts); graph nodes are plain data. Looks kept; each switch goes to Jake as a labelled BEFORE/AFTER board (G387).",
+   "mechanism": "SF59 shader graphs (S2, G382)",
+   "lines_removed": 614,
+   "lines_left": 0,
+   "effort": "L",
+   "blocker": "Graph materials bind only to shardfile tile/prop materials (game/shardfile/clientGraphs.ts) and sit behind the Graph materials Debug row; Sky's meshes are still built by runtime code, so do this piece by piece with the world bake (part 4), or add a graph-compile call to plugin/look (2 users with Signal); Opus-only, G387 boards",
+   "order": 3
+  },
+  {
+   "key": "world",
+   "name": "World client builders (world/)",
+   "lines": 848,
+   "files": [
+    "quest/keeper.ts 19",
+    "runtime/looks/modelIntake.ts 34",
+    "world/baked.ts 57",
+    "world/bookStand.ts 32",
+    "world/build.ts 173",
+    "world/crown.ts 38",
+    "world/distant.ts 37 (glsl 19)",
+    "world/dressing.ts 27",
+    "world/isle.ts 45",
+    "world/meadow.ts 43",
+    "world/meshes.ts 31",
+    "world/mill.ts 63",
+    "world/resources.ts 11",
+    "world/shack.ts 11",
+    "world/shapes.ts 100",
+    "world/skyDock.ts 12",
+    "world/skyIsleHd.ts 30",
+    "world/storm.ts 57",
+    "world/trees.ts 27",
+    "src/sdk/looks/modelLibrary.ts 1 (G294)"
+   ],
+   "what": "The client half of the static world: loads each baked GLB, applies its look and shader patches, registers pieces and colliders from baked JSON, places sky isles, keels, knolls, docks, crown, trees, dressing, mill, book stand, bridges, storm and falls. The geometry is already baked in generators/; the drawing and binding still run as Sky code.",
+   "way_out": "G311 + SF80: each static piece becomes a real three.js scene in generators/ passed to bake(scene), shipped as L0 props and collider tiles that the generic client draws (as the islands already are, fd1b0a9a4); looks go to graphs (part 3). Moving bits (mill hub, vane rotors) become always-on mover tracks; falls and hover-deck glow become graph params bound to time or state.",
+   "mechanism": "real three.js generators + bake to tiles (G311, SF80, G304)",
+   "lines_removed": 760,
+   "lines_left": 88,
+   "effort": "L",
+   "blocker": "SF80 bake(scene) not yet run for Sky's remaining pieces (the content gate here reports 0 L0 render tiles); needs part 3's graphs for the looks; Opus parity captures",
+   "order": 4
+  },
+  {
+   "key": "sky",
+   "name": "Sky, sun, cloud sea, grade (look/)",
+   "lines": 253,
+   "files": [
+    "look/cloudSea.ts 9",
+    "look/image.ts 13",
+    "look/render.ts 46",
+    "look/sky.ts 24",
+    "look/sun.ts 13",
+    "src/engine/render/dataLook.ts 148 (G294)"
+   ],
+   "what": "The golden-hour frame: the painted 360 panorama, the fixed sun and day clock, the cloud-sea sheets, the painted-texture loader, and paintedLook / painterLight / headingHaze in engine/render/dataLook.ts, which only Sky uses (148, G294).",
+   "way_out": "The shardfile look section as rows (G321/G322 own sky): the panorama as a still-image sky row, a fixed dayCycle row, sun light rows, the grade as a post-stack graph; then paintedLook has no user and is deleted, or Nalati/Signal adopt it and it becomes public.",
+   "mechanism": "data rows on the shared look system + SF59 post graphs",
+   "lines_removed": 230,
+   "lines_left": 23,
+   "effort": "M",
+   "blocker": "The format look must carry a painted panorama sky and heading haze; a look change, so a board for Jake; Opus-only",
+   "order": 5
+  },
+  {
+   "key": "fan",
+   "name": "The war fan",
+   "lines": 337,
+   "files": [
+    "models/gear.ts 13",
+    "quest/vanes.ts 20",
+    "runtime/audio/cues.ts 10",
+    "runtime/fan.ts 49",
+    "runtime/items.ts 15",
+    "runtime/weapons/coneFan.ts 109",
+    "runtime/weapons/coneStrikes.ts 52",
+    "weapons/WarFan.ts 8",
+    "weapons/fanModel.ts 36",
+    "weapons/fanShapes.ts 11",
+    "weapons/rows.ts 6",
+    "src/game/plugin/audio.ts 8 (G294)"
+   ],
+   "what": "The cone fan weapon family (arc slash, heavy, GUST cone with impulse), its fixed-step adapter, item binding, equipment row, model and baked shapes, Model Explorer entry, vane turning on a gust, the cue router, and declaredWeaponVoices in game/plugin/audio.ts (8, G294).",
+   "way_out": "G382: the slash and heavy become a row on the shared melee family (engine Melee); the GUST becomes an AssemblyScript weapon hook (format/weaponHooks.ts, already used by Nalati), its own column; the model a view row on the baked fan GLB with a graph material; cues SF29 audio rows; vanes a director input. The design's fallback (WP-5) keeps the cone family trusted inside the 20 %.",
+   "mechanism": "weapon rows (WP-1/WP-5) + AssemblyScript hook",
+   "lines_removed": 280,
+   "lines_left": 57,
+   "effort": "M",
+   "blocker": "The melee host must accept an AS secondary action (GUST); declaredWeaponVoices needs a second user or SF29",
+   "order": 6
+  },
+  {
+   "key": "creatures",
+   "name": "Creatures and the Storm Roc",
+   "lines": 218,
+   "files": [
+    "combat/stormRoc.ts 13",
+    "models/creatures.ts 23",
+    "runtime/brainCatalogue.ts 7",
+    "runtime/brains.ts 34",
+    "runtime/flock.ts 41",
+    "runtime/stormRocBrain.ts 19",
+    "species/bodies.ts 12",
+    "species/driftRay.ts 8",
+    "species/galeWisp.ts 6",
+    "species/goats.ts 10",
+    "species/rig.ts 11",
+    "species/skyGoat.ts 8",
+    "species/stormRoc.ts 25",
+    "src/engine/ai/diver.ts 1 (G294)"
+   ],
+   "what": "Sky's per-body brain glue (goats, rays, wisps), the finite flock keeper, the Roc's brain wrapper, species looks, the boss view, the Model Explorer specimens.",
+   "way_out": "BR-1 automatic row admission with per-body authority and BR-2 root boss construction: species become grazer/diver rows, the Roc a boss row with its last phase as roc.as (AssemblyScript, its own column); the flock is spawn rows on the shared homes host; specimens come from the baked bodies as roster rows.",
+   "mechanism": "data rows on shared brains/boss systems (BR-1..3) + AssemblyScript",
+   "lines_removed": 170,
+   "lines_left": 48,
+   "effort": "L",
+   "blocker": "BR-3 / SF49-p is held (open-x-queue: the Roc's flight and finite keeper have no shared seam that keeps frozen traces); needs a re-recorded Roc trace (as G388 did for movers) or a G314 clip check",
+   "order": 7
+  },
+  {
+   "key": "quest",
+   "name": "Quest wiring and saves",
+   "lines": 125,
+   "files": [
+    "quest/flags.ts 2",
+    "quest/install.ts 38",
+    "runtime/persistence.ts 37",
+    "runtime/quest.ts 48"
+   ],
+   "what": "The quest graph is already rows; what is left is trusted wiring: the winch command, roost-clear and vane checks, reward and purse, presentation pins, and the legacy save keys.",
+   "way_out": "DIR-1/DIR-5 director stage rows (format/directorStages.ts exists) for roost-clear, vanes, winch unlock and Roc down; persistence as declared state rows (data/state.ts); the legacy save key leaves with SF73.",
+   "mechanism": "director stage rows (DIR-5) + state rows",
+   "lines_removed": 100,
+   "lines_left": 25,
+   "effort": "M",
+   "blocker": "Sky not yet on the director host (DIR-5); the legacy save migration waits for SF73",
+   "order": 8
+  },
+  {
+   "key": "fx",
+   "name": "Effect hosts (runtime/looks)",
+   "lines": 237,
+   "files": [
+    "runtime/looks/cardField.ts 41",
+    "runtime/looks/discLayer.ts 10",
+    "runtime/looks/knollGlsl.ts 5 (glsl 2)",
+    "runtime/looks/tileField.ts 31",
+    "runtime/looks/wakeRibbon.ts 31 (glsl 3)",
+    "runtime/looks/windFx.ts 119 (glsl 9)"
+   ],
+   "what": "Generic-by-design hosts that only Sky uses: camera-facing card fields (sun bloom, cloud puffs), the cloud-sea disc, the camera-tiled meadow field, the ray wake ribbon, gust and updraft wind streaks, the knoll height GLSL.",
+   "way_out": "With graph materials (part 3) each becomes a generic effect row in game, public once a second real shard uses it (Nalati's meadow on the tile field, Signal's sand or fire on the card field), or a presentation-only SF25 client script.",
+   "mechanism": "generic system with 2+ users / SF25 client presentation",
+   "lines_removed": 180,
+   "lines_left": 57,
+   "effort": "M",
+   "blocker": "No second real user today (G312); SF25 not built",
+   "order": 9
+  },
+  {
+   "key": "installers",
+   "name": "Installers (browser + headless)",
+   "lines": 361,
+   "files": [
+    "plugin.ts 8",
+    "runtime/headless.ts 83",
+    "runtime/index.ts 266",
+    "runtime/standalone.ts 4"
+   ],
+   "what": "runtime/index.ts (the hybrid plugin: preload, textures, meadow, quest, fan input, movers, updraft, dressing spin, gust fx, creature homes, ray wakes, Roc slate patch, roost check, boss, gale wall, capture staging hooks) and runtime/headless.ts (the native world, flock, encounter, fan, quest, movers, updraft).",
+   "way_out": "They shrink as each part above lands; design-system.md section 5.2 deletes the installer in the commit that makes the shard 80/20. The capture hooks (stage, isletAt, interactIslet, raise) move to a generic capture API.",
+   "mechanism": "falls out of parts 1-9 (the trusted remainder stays)",
+   "lines_removed": 250,
+   "lines_left": 111,
+   "effort": "S",
+   "blocker": "Lands only after the parts it composes",
+   "order": 10
+  }
+ ],
+ "path": [
+  {
+   "order": 1,
+   "part": "Shard glue outside data/",
+   "removed": 120,
+   "custom_after": 3278,
+   "percent_after": 48.4
+  },
+  {
+   "order": 2,
+   "part": "Movers, Rising Islets, updraft",
+   "removed": 200,
+   "custom_after": 3078,
+   "percent_after": 45.4
+  },
+  {
+   "order": 3,
+   "part": "Raw GLSL look rows (data/*Look.ts)",
+   "removed": 614,
+   "custom_after": 2464,
+   "percent_after": 36.4
+  },
+  {
+   "order": 4,
+   "part": "World client builders (world/)",
+   "removed": 760,
+   "custom_after": 1704,
+   "percent_after": 25.1
+  },
+  {
+   "order": 5,
+   "part": "Sky, sun, cloud sea, grade (look/)",
+   "removed": 230,
+   "custom_after": 1474,
+   "percent_after": 21.8
+  },
+  {
+   "order": 6,
+   "part": "The war fan",
+   "removed": 280,
+   "custom_after": 1194,
+   "percent_after": 17.6
+  },
+  {
+   "order": 7,
+   "part": "Creatures and the Storm Roc",
+   "removed": 170,
+   "custom_after": 1024,
+   "percent_after": 15.1
+  },
+  {
+   "order": 8,
+   "part": "Quest wiring and saves",
+   "removed": 100,
+   "custom_after": 924,
+   "percent_after": 13.6
+  },
+  {
+   "order": 9,
+   "part": "Effect hosts (runtime/looks)",
+   "removed": 180,
+   "custom_after": 744,
+   "percent_after": 11
+  },
+  {
+   "order": 10,
+   "part": "Installers (browser + headless)",
+   "removed": 250,
+   "custom_after": 494,
+   "percent_after": 7.3
+  }
+ ]
+}
