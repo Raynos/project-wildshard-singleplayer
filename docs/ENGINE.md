@@ -3833,7 +3833,7 @@ G394 shared ordered melee contacts: a declared weapon may attach `contacts`,
 a bounded array of `MeleeContactRow` values from `@wildshard/format/weaponProfiles`.
 Each move declares its cooldown lane, cone/lane shape, immediate or ordered
 delayed landings, contact damage/tags and ordered before/survived reactions.
-The defining `@wildshard/game/plugin/weaponFamily.bindMeleeContacts(weaponId,
+The defining `@wildshard/game/plugin/simulation.bindMeleeContacts(weaponId,
 rows, { owner, ...ports })` admits JSON and constructs the existing engine
 `ContactFamily`. `owner` supplies the native player actor or page environment
 for `source: owner`; `source: env` always remains environmental. Identity,

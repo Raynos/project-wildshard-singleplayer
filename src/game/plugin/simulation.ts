@@ -1,3 +1,5 @@
+import { ContactFamily, type ContactFamilyPorts, type ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
+import { parseMeleeContacts } from '@wildshard/format/items';
 import type { Vector3 } from 'three';
 import { createHeadlessPromptPicker } from '../quest/interactionRows';
 import { GridAssembly } from '../grid/assembly';
@@ -705,3 +707,18 @@ export async function proveAuthoredGrid(source: Shardfile, assets: ReadonlyMap<s
     insist(allocator.entries().length === 0, 'residency leak after disposal');
   }
 }
+
+/** Native/page owners inject their existing actor and contact ports; binding never advances a clock or aim. */
+export interface MeleeContactPorts<T extends ContactScanTarget> extends ContactFamilyPorts<T> { readonly owner: Parameters<ContactFamilyPorts<T>['hit']>[0]['source'] }
+/** Admit ordered numeric contacts and bind one existing shared controller, preserving source and event ownership. */
+export function bindMeleeContacts<T extends ContactScanTarget>(weaponId: string, rows: unknown, ports: MeleeContactPorts<T>): ContactFamily<T> {
+  if (!/^weapon\.[a-z][a-zA-Z0-9.-]*$/u.test(weaponId) || weaponId.length > 128) throw new Error('Bound melee weapon identity required');
+  const admitted = parseMeleeContacts(rows);
+  return new ContactFamily(admitted.map(row => ({ lane: row.lane, heavy: row.heavy, cooldown: row.cooldown,
+    shape: row.shape, reach: row.reach, size: row.size, height: row.height, allowance: row.allowance,
+    lands: row.lands, show: row.show, reports: row.reports, hits: row.hits.map(hit => ({
+    tags: hit.tags, weaponId, source: hit.source === 'owner' ? ports.owner : 'env',
+    damage: hit.damage, moveId: hit.moveId, copyVectors: hit.copyVectors, copyTags: hit.copyTags, reactions: hit.reactions,
+  })) })), ports);
+}
+

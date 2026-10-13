@@ -1,9 +1,6 @@
-import * as v from 'valibot';
-import { ItemFamilyNameSchema, parseMeleeContacts } from '@wildshard/format/items';
 import { Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
-import type { App } from "@wildshard/engine/app/app";
 import { blocks } from "@wildshard/engine/blocks";
-import { HeldWeaponClock, ContactFamily, type ContactFamilyPorts, type ContactScanTarget } from "@wildshard/engine/combat/contactWeapon";
+import { HeldWeaponClock, type ContactFamily, type ContactScanTarget } from "@wildshard/engine/combat/contactWeapon";
 import { Weapon, type WeaponState, type AimInfo } from "@wildshard/engine/combat/Weapon";
 import { Tool } from "@wildshard/engine/combat/Tool";
 import type { EquipmentRow, EquipContext } from "@wildshard/engine/combat/Equipment";
@@ -16,19 +13,7 @@ import { ScriptWorld, SCRIPT_OP, type EffectTransaction, type ScriptEffect } fro
 import type { LevelContext } from "@wildshard/engine/level/context";
 import { directorVariant } from "../shardfile/directorClient";
 
-/** Native/page owners inject their existing actor and contact ports; binding never advances a clock or aim. */
-export interface MeleeContactPorts<T extends ContactScanTarget> extends ContactFamilyPorts<T> { readonly owner: Parameters<ContactFamilyPorts<T>['hit']>[0]['source'] }
-/** Admit ordered numeric contacts and bind one existing shared controller, preserving source and event ownership. */
-export function bindMeleeContacts<T extends ContactScanTarget>(weaponId: string, rows: unknown, ports: MeleeContactPorts<T>): ContactFamily<T> {
-  if (!/^weapon\.[a-z][a-zA-Z0-9.-]*$/u.test(weaponId) || weaponId.length > 128) throw new Error('Bound melee weapon identity required');
-  const admitted = parseMeleeContacts(rows);
-  return new ContactFamily(admitted.map(row => ({ lane: row.lane, heavy: row.heavy, cooldown: row.cooldown,
-    shape: row.shape, reach: row.reach, size: row.size, height: row.height, allowance: row.allowance,
-    lands: row.lands, show: row.show, reports: row.reports, hits: row.hits.map(hit => ({
-    tags: hit.tags, weaponId, source: hit.source === 'owner' ? ports.owner : 'env',
-    damage: hit.damage, moveId: hit.moveId, copyVectors: hit.copyVectors, copyTags: hit.copyTags, reactions: hit.reactions,
-  })) })), ports);
-}
+type App = LevelContext['app'];
 
 // SF54: the private iron sword copy, deleted when these families graduate
 
@@ -193,7 +178,7 @@ export abstract class HeldContactWeapon<T extends ContactScanTarget = ContactSca
 /** Register one trusted weapon family in the caller's session-local registry, without allocating a weapon or installing inputs.
  * The loader checks the shard namespace and every item before construction. Duplicate and reserved kit names refuse here. */
 export function registerWeaponFamily(registry: Map<string, ItemFamily>, id: string, family: ItemFamily): void {
-  if (!v.is(ItemFamilyNameSchema, id) || !id.includes('.') || id.startsWith('kit.')) throw new Error('A trusted weapon family needs a bounded shard-local id');
+  if (typeof id !== 'string' || id.length > 128 || !/^[a-z][a-zA-Z0-9.-]*$/u.test(id) || !id.includes('.') || id.startsWith('kit.')) throw new Error('A trusted weapon family needs a bounded shard-local id');
   if (family.kind !== 'weapon') throw new Error('Weapon family registration requires a weapon constructor');
   if (registry.has(id)) throw new Error(`Duplicate weapon family ${id}`);
   registry.set(id, family);

@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import { createHash } from 'node:crypto';
 import { parseItems, parseMeleeContacts } from '../src/format/items';
 import type { MeleeContactRow } from '../src/format/weaponProfiles';
-import { bindMeleeContacts } from '../src/game/plugin/weaponFamily';
+import { bindMeleeContacts } from '../src/game/plugin/simulation';
 import type { Actor, DamageRequest } from '../src/engine/combat/pipeline';
 import { ITEMS } from '../src/shards/_template/data/items';
 import { SKY_ITEMS, FAN_STRIKES } from '../src/shards/far-reach/data/items';
