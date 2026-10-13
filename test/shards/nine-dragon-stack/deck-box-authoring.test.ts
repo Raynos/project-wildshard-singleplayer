@@ -3,7 +3,7 @@ import { BoxCollider } from '../../../src/sdk/physics';
 import { deckCapRows, deckCapScene } from '../../../src/shards/nine-dragon-stack/generators/portalFloors';
 import { entryCapColliders, portalDeckColliders, squareFloor } from '../../../src/shards/nine-dragon-stack/world/floorRows';
 import { entryCapColliders as legacyCaps, portalDeckColliders as legacyDeck, squareFloor as legacySquare } from '../../../src/shards/nine-dragon-stack-legacy/world/floorRows';
-import baked from '../../../src/shards/nine-dragon-stack/runtime/physics.baked.json';
+import baked from '../../../src/shards/nine-dragon-stack/data/physics.generated.json';
 // oxlint-disable-next-line import/no-nodejs-modules -- Executes the compiled authoring source in plain Node.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Owns and deletes a source-only compilation stage.

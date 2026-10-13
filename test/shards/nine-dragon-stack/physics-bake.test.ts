@@ -1,23 +1,15 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Trusted-bake freshness is checked against the test checkout.
-import process from 'node:process';
 import { expect, it } from 'vitest';
-import { ninePhysicsInputs } from '../../../scripts/nine-physics-inputs.mjs';
-import baked from '../../../src/shards/nine-dragon-stack/runtime/physics.baked.json';
+import baked from '../../../src/shards/nine-dragon-stack/data/physics.generated.json';
+import { ninePhysics } from '../../../src/shards/nine-dragon-stack/generators/physics';
 import { NINE_HOOKS, NINE_PIECES } from '../../../src/shards/nine-dragon-stack/runtime/headless';
 import { RIM_Z } from '../../../src/shards/nine-dragon-stack/runtime/grapple';
 import { RIM } from '../../../src/shards/nine-dragon-stack/world/wellBounds';
 import { portalFloorRows } from '../../../src/shards/nine-dragon-stack/world/floorRows';
 
-it('refuses stale source or model bytes before the trusted Nine physics bake is used', () => {
+it('is the fresh product of the authored rows (G350-ND: generators/physics.ts, no runtime run)', () => {
+  expect(JSON.stringify(ninePhysics())).toBe(JSON.stringify(baked));
   expect(baked.version).toBe(1);
-  expect(baked.profile).toBe('Node / phone / no renderer');
-  expect(baked.build).toMatch(/^node-[a-f0-9]{64}$/u);
   expect(baked.notice).toContain('DO NOT EDIT');
-  expect(Object.keys(baked.inputs)).toContain('src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs');
-  expect(baked.inputs).toEqual(ninePhysicsInputs(process.cwd()));
-  expect(baked.revision).toMatch(/^[a-f0-9]{40}$/u);
-  expect(Object.keys(baked.inputs)).toContain('src/shards/nine-dragon-stack/world/install.ts');
-  expect(Object.keys(baked.inputs)).toContain('src/shards/nine-dragon-stack/world/floorRows.ts');
 });
 
 it('captures the fragment\'s floors, fronts, crossings and safety cap, and every placed model\'s colliders', () => {

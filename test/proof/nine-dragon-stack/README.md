@@ -26,7 +26,7 @@ renderer-bound system decides a gameplay outcome. Decorative crowd, light and vi
 runtime presentation.
 
 **Runs headless (proven):**
-- the Node-baked native colliders of the grid cell (`runtime/physics.baked.json`, `src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs`):
+- the native colliders of the grid cell (`data/physics.generated.json`, made from authored rows by `generators/physics.ts`, G350-ND):
   the fragment at +125 m, the four landing decks open to the road (the standalone end caps removed), the square's slab,
   the Well's crossings and safety cap, every placed model's colliders;
 - the player capsule walking them from the declared spawn, by tick commands;
@@ -48,7 +48,7 @@ runtime presentation.
   reach, sight past the Well's rail, the landing test, fire → bite → lift → zip → vault → settle, or a miss reeled back,
   with snapshot / restore); the page's `grapple/FeiZhua.ts` drives it and draws the rope, markers and FX, and the host's
   `runtime/grapple.ts` drives it from tick commands (a LOCK script press, the aim's pitch as a script value, the player
-  command's JUMP), on the 31 dragon hooks the physics bake records (`hooks`, `src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs`). The aim is
+  command's JUMP), on the 31 dragon hooks the physics product records (`hooks`, authored in `data/physicsRows.json`). The aim is
   the player's eye at the command's heading and pitch projected as the phone's portrait camera, so the hook nearest the
   screen's centre is the one the claw takes, as on the page. `headless-runtime.test.ts` also zips onto the east tower's
   ledge from the arrival and restores mid-zip byte-exactly;
@@ -126,12 +126,16 @@ bake, and importing the builders would load the renderer. This follow-up therefo
 browser bake, and Nine's `context.debug` cap of 2. The placement extraction remains explicitly open; it changes world
 map inputs and needs a browser-equivalence proof and map rebake.
 
-## DS1.5: Node canonical physics
+## G350-ND: authored physics (was DS1.5 Node canonical)
 
-The retained native recipes now run in Node, with the real engine practice-room constructor and no drawing. Build/CI use
-`node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nine-dragon-stack/generators/bake-nine-physics.mjs --check`.
-The generation job is portable and needs no preview or browser. Its header is content-addressed from its recipe inputs.
-The temporary page-comparison producer is retired after the canonical re-record. The retained gate compares independent Node runs.
+`generators/physics.ts` composes the physics product `data/physics.generated.json` from authoring inputs only (G320):
+the floor, front, portal and guard recipes (`generators/physicsPlacements.ts`) and `data/physicsRows.json` for what no
+recipe computes yet (the placed models' colliders, the Well's crossings, the practice arena, the registry order of every
+piece and the Fei Zhua's 31 dragon hooks). It runs under the authoring loader; no world, model, registry or runtime code
+runs. The retired DS1.5 bake built the world in Node; its last output matched this product in every piece and hook, byte
+for byte. Regenerate and compare with `node scripts/generate.mjs --job=nine-physics --compare`.
+
+The DS1.5 history below is kept as the record of how those bytes were first proven.
 
 The deliberate re-record changes five pavilion collider yaws from `2.7755575615628914e-17` to
 `5.551115123125783e-17` radians: maximum absolute difference **2.7755575615628914e-17 rad**.

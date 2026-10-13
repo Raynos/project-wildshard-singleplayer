@@ -192,11 +192,11 @@ Nalati’s `nalati-weapon-hooks` report-only component compiles retained `behavi
 The complete `nine-physics-placements` component compiles eight ordered
 floor/front/deck/guard rest pieces from retained collider scenes and the
 floor plan. Its 7.4 KB JSON is generated on a cache miss and pinned to
-SHA-256 `044b4d71b4a17d42afbcce23672ac51fb97e2e9ece0c205d31a0fd855fd9606d`; it is never a copied physics snapshot. The native
-physics baker adopts these placements directly, keeping the remaining
-mesh-derived pieces and hooks as an explicitly transitional capture.
-Live guard state, grid cap selection and body ownership stay unchanged.
-This component cannot authorise removal of the complete physics product.
+SHA-256 `044b4d71b4a17d42afbcce23672ac51fb97e2e9ece0c205d31a0fd855fd9606d`; it is never a copied physics snapshot. The
+authored physics product (`nine-physics`, G350-ND) adopts these placements
+directly; the remaining model and crossing pieces and the hooks are authored
+rows (`data/physicsRows.json`). Live guard state, grid cap selection and body
+ownership stay unchanged.
 
 ### Sky static physics placements (G320)
 

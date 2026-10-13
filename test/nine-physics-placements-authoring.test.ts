@@ -5,7 +5,7 @@ import { expectKeyedClosure } from './fixtures/authoringClosure';
 import { auditAuthoringInputs, isAuthoringInput } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
 import { ninePhysicsPlacements } from '../src/shards/nine-dragon-stack/generators/physicsPlacements';
-import native from '../src/shards/nine-dragon-stack/runtime/physics.baked.json' with { type: 'json' };
+import native from '../src/shards/nine-dragon-stack/data/physics.generated.json' with { type: 'json' };
 
 it('compiles the exact eight native placements without running a world, model or registry constructor', () => {
   const rows = ninePhysicsPlacements(), ids = new Set(rows.map(row => row.id));
@@ -40,5 +40,5 @@ it('keys a complete portable component without runtime, legacy, generated seeds 
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['src/shards/nine-dragon-stack/data/physicsPlacements.generated.json']);
   expect(job.buildOutputs).toEqual({ 'src/shards/nine-dragon-stack/data/physicsPlacements.generated.json': '044b4d71b4a17d42afbcce23672ac51fb97e2e9ece0c205d31a0fd855fd9606d' });
-  expect(job.outputs).not.toContain('src/shards/nine-dragon-stack/runtime/physics.baked.json');
+  expect(job.outputs).not.toContain('src/shards/nine-dragon-stack/data/physics.generated.json');
 });
