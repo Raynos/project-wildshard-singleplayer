@@ -28,6 +28,7 @@ export function linkNodeModules(repo, tree) {
   if (!existsSync(from)) return; // nothing installed (a test's throwaway repo): the tree resolves no packages, as before
   if (existsSync(to)) {
     if (lstatSync(to).isSymbolicLink()) throw new Error(`link-node-modules: ${to} is a whole-folder link; remove it first`);
+    linkWorkspaceSources(tree, to);
     linkPackageNodeModules(repo, tree);
     return; // existing links stay untouched; new manifest dependencies can still be repaired
   }
@@ -46,6 +47,12 @@ export function linkNodeModules(repo, tree) {
       symlinkSync(relative(join(to, name), join(resolve(tree), inRepo)), join(to, name, pkg));
     }
   }
+  linkWorkspaceSources(tree, to);
+  linkPackageNodeModules(repo, tree);
+}
+
+/** Link newly available defining packages on both first use and reruns. */
+function linkWorkspaceSources(tree, to) {
   // A newly authored workspace may not have been installed in the shared checkout yet.
   // Link the export's own defining package, never another checkout's source or dependencies.
   const sources = resolve(tree, 'src');
@@ -59,7 +66,6 @@ export function linkNodeModules(repo, tree) {
     mkdirSync(dirname(link), { recursive: true });
     symlinkSync(relative(dirname(link), join(sources, entry.name)), link);
   }
-  linkPackageNodeModules(repo, tree);
 }
 
 /**
