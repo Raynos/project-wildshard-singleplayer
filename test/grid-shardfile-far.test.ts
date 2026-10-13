@@ -49,5 +49,11 @@ it('masks authored triangles by fragment position across L1 boundaries without r
     expect(mask[6]).toBe(1);
     expect(compile(legacy.material).vertexShader).toContain('farMask[int(uv.x + 0.5)]');
     expect(authored.material.customProgramCacheKey()).not.toBe(legacy.material.customProgramCacheKey());
+    // G342 round 5: the near grain adds its varyings once, after the one `transformed` (a doubled include broke the program)
+    const grain = farProxyMaterial(look, false, true), grained = compile(grain.material);
+    expect(grained.vertexShader.split('#include <begin_vertex>')).toHaveLength(2);
+    expect(grained.vertexShader).toContain('vFarGrainP = position;'); expect(grained.fragmentShader).toContain('uniform sampler2D farGrain;');
+    expect(grain.material.customProgramCacheKey()).not.toBe(legacy.material.customProgramCacheKey());
+    grain.material.dispose();
   } finally { authored.material.dispose(); legacy.material.dispose(); }
 });

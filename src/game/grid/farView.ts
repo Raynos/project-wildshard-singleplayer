@@ -101,9 +101,10 @@ export function farProxyMaterial(look: FarLookRuntime, positionalMask = false, g
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\nuniform float farMask[16];\nvarying float vFarDepth;\nvarying float vFarCliff;\nvarying vec2 vFarStrata;${grain ? '\nvarying vec3 vFarGrainP;\nvarying vec3 vFarGrainN;' : ''}`)
       // the boundary face's foot (uv.y 2) steps inward from the cell edge; its strata ride the face (along it, up it)
-      .replace('#include <begin_vertex>', (grain ? '#include <begin_vertex>\nvFarGrainP = position;\nvFarGrainN = normal;\n' : '') + (positionalMask
+      .replace('#include <begin_vertex>', (positionalMask
         ? '#include <begin_vertex>\nvFarCliff = 0.0;\nvFarStrata = transformed.xz;'
-        : `#include <begin_vertex>\nvFarCliff = uv.y;\nvFarStrata = vec2(position.x + position.z, position.y);\nif (uv.y > 1.5) transformed.xz -= sign(transformed.xz) * step(vec2(${f(CHUNK_HALF - 0.01)}), abs(transformed.xz)) * ${FAR_SKIRT_INSET.toFixed(1)};`).replace('#include <begin_vertex>\n#include <begin_vertex>', '#include <begin_vertex>'))
+        : `#include <begin_vertex>\nvFarCliff = uv.y;\nvFarStrata = vec2(position.x + position.z, position.y);\nif (uv.y > 1.5) transformed.xz -= sign(transformed.xz) * step(vec2(${f(CHUNK_HALF - 0.01)}), abs(transformed.xz)) * ${FAR_SKIRT_INSET.toFixed(1)};`)
+        + (grain ? '\nvFarGrainP = position;\nvFarGrainN = normal;' : ''))
       .replace('#include <project_vertex>', `#include <project_vertex>\nvFarDepth = -mvPosition.z;${positionalMask ? '' : '\nif (farMask[int(uv.x + 0.5)] > 0.5) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);'}`);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\nuniform vec3 farHazeColour;\nuniform vec3 farHaze;\nvarying float vFarDepth;\nvarying float vFarCliff;\nvarying vec2 vFarStrata;\nfloat farHash(float n) { return fract(sin(n * 127.1 + 311.7) * 43758.5453); }${positionalMask ? '\nuniform float farMask[16];' : ''}${grain ? '\nuniform sampler2D farGrain;\nuniform vec2 farGrainFade;\nvarying vec3 vFarGrainP;\nvarying vec3 vFarGrainN;' : ''}`)
