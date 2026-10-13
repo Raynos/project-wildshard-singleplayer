@@ -8,7 +8,7 @@
 | Sky Reach | 78.4 % → **51.0 %** | ≤ 1355 lines | **11 / 0** ✔ (`fd1b0a9a4`) |
 
 **Signal and Sky meet Jake's port bar (tiles + 0 private bins).** **Nine ported** (34 L0 tiles, 0 private bins, Linux-exact). **Nalati 0 private bins** (`d3bdac368`); ground + nav one fetch (Nalati, Sky, Signal).
-**RELEASE HOLD past `9c2ce3013`: public Nine fails to load (1006 MB > 1000 MB; sp-o113).** **LIVE `ad30fba68-mv6izhvz` (10:16Z, clean)**. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: **Sim Nine 1.8 s frame since the port (P0: `978fcc209`, sp-o112)**, Pine desktop PASS; Sim travel still fails Pine 57–63, Driftwood 42–50, Far 40–47 (Nalati 34–35); left = texture uploads (KTX2 ask) + unsplit shard builds. **Whole products: Template, Pastel (Linux-exact); Signal next.**
+**RELEASE HOLD until CI + public-Nine smoke pass on ≥ `1b39cec67` (Nine memory fixed: 1006 → 990 MB).** **LIVE `ad30fba68-mv6izhvz` (10:16Z, clean)**. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: **Sim Nine 1.8 s frame since the port (P0: `978fcc209`, sp-o112)**, Pine desktop PASS; Sim travel still fails Pine 57–63, Driftwood 42–50, Far 40–47 (Nalati 34–35); left = texture uploads (KTX2 ask) + unsplit shard builds. **Whole products: Template, Pastel (Linux-exact); Signal next.**
 
 **Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 bench, x6 SF87, x4 Pine, x1 Driftwood, x8 Nine. Opus: o112 Nine P0, o113 Nine boot memory cap, o114 Pine build slicing (1 free).
 
