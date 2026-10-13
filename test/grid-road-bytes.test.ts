@@ -17,7 +17,7 @@ import { installVoidLook } from '../src/game/grid/voidLook';
 import { gravel, riprap, seamSolid, stone, strata } from '../src/game/grid/seamLook';
 import { grainArray, solidGeometry, type SolidPart } from '../src/game/grid/roadSolid';
 import { cullRoadMesh, gpuOnlyRoad, ROAD_LOD, type CullPlan } from '../src/game/grid/roadCull';
-import templateBake from '../public/assets/baked/_template/terrain.bin?inline';
+import templateBake from './fixtures/grid-road-terrain.bin?inline';
 import driftwoodBake from '../public/assets/baked/driftwood-isle/terrain.bin?inline';
 import pineBake from '../public/assets/baked/pine-hollow/terrain.bin?inline';
 import nalatiBake from '../public/assets/baked/nalati-grasslands/terrain.bin?inline';
