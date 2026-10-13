@@ -7,8 +7,8 @@
 | Signal Dunes | 70.7 % → **51.8 %** | ≤ 824 lines | 80 / 3 |
 | Sky Reach | 78.4 % → **53.3 %** | ≤ 1355 lines | 0 / 2 |
 
-**Game exports (G351):** 104 total (from 328); `plugin/` 20 → 19 (`4328edc17`; target 12–14).
-**Ratchets (G349):** standing debt rule deleted, sweeper stopped; debt shrink-only. **Push green (Jake `a44511f05`, `193a7e998`), sp-x7 building:** every sub-second check runs in parallel at commit (debt per file, touched lint/typecheck, stamps, guards); pre-push gate capped at 2 min (over = red); allowed graph counts report-only; green-prefix stays. **Plugin trim → 12–14 modules** (sp-x5).
+**Game exports (G351):** 104 total (from 328); `plugin/` 20 → 17 (target 12–14, sp-x5).
+**Ratchets (G349):** standing debt rule deleted, sweeper stopped; debt shrink-only. **Push (Jake `a44511f05`, `193a7e998`, audit `ef0eb5e04`), sp-x7:** debt refused per file at commit; local gate ≤ 2 min (changed-file typecheck/lint + affected tests), full suite/bakes in CI with fix-forward; cheap bakes regenerate at commit; regen bot ≤ 1 commit/h; no repeat retries; allowed graph counts report-only. Exact-number tests → limits (sp-o66). Fewer bookkeeping commits: STATE batched.
 **Next (Jake):** tiles + 0 private bins; SF81–SF85 open until runtime deleted; G350 exits.
 
 **Fleet:** Codex sp-x7 push/deploy, sp-x5 plugin trim (Codex 7 %). Opus: Sky brains + rig compression sp-o64, Sky through `bake()` sp-o60, Signal ground sp-o55, Signal `terrain.bin` sp-o63, war-fan viewmodel red sp-o58.
@@ -17,7 +17,6 @@
 **Calls for Jake (2026-10-13; reverse any):**
 1. Bosses never shrink on phone (`30dc4c9ae`).
 2. Signal road seam = drawn sand tint (`f54924aa3`).
-3. Parity rename `far.boss`→`far.roc` (`586f62fa2`).
 4. Missing Sky models stand undrawn, no code stand-ins (`d5267c284`).
 5. Metric per-export (`ddf5c4dea`).
 8. Entryway proof (`add1035d6`) credits Sky's lift proof to Nine: Sky −120 is ~−20.
