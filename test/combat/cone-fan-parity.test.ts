@@ -8,6 +8,7 @@ import type { App } from '../../src/engine/app/app';
 import type { Actor, DamageDealt, DamageRequest } from '../../src/engine/combat/pipeline';
 import { WarFan } from '../../src/shards/far-reach/weapons/WarFan';
 import { loadSkyFan } from '../../src/shards/far-reach/weapons/fanShapes';
+import { preloadSkyMeshes, skyHd } from '../../src/shards/far-reach/world/meshes';
 import { legacyDouble } from '../fake/FakeGame';
 import { digest, geometrySum, isMesh, materialRow, mockCanvas, objectRow, round, v3 } from '../fake/weaponParity';
 
@@ -20,10 +21,18 @@ import { digest, geometrySum, isMesh, materialRow, mockCanvas, objectRow, round,
  * field), the impulses, the swing / gust / hit / fire hooks and the built model.
  */
 beforeAll(async () => {
-  // the fan's baked shapes, served from the committed bake as the browser fetches them
-  vi.stubGlobal('fetch', (url: string) => Promise.resolve(new Response(readFileSync(`public${url}`))));
-  await loadSkyFan();
+  // the fan's baked shapes and the hero hand's model, served from the committed files as the browser fetches them, through
+  // the game's own loaders; the models' embedded maps decode to a stand-in bitmap (happy-dom has no image decoder)
+  vi.stubGlobal('fetch', (input: unknown) => {
+    const url = input instanceof Request ? input.url : String(input);
+    if (url.startsWith('blob:') || url.startsWith('data:')) return Promise.resolve(new Response(new Uint8Array(1)));
+    return Promise.resolve(new Response(readFileSync(`public${new URL(url, 'http://localhost').pathname}`)));
+  });
+  vi.stubGlobal('createImageBitmap', () => Promise.resolve({ width: 1, height: 1, close: () => undefined }));
+  await Promise.all([loadSkyFan(), preloadSkyMeshes()]);
   vi.unstubAllGlobals();
+  // the game draws the held fan in the textured hero hand: a trace without it would pin the hand-less fallback
+  if (skyHd('hand-hd') === null) throw new Error('the hero hand did not load');
 });
 beforeEach(() => { app.rng.seed(11); mockCanvas(); });
 afterEach(() => { vi.restoreAllMocks(); });
