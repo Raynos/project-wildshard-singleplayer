@@ -9,7 +9,7 @@ import { registerSpecies } from '../../src/engine/entities/species/registry';
 import { speciesWithLook } from '../../src/engine/entities/species/look';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { SKY_GOAT, SKY_GOAT_LOOK } from '../../src/shards/far-reach/species/skyGoat';
-import { setHome } from '../../src/shards/far-reach/species/rig';
+import { setHome } from '../fixtures/far-reach/heldAuthority';
 import { SkyGoatBrain, RAM, GOAT } from '../fixtures/grazer-oracle/goat';
 import { creature } from '../fake/creature';
 

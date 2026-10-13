@@ -4068,3 +4068,9 @@ retained authoring recipes emit cheap build-only JSON, using the generic SDK
 JSON writer. Runtime does not interpret the authoring recipe or allocate
 observation objects per frame. Cord deformation and caught-wrap lifecycle remain
 the separate open C6 tail.
+
+Held species controllers preserve the existing `stageLap(angle)`,
+`stageOpening()` and `stageStalk(at, face)` capture operations on their
+own admitted body. These do not construct another policy. The shipped
+page and native encounter both obtain that controller from their single
+species catalogue, while the boss stage rows retain their existing clock.

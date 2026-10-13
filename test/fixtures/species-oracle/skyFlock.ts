@@ -11,7 +11,7 @@ import { parseRamGrazer as ramGrazer } from '@wildshard/format/grazers';
 import { parseOrbitDiver as orbitDiver, parseBurstFlyer as burstFlyer } from '@wildshard/format/flyers';
 import { GOAT_BRAIN, RAY_BRAIN, WISP_BRAIN } from '../../../src/shards/far-reach/data/brains';
 import { DIVE, RAM, BURST } from '../far-reach/skyStrikes';
-import { stormRocBrain, type StormRocBrain } from '../../../src/shards/far-reach/runtime/stormRocBrain';
+import { stormRocBrain, type StormRocBrain } from '../far-reach/heldRaptor';
 import type { Home } from '../../../src/shards/far-reach/data/layout';
 
 /** Sky's fight is telegraphed (manifest `fight.telegraphed`): a self-thinking species hurts only inside 70° of its facing. */

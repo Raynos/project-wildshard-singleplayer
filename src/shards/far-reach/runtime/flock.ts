@@ -5,11 +5,9 @@ import { creatureFloor } from '@wildshard/game/shardfile/homeKeeper';
 import { SKY_FLOCK_ROWS } from '../data/spawns';
 import { DECK } from '../data/layout';
 import { ROC_ID } from '../data/rocFight';
-import { bindSpeciesBody, installSpeciesHomes } from '@wildshard/game/plugin/brain';
-import { skyBrainCatalogue } from './brainCatalogue';
-import { SKY_BODY_ROWS, SKY_SPECIES_BRAINS } from '../data/brains';
-import { STORM_ROC_DATA } from '../data/species';
-import { stormRocBrain, type StormRocBrain } from './stormRocBrain';
+import { installSpeciesHomes, type HeldSpeciesControl } from '@wildshard/game/plugin/brain';
+import { speciesBrains } from '@wildshard/sdk/speciesBrains';
+import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES } from '../data/brains';
 
 /** The death plane under the islands: manifest `world.killY` (DECK - 24). The headless test holds the two equal (the
  * manifest itself imports views). */
@@ -33,7 +31,7 @@ export interface SkyFlockPorts { readonly specs: ReadonlyMap<string, AnimalSimSp
  */
 export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Readonly<SimSnapshot>): {
   /** The Storm Roc's body and brain (its encounter's port). */
-  readonly roc: { readonly actor: AnimalSim; readonly body: StormRocBrain<AnimalSim> };
+  readonly roc: { readonly actor: AnimalSim; readonly body: HeldSpeciesControl };
   /** On restore, reinstall the landed goats after every other install-time registration (a no-op on a fresh boot). */
   land: () => void;
 } {
@@ -42,20 +40,14 @@ export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Rea
   /** creatureFloor: the first WORLD hit under the ray's start (a structure), else the analytic floor. */
   const floor = creatureFloor(host, () => SKY_ANALYTIC_FLOOR);
   const groundHeight = (x: number, z: number, fromY: number): number => floor(x, z, fromY).y;
-  const held: { roc: { actor: AnimalSim; body: StormRocBrain<AnimalSim> } | null } = { roc: null };
-  const keeper = installSpeciesHomes(host, { step: FLOCK_STEP, seed: ports.seed, specs: ports.specs, species: [...SKY_SPECIES_BRAINS, STORM_ROC_DATA],
-    brains: skyBrainCatalogue(), attackers: Infinity, think: { bands: { rate: () => 'legacy' } }, killY: SKY_KILL_Y,
+  const brains = speciesBrains(SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES);
+  const keeper = installSpeciesHomes(host, { step: FLOCK_STEP, seed: ports.seed, specs: ports.specs, species: SKY_CREATURE_ROWS,
+    brains, attackers: Infinity, think: { bands: { rate: () => 'legacy' } }, killY: SKY_KILL_Y,
     homes: SKY_FLOCK_ROWS.map(home => ({ id: home.id, kind: home.kind, at: home.at, yaw: home.yaw, respawn: 0, late: ports.specs.get(home.kind)?.flight === undefined })),
     place: id => { const home = row(id); return floor(home.at[0], home.at[1], home.kind === 'skyGoat' ? home.home.y + 2 : DECK + 2); },
     adopt: actor => { actor.groundHeight = groundHeight; }, home: id => row(id).home,
-    custom: (kind, actor, shared) => {
-      if (kind !== STORM_ROC_DATA.kind) throw new Error(`Undeclared Sky policy ${kind}`);
-      return bindSpeciesBody(actor, SKY_BODY_ROWS.flight, shared, observation => {
-        const body = stormRocBrain(actor, observation.shove);
-        if (actor.entityId === ROC_ID) held.roc = { actor, body };
-        return body;
-      });
-    } }, saved);
-  const roc = held.roc; if (roc === null) throw new Error('Sky Reach declares the Storm Roc\'s body');
-  return { roc, land: keeper.settle };
+ }, saved);
+  const actor = keeper.homes().find(home => home.id === ROC_ID)?.actor, body = actor === null || actor === undefined ? null : brains.held(actor.kind, actor);
+  if (actor === null || actor === undefined || body === null) throw new Error('Sky Reach declares its held raptor body');
+  return { roc: { actor, body }, land: keeper.settle };
 }

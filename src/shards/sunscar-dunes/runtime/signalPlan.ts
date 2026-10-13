@@ -46,7 +46,6 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) 
     if (!context.restoring) addBakedWorld(host, baked.pieces, terrain.bytes);
     const keeper = installSpeciesHomes(host, { step: homes.step, seed: homes.seed, homes: homes.rows, boss: boss.row, specs,
       species: homes.species, brains, attackers: homes.attackers, think: homes.think,
-      custom: kind => { throw new Error(`No declared Signal policy for ${kind}`); },
       beforeStep: kept => {
         for (let i = 0; i < 1024; i++) {
           const hold = holds[i];

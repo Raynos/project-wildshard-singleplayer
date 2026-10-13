@@ -9,7 +9,7 @@ import { speciesWithLook } from '../../src/engine/entities/species/look';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { GALE_WISP, GALE_WISP_LOOK } from '../../src/shards/far-reach/species/galeWisp';
 import { GaleWispBrain, BURST, WISP } from '../fixtures/flight-oracle/burst';
-import { bindPlayerPush, pushPlayer, setHome } from '../../src/shards/far-reach/species/rig';
+import { bindPlayerPush, pushPlayer, setHome } from '../fixtures/far-reach/heldAuthority';
 import { creature } from '../fake/creature';
 
 registerSpecies(speciesWithLook(GALE_WISP, GALE_WISP_LOOK));

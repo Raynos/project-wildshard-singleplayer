@@ -5,7 +5,7 @@ import type { Animal } from '../../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
 import { Vector3 } from 'three';
 import { KEEPER } from '../../../src/shards/far-reach/data/layout';
-import { homeOf, pushPlayer, yawTo } from '../../../src/shards/far-reach/species/rig';
+import { homeOf, pushPlayer, yawTo } from '../far-reach/heldAuthority';
 
 /** The burst: the wisp darts at the chest and bursts in a small sphere that shoves you back (G24 `WISP.shove`). */
 export const BURST: StrikeSpec = { id: 'far.wisp.burst', shape: { kind: 'sphere', radius: 1.4 }, windup: 0.7, active: 0.7, recover: 1.2, cooldown: 3.5,

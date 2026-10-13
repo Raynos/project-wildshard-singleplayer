@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { registerSpecies, type ThinkCtx } from '../../src/engine/entities/species/registry';
 import { speciesWithLook } from '../../src/engine/entities/species/look';
-import { declaredSkyRows } from '../../src/shards/far-reach/runtime/brains';
+import { declaredSkyRows } from '../fixtures/far-reach/declaredRows';
 import { speciesBrains } from '../../src/sdk/speciesBrains';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../../src/shards/sunscar-dunes/data/brains';
 import { SKY_GOAT, SKY_GOAT_LOOK } from '../../src/shards/far-reach/species/skyGoat';
@@ -12,7 +12,7 @@ import { DUNE_STRIDER } from '../../src/shards/sunscar-dunes/data/species/stride
 import { DUNE_STRIDER_LOOK } from '../../src/shards/sunscar-dunes/species/strider';
 import { DUNE_RAY } from '../../src/shards/sunscar-dunes/data/species/duneRay';
 import { DUNE_RAY_LOOK } from '../../src/shards/sunscar-dunes/species/duneRay';
-import { setHome, bindPlayerPush, homeOf } from '../../src/shards/far-reach/species/rig';
+import { setHome, bindPlayerPush, homeOf } from '../fixtures/far-reach/heldAuthority';
 import { creature } from '../fake/creature';
 import { SkyGoatBrain, RAM as CAPTURED_RAM } from '../fixtures/grazer-oracle/goat';
 import { StriderBrain } from '../fixtures/grazer-oracle/strider';
@@ -67,6 +67,7 @@ function replay(kind: string, declared: boolean): object {
   const f = creature(kind, variant, {}, undefined, row.think, row.act);
   const y = kind === 'driftRay' || kind === 'duneRay' ? 14 : kind === 'galeWisp' ? 3 : 0;
   f.animal.position.set(7, y, 0); setHome(f.animal, { x: 0, z: 0, r: 12, y });
+  if (declared && 'home' in selection) selection.home(f.animal, { x: 0, z: 0, r: 12, y });
   const pushes: object[] = [], frames: object[] = [];
   bindPlayerPush(velocity => { pushes.push({ frame: f.frame, velocity: velocity.toArray() }); });
   for (let tick = 0; tick < 10000; tick++) {
@@ -89,6 +90,6 @@ describe('live declared grazer/flyer species callbacks', () => {
     const sky = declaredSkyRows(), dune = declaredDuneRows();
     expect(sky.rows.map(row => row.id)).toEqual([DRIFT_RAY, SKY_GOAT, GALE_WISP].map(row => row.id).concat(STORM_ROC.id));
     expect(dune.rows.map(row => row.kind)).toEqual(['duneRay', 'sandSkitterer', 'duneStrider', 'duneMatriarch']);
-    expect(sky.rows[3]).toBe(STORM_ROC); expect(dune.rows[1]?.id).toBe(SKITTERER_DATA.id); expect(dune.rows[1]?.think).toBeTypeOf('function'); expect(dune.rows[3]).toBe(DUNE_MATRIARCH);
+    expect(sky.rows[3]?.id).toBe(STORM_ROC.id); expect(dune.rows[1]?.id).toBe(SKITTERER_DATA.id); expect(dune.rows[1]?.think).toBeTypeOf('function'); expect(dune.rows[3]?.id).toBe(DUNE_MATRIARCH.id);
   });
 });

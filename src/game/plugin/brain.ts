@@ -551,6 +551,9 @@ export interface HeldSpeciesControl {
   phase: number; fighting: boolean; restart: () => void;
   readonly current: StrikeSpec | null; readonly windup: number; readonly aim: number;
   snapshot: () => SimValue; restore: (saved: SimValue) => void;
+  /** Existing capture staging on the same held body; never a second policy. */
+  stageLap: (angle: number) => void; stageOpening: () => void;
+  stageStalk: (at: { x: number; z: number }, face: { x: number; z: number }) => void;
 }
 /** Preparing a held controller constructs it once without advancing perception, movement or a clock. */
 export interface SpeciesBinding extends Required<Pick<SpeciesRow, 'think' | 'act'>> { control?: (actor: Animal) => HeldSpeciesControl }

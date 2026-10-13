@@ -58,7 +58,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   protected readonly rows: HybridRuntimeRows = { expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }], complete: 'sunscar.complete',
     audio: source.audio, cues: installSunscarCues, species: () => {
       const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES);
-      return { rows: [{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, { ...SKITTERER_DATA, ...brains.bind(SKITTERER_DATA.kind) }, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, DUNE_MATRIARCH],
+      return { rows: [{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, { ...SKITTERER_DATA, ...brains.bind(SKITTERER_DATA.kind) }, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, { ...DUNE_MATRIARCH, ...brains.bind(DUNE_MATRIARCH.kind) }],
         looks: [DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK], witness: brains.witness };
     } };
   /**

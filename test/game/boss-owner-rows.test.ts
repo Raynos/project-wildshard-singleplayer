@@ -12,7 +12,7 @@ import { SIGNAL_HEADLESS, SIGNAL_BOSS_OWNER } from '../../src/shards/sunscar-dun
 import { ROC_OWNER } from '../../src/shards/far-reach/data/rocFight';
 import { installMarkedBossRow } from '../fixtures/boss-owner/signal';
 import { installSkyRoc } from '../fixtures/boss-owner/sky';
-import { stormRocBrain } from '../../src/shards/far-reach/runtime/stormRocBrain';
+import { stormRocBrain } from '../fixtures/far-reach/heldRaptor';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });

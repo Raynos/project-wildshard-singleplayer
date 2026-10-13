@@ -1,8 +1,9 @@
 import { CROWN_STONES } from './crownLayout';
 import { STORM } from './storm';
-import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
-import { CROWN, DAIS, ROC, RAY_HOMES, DECK, KEEPER } from './layout';
-import { SKY_GOAT_DATA, DRIFT_RAY_DATA, GALE_WISP_DATA } from './species';
+import { RAM_DATA, DIVE_DATA, BURST_DATA } from './strikes';
+import type { BrainedSpecies, speciesBrains } from '@wildshard/sdk/speciesBrains';
+import { CROWN, DAIS, ROC, RAY_HOMES, DECK, KEEPER, WINDMILL, APOTHEM } from './layout';
+import { SKY_GOAT_DATA, DRIFT_RAY_DATA, GALE_WISP_DATA, STORM_ROC_DATA } from './species';
 
 /** Shipping rim-aware goat policy; the native spawn binds the island home and floor. */
 export const GOAT_BRAIN = { id: 'far.brain.goat', kind: 'ram-grazer', strike: 'far.goat.ram',
@@ -22,7 +23,7 @@ export const WISP_BRAIN = { id: 'far.brain.wisp', kind: 'burst-flyer', strike: '
  * wall (a wide lane of wind swept across the crown from its hover; it shoves you toward the rim, G24) and phase 3's wing
  * sweep round the dais, grounded.
  */
-export const ROC_STRIKES = [
+export const ROC_STRIKES: readonly [Parameters<typeof speciesBrains>[1][number], Parameters<typeof speciesBrains>[1][number], Parameters<typeof speciesBrains>[1][number]] = [
   { id: 'far.roc.stoop', shape: { kind: 'sphere', radius: 2.6 }, windup: 1.2, active: 1.2, recover: 0.8, cooldown: 4,
     range: 22, damage: 14, tags: ['creature.stormRoc'], units: 'world', weight: { kind: 'constant', value: 1 } },
   { id: 'far.roc.galeWall', shape: { kind: 'lane', length: 26, width: 6 }, windup: 1.5, active: 0.6, recover: 1.4, cooldown: 3.5,
@@ -72,3 +73,16 @@ const perch = { x: tallest.x, y: CROWN.y + tallest.h + 0.6, z: tallest.z };
 const spin = Math.sign(STORM.layers[0].spin), dx = perch.x - CROWN.x, dz = perch.z - (CROWN.z - STORM.ahead);
 /** The Roc perches on the actual tallest stone, facing into the authored storm wind; no live calculation or owner grants. */
 export const ROC_PROFILE = { ...ROC_BRAIN, perch: { ...perch, yaw: Math.atan2(-spin * dz, spin * dx) } };
+
+/** Every native body declares its policy; the held encounter accesses the Roc through its catalogue. */
+export const SKY_CREATURE_ROWS: readonly BrainedSpecies[] = [...SKY_SPECIES_BRAINS,
+  { ...STORM_ROC_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'raptor', data: ROC_PROFILE } }];
+/** Existing page registration order, independently of the native roster's spawn order. */
+export const SKY_PAGE_SPECIES = ['driftRay', 'skyGoat', 'galeWisp', 'stormRoc'] as const;
+export const SKY_CREATURE_STRIKES = [RAM_DATA, DIVE_DATA, BURST_DATA, ...ROC_STRIKES];
+/** Original page fallbacks; the owning catalogue lends each materialized body's actual home. */
+export const SKY_PAGE_HOMES = {
+  skyGoat: { x: WINDMILL.x, z: WINDMILL.z, r: WINDMILL.r * APOTHEM, y: WINDMILL.y },
+  driftRay: RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 },
+  galeWisp: { x: KEEPER.x, z: KEEPER.z, r: 7, y: KEEPER.y + 3 },
+};

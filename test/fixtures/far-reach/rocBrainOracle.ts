@@ -7,7 +7,7 @@ import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
 import { Vector3 } from 'three';
 import { CROWN, DAIS, ROC } from '../../../src/shards/far-reach/data/layout';
 import { STORM } from '../../../src/shards/far-reach/data/storm';
-import { pushPlayer, yawTo } from '../../../src/shards/far-reach/species/rig';
+import { pushPlayer, yawTo } from './heldAuthority';
 
 // Frozen crown placement law from the pre-row native oracle dependency.
 const CROWN_RING = { radius: 8, stones: 5, width: 1.4, depth: 0.8 } as const;

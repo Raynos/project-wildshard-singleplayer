@@ -7,7 +7,8 @@ import { Rng } from '../../../src/engine/core/rng';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '../../../src/engine/sim';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
-import { skyBrainCatalogue } from '../../../src/shards/far-reach/runtime/brainCatalogue';
+import { speciesBrains } from '../../../src/sdk/speciesBrains';
+import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES } from '../../../src/shards/far-reach/data/brains';
 import type { KeptPolicy } from '../../../src/game/shardfile/homeKeeper';
 import { skySpecs } from '../../../src/shards/far-reach/runtime/headless';
 import { flockBrain as shippingBrain } from '../../fixtures/species-oracle/skyFlock';
@@ -27,7 +28,7 @@ function fixture(kind: string, next: boolean): Fixture {
   return { host, actor, rng, brain: next ? declaredBrain(kind, actor, host, rng) : shippingBrain(kind, spec.label, actor, HOME, { host, rng }) };
 }
 function declaredBrain(kind: string, actor: AnimalSim, host: SimHost, stream: Rng): KeptPolicy {
-  const brain = skyBrainCatalogue().body(kind, actor, { host, stream, home: HOME, attacks: { kind: 'unlimited', limit: Infinity } });
+  const brain = speciesBrains(SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES).body(kind, actor, { host, stream, home: HOME, attacks: { kind: 'unlimited', limit: Infinity } });
   if (brain === null) throw new Error('Missing admitted Sky body');
   return brain;
 }

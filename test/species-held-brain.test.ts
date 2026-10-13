@@ -6,7 +6,7 @@ import { createSimHost, SIM_API_VERSION, type SimLevel } from '../src/engine/sim
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { Rng } from '../src/engine/core/rng';
 import { skySpecs } from '../src/shards/far-reach/runtime/headless';
-import { stormRocBrain } from '../src/shards/far-reach/runtime/stormRocBrain';
+import { stormRocBrain } from './fixtures/far-reach/heldRaptor';
 import { ROC_PROFILE, ROC_STRIKES, SKY_BODY_ROWS } from '../src/shards/far-reach/data/brains';
 import { STORM_ROC_DATA } from '../src/shards/far-reach/data/species';
 import { strike } from '../src/sdk/species';

@@ -1,4 +1,6 @@
-import { declaredSkyRows } from './brains';
+import { speciesBrains } from '@wildshard/sdk/speciesBrains';
+import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES, SKY_PAGE_SPECIES, SKY_PAGE_HOMES, ROC_STRIKES } from '../data/brains';
+import stages from '../data/bossStages.json' with { type: 'json' };
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { worldBuildYield } from '@wildshard/game/shard/plugin';
@@ -30,9 +32,7 @@ import { FAN_ROW } from '../weapons/rows';
 import { DRIFT_RAY_LOOK } from '../species/driftRay';
 import { SKY_GOAT_LOOK } from '../species/skyGoat';
 import { GALE_WISP_LOOK } from '../species/galeWisp';
-import { STORM_ROC_LOOK, rocBrain } from '../species/stormRoc';
-import { GALE_WALL } from './stormRocBrain';
-import { bindPlayerPush, setHome } from '../species/rig';
+import { STORM_ROC_LOOK } from '../species/stormRoc';
 import { preloadSkyMeshes } from '../world/meshes';
 import { loadSkyBaked } from '../world/baked';
 import { loadSkyBridges } from '../world/shapes';
@@ -47,9 +47,8 @@ import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow, type Meadow } from '../world/meadow';
 import { heroStoneDiscs } from '../world/dressing';
 import { SKY_SUN } from '../data/skyLook';
-import { StormRocBoss } from '../combat/stormRoc';
-import { installBossView, moverChannelViews, moverChannelPrompts } from '@wildshard/game/plugin/ui';
-import { BOSS_REWARD, ROC_ID } from '../data/rocFight';
+import { RowBossView, installBossView, moverChannelViews, moverChannelPrompts } from '@wildshard/game/plugin/ui';
+import { BOSS_REWARD, ROC_ID, ROC_DEFINITION, ROC_BOSS_PROFILE } from '../data/rocFight';
 import { installQuest } from '../quest/install';
 import { bindSkyQuestStage } from './quest';
 import { FLAGS, vaneFlag } from '../quest/flags';
@@ -82,8 +81,14 @@ function boundedRows<T>(rows: readonly T[]): readonly T[] {
 }
 const WINCH_FLAGS = [FLAGS.notes, FLAGS.roost, FLAGS.vanes, ...VANES.map(v => vaneFlag(v.id))];
 
+const GALE_WALL = ROC_STRIKES[1];
+
 export class SkyReachPlugin extends HybridRuntimePlugin {
-  built: BuiltWorld | null = null; fan: WarFanWeapon | null = null; boss: StormRocBoss | null = null;
+  private creatureBrains: ReturnType<typeof speciesBrains> | null = null;
+  private creaturePush: ((yaw: number, speed: number, lift: number) => void) | null = null;
+  private creatureControl: ReturnType<ReturnType<typeof speciesBrains>['held']> = null;
+  private prepareHeld: NonNullable<ReturnType<ReturnType<typeof speciesBrains>['bind']>['control']> | null = null;
+  built: BuiltWorld | null = null; fan: WarFanWeapon | null = null; boss: RowBossView | null = null;
   /** The 13 declared bodies (data/spawns.ts), held by the platform's home keeper in their shipping allocation order. */
   private kept: RuntimeHomes | null = null;
   private bodies(rows: readonly { readonly id: string }[]): Animal[] { return rows.flatMap(row => this.kept?.held(row.id) ?? []); }
@@ -104,8 +109,17 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
 
   protected readonly rows: HybridRuntimeRows = { expose: 'farReach', strings: STRINGS, weapon: FAN_ROW, encounters: { id: ROC_ID, displayName: STRINGS.roc }, complete: FLAGS.complete,
     audio: source.audio, cues: installSkyCues, species: () => {
-      const policies = declaredSkyRows();
-      return { rows: policies.rows, looks: [DRIFT_RAY_LOOK, SKY_GOAT_LOOK, GALE_WISP_LOOK, STORM_ROC_LOOK], witness: policies.witness };
+      const brains = speciesBrains(SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES); this.creatureBrains = brains;
+      const rows: ((typeof SKY_CREATURE_ROWS)[number] & ReturnType<ReturnType<typeof speciesBrains>['bind']>)[] = [];
+      for (let index = 0; index < MAX_RUNTIME_ROWS; index++) {
+        const kind = SKY_PAGE_SPECIES[index]; if (kind === undefined) break;
+        const row = SKY_CREATURE_ROWS.find(value => value.kind === kind); if (row === undefined) throw new Error('Missing authored creature');
+        const home = kind === 'stormRoc' ? undefined : () => SKY_PAGE_HOMES[kind];
+        const bound = brains.bind(kind, undefined, home, { shove: (yaw, speed, lift) => { this.creaturePush?.(yaw, speed, lift); } });
+        if (kind === 'stormRoc') this.prepareHeld = bound.control ?? null;
+        rows.push({ ...row, ...bound });
+      }
+      return { rows, looks: [DRIFT_RAY_LOOK, SKY_GOAT_LOOK, GALE_WISP_LOOK, STORM_ROC_LOOK], witness: brains.witness };
     } };
 
   protected override async build(ctx: ShardContext): Promise<void> {
@@ -166,8 +180,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   protected override enter(ctx: ShardContext): void {
     if (this.fan !== null) this.fan.stowed = () => this.board();
     // G24: the wisp's burst and the Roc's gale wall shove the player (`app.player.impulse`).
-    const push = (v: Vector3): void => { ctx.app.player?.impulse(v); };
-    installEnteredRuntimeService(ctx, scope => { bindPlayerPush(push); scope.onDispose(() => { bindPlayerPush(null); }); });
+    const velocity = new Vector3(), push = (yaw: number, speed: number, lift: number): void => { ctx.app.player?.impulse(velocity.set(Math.sin(yaw) * speed, lift, Math.cos(yaw) * speed)); };
+    installEnteredRuntimeService(ctx, scope => { this.creaturePush = push; scope.onDispose(() => { if (this.creaturePush === push) this.creaturePush = null; }); });
   }
   protected override async install(ctx: ShardContext, loot: ScopedLoot | null): Promise<void> {
     const rt = ctx.game.runtime, built = this.built, fan = this.fan, position = rt?.world?.player.position ?? this.player;
@@ -277,7 +291,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // spawn ray lands them on the first WORLD floor under `fromY`, which finds the islands only once physics has stepped
     // (in `play` it hits nothing and the goat lands on the -1000 m analytic floor), so they land late, after the Roc.
     this.kept = bindRuntimeHomes(ctx, source, { system: 'far.creatures', held: { order: SKY_FLOCK_ROWS.map(row => row.id), settle: 'far.goats',
-      dress: (animal, id) => { const home = SKY_HOMES.get(id); if (home !== undefined) setHome(animal, home); },
+      dress: (animal, id) => { const home = SKY_HOMES.get(id); if (home !== undefined) this.creatureBrains?.home(animal.kind, animal, home); },
       late: id => GOAT_FLOORS.get(id) } });
     // each free ray trails its luminous wake (data/rayWakeLook.ts on @wildshard/sdk/looks/wakeRibbon; proposal B's ray beside the mill)
     const wakes = this.bodies(SKY_FLOCK_GROUPS.rays).map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
@@ -309,18 +323,23 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     ctx.system({ id: 'far.roost', phase: 'update', run: roostStage.advance });
 
     // The boss: the Storm Roc on the crown, the shared BossBar, 25 coins once.
-    const boss = new StormRocBoss(ctx, position, this.roc, () => {
+    const heldRoc = this.roc; this.creatureControl = heldRoc === null ? null : this.prepareHeld?.(heldRoc) ?? null;
+    // Prepare the held controller before the encounter, without a decision or a clock tick.
+    if (heldRoc !== null && this.creatureControl === null) {
+      throw new Error('Held creature controller must be prepared by its species binding');
+    }
+    const boss = new RowBossView(ctx, { definition: ROC_DEFINITION, stages, profile: ROC_BOSS_PROFILE }, { player: position, held: heldRoc, brain: this.creatureControl, victory: () => {
       if (flags.has(FLAGS.roc)) { toast(STRINGS.rocDown); return; }
       flags.set(FLAGS.roc); persistence.facts('far-reach.roc', ROC_ID); burst(BOSS_REWARD, STRINGS.bossReward);
-    }, persistence.boss);
+    }, record: { saved: persistence.boss.read(), persist: persistence.boss.write } });
     this.boss = installBossView(ctx, ROC_ID, boss, true).boss;
     // Phase 2's gale wall: a pale sheet of wind that thickens over the windup along the lane it will sweep.
     const wall = new Mesh(new BoxGeometry(GALE_WALL.shape.kind === 'lane' ? GALE_WALL.shape.width : 6, 5, 0.4),
       new MeshBasicMaterial({ color: 0xc8f1f8, transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }));
     wall.visible = false; ctx.root.add(wall); ctx.scope.own(wall.geometry); ctx.scope.own(wall.material); ctx.scope.onDispose(() => { wall.removeFromParent(); });
     ctx.system({ id: 'far.galeWall', phase: 'update', run: () => {
-      const roc = this.roc, body = roc ? rocBrain(roc) : null;
-      wall.visible = body?.current === GALE_WALL && roc?.alive === true;
+      const roc = this.roc, body = this.creatureControl;
+      wall.visible = body?.current?.id === GALE_WALL.id && roc?.alive === true;
       if (!wall.visible || roc === null || body === null) return;
       const k = Math.min(1, body.windup / GALE_WALL.windup), sweep = Math.max(0, body.windup - GALE_WALL.windup) / GALE_WALL.active, reach = 26 * Math.min(1, sweep);
       wall.position.set(roc.position.x + Math.sin(body.aim) * (2 + reach), position.y + 2.5, roc.position.z + Math.cos(body.aim) * (2 + reach));
@@ -337,7 +356,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
    * staged on the shot before so its toasts are long gone.
    */
   stage(name: string): void {
-    const roc = this.roc, body = roc ? rocBrain(roc) : null;
+    const body = this.creatureControl;
     if (name === 'quest-crown') { this.questFinished?.(); if (this.built !== null) this.finishRaise(this.built); }
     // 'quest-winch' (round 8, X4: the route as ordinary play): the quest as a player has it when the winch unlocks, the notes
     // read, the roost quiet and the three vanes turning; the bridge is still down, the winch raises it in play

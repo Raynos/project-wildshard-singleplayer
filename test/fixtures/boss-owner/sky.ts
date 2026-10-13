@@ -7,7 +7,7 @@ import { FLAGS } from '../../../src/shards/far-reach/quest/flags';
 import { BOSS_REWARD, ROC_ID, ROC_DEFINITION, ROC_BOSS_PROFILE } from '../../../src/shards/far-reach/data/rocFight';
 import { bossFight } from '@wildshard/game/plugin/bossPhase';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
-import type { StormRocBrain } from '../../../src/shards/far-reach/runtime/stormRocBrain';
+import type { StormRocBrain } from '../far-reach/heldRaptor';
 
 /** The Roc encounter's fixed-step id; its continuation is BossBrain's plus the script's HP and shield. */
 export const ROC_STEP = 'far.roc.encounter';

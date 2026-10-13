@@ -4,8 +4,8 @@ import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { strike } from '@wildshard/sdk/species';
-import { ROC_PROFILE, ROC_STRIKES } from '../data/brains';
-import { pushPlayer } from '../species/rig';
+import { ROC_PROFILE, ROC_STRIKES } from '../../../src/shards/far-reach/data/brains';
+import { pushPlayer } from './heldAuthority';
 
 /** The Roc's strikes (data/brains.ts ROC_STRIKES), admitted: phase 1's stoop, phase 2's gale wall, phase 3's sweep. */
 export const [STOOP, GALE_WALL, SWEEP] = ((): [StrikeSpec, StrikeSpec, StrikeSpec] => {

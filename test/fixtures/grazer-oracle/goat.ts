@@ -5,7 +5,7 @@ import type { Animal } from '../../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
 import { WINDMILL } from '../../../src/shards/far-reach/data/layout';
 import { apothem } from '../../../src/shards/far-reach/layout';
-import { homeOf, yawTo } from '../../../src/shards/far-reach/species/rig';
+import { homeOf, yawTo } from '../far-reach/heldAuthority';
 
 /** The ram: a short lane straight ahead, telegraphed by a head-down windup. */
 export const RAM: StrikeSpec = { id: 'far.goat.ram', shape: { kind: 'lane', length: 4, width: 1.4 }, windup: 0.8, active: 0.5, recover: 0.9, cooldown: 3,

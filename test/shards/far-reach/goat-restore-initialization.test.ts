@@ -20,7 +20,14 @@ import { DRIFT_RAY, DRIFT_RAY_LOOK } from '../../../src/shards/far-reach/species
 import { SKY_GOAT, SKY_GOAT_LOOK } from '../../../src/shards/far-reach/species/skyGoat';
 import { GALE_WISP, GALE_WISP_LOOK } from '../../../src/shards/far-reach/species/galeWisp';
 import { STORM_ROC, STORM_ROC_LOOK } from '../../../src/shards/far-reach/species/stormRoc';
-import { spawnSkyGoats } from '../../../src/shards/far-reach/species/goats';
+import { SKY_FLOCK_GROUPS } from '../../../src/shards/far-reach/data/spawns';
+import source from '../../../src/shards/far-reach/shard.config';
+import { createLevelInstallation } from '../../../src/engine/level/installation';
+import { shardContext } from '../../../src/game/plugin/context';
+import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
+import { bindRuntimeHomes } from '../../../src/game/plugin/headless';
+import type { ShardRuntime, ShardPlayHost } from '../../../src/game/shard/runtime';
+import { legacyDouble } from '../../fake/FakeGame';
 import { MemoryStorage } from '../../setup';
 import { fakeWorld } from '../../fake/world';
 
@@ -51,7 +58,16 @@ it('rebuilds living goat identities before restore with no gameplay tick, keeps 
           for (const home of WISP_HOMES) animals.spawn('galeWisp', home.x + home.r, home.z, 0, 'gale');
           animals.spawn('stormRoc', ROC.x + ROC.r, ROC.z, 0, 'storm');
           if (visit > 0) expect(() => continuation.restore(animals)).toThrow('Missing stable runtime creature');
-          const goats = spawnSkyGoats(animals);
+          const runtime = legacyDouble<ShardRuntime>({ world: null, play: legacyDouble<ShardPlayHost>({ animals }), hooks: {} });
+          const installation = createLevelInstallation(app, scope, app.levelAdapters, () => ({ set: () => undefined, detail: () => undefined }));
+          const hooks = new RetainedRuntimeHooks(shardContext(installation.context, SKY_REACH, { shard: SKY_REACH, rows: new Map(),
+            bag: { tab: () => () => undefined, fragment: () => () => undefined }, runtime }));
+          const rows = SKY_FLOCK_GROUPS.goats;
+          const homes = bindRuntimeHomes(hooks.context, source, { system: 'fixture.goats', held: {
+            order: rows.map(row => row.id), settle: 'far.goats',
+            late: id => { const row = rows.find(value => value.id === id); return row === undefined ? undefined : { y: row.home.y, fromY: row.home.y + 2 }; },
+          } });
+          const goats = rows.map(row => { const body = homes.held(row.id); if (body === null) throw new Error('Missing authored goat'); return body; });
           expect(goats.map(goat => goat.position.y)).toEqual(GOATS.map(g => g.isle.y));
           for (const goat of GOATS) expect(Math.hypot(goat.dx, goat.dz)).toBeLessThan(apothem(goat.isle));
           if (visit === 0) ids = animals.animals.map(animal => animal.entityId);

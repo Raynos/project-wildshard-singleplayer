@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import type { Home } from '../data/layout';
+import type { Home } from '../../../src/shards/far-reach/data/layout';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 
 /** Where each spawned creature belongs (its island or its flying circle). The plugin sets it at spawn. */
