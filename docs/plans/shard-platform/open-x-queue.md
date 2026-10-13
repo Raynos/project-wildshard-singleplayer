@@ -37,7 +37,7 @@ spots and Pine King collision now pass cold (the 10-11 CPU gap is closed); Signa
 tower, bridge and islet components pass; Template/Pastel terrain, props, behaviour and retained director/brain/weapon
 components pass. Fixes `8acd18700`, `2e24ff5bf`.
 - **Whole products:** Template registered (`f04c2a912`: 169 charged outputs exact cold + forced and after deleting 13 runtime/legacy dirs, every registered output and the cache; comparison-only pins) and Pastel (`8aabadebe`, 169 outputs exact, 335 checks): the first two report-only whole-product jobs; **Linux-exact** (run 38379719719: 338 pins, 8 cold/forced jobs, 13 trusted dirs removed). **G318 done for Template + Pastel:** 332/332 CPU outputs moved to cache in eight jobs (`66f88020e` … `8b0e63b76`), 338 pins unchanged; final last-SHA Linux build + 2 Developer boots pending (sp-x7).
-- **Signal whole product `0b6b6bdd6`** (10/10 jobs cold clean-room match, 87 comparison pins; Linux qualification via sp-x7). Blocked: Sky (rigs, world, browser textures); Driftwood (topology seeds
+- **Signal whole product `0b6b6bdd6`** (10/10 jobs cold clean-room match, 87 comparison pins; **Linux-exact** run 38391413277). Blocked: Sky (rigs, world, browser textures); Driftwood (topology seeds
   public `navmesh.bin`); Nine layout and Pine static jobs (trusted / terrain-seed edges); Nalati bodies/places (trusted)
   and its terrain job reads the retained WSTR through a root script.
 - G318 cache activation / removals stay held where complete-product fixtures require it; Linux cold / whole-product
