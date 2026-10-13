@@ -24,6 +24,8 @@ const roles = [
 function namedRole(name) { return roles.find(([, pattern]) => pattern.test(name))?.[0] ?? null; }
 /** Explicit file ownership; an unrecognised file stays visible and cannot close C9. */
 function fileRole(path, name = '') {
+  if (path === 'src/game/plugin/ui.ts' && ['moverChannelValues', 'moverChannelView', 'moverChannelViews', 'moverChannelPrompts'].includes(name)) return 'C7';
+  if (path === 'src/sdk/questGraph.ts' && name === 'parseNpcRow') return 'C5';
   if (name && /PivotNpc|NpcSurface|NpcLevel/iu.test(name)) return 'C5';
   if (name && /SocketLift|Updraft/iu.test(name)) return 'C7';
   if (name && /bindRuntimeItemContexts/iu.test(name)) return 'C6';

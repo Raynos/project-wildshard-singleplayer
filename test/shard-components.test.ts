@@ -91,3 +91,21 @@ it('keeps typed arrays and subarray calls with their owner rather than treating 
     expect(row.unknown).toEqual([]);
   }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+
+it('registers only the defining mover helpers and NPC parser without changing canonical totals',()=>{
+  const sky=componentInventory('/unused','far-reach',['moverChannelValues','moverChannelView','moverChannelViews','moverChannelPrompts'].map(name=>({path:'src/game/plugin/ui.ts',kind:'sole-export' as const,name,lines:2})),8);
+  const signal=componentInventory('/unused','sunscar-dunes',[{path:'src/sdk/questGraph.ts',kind:'sole-export',name:'parseNpcRow',lines:3}],3);
+  expect(sky.unknown).toEqual([]);expect(signal.unknown).toEqual([]);
+  expect(sky.counts.C7).toBe(8);expect(signal.counts.C5).toBe(3);
+  expect(sky.total).toBe(8);expect(signal.total).toBe(3);
+  const wave=componentWave({'far-reach':{components:sky},'sunscar-dunes':{components:signal}});
+  expect(wave.components.C4.closed).toBe(true);expect(wave.closed).toBe(7);
+  const unrelated=componentInventory('/unused','far-reach',[
+    {path:'src/game/plugin/ui.ts',kind:'sole-export',name:'moverChannelOther',lines:1},
+    {path:'src/sdk/questGraph.ts',kind:'sole-export',name:'parseNpcOther',lines:1},
+    {path:'src/sdk/other.ts',kind:'sole-export',name:'parseNpcRow',lines:1},
+  ],3);
+  expect(unrelated.unknown).toHaveLength(3);
+  expect(componentWave({'far-reach':{components:unrelated},'sunscar-dunes':{components:signal}}).closed).toBe(0);
+});
