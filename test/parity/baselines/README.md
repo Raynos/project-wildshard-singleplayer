@@ -131,3 +131,12 @@ Nalati gh-macos15 audio only: [record 38366889945](https://github.com/Raynos/pro
 source `d94436d96`, restores the muted audio graph through harness `921883fb7`.
 Opus sound review approved the 26 sound/spread changes as identical to the original m5 audio law.
 This selective merge preserves every other baseline value and image, including leak data and timings.
+
+Driftwood m5 phone gull calls only (2026-10-13): a fresh complete muted
+Metal capture at `928d6a44e` through the official parity CLI (`--record
+--runs=1 --lane=m5 --shards=driftwood-isle --tiers=phone --export=<sha>
+--jobs=1`) measured walk `gullCall` and `gullCallAt` at 14, previously 13.
+The coordinator approved this intended consequence of the flared sea
+ramps in `00196a4c2`. Boot errors, stuck walks and disposal errors were
+all zero. Only these two event counts change; metadata, spreads, other
+sounds, images and every other baseline value are preserved.
