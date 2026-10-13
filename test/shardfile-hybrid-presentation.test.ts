@@ -96,7 +96,7 @@ describe('presentation-only data for a hybrid whose runtime keeps the simulation
     } } };
     const { app, ctx, runtime } = level(source), caller = new Scope('runtime-points');
     const world = runtime.world; if (world === null) throw new Error('No world');
-    Reflect.set(world.game, 'renderer', { setNodesHandler: noop });
+    Reflect.set(world.game, 'renderer', { setNodesHandler: noop, extensions: { has: () => false } });
     const original = new MeshStandardMaterial(), geometry = new PlaneGeometry(1, 1), points = new Points(geometry, original);
     const materialDisposed = vi.fn<() => void>();
     try {
@@ -124,7 +124,7 @@ describe('presentation-only data for a hybrid whose runtime keeps the simulation
     } } };
     const { app, ctx, runtime } = level(source), world = runtime.world;
     if (world === null) throw new Error('No world');
-    Reflect.set(world.game, 'renderer', { setNodesHandler: noop });
+    Reflect.set(world.game, 'renderer', { setNodesHandler: noop, extensions: { has: () => false } });
     const original = new MeshStandardMaterial(), geometry = new PlaneGeometry(1, 1), body = new Mesh(geometry, original);
     const disposed = vi.fn<() => void>(); geometry.addEventListener('dispose', disposed); original.addEventListener('dispose', disposed);
     try {
