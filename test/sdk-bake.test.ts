@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The byte comparison includes binary GLB payloads.
 import { Buffer } from 'node:buffer';
-import { BoxGeometry, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Scene } from 'three';
+import { BoxGeometry, BufferGeometry, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Scene, type Object3D } from 'three';
 import { expect, it } from 'vitest';
 import { bake, BakedPiece, Scatter, WholeShape } from '../src/sdk/bake';
 import { bakeKinds } from '../src/sdk/bake/kinds';
@@ -14,8 +14,43 @@ import { bakeProps } from '../src/sdk/bake/props';
 import { BoxCollider } from '../src/sdk/physics';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { templateProps, templateScene } from '../src/shards/_template/generators/templatePropsSource';
+import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
 
 const rough = (color: number) => new MeshStandardMaterial({ color, roughness: 1, metalness: 0 });
+
+function isParsedMesh(node: Object3D): node is Mesh {
+  if (!(node instanceof Mesh)) return false;
+  const geometry: unknown = node.geometry, material: unknown = node.material;
+  return geometry instanceof BufferGeometry && material instanceof MeshStandardMaterial;
+}
+
+it('retains unlit native whole channels without adding normals and still refuses invalid world bounds', async () => {
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute([0, 0, 0, 2, 0, 0, 0, 2, 0], 3));
+  geometry.setAttribute('color', new Float32BufferAttribute([2.6, 1, 0, 2.6, 1, 0, 2.6, 1, 0], 3));
+  const mesh = new Mesh(geometry, new MeshStandardMaterial({ vertexColors: true })), scene = new Scene();
+  scene.add(new WholeShape('unlit-whole', mesh, { nativeAttributes: true, partition: true }));
+  const baked = bake(scene, { slug: 'unlit-test' }), nodes: Mesh[] = [];
+  const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+  for (const bytes of baked.assets.values()) {
+    const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
+    gltf.scene.traverse(node => { if (isParsedMesh(node)) nodes.push(node); });
+  }
+  const assembled = assembleWholeGeometryViews(nodes).get('unlit-whole');
+  if (assembled === undefined) throw new Error('Native whole was not assembled');
+  expect(Object.keys(assembled.geometry.attributes).sort()).toEqual(['color', 'position']);
+  expect(assembled.geometry.getAttribute('position').array).toEqual(geometry.getAttribute('position').array);
+  expect(assembled.geometry.getAttribute('color').array).toEqual(geometry.getAttribute('color').array);
+  expect(assembled.geometry.getIndex()).toBeNull();
+  const classic = new Scene(); classic.add(new WholeShape('classic-whole', mesh.clone()));
+  expect(() => bake(classic, { slug: 'unlit-test' })).toThrow('positions and normals');
+  mesh.position.x = 249;
+  expect(() => bake(scene, { slug: 'unlit-test' })).toThrow('outside the cell');
+  mesh.position.x = 0; geometry.getAttribute('position').setX(0, Number.NaN);
+  expect(() => bake(scene, { slug: 'unlit-test' })).toThrow('Nonfinite geometry attribute position');
+  assembled.geometry.dispose(); geometry.dispose();
+  for (const node of nodes) { node.geometry.dispose(); for (const material of Array.isArray(node.material) ? node.material : [node.material]) material.dispose(); }
+});
 
 it('bakes a transformed WholeShape once, byte-identically to its direct whole-mesh source', () => {
   const scene = new Scene(), mesh = new Mesh(new BoxGeometry(2, 3, 4), new MeshStandardMaterial({ roughness: 0.4 }));

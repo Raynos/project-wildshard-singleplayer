@@ -202,7 +202,19 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     const { mesh } = entry, at = new Vector3().setFromMatrixPosition(entry.transform), m = mesh.material;
     if (!(at.x >= -250 && at.x < 250 && at.z >= -250 && at.z < 250)) throw new Error(`Whole prop ${entry.id} origin outside the cell`);
     if (!(m instanceof MeshStandardMaterial) || m.transparent || m.metalness !== 0 || m.map !== null || m.color.getHex() !== 0xffffff) throw new Error(`Whole prop ${entry.id} needs one opaque untextured nonmetal white surface`);
-    const placed = new Mesh(mesh.geometry, m); placed.applyMatrix4(entry.transform); vertices(placed, new Matrix4(), false); // refuses a shape outside the cell
+    if (entry.nativeAttributes === true || entry.partition === true) {
+      // Native whole draws can be unlit, so normals are not a required source channel. Inspect bounds without
+      // constructing lit merge vertices or inventing shader attributes; the original channels reach the GLB unchanged.
+      if (mesh instanceof SkinnedMesh) throw new Error('Whole prop must be static');
+      const position: unknown = mesh.geometry.getAttribute('position'), index = mesh.geometry.getIndex(), point = new Vector3();
+      if (!(position instanceof BufferAttribute) || position.itemSize !== 3 || (index?.count ?? position.count) % 3 !== 0) throw new Error('Whole prop needs triangle positions');
+      for (let vertex = 0; vertex < position.count; vertex++) {
+        point.fromBufferAttribute(position, vertex).applyMatrix4(entry.transform);
+        if (![point.x, point.y, point.z].every(Number.isFinite) || Math.abs(point.x) > 250 || Math.abs(point.z) > 250 || point.y < -CELL_BELOW || point.y > CELL_ABOVE) throw new Error('Prop outside the cell');
+      }
+    } else {
+      const placed = new Mesh(mesh.geometry, m); placed.applyMatrix4(entry.transform); vertices(placed, new Matrix4(), false); // refuses a shape outside the cell
+    }
     // the shape's own attributes and index, untouched: the runtime draws exactly the triangles it built
     const g = new BufferGeometry();
     const retain = entry.partition === true || entry.nativeAttributes === true;
