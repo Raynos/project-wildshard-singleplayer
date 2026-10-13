@@ -891,3 +891,9 @@ src/**/*.generated.*
 /src/shards/pastel-plain/assets/f52b74ea04b5b3296d21be04b7d5ddc37280b00ceb2a169cb1c5686c0d4a3ef0
 /src/shards/pastel-plain/assets/fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31
 /src/shards/pastel-plain/data/props.json
+
+# G318: pinned cheap Template/Pastel CPU outputs; pnpm gen restores them.
+/src/shards/pastel-plain/behaviour/door.json
+/src/shards/pastel-plain/assets/ecc886d8bbebcf190298ff9162b6bb364f2125606f5bdc8cc220ea28044f96ea
+/src/shards/pastel-plain/assets/7035c479edde46ee0baf713fce437fe21e7b61967154f36b5f1126708b2bfaa7
+/src/shards/pastel-plain/assets/875e798b8b1be62129b477e6b85e7c45cf11ae67cba006596d869133b469726b
