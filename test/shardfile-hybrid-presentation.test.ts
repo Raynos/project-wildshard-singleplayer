@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Mesh, MeshStandardMaterial, PlaneGeometry, Vector3, type Material, type Object3D } from 'three';
 import { emptyShardfile } from '../src/sdk/author';
+import { declareNavigation } from '../src/sdk/bake/navigationAsset';
 import { bakeTerrain } from '../src/sdk/bake/terrain';
 import { contentHash } from '../src/sdk/project';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
@@ -133,6 +134,26 @@ describe('presentation-only data for a hybrid whose runtime keeps the simulation
       unbind(); tick(); expect(sand.roughness).toBeCloseTo(0.375, 12);
     } finally { app.engineScope.dispose(); }
     expect(runtimePresentation(source)).toBeNull();
+  });
+
+  it('keeps admitted navigation in presentation mode but real unbound rows in full mode', async () => {
+    const base = fixture(), nav = declareNavigation(new Uint8Array(readFileSync('public/assets/baked/far-reach/navmesh.bin')));
+    const bytes = new Map([...base.bytes, ...nav.assets]);
+    const source = validateShardfileAssets({ ...base.source, navigation: nav.navigation,
+      files: [...base.source.files, ...nav.files], critical: [...base.source.critical, ...nav.critical] }, bytes, contentHash);
+    const announced = { count: 0 }, data = client(source, bytes, announced);
+    expect(announced.count).toBe(0);
+    const { app, ctx } = level(base.source);
+    try {
+      await data.world(ctx); data.kit(ctx); await data.play(ctx);
+      expect(app.systemIds(ctx.scope).sort()).toEqual(['game.shardfile.presentation', 'game.shardfile.residency']);
+    } finally { app.engineScope.dispose(); }
+    client({ ...source, ui: [{ kind: 'marker', id: 'marker', label: 'Marker', at: [0, 0, 0] }] }, bytes, announced);
+    expect(announced.count).toBe(1);
+    const file = nav.files[0]; if (file === undefined) throw new Error('Missing declared navigation file');
+    // A different opaque file remains gameplay content even alongside an admitted navigation row.
+    client({ ...source, files: [...source.files, { ...file, hash: 'a'.repeat(64) }] }, bytes, announced);
+    expect(announced.count).toBe(2);
   });
 
   it('keeps every other hybrid as it was: an unbound behaviour row still installs the whole data client', () => {
