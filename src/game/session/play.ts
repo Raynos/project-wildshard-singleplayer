@@ -100,6 +100,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // SF21a / the grid client: EXPERIMENTAL Wildshard's 3 × 3 around this home cell (deck, soft walls, neighbours' far proxies)
   const grid = pageMode() === 'grid' ? await GridSession.create({ scene: game.rootScene, physics: world.physics, scope: game.levelScope, feet: () => player.position, renderer: game.renderer,
     ownedHome: session.ownedGridHome === true,
+    // G371: the near tier plans from the drawn eye (a free / hero camera gets the cells it is over)
+    eye: () => ({ x: game.camera.position.x - player.position.x, z: game.camera.position.z - player.position.z }),
     prepareTile: (tile) => game.warmSceneRoots([tile.group], () => !tile.scope.disposed),
     ...(!navigator.userAgent.includes('AppleWebKit') || /Chrome|Chromium|Edg/.test(navigator.userAgent) ? {} : {
       prepareFar: (view) => game.warmSceneRoots([view.mesh], () => !game.levelScope.disposed),

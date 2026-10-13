@@ -120,13 +120,22 @@ export interface GridSessionHost {
   readonly prepareFar?: (view: FarProxyView) => Promise<void>;
   /** Prepare an admitted, detached ring tile before its budgeted visible upload. */
   readonly prepareTile?: (tile: PreparedRingTile) => Promise<void>;
+  /** G371: the drawn camera's horizontal offset from the feet, in the feet's frame (absent: the eye at the feet). The near
+   *  tier plans from the eye, so a lifted or free camera gets the cells it is over; a play camera is a few metres off */
+  readonly eye?: () => { readonly x: number; readonly z: number };
 }
-/** What each cell shows today, for the readout and the report. */
-export type GridCellShows = 'playing' | 'frozen' | 'far proxy' | 'loading';
+/**
+ * What each cell draws now, for the readout and the captures: `playing` (the entered runtime), `frozen` (the home's
+ * runtime, not stepping), `near` (its near placeholder, its far proxy hidden), `far proxy`, `tiles` (only its L1 / L0
+ * ring tiles: the far proxy wholly refined away), `loading` (nothing yet).
+ */
+export type GridCellShows = 'playing' | 'frozen' | 'near' | 'far proxy' | 'tiles' | 'loading';
+/** Which of a cell's presentation layers draw now (meshes visible), for the readout and the captures. */
+export interface GridCellDrawn { readonly far: boolean; readonly near: boolean; readonly l1: number; readonly l0: number }
 /** The session's readout (tests, harness, the board). */
 export interface GridSessionState {
   readonly home: string; readonly inside: string | null; readonly feet: { x: number; z: number };
-  readonly cells: readonly { readonly instance: string; readonly slug: string; readonly cell: readonly [number, number]; readonly shows: GridCellShows }[];
+  readonly cells: readonly { readonly instance: string; readonly slug: string; readonly cell: readonly [number, number]; readonly shows: GridCellShows; readonly drawn: GridCellDrawn }[];
   readonly strips: number; readonly ringsReady: boolean;
   /** SF17b's boulevard look: segments, junctions, roundabouts, signs, lights and draws */
   readonly road: RoadLookState;
@@ -278,6 +287,8 @@ export class GridSession {
   private readonly refusals = new Map<string, ShardRefusal>();
   private readonly issues = new Map<string, string>();
   private readonly farViews = new Set<string>();
+  /** each uploaded far view, for the readout's `drawn.far` (its mesh's own visibility) */
+  private readonly farMeshes = new Map<string, FarProxyView>();
   private readonly farMissing = new Set<string>();
   /** each slug's shown name */
   private readonly names = new Map<string, string>();
@@ -449,8 +460,8 @@ export class GridSession {
     const drawnFar = new Map<string, { view: FarProxyView; excluded: ReadonlySet<number> }>();
     const farPorts = { ...framedPorts, upload: (tile: { instance: string }, data: FarPrepared) => {
       const view: FarProxyView = framedPorts.upload(tile, data), dispose = view.dispose;
-      this.farViews.add(tile.instance);
-      view.dispose = () => { this.farViews.delete(tile.instance); dispose(); };
+      this.farViews.add(tile.instance); this.farMeshes.set(tile.instance, view);
+      view.dispose = () => { this.farViews.delete(tile.instance); if (this.farMeshes.get(tile.instance) === view) this.farMeshes.delete(tile.instance); dispose(); };
       if (this.near !== null) {
         const id = tile.instance, entry = { view, excluded: new Set<number>() as ReadonlySet<number> }, mask = view.mask, gone = view.dispose;
         drawnFar.set(id, entry);
@@ -624,7 +635,8 @@ export class GridSession {
     this.shimmer.step();
     this.plots.step(dt);
     const inside = this.assembly.at(at.x, at.z), active = this.live === null ? this.home.instance : this.live.live.current();
-    this.near?.update(at, active);
+    const eye = this.host.eye?.();
+    this.near?.update(eye === undefined || !Number.isFinite(eye.x) || !Number.isFinite(eye.z) ? at : { x: at.x + eye.x, z: at.z + eye.z }, active);
     if (inside === undefined || inside.instance !== active) gridCells.leave();
     else gridCells.enter({ instance: inside.instance, slug: inside.slug });
   }
@@ -648,12 +660,15 @@ export class GridSession {
 
   /** The readout: what each cell shows, the rings and the allocator. */
   state(): GridSessionState {
-    const stats = this.rings.stats(), resident = new Set(this.rings.resident().map((key) => key.split(':')[0]));
-    const at = this.world(), cost = this.allocator.cost();
+    const stats = this.rings.stats(), residentKeys = this.rings.resident(), resident = new Set(residentKeys.map((key) => key.split(':')[0]));
+    const at = this.world(), cost = this.allocator.cost(), playing = this.live === null ? this.home.instance : this.live.live.current();
+    const tiles = (instance: string, level: 'l1' | 'l0'): number => residentKeys.filter((key) => key.startsWith(`${instance}:${level}/`)).length;
+    const drawn = (instance: string): GridCellDrawn => ({ far: this.farMeshes.get(instance)?.mesh.visible === true, near: this.near?.visible(instance) === true, l1: tiles(instance, 'l1'), l0: tiles(instance, 'l0') });
+    const shows = (instance: string, d: GridCellDrawn): GridCellShows => instance === playing ? 'playing' : instance === this.home.instance ? 'frozen'
+      : d.near ? 'near' : d.far ? 'far proxy' : d.l1 + d.l0 > 0 ? 'tiles' : resident.has(instance) ? 'far proxy' : 'loading';
     return {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
-      cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, slug: cell.slug, cell: cell.cell,
-        shows: cell.instance === (this.live === null ? this.home.instance : this.live.live.current()) ? 'playing' : cell.instance === this.home.instance ? 'frozen' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
+      cells: this.assembly.cells.map((cell) => { const d = drawn(cell.instance); return { instance: cell.instance, slug: cell.slug, cell: cell.cell, shows: shows(cell.instance, d), drawn: d }; }),
       strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), screens: this.screens.state(), plots: this.plots.state(), ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       accountedBytes: cost.accounted,

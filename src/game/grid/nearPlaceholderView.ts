@@ -1,11 +1,11 @@
 /**
- * G342: the near-placeholder tier. The cells around the player's crossroads (or next to the player's cell) draw a richer
+ * G342: the near-placeholder tier. The cells nearest the eye (G371: by distance, diagonals included) draw a richer
  * placeholder than the far proxy: the terrain at L1 density (17 × 17 per 125 m region) and the shard's own drawn world
  * (landmarks, trees, water) at a low LOD, baked by the generic `@wildshard/sdk/bake/placeholders` (G348) into one single-draw GLB per shard
  * (`public/assets/baked/<slug>/near.glb`, regions in TEXCOORD_0.x like the far proxy, so the rings' masks apply to it
  * unchanged). Cells further out keep the far proxy; the entered runtime always wins; it never registers a collider.
  *
- * The owner plans with `planNearPlaceholders` (at most four cells), loads cancel-safely (a cell that leaves the plan
+ * The owner plans with `planNearPlaceholders` (at most four cells, passing over cells with no placeholder), loads cancel-safely (a cell that leaves the plan
  * before its bytes land is discarded, never installed), charges each view through the one `ResidencyAllocator` under its
  * own `near` category, and hides that cell's far proxy only once its near view is drawn (the far fallback stays until then).
  */
@@ -13,7 +13,7 @@ import type { Material, Object3D } from 'three';
 import type { GridCell } from './assembly';
 import type { ResidencyAllocator, ResidencyLease } from './allocator';
 import { installFarProxy, type FarPrepared, type FarProxyView } from './farView';
-import { planNearPlaceholders, type NearCrossroads } from './nearPlaceholderPlan';
+import { planNearPlaceholders } from './nearPlaceholderPlan';
 
 /** What the owner needs from the grid session. */
 export interface NearPlaceholderHost {
@@ -36,23 +36,32 @@ export interface NearPlaceholderHost {
 }
 interface Slot { readonly instance: string; generation: number; view: FarProxyView | null; lease: ResidencyLease | null; undo: (() => void) | null; owns: boolean }
 /** A readout for the cell screen and captures. */
-export interface NearPlaceholderState { readonly crossroads: NearCrossroads | null; readonly mode: 'crossroads' | 'adjacent'; readonly cells: readonly { instance: string; shows: 'near' | 'loading' | 'none' }[]; readonly bytes: number }
+export interface NearPlaceholderState {
+  /** the eye the plan last ranked from (grid metres) */
+  readonly eye: { readonly x: number; readonly z: number } | null;
+  readonly cells: readonly { instance: string; shows: 'near' | 'loading' | 'none'; distance?: number }[];
+  readonly bytes: number;
+}
 
 export class NearPlaceholders {
   private readonly slots = new Map<string, Slot>();
   private readonly missing = new Set<string>();
-  private crossroads: NearCrossroads | null = null;
-  private mode: 'crossroads' | 'adjacent' = 'crossroads';
+  private eye: { x: number; z: number } | null = null;
+  private readonly distances = new Map<string, number>();
   private generation = 0;
   private disposed = false;
   constructor(private readonly host: NearPlaceholderHost) {}
 
-  /** Re-plan around the viewer (home-frame metres are converted by the caller to grid metres) and stream the difference. */
-  update(point: Readonly<{ x: number; z: number }>, entered: string | null): void {
+  /** Re-plan around the eye (grid metres; the caller converts from its frame) and stream the difference. */
+  update(eye: Readonly<{ x: number; z: number }>, entered: string | null): void {
     if (this.disposed) return;
-    const plan = planNearPlaceholders(this.host.cells, this.host.pitch, point, entered, this.crossroads);
-    this.crossroads = plan.crossroads; this.mode = plan.mode;
-    const wanted = new Map(plan.cells.filter(c => !this.missing.has(c.instance) && this.host.root(c.instance) !== undefined).map(c => [c.instance, c.distance]));
+    const skip = new Set(this.missing);
+    for (const cell of this.host.cells) if (this.host.root(cell.instance) === undefined) skip.add(cell.instance);
+    const plan = planNearPlaceholders(this.host.cells, this.host.pitch, eye, entered, { held: new Set(this.slots.keys()), skip });
+    this.eye = { x: Math.round(eye.x * 10) / 10, z: Math.round(eye.z * 10) / 10 };
+    const wanted = new Map(plan.cells.map(c => [c.instance, c.distance]));
+    this.distances.clear();
+    for (const [instance, distance] of wanted) this.distances.set(instance, Math.round(distance));
     for (const [instance, slot] of this.slots) if (!wanted.has(instance)) this.drop(slot);
     for (const [instance, distance] of wanted) {
       const slot = this.slots.get(instance);
@@ -70,17 +79,23 @@ export class NearPlaceholders {
   /** True while the cell's near view is drawn (its far proxy is covered). */
   shows(instance: string): boolean { return (this.slots.get(instance)?.view ?? null) !== null; }
 
+  /** True while the cell's near view is installed and its mesh is visible (not wholly masked by the cell's ring tiles). */
+  visible(instance: string): boolean { return this.slots.get(instance)?.view?.mesh.visible === true; }
+
   /** True while the cell's near view is drawn and owns the cell (round 3: the rings stop refining it to its L1 / L0 tiles). */
   owns(instance: string): boolean { const slot = this.slots.get(instance); return slot?.view !== null && slot?.view !== undefined && slot.owns; }
 
   state(): NearPlaceholderState {
     let bytes = 0;
-    const cells: { instance: string; shows: 'near' | 'loading' | 'none' }[] = [...this.slots.values()].map(s => {
+    const cells: NearPlaceholderState['cells'][number][] = [...this.slots.values()].map(s => {
       if (s.view !== null) bytes += this.bytes.get(s.instance) ?? 0;
-      return { instance: s.instance, shows: s.view !== null ? 'near' : 'loading' };
+      const row: NearPlaceholderState['cells'][number] = { instance: s.instance, shows: s.view !== null ? 'near' : 'loading' };
+      const distance = this.distances.get(s.instance);
+      if (distance !== undefined) row.distance = distance;
+      return row;
     });
     for (const instance of this.missing) cells.push({ instance, shows: 'none' });
-    return { crossroads: this.crossroads, mode: this.mode, cells, bytes };
+    return { eye: this.eye, cells, bytes };
   }
 
   dispose(): void {
