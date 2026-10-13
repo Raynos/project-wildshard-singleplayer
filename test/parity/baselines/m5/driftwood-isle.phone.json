@@ -2383,8 +2383,8 @@
     "gpuBytes": {
       "textures": 91509608,
       "renderbuffers": 10877184,
-      "buffers": 79846897,
-      "total": 169067289
+      "buffers": 79843783,
+      "total": 182230575
     },
     "audio": {
       "requests": [
