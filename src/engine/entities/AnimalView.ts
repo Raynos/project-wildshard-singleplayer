@@ -113,6 +113,8 @@ export class Animal extends AnimalSim {
   prepareMaterial?: (m: THREE.Material) => void;
   shellLevel = 0;
   hidden = false;
+  /** Drawn at any distance: the tier's draw distance never shrinks or hides it (a boss row's body, set by its view). */
+  drawPinned = false;
   private fadeT = -1;
   private fadeMats: THREE.Material[] = [];
   private drawLod = 0;

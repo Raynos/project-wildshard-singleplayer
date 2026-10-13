@@ -609,7 +609,8 @@ export class AnimalManager {
       // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
       // … shrinking away over the last 15 % of the draw distance rather than blinking out at it (E117: no pop)
       const hide = TIER_CONFIG.animalHideDist;
-      const fade = d2 < (hide * 0.85) ** 2 ? 1 : Math.max(0, Math.min(1, (hide - Math.sqrt(d2)) / (hide * 0.15)));
+      // … except a pinned body (a boss row's): a 19 m boss must not vanish mid-fight past the phone's 150 m
+      const fade = a.drawPinned || d2 < (hide * 0.85) ** 2 ? 1 : Math.max(0, Math.min(1, (hide - Math.sqrt(d2)) / (hide * 0.15)));
       a.mesh.visible = fade > 0;
       const sc = a.scale * fade * fade * (3 - 2 * fade);
       if (a.mesh.scale.x !== sc) a.mesh.scale.setScalar(sc);

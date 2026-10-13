@@ -535,6 +535,7 @@ export interface BossViewSpec {
  * and Sky Reach's Storm Roc are these.
  */
 export class BossView extends DirectorBossBrain {
+  private readonly pinned: () => Animal | null;
   constructor(ctx: ShardContext, spec: BossViewSpec) {
     const bar = new BossBar(), motor = (): { position: Vector3; yaw: number } | null => ctx.game.runtime?.world?.player ?? null;
     ctx.scope.onDispose(() => { bar.scope.dispose(); });
@@ -545,6 +546,13 @@ export class BossView extends DirectorBossBrain {
       faceToward: (target) => { const m = motor(); if (m) m.yaw = Math.atan2(m.position.x - target.x, m.position.z - target.z); },
       spawnReward: () => { spec.spawnReward?.(); }, toast: spec.toast === true ? (message) => { ctx.game.runtime?.play?.hud.toast(message); } : undefined,
       persist: spec.persist }, bar, spec.saved, spec.stages);
+    this.pinned = spec.body;
+  }
+  /** The boss's body is drawn at any distance (no tier draw-distance shrink), whichever body is up this frame. */
+  override update(dt: number, t: number): void {
+    const body = this.pinned();
+    if (body !== null) body.drawPinned = true;
+    super.update(dt, t);
   }
 }
 
