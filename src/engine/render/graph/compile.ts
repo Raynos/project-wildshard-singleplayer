@@ -441,6 +441,18 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         const world = origin.add(right.mul(positionGeometry.x).mul(sx)).add(vec3(0, positionGeometry.y.mul(sy), 0));
         return { t: 'vec3', n: modelWorldMatrixInverse.mul(vec4(world, 1)).xyz };
       }
+      case 'cameraRelativeBillboard': {
+        const [direction, distance, local] = three();
+        const d = new ConvertNode<'vec3'>(direction.n, 'vec3');
+        const toward = new ConvertNode<'vec3'>(new ConditionalNode(dot(d, d).greaterThan(1e-8), d.normalize().negate(), vec3(0, 0, 1)), 'vec3');
+        // World up keeps cards upright; a pole-safe alternate axis avoids a zero cross product.
+        const axis = new ConditionalNode(toward.y.abs().greaterThan(0.999), vec3(1, 0, 0), vec3(0, 1, 0));
+        const right = new MathNode('normalize', new MathNode('cross', axis, toward));
+        const up = new MathNode('cross', toward, right), xy = asVec2(local);
+        const centre = new OperatorNode('+', cameraPosition, new OperatorNode('*', d, asFloat(distance)));
+        const world = new OperatorNode('+', new OperatorNode('+', centre, new OperatorNode('*', right, xy.x)), new OperatorNode('*', up, xy.y));
+        return { t: 'vec3', n: new SplitNode(new OperatorNode('*', modelWorldMatrixInverse, new JoinNode([world, float(1)])), 'xyz') };
+      }
       case 'viewDepth': return { t: 'float', n: cameraViewMatrix.mul(vec4(new ConvertNode<'vec3'>(one().n, 'vec3'), 1)).z.negate() };
       case 'screenDirection': {
         const [from, to] = two();

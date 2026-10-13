@@ -4447,3 +4447,15 @@ Hybrid audio defaults to the shared declared combat router. Catalogue voice
 ids and routing overrides select existing native sound recipes; a shard
 does not need a custom dispatcher. Legacy custom dispatchers remain
 supported through the optional `cues` binding.
+
+### Camera-relative graph cards
+
+The vertex-only `cameraRelativeBillboard` op takes three inputs: a world
+`vec3` direction, a float distance, and card-local `vec2` coordinates. The
+centre is camera position plus direction times distance; the card faces
+back toward the camera with world-up orientation and a stable polar basis.
+The result is an absolute model-space vertex for `vertex.position`.
+Direction is used as supplied; normalize it in the graph for metre distance.
+Card attributes or array rows can supply individual distances; ordinary
+graph arithmetic applies size, angle and pulse before passing coordinates.
+A zero direction gets a finite facing basis. No object origin is added.

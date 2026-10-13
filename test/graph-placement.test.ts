@@ -22,6 +22,7 @@ function program(graph: GraphIr): THREE.WebGLProgramParametersWithUniforms {
   const handler = new EngineNodesHandler(), material = compileGraph(graph, { textures: () => sampled }).material;
   handler.setRenderer(renderer);
   const geometry = new THREE.PlaneGeometry(1, 1); geometry.setAttribute('aSeed', new THREE.Float32BufferAttribute([0, 0.25, 0.5, 0.75], 1));
+  geometry.setAttribute('aDirection', new THREE.Float32BufferAttribute([1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0], 3));
   const object = new THREE.Mesh(geometry, material);
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
   scene.add(object); handler.renderStart(scene, camera); handler.updateLights([]);
@@ -68,5 +69,32 @@ it('replaces the whole vertex with indexed uniform rows and keeps updates bounde
     expect(validateGraph({ ...graph, arrays: { islands: { type: 'vec3', value: Array.from({ length: GRAPH_ARRAY_MAX + 1 }, () => [0, 0, 0]) } } }).ok).toBe(false);
     expect(validateGraph({ ...graph, arrays: { islands: { type: 'vec3', value: [[0, Infinity, 0]] } } }).ok).toBe(false);
     expect(validateGraph({ ...graph, arrays: { a: { type: 'float', value: Array.from({ length: 64 }, () => 0) }, b: { type: 'float', value: Array.from({ length: 64 }, () => 0) }, islands: { type: 'vec3', value: [[0, 0, 0]] } } }).ok).toBe(false);
+  } finally { compiled.material.dispose(); }
+});
+
+
+it('places independently sized camera-relative cards through the actual vertex compiler', () => {
+  const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit',
+    params: { distance: { type: 'float', value: 100 }, size: { type: 'vec2', value: [3, 8] } },
+    nodes: { direction: { op: 'attribute', name: 'aDirection', type: 'vec3' }, distance: { op: 'param', param: 'distance' },
+      vertex: { op: 'positionGeometry' }, xy: { op: 'swizzle', in: ['vertex'], mask: 'xy' },
+      size: { op: 'param', param: 'size' }, local: { op: 'mul', in: ['xy', 'size'] },
+      card: { op: 'cameraRelativeBillboard', in: ['direction', 'distance', 'local'] } },
+    stages: { 'vertex.position': { position: 'card' }, surface: { colour: [1, 0.8, 0.5] } },
+  };
+  const compiled = compileGraph(graph);
+  try {
+    compiled.setParam('distance', 250); compiled.setParam('size', [5, 12]);
+    const shader = program(graph);
+    expect(shader.vertexShader).toContain('cameraPosition');
+    expect(shader.vertexShader).toMatch(/positionLocal\s*=\s*\(\s*nodeUniform\d+\s*\*\s*vec4/u);
+    expect(shader.vertexShader).toContain('cross(');
+    expect(shader.vertexShader).toContain('aDirection');
+    expect(shader.vertexShader).toMatch(/if\s*\(/u);
+    const pole = { ...graph, nodes: { ...graph.nodes, direction: { op: 'const', value: [0, 1, 0] } } };
+    expect(program(pole).vertexShader).toContain('cross(');
+    expect(program({ ...pole, nodes: { ...pole.nodes, direction: { op: 'const', value: [0, 0, 0] } } }).vertexShader).toContain('cross(');
+    expect(validateGraph({ ...graph, stages: { surface: { colour: 'card' } } }).ok).toBe(false);
+    expect(validateGraph({ ...graph, nodes: { ...graph.nodes, distance: { op: 'const', value: [1, 2] } } }).ok).toBe(false);
   } finally { compiled.material.dispose(); }
 });

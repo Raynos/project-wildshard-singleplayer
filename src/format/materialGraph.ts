@@ -263,7 +263,7 @@ type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' |
 type TypeRule =
   | 'input' | 'const' | 'param' | 'same' | 'unary' | 'vecUnary' | 'length' | 'dot' | 'mix' | 'compare' | 'logic' | 'not'
   | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'point3' | 'pointPair' | 'dir3' | 'sceneTap'
-  | 'varying' | 'attribute' | 'arrayElement';
+  | 'varying' | 'attribute' | 'arrayElement' | 'cameraBillboard';
 /** one op of the vocabulary */
 export interface GraphOpSpec {
   /** the number of inputs (min, max) */
@@ -310,6 +310,9 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // Absolute model-space billboard position. Geometry coordinates are world metres; object/instance origins stay fixed.
   viewBillboard: { arity: [0, 0], rule: 'input', cost: 32, type: 'vec3', places: VERT },
   // Absolute model-space Y-axis billboard, retaining the model's X/Y scale; subtract positionLocal for vertex.offset.
+  // Model-space position of a camera-relative card. Inputs: world direction,
+  // distance, card-local vec2 (already sized/rotated by graph arithmetic).
+  cameraRelativeBillboard: { arity: [3, 3], rule: 'cameraBillboard', cost: 80, type: 'vec3', places: VERT },
   cylindricalBillboard: { arity: [0, 0], rule: 'input', cost: 48, type: 'vec3', places: VERT },
   // World-space lengths of the model matrix's X, Y and Z axes (positive, including parent transforms).
   modelScale: { arity: [0, 0], rule: 'input', cost: 9, type: 'vec3', places: VERT },
@@ -694,6 +697,8 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         return n >= 2 && n <= 4 ? vecOf(n) : fail(`${at}: combine makes ${n} components (2–4)`);
       }
       case 'noise': return ins[0] === 'vec2' || ins[0] === 'vec3' ? 'float' : fail(`${at}: noise takes a vec2 or vec3`);
+      case 'cameraBillboard': return ins[0] === 'vec3' && ins[1] === 'float' && ins[2] === 'vec2'
+        ? 'vec3' : fail(`${at}: ${op} needs world direction vec3, distance float and card-local vec2`);
       case 'pointPair': return ins.every(t => t === 'vec3') ? spec.type ?? null : fail(`${at}: ${op} takes two vec3 points`);
       case 'point3': return ins[0] === 'vec3' ? spec.type ?? null : fail(`${at}: ${op} takes a vec3 point`);
       case 'dir3': return ins[0] === 'vec3' ? 'vec3' : fail(`${at}: ${op} takes a vec3 direction`);
