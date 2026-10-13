@@ -5,11 +5,11 @@ import { NATIVE_BAKES, nativeBakePlan, regenerateCheapBakes, refreshRecordedComm
 // oxlint-disable-next-line import/no-nodejs-modules -- Measure fixture input maps using the shipping digest law.
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own all fixture files and remove them in finally.
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Place producer fixtures outside the shared checkout.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only fixture-owned directories.
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { mapPixelHash, mapTilesHash } from '../scripts/map-hash.mjs';
 
 it('plans changed native inputs but never stages cheap build outputs at commit', async () => {
@@ -119,4 +119,46 @@ it('refuses stale map-only landings and independently replaced raster pixels', a
     mkdirSync(join(dir, 'data')); writeFileSync(join(dir, 'data/productMap.json'), '{}');
     await expect(regenerateCheapBakes(root, { stagedPaths: [file] })).rejects.toThrow('product map differs');
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+
+it('refuses a map stamp whose real product emission misses the committed root pin', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'map-product-pin-')), slug = 'far-reach';
+  const dir = join(root, 'src/shards', slug), image = join(root, 'public/assets', slug, 'map/top.webp');
+  const stampPath = `src/shards/${slug}/look/map.baked.json`, entry = `src/shards/${slug}/generators/product.mjs`;
+  const output = `src/shards/${slug}/.wildshard/product/shard.json`;
+  const put = (file: string, data: string): void => { mkdirSync(dirname(join(root,file)), {recursive:true}); writeFileSync(join(root,file),data); };
+  const hash = (data: string): string => createHash('sha256').update(data).digest('hex');
+  const comparisons: Record<string,string> = {[output]:'0'.repeat(64)};
+  const job = {id:'sample-product',shard:slug,entry,command:[entry],inputRoots:['package.json',stampPath,entry],outputs:[output],platform:'portable',comparisonOutputs:comparisons};
+  const catalogue = (): void => put('scripts/generation-jobs.json', JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs:[job]}));
+  try {
+    put('package.json','{"name":"fixture"}');
+    mkdirSync(join(root,'node_modules'));
+    symlinkSync(join(process.cwd(),'node_modules/valibot'),join(root,'node_modules/valibot'));
+    put('src/shards/far-reach/shard.config.ts','immutable world');
+    put(entry, `import{readFileSync,writeFileSync}from'node:fs';const map=JSON.parse(readFileSync('${stampPath}','utf8'));writeFileSync('${output}',JSON.stringify({map}));`);
+    mkdirSync(dirname(image), {recursive:true}); copyFileSync('public/assets/far-reach/map/top.webp',image);
+    const stamp = {tilesHash:mapTilesHash(dir),pixelHash:await mapPixelHash(image)};
+    put(stampPath,JSON.stringify(stamp));
+    delete job.comparisonOutputs[output]; catalogue();
+    await expect(regenerateCheapBakes(root,{stagedPaths:[stampPath]})).rejects.toThrow('one registered root pin');
+    job.comparisonOutputs[output]='0'.repeat(64); catalogue();
+    await expect(regenerateCheapBakes(root,{stagedPaths:[stampPath]})).rejects.toThrow('Comparison output hash differs');
+    expect(existsSync(join(root,output))).toBe(false);
+    job.comparisonOutputs[output]=hash(JSON.stringify({map:stamp})); catalogue();
+    const retainedCatalogue=readFileSync(join(root,'scripts/generation-jobs.json'),'utf8');
+    expect(await regenerateCheapBakes(root,{stagedPaths:[stampPath]})).toEqual([]);
+    expect(existsSync(join(root,output))).toBe(false);
+    // A stale ignored product is neither evidence nor a historical baseline.
+    put(output,'{"unrelated":"old ignored output"}');
+    expect(await regenerateCheapBakes(root,{stagedPaths:[stampPath]})).toEqual([]);
+    expect(readFileSync(join(root,output),'utf8')).toBe('{"unrelated":"old ignored output"}');
+    expect(readFileSync(join(root,'scripts/generation-jobs.json'),'utf8')).toBe(retainedCatalogue);
+    // A failed producer cannot become admission merely because a pin exists.
+    put(entry,"throw Error('product emission refused');");
+    put(stampPath,JSON.stringify({...stamp,tilesHash:mapTilesHash(dir)}));
+    await expect(regenerateCheapBakes(root,{stagedPaths:[stampPath]})).rejects.toThrow('Generator exited');
+    expect(readFileSync(join(root,output),'utf8')).toBe('{"unrelated":"old ignored output"}');
+  } finally {rmSync(root,{recursive:true,force:true});}
 });

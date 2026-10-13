@@ -2,8 +2,8 @@
 import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { inputValue, treeEntries } from './gate-cache.mjs';
 import { pathToFileURL } from 'node:url';
@@ -51,6 +51,41 @@ async function producer(root, command) {
   console.log(`precommit-bake: ${args.at(-1) ?? program} ${((performance.now() - started) / 1000).toFixed(3)}s`);
   if (code !== 0) throw new Error(`Commit-time producer failed (${String(code)}): ${command.join(' ')}`);
 }
+/** Compare registered whole-product pins without publishing or restoring outputs.
+ * @param {string} root @param {string} slug */
+async function verifyMapProductPins(root, slug) {
+  if (!existsSync(resolve(root, 'scripts/generation-jobs.json'))) return;
+  const { discoverGeneration, generationInputs, generateShardJob } = await import('./generate.mjs');
+  const jobs = discoverGeneration(root).jobs.filter(job => job.shard === slug && job.outputs.some(file => file.endsWith('/shard.json')));
+  for (const job of jobs) {
+    const roots = job.outputs.filter(file => file.endsWith('/shard.json'));
+    if (roots.length !== 1 || roots.some(file => !Object.hasOwn(job.buildOutputs ?? {}, file) && !Object.hasOwn(job.comparisonOutputs ?? {}, file))) {
+      throw new Error(`${slug}: map product requires one registered root pin`);
+    }
+    const owned = realpathSync(mkdtempSync(resolve(tmpdir(), 'map-product-check-'))), snapshot = resolve(owned, 'source');
+    mkdirSync(snapshot);
+    try {
+      // This output-empty source view prevents an old ignored product from
+      // supplying evidence or causing a false historical-byte refusal.
+      const extra = ['scripts', 'src/format', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'].filter(file => existsSync(resolve(root, file)));
+      const inputs = generationInputs(root, [...new Set([...job.inputRoots, ...extra])]);
+      for (const file of Object.keys(inputs)) {
+        if (job.outputs.includes(file) && !(job.seedOutputs ?? []).includes(file)) continue;
+        const to = resolve(snapshot, file); mkdirSync(dirname(to), {recursive:true}); copyFileSync(resolve(root, file), to);
+      }
+      const copied = generationInputs(snapshot, Object.keys(inputs).filter(file => !job.outputs.includes(file) || (job.seedOutputs ?? []).includes(file)));
+      for (const [file, hash] of Object.entries(copied)) if (inputs[file] !== hash) throw new Error('Map product source changed while copying');
+      const {linkNodeModules} = await import('./link-node-modules.mjs');
+      linkNodeModules(root, snapshot);
+      // A genuine producer runs only in its private source view. All catalogue
+      // pins remain fatal, and no byte is restored to the staged export/index.
+      await generateShardJob(snapshot, job, {cacheDir:resolve(owned, 'cache')});
+    } catch (error) {
+      throw new Error(`${slug}: committed product pins differ from the staged map producer: ${error instanceof Error ? error.message : String(error)}`, {cause:error});
+    } finally {rmSync(owned, {recursive:true,force:true});}
+  }
+}
+
 /** Run official native producers and the official raster producer for stale maps.
  * The runner owns its exact-source product/cache and index publication.
  * @param {string} root
@@ -78,6 +113,7 @@ export async function regenerateCheapBakes(root, product = {}) {
       if (existsSync(productMap) && !isDeepStrictEqual(JSON.parse(readFileSync(productMap, 'utf8')), stamp)) {
         throw new Error(`${slug}: product map differs from the admitted map stamp`);
       }
+      if ((product.stagedPaths ?? []).includes(`src/shards/${slug}/look/map.baked.json`)) await verifyMapProductPins(root, slug);
     }
   }
   return refreshCommitMeasurements(root,product.stagedPaths,product.guardRequirement);
