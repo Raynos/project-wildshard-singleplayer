@@ -4,6 +4,7 @@ import { installFrameDriver } from './clock.mjs';
 import { telemetryOnlyWrite } from './saves.mjs';
 import { GL_INIT } from './glbytes.mjs';
 import { installResources } from './resources.mjs';
+import { installAudioWork } from './audio-settle.mjs';
 
 /** All observations are installed before boot, using scorecard's RNG and GPU byte hooks.
  * @param {import('playwright').BrowserContext} context
@@ -57,4 +58,5 @@ export async function installInit(context, meta) {
   },meta);
   await context.addInitScript(installFrameDriver,{accelerated:meta.accelerated??false,timerHz:meta.tier==='desktop'?60:30});
   await context.addInitScript(installResources);
+  await context.addInitScript(installAudioWork);
 }

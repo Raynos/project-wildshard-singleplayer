@@ -24,6 +24,7 @@ import { budgetLines, budgetViews } from './parity/budgets.mjs';
 import { waitForToastIdle } from './parity/hud.mjs';
 import { telemetryFixtureAccepts } from './parity/telemetry.mjs';
 import { sampleAudioBoundary, rememberAudioBoundary, publishAudioDiagnostics } from './parity/audio-diagnostics.mjs';
+import { buildMutedGraph, settleAudio } from './parity/audio-settle.mjs';
 
 /** @typedef {import('./parity/value.mjs').RecordValue} RecordValue */
 const ROOT=resolve(import.meta.dirname,'..');
@@ -103,7 +104,7 @@ export async function capture(browser,url,opts) {
     // G325 keeps the AudioContext for the player's first gesture; until 310110541 `?mute` built the muted graph during load
     // (`audio.master.disconnect()`), and every walk/combat sound baseline was recorded with it. Build it the same way here,
     // as the world appears, so sampled cues, beds and loops are recorded instead of their not-ready fallbacks.
-    if(opts.only!=='fingerprint+poses')await page.evaluate(()=>{window.__wildshard.requireWorld().audio.master.disconnect();});
+    if(opts.only!=='fingerprint+poses')await buildMutedGraph(page);
     boot.hud=await within(page.evaluate(waitForToastIdle,opts.tier==='desktop'?60:30),11_000,'startup toast idle');
     const clockWitness=await page.evaluate(()=>{
       const clock=window.__wildshard.requireWorld().game.sky.dayNight;
@@ -130,6 +131,9 @@ export async function capture(browser,url,opts) {
     for(const [name,observed] of Object.entries(extra))object(object(result.budgets)[name]).observed=object(observed);
     writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.partial.json`),JSON.stringify(result,null,2));
     if(opts.only!=='fingerprint+poses') {
+      // Those baselines also had the beds started and the deferred phone bank landed before the walk: settle the level's
+      // audio so none of it straddles the walk's sound reset (sp-o97).
+      phases.audioSettleFrames=await settleAudio(page);
       await observeAudio('before-walk');
       console.error(`parity: ${opts.shard}.${opts.tier} walk`);result.walk=object(await walk(page,opts));mark('walkMs');
       await observeAudio('after-walk');
