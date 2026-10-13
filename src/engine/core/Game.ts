@@ -750,11 +750,12 @@ export class Game {
     const onStage = (phase: string, elapsedMs: number, units: number): void => { trace.stages.push({ phase, elapsedMs, units }); };
     const current = (): boolean => !owner.disposed;
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
-    const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
+    const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, BANDED_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
     const pause = isolateImageUploads && this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
     // Live image batches share the measured byte/time bound. Compressed uploads retain their independent painted fences.
-    const uploadBudget = isolateImageUploads && setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET
-      : setting('buildPacing') === 'uploads' ? SLICED_UPLOAD_BUDGET : undefined;
+    // sp-o105: `bands` also uploads WebKit's large warm-up bitmaps in row bands, a drawn frame each (default off)
+    const uploadBudget = isolateImageUploads && setting('buildPacing') !== 'off' ? setting('buildPacing') === 'bands' ? BANDED_UPLOAD_BUDGET : LIVE_UPLOAD_BUDGET
+      : setting('buildPacing') === 'uploads' || setting('buildPacing') === 'bands' ? SLICED_UPLOAD_BUDGET : undefined;
     // sp-o100: a paced page that does not isolate (desktop) keeps each warm-up slice inside its drawn frame's headroom
     const sliceMs = !isolateImageUploads && this.frameCount > 0 && setting('buildPacing') !== 'off' ? LIVE_PRECOMPILE_SLICE_MS : undefined;
     const shaderStart = diagnosticNow();

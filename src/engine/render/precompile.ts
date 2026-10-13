@@ -539,10 +539,61 @@ export interface UploadBudget {
   ms: number;
   /** Decoded bytes one drawn frame may hold; a larger image uploads alone. */
   bytes: number;
+  /**
+   * sp-o105: level-0 bytes one row band may upload. A plain, unflipped ImageBitmap texture larger than this uploads in row
+   * bands, one per drawn frame, into the storage three allocated for it (`bandedImageUpload`); its final texels and mips
+   * are the whole upload's. Absent: every image uploads whole. Selected by the `bands` Build pacing Developer mode.
+   */
+  bandBytes?: number;
 }
 
 /** The Developer tool's budget for isolated (WebKit) uploads: about a quarter of a 30 fps frame, 8 MiB of decoded texels. */
 export const LIVE_UPLOAD_BUDGET: UploadBudget = { ms: 8, bytes: 8 * 1024 * 1024 };
+
+/** sp-o105: the `bands` Build pacing mode: the live budget, with a 2048² bitmap's 16 MiB level 0 in four 4 MiB row bands.
+ * Each WebKit texSubImage2D from a bitmap pays a fixed cost (~4 ms for 2048² on macOS WebKit) plus its rows. */
+export const BANDED_UPLOAD_BUDGET: UploadBudget = { ...LIVE_UPLOAD_BUDGET, bandBytes: 4 * 1024 * 1024 };
+
+/** The rows a band of `texture` holds under `bandBytes`, or null when it uploads whole: only a plain 2D texture whose image
+ * is an ImageBitmap (WebGL ignores flip, premultiply and colour conversion for bitmaps), unflipped, unpremultiplied, with no
+ * authored mips and no resize, larger than one band. */
+function uploadBandRows(texture: THREE.Texture, bandBytes: number, maxTextureSize: number): number | null {
+  const image: unknown = texture.image;
+  if (typeof ImageBitmap === 'undefined' || !(image instanceof ImageBitmap) || texture.flipY || texture.premultiplyAlpha || texture.mipmaps.length > 0) return null;
+  for (const flag of ['isDataTexture', 'isCompressedTexture', 'isCubeTexture', 'isVideoTexture', 'isCanvasTexture', 'isDataArrayTexture', 'isData3DTexture', 'isFramebufferTexture', 'isDepthTexture', 'isRenderTargetTexture', 'isHTMLTexture'])
+    if (Reflect.get(texture, flag) === true) return null;
+  if (image.width > maxTextureSize || image.height > maxTextureSize || image.width === 0) return null;
+  const rows = Math.max(1, Math.floor(bandBytes / (image.width * 4)));
+  return rows >= image.height ? null : rows;
+}
+
+/**
+ * sp-o105: upload a large bitmap texture in row bands, one per `pause`. Three allocates the storage and sets the sampler and
+ * versions with no texels (`source.dataReady` false); each band is then a `copyTextureToTexture` from the same bitmap
+ * (UNPACK_SKIP_ROWS selects its rows) and the last band generates the mips, as the whole upload would. A band cancelled
+ * mid-way (the owner left) marks the texture for a whole upload at its next use; a retired texture just stops.
+ */
+async function bandedImageUpload(renderer: Renderer, texture: THREE.Texture, image: ImageBitmap, rows: number, pause: () => Promise<void>, retired: () => boolean): Promise<void> {
+  const source = texture.source, mips = texture.generateMipmaps;
+  source.dataReady = false;
+  try { renderer.initTexture(texture); } finally { source.dataReady = true; }
+  const band = new THREE.Texture(image), region = new THREE.Box2(), at = new THREE.Vector2();
+  let complete = false;
+  try {
+    for (let y = 0; y < image.height; y += rows) {
+      if (y > 0) await pause();
+      if (retired()) { complete = true; return; }
+      const height = Math.min(rows, image.height - y);
+      region.min.set(0, y); region.max.set(image.width, y + height); at.set(0, y);
+      texture.generateMipmaps = mips && y + height >= image.height;
+      renderer.copyTextureToTexture(band, texture, region, at);
+    }
+    complete = true;
+  } finally {
+    texture.generateMipmaps = mips;
+    if (!complete) texture.needsUpdate = true;
+  }
+}
 
 /** Live WebKit preparation settles one program per painted slice. A material can issue two side variants. */
 export const LIVE_PROGRAMS_PER_FRAME = 1;
@@ -794,6 +845,16 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const imageUpload = !compressed && !retired.has(tex) && !(isolateImageUploads && imageResident(renderer, tex));
     if (batch !== undefined && imageUpload && batch.full(bytes)) { await pause(); checkCurrent(); batch.reset(); }
     const tUpload = performance.now();
+    const bandRows = imageUpload && isolateImageUploads && uploadBudget?.bandBytes !== undefined ? uploadBandRows(tex, uploadBudget.bandBytes, renderer.capabilities.maxTextureSize) : null;
+    const bitmap: unknown = tex.image;
+    if (bandRows !== null && bitmap instanceof ImageBitmap) {
+      // a banded image takes its own drawn frames: whatever the batch holds draws first, and the next upload starts fresh
+      if (batch?.pending() === true) { await pause(); checkCurrent(); }
+      await bandedImageUpload(renderer, tex, bitmap, bandRows, async () => { await pause(); checkCurrent(); }, () => retired.has(tex));
+      onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
+      await pause(); checkCurrent(); batch?.reset(); tSlice = performance.now();
+      continue;
+    }
     if (!retired.has(tex)) {
       if (compressed) {
         try { await uploadCompressedTexture(renderer, tex, () => current() && !retired.has(tex), true); }

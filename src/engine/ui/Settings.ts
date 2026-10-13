@@ -127,7 +127,7 @@ export const OPTION_VALUES = {
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
   nearTier: ['far', 'near', 'all'],                    // G342: the crossroads neighbours as far proxies (A) or near placeholders (B, src/game/grid/nearPlaceholderView.ts); C (G380) forces every cell near, for the hero captures — a reload
-  buildPacing: ['on', 'off', 'uploads'],               // SF63: quiet frame floors back paced builds by default; Developer can switch them off. uploads also budgets WebKit's isolated warm-up image uploads (src/engine/render/precompile.ts UploadBudget).
+  buildPacing: ['on', 'off', 'uploads', 'bands'],      // SF63: quiet frame floors back paced builds by default; Developer can switch them off. uploads also budgets WebKit's isolated warm-up image uploads (src/engine/render/precompile.ts UploadBudget); bands also splits WebKit's large warm-up bitmaps into row bands (sp-o105).
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
