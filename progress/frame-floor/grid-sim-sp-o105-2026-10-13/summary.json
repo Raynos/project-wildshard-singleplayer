@@ -1,0 +1,1288 @@
+{
+ "schema": 1,
+ "gate": {
+  "desktop": {
+   "p95Ms": 17.5,
+   "maxMs": 100
+  },
+  "sim": {
+   "p95Ms": 35,
+   "maxMs": 200
+  }
+ },
+ "command": "node scripts/frame-floor.mjs --rev=<sha> --shards=grid --surface=<sim|desktop> --grid-scenario=milestone --devserver [--setting=buildPacing=bands]",
+ "runs": [
+  {
+   "label": "before B1",
+   "sha": "85cab0715",
+   "surface": "sim",
+   "when": "2026-10-13T09:05:46.477Z",
+   "settings": {
+    "tier": "phone",
+    "fps": "auto"
+   },
+   "safariProfile": false,
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-deck-east",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 4,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-crossroads",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior-travel",
+     "p95Ms": 34,
+     "maxMs": 44,
+     "workP95Ms": 8,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior-drive",
+     "p95Ms": 34,
+     "maxMs": 84,
+     "workP95Ms": 7,
+     "over50Ms": 12,
+     "frames": 1500,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior",
+     "p95Ms": 34,
+     "maxMs": 67,
+     "workP95Ms": 7,
+     "over50Ms": 2,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return-travel",
+     "p95Ms": 34,
+     "maxMs": 139,
+     "workP95Ms": 6,
+     "over50Ms": 1,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return-drive",
+     "p95Ms": 34,
+     "maxMs": 139,
+     "workP95Ms": 8,
+     "over50Ms": 7,
+     "frames": 1620,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 8,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "p95Ms": 34,
+     "maxMs": 181,
+     "workP95Ms": 4,
+     "over50Ms": 2,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 181,
+     "workP95Ms": 5,
+     "over50Ms": 4,
+     "frames": 480,
+     "pass": true
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry",
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 5,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry-travel",
+     "p95Ms": 34,
+     "maxMs": 81,
+     "workP95Ms": 5,
+     "over50Ms": 1,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 81,
+     "workP95Ms": 8,
+     "over50Ms": 8,
+     "frames": 2160,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry",
+     "p95Ms": 34,
+     "maxMs": 36,
+     "workP95Ms": 8,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "p95Ms": 40,
+     "maxMs": 53,
+     "workP95Ms": 4,
+     "over50Ms": 1,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 90,
+     "workP95Ms": 9,
+     "over50Ms": 9,
+     "frames": 660,
+     "pass": true
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry",
+     "p95Ms": 34,
+     "maxMs": 44,
+     "workP95Ms": 7,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 54,
+     "maxMs": 114,
+     "workP95Ms": 9,
+     "over50Ms": 9,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 41,
+     "maxMs": 114,
+     "workP95Ms": 10,
+     "over50Ms": 11,
+     "frames": 720,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 36,
+     "workP95Ms": 10,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry-travel",
+     "p95Ms": 40,
+     "maxMs": 122,
+     "workP95Ms": 7,
+     "over50Ms": 5,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 122,
+     "workP95Ms": 7,
+     "over50Ms": 9,
+     "frames": 450,
+     "pass": true
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry",
+     "p95Ms": 34,
+     "maxMs": 39,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry-travel",
+     "p95Ms": 44,
+     "maxMs": 107,
+     "workP95Ms": 7,
+     "over50Ms": 3,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 107,
+     "workP95Ms": 10,
+     "over50Ms": 4,
+     "frames": 540,
+     "pass": true
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry",
+     "p95Ms": 34,
+     "maxMs": 39,
+     "workP95Ms": 8,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "label": "before B2 (timed out at Sunscar, load 22)",
+   "sha": "85cab0715",
+   "surface": "sim",
+   "when": "2026-10-13T09:55:42.522Z",
+   "settings": {
+    "tier": "phone",
+    "fps": "auto"
+   },
+   "safariProfile": false,
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-crossroads",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-deck-east",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior-travel",
+     "p95Ms": 34,
+     "maxMs": 42,
+     "workP95Ms": 7,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior-drive",
+     "p95Ms": 34,
+     "maxMs": 90,
+     "workP95Ms": 6,
+     "over50Ms": 11,
+     "frames": 1500,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior",
+     "p95Ms": 34,
+     "maxMs": 81,
+     "workP95Ms": 8,
+     "over50Ms": 2,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return-travel",
+     "p95Ms": 34,
+     "maxMs": 173,
+     "workP95Ms": 6,
+     "over50Ms": 1,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return-drive",
+     "p95Ms": 34,
+     "maxMs": 173,
+     "workP95Ms": 8,
+     "over50Ms": 6,
+     "frames": 1620,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return",
+     "p95Ms": 35,
+     "maxMs": 38,
+     "workP95Ms": 11,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "p95Ms": 34,
+     "maxMs": 212,
+     "workP95Ms": 4,
+     "over50Ms": 3,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 212,
+     "workP95Ms": 6,
+     "over50Ms": 6,
+     "frames": 480,
+     "pass": false
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry",
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry-travel",
+     "p95Ms": 52,
+     "maxMs": 103,
+     "workP95Ms": 6,
+     "over50Ms": 9,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-far-reach-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 118,
+     "workP95Ms": 8,
+     "over50Ms": 15,
+     "frames": 2190,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry",
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "p95Ms": 36,
+     "maxMs": 53,
+     "workP95Ms": 4,
+     "over50Ms": 1,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "p95Ms": 36,
+     "maxMs": 84,
+     "workP95Ms": 7,
+     "over50Ms": 8,
+     "frames": 660,
+     "pass": false
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry",
+     "p95Ms": 34,
+     "maxMs": 39,
+     "workP95Ms": 7,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 50,
+     "maxMs": 88,
+     "workP95Ms": 8,
+     "over50Ms": 6,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 37,
+     "maxMs": 93,
+     "workP95Ms": 9,
+     "over50Ms": 9,
+     "frames": 720,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 8,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "label": "clock upload, Safari-profiled (no timing credit)",
+   "sha": "ae2fa3065",
+   "surface": "sim",
+   "when": "2026-10-13T09:11:21.146Z",
+   "settings": {
+    "tier": "phone",
+    "fps": "auto"
+   },
+   "safariProfile": true,
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-deck-east",
+     "p95Ms": 34,
+     "maxMs": 40,
+     "workP95Ms": 5,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-crossroads",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 85,
+     "maxMs": 164,
+     "workP95Ms": 16,
+     "over50Ms": 20,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 44,
+     "maxMs": 164,
+     "workP95Ms": 11,
+     "over50Ms": 24,
+     "frames": 750,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 9,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry-travel",
+     "p95Ms": 42,
+     "maxMs": 115,
+     "workP95Ms": 8,
+     "over50Ms": 5,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 115,
+     "workP95Ms": 11,
+     "over50Ms": 6,
+     "frames": 570,
+     "pass": true
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 7,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "label": "after A1 (606 s, load 14)",
+   "sha": "f766eacf9",
+   "surface": "sim",
+   "when": "2026-10-13T09:23:28.765Z",
+   "settings": {
+    "tier": "phone",
+    "fps": "auto"
+   },
+   "safariProfile": false,
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-crossroads",
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-deck-east",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior-travel",
+     "p95Ms": 34,
+     "maxMs": 47,
+     "workP95Ms": 8,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior-drive",
+     "p95Ms": 34,
+     "maxMs": 88,
+     "workP95Ms": 7,
+     "over50Ms": 15,
+     "frames": 1500,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior",
+     "p95Ms": 34,
+     "maxMs": 64,
+     "workP95Ms": 7,
+     "over50Ms": 2,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return-travel",
+     "p95Ms": 34,
+     "maxMs": 153,
+     "workP95Ms": 6,
+     "over50Ms": 1,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return-drive",
+     "p95Ms": 34,
+     "maxMs": 153,
+     "workP95Ms": 7,
+     "over50Ms": 5,
+     "frames": 1590,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 7,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "p95Ms": 34,
+     "maxMs": 209,
+     "workP95Ms": 3,
+     "over50Ms": 3,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 209,
+     "workP95Ms": 6,
+     "over50Ms": 5,
+     "frames": 510,
+     "pass": false
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry",
+     "p95Ms": 34,
+     "maxMs": 41,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry-travel",
+     "p95Ms": 47,
+     "maxMs": 124,
+     "workP95Ms": 6,
+     "over50Ms": 3,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-far-reach-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 124,
+     "workP95Ms": 9,
+     "over50Ms": 10,
+     "frames": 2190,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry",
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "p95Ms": 35,
+     "maxMs": 50,
+     "workP95Ms": 4,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "p95Ms": 35,
+     "maxMs": 101,
+     "workP95Ms": 8,
+     "over50Ms": 9,
+     "frames": 660,
+     "pass": true
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 63,
+     "maxMs": 139,
+     "workP95Ms": 9,
+     "over50Ms": 17,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 54,
+     "maxMs": 397,
+     "workP95Ms": 15,
+     "over50Ms": 44,
+     "frames": 840,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 37,
+     "workP95Ms": 13,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry-travel",
+     "p95Ms": 46,
+     "maxMs": 141,
+     "workP95Ms": 6,
+     "over50Ms": 6,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry-drive",
+     "p95Ms": 42,
+     "maxMs": 141,
+     "workP95Ms": 8,
+     "over50Ms": 13,
+     "frames": 450,
+     "pass": false
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 8,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry-travel",
+     "p95Ms": 42,
+     "maxMs": 118,
+     "workP95Ms": 9,
+     "over50Ms": 5,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 118,
+     "workP95Ms": 11,
+     "over50Ms": 6,
+     "frames": 540,
+     "pass": true
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 7,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "label": "after A2",
+   "sha": "f766eacf9",
+   "surface": "sim",
+   "when": "2026-10-13T09:41:11.458Z",
+   "settings": {
+    "tier": "phone",
+    "fps": "auto"
+   },
+   "safariProfile": false,
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-crossroads",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-deck-east",
+     "p95Ms": 34,
+     "maxMs": 38,
+     "workP95Ms": 5,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior-travel",
+     "p95Ms": 34,
+     "maxMs": 37,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior-drive",
+     "p95Ms": 34,
+     "maxMs": 72,
+     "workP95Ms": 6,
+     "over50Ms": 7,
+     "frames": 1500,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior",
+     "p95Ms": 34,
+     "maxMs": 63,
+     "workP95Ms": 8,
+     "over50Ms": 2,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return-travel",
+     "p95Ms": 34,
+     "maxMs": 129,
+     "workP95Ms": 6,
+     "over50Ms": 1,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return-drive",
+     "p95Ms": 34,
+     "maxMs": 129,
+     "workP95Ms": 7,
+     "over50Ms": 5,
+     "frames": 1620,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 7,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "p95Ms": 34,
+     "maxMs": 197,
+     "workP95Ms": 3,
+     "over50Ms": 2,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 197,
+     "workP95Ms": 6,
+     "over50Ms": 4,
+     "frames": 480,
+     "pass": true
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry-travel",
+     "p95Ms": 40,
+     "maxMs": 97,
+     "workP95Ms": 6,
+     "over50Ms": 2,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-far-reach-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 118,
+     "workP95Ms": 7,
+     "over50Ms": 9,
+     "frames": 2160,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "p95Ms": 34,
+     "maxMs": 46,
+     "workP95Ms": 4,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "p95Ms": 37,
+     "maxMs": 95,
+     "workP95Ms": 8,
+     "over50Ms": 10,
+     "frames": 660,
+     "pass": false
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry",
+     "p95Ms": 34,
+     "maxMs": 36,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 57,
+     "maxMs": 138,
+     "workP95Ms": 9,
+     "over50Ms": 10,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 38,
+     "maxMs": 138,
+     "workP95Ms": 9,
+     "over50Ms": 13,
+     "frames": 720,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 8,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry-travel",
+     "p95Ms": 34,
+     "maxMs": 78,
+     "workP95Ms": 7,
+     "over50Ms": 2,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry-drive",
+     "p95Ms": 34,
+     "maxMs": 78,
+     "workP95Ms": 7,
+     "over50Ms": 5,
+     "frames": 450,
+     "pass": true
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry",
+     "p95Ms": 34,
+     "maxMs": 40,
+     "workP95Ms": 6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry-travel",
+     "p95Ms": 50,
+     "maxMs": 149,
+     "workP95Ms": 11,
+     "over50Ms": 6,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry-drive",
+     "p95Ms": 35,
+     "maxMs": 149,
+     "workP95Ms": 11,
+     "over50Ms": 8,
+     "frames": 540,
+     "pass": true
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry",
+     "p95Ms": 34,
+     "maxMs": 41,
+     "workP95Ms": 9,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "label": "desktop after",
+   "sha": "4951c99b9",
+   "surface": "desktop",
+   "when": "2026-10-13T10:04:52.998Z",
+   "settings": {
+    "tier": "desktop",
+    "fps": "auto"
+   },
+   "safariProfile": false,
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-deck-east",
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 2.3,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-crossroads",
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 2.5,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior-travel",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 6.4,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior-drive",
+     "p95Ms": 16.8,
+     "maxMs": 83.4,
+     "workP95Ms": 4.4,
+     "over50Ms": 1,
+     "frames": 2940,
+     "pass": true
+    },
+    {
+     "row": "grid-template-interior",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 3.9,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-template-return-travel",
+     "p95Ms": 16.8,
+     "maxMs": 116.6,
+     "workP95Ms": 4.4,
+     "over50Ms": 2,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-template-return-drive",
+     "p95Ms": 16.8,
+     "maxMs": 116.6,
+     "workP95Ms": 6.1,
+     "over50Ms": 4,
+     "frames": 3030,
+     "pass": false
+    },
+    {
+     "row": "grid-template-return",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 6.4,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "p95Ms": 16.8,
+     "maxMs": 700,
+     "workP95Ms": 2.6,
+     "over50Ms": 2,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "p95Ms": 16.8,
+     "maxMs": 700,
+     "workP95Ms": 3.9,
+     "over50Ms": 2,
+     "frames": 660,
+     "pass": false
+    },
+    {
+     "row": "grid-nine-dragon-stack-road-entry",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 4.1,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry-travel",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 3.4,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry-drive",
+     "p95Ms": 16.7,
+     "maxMs": 50,
+     "workP95Ms": 5.5,
+     "over50Ms": 0,
+     "frames": 4140,
+     "pass": true
+    },
+    {
+     "row": "grid-far-reach-road-entry",
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 4.5,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.8,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "p95Ms": 16.7,
+     "maxMs": 33.5,
+     "workP95Ms": 6.7,
+     "over50Ms": 0,
+     "frames": 960,
+     "pass": true
+    },
+    {
+     "row": "grid-nalati-grasslands-road-entry",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 6.7,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 4.7,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 10.8,
+     "over50Ms": 0,
+     "frames": 990,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 9.6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry-travel",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 3.7,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry-drive",
+     "p95Ms": 16.7,
+     "maxMs": 33.3,
+     "workP95Ms": 4.7,
+     "over50Ms": 0,
+     "frames": 780,
+     "pass": true
+    },
+    {
+     "row": "grid-sunscar-dunes-road-entry",
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 4.2,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry-travel",
+     "p95Ms": 16.8,
+     "maxMs": 83.3,
+     "workP95Ms": 6.5,
+     "over50Ms": 1,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry-drive",
+     "p95Ms": 16.7,
+     "maxMs": 83.3,
+     "workP95Ms": 9.1,
+     "over50Ms": 1,
+     "frames": 900,
+     "pass": true
+    },
+    {
+     "row": "grid-driftwood-isle-road-entry",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 8.6,
+     "over50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  }
+ ]
+}
