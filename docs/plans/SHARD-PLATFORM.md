@@ -481,14 +481,14 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G417+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G418+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
 - [design-system.md](shard-platform/design-system.md): the shardfile design system, the route for the rest of Part A (G319).
 - [open-x-queue.md](shard-platform/open-x-queue.md): the open engineering (X) queue.
 - [red-green.md](shard-platform/red-green.md): the push / CI / deploy red → green log (G330).
-- [wall-clock-plan.md](shard-platform/wall-clock-plan.md): SF74, stop wasting wall-clock time.
-- [kit-commons-audit.md](shard-platform/kit-commons-audit.md): the kit audit and the commons design (SF54 / SF26).
-- [mockup-wave-E449.md](shard-platform/mockup-wave-E449.md), [mockup-wave-E450.md](shard-platform/mockup-wave-E450.md): the 2026-10-04 mockup and decision waves.
+- [wall-clock-plan.md](../../project/archive/2026-10-13-shard-platform-side/wall-clock-plan.md): SF74, stop wasting wall-clock time.
+- [kit-commons-audit.md](../../project/archive/2026-10-13-shard-platform-side/kit-commons-audit.md): the kit audit and the commons design (SF54 / SF26).
+- [mockup-wave-E449.md](../../project/archive/2026-10-13-shard-platform-side/mockup-wave-E449.md), [mockup-wave-E450.md](../../project/archive/2026-10-13-shard-platform-side/mockup-wave-E450.md): the 2026-10-04 mockup and decision waves.
 - [lanes/](shard-platform/lanes/README.md): the lane briefs; [reviews/](shard-platform/reviews/register.md): the four councils' registers (all closed).
