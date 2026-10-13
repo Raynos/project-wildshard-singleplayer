@@ -82,3 +82,11 @@ neither a retained grid nor runtime code seeds the producer. A missing
 collider, a product of another seed or no loader refuses entry. Native
 actor/prompt authoring retains its original analytic f64 placement queries
 through `signalAuthorGround`; the client reads the baked collider.
+
+The documented `shard.config.ts` entry imports its author-only declaration
+from `generators/product.ts`. The complete `signal-product` job shares SDK
+admission and immutable emission with normal builds. Its 87 comparison
+pins are report-only: they never restore or authorise removal. Curated
+`assets/map.webp` and `data/productMap.json` freeze the official map raster
+and stamp; refresh both after an official map bake. The live stale-map gate
+still refuses a changed world or image.
