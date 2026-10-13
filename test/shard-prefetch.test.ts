@@ -1,3 +1,4 @@
+import { bootLateReads } from '../src/engine/boot/filePolicy';
 /**
  * E158 — the background download of the other shards (src/engine/boot/shardPrefetch.ts). The list it fetches must be the list a
  * boot of that shard requests on this tier, or the first switch downloads what the prefetch missed (or the prefetch fills
@@ -164,7 +165,7 @@ describe('lateReads and the ?v= URLs (E160)', () => {
         const late = sp.lateReads(def);
         for (const u of late) expect(new URL(u, 'http://x').pathname in PUBLIC_BYTES, `${def.slug} ${u}`).toBe(true);
         if (def.load === undefined) expect(late.length, `${def.slug} (${tier})`).toBeGreaterThan(3);
-        else expect(late, `${def.slug} (${tier}): only declared late reads`).toEqual((def.boot?.lateReads?.(tier) ?? []).map(versionedUrl));
+        else expect(late, `${def.slug} (${tier}): only declared late reads`).toEqual(bootLateReads(def.boot?.lateReads, tier).map(versionedUrl));
       }
     }
   });

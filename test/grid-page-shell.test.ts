@@ -1,3 +1,4 @@
+import { bootFileList } from '../src/engine/boot/filePolicy';
 import { expect, it, vi } from 'vitest';
 import { Scene } from 'three';
 import type { SkyBackdropContext } from '../src/engine/render/look';
@@ -29,7 +30,7 @@ it('keeps catalogue identity while excluding every resident home asset and autho
   expect(shell.treeCount).toBe(0); expect(shell.trees.factory).toBe('none'); expect(shell.spawns).toEqual([]);
   expect(shell.species).toEqual([]); expect(shell.sky.planet).toBeUndefined(); expect(shell.sky.hdri).toBeUndefined();
   expect(Object.values(chunkFiles(shell)).flat()).toEqual([]);
-  expect(shell.boot?.files('phone')).toEqual([]); expect(shell.audio?.preload).toBeUndefined();
+  expect(shell.boot === undefined ? undefined : bootFileList(shell.boot.files, 'phone')).toEqual([]); expect(shell.audio?.preload).toBeUndefined();
   expect(shell.loadout?.weapons).toEqual([]); expect(shell.loadout?.start).toEqual(['tool.hoverboard']);
   expect(level.id).toBe('platform.grid'); expect(needsTerrainCollider(level)).toBe(false);
   expect(navmeshUrl(level.id)).toBeNull(); expect(level.creatures).toBeUndefined(); expect(level.roster).toBeUndefined();

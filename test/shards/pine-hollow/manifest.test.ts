@@ -1,3 +1,4 @@
+import { bootFileList } from '../../../src/engine/boot/filePolicy';
 import { expect, it } from 'vitest';
 import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import { bootSources, worldReads } from '../../../src/shards/pine-hollow/boot/files';
@@ -40,7 +41,7 @@ it.each(['phone', 'desktop'] as const)('preserves the frozen %s image and KTX2 b
     expect(sets).toEqual(tex === 'ktx2' ? Object.values(bakedViewmodel[tier]).sort() : []);
     expect(sets).toHaveLength(tex === 'ktx2' ? 12 : 0);
   }
-  const declared = PINE_HOLLOW.boot?.files(tier) ?? [];
+  const declared = PINE_HOLLOW.boot === undefined ? [] : bootFileList(PINE_HOLLOW.boot.files, tier);
   expect(Object.values(before[tier].img).flat().every((url) => declared.includes(url))).toBe(true);
   expect(worldReads(tier).every((url) => declared.includes(url))).toBe(true);
 });

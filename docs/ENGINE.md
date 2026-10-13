@@ -3871,3 +3871,25 @@ its actor-owned hooks after that join. Include its modules and entity handles
 in the existing aggregate admission. Item responses are consumed on the
 following tick; sleeping numeric-role input stays charged across restore.
 The owning composition advances the single clock and all shared allowances.
+
+
+### Ordered boot declarations
+
+`BootSpec.sources` accepts `BootSourceRows`: a `tiers.phone` and
+`tiers.desktop` record of the ten ordinary source categories. Each ordered
+entry is a URL or `{ gpu: url }`. `bootSourceFiles` in
+`engine/boot/filePolicy` resolves GPU entries with the existing phone and
+texture policy at consumption; plain URLs remain unchanged. Duplicates and
+category order are retained. The optional `gpuFiles` table supplies the
+level's stand-ins alongside the engine table.
+
+`BootSpec.files` accepts a URL array or `{ sources, tier, tex }`, resolved by
+`bootFileList`. The fixed selection preserves inventories which intentionally
+use phone/image sources even for desktop accounting. `lateReads` accepts an
+ordered URL array, resolved by `bootLateReads`. Callable legacy inventories
+retain their original arguments and results. Both Sky and Signal consume
+these declarations; frozen manifests remain callable.
+
+These are native level boot rows, not a second untrusted asset-admission
+path. A compiled shardfile's files must still pass its content and cost
+admission before the data client can read them.

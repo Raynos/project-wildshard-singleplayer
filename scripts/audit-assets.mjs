@@ -75,6 +75,7 @@ if (tier) {
   const { prepareShardAssets } = await import('../src/game/shard/load.ts');
   const { registerGpuFiles, autoTexturePolicy } = await import('../src/engine/boot/gpuFiles.ts');
   const { imagesFirstPlayingBytes } = await import('../src/game/grid/runtimeCost.ts');
+  const { bootFileList, bootSourceFiles, bootLateReads } = await import('../src/engine/boot/filePolicy.ts');
   const { chunkFiles } = await import('../src/engine/boot/manifest.ts');
   const { resolveBootAudio } = await import('../src/engine/boot/audioInventory.ts');
   const { bootFetches } = await import('../src/engine/boot/prefetch.ts');
@@ -96,12 +97,12 @@ if (tier) {
     for (const image of shown) if (!art.includes(image)) throw new Error(`${manifest.slug}: Explore image absent from boot.explore.art: ${image}`);
     const table = manifest.ktx2 ? (await manifest.ktx2()).GPU_FILES[tier] : {};
     const gpu = { ...shared[tier], ...table };
-    const img = boot.sources(tier, 'img'), ktx = boot.sources(tier, 'ktx2');
+    const img = bootSourceFiles(boot.sources, tier, 'img'), ktx = bootSourceFiles(boot.sources, tier, 'ktx2');
     const mode = autoTexturePolicy(manifest.tiers?.[tier]?.textures, imagesFirstPlayingBytes(manifest.runtimeCost))?.mode ?? 'img';
     const packFiles = bootFetches(manifest, chunkFiles(manifest, mode));
     const pack = Object.hasOwn(PACKS, manifest.slug) ? PACKS[manifest.slug]?.[tier] : undefined;
     const packed = pack === undefined ? [] : pack.files.map(([path]) => path);
-    rows.push({ slug: manifest.slug, tier, files: [...new Set([...boot.files(tier), ...Object.values(img).flat(), ...(boot.lateReads?.(tier, 'img') ?? []), ...(boot.precache ?? []), ...art, ...Object.values(manifest.card).filter((value) => typeof value === 'string' && value.startsWith('/src/')), ...audio])], packFiles: [...new Set(packFiles)], packed, gpu, ktxFiles: [...new Set([...Object.values(ktx).flat(), ...(boot.lateReads?.(tier, 'ktx2') ?? [])])] });
+    rows.push({ slug: manifest.slug, tier, files: [...new Set([...bootFileList(boot.files, tier), ...Object.values(img).flat(), ...bootLateReads(boot.lateReads, tier, 'img'), ...(boot.precache ?? []), ...art, ...Object.values(manifest.card).filter((value) => typeof value === 'string' && value.startsWith('/src/')), ...audio])], packFiles: [...new Set(packFiles)], packed, gpu, ktxFiles: [...new Set([...Object.values(ktx).flat(), ...bootLateReads(boot.lateReads, tier, 'ktx2')])] });
   }
   process.stdout.write(JSON.stringify(rows));
 } else if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

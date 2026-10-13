@@ -1,4 +1,5 @@
 import { publicBytes } from './tables';
+import { bootLateReads } from './filePolicy';
 import { pageScope } from '../app/resources';
 import { saveStorage } from '../saves/slots';
 import { prepareBootAudio } from './audioInventory';
@@ -70,7 +71,7 @@ export function shardBootRequests(def: BootLevel, tex: TexMode = texMode()): str
  * downloaded ~1–4 MB of them. Each name comes from the module that loads it; a file the build does not ship is left out.
  */
 export function lateReads(def: BootLevel, tex: TexMode = texMode()): string[] {
-  const out: string[] = [...(def.boot?.lateReads?.(TIER, tex) ?? [])];
+  const out: string[] = [...bootLateReads(def.boot?.lateReads, TIER, tex)];
   const lut = lutUrl(def.slug);
   if (lut !== null) out.push(lut);
   const strips = horizonStrips(def);

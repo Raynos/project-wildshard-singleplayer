@@ -1,3 +1,4 @@
+import { bootFileList } from '../../../src/engine/boot/filePolicy';
 import { afterEach, describe, expect, it } from 'vitest';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { SHARDS } from '../../../src/shards.generated';
@@ -15,7 +16,7 @@ afterEach(() => { initializeTier(originalTier); });
 describe('Nine Dragon full shard manifest', () => {
   it.each(['phone', 'desktop'] as const)('declares byte-counted %s files and a complete world pack', (tier) => {
     initializeTier(tier);
-    const files = manifest.boot?.files(tier);
+    const files = manifest.boot === undefined ? undefined : bootFileList(manifest.boot.files, tier);
     if (files === undefined) throw new Error('Nine Dragon must declare its boot');
     expect(files.length).toBeGreaterThan(0);
     expect(new Set(files).size).toBe(files.length);

@@ -1,3 +1,4 @@
+import { bootSourceFiles } from '../src/engine/boot/filePolicy';
 import { imagesFirstPlayingBytes } from '../src/game/grid/runtimeCost';
 import { saveFixture } from './fake/saveFixture';
 /**
@@ -77,7 +78,7 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
     expect(phone.gf.texModeWhy()).toMatchObject({ mode: 'ktx2', why: 'auto: level tier texture policy' });
     const def = phone.def, sources = def?.boot?.sources;
     if (def === undefined || sources === undefined) throw new Error('far-reach: no boot sources');
-    const props = sources('phone', phone.gf.texMode()).props;
+    const props = bootSourceFiles(sources, 'phone', phone.gf.texMode()).props;
     const hd = props.filter((url) => url.startsWith('/assets/gpu/far-reach/'));
     expect(hd).toHaveLength(22);
     // no images GLB of an HD model on the phone's default boot (the faceted C6 models have no KTX2 stand-in and stay)

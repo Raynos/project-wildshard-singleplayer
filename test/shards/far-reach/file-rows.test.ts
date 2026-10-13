@@ -2,7 +2,9 @@
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import * as files from '../../../src/shards/far-reach/data/files';
-import manifest, { bootSources, bootFiles, lateReads } from '../../../src/shards/far-reach/manifest';
+import manifest from '../../../src/shards/far-reach/manifest';
+import { BOOT_SOURCES, BOOT_FILES, LATE_READS } from '../../../src/shards/far-reach/data/boot';
+import { bootSourceFiles, bootFileList } from '../../../src/engine/boot/filePolicy';
 
 it('declares the empty boot audio inventory as serializable data', () => {
   expect(manifest.boot?.audio).toEqual([]);
@@ -10,8 +12,8 @@ it('declares the empty boot audio inventory as serializable data', () => {
 });
 
 it('retains every ordered desktop/phone image/KTX2 boot URL and late read', () => {
-  const sources = (['desktop', 'phone'] as const).flatMap(tier => (['img', 'ktx2'] as const).map(texture => bootSources(tier, texture)));
-  const digest = createHash('sha256').update(JSON.stringify({ sources, boot: bootFiles(), late: lateReads() })).digest('hex');
+  const sources = (['desktop', 'phone'] as const).flatMap(tier => (['img', 'ktx2'] as const).map(texture => bootSourceFiles(BOOT_SOURCES, tier, texture)));
+  const digest = createHash('sha256').update(JSON.stringify({ sources, boot: bootFileList(BOOT_FILES, 'phone'), late: LATE_READS })).digest('hex');
   expect(digest).toBe('e3fa0ea8057493831588a0d385bad4ea7ae891156318dc7ebaa4571bef08b288');
 });
 it('publishes only finite JSON data and resolves every model, rig and generated piece name', () => {

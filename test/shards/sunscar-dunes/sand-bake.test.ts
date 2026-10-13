@@ -7,7 +7,8 @@ import { unzlibSync } from 'fflate';
 import { bakeSandFiles, bakeSignalSand, SAND_ZSTD_LEVEL } from '../../../src/shards/sunscar-dunes/generators/sand';
 import { GRAIN_TILE, SAND_FILES, SAND_MAP } from '../../../src/shards/sunscar-dunes/data/sand';
 import sandMeans from '../../../src/shards/sunscar-dunes/data/sand.json' with { type: 'json' };
-import { bootFiles } from '../../../src/shards/sunscar-dunes/boot/files';
+import { BOOT_FILES } from '../../../src/shards/sunscar-dunes/data/boot';
+import { bootFileList } from '../../../src/engine/boot/filePolicy';
 import { SKIRT } from '../../../src/shards/sunscar-dunes/look/render';
 import sandMaps from '../../../src/shards/sunscar-dunes/data/sandMaps.json' with { type: 'json' };
 import source from '../../../src/shards/sunscar-dunes/shard.config';
@@ -37,7 +38,7 @@ describe('Signal Dunes bakes its sand maps offline (SHARD-PLATFORM SF72, RENDERI
     expect(JSON.stringify(skirtRows)).toBe(JSON.stringify(skirt.rows));
     // the folder holds exactly this bake, and the boot fetches every map
     expect(readdirSync('public/assets/sunscar-dunes/sand')).toEqual(['skirt.bin']);
-    for (const url of Object.values(SAND_FILES)) expect(bootFiles()).toContain(url);
+    for (const url of Object.values(SAND_FILES)) expect(bootFileList(BOOT_FILES, 'phone')).toContain(url);
   });
 
   it('each map is a single-level zstd-supercompressed KTX2 whose decoded level 0 is the bake byte for byte, a library file of the sand look', () => {

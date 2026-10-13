@@ -1,3 +1,4 @@
+import { bootFileList } from '../src/engine/boot/filePolicy';
 // E357 F6: all authored manifest data and sampled analytic terrain match the pre-move fixtures.
 import { describe, expect, it } from 'vitest';
 import { exploreArt } from '../src/engine/level/data';
@@ -3265,7 +3266,7 @@ function originalShape(m: (typeof SHARDS)[number], fixture: (typeof ORIGINAL)[nu
     // G172: the sea shipped lowered with the world, so the original level is the shipped one less the field's datum
     ...(m.ocean === undefined ? {} : { ocean: { ...m.ocean, level: m.ocean.level - (ground.terrain?.datum ?? 0) } }),
     ...(minimap === undefined ? {} : { map: minimap }),
-    ...(ground.structures === undefined ? {} : { structures: ground.structures === true ? { files: m.boot?.files('phone'), build: () => undefined } : ground.structures }),
+    ...(ground.structures === undefined ? {} : { structures: ground.structures === true ? { files: m.boot === undefined ? undefined : bootFileList(m.boot.files, 'phone'), build: () => undefined } : ground.structures }),
     ...(m.render === undefined || !('render' in fixture) ? {} : { render: m.render }),
     ...(camera === undefined ? {} : { fov: { portrait: camera.portraitFov } }),
     ...(fight?.maxHitDamage === undefined ? {} : { maxHitDamage: fight.maxHitDamage }),

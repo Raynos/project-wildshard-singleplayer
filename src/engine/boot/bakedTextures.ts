@@ -13,6 +13,7 @@
  * ones via `commonTexture`.
  */
 import { publicBytes } from './tables';
+import { bootFileList } from './filePolicy';
 import * as THREE from 'three';
 import { fetchImage, tierUrl, versionedUrl } from './bytes';
 import { TIER } from '../core/tier';
@@ -51,7 +52,7 @@ export async function preloadBakedTextures(): Promise<number> {
   const level = activeLevel();
   const slug = levelBakedId(level);
   const urls = bakedTextureUrls(slug, level.boot.bakedUnread);
-  const common = level.boot.files(TIER).filter((u) => u.startsWith(COMMON) && u.endsWith('.bin'));
+  const common = bootFileList(level.boot.files, TIER).filter((u) => u.startsWith(COMMON) && u.endsWith('.bin'));
   await Promise.all([...common.map(async (u) => {
     try {
       const r = await fetch(versionedUrl(u));

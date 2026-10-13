@@ -8,7 +8,7 @@ import { BUDGETS } from './data/budgets';
 import { SIGNAL_DUNES_RUNTIME_COST } from './data/runtimeCost';
 import { DUSK_CARD } from './thumbs/card';
 import { EXPLORE } from './explore/art';
-import { bootFiles, bootSources, lateReads } from './boot/files';
+import { BOOT_FILES, BOOT_SOURCES, LATE_READS } from './data/boot';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import groundQueries from './data/manifestGround.generated.json' with { type: 'json' };
 import { mapPalette } from '@wildshard/format/minimap';
@@ -40,7 +40,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   minimap: { image: '/assets/sunscar-dunes/map/top.webp', palette: mapPalette(SIGNAL_DUNES_MAP) }, // the map baked from the world (SF66); the palette paints the grid's edges (data/minimap.ts)
   render: async () => (await import('./look/render')).signalDunesLook(),
   audio: { ambience: 'none', score: 'sunscar.silent', cues: CUES },
-  boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, lateReads, viewmodelSets: [], shaders: { background: false }, audio: [], precache: [] },
+  boot: { explore: { art: Object.values(EXPLORE.art) }, files: BOOT_FILES, sources: BOOT_SOURCES, lateReads: LATE_READS, viewmodelSets: [], shaders: { background: false }, audio: [], precache: [] },
   dev: { poses: () => Promise.resolve({
     spawn: { eye: eye(SPAWN.x, SPAWN.z, heights.spawn), feet: feet(SPAWN.x, SPAWN.z, heights.spawn), yaw: 0, pitch: 2, mockup: 'art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg', frame: STRINGS.frameSpawn },
     whip: { eye: eye(SPAWN.x, SPAWN.z - 4, heights.whip), feet: feet(SPAWN.x, SPAWN.z - 4, heights.whip), yaw: -20, pitch: -4, mockup: '', frame: STRINGS.frameWhip },

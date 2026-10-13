@@ -6,20 +6,8 @@ import { BUDGETS, SKY_REACH_RUNTIME_COST } from './data/budgets';
 import { CROWN, DECK, HIGH, KEEPER, ROOST, SKY_REACH_MAP, SPAWN, STEP, WINDMILL } from './data/layout';
 import { SKY_CARD } from './data/card';
 import { EXPLORE } from './data/explore';
-import { filePolicy } from '@wildshard/engine/boot/filePolicy';
-import { GPU_FILES } from './ktx2.generated';
-import { SKY_CREATURES, SKY_CREATURE_RIGS, SKY_MESHES, MODEL_URLS, SKY_HD, HD_URLS, BAKED_PIECES, BAKED_URLS, BRIDGES_URL, ISLES_URL, FAN_URL, MILL_MODEL_URL, SWARD_ATLAS_URL, TEX_URL, FAN_LEAF_URL, PANO_URL } from './data/files';
+import { BOOT_SOURCES, BOOT_FILES, LATE_READS } from './data/boot';
 import { mapPalette } from '@wildshard/format/minimap';
-
-/** Sky Reach downloads its painted sky (look/sky.ts), its generated models (C6, `world/meshes.ts`), its baked world pieces (`world/baked.ts`) and creature bodies (`species/bodies.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
-// The HD models name their KTX2 stand-ins when this boot loads KTX2 (the phone's default, G253, manifest.ts): images otherwise.
-export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = (tier, tex) => ({
-  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(name => MODEL_URLS[name]), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(HD_URLS[name])), ...BAKED_PIECES.map(piece => BAKED_URLS[piece]), BRIDGES_URL, ISLES_URL, FAN_URL, MILL_MODEL_URL, SWARD_ATLAS_URL,
-    ...SKY_CREATURES.map((creature) => filePolicy(tier, tex, GPU_FILES).gpu(SKY_CREATURE_RIGS[creature]))], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
-});
-export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
-/** What the shard reads after its boot: the learned grade (look/render.ts loadLUT; art/far-reach/round-29-lut/). */
-export const lateReads = (): readonly string[] => ['/assets/lut/far-reach.bin'];
 
 export const SKY_REACH: ShardManifest = {
   ...SKY_DISCOVERY, slug: 'far-reach',
@@ -46,7 +34,7 @@ export const SKY_REACH: ShardManifest = {
   render: async () => (await import('./look/render')).skyReachLook(), spawns: [],
   ktx2: () => import('./ktx2.generated'),
   audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./data/cues')).CUES },
-  boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, lateReads, viewmodelSets: [], shaders: { background: false }, audio: [], precache: [] },
+  boot: { explore: { art: Object.values(EXPLORE.art) }, files: BOOT_FILES, sources: BOOT_SOURCES, lateReads: LATE_READS, viewmodelSets: [], shaders: { background: false }, audio: [], precache: [] },
   dev: { poses: () => Promise.resolve({
     spawn: { eye: [SPAWN.x, DECK + 1.7, SPAWN.z], feet: [SPAWN.x, DECK, SPAWN.z], yaw: 0, pitch: 0, mockup: 'art/far-reach/round-1-proposals/B-sky-reach.jpg', frame: 'Spawn: Sunrest, the windmill isle across the gap' },
     hover: { eye: [12, DECK + 1.7, -2.5], feet: [12, DECK, -2.5], yaw: 80, pitch: -6, mockup: '', frame: 'The hover bridge to the Roost' },

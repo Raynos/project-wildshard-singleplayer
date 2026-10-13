@@ -3,7 +3,7 @@ import type { SetName } from '../player/viewmodelTextures';
 import type { FallCause } from '../combat/pipeline';
 import type { HorizonStrips } from '../world/HorizonMatte';
 import type { ByteKey } from '../boot/steps';
-import type { TexMode } from '../boot/gpuFiles';
+import type { Ktx2Table, TexMode } from '../boot/gpuFiles';
 import type { ChunkFiles } from '../boot/bytes';
 import type { LookStrategy } from '../render/look';
 import type { WaterBody } from '../world/water/body';
@@ -35,14 +35,23 @@ export interface AudioSpec {
   cues?: Readonly<Record<string, string>> | (() => Promise<object>);
   preload?: () => Promise<LevelAudioProfile>;
 }
+/** Ordered source URLs; a GPU reference uses the existing tier/texture file policy. */
+export type BootSourceReference = string | { readonly gpu: string };
+/** Serializable sources for both render tiers, resolved when boot chooses its texture mode. */
+export interface BootSourceRows {
+  readonly tiers: Readonly<Record<Tier, Readonly<Record<ByteKey, readonly BootSourceReference[]>>>>;
+  readonly gpuFiles?: Ktx2Table;
+}
+/** A flattened file inventory from a fixed source tier and texture mode. */
+export interface BootFileSelection { readonly sources: BootSourceRows; readonly tier: Tier; readonly tex: TexMode }
 export interface BootSpec {
   viewmodelSets?: readonly SetName[];
   shaders?: { scene?: boolean; shadows?: boolean; background?: boolean; post?: boolean };
   /** The plugin runs grass, cabins and props as separate counted world steps. */
   stagedWorld?: boolean;
-  lateReads?: (tier: Tier, tex?: TexMode) => readonly string[];
-  files: (tier: Tier) => readonly string[];
-  sources?: (tier: Tier, tex: TexMode) => ChunkFiles;
+  lateReads?: readonly string[] | ((tier: Tier, tex?: TexMode) => readonly string[]);
+  files: readonly string[] | BootFileSelection | ((tier: Tier) => readonly string[]);
+  sources?: BootSourceRows | ((tier: Tier, tex: TexMode) => ChunkFiles);
   bakedUnread?: RegExp;
   steps?: Readonly<Record<string, { label: string; weight: number }>>;
   bytes?: Readonly<Partial<Record<ByteKey, string>>>;
