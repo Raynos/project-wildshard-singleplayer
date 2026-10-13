@@ -6,7 +6,7 @@ import { Color } from 'three';
 import { SEED, SPAWN, TOWER, TRAIL } from '../src/shards/sunscar-dunes/data/layout';
 import { SCOUT_AT } from '../src/shards/sunscar-dunes/data/flags';
 import { SAND_TINT } from '../src/shards/sunscar-dunes/data/duneField';
-import { signalManifestGround } from '../src/shards/sunscar-dunes/generators/manifestGround';
+import { signalManifestGround, signalNativeGround } from '../src/shards/sunscar-dunes/generators/manifestGround';
 import { signalDunesTiles } from '../src/shards/sunscar-dunes/generators/tiles';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { duneHeight } from './fixtures/signal-dune-law';
@@ -48,6 +48,17 @@ it('declares the exact cold author closure with no retained seed or runtime impo
   const inputs = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/package.json', 'src/format/package.json', 'src/commons/package.json', 'package.json', 'pnpm-lock.yaml'])].sort();
   expect(job.inputRoots).toEqual(inputs);
   expect(job.seedOutputs).toEqual([]);
-  expect(job.outputs).toEqual(['src/shards/sunscar-dunes/data/manifestGround.generated.json', 'src/shards/sunscar-dunes/data/drapeGround.generated.json']);
-  expect(Object.keys(job.buildOutputs)).toEqual(['src/shards/sunscar-dunes/data/manifestGround.generated.json', 'src/shards/sunscar-dunes/data/drapeGround.generated.json']);
+  expect(job.outputs).toEqual(['src/shards/sunscar-dunes/data/manifestGround.generated.json', 'src/shards/sunscar-dunes/data/drapeGround.generated.json', 'src/shards/sunscar-dunes/data/nativeGround.generated.json']);
+  expect(Object.keys(job.buildOutputs)).toEqual(['src/shards/sunscar-dunes/data/manifestGround.generated.json', 'src/shards/sunscar-dunes/data/drapeGround.generated.json', 'src/shards/sunscar-dunes/data/nativeGround.generated.json']);
+});
+
+it('keeps every native navigation sample on the original WSTR256 Float32 lattice', () => {
+  const actual = signalNativeGround();
+  const native = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
+  const step = actual.size / (actual.res - 1);
+  expect(actual.seed).toBe(SEED);
+  expect(actual.heights).toHaveLength(actual.res * actual.res);
+  for (let i = 0; i < actual.heights.length; i++) {
+    expect(actual.heights[i]).toBe(Math.fround(native.heightAt(-250 + (i % actual.res) * step, -250 + Math.floor(i / actual.res) * step)));
+  }
 });

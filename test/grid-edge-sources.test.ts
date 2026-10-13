@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, it, vi } from 'vitest';
 import skySource from '../src/shards/far-reach/shard.config';
+import signalSource from '../src/shards/sunscar-dunes/shard.config';
 import { generatePlatform } from '../src/engine/sim/strips';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { loadGridEdgeProfiles } from '../src/game/grid/edgeProfiles';
@@ -45,7 +46,7 @@ it('reads Sky Reach (islands over the void, no terrain) as void edges at road le
   expect(Object.values(source.observations).map(row => row.geometry)).toEqual(['void', 'void', 'void', 'void']);
   // the one platform generation admits them: G99's road wall and guard rail along every Sky Reach seam
   const assembly = new GridAssembly({ developer: true, devserver: false }), empty = assembly.emptyNeighbour.edge;
-  const cells = await loadGridEdgeProfiles(assembly.cells, row => readGridEdges(row, { product: () => null, fetch: fetchPublic([]) }));
+  const cells = await loadGridEdgeProfiles(assembly.cells, row => readGridEdges(row, { product: slug => slug === signalSource.identity.slug ? Promise.resolve({ admitted: { source: signalSource } }) : null, fetch: fetchPublic([]) }));
   const strips = generatePlatform(cells, empty);
   const [cx, cz] = cell.cell, seams = [`gap.x.${String(cx - 1)}.${String(cz)}`, `gap.x.${String(cx)}.${String(cz)}`, `gap.z.${String(cx)}.${String(cz - 1)}`, `gap.z.${String(cx)}.${String(cz)}`];
   for (const id of seams) {

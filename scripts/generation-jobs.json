@@ -31,12 +31,14 @@
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/manifestGround.generated.json",
-        "src/shards/sunscar-dunes/data/drapeGround.generated.json"
+        "src/shards/sunscar-dunes/data/drapeGround.generated.json",
+        "src/shards/sunscar-dunes/data/nativeGround.generated.json"
       ],
       "platform": "portable",
       "buildOutputs": {
         "src/shards/sunscar-dunes/data/manifestGround.generated.json": "ffb994ab2122111979074b82014225498393aaa96ed2155cbd620335850fe92f",
-        "src/shards/sunscar-dunes/data/drapeGround.generated.json": "c1dbe2b271b285aa11f16a621af3fc215141b272a619df25ab827f42032bc905"
+        "src/shards/sunscar-dunes/data/drapeGround.generated.json": "c1dbe2b271b285aa11f16a621af3fc215141b272a619df25ab827f42032bc905",
+        "src/shards/sunscar-dunes/data/nativeGround.generated.json": "0d5a5f383d9cdf11ca014cb62e9a7c5b433f04ad435b4952dea36cc4e57c9efe"
       }
     },
     {

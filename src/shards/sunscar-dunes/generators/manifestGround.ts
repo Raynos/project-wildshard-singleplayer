@@ -39,3 +39,13 @@ export function signalDrapeGround(): { version: 1; res: 256; size: 500; patches:
   return { version: 1, res: 256, size: 500, patches: [block(CARAVAN.x, CARAVAN.z, 16), ...BRAZIERS.map((at) => block(at.x, at.z, 12))] };
   });
 }
+
+/** The complete original WSTR256 height lattice for native navigation. The
+ * recipe uses the retained 500 m Float32 law; it reads no old binary or cache. */
+export function signalNativeGround(): { version: 1; res: 256; size: 500; seed: number; heights: number[] } {
+  return withPortableMath(() => {
+    const height = signalHeightAt(), res = 256, step = 500 / (res - 1);
+    return { version: 1, res, size: 500, seed: SEED,
+      heights: Array.from({ length: res * res }, (_, i) => Math.fround(height(-250 + (i % res) * step, -250 + Math.floor(i / res) * step))) };
+  });
+}

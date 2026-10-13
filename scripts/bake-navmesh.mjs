@@ -68,6 +68,7 @@ const registry = await src('game/shard/registry.ts');
 const { SHARDS } = await src('shards.generated.ts');
 const HF = await src('engine/world/Heightfield.ts');
 const BT = await src('engine/world/BakedTerrain.ts');
+const { bakedTerrainSource } = await src('engine/world/bakedTerrainField.ts');
 const { TERRAIN_RES, CHUNK_SIZE } = await src('engine/core/config.ts');
 const { treadBoxes } = await src('engine/physics/pieces.ts');
 
@@ -197,7 +198,8 @@ const output = byteWriter(check, 'bake-navmesh');
 for (const def of SHARDS.filter(registry.playable)) {
   if (only.length > 0 && !only.includes(def.slug)) continue;
   const bakedFile = resolve(ROOT, 'public/assets/baked', def.slug, 'terrain.bin');
-  if (!existsSync(bakedFile) && def.ground.structures === undefined) throw new Error(`bake-navmesh: ${def.slug}/terrain.bin missing — run scripts/bake-chunk.mjs`);
+  const required = def.ground.terrain === undefined ? null : bakedTerrainSource(def.ground.terrain);
+  if (!existsSync(bakedFile) && required === null && def.ground.structures === undefined) throw new Error(`bake-navmesh: ${def.slug}/terrain.bin missing — run scripts/bake-chunk.mjs`);
   const t0 = performance.now();
   registry.setActiveChunk(def.slug);
   if (existsSync(bakedFile)) {
@@ -205,6 +207,17 @@ for (const def of SHARDS.filter(registry.playable)) {
     const grid = BT.parseBakedTerrain(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
     if (!grid) throw new Error(`bake-navmesh: ${def.slug}/terrain.bin does not parse`);
     BT.installBakedGrid(grid); // Admit required manifest ground as well as the selected Heightfield.
+  } else if (required !== null) {
+    const file = resolve(ROOT, 'src/shards', def.slug, 'data/nativeGround.generated.json');
+    const row = JSON.parse(readFileSync(file,'utf8'));
+    if (row.version !== 1 || row.res !== 256 || row.size !== 500 || row.seed !== required.seed
+      || !Array.isArray(row.heights) || row.heights.length !== 256 ** 2
+      || row.heights.some(value => !Number.isFinite(value) || Math.abs(value) > 250 || Math.fround(value) !== value)) {
+      throw new Error(`Required navigation ground ${def.slug} has invalid recipe samples`);
+    }
+    const splat = new Uint8Array(256 ** 2 * 4);
+    for (let i = 0; i < 256 ** 2; i++) splat[i * 4] = 255;
+    BT.installBakedGrid({res:256,size:500,seed:row.seed,landscapeHash:0,heights:Float32Array.from(row.heights),splat,undergrowth:null});
   }
   const { colliders, ground, counts } = await shardColliders(def);
   if (process.env.NAVMESH_DUMP) { // debugging: NAVMESH_DUMP=x,z,r prints the colliders centred within r m of (x, z)
