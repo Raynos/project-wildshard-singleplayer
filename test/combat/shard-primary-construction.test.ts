@@ -1,3 +1,5 @@
+import { bindMeleeContacts } from '../../src/game/plugin/simulation';
+import { SKY_ITEMS } from '../../src/shards/far-reach/data/items';
 // @vitest-environment happy-dom
 import * as THREE from 'three';
 import ts from '@typescript/typescript6';
@@ -56,7 +58,7 @@ const constructors: Record<string, (fixture: Fixture) => readonly Weapon[]> = {
     wood: SWORD_WOOD, iron: SWORD_IRON, swordRig, woodArms: {}, ironArms: undefined,
   }),
   'far-reach': ({ services }) => callerWeapons('src/shards/far-reach/runtime/index.ts', 'WarFan', {
-    WarFan, ctx: { app: services }, targets: () => [],
+    WarFan, ctx: { app: services }, targets: () => [], bindMeleeContacts, row: SKY_ITEMS.rows[0],
   }),
   'nalati-grasslands': ({ world: f }) => {
     const kit = buildNalatiLoadout({ ...f, game: f.game.asGame() }, emptyTargets, true);

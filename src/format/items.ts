@@ -64,6 +64,10 @@ export function itemRules(items: ShardItems, modules?: readonly string[]): strin
   const errors: string[] = [], ids = items.rows.map((r) => r.id), weapons = items.rows.filter((r) => r.kind === 'weapon');
   const runtimeContexts = items.runtimeContexts ?? [];
   if (weapons.some(row => row.profile !== undefined && !row.family.includes('.') && row.family !== row.profile.family && !(row.family === 'swept' && row.profile.family === 'melee'))) errors.push('weapon profile matches declared family');
+  if (weapons.some(row => row.profile?.family === 'cone' && (row.light.range !== row.heavy.range
+    || row.light.width !== row.heavy.width || row.light.width > Math.PI || row.light.effect !== null || row.heavy.effect !== null
+    || row.light.tags.length !== row.heavy.tags.length || row.light.tags.some((value, index) => value !== row.heavy.tags[index]))))
+    errors.push('cone slashes require one shared contact shape and tags');
   if (weapons.some(row => row.secondary !== undefined && (row.hook === null
     || row.contacts?.[row.secondary.move]?.lane !== 'secondary'))) errors.push('scripted secondary references an admitted hook and secondary contact');
   if (weapons.some(row => row.native !== undefined && (row.contacts === undefined || row.native.actions.some(action => {
