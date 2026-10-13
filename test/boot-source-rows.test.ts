@@ -4,15 +4,24 @@ import { createHash } from 'node:crypto';
 import { bootFileList, bootLateReads, bootSourceFiles } from '../src/engine/boot/filePolicy';
 import { installAssetTables } from '../src/engine/boot/tables';
 import type { BootSourceRows } from '../src/engine/level/spec';
+import EXPECTED_SIGNAL_FILES from './fixtures/signal-boot-files.json' with { type: 'json' };
 import { BOOT_SOURCES, BOOT_FILES, LATE_READS } from '../src/shards/sunscar-dunes/data/boot';
 
 const slot = Symbol.for('engine.asset-tables'), original: unknown = Reflect.get(globalThis, slot);
 afterEach(() => { Reflect.set(globalThis, slot, original); });
 
-it('keeps every Signal tier/texture inventory and late read equal to its original committed callbacks', () => {
+it('pins every Signal tier/texture inventory and late read after the static well bake', () => {
   const sources = (['desktop', 'phone'] as const).flatMap(tier => (['img', 'ktx2'] as const).map(tex => bootSourceFiles(BOOT_SOURCES, tier, tex)));
   const value = { sources, files: bootFileList(BOOT_FILES, 'phone'), late: LATE_READS };
-  expect(createHash('sha256').update(JSON.stringify(value)).digest('hex')).toBe('022c2a16dcb90fdef9fa4bb47b14196cae5a4521876b62bc3bbd6c96818f6481');
+  // 7c279ff1d moves the shell into baked/well.glb and retires the raw well preload.
+  expect(value.files).toStrictEqual(EXPECTED_SIGNAL_FILES);
+  expect(createHash('sha256').update(JSON.stringify(value)).digest('hex')).toBe('a041c403af2bde8853ebc4395f59e6642297435e60a5c8f6e3eabad42a46d5a2');
+  for (const source of sources) {
+    expect(source.props).not.toContain('/assets/sunscar-dunes/models/dry-well/dry-well.glb');
+    expect(source.props).toContain('/assets/sunscar-dunes/baked/well.glb');
+  }
+  expect(value.files).not.toContain('/assets/sunscar-dunes/models/dry-well/dry-well.glb');
+  expect(value.files).toContain('/assets/sunscar-dunes/baked/well.glb');
 });
 
 it('resolves phone and GPU variants at consumption, preserving order, duplicates and plain URLs', () => {

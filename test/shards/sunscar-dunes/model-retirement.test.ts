@@ -39,7 +39,9 @@ it('keeps live Dunes model users valid and reconstructs evicted source caches on
       expect(page.allocator.cost().input.commons).toBeGreaterThan(0);
       const covered = page.allocator.entries().filter(row => row.coveredBy !== undefined);
       expect(covered.reduce((sum, row) => sum + row.bytes, 0)).toBeLessThanOrEqual(512);
-      const hero = duneHd('horse-hd', { size: 2, by: 'height' }), faceted = duneMesh('dry-well');
+      // 7c279ff1d bakes the well: exercise the still-live scout facet cache.
+      expect(duneMesh('dry-well')).toBeNull();
+      const hero = duneHd('horse-hd', { size: 2, by: 'height' }), faceted = duneMesh('caravan-scout');
       if (hero === null || faceted === null) throw new Error('Missing parsed Signal Dunes models');
       let map: Texture | undefined;
       hero.traverse(node => { if (node instanceof Mesh && node.material instanceof MeshStandardMaterial && node.material.map !== null) map = node.material.map; });
@@ -55,7 +57,7 @@ it('keeps live Dunes model users valid and reconstructs evicted source caches on
       expect(duneHd('horse-hd', { size: 2, by: 'height' })).toBeNull();
       faceted.dispose();
       for (const row of app.assets.retained()) if (!initial.has(row.key)) expect(app.assets.evictCached(row.key)).toBe(true);
-      expect(duneMesh('dry-well')).toBeNull();
+      expect(duneMesh('caravan-scout')).toBeNull();
       expect(app.assets.retained().map(row => row.key)).toEqual([...initial]);
       level.dispose(); regional?.release(); page.dispose(); renderer.dispose();
       expect(page.allocator.entries()).toEqual([]);
