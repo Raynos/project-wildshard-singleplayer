@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
-import { SaveStore } from '../src/engine/saves/store';
+import { SaveStore, type SaveKeyDef, type SaveSlot } from '../src/engine/saves/store';
 import { App } from '../src/engine/app/app';
 import { bindRuntimeState, withoutRuntimeRows } from "../src/game/plugin/headless";
 import { installRuntimeState } from '../src/game/shardfile/runtimeState';
@@ -96,4 +96,32 @@ describe('runtime-owned declared state', () => {
       expect(local.getItem(key)).toBe(future); expect(legacy).not.toHaveBeenCalled();
     } finally { scope.dispose(); }
   });
+});
+
+class CountedStore extends SaveStore {
+  reads=0;statuses=0;
+  override define<T>(definition:SaveKeyDef<T>):SaveSlot<T>{
+    const slot=super.define(definition),status=slot.status;
+    if(status===undefined)throw new Error('Expected real save status');
+    return {...slot,read:namespace=>{this.reads++;return slot.read(namespace);},status:namespace=>{this.statuses++;return status(namespace);}};
+  }
+}
+it('caches repeated reads while detecting writes through other bindings and stores, external replacement and reset',()=>{
+  const local=new MemoryStorage(),store=new CountedStore({local}),scope=new Scope('cached-state'),data=source();
+  try{
+    const state=installRuntimeState(store,scope,data,'pine-hollow','ammo.rounds',()=>4);
+    expect(state.read()).toBe(4);const reads=store.reads,statuses=store.statuses;
+    for(let i=0;i<1000;i++)expect(state.read()).toBe(4);
+    expect(store.reads).toBe(reads);expect(store.statuses).toBe(statuses);
+    const other=installRuntimeState(store,scope,data,'pine-hollow','ammo.rounds',()=>99);
+    expect(other.write(9)).toBe(true);expect(state.read()).toBe(9);
+    const anotherStore=new SaveStore({local}),external=installRuntimeState(anotherStore,scope,data,'pine-hollow','ammo.rounds',()=>99);
+    expect(external.write(12)).toBe(true);expect(state.read()).toBe(12);
+    expect(()=>state.write(-1)).toThrow();expect(state.read()).toBe(12);
+    expect(store.resetShard({id:'pine-hollow'})).toBe(true);expect(state.read()).toBe(0);expect(state.write(3)).toBe(false);
+    const key=Array.from({length:local.length},(_,i)=>local.key(i)).find(name=>name?.endsWith('pine-hollow'));
+    if(key===undefined||key===null)throw new Error('Expected source save key');
+    const future=JSON.stringify({keys:{'platform.runtime-state':{v:2,data:'future format'}}});local.setItem(key,future);
+    expect(()=>state.read()).toThrow('newer platform');expect(()=>state.write(5)).toThrow('newer platform');expect(local.getItem(key)).toBe(future);
+  }finally{scope.dispose();}
 });

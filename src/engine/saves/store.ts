@@ -17,6 +17,8 @@ export interface SaveKeyDef<T> {
 }
 export interface SaveSlot<T> { /** Validated existing data, without creating or changing a save. */ peek: (namespace?: string) => T | null;
   /** Storage/admission metadata only; nullable valid values remain distinct from malformed or absent entries. */ status?: (namespace?: string) => 'absent' | 'valid' | 'invalid' | 'future';
+  /** Opaque document revision; observes external storage changes without parsing or validating it. */
+  revision?: (namespace?: string) => number;
   read: (namespace?: string) => T; write: (value: T, namespace?: string) => boolean; reset: (namespace?: string) => void }
 /** Stable local-state identity; an explicit legacy namespace can be copied without depending on a grid cell. */
 export interface SaveInstance { id: string; legacy?: string }
@@ -215,7 +217,15 @@ export class SaveStore {
         return v.safeParse(definition.schema, data).success ? 'valid' : 'invalid';
       } catch { return 'invalid'; }
     };
-    return { peek, status, read, write, reset: (namespace) => { write(definition.initial(), namespace); } };
+    const revisions = new Map<string, { raw: string | null; value: number }>();
+    const revision = (namespace?: string): number => {
+      this.initialize();
+      const name = this.name(definition.scope, namespace), raw = this.get(definition.scope, name), prior = revisions.get(name);
+      if (prior?.raw === raw) return prior.value;
+      const value = (prior?.value ?? 0) + 1;
+      revisions.set(name, { raw, value }); return value;
+    };
+    return { peek, status, revision, read, write, reset: (namespace) => { write(definition.initial(), namespace); } };
   }
   /** Bind local state to an instance; copy legacy keys once missing, preserve target/future entries and retry failed writes. */
   instance<T>(definition: InstanceSaveKeyDef<T>, identity: SaveInstance): InstanceSaveSlot<T> {

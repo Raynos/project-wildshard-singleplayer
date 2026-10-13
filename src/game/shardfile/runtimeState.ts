@@ -23,21 +23,26 @@ export function installRuntimeState(store: SaveStore, scope: Scope, source: Pick
   const live = (): void => { if (scope.disposed) throw new Error('Runtime state owner is disposed'); };
   live();
   const slot = store.define(definition);
+  let cached: v.InferOutput<typeof schema> | undefined, cachedRevision: number | undefined;
   const current = (): v.InferOutput<typeof schema> => {
     live();
+    const revision = slot.revision?.(instance);
+    if (revision !== undefined && cached !== undefined && revision === cachedRevision) return cached;
     if (slot.status?.(instance) === 'future') throw new Error('Runtime state was saved by a newer platform');
     const prior = slot.read(instance);
-    return { state: migrateLogicalState(prior?.state ?? { version: source.state.version, shared: [], players: [] }, source.state, source.migrations),
+    const doc = { state: migrateLogicalState(prior?.state ?? { version: source.state.version, shared: [], players: [] }, source.state, source.migrations),
       initialized: prior?.initialized ?? [] };
+    cached = doc; cachedRevision = slot.revision?.(instance); return doc;
   };
   const change = (value: RuntimeStateValue, initialize: boolean): boolean => {
-    const doc = current(), row = doc.state.shared.find((entry) => entry.id === field.id);
+    const doc = structuredClone(current()), row = doc.state.shared.find((entry) => entry.id === field.id);
     if (row === undefined) throw new Error(`Missing runtime state field: ${key}`);
     row.value = value;
     // Reuse the full state's typed/default/bounds checks before any save mutation.
     doc.state = migrateLogicalState(doc.state, source.state);
     if (initialize && !doc.initialized.includes(field.id)) doc.initialized.push(field.id);
-    return slot.write(doc, instance);
+    const written = slot.write(doc, instance);
+    cached = undefined; cachedRevision = undefined; return written;
   };
   const first = current();
   if (!first.initialized.includes(field.id)) change(legacyRead() ?? field.default, true);

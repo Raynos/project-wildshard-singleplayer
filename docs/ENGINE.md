@@ -897,8 +897,14 @@ All persistent state goes through `SaveStore` (`app.saves`, also exported as `sa
 
 ```ts
 interface SaveKeyDef<T> { key: string; scope: SaveScope; version: number; schema: v.GenericSchema<T>; initial: () => T; migrate?: … }
-interface SaveSlot<T> { peek(ns?): T | null; read(ns?): T; write(value: T, ns?): boolean; reset(ns?): void }
+interface SaveSlot<T> { peek(ns?): T | null; revision?(ns?): number; read(ns?): T; write(value: T, ns?): boolean; reset(ns?): void }
 ```
+
+`SaveSlot.revision(ns)` is an opaque document-change token, not admission.
+It detects writes, resets, imports and external storage replacement without
+parsing or validating the document. Consumers may cache admitted values while
+it stays equal; after it changes they must run the normal status/read checks.
+Runtime-owned state uses it to avoid migrating an unchanged save every frame.
 
 | Scope (`SaveScope`) | Stored in | Use |
 |---|---|---|
