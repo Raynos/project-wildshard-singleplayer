@@ -102,7 +102,7 @@ export async function refreshRecordedCommitInputs(root, witnessCache) {
   const receipt = resolve(witnessCache, 'commit-recorded-inputs.json');
   try {
     const saved = JSON.parse(readFileSync(receipt,'utf8'));
-    if (saved.node === process.version && saved.inputs !== null && typeof saved.inputs === 'object'
+    if (saved.node === process.version && saved.platform === process.platform && saved.arch === process.arch && saved.inputs !== null && typeof saved.inputs === 'object'
       && Object.keys(saved.inputs).length > 2
       && Object.entries(saved.inputs).every(([entry,value]) => inputValue(root,entry) === value)) {
       console.log('precommit-recorded: verified input receipt; no recorder workers');
@@ -127,7 +127,7 @@ export async function refreshRecordedCommitInputs(root, witnessCache) {
       entries.push('F scripts/precommit-bakes.mjs', 'F scripts/gate-trace.mjs');
       const inputs = Object.fromEntries([...new Set(entries)].map(entry => [entry,inputValue(root,entry)]));
       mkdirSync(witnessCache,{recursive:true});
-      writeFileSync(receipt,JSON.stringify({node:process.version,inputs}));
+      writeFileSync(receipt,JSON.stringify({node:process.version,platform:process.platform,arch:process.arch,inputs}));
     }
     return outputs;
   } finally { rmSync(logs,{recursive:true,force:true}); }
