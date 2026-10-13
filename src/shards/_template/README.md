@@ -1,10 +1,13 @@
 # Template shard (`_template`)
 
-Copy this folder to start a shardfile project; see [SHARDS.md](../../../docs/SHARDS.md)
+Run `pnpm gen` in the repository before copying this folder to start a
+shardfile project; see [SHARDS.md](../../../docs/SHARDS.md)
 and [SHARDFILE.md](../../../docs/SHARDFILE.md). Install `@wildshard/sdk`, edit the
 identity via the documented `shard.config.ts` entry (follow its import to
 `generators/product.ts`), then run `wildshard build <folder>` and
-`wildshard validate <folder>`. Included immutable assets make the copy buildable.
+`wildshard validate <folder>`. The prepared copy includes its immutable assets. Cheap CPU outputs are
+regenerated from retained authoring sources through SHA256-pinned cache jobs;
+curated skins and the frozen map raster remain author inputs.
 
 `data/` declares terrain, props, exported creature skins, brains, encounters, items,
 water, look, HUD, audio, ledger and interactions. `behaviour/` holds admitted numeric
@@ -34,5 +37,6 @@ uses the same declaration, admission and immutable writer as the normal
 SDK build. `assets/map.webp` and `data/productMap.json` freeze the authored
 map raster and its official stamp; refresh them together after an official
 map bake. The live stale-map gate still checks `look/map.baked.json` and
-the public raster. Comparison-only product pins in the generation catalogue
-are a report-only clean-room rehearsal, never permission to remove assets.
+the public raster. The generation catalogue pins every complete product byte for restoration.
+Output removal still requires a fresh complete-product clean room, preserving
+every admission refusal and the official stale-map gate.

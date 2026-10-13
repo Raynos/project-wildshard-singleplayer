@@ -57,7 +57,8 @@ Before marking a shard done:
 
 ## Quickstart
 
-Copy `src/shards/_template/` or run `wildshard new <folder> <slug>`. Install the SDK,
+Run `pnpm gen` in this repository before copying `src/shards/_template/`.
+Alternatively, run `wildshard new <folder> <slug>`. Install the SDK,
 then build and validate before adding content. Add one bounded tile/library/script
 slice at a time and check its report row before the next slice. Build-time generators
 may allocate freely; shipped data and scripts use the admitted platform systems.
@@ -102,7 +103,9 @@ A runtime-bound item carries no script hook (no simulation lane runs there). Sig
 two ledger facts and the bullwhip row live in `shard.config.ts`; the runtime resolves `sunscar-dunes.whip` to its
 `Bullwhip`, which reads its crack numbers from the row.
 
-To start a shard, copy `src/shards/_template/` to a fresh project folder, install
+To start a shard, run `pnpm gen` in this repository before copying
+`src/shards/_template` to a fresh project folder. This restores its pinned CPU
+outputs from retained authoring sources; then install
 `@wildshard/sdk`, and open `shard.config.ts` to edit the identity (follow its imported
 author-only declaration when the entry is thin). Run `wildshard build
 <folder>` and `wildshard validate <folder>`. The config imports only SDK modules;
@@ -199,6 +202,7 @@ document that transition API; new shards follow the SDK flow above.
 ## 1. Copy the template
 
 ```bash
+pnpm gen                                           # restore pinned template outputs before copying
 cp -R src/shards/_template src/shards/<slug>
 cp -R test/shards/_template test/shards/<slug>        # the headless contract test; point its relative imports at src/shards/<slug>/
 ```

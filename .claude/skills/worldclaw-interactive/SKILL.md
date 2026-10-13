@@ -178,6 +178,11 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
 
 ## BUILD (06 §5): a checkpoint per place (WORLDCLAW-SHARD §2b; D63, D78); the judges decide the rest
 
+- **Prepare the shardfile template before copying:** run `pnpm gen` in the
+  repository, then copy `src/shards/_template` as documented in `docs/SHARDS.md`.
+  Its cheap CPU outputs come from pinned authoring jobs; a cold checkout must
+  restore them before the copied project can build. Curated skin and map inputs
+  remain sources.
 - **Polish every seen band** (D60), place by place in golden-path order (D83): `reach --bands` gives each place's close,
   mid and far bands and the cameras.
 - **The checkpoint per place** (P12; WORLDCLAW-SHARD §2b, the merged SHARD-CHECKPOINTS loop, D77–D83). Four gates, as many
