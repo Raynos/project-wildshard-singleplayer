@@ -1,5 +1,4 @@
 import type { QuestState } from '@wildshard/engine/quest/core';
-import type { CoinBurst } from '@wildshard/game/loot/CoinBurst';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
 import { installRewardedQuest } from '@wildshard/game/plugin/ui';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -15,11 +14,13 @@ import { installPivotNpc } from '@wildshard/game/plugin/geometry';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
 import { duneMesh } from '../world/meshes';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
-import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG } from '../data/signalQuest';
+import { PAID_FLAG } from '../data/signalQuest';
 import { bindRuntimeCoins, type RuntimeCoins, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import source from '../runtime/source';
 import { bindSignalFacts } from '../runtime/persistence';
 import { QUEST_MARKERS } from '../data/questMarkers';
+import { QUEST_REPAIR, QUEST_REPAIR_INITIAL } from '../data/questRepair';
+import { bindDirectorActions } from '@wildshard/game/plugin/director';
 
 
 /** The old reward record (SHARDS §10): read once to carry a current save over to PAID_FLAG (C26), never written again. */
@@ -36,7 +37,7 @@ export const LIT_FLAG = FLAG.lit;
  * tab carries the quest card, the places toast as they are found, and the Matriarch is the last step: the 5-coin
  * signal reward pays after her fall.
  */
-export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWorld, coins: RuntimeCoins = bindRuntimeCoins(ctx, null)): { quest: QuestState; burst: CoinBurst; view: QuestPresentation | null; facts: RuntimeFacts } {
+export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWorld, coins: RuntimeCoins = bindRuntimeCoins(ctx, null)): { quest: QuestState; burst: ReturnType<typeof installRewardedQuest>['reward']['burst']; view: QuestPresentation | null; facts: RuntimeFacts } {
   const { flags } = world, saves = ctx.app.saves, legacy = saves.define(LEGACY_SIGNAL);
   // SF14 / M3: Signal Dunes' feats are its shardfile's ledger rows (runtime.binds); the platform grants each achievement once.
   // The instance is the first-party placement id (the slug: Select a shard, explore and the grid share it).
@@ -45,13 +46,14 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
     if (x !== SCOUT_AT.x || z !== SCOUT_AT.z) throw new Error('Undeclared authored scout ground query');
     return groundQueries.heights.scout;
   };
-  // C26: a current save that recorded the paid reward in the old shard save carries it over as the quest flag.
-  if (!flags.has(PAID_FLAG) && legacy.read(slug)) flags.set(PAID_FLAG);
-  // A save from before Sefa (loop 2) or a player who walked past her to the caravan: any later step done means the
-  // scout's step is too, so a mid-quest save is never sent back to the crest; on load her flag is set for it (no wave).
-  if (!flags.has(SCOUT_FLAG) && [...LATER_FLAGS, COMPLETE_FLAG].some((f) => flags.has(f))) flags.set(SCOUT_FLAG);
-  // The declared quest (data/signalQuest.ts), each world-piece marker placed on its built piece.
-
+  // Startup-only migration: flags hold the result, so no director cursor enters snapshots.
+  const legacyPaid = !flags.has(PAID_FLAG) && legacy.read(slug);
+  const repair = bindDirectorActions(QUEST_REPAIR, { flags, bindings: [], initial: [QUEST_REPAIR_INITIAL],
+    observe: binding => {
+      if (binding !== 'event:legacy.sunscar.signal') throw new Error('Unknown quest repair observation');
+      return legacyPaid;
+    } });
+  repair.advance(); repair.advance(); repair.advance();
   // The declared quest (shard.config.ts) with its 5-coin signal reward, once per save (PAID_FLAG), held for the beat after
   // the Matriarch falls; Sefa, the caravan scout, starts it on the spawn crest (P4; Driftwood's Wendell): she waves until you talk.
   const { quest, reward, view } = installRewardedQuest(ctx, source, { id: 'sunscar.signal', rewardId: 'sunscar.reward', strings: STRINGS, flags, facts,
