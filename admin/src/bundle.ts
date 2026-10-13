@@ -163,6 +163,9 @@ export interface ProgressShard {
   measure?: 'runtime-vs-legacy' | 'legacy-share';
   legacySharePct?: number;
   sharePct: number;
+  portPct?: number | null;
+  world?: 'yes' | 'partial' | 'no' | 'unavailable';
+  generators?: {ported:number;left:number;portedLines:number;leftLines:number};
   publicLines: number;
   customLines: number;
   /** Authored runtime TS / 20 % frozen TS ceiling; old measure when no frozen copy exists. */
@@ -196,6 +199,7 @@ export interface ProgressData {
   /** The revision the share script measured (this build's). */
   revision: string;
   targetPct: number;
+  portAverage?: number | null;
   hardCount: { done: number; total: number };
   /** The shipping seven, highest share first. */
   shipping: ProgressShard[];

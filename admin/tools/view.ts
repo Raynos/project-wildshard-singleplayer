@@ -237,6 +237,8 @@ export function progress(p: Progress, revision: string, media: Map<string, Media
     const runtimeShare = row.conversion?.runtimeShare ?? null, legacyLines = row.conversion?.legacyLines ?? null;
     return {
     slug: row.slug,
+    ...(row.port === undefined ? {} : {portPct:row.port.percent,world:row.port.world}),
+    ...(row.generators === undefined ? {} : {generators:row.generators}),
     name: known(row.slug)?.name ?? shardName(row.slug),
     measure: row.conversion?.metric ?? 'legacy-share',
     legacySharePct: Math.round(row.publicShare * 1000) / 10,
@@ -261,6 +263,7 @@ export function progress(p: Progress, revision: string, media: Map<string, Media
   return {
     revision: revision.slice(0, 9),
     targetPct: Math.round(target * 100),
+    ...(p.share.portAverage === undefined ? {} : {portAverage:p.share.portAverage}),
     hardCount: { done: shipping.filter((s) => s.at8020).length, total: shipping.length },
     shipping,
     others,

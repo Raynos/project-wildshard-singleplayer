@@ -11,6 +11,7 @@ import { resolveSpecifier } from './check-graph.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { shardContent } from './shard-platform-content.mjs';
 import { discoverGeneration } from './generate.mjs';
+import { generatorInventory } from './generator-inventory.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -117,6 +118,44 @@ export function rawShaderLines(source, path, program) {
   };
   visit(program ?? parseSync(path, source).program);
   return total;
+}
+/** G392 call 36: a thin declaration entry is not custom; executable logic is. */
+export function declarationOnlyConfig(source, path = 'shard.config.ts') {
+  const program = parseSync(path, source).program;
+  const wrappers = new Set(program.body.filter(row => row.type === 'ImportDeclaration')
+    .flatMap(row => row.specifiers.filter(spec => spec.type === 'ImportSpecifier'
+      && ['parseShardfile', 'emptyShardfile'].includes(spec.imported.name ?? spec.imported.value))
+      .map(spec => spec.local.name)));
+  const declaration = node => {
+    if (node === null || typeof node !== 'object') return true;
+    if (['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression', 'ClassDeclaration', 'ClassExpression',
+      'NewExpression', 'AssignmentExpression', 'UpdateExpression', 'BinaryExpression', 'LogicalExpression',
+      'ConditionalExpression', 'AwaitExpression', 'TaggedTemplateExpression', 'ImportExpression'].includes(node.type)) return false;
+    if (node.type === 'CallExpression' && !(node.callee.type === 'Identifier' && wrappers.has(node.callee.name))) return false;
+    if (node.type === 'UnaryExpression' && !(['-', '+'].includes(node.operator) && node.argument.type === 'Literal')) return false;
+    return Object.entries(node).every(([name, child]) => name === 'typeAnnotation' || name === 'typeParameters'
+      || (Array.isArray(child) ? child.every(declaration) : declaration(child)));
+  };
+  return program.body.every(row => ['ImportDeclaration', 'ExportDefaultDeclaration', 'ExportNamedDeclaration',
+    'VariableDeclaration', 'TSTypeAliasDeclaration', 'TSInterfaceDeclaration', 'EmptyStatement'].includes(row.type) && declaration(row));
+}
+
+/** G390: measured custom reduction contributes 80 points; tiles plus no private bytes contribute 20.
+ * @param {number} customPercent @param {{status:string,tiles:{total:number}|null,privateBinaries:readonly string[]}} content
+ * @returns {import('./shard-platform.mjs').PortHeadline} */
+export function portHeadline(customPercent, content) {
+  if (!Number.isFinite(customPercent) || customPercent < 0) throw new Error('Invalid custom percentage');
+  const world = content.status !== 'built' ? 'unavailable' : content.tiles?.total > 0 && content.privateBinaries.length === 0
+    ? 'yes' : content.tiles?.total > 0 || content.privateBinaries.length === 0 ? 'partial' : 'no';
+  const worldPoints = world === 'yes' ? 20 : world === 'partial' ? 10 : 0;
+  return { customPercent, world, percent: world === 'unavailable' ? null
+    : 80 * Math.max(0, Math.min(1, (100 - customPercent) / 80)) + worldPoints };
+}
+const HEADLINE_SHARDS = ['_template', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'nalati-grasslands', 'driftwood-isle', 'pine-hollow'];
+/** @param {Record<string,{port:import('./shard-platform.mjs').PortHeadline}>} rows */
+export function portAverage(rows) {
+  const values = HEADLINE_SHARDS.map(slug => rows[slug]?.port.percent ?? null);
+  return values.some(value => value === null) ? null : values.reduce((sum, value) => sum + (value ?? 0), 0) / values.length;
 }
 function filesIn(dir) {
   if (!existsSync(dir)) return [];
@@ -516,7 +555,8 @@ export function shardLines(root = ROOT) {
       const lines = count(path);
       // G315: authored AS is reported separately, without a cap or an effect on the G291 TS ratio.
       if (path.endsWith('.as') && !RULES.tests.test(local)) row.assemblyScriptLines += lines;
-      if (RULES.typescript.test(path) && !RULES.runtimeExcludedFolders.has(top) && !RULES.tests.test(local)) shardRuntimeLines += lines;
+      if (RULES.typescript.test(path) && !RULES.runtimeExcludedFolders.has(top) && !RULES.tests.test(local)
+        && !(local === 'shard.config.ts' && declarationOnlyConfig(text(path), path))) shardRuntimeLines += lines;
       const shaderLines = RULES.tests.test(local) ? 0 : shaders(path);
       rawGlslLines += shaderLines;
       if (!RULES.typescript.test(path) || RULES.runtimeExcludedFolders.has(top)) additionalGlslLines += shaderLines;
@@ -587,8 +627,19 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const recorded = JSON.parse(readFileSync(resolve(ROOT, LIST), 'utf8')), lines = shardLines();
   const productArg = process.argv.find(value => value.startsWith('--products='));
   const products = productArg === undefined ? resolve(ROOT, 'public/shardfiles') : resolve(ROOT, productArg.slice('--products='.length));
-  if (process.argv.includes('--json')) console.log(JSON.stringify(Object.fromEntries(Object.entries(lines).map(([slug, row]) => [slug, { ...row, baseline: recorded.baseline[slug], ceiling: recorded.enforced[slug] ?? Math.floor(recorded.baseline[slug] * 0.2), enforced: Object.hasOwn(recorded.enforced, slug), milestones: milestoneFlags(slug, row), content: shardContent(slug, ROOT, products) }])), null, 2));
+  const inventory = generatorInventory(ROOT);
+  const report = Object.fromEntries(Object.entries(lines).map(([slug, row]) => {
+    const content = shardContent(slug, ROOT, products);
+    const customPercent = 100 * (row.conversion.runtimeShare ?? 1 - row.legacyShare);
+    return [slug, { ...row, baseline: recorded.baseline[slug], ceiling: recorded.enforced[slug] ?? Math.floor(recorded.baseline[slug] * 0.2),
+      enforced: Object.hasOwn(recorded.enforced, slug), milestones: milestoneFlags(slug, row), content,
+      port: portHeadline(customPercent, content), generators: inventory.totals.find(total => total.shard === slug) }];
+  }));
+  const average = portAverage(report);
+  if (process.argv.includes('--json')) console.log(JSON.stringify({ ...report, _summary: { portAverage: average, shards: HEADLINE_SHARDS } }, null, 2));
   else {
+    console.log(`PORT average (7 shards): ${average === null ? 'unavailable; build admitted products first' : `${average.toFixed(1)} %`}`);
+    for (const slug of HEADLINE_SHARDS) { const row = report[slug]; console.log(`  ${slug}: PORT ${row.port.percent === null ? 'unavailable' : `${row.port.percent.toFixed(1)} %`}; world ${row.port.world}; generators ${row.generators.ported} ported / ${row.generators.left} left (${row.generators.portedLines} / ${row.generators.leftLines} lines)`); }
     console.log('shard                  shard TS  sole SDK/game  frozen TS  custom / frozen  80/20       legacy-share  enforcement');
     for (const [slug, row] of Object.entries(lines)) {
       const base = recorded.baseline[slug], ceiling = recorded.enforced[slug] ?? Math.floor(base * 0.2);

@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own temporary fixture paths only.
 import { dirname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { checkShares, codeLines, milestoneFlags, rawShaderLines, shaderCodeLines, shardLines, type ShardLines, type ShardPlatformList } from '../scripts/shard-platform.mjs';
+import { checkShares, codeLines, declarationOnlyConfig, portHeadline, portAverage, milestoneFlags, rawShaderLines, shaderCodeLines, shardLines, type ShardLines, type ShardPlatformList } from '../scripts/shard-platform.mjs';
 import { shardContent } from '../scripts/shard-platform-content.mjs';
 
 const recorded = JSON.parse(readFileSync('lint/shard-platform.json', 'utf8')) as ShardPlatformList;
@@ -453,5 +453,28 @@ describe('SF6 platform measures', () => {
         files: { total: 7, kinds: { glb: 1, binary: 6 }, platformBinaries: 5 },
         privateBinaries: ['shard.json files:opaque (opaque binary; decoder ownership requires audit)'] });
     });
+  });
+});
+
+it('pins G390 points, clamping and the seven-shard average', () => {
+  const yes={status:'built',tiles:{total:1},privateBinaries:[]};
+  expect([0,20,44,50,71,100,130].map(custom=>portHeadline(custom,yes).percent)).toEqual([100,100,76,70,49,20,20]);
+  expect(portHeadline(100,{...yes,tiles:{total:0},privateBinaries:['private.bin']}).percent).toBe(0);
+  expect(portHeadline(100,{...yes,tiles:{total:0}}).percent).toBe(10);
+  expect(portHeadline(50,{...yes,privateBinaries:['private.bin']}).percent).toBe(60);
+  expect(portHeadline(0,{...yes,status:'missing'}).percent).toBeNull();
+  const slugs=['_template','sunscar-dunes','far-reach','nine-dragon-stack','nalati-grasslands','driftwood-isle','pine-hollow'];
+  const rows=Object.fromEntries(slugs.map(slug=>[slug,{port:portHeadline(50,yes)}]));
+  expect(portAverage(rows)).toBe(70);delete rows['pine-hollow'];expect(portAverage(rows)).toBeNull();
+});
+it('exempts only declaration-only config entries from authored runtime lines',()=>{
+  expect(declarationOnlyConfig("import rows from './generators/product';export default rows;")).toBe(true);
+  expect(declarationOnlyConfig("import {parseShardfile,emptyShardfile} from '@wildshard/sdk/shardfile';export default parseShardfile({...emptyShardfile('x'),spawn:{x:-1}});")).toBe(true);
+  for(const source of ["export default {height:()=>0};","const x=1+2;export default x;","function build(){return 1};export default build;","const x=Math.sin(0);export default x;"])expect(declarationOnlyConfig(source)).toBe(false);
+  fixture((root,put)=>{
+    put('src/shards/alpha/shard.config.ts',"const rows={height:0};export default rows;\n");
+    expect(alpha(root).conversion.shardRuntimeLines).toBe(0);
+    put('src/shards/alpha/shard.config.ts',"const height=()=>0;export default {height};\n");
+    expect(alpha(root).conversion.shardRuntimeLines).toBe(1);
   });
 });

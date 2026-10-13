@@ -319,3 +319,17 @@ it('carries G291 numbers into the typed bundle and refuses invented unavailable 
   expect(readSharePlatform({...report,'far-reach':{...report['far-reach'],conversion:missing}}).shards.find(row=>row.slug==='far-reach')?.conversion?.legacyLines).toBeNull();
   expect(()=>readSharePlatform({...report,'far-reach':{...report['far-reach'],conversion:{...missing,legacyLines:0}}})).toThrow('explicitly unavailable');
 });
+
+it('preserves the measured PORT headline and rejects formula or inventory drift',()=>{
+  const slugs=['_template','sunscar-dunes','far-reach','nine-dragon-stack','nalati-grasslands','driftwood-isle','pine-hollow'];
+  const port={customPercent:50,world:'yes',percent:70};
+  const generators={shard:'far-reach',ported:2,left:3,portedLines:10,leftLines:20,explorers:{Model:2,Set:1,World:2}};
+  const skyRow={...share['far-reach'],port,generators};
+  const report={...Object.fromEntries(slugs.map(slug=>[slug,{...skyRow,generators:{...generators,shard:slug}}])),_summary:{portAverage:70,shards:slugs}};
+  const collected=collectAdminData({...tree(),platform:()=>report}).bundle;
+  expect(readAdminBundle(collected).progress.share.portAverage).toBe(70);
+  expect(collected.progress.share.shards.find(row=>row.slug==='far-reach')).toMatchObject({port,generators});
+  expect(()=>readSharePlatform({...report,_summary:{portAverage:69,shards:slugs}})).toThrow('average drift');
+  expect(()=>readSharePlatform({...report,'far-reach':{...skyRow,port:{...port,percent:71}}})).toThrow('formula drift');
+  expect(()=>readSharePlatform({...report,'far-reach':{...skyRow,generators:{...generators,left:4}}})).toThrow('generators inconsistent');
+});

@@ -26,3 +26,9 @@ export function checkShares(recorded: ShardPlatformList, lines: Record<string, S
 export function shaderCodeLines(source: string): number;
 /** Raw GLSL in files or shader literals; declared graph nodes contribute zero. */
 export function rawShaderLines(source: string, path: string, program?: unknown): number;
+
+/** G390 headline, unavailable until the admitted product is present. */
+export interface PortHeadline {customPercent:number;world:'yes'|'partial'|'no'|'unavailable';percent:number|null}
+export function declarationOnlyConfig(source:string,path?:string):boolean;
+export function portHeadline(customPercent:number,content:{status:string;tiles:{total:number}|null;privateBinaries:readonly string[]}):PortHeadline;
+export function portAverage(rows:Record<string,{port:PortHeadline}>):number|null;

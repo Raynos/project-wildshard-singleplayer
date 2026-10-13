@@ -3812,3 +3812,16 @@ Partial and varying lattices keep their original storage. The encoded
 terrain, collider, native heights and conservative admission costs do
 not change; separate decoded WTT arrays can release their redundant
 uniform splat backing while samples stay live.
+
+### PORT headline (G390, G392)
+
+`node scripts/shard-platform.mjs --json` reports `port` and explorer
+`generators` totals for each shard, with `_summary.portAverage` for the
+shipping seven. PORT is 80 × clamp((100 − custom %) / 80, 0, 1), plus 20
+world points (tiles and zero private binaries: 20; one: 10; neither: 0).
+Missing admitted products make PORT unavailable. Trusted runtime remains
+a separate report. Registry entry totals are context, not another weight.
+The admin export generates and packs its own admitted products before
+measurement; it builds no game application. The 80/20 finish count remains
+under the headline. A declaration-only `shard.config.ts` adds no custom
+lines; a function body or computation in it remains custom.

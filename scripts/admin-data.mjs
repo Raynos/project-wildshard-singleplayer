@@ -13,13 +13,17 @@ const REPORTS=['progress/memory','progress/loading/sf67','art/playtest',PLAN,...
 const SHARE_SCRIPT='scripts/shard-platform.mjs';
 /** What `node scripts/shard-platform.mjs --json` reads: the shard sources and packages, its ceilings, the frozen legacy
  * inventory, the proof witnesses and its own imports. admin/tools/deploy.sh exports the same list. */
-export const SHARE_INPUTS=['package.json','src','scripts','lint/shard-platform.json','lint/legacy-shards.json','test/proof'];
+export const SHARE_INPUTS=['package.json','pnpm-lock.yaml','pnpm-workspace.yaml','src','scripts','lint','public','music','sfx','test','tsconfig.json'];
 
 /** Runs the share script of a clean tree (it measures the tree it lives in) and parses its JSON; it fails if the script
  * is missing or exits nonzero, never falling back to the shared checkout.
  * @param {string} root @returns {unknown} */
 export function runSharePlatform(root){
   if(!existsSync(join(root,SHARE_SCRIPT)))throw new Error(`Missing share script ${SHARE_SCRIPT} in ${root} (${SHARE_COMMAND})`);
+  if(existsSync(join(root,'scripts/build-shardfiles.mjs'))){
+    execFileSync(process.execPath,[join(root,'scripts/gen.mjs'),'--build-inputs'],{cwd:root,maxBuffer:16_000_000,stdio:['ignore','ignore','inherit']});
+    execFileSync(process.execPath,['--import',join(root,'scripts/bake-loader.mjs'),join(root,'scripts/build-shardfiles.mjs')],{cwd:root,maxBuffer:16_000_000,stdio:['ignore','ignore','inherit']});
+  }
   const out=execFileSync(process.execPath,[join(root,SHARE_SCRIPT),'--json'],{cwd:root,maxBuffer:16_000_000,stdio:['ignore','pipe','inherit']});
   return JSON.parse(out.toString('utf8'));
 }

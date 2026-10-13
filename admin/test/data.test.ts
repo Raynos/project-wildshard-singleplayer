@@ -185,3 +185,12 @@ describe('admin view mapping', () => {
     expect(plan.effortWhen).toBe('coordinator, 2026-10-08 evening');
   });
 });
+
+it('shows PORT and generator totals beside the unchanged finish line',()=>{
+  const data=structuredClone(ADMIN);data.progress.share.portAverage=44;
+  const row=data.progress.share.shards.find(shard=>shard.slug==='far-reach');if(row===undefined)throw new Error('Missing Sky fixture');
+  row.port={customPercent:50,world:'yes',percent:70};row.generators={shard:row.slug,ported:2,left:3,portedLines:10,leftLines:20,explorers:{Model:2,Set:1,World:2}};
+  const view=toView(data,'2026-10-13T00:00:00Z',new Set()).plans.progress;
+  expect(view.portAverage).toBe(44);expect(view.shipping.find(shard=>shard.slug==='far-reach')).toMatchObject({portPct:70,world:'yes',generators:row.generators});
+  expect(view.hardCount).toEqual(toView(ADMIN,'2026-10-13T00:00:00Z',new Set()).plans.progress.hardCount);
+});

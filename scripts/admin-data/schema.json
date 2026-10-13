@@ -1334,6 +1334,97 @@
                       "additionalGlslLines"
                     ],
                     "additionalProperties": false
+                  },
+                  "port": {
+                    "type": "object",
+                    "properties": {
+                      "customPercent": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "world": {
+                        "enum": [
+                          "yes",
+                          "partial",
+                          "no",
+                          "unavailable"
+                        ]
+                      },
+                      "percent": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "customPercent",
+                      "world",
+                      "percent"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "generators": {
+                    "type": "object",
+                    "properties": {
+                      "shard": {
+                        "type": "string"
+                      },
+                      "ported": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "left": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "portedLines": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "leftLines": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "explorers": {
+                        "type": "object",
+                        "properties": {
+                          "Model": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "Set": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "World": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "Model",
+                          "Set",
+                          "World"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "shard",
+                      "ported",
+                      "left",
+                      "portedLines",
+                      "leftLines",
+                      "explorers"
+                    ],
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -1351,6 +1442,18 @@
                 ],
                 "additionalProperties": false
               }
+            },
+            "portAverage": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [

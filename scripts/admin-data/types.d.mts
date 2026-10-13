@@ -50,11 +50,13 @@ export interface ShardShare {
   legacyShare?:number;
   /** G291 frozen-runtime comparison, including explicit unavailable fields and the audit hook. */
   conversion?:ConversionMeasure;
+  port?:import('../shard-platform.mjs').PortHeadline;
+  generators?:import('../generator-inventory.mjs').GeneratorTotal;
   baseline:number; ceiling:number; enforced:boolean; proofs:ShareProofs;
   /** boot, headless, replay, ledger, grid-ready, compatible: how many of the six pass. */
   proofsPassing:number;
 }
-export interface ShareReport { command:string; target:number; shards:ShardShare[] }
+export interface ShareReport { command:string; target:number; portAverage?:number|null; shards:ShardShare[] }
 /** A row of the newest measured effort recount (progress/shard-platform/effort-recount-*): hours spent are measured,
  * hours remaining are the recount's projection (approximate where it writes `~`). */
 export interface EffortShard { slug:string|null; name:string; spentHours:number; remainingHours:number|null; approximate:boolean; effortPercent:number; line:number }

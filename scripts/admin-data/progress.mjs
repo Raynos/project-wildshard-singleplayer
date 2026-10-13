@@ -57,7 +57,7 @@ function conversion(value,slug){
  * @param {unknown} value @returns {import('./types.mjs').ShareReport} */
 export function readSharePlatform(value){
   if(!isObject(value))throw new Error(`Share script output is not an object (${SHARE_COMMAND})`);
-  const shards=Object.entries(value).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([slug,row])=>{
+  const shards=Object.entries(value).filter(([slug])=>slug!=='_summary').sort(([a],[b])=>a<b?-1:a>b?1:0).map(([slug,row])=>{
     if(!isObject(row))throw new Error(`Share script output: ${slug} is not an object`);
     const milestones=row.milestones;
     if(!isObject(milestones))throw new Error(`Share script output: ${slug}.milestones is missing`);
@@ -75,10 +75,34 @@ export function readSharePlatform(value){
       proofsPassing:PROOFS.filter(name=>proofs[name]).length};
     if(row.legacyShare!==undefined)measured.legacyShare=count(row.legacyShare,`${slug}.legacyShare`);
     if(row.conversion!==undefined)measured.conversion=conversion(row.conversion,slug);
+    if(row.port!==undefined){
+      if(!isObject(row.port)||!['yes','partial','no','unavailable'].includes(String(row.port.world)))throw new Error(`Share script output: ${slug}.port invalid`);
+      const customPercent=count(row.port.customPercent,`${slug}.customPercent`);
+      const world=/** @type {import('../shard-platform.mjs').PortHeadline['world']} */(row.port.world);
+      const expected=world==='unavailable'?null:80*Math.max(0,Math.min(1,(100-customPercent)/80))+(world==='yes'?20:world==='partial'?10:0);
+      if(row.port.percent!==expected)throw new Error(`Share script output: ${slug}.port formula drift`);
+      measured.port={customPercent,world,percent:expected};
+    }
+    if(row.generators!==undefined){
+      if(!isObject(row.generators)||!isObject(row.generators.explorers))throw new Error(`Share script output: ${slug}.generators invalid`);
+      const integer=(field)=>{const n=count(row.generators[field],`${slug}.generators.${field}`);if(!Number.isSafeInteger(n))throw new Error('Invalid inventory count');return n;};
+      const explorers={Model:count(row.generators.explorers.Model,'Model'),Set:count(row.generators.explorers.Set,'Set'),World:count(row.generators.explorers.World,'World')};
+      measured.generators={shard:slug,ported:integer('ported'),left:integer('left'),portedLines:integer('portedLines'),leftLines:integer('leftLines'),explorers};
+      if(measured.generators.ported+measured.generators.left!==explorers.Model+explorers.Set+explorers.World)throw new Error(`Share script output: ${slug}.generators inconsistent`);
+    }
     return measured;
   });
   if(shards.length===0)throw new Error(`Share script output lists no shards (${SHARE_COMMAND})`);
-  return {command:SHARE_COMMAND,target:SHARE_TARGET,shards};
+  const report={command:SHARE_COMMAND,target:SHARE_TARGET,shards};
+  if(value._summary!==undefined){
+    const summary=value._summary;
+    if(!isObject(summary)||!Array.isArray(summary.shards)||summary.shards.length!==7||new Set(summary.shards).size!==7)throw new Error('Invalid PORT summary');
+    const ports=summary.shards.map(slug=>{const row=shards.find(shard=>shard.slug===slug);if(row?.port===undefined)throw new Error('Missing PORT summary shard');return row.port.percent;});
+    const expected=ports.some(port=>port===null)?null:ports.reduce((sum,port)=>sum+(port??0),0)/ports.length;
+    if(summary.portAverage!==expected)throw new Error('PORT average drift');
+    return {...report,portAverage:expected};
+  }
+  return report;
 }
 
 /** The newest recount folder among committed paths (folder names start with an ISO date, so they sort by date).
