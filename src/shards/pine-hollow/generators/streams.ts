@@ -7,11 +7,15 @@
  * anchors); the page draws it (../world/streams.ts) and never runs this. test/shards/pine-hollow/streams-bake.test.ts is
  * the stale gate.
  */
-import { CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, type XZ } from '../data/layout';
+import { CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, POND, type XZ } from '../data/layout';
 import { creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt } from '../behaviour/layout';
-import { smoothstep } from '@wildshard/engine/core/noise';
-import { normalAt, waterLevel } from '@wildshard/engine/world/Heightfield';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import * as THREE from 'three';
+import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
+import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
+
+/** Original renderer queries, supplied explicitly instead of installing a mutable page field. */
+export type PineStreamGround = Pick<NativeTerrainSource, 'heightAt' | 'normalAt'>;
+const smoothstep = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /** where the fall's sheet meets the pond, and the foot of its steep face (the spray's anchors, the sound's) */
 interface Anchors { plunge: [number, number, number]; faceFoot: [number, number, number] }
@@ -39,7 +43,9 @@ class Builder {
 class Path {
   private cum: number[] = [0];
   readonly length: number;
-  constructor(private pts: readonly XZ[]) {
+  private readonly pts: readonly XZ[];
+  constructor(pts: readonly XZ[]) {
+    this.pts = pts;
     for (let i = 1; i < pts.length; i++) {
       const a = pts[i - 1], b = pts[i];
       this.cum.push((this.cum[i - 1] ?? 0) + (a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 0));
@@ -63,7 +69,8 @@ class Path {
 }
 
 /** the creek: from just before the dam's crest (the outlet above it is the pond's own water) to the slab's edge */
-function buildCreek(b: Builder): void {
+function buildCreek(b: Builder, ground: PineStreamGround): void {
+  const { heightAt } = ground;
   const path = new Path(CREEK), { dam, end } = creekSpan();
   const stations: number[] = [];
   for (let s = dam - CREEK_WATER.lead; s < end - 0.2;) { stations.push(s); s += s > dam - 2.5 && s < dam + 8 ? 0.5 : 1.5; }
@@ -86,9 +93,10 @@ function buildCreek(b: Builder): void {
 }
 
 /** the waterfall: the ridge-top stream's last metres, down the Ridge's face, the short run below it, into the pond */
-function buildFall(b: Builder, out: Anchors): void {
-  const wl = waterLevel();
-  const entry = pondEntry();
+function buildFall(b: Builder, out: Anchors, ground: PineStreamGround): void {
+  const { heightAt, normalAt } = ground;
+  const wl = POND.level;
+  const entry = pondEntry(ground);
   // start 9 m above the lip on the ridge-top stream (further up its bed is too rough to hold water: it climbs again)
   const r2 = RIDGE_STREAM[2] ?? [WATERFALL.lip.x, WATERFALL.lip.z + 16], lip = WATERFALL.lip;
   const start: XZ = [r2[0] + (lip.x - r2[0]) * 0.44, r2[1] + (lip.z - r2[1]) * 0.44];
@@ -127,8 +135,9 @@ function buildFall(b: Builder, out: Anchors): void {
 }
 
 /** where the line from the fall's foot toward the pond's centre first meets the water */
-function pondEntry(): XZ {
-  const wl = waterLevel(), f = WATERFALL.foot;
+function pondEntry(ground: PineStreamGround): XZ {
+  const { heightAt } = ground;
+  const wl = POND.level, f = WATERFALL.foot;
   const dx = -100 - f.x, dz = 110 - f.z, l = Math.hypot(dx, dz);
   for (let t = 0; t < l; t += 0.25) {
     const x = f.x + (dx / l) * t, z = f.z + (dz / l) * t;
@@ -139,7 +148,7 @@ function pondEntry(): XZ {
 
 /** the plunge ring: foam spreading outward on the pond's surface from where the fall lands (an overlay: no reflection) */
 function buildRing(b: Builder, out: Anchors): void {
-  const wl = waterLevel(), R = 6.5, RINGS = 8, SEGS = 28, cx = out.plunge[0], cz = out.plunge[2];
+  const wl = POND.level, R = 6.5, RINGS = 8, SEGS = 28, cx = out.plunge[0], cz = out.plunge[2];
   const base = b.count;
   for (let r = 0; r < RINGS; r++) {
     const rr = (r / (RINGS - 1)) * R, fade = (1 - rr / R) ** 0.8;
@@ -153,10 +162,10 @@ function buildRing(b: Builder, out: Anchors): void {
 }
 
 /** the bake: the water mesh's blocks (position f32 ×3, uv f32 ×2, aWater f32 ×4, the index, each padded to 4 bytes) and its rows */
-export function bakePineStreams(): { bin: Uint8Array; rows: { vertices: number; indices: number; wide: boolean; plunge: [number, number, number]; faceFoot: [number, number, number] } } {
+export function bakePineStreams(ground: PineStreamGround): { bin: Uint8Array; rows: { vertices: number; indices: number; wide: boolean; plunge: [number, number, number]; faceFoot: [number, number, number] } } {
   const b = new Builder(), anchors: Anchors = { plunge: [0, 0, 0], faceFoot: [0, 0, 0] };
-  buildCreek(b);
-  buildFall(b, anchors);
+  buildCreek(b, ground);
+  buildFall(b, anchors, ground);
   buildRing(b, anchors);
   // the page's index is three's pick for a number[] index: 32-bit once any index reaches 65 535
   const wide = b.idx.some((i) => i >= 65535);
@@ -166,4 +175,41 @@ export function bakePineStreams(): { bin: Uint8Array; rows: { vertices: number; 
   for (const a of blocks) { bin.set(new Uint8Array(a.buffer, a.byteOffset, a.byteLength), at); at += Math.ceil(a.byteLength / 4) * 4; }
   // the anchors stay doubles: the page's spray matrices are built from them before they become floats
   return { bin, rows: { vertices: b.count, indices: b.idx.length, wide, plunge: anchors.plunge, faceFoot: anchors.faceFoot } };
+}
+
+/** Original positions, UVs, water shader channel and native smooth normals, in the original draw's frame. */
+export function pineStreamGeometry(ground: PineStreamGround): THREE.BufferGeometry {
+  const { bin, rows } = bakePineStreams(ground), buffer = Uint8Array.from(bin).buffer;
+  const n = rows.vertices, pos = new Float32Array(buffer, 0, n * 3), uv = new Float32Array(buffer, n * 12, n * 2);
+  const water = new Float32Array(buffer, n * 20, n * 4);
+  const index = rows.wide ? new Uint32Array(buffer, n * 36, rows.indices) : new Uint16Array(buffer, n * 36, rows.indices);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geometry.setAttribute('aWater', new THREE.Float32BufferAttribute(water, 4));
+  geometry.setIndex(new THREE.BufferAttribute(index, 1)); geometry.computeVertexNormals();
+  geometry.computeBoundingBox(); geometry.computeBoundingSphere(); return geometry;
+}
+
+/** One original water shape with its real edge overhang; no clipped vertices, collision or invented water simulation. */
+export function pineStreamScene(ground: PineStreamGround): THREE.Scene {
+  const scene = new THREE.Scene(); scene.name = 'pine-hollow.streams';
+  const geometry = pineStreamGeometry(ground), material = new THREE.MeshStandardMaterial({ roughness: 1 });
+  const mesh = new THREE.InstancedMesh(geometry, material, 1); mesh.setMatrixAt(0, new THREE.Matrix4());
+  scene.add(new BakedPiece('pine.streams', [['stream', mesh]], [], { nativeAttributes: true, compactIndex: true }));
+  return scene;
+}
+
+/** Central Scene bake of the original single water shape; full tile admission must preserve its real edge overhang. */
+export function pineStreamBake(ground: PineStreamGround, project?: string): BakedScene {
+  const scene = pineStreamScene(ground);
+  try { return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project }); }
+  finally {
+    scene.traverse(node => {
+      if (!(node instanceof THREE.Mesh)) return;
+      const geometry: unknown = node.geometry, material: unknown = node.material;
+      if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
+      if (material instanceof THREE.Material) material.dispose();
+    });
+  }
 }

@@ -5,30 +5,37 @@
 // its 4-byte words' bytes in four lanes and zlib-compressed, to public/assets/pine-hollow/baked/streams.bin and its rows
 // (the binary's hash and size, the counts, the fall's anchors) to src/shards/pine-hollow/data/streams.json, which the page
 // reads (src/shards/pine-hollow/world/streams.ts). test/shards/pine-hollow/streams-bake.test.ts is the stale gate.
-// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-streams.mjs
+// Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-streams.mjs
 import { createHash } from 'node:crypto';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
-import { installPineGround } from './bake-pine-crags.mjs';
-import { shuffleLanes } from './crags.ts';
-import { bakePineStreams } from './streams.ts';
+import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { wildlifeWordLanes as shuffleLanes } from './wildlifeWords.ts';
+import { bakePineStreams, pineStreamBake } from './streams.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 
 /** the bake: the rows and the raw binary */
 export function bakeStreamRows() {
-  installPineGround();
-  const { bin, rows } = bakePineStreams();
+  const { bin, rows } = bakePineStreams(pineStreamGround());
   return { rows: { bin: createHash('sha256').update(bin).digest('hex'), bytes: bin.length, ...rows }, bin };
 }
 
+/** Original renderer lattice; no active level, terrain service or browser is installed. */
+export function pineStreamGround() { return readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin'))); }
+
 if (import.meta.main) {
   const { rows, bin } = bakeStreamRows();
+  const authored = pineStreamBake(pineStreamGround(), root);
   const out = resolve(root, 'public/assets/pine-hollow/baked');
   mkdirSync(out, { recursive: true });
   const packed = deflateSync(shuffleLanes(bin), { level: 9 });
   writeFileSync(resolve(out, 'streams.bin'), packed);
+  const piece = authored.pieces.find(part => part.name === 'pine.streams');
+  if (piece === undefined) throw new Error('Stream author scene omitted its original draw');
+  writeFileSync(resolve(out, 'streams.glb'), piece.glb);
+  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/streamsScene.generated.json'), `${JSON.stringify({ scene: authored.sceneHash, glb: createHash('sha256').update(piece.glb).digest('hex'), kinds: piece.kinds, rows })}\n`);
   writeFileSync(resolve(root, 'src/shards/pine-hollow/data/streams.json'), `${JSON.stringify(rows)}\n`);
   console.info(`pine-hollow streams: ${String(rows.vertices)} vertices, ${String(rows.indices / 3)} triangles, ${String(bin.length)} → ${String(packed.length)} zlib (baked/streams.bin, ${rows.bin.slice(0, 12)})`);
 }
