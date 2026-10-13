@@ -47,6 +47,21 @@ with tempfile.TemporaryDirectory() as t:
  (target/'value').unlink();assert not m.output_hashes(target.resolve(),rows)[0]['matched']
  try:m.expected_outputs(target,dict(spec,outputsSha256='0'*64));raise AssertionError('changed pins passed')
  except ValueError:pass
+ # Report-only whole products retain strict pins without promotion to buildOutputs.
+ pairs={'left':hashlib.sha256(b'left').hexdigest(),'right':hashlib.sha256(b'right').hexdigest()}
+ multi={k:v for k,v in spec.items() if k!='outputsJob'}
+ multi.update(outputsJobs=['left-product','right-product'],outputsField='comparisonOutputs',outputsCount=2,outputsSha256=hashlib.sha256(json.dumps(pairs,sort_keys=True,separators=(',',':')).encode()).hexdigest())
+ catalog={'jobs':[{'id':'left-product','comparisonOutputs':{'left':pairs['left']}}, {'id':'right-product','comparisonOutputs':{'right':pairs['right']}}]}
+ (target/'scripts/generation-jobs.json').write_text(json.dumps(catalog))
+ m.specification(json.dumps(multi));assert [row['file'] for row in m.expected_outputs(target,multi)]==['left','right']
+ for override in [dict(outputsJobs=['left-product','left-product']),dict(outputsField='outputs'),dict(outputsJob='fixture'),dict(outputsCount=1),dict(outputsJobs=['left-product','absent-product']),dict(outputsField='buildOutputs')]:
+  bad=dict(multi,**override)
+  try:m.specification(json.dumps(bad));m.expected_outputs(target,bad);raise AssertionError('invalid comparison contract passed')
+  except ValueError:pass
+ catalog['jobs'][1]['comparisonOutputs']={'left':pairs['left']}
+ (target/'scripts/generation-jobs.json').write_text(json.dumps(catalog))
+ try:m.expected_outputs(target,multi);raise AssertionError('overlapping products passed')
+ except ValueError:pass
  original=subprocess.check_output
  def output(command,**kwargs):
   if command[0]=='node':return json.dumps({'node':'24.18.1','platform':'darwin','arch':'arm64'})
@@ -55,7 +70,7 @@ with tempfile.TemporaryDirectory() as t:
  try:m.compare(spec,evidence);raise AssertionError('wrong host passed')
  except ValueError:pass
  assert not (evidence/'compare.log').exists()
-print('transport, output pins, changed/missing bytes and Linux host refusals PASS')
+print('transport, build/comparison pins, changed/missing bytes and Linux host refusals PASS')
 `;
   const run = spawnSync('python3', ['-c', code, resolve('scripts/generation-candidate.py')], { encoding: 'utf8', timeout: 5000, env: { ...process.env, GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'init.defaultBranch', GIT_CONFIG_VALUE_0: 'master' } });
   expect(run.status, run.stdout + run.stderr).toBe(0);

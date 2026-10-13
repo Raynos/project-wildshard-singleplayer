@@ -10,6 +10,19 @@ import sys
 import urllib.request
 
 
+def output_jobs(spec):
+    if 'outputsJobs' in spec and 'outputsJob' in spec:
+        raise ValueError('Choose single or multiple output jobs, not both')
+    jobs = spec.get('outputsJobs', [spec.get('outputsJob')])
+    if (not isinstance(jobs, list) or not jobs or
+            any(not isinstance(job, str) or not re.fullmatch(r'[a-z0-9-]+', job) for job in jobs) or
+            len(set(jobs)) != len(jobs)):
+        raise ValueError('Invalid or duplicate output jobs')
+    if spec.get('outputsField', 'buildOutputs') not in ['buildOutputs', 'comparisonOutputs']:
+        raise ValueError('Invalid expected output pin field')
+    return jobs
+
+
 def specification(raw):
     spec = json.loads(raw)
     for key, pattern in [('sha', r'[0-9a-f]{40}'), ('base', r'[0-9a-f]{40}'),
@@ -21,8 +34,7 @@ def specification(raw):
             raise ValueError('Invalid proof ' + key)
     if not isinstance(spec.get('command'), str) or not spec['command'].strip():
         raise ValueError('Missing exact compare command')
-    if not re.fullmatch(r'[a-z0-9-]+', spec.get('outputsJob', '')):
-        raise ValueError('Invalid output job')
+    output_jobs(spec)
     if not re.fullmatch(r'[0-9a-f]{64}', spec.get('outputsSha256', '')):
         raise ValueError('Invalid expected output-map hash')
     if type(spec.get('outputsCount')) is not int or spec['outputsCount'] <= 0:
@@ -77,15 +89,26 @@ def restore(spec, evidence):
 
 def expected_outputs(root, spec):
     catalog = json.loads((root / 'scripts/generation-jobs.json').read_text())
-    job = next(row for row in catalog['jobs'] if row['id'] == spec['outputsJob'])
-    pins = job['buildOutputs']
+    pins = {}
+    field = spec.get('outputsField', 'buildOutputs')
+    for name in output_jobs(spec):
+        jobs = [row for row in catalog['jobs'] if row['id'] == name]
+        if len(jobs) != 1:
+            raise ValueError('Missing or duplicate candidate output job: ' + name)
+        selected = jobs[0].get(field)
+        if not isinstance(selected, dict) or not selected:
+            raise ValueError('Missing candidate ' + field + ': ' + name)
+        if pins.keys() & selected.keys():
+            raise ValueError('Candidate output jobs overlap paths')
+        pins.update(selected)
     digest = hashlib.sha256(json.dumps(pins, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
     if len(pins) != spec['outputsCount'] or digest != spec['outputsSha256']:
         raise ValueError('Candidate output pins differ from supplied Darwin evidence')
     outputs = []
     for file, pin in sorted(pins.items()):
-        if (not file or file.startswith('/') or '..' in pathlib.PurePosixPath(file).parts or
-                not re.fullmatch(r'[0-9a-f]{64}', pin)):
+        if (not isinstance(file, str) or not file or file.startswith('/') or '\\' in file or
+                any(part in ['', '.', '..'] for part in file.split('/')) or
+                not isinstance(pin, str) or not re.fullmatch(r'[0-9a-f]{64}', pin)):
             raise ValueError('Invalid expected output path or hash')
         outputs.append({'file': file, 'sha256': pin})
     return outputs
@@ -107,13 +130,16 @@ def output_hashes(root, outputs):
 def compare(spec, evidence):
     identity = json.loads(subprocess.check_output(['node', '-p',
         'JSON.stringify({node:process.versions.node,platform:process.platform,arch:process.arch})'], text=True))
-    identity.update(sha=git('rev-parse', 'HEAD'), tree=git('rev-parse', 'HEAD^{tree}'), command=spec['command'])
+    identity.update(sha=git('rev-parse', 'HEAD'), tree=git('rev-parse', 'HEAD^{tree}'), command=spec['command'],
+                    outputsJobs=output_jobs(spec), outputsField=spec.get('outputsField', 'buildOutputs'),
+                    outputsCount=spec['outputsCount'], outputsSha256=spec['outputsSha256'])
     (evidence / 'identity.json').write_text(json.dumps(identity, indent=2) + '\n')
     if (identity['sha'] != spec['sha'] or identity['node'] != spec['node'] or
             identity['platform'] != 'linux' or identity['arch'] != 'x64'):
         raise ValueError('Wrong candidate, Node version or Linux x64 host')
     outputs = expected_outputs(pathlib.Path.cwd().resolve(), spec)
-    env = dict(os.environ, GITHUB_SHA=identity['sha'], NINE_PROOF_CACHE=str(evidence.parent / 'candidate-cold-cache'))
+    cache = str(evidence.parent / 'candidate-cold-cache')
+    env = dict(os.environ, GITHUB_SHA=identity['sha'], NINE_PROOF_CACHE=cache, CANDIDATE_PROOF_CACHE=cache)
     # Workflow main's GITHUB_SHA must never label this private checkout.
     with (evidence / 'compare.log').open('w') as log:
         process = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', spec['command']],
