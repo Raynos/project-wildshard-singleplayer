@@ -163,6 +163,27 @@ it('parses escaped/code pipes and ignores fenced fake tables and historical deci
   expect(parsed.rows[0]?.line).toBe(7);
 });
 
+it('reads rows and decisions from the plan folder once the plan moves them there (G375)',()=>{
+  const at=plan.indexOf('| Step |'),done=plan.indexOf('## 6. Done when'),decided=plan.indexOf('## 10. Decisions');
+  const slim=`${plan.slice(0,at)}- **SF1** an index line, not a row\n\n${plan.slice(done,decided)}`;
+  const rowsMd=`# rows\n\n${plan.slice(at,done)}`,decisionsMd=`# decisions\n\n${plan.slice(decided)}`;
+  const files=inputs();
+  files.set('docs/plans/SHARD-PLATFORM.md',slim);
+  files.set('docs/plans/shard-platform/rows.md',rowsMd);
+  files.set('docs/plans/shard-platform/decisions.md',decisionsMd);
+  const {bundle}=collectAdminData(tree(files));
+  expect(bundle.plan.rows.map(row=>[row.id,row.source,row.line])).toEqual([['SF1','docs/plans/shard-platform/rows.md',5],['SF2','docs/plans/shard-platform/rows.md',6]]);
+  expect(bundle.plan.decisions.map(row=>row.id)).toEqual(['G1','G2']);
+  expect(bundle.plan.decisions[0]?.source).toBe('docs/plans/shard-platform/decisions.md');
+  expect(bundle.plan.waitingForJake.map(row=>row.id)).toEqual(['SF1','G1']);
+  expect(bundle.plan.parts?.map(part=>part.path)).toEqual(['docs/plans/shard-platform/rows.md','docs/plans/shard-platform/decisions.md']);
+  expect(bundle.plan.effort.rows[0]?.percent).toBe(90);
+  expect(readAdminBundle(JSON.parse(stableJson(bundle)))).toEqual(bundle);
+  // Without its parts the slim plan has no rows, and says so.
+  files.delete('docs/plans/shard-platform/rows.md');files.delete('docs/plans/shard-platform/decisions.md');
+  expect(()=>collectAdminData(tree(files))).toThrow('Plan requires work and decision tables');
+});
+
 it('exports transitive share helpers and their committed catalogues',()=>{
   const root=mkdtempSync(join(tmpdir(),'admin-share-imports-'));
   const git=(...args:string[])=>execFileSync('git',['-C',root,...args],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();

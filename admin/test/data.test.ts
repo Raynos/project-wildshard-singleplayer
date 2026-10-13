@@ -45,14 +45,16 @@ const ADMIN: AdminBundle = {
     tables: [], media: ['art/playtest/round-2-2026-10-08/clip-03-crash.mp4'], missing: [] }],
   plan: {
     source: src('docs/plans/SHARD-PLATFORM.md'), title: 'Plan: SHARD-PLATFORM — MMO-compatible shardfiles',
+    // G375: the rows and decisions are read from the plan folder, each tagged with its file
+    parts: [src('docs/plans/shard-platform/rows.md'), src('docs/plans/shard-platform/decisions.md')],
     state: '`in progress` 2026-10-08 — whole plan ≈ 53 %; template ≈ 95 % ; Pine ≈ 35 %', stateLine: 3,
     reportedPercent: [{ label: 'whole plan', percent: 53, approximate: true }, { label: 'M2', percent: 88, approximate: true }],
     effort: { context: '', rows: [] },
     milestones: [{ title: '6. Done when', line: 564, markdown: '## 6. Done when\n\n- **M1:** every boolean\n  true.' }],
-    rows: [{ id: 'SF0', line: 346, cells: ['SF0', 'X', '**The frame floor**', '**done** `417db57d2`', 'M'] },
-      { id: 'SF68', line: 461, cells: ['SF68', 'X + O', 'admin site', 'The site deploys', 'L'] }],
-    decisions: [{ id: 'G248', line: 972, cells: ['G248', 'The admin site', '**A new site**'] }],
-    waitingForJake: [{ id: 'G148', line: 870, cells: ['G148', 'Pick', 'needs pick'] }],
+    rows: [{ id: 'SF0', source: 'docs/plans/shard-platform/rows.md', line: 346, cells: ['SF0', 'X', '**The frame floor**', '**done** `417db57d2`', 'M'] },
+      { id: 'SF68', source: 'docs/plans/shard-platform/rows.md', line: 461, cells: ['SF68', 'X + O', 'admin site', 'The site deploys', 'L'] }],
+    decisions: [{ id: 'G248', source: 'docs/plans/shard-platform/decisions.md', line: 972, cells: ['G248', 'The admin site', '**A new site**'] }],
+    waitingForJake: [{ id: 'G148', source: 'docs/plans/shard-platform/decisions.md', line: 870, cells: ['G148', 'Pick', 'needs pick'] }],
   },
   progress: {
     share: { command: 'node scripts/shard-platform.mjs --json', target: 0.8, shards: [
@@ -108,6 +110,7 @@ describe('admin view mapping', () => {
       { label: 'Template (M3)', pct: 95 }, { label: 'Pine (M3)', pct: 35 }]);
     expect(view.plans.rows.map((r) => r.status)).toEqual(['done', 'open']);
     expect(view.plans.waiting.at(0)?.id).toBe('G148');
+    expect(view.plans.waiting.at(0)?.source).toBe('docs/plans/shard-platform/decisions.md:870');
     expect(view.plans.milestones.at(0)).toEqual({ title: 'Done when', lines: ['M1: every boolean true.'] });
     expect(view.loading).toEqual({ runs: [], note: 'No committed SF67 report' });
     expect(view.build).toBe('012345678');

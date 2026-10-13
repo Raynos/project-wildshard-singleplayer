@@ -316,7 +316,7 @@ function plan(p: Plan, prog: ProgressData): PlanData {
     rows,
     decisions,
     decisionRange,
-    waiting: p.waitingForJake.map((w) => ({ id: w.id, what: plain(w.cells.slice(1).join(' · ')), source: `${source}:${w.line}` })),
+    waiting: p.waitingForJake.map((w) => ({ id: w.id, what: plain(w.cells.slice(1).join(' · ')), source: `${w.source ?? source}:${w.line}` })),
   };
 }
 

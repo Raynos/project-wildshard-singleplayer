@@ -12,6 +12,8 @@ on:
       - 'progress/loading/sf67/**'
       - 'art/playtest/round-*/**'
       - 'docs/plans/SHARD-PLATFORM.md'
+      - 'docs/plans/shard-platform/rows.md'
+      - 'docs/plans/shard-platform/decisions.md'
       # the plan page's Progress card: the effort recounts and the share script (with its ceilings)
       - 'progress/shard-platform/effort-recount-*/**'
       - 'scripts/shard-platform.mjs'

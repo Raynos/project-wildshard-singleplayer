@@ -5,11 +5,11 @@ import { existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,rea
 import { tmpdir } from 'node:os';
 import { dirname,join,resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { collectAdminData,safeSourcePath,stableJson } from './admin-data/collect.mjs';
+import { PLAN,PLAN_PARTS,collectAdminData,safeSourcePath,stableJson } from './admin-data/collect.mjs';
 import { RECOUNT_PREFIX,SHARE_COMMAND } from './admin-data/progress.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
 
-const REPORTS=['progress/memory','progress/loading/sf67','art/playtest','docs/plans/SHARD-PLATFORM.md'];
+const REPORTS=['progress/memory','progress/loading/sf67','art/playtest',PLAN,...PLAN_PARTS];
 const SHARE_SCRIPT='scripts/shard-platform.mjs';
 /** What `node scripts/shard-platform.mjs --json` reads: the shard sources and packages, its ceilings, the frozen legacy
  * inventory, the proof witnesses and its own imports. admin/tools/deploy.sh exports the same list. */

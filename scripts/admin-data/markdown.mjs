@@ -82,8 +82,11 @@ export function parsePlaytest(markdown,source,media){
   }
   return {id:source.path.split('/').at(-2)??source.path,source,title:sections[0]?.title??source.path,builds,markdown,findings,tables:markdownTables(markdown),media:media.map(row=>row.path),missing:[...(builds.length > 0?[]:['No build id found in setup']),...(top?[]:['No Top 10 section found'])]};
 }
-/** @param {string} markdown @param {import('./types.mjs').Source} source @returns {import('./types.mjs').Plan} */
-export function parsePlan(markdown,source){
+/** The plan keeps State, §6's effort table and Done when; its SF rows and G decisions may live in plan-folder files
+ * (`parts`: SHARD-PLATFORM's rows.md and decisions.md, G375), read the same way and tagged with their file.
+ * @param {string} markdown @param {import('./types.mjs').Source} source @param {readonly import('./types.mjs').PlanPart[]} [parts]
+ * @returns {import('./types.mjs').Plan} */
+export function parsePlan(markdown,source,parts=[]){
   const lines=markdown.split('\n'),sections=markdownSections(markdown),tables=markdownTables(markdown);
   const stateIndex=lines.findIndex(line=>line.startsWith('**State:**'));
   if(stateIndex===-1)throw new Error('Plan requires a State line');
@@ -99,14 +102,20 @@ export function parsePlan(markdown,source){
   });
   /** @type {import('./types.mjs').PlanRow[]} */
   const rows=[],decisions=[];
-  // Only canonical tables before handoffs; narrative references never become new work/decision rows.
-  const handoff=sections.find(section=>/^Handoff\b/u.test(section.title))?.line??Infinity;
-  for(const table of tables)for(const row of table.rows){
-    const id=row.cells[0]??'';
-    if(row.line>=handoff)continue;
-    if(/^SF\d+[a-z]?(?:-[a-z])?$/u.test(id))rows.push({id,...row});
-    if(/^G\d+$/u.test(id))decisions.push({id,...row});
-  }
+  /** @param {string} text @param {string|undefined} from */
+  const collect=(text,from)=>{
+    // Only canonical tables before handoffs; narrative references never become new work/decision rows.
+    const handoff=markdownSections(text).find(section=>/^Handoff\b/u.test(section.title))?.line??Infinity;
+    for(const table of (from===undefined?tables:markdownTables(text)))for(const row of table.rows){
+      const id=row.cells[0]??'';
+      if(row.line>=handoff)continue;
+      const entry=from===undefined?{id,...row}:{id,source:from,...row};
+      if(/^SF\d+[a-z]?(?:-[a-z])?$/u.test(id))rows.push(entry);
+      if(/^G\d+$/u.test(id))decisions.push(entry);
+    }
+  };
+  collect(markdown,undefined);
+  for(const part of parts)collect(part.markdown,part.source.path);
   if(rows.length === 0||decisions.length === 0)throw new Error('Plan requires work and decision tables');
   const reportedPercent=[...state.matchAll(/(whole plan|Part A|M[123])\s*≈\s*(\d+(?:\.\d+)?)\s*%/gu)].map(match=>({label:match[1],percent:Number(match[2]),approximate:true}));
   const waitingForJake=[...rows,...decisions].filter(row=>{
@@ -114,5 +123,5 @@ export function parsePlan(markdown,source){
     const decision=row.cells[2]??'';
     return /^(?:\*\*)?(?:needs pick\b|waiting for Jake\b|After Jake(?:'s|’s) yes\b)/iu.test(decision) || /\b(?:grid goes public only after his yes|goes public only after Jake(?:'s|’s) yes)\b/iu.test(text);
   });
-  return {source,title:sections[0]?.title??source.path,state,stateLine:stateIndex+1,reportedPercent,effort:{context:lines[contextIndex]??'',rows:effort},milestones:sections.filter(section=>/^6\. Done when$/u.test(section.title)),rows,decisions,waitingForJake};
+  return {source,...(parts.length > 0?{parts:parts.map(part=>part.source)}:{}),title:sections[0]?.title??source.path,state,stateLine:stateIndex+1,reportedPercent,effort:{context:lines[contextIndex]??'',rows:effort},milestones:sections.filter(section=>/^6\. Done when$/u.test(section.title)),rows,decisions,waitingForJake};
 }

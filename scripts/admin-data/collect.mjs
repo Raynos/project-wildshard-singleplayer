@@ -6,6 +6,9 @@ import { RECOUNT_PREFIX,newestRecount,parseRecountReadme,readRecountJson,readSha
 import { readAdminBundle,readLoadingReport,readItemizedReport } from './validate.mjs';
 
 const MAX_TEXT_BYTES=32_000_000;
+export const PLAN='docs/plans/SHARD-PLATFORM.md';
+/** The plan folder files that hold the plan's SF rows and G decisions (SHARD-PLATFORM G375). */
+export const PLAN_PARTS=['docs/plans/shard-platform/rows.md','docs/plans/shard-platform/decisions.md'];
 const MAX_MEDIA_BYTES=64_000_000;
 /** @param {Uint8Array} bytes */
 export const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -102,7 +105,9 @@ export function collectAdminData(tree){
   }
   if(!paths.includes(chart))throw new Error(`Missing committed effort chart: ${chart}`);
   if(!media.some(row=>row.path===chart))addMedia(chart);
-  const rawPlan=text('docs/plans/SHARD-PLATFORM.md');
-  const bundle=readAdminBundle({schema:'wildshard-admin/1',revision:tree.revision,memory,loading:{status:loadingReports.length > 0?'available':'unavailable',reports:loadingReports,missing:loadingReports.length > 0?[]:['No committed SF67 loading-benchmark/1 report at progress/loading/sf67/**/report.json']},playtests,plan:parsePlan(rawPlan.text,rawPlan.source),progress:{share,effort},media:media.sort((left,right)=>left.path<right.path?-1:left.path>right.path?1:0)});
+  const rawPlan=text(PLAN);
+  // G375: the plan's rows and decisions live in its folder once moved there; read each part the tree has.
+  const planParts=PLAN_PARTS.filter(path=>paths.includes(path)).map(path=>{const raw=text(path);return {markdown:raw.text,source:raw.source};});
+  const bundle=readAdminBundle({schema:'wildshard-admin/1',revision:tree.revision,memory,loading:{status:loadingReports.length > 0?'available':'unavailable',reports:loadingReports,missing:loadingReports.length > 0?[]:['No committed SF67 loading-benchmark/1 report at progress/loading/sf67/**/report.json']},playtests,plan:parsePlan(rawPlan.text,rawPlan.source,planParts),progress:{share,effort},media:media.sort((left,right)=>left.path<right.path?-1:left.path>right.path?1:0)});
   return {bundle,files};
 }

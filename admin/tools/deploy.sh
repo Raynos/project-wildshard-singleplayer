@@ -31,6 +31,10 @@ trap 'rm -rf "$work"' EXIT
 # the site, sp-x2's admin-data pipeline and every report path it reads (scripts/admin-data.mjs exportedAdminTree)
 reports=(progress/memory art/playtest docs/plans/SHARD-PLATFORM.md)
 if git cat-file -e "$full:progress/loading/sf67" 2>/dev/null; then reports+=(progress/loading/sf67); fi
+# the plan's rows and decisions moved into its folder (G375; scripts/admin-data/collect.mjs PLAN_PARTS)
+for part in docs/plans/shard-platform/rows.md docs/plans/shard-platform/decisions.md; do
+  if git cat-file -e "$full:$part" 2>/dev/null; then reports+=("$part"); fi
+done
 # the Progress card: every committed effort recount folder (the newest is read), and what the share script measures
 # (scripts/admin-data.mjs SHARE_INPUTS: it runs `node scripts/shard-platform.mjs --json` inside this export)
 while IFS= read -r folder; do reports+=("$folder"); done < <(git ls-tree -d --name-only "$full" -- progress/shard-platform/ | grep '^progress/shard-platform/effort-recount-' || true)
