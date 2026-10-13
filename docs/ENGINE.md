@@ -3846,3 +3846,15 @@ The declared vector/tag copy flags retain their event-lifetime semantics;
 health predicates run after the accepted hit and its callback. Signal's lash
 and Sky's fan use the same controller and keep their original held release.
 Absent `contacts` leaves existing item admission and serialised bytes unchanged.
+
+G394 melee AS secondaries: optional item `secondary: { action, code, move }`
+requires an admitted item hook and an in-range secondary-lane contact. Codes
+3 and 4 select only that declared move through the existing actor-bound
+`scriptItemHook`; script events cannot provide damage or impulses.
+`@wildshard/game/plugin/simulation.startMeleeSecondary(family, hook, input)`
+checks the original secondary clock and command bounds, then starts an
+immediate or timed contact only after the hook accepts. A missing, forged
+or failed hook declines without touching the contact continuation. Immediate
+contacts still land in the owner's original phase; timed contacts advance
+only when that owner advances them. No second contact controller is created.
+Absent `secondary` keeps existing item admission bytes unchanged.

@@ -19,8 +19,10 @@ const view = v.strictObject({ asset: v.exactOptional(v.pipe(v.string(), v.regex(
 const ui = v.strictObject({ name: text, icon: name, swapIcon: v.pipe(text, v.maxLength(512)), blurb: text });
 const attack = v.strictObject({ id: name, damage: v.pipe(finite, v.minValue(0), v.maxValue(10000)), cooldown: duration,
   range: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), width: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), tags: v.pipe(v.array(tag), v.maxLength(32)), effect: v.nullable(effect) });
+const secondary = v.strictObject({ action: name, code: v.picklist([3, 4]), move: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(15)) });
 const weapon = v.strictObject({ id: weaponId, kind: v.literal('weapon'), family: name, slot, context: name, ui, view, hook,
   profile: v.exactOptional(WeaponProfileSchema), contacts: v.exactOptional(MeleeContactsSchema),
+  secondary: v.exactOptional(secondary),
   light: attack, heavy: attack, charge: v.pipe(duration, v.maxValue(5)) });
 const tool = v.strictObject({ id: toolId, kind: v.literal('tool'), family: name, ui, view, hook, action: v.nullable(v.custom<`${string}.${string}`>((value) => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value))),
   fuelSeconds: duration, intensity: v.pipe(finite, v.minValue(0), v.maxValue(10)) });
@@ -48,6 +50,8 @@ export function itemRules(items: ShardItems, modules?: readonly string[]): strin
   const errors: string[] = [], ids = items.rows.map((r) => r.id), weapons = items.rows.filter((r) => r.kind === 'weapon');
   const runtimeContexts = items.runtimeContexts ?? [];
   if (weapons.some(row => row.profile !== undefined && !row.family.includes('.') && row.family !== row.profile.family && !(row.family === 'swept' && row.profile.family === 'melee'))) errors.push('weapon profile matches declared family');
+  if (weapons.some(row => row.secondary !== undefined && (row.hook === null
+    || row.contacts?.[row.secondary.move]?.lane !== 'secondary'))) errors.push('scripted secondary references an admitted hook and secondary contact');
   if (items.rows.some((row) => row.kind === 'tool' && row.action === null && row.hook !== null)) errors.push('native tools have no script hook');
   if (items.contexts.some((ctx) => baselineContexts.has(ctx.id))) errors.push('baseline context is referenced rather than redeclared');
   if (new Set(runtimeContexts).size !== runtimeContexts.length || runtimeContexts.some((id) => items.contexts.some((ctx) => ctx.id === id))) errors.push('unique runtime context references separate from declared contexts');

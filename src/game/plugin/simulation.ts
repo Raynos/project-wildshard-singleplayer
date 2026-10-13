@@ -33,7 +33,7 @@ import { installShardfileColliders, shardfileColliderIds } from "../shardfile/co
 import { validateMeshCollisionAssets } from "@wildshard/format/meshCollisionAssets";
 import { validateMeshEntryways } from "@wildshard/format/meshEntryways";
 import { clientGround } from "../shardfile/clientGround";
-import { declaredItemScriptEntities } from "../shardfile/items";
+import { declaredItemScriptEntities, type DeclaredItemPorts } from "../shardfile/items";
 import { syncTargetColliders } from "../shardfile/targets";
 import { scriptPhysicsQueries } from "@wildshard/engine/script/queries";
 import { createQuestScriptPorts, DeclaredQuests, type QuestDataPorts, type QuestScriptBindings } from "../quest/declared";
@@ -720,5 +720,18 @@ export function bindMeleeContacts<T extends ContactScanTarget>(weaponId: string,
     tags: hit.tags, weaponId, source: hit.source === 'owner' ? ports.owner : 'env',
     damage: hit.damage, moveId: hit.moveId, copyVectors: hit.copyVectors, copyTags: hit.copyTags, reactions: hit.reactions,
   })) })), ports);
+}
+
+
+/** One admitted secondary action selects its declared move; script memory belongs to the existing item ScriptHost. */
+export interface MeleeSecondaryInput { readonly tick: number; readonly dt: number; readonly action: 3 | 4; readonly move: number }
+/** Start a row only after its actor-bound AS item hook accepts it. Contacts remain in the owner's original phase. */
+export function startMeleeSecondary<T extends ContactScanTarget>(family: ContactFamily<T>, hook: ReturnType<DeclaredItemPorts['runtime']>['hook'], input: MeleeSecondaryInput): number | null {
+  const row = family.moves[input.move];
+  if (hook === null || family.secondaryCooldown > 0 || row?.lane !== 'secondary'
+    || !Number.isSafeInteger(input.tick) || input.tick < 0 || !Number.isFinite(input.dt) || input.dt < 0 || input.dt > 1
+    || ![3, 4].includes(input.action) || !Number.isInteger(input.move) || input.move < 0 || input.move > 15) return null;
+  if (hook({ tick: input.tick, dt: input.dt, action: input.action, fuel: 0, cooldown: family.secondaryCooldown }) !== input.action) return null;
+  return (row.lands.length === 0 ? family.claim(input.move) : family.swing(input.move)) ? input.move : null;
 }
 
