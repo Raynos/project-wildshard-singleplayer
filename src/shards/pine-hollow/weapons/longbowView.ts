@@ -3,7 +3,7 @@ import type { ProjectileKind } from '@wildshard/engine/combat/view/projectile';
 import { fixIBL, viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { BowView } from '@wildshard/sdk/weapons/bowProfile';
-import { arrowGeometry, bowPoses, staveBowSpecimen, staveBowView } from '../runtime/viewmodel/staveBow';
+import { arrowGeometry, bowPoses, prepareStaveBowHands, staveBowSpecimen, staveBowView } from '../runtime/viewmodel/staveBow';
 import { LONGBOW_ARROW, LONGBOW_LOOK, LONGBOW_MATERIAL, LONGBOW_POSES } from '../runtime/viewmodel/longbowLook';
 import { ARROW_FLIGHT, ARROW_MAX_FLYING } from './longbowFlight';
 
@@ -44,6 +44,9 @@ export function longbowSpecimen(sky: Sky): THREE.Group {
   g.add(m);
   return g;
 }
+
+/** The held Longbow's fists and sleeves built ahead of its view (SF67), pausing on `due`: `buildLongbow` then takes them. */
+export async function prepareLongbowHands(due: () => Promise<void> | null): Promise<void> { await prepareStaveBowHands(LONGBOW_LOOK, due); }
 
 /** The held Longbow's view: the yew stave, its string and arrow, the hunter's gloved hands (@wildshard/sdk/viewmodel/staveBow). */
 export function buildLongbow(sky: Sky): BowView {

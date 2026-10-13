@@ -296,8 +296,43 @@ const onlyPNC = (g: THREE.BufferGeometry): THREE.BufferGeometry => { for (const 
  *  gauntlet) and `sleeve` = the forearm along +Y from its origin, `wrist` = where that origin sits in grip space and `dir`
  *  = the wrist's bend there (grip space). */
 export interface HandGeometry { geometry: THREE.BufferGeometry; sleeve: THREE.BufferGeometry | null; wrist: THREE.Vector3; dir: THREE.Vector3 }
+/** Hands built ahead of their weapon (`prepareHandGeometry`), per look and spec: each taken once by `handGeometry`. */
+const handsAhead = new WeakMap<GloveHandsLook, Map<string, HandGeometry>>();
+const handKey = (spec: HandSpec, free: boolean): string => JSON.stringify([spec, free]);
 /** One hand's geometry in `look`'s colours (see HandGeometry). */
 export function handGeometry(look: GloveHandsLook, spec: HandSpec, free = false): HandGeometry {
+  const key = handKey(spec, free), ahead = handsAhead.get(look), built = ahead?.get(key);
+  if (built !== undefined) { ahead?.delete(key); return built; }
+  return buildHandGeometry(look, spec, free);
+}
+
+/**
+ * Build one hand ahead of the weapon that will ask for it (SF67): a hand is ~5–12 ms of a weapon's construction, so a
+ * grid cell building its kit on the road prepares each in its own task. The next `handGeometry(look, spec, free)` takes
+ * this geometry (the same builder, so the same bytes) instead of building it.
+ */
+export function prepareHandGeometry(look: GloveHandsLook, spec: HandSpec, free = false): HandGeometry {
+  const key = handKey(spec, free);
+  let ahead = handsAhead.get(look);
+  if (ahead === undefined) { ahead = new Map(); handsAhead.set(look, ahead); }
+  const ready = ahead.get(key);
+  if (ready !== undefined) return ready;
+  const built = buildHandGeometry(look, spec, free);
+  ahead.set(key, built);
+  return built;
+}
+
+/** Both hands of a weapon's holds built ahead (`prepareHandGeometry`, as `WeaponHands` will ask for them), pausing on
+ *  `due` after each; resolves to the two the weapon will take. */
+export async function prepareWeaponHands(look: GloveHandsLook, left: HandHold, right: HandHold, due: () => Promise<void> | null): Promise<readonly [HandGeometry, HandGeometry]> {
+  const l = prepareHandGeometry(look, { ...left.spec, mirror: true }, left.spec.elbow !== undefined);
+  const wait = due(); if (wait !== null) await wait;
+  const r = prepareHandGeometry(look, { ...right.spec, mirror: false }, right.spec.elbow !== undefined);
+  const after = due(); if (after !== null) await after;
+  return [l, r];
+}
+
+function buildHandGeometry(look: GloveHandsLook, spec: HandSpec, free: boolean): HandGeometry {
   const mirror = spec.mirror === true, sx = mirror ? -1 : 1, k = spec.tint ?? 1, tint: V3 = [k, k, k], glove = spec.gloveTint ?? tint;
   return withArmPalette(look.palette, () => {
     const fist = gloveFist({ R: spec.R, mirror, span: spec.span ?? 1, curl: spec.curl ?? 1, thumbCurl: spec.thumbCurl ?? spec.curl ?? 1 });

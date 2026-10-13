@@ -1,7 +1,7 @@
 import { cyl, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, box, edgeWear, stripExtra } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { crossbowType, type BoltCrossbowParts, type BoltCrossbowView, type BoltCrossbow as BoltCrossbowWeapon } from '../../items/boltCrossbow';
-import { WeaponHands, coatMaterialParams, holdDef, type HandHold, type WeaponHands as WeaponHandsView } from '../../viewmodel/gloveHands';
+import { WeaponHands, coatMaterialParams, coatTextures, holdDef, prepareWeaponHands, type HandHold, type WeaponHands as WeaponHandsView } from '../../viewmodel/gloveHands';
 import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../../viewmodel/handsLook';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
 import { boltFlightStep } from '../../../weapons/crossbow/flight';
@@ -313,6 +313,14 @@ function crossbowHands(sky: Sky): (model: THREE.Group) => WeaponHandsView {
     coatMat ??= viewmodelMaterial(sky, 'hunter-coat', coatMaterialParams());
     return new WeaponHands(HUNTER_HANDS, model, handsMat, holdDef(CROSSBOW_HAND_HOLDS.left), holdDef(CROSSBOW_HAND_HOLDS.right), coatMat);
   };
+}
+
+/** The crossbow's hands and their coat's canvas built ahead of `new Crossbow` (SF67), a task apart (`due`): the same
+ *  geometry and textures its constructor would build in one stretch. */
+export async function prepareCrossbowHands(due: () => Promise<void> | null): Promise<void> {
+  coatTextures();
+  const wait = due(); if (wait !== null) await wait;
+  await prepareWeaponHands(HUNTER_HANDS, CROSSBOW_HAND_HOLDS.left, CROSSBOW_HAND_HOLDS.right, due);
 }
 
 /** Pine's crossbow: the row bound to the platform's bolt crossbow (`new Crossbow(world, targets, { row })`). */

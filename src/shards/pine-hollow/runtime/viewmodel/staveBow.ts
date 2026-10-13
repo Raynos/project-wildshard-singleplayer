@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { BowView, GripPose } from '@wildshard/engine/combat/view/bowProfile';
-import { gloveFist, riderArm, type FistOpts } from '@wildshard/engine/player/nalatiArms';
+import { gloveFist, riderArm, riderArmSteps, type FistOpts } from '@wildshard/engine/player/nalatiArms';
 import { withArmPalette, type ArmPaletteRow } from './gloveHands';
 
 /**
@@ -338,10 +338,17 @@ export function staveBowSpecimen(look: StaveBowLook): THREE.BufferGeometry {
   return new StaveBowMesh(look, [lf.geometry]).geometry;
 }
 
+/** A stave bow's fists and sleeves, built ahead of its view (`prepareStaveBowHands`). */
+export interface StaveBowHands { readonly lf: ReturnType<typeof gloveFist>; readonly rf: ReturnType<typeof gloveFist>; readonly lArm: THREE.BufferGeometry; readonly rArm: THREE.BufferGeometry }
+/** One set per look, taken (once) by the next `staveBowView` of that look. */
+const handsAhead = new WeakMap<StaveBowLook, StaveBowHands>();
+
 /** The platform bow's view strategy for a stave bow, every part on `mat` (the viewmodels' shared lit program, vertex
  *  colours × the 1×1 fillers): the stave with the left fist, the nocked arrow, the right fist and both sleeves. */
 export function staveBowView(look: StaveBowLook, mat: THREE.Material): BowView {
-  const { lf, rf, lArm, rArm } = withArmPalette(look.hands, () => ({ lf: gloveFist(look.leftFist), rf: gloveFist(look.rightFist), lArm: riderArm(...look.leftSleeve), rArm: riderArm(...look.rightSleeve) }));
+  const ahead = handsAhead.get(look);
+  handsAhead.delete(look);
+  const { lf, rf, lArm, rArm } = ahead ?? withArmPalette(look.hands, () => ({ lf: gloveFist(look.leftFist), rf: gloveFist(look.rightFist), lArm: riderArm(...look.leftSleeve), rArm: riderArm(...look.rightSleeve) }));
   const roll = new THREE.Quaternion().setFromAxisAngle(rf.wristDir, look.rightRoll);
   const mesh = new StaveBowMesh(look, [lf.geometry]);
   const nocked = new THREE.Mesh(planarUv(arrowGeometry(look.arrow), 20), mat);
@@ -349,6 +356,38 @@ export function staveBowView(look: StaveBowLook, mat: THREE.Material): BowView {
   const lSleeve = new THREE.Mesh(planarUv(lArm), mat);
   const rSleeve = new THREE.Mesh(planarUv(rArm), mat);
   return { mat, mesh, nocked, rHand, lSleeve, rSleeve, lWrist: lf.wrist, rWrist: rf.wrist, rHook: rf.hook, rWristDir: rf.wristDir, roll };
+}
+
+/**
+ * Build a look's fists and sleeves ahead of `staveBowView` (SF67), pausing on `due` between pieces and inside each sleeve's
+ * rings: the view's hands are its longest single stretch (~20 ms on a desktop, a dropped frame when a grid cell builds its
+ * kit on the road). The same builders in the same order and palette as the view's own one-go build, so the next view of
+ * `look` takes geometry with identical bytes; without a prepare, the view builds them itself as before. Resolves to the set
+ * the next view takes.
+ */
+export async function prepareStaveBowHands(look: StaveBowLook, due: () => Promise<void> | null): Promise<StaveBowHands> {
+  const ready = handsAhead.get(look);
+  if (ready !== undefined) return ready;
+  const pause = async (): Promise<void> => { const wait = due(); if (wait !== null) await wait; };
+  const sleeve = async (args: readonly [number, number]): Promise<THREE.BufferGeometry> => {
+    const steps = riderArmSteps(...args);
+    for (let step = 0; step < 4096; step++) {
+      const r = withArmPalette(look.hands, () => steps.next());
+      if (r.done === true) return r.value;
+      await pause();
+    }
+    throw new Error('stave bow: a sleeve never finished its steps');
+  };
+  const lf = withArmPalette(look.hands, () => gloveFist(look.leftFist));
+  await pause();
+  const rf = withArmPalette(look.hands, () => gloveFist(look.rightFist));
+  await pause();
+  const lArm = await sleeve(look.leftSleeve);
+  await pause();
+  const rArm = await sleeve(look.rightSleeve);
+  const hands = { lf, rf, lArm, rArm };
+  handsAhead.set(look, hands);
+  return hands;
 }
 
 /** A look's grip poses (triples) as the platform bow's GripPose, keys kept. */

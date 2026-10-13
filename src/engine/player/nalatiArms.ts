@@ -285,6 +285,19 @@ function qoshqar(a: number, b: number): number {
  * borders in deep red — running `len` m, well out of frame.
  */
 export function riderArm(len = 0.9, seed = 1): THREE.BufferGeometry {
+  const steps = riderArmSteps(len, seed);
+  for (;;) { const r = steps.next(); if (r.done === true) return r.value; }
+}
+
+/** The rings a `riderArmSteps` stretch builds before it yields. */
+const ARM_RINGS_PER_STEP = 24;
+/**
+ * `riderArm` as steps (SF67): a yield every `ARM_RINGS_PER_STEP` rings, before the normals and before the stitched edge's
+ * merge, so a build running between drawn frames can let one through. The same arithmetic in the same order as the one-go
+ * build: the bytes match it exactly. The palette is read at each step: a caller that builds in a palette
+ * (`withArmPalette`) holds it around each `next()`.
+ */
+export function* riderArmSteps(len = 0.9, seed = 1): Generator<void, THREE.BufferGeometry> {
   const L = ARM_PAL;
   const RAD = 96;
   const ys: number[] = [];
@@ -297,7 +310,10 @@ export function riderArm(len = 0.9, seed = 1): THREE.BufferGeometry {
   ys.push(len);
   const pos: number[] = [], col: number[] = [], idx: number[] = [];
   const c = new THREE.Color();
+  let rings = 0;
   for (const y of ys) {
+    if (rings > 0 && rings % ARM_RINGS_PER_STEP === 0) yield;
+    rings++;
     for (let k = 0; k <= RAD; k++) {
       const a = k / RAD, ph = a * Math.PI * 2;
       let r: number;
@@ -346,7 +362,9 @@ export function riderArm(len = 0.9, seed = 1): THREE.BufferGeometry {
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   g.setIndex(idx);
+  yield;
   g.computeVertexNormals();
+  yield;
   // the gauntlet's stitched edge: a ring of pale dashes just inside the roll
   const dashes: THREE.BufferGeometry[] = [g];
   const ey = GAUNT_END * 0.8, er = 0.033 + 0.012 * 0.64 + 0.0006;

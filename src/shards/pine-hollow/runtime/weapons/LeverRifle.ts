@@ -3,7 +3,7 @@ import { viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, box, cyl, st
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, type LeverFirearmView, type LeverFirearm as LeverFirearmWeapon } from '../items/leverFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
-import { WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '../viewmodel/gloveHands';
+import { WeaponHands, blendGrip, gripPose, holdDef, prepareWeaponHands, type HandHold } from '../viewmodel/gloveHands';
 import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../viewmodel/handsLook';
 import { LEVER_WEAPON_PROFILE } from '../../data/leverProfile';
 import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME } from '../../weapons/leverAction';
@@ -364,6 +364,10 @@ export const LEVER_HAND_HOLDS: { left: HandHold; right: HandHold; gate: Omit<Han
   right: { spec: { R: 0.012, span: 0.9, bend: [0.3, -0.6], armLen: 0.5, tint: 2.2, gloveTint: BUCKSKIN }, at: [0, -0.062, 0.165], axis: [0, 1, -0.25], palm: [-1, 0, 0] },
   gate: { at: [0.03, -0.01, 0.03], axis: [0, 0, -1], palm: [-1, 0, 0] },
 };
+/** The rifle's two hands built ahead of `new LeverRifle` (SF67), a task apart (`due`): the geometry its constructor would build. */
+export async function prepareLeverHands(due: () => Promise<void> | null): Promise<void> {
+  await prepareWeaponHands(HUNTER_HANDS, LEVER_HAND_HOLDS.left, LEVER_HAND_HOLDS.right, due);
+}
 /** The hands: the glove material once per rifle, a fresh pair from the holds on every build. */
 const LEVER_HANDS: LeverFirearmHandsKit = {
   make: (sky) => {
