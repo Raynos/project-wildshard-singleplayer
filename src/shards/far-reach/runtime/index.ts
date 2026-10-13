@@ -16,14 +16,14 @@ import { SKY_FLOCK_GROUPS, SKY_FLOCK_ROWS } from '../data/spawns';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
-import { commandSocketLift } from '@wildshard/game/plugin/simulation';
+import { commandSocketLift, bindMeleeContacts, createMeleeScriptDriver, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
 import { gustFx } from './looks/windFx';
 import { GUST_FX } from '../data/windLook';
 import { RISING_ISLETS } from '../world/islets';
 import type { RisingIslet } from '../data/isletDesign';
 import { WarFan, type WarFanWeapon } from '../weapons/WarFan';
 import { loadSkyFan } from '../weapons/fanShapes';
-import type { ConeFanTarget } from './weapons/coneStrikes';
+import type { ConeFanTarget } from './weapons/coneFan';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
 import { FAN_ROW } from '../weapons/rows';
@@ -155,7 +155,9 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   protected override prepare(ctx: ShardContext): void {
     // The shared combat-target query (ENGINE §19): world creatures in play, the Practice Arena's dummies while it is open.
     const targets = (): readonly ConeFanTarget[] => ctx.app.combat.targets().filter((t) => t.hittable);
-    this.fan = new WarFan(ctx.app, targets);
+    const row = source.items.rows.find(item => item.id === 'weapon.far-reach.fan');
+    if (row?.kind !== 'weapon' || row.contacts === undefined) throw new Error('Sky fan needs admitted contact rows');
+    this.fan = new WarFan(ctx.app, targets, ports => bindMeleeContacts(row.id, row.contacts, { owner: 'env', ...ports }));
     if (this.leaf !== null) paintFanLeaf(this.fan.parts, this.leaf);
   }
   protected override arm(): WarFanWeapon { const fan = this.fan; if (fan === null) throw new Error('Sky Reach: the war fan was not built'); return fan; }
@@ -183,7 +185,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     this.input(ctx, fanInput, gustRow);
 
     // Step 1: the keeper's notes.
-    bindSkyItems(ctx, fan);
     built.notes.onInteract = () => { flags.set(FLAGS.notes); toast(STRINGS.notesToast); };
     // Step 4: the winch answers only once the roost is quiet and the vanes turn (the notes say so).
     const unlocked = (): boolean => flags.has(FLAGS.roost) && flags.has(FLAGS.vanes);
@@ -203,10 +204,22 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       }
     });
     const product = runtimeProduct(source);
+    const itemAssets = new Map<string, Uint8Array>();
+    for (let index = 0; index < 64; index++) {
+      const item = source.items.rows[index]; if (item === undefined) break;
+      if (item.hook !== null && !itemAssets.has(item.hook.module)) itemAssets.set(item.hook.module, await product.assets.read(item.hook.module));
+    }
+    const items = await createMeleeScriptDriver(source.items, 'actor.player', itemAssets, source.identity.seed);
     this.movers = await installDeclaredMovers(ctx, rt.world, { data: source.movers, modules: new Map(), views: moverViews,
       admitted: product.assets.retained, read: hash => product.assets.read(hash), systemId: SKY_MOVER_BINDING.systemId,
+      composition: { modules: items.modules, roles: [items.role()], seed: items.seed },
       permissions: () => new Map([[SKY_MOVER_BINDING.winch, Number(flags.has(FLAGS.roost)) + Number(flags.has(FLAGS.vanes)) * 2]]),
       onDispose: () => { this.movers = null; } });
+    const host = this.movers.scriptHost, hooks = items.hooks(host), fanRow = source.items.rows.find(item => item.id === 'weapon.far-reach.fan');
+    if (fanRow?.kind !== 'weapon' || fanRow.secondary === undefined) throw new Error('Sky fan needs its admitted secondary');
+    const secondary = fanRow.secondary, hook = hooks.get(fanRow.id);
+    if (hook === undefined) throw new Error('Sky fan needs its admitted gust hook');
+    bindSkyItems(ctx, fan, hooks, family => startMeleeSecondary(family, hook, { tick: host.currentTick, dt: 1 / 60, action: secondary.code, move: secondary.move }));
     if (flags.has(FLAGS.raised)) this.movers.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
     const lifts = new Map(source.entryways.flatMap((row) => (row.kind === 'socketLift' && row.lift !== undefined ? [[row.edge, row.lift] as const] : [])));

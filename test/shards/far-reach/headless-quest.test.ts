@@ -10,7 +10,7 @@ import { DECK, NOTES, ROOST, SPAWN, VANES, WINCH } from '../../../src/shards/far
 import { KEEPER_AT } from '../../../src/shards/far-reach/data/quests';
 import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
 import { FAN_GUST, FAN_ID } from '../../../src/shards/far-reach/data/items';
-import { FAN_ACT, FAN_ACTOR } from '../../../src/shards/far-reach/runtime/fan';
+import { FAN_ACT, FAN_ACTOR } from '../../../src/shards/far-reach/data/nativeMelee';
 import { SKY_MOVER_BINDING } from '../../../src/shards/far-reach/data/moverBindings';
 import { ROOST_IDS, SKY_ACT, SKY_INTERACT } from '../../../src/shards/far-reach/data/questPrompts';
 import { prepareSkyRuntime, type SkyRuntime } from '../../../src/shards/far-reach/runtime/headless';

@@ -14,7 +14,7 @@ import source from '../../../src/shards/far-reach/shard.config';
 import baked from '../../../src/shards/far-reach/data/physics.generated.json';
 import { CROWN, GOATS, ROC, VANES } from '../../../src/shards/far-reach/data/layout';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
-import { FAN_ACT, FAN_ACTOR, FAN_AIM, FAN_STEP } from '../../../src/shards/far-reach/runtime/fan';
+import { FAN_ACT, FAN_ACTOR, FAN_AIM, FAN_STEP } from '../../../src/shards/far-reach/data/nativeMelee';
 import { FAN_GUST, FAN_ID, FAN_SWING, SKY_ITEMS } from '../../../src/shards/far-reach/data/items';
 import { FAN_ROW } from '../../../src/shards/far-reach/weapons/rows';
 import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';

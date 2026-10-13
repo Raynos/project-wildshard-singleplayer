@@ -1,5 +1,8 @@
+import { SKY_MELEE_HOST } from './nativeMelee';
 import type { ConeWeaponProfile } from '@wildshard/format/weaponProfiles';
 import { STRINGS } from './strings';
+import { FAN_CONTACTS } from './fanContacts';
+import { FAN_GUST_MODULE } from './fanGustModule';
 
 /** The declared fan row's id: every contact names it as its weapon. */
 export const FAN_ID = 'weapon.far-reach.fan';
@@ -16,7 +19,8 @@ export const FAN_PROFILE = { family: 'cone', slash: { reachAllowance: 1 },
 export const SKY_ITEMS = { version: 1, rows: [{
   id: 'weapon.far-reach.fan', kind: 'weapon', family: 'far-reach.fan', slot: 'declared.weapon.far-reach.fan', context: 'far.fan',
   ui: { name: STRINGS.fan, icon: 'sword', swapIcon: '◠', blurb: STRINGS.fanBlurb },
-  profile: FAN_PROFILE, view: { recipe: 'far-reach.fan', colour: '#dfece6', position: [0, 0, 0], rotation: [0, 0, 0] }, hook: null,
+  profile: FAN_PROFILE, native: SKY_MELEE_HOST, view: { recipe: 'far-reach.fan', colour: '#dfece6', position: [0, 0, 0], rotation: [0, 0, 0] }, contacts: FAN_CONTACTS, secondary: { action: 'far.gust', code: 3, move: 2 },
+  hook: { module: FAN_GUST_MODULE.hash, entity: 6001, event: 301 },
   light: { id: 'far.fan.light', damage: FAN_SWING.light, cooldown: FAN_SWING.cooldown, range: FAN_SWING.reach, width: FAN_SWING.halfAngle,
     tags: ['actor.player', 'weapon.far-fan', 'dmg.melee'], effect: null },
   heavy: { id: 'far.fan.heavy', damage: FAN_SWING.heavy, cooldown: FAN_SWING.heavyCooldown, range: FAN_SWING.reach, width: FAN_SWING.halfAngle,

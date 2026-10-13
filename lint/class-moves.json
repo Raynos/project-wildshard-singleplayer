@@ -49,14 +49,6 @@
       "base": "Weapon",
       "baseFile": "src/game/systems/items/magazineFirearm.ts"
     },
-    "src/shards/far-reach/runtime/weapons/coneFan.ts:20b9903b8bf7c3c864a238ab18febe7d9abc6cd12426185f8cca8941b8d0baec": {
-      "from": "src/game/systems/items/coneFan.ts",
-      "to": "src/shards/far-reach/runtime/weapons/coneFan.ts",
-      "hash": "20b9903b8bf7c3c864a238ab18febe7d9abc6cd12426185f8cca8941b8d0baec",
-      "name": "<anonymous>",
-      "base": "Weapon",
-      "baseFile": "src/game/systems/items/coneFan.ts"
-    },
     "src/shards/pine-hollow/runtime/items/boltCrossbow.ts:89d04fd34d7054e27630f4cfd660bc91a75a755dbbeb9111b9a9d61bfcc3be06": {
       "hash": "89d04fd34d7054e27630f4cfd660bc91a75a755dbbeb9111b9a9d61bfcc3be06",
       "name": "<anonymous>",

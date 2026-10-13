@@ -7,8 +7,9 @@ import type { MeleeContactRow } from '../src/format/weaponProfiles';
 import { bindMeleeContacts } from '../src/game/plugin/simulation';
 import type { Actor, DamageRequest } from '../src/engine/combat/pipeline';
 import { ITEMS } from '../src/shards/_template/data/items';
-import { SKY_ITEMS, FAN_STRIKES } from '../src/shards/far-reach/data/items';
-import { coneRows } from '../src/shards/far-reach/runtime/weapons/coneStrikes';
+import { FAN_STRIKES } from '../src/shards/far-reach/data/items';
+import fanRows from './fixtures/fan-contact-rows.json' with { type: 'json' };
+import fanItems from './fixtures/fan-items.json' with { type: 'json' };
 
 const player: Actor = { id: 'player', tags: ['actor.player'], state: [], alive: true,
   attributes: { health: 100, maxHealth: 100 }, applyDamage: () => false };
@@ -27,10 +28,10 @@ describe('admitted melee contacts bind the original controller', () => {
     // Pinned by the independent item parser at 19bf798bd, before contacts were admitted.
     const fixtures = [
       { items: ITEMS, hash: 'd099a34bb740c96017b569ae94284397d05d49d35b097c7e4e4b58cbb3861cfd' },
-      { items: SKY_ITEMS, hash: 'c4096c65c45cd7509aed9967b8ed35550d17188f60d73b4a7dfd1b8254f6e4b4' },
+      { items: fanItems, hash: 'c4096c65c45cd7509aed9967b8ed35550d17188f60d73b4a7dfd1b8254f6e4b4' },
     ];
     for (const fixture of fixtures) expect(createHash('sha256').update(JSON.stringify(parseItems(fixture.items))).digest('hex')).toBe(fixture.hash);
-    const items = { ...SKY_ITEMS, rows: [{ ...SKY_ITEMS.rows[0], contacts: [light, heavy] }] };
+    const items = { ...fanItems, rows: [{ ...fanItems.rows[0], contacts: [light, heavy] }] };
     expect(parseItems(items).rows[0]).toEqual(items.rows[0]);
   });
   it('refuses hidden authority, unbounded data and ambiguous landing schedules', () => {
@@ -79,8 +80,8 @@ describe('admitted melee contacts bind the original controller', () => {
     expect([family.cooldown, family.t, family.move, family.landed]).toEqual([0.7, 0.2, 1, 1]);
   });
   it('binds the shipping fan rows exactly with independent primary and gust clocks', () => {
-    const native = coneRows(FAN_STRIKES), rows: MeleeContactRow[] = native.map(row => ({ ...row,
-      hits: row.hits.map(({ weaponId: _id, source: _source, ...hit }) => ({ ...hit, source: 'env' })) }));
+    const native = fanRows, rows = parseMeleeContacts(native.map(row => ({ ...row,
+      hits: row.hits.map(({ weaponId: _id, ...hit }) => hit) })));
     const family = bindMeleeContacts(FAN_STRIKES.weaponId, rows, { owner: player, targets: () => [], hit: () => null });
     expect(family.moves).toEqual(native); expect(family.claim(1)).toBe(true); expect(family.claim(0)).toBe(false);
     expect(family.claim(2)).toBe(true); family.cool(0.1);

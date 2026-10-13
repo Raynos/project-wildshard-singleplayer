@@ -7980,6 +7980,7 @@
         "src/shards/sunscar-dunes/data/matriarchBoss.ts",
         "src/shards/sunscar-dunes/data/matriarchEncounter.ts",
         "src/shards/sunscar-dunes/data/matriarchPresentation.ts",
+        "src/shards/sunscar-dunes/data/nativeMelee.ts",
         "src/shards/sunscar-dunes/data/navigation.generated.json",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
         "src/shards/sunscar-dunes/data/sand.json",
@@ -8001,7 +8002,7 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/sunscar-dunes/data/product.generated.json": "77c7f06369e75936f6f18ffd6778612e5d558714bc87159e9db204310b8643db"
+        "src/shards/sunscar-dunes/data/product.generated.json": "9df3c18dae097562baffe1fdecb405ef1b62d16ad565cde81d00d14d013f89ce"
       }
     },
     {
@@ -8146,6 +8147,7 @@
         "src/shards/sunscar-dunes/data/matriarchBoss.ts",
         "src/shards/sunscar-dunes/data/matriarchEncounter.ts",
         "src/shards/sunscar-dunes/data/matriarchPresentation.ts",
+        "src/shards/sunscar-dunes/data/nativeMelee.ts",
         "src/shards/sunscar-dunes/data/navigation.generated.json",
         "src/shards/sunscar-dunes/data/productMap.json",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
@@ -8341,8 +8343,38 @@
         "src/shards/sunscar-dunes/.wildshard/product/f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef": "f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef",
         "src/shards/sunscar-dunes/.wildshard/product/f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb": "f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb",
         "src/shards/sunscar-dunes/.wildshard/product/fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd": "fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd",
-        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "a38a9817156e59355089b66b8078e03d9bdd1f52fe7746f4a68f6cbdb9341694"
+        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "6658418f511502595b03f291c1646c9a2ef41d7317fe2fa4dcaf015c33572676"
       }
+    },
+    {
+      "id": "sky-fan-gust",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/bake-fan-gust.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/far-reach/generators/bake-fan-gust.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk/package.json",
+        "src/sdk/compileScript.ts",
+        "src/sdk/assemblyscriptCompiler.mjs",
+        "src/sdk/immutable.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "src/shards/far-reach/behaviour/fanGust.as",
+        "src/shards/far-reach/data/fanGustModule.ts",
+        "src/shards/far-reach/generators/bake-fan-gust.mjs"
+      ],
+      "outputs": [
+        "src/shards/far-reach/assets/06cf86e445a8fc5b8c156e6c0a6f36551203c866d90e1ba4b2f36abd430c2982"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/far-reach/assets/06cf86e445a8fc5b8c156e6c0a6f36551203c866d90e1ba4b2f36abd430c2982"
+      ]
     }
   ]
 }

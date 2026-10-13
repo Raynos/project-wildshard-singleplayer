@@ -1,7 +1,8 @@
+import { parseNativeMeleeRow } from '@wildshard/format/weaponProfiles';
 import { ContactFamily, type ContactFamilyPorts, type ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
 import { parseItems, parseMeleeContacts } from '@wildshard/format/items';
 import { scriptItemHook } from '@wildshard/engine/combat/items';
-import type { Vector3 } from 'three';
+import { Vector3 } from 'three';
 import { createHeadlessPromptPicker } from '../quest/interactionRows';
 import { GridAssembly } from '../grid/assembly';
 import { GridSimulation } from '../grid/simulation';
@@ -777,3 +778,170 @@ export async function createMeleeScriptDriver(input: unknown, actorId: string, a
   return new MeleeScriptDriver(items, actorId, modules, seed);
 }
 
+
+type NativeMeleeTarget = ReturnType<SimHost['combat']['targetPort']>;
+type NativeMeleeHook = NonNullable<ReturnType<DeclaredItemPorts['runtime']>['hook']>;
+type NativeMeleeContact = ReturnType<typeof parseMeleeContacts>[number];
+
+/** One native move or the tick's aim input; commands remain in the owner's authoritative order. */
+export type NativeMeleeCommand = { readonly kind: 'aim'; readonly pitch: number }
+  | { readonly kind: 'move'; readonly action: number; readonly targetId?: string; readonly world?: number };
+/** A world contact's admitted outcome: a light crack answers its first contact, a heavy crack its second. */
+export interface NativeMeleeWorld { readonly act: number; readonly at: Readonly<{ x: number; y: number; z: number }>;
+  readonly radius: number; readonly crack: 'light' | 'heavy' }
+/** Original posed head ball and body capsule in world metres. */
+export interface NativeMeleeVolumes { readonly head: Vector3; readonly headRadius: number;
+  readonly a: Vector3; readonly b: Vector3; readonly bodyRadius: number }
+const nativeMeleeOc = new Vector3(), nativeMeleeBa = new Vector3(), nativeMeleeOa = new Vector3(), nativeMeleeClosest = new Vector3();
+
+function nativeMeleeBall(from: Vector3, dir: Vector3, centre: Vector3, radius: number): number | null {
+  const oc = nativeMeleeOc.subVectors(from, centre), b = oc.dot(dir), c = oc.lengthSq() - radius * radius, h = b * b - c;
+  if (h < 0) return null;
+  const t = -b - Math.sqrt(h); return t >= 0 ? t : null;
+}
+/** Exact posed-volume ray query, including an immediate solid hit when the origin lies inside a volume. */
+export function nativeMeleeVolumeHit(from: Vector3, dir: Vector3, reach: number, body: NativeMeleeVolumes): number | null {
+  const ba = nativeMeleeBa.subVectors(body.b, body.a), oa = nativeMeleeOa.subVectors(from, body.a);
+  const baba = ba.lengthSq(), along = baba > 1e-12 ? Math.min(1, Math.max(0, oa.dot(ba) / baba)) : 0;
+  const closest = nativeMeleeClosest.copy(body.a).addScaledVector(ba, along);
+  if (from.distanceToSquared(closest) <= body.bodyRadius ** 2 || from.distanceToSquared(body.head) <= body.headRadius ** 2) return 0;
+  let best = Infinity;
+  const bard = ba.dot(dir), baoa = ba.dot(oa), rdoa = dir.dot(oa), a = baba - bard * bard;
+  if (a > 1e-12) {
+    const b = baba * rdoa - baoa * bard, c = baba * oa.lengthSq() - baoa * baoa - body.bodyRadius ** 2 * baba, h = b * b - a * c;
+    if (h >= 0) { const t = (-b - Math.sqrt(h)) / a, y = baoa + t * bard; if (t >= 0 && y > 0 && y < baba) best = t; }
+  }
+  for (const t of [nativeMeleeBall(from, dir, body.a, body.bodyRadius), nativeMeleeBall(from, dir, body.b, body.bodyRadius), nativeMeleeBall(from, dir, body.head, body.headRadius)]) if (t !== null && t < best) best = t;
+  return best <= reach ? best : null;
+}
+/** Runtime authority and command ports are injected; no imported module installs a host. */
+export interface NativeMeleePorts {
+  readonly commands: () => readonly NativeMeleeCommand[];
+  readonly world?: readonly NativeMeleeWorld[];
+  readonly hook?: NativeMeleeHook | null;
+  /** The existing composed ScriptHost's current tick; never starts a second script clock. */
+  readonly hookTick?: () => number;
+  readonly landed?: (action: number, from: Vector3, dir: Vector3) => void;
+}
+/** The shared controller and the current tick's world outcome. */
+export interface NativeMeleeOwner { readonly family: ContactFamily<NativeMeleeTarget>; readonly cracked: () => number | null }
+/** Install immediate and delayed item contacts on one renderer-free owner, retaining ordered commands and wire bindings. */
+export function installNativeMelee(host: SimHost, weapon: { readonly id: string; readonly contacts?: readonly NativeMeleeContact[] },
+  input: unknown, ports: NativeMeleePorts): NativeMeleeOwner {
+  const row = parseNativeMeleeRow(input);
+  if (weapon.contacts === undefined) throw new Error('Native melee requires admitted item contacts');
+  const aimed = { target: null as string | null, world: null as number | null, dir: new Vector3(0, 0, -1) };
+  const from = new Vector3(), direction = new Vector3(), targets = ports.world ?? [];
+  const volumes = { head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0 };
+  let cracked: number | null = null, pitch = 0;
+  const port = (id: string): NativeMeleeTarget | null => {
+    const actor = host.entities.get(id); return actor === undefined ? null : host.combat.targetPort(actor.combatActor(), actor, velocity => { actor.impulse(velocity); });
+  };
+  const eye = (out: Vector3): Vector3 => { out.copy(host.player.position); out.y += row.eye; return out; };
+  const selected = (out: Vector3, dir: Vector3): boolean => {
+    eye(out);
+    const actor = aimed.target === null ? undefined : host.entities.get(aimed.target), spot = aimed.world === null ? undefined : targets.find(target => target.act === aimed.world);
+    if (actor !== undefined) dir.copy(actor.position).setY(actor.position.y + actor.dims.bodyY * actor.scale).sub(out);
+    else if (spot !== undefined) dir.set(spot.at.x, spot.at.y, spot.at.z).sub(out);
+    else dir.copy(aimed.dir);
+    if (dir.lengthSq() < 1e-9) { if (row.zeroAim === 'refuse') return false; dir.copy(aimed.dir); }
+    dir.normalize(); aimed.dir.copy(dir); return true;
+  };
+  const world = targets.map(target => ({ at: new Vector3(target.at.x, target.at.y, target.at.z), radius: target.radius,
+    crack: (heavy: boolean, second: boolean): boolean => {
+      if (target.crack === 'light') { if (second) return false; cracked = target.act; return true; }
+      if (heavy && second) cracked = target.act;
+      return true;
+    } }));
+  const family = bindMeleeContacts<NativeMeleeTarget>(weapon.id, weapon.contacts, { owner: host.player.health, hit: request => host.combat.hit(request),
+    world: () => world, aim: selected,
+    targets: () => [...host.entities.keys()].flatMap(id => { const target = port(id); return target === null || row.liveTargetsOnly && !target.hittable ? [] : [target]; }),
+    react: target => ({ actor: target.actor, ...(target.impulse === undefined ? {} : { impulse: target.impulse }), stagger: (dir, strength) => { target.target.stagger?.(dir, strength); } }),
+    ...(row.body === 'none' ? {} : { body: (origin: Vector3, dir: Vector3, reach: number) => {
+      let best: { port: NativeMeleeTarget; point: Vector3 } | null = null, bestT = Infinity;
+      if (host.entities.size > 1024) throw new RangeError('Native melee actor roster exceeds its bounded contact scan');
+      const actors = host.entities.entries();
+      for (let i = 0; i < Math.min(1024, host.entities.size); i++) {
+        const next = actors.next(); if (next.done) break;
+        const [id, actor] = next.value, target = port(id); if (target === null || !target.hittable) continue;
+        actor.headWorld(volumes.head); actor.bodyCapsule(volumes.a, volumes.b);
+        volumes.headRadius = actor.dims.headRadius * actor.scale; volumes.bodyRadius = actor.dims.bodyRadius * actor.scale;
+        const t = nativeMeleeVolumeHit(origin, dir, reach, volumes);
+        if (t !== null && t < bestT) { best = { port: target, point: origin.clone().addScaledVector(dir, t) }; bestT = t; }
+      }
+      return best;
+    } }),
+  });
+  for (const action of row.actions) {
+    const move = family.moves[action.move];
+    if (move === undefined || (row.mode === 'timed') !== (move.lands.length > 0)
+      || action.hook !== null && move.lane !== 'secondary') throw new Error('Native melee action does not match its admitted contact');
+  }
+  const snapshot = (): SimValue => {
+    const state: Record<string, SimValue> = {};
+    for (const field of row.continuation.fields) {
+      switch (field.source) {
+        case 'constant': state[field.key] = field.constant ?? 0; break;
+        case 'primary': state[field.key] = family.cooldown; break;
+        case 'secondary': state[field.key] = family.secondaryCooldown; break;
+        case 'time': state[field.key] = family.t; break;
+        case 'heavy': state[field.key] = family.row(family.move).heavy; break;
+        case 'landed': state[field.key] = family.landed; break;
+        case 'target': state[field.key] = aimed.target; break;
+        case 'world': state[field.key] = aimed.world; break;
+        case 'direction': state[field.key] = aimed.dir.toArray(); break;
+        default: throw new Error('Unknown native melee snapshot binding');
+      }
+    }
+    return row.continuation.encoding === 'json' ? JSON.stringify(state) : state;
+  };
+  const restore = (inputState: unknown): void => {
+    if (row.continuation.encoding === 'json' && typeof inputState !== 'string') throw new Error('Invalid native melee JSON continuation');
+    const saved = v.parse(v.record(v.string(), v.unknown()), typeof inputState === 'string' && row.continuation.encoding === 'json' ? JSON.parse(inputState) : inputState);
+    if (Object.keys(saved).length !== row.continuation.fields.length) throw new Error('Unexpected native melee continuation field');
+    const values = { primary: 0, secondary: 0, time: -1, heavy: false, landed: 0, target: null as string | null, world: null as number | null, direction: [0, 0, -1] };
+    for (const field of row.continuation.fields) {
+      const value = saved[field.key];
+      switch (field.source) {
+        case 'constant': if (value !== field.constant) throw new Error('Invalid native melee continuation version'); break;
+        case 'heavy': values.heavy = v.parse(v.boolean(), value); break;
+        case 'target': values.target = v.parse(v.nullable(v.string()), value); break;
+        case 'world': values.world = v.parse(v.nullable(v.pipe(v.number(), v.finite())), value); break;
+        case 'direction': values.direction = v.parse(v.tuple([v.pipe(v.number(), v.finite()), v.pipe(v.number(), v.finite()), v.pipe(v.number(), v.finite())]), value); break;
+        case 'primary': case 'secondary': case 'time': case 'landed': {
+          const number = v.parse(v.pipe(v.number(), v.finite()), value);
+          if (field.source === 'landed' && !Number.isInteger(number) || field.min !== undefined && number < field.min || field.max !== undefined && number > field.max) throw new Error('Native melee continuation outside its admitted bounds');
+          values[field.source] = number; break;
+        }
+        default: throw new Error('Unknown native melee restore binding');
+      }
+    }
+    const move = row.mode === 'timed' ? family.moves.findIndex(candidate => candidate.heavy === values.heavy) : family.move;
+    if (move < 0) throw new Error('Missing native melee continuation move');
+    family.cooldown = values.primary; family.secondaryCooldown = values.secondary; family.t = values.time; family.move = move; family.landed = values.landed;
+    aimed.target = values.target; aimed.world = values.world; aimed.dir.fromArray(values.direction);
+  };
+  host.onStep(row.step, dt => {
+    if (row.commandsAfterCool) family.cool(dt);
+    const commands = ports.commands(); // The policy retains the owner's held-release/cooldown ordering.
+    if (commands.length > MAX_TICK_COMMANDS) throw new RangeError('Native melee commands exceed the protocol allowance');
+    cracked = null; if (!row.commandsAfterCool) family.cool(dt); pitch = 0;
+    if (row.pitchLimit !== null) for (const command of commands) if (command.kind === 'aim') pitch = Math.max(-row.pitchLimit, Math.min(row.pitchLimit, command.pitch));
+    for (const command of commands) {
+      if (command.kind === 'aim') continue;
+      const action = row.actions.find(candidate => candidate.action === command.action); if (action === undefined) continue;
+      if (action.aim === 'selected' && command.world === undefined && (command.targetId === undefined || !host.entities.has(command.targetId))) continue;
+      if (row.mode === 'immediate' && action.aim === 'selected') { aimed.target = command.targetId ?? null; aimed.world = command.world ?? null; if (!selected(from, direction)) continue; }
+      const claimed = action.hook === null ? row.mode === 'timed' ? family.swing(action.move) : family.claim(action.move)
+        : startMeleeSecondary(family, ports.hook ?? null, { tick: ports.hookTick?.() ?? host.state.tick, dt, action: action.hook, move: action.move }) !== null;
+      if (!claimed) continue;
+      if (row.mode === 'timed') { aimed.target = command.targetId ?? null; aimed.world = command.world ?? null; }
+      else {
+        if (action.aim === 'facing') { eye(from); const cos = Math.cos(pitch); direction.set(-Math.sin(host.player.yaw) * cos, Math.sin(pitch), -Math.cos(host.player.yaw) * cos); }
+        family.land(action.move, 0, from, direction); ports.landed?.(command.action, from, direction);
+      }
+    }
+    if (row.mode === 'timed') family.advance(dt);
+  }, { snapshot, restore });
+  return { family, cracked: () => cracked };
+}

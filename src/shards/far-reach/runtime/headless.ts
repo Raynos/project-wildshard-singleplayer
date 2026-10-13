@@ -7,14 +7,14 @@ import { floorBelow } from '@wildshard/engine/physics/query';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { installDeclaredPropColliders } from '@wildshard/engine/physics/declaredProps';
 import { propColliderDescriptors } from '@wildshard/game/shardfile/props';
-import { addBakedWorld, ledgerPorts, proveEntryways, pickCommands, trustedLevel, weaponRow } from '@wildshard/game/plugin/simulation';
-import { DECK, SPAWN } from '../data/layout';
+import { addBakedWorld, ledgerPorts, proveEntryways, pickCommands, trustedLevel, weaponRow, createMeleeScriptDriver, MeleeScriptDriver, installNativeMelee, type NativeMeleeCommand } from '@wildshard/game/plugin/simulation';
+import { DECK, SPAWN, VANES } from '../data/layout';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
 import { installBossOwnerRow } from '@wildshard/game/shardfile/bossRow';
 import { ROC_OWNER } from '../data/rocFight';
-import { coneStrikeSpec } from './weapons/coneStrikes';
 import { FAN_ID } from '../data/items';
-import { FAN_ACT, FAN_ACTOR, FAN_AIM, installSkyFan, type FanCommand } from './fan';
+import { FAN_ACT, FAN_ACTOR, FAN_AIM } from '../data/nativeMelee';
+import { turnVanes, VANE_HUB } from '../quest/vanes';
 import { installSkyQuest, skyWinchPermission } from './quest';
 import { SKY_MOVER_BINDING } from '../data/moverBindings';
 import { UpdraftDriver, MoverScriptDriver, verifiedMoverModules, type MoverRuntime } from '@wildshard/game/plugin/mover';
@@ -47,7 +47,9 @@ export interface SkyRuntime {
   readonly installSky: (host: SimHost, context: HeadlessRuntimeInstallation) => { runtime: MoverRuntime; failures: () => number };
 }
 export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRuntimePreparation): Promise<SkyRuntime> {
-  const fanRow = weaponRow(shard, FAN_ID), fanSpec = coneStrikeSpec(fanRow, fanRow.profile);
+  const fanRow = weaponRow(shard, FAN_ID);
+  // Prepare detached, verified module bytes; every actual host binds its own player and role below.
+  const itemModules = (await createMeleeScriptDriver(shard.items, 'actor.player', assets, shard.identity.seed)).modules;
   const updraft = shard.modes?.traverse.find(row => row.id === 'far.updraft');
   if (updraft?.kind !== 'updraft') throw new Error('Sky Reach requires its admitted updraft row');
   if (shard.terrain !== null) throw new Error('Sky Reach is a structures-only world');
@@ -56,11 +58,13 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
   const modules = await verifiedMoverModules(assets, moverRows);
   const installMovers = (host: SimHost, restoring: boolean, permissions: () => ReadonlyMap<string, number>) => {
     const driver = new MoverScriptDriver(moverRows, host);
-    const content = { identity: shard.identity, sim: { scripts: [...modules.keys()], bindings: [], scriptTickDivisor: 1 }, state: { shared: [], player: [] } };
-    const lane = driver.compose(content, modules, { rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 }, entities: [], actors: new Map(), query: () => [] }, undefined, permissions);
+    const items = new MeleeScriptDriver(shard.items, host.player.id, itemModules, shard.identity.seed);
+    const composedModules = new Map([...modules, ...items.modules]);
+    const content = { identity: shard.identity, sim: { scripts: [...composedModules.keys()], bindings: [], scriptTickDivisor: 1 }, state: { shared: [], player: [] } };
+    const lane = driver.compose(content, composedModules, { rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 }, entities: [], actors: new Map(), query: () => [] }, undefined, permissions, { roles: [items.role()] });
     const runtime = driver.install(host, lane, { id: SKY_MOVER_BINDING.systemId, restoring, drive: true,
       activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined } });
-    return { runtime, failures: () => lane.host.failureCount };
+    return { runtime, failures: () => lane.host.failureCount, hook: items.hooks(lane.host).get(FAN_ID) ?? null, hookTick: () => lane.host.currentTick };
   };
   const specs = skySpecs();
   // the shipping spawn (manifest `spawn`, layout SPAWN) standing on Sunrest's deck, not the shardfile's grid datum; the
@@ -76,14 +80,16 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     const flock = installSkyFlock(host, { specs, seed: shard.identity.seed }, context.snapshot);
     const ledger = ledgerPorts(context.emit);
     const encounter = installBossOwnerRow(host, ROC_OWNER, { body: { kind: 'held', actor: flock.roc.actor, brain: flock.roc.body }, ...ledger });
-    const fan = pickCommands(context.commands, (command): FanCommand | undefined => {
-      if (command.kind === 'player') return command.attack === undefined ? undefined : { kind: 'swing', targetId: command.attack.targetId };
+    const fan = pickCommands(context.commands, (command): NativeMeleeCommand | undefined => {
+      if (command.kind === 'player') return command.attack === undefined ? undefined : { kind: 'move', action: 0, targetId: command.attack.targetId };
       if (command.kind === 'script' && command.actorId === FAN_AIM) return { kind: 'aim', pitch: command.value };
       if (command.kind !== 'script' || command.actorId !== FAN_ACTOR) return undefined;
-      return command.value === FAN_ACT.heavy ? { kind: 'heavy' } : command.value === FAN_ACT.gust ? { kind: 'gust' } : undefined;
-    }), none: FanCommand[] = [];
+      return command.value === FAN_ACT.heavy ? { kind: 'move', action: 1 } : command.value === FAN_ACT.gust ? { kind: 'move', action: 2 } : undefined;
+    }), none: NativeMeleeCommand[] = [];
     // the browser disables the player's weapons through the Roc's intro (BossPorts.lockInput) and stows the fan on the board
-    installSkyFan(host, () => encounter.locked() || host.playerBoard.on ? none : fan(), fanSpec);
+    const vanes = VANES.map(vane => ({ id: vane.id, at: new Vector3(vane.x, vane.y + VANE_HUB, vane.z) }));
+    installNativeMelee(host, fanRow, fanRow.native, { commands: () => encounter.locked() || host.playerBoard.on ? none : fan(),
+      hook: movers.hook, hookTick: movers.hookTick, landed: (action, from, dir) => { if (action === 2) turnVanes(host.flags, vanes, from, dir); } });
     installSkyQuest(host, { quests: shard.quests, ...ledger, commands: pickCommands(context.commands, command => command.kind === 'script' ? command : undefined),
       winch: { command: () => { movers.runtime.command(SKY_MOVER_BINDING.winch, 1); }, raised: () => movers.runtime.pose(SKY_MOVER_BINDING.winch).enabled } });
     // the updraft (G24): riding the board inside its column, a steady upward push through the host impulse, as the

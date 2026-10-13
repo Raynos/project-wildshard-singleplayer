@@ -1,10 +1,14 @@
-import type { ItemSpec } from '@wildshard/engine/combat/items';
-import type { App } from '@wildshard/engine/app/app';
+import type { ContactFamily, ContactFamilyPorts, ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
 import type { EquipContext, EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { DeclaredAction } from '@wildshard/engine/input/InputService';
 import { HeldContactWeapon } from '@wildshard/game/plugin/weaponFamily';
 import { Vector3, type Group, type Object3D } from 'three';
-import { coneStrikes, configureCone, type ConeFanTarget, type ConeStrikes, type ConeStrikeSpec } from './coneStrikes';
+
+type App = ConstructorParameters<typeof HeldContactWeapon>[0];
+/** The shared body's contact position, combat actor and optional impulse port. */
+export interface ConeFanTarget extends ContactScanTarget { readonly position: Vector3; impulse?: (velocity: Vector3) => void }
+/** The trusted loader creates the original contact controller from admitted rows. */
+export type ConeFanContacts = (ports: Pick<ContactFamilyPorts<ConeFanTarget>, 'hit' | 'targets' | 'struck'>) => ContactFamily<ConeFanTarget>;
 
 /**
  * The cone fan family (SHARD-PLATFORM M3): a held weapon with an arc slash and a cone gust. SWING is an arc slash through
@@ -66,7 +70,6 @@ export function coneFanPose(move: ConeFanMoveView, k: number): ConeFanPose {
 /** A cone fan's construction: its equipment row, strikes, view, the input action of its GUST and its parts' builder. */
 export interface ConeFanOptions<P extends ConeFanParts> {
   readonly row: EquipmentRow;
-  readonly strikes: ConeStrikeSpec;
   readonly view: ConeFanView;
   /** the input action bound to the GUST (beside `attack` and `heavy`) */
   readonly gustAction: DeclaredAction;
@@ -88,21 +91,19 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends HeldContactW
   motion: ConeFanMotion = 'swing'; motionK = 1;
   private readonly targets: () => readonly ConeFanTarget[];
   private readonly view: ConeFanView; private readonly gustAction: DeclaredAction;
-  protected readonly moves: ConeStrikes;
+  protected readonly moves: ContactFamily<ConeFanTarget>;
+  private secondary: ((family: ContactFamily<ConeFanTarget>) => number | null) | null = null;
 
-  constructor(app: App, targets: () => readonly ConeFanTarget[], o: ConeFanOptions<P>) {
+  constructor(app: App, targets: () => readonly ConeFanTarget[], o: ConeFanOptions<P>, contacts: ConeFanContacts) {
     super(app, o.row, o.view.spring, o.view.charge);
     this.parts = o.parts(); this.model = this.parts.group;
     this.targets = targets; this.view = o.view; this.gustAction = o.gustAction;
-    this.moves = coneStrikes(o.strikes, { hit: (req) => this.contact.hit(req), targets: () => this.targets(), struck: (id, killed) => { this.onHit?.(id, false, killed); } });
+    this.moves = contacts({ hit: (req) => this.contact.hit(req), targets: () => this.targets(), struck: (id, killed) => { this.onHit?.(id, false, killed); } });
     const hold = o.view.hold;
     this.model.position.set(hold.x, hold.y, hold.z); this.model.rotation.set(hold.pitch, hold.yaw, hold.roll); this.model.scale.setScalar(hold.scale);
   }
-  /** Hand the existing held owner its admitted profile; refusal leaves its row and clocks untouched. */
-  bindProfile(row: ItemSpec, input: unknown): void {
-    configureCone(this.moves, row, input);
-    if (row.kind === 'weapon') this.chargeSeconds = row.charge;
-  }
+  /** Retain the held clock and bind only the already admitted secondary action. */
+  bindSecondary(start: (family: ContactFamily<ConeFanTarget>) => number | null, charge: number): void { this.secondary = start; this.chargeSeconds = charge; }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.app.input.bind(this.gustAction, () => { this.gust(); }, ctx.scope, () => this.enabled);
@@ -127,7 +128,8 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends HeldContactW
   /** GUST: claims its cooldown, plays the move and blows the cone along the aim. */
   gust(): void {
     if (this.moves.secondaryCooldown > 0 || !this.enabled || this.stowed()) return;
-    this.moves.claim(2); this.play('gust');
+    if (this.secondary?.(this.moves) !== 2) return;
+    this.play('gust');
     const aim = this.aimed(); if (aim === null) return;
     this.onGust?.(aim.from, aim.dir); this.blow(aim.from, aim.dir);
   }
@@ -152,7 +154,7 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends HeldContactW
 
 /** The constructor a row binds: `new WarFan(app, targets)`. */
 export interface ConeFanType<P extends ConeFanParts> {
-  new (app: App, targets?: () => readonly ConeFanTarget[]): ConeFan<P>;
+  new (app: App, targets: () => readonly ConeFanTarget[], contacts: ConeFanContacts): ConeFan<P>;
   readonly prototype: ConeFan<P>;
 }
 /**
@@ -162,6 +164,6 @@ export interface ConeFanType<P extends ConeFanParts> {
  */
 export function coneFanType<P extends ConeFanParts>(row: ConeFanOptions<P>): ConeFanType<P> {
   return class extends ConeFan<P> {
-    constructor(app: App, targets: () => readonly ConeFanTarget[] = () => []) { super(app, targets, row); }
+    constructor(app: App, targets: () => readonly ConeFanTarget[], contacts: ConeFanContacts) { super(app, targets, row, contacts); }
   };
 }

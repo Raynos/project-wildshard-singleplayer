@@ -112,3 +112,28 @@ export const WeaponProfileSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON
 export type WeaponProfile = v.InferOutput<typeof WeaponProfileSchema>;
 /** Validate all bounds and relationships before allocation or passing data to a native family. */
 export function parseWeaponProfile(input: unknown): WeaponProfile { return v.parse(WeaponProfileSchema, input); }
+
+const nativeKey = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));
+const nativeBinding = v.strictObject({ key: nativeKey,
+  source: v.picklist(['constant', 'primary', 'secondary', 'time', 'heavy', 'landed', 'target', 'world', 'direction']),
+  constant: v.exactOptional(v.pipe(v.number(), v.finite())),
+  min: v.exactOptional(v.pipe(v.number(), v.finite())), max: v.exactOptional(v.pipe(v.number(), v.finite())) });
+/** Fixed-step melee owner policy. Contacts stay on the item; continuation fields preserve an existing wire contract. */
+export const NativeMeleeRowSchema = v.pipe(v.strictObject({
+  step: nativeKey, eye: v.pipe(scalar, v.maxValue(20)), mode: v.picklist(['timed', 'immediate']),
+  pitchLimit: v.nullable(v.pipe(positive, v.maxValue(Math.PI))), zeroAim: v.picklist(['retain', 'refuse']),
+  body: v.picklist(['volumes', 'none']), liveTargetsOnly: v.boolean(), commandsAfterCool: v.boolean(),
+  actions: v.pipe(v.array(v.strictObject({ action: v.pipe(count, v.maxValue(15)), move: v.pipe(count, v.maxValue(15)),
+    aim: v.picklist(['selected', 'facing']), hook: v.nullable(v.picklist([3, 4])) })), v.minLength(1), v.maxLength(16)),
+  continuation: v.strictObject({ encoding: v.picklist(['json', 'object']), fields: v.pipe(v.array(nativeBinding), v.minLength(1), v.maxLength(16)) }),
+}), v.check(row => new Set(row.actions.map(action => action.action)).size === row.actions.length
+  && new Set(row.continuation.fields.map(field => field.key)).size === row.continuation.fields.length
+  && new Set(row.continuation.fields.map(field => field.source)).size === row.continuation.fields.length
+  && row.continuation.fields.every(field => (field.source === 'constant') === (field.constant !== undefined)
+    && (field.min === undefined || field.max === undefined || field.min <= field.max))
+  && (row.mode === 'timed' ? ['primary', 'time', 'heavy', 'landed', 'target', 'world', 'direction'] : ['primary', 'secondary'])
+    .every(source => row.continuation.fields.some(field => field.source === source)), 'Unique actions and complete native melee continuation'));
+/** Authoring accepts literal readonly rows; the host validates before installing its step. */
+export type NativeMeleeRow = AuthoredContact<v.InferOutput<typeof NativeMeleeRowSchema>>;
+/** Refuse malformed owner policies before allocating contacts or registering a step. */
+export function parseNativeMeleeRow(input: unknown): v.InferOutput<typeof NativeMeleeRowSchema> { return v.parse(NativeMeleeRowSchema, input); }

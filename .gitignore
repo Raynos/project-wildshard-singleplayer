@@ -917,3 +917,6 @@ src/shards/nalati-grasslands/data/dressing.scene.generated.json
 /src/shards/nalati-grasslands/assets/141ad375895d4f14fc900f0954c566ff077d1621741aed238edffa672f41a9ac
 /src/shards/nalati-grasslands/behaviour/weapons.json
 /public/assets/baked/driftwood-isle/terrain.bin
+
+# G394: portable fan action is built fresh and checked against its authored address.
+/src/shards/far-reach/assets/06cf86e445a8fc5b8c156e6c0a6f36551203c866d90e1ba4b2f36abd430c2982

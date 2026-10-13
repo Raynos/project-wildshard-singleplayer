@@ -3934,3 +3934,34 @@ interaction. `moverChannelPrompts` updates the same ordered roster from copied
 mover poses. Evaluation never dispatches an action or writes player/shared
 state. Socket-lift intents require a matching admitted edge and mover. The
 `hypot3` expression preserves the original three-axis `Math.hypot` boundary.
+
+### Native melee owner rows (W1-C6)
+
+A weapon's optional `native` attachment is admitted as a `NativeMeleeRow`
+(`@wildshard/format/weaponProfiles`). It selects fixed-step command and
+cooldown ordering, eye/pitch aiming, body selection and a bounded ordered
+continuation layout. Contact values remain in `item.contacts`; hooks remain
+actor-bound to the existing composed ScriptHost.
+
+`installNativeMelee` in `@wildshard/game/plugin/simulation` takes the admitted
+weapon, its native policy and the authoritative command/world/hook ports.
+It returns the original shared contact controller and the tick's world
+outcome. It installs one scoped native step and never creates a second
+ScriptHost or begins another script tick. `hookTick` reads the composed
+host's current tick. Continuation field order and encoding are declared
+explicitly so existing JSON and object contracts survive a restore unchanged.
+Absent `item.native` preserves existing item and product bytes.
+
+`@wildshard/sdk/compileScript.bakeScriptModule(sourceFileUrl, assetsDirUrl,
+{ hash, bytes }, options?)` compiles an author-owned AS file with the same
+pinned portable compiler and metering as `compileScript`. It checks the
+exact declared size and SHA-256 before emitting the hash-named file. A
+crossed pin refuses before any directory or output is created. File I/O
+stays in this Node authoring operation; importing it installs no service.
+
+The Sky page fan constructs one `bindMeleeContacts` controller from its
+admitted item rows. Its GUST hook uses the existing mover composition's
+actor-owned item role and current tick. Accepted actions retain the original
+claim, pose, onGust and contact phases; cooldown, held release and pendant
+pose arithmetic remain unchanged. Signal and Sky share the contact and
+script hosts; their remaining presentation recipes stay with C6.

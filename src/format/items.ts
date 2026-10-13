@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { MeleeContactsSchema, WeaponProfileSchema, type MeleeContactRow } from './weaponProfiles';
+import { MeleeContactsSchema, NativeMeleeRowSchema, WeaponProfileSchema, type MeleeContactRow } from './weaponProfiles';
 import { isJsonData } from './json';
 
 /** The bounded authored family/context name, also checked by the trusted family installer. */
@@ -22,7 +22,7 @@ const attack = v.strictObject({ id: name, damage: v.pipe(finite, v.minValue(0), 
 const secondary = v.strictObject({ action: name, code: v.picklist([3, 4]), move: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(15)) });
 const weapon = v.strictObject({ id: weaponId, kind: v.literal('weapon'), family: name, slot, context: name, ui, view, hook,
   profile: v.exactOptional(WeaponProfileSchema), contacts: v.exactOptional(MeleeContactsSchema),
-  secondary: v.exactOptional(secondary),
+  secondary: v.exactOptional(secondary), native: v.exactOptional(NativeMeleeRowSchema),
   light: attack, heavy: attack, charge: v.pipe(duration, v.maxValue(5)) });
 const tool = v.strictObject({ id: toolId, kind: v.literal('tool'), family: name, ui, view, hook, action: v.nullable(v.custom<`${string}.${string}`>((value) => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value))),
   fuelSeconds: duration, intensity: v.pipe(finite, v.minValue(0), v.maxValue(10)) });
@@ -52,6 +52,13 @@ export function itemRules(items: ShardItems, modules?: readonly string[]): strin
   if (weapons.some(row => row.profile !== undefined && !row.family.includes('.') && row.family !== row.profile.family && !(row.family === 'swept' && row.profile.family === 'melee'))) errors.push('weapon profile matches declared family');
   if (weapons.some(row => row.secondary !== undefined && (row.hook === null
     || row.contacts?.[row.secondary.move]?.lane !== 'secondary'))) errors.push('scripted secondary references an admitted hook and secondary contact');
+  if (weapons.some(row => row.native !== undefined && (row.contacts === undefined || row.native.actions.some(action => {
+    const contact = row.contacts?.[action.move];
+    return contact === undefined || (row.native?.mode === 'timed') !== (contact.lands.length > 0)
+      || action.hook !== null && (row.hook === null || row.secondary?.code !== action.hook || row.secondary.move !== action.move);
+  })))) errors.push('native melee actions resolve admitted contacts and script hooks');
+  const nativeSteps = weapons.flatMap(row => row.native === undefined ? [] : [row.native.step]);
+  if (new Set(nativeSteps).size !== nativeSteps.length) errors.push('unique native melee steps');
   if (items.rows.some((row) => row.kind === 'tool' && row.action === null && row.hook !== null)) errors.push('native tools have no script hook');
   if (items.contexts.some((ctx) => baselineContexts.has(ctx.id))) errors.push('baseline context is referenced rather than redeclared');
   if (new Set(runtimeContexts).size !== runtimeContexts.length || runtimeContexts.some((id) => items.contexts.some((ctx) => ctx.id === id))) errors.push('unique runtime context references separate from declared contexts');

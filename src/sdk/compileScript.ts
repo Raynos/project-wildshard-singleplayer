@@ -1,6 +1,10 @@
 /** Portable ABI-v0 AssemblyScript compiler and structural Binaryen metering, pinned by SDK dependencies. */
 import binaryen from 'binaryen';
 import { loadAssemblyScriptCompiler } from './assemblyscriptCompiler.mjs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Only the authoring file bake reads and emits local modules.
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The authoring bake pins the exact emitted wire bytes.
+import { createHash } from 'node:crypto';
 
 interface Compiler { main: (args: string[], options: { readFile: (name: string) => string | null; writeFile: (name: string, contents: string | Uint8Array) => void }) => Promise<{ error: Error | null }> }
 function isCompiler(value: unknown): value is Compiler { return typeof value === 'object' && value !== null && 'main' in value && typeof value.main === 'function'; }
@@ -108,4 +112,16 @@ export async function compileScript(source: string, options: { maximumPages?: nu
   });
   if (result.error || bytes.length === 0) throw new Error(`AssemblyScript compile failed: ${result.error?.message ?? 'no output'}`);
   return instrumentScript(bytes);
+}
+
+/** Compile an author-owned AS file and emit only the exact declared hash/size into its assets directory.
+ * This Node authoring operation never installs a runtime service; a crossed pin refuses before writing. */
+export async function bakeScriptModule(source: URL, assets: URL, expected: { hash: string; bytes: number },
+  options: Parameters<typeof compileScript>[1] = {}): Promise<Uint8Array> {
+  if (source.protocol !== 'file:' || assets.protocol !== 'file:' || !assets.pathname.endsWith('/')
+    || !/^[a-f0-9]{64}$/u.test(expected.hash) || !Number.isSafeInteger(expected.bytes) || expected.bytes < 1 || expected.bytes > 4_194_304) throw new Error('Invalid script bake destination or pin');
+  const bytes = await compileScript(readFileSync(source, 'utf8'), options);
+  if (createHash('sha256').update(bytes).digest('hex') !== expected.hash || bytes.length !== expected.bytes) throw new Error('Script compiler bytes differ from the authored module address');
+  mkdirSync(assets, { recursive: true }); writeFileSync(new URL(expected.hash, assets), bytes);
+  return bytes;
 }

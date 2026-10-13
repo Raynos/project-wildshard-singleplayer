@@ -2,10 +2,9 @@ import { bindDirectorActions } from '@wildshard/game/plugin/director';
 import signalStages from '../data/signalStages.json' with { type: 'json' };
 import { FLAG } from '../data/flags';
 import * as v from 'valibot';
-import { addBakedWorld, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow } from '@wildshard/game/plugin/simulation';
+import { addBakedWorld, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow, installNativeMelee, type NativeMeleeCommand, type NativeMeleeWorld, type NativeMeleeOwner } from '@wildshard/game/plugin/simulation';
 import { bakedSpecs, installSpeciesHomes } from '@wildshard/game/plugin/brain';
 import { installBossOwnerRow } from '@wildshard/game/shardfile/bossRow';
-import { installLashHost, type LashCommand, type LashTargetRow, type LashHost } from './items/lashHost';
 import { installQuestGraph, type QuestGraphPorts } from '@wildshard/game/plugin/quests';
 import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
@@ -35,7 +34,7 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) 
   const { homes, boss, quest } = manifest, terrain = admittedTerrain(shard, assets), { heightAt } = terrain;
   const brains = speciesBrains(homes.species, homes.strikes, homes.modules), holds = homes.holds;
   const row = weaponRow(shard, manifest.lash.id);
-  const cracks = quest.interactions.rows.flatMap((entry): LashTargetRow[] => {
+  const cracks = quest.interactions.rows.flatMap((entry): NativeMeleeWorld[] => {
     if (entry.crack === undefined) return [];
     const spot = spots.crack.find(s => `crack.${s.id}` === entry.at);
     if (spot === undefined) throw new Error(`Missing Signal crack ${entry.id}`);
@@ -63,16 +62,16 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) 
     let released = { released: false, target: null as string | null };
     host.onStep(SIGNAL_LASH_INPUT, dt => { released = input.sample(dt, context.commands(), !encounter.locked()); },
       { snapshot: () => input.snapshot(), restore: saved => { if (typeof saved !== 'string') throw new Error('Invalid Signal hold continuation'); input.restore(saved); } });
-    const worldCommands = new Map(cracks.map(target => [target.act, { world: target.act, heavy: target.crack === 'heavy' }]));
-    const heavy = { targetId: '', heavy: true }, held: LashCommand[] = [heavy], none: LashCommand[] = [];
-    const swings = pickCommands(context.commands, (command): LashCommand | undefined => command.kind === 'player' && command.attack !== undefined
-      ? { targetId: command.attack.targetId, heavy: false } : command.kind === 'script' && command.actorId === quest.graph.actor ? worldCommands.get(command.value) : undefined);
-    const lash: LashHost = installLashHost(host, { step: manifest.lash.step, row, profile: manifest.lash.profile, eye: manifest.lash.eye, targets: cracks,
+    const worldCommands = new Map(cracks.map(target => [target.act, { kind: 'move' as const, world: target.act, action: target.crack === 'heavy' ? 1 : 0 }]));
+    const heavy = { kind: 'move' as const, targetId: '', action: 1 }, held: NativeMeleeCommand[] = [heavy], none: NativeMeleeCommand[] = [];
+    const swings = pickCommands(context.commands, (command): NativeMeleeCommand | undefined => command.kind === 'player' && command.attack !== undefined
+      ? { kind: 'move', action: 0, targetId: command.attack.targetId } : command.kind === 'script' && command.actorId === quest.graph.actor ? worldCommands.get(command.value) : undefined);
+    const lash: NativeMeleeOwner = installNativeMelee(host, row, row.native, { world: cracks,
       commands: () => {
         if (encounter.locked()) return none;
         // LashWeapon.update resets cooldown on release and replaces any same-frame light swing with the heavy.
         if (!released.released || released.target === null) return swings();
-        lash.lash.cooldown = 0;
+        lash.family.cooldown = 0;
         heavy.targetId = released.target;
         return held;
       } });

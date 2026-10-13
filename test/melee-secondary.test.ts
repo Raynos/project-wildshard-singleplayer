@@ -69,7 +69,8 @@ describe('shared melee AS secondaries', () => {
     family.advance(0.1); expect(family.landed).toBe(0);
   });
   it('requires secondary declarations to resolve an admitted hook and contact lane', () => {
-    const item = { ...SKY_ITEMS.rows[0], contacts: [row], hook: { module: moduleId, entity, event },
+    const { native: _native, ...fixtureItem } = SKY_ITEMS.rows[0];
+    const item = { ...fixtureItem, contacts: [row], hook: { module: moduleId, entity, event },
       secondary: { action: 'fixture.gust', code: 3, move: 0 } };
     const items = { ...SKY_ITEMS, rows: [item] };
     expect(parseItems(items).rows[0]).toEqual(item);
