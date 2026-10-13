@@ -15,7 +15,9 @@ const sharp = createRequire(new URL('../src/sdk/package.json', import.meta.url))
  * This binds a stamp to its raster; world freshness still requires the official map bake.
  * @param {string} image @returns {Promise<string>} */
 export async function mapPixelHash(image) {
-  const { data, info } = await sharp(image, { limitInputPixels: 4096 * 4096, animated: false, failOn: 'warning' })
+  // Decode these exact bytes: libvips' filename cache can retain a previous
+  // raster when an official bake replaces the same path within one clock tick.
+  const { data, info } = await sharp(readFileSync(image), { limitInputPixels: 4096 * 4096, animated: false, failOn: 'warning' })
     .toColourspace('srgb').ensureAlpha().raw({ depth: 'uchar' }).toBuffer({ resolveWithObject: true });
   if (info.channels !== 4) throw new Error(`${image}: map must decode to RGBA8`);
   return createHash('sha256').update(`map-rgba8/1\0${info.width}x${info.height}\0`).update(data).digest('hex');

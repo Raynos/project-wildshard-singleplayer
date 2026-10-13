@@ -56,9 +56,30 @@ async function producer(root, command) {
  * @param {string} root
  * @param {{url?: string, revision?: string, stagedPaths?: string[], guardRequirement?: string}} [product]
  * @returns {Promise<string[]>} */
-export function regenerateCheapBakes(root, product = {}) {
-  // G405: native physics/spots and maps are build outputs; no cheap output
-  // is captured or staged by this hook. Recorded/expensive inputs stay below.
+export async function regenerateCheapBakes(root, product = {}) {
+  // G405: cheap native outputs are built fresh. Served GPU rasters remain
+  // committed: a map-only landing must verify its world and actual pixels.
+  const maps = new Set((product.stagedPaths ?? []).flatMap(file => {
+    const stamp = /^src\/shards\/([^/]+)\/(?:look\/map\.baked\.json|data\/productMap\.json|assets\/map\.webp)$/u.exec(file);
+    const image = /^public\/assets\/([^/]+)\/map\/top\.webp$/u.exec(file);
+    const slug = stamp?.[1] ?? image?.[1];
+    return slug === undefined ? [] : [slug];
+  }));
+  if (maps.size > 0) {
+    const { mapTilesHash, verifyMapPixels } = await import('./map-hash.mjs');
+    for (const slug of maps) {
+      const dir = resolve(root, 'src/shards', slug);
+      const stamp = JSON.parse(readFileSync(resolve(dir, 'look/map.baked.json'), 'utf8'));
+      if (stamp.tilesHash !== mapTilesHash(dir)) throw new Error(`${slug}: committed map is stale; capture the current generated world`);
+      await verifyMapPixels(resolve(root, 'public/assets', slug, 'map/top.webp'), stamp.pixelHash);
+      const authoredMap = resolve(dir, 'assets/map.webp');
+      if (existsSync(authoredMap)) await verifyMapPixels(authoredMap, stamp.pixelHash);
+      const productMap = resolve(dir, 'data/productMap.json');
+      if (existsSync(productMap) && !isDeepStrictEqual(JSON.parse(readFileSync(productMap, 'utf8')), stamp)) {
+        throw new Error(`${slug}: product map differs from the admitted map stamp`);
+      }
+    }
+  }
   return refreshCommitMeasurements(root,product.stagedPaths,product.guardRequirement);
 }
 /** Preserve the established byte-identical King/witness admission laws at commit.

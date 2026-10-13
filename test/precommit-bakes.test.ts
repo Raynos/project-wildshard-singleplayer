@@ -10,6 +10,7 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only fixture-owned directories.
 import { join } from 'node:path';
+import { mapPixelHash, mapTilesHash } from '../scripts/map-hash.mjs';
 
 it('plans changed native inputs but never stages cheap build outputs at commit', async () => {
   const root = mkdtempSync(join(tmpdir(), 'precommit-native-'));
@@ -95,4 +96,27 @@ writeFileSync('lint/ratchet.json','{"measured":true}');`);
     expect(await refreshCommitMeasurements(root,['src/staged.ts','scripts/other.mjs'])).toEqual(['lint/ratchet.json']);
     expect(await refreshCommitMeasurements(root,['src/staged.ts'])).toEqual([]);
   } finally {rmSync(root,{recursive:true,force:true});}
+});
+
+
+it('refuses stale map-only landings and independently replaced raster pixels', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'committed-map-')), slug = 'far-reach';
+  const dir = join(root, 'src/shards', slug), image = join(root, 'public/assets', slug, 'map/top.webp');
+  try {
+    mkdirSync(join(dir, 'look'), { recursive: true }); mkdirSync(join(root, 'public/assets', slug, 'map'), { recursive: true });
+    writeFileSync(join(dir, 'shard.config.ts'), 'world-before');
+    copyFileSync('public/assets/far-reach/map/top.webp', image);
+    const stamp = { tilesHash: mapTilesHash(dir), pixelHash: await mapPixelHash(image) };
+    const file = `src/shards/${slug}/look/map.baked.json`;
+    writeFileSync(join(root, file), JSON.stringify(stamp));
+    expect(await regenerateCheapBakes(root, { stagedPaths: [file] })).toEqual([]);
+    writeFileSync(join(dir, 'shard.config.ts'), 'world-after');
+    await expect(regenerateCheapBakes(root, { stagedPaths: [file] })).rejects.toThrow('committed map is stale');
+    writeFileSync(join(dir, 'shard.config.ts'), 'world-before');
+    copyFileSync('public/assets/sunscar-dunes/map/top.webp', image);
+    await expect(regenerateCheapBakes(root, { stagedPaths: [`public/assets/${slug}/map/top.webp`] })).rejects.toThrow('decoded pixels differ');
+    copyFileSync('public/assets/far-reach/map/top.webp', image);
+    mkdirSync(join(dir, 'data')); writeFileSync(join(dir, 'data/productMap.json'), '{}');
+    await expect(regenerateCheapBakes(root, { stagedPaths: [file] })).rejects.toThrow('product map differs');
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
