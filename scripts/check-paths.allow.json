@@ -760,7 +760,7 @@
     "why": "E357 F6m: git diff pathspec template for destination shards."
   },
   {
-    "path": "shared (src/world, src/player, src/entities, …)",
+    "path": "shared (src/world, src/player, src/entities, \u2026)",
     "file": "scripts/check-models.mjs",
     "why": "E357 F6m: human-readable report area label, not three repository paths; the actual model folder rules remain manual F6 edits."
   },
@@ -1178,5 +1178,15 @@
     "path": "src/shards/pine-hollow/weapons/crossbow/Crossbow.ts",
     "file": "scripts/shard-coupling.mjs",
     "why": "E435 SF54 / G140 immutable bootstrap identity for the reviewed Crossbow transfer; its current destination is src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts. Historical keys cannot change or grow under the shrink-only comparator."
+  },
+  {
+    "path": "src/shards/_template/.wildshard/product",
+    "file": "src/shards/_template/generators/build-product.mjs",
+    "why": "SDK writeAuthoredProduct output destination, created by this registered report-only producer. The catalogue validates its entry and source inputs; explicit comparison qualification verifies every emitted pin. This directory is not a source or consumer input."
+  },
+  {
+    "path": "src/shards/pastel-plain/.wildshard/product",
+    "file": "src/shards/pastel-plain/generators/build-product.mjs",
+    "why": "SDK writeAuthoredProduct output destination, created by this registered report-only producer. The catalogue validates its entry and source inputs; explicit comparison qualification verifies every emitted pin. This directory is not a source or consumer input."
   }
 ]

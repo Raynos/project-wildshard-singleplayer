@@ -37,6 +37,27 @@ describe('check-paths CLI on a temporary repository', () => {
     expect(out.status).toBe(1);
     expect(out.output).toContain('src/shards/alpha/generators/bake.mjs:1: missing path src/planted-missing.ts');
   });
+  it('permits registered comparison destinations before generation while requiring every source and consumer', () => {
+    const entry = 'src/shards/alpha/generators/bake.mjs';
+    const output = 'src/shards/alpha/.wildshard/product/shard.json';
+    const job = { id: 'alpha-product', shard: 'alpha', entry, command: [entry],
+      inputRoots: [entry], outputs: [output], platform: 'portable',
+      comparisonOutputs: { [output]: 'a'.repeat(64) } };
+    const catalogue = (row: typeof job) => JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT', jobs: [row] });
+    const files = { [entry]: '', 'scripts/generation-jobs.json': catalogue(job) };
+    expect(scan(files).status).toBe(0);
+    const source = scan({ ...files, 'scripts/generation-jobs.json': catalogue({ ...job, inputRoots: ['src/missing.ts'] }) });
+    expect(source.status).toBe(1);
+    expect(source.output).toContain('missing path src/missing.ts');
+    const seed = scan({ ...files, 'scripts/generation-jobs.json': JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT', jobs: [{ ...job, seedOutputs: [output] }] }) });
+    expect(seed.status).toBe(1);
+    expect(seed.output).toContain(`missing path ${output}`);
+    const consumer = scan({ ...files, 'scripts/read.mjs': `readFileSync('${output}');` });
+    expect(consumer.status).toBe(1);
+    expect(consumer.output).toContain(`scripts/read.mjs:1: missing path ${output}`);
+    expect(scan({ ...files, 'scripts/generation-jobs.json': catalogue({ ...job, comparisonOutputs: { [output]: 'invalid' } }) }).status).toBe(1);
+    expect(scan({ 'scripts/generation-jobs.json': catalogue(job) }).status).toBe(1);
+  });
   it('checks relocated Blender Node and Python source paths', () => {
     for (const extension of ['mjs', 'py']) {
       const out = scan({ [`src/shards/alpha/blender/rig/gate.${extension}`]: "path = 'src/planted-missing.ts'" });
