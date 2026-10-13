@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- The trace builds the fan from its committed baked shapes.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Original full-precision quaternion pins depend on the test CPU architecture.
+import process from 'node:process';
 import { app } from '../../src/engine/app/runtime';
 import type { App } from '../../src/engine/app/app';
 import type { Actor, DamageDealt, DamageRequest } from '../../src/engine/combat/pipeline';
@@ -40,6 +42,23 @@ beforeAll(async () => {
 });
 beforeEach(() => { app.rng.seed(11); mockCanvas(); });
 afterEach(() => { vi.restoreAllMocks(); });
+
+/** The original 9e2005714 poses, before HeldPlayback, on each supported CPU.
+ * Native trig changes 40 quaternion components and one pendant Euler angle
+ * by at most 2.22e-16 across
+ * arm64/x64. All 1200 original/new frame hashes match within each architecture.
+ * Keep the raw byte check exact rather than rounding away pose differences. */
+const originalPortraitHashes = new Map([
+  ['arm64', '84898c52936884c1fff1c27e557441993ade7fa1b7269551b53ab9b2fb9d009c'],
+  ['x64', 'c29d851e5b691e7ab8dd88eeb19947aeca4acf77f008e1b6d7c2970aa41c48d7'],
+]);
+
+function originalPortraitFor(arch: string): string {
+  const hash = originalPortraitHashes.get(arch);
+  if (hash === undefined) throw new Error(`Original portrait pin missing for ${arch}`);
+  return hash;
+}
+const originalPortrait = originalPortraitFor(process.arch);
 
 interface Dummy { position: THREE.Vector3; actor: Actor; impulse: (velocity: THREE.Vector3) => void }
 
@@ -118,11 +137,14 @@ async function trace(): Promise<{ row: unknown; events: unknown[] }> {
   const windows: string[] = [];
   for (let w = 0; w < frames.length; w += 30) windows.push(digest(JSON.stringify(frames.slice(w, w + 30))));
   expect(lane.host.failureCount).toBe(0);
-  expect(portraitSequenceHash(portrait)).toBe('84898c52936884c1fff1c27e557441993ade7fa1b7269551b53ab9b2fb9d009c');
+  expect(portraitSequenceHash(portrait)).toBe(originalPortrait);
   return { row: { built, events: digest(JSON.stringify(events)), eventCount: events.length, direct, last: frames.at(-1), windows }, events };
 }
 
 describe('the war fan on the cone fan family keeps its pre-M3 trace', () => {
+  it('refuses a CPU without an original full-precision portrait pin', () => {
+    expect(() => originalPortraitFor('riscv64')).toThrow('Original portrait pin missing for riscv64');
+  });
   it('builds the same viewmodel and plays the same scripted twenty seconds', async () => {
     const { row, events } = await trace();
     expect(row).toMatchSnapshot();
