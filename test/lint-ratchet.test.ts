@@ -113,6 +113,22 @@ describe('ratchet CLI', () => {
     put(f.root, 'src/engine/ui/example.ts', 'export const x = 1;'); expect(f.run('--update').status).toBe(0);
     expect(f.read()['wildshard/no-raw-save']).toBeUndefined();
   });
+  it('updates actual scoped reductions, prunes deleted rows and preserves other policy and counts', () => {
+    const f = fixture("localStorage.getItem('x'); sessionStorage.getItem('y');");
+    put(f.root,'src/engine/ui/other.ts',"localStorage.getItem('unchanged');");
+    expect(f.run('--init').status).toBe(0);
+    const baseline=f.read();baseline.budgets={gpu:12};baseline['wildshard/no-raw-save']['src/deleted.ts']=3;f.write(baseline);
+    put(f.root,'src/engine/ui/example.ts',"localStorage.getItem('x');");
+    const paths=join(f.root,'changed.json');writeFileSync(paths,JSON.stringify(['src/engine/ui/example.ts']));
+    expect(f.run('--update','--files-from',paths).status).toBe(0);
+    expect(f.read()['wildshard/no-raw-save']).toEqual({'src/engine/ui/example.ts':1,'src/engine/ui/other.ts':1});
+    expect(f.read().budgets).toEqual(baseline.budgets);
+    const reduced=readFileSync(f.file,'utf8');
+    put(f.root,'src/engine/ui/example.ts',"localStorage.getItem('x'); sessionStorage.getItem('y');");
+    expect(f.run('--update','--files-from',paths).status).toBe(1);
+    expect(readFileSync(f.file,'utf8')).toBe(reduced);
+    expect(f.run('--files-from',paths).status).toBe(1);
+  });
   it('measures candidate increases without writing or relaxing policy inputs', () => {
     const f = fixture('Math.random();'); f.write({ budgets: { gpu: 12 }, debugRows: { max: 5, raisedBy: ['E435'] } });
     const before = readFileSync(f.file, 'utf8');

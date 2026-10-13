@@ -1,6 +1,6 @@
 // G364/G367: actual producers in the immutable staged export, never hash-only stamps.
 import { createHash } from 'node:crypto';
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -82,7 +82,7 @@ export async function regenerateCheapBakes(root, product = {}) {
   const glb = maps.filter(({dir}) => mapSettings(dir).from !== null);
   if (glb.length > 0) await producer(root, [process.execPath, 'scripts/bake-map-glb.mjs', `--shards=${glb.map(row => row.slug).join(',')}`]);
   for (const {slug} of maps) changed.push(`src/shards/${slug}/look/map.baked.json`, `public/assets/${slug}/map/top.webp`);
-  return changed;
+  return [...changed, ...await refreshCommitMeasurements(root)];
 }
 /** Preserve the established byte-identical King/witness admission laws at commit.
  * Call after actual native outputs, before publishing index bytes.
@@ -135,4 +135,22 @@ export async function refreshRecordedCommitInputs(root, witnessCache) {
 if (process.argv[2] === '--recorded-uncached') {
   try { writeFileSync(process.argv[5],JSON.stringify(await refreshRecordedUncached(process.argv[3],process.argv[4]))); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
+}
+
+/** Generate tracked debt reductions and the script index in the same commit.
+ * Ratchet uses actual touched-file diagnostics, prunes deleted files, preserves
+ * untouched counts and refuses every rise; policy fields are never generated.
+ * @param {string} root @returns {Promise<string[]>} */
+export async function refreshCommitMeasurements(root) {
+  if (!existsSync(resolve(root,'lint/ratchet.mjs'))) return [];
+  const files = ['lint/ratchet.json','scripts/README.md'];
+  const before = new Map(files.map(file => [file,existsSync(resolve(root,file)) ? readFileSync(resolve(root,file),'utf8') : '']));
+  const paths = execFileSync('git',['diff','--cached','--name-only','--no-renames'],{cwd:root,encoding:'utf8'}).split('\n').filter(file=>file.startsWith('src/'));
+  const list = resolve(root,'.commit-measure-paths.json');
+  try {
+    writeFileSync(list,JSON.stringify(paths));
+    await producer(root,[process.execPath,'lint/ratchet.mjs','--update','--files-from',list]);
+    await producer(root,[process.execPath,'scripts/normalize/liveness.mjs','--readme']);
+    return files.filter(file => before.get(file) !== readFileSync(resolve(root,file),'utf8'));
+  } finally { rmSync(list,{force:true}); }
 }

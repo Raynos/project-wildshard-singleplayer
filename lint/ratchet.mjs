@@ -32,10 +32,12 @@ function validate(baseline) {
   }
 }
 
-function counts(root, baselineFile) {
+/** @param {string} root @param {string} baselineFile @param {string[] | null} files */
+function counts(root, baselineFile, files = null) {
   const frozen = legacyInventory(root), hard = hardRules(resolve(REPO, '.oxlintrc.json')); 
   if (!existsSync(resolve(root, 'src'))) throw new Error(`Missing source directory: ${root}/src`);
-  const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', configFile, '-f', 'json', 'src'], {
+  if (files !== null && !files.some(file => existsSync(resolve(root,file)))) return {};
+  const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', configFile, '-f', 'json', ...(files === null ? ['src'] : files.filter(file => existsSync(resolve(root,file))))], {
     cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
     env: { ...process.env, WILDSHARD_RATCHET_FILE: baselineFile },
   });
@@ -64,10 +66,17 @@ function debugCount(root) {
 
 function main() {
   let root = REPO, baselineFile = resolve(REPO, 'lint/ratchet.json'), mode = 'check', addRule = null, deferReductions = false;
+  /** @type {string[] | null} */
+  let scopedPaths = null;
   const args = process.argv.slice(2);
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
-    if (arg === '--root' || arg === '--baseline' || arg === '--add-rule' || arg === '--rebaseline-rule') {
+    if (arg === '--files-from') {
+      const value = args[++i];
+      if (!value) throw new Error('Missing path list');
+      scopedPaths = readJSON(resolve(value));
+      if (!Array.isArray(scopedPaths) || scopedPaths.some(file => typeof file !== 'string' || !file.startsWith('src/') || file.split('/').some(part => part === '..' || part === '.' || part === ''))) throw new Error('Invalid scoped debt paths');
+    } else if (arg === '--root' || arg === '--baseline' || arg === '--add-rule' || arg === '--rebaseline-rule') {
       const value = args[++i];
       if (!value || value.startsWith('--')) throw new Error(`Missing value for ${arg}`);
       if (arg === '--root') root = resolve(value);
@@ -87,7 +96,14 @@ function main() {
   // X8 initializes debugRows. --init records rules and seeds the measurement allowlist only.
   const baseline = mode === 'init' ? { allow: { 'wildshard/no-raw-random-time': TIME_ALLOW }, budgets: {} } : readJSON(baselineFile);
   validate(baseline);
-  const current = counts(root, baselineFile);
+  if (scopedPaths !== null && mode !== 'update') throw new Error('--files-from is a shrink-only update mode');
+  const measured = counts(root, baselineFile, scopedPaths);
+  const current = scopedPaths === null ? measured : Object.fromEntries(Object.entries(baseline).filter(([key]) => !NON_FILE.has(key)).map(([key, values]) => [key, { ...values }]));
+  if (scopedPaths !== null) {
+    for (const values of Object.values(current)) for (const file of Object.keys(values)) if (scopedPaths.includes(file) || !existsSync(resolve(root,file))) delete values[file];
+    for (const [key, values] of Object.entries(measured)) { current[key] ??= {}; Object.assign(current[key],values); }
+    for (const [key, values] of Object.entries(current)) if (Object.keys(values).length === 0) delete current[key];
+  }
   if (mode === 'init') { save(baselineFile, { ...baseline, ...current }); console.log(`Ratchet initialized: ${baselineFile}`); return; }
   if (mode === 'add' || mode === 'rebaseline') {
     if (!ruleNames.has(addRule)) throw new Error(`Unknown configured rule: ${addRule}`);
