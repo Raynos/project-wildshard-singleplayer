@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (gpu-gate-green main) | newest-ci-green (the newest main whose push CI passed; Jake 2026-10-02).",
-  "mode": "pinned",
+  "mode": "newest-ci-green",
   "sha": "957b05e683ca9b6423b828c65c5da8c552500361",
   "milestone": "post-Z4 hotfix-rollback-rollback",
   "gate": "grandfathered",
-  "go": "wildshard-new 2026-10-13: P0 Signal grid entry reads required terrain before install; hold on proven live 957 until grid repair lands and real road entry is proven",
-  "set": "2026-10-13T00:42:59.682Z",
+  "go": "wildshard-new authorization: Linux CI 38333372980 is green on de0130e95 including 96366f3e6; exact-SHA boot smoke 38334018235 is green, with Signal road entry ready, 37 road frames and zero faults or reports",
+  "set": "2026-10-13T02:00:38.684Z",
   "by": "E357 lead"
 }
