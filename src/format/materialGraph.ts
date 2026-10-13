@@ -133,7 +133,6 @@ export interface GraphOutline {
   /** vec3: the ink colour (linear; a fragment place without the light inputs) */
   readonly colour: GraphRef;
 }
-/** the stages */
 /** Optional effect render state. Absent fields retain the existing material defaults. */
 export interface GraphEffectState {
   /** Alpha uses straight RGB; premultiplied expects RGB already multiplied by alpha. */
@@ -145,6 +144,7 @@ export interface GraphEffectState {
   /** Polygon offset factor and units, each finite and within -16 … 16. */
   readonly depthBias?: { readonly factor: number; readonly units: number };
 }
+/** Typed graph stage outputs, including optional point size, surface, lighting and post colour. */
 export interface GraphStages {
   /** Points only: diameter in drawing-buffer pixels, clamped to 1 … 2048 and the device's point range. */
   readonly points?: { readonly size: GraphRef };
