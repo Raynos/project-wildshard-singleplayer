@@ -72,3 +72,17 @@ Tests `commit-inputs`, `shard-platform`, `arch-guards` and `precommit-archive` p
 - Not yet integrated: sp-x7's `scripts/precommit-bakes.mjs` (native / maps), which goes after inputs and before the
   index-reading checks, cached by input hash.
 - Pre-push was not measured in this pass.
+
+## Codex cache and bounded generation cut
+
+Syntax facts cache by source, path, parser lock and analysis recipe; import resolution and
+attribution still run fresh. Cold, warm, edited-source and corrupted-cache fixtures agree.
+Independent producers overlap (four maximum), retaining catalogue order for every declared
+read/write conflict. Every pinned output is still checked. Generation stages/jobs now print
+timings; the hook reports its total on success and early refusal with fractional timestamps.
+
+Metric work: 3.21 s uncached versus 1.05 s warm, with identical full output. Scratch-worktree
+hooks: generator edit 7.67 s; shared edits 10.026 / 9.998 s at load 9.2; first cold controller
+run 13.761 s. The 10 s cap remains OPEN; these are improvements, not full qualification.
+36 focused tests, root strict and touched lint passed. Native/map producer integration and
+the 120 s pre-push verdict remain open. No full suite or gameplay behavior changed.

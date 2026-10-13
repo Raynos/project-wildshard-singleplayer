@@ -93,7 +93,9 @@ if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path)
   const ready = performance.now();
   try {
     linkNodeModules(root, scratch);
-    execFileSync(process.execPath, ['scripts/gen.mjs', '--build-inputs'], { cwd: scratch, stdio: 'inherit' });
+    const common = git(['rev-parse', '--path-format=absolute', '--git-common-dir'], undefined);
+    execFileSync(process.execPath, ['scripts/gen.mjs', '--build-inputs'], { cwd: scratch, stdio: 'inherit',
+      env: { ...process.env, WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse') } });
     const generated = performance.now();
     const tracked = new Set(git(['ls-tree', '-r', '--name-only', before], undefined).split('\n'));
     // Only these declared tracked tables are written by the boot generator.

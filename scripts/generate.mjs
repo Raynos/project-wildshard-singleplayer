@@ -169,14 +169,40 @@ export function reportGeneration(root) {
 
 /** Generate the explicitly admitted build outputs before boot tables, packing or rendering reads them.
  * Complete jobs and pinned output hashes are checked even on a warm hit; undeclared outputs remain report-only.
- * @param {string} root @param {{cacheDir?:string}} [options] */
+ * @param {string} root @param {{cacheDir?:string, concurrency?:number}} [options] */
 export async function prepareGeneration(root,options={}) {
-  const report=reportGeneration(root);
-  for(const job of report.jobs) {
-    const outputs=Object.keys(job.buildOutputs);
-    if(outputs.length===0) continue;
-    const result=await generateShardJob(root,job,{...options,restore:true,restoreOutputs:outputs});
-    console.info(`generate: ${job.id}, ${result.hit?'verified cache':'generated'}, ${String(outputs.length)} admitted build outputs`);
+  const concurrency=options.concurrency ?? 1;
+  if(!Number.isSafeInteger(concurrency) || concurrency<1 || concurrency>4) throw new Error('Generation concurrency must be 1..4');
+  const report=reportGeneration(root), jobs=report.jobs.filter(job=>Object.keys(job.buildOutputs).length>0), completed=new Set();
+  // Preserve catalogue order for every declared read/write conflict, including broad directory inputs.
+  // Producers use private exports; only verified declared outputs are published into the shared staged export.
+  /** @param {import('./generate.mjs').ShardGenerationJob} job @param {string} file */
+  const reads=(job,file)=>job.inputRoots.some(input=>file===input || file.startsWith(`${input}/`));
+  /** @param {import('./generate.mjs').ShardGenerationJob} a @param {import('./generate.mjs').ShardGenerationJob} b */
+  const conflicts=(a,b)=>a.outputs.some(file=>reads(b,file)) || b.outputs.some(file=>reads(a,file));
+  const running=new Map();
+  while(completed.size<jobs.length) {
+    for(const [index,job] of jobs.entries()) {
+      if(running.size>=concurrency) break;
+      if(completed.has(index) || running.has(index) || jobs.slice(0,index).some((prior,position)=>!completed.has(position) && conflicts(prior,job))) continue;
+      const work=async()=>{
+        try {
+        const started=performance.now(), outputs=Object.keys(job.buildOutputs);
+        const result=await generateShardJob(root,job,{...options,restore:true,restoreOutputs:outputs});
+        console.info(`generate: ${job.id}, ${result.hit?'verified cache':'generated'}, ${String(outputs.length)} admitted build outputs, ${((performance.now()-started)/1000).toFixed(3)}s`);
+        return {index};
+        } catch(error) { return {index,error}; }
+      };
+      running.set(index,work());
+    }
+    if(running.size===0) throw new Error('Generation dependency scheduling stalled');
+    const finished=await Promise.race(running.values());
+    running.delete(finished.index);
+    if('error' in finished) {
+      await Promise.allSettled(running.values()); // no child can outlive a failed staged export
+      throw finished.error;
+    }
+    completed.add(finished.index);
   }
   return report;
 }

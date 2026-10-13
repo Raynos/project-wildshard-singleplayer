@@ -1,5 +1,7 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Restore this fixture's syntax-cache setting after each measurement.
+import { env } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Measures isolated source trees and reads the committed baseline.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own temporary fixture paths only.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own temporary fixture paths only.
@@ -34,6 +36,31 @@ function declareOutputs(put: (path: string, source: string) => void, outputs: st
   }] }));
 }
 describe('SF6 platform measures', () => {
+  it('keeps cached syntax facts exact, invalidates edited source and reparses corrupt entries', () => {
+    fixture((root, put) => {
+      put('src/shards/alpha/data/rows.ts', "import { Row } from '@wildshard/sdk/rows';\nexport const rows: Row[] = [1];\n");
+      const previous = env['WS_SHARD_PARSE_CACHE'];
+      delete env['WS_SHARD_PARSE_CACHE'];
+      const plain = shardLines(root), cache = join(root, 'parse-cache');
+      try {
+        env['WS_SHARD_PARSE_CACHE'] = cache;
+        expect(shardLines(root)).toEqual(plain);
+        expect(shardLines(root)).toEqual(plain);
+        const initial = readdirSync(cache).length;
+        for (const file of readdirSync(cache)) writeFileSync(join(cache, file), '{');
+        expect(shardLines(root)).toEqual(plain);
+        put('src/shards/alpha/data/rows.ts', "import '@wildshard/engine/private';\nexport const rows = [1];\n");
+        const changed = shardLines(root);
+        expect(readdirSync(cache).length).toBeGreaterThan(initial);
+        delete env['WS_SHARD_PARSE_CACHE'];
+        expect(changed).toEqual(shardLines(root));
+        expect(changed).not.toEqual(plain);
+      } finally {
+        if (previous === undefined) delete env['WS_SHARD_PARSE_CACHE'];
+        else env['WS_SHARD_PARSE_CACHE'] = previous;
+      }
+    });
+  });
   it('holds every enforced ceiling and names only existing shards', () => {
     expect(checkShares(recorded, shardLines())).toEqual([]);
   });

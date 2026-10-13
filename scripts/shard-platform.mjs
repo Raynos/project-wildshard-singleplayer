@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // G291: authored runtime TS / the frozen legacy TS size is the primary 80/20 measure.
 // The old SF6 public/custom measure remains secondary, explicitly labelled legacy-share.
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
@@ -286,6 +287,30 @@ function codeLineMask(source, comments) {
   const lineOf = offset => { let low = 0, high = starts.length - 1; while (low < high) { const mid = (low + high + 1) >> 1; if (starts[mid] <= offset) low = mid; else high = mid - 1; } return low; };
   return { code, lineOf };
 }
+// Cache only syntax-derived facts. Package resolution, user attribution and every gate still run on this tree.
+function cachedSourceInfo(source, path, directory, recipe) {
+  const hash = value => createHash('sha256').update(value).digest('hex');
+  const key = hash(`${recipe}\0${path}\0${source}`), file = resolve(directory, `${key}.json`);
+  const revive = (_key, value) => value !== null && typeof value === 'object' && Object.hasOwn(value, '$map') ? new Map(value.$map)
+    : value !== null && typeof value === 'object' && Object.hasOwn(value, '$set') ? new Set(value.$set) : value;
+  try {
+    const stored = JSON.parse(readFileSync(file, 'utf8'));
+    if (typeof stored.payload === 'string' && hash(stored.payload) === stored.hash) return JSON.parse(stored.payload, revive);
+  } catch (error) {
+    if (!(error instanceof Error && ('code' in error && error.code === 'ENOENT' || error instanceof SyntaxError))) throw error;
+  }
+  const parsed = sourceInfo(source, path);
+  const facts = { comments: parsed.comments, specs: parsed.specs, shaderLines: rawShaderLines(source, path, parsed.tree?.program),
+    symbols: parsed.tree === undefined ? undefined : moduleSymbols(parsed.tree.program) };
+  const payload = JSON.stringify(facts, (_key, value) => value instanceof Map ? { $map: [...value] }
+    : value instanceof Set ? { $set: [...value] } : value);
+  mkdirSync(directory, { recursive: true });
+  const temporary = `${file}.${process.pid}.tmp`;
+  writeFileSync(temporary, JSON.stringify({ hash: hash(payload), payload }));
+  renameSync(temporary, file);
+  return facts;
+}
+
 export function shardLines(root = ROOT) {
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const probes = new Map(), targets = new Map(), edges = new Map();
@@ -309,8 +334,10 @@ export function shardLines(root = ROOT) {
     return texts.get(path);
   };
   const ignored = (path) => generated.has(path);
-  const info = path => { if (!sources.has(path)) sources.set(path, sourceInfo(text(path), path)); return sources.get(path); };
-  const shaders = path => ignored(path) ? 0 : rawShaderLines(text(path), path, RULES.typescript.test(path) && !path.endsWith('.glsl') ? info(path).tree?.program : undefined);
+  const parseCache = process.env.WS_SHARD_PARSE_CACHE;
+  const parseRecipe = parseCache ? createHash('sha256').update(readFileSync(import.meta.filename)).update(exists('pnpm-lock.yaml') ? text('pnpm-lock.yaml') : '').digest('hex') : '';
+  const info = path => { if (!sources.has(path)) sources.set(path, parseCache ? cachedSourceInfo(text(path), path, parseCache, parseRecipe) : sourceInfo(text(path), path)); return sources.get(path); };
+  const shaders = path => ignored(path) ? 0 : info(path).shaderLines ?? rawShaderLines(text(path), path, RULES.typescript.test(path) && !path.endsWith('.glsl') ? info(path).tree?.program : undefined);
   const count = path => { if (!counts.has(path)) counts.set(path, ignored(path) ? 0 : (path.endsWith('.glsl') ? shaderCodeLines(text(path)) : linesWithoutComments(text(path), info(path).comments))); return counts.get(path); };
   const sdk = exists('src/sdk/package.json') ? JSON.parse(text('src/sdk/package.json')) : null;
   const hasSdk = sdk?.name === '@wildshard/sdk';
@@ -382,7 +409,7 @@ export function shardLines(root = ROOT) {
   // exactly one shard reaches, through its own imports or transitively through the platform code it reaches.
   const symbols = new Map(), masks = new Map(), bindingUsers = new Map();
   const parsedTs = path => RULES.typescript.test(path) && !path.endsWith('.d.ts');
-  const symbolsOf = path => { if (!symbols.has(path)) symbols.set(path, moduleSymbols(info(path).tree.program)); return symbols.get(path); };
+  const symbolsOf = path => { if (!symbols.has(path)) symbols.set(path, info(path).symbols ?? moduleSymbols(info(path).tree.program)); return symbols.get(path); };
   for (const [slug, files] of Object.entries(shardFiles)) {
     if (slug === RULES.template) continue;
     const prefix = `src/shards/${slug}/`, seen = new Set(), queue = files.filter(path => !RULES.tests.test(path)).map(path => [path, null]);

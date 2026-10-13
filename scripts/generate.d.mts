@@ -16,4 +16,4 @@ export function generateShardJob(root:string,job:ShardGenerationJob,options?:{ca
 /** Report-only CI/Vercel phase, leaving committed outputs intact pending platform proof. */
 export function reportGeneration(root:string):ReturnType<typeof discoverGeneration> & {missing:string[]};
 /** Generate only admitted build outputs, verifying pinned hashes before restoring missing files. */
-export function prepareGeneration(root:string,options?:{cacheDir?:string}):Promise<ReturnType<typeof reportGeneration>>;
+export function prepareGeneration(root:string,options?:{cacheDir?:string;concurrency?:number}):Promise<ReturnType<typeof reportGeneration>>;
