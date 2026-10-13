@@ -93,12 +93,13 @@ def main():
             if present:
                 # These are ephemeral build inputs, not committed-output regeneration.
                 run('generation-inputs', ['node', str(root / 'scripts/commit-inputs.mjs'), '--restore', str(root), sha, str(tree)])
-                run('affected-plan', ['node', str(root / 'scripts/local-gate-checks.mjs'), 'plan', str(tree / '.local-gate-changed.json')])
+                run('affected-plan', ['node', str(root / 'scripts/local-gate-checks.mjs'), 'plan', str(tree / '.local-gate-changed.json'), str(common / 'gate-vitest-results')])
                 plan = json.loads((tree / '.local-gate-plan.json').read_text())
+                print((work / 'affected-plan.log').read_text(), flush=True)
                 jobs = [('typecheck', ['node', str(root / 'scripts/local-gate-checks.mjs'), 'types', str(tree / '.local-gate-changed.json')]),
                         ('oxlint', ['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *present])]
-                if plan:
-                    jobs.append(('vitest', ['pnpm', 'exec', 'vitest', 'related', '--run', '--passWithNoTests', *plan]))
+                if plan['local']:
+                    jobs.append(('vitest', ['pnpm', 'exec', 'vitest', 'run', *plan['local']]))
                 test_env = dict(os.environ, WS_VITEST_MAX_WORKERS=os.environ.get('WS_VITEST_MAX_WORKERS', '4'))
                 with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
                     futures = [executor.submit(run, name, command, tree, test_env) for name, command in jobs]

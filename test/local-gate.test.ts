@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import { budgetTests } from '../scripts/local-gate-checks.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real bounded process owner in an isolated fixture.
 import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths belong to this test and are removed in finally.
@@ -30,10 +31,22 @@ it('pushes without regeneration and keeps the related-only local plan', () => {
   expect(source).not.toContain('node scripts/regenerate-committed.mjs');
   const gate = readFileSync('scripts/local-gate.py', 'utf8');
   expect(gate).toContain('CAP_SECONDS = 120');
-  expect(gate).toContain("'related'");
+  expect(gate).toContain("plan['local']");
   expect(gate).not.toContain('vite build');
   expect(gate).not.toContain('bake-check');
   expect(readFileSync('.github/workflows/boot-smoke.yml', 'utf8')).toContain('node scripts/webkit-render-smoke.mjs --dist=dist');
+});
+
+it('packs affected tests into a bounded local budget and names the full CI handoff', () => {
+  const affected = ['test/new.test.ts', 'test/fast.test.ts', 'test/slow.test.ts'];
+  const plan = budgetTests(affected, {'test/fast.test.ts': .1, 'test/slow.test.ts': 30}, ['test/new.test.ts']);
+  expect(plan.local).toEqual(['test/new.test.ts', 'test/fast.test.ts']);
+  expect(plan.ci).toEqual(['test/slow.test.ts']);
+  expect(plan.predictedSeconds).toBeLessThanOrEqual(45);
+  expect([...plan.local, ...plan.ci].sort()).toEqual(affected.sort());
+  const large = budgetTests(Array.from({length:100}, (_,i) => `test/${i}.test.ts`), {}, []);
+  expect(large.predictedSeconds).toBeLessThanOrEqual(45);
+  expect(large.local.length + large.ci.length).toBe(100);
 });
 
 it('retains strict diagnostics in a changed root', () => {
