@@ -1,9 +1,9 @@
 // The hero lab's mahjong table and its stools (lab P4 "hero", E169), layout-only: the square and the stair seat their
 // TRELLIS sitters by `mahjongSeats`; the brushed figures themselves are ./heroFigures.ts's.
 import { Vector3 } from 'three';
-import { K, type Kit, type Look } from '../world/kit';
+import { K, type Kit, type Look } from './kit';
 import type { Rng } from '@wildshard/sdk/random';
-import type { KitX } from '../world/hero/kitx';
+import type { KitX } from './kitx';
 import { person } from './heroFigures';
 
 /** a plastic stool (the concept's blue-grey / red), seat top at 0.45 */

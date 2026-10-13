@@ -2,7 +2,7 @@
 // (../models/landingPlanter.ts) and the stair's layout (../generators/stairstreet-upper.ts) draws its eight copies into the
 // terraces' kit, with the leaves, colours and stone it shares with the rest of the stair.
 import { Color, IcosahedronGeometry, Vector3 } from 'three';
-import { K, type Kit, type Look } from '../world/kit';
+import { K, type Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import type { Rng } from '@wildshard/sdk/random';
 

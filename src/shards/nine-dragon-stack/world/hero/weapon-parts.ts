@@ -9,27 +9,11 @@
 import { Vector3 } from 'three';
 import { E, type Kit } from '../kit';
 import { type KitX, type XLook, curve } from './kitx';
-import { VM } from './vm-material';
+import { WEAPON_LOOKS } from '../../data/weaponLooks';
 
 const v = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
 
-export const LOOK = {
-  brass: { wash: 0x9c7c3a, kind: VM.brass, line: 1 } as XLook,
-  darkBrass: { wash: 0x76592a, kind: VM.darkBrass, line: 1 } as XLook,
-  steel: { wash: 0x191c22, kind: VM.steel, line: 1 } as XLook,
-  bevel: { wash: 0x3a424e, kind: VM.steel, line: 1 } as XLook,
-  glow: { wash: 0xd9fbff, kind: VM.glow, emit: 4.2, line: 0 } as XLook,
-  lacquer: { wash: 0x121317, kind: VM.lacquer, col: 0.011, line: 1 } as XLook,
-  glove: { wash: 0x24252b, kind: VM.matte, line: 1 } as XLook,
-  leather: { wash: 0x1d1c20, kind: VM.matte, line: 1 } as XLook,
-  cloth: { wash: 0xe4ddcc, kind: VM.matte, row: 0.03, line: 1 } as XLook,
-  sleeve: { wash: 0x2a2d38, kind: VM.matte, row: 0.05, line: 1 } as XLook,
-  silk: { wash: 0xc22d1e, kind: VM.silk, line: 1 } as XLook,
-  silkDark: { wash: 0x8e1d14, kind: VM.silk, line: 1 } as XLook,
-  paper: { wash: 0xffffff, kind: VM.paper, line: 1 } as XLook,
-  eye: { wash: 0xff5a3a, kind: VM.glow, emit: 2.5, line: 0 } as XLook,
-  fang: { wash: 0xf2eee4, kind: VM.matte, line: 1 } as XLook,
-} as const;
+export const LOOK: { [K in keyof typeof WEAPON_LOOKS]: XLook } = WEAPON_LOOKS;
 
 /** tunables of the jian (metres) */
 export const JIAN = {

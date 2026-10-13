@@ -5,11 +5,11 @@
 // street (the grammar scales them non-uniformly; the program keeps their ruling in metres). Railings and grilles are
 // real bars (thin boxes), never cut-out cards (Jake: no cardboard in the playable space).
 import { Box3, IcosahedronGeometry, Matrix4, Vector3 } from 'three';
-import { Builder, E, K, type Look, X, Y, Z } from '../world/facade/geo';
+import { Builder, E, K, type Look, X, Y, Z } from './facadeGeo';
 
 
 import { BAKED, CAGE_W, CAGE_W0, PAL, type PieceId } from '../world/facade/pieceIds';
-import type { Dressing } from '../world/facade/dressing';
+import type { Dressing } from './facadeDressing';
 
 
 const NX = X.clone().negate();

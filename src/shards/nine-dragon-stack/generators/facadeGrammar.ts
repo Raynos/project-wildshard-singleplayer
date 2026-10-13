@@ -14,8 +14,8 @@
 //  6. SHELL     — the wall itself is one quad per bay-floor cell, its wash baked per vertex: the patchwork of repairs,
 //                 the ink-wash shadow under each projection (AO), neon spill around each sign box, the drip stains.
 import { Color, Matrix4, Vector3, Vector4 } from 'three';
-import { type Builder, E, K, type Look } from '../world/facade/geo';
-import { Dressing, type SignSlot } from '../world/facade/dressing';
+import { type Builder, E, K, type Look } from './facadeGeo';
+import { Dressing, type SignSlot } from './facadeDressing';
 import { CAGE_W, PAL, type PieceId } from '../world/facade/pieceIds';
 import { BALCONY_W } from './facadePieces';
 import { Rng } from '@wildshard/sdk/random';

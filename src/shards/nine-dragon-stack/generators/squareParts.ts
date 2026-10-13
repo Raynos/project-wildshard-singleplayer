@@ -5,8 +5,8 @@
 import { Box3, type BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
 import { SURF } from '../look/paint';
 import { lionOnPost, placeSet } from '../world/props3d';
-import { KitX, merge } from '../world/hero/kitx';
-import { K, Kit, type Look } from '../world/kit';
+import { KitX, merge } from './kitx';
+import { K, Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import type { Rng } from '@wildshard/sdk/random';
 

@@ -8,7 +8,7 @@
 // the rim and from dome B2's anchor (the timber bridge 6 m under the rim at z −21).
 import { Vector3 } from 'three';
 import { spanStreet } from './facadeGrammar';
-import { E, K, type Kit, type Look } from '../world/kit';
+import { E, K, type Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { dragonHook } from './props';
 import { NEONS } from './towers';
@@ -18,7 +18,7 @@ import { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
 import { FLOOR_H, stand } from './well-galleries';
 import { archDrop, bridge, net, station } from './well-bridges';
-import type { Ctx } from '../world/ctx';
+import type { Ctx } from './ctx';
 import { type BandKits, CROSSINGS, type Crossing, DECK_TOP, LOW, type WellPlan, snapFloor } from './well-plan';
 import { CABLE, CROSSING_COLLIDERS, EXT, FAR } from '../world/wellBounds';
 import { ghostLevels } from './well-lower-deep';

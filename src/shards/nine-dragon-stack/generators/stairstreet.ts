@@ -16,13 +16,13 @@
 // upward (terraces, towers, the paifang, the bridges, the monorail, the upper signs and crowd, the far end) is C2's:
 // stairstreet-upper.ts, buildStairUpper(ctx).
 import { type BufferGeometry, Color, IcosahedronGeometry, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
-import type { Ctx } from '../world/ctx';
+import type { Ctx } from './ctx';
 import { dressWall } from './facadeGrammar';
 import type { PieceId } from '../world/facade/pieceIds';
 import { mahjongSeats } from './figures';
-import { KitX } from '../world/hero/kitx';
-import { buildGuardProcedural } from '../world/hero/weapon-parts';
-import { K, Kit, type Look } from '../world/kit';
+import { KitX } from './kitx';
+import { buildGuardProcedural } from './guard';
+import { K, Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { MIN, NEON } from '../util';

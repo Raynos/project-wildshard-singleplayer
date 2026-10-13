@@ -2,16 +2,16 @@
 // the skybridges, the hanging monorail (a train passes), the Cable Deck whose underside is an LED sky screen playing a
 // painted 青绿 landscape, the Crown's antenna forest against the one strip of real sky, cargo drones.
 import { Color, Matrix4, Quaternion, Vector3 } from 'three';
-import type { Ctx } from '../world/ctx';
+import type { Ctx } from './ctx';
 import { shopfronts } from './facades';
 import { type DressOptions, dressTower, dressWall, spanStreet } from './facadeGrammar';
-import { Dressing } from '../world/facade/dressing';
+import { Dressing } from './facadeDressing';
 import type { PieceId } from '../world/facade/pieceIds';
-import { K, type Kit, type Look } from '../world/kit';
+import { K, type Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { dragonHook, person } from './props';
 import { lanternString } from '../look/lanterns';
-import { hipRoof } from '../world/hipRoof';
+import { hipRoof } from './hipRoof';
 import { WORDS } from '../world/words';
 import { buildStairStreet } from './stairstreet';
 import { SQ_DEPTH } from '../world/stairPlan';

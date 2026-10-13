@@ -5,13 +5,13 @@
 // stockpots and a wok on a glowing burner, a lit back wall of menu strips and shelves of jars, bare bulbs and lanterns,
 // cooks behind the counter, customers on stools and at two folding tables in front, gas bottles and crates at the side.
 import { Box3, type BufferGeometry, Color, Matrix4, Quaternion, Vector3 } from 'three';
-import type { Ctx } from '../world/ctx';
-import { E, K, Kit, type Look } from '../world/kit';
+import type { Ctx } from './ctx';
+import { E, K, Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import type { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
 import { person } from './heroFigures';
-import { KitX, curve, merge } from '../world/hero/kitx';
+import { KitX, curve, merge } from './kitx';
 import { curvedRoof } from './gate';
 import { placeSet } from '../world/props3d';
 import { BOOTH, PAV, type StallRect } from '../data/specimenDims';

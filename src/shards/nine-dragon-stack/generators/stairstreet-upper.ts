@@ -15,14 +15,14 @@
 // only things standing in the walkable stair are the landings' stone planters, which collide as their model (models/landingPlanter.ts).
 // The terraces' kit is split per 32 m cell with a draw distance (ctx.cell / ctx.far), the paifang too.
 import { Box3, type BufferGeometry, Color, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
-import type { Ctx } from '../world/ctx';
+import type { Ctx } from './ctx';
 import { buildGate } from './gate';
 import { dressWall, spanStreet } from './facadeGrammar';
 import type { PieceId } from '../world/facade/pieceIds';
-import { KitX, merge } from '../world/hero/kitx';
-import { K, Kit, type Look } from '../world/kit';
+import { KitX, merge } from './kitx';
+import { K, Kit, type Look } from './kit';
 import { dragonHook } from './props';
-import { hipRoof } from '../world/hipRoof';
+import { hipRoof } from './hipRoof';
 import { type Hole, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, pushClimbers, towerStack, wallShop } from './stairstreet';
 import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from '../world/stairPlan';
 import { SURF } from '../look/paint';

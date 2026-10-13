@@ -11,9 +11,9 @@
 // - the black-and-gold 九龍 plaque in a raised gold frame (the old plaque sat INSIDE its own board and never showed),
 //   couplets, lanterns; a pair of stone lions (石獅) on plinths before the centre bay.
 import { Vector3 } from 'three';
-import { E, K, type Kit, type Look } from '../world/kit';
+import { E, K, type Kit, type Look } from './kit';
 import type { SignSink } from '../assets/contracts/signPlacement';
-import { type KitX, type XLook, curve } from '../world/hero/kitx';
+import { type KitX, type XLook, curve } from './kitx';
 import { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
 import type { GateSpec } from '../data/specimenDims';

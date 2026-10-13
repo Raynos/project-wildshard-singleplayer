@@ -11,9 +11,9 @@
 import { type BufferGeometry, Vector3 } from 'three';
 import { Rng } from '@wildshard/sdk/random';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
-import { Ctx } from '../world/ctx';
-import { Kit } from '../world/kit';
-import { KitX, merge } from '../world/hero/kitx';
+import { Ctx } from './ctx';
+import { Kit } from './kit';
+import { KitX, merge } from './kitx';
 import type { SignSink } from '../assets/contracts/signPlacement';
 import { PLANTER, WELL_BALUSTRADE_AT as O } from '../data/specimenDims';
 import { centred } from './layoutMath';

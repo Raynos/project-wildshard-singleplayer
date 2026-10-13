@@ -8,8 +8,8 @@
 // band opens its railing where one lands) and the built bands' profiles, so a crossing or a net built in one region
 // ties into the gallery fronts another region built.
 import { Vector3 } from 'three';
-import type { Ctx } from '../world/ctx';
-import type { Kit } from '../world/kit';
+import type { Ctx } from './ctx';
+import type { Kit } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { CABLE, EXT, RIM } from '../world/wellBounds';
 import { FLOOR_H, type GalleryProfile, galleryWall } from './well-galleries';

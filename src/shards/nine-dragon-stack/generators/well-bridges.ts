@@ -15,13 +15,13 @@
 // Walkable crossings return their collision (deck boxes following the hump or sag, rail walls on both edges).
 // Geometry detail steps down with `lod` (0 near the rim and dome B2's anchor, 2 far up the run north).
 import { Box3, Vector3 } from 'three';
-import type { Ctx, InKit } from '../world/ctx';
+import type { Ctx, InKit } from './ctx';
 import { buildGate } from './gate';
-import type { KitX } from '../world/hero/kitx';
-import { E, K, type Kit, type Look } from '../world/kit';
+import type { KitX } from './kitx';
+import { E, K, type Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import { dragonHook } from './props';
-import { hipRoof } from '../world/hipRoof';
+import { hipRoof } from './hipRoof';
 import { STEEL_DK, STONE, lampPostStone, lotusPost } from './wellParts';
 import { WORDS } from '../world/words';
 import { stand } from './well-galleries';

@@ -2,8 +2,8 @@ import type { Rng } from '@wildshard/sdk/random';
 // Small props, all ruled: people (brush-dark coats), mahjong tables, stools, scooters, the dragon hooks (the only gold in
 // reach, reserved for the grapple), laundry, pipes; plus the instanced lantern and air-con kit pieces.
 import { Box3, Vector3 } from 'three';
-import type { Ctx } from '../world/ctx';
-import { E, K, Kit, type Look } from '../world/kit';
+import type { Ctx } from './ctx';
+import { E, K, Kit, type Look } from './kit';
 import { METAL } from '../util';
 import type { LaundryKind } from '../data/specimenDims';
 

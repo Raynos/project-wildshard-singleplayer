@@ -3,9 +3,9 @@ import type { Rng } from '@wildshard/sdk/random';
 // windows, then dressed with balconies, window cages, air-con boxes, pipes and laundry. Used for the towers around the
 // square and for the four walls of the Yamen Well, top to bottom.
 import { Color, Matrix4, Vector3 } from 'three';
-import type { Ctx } from '../world/ctx';
-import { E, K, type Look } from '../world/kit';
-import { hipRoof } from '../world/hipRoof';
+import type { Ctx } from './ctx';
+import { E, K, type Look } from './kit';
+import { hipRoof } from './hipRoof';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { SIGN_WORDS } from '../world/words';
 import { NEON, WALL, chars } from '../util';

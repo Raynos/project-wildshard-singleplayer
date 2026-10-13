@@ -3,11 +3,11 @@
 import { Box3, Matrix4, Quaternion, Vector3 } from 'three';
 import { buildBanyan } from './banyan';
 import { mahjongSeats } from './figures';
-import type { Ctx } from '../world/ctx';
+import type { Ctx } from './ctx';
 import { buildGate } from './gate';
 import { SURF } from '../look/paint';
 import { BOOTHS, PARASOLS, PAVILIONS, hawkerStall, marketDiners, marketRow, noodleStall, pavilionDiners, pavilions, stallDiners } from './stalls';
-import { K, type Kit, type Look } from '../world/kit';
+import { K, type Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { walkable } from './layoutMath';
 import { dragonHook, scooter } from './props';

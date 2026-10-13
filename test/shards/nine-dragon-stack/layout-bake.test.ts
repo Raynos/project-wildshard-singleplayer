@@ -11,6 +11,8 @@ import { platform } from 'node:process';
 import { Box3, BufferAttribute, type BufferGeometry, Color, Matrix4, Vector3 } from 'three';
 import { SignRecorder, bakeNineLayout, runLayout } from '../../../src/shards/nine-dragon-stack/generators/layout';
 import { Ctx } from '../../../src/shards/nine-dragon-stack/world/ctx';
+import type { Ctx as AuthorCtx } from '../../../src/shards/nine-dragon-stack/generators/ctx';
+import type { Builder as AuthorBuilder } from '../../../src/shards/nine-dragon-stack/generators/facadeGeo';
 import { buildEntryDecks } from '../../../src/shards/nine-dragon-stack/world/entries';
 import { Builder } from '../../../src/shards/nine-dragon-stack/world/facade/geo';
 import { merge } from '../../../src/shards/nine-dragon-stack/world/hero/kitx';
@@ -39,7 +41,7 @@ function fingerprint(g: BufferGeometry): Record<string, string> {
 }
 
 /** what build.ts does with a context after the layout: the entry decks (with caps), the sign slots, and its kits built */
-function afterLayout(ctx: Ctx): Record<string, Record<string, string>> {
+function afterLayout(ctx: Ctx | AuthorCtx): Record<string, Record<string, string>> {
   buildEntryDecks(ctx, true);
   for (const s of ctx.fd.signs) ctx.signs.place({ at: s.at, normal: s.normal, size: 0.8, spec: { text: '麵', color: '#ff00aa', vertical: s.blade, style: s.blade ? 'tube' : 'box' }, blade: s.blade }, s.blade ? null : ctx.kit('facade-signs'));
   // a baked facade piece appended to the shell, as facade/batch.ts does
@@ -60,7 +62,7 @@ function afterLayout(ctx: Ctx): Record<string, Record<string, string>> {
 }
 
 /** the context's records (everything but the geometry), as plain data */
-function records(ctx: Ctx, calls: unknown): unknown {
+function records(ctx: Ctx | AuthorCtx, calls: unknown): unknown {
   // oxlint-disable-next-line unicorn/prefer-structured-clone -- JSON on purpose: the three classes become plain numbers to compare
   return JSON.parse(JSON.stringify({
     walkers: ctx.walkers, sitters: ctx.sitters, lanterns: ctx.lanterns, acs: ctx.acs, hooks: ctx.hooks, hookMounts: ctx.hookMounts, map: ctx.map,
@@ -92,7 +94,7 @@ describe('Nine Dragon bakes its layout offline (G285)', () => {
 
   it.runIf(platform === 'darwin')('merges the facade\'s small pieces into the shell at bake time exactly as the page\'s batch merged them at load', () => {
     // the page before G285: the layout's shell, then world/facade/batch.ts appending every BAKED copy in placement order
-    const page = runLayout(new SignRecorder(), false), cache = new Map<PieceId, Builder>(), own: [string, number[]][] = [];
+    const page = runLayout(new SignRecorder(), false), cache = new Map<PieceId, AuthorBuilder>(), own: [string, number[]][] = [];
     for (const p of page.fd.pieces) {
       if (!BAKED.has(p.piece)) continue;
       let b = cache.get(p.piece);

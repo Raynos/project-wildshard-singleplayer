@@ -11,13 +11,13 @@
 // - the planter: dark wet granite with carved panels, a moulded rim, soil; the shrine: a red lacquer cabinet under a
 //   little tiled hip roof, a gold-lit niche, candles, a censer with incense smoke, oranges on a plate, paper couplets.
 import { Box3, Color, Vector3 } from 'three';
-import type { Ctx } from '../world/ctx';
+import type { Ctx } from './ctx';
 import { curvedRoof, relief } from './gate';
-import { E, K, type Kit, type Look } from '../world/kit';
+import { E, K, type Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
-import { type KitX, curve } from '../world/hero/kitx';
+import { type KitX, curve } from './kitx';
 import { type BanyanPlan, type CanopyLump, banyanOut } from '../world/banyanPlan';
 
 const { BANYAN, Y0 } = NINE_LAYOUT_PLAN;

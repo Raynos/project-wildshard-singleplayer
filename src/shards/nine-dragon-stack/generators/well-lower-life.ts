@@ -16,8 +16,8 @@
 // ~25–45-tri kit figures, the lanterns 20-tri kit ones (their light is a baked emitter, not the 348-tri paper mesh
 // every view draws), plants / air-con / cages / tanks are kit boxes, not the always-drawn instanced pieces.
 import { Color, IcosahedronGeometry, Matrix4, Vector3, Vector4 } from 'three';
-import type { Ctx } from '../world/ctx';
-import { E, K, type Kit, type Look } from '../world/kit';
+import type { Ctx } from './ctx';
+import { E, K, type Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import { NEONS } from './towers';
 import { WORDS } from '../world/words';

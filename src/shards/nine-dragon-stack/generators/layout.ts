@@ -7,8 +7,8 @@
  * live builders.
  */
 import type { BufferGeometry, Color, Matrix4, Vector3 } from 'three';
-import { Ctx } from '../world/ctx';
-import { Kit } from '../world/kit';
+import { Ctx } from './ctx';
+import { Kit } from './kit';
 import { buildSquare } from './square';
 import { buildTowers } from './towers';
 import { buildWell } from './well';
@@ -19,7 +19,7 @@ import { banyanOut } from '../world/banyanPlan';
 import type { SignPlace, SignSink, SignBoardKit } from '../assets/contracts/signPlacement';
 import { signBoard, signSize, neonSize } from './signMath';
 import { geometryWriter } from './bakeWrite';
-import type { Placement } from '@wildshard/engine/models/model';
+import type { AuthoredPlacement as Placement } from '../assets/contracts/modelPlacement';
 import { type BakedPlace, type LayoutRows, LayoutRowsSchema, type SignCallRow } from '../world/layoutBake';
 import * as v from 'valibot';
 

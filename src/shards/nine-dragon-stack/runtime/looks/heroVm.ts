@@ -3,8 +3,10 @@
 // head describes the look.
 import type { UniformRows } from '@wildshard/game/plugin/shaderFamily';
 
+import { HERO_MATERIAL_CLASSES } from '../../data/weaponLooks';
+
 /** material classes (the Kit's `kind` slot, aPat.x); values clear of the architecture kinds 0–8 */
-export const HERO_VM = { brass: 20, steel: 21, lacquer: 22, matte: 23, silk: 24, paper: 25, glow: 26, darkBrass: 27 } as const;
+export const HERO_VM: typeof HERO_MATERIAL_CLASSES = HERO_MATERIAL_CLASSES;
 
 /** the program's tuning (the silk grain, the decal atlas and its cells are the shard's) */
 export const HERO_VM_UNIFORMS = {

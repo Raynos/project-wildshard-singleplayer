@@ -6,7 +6,7 @@ import { E, K, type Kit, type Look } from './kit';
 import { MIN, METAL } from '../util';
 
 /** a hip roof with upturned corners, glazed tiles, a ridge with end-beasts, painted eaves and a neon eave tube */
-export function hipRoof(ctx: Ctx, k: Kit, cx: number, y0: number, cz: number, w: number, d: number, h: number, up: number, tile: number, neon: number | null): void {
+export function hipRoof(ctx: Pick<Ctx, 'signs'>, k: Pick<Kit, keyof Kit>, cx: number, y0: number, cz: number, w: number, d: number, h: number, up: number, tile: number, neon: number | null): void {
   const x0 = cx - w / 2, x1 = cx + w / 2, z0 = cz - d / 2, z1 = cz + d / 2;
   const rx0 = x0 + d * 0.42, rx1 = x1 - d * 0.42;
   const yr = y0 + h;

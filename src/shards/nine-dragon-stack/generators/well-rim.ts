@@ -5,12 +5,12 @@
 // the south, their hero signs and the brass hooks the Fei Zhua bites.
 import { Vector3 } from 'three';
 import { dressWall } from './facadeGrammar';
-import { K, type Kit } from '../world/kit';
+import { K, type Kit } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { dragonHook, stool } from './props';
 import { relief } from './gate';
 import { placeLion } from '../world/props3d';
-import type { KitX } from '../world/hero/kitx';
+import type { KitX } from './kitx';
 import { NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
 import { NEONS } from './towers';

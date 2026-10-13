@@ -9,9 +9,12 @@
 import type { ShardCube } from '@wildshard/game/shard/context';
 import { SURF } from '../look/paint';
 import type { Ctx } from './ctx';
-import { K, type Look } from './kit';
+import { K, type Kit, type Look } from './kit';
 import { hipRoof } from './hipRoof';
 import { CAP, DECK_DEPTH, FRAMES, OPENING_HALF, capParts, deckParts, inFrame, type Frame, type FrameBox } from './floorRows';
+
+/** Only public author writer methods and the recorded placement sinks are needed. */
+type EntryContext = Pick<Ctx, 'signs' | 'lantern'> & { kit: (name: string) => Pick<Kit, keyof Kit> };
 
 const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete };
 const FLAGS: Look = { wash: 0x3e4148, kind: K.flag, wet: 1, line: 0 };
@@ -34,7 +37,7 @@ export function entryCapsFor(cube: ShardCube | null): boolean { return cube === 
  * `entries` kit like the deck (merged, no new draw); laid out in the deck's frame (floorRows.ts `capParts`), so all four decks share it.
  * This is one cap into the `entries` kit, with its lanterns hung in the fragment's lantern batch.
  */
-function buildCap(ctx: Ctx, f: Frame): void {
+function buildCap(ctx: EntryContext, f: Frame): void {
   const k = ctx.kit('entries'), c = capParts(f), h = OPENING_HALF, d = CAP.depth;
   const put = (b: FrameBox, look: Look, opt: { top?: Look | null } = {}): void => { k.box(b.x, b.y0, b.z, b.sx, b.y1 - b.y0, b.sz, look, opt); };
   put(c.plinth, STONE);
@@ -78,7 +81,7 @@ function pillarSpan(f: Frame, p: FrameBox, w: number): [number, number] {
 
 /** draw the four decks into the fragment's `entries` kit (merged with the world's fabric, one draw); with `caps`
  *  (standalone, G200) each deck's open end gets its balustrade */
-export function buildEntryDecks(ctx: Ctx, caps = false): void {
+export function buildEntryDecks(ctx: EntryContext, caps = false): void {
   const k = ctx.kit('entries');
   for (const f of FRAMES) {
     const p = deckParts(f);
