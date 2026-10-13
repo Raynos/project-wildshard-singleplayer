@@ -11,7 +11,11 @@ export interface NearPlaceholderPlan {
   readonly cells: readonly { readonly instance: string; readonly distance: number }[];
 }
 /** What the plan should keep (held: drawn or loading now) or pass over (skip: no near placeholder to draw). */
-export interface NearPlanOptions { readonly held?: ReadonlySet<string>; readonly skip?: ReadonlySet<string> }
+export interface NearPlanOptions {
+  readonly held?: ReadonlySet<string>; readonly skip?: ReadonlySet<string>;
+  /** G380 (Debug ▸ Neighbour detail C, the hero captures only): every cell, with no reach or count limit */
+  readonly every?: boolean;
+}
 
 /** Metres from `point` to the cell's content square (0 inside it). */
 function squareDistance(cell: GridCell, point: Readonly<{ x: number; z: number }>): number {
@@ -42,7 +46,7 @@ export function planNearPlaceholders(cells: readonly GridCell[], pitch: number,
     const distance = squareDistance(cell, point);
     return { instance: cell.instance, distance, rank: held.has(cell.instance) ? distance - NEAR_HOLD_MARGIN : distance,
       centre: Math.hypot(point.x - cell.origin.x, point.z - cell.origin.z) };
-  }).filter(row => row.distance <= pitch);
+  }).filter(row => options.every === true || row.distance <= pitch);
   ranked.sort((a, b) => a.rank - b.rank || a.centre - b.centre || a.instance.localeCompare(b.instance));
-  return { cells: ranked.slice(0, NEAR_PLACEHOLDER_CELLS).map(({ instance, distance }) => ({ instance, distance })) };
+  return { cells: ranked.slice(0, options.every === true ? ranked.length : NEAR_PLACEHOLDER_CELLS).map(({ instance, distance }) => ({ instance, distance })) };
 }

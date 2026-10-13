@@ -96,6 +96,40 @@ export const FAR_EDGE_FLOOR = -20;
  */
 export const FAR_RING = { count: CONTENT_CAPS.farCount, viewDistance: 1.5 * CONTENT_CAPS.pitch, farPrefetch: 435, drawDistance: 2600 } as const;
 
+/**
+ * G342 near round 5 (sp-o67's open row 1: the tall grey cliff where Nalati's mountains meet its cell edge): how a near
+ * placeholder's ground leans back from the cell border instead of standing there as a 60–120 m boundary face. Over `top`
+ * metres (the seam's tallest face, `SEAM_FACE_TOP`, so the seam's own cliff carries the ground up to it) the surface may
+ * rise at most `grade` metres per metre in from each border, that grade varied ±`jitter` along the border (two octaves of
+ * hashed value noise) so a flank breaks into buttresses and gullies. A height under the cap is untouched, so a low shore or
+ * a road-level edge does not change, and nothing 60 m or more inside the border moves. Slope and colour come from the
+ * leaned surface, so the flank shades and colours as the shard's own steep ground. Bake-time only.
+ */
+export interface FarEdgeLean { readonly top: number; readonly grade: number; readonly jitter: number }
+
+/** A deterministic 0..1 value per integer lattice point (integer hash: the same bytes on every engine). */
+function leanHash(i: number, side: number): number {
+  let h = Math.imul(i ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(side + 7, 0xc2b2ae35);
+  h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d); h = Math.imul(h ^ (h >>> 12), 0x297a2d39); h ^= h >>> 15;
+  return (h >>> 0) / 4294967296;
+}
+/** Smooth 1-D value noise, 0..1, two octaves (31 m and 11 m along the border). */
+function leanNoise(t: number, side: number): number {
+  const octave = (u: number, salt: number): number => { const i = Math.floor(u), f = u - i, k = f * f * (3 - 2 * f), a = leanHash(i, side * 4 + salt), b = leanHash(i + 1, side * 4 + salt); return a + (b - a) * k; };
+  return 0.65 * octave(t / 31, 0) + 0.35 * octave(t / 11 + 17.3, 1);
+}
+/** The leaned surface's cap at (x, z): the lowest of the four borders' rising caps. */
+export function edgeLeanCap(lean: FarEdgeLean, x: number, z: number): number {
+  const cap = (d: number, along: number, side: number): number => lean.top + Math.max(0, d) * lean.grade * (1 + lean.jitter * (2 * leanNoise(along, side) - 1));
+  return Math.min(cap(z + CHUNK_HALF, x, 0), cap(CHUNK_HALF - x, z, 1), cap(CHUNK_HALF - z, x, 2), cap(x + CHUNK_HALF, z, 3));
+}
+
+/** How far (m) the lean lowers the ground at (x, z): a prop or tree standing there sinks by it to stay on the flank. */
+export function edgeLeanDrop(grid: FarGrid, lean: FarEdgeLean): (x: number, z: number) => number {
+  const { height } = sampler(grid);
+  return (x, z) => Math.max(0, height(x, z) - edgeLeanCap(lean, x, z));
+}
+
 /** Bilinear height / splat over the baked grid, clamped to the cell. */
 function sampler(grid: FarGrid): { height: (x: number, z: number) => number; splat: (x: number, z: number) => [number, number, number, number] } {
   const { res, size, heights, splat } = grid, half = size / 2, inv = (res - 1) / size, last = res - 2;
@@ -123,12 +157,15 @@ function sampler(grid: FarGrid): { height: (x: number, z: number) => number; spl
  * `reduce` (G342 round 3, the near placeholder's dense ground): each region's ground lattice (region-local positions and
  * index) goes through it before its skirts; it returns a reduced index over the same vertices that keeps the lattice's
  * border vertices (the skirts hang from them). Vertices no triangle uses are dropped at the end.
+ * `lean` (G342 round 5, the near placeholder): the ground leans back from the cell border over the seam's face top.
  */
 export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonly FarPart[] = [], cap: number = CONTENT_CAPS.far.triangles,
-  reduce?: (positions: Float32Array, index: Uint32Array, attributes: Float32Array) => Uint32Array): FarProxyMesh {
+  reduce?: (positions: Float32Array, index: Uint32Array, attributes: Float32Array) => Uint32Array, lean?: FarEdgeLean): FarProxyMesh {
   const quads = look.quads ?? FAR_QUADS;
   if (!Number.isInteger(quads) || quads < 1) throw new RangeError('Invalid far lattice');
-  const sample = sampler(grid), regionSize = (CHUNK_HALF * 2) / FAR_REGIONS, step = regionSize / quads, n = quads + 1;
+  if (lean !== undefined && (!Number.isFinite(lean.top) || !(lean.grade > 0) || !Number.isFinite(lean.grade) || !(lean.jitter >= 0 && lean.jitter < 1))) throw new RangeError('Invalid edge lean');
+  const raw = sampler(grid), sample = lean === undefined ? raw : { splat: raw.splat, height: (x: number, z: number): number => Math.min(raw.height(x, z), edgeLeanCap(lean, x, z)) };
+  const regionSize = (CHUNK_HALF * 2) / FAR_REGIONS, step = regionSize / quads, n = quads + 1;
   const positions: number[] = [], normals: number[] = [], colours: number[] = [], region: number[] = [], cliff: number[] = [], index: number[] = [];
   const clamp = (c: number): number => Math.min(1, Math.max(0, c));
   // the surface the proxy shows: ground + canopy, its slope from the ground alone (a canopy is not a cliff)

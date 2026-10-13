@@ -6,6 +6,7 @@ export const ENGINE_STRINGS = {
   "s_near_tier": "Neighbour detail",
   "s_near_tier_far": "A · far proxy",
   "s_near_tier_near": "B · near placeholder",
+  "s_near_tier_all": "C · every cell near (captures)",
   "s_near_tier_note": "G342: the cells around your crossroads draw L1-density terrain and their own props, trees and water at a low LOD (about 4.5 MB each, at most four) instead of the far proxy. Reloads",
   "s_graph_materials": "Graph materials",
   "s_graph_materials_note": "SF59 · E435: a level's material graphs compile to node materials (the lazy TSL back-end); off draws each graph as its family preset. Off until a physical-iPhone reading. Reloads",

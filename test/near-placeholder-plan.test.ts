@@ -15,6 +15,11 @@ describe('G342 / G371 bounded visual near-placeholder selection', () => {
     expect(ids(plan)).toEqual(['0,0', '0,1', '1,0', '1,1']);
     expect(plan.cells.every(row => Number.isFinite(row.distance) && row.distance >= 0)).toBe(true);
   });
+  it('G380 (Neighbour detail C, captures): every cell but the entered one, past the reach and the four-cell cap', () => {
+    const plan = planNearPlaceholders(cells, pitch, { x: 0, z: 0 }, '0,0', { every: true });
+    expect(plan.cells).toHaveLength(cells.length - 1);
+    expect(plan.cells.some(row => row.distance > pitch)).toBe(true);
+  });
   it('over a cell centre: the four cardinal neighbours are nearest (a diagonal is farther)', () => {
     const plan = planNearPlaceholders(cells, pitch, { x: 0, z: 0 }, '0,0');
     expect(ids(plan)).toEqual(['-1,0', '0,-1', '0,1', '1,0']);

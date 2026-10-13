@@ -6,7 +6,7 @@ import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import type { PlaceholderTree } from '@wildshard/format/placeholderSource';
 import { NEAR_PLACEHOLDER_LIMITS } from '@wildshard/format/nearPlaceholder';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { placeholderGeometry, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/animation';
+import { placeholderGeometry, placeholderLeanDrop, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/animation';
 import { parseGlb } from '../assets';
 import { encodeCanonicalJson, hashImmutableBytes } from '../immutable';
 import { staticGlb } from './glb';
@@ -30,6 +30,12 @@ import { nearGroundReducer, nearPlaceholderParts, type NearPlaceholderOptions, t
  * (coordinator approval, G342 / E435): four cells 34 MB on the near line, inside the 1.0 GB Explorer envelope.
  */
 export const NEAR_BAKE = { quads: 64, groundError: 0.5, contentTriangles: 42_000, triangles: 160_000, residentBytes: 8_500_000 } as const;
+/**
+ * G342 near round 5: the near ground leans back from the cell border (`FarEdgeLean`) instead of ending in a 60–120 m
+ * boundary face (Nalati's snow ring stands 100 m at its west edge, Pine's north ridge 62 m). `top` is the seam's tallest
+ * face (`SEAM_FACE_TOP`, 14 m: the seam's cliff carries the ground to it), `grade` 1.6 (58°) varied ±45 % along the border.
+ */
+export const NEAR_EDGE_LEAN = { top: 14, grade: 1.6, jitter: 0.45 } as const;
 /** The forest's triangle budget inside the near placeholder (on top of the props' own content budget). */
 export const NEAR_TREE_TRIANGLES = 30_000;
 /** Half a cell (m): copies leaving it are dropped. */
@@ -160,23 +166,35 @@ export interface NearPlaceholderInput {
  * TEXCOORD_0.x, no colliders. The content budget steps down until the whole cell fits its resident ceiling.
  */
 export async function bakeNearPlaceholder(input: NearPlaceholderInput): Promise<{ bytes: Uint8Array; manifest: NearManifest; reduced: NearPlaceholderReport }> {
-  const { grid, look, log } = input, trees = input.trees ?? [];
+  const { grid, look, log } = input;
+  // round 5: what stands on a leaned flank sinks with it (a ridge's trees, a hut on the snow ring), never floats
+  const drop = placeholderLeanDrop(grid, NEAR_EDGE_LEAN);
+  const trees: PlaceholderTreePlacement[] = [], prototypes: NearPrototype[] = [];
+  for (const t of input.trees ?? []) {
+    const d = drop(t.x, t.z), sunk: PlaceholderTreePlacement = { ...t, y: t.y - d };
+    trees.push(d > 0 ? sunk : t);
+  }
+  for (const p of input.prototypes) {
+    const transforms = p.transforms.map(m => { const d = drop(m[12] ?? 0, m[14] ?? 0); return d > 0 ? m.map((v, i) => i === 13 ? v - d : v) : m; });
+    prototypes.push({ name: p.name, positions: p.positions, colours: p.colours, index: p.index, transforms });
+  }
   const forest = trees.length === 0 ? null : nearTreePrototypes(trees, HALF, input.stands);
   if (forest !== null) log?.(`forest ${JSON.stringify(forest.report)}`);
   const treeParts = forest === null ? { parts: [], report: { triangles: 0 } }
     : await nearPlaceholderParts(forest.prototypes, { triangles: NEAR_TREE_TRIANGLES * 2, half: HALF, minSize: 0 });
-  // a forest placed tree by tree replaces its far look's canopy lift
-  const { canopyAt, ...bare } = look, nearLook: PlaceholderLook = forest === null || canopyAt === undefined ? { ...look, quads: NEAR_BAKE.quads } : { ...bare, quads: NEAR_BAKE.quads };
+  // a forest placed tree by tree replaces its far look's canopy lift; a declared lattice (a cloud sea's one sheet, SF49) wins
+  const { canopyAt, ...bare } = look, quads = look.quads ?? NEAR_BAKE.quads,
+    nearLook: PlaceholderLook = forest === null || canopyAt === undefined ? { ...look, quads } : { ...bare, quads };
   const groundError = input.groundError ?? NEAR_BAKE.groundError, residentCeiling = input.residentBytes ?? NEAR_BAKE.residentBytes;
   const reduceGround = await nearGroundReducer(groundError);
   if (log !== undefined) {
-    const cost = parseGlb(staticGlb([{ geometry: placeholderGeometry(grid, nearLook, [], NEAR_BAKE.triangles, reduceGround), material: new MeshStandardMaterial({ vertexColors: true }), castShadow: false }], 'near-ground'));
+    const cost = parseGlb(staticGlb([{ geometry: placeholderGeometry(grid, nearLook, [], NEAR_BAKE.triangles, reduceGround, NEAR_EDGE_LEAN), material: new MeshStandardMaterial({ vertexColors: true }), castShadow: false }], 'near-ground'));
     log(`ground at ${groundError} m: ${cost.triangles} tris, resident ${((cost.decoded + cost.gpu) / 1e6).toFixed(3)} MB`);
   }
   let budget: number = NEAR_BAKE.contentTriangles;
   for (;;) {
-    const { parts, report: reduced } = await nearPlaceholderParts(input.prototypes, { triangles: budget, half: HALF, ...(input.floors === undefined ? {} : { floors: input.floors }) });
-    const bytes = oneDraw(placeholderGeometry(grid, nearLook, [...parts, ...treeParts.parts], NEAR_BAKE.triangles + treeParts.report.triangles, reduceGround), 'near-placeholder');
+    const { parts, report: reduced } = await nearPlaceholderParts(prototypes, { triangles: budget, half: HALF, ...(input.floors === undefined ? {} : { floors: input.floors }) });
+    const bytes = oneDraw(placeholderGeometry(grid, nearLook, [...parts, ...treeParts.parts], NEAR_BAKE.triangles + treeParts.report.triangles, reduceGround, NEAR_EDGE_LEAN), 'near-placeholder');
     const file = fileRow(bytes);
     if (file.decoded + file.gpu <= residentCeiling) {
       const near: NearManifest['near'] = { files: [file.hash], compressed: file.compressed, decoded: file.decoded, gpu: file.gpu, triangles: file.triangles, draws: file.draws, content: reduced.triangles,

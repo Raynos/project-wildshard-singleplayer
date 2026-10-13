@@ -16,7 +16,7 @@
 // retires per shard as each one's world moves into its shardfile tiles.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { installBakeEnvironment } from './environment.mjs';
@@ -66,8 +66,21 @@ const terrainBin = resolve(root, 'public/assets/baked', slug, 'terrain.bin');
 // G348: the shard's own data says where its ground comes from (its data/placeholder.ts row); no slug branch here
 const source = await placeholderOf(root, slug);
 const groundFrom = source.ground;
-const nativeTerrain = groundFrom === undefined ? readFileSync(terrainBin) : (await at(`src/shards/${slug}/${groundFrom.generator}`))[groundFrom.export]();
-if (!(nativeTerrain instanceof Uint8Array)) throw new Error(`${slug}: placeholder ground ${JSON.stringify(groundFrom)} returned no bytes`);
+// a shardfile-terrain shard (no terrain.bin, no ground row) builds its world on its own collider grid
+const nativeTerrain = groundFrom === undefined ? existsSync(terrainBin) ? readFileSync(terrainBin) : undefined : (await at(`src/shards/${slug}/${groundFrom.generator}`))[groundFrom.export]();
+if (nativeTerrain !== undefined && !(nativeTerrain instanceof Uint8Array)) throw new Error(`${slug}: placeholder ground ${JSON.stringify(groundFrom)} returned no bytes`);
+
+// a manifest ground declared by key (`createBakedTerrainField`, Signal's) is its shardfile's own terrain collider: the bake
+// installs it into the declared field as the session's required-ground loader would (`installProductGround`)
+if (nativeTerrain === undefined && manifest.ground?.terrain !== undefined) {
+  const { bakedTerrainSource, installDeclaredBakedTerrain } = await at('src/engine/world/bakedTerrainField.ts');
+  const declared = bakedTerrainSource(manifest.ground.terrain), collider = declared === null ? null : placeholderGridBytes(root, resolve(root, 'src/shards', slug), slug);
+  if (collider !== null && collider.kind === 'collider') {
+    const { clientGround } = await at('src/game/shardfile/clientGround.ts');
+    const ground = clientGround({ terrain: { collider: 'collider' }, meshCollision: null }, new Map([['collider', collider.bytes]]));
+    installDeclaredBakedTerrain(manifest.ground.terrain, { seed: declared.seed, heightAt: ground.heightAt, normalAt: ground.normalAt, splatAt: ground.splatAt });
+  }
+}
 
 /** Weathered wood (linear RGB): the stand-in for a colour map or a texture-only material Node does not decode. */
 const WOOD = new THREE.Color(0.3, 0.21, 0.13);
@@ -207,6 +220,14 @@ const sdk = await at('src/sdk/bake/placeholders.ts');
 if (source.far === undefined) throw new Error(`${slug}: no far row in its data/placeholder.ts`);
 const exported = async (ref) => { const value = (await at(`src/shards/${slug}/${ref.module}`))[ref.export]; if (value === undefined) throw new Error(`${slug}: ${ref.module} has no export ${ref.export}`); return value; };
 const look = await exported(source.far.look);
+// a shard whose world lives in its shardfile tiles (Signal's sand and tower, a template's props) has nothing the authored
+// host builds: its coarse (L1) tiles' meshes are its world, harvested as `wildshard build` harvests them (`shardfileWorld`)
+if (prototypes.length === 0 && existsSync(resolve(root, 'src/shards', slug, 'shard.config.ts'))) {
+  const { readProjectAssets } = await at('src/sdk/project.ts');
+  const project = await readProjectAssets(resolve(root, 'src/shards', slug));
+  prototypes.push(...await sdk.shardfileWorld(project.shard, project.assets));
+  console.log(`${slug}: ${prototypes.length} shardfile L1 tile meshes`);
+}
 const ground = source.far.grid === undefined ? placeholderGridBytes(root, resolve(root, 'src/shards', slug), slug) : null;
 const grid = ground === null ? (await exported(source.far.grid))() : ground.kind === 'baked' ? sdk.bakedTerrainGrid(ground.bytes) : sdk.colliderGrid(ground.bytes);
 // round 3: the ground at the height field's own density, reduced by geometric error (--ground-error=<m> to measure)

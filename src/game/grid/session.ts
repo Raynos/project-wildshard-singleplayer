@@ -471,8 +471,9 @@ export class GridSession {
       }
       return view;
     } };
-    if (setting('nearTier') === 'near') {
-      this.near = new NearPlaceholders({ allocator: this.allocator, cells: this.assembly.cells, pitch: this.assembly.pitch, root: (id) => roots.get(id),
+    if (setting('nearTier') !== 'far') {
+      // C (G380, the hero captures): every neighbour draws its near view, whatever its distance or the four-cell cap
+      this.near = new NearPlaceholders({ every: setting('nearTier') === 'all', allocator: this.allocator, cells: this.assembly.cells, pitch: this.assembly.pitch, root: (id) => roots.get(id),
         load: (id) => loadNear(this.assembly.cell(id).slug, { allocator: this.allocator, scope: host.scope }),
         cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
         mask: (id) => drawnFar.get(id)?.excluded ?? new Set<number>(),

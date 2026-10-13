@@ -1,6 +1,6 @@
 import { Euler, Matrix4, Quaternion, Vector3, type EulerOrder, BufferAttribute, BufferGeometry } from 'three';
 import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
-import { buildFarProxy, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart, type FarProxyMesh } from '../grid/farProxy';
+import { buildFarProxy, edgeLeanDrop, type FarEdgeLean, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart, type FarProxyMesh } from '../grid/farProxy';
 
 const UNIT_SCALE = [1, 1, 1] as const;
 const ORDERS = new Set<EulerOrder>(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']);
@@ -277,12 +277,17 @@ export type PlaceholderPart = FarPart;
 
 /**
  * The placeholder geometry: the grid in the look, plus parts, refused over `cap` triangles (default the far cap).
- * `reduce` reduces each region's ground lattice (the near placeholder's geometric-error ground).
+ * `reduce` reduces each region's ground lattice (the near placeholder's geometric-error ground); `lean` leans the near
+ * ground back from the cell border (G342 round 5).
  */
 export function placeholderGeometry(grid: PlaceholderGrid, look: PlaceholderLook, parts: readonly PlaceholderPart[] = [], cap?: number,
-  reduce?: (positions: Float32Array, index: Uint32Array, attributes: Float32Array) => Uint32Array): BufferGeometry {
-  return farProxyGeometry(buildFarProxy(grid, look, parts, cap, reduce));
+  reduce?: (positions: Float32Array, index: Uint32Array, attributes: Float32Array) => Uint32Array, lean?: PlaceholderLean): BufferGeometry {
+  return farProxyGeometry(buildFarProxy(grid, look, parts, cap, reduce, lean));
 }
+
+/** A placeholder's edge lean (G342 round 5) and how far it lowers the ground at a point (what a placed copy sinks by). */
+export type PlaceholderLean = FarEdgeLean;
+export function placeholderLeanDrop(grid: PlaceholderGrid, lean: PlaceholderLean): (x: number, z: number) => number { return edgeLeanDrop(grid, lean); }
 
 /** The far mesh as geometry (region in uv.x, cliff in uv.y), kept here rather than beside the far material
  *  (`grid/farView.ts`) so a Node build's closure reaches no renderer module (the native sim loader refuses one). */

@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { CONTENT_CAPS as C } from '../src/engine/core/config';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { buildFarProxy, FAR_EDGE_FLOOR, FAR_QUADS, FAR_REGIONS, FAR_RING, farRingCatalogue, type FarLookSource } from '../src/game/grid/farProxy';
+import { buildFarProxy, edgeLeanCap, edgeLeanDrop, FAR_EDGE_FLOOR, FAR_QUADS, FAR_REGIONS, FAR_RING, farRingCatalogue, type FarLookSource } from '../src/game/grid/farProxy';
 import { RenderRings, type RingCell, type RingLevel, type RingView } from '../src/game/grid/rings';
 
 const SHARDS = ['_template', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'far-reach'] as const;
@@ -87,6 +87,24 @@ describe('SF23 far proxies', () => {
     expect(Math.min(...feet.map((v) => mesh.positions[v * 3 + 1] ?? 0))).toBeCloseTo(FAR_EDGE_FLOOR, 6);
     expect(mesh.triangles).toBe(16 * (FAR_QUADS * FAR_QUADS * 2 + 4 * FAR_QUADS * 2)); // same triangles as before
     expect(() => buildFarProxy({ res, size: 500, heights, splat: null }, { ...look, cliff: { lip: [1.2, 0, 0], foot: [0, 0, 0] } })).toThrow(/cliff palette/u);
+  });
+
+  it('G342 round 5: the near lean lays a tall border back to the seam face top and leaves the interior alone', () => {
+    const look: FarLookSource = { family: 'painterly', colourAt: () => [0.5, 0.5, 0.5], cliff: ROCK, haze: { colour: [1, 1, 1], near: 1, far: 2, max: 0.5 } };
+    const res = 33, heights = new Float32Array(res * res).fill(100), grid = { res, size: 500, heights, splat: null }, lean = { top: 14, grade: 1.6, jitter: 0.45 };
+    const mesh = buildFarProxy(grid, look, [], undefined, undefined, lean);
+    let edgeTop = -Infinity, centre = 0;
+    for (let v = 0; v < mesh.cliff.length; v++) {
+      const x = mesh.positions[v * 3] ?? 0, y = mesh.positions[v * 3 + 1] ?? 0, z = mesh.positions[v * 3 + 2] ?? 0;
+      if ((mesh.cliff[v] ?? 0) === 1) edgeTop = Math.max(edgeTop, y);
+      if (Math.abs(x) < 1 && Math.abs(z) < 1) centre = Math.max(centre, y); // the lattice, not its inner skirts
+      expect(y).toBeLessThanOrEqual(edgeLeanCap(lean, x, z) + 1e-4);
+    }
+    expect(edgeTop).toBeCloseTo(14, 4); // the boundary face now tops out at the seam's face
+    expect(centre).toBeCloseTo(100, 4); // 250 m in, nothing moves
+    expect(edgeLeanDrop(grid, lean)(0, -250)).toBeCloseTo(86, 3); // a copy standing on the border sinks with it
+    expect(edgeLeanDrop(grid, lean)(0, 0)).toBe(0);
+    expect(() => buildFarProxy(grid, look, [], undefined, undefined, { ...lean, jitter: 1 })).toThrow(/edge lean/u);
   });
 
   it('SF49: merges model parts into the one mesh, each riding the region under its centre', () => {

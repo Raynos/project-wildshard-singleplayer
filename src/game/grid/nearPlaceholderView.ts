@@ -17,6 +17,8 @@ import { planNearPlaceholders } from './nearPlaceholderPlan';
 
 /** What the owner needs from the grid session. */
 export interface NearPlaceholderHost {
+  /** G380 (Debug ▸ Neighbour detail C): every cell near, no reach or four-cell cap (captures only) */
+  readonly every?: boolean;
   readonly allocator: ResidencyAllocator;
   readonly cells: readonly GridCell[];
   readonly pitch: number;
@@ -57,7 +59,7 @@ export class NearPlaceholders {
     if (this.disposed) return;
     const skip = new Set(this.missing);
     for (const cell of this.host.cells) if (this.host.root(cell.instance) === undefined) skip.add(cell.instance);
-    const plan = planNearPlaceholders(this.host.cells, this.host.pitch, eye, entered, { held: new Set(this.slots.keys()), skip });
+    const plan = planNearPlaceholders(this.host.cells, this.host.pitch, eye, entered, { held: new Set(this.slots.keys()), skip, every: this.host.every === true });
     this.eye = { x: Math.round(eye.x * 10) / 10, z: Math.round(eye.z * 10) / 10 };
     const wanted = new Map(plan.cells.map(c => [c.instance, c.distance]));
     this.distances.clear();
@@ -123,7 +125,7 @@ export class NearPlaceholders {
       const lease = root === undefined ? null : this.host.allocator.reserve({ id: `near:${instance}`, category: 'near', bytes, owner: instance, distance, needed: false,
         evictSync: () => { const live = this.slots.get(instance); if (live !== undefined) this.drop(live, false); } });
       if (root === undefined || lease === null) { prepared.geometry.dispose(); this.slots.delete(instance); return; } // refused: the far proxy stays
-      const view = installFarProxy(root, prepared.geometry, prepared.look, prepared.positionalMask === true, this.host.decorate);
+      const view = installFarProxy(root, prepared.geometry, prepared.look, prepared.positionalMask === true, this.host.decorate, true);
       view.mesh.name = 'near-placeholder';
       slot.view = view; slot.lease = lease; slot.undo = this.host.adopt?.(view, prepared) ?? null; slot.owns = owns;
       this.bytes.set(instance, bytes);
