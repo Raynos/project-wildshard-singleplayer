@@ -7,7 +7,7 @@ import { floorBelow } from '@wildshard/engine/physics/query';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { installDeclaredPropColliders } from '@wildshard/engine/physics/declaredProps';
 import { propColliderDescriptors } from '@wildshard/game/shardfile/props';
-import { addBakedWorld, ledgerPorts, proveEntryways, pickCommands, trustedLevel, weaponRow, createMeleeScriptDriver, MeleeScriptDriver, installNativeMelee, type NativeMeleeCommand } from '@wildshard/game/plugin/simulation';
+import { addBakedWorld, installDeclaredQuestHost, ledgerPorts, proveEntryways, pickCommands, trustedLevel, weaponRow, createMeleeScriptDriver, MeleeScriptDriver, installNativeMelee, type NativeMeleeCommand } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN, VANES } from '../data/layout';
 import { SKY_ANALYTIC_FLOOR } from '../data/spawns';
 import { SKY_NATIVE_POPULATION } from '../data/population';
@@ -16,7 +16,8 @@ import { ROC_OWNER } from '../data/rocFight';
 import { FAN_ID } from '../data/items';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM } from '../data/nativeMelee';
 import { turnVanes, VANE_HUB } from '../quest/vanes';
-import { installSkyQuest, skyWinchPermission } from './quest';
+import { skyWinchPermission } from './quest';
+import { SKY_SPOTS } from '../data/questPrompts';
 import { SKY_MOVER_BINDING } from '../data/moverBindings';
 import { UpdraftDriver, MoverScriptDriver, verifiedMoverModules, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import baked from '../data/physics.generated.json' with { type: 'json' };
@@ -90,8 +91,9 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     const vanes = VANES.map(vane => ({ id: vane.id, at: new Vector3(vane.x, vane.y + VANE_HUB, vane.z) }));
     installNativeMelee(host, fanRow, fanRow.native, { commands: () => encounter.locked() || host.playerBoard.on ? none : fan(),
       hook: movers.hook, hookTick: movers.hookTick, landed: (action, from, dir) => { if (action === 2) turnVanes(host.flags, vanes, from, dir); } });
-    installSkyQuest(host, { quests: shard.quests, ...ledger, commands: pickCommands(context.commands, command => command.kind === 'script' ? command : undefined),
-      winch: { command: () => { movers.runtime.command(SKY_MOVER_BINDING.winch, 1); }, raised: () => movers.runtime.pose(SKY_MOVER_BINDING.winch).enabled } });
+    installDeclaredQuestHost(host, shard, { ...ledger, commands: pickCommands(context.commands, command => command.kind === 'script' ? command : undefined),
+      spots: { interact: SKY_SPOTS, crack: [] }, observations: new Map([['winch-up', () => movers.runtime.pose(SKY_MOVER_BINDING.winch).enabled]]),
+      actions: new Map([['winch', () => { movers.runtime.command(SKY_MOVER_BINDING.winch, 1); }]]), directorActions: new Map() });
     // the updraft (G24): riding the board inside its column, a steady upward push through the host impulse, as the
     // browser's `far.updraft` fixed.pre system; read after this tick's move, it feeds the next one, as the browser's does
     const force = new UpdraftDriver(updraft), lift = new Vector3();

@@ -8096,6 +8096,7 @@
         "src/shards/sunscar-dunes/data/matriarchPresentation.ts",
         "src/shards/sunscar-dunes/data/nativeMelee.ts",
         "src/shards/sunscar-dunes/data/navigation.generated.json",
+        "src/shards/sunscar-dunes/data/questHost.ts",
         "src/shards/sunscar-dunes/data/questNpc.ts",
         "src/shards/sunscar-dunes/data/questPresentation.ts",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
@@ -8103,6 +8104,8 @@
         "src/shards/sunscar-dunes/data/sand.ts",
         "src/shards/sunscar-dunes/data/sandFields.ts",
         "src/shards/sunscar-dunes/data/sandMaps.json",
+        "src/shards/sunscar-dunes/data/signalGraph.ts",
+        "src/shards/sunscar-dunes/data/signalInteractions.ts",
         "src/shards/sunscar-dunes/data/signalQuest.ts",
         "src/shards/sunscar-dunes/data/signalStages.json",
         "src/shards/sunscar-dunes/data/sky.ts",
@@ -8118,7 +8121,7 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/sunscar-dunes/data/product.generated.json": "4b3a0a2f214ec41365b6d779f123ad76c5bc33118da4b0dfbde26c3779316f71"
+        "src/shards/sunscar-dunes/data/product.generated.json": "d35eadd9e3905fcd39cf69566845ec966249e7e4b0c96ffd71203d8e33e78968"
       }
     },
     {
@@ -8271,6 +8274,7 @@
         "src/shards/sunscar-dunes/data/nativeMelee.ts",
         "src/shards/sunscar-dunes/data/navigation.generated.json",
         "src/shards/sunscar-dunes/data/productMap.json",
+        "src/shards/sunscar-dunes/data/questHost.ts",
         "src/shards/sunscar-dunes/data/questNpc.ts",
         "src/shards/sunscar-dunes/data/questPresentation.ts",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
@@ -8278,6 +8282,8 @@
         "src/shards/sunscar-dunes/data/sand.ts",
         "src/shards/sunscar-dunes/data/sandFields.ts",
         "src/shards/sunscar-dunes/data/sandMaps.json",
+        "src/shards/sunscar-dunes/data/signalGraph.ts",
+        "src/shards/sunscar-dunes/data/signalInteractions.ts",
         "src/shards/sunscar-dunes/data/signalQuest.ts",
         "src/shards/sunscar-dunes/data/signalStages.json",
         "src/shards/sunscar-dunes/data/sky.ts",
@@ -8466,7 +8472,7 @@
         "src/shards/sunscar-dunes/.wildshard/product/f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef": "f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef",
         "src/shards/sunscar-dunes/.wildshard/product/f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb": "f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb",
         "src/shards/sunscar-dunes/.wildshard/product/fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd": "fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd",
-        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "64223ebc4b0715a7ed895e8ea4df8a4df24c05831149f5c9ca890029d9afe66c"
+        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "3445864497617e6c651f47aec8eb1ff118d1e9af4426a03db08405ce476c9f6e"
       }
     },
     {

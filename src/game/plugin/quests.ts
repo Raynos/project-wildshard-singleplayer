@@ -10,10 +10,6 @@ import { DeclaredQuests } from "../quest/declared";
 import { bindHeadlessPrompts, type HeadlessPrompt, type PromptRegistration, eyeReaches, installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from "../quest/interactionRows";
 import { autoFlag, type InteractTable } from "@wildshard/engine/world/interact/types";
 import type { QuestData } from "@wildshard/format/quests";
-import { parseQuestHost, type QuestHostRow } from '@wildshard/format/questHost';
-import { compileDirectorWhen, evaluateDirectorWhen } from '@wildshard/format/directorWhen';
-import { bindDirectorActions, type DirectorActionBinding } from './director';
-import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Mutable pose lent by a reward's player owner; this law creates no player, motor, camera or view. */
 export interface QuestRewardPosePlayer { position: Vector3; velocity: Vector3; yaw: number; pitch: number }
@@ -126,90 +122,6 @@ export function installQuestGraph(host: SimHost, rows: QuestGraphRows, ports: Qu
     done });
   return { quests, rules, run: (id, changed) => { const result = rules.run(id, changed); if (result.ok) done(id); return result; },
     near: (id) => { const spot = spots[id]; if (spot === undefined) throw new Error(`Undeclared quest spot ${id}`); return eyeReaches(host, spot); } };
-}
-
-/** Actual native owners borrowed by an admitted quest host; no body, mover or encounter is constructed here. */
-export interface QuestHostPorts extends Omit<QuestGraphPorts, 'drive' | 'summon'> {
-  /** Boolean observations such as a mover's enabled pose, keyed by the authored owner id. */
-  readonly observations: ReadonlyMap<string, () => boolean>;
-  /** Accepted external commands delivered to their original native owner. */
-  readonly actions: ReadonlyMap<string, () => void>;
-  /** Stage actions retain their native effect owner, keyed by director id. Flag actions are bound automatically. */
-  readonly directorActions: ReadonlyMap<string, readonly DirectorActionBinding[]>;
-}
-
-/** Compose an admitted quest graph, bounded command routes and ordered director stages on their original fixed steps.
- * Required owners refuse before installation. Quiet seeds and individual continuation strings preserve existing saves;
- * a transient flag stage introduces no saved cursor. The caller still owns all body, mover and encounter lifetimes. */
-export function installQuestHost(host: SimHost, quests: QuestData, input: QuestHostRow, ports: QuestHostPorts): ReturnType<typeof installQuestGraph> {
-  const row = parseQuestHost(input);
-  if (row.actors.ids.some(id => host.entities.get(id) === undefined)) throw new Error(row.actors.error);
-  const observations = new Map<string, () => boolean>();
-  const actions = new Map<string, () => void>();
-  for (const observation of row.observations) {
-    if (observation.kind === 'all-dead') {
-      observations.set(observation.binding, () => observation.actors.every(id => host.entities.get(id)?.alive === false));
-    } else {
-      const owner = ports.observations.get(observation.owner);
-      if (owner === undefined) throw new Error(`Unbound quest observation ${observation.owner}`);
-      observations.set(observation.binding, owner);
-    }
-  }
-  for (const route of row.commands.routes) {
-    if (![...row.npcs.map(npc => npc.spot), ...ports.spots.interact.map(spot => spot.id), ...ports.spots.crack.map(spot => `crack.${spot.id}`)].includes(route.spot)) throw new Error(`Undeclared quest spot ${route.spot}`);
-    if (route.action.kind === 'owner') {
-      const owner = ports.actions.get(route.action.id);
-      if (owner === undefined) throw new Error(`Unbound quest command ${route.action.id}`);
-      actions.set(route.action.id, owner);
-    }
-  }
-  const observe = (binding: string): boolean => {
-    const owner = observations.get(binding);
-    if (owner === undefined) throw new Error(`Unbound quest observation ${binding}`);
-    return owner();
-  };
-  const stages = row.stages.map(stage => ({ row: stage, lane: bindDirectorActions(stage.row, {
-    flags: host.flags, observe, bindings: ports.directorActions.get(stage.row.id) ?? [],
-    initial: stage.seed !== undefined && host.flags.has(stage.seed.flag) ? stage.seed.initial : stage.initial,
-  }) }));
-  const requests = new Map(row.summons.map(request => {
-    const stage = stages.find(candidate => candidate.row.row.id === request.director);
-    if (stage === undefined) throw new Error(`Undeclared quest director ${request.director}`);
-    return [request.target, stage.lane] as const;
-  }));
-  const routes = row.commands.routes.map(route => ({ ...route, condition: compileDirectorWhen(route.when, Object.keys(row.commands.inputs)) }));
-  // Continuations are registered in authored order, before the interaction graph as on the shipping native hosts.
-  for (const { row: stage, lane } of stages) {
-    const saved = stage.continuation;
-    if (saved !== undefined) host.onStep(saved.step, () => undefined, {
-      snapshot: () => lane.snapshot(), restore: value => { if (typeof value !== 'string') throw new Error(saved.error); lane.restore(value); },
-    });
-  }
-  const graph = installQuestGraph(host, { quests, graph: row.graph, interactions: row.interactions, npcs: row.npcs }, {
-    ...ports, drive: row.drive, summon: target => { requests.get(target)?.advance(); },
-  });
-  if (row.commands.step !== null) host.onStep(row.commands.step, () => {
-    const commands = ports.commands();
-    for (let index = 0; index < 1024; index++) {
-      const command = commands[index];
-      if (command === undefined) break;
-      if (command.actorId !== row.graph.actor) continue;
-      const route = routes.find(candidate => candidate.value === command.value);
-      if (route === undefined || !graph.near(route.spot)) continue;
-      const values = Object.fromEntries(Object.entries(row.commands.inputs).map(([key, binding]) => [key, binding.startsWith('flag:') ? host.flags.has(binding.slice(5)) : observe(binding)]));
-      if (!evaluateDirectorWhen(route.condition, values)) continue;
-      if (route.action.kind === 'row') graph.run(route.action.id);
-      else actions.get(route.action.id)?.();
-    }
-    for (const stage of stages) if (stage.row.tick) stage.lane.advance();
-  });
-  return graph;
-}
-
-/** Select only the admitted root composition; missing or unbound rows refuse before any borrowed owner is read. */
-export function installDeclaredQuestHost(host: SimHost, source: Shardfile, ports: QuestHostPorts): ReturnType<typeof installQuestGraph> {
-  if (source.questHost === undefined || source.questHost === null || source.runtime?.binds?.includes('quests') !== true) throw new Error('Missing admitted native quest host');
-  return installQuestHost(host, source.quests, source.questHost, ports);
 }
 
 /** Compile the flag effects of latched levers, pickups and benches from the engine's authored table. Geometry, inventory,

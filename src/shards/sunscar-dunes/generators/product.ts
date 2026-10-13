@@ -1,3 +1,4 @@
+import { QUEST_HOST } from '../data/questHost';
 import { QUEST_NPC } from '../data/questNpc';
 import signalStages from '../data/signalStages.json' with { type: 'json' };
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
@@ -47,7 +48,7 @@ const sand = { ...fields, ground: { ...fields.ground,
 const library = { resident: maps.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: maps.reduce((sum, file) => sum + file.compressed, 0) };
 const base = emptyShardfile({ slug: 'sunscar-dunes', name: 'Signal Dunes', author: 'Wildshard', revision: 1, seed: 5363 });
 const product = parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, budgets: { ...base.budgets, library, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state', 'clientChannels'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages, signalStages],
-  clientChannels: SIGNAL_BUCKET_CHANNELS, quests: SIGNAL_QUESTS, questNpcs: [QUEST_NPC], ledger: SIGNAL_LEDGER, items: WHIP_ITEMS,
+  clientChannels: SIGNAL_BUCKET_CHANNELS, quests: SIGNAL_QUESTS, questNpcs: [QUEST_NPC], questHost: QUEST_HOST, ledger: SIGNAL_LEDGER, items: WHIP_ITEMS,
   // G397: the storm's strength (`shared.storm`) is a host field like the dusk, moving the storm shells' graphs (data/stormLook.ts)
   state: { ...base.state, shared: [{ id: 1, name: 'dusk', type: 'f64', privacy: 'host', default: 0, min: 0, max: 1 }, STORM_FIELD] },
   look: { ...base.look, families: ['pbr'], materials: { pbr: sand, ...Object.fromEntries(Object.entries(STORM_GRAPHS).map(([id, graph]) => [id, { family: 'graph', graph }])) }, curves: { pbr: SAND_DUSK }, samplers: { [ref('grain')]: { wrap: 'repeat', anisotropy: 8, mips: 'gpu' }, [ref('trail')]: { filter: 'linear' }, [ref('shadow')]: { filter: 'linear' } } },

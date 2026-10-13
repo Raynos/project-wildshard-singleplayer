@@ -2663,7 +2663,7 @@ The pure `@wildshard/format/questHost` module declares `QuestHostRow`, the
 `QuestHostSchema` admission contract, `parseQuestHost` and its semantic
 `questHostRules`. It bounds external command routes, body and owner
 observations, ordered data-only directors and individual continuations.
-`installQuestHost` in `@wildshard/game/plugin/quests` borrows actual
+`installQuestHost` in `@wildshard/game/plugin/simulation` borrows actual
 `QuestHostPorts`: native observation/action maps and the existing director
 action bindings. Quiet initial observations preserve saved flag ownership;
 optional seeds choose the original loaded state without replaying effects.

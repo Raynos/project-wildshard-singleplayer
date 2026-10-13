@@ -5,10 +5,6 @@ import { MATRIARCH_BOSS_PROFILE } from './matriarchBoss';
 import { SIGNAL_SPAWNS } from './spawns';
 import { MATRIARCH_DEFINITION, MATRIARCH_RECORD, MATRIARCH_REWARD, MATRIARCH_ARENA } from './matriarchEncounter';
 import { FACT, MATRIARCH_FLAG } from './signalQuest';
-import { SIGNAL_INTERACTIONS } from './signalInteractions';
-import { parseNpcRow } from '@wildshard/sdk/questGraph';
-import { SCOUT_ROW } from './questPresentation';
-import { SIGNAL_GRAPH } from './signalGraph';
 
 const matriarch = SIGNAL_SPAWNS.bosses[0];
 if (matriarch === undefined) throw new Error('Signal Dunes declares the Matriarch\'s boss row');
@@ -24,7 +20,6 @@ export const SIGNAL_HEADLESS = {
   ...SIGNAL_OWNER_ROWS,
   boss: { row: matriarch, definition: MATRIARCH_DEFINITION, profile: MATRIARCH_BOSS_PROFILE, record: MATRIARCH_RECORD, reward: MATRIARCH_REWARD,
     ...MATRIARCH_ARENA, victory: { flag: MATRIARCH_FLAG, fact: FACT.matriarch } },
-  quest: { interactions: SIGNAL_INTERACTIONS, npcs: [parseNpcRow(SCOUT_ROW)], graph: SIGNAL_GRAPH },
 };
 
 /** Native Matriarch stage/record/effect binding; the keeper lends its actual body. */

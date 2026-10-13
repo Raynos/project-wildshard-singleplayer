@@ -6,7 +6,7 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { Rng } from '../../../src/engine/core/rng';
 import { installSkyQuest as shippingQuest } from '../../fixtures/quest-oracle/sky-bridge';
-import { installSkyQuest } from '../../../src/shards/far-reach/runtime/quest';
+import { installSkyQuest } from '../../fixtures/quest-host/sky';
 import { ROOST_IDS, SKY_ACT, SKY_INTERACT } from '../../../src/shards/far-reach/data/questPrompts';
 import { skySpecs } from '../../../src/shards/far-reach/runtime/headless';
 import { SKY_QUESTS, KEEPER_AT } from '../../../src/shards/far-reach/data/quests';

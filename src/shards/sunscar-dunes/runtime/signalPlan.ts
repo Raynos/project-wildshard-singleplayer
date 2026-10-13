@@ -1,10 +1,7 @@
-import { bindDirectorActions } from '@wildshard/game/plugin/director';
-import signalStages from '../data/signalStages.json' with { type: 'json' };
-import { FLAG } from '../data/flags';
 import * as v from 'valibot';
-import { addBakedWorld, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow, installNativeMelee, type NativeMeleeCommand, type NativeMeleeWorld, type NativeMeleeOwner } from '@wildshard/game/plugin/simulation';
+import { addBakedWorld, installDeclaredQuestHost, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow, installNativeMelee, type NativeMeleeCommand, type NativeMeleeWorld, type NativeMeleeOwner } from '@wildshard/game/plugin/simulation';
 import { prepareNativePopulation } from '@wildshard/game/shardfile/bossRow';
-import { installQuestGraph, type QuestGraphPorts } from '@wildshard/game/plugin/quests';
+import type { QuestGraphPorts } from '@wildshard/game/plugin/quests';
 import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
 import { parsePromptRegistrations } from '@wildshard/sdk/runtime/prompts';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
@@ -29,7 +26,8 @@ const manifest = { ...SIGNAL_HEADLESS, baked };
 /** Compose Signal's existing native owners in-shard, preserving their install order and adding the shipping hold/release input. */
 export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const rows = v.parse(Baked, baked), spots = rows.spots;
-  const { boss, quest } = manifest, terrain = admittedTerrain(shard, assets), { heightAt } = terrain;
+  const quest = shard.questHost, terrain = admittedTerrain(shard, assets), { heightAt } = terrain;
+  if (quest === null || quest === undefined) throw new Error('Missing admitted Signal quest host');
   const population = prepareNativePopulation(SIGNAL_NATIVE_POPULATION, [...rows.actors, ...rows.bosses], SIGNAL_BOSS_OWNER);
   const row = weaponRow(shard, manifest.lash.id);
   const cracks = quest.interactions.rows.flatMap((entry): NativeMeleeWorld[] => {
@@ -61,16 +59,11 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) 
         heavy.targetId = released.target;
         return held;
       } });
-    const signal = bindDirectorActions(signalStages, { flags: host.flags,
-      bindings: [{ action: { spawn: 'sunscar.matriarch' }, run: encounter.summon }],
-      initial: host.flags.has(FLAG.lit) ? [{ lit: false }, { lit: true }] : [{ lit: false }] });
-    host.onStep('sunscar.signal-fire', () => undefined, {
-      snapshot: () => signal.snapshot(),
-      restore: saved => { if (typeof saved !== 'string') throw new Error('Invalid Signal fire continuation'); signal.restore(saved); },
-    });
-    installQuestGraph(host, { quests: shard.quests, ...quest }, { spots, crack: { reach: { light: row.light.range, heavy: row.heavy.range }, cracked: lash.cracked },
+    installDeclaredQuestHost(host, shard, { spots, crack: { reach: { light: row.light.range, heavy: row.heavy.range }, cracked: lash.cracked },
       promptRegistrations: parsePromptRegistrations(rows.promptRegistrations),
-      commands: pickCommands(context.commands, command => command.kind === 'script' ? command : undefined), ...ledger, summon: id => { if (id === boss.row.id) signal.advance(); } });
+      commands: pickCommands(context.commands, command => command.kind === 'script' ? command : undefined), ...ledger,
+      observations: new Map(), actions: new Map(),
+      directorActions: new Map([['sunscar.signal-fire', [{ action: { spawn: 'sunscar.matriarch' }, run: encounter.summon }]]]) });
     keeper.settle();
   } };
 };

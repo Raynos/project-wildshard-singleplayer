@@ -1176,7 +1176,7 @@ questHost: {
 }
 ```
 
-`installDeclaredQuestHost` in `@wildshard/game/plugin/quests` receives the
+`installDeclaredQuestHost` in `@wildshard/game/plugin/simulation` receives the
 actual commands, spots, effect ports and owner maps. Command conditions use
 the existing bounded director when-language. `all-dead` observations read
 only declared installed bodies; `owner` observations borrow actual boolean

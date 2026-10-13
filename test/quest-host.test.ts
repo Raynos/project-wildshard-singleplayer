@@ -5,11 +5,11 @@ import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '../
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
 import { Rng } from '../src/engine/core/rng';
-import { installSkyQuest as shippingQuest } from './fixtures/quest-oracle/sky-bridge';
-import { installQuestHost, installQuestGraph } from '../src/game/plugin/quests';
+import { installSkyQuest as shippingQuest, type SkyQuestPorts } from './fixtures/quest-oracle/sky-bridge';
+import { installQuestGraph } from '../src/game/plugin/quests';
+import { installQuestHost } from '../src/game/plugin/simulation';
 import { parseQuestHost, questHostRules } from '../src/format/questHost';
 import { SKY_QUEST_STAGES, SKY_QUEST_STAGE_INITIAL } from '../src/shards/far-reach/data/questStages';
-import type { SkyQuestPorts } from '../src/shards/far-reach/runtime/quest';
 import { ROOST_IDS, SKY_ACT, SKY_INTERACT, SKY_SPOTS, QUEST_STEP } from '../src/shards/far-reach/data/questPrompts';
 import { skySpecs } from '../src/shards/far-reach/runtime/headless';
 import { SKY_QUESTS, KEEPER_AT } from '../src/shards/far-reach/data/quests';

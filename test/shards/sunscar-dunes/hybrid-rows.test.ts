@@ -57,7 +57,7 @@ describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runti
     if (runtime === null) throw new Error('Signal Dunes declares its runtime');
     const { spawns, ...rest } = runtime;
     expect(() => parseShardfile({ ...source, runtime: { ...rest, binds: ['items', 'state', 'clientChannels'] } })).toThrow('shardfile semantic rules'); // an NPC requires its native quest owner
-    const unbound = parseShardfile({ ...source, questNpcs: [], runtime: { ...rest, binds: ['items', 'state', 'clientChannels'] } });
+    const unbound = parseShardfile({ ...source, questNpcs: [], questHost: null, runtime: { ...rest, binds: ['items', 'state', 'clientChannels'] } });
     expect(() => parseShardfile({ ...source, runtime: { ...rest, spawns, binds: ['items'] } })).toThrow(); // rows the runtime does not bind
     expect(() => parseShardfile({ ...source, runtime: { ...rest, binds: ['items', 'spawns'] } })).toThrow(); // a bind with no rows
     try {
