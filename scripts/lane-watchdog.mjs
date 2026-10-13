@@ -28,9 +28,9 @@ const stop = new AbortController();
 process.once('SIGINT', () => { stop.abort(); });
 process.once('SIGTERM', () => { stop.abort(); });
 
-/** @param {string} command @param {string[]} args */
-async function command(command, args) {
-  return (await run(command, args, { cwd: root, timeout: 15_000, maxBuffer: 4 * 1024 * 1024 })).stdout;
+/** @param {string} executable @param {string[]} args */
+async function command(executable, args) {
+  return (await run(executable, args, { cwd: root, timeout: 15_000, maxBuffer: 4 * 1024 * 1024 })).stdout;
 }
 
 async function poll() {
@@ -64,7 +64,7 @@ async function poll() {
       observations.set(name, observed);
     }
     // git log is newest-first. Never attribute an ordinary body mentioning a peer.
-    for (const record of history.split('\x1e')) {
+    for (const record of history.split('\u001E')) {
       const [sha, seconds, author, body] = record.trim().split('\0');
       if (sha === undefined || seconds === undefined || author === undefined || body === undefined) continue;
       const explicit = [author, ...body.split('\n').filter(line => /^(?:Assisted-by|Lane|Agent):/u.test(line))];
@@ -98,6 +98,6 @@ while (!stop.signal.aborted) {
   try { await poll(); }
   catch (error) { console.error('lane-watchdog: observation/send refused:', error instanceof Error ? error.message : String(error)); }
   try { await setTimeout(Math.max(1, 60_000 - (Date.now() - started)), undefined, { signal: stop.signal }); }
-  catch (error) { if (!stop.signal.aborted) throw error; }
+  catch (error) { if (!(error instanceof Error) || error.name !== 'AbortError') throw error; }
 }
 console.info('lane-watchdog: stopped');
