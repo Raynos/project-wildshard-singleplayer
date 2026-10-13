@@ -1,3 +1,4 @@
+import { inputKey } from '../scripts/commit-inputs.mjs';
 import { describe, expect, it } from 'vitest';
 import { failedSteps, failingTestFiles, failingLintFiles, failureCommands, newestPassing, newerGateFix, probeFailure, probeSnapshot } from '../scripts/green-prefix.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Probe real archived fixture commits without touching shared Git state.
@@ -81,7 +82,7 @@ exit 0
       const remote = join(root, 'remote.git'); git('init', '-q', '--bare', remote);
       git('remote', 'add', 'origin', remote); git('update-ref', 'refs/heads/main', base); git('push', '-q', 'origin', 'main');
       git('update-ref', 'refs/heads/main', red);
-      for (const name of ['push-main.sh', 'green-prefix.mjs', 'link-node-modules.mjs']) {
+      for (const name of ['push-main.sh', 'green-prefix.mjs', 'link-node-modules.mjs', 'commit-inputs.mjs']) {
         writeFileSync(join(root, 'scripts', name), readFileSync(join('scripts', name)));
       }
       if (duringPrefix) {
@@ -126,7 +127,7 @@ exit 1
       expect(run.error).toBeUndefined(); expect(run.status, run.stdout + run.stderr).toBe(secondRed ? 1 : 0);
       expect(readFileSync(join(root, '.git/gates'), 'utf8').trim().split('\n')).toEqual([red, first]);
       expect(existsSync(join(root, '.git/regens'))).toBe(false);
-      expect(run.stdout.match(/retrying regeneration and complete gate once/gu)).toHaveLength(1);
+      expect(run.stdout.match(/retrying complete local gate once/gu)).toHaveLength(1);
       expect(git('rev-parse', 'origin/main')).toBe(secondRed ? base : first);
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
@@ -220,8 +221,13 @@ exit 1
         git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com', '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'fixture');
         return git('rev-parse', 'HEAD');
       };
+      writeFileSync(join(root, 'scripts/gen.mjs'), "throw new Error('Push must never generate');");
+      git('add', 'scripts/gen.mjs');
       writeFileSync(script, 'process.exit(0);'); const good = commit();
+      const cache = join(root, '.git/commit-inputs'); mkdirSync(cache);
+      writeFileSync(join(cache, `${inputKey(root, good)}.json`), '{}');
       writeFileSync(script, 'process.exit(1);'); const bad = commit();
+      writeFileSync(join(cache, `${inputKey(root, bad)}.json`), '{}');
       writeFileSync(script, 'process.exit(0);');
       const commands = failureCommands(['check-css']);
       if (commands === null) throw new Error('Missing focused CSS command');

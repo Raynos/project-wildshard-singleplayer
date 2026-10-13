@@ -7,18 +7,10 @@
 //   1. the failing test files come from the gate's output (one ' FAIL ' line per failed test);
 //   2. a binary search over the unpushed commits probes those files (only those) on a clean export of each, to find
 //      the first bad commit (the newest commit where they still pass sits just before it);
-//   3. from there it walks back to a commit that is pushable as it is, needing no regeneration commit of its own (a
-//      regeneration commit cannot be slotted under commits already on local main): a verified regeneration commit
-//      (.git/generated-verified/<sha>) or one `regenerate-committed.mjs --check` passes (3 checks at most), whose
-//      witness checkpoints and map/native physics bakes are current, skipping any commit a gate already failed
-//      (.git/gate-timings.jsonl). A newer failure must not hide an older stale bake still present in the candidate.
-// push-main.sh then runs the full gate on that commit and pushes it when green; the rest waits for the fix as before.
-// `--witness`: the regeneration refused a witness payload change (a behaviour change landed without its rebake); the
-// probe is then the witness re-record itself. Typecheck, lint, CSS, generated contracts and Node bakes use the gate's
-// exact commands. Unknown/build/browser failures refuse selection. Every prefix still runs the complete gate.
-//
-//   node scripts/green-prefix.mjs [--witness] <tip> <output-file>    prints a sha, or nothing (reason on stderr)
-// `--retry-current-tip` only identifies a committed descendant repair edit; the caller must regenerate and gate it.
+//   3. choose the newest passing candidate with verified commit-time build inputs.
+// The caller still runs the complete bounded local gate before pushing. Full bakes,
+// checkpoint continuations and builds remain required CI checks. Probes never generate.
+// Unknown failures refuse selection. A committed repair earns one new actual gate.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -26,6 +18,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { linkNodeModules } from './link-node-modules.mjs';
+import { restoreCommitInputs } from './commit-inputs.mjs';
 
 /** The gate's failing steps (`  ✗ <name> (…)`). @param {string} out */
 export function failedSteps(out) {
@@ -112,7 +105,7 @@ export function newerGateFix(root, tip, out) {
     for (const file of files) if (spawnSync('git', ['cat-file', '-e', `${current}:${file}`], { cwd: root, stdio: 'ignore' }).status !== 0) return null;
     const changes = git(root, ['diff', '--no-renames', '--name-status', red, current, '--', 'src', 'scripts', 'package.json', 'pnpm-lock.yaml', ...files.map(file => `:(literal)${file}`)]).split('\n').filter(Boolean);
     if (!changes.some(change => change.startsWith('M\t'))) return null;
-    log(`${current.slice(0, 9)} changes committed inputs after ${red.slice(0, 9)} (${steps.join(', ')}): regenerate and gate once before prefix search`);
+    log(`${current.slice(0, 9)} changes committed inputs after ${red.slice(0, 9)} (${steps.join(', ')}): gate once before prefix search`);
     return current;
   } catch { return null; } // An unreadable commit or diff cannot authorize a retry.
 }
@@ -141,7 +134,7 @@ export function probeFailure(root, sha, files, commands, keepPassing) {
     linkNodeModules(root, work);
     const present = files.filter((file) => existsSync(join(work, file)));
     if (present.length === 0 && (commands?.length ?? 0) === 0) { log(`${sha.slice(0, 9)}: none of the files exist yet: pass`); return true; }
-    if (existsSync(join(work, 'scripts/gen.mjs'))) execFileSync(process.execPath, ['scripts/gen.mjs'], { cwd: work, stdio: 'ignore' });
+    if (existsSync(join(work, 'scripts/gen.mjs'))) restoreCommitInputs(root, sha, work);
     const snapshot = keepPassing === undefined ? '' : probeSnapshot(work);
     const ok = failureInWork(work, sha, present, commands ?? []);
     if (ok && keepPassing !== undefined) { keepPassing(work, snapshot); kept = true; }
@@ -183,54 +176,6 @@ function failureInWork(work, sha, files, commands) {
   return ok;
 }
 
-/** Whether <sha>'s committed generated outputs are current (the gate's `generated` step). @param {string} root @param {string} sha */
-function generatedCurrent(root, sha) {
-  const t0 = Date.now();
-  const run = spawnSync(process.execPath, ['scripts/regenerate-committed.mjs', '--check', sha], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-  log(`${sha.slice(0, 9)}: generated outputs ${run.status === 0 ? 'current' : 'stale'} (${Math.round((Date.now() - t0) / 1000)} s)`);
-  return run.status === 0;
-}
-/** at most this many `regenerate-committed --check` runs (57-107 s each) while walking back from the break */
-const MAX_GENERATED_CHECKS = 3;
-/** the witnesses' checkpoint fences: a commit whose manifests are stale is not pushable as it is */
-const CHECKPOINTS = ['driftwood-isle', 'far-reach', 'nine-dragon-stack', 'pine-hollow'].map((slug) => `test/proof/${slug}/checkpoints.test.ts`);
-// These existing gate tests also inspect committed input fences. A historical prefix
-// may predate the fix for an earlier red that the newest gate no longer reports.
-const BAKE_FENCES = ['test/baked-maps.test.ts', ...['driftwood-isle', 'far-reach', 'nine-dragon-stack',
-  'pine-hollow', 'nalati-grasslands', 'sunscar-dunes'].map((slug) => `test/shards/${slug}/physics-bake.test.ts`)];
-/** Check the existing witness and bake gates before spending a complete gate on a historical prefix.
- * @param {string} root @param {string} sha @param {readonly string[]} [alreadyProbed]
- * @param {{sha: string, work: string, snapshot: string}} [prepared] */
-export function prefixFresh(root, sha, alreadyProbed, prepared) {
-  const files = [...CHECKPOINTS, ...BAKE_FENCES].filter((file) => !(alreadyProbed ?? []).includes(file));
-  if (prepared?.sha === sha && probeSnapshot(prepared.work) === prepared.snapshot) {
-    log(`${sha.slice(0, 9)}: reusing byte-verified exact-SHA probe export`);
-    return failureInWork(prepared.work, sha, files, []);
-  }
-  return probeFailure(root, sha, files);
-}
-
-/** Whether the witnesses re-record at <sha> with byte-identical payloads (the regeneration's refusal, probed alone). @param {string} root @param {string} common @param {string} sha */
-function witnessProbe(root, common, sha) {
-  const work = realpathSync(mkdtempSync(join(tmpdir(), 'green-prefix-')));
-  try {
-    const archive = join(work, 'source.tar');
-    execFileSync('git', ['archive', '--format=tar', `--output=${archive}`, sha, '--', '.', ':!art', ':!progress', ':!sources', ':!drafts', ':!ios', ':!android', ':!.claude', ':!docs'], { cwd: root });
-    execFileSync('tar', ['-xf', archive, '-C', work]);
-    rmSync(archive);
-    if (!existsSync(join(work, 'scripts/witness-manifests.mjs'))) { log(`${sha.slice(0, 9)}: no witness recorder yet: pass`); return true; }
-    linkNodeModules(root, work);
-    if (existsSync(join(work, 'scripts/gen.mjs'))) execFileSync(process.execPath, ['scripts/gen.mjs'], { cwd: work, stdio: 'ignore' });
-    const t0 = Date.now();
-    const run = spawnSync(process.execPath, ['scripts/witness-manifests.mjs', '--refresh', work, join(common, 'witness-verified'), join(work, 'witness.json')], { cwd: work, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-    log(`${sha.slice(0, 9)}: witness payloads ${run.status === 0 ? 'byte-identical' : 'changed'} (${Math.round((Date.now() - t0) / 1000)} s)`);
-    return run.status === 0;
-  } catch (error) {
-    log(`${sha.slice(0, 9)}: witness probe failed (${error instanceof Error ? error.message.split('\n')[0] : String(error)}): counted as red`);
-    return false;
-  } finally { rmSync(work, { recursive: true, force: true }); }
-}
-
 /**
  * @param {string} root @param {string} tip @param {string} out the gate's (or, for 'witness', the regeneration's) output
  * @param {'vitest' | 'witness'} [mode] 'witness': the regeneration refused a witness payload change (a behaviour change
@@ -242,8 +187,9 @@ export function greenPrefix(root, tip, out, mode = 'vitest') {
   /** @type {string[][]} */
   let commands = [];
   if (mode === 'witness') {
-    if (!out.includes('witness-manifests: payloads changed')) { log('the regeneration failed for another reason: not bisected'); return null; }
-  } else {
+    log('witness producers belong to commit time; not replayed during push'); return null;
+  }
+  {
     const steps = failedSteps(out);
     if (steps.length === 0) { log('no failed gate step in the output'); return null; }
     const focused = failureCommands(steps);
@@ -258,26 +204,22 @@ export function greenPrefix(root, tip, out, mode = 'vitest') {
   const tipSha = git(root, ['rev-parse', tip]), red = gatedRed(common);
   const commits = git(root, ['rev-list', '--reverse', `origin/main..${tipSha}`]).split('\n').filter(Boolean).filter((sha) => sha !== tipSha);
   if (commits.length === 0) { log('nothing unpushed before the red tip'); return null; }
-  log(mode === 'witness' ? `witness payloads changed: bisecting ${commits.length} unpushed commit(s)` : `${commands.length} failing check(s), ${files.length} file(s) over ${commits.length} unpushed commit(s): ${files.join(' ')}`);
+  log(`${commands.length} failing check(s), ${files.length} file(s) over ${commits.length} unpushed commit(s): ${files.join(' ')}`);
   /** @type {{sha: string, work: string, snapshot: string} | undefined} */
   let prepared;
   try {
-    const index = newestPassing(commits, (sha) => mode === 'witness' ? witnessProbe(root, common, sha) : probeFailure(root, sha, files, commands, (work, snapshot) => {
+    const index = newestPassing(commits, (sha) => probeFailure(root, sha, files, commands, (work, snapshot) => {
       if (prepared !== undefined) rmSync(prepared.work, { recursive: true, force: true });
       prepared = { sha, work, snapshot };
     }));
     if (index < 0) { log('the failed checks fail on every unpushed commit'); return null; }
     log(`first bad commit (guess): ${git(root, ['log', '-1', '--format=%h %s', commits[index + 1] ?? tipSha]).slice(0, 120)}`);
-    let checks = 0;
     for (let i = index; i >= 0; i--) {
       const sha = commits[i];
       if (red.has(sha)) continue;
-      if (!existsSync(join(common, 'generated-verified', sha))) {
-        if (checks >= MAX_GENERATED_CHECKS) break;
-        checks++;
-        if (!generatedCurrent(root, sha)) continue;
-      }
-      if (!prefixFresh(root, sha, files, prepared?.sha === sha ? prepared : undefined)) continue;
+      // The passing export already restored SHA-verified commit-time inputs.
+      // Every selection still receives the full bounded local gate in the caller.
+      if (prepared?.sha !== sha && !probeFailure(root, sha, files, commands)) continue;
       log(`pushable prefix: ${sha.slice(0, 9)} (${git(root, ['rev-list', '--count', `origin/main..${sha}`])} of ${commits.length + 1} unpushed commits)`);
       return sha;
     }

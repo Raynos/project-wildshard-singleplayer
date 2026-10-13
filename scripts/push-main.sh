@@ -40,14 +40,14 @@ record() { printf '{"at":%s,"tip":"%s","ahead":%s,"regen":%s,"push":%s,"rc":%s}\
 # commit before the break; gate it and push it when green (twice at most: a prefix's own gate can name other files).
 # GREEN_PREFIX=0 turns it off. The caller still exits red, so auto-push pings the lane of the first bad commit.
 fresh_retry=0
-# A committed named repair earns one complete regeneration/gate retry per push, including after prefix probing.
+# A committed named repair earns one complete local-gate retry per push, including after prefix probing.
 retry_latest() {
   local newer
   [ "$fresh_retry" = 0 ] && [ "$push_round" != 6 ] || return 1
   newer="$(node scripts/green-prefix.mjs --retry-current-tip "$1" "$2")"
   [ -n "$newer" ] || return 1
   fresh_retry=1
-  echo "push-main: committed repair at ${newer:0:9}; retrying regeneration and complete gate once"
+  echo "push-main: committed repair at ${newer:0:9}; retrying complete local gate once"
 }
 try_prefix() {
   local mode="$1" red_tip="$2" initial_red="$2" out="$3" prefix prc pahead t1 flag=()
@@ -76,7 +76,7 @@ try_prefix() {
 for push_round in 1 2 3 4 5 6; do
   # Do not export/regenerate a tree already delivered. A commit arriving after
   # this check is picked up by auto-push; descendants of an active gate still
-  # enter the next round and receive their own regeneration and complete gate.
+  # enter the next round and receive their own complete local gate.
   if [ "$(git rev-list --count origin/main..main)" = 0 ]; then
     echo "push-main: origin/main has every local commit ($(git rev-parse --short main))"
     exit 0
@@ -101,7 +101,7 @@ for push_round in 1 2 3 4 5 6; do
     if [ "$rc" != 0 ]; then
       record "$tip" "$ahead" "$regen" "$((SECONDS - t0))" "$rc"
       # One committed named repair may have landed while this old tip was gated.
-      # Regenerate latest main and run the complete gate before spending exports
+      # Gate latest main before spending exports
       # on historical prefixes. An edit is never proof, and the six-round bound
       # and ordinary red/prefix path still apply if the fresh gate also fails.
       if retry_latest "$tip" "$gout"; then
