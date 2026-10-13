@@ -6,6 +6,7 @@ import { registerHooks } from 'node:module';
 import { existsSync, statSync, globSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+// Vite URL imports name immutable assets, including JSON, rather than decode modules.
 const IMAGE = /\.(jpe?g|png|webp|svg|hdr)$/i;
 // a side-effect stylesheet import (`import './status.css'`) is a no-op under Node: the bakers never draw UI
 const STYLE = /\.css(\?.*)?$/i;
@@ -16,7 +17,7 @@ registerHooks({
     // Let Node apply package.json's imports (including extension-preserving image entries) before image handling.
     // A raw # specifier in new URL() is a fragment, not an asset path.
     if (specifier.startsWith('#')) return next(specifier, context);
-    if (IMAGE.test(specifier) || STYLE.test(specifier)) return { url: new URL(specifier, context.parentURL).href, shortCircuit: true, format: 'module' };
+    if (specifier.endsWith('?url') || IMAGE.test(specifier) || STYLE.test(specifier)) return { url: new URL(specifier, context.parentURL).href, shortCircuit: true, format: 'module' };
     // `./bytes.generated` has a dot but no real extension: resolve anything that is not a file as it stands. A folder
     // with a `.ts` of the same name beside it is the file, as in Vite and tsc (E306: `src/shards/driftwood-isle/manifest.ts` and
     // its models in `src/shards/driftwood-isle/models/`)
@@ -28,6 +29,10 @@ registerHooks({
     return next(specifier, context);
   },
   load(url, context, next) {
+    if (url.endsWith('?url')) {
+      const asset = new URL(url); asset.search = '';
+      return { format: 'module', source: `export default ${JSON.stringify(asset.href.replace(/^.*\/src\//, '/src/'))};`, shortCircuit: true };
+    }
     if (STYLE.test(url)) return { format: 'module', source: 'export default "";', shortCircuit: true };
     if (IMAGE.test(url)) return { format: 'module', source: `export default ${JSON.stringify(url.replace(/^.*\/src\//, '/src/'))};`, shortCircuit: true };
     const out = next(url, context);
