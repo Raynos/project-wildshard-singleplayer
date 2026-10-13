@@ -2,12 +2,12 @@ import { bindRigid as platformBindRigid, createModelLibrary as platformCreateMod
 
 /** How a hero model's materials are dressed after the matte base (tint, roughness, fog, user flags, surface rows). */
 export type HdLookRow = PlatformHdLookRow;
-/** A model library's files and looks, as data: facet models, hero models, baked rigs, the AO floor, the hero dressing. */
-export type ModelLibraryRows<M extends string, H extends string, R extends string> = PlatformModelLibraryRows<M, H, R>;
+/** A model library's files and looks, as data: facet models, hero models, the AO floor, the hero dressing. */
+export type ModelLibraryRows<M extends string, H extends string> = PlatformModelLibraryRows<M, H>;
 /** How a copy is framed: turned, centred on x / z, its lowest point at a floor, sized by span or height. */
 export type ModelFit = PlatformModelFit;
-/** A loaded model library: preload once, then take copies of facet models, rigs and hero models. */
-export type ModelLibrary<M extends string, H extends string, R extends string> = PlatformModelLibrary<M, H, R>;
+/** A loaded model library: preload once, then take copies of facet models and hero models. */
+export type ModelLibrary<M extends string, H extends string> = PlatformModelLibrary<M, H>;
 /** A model library over its rows; a failed file is a page fault opened by the caller's fault prefix. */
 export const createModelLibrary: typeof platformCreateModelLibrary = platformCreateModelLibrary;
 /** A zero-area skinned stand-in for a creature whose rig did not load. */

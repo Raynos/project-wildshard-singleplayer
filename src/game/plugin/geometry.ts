@@ -16,7 +16,6 @@ import type { NpcMotion, NpcRow } from "./quests";
  *   colour (rgb × the baked AO in COLOR_0's alpha, kept down to the row's `aoFloor`) and flat normals;
  * - hero models: the scene as loaded (its own maps on its own UVs), matte and smooth, each material then dressed by the
  *   model's `HdLookRow` (tint, roughness, fog, user flags, surface-look rows);
- * - baked rigs: one skinned geometry whose bone indices and weights ride in `_JOINTS` / `_WEIGHTS`.
  *
  * A file that fails to load is a page fault (`console.error`; the boot smoke and the tests fail on it), never a silent
  * stand-in: the caller's copy is null and the thing it would draw stands undrawn. The helpers below (`fitGeometry`,
@@ -43,16 +42,13 @@ export interface HdLookRow {
 }
 
 /** A model library's files and looks, as data. */
-export interface ModelLibraryRows<M extends string, H extends string, R extends string> {
+export interface ModelLibraryRows<M extends string, H extends string> {
   /** the facet models preloaded, and every facet model's file */
   readonly meshes: readonly M[];
   readonly meshUrls: Readonly<Record<M, string>>;
   /** the hero models preloaded, and every hero model's file */
   readonly hd: readonly H[];
   readonly hdUrls: Readonly<Record<H, string>>;
-  /** the baked rigs preloaded, and every rig's file */
-  readonly rigs: readonly R[];
-  readonly rigUrls: Readonly<Record<R, string>>;
   /** a facet in full occlusion keeps this share of its colour */
   readonly aoFloor: number;
   /** the hero models' dressing, by name */
@@ -64,13 +60,11 @@ export interface ModelLibraryRows<M extends string, H extends string, R extends 
 export interface ModelFit { readonly size: number; readonly by: 'span' | 'height'; readonly floor?: number; readonly yaw?: number; readonly centre?: 'base' }
 
 /** A loaded model library: preload once, then take copies. */
-export interface ModelLibrary<M extends string, H extends string, R extends string> {
-  /** Load every listed model and rig once (a failed one is skipped and faulted). */
+export interface ModelLibrary<M extends string, H extends string> {
+  /** Load every listed model once (a failed one is skipped and faulted). */
   preload: () => Promise<void>;
   /** A copy of a loaded facet model's geometry, or null (not loaded: the caller's code model stands in). */
   mesh: (name: M) => BufferGeometry | null;
-  /** A copy of a baked rig with its flat normals recomputed, or null (not loaded: its load was faulted). */
-  rig: (name: R) => BufferGeometry | null;
   /** A hero model fitted as `fit`, as a group sharing the loaded geometry and maps; null when it did not load. */
   hd: (name: H, fit: ModelFit) => Group | null;
 }
@@ -107,8 +101,8 @@ function dressHd(m: MeshStandardMaterial, look: HdLookRow | undefined, inputs: S
  * A model library over `rows`. `fault` opens every page fault a failed file logs (e.g. the shard's name in brackets);
  * `surfaceInputs` are the live uniforms the hero models' surface rows read.
  */
-export function createModelLibrary<M extends string, H extends string, R extends string>(rows: ModelLibraryRows<M, H, R>, fault: string, surfaceInputs: SurfaceInputs = {}): ModelLibrary<M, H, R> {
-  const ready = new Map<M, BufferGeometry>(), rigs = new Map<R, BufferGeometry>(), hd = new Map<H, Object3D>();
+export function createModelLibrary<M extends string, H extends string>(rows: ModelLibraryRows<M, H>, fault: string, surfaceInputs: SurfaceInputs = {}): ModelLibrary<M, H> {
+  const ready = new Map<M, BufferGeometry>(), hd = new Map<H, Object3D>();
   let loading: Promise<void> | null = null;
 
   async function load(name: M): Promise<void> {
@@ -125,23 +119,6 @@ export function createModelLibrary<M extends string, H extends string, R extends
     } catch (e: unknown) { console.error(`${fault} the generated model ${name} did not load:`, e); }
   }
 
-  async function loadRig(name: R): Promise<void> {
-    try {
-      const gltf = await loadRigFile(rows.rigUrls[name]), meshes: Mesh[] = [];
-      gltf.scene.traverse((o) => { if (isMesh(o)) meshes.push(o); });
-      const loaded = meshes[0]?.geometry;
-      if (meshes.length !== 1 || loaded === undefined) throw new Error(`${name}: ${String(meshes.length)} meshes, one baked`);
-      const source = loaded.index === null ? loaded : loaded.toNonIndexed();
-      for (const key of ['position', 'color', '_joints', '_weights']) if (!source.hasAttribute(key)) throw new Error(`${name}: no ${key}`);
-      const p = source.getAttribute('position'), c = source.getAttribute('color'), j = source.getAttribute('_joints'), w = source.getAttribute('_weights');
-      const g = new BufferGeometry();
-      g.setAttribute('position', new Float32BufferAttribute(p.array, 3)); g.setAttribute('color', new Float32BufferAttribute(c.array, 3));
-      g.setAttribute('skinIndex', new Uint16BufferAttribute(Uint16Array.from(j.array), 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(w.array, 4));
-      retainCachedResources(g); rigs.set(name, g); source.dispose(); loaded.dispose();
-      cacheUntilDisposed(g, () => { if (rigs.get(name) === g) { rigs.delete(name); loading = null; } });
-    } catch (e: unknown) { console.error(`${fault} the baked rig ${name} did not load:`, e); }
-  }
-
   async function loadHd(name: H): Promise<void> {
     try {
       const gltf = await loadRigFile(rows.hdUrls[name]), look = rows.hdLooks[name];
@@ -156,12 +133,10 @@ export function createModelLibrary<M extends string, H extends string, R extends
 
   return {
     preload: () => {
-      loading ??= Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd),
-        ...rows.rigs.filter(name => !rigs.has(name)).map(loadRig)]).then(() => undefined);
+      loading ??= Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd)]).then(() => undefined);
       return loading;
     },
     mesh: name => ready.get(name)?.clone() ?? null,
-    rig: (name) => { const g = rigs.get(name)?.clone() ?? null; g?.computeVertexNormals(); return g; },
     hd: (name, o) => {
       const src = hd.get(name); if (!src) return null;
       const inner = src.clone(true), holder = new Group(), turn = new Group();

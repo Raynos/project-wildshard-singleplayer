@@ -34,7 +34,7 @@ for (const [name, file, bake] of RIGS) {
   try {
     const [{ createModelLibrary }, { DUNE_MODELS }, { STRIDER_HULL }, { bakeSignalStrider }] = await Promise.all([
       import(pathToFileURL(resolve(root, 'src/sdk/looks/modelLibrary.ts')).href), at('data/files.ts'), at('data/hulls.ts'), at('generators/hulls.ts')]);
-    const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['dune-strider'], hd: [], rigs: [] }, '[sunscar-dunes bake]');
+    const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['dune-strider'], hd: [] }, '[sunscar-dunes bake]');
     await library.preload();
     const source = library.mesh('dune-strider');
     if (source === null) throw new Error('dune-strider did not load');

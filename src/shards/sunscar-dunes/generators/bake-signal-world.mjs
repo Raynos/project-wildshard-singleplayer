@@ -40,7 +40,7 @@ for (const [piece, file, name] of PIECES) {
   try {
     const [{ createModelLibrary }, { DUNE_MODELS }, { bakeSignalLash }] = await Promise.all([import(pathToFileURL(resolve(root, 'src/sdk/looks/modelLibrary.ts')).href),
       import(pathToFileURL(resolve(project, 'data/files.ts')).href), import(pathToFileURL(resolve(project, 'generators/lash.ts')).href)]);
-    const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['whip-glove'], hd: [], rigs: [] }, '[sunscar-dunes bake]');
+    const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['whip-glove'], hd: [] }, '[sunscar-dunes bake]');
     await library.preload();
     const glove = library.mesh('whip-glove');
     if (glove === null) throw new Error('whip-glove did not load');

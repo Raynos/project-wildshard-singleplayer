@@ -39,7 +39,7 @@ describe('the lash item\'s view draws a shard\'s cord from its bake and rows (SH
       return parser.parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
     });
     try {
-      const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['whip-glove'], hd: [], rigs: [] }, '[test]');
+      const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['whip-glove'], hd: [] }, '[test]');
       await library.preload();
       const glove = library.mesh('whip-glove');
       if (glove === null) throw new Error('whip-glove missing');

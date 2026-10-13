@@ -62,7 +62,7 @@ describe('Signal Dunes bakes its code-built creature bodies offline (SHARD-PLATF
   it('the strider rig and skeleton are byte-exact against its rows over the client intake of its model, and the client reads them as fitted (G345)', async () => {
     const io = fromPublic();
     try {
-      const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['dune-strider'], hd: [], rigs: [] }, '[test]');
+      const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['dune-strider'], hd: [] }, '[test]');
       await library.preload();
       const source = (): BufferGeometry => { const g = library.mesh('dune-strider'); if (g === null) throw new Error('dune-strider missing'); return g; };
       const baked = bakeSignalStrider(source(), STRIDER_HULL);

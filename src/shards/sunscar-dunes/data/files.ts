@@ -63,8 +63,8 @@ export const DUNE_RIGS = ['skitterer', 'strider'] as const;
 export type DuneRigName = (typeof DUNE_RIGS)[number];
 export const DUNE_RIG_URLS: Readonly<Record<DuneRigName, string>> = { skitterer: '/assets/sunscar-dunes/rigs/skitterer.glb', strider: '/assets/sunscar-dunes/rigs/strider.glb' };
 /** The model library `world/meshes.ts` loads (`@wildshard/sdk/looks/modelLibrary`): the lists above, the AO floor, the hero dressing. */
-export const DUNE_MODELS: ModelLibraryRows<DuneMeshName, DuneHdName, never> = {
-  meshes: DUNE_MESHES, meshUrls: DUNE_MESH_URLS, hd: DUNE_HD, hdUrls: DUNE_HD_URLS, rigs: [], rigUrls: {},
+export const DUNE_MODELS: ModelLibraryRows<DuneMeshName, DuneHdName> = {
+  meshes: DUNE_MESHES, meshUrls: DUNE_MESH_URLS, hd: DUNE_HD, hdUrls: DUNE_HD_URLS,
   aoFloor: FACET_AO_FLOOR, hdLooks: HD_LOOKS,
 };
 
