@@ -7,12 +7,12 @@
 | Signal Dunes | 70.7 % → **45.6 %** | ≤ 824 lines | **80 / 0** ✔ |
 | Sky Reach | 78.4 % → **53.5 %** | ≤ 1355 lines | **11 / 0** ✔ (`fd1b0a9a4`) |
 
-**Signal and Sky both meet Jake's port bar (tiles + 0 private binaries).** Physics from authored rows (G350, `e6f5078d8`, `3ed995b80`), navigation as format rows (`c9f6e59be`); content-gate issue left: "trusted runtime owns simulation". `plugin/` 20 → 14.
-**LIVE `35e6c10ba-mv6a7k7z` (06:10Z)**: NE-b hero, Signal fire A, navigation rows, authored physics. Sky island tiles (`fd1b0a9a4`) go out in the next release.
+**Signal and Sky both meet Jake's port bar (tiles + 0 private binaries).** Authored physics (G350), navigation rows (`c9f6e59be`); content-gate issue left: "trusted runtime owns simulation". `plugin/` 20 → 14.
+**LIVE `35e6c10ba-mv6a7k7z` (06:10Z)**: NE-b hero, Signal fire A, navigation rows, authored physics. Sky island tiles ship next release.
 
 **Fleet (G384): 4 Opus + 6 Codex.** Codex: sp-x7 pusher; sp-x5 bench-max; sp-x6 query-only terrain form; sp-x4 Pine port; sp-x1 Driftwood port; sp-x8 Nine port (Linux proof via sp-x7). Opus: sp-o90 cleanup, sp-o92 sound/desktop regression bisect, sp-o93 frame-floor milestone measure.
 
-**For wildshard-v, Jake ask (G350 Nalati places):** its bake runs 22k lines of engine code for 4.2 MB. **Port** to authored generators (big) or **freeze** the bins + rows as authored inputs (cheap, not regenerable). Recommend port later; the bridge stays meanwhile.
+**For wildshard-v, Jake ask (G350 Nalati places):** bake runs 22k engine lines for 4.2 MB. **Port** to authored generators (big) or **freeze** the bins + rows as authored inputs (cheap, not regenerable). Recommend port later; bridge stays.
 
 **For wildshard-v, Jake ask (S2):** sp-x6 is building an additive SF59 effect-state block (blend, depth bias, points, billboards; old graphs unchanged). Still Jake's: **Graph materials default-off pending a physical-iPhone reading**, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop frame-floor reading (or one normal playtest with Debug ▸ Graph materials on).
 
@@ -29,5 +29,6 @@
 13. Optional `props.wholeLibrary` refs bind Nine's library GLBs (crown, specimens) vs rebucketing 348 subsets (sp-x8).
 14. Tile subsets may declare ≤ 1 m edge overhang (Pine creek bank, 0.98 m); no vertex clamp (sp-x4).
 15. Nine authoring uses portable math (Linux = Mac); deltas reported, look parity gates (sp-x8).
+16. Driftwood boat hull equation shared by generator + live in `world/boatFrame.ts`, not a cut (sp-x1).
 
 Paused: SF22, SF57, SF67.
