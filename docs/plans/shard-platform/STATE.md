@@ -8,7 +8,7 @@
 | Sky Reach | 78.4 % → **51.0 %** | ≤ 1355 lines | **11 / 0** ✔ (`fd1b0a9a4`) |
 
 **Signal and Sky meet Jake's port bar (tiles + 0 private bins).** **Nine ported** (34 L0 tiles, 0 private bins, Linux-exact). **Nalati 0 private bins** (`d3bdac368`); ground + nav one fetch (Nalati, Sky, Signal).
-**LIVE `2f7cc5e25-mv6dko3t` (07:44Z)** with Sky island tiles. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: **Sim Nine 1.8 s frame since the port (P0, sp-o109)**, Pine desktop now PASS 4/4 (`6f634c96f`, `1682e5ec9`), Sim Far/Nalati/Pine/Driftwood travel 37–62 ms. `ad30fba68` CI + exact smoke GREEN: next release. **Whole products: Template, Pastel.**
+**LIVE `2f7cc5e25-mv6dko3t` (07:44Z)** with Sky island tiles. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: **Sim Nine 1.8 s frame since the port (P0, sp-o109)**, Pine desktop now PASS 4/4 (`6f634c96f`, `1682e5ec9`), Sim Far/Nalati/Pine/Driftwood travel 37–62 ms. `ad30fba68` CI + exact smoke GREEN: next release. **Whole products: Template, Pastel (Linux-exact).**
 
 **Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 bench, x6 SF87, x4 Pine, x1 Driftwood, x8 Nine. Opus: o109 Nine P0, o105 Sim grid travel,, o108 Signal author-only producers,, o106 m5 parity drift.
 
