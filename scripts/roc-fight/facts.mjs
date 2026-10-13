@@ -87,7 +87,7 @@ for (let i = 0; i < LIMIT; i++) {
 if (crownTick === null || victoryTick === null) throw new Error(`No Roc fight to its fall within ${String(LIMIT)} ticks`);
 const fightStart = crownTick, fightHits = hits.filter(hit => hit.tick >= fightStart);
 const facts = {
-  source: 'test/proof/far-reach/witness.ts SkyTape from the spawn (headless, portable math)',
+  source: 'SkyTape from the spawn in test/proof/far-reach/witness.ts (headless, portable math)',
   endpointTick: host.state.tick, victoryTick, crownTick, fightTicks: victoryTick - crownTick, hash: canonicalSimDigest(snapshotSimHost(host)),
   attempts: changes.at(-1)?.attempts ?? null, changes, fightHitsTaken: fightHits.length, fightDamageTaken: round(fightHits.reduce((n, h) => n + h.damage, 0)),
   journeyHitsTaken: hits.length - fightHits.length, minPlayerHp: round(seen.minHp),
