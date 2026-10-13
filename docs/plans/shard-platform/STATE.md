@@ -9,7 +9,7 @@
 
 **Game exports (G351):** 104 total (from 328); `plugin/` 20 → 19 (`4328edc17`; target 12–14).
 **Ratchets (G349):** standing debt rule deleted, sweeper stopped; debt shrink-only. **Push green (Jake `a44511f05`, `193a7e998`), sp-x7 building:** every sub-second check runs in parallel at commit (debt per file, touched lint/typecheck, stamps, guards); pre-push gate capped at 2 min (over = red); allowed graph counts report-only; green-prefix stays. **Plugin trim → 12–14 modules** (sp-x5). Roc keeps the longer fight (Jake). Commons: 8 unused packs adopt / move / delete (sp-o61).
-**Next (Jake):** Signal + Sky through `bake()` to tiles + 0 private bins; SF81–SF85 open until runtime deleted; G350 exit rows.
+**Next (Jake):** tiles + 0 private bins; SF81–SF85 open until runtime deleted; G350 exits.
 
 **Fleet:** Codex sp-x7 push/deploy, sp-x5 plugin trim (Codex 7 %). Opus: Sky brains + rig compression sp-o64, Sky through `bake()` sp-o60, Signal ground sp-o55, Signal `terrain.bin` sp-o63, war-fan viewmodel red sp-o58.
 **Live:** `957b05e6`; release unpin `e6eeefc1e` (green on `de0130e95`) waits on the gate; origin `53d4b7aa0`.
@@ -26,7 +26,6 @@
 10. New SDK export `./bake` (`6d2161e6f`); Signal pieces stay GLBs.
 
 13. Fan test snapshot re-accepted; game viewmodel 0 px diff (`5dc782337`).
-12. World rows share only two-shard kinds (`158f102ee`).
 
 14. Plugin trim folds effects/prompts/placeholder/loader into existing modules (SDK callers block full internalisation).
 
