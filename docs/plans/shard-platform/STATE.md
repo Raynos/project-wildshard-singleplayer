@@ -12,7 +12,7 @@
 
 **Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 bench, x6 SF87, x4 Pine, x1 Driftwood, x8 Nine. Opus: o109 Nine P0, o110 Pine KTX2 variant,, o108 Signal author-only producers,, o106 m5 parity drift.
 
-**For wildshard-v, Jake ask (G350 Nalati places):** bake runs 22k engine lines for 4.2 MB. **Port** to authored generators (big) or **freeze** bins + rows (cheap, not regenerable). Recommend port later; bridge stays.
+**For wildshard-v, Jake ask (Nalati places):** **port** to authored generators (big) or **freeze** bins + rows (cheap). Recommend port later.
 **Jake ask (Sky movers):** Sky headless onto the generic mover driver deletes one-user code but re-records the gameplay hash. Recommend yes, after the sprint.
 
 **For wildshard-v, Jake ask (S2):** Graph materials stay default-off pending a physical-iPhone reading, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop reading. Near boards: `art/near-tier/round-6/`.
