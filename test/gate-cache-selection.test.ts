@@ -5,6 +5,10 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Canonical temporary fixture paths.
 import { dirname, join } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Verify the real preloaded filesystem API in an owned child.
+import { spawnSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Preserve normal child settings while naming owned trace output.
+import process from 'node:process';
 import { afterEach, expect, it } from 'vitest';
 import { textReferencedTests } from '../scripts/gate-cache.mjs';
 
@@ -37,4 +41,12 @@ it('matches a distinctive basename but never a generic one like index.ts', () =>
   });
   expect(textReferencedTests(root, ['scripts/bake-check.mjs'])).toEqual(['test/spawn.test.ts']);
   expect(textReferencedTests(root, ['src/engine/index.ts'])).toEqual([]);
+});
+
+it('preserves native filesystem function properties under trace preload', () => {
+  const root = tree({});
+  const run = spawnSync(process.execPath,['--import',join(process.cwd(),'scripts/gate-trace.mjs'),'--input-type=module','-e',
+    'import {realpathSync} from "node:fs"; if(typeof realpathSync.native!=="function")throw Error("native API lost"); if(realpathSync.native(".")!==realpathSync("."))throw Error("changed resolution");'],
+    {cwd:root,encoding:'utf8',timeout:2000,env:{...process.env,GATE_TRACE_ROOT:root,GATE_TRACE_DIR:root}});
+  expect(run.status,run.stderr).toBe(0);
 });

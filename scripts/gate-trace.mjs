@@ -40,6 +40,9 @@ if (root !== undefined && dir !== undefined) {
       if (typeof original !== 'function') continue;
       /** @this {unknown} @param {...unknown} args */
       const traced = function traced(...args) { note(kind, args[0]); return Reflect.apply(original, this, args); };
+      // Node consumers use callable properties such as realpathSync.native.
+      // Preserve the API while instrumenting the top-level call.
+      Object.defineProperties(traced, Object.getOwnPropertyDescriptors(original));
       target[name] = traced;
     }
   };
