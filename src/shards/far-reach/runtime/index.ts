@@ -17,7 +17,6 @@ import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import { commandSocketLift } from '@wildshard/game/plugin/simulation';
-import { isletCalls, type IsletCalls } from '../world/risingIslet';
 import { gustFx } from './looks/windFx';
 import { GUST_FX } from '../data/windLook';
 import { RISING_ISLETS } from '../world/islets';
@@ -49,7 +48,7 @@ import { meadow, type Meadow } from '../world/meadow';
 import { heroStoneDiscs } from '../world/dressing';
 import { SKY_SUN } from '../data/skyLook';
 import { StormRocBoss } from '../combat/stormRoc';
-import { installBossView, moverChannelViews } from '@wildshard/game/plugin/ui';
+import { installBossView, moverChannelViews, moverChannelPrompts } from '@wildshard/game/plugin/ui';
 import { BOSS_REWARD, ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
 import { bindSkyQuestStage } from './quest';
@@ -97,7 +96,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   private questFinished: (() => void) | null = null;
   private movers: MoverRuntime | null = null;
   /** SF8c: the Rising Islets' RIDE / CALL prompts (world/risingIslet.ts). */
-  private isletCalls: IsletCalls | null = null;
+  private isletCalls: ReturnType<typeof moverChannelPrompts> | null = null;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
   /** The near meadow that travels with the camera (loop 4). */
@@ -211,7 +210,11 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     if (flags.has(FLAGS.raised)) this.movers.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
     const lifts = new Map(source.entryways.flatMap((row) => (row.kind === 'socketLift' && row.lift !== undefined ? [[row.edge, row.lift] as const] : [])));
-    const calls = isletCalls((entry, action) => { const movers = this.movers, lift = lifts.get(entry.edge); if (movers !== null && lift !== undefined) commandSocketLift(movers, lift, action); });
+    const calls = moverChannelPrompts(channelRows, action => {
+      if (action.kind !== 'socketLift') throw new Error('Sky prompt needs its declared lift action');
+      const lift = lifts.get(action.edge); if (lift === undefined) throw new Error('Unknown Sky lift entry');
+      return () => { const movers = this.movers; if (movers !== null) commandSocketLift(movers, lift, action.action); };
+    });
     rt.interactables.push(...calls.interactables); this.isletCalls = calls;
     // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
     // like an animal's, so a constant feed holds about updraft.lift / 3.5 m/s) floats you off the ramp to the high step.

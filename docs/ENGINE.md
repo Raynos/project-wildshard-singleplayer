@@ -3924,3 +3924,13 @@ declared item hook must resolve before equipment is created. The declared
 item loader forwards its hook, contacts and secondary selection to trusted
 families without changing existing absent-field calls. It creates no script
 host or new tick; the runtime's existing composition owns both.
+
+Declared client-channel prompts publish only their own copied `x/y/z`
+coordinates. `ClientChannels.prompt` supplies a bounded label, reach, initial
+position and named or admitted socket-lift intent (at most 64 prompts).
+`createClientChannelPrompt` binds each intent before allocation; its trusted
+callback receives the owned prompt for label changes, and runs only on real
+interaction. `moverChannelPrompts` updates the same ordered roster from copied
+mover poses. Evaluation never dispatches an action or writes player/shared
+state. Socket-lift intents require a matching admitted edge and mover. The
+`hypot3` expression preserves the original three-axis `Math.hypot` boundary.

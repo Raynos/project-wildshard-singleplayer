@@ -1,9 +1,7 @@
 import type { MoverPose } from '@wildshard/engine/physics/mover';
-import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc, Piece } from '@wildshard/engine/world/registry';
 import { BoxGeometry, Group, InstancedMesh, Matrix4, Mesh, Quaternion, TorusGeometry, Vector3 } from 'three';
 import type { Isle } from '../data/layout';
-import { apothem } from '../layout';
 import { STRINGS } from '../data/strings';
 import { islandMesh } from './isle';
 import { RISING_ISLETS } from './islets';
@@ -130,27 +128,3 @@ export function isletViews(): IsletViews {
   } };
 }
 
-/**
- * SF8c socketLift on the normal INTERACT binding: per entry, RIDE on the resting islet (action 1, at either stop), CALL on
- * the road lip while the islet rests at the top (action 2) and CALL on the gate isle while it rests at the road (action 3).
- * A prompt that does not apply right now parks far below the world, so it never shows. The command goes through the
- * platform's `commandSocketLift` (the caller's), on the islet and its road gate together.
- */
-export interface IsletCalls { readonly interactables: readonly Interactable[]; update: (pose: (id: string) => MoverPose) => void }
-export function isletCalls(command: (entry: RisingIslet, action: 1 | 2 | 3) => void): IsletCalls {
-  const away = -1e5, items: Interactable[] = [], updates: ((pose: (id: string) => MoverPose) => void)[] = [];
-  for (const entry of RISING_ISLETS) {
-    const ride: Interactable = { label: STRINGS.rideIslet, position: new Vector3(entry.rest.x, away, entry.rest.z), radius: apothem(ISLET_ISLE) + 0.05, onInteract: () => { command(entry, 1); } }; // round 3 (#8): reaches a rider stopped at the rail, never the lip
-    const l = entry.landing, down: Interactable = { label: STRINGS.callIslet, position: new Vector3(l.x, away, l.z), radius: 3, onInteract: () => { command(entry, 2); } };
-    const h = new Vector3(entry.dock.x - entry.rest.x, 0, entry.dock.z - entry.rest.z).normalize(), rim = new Vector3(entry.dock.x, entry.gate.y + 1, entry.dock.z).addScaledVector(h, apothem(ISLET_ISLE) + 1.5);
-    const up: Interactable = { label: STRINGS.callIslet, position: rim.clone().setY(away), radius: 3, onInteract: () => { command(entry, 3); } };
-    items.push(ride, down, up);
-    updates.push((pose) => {
-      const p = pose(isletId(entry)).position;
-      const atRoad = Math.hypot(p.x - entry.rest.x, p.y - entry.rest.y, p.z - entry.rest.z) < 0.001, atTop = Math.hypot(p.x - entry.dock.x, p.y - entry.dock.y, p.z - entry.dock.z) < 0.001;
-      ride.position.set(p.x, atRoad || atTop ? p.y + 1 : away, p.z);
-      down.position.y = atTop ? 1 : away; up.position.y = atRoad ? rim.y : away;
-    });
-  }
-  return { interactables: items, update: (pose) => { for (const update of updates) update(pose); } };
-}

@@ -2163,3 +2163,13 @@ trusted runtime reads these through the shared whole-geometry assembler,
 and the data client drops them alongside its bound tiles. Omitting the
 field preserves existing declarations and bytes. Explorer consumers may
 read a subset lazily; declaring ownership does not draw an extra mesh.
+
+Declared client-channel prompts publish only their own copied `x/y/z`
+coordinates. `ClientChannels.prompt` supplies a bounded label, reach, initial
+position and named or admitted socket-lift intent (at most 64 prompts).
+`createClientChannelPrompt` binds each intent before allocation; its trusted
+callback receives the owned prompt for label changes, and runs only on real
+interaction. `moverChannelPrompts` updates the same ordered roster from copied
+mover poses. Evaluation never dispatches an action or writes player/shared
+state. Socket-lift intents require a matching admitted edge and mover. The
+`hypot3` expression preserves the original three-axis `Math.hypot` boundary.

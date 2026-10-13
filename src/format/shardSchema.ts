@@ -114,6 +114,13 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...portalLinkRules(portalLinkEntries(s.entryways), s));
   try { parseMovers(s.movers); } catch { errors.push('declared mover identities and primitives'); }
   if ((s.clientChannels ?? []).some(row => row.mover !== undefined && !s.movers.some(mover => mover.id === row.mover))) errors.push('client channel mover source must be declared');
+  for (const row of s.clientChannels ?? []) {
+    const action = row.prompt?.action;
+    if (action?.kind === 'socketLift') {
+      const entry = s.entryways.find(candidate => candidate.edge === action.edge);
+      if (entry?.kind !== 'socketLift' || entry.lift?.mover !== row.mover) errors.push('client prompt requires its admitted socket lift');
+    }
+  }
   for (const row of s.movers) if (row.trigger?.kind === 'shared') {
     const trigger = row.trigger;
     const field = s.state.shared.find(candidate => candidate.id === trigger.field);

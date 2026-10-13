@@ -1,4 +1,5 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
+import { STRINGS } from './strings';
 
 const bucket = new ClientChannels('sunscar.well.bucket');
 const progress = bucket.local({ read: 'oil.loaded' }), animated = bucket.local(0);
@@ -17,4 +18,7 @@ bucket.output('scaleY', bucket.select(moved, rope, bucket.select(progress, bucke
 bucket.bind('y', 'bucket'); bucket.bind('scaleY', 'rope');
 
 /** The shipping frame-delta ramp; oil is copied only at boot, and these scalars own no interaction authority. */
-export const SIGNAL_BUCKET_CHANNELS = [bucket.build()];
+const prompt = new ClientChannels('sunscar.well.prompt');
+for (const axis of ['x', 'y', 'z'] as const) prompt.output(axis, prompt.read(`well.${axis}`));
+prompt.prompt({ id: 'sunscar.well.prompt', label: STRINGS.wellDown, radius: 2.6, at: [0, -1e5, 0], action: { kind: 'named', name: 'sunscar.well.take' } });
+export const SIGNAL_BUCKET_CHANNELS = [bucket.build(), prompt.build()];

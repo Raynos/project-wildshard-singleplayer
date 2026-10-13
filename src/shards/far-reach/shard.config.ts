@@ -9,6 +9,7 @@ import { SKY_ITEMS } from './data/items';
 import { SKY_SPAWNS } from './data/spawns';
 import { SKY_STATE } from './data/state';
 import { AUDIO } from './data/audio';
+import { SKY_LIFT_PROMPTS } from './data/liftPrompts';
 import { SKY_MOVER_VIEWS } from './data/moverViews';
 import { SKY_MODES } from './data/modes';
 import { MOVERS } from './data/movers';
@@ -41,7 +42,7 @@ export default parseShardfile({ ...base, navigation: navigation.navigation, serv
   look: { ...base.look, materials: { ...base.look.materials, 'deck-wood': { family: 'graph', graph: DECK_WOOD_GRAPH }, 'hover-frame': { family: 'graph', graph: HOVER_FRAME_GRAPH },
     'dressing-clump': { family: 'graph', graph: CLUMP_GRAPH }, 'dressing-flower': { family: 'graph', graph: FLOWER_GRAPH }, falls: { family: 'graph', graph: FALL_GRAPH },
     ...Object.fromEntries(Object.entries(SHACK_GRAPHS).map(([kind, graph]) => [`shack-${kind}`, { family: 'graph', graph }])) } },
-  clientChannels: SKY_MOVER_VIEWS, modes: SKY_MODES, quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
+  clientChannels: [...SKY_MOVER_VIEWS, ...SKY_LIFT_PROMPTS], modes: SKY_MODES, quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
   entryways: base.entryways.map(({ edge, at, width }) => {
     const lift = lifts.get(edge); if (lift === undefined) throw new Error(`Sky Reach entry ${edge} has no Rising Islet`);
     return { edge, at, width, kind: 'socketLift' as const, lift };

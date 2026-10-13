@@ -2,13 +2,14 @@ import { parseClientChannels, type ClientChannelProgram, type ClientChannelPrope
 
 type Node = ClientChannelProgram['nodes'][number];
 type Unary = Extract<Node, { a: number }>['op'];
-type Binary = Extract<Node, { b: number }>['op'];
+type Binary = Exclude<Extract<Node, { b: number }>['op'], 'hypot3'>;
 /** Readable authoring of bounded straight-line visual expressions; build output is ordinary format data. */
 export class ClientChannels {
   private readonly nodes: Node[] = [];
   private readonly reads: string[] = [];
   private readonly locals: NonNullable<ClientChannelProgram['locals']> = [];
   private readonly bindings: NonNullable<ClientChannelProgram['bindings']> = [];
+  private promptRow: ClientChannelProgram['prompt'];
   private moverId: string | undefined;
   private readonly channels: ClientChannelProgram['channels'] = [];
   private readonly id: string;
@@ -45,9 +46,13 @@ export class ClientChannels {
     slot.next = next;
   }
   /** One admitted unary arithmetic/trigonometric operation. */
-  unary(op: Exclude<Unary, Binary>, a: number): number { return this.append({ op, a }); }
+  unary(op: Exclude<Unary, Binary | 'hypot3'>, a: number): number { return this.append({ op, a }); }
   /** One admitted binary arithmetic/trigonometric operation, preserving operand order. */
   binary(op: Binary, a: number, b: number): number { return this.append({ op, a, b }); }
+  /** The original three-axis Math.hypot operation, without nested binary rounding. */
+  hypot3(a: number, b: number, c: number): number { return this.append({ op: 'hypot3', a, b, c }); }
+  /** Declare a normal input prompt; channel evaluation never dispatches its separate trusted action. */
+  prompt(row: NonNullable<ClientChannelProgram['prompt']>): void { this.promptRow = structuredClone(row); }
   /** Select already evaluated scalar nodes without a call, loop or side effect. */
   select(test: number, yes: number, no: number): number { return this.append({ op: 'select', test, yes, no }); }
   /** Bind a scalar result to one private visual property. */
@@ -61,7 +66,7 @@ export class ClientChannels {
   fromMover(id: string): void { this.moverId = id; }
   /** Validate and detach the authored program. */
   build(): ClientChannelProgram {
-    const result = parseClientChannels([{ id: this.id, reads: this.reads, nodes: this.nodes, channels: this.channels, ...(this.locals.length === 0 ? {} : { locals: this.locals }), ...(this.bindings.length === 0 ? {} : { bindings: this.bindings }), ...(this.moverId === undefined ? {} : { mover: this.moverId }) }])[0];
+    const result = parseClientChannels([{ id: this.id, reads: this.reads, nodes: this.nodes, channels: this.channels, ...(this.locals.length === 0 ? {} : { locals: this.locals }), ...(this.bindings.length === 0 ? {} : { bindings: this.bindings }), ...(this.moverId === undefined ? {} : { mover: this.moverId }), ...(this.promptRow === undefined ? {} : { prompt: this.promptRow }) }])[0];
     if (result === undefined) throw new Error('Missing client channel program'); return result;
   }
 }

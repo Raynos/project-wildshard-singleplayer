@@ -12,7 +12,8 @@ import type { HudVerbs, LevelContext } from '@wildshard/engine/level/context';
 import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
 import type { MapMark } from '@wildshard/engine/ui/Minimap';
 import { Flags } from '@wildshard/engine/world/interact/flags';
-import type { Place } from '@wildshard/engine/world/interact/types';
+import type { MoverPose } from '@wildshard/engine/physics/mover';
+import type { Place, Interactable } from '@wildshard/engine/world/interact/types';
 import { QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildshard/engine/quest/core';
 import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from '@wildshard/engine/quest/view';
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
@@ -514,6 +515,7 @@ export function createClientChannels(input: unknown): {
         case 'max': value = Math.max(a, b); break;
         case 'atan2': value = Math.atan2(a, b); break;
         case 'hypot': value = Math.hypot(a, b); break;
+        case 'hypot3': value = Math.hypot(a, b, scratch[node.c] ?? Number.NaN); break;
         case 'gt': value = Number(a > b); break;
         case 'select': value = (scratch[node.test] ?? Number.NaN) !== 0 ? scratch[node.yes] ?? Number.NaN : scratch[node.no] ?? Number.NaN; break;
         default: throw new Error('Unknown client operation');
@@ -564,13 +566,9 @@ export function createClientChannelView(input: unknown, targets: ReadonlyMap<str
   return Object.freeze({ reads: lane.reads, frame: lane.frame, evaluate });
 }
 
-/** Project copied mover observations through an admitted visual program; native bodies and script clocks stay external. */
-export function moverChannelView(program: ClientChannelProgram, targets: ReadonlyMap<string, unknown>,
-  observed?: (frame: ClientChannelFrame) => void): MoverView {
-  if (program.mover === undefined) throw new Error('Missing declared mover channel source');
-  const view = createClientChannelView(program, targets);
-  return { pose: (pose, fields) => {
-    const values = view.reads.map(read => {
+/** Copy only the fixed mover ABI's published observations, never its world or module memory. */
+function moverChannelValues(reads: readonly string[], pose: MoverPose, fields: Readonly<Record<number, number>>): number[] {
+  return reads.map(read => {
       if (read === 'enabled') return Number(pose.enabled);
       if (read.startsWith('position.')) {
         const axis = read.slice(9); if (axis === 'x' || axis === 'y' || axis === 'z') return pose.position[axis];
@@ -582,7 +580,16 @@ export function moverChannelView(program: ClientChannelProgram, targets: Readonl
       const value = key === undefined ? undefined : fields[Number(key)];
       if (value === undefined) throw new Error('Missing copied mover field');
       return value;
-    });
+  });
+}
+
+/** Project copied mover observations through an admitted visual program; native bodies and script clocks stay external. */
+export function moverChannelView(program: ClientChannelProgram, targets: ReadonlyMap<string, unknown>,
+  observed?: (frame: ClientChannelFrame) => void): MoverView {
+  if (program.mover === undefined) throw new Error('Missing declared mover channel source');
+  const view = createClientChannelView(program, targets);
+  return { pose: (pose, fields) => {
+    const values = moverChannelValues(view.reads, pose, fields);
     view.evaluate({ time: 0, delta: 0, values }); observed?.(view.frame);
   } };
 }
@@ -595,11 +602,45 @@ export function moverChannelViews(programs: readonly ClientChannelProgram[], tar
   const bound = new Set<string>();
   for (const program of programs) {
     const id = program.mover;
-    if (id === undefined) continue;
+    if (id === undefined || program.bindings === undefined) continue;
     if (!views.has(id) || bound.has(id)) throw new Error('Mover channels require one borrowed native owner');
     bound.add(id); views.set(id, moverChannelView(program, targets, frame => { observed?.(id, frame); }));
   }
   return views;
+}
+
+/** A channel-owned prompt: copied coordinates plus a separately bound real input action. */
+export function createClientChannelPrompt(input: unknown,
+  bind: (action: NonNullable<ClientChannelProgram['prompt']>['action']) => (spot: Interactable) => void): {
+    readonly spot: Interactable; readonly reads: readonly string[]; readonly evaluate: (observation: ClientChannelObservation) => void;
+  } {
+  const program = parseClientChannels([input])[0];
+  if (program?.prompt === undefined) throw new Error('Missing declared client prompt');
+  const declaration = structuredClone(program.prompt), action = bind(Object.freeze(declaration.action));
+  const lane = createClientChannels(program);
+  const spot: Interactable = { label: declaration.label, radius: declaration.radius,
+    position: new Vector3(...declaration.at), onInteract: () => undefined };
+  spot.onInteract = () => { action(spot); };
+  const evaluate = (observation: ClientChannelObservation): void => {
+    lane.evaluate(observation);
+    const { x, y, z } = lane.frame;
+    if (x === undefined || y === undefined || z === undefined) throw new Error('Missing prompt coordinates');
+    spot.position.set(x, y, z);
+  };
+  return Object.freeze({ spot, reads: lane.reads, evaluate });
+}
+/** Normal input prompts driven only by admitted copied mover poses; evaluating them never commands a mover. */
+export function moverChannelPrompts(programs: readonly ClientChannelProgram[],
+  bind: (action: NonNullable<ClientChannelProgram['prompt']>['action']) => (spot: Interactable) => void): {
+    readonly interactables: readonly Interactable[]; readonly update: (pose: (id: string) => MoverPose) => void;
+  } {
+  const rows = parseClientChannels(programs).flatMap(program => {
+    if (program.prompt === undefined || program.mover === undefined) return [];
+    return [{ id: program.mover, lane: createClientChannelPrompt(program, bind) }];
+  });
+  return Object.freeze({ interactables: Object.freeze(rows.map(row => row.lane.spot)), update: (pose: (id: string) => MoverPose) => {
+    for (const row of rows) row.lane.evaluate({ time: 0, delta: 0, values: moverChannelValues(row.lane.reads, pose(row.id), {}) });
+  } });
 }
 
 /** A quest's coin reward: the burst that flies the coins to the player, `pay`, which pays once per save, and `spawn`, any other coins through the same burst. */

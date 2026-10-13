@@ -2,7 +2,7 @@ import { InteractionRules } from '@wildshard/game/quest/interactionRows';
 import { PointLight, type Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { createClientChannelView } from '@wildshard/game/plugin/ui';
+import { createClientChannelView, createClientChannelPrompt } from '@wildshard/game/plugin/ui';
 import type { SignalDunesPlugin } from '../plugin';
 import source from '../runtime/source';
 
@@ -64,14 +64,19 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
 
   // The well: a heavy crack on the crank hauls the bucket up; then take the oil jar.
   const programs = source.clientChannels;
-  if (programs?.length !== 1) throw new Error('Missing declared bucket motion');
+  if (programs?.length !== 2) throw new Error('Missing declared bucket motion');
   const lift = createClientChannelView(programs[0], new Map<string, unknown>([['bucket', wellParts.bucket], ['rope', wellParts.rope]]));
   lift.evaluate({ time: 0, delta: 0, values: [Number(flags.has(FLAG.oil)), Number(rules.has('raised')), wellParts.drop] });
-  const wellSpot: Interactable = { label: STRINGS.wellDown, position: wellParts.jarAt, radius: 2.6, onInteract: () => {
-    const result = rules.run('well');
-    if (!result.ok) { if (result.reason === 'unraised') toast(ctx, STRINGS.wellHint); return; }
-    wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; toast(ctx, STRINGS.oilGot);
-  } };
+  const prompt = createClientChannelPrompt(programs[1], action => {
+    if (action.kind !== 'named' || action.name !== 'sunscar.well.take') throw new Error('Unknown well prompt action');
+    return spot => {
+      const result = rules.run('well');
+      if (!result.ok) { if (result.reason === 'unraised') toast(ctx, STRINGS.wellHint); return; }
+      wellParts.jar.visible = false; spot.label = STRINGS.oilTaken; toast(ctx, STRINGS.oilGot);
+    };
+  });
+  prompt.evaluate({ time: 0, delta: 0, values: [wellParts.jarAt.x, wellParts.jarAt.y, wellParts.jarAt.z] });
+  const wellSpot = prompt.spot;
   const well: SignalWorld['well'] = { ...wellParts, get raised() { return rules.has('raised'); }, spot: wellSpot, pull: () => {
     if (!rules.run('crank').ok) return false; wellSpot.label = STRINGS.takeOil; return true;
   } };
