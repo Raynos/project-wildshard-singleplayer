@@ -1,9 +1,11 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Locate the installed fixture dependency without browser globals.
+import process from 'node:process';
 import { expect, it } from 'vitest';
-import { NATIVE_BAKES, nativeBakePlan, regenerateCheapBakes } from '../scripts/precommit-bakes.mjs';
+import { NATIVE_BAKES, nativeBakePlan, regenerateCheapBakes, refreshRecordedCommitInputs } from '../scripts/precommit-bakes.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Measure fixture input maps using the shipping digest law.
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own all fixture files and remove them in finally.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Place producer fixtures outside the shared checkout.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only fixture-owned directories.
@@ -39,4 +41,34 @@ it('skips exact inputs and rebakes every affected shard plus spots when a shared
     expect(await nativeBakePlan(root)).toEqual([]);
     for (const file of outputs) expect(JSON.parse(readFileSync(join(root, file), 'utf8'))).toMatchObject({pieces:[1,2,3]});
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+it('skips recorder workers only for exact successful traced inputs', async () => {
+  const root = mkdtempSync(join(tmpdir(),'recorded-commit-')), cache = join(root,'cache');
+  try {
+    mkdirSync(join(root,'scripts'));
+    for (const name of ['precommit-bakes.mjs','map-hash.mjs','bake-input-hashes.mjs','witness-manifests.mjs','witness-checkpoints.mjs','gate-cache.mjs','gate-trace.mjs']) copyFileSync(`scripts/${name}`,join(root,'scripts',name));
+    writeFileSync(join(root,'scripts/map-hash.mjs'),'export const mapShards=()=>[];export const mapSettings=()=>({});export const mapTilesHash=()=>"";');
+    mkdirSync(join(root,'node_modules'));
+    symlinkSync(join(process.cwd(),'node_modules/valibot'),join(root,'node_modules/valibot'));
+    writeFileSync(join(root,'scripts/bake-loader.mjs'),'');
+    writeFileSync(join(root,'scripts/sim-node-loader.mjs'),'');
+    const proof = join(root,'test/proof/fixture'); mkdirSync(join(proof,'checkpoints'),{recursive:true});
+    writeFileSync(join(proof,'checkpoints/manifest.json'),'{"inputs":"00"}');
+    writeFileSync(join(root,'input.txt'),'before');
+    writeFileSync(join(proof,'run.mjs'),`import{readFileSync,appendFileSync}from'node:fs';
+const input=readFileSync('input.txt','utf8');appendFileSync('calls.txt','fresh\\n');
+if(input==='fail')throw Error('refuse changed outcomes');
+console.log(JSON.stringify({status:'fresh',inputs:'00'}));`);
+    expect(await refreshRecordedCommitInputs(root,cache)).toEqual([]);
+    const first = readFileSync(join(root,'calls.txt'),'utf8');
+    expect(await refreshRecordedCommitInputs(root,cache)).toEqual([]);
+    expect(readFileSync(join(root,'calls.txt'),'utf8')).toBe(first);
+    writeFileSync(join(root,'input.txt'),'after');
+    await refreshRecordedCommitInputs(root,cache);
+    expect(readFileSync(join(root,'calls.txt'),'utf8').length).toBeGreaterThan(first.length);
+    writeFileSync(join(root,'input.txt'),'fail');
+    await expect(refreshRecordedCommitInputs(root,cache)).rejects.toThrow('Recorded commit producer failed');
+    await expect(refreshRecordedCommitInputs(root,cache)).rejects.toThrow('Recorded commit producer failed');
+  } finally { rmSync(root,{recursive:true,force:true}); }
 });
