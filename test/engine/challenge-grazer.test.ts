@@ -9,7 +9,8 @@ import { speciesWithLook } from '../../src/engine/entities/species/look';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { DUNE_STRIDER } from '../../src/shards/sunscar-dunes/data/species/strider';
 import { DUNE_STRIDER_LOOK } from '../fixtures/sunscar-dunes/looks';
-import { slot } from '../../src/shards/sunscar-dunes/runtime/species/skitterer';
+import { slot } from '../fixtures/grazer-oracle/slot';
+import { seedSlot } from '../../src/game/plugin/brain';
 import { StriderBrain, CHARGE, HORNS, STRIDE } from '../fixtures/grazer-oracle/strider';
 import { creature } from '../fake/creature';
 
@@ -112,4 +113,10 @@ describe('declared challenge grazer', () => {
     expect(brain.snapshot()).toBe(saved); expect(f.animal.snapshot()).toEqual(actor);
     expect(f.ctx.rng.snapshot()).toEqual(rng); expect(f.starts.length).toBe(starts); expect(f.hits.length).toBe(hits);
   });
+});
+
+it('keeps shared slot selection exact to the independent shipping oracle', () => {
+  for (const seed of [0, -1, 0.25, 77, 999999, Number.MAX_SAFE_INTEGER]) for (const count of [1, 6, 23, 64]) {
+    expect(seedSlot(seed, count)).toBe(slot({ seed }, count));
+  }
 });
