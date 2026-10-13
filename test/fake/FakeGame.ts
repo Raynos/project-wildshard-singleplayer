@@ -40,6 +40,8 @@ export class FakeGame {
       renderer: legacyDouble<THREE.WebGLRenderer>({
         getDrawingBufferSize: this.renderer.getDrawingBufferSize,
         info: legacyDouble<THREE.WebGLInfo>(this.renderer.info),
+        // SF59: a shard that compiles a material graph installs the node handler (nothing renders here)
+        setNodesHandler: () => undefined,
       }),
       onInput: this.onInput.bind(this), onFixed: this.onFixed.bind(this),
       playerScope: this.playerScope, onPlayerUpdate: this.onUpdate.bind(this), onUpdate: this.onUpdate.bind(this), onLate: this.onLate.bind(this), hitStop: this.hitStop.bind(this),

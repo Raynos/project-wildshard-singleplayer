@@ -7,6 +7,8 @@ import { hybridPresentation, type HybridPresentation } from './hybridPresentatio
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
+import { clientMaterials } from './clientMaterials';
+import type { ShardContext } from '../plugin/context';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,
@@ -131,6 +133,19 @@ export function bindRuntimeProductTerrain(scope: Scope, source: Shardfile, ports
 export function bindRuntimeProductProps(scope: Scope, source: Shardfile, ports: Omit<RuntimePropsPorts, 'assets'>): Promise<void> {
   const product = runtimeProduct(source);
   return bindRuntimeProps({ scope }, product.source, { ...ports, assets: product.assets });
+}
+
+/**
+ * A trusted runtime's own look materials (`look.materials`, graph entries included) compiled on its world's renderer under
+ * its scope, from its product reader (`runtimeProduct`), for the meshes it still builds itself (read from its world stage).
+ * `graphs` is the shard's switch (G387): true compiles its graphs whatever the Debug row says; absent, the row decides
+ * (off: each graph's family preset).
+ */
+export function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'game'>, source: Shardfile, graphs?: boolean): ReturnType<typeof clientMaterials> {
+  const world = ctx.game.runtime?.world;
+  if (world === null || world === undefined) throw new Error('Runtime look materials need the world stage');
+  const product = runtimeProduct(source);
+  return clientMaterials(product.source, product.assets.retained, world.game.renderer, ctx.scope, graphs === undefined ? {} : { graphs });
 }
 
 /**

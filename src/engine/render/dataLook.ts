@@ -369,6 +369,8 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
     return dressing;
   };
   const worldPatch: NonNullable<LookStrategy['worldPatch']> = (material, scope) => {
+    // a node material (an SF59 graph) builds its own program: the haze is a classic fog-chunk patch, its fog the epilogue's
+    if (Reflect.get(material, 'isNodeMaterial') === true) return;
     const { strip } = sky ?? makeSky();
     patchShader(material, spec.haze.name, PATCH_ORDER.decorate, (shader) => { haze(shader, strip); }, { scope });
   };
