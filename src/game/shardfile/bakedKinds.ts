@@ -83,6 +83,8 @@ export function bakedKindsGroup<K extends BakedKindRow>(nodes: ReadonlyMap<strin
     }
     const mesh = new InstancedMesh(node.geometry, material, kind.count);
     mesh.instanceMatrix.array.set(node.instanceMatrix.array.subarray(0, kind.count * 16)); mesh.instanceMatrix.needsUpdate = true;
+    // an exact-instance bake's linear colours (the GLB's _COLOR_0, loaded as the node's instance colours)
+    if (node.instanceColor !== null) mesh.instanceColor = new InstancedBufferAttribute(node.instanceColor.array.slice(0, kind.count * 3), 3);
     mesh.computeBoundingSphere(); mesh.castShadow = false; mesh.receiveShadow = false; root.add(mesh);
   }
   return root;
@@ -91,7 +93,7 @@ export function bakedKindsGroup<K extends BakedKindRow>(nodes: ReadonlyMap<strin
 /** One piece's rows as the bake writes them: its kinds, its collider boxes and (optionally) per-instance tints by kind. */
 export interface BakedPieceRows<K extends BakedKindRow> {
   readonly kinds: readonly K[]; readonly colliders: readonly BakedColliderRow[];
-  /** a kind's per-instance colours (the GLB carries none), three floats an instance */
+  /** a kind's per-instance colours for a TRS bake (its GLB carries none), three floats an instance */
   readonly tints?: Readonly<Record<string, readonly number[]>>;
 }
 /** A drawn piece: its group (one `InstancedMesh` per drawn kind, in row order), its colliders and its drawn kinds by name. */

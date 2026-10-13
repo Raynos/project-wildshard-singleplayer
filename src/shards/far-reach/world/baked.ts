@@ -12,19 +12,21 @@ import bookStand from '../data/bookStand.json' with { type: 'json' };
 import knolls from '../data/knolls.json' with { type: 'json' };
 import geometries from '../data/geometries.json' with { type: 'json' };
 import isletRig from '../data/isletRig.json' with { type: 'json' };
+import dressing from '../data/dressing.json' with { type: 'json' };
 import { BAKED_URLS, ISLES_URL, SWARD_ATLAS_URL, type BakedPiece } from '../data/files';
 import { SWARD_ATLAS } from '../data/swardAtlas';
 import { shackMaterial, type ShackKind } from './shack';
 import { paintIsleMaterial, setIslePack } from './isle';
+import { dressingMaterial } from './dressing';
 
 /**
  * SHARD-PLATFORM SF72: Sky Reach's world pieces drawn from their offline bake. The shapes are built at build time
  * (`generators/*.ts`, `scripts/bake-sky-world.mjs`) and folded into instanced kinds (`@wildshard/sdk/bake/kinds`); the
  * client loads each piece's GLB behind the loading screen and draws it in its own materials: a shack part in its kind's
- * procedural shader (`world/shack.ts`), anything else in its row's standard material (a kind with a `paint` in the islands'
+ * procedural shader (`world/shack.ts`), a dressing kind in its own (`world/dressing.ts`), anything else in its row's standard material (a kind with a `paint` in the islands'
  * painted rock, `paintIsleMaterial`). The colliders are the rows'.
  */
-const PIECES = { 'winch-house': winchHouse, roost, docks, crown, mill, 'book-stand': bookStand, knolls, geometries, 'islet-rig': isletRig } as const satisfies Readonly<Record<BakedPiece, unknown>>;
+const PIECES = { 'winch-house': winchHouse, roost, docks, crown, mill, 'book-stand': bookStand, knolls, geometries, 'islet-rig': isletRig, dressing } as const satisfies Readonly<Record<BakedPiece, unknown>>;
 
 const SHACK: readonly ShackKind[] = ['plank', 'shingle', 'stone', 'beam'];
 const shackKind = (kind: object): ShackKind | undefined => {
@@ -34,7 +36,8 @@ const shackKind = (kind: object): ShackKind | undefined => {
 
 let sward: Uint8Array | null = null;
 const WORLD = bakedWorld<BakedPiece, BakedKindRow>(PIECES, BAKED_URLS, 'far-reach', {
-  material: (kind) => { const shack = shackKind(kind); return shack === undefined ? undefined : shackMaterial(shack); },
+  material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
+    return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : undefined; },
   decorate: (material, kind) => { const rockMix: unknown = 'paint' in kind ? kind.paint : undefined; if (typeof rockMix === 'number') paintIsleMaterial(material, rockMix); },
   attributes: { _shk: 'shk', _farcloth: 'farCloth' },
 });

@@ -1,13 +1,15 @@
-import { BufferGeometry, Color, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
-import { encodeInstanceSets, type InstanceSetRow } from './instanceSets';
+import { BufferGeometry, Color, DoubleSide, InstancedMesh, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
+import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { buildGeometries } from './geometries';
+import { bakeSkyPiece, SkyPiece } from './piece';
 import { meadowHoles, meadowPaths } from '../world/meadow';
 import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, type Isle, type Span } from '../data/layout';
 import { apothem, knollHeight } from '../layout';
 
 /**
- * Build-time only (SHARD-PLATFORM M3, offline bakes): baked by `scripts/bake-sky-world.mjs` into `baked/dressing.bin` +
- * `data/dressing.json`; the page draws the bake (`world/dressing.ts`).
+ * Build-time only (SHARD-PLATFORM M3, offline bakes): a world piece of instanced kinds (`scene.ts`, `bake-sky-world.mjs` →
+ * `baked/dressing.glb` + `data/dressing.json`) with its exact float32 matrices and colours; the page draws it in its own
+ * materials (`world/baked.ts`, `world/dressing.ts`).
  *
  * The island dressing (Gilded Air, review items 6 / 7, loop 2): what makes an island top read as a meadow and its
  * underside as old rock, not felt and a cone. All instanced, no colliders (you walk through grass and flowers; the stones
@@ -239,7 +241,24 @@ function boulderGeometry(): BufferGeometry {
   return kind[1].geometry;
 }
 
-/** The dressing bake: its sets' rows and lane-shuffled binary (`scripts/bake-sky-world.mjs` deflates it to baked/dressing.bin), and the meadow's short-grass discs round the larger rocks. */
-export function bakeSkyDressing(): { rows: InstanceSetRow[]; bytes: Uint8Array; discs: [number, number, number][] } {
-  return { ...encodeInstanceSets(buildDressing()), discs: heroStoneDiscs() };
+/** Each dressing kind's shape (the geometries bake's): the lip clumps are clumps, the stones boulders. */
+const SHAPES: Readonly<Record<string, string>> = { clump: 'clump', lip: 'clump', flower: 'flower', stone: 'boulder' };
+
+/**
+ * The dressing as a world piece: each kind's placed copies on its shape, in a standard material named for the page's own
+ * (`world/dressing.ts` `dressingMaterial`, the rows' `dressing`). Its matrices and colours bake exactly (`exactInstances`:
+ * the float32 words the placement computed, no TRS round trip); the roots place none (`DRESS.rootsPerM` 0), so the bake
+ * keeps no root kind. Its extra row: the meadow's short-grass discs.
+ */
+export function skyDressingPiece(): SkyPiece<{ discs: [number, number, number][] }> {
+  const shapes = new Map(buildGeometries().map(([name, mesh]) => [name, mesh.geometry]));
+  const kinds = buildDressing().filter(([name]) => Object.hasOwn(SHAPES, name)).map(([name, placed]) => {
+    const material = new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0 }); material.name = name;
+    const mesh = new InstancedMesh(shapes.get(SHAPES[name] ?? '') ?? new BufferGeometry(), material, placed.count);
+    mesh.instanceMatrix.copy(placed.instanceMatrix); mesh.instanceColor = placed.instanceColor;
+    return [name, mesh] as const;
+  });
+  return new SkyPiece('far.dressing', kinds, [], { exactInstances: true, extra: (material) => ({ dressing: material.name }) }, { discs: heroStoneDiscs() });
 }
+/** The dressing bake on its own (the stale gate's reader). */
+export function bakeSkyDressing(): PieceBake & { discs: [number, number, number][] } { return bakeSkyPiece(skyDressingPiece()); }

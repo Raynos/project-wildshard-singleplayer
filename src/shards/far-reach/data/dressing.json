@@ -1,299 +1,60 @@
 {
-  "lanes": "9372cbd226f1025a749f392ede4c0fc283dcc8138a55b085d8742156633f162a",
-  "sets": [
+  "glb": "c20fab6b445be7ca507389ba87266cf36e4c2c89af22dd99650ec5a6357e22dc",
+  "kinds": [
     {
       "name": "clump",
       "count": 7659,
-      "matrix": [
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "of": 2,
-          "neg": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "of": 0,
-          "neg": false
-        },
-        {
-          "bits": 0
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 1065353216
-        }
-      ],
-      "color": null
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": true,
+      "dressing": "clump"
     },
     {
       "name": "lip",
       "count": 624,
-      "matrix": [
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "of": 2,
-          "neg": false
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 1065353216
-        }
-      ],
-      "color": null
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": true,
+      "dressing": "lip"
     },
     {
       "name": "flower",
       "count": 335,
-      "matrix": [
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "of": 2,
-          "neg": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "of": 0,
-          "neg": false
-        },
-        {
-          "bits": 0
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 1065353216
-        }
-      ],
-      "color": [
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        }
-      ]
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": true,
+      "dressing": "flower"
     },
     {
       "name": "stone",
       "count": 144,
-      "matrix": [
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "of": 2,
-          "neg": true
-        },
-        {
-          "bits": 0
-        },
-        {
-          "of": 0,
-          "neg": false
-        },
-        {
-          "bits": 0
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "lane": true
-        },
-        {
-          "bits": 1065353216
-        }
-      ],
-      "color": null
-    },
-    {
-      "name": "root",
-      "count": 0,
-      "matrix": [
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        },
-        {
-          "bits": 0
-        }
-      ],
-      "color": null
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": true,
+      "dressing": "stone"
     }
   ],
+  "colliders": [],
   "discs": [
     [
       -4.2,

@@ -8,7 +8,6 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { Group, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
 import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, type Span } from '../data/layout';
 import { STRINGS } from '../data/strings';
-import { dressIslands } from './dressing';
 import { staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
 import { trees } from './trees';
@@ -161,7 +160,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   pieces.add('far.pines', trees(pineAt) ?? new Group());
   await pause();
   // the meadow and the roots (loop 2): grass clumps, flowers, stones, hanging roots; no colliders
-  pieces.add('far.dressing', dressIslands().group);
+  pieces.add('far.dressing', skyBakedPiece('dressing').root);
   await pause();
   // the skyline: decorative 3-D islands and waterfalls out past the archipelago, and the windmill isle's fall
   const sky = skyline(ISLES, (isle, a) => skyHd.lipAt(isle, a), skyIsles); root.add(sky);

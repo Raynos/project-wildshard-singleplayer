@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate reads the committed bake the client loads.
 import { readdirSync, readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- The stale gate inflates the shipped dressing bake.
+// oxlint-disable-next-line import/no-nodejs-modules -- The stale gate inflates the shipped sward atlas.
 import { inflateSync } from 'node:zlib';
 import { InstancedMesh, Matrix4, Mesh, Vector3, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -29,8 +29,8 @@ import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { skyBakedPiece, skyKnollHulls } from '../../../src/shards/far-reach/world/baked';
 import { bakeSkyDressing, buildDressing } from '../../../src/shards/far-reach/generators/dressing';
 import dressingRows from '../../../src/shards/far-reach/data/dressing.json' with { type: 'json' };
-import { dressIslands, heroStoneDiscs } from '../../../src/shards/far-reach/world/dressing';
-import { decodeInstanceSets, unshuffleLanes } from '@wildshard/game/plugin/geometry';
+import { heroStoneDiscs } from '../../../src/shards/far-reach/world/dressing';
+import { applyExactInstanceMatrices } from '@wildshard/engine/anim/rig';
 import { BAKED_PIECES } from '../../../src/shards/far-reach/data/files';
 import { ISLES, KNOLLS, STEP, WINCH_HOUSE } from '../../../src/shards/far-reach/data/layout';
 import winchHouse from '../../../src/shards/far-reach/data/winchHouse.json' with { type: 'json' };
@@ -51,13 +51,14 @@ const sha = (bytes: Uint8Array): string => createHash('sha256').update(bytes).di
 
 async function nodesOf(piece: string, kinds: readonly { name: string }[]): Promise<Map<string, InstancedMesh>> {
   const bytes = readFileSync(new URL(`${piece}.glb`, folder)), gltf = await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
+  applyExactInstanceMatrices(gltf.scene);
   const nodes: InstancedMesh[] = []; gltf.scene.traverse((node) => { if (instanced(node)) nodes.push(node); });
   return new Map(kinds.map((kind, i) => { const node = nodes[i]; if (node === undefined) throw new Error('missing node'); return [kind.name, node]; }));
 }
 
 describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', () => {
   it('every committed piece is byte-exact against its generator (the stale gate: rerun src/shards/far-reach/generators/bake-sky-world.mjs)', () => {
-    const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows], ['docks', bakeSkyDocks(), dockRows], ['crown', bakeSkyCrown(), crownRows], ['mill', bakeSkyMill(), millRows], ['book-stand', bakeSkyBookStand(), bookRows], ['knolls', bakeSkyKnolls(), knollRows], ['geometries', bakeSkyGeometries(), geometryRows], ['islet-rig', bakeSkyIsletRig(), isletRigRows]] as const;
+    const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows], ['docks', bakeSkyDocks(), dockRows], ['crown', bakeSkyCrown(), crownRows], ['mill', bakeSkyMill(), millRows], ['book-stand', bakeSkyBookStand(), bookRows], ['knolls', bakeSkyKnolls(), knollRows], ['geometries', bakeSkyGeometries(), geometryRows], ['islet-rig', bakeSkyIsletRig(), isletRigRows], ['dressing', bakeSkyDressing(), dressingRows]] as const;
     for (const [piece, { glb, ...rows }, committed] of pieces) {
       expect({ glb: sha(glb), ...rows }).toEqual(committed);
       expect(sha(new Uint8Array(readFileSync(new URL(`${piece}.glb`, folder))))).toBe(committed.glb);
@@ -212,20 +213,18 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
     expect([puffs.name, puffs.renderOrder, puffs.geometry.instanceCount]).toEqual(['far.cumulus', -5, puffs.geometry.getAttribute('aAt').count]);
     glow.geometry.dispose(); for (const m of glow.materials) m.dispose(); puffs.geometry.dispose(); puffs.material.dispose();
   });
-  it('the island dressing is its generator\'s copies (the stale gate) and the page draws exactly their matrices and colours', () => {
-    const { rows, bytes, discs } = bakeSkyDressing();
-    expect({ lanes: sha(bytes), sets: rows, discs }).toEqual(dressingRows);
-    // the shipped binary inflates to the generator's lanes
-    const shipped = inflateSync(readFileSync(new URL('dressing.bin', folder)));
-    expect(sha(new Uint8Array(shipped))).toBe(dressingRows.lanes);
-    expect(heroStoneDiscs()).toEqual(discs);
-    const sets = decodeInstanceSets(unshuffleLanes(new Uint8Array(shipped)), dressingRows.sets), drawn = dressIslands(sets).meshes, built = buildDressing();
-    expect(drawn.length).toBe(built.length);
-    built.forEach(([, live], i) => {
-      const mesh = drawn[i];
+  it('the island dressing draws its generator\'s copies exactly (the float32 matrices and colours, no TRS round trip), each kind in its own material', async () => {
+    expect(heroStoneDiscs()).toEqual(dressingRows.discs);
+    const drawn = skyBakedPiece('dressing', await nodesOf('dressing', dressingRows.kinds)), built = buildDressing().filter(([, mesh]) => mesh.count > 0);
+    expect([...drawn.kinds.keys()]).toEqual(built.map(([name]) => name));
+    expect(drawn.colliders).toEqual([]);
+    built.forEach(([name, live]) => {
+      const mesh = drawn.kinds.get(name);
       expect(mesh?.count).toBe(live.count);
       expect(new Uint8Array(mesh?.instanceMatrix.array.buffer ?? new ArrayBuffer(0))).toEqual(new Uint8Array(live.instanceMatrix.array.buffer));
       expect(mesh?.instanceColor?.array).toEqual(live.instanceColor?.array);
     });
+    // the lip clumps share the clumps' material
+    expect(drawn.kinds.get('lip')?.material).toBe(drawn.kinds.get('clump')?.material);
   });
 });

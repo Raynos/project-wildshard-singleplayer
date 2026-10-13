@@ -47,7 +47,7 @@ import { setStormPaint } from '../world/storm';
 import { wakeRibbon } from './looks/wakeRibbon';
 import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow, type Meadow } from '../world/meadow';
-import { heroStoneDiscs, loadSkyDressing } from '../world/dressing';
+import { heroStoneDiscs } from '../world/dressing';
 import { SUN_DIR } from '../look/sun';
 import { StormRocBoss } from '../combat/stormRoc';
 import { installBossView } from '@wildshard/game/plugin/ui';
@@ -112,7 +112,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     // and the world pieces baked offline (SF72, world/baked.ts)
-    await Promise.all([preloadSkyMeshes(), loadSkyBaked(), loadSkyDressing(), loadSkyBridges(), loadSkyFan(), loadSkyMillModel()]);
+    await Promise.all([preloadSkyMeshes(), loadSkyBaked(), loadSkyBridges(), loadSkyFan(), loadSkyMillModel()]);
     // the fan's painted silk; without it (offline, a test page) the fan keeps its plain teal, as the models keep their code stand-ins
     const leaf = await loadPainted(FAN_LEAF_URL, 'far.fan-leaf');
     if (leaf !== null) { this.leaf = leaf; ctx.scope.own(leaf); }

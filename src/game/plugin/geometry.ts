@@ -4,7 +4,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { loadRigFile, type ClipName, type SocketName } from "@wildshard/engine/anim/rig";
 import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
 import { releaseOnUpload } from "@wildshard/engine/render/memorySaver";
-import { Matrix4, Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh, InstancedBufferAttribute } from "three";
+import { Matrix4, Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh } from "three";
 import { applySurfaceLooks, type SurfaceInputs } from "../systems/looks/surfaceLooks";
 import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
 import { Rng } from "@wildshard/engine/core/rng";
@@ -1099,9 +1099,9 @@ export async function fetchDeflated(url: string): Promise<Uint8Array> {
   return new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
 }
 
-// Lane-shuffled bakes (SHARD-PLATFORM M3; Pine Hollow's crags, streams, timbers, lookout and wildlife, Sky Reach's island
-// dressing): a binary of 4-byte words whose bytes are split into four lanes (every word's first bytes, then its second …:
-// floats compress ~30 % better so), deflated. A shard's generator writes them; the page reads them here.
+// Lane-shuffled bakes (SHARD-PLATFORM M3; Pine Hollow's crags, streams, timbers, lookout and wildlife): a binary of 4-byte
+// words whose bytes are split into four lanes (every word's first bytes, then its second …: floats compress ~30 % better
+// so), deflated. A shard's generator writes them; the page reads them here.
 
 /** The words from their byte lanes (the generators' `shuffleLanes` reversed). */
 export function unshuffleLanes(lanes: Uint8Array): Uint8Array {
@@ -1113,74 +1113,6 @@ export function unshuffleLanes(lanes: Uint8Array): Uint8Array {
 
 /** Fetch a deflated, lane-shuffled bake, inflate it and put its lanes back. */
 export async function fetchLaneBake(url: string): Promise<Uint8Array> { return unshuffleLanes(await fetchDeflated(url)); }
-
-/**
- * Baked instance sets, a lane-shuffled bake of a scatter (grass clumps, flowers, boulders) placed at build time: each set's
- * instance matrices (and colours, when it has them) as the float32 words three keeps them in, so the page draws exactly
- * the matrices the live placement computed. Stored column by column (one matrix element, or colour channel, across every
- * instance): a column that holds one word throughout, or an earlier column's words (or their negation), is stored as its
- * row only. Nothing here knows a shard: the set names, the geometry and the material are the caller's.
- *
- * How one column is stored: `lane` (always true) — its words are in the binary; `bits` — every instance holds this one
- * word (the float's bits as a uint32); `of` — the same words as an earlier stored column, its sign bit flipped when `neg`.
- */
-export type ColumnRow = { readonly lane: boolean } | { readonly bits: number } | { readonly of: number; readonly neg: boolean };
-
-/** One baked set's row: its name, instance count, its matrix columns (16) and colour columns (3, or null: no colours). */
-export interface InstanceSetRow {
-  readonly name: string;
-  readonly count: number;
-  readonly matrix: readonly ColumnRow[];
-  readonly color: readonly ColumnRow[] | null;
-}
-
-/** One baked set: its instance matrices (16 floats each, as three's `instanceMatrix` holds them) and colours (3 each) or null. */
-export interface InstanceSet {
-  readonly matrices: Float32Array;
-  readonly colors: Float32Array | null;
-}
-
-/** Fills `target` (`count` instances × `rows.length` columns), the stored columns read from `words` at `at`; returns the new `at`. */
-function fillColumns(target: Uint32Array, rows: readonly ColumnRow[], count: number, words: Uint32Array, at: number): number {
-  const width = rows.length;
-  let next = at;
-  rows.forEach((row, j) => {
-    if ('lane' in row) { for (let i = 0; i < count; i++) target[i * width + j] = words[next + i] ?? 0; next += count; }
-    else if ('bits' in row) for (let i = 0; i < count; i++) target[i * width + j] = row.bits;
-    else for (let i = 0; i < count; i++) { const w = target[i * width + row.of] ?? 0; target[i * width + j] = row.neg ? (w ^ 0x80000000) >>> 0 : w; }
-  });
-  if (next > words.length) throw new Error('decodeInstanceSets: the binary is shorter than its rows');
-  return next;
-}
-
-/** The sets from their (unshuffled) words, by name; throws when the binary is not the rows' size. */
-export function decodeInstanceSets(bytes: Uint8Array, rows: readonly InstanceSetRow[]): Map<string, InstanceSet> {
-  const words = new Uint32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)), sets = new Map<string, InstanceSet>();
-  let at = 0;
-  for (const row of rows) {
-    const matrices = new Float32Array(row.count * 16);
-    at = fillColumns(new Uint32Array(matrices.buffer), row.matrix, row.count, words, at);
-    let colors: Float32Array | null = null;
-    if (row.color !== null) { colors = new Float32Array(row.count * 3); at = fillColumns(new Uint32Array(colors.buffer), row.color, row.count, words, at); }
-    sets.set(row.name, { matrices, colors });
-  }
-  if (at !== words.length) throw new Error(`decodeInstanceSets: ${String(words.length)} words, the rows hold ${String(at)}`);
-  return sets;
-}
-
-/** Fetch a lane-shuffled instance bake and decode it against its rows. */
-export async function fetchInstanceSets(url: string, rows: readonly InstanceSetRow[]): Promise<Map<string, InstanceSet>> {
-  return decodeInstanceSets(await fetchLaneBake(url), rows);
-}
-
-/** One instanced draw of `geometry` in `material` with the set's matrices and colours (no instances when `baked` is absent). */
-export function instancedFromSet(geometry: BufferGeometry, material: Material, baked: InstanceSet | undefined): InstancedMesh {
-  const mesh = new InstancedMesh(geometry, material, baked === undefined ? 0 : baked.matrices.length / 16);
-  if (baked === undefined) return mesh;
-  mesh.instanceMatrix.array.set(baked.matrices);
-  if (baked.colors !== null) mesh.instanceColor = new InstancedBufferAttribute(baked.colors.slice(), 3);
-  return mesh;
-}
 
 // Built geometry as an offline bake stores it (SHARD-PLATFORM M3, the kit system): each attribute's typed array exactly
 // as the builder made it (float, half, normalized bytes), so a baked kit draws the same bytes the page's own build would
