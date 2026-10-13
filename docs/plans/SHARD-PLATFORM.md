@@ -1113,6 +1113,7 @@ The rows in §4 build these answers; each row names the ones it builds.
 | G368 | The main-menu hero | **Above Nalati, NA-a** (Jake, 2026-10-13, on `art/main-menu-hero/round-4/board.jpg`): the camera over Nalati's centre (260 m, 34° down, 470 m from the roundabout), square SQ-NA-a on the phone band and its landscape twin LS-NA-a on desktop, replacing the interim SQ-c / LS-c in G341's layouts |
 | G369 | Near-shard tier after round 3 | **Keep iterating before it ships** (Jake, 2026-10-13, on `art/near-tier/round-3/board.jpg`: Pine much better, Driftwood a little, Nalati barely changed): it stays behind its Debug row; round 4 targets Nalati's hills and mountains and the cell edges, generic for every shard (G348) |
 | G370 | An Opus bench-max lane | **One Opus lane benchmarks and cuts the hooks** (Jake, 2026-10-13: *"redirect a visual Opus lane into an Opus benchmaxing lane … Benchmax the pre-commit, the pre-push. Pre-commit has to be 10 seconds … Pre-push has to be max 2 minutes … the biggest win is just not doing dumb work: caching, only doing what's changed, skipping work that doesn't need to happen"*): when a visual Opus subagent frees up, it becomes the bench-max lane; pre-commit ≤ 10 s and pre-push ≤ 2 min (G359), each measured step by step and cut by caching, changed-files-only work and skipping what doesn't need to run, keeping G353's commit-time debt checks and G367's commit-time generation inside the 10 s |
+| G371 | Which cells get the near tier | **The closest cells by distance, diagonals included** (Jake, 2026-10-13, on the round-4 hero above Nalati: *"they don't show Pine with its trees … I don't know why Pine is so super low poly there"*): today `src/game/grid/nearPlaceholderPlan.ts` gives a camera inside a cell only its four cardinal neighbours, so Pine, diagonal to Nalati across the roundabout, falls back to the far proxy; the near tier picks the nearest cells to the camera by distance (diagonals included, within the cap and the residency line), so every shard around the nearest roundabout gets it; then the NA-a hero is re-shot |
 
 ## Handoff (shard-platform)
 
@@ -1228,7 +1229,7 @@ deck climb, landings outside the grid, item art) is `shard-platform/mockup-wave-
 (the cell edge), the entry width (two lanes, ≈ 8 m) and FINISH-LINE M1 (inside SHARD SELECT). The double jump exists
 (`Player.ts` jumpsLeft).
 
-**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §6 (the ordered M2-ready path), §9 (how it is built), §10 (G1–G370,
+**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §6 (the ordered M2-ready path), §9 (how it is built), §10 (G1–G371,
 Jake's words verbatim) and this Handoff → `docs/plans/shard-platform/reviews/register.md`, `council-2/register.md` and `council-3/register.md` (closed), `council-4/register.md` (closed) →
 `docs/reviews/shard-platform-mockups.md` + `art/README.md` (the boards Jake picked) → `herdr agent list` (the Codex panes) →
 `git log --oneline -30` → `node scripts/asks.mjs`. The coordinator is the only pusher; builders commit and reply with the
