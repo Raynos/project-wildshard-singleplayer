@@ -1,9 +1,10 @@
+import { SKY_DEV_POSES } from './data/devPoses';
 import { SKY_DISCOVERY } from './data/discovery';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { STRINGS } from './data/strings';
 import { BUDGETS, SKY_REACH_RUNTIME_COST } from './data/budgets';
-import { CROWN, DECK, HIGH, KEEPER, ROOST, SKY_REACH_MAP, SPAWN, STEP, WINDMILL } from './data/layout';
+import { SKY_REACH_MAP } from './data/layout';
 import { SKY_CARD } from './data/card';
 import { EXPLORE } from './data/explore';
 import { BOOT_SOURCES, BOOT_FILES, LATE_READS } from './data/boot';
@@ -35,16 +36,7 @@ export const SKY_REACH: ShardManifest = {
   ktx2: () => import('./ktx2.generated'),
   audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./data/cues')).CUES },
   boot: { explore: { art: Object.values(EXPLORE.art) }, files: BOOT_FILES, sources: BOOT_SOURCES, lateReads: LATE_READS, viewmodelSets: [], shaders: { background: false }, audio: [], precache: [] },
-  dev: { poses: () => Promise.resolve({
-    spawn: { eye: [SPAWN.x, DECK + 1.7, SPAWN.z], feet: [SPAWN.x, DECK, SPAWN.z], yaw: 0, pitch: 0, mockup: 'art/far-reach/round-1-proposals/B-sky-reach.jpg', frame: 'Spawn: Sunrest, the windmill isle across the gap' },
-    hover: { eye: [12, DECK + 1.7, -2.5], feet: [12, DECK, -2.5], yaw: 80, pitch: -6, mockup: '', frame: 'The hover bridge to the Roost' },
-    windmill: { eye: [WINDMILL.x - 6, DECK + 1.7, WINDMILL.z + 10], yaw: 10, pitch: 8, mockup: '', frame: 'The windmill isle' },
-    roost: { eye: [ROOST.x, ROOST.y + 1.7, ROOST.z + 6], yaw: -90, pitch: 0, mockup: '', frame: 'The Roost, looking back' },
-    keeper: { eye: [KEEPER.x + 4, KEEPER.y + 1.7, KEEPER.z + 8], yaw: 200, pitch: 0, mockup: '', frame: 'The keeper\'s isle and its notes' },
-    updraft: { eye: [4, DECK + 2, WINDMILL.z - 10], yaw: 10, pitch: 12, mockup: '', frame: 'The updraft to the high step' },
-    crown: { eye: [CROWN.x, HIGH + 1.7, CROWN.z + 16], yaw: 0, pitch: 4, mockup: '', frame: 'The storm crown' },
-    step: { eye: [STEP.x - 5, HIGH + 1.7, STEP.z + 6], yaw: 20, pitch: 0, mockup: '', frame: 'The high step and the crown bridge winch' },
-  }) },
+  dev: { poses: () => Promise.resolve(structuredClone(SKY_DEV_POSES)) },
   explore: EXPLORE, roster: async () => (await import('./roster')).ROSTER, load: () => import('./plugin'),
 };
 // oxlint-disable-next-line import/no-default-export -- Folder discovery requires a default manifest.
