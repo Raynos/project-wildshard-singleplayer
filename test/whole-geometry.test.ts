@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Native byte equality avoids allocating millions of matcher objects.
+import { Buffer } from 'node:buffer';
 import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Float32BufferAttribute, Group, Matrix4, Mesh, type Object3D, MeshStandardMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { describe, expect, it, vi } from 'vitest';
@@ -51,7 +53,7 @@ describe('shared runtime whole-geometry assembly', () => {
   it('splits one tile into admitted bounded GLBs and reconstructs one exact original draw', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     try {
-      const count = 126000, source = new BufferGeometry();
+      const count = 108003, source = new BufferGeometry();
       const positions = new Float32Array(count * 3);
       for (let i = 0; i < count; i++) { positions[i * 3] = (i % 3 === 1 ? 1 : 0); positions[i * 3 + 2] = (i % 3 === 2 ? 1 : 0); }
       source.setAttribute('position', new BufferAttribute(positions, 3)).setAttribute('normal', new BufferAttribute(new Float32Array(count * 3).fill(0.5), 3));
@@ -71,7 +73,15 @@ describe('shared runtime whole-geometry assembly', () => {
       const output = restored.get('fabric'); if (output === undefined) throw new Error('Missing original draw');
       expect(output.matrix.elements).toEqual(transform.elements);
       expect(output.geometry.index).toBeNull();
-      for (const [name, attribute] of Object.entries(source.attributes)) expect(output.geometry.getAttribute(name).array).toEqual(attribute.array);
+      for (const [name, attribute] of Object.entries(source.attributes)) {
+        const actual = output.geometry.getAttribute(name);
+        expect(actual.array.constructor).toBe(attribute.array.constructor);
+        expect(actual.itemSize).toBe(attribute.itemSize);
+        expect(actual.normalized).toBe(attribute.normalized);
+        const expectedBytes = Buffer.from(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength);
+        const actualBytes = Buffer.from(actual.array.buffer, actual.array.byteOffset, actual.array.byteLength);
+        expect(actualBytes.equals(expectedBytes), name).toBe(true);
+      }
       expect(() => assembleWholeGeometryViews(nodes.slice(0, 1))).toThrow('incomplete');
       expect(() => assembleWholeGeometryViews([...nodes, ...nodes])).toThrow('duplicate');
     } finally { warn.mockRestore(); }
