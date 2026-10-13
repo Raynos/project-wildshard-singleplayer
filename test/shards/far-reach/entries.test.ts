@@ -27,10 +27,10 @@ describe('Sky Reach Rising Islet entries', () => {
   it('declares four socketLift entries: a static approach over a full-width stone lip at y = 0 to the islet, a road gate, the gate isle beyond', () => {
     expect(source.entryways.map((row) => [row.edge, row.kind, row.width])).toEqual(['north', 'east', 'south', 'west'].map((edge) => [edge, 'socketLift', ENTRY_WIDTH]));
     expect(source.accent).toBe('pink'); // G104: 18 PINK
-    // every admitted file (the islet and the bridge modules) from its committed bytes
+    // every admitted file (the islet and the bridge modules, the navigation mesh, the islands' props tiles) from its committed bytes
     const admitted = new Map(source.files.map((file) => [file.hash, Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${file.hash}`))]));
     expect(source.navigation).toBeDefined();
-    expect(source.files.map((file) => file.hash).sort((a,b)=>a.localeCompare(b))).toEqual([BRIDGE_MODULE.hash, LIFT_MODULE.hash, source.navigation?.file].sort((a,b)=>String(a).localeCompare(String(b))));
+    expect(source.files.map((file) => file.hash).sort((a,b)=>a.localeCompare(b))).toEqual([BRIDGE_MODULE.hash, LIFT_MODULE.hash, source.navigation?.file, ...(source.props?.tiles.map((tile) => tile.file) ?? [])].sort((a,b)=>String(a).localeCompare(String(b))));
     expect(() => validateShardfileAssets(source, admitted, contentHash)).not.toThrow();
     const lifts = socketLiftEntries(source.entryways);
     expect(lifts.map((row) => [row.lift.mover, row.lift.gate, row.lift.approach?.colliders])).toEqual(RISING_ISLETS.map((e) => [`far.islet.${e.edge}`, `far.islet.${e.edge}.gate`, [`landing.${e.edge}`]]));
@@ -60,7 +60,8 @@ describe('Sky Reach Rising Islet entries', () => {
     for (const s of shapes) expect(Math.max(Math.abs(s.x), Math.abs(s.z)) + Math.hypot(s.hx, s.hy, s.hz)).toBeLessThan(CHUNK_HALF);
     const props = source.props; if (props === null) throw new Error('Sky Reach declares its landings');
     const all = { ...props, colliders: [{ id: 'entries', panel: null, initialActive: true, shapes }] };
-    expect(() => validateEntrywayClearance({ entryways: source.entryways, props: all, water: [] }, new Map())).not.toThrow();
+    const tiles = new Map(props.tiles.map((tile) => [tile.file, Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${tile.file}`))]));
+    expect(() => validateEntrywayClearance({ entryways: source.entryways, props: all, water: [] }, tiles)).not.toThrow();
   });
 
   it('rides: the islet rests against the lip at road height and docks against its gate isle ~50 m in, 25 m up', () => {

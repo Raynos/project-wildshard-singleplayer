@@ -9,7 +9,7 @@ import { Group, Vector3, type MeshStandardMaterial, type Object3D } from 'three'
 import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, type Span } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { dressIslands } from './dressing';
-import { islandMesh } from './isle';
+import { staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
 import { trees } from './trees';
 import { ISLE_CUT, ISLE_KEEL_CUT, SKY_ISLES } from '../data/skyIsles';
@@ -107,15 +107,16 @@ const CUT = ISLE_KEEL_CUT;
  * paced worldBuildYield, op-hitch45: in play a drawn frame when one is due, else a timer task of the shard's scope;
  * it rejects once the cell has unloaded, and the build stops).
  */
-export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>): Promise<BuiltWorld> {
+export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, isles: IsleMeshes): Promise<BuiltWorld> {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const pieces = skyPieces(ctx.piece, root);
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
     keeper: STRINGS.keeper, ruin: STRINGS.ruin, step: STRINGS.step, crown: STRINGS.crown };
-  // SF49-g (G183): the four gate isles join the islands (every shape baked, generators/isles.ts); a playable island still
-  // takes its ISLE_DRAWS cosmetic values, so every draw after the islands is unchanged
+  // SF49-g (G183): the four gate isles join the islands (every shape baked, generators/isles.ts; drawn from the props tiles,
+  // generators/isleProps.ts, each at its own position); a playable island still takes its ISLE_DRAWS cosmetic values, so
+  // every draw after the islands is unchanged
   for (const isle of [...ISLES, ...GATE_ISLES]) {
-    const gate = GATE_ISLES.includes(isle), mesh = islandMesh(isle.id); mesh.position.set(isle.x, isle.y, isle.z); root.add(mesh);
+    const gate = GATE_ISLES.includes(isle), mesh = staticIsle(isles, isle.id); root.add(mesh);
     if (!gate) for (let i = 0; i < ISLE_DRAWS; i++) rnd();
     // the code keel ends a little under the lip (E399 round 3, item 2: 'under the bridge a grey-green cliff wall where the
     // mockups show open cloud'): the textured keel model below (far.isle-keels) is the rock you see, narrower, with sky

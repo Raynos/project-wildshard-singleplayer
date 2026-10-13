@@ -71,6 +71,20 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
   emit(resolve(project, 'data/isles.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
   console.info(`far-reach isles: ${String(bin.length)} bytes → baked/isles.bin (${String(packed.length)} deflated), ${String(rows.isles.length)} islands`);
 }
+// the twelve static islands as compiled props tiles, each island whole (generators/isleProps.ts): data/props.json and the
+// tile GLBs under assets/<hash>, the shardfile's declared files (shard.config.ts); the runtime draws them (world/isle.ts)
+{
+  const { skyIsleProps } = await import(pathToFileURL(resolve(project, 'generators/isleProps.ts')).href);
+  const { encodeCanonicalJson: canonicalJson } = await import(pathToFileURL(resolve(root, 'src/sdk/immutable.ts')).href);
+  const baked = skyIsleProps();
+  if (baked.far !== null) throw new Error('bake-sky-world: the islands baked a far proxy');
+  if (!check) mkdirSync(resolve(project, 'assets'), { recursive: true });
+  for (const [hash, bytes] of baked.assets) emit(resolve(project, 'assets', hash), bytes);
+  // in the product's order (files by hash, tiles by level, x, z), so the declaration is the emitted shard.json
+  const files = [...baked.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles = [...baked.tiles].sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
+  emit(resolve(project, 'data/props.json'), canonicalJson({ props: baked.props, tiles, files, report: baked.report }));
+  console.info(`far-reach isle props: ${String(baked.props.tiles.length)} tiles, ${String(baked.report.reduce((n, r) => n + r.draws, 0))} draws`);
+}
 // the war fan's built shapes and its fitted hero hand, as a deflated geometry pack (weapons/fanModel.ts fanParts)
 {
   const { bakeSkyFan } = await import(pathToFileURL(resolve(project, 'generators/fan.ts')).href);

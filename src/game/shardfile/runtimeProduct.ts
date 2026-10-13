@@ -2,7 +2,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { ClientAssets } from './clientAssets';
 import { browserShardfileOptions } from '../plugin/ui';
 import type { AdmittedProduct } from './product';
-import { bindRuntimeTerrain, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
+import { bindRuntimeProps, bindRuntimeTerrain, type RuntimePropsPorts, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
 import { hybridPresentation, type HybridPresentation } from './hybridPresentation';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
@@ -55,6 +55,12 @@ export function runtimeProduct(source: Shardfile): RuntimeProduct {
 export function bindRuntimeProductTerrain(scope: Scope, source: Shardfile, ports: Omit<RuntimeTerrainPorts, 'assets'>): Promise<RuntimeTerrain> {
   const product = runtimeProduct(source);
   return bindRuntimeTerrain({ scope }, product.source, { ...ports, assets: product.assets });
+}
+
+/** Bind a runtime's declared props tiles from its product reader (`runtimeProduct`) under `scope`; see `bindRuntimeProps`. */
+export function bindRuntimeProductProps(scope: Scope, source: Shardfile, ports: Omit<RuntimePropsPorts, 'assets'>): Promise<void> {
+  const product = runtimeProduct(source);
+  return bindRuntimeProps({ scope }, product.source, { ...ports, assets: product.assets });
 }
 
 /**

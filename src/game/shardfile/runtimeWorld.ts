@@ -1,4 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
+import { Mesh, type Material, type Object3D } from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { TerrainField } from '@wildshard/engine/level/data';
 import { decodeTerrainTile, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import type { ResidencyAllocator } from '../grid/allocator';
@@ -58,4 +60,45 @@ export async function bindRuntimeTerrain(ctx: { readonly scope: Scope }, source:
   const world = await clientWorld({ ...source, props: null }, ports.assets, { scope: ctx.scope, x: ports.x, z: ports.z,
     views: { terrain: (bytes, scope, shadow) => ports.terrain(bytes, scope, shadow, lattice), ...noProps }, ...(ports.residency === undefined ? {} : { residency: ports.residency }) });
   return { ground, refresh: world.refresh, get fine() { return world.fine; } };
+}
+
+/**
+ * The runtime-bound props (G227): a hybrid whose shardfile declares `runtime.binds: ['props']` ships its static props as the
+ * compiled props tiles, and its trusted runtime draws them in its own materials. Each tile's GLB is parsed here and handed to
+ * the runtime's `props` view, which puts its own materials on the meshes; the parsed geometry (and any GLB material the view
+ * kept) is freed with the tile. The tiles are fine tiles of whole shapes (`bakeProps` `whole`, which no coarse tile stands
+ * in for), every one kept resident: a small world seen whole.
+ */
+export interface RuntimePropsPorts {
+  readonly assets: ClientAssets;
+  /** The runtime's view of one parsed tile (`key` `<lod>/<x>/<z>`): put `tile` under `scope` in its own materials. */
+  readonly props: (tile: Object3D, key: string, scope: Scope) => void;
+}
+
+const isMesh = (o: Object3D): o is Mesh => o instanceof Mesh;
+/** Bind a runtime's declared props tiles under `scope`, every tile drawn once resolved; throws unless the section is bound. Library models and panels are not runtime-bound yet. */
+export async function bindRuntimeProps(ctx: { readonly scope: Scope }, source: Shardfile, ports: RuntimePropsPorts): Promise<void> {
+  if (source.runtime === null) throw new Error('Runtime-bound props need a trusted runtime declaration');
+  if (!runtimeBinds(source).has('props')) throw new Error('Shardfile props are not bound by its runtime (runtime.binds)');
+  const props = source.props; if (props === null || props.tiles.length === 0) throw new Error('Runtime-bound props declare no props tiles');
+  if (props.panels.length + props.models.length + props.textures.length > 0) throw new Error('Runtime-bound props carry tiles only');
+  if (props.tiles.some((tile) => tile.lod !== 0)) throw new Error('Runtime-bound props are fine tiles of whole shapes');
+  const lifetime = ctx.scope.child('runtime-props');
+  try {
+    for (const row of props.tiles) {
+      const key = `${row.lod}/${row.x}/${row.z}`, scope = lifetime.child(key);
+      scope.onDispose(ports.assets.lease([row.file]));
+      const bytes = await ports.assets.read(row.file), gltf = await new GLTFLoader().parseAsync(bytes.slice().buffer, ''), meshes: Mesh[] = [];
+      gltf.scene.traverse((o) => { if (isMesh(o)) meshes.push(o); });
+      // a GLB material the runtime's view replaced is freed at once; one it kept lives with the tile
+      const materials = (): Set<Material> => new Set(meshes.flatMap((mesh): Material[] => Array.isArray(mesh.material) ? mesh.material : [mesh.material]));
+      const originals = materials(), free = (kept: ReadonlySet<Material>): void => { for (const mesh of meshes) mesh.geometry.dispose(); for (const m of kept) m.dispose(); };
+      if (scope.disposed) { free(originals); throw new Error('Runtime props unloaded while loading'); }
+      ports.props(gltf.scene, key, scope);
+      const used = materials(), kept = new Set([...originals].filter((m) => used.has(m)));
+      for (const m of originals) if (!kept.has(m)) m.dispose();
+      scope.onDispose(() => { gltf.scene.removeFromParent(); free(kept); });
+    }
+    ports.assets.releaseTiles();
+  } catch (error) { lifetime.dispose(); throw error; }
 }

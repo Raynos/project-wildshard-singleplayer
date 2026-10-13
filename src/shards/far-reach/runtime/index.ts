@@ -38,7 +38,7 @@ import { bindPlayerPush, setHome } from '../species/rig';
 import { preloadSkyMeshes } from '../world/meshes';
 import { loadSkyBaked } from '../world/baked';
 import { loadSkyBridges } from '../world/shapes';
-import { setIsleTextures } from '../world/isle';
+import { adoptIsleTile, setIsleTextures } from '../world/isle';
 import { setFirSheet } from '../world/fir';
 import { loadSkyMillModel, setMillTextures } from '../world/mill';
 import { FAN_LEAF_URL, TEX_URL } from '../data/files';
@@ -56,7 +56,8 @@ import { installQuest } from '../quest/install';
 import { FLAGS, vaneFlag } from '../quest/flags';
 import { installSkyCues } from './audio/cues';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
-import { HybridRuntimePlugin, bindRuntimeHomes, type HybridRuntimeRows, type RuntimeHomes } from '@wildshard/game/shardfile/hybridRows';
+import { HybridRuntimePlugin, bindRuntimeHomes, type HybridRuntimeRows, type RuntimeHomes } from '@wildshard/game/plugin/headless';
+import { bindRuntimeProductProps } from '@wildshard/game/shardfile/runtimeProduct';
 import { bindSkyItems } from './items';
 
 declare module '@wildshard/engine/input/InputService' {
@@ -131,7 +132,11 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     setIsleTextures({ rock, meadow: meadowTex });
     // op-hitch41: in work slices (a grid cell builds Sky Reach on the road, in play: one 366 ms task on the Simulator,
     // then the meadow's 59 ms in the same frame); the meadow starts on a task of its own
-    this.built = await buildWorld(ctx, () => worldBuildYield(ctx));
+    // the static islands from the shardfile's props tiles (runtime.binds props; generators/isleProps.ts), every tile resident
+    const isles = new Map<string, Mesh>();
+    await bindRuntimeProductProps(ctx.scope, source, { props: (tile) => { adoptIsleTile(tile, isles); } })
+      .catch((e: unknown) => { console.error('[far-reach] the island tiles did not load; they stand undrawn:', e); });
+    this.built = await buildWorld(ctx, () => worldBuildYield(ctx), isles);
     await worldBuildYield(ctx);
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });

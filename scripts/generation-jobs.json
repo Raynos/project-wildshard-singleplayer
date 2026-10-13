@@ -1595,7 +1595,19 @@
         "public/assets/far-reach/baked/isles.bin",
         "public/assets/far-reach/baked/fan.bin",
         "public/assets/far-reach/baked/mill-model.bin",
-        "public/assets/far-reach/baked/sward-atlas.bin"
+        "public/assets/far-reach/baked/sward-atlas.bin",
+        "src/shards/far-reach/data/props.json",
+        "src/shards/far-reach/assets/1b1322de534d9f98d10df53949afe7a7f8242f3ee0cf5384012c83270388d860",
+        "src/shards/far-reach/assets/1b72669a301cd41df32ac196eb822d7c10c7c83cd6fb0121165f4ab42e5627f3",
+        "src/shards/far-reach/assets/27d355c9a0b60e75d6e4b1647e7981e50383dd2d6c1a88a851f5ea3b0cdd9724",
+        "src/shards/far-reach/assets/35bd8dd6283c1af48e677e30a84de302f6c7531c527f74101622b36ee4cd32e7",
+        "src/shards/far-reach/assets/40abad1b7f3288f57e27fa489698a1ad1e80d93068f050f61bd23eb67f5d02b9",
+        "src/shards/far-reach/assets/5fbf7d0c3c0c00ce84fe682e6713a3c7f0ac11079a5d2509a55e2faec4d850e9",
+        "src/shards/far-reach/assets/7ca0c404de38fba32eda4535ae001ff1049aabd00990b4cac7c430fefd3e158b",
+        "src/shards/far-reach/assets/9d370962d7ce959f10309594738670be20a7f86c3ba634c56ad08b3f85791153",
+        "src/shards/far-reach/assets/b64d9a1840d93645477b043859eba144d51d8e2b710f9e834c29522bb9a242e5",
+        "src/shards/far-reach/assets/e40ebba6bcabb86a50f1eb0890c6ab6f7214aac0d774053dc7ab4cca0a5f43bc",
+        "src/shards/far-reach/assets/f61cf224cdb10de4c004ee385e81896535ee164fe6c2a2f2b0176f23a91e924f"
       ],
       "platform": "native",
       "seedOutputs": [
@@ -1616,7 +1628,8 @@
         "src/shards/far-reach/data/skyIsleFrames.json",
         "src/shards/far-reach/data/millModel.json",
         "src/shards/far-reach/data/skyIslePines.json",
-        "src/shards/far-reach/data/isletRig.json"
+        "src/shards/far-reach/data/isletRig.json",
+        "src/shards/far-reach/data/props.json"
       ]
     },
     {

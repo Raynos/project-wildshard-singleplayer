@@ -73,7 +73,8 @@ export function withoutRuntimeRows(source: Shardfile): Shardfile {
   const far = source.far === null || source.far.files.every(keep) ? source.far : source.far.files.some(keep) ? { ...source.far, files: source.far.files.filter(keep) } : null;
   return { ...source,
     ...(binds.has('terrain') ? { terrain: null } : {}),
-    ...(binds.has('props') ? { props: null } : {}),
+    // bound props keep their collider rows (an entry's landings are platform data, like the edges); the drawn content is the runtime's
+    ...(binds.has('props') ? { props: source.props === null ? null : { ...source.props, tiles: [], panels: [], models: [], far: null, textures: [] } } : {}),
     ...(world.size === 0 ? {} : { files: source.files.filter((file) => keep(file.hash)), critical: source.critical.filter(keep), library: source.library.filter(keep), far,
       tiles: source.tiles.flatMap((tile) => { const files = tile.files.filter(keep); return files.length === 0 ? [] : [files.length === tile.files.length ? tile : { ...tile, files }]; }) }),
     ...(binds.has('modes') ? { modes: { traverse: [] } } : {}),
