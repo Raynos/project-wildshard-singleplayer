@@ -8,6 +8,8 @@ import { expect, it } from 'vitest';
 import { Rng, fnv1a32 } from '../src/engine/core/rng';
 import { bakeProps } from '../src/sdk/bake/props';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
+import { discoverGeneration } from '../scripts/generate.mjs';
+import { expectKeyedClosure } from './fixtures/authoringClosure';
 import { auditAuthoringInputs } from '../scripts/authoring-inputs.mjs';
 import { templateProps } from '../src/shards/_template/generators/templatePropsSource';
 import { templateScatterRandom } from '../src/shards/_template/generators/landscapeNoise';
@@ -34,4 +36,15 @@ it('owns the complete producer closure without game, engine, runtime or generate
   expect(audit.issues).toEqual([]);
   expect(audit.files.some(file => file.startsWith('src/engine/') || file.startsWith('src/game/') || file.includes('/runtime/'))).toBe(false);
   expect(audit.files).toContain('src/shards/_template/generators/world.ts');
+});
+
+
+it('keys the complete central bake API closure in the registered props producer', () => {
+  const root = process.cwd(), job = discoverGeneration(root).jobs.find(row => row.id === 'template-author-props');
+  if (job === undefined) throw new Error('Missing Template props job');
+  const audits = [job.entry, 'src/sdk/bake/source-loader.mjs'].map(entry => auditAuthoringInputs(root, '_template', entry));
+  expect(audits.flatMap(audit => audit.issues)).toEqual([]);
+  const closure = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/package.json', 'src/format/package.json', 'package.json', 'pnpm-lock.yaml'])];
+  expectKeyedClosure(job.inputRoots, closure, '_template');
+  expect(job.inputRoots).toContain('src/sdk/bake.ts'); expect(job.seedOutputs).toEqual([]);
 });
