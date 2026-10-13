@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_GRAPH_BUDGET, validateGraph } from '@wildshard/format/materialGraph';
 import source from '../../../src/shards/far-reach/shard.config';
 import { SKY_SUN } from '../../../src/shards/far-reach/data/skyLook';
-import { SUN_DIR } from '../../../src/shards/far-reach/look/sun';
+import { PANO_SUN } from '../../../src/shards/far-reach/look/panoramaData';
 
 describe('Sky Reach look graphs (SHARD-PLATFORM G382 / G387)', () => {
   it('every look material is an SF59 graph inside the default per-program budget', () => {
@@ -15,6 +15,8 @@ describe('Sky Reach look graphs (SHARD-PLATFORM G382 / G387)', () => {
   });
 
   it('the painted light graph lights from the sun the panorama paints', () => {
-    expect([...SKY_SUN]).toEqual([SUN_DIR.x, SUN_DIR.y, SUN_DIR.z]);
+    const h = (PANO_SUN.heading * Math.PI) / 180, e = (PANO_SUN.elevation * Math.PI) / 180;
+    const sun = [Math.sin(h) * Math.cos(e), Math.sin(e), -Math.cos(h) * Math.cos(e)];
+    expect(SKY_SUN.map((v, i) => v - (sun[i] ?? 0)).every((d) => Math.abs(d) < 1e-12)).toBe(true);
   });
 });

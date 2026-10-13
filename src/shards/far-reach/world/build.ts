@@ -27,7 +27,7 @@ import { crownStorm, type CrownStorm } from './storm';
 import { STORM } from '../data/storm';
 import { updraftFx, type UpdraftFx } from '../runtime/looks/windFx';
 import { UPDRAFT_FX } from '../data/windLook';
-import { SUN_DIR } from '../look/sun';
+import { SKY_SUN } from '../data/skyLook';
 import { seaTexture } from '../look/cloudSea';
 import { GATE_ISLES, isletPieces, isletViews, type IsletViews } from './risingIslet';
 import { RISING_ISLETS } from './islets';
@@ -237,7 +237,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
   await pause();
   const stormTex = seaTexture(); ctx.scope.own(stormTex);
-  const storm = crownStorm(SUN_DIR, stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
+  const storm = crownStorm(new Vector3(...SKY_SUN), stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
 
   await pause();
   const islets = isletViews();

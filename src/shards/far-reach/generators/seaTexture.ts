@@ -1,12 +1,11 @@
-import { SUN_DIR } from '../look/sun';
-import { SEA } from '../look/cloudSea';
+import { SEA, SKY_SUN } from '../data/skyLook';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by scripts/bake-sky-world.mjs into data/seaTexture.json; the client
  * (look/cloudSea.ts seaTexture) uploads the bytes as the cloud sea's and the storm's small tileable cloud texture.
  *
  * R: density (a periodic fbm over the unit square, so it tiles seamlessly); G: lit (the side of a puff that faces the sun),
- * baked for the fixed sun's heading (look/sun.ts SUN_DIR, from the painted panorama).
+ * baked for the fixed sun's heading (data/skyLook.ts SKY_SUN, from the painted panorama).
  */
 
 function hash(x: number, y: number): number { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); }
@@ -37,5 +36,5 @@ function seaBytes(sun: { readonly x: number; readonly z: number }): Uint8Array {
 
 /** The texture's rows: its size and its RGBA bytes (base64). */
 export function bakeSkySeaTexture(): { size: number; rgba: string } {
-  return { size: SEA.size, rgba: btoa(String.fromCodePoint(...seaBytes(SUN_DIR))) };
+  return { size: SEA.size, rgba: btoa(String.fromCodePoint(...seaBytes({ x: SKY_SUN[0], z: SKY_SUN[2] }))) };
 }

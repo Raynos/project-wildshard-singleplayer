@@ -2,9 +2,9 @@ import { expect, it } from 'vitest';
 import { Scope } from '../../src/engine/app/scope';
 import { dataLookClock, DATA_LOOK_DAY } from '../../src/engine/render/dataLook';
 import { createSettings } from '../../src/engine/ui/Settings';
-import type { DayCycleClock } from '../../src/engine/world/dayCycle';
 import { bindClockSettings } from '../../src/game/session/clockSettings';
-import { createDay as skyDay } from '../../src/shards/far-reach/look/render';
+import { DayCycle, type DayCycleClock } from '../../src/engine/world/dayCycle';
+import { SKY_DAY } from '../../src/shards/far-reach/data/skyLook';
 import { signalDunesLook } from '../../src/shards/sunscar-dunes/look/render';
 import type { LookComposeContext, SkyBackdropContext } from '../../src/engine/render/look';
 import type { SkyRig } from '../../src/engine/world/skyRig';
@@ -24,7 +24,7 @@ it('applies the initial Developer time to the actual declared, Sky and Sun hour 
   if (sunLook.mode !== 'extend' || sunLook.backdrop === undefined) throw new Error('Missing Sun backdrop');
   sunLook.compose(legacyDouble<LookComposeContext>({ scope: sunScope, scene: new Scene(), engineChain: () => [] }));
   const sun = await sunLook.backdrop(legacyDouble<SkyBackdropContext>({ sky: legacyDouble<SkyRig>({}) }));
-  const clocks: [DayCycleClock, number][] = [[dataLookClock({ ...DATA_LOOK_DAY, start: 0.25 }, null), 17], [skyDay(), 17.5], [sun.clock, 18]];
+  const clocks: [DayCycleClock, number][] = [[dataLookClock({ ...DATA_LOOK_DAY, start: 0.25 }, null), 17], [new DayCycle(SKY_DAY), 17.5], [sun.clock, 18]];
   for (const [clock, golden] of clocks) {
     const scope = new Scope('resident-clock'), settings = picks(true);
     bindClockSettings(clock, scope, settings);
@@ -44,7 +44,7 @@ it('leaves authored starts and fixed overrides intact when Developer is off or t
     expect(clock.phase).toBe(override ?? 0.25); expect(clock.paused).toBe(override !== null);
     scope.dispose();
   }
-  const clock = skyDay(), scope = new Scope('sky-clock'), settings = picks(true);
+  const clock = new DayCycle(SKY_DAY), scope = new Scope('sky-clock'), settings = picks(true);
   settings.saveSetting('time', 'live'); bindClockSettings(clock, scope, settings);
   expect(clock.hour).toBe(17.5); expect(clock.paused).toBe(false); scope.dispose();
 });

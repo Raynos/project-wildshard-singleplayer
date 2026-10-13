@@ -3,7 +3,9 @@ import type { CardFieldRow, CardGroupRow, CardRow } from '@wildshard/sdk/looks/c
 import type { SkyCardRows } from '../data/skyCardsLook';
 import { ISLES, SPANS } from '../data/layout';
 import { SKY_ISLES } from '../data/skyIsles';
-import { SUN_DIR } from '../look/sun';
+import { SKY_SUN } from '../data/skyLook';
+
+const SUN_DIR = new Vector3(...SKY_SUN);
 
 /** The float32 bytes of `values`, base64 (a bake writes a field's attributes with it). */
 export function cardFloats(values: ArrayLike<number>): string {

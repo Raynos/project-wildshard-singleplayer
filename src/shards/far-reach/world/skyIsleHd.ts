@@ -5,7 +5,7 @@ import { SKY_ISLE_CLIP_EDITS, SKY_ISLE_ROCK, SKY_ISLE_ROCK_EDITS } from '../data
 import { SKY_ISLE_HD, SKY_ISLE_MODELS } from '../data/skyIsles';
 import { hdMaterial, skyHd } from './meshes';
 import FRAMES from '../data/skyIsleFrames.json' with { type: 'json' };
-import { SKY, SUN_DIR } from '../look/sun';
+import { SKY, SKY_SUN } from '../data/skyLook';
 
 /** A hex colour as a linear-space GLSL vec3 (the shader's output space before the post chain). */
 function linear(hex: number): string { const c = new Color(hex); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; }
@@ -49,7 +49,7 @@ export function skyIsleModels(placed: SkyIslePlacements, clipTop = false): Group
     // sandy-grey stone with darker crevices)
     patchShader(material, 'far.sky-isle-rock', PATCH_ORDER.decorate, (shader) => {
       editShader(shader, spliceEdits(clipTop ? [...SKY_ISLE_ROCK_EDITS, ...SKY_ISLE_CLIP_EDITS] : SKY_ISLE_ROCK_EDITS, { turf: clipTop ? '0.0' : SKY_ISLE_ROCK.turf,
-        sunX: SUN_DIR.x.toFixed(4), sunY: SUN_DIR.y.toFixed(4), sunZ: SUN_DIR.z.toFixed(4), shadeLo: SKY_ISLE_HD.shade[0].toFixed(2), shadeHi: SKY_ISLE_HD.shade[1].toFixed(2),
+        sunX: SKY_SUN[0].toFixed(4), sunY: SKY_SUN[1].toFixed(4), sunZ: SKY_SUN[2].toFixed(4), shadeLo: SKY_ISLE_HD.shade[0].toFixed(2), shadeHi: SKY_ISLE_HD.shade[1].toFixed(2),
         hazeColor: linear(SKY_ISLE_HAZE.color), hazeNear: SKY_ISLE_HAZE.near.toFixed(1), hazeSpan: (SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near).toFixed(1), hazeMax: SKY_ISLE_HAZE.max.toFixed(2) }));
     }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim-sun${clipTop ? '|clip' : ''}` });
     const mesh = new InstancedMesh(g, material, m.length / 16); mesh.name = `far.sky-isles.${name}`;

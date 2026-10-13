@@ -6,7 +6,7 @@ import { ISLES, type Isle } from '../data/layout';
 import PLACEMENTS from '../data/placements.json' with { type: 'json' };
 import { MEADOW, MEADOW_CARD, MEADOW_GLSL, MEADOW_PROGRAMS, SWARD } from '../data/meadowLook';
 import { apothem } from '../layout';
-import { FOG, SKY } from '../look/sun';
+import { SKY, SKY_FOG as FOG } from '../data/skyLook';
 import { SWARD_ATLAS } from '../data/swardAtlas';
 import { skySwardAtlas } from './baked';
 
