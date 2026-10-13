@@ -8,14 +8,15 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
+import { nalatiNativeAssets } from '../../proof/nalati-grasslands/nativeAssets';
 import { NALATI_ELITE_DEFS } from '../../../src/shards/nalati-grasslands/data/eliteEncounters';
-import { NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
 import { nalatiCreaturesOf } from '../../../src/shards/nalati-grasslands/runtime/headlessCreatures';
 import { nalatiElitesOf } from '../../../src/shards/nalati-grasslands/runtime/headlessElites';
 import { nalatiGroupsOf } from '../../../src/shards/nalati-grasslands/runtime/groups';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
-const assets = new Map([NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
+const assets = nalatiNativeAssets(source);
 const effects = { commands: () => [], emit: (): never => { throw new Error('dusk elite must not invent a reward'); } };
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); plan = await prepareHeadlessRuntime({ shard: source, assets, rapier }); });
 function boot(saved?: SimSnapshot): SimHost {

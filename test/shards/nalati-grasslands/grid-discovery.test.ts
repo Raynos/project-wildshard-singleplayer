@@ -7,6 +7,7 @@ import { NALATI_GRASSLANDS } from '../../../src/shards/nalati-grasslands/manifes
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { NALATI_RUNTIME_COST } from '../../../src/shards/nalati-grasslands/data/runtimeCost';
 import { NALATI_RUNTIME_SPAWNS } from '../../../src/shards/nalati-grasslands/data/spawns';
+import { nalatiDeclaredAssets } from '../../proof/nalati-grasslands/nativeAssets';
 
 const originalFetch = globalThis.fetch, originalNavigator = globalThis.navigator;
 afterEach(() => { vi.stubGlobal('fetch', originalFetch); vi.stubGlobal('navigator', originalNavigator); });
@@ -15,13 +16,18 @@ it('discovers Nalati grid data without changing its standalone descriptor or tru
   expect(NALATI_GRASSLANDS.shardfile).toBeUndefined();
   expect(NALATI_GRASSLANDS.gridShardfile).toBe('/shardfiles/nalati-grasslands/shard.json');
   expect(NALATI_GRASSLANDS.trustedRuntime).toEqual({ slug: source.identity.slug, entry: 'runtime/index.ts' });
-  const fetchSource = vi.fn(() => Promise.resolve(Response.json(source)));
+  // The shard.json, then each declared asset by hash (the navigation row's original WSNM bytes).
+  const declared = nalatiDeclaredAssets(source);
+  const fetchSource = vi.fn((url: string) => {
+    const bytes = declared.get(new URL(url).pathname.split('/').at(-1) ?? '');
+    return Promise.resolve(bytes === undefined ? Response.json(source) : new Response(Uint8Array.from(bytes)));
+  });
   vi.stubGlobal('fetch', fetchSource); vi.stubGlobal('navigator', { onLine: true });
   const allocator = new ResidencyAllocator(), scope = new Scope('grid.nalati.discovery');
   try {
     const product = await gridShardfileProduct('nalati-grasslands', { allocator, scope });
     if (product === null) throw new Error('Nalati grid declaration missing');
-    expect(fetchSource.mock.calls).toEqual([['http://localhost:5173/shardfiles/nalati-grasslands/shard.json']]);
+    expect(fetchSource.mock.calls).toEqual([['http://localhost:5173/shardfiles/nalati-grasslands/shard.json'], ...source.files.map(file => [`http://localhost:5173/shardfiles/nalati-grasslands/${file.hash}`])]);
     expect(product.options.firstParty).toBe(true);
     expect(product.admitted.source.runtime).toEqual({ entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels'], spawns: NALATI_RUNTIME_SPAWNS });
     expect(product.admitted.source.edge).toEqual(source.edge);

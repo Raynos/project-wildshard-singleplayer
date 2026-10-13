@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the admitted in-repository native terrain and navmesh.
 import { readFileSync } from 'node:fs';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
+import { nalatiNativeAssets } from './nativeAssets';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
-import { NALATI_NAVMESH_ASSET, NALATI_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
 import { nalatiTamingWitness } from './taming';
 import { canonicalSimDigest, sameBytes } from '../../fake/simState';
 
@@ -18,7 +19,7 @@ export const NALATI_WITNESS_GAPS = ['qyran', 'qara-and-night-roster', 'golden-ki
 export async function nalatiNativeWitness(replay: boolean, gameplay = true): Promise<object> {
   assert.equal(typeof window, 'undefined'); assert.equal(typeof document, 'undefined');
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  const assets = new Map([NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
+  const assets = nalatiNativeAssets(source);
   const plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
   const ports = { ...plan.ports, rapier };
   const effects = { commands: () => [], emit: (): never => { throw new Error('Partial native witness must not fabricate ledger ingress'); } };
@@ -71,6 +72,6 @@ export async function nalatiNativeWitness(replay: boolean, gameplay = true): Pro
 export async function nalatiTamingNativeWitness(): Promise<object> {
   assert.equal(typeof window, 'undefined'); assert.equal(typeof document, 'undefined');
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  const assets = new Map([NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
+  const assets = nalatiNativeAssets(source);
   return { compatible: false, taming: await nalatiTamingWitness(rapier, assets, true) };
 }

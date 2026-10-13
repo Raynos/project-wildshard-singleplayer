@@ -38,8 +38,6 @@ import { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BO
 
 /** The page's terrain grid, handed to the trusted runtime by path (the boot roster's ground, the bodies' height query). */
 export const NALATI_TERRAIN_ASSET = 'public/assets/baked/nalati-grasslands/terrain.bin';
-/** The page's baked navmesh (boot/files.ts), the creatures' paths and navmesh steering, handed over by path too. */
-export const NALATI_NAVMESH_ASSET = 'public/assets/baked/nalati-grasslands/navmesh.bin';
 /** The manifest's sun (manifest.ts `sky.sun`, test-pinned): the page's clock starts on it (world/installWeather.ts
  *  `clockForSun(def.sky.sun)`, 16.2 h, the day phase), so its first frame is the look the shard was painted with. */
 export const NALATI_SUN = { azimuth: 250, elevation: 26 } as const;
@@ -50,10 +48,11 @@ export function nalatiDayClock(): ReturnType<typeof clockForSun> { return clockF
 export function nalatiBootClock(clock: { readonly dayPhase: string }): NalatiBootClock { return { phase: clock.dayPhase, storm: false }; }
 
 const buffer = (bytes: Uint8Array): ArrayBuffer => { const copy = new ArrayBuffer(bytes.byteLength); new Uint8Array(copy).set(bytes); return copy; };
-/** The page's navmesh from its trusted bytes, in its own (authored) frame: this host shifts no level. */
+/** The creatures' paths and navmesh steering from the admitted navigation row's bytes (the page's same WSNM payload), in
+ *  its own (authored) frame: this host shifts no level. */
 export function nalatiNavmesh(bytes: Uint8Array | undefined): Navmesh {
   const nav = bytes === undefined ? null : parseNavmesh(buffer(bytes));
-  if (nav === null) throw new Error(`Nalati headless needs its baked navmesh (${NALATI_NAVMESH_ASSET})`);
+  if (nav === null) throw new Error('Nalati headless needs its admitted navigation asset');
   nav.datum = () => 0;
   return nav;
 }
@@ -290,7 +289,7 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets }) => {
   const raidDirector = await prepareNalatiRaidDirector();
   const bake = nalatiBake(), grid = nalatiTerrainGrid(assets.get(NALATI_TERRAIN_ASSET), shard.identity.seed), heightAt = bakedSamplers(grid).heightAt;
-  const nav = nalatiNavmesh(assets.get(NALATI_NAVMESH_ASSET));
+  const nav = nalatiNavmesh(shard.navigation === null ? undefined : assets.get(shard.navigation.file));
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: NALATI_GROUND_SIZE, height: 0 },
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     // the host's player strike is a zero-damage probe, never the sabre or the bow: the weapons are declared items (data/items.ts)

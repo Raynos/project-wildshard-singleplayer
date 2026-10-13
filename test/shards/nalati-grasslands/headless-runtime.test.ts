@@ -10,8 +10,9 @@ import { restoreSimHost, snapshotSimHost, type SimSnapshot } from '../../../src/
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
+import { nalatiNativeAssets } from '../../proof/nalati-grasslands/nativeAssets';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
-import { NALATI_NAVMESH_ASSET, NALATI_SUN, NALATI_TERRAIN_ASSET, nalatiDayClock, nalatiLightningGround, nalatiWeatherOf, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { NALATI_SUN, nalatiDayClock, nalatiLightningGround, nalatiWeatherOf, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
 import { Wind } from '../../../src/engine/world/steppeWind';
 import { lightLevel } from '../../../src/shards/nalati-grasslands/look/wildLight';
 import { exposeTrees, steppeStorm, stepStorm, stormWind, yurtShelters } from '../../../src/shards/nalati-grasslands/world/weatherStep';
@@ -25,7 +26,7 @@ import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import { KNOCKDOWN_TIME } from '../../../src/shards/nalati-grasslands/creatures/knockdown';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
-const assets = new Map([NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
+const assets = nalatiNativeAssets(source);
 beforeAll(async () => {
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });

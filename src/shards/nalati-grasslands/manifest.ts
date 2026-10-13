@@ -1,3 +1,4 @@
+import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { COMPARE } from './explore/compare';
 import exploreHorse from './explore/playground-horse.webp';
 import { NALATI_BUDGET_INPUTS } from './budgets';
@@ -85,6 +86,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   ground: { terrain: TERRAIN, paths: 'plugin', water: [basinBody('river', TERRAIN)] },
   // Herds avoid the full river corridor and brook; roads carry them onto the registered bridge.
   navmesh: { excludeGroundAt: (x, z, y) => y <= TERRAIN.waterLevel() + 0.25 || (nalatiWetAt(x, z) && TERRAIN.trailDistance(x, z) > 3.5) },
+  navigation: { row: navigation.navigation, url: navigation.url },
 
   // the painterly terrain loads none of these (it paints itself); they satisfy the PBR contract
   assets: {

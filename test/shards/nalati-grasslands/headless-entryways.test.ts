@@ -6,11 +6,12 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { groups } from '../../../src/engine/physics/groups';
 import { withOwner } from '../../../src/engine/app/ownership';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
-import { NALATI_NAVMESH_ASSET, NALATI_TERRAIN_ASSET, prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { nalatiNativeAssets } from '../../proof/nalati-grasslands/nativeAssets';
+import { prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
 import { proveNalatiEntryways } from '../../../src/shards/nalati-grasslands/runtime/headlessEntryways';
 
 let rapier: Rapier;
-const assets = new Map([NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
+const assets = nalatiNativeAssets(source);
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
 
 it('walks all 92 native lanes beyond each flat socket and refuses a real barrier without leaking a capsule', async () => {

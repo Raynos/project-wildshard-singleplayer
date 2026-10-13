@@ -5,11 +5,12 @@ import { createSimHost, type SimCommand, type SimHost, type SimPlayerMotionSampl
 import { snapshotSimHost, restoreSimHost } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
-import { prepareHeadlessRuntime, NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
 import { nalatiMountedOf } from '../../../src/shards/nalati-grasslands/runtime/headlessMounted';
 import { nalatiGroupsOf } from '../../../src/shards/nalati-grasslands/runtime/groups';
 import { HITCH_HORSE_SPOTS } from '../../../src/shards/nalati-grasslands/world/layout';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
+import { nalatiNativeAssets } from '../../proof/nalati-grasslands/nativeAssets';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
 import { RIVER, TERRAIN } from '../../../src/shards/nalati-grasslands/world/terrain';
 import { basinBody } from '../../../src/engine/world/water/body';
@@ -19,7 +20,7 @@ let rapier: Rapier, plan: HeadlessRuntimePlan;
 const effects = { commands: () => [], emit: () => { throw new Error('This mounted slice emits no quest rewards'); } };
 beforeAll(async () => {
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  const assets = new Map([NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
+  const assets = nalatiNativeAssets(source);
   plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
 });
 const campIds = nalatiBake().spawns.filter(row => HITCH_HORSE_SPOTS.some(p => p.x === row.at[0] && p.z === row.at[2])).map(row => row.id);

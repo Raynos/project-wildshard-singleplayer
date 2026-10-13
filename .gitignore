@@ -157,3 +157,5 @@ src/**/*.generated.*
 # Driftwood declared navigation: cheap generated asset, retained input has navigation- prefix.
 /src/shards/driftwood-isle/assets/c5185248a44d1f5c20c129e6bc25785ff6c1a81206f19f162d32cfe77131b464
 /public/assets/pine-hollow/baked/undergrowth.glb
+# Nalati declared navigation: cheap generated asset, retained input has navigation- prefix.
+/src/shards/nalati-grasslands/assets/223ce1ab45d736c5fb526308cb86bc6d61bdeb482ac886a7d47306fd5a8c41b5

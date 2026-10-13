@@ -8,7 +8,7 @@ import { HeadlessSimulation } from '../../../src/sdk/headless';
 import { canonicalSimDigest } from '../../fake/simState';
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 import type { HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
-import { prepareHeadlessRuntime, NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET } from '../../../src/shards/nalati-grasslands/runtime/headless';
+import { prepareHeadlessRuntime } from '../../../src/shards/nalati-grasslands/runtime/headless';
 import { nalatiCreaturesOf } from '../../../src/shards/nalati-grasslands/runtime/headlessCreatures';
 import { nalatiMountedOf } from '../../../src/shards/nalati-grasslands/runtime/headlessMounted';
 import { nalatiTamingOf } from '../../../src/shards/nalati-grasslands/runtime/headlessTaming';
@@ -20,6 +20,7 @@ import { nalatiSpawnSpecies } from '../../../src/shards/nalati-grasslands/runtim
 import { Rng } from '../../../src/engine/core/rng';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
+import { nalatiDeclaredAssets, nalatiNativeAssets } from '../../proof/nalati-grasslands/nativeAssets';
 
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 let bondedHost: SimHost | null = null;
@@ -30,7 +31,7 @@ let commands: readonly HeadlessCommand[] = [];
 const effects = { commands: () => commands, emit: () => { throw new Error('Taming does not invent quest facts'); } };
 beforeAll(async () => {
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  const assets = new Map([NALATI_TERRAIN_ASSET, NALATI_NAVMESH_ASSET].map(path => [path, new Uint8Array(readFileSync(path))] as const));
+  const assets = nalatiNativeAssets(source);
   plan = await prepareHeadlessRuntime({ shard: source, assets, rapier });
 });
 function manager(host: SimHost) { const value = nalatiCreaturesOf(host); if (value === undefined) throw new Error('Missing actual manager'); return value; }
@@ -171,7 +172,7 @@ it('resumes the real mid-buck checkpoint in the shipping worker across all nativ
   const at = first.level.player.at;
   const fixture = { ...source, spawn: { x: at.x, y: at.y, z: at.z, yaw: 0 } };
   // The explicit transport adapter supplies unchanged native terrain/navmesh bytes; it replaces no gameplay owner.
-  const worker = await HeadlessSimulation.create(fixture, new Map(), serializeSimSnapshot(saved), {
+  const worker = await HeadlessSimulation.create(fixture, nalatiDeclaredAssets(source), serializeSimSnapshot(saved), {
     deadline: 'advisory', trustedRuntime: { module: new URL('../../proof/nalati-grasslands/worker.ts', import.meta.url).href },
   });
   try {
