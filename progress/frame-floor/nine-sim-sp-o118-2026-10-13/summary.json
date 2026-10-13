@@ -1,0 +1,450 @@
+{
+  "lane": "sp-o118",
+  "date": "2026-10-13",
+  "command": "node scripts/frame-floor.mjs --shards=grid --grid-scenario=milestone --devserver --grid-routes=nine-dragon-stack-road-entry --surface=sim|both --rev=<sha>",
+  "gates": {
+    "sim": {
+      "p95Ms": 35,
+      "maxMs": 200
+    },
+    "desktop": {
+      "p95Ms": 17.5,
+      "maxMs": 100
+    }
+  },
+  "runs": [
+    {
+      "sha": "a629653cd",
+      "build": "HEAD (near tier on, 45a8bd0e3)",
+      "surface": "sim",
+      "when": "2026-10-13T12:06:17.430Z",
+      "safariProfile": false,
+      "pass": false,
+      "spawn": {
+        "p95Ms": 37,
+        "maxMs": 69
+      },
+      "travel": {
+        "p95Ms": 41,
+        "p99Ms": 45,
+        "maxMs": 93
+      },
+      "wholeDrive": {
+        "p95Ms": 34,
+        "p99Ms": 48,
+        "maxMs": 196,
+        "over50Ms": 5,
+        "longFrameHooks": [
+          {
+            "hook": "nine-dragon-stack:world",
+            "frames": 3,
+            "maxMs": 93,
+            "totalMs": 244
+          },
+          {
+            "hook": "nine-dragon-stack:activate",
+            "frames": 1,
+            "maxMs": 196,
+            "totalMs": 196
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 53,
+            "totalMs": 53
+          }
+        ]
+      },
+      "interior": {
+        "p95Ms": 34,
+        "maxMs": 38
+      }
+    },
+    {
+      "sha": "fa33af75d",
+      "build": "after (fa33af75d)",
+      "surface": "desktop",
+      "when": "2026-10-13T12:11:30.655Z",
+      "safariProfile": false,
+      "pass": true,
+      "spawn": {
+        "p95Ms": 16.7,
+        "maxMs": 16.8
+      },
+      "travel": {
+        "p95Ms": 16.8,
+        "p99Ms": 16.8,
+        "maxMs": 33.3
+      },
+      "wholeDrive": {
+        "p95Ms": 16.8,
+        "p99Ms": 33.3,
+        "maxMs": 50,
+        "over50Ms": 0,
+        "longFrameHooks": []
+      },
+      "interior": {
+        "p95Ms": 16.7,
+        "maxMs": 16.8
+      }
+    },
+    {
+      "sha": "fa33af75d",
+      "build": "after (fa33af75d)",
+      "surface": "sim",
+      "when": "2026-10-13T12:11:30.655Z",
+      "safariProfile": false,
+      "pass": true,
+      "spawn": {
+        "p95Ms": 34,
+        "maxMs": 37
+      },
+      "travel": {
+        "p95Ms": 34,
+        "p99Ms": 45,
+        "maxMs": 88
+      },
+      "wholeDrive": {
+        "p95Ms": 34,
+        "p99Ms": 45,
+        "maxMs": 96,
+        "over50Ms": 5,
+        "longFrameHooks": [
+          {
+            "hook": "nine-dragon-stack:world",
+            "frames": 2,
+            "maxMs": 88,
+            "totalMs": 139
+          },
+          {
+            "hook": "nine-dragon-stack:activate",
+            "frames": 1,
+            "maxMs": 96,
+            "totalMs": 96
+          },
+          {
+            "hook": "nine-dragon-stack:constructor",
+            "frames": 1,
+            "maxMs": 79,
+            "totalMs": 79
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 51,
+            "totalMs": 51
+          }
+        ]
+      },
+      "interior": {
+        "p95Ms": 34,
+        "maxMs": 35
+      }
+    },
+    {
+      "sha": "d6e957e42",
+      "build": "before (fa33af75d^ = d6e957e42, contains 77bfbba70)",
+      "surface": "sim",
+      "when": "2026-10-13T12:17:59.612Z",
+      "safariProfile": false,
+      "pass": true,
+      "spawn": {
+        "p95Ms": 34,
+        "maxMs": 39
+      },
+      "travel": {
+        "p95Ms": 34,
+        "p99Ms": 34,
+        "maxMs": 88
+      },
+      "wholeDrive": {
+        "p95Ms": 34,
+        "p99Ms": 41,
+        "maxMs": 88,
+        "over50Ms": 4,
+        "longFrameHooks": [
+          {
+            "hook": "nine-dragon-stack:world",
+            "frames": 1,
+            "maxMs": 88,
+            "totalMs": 88
+          },
+          {
+            "hook": "nine-dragon-stack:activate",
+            "frames": 1,
+            "maxMs": 87,
+            "totalMs": 87
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 69,
+            "totalMs": 69
+          },
+          {
+            "hook": "nine-dragon-stack:constructor",
+            "frames": 1,
+            "maxMs": 67,
+            "totalMs": 67
+          }
+        ]
+      },
+      "interior": {
+        "p95Ms": 34,
+        "maxMs": 34
+      }
+    },
+    {
+      "sha": "d6e957e42",
+      "build": "before (fa33af75d^ = d6e957e42, contains 77bfbba70)",
+      "surface": "sim",
+      "when": "2026-10-13T12:24:55.003Z",
+      "safariProfile": false,
+      "pass": true,
+      "spawn": {
+        "p95Ms": 35,
+        "maxMs": 46
+      },
+      "travel": {
+        "p95Ms": 34,
+        "p99Ms": 39,
+        "maxMs": 88
+      },
+      "wholeDrive": {
+        "p95Ms": 34,
+        "p99Ms": 41,
+        "maxMs": 98,
+        "over50Ms": 3,
+        "longFrameHooks": [
+          {
+            "hook": "nine-dragon-stack:activate",
+            "frames": 1,
+            "maxMs": 98,
+            "totalMs": 98
+          },
+          {
+            "hook": "nine-dragon-stack:world",
+            "frames": 1,
+            "maxMs": 88,
+            "totalMs": 88
+          },
+          {
+            "hook": "nine-dragon-stack:constructor",
+            "frames": 1,
+            "maxMs": 77,
+            "totalMs": 77
+          }
+        ]
+      },
+      "interior": {
+        "p95Ms": 34,
+        "maxMs": 34
+      }
+    },
+    {
+      "sha": "fa33af75d",
+      "build": "after (fa33af75d)",
+      "surface": "sim",
+      "when": "2026-10-13T12:30:58.744Z",
+      "safariProfile": true,
+      "pass": false,
+      "spawn": {
+        "p95Ms": 37,
+        "maxMs": 46
+      },
+      "travel": {
+        "p95Ms": 36,
+        "p99Ms": 43,
+        "maxMs": 86
+      },
+      "wholeDrive": {
+        "p95Ms": 36,
+        "p99Ms": 49,
+        "maxMs": 102,
+        "over50Ms": 6,
+        "longFrameHooks": [
+          {
+            "hook": "nine-dragon-stack:world",
+            "frames": 4,
+            "maxMs": 86,
+            "totalMs": 280
+          },
+          {
+            "hook": "between hooks",
+            "frames": 1,
+            "maxMs": 102,
+            "totalMs": 102
+          },
+          {
+            "hook": "nine-dragon-stack:activate",
+            "frames": 1,
+            "maxMs": 95,
+            "totalMs": 95
+          }
+        ]
+      },
+      "interior": {
+        "p95Ms": 34,
+        "maxMs": 34
+      }
+    },
+    {
+      "sha": "fa33af75d",
+      "build": "after (fa33af75d)",
+      "surface": "sim",
+      "when": "2026-10-13T12:34:43.642Z",
+      "safariProfile": false,
+      "pass": true,
+      "spawn": {
+        "p95Ms": 35,
+        "maxMs": 42
+      },
+      "travel": {
+        "p95Ms": 34,
+        "p99Ms": 40,
+        "maxMs": 99
+      },
+      "wholeDrive": {
+        "p95Ms": 34,
+        "p99Ms": 45,
+        "maxMs": 106,
+        "over50Ms": 3,
+        "longFrameHooks": [
+          {
+            "hook": "nine-dragon-stack:activate",
+            "frames": 1,
+            "maxMs": 106,
+            "totalMs": 106
+          },
+          {
+            "hook": "nine-dragon-stack:world",
+            "frames": 1,
+            "maxMs": 99,
+            "totalMs": 99
+          },
+          {
+            "hook": "nine-dragon-stack:constructor",
+            "frames": 1,
+            "maxMs": 60,
+            "totalMs": 60
+          }
+        ]
+      },
+      "interior": {
+        "p95Ms": 34,
+        "maxMs": 39
+      }
+    },
+    {
+      "sha": "a629653cd",
+      "build": "HEAD (near tier on, 45a8bd0e3)",
+      "surface": "sim",
+      "when": "2026-10-13T12:40:00.229Z",
+      "safariProfile": false,
+      "pass": true,
+      "spawn": {
+        "p95Ms": 34,
+        "maxMs": 42
+      },
+      "travel": {
+        "p95Ms": 34,
+        "p99Ms": 35,
+        "maxMs": 84
+      },
+      "wholeDrive": {
+        "p95Ms": 34,
+        "p99Ms": 46,
+        "maxMs": 84,
+        "over50Ms": 5,
+        "longFrameHooks": [
+          {
+            "hook": "nine-dragon-stack:world",
+            "frames": 3,
+            "maxMs": 84,
+            "totalMs": 192
+          },
+          {
+            "hook": "nine-dragon-stack:activate",
+            "frames": 1,
+            "maxMs": 76,
+            "totalMs": 76
+          },
+          {
+            "hook": "nine-dragon-stack:constructor",
+            "frames": 1,
+            "maxMs": 73,
+            "totalMs": 73
+          }
+        ]
+      },
+      "interior": {
+        "p95Ms": 34,
+        "maxMs": 34
+      }
+    }
+  ],
+  "parity": {
+    "tool": "scripts/proof-nine-layout-parity.mjs, DEVSERVER previews, iPhone 16 Pro DPR2 Metal, phone + desktop tiers, poses A/B/C",
+    "before": "d6e957e-mv6nsexh",
+    "after": "fa33af7-mv6n966j",
+    "verdict": "identical on 6 poses (pixels, draws, triangles), GPU bytes, colliders, programs; CPU backing bytes did not rise"
+  },
+  "witnesses": {
+    "tree": "clean git-archive export of 313de0199 (Nine sources equal fa33af75d), node scripts/gen.mjs, linked node_modules",
+    "nineProof": "test/proof/nine-dragon-stack/ 5 files / 7 tests pass (checkpoints, grid-ready, headless, ledger, replay)",
+    "oracles": "test/shards/nine-dragon-stack/glyph-field.test.ts + vertex-spill.test.ts 2 files / 8 tests pass"
+  },
+  "safariProfile": {
+    "run": "fa33af75d sim with --safari-profile (diagnostic, no timing credit; a parity browser overlapped part of it)",
+    "window": "whole Nine road-entry drive, 20.2 s page window, 3499 JSC samples (~1 ms interval, so samples ~ ms of main-thread JS)",
+    "nineWorldHookOwners": [
+      {
+        "owner": "vertexSpill bakeSpill (runtime/looks/vertexSpill.ts)",
+        "samples": 463,
+        "self": 300
+      },
+      {
+        "owner": "WholeGeometryAssembler tile reads (game/plugin/geometry.ts add/finish)",
+        "samples": 318
+      },
+      {
+        "owner": "glyphField prepare (runtime/signs/glyphField.ts; fillText + getImageData 81)",
+        "samples": 145
+      },
+      {
+        "owner": "layoutBake prepare/copy (world/layoutBake.ts)",
+        "samples": 112
+      },
+      {
+        "owner": "lightVolume (runtime/looks/lightVolume.ts)",
+        "samples": 60
+      },
+      {
+        "owner": "kitConvert + sweptKit (runtime/kit/)",
+        "samples": 84
+      },
+      {
+        "owner": "paintArray getImageData (runtime/looks/paintArray.ts)",
+        "samples": 31
+      }
+    ],
+    "otherOwners": [
+      {
+        "owner": "engine render precompile (texSubImage2D 57)",
+        "samples": 171
+      },
+      {
+        "owner": "engine compressedUpload",
+        "samples": 142
+      },
+      {
+        "owner": "game grid cellScreen (texSubImage2D 91)",
+        "samples": 165
+      },
+      {
+        "owner": "game shardfile clientScripts step",
+        "samples": 66
+      }
+    ]
+  }
+}
