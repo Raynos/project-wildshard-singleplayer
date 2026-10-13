@@ -5,8 +5,14 @@
  * (../world/undergrowth.ts `UNDER_SHAPES`) and never runs this. test/shards/pine-hollow/undergrowth-bake.test.ts is the
  * stale gate. Each shape's stream is the level seed's (1337, the page's engine SEED while the floor builds) + 606 / 607 / 608.
  */
-import { Rng } from '@wildshard/engine/core/rng';
-import type { UnderShape, UnderShapes } from '../world/undergrowthKit';
+import * as THREE from 'three';
+import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
+import { PineSeedStream as Rng } from './seedStream';
+
+/** Original Float32-exact shape channels, retained beside the standard GLB for the native field. */
+export interface UnderShape { position: number[]; normal: number[]; uv: number[]; index: number[] }
+/** The six authored forest-floor models, in the original field order. */
+export type UnderShapes = Record<'ferns' | 'shrubs' | 'litter' | 'stones' | 'moss' | 'reeds', UnderShape>;
 
 /** Pine Hollow's level seed (manifest.ts `seed`): the page's engine SEED while the undergrowth builds */
 export const PINE_SEED = 1337;
@@ -120,4 +126,37 @@ export function bakePineUndergrowth(): UnderShapes {
     ferns: buildFernGeometry(), shrubs: buildShrubGeometry(), litter: buildLitterGeometry(1.4), stones: buildLitterGeometry(0.9),
     moss: buildLitterGeometry(1.0), reeds: buildReedGeometry(),
   };
+}
+
+/** Local-space plant models; the native forest field continues to own their real world placements. */
+export function pineUndergrowthScene(): THREE.Scene {
+  const scene = new THREE.Scene(); scene.name = 'pine-hollow.undergrowth';
+  const material = new THREE.MeshStandardMaterial({ roughness: 1, side: THREE.DoubleSide });
+  const kinds = Object.entries(bakePineUndergrowth()).map(([name, shape]) => {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(shape.position, 3));
+    geometry.setAttribute('normal', new THREE.Float32BufferAttribute(shape.normal, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(shape.uv, 2));
+    geometry.setIndex(new THREE.Uint16BufferAttribute(shape.index, 1));
+    const mesh = new THREE.InstancedMesh(geometry, material, 1);
+    mesh.setMatrixAt(0, new THREE.Matrix4());
+    return [name, mesh] as const;
+  });
+  scene.add(new BakedPiece('pine.undergrowth', kinds, [], { compactIndex: true }));
+  return scene;
+}
+
+/** Central scene bake of the field's shape library, with no invented static plant instances. */
+export function pineUndergrowthBake(project?: string): BakedScene {
+  const scene = pineUndergrowthScene();
+  try {
+    return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project });
+  } finally {
+    for (const piece of scene.children) for (const mesh of piece.children) {
+      if (!(mesh instanceof THREE.InstancedMesh)) continue;
+      const geometry: unknown = mesh.geometry, material: unknown = mesh.material;
+      if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
+      if (material instanceof THREE.Material) material.dispose();
+    }
+  }
 }

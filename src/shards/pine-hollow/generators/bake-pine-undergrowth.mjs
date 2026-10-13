@@ -3,12 +3,17 @@
 // (src/shards/pine-hollow/generators/undergrowth.ts) runs here only and writes every kind's geometry (Float32-exact
 // positions, normals and uvs, the triangles) to src/shards/pine-hollow/data/undergrowth.json, which the page builds them
 // from (src/shards/pine-hollow/world/undergrowth.ts). test/shards/pine-hollow/undergrowth-bake.test.ts is the stale gate.
-// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs
-import { writeFileSync } from 'node:fs';
+// Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { bakePineUndergrowth } from './undergrowth.ts';
+import { bakePineUndergrowth, pineUndergrowthBake } from './undergrowth.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const shapes = bakePineUndergrowth();
+const baked = pineUndergrowthBake(root), piece = baked.pieces.find(part => part.name === 'pine.undergrowth');
+if (piece === undefined) throw new Error('Undergrowth author scene omitted its library');
+const out = resolve(root, 'public/assets/pine-hollow/baked');
+mkdirSync(out, { recursive: true });
+writeFileSync(resolve(out, 'undergrowth.glb'), piece.glb);
 writeFileSync(resolve(root, 'src/shards/pine-hollow/data/undergrowth.json'), `${JSON.stringify(shapes)}\n`);
 console.info(`pine-hollow undergrowth: ${Object.entries(shapes).map(([kind, s]) => `${kind} ${String(s.position.length / 3)} v`).join(', ')} (data/undergrowth.json)`);

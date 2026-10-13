@@ -1165,33 +1165,31 @@
       "command": [
         "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
-        "--import",
-        "./scripts/generation-level.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs",
-        "--generation-shard=pine-hollow"
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs"
       ],
       "inputRoots": [
-        "src/engine",
-        "src/game",
         "src/sdk",
+        "src/format",
         "src/commons",
-        "src/shards/pine-hollow",
-        "scripts/bake-loader.mjs",
-        "scripts/bake",
+        "src/shards/pine-hollow/generators/undergrowth.ts",
+        "src/shards/pine-hollow/generators/seedStream.ts",
+        "src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "public/assets/baked/pine-hollow/terrain.bin",
-        "scripts/generation-level.mjs"
+        "pnpm-workspace.yaml"
       ],
       "outputs": [
-        "src/shards/pine-hollow/data/undergrowth.json"
+        "src/shards/pine-hollow/data/undergrowth.json",
+        "public/assets/pine-hollow/baked/undergrowth.glb"
       ],
       "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/undergrowth.json"
-      ]
+      ],
+      "buildOutputs": {
+        "public/assets/pine-hollow/baked/undergrowth.glb": "11cb0850015989bb95ab2497f395b8d3e34a889332d684ce8c36a4cf32113984"
+      }
     },
     {
       "id": "pine-wildlife",
