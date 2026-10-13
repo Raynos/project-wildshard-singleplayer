@@ -3893,3 +3893,11 @@ these declarations; frozen manifests remain callable.
 These are native level boot rows, not a second untrusted asset-admission
 path. A compiled shardfile's files must still pass its content and cost
 admission before the data client can read them.
+
+`MoverScriptDriver.compose(content, assets, ports, brains?, permissions?,
+{ roles, schedules? })` joins additional trusted item or other roles into
+the existing mover composition. Their handles, module bytes and optional
+schedules share the same aggregate entity, effect, event and fuel limits.
+Owner provenance remains local to each role. Omitting the last argument
+preserves the previous role order and continuation bytes; no second host
+or fixed tick is created.

@@ -290,11 +290,13 @@ export class MoverScriptDriver {
       },
     };
   }
-  /** Compose the admitted role with numeric and optional brain roles, under one host's aggregate allowances. */
+  /** Compose numeric, mover and optional trusted roles under one host's aggregate allowances.
+   * Extra roles retain their own owner grants and event policy; omitted roles preserve the existing continuation. */
   compose(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts,
-    brains?: DeclaredScriptBrainPorts, permissions: () => ReadonlyMap<string, number> = () => new Map()): ReturnType<typeof createShardfileComposedLane> {
-    return createShardfileComposedLane(content, assets, ports, brains, { roles: [this.role()], transientModules: this.transientModules,
-      schedules: [this.schedule(() => { if (this.runtime === undefined) throw new Error('Missing mover runtime'); return this.runtime; }, permissions)] });
+    brains?: DeclaredScriptBrainPorts, permissions: () => ReadonlyMap<string, number> = () => new Map(),
+    extra?: { roles: readonly ScriptRole[]; schedules?: readonly ScriptSchedule[] }): ReturnType<typeof createShardfileComposedLane> {
+    return createShardfileComposedLane(content, assets, ports, brains, { roles: [this.role(), ...(extra?.roles ?? [])], transientModules: this.transientModules,
+      schedules: [this.schedule(() => { if (this.runtime === undefined) throw new Error('Missing mover runtime'); return this.runtime; }, permissions), ...(extra?.schedules ?? [])] });
   }
   /** Attach native handles to the same host; an explicit drive owns one fixed tick, never another script host. */
   install(sim: SimHost, lane: ReturnType<typeof createShardfileComposedLane>, options: { id: string; restoring?: boolean; activation?: MoverActivationPorts; drive?: boolean }): MoverRuntime {
