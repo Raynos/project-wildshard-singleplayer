@@ -10,7 +10,7 @@
 import { CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, POND, type XZ } from '../data/layout';
 import { creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt } from '../behaviour/layout';
 import * as THREE from 'three';
-import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
+import { bake, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
 
 /** Original renderer queries, supplied explicitly instead of installing a mutable page field. */
@@ -191,16 +191,15 @@ export function pineStreamGeometry(ground: PineStreamGround): THREE.BufferGeomet
   geometry.computeBoundingBox(); geometry.computeBoundingSphere(); return geometry;
 }
 
-/** One original water shape with its real edge overhang; no clipped vertices, collision or invented water simulation. */
+/** The full water draw on centroid-owned tiles, with its declared one-metre visual edge allowance. */
 export function pineStreamScene(ground: PineStreamGround): THREE.Scene {
   const scene = new THREE.Scene(); scene.name = 'pine-hollow.streams';
   const geometry = pineStreamGeometry(ground), material = new THREE.MeshStandardMaterial({ roughness: 1 });
-  const mesh = new THREE.InstancedMesh(geometry, material, 1); mesh.setMatrixAt(0, new THREE.Matrix4());
-  scene.add(new BakedPiece('pine.streams', [['stream', mesh]], [], { nativeAttributes: true, compactIndex: true }));
+  scene.add(new WholeShape('pine-streams', new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: true, overhang: 1 }));
   return scene;
 }
 
-/** Central Scene bake of the original single water shape; full tile admission must preserve its real edge overhang. */
+/** Central Scene bake; the shared reader reconstructs the unchanged single original draw from all admitted subsets. */
 export function pineStreamBake(ground: PineStreamGround, project?: string): BakedScene {
   const scene = pineStreamScene(ground);
   try { return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project }); }

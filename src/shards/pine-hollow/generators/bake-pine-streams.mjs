@@ -32,10 +32,9 @@ if (import.meta.main) {
   mkdirSync(out, { recursive: true });
   const packed = deflateSync(shuffleLanes(bin), { level: 9 });
   writeFileSync(resolve(out, 'streams.bin'), packed);
-  const piece = authored.pieces.find(part => part.name === 'pine.streams');
-  if (piece === undefined) throw new Error('Stream author scene omitted its original draw');
-  writeFileSync(resolve(out, 'streams.glb'), piece.glb);
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/streamsScene.generated.json'), `${JSON.stringify({ scene: authored.sceneHash, glb: createHash('sha256').update(piece.glb).digest('hex'), kinds: piece.kinds, rows })}\n`);
+  const tiled = resolve(out, 'streams'); mkdirSync(tiled, { recursive: true });
+  for (const [hash, bytes] of authored.assets) writeFileSync(resolve(tiled, `${hash}.glb`), bytes);
+  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/streamsScene.generated.json'), `${JSON.stringify({ scene: authored.sceneHash, props: authored.props?.props, shardfile: authored.shardfile, rows })}\n`);
   writeFileSync(resolve(root, 'src/shards/pine-hollow/data/streams.json'), `${JSON.stringify(rows)}\n`);
   console.info(`pine-hollow streams: ${String(rows.vertices)} vertices, ${String(rows.indices / 3)} triangles, ${String(bin.length)} → ${String(packed.length)} zlib (baked/streams.bin, ${rows.bin.slice(0, 12)})`);
 }

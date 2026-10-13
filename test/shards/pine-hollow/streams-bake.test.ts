@@ -7,7 +7,7 @@ import { inflateSync } from 'node:zlib';
 import { Buffer } from 'node:buffer';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { nativeWholeGeometry, unshuffleLanes } from '@wildshard/game/plugin/geometry';
+import { assembleWholeGeometryViews, unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import { pineStreamBake } from '../../../src/shards/pine-hollow/generators/streams';
 import { STREAM_ROWS, streamGeometry } from '../../../src/shards/pine-hollow/world/streams';
 import committed from '../../../src/shards/pine-hollow/data/streams.json' with { type: 'json' };
@@ -35,18 +35,22 @@ describe('Pine Hollow bakes its running water offline (G285)', () => {
 });
 
 
-it('bakes the real water shape and retains its native channels, triangles and cell-edge overhang exactly', async () => {
-  const authored = pineStreamBake(pineStreamGround()), piece = authored.pieces[0];
-  if (piece === undefined) throw new Error('Original water shape missing');
-  expect(authored.colliders).toEqual({ scene: [], props: [], pieces: [{ piece: 'pine.streams', colliders: [] }] });
-  expect(authored.shardfile.tiles).toHaveLength(0); // Original overhang must be admitted deliberately; no fake tiles.
-  const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(piece.glb).buffer, '');
-  const nodes: THREE.Mesh[] = [];
+it('bakes the actual water draw onto tiles and reconstructs all original channels and overhang vertices exactly', async () => {
+  const authored = pineStreamBake(pineStreamGround()), props = authored.props;
+  if (props === null) throw new Error('Water draw missing');
+  expect(props.props.overhang).toBe(1); expect(authored.shardfile.tiles.length).toBeGreaterThan(1);
+  expect(authored.colliders).toEqual({ scene: [], props: [], pieces: [] });
+  const refs = new Set(props.props.tiles.flatMap(tile => [tile.file].concat(tile.additionalFiles ?? []))), nodes: THREE.Mesh[] = [];
   const isMesh = (node: THREE.Object3D): node is THREE.Mesh => node instanceof THREE.Mesh;
-  loaded.scene.traverse(node => { if (isMesh(node)) nodes.push(node); });
-  expect(nodes).toHaveLength(1);
-  const node = nodes[0]; if (node === undefined) throw new Error('Original draw missing');
-  const original = streamGeometry(shipped()), actual = nativeWholeGeometry(node);
+  for (const ref of refs) {
+    const bytes = authored.assets.get(ref); if (bytes === undefined) throw new Error('Water subset missing');
+    const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
+    loaded.scene.traverse(node => { if (isMesh(node)) nodes.push(node); });
+  }
+  const assembled = assembleWholeGeometryViews(nodes), shape = assembled.get('pine-streams');
+  if (shape === undefined) throw new Error('Original water draw missing');
+  expect(assembled.size).toBe(1); expect(shape.matrix.equals(new THREE.Matrix4())).toBe(true);
+  const original = streamGeometry(shipped()), actual = shape.geometry;
   expect(Object.keys(actual.attributes).sort()).toEqual(Object.keys(original.attributes).sort());
   for (const name of Object.keys(original.attributes)) {
     const a = actual.getAttribute(name), b = original.getAttribute(name);
@@ -58,4 +62,6 @@ it('bakes the real water shape and retains its native channels, triangles and ce
   expect(a.array.constructor).toBe(b.array.constructor);
   expect(Buffer.from(a.array.buffer, a.array.byteOffset, a.array.byteLength).equals(new Uint8Array(b.array.buffer, b.array.byteOffset, b.array.byteLength))).toBe(true);
   actual.computeBoundingBox(); expect(actual.boundingBox?.min.z).toBe(-250.98057556152344);
+  expect(() => assembleWholeGeometryViews(nodes.slice(1))).toThrow(/incomplete/u);
+  expect(() => assembleWholeGeometryViews([...nodes, ...nodes])).toThrow(/duplicate/u);
 });

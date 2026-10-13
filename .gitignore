@@ -162,3 +162,4 @@ src/**/*.generated.*
 /src/shards/nalati-grasslands/assets/166d495ae538065d398fa47a8a4a2ce7b63c6c5cc29fa9cfb01f097c49f3ad05
 /public/assets/pine-hollow/baked/cabins.glb
 /public/assets/pine-hollow/baked/streams.glb
+/public/assets/pine-hollow/baked/streams/

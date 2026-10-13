@@ -1151,15 +1151,31 @@
         "public/assets/pine-hollow/baked/streams.bin",
         "src/shards/pine-hollow/data/streams.json",
         "src/shards/pine-hollow/data/streamsScene.generated.json",
-        "public/assets/pine-hollow/baked/streams.glb"
+        "public/assets/pine-hollow/baked/streams/c73d1cb6aadee81b5dbfc0e3ae63e3567b137080887eee6b04d9d8d5d5dc20d6.glb",
+        "public/assets/pine-hollow/baked/streams/969551a601846de716bda64bf22bca55a2ece80f0fb5407e368fe5158bf7344b.glb",
+        "public/assets/pine-hollow/baked/streams/2a5a53dc6f09dcdc05dfb359bf0e9bb67b328f3c83315157eda0c5cf0ca8c013.glb",
+        "public/assets/pine-hollow/baked/streams/b344adc3dfd3cdf6c4b532f18aead1b896ec04769d1ed91513ee9b74b4e72478.glb",
+        "public/assets/pine-hollow/baked/streams/e070988cbecf1eeccf79cf8322abb350847f277f8411ec8138a188414112797e.glb",
+        "public/assets/pine-hollow/baked/streams/793a1eac66e1d4bd7377add6e2b80d604dafde8604bc703b16e20cc4f1279a50.glb",
+        "public/assets/pine-hollow/baked/streams/0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680.glb",
+        "public/assets/pine-hollow/baked/streams/d50b2e6a4a693d6bd68edd62c75316f58497dfdb5c3ee6d12bdc9b0247af7f40.glb",
+        "public/assets/pine-hollow/baked/streams/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2.glb"
       ],
       "platform": "portable",
       "seedOutputs": [
         "src/shards/pine-hollow/data/streams.json"
       ],
       "buildOutputs": {
-        "src/shards/pine-hollow/data/streamsScene.generated.json": "c5abe684b296d3c4cffb1ea5f4ecceccdfd78b62e13a71dc77be36ac6b64474a",
-        "public/assets/pine-hollow/baked/streams.glb": "3ef805be0bcc76a0ba950a872a0241fad6d5d4448c8c6bf5ebdc55d042c79cbd"
+        "src/shards/pine-hollow/data/streamsScene.generated.json": "7ec71bccd4395c2d65f014226e61b862247ba73bb6feb893d37287379696b02e",
+        "public/assets/pine-hollow/baked/streams/c73d1cb6aadee81b5dbfc0e3ae63e3567b137080887eee6b04d9d8d5d5dc20d6.glb": "c73d1cb6aadee81b5dbfc0e3ae63e3567b137080887eee6b04d9d8d5d5dc20d6",
+        "public/assets/pine-hollow/baked/streams/969551a601846de716bda64bf22bca55a2ece80f0fb5407e368fe5158bf7344b.glb": "969551a601846de716bda64bf22bca55a2ece80f0fb5407e368fe5158bf7344b",
+        "public/assets/pine-hollow/baked/streams/2a5a53dc6f09dcdc05dfb359bf0e9bb67b328f3c83315157eda0c5cf0ca8c013.glb": "2a5a53dc6f09dcdc05dfb359bf0e9bb67b328f3c83315157eda0c5cf0ca8c013",
+        "public/assets/pine-hollow/baked/streams/b344adc3dfd3cdf6c4b532f18aead1b896ec04769d1ed91513ee9b74b4e72478.glb": "b344adc3dfd3cdf6c4b532f18aead1b896ec04769d1ed91513ee9b74b4e72478",
+        "public/assets/pine-hollow/baked/streams/e070988cbecf1eeccf79cf8322abb350847f277f8411ec8138a188414112797e.glb": "e070988cbecf1eeccf79cf8322abb350847f277f8411ec8138a188414112797e",
+        "public/assets/pine-hollow/baked/streams/793a1eac66e1d4bd7377add6e2b80d604dafde8604bc703b16e20cc4f1279a50.glb": "793a1eac66e1d4bd7377add6e2b80d604dafde8604bc703b16e20cc4f1279a50",
+        "public/assets/pine-hollow/baked/streams/0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680.glb": "0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680",
+        "public/assets/pine-hollow/baked/streams/d50b2e6a4a693d6bd68edd62c75316f58497dfdb5c3ee6d12bdc9b0247af7f40.glb": "d50b2e6a4a693d6bd68edd62c75316f58497dfdb5c3ee6d12bdc9b0247af7f40",
+        "public/assets/pine-hollow/baked/streams/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2.glb": "f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2"
       }
     },
     {
