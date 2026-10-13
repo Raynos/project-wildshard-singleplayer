@@ -139,17 +139,27 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
       const extensions = object(node['extensions']);
       if (Object.keys(extensions).some((key) => key !== 'EXT_mesh_gpu_instancing')) throw new Error('unsupported GLB node extension');
       const attributes = object(object(extensions['EXT_mesh_gpu_instancing'])['attributes']);
+      if (attributes['_MATRIX'] !== undefined && ['TRANSLATION', 'ROTATION', 'SCALE'].some(key => attributes[key] !== undefined)) throw new Error('GLB exact matrix cannot mix with TRS');
       let size: number | undefined;
       for (const [key, id] of Object.entries(attributes)) {
-        const a = accessors[count(id, 10_000)], dimension = key === 'ROTATION' ? 4 : 3;
-        if (!['TRANSLATION', 'ROTATION', 'SCALE'].includes(key) || a === undefined || a.component !== 5126 || a.dimension !== dimension || a.n === 0 || a.n > 10_000 || (size !== undefined && a.n !== size)) throw new Error('invalid GLB instance attribute');
+        const normalized = object(list(doc['accessors'])[count(id, 10_000)])['normalized'];
+        const a = accessors[count(id, 10_000)], dimension = key === '_MATRIX' ? 16 : key === 'ROTATION' ? 4 : 3;
+        if (!['TRANSLATION', 'ROTATION', 'SCALE', '_MATRIX', '_COLOR_0'].includes(key) || a === undefined || a.component !== 5126 || a.dimension !== dimension || (key === '_MATRIX' && (a.type !== 'MAT4' || (normalized !== undefined && normalized !== false) || a.stride !== 64 || a.offset % 4 !== 0)) || (key === '_COLOR_0' && (a.type !== 'VEC3' || (normalized !== undefined && normalized !== false) || a.stride !== 12 || a.offset % 4 !== 0)) || a.n === 0 || a.n > 10_000 || (size !== undefined && a.n !== size)) throw new Error('invalid GLB instance attribute');
         size = a.n;
         for (let i = 0; i < a.n; i++) {
           let norm = 0;
           for (let c = 0; c < dimension; c++) {
             const n = view.getFloat32(28 + length + a.offset + i * a.stride + c * 4, true);
-            if (!Number.isFinite(n) || (key === 'SCALE' && (n <= 0 || n > 1000))) throw new Error('invalid GLB instance transform');
+            if (!Number.isFinite(n) || (key === 'SCALE' && (n <= 0 || n > 1000)) || (key === '_COLOR_0' && (n < 0 || n > 1))) throw new Error('invalid GLB instance transform');
             norm += n * n;
+          }
+          if (key === '_MATRIX') {
+            const at = 28 + length + a.offset + i * a.stride;
+            const m = (c: number): number => view.getFloat32(at + c * 4, true);
+            if (m(3) !== 0 || m(7) !== 0 || m(11) !== 0 || m(15) !== 1) throw new Error('invalid GLB affine instance matrix');
+            for (const c of [0, 4, 8]) if (m(c) * m(c) + m(c + 1) * m(c + 1) + m(c + 2) * m(c + 2) > 1_000_000.25) throw new Error('invalid GLB instance matrix scale');
+            const determinant = m(0) * (m(5) * m(10) - m(6) * m(9)) - m(4) * (m(1) * m(10) - m(2) * m(9)) + m(8) * (m(1) * m(6) - m(2) * m(5));
+            if (determinant <= 0) throw new Error('invalid GLB instance matrix determinant');
           }
           if (key === 'ROTATION' && Math.abs(norm - 1) > 1e-4) throw new Error('invalid GLB instance quaternion');
         }

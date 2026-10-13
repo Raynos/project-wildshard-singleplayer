@@ -1311,6 +1311,27 @@ This uses the existing runtime-product door, with no SDK facade. The Graph mater
 Debug setting still controls graph compilation; when off, existing family fallbacks
 remain active (a new point graph falls back to an unlit one-pixel point).
 
+Exact optional GLB instances use `EXT_mesh_gpu_instancing.attributes._MATRIX`:
+packed, unnormalized FLOAT MAT4 accessors (64-byte stride, aligned to 4 bytes),
+column-major as Three's `instanceMatrix`. They cannot coexist with TRANSLATION,
+ROTATION or SCALE. Each matrix is finite and affine (last row 0, 0, 0, 1), has
+positive determinant, and preserves the existing 1000 scale bound with float32
+rounding tolerance (squared basis-column length at most 1,000,000.25).
+`_COLOR_0` optionally supplies packed unnormalized FLOAT VEC3 linear RGB in 0 … 1
+(12-byte stride). Counts match across all instance attributes, still 1 … 10,000.
+Matrices and colours are admitted and charged before the loader allocates them;
+all old TRS admission and bytes stay unchanged when the attributes are absent.
+
+SDK `staticGlb` opts in with `exactInstances: true` and optional
+`instanceColours: readonly Color[]`; `bakeKinds(..., { exactInstances: true })`
+keeps the original float32 matrices and any instance colour buffer. Omitted options
+retain the old TRS writer and its refusal of coloured kinds. The engine's
+`applyExactInstanceMatrices(root)` copies the admitted matrix attribute into
+`instanceMatrix` before upload, without decomposition, and drops the unused custom
+geometry attribute. GLTFLoader already copies `_COLOR_0` without colour conversion.
+The normal rig loader and declared runtime-props reader apply this step. There is
+no shard adoption or new SDK runtime facade in this addition.
+
 ### 13.3 Tiers as data
 
 A tier is `'phone'` or `'desktop'` (`Tier`). Knobs resolve in one order: engine default → kit schema default →

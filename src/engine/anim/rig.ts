@@ -1,4 +1,4 @@
-import { type AnimationClip, type Object3D, SkinnedMesh } from 'three';
+import { type AnimationClip, type Object3D, BufferGeometry, InstancedBufferAttribute, InstancedMesh, SkinnedMesh } from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { labelObjectTree } from '../render/gpuLabels';
@@ -29,6 +29,7 @@ let loader: GLTFLoader | undefined;
 export async function loadRigFile(url: string): Promise<GLTF> {
   loader ??= new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const gltf = await loader.loadAsync(url);
+  applyExactInstanceMatrices(gltf.scene);
   labelObjectTree(gltf.scene, 'engine/loadRigFile', url);
   return gltf;
 }
@@ -64,4 +65,26 @@ export function bindRig(root: Object3D, animations: readonly AnimationClip[], co
 export async function loadRig(ref: RigRef): Promise<RigInstance> {
   const file = await loadRigFile(ref.url);
   return bindRig(file.scene, file.animations, ref.contract, ref.bake);
+}
+
+/**
+ * Restore admitted EXT_mesh_gpu_instancing._MATRIX float32 columns verbatim.
+ * GLTFLoader retains this application attribute but otherwise composes identity
+ * TRS; copy it before upload, then drop the unused geometry attribute. It already
+ * loads _COLOR_0 directly into instanceColor without colour conversion. Absent
+ * _MATRIX leaves the existing loader path and matrices untouched.
+ */
+export function applyExactInstanceMatrices(root: Object3D): void {
+  root.traverse(object => {
+    if (!(object instanceof InstancedMesh)) return;
+    const geometry: unknown = object.geometry;
+    if (!(geometry instanceof BufferGeometry)) throw new Error('Invalid instance geometry');
+    const matrix: unknown = geometry.getAttribute('_MATRIX');
+    if (!(matrix instanceof InstancedBufferAttribute)) return;
+    if (matrix.itemSize !== 16 || matrix.count !== object.count || matrix.normalized || !(matrix.array instanceof Float32Array)) throw new Error('Invalid exact instance matrix attribute');
+    for (let i = 0; i < object.count; i++) for (let c = 0; c < 16; c++) object.instanceMatrix.setComponent(i, c, matrix.getComponent(i, c));
+    object.instanceMatrix.needsUpdate = true;
+    object.boundingBox = null; object.boundingSphere = null;
+    geometry.deleteAttribute('_MATRIX');
+  });
 }

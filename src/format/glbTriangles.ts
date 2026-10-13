@@ -82,7 +82,10 @@ export function visitGlbGeometry(data: GeometryData, visit: (triangle: readonly 
     const entries = Object.entries(attributes).map(([key, value]) => ({ key, a: accessor(value) })), count = entries[0]?.a.n ?? 0;
     for (let i = 0; i < count; i++) {
       const instance: Record<string, unknown> = {};
-      for (const { key, a } of entries) instance[key.toLowerCase()] = Array.from({ length: key === 'ROTATION' ? 4 : 3 }, (_, c) => read(a, i, c));
+      for (const { key, a } of entries) {
+        if (key === '_COLOR_0') continue;
+        instance[key === '_MATRIX' ? 'matrix' : key.toLowerCase()] = Array.from({ length: key === '_MATRIX' ? 16 : key === 'ROTATION' ? 4 : 3 }, (_, c) => read(a, i, c));
+      }
       mesh(number(node['mesh']), multiply(transform, glbTransform(instance)));
     }
   });

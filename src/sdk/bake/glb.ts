@@ -1,4 +1,4 @@
-import { BufferAttribute, Float16BufferAttribute, Box3, Matrix4, type MeshStandardMaterial, Quaternion, Vector3, type Object3D, type BufferGeometry } from 'three';
+import { BufferAttribute, Float16BufferAttribute, Box3, Matrix4, type Color, type MeshStandardMaterial, Quaternion, Vector3, type Object3D, type BufferGeometry } from 'three';
 import { parseGlb } from '../assets';
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
@@ -7,6 +7,10 @@ export interface GlbPrimitive {
   geometry: BufferGeometry; material: MeshStandardMaterial; instances?: readonly Matrix4[]; castShadow?: boolean;
   /** Optional unique glTF node/mesh name (letters, digits, underscore or hyphen); absent preserves the old byte path. */
   name?: string;
+  /** Write exact float32 column-major MAT4 instances instead of decomposing TRS. */
+  exactInstances?: true;
+  /** Optional linear RGB instance colours, 0 … 1; count must match instances. */
+  instanceColours?: readonly Color[];
   /** Explicit glTF application semantic → geometry channel, e.g. `_SPLAT: 'splat'`; absent preserves old bytes. */
   customAttributes?: Readonly<Record<string, string>>;
   /** Optional node transform (a finite positive TRS; not with `instances`); absent preserves the old byte path. */
@@ -61,7 +65,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     if (matrix.elements.some((n, i) => !Number.isFinite(n) || Math.abs(n - (composed.elements[i] ?? Infinity)) > 1e-5) || scale.x <= 0 || scale.y <= 0 || scale.z <= 0) throw new Error('Instance must be a finite positive TRS transform');
     return { position, rotation, scale };
   };
-  for (const { geometry, material, instances, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes, extras } of primitives) {
+  for (const { geometry, material, instances, exactInstances, instanceColours, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes, extras } of primitives) {
     if (material.map !== null || material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null || material.alphaMap !== null) throw new Error('GLB textures must be external KTX2 declarations');
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
@@ -113,11 +117,21 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     const node: Record<string, Json> = { name: nodeName, mesh: meshes.length - 1, extras: { ...extras, castShadow, ...(nativeAttributes === true ? { nativeAttributes: native,
       ...(transform === undefined ? {} : { matrix64: transform.elements }),
       ...(instances === undefined ? {} : { instances64: instances.map(matrix => matrix.elements) }) } : {}) } };
+    if (instances === undefined && (exactInstances !== undefined || instanceColours !== undefined)) throw new Error('Instance options need instances');
     if (instances !== undefined) {
       if (instances.length === 0 || instances.length > 10_000) throw new Error('Invalid instance count');
-      const t: number[] = [], r: number[] = [], s: number[] = [];
-      for (const matrix of instances) { const { position, rotation, scale } = trs(matrix); t.push(...position); r.push(...rotation); s.push(...scale); }
-      node['extensions'] = { EXT_mesh_gpu_instancing: { attributes: { TRANSLATION: accessor(t, 3, 'VEC3'), ROTATION: accessor(r, 4, 'VEC4'), SCALE: accessor(s, 3, 'VEC3') } } };
+      let instanceAttributes: Record<string, Json>;
+      if (exactInstances === true) instanceAttributes = { _MATRIX: accessor(instances.flatMap(matrix => matrix.elements), 16, 'MAT4') };
+      else {
+        const t: number[] = [], r: number[] = [], s: number[] = [];
+        for (const matrix of instances) { const { position, rotation, scale } = trs(matrix); t.push(...position); r.push(...rotation); s.push(...scale); }
+        instanceAttributes = { TRANSLATION: accessor(t, 3, 'VEC3'), ROTATION: accessor(r, 4, 'VEC4'), SCALE: accessor(s, 3, 'VEC3') };
+      }
+      if (instanceColours !== undefined) {
+        if (instanceColours.length !== instances.length) throw new Error('Instance colours must match instance count');
+        instanceAttributes['_COLOR_0'] = accessor(instanceColours.flatMap(colour => [colour.r, colour.g, colour.b]), 3, 'VEC3');
+      }
+      node['extensions'] = { EXT_mesh_gpu_instancing: { attributes: instanceAttributes } };
     }
     if (transform !== undefined) {
       if (instances !== undefined) throw new Error('A GLB node takes a transform or instances, not both');

@@ -1,3 +1,4 @@
+import { applyExactInstanceMatrices } from '@wildshard/engine/anim/rig';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { Mesh, type Material, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -89,8 +90,10 @@ export async function bindRuntimeProps(ctx: { readonly scope: Scope }, source: S
       const key = `${row.lod}/${row.x}/${row.z}`, scope = lifetime.child(key);
       scope.onDispose(ports.assets.lease([row.file, ...row.additionalFiles ?? []]));
       const bytes = await ports.assets.read(row.file), gltf = await new GLTFLoader().parseAsync(bytes.slice().buffer, ''), meshes: Mesh[] = [];
+      applyExactInstanceMatrices(gltf.scene);
       for (const hash of row.additionalFiles ?? []) {
         const extra = await ports.assets.read(hash), child = await new GLTFLoader().parseAsync(extra.slice().buffer, '');
+        applyExactInstanceMatrices(child.scene);
         gltf.scene.add(child.scene);
       }
       gltf.scene.traverse((o) => { if (isMesh(o)) meshes.push(o); });

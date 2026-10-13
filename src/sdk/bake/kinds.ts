@@ -1,4 +1,4 @@
-import { BoxGeometry, BufferGeometry, DoubleSide, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
+import { Color, BoxGeometry, BufferGeometry, DoubleSide, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
 import { staticGlb, type GlbPrimitive } from './glb';
 
 /**
@@ -25,6 +25,8 @@ export interface PieceBake<C extends KindCollider = KindCollider> { glb: Uint8Ar
 export interface KindBakeOptions {
   /** Original typed channels in application accessors (see staticGlb); omitted preserves old bytes. */
   nativeAttributes?: true;
+  /** Preserve float32 instance matrices and colours without a TRS round trip. */
+  exactInstances?: true;
   /** Keep the original index type, including non-indexed shapes; omitted preserves old bytes. */
   compactIndex?: true;
   /** Plain application rows on each GLB node (source ordinals for exact library reconstruction). */
@@ -48,14 +50,17 @@ export function bakeKinds<C extends KindCollider>(name: string, meshes: readonly
   const kinds: BakedKind[] = [], primitives: GlbPrimitive[] = [];
   for (const [kind, mesh] of meshes) {
     if (mesh.count === 0) continue;
-    // the GLB carries no per-instance colour: a tinted kind needs it baked before it has instances
-    if (mesh.instanceColor !== null) throw new Error(`${name}.${kind}: per-instance colours are not baked`);
+    // The legacy byte path rejects tint; exact mode preserves the instance colour buffer.
+    if (mesh.instanceColor !== null && options.exactInstances !== true) throw new Error(`${name}.${kind}: per-instance colours are not baked`);
     const instances = Array.from({ length: mesh.count }, (_, i) => { const m = new Matrix4(); mesh.getMatrixAt(i, m); return m; });
+    const instanceColours = options.exactInstances === true && mesh.instanceColor !== null ? Array.from({ length: mesh.count }, (_, i) => { const colour = new Color(); mesh.getColorAt(i, colour); return colour; }) : undefined;
     const material = Array.isArray(mesh.material) ? undefined : mesh.material;
     if (!(material instanceof MeshStandardMaterial)) throw new Error(`${name}.${kind}: one standard material per kind`);
     const customAttributes = custom(mesh.geometry, options.attributes);
     const extras = options.nodeExtras?.(kind, mesh);
     primitives.push({ geometry: mesh.geometry, material, instances, castShadow: false,
+      ...(options.exactInstances === undefined ? {} : { exactInstances: options.exactInstances }),
+      ...(instanceColours === undefined ? {} : { instanceColours }),
       ...(options.nativeAttributes === undefined ? {} : { nativeAttributes: options.nativeAttributes }),
       ...(options.compactIndex === undefined ? {} : { compactIndex: options.compactIndex }),
       ...(extras === undefined ? {} : { extras }),
