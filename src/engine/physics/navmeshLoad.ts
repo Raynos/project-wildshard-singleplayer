@@ -9,6 +9,41 @@ import { parseNavmesh, type Navmesh } from './navmesh';
 import { navmeshUrl } from './navmeshUrl';
 import { frameCost } from '../core/frameCost';
 
+/**
+ * The session's admitted-navigation port: given the level's baked id (`levelBakedId`) and its declared navigation row's file
+ * (the SHA-256 of the original WSNM bytes), it returns those bytes as its owner already admitted them (the game reads a
+ * shard's admitted product), or null (now, or once it has looked) when it holds none, which keeps the declared URL's fetch.
+ * A rejection falls back to that fetch with a warning. The engine names no source of bytes.
+ */
+export type NavigationReader = (declared: { readonly key: string; readonly file: string }) => Promise<Uint8Array | null> | null;
+let navigationReader: NavigationReader | null = null;
+
+/**
+ * Install the session's admitted-navigation reader (E434: the game session calls this; importing the module installs
+ * nothing). Returns the restore, which puts back the reader it replaced.
+ */
+export function installNavigationReader(next: NavigationReader): () => void {
+  const previous = navigationReader;
+  navigationReader = next;
+  return () => { if (navigationReader === next) navigationReader = previous; };
+}
+
+/** Declared navigation's original bytes: the reader's admitted copy when it holds one, else the declared immutable URL. */
+async function declaredBytes(key: string, file: string, url: string): Promise<Uint8Array> {
+  const reading = navigationReader?.({ key, file }) ?? null;
+  if (reading !== null) {
+    try {
+      const admitted = await reading;
+      if (admitted !== null) return admitted;
+    } catch (e) {
+      console.warn(`[navmesh] admitted navigation for ${key} not used (${e instanceof Error ? e.message : String(e)}); fetching it`);
+    }
+  }
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Required navigation bytes are unavailable');
+  return new Uint8Array(await response.arrayBuffer());
+}
+
 /** The loaded shard's navmesh — null before the `physics` step, for a shard the build has none for, or in node tests. */
 export function activeNavmesh(): Navmesh | null { return app.navmesh; }
 
@@ -19,15 +54,14 @@ export function setActiveNavmesh(levelId: string, navmesh: Navmesh | null): void
  * Fetch and parse the level `levelId`'s navmesh and make it the active one (the `physics` step; the file is a declared boot file, so
  * the loading bar counts it and the service worker caches it). Resolves null — a warning, never a failure — when the
  * build has none or it doesn't parse: the creatures then steer as they did before the navmesh.
- * `bakedId` selects an authored offline folder; cache ownership remains the independent `levelId`.
+ * `bakedId` selects an authored offline folder; cache ownership remains the independent `levelId`. Declared navigation
+ * given by URL is first asked of the session's navigation reader (`installNavigationReader`), so bytes its owner already
+ * admitted are not downloaded twice; either way they are checked against the row before any query mesh is built.
  */
 export async function loadNavmesh(levelId: string, bakedId = levelId, content?: NavigationContent): Promise<Navmesh | null> {
   if (content !== undefined) {
     const row = parseNavigation(content.row);
-    const bytes = 'bytes' in content ? content.bytes : await fetch(content.url).then(async response => {
-      if (!response.ok) throw new Error('Required navigation bytes are unavailable');
-      return new Uint8Array(await response.arrayBuffer());
-    });
+    const bytes = 'bytes' in content ? content.bytes : await declaredBytes(bakedId, row.file, content.url);
     const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', Uint8Array.from(bytes)));
     const hash = [...digest].map(byte => byte.toString(16).padStart(2, '0')).join('');
     if (hash !== row.file) throw new Error('Required navigation hash differs');

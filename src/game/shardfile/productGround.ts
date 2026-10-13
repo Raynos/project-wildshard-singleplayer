@@ -29,9 +29,9 @@ export function installProductGround(): () => void {
   });
 }
 
-/** The product a standalone page will admit for `slug` before its hybrid boot runs (its level's terrain step comes first):
+/** The product a standalone page will admit for `slug` before its hybrid boot runs (its level's physics and terrain steps come first):
  *  only for the selected level of a first-party trusted hybrid this page enters as its shardfile (keyed by its slug). */
-function standaloneHybrid(key: string): Promise<RuntimeProduct> | null {
+export function standaloneHybrid(key: string): Promise<RuntimeProduct> | null {
   const manifest = findShard(key);
   if (manifest?.gridShardfile === undefined || manifest.trustedRuntime === undefined || selectedLevel()?.id !== key || shardEntry(manifest) !== 'shardfile') return null;
   return firstPartyDescriptor(key).then(runtimeProduct);
