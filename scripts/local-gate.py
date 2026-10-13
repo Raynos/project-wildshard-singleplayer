@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """G363: immutable changed-file checks, one fail-closed two-minute deadline."""
 import concurrent.futures
+import hashlib
 import json
 import os
 import pathlib
@@ -32,8 +33,10 @@ def main():
     root = pathlib.Path(subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], text=True).strip())
     sha = subprocess.check_output(['git', 'rev-parse', '--verify', sys.argv[1] + '^{commit}'], cwd=root, text=True).strip()
     common = pathlib.Path(subprocess.check_output(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], cwd=root, text=True).strip())
-    stamps = common / 'local-gate-g363-v1'
+    policy = hashlib.sha256(pathlib.Path(__file__).read_bytes() + (root / 'scripts/local-gate-checks.mjs').read_bytes()).hexdigest()
+    stamps = common / 'local-gate-g363-v2' / policy
     steps = {}
+    failed = []
     ok = False
     try:
         if (stamps / sha).exists():
@@ -48,11 +51,20 @@ def main():
             def run(name, command, cwd=tree, env=None):
                 before = time.monotonic()
                 log = work / (name + '.log')
+                trace = work / ('trace-' + name)
+                if cwd == tree:
+                    trace.mkdir()
+                    env = dict(env or os.environ, GATE_TRACE_ROOT=str(tree), GATE_TRACE_DIR=str(trace))
+                    env['NODE_OPTIONS'] = env.get('NODE_OPTIONS', '') + ' --import=' + (root / 'scripts/gate-trace.mjs').as_uri()
                 with log.open('w') as stream:
                     code = bounded(command, cwd, deadline, stream, env)
                 steps[name] = round(time.monotonic() - before, 3)
                 print(f'  {"✓" if code == 0 else "✗"} {name} ({steps[name]:.3f} s)', flush=True)
                 if code:
+                    failed.append(str(trace) if code != 124 else str(work / 'incomplete-trace'))
+                    if name not in ('typecheck', 'oxlint', 'vitest'):
+                        with (work / 'refusal.log').open('w') as receipt:
+                            bounded(['node', str(root / 'scripts/push-refusal.mjs'), '--record', str(root), sha, str(tree), json.dumps(failed)], root, started + CAP_SECONDS, receipt)
                     print('── ' + name + ' ──', flush=True)
                     print(log.read_text()[-12000:], flush=True)
                     raise RuntimeError(name + (' exceeded 120s gate deadline' if code == 124 else ' failed'))
@@ -110,10 +122,13 @@ def main():
                         except RuntimeError as error:
                             errors.append(str(error))
                     if errors:
+                        # No producers: bind refusal to this exact commit's observed inputs.
+                        with (work / 'refusal.log').open('w') as stream:
+                            bounded(['node', str(root / 'scripts/push-refusal.mjs'), '--record', str(root), sha, str(tree), json.dumps(failed)], root, started + CAP_SECONDS, stream)
                         raise RuntimeError(', '.join(errors))
             if time.monotonic() > deadline:
                 raise RuntimeError('total exceeded 120s gate deadline')
-            stamps.mkdir(exist_ok=True)
+            stamps.mkdir(parents=True, exist_ok=True)
             (stamps / sha).write_text(sha + '\n')
             ok = True
             print('vercel-gate: ' + sha[:9] + ' passed')

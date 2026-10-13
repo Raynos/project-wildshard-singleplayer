@@ -10,13 +10,13 @@
 #     finds the lock held just leaves the mark, and the running instance (or its launcher, after it lets go) sees it.
 #   - waits AUTO_PUSH_SETTLE seconds (default 10) so a burst of commits goes up as one push, then runs
 #     scripts/push-main.sh with PUSH_WAIT=1: it queues behind a manual push instead of leaving commits local.
-#   - a red push (gate, regeneration or upload) is not retried on the same tip: it pings (once per red streak) the lanes
+#   - a red push (gate or upload) is not retried on the same tip: it pings (once per red streak) the lanes
 #     whose commits are in the red range (.git/commit-lanes.jsonl, written by post-commit; pane → name through `herdr agent list`), or the
 #     coordinator, with the run's log, and waits for the next commit (most likely the fix).
 #   - log: .git/auto-push.log (one line per run); each run's full output: .git/auto-push/<time>-<tip>.log (last 40 kept).
-#   - waits while .git/quiet exists (the coordinator's measurement windows), and passes .git/generated-approval.json
-#     (the coordinator's standing receipt) as GENERATED_APPROVAL_FILE when it exists; a rise it doesn't cover pings
-#     the coordinator too, and a rewritten receipt retries the red tip on the next start.
+#   - defers to the next event while .git/quiet exists; it does not poll.
+#   - retries a refusal only after its observed immutable inputs change (G366).
+#     Explicit Jake-approved pay-back receipts retain their existing admission.
 #   - off switch: `touch .git/auto-push.off` (or WS_AUTO_PUSH=0 in the committing shell). Manual scripts/push-main.sh
 #     still works.
 #
@@ -67,7 +67,7 @@ log="$common/auto-push.log"
 runs="$common/auto-push"
 red="$common/auto-push.red"
 pinged="$common/auto-push.pinged"
-approval="$common/generated-approval.json" # the coordinator's standing receipt for generated increases, when present
+approval="$common/generated-approval.json" # only explicitly authorized pay-back receipts, when present
 mkdir -p "$runs"
 note() { printf '%s %s\n' "$(date '+%F %T')" "$*" >> "$log"; }
 
@@ -112,7 +112,7 @@ ping_red() {
     # once per lane per red streak: a lane committing into a red range hears about it once, not on every commit
     grep -qxF "$lane" "$pinged" 2>/dev/null && continue
     echo "$lane" >> "$pinged"
-    herdr agent prompt "$lane" "[auto-push] $why at $(git rev-parse --short "$tip"): nothing reaches origin until it is green. $who Log: $out. ${tail_lines} Fix it and commit; the pusher retries on the next commit." >/dev/null 2>&1 \
+    scripts/herdr-prompt.sh "$lane" "[auto-push] $why at $(git rev-parse --short "$tip"): nothing reaches origin until it is green. $who Log: $out. ${tail_lines} Fix it and commit; the pusher retries on the next commit." >/dev/null 2>&1 \
       && note "pinged $lane" || note "ping to $lane failed"
   done
 }
@@ -125,14 +125,17 @@ while [ -e "$pending" ]; do
   if ! cmp -s "$0" scripts/auto-push.sh; then touch "$pending"; note "scripts/auto-push.sh changed: restarting"; exit 0; fi
   # The coordinator's measurement quiet window (frame floor, soak, Simulator): a push gate would spoil the reading.
   if [ -e "$common/quiet" ]; then
-    note "quiet window (.git/quiet): waiting"
-    while [ -e "$common/quiet" ]; do sleep 20; done
-    note "quiet window over"
+    touch "$pending"; note "quiet window (.git/quiet): deferred until the next event"; exit 75
   fi
   tip="$(git rev-parse main)"
   [ "$(git rev-list --count "origin/main..$tip")" = 0 ] && continue
-  # A red tip is retried only after a new commit, or after the coordinator rewrote the standing approval receipt.
-  if [ -f "$red" ] && [ "$(cat "$red")" = "$tip" ] && ! [ "$approval" -nt "$red" ]; then note "skip ${tip:0:9}: already red, waiting for a new commit"; continue; fi
+  # G366: neither a new commit nor shared WIP retries the same immutable refusal.
+  if [ -f "$red" ]; then
+    refused="$(cat "$red")"
+    if [ "$refused" = "$tip" ] || node scripts/push-refusal.mjs --unchanged "$PWD" "$refused" "$tip"; then
+      note "skip ${tip:0:9}: refusal inputs unchanged; waiting for its source repair"; continue
+    fi
+  fi
   approve=(env)
   [ -f "$approval" ] && approve=(env "GENERATED_APPROVAL_FILE=$approval")
   ls -1t "$runs"/*.log 2>/dev/null | tail -n +40 | while read -r f; do rm -f "$f"; done
@@ -152,7 +155,7 @@ while [ -e "$pending" ]; do
   fi
   if grep -q 'vercel-gate: FAILED' "$out"; then why="the push gate went red"
   elif grep -qE 'Coordinator approval required|Unlisted or stale generated increases|has no coordinator approver' "$out"; then why="a generated measurement rose and needs the coordinator's receipt (.git/generated-approval.json)"
-  elif grep -qiE 'regenerat|approval|witness' "$out"; then why="the push-time regeneration failed"
+  elif grep -qiE 'regenerat|approval|witness' "$out"; then why="the committed generated-output check failed"
   else
     # Likely the uplink: one retry after a minute before calling it red.
     note "push failed rc=$rc in $((SECONDS - t0)) s (not the gate); retrying once in 60 s"
