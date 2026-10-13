@@ -4036,3 +4036,11 @@ a scope-owned material variant; different maps share the graph program.
 The current draw supplies its material reference, including on later frames.
 Unknown catalogue IDs refuse. Maps retain their original sampler, UV transform
 and colour space and remain owned by their original asset scope.
+
+G409 KTX2 library residency uses the admitted file's complete mip dimensions:
+ASTC LDR and BC7 charge 16-byte 4x4 blocks, including padded small mips.
+GPU capabilities are trusted, probe-filtered transcoder support, never authored
+metadata. Unsupported/raw/HDR sources retain the full RGBA charge. File rows
+and conservative pre-read ceilings keep their RGBA fallback; actual byte
+admission and library allocator claims use the selected footprint. The
+25 MB library target and complete 1.0/1.8 GB memory limits do not change.

@@ -2187,3 +2187,11 @@ optional second texture argument and declared props' colour slots bind it via
 `bindGraphMeshMap` in the existing engine graph backend. Equal graph/map pairs
 share a scope-owned material; different maps remain separate. Original textures
 and source materials are never modified or disposed by the binding helper.
+
+G409 KTX2 library residency uses the admitted file's complete mip dimensions:
+ASTC LDR and BC7 charge 16-byte 4x4 blocks, including padded small mips.
+GPU capabilities are trusted, probe-filtered transcoder support, never authored
+metadata. Unsupported/raw/HDR sources retain the full RGBA charge. File rows
+and conservative pre-read ceilings keep their RGBA fallback; actual byte
+admission and library allocator claims use the selected footprint. The
+25 MB library target and complete 1.0/1.8 GB memory limits do not change.

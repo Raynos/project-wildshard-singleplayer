@@ -1,3 +1,4 @@
+import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
 import { renderCount } from '@wildshard/engine/render/frameCounter';
 import * as v from 'valibot';
@@ -189,7 +190,7 @@ export class ShardfileClient {
     const allocator = this.bindings.allocator; if (allocator === undefined) throw new Error('Shardfile requires its session residency allocator');
     // The reviewed opaque-runtime claim includes its whole home. Cache leases remain pinned above;
     // ordinary data homes account library/commons and tile parts independently in the same allocator.
-    if (this.bindings.residency === undefined || this.source.runtime === null) leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance });
+    if (this.bindings.residency === undefined || this.source.runtime === null) leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance, textures: ktx2TranscodeSupport(world.game.renderer) });
     const presentation = await clientMaterials({ ...this.source, state: this.curveState }, this.assets.retained, world.game.renderer, ctx.scope);
     this.presentation = presentation;
     if (this.mode === 'presentation') { await this.drawPresentation(ctx, runtime, presentation); return; }

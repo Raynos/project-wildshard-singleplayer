@@ -44,10 +44,18 @@ function createLoader(): KTX2Loader {
   return made;
 }
 /** the GPU's formats, less every family the capability probe saw sample wrong when mipmapped (render/ktx2Probe.ts) */
-function detect(made: KTX2Loader, renderer: Renderer): KTX2Loader {
+export function detectKtx2Support(made: KTX2Loader, renderer: Renderer): KTX2Loader {
   made.detectSupport(renderer);
   applyKtx2Probe(made.workerConfig);
   return made;
+}
+
+/** The same probe-filtered capabilities used by the actual transcoder; before a renderer, retain RGBA charging. */
+export function ktx2TranscodeSupport(renderer: Renderer | null = gameRenderer): { astc: boolean; bc7: boolean } {
+  if (renderer === null) return { astc: false, bc7: false };
+  const made = detectKtx2Support(new KTX2Loader(), renderer);
+  try { return { astc: made.workerConfig.astcSupported, bc7: made.workerConfig.bptcSupported }; }
+  finally { made.dispose(); }
 }
 
 /** detect the GPU's formats and start the transcoder download (idempotent) */
@@ -56,7 +64,7 @@ export function initKtx2(renderer: Renderer): void {
   if (texMode() !== 'ktx2') return;
   markGpuOnly('KTX2 textures (their mips are dropped from JS once uploaded)'); // this build's (a shard built with images restores in place)
   if (loader !== null) return; // the formats are the GPU's: one loader for every KTX2 build
-  loader = detect(createLoader(), renderer);
+  loader = detectKtx2Support(createLoader(), renderer);
   loader.init().catch((e: unknown) => { console.warn('[ktx2] transcoder failed to load', e); });
 }
 
@@ -65,7 +73,7 @@ function ktx2Loader(): KTX2Loader {
   if (loader !== null) return loader;
   const probe = probeRenderer();
   try {
-    const made = detect(createLoader(), probe);
+    const made = detectKtx2Support(createLoader(), probe);
     loader = made;
     return made;
   } finally { probe.dispose(); probe.forceContextLoss(); }

@@ -1,9 +1,10 @@
+import type { TextureTranscodeSupport } from './contentBounds';
 import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
 import { admitScript, type ScriptAdmission } from '@wildshard/format/scriptAdmission';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { worstContentCost } from '@wildshard/format/budget';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { assetCost, validateTerrainAssets, validatePropDrawBounds, preflightAssetGraph, type MemoryAdmission } from "@wildshard/format/product";
+import { assetCost, parseKtx2, validateTerrainAssets, validatePropDrawBounds, preflightAssetGraph, type MemoryAdmission } from "@wildshard/format/product";
 
 import { validateMeshCollisionAssets } from '@wildshard/format/meshCollisionAssets';
 import { validateNavigationAssets } from '@wildshard/format/navigation';
@@ -76,7 +77,7 @@ export function preflightDeclaredCosts(source: Shardfile, memory?: MemoryAdmissi
 }
 
 /** Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. */
-export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string, memory?: MemoryAdmission): Shardfile {
+export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string, memory?: MemoryAdmission, textures?: TextureTranscodeSupport): Shardfile {
   preflightShardfile(input);
   const s = parseShardfile(input), files = new Map(s.files.map((f) => [f.hash, f]));
   preflightAssetGraph(s);
@@ -186,7 +187,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   const libraryResident = sum(s.library).resident + clientMemory + clientViews.decoded + clientViews.gpu;
   if (clientModules.size > SCRIPT_LIMITS.instances || clientMemory > SCRIPT_LIMITS.memoryBytes || libraryResident > s.budgets.library.resident) throw new Error('client script memory or view budget understated or above host cap');
   if (libraryResident + sketchResident > s.budgets.library.resident) throw new Error('compendium sketch raster budget understated');
-  const cost = worstContentCost(s, commons);
+  const cost = worstContentCost(textureLibrarySource(s, assets, textures), commons);
   if (!acceptsTotal(memory, s, 'actual', cost)) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
   validateNavigationAssets(s, assets);
   validateNativeGround(s, assets);
@@ -201,4 +202,27 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   if (s.near !== undefined) validateNearPlaceholderAssets(s.near, assets);
   validateSkinAssets(s, assets);
   return s;
+}
+
+/** Device cost projection after byte admission; source ceilings retain their full RGBA fallback. */
+export function textureLibrarySource(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, support?: TextureTranscodeSupport): Shardfile {
+  if (support === undefined || (!support.astc && !support.bc7)) return source;
+  const files = new Map(source.files.map(file => [file.hash, file])), seen = new Set<string>(), pending = [...source.library];
+  let saving = 0;
+  while (pending.length > 0) {
+    const ref = pending.pop(); if (ref === undefined || seen.has(ref)) continue;
+    seen.add(ref);
+    const file = files.get(ref); if (file === undefined) continue;
+    pending.push(...file.dependencies);
+    if (file.kind !== 'ktx2') continue;
+    const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted texture cost bytes');
+    saving += parseKtx2(bytes).gpu - parseKtx2(bytes, support).gpu;
+  }
+  return { ...source, budgets: { ...source.budgets, library: { ...source.budgets.library, resident: Math.max(0, source.budgets.library.resident - saving) } } };
+}
+
+/** Trusted device's exact library projection, with all existing conservative neighbour and fallback ceilings retained. */
+export function deviceLibraryCost(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, support?: TextureTranscodeSupport): ReturnType<typeof worstContentCost> {
+  const commons = Object.values(source.requires.commonsCosts).reduce((sum, row) => sum + row.decoded + row.gpu, 0);
+  return worstContentCost(textureLibrarySource(source, assets, support), commons);
 }

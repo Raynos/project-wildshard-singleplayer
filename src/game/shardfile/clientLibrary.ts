@@ -1,13 +1,14 @@
+import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { ShardContext } from "../plugin/context";
 import type { ResidencyAllocator, ResidencyClaim } from '../grid/allocator';
-import { assetCost } from '@wildshard/format/product';
+import { assetCost, parseKtx2 } from '@wildshard/format/product';
 import { admitScript } from '@wildshard/format/scriptAdmission';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { clientScriptViewCost } from '@wildshard/format/clientScripts';
 import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 
 /** Reserve only library and commons bytes in the session's one allocator; render rings and the sim registry own their claims. */
-export function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: { allocator: ResidencyAllocator; scope: Pick<ShardContext['scope'], 'onDispose'>; owner: string }): void {
+export function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: { allocator: ResidencyAllocator; scope: Pick<ShardContext['scope'], 'onDispose'>; owner: string; textures?: TextureTranscodeSupport }): void {
   const files = new Map(source.files.map((file) => [file.hash, file])), closure = new Set<string>();
   const pending = [...source.library];
   while (pending.length > 0) {
@@ -18,7 +19,7 @@ export function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<string
   for (const ref of closure) {
     if (ref.startsWith('commons:')) continue;
     const file = files.get(ref); if (file === undefined || !assets.has(ref)) throw new Error('Missing admitted library residency');
-    claims.push({ id: `library:${source.identity.slug}:${ref}`, category: 'library', bytes: file.decoded + file.gpu, owner: ports.owner, distance: 0, needed: true });
+    claims.push({ id: `library:${source.identity.slug}:${ref}`, category: 'library', bytes: file.decoded + (file.kind === 'ktx2' ? parseKtx2(assets.get(ref) ?? new Uint8Array(), ports.textures).gpu : file.gpu), owner: ports.owner, distance: 0, needed: true });
   }
   for (const hash of source.requires.commons) {
     const bytes = assets.get(`commons:${hash}`); if (bytes === undefined) throw new Error('Missing admitted commons residency');

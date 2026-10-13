@@ -26,3 +26,16 @@ export const CONTENT_CAPS = {
   l0Count: 40, l1Count: 32, farCount: 9, simCount: 4, libraryCount: 4,
   overlap: 80 * CONTENT_MB, residentFactor: 1.11, nearRadius: 150, shadowRadius: 80, pitch: 555,
 } as const;
+
+/** Trusted GPU/transcoder capabilities, never authored shard data. */
+export interface TextureTranscodeSupport { readonly astc: boolean; readonly bc7: boolean }
+/** Exact LDR mip residency, including padded 4x4 ASTC/BC7 blocks at the smallest mip levels. */
+export function textureMipBytes(width: number, height: number, levels: number, blocks: boolean): number {
+  if (![width, height, levels].every(Number.isSafeInteger) || width < 1 || height < 1 || width > 4096 || height > 4096 || levels < 1 || levels > 13) throw new Error('Texture footprint dimensions or mip cap');
+  let bytes = 0;
+  for (let mip = 0; mip < levels; mip++) {
+    const x = Math.max(1, width >> mip), y = Math.max(1, height >> mip);
+    bytes += blocks ? Math.ceil(x / 4) * Math.ceil(y / 4) * 16 : x * y * 4;
+  }
+  return bytes;
+}

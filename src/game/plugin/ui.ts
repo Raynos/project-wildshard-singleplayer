@@ -1,3 +1,4 @@
+import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import type { MoverView } from './mover';
 import "../quest/presentation.css";
 import { parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
@@ -1119,7 +1120,7 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
 
 /** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
 export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
-  return { base, firstParty, offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => fetch(url),
+  return { base, firstParty, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => fetch(url),
     ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
   };
 }

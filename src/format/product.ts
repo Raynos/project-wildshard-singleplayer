@@ -1,3 +1,4 @@
+import { textureMipBytes, type TextureTranscodeSupport } from './contentBounds';
 import { indexRecordingAac } from '@wildshard/format/aacIndex';
 import { bilinearTerrainSamplers, decodeTerrainTile, isTerrainTileData, terrainTileCost, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
 import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from "@wildshard/format/meshCollisionBytes";
@@ -237,8 +238,8 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
   return { decoded: length + binaryBytes + instanceCpu + rigCpu, gpu, triangles, draws };
 }
 
-/** Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. */
-export function parseKtx2(bytes: Uint8Array): AssetCost {
+/** Parse bounded KTX2 headers and mip ranges; absent GPU support retains the full RGBA transcode bound. */
+export function parseKtx2(bytes: Uint8Array, support?: TextureTranscodeSupport): AssetCost {
   requireRange(bytes, 0, 80); const signature = [171, 75, 84, 88, 32, 50, 48, 187, 13, 10, 26, 10];
   if (bytes.length > MAX_BYTES || signature.some((n, i) => bytes[i] !== n)) throw new Error('invalid KTX2 signature');
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), width = view.getUint32(20, true), height = view.getUint32(24, true), levels = view.getUint32(40, true);
@@ -251,6 +252,11 @@ export function parseKtx2(bytes: Uint8Array): AssetCost {
   }
   const dfd = view.getUint32(48, true), dfdSize = view.getUint32(52, true); requireRange(bytes, dfd, dfdSize);
   if (dfdSize < 24 || dfd < 80 + levels * 24 || ranges.some(([start, end]) => dfd < end && dfd + dfdSize > start) || gpu > MAX_BYTES) throw new Error('KTX2 descriptor or residency cap');
+  // Only ordinary Basis LDR sources use the advertised ASTC/BC7 transcode paths.
+  const model = view.getUint8(dfd + 12);
+  const basis = view.getUint32(12, true) === 0;
+  const compressed = basis && ((model === 166 && support?.astc === true) || ((model === 163 || model === 166) && support?.bc7 === true));
+  if (compressed) gpu = textureMipBytes(width, height, levels, true);
   return { decoded: 0, gpu, triangles: 0, draws: 0 };
 }
 

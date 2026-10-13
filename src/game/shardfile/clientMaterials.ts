@@ -6,7 +6,7 @@
  */
 import { ClampToEdgeWrapping, CompressedTexture, LinearFilter, LinearMipmapLinearFilter, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, RepeatWrapping, SRGBColorSpace, NoColorSpace, type Texture, type Material } from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
-import { BASIS_PATH, releaseAfterUpload } from '@wildshard/engine/core/ktx2';
+import { BASIS_PATH, releaseAfterUpload, detectKtx2Support } from '@wildshard/engine/core/ktx2';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
@@ -82,7 +82,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   const refs = new Set([...materialTextureRefs(shard.look.materials), ...graphFileTextureRefs(shard.look.materials, (hash) => assets.get(hash)), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named), ...splatTextureRefs(splat)]);
   const splatRefs = new Set(splatTextureRefs(splat));
   if (refs.size > 0) {
-    const loader = new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(renderer);
+    const loader = detectKtx2Support(new KTX2Loader().setTranscoderPath(BASIS_PATH), renderer);
     scope.onDispose(() => { loader.dispose(); });
     for (const ref of refs) {
       const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted material texture');

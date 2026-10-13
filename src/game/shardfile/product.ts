@@ -1,8 +1,9 @@
+import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt, assertStateCompatibility, parseStateLineage, preflightAssetGraph, type MemoryAdmission } from "@wildshard/format/product";
 import { SHARDFILE_VERSION, SHARDFILE_PREVIOUS_VERSION, shardfileRevision } from '@wildshard/format/version';
 
-import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets, deviceLibraryCost } from '@wildshard/format/assetAdmission';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
 import { preflightShardfile } from '@wildshard/format/preflight';
 
@@ -32,6 +33,8 @@ export interface ProductProgress {
 }
 /** Loading is explicit about connectivity and first-party provenance, never inferred from an author field. */
 export interface ProductOptions {
+  /** Trusted probe-filtered device support; authored content cannot select its charge. */
+  textures?: TextureTranscodeSupport;
   base: string; cache?: ProductCache; offline: boolean; firstParty: boolean;
   fetch: (url: string) => Promise<Response>;
   hash: (bytes: Uint8Array) => Promise<string>;
@@ -187,7 +190,9 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   progress('validation', receipt === null ? 'Validating assets, simulation and entries' : 'Verified exact product validation receipt');
   if (receipt === null) validateShardfileAssets(source, assets, (bytes) => {
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
-  }, options.memory);
+  }, options.memory, options.textures);
+  if (receipt !== null && options.textures !== undefined) acceptValidatedCost(source,
+    deviceLibraryCost(source, assets, options.textures), options.memory);
   if (!options.offline && options.cache !== undefined) {
     progress('cache', 'Saving verified offline assets');
     const cache = options.cache, release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')));
