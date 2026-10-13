@@ -1,11 +1,12 @@
 import type { GustRow, UpdraftRow } from '../../data/windLook';
-import { BufferGeometry, CircleGeometry, Color, DoubleSide, DynamicDrawUsage, Float32BufferAttribute, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, ShaderMaterial, Vector3, type Object3D } from 'three';
+import { BufferGeometry, CircleGeometry, Color, DoubleSide, DynamicDrawUsage, Float32BufferAttribute, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, Vector3, type Material, type Object3D } from 'three';
+import { skyLook } from '../../world/looks';
 
 /**
  * Visible wind as a generic system (SHARD-PLATFORM M3; ex Sky Reach's world/windFx.ts, style bible §7, loop 3): a gust is a
  * cone of streaks with tumbling petals; an updraft is a soft spiral of streaks with rising leaves round a column. A streak is
- * a crossed pair of thin quads, instanced, alpha-blended with a per-instance fade (instanceColor), so each effect is one draw
- * per kind and no textures. Nothing here knows a shard: the counts, timings, colours and names are the shard's rows.
+ * a crossed pair of thin quads, instanced, in the shard's `wind-streak` look (data/windLook.ts) with a per-instance tint
+ * (instanceColor) and fade (`aFade`), so each effect is one draw per kind and no textures. Nothing here knows a shard: the counts, timings, colours and names are the shard's rows.
  */
 
 /** A crossed pair of quads, `z` 0 → −1 (length 1), 1 wide; uv.x runs along the length. */
@@ -18,31 +19,19 @@ function streakGeometry(): BufferGeometry {
   const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new Float32BufferAttribute(uv, 2)); return g;
 }
 
-/** Streaks: bright in the middle of their length and width, tapering to nothing at the ends; instanceColor is the tint × fade. */
-function streakMaterial(): ShaderMaterial {
-  return new ShaderMaterial({ transparent: true, depthWrite: false, side: DoubleSide, fog: false,
-    vertexShader: /* glsl */`
-      varying vec2 vUv; varying vec3 vTint;
-      void main(){ vUv = uv; vTint = instanceColor; gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0); }`,
-    fragmentShader: /* glsl */`
-      varying vec2 vUv; varying vec3 vTint;
-      void main(){
-        float along = smoothstep(0.0, 0.35, vUv.x) * (1.0 - smoothstep(0.55, 1.0, vUv.x));
-        float across = 1.0 - abs(vUv.y * 2.0 - 1.0);
-        // instanceColor carries the tint × fade: the brightest channel is the fade, the colour stays near white
-        float fade = max(vTint.r, max(vTint.g, vTint.b));
-        gl_FragColor = vec4(vTint / max(fade, 1e-3), fade * along * across);
-      }` });
-}
+/** The streaks' look (shared by every effect; a faint plain streak before the looks are set). */
+const streakMaterial = (): Material => skyLook('wind-streak') ?? new MeshBasicMaterial({ transparent: true, opacity: 0.3, depthWrite: false, side: DoubleSide, fog: false });
 
 const m = new Matrix4(), q = new Quaternion(), s = new Vector3(), p = new Vector3(), fwd = new Vector3(0, 0, -1), c = new Color();
 function place(mesh: InstancedMesh, i: number, at: Vector3, dir: Vector3, width: number, length: number, tint: Color, fade: number): void {
   q.setFromUnitVectors(fwd, dir); m.compose(at, q, s.set(width, width, length)); mesh.setMatrixAt(i, m);
-  mesh.setColorAt(i, c.copy(tint).multiplyScalar(Math.max(0, fade)));
+  mesh.setColorAt(i, tint); mesh.geometry.getAttribute('aFade').setX(i, Math.max(0, fade));
 }
-function instanced(geometry: BufferGeometry, material: ShaderMaterial, count: number, name: string): InstancedMesh<BufferGeometry, ShaderMaterial> {
+/** A streak mesh's matrices, tints and fades moved this frame. */
+function faded(mesh: InstancedMesh): void { mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true; mesh.geometry.getAttribute('aFade').needsUpdate = true; }
+function instanced(geometry: BufferGeometry, material: Material, count: number, name: string): InstancedMesh<BufferGeometry, Material> {
   const mesh = new InstancedMesh(geometry, material, count); mesh.name = name; mesh.frustumCulled = false;
-  mesh.instanceMatrix.setUsage(DynamicDrawUsage);
+  mesh.instanceMatrix.setUsage(DynamicDrawUsage); geometry.setAttribute('aFade', new InstancedBufferAttribute(new Float32Array(count), 1).setUsage(DynamicDrawUsage));
   mesh.instanceColor = new InstancedBufferAttribute(new Float32Array(count * 3), 3); mesh.instanceColor.setUsage(DynamicDrawUsage);
   for (let i = 0; i < count; i++) { m.makeScale(0, 0, 0); mesh.setMatrixAt(i, m); }
   return mesh;
@@ -65,15 +54,17 @@ export function gustFx(row: GustRow, random: () => number): GustFx {
   const tint = new Color(row.tint), warmTint = new Color(row.warm);
   const bits: Bit[] = [], leafs: Bit[] = [], spinQ = new Quaternion(), axis = new Vector3(), side = new Vector3(), up = new Vector3();
   let age = 99, from = new Vector3(), base = new Vector3(0, 0, -1);
+  // nothing draws between bursts: both meshes show from `fire` until the last petal is gone
+  const show = (on: boolean): void => { streaks.visible = on; petals.visible = on; }; show(false);
   const cone = (dir: Vector3, spread: number): Vector3 => {
     side.set(0, 1, 0).cross(dir); if (side.lengthSq() < 1e-4) side.set(1, 0, 0); side.normalize(); up.copy(dir).cross(side).normalize();
     const a = random() * Math.PI * 2, r = Math.sqrt(random()) * spread;
     return dir.clone().addScaledVector(side, Math.cos(a) * r).addScaledVector(up, Math.sin(a) * r).normalize();
   };
   return { objects: [streaks, petals],
-    dispose: () => { streaks.removeFromParent(); petals.removeFromParent(); streaks.geometry.dispose(); petals.geometry.dispose(); streaks.material.dispose(); petals.material.dispose(); streaks.dispose(); petals.dispose(); },
+    dispose: () => { streaks.removeFromParent(); petals.removeFromParent(); streaks.geometry.dispose(); petals.geometry.dispose(); petals.material.dispose(); streaks.dispose(); petals.dispose(); },
     fire: (origin, dir) => {
-      age = 0; from = origin.clone(); base = dir.clone().normalize(); bits.length = 0; leafs.length = 0;
+      age = 0; show(true); from = origin.clone(); base = dir.clone().normalize(); bits.length = 0; leafs.length = 0;
       // speed lines: streaks leave a wide patch around the origin and fly out along the gust, so they read as long lines
       // radiating from the crosshair, not as dots seen end-on
       side.set(0, 1, 0).cross(base).normalize(); up.copy(base).cross(side).normalize();
@@ -89,7 +80,7 @@ export function gustFx(row: GustRow, random: () => number): GustFx {
       if (petals.instanceColor) petals.instanceColor.needsUpdate = true;
     },
     update: (dt) => {
-      if (age > row.life + 0.2) return;
+      if (age > row.life + 0.2) { show(false); return; }
       age += dt;
       bits.forEach((b, i) => {
         const t = Math.max(0, age - b.delay), k = t / row.life;
@@ -108,7 +99,7 @@ export function gustFx(row: GustRow, random: () => number): GustFx {
         q.setFromAxisAngle(axis.set(Math.sin(i), 1, Math.cos(i * 1.7)).normalize(), b.spin * t);
         m.compose(p, q, s.setScalar(b.size * (1 - k * k))); petals.setMatrixAt(i, m);
       });
-      streaks.instanceMatrix.needsUpdate = true; if (streaks.instanceColor) streaks.instanceColor.needsUpdate = true; petals.instanceMatrix.needsUpdate = true;
+      faded(streaks); petals.instanceMatrix.needsUpdate = true;
     } };
 }
 
@@ -137,7 +128,7 @@ export function updraftFx(row: UpdraftRow, a: Vector3, b: Vector3): UpdraftFx {
       q.setFromAxisAngle(dir.set(Math.sin(i * 3.1), 1, Math.cos(i)).normalize(), t * (3 + i % 3));
       m.compose(p, q, s.setScalar(0.26 * Math.min(1, Math.sin(f * Math.PI) * 3))); leaves.setMatrixAt(i, m);
     }
-    streaks.instanceMatrix.needsUpdate = true; if (streaks.instanceColor) streaks.instanceColor.needsUpdate = true;
+    faded(streaks);
     leaves.instanceMatrix.needsUpdate = true; if (leaves.instanceColor) leaves.instanceColor.needsUpdate = true;
   } };
 }

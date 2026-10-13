@@ -68,7 +68,8 @@ export interface GraphNode {
   readonly count?: number;
   /** `loop`: the body, run `count` times; inside it `acc` is the running value and `index` the iteration (a float) */
   readonly body?: GraphLoopBody;
-  /** `attribute`: the geometry attribute's name (`aSeed`: `a`, then a capital; three's own attributes are inputs) */
+  /** `attribute`: the geometry attribute's name (`aSeed`: `a`, then a capital; three's own attributes are inputs);
+   *  `meshMap`: `bump` reads the material's bump map (on its own UV set) instead of its colour map */
   readonly name?: string;
   /** `attribute`: the attribute's type */
   readonly type?: GraphValueType;
@@ -143,6 +144,8 @@ export interface GraphEffectState {
   readonly depthWrite?: boolean;
   /** Polygon offset factor and units, each finite and within -16 … 16. */
   readonly depthBias?: { readonly factor: number; readonly units: number };
+  /** A double-sided effect draws both faces in one pass (unsorted), not three's back-then-front pair of draws. */
+  readonly singlePass?: true;
 }
 /** Typed graph stage outputs, including optional point size, surface, lighting and post colour. */
 export interface GraphStages {
@@ -469,10 +472,11 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   if (effect !== undefined) {
     if (!isRecord(effect)) fail('graph: effectState is not an object');
     else {
-      for (const k of Object.keys(effect)) if (!['blend', 'fog', 'depthWrite', 'depthBias'].includes(k)) fail(`effectState: unknown field ${k}`);
+      for (const k of Object.keys(effect)) if (!['blend', 'fog', 'depthWrite', 'depthBias', 'singlePass'].includes(k)) fail(`effectState: unknown field ${k}`);
       if (effect.blend !== undefined && effect.blend !== 'alpha' && effect.blend !== 'additive' && effect.blend !== 'premultiplied') fail('effectState: unsupported blend');
       if (effect.fog !== undefined && effect.fog !== false) fail('effectState: fog must be false');
       if (effect.depthWrite !== undefined && typeof effect.depthWrite !== 'boolean') fail('effectState: depthWrite must be boolean');
+      if (effect.singlePass !== undefined && effect.singlePass !== true) fail('effectState: singlePass must be true');
       const bias = effect.depthBias;
       if (bias !== undefined) {
         if (!isRecord(bias)) fail('effectState: depthBias is not an object');
@@ -592,6 +596,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         if (op === 'sceneColour') sampled.scene = true;
         if (op === 'meshMap') {
           if (kind !== 'material' || primitive === 'points') return fail(`${at}: meshMap requires a mesh material`);
+          if (raw.name !== undefined && raw.name !== 'bump') return fail(`${at}: meshMap name ${JSON.stringify(raw.name)} (bump or none)`);
           sampled.mesh = true;
         }
         return spec.type ?? null;
@@ -777,6 +782,7 @@ function toEffectState(raw: Raw): GraphEffectState {
     ...(raw.blend === 'alpha' || raw.blend === 'additive' || raw.blend === 'premultiplied' ? { blend: raw.blend } : {}),
     ...(raw.fog === false ? { fog: false } : {}),
     ...(typeof raw.depthWrite === 'boolean' ? { depthWrite: raw.depthWrite } : {}),
+    ...(raw.singlePass === true ? { singlePass: true } : {}),
     ...(isRecord(bias) && isFiniteNumber(bias.factor) && isFiniteNumber(bias.units) ? { depthBias: { factor: bias.factor, units: bias.units } } : {}),
   };
 }

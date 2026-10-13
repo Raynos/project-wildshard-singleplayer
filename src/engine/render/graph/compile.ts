@@ -507,9 +507,9 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       }
       case 'meshMap': {
         return { t: 'vec4', n: Fn((builder: NodeBuilder): Node<'vec4'> => {
-          const map: unknown = Reflect.get(builder.material, 'map');
+          const slot = n.name === 'bump' ? 'bumpMap' : 'map', map: unknown = Reflect.get(builder.material, slot);
           // No captured material: shared node programs read this draw's material, not the first builder's.
-          return map instanceof THREE.Texture ? new ConvertNode<'vec4'>(materialReference('map', 'texture'), 'vec4') : vec4(1);
+          return map instanceof THREE.Texture ? new ConvertNode<'vec4'>(materialReference(slot, 'texture'), 'vec4') : vec4(1);
         })() };
       }
       case 'texture': {
@@ -619,6 +619,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       }
     }
     if (effect?.depthWrite !== undefined) m.depthWrite = effect.depthWrite;
+    if (effect?.singlePass === true) m.forceSinglePass = true;
     if (effect?.depthBias !== undefined) {
       m.polygonOffset = true; m.polygonOffsetFactor = effect.depthBias.factor; m.polygonOffsetUnits = effect.depthBias.units;
     }

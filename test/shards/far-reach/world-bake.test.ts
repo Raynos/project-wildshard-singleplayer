@@ -169,9 +169,10 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
       for (const [name, from] of built) {
         const kind = drawn.kinds.get(name); if (kind === undefined || !instanced(kind)) throw new Error(`${piece}: missing instanced kind ${name}`);
         expect(kind.count).toBe(from.count);
-        // every vertex channel the builder made (positions, normals, uvs, colours, the canvas's `farCloth`), bit for bit as float32
-        for (const [channel, attribute] of Object.entries(from.geometry.attributes)) {
-          const got = kind.geometry.getAttribute(channel);
+        // every vertex channel the builder made (positions, normals, uvs, colours, the canvas's `farCloth`, drawn as the
+        // graph's `aFarCloth`), bit for bit as float32
+        for (const [made, attribute] of Object.entries(from.geometry.attributes)) {
+          const channel = made === 'farCloth' ? 'aFarCloth' : made, got = kind.geometry.getAttribute(channel);
           expect(kind.geometry.hasAttribute(channel), `${piece}.${name}.${channel}`).toBe(true);
           expect(Array.from(got.array)).toEqual(Array.from(new Float32Array(attribute.array)));
         }

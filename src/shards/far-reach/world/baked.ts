@@ -39,7 +39,7 @@ const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(PIECES, BAKED_URLS, '
   material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
     return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : undefined; },
   decorate: (material, kind) => { const rockMix: unknown = 'paint' in kind ? kind.paint : undefined; if (typeof rockMix === 'number') paintIsleMaterial(material, rockMix); },
-  attributes: { _shk: 'aShk', _farcloth: 'farCloth' },
+  attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' },
 });
 /** Load every baked piece, the islands and the sward atlas (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */
 export async function loadSkyBaked(): Promise<void> {

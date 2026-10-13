@@ -19,6 +19,17 @@ export const UPDRAFT_FX: UpdraftRow = {
   streakName: 'far.updraft.streaks', leafName: 'far.updraft.leaves',
 };
 
+/**
+ * A wind streak's look (an SF59 graph, the shardfile's `look.materials.wind-streak`; drawn by runtime/looks/windFx.ts): bright
+ * in the middle of its length and width, tapering to nothing at the ends, its instance colour the tint and `aFade` its fade.
+ * Unlit, alpha-blended, unfogged, no depth write.
+ */
+export const WIND_STREAK_GRAPH = { version: 1, kind: 'material', model: 'unlit', doubleSided: true, effectState: { fog: false, depthWrite: false, singlePass: true },
+  nodes: { uv: { op: 'uv' }, u: { op: 'swizzle', in: ['uv'], mask: 'x' }, v: { op: 'swizzle', in: ['uv'], mask: 'y' }, in0: { op: 'smoothstep', in: [0, 0.35, 'u'] },
+    out0: { op: 'smoothstep', in: [0.55, 1, 'u'] }, out1: { op: 'oneMinus', in: ['out0'] }, along: { op: 'mul', in: ['in0', 'out1'] }, v2: { op: 'mul', in: ['v', 2] }, v1: { op: 'sub', in: ['v2', 1] },
+    va: { op: 'abs', in: ['v1'] }, across: { op: 'oneMinus', in: ['va'] }, fade: { op: 'attribute', name: 'aFade', type: 'float' }, fa: { op: 'mul', in: ['fade', 'along'] }, a: { op: 'mul', in: ['fa', 'across'] } },
+  stages: { surface: { colour: [1, 1, 1], alpha: 'a' } } } as const;
+
 /** A gust's rows: how many streaks and petals, how long they live, how far they fly; the colours and the meshes' names. */
 export interface GustRow {
   readonly streaks: number;

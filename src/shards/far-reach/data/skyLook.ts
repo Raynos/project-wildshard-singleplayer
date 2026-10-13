@@ -81,9 +81,9 @@ export const SKY_PAINTER_GRAPH = {
  */
 export const SKY_HAZE = { tint: [1.04, 0.98, 0.84], sunHaze: 0.12, name: 'far.rose-fog', prefix: 'far' } as const;
 
-/** A graph node row (an op, its inputs: node ids or literals, and a swizzle's mask). */
-export interface SkyGraphNode { readonly op: string; readonly in?: readonly (string | number | readonly number[])[]; readonly mask?: string }
+/** A graph node row (an op, its inputs: node ids or literals, a swizzle's mask, an attribute's or map slot's name and type). */
+export interface SkyGraphNode { readonly op: string; readonly in?: readonly (string | number | readonly number[])[]; readonly mask?: string; readonly name?: string; readonly type?: 'float' | 'vec2' | 'vec3' | 'vec4' }
 export type SkyGraphStage = Readonly<Record<string, string | number>>;
 /** An SF59 material graph as Sky's look rows write it (validated when the shardfile is parsed). */
-export interface SkyGraph { readonly version: 1; readonly kind: 'material'; readonly model: 'standard';
+export interface SkyGraph { readonly version: 1; readonly kind: 'material'; readonly model: 'standard'; readonly doubleSided?: boolean;
   readonly nodes: Readonly<Record<string, SkyGraphNode>>; readonly stages: { readonly surface: SkyGraphStage; readonly lighting: SkyGraphStage } }

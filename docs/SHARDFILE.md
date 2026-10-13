@@ -227,13 +227,15 @@ be bound. Graphs have no implicit default material: terrain, props and creature
 looks reference their authored material ID.
 
 
-SF59 effect graphs may add `effectState: { blend?, fog?, depthWrite?, depthBias? }`.
+SF59 effect graphs may add `effectState: { blend?, fog?, depthWrite?, depthBias?, singlePass? }`.
 `blend` is `alpha` (straight RGB), `additive` (straight RGB multiplied by alpha
 and added), or `premultiplied` (RGB already multiplied by alpha, One /
 OneMinusSrcAlpha factors). Each explicit blend enables transparency. `fog` can
 only be `false`, bypassing fog for the effect; output colour conversion stays.
 `depthWrite` is boolean; depth testing stays on. `depthBias` is `{ factor, units }`,
-finite numbers within -16 … 16, using polygon offset. Omission keeps all old
+finite numbers within -16 … 16, using polygon offset. `singlePass` can only be `true`:
+a double-sided effect draws both faces in one unsorted pass, not three's
+back-then-front pair of draws and programs. Omission keeps all old
 material state, including fog and opaque depth writes. Post graphs cannot use it.
 
 `primitive: "points"` requires `model: "unlit"` and
@@ -2225,6 +2227,8 @@ The material graph input `meshMap` samples the original model colour map at
 its mesh UV, including the borrowed texture's sampler, transform and colour
 space. It is a fragment-only vec4 input and costs one sampler even when reused;
 post, points and vertex stages refuse it. Unmapped meshes read white RGBA.
+`meshMap` with `name: 'bump'` reads the material's bump map instead (on its own
+UV set); a material without one reads white.
 `@wildshard/sdk/materials.meshMap` authors this input. The client compiler's
 optional second texture argument and declared props' colour slots bind it via
 `bindGraphMeshMap` in the existing engine graph backend. Equal graph/map pairs

@@ -1,9 +1,7 @@
 import { Group, Mesh, MeshStandardMaterial, DoubleSide, type InstancedMesh, type Material, type Object3D, type Texture } from 'three';
 import { GeometryPack, fetchDeflated, packedRows } from '@wildshard/sdk/kit/geometryPack';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { MILL_CANVAS_EDITS, MILL_TOWER_EDITS } from '../data/millLook';
 import { hdMaterial, skyHd } from './meshes';
+import { skyMappedLook } from './looks';
 import { onPaintedDispose } from '../look/image';
 import millModel from '../data/millModel.json' with { type: 'json' };
 import { MILL_MODEL_URL } from '../data/files';
@@ -40,22 +38,15 @@ export function setMillTextures(t: { stone: Texture | null; canvas: Texture | nu
     onPaintedDispose(texture, () => { if (MILL_TEX[key] === texture) MILL_TEX[key] = null; });
   }
 }
-function painted(t: Texture | null, apply: (t: Texture) => void): void { if (t !== null) apply(t); }
-
 
 interface Made { readonly meshes: Mesh[]; readonly hubAt: { y: number; z: number } }
 /**
- * The modelled tower's material: its paint pulled toward mockup A's pale weathered whitewash (the Hunyuan paint came out
- * cream-yellow: mock-A's wall saturation 46 %, 24 % with this pull, the code tower's was 25 %, the mockup's 17 %, under the
- * same golden light and LUT; luminance 113 against the mockup's 106), and the painted
- * stone's courses (`MILL_TEX.stone`, on the second UV set) as the bump and a light multiply.
+ * The modelled tower's material: the `mill-tower` look over its map (data/millLook.ts: the paint pulled toward mockup A's
+ * pale weathered whitewash), the painted stone's courses (`MILL_TEX.stone`, on the second UV set) as the bump.
  */
-function towerMaterial(map: Texture): MeshStandardMaterial {
-  const m = hdMaterial(map);
-  painted(MILL_TEX.stone, (st) => { const t = st.clone(); t.channel = 1; m.bumpMap = t; m.bumpScale = 2; });
-  patchShader(m, 'far.mill-tower', PATCH_ORDER.decorate, (shader) => {
-    editShader(shader, MILL_TOWER_EDITS);
-  }, { key: (prior) => `${prior}|far.mill-tower` });
+function towerMaterial(map: Texture): Material {
+  const m = skyMappedLook('mill-tower', map), stone = MILL_TEX.stone;
+  if (stone !== null && 'bumpMap' in m) { const t = stone.clone(); t.channel = 1; Object.assign(m, { bumpMap: t, bumpScale: 2 }); m.needsUpdate = true; }
   return m;
 }
 let pack: InstanceType<typeof GeometryPack> | null = null;
@@ -94,13 +85,10 @@ export function towerMill(nodes?: ReadonlyMap<string, InstancedMesh>): { group: 
   if (made !== null) group.add(...made.meshes);
   hub.position.set(0, hubAt.y, hubAt.z); group.add(hub);
   put(hub, 'boss', timber);
-  // the worn canvas: the painted cloth once it lands (a coarse weave and water stains in the shader until then), frayed
-  // edges and a torn-away corner on two sails cut in the shader, a faint warm glow where the low sun comes through
-  const clothMat = new MeshStandardMaterial({ color: 0xece0c6, roughness: 0.95, metalness: 0, side: DoubleSide, emissive: 0x302820, alphaTest: 0.5 });
-  painted(MILL_TEX.canvas, (t) => { clothMat.map = t; clothMat.emissiveMap = t; clothMat.color.set(0xffffff); clothMat.needsUpdate = true; });
-  patchShader(clothMat, 'far.mill-canvas', PATCH_ORDER.decorate, (shader) => {
-    editShader(shader, MILL_CANVAS_EDITS);
-  }, { key: (prior) => `${prior}|far.mill-canvas` });
+  // the worn canvas: the `mill-canvas` look over the painted cloth (frayed, two sails torn, a faint warm glow); plain cream
+  // cloth when the painted one did not load
+  const canvas = MILL_TEX.canvas;
+  const clothMat = canvas === null ? new MeshStandardMaterial({ color: 0xece0c6, roughness: 0.95, metalness: 0, side: DoubleSide }) : skyMappedLook('mill-canvas', canvas);
   // the four lattice frames (one kind, an instance per arm) and the four canvases, each turned to its arm
   put(hub, 'frame', new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0 }));
   for (let i = 0; i < 4; i++) put(hub, `cloth-${String(i)}`, clothMat);

@@ -1,46 +1,30 @@
-import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+import { skyMapGraph } from '../look/mapGraph';
 
 /**
- * The windmill's material edits (SHARD-PLATFORM M3: shader edit rows, applied by world/mill.ts with `editShader`): the
- * modelled tower's paint pulled toward a pale weathered whitewash with the painted stone's courses multiplied in, and the
- * worn canvas of the sails (frayed edges, a torn corner on two sails, the painted cloth's sun-bleached cream, or a coarse
- * weave and water stains before it lands).
+ * The windmill's looks (SHARD-PLATFORM W1 C2: SF59 material graphs in the shardfile's `look.materials`, bound to the
+ * tower's map and the painted canvas by world/looks.ts `skyMappedLook` in world/mill.ts): the modelled tower's paint pulled
+ * toward a pale weathered whitewash with the painted stone's courses multiplied in, and the worn canvas of the sails
+ * (frayed edges, a torn corner on two sails, the painted cloth's sun-bleached cream).
  */
 
-/** The tower's whitewash and stone courses (the courses on the bump map's second UV set). */
-export const MILL_TOWER_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <map_fragment>', put: `#include <map_fragment>
-  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), diffuseColor.rgb, 0.2);
-#ifdef USE_BUMPMAP
-  diffuseColor.rgb *= mix(1.0, texture2D(bumpMap, vBumpMapUv).g * 1.45, 0.35);
-#endif` },
-];
+/** The tower's whitewash and stone courses (the courses: the bump map's green, on the second UV set). */
+export const MILL_TOWER_GRAPH = skyMapGraph({ l: { op: 'dot', in: ['c', [0.2126, 0.7152, 0.0722]] }, white: { op: 'mix', in: ['l', 'c', 0.2] },
+  bump: { op: 'meshMap', name: 'bump' }, bg: { op: 'swizzle', in: ['bump'], mask: 'y' }, bg1: { op: 'mul', in: ['bg', 1.45] }, course: { op: 'mix', in: [1, 'bg1', 0.35] },
+  colour: { op: 'mul', in: ['white', 'course'] } }, { colour: 'colour' });
 
-/** The canvas: its cloth coordinates handed to the fragment stage, the value noise, the weathering over the colour. */
-export const MILL_CANVAS_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'vertex', find: '#include <begin_vertex>', put: '#include <begin_vertex>\n  vFarCloth = farCloth;' },
-  { stage: 'vertex', find: '', put: 'attribute vec3 farCloth;\nvarying vec3 vFarCloth;\n' },
-  { stage: 'fragment', find: '#include <color_fragment>', put: `#include <color_fragment>
-  { vec2 q = vFarCloth.xy; float seed = vFarCloth.z;
-    float n = farCN(q * vec2(14.0, 40.0) + seed * 17.0) * 0.65 + farCN(q * vec2(5.0, 13.0) + seed * 5.0) * 0.35;
-    float edge = min(min(q.x, 1.0 - q.x), min(q.y * 2.5, (1.0 - q.y) * 2.5));
-    float torn = step(edge, 0.05 * n);
-    // two sails have lost a ragged corner at the outer rail's hub end
-    torn = max(torn, step(0.45, seed) * step(length((q - vec2(1.0, 0.0)) * vec2(1.0, 1.6)), 0.22 + 0.22 * n));
-    if (farCN(q * vec2(6.0, 15.0) + seed * 31.0) > 0.94) torn = 1.0;
-    diffuseColor.a *= 1.0 - torn;
-#ifdef USE_MAP
-    // the painted canvas is a warm beige swatch: toward the targets' sun-bleached cream
-    diffuseColor.rgb = min(vec3(1.0), mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), 0.25) * vec3(1.12, 1.06, 0.96));
-    // (E399 seats: the sails 'read like pale glass panes'; the mockups' canvas is a weathered tan between dark frames)
-#else
-    float weave = 0.92 + 0.08 * sin(q.x * 300.0) * sin(q.y * 700.0);
-    diffuseColor.rgb *= weave * mix(1.0, 0.8, smoothstep(0.62, 0.8, n)) * mix(0.8, 1.0, smoothstep(0.0, 0.3, q.y));
-#endif
-  }` },
-  { stage: 'fragment', find: '', put: `varying vec3 vFarCloth;
-float farCH(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float farCN(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(farCH(i), farCH(i + vec2(1.0, 0.0)), u.x), mix(farCH(i + vec2(0.0, 1.0)), farCH(i + vec2(1.0, 1.0)), u.x), u.y); }
-` },
-];
+/** A 0 … 1 noise node over `at` (the canvas's cloth coordinates scaled by `scale`, offset by its seed × `seed`). */
+const cloth = (id: string, scale: readonly [number, number], seed: number): Record<string, { op: string; in: readonly (string | number | readonly number[])[] }> => ({
+  [`${id}q`]: { op: 'mul', in: ['q', scale] }, [`${id}s`]: { op: 'mul', in: ['seed', seed] }, [`${id}p`]: { op: 'add', in: [`${id}q`, `${id}s`] },
+  [`${id}r`]: { op: 'noise', in: [`${id}p`] }, [`${id}h`]: { op: 'mul', in: [`${id}r`, 0.5] }, [id]: { op: 'add', in: [`${id}h`, 0.5] } });
+
+/** The canvas: frayed at its edges and torn (a ragged corner at the outer rail's hub end on two sails), the painted cloth toward the targets' sun-bleached cream, a faint warm glow through it. */
+export const MILL_CANVAS_GRAPH = { ...skyMapGraph({ cl: { op: 'attribute', name: 'aFarCloth', type: 'vec3' }, q: { op: 'swizzle', in: ['cl'], mask: 'xy' }, seed: { op: 'swizzle', in: ['cl'], mask: 'z' },
+  qx: { op: 'swizzle', in: ['q'], mask: 'x' }, qy: { op: 'swizzle', in: ['q'], mask: 'y' },
+  ...cloth('na', [14, 40], 17), ...cloth('nb', [5, 13], 5), ...cloth('nc', [6, 15], 31), na6: { op: 'mul', in: ['na', 0.65] }, nb3: { op: 'mul', in: ['nb', 0.35] }, n: { op: 'add', in: ['na6', 'nb3'] },
+  qx1: { op: 'oneMinus', in: ['qx'] }, qy1: { op: 'oneMinus', in: ['qy'] }, ey0: { op: 'mul', in: ['qy', 2.5] }, ey1: { op: 'mul', in: ['qy1', 2.5] },
+  ex: { op: 'min', in: ['qx', 'qx1'] }, ey: { op: 'min', in: ['ey0', 'ey1'] }, edge: { op: 'min', in: ['ex', 'ey'] }, fray: { op: 'mul', in: ['n', 0.05] }, t1: { op: 'step', in: ['edge', 'fray'] },
+  cq: { op: 'sub', in: ['q', [1, 0]] }, cs: { op: 'mul', in: ['cq', [1, 1.6]] }, cd: { op: 'length', in: ['cs'] }, cn: { op: 'mul', in: ['n', 0.22] }, cr0: { op: 'add', in: ['cn', 0.22] },
+  cin: { op: 'step', in: ['cd', 'cr0'] }, two: { op: 'step', in: [0.45, 'seed'] }, t2: { op: 'mul', in: ['two', 'cin'] }, t3: { op: 'step', in: [0.94, 'nc'] },
+  t12: { op: 'max', in: ['t1', 't2'] }, torn: { op: 'max', in: ['t12', 't3'] }, cut: { op: 'gt', in: ['torn', 0.5] },
+  l: { op: 'dot', in: ['c', [0.3, 0.59, 0.11]] }, pale: { op: 'mix', in: ['c', 'l', 0.25] }, warm: { op: 'mul', in: ['pale', [1.12, 1.06, 0.96]] }, colour: { op: 'min', in: ['warm', 1] },
+  glow: { op: 'mul', in: ['c', [0.0296, 0.0212, 0.0144]] } }, { colour: 'colour', emissive: 'glow', discard: 'cut', roughness: 0.95 }), doubleSided: true } as const;
