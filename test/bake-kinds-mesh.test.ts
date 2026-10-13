@@ -1,11 +1,11 @@
-import { BoxGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Scene, Texture, type Object3D } from 'three';
+import { BoxGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Scene, Texture, Float32BufferAttribute, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { expect, it } from 'vitest';
 import { bakeKinds } from '../src/sdk/bake/kinds';
 import { bake, BakedPiece } from '../src/sdk/bake';
 import { readScene } from '../src/sdk/scene';
 import { restoreSceneGraph } from '../src/sdk/sceneGraph';
-import { bakedMeshKindsGroup } from '../src/game/shardfile/bakedKinds';
+import { bakedMeshKindsGroup, bakedKindsGroup } from '../src/game/shardfile/bakedKinds';
 
 const isMesh = (node: Object3D | undefined): node is Mesh => node instanceof Mesh;
 const isInstanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
@@ -81,4 +81,33 @@ it('refuses state that ordinary rows cannot represent, instead of silently chang
     const mesh = make(); change(mesh);
     expect(() => bakeKinds('glass', [['glass', mesh]], [])).toThrow(/unsupported ordinary|callbacks/u);
   }
+});
+
+it('keeps the mixed loader instanced path identical with named materials, attribute aliases and callback order', async () => {
+  const geometry = new BoxGeometry();
+  geometry.setAttribute('_fixture', new Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count).fill(0.25), 1));
+  const source = new InstancedMesh(geometry, new MeshStandardMaterial(), 2);
+  source.setMatrixAt(1, new Matrix4().makeTranslation(2.375, 3.125, -4.625));
+  const baked = bakeKinds('compatible', [['named-frame', source]], []);
+  const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(baked.glb).buffer, '');
+  const nodes = new Map<string, InstancedMesh>();
+  gltf.scene.traverse(node => { if (isInstanced(node)) { const row = baked.kinds[nodes.size]; if (row === undefined) throw new Error('Unexpected fixture instance'); nodes.set(row.name, node); } });
+  const draw = (calls: string[]) => ({ attributes: { _fixture: 'fixtureChannel' },
+    material: (row: { name: string }) => { calls.push(`material:${row.name}`); const material = new MeshStandardMaterial({ color: 0x886633, roughness: 0.375 }); material.name = row.name; return material; },
+    decorate: (material: MeshStandardMaterial, row: { name: string }) => { calls.push(`decorate:${row.name}`); material.emissive.setRGB(0.03, 0.05, 0.07); },
+  });
+  const oldCalls: string[] = [], mixedCalls: string[] = [];
+  const released = bakedKindsGroup(nodes, baked.kinds, draw(oldCalls));
+  const mixed = bakedMeshKindsGroup(nodes, baked.kinds, draw(mixedCalls));
+  const snapshot = (root: Object3D) => root.children.map(node => {
+    if (!isInstanced(node) || !(node.material instanceof MeshStandardMaterial)) throw new Error('Missing compatible instance');
+    return { name: node.name, count: node.count, matrices: node.instanceMatrix.array, colour: node.instanceColor?.array,
+      attributes: Object.fromEntries(Object.entries(node.geometry.attributes).map(([name, channel]) => [name, channel.array])),
+      index: node.geometry.getIndex()?.array, material: { name: node.material.name, colour: node.material.color.toArray(),
+        emissive: node.material.emissive.toArray(), roughness: node.material.roughness, metalness: node.material.metalness, flat: node.material.flatShading },
+    };
+  });
+  expect(snapshot(mixed)).toStrictEqual(snapshot(released));
+  expect(mixedCalls).toStrictEqual(oldCalls);
+  expect(mixed.children[0] instanceof InstancedMesh).toBe(true);
 });

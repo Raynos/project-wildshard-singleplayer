@@ -1,6 +1,6 @@
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { bakedWorld, worldPieces, type BakedKindRow, type DrawnBakedPiece, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
-import { BufferGeometry, DataTexture, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, UnsignedByteType, type InstancedMesh, type Object3D } from 'three';
+import { bakedMeshWorld, worldPieces, type BakedMeshKindRow, type DrawnBakedMeshPiece, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
+import { BufferGeometry, DataTexture, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, UnsignedByteType, type Mesh, type Object3D } from 'three';
 import { SKY_PIECES } from '../data/pieces';
 import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import winchHouse from '../data/winchHouse.json' with { type: 'json' };
@@ -35,7 +35,7 @@ const shackKind = (kind: object): ShackKind | undefined => {
 };
 
 let sward: Uint8Array | null = null;
-const WORLD = bakedWorld<BakedPiece, BakedKindRow>(PIECES, BAKED_URLS, 'far-reach', {
+const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(PIECES, BAKED_URLS, 'far-reach', {
   material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
     return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : undefined; },
   decorate: (material, kind) => { const rockMix: unknown = 'paint' in kind ? kind.paint : undefined; if (typeof rockMix === 'number') paintIsleMaterial(material, rockMix); },
@@ -65,7 +65,7 @@ export function skySwardAtlas(): DataTexture {
  * A world piece from its bake: its kinds as instanced meshes (undrawn if its GLB did not load; a tinted kind gets its rows'
  * per-instance colours) and its baked colliders. `nodes` defaults to the loaded bake (a test passes the GLB's nodes it parsed itself).
  */
-export const skyBakedPiece = (piece: BakedPiece, nodes?: ReadonlyMap<string, InstancedMesh>): DrawnBakedPiece => WORLD.piece(piece, { nodes });
+export const skyBakedPiece = (piece: BakedPiece, nodes?: ReadonlyMap<string, Mesh>): DrawnBakedMeshPiece => WORLD.piece(piece, { nodes });
 
 /** The knolls' hull colliders by knoll id (the rows' `hulls`: the SDK's baked collider rows are boxes), on the meadow. */
 export function skyKnollHulls(): ReadonlyMap<string, ColliderDesc> {

@@ -83,7 +83,7 @@ export function towerMill(nodes?: ReadonlyMap<string, InstancedMesh>): { group: 
   const made = modelledSet();
   const group = new Group(), hub = new Group(), baked = skyBakedPiece('mill', nodes);
   /** a baked kind under `parent`, drawn in `material` (the row's own material is never drawn) */
-  const put = (parent: Object3D, name: string, material: Material): InstancedMesh | undefined => {
+  const put = (parent: Object3D, name: string, material: Material): Mesh | undefined => {
     const mesh = baked.kinds.get(name); if (mesh === undefined) return undefined;
     for (const own of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) own.dispose();
     mesh.material = material; parent.add(mesh); return mesh;
