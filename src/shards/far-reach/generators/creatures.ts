@@ -3,7 +3,7 @@ import { readSourceModel, skinnedGlb, type RawTexture, type SkinnedBone, type Sk
 import type { AnimalDims } from '@wildshard/engine/entities/species/registry';
 import { bindRigid } from '@wildshard/sdk/looks/modelLibrary';
 import { hdGeometry, facetedGeometry, fitModel } from './modelIntake';
-import { SKY_AO_FLOOR } from '../world/meshes';
+import { SKY_AO_FLOOR } from '../data/modelFrames';
 import { SKY_CREATURE_SOURCES, type SkyCreatureExtras } from '../data/creatures';
 import type { SkyCreature } from '../data/files';
 

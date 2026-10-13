@@ -1,7 +1,7 @@
 import { BufferGeometry, Color, CylinderGeometry, Float32BufferAttribute, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Vector3 } from 'three';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
-import { PALETTE } from '../world/shapes';
+import { PALETTE } from '../world/materials';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by scripts/bake-sky-world.mjs into baked/geometries.glb + data/geometries.json;

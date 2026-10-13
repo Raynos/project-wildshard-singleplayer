@@ -7,7 +7,7 @@ import { islandMesh } from './isle';
 import { RISING_ISLETS } from './islets';
 import type { RisingIslet } from '../data/isletDesign';
 import isletMotion from '../data/isletMotion.generated.json' with { type: 'json' };
-import { PALETTE, flat } from './shapes';
+import { PALETTE, flat } from './materials';
 import { skyBakedPiece } from './baked';
 import { bakedColliders } from '@wildshard/game/shardfile/bakedKinds';
 import ISLET_RIG from '../data/isletRig.json' with { type: 'json' };

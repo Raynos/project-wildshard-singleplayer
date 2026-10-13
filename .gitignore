@@ -947,3 +947,7 @@ src/shards/far-reach/data/crownInstances.generated.json
 /public/assets/sunscar-dunes/baked/rest-oil.glb
 
 /src/shards/far-reach/data/skyMaps.json
+
+# Sky static bridge author products
+/src/shards/far-reach/data/bridgeRest.generated.json
+/public/assets/far-reach/baked/bridge-rest.glb

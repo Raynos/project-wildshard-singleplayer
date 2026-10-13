@@ -21,3 +21,6 @@ export const MODEL_FITS: Readonly<Partial<Record<SkyHdName, StaticModelFit>>> = 
 export const CARVED = { yaw: 0, daisH: 0.42, sink: 0.15 } as const;
 /** The standard geometry-only GLB; original painted textures remain their existing assets. */
 export const PREPARED_MODELS_URL = '/assets/far-reach/baked/prepared-models.glb';
+
+/** Authored facet AO floor shared by model and offline mesh readers. */
+export const SKY_AO_FLOOR = 0.6;

@@ -20,7 +20,8 @@ import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type: '
 import { skyIsleModels } from './skyIsleHd';
 import { skyBakedPiece, skyKnollHulls, skyPieces } from './baked';
 import { skyline } from './distant';
-import { PALETTE, flat, ropeBridge, vane, windmill } from './shapes';
+import { PALETTE, flat } from './materials';
+import { ropeBridge, vane, windmill } from './shapes';
 import { bookStand } from './bookStand';
 import { BOOK_STAND } from '../data/bookStand';
 import { KEEPER_STAND } from '../quest/keeper';

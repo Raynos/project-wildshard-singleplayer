@@ -5,7 +5,7 @@ import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
 import { RISING_ISLETS } from '../world/islets';
 import { ISLET, type EntryEdge, type RisingIslet } from '../data/isletDesign';
-import { PALETTE, flat } from '../world/shapes';
+import { PALETTE, flat } from '../world/materials';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by `scripts/bake-sky-world.mjs` into `baked/docks.glb` + `data/docks.json`;

@@ -22,7 +22,7 @@ import { apothem } from '../layout';
 import { builtIsleGeometry } from './isles';
 import { RISING_ISLETS } from '../world/islets';
 import { ISLET, type RisingIslet } from '../data/isletDesign';
-import { PALETTE } from '../world/shapes';
+import { PALETTE } from '../world/materials';
 
 type Rgb = [number, number, number];
 const smooth = (a: number, b: number, t: number): number => { const k = Math.min(1, Math.max(0, (t - a) / (b - a))); return k * k * (3 - 2 * k); };

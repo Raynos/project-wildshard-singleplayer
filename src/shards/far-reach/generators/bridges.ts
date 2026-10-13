@@ -5,7 +5,7 @@ import { facetedGeometry, fitModel } from './modelIntake';
 import { FALLEN_BRIDGE, SPANS, type Span } from '../data/layout';
 import { ropeSag } from '../layout';
 import { RISING_ISLETS } from '../world/islets';
-import { SKY_AO_FLOOR } from '../world/meshes';
+import { SKY_AO_FLOOR } from '../data/modelFrames';
 import { MODEL_URLS } from '../data/files';
 
 /**

@@ -5,7 +5,7 @@ import { bakeSkyPiece, SkyPiece } from './piece';
 import { apothem } from '../layout';
 import { RISING_ISLETS } from '../world/islets';
 import { ISLET, ISLET_ISLE, type RisingIslet } from '../data/isletDesign';
-import { PALETTE, flat } from '../world/shapes';
+import { PALETTE, flat } from '../world/materials';
 
 /**
  * Build-time only (SHARD-PLATFORM M3): the Rising Islets' static rig, baked by `bake-sky-world.mjs` into
