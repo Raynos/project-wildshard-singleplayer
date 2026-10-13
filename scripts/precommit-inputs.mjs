@@ -100,7 +100,7 @@ if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path)
     // Producers run in an immutable filesystem export, not the caller's Git
     // checkout. Hook transport changes must not reach or steer that producer.
     const producerEnv = { ...process.env, WS_COMMIT_WITNESS_CACHE: resolve(common, 'commit-inputs/witnesses'), WS_PRECOMMIT_BOOT_CACHE: resolve(common, 'commit-inputs/boot'), WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse') };
-    for (const key of ['GIT_INDEX_FILE', 'GIT_DIR', 'GIT_WORK_TREE', 'GIT_PREFIX', 'WS_COMMIT_INTENT', 'WS_PRECOMMIT_INPUTS_DONE']) delete producerEnv[key];
+    for (const key of ['GIT_INDEX_FILE', 'GIT_DIR', 'GIT_WORK_TREE', 'GIT_PREFIX', 'WS_COMMIT_INTENT', 'WS_PRECOMMIT_INPUTS_DONE', 'SHLVL', '_']) delete producerEnv[key];
     if (existsSync(resolve(common, 'commit-inputs', `${inputKey(root, before)}.json`))) {
       restoreCommitInputs(root, before, scratch);
       console.log('precommit-inputs: verified generation cache');

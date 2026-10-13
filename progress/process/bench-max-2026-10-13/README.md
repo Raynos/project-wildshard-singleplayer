@@ -205,3 +205,23 @@ Two distinct test edits/private indexes passed in 6.62 and 6.39 s. Their
 boot-table steps still took 1.62 and 1.86 s; this is no cache-hit or cold
 10 s qualification. The shared boot receipt is currently a single file,
 so unrelated producer contexts can replace each other's reusable evidence.
+
+
+## Restorable boot receipts (sp-x5)
+
+Receipts are partitioned by the complete actual producer environment and
+host. Shell transport is absent from the child environment. Missing
+untracked outputs restore from the existing verified SHA-256 blob pool,
+then every recorded input and inventory must match. Existing modified
+outputs run the producer. Failed verification removes only restored files
+and newly created empty directories before the actual producer runs.
+No source file or present output is overwritten by cache restoration.
+
+Four focused fixtures, narrowed types and touched lint pass. They cover
+independent contexts, missing output directories, corrupt blobs, corrupt
+receipts/outputs, changed sources/inventories and repeated failure.
+The real scratch hook restored all 111 boot outputs exactly: boot work
+2.397 -> 1.315 s; whole hook 8.85 -> 6.96 s (cold fill vs verified reuse).
+A source-edit cold run remains 13.83 s: export0.412/gen7.710/bakes3.984/
+save0.554. Its scoped measurement alone takes3.732 s. The 10 s cold cap
+and a green 120 s push qualification remain OPEN. No full suite was run.
