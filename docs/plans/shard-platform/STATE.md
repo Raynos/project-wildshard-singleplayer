@@ -10,7 +10,7 @@
 **Signal and Sky both meet Jake's port bar (tiles + 0 private binaries).** Gate issue left: "trusted runtime owns simulation". Nine: Linux proof exact (385/385), landing. **Nalati 0 private bins** (`d3bdac368`; one-fetch ground: sp-o98).
 **LIVE `2f7cc5e25-mv6dko3t` (07:44Z)** with Sky island tiles. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: Sim Nine entry 241–453 ms (new, sp-o101), Pine desktop travel 33 ms (old, sp-o100), Sim Far/Nalati/Pine/Driftwood travel 37–62 ms. CI closure red fixed `8acd18700`/`2e24ff5bf`.
 
-**Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 bench, x6 SF87, x4 Pine, x1 Driftwood, x8 Nine. Opus: o100 Pine grid frame, o101 Nine Sim entry, o98 Nalati ground fetch, (1 slot free).
+**Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 bench, x6 SF87, x4 Pine, x1 Driftwood, x8 Nine. Opus: o100 Pine grid frame, o101 Nine Sim entry, o98 Nalati ground fetch,, o102 Template gate.
 
 **For wildshard-v, Jake ask (G350 Nalati places):** bake runs 22k engine lines for 4.2 MB. **Port** to authored generators (big) or **freeze** bins + rows (cheap, not regenerable). Recommend port later; bridge stays.
 **Jake ask (Sky movers):** Sky headless onto the generic mover driver deletes one-user code but re-records the gameplay hash. Recommend yes, after the sprint.
