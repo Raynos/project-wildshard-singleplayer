@@ -25,9 +25,9 @@ export async function installInit(context, meta) {
     // wall-clock timer (13 B26). They stay out of the save fingerprint; every real save key is still recorded.
     const w = window;
     const telemetry = new Set(['wsErrQueue','ws.alive']);
-    Storage.prototype.getItem = function getItem(key) { if (!telemetry.has(key)) saves.read.push(name(this,key)); return rawGet.call(this,key); };
-    Storage.prototype.setItem = function setItem(key,value) { if (!telemetry.has(key) && !w.__parityTelemetryOnly(rawGet.call(this,key),value,key)) saves.written.push(name(this,key)); rawSet.call(this,key,value); };
-    Storage.prototype.removeItem = function removeItem(key) { if (!telemetry.has(key)) saves.written.push(name(this,key)); rawRemove.call(this,key); };
+    Storage.prototype.getItem = /** @this {Storage} @param {string} key */ function getItem(key) { if (!telemetry.has(key)) saves.read.push(name(this,key)); return rawGet.call(this,key); };
+    Storage.prototype.setItem = /** @this {Storage} @param {string} key @param {string} value */ function setItem(key,value) { if (!telemetry.has(key) && !w.__parityTelemetryOnly(rawGet.call(this,key),value,key)) saves.written.push(name(this,key)); rawSet.call(this,key,value); };
+    Storage.prototype.removeItem = /** @this {Storage} @param {string} key */ function removeItem(key) { if (!telemetry.has(key)) saves.written.push(name(this,key)); rawRemove.call(this,key); };
     w.__wildshardHarness = {seed:0x2545f491,capture:capture ?? null,lane,sha,browser,errors,saves,audioRequests,gpuBytes:()=> {
       const gl = w.__sc_gl();
       const textures = gl.reduce((sum,r)=>sum+r.texBytes,0), renderbuffers=gl.reduce((sum,r)=>sum+r.rbBytes,0), buffers=gl.reduce((sum,r)=>sum+r.bufBytes,0);

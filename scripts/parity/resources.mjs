@@ -8,7 +8,7 @@ export function installResources() {
   const add=EventTarget.prototype.addEventListener,remove=EventTarget.prototype.removeEventListener;
   /** @param {Entry} entry */
   const forget=(entry)=>{listeners.delete(entry);if(entry.signal && entry.abort)remove.call(entry.signal,'abort',entry.abort);};
-  EventTarget.prototype.addEventListener=function addEventListener(type,callback,options){
+  EventTarget.prototype.addEventListener=/** @this {EventTarget} @param {string} type @param {EventListenerOrEventListenerObject|null} callback @param {boolean|AddEventListenerOptions} [options] */ function addEventListener(type,callback,options){
     if(!callback){add.call(this,type,callback,options);return;}
     const capture=typeof options==='boolean'?options:options?.capture??false;
     const prior=[...listeners].find((e)=>e.target===this && e.type===type && e.callback===callback && e.capture===capture);
@@ -20,7 +20,7 @@ export function installResources() {
     if(signal){entry.signal=signal;entry.abort=()=>forget(entry);add.call(signal,'abort',entry.abort,{once:true});}
     listeners.add(entry);add.call(this,type,entry.wrapped,options);
   };
-  EventTarget.prototype.removeEventListener=function removeEventListener(type,callback,options){
+  EventTarget.prototype.removeEventListener=/** @this {EventTarget} @param {string} type @param {EventListenerOrEventListenerObject|null} callback @param {boolean|EventListenerOptions} [options] */ function removeEventListener(type,callback,options){
     const capture=typeof options==='boolean'?options:options?.capture??false;
     const entry=[...listeners].find((e)=>e.target===this && e.type===type && e.callback===callback && e.capture===capture);
     if(entry){forget(entry);remove.call(this,type,entry.wrapped,options);}else remove.call(this,type,callback,options);

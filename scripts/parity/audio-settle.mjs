@@ -1,3 +1,4 @@
+/// <reference path="./init.d.mts" />
 import { advance } from './frames.mjs';
 
 /** Init script: count the page's in-flight audio work (audio file reads, Cache Storage reads, digests, decodes, and the
@@ -33,17 +34,17 @@ export function installAudioWork() {
   if (typeof CacheStorage !== 'undefined') {
     // oxlint-disable-next-line typescript/unbound-method -- see above
     const rawMatch = CacheStorage.prototype.match;
-    CacheStorage.prototype.match = function match(request, options) {
+    CacheStorage.prototype.match = /** @this {CacheStorage} @param {RequestInfo|URL} request @param {MultiCacheQueryOptions} [options] @returns {Promise<Response|undefined>} */ function match(request, options) {
       const hit = Reflect.apply(rawMatch, this, [request, options]);
-      return audioUrl(request) ? track(hit.then((response) => { if (response) audioBodies.add(response); return response; })) : hit;
+      return audioUrl(request) ? track(hit.then((/** @type {Response|undefined} */ response) => { if (response) audioBodies.add(response); return response; })) : hit;
     };
   }
   // oxlint-disable-next-line typescript/unbound-method -- see above
   const rawDigest = SubtleCrypto.prototype.digest;
-  SubtleCrypto.prototype.digest = function digest(algorithm, data) { return track(Reflect.apply(rawDigest, this, [algorithm, data])); };
+  SubtleCrypto.prototype.digest = /** @this {SubtleCrypto} @param {AlgorithmIdentifier} algorithm @param {BufferSource} data @returns {Promise<ArrayBuffer>} */ function digest(algorithm, data) { return track(Reflect.apply(rawDigest, this, [algorithm, data])); };
   // oxlint-disable-next-line typescript/unbound-method -- see above
   const rawDecode = BaseAudioContext.prototype.decodeAudioData;
-  BaseAudioContext.prototype.decodeAudioData = function decodeAudioData(bytes, ok, fail) { return track(Reflect.apply(rawDecode, this, [bytes, ok, fail])); };
+  BaseAudioContext.prototype.decodeAudioData = /** @this {BaseAudioContext} @param {ArrayBuffer} bytes @param {DecodeSuccessCallback|null} [ok] @param {DecodeErrorCallback|null} [fail] @returns {Promise<AudioBuffer>} */ function decodeAudioData(bytes, ok, fail) { return track(Reflect.apply(rawDecode, this, [bytes, ok, fail])); };
   // Voices.prewarm renders one variant per idle slice and Driftwood's mix builds only when its families are rendered;
   // with game frames held the browser is idle, so these run in wall time like the decodes. A slice that queues the next
   // one counts it before its own count is released.
