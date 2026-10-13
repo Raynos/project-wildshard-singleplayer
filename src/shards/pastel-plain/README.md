@@ -21,3 +21,11 @@ The template binds terrain and props to one `pbr` material, so this shard keeps 
 binds the props section to `rock`, and `generators/bake.ts` returns both. Rebake with
 `node src/shards/pastel-plain/generators/pastel-plain.mjs` (deterministic; writes `data/terrain.json`, `data/props.json` and `assets/`), then
 rebake the map from a served build (`node scripts/bake-maps.mjs --url=<served> --shards=pastel-plain`).
+
+The `shard.config.ts` project entry imports its author-only declaration in
+`generators/product.ts`; follow that import to edit identity and rows.
+`generators/build-product.mjs` shares SDK admission/emission with normal
+builds. `assets/map.webp` and `data/productMap.json` freeze the authored
+map and official stamp; refresh together after an official map bake. The
+live stale-map gate remains unchanged. Whole-product comparison pins are
+report-only and never grant cache activation or output removal.
