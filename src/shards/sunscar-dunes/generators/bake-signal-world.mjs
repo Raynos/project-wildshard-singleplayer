@@ -13,9 +13,7 @@ import { pathToFileURL } from 'node:url';
 const root = resolve(import.meta.dirname, '../../../..'), project = resolve(root, 'src/shards/sunscar-dunes');
 const out = resolve(root, 'public/assets/sunscar-dunes/baked');
 const PIECES = [['rocks', 'generators/rocks.ts', 'bakeSignalRocks'], ['dressing', 'generators/dressing.ts', 'bakeSignalDressing'], ['tower', 'generators/tower.ts', 'bakeSignalTower'],
-  ['caravan', 'generators/places.ts', 'bakeSignalCaravan'], ['well', 'generators/places.ts', 'bakeSignalWell']];
-// rows without a GLB (nothing of the piece is code-drawn): only data/<piece>.json
-const ROWS = [['braziers', 'generators/places.ts', 'bakeSignalBraziers']];
+  ['caravan', 'generators/places.ts', 'bakeSignalCaravan'], ['well', 'generators/places.ts', 'bakeSignalWell'], ['braziers', 'generators/places.ts', 'bakeSignalBraziers']];
 const check = process.argv.includes('--check');
 const emit = (file, bytes) => {
   if (check) {
@@ -49,11 +47,6 @@ for (const [piece, file, name] of PIECES) {
     emit(resolve(project, 'data/lash.json'), `${JSON.stringify({ glb: hash, ...rows }, null, 2)}\n`);
     console.info(`sunscar-dunes lash: ${String(glb.length)} bytes → baked/lash.glb (${hash})`);
   } finally { environment.dispose(); }
-}
-for (const [piece, file, name] of ROWS) {
-  const generator = await import(pathToFileURL(resolve(project, file)).href);
-  emit(resolve(project, `data/${piece}.json`), `${JSON.stringify(generator[name](), null, 2)}\n`);
-  console.info(`sunscar-dunes ${piece}: rows only → data/${piece}.json`);
 }
 // the folder holds exactly this bake: no orphan GLB from an older bake ships
 for (const entry of readdirSync(out)) if (entry.endsWith('.glb') && !keep.has(entry)) { if (check) throw new Error(`Orphan bake ${entry}`); rmSync(resolve(out, entry)); }

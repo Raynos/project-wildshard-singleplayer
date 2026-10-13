@@ -1,12 +1,13 @@
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { bakedColliders, bakedKindsGroup, loadBakedKinds, type BakedColliderRow, type BakedKindRow } from '@wildshard/game/shardfile/bakedKinds';
-import type { Group, InstancedMesh } from 'three';
+import type { Group, InstancedMesh, MeshStandardMaterial } from 'three';
 import rocks from '../data/rocks.json' with { type: 'json' };
 import dressing from '../data/dressing.json' with { type: 'json' };
 import tower from '../data/tower.json' with { type: 'json' };
 import caravan from '../data/caravan.json' with { type: 'json' };
 import well from '../data/well.json' with { type: 'json' };
 import lash from '../data/lash.json' with { type: 'json' };
+import braziers from '../data/braziers.json' with { type: 'json' };
 import { BAKED_PIECES, BAKED_URLS, type BakedPiece } from '../data/files';
 import { warmByFire } from './meshes';
 
@@ -16,9 +17,9 @@ import { warmByFire } from './meshes';
  * static GLB and its rows through the SDK's baked-kinds loader (`@wildshard/game/shardfile/bakedKinds`) and only adds its
  * own lighting: a kind marked `warm` is lit by the fires. The colliders never wait on the GLB.
  */
-interface KindRow extends BakedKindRow { readonly warm?: boolean }
+interface KindRow extends BakedKindRow { readonly warm?: boolean; readonly brazier?: number }
 interface PieceRows { kinds: readonly KindRow[]; colliders: readonly BakedColliderRow[] }
-const PIECES: Readonly<Record<BakedPiece, PieceRows>> = { rocks, dressing, tower, caravan, well, lash };
+const PIECES: Readonly<Record<BakedPiece, PieceRows>> = { rocks, dressing, tower, caravan, well, braziers, lash };
 
 /** A loaded bake: each piece's instanced meshes (their geometry and transforms), keyed by the kind's name. */
 export type BakedWorld = ReadonlyMap<BakedPiece, ReadonlyMap<string, InstancedMesh>>;
@@ -34,9 +35,9 @@ export async function loadBakedWorld(): Promise<BakedWorld> {
 export const lastBakedWorld = (): BakedWorld | null => last;
 
 /** A world piece from its bake: each kind one `InstancedMesh` in its own material, and the baked colliders. */
-export function bakedPiece(baked: BakedWorld, piece: BakedPiece): { root: Group; colliders: ColliderDesc[] } {
+export function bakedPiece(baked: BakedWorld, piece: BakedPiece, only?: (kind: KindRow) => boolean, each?: (material: MeshStandardMaterial) => void): { root: Group; colliders: ColliderDesc[] } {
   const rows = PIECES[piece];
-  // the lantern and the cookfire light a `warm` kind
-  const root = bakedKindsGroup(baked.get(piece), rows.kinds, { decorate: (material, kind) => { if (kind.warm === true) warmByFire(material); } });
+  // the lantern and the cookfire light a `warm` kind; `only` picks some kinds (one waymark's), `each` sees their materials
+  const root = bakedKindsGroup(baked.get(piece), only ? rows.kinds.filter(only) : rows.kinds, { decorate: (material, kind) => { if (kind.warm === true) warmByFire(material); each?.(material); } });
   return { root, colliders: bakedColliders(rows.colliders) };
 }

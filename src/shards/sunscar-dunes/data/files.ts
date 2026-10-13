@@ -51,12 +51,13 @@ export const DUNE_MESH_URLS: Readonly<Record<DuneMeshName, string>> = {
   'dune-matriarch': '/assets/sunscar-dunes/models/dune-matriarch/dune-matriarch.glb', 'caravan-scout': '/assets/sunscar-dunes/models/caravan-scout/caravan-scout.glb',
   'whip-glove': '/assets/sunscar-dunes/models/whip-glove/whip-glove.glb',
 };
-/** The world pieces baked offline (SF72: `generators/<piece>.ts` → `scripts/bake-signal-world.mjs`), drawn by `world/baked.ts`; `lash` is the held whip's tubes (G345). */
-export const BAKED_PIECES = ['rocks', 'dressing', 'tower', 'caravan', 'well', 'lash'] as const;
+/** The world pieces baked offline (SF72: `generators/<piece>.ts` → `scripts/bake-signal-world.mjs`), drawn by `world/baked.ts`; `braziers` the waymarks' log crowns, `lash` the held whip's tubes (G345). */
+export const BAKED_PIECES = ['rocks', 'dressing', 'tower', 'caravan', 'well', 'braziers', 'lash'] as const;
 export type BakedPiece = (typeof BAKED_PIECES)[number];
 export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = {
   rocks: '/assets/sunscar-dunes/baked/rocks.glb', dressing: '/assets/sunscar-dunes/baked/dressing.glb', tower: '/assets/sunscar-dunes/baked/tower.glb',
-  caravan: '/assets/sunscar-dunes/baked/caravan.glb', well: '/assets/sunscar-dunes/baked/well.glb', lash: '/assets/sunscar-dunes/baked/lash.glb',
+  caravan: '/assets/sunscar-dunes/baked/caravan.glb', well: '/assets/sunscar-dunes/baked/well.glb', braziers: '/assets/sunscar-dunes/baked/braziers.glb',
+  lash: '/assets/sunscar-dunes/baked/lash.glb',
 };
 /** The creature bodies baked offline as skinned rig files (SF72: `generators/species.ts`, G345 `generators/hulls.ts` → `generators/bake-signal-rigs.mjs`), loaded by `world/meshes.ts` (the game's `creatureBodies`). */
 export const DUNE_RIGS = ['skitterer', 'strider'] as const;

@@ -9,7 +9,7 @@ import { signalDunesField } from '../../../src/shards/sunscar-dunes/generators/t
 import { bakeSignalRocks, buildRocks } from '../../../src/shards/sunscar-dunes/generators/rocks';
 import { bakeSignalDressing, buildDressing } from '../../../src/shards/sunscar-dunes/generators/dressing';
 import { bakeSignalTower, buildTowerFrame } from '../../../src/shards/sunscar-dunes/generators/tower';
-import { bakeSignalBraziers, bakeSignalCaravan, bakeSignalWell, buildCaravanFrame, buildWellFrame } from '../../../src/shards/sunscar-dunes/generators/places';
+import { bakeSignalBraziers, bakeSignalCaravan, bakeSignalWell, buildCaravanFrame, buildWellFrame, waymarkCrown } from '../../../src/shards/sunscar-dunes/generators/places';
 import { TOWER } from '../../../src/shards/sunscar-dunes/data/layout';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakedPiece, type BakedWorld } from '../../../src/shards/sunscar-dunes/world/baked';
@@ -26,9 +26,9 @@ const folder = new URL('../../../public/assets/sunscar-dunes/baked/', import.met
 const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
 const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
 const sha = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
-const ROWS: Record<BakedPiece, { glb: string; kinds: readonly { name: string }[] }> = { rocks, dressing, tower, caravan, well, lash };
+const ROWS: Record<BakedPiece, { glb: string; kinds: readonly { name: string }[] }> = { rocks, dressing, tower, caravan, well, braziers, lash };
 // the held lash bakes over the generated glove's intake: its stale gate is whip-view.test.ts
-const BAKES: Record<Exclude<BakedPiece, 'lash'>, () => PieceBake> = { rocks: bakeSignalRocks, dressing: bakeSignalDressing, tower: bakeSignalTower, caravan: bakeSignalCaravan, well: bakeSignalWell };
+const BAKES: Record<Exclude<BakedPiece, 'lash'>, () => PieceBake> = { rocks: bakeSignalRocks, dressing: bakeSignalDressing, tower: bakeSignalTower, caravan: bakeSignalCaravan, well: bakeSignalWell, braziers: bakeSignalBraziers };
 
 async function loadBaked(): Promise<BakedWorld> {
   const world = new Map<BakedPiece, Map<string, InstancedMesh>>();
@@ -55,8 +55,6 @@ describe('Signal Dunes bakes its code-built world offline (SHARD-PLATFORM SF72, 
       expect({ glb: sha(glb), ...rows }).toEqual(ROWS[piece]);
       expect(sha(new Uint8Array(readFileSync(new URL(`${piece}.glb`, folder))))).toBe(ROWS[piece].glb);
     }
-    // the waymarks bake rows only (nothing of them is code-drawn)
-    expect(bakeSignalBraziers()).toEqual(braziers);
     // the folder holds exactly this bake: no orphan GLB from an older bake ships
     expect(readdirSync(folder).filter((name) => name.endsWith('.glb')).sort()).toEqual(BAKED_PIECES.map((piece) => `${piece}.glb`).sort());
   });
@@ -127,5 +125,20 @@ describe('Signal Dunes bakes its code-built world offline (SHARD-PLATFORM SF72, 
       }
     }
     expect(caravan.anchors.y).toBe(field.heightAt(-78, 28));
+  });
+
+  it('each waymark\'s log crown draws as its own kinds, every log one instance on the builder\'s own transform', async () => {
+    const baked = await loadBaked();
+    for (const i of [0, 1, 2]) {
+      const embers: unknown[] = [], drawn = bakedPiece(baked, 'braziers', (kind) => kind.brazier === i, (m) => { embers.push(m); }), crown = waymarkCrown(i);
+      crown.updateMatrixWorld(true);
+      const all = drawn.root.children.flatMap((o) => instanced(o) ? Array.from({ length: o.count }, (_, k) => { const t = new Matrix4(); o.getMatrixAt(k, t); return t; }) : []);
+      expect([all.length, embers.length]).toEqual([crown.children.length, drawn.root.children.length]);
+      const want = new Vector3(), got = new Vector3(), first = new Vector3(0, 0, 0);
+      for (const log of crown.children) {
+        want.copy(first).applyMatrix4(log.matrixWorld);
+        expect(all.some((t) => got.copy(first).applyMatrix4(t).distanceTo(want) < 1e-5)).toBe(true);
+      }
+    }
   });
 });

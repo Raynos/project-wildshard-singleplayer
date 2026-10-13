@@ -20,3 +20,6 @@ export const HORSE = { x: -5.0, z: 1.6, yaw: 0.39, h: 1.62 } as const;
 export const CRATES = { x: 2.6, z: -2.6, half: 0.42 } as const;
 /** The well's windlass: the stone ring's radius, the axle's height and how far below it the bucket hangs. */
 export const WELL_RIG = { r: 1.35, axleY: 1.85, drop: 2.6 } as const;
+/** The textured hero models' fitted sizes (metres): the wagon's span and turn, the brazier's height and its bowl's height as
+ *  a share of it. */
+export const HD = { wagon: 6.4, wagonYaw: Math.PI, brazier: 2.5, bowlAt: 0.86 } as const;

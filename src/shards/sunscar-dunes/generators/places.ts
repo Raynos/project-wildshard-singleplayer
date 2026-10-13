@@ -1,7 +1,7 @@
 import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, TorusGeometry, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { BRAZIERS, CARAVAN, WELL } from '../data/layout';
-import { COOK, CRATES, HORSE, LANTERN, WELL_RIG } from '../data/places';
+import { COOK, CRATES, HD, HORSE, LANTERN, WELL_RIG } from '../data/places';
 import { DUNE_FIELD } from '../data/duneField';
 import { signalDunesField } from './tiles';
 import { bakeKinds, foldKinds } from './kinds';
@@ -14,7 +14,7 @@ import { colliderRows, type PieceBake } from '@wildshard/sdk/bake/kinds';
  * showed them, over the shipped generated models (the wagon, the crates, the sacks, the horse, the well and the brazier
  * are Hunyuan3D-2 models the client places, `world/places.ts`), then folded into instanced kinds. What moves or burns stays
  * live in the client: the lantern's glass and halo, the cookfire, the well's bucket, rope, jar and crank, the braziers'
- * oil, kindling and fire.
+ * oil and fire. Each waymark's charred log crown is baked too, its own kinds (`brazier: i`), so it glows alone when lit.
  */
 
 type Ground = (x: number, z: number) => number;
@@ -22,7 +22,7 @@ const up = new Vector3(0, 1, 0);
 
 // round 2 (R1C-2): sun-greyed wood and worn iron a step lighter; at dusk the old near-black values read as black cut-outs
 const WOOD_DARK = 0x86603f, IRON = 0x6e5e56, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, POLE = 0x86603f;
-const RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
+const RAG = 0x8a2a16, RAG_GLOW = 0x1a0603, CHARRED = 0x1c120c;
 /** The places' marker poles (metres): as tall as the waymark poles' reach from above. */
 const MARK = { h: 6.5 } as const;
 /** The caravan's tent, dark canvas pitched off the wagon's right as you come up behind it (mockup B). */
@@ -141,8 +141,28 @@ export function bakeSignalWell(): PieceBake & { anchors: { y: number } } {
   const field = signalDunesField(), frame = buildWellFrame(field.heightAt);
   return { ...bakeKinds('well', foldKinds(frame.root), frame.colliders), anchors: frame.anchors };
 }
-/** The three waymarks' footings and colliders (no GLB: nothing of them is code-drawn). */
-export function bakeSignalBraziers(): { braziers: { y: number; colliders: ColliderDesc[] }[] } {
-  const field = signalDunesField();
-  return { braziers: BRAZIERS.map((b) => { const w = waymarkFrame(b.x, b.z, field.heightAt); return { y: w.y, colliders: colliderRows(w.colliders) }; }) };
+/**
+ * Waymark `i`'s charred log crown in its bowl (E399, mockup C: the hero brazier's log fire; round 1: the unlit bowls read
+ * empty and black), in the brazier's own frame: seven ends splayed out over the rim and four logs laid low across the bowl
+ * at odd angles (round 8; a steep teepee read as a Λ against the flame's core). Its charred wood carries the ember glow the
+ * client switches on when the waymark burns (round 18, row 3: the logs burn orange inside the flame).
+ */
+export function waymarkCrown(i: number): Group {
+  const g = new Group(), size = 1.6, y = HD.brazier * HD.bowlAt - 0.15, n = 11;
+  const wood = new MeshStandardMaterial({ color: CHARRED, roughness: 0.95, emissive: 0xff4a10, emissiveIntensity: 0 }); wood.userData['brazier'] = i;
+  for (let k = 0; k < n; k++) {
+    const tee = k >= 7, a = tee ? (k - 7) * 1.9 + 0.4 : (k / 7) * Math.PI * 2 + (k % 2) * 0.3;
+    const lean = tee ? 0.72 + (k % 2) * 0.16 : -0.8 - (k % 3) * 0.1, len = (tee ? 0.4 + (k % 2) * 0.06 : 0.34 + (k % 2) * 0.06) * size;
+    const log = new Mesh(new CylinderGeometry(0.03 * size, 0.04 * size, len, 5), wood);
+    log.rotation.order = 'YXZ'; log.rotation.set(-lean, a, 0);
+    log.position.set(Math.sin(a) * Math.sin(lean) * len * 0.5, y + Math.cos(lean) * len * 0.5, Math.cos(a) * Math.sin(lean) * len * 0.5); g.add(log);
+  }
+  return g;
+}
+
+/** The three waymarks: their crowns (each in its brazier's frame), footings and colliders. */
+export function bakeSignalBraziers(): PieceBake & { braziers: { y: number; colliders: ColliderDesc[] }[] } {
+  const field = signalDunesField(), crowns = BRAZIERS.flatMap((_, i) => foldKinds(waymarkCrown(i)).map(([name, mesh]) => [`${String(i)}.${name}`, mesh] as const));
+  return { ...bakeKinds('braziers', crowns, []),
+    braziers: BRAZIERS.map((b) => { const w = waymarkFrame(b.x, b.z, field.heightAt); return { y: w.y, colliders: colliderRows(w.colliders) }; }) };
 }
