@@ -407,7 +407,7 @@ interface Raw {
   readonly [k: string]: unknown;
   readonly version?: unknown; readonly kind?: unknown; readonly model?: unknown; readonly doubleSided?: unknown; readonly flatShading?: unknown;
   readonly primitive?: unknown; readonly effectState?: unknown; readonly blend?: unknown; readonly fog?: unknown;
-  readonly depthWrite?: unknown; readonly depthBias?: unknown; readonly factor?: unknown; readonly units?: unknown; readonly size?: unknown; readonly points?: unknown;
+  readonly depthWrite?: unknown; readonly singlePass?: unknown; readonly depthBias?: unknown; readonly factor?: unknown; readonly units?: unknown; readonly size?: unknown; readonly points?: unknown;
   readonly params?: unknown; readonly nodes?: unknown; readonly stages?: unknown;
   readonly type?: unknown; readonly value?: unknown; readonly min?: unknown; readonly max?: unknown; readonly bind?: unknown;
   readonly day?: unknown; readonly state?: unknown;
