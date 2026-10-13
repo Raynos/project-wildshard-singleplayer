@@ -10,6 +10,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture-owned paths.
 import { join } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Force the occupied-export fallback with this fixture's live owner.
+import { pid } from 'node:process';
 
 it('generates from staged bytes, includes tracked tables and refuses corrupt cached inputs', () => {
   const root = mkdtempSync(join(tmpdir(), 'commit-inputs-fixture-'));
@@ -68,7 +70,8 @@ it('publishes staged native outputs with an exact receipt and refuses producer f
 if(existsSync('${output}'))writeFileSync('src/native.generated.json',readFileSync('${output}'));`);
     writeFileSync(join(root, 'scripts/bake-loader.mjs'), '');
     writeFileSync(join(root, 'scripts/precommit-bakes.mjs'), `import {existsSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
-export async function regenerateCheapBakes(){
+export async function regenerateCheapBakes(root,product){
+if(!product.stagedPaths.includes('src/value.ts'))throw Error('missing caller staged paths');
 const value=readFileSync('src/value.ts','utf8');
 if(value==='fail')throw Error('official producer refused');
 const next=JSON.stringify({value});
@@ -81,6 +84,7 @@ export async function refreshRecordedCommitInputs(){return [];}`);
     writeFileSync(join(root, 'src/value.ts'), 'staged'); git('add', 'src/value.ts');
     writeFileSync(join(root, 'src/value.ts'), 'foreign working bytes');
     writeFileSync(join(root, output), 'foreign output bytes');
+    const lease=join(root,'.git/commit-export.lock');mkdirSync(lease);writeFileSync(join(lease,'pid'),String(pid));
     precommitInputs(root);
     expect(git('show', `:${output}`)).toBe('{"value":"staged"}');
     expect(readFileSync(join(root, output), 'utf8')).toBe('foreign output bytes');

@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Locate the installed fixture dependency without browser globals.
 import process from 'node:process';
 import { expect, it } from 'vitest';
-import { NATIVE_BAKES, nativeBakePlan, regenerateCheapBakes, refreshRecordedCommitInputs } from '../scripts/precommit-bakes.mjs';
+import { NATIVE_BAKES, nativeBakePlan, regenerateCheapBakes, refreshRecordedCommitInputs, refreshCommitMeasurements } from '../scripts/precommit-bakes.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Measure fixture input maps using the shipping digest law.
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own all fixture files and remove them in finally.
@@ -77,4 +77,22 @@ console.log(JSON.stringify({status:'fresh',inputs:'00'}));`);
     await expect(refreshRecordedCommitInputs(root,cache)).rejects.toThrow('Recorded commit producer failed');
     await expect(refreshRecordedCommitInputs(root,cache)).rejects.toThrow('Recorded commit producer failed');
   } finally { rmSync(root,{recursive:true,force:true}); }
+});
+
+it('measures caller staged paths in a fallback export with no repository', async () => {
+  const root=mkdtempSync(join(tmpdir(),'commit-measure-fallback-'));
+  try {
+    mkdirSync(join(root,'lint'));
+    mkdirSync(join(root,'scripts/normalize'),{recursive:true});
+    writeFileSync(join(root,'lint/ratchet.json'),'{}');
+    writeFileSync(join(root,'scripts/README.md'),'before');
+    writeFileSync(join(root,'lint/ratchet.mjs'),`import{readFileSync,writeFileSync}from'node:fs';
+const paths=JSON.parse(readFileSync(process.argv.at(-1),'utf8'));
+if(JSON.stringify(paths)!=='["src/staged.ts"]')throw Error('wrong staged paths');
+writeFileSync('lint/ratchet.json','{"measured":true}');`);
+    writeFileSync(join(root,'scripts/normalize/liveness.mjs'),`import{writeFileSync}from'node:fs';writeFileSync('scripts/README.md','after');`);
+    await expect(refreshCommitMeasurements(root,undefined)).rejects.toThrow('caller staged paths');
+    expect(await refreshCommitMeasurements(root,['src/staged.ts','scripts/other.mjs'])).toEqual(['lint/ratchet.json','scripts/README.md']);
+    expect(await refreshCommitMeasurements(root,['src/staged.ts'])).toEqual([]);
+  } finally {rmSync(root,{recursive:true,force:true});}
 });

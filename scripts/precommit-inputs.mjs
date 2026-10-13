@@ -110,13 +110,13 @@ if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path)
       const producer = `import {existsSync,readFileSync,writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {regenerateCheapBakes,refreshRecordedCommitInputs} from './scripts/precommit-bakes.mjs';
-const files=await regenerateCheapBakes(process.cwd(),{url:process.env.WS_STAGED_MAP_URL,revision:process.env.WS_STAGED_MAP_REVISION});
+const files=await regenerateCheapBakes(process.cwd(),{url:process.env.WS_STAGED_MAP_URL,revision:process.env.WS_STAGED_MAP_REVISION,stagedPaths:JSON.parse(process.argv[2])});
 const catalogue=JSON.parse(readFileSync('scripts/generation-jobs.json','utf8'));
 if(catalogue.jobs.some(job=>(job.inputRoots??[]).some(root=>files.some(file=>file===root||file.startsWith(root+'/')))))
 execFileSync(process.execPath,[...(existsSync('scripts/gen-boot-cache.mjs')?['--import','./scripts/bake-loader.mjs','--import','./scripts/gen-boot-cache.mjs']:[]),'scripts/gen.mjs','--build-inputs'],{stdio:'inherit'});
 const recorded=await refreshRecordedCommitInputs(process.cwd(),process.env.WS_COMMIT_WITNESS_CACHE);
 writeFileSync(process.argv[1],JSON.stringify([...files,...recorded]));`;
-      execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', producer, result], { cwd: scratch, stdio: 'inherit',
+      execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', producer, result, JSON.stringify(paths)], { cwd: scratch, stdio: 'inherit',
         env: { ...process.env, WS_PRECOMMIT_BOOT_CACHE: resolve(common, 'commit-inputs/boot'), WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse'), WS_COMMIT_WITNESS_CACHE: resolve(common, 'commit-inputs/witnesses') } });
       produced = JSON.parse(readFileSync(result, 'utf8'));
       if (!Array.isArray(produced) || produced.some(file => typeof file !== 'string' || file.includes('\\') || file.split('/').some(part => part === '' || part === '.' || part === '..'))) throw new Error('Invalid commit producer paths');
