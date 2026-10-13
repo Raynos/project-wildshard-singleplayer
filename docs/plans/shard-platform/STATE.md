@@ -8,10 +8,10 @@
 | Sky Reach | 78.4 % → **53.3 %** | ≤ 1355 lines | 0 / 2 |
 
 **Game exports (G351):** 104 total (from 328); `plugin/` 20 → 17 (target 12–14, sp-x5).
-**Ratchets (G349):** standing debt rule deleted, sweeper stopped; debt shrink-only. **Push (Jake `a44511f05`, `193a7e998`, audit `ef0eb5e04`), sp-x7:** debt refused per file at commit; local gate ≤ 2 min (changed-file typecheck/lint + affected tests), full suite/bakes in CI with fix-forward; cheap bakes regenerate at commit; regen bot ≤ 1 commit/h; no repeat retries; allowed graph counts report-only. Exact-number tests → limits (sp-o66). Fewer bookkeeping commits: STATE batched.
+**Ratchets (G349):** standing debt rule deleted, sweeper stopped; debt shrink-only. **Push (Jake `a44511f05`, `193a7e998`, audit `ef0eb5e04`), sp-x7:** debt refused per file at commit; local gate ≤ 2 min (changed-file typecheck/lint + affected tests), full suite/bakes in CI with fix-forward; **generated files regenerate at commit, never at push; the regen bot goes (`267504b5a`)**; no repeat retries; allowed graph counts report-only. Exact-number tests → limits.
 **Next (Jake):** tiles + 0 private bins; SF81–SF85 open until runtime deleted; G350 exits.
 
-**Fleet:** Codex sp-x7 push/deploy, sp-x5 plugin trim (Codex 7 %). Opus: Sky brains + rig compression sp-o64, Sky through `bake()` sp-o60, Signal ground sp-o55, Signal `terrain.bin` sp-o63, war-fan viewmodel red sp-o58.
+**Fleet (Jake `267504b5a`): 4 Opus + 3 Codex**, winding down by not replacing. Codex: sp-x7 push, sp-x5 plugin trim, sp-x6 navigation row. Opus: Signal `terrain.bin` sp-o63, Sky brains + rigs sp-o64, Sky island tiles sp-o65, limit tests sp-o66 (sp-o62 finishing).
 **Live:** `957b05e6`; release unpin `e6eeefc1e` (green on `de0130e95`) waits on the gate; origin `53d4b7aa0`.
 
 **Calls for Jake (2026-10-13; reverse any):**
@@ -19,8 +19,8 @@
 2. Signal road seam = drawn sand tint (`f54924aa3`).
 4. Missing Sky models stand undrawn, no code stand-ins (`d5267c284`).
 5. Metric per-export (`ddf5c4dea`).
-8. Entryway proof (`add1035d6`) credits Sky's lift proof to Nine: Sky −120 is ~−20.
-11. Signal dusk proven by uniforms at 11 values (`d9112c821`); host state may drive `look.curves`.
+8. Entryway proof credits Sky's lift proof to Nine (`add1035d6`).
+11. Signal dusk proven by uniforms, not captures (`d9112c821`).
 10. New SDK export `./bake` (`6d2161e6f`); Signal pieces stay GLBs.
 
 13. Fan test snapshot re-accepted; game viewmodel 0 px diff (`5dc782337`).
