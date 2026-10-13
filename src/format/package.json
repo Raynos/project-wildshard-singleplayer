@@ -114,7 +114,8 @@
     "./minimap": "./minimap.ts",
     "./dayCycle": "./dayCycle.ts",
     "./navigation": "./navigation.ts",
-    "./navigationBytes": "./navigationBytes.ts"
+    "./navigationBytes": "./navigationBytes.ts",
+    "./npcs": "./npcs.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

@@ -1137,7 +1137,11 @@ that its encounter steers through `fight` / `rise` / `phase` memory fields;
 writes them: arena, health share per checkpoint, rise seconds, storm phases and fade. Its browser presentation is a row too (`parseMarkedBossPresentation`): the arena floor, the respawn
 point, the storm's fog and blown-sand shells, and the toasts. A quest's runtime is declared as well
 (`@wildshard/game/plugin/quests`, for trusted runtime): `parseQuestGraph` names the interaction rows' command actor, their marks' step and the
-actions a row starts (`{ row, summon }` arms a boss); `parseNpcRow` declares a quest-giver (where it stands, its talk,
+actions a row starts (`{ row, summon }` arms a boss). NPC contracts are defined by
+`@wildshard/format/npcs`: `NpcRowSchema`, `NpcMotionSchema`, and `NpcDialogueRowSchema`
+share strict admission with the existing SDK and runtime parsers. Their generated JSON Schema
+documents retain every structural bound; figure, animation and dialogue ordering stay with their owners.
+`parseNpcRow` declares a quest-giver (where it stands, its talk,
 its figure metadata and dialogue). Native figure placement stays with the trusted
 owner; there is no public SDK pivot-NPC installer. Sky's phased-raptor remains a
 kept one-shard law: perch/return/takeoff, altitude and phase-specific ready laws are

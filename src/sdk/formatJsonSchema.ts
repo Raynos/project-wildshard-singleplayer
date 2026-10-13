@@ -1,4 +1,5 @@
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
+import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema } from '@wildshard/format/npcs';
 import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
 import type { GenericSchema } from 'valibot';
@@ -108,6 +109,9 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots = {
+  'npcs.NpcRow': NpcRowSchema,
+  'npcs.NpcMotion': NpcMotionSchema,
+  'npcs.NpcDialogueRow': NpcDialogueRowSchema,
   'bossProfiles.BossProfile': BossProfileSchema,
   'bossProfiles.ArenaBossProfile': ArenaBossProfileSchema,
   'bossProfiles.RoamingBossProfile': RoamingBossProfileSchema,
