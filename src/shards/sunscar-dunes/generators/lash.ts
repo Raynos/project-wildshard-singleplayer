@@ -1,15 +1,15 @@
 import { BufferAttribute, BufferGeometry, CatmullRomCurve3, InstancedMesh, MeshStandardMaterial, TubeGeometry, Vector3, Euler } from 'three';
 import { bakePiece, signalPiece, type SignalPieceBake } from './kinds';
-import { WHIP_HOLD, type CoilPath, type CordRgb, type CordStyle, type LashHoldRow } from '../data/whip';
+import { WHIP_HOLD, WHIP_VIEW, type CoilPath, type CordRgb, type CordStyle, type LashHoldRow, type LashView, type PlaitStyle } from '../data/whip';
 
 /**
  * Build-time only (G345, the lash's graphical port): the bullwhip's held geometry, baked offline
  * (`generators/bake-signal-world.mjs` → `baked/lash.glb` + `data/lash.json`). The client builds no tube or braid: it
- * reads three kinds, `coil` (the braided rest coil the Model Explorer shows), `loop` (the plaited coil in the hero
- * glove's frame) and `cord` (the thrown cord's rings, its braid painted, its positions rewritten every frame by
- * `runtime/items/lashView.ts`), and the two numbers the generated glove's fit gives: where the lash leaves the hand
+ * reads four kinds, `coil` (the braided rest coil the Model Explorer shows), `loop` (the plaited coil in the hero
+ * glove's frame), `cord` (the thrown cord's rings, its braid painted, its positions rewritten every frame by
+ * `runtime/items/lashView.ts`) and `wrap` (the helix a heavy lash winds round a caught lever), and the two numbers the generated glove's fit gives: where the lash leaves the hand
  * (`tip`) and the plait tile's repeat along the loop (`along`). The generated glove is read through the client's own
- * model intake; the client no longer loads it.
+ * model intake; the client no longer loads it. The plait tile's texels go beside it (`baked/plait.bin`, `plaitTexels`).
  */
 
 /** Paints a tube's rings with two strands laid in a spiral (the plait), so the braid reads without a texture; the last `popperRings` are the popper. */
@@ -74,6 +74,13 @@ export function restCoilGeometry(row: LashHoldRow): TubeGeometry {
   return geometry;
 }
 
+/** The helix a heavy lash winds round a caught lever (`runtime/items/lashWeapon.ts` shows it at the lever while the wrap holds). */
+export function wrapGeometry(w: LashView['wrap']): TubeGeometry {
+  const pts: Vector3[] = [];
+  for (let i = 0; i <= w.samples; i++) { const a = (i / w.samples) * Math.PI * 2 * w.turns; pts.push(new Vector3(Math.cos(a) * w.r, (i / w.samples - 0.5) * w.h, Math.sin(a) * w.r)); }
+  return new TubeGeometry(new CatmullRomCurve3(pts), w.segments, w.cord, w.sides, false);
+}
+
 /**
  * Where the lash leaves the hand, in the hold's frame, as the client always fitted the generated glove: its handle's axis
  * (the mean of the vertices between `collar[0]` and `collar[1]` short of its far end) and its fist (`fist` of the way
@@ -93,10 +100,41 @@ export function lashTip(row: LashHoldRow, glove: BufferGeometry): [number, numbe
   return new Vector3(0, top, 0).applyEuler(new Euler(...row.made.grip)).toArray();
 }
 
+/**
+ * The plait's tile as raw RGBA texels (`baked/plait.bin`, deflated; `runtime/items/lashHold.ts` reads them): strand columns
+ * round the cord, each leaning 45 deg the other way from its neighbour, so the strands meet in the chevrons a plaited thong
+ * shows. Each strand is a raised lozenge (a crown, dark creases between); the normal tile carries that relief and the
+ * roughness tile puts a sheen on the crowns only. Three `size`² tiles in a row: the colour (sRGB), the normal, the roughness.
+ */
+export function plaitTexels(p: PlaitStyle = WHIP_HOLD.plait): Uint8Array {
+  const n = p.size, h = new Float32Array(n * n), tone = new Float32Array(n * n);
+  const hash = (a: number, b: number): number => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const v = (y + 0.5) / n * p.columns, col = Math.floor(v), cv = v - col, lean = col % 2 === 0 ? 1 : -1;
+    const q = (x + 0.5) / n * p.rows + lean * cv, row = Math.floor(q), across = q - row;
+    // the strand's width profile (round crown, creased edges) times its fall-off into the column's spine
+    const crown = Math.sin(Math.PI * across) ** 0.7 * Math.sin(Math.PI * cv) ** 0.35;
+    h[y * n + x] = crown; tone[y * n + x] = hash(row + 17 * col, col * 3.1); // each strand a little lighter or darker
+  }
+  const out = new Uint8Array(n * n * 12), map = out.subarray(0, n * n * 4), nor = out.subarray(n * n * 4, n * n * 8), rough = out.subarray(n * n * 8);
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const i = y * n + x, c = h[i] ?? 0, t = tone[i] ?? 0.5;
+    const dx = (h[y * n + (x + 1) % n] ?? 0) - (h[y * n + (x + n - 1) % n] ?? 0), dy = (h[((y + 1) % n) * n + x] ?? 0) - (h[((y + n - 1) % n) * n + x] ?? 0);
+    const k = Math.min(1, Math.max(0, c)), base = 0.55 + 0.45 * k, w = 0.85 + 0.3 * t;
+    map[i * 4] = Math.round(Math.min(255, (p.crease[0] + p.crown[0] * base * k) * w)); map[i * 4 + 1] = Math.round(Math.min(255, (p.crease[1] + p.crown[1] * base * k) * w));
+    map[i * 4 + 2] = Math.round(Math.min(255, (p.crease[2] + p.crown[2] * base * k) * w)); map[i * 4 + 3] = 255;
+    const s = p.relief, nx = -dx * s, ny = -dy * s, l = Math.hypot(nx, ny, 1);
+    nor[i * 4] = Math.round(255 * (0.5 + 0.5 * nx / l)); nor[i * 4 + 1] = Math.round(255 * (0.5 + 0.5 * ny / l)); nor[i * 4 + 2] = Math.round(255 * (0.5 + 0.5 / l)); nor[i * 4 + 3] = 255;
+    rough[i * 4 + 1] = Math.round(255 * (p.rough[0] - p.rough[1] * k * k)); rough[i * 4 + 3] = 255;
+  }
+  return out;
+}
+
 const kind = (geometry: BufferGeometry): InstancedMesh => new InstancedMesh(geometry, new MeshStandardMaterial(), 1);
 
-/** The lash's bake: its three kinds (no colliders), the hand's `tip` from the generated glove and the loop's `along`. */
-export function bakeSignalLash(glove: BufferGeometry, row: LashHoldRow = WHIP_HOLD): SignalPieceBake {
+/** The lash's bake: its four kinds (no colliders), the hand's `tip` from the generated glove and the loop's `along`. */
+export function bakeSignalLash(glove: BufferGeometry, row: LashHoldRow = WHIP_HOLD, view: LashView = WHIP_VIEW): SignalPieceBake {
   const loop = loopGeometry(row);
-  return bakePiece(signalPiece('lash', [['coil', kind(restCoilGeometry(row))], ['loop', kind(loop.geometry)], ['cord', kind(cordGeometry(row.lash))]], [], { tip: lashTip(row, glove), along: loop.along }));
+  return bakePiece(signalPiece('lash', [['coil', kind(restCoilGeometry(row))], ['loop', kind(loop.geometry)], ['cord', kind(cordGeometry(row.lash))], ['wrap', kind(wrapGeometry(view.wrap))]], [],
+    { tip: lashTip(row, glove), along: loop.along }));
 }

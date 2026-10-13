@@ -4,7 +4,7 @@ import type { EquipContext, EquipmentRow } from '@wildshard/engine/combat/Equipm
 import type { CombatTarget } from '@wildshard/engine/combat/pipeline';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { HeldContactWeapon } from '@wildshard/game/plugin/weaponFamily';
-import { CatmullRomCurve3, Mesh, TubeGeometry, Vector3, type Group, type Material, type Object3D } from 'three';
+import { Vector3, type Group, type Mesh, type Object3D } from 'three';
 import { lashRuntime, type LashRuntime, type LashSpec, type LashWorldTarget } from './lash';
 import type { LashCord } from './lashView';
 import type { LashView } from '../../data/whip';
@@ -33,8 +33,8 @@ export interface LashParts {
   readonly hero: boolean;
   /** `coil` shows at rest (false: a hero model's own coil stands in for it) */
   readonly restCoil: boolean;
-  /** the material of the coil wound round a caught lever */
-  readonly wrapMaterial: () => Material;
+  /** a new coil to wind round a caught lever (its helix baked, `generators/lash.ts` wrapGeometry) */
+  readonly wrapCoil: () => Mesh;
 }
 
 /** A lash held as a weapon: the declared crack (`spec`) on the shared contact family's rows, its viewmodel moved by `view`. */
@@ -80,15 +80,10 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
     if (!this.enabled || !this.moves.swing(heavy ? 1 : 0)) return false;
     this.onSwing?.(heavy); return true;
   }
-  /** Winds the lash round a caught lever: a short helix at the point, shown while the wrap holds. */
+  /** Winds the lash round a caught lever: a short helix (baked) at the point, shown while the wrap holds. */
   private wrap(at: Vector3): void {
     const scene = this.app.equipmentHost?.game.scene; if (!scene) return;
-    if (this.wrapCoil === null) {
-      const w = this.view.wrap, pts: Vector3[] = [];
-      for (let i = 0; i <= w.samples; i++) { const a = (i / w.samples) * Math.PI * 2 * w.turns; pts.push(new Vector3(Math.cos(a) * w.r, (i / w.samples - 0.5) * w.h, Math.sin(a) * w.r)); }
-      this.wrapCoil = new Mesh(new TubeGeometry(new CatmullRomCurve3(pts), w.segments, w.cord, w.sides, false), this.parts.wrapMaterial());
-      this.wrapCoil.frustumCulled = false; scene.add(this.wrapCoil);
-    }
+    if (this.wrapCoil === null) { this.wrapCoil = this.parts.wrapCoil(); this.wrapCoil.frustumCulled = false; scene.add(this.wrapCoil); }
     this.wrapCoil.position.copy(at); this.wrapCoil.visible = true;
     this.wrapAt = at.clone(); this.wrapT = this.view.wrap.hold;
   }

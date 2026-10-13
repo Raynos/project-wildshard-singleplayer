@@ -39,7 +39,7 @@ console.info(`sunscar-dunes scene.json: ${String(baked.scene.nodes.length)} node
   const { installBakeEnvironment } = await import(pathToFileURL(resolve(root, 'scripts/bake/environment.mjs')).href);
   const environment = installBakeEnvironment(root);
   try {
-    const [{ createModelLibrary }, { DUNE_MODELS }, { bakeSignalLash }] = await Promise.all([import(pathToFileURL(resolve(root, 'src/sdk/looks/modelLibrary.ts')).href),
+    const [{ createModelLibrary }, { DUNE_MODELS }, { bakeSignalLash, plaitTexels }] = await Promise.all([import(pathToFileURL(resolve(root, 'src/sdk/looks/modelLibrary.ts')).href),
       import(pathToFileURL(resolve(project, 'data/files.ts')).href), import(pathToFileURL(resolve(project, 'generators/lash.ts')).href)]);
     const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['whip-glove'], hd: [] }, '[sunscar-dunes bake]');
     await library.preload();
@@ -49,6 +49,10 @@ console.info(`sunscar-dunes scene.json: ${String(baked.scene.nodes.length)} node
     emit(resolve(out, 'lash.glb'), glb); keep.add('lash.glb');
     emit(resolve(project, 'data/lash.json'), `${JSON.stringify({ glb: hash, ...rows }, null, 2)}\n`);
     console.info(`sunscar-dunes lash: ${String(glb.length)} bytes → baked/lash.glb (${hash})`);
+    // the hero coil's plait tile: its three tiles' texels, deflated (world/baked.ts reads them; runtime/items/lashHold.ts)
+    const texels = plaitTexels(), plait = new Uint8Array(await new Response(new Blob([texels]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer());
+    emit(resolve(out, 'plait.bin'), plait);
+    console.info(`sunscar-dunes plait: ${String(texels.length)} bytes → baked/plait.bin (${String(plait.length)} deflated)`);
   } finally { environment.dispose(); }
 }
 // the folder holds exactly this bake: no orphan GLB from an older bake ships

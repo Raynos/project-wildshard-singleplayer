@@ -59,6 +59,8 @@ export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = {
   caravan: '/assets/sunscar-dunes/baked/caravan.glb', well: '/assets/sunscar-dunes/baked/well.glb', braziers: '/assets/sunscar-dunes/baked/braziers.glb',
   lash: '/assets/sunscar-dunes/baked/lash.glb',
 };
+/** The held lash's plait tile texels, deflated RGBA (`generators/lash.ts` plaitTexels), read by `world/baked.ts`. */
+export const PLAIT_URL = '/assets/sunscar-dunes/baked/plait.bin';
 /** The creature bodies baked offline as skinned rig files (SF72: `generators/species.ts`, G345 `generators/hulls.ts` → `generators/bake-signal-rigs.mjs`), loaded by `world/meshes.ts` (the game's `creatureBodies`). */
 export const DUNE_RIGS = ['skitterer', 'strider', 'ray', 'matriarch'] as const;
 export type DuneRigName = (typeof DUNE_RIGS)[number];

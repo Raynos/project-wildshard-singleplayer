@@ -1,5 +1,5 @@
-import { type BufferGeometry, Group, Mesh, MeshStandardMaterial, type Object3D, Vector3 } from 'three';
-import { LashCord, plaitTextures } from './lashView';
+import { type BufferGeometry, DataTexture, Group, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, type Object3D, RepeatWrapping, RGBAFormat, SRGBColorSpace, UnsignedByteType, Vector3 } from 'three';
+import { LashCord } from './lashView';
 import type { LashHoldRow } from '../../data/whip';
 
 /**
@@ -9,9 +9,10 @@ import type { LashHoldRow } from '../../data/whip';
  * the coil's surface as a callback.
  */
 
-/** The held lash's models: a copy of one of its baked kinds (null: the bake did not load), the fitted hero glove (null: not loaded), the hero coil's surface. */
+/** The held lash's models: a copy of one of its baked kinds (null: the bake did not load), the plait tile's baked texels (colour, normal, roughness; null: not loaded), the fitted hero glove (null: not loaded), the hero coil's surface. */
 export interface LashHoldModels {
-  readonly baked: (kind: 'coil' | 'loop' | 'cord') => BufferGeometry | null;
+  readonly baked: (kind: 'coil' | 'loop' | 'cord' | 'wrap') => BufferGeometry | null;
+  readonly plait: () => Uint8Array | null;
   readonly hd: () => Group | null;
   readonly coilSurface: (m: MeshStandardMaterial) => void;
 }
@@ -40,10 +41,15 @@ export function buildLashHold(row: LashHoldRow, fit: LashFit, models: LashHoldMo
     hd.position.set(...row.hd.pos); hd.rotation.set(...row.hd.rot); root.add(hd);
     // the hero coil in the hero glove's own frame (the fitted model: out → holder (scaled) → turn (centred)): matte, unfogged
     const turn = hd.children[0]?.children[0];
-    if (loop !== null) {
-      const { map, normal, rough } = plaitTextures(row.plait);
-      map.repeat.set(fit.along, 1); normal.repeat.set(fit.along, 1); rough.repeat.set(fit.along, 1);
-      const material = new MeshStandardMaterial({ map, normalMap: normal, roughnessMap: rough, roughness: 1, metalness: 0, fog: false });
+    const n = row.plait.size, texels = models.plait();
+    if (loop !== null && texels?.length === n * n * 12) {
+      // the plait's three baked tiles (`generators/lash.ts` plaitTexels), mipmapped and repeated along the loop
+      const tile = (k: number, srgb: boolean): DataTexture => {
+        const t = new DataTexture(texels.subarray(k * n * n * 4, (k + 1) * n * n * 4), n, n, RGBAFormat, UnsignedByteType);
+        t.wrapS = RepeatWrapping; t.wrapT = RepeatWrapping; t.magFilter = LinearFilter; t.minFilter = LinearMipmapLinearFilter; t.generateMipmaps = true; t.anisotropy = 4;
+        if (srgb) t.colorSpace = SRGBColorSpace; t.repeat.set(fit.along, 1); t.needsUpdate = true; return t;
+      };
+      const material = new MeshStandardMaterial({ map: tile(0, true), normalMap: tile(1, false), roughnessMap: tile(2, false), roughness: 1, metalness: 0, fog: false });
       Object.assign(material.userData, row.coilUserData); models.coilSurface(material);
       turn?.add(new Mesh(loop, material));
     }

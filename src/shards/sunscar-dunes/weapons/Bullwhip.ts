@@ -5,7 +5,7 @@ import { lashSpec, type LashSpec } from '../runtime/items/lash';
 import { WHIP_ROW } from './rows';
 import { WHIP_ITEM } from '../data/items';
 import { WHIP_VIEW } from '../data/whip';
-import { braidedMaterial, buildWhipModel } from './whipModel';
+import { braidedCoil, buildWhipModel } from './whipModel';
 
 /** The crack's numbers: reach, width, damage, cooldowns and charge are the declared item row's (data/items.ts); the lash's timing is the whip's own (`pull` is the yank's speed, m/s, on a creature of `pullMaxHp` or less). */
 export const CRACK = lashSpec(WHIP_ITEM, WHIP_ITEM.profile);
@@ -20,6 +20,6 @@ export const CRACK = lashSpec(WHIP_ITEM, WHIP_ITEM.profile);
 export class Bullwhip extends LashWeapon {
   constructor(app: App, targets: Targets | null = null, spec: LashSpec = CRACK) {
     const model = buildWhipModel();
-    super(app, targets, { row: WHIP_ROW, spec, view: WHIP_VIEW, parts: { ...model, hero: true, restCoil: model.hd === null, wrapMaterial: braidedMaterial } });
+    super(app, targets, { row: WHIP_ROW, spec, view: WHIP_VIEW, parts: { ...model, hero: true, restCoil: model.hd === null, wrapCoil: braidedCoil } });
   }
 }

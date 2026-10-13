@@ -1,5 +1,5 @@
 {
-  "glb": "4472b7eaf97a04b9ea797902e3c16d996b70ace92d7836ff44adc494e1e67dd3",
+  "glb": "038f9844fe769aaf65e3f55a66162769c479e5fd33270c5987c843458b4ddeba",
   "kinds": [
     {
       "name": "coil",
@@ -27,6 +27,18 @@
     },
     {
       "name": "cord",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false
+    },
+    {
+      "name": "wrap",
       "count": 1,
       "color": 16777215,
       "roughness": 1,

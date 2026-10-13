@@ -9,7 +9,8 @@ import caravan from '../data/caravan.json' with { type: 'json' };
 import well from '../data/well.json' with { type: 'json' };
 import lash from '../data/lash.json' with { type: 'json' };
 import braziers from '../data/braziers.json' with { type: 'json' };
-import { BAKED_URLS, type BakedPiece } from '../data/files';
+import { BAKED_URLS, PLAIT_URL, type BakedPiece } from '../data/files';
+import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import { warmByFire } from './meshes';
 
 /**
@@ -24,8 +25,14 @@ const WORLD = bakedWorld<BakedPiece, KindRow>({ rocks, dressing, tower, caravan,
 
 /** A loaded bake: each piece's instanced meshes (their geometry and transforms), keyed by the kind's name. */
 export type BakedWorld = LoadedBake<BakedPiece>;
-/** Load every baked piece behind the loading screen (the plugin's `world` hook); a piece that fails to load is empty. */
-export const loadBakedWorld = WORLD.load;
+let plait: Uint8Array | null = null;
+/** Load every baked piece and the lash's plait texels behind the loading screen (the plugin's `world` hook); a piece that fails to load is empty. */
+export async function loadBakedWorld(): Promise<BakedWorld> {
+  const [baked, texels] = await Promise.all([WORLD.load(), fetchDeflated(PLAIT_URL).catch((e: unknown) => { console.error('[sunscar-dunes] the lash plait did not load; the hero coil stands undrawn:', e); return null; })]);
+  plait = texels; return baked;
+}
+/** The lash's plait tile texels (`generators/lash.ts` plaitTexels), or null before they load. */
+export const lastPlait = (): Uint8Array | null => plait;
 /** The bake loaded last (the Model Explorer's specimens draw from it), or null before the first load. */
 export const lastBakedWorld = WORLD.last;
 

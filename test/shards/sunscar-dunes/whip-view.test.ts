@@ -3,15 +3,17 @@ import { describe, expect, it, vi } from 'vitest';
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate reads the committed bake the client loads.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The stale gate inflates the committed plait texels the client loads.
+import { inflateSync } from 'node:zlib';
 import { CylinderGeometry, InstancedMesh, Vector3, type BufferAttribute, type BufferGeometry, type InterleavedBufferAttribute, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { LashCord, plaitTextures } from '../../../src/shards/sunscar-dunes/runtime/items/lashView';
+import { LashCord } from '../../../src/shards/sunscar-dunes/runtime/items/lashView';
 import { buildLashHold } from '../../../src/shards/sunscar-dunes/runtime/items/lashHold';
-import { bakeSignalLash, braidColours, coilPoints } from '../../../src/shards/sunscar-dunes/generators/lash';
+import { bakeSignalLash, braidColours, coilPoints, plaitTexels, wrapGeometry } from '../../../src/shards/sunscar-dunes/generators/lash';
 import { createModelLibrary } from '../../../src/sdk/looks/modelLibrary';
 import { DUNE_MODELS } from '../../../src/shards/sunscar-dunes/data/files';
-import { LASH_CORD, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B, WHIP_HOLD, type PlaitStyle } from '../../../src/shards/sunscar-dunes/data/whip';
+import { LASH_CORD, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B, WHIP_HOLD, WHIP_VIEW, type PlaitStyle } from '../../../src/shards/sunscar-dunes/data/whip';
 import lash from '../../../src/shards/sunscar-dunes/data/lash.json' with { type: 'json' };
 // The bullwhip's cord, plait tile and held coil as Signal Dunes' own code built them before they became rows (HEAD d91bc1a63, weapons/whipModel.ts).
 import before from './whip-view.json' with { type: 'json' };
@@ -51,25 +53,32 @@ describe('the lash item\'s view draws a shard\'s cord from its bake and rows (SH
 
   it('the client reads exactly the lash, plait tile, coil and braid Signal Dunes\' own code built (pixel parity by construction)', async () => {
     const baked = await loadLash(), kind = (name: string): BufferGeometry => { const g = baked.get(name); if (g === undefined) throw new Error(name); return g.clone(); };
-    const hold = buildLashHold(WHIP_HOLD, { tip: [0, 0, 0], along: lash.along }, { baked: kind, hd: () => null, coilSurface: () => undefined });
+    const hold = buildLashHold(WHIP_HOLD, { tip: [0, 0, 0], along: lash.along }, { baked: kind, plait: () => null, hd: () => null, coilSurface: () => undefined });
     hold.lash.shape(new Vector3(0.01, 0.02, -0.1), new Vector3(0.5, 0.3, -7), 0.7, 0.4, 1.3);
     const g = hold.lash.mesh.geometry, index = g.getIndex();
     if (index === null) throw new Error('lash index');
     expect({ position: floats(g.getAttribute('position')), normal: floats(g.getAttribute('normal')), color: floats(g.getAttribute('color')), index: sha(Uint32Array.from(index.array)),
       roughness: hold.lash.mesh.material.roughness, emissive: hold.lash.mesh.material.emissive.getHex(), visible: hold.lash.mesh.visible }).toEqual(before.lash);
-    const tile = plaitTextures(PLAIT);
-    expect({ map: sha(tile.map.image.data), normal: sha(tile.normal.image.data), rough: sha(tile.rough.image.data) }).toEqual(before.plait);
+    // the plait tile: baked (generators/lash.ts) and committed deflated (baked/plait.bin, the stale gate), texel-exact
+    const tile = plaitTexels(PLAIT), n = PLAIT.size * PLAIT.size * 4;
+    expect(Uint8Array.from(inflateSync(readFileSync('public/assets/sunscar-dunes/baked/plait.bin')))).toEqual(tile);
+    expect({ map: sha(tile.subarray(0, n)), normal: sha(tile.subarray(n, 2 * n)), rough: sha(tile.subarray(2 * n)) }).toEqual(before.plait);
     const cg = kind('loop');
     expect({ position: floats(cg.getAttribute('position')), uv: floats(cg.getAttribute('uv')), normal: floats(cg.getAttribute('normal')), repeat: [lash.along, 1], count: cg.getAttribute('position').count }).toEqual(before.loop);
+    // the pull's wrap coil: the baked helix is the tube the lash weapon built at the lever
+    const wrap = kind('wrap'), built = wrapGeometry(WHIP_VIEW.wrap), wrapIndex = wrap.getIndex(), builtIndex = built.getIndex();
+    if (wrapIndex === null || builtIndex === null) throw new Error('wrap index');
+    for (const name of ['position', 'normal', 'uv']) expect(floats(wrap.getAttribute(name)), name).toBe(floats(built.getAttribute(name)));
+    expect(Array.from(wrapIndex.array)).toEqual(Array.from(builtIndex.array));
     const handle = new CylinderGeometry(0.017, 0.021, 0.26, RADIAL, 12, true); braidColours(handle, 13, RADIAL + 1, 0, STRAND_A, STRAND_B, POPPER);
     expect(floats(handle.getAttribute('color'))).toBe(before.handleBraid);
   });
 
   it('a second cord look builds its own braid and tile (the view is generic, the look is data)', () => {
     const rope: PlaitStyle = { size: 32, columns: 2, rows: 3, crease: [30, 30, 30], crown: [120, 110, 90], relief: 2, rough: [0.9, 0.3] };
-    const tile = plaitTextures(rope);
-    expect([tile.map.image.width, tile.map.image.data?.length]).toEqual([32, 32 * 32 * 4]);
-    expect(sha(tile.map.image.data)).not.toBe(before.plait.map);
+    const tile = plaitTexels(rope);
+    expect(tile.length).toBe(32 * 32 * 12);
+    expect(sha(tile.subarray(0, 32 * 32 * 4))).not.toBe(before.plait.map);
     expect(() => new LashCord({ ...LASH_CORD, segments: 8, radial: 4 }, new CylinderGeometry())).toThrow(/baked rings/u);
     const pts = coilPoints({ ...LOOP, turns: 1, tail: [] });
     expect(pts).toHaveLength(41);
