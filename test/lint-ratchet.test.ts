@@ -141,6 +141,23 @@ describe('ratchet CLI', () => {
     expect(f.read()['wildshard/no-raw-save']).toEqual({'src/engine/ui/example.ts':1});
     expect(f.run().status).toBe(1);
   });
+  it('treats package-only code scope as empty while preserving debt, Debug policy and required guard refusal', () => {
+    const f=fixture();expect(f.run('--init').status).toBe(0);
+    put(f.root,'src/sdk/package.json','{"exports":{"./random":"./random.ts"}}');
+    put(f.root,'src/unrelated.ts',"localStorage.getItem('not in this scope');");
+    const baseline=f.read(), paths=join(f.root,'changed.json');
+    writeFileSync(paths,JSON.stringify(['src/sdk/package.json']));
+    const update=f.run('--update','--files-from',paths);
+    expect(update.status,String(update.stderr)).toBe(0);
+    expect(f.read()).toEqual(baseline);
+    const before=readFileSync(f.file,'utf8');
+    expect(f.run('--update','--files-from',paths,'--guard-required',join(f.root,'missing-guard')).status).toBe(1);
+    expect(readFileSync(f.file,'utf8')).toBe(before);
+    f.write({...baseline,debugRows:{max:0,raisedBy:['E435']}});
+    put(f.root,'src/engine/ui/flag.ts','ctx.debugRow({});');
+    expect(f.run('--update','--files-from',paths).stderr).toContain('debugRows: was 0, now 1');
+    expect(f.run().status).toBe(1);
+  });
   it('reuses exact Debug census inputs while refusing changed policy, source and corrupt receipts', () => {
     const f=fixture('ctx.debugRow({});');f.write({debugRows:{max:1,raisedBy:['E435']}});
     const paths=join(f.root,'changed.json'),cache=join(f.root,'cache');writeFileSync(paths,'[]');

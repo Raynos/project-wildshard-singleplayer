@@ -38,7 +38,7 @@ function counts(root, baselineFile, files = null, /** @type {{guardRequirement?:
   const {guardRequirement}=options;
   if (guardRequirement!==undefined && files===null) throw new Error('Required guard only applies to scoped commit measurement');
   const guardedHard=guardRequirement===undefined ? null : requiredGuardRules(root,guardRequirement,files ?? []);
-  const measuredFiles = files === null ? null : files.filter(file => existsSync(resolve(root,file)));
+  const measuredFiles = files === null ? null : files.filter(file => /\.[cm]?[jt]sx?$/u.test(file) && existsSync(resolve(root,file)));
   // Oxlint with no path arguments scans cwd. An empty staged scope must
   // measure no files, while main still prunes deleted rows and checks policy.
   if (measuredFiles?.length === 0) return {};
