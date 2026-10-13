@@ -7,7 +7,7 @@ import { SIGNAL_DUSK_LOOK } from '../data/lastLight';
 import { SAND_FILES } from '../data/sand';
 import skirtRows from '../data/skirt.json' with { type: 'json' };
 import { FIRE_LIGHTS } from '../world/fireFx';
-import source from '../shard.config';
+import source from '../runtime/source';
 
 /**
  * "Last Light" (docs/design/sunscar-dunes/style-bible.md) on the platform's dusk look (`@wildshard/sdk/looks/duskLook`,

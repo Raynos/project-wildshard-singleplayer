@@ -3,7 +3,7 @@ import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { CombatCues, CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import { sharedWeaponVoices } from '@wildshard/game/plugin/audio';
-import source from '../../shard.config';
+import source from '../source';
 
 /** Bind the existing kit recipes to declared cue ids, preserving optional pan/gain arguments. */
 export function sunscarCueMap(voices: Pick<ReturnType<typeof sharedWeaponVoices>, 'swordSwing' | 'swordHeavy' | 'swordHit' | 'weaponSwap' | 'reload'>,

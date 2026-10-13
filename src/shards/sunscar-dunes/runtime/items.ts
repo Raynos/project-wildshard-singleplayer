@@ -6,7 +6,7 @@ import type { ShardContext } from '@wildshard/game/plugin/context';
 import { lashSpec } from './items/lash';
 import { Bullwhip } from '../weapons/Bullwhip';
 import { whipIcon } from '../weapons/rows';
-import source from '../shard.config';
+import source from './source';
 
 /** Register Signal's trusted lash constructor for this equipment build. Its own native rope, inputs and contacts stay local. */
 export function bindSignalItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game'>, targets: Targets,

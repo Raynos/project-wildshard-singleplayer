@@ -17,7 +17,7 @@ import { duneMesh } from '../world/meshes';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
 import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG } from '../data/signalQuest';
 import { bindRuntimeCoins, type RuntimeCoins, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
-import source from '../shard.config';
+import source from '../runtime/source';
 import { bindSignalFacts } from '../runtime/persistence';
 
 

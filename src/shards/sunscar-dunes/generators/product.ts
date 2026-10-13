@@ -43,9 +43,14 @@ const sand = { ...fields, ground: { ...fields.ground,
   keyShadow: { map: ref('shadow'), ...fields.ground.keyShadow } } };
 const library = { resident: maps.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: maps.reduce((sum, file) => sum + file.compressed, 0) };
 const base = emptyShardfile({ slug: 'sunscar-dunes', name: 'Signal Dunes', author: 'Wildshard', revision: 1, seed: 5363 });
-// oxlint-disable-next-line import/no-default-export -- The documented config imports this author-only declaration.
-export default parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, budgets: { ...base.budgets, library, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages, signalStages],
+const product = parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, budgets: { ...base.budgets, library, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages, signalStages],
   quests: SIGNAL_QUESTS, ledger: SIGNAL_LEDGER, items: WHIP_ITEMS,
   state: { ...base.state, shared: [{ id: 1, name: 'dusk', type: 'f64', privacy: 'host', default: 0, min: 0, max: 1 }] },
   look: { ...base.look, families: ['pbr'], materials: { pbr: sand }, curves: { pbr: SAND_DUSK }, samplers: { [ref('grain')]: { wrap: 'repeat', anisotropy: 8, mips: 'gpu' }, [ref('trail')]: { filter: 'linear' }, [ref('shadow')]: { filter: 'linear' } } },
   terrain: { ...tiles.terrain, shadow: { cast: false, receive: false }, follow: 8, order: -1 }, tiles: tiles.tiles, files: [...tiles.files, ...navigation.files, ...maps].sort((a, b) => a.hash.localeCompare(b.hash)), library: maps.map((file) => file.hash), critical: [...tiles.critical, ...navigation.critical], edge: tiles.edge });
+
+/** The identical declared product row for runtime consumers; file I/O belongs to the SDK Node driver. */
+export function signalProductRows(): typeof product { return product; }
+
+// oxlint-disable-next-line import/no-default-export -- The documented author config consumes this declaration.
+export default product;

@@ -12,7 +12,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { HybridRuntimePlugin, bindRuntimeCoins, bindRuntimeItemContexts, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/shardfile/hybridRows';
-import source from './shard.config';
+import source from './runtime/source';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { STRINGS } from './data/strings';

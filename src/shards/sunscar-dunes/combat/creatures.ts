@@ -2,7 +2,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeHomes, type RuntimeHome } from '@wildshard/game/shardfile/hybridRows';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { lastLightAll } from '../look/light';
-import source from '../shard.config';
+import source from '../runtime/source';
 
 /**
  * The dune's creatures (C2): its shardfile's declared homes (`runtime.spawns`, data/spawns.ts), kept by the platform

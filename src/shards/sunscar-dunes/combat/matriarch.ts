@@ -6,7 +6,7 @@ import { installBossView, RowBossView } from '@wildshard/game/plugin/ui';
 import { bindRuntimeBoss, bindRuntimeCoins, type RuntimeCoins } from '@wildshard/game/shardfile/hybridRows';
 import { carriedBossRecord, stormWeather, type MarkedBoss } from '../runtime/shardfile/markedBoss';
 import { lastLightAll } from '../look/light';
-import source from '../shard.config';
+import source from '../runtime/source';
 import stages from '../data/bossStages.json' with { type: 'json' };
 import { MATRIARCH_DEFINITION, MATRIARCH_ID, MATRIARCH_RECORD, MATRIARCH_REWARD } from '../data/matriarchEncounter';
 import { MATRIARCH_PRESENTATION } from '../data/matriarchPresentation';
