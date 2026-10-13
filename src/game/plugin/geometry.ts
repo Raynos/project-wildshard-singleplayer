@@ -27,6 +27,9 @@ import type { NpcMotion, NpcRow } from "./quests";
  *
  * Creature bodies (`creatureBodies`, over `skinnedModel`): standard skinned GLBs a generator baked (bones with their bind
  * positions, parts, clips and the shard's extras), copied per spawn, each with its stand-in skeleton when it did not load.
+ *
+ * A transitional bridge (Jake, a44511f05: "quests and geometry stay as bridges"): this module is deleted once the geometry
+ * lives in the shards' generators.
  */
 
 
@@ -237,24 +240,34 @@ export interface SkinnedModel {
 
 const isSkinnedMesh = (node: Object3D): node is SkinnedMesh => node instanceof SkinnedMesh;
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+/** The meshopt decoder's glTF entry (three's bundled decoder). */
+interface MeshoptGltf { decodeGltfBuffer: (target: Uint8Array, count: number, size: number, source: Uint8Array, mode: string, filter?: string) => void }
 const numbers = (value: unknown): number[] | null => Array.isArray(value) && value.every((n: unknown) => typeof n === 'number') ? value : null;
 
-/** Read the GLB's JSON chunk and each primitive's raw WEIGHTS_0 floats (three's loader renormalizes them in place). */
-function rawWeights(bytes: Uint8Array): Map<string, Float32Array> {
+/** Each primitive's raw WEIGHTS_0 floats, read from the GLB's bytes before three's loader renormalizes them in place (a
+ *  meshopt view decoded here, once at load, losslessly). */
+function rawWeights(bytes: Uint8Array, decoder: MeshoptGltf): Map<string, Float32Array> {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), length = view.getUint32(12, true);
   const doc: unknown = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + length)));
   const out = new Map<string, Float32Array>();
   if (!isRecord(doc) || !Array.isArray(doc['meshes']) || !Array.isArray(doc['accessors']) || !Array.isArray(doc['bufferViews'])) return out;
-  const accessors: unknown[] = doc['accessors'], views: unknown[] = doc['bufferViews'], bin = 28 + length;
+  const accessors: unknown[] = doc['accessors'], views: unknown[] = doc['bufferViews'], bin = bytes.subarray(28 + length);
+  const int = (record: Record<string, unknown>, key: string): number => typeof record[key] === 'number' ? record[key] : 0;
   doc['meshes'].forEach((mesh: unknown, m) => {
     if (!isRecord(mesh) || !Array.isArray(mesh['primitives'])) return;
     mesh['primitives'].forEach((row: unknown, p) => {
       const attributes = isRecord(row) && isRecord(row['attributes']) ? row['attributes'] : {}, id = attributes['WEIGHTS_0'];
       const accessor = typeof id === 'number' ? accessors[id] : undefined, bufferView = isRecord(accessor) && typeof accessor['bufferView'] === 'number' ? views[accessor['bufferView']] : undefined;
       if (!isRecord(accessor) || !isRecord(bufferView) || accessor['componentType'] !== 5126 || typeof accessor['count'] !== 'number') return;
-      const start = bin + (typeof bufferView['byteOffset'] === 'number' ? bufferView['byteOffset'] : 0) + (typeof accessor['byteOffset'] === 'number' ? accessor['byteOffset'] : 0);
-      const weights = new Float32Array(accessor['count'] * 4);
-      for (let i = 0; i < weights.length; i++) weights[i] = view.getFloat32(start + i * 4, true);
+      const ext = isRecord(bufferView['extensions']) ? bufferView['extensions']['EXT_meshopt_compression'] : undefined;
+      let source = bin.subarray(int(bufferView, 'byteOffset'), int(bufferView, 'byteOffset') + int(bufferView, 'byteLength'));
+      if (isRecord(ext)) {
+        const count = int(ext, 'count'), stride = int(ext, 'byteStride'), at = int(ext, 'byteOffset'), decoded = new Uint8Array(count * stride);
+        decoder.decodeGltfBuffer(decoded, count, stride, bin.subarray(at, at + int(ext, 'byteLength')), String(ext['mode']), typeof ext['filter'] === 'string' ? ext['filter'] : 'NONE');
+        source = decoded;
+      }
+      const floats = new DataView(source.buffer, source.byteOffset, source.byteLength), start = int(accessor, 'byteOffset'), weights = new Float32Array(accessor['count'] * 4);
+      for (let i = 0; i < weights.length; i++) weights[i] = floats.getFloat32(start + i * 4, true);
       out.set(`${String(m)}/${String(p)}`, weights);
     });
   });
@@ -265,15 +278,16 @@ function rawWeights(bytes: Uint8Array): Map<string, Float32Array> {
 export function skinnedModel(url: string): SkinnedModel {
   let template: SkinnedAsset | undefined, pending: Promise<void> | undefined;
   const load = async (bytes?: Uint8Array): Promise<void> => {
-    const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+    const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/examples/jsm/loaders/GLTFLoader.js'), import('three/examples/jsm/libs/meshopt_decoder.module.js')]);
     let input = bytes;
     if (input === undefined) {
       const response: unknown = await new FileLoader().setResponseType('arraybuffer').loadAsync(url);
       if (!(response instanceof ArrayBuffer)) throw new Error(`Skinned model load failed: ${url}`);
       input = new Uint8Array(response);
     }
-    const weights = rawWeights(input);
-    const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(input).buffer, '');
+    await MeshoptDecoder.ready;
+    const weights = rawWeights(input, MeshoptDecoder);
+    const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(input).buffer, '');
     const meshes: SkinnedMesh[] = [];
     gltf.scene.traverse((node: Object3D) => { if (isSkinnedMesh(node)) meshes.push(node); });
     const first = meshes[0];

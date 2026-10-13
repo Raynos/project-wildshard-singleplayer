@@ -1146,8 +1146,8 @@
       "platform": "native",
       "seedOutputs": [],
       "buildOutputs": {
-        "public/assets/far-reach/rigs/sky-goat.glb": "e31d03b209296aa9013d742de8d208ad1f2c89d8b98df9f856b76c905314e273",
-        "public/assets/far-reach/rigs/storm-roc.glb": "7910131a6b2f73336db59f72f50c7660bcafcb776ce7b7032aeca55e0dfbe2aa"
+        "public/assets/far-reach/rigs/sky-goat.glb": "bb8ab3271fb98f8c6684f14771d8cb5c7a77b3ba2646087fe0956db18da9c018",
+        "public/assets/far-reach/rigs/storm-roc.glb": "1c057979c81e5fafd2f97a151b7936c90ccf01555b2f307b911fc628e7c19af0"
       }
     },
     {

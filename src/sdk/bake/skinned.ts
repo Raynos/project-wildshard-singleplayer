@@ -1,5 +1,6 @@
 import { InterpolateDiscrete, InterpolateLinear, Matrix4, PropertyBinding, type AnimationClip, type BufferAttribute, type BufferGeometry, type Material, type MeshStandardMaterial } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptEncoder } from 'meshoptimizer/encoder';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, the offline skinned-model bake): a shard's generator reads a source GLB offline
@@ -7,7 +8,8 @@ import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
  * the shard's folder), and writes the result as a standard skinned glTF (`skinnedGlb`): a joint hierarchy with inverse
  * bind matrices, `JOINTS_0` / `WEIGHTS_0`, the animations as glTF channels and the shard's own JSON beside it. The client
  * only loads it (`@wildshard/game/plugin/geometry` skinnedModel / creatureBodies), bit-exact: every float32 channel, the joint bind positions as JSON
- * doubles, the weights as written (never renormalized) and an authored triangle soup restored.
+ * doubles, the weights as written (never renormalized) and an authored triangle soup restored. Every accessor rides
+ * EXT_meshopt_compression (lossless: the vertex and index-sequence codecs return the exact bytes), about half the floats.
  *
  * A part's base-colour map rides inside the GLB as the source's exact image bytes (never re-encoded), so the client decodes
  * it as it decoded the source, and the engine's KTX2 bake (`scripts/bake-ktx2.mjs`, geometry bytes untouched) makes its GPU
@@ -143,6 +145,8 @@ type Typed = Float32Array | Uint32Array | Uint16Array | Uint8Array | Int16Array 
 const COMPONENT = (array: unknown): number => array instanceof Float32Array ? 5126 : array instanceof Uint32Array ? 5125 : array instanceof Uint16Array ? 5123
   : array instanceof Uint8Array ? 5121 : array instanceof Int16Array ? 5122 : array instanceof Int8Array ? 5120 : 0;
 const TYPES = ['', 'SCALAR', 'VEC2', 'VEC3', 'VEC4'];
+const MESHOPT = 'EXT_meshopt_compression';
+await MeshoptEncoder.ready;
 const BOUNDED = new Set(['POSITION']);
 
 /** One vertex's bytes across every channel: equal keys are bit-identical vertices. */
@@ -170,10 +174,19 @@ export function skinnedGlb(bake: SkinnedBake): SkinnedOutput {
     const padded = new Uint8Array(Math.ceil(bytes.length / 4) * 4); padded.set(bytes);
     views.push({ buffer: 0, byteOffset: offset, byteLength: bytes.length }); chunks.push(padded); offset += padded.length; return views.length - 1;
   };
-  const accessor = (array: Typed, width: number, normalized: boolean, bounds: boolean): number => {
-    const component = COMPONENT(array), count = array.length / width;
+  // a lossless meshopt view: its bytes on the data-less fallback buffer 1, their encoding in buffer 0
+  let fallback = 0;
+  const packed = (bytes: Uint8Array, count: number, stride: number, mode: 'ATTRIBUTES' | 'INDICES'): number => {
+    const encoded = MeshoptEncoder.encodeGltfBuffer(bytes, count, stride, mode), padded = new Uint8Array(Math.ceil(encoded.length / 4) * 4); padded.set(encoded);
+    views.push({ buffer: 1, byteOffset: fallback, byteLength: bytes.length, extensions: { [MESHOPT]: { buffer: 0, byteOffset: offset, byteLength: encoded.length, byteStride: stride, count, mode } } });
+    chunks.push(padded); offset += padded.length; fallback += Math.ceil(bytes.length / 4) * 4; return views.length - 1;
+  };
+  const accessor = (array: Typed, width: number, normalized: boolean, bounds: boolean, mode: 'ATTRIBUTES' | 'INDICES' = 'ATTRIBUTES'): number => {
+    const component = COMPONENT(array), count = array.length / width, stride = array.BYTES_PER_ELEMENT * width;
     if (component === 0 || !Number.isInteger(count) || count === 0) throw new Error('Invalid skinned GLB channel');
-    const a: Record<string, Json> = { bufferView: view(new Uint8Array(array.buffer, array.byteOffset, array.byteLength)), componentType: component, count, type: width === 16 ? 'MAT4' : TYPES[width] ?? 'SCALAR' };
+    const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
+    const lossless = mode === 'INDICES' ? stride === 2 || stride === 4 : stride % 4 === 0 && stride <= 256;
+    const a: Record<string, Json> = { bufferView: lossless ? packed(bytes, count, stride, mode) : view(bytes), componentType: component, count, type: width === 16 ? 'MAT4' : TYPES[width] ?? 'SCALAR' };
     if (normalized) a['normalized'] = true;
     if (bounds) {
       const min = Array.from({ length: width }, () => Infinity), max = Array.from({ length: width }, () => -Infinity);
@@ -223,7 +236,7 @@ export function skinnedGlb(bake: SkinnedBake): SkinnedOutput {
     const extras: Record<string, Json> = {};
     if (soup) extras['soup'] = true;
     if (Object.keys(renamed).length > 0) extras['attributes'] = renamed;
-    const primitive: Record<string, Json> = { attributes, indices: accessor(indices, 1, false, false), material: materials.length };
+    const primitive: Record<string, Json> = { attributes, indices: accessor(indices, 1, false, false, 'INDICES'), material: materials.length };
     if (Object.keys(extras).length > 0) primitive['extras'] = { wildshard: extras };
     const pbr: Record<string, Json> = { baseColorFactor: [...material.color, material.opacity], metallicFactor: material.metalness, roughnessFactor: material.roughness };
     if (texture !== undefined) {
@@ -269,8 +282,10 @@ export function skinnedGlb(bake: SkinnedBake): SkinnedOutput {
   const roots = bones.flatMap((bone, i) => bone.parent === null ? [joint(i)] : []);
   const doc: Record<string, Json> = {
     asset: { version: '2.0', generator: 'wildshard-skinned-v1', extras: { wildshard: bake.extras ?? null } },
-    scene: 0, scenes: [{ name: bake.name, nodes: [...bake.parts.map((_, p) => p), ...roots] }], nodes, meshes, materials, skins: [skin], accessors, bufferViews: views, buffers: [{ byteLength: offset }],
+    scene: 0, scenes: [{ name: bake.name, nodes: [...bake.parts.map((_, p) => p), ...roots] }], nodes, meshes, materials, skins: [skin], accessors, bufferViews: views,
+    buffers: fallback === 0 ? [{ byteLength: offset }] : [{ byteLength: offset }, { byteLength: fallback, extensions: { [MESHOPT]: { fallback: true } } }],
   };
+  if (fallback > 0) used.add(MESHOPT);
   if (animations.length > 0) doc['animations'] = animations;
   if (images.length > 0) { doc['images'] = images; doc['samplers'] = samplers; doc['textures'] = textures; }
   if (used.size > 0) { doc['extensionsUsed'] = [...used].sort(); doc['extensionsRequired'] = [...used].sort(); }

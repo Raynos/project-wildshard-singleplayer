@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AnimationClip, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, QuaternionKeyframeTrack, Uint16BufferAttribute, VectorKeyframeTrack } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { skinnedGlb, type SkinnedBone } from '../src/sdk/bake/skinned';
 import { skinnedModel } from '../src/game/plugin/geometry';
 
@@ -46,7 +47,7 @@ describe('SDK offline skinned model bake', () => {
     expect(Array.from(rotation?.values ?? [])).toEqual(Array.from(Float32Array.from(clip().tracks[0]?.values ?? [])));
     part.geometry.dispose(); geometry.dispose(); material.dispose();
   });
-  it('writes a standard skin any glTF loader reads, welds the soup and embeds the exact map bytes', async () => {
+  it('writes a standard meshopt skin any glTF loader reads, welds the soup and embeds the exact map bytes', async () => {
     const geometry = fixture(), material = new MeshStandardMaterial({ name: 'painted' });
     const image = new Uint8Array([82, 73, 70, 70, 1, 2, 3]);
     const { glb } = skinnedGlb({ name: 'painted', bones: BONES, parts: [{ geometry, material, texture: { image, mimeType: 'image/webp', sampler: { magFilter: 9729, wrapS: 10497 } } }] });
@@ -55,12 +56,13 @@ describe('SDK offline skinned model bake', () => {
     const imageView = doc.bufferViews[doc.images[0]?.bufferView ?? -1], bin = 28 + view.getUint32(12, true);
     expect(glb.subarray(bin + (imageView?.byteOffset ?? 0), bin + (imageView?.byteOffset ?? 0) + (imageView?.byteLength ?? 0))).toEqual(image);
     expect(doc.textures).toEqual([{ sampler: 0, extensions: { EXT_texture_webp: { source: 0 } } }]);
-    expect(doc.extensionsRequired).toEqual(['EXT_texture_webp']);
+    expect(doc.extensionsRequired).toEqual(['EXT_meshopt_compression', 'EXT_texture_webp']);
     const primitive = doc.meshes[0]?.primitives[0];
     expect(doc.accessors[primitive?.attributes['POSITION'] ?? -1]?.count).toBe(5);
     expect(doc.accessors[primitive?.indices ?? -1]?.count).toBe(6);
     const plain = skinnedGlb({ name: 'plain', bones: BONES, parts: [{ geometry, material }] }).glb;
-    const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(plain).buffer, '');
+    // any loader with the standard EXT_meshopt_compression decoder
+    const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(plain).buffer, '');
     let skinned = 0;
     gltf.scene.traverse((node) => { if ('isSkinnedMesh' in node && node.isSkinnedMesh === true) skinned++; });
     expect(skinned).toBe(1);
