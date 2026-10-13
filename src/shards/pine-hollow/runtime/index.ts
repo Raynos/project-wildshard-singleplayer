@@ -225,9 +225,13 @@ export class PineHollow extends ShardPlugin {
     if (retainsRuntimeServices(ctx)) installRetainedPlayerEffects(ctx, { movement: player, position: () => player.position });
     installStarterEffects(ctx, { player, health: ctx.app.player, effects: ctx.app.effects },
       retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
-    // SF67: the King's parked thralls' models, each in its own task before the combat install parks them (the same cached
-    // models its prewarm would build in one stretch; the factory builds each from its own key's seed)
-    for (const kind of ['elk', 'boar'] as const) { ctx.scope.run(() => animals.factory.model(kind, thrallVariant(kind).variant)); await macrotask(); }
+    // SF67: the King's and his parked thralls' models, each in its own task before the combat install's prewarm spawns them
+    // (the same cached models it would build in one stretch; the factory builds each from its own key's seed)
+    const warm = [[KING_KIND, 'warden'], ['elk', thrallVariant('elk').variant], ['boar', thrallVariant('boar').variant]] as const;
+    for (let i = 0; i < 3; i++) {
+      const [kind, variant] = warm[i] ?? warm[0];
+      ctx.scope.run(() => animals.factory.model(kind, variant)); await macrotask();
+    }
     // SF57: after the play hook's first await the owner is the page's; the boss / elite bars and the Elites service end with
     // this runtime, not with the page (one set per visit used to stay for the page's life)
     const fights = ctx.scope.run(() => installPineCombat({ context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
