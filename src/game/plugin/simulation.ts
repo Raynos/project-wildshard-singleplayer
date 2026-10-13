@@ -1,5 +1,6 @@
 import { ContactFamily, type ContactFamilyPorts, type ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
-import { parseMeleeContacts } from '@wildshard/format/items';
+import { parseItems, parseMeleeContacts } from '@wildshard/format/items';
+import { scriptItemHook } from '@wildshard/engine/combat/items';
 import type { Vector3 } from 'three';
 import { createHeadlessPromptPicker } from '../quest/interactionRows';
 import { GridAssembly } from '../grid/assembly';
@@ -10,7 +11,6 @@ import { restoreSimHost, snapshotSimHost, regionalContinuation, type SimSnapshot
 import { SaveStore } from '@wildshard/engine/saves/store';
 import { Ledger } from '../ledger';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
-import type { Physics } from '@wildshard/engine/physics/Physics';
 import { tagOf, type Material } from '@wildshard/engine/physics/surface';
 import { parseSocketLift, type SocketLift } from '@wildshard/format/socketLift';
 import { walkEdgeEntries } from '@wildshard/engine/physics/edgeEntries';
@@ -23,7 +23,7 @@ import { buildPlatformSpawns } from "@wildshard/engine/ai/platform";
 import { addBakedTerrainCollider } from "@wildshard/engine/physics/terrainTiles";
 import { decodeTerrainTile, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
 import { fnv1a32 } from "@wildshard/engine/core/rng";
-import { installScriptLane, type ScriptLanePort } from "@wildshard/engine/script/lane";
+import { installScriptLane, ScriptDriver, type ScriptLanePort } from "@wildshard/engine/script/lane";
 import type { EffectRules, ScriptEntity } from "@wildshard/engine/script/effects";
 import { declaredWaterBody } from "@wildshard/engine/world/water/declared";
 import { WaterBodies } from "@wildshard/engine/world/water/body";
@@ -40,7 +40,7 @@ import { createQuestScriptPorts, DeclaredQuests, type QuestDataPorts, type Quest
 import { installDeclaredEncounters } from "../shard/declaredEncounters";
 import type { Shardfile } from "@wildshard/format/shardSchema";
 import { speciesResolver, simStrikes } from "./brain";
-import { createShardfileScriptLane, type ShardScriptPorts } from "../shardfile/scripts";
+import { createShardfileScriptLane, prepareShardfileScriptOptions, type ShardScriptPorts } from "../shardfile/scripts";
 import { installDeclaredBrains, type DeclaredBrainPorts } from "../shardfile/brainRuntime";
 import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from "../shardfile/scriptComposition";
 import { dataCreaturePorts } from "../shardfile/dataCreaturePorts";
@@ -58,6 +58,8 @@ import { LiftRiderSchema, type LiftRider } from "@wildshard/format/liftRider";
 import * as v from "valibot";
 import { installEntrySockets } from "@wildshard/engine/physics/entrySockets";
 import { addPiece, type AddedPiece } from "@wildshard/engine/physics/pieces";
+
+type Physics = SimHost['physics'];
 
 /** The most collider pieces one node bake may register. */
 const MAX_BAKED_PIECES = 1024;
@@ -733,5 +735,45 @@ export function startMeleeSecondary<T extends ContactScanTarget>(family: Contact
     || ![3, 4].includes(input.action) || !Number.isInteger(input.move) || input.move < 0 || input.move > 15) return null;
   if (hook({ tick: input.tick, dt: input.dt, action: input.action, fuel: 0, cooldown: family.secondaryCooldown }) !== input.action) return null;
   return (row.lands.length === 0 ? family.claim(input.move) : family.swing(input.move)) ? input.move : null;
+}
+
+/** Actor-bound item aliases and verified modules join the existing composition; this driver creates no ScriptHost. */
+export class MeleeScriptDriver {
+  readonly modules: ReadonlyMap<string, Uint8Array>;
+  readonly seed: number;
+  private readonly items: ReturnType<typeof parseItems>;
+  private readonly owner: string;
+  private readonly driver: ScriptDriver;
+  constructor(input: unknown, actorId: string, modules: ReadonlyMap<string, Uint8Array>, seed: number) {
+    if (!Number.isSafeInteger(seed) || seed < 0) throw new Error('Item script seed must be a nonnegative safe integer');
+    this.items = parseItems(input); this.owner = actorId; this.seed = seed; this.modules = modules;
+    const aliases = declaredItemScriptEntities(this.items, actorId);
+    const names = [...new Set(this.items.rows.flatMap(row => row.hook === null ? [] : [row.hook.module]))];
+    const itemRoleOptions = prepareShardfileScriptOptions({ identity: { seed }, sim: { scripts: names, bindings: [], scriptTickDivisor: 1 },
+      state: { shared: [], player: [] } }, modules, { rules: { fields: {}, archetypes: [],
+        events: [...new Set(this.items.rows.flatMap(row => row.hook === null ? [] : [row.hook.event]))], maxEntities: Math.max(1, aliases.entities.length) },
+      ...aliases, query: () => { throw new Error('Item action hooks have no query grants'); } });
+    this.driver = new ScriptDriver(itemRoleOptions);
+  }
+  /** Action responses are consumed by their requesting weapon and never accumulate as undelivered input. */
+  role(id = 'items'): ReturnType<ScriptDriver['role']> { return { ...this.driver.role(id), events: 'consume' }; }
+  /** Bind only after the role joins the shared host; another role or actor cannot lend these handles. */
+  hooks(host: Parameters<typeof scriptItemHook>[0]): ReadonlyMap<string, ReturnType<typeof scriptItemHook>> {
+    const hooks = new Map<string, ReturnType<typeof scriptItemHook>>();
+    for (const row of this.items.rows) if (row.hook !== null)
+      hooks.set(row.id, scriptItemHook(host, row.hook.module, row.hook.entity, row.hook.event, this.owner));
+    return hooks;
+  }
+}
+/** Detach and hash-verify every declared item module before building its role; normal ABI/memory/fuel admission stays fatal. */
+export async function createMeleeScriptDriver(input: unknown, actorId: string, assets: ReadonlyMap<string, Uint8Array>, seed: number): Promise<MeleeScriptDriver> {
+  const items = parseItems(input), names = [...new Set(items.rows.flatMap(row => row.hook === null ? [] : [row.hook.module]))];
+  const modules = new Map(await Promise.all(names.map(async name => {
+    const source = assets.get(name); if (source === undefined) throw new Error('Missing admitted item module');
+    const bytes = Uint8Array.from(source), digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+    if ([...digest].map(byte => byte.toString(16).padStart(2, '0')).join('') !== name.replace(/^commons:/u, '')) throw new Error('Item module hash mismatch');
+    return [name, bytes] as const;
+  })));
+  return new MeleeScriptDriver(items, actorId, modules, seed);
 }
 

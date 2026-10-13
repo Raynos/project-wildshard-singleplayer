@@ -31,6 +31,8 @@ export class ScriptWorld {
   }
   /** Read-only copy, including the frozen/noninteractive quarantine state. */
   entity(handle: number): ScriptEntity | undefined { const e = this.entities.get(handle); return e ? copy(e) : undefined; }
+  /** Host-bound actor provenance for an entity; ordinary numeric/mover worlds grant no item owner. */
+  actor(_handle: number): string | undefined { return undefined; }
   /** Snapshot of host-owned entity state, ordered by numeric handle. */
   state(): readonly ScriptEntity[] { return [...this.entities.values()].sort((a, b) => a.id - b.id).map(copy); }
   /** Restore validated host-owned state without publishing a partially checked entity list. */

@@ -34,7 +34,7 @@ export class DeclaredScriptWorld extends ScriptWorld {
     }
   }
   /** Host-derived actor provenance; scripts never provide or replace it. */
-  actor(handle: number): string | undefined { return this.actors.get(handle); }
+  override actor(handle: number): string | undefined { return this.actors.get(handle); }
   /** Trusted server input in declaration order, never another actor's private record. */
   input(handle: number): readonly number[] {
     const actor = this.actor(handle), values = actor === undefined ? this.declaration.player.map((f) => f.default) : this.players.get(actor);

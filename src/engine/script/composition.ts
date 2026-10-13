@@ -41,6 +41,8 @@ class RoleWorld extends ScriptWorld {
   refresh(): void { this.ownership = this.owners(); }
   role(entity: number): ScriptRole | undefined { return this.ownership.get(entity); }
   override entity(entity: number): ScriptEntity | undefined { return this.role(entity)?.world.entity(entity); }
+  /** Ownership comes only from the entity's declared role, never another role's actor aliases. */
+  override actor(entity: number): string | undefined { return this.role(entity)?.world.actor(entity); }
   override state(): readonly ScriptEntity[] { return this.roles.flatMap(role => role.world.state()).sort((a, b) => a.id - b.id); }
   override freeze(entity: number, frozen: boolean): void { this.role(entity)?.world.freeze(entity, frozen); }
   override restore(_entities: readonly ScriptEntity[]): void { throw new Error('Restore complete composed role continuations'); }

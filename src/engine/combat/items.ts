@@ -3,7 +3,6 @@ import type { AimCommand } from '../input/commands';
 import type { Actor, CombatPipeline, CombatTag, CombatTarget } from './pipeline';
 import type { EffectId } from './effects/types';
 import type { ScriptHost } from '../script/host';
-import { DeclaredScriptWorld } from '../script/state';
 import type { Scope } from '../app/scope';
 
 /** Numeric action requests accepted from input and an admitted item hook. */
@@ -32,7 +31,8 @@ const finiteAim = (aim: AimCommand): boolean => [aim.origin.x, aim.origin.y, aim
   && Math.hypot(aim.direction.x, aim.direction.y, aim.direction.z) > 1e-6;
 /** Compile a hook over the already installed, shared ScriptHost. An author cannot target another item or invent an action. */
 export function scriptItemHook(host: ScriptHost, module: string, entity: number, event: number, actorId: string): ItemHook {
-  if (!(host.world instanceof DeclaredScriptWorld) || host.world.actor(entity) !== actorId) throw new Error('Item hook requires its host-bound owner');
+  if (typeof actorId !== 'string' || actorId.length === 0 || actorId.length > 128
+    || host.world.actor(entity) !== actorId) throw new Error('Item hook requires its host-bound owner');
   return (input) => {
     const call = host.call(module, entity, [input.tick, input.dt, input.action, entity, input.fuel, input.cooldown]);
     if (!call.ok || call.events.length !== 1) return null;

@@ -3858,3 +3858,16 @@ or failed hook declines without touching the contact continuation. Immediate
 contacts still land in the owner's original phase; timed contacts advance
 only when that owner advances them. No second contact controller is created.
 Absent `secondary` keeps existing item admission bytes unchanged.
+
+G394 composed item hooks: `ScriptWorld.actor(handle)` supplies host-bound
+provenance, with no grant in an ordinary world. A composed world delegates
+only to the entity's own role. `scriptItemHook` therefore works on the same
+composed host while refusing unknown, unbound and cross-role actors.
+`@wildshard/game/plugin/simulation.createMeleeScriptDriver(items, actorId,
+admittedAssets, seed)` detaches and verifies the declared module hashes,
+then prepares an item role without constructing another ScriptHost.
+`driver.role()` joins the existing composition; `driver.hooks(host)` binds
+its actor-owned hooks after that join. Include its modules and entity handles
+in the existing aggregate admission. Item responses are consumed on the
+following tick; sleeping numeric-role input stays charged across restore.
+The owning composition advances the single clock and all shared allowances.
