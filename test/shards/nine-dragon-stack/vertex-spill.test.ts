@@ -8,7 +8,7 @@ import { BufferAttribute, BufferGeometry, Color, Float32BufferAttribute, Vector3
 import { describe, expect, it } from 'vitest';
 import { bakeSpill, type Emitter } from '../../../src/shards/nine-dragon-stack/runtime/looks/vertexSpill';
 import { originalSpill } from '../../fixtures/nine-spill/vertexSpill';
-import { LayoutBake } from '../../../src/shards/nine-dragon-stack/world/layoutBake';
+import { oracleLayout } from './oracleBakes';
 
 function geometry(positions: readonly number[], normals: readonly number[]): BufferGeometry {
   const result = new BufferGeometry();
@@ -57,7 +57,7 @@ describe('occupied-cell Nine spill preserves the frozen light law', () => {
   });
 
   it('matches every spill byte on the real baked layout and its authored emitters', async () => {
-    const layout = new LayoutBake(new Uint8Array(inflateSync(readFileSync(new URL('../../../public/assets/nine-dragon/baked/layout.bin', import.meta.url)))));
+    const layout = oracleLayout(new Uint8Array(inflateSync(readFileSync(new URL('../../../public/assets/nine-dragon/baked/layout.bin', import.meta.url)))));
     const geos = layout.rows.geometries.map((_row, i) => layout.geometry(i));
     const lights = layout.rows.emitters.map(row => ({
       at: new Vector3(...row.at), color: new Color(...row.color), w: row.w, h: row.h, power: row.power, spill: row.spill,
