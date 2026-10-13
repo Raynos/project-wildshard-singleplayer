@@ -1,9 +1,8 @@
-import { InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type Group } from 'three';
+import { InstancedMesh, Mesh, type Group } from 'three';
 import { CROWN, DAIS } from '../data/layout';
-import { CARVED } from '../data/modelFrames';
 import { hdMaterial, skyHd } from './meshes';
 import { skyMappedLook } from './looks';
-import { CROWN_STONES, type Stone } from '../data/crownLayout';
+import STONES from '../data/crownInstances.generated.json' with { type: 'json' };
 import { skyBakedPiece } from './baked';
 
 /**
@@ -14,22 +13,21 @@ import { skyBakedPiece } from './baked';
  */
 export function crownArena(): { group: Group; colliders: ReturnType<typeof skyBakedPiece>['colliders'] } {
   const baked = skyBakedPiece('crown'), group = baked.root; group.name = 'far.crown.arena';
-  group.add(...carvedSet(CROWN_STONES));
+  group.add(...carvedSet());
   return { group, colliders: baked.colliders };
 }
 
 /** The modelled stones (two models, alternating) and dais; none when one failed to load. */
-function carvedSet(stones: readonly Stone[]): Mesh[] {
+function carvedSet(): Mesh[] {
   const a = skyHd('crown-stone'), b = skyHd('crown-stone-b'), d = skyHd('crown-dais');
   if (a === null || b === null || d === null) return [];
-  const out: Mesh[] = [], m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
+  const out: Mesh[] = [];
   for (const [k, made] of [a, b].entries()) {
-    const list = stones.filter((_, i) => i % 2 === k);
+    const matrices = STONES[k];
+    if (matrices === undefined) throw new Error('Missing crown instance rows');
     const g = made.geometry;
-    const mesh = new InstancedMesh(g, hdMaterial(made.map), list.length); mesh.name = `far.crown.stone-${k}`;
-    list.forEach((st, i) => {
-      q.setFromAxisAngle(up, st.yaw + CARVED.yaw); m.compose(new Vector3(st.x, CROWN.y - CARVED.sink, st.z), q, new Vector3(st.h, st.h, st.h)); mesh.setMatrixAt(i, m);
-    });
+    const mesh = new InstancedMesh(g, hdMaterial(made.map), matrices.length / 16); mesh.name = `far.crown.stone-${k}`;
+    mesh.instanceMatrix.array.set(matrices);
     mesh.computeBoundingSphere(); out.push(mesh);
   }
   const dg = d.geometry;

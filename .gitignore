@@ -931,3 +931,6 @@ src/shards/sunscar-dunes/data/heldPlayback.generated.json
 # Vane rest geometry is generated from the retained author-only recipe.
 /public/assets/far-reach/models/wind-vane/post.glb
 /public/assets/far-reach/models/wind-vane/rotor.glb
+
+# Retained Sky Crown instance recipe, generated at build time.
+src/shards/far-reach/data/crownInstances.generated.json

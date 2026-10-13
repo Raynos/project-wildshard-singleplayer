@@ -8754,6 +8754,40 @@
       "buildTimeOutputs": [
         "public/assets/far-reach/models/wind-vane/rotor.glb"
       ]
+    },
+    {
+      "id": "sky-crown-instances",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/crownInstances.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/crownInstances.ts",
+        "crownInstances",
+        "src/shards/far-reach/data/crownInstances.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/far-reach/data/bookStand.ts",
+        "src/shards/far-reach/data/crownLayout.ts",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/modelFrames.ts",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/data/trees.ts",
+        "src/shards/far-reach/generators/crownInstances.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/crownInstances.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/far-reach/data/crownInstances.generated.json": "3af611946d9a3c684fe659eeb7b1388c7d06c3a8dc0c6f0cc2577174e24191cb"
+      }
     }
   ]
 }
