@@ -195,7 +195,7 @@ describe('SF6 platform measures', () => {
       const row = alpha(root);
       expect(row.conversion).toEqual({ metric: 'runtime-vs-legacy', customRuntimeLines: 2, shardRuntimeLines: 2, rawGlslLines: 0, additionalGlslLines: 0, legacyLines: 11,
         legacyFolder: 'alpha-legacy', legacyRevision: 'a'.repeat(40), runtimeShare: 2 / 11, passed: true,
-        gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: 0, modules: [] } });
+        gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: 0, modules: [], exports: [] } });
       expect(row.legacyShare).toBe(row.publicShare);
       expect(row.publicShare).toBeLessThan(0.8); // the old share cannot veto the new pass
       expect(Object.keys(shardLines(root))).toEqual(['alpha']);
@@ -211,7 +211,7 @@ describe('SF6 platform measures', () => {
       put('src/shards/alpha/runtime/play.ts', 'export const play = 1;\n');
       expect(alpha(root).conversion).toEqual({ metric: 'legacy-share', customRuntimeLines: 1, shardRuntimeLines: 1, rawGlslLines: 0, additionalGlslLines: 0, legacyLines: null,
         legacyFolder: null, legacyRevision: null, runtimeShare: null, passed: null,
-        gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: 0, modules: [] } });
+        gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: 0, modules: [], exports: [] } });
       expect(checkShares({ baseline: { alpha: 10 }, enforced: { alpha: 0 } }, shardLines(root)).join(',')).toContain('ceiling 0');
     });
   });
@@ -230,7 +230,7 @@ describe('SF6 platform measures', () => {
       expect(attributed).toEqual({ status: 'import-graph', review: 'G294-primary-reach', lines: 107, modules: [
         { path: 'src/engine/private.ts', lines: 100 },
         { path: 'src/game/impl/a.ts', lines: 3 }, { path: 'src/game/impl/b.ts', lines: 2 }, { path: 'src/sdk/impl/facade.ts', lines: 2 },
-      ] });
+      ], exports: [] });
       expect(alpha(root).conversion.customRuntimeLines).toBe(110);
       // A frozen historical caller is not a second primary user.
       put('src/shards/alpha-legacy/manifest.ts', "import '@wildshard/sdk/family';\n");
@@ -254,6 +254,55 @@ describe('SF6 platform measures', () => {
       put('src/shards/_template/data/row.ts', "import '@wildshard/sdk/rows';\n");
       expect(alpha(root).conversion.gameSystemAttribution.lines).toBe(1);
       expect(shardLines(root)['_template']?.conversion.gameSystemAttribution.lines).toBe(0);
+    });
+  });
+  it('G294 charges a one-shard export and its helpers inside a shared file, directly or through platform code', () => {
+    fixture((root, put) => {
+      put('src/game/package.json', JSON.stringify({ name: '@wildshard/game', exports: { './look': './look.ts', './host': './host.ts' } }));
+      put('src/game/look.ts', [
+        "import { other } from './other';",
+        '/** A doc comment is not code. */',
+        'const helper = (n: number): number =>',
+        '  n * 2;',
+        'const sharedHelper = 1;',
+        'const both = 3;',
+        'export function shared(): number { return sharedHelper; }',
+        'export function alphaOnly(): number {',
+        '  // a comment line is not code',
+        '  return helper(both);',
+        '}',
+        'export interface AlphaRow { size: number }',
+        'export function viaHost(): number { return other + both; }',
+        'export const unused = 1;',
+        '',
+      ].join('\n'));
+      put('src/game/other.ts', 'export const other = 1;\nexport const idle = 2;\n');
+      put('src/game/host.ts', "import { viaHost } from './look';\nexport const hosted = (): number => viaHost();\n");
+      put('src/shards/alpha/runtime/a.ts', "import { shared, alphaOnly, type AlphaRow } from '@wildshard/game/look';\n"
+        + 'export const a = (row: AlphaRow): number => shared() + alphaOnly() + row.size;\n');
+      put('src/shards/beta/runtime/b.ts', "import { shared } from '@wildshard/game/look';\nimport { hosted } from '@wildshard/game/host';\n"
+        + 'export const b = shared() + hosted();\n');
+      const look = 'src/game/look.ts';
+      // A two-user export (and the helper both users reach) stays shared; a helper reached only by alpha's export counts with it.
+      expect(alpha(root).conversion.gameSystemAttribution).toEqual({ status: 'import-graph', review: 'G294-primary-reach', lines: 6, modules: [], exports: [
+        { path: look, name: 'helper', exported: false, lines: 2 }, { path: look, name: 'alphaOnly', exported: true, lines: 3 },
+        { path: look, name: 'AlphaRow', exported: true, lines: 1 },
+      ] });
+      expect(alpha(root).conversion.customRuntimeLines).toBe(8);
+      // Beta reaches viaHost only through another platform module, and other.ts's `other` only through viaHost.
+      expect(shardLines(root)['beta']?.conversion.gameSystemAttribution).toEqual({ status: 'import-graph', review: 'G294-primary-reach', lines: 4,
+        modules: [{ path: 'src/game/host.ts', lines: 2 }],
+        exports: [{ path: look, name: 'viaHost', exported: true, lines: 1 }, { path: 'src/game/other.ts', name: 'other', exported: true, lines: 1 }] });
+      // A namespace member names one export; a bare namespace use reaches every export.
+      put('src/shards/alpha/runtime/a.ts', "import * as look from '@wildshard/game/look';\nexport const a = look.alphaOnly();\n");
+      expect(alpha(root).conversion.gameSystemAttribution.exports.map(entry => entry.name)).toEqual(['helper', 'alphaOnly']);
+      expect(shardLines(root)['beta']?.conversion.gameSystemAttribution.exports.map(entry => entry.name)).toEqual(['sharedHelper', 'shared', 'viaHost', 'other']);
+      put('src/shards/alpha/runtime/a.ts', "import * as look from '@wildshard/game/look';\nexport const all = look;\n");
+      expect(alpha(root).conversion.gameSystemAttribution.exports.map(entry => entry.name)).toEqual(['helper', 'alphaOnly', 'AlphaRow', 'unused']);
+      expect(shardLines(root)['beta']?.conversion.gameSystemAttribution).toMatchObject({ lines: 2, exports: [] });
+      // A top-level statement runs for every shard that evaluates the file, so what it references is shared.
+      put('src/game/look.ts', `${readFileSync(join(root, look), 'utf8')}console.log(helper);\n`);
+      expect(alpha(root).conversion.gameSystemAttribution.exports.map(entry => entry.name)).toEqual(['alphaOnly', 'AlphaRow', 'unused']);
     });
   });
   it('charges the live copy while a platform original reached only by registered legacy stays historical', () => {

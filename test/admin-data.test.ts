@@ -287,7 +287,7 @@ Confidence is medium for the hours spent and low to medium for the hours left. T
 
 it('carries G291 numbers into the typed bundle and refuses invented unavailable denominators',()=>{
   const conversion={metric:'runtime-vs-legacy',customRuntimeLines:20,shardRuntimeLines:12,rawGlslLines:5,additionalGlslLines:3,legacyLines:100,legacyFolder:'far-reach-legacy',legacyRevision:pin,
-    runtimeShare:0.2,passed:true,gameSystemAttribution:{status:'import-graph',review:'G294-primary-reach',lines:5,modules:[{path:'src/engine/example.ts',lines:5}]}};
+    runtimeShare:0.2,passed:true,gameSystemAttribution:{status:'import-graph',review:'G294-primary-reach',lines:5,modules:[{path:'src/engine/example.ts',lines:3}],exports:[{path:'src/game/shared.ts',name:'soleExport',exported:true,lines:2}]}};
   const report={...share,'far-reach':{...share['far-reach'],legacyShare:0.4,conversion}};
   const collected=collectAdminData({...tree(),platform:()=>report}).bundle;
   expect(readAdminBundle(collected).progress.share.shards.find(row=>row.slug==='far-reach')?.conversion).toEqual(conversion);

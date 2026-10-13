@@ -42,6 +42,19 @@ const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outp
 // on BOTH sides, including their frozen copies. Names and headers never grant an exemption. Authored data/ and
 // generators/ ARE included in the frozen denominator, but excluded from current runtime.
 // G294 adds one-user platform modules to the numerator; relocating a helper into engine/game/SDK cannot reduce it.
+// G294 per export (sp-o53): users are counted per top-level declaration, not only per file, so a one-shard export moved
+// into an already shared file still counts. A file one shard reaches counts whole (unchanged, dead code included). In a
+// file two or more shards reach, each top-level declaration (export or helper; type declarations too) that exactly one
+// shard reaches counts its own span: nonblank lines after parser comment removal (the codeLines unit), each line once.
+// Its users are the shards whose own files import it, directly or through declarations of other engine/game/SDK/commons
+// modules they reach. Where the reading is ambiguous the rule picks the one that never hides a real use:
+//   - names match top-level bindings lexically (no scope analysis): a local that shadows one still counts as a use;
+//   - a bare namespace use, `import()`, `require()` or unqualified `import('x')` type uses every export of the target;
+//   - a shard's own non-test files are roots in full: every declaration, named import and re-export in them is used;
+//   - evaluating a module runs its non-declaration top-level statements, so what they reference is used by every shard
+//     that reaches the file; a variable initialiser belongs to its binding. Import lines and top-level statements of a
+//     shared file stay shared, and a declaration no shard reaches counts for no shard.
+// The frozen denominator attributes no platform code (only the sealed legacy files), so no per-export rule applies there.
 const RULES = {
   typescript: /\.tsx?$/u,
   runtimeExcludedFolders: new Set(['generators', 'data']),
@@ -135,7 +148,142 @@ function sourceInfo(source, path) {
     };
     visit(tree.program);
   }
-  return { comments: tree.comments, specs };
+  return { comments: tree.comments, specs, tree };
+}
+// G294 per export: a module's top-level bindings, what each one's declaration references, and how its exports map
+// onto them. `refs` holds local names, `ns\0member` for a namespace-import member, and `\0spec` (`\0spec\0name` with an
+// import-type qualifier) for an expression or import-type module reference; a bare one is charged as every export. Matching is lexical, without scope analysis.
+const MEMBER_KEYS = new Set(['Property', 'MethodDefinition', 'PropertyDefinition', 'AccessorProperty', 'TSPropertySignature',
+  'TSMethodSignature', 'TSAbstractMethodDefinition', 'TSAbstractPropertyDefinition', 'TSAbstractAccessorProperty', 'ImportAttribute']);
+const OWN_IDS = new Set(['FunctionDeclaration', 'FunctionExpression', 'ClassDeclaration', 'ClassExpression', 'TSInterfaceDeclaration',
+  'TSTypeAliasDeclaration', 'TSEnumDeclaration', 'TSModuleDeclaration']);
+function moduleSymbols(program) {
+  const imports = new Map(), exports = new Map(), stars = [], bindings = new Map(), init = { refs: new Set(), spans: [] }, statics = [];
+  const namespaces = new Set();
+  const literal = node => node?.type === 'Literal' && typeof node.value === 'string' ? node.value
+    : node?.type === 'TemplateLiteral' && node.expressions.length === 0 ? node.quasis[0].value.cooked : null;
+  const nameOf = node => node?.type === 'Identifier' ? node.name : literal(node);
+  for (const node of program.body) if (node.source && /^(?:Import|ExportNamed|ExportAll)Declaration$/u.test(node.type)) statics.push(node.source.value);
+  for (const node of program.body) if (node.type === 'ImportDeclaration') for (const spec of node.specifiers) {
+    const name = spec.type === 'ImportSpecifier' ? nameOf(spec.imported) : spec.type === 'ImportDefaultSpecifier' ? 'default' : '*';
+    imports.set(spec.local.name, { spec: node.source.value, name });
+    if (name === '*') namespaces.add(spec.local.name);
+  } else if (node.type === 'TSImportEqualsDeclaration' && node.moduleReference.type === 'TSExternalModuleReference') {
+    imports.set(node.id.name, { spec: literal(node.moduleReference.expression), name: '*' });
+    statics.push(literal(node.moduleReference.expression));
+    namespaces.add(node.id.name);
+  }
+  const collect = (root, refs) => {
+    const visit = (node, parent, key, binding) => {
+      if (node === null || typeof node !== 'object') return;
+      if (Array.isArray(node)) { for (const child of node) visit(child, parent, key, binding); return; }
+      if (typeof node.type !== 'string') return;
+      if (node.type === 'Identifier') {
+        const skip = binding === true || (key === 'property' && parent.type === 'MemberExpression' && !parent.computed)
+          || (key === 'key' && MEMBER_KEYS.has(parent.type) && !parent.computed) || (key === 'right' && parent.type === 'TSQualifiedName')
+          || (key === 'label') || (key === 'id' && (parent.type === 'TSEnumMember' || OWN_IDS.has(parent.type)))
+          || (key === 'name' && parent.type === 'TSTypeParameter');
+        if (!skip) refs.add(node.name);
+        visit(node.typeAnnotation, node, 'typeAnnotation', false);
+        visit(node.decorators, node, 'decorators', false);
+        return;
+      }
+      if (node.type === 'JSXIdentifier') {
+        if ((key === 'name' && /^(?:JSXOpening|JSXClosing)Element$/u.test(parent.type)) || (key === 'object' && parent.type === 'JSXMemberExpression')) refs.add(node.name);
+        return;
+      }
+      // Namespace members resolve to the one export they name; a bare namespace use charges every export.
+      if ((node.type === 'MemberExpression' && !node.computed && node.object.type === 'Identifier' && namespaces.has(node.object.name) && node.property.type === 'Identifier')
+        || (node.type === 'TSQualifiedName' && node.left.type === 'Identifier' && namespaces.has(node.left.name))) {
+        refs.add(`${node.object?.name ?? node.left.name}\0${node.property?.name ?? node.right.name}`);
+        return;
+      }
+      if (node.type === 'ImportExpression' || node.type === 'TSImportType') {
+        const spec = literal(node.source), member = node.qualifier?.type === 'Identifier' ? `\0${node.qualifier.name}` : '';
+        if (spec !== null) refs.add(`\0${spec}${member}`);
+        if (node.type === 'TSImportType') { visit(node.typeArguments, node, 'typeArguments', false); return; }
+      }
+      if (node.type === 'CallExpression' && node.callee.type === 'Identifier' && node.callee.name === 'require') { const spec = literal(node.arguments[0]); if (spec !== null) refs.add(`\0${spec}`); }
+      for (const [childKey, child] of Object.entries(node)) {
+        if (childKey === 'type' || childKey === 'start' || childKey === 'end' || childKey === 'range') continue;
+        // Binding positions are not references; their defaults, computed keys and type annotations are.
+        const childBinding = (childKey === 'id' && node.type === 'VariableDeclarator') || (childKey === 'params' && /Function|Arrow|TSMethodSignature|TSCallSignature|TSConstructSignature|TSFunctionType|TSConstructorType|TSDeclareFunction/u.test(node.type))
+          || (childKey === 'param' && node.type === 'CatchClause') || (childKey === 'parameter' && node.type === 'TSParameterProperty')
+          || (binding && ((node.type === 'Property' && childKey === 'value') || (node.type === 'RestElement' && childKey === 'argument')
+            || (node.type === 'AssignmentPattern' && childKey === 'left') || (node.type === 'ArrayPattern' && childKey === 'elements')
+            || (node.type === 'ObjectPattern' && childKey === 'properties')));
+        visit(child, node, childKey, childBinding);
+      }
+    };
+    visit(root, null, null, false);
+  };
+  const patternNames = (node, out) => {
+    if (!node) return out;
+    if (node.type === 'Identifier') out.push(node.name);
+    else if (node.type === 'ObjectPattern') for (const prop of node.properties) patternNames(prop.type === 'RestElement' ? prop.argument : prop.value, out);
+    else if (node.type === 'ArrayPattern') for (const element of node.elements) patternNames(element, out);
+    else if (node.type === 'RestElement') patternNames(node.argument, out);
+    else if (node.type === 'AssignmentPattern') patternNames(node.left, out);
+    return out;
+  };
+  const bind = (name, span, declaration) => {
+    if (!bindings.has(name)) bindings.set(name, { spans: [], refs: new Set() });
+    const row = bindings.get(name);
+    row.spans.push(span);
+    collect(declaration, row.refs);
+  };
+  const declare = (declaration, statement) => {
+    const span = { start: statement.start, end: statement.end };
+    if (declaration.type === 'VariableDeclaration') {
+      for (const declarator of declaration.declarations) {
+        const names = patternNames(declarator.id, []), own = declaration.declarations.length === 1 ? span : { start: declarator.start, end: declarator.end };
+        for (const name of names) bind(name, own, declarator);
+      }
+      return declaration.declarations.flatMap(row => patternNames(row.id, []));
+    }
+    if (declaration.type === 'TSModuleDeclaration' && (declaration.id?.type !== 'Identifier' || declaration.kind === 'global')) { collect(declaration, init.refs); init.spans.push(span); return []; }
+    if (declaration.type === 'TSImportEqualsDeclaration') { if (!imports.has(declaration.id.name)) bind(declaration.id.name, span, declaration.moduleReference); return [declaration.id.name]; }
+    if (declaration.id?.type === 'Identifier') { bind(declaration.id.name, span, declaration); return [declaration.id.name]; }
+    return null;
+  };
+  for (const node of program.body) {
+    if (node.type === 'ImportDeclaration' || (node.type === 'TSImportEqualsDeclaration' && imports.has(node.id.name))) continue;
+    if (node.type === 'ExportAllDeclaration') {
+      if (node.exported === null) stars.push(node.source.value);
+      else exports.set(nameOf(node.exported), { spec: node.source.value, name: '*' });
+      continue;
+    }
+    if (node.type === 'ExportNamedDeclaration') {
+      if (node.declaration) for (const name of declare(node.declaration, node) ?? []) exports.set(name, { local: name });
+      for (const spec of node.specifiers) exports.set(nameOf(spec.exported), node.source ? { spec: node.source.value, name: nameOf(spec.local) } : { local: nameOf(spec.local) });
+      continue;
+    }
+    if (node.type === 'ExportDefaultDeclaration') {
+      const names = /Declaration$|^TSDeclareFunction$/u.test(node.declaration.type) ? declare(node.declaration, node) : null;
+      if (names?.length === 1) exports.set('default', { local: names[0] });
+      else { bind('\0default', { start: node.start, end: node.end }, node.declaration); exports.set('default', { local: '\0default' }); }
+      continue;
+    }
+    if (node.type === 'TSExportAssignment') { bind('\0default', { start: node.start, end: node.end }, node.expression); exports.set('default', { local: '\0default' }); continue; }
+    const names = /Declaration$|^TSDeclareFunction$/u.test(node.type) ? declare(node, node) : null;
+    if (names === null) { collect(node, init.refs); init.spans.push({ start: node.start, end: node.end }); }
+  }
+  return { imports, exports, stars, bindings, init, statics };
+}
+/** Per line of `source`: does it hold code once parser comment spans are blanked (the codeLines unit)? */
+function codeLineMask(source, comments) {
+  const chunks = [];
+  let cursor = 0;
+  for (const { start, end } of comments) {
+    chunks.push(source.slice(cursor, start), source.slice(start, end).replaceAll(/[^\n]/gu, ' '));
+    cursor = end;
+  }
+  chunks.push(source.slice(cursor));
+  const starts = [0], blanked = chunks.join('');
+  for (let index = 0; index < blanked.length; index++) if (blanked[index] === '\n') starts.push(index + 1);
+  const code = blanked.split('\n').map(line => line.trim() !== '');
+  const lineOf = offset => { let low = 0, high = starts.length - 1; while (low < high) { const mid = (low + high + 1) >> 1; if (starts[mid] <= offset) low = mid; else high = mid - 1; } return low; };
+  return { code, lineOf };
 }
 export function shardLines(root = ROOT) {
   const exists = (path) => existsSync(resolve(root, path)), texts = new Map(), graphs = new Map(), sources = new Map(), counts = new Map();
@@ -169,22 +317,23 @@ export function shardLines(root = ROOT) {
     const path = typeof target === 'string' ? relative(root, resolve(root, `src/${pkg}`, target)).replaceAll('\\', '/') : null;
     return path !== null && exists(path) ? path : null;
   };
+  const resolveEdge = (path, spec) => {
+    const pkg = /^@wildshard\/(sdk|game|engine|commons)(?:\/|$)/u.exec(spec ?? '');
+    const shaderBase = spec?.startsWith('.') ? relative(root, resolve(root, path, '..', spec.split('?')[0])).replaceAll('\\', '/') : null;
+    const shaderPath = shaderBase?.endsWith('.glsl') && exists(shaderBase) ? shaderBase : null;
+    const to = spec === null ? null : shaderPath ?? (pkg === null ? null : publishedTarget(pkg[1], spec)) ?? resolveSpecifier(path, spec, exists);
+    // Local AssemblyScript imports are part of the same authored closure, including extensionless imports.
+    const base = spec?.startsWith('.') ? relative(root, resolve(root, path, '..', spec)).replaceAll('\\', '/') : null;
+    const assemblyPath = base === null ? null : [base, `${base}.as`, `${base}/index.as`].find((candidate) => candidate.endsWith('.as') && exists(candidate));
+    // A local JSON import is data: it resolves to its file, which the folder rules then classify like any other.
+    const jsonPath = base !== null && base.endsWith('.json') && exists(base) ? base : null;
+    // Classify the resolved path's namespace components; an audited tree need not contain that namespace.
+    const local = (to ?? '').split('/');
+    const trustedLocal = local.length > 3 && local[0] === 'src' && local[1] === 'sdk' && local[2] === 'runtime';
+    return { sdk: publishedTarget('sdk', spec) !== null, trusted: /^@wildshard\/sdk\/runtime(?:\/|$)/u.test(spec ?? '') || trustedLocal, commons: publishedTarget('commons', spec) !== null, to: to ?? assemblyPath ?? jsonPath ?? null };
+  };
   const graph = (path) => {
-    if (!graphs.has(path)) graphs.set(path, info(path).specs.map((spec) => {
-      const pkg = /^@wildshard\/(sdk|game|engine|commons)(?:\/|$)/u.exec(spec ?? '');
-      const shaderBase = spec?.startsWith('.') ? relative(root, resolve(root, path, '..', spec.split('?')[0])).replaceAll('\\', '/') : null;
-      const shaderPath = shaderBase?.endsWith('.glsl') && exists(shaderBase) ? shaderBase : null;
-      const to = spec === null ? null : shaderPath ?? (pkg === null ? null : publishedTarget(pkg[1], spec)) ?? resolveSpecifier(path, spec, exists);
-      // Local AssemblyScript imports are part of the same authored closure, including extensionless imports.
-      const base = spec?.startsWith('.') ? relative(root, resolve(root, path, '..', spec)).replaceAll('\\', '/') : null;
-      const assemblyPath = base === null ? null : [base, `${base}.as`, `${base}/index.as`].find((candidate) => candidate.endsWith('.as') && exists(candidate));
-      // A local JSON import is data: it resolves to its file, which the folder rules then classify like any other.
-      const jsonPath = base !== null && base.endsWith('.json') && exists(base) ? base : null;
-      // Classify the resolved path's namespace components; an audited tree need not contain that namespace.
-      const local = (to ?? '').split('/');
-      const trustedLocal = local.length > 3 && local[0] === 'src' && local[1] === 'sdk' && local[2] === 'runtime';
-      return { sdk: publishedTarget('sdk', spec) !== null, trusted: /^@wildshard\/sdk\/runtime(?:\/|$)/u.test(spec ?? '') || trustedLocal, commons: publishedTarget('commons', spec) !== null, to: to ?? assemblyPath ?? jsonPath ?? null };
-    }));
+    if (!graphs.has(path)) graphs.set(path, info(path).specs.map(spec => resolveEdge(path, spec)));
     return graphs.get(path);
   };
   const shardFiles = Object.fromEntries(readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
@@ -214,6 +363,84 @@ export function shardLines(root = ROOT) {
     if (users.size >= RULES.publicUserCount || !(RULES.typescript.test(path) || path.endsWith('.glsl'))) continue;
     const lines = count(path);
     if (lines > 0) privateModules.get([...users][0]).push({ path, lines });
+  }
+  // G294 per export: a module that two or more shards reach as a file still charges every top-level declaration that
+  // exactly one shard reaches, through its own imports or transitively through the platform code it reaches.
+  const symbols = new Map(), masks = new Map(), bindingUsers = new Map();
+  const parsedTs = path => RULES.typescript.test(path) && !path.endsWith('.d.ts');
+  const symbolsOf = path => { if (!symbols.has(path)) symbols.set(path, moduleSymbols(info(path).tree.program)); return symbols.get(path); };
+  for (const [slug, files] of Object.entries(shardFiles)) {
+    if (slug === RULES.template) continue;
+    const prefix = `src/shards/${slug}/`, seen = new Set(), queue = files.filter(path => !RULES.tests.test(path)).map(path => [path, null]);
+    const follow = path => typeof path === 'string' && sourceFile.test(path) && !path.endsWith('.d.ts') && !RULES.tests.test(path) && exists(path)
+      && (path.startsWith(prefix) || /^src\/(?:engine|game|sdk|commons)\//u.test(path));
+    // Resolve an exported name (or `*`, every export) to the local declaration(s) behind it; reaching it evaluates the module.
+    const exported = (path, name, stack = new Set()) => {
+      if (path === null || !follow(path)) return;
+      queue.push([path, null]);
+      if (!parsedTs(path) || stack.has(`${path}\0${name}`)) return;
+      stack.add(`${path}\0${name}`);
+      const sym = symbolsOf(path), rows = name === '*' ? [...sym.exports.values()] : sym.exports.has(name) ? [sym.exports.get(name)] : [];
+      for (const row of rows) {
+        // `export { imported as name }` forwards to the imported module's export.
+        const forward = row.local === undefined ? row : sym.imports.get(row.local);
+        if (forward === undefined) queue.push([path, row.local]); else exported(resolveEdge(path, forward.spec).to, forward.name, stack);
+      }
+      if (name === '*' || rows.length === 0) for (const star of sym.stars) exported(resolveEdge(path, star).to, name, stack);
+    };
+    const reach = (path, sym, refs) => {
+      for (const ref of refs) {
+        const [head, member] = ref.split('\0', 2), parts = ref.split('\0');
+        if (head === '') exported(resolveEdge(path, parts[1]).to, parts[2] ?? '*');
+        else if (member !== undefined) { const row = sym.imports.get(head); if (row) exported(resolveEdge(path, row.spec).to, member); }
+        else if (sym.bindings.has(ref)) queue.push([path, ref]);
+        else if (sym.imports.has(ref)) { const row = sym.imports.get(ref); exported(resolveEdge(path, row.spec).to, row.name); }
+      }
+    };
+    while (queue.length > 0) {
+      const [path, local] = queue.pop(), key = `${path}\0${local ?? ''}`;
+      if (seen.has(key) || !follow(path)) continue;
+      seen.add(key);
+      if (!parsedTs(path)) { for (const row of graph(path)) if (row.to !== null) queue.push([row.to, null]); continue; }
+      const sym = symbolsOf(path);
+      if (local === null) {
+        // Evaluating a module runs its top-level statements and evaluates its static imports.
+        for (const spec of sym.statics) { const to = resolveEdge(path, spec).to; if (to !== null) queue.push([to, null]); }
+        reach(path, sym, sym.init.refs);
+        // The shard's own folder is the root: every declaration, named import and re-export in it is used (a namespace
+        // import reaches the members its declarations name, or every export when used bare).
+        if (path.startsWith(prefix)) {
+          for (const name of sym.bindings.keys()) queue.push([path, name]);
+          for (const row of sym.imports.values()) if (row.name !== '*') exported(resolveEdge(path, row.spec).to, row.name);
+          for (const row of sym.exports.values()) if (row.spec !== undefined) exported(resolveEdge(path, row.spec).to, row.name);
+          for (const star of sym.stars) exported(resolveEdge(path, star).to, '*');
+        }
+        continue;
+      }
+      const row = sym.bindings.get(local);
+      if (row === undefined) continue;
+      if (RULES.attributedLayers.test(path)) {
+        if (!bindingUsers.has(key)) bindingUsers.set(key, new Set());
+        bindingUsers.get(key).add(slug);
+      }
+      reach(path, sym, row.refs);
+    }
+  }
+  const privateExports = new Map(Object.keys(shardFiles).map(slug => [slug, []]));
+  for (const [path, users] of [...moduleUsers].sort(([a], [b]) => a.localeCompare(b))) {
+    if (users.size < RULES.publicUserCount || !parsedTs(path) || ignored(path)) continue;
+    const sym = symbolsOf(path), claimed = new Set();
+    if (!masks.has(path)) masks.set(path, codeLineMask(text(path), info(path).comments));
+    const { code, lineOf } = masks.get(path), exportedLocals = new Set([...sym.exports.values()].flatMap(row => row.local ?? []));
+    const sole = [...sym.bindings].map(([local, row]) => ({ local, row, owners: bindingUsers.get(`${path}\0${local}`) }))
+      .filter(entry => entry.owners?.size === 1).sort((a, b) => a.row.spans[0].start - b.row.spans[0].start);
+    for (const { local, row, owners } of sole) {
+      let lines = 0;
+      for (const span of row.spans) for (let line = lineOf(span.start); line <= lineOf(Math.max(span.start, span.end - 1)); line++) {
+        if (!claimed.has(line) && code[line]) { claimed.add(line); lines++; }
+      }
+      if (lines > 0) privateExports.get([...owners][0]).push({ path, name: local === '\0default' ? 'default' : local, exported: exportedLocals.has(local), lines });
+    }
   }
   const classify = (slug, path) => {
     const prefix = `src/shards/${slug}/`, seen = new Set(), queue = [path], generator = path.startsWith(`${prefix}generators/`);
@@ -268,14 +495,15 @@ export function shardLines(root = ROOT) {
         .reduce((total, path) => total + count(`src/shards/${folder}/${path}`), 0);
       if (legacyLines <= 0) throw new Error(`${slug}: frozen legacy has no authored TypeScript lines`);
     }
-    const modules = privateModules.get(slug), attributedLines = modules.reduce((total, module) => total + module.lines, 0);
+    const modules = privateModules.get(slug), exports = privateExports.get(slug);
+    const attributedLines = [...modules, ...exports].reduce((total, module) => total + module.lines, 0);
     const customRuntimeLines = shardRuntimeLines + additionalGlslLines + attributedLines;
     row.conversion = {
       metric: pair === undefined ? 'legacy-share' : 'runtime-vs-legacy', customRuntimeLines, shardRuntimeLines, rawGlslLines, additionalGlslLines,
       legacyLines, legacyFolder: pair?.[0] ?? null, legacyRevision: pair?.[1].source ?? null,
       runtimeShare: legacyLines === null ? null : customRuntimeLines / legacyLines,
       passed: legacyLines === null ? null : customRuntimeLines <= legacyLines * 0.2,
-      gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: attributedLines, modules },
+      gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: attributedLines, modules, exports },
     };
     out[slug] = row;
   }
@@ -327,6 +555,12 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
       const passed = measure.passed ?? (row.publicShare >= 0.8 && row.runtimeLines <= ceiling);
       console.log(`${slug.padEnd(22)} ${String(measure.shardRuntimeLines).padStart(8)} ${String(measure.gameSystemAttribution.lines).padStart(14)} ${String(measure.legacyLines ?? '—').padStart(10)} ${ratio.padStart(16)}  ${(passed ? 'PASS' : 'FAIL').padEnd(10)} ${(row.legacyShare * 100).toFixed(1).padStart(7)} %  ${measure.metric === 'runtime-vs-legacy' ? RULES.enforcement : (slug in recorded.enforced ? 'old enforced' : 'old reported')}`);
       console.log(`  proofs ${JSON.stringify(milestoneFlags(slug, row))}`);
+      const sole = measure.gameSystemAttribution, byModule = new Map();
+      for (const entry of sole.exports) byModule.set(entry.path, [...byModule.get(entry.path) ?? [], entry]);
+      const wholeLines = sole.modules.reduce((total, module) => total + module.lines, 0);
+      const listed = (rows, separator) => rows.length > 0 ? rows.join(separator) : 'none';
+      console.log(`  G294 sole whole modules ${wholeLines} lines (${listed(sole.modules.map(module => `${module.path} ${module.lines}`), ', ')}); sole exports ${sole.lines - wholeLines} lines (${listed([...byModule].map(([path, entries]) =>
+        `${path} ${entries.reduce((total, entry) => total + entry.lines, 0)}: ${entries.map(entry => `${entry.exported ? '' : '~'}${entry.name} ${entry.lines}`).join(' ')}`), '; ')})`);
       console.log(`  raw GLSL ${measure.rawGlslLines} lines (${measure.additionalGlslLines} additional to runtime TS); AssemblyScript ${row.assemblyScriptLines} lines (report-only, no cap); content ${JSON.stringify(shardContent(slug, ROOT, products))}`);
     }
   }

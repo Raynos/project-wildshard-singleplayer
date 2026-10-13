@@ -3,8 +3,13 @@ export interface ConversionMeasure {
   metric: 'runtime-vs-legacy' | 'legacy-share'; customRuntimeLines: number; shardRuntimeLines: number; rawGlslLines: number; additionalGlslLines: number;
   legacyLines: number | null; legacyFolder: string | null; legacyRevision: string | null;
   runtimeShare: number | null; passed: boolean | null;
-  /** G294/G312: transitive real primary users, deduplicated; templates and frozen copies never supply users. */
-  gameSystemAttribution: { status: 'import-graph'; review: 'G294-primary-reach'; lines: number; modules: { path: string; lines: number }[] };
+  /**
+   * G294/G312: transitive real primary users, deduplicated; templates and frozen copies never supply users. `modules` are
+   * whole files one shard reaches; `exports` are top-level declarations (`exported: false` for a helper) that exactly one
+   * shard reaches inside a file two or more shards reach.
+   */
+  gameSystemAttribution: { status: 'import-graph'; review: 'G294-primary-reach'; lines: number; modules: { path: string; lines: number }[];
+    exports: { path: string; name: string; exported: boolean; lines: number }[] };
 }
 export interface ShardLines {
   publicLines: number; customLines: number; runtimeLines: number; trustedRuntimeLines: number; assemblyScriptLines: number; publicShare: number; legacyShare: number; conversion: ConversionMeasure;

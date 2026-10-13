@@ -34,9 +34,15 @@ function conversion(value,slug){
     if(!isObject(module)||typeof module.path!=='string'||!/^src\/(?:engine|game|sdk)\//u.test(module.path))throw new Error(`Share script output: ${slug} has invalid attributed module`);
     return {path:module.path,lines:count(module.lines,`${slug}.${module.path}`)};
   });
+  // G294 per export: one-shard declarations inside files two or more shards reach (absent before sp-o53, read as none).
+  if(attribution.exports!==undefined&&!Array.isArray(attribution.exports))throw new Error(`Share script output: ${slug} has invalid attributed exports`);
+  const exports=(attribution.exports??[]).map(entry=>{
+    if(!isObject(entry)||typeof entry.path!=='string'||!/^src\/(?:engine|game|sdk)\//u.test(entry.path)||typeof entry.name!=='string'||typeof entry.exported!=='boolean')throw new Error(`Share script output: ${slug} has invalid attributed export`);
+    return {path:entry.path,name:entry.name,exported:entry.exported,lines:count(entry.lines,`${slug}.${entry.path}#${entry.name}`)};
+  });
   const lines=count(attribution.lines,`${slug}.gameSystemAttribution.lines`);
-  if(new Set(modules.map(module=>module.path)).size!==modules.length||lines!==modules.reduce((total,module)=>total+module.lines,0)||customRuntimeLines!==shardRuntimeLines+additionalGlslLines+lines)throw new Error(`Share script output: ${slug} has inconsistent attributed lines`);
-  const gameSystemAttribution={status:/** @type {const} */('import-graph'),review:/** @type {const} */('G294-primary-reach'),lines,modules};
+  if(new Set(modules.map(module=>module.path)).size!==modules.length||lines!==[...modules,...exports].reduce((total,module)=>total+module.lines,0)||customRuntimeLines!==shardRuntimeLines+additionalGlslLines+lines)throw new Error(`Share script output: ${slug} has inconsistent attributed lines`);
+  const gameSystemAttribution={status:/** @type {const} */('import-graph'),review:/** @type {const} */('G294-primary-reach'),lines,modules,exports};
   if(metric==='legacy-share'){
     if([value.legacyLines,value.legacyFolder,value.legacyRevision,value.runtimeShare,value.passed].some(field=>field!==null))throw new Error(`Share script output: ${slug} without legacy must be explicitly unavailable`);
     return {metric,customRuntimeLines,shardRuntimeLines,rawGlslLines,additionalGlslLines,legacyLines:null,legacyFolder:null,legacyRevision:null,runtimeShare:null,passed:null,gameSystemAttribution};

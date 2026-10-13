@@ -157,7 +157,7 @@ describe('admin view mapping', () => {
     if (pine === undefined) throw new Error('Missing Pine fixture');
     pine.conversion = { metric: 'runtime-vs-legacy', customRuntimeLines: 20, shardRuntimeLines: 20, rawGlslLines: 0, additionalGlslLines: 0,
       legacyLines: 100, legacyFolder: 'pine-hollow-legacy',
-      legacyRevision: 'a'.repeat(40), runtimeShare: 0.2, passed: true, gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: 0, modules: [] } };
+      legacyRevision: 'a'.repeat(40), runtimeShare: 0.2, passed: true, gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: 0, modules: [], exports: [] } };
     const result = toView(data, '', new Set()).plans.progress;
     expect(result.hardCount).toEqual({ done: 2, total: 7 });
     expect(result.shipping.find(row => row.slug === 'pine-hollow')).toMatchObject({ sharePct: 80, legacySharePct: 23.7,
