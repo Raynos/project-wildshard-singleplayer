@@ -8,15 +8,15 @@
 | Sky Reach | 78.4 % → **51.0 %** | ≤ 1355 lines | **11 / 0** ✔ (`fd1b0a9a4`) |
 
 **Signal and Sky meet Jake's port bar (tiles + 0 private bins).** **Nine ported** (34 L0 tiles, 0 private bins, Linux-exact). **Nalati 0 private bins** (`d3bdac368`); ground + nav one fetch (Nalati, Sky, Signal).
-**RELEASE HOLD past `9c2ce3013`: public Nine fails to load (1006 MB > 1000 MB; sp-o113).** **LIVE `ad30fba68-mv6izhvz` (10:16Z, clean)**. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: **Sim Nine 1.8 s frame since the port (P0: fix `20ebf8bfa` landing via sp-o112)**, Pine desktop PASS; Sim travel still fails Pine 57–63, Driftwood 42–50, Far 40–47 (Nalati 34–35); left = WebKit first-upload cost (KTX2 variant, sp-o110) + unsplit shard builds. **Whole products: Template, Pastel (Linux-exact); Signal next (all jobs author-only).**
+**RELEASE HOLD past `9c2ce3013`: public Nine fails to load (1006 MB > 1000 MB; sp-o113).** **LIVE `ad30fba68-mv6izhvz` (10:16Z, clean)**. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: **Sim Nine 1.8 s frame since the port (P0: `978fcc209`, sp-o112)**, Pine desktop PASS; Sim travel still fails Pine 57–63, Driftwood 42–50, Far 40–47 (Nalati 34–35); left = texture uploads (KTX2 ask) + unsplit shard builds. **Whole products: Template, Pastel (Linux-exact); Signal next.**
 
-**Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 bench, x6 SF87, x4 Pine, x1 Driftwood, x8 Nine. Opus: o112 Nine P0, o113 Nine boot memory cap, o110 Pine KTX2 variant,, (1 slot free),,
+**Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 bench, x6 SF87, x4 Pine, x1 Driftwood, x8 Nine. Opus: o112 Nine P0, o113 Nine boot memory cap, o114 Pine build slicing (1 free).
 
-**Jake ask (Nalati places):** port (big) or freeze bins + rows (cheap); recommend port later.
+**Jake ask (Nalati places):** port or freeze; recommend port later.
 **Jake ask (Sky movers):** Sky headless onto the generic mover driver deletes one-user code but re-records the gameplay hash. Recommend yes, after the sprint.
 
-**For wildshard-v, Jake ask (S2):** Graph materials stay default-off pending a physical-iPhone reading, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop reading. Near boards: `art/near-tier/round-6/`.
-**Jake ask (Sim):** KTX2 for Pine's 2048² bitmaps (default-off A/B Debug row + board, sp-o110).
+**Jake ask (S2):** Graph materials default-off pending an iPhone reading. Recommend accepting Sim + desktop. Near boards `art/near-tier/round-6/`.
+**Jake ask (Sim):** Pine phone tier `textures: 'ktx2'` (board `art/pine-ktx2/round-1-variant/`; existing Debug ▸ GPU textures row): Sim travel 52–58 → 38 ms, GPU 526 → ~260 MB, download 31 → 61–96 MB. Recommend B.
 
 **Calls for Jake (2026-10-13; reverse any):**
 6–22. Ground loader; Sky prop tiles; commons 0 packs; literal physics rows; Signal navmesh kept; query terrain; Pine cabin shapes; `props.wholeLibrary`; ≤ 1 m tile overhang; Nine portable math (≤ 9e-16); boat hull shared; Debug rows 7 → 4; bake host online; Driftwood/Nalati ground readers; Sky placements baked; Pine helper copies (closed `c757e98b8`).
