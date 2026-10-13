@@ -42,6 +42,10 @@
 export const GRAPH_IR_VERSION = 1;
 /** the most iterations a `loop` node may run */
 export const LOOP_MAX = 16;
+/** Maximum elements in one fixed-capacity numeric uniform list. */
+export const GRAPH_ARRAY_MAX = 64;
+/** Total padded vector slots across a graph's uniform lists. */
+export const GRAPH_ARRAY_SLOTS_MAX = 128;
 /** the directional lights a `sun` sub-graph is built for by default: the sky rig's three CSM cascades */
 export const SUN_CASCADES = 3;
 /** the most cascades a validation may count (three's CSM tops out at four here) */
@@ -91,6 +95,19 @@ export interface GraphParam {
   readonly min?: number;
   readonly max?: number;
   readonly bind?: GraphBinding;
+}
+
+/** Fixed-capacity numeric uniform list. Each value has the declared element
+ * type; setArrayParam updates values without resizing or changing the program. */
+export interface GraphArrayParam {
+  readonly type: 'float' | 'vec2' | 'vec3' | 'vec4';
+  readonly value: readonly GraphLiteral[];
+}
+/** Absolute post-instance model-space position, replacing the ordinary vertex.
+ * Mutually exclusive with vertex.offset; shadow variants remain unsupported. */
+export interface GraphVertexPosition {
+  readonly position: GraphRef;
+  readonly shadow?: boolean;
 }
 
 /** the surface stage's outputs (each optional; an absent one keeps the lighting model's default) */
@@ -152,6 +169,7 @@ export interface GraphStages {
   /** Points only: diameter in drawing-buffer pixels, clamped to 1 … 2048 and the device's point range. */
   readonly points?: { readonly size: GraphRef };
   readonly 'vertex.offset'?: GraphVertexOffset;
+  readonly 'vertex.position'?: GraphVertexPosition;
   readonly surface?: GraphSurface;
   readonly lighting?: GraphLighting;
   readonly outline?: GraphOutline;
@@ -172,6 +190,8 @@ export interface GraphIr {
   /** one normal per triangle (the toon family's faceted look): `normalView` is the face's */
   readonly flatShading?: boolean;
   readonly params?: Readonly<Record<string, GraphParam>>;
+  /** Numeric uniform arrays: 1–64 elements each, at most 128 padded vector slots in total. */
+  readonly arrays?: Readonly<Record<string, GraphArrayParam>>;
   readonly nodes: Readonly<Record<string, GraphNode>>;
   readonly stages: GraphStages;
 }
@@ -243,7 +263,7 @@ type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' |
 type TypeRule =
   | 'input' | 'const' | 'param' | 'same' | 'unary' | 'vecUnary' | 'length' | 'dot' | 'mix' | 'compare' | 'logic' | 'not'
   | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'point3' | 'pointPair' | 'dir3' | 'sceneTap'
-  | 'varying' | 'attribute';
+  | 'varying' | 'attribute' | 'arrayElement';
 /** one op of the vocabulary */
 export interface GraphOpSpec {
   /** the number of inputs (min, max) */
@@ -320,6 +340,8 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   sceneNormal: { arity: [0, 1], rule: 'sceneTap', cost: 6, type: 'vec3', places: ['post'] },
   const: { arity: [0, 0], rule: 'const', cost: 0 },
   param: { arity: [0, 0], rule: 'param', cost: 0 },
+  // Float index is floored and clamped to the declared fixed-capacity list.
+  arrayElement: { arity: [1, 1], rule: 'arrayElement', cost: 4 },
   // arithmetic (a float broadcasts to a vector)
   add: { arity: [2, 2], rule: 'same', cost: 1 },
   sub: { arity: [2, 2], rule: 'same', cost: 1 },
@@ -415,12 +437,12 @@ interface Raw {
   readonly version?: unknown; readonly kind?: unknown; readonly model?: unknown; readonly doubleSided?: unknown; readonly flatShading?: unknown;
   readonly primitive?: unknown; readonly effectState?: unknown; readonly blend?: unknown; readonly fog?: unknown;
   readonly depthWrite?: unknown; readonly singlePass?: unknown; readonly depthBias?: unknown; readonly factor?: unknown; readonly units?: unknown; readonly size?: unknown; readonly points?: unknown;
-  readonly params?: unknown; readonly nodes?: unknown; readonly stages?: unknown;
+  readonly arrays?: unknown; readonly params?: unknown; readonly nodes?: unknown; readonly stages?: unknown;
   readonly type?: unknown; readonly value?: unknown; readonly min?: unknown; readonly max?: unknown; readonly bind?: unknown;
   readonly day?: unknown; readonly state?: unknown;
   readonly op?: unknown; readonly in?: unknown; readonly param?: unknown; readonly mask?: unknown; readonly count?: unknown;
   readonly body?: unknown; readonly out?: unknown; readonly name?: unknown; readonly discard?: unknown;
-  readonly offset?: unknown; readonly shadow?: unknown; readonly surface?: unknown; readonly post?: unknown;
+  readonly position?: unknown; readonly offset?: unknown; readonly shadow?: unknown; readonly surface?: unknown; readonly post?: unknown;
   readonly lighting?: unknown; readonly colour?: unknown; readonly outline?: unknown;
   readonly sun?: unknown; readonly sunSpecular?: unknown; readonly ambient?: unknown; readonly grade?: unknown;
 }
@@ -471,7 +493,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   if (input.model !== undefined && input.model !== 'standard' && input.model !== 'unlit') fail(`graph: model ${JSON.stringify(input.model)} (standard or unlit)`);
   if (input.doubleSided !== undefined && typeof input.doubleSided !== 'boolean') fail('graph: doubleSided is not a boolean');
   if (input.flatShading !== undefined && typeof input.flatShading !== 'boolean') fail('graph: flatShading is not a boolean');
-  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'primitive', 'effectState', 'doubleSided', 'flatShading', 'params', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
+  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'primitive', 'effectState', 'doubleSided', 'flatShading', 'params', 'arrays', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
 
   if (input.primitive !== undefined && input.primitive !== 'mesh' && input.primitive !== 'points') fail('graph: primitive must be mesh or points');
   if (kind === 'post' && (input.primitive !== undefined || input.effectState !== undefined)) fail('graph: post graphs have no effect state or primitive');
@@ -494,6 +516,26 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       }
     }
   }
+
+  const arrayTypes = new Map<string, GraphArrayParam['type']>();
+  const rawArrays = input.arrays ?? {};
+  let arraySlots = 0;
+  if (!isRecord(rawArrays)) fail('graph: arrays is not an object');
+  else for (const [name, row] of Object.entries(rawArrays)) {
+    const at = `arrays.${name}`;
+    if (!ID.test(name) || !isRecord(row)) { fail(`${at}: a named uniform list is required`); continue; }
+    for (const key of Object.keys(row)) if (key !== 'type' && key !== 'value') fail(`${at}: unknown field ${key}`);
+    const type = row.type;
+    if (type !== 'float' && type !== 'vec2' && type !== 'vec3' && type !== 'vec4') { fail(`${at}: numeric element type required`); continue; }
+    const values = row.value;
+    if (!Array.isArray(values) || values.length === 0 || values.length > GRAPH_ARRAY_MAX) fail(`${at}: needs 1–${GRAPH_ARRAY_MAX} elements`);
+    else {
+      arraySlots += values.length;
+      if (values.some(value => literalType(value) !== type)) fail(`${at}: every element must be a ${type}`);
+    }
+    arrayTypes.set(name, type);
+  }
+  if (arraySlots > GRAPH_ARRAY_SLOTS_MAX) fail(`arrays: exceeds ${GRAPH_ARRAY_SLOTS_MAX} padded vector slots`);
 
   // params
   const paramTypes = new Map<string, GraphParamType>();
@@ -616,6 +658,11 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         if (pt === 'texture') return fail(`${at}: a texture param is read by a texture node`);
         return pt === 'colour' ? 'vec3' : pt;
       }
+      case 'arrayElement': {
+        const type = typeof raw.param === 'string' ? arrayTypes.get(raw.param) : undefined;
+        if (type === undefined) return fail(`${at}: arrayElement names a numeric uniform list`);
+        return ins[0] === 'float' ? type : fail(`${at}: arrayElement index must be a float`);
+      }
       case 'same': return broadcast(ins) ?? fail(`${at}: ${op} inputs ${ins.join(', ')} do not match`);
       case 'unary': return isNumeric(ins[0] ?? 'bool') ? (ins[0] ?? null) : fail(`${at}: ${op} takes a number`);
       case 'vecUnary': return ins[0] !== undefined && VEC_LEN[ins[0]] > 1 && isNumeric(ins[0]) ? ins[0] : fail(`${at}: ${op} takes a vector`);
@@ -692,7 +739,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   // stages
   const stages = input.stages;
   if (!isRecord(stages)) return { ok: false, errors: [...errors, 'graph: stages is not an object'] };
-  for (const k of Object.keys(stages)) if (!['vertex.offset', 'surface', 'lighting', 'outline', 'points', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
+  for (const k of Object.keys(stages)) if (!['vertex.offset', 'vertex.position', 'surface', 'lighting', 'outline', 'points', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
   const want = (ref: unknown, place: GraphPlace, type: GraphValueType, at: string): void => {
     const t = typeRef(ref, root, place, at, 1);
     if (t !== null && t !== type && !(t === 'float' && type !== 'bool')) fail(`${at}: is a ${t}, wants a ${type}`);
@@ -709,6 +756,16 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         want(points.size, 'vertex', 'float', 'stages.points.size');
       }
     } else if (points !== undefined) fail('stages.points: needs a points primitive');
+    const vp = stages['vertex.position'];
+    if (vp !== undefined) {
+      if (stages['vertex.offset'] !== undefined) fail('stages: vertex.position and vertex.offset are exclusive');
+      if (!isRecord(vp)) fail('stages.vertex.position: not an object');
+      else {
+        for (const key of Object.keys(vp)) if (key !== 'position' && key !== 'shadow') fail(`stages.vertex.position: unknown output ${key}`);
+        if (vp.shadow !== undefined && vp.shadow !== false) fail('stages.vertex.position.shadow: matching shadow variant is not emitted');
+        want(vp.position, 'vertex', 'vec3', 'stages.vertex.position.position');
+      }
+    }
     const vo = stages['vertex.offset'];
     if (vo !== undefined) {
       if (!isRecord(vo)) fail('stages.vertex.offset: not an object');
@@ -752,7 +809,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       }
     }
   } else if (kind === 'post') {
-    for (const k of ['vertex.offset', 'surface', 'lighting', 'outline', 'points'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
+    for (const k of ['vertex.offset', 'vertex.position', 'surface', 'lighting', 'outline', 'points'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
     const p = stages.post;
     if (!isRecord(p)) fail('stages.post: a post graph needs { colour }');
     else want(p.colour, 'post', 'vec3', 'stages.post.colour');
@@ -782,6 +839,7 @@ function asGraph(input: Raw): GraphIr {
     ...(typeof input.doubleSided === 'boolean' ? { doubleSided: input.doubleSided } : {}),
     ...(typeof input.flatShading === 'boolean' ? { flatShading: input.flatShading } : {}),
     ...(isRecord(input.params) ? { params: toParams(input.params) } : {}),
+    ...(isRecord(input.arrays) ? { arrays: toArrays(input.arrays) } : {}),
   };
   return graph;
 }
@@ -815,11 +873,12 @@ function toNodes(raw: Raw): Record<string, GraphNode> {
   return out;
 }
 function toStages(raw: Raw): GraphStages {
-  const vo = raw['vertex.offset'], s = raw.surface, p = raw.post, l = raw.lighting, o = raw.outline;
+  const vp = raw['vertex.position'], vo = raw['vertex.offset'], s = raw.surface, p = raw.post, l = raw.lighting, o = raw.outline;
   const surface: Record<string, GraphRef | number> = {};
   if (isRecord(s)) for (const [k, v] of Object.entries(s)) surface[k] = k === 'alphaCutoff' && isFiniteNumber(v) ? v : toRef(v);
   return {
     ...(isRecord(raw.points) ? { points: { size: toRef(raw.points.size) } } : {}),
+    ...(isRecord(vp) ? { 'vertex.position': { position: toRef(vp.position), ...(vp.shadow === false ? { shadow: false } : {}) } } : {}),
     ...(isRecord(vo) ? { 'vertex.offset': { offset: toRef(vo.offset), ...(vo.shadow === false ? { shadow: false } : {}) } } : {}),
     ...(isRecord(s) ? { surface } : {}),
     ...(isRecord(p) ? { post: { colour: toRef(p.colour) } } : {}),
@@ -858,4 +917,20 @@ export function graphUsesMeshMap(graph: Pick<GraphIr, 'nodes'>): boolean {
     if (node.body !== undefined) groups.push(node.body.nodes);
   }
   return false;
+}
+
+/** Copy admitted lists so caller mutations cannot resize compiled uniforms. */
+function toArrays(raw: Raw): Record<string, GraphArrayParam> {
+  const out: Record<string, GraphArrayParam> = {};
+  for (const [name, row] of Object.entries(raw)) {
+    if (!isRecord(row) || !Array.isArray(row.value)) continue;
+    const type = row.type;
+    if (type !== 'float' && type !== 'vec2' && type !== 'vec3' && type !== 'vec4') continue;
+    out[name] = { type, value: row.value.map(value => {
+      const literal = toRef(value);
+      if (typeof literal === 'string') throw new Error('Uniform lists require literal values');
+      return literal;
+    }) };
+  }
+  return out;
 }

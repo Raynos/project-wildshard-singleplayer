@@ -33,18 +33,18 @@
 import * as THREE from 'three';
 import {
   ConditionalNode, ConvertNode, JoinNode, MathNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, OperatorNode,
-  PhysicalLightingModel, SplitNode, type Node, type NodeBuilder, type NodeMaterial,
+  PhysicalLightingModel, SplitNode, type Node, type NodeBuilder, type NodeMaterial, type UniformArrayNode,
 } from 'three/webgpu';
 import {
   Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, hash,
   instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, positionGeometry, positionLocal,
-  positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uv, varying, vec2, vec3, vec4, vertexColor,
+  positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
 import {
-  GRAPH_OPS, SUN_OPS, validateGraph, graphUsesMeshMap, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
+  GRAPH_OPS, SUN_OPS, validateGraph, graphUsesMeshMap, type GraphArrayParam, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
   type GraphRef, type GraphValidationOptions, type GraphValueType,
 } from '@wildshard/format/materialGraph';
 
@@ -76,6 +76,8 @@ export interface CompiledGraph {
   readonly bindings: readonly { readonly param: string; readonly bind: GraphBinding }[];
   /** move a param's value (uniform only: the program stays) */
   readonly setParam: (name: string, value: GraphLiteral) => void;
+  /** Replace a numeric list with equal-length, same-type finite values; never resize its uniform buffer. */
+  readonly setArrayParam: (name: string, value: readonly GraphLiteral[]) => void;
   /** how the selects compiled: branch-free (`light`) or a real if / else (`branch`) */
   readonly selects: { readonly light: number; readonly branch: number };
   /** the outline stage's second draw (null without one): attach it with `attachOutline` */
@@ -325,12 +327,26 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     }
   }
 
+  const arrays = new Map<string, { type: GraphArrayParam['type']; node: UniformArrayNode<GraphArrayParam['type']>; length: number }>();
+  const arrayValues = (type: GraphArrayParam['type'], values: readonly GraphLiteral[]) => values.map(value => {
+    if (type === 'float' && typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'number' || value.length !== LEN[type] || !value.every(Number.isFinite)) throw new Error(`material graph: array element must be a finite ${type}`);
+    if (type === 'vec2') return new THREE.Vector2().fromArray(value);
+    if (type === 'vec3') return new THREE.Vector3().fromArray(value);
+    if (type === 'vec4') return new THREE.Vector4().fromArray(value);
+    throw new Error('material graph: array element must be a finite float');
+  });
+  for (const [name, row] of Object.entries(ir.arrays ?? {})) {
+    arrays.set(name, { type: row.type, node: uniformArray(arrayValues(row.type, row.value), row.type), length: row.value.length });
+  }
+
   // how many places read each root node (a select side read elsewhere is computed anyway, so it costs a branch nothing)
   const readers = new Map<string, number>();
   const countRef = (r: GraphRef | undefined): void => { if (typeof r === 'string') readers.set(r, (readers.get(r) ?? 0) + 1); };
   for (const n of Object.values(ir.nodes)) for (const r of n.in ?? []) countRef(r);
   const st = ir.stages;
   countRef(st['vertex.offset']?.offset);
+  countRef(st['vertex.position']?.position);
   countRef(st.points?.size);
   for (const k of ['colour', 'alpha', 'emissive', 'roughness', 'metalness', 'occlusion'] as const) countRef(st.surface?.[k]);
   countRef(st.post?.colour);
@@ -389,6 +405,12 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     /** a component-wise op over inputs widened to their common type */
     const same = (f: (...xs: Node[]) => Node, vals: readonly Val[]): Val => { const t = widest(vals); return { t, n: f(...vals.map((v) => widen(v, t))) }; };
     switch (n.op) {
+      case 'arrayElement': {
+        const row = n.param === undefined ? undefined : arrays.get(n.param);
+        if (row === undefined) throw new Error('material graph: unknown uniform list');
+        const index = new ConvertNode<'int'>(new MathNode('floor', clamp(asFloat(one()), 0, row.length - 1)), 'int');
+        return { t: row.type, n: row.node.element(index) };
+      }
       case 'uv': return { t: 'vec2', n: uv() };
       case 'positionLocal': return { t: 'vec3', n: positionLocal };
       case 'positionGeometry': return { t: 'vec3', n: positionGeometry };
@@ -622,6 +644,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       if (roughness !== null) m.roughnessNode = asFloat(roughness);
       if (metalness !== null) m.metalnessNode = asFloat(metalness);
     }
+    const position = out(st['vertex.position']?.position);
+    if (position !== null) m.positionNode = new ConvertNode<'vec3'>(widen(position, 'vec3'), 'vec3');
     const offset = out(st['vertex.offset']?.offset);
     if (offset !== null) m.positionNode = positionLocal.add(new ConvertNode<'vec3'>(widen(offset, 'vec3'), 'vec3'));
     m.side = ir.doubleSided === true ? THREE.DoubleSide : THREE.FrontSide;
@@ -674,6 +698,11 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       for (const slot of ['scene', 'depth', 'normal'] as const) { const next = targets[slot]; if (next !== undefined) for (const retarget of taps[slot]) retarget(next); }
     },
     setWeight(w) { weight.value = Math.min(1, Math.max(0, w)); },
+    setArrayParam(name, value) {
+      const row = arrays.get(name);
+      if (row === undefined || value.length !== row.length) throw new Error(`material graph: uniform list ${name} has fixed capacity`);
+      row.node.array = arrayValues(row.type, value);
+    },
     setParam(name, value) {
       const set = setters.get(name);
       if (set === undefined) throw new Error(`material graph: no param ${name}`);

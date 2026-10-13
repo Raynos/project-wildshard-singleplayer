@@ -4418,3 +4418,18 @@ existing visual phase, batches dirty instance buffers, and excludes these
 views from its native mover adoption map. Copied views cannot read native
 fields. Sky's chains, gates and rails and Signal's well bucket/rope use the
 same kernel; their original bodies, clocks and interaction owners remain.
+
+### Fixed-capacity material graph placement
+
+`@wildshard/format/materialGraph` admits `stages["vertex.position"]`
+with `{ position }`: the entire post-instance model-space vertex position.
+It is exclusive with `vertex.offset`; neither path supplies a custom shadow
+variant. `arrays` declares numeric uniform lists with `type` (`float`,
+`vec2`, `vec3`, `vec4`) and `value`. Each list has 1–64 elements; all lists
+share a 128 padded-vector-slot cap. `arrayElement` names its list in `param`
+and takes one float index, floored and clamped to the list bounds. Existing
+bounded loops may read it through their `index` node; cost limits still apply.
+The graph compiler's `setArrayParam(name, values)` requires the original
+length and element type and copies values before changing any uniforms.
+A refused update leaves the current list intact. Scalar day/state bindings
+continue to use `params` and `setParam`.
